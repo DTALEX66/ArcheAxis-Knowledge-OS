@@ -12,4 +12,5 @@ execution:
   allowed_write_dir: data/output
 
 memory:
-  backend: jsonl
+  backend: sqlite
+  db_path: data/cognitive_os.sqlite

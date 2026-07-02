@@ -34,7 +34,3 @@ Thumbs.db
 
 # Codex local state
 .codex/
-
-# Sub-repositories (tracked independently)
-Inspiration-Research/
-Knowledge-Base/

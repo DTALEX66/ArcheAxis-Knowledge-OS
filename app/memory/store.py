@@ -1,59 +1,29 @@
-from pathlib import Path
-import json
+"""Memory store — SQLite-backed, replaces JSONL."""
 from app.schemas import CoreObject, MachineLesson
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MEMORY_PATH = PROJECT_ROOT / "data" / "memory" / "memory.jsonl"
-LESSON_PATH = PROJECT_ROOT / "data" / "memory" / "lessons.jsonl"
-MEMORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+from app.memory.database import (
+    save_core_object,
+    search_core_objects,
+    save_lesson_db,
+    list_lessons_db,
+    save_memory_record,
+)
 
 
 def save_memory(obj: CoreObject) -> None:
-    with MEMORY_PATH.open("a", encoding="utf-8") as f:
-        f.write(obj.model_dump_json(ensure_ascii=False) + "\n")
-
-
-def list_memory() -> list[CoreObject]:
-    if not MEMORY_PATH.exists():
-        return []
-    items: list[CoreObject] = []
-    for line in MEMORY_PATH.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        try:
-            items.append(CoreObject(**json.loads(line)))
-        except Exception:
-            continue
-    return items
+    d = obj.model_dump()
+    save_core_object(d)
+    save_memory_record(d)
 
 
 def search_memory(query: str, top_k: int = 5) -> list[CoreObject]:
-    # Simple v1 lexical search; replace with vector DB later.
-    query_terms = set(query.lower().split())
-    scored = []
-    for item in list_memory():
-        terms = set(item.content.lower().split())
-        score = len(query_terms & terms)
-        if score > 0:
-            scored.append((score, item))
-    scored.sort(key=lambda x: x[0], reverse=True)
-    return [item for _, item in scored[:top_k]]
+    rows = search_core_objects(query, top_k=top_k)
+    return [CoreObject(**r) for r in rows]
 
 
 def save_lesson(lesson: MachineLesson) -> None:
-    with LESSON_PATH.open("a", encoding="utf-8") as f:
-        f.write(lesson.model_dump_json(ensure_ascii=False) + "\n")
+    save_lesson_db(lesson.model_dump())
 
 
 def list_lessons() -> list[MachineLesson]:
-    if not LESSON_PATH.exists():
-        return []
-    lessons: list[MachineLesson] = []
-    for line in LESSON_PATH.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        try:
-            lessons.append(MachineLesson(**json.loads(line)))
-        except Exception:
-            continue
-    return lessons
+    rows = list_lessons_db()
+    return [MachineLesson(**r) for r in rows]
