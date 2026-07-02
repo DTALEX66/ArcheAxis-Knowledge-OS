@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MachineLesson",
+  "type": "object",
+  "required": [
+    "lesson_id",
+    "trace_id",
+    "lesson",
+    "next_constraint"
+  ],
+  "properties": {
+    "lesson_id": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": "string"
+    },
+    "lesson": {
+      "type": "string"
+    },
+    "anti_pattern": {
+      "type": "string"
+    },
+    "next_constraint": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "applies_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

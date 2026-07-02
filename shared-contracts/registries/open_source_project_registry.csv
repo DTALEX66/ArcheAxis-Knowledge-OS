@@ -1,0 +1,88 @@
+project_id,name,category,recommended_target,absorption_mode,note,status,risk_policy
+osp_0001,sst/opencode,AI Agent / Coding,B线/Cognitive-OS,参考/候选Adapter,终端编码Agent与开发流程参考,candidate,standard_review
+osp_0002,All-Hands-AI/OpenHands,AI Agent / Coding,Cognitive-OS,只参考/后置,执行沙箱、软件工程Agent参考,candidate,must_review_before_use
+osp_0003,cline/cline,AI Coding Assistant,Obsidian-Assistance/Cognitive-OS,参考,IDE Agent交互与工具权限参考,candidate,standard_review
+osp_0004,Aider-AI/aider,AI Coding / Git,Cognitive-OS,Adapter/参考,Git diff、patch、commit工作流参考,candidate,standard_review
+osp_0005,continuedev/continue,AI Coding Assistant,Cognitive-OS,参考,IDE侧上下文与模型接入参考,candidate,standard_review
+osp_0006,TabbyML/tabby,Local Code AI,B线,参考,本地代码补全服务参考,candidate,standard_review
+osp_0007,QwenLM/qwen-code,AI Coding,B线,候选,国产模型编码工具链参考,candidate,standard_review
+osp_0008,RooCodeInc/Roo-Code,AI Coding Agent,Cognitive-OS,参考,多工具Agent流程参考,candidate,standard_review
+osp_0009,stackblitz-labs/bolt.diy,AI App Builder,Cognitive-OS,参考,应用生成与沙箱体验参考,candidate,standard_review
+osp_0010,google-gemini/gemini-cli,CLI Agent,Cognitive-OS,参考,CLI Agent交互参考,candidate,standard_review
+osp_0011,openai/openai-agents-python,Agent SDK,Cognitive-OS,候选Adapter,Agent运行抽象参考,candidate,standard_review
+osp_0012,pydantic/pydantic-ai,Agent SDK,Cognitive-OS,候选Adapter,Pydantic类型化Agent参考,candidate,standard_review
+osp_0013,microsoft/autogen,Multi-Agent,Cognitive-OS,后置参考,多Agent编排参考,candidate,must_review_before_use
+osp_0014,crewAIInc/crewAI,Multi-Agent,Cognitive-OS,后置参考,角色型Agent编排参考,candidate,must_review_before_use
+osp_0015,microsoft/semantic-kernel,Agent/Orchestration,B线,参考,技能/语义函数/规划参考,candidate,standard_review
+osp_0016,langchain-ai/langchain,LLM Framework,B线,参考,RAG/工具抽象参考，不接管核心,candidate,standard_review
+osp_0017,langchain-ai/langgraph,Agent State Machine,Cognitive-OS,后置Adapter,状态机Agent编排,candidate,must_review_before_use
+osp_0018,vercel/ai,AI Frontend SDK,未来Web UI,参考,Web UI AI交互参考,candidate,standard_review
+osp_0019,BerriAI/litellm,LLM Gateway,Cognitive-OS,Adapter,多模型统一网关,candidate,standard_review
+osp_0020,langgenius/dify,RAG / AI App Platform,IR/KB,只参考,工作流与知识库产品参考,candidate,standard_review
+osp_0021,open-webui/open-webui,LLM UI,未来Web UI,参考,模型前台和插件体验参考,candidate,standard_review
+osp_0022,Mintplex-Labs/anything-llm,RAG / Knowledge Base,KB,参考,本地知识库/RAG产品参考,candidate,standard_review
+osp_0023,infiniflow/ragflow,RAG / Document Intelligence,KB,参考,文档RAG流程参考,candidate,standard_review
+osp_0024,lobehub/lobe-chat,LLM UI,未来Web UI,参考,多模型聊天UI参考,candidate,standard_review
+osp_0025,FastGPT,RAG / Workflow,IR/KB,参考,知识库工作流参考,candidate,standard_review
+osp_0026,Khoj,Personal AI / Search,KB,参考,个人知识搜索参考,candidate,standard_review
+osp_0027,QuivrHQ/quivr,Second Brain / RAG,KB,参考,知识库产品参考,candidate,standard_review
+osp_0028,zylon-ai/private-gpt,Private RAG,KB,参考,私有RAG参考,candidate,standard_review
+osp_0029,assafelovic/gpt-researcher,Research Agent,IR,候选Adapter,调研Agent参考,candidate,standard_review
+osp_0030,scrapling,Crawler / Extraction,IR,Adapter候选,网页结构抽取,candidate,standard_review
+osp_0031,unclecode/crawl4ai,Crawler / LLM-ready Markdown,IR,Adapter,网页转LLM-ready Markdown,candidate,standard_review
+osp_0032,mendableai/firecrawl,Crawler / API,IR,后置Adapter,网页抓取与清洗,candidate,must_review_before_use
+osp_0033,browser-use/browser-use,Browser Agent,IR/Cognitive-OS,谨慎后置,浏览器Agent参考,candidate,must_review_before_use
+osp_0034,browserbase/stagehand,Browser Automation,IR/Cognitive-OS,谨慎后置,浏览器自动化参考,candidate,must_review_before_use
+osp_0035,microsoft/playwright,Browser Automation,IR,工具候选,受控网页采集/测试,candidate,standard_review
+osp_0036,apify/crawlee,Crawler Framework,IR,参考/Adapter,爬虫框架,candidate,standard_review
+osp_0037,trafilatura,Web Text Extraction,IR,Adapter,网页正文抽取,candidate,standard_review
+osp_0038,newspaper4k,Article Extraction,IR,Adapter候选,文章抽取,candidate,standard_review
+osp_0039,microsoft/markitdown,Document to Markdown,IR/KB,Adapter,多格式转Markdown,candidate,standard_review
+osp_0040,docling-project/docling,Document Parsing,IR/KB,Adapter,高质量文档/PDF解析,candidate,standard_review
+osp_0041,Unstructured-IO/unstructured,Document Parsing,IR/KB,Adapter候选,非结构化文档解析,candidate,standard_review
+osp_0042,opendatalab/MinerU,PDF Parsing,IR/KB,Adapter候选,PDF深度解析,candidate,standard_review
+osp_0043,VikParuchuri/marker,PDF to Markdown,IR/KB,Adapter候选,PDF转Markdown,candidate,standard_review
+osp_0044,pymupdf/RAG/pymupdf4llm,PDF to LLM,IR/KB,Adapter候选,PDF转LLM文本,candidate,standard_review
+osp_0045,apache/tika,Document Parsing,IR/KB,后置Adapter,文档解析服务,candidate,must_review_before_use
+osp_0046,mem0ai/mem0,Memory,KB/Cognitive-OS,后置Adapter,长期记忆参考,candidate,must_review_before_use
+osp_0047,getzep/graphiti,Temporal Knowledge Graph,KB,后置Adapter,时序事实/图记忆,candidate,must_review_before_use
+osp_0048,langfuse/langfuse,LLM Observability,Cognitive-OS,Adapter,Trace/评估/调用观测,candidate,standard_review
+osp_0049,promptfoo/promptfoo,LLM Evaluation,Cognitive-OS,Adapter,Prompt/RAG/Agent评测,candidate,standard_review
+osp_0050,open-telemetry/opentelemetry,Observability,Cognitive-OS,参考/Adapter,通用可观测性,candidate,standard_review
+osp_0051,sqlite-vec,Vector Search,KB,优先Adapter,SQLite本地向量检索,candidate,standard_review
+osp_0052,lancedb/lancedb,Vector DB,KB,候选Adapter,本地向量库,candidate,standard_review
+osp_0053,chroma-core/chroma,Vector DB,KB,后置Adapter,向量检索,candidate,must_review_before_use
+osp_0054,qdrant/qdrant,Vector DB,KB,后置Adapter,向量检索服务,candidate,must_review_before_use
+osp_0055,facebookresearch/faiss,Vector Search,KB,后置/参考,向量索引,candidate,must_review_before_use
+osp_0056,kuzudb/kuzu,Graph DB,KB,候选Adapter,本地图数据库,candidate,standard_review
+osp_0057,networkx/networkx,Graph,KB,直接可用,轻量知识图谱计算,candidate,standard_review
+osp_0058,neo4j/neo4j,Graph DB,KB,后置参考,重型图数据库,candidate,must_review_before_use
+osp_0059,Obsidian plugin ecosystem,PKM / Plugins,A线,插件筛选,Dataview/Tasks/Templater等,candidate,standard_review
+osp_0060,logseq/logseq,PKM,未来前台,替代参考,块级大纲与双链,candidate,standard_review
+osp_0061,siyuan-note/siyuan,PKM,未来前台,替代参考,本地知识库/块编辑参考,candidate,standard_review
+osp_0062,toeverything/AFFiNE,PKM / Workspace,未来前台,参考,白板/文档工作台参考,candidate,standard_review
+osp_0063,laurent22/joplin,Notes,未来前台,参考,开源笔记参考,candidate,standard_review
+osp_0064,zotero/zotero,Reference Manager,IR/KB,Adapter候选,文献管理,candidate,standard_review
+osp_0065,Ghidra,Security Research,IR安全研究库,只收集/不自动执行,逆向分析,candidate,must_review_before_use
+osp_0066,radare2/radare2,Security Research,IR安全研究库,只收集/不自动执行,逆向分析,candidate,must_review_before_use
+osp_0067,rizinorg/rizin,Security Research,IR安全研究库,只收集/不自动执行,逆向分析,candidate,must_review_before_use
+osp_0068,avast/retdec,Security Research,IR安全研究库,只收集/不自动执行,反编译,candidate,must_review_before_use
+osp_0069,lief-project/LIEF,Security Research,IR安全研究库,只收集/不自动执行,二进制分析,candidate,must_review_before_use
+osp_0070,angr/angr,Security Research,IR安全研究库,只收集/不自动执行,程序分析,candidate,must_review_before_use
+osp_0071,capstone-engine/capstone,Security Research,IR安全研究库,只收集/不自动执行,反汇编,candidate,must_review_before_use
+osp_0072,unicorn-engine/unicorn,Security Research,IR安全研究库,只收集/不自动执行,CPU模拟,candidate,must_review_before_use
+osp_0073,keystone-engine/keystone,Security Research,IR安全研究库,只收集/不自动执行,汇编引擎,candidate,must_review_before_use
+osp_0074,frida/frida,Security Research,IR安全研究库,只收集/不自动执行,动态插桩,candidate,must_review_before_use
+osp_0075,x64dbg/x64dbg,Security Research,IR安全研究库,只收集/不自动执行,Windows调试,candidate,must_review_before_use
+osp_0076,pwndbg/pwndbg,Security Research,IR安全研究库,只收集/不自动执行,GDB增强,candidate,must_review_before_use
+osp_0077,Gallopsled/pwntools,Security Research,IR安全研究库,只收集/不自动执行,CTF/安全研究,candidate,must_review_before_use
+osp_0078,AFLplusplus/AFLplusplus,Security Research,IR安全研究库,只收集/不自动执行,Fuzzing,candidate,must_review_before_use
+osp_0079,google/syzkaller,Security Research,IR安全研究库,只收集/不自动执行,内核Fuzzing,candidate,must_review_before_use
+osp_0080,wireshark/wireshark,Security Research,IR安全研究库,只收集/不自动执行,协议分析,candidate,must_review_before_use
+osp_0081,mitmproxy/mitmproxy,Security Research,IR安全研究库,只收集/不自动执行,代理调试,candidate,must_review_before_use
+osp_0082,zaproxy/zaproxy,Security Research,IR安全研究库,只收集/不自动执行,Web安全测试,candidate,must_review_before_use
+osp_0083,sqlmapproject/sqlmap,Security Research,IR安全研究库,只收集/不自动执行,SQL注入测试研究,candidate,must_review_before_use
+osp_0084,volatilityfoundation/volatility3,Security Research,IR安全研究库,只收集/不自动执行,内存取证,candidate,must_review_before_use
+osp_0085,VirusTotal/yara,Security Research,IR安全研究库,只收集/不自动执行,规则匹配,candidate,must_review_before_use
+osp_0086,qemu/qemu,Security Research,IR安全研究库,只收集/不自动执行,虚拟化/仿真,candidate,must_review_before_use
+osp_0087,mobsf/Mobile-Security-Framework-MobSF,Security Research,IR安全研究库,只收集/不自动执行,移动安全分析,candidate,must_review_before_use

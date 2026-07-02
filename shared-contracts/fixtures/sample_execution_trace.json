@@ -1,0 +1,21 @@
+{
+  "trace_id": "trace_demo_001",
+  "task_id": "task_demo_001",
+  "started_at": "2026-07-02 07:34:47",
+  "finished_at": "2026-07-02 07:34:47",
+  "steps": [
+    {
+      "step_id": "step_001",
+      "status": "success",
+      "output": "context analyzed"
+    },
+    {
+      "step_id": "step_002",
+      "status": "success",
+      "output": "plan produced"
+    }
+  ],
+  "status": "success",
+  "summary": "示例任务已完成，未触发高风险动作。",
+  "risk_events": []
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExecutionTrace",
+  "type": "object",
+  "required": [
+    "trace_id",
+    "task_id",
+    "steps",
+    "status",
+    "summary"
+  ],
+  "properties": {
+    "trace_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "finished_at": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "blocked",
+        "partial"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "risk_events": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

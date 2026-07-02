@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EngineeringContract",
+  "type": "object",
+  "required": [
+    "contract_id",
+    "intake_id",
+    "goal",
+    "deliverables",
+    "acceptance_criteria",
+    "blocked_actions"
+  ],
+  "properties": {
+    "contract_id": {
+      "type": "string"
+    },
+    "intake_id": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "deliverables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocked_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "target_repo": {
+      "type": "string"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    }
+  }
+}

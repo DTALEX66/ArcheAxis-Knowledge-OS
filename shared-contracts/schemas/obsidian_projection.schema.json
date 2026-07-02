@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ObsidianProjection",
+  "type": "object",
+  "required": [
+    "projection_id",
+    "source_asset_id",
+    "asset_type",
+    "target_path",
+    "render_mode"
+  ],
+  "properties": {
+    "projection_id": {
+      "type": "string"
+    },
+    "source_asset_id": {
+      "type": "string"
+    },
+    "asset_type": {
+      "type": "string"
+    },
+    "target_path": {
+      "type": "string"
+    },
+    "render_mode": {
+      "type": "string",
+      "enum": [
+        "markdown",
+        "canvas",
+        "dashboard",
+        "report"
+      ]
+    },
+    "frontmatter": {
+      "type": "object"
+    },
+    "body_template": {
+      "type": "string"
+    },
+    "write_policy": {
+      "type": "string",
+      "enum": [
+        "dry_run",
+        "apply_with_backup",
+        "blocked"
+      ]
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "course_id": "course_demo_001",
+  "title": "示例课程：AI知识系统入门",
+  "source_ids": [
+    "src_demo_course"
+  ],
+  "sections": [
+    {
+      "section_id": "sec_001",
+      "title": "系统总览",
+      "summary": "介绍 IR、KB、Cognitive-OS 的关系。"
+    }
+  ],
+  "cards": [
+    {
+      "card_id": "card_001",
+      "question": "B线是什么？",
+      "answer": "B线是核心认知系统线。"
+    }
+  ],
+  "review_items": [
+    {
+      "review_id": "rev_001",
+      "card_id": "card_001",
+      "status": "new"
+    }
+  ],
+  "canvas_nodes": [
+    {
+      "id": "node_course",
+      "type": "course",
+      "label": "AI知识系统入门"
+    }
+  ],
+  "status": "candidate"
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "candidate_id": "candidate_demo_001",
+    "repo": "microsoft/markitdown",
+    "category": "Document to Markdown",
+    "summary": "多格式文档转 Markdown，适合 IR/KB 输入层。",
+    "absorption_mode": "adapter",
+    "recommended_target": "Inspiration-Research / Knowledge-Base",
+    "scores": {
+      "token_saving": 4,
+      "efficiency_gain": 5,
+      "local_first": 4,
+      "system_fit": 5,
+      "risk_penalty": 1,
+      "total": 4.25
+    },
+    "risk_level": "medium",
+    "next_action": "create_intake_card"
+  },
+  {
+    "candidate_id": "candidate_demo_002",
+    "repo": "langfuse/langfuse",
+    "category": "LLM Observability",
+    "summary": "适合 Cognitive-OS 的 Trace / Eval 观测。",
+    "absorption_mode": "adapter",
+    "recommended_target": "Cognitive-OS",
+    "scores": {
+      "token_saving": 2,
+      "efficiency_gain": 4,
+      "local_first": 3,
+      "system_fit": 4,
+      "risk_penalty": 1,
+      "total": 3.25
+    },
+    "risk_level": "medium",
+    "next_action": "create_intake_card"
+  }
+]

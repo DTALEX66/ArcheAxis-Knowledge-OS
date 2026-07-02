@@ -1,0 +1,13 @@
+{
+  "profile_id": "osp_demo_001",
+  "repo": "unclecode/crawl4ai",
+  "category": "Crawler / LLM-ready Markdown",
+  "fit_summary": "适合 Inspiration-Research 的网页研究输入 Adapter。",
+  "absorption_mode": "adapter",
+  "target_layer": "Inspiration-Research",
+  "license_risk": "unknown_check_required",
+  "security_risk": "medium",
+  "adapter_required": true,
+  "review_status": "candidate",
+  "linked_intake_id": "intake_demo_001"
+}

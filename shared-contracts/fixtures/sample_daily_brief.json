@@ -1,0 +1,38 @@
+{
+  "brief_id": "brief_demo_001",
+  "date": "2026-07-02",
+  "sections": {
+    "gold": [
+      {
+        "title": "黄金消息示例",
+        "summary": "政策与宏观因素摘要。",
+        "impact": "watch"
+      }
+    ],
+    "design": [
+      {
+        "title": "设计行业消息示例",
+        "summary": "AI设计工具与行业趋势。"
+      }
+    ],
+    "technology": [
+      {
+        "title": "科技圈消息示例",
+        "summary": "开发者工具与开源生态。"
+      }
+    ],
+    "ai": [
+      {
+        "title": "AI消息示例",
+        "summary": "Agent/RAG/MCP方向更新。"
+      }
+    ]
+  },
+  "github_ai_projects": [
+    "candidate_demo_001",
+    "candidate_demo_002"
+  ],
+  "recommended_intake_cards": [
+    "intake_demo_001"
+  ]
+}

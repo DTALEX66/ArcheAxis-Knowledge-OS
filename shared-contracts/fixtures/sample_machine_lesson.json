@@ -1,0 +1,13 @@
+{
+  "lesson_id": "lesson_demo_001",
+  "trace_id": "trace_demo_001",
+  "lesson": "B线和A线应通过合同解耦，避免直接互相依赖。",
+  "anti_pattern": "让核心系统直接写入 Obsidian Vault。",
+  "next_constraint": "所有 Obsidian 输出必须通过 projection schema 和 A线 safe writer。",
+  "severity": "medium",
+  "applies_to": [
+    "B线",
+    "C线",
+    "Obsidian对接"
+  ]
+}

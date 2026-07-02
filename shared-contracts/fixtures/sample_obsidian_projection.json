@@ -1,0 +1,13 @@
+{
+  "projection_id": "proj_demo_001",
+  "source_asset_id": "task_demo_001",
+  "asset_type": "TaskPack",
+  "target_path": "60_Tasks/task_demo_001.md",
+  "render_mode": "markdown",
+  "frontmatter": {
+    "type": "taskpack",
+    "status": "candidate"
+  },
+  "body_template": "TaskPack 报告模板",
+  "write_policy": "dry_run"
+}

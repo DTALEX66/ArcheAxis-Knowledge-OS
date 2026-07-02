@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ContextPack",
+  "type": "object",
+  "required": [
+    "context_id",
+    "goal",
+    "sources",
+    "evidence",
+    "constraints"
+  ],
+  "properties": {
+    "context_id": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    }
+  }
+}

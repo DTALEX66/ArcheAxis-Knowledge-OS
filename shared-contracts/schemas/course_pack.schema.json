@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CoursePack",
+  "type": "object",
+  "required": [
+    "course_id",
+    "title",
+    "sections",
+    "cards",
+    "review_items"
+  ],
+  "properties": {
+    "course_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "review_items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "canvas_nodes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "status": {
+      "type": "string"
+    }
+  }
+}

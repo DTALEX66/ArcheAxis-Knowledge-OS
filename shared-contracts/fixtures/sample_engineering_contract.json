@@ -1,0 +1,22 @@
+{
+  "contract_id": "contract_demo_001",
+  "intake_id": "intake_demo_001",
+  "goal": "实现 IR 输入 Adapter 的最小版本。",
+  "deliverables": [
+    "adapter interface",
+    "sample parser",
+    "unit tests"
+  ],
+  "acceptance_criteria": [
+    "fixtures 可通过 schema 校验",
+    "输出 IntakeCard",
+    "不写核心库"
+  ],
+  "blocked_actions": [
+    "shell_exec",
+    "delete_file",
+    "read_secret"
+  ],
+  "target_repo": "Inspiration-Research",
+  "risk_level": "medium"
+}

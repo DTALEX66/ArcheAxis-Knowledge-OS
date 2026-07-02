@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenSourceProjectProfile",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "repo",
+    "category",
+    "fit_summary",
+    "absorption_mode",
+    "target_layer",
+    "review_status"
+  ],
+  "properties": {
+    "profile_id": {
+      "type": "string"
+    },
+    "repo": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "fit_summary": {
+      "type": "string"
+    },
+    "absorption_mode": {
+      "type": "string"
+    },
+    "target_layer": {
+      "type": "string"
+    },
+    "license_risk": {
+      "type": "string"
+    },
+    "security_risk": {
+      "type": "string"
+    },
+    "adapter_required": {
+      "type": "boolean"
+    },
+    "review_status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "approved",
+        "rejected",
+        "archived"
+      ]
+    },
+    "linked_intake_id": {
+      "type": "string"
+    }
+  }
+}

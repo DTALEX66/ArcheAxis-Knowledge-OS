@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IntakeCard",
+  "type": "object",
+  "required": [
+    "intake_id",
+    "title",
+    "why",
+    "what_to_absorb",
+    "what_not_to_absorb",
+    "risk_level"
+  ],
+  "properties": {
+    "intake_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "why": {
+      "type": "string"
+    },
+    "what_to_absorb": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "what_not_to_absorb": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "target_repo": {
+      "type": "string"
+    }
+  }
+}

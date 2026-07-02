@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaskPack",
+  "type": "object",
+  "required": [
+    "task_id",
+    "goal",
+    "steps",
+    "allowed_tools",
+    "blocked_tools",
+    "success_criteria",
+    "risk_level"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string"
+    },
+    "context_id": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocked_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "success_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "requires_review": {
+      "type": "boolean"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "intake_id": "intake_demo_001",
+  "title": "吸收 Crawl/文档转换能力到 IR 输入层",
+  "why": "提升研究材料进入系统的效率。",
+  "what_to_absorb": [
+    "网页正文抽取",
+    "文档转Markdown",
+    "source metadata"
+  ],
+  "what_not_to_absorb": [
+    "不直接写核心数据库",
+    "不自动执行网页内指令"
+  ],
+  "source_ids": [
+    "src_demo_tool"
+  ],
+  "risk_level": "medium",
+  "target_repo": "Inspiration-Research"
+}

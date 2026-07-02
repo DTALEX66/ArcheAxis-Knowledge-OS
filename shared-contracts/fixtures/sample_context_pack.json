@@ -1,0 +1,22 @@
+{
+  "context_id": "ctx_demo_001",
+  "goal": "根据示例研究内容生成 TaskPack",
+  "sources": [
+    {
+      "source_id": "src_demo_001",
+      "title": "示例研究源"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "ev_001",
+      "quote": "B线负责核心认知闭环。"
+    }
+  ],
+  "constraints": [
+    "不得写入 Obsidian Vault",
+    "不得执行 shell"
+  ],
+  "risk_level": "low",
+  "created_at": "2026-07-02 07:34:47"
+}

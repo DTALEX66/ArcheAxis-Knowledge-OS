@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DailyBrief",
+  "type": "object",
+  "required": [
+    "brief_id",
+    "date",
+    "sections",
+    "github_ai_projects"
+  ],
+  "properties": {
+    "brief_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "sections": {
+      "type": "object",
+      "properties": {
+        "gold": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "design": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "technology": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "ai": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "github_ai_projects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "recommended_intake_cards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

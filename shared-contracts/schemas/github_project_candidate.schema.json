@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GitHubProjectCandidate",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "repo",
+    "category",
+    "absorption_mode",
+    "recommended_target",
+    "scores"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string"
+    },
+    "repo": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "absorption_mode": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "adapter",
+        "reference",
+        "defer",
+        "reject"
+      ]
+    },
+    "recommended_target": {
+      "type": "string"
+    },
+    "scores": {
+      "type": "object",
+      "properties": {
+        "token_saving": {
+          "type": "number"
+        },
+        "efficiency_gain": {
+          "type": "number"
+        },
+        "local_first": {
+          "type": "number"
+        },
+        "system_fit": {
+          "type": "number"
+        },
+        "risk_penalty": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        }
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "next_action": {
+      "type": "string"
+    }
+  }
+}
