@@ -13,9 +13,8 @@ venv/
 .env.*
 
 # Runtime data
-data/logs/
-data/memory/
-data/output/
+data/
+!data/.gitkeep
 *.db
 *.sqlite
 *.sqlite3
@@ -34,3 +33,7 @@ Thumbs.db
 
 # Codex local state
 .codex/
+
+# Sub-project runtime data
+Inspiration-Research/data/
+Knowledge-Base/data/
