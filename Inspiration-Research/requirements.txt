@@ -1,0 +1,8 @@
+# Phase 1 (stubs)
+pyyaml
+requests
+beautifulsoup4
+# Phase 2
+# crawl4ai
+# trafilatura
+# markitdown

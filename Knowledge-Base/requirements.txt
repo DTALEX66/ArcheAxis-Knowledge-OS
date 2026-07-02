@@ -1,0 +1,6 @@
+# Phase 1 (stubs)
+pyyaml
+# Phase 2
+# sqlite-vec
+# mem0
+# graphiti

@@ -1,0 +1,209 @@
+# Route policy configuration — single source of truth for attention routing.
+# Formerly hardcoded in app/core/router.py
+
+risk_keywords:
+  - "rm -rf"
+  - "delete system"
+  - "format disk"
+  - "registry"
+  - "regedit"
+  - "erase disk"
+  - "wipe disk"
+  - "credential"
+  - "secret"
+  - "private key"
+  - "api key"
+  - "token"
+  - "password"
+  - "force push"
+  - "跨盘删除"
+  - "删除系统"
+  - "删除目录"
+  - "清空目录"
+  - "格式化"
+  - "注册表"
+  - "环境变量"
+  - "凭据"
+  - "密钥"
+  - "私钥"
+  - "密码"
+  - "强制推送"
+  - "重置仓库"
+  - "卸载软件"
+
+moderate_risk_keywords:
+  - "write file"
+  - "overwrite"
+  - "install"
+  - "deploy"
+  - "shell"
+  - "command"
+  - "script"
+  - "写入"
+  - "覆盖"
+  - "安装"
+  - "部署"
+  - "脚本"
+  - "命令"
+  - "修改文件"
+  - "删除文件"
+
+low_value_texts:
+  - "ok"
+  - "hi"
+  - "hello"
+  - "test"
+  - "ping"
+  - "."
+  - "。"
+  - "嗯"
+  - "好"
+  - "好的"
+  - "收到"
+  - "测试"
+
+command_markers:
+  - "请"
+  - "帮我"
+  - "给我"
+  - "把"
+  - "按照"
+  - "开始"
+  - "继续"
+  - "执行"
+  - "运行"
+  - "修复"
+  - "实现"
+  - "生成"
+  - "写"
+  - "整理"
+  - "转成"
+  - "转换"
+  - "抽取"
+  - "提取"
+  - "产出"
+  - "输出"
+  - "create"
+  - "build"
+  - "fix"
+  - "run"
+  - "execute"
+
+route_keywords:
+  TASK:
+    - "执行"
+    - "运行"
+    - "修改"
+    - "生成"
+    - "部署"
+    - "修复"
+    - "打包"
+    - "写代码"
+    - "任务"
+    - "行动"
+    - "流程"
+    - "转成"
+    - "转换"
+    - "抽取"
+    - "提取"
+    - "产出"
+    - "输出"
+    - "codex"
+    - "agent"
+    - "task"
+    - "action"
+    - "plan"
+    - "execute"
+    - "build"
+    - "fix"
+    - "generate"
+    - "workflow"
+  IR:
+    - "调研"
+    - "研究"
+    - "github"
+    - "项目"
+    - "论文"
+    - "开源"
+    - "对比"
+    - "框架"
+    - "方案"
+    - "竞品"
+    - "资料源"
+    - "research"
+    - "paper"
+    - "architecture"
+    - "framework"
+    - "blueprint"
+    - "compare"
+    - "open source"
+    - "benchmark"
+  KB:
+    - "学习"
+    - "资料"
+    - "笔记"
+    - "总结"
+    - "卡片"
+    - "复习"
+    - "知识"
+    - "文档"
+    - "概念"
+    - "记忆"
+    - "理解"
+    - "learn"
+    - "study"
+    - "note"
+    - "knowledge"
+    - "document"
+    - "summary"
+    - "card"
+    - "review"
+    - "memory"
+
+source_hints:
+  TASK:
+    - "task"
+    - "todo"
+    - "action"
+    - "codex"
+    - "agent"
+    - "execution"
+  IR:
+    - "research"
+    - "paper"
+    - "github"
+    - "repo"
+    - "benchmark"
+    - "inspiration"
+  KB:
+    - "obsidian"
+    - "vault"
+    - "note"
+    - "kb"
+    - "knowledge"
+    - "学习"
+    - "笔记"
+
+route_base_score:
+  TASK: 0.22
+  IR: 0.20
+  KB: 0.18
+
+route_priority:
+  - TASK
+  - IR
+  - KB
+
+scoring:
+  length_max_chars: 1200
+  length_weight: 0.25
+  strength_weight: 0.12
+  strength_cap: 0.45
+  command_weight: 0.35
+  command_cap: 1.50
+  command_task_bonus: 0.50
+  source_hint_weight: 0.30
+  default_route: KB
+  empty_score: 0.0
+  low_value_score: 0.0
+  high_risk_score: 0.95

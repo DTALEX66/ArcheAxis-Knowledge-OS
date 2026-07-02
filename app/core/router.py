@@ -1,58 +1,36 @@
+"""Attention router — loads policy from config/route_policy.yaml."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
+
+import yaml
 
 from app.schemas import AttentionDecision, CoreObject
 
 RouteName = Literal['KB', 'IR', 'TASK']
 
-RISK_KEYWORDS = [
-    'rm -rf', 'delete system', 'format disk', 'registry', 'regedit', 'erase disk', 'wipe disk',
-    'credential', 'secret', 'private key', 'api key', 'token', 'password', 'force push',
-    '跨盘删除', '删除系统', '删除目录', '清空目录', '格式化', '注册表', '环境变量',
-    '凭据', '密钥', '私钥', '密码', '强制推送', '重置仓库', '卸载软件',
-]
+# ── Load policy ─────────────────────────────────────────
 
-MODERATE_RISK_KEYWORDS = [
-    'write file', 'overwrite', 'install', 'deploy', 'shell', 'command', 'script',
-    '写入', '覆盖', '安装', '部署', '脚本', '命令', '修改文件', '删除文件',
-]
+_POLICY_PATH = Path(__file__).resolve().parents[2] / "config" / "route_policy.yaml"
 
-LOW_VALUE_TEXTS = {
-    'ok', 'hi', 'hello', 'test', 'ping', '.', '。', '嗯', '好', '好的', '收到', '测试',
-}
+with open(_POLICY_PATH, encoding="utf-8") as f:
+    _P = yaml.safe_load(f)
 
-COMMAND_MARKERS = [
-    '请', '帮我', '给我', '把', '按照', '开始', '继续', '执行', '运行', '修复', '实现',
-    '生成', '写', '整理', '转成', '转换', '抽取', '提取', '产出', '输出',
-    'create', 'build', 'fix', 'run', 'execute',
-]
+RISK_KEYWORDS: list[str] = _P["risk_keywords"]
+MODERATE_RISK_KEYWORDS: list[str] = _P["moderate_risk_keywords"]
+LOW_VALUE_TEXTS: set[str] = set(_P["low_value_texts"])
+COMMAND_MARKERS: list[str] = _P["command_markers"]
+ROUTE_KEYWORDS: dict[RouteName, list[str]] = _P["route_keywords"]
+SOURCE_HINTS: dict[RouteName, list[str]] = _P["source_hints"]
+ROUTE_BASE_SCORE: dict[RouteName, float] = _P["route_base_score"]
+ROUTE_PRIORITY: tuple[RouteName, ...] = tuple(_P["route_priority"])
+_SCORING = _P["scoring"]
 
-ROUTE_KEYWORDS: dict[RouteName, list[str]] = {
-    'TASK': [
-        '执行', '运行', '修改', '生成', '部署', '修复', '打包', '写代码', '任务', '行动', '流程',
-        '转成', '转换', '抽取', '提取', '产出', '输出', 'codex', 'agent', 'task', 'action',
-        'plan', 'execute', 'build', 'fix', 'generate', 'workflow',
-    ],
-    'IR': [
-        '调研', '研究', 'github', '项目', '论文', '开源', '对比', '框架', '方案', '竞品', '资料源',
-        'research', 'paper', 'architecture', 'framework', 'blueprint', 'compare', 'open source', 'benchmark',
-    ],
-    'KB': [
-        '学习', '资料', '笔记', '总结', '卡片', '复习', '知识', '文档', '概念', '记忆', '理解',
-        'learn', 'study', 'note', 'knowledge', 'document', 'summary', 'card', 'review', 'memory',
-    ],
-}
+ROUTE_PRIORITY_TUPLE: tuple[RouteName, ...] = ROUTE_PRIORITY
 
-SOURCE_HINTS: dict[RouteName, list[str]] = {
-    'TASK': ['task', 'todo', 'action', 'codex', 'agent', 'execution'],
-    'IR': ['research', 'paper', 'github', 'repo', 'benchmark', 'inspiration'],
-    'KB': ['obsidian', 'vault', 'note', 'kb', 'knowledge', '学习', '笔记'],
-}
 
-ROUTE_BASE_SCORE: dict[RouteName, float] = {'TASK': 0.22, 'IR': 0.20, 'KB': 0.18}
-ROUTE_PRIORITY: tuple[RouteName, ...] = ('TASK', 'IR', 'KB')
-
+# ── Helpers ─────────────────────────────────────────────
 
 def _normalize(text: str) -> str:
     return ' '.join(text.strip().lower().split())
@@ -60,7 +38,7 @@ def _normalize(text: str) -> str:
 
 def _matched_keywords(haystack: str, keywords: list[str]) -> list[str]:
     normalized = _normalize(haystack)
-    return [keyword for keyword in keywords if keyword.lower() in normalized]
+    return [kw for kw in keywords if kw.lower() in normalized]
 
 
 def _compact_terms(terms: list[str], limit: int = 6) -> str:
@@ -85,7 +63,7 @@ def _metadata_text(doc: CoreObject) -> str:
 def _length_signal(text: str) -> float:
     if not text.strip():
         return 0.0
-    return min(len(text.strip()) / 1200, 1.0)
+    return min(len(text.strip()) / _SCORING["length_max_chars"], 1.0)
 
 
 def _route_signals(doc: CoreObject) -> tuple[
@@ -99,12 +77,12 @@ def _route_signals(doc: CoreObject) -> tuple[
 
     strengths: dict[RouteName, float] = {}
     for route in ROUTE_PRIORITY:
-        strengths[route] = len(keyword_matches[route]) + len(source_matches[route]) * 0.30
+        strengths[route] = len(keyword_matches[route]) + len(source_matches[route]) * _SCORING["source_hint_weight"]
 
     if command_matches:
-        strengths['TASK'] += min(len(command_matches) * 0.35, 1.50)
+        strengths['TASK'] += min(len(command_matches) * _SCORING["command_weight"], _SCORING["command_cap"])
         if keyword_matches['TASK']:
-            strengths['TASK'] += 0.50
+            strengths['TASK'] += _SCORING["command_task_bonus"]
 
     return keyword_matches, source_matches, command_matches, strengths
 
@@ -112,7 +90,7 @@ def _route_signals(doc: CoreObject) -> tuple[
 def _select_route(strengths: dict[RouteName, float]) -> RouteName:
     best = max(ROUTE_PRIORITY, key=lambda route: (strengths[route], -ROUTE_PRIORITY.index(route)))
     if strengths[best] <= 0:
-        return 'KB'
+        return _SCORING["default_route"]  # type: ignore[return-value]
     return best
 
 
@@ -122,22 +100,24 @@ def _risk_level(route_name: RouteName, text: str) -> Literal['low', 'medium', 'h
     return 'low'
 
 
+# ── Main entry ──────────────────────────────────────────
+
 def route(doc: CoreObject) -> AttentionDecision:
     text = doc.content or ''
     normalized = _normalize(text)
     length_signal = _length_signal(text)
 
     if not normalized:
-        return AttentionDecision(route='DROP', score=0.0, reasons=['empty content'])
+        return AttentionDecision(route='DROP', score=_SCORING["empty_score"], reasons=['empty content'])
 
     if normalized in LOW_VALUE_TEXTS:
-        return AttentionDecision(route='DROP', score=0.0, reasons=['low-value short input'])
+        return AttentionDecision(route='DROP', score=_SCORING["low_value_score"], reasons=['low-value short input'])
 
     risk_matches = _matched_keywords(text, RISK_KEYWORDS)
     if risk_matches:
         return AttentionDecision(
             route='REVIEW',
-            score=0.95,
+            score=_SCORING["high_risk_score"],
             reasons=[
                 f'high risk keywords: {_compact_terms(risk_matches)}',
                 f'length_signal={length_signal:.2f}',
@@ -149,9 +129,9 @@ def route(doc: CoreObject) -> AttentionDecision:
     route_name = _select_route(strengths)
     selected_strength = strengths[route_name]
 
-    score = ROUTE_BASE_SCORE[route_name] + length_signal * 0.25
+    score = ROUTE_BASE_SCORE[route_name] + length_signal * _SCORING["length_weight"]
     if selected_strength > 0:
-        score += min(selected_strength * 0.12, 0.45)
+        score += min(selected_strength * _SCORING["strength_weight"], _SCORING["strength_cap"])
     else:
         score += 0.10
     score = min(round(score, 3), 1.0)
