@@ -9,6 +9,7 @@ from app.memory.store import list_lessons, save_lesson, save_memory, search_memo
 from app.core.trace import log_trace, list_traces
 from app.evaluation.evaluator import evaluate
 from app.evaluation.feedback import compile_lesson
+from app.core.permissions import check_permission
 from app.ingestion.file import IngestionError, ingest_directory, ingest_file
 from app.tools.registry import list_tools
 
@@ -99,7 +100,16 @@ def run(input_data: dict):
     save_memory(doc)
     context = retrieve(doc.content)
     task = compile_task(context)
-    trace = execute(task)
+    perm = check_permission(task, doc.content)
+    if perm.requires_human_review:
+        return {
+            'status': 'blocked',
+            'document': doc,
+            'route': decision,
+            'task': task,
+            'permission': perm.model_dump(),
+        }
+    trace = execute(task, perm)
     log_trace(trace)
     eval_result = evaluate(trace)
     lesson = compile_lesson(eval_result, trace)

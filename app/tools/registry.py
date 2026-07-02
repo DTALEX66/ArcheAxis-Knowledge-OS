@@ -42,6 +42,9 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     ),
 }
 
+# Convenience: tool name → risk level mapping
+TOOL_RISK: dict[str, str] = {name: spec.risk_level for name, spec in TOOL_REGISTRY.items()}
+
 
 def list_tools() -> list[dict[str, Any]]:
     return [asdict(spec) for spec in TOOL_REGISTRY.values()]

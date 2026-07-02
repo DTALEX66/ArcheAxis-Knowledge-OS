@@ -74,3 +74,14 @@ class MachineLesson(BaseModel):
     future_constraint: str
     evidence_trace_id: str | None = None
     created_at: str = Field(default_factory=now_iso)
+
+
+class PermissionDecision(BaseModel):
+    id: str = Field(default_factory=lambda: new_id("perm"))
+    task_id: str
+    risk_level: Literal["low", "medium", "high", "critical"] = "low"
+    allowed_tools: list[str] = Field(default_factory=list)
+    blocked_tools: list[str] = Field(default_factory=list)
+    requires_human_review: bool = False
+    reason: str = ""
+    created_at: str = Field(default_factory=now_iso)
