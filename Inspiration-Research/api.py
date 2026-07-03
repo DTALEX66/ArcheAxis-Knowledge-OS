@@ -237,3 +237,90 @@ def screen_projects_batch(requests: list[ScreenRequest]):
         ],
         "csv_exported": str(csv_path),
     }
+
+
+# ── GitHub trending ──
+
+from project_radar.collectors.github_trending import (
+    collect_trending, collect_trending_fallback, TrendingRepo,
+)
+
+
+@app.get("/trending")
+def get_trending(since: str = "weekly", count: int = 10):
+    repos = collect_trending(since=since, per_page=count)
+    if not repos:
+        repos = collect_trending_fallback(count)
+    return {
+        "since": since,
+        "count": len(repos),
+        "items": [
+            {"repo": r.repo, "description": r.description, "stars": r.stars,
+             "language": r.language, "url": r.url, "topics": r.topics}
+            for r in repos
+        ],
+    }
+
+
+@app.post("/daily-brief/auto")
+def auto_daily_brief(since: str = "weekly", count: int = 10):
+    """Auto-generate daily brief from GitHub trending + score projects."""
+    # Collect trending
+    repos = collect_trending(since=since, per_page=count)
+    if not repos:
+        repos = collect_trending_fallback(count)
+
+    # Score each repo
+    entries = []
+    for r in repos:
+        # Heuristic scoring for trending repos
+        cat = _guess_category(r.description, r.topics, r.language)
+        entry = screen_project(
+            repo=r.repo, category=cat, summary=r.description[:200],
+            token_saving=_score_dim(r, "ai|coding|agent|automation", 3.0),
+            efficiency_gain=_score_dim(r, "ai|coding|agent|tool", 3.0),
+            local_first=_score_dim(r, "local|self-hosted|offline|privacy", 4.0),
+            system_fit=_score_dim(r, "ai|llm|agent|rag|coding|mcp", 3.5),
+            risk_penalty=0.5 if "shell" in r.description.lower() else 0.0,
+            risk_level="low",
+            absorption_mode="candidate",
+            recommended_target="IR",
+        )
+        entries.append(entry)
+
+    # Build brief
+    brief = build_daily_brief(
+        ai_items=[BriefItem(title=r.repo, summary=r.description[:100], impact="evaluate")
+                   for r in repos[:5]],
+    )
+    brief.github_ai_projects = [e.repo for e in entries if e.scores.qualifies]
+
+    # Export CSV
+    csv_path = export_screening_csv(entries)
+    daily_briefs.append(brief)
+
+    return {
+        "brief": brief.to_dict(),
+        "qualified": sum(1 for e in entries if e.scores.qualifies),
+        "total": len(entries),
+        "csv": str(csv_path),
+    }
+
+
+def _guess_category(desc: str, topics: list, lang: str) -> str:
+    d = (desc + " " + " ".join(topics)).lower()
+    if any(k in d for k in ["crawl", "scrape", "parser", "extract"]): return "Crawler"
+    if any(k in d for k in ["convert", "markdown", "pdf", "doc"]): return "Document to Markdown"
+    if any(k in d for k in ["agent", "coding", "codex", "copilot"]): return "AI Agent/Coding"
+    if any(k in d for k in ["llm", "gateway", "model"]): return "LLM Gateway"
+    if any(k in d for k in ["rag", "knowledge", "search"]): return "RAG/Document Intelligence"
+    if any(k in d for k in ["memory"]): return "Memory"
+    if any(k in d for k in ["mcp", "tool"]): return "Agent SDK"
+    return "AI Agent/Coding"
+
+
+def _score_dim(repo: TrendingRepo, pattern: str, base: float) -> float:
+    import re
+    text = (repo.description + " " + " ".join(repo.topics)).lower()
+    matches = len(re.findall(pattern, text))
+    return min(base + matches * 0.5, 5.0)
