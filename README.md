@@ -26,7 +26,7 @@ Cognitive-Loop-OS/
 | 线 | 定位 | 当前状态 |
 |----|------|----------|
 | **A线** Obsidian-Assistance | 用户前端 / 笔记渲染 | 待对接 |
-| **B线** IR + KB + Cognitive-OS | 核心认知闭环 | OS 可运行，IR/KB 待建仓 |
+| **B线** IR + KB + Cognitive-OS | 核心认知闭环 | 已合仓（`Knowledge-Base/` + `Inspiration-Research/` 子目录） |
 | **C线** shared-contracts | 合同 / Fixtures / 联调 | 10 schema + 10 fixture 已就绪 |
 
 ## 当前能力
@@ -80,5 +80,5 @@ uvicorn app.main:app --reload
 1. **Cognitive-OS SQLite 迁移** — JSONL → 9 表结构化存储
 2. **RoutePolicy 可配置化** — 关键词/风险词从代码拆出
 3. **PermissionDecision 体系** — 执行前权限检查
-4. **创建 IR + KB 仓库** — 完成三项目骨架
+4. **IR + KB 功能对齐** — 完善子目录内模块与 Cognitive-OS 运行时对接
 5. **B 线全链路联调** — ResearchNote → … → MachineLesson
