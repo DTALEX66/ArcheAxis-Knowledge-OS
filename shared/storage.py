@@ -228,6 +228,36 @@ CREATE TABLE IF NOT EXISTS daily_notes (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Canvas/whiteboard (Heptabase-absorbed)
+CREATE TABLE IF NOT EXISTS canvases (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS canvas_nodes (
+    id TEXT PRIMARY KEY,
+    canvas_id TEXT NOT NULL,
+    object_id TEXT NOT NULL,
+    object_type TEXT NOT NULL DEFAULT 'card',
+    x REAL NOT NULL DEFAULT 0,
+    y REAL NOT NULL DEFAULT 0,
+    width REAL NOT NULL DEFAULT 300,
+    height REAL NOT NULL DEFAULT 200,
+    color TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS canvas_edges (
+    id TEXT PRIMARY KEY,
+    canvas_id TEXT NOT NULL,
+    source_node_id TEXT NOT NULL,
+    target_node_id TEXT NOT NULL,
+    label TEXT NOT NULL DEFAULT '',
+    color TEXT NOT NULL DEFAULT '#888'
+);
 """
 
 

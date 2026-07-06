@@ -484,6 +484,182 @@ def daily_timeline(days: int = 7):
     return {"days": days, "count": len(items), "items": items}
 
 
+# ── Absorbed from Tana/Capacities: Object Types ──────────
+
+
+@app.get("/types")
+def list_object_types():
+    """List all registered object types with their property schemas."""
+    from shared.object_types import list_types
+
+    return {"types": list_types()}
+
+
+@app.get("/types/{type_name}")
+def get_object_type(type_name: str):
+    """Get property schema for a specific type."""
+    from shared.object_types import get_property_schema
+
+    schema = get_property_schema(type_name)
+    if not schema.get("properties"):
+        return {"error": "type not found"}
+    return schema
+
+
+@app.post("/types")
+def register_object_type(
+    name: str = "",
+    parent: str = "document",
+    description: str = "",
+    properties: str = "{}",  # JSON string
+):
+    """Register a custom object type (like Tana Supertag)."""
+    from shared.object_types import register_type
+    import json
+
+    props = json.loads(properties) if properties else None
+    result = register_type(name, parent=parent, description=description, properties=props)
+    return result
+
+
+@app.post("/types/validate")
+def validate_object(obj_type: str = "", data: str = "{}"):
+    """Validate an object against its type schema."""
+    from shared.object_types import validate
+    import json
+
+    obj_data = json.loads(data)
+    return validate(obj_type, obj_data)
+
+
+# ── Absorbed from Logseq/Roam: Block References ──────────
+
+
+@app.get("/blocks/{source_id}")
+def extract_blocks(source_id: str):
+    """Extract block-level sections from a document."""
+    from shared.block_refs import extract_blocks
+    from shared.storage import select_one
+
+    doc = select_one("kb_documents", source_id)
+    if not doc:
+        doc = select_one("kb_cards", source_id)
+    if not doc:
+        return {"error": "document not found"}
+
+    blocks = extract_blocks(doc.get("content", ""), source_id)
+    return {"source_id": source_id, "count": len(blocks), "blocks": blocks}
+
+
+@app.get("/blocks/resolve")
+def resolve_block_ref(ref: str = ""):
+    """Resolve a block reference like 'doc_001#introduction'."""
+    from shared.block_refs import resolve_block_ref, embed_block
+
+    result = embed_block(ref)
+    if not result:
+        return {"error": "block not found", "ref": ref}
+    return result
+
+
+# ── Absorbed from Notion: Collection Views ───────────────
+
+
+@app.get("/views/{table}")
+def collection_view(
+    table: str = "kb_cards",
+    view_type: str = "table",
+    group_by: str = "",
+    limit: int = 50,
+):
+    """Render a collection view (table/board/calendar/gallery/list)."""
+    from shared.collection_views import render_view
+
+    return render_view(
+        table, view_type=view_type,
+        group_by=group_by or "review_status",
+        limit=limit,
+    )
+
+
+@app.get("/views/{table}/aggregate")
+def collection_aggregate(
+    table: str = "kb_cards",
+    group_by: str = "review_status",
+    func: str = "count",
+):
+    """Aggregate data like Notion rollups."""
+    from shared.collection_views import aggregate
+
+    return aggregate(table, group_by=group_by, aggregate_func=func)
+
+
+# ── Absorbed from Heptabase: Canvas / Whiteboard ─────────
+
+
+@app.post("/canvas")
+def create_canvas_endpoint(name: str = "", description: str = ""):
+    """Create a new canvas/whiteboard."""
+    from shared.canvas import create_canvas
+
+    return create_canvas(name, description)
+
+
+@app.get("/canvas")
+def list_canvases_endpoint():
+    """List all canvases."""
+    from shared.canvas import list_canvases
+
+    return {"canvases": list_canvases()}
+
+
+@app.get("/canvas/{canvas_id}")
+def get_canvas_endpoint(canvas_id: str):
+    """Get a canvas with all its cards and connections."""
+    from shared.canvas import get_canvas
+
+    result = get_canvas(canvas_id)
+    if not result:
+        return {"error": "canvas not found"}
+    return result
+
+
+@app.post("/canvas/{canvas_id}/card")
+def canvas_add_card(
+    canvas_id: str,
+    object_id: str = "",
+    object_type: str = "card",
+    x: float = 0,
+    y: float = 0,
+):
+    """Place a card on a canvas."""
+    from shared.canvas import add_card
+
+    return add_card(canvas_id, object_id, object_type, x=x, y=y)
+
+
+@app.post("/canvas/{canvas_id}/connect")
+def canvas_add_connection(
+    canvas_id: str,
+    source_node_id: str = "",
+    target_node_id: str = "",
+    label: str = "",
+):
+    """Add a connection between two cards on a canvas."""
+    from shared.canvas import add_connection
+
+    return add_connection(canvas_id, source_node_id, target_node_id, label)
+
+
+@app.delete("/canvas/{canvas_id}")
+def delete_canvas_endpoint(canvas_id: str):
+    """Delete a canvas and all its contents."""
+    from shared.canvas import delete_canvas
+
+    ok = delete_canvas(canvas_id)
+    return {"deleted": ok}
+
+
 # ── Obsidian projection (legacy) ──
 
 from shared.obsidian_projection import (
