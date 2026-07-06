@@ -217,6 +217,129 @@ def resolve_mistake_endpoint(mistake_id: str, req: MistakeResolveRequest):
     return result
 
 
+# ── Phase 5: A→B Translation ────────────────────────────
+
+class TranslateRequest(BaseModel):
+    card_id: str
+    unit_type: str = "rule"
+    override_title: str = ""
+    override_content: str = ""
+
+
+@app.get("/a-to-b/candidates")
+def a_to_b_candidates(limit: int = 20):
+    """Find cards mastered enough for A→B translation."""
+    from machine_knowledge.a_to_b import find_mastered_cards
+
+    items = find_mastered_cards(limit=limit)
+    return {"count": len(items), "items": items}
+
+
+@app.post("/a-to-b/translate")
+def a_to_b_translate(req: TranslateRequest):
+    """Create an A→B candidate from a card."""
+    from machine_knowledge.a_to_b import translate_card
+
+    result = translate_card(
+        req.card_id,
+        unit_type=req.unit_type,
+        override_title=req.override_title,
+        override_content=req.override_content,
+    )
+    return result
+
+
+@app.get("/a-to-b/pending")
+def a_to_b_pending():
+    """List pending A→B candidates."""
+    from machine_knowledge.a_to_b import list_candidates
+
+    items = list_candidates("pending")
+    return {"count": len(items), "items": items}
+
+
+@app.post("/a-to-b/publish/{candidate_id}")
+def a_to_b_publish(candidate_id: str, confidence: float = 0.7):
+    """Publish an A→B candidate as a machine knowledge unit."""
+    from machine_knowledge.a_to_b import publish_candidate
+
+    return publish_candidate(candidate_id, confidence=confidence)
+
+
+# ── Machine Knowledge ───────────────────────────────────
+
+class MachineKnowledgeCreateRequest(BaseModel):
+    title: str
+    content: str = ""
+    unit_type: str = "rule"
+    tags: list[str] = []
+    confidence: float = 0.5
+
+
+@app.post("/machine-knowledge")
+def machine_knowledge_create(req: MachineKnowledgeCreateRequest):
+    """Create a machine knowledge unit manually."""
+    from machine_knowledge import create_unit
+
+    return create_unit(
+        title=req.title,
+        content=req.content,
+        unit_type=req.unit_type,
+        tags=req.tags,
+        confidence=req.confidence,
+    )
+
+
+@app.get("/machine-knowledge/search")
+def machine_knowledge_search(q: str = "", limit: int = 20):
+    """Search machine knowledge units."""
+    from machine_knowledge import search_units
+
+    items = search_units(q, limit=limit)
+    return {"query": q, "count": len(items), "items": items}
+
+
+@app.get("/machine-knowledge/{unit_id}")
+def machine_knowledge_get(unit_id: str):
+    """Get a single machine knowledge unit."""
+    from machine_knowledge import get_unit
+
+    unit = get_unit(unit_id)
+    if not unit:
+        return {"error": "not found"}
+    return unit
+
+
+@app.get("/machine-knowledge")
+def machine_knowledge_list(unit_type: str = "", limit: int = 20):
+    """List machine knowledge units, optionally filtered by type."""
+    from machine_knowledge import list_by_type, stats
+
+    if unit_type:
+        items = list_by_type(unit_type, limit=limit)
+    else:
+        from shared.storage import select_all
+
+        items = select_all("machine_knowledge_units", limit=limit)
+
+    return {
+        "count": len(items),
+        "items": items,
+        "stats": stats(),
+    }
+
+
+@app.post("/machine-knowledge/{unit_id}/deactivate")
+def machine_knowledge_deactivate(unit_id: str):
+    """Deactivate a machine knowledge unit."""
+    from machine_knowledge import deactivate_unit
+
+    result = deactivate_unit(unit_id)
+    if not result:
+        return {"error": "not found"}
+    return result
+
+
 # ── Obsidian projection ──
 
 from shared.obsidian_projection import (

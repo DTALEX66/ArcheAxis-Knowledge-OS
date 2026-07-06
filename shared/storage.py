@@ -150,6 +150,45 @@ CREATE VIRTUAL TABLE IF NOT EXISTS episodic_memory_fts USING fts5(
     source,
     tokenize='porter unicode61'
 );
+
+-- Phase 5: machine knowledge + A→B translation
+CREATE TABLE IF NOT EXISTS machine_knowledge_units (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    unit_type TEXT NOT NULL DEFAULT 'rule',
+    tags_json TEXT NOT NULL DEFAULT '[]',
+    confidence REAL NOT NULL DEFAULT 0.5,
+    source_type TEXT NOT NULL DEFAULT 'manual',
+    source_id TEXT NOT NULL DEFAULT '',
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS a_to_b_candidates (
+    id TEXT PRIMARY KEY,
+    a_source_type TEXT NOT NULL DEFAULT 'card',
+    a_source_id TEXT NOT NULL,
+    a_title TEXT NOT NULL DEFAULT '',
+    a_content TEXT NOT NULL DEFAULT '',
+    a_review_count INTEGER NOT NULL DEFAULT 0,
+    a_ease_factor REAL NOT NULL DEFAULT 0.0,
+    b_title TEXT NOT NULL DEFAULT '',
+    b_content TEXT NOT NULL DEFAULT '',
+    b_unit_type TEXT NOT NULL DEFAULT 'rule',
+    status TEXT NOT NULL DEFAULT 'pending',
+    knowledge_id TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS machine_knowledge_units_fts USING fts5(
+    id UNINDEXED,
+    title,
+    content,
+    tokenize='porter unicode61'
+);
 """
 
 
