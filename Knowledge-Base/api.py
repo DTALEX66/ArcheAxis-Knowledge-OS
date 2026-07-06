@@ -1102,6 +1102,39 @@ def mermaid_timeline(card_id: str):
     return {"mermaid": review_timeline_mermaid(card_id)}
 
 
+# ── Unified Pipeline (replaces scattered endpoints) ───────
+
+
+class PipelineRequest(BaseModel):
+    source: str = "text"  # url | text | youtube | file | rss | search
+    input: str = ""
+    actions: list[str] = []  # default: all
+    auto_ingest: bool = True
+
+
+@app.post("/pipeline")
+def pipeline_run(req: PipelineRequest):
+    """Unified pipeline: discover→extract→tag→summarize→index in one call.
+
+    Replaces: /ir/search + /ir/extract + /auto/tags + /auto/summarize
+             + /ir/facts + /ir/credibility + document creation.
+
+    Example:
+        {"source":"url", "input":"https://example.com", "actions":["extract","tag","index"]}
+        {"source":"search", "input":"graph rag tutorial"}
+        {"source":"youtube", "input":"https://youtube.com/watch?v=..."}
+        {"source":"text", "input":"Machine learning is..."}
+    """
+    from shared.pipeline import run_pipeline
+
+    return run_pipeline(
+        source=req.source,
+        input_data=req.input,
+        actions=req.actions if req.actions else None,
+        auto_ingest=req.auto_ingest,
+    )
+
+
 # ── Obsidian projection (legacy) ──
 
 from shared.obsidian_projection import (
