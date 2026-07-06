@@ -258,6 +258,18 @@ CREATE TABLE IF NOT EXISTS canvas_edges (
     label TEXT NOT NULL DEFAULT '',
     color TEXT NOT NULL DEFAULT '#888'
 );
+
+-- Evidence tracking (adapted from Obsidian-Assistance v6)
+CREATE TABLE IF NOT EXISTS kb_evidence (
+    id TEXT PRIMARY KEY,
+    doc_id TEXT NOT NULL,
+    source_type TEXT NOT NULL DEFAULT 'manual',
+    source_path TEXT NOT NULL DEFAULT '',
+    confidence TEXT NOT NULL DEFAULT 'medium',
+    status TEXT NOT NULL DEFAULT 'pending',
+    caption TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 

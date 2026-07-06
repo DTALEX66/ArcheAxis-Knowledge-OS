@@ -897,6 +897,91 @@ def ir_score_credibility(title: str = "", content: str = "", url: str = ""):
     return score_credibility({"title": title, "content": content, "url": url})
 
 
+# ── Adapted from Obsidian-Assistance v6/v7/v8 ─────────────
+
+
+@app.post("/evidence")
+def evidence_add(
+    doc_id: str = "",
+    source_type: str = "manual",
+    source_path: str = "",
+    confidence: str = "medium",
+    caption: str = "",
+):
+    """Add an evidence record for a KB asset."""
+    from shared.evidence_index import index_evidence
+
+    return index_evidence(doc_id, source_type=source_type,
+                          source_path=source_path, confidence=confidence, caption=caption)
+
+
+@app.get("/evidence/{doc_id}")
+def evidence_get(doc_id: str):
+    """Get all evidence for a document + health score."""
+    from shared.evidence_index import get_evidence, evidence_health
+
+    return {
+        "evidence": get_evidence(doc_id),
+        "health": evidence_health(doc_id),
+    }
+
+
+@app.get("/health/radar")
+def health_radar():
+    """Global KB evidence health radar (adapted from v6)."""
+    from shared.evidence_index import vault_health_radar
+
+    return vault_health_radar()
+
+
+@app.get("/analytics/streak")
+def analytics_streak(days: int = 30):
+    """Learning streak and stats (adapted from v8)."""
+    from shared.learning_analytics import review_streak
+
+    return review_streak(days=days)
+
+
+@app.get("/analytics/heatmap")
+def analytics_heatmap(limit: int = 20):
+    """Topic activity heatmap."""
+    from shared.learning_analytics import topic_heatmap
+
+    return {"topics": topic_heatmap(limit=limit)}
+
+
+@app.get("/retro/weekly")
+def retro_weekly(days: int = 7):
+    """Weekly retrospective summary (adapted from v8)."""
+    from shared.retro_summary import weekly_summary
+
+    return weekly_summary(days=days)
+
+
+@app.get("/missions/daily")
+def missions_daily():
+    """Auto-generate daily learning missions (adapted from v8)."""
+    from shared.retro_summary import generate_daily_missions
+
+    return generate_daily_missions()
+
+
+@app.post("/projects/generate")
+def projects_generate(topic: str = "", difficulty: str = "medium"):
+    """Generate a project taskpack from mastered topic (adapted from v7)."""
+    from shared.project_generator import generate_project_from_topic
+
+    return generate_project_from_topic(topic, difficulty=difficulty)
+
+
+@app.get("/projects/suggest")
+def projects_suggest(limit: int = 5):
+    """Suggest project-worthy topics."""
+    from shared.project_generator import suggest_projects
+
+    return {"suggestions": suggest_projects(limit=limit)}
+
+
 # ── Obsidian projection (legacy) ──
 
 from shared.obsidian_projection import (
