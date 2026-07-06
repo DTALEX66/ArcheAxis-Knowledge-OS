@@ -868,5 +868,165 @@
     "note": "移动安全分析",
     "status": "candidate",
     "risk_policy": "must_review_before_use"
+  },
+  {
+    "project_id": "osp_0088",
+    "name": "datalab-to/marker",
+    "category": "Document Parsing",
+    "recommended_target": "IR/KB",
+    "absorption_mode": "Adapter",
+    "note": "PDF/图像/PPTX/DOCX → Markdown + JSON，支持公式/表格/代码块，比 MarkItDown 更擅长科学文献",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0089",
+    "name": "opendatalab/MinerU",
+    "category": "Document Parsing",
+    "recommended_target": "IR/KB",
+    "absorption_mode": "Adapter",
+    "note": "高质量 PDF/图像/DOCX/PPTX 解析，输出 Markdown/JSON，支持复杂排版和表格",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0090",
+    "name": "PaddlePaddle/PaddleOCR",
+    "category": "OCR / Document Intelligence",
+    "recommended_target": "IR/KB",
+    "absorption_mode": "Adapter",
+    "note": "100+ 语言 OCR 工具包，70k+ stars，Dify/RAGFlow 底层依赖，支持 PDF/图片 → 结构化 JSON/Markdown",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0091",
+    "name": "asg017/sqlite-vec",
+    "category": "Vector Search",
+    "recommended_target": "KB",
+    "absorption_mode": "Adapter",
+    "note": "SQLite 原生向量搜索扩展，纯 C 实现零依赖，虚拟表 vec0 支持 ANN 搜索，与 FTS5 共存",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0092",
+    "name": "sqliteai/sqlite-vector",
+    "category": "Vector Search",
+    "recommended_target": "KB",
+    "absorption_mode": "Adapter候选",
+    "note": "跨平台 SQLite 向量扩展，量化 + SIMD 加速 + 低内存，适合嵌入式场景",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0093",
+    "name": "getzep/graphiti",
+    "category": "Temporal Knowledge Graph",
+    "recommended_target": "KB",
+    "absorption_mode": "候选Adapter",
+    "note": "实时知识图谱构建，支持时间感知，为 AI Agent 提供记忆层（Neo4j/FalkorDB 后端）",
+    "status": "candidate",
+    "risk_policy": "must_review_before_use"
+  },
+  {
+    "project_id": "osp_0094",
+    "name": "topoteretes/cognee",
+    "category": "AI Memory Platform",
+    "recommended_target": "Cognitive-OS",
+    "absorption_mode": "候选Adapter",
+    "note": "统一图+向量搜索的 AI 记忆平台，支持本体扎根、多模态摄取、持久化学习 Agent",
+    "status": "candidate",
+    "risk_policy": "must_review_before_use"
+  },
+  {
+    "project_id": "osp_0095",
+    "name": "mem0ai/mem0",
+    "category": "Memory",
+    "recommended_target": "Cognitive-OS",
+    "absorption_mode": "候选Adapter",
+    "note": "通用 AI Agent 记忆层，支持个性化交互记忆（需要 LLM 后端，默认 GPT）",
+    "status": "candidate",
+    "risk_policy": "must_review_before_use"
+  },
+  {
+    "project_id": "osp_0096",
+    "name": "mendableai/firecrawl",
+    "category": "Crawler / API",
+    "recommended_target": "IR",
+    "absorption_mode": "Adapter候选",
+    "note": "AI-first 网页抓取，URL→Markdown，67% Token 节省 vs HTML，支持结构化提取+浏览器交互",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0097",
+    "name": "browser-use/browser-use",
+    "category": "Browser Agent",
+    "recommended_target": "IR",
+    "absorption_mode": "只参考",
+    "note": "AI 驱动的浏览器自动化 Agent，让 LLM 操作真实网页（登录/点击/翻页/提取）",
+    "status": "candidate",
+    "risk_policy": "must_review_before_use"
+  },
+  {
+    "project_id": "osp_0098",
+    "name": "Cinnamon/kotaemon",
+    "category": "RAG / Document Intelligence",
+    "recommended_target": "KB",
+    "absorption_mode": "参考/Adapter",
+    "note": "开源 RAG 文档 QA 工具，简洁 UI，支持多种 LLM（含本地 ollama），适合 KB 前端原型",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0099",
+    "name": "Delgan/loguru",
+    "category": "Dev Tool",
+    "recommended_target": "Cognitive-OS",
+    "absorption_mode": "直接可用",
+    "note": "简化 Python 日志的第三方库，15k+ stars，一行代码替换标准 logging",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0100",
+    "name": "hynek/structlog",
+    "category": "Dev Tool",
+    "recommended_target": "Cognitive-OS",
+    "absorption_mode": "直接可用",
+    "note": "结构化日志框架，输出 JSON/Key-Value，适合生产环境追踪",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0101",
+    "name": "davidrothlis/declarative-schema-migration",
+    "category": "Dev Tool",
+    "recommended_target": "Cognitive-OS",
+    "absorption_mode": "参考",
+    "note": "声明式 SQLite Schema 迁移模式：schema.sql 为单一真相源，自动 diff 并迁移",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0102",
+    "name": "PrefectHQ/prefect",
+    "category": "Workflow Orchestration",
+    "recommended_target": "B线",
+    "absorption_mode": "只参考",
+    "note": "Python 原生工作流编排，轻量替代 Airflow，中文友好",
+    "status": "candidate",
+    "risk_policy": "standard_review"
+  },
+  {
+    "project_id": "osp_0103",
+    "name": "CodeGraphContext/CodeGraphContext",
+    "category": "Dev Tool",
+    "recommended_target": "Cognitive-OS",
+    "absorption_mode": "参考",
+    "note": "MCP Server + CLI，将本地代码索引到图数据库，为 AI 助手提供代码上下文",
+    "status": "candidate",
+    "risk_policy": "standard_review"
   }
 ]
