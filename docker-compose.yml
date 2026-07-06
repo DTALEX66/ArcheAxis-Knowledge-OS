@@ -1,0 +1,74 @@
+# Cognitive-Loop-OS — unified Docker Compose for B-line services
+# Start all 3 services with: docker compose up -d
+# Access:
+#   Cognitive-OS:        http://localhost:8000/docs
+#   Inspiration-Research: http://localhost:8001/docs
+#   Knowledge-Base:       http://localhost:8002/docs
+
+version: "3.9"
+
+services:
+  cognitive-os:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cognitive-os
+    ports:
+      - "8000:8000"
+    environment:
+      - COGNITIVE_ENV=production
+      - DATABASE_URL=sqlite+aiosqlite:///data/cognitive_os.sqlite
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  inspiration-research:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inspiration-research
+    ports:
+      - "8001:8001"
+    environment:
+      - COGNITIVE_ENV=production
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+      - ./shared:/app/shared:ro
+      - ./shared-contracts:/app/shared-contracts:ro
+      - ./Inspiration-Research:/app/Inspiration-Research:ro
+    restart: unless-stopped
+    depends_on:
+      cognitive-os:
+        condition: service_healthy
+    command: >
+      uvicorn Inspiration-Research.api:app --host 0.0.0.0 --port 8001
+
+  knowledge-base:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: knowledge-base
+    ports:
+      - "8002:8002"
+    environment:
+      - COGNITIVE_ENV=production
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+      - ./shared:/app/shared:ro
+      - ./Knowledge-Base:/app/Knowledge-Base:ro
+    restart: unless-stopped
+    depends_on:
+      cognitive-os:
+        condition: service_healthy
+    command: >
+      uvicorn Knowledge-Base.api:app --host 0.0.0.0 --port 8002
