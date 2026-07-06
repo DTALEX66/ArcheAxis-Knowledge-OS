@@ -40,6 +40,31 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         default_dry_run=True,
         description="Preview code execution only; real execution is blocked in Phase 1.",
     ),
+    # ── B-line knowledge tools (Phase 6) ──
+    "kb_search": ToolSpec(
+        name="kb_search",
+        risk_level="low",
+        default_dry_run=False,
+        description="Semantic + keyword search over KB documents and cards.",
+    ),
+    "mk_search": ToolSpec(
+        name="mk_search",
+        risk_level="low",
+        default_dry_run=False,
+        description="Search machine knowledge units by keyword.",
+    ),
+    "context_pack_build": ToolSpec(
+        name="context_pack_build",
+        risk_level="low",
+        default_dry_run=False,
+        description="Build a ContextPack from goal + sources + constraints.",
+    ),
+    "taskpack_generate": ToolSpec(
+        name="taskpack_generate",
+        risk_level="medium",
+        default_dry_run=True,
+        description="Generate a TaskPack for Cognitive-OS execution.",
+    ),
 }
 
 # Convenience: tool name → risk level mapping
@@ -144,6 +169,14 @@ def run_tool(name: str, payload: dict[str, Any], dry_run: bool | None = None) ->
         return safe_write_tool(payload, effective_dry_run)
     if name == "code_exec":
         return code_exec_tool(payload, True)
+    if name == "kb_search":
+        return _kb_search_tool(payload, effective_dry_run)
+    if name == "mk_search":
+        return _mk_search_tool(payload, effective_dry_run)
+    if name == "context_pack_build":
+        return _context_pack_build_tool(payload, effective_dry_run)
+    if name == "taskpack_generate":
+        return _taskpack_generate_tool(payload, effective_dry_run)
 
     return {
         "tool": name,
@@ -152,3 +185,73 @@ def run_tool(name: str, payload: dict[str, Any], dry_run: bool | None = None) ->
         "status": "error",
         "error": "tool registered without handler",
     }
+
+
+# ── B-line knowledge tool handlers (Phase 6) ────────────
+
+
+def _kb_search_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
+    spec = TOOL_REGISTRY["kb_search"]
+    result = _base_result(spec, dry_run)
+    query = str(payload.get("query", ""))
+    top_k = int(payload.get("top_k", 5))
+
+    from search import hybrid_search
+
+    items = hybrid_search(query, top_k=top_k)
+    result["items"] = items
+    result["count"] = len(items)
+    return result
+
+
+def _mk_search_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
+    spec = TOOL_REGISTRY["mk_search"]
+    result = _base_result(spec, dry_run)
+    query = str(payload.get("query", ""))
+    limit = int(payload.get("limit", 20))
+
+    from machine_knowledge import search_units
+
+    items = search_units(query, limit=limit)
+    result["items"] = items
+    result["count"] = len(items)
+    return result
+
+
+def _context_pack_build_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
+    spec = TOOL_REGISTRY["context_pack_build"]
+    result = _base_result(spec, dry_run)
+    goal = str(payload.get("goal", ""))
+    sources = payload.get("sources", [])
+    constraints = payload.get("constraints", [])
+
+    from context_pack import build_context_pack
+
+    ctx = build_context_pack(goal=goal, sources=sources, constraints=constraints)
+    result["context_pack"] = ctx.to_dict()
+    return result
+
+
+def _taskpack_generate_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
+    spec = TOOL_REGISTRY["taskpack_generate"]
+    result = _base_result(spec, dry_run)
+    goal = str(payload.get("goal", ""))
+    steps = payload.get("steps", [])
+    tools = payload.get("allowed_tools", ["echo"])
+    risk = str(payload.get("risk_level", "low"))
+
+    from taskpack import build_taskpack
+
+    task = build_taskpack(goal=goal, steps=steps, allowed_tools=tools, risk_level=risk)
+    if dry_run:
+        result["taskpack_preview"] = task.to_dict()
+        return result
+
+    from shared.storage import insert
+
+    task_dict = task.to_dict()
+    task_dict["id"] = task_dict.pop("task_id")
+    task_dict.pop("context_id", None)
+    insert("kb_taskpacks", task_dict)
+    result["taskpack"] = task.to_dict()
+    return result

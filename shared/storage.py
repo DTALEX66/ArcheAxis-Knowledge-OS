@@ -189,6 +189,25 @@ CREATE VIRTUAL TABLE IF NOT EXISTS machine_knowledge_units_fts USING fts5(
     content,
     tokenize='porter unicode61'
 );
+
+-- Phase 6: graph entities + relations for NetworkX GraphDB
+CREATE TABLE IF NOT EXISTS graph_entities (
+    id TEXT PRIMARY KEY,
+    entity_type TEXT NOT NULL DEFAULT 'node',
+    properties_json TEXT NOT NULL DEFAULT '{}',
+    graph_name TEXT NOT NULL DEFAULT 'default',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS graph_relations (
+    id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    relation_type TEXT NOT NULL DEFAULT 'related',
+    weight REAL NOT NULL DEFAULT 1.0,
+    graph_name TEXT NOT NULL DEFAULT 'default',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 
