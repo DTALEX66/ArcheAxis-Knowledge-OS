@@ -14,7 +14,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS_DIR = _PROJECT_ROOT / "data" / "migrations"
 DB_PATH = _PROJECT_ROOT / "data" / "cognitive_os.sqlite"
 
