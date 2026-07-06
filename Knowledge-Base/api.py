@@ -660,6 +660,91 @@ def delete_canvas_endpoint(canvas_id: str):
     return {"deleted": ok}
 
 
+# ── Enhancement: Auto-tagger ─────────────────────────────
+
+
+@app.post("/auto/tags")
+def auto_tags(text: str = "", top_k: int = 10):
+    """Extract keywords and suggest tags from text."""
+    from shared.auto_tagger import extract_keywords, suggest_tags
+
+    return {
+        "keywords": extract_keywords(text, top_k=top_k),
+        "suggested_tags": suggest_tags(text, max_tags=top_k),
+    }
+
+
+@app.post("/auto/atomicity")
+def auto_atomicity(text: str = ""):
+    """Check if a note is atomic (Zettelkasten single-idea)."""
+    from shared.auto_tagger import detect_atomicity
+
+    return detect_atomicity(text)
+
+
+@app.post("/auto/summarize")
+def auto_summarize(text: str = ""):
+    """Generate 4-layer progressive summary."""
+    from shared.auto_tagger import progressive_summarize
+
+    return progressive_summarize(text)
+
+
+# ── Enhancement: Knowledge Gardener ──────────────────────
+
+
+@app.get("/garden/orphans")
+def garden_orphans(limit: int = 50):
+    """Find orphaned notes with no links."""
+    from shared.knowledge_gardener import find_orphans
+
+    return {"orphans": find_orphans(limit=limit)}
+
+
+@app.get("/garden/suggest/{doc_id}")
+def garden_suggest_connections(doc_id: str, top_k: int = 5):
+    """Suggest connections for a document."""
+    from shared.knowledge_gardener import suggest_connections
+
+    return {"suggestions": suggest_connections(doc_id, top_k=top_k)}
+
+
+@app.get("/garden/gaps")
+def garden_gaps():
+    """Detect knowledge gaps (thin topics)."""
+    from shared.knowledge_gardener import detect_gaps
+
+    return detect_gaps()
+
+
+@app.get("/garden/evergreen/{doc_id}")
+def garden_evergreen(doc_id: str):
+    """Score how evergreen a note is."""
+    from shared.knowledge_gardener import score_evergreen
+
+    return score_evergreen(doc_id)
+
+
+# ── Enhancement: GraphRAG ────────────────────────────────
+
+
+@app.post("/graphrag/index")
+def graphrag_index():
+    """Index all KB entities into graph + vector for GraphRAG."""
+    from shared.graph_rag import index_for_graphrag
+
+    result = index_for_graphrag()
+    return {"status": "indexed", "stats": result}
+
+
+@app.post("/graphrag/search")
+def graphrag_search(query: str = "", top_k: int = 5, max_hops: int = 2):
+    """GraphRAG multi-hop search: vector + graph traversal."""
+    from shared.graph_rag import graph_rag_search
+
+    return graph_rag_search(query, top_k=top_k, max_hops=max_hops)
+
+
 # ── Obsidian projection (legacy) ──
 
 from shared.obsidian_projection import (
