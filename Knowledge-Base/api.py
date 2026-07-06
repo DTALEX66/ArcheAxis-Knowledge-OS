@@ -16,7 +16,14 @@ from taskpack import build_taskpack
 
 from shared.storage import count, fts5_sync, insert, select_all
 
-app = FastAPI(title="Knowledge-Base", version="0.2.0")
+app = FastAPI(title="Knowledge-Base", version="0.3.0")
+
+# Jinja2 templates for dashboard
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from fastapi import Request
+
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 
 class DocumentIn(BaseModel):
@@ -88,6 +95,45 @@ def create_taskpack(req: TaskPackRequest):
 @app.get("/taskpacks")
 def list_taskpacks(limit: int = 20):
     return {"count": count("kb_taskpacks"), "items": select_all("kb_taskpacks", limit)}
+
+
+# ── Dashboard (Web UI) ────────────────────────────────────
+
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    """Render the main knowledge dashboard."""
+    from shared.storage import count as _c, select_all
+    from shared.knowledge_gardener import find_orphans
+
+    docs = select_all("kb_documents", limit=10)
+    cards = select_all("kb_cards", limit=10)
+    mkus = select_all("machine_knowledge_units", limit=10)
+    reviews_due_list = select_all("kb_reviews", limit=10, order="next_review_at ASC")
+    daily_list = select_all("daily_notes", limit=7, order="date DESC")
+    canvas_list = select_all("canvases", limit=10)
+    orphans = find_orphans(limit=10)
+
+    ctx = {
+        "stats": {
+            "documents": _c("kb_documents"),
+            "cards": _c("kb_cards"),
+            "reviews": _c("kb_reviews"),
+            "mistakes": _c("kb_mistakes"),
+            "mku": _c("machine_knowledge_units"),
+            "daily_notes": _c("daily_notes"),
+            "graph_nodes": _c("graph_entities"),
+            "orphans": len(orphans),
+            "active_units": sum(1 for m in select_all("machine_knowledge_units", limit=200) if m.get("active", True)),
+        },
+        "recent_cards": cards,
+        "recent_mku": mkus,
+        "due_reviews": reviews_due_list,
+        "canvases": canvas_list,
+        "daily_timeline": daily_list,
+    }
+    return templates.TemplateResponse(request=request, name="dashboard.html", context=ctx)
 
 
 # ── Search ───────────��────────────────────────────────
