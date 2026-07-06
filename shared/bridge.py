@@ -1,5 +1,5 @@
 """IR → KB bridge: auto-generate ContextPack + TaskPack from qualified projects."""
-import sys, uuid
+import sys
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -8,6 +8,7 @@ sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 from context_pack import build_context_pack
 from taskpack import build_taskpack
+
 from shared.storage import insert
 
 

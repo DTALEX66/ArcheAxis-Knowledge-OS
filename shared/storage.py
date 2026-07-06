@@ -90,6 +90,49 @@ CREATE TABLE IF NOT EXISTS kb_taskpacks (
     risk_level TEXT NOT NULL DEFAULT 'low',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- FTS5 full-text indexes for KB search
+CREATE VIRTUAL TABLE IF NOT EXISTS kb_documents_fts USING fts5(
+    id UNINDEXED,
+    title,
+    content,
+    source,
+    tokenize='porter unicode61'
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS kb_cards_fts USING fts5(
+    id UNINDEXED,
+    title,
+    content,
+    tags,
+    tokenize='porter unicode61'
+);
+"""
+
+
+IR_KB_TABLES_EXT = """
+-- P2-1: review + mistake tables for A-line learning loop
+CREATE TABLE IF NOT EXISTS kb_reviews (
+    id TEXT PRIMARY KEY,
+    card_id TEXT NOT NULL,
+    quality INTEGER NOT NULL CHECK(quality BETWEEN 0 AND 5),
+    interval_days INTEGER NOT NULL DEFAULT 1,
+    ease_factor REAL NOT NULL DEFAULT 2.5,
+    next_review_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS kb_mistakes (
+    id TEXT PRIMARY KEY,
+    card_id TEXT NOT NULL,
+    error_type TEXT NOT NULL DEFAULT 'recall_failure',
+    detail TEXT NOT NULL DEFAULT '',
+    source_topic TEXT NOT NULL DEFAULT '',
+    resolved INTEGER NOT NULL DEFAULT 0,
+    resolution_note TEXT NOT NULL DEFAULT '',
+    resolved_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 
@@ -103,6 +146,7 @@ def _conn() -> sqlite3.Connection:
 def init():
     c = _conn()
     c.executescript(IR_KB_TABLES)
+    c.executescript(IR_KB_TABLES_EXT)
     c.commit()
     c.close()
 
@@ -143,7 +187,8 @@ def insert(table: str, data: dict) -> None:
         if col in cols:
             mapped[col] = _json_dump(v) if isinstance(v, (list, dict)) else v
     if not mapped:
-        c.close(); return
+        c.close()
+        return
     keys = list(mapped)
     placeholders = ",".join(["?" for _ in keys])
     values = list(mapped.values())
@@ -171,6 +216,96 @@ def count(table: str) -> int:
     n = c.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
     c.close()
     return n
+
+
+# ── FTS5 search ─────────────────────────────────────────
+
+
+def fts5_search(table: str, query: str, top_k: int = 5) -> list[dict]:
+    """Full-text search via FTS5.  Falls back to LIKE if FTS5 table missing.
+
+    Args:
+        table: either ``'kb_documents'`` or ``'kb_cards'``.
+        query: free-text query string.
+        top_k: max results.
+
+    Returns:
+        List of dicts with ``id``, ``title``, ``snippet``, ``rank``.
+    """
+    c = _conn()
+    try:
+        # Try FTS5 first
+        fts_table = f"{table}_fts"
+        rows = c.execute(
+            f"SELECT rowid, rank FROM {fts_table} WHERE {fts_table} MATCH ? "
+            "ORDER BY rank LIMIT ?",
+            (query, top_k),
+        ).fetchall()
+        if rows:
+            results = []
+            for r in rows:
+                # FTS5 rowid = the table's rowid; find the actual row
+                base = c.execute(
+                    f"SELECT id, title, content FROM {table} WHERE rowid=?",
+                    (r["rowid"],),
+                ).fetchone()
+                if base:
+                    snippet = base["content"][:200] if base["content"] else ""
+                    results.append({
+                        "id": base["id"],
+                        "title": base["title"],
+                        "snippet": snippet,
+                        "rank": r["rank"],
+                    })
+            return results
+    except sqlite3.OperationalError:
+        pass  # FTS table missing → fall through to LIKE
+
+    # LIKE fallback
+    terms = query.strip().split()
+    if not terms:
+        return []
+    clauses = " OR ".join(["content LIKE ?" for _ in terms])
+    params = [f"%{t}%" for t in terms]
+    rows = c.execute(
+        f"SELECT id, title, content FROM {table} WHERE {clauses} "
+        "ORDER BY created_at DESC LIMIT ?",
+        (*params, top_k),
+    ).fetchall()
+    c.close()
+    return [
+        {"id": r["id"], "title": r["title"], "snippet": r["content"][:200], "rank": 999}
+        for r in rows
+    ]
+
+
+def fts5_sync(table: str, data: dict) -> None:
+    """Sync a record to its FTS5 index. Call after INSERT/UPDATE on kb_documents or kb_cards."""
+    c = _conn()
+    try:
+        fts_table = f"{table}_fts"
+        # Delete old entry if exists (FTS5 uses content-sync via rowid)
+        row = c.execute(f"SELECT rowid FROM {table} WHERE id=?", (data["id"],)).fetchone()
+        if row:
+            c.execute(f"DELETE FROM {fts_table} WHERE rowid=?", (row["rowid"],))
+            # Re-insert with current content
+            cols = []
+            vals = []
+            for k in ("id", "title", "content"):
+                if k in data:
+                    cols.append(k)
+                    vals.append(data[k])
+            if cols:
+                placeholders = ",".join("?" for _ in vals)
+                c.execute(
+                    f"INSERT INTO {fts_table}({','.join(cols)}) VALUES ({placeholders})",
+                    vals,
+                )
+        c.commit()
+    except sqlite3.OperationalError:
+        pass  # FTS table not yet created — non-fatal
+    finally:
+        c.close()
 
 
 # Auto-init

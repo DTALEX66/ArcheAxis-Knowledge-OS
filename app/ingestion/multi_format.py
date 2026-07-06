@@ -17,11 +17,7 @@ All engines are optional — fallback chain tries each in order.
 """
 from __future__ import annotations
 
-import io
-import tempfile
 from pathlib import Path
-from typing import Optional
-
 
 # ── Format detection ──
 
@@ -186,6 +182,7 @@ def convert_url(url: str) -> tuple[str, str]:
     # Try crawl4ai first (best quality for JS-heavy pages)
     try:
         import asyncio
+
         from crawl4ai import AsyncWebCrawler
 
         async def _crawl():
@@ -215,8 +212,9 @@ def convert_directory(
     Returns list of {path, format, content, engine}.
     Skips files where all engines fail (logs warning).
     """
-    from loguru import logger
     from pathlib import Path
+
+    from loguru import logger
 
     results = []
     dir_path = Path(directory).resolve()

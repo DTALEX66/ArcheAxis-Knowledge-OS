@@ -10,10 +10,9 @@ Blocked keywords in task content also force REVIEW.
 """
 from __future__ import annotations
 
+from app.core.router import RISK_KEYWORDS, _matched_keywords
 from app.schemas import PermissionDecision, TaskPack
 from app.tools.registry import TOOL_RISK, list_tools
-from app.core.router import RISK_KEYWORDS, _matched_keywords
-
 
 # ── Risk level → allowed strategy ──
 
@@ -35,7 +34,7 @@ def check_permission(task: TaskPack, content: str = "") -> PermissionDecision:
     reasons: list[str] = []
     max_risk: str = "low"
 
-    all_tools_info = list_tools()
+    list_tools()
 
     # ── Check each requested tool ──
     for tool_name in task.tools:

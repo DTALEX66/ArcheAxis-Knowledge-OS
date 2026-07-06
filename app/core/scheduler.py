@@ -6,13 +6,12 @@ and one-shot triggers. Runs as an AsyncIO scheduler alongside FastAPI.
 """
 from __future__ import annotations
 
-import asyncio
+from collections.abc import Callable, Coroutine
 from datetime import datetime
-from typing import Any, Callable, Coroutine, Dict, List, Optional
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.asyncio import AsyncIOExecutor
+from apscheduler.jobstores.memory import MemoryJobStore
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # ── Global scheduler instance ──
 
@@ -29,7 +28,7 @@ scheduler = AsyncIOScheduler(
 
 # ── Job registry (in-memory for now; migrate to SQLite with config) ──
 
-_registry: Dict[str, dict] = {}
+_registry: dict[str, dict] = {}
 
 
 def register(
@@ -74,7 +73,7 @@ def unregister(job_id: str) -> bool:
         return False
 
 
-def list_jobs() -> List[dict]:
+def list_jobs() -> list[dict]:
     """List all registered jobs with status."""
     result = []
     for job in scheduler.get_jobs():

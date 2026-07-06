@@ -1,17 +1,18 @@
 from fastapi import FastAPI, HTTPException
 
-from app.api.ingest import ingest
-from app.core.router import route
-from app.rag.retriever import retrieve
-from app.core.compiler import compile_task
 from app.agent.executor import execute
-from app.memory.store import list_lessons, save_lesson, save_memory, search_memory
-from app.core.trace import log_trace, list_traces
+from app.api.ingest import ingest
+from app.core.compiler import compile_task
+from app.core.permissions import check_permission
+from app.core.router import route
+from app.core.trace import list_traces, log_trace
 from app.evaluation.evaluator import evaluate
 from app.evaluation.feedback import compile_lesson
-from app.core.permissions import check_permission
 from app.ingestion.file import IngestionError, ingest_directory, ingest_file
-from app.ingestion.multi_format import convert_file, convert_url, convert_directory as multi_convert_directory
+from app.ingestion.multi_format import convert_directory as multi_convert_directory
+from app.ingestion.multi_format import convert_file, convert_url
+from app.memory.store import list_lessons, save_lesson, save_memory, search_memory
+from app.rag.retriever import retrieve
 from app.tools.registry import list_tools
 
 app = FastAPI(title='Cognitive OS v2', version='0.2.0')

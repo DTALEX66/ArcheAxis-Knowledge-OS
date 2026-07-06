@@ -1,11 +1,10 @@
-"""Knowledge-Base search — full-text (LIKE) + semantic (sqlite-vec) hybrid.
+"""Knowledge-Base search — FTS5 full-text + sqlite-vec vector hybrid.
 
 This module provides a unified search entry point that combines:
-1. ``LIKE``-based keyword search (fast, always available)
-2. Vector / semantic search via ``vector_search`` (requires sqlite-vec index)
+1. FTS5 full-text search (fast BM25 ranking, always available)
+2. Vector / semantic search via ``vector_search`` (sqlite-vec cosine distance)
 
-For now, the FTS5 path delegates to LIKE-based text search in ``shared/storage``;
-full FTS5 virtual table integration is tracked as P1-2.
+Both are merged in ``hybrid_search()`` for best results.
 """
 
 from __future__ import annotations
@@ -18,39 +17,31 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
-# Import from the sibling `search` package
 from search import vector_search  # noqa: E402
+from shared.storage import fts5_search as _fts5  # noqa: E402
 
 
 def keyword_search(
     query: str, top_k: int = 5
 ) -> list[dict]:
-    """Keyword search over documents and cards using LIKE.
+    """FTS5 full-text keyword search over documents and cards.
 
-    Falls back to full-table scan with LIKE when no FTS5 index exists.
+    Uses BM25 ranking. Falls back to LIKE scan if FTS5 index not yet built.
     """
-    from shared.storage import select_all
-
-    terms = query.strip().split()
-    if not terms:
+    if not query or not query.strip():
         return []
 
     results = []
     for table, typ in [("kb_documents", "document"), ("kb_cards", "card")]:
-        rows = select_all(table, limit=200)
-        for row in rows:
-            content = row.get("content", "") + " " + row.get("title", "")
-            score = sum(1 for t in terms if t.lower() in content.lower())
-            if score > 0:
-                results.append(
-                    {
-                        "id": row["id"],
-                        "type": typ,
-                        "title": row.get("title", ""),
-                        "score": score,
-                        "snippet": content[:200],
-                    }
-                )
+        hits = _fts5(table, query, top_k=top_k)
+        for h in hits:
+            results.append({
+                "id": h["id"],
+                "type": typ,
+                "title": h.get("title", ""),
+                "score": -h.get("rank", 999),  # negate so higher = better
+                "snippet": h.get("snippet", ""),
+            })
 
     results.sort(key=lambda r: r["score"], reverse=True)
     return results[:top_k]
@@ -65,7 +56,7 @@ def hybrid_search(
     # Vector results
     vec_results = vector_search.search_all(query, top_k=top_k)
 
-    # Keyword results
+    # Keyword results (FTS5)
     kw_results = keyword_search(query, top_k=top_k)
 
     # Merge: enrich vector results with title/snippet from DB

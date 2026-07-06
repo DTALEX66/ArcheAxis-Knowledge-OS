@@ -1,12 +1,12 @@
 """Memory store — SQLite-backed, replaces JSONL."""
-from app.schemas import CoreObject, MachineLesson
 from app.memory.database import (
-    save_core_object,
-    search_core_objects,
-    save_lesson_db,
     list_lessons_db,
+    save_core_object,
+    save_lesson_db,
     save_memory_record,
+    search_core_objects,
 )
+from app.schemas import CoreObject, MachineLesson
 
 
 def save_memory(obj: CoreObject) -> None:

@@ -9,12 +9,11 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
-import pytest
 import numpy as np
+import pytest
+from search import hybrid_search, keyword_search, vector_search
 
-from app.memory.vector_db import VectorDB, SimpleTextEmbedder
-from search import vector_search, hybrid_search, keyword_search
-
+from app.memory.vector_db import SimpleTextEmbedder, VectorDB
 
 # ── SimpleTextEmbedder ──────────────────────────────────
 

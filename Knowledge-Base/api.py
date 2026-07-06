@@ -1,19 +1,20 @@
 """Knowledge-Base API — SQLite-backed, v0.2."""
-import sys, uuid
+import sys
+import uuid
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
-from fastapi import FastAPI
-from pydantic import BaseModel
-
 from cards import KnowledgeCard
 from context_pack import build_context_pack
+from fastapi import FastAPI
+from pydantic import BaseModel
+from search import hybrid_search, keyword_search, vector_search
 from taskpack import build_taskpack
-from shared.storage import insert, select_all, count
-from search import vector_search, hybrid_search, keyword_search
+
+from shared.storage import count, fts5_sync, insert, select_all
 
 app = FastAPI(title="Knowledge-Base", version="0.2.0")
 
@@ -39,11 +40,12 @@ def health(): return {"status": "ok", "system": "knowledge-base"}
 def create_document(doc: DocumentIn):
     r = {"id": f"doc_{uuid.uuid4().hex[:12]}", **doc.model_dump()}
     insert("kb_documents", r)
-    # Auto-index for vector search
+    # Auto-index for FTS5 + vector search
     try:
+        fts5_sync("kb_documents", {"id": r["id"], "title": r["title"], "content": r["content"]})
         vector_search.index_document(r["id"], r["title"] + " " + r["content"])
     except Exception:
-        pass  # non-critical; search still works even if indexing fails
+        pass  # non-critical
     return r
 
 @app.get("/documents")
@@ -55,8 +57,9 @@ def create_card(req: CardRequest):
     card = KnowledgeCard(card_id=f"card_{uuid.uuid4().hex[:12]}", title=req.title,
                           content=req.content, source_ids=req.source_ids, tags=req.tags)
     insert("kb_cards", card.to_dict())
-    # Auto-index for vector search
+    # Auto-index for FTS5 + vector search
     try:
+        fts5_sync("kb_cards", {"id": card.card_id, "title": card.title, "content": card.content})
         vector_search.index_card(card.card_id, card.title + " " + card.content)
     except Exception:
         pass
@@ -125,10 +128,103 @@ def search_rebuild():
     return vector_search.rebuild_index()
 
 
+# ── Review (P2-1) ───────────────────────────────────────
+
+
+class ReviewRequest(BaseModel):
+    card_id: str
+    quality: int  # 0-5
+    error_type: str = ""  # optional mistake tracking
+    error_detail: str = ""
+    source_topic: str = ""
+
+
+@app.post("/reviews")
+def create_review(req: ReviewRequest):
+    """Record a card review with SM-2 spacing.
+
+    Returns the review record with next review date.
+    If quality < 3, automatically records a mistake.
+    """
+    from reviews import schedule_review
+    from mistakes import record_mistake
+
+    result = schedule_review(req.card_id, req.quality)
+
+    # Auto-record mistake for low-quality reviews
+    if req.quality < 3 and req.error_type:
+        mistake = record_mistake(
+            req.card_id,
+            error_type=req.error_type or "recall_failure",
+            detail=req.error_detail,
+            source_topic=req.source_topic,
+        )
+        result["mistake"] = mistake
+
+    return result
+
+
+@app.get("/reviews/due")
+def due_reviews(limit: int = 20):
+    """Return cards due for review."""
+    from reviews import get_due_reviews
+
+    items = get_due_reviews(limit=limit)
+    return {"count": len(items), "items": items}
+
+
+@app.get("/reviews/history/{card_id}")
+def review_history(card_id: str, limit: int = 20):
+    """Return review history for a card."""
+    from reviews import get_review_history
+
+    items = get_review_history(card_id, limit=limit)
+    return {"card_id": card_id, "count": len(items), "items": items}
+
+
+# ── Mistakes (P2-1) ─────────────────────────────────────
+
+
+class MistakeResolveRequest(BaseModel):
+    resolution_note: str = ""
+
+
+@app.get("/mistakes")
+def list_mistakes(limit: int = 50):
+    """Return unresolved mistakes."""
+    from mistakes import get_unresolved_mistakes
+
+    items = get_unresolved_mistakes(limit=limit)
+    return {"count": len(items), "items": items}
+
+
+@app.get("/mistakes/patterns")
+def mistake_patterns():
+    """Analyze mistake patterns and return recommendations."""
+    from mistakes import analyze_patterns
+
+    return analyze_patterns()
+
+
+@app.post("/mistakes/{mistake_id}/resolve")
+def resolve_mistake_endpoint(mistake_id: str, req: MistakeResolveRequest):
+    """Mark a mistake as resolved."""
+    from mistakes import resolve_mistake
+
+    result = resolve_mistake(mistake_id, req.resolution_note)
+    if not result:
+        return {"error": "not found"}
+    return result
+
+
 # ── Obsidian projection ──
 
 from shared.obsidian_projection import (
-    render_taskpack, render_trace, render_lesson, render_daily_brief, write_projection,
+    render_daily_brief,
+    render_lesson,
+    render_taskpack,
+    render_trace,
+    write_projection,
 )
 from shared.storage import select_one
 
@@ -155,7 +251,7 @@ def project_trace(trace_id: str, dry_run: bool = True):
 @app.post("/project/lesson/{lesson_id}")
 def project_lesson(lesson_id: str, dry_run: bool = True):
     from app.memory.database import list_lessons_db
-    lessons = [l for l in list_lessons_db(limit=200) if l.get("lesson_id") == lesson_id or l.get("id") == lesson_id]
+    lessons = [ll for ll in list_lessons_db(limit=200) if ll.get("lesson_id") == lesson_id or ll.get("id") == lesson_id]
     if not lessons:
         return {"error": "not found"}
     proj = render_lesson(lessons[0])

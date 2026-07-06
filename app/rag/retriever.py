@@ -1,5 +1,5 @@
-from app.schemas import ContextPack
 from app.memory.store import search_memory
+from app.schemas import ContextPack
 
 
 def _terms(text: str) -> set[str]:

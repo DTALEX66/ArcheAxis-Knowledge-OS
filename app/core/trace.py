@@ -1,6 +1,6 @@
 """Execution trace — SQLite-backed, replaces JSONL."""
+from app.memory.database import list_traces_db, save_trace
 from app.schemas import ExecutionTrace
-from app.memory.database import save_trace, list_traces_db
 
 
 def log_trace(trace: ExecutionTrace) -> None:

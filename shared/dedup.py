@@ -93,8 +93,7 @@ class DedupService:
             if candidate == title_lower:
                 return row
             # containment
-            if len(candidate) > 3 and len(title_lower) > 3:
-                if candidate in title_lower or title_lower in candidate:
+            if len(candidate) > 3 and len(title_lower) > 3 and (candidate in title_lower or title_lower in candidate):
                     return row
             # Jaccard word overlap
             candidate_words = tokenize(candidate)

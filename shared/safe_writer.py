@@ -12,9 +12,8 @@ from __future__ import annotations
 import datetime as _dt
 import json
 import shutil
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import List, Optional
 
 
 @dataclass
@@ -23,7 +22,7 @@ class WriteItem:
     target_path: str
     bytes: int
     action: str  # "create" or "overwrite"
-    backup_path: Optional[str] = None
+    backup_path: str | None = None
 
 
 class SafeWriter:
@@ -56,7 +55,7 @@ class SafeWriter:
             )
         self.backup_dir = Path(backup_dir).expanduser().resolve()
         self.dry_run = dry_run
-        self.items: List[WriteItem] = []
+        self.items: list[WriteItem] = []
 
     def _resolve_inside_project(self, relative_path: str | Path) -> Path:
         """Resolve relative path and enforce it stays inside project root."""
@@ -95,7 +94,7 @@ class SafeWriter:
         """
         target = self._resolve_inside_project(relative_path)
         action = "overwrite" if target.exists() else "create"
-        backup_path: Optional[str] = None
+        backup_path: str | None = None
 
         if target.exists():
             backup_path = str(self._backup_existing(target))

@@ -1,4 +1,4 @@
-from app.schemas import ExecutionTrace, EvalResult
+from app.schemas import EvalResult, ExecutionTrace
 
 
 def evaluate(trace: ExecutionTrace) -> EvalResult:
