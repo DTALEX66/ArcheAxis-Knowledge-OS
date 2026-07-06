@@ -1102,37 +1102,179 @@ def mermaid_timeline(card_id: str):
     return {"mermaid": review_timeline_mermaid(card_id)}
 
 
-# ── Unified Pipeline (replaces scattered endpoints) ───────
+# ── Unified Pipeline (replaces 15+ scattered endpoints) ──
 
 
 class PipelineRequest(BaseModel):
-    source: str = "text"  # url | text | youtube | file | rss | search
+    source: str = "text"
     input: str = ""
-    actions: list[str] = []  # default: all
+    actions: list[str] = []
     auto_ingest: bool = True
 
 
 @app.post("/pipeline")
 def pipeline_run(req: PipelineRequest):
-    """Unified pipeline: discover→extract→tag→summarize→index in one call.
+    """一键管道: 搜索→提取→标签→摘要→索引入库。
 
-    Replaces: /ir/search + /ir/extract + /auto/tags + /auto/summarize
-             + /ir/facts + /ir/credibility + document creation.
-
-    Example:
-        {"source":"url", "input":"https://example.com", "actions":["extract","tag","index"]}
-        {"source":"search", "input":"graph rag tutorial"}
-        {"source":"youtube", "input":"https://youtube.com/watch?v=..."}
-        {"source":"text", "input":"Machine learning is..."}
+    source: url|text|youtube|rss|search
+    替代: /ir/* + /auto/* + /documents
     """
     from shared.pipeline import run_pipeline
+    return run_pipeline(req.source, req.input,
+                        actions=req.actions if req.actions else None,
+                        auto_ingest=req.auto_ingest)
 
-    return run_pipeline(
-        source=req.source,
-        input_data=req.input,
-        actions=req.actions if req.actions else None,
-        auto_ingest=req.auto_ingest,
-    )
+
+# ── Composite: Garden (替代 4 端点) ──────────────────────
+
+@app.get("/garden")
+def garden(action: str = "gaps", doc_id: str = "", top_k: int = 5):
+    """知识园艺: action=orphans|suggest|gaps|evergreen"""
+    if action == "orphans":
+        from shared.knowledge_gardener import find_orphans
+        return find_orphans()
+    elif action == "suggest" and doc_id:
+        from shared.knowledge_gardener import suggest_connections
+        return suggest_connections(doc_id, top_k)
+    elif action == "evergreen" and doc_id:
+        from shared.knowledge_gardener import score_evergreen
+        return score_evergreen(doc_id)
+    else:
+        from shared.knowledge_gardener import detect_gaps
+        return detect_gaps()
+
+
+# ── Composite: Analytics (替代 2 端点) ───────────────────
+
+@app.get("/analytics")
+def analytics(action: str = "streak", days: int = 30, limit: int = 20):
+    """分析: action=streak|heatmap"""
+    if action == "heatmap":
+        from shared.learning_analytics import topic_heatmap
+        return topic_heatmap(limit=limit)
+    else:
+        from shared.learning_analytics import review_streak
+        return review_streak(days=days)
+
+
+# ── Composite: Mermaid (替代 3 端点) ─────────────────────
+
+@app.get("/mermaid")
+def mermaid(type: str = "graph", title: str = "", card_id: str = "",
+            steps: str = "[]", max_nodes: int = 20):
+    """Mermaid图: type=graph|flowchart|timeline"""
+    import json
+    if type == "flowchart":
+        from shared.mermaid_gen import flowchart
+        return flowchart(title, json.loads(steps))
+    elif type == "timeline" and card_id:
+        from shared.mermaid_gen import review_timeline_mermaid
+        return review_timeline_mermaid(card_id)
+    else:
+        from shared.mermaid_gen import knowledge_graph_mermaid
+        return knowledge_graph_mermaid(card_id, max_nodes)
+
+
+# ── Composite: Evidence (替代 3 端点) ────────────────────
+
+@app.get("/evidence")
+def evidence(doc_id: str = "", action: str = "get"):
+    """证据: action=get|radar"""
+    if action == "radar" or not doc_id:
+        from shared.evidence_index import vault_health_radar
+        return vault_health_radar()
+    else:
+        from shared.evidence_index import get_evidence, evidence_health
+        return {"evidence": get_evidence(doc_id), "health": evidence_health(doc_id)}
+
+
+@app.post("/evidence")
+def evidence_add(doc_id: str = "", source_type: str = "manual",
+                 source_path: str = "", confidence: str = "medium", caption: str = ""):
+    from shared.evidence_index import index_evidence
+    return index_evidence(doc_id, source_type, source_path, confidence, caption)
+
+
+# ── Composite: Retro + Missions (替代 2 端点) ────────────
+
+@app.get("/retro")
+def retro(action: str = "weekly", days: int = 7):
+    """回顾: action=weekly|missions"""
+    if action == "missions":
+        from shared.retro_summary import generate_daily_missions
+        return generate_daily_missions()
+    else:
+        from shared.retro_summary import weekly_summary
+        return weekly_summary(days=days)
+
+
+# ── Composite: Projects (替代 2 端点) ────────────────────
+
+@app.get("/projects")
+def projects(action: str = "suggest", topic: str = "", limit: int = 5):
+    """项目: action=suggest|generate"""
+    if action == "generate" and topic:
+        from shared.project_generator import generate_project_from_topic
+        return generate_project_from_topic(topic)
+    else:
+        from shared.project_generator import suggest_projects
+        return suggest_projects(limit=limit)
+
+
+# ── Composite: Sources + Media (替代 4 端点) ─────────────
+
+@app.post("/sources")
+def sources(action: str = "discover", root_dir: str = "", source_dir: str = "",
+            max_files: int = 100):
+    """来源: action=discover|match|inventory"""
+    if action == "match":
+        from shared.source_discovery import match_sources_to_cards
+        return match_sources_to_cards(source_dir or root_dir)
+    elif action == "inventory":
+        from shared.media_extractor import media_inventory
+        return media_inventory(source_dir or root_dir)
+    else:
+        from shared.source_discovery import discover_sources
+        return discover_sources(root_dir, max_files=max_files)
+
+
+# ── Composite: Diversity (替代 2 端点) ───────────────────
+
+@app.get("/diversity")
+def diversity(doc_id: str = "", limit: int = 20):
+    """多样性: 传doc_id则分析单篇, 否则全局雷达"""
+    if doc_id:
+        from shared.diversity_audit import analyze_diversity
+        return analyze_diversity(doc_id)
+    else:
+        from shared.diversity_audit import diversity_radar
+        return diversity_radar(limit=limit)
+
+
+# ── Bulk + Export ─────────────────────────────────────────
+
+
+@app.post("/bulk/import")
+def bulk_import(items: str = "[]"):
+    """批量导入: JSON数组 [{source, input}, ...]"""
+    import json
+    from shared.bulk_ops import bulk_import as _bulk
+    return _bulk(json.loads(items))
+
+
+@app.get("/export")
+def export_kb(format: str = "json", tables: str = ""):
+    """导出KB: format=json|markdown|csv"""
+    from shared.bulk_ops import export_kb as _export
+    tbl_list = [t.strip() for t in tables.split(",") if t.strip()] if tables else None
+    return _export(format=format, tables=tbl_list)
+
+
+@app.post("/cron/discover")
+def cron_discover():
+    """定时发现: RSS+搜索一键采集"""
+    from shared.bulk_ops import cron_discover
+    return cron_discover()
 
 
 # ── Obsidian projection (legacy) ──
