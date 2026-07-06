@@ -340,7 +340,96 @@ def machine_knowledge_deactivate(unit_id: str):
     return result
 
 
-# ── Obsidian projection ──
+# ── Obsidian bridge (Phase 6) ────────────────────────────
+
+class ObsidianScanRequest(BaseModel):
+    vault_root: str = ""
+    max_files: int = 200
+
+
+class ObsidianImportRequest(BaseModel):
+    vault_root: str = ""
+    folders: list[str] = []
+    max_files: int = 50
+
+
+@app.post("/obsidian/scan")
+def obsidian_scan(req: ObsidianScanRequest):
+    """Scan an Obsidian vault and return categorized inventory (read-only)."""
+    from shared.obsidian_importer import scan_vault
+
+    vault = req.vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    return scan_vault(vault, max_files=req.max_files)
+
+
+@app.post("/obsidian/import")
+def obsidian_import(req: ObsidianImportRequest):
+    """Import notes from an Obsidian vault into KB (dry-run by default)."""
+    from shared.obsidian_importer import import_vault
+
+    vault = req.vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    folders = req.folders if req.folders else None
+    return import_vault(vault, folders=folders, max_files=req.max_files, dry_run=True)
+
+
+@app.post("/obsidian/import/apply")
+def obsidian_import_apply(req: ObsidianImportRequest):
+    """Import notes from Obsidian vault (real write)."""
+    from shared.obsidian_importer import import_vault
+
+    vault = req.vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    folders = req.folders if req.folders else None
+    return import_vault(vault, folders=folders, max_files=req.max_files, dry_run=False)
+
+
+@app.post("/obsidian/import/course")
+def obsidian_import_course(vault_root: str = "", course_path: str = "", dry_run: bool = True):
+    """Import a single course folder as KB cards."""
+    from shared.obsidian_importer import import_course_to_cards
+
+    vault = vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    return import_course_to_cards(vault, course_path, dry_run=dry_run)
+
+
+@app.post("/obsidian/project/card/{card_id}")
+def obsidian_project_card(card_id: str, dry_run: bool = True):
+    """Project a KB card to Obsidian markdown."""
+    from shared.obsidian_projection import render_card
+
+    card = select_one("kb_cards", card_id)
+    if not card:
+        return {"error": "card not found"}
+    proj = render_card(card)
+    return write_projection(proj, dry_run=dry_run)
+
+
+@app.post("/obsidian/project/review/{card_id}")
+def obsidian_project_review(card_id: str, dry_run: bool = True):
+    """Project a card with review history to Obsidian."""
+    from shared.obsidian_projection import render_review_card
+    from reviews import get_review_history
+
+    card = select_one("kb_cards", card_id)
+    if not card:
+        return {"error": "card not found"}
+    reviews = get_review_history(card_id, limit=20)
+    proj = render_review_card(card, reviews)
+    return write_projection(proj, dry_run=dry_run)
+
+
+@app.post("/obsidian/project/mku/{unit_id}")
+def obsidian_project_mku(unit_id: str, dry_run: bool = True):
+    """Project a machine knowledge unit to Obsidian."""
+    from shared.obsidian_projection import render_machine_knowledge
+
+    unit = select_one("machine_knowledge_units", unit_id)
+    if not unit:
+        return {"error": "unit not found"}
+    proj = render_machine_knowledge(unit)
+    return write_projection(proj, dry_run=dry_run)
+
+
+# ── Obsidian projection (legacy) ──
 
 from shared.obsidian_projection import (
     render_daily_brief,

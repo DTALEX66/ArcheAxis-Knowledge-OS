@@ -187,3 +187,139 @@ def write_projection(proj: ObsidianProjection, vault_root: str = "",
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(proj.rendered_body, encoding="utf-8")
     return {"status": "written", "target": str(target), "size": len(proj.rendered_body)}
+
+
+# ── Enhanced renderers (Phase 6+) ───────────────────────
+
+
+def render_card(card: dict, target_dir: str = "03_知识卡片") -> ObsidianProjection:
+    """KB Card → Obsidian knowledge card note (round-trip compatible)."""
+    card_id = card.get("card_id") or card.get("id", "unknown")
+    tags = card.get("tags", [])
+    tag_str = ", ".join(tags) if tags else "knowledge-card"
+
+    frontmatter = {
+        "title": card.get("title", card_id),
+        "type": "knowledge-card",
+        "kb_id": card_id,
+        "review_status": card.get("review_status", "draft"),
+        "tags": tags,
+        "created": card.get("created_at", ""),
+    }
+
+    body = f"""---
+title: {frontmatter['title']}
+type: knowledge-card
+kb_id: {card_id}
+review_status: {frontmatter['review_status']}
+tags: [{tag_str}]
+created: {frontmatter['created']}
+---
+
+# {card.get('title', card_id)}
+
+{card.get('content', '')}
+
+---
+
+> Imported from Cognitive-OS KB | ID: `{card_id}`
+"""
+
+    return ObsidianProjection(
+        projection_id=_new_id(),
+        source_asset_id=card_id,
+        asset_type="KnowledgeCard",
+        target_path=f"{target_dir}/{card_id}.md",
+        render_mode="markdown",
+        frontmatter=frontmatter,
+        body_template="Knowledge card",
+        rendered_body=body,
+    )
+
+
+def render_review_card(card: dict, reviews: list[dict],
+                       target_dir: str = "04_复习卡片") -> ObsidianProjection:
+    """KB Card + review history → Obsidian review note."""
+    card_id = card.get("card_id") or card.get("id", "unknown")
+    title = card.get("title", card_id)
+
+    review_md = ""
+    for i, r in enumerate(reviews[:10], 1):
+        q = r.get("quality", "?")
+        emoji = "🟢" if q >= 4 else "🟡" if q >= 2 else "🔴"
+        review_md += f"| {i} | {emoji} {q} | {r.get('interval_days', '?')}d | {r.get('ease_factor', '?')} | {r.get('created_at', '')[:10]} |\n"
+
+    body = f"""---
+title: 📝 Review: {title}
+type: review-card
+kb_id: {card_id}
+tags: [review, knowledge-card]
+---
+
+# 📝 Review: {title}
+
+{card.get('content', '')[:500]}
+
+## Review History
+
+| # | Quality | Interval | Ease | Date |
+|---|---------|----------|------|------|
+{review_md}
+
+---
+
+> ID: `{card_id}` | Last reviewed: {reviews[0].get('created_at', '')[:10] if reviews else 'never'}
+"""
+
+    return ObsidianProjection(
+        projection_id=_new_id(),
+        source_asset_id=card_id,
+        asset_type="ReviewCard",
+        target_path=f"{target_dir}/{card_id}.md",
+        render_mode="markdown",
+        frontmatter={"type": "review-card", "kb_id": card_id},
+        body_template="Review card with history",
+        rendered_body=body,
+    )
+
+
+def render_machine_knowledge(unit: dict,
+                              target_dir: str = "50_领域知识/机器知识") -> ObsidianProjection:
+    """MachineKnowledgeUnit → Obsidian domain knowledge note."""
+    unit_id = unit.get("id", "unknown")
+    unit_type = unit.get("unit_type", "rule")
+    conf = unit.get("confidence", 0.5)
+
+    body = f"""---
+title: 🤖 {unit.get('title', unit_id)}
+type: machine-knowledge
+kb_id: {unit_id}
+unit_type: {unit_type}
+confidence: {conf}
+source: {unit.get('source_type', 'manual')}
+tags: [machine-knowledge, {unit_type}]
+---
+
+# 🤖 {unit.get('title', unit_id)}
+
+**Type**: `{unit_type}` | **Confidence**: {conf:.0%} | **Source**: {unit.get('source_type', 'manual')}
+
+---
+
+{unit.get('content', '')}
+
+---
+
+> Machine Knowledge Unit | ID: `{unit_id}` | Active: {unit.get('active', True)}
+"""
+
+    return ObsidianProjection(
+        projection_id=_new_id(),
+        source_asset_id=unit_id,
+        asset_type="MachineKnowledge",
+        target_path=f"{target_dir}/{unit_id}.md",
+        render_mode="markdown",
+        frontmatter={"type": "machine-knowledge", "unit_type": unit_type, "confidence": conf},
+        body_template="Machine knowledge unit",
+        rendered_body=body,
+    )
