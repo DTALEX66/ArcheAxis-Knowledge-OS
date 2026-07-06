@@ -791,6 +791,112 @@ def graphrag_search(query: str = "", top_k: int = 5, max_hops: int = 2):
     return graph_rag_search(query, top_k=top_k, max_hops=max_hops)
 
 
+# ── IR Pipeline: Search → Extract → Analyze ──────────────
+
+
+@app.post("/ir/search")
+def ir_web_search(query: str = "", limit: int = 5):
+    """Search the web (DuckDuckGo, no API key)."""
+    from shared.web_search import search_web
+
+    return search_web(query, limit=limit)
+
+
+@app.post("/ir/extract")
+def ir_extract_content(url: str = "", max_chars: int = 10000):
+    """Extract clean content from a URL."""
+    from shared.web_search import extract_content
+
+    return extract_content(url, max_chars=max_chars)
+
+
+@app.post("/ir/search-and-extract")
+def ir_search_and_extract(query: str = "", search_limit: int = 3, extract_limit: int = 2):
+    """Search + extract top results in one call."""
+    from shared.web_search import search_and_extract
+
+    return search_and_extract(query, search_limit=search_limit, extract_limit=extract_limit)
+
+
+@app.post("/ir/feeds")
+def ir_collect_feeds(urls: str = "", categories: str = "", max_items: int = 10):
+    """Collect articles from RSS/Atom feeds."""
+    from shared.feed_collector import collect_feeds, discover_feeds, collect_and_ingest
+
+    if urls:
+        url_list = [u.strip() for u in urls.split(",") if u.strip()]
+    elif categories:
+        cat_list = [c.strip() for c in categories.split(",")]
+        discovered = discover_feeds(cat_list)
+        url_list = []
+        for feeds in discovered.values():
+            url_list.extend(feeds)
+    else:
+        url_list = [
+            "https://arxiv.org/rss/cs.AI",
+            "https://huggingface.co/blog/feed.xml",
+        ]
+
+    return collect_and_ingest(url_list, max_items=max_items)
+
+
+@app.post("/ir/youtube/transcript")
+def ir_youtube_transcript(url: str = "", languages: str = ""):
+    """Fetch YouTube video transcript."""
+    from shared.youtube_extractor import get_transcript
+
+    langs = [l.strip() for l in languages.split(",") if l.strip()] if languages else None
+    return get_transcript(url, languages=langs)
+
+
+@app.post("/ir/youtube/search")
+def ir_youtube_search(query: str = "", max_results: int = 5):
+    """Search YouTube via RSS feed (no API key)."""
+    from shared.youtube_extractor import search_youtube
+
+    results = search_youtube(query, max_results=max_results)
+    return {"query": query, "count": len(results), "results": results}
+
+
+@app.post("/ir/facts")
+def ir_extract_facts(text: str = "", max_facts: int = 20):
+    """Extract subject-predicate-object triples from text."""
+    from shared.fact_extractor import extract_facts, text_to_knowledge_graph
+
+    facts = extract_facts(text, max_facts=max_facts)
+    graph = text_to_knowledge_graph(text)
+    return {"facts": facts, "knowledge_graph": graph}
+
+
+@app.post("/ir/cross-reference")
+def ir_cross_reference(sources: str = "[]"):
+    """Cross-reference multiple sources for agreements/contradictions."""
+    from shared.cross_reference import cross_reference, fuse_sources
+    import json
+
+    src_list = json.loads(sources)
+    cr = cross_reference(src_list)
+    return cr
+
+
+@app.post("/ir/fuse")
+def ir_fuse_sources(sources: str = "[]"):
+    """Fuse multiple sources into unified knowledge summary."""
+    from shared.cross_reference import fuse_sources
+    import json
+
+    src_list = json.loads(sources)
+    return fuse_sources(src_list)
+
+
+@app.post("/ir/credibility")
+def ir_score_credibility(title: str = "", content: str = "", url: str = ""):
+    """Score a source's credibility."""
+    from shared.cross_reference import score_credibility
+
+    return score_credibility({"title": title, "content": content, "url": url})
+
+
 # ── Obsidian projection (legacy) ──
 
 from shared.obsidian_projection import (
