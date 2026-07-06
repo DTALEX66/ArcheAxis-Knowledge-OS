@@ -13,6 +13,7 @@ from cards import KnowledgeCard
 from context_pack import build_context_pack
 from taskpack import build_taskpack
 from shared.storage import insert, select_all, count
+from search import vector_search, hybrid_search, keyword_search
 
 app = FastAPI(title="Knowledge-Base", version="0.2.0")
 
@@ -37,7 +38,13 @@ def health(): return {"status": "ok", "system": "knowledge-base"}
 @app.post("/documents")
 def create_document(doc: DocumentIn):
     r = {"id": f"doc_{uuid.uuid4().hex[:12]}", **doc.model_dump()}
-    insert("kb_documents", r); return r
+    insert("kb_documents", r)
+    # Auto-index for vector search
+    try:
+        vector_search.index_document(r["id"], r["title"] + " " + r["content"])
+    except Exception:
+        pass  # non-critical; search still works even if indexing fails
+    return r
 
 @app.get("/documents")
 def list_documents(limit: int = 20):
@@ -47,7 +54,13 @@ def list_documents(limit: int = 20):
 def create_card(req: CardRequest):
     card = KnowledgeCard(card_id=f"card_{uuid.uuid4().hex[:12]}", title=req.title,
                           content=req.content, source_ids=req.source_ids, tags=req.tags)
-    insert("kb_cards", card.to_dict()); return card.to_dict()
+    insert("kb_cards", card.to_dict())
+    # Auto-index for vector search
+    try:
+        vector_search.index_card(card.card_id, card.title + " " + card.content)
+    except Exception:
+        pass
+    return card.to_dict()
 
 @app.get("/cards")
 def list_cards(limit: int = 20):
@@ -70,6 +83,46 @@ def create_taskpack(req: TaskPackRequest):
 @app.get("/taskpacks")
 def list_taskpacks(limit: int = 20):
     return {"count": count("kb_taskpacks"), "items": select_all("kb_taskpacks", limit)}
+
+
+# ── Search ───────────��────────────────────────────────
+
+class SearchRequest(BaseModel):
+    query: str
+    top_k: int = 5
+    mode: str = "hybrid"  # "hybrid" | "vector" | "keyword"
+
+
+@app.post("/search")
+def search(req: SearchRequest):
+    """Unified search endpoint: vector + keyword hybrid by default.
+
+    Modes:
+    - ``hybrid``: combine sqlite-vec vector search with LIKE keyword search
+    - ``vector``: sqlite-vec semantic search only
+    - ``keyword``: LIKE-based keyword search only
+    """
+    if req.mode == "vector":
+        items = vector_search.search_all(req.query, top_k=req.top_k)
+        return {"query": req.query, "mode": "vector", "count": len(items), "items": items}
+    elif req.mode == "keyword":
+        items = keyword_search(req.query, top_k=req.top_k)
+        return {"query": req.query, "mode": "keyword", "count": len(items), "items": items}
+    else:
+        items = hybrid_search(req.query, top_k=req.top_k)
+        return {"query": req.query, "mode": "hybrid", "count": len(items), "items": items}
+
+
+@app.get("/search/stats")
+def search_stats():
+    """Return vector index statistics."""
+    return vector_search.stats()
+
+
+@app.post("/search/rebuild")
+def search_rebuild():
+    """Drop and recreate all vector indexes."""
+    return vector_search.rebuild_index()
 
 
 # ── Obsidian projection ──
