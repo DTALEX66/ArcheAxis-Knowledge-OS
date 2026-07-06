@@ -208,6 +208,26 @@ CREATE TABLE IF NOT EXISTS graph_relations (
     graph_name TEXT NOT NULL DEFAULT 'default',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Obsidian-absorbed capabilities: links + daily notes
+CREATE TABLE IF NOT EXISTS kb_links (
+    id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    link_type TEXT NOT NULL DEFAULT 'wikilink',
+    alias TEXT NOT NULL DEFAULT '',
+    is_embed INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS daily_notes (
+    id TEXT PRIMARY KEY,
+    date TEXT NOT NULL,
+    content TEXT NOT NULL DEFAULT '',
+    tags_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 

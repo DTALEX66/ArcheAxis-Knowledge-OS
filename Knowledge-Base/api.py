@@ -40,10 +40,12 @@ def health(): return {"status": "ok", "system": "knowledge-base"}
 def create_document(doc: DocumentIn):
     r = {"id": f"doc_{uuid.uuid4().hex[:12]}", **doc.model_dump()}
     insert("kb_documents", r)
-    # Auto-index for FTS5 + vector search
+    # Auto-index for FTS5 + vector search + backlinks
     try:
         fts5_sync("kb_documents", {"id": r["id"], "title": r["title"], "content": r["content"]})
         vector_search.index_document(r["id"], r["title"] + " " + r["content"])
+        from shared.backlinks import index_document_links
+        index_document_links(r["id"], r["content"])
     except Exception:
         pass  # non-critical
     return r
@@ -427,6 +429,59 @@ def obsidian_project_mku(unit_id: str, dry_run: bool = True):
         return {"error": "unit not found"}
     proj = render_machine_knowledge(unit)
     return write_projection(proj, dry_run=dry_run)
+
+
+# ── Obsidian-absorbed: Backlinks + Graph + Dataview + Daily ──
+
+
+@app.get("/backlinks/{target_id}")
+def backlinks(target_id: str, limit: int = 50):
+    """Find all documents/cards that link TO the target (reverse links)."""
+    from shared.backlinks import compute_backlinks
+
+    items = compute_backlinks(target_id, limit=limit)
+    return {"target": target_id, "count": len(items), "items": items}
+
+
+@app.get("/graph")
+def graph_view(center: str = "", depth: int = 2):
+    """Return the knowledge graph (nodes + edges) for visualization."""
+    from shared.dataview import query_graph
+
+    return query_graph(center_id=center, depth=depth)
+
+
+@app.post("/dataview/query")
+def dataview_query(query_str: str = ""):
+    """Dataview-style query: FROM <table> WHERE <cond> SORT <field> LIMIT N."""
+    from shared.dataview import query
+
+    return query(query_str)
+
+
+@app.get("/daily")
+def daily_note(day: str = ""):
+    """Get or create today's daily note."""
+    from shared.daily_notes import get_or_create_daily
+
+    return get_or_create_daily(day)
+
+
+@app.post("/daily/append")
+def daily_append(content: str = "", day: str = "", heading: str = ""):
+    """Append content to a daily note."""
+    from shared.daily_notes import append_to_daily
+
+    return append_to_daily(content, day=day, heading=heading)
+
+
+@app.get("/daily/timeline")
+def daily_timeline(days: int = 7):
+    """Return daily notes for the last N days."""
+    from shared.daily_notes import timeline
+
+    items = timeline(days=days)
+    return {"days": days, "count": len(items), "items": items}
 
 
 # ── Obsidian projection (legacy) ──
