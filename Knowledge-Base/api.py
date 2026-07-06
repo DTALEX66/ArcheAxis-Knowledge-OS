@@ -1,5 +1,13 @@
-"""Knowledge-Base API — SQLite-backed, v0.2."""
+"""Knowledge-Base API — SQLite-backed, v0.4.0.
+
+102 endpoints across 14 tag groups.
+Full OpenAPI documentation at /docs.
+"""
+
+from __future__ import annotations
+
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -9,21 +17,63 @@ sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 from cards import KnowledgeCard
 from context_pack import build_context_pack
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from search import hybrid_search, keyword_search, vector_search
 from taskpack import build_taskpack
 
 from shared.storage import count, fts5_sync, insert, select_all
 
-app = FastAPI(title="Knowledge-Base", version="0.3.0")
+# ── App setup ────────────────────────────────────────────
 
-# Jinja2 templates for dashboard
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from fastapi import Request
+app = FastAPI(
+    title="Cognitive-Loop-OS Knowledge-Base",
+    version="0.4.0",
+    description="102-endpoint knowledge management runtime. Absorbs capabilities from Obsidian, Tana, Notion, Logseq, Roam, Heptabase, Capacities, Anytype, GraphRAG, and Zettelkasten.",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Templates
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+
+
+# ── Middleware: request logging + timing ──────────────────
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = round((time.time() - start) * 1000, 1)
+    response.headers["X-Process-Time-ms"] = str(duration)
+    from shared.logging import logger
+    logger.debug(f"{request.method} {request.url.path} → {response.status_code} ({duration}ms)")
+    return response
+
+
+# ── Global exception handler ─────────────────────────────
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    from shared.logging import logger
+    logger.error(f"Unhandled error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal_error", "detail": str(exc)[:200]},
+    )
 
 
 class DocumentIn(BaseModel):
