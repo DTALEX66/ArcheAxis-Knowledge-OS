@@ -1,9 +1,10 @@
-# Cognitive-Loop-OS — unified Docker Compose for B-line services
-# Start all 3 services with: docker compose up -d
+# Cognitive-Loop-OS v0.4.0 — unified Docker Compose
+# Start: docker compose up -d
 # Access:
-#   Cognitive-OS:        http://localhost:8000/docs
-#   Inspiration-Research: http://localhost:8001/docs
-#   Knowledge-Base:       http://localhost:8002/docs
+#   Cognitive-OS (core):    http://localhost:8000/docs
+#   Knowledge-Base:         http://localhost:8000/kb/docs
+#   Dashboard:              http://localhost:8000/kb
+#   Inspiration-Research:   http://localhost:8001/docs
 
 version: "3.9"
 
