@@ -45,12 +45,25 @@ app.add_middleware(
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.time()
+
+    # ── Auth check (skip allowlist) ──
+    from shared.auth import requires_auth, verify_token
+    if requires_auth(request.url.path):
+        api_key = request.headers.get("X-API-Key", "")
+        auth_header = request.headers.get("Authorization", "")
+        token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else ""
+
+        user = verify_token(token or api_key)
+        if not user:
+            return JSONResponse(
+                status_code=401,
+                content={"error": "unauthorized", "detail": "Valid API key or token required. Use X-API-Key header."},
+            )
+
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
     response.headers["X-Process-Time-ms"] = str(duration)
     return response
-
-
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
@@ -284,3 +297,58 @@ def traces():
 @app.get("/memory/lessons")
 def lessons():
     return {"items": list_lessons()}
+
+
+# ── Auth + Backup + Architecture ─────────────────────────
+
+
+@app.post("/auth/token")
+def auth_token(user_id: str = "", role: str = "user", expires_hours: int = 24):
+    """Generate a JWT token."""
+    from shared.auth import create_token
+    token = create_token(user_id=user_id, role=role, expires_hours=expires_hours)
+    return {"token": token, "expires_in_hours": expires_hours}
+
+
+@app.post("/backup")
+def backup_db():
+    """Create a database backup."""
+    from shared.backup import auto_backup
+    return auto_backup()
+
+
+@app.get("/backup/list")
+def backup_list():
+    """List available backups."""
+    from shared.backup import list_backups
+    return {"backups": list_backups()}
+
+
+@app.get("/architecture")
+def architecture():
+    """Return system architecture as Mermaid diagram."""
+    return {
+        "mermaid": """```mermaid
+graph TB
+    subgraph Clients["客户端"]
+        Web["🌐 Dashboard"]; API["📡 API"]; Agent["🤖 MCP"]; Cron["⏰ Cron"]
+    end
+    subgraph Gateway["网关 :8000"]
+        Auth["🔐 JWT"]; CORS["🌍 CORS"]; Log["📝 Log"]
+    end
+    subgraph Core["Core"]
+        Router["🧭 Route"]; Pipeline["⚡ Pipeline"]; Tools["🔧 Tools"]
+    end
+    subgraph KB["Knowledge-Base"]
+        Search["🔍 Search"]; Garden["🌱 Garden"]; Review["📚 SM-2"]
+        Canvas["🎨 Canvas"]; MKU["🤖 MKU"]
+    end
+    subgraph Data["数据"]
+        SQLite[("💾 SQLite")]; VecDB[("🧬 Vec")]; GraphDB[("🕸️ Graph")]; Backup[("📦 Backup")]
+    end
+    Web-->Auth; API-->Auth; Agent-->Auth; Cron-->Auth
+    Auth-->Router; Router-->Pipeline; Pipeline-->Search; Pipeline-->Garden
+    Search-->SQLite; Search-->VecDB; Garden-->GraphDB; Review-->SQLite; SQLite-->Backup
+```""",
+        "version": "0.4.0", "modules": 36, "tests": 106,
+    }

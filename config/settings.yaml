@@ -1,16 +1,40 @@
+# Cognitive-Loop-OS Configuration
+# Override defaults from shared/config.py
+# Environment variables take precedence over this file.
+
 app:
-  name: cognitive-os-v2
-  environment: dev
+  name: "Cognitive-Loop-OS"
+  version: "0.4.0"
+  port: 8000
+  host: "0.0.0.0"
 
-attention:
-  kb_threshold: 0.30
-  task_threshold: 0.75
-  review_threshold: 0.90
+database:
+  path: "data/cognitive_os.sqlite"
+  journal_mode: "WAL"
+  backup_dir: "data/backups"
 
-execution:
-  default_mode: dry_run
-  allowed_write_dir: data/output
+logging:
+  level: "INFO"
+  console: true
+  file: true
+  file_dir: "data/logs"
+  rotation: "10 MB"
+  retention: "7 days"
 
-memory:
-  backend: sqlite
-  db_path: data/cognitive_os.sqlite
+auth:
+  enabled: false  # Set true in production
+  token_expire_hours: 24
+
+pipeline:
+  max_content_chars: 10000
+  default_actions: ["extract", "tag", "summarize", "index"]
+  auto_ingest: true
+
+search:
+  fts5_enabled: true
+  vector_enabled: true
+  vector_dim: 384
+  default_top_k: 5
+
+cors:
+  allow_origins: ["*"]
