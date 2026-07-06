@@ -1032,6 +1032,76 @@ def projects_suggest(limit: int = 5):
     return {"suggestions": suggest_projects(limit=limit)}
 
 
+# ── Adapted from Obsidian-Assistance v4/v5/v6 ─────────────
+
+
+@app.post("/media/inventory")
+def media_inventory(source_dir: str = ""):
+    """Scan a directory for PDFs and videos."""
+    from shared.media_extractor import media_inventory
+
+    return media_inventory(source_dir)
+
+
+@app.post("/sources/discover")
+def sources_discover(root_dir: str = "", max_files: int = 100):
+    """Discover evidence source files in a directory."""
+    from shared.source_discovery import discover_sources, match_sources_to_cards
+
+    discovery = discover_sources(root_dir, max_files=max_files)
+    return discovery
+
+
+@app.post("/sources/match")
+def sources_match(source_dir: str = ""):
+    """Match discovered sources to existing KB cards."""
+    from shared.source_discovery import match_sources_to_cards
+
+    return match_sources_to_cards(source_dir)
+
+
+@app.get("/diversity/{doc_id}")
+def diversity_analyze(doc_id: str):
+    """Analyze content modality diversity for a document."""
+    from shared.diversity_audit import analyze_diversity
+
+    return analyze_diversity(doc_id)
+
+
+@app.get("/diversity/radar")
+def diversity_radar(limit: int = 20):
+    """Content diversity radar (richest → text_only)."""
+    from shared.diversity_audit import diversity_radar
+
+    return {"items": diversity_radar(limit=limit)}
+
+
+@app.get("/mermaid/flowchart")
+def mermaid_flowchart(title: str = "", steps: str = "[]"):
+    """Generate Mermaid flowchart from steps JSON."""
+    from shared.mermaid_gen import flowchart
+    import json
+
+    step_list = json.loads(steps)
+    return {"mermaid": flowchart(title, step_list)}
+
+
+@app.get("/mermaid/graph")
+def mermaid_graph(center_id: str = "", max_nodes: int = 20):
+    """Generate Mermaid knowledge graph."""
+    from shared.mermaid_gen import knowledge_graph_mermaid
+
+    return {"mermaid": knowledge_graph_mermaid(center_id, max_nodes=max_nodes)}
+
+
+@app.get("/mermaid/timeline/{card_id}")
+def mermaid_timeline(card_id: str):
+    """Generate Mermaid review timeline for a card."""
+    from shared.mermaid_gen import review_timeline_mermaid
+
+    return {"mermaid": review_timeline_mermaid(card_id)}
+
+
 # ── Obsidian projection (legacy) ──
 
 from shared.obsidian_projection import (
