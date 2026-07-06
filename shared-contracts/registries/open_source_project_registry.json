@@ -454,18 +454,18 @@
     "name": "mem0ai/mem0",
     "category": "Memory",
     "recommended_target": "KB/Cognitive-OS",
-    "absorption_mode": "后置Adapter",
-    "note": "长期记忆参考",
+    "absorption_mode": "候选Adapter",
+    "note": "通用 Agent 记忆层，SQLite 本地模式已支持。可渐进引入替换 episodic stub。优先级 P0。",
     "status": "candidate",
-    "risk_policy": "must_review_before_use"
+    "risk_policy": "standard_review"
   },
   {
     "project_id": "osp_0047",
     "name": "getzep/graphiti",
     "category": "Temporal Knowledge Graph",
     "recommended_target": "KB",
-    "absorption_mode": "后置Adapter",
-    "note": "时序事实/图记忆",
+    "absorption_mode": "候选Adapter",
+    "note": "实时时序知识图谱，支持时间感知的实体关系演化。依赖 Neo4j/Kuzu，集成成本高，建议 Phase 8+ 评估。",
     "status": "candidate",
     "risk_policy": "must_review_before_use"
   },
@@ -920,32 +920,12 @@
     "risk_policy": "standard_review"
   },
   {
-    "project_id": "osp_0093",
-    "name": "getzep/graphiti",
-    "category": "Temporal Knowledge Graph",
-    "recommended_target": "KB",
-    "absorption_mode": "候选Adapter",
-    "note": "实时知识图谱构建，支持时间感知，为 AI Agent 提供记忆层（Neo4j/FalkorDB 后端）",
-    "status": "candidate",
-    "risk_policy": "must_review_before_use"
-  },
-  {
     "project_id": "osp_0094",
     "name": "topoteretes/cognee",
     "category": "AI Memory Platform",
     "recommended_target": "Cognitive-OS",
     "absorption_mode": "候选Adapter",
     "note": "统一图+向量搜索的 AI 记忆平台，支持本体扎根、多模态摄取、持久化学习 Agent",
-    "status": "candidate",
-    "risk_policy": "must_review_before_use"
-  },
-  {
-    "project_id": "osp_0095",
-    "name": "mem0ai/mem0",
-    "category": "Memory",
-    "recommended_target": "Cognitive-OS",
-    "absorption_mode": "候选Adapter",
-    "note": "通用 AI Agent 记忆层，支持个性化交互记忆（需要 LLM 后端，默认 GPT）",
     "status": "candidate",
     "risk_policy": "must_review_before_use"
   },

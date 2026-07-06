@@ -133,6 +133,23 @@ CREATE TABLE IF NOT EXISTS kb_mistakes (
     resolved_at TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- P2-3: episodic memory for agent sessions
+CREATE TABLE IF NOT EXISTS episodic_memory (
+    id TEXT PRIMARY KEY,
+    content TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'agent',
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    importance REAL NOT NULL DEFAULT 0.5,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS episodic_memory_fts USING fts5(
+    id UNINDEXED,
+    content,
+    source,
+    tokenize='porter unicode61'
+);
 """
 
 
