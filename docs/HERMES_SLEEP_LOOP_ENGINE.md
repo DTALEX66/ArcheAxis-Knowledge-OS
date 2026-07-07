@@ -36,6 +36,27 @@ PM2：`ecosystem.config.cjs`
 | 单次批量文件 | 50 | 50 |
 | 单日志文件 | 200MB | 200MB |
 | 最大连续运行 | 12h | 12h |
+| 真实任务校验 | 强制开启 | 不可关闭 |
+
+### 真实任务硬约束
+
+睡觉循环的 `done` 不等于“账本写入成功”，只代表真实工具执行并返回了可核验证据。默认禁止以下任务冒充完成：
+
+- `echo` 心跳/占位任务。
+- `context_pack_build` 纯上下文包构建。
+- `taskpack_generate` 任务包预览，尤其是 `dry_run=true`。
+- 任意 `dry_run=true` 结果。
+
+允许自动入队并计入完成的真实执行器：
+
+| 执行器 | 完成证据 |
+| --- | --- |
+| `file_read` | 返回 `path` + `content` |
+| `safe_write` | `dry_run=false` 且返回 `written=true` + `path` |
+| `kb_search` | 返回 `items` 列表 + `count` 数值 |
+| `mk_search` | 返回 `items` 列表 + `count` 数值 |
+
+默认自然语言拆解任务会落成 `kb_search`，不会再生成 `echo`。如果执行器缺少证据，即使工具返回成功，也会转为失败/重试/归档，不能记入 `done`。
 
 ## 3. 数据表 SQL
 
@@ -66,7 +87,7 @@ CREATE TABLE IF NOT EXISTS sleep_loop_tasks (
     content TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     priority INTEGER NOT NULL DEFAULT 100,
-    executor TEXT NOT NULL DEFAULT 'echo',
+    executor TEXT NOT NULL DEFAULT 'kb_search',
     payload_json TEXT NOT NULL DEFAULT '{}',
     dependencies_json TEXT NOT NULL DEFAULT '[]',
     retries INTEGER NOT NULL DEFAULT 0,
@@ -164,7 +185,7 @@ python -m ruff check shared/sleep_loop_engine.py scripts/sleep_loop_worker.py te
 
 ## 8. 当前限制
 
-- 当前执行器调用现有 `app.tools.registry` 的安全工具：`echo/file_read/safe_write/kb_search/mk_search/context_pack_build/taskpack_generate`。
+- 当前执行器只允许真实可核验工具自动计入完成：`file_read/safe_write/kb_search/mk_search`。`echo/context_pack_build/taskpack_generate` 被视为心跳、上下文构建或预览任务，默认阻断，不允许冒充完成。
 - 第一版没有直接引入 Redis/MySQL，避免增加部署阻塞；表结构已经为后续迁移保留队列状态与账本边界。
 - CPU/内存阈值已通过可选 `psutil` 采样接入：CPU 超阈进入冷却，内存超阈先 GC，仍超则熔断；后续可再扩展为持续 60s/10min 滑动窗口统计。
 - 为避免“完成数虚高”，默认队列清空后即 `queue_completed` 停止；只有前端/调用方显式设置 `repeat_seed_tasks=true` 时才会重复种子任务。

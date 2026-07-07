@@ -28,6 +28,7 @@
 - 单任务超时 120s。
 - CPU 超阈进入冷却；内存超阈先 GC，仍超则熔断。
 - 高危任务进入队列会被硬边界拦截并记录日志。
+- 空壳/幻觉/预览任务不会计入完成：`echo`、`context_pack_build`、`taskpack_generate`、`dry_run=true` 均被阻断；真实完成必须有工具证据（如 file_read 的 path+content、safe_write 的 written+path、搜索工具的 count+items）。
 - 就寝模式不弹窗、不语音、不外发第三方通知。
 
 ## 产物

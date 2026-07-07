@@ -49,6 +49,9 @@ TASK_FAILED = "failed"
 TASK_BLOCKED = "blocked"
 TASK_ARCHIVED = "archived"
 
+REAL_EXECUTORS = {"file_read", "safe_write", "kb_search", "mk_search"}
+NON_REAL_EXECUTORS = {"echo", "context_pack_build", "taskpack_generate"}
+
 HARD_BLOCK_PATTERNS = [
     r"人工.*(确认|输入|问答)|弹窗|交互式|human\s*review|manual\s*confirm",
     r"批量删除.*(全库|数据库)|drop\s+database|truncate\s+table|format\s+[a-z]:",
@@ -104,6 +107,7 @@ class SleepLoopConfig:
     failure_streak_limit: int = 10
     db_loss_halt_seconds: int = 300
     quiet_mode: bool = True
+    enforce_real_tasks: bool = True
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any] | None = None) -> SleepLoopConfig:
@@ -132,6 +136,7 @@ class SleepLoopConfig:
             cfg.max_cycles = max(1, int(cfg.max_cycles))
         if cfg.max_runtime_hours is not None:
             cfg.max_runtime_hours = max(1, min(int(cfg.max_runtime_hours), 12))
+        cfg.enforce_real_tasks = True
         return cfg
 
     def to_dict(self) -> dict[str, Any]:
@@ -187,7 +192,7 @@ def init_sleep_loop_schema() -> None:
             content TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'pending',
             priority INTEGER NOT NULL DEFAULT 100,
-            executor TEXT NOT NULL DEFAULT 'echo',
+            executor TEXT NOT NULL DEFAULT 'kb_search',
             payload_json TEXT NOT NULL DEFAULT '{}',
             dependencies_json TEXT NOT NULL DEFAULT '[]',
             retries INTEGER NOT NULL DEFAULT 0,
@@ -333,6 +338,46 @@ def guard_task(content: str, cfg: SleepLoopConfig) -> tuple[bool, str]:
     return True, "allowed"
 
 
+def validate_real_task(task: dict[str, Any], cfg: SleepLoopConfig) -> tuple[bool, str]:
+    """Reject preview/heartbeat/shell tasks before they can enter the queue."""
+    if not cfg.enforce_real_tasks:
+        return False, "real_task_enforcement_cannot_be_disabled"
+    executor = str(task.get("executor", "")).strip()
+    payload = task.get("payload", {}) or {}
+    if executor in NON_REAL_EXECUTORS:
+        return False, f"non_real_executor_blocked:{executor}"
+    if executor not in REAL_EXECUTORS:
+        return False, f"executor_not_real_task:{executor or '<missing>'}"
+    if payload.get("dry_run") is True:
+        return False, "dry_run_task_blocked"
+    if executor == "safe_write" and payload.get("dry_run") is not False:
+        return False, "safe_write_requires_dry_run_false_for_real_task"
+    if executor == "file_read" and not str(payload.get("path", "")).strip():
+        return False, "file_read_requires_path_evidence"
+    if executor in {"kb_search", "mk_search"} and not str(payload.get("query", "")).strip():
+        return False, f"{executor}_requires_query_evidence"
+    return True, "real_task_allowed"
+
+
+def has_real_evidence(executor: str, result: dict[str, Any]) -> tuple[bool, str]:
+    """A task can be marked done only when its result carries verifiable evidence."""
+    if result.get("dry_run") is True:
+        return False, "dry_run_result_is_not_real"
+    if executor == "file_read":
+        if result.get("path") and "content" in result:
+            return True, "file_read_content_evidence"
+        return False, "missing_file_read_evidence"
+    if executor == "safe_write":
+        if result.get("written") is True and result.get("path"):
+            return True, "safe_write_written_evidence"
+        return False, "missing_safe_write_evidence"
+    if executor in {"kb_search", "mk_search"}:
+        if isinstance(result.get("count"), int) and isinstance(result.get("items"), list):
+            return True, f"{executor}_count_evidence"
+        return False, f"missing_{executor}_evidence"
+    return False, f"non_real_executor_result:{executor}"
+
+
 def split_task(goal: str, max_items: int) -> list[dict[str, Any]]:
     """Deterministically split a main goal into bounded sub tasks."""
     text = str(goal).strip()
@@ -358,8 +403,8 @@ def split_task(goal: str, max_items: int) -> list[dict[str, Any]]:
                 "title": f"子任务 {index}: {item[:48]}",
                 "content": item,
                 "priority": index,
-                "executor": "echo",
-                "payload": {"name": item},
+                "executor": "kb_search",
+                "payload": {"query": item, "top_k": 5},
                 "dependencies": [],
             }
         )
@@ -393,6 +438,8 @@ def add_task(
 ) -> dict[str, Any]:
     init_sleep_loop_schema()
     allowed, reason = guard_task(str(task.get("content", task.get("title", ""))), cfg)
+    if allowed:
+        allowed, reason = validate_real_task(task, cfg)
     task_id = _new_id("slt")
     status = TASK_PENDING if allowed else TASK_BLOCKED
     conn = _conn()
@@ -414,8 +461,8 @@ def add_task(
             str(task.get("content", task.get("title", ""))),
             status,
             int(task.get("priority", 100)),
-            str(task.get("executor", "echo")),
-            _dump(task.get("payload", {"name": task.get("content", task.get("title", ""))})),
+            str(task.get("executor", "")),
+            _dump(task.get("payload", {})),
             _dump(task.get("dependencies", [])),
             int(task.get("max_retries", cfg.max_retries)),
             str(task.get("risk_level", "low")),
@@ -450,8 +497,8 @@ def start_loop(goal: str, payload: dict[str, Any] | None = None) -> dict[str, An
                     "title": f"子任务 {index}: {text[:48]}",
                     "content": text,
                     "priority": index,
-                    "executor": "echo",
-                    "payload": {"name": text},
+                    "executor": "kb_search",
+                    "payload": {"query": text, "top_k": 5},
                     "dependencies": [],
                 }
             )
@@ -622,7 +669,12 @@ def _parse_derived_tasks(result: dict[str, Any]) -> list[dict[str, Any]]:
         if match:
             item = match.group(1).strip()
             tasks.append(
-                {"title": item[:80], "content": item, "executor": "echo", "payload": {"name": item}}
+                {
+                    "title": item[:80],
+                    "content": item,
+                    "executor": "kb_search",
+                    "payload": {"query": item, "top_k": 5},
+                }
             )
     return tasks
 
@@ -630,18 +682,11 @@ def _parse_derived_tasks(result: dict[str, Any]) -> list[dict[str, Any]]:
 def _execute_payload(executor: str, payload: dict[str, Any]) -> dict[str, Any]:
     from app.tools.registry import run_tool
 
-    allowed_executors = {
-        "echo",
-        "file_read",
-        "safe_write",
-        "kb_search",
-        "mk_search",
-        "context_pack_build",
-        "taskpack_generate",
-    }
-    if executor not in allowed_executors:
+    if executor not in REAL_EXECUTORS:
         return {"status": "blocked", "error": f"executor_not_allowed:{executor}"}
-    return run_tool(executor, payload)
+    run_payload = dict(payload)
+    dry_run = run_payload.pop("dry_run", None)
+    return run_tool(executor, run_payload, dry_run=dry_run)
 
 
 def _run_with_timeout(
@@ -809,10 +854,16 @@ def tick_once() -> dict[str, Any]:
     conn.close()
     log_event("task_started", task.get("title", ""), run_id=run_id, task_id=task_id)
 
-    result = _run_with_timeout(
-        task.get("executor", "echo"), task.get("payload", {}), cfg.task_timeout_seconds
-    )
+    executor = task.get("executor", "")
+    result = _run_with_timeout(executor, task.get("payload", {}), cfg.task_timeout_seconds)
     success = result.get("status") not in {"error", "blocked"}
+    if success:
+        evidence_ok, evidence_reason = has_real_evidence(str(executor), result)
+        result["real_evidence"] = evidence_reason
+        if not evidence_ok:
+            result["status"] = "error"
+            result["error"] = evidence_reason
+            success = False
 
     conn = _conn()
     if success:

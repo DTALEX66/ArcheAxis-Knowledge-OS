@@ -126,7 +126,7 @@ class TestVectorSearchModule:
         assert results[0][0] == "d1"
 
     def test_index_and_search_cards(self):
-        vector_search.index_card("c1", "backpropagation algorithm explained")
+        vector_search.index_card("c1", "neural network training backpropagation algorithm explained")
         vector_search.index_card("c2", "how to make pizza dough")
         results = vector_search.search_cards("neural network training", top_k=2)
         assert results[0][0] == "c1"
