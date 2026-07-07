@@ -184,6 +184,38 @@ def test_sleep_loop_real_file_read_requires_evidence_before_done():
     sl.stop_loop("test_done")
 
 
+def test_sleep_loop_kb_search_runs_with_real_evidence_in_worker_context():
+    from shared import sleep_loop_engine as sl
+
+    sl.stop_loop("test_cleanup")
+    started = sl.start_loop(
+        "真实 KB 搜索",
+        {
+            "tasks": [
+                {
+                    "title": "真实 KB 搜索",
+                    "content": "直接在 sleep-loop worker 环境调用 kb_search，必须返回 count+items evidence",
+                    "executor": "kb_search",
+                    "payload": {"query": "sleep loop real evidence", "top_k": 3},
+                }
+            ],
+            "config": {"max_runtime_hours": None},
+        },
+    )
+
+    assert started["ok"] is True
+    tick = sl.tick_once()
+    assert tick["success"] is True
+    task = sl.list_tasks(run_id=started["run_id"], limit=1)[0]
+    result = task["result"]
+    assert task["status"] == "done"
+    assert result["tool"] == "kb_search"
+    assert isinstance(result["items"], list)
+    assert isinstance(result["count"], int)
+    assert result["real_evidence"] == "kb_search_count_evidence"
+    sl.stop_loop("test_done")
+
+
 def test_sleep_loop_api_composite_endpoint():
     import app.main as main
     from shared import sleep_loop_engine as sl
