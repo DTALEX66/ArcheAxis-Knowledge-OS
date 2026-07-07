@@ -23,7 +23,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from shared.storage import select_all, select_one  # noqa: E402
+from shared.storage import select_all  # noqa: E402
 
 # ── Query parser ────────────────────────────────────────
 
@@ -190,8 +190,7 @@ def query_graph(center_id: str = "", depth: int = 2) -> dict[str, Any]:
 
     filtered_nodes = [n for n in graph["nodes"] if n["id"] in neighbors]
     filtered_edges = [
-        e for e in graph["edges"]
-        if e["source"] in neighbors and e["target"] in neighbors
+        e for e in graph["edges"] if e["source"] in neighbors and e["target"] in neighbors
     ]
 
     return {

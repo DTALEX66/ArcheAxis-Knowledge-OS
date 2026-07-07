@@ -66,7 +66,7 @@ def extract_pdf_pages(
 
     return {
         "pdf": pdf_path,
-        "total_pages": len(doc) if 'doc' in dir() else 0,
+        "total_pages": len(doc) if "doc" in dir() else 0,
         "pages_extracted": len(output_files),
         "output_files": output_files,
     }
@@ -91,8 +91,8 @@ def extract_video_keyframes(
     Returns:
         {video, frames_extracted, output_files: [...]}.
     """
-    import subprocess
     import shutil
+    import subprocess
 
     if not shutil.which("ffmpeg"):
         return {"error": "ffmpeg not found in PATH. Install ffmpeg first.", "video": video_path}
@@ -107,14 +107,25 @@ def extract_video_keyframes(
     output_pattern = str(out_dir / f"{video_file.stem}_frame_%03d.png")
 
     try:
-        subprocess.run([
-            "ffmpeg", "-i", video_path,
-            "-vf", f"fps=1/{interval_seconds}",
-            "-vframes", str(max_frames),
-            "-q:v", "2",
-            output_pattern,
-            "-y", "-loglevel", "error",
-        ], check=True, timeout=120)
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-i",
+                video_path,
+                "-vf",
+                f"fps=1/{interval_seconds}",
+                "-vframes",
+                str(max_frames),
+                "-q:v",
+                "2",
+                output_pattern,
+                "-y",
+                "-loglevel",
+                "error",
+            ],
+            check=True,
+            timeout=120,
+        )
 
         output_files = sorted(out_dir.glob(f"{video_file.stem}_frame_*.png"))
         return {

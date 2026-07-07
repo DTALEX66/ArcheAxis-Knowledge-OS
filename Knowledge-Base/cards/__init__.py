@@ -1,4 +1,5 @@
 """Knowledge cards — atomic knowledge units for human learning."""
+
 from dataclasses import dataclass, field
 
 
@@ -13,7 +14,10 @@ class KnowledgeCard:
 
     def to_dict(self) -> dict:
         return {
-            "card_id": self.card_id, "title": self.title,
-            "content": self.content, "source_ids": self.source_ids,
-            "tags": self.tags, "review_status": self.review_status,
+            "card_id": self.card_id,
+            "title": self.title,
+            "content": self.content,
+            "source_ids": self.source_ids,
+            "tags": self.tags,
+            "review_status": self.review_status,
         }

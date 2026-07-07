@@ -19,9 +19,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
 from app.memory.graph_db import GraphDB  # noqa: E402
-from app.memory.vector_db import VectorDB, SimpleTextEmbedder  # noqa: E402
+from app.memory.vector_db import SimpleTextEmbedder, VectorDB  # noqa: E402
 from shared.storage import select_all, select_one  # noqa: E402
-
 
 _embedder = SimpleTextEmbedder(dim=384)
 _gdb = GraphDB("knowledge_graph")
@@ -72,8 +71,7 @@ def index_for_graphrag() -> dict[str, Any]:
     for mku in all_mku:
         mid = mku["id"]
         text = mku.get("title", "") + " " + mku.get("content", "")
-        _gdb.add_entity(mid, entity_type="machine_knowledge",
-                        title=mku.get("title", ""))
+        _gdb.add_entity(mid, entity_type="machine_knowledge", title=mku.get("title", ""))
         _graph_vdb.insert(mid, _embedder.embed(text))
         indexed["mku"] += 1
 
@@ -117,7 +115,7 @@ def graph_rag_search(
     expanded: set[str] = set()
     for node_id, _ in vec_results:
         expanded.add(node_id)
-        for hop in range(max_hops):
+        for _hop in range(max_hops):
             neighbors = _gdb.query_neighbors(node_id)
             for n in neighbors:
                 expanded.add(n["entity_id"])
@@ -142,15 +140,17 @@ def graph_rag_search(
         neighbors = _gdb.query_neighbors(node_id)
         graph_score = min(1.0, len(neighbors) * 0.1)
 
-        ranked.append({
-            "id": node_id,
-            "title": doc.get("title", node_id)[:80],
-            "content_preview": (doc.get("content", "") or "")[:300],
-            "vector_distance": round(vec_dist, 4),
-            "graph_score": round(graph_score, 3),
-            "combined_score": round(1.0 / (1.0 + vec_dist) + graph_score, 4),
-            "neighbor_count": len(neighbors),
-        })
+        ranked.append(
+            {
+                "id": node_id,
+                "title": doc.get("title", node_id)[:80],
+                "content_preview": (doc.get("content", "") or "")[:300],
+                "vector_distance": round(vec_dist, 4),
+                "graph_score": round(graph_score, 3),
+                "combined_score": round(1.0 / (1.0 + vec_dist) + graph_score, 4),
+                "neighbor_count": len(neighbors),
+            }
+        )
 
     ranked.sort(key=lambda r: r["combined_score"], reverse=True)
     return {

@@ -20,9 +20,10 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
-from shared.storage import insert, select_all, select_one  # noqa: E402
 from mistakes import get_mistakes_for_card  # noqa: E402
+
 from machine_knowledge import create_unit  # noqa: E402
+from shared.storage import insert, select_all, select_one  # noqa: E402
 
 # ── Mastery criteria ────────────────────────────────────
 
@@ -82,14 +83,16 @@ def find_mastered_cards(limit: int = 20) -> list[dict[str, Any]]:
         if ease < MASTERY_THRESHOLD:
             continue
 
-        candidates.append({
-            "card_id": card["id"],
-            "title": card.get("title", ""),
-            "content": card.get("content", ""),
-            "review_count": review_count,
-            "ease_factor": ease,
-            "review_status": status,
-        })
+        candidates.append(
+            {
+                "card_id": card["id"],
+                "title": card.get("title", ""),
+                "content": card.get("content", ""),
+                "review_count": review_count,
+                "ease_factor": ease,
+                "review_status": status,
+            }
+        )
 
     candidates.sort(key=lambda c: c["ease_factor"], reverse=True)
     return candidates[:limit]

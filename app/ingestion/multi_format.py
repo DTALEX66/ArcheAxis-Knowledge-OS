@@ -15,11 +15,13 @@ web pages into clean Markdown. Wraps the best open-source converters:
 
 All engines are optional — fallback chain tries each in order.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 
 # ── Format detection ──
+
 
 def detect_format(file_path: str | Path) -> str:
     """Return a short format key: pdf, docx, pptx, xlsx, html, md, txt, image, unknown."""
@@ -50,14 +52,17 @@ def detect_format(file_path: str | Path) -> str:
 
 # ── Engine: markitdown (multi-format, simplest) ──
 
+
 def _via_markitdown(file_path: str | Path) -> str:
     from markitdown import MarkItDown
+
     md = MarkItDown()
     result = md.convert(str(file_path))
     return result.text_content
 
 
 # ── Engine: marker-pdf (high quality PDF) ──
+
 
 def _via_marker(file_path: str | Path) -> str:
     from marker.converters.pdf import PdfConverter
@@ -70,8 +75,10 @@ def _via_marker(file_path: str | Path) -> str:
 
 # ── Engine: docling (advanced PDF with tables) ──
 
+
 def _via_docling(file_path: str | Path) -> str:
     from docling.document_converter import DocumentConverter
+
     converter = DocumentConverter()
     result = converter.convert(str(file_path))
     return result.document.export_to_markdown()
@@ -79,8 +86,10 @@ def _via_docling(file_path: str | Path) -> str:
 
 # ── Engine: trafilatura (web/HTML) ──
 
+
 def _via_trafilatura(source: str, is_url: bool = False) -> str:
     import trafilatura
+
     if is_url:
         downloaded = trafilatura.fetch_url(source)
         if downloaded is None:
@@ -94,6 +103,7 @@ def _via_trafilatura(source: str, is_url: bool = False) -> str:
 
 
 # ── Engine: plain text / markdown passthrough ──
+
 
 def _via_read(file_path: str | Path) -> str:
     return Path(file_path).read_text(encoding="utf-8", errors="replace")
@@ -118,7 +128,10 @@ _ENGINES = {
         ("markitdown", _via_markitdown),
     ],
     "html": [
-        ("trafilatura", lambda p: _via_trafilatura(Path(p).read_text(encoding="utf-8", errors="replace"))),
+        (
+            "trafilatura",
+            lambda p: _via_trafilatura(Path(p).read_text(encoding="utf-8", errors="replace")),
+        ),
         ("markitdown", _via_markitdown),
     ],
     "image": [
@@ -168,9 +181,7 @@ def convert_file(file_path: str | Path, fmt: str | None = None) -> tuple[str, st
         except Exception as e:
             errors.append(f"{engine_name}: {e}")
 
-    raise RuntimeError(
-        f"No engine could convert {fmt} file '{file_path}': {'; '.join(errors)}"
-    )
+    raise RuntimeError(f"No engine could convert {fmt} file '{file_path}': {'; '.join(errors)}")
 
 
 def convert_url(url: str) -> tuple[str, str]:
@@ -202,6 +213,7 @@ def convert_url(url: str) -> tuple[str, str]:
 
 # ── Batch conversion ──
 
+
 def convert_directory(
     directory: str | Path,
     pattern: str = "*.*",
@@ -229,13 +241,15 @@ def convert_directory(
             continue
         try:
             content, engine = convert_file(fp, fmt)
-            results.append({
-                "path": str(fp),
-                "relative_path": str(fp.relative_to(dir_path)),
-                "format": fmt,
-                "content": content,
-                "engine": engine,
-            })
+            results.append(
+                {
+                    "path": str(fp),
+                    "relative_path": str(fp.relative_to(dir_path)),
+                    "format": fmt,
+                    "content": content,
+                    "engine": engine,
+                }
+            )
         except RuntimeError as e:
             logger.warning(f"Convert failed: {fp.name} — {e}")
 

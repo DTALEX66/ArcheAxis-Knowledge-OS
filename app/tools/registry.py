@@ -127,7 +127,9 @@ def safe_write_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
     try:
         target.relative_to(SAFE_OUTPUT_DIR.resolve())
     except Exception:
-        result.update({"status": "blocked", "error": "safe_write target must stay under data/output"})
+        result.update(
+            {"status": "blocked", "error": "safe_write target must stay under data/output"}
+        )
         return result
 
     result.update({"path": str(target), "bytes": len(content.encode("utf-8"))})

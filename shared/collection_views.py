@@ -40,10 +40,7 @@ def _render_table(items: list[dict], columns: list[str]) -> dict[str, Any]:
     return {
         "view_type": "table",
         "columns": columns,
-        "rows": [
-            {col: row.get(col, "") for col in columns}
-            for row in items
-        ],
+        "rows": [{col: row.get(col, "") for col in columns} for row in items],
     }
 
 
@@ -52,14 +49,16 @@ def _render_board(items: list[dict], group_by: str, card_field: str = "title") -
     groups = _group_items(items, group_by)
     columns_list = []
     for group_name, group_items in sorted(groups.items()):
-        columns_list.append({
-            "column": group_name,
-            "count": len(group_items),
-            "cards": [
-                {"id": item.get("id", ""), "title": item.get(card_field, "")[:80]}
-                for item in group_items[:20]
-            ],
-        })
+        columns_list.append(
+            {
+                "column": group_name,
+                "count": len(group_items),
+                "cards": [
+                    {"id": item.get("id", ""), "title": item.get(card_field, "")[:80]}
+                    for item in group_items[:20]
+                ],
+            }
+        )
     return {
         "view_type": "board",
         "group_by": group_by,
@@ -75,10 +74,12 @@ def _render_calendar(items: list[dict], date_field: str) -> dict[str, Any]:
         if date_val:
             if date_val not in by_date:
                 by_date[date_val] = []
-            by_date[date_val].append({
-                "id": item.get("id", ""),
-                "title": (item.get("title") or item.get("pattern") or "")[:80],
-            })
+            by_date[date_val].append(
+                {
+                    "id": item.get("id", ""),
+                    "title": (item.get("title") or item.get("pattern") or "")[:80],
+                }
+            )
 
     return {
         "view_type": "calendar",
@@ -114,9 +115,7 @@ def _render_list(items: list[dict], compact: bool = True) -> dict[str, Any]:
             {
                 "id": item.get("id", ""),
                 "text": (item.get("title") or item.get("pattern") or item.get("id", ""))[:120],
-                "meta": (
-                    item.get("review_status") or item.get("unit_type") or ""
-                ),
+                "meta": (item.get("review_status") or item.get("unit_type") or ""),
             }
             for item in items
         ],

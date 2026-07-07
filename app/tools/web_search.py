@@ -1,5 +1,7 @@
 """Web search tool — delegates to shared/web_search (real implementation)."""
-from shared.web_search import search_web as _search, extract_content as _extract
+
+from shared.web_search import extract_content as _extract
+from shared.web_search import search_web as _search
 
 
 def web_search(query: str):

@@ -12,11 +12,12 @@ Architecture:
 from __future__ import annotations
 
 import uuid
+from contextlib import suppress
 from datetime import datetime, timezone
 from typing import Any
 
-from app.memory.vector_db import VectorDB, SimpleTextEmbedder
-from shared.storage import insert, select_all, fts5_search
+from app.memory.vector_db import SimpleTextEmbedder, VectorDB
+from shared.storage import fts5_search, insert, select_all
 
 # ── singletons ──────────────────────────────────────────
 
@@ -69,16 +70,12 @@ def save_episode(
     insert("episodic_memory", episode)
 
     # Vector index for semantic search
-    try:
+    with suppress(Exception):
         _episode_vdb.insert(episode_id, _embedder.embed(content))
-    except Exception:
-        pass
 
     # FTS5 index for keyword search
-    try:
+    with suppress(Exception):
         fts5_search("episodic_memory", content, top_k=0)  # side-effect: ensure table exists
-    except Exception:
-        pass
 
     return episode
 
@@ -149,10 +146,8 @@ def delete_episode(episode_id: str) -> None:
         conn.commit()
     finally:
         conn.close()
-    try:
+    with suppress(Exception):
         _episode_vdb.delete(episode_id)
-    except Exception:
-        pass
 
 
 def stats() -> dict[str, Any]:

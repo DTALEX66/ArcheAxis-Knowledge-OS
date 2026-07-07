@@ -1,4 +1,5 @@
 """IR → KB bridge: auto-generate ContextPack + TaskPack from qualified projects."""
+
 import sys
 from pathlib import Path
 
@@ -17,7 +18,11 @@ def bridge_intake_to_kb(intake_card: dict) -> dict:
     ctx = build_context_pack(
         goal=intake_card.get("why", ""),
         sources=[intake_card.get("id", "")],
-        constraints=["quarantine first", "no direct DB write", intake_card.get("risk_level", "low")],
+        constraints=[
+            "quarantine first",
+            "no direct DB write",
+            intake_card.get("risk_level", "low"),
+        ],
     )
     ctx_dict = ctx.to_dict()
     ctx_dict["id"] = ctx_dict.pop("context_id")

@@ -15,6 +15,7 @@ venv/
 # Runtime data
 data/
 !data/.gitkeep
+logs/
 *.db
 *.sqlite
 *.sqlite3

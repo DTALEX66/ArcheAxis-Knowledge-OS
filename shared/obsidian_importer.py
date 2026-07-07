@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import re
 import sys
+from contextlib import suppress
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -126,7 +127,7 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
         return fm, text
 
     raw_fm = match.group(1)
-    body = text[match.end():]
+    body = text[match.end() :]
 
     # Simple YAML-like parser (tags, lists, key: value)
     for line in raw_fm.split("\n"):
@@ -170,7 +171,9 @@ def import_file(
     text = full_path.read_text(encoding="utf-8", errors="replace")
     fm, body = _parse_frontmatter(text)
     folder = Path(rel_path).parts[0] if "/" in rel_path or "\\" in rel_path else ""
-    mapping = VAULT_FOLDER_MAP.get(folder, {"asset_type": "document", "source_tag": "obsidian-note"})
+    mapping = VAULT_FOLDER_MAP.get(
+        folder, {"asset_type": "document", "source_tag": "obsidian-note"}
+    )
 
     asset_type = mapping["asset_type"]
     title = fm.get("title") or full_path.stem
@@ -194,8 +197,9 @@ def import_file(
         return result
 
     # ── Actually import ──
-    from shared.storage import insert, fts5_sync
     import uuid
+
+    from shared.storage import fts5_sync, insert
 
     now = datetime.now(timezone.utc).isoformat()
 
@@ -211,10 +215,8 @@ def import_file(
             "created_at": now,
         }
         insert("kb_cards", card)
-        try:
+        with suppress(Exception):
             fts5_sync("kb_cards", {"id": kb_id, "title": title, "content": body[:5000]})
-        except Exception:
-            pass
         result["kb_id"] = kb_id
 
     elif asset_type == "machine_knowledge":
@@ -247,10 +249,8 @@ def import_file(
             "created_at": now,
         }
         insert("kb_documents", doc)
-        try:
+        with suppress(Exception):
             fts5_sync("kb_documents", {"id": kb_id, "title": title, "content": body[:10000]})
-        except Exception:
-            pass
         result["kb_id"] = kb_id
 
     result["status"] = "imported"
@@ -285,7 +285,12 @@ def import_vault(
         "vault": vault_root,
         "dry_run": dry_run,
         "items": [],
-        "summary": {"imported": 0, "skipped": 0, "errors": 0, "total_scanned": inventory["total_files"]},
+        "summary": {
+            "imported": 0,
+            "skipped": 0,
+            "errors": 0,
+            "total_scanned": inventory["total_files"],
+        },
     }
 
     # Collect files from requested folders
@@ -312,7 +317,9 @@ def import_vault(
         elif "error" in result:
             report["summary"]["errors"] += 1
 
-    report["summary"]["skipped"] = report["summary"]["total_scanned"] - report["summary"]["imported"]
+    report["summary"]["skipped"] = (
+        report["summary"]["total_scanned"] - report["summary"]["imported"]
+    )
     return report
 
 
@@ -331,13 +338,13 @@ def import_course_to_cards(
         return {"error": f"course not found: {course_path}"}
 
     from Knowledge_Base.cards.generator import generate_from_markdown
-    from shared.storage import insert, fts5_sync
+
+    from shared.storage import fts5_sync, insert
 
     results = []
     for md_file in sorted(course_dir.glob("*.md")):
         text = md_file.read_text(encoding="utf-8", errors="replace")
-        fm, body = _parse_frontmatter(text)
-        title = fm.get("title") or md_file.stem
+        _fm, body = _parse_frontmatter(text)
 
         cards = generate_from_markdown(body, source_doc_id=str(md_file), max_cards=5)
 
@@ -348,10 +355,10 @@ def import_course_to_cards(
                 cd = card.to_dict()
                 cd["id"] = cd.pop("card_id")
                 insert("kb_cards", cd)
-                try:
-                    fts5_sync("kb_cards", {"id": cd["id"], "title": card.title, "content": card.content})
-                except Exception:
-                    pass
+                with suppress(Exception):
+                    fts5_sync(
+                        "kb_cards", {"id": cd["id"], "title": card.title, "content": card.content}
+                    )
                 results.append({"title": card.title, "kb_id": cd["id"]})
 
     return {

@@ -56,8 +56,15 @@ def export_kb(format: str = "json", tables: list[str] | None = None) -> dict[str
     from shared.storage import select_all
 
     if tables is None:
-        tables = ["kb_documents", "kb_cards", "kb_reviews", "kb_mistakes",
-                  "machine_knowledge_units", "kb_taskpacks", "kb_context_packs"]
+        tables = [
+            "kb_documents",
+            "kb_cards",
+            "kb_reviews",
+            "kb_mistakes",
+            "machine_knowledge_units",
+            "kb_taskpacks",
+            "kb_context_packs",
+        ]
 
     export: dict[str, Any] = {"format": format, "tables": {}}
 
@@ -72,7 +79,9 @@ def export_kb(format: str = "json", tables: list[str] | None = None) -> dict[str
             export["tables"][table] = "\n".join(md_lines)
         elif format == "csv":
             if rows:
-                import io, csv
+                import csv
+                import io
+
                 output = io.StringIO()
                 writer = csv.DictWriter(output, fieldnames=list(rows[0].keys())[:10])
                 writer.writeheader()
@@ -104,10 +113,13 @@ def cron_discover() -> dict[str, Any]:
     from shared.web_search import search_web
 
     results = {
-        "feeds": collect_and_ingest([
-            "https://arxiv.org/rss/cs.AI",
-            "https://huggingface.co/blog/feed.xml",
-        ], max_items=3),
+        "feeds": collect_and_ingest(
+            [
+                "https://arxiv.org/rss/cs.AI",
+                "https://huggingface.co/blog/feed.xml",
+            ],
+            max_items=3,
+        ),
         "search": search_web("new AI knowledge management tool 2026", limit=3),
         "timestamp": __import__("datetime").datetime.now().isoformat(),
     }

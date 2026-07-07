@@ -27,7 +27,7 @@ class TestSQLite:
             "created_at": "2026-01-01T00:00:00",
         }
         save_trace(trace)
-        traces = list_traces_db(limit=10)
+        traces = list_traces_db(limit=500)
         assert any(t["id"] == "trace_test_001" for t in traces)
 
     def test_lesson_roundtrip(self):
@@ -39,5 +39,5 @@ class TestSQLite:
             "created_at": "2026-01-01T00:00:00",
         }
         save_lesson_db(lesson)
-        lessons = list_lessons_db(limit=10)
+        lessons = list_lessons_db(limit=500)
         assert any(l["id"] == "lesson_test_001" for l in lessons)

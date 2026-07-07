@@ -16,6 +16,7 @@ Usage:
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from pathlib import Path
 
@@ -23,6 +24,7 @@ import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "cognitive_os.sqlite"
+_SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 class VectorDB:
@@ -34,6 +36,8 @@ class VectorDB:
         dim: int = 384,
         db_path: str | Path | None = None,
     ) -> None:
+        if not _SQL_IDENTIFIER_RE.fullmatch(table_name):
+            raise ValueError(f"invalid vector table name: {table_name!r}")
         self.table_name = table_name
         self.dim = dim
         self.db_path = str(db_path or DEFAULT_DB_PATH)
@@ -141,8 +145,7 @@ class VectorDB:
                 (object_id, rid),
             )
             conn.execute(
-                f"INSERT OR REPLACE INTO {self.table_name}(rowid, embedding) "
-                "VALUES (?, ?)",
+                f"INSERT OR REPLACE INTO {self.table_name}(rowid, embedding) VALUES (?, ?)",
                 (rid, blob),
             )
             conn.commit()
@@ -161,9 +164,7 @@ class VectorDB:
         vec = embedder.embed(text)
         self.insert(object_id, vec)
 
-    def search(
-        self, vector: np.ndarray, top_k: int = 5
-    ) -> list[tuple[str, float]]:
+    def search(self, vector: np.ndarray, top_k: int = 5) -> list[tuple[str, float]]:
         """K-nearest-neighbour search via cosine distance.
 
         Returns:
@@ -174,8 +175,7 @@ class VectorDB:
         conn = self._get_conn()
         try:
             rows = conn.execute(
-                f"SELECT rowid, distance FROM {self.table_name} "
-                "WHERE embedding MATCH ? AND k=?",
+                f"SELECT rowid, distance FROM {self.table_name} WHERE embedding MATCH ? AND k=?",
                 (blob, top_k),
             ).fetchall()
             results = []
@@ -187,9 +187,7 @@ class VectorDB:
         finally:
             conn.close()
 
-    def search_by_text(
-        self, query: str, top_k: int = 5, embedder=None
-    ) -> list[tuple[str, float]]:
+    def search_by_text(self, query: str, top_k: int = 5, embedder=None) -> list[tuple[str, float]]:
         """Convenience: embed *query* and search."""
         if embedder is None:
             from app.memory.vector_db import SimpleTextEmbedder
@@ -247,9 +245,7 @@ class VectorDB:
         """Number of indexed vectors."""
         conn = self._get_conn()
         try:
-            n = conn.execute(
-                f"SELECT COUNT(*) FROM {self.table_name}"
-            ).fetchone()[0]
+            n = conn.execute(f"SELECT COUNT(*) FROM {self.table_name}").fetchone()[0]
             return n
         finally:
             conn.close()

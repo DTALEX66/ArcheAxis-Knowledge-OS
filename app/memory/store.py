@@ -7,6 +7,8 @@ Layered architecture:
       └─ vector_db.py   (sqlite-vec backend)
 """
 
+from contextlib import suppress
+
 from app.memory.database import (
     list_lessons_db,
     save_core_object,
@@ -14,7 +16,7 @@ from app.memory.database import (
     save_memory_record,
     search_core_objects,
 )
-from app.memory.episodic import save_episode, search_episodes, recent_episodes, stats as episodic_stats
+from app.memory.episodic import save_episode, search_episodes
 from app.schemas import CoreObject, MachineLesson
 
 
@@ -24,14 +26,12 @@ def save_memory(obj: CoreObject) -> None:
     save_memory_record(d)
 
     # Also index as episodic memory for agent recall
-    try:
+    with suppress(Exception):
         save_episode(
             content=d.get("content", ""),
             source=d.get("source", "core"),
             metadata={"object_type": d.get("object_type", "document")},
         )
-    except Exception:
-        pass
 
 
 def search_memory(query: str, top_k: int = 5) -> list[CoreObject]:

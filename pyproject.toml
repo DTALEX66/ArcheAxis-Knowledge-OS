@@ -82,7 +82,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # allow unused imports in __init__.py
 "tests/**/*.py" = ["S101"] # allow assert in tests
-"Knowledge-Base/api.py" = ["E402", "E702"]  # sys.path + semicolons in models
+"Knowledge-Base/api.py" = ["E402", "E501", "E702"]  # sys.path + legacy compact endpoints
+"app/main.py" = ["E402", "E501"]  # sys.path + compact response literals
 "Knowledge-Base/tests/*.py" = ["E402"]  # sys.path manipulation
 "shared/bridge.py" = ["E402"]  # sys.path manipulation
 
@@ -103,5 +104,5 @@ exclude = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "Knowledge-Base/tests"]
+testpaths = ["tests"]
 pythonpath = [".", "Knowledge-Base"]

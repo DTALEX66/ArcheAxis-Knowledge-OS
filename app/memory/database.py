@@ -1,4 +1,5 @@
 """SQLite database layer for Cognitive-OS — replaces JSONL flat files."""
+
 from __future__ import annotations
 
 import json
@@ -133,15 +134,21 @@ def init_db() -> None:
 
 # ── CoreObject ──────────────────────────────────────────
 
+
 def save_core_object(obj: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO core_objects VALUES (?,?,?,?,?,?,?,?)",
             (
-                obj["id"], obj.get("object_type", "document"), obj["content"],
-                obj.get("source", "unknown"), json.dumps(obj.get("metadata", {})),
-                obj["created_at"], obj.get("attention_score", 0.0), obj.get("route"),
+                obj["id"],
+                obj.get("object_type", "document"),
+                obj["content"],
+                obj.get("source", "unknown"),
+                json.dumps(obj.get("metadata", {})),
+                obj["created_at"],
+                obj.get("attention_score", 0.0),
+                obj.get("route"),
             ),
         )
         conn.commit()
@@ -186,6 +193,7 @@ def search_core_objects(query: str, top_k: int = 5) -> list[dict[str, Any]]:
 
 # ── Route ───────────────────────────────────────────────
 
+
 def save_route(route_data: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
@@ -193,9 +201,12 @@ def save_route(route_data: dict[str, Any]) -> None:
             "INSERT OR REPLACE INTO routes VALUES (?,?,?,?,?,?,?)",
             (
                 route_data.get("id", f"route_{route_data['object_id']}"),
-                route_data["object_id"], route_data["route"], route_data["score"],
+                route_data["object_id"],
+                route_data["route"],
+                route_data["score"],
                 json.dumps(route_data.get("reasons", [])),
-                route_data.get("risk_level", "low"), route_data.get("created_at", ""),
+                route_data.get("risk_level", "low"),
+                route_data.get("created_at", ""),
             ),
         )
         conn.commit()
@@ -205,14 +216,18 @@ def save_route(route_data: dict[str, Any]) -> None:
 
 # ── Memory ──────────────────────────────────────────────
 
+
 def save_memory_record(obj: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO memory_records VALUES (?,?,?,?,?,?)",
             (
-                obj["id"], obj["id"], obj["content"],
-                obj.get("source", "unknown"), json.dumps(obj.get("metadata", {})),
+                obj["id"],
+                obj["id"],
+                obj["content"],
+                obj.get("source", "unknown"),
+                json.dumps(obj.get("metadata", {})),
                 obj["created_at"],
             ),
         )
@@ -234,13 +249,15 @@ def list_memory_records(limit: int = 100) -> list[dict[str, Any]]:
 
 # ── TaskPack ────────────────────────────────────────────
 
+
 def save_taskpack(task: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO taskpacks VALUES (?,?,?,?,?,?,?,?)",
             (
-                task["id"], task["goal"],
+                task["id"],
+                task["goal"],
                 json.dumps(task.get("steps", [])),
                 json.dumps(task.get("constraints", [])),
                 json.dumps(task.get("tools", [])),
@@ -256,13 +273,15 @@ def save_taskpack(task: dict[str, Any]) -> None:
 
 # ── ExecutionTrace ─────────────────────────────────────
 
+
 def save_trace(trace: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO execution_traces VALUES (?,?,?,?,?,?)",
             (
-                trace["id"], trace.get("task_id"),
+                trace["id"],
+                trace.get("task_id"),
                 json.dumps(trace.get("events", [])),
                 json.dumps(trace.get("result", {})),
                 1 if trace.get("success") else (0 if trace.get("success") is False else None),
@@ -287,14 +306,16 @@ def list_traces_db(limit: int = 100) -> list[dict[str, Any]]:
 
 # ── EvalResult ─────────────────────────────────────────
 
+
 def save_eval(eval_data: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
-        eval_id = eval_data.get("id", f"eval_{eval_data.get('trace_id','unknown')}")
+        eval_id = eval_data.get("id", f"eval_{eval_data.get('trace_id', 'unknown')}")
         conn.execute(
             "INSERT OR REPLACE INTO eval_results VALUES (?,?,?,?,?,?,?)",
             (
-                eval_id, eval_data.get("trace_id", ""),
+                eval_id,
+                eval_data.get("trace_id", ""),
                 1 if eval_data.get("success") else 0,
                 eval_data.get("score", 0.0),
                 eval_data.get("failure_reason", ""),
@@ -309,13 +330,16 @@ def save_eval(eval_data: dict[str, Any]) -> None:
 
 # ── MachineLesson ──────────────────────────────────────
 
+
 def save_lesson_db(lesson: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO machine_lessons VALUES (?,?,?,?,?,?)",
             (
-                lesson["id"], lesson["pattern"], lesson["lesson_type"],
+                lesson["id"],
+                lesson["pattern"],
+                lesson["lesson_type"],
                 lesson.get("future_constraint", ""),
                 lesson.get("evidence_trace_id"),
                 lesson["created_at"],
@@ -339,13 +363,16 @@ def list_lessons_db(limit: int = 100) -> list[dict[str, Any]]:
 
 # ── ToolCall ───────────────────────────────────────────
 
+
 def save_tool_call(call_data: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO tool_calls VALUES (?,?,?,?,?,?,?)",
             (
-                call_data["id"], call_data["trace_id"], call_data["tool_name"],
+                call_data["id"],
+                call_data["trace_id"],
+                call_data["tool_name"],
                 json.dumps(call_data.get("params", {})),
                 json.dumps(call_data.get("result", {})),
                 call_data.get("risk_level", "low"),
@@ -359,13 +386,16 @@ def save_tool_call(call_data: dict[str, Any]) -> None:
 
 # ── PermissionDecision ─────────────────────────────────
 
+
 def save_permission(perm: dict[str, Any]) -> None:
     conn = _get_conn()
     try:
         conn.execute(
             "INSERT OR REPLACE INTO permission_decisions VALUES (?,?,?,?,?,?,?,?)",
             (
-                perm["id"], perm["task_id"], perm["risk_level"],
+                perm["id"],
+                perm["task_id"],
+                perm["risk_level"],
                 json.dumps(perm.get("allowed_tools", [])),
                 json.dumps(perm.get("blocked_tools", [])),
                 1 if perm.get("requires_human_review") else 0,
@@ -379,6 +409,7 @@ def save_permission(perm: dict[str, Any]) -> None:
 
 
 # ── Helpers ────────────────────────────────────────────
+
 
 def _row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     d = dict(row)

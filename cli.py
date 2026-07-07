@@ -24,12 +24,14 @@ sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 def cmd_serve(port: int = 8000) -> None:
     """Start the Cognitive-Loop-OS server."""
     import uvicorn
+
     uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
 
 
 def cmd_pipeline(source: str, input_data: str) -> None:
     """Run the pipeline on input."""
     from shared.pipeline import run_pipeline
+
     result = run_pipeline(source=source, input_data=input_data)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
@@ -37,17 +39,21 @@ def cmd_pipeline(source: str, input_data: str) -> None:
 def cmd_backup() -> None:
     """Create a database backup."""
     from shared.backup import auto_backup
+
     result = auto_backup()
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 def cmd_health() -> None:
     """Check system health."""
-    from shared.storage import count as _c
     from app.tools.registry import list_tools
+    from shared.storage import count as _c
+
     stats = {
-        "documents": _c("kb_documents"), "cards": _c("kb_cards"),
-        "reviews": _c("kb_reviews"), "mku": _c("machine_knowledge_units"),
+        "documents": _c("kb_documents"),
+        "cards": _c("kb_cards"),
+        "reviews": _c("kb_reviews"),
+        "mku": _c("machine_knowledge_units"),
         "tools": len(list_tools()),
     }
     print(json.dumps(stats, ensure_ascii=False, indent=2))
@@ -56,21 +62,35 @@ def cmd_health() -> None:
 def cmd_test() -> None:
     """Run test suite."""
     import subprocess
-    subprocess.run([sys.executable, "-m", "pytest", "tests/", "-q", "--tb=short"], cwd=str(_PROJECT_ROOT))
+
+    subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=short"], cwd=str(_PROJECT_ROOT)
+    )
     kb = _PROJECT_ROOT / "Knowledge-Base"
     subprocess.run([sys.executable, "-m", "pytest", "tests/", "-q", "--tb=short"], cwd=str(kb))
 
 
 def cmd_stats() -> None:
     """Show comprehensive stats."""
-    from shared.storage import count as _c, select_all
+    from shared.storage import count as _c
+
     print("Cognitive-Loop-OS v0.4.0")
     print("=" * 40)
     tables = [
-        "kb_documents", "kb_cards", "kb_reviews", "kb_mistakes",
-        "machine_knowledge_units", "kb_taskpacks", "kb_context_packs",
-        "daily_notes", "graph_entities", "graph_relations",
-        "canvases", "canvas_nodes", "kb_evidence", "kb_links",
+        "kb_documents",
+        "kb_cards",
+        "kb_reviews",
+        "kb_mistakes",
+        "machine_knowledge_units",
+        "kb_taskpacks",
+        "kb_context_packs",
+        "daily_notes",
+        "graph_entities",
+        "graph_relations",
+        "canvases",
+        "canvas_nodes",
+        "kb_evidence",
+        "kb_links",
     ]
     for table in tables:
         try:

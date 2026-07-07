@@ -19,9 +19,9 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from shared.storage import select_all, select_one  # noqa: E402
-from shared.backlinks import compute_backlinks, compute_graph  # noqa: E402
 from shared.auto_tagger import extract_keywords  # noqa: E402
+from shared.backlinks import compute_backlinks  # noqa: E402
+from shared.storage import select_all, select_one  # noqa: E402
 
 
 def find_orphans(limit: int = 50) -> list[dict[str, Any]]:
@@ -50,12 +50,14 @@ def find_orphans(limit: int = 50) -> list[dict[str, Any]]:
             continue
         linked = iid in outgoing or iid in incoming
         if not linked:
-            orphans.append({
-                "id": iid,
-                "title": item.get("title", iid)[:80],
-                "type": "card" if "card" in str(type(item)) else "document",
-                "link_count": 0,
-            })
+            orphans.append(
+                {
+                    "id": iid,
+                    "title": item.get("title", iid)[:80],
+                    "type": "card" if "card" in str(type(item)) else "document",
+                    "link_count": 0,
+                }
+            )
 
     return orphans[:limit]
 
@@ -88,12 +90,14 @@ def suggest_connections(doc_id: str, top_k: int = 5) -> list[dict[str, Any]]:
 
         overlap = len(src_kw & item_kw)
         if overlap > 0:
-            scored.append({
-                "id": iid,
-                "title": item.get("title", iid)[:80],
-                "overlap": overlap,
-                "score": round(overlap / max(len(src_kw), 1), 3),
-            })
+            scored.append(
+                {
+                    "id": iid,
+                    "title": item.get("title", iid)[:80],
+                    "overlap": overlap,
+                    "score": round(overlap / max(len(src_kw), 1), 3),
+                }
+            )
 
     scored.sort(key=lambda s: s["overlap"], reverse=True)
     return scored[:top_k]
@@ -154,8 +158,9 @@ def score_evergreen(doc_id: str) -> dict[str, Any]:
     if not doc:
         return {"error": "not found"}
 
-    from shared.auto_tagger import detect_atomicity
     from reviews import get_review_history
+
+    from shared.auto_tagger import detect_atomicity
 
     content = doc.get("content", "")
     atomic = detect_atomicity(content)

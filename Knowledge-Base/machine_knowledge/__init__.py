@@ -15,7 +15,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
-from shared.storage import insert, select_all, select_one, count  # noqa: E402
+from shared.storage import count, insert, select_all, select_one  # noqa: E402
 
 
 def create_unit(
@@ -93,10 +93,7 @@ def get_unit(unit_id: str) -> dict[str, Any] | None:
 def list_by_type(unit_type: str, limit: int = 20) -> list[dict[str, Any]]:
     """List active units of a given type."""
     rows = select_all("machine_knowledge_units", limit=500)
-    return [
-        r for r in rows
-        if r.get("unit_type") == unit_type and r.get("active", True)
-    ][:limit]
+    return [r for r in rows if r.get("unit_type") == unit_type and r.get("active", True)][:limit]
 
 
 def deactivate_unit(unit_id: str) -> dict | None:

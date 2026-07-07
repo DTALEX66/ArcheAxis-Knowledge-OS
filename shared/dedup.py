@@ -4,6 +4,7 @@ Adapted from Star-Trails-Log dedup service.
 Generalized for Cognitive-Loop-OS: supports URL, title, and content-hash
 deduplication across KB documents, research notes, intake cards, etc.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -41,9 +42,7 @@ class DedupService:
     # ── URL-based ──
 
     @staticmethod
-    def find_by_url(
-        url: str, candidates: Sequence[dict], url_key: str = "url"
-    ) -> dict | None:
+    def find_by_url(url: str, candidates: Sequence[dict], url_key: str = "url") -> dict | None:
         """Find a candidate record with the same URL."""
         if not url:
             return None
@@ -93,8 +92,12 @@ class DedupService:
             if candidate == title_lower:
                 return row
             # containment
-            if len(candidate) > 3 and len(title_lower) > 3 and (candidate in title_lower or title_lower in candidate):
-                    return row
+            if (
+                len(candidate) > 3
+                and len(title_lower) > 3
+                and (candidate in title_lower or title_lower in candidate)
+            ):
+                return row
             # Jaccard word overlap
             candidate_words = tokenize(candidate)
             score = jaccard_similarity(title_words, candidate_words)

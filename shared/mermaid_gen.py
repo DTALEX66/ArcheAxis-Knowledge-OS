@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
@@ -26,7 +25,7 @@ def flowchart(title: str, steps: list[dict[str, str]]) -> str:
     Returns:
         Mermaid flowchart markdown string.
     """
-    lines = [f"```mermaid", f"flowchart TD", f"  title[{title}]"]
+    lines = ["```mermaid", "flowchart TD", f"  title[{title}]"]
     for s in steps:
         sid = s.get("id", "?")
         label = s.get("label", sid)
@@ -64,7 +63,7 @@ def knowledge_graph_mermaid(
         shape = "([{title}])" if node.get("type") == "card" else "[{title}]"
         lines.append(f"  {_safe_id(nid)}{shape.format(title=title)}")
 
-    for edge in edges[:max_nodes * 2]:
+    for edge in edges[: max_nodes * 2]:
         s = _safe_id(edge["source"])
         t = _safe_id(edge["target"])
         label = edge.get("link_type", "")[:10]
@@ -85,7 +84,13 @@ def review_timeline_mermaid(card_id: str) -> str:
     if not reviews:
         return "```mermaid\ngantt\n  title No reviews yet\n```"
 
-    lines = ["```mermaid", "gantt", "  title Review Timeline", "  dateFormat YYYY-MM-DD", "  axisFormat %m/%d"]
+    lines = [
+        "```mermaid",
+        "gantt",
+        "  title Review Timeline",
+        "  dateFormat YYYY-MM-DD",
+        "  axisFormat %m/%d",
+    ]
 
     for r in reviews[:15]:
         date_str = (r.get("created_at", "") or "")[:10]

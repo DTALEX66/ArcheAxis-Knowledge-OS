@@ -17,7 +17,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
-from shared.storage import insert, select_all, select_one, count  # noqa: E402
+from shared.storage import count, insert, select_all, select_one  # noqa: E402
 
 # ── SM-2 algorithm ──────────────────────────────────────
 
@@ -79,9 +79,7 @@ def schedule_review(card_id: str, quality: int) -> dict[str, Any]:
     prev_interval = prev.get("interval_days", 0) if prev else 0
     prev_ease = prev.get("ease_factor", 2.5) if prev else 2.5
 
-    new_interval, new_ease, next_date = _sm2_interval(
-        quality, prev_interval, prev_ease
-    )
+    new_interval, new_ease, next_date = _sm2_interval(quality, prev_interval, prev_ease)
 
     review = {
         "id": f"review_{uuid.uuid4().hex[:12]}",
@@ -111,7 +109,9 @@ def get_due_reviews(limit: int = 20) -> list[dict[str, Any]]:
     latest_by_card: dict[str, dict] = {}
     for r in all_reviews:
         cid = r.get("card_id", "")
-        if cid not in latest_by_card or r.get("created_at", "") > latest_by_card[cid].get("created_at", ""):
+        if cid not in latest_by_card or r.get("created_at", "") > latest_by_card[cid].get(
+            "created_at", ""
+        ):
             latest_by_card[cid] = r
 
     due = []
@@ -119,14 +119,16 @@ def get_due_reviews(limit: int = 20) -> list[dict[str, Any]]:
         next_at = review.get("next_review_at", "")
         if next_at and next_at <= now_iso:
             card = all_cards.get(cid, {})
-            due.append({
-                "card_id": cid,
-                "title": card.get("title", ""),
-                "content": card.get("content", ""),
-                "next_review_at": next_at,
-                "ease_factor": review.get("ease_factor", 2.5),
-                "interval_days": review.get("interval_days", 0),
-            })
+            due.append(
+                {
+                    "card_id": cid,
+                    "title": card.get("title", ""),
+                    "content": card.get("content", ""),
+                    "next_review_at": next_at,
+                    "ease_factor": review.get("ease_factor", 2.5),
+                    "interval_days": review.get("interval_days", 0),
+                }
+            )
 
     due.sort(key=lambda d: d["next_review_at"])
     return due[:limit]

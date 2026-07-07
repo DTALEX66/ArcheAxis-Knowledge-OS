@@ -59,25 +59,19 @@ def remove_card(card_id: str) -> None:
 # ── search ──────────────────────────────────────────────
 
 
-def search_documents(
-    query: str, top_k: int = 5
-) -> list[tuple[str, float]]:
+def search_documents(query: str, top_k: int = 5) -> list[tuple[str, float]]:
     """Semantic search over indexed documents. Returns (doc_id, distance)."""
     _ensure_init()
     return _doc_vdb.search_by_text(query, top_k=top_k)
 
 
-def search_cards(
-    query: str, top_k: int = 5
-) -> list[tuple[str, float]]:
+def search_cards(query: str, top_k: int = 5) -> list[tuple[str, float]]:
     """Semantic search over indexed cards. Returns (card_id, distance)."""
     _ensure_init()
     return _card_vdb.search_by_text(query, top_k=top_k)
 
 
-def search_all(
-    query: str, top_k: int = 5
-) -> list[dict]:
+def search_all(query: str, top_k: int = 5) -> list[dict]:
     """Combined search: documents + cards, merged by distance.
 
     Returns list of dicts: {id, type, distance}.

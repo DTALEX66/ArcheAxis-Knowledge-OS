@@ -12,7 +12,6 @@ Usage:
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -78,6 +77,7 @@ class Config:
             return
         try:
             import yaml
+
             with open(config_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
             if isinstance(data, dict):

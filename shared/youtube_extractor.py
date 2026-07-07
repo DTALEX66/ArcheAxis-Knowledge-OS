@@ -36,13 +36,19 @@ def _extract_video_id(url: str) -> str | None:
 
 def get_video_info(video_id: str) -> dict[str, Any]:
     """Get YouTube video metadata via oEmbed (no API key)."""
-    oembed_url = f"https://www.youtube.com/oembed?url=https://youtube.com/watch?v={video_id}&format=json"
+    oembed_url = (
+        f"https://www.youtube.com/oembed?url=https://youtube.com/watch?v={video_id}&format=json"
+    )
     try:
-        req = urllib.request.Request(oembed_url, headers={
-            "User-Agent": "Cognitive-Loop-OS/0.3",
-        })
+        req = urllib.request.Request(
+            oembed_url,
+            headers={
+                "User-Agent": "Cognitive-Loop-OS/0.3",
+            },
+        )
         with urllib.request.urlopen(req, timeout=10) as resp:
             import json
+
             data = json.loads(resp.read().decode("utf-8"))
             return {
                 "video_id": video_id,
@@ -113,9 +119,12 @@ def search_youtube(query: str, max_results: int = 5) -> list[dict[str, Any]]:
     feed_url = f"https://www.youtube.com/feeds/videos.xml?q={encoded}"
 
     try:
-        req = urllib.request.Request(feed_url, headers={
-            "User-Agent": "Cognitive-Loop-OS/0.3",
-        })
+        req = urllib.request.Request(
+            feed_url,
+            headers={
+                "User-Agent": "Cognitive-Loop-OS/0.3",
+            },
+        )
         with urllib.request.urlopen(req, timeout=15) as resp:
             import xml.etree.ElementTree as ET
 
@@ -129,11 +138,13 @@ def search_youtube(query: str, max_results: int = 5) -> list[dict[str, Any]]:
                 if link_el is not None:
                     href = link_el.get("href", "")
                     vid = _extract_video_id(href) or ""
-                results.append({
-                    "video_id": vid,
-                    "title": title_el.text if title_el is not None else "",
-                    "url": f"https://youtube.com/watch?v={vid}",
-                })
+                results.append(
+                    {
+                        "video_id": vid,
+                        "title": title_el.text if title_el is not None else "",
+                        "url": f"https://youtube.com/watch?v={vid}",
+                    }
+                )
             return results
     except Exception:
         return []

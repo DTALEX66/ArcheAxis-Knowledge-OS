@@ -27,9 +27,12 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 def _ddg_html_search(query: str, limit: int = 10) -> list[dict[str, Any]]:
     """Search DuckDuckGo via HTML (lite version, no JS)."""
     url = f"https://lite.duckduckgo.com/lite/?q={urllib.parse.quote(query)}"
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "Cognitive-Loop-OS/0.3 WebSearch",
-    })
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Cognitive-Loop-OS/0.3 WebSearch",
+        },
+    )
 
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -54,11 +57,13 @@ def _ddg_html_search(query: str, limit: int = 10) -> list[dict[str, Any]]:
         title = re.sub(r"<[^>]+>", "", title_raw).strip()
         desc = re.sub(r"<[^>]+>", "", snippet).strip()
         if href and title:
-            results.append({
-                "title": title,
-                "url": href,
-                "description": desc[:300],
-            })
+            results.append(
+                {
+                    "title": title,
+                    "url": href,
+                    "description": desc[:300],
+                }
+            )
 
     return results
 
@@ -102,8 +107,9 @@ def extract_content(url: str, max_chars: int = 10000) -> dict[str, Any]:
 
         downloaded = trafilatura.fetch_url(url)
         if downloaded:
-            result = trafilatura.extract(downloaded, include_links=False,
-                                         include_images=False, include_tables=False)
+            result = trafilatura.extract(
+                downloaded, include_links=False, include_images=False, include_tables=False
+            )
             if result:
                 return {
                     "url": url,
@@ -120,9 +126,13 @@ def extract_content(url: str, max_chars: int = 10000) -> dict[str, Any]:
         import requests
         from bs4 import BeautifulSoup
 
-        resp = requests.get(url, timeout=15, headers={
-            "User-Agent": "Cognitive-Loop-OS/0.3 ContentExtractor",
-        })
+        resp = requests.get(
+            url,
+            timeout=15,
+            headers={
+                "User-Agent": "Cognitive-Loop-OS/0.3 ContentExtractor",
+            },
+        )
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -134,6 +144,7 @@ def extract_content(url: str, max_chars: int = 10000) -> dict[str, Any]:
         text = soup.get_text(separator="\n", strip=True)
         # Clean up whitespace
         import re
+
         text = re.sub(r"\n{3,}", "\n\n", text)
 
         return {

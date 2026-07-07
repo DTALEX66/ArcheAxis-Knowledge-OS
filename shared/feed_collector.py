@@ -90,23 +90,28 @@ def _parse_atom(xml_bytes: bytes) -> list[dict[str, Any]]:
         if link_el is not None:
             link = link_el.get("href", "")
 
-        items.append({
-            "title": (title_el.text or "").strip() if title_el is not None else "",
-            "link": link,
-            "description": ((summary_el.text or "")[:500] if summary_el is not None else ""),
-            "published": (updated_el.text or "").strip() if updated_el is not None else "",
-            "source_feed": "",
-        })
+        items.append(
+            {
+                "title": (title_el.text or "").strip() if title_el is not None else "",
+                "link": link,
+                "description": ((summary_el.text or "")[:500] if summary_el is not None else ""),
+                "published": (updated_el.text or "").strip() if updated_el is not None else "",
+                "source_feed": "",
+            }
+        )
     return items
 
 
 def _fetch_url(url: str, timeout: int = 15) -> bytes | None:
     """Fetch a URL, return bytes or None."""
     try:
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Cognitive-Loop-OS/0.3 Feed Collector",
-            "Accept": "application/rss+xml, application/atom+xml, application/xml",
-        })
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Cognitive-Loop-OS/0.3 Feed Collector",
+                "Accept": "application/rss+xml, application/atom+xml, application/xml",
+            },
+        )
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return resp.read()
     except Exception:
@@ -173,8 +178,9 @@ def collect_and_ingest(
     Returns:
         {collected, ingested, items}.
     """
-    from shared.storage import insert
     import uuid
+
+    from shared.storage import insert
 
     items = collect_feeds(urls, max_items=max_items)
     now = datetime.now(timezone.utc).isoformat()
@@ -182,14 +188,17 @@ def collect_and_ingest(
     ingested = 0
     for item in items:
         note_id = f"rn_{uuid.uuid4().hex[:12]}"
-        insert("ir_research_notes", {
-            "id": note_id,
-            "title": item.get("title", "Untitled")[:200],
-            "content": item.get("description", "")[:2000],
-            "source": item.get("source_feed", "rss"),
-            "tags": ["rss-feed"],
-            "created_at": now,
-        })
+        insert(
+            "ir_research_notes",
+            {
+                "id": note_id,
+                "title": item.get("title", "Untitled")[:200],
+                "content": item.get("description", "")[:2000],
+                "source": item.get("source_feed", "rss"),
+                "tags": ["rss-feed"],
+                "created_at": now,
+            },
+        )
         ingested += 1
 
     return {"collected": len(items), "ingested": ingested, "items": items}

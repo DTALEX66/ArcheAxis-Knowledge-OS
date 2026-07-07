@@ -4,6 +4,7 @@ Adapted from Star-Trails-Log discovery scheduler.
 Supports interval jobs (cognition loops, KB review, IR discovery)
 and one-shot triggers. Runs as an AsyncIO scheduler alongside FastAPI.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable, Coroutine
@@ -77,11 +78,13 @@ def list_jobs() -> list[dict]:
     """List all registered jobs with status."""
     result = []
     for job in scheduler.get_jobs():
-        result.append({
-            "id": job.id,
-            "next_run": str(job.next_run_time) if job.next_run_time else None,
-            "trigger": str(job.trigger),
-        })
+        result.append(
+            {
+                "id": job.id,
+                "next_run": str(job.next_run_time) if job.next_run_time else None,
+                "trigger": str(job.trigger),
+            }
+        )
     return result
 
 

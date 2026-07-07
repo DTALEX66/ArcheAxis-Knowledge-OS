@@ -28,11 +28,24 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 # Trusted domains (verified educational/research sources)
 _TRUSTED_DOMAINS: set[str] = {
-    "arxiv.org", "github.com", "wikipedia.org", "stackoverflow.com",
-    "docs.python.org", "developer.mozilla.org", "pypi.org",
-    "nature.com", "science.org", "ieee.org", "acm.org",
-    "mit.edu", "stanford.edu", "berkeley.edu", "cmu.edu",
-    "openai.com", "anthropic.com", "huggingface.co",
+    "arxiv.org",
+    "github.com",
+    "wikipedia.org",
+    "stackoverflow.com",
+    "docs.python.org",
+    "developer.mozilla.org",
+    "pypi.org",
+    "nature.com",
+    "science.org",
+    "ieee.org",
+    "acm.org",
+    "mit.edu",
+    "stanford.edu",
+    "berkeley.edu",
+    "cmu.edu",
+    "openai.com",
+    "anthropic.com",
+    "huggingface.co",
 }
 
 # Credibility signals
@@ -127,8 +140,8 @@ def cross_reference(sources: list[dict[str, Any]]) -> dict[str, Any]:
     Returns:
         {agreements, contradictions, unique_to_each, credibility_map}.
     """
-    from shared.fact_extractor import extract_facts
     from shared.auto_tagger import extract_keywords
+    from shared.fact_extractor import extract_facts
 
     if len(sources) < 2:
         return {"error": "need at least 2 sources to cross-reference"}
@@ -156,21 +169,29 @@ def cross_reference(sources: list[dict[str, Any]]) -> dict[str, Any]:
             for fa in fi:
                 for fb in fj:
                     # Simple: same subject or same object
-                    if fa["subject"].lower() == fb["subject"].lower():
-                        if fa["predicate"] == fb["predicate"]:
-                            if fa["object"].lower() == fb["object"].lower():
-                                agreements.append({
+                    if (
+                        fa["subject"].lower() == fb["subject"].lower()
+                        and fa["predicate"] == fb["predicate"]
+                    ):
+                        if fa["object"].lower() == fb["object"].lower():
+                            agreements.append(
+                                {
                                     "fact": fa,
                                     "source_a": i,
                                     "source_b": j,
                                     "type": "exact_match",
-                                })
-                            else:
-                                contradictions.append({
-                                    "fact_a": fa, "fact_b": fb,
-                                    "source_a": i, "source_b": j,
+                                }
+                            )
+                        else:
+                            contradictions.append(
+                                {
+                                    "fact_a": fa,
+                                    "fact_b": fb,
+                                    "source_a": i,
+                                    "source_b": j,
                                     "type": "object_differs",
-                                })
+                                }
+                            )
 
             # Find unique keywords per source
             shared = source_kw[i] & source_kw[j]
@@ -209,12 +230,14 @@ def detect_contradictions(fact_list: list[dict[str, Any]]) -> list[dict[str, Any
     for key, facts in groups.items():
         objects = {f["object"].lower() for f in facts}
         if len(objects) > 1:
-            contradictions.append({
-                "subject": key[0],
-                "predicate": key[1],
-                "conflicting_objects": list(objects),
-                "sources": [f.get("source", "") for f in facts],
-            })
+            contradictions.append(
+                {
+                    "subject": key[0],
+                    "predicate": key[1],
+                    "conflicting_objects": list(objects),
+                    "sources": [f.get("source", "") for f in facts],
+                }
+            )
 
     return contradictions
 
@@ -231,10 +254,7 @@ def fuse_sources(sources: list[dict[str, Any]]) -> dict[str, Any]:
     from shared.auto_tagger import extract_keywords, progressive_summarize
 
     # Combine all text
-    combined = "\n\n".join(
-        s.get("title", "") + "\n" + s.get("content", "")
-        for s in sources
-    )
+    combined = "\n\n".join(s.get("title", "") + "\n" + s.get("content", "") for s in sources)
 
     # Unified keywords
     all_kw: dict[str, int] = {}
@@ -259,9 +279,7 @@ def fuse_sources(sources: list[dict[str, Any]]) -> dict[str, Any]:
         "cross_reference": cr,
         "summary": summary["layer_4_executive"],
         "credibility": {
-            "average": round(
-                sum(score_credibility(s)["score"] for s in sources) / len(sources), 2
-            ),
+            "average": round(sum(score_credibility(s)["score"] for s in sources) / len(sources), 2),
             "by_source": [score_credibility(s) for s in sources],
         },
     }

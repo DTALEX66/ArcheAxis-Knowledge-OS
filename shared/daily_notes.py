@@ -91,11 +91,13 @@ def timeline(days: int = 7, tag: str = "") -> list[dict[str, Any]]:
     result = []
     for r in rows:
         if r.get("date", "") >= cutoff:
-            result.append({
-                "date": r.get("date"),
-                "preview": (r.get("content", "") or "")[:300],
-                "tag_count": len(r.get("tags", [])),
-            })
+            result.append(
+                {
+                    "date": r.get("date"),
+                    "preview": (r.get("content", "") or "")[:300],
+                    "tag_count": len(r.get("tags", [])),
+                }
+            )
     return result
 
 

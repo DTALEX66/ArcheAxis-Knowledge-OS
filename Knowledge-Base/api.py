@@ -59,6 +59,7 @@ async def log_requests(request: Request, call_next):
     duration = round((time.time() - start) * 1000, 1)
     response.headers["X-Process-Time-ms"] = str(duration)
     from shared.logging import logger
+
     logger.debug(f"{request.method} {request.url.path} → {response.status_code} ({duration}ms)")
     return response
 
@@ -69,6 +70,7 @@ async def log_requests(request: Request, call_next):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     from shared.logging import logger
+
     logger.error(f"Unhandled error: {exc}")
     return JSONResponse(
         status_code=500,
@@ -77,21 +79,36 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 class DocumentIn(BaseModel):
-    title: str; content: str; source: str = "unknown"; tags: list[str] = []
+    title: str
+    content: str
+    source: str = "unknown"
+    tags: list[str] = []
+
 
 class CardRequest(BaseModel):
-    title: str; content: str; source_ids: list[str] = []; tags: list[str] = []
+    title: str
+    content: str
+    source_ids: list[str] = []
+    tags: list[str] = []
+
 
 class ContextPackRequest(BaseModel):
-    goal: str; sources: list[str] = []; constraints: list[str] = []
+    goal: str
+    sources: list[str] = []
+    constraints: list[str] = []
+
 
 class TaskPackRequest(BaseModel):
-    goal: str; steps: list[dict] = []
-    allowed_tools: list[str] = ["echo", "file_read"]; risk_level: str = "low"
+    goal: str
+    steps: list[dict] = []
+    allowed_tools: list[str] = ["echo", "file_read"]
+    risk_level: str = "low"
 
 
 @app.get("/health")
-def health(): return {"status": "ok", "system": "knowledge-base"}
+def health():
+    return {"status": "ok", "system": "knowledge-base"}
+
 
 @app.post("/documents")
 def create_document(doc: DocumentIn):
@@ -102,19 +119,27 @@ def create_document(doc: DocumentIn):
         fts5_sync("kb_documents", {"id": r["id"], "title": r["title"], "content": r["content"]})
         vector_search.index_document(r["id"], r["title"] + " " + r["content"])
         from shared.backlinks import index_document_links
+
         index_document_links(r["id"], r["content"])
     except Exception:
         pass  # non-critical
     return r
 
+
 @app.get("/documents")
 def list_documents(limit: int = 20):
     return {"count": count("kb_documents"), "items": select_all("kb_documents", limit)}
 
+
 @app.post("/cards")
 def create_card(req: CardRequest):
-    card = KnowledgeCard(card_id=f"card_{uuid.uuid4().hex[:12]}", title=req.title,
-                          content=req.content, source_ids=req.source_ids, tags=req.tags)
+    card = KnowledgeCard(
+        card_id=f"card_{uuid.uuid4().hex[:12]}",
+        title=req.title,
+        content=req.content,
+        source_ids=req.source_ids,
+        tags=req.tags,
+    )
     insert("kb_cards", card.to_dict())
     # Auto-index for FTS5 + vector search
     try:
@@ -124,23 +149,32 @@ def create_card(req: CardRequest):
         pass
     return card.to_dict()
 
+
 @app.get("/cards")
 def list_cards(limit: int = 20):
     return {"count": count("kb_cards"), "items": select_all("kb_cards", limit)}
 
+
 @app.post("/context-pack")
 def create_context_pack(req: ContextPackRequest):
     ctx = build_context_pack(goal=req.goal, sources=req.sources, constraints=req.constraints)
-    insert("kb_context_packs", ctx.to_dict()); return ctx.to_dict()
+    insert("kb_context_packs", ctx.to_dict())
+    return ctx.to_dict()
+
 
 @app.get("/context-packs")
 def list_context_packs(limit: int = 20):
     return {"count": count("kb_context_packs"), "items": select_all("kb_context_packs", limit)}
 
+
 @app.post("/taskpack")
 def create_taskpack(req: TaskPackRequest):
-    task = build_taskpack(goal=req.goal, steps=req.steps, allowed_tools=req.allowed_tools, risk_level=req.risk_level)
-    insert("kb_taskpacks", task.to_dict()); return task.to_dict()
+    task = build_taskpack(
+        goal=req.goal, steps=req.steps, allowed_tools=req.allowed_tools, risk_level=req.risk_level
+    )
+    insert("kb_taskpacks", task.to_dict())
+    return task.to_dict()
+
 
 @app.get("/taskpacks")
 def list_taskpacks(limit: int = 20):
@@ -154,10 +188,10 @@ def list_taskpacks(limit: int = 20):
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     """Render the main knowledge dashboard."""
-    from shared.storage import count as _c, select_all
     from shared.knowledge_gardener import find_orphans
+    from shared.storage import count as _c
+    from shared.storage import select_all
 
-    docs = select_all("kb_documents", limit=10)
     cards = select_all("kb_cards", limit=10)
     mkus = select_all("machine_knowledge_units", limit=10)
     reviews_due_list = select_all("kb_reviews", limit=10, order="next_review_at ASC")
@@ -175,7 +209,9 @@ async def dashboard(request: Request):
             "daily_notes": _c("daily_notes"),
             "graph_nodes": _c("graph_entities"),
             "orphans": len(orphans),
-            "active_units": sum(1 for m in select_all("machine_knowledge_units", limit=200) if m.get("active", True)),
+            "active_units": sum(
+                1 for m in select_all("machine_knowledge_units", limit=200) if m.get("active", True)
+            ),
         },
         "recent_cards": cards,
         "recent_mku": mkus,
@@ -187,6 +223,7 @@ async def dashboard(request: Request):
 
 
 # ── Search ───────────��────────────────────────────────
+
 
 class SearchRequest(BaseModel):
     query: str
@@ -244,8 +281,8 @@ def create_review(req: ReviewRequest):
     Returns the review record with next review date.
     If quality < 3, automatically records a mistake.
     """
-    from reviews import schedule_review
     from mistakes import record_mistake
+    from reviews import schedule_review
 
     result = schedule_review(req.card_id, req.quality)
 
@@ -317,6 +354,7 @@ def resolve_mistake_endpoint(mistake_id: str, req: MistakeResolveRequest):
 
 # ── Phase 5: A→B Translation ────────────────────────────
 
+
 class TranslateRequest(BaseModel):
     card_id: str
     unit_type: str = "rule"
@@ -365,6 +403,7 @@ def a_to_b_publish(candidate_id: str, confidence: float = 0.7):
 
 
 # ── Machine Knowledge ───────────────────────────────────
+
 
 class MachineKnowledgeCreateRequest(BaseModel):
     title: str
@@ -440,6 +479,7 @@ def machine_knowledge_deactivate(unit_id: str):
 
 # ── Obsidian bridge (Phase 6) ────────────────────────────
 
+
 class ObsidianScanRequest(BaseModel):
     vault_root: str = ""
     max_files: int = 200
@@ -504,8 +544,9 @@ def obsidian_project_card(card_id: str, dry_run: bool = True):
 @app.post("/obsidian/project/review/{card_id}")
 def obsidian_project_review(card_id: str, dry_run: bool = True):
     """Project a card with review history to Obsidian."""
-    from shared.obsidian_projection import render_review_card
     from reviews import get_review_history
+
+    from shared.obsidian_projection import render_review_card
 
     card = select_one("kb_cards", card_id)
     if not card:
@@ -610,8 +651,9 @@ def register_object_type(
     properties: str = "{}",  # JSON string
 ):
     """Register a custom object type (like Tana Supertag)."""
-    from shared.object_types import register_type
     import json
+
+    from shared.object_types import register_type
 
     props = json.loads(properties) if properties else None
     result = register_type(name, parent=parent, description=description, properties=props)
@@ -621,8 +663,9 @@ def register_object_type(
 @app.post("/types/validate")
 def validate_object(obj_type: str = "", data: str = "{}"):
     """Validate an object against its type schema."""
-    from shared.object_types import validate
     import json
+
+    from shared.object_types import validate
 
     obj_data = json.loads(data)
     return validate(obj_type, obj_data)
@@ -650,7 +693,7 @@ def extract_blocks(source_id: str):
 @app.get("/blocks/resolve")
 def resolve_block_ref(ref: str = ""):
     """Resolve a block reference like 'doc_001#introduction'."""
-    from shared.block_refs import resolve_block_ref, embed_block
+    from shared.block_refs import embed_block
 
     result = embed_block(ref)
     if not result:
@@ -672,7 +715,8 @@ def collection_view(
     from shared.collection_views import render_view
 
     return render_view(
-        table, view_type=view_type,
+        table,
+        view_type=view_type,
         group_by=group_by or "review_status",
         limit=limit,
     )
@@ -871,7 +915,7 @@ def ir_search_and_extract(query: str = "", search_limit: int = 3, extract_limit:
 @app.post("/ir/feeds")
 def ir_collect_feeds(urls: str = "", categories: str = "", max_items: int = 10):
     """Collect articles from RSS/Atom feeds."""
-    from shared.feed_collector import collect_feeds, discover_feeds, collect_and_ingest
+    from shared.feed_collector import collect_and_ingest, discover_feeds
 
     if urls:
         url_list = [u.strip() for u in urls.split(",") if u.strip()]
@@ -895,7 +939,7 @@ def ir_youtube_transcript(url: str = "", languages: str = ""):
     """Fetch YouTube video transcript."""
     from shared.youtube_extractor import get_transcript
 
-    langs = [l.strip() for l in languages.split(",") if l.strip()] if languages else None
+    langs = [lang.strip() for lang in languages.split(",") if lang.strip()] if languages else None
     return get_transcript(url, languages=langs)
 
 
@@ -921,8 +965,9 @@ def ir_extract_facts(text: str = "", max_facts: int = 20):
 @app.post("/ir/cross-reference")
 def ir_cross_reference(sources: str = "[]"):
     """Cross-reference multiple sources for agreements/contradictions."""
-    from shared.cross_reference import cross_reference, fuse_sources
     import json
+
+    from shared.cross_reference import cross_reference
 
     src_list = json.loads(sources)
     cr = cross_reference(src_list)
@@ -932,8 +977,9 @@ def ir_cross_reference(sources: str = "[]"):
 @app.post("/ir/fuse")
 def ir_fuse_sources(sources: str = "[]"):
     """Fuse multiple sources into unified knowledge summary."""
-    from shared.cross_reference import fuse_sources
     import json
+
+    from shared.cross_reference import fuse_sources
 
     src_list = json.loads(sources)
     return fuse_sources(src_list)
@@ -961,14 +1007,19 @@ def evidence_add(
     """Add an evidence record for a KB asset."""
     from shared.evidence_index import index_evidence
 
-    return index_evidence(doc_id, source_type=source_type,
-                          source_path=source_path, confidence=confidence, caption=caption)
+    return index_evidence(
+        doc_id,
+        source_type=source_type,
+        source_path=source_path,
+        confidence=confidence,
+        caption=caption,
+    )
 
 
 @app.get("/evidence/{doc_id}")
 def evidence_get(doc_id: str):
     """Get all evidence for a document + health score."""
-    from shared.evidence_index import get_evidence, evidence_health
+    from shared.evidence_index import evidence_health, get_evidence
 
     return {
         "evidence": get_evidence(doc_id),
@@ -1046,7 +1097,7 @@ def media_inventory(source_dir: str = ""):
 @app.post("/sources/discover")
 def sources_discover(root_dir: str = "", max_files: int = 100):
     """Discover evidence source files in a directory."""
-    from shared.source_discovery import discover_sources, match_sources_to_cards
+    from shared.source_discovery import discover_sources
 
     discovery = discover_sources(root_dir, max_files=max_files)
     return discovery
@@ -1079,8 +1130,9 @@ def diversity_radar(limit: int = 20):
 @app.get("/mermaid/flowchart")
 def mermaid_flowchart(title: str = "", steps: str = "[]"):
     """Generate Mermaid flowchart from steps JSON."""
-    from shared.mermaid_gen import flowchart
     import json
+
+    from shared.mermaid_gen import flowchart
 
     step_list = json.loads(steps)
     return {"mermaid": flowchart(title, step_list)}
@@ -1120,134 +1172,175 @@ def pipeline_run(req: PipelineRequest):
     替代: /ir/* + /auto/* + /documents
     """
     from shared.pipeline import run_pipeline
-    return run_pipeline(req.source, req.input,
-                        actions=req.actions if req.actions else None,
-                        auto_ingest=req.auto_ingest)
+
+    return run_pipeline(
+        req.source,
+        req.input,
+        actions=req.actions if req.actions else None,
+        auto_ingest=req.auto_ingest,
+    )
 
 
 # ── Composite: Garden (替代 4 端点) ──────────────────────
+
 
 @app.get("/garden")
 def garden(action: str = "gaps", doc_id: str = "", top_k: int = 5):
     """知识园艺: action=orphans|suggest|gaps|evergreen"""
     if action == "orphans":
         from shared.knowledge_gardener import find_orphans
+
         return find_orphans()
     elif action == "suggest" and doc_id:
         from shared.knowledge_gardener import suggest_connections
+
         return suggest_connections(doc_id, top_k)
     elif action == "evergreen" and doc_id:
         from shared.knowledge_gardener import score_evergreen
+
         return score_evergreen(doc_id)
     else:
         from shared.knowledge_gardener import detect_gaps
+
         return detect_gaps()
 
 
 # ── Composite: Analytics (替代 2 端点) ───────────────────
+
 
 @app.get("/analytics")
 def analytics(action: str = "streak", days: int = 30, limit: int = 20):
     """分析: action=streak|heatmap"""
     if action == "heatmap":
         from shared.learning_analytics import topic_heatmap
+
         return topic_heatmap(limit=limit)
     else:
         from shared.learning_analytics import review_streak
+
         return review_streak(days=days)
 
 
 # ── Composite: Mermaid (替代 3 端点) ─────────────────────
 
+
 @app.get("/mermaid")
-def mermaid(type: str = "graph", title: str = "", card_id: str = "",
-            steps: str = "[]", max_nodes: int = 20):
+def mermaid(
+    type: str = "graph", title: str = "", card_id: str = "", steps: str = "[]", max_nodes: int = 20
+):
     """Mermaid图: type=graph|flowchart|timeline"""
     import json
+
     if type == "flowchart":
         from shared.mermaid_gen import flowchart
+
         return flowchart(title, json.loads(steps))
     elif type == "timeline" and card_id:
         from shared.mermaid_gen import review_timeline_mermaid
+
         return review_timeline_mermaid(card_id)
     else:
         from shared.mermaid_gen import knowledge_graph_mermaid
+
         return knowledge_graph_mermaid(card_id, max_nodes)
 
 
 # ── Composite: Evidence (替代 3 端点) ────────────────────
+
 
 @app.get("/evidence")
 def evidence(doc_id: str = "", action: str = "get"):
     """证据: action=get|radar"""
     if action == "radar" or not doc_id:
         from shared.evidence_index import vault_health_radar
+
         return vault_health_radar()
     else:
-        from shared.evidence_index import get_evidence, evidence_health
+        from shared.evidence_index import evidence_health, get_evidence
+
         return {"evidence": get_evidence(doc_id), "health": evidence_health(doc_id)}
 
 
 @app.post("/evidence")
-def evidence_add(doc_id: str = "", source_type: str = "manual",
-                 source_path: str = "", confidence: str = "medium", caption: str = ""):
+def evidence_add_composite(
+    doc_id: str = "",
+    source_type: str = "manual",
+    source_path: str = "",
+    confidence: str = "medium",
+    caption: str = "",
+):
     from shared.evidence_index import index_evidence
+
     return index_evidence(doc_id, source_type, source_path, confidence, caption)
 
 
 # ── Composite: Retro + Missions (替代 2 端点) ────────────
+
 
 @app.get("/retro")
 def retro(action: str = "weekly", days: int = 7):
     """回顾: action=weekly|missions"""
     if action == "missions":
         from shared.retro_summary import generate_daily_missions
+
         return generate_daily_missions()
     else:
         from shared.retro_summary import weekly_summary
+
         return weekly_summary(days=days)
 
 
 # ── Composite: Projects (替代 2 端点) ────────────────────
+
 
 @app.get("/projects")
 def projects(action: str = "suggest", topic: str = "", limit: int = 5):
     """项目: action=suggest|generate"""
     if action == "generate" and topic:
         from shared.project_generator import generate_project_from_topic
+
         return generate_project_from_topic(topic)
     else:
         from shared.project_generator import suggest_projects
+
         return suggest_projects(limit=limit)
 
 
 # ── Composite: Sources + Media (替代 4 端点) ─────────────
 
+
 @app.post("/sources")
-def sources(action: str = "discover", root_dir: str = "", source_dir: str = "",
-            max_files: int = 100):
+def sources(
+    action: str = "discover", root_dir: str = "", source_dir: str = "", max_files: int = 100
+):
     """来源: action=discover|match|inventory"""
     if action == "match":
         from shared.source_discovery import match_sources_to_cards
+
         return match_sources_to_cards(source_dir or root_dir)
     elif action == "inventory":
         from shared.media_extractor import media_inventory
+
         return media_inventory(source_dir or root_dir)
     else:
         from shared.source_discovery import discover_sources
+
         return discover_sources(root_dir, max_files=max_files)
 
 
 # ── Composite: Diversity (替代 2 端点) ───────────────────
+
 
 @app.get("/diversity")
 def diversity(doc_id: str = "", limit: int = 20):
     """多样性: 传doc_id则分析单篇, 否则全局雷达"""
     if doc_id:
         from shared.diversity_audit import analyze_diversity
+
         return analyze_diversity(doc_id)
     else:
         from shared.diversity_audit import diversity_radar
+
         return diversity_radar(limit=limit)
 
 
@@ -1258,7 +1351,9 @@ def diversity(doc_id: str = "", limit: int = 20):
 def bulk_import(items: str = "[]"):
     """批量导入: JSON数组 [{source, input}, ...]"""
     import json
+
     from shared.bulk_ops import bulk_import as _bulk
+
     return _bulk(json.loads(items))
 
 
@@ -1266,6 +1361,7 @@ def bulk_import(items: str = "[]"):
 def export_kb(format: str = "json", tables: str = ""):
     """导出KB: format=json|markdown|csv"""
     from shared.bulk_ops import export_kb as _export
+
     tbl_list = [t.strip() for t in tables.split(",") if t.strip()] if tables else None
     return _export(format=format, tables=tbl_list)
 
@@ -1274,6 +1370,7 @@ def export_kb(format: str = "json", tables: str = ""):
 def cron_discover():
     """定时发现: RSS+搜索一键采集"""
     from shared.bulk_ops import cron_discover
+
     return cron_discover()
 
 
@@ -1301,7 +1398,12 @@ def project_taskpack(task_id: str, dry_run: bool = True):
 @app.post("/project/trace/{trace_id}")
 def project_trace(trace_id: str, dry_run: bool = True):
     from app.memory.database import list_traces_db
-    traces = [t for t in list_traces_db(limit=200) if t.get("trace_id") == trace_id or t.get("id") == trace_id]
+
+    traces = [
+        t
+        for t in list_traces_db(limit=200)
+        if t.get("trace_id") == trace_id or t.get("id") == trace_id
+    ]
     if not traces:
         return {"error": "not found"}
     proj = render_trace(traces[0])
@@ -1311,7 +1413,12 @@ def project_trace(trace_id: str, dry_run: bool = True):
 @app.post("/project/lesson/{lesson_id}")
 def project_lesson(lesson_id: str, dry_run: bool = True):
     from app.memory.database import list_lessons_db
-    lessons = [ll for ll in list_lessons_db(limit=200) if ll.get("lesson_id") == lesson_id or ll.get("id") == lesson_id]
+
+    lessons = [
+        ll
+        for ll in list_lessons_db(limit=200)
+        if ll.get("lesson_id") == lesson_id or ll.get("id") == lesson_id
+    ]
     if not lessons:
         return {"error": "not found"}
     proj = render_lesson(lessons[0])

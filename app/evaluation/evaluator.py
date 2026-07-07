@@ -8,5 +8,7 @@ def evaluate(trace: ExecutionTrace) -> EvalResult:
         success=success,
         score=score,
         failure_reason="" if success else "execution failed",
-        improvement="replace stubs with real tools and add stronger checks" if success else "inspect trace events",
+        improvement="replace stubs with real tools and add stronger checks"
+        if success
+        else "inspect trace events",
     )

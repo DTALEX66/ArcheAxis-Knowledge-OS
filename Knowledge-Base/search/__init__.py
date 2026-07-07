@@ -21,9 +21,7 @@ from search import vector_search  # noqa: E402
 from shared.storage import fts5_search as _fts5  # noqa: E402
 
 
-def keyword_search(
-    query: str, top_k: int = 5
-) -> list[dict]:
+def keyword_search(query: str, top_k: int = 5) -> list[dict]:
     """FTS5 full-text keyword search over documents and cards.
 
     Uses BM25 ranking. Falls back to LIKE scan if FTS5 index not yet built.
@@ -35,21 +33,21 @@ def keyword_search(
     for table, typ in [("kb_documents", "document"), ("kb_cards", "card")]:
         hits = _fts5(table, query, top_k=top_k)
         for h in hits:
-            results.append({
-                "id": h["id"],
-                "type": typ,
-                "title": h.get("title", ""),
-                "score": -h.get("rank", 999),  # negate so higher = better
-                "snippet": h.get("snippet", ""),
-            })
+            results.append(
+                {
+                    "id": h["id"],
+                    "type": typ,
+                    "title": h.get("title", ""),
+                    "score": -h.get("rank", 999),  # negate so higher = better
+                    "snippet": h.get("snippet", ""),
+                }
+            )
 
     results.sort(key=lambda r: r["score"], reverse=True)
     return results[:top_k]
 
 
-def hybrid_search(
-    query: str, top_k: int = 5
-) -> list[dict]:
+def hybrid_search(query: str, top_k: int = 5) -> list[dict]:
     """Unified hybrid search: vector + keyword, merged by distance/score."""
     from shared.storage import select_one
 
@@ -88,14 +86,8 @@ def hybrid_search(
 
     # Sort: prefer items with both signals, then by vector distance
     def sort_key(item: dict) -> tuple:
-        has_both = (
-            0
-            if (item["vector_distance"] is not None and item["keyword_score"] > 0)
-            else 1
-        )
-        vec_dist = (
-            item["vector_distance"] if item["vector_distance"] is not None else 999
-        )
+        has_both = 0 if (item["vector_distance"] is not None and item["keyword_score"] > 0) else 1
+        vec_dist = item["vector_distance"] if item["vector_distance"] is not None else 999
         kw_score = -item["keyword_score"]
         return (has_both, vec_dist, kw_score)
 

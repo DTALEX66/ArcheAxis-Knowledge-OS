@@ -1,4 +1,5 @@
 """Task executor — permission-gated step execution."""
+
 from app.schemas import ExecutionTrace, PermissionDecision, TaskPack
 from app.tools.registry import run_tool
 
@@ -13,14 +14,18 @@ def execute(task: TaskPack, permission: PermissionDecision | None = None) -> Exe
 
     # ── Human review gate ──
     if permission and permission.requires_human_review:
-        trace.events.append({
-            "step": {"name": "permission_check", "type": "gate"},
-            "result": {
-                "tool": "permission", "risk_level": permission.risk_level,
-                "status": "blocked", "message": "requires human review",
-                "reason": permission.reason,
-            },
-        })
+        trace.events.append(
+            {
+                "step": {"name": "permission_check", "type": "gate"},
+                "result": {
+                    "tool": "permission",
+                    "risk_level": permission.risk_level,
+                    "status": "blocked",
+                    "message": "requires human review",
+                    "reason": permission.reason,
+                },
+            }
+        )
         trace.result = {"status": "blocked", "reason": permission.reason}
         trace.success = False
         return trace
@@ -37,8 +42,10 @@ def execute(task: TaskPack, permission: PermissionDecision | None = None) -> Exe
             event = {
                 "step": step,
                 "result": {
-                    "tool": tool_name, "risk_level": "blocked",
-                    "dry_run": True, "status": "blocked",
+                    "tool": tool_name,
+                    "risk_level": "blocked",
+                    "dry_run": True,
+                    "status": "blocked",
                     "message": f"tool '{tool_name}' blocked by permission policy",
                 },
             }

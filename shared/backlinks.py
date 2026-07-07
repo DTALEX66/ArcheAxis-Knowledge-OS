@@ -45,34 +45,40 @@ def parse_links(content: str) -> list[dict[str, Any]]:
         target = match.group(1).strip()
         # Fix spaces (Obsidian uses %20 in filenames)
         target = target.replace("%20", " ")
-        results.append({
-            "target": target,
-            "alias": target,
-            "is_embed": False,
-            "link_type": "wikilink",
-        })
+        results.append(
+            {
+                "target": target,
+                "alias": target,
+                "is_embed": False,
+                "link_type": "wikilink",
+            }
+        )
 
     # Embeds: ![[target]]
     for match in _EMBED_RE.finditer(content):
         target = match.group(1).strip().replace("%20", " ")
-        results.append({
-            "target": target,
-            "alias": target,
-            "is_embed": True,
-            "link_type": "embed",
-        })
+        results.append(
+            {
+                "target": target,
+                "alias": target,
+                "is_embed": True,
+                "link_type": "embed",
+            }
+        )
 
     # Markdown links: [text](url)
     for match in _MD_LINK_RE.finditer(content):
         alias = match.group(1)
         url = match.group(2)
         if url and not url.startswith(("http://", "https://", "#")):
-            results.append({
-                "target": url,
-                "alias": alias or url,
-                "is_embed": False,
-                "link_type": "md_link",
-            })
+            results.append(
+                {
+                    "target": url,
+                    "alias": alias or url,
+                    "is_embed": False,
+                    "link_type": "md_link",
+                }
+            )
 
     return results
 
@@ -95,14 +101,17 @@ def index_document_links(doc_id: str, content: str) -> int:
         import uuid
 
         lid = f"link_{uuid.uuid4().hex[:12]}"
-        insert("kb_links", {
-            "id": lid,
-            "source_id": doc_id,
-            "target_id": link["target"],
-            "link_type": link["link_type"],
-            "alias": link["alias"],
-            "is_embed": 1 if link["is_embed"] else 0,
-        })
+        insert(
+            "kb_links",
+            {
+                "id": lid,
+                "source_id": doc_id,
+                "target_id": link["target"],
+                "link_type": link["link_type"],
+                "alias": link["alias"],
+                "is_embed": 1 if link["is_embed"] else 0,
+            },
+        )
         count += 1
 
     return count
@@ -123,13 +132,15 @@ def compute_backlinks(target_id: str, limit: int = 50) -> list[dict[str, Any]]:
             source = select_one("kb_documents", link["source_id"])
             if not source:
                 source = select_one("kb_cards", link["source_id"])
-            backlinks.append({
-                "source_id": link["source_id"],
-                "source_title": source.get("title", "") if source else "",
-                "link_type": link.get("link_type", "wikilink"),
-                "alias": link.get("alias", ""),
-                "snippet": (source.get("content", "") if source else "")[:200],
-            })
+            backlinks.append(
+                {
+                    "source_id": link["source_id"],
+                    "source_title": source.get("title", "") if source else "",
+                    "link_type": link.get("link_type", "wikilink"),
+                    "alias": link.get("alias", ""),
+                    "snippet": (source.get("content", "") if source else "")[:200],
+                }
+            )
 
     return backlinks[:limit]
 
@@ -170,11 +181,13 @@ def compute_graph(limit: int = 200) -> dict[str, Any]:
                 "type": "card" if tid in all_cards else "document",
             }
 
-        edges.append({
-            "source": sid,
-            "target": tid,
-            "link_type": link.get("link_type", "wikilink"),
-        })
+        edges.append(
+            {
+                "source": sid,
+                "target": tid,
+                "link_type": link.get("link_type", "wikilink"),
+            }
+        )
 
     return {
         "nodes": list(nodes.values())[:limit],

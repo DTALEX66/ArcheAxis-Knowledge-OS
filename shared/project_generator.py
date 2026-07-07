@@ -15,7 +15,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from shared.storage import select_all, select_one, insert  # noqa: E402
+from shared.storage import insert, select_all  # noqa: E402
 
 
 def generate_project_from_topic(
@@ -36,9 +36,14 @@ def generate_project_from_topic(
     """
     cards = select_all("kb_cards", limit=500)
     relevant = [
-        c for c in cards
-        if topic in (c.get("tags", []) if isinstance(c.get("tags"), list)
-                     else str(c.get("tags", "")).split(","))
+        c
+        for c in cards
+        if topic
+        in (
+            c.get("tags", [])
+            if isinstance(c.get("tags"), list)
+            else str(c.get("tags", "")).split(",")
+        )
     ]
 
     if not relevant:
@@ -47,10 +52,7 @@ def generate_project_from_topic(
     from shared.auto_tagger import extract_keywords
 
     # Extract knowledge from cards
-    all_text = " ".join(
-        (c.get("title", "") + " " + c.get("content", ""))
-        for c in relevant
-    )
+    all_text = " ".join((c.get("title", "") + " " + c.get("content", "")) for c in relevant)
     keywords = [k["keyword"] for k in extract_keywords(all_text, top_k=10)]
 
     # Build milestones
@@ -59,7 +61,7 @@ def generate_project_from_topic(
         f"Practice: implement basic {keywords[1] if len(keywords) > 1 else topic} examples",
         f"Build: create a working {topic} project",
         f"Review: test and document the {topic} implementation",
-        f"Share: write up learnings and contribute back",
+        "Share: write up learnings and contribute back",
     ]
 
     # Build deliverables
@@ -81,8 +83,7 @@ def generate_project_from_topic(
     task = build_taskpack(
         goal=f"Master {topic} through project-based learning",
         steps=[
-            {"step_id": f"s{i+1}", "action": m, "tool": "echo"}
-            for i, m in enumerate(milestones)
+            {"step_id": f"s{i + 1}", "action": m, "tool": "echo"} for i, m in enumerate(milestones)
         ],
         allowed_tools=["echo", "file_read", "kb_search", "mk_search"],
         risk_level=difficulty if difficulty == "hard" else "low",

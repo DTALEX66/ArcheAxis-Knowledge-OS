@@ -160,9 +160,18 @@ def verify_token(token: str) -> dict[str, Any] | None:
 # ── No-auth allowlist ────────────────────────────────────
 
 _AUTH_ALLOWLIST: set[str] = {
-    "/health", "/version", "/docs", "/redoc", "/openapi.json",
-    "/kb/docs", "/kb/redoc", "/kb/openapi.json",
-    "/", "/dashboard", "/kb/", "/kb/dashboard",
+    "/health",
+    "/version",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+    "/kb/docs",
+    "/kb/redoc",
+    "/kb/openapi.json",
+    "/",
+    "/dashboard",
+    "/kb/",
+    "/kb/dashboard",
 }
 
 
@@ -174,6 +183,8 @@ def requires_auth(path: str) -> bool:
     # Allow sub-paths of docs
     if path.startswith("/docs") or path.startswith("/redoc") or path.startswith("/openapi"):
         return False
-    if path.startswith("/kb/docs") or path.startswith("/kb/redoc") or path.startswith("/kb/openapi"):
-        return False
-    return True
+    return not (
+        path.startswith("/kb/docs")
+        or path.startswith("/kb/redoc")
+        or path.startswith("/kb/openapi")
+    )

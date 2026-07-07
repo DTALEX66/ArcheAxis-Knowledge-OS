@@ -1,4 +1,5 @@
 """Tests for Knowledge-Base cards module."""
+
 import sys
 from pathlib import Path
 

@@ -7,6 +7,7 @@ Drop-in replacement for print() calls across the project:
     logger.info("route decided: {}", decision.route)
     logger.error("conversion failed: {}", e)
 """
+
 from __future__ import annotations
 
 import sys
@@ -17,6 +18,7 @@ try:
 except ImportError:
     # Fallback to stdlib logging if loguru not installed
     import logging as _logging
+
     logger = _logging.getLogger("cognitive-os")  # type: ignore[assignment]
 else:
     # Remove default handler

@@ -7,6 +7,7 @@ Generalized for project-local file operations:
 - Blocks path traversal (writes outside project root).
 - Generates a write plan/report for audit.
 """
+
 from __future__ import annotations
 
 import datetime as _dt
@@ -66,9 +67,7 @@ class SafeWriter:
         try:
             target.relative_to(self.project_root)
         except ValueError as exc:
-            raise ValueError(
-                f"path traversal blocked: {relative_path}"
-            ) from exc
+            raise ValueError(f"path traversal blocked: {relative_path}") from exc
         return target
 
     def _backup_existing(self, target: Path) -> Path:
@@ -157,12 +156,9 @@ class SafeWriter:
         ]
         for i in self.items:
             lines.append(
-                f"| {i.action} | `{i.relative_path}` | {i.bytes} | "
-                f"`{i.backup_path or ''}` |"
+                f"| {i.action} | `{i.relative_path}` | {i.bytes} | `{i.backup_path or ''}` |"
             )
-        report_path.write_text(
-            "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
-        )
+        report_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
         return {
             "plan": plan,
@@ -173,12 +169,11 @@ class SafeWriter:
 
 # ── Convenience CLI entry point ──
 
+
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Safe writer for Cognitive-Loop-OS project files"
-    )
+    parser = argparse.ArgumentParser(description="Safe writer for Cognitive-Loop-OS project files")
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--relative-path", required=True)
     parser.add_argument("--content-file", required=True)

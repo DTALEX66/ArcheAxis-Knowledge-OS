@@ -63,13 +63,15 @@ def extract_blocks(content: str, source_id: str = "") -> list[dict[str, Any]]:
             para_idx += 1
             block_id = f"{source_id}#p{para_idx}" if source_id else f"p{para_idx}"
 
-        blocks.append({
-            "block_id": block_id,
-            "heading": heading,
-            "level": level,
-            "text": section[:1000],
-            "char_count": len(section),
-        })
+        blocks.append(
+            {
+                "block_id": block_id,
+                "heading": heading,
+                "level": level,
+                "text": section[:1000],
+                "char_count": len(section),
+            }
+        )
 
     return blocks
 

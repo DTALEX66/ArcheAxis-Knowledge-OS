@@ -1,4 +1,5 @@
 """Execution trace — SQLite-backed, replaces JSONL."""
+
 from app.memory.database import list_traces_db, save_trace
 from app.schemas import ExecutionTrace
 

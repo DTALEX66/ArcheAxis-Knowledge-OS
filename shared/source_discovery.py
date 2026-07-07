@@ -16,13 +16,28 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
 SOURCE_EXTENSIONS: dict[str, str] = {
-    ".pdf": "pdf", ".mp4": "video", ".mov": "video", ".mkv": "video",
-    ".avi": "video", ".webm": "video",
-    ".ppt": "slides", ".pptx": "slides", ".key": "slides",
-    ".doc": "document", ".docx": "document",
-    ".png": "image", ".jpg": "image", ".jpeg": "image", ".webp": "image",
-    ".mp3": "audio", ".wav": "audio", ".m4a": "audio", ".flac": "audio",
-    ".csv": "data", ".json": "data", ".xml": "data",
+    ".pdf": "pdf",
+    ".mp4": "video",
+    ".mov": "video",
+    ".mkv": "video",
+    ".avi": "video",
+    ".webm": "video",
+    ".ppt": "slides",
+    ".pptx": "slides",
+    ".key": "slides",
+    ".doc": "document",
+    ".docx": "document",
+    ".png": "image",
+    ".jpg": "image",
+    ".jpeg": "image",
+    ".webp": "image",
+    ".mp3": "audio",
+    ".wav": "audio",
+    ".m4a": "audio",
+    ".flac": "audio",
+    ".csv": "data",
+    ".json": "data",
+    ".xml": "data",
 }
 SKIP_DIRS: set[str] = {".git", "__pycache__", "node_modules", ".obsidian", "venv", "outputs"}
 
@@ -72,12 +87,14 @@ def discover_sources(
         if stype not in by_type:
             by_type[stype] = []
 
-        by_type[stype].append({
-            "path": str(fpath),
-            "name": fpath.name,
-            "size_mb": round(size_mb, 2),
-            "type": stype,
-        })
+        by_type[stype].append(
+            {
+                "path": str(fpath),
+                "name": fpath.name,
+                "size_mb": round(size_mb, 2),
+                "type": stype,
+            }
+        )
         total += 1
 
     return {
@@ -108,24 +125,25 @@ def match_sources_to_cards(
     matched = []
     unmatched = []
 
-    for files in discovery.get("by_type", {}):
-        for fitem in discovery.get("files", []):
-            fname = Path(fitem["path"]).stem.lower()
-            found = False
-            for card in cards:
-                title = (card.get("title", "")).lower()
-                # Simple fuzzy match
-                if fname[:10] in title or title[:10] in fname:
-                    matched.append({
+    for fitem in discovery.get("files", []):
+        fname = Path(fitem["path"]).stem.lower()
+        found = False
+        for card in cards:
+            title = (card.get("title", "")).lower()
+            # Simple fuzzy match
+            if fname[:10] in title or title[:10] in fname:
+                matched.append(
+                    {
                         "card_id": card.get("id") or card.get("card_id"),
                         "card_title": card.get("title", ""),
                         "source_path": fitem["path"],
                         "confidence": "medium",
-                    })
-                    found = True
-                    break
-            if not found:
-                unmatched.append(fitem)
+                    }
+                )
+                found = True
+                break
+        if not found:
+            unmatched.append(fitem)
 
     return {
         "matched_count": len(matched),

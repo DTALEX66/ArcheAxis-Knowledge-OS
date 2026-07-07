@@ -51,8 +51,11 @@ BUILTIN_TYPES: dict[str, dict[str, Any]] = {
             "content": {"type": "str", "required": True},
             "source_ids": {"type": "list", "default": []},
             "tags": {"type": "list", "default": []},
-            "review_status": {"type": "str", "default": "draft",
-                              "choices": ["draft", "reviewing", "mastered", "struggling"]},
+            "review_status": {
+                "type": "str",
+                "default": "draft",
+                "choices": ["draft", "reviewing", "mastered", "struggling"],
+            },
             "created_at": {"type": "str"},
         },
         "table": "kb_cards",
@@ -75,8 +78,11 @@ BUILTIN_TYPES: dict[str, dict[str, Any]] = {
         "parent": None,
         "properties": {
             "card_id": {"type": "str", "required": True},
-            "error_type": {"type": "str", "default": "recall_failure",
-                           "choices": ["recall_failure", "concept_confusion", "application_error"]},
+            "error_type": {
+                "type": "str",
+                "default": "recall_failure",
+                "choices": ["recall_failure", "concept_confusion", "application_error"],
+            },
             "detail": {"type": "str", "default": ""},
             "source_topic": {"type": "str", "default": ""},
             "resolved": {"type": "bool", "default": False},
@@ -90,8 +96,11 @@ BUILTIN_TYPES: dict[str, dict[str, Any]] = {
         "properties": {
             "title": {"type": "str", "required": True},
             "content": {"type": "str", "required": True},
-            "unit_type": {"type": "str", "default": "rule",
-                          "choices": ["rule", "fact", "procedure", "constraint", "pattern"]},
+            "unit_type": {
+                "type": "str",
+                "default": "rule",
+                "choices": ["rule", "fact", "procedure", "constraint", "pattern"],
+            },
             "tags": {"type": "list", "default": []},
             "confidence": {"type": "float", "default": 0.5, "min": 0.0, "max": 1.0},
             "source_type": {"type": "str", "default": "manual"},
@@ -125,8 +134,11 @@ BUILTIN_TYPES: dict[str, dict[str, Any]] = {
             "blocked_tools": {"type": "list", "default": []},
             "constraints": {"type": "list", "default": []},
             "success_criteria": {"type": "list", "default": []},
-            "risk_level": {"type": "str", "default": "low",
-                           "choices": ["low", "medium", "high", "critical"]},
+            "risk_level": {
+                "type": "str",
+                "default": "low",
+                "choices": ["low", "medium", "high", "critical"],
+            },
             "created_at": {"type": "str"},
         },
         "table": "kb_taskpacks",
@@ -199,14 +211,16 @@ def list_types() -> list[dict[str, Any]]:
     """List all registered types."""
     result = []
     for name, tdef in {**BUILTIN_TYPES, **_custom_types}.items():
-        result.append({
-            "name": name,
-            "description": tdef["description"],
-            "parent": tdef["parent"],
-            "property_count": len(tdef["properties"]),
-            "table": tdef["table"],
-            "builtin": name in BUILTIN_TYPES,
-        })
+        result.append(
+            {
+                "name": name,
+                "description": tdef["description"],
+                "parent": tdef["parent"],
+                "property_count": len(tdef["properties"]),
+                "table": tdef["table"],
+                "builtin": name in BUILTIN_TYPES,
+            }
+        )
     return result
 
 

@@ -1,4 +1,5 @@
 """Shared SQLite storage for IR + KB APIs — extends Cognitive-OS database."""
+
 from __future__ import annotations
 
 import json
@@ -290,6 +291,7 @@ def init():
 
 # ── Generic helpers ──
 
+
 def _json_load(s: str | None) -> Any:
     if not s:
         return s
@@ -374,8 +376,7 @@ def fts5_search(table: str, query: str, top_k: int = 5) -> list[dict]:
         # Try FTS5 first
         fts_table = f"{table}_fts"
         rows = c.execute(
-            f"SELECT rowid, rank FROM {fts_table} WHERE {fts_table} MATCH ? "
-            "ORDER BY rank LIMIT ?",
+            f"SELECT rowid, rank FROM {fts_table} WHERE {fts_table} MATCH ? ORDER BY rank LIMIT ?",
             (query, top_k),
         ).fetchall()
         if rows:
@@ -388,12 +389,14 @@ def fts5_search(table: str, query: str, top_k: int = 5) -> list[dict]:
                 ).fetchone()
                 if base:
                     snippet = base["content"][:200] if base["content"] else ""
-                    results.append({
-                        "id": base["id"],
-                        "title": base["title"],
-                        "snippet": snippet,
-                        "rank": r["rank"],
-                    })
+                    results.append(
+                        {
+                            "id": base["id"],
+                            "title": base["title"],
+                            "snippet": snippet,
+                            "rank": r["rank"],
+                        }
+                    )
             return results
     except sqlite3.OperationalError:
         pass  # FTS table missing → fall through to LIKE
@@ -405,8 +408,7 @@ def fts5_search(table: str, query: str, top_k: int = 5) -> list[dict]:
     clauses = " OR ".join(["content LIKE ?" for _ in terms])
     params = [f"%{t}%" for t in terms]
     rows = c.execute(
-        f"SELECT id, title, content FROM {table} WHERE {clauses} "
-        "ORDER BY created_at DESC LIMIT ?",
+        f"SELECT id, title, content FROM {table} WHERE {clauses} ORDER BY created_at DESC LIMIT ?",
         (*params, top_k),
     ).fetchall()
     c.close()

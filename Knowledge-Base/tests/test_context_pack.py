@@ -1,4 +1,5 @@
 """Tests for Knowledge-Base context_pack module."""
+
 import sys
 from pathlib import Path
 

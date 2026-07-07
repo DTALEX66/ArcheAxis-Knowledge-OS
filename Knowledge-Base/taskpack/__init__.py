@@ -1,4 +1,5 @@
 """TaskPack builder — executable task definitions for Cognitive-OS."""
+
 from dataclasses import dataclass, field
 
 
@@ -17,20 +18,28 @@ class TaskPack:
 
     def to_dict(self) -> dict:
         return {
-            "task_id": self.task_id, "context_id": self.context_id,
-            "goal": self.goal, "steps": self.steps,
-            "allowed_tools": self.allowed_tools, "blocked_tools": self.blocked_tools,
-            "constraints": self.constraints, "success_criteria": self.success_criteria,
-            "risk_level": self.risk_level, "requires_review": self.requires_review,
+            "task_id": self.task_id,
+            "context_id": self.context_id,
+            "goal": self.goal,
+            "steps": self.steps,
+            "allowed_tools": self.allowed_tools,
+            "blocked_tools": self.blocked_tools,
+            "constraints": self.constraints,
+            "success_criteria": self.success_criteria,
+            "risk_level": self.risk_level,
+            "requires_review": self.requires_review,
         }
 
 
-def build_taskpack(goal: str, steps: list = None, allowed_tools: list = None,
-                   risk_level: str = "low") -> TaskPack:
+def build_taskpack(
+    goal: str, steps: list = None, allowed_tools: list = None, risk_level: str = "low"
+) -> TaskPack:
     import uuid
+
     return TaskPack(
         task_id=f"task_{uuid.uuid4().hex[:12]}",
-        goal=goal, steps=steps or [],
+        goal=goal,
+        steps=steps or [],
         allowed_tools=allowed_tools or ["echo", "file_read"],
         blocked_tools=["shell_exec", "code_exec", "delete_file"],
         risk_level=risk_level,

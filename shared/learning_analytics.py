@@ -63,8 +63,10 @@ def review_streak(days: int = 30) -> dict[str, Any]:
 
     # Daily counts
     daily_counts = [
-        {"date": (today - timedelta(days=i)).isoformat(),
-         "count": daily_activity.get((today - timedelta(days=i)).isoformat(), 0)}
+        {
+            "date": (today - timedelta(days=i)).isoformat(),
+            "count": daily_activity.get((today - timedelta(days=i)).isoformat(), 0),
+        }
         for i in range(min(days, 14))
     ]
 
@@ -74,13 +76,9 @@ def review_streak(days: int = 30) -> dict[str, Any]:
     completion_rate = round(good_reviews / max(total_reviews, 1) * 100, 1)
 
     # Trend (comparing last 7 days vs previous 7)
-    last_7 = sum(
-        daily_activity.get((today - timedelta(days=i)).isoformat(), 0)
-        for i in range(7)
-    )
+    last_7 = sum(daily_activity.get((today - timedelta(days=i)).isoformat(), 0) for i in range(7))
     prev_7 = sum(
-        daily_activity.get((today - timedelta(days=i)).isoformat(), 0)
-        for i in range(7, 14)
+        daily_activity.get((today - timedelta(days=i)).isoformat(), 0) for i in range(7, 14)
     )
     if prev_7 > 0:
         trend = "up" if last_7 > prev_7 else "down" if last_7 < prev_7 else "stable"
@@ -125,12 +123,18 @@ def topic_heatmap(limit: int = 20) -> list[dict[str, Any]]:
     for tag, data in topic_activity.items():
         quals = data["qualities"]
         avg_q = round(sum(quals) / len(quals), 1) if quals else 0
-        heatmap.append({
-            "topic": tag,
-            "review_count": data["reviews"],
-            "avg_quality": avg_q,
-            "intensity": "🔥" if data["reviews"] >= 10 else "🟡" if data["reviews"] >= 5 else "🔵",
-        })
+        heatmap.append(
+            {
+                "topic": tag,
+                "review_count": data["reviews"],
+                "avg_quality": avg_q,
+                "intensity": "🔥"
+                if data["reviews"] >= 10
+                else "🟡"
+                if data["reviews"] >= 5
+                else "🔵",
+            }
+        )
 
     heatmap.sort(key=lambda h: h["review_count"], reverse=True)
     return heatmap[:limit]

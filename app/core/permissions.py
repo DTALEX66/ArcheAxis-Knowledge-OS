@@ -8,6 +8,7 @@ Rules:
 
 Blocked keywords in task content also force REVIEW.
 """
+
 from __future__ import annotations
 
 from app.core.router import RISK_KEYWORDS, _matched_keywords
@@ -17,10 +18,10 @@ from app.tools.registry import TOOL_RISK, list_tools
 # ── Risk level → allowed strategy ──
 
 RISK_POLICY: dict[str, dict] = {
-    "low":      {"auto": True,  "dry_run": False, "blocked": False},
-    "medium":   {"auto": True,  "dry_run": True,  "blocked": False},
-    "high":     {"auto": False, "dry_run": True,  "blocked": False},
-    "critical": {"auto": False, "dry_run": True,  "blocked": True},
+    "low": {"auto": True, "dry_run": False, "blocked": False},
+    "medium": {"auto": True, "dry_run": True, "blocked": False},
+    "high": {"auto": False, "dry_run": True, "blocked": False},
+    "critical": {"auto": False, "dry_run": True, "blocked": True},
 }
 
 

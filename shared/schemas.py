@@ -11,7 +11,7 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
@@ -20,6 +20,7 @@ T = TypeVar("T")
 
 class APIResponse(BaseModel, Generic[T]):
     """Standard success response."""
+
     status: str = "ok"
     data: T | None = None
     message: str = ""
@@ -27,6 +28,7 @@ class APIResponse(BaseModel, Generic[T]):
 
 class ListResponse(BaseModel, Generic[T]):
     """Standard list response with pagination."""
+
     status: str = "ok"
     data: list[T] = []
     count: int = 0
@@ -37,6 +39,7 @@ class ListResponse(BaseModel, Generic[T]):
 
 class ErrorResponse(BaseModel):
     """Standard error response."""
+
     status: str = "error"
     error: str = ""
     detail: str = ""

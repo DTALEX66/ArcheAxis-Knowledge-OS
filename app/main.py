@@ -48,6 +48,7 @@ async def log_requests(request: Request, call_next):
 
     # ── Auth check (skip allowlist) ──
     from shared.auth import requires_auth, verify_token
+
     if requires_auth(request.url.path):
         api_key = request.headers.get("X-API-Key", "")
         auth_header = request.headers.get("Authorization", "")
@@ -57,13 +58,18 @@ async def log_requests(request: Request, call_next):
         if not user:
             return JSONResponse(
                 status_code=401,
-                content={"error": "unauthorized", "detail": "Valid API key or token required. Use X-API-Key header."},
+                content={
+                    "error": "unauthorized",
+                    "detail": "Valid API key or token required. Use X-API-Key header.",
+                },
             )
 
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
     response.headers["X-Process-Time-ms"] = str(duration)
     return response
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
@@ -99,6 +105,7 @@ from app.ingestion.file import IngestionError, ingest_directory, ingest_file
 from app.ingestion.multi_format import convert_directory as multi_convert_directory
 from app.ingestion.multi_format import convert_file, convert_url
 from app.memory.store import list_lessons, save_lesson, save_memory, search_memory
+from app.rag.retriever import retrieve
 from app.tools.registry import list_tools
 
 
@@ -235,8 +242,11 @@ def run(input_data: dict):
     perm = check_permission(task, doc.content)
     if perm.requires_human_review:
         return {
-            "status": "blocked", "document": doc, "route": decision,
-            "task": task, "permission": perm.model_dump(),
+            "status": "blocked",
+            "document": doc,
+            "route": decision,
+            "task": task,
+            "permission": perm.model_dump(),
         }
     trace = execute(task, perm)
     log_trace(trace)
@@ -244,9 +254,14 @@ def run(input_data: dict):
     lesson = compile_lesson(eval_result, trace)
     save_lesson(lesson)
     return {
-        "status": "done", "document": doc, "route": decision,
-        "context": context, "task": task, "trace": trace,
-        "eval": eval_result, "lesson": lesson,
+        "status": "done",
+        "document": doc,
+        "route": decision,
+        "context": context,
+        "task": task,
+        "trace": trace,
+        "eval": eval_result,
+        "lesson": lesson,
     }
 
 
@@ -258,8 +273,13 @@ def convert_file_api(payload: dict):
         content, engine = convert_file(path, fmt)
     except RuntimeError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"path": path, "format": fmt or "auto", "engine": engine,
-            "content": content, "char_count": len(content)}
+    return {
+        "path": path,
+        "format": fmt or "auto",
+        "engine": engine,
+        "content": content,
+        "char_count": len(content),
+    }
 
 
 @app.post("/convert/url")
@@ -269,8 +289,7 @@ def convert_url_api(payload: dict):
         content, engine = convert_url(url)
     except RuntimeError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"url": url, "engine": engine, "content": content,
-            "char_count": len(content)}
+    return {"url": url, "engine": engine, "content": content, "char_count": len(content)}
 
 
 @app.post("/convert/directory")
@@ -306,6 +325,7 @@ def lessons():
 def auth_token(user_id: str = "", role: str = "user", expires_hours: int = 24):
     """Generate a JWT token."""
     from shared.auth import create_token
+
     token = create_token(user_id=user_id, role=role, expires_hours=expires_hours)
     return {"token": token, "expires_in_hours": expires_hours}
 
@@ -314,6 +334,7 @@ def auth_token(user_id: str = "", role: str = "user", expires_hours: int = 24):
 def backup_db():
     """Create a database backup."""
     from shared.backup import auto_backup
+
     return auto_backup()
 
 
@@ -321,6 +342,7 @@ def backup_db():
 def backup_list():
     """List available backups."""
     from shared.backup import list_backups
+
     return {"backups": list_backups()}
 
 
@@ -350,5 +372,60 @@ graph TB
     Auth-->Router; Router-->Pipeline; Pipeline-->Search; Pipeline-->Garden
     Search-->SQLite; Search-->VecDB; Garden-->GraphDB; Review-->SQLite; SQLite-->Backup
 ```""",
-        "version": "0.4.0", "modules": 36, "tests": 106,
+        "version": "0.4.0",
+        "modules": 36,
+        "tests": 106,
     }
+
+
+# ── HERMES bedtime unattended loop engine ─────────────────
+
+
+@app.get("/sleep-loop")
+def sleep_loop_get(
+    action: str = "status", run_id: str = "", status_filter: str = "", limit: int = 100
+):
+    """Composite read endpoint for the bedtime unattended loop panel.
+
+    Actions: status | tasks | logs | config | architecture
+    """
+    from shared import sleep_loop_engine as sl
+
+    if action == "status":
+        return sl.status()
+    if action == "tasks":
+        return {
+            "items": sl.list_tasks(run_id=run_id or None, status=status_filter or None, limit=limit)
+        }
+    if action == "logs":
+        return {"items": sl.list_events(run_id=run_id or None, limit=limit)}
+    if action == "config":
+        return {"config": sl.status().get("config")}
+    if action == "architecture":
+        return {"mermaid": sl.sleep_loop_architecture()}
+    raise HTTPException(status_code=400, detail=f"unknown sleep-loop action: {action}")
+
+
+@app.post("/sleep-loop")
+async def sleep_loop_post(request: Request, action: str = "tick"):
+    """Composite control endpoint for the bedtime unattended loop panel.
+
+    Actions: start | stop | pause | resume | tick | config
+    """
+    from shared import sleep_loop_engine as sl
+
+    payload = await request.json() if request.headers.get("content-length", "0") != "0" else {}
+    if action == "start":
+        goal = str(payload.get("goal", "就寝无人值守任务循环"))
+        return sl.start_loop(goal, payload)
+    if action == "stop":
+        return sl.stop_loop(str(payload.get("reason", "manual_stop")))
+    if action == "pause":
+        return sl.pause_loop(str(payload.get("reason", "manual_pause")))
+    if action == "resume":
+        return sl.resume_loop()
+    if action == "tick":
+        return sl.tick_once()
+    if action == "config":
+        return sl.set_config(payload.get("config", payload))
+    raise HTTPException(status_code=400, detail=f"unknown sleep-loop action: {action}")

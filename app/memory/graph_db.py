@@ -15,13 +15,12 @@ Usage:
 from __future__ import annotations
 
 import json
-from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
 import networkx as nx
 
-from shared.storage import insert, select_all, select_one as _select_one
+from shared.storage import insert, select_all
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -61,33 +60,35 @@ class GraphDB:
         self._loaded = True
 
     def _persist_entity(self, entity_id: str, entity_type: str, props: dict) -> None:
-        insert("graph_entities", {
-            "id": entity_id,
-            "entity_type": entity_type,
-            "properties": props,
-            "graph_name": self.graph_name,
-        })
+        insert(
+            "graph_entities",
+            {
+                "id": entity_id,
+                "entity_type": entity_type,
+                "properties": props,
+                "graph_name": self.graph_name,
+            },
+        )
 
-    def _persist_relation(
-        self, source: str, target: str, relation: str, weight: float
-    ) -> None:
+    def _persist_relation(self, source: str, target: str, relation: str, weight: float) -> None:
         import uuid
 
         rid = f"rel_{uuid.uuid4().hex[:12]}"
-        insert("graph_relations", {
-            "id": rid,
-            "source_id": source,
-            "target_id": target,
-            "relation_type": relation,
-            "weight": weight,
-            "graph_name": self.graph_name,
-        })
+        insert(
+            "graph_relations",
+            {
+                "id": rid,
+                "source_id": source,
+                "target_id": target,
+                "relation_type": relation,
+                "weight": weight,
+                "graph_name": self.graph_name,
+            },
+        )
 
     # ── CRUD ─────────────────────────────────────────
 
-    def add_entity(
-        self, entity_id: str, entity_type: str = "node", **props: Any
-    ) -> None:
+    def add_entity(self, entity_id: str, entity_type: str = "node", **props: Any) -> None:
         """Add or update an entity node."""
         self._load()
         self._g.add_node(entity_id, entity_type=entity_type, **props)
@@ -108,9 +109,7 @@ class GraphDB:
         self._persist_relation(source, target, relation, weight)
         return {"source": source, "target": target, "relation": relation}
 
-    def query_neighbors(
-        self, entity_id: str, max_depth: int = 1
-    ) -> list[dict[str, Any]]:
+    def query_neighbors(self, entity_id: str, max_depth: int = 1) -> list[dict[str, Any]]:
         """Return all neighbors (1-hop by default)."""
         self._load()
         if entity_id not in self._g:
@@ -120,18 +119,18 @@ class GraphDB:
         for neighbor in nx.neighbors(self._g, entity_id):
             edge = self._g.edges[entity_id, neighbor]
             node = self._g.nodes[neighbor]
-            neighbors.append({
-                "entity_id": neighbor,
-                "type": node.get("entity_type", ""),
-                "relation": edge.get("relation", ""),
-                "weight": edge.get("weight", 1.0),
-                "props": {k: v for k, v in node.items() if k != "entity_type"},
-            })
+            neighbors.append(
+                {
+                    "entity_id": neighbor,
+                    "type": node.get("entity_type", ""),
+                    "relation": edge.get("relation", ""),
+                    "weight": edge.get("weight", 1.0),
+                    "props": {k: v for k, v in node.items() if k != "entity_type"},
+                }
+            )
         return neighbors
 
-    def shortest_path(
-        self, source: str, target: str
-    ) -> list[str] | None:
+    def shortest_path(self, source: str, target: str) -> list[str] | None:
         """Find shortest path between two entities."""
         self._load()
         try:
@@ -145,18 +144,18 @@ class GraphDB:
         results = []
         for nid, data in self._g.nodes(data=True):
             if data.get("entity_type") == entity_type:
-                results.append({
-                    "entity_id": nid,
-                    "type": entity_type,
-                    "props": {k: v for k, v in data.items() if k != "entity_type"},
-                })
+                results.append(
+                    {
+                        "entity_id": nid,
+                        "type": entity_type,
+                        "props": {k: v for k, v in data.items() if k != "entity_type"},
+                    }
+                )
                 if len(results) >= limit:
                     break
         return results
 
-    def subgraph(
-        self, entity_ids: list[str], depth: int = 1
-    ) -> dict[str, Any]:
+    def subgraph(self, entity_ids: list[str], depth: int = 1) -> dict[str, Any]:
         """Extract a subgraph around given entities."""
         self._load()
         nodes: set[str] = set(entity_ids)
@@ -169,10 +168,7 @@ class GraphDB:
 
         sg = self._g.subgraph(nodes)
         return {
-            "nodes": [
-                {"id": n, "type": d.get("entity_type", "")}
-                for n, d in sg.nodes(data=True)
-            ],
+            "nodes": [{"id": n, "type": d.get("entity_type", "")} for n, d in sg.nodes(data=True)],
             "edges": [
                 {"source": u, "target": v, "relation": d.get("relation", "")}
                 for u, v, d in sg.edges(data=True)

@@ -15,7 +15,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from shared.storage import select_all, select_one, insert, count  # noqa: E402
+from shared.storage import insert, select_all  # noqa: E402
 
 
 def index_evidence(
@@ -125,15 +125,17 @@ def vault_health_radar() -> dict[str, Any]:
         if not iid:
             continue
         health = evidence_health(iid)
-        results.append({
-            "id": iid,
-            "title": item.get("title", iid)[:60],
-            "type": "card" if "card_id" in item or "review_status" in item else "document",
-            "health": health["status"],
-            "score": health["health_score"],
-            "verified": health["verified"],
-            "total": health["total"],
-        })
+        results.append(
+            {
+                "id": iid,
+                "title": item.get("title", iid)[:60],
+                "type": "card" if "card_id" in item or "review_status" in item else "document",
+                "health": health["status"],
+                "score": health["health_score"],
+                "verified": health["verified"],
+                "total": health["total"],
+            }
+        )
 
     # Aggregate
     healthy = sum(1 for r in results if r["health"] == "healthy")
