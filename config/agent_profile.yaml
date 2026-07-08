@@ -52,8 +52,8 @@ configuration_categories:
     purpose: stepwise implementation and design log
   imported_references:
     files:
-      - workspace/imports/**
-    purpose: selected reusable material copied from Knowledge-Base and Inspiration-Research
+      - docs/architecture/imported-designs/**
+    purpose: AB双系统架构参考设计 (已从 workspace/imports/ 整理移入，旧参考代码已吸收清理)
   private_local:
     committed: false
     examples:
