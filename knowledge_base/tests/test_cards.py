@@ -1,13 +1,6 @@
 """Tests for Knowledge-Base cards module."""
 
-import sys
-from pathlib import Path
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
-from cards import KnowledgeCard
+from knowledge_base.cards import KnowledgeCard
 
 
 class TestKnowledgeCard:

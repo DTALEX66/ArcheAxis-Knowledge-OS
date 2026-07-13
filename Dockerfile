@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy requirements first (layer caching)
 COPY requirements.txt .
+COPY pyproject.toml .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
@@ -18,13 +19,21 @@ COPY app/ ./app/
 COPY config/ ./config/
 COPY shared/ ./shared/
 COPY shared-contracts/ ./shared-contracts/
-COPY Knowledge-Base/ ./Knowledge-Base/
+COPY knowledge_base/ ./knowledge_base/
 COPY Inspiration-Research/ ./Inspiration-Research/
 
-# Create data directory
-RUN mkdir -p /app/data /app/data/logs
+# Create data directory and drop root privileges
+RUN groupadd --gid 10001 cognitive \
+    && useradd --uid 10001 --gid cognitive --create-home --home-dir /home/cognitive cognitive \
+    && mkdir -p /app/data /app/data/logs \
+    && chown -R cognitive:cognitive /app /home/cognitive
 
-EXPOSE 8000 8001 8002
+ENV HOME=/home/cognitive \
+    COGNITIVE_DATA_DIR=/app/data
+
+USER cognitive
+
+EXPOSE 8000 8001
 
 # Default: start Cognitive-OS
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

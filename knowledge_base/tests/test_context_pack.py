@@ -1,13 +1,6 @@
 """Tests for Knowledge-Base context_pack module."""
 
-import sys
-from pathlib import Path
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
-from context_pack import build_context_pack
+from knowledge_base.context_pack import build_context_pack
 
 
 class TestContextPack:

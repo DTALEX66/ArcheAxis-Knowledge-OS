@@ -2,7 +2,7 @@
 # Start: docker compose up -d
 # Access:
 #   Cognitive-OS (core):    http://localhost:8000/docs
-#   Knowledge-Base:         http://localhost:8000/kb/docs
+#   Knowledge-Base:         http://localhost:8000/kb/docs (mounted, not separately exposed)
 #   Dashboard:              http://localhost:8000/kb
 #   Inspiration-Research:   http://localhost:8001/docs
 
@@ -18,9 +18,13 @@ services:
       - "8000:8000"
     environment:
       - COGNITIVE_ENV=production
-      - DATABASE_URL=sqlite+aiosqlite:///data/cognitive_os.sqlite
+      - COGNITIVE_AUTH_ENABLED=true
+      - COGNITIVE_API_KEY=${COGNITIVE_API_KEY:?Set COGNITIVE_API_KEY}
+      - COGNITIVE_JWT_SECRET=${COGNITIVE_JWT_SECRET:?Set COGNITIVE_JWT_SECRET}
+      - COGNITIVE_CORS_ORIGINS=${COGNITIVE_CORS_ORIGINS:?Set COGNITIVE_CORS_ORIGINS}
+      - COGNITIVE_DATA_DIR=/app/data
     volumes:
-      - ./data:/app/data
+      - cognitive-data:/app/data
       - ./config:/app/config:ro
     restart: unless-stopped
     healthcheck:
@@ -40,12 +44,14 @@ services:
       - "8001:8001"
     environment:
       - COGNITIVE_ENV=production
+      - COGNITIVE_AUTH_ENABLED=true
+      - COGNITIVE_API_KEY=${COGNITIVE_API_KEY:?Set COGNITIVE_API_KEY}
+      - COGNITIVE_JWT_SECRET=${COGNITIVE_JWT_SECRET:?Set COGNITIVE_JWT_SECRET}
+      - COGNITIVE_CORS_ORIGINS=${COGNITIVE_CORS_ORIGINS:?Set COGNITIVE_CORS_ORIGINS}
+      - COGNITIVE_DATA_DIR=/app/data
     volumes:
-      - ./data:/app/data
+      - cognitive-data:/app/data
       - ./config:/app/config:ro
-      - ./shared:/app/shared:ro
-      - ./shared-contracts:/app/shared-contracts:ro
-      - ./Inspiration-Research:/app/Inspiration-Research:ro
     restart: unless-stopped
     depends_on:
       cognitive-os:
@@ -53,23 +59,5 @@ services:
     command: >
       uvicorn Inspiration-Research.api:app --host 0.0.0.0 --port 8001
 
-  knowledge-base:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: knowledge-base
-    ports:
-      - "8002:8002"
-    environment:
-      - COGNITIVE_ENV=production
-    volumes:
-      - ./data:/app/data
-      - ./config:/app/config:ro
-      - ./shared:/app/shared:ro
-      - ./Knowledge-Base:/app/Knowledge-Base:ro
-    restart: unless-stopped
-    depends_on:
-      cognitive-os:
-        condition: service_healthy
-    command: >
-      uvicorn Knowledge-Base.api:app --host 0.0.0.0 --port 8002
+volumes:
+  cognitive-data:

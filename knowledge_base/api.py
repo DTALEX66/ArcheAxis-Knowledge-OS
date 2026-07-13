@@ -1,38 +1,40 @@
 """Knowledge-Base API — SQLite-backed, v0.4.0.
 
-102 endpoints across 14 tag groups.
+Route counts are reported live by the mounted Core ``/health`` endpoint.
 Full OpenAPI documentation at /docs.
 """
 
 from __future__ import annotations
 
-import sys
 import time
 import uuid
 from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
-from cards import KnowledgeCard
-from context_pack import build_context_pack
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from search import hybrid_search, keyword_search, vector_search
-from taskpack import build_taskpack
 
-from shared.storage import count, fts5_sync, insert, select_all
+from knowledge_base.cards import KnowledgeCard
+from knowledge_base.context_pack import build_context_pack
+from knowledge_base.routers.composite import router as composite_router
+from knowledge_base.routers.projection import router as projection_router
+from knowledge_base.routers.quality import router as quality_router
+from knowledge_base.search import hybrid_search, keyword_search, vector_search
+from knowledge_base.taskpack import build_taskpack
+from shared.config import config, validate_runtime_config
+from shared.obsidian_projection import write_projection
+from shared.storage import count, fts5_sync, insert, select_all, select_one
 
 # ── App setup ────────────────────────────────────────────
+
+validate_runtime_config(config)
 
 app = FastAPI(
     title="Cognitive-Loop-OS Knowledge-Base",
     version="0.4.0",
-    description="102-endpoint knowledge management runtime. Absorbs capabilities from Obsidian, Tana, Notion, Logseq, Roam, Heptabase, Capacities, Anytype, GraphRAG, and Zettelkasten.",
+    description="Knowledge management runtime. Absorbs capabilities from Obsidian, Tana, Notion, Logseq, Roam, Heptabase, Capacities, Anytype, GraphRAG, and Zettelkasten.",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -40,10 +42,13 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=config.get("cors.allow_origins", ["*"]),
+    allow_methods=config.get("cors.allow_methods", ["GET", "POST"]),
+    allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
 )
+app.include_router(composite_router)
+app.include_router(projection_router)
+app.include_router(quality_router)
 
 # Templates
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -55,6 +60,22 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.time()
+    from shared.auth import authenticate_request
+
+
+    user = authenticate_request(
+        request.url.path,
+        request.headers.get("X-API-Key", ""),
+        request.headers.get("Authorization", ""),
+    )
+    if not user:
+        return JSONResponse(
+            status_code=401,
+            content={
+                "error": "unauthorized",
+                "detail": "Valid API key or token required. Use X-API-Key header.",
+            },
+        )
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
     response.headers["X-Process-Time-ms"] = str(duration)
@@ -72,9 +93,11 @@ async def global_exception_handler(request: Request, exc: Exception):
     from shared.logging import logger
 
     logger.error(f"Unhandled error: {exc}")
+    environment = str(config.get("app.environment", "development")).lower()
+    detail = str(exc)[:200] if environment not in {"production", "prod"} else "request failed"
     return JSONResponse(
         status_code=500,
-        content={"error": "internal_error", "detail": str(exc)[:200]},
+        content={"error": "internal_error", "detail": detail},
     )
 
 
@@ -281,8 +304,8 @@ def create_review(req: ReviewRequest):
     Returns the review record with next review date.
     If quality < 3, automatically records a mistake.
     """
-    from mistakes import record_mistake
-    from reviews import schedule_review
+    from knowledge_base.mistakes import record_mistake
+    from knowledge_base.reviews import schedule_review
 
     result = schedule_review(req.card_id, req.quality)
 
@@ -302,7 +325,7 @@ def create_review(req: ReviewRequest):
 @app.get("/reviews/due")
 def due_reviews(limit: int = 20):
     """Return cards due for review."""
-    from reviews import get_due_reviews
+    from knowledge_base.reviews import get_due_reviews
 
     items = get_due_reviews(limit=limit)
     return {"count": len(items), "items": items}
@@ -311,7 +334,7 @@ def due_reviews(limit: int = 20):
 @app.get("/reviews/history/{card_id}")
 def review_history(card_id: str, limit: int = 20):
     """Return review history for a card."""
-    from reviews import get_review_history
+    from knowledge_base.reviews import get_review_history
 
     items = get_review_history(card_id, limit=limit)
     return {"card_id": card_id, "count": len(items), "items": items}
@@ -327,7 +350,7 @@ class MistakeResolveRequest(BaseModel):
 @app.get("/mistakes")
 def list_mistakes(limit: int = 50):
     """Return unresolved mistakes."""
-    from mistakes import get_unresolved_mistakes
+    from knowledge_base.mistakes import get_unresolved_mistakes
 
     items = get_unresolved_mistakes(limit=limit)
     return {"count": len(items), "items": items}
@@ -336,7 +359,7 @@ def list_mistakes(limit: int = 50):
 @app.get("/mistakes/patterns")
 def mistake_patterns():
     """Analyze mistake patterns and return recommendations."""
-    from mistakes import analyze_patterns
+    from knowledge_base.mistakes import analyze_patterns
 
     return analyze_patterns()
 
@@ -344,7 +367,7 @@ def mistake_patterns():
 @app.post("/mistakes/{mistake_id}/resolve")
 def resolve_mistake_endpoint(mistake_id: str, req: MistakeResolveRequest):
     """Mark a mistake as resolved."""
-    from mistakes import resolve_mistake
+    from knowledge_base.mistakes import resolve_mistake
 
     result = resolve_mistake(mistake_id, req.resolution_note)
     if not result:
@@ -365,7 +388,7 @@ class TranslateRequest(BaseModel):
 @app.get("/a-to-b/candidates")
 def a_to_b_candidates(limit: int = 20):
     """Find cards mastered enough for A→B translation."""
-    from machine_knowledge.a_to_b import find_mastered_cards
+    from knowledge_base.machine_knowledge.a_to_b import find_mastered_cards
 
     items = find_mastered_cards(limit=limit)
     return {"count": len(items), "items": items}
@@ -374,7 +397,7 @@ def a_to_b_candidates(limit: int = 20):
 @app.post("/a-to-b/translate")
 def a_to_b_translate(req: TranslateRequest):
     """Create an A→B candidate from a card."""
-    from machine_knowledge.a_to_b import translate_card
+    from knowledge_base.machine_knowledge.a_to_b import translate_card
 
     result = translate_card(
         req.card_id,
@@ -388,7 +411,7 @@ def a_to_b_translate(req: TranslateRequest):
 @app.get("/a-to-b/pending")
 def a_to_b_pending():
     """List pending A→B candidates."""
-    from machine_knowledge.a_to_b import list_candidates
+    from knowledge_base.machine_knowledge.a_to_b import list_candidates
 
     items = list_candidates("pending")
     return {"count": len(items), "items": items}
@@ -397,7 +420,7 @@ def a_to_b_pending():
 @app.post("/a-to-b/publish/{candidate_id}")
 def a_to_b_publish(candidate_id: str, confidence: float = 0.7):
     """Publish an A→B candidate as a machine knowledge unit."""
-    from machine_knowledge.a_to_b import publish_candidate
+    from knowledge_base.machine_knowledge.a_to_b import publish_candidate
 
     return publish_candidate(candidate_id, confidence=confidence)
 
@@ -416,7 +439,7 @@ class MachineKnowledgeCreateRequest(BaseModel):
 @app.post("/machine-knowledge")
 def machine_knowledge_create(req: MachineKnowledgeCreateRequest):
     """Create a machine knowledge unit manually."""
-    from machine_knowledge import create_unit
+    from knowledge_base.machine_knowledge import create_unit
 
     return create_unit(
         title=req.title,
@@ -430,7 +453,7 @@ def machine_knowledge_create(req: MachineKnowledgeCreateRequest):
 @app.get("/machine-knowledge/search")
 def machine_knowledge_search(q: str = "", limit: int = 20):
     """Search machine knowledge units."""
-    from machine_knowledge import search_units
+    from knowledge_base.machine_knowledge import search_units
 
     items = search_units(q, limit=limit)
     return {"query": q, "count": len(items), "items": items}
@@ -439,7 +462,7 @@ def machine_knowledge_search(q: str = "", limit: int = 20):
 @app.get("/machine-knowledge/{unit_id}")
 def machine_knowledge_get(unit_id: str):
     """Get a single machine knowledge unit."""
-    from machine_knowledge import get_unit
+    from knowledge_base.machine_knowledge import get_unit
 
     unit = get_unit(unit_id)
     if not unit:
@@ -450,7 +473,7 @@ def machine_knowledge_get(unit_id: str):
 @app.get("/machine-knowledge")
 def machine_knowledge_list(unit_type: str = "", limit: int = 20):
     """List machine knowledge units, optionally filtered by type."""
-    from machine_knowledge import list_by_type, stats
+    from knowledge_base.machine_knowledge import list_by_type, stats
 
     if unit_type:
         items = list_by_type(unit_type, limit=limit)
@@ -469,7 +492,7 @@ def machine_knowledge_list(unit_type: str = "", limit: int = 20):
 @app.post("/machine-knowledge/{unit_id}/deactivate")
 def machine_knowledge_deactivate(unit_id: str):
     """Deactivate a machine knowledge unit."""
-    from machine_knowledge import deactivate_unit
+    from knowledge_base.machine_knowledge import deactivate_unit
 
     result = deactivate_unit(unit_id)
     if not result:
@@ -491,12 +514,18 @@ class ObsidianImportRequest(BaseModel):
     max_files: int = 50
 
 
+def _required_vault_root(raw: str) -> str:
+    if not raw.strip():
+        raise HTTPException(status_code=400, detail="vault_root is required")
+    return raw
+
+
 @app.post("/obsidian/scan")
 def obsidian_scan(req: ObsidianScanRequest):
     """Scan an Obsidian vault and return categorized inventory (read-only)."""
     from shared.obsidian_importer import scan_vault
 
-    vault = req.vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    vault = _required_vault_root(req.vault_root)
     return scan_vault(vault, max_files=req.max_files)
 
 
@@ -505,7 +534,7 @@ def obsidian_import(req: ObsidianImportRequest):
     """Import notes from an Obsidian vault into KB (dry-run by default)."""
     from shared.obsidian_importer import import_vault
 
-    vault = req.vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    vault = _required_vault_root(req.vault_root)
     folders = req.folders if req.folders else None
     return import_vault(vault, folders=folders, max_files=req.max_files, dry_run=True)
 
@@ -515,7 +544,7 @@ def obsidian_import_apply(req: ObsidianImportRequest):
     """Import notes from Obsidian vault (real write)."""
     from shared.obsidian_importer import import_vault
 
-    vault = req.vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    vault = _required_vault_root(req.vault_root)
     folders = req.folders if req.folders else None
     return import_vault(vault, folders=folders, max_files=req.max_files, dry_run=False)
 
@@ -525,7 +554,7 @@ def obsidian_import_course(vault_root: str = "", course_path: str = "", dry_run:
     """Import a single course folder as KB cards."""
     from shared.obsidian_importer import import_course_to_cards
 
-    vault = vault_root or "E:/BaiduSyncdisk/Obsidian知识库"
+    vault = _required_vault_root(vault_root)
     return import_course_to_cards(vault, course_path, dry_run=dry_run)
 
 
@@ -544,8 +573,7 @@ def obsidian_project_card(card_id: str, dry_run: bool = True):
 @app.post("/obsidian/project/review/{card_id}")
 def obsidian_project_review(card_id: str, dry_run: bool = True):
     """Project a card with review history to Obsidian."""
-    from reviews import get_review_history
-
+    from knowledge_base.reviews import get_review_history
     from shared.obsidian_projection import render_review_card
 
     card = select_one("kb_cards", card_id)
@@ -593,7 +621,10 @@ def dataview_query(query_str: str = ""):
     """Dataview-style query: FROM <table> WHERE <cond> SORT <field> LIMIT N."""
     from shared.dataview import query
 
-    return query(query_str)
+    result = query(query_str)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 
 @app.get("/daily")
@@ -674,6 +705,17 @@ def validate_object(obj_type: str = "", data: str = "{}"):
 # ── Absorbed from Logseq/Roam: Block References ──────────
 
 
+@app.get("/blocks/resolve")
+def resolve_block_ref(ref: str = ""):
+    """Resolve a block reference like 'doc_001#introduction'."""
+    from shared.block_refs import embed_block
+
+    result = embed_block(ref)
+    if not result:
+        return {"error": "block not found", "ref": ref}
+    return result
+
+
 @app.get("/blocks/{source_id}")
 def extract_blocks(source_id: str):
     """Extract block-level sections from a document."""
@@ -690,17 +732,6 @@ def extract_blocks(source_id: str):
     return {"source_id": source_id, "count": len(blocks), "blocks": blocks}
 
 
-@app.get("/blocks/resolve")
-def resolve_block_ref(ref: str = ""):
-    """Resolve a block reference like 'doc_001#introduction'."""
-    from shared.block_refs import embed_block
-
-    result = embed_block(ref)
-    if not result:
-        return {"error": "block not found", "ref": ref}
-    return result
-
-
 # ── Absorbed from Notion: Collection Views ───────────────
 
 
@@ -714,12 +745,15 @@ def collection_view(
     """Render a collection view (table/board/calendar/gallery/list)."""
     from shared.collection_views import render_view
 
-    return render_view(
-        table,
-        view_type=view_type,
-        group_by=group_by or "review_status",
-        limit=limit,
-    )
+    try:
+        return render_view(
+            table,
+            view_type=view_type,
+            group_by=group_by or "review_status",
+            limit=limit,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get("/views/{table}/aggregate")
@@ -731,7 +765,10 @@ def collection_aggregate(
     """Aggregate data like Notion rollups."""
     from shared.collection_views import aggregate
 
-    return aggregate(table, group_by=group_by, aggregate_func=func)
+    try:
+        return aggregate(table, group_by=group_by, aggregate_func=func)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 # ── Absorbed from Heptabase: Canvas / Whiteboard ─────────
@@ -996,26 +1033,6 @@ def ir_score_credibility(title: str = "", content: str = "", url: str = ""):
 # ── Adapted from Obsidian-Assistance v6/v7/v8 ─────────────
 
 
-@app.post("/evidence")
-def evidence_add(
-    doc_id: str = "",
-    source_type: str = "manual",
-    source_path: str = "",
-    confidence: str = "medium",
-    caption: str = "",
-):
-    """Add an evidence record for a KB asset."""
-    from shared.evidence_index import index_evidence
-
-    return index_evidence(
-        doc_id,
-        source_type=source_type,
-        source_path=source_path,
-        confidence=confidence,
-        caption=caption,
-    )
-
-
 @app.get("/evidence/{doc_id}")
 def evidence_get(doc_id: str):
     """Get all evidence for a document + health score."""
@@ -1111,20 +1128,20 @@ def sources_match(source_dir: str = ""):
     return match_sources_to_cards(source_dir)
 
 
-@app.get("/diversity/{doc_id}")
-def diversity_analyze(doc_id: str):
-    """Analyze content modality diversity for a document."""
-    from shared.diversity_audit import analyze_diversity
-
-    return analyze_diversity(doc_id)
-
-
 @app.get("/diversity/radar")
 def diversity_radar(limit: int = 20):
     """Content diversity radar (richest → text_only)."""
     from shared.diversity_audit import diversity_radar
 
     return {"items": diversity_radar(limit=limit)}
+
+
+@app.get("/diversity/{doc_id}")
+def diversity_analyze(doc_id: str):
+    """Analyze content modality diversity for a document."""
+    from shared.diversity_audit import analyze_diversity
+
+    return analyze_diversity(doc_id)
 
 
 @app.get("/mermaid/flowchart")
@@ -1152,283 +1169,3 @@ def mermaid_timeline(card_id: str):
     from shared.mermaid_gen import review_timeline_mermaid
 
     return {"mermaid": review_timeline_mermaid(card_id)}
-
-
-# ── Unified Pipeline (replaces 15+ scattered endpoints) ──
-
-
-class PipelineRequest(BaseModel):
-    source: str = "text"
-    input: str = ""
-    actions: list[str] = []
-    auto_ingest: bool = True
-
-
-@app.post("/pipeline")
-def pipeline_run(req: PipelineRequest):
-    """一键管道: 搜索→提取→标签→摘要→索引入库。
-
-    source: url|text|youtube|rss|search
-    替代: /ir/* + /auto/* + /documents
-    """
-    from shared.pipeline import run_pipeline
-
-    return run_pipeline(
-        req.source,
-        req.input,
-        actions=req.actions if req.actions else None,
-        auto_ingest=req.auto_ingest,
-    )
-
-
-# ── Composite: Garden (替代 4 端点) ──────────────────────
-
-
-@app.get("/garden")
-def garden(action: str = "gaps", doc_id: str = "", top_k: int = 5):
-    """知识园艺: action=orphans|suggest|gaps|evergreen"""
-    if action == "orphans":
-        from shared.knowledge_gardener import find_orphans
-
-        return find_orphans()
-    elif action == "suggest" and doc_id:
-        from shared.knowledge_gardener import suggest_connections
-
-        return suggest_connections(doc_id, top_k)
-    elif action == "evergreen" and doc_id:
-        from shared.knowledge_gardener import score_evergreen
-
-        return score_evergreen(doc_id)
-    else:
-        from shared.knowledge_gardener import detect_gaps
-
-        return detect_gaps()
-
-
-# ── Composite: Analytics (替代 2 端点) ───────────────────
-
-
-@app.get("/analytics")
-def analytics(action: str = "streak", days: int = 30, limit: int = 20):
-    """分析: action=streak|heatmap"""
-    if action == "heatmap":
-        from shared.learning_analytics import topic_heatmap
-
-        return topic_heatmap(limit=limit)
-    else:
-        from shared.learning_analytics import review_streak
-
-        return review_streak(days=days)
-
-
-# ── Composite: Mermaid (替代 3 端点) ─────────────────────
-
-
-@app.get("/mermaid")
-def mermaid(
-    type: str = "graph", title: str = "", card_id: str = "", steps: str = "[]", max_nodes: int = 20
-):
-    """Mermaid图: type=graph|flowchart|timeline"""
-    import json
-
-    if type == "flowchart":
-        from shared.mermaid_gen import flowchart
-
-        return flowchart(title, json.loads(steps))
-    elif type == "timeline" and card_id:
-        from shared.mermaid_gen import review_timeline_mermaid
-
-        return review_timeline_mermaid(card_id)
-    else:
-        from shared.mermaid_gen import knowledge_graph_mermaid
-
-        return knowledge_graph_mermaid(card_id, max_nodes)
-
-
-# ── Composite: Evidence (替代 3 端点) ────────────────────
-
-
-@app.get("/evidence")
-def evidence(doc_id: str = "", action: str = "get"):
-    """证据: action=get|radar"""
-    if action == "radar" or not doc_id:
-        from shared.evidence_index import vault_health_radar
-
-        return vault_health_radar()
-    else:
-        from shared.evidence_index import evidence_health, get_evidence
-
-        return {"evidence": get_evidence(doc_id), "health": evidence_health(doc_id)}
-
-
-@app.post("/evidence")
-def evidence_add_composite(
-    doc_id: str = "",
-    source_type: str = "manual",
-    source_path: str = "",
-    confidence: str = "medium",
-    caption: str = "",
-):
-    from shared.evidence_index import index_evidence
-
-    return index_evidence(doc_id, source_type, source_path, confidence, caption)
-
-
-# ── Composite: Retro + Missions (替代 2 端点) ────────────
-
-
-@app.get("/retro")
-def retro(action: str = "weekly", days: int = 7):
-    """回顾: action=weekly|missions"""
-    if action == "missions":
-        from shared.retro_summary import generate_daily_missions
-
-        return generate_daily_missions()
-    else:
-        from shared.retro_summary import weekly_summary
-
-        return weekly_summary(days=days)
-
-
-# ── Composite: Projects (替代 2 端点) ────────────────────
-
-
-@app.get("/projects")
-def projects(action: str = "suggest", topic: str = "", limit: int = 5):
-    """项目: action=suggest|generate"""
-    if action == "generate" and topic:
-        from shared.project_generator import generate_project_from_topic
-
-        return generate_project_from_topic(topic)
-    else:
-        from shared.project_generator import suggest_projects
-
-        return suggest_projects(limit=limit)
-
-
-# ── Composite: Sources + Media (替代 4 端点) ─────────────
-
-
-@app.post("/sources")
-def sources(
-    action: str = "discover", root_dir: str = "", source_dir: str = "", max_files: int = 100
-):
-    """来源: action=discover|match|inventory"""
-    if action == "match":
-        from shared.source_discovery import match_sources_to_cards
-
-        return match_sources_to_cards(source_dir or root_dir)
-    elif action == "inventory":
-        from shared.media_extractor import media_inventory
-
-        return media_inventory(source_dir or root_dir)
-    else:
-        from shared.source_discovery import discover_sources
-
-        return discover_sources(root_dir, max_files=max_files)
-
-
-# ── Composite: Diversity (替代 2 端点) ───────────────────
-
-
-@app.get("/diversity")
-def diversity(doc_id: str = "", limit: int = 20):
-    """多样性: 传doc_id则分析单篇, 否则全局雷达"""
-    if doc_id:
-        from shared.diversity_audit import analyze_diversity
-
-        return analyze_diversity(doc_id)
-    else:
-        from shared.diversity_audit import diversity_radar
-
-        return diversity_radar(limit=limit)
-
-
-# ── Bulk + Export ─────────────────────────────────────────
-
-
-@app.post("/bulk/import")
-def bulk_import(items: str = "[]"):
-    """批量导入: JSON数组 [{source, input}, ...]"""
-    import json
-
-    from shared.bulk_ops import bulk_import as _bulk
-
-    return _bulk(json.loads(items))
-
-
-@app.get("/export")
-def export_kb(format: str = "json", tables: str = ""):
-    """导出KB: format=json|markdown|csv"""
-    from shared.bulk_ops import export_kb as _export
-
-    tbl_list = [t.strip() for t in tables.split(",") if t.strip()] if tables else None
-    return _export(format=format, tables=tbl_list)
-
-
-@app.post("/cron/discover")
-def cron_discover():
-    """定时发现: RSS+搜索一键采集"""
-    from shared.bulk_ops import cron_discover
-
-    return cron_discover()
-
-
-# ── Obsidian projection (legacy) ──
-
-from shared.obsidian_projection import (
-    render_daily_brief,
-    render_lesson,
-    render_taskpack,
-    render_trace,
-    write_projection,
-)
-from shared.storage import select_one
-
-
-@app.post("/project/taskpack/{task_id}")
-def project_taskpack(task_id: str, dry_run: bool = True):
-    task = select_one("kb_taskpacks", task_id)
-    if not task:
-        return {"error": "not found"}
-    proj = render_taskpack(task)
-    return write_projection(proj, dry_run=dry_run)
-
-
-@app.post("/project/trace/{trace_id}")
-def project_trace(trace_id: str, dry_run: bool = True):
-    from app.memory.database import list_traces_db
-
-    traces = [
-        t
-        for t in list_traces_db(limit=200)
-        if t.get("trace_id") == trace_id or t.get("id") == trace_id
-    ]
-    if not traces:
-        return {"error": "not found"}
-    proj = render_trace(traces[0])
-    return write_projection(proj, dry_run=dry_run)
-
-
-@app.post("/project/lesson/{lesson_id}")
-def project_lesson(lesson_id: str, dry_run: bool = True):
-    from app.memory.database import list_lessons_db
-
-    lessons = [
-        ll
-        for ll in list_lessons_db(limit=200)
-        if ll.get("lesson_id") == lesson_id or ll.get("id") == lesson_id
-    ]
-    if not lessons:
-        return {"error": "not found"}
-    proj = render_lesson(lessons[0])
-    return write_projection(proj, dry_run=dry_run)
-
-
-@app.post("/project/daily-brief/{brief_id}")
-def project_brief(brief_id: str, dry_run: bool = True):
-    brief = select_one("ir_daily_briefs", brief_id)
-    if not brief:
-        return {"error": "not found"}
-    proj = render_daily_brief(brief)
-    return write_projection(proj, dry_run=dry_run)

@@ -10,20 +10,13 @@ Flow:
 
 from __future__ import annotations
 
-import sys
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
-from mistakes import get_mistakes_for_card  # noqa: E402
-
-from machine_knowledge import create_unit  # noqa: E402
-from shared.storage import insert, select_all, select_one  # noqa: E402
+from knowledge_base.machine_knowledge import create_unit
+from knowledge_base.mistakes import get_mistakes_for_card
+from shared.storage import insert, select_all, select_one
 
 # ── Mastery criteria ────────────────────────────────────
 

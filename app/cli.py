@@ -2,23 +2,17 @@
 """Cognitive-Loop-OS CLI — unified command-line entry point.
 
 Usage:
-    python -m cli serve              # Start server
-    python -m cli pipeline <input>   # Run pipeline
-    python -m cli backup             # Backup database
-    python -m cli test               # Run tests
-    python -m cli health             # Health check
-    python -m cli stats              # Show stats
+    python -m app.cli serve              # Start server
+    python -m app.cli pipeline <input>   # Run pipeline
+    python -m app.cli backup             # Backup database
+    python -m app.cli health             # Health check
+    python -m app.cli stats              # Show stats
 """
 
 from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[0]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 
 def cmd_serve(port: int = 8000) -> None:
@@ -59,22 +53,17 @@ def cmd_health() -> None:
     print(json.dumps(stats, ensure_ascii=False, indent=2))
 
 
-def cmd_test() -> None:
-    """Run test suite."""
-    import subprocess
-
-    subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=short"], cwd=str(_PROJECT_ROOT)
-    )
-    kb = _PROJECT_ROOT / "Knowledge-Base"
-    subprocess.run([sys.executable, "-m", "pytest", "tests/", "-q", "--tb=short"], cwd=str(kb))
-
 
 def cmd_stats() -> None:
-    """Show comprehensive stats."""
+    """Show live runtime stats without hardcoded route/test counters."""
+    import pkgutil
+
+    import shared
+    from app.main import _http_route_counts
+    from shared.config import config
     from shared.storage import count as _c
 
-    print("Cognitive-Loop-OS v0.4.0")
+    print(f"Cognitive-Loop-OS v{config.get('app.version', 'unknown')}")
     print("=" * 40)
     tables = [
         "kb_documents",
@@ -99,9 +88,12 @@ def cmd_stats() -> None:
         except Exception:
             pass
     print("=" * 40)
-    print(f"  {'Total API endpoints':30s}: {'~40':>6s}")
-    print(f"  {'Shared modules':30s}: {'37':>6s}")
-    print(f"  {'Tests passed':30s}: {'106':>6s}")
+    routes = _http_route_counts()
+    print(f"  {'HTTP operations':30s}: {routes['total']:>6d}")
+    print(f"  {'Knowledge operations':30s}: {routes['kb']:>6d}")
+    shared_modules = sum(1 for module in pkgutil.iter_modules(shared.__path__) if not module.ispkg)
+    print(f"  {'Shared modules':30s}: {shared_modules:>6d}")
+    print("  Tests: source checkout only; see README quality gates")
 
 
 COMMANDS = {
@@ -109,30 +101,33 @@ COMMANDS = {
     "pipeline": cmd_pipeline,
     "backup": cmd_backup,
     "health": cmd_health,
-    "test": cmd_test,
     "stats": cmd_stats,
 }
 
-if __name__ == "__main__":
+
+def main() -> None:
     if len(sys.argv) < 2:
-        print("Usage: python -m cli <command> [args]")
+        print("Usage: cognitive-os <command> [args]")
         print(f"Commands: {', '.join(COMMANDS)}")
-        sys.exit(1)
+        raise SystemExit(1)
 
-    cmd = sys.argv[1]
-    if cmd not in COMMANDS:
-        print(f"Unknown command: {cmd}")
+    command = sys.argv[1]
+    if command not in COMMANDS:
+        print(f"Unknown command: {command}")
         print(f"Available: {', '.join(COMMANDS)}")
-        sys.exit(1)
+        raise SystemExit(1)
 
-    fn = COMMANDS[cmd]
+    function = COMMANDS[command]
     args = sys.argv[2:]
-    if cmd == "serve":
-        port = int(args[0]) if args else 8000
-        fn(port)
-    elif cmd == "pipeline" and len(args) >= 2:
-        fn(args[0], args[1])
-    elif cmd == "pipeline" and len(args) == 1:
-        fn("text", args[0])
+    if command == "serve":
+        function(int(args[0]) if args else 8000)
+    elif command == "pipeline" and len(args) >= 2:
+        function(args[0], args[1])
+    elif command == "pipeline" and len(args) == 1:
+        function("text", args[0])
     else:
-        fn()
+        function()
+
+
+if __name__ == "__main__":
+    main()

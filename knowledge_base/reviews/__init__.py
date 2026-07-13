@@ -8,16 +8,10 @@ Reference: https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
 
 from __future__ import annotations
 
-import sys
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
-from shared.storage import count, insert, select_all, select_one  # noqa: E402
+from shared.storage import count, insert, select_all, select_one
 
 # ── SM-2 algorithm ──────────────────────────────────────
 

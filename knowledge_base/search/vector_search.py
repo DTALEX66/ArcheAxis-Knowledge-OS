@@ -5,13 +5,7 @@ Built on top of :class:`app.memory.vector_db.VectorDB` with sqlite-vec.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(_PROJECT_ROOT))
-
-from app.memory.vector_db import SimpleTextEmbedder, VectorDB  # noqa: E402
+from app.memory.vector_db import SimpleTextEmbedder, VectorDB
 
 # ── singleton ───────────────────────────────────────────
 

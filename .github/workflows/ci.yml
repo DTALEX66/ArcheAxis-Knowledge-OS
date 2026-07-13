@@ -20,20 +20,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
 
-      - name: Install dependencies
+      - name: Install project and development dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
+          python -m pip install -e ".[dev]"
 
       - name: Run OS-level tests
-        run: python -m pytest tests/ -v --tb=short
+        run: python -m pytest tests/ -q --tb=short
 
       - name: Run KB tests
-        run: |
-          cd Knowledge-Base
-          python -m pytest tests/ -v --tb=short
+        working-directory: knowledge_base
+        run: python -m pytest tests/ -q --tb=short
+
+      - name: Run integration tests
+        run: python -m pytest integration-tests/ -q --tb=short
 
   lint:
     runs-on: ubuntu-latest
@@ -44,9 +46,35 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
-      - name: Install lint tools
-        run: pip install ruff
+      - name: Install project and development dependencies
+        run: python -m pip install -e ".[dev]"
 
       - name: Run ruff
-        run: ruff check app/ shared/ Knowledge-Base/
+        run: python -m ruff check app shared knowledge_base Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
+
+  wheel-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip wheel . --no-deps --wheel-dir dist
+      - name: Install wheel with runtime dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install --no-deps dist/*.whl
+      - name: Smoke-test installed runtime outside repository
+        working-directory: ${{ runner.temp }}
+        env:
+          COGNITIVE_DATA_DIR: ${{ runner.temp }}/cognitive-runtime
+        run: |
+          python -c "from pathlib import Path; import os, sys; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); import knowledge_base.cards.generator, knowledge_base.machine_knowledge.a_to_b, knowledge_base.search; from knowledge_base.api import app as kb_app; from fastapi.testclient import TestClient; kb=TestClient(kb_app); assert kb.get('/health').status_code == 200; assert kb.get('/reviews/due').status_code == 200; assert kb.get('/mistakes').status_code == 200; assert kb.get('/a-to-b/candidates').status_code == 200; assert kb.get('/machine-knowledge').status_code == 200; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); from app.main import app; from shared.sleep_loop_engine import LOG_DIR; c=TestClient(app); assert c.get('/health').status_code == 200; assert c.get('/kb').status_code == 200; runtime=Path(os.environ['COGNITIVE_DATA_DIR']); assert (runtime/'cognitive_os.sqlite').exists(); assert LOG_DIR == runtime/'logs'/'sleep-loop'"
+          cognitive-os health
+          cognitive-os stats

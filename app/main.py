@@ -1,7 +1,7 @@
 """Cognitive-OS v2 — unified runtime for the Cognitive Loop.
 
 Port 8000: Core OS (route → execute → trace → eval → lesson)
-Port 8000/kb: Knowledge-Base (102 endpoints, dashboard, all capabilities)
+Port 8000/kb: Knowledge-Base (live-counted endpoints, dashboard, capabilities)
 
 Start: uvicorn app.main:app --host 0.0.0.0 --port 8000
 Then:  http://localhost:8000/docs     — Core API
@@ -11,24 +11,22 @@ Then:  http://localhost:8000/docs     — Core API
 
 from __future__ import annotations
 
-import sys
 import time
-from pathlib import Path
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from shared.config import config, validate_runtime_config
+
+validate_runtime_config(config)
+
 # ── Core app ─────────────────────────────────────────────
 
 app = FastAPI(
     title="Cognitive-Loop-OS",
-    version="0.4.0",
-    description="AI cognitive runtime with 102-endpoint Knowledge-Base. "
+    version=str(config.get("app.version", "0.4.0")),
+    description="AI cognitive runtime with an integrated Knowledge-Base. "
     "Absorbs Obsidian, Tana, Notion, Logseq, Roam, Heptabase, GraphRAG, Zettelkasten.",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -36,9 +34,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=config.get("cors.allow_origins", ["*"]),
+    allow_methods=config.get("cors.allow_methods", ["GET", "POST"]),
+    allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
 )
 
 
@@ -46,23 +44,23 @@ app.add_middleware(
 async def log_requests(request: Request, call_next):
     start = time.time()
 
+
     # ── Auth check (skip allowlist) ──
-    from shared.auth import requires_auth, verify_token
+    from shared.auth import authenticate_request
 
-    if requires_auth(request.url.path):
-        api_key = request.headers.get("X-API-Key", "")
-        auth_header = request.headers.get("Authorization", "")
-        token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else ""
-
-        user = verify_token(token or api_key)
-        if not user:
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "error": "unauthorized",
-                    "detail": "Valid API key or token required. Use X-API-Key header.",
-                },
-            )
+    user = authenticate_request(
+        request.url.path,
+        request.headers.get("X-API-Key", ""),
+        request.headers.get("Authorization", ""),
+    )
+    if not user:
+        return JSONResponse(
+            status_code=401,
+            content={
+                "error": "unauthorized",
+                "detail": "Valid API key or token required. Use X-API-Key header.",
+            },
+        )
 
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
@@ -72,23 +70,35 @@ async def log_requests(request: Request, call_next):
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    environment = str(config.get("app.environment", "development")).lower()
+    detail = str(exc)[:200] if environment not in {"production", "prod"} else "request failed"
     return JSONResponse(
         status_code=500,
-        content={"error": "internal_error", "detail": str(exc)[:200]},
+        content={"error": "internal_error", "detail": detail},
     )
 
 
-# ── Mount Knowledge-Base as sub-app ──────────────────────
+# ── Mount packaged Knowledge-Base sub-application ──
+from knowledge_base.api import app as kb_app
 
-# Import KB app (handles hyphen in dir name)
-import importlib.util
+app.mount("/kb", kb_app)
 
-_kb_spec = importlib.util.spec_from_file_location(
-    "kb_api", str(_PROJECT_ROOT / "Knowledge-Base" / "api.py")
-)
-_kb_mod = importlib.util.module_from_spec(_kb_spec)
-_kb_spec.loader.exec_module(_kb_mod)
-app.mount("/kb", _kb_mod.app)
+
+def _http_route_counts() -> dict[str, int]:
+    """Count OpenAPI operations without depending on FastAPI's private route wrappers."""
+    operation_names = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
+
+    def count_schema(current_app: FastAPI) -> int:
+        return sum(
+            1
+            for path_item in current_app.openapi().get("paths", {}).values()
+            for method in path_item
+            if method.lower() in operation_names
+        )
+
+    core = count_schema(app)
+    kb = count_schema(kb_app)
+    return {"core": core, "kb": kb, "total": core + kb}
 
 
 # ── Core endpoints ───────────────────────────────────────
@@ -117,12 +127,8 @@ def health():
     return {
         "status": "ok",
         "system": "cognitive-loop-os",
-        "version": "0.4.0",
-        "endpoints": {
-            "core": 11,
-            "kb": 102,
-            "total": 113,
-        },
+        "version": str(config.get("app.version", "0.4.0")),
+        "endpoints": _http_route_counts(),
         "stats": {
             "documents": _c("kb_documents"),
             "cards": _c("kb_cards"),
@@ -137,7 +143,7 @@ def health():
 @app.get("/version")
 def version():
     return {
-        "version": "0.4.0",
+        "version": str(config.get("app.version", "0.4.0")),
         "build": "Cognitive-Loop-OS unified runtime",
         "capabilities": [
             "FTS5 full-text search",
@@ -162,6 +168,9 @@ def version():
             "Learning analytics + streak tracking",
             "Retro summaries + daily missions",
             "Project generator",
+            "Resumable file processing manifests",
+            "Human-grounded OCR/ASR accuracy benchmarks",
+            "Content-matched evidence verification",
         ],
     }
 
@@ -322,11 +331,25 @@ def lessons():
 
 
 @app.post("/auth/token")
-def auth_token(user_id: str = "", role: str = "user", expires_hours: int = 24):
-    """Generate a JWT token."""
-    from shared.auth import create_token
+def auth_token(request: Request, user_id: str = "", role: str = "user", expires_hours: int = 24):
+    """Issue a bounded token; only an authenticated administrator may issue tokens."""
+    from shared.auth import authenticate_request, create_token
 
-    token = create_token(user_id=user_id, role=role, expires_hours=expires_hours)
+    caller = authenticate_request(
+        request.url.path,
+        request.headers.get("X-API-Key", ""),
+        request.headers.get("Authorization", ""),
+    )
+    if not caller or caller.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="administrator credentials required")
+    if role not in {"admin", "user", "readonly"}:
+        raise HTTPException(status_code=400, detail="invalid role")
+    if not 1 <= expires_hours <= 168:
+        raise HTTPException(status_code=400, detail="expires_hours must be between 1 and 168")
+    subject = user_id.strip() or str(caller.get("sub", ""))
+    if not subject:
+        raise HTTPException(status_code=400, detail="user_id is required")
+    token = create_token(user_id=subject, role=role, expires_hours=expires_hours)
     return {"token": token, "expires_in_hours": expires_hours}
 
 

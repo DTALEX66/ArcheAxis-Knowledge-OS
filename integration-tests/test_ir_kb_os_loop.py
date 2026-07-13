@@ -10,16 +10,16 @@ from pathlib import Path
 # Make project root and subdirectories importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "Inspiration-Research"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "Knowledge-Base"))
 
-from intake.generator import generate_intake_card
 from contracts.generator import generate_contract
-from context_pack import build_context_pack
-from taskpack import build_taskpack as kb_build_taskpack
-from app.core.permissions import check_permission
+from intake.generator import generate_intake_card
+
 from app.agent.executor import execute
+from app.core.permissions import check_permission
 from app.memory.database import save_lesson_db
 from app.schemas import TaskPack
+from knowledge_base.context_pack import build_context_pack
+from knowledge_base.taskpack import build_taskpack as kb_build_taskpack
 
 
 def test_ir_to_kb_to_os_full_loop():

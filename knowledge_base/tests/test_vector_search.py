@@ -2,18 +2,11 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
 import numpy as np
 import pytest
-from search import hybrid_search, keyword_search, vector_search
 
 from app.memory.vector_db import SimpleTextEmbedder, VectorDB
+from knowledge_base.search import hybrid_search, keyword_search, vector_search
 
 # ── SimpleTextEmbedder ──────────────────────────────────
 

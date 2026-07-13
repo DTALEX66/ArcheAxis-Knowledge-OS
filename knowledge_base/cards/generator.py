@@ -7,15 +7,9 @@ document content.  Designed to be lightweight and runnable locally without LLM.
 from __future__ import annotations
 
 import re
-import sys
 import uuid
-from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
-from cards import KnowledgeCard  # noqa: E402
+from knowledge_base.cards import KnowledgeCard
 
 
 def generate_from_markdown(

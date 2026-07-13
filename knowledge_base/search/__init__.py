@@ -9,16 +9,8 @@ Both are merged in ``hybrid_search()`` for best results.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-# Ensure project root + Knowledge-Base dir are on sys.path
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
-
-from search import vector_search  # noqa: E402
-from shared.storage import fts5_search as _fts5  # noqa: E402
+from knowledge_base.search import vector_search
+from shared.storage import fts5_search as _fts5
 
 
 def keyword_search(query: str, top_k: int = 5) -> list[dict]:
