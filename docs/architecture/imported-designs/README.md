@@ -17,5 +17,5 @@
 ## 状态
 
 这些文档用于理解 Cognitive-Loop-OS 的双系统架构背景。
-实际代码实现已吸收到 `shared/`、`app/`、`Knowledge-Base/` 等目录中。
+实际代码实现已吸收到 `shared/`、`app/`、`knowledge_base/` 等目录中。
 原始 Python 参考代码和重复文档已从 `workspace/imports/` 中清理。

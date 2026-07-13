@@ -179,7 +179,7 @@ pm2 stop hermes-sleep-loop-worker
 ```bash
 python -m pytest tests/test_sleep_loop_engine.py -q --tb=short
 python -m pytest tests -q --tb=short
-cd Knowledge-Base && python -m pytest tests -q --tb=short
+cd knowledge_base && python -m pytest tests -q --tb=short
 python -m ruff check shared/sleep_loop_engine.py scripts/sleep_loop_worker.py tests/test_sleep_loop_engine.py --select E,F,B
 ```
 

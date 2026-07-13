@@ -8,7 +8,7 @@ Cognitive-OS is the front runtime for two primary systems:
 
 | System | Role | Current Relationship |
 | --- | --- | --- |
-| Knowledge-Base | A system for understanding, structure, memory, learning, review, and knowledge reuse. Located at `Knowledge-Base/` in this repository | Receives `KB` routed material |
+| Knowledge-Base | A system for understanding, structure, memory, learning, review, and knowledge reuse. Packaged at `knowledge_base/` in this repository | Receives `KB` routed material |
 | Inspiration-Research | B system for research, comparison, inspiration, framework design, and strategy. Located at `Inspiration-Research/` in this repository | Receives `IR` routed material |
 | Cognitive-OS | Front operating layer that routes information, runs tasks, stores traces, evaluates results, and forms machine lessons | This repository |
 | Obsidian | Upstream capture/source layer for a subset of KB inputs | Not the whole system |
@@ -34,6 +34,7 @@ information -> attention -> understanding -> structure -> memory -> learning -> 
 ## 3. Safety Rules
 
 - Work inside the current repository unless the user explicitly names another exact project path.
+- The external A project named `Obsidian-Assistance` is already audited and absorbed: do not scan, test, modify, synchronize, or use it as a migration target in future Cognitive-Loop-OS work.
 - Do not access `E:\` unless the user explicitly confirms the exact path, action, and impact range.
 - Do not upload or print secrets: `.env`, `.codex`, SSH private keys, API keys, tokens, cookies, credentials, or password files.
 - Do not commit runtime memory, local caches, virtual environments, logs, or generated databases.
@@ -70,7 +71,7 @@ Upload policy:
 - GitHub remote for this repository is expected to use SSH:
 
 ```text
-git@github.com:DTALEX66/Cognitive-OS.git
+git@github.com:DTALEX66/Cognitive-Loop-OS.git
 ```
 
 ## 6. Implementation Workflow
@@ -86,11 +87,13 @@ For each implementation round:
 
 ## 7. Current System Boundaries
 
-- File ingestion v1 only reads files inside the Cognitive-OS project root.
-- Supported file extensions are `.md`, `.markdown`, and `.txt`.
-- Directory ingestion defaults to `*.md` and caps the number of files.
+- Core file ingestion reads only inside the project root.
+- Multi-format adapters support text, PDF, Office, HTML and images through optional engines.
+- Resumable directory conversion records every latest file state in a JSONL manifest; failures retry.
 - High-risk content routes to `REVIEW` before action.
 - Current tool execution is conservative and uses a risk registry.
+- Accuracy claims require human truth/prediction pairs; model confidence is not accuracy.
+- Evidence images require a semantic text match; random pages or frames are not evidence.
 
 ## 8. Private Configuration Not Stored Here
 

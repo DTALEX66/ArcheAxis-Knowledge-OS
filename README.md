@@ -1,106 +1,92 @@
 # Cognitive-Loop-OS
 
-Cognitive-Loop-OS 是 Cognitive-Knowledge-System 的统一仓库，聚合了核心认知运行时、B/C 线工程蓝图、数据合同、开源项目吸收矩阵、以及 HERMES 就寝无人值守循环引擎。
+Cognitive-Loop-OS 是本地优先的认知与知识运行时。当前版本提供摄入、检索、知识结构化、学习复习、受控执行、追踪和候选证据能力；动态规划、多维评估与端到端可信闭环仍在路线图中。
 
-## 仓库结构
+## 五分钟启动
+
+```bash
+python -m pip install -e ".[dev]"
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+- Core API：`http://127.0.0.1:8000/docs`
+- Knowledge Dashboard：`http://127.0.0.1:8000/kb`
+- Knowledge API：`http://127.0.0.1:8000/kb/docs`
+- 实时健康与路由数：`http://127.0.0.1:8000/health`
+
+## 稳定入口
+
+| 入口 | 作用 |
+|---|---|
+| `POST /run` | route → retrieve → echo-based compile → permission → registered tool execution → binary evaluation → memory |
+| `POST /kb/pipeline` | 提取、标签、摘要、事实候选与索引；不自动证明事实正确 |
+| `POST /kb/search` | 关键词、向量或混合检索 |
+| `GET/POST /sleep-loop?action=...` | 有证据约束的无人值守任务循环 |
+| `POST /kb/quality` | 准确率测量与文件总账汇总；调用者证据、来源独立性、内容匹配和静态来源建议仍为候选 |
+
+旧的细粒度接口仍为兼容层；新增能力优先进入复合端点，不再继续平铺路由。
+
+## 当前模块边界
 
 ```text
-Cognitive-Loop-OS/
-  app/                    # Cognitive-OS 运行时 v0.4 (FastAPI)
-    core/                 # router, permissions, compiler, scheduler, trace
-    agent/                # executor, planner, tool_router
-    ingestion/            # 多格式摄入 (PDF/DOCX/HTML/URL)
-    memory/               # store, vector_db, episodic, graph_db
-    rag/                  # retriever, embedder, index
-    tools/                # 工具注册表 (8 工具)
-  Knowledge-Base/         # B线：文档、卡片、复习、搜索、机器知识
-    search/               # FTS5 + sqlite-vec 混合搜索
-    reviews/              # SM-2 间隔重复
-    machine_knowledge/    # A→B 转译引擎
-  Inspiration-Research/   # B线：研究、项目雷达、合同
-  shared/                 # 跨模块共享 (38+ 模块)：storage, auth, config, backup, pipeline...
-  shared-contracts/       # C线：数据合同
-    schemas/              # JSON Schema
-    registries/           # 开源项目注册表 (101 条目)
-  scripts/                # sleep-loop worker, CLI
-  config/                 # 运行时配置
-  tests/                  # OS 层测试 (79+ cases)
-  docs/                   # 设计文档、审计报告、工程文档
-    architecture/
-      imported-designs/   # AB双系统架构参考设计 (来自 Inspiration-Research)
-  workspace/              # 进口知识包 (intake) 与设计记录
+app/                    核心认知运行时、摄入、工具、工作流
+knowledge_base/         可安装的文档、卡片、检索、复习、机器知识与领域路由包
+  routers/              稳定复合 API、质量 API、投影 API
+Inspiration-Research/   研究发现与候选项目雷达
+shared/                 SQLite、管道、证据、图谱、配置、鉴权等共享能力
+shared-contracts/       Schema、fixture、适配器和开源项目注册表
+tests/                  Core/共享能力测试
+knowledge_base/tests/   KB 独立测试
+config/                 运行时策略
+workspace/              Intake 与方向性记录，不是主运行时
 ```
 
-## 三线架构
+当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，Phase 0–10 规划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，文档入口见 [`docs/README.md`](docs/README.md)。
 
-| 线 | 定位 | 当前状态 |
-|---|---|---|
-| **A线** | 人类学习增强 (Human Learning OS) | 设计文档已入库 |
-| **B线** IR + KB + Cognitive-OS | 核心认知闭环 | 已合仓，135+ API 端点 |
-| **C线** shared-contracts | 数据合同 / Fixtures / 联调 | 就绪 |
+## Obsidian-Assistance 吸收
 
-## 当前能力
+本仓库吸收的是通用能力，不复制正式 Vault、课程正文、私人路径、媒体、OCR/ASR 全文或缓存。最新吸收包括：
 
-Cognitive-OS 运行时 (v0.4.0)：
+- 文件级 JSONL 处理总账与失败重试；
+- 同名源文件防碰撞键；
+- 人工真值 CER/WER 准确率基准；
+- 内容命中后才允许生成证据候选；
+- 所有调用者提供的证据最高只作为候选；当前实现不具备服务端 provenance 注册或签名，因此不能自动升级为已核验；
+- 可恢复多格式目录摄入。
 
-| 能力 | 模块 |
-|---|---|
-| 多格式摄入 | PDF/DOCX/PPTX/HTML/MD 自动转换 |
-| 向量搜索 | sqlite-vec 384-dim 混合搜索 |
-| FTS5 全文搜索 | BM25 + porter stemmer |
-| 间隔重复 | SM-2 复习闭环 |
-| A→B 转译 | 卡片掌握→机器知识单元 |
-| 知识图谱 | NetworkX DiGraph + SQLite |
-| 自动标签 | 中英混合 NLP + TF-IDF |
-| 知识园艺 | 孤立检测、连接建议、常青评分 |
-| GraphRAG | 多跳图遍历混合搜索 |
-| 鉴权 | JWT + API Key 双模式 |
-| 备份 | SQLite 自动备份/恢复 |
-| 就寝循环 | HERMES sleep-loop 无人值守引擎 |
-| Obsidian 双向桥 | vault 导入 + 投影导出 |
-| IR→KB 管道 | RSS/网页/YouTube → 知识库 |
+完整映射见 [`docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md`](docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md)。
 
-核心 API (复合端点优先)：
+## 安全模式
 
-| 端点 | 用途 |
-|---|---|
-| `GET /health` | 健康检查 + 系统统计 |
-| `POST /pipeline` | 统一管道 (extract→tag→summarize→index) |
-| `POST /ingest` | 摄入文本/文件/目录 |
-| `POST /route` | 注意力路由 |
-| `POST /memory/search` | 记忆搜索 |
-| `GET/POST /sleep-loop?action=...` | 就寝循环控制 |
-| `/kb/*` | Knowledge-Base 全能力 (113 端点) |
+默认配置是本机开发模式：
 
-## 运行
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+```yaml
+app.environment: development
+auth.enabled: false
+cors.allow_origins: ["*"]
 ```
 
-交互式文档：`http://127.0.0.1:8000/docs`
-
-## 安全边界
-
-- 文件摄入仅限仓库内 (`.md`, `.markdown`, `.txt`, `.pdf`, `.docx`)
-- 默认执行模式：dry_run
-- `code_exec`：blocked | `shell_exec`：禁止
-- 所有输入经过状态机：raw → quarantined → approved
-- 外部内容不可覆盖系统策略
-- sleep-loop 仅允许有 evidence 的真实任务，禁止空壳/预览任务冒充完成
-
-## 测试
+生产模式必须显式设置：
 
 ```bash
-# OS 层测试
+export COGNITIVE_ENV=production
+export COGNITIVE_AUTH_ENABLED=true
+export COGNITIVE_API_KEY='<secret-from-deployment-system>'
+export COGNITIVE_JWT_SECRET='<independent-jwt-secret-from-deployment-system>'
+export COGNITIVE_CORS_ORIGINS='https://your-ui.example'
+```
+
+CORS 来源也可写入 `config/settings.yaml`。生产环境保留开发默认值、弱密钥、非法 key 文件或错误 CORS schema 时应用会拒绝启动。固定开发 Key 只在 development/local/test 环境加载。
+
+数据库 `restore` 命令只生成并校验离线恢复候选，不覆盖活动数据库；实际切换必须先停止全部 API、healthcheck 和 worker，再由运维人员离线完成。
+
+## 验证
+
+```bash
 python -m pytest tests -q --tb=short
-
-# KB 模块测试
-cd Knowledge-Base && python -m pytest tests -q --tb=short
-
-# 代码检查
-python -m ruff check app shared Knowledge-Base cli.py --statistics
+cd knowledge_base && python -m pytest tests -q --tb=short
+python -m pytest integration-tests -q --tb=short
+python -m ruff check app shared knowledge_base Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
 ```
+
+CI 使用 `pyproject.toml` 作为依赖与工具配置单一事实源；`requirements.txt` 仅作为兼容安装清单并与核心依赖保持同步。

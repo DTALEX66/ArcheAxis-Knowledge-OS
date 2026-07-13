@@ -21,7 +21,7 @@ workspace/
   - 双系统融合方案 (dual-system-integration)
   - 关键参考文档 (reference-key-docs)
   - 项目声明/铁律 (inspiration-research-root)
-- **已吸收** (86 个 Python 参考代码)：逻辑已改编到 `shared/`、`app/`、`Knowledge-Base/`
+- **已吸收** (86 个 Python 参考代码)：逻辑已改编到 `shared/`、`app/`、`knowledge_base/`
 - **已清理** (113 个)：其他项目元数据、重复文档、前端配置
 
 ## 规则
