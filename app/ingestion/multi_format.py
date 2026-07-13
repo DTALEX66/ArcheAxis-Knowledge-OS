@@ -254,3 +254,126 @@ def convert_directory(
             logger.warning(f"Convert failed: {fp.name} — {e}")
 
     return results
+
+
+def convert_directory_resumable(
+    directory: str | Path,
+    manifest_path: str | Path,
+    pattern: str = "**/*",
+    max_files: int = 200,
+    output_dir: str | Path | None = None,
+) -> dict:
+    """Convert files to durable Markdown artifacts with fingerprint-verified resume."""
+    import os
+    import tempfile
+
+    from shared.processing_manifest import (
+        ProcessingManifest,
+        file_sha256,
+        source_artifact_key,
+    )
+
+    root = Path(directory).resolve()
+    if not root.is_dir():
+        raise ValueError(f"directory not found: {root}")
+    manifest_file = Path(manifest_path).resolve()
+    artifacts = Path(output_dir).resolve() if output_dir else manifest_file.parent / "artifacts"
+    artifacts.mkdir(parents=True, exist_ok=True)
+    manifest = ProcessingManifest(manifest_file)
+    results: list[dict] = []
+    resumed = processed = 0
+
+    for file_path in sorted(root.glob(pattern)):
+        if processed >= max_files:
+            break
+        if not file_path.is_file():
+            continue
+        resolved_file = file_path.resolve()
+        if resolved_file == manifest_file or artifacts in resolved_file.parents:
+            continue
+        relative = resolved_file.relative_to(root).as_posix()
+        if manifest.can_resume(relative, resolved_file):
+            latest = manifest.latest()[relative]
+            resumed += 1
+            results.append(
+                {"path": relative, "status": "resumed", "output": latest["output"]}
+            )
+            continue
+
+        processed += 1
+        fmt = detect_format(resolved_file)
+        source_hash = file_sha256(resolved_file)
+        if fmt == "unknown":
+            manifest.record(
+                relative,
+                status="needs_review",
+                handler="unsupported-format",
+                error=f"unsupported extension: {resolved_file.suffix.lower()}",
+                metadata={"source_sha256": source_hash},
+            )
+            results.append({"path": relative, "status": "needs_review", "format": fmt})
+            continue
+
+        temporary: Path | None = None
+        try:
+            content, engine = convert_file(resolved_file, fmt)
+            if file_sha256(resolved_file) != source_hash:
+                raise RuntimeError("source changed during conversion")
+            output = artifacts / f"{source_artifact_key(resolved_file, root)}.md"
+            with tempfile.NamedTemporaryFile(
+                "w",
+                encoding="utf-8",
+                newline="\n",
+                dir=artifacts,
+                delete=False,
+                suffix=".tmp",
+            ) as stream:
+                stream.write(content)
+                temporary = Path(stream.name)
+            os.replace(temporary, output)
+            output_hash = file_sha256(output)
+        except Exception as exc:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+            manifest.record(
+                relative,
+                status="failed",
+                handler="fallback-chain",
+                error=f"{type(exc).__name__}: {exc}",
+                metadata={"format": fmt, "source_sha256": source_hash},
+            )
+            results.append({"path": relative, "status": "failed", "format": fmt})
+            continue
+
+        manifest.record(
+            relative,
+            status="converted",
+            handler=engine,
+            output=str(output),
+            metadata={
+                "format": fmt,
+                "character_count": len(content),
+                "source_sha256": source_hash,
+                "output_sha256": output_hash,
+                "handler_version": 1,
+            },
+        )
+        results.append(
+            {
+                "path": relative,
+                "status": "converted",
+                "format": fmt,
+                "engine": engine,
+                "output": str(output),
+            }
+        )
+
+    return {
+        "root": str(root),
+        "manifest": str(manifest_file),
+        "output_dir": str(artifacts),
+        "processed": processed,
+        "resumed": resumed,
+        "summary": manifest.summary(),
+        "results": results,
+    }
