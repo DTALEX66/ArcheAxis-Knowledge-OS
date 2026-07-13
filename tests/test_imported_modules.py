@@ -7,7 +7,6 @@ from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 
 class TestEvidenceIndex:
@@ -29,9 +28,12 @@ class TestEvidenceIndex:
 
         # Cleanup
         import sqlite3
-        db = sqlite3.connect(str(_PROJECT_ROOT / "data" / "cognitive_os.sqlite"))
+        from shared.storage import DB_PATH
+
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_evidence WHERE doc_id=?", ("test_doc_ev1",))
-        db.commit(); db.close()
+        db.commit()
+        db.close()
 
     def test_vault_health_radar(self):
         from shared.evidence_index import vault_health_radar

@@ -14,9 +14,10 @@ from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 import pytest
+
+from shared.storage import DB_PATH
 
 # ── shared/storage ──────────────────────────────────────
 
@@ -43,7 +44,7 @@ class TestStorage:
 
         # cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", ("gap_test_s1",))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", ("gap_test_s1",))
         db.commit()
@@ -70,7 +71,7 @@ class TestStorage:
 
         # cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", ("gap_fts5",))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", ("gap_fts5",))
         db.commit()
@@ -90,7 +91,7 @@ class TestStorage:
 
         # cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", ("gap_json",))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", ("gap_json",))
         db.commit()
@@ -126,7 +127,7 @@ class TestBridge:
 
         # cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         for tid in [result["context_pack_id"], result["taskpack_id"]]:
             db.execute("DELETE FROM kb_context_packs WHERE id=?", (tid,))
             db.execute("DELETE FROM kb_taskpacks WHERE id=?", (tid,))
@@ -147,7 +148,7 @@ class TestBridge:
 
         # cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_taskpacks WHERE id=?", (result["taskpack_id"],))
         db.commit()
         db.close()
@@ -165,7 +166,7 @@ class TestBridge:
 
         # cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         for item in result["items"]:
             db.execute("DELETE FROM kb_context_packs WHERE id=?", (item["context_pack_id"],))
         db.commit()
@@ -341,20 +342,10 @@ class TestMultiFormat:
 
 
 def _get_kb_app():
-    """Load Knowledge-Base FastAPI app (directory name has a hyphen)."""
-    import importlib.util
+    """Load the packaged Knowledge-Base FastAPI app."""
+    from knowledge_base.api import app
 
-    kb_api_path = Path(_PROJECT_ROOT) / "Knowledge-Base" / "api.py"
-    spec = importlib.util.spec_from_file_location("kb_api", kb_api_path)
-    mod = importlib.util.module_from_spec(spec)
-    # Ensure the module can find its own imports
-    kb_dir = str(Path(_PROJECT_ROOT) / "Knowledge-Base")
-    if kb_dir not in sys.path:
-        sys.path.insert(0, kb_dir)
-    if str(_PROJECT_ROOT) not in sys.path:
-        sys.path.insert(0, str(_PROJECT_ROOT))
-    spec.loader.exec_module(mod)
-    return mod.app
+    return app
 
 
 class TestKBApi:
@@ -408,7 +399,7 @@ class TestKBApi:
 
         # Cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", (doc_id,))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", (doc_id,))
         db.commit()
@@ -453,7 +444,7 @@ class TestKBApi:
 
         # Cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_cards WHERE id=?", (card_id,))
         db.execute("DELETE FROM kb_cards_fts WHERE id=?", (card_id,))
         db.execute("DELETE FROM kb_reviews WHERE card_id=?", (card_id,))
@@ -504,7 +495,7 @@ class TestKBApi:
 
         # Cleanup
         import sqlite3
-        db = sqlite3.connect(str(Path(_PROJECT_ROOT) / "data" / "cognitive_os.sqlite"))
+        db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM machine_knowledge_units WHERE id=?", (unit_id,))
         db.commit()
         db.close()

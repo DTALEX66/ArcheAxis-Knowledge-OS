@@ -14,14 +14,8 @@ Usage:
 
 from __future__ import annotations
 
-import sys
 from contextlib import suppress
-from pathlib import Path
 from typing import Any
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 
 def run_pipeline(
@@ -145,7 +139,7 @@ def run_pipeline(
 
         # Also vector index + wikilinks
         with suppress(Exception):
-            from search import vector_search
+            from knowledge_base.search import vector_search
 
             vector_search.index_document(kb_id, title + " " + content)
             from shared.backlinks import index_document_links

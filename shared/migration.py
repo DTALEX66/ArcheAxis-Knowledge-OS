@@ -12,11 +12,11 @@ Usage:
 from __future__ import annotations
 
 import sqlite3
-from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-MIGRATIONS_DIR = _PROJECT_ROOT / "data" / "migrations"
-DB_PATH = _PROJECT_ROOT / "data" / "cognitive_os.sqlite"
+from shared.config import config, resolve_runtime_path
+
+MIGRATIONS_DIR = resolve_runtime_path("data/migrations")
+DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
 
 MIGRATIONS_TABLE = """
 CREATE TABLE IF NOT EXISTS schema_migrations (

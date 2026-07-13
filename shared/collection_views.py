@@ -21,7 +21,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from shared.storage import select_all  # noqa: E402
+from shared.storage import select_all, validate_public_table  # noqa: E402
 
 
 def _group_items(items: list[dict], field: str) -> dict[str, list[dict]]:
@@ -149,6 +149,7 @@ def render_view(
     Returns:
         Rendered view dict with type, count, and data.
     """
+    table = validate_public_table(table)
     items = select_all(table, limit=500)
     if where_field and where_value:
         items = [i for i in items if str(i.get(where_field, "")) == where_value]
@@ -193,6 +194,7 @@ def aggregate(
     Returns:
         Grouped aggregation results.
     """
+    table = validate_public_table(table)
     items = select_all(table, limit=500)
     groups = _group_items(items, group_by)
 

@@ -6,6 +6,7 @@ Output goes to quarantine, NOT directly to core database.
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 @dataclass
 class ConvertedDocument:
     content: str = ""

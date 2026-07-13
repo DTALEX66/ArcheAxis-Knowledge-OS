@@ -1,6 +1,7 @@
 """Local trace adapter — writes traces locally. Langfuse optional upgrade."""
-from pathlib import Path
 import json
+from pathlib import Path
+
 
 def write_trace(trace: dict, output_dir: str = "data/traces") -> Path:
     output = Path(output_dir)

@@ -11,7 +11,6 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 
 @dataclass
@@ -107,7 +106,7 @@ def _load_registry_repos() -> set[str]:
 
 
 def collect_trending(
-    language: Optional[str] = None,
+    language: str | None = None,
     since: str = "weekly",
     per_page: int = 10,
 ) -> list[TrendingRepo]:
@@ -132,7 +131,7 @@ def collect_trending(
 
 
 def collect_by_category(
-    categories: Optional[list[str]] = None,
+    categories: list[str] | None = None,
     since: str = "weekly",
     per_category: int = 5,
 ) -> list[TrendingRepo]:

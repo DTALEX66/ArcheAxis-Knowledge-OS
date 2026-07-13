@@ -5,22 +5,28 @@ Designed to be called by Hermes cron job or directly:
 """
 import json
 import sys
-import urllib.request
-from pathlib import Path
 from datetime import date
+from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Inspiration-Research"))
 
-from project_radar.collectors.github_trending import collect_trending, collect_trending_fallback
-from project_radar.scoring.scorer import score_project
-from project_radar.outputs.generator import (
-    build_daily_brief, screen_project, export_screening_csv, BriefItem,
+from intake.generator import generate_intake_card  # noqa: E402
+from project_radar.collectors.github_trending import (  # noqa: E402
+    collect_trending,
+    collect_trending_fallback,
 )
-from intake.generator import generate_intake_card
+from project_radar.outputs.generator import (  # noqa: E402
+    BriefItem,
+    build_daily_brief,
+    export_screening_csv,
+    screen_project,
+)
 
-OUTPUT_DIR = _PROJECT_ROOT / "data" / "reports"
+from shared.config import resolve_runtime_path  # noqa: E402
+
+OUTPUT_DIR = resolve_runtime_path("data/reports")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -104,13 +110,20 @@ def run_daily(since: str = "daily", count: int = 10) -> dict:
 
 
 def _guess_category(text: str) -> str:
-    if any(k in text for k in ["crawl", "scrape", "parser", "extract"]): return "Crawler"
-    if any(k in text for k in ["convert", "markdown", "pdf", "doc"]): return "Document to Markdown"
-    if any(k in text for k in ["agent", "coding", "codex", "copilot"]): return "AI Agent/Coding"
-    if any(k in text for k in ["llm", "gateway", "model"]): return "LLM Gateway"
-    if any(k in text for k in ["rag", "knowledge", "search"]): return "RAG/Document Intelligence"
-    if any(k in text for k in ["memory"]): return "Memory"
-    if any(k in text for k in ["mcp", "tool"]): return "Agent SDK"
+    if any(k in text for k in ["crawl", "scrape", "parser", "extract"]):
+        return "Crawler"
+    if any(k in text for k in ["convert", "markdown", "pdf", "doc"]):
+        return "Document to Markdown"
+    if any(k in text for k in ["agent", "coding", "codex", "copilot"]):
+        return "AI Agent/Coding"
+    if any(k in text for k in ["llm", "gateway", "model"]):
+        return "LLM Gateway"
+    if any(k in text for k in ["rag", "knowledge", "search"]):
+        return "RAG/Document Intelligence"
+    if "memory" in text:
+        return "Memory"
+    if any(k in text for k in ["mcp", "tool"]):
+        return "Agent SDK"
     return "AI Agent/Coding"
 
 

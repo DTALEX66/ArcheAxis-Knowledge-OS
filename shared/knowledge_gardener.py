@@ -158,8 +158,7 @@ def score_evergreen(doc_id: str) -> dict[str, Any]:
     if not doc:
         return {"error": "not found"}
 
-    from reviews import get_review_history
-
+    from knowledge_base.reviews import get_review_history
     from shared.auto_tagger import detect_atomicity
 
     content = doc.get("content", "")

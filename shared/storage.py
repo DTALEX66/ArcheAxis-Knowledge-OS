@@ -3,12 +3,19 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from pathlib import Path
 from typing import Any
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = _PROJECT_ROOT / "data" / "cognitive_os.sqlite"
+from shared.config import config, resolve_runtime_path
+
+
+def _resolve_database_path() -> Path:
+    return resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
+
+
+DB_PATH = _resolve_database_path()
 
 IR_KB_TABLES = """
 CREATE TABLE IF NOT EXISTS ir_research_notes (
@@ -275,6 +282,7 @@ CREATE TABLE IF NOT EXISTS kb_evidence (
 
 
 def _conn() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     c = sqlite3.connect(str(DB_PATH))
     c.execute("PRAGMA journal_mode=WAL")
     c.row_factory = sqlite3.Row
@@ -290,6 +298,50 @@ def init():
 
 
 # ── Generic helpers ──
+
+_SQL_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_SQL_ORDER = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)(?:\s+(ASC|DESC))?$", re.IGNORECASE)
+PUBLIC_KB_TABLES = frozenset(
+    {
+        "kb_documents",
+        "kb_cards",
+        "kb_reviews",
+        "kb_mistakes",
+        "kb_taskpacks",
+        "kb_context_packs",
+        "machine_knowledge_units",
+    }
+)
+
+
+def validate_public_table(table: str) -> str:
+    """Authorize a table for user-facing query/view APIs."""
+    if table not in PUBLIC_KB_TABLES:
+        raise ValueError(f"table is not available to public query APIs: {table}")
+    return table
+
+
+def _validated_table(connection: sqlite3.Connection, table: str) -> str:
+    if not _SQL_IDENTIFIER.fullmatch(table):
+        raise ValueError(f"invalid SQL identifier: {table!r}")
+    row = connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE (type='table' OR type='view') AND name=?",
+        (table,),
+    ).fetchone()
+    if not row:
+        raise ValueError(f"unknown storage table: {table}")
+    return table
+
+
+def _validated_order(connection: sqlite3.Connection, table: str, order: str) -> str:
+    match = _SQL_ORDER.fullmatch(order.strip())
+    if not match:
+        raise ValueError(f"invalid SQL order: {order!r}")
+    column, direction = match.groups()
+    columns = {row[1] for row in connection.execute(f'PRAGMA table_info("{table}")')}
+    if column not in columns:
+        raise ValueError(f"unknown order column for {table}: {column}")
+    return f'"{column}" {direction.upper() if direction else "ASC"}'
 
 
 def _json_load(s: str | None) -> Any:
@@ -317,116 +369,128 @@ def _row_dict(row: sqlite3.Row) -> dict:
 
 def insert(table: str, data: dict) -> None:
     c = _conn()
-    # Get actual table columns
-    cols = {r[1] for r in c.execute(f"PRAGMA table_info({table})").fetchall()}
-    # Auto-map list/dict fields to _json column names
-    mapped = {}
-    for k, v in data.items():
-        col = f"{k}_json" if isinstance(v, (list, dict)) else k
-        if col in cols:
-            mapped[col] = _json_dump(v) if isinstance(v, (list, dict)) else v
-    if not mapped:
+    try:
+        table = _validated_table(c, table)
+        cols = {r[1] for r in c.execute(f'PRAGMA table_info("{table}")').fetchall()}
+        mapped = {}
+        for key, value in data.items():
+            column = f"{key}_json" if isinstance(value, (list, dict)) else key
+            if column in cols:
+                mapped[column] = _json_dump(value) if isinstance(value, (list, dict)) else value
+        if not mapped:
+            return
+        keys = list(mapped)
+        placeholders = ",".join("?" for _ in keys)
+        quoted_keys = ",".join(f'"{key}"' for key in keys)
+        c.execute(
+            f'INSERT OR REPLACE INTO "{table}" ({quoted_keys}) VALUES ({placeholders})',
+            list(mapped.values()),
+        )
+        c.commit()
+    finally:
         c.close()
-        return
-    keys = list(mapped)
-    placeholders = ",".join(["?" for _ in keys])
-    values = list(mapped.values())
-    c.execute(f"INSERT OR REPLACE INTO {table} ({','.join(keys)}) VALUES ({placeholders})", values)
-    c.commit()
-    c.close()
 
 
 def select_all(table: str, limit: int = 100, order: str = "created_at DESC") -> list[dict]:
     c = _conn()
-    rows = c.execute(f"SELECT * FROM {table} ORDER BY {order} LIMIT ?", (limit,)).fetchall()
-    c.close()
-    return [_row_dict(r) for r in rows]
+    try:
+        table = _validated_table(c, table)
+        order = _validated_order(c, table, order)
+        rows = c.execute(
+            f'SELECT * FROM "{table}" ORDER BY {order} LIMIT ?',
+            (limit,),
+        ).fetchall()
+        return [_row_dict(row) for row in rows]
+    finally:
+        c.close()
 
 
 def select_one(table: str, id_val: str) -> dict | None:
     c = _conn()
-    row = c.execute(f"SELECT * FROM {table} WHERE id=?", (id_val,)).fetchone()
-    c.close()
-    return _row_dict(row) if row else None
+    try:
+        table = _validated_table(c, table)
+        row = c.execute(f'SELECT * FROM "{table}" WHERE id=?', (id_val,)).fetchone()
+        return _row_dict(row) if row else None
+    finally:
+        c.close()
 
 
 def count(table: str) -> int:
     c = _conn()
-    n = c.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-    c.close()
-    return n
+    try:
+        table = _validated_table(c, table)
+        return int(c.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0])
+    finally:
+        c.close()
 
 
 # ── FTS5 search ─────────────────────────────────────────
 
 
 def fts5_search(table: str, query: str, top_k: int = 5) -> list[dict]:
-    """Full-text search via FTS5.  Falls back to LIKE if FTS5 table missing.
-
-    Args:
-        table: either ``'kb_documents'`` or ``'kb_cards'``.
-        query: free-text query string.
-        top_k: max results.
-
-    Returns:
-        List of dicts with ``id``, ``title``, ``snippet``, ``rank``.
-    """
+    """Full-text search via FTS5 with a LIKE fallback."""
     c = _conn()
     try:
-        # Try FTS5 first
-        fts_table = f"{table}_fts"
-        rows = c.execute(
-            f"SELECT rowid, rank FROM {fts_table} WHERE {fts_table} MATCH ? ORDER BY rank LIMIT ?",
-            (query, top_k),
-        ).fetchall()
-        if rows:
-            results = []
-            for r in rows:
-                # FTS5 rowid = the table's rowid; find the actual row
-                base = c.execute(
-                    f"SELECT id, title, content FROM {table} WHERE rowid=?",
-                    (r["rowid"],),
-                ).fetchone()
-                if base:
-                    snippet = base["content"][:200] if base["content"] else ""
-                    results.append(
-                        {
-                            "id": base["id"],
-                            "title": base["title"],
-                            "snippet": snippet,
-                            "rank": r["rank"],
-                        }
-                    )
-            return results
-    except sqlite3.OperationalError:
-        pass  # FTS table missing → fall through to LIKE
+        table = _validated_table(c, table)
+        fts_table = _validated_table(c, f"{table}_fts")
+        try:
+            rows = c.execute(
+                f'SELECT rowid, rank FROM "{fts_table}" '
+                f'WHERE "{fts_table}" MATCH ? ORDER BY rank LIMIT ?',
+                (query, top_k),
+            ).fetchall()
+            if rows:
+                results = []
+                for row in rows:
+                    base = c.execute(
+                        f'SELECT id, title, content FROM "{table}" WHERE rowid=?',
+                        (row["rowid"],),
+                    ).fetchone()
+                    if base:
+                        results.append(
+                            {
+                                "id": base["id"],
+                                "title": base["title"],
+                                "snippet": base["content"][:200] if base["content"] else "",
+                                "rank": row["rank"],
+                            }
+                        )
+                return results
+        except sqlite3.OperationalError:
+            pass
 
-    # LIKE fallback
-    terms = query.strip().split()
-    if not terms:
-        return []
-    clauses = " OR ".join(["content LIKE ?" for _ in terms])
-    params = [f"%{t}%" for t in terms]
-    rows = c.execute(
-        f"SELECT id, title, content FROM {table} WHERE {clauses} ORDER BY created_at DESC LIMIT ?",
-        (*params, top_k),
-    ).fetchall()
-    c.close()
-    return [
-        {"id": r["id"], "title": r["title"], "snippet": r["content"][:200], "rank": 999}
-        for r in rows
-    ]
+        terms = query.strip().split()
+        if not terms:
+            return []
+        clauses = " OR ".join("content LIKE ?" for _ in terms)
+        params = [f"%{term}%" for term in terms]
+        rows = c.execute(
+            f'SELECT id, title, content FROM "{table}" WHERE {clauses} '
+            'ORDER BY created_at DESC LIMIT ?',
+            (*params, top_k),
+        ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "title": row["title"],
+                "snippet": row["content"][:200],
+                "rank": 999,
+            }
+            for row in rows
+        ]
+    finally:
+        c.close()
 
 
 def fts5_sync(table: str, data: dict) -> None:
     """Sync a record to its FTS5 index. Call after INSERT/UPDATE on kb_documents or kb_cards."""
     c = _conn()
     try:
-        fts_table = f"{table}_fts"
-        # Delete old entry if exists (FTS5 uses content-sync via rowid)
-        row = c.execute(f"SELECT rowid FROM {table} WHERE id=?", (data["id"],)).fetchone()
+        table = _validated_table(c, table)
+        fts_table = _validated_table(c, f"{table}_fts")
+        row = c.execute(f'SELECT rowid FROM "{table}" WHERE id=?', (data["id"],)).fetchone()
         if row:
-            c.execute(f"DELETE FROM {fts_table} WHERE rowid=?", (row["rowid"],))
+            c.execute(f'DELETE FROM "{fts_table}" WHERE rowid=?', (row["rowid"],))
             # Re-insert with current content
             cols = []
             vals = []
@@ -436,8 +500,9 @@ def fts5_sync(table: str, data: dict) -> None:
                     vals.append(data[k])
             if cols:
                 placeholders = ",".join("?" for _ in vals)
+                quoted_columns = ",".join(f'"{column}"' for column in cols)
                 c.execute(
-                    f"INSERT INTO {fts_table}({','.join(cols)}) VALUES ({placeholders})",
+                    f'INSERT INTO "{fts_table}"({quoted_columns}) VALUES ({placeholders})',
                     vals,
                 )
         c.commit()

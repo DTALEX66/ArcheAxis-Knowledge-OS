@@ -11,7 +11,8 @@ Drop-in replacement for print() calls across the project:
 from __future__ import annotations
 
 import sys
-from pathlib import Path
+
+from shared.config import config, resolve_runtime_path
 
 try:
     from loguru import logger
@@ -24,24 +25,22 @@ else:
     # Remove default handler
     logger.remove()
 
-    # Console: human-readable colors for dev
-    logger.add(
-        sys.stderr,
-        format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> | <level>{message}</level>",
-        level="DEBUG",
-        colorize=True,
-    )
+    if bool(config.get("logging.console", True)):
+        logger.add(
+            sys.stderr,
+            format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> | <level>{message}</level>",
+            level=str(config.get("logging.level", "INFO")),
+            colorize=True,
+        )
 
-    # File: structured JSON for production
-    _log_dir = Path(__file__).resolve().parents[1] / "data" / "logs"
-    _log_dir.mkdir(parents=True, exist_ok=True)
-    logger.add(
-        _log_dir / "cognitive_os_{time:YYYY-MM-DD}.jsonl",
-        format="{time} {level} {name} {function} {message} {extra}",
-        level="INFO",
-        rotation="10 MB",
-        retention="7 days",
-        serialize=True,  # JSON output
-    )
-
-    logger.info("Logger initialized — console + JSON file ({})", _log_dir)
+    if bool(config.get("logging.file", True)):
+        _log_dir = resolve_runtime_path(str(config.get("logging.file_dir", "data/logs")))
+        _log_dir.mkdir(parents=True, exist_ok=True)
+        logger.add(
+            _log_dir / "cognitive_os_{time:YYYY-MM-DD}.jsonl",
+            format="{time} {level} {name} {function} {message} {extra}",
+            level=str(config.get("logging.level", "INFO")),
+            rotation=str(config.get("logging.rotation", "10 MB")),
+            retention=str(config.get("logging.retention", "7 days")),
+            serialize=True,
+        )

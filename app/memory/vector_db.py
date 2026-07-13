@@ -22,8 +22,9 @@ from pathlib import Path
 
 import numpy as np
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "cognitive_os.sqlite"
+from shared.config import config, resolve_runtime_path
+
+DEFAULT_DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
 _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 

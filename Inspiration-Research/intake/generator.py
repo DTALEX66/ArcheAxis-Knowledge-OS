@@ -1,6 +1,5 @@
 """IntakeCard generator from research notes and project profiles."""
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -31,7 +30,7 @@ def generate_intake_card(
     title: str,
     why: str,
     what_to_absorb: list,
-    what_not_to_absorb: Optional[list] = None,
+    what_not_to_absorb: list | None = None,
     risk_level: str = "low",
     target_repo: str = "Knowledge-Base",
 ) -> IntakeCard:

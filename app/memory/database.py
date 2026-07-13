@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DB_PATH = PROJECT_ROOT / "data" / "cognitive_os.sqlite"
+from shared.config import config, resolve_runtime_path
+
+DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 SCHEMA = """

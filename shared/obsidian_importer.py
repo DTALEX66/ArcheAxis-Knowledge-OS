@@ -17,15 +17,10 @@ Usage:
 from __future__ import annotations
 
 import re
-import sys
 from contextlib import suppress
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Knowledge-Base"))
 
 # ── Vault folder → KB asset type mapping ────────────────
 
@@ -337,8 +332,7 @@ def import_course_to_cards(
     if not course_dir.exists():
         return {"error": f"course not found: {course_path}"}
 
-    from Knowledge_Base.cards.generator import generate_from_markdown
-
+    from knowledge_base.cards.generator import generate_from_markdown
     from shared.storage import fts5_sync, insert
 
     results = []

@@ -10,8 +10,10 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Inspiration-Research"))
 
-from project_radar.scoring.scorer import score_project
-from project_radar.outputs.generator import export_screening_csv, screen_project
+from project_radar.outputs.generator import export_screening_csv, screen_project  # noqa: E402
+from project_radar.scoring.scorer import score_project  # noqa: E402
+
+from shared.config import resolve_runtime_path  # noqa: E402
 
 REGISTRY_PATH = _PROJECT_ROOT / "shared-contracts" / "registries" / "open_source_project_registry.json"
 
@@ -162,22 +164,22 @@ def main():
     print(f"CSV exported: {csv_path}")
 
     # Print summary
-    print(f"\n=== Batch Scoring Results ===")
+    print("\n=== Batch Scoring Results ===")
     print(f"Total: {len(results)}")
     print(f"Qualified (≥3.5): {len(qualified)}")
-    print(f"Top 10:")
+    print("Top 10:")
 
     sorted_results = sorted(results, key=lambda r: r["scores"]["total"], reverse=True)
     for i, r in enumerate(sorted_results[:10], 1):
         flag = "✅" if r["qualifies"] else "❌"
         print(f"  {i:2d}. {flag} {r['repo']:<35s} {r['scores']['total']:5.1f}  {r['category']}")
 
-    print(f"\nBottom 5:")
+    print("\nBottom 5:")
     for i, r in enumerate(sorted_results[-5:], 1):
         print(f"  {i}. ❌ {r['repo']:<35s} {r['scores']['total']:5.1f}  {r['category']}")
 
     # Save JSON results
-    output_json = _PROJECT_ROOT / "data" / "reports" / "registry_scored.json"
+    output_json = resolve_runtime_path("data/reports/registry_scored.json")
     output_json.parent.mkdir(parents=True, exist_ok=True)
     with open(output_json, "w", encoding="utf-8") as f:
         json.dump({"scored_at": "2026-07-02", "total": len(results),

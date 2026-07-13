@@ -1,6 +1,5 @@
 """Daily brief builder — assembles 5-section report."""
 from dataclasses import dataclass, field
-from datetime import date
 
 
 @dataclass

@@ -1,5 +1,5 @@
 """Project scorer — evaluates GitHub/AI projects on 6 dimensions."""
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass

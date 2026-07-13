@@ -25,34 +25,34 @@ import json
 import os
 import secrets
 import time
-from pathlib import Path
 from typing import Any
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # ── API Key management ──────────────────────────────────
 
 
 def _load_api_keys() -> dict[str, dict[str, str]]:
     """Load API keys from config file or environment."""
-    # Default dev key (only for local development)
-    keys: dict[str, dict[str, str]] = {
-        "dev-key-change-me": {"role": "admin", "name": "default-dev-key"},
-    }
+    from shared.config import (
+        _is_strong_secret,
+        _read_valid_api_key_file,
+        config,
+        resolve_runtime_path,
+    )
+
+    environment = str(config.get("app.environment", "development")).lower()
+    keys: dict[str, dict[str, str]] = {}
+    if environment in {"development", "dev", "local", "test"}:
+        keys["dev-key-change-me"] = {"role": "admin", "name": "default-dev-key"}
 
     # Try config file
-    config_path = _PROJECT_ROOT / "config" / "api_keys.json"
-    if config_path.exists():
-        try:
-            loaded = json.loads(config_path.read_text())
-            if isinstance(loaded, dict):
-                keys = loaded
-        except Exception:
-            pass
+    config_path = resolve_runtime_path(str(config.get("auth.api_key_file", "config/api_keys.json")))
+    loaded = _read_valid_api_key_file(config_path)
+    if loaded:
+        keys.update(loaded)
 
-    # Override from env
+    # Environment key is only accepted weak in explicitly local development.
     env_key = os.getenv("COGNITIVE_API_KEY", "")
-    if env_key:
+    if env_key and (environment in {"development", "dev", "local", "test"} or _is_strong_secret(env_key)):
         keys[env_key] = {"role": "admin", "name": "env-admin"}
 
     return keys
@@ -70,6 +70,14 @@ def get_user_from_key(api_key: str) -> str | None:
     return info["name"] if info else None
 
 
+def authenticate_request(path: str, api_key: str = "", authorization: str = "") -> dict[str, Any] | None:
+    """Authenticate one HTTP request, returning an anonymous identity for public paths."""
+    if not requires_auth(path):
+        return {"sub": "anonymous", "role": "anonymous", "auth_method": "none"}
+    token = authorization.removeprefix("Bearer ") if authorization.startswith("Bearer ") else ""
+    return verify_token(token or api_key)
+
+
 # ── JWT-like token (HMAC, zero-dependency) ───────────────
 
 
@@ -79,8 +87,9 @@ def _get_secret() -> str:
     if secret:
         return secret
 
-    # Persistent secret file
-    secret_path = _PROJECT_ROOT / "data" / ".jwt_secret"
+    from shared.config import resolve_runtime_path
+
+    secret_path = resolve_runtime_path("data/.jwt_secret")
     if secret_path.exists():
         return secret_path.read_text().strip()
 
@@ -104,8 +113,15 @@ def create_token(user_id: str, role: str = "user", expires_hours: int = 24) -> s
     """
     import base64
 
+    if not isinstance(user_id, str) or not user_id.strip():
+        raise ValueError("user_id is required")
+    if role not in {"admin", "user", "readonly"}:
+        raise ValueError("invalid role")
+    if not isinstance(expires_hours, int) or not 1 <= expires_hours <= 168:
+        raise ValueError("expires_hours must be between 1 and 168")
+
     payload = {
-        "sub": user_id,
+        "sub": user_id.strip(),
         "role": role,
         "iat": int(time.time()),
         "exp": int(time.time() + expires_hours * 3600),
@@ -145,12 +161,27 @@ def verify_token(token: str) -> dict[str, Any] | None:
     # Decode payload
     try:
         payload_b64_padded = payload_b64 + "=" * (4 - len(payload_b64) % 4)
-        payload = json.loads(base64.urlsafe_b64decode(payload_b64_padded))
+        decoded = json.loads(base64.urlsafe_b64decode(payload_b64_padded))
     except Exception:
         return None
+    if not isinstance(decoded, dict):
+        return None
+    payload: dict[str, Any] = decoded
 
-    # Check expiration
-    if payload.get("exp", 0) < time.time():
+    now = time.time()
+    subject = payload.get("sub")
+    role = payload.get("role")
+    issued_at = payload.get("iat")
+    expires_at = payload.get("exp")
+    if not isinstance(subject, str) or not subject.strip():
+        return None
+    if role not in {"admin", "user", "readonly"}:
+        return None
+    if not isinstance(issued_at, (int, float)) or not isinstance(expires_at, (int, float)):
+        return None
+    if issued_at > now + 60 or expires_at <= now or expires_at <= issued_at:
+        return None
+    if expires_at - issued_at > 168 * 3600 + 60:
         return None
 
     payload["auth_method"] = "jwt"
@@ -168,15 +199,15 @@ _AUTH_ALLOWLIST: set[str] = {
     "/kb/docs",
     "/kb/redoc",
     "/kb/openapi.json",
-    "/",
-    "/dashboard",
-    "/kb/",
-    "/kb/dashboard",
 }
 
 
 def requires_auth(path: str) -> bool:
     """Check if a path requires authentication."""
+    from shared.config import config
+
+    if not bool(config.get("auth.enabled", False)):
+        return False
     # Allow exact matches
     if path in _AUTH_ALLOWLIST:
         return False

@@ -115,8 +115,7 @@ def generate_daily_missions() -> dict[str, Any]:
     Returns:
         {date, missions: [{type, target, reason}]}.
     """
-    from reviews import get_due_reviews
-
+    from knowledge_base.reviews import get_due_reviews
     from shared.knowledge_gardener import detect_gaps
 
     due = get_due_reviews(limit=10)

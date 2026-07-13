@@ -3,21 +3,36 @@
 
 Usage:
     python shared/backup.py backup              # Create timestamped backup
-    python shared/backup.py restore <file>      # Restore from backup
+    python shared/backup.py restore <file>      # Stage validated offline restore candidate
     python shared/backup.py list                # List available backups
 """
 
 from __future__ import annotations
 
-import shutil
 import sqlite3
 import sys
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = _PROJECT_ROOT / "data" / "cognitive_os.sqlite"
-BACKUP_DIR = _PROJECT_ROOT / "data" / "backups"
+from shared.config import config, resolve_runtime_path
+
+DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
+BACKUP_DIR = resolve_runtime_path(str(config.get("database.backup_dir", "data/backups")))
+
+
+
+def _sqlite_backup(source: Path, destination: Path) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with closing(sqlite3.connect(str(source))) as src, closing(sqlite3.connect(str(destination))) as dst:
+        src.backup(dst)
+
+
+def _validate_sqlite_backup(path: Path) -> None:
+    with closing(sqlite3.connect(str(path))) as conn:
+        if conn.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise RuntimeError(f"Invalid SQLite backup: {path}")
+        conn.execute("SELECT COUNT(*) FROM kb_documents")
 
 
 def backup() -> str:
@@ -31,11 +46,8 @@ def backup() -> str:
     backup_path = BACKUP_DIR / f"cognitive_os_{timestamp}.sqlite"
 
     # Use SQLite backup API for safe copy
-    src = sqlite3.connect(str(DB_PATH))
-    dst = sqlite3.connect(str(backup_path))
-    src.backup(dst)
-    src.close()
-    dst.close()
+    _sqlite_backup(DB_PATH, backup_path)
+    _validate_sqlite_backup(backup_path)
 
     # Verify
     if backup_path.stat().st_size > 0:
@@ -44,28 +56,20 @@ def backup() -> str:
 
 
 def restore(backup_path: str) -> str:
-    """Restore database from a backup file.
+    """Stage a validated restore candidate without touching the live database.
 
-    Creates a safety copy of the current DB before restoring.
+    Activating a candidate is intentionally an offline operator action: stop all
+    services and workers, then replace the database outside this runtime.
     """
     src = Path(backup_path)
     if not src.exists():
         raise FileNotFoundError(f"Backup not found: {backup_path}")
-
-    # Safety: backup current DB first
-    safety = BACKUP_DIR / f"pre_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sqlite"
-    if DB_PATH.exists():
-        shutil.copy2(DB_PATH, safety)
-
-    # Restore
-    shutil.copy2(src, DB_PATH)
-
-    # Verify
-    conn = sqlite3.connect(str(DB_PATH))
-    conn.execute("SELECT COUNT(*) FROM kb_documents")
-    conn.close()
-
-    return f"Restored from {backup_path} (safety copy at {safety})"
+    _validate_sqlite_backup(src)
+    candidate_dir = BACKUP_DIR / "restore-candidates"
+    candidate = candidate_dir / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.sqlite"
+    _sqlite_backup(src, candidate)
+    _validate_sqlite_backup(candidate)
+    return str(candidate)
 
 
 def list_backups() -> list[str]:

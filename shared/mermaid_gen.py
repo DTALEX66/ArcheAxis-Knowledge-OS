@@ -78,7 +78,7 @@ def review_timeline_mermaid(card_id: str) -> str:
 
     Returns Mermaid gantt chart of review history.
     """
-    from reviews import get_review_history
+    from knowledge_base.reviews import get_review_history
 
     reviews = get_review_history(card_id, limit=20)
     if not reviews:

@@ -1,6 +1,5 @@
 """EngineeringContract generator from IntakeCard."""
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -28,8 +27,8 @@ class EngineeringContract:
 def generate_contract(
     goal: str,
     deliverables: list,
-    acceptance_criteria: Optional[list] = None,
-    blocked_actions: Optional[list] = None,
+    acceptance_criteria: list | None = None,
+    blocked_actions: list | None = None,
     risk_level: str = "low",
     target_repo: str = "Cognitive-OS",
 ) -> EngineeringContract:

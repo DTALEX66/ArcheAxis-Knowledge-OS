@@ -9,6 +9,18 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
+ALLOWED_EXPORT_TABLES = frozenset(
+    {
+        "kb_documents",
+        "kb_cards",
+        "kb_reviews",
+        "kb_mistakes",
+        "machine_knowledge_units",
+        "kb_taskpacks",
+        "kb_context_packs",
+    }
+)
+
 
 def bulk_import(items: list[dict[str, Any]]) -> dict[str, Any]:
     """Batch import multiple items via pipeline.
@@ -56,15 +68,11 @@ def export_kb(format: str = "json", tables: list[str] | None = None) -> dict[str
     from shared.storage import select_all
 
     if tables is None:
-        tables = [
-            "kb_documents",
-            "kb_cards",
-            "kb_reviews",
-            "kb_mistakes",
-            "machine_knowledge_units",
-            "kb_taskpacks",
-            "kb_context_packs",
-        ]
+        tables = sorted(ALLOWED_EXPORT_TABLES)
+
+    unsupported = sorted(set(tables) - ALLOWED_EXPORT_TABLES)
+    if unsupported:
+        raise ValueError(f"unsupported export table(s): {', '.join(unsupported)}")
 
     export: dict[str, Any] = {"format": format, "tables": {}}
 

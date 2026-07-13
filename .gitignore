@@ -5,6 +5,9 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
 
 # Local env
 .venv/
@@ -32,9 +35,10 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Codex local state
+# Codex/Hermes local state
 .codex/
+.hermes/
 
 # Sub-project runtime data
 Inspiration-Research/data/
-Knowledge-Base/data/
+knowledge_base/data/

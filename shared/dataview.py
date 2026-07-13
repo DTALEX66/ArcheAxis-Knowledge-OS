@@ -23,7 +23,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from shared.storage import select_all  # noqa: E402
+from shared.storage import select_all, validate_public_table  # noqa: E402
 
 # ── Query parser ────────────────────────────────────────
 
@@ -119,7 +119,10 @@ def query(query_str: str) -> dict[str, Any]:
     if not match:
         return {"error": "invalid query syntax", "query": query_str}
 
-    table = match.group("table")
+    try:
+        table = validate_public_table(match.group("table"))
+    except ValueError as exc:
+        return {"error": str(exc), "query": query_str}
     where_clause = match.group("where")
     sort_field = match.group("sort")
     sort_order = (match.group("order") or "ASC").upper()

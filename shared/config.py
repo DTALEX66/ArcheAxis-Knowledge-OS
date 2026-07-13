@@ -11,6 +11,8 @@ Usage:
 
 from __future__ import annotations
 
+import copy
+import json
 import os
 from pathlib import Path
 from typing import Any
@@ -23,26 +25,27 @@ _DEFAULTS: dict[str, Any] = {
     "app": {
         "name": "Cognitive-Loop-OS",
         "version": "0.4.0",
+        "environment": "development",
         "port": 8000,
         "host": "0.0.0.0",
     },
     "database": {
-        "path": str(_PROJECT_ROOT / "data" / "cognitive_os.sqlite"),
+        "path": "data/cognitive_os.sqlite",
         "journal_mode": "WAL",
-        "backup_dir": str(_PROJECT_ROOT / "data" / "backups"),
+        "backup_dir": "data/backups",
     },
     "logging": {
         "level": "INFO",
         "console": True,
         "file": True,
-        "file_dir": str(_PROJECT_ROOT / "data" / "logs"),
+        "file_dir": "data/logs",
         "rotation": "10 MB",
         "retention": "7 days",
     },
     "auth": {
         "enabled": False,  # set True in production
         "token_expire_hours": 24,
-        "api_key_file": str(_PROJECT_ROOT / "config" / "api_keys.json"),
+        "api_key_file": "config/api_keys.json",
     },
     "pipeline": {
         "max_content_chars": 10000,
@@ -67,7 +70,7 @@ class Config:
     """Singleton configuration with YAML + env override."""
 
     def __init__(self) -> None:
-        self._data = dict(_DEFAULTS)
+        self._data = copy.deepcopy(_DEFAULTS)
         self._load_yaml()
         self._apply_env()
 
@@ -80,14 +83,16 @@ class Config:
 
             with open(config_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
-            if isinstance(data, dict):
-                self._deep_merge(self._data, data)
-        except Exception:
-            pass
+        except Exception as exc:
+            raise RuntimeError(f"unable to load runtime configuration: {config_path}") from exc
+        if not isinstance(data, dict):
+            raise RuntimeError(f"runtime configuration must be a mapping: {config_path}")
+        self._deep_merge(self._data, data)
 
     def _apply_env(self) -> None:
         """Override config from environment variables."""
         env_map: dict[str, list[str]] = {
+            "COGNITIVE_ENV": ["app", "environment"],
             "COGNITIVE_PORT": ["app", "port"],
             "COGNITIVE_DB_PATH": ["database", "path"],
             "COGNITIVE_LOG_LEVEL": ["logging", "level"],
@@ -98,6 +103,17 @@ class Config:
             val = os.getenv(env_key, "")
             if val:
                 self._set_nested(self._data, path, self._coerce(val))
+
+        list_env_map = {
+            "COGNITIVE_CORS_ORIGINS": ["cors", "allow_origins"],
+            "COGNITIVE_CORS_METHODS": ["cors", "allow_methods"],
+            "COGNITIVE_CORS_HEADERS": ["cors", "allow_headers"],
+        }
+        for env_key, path in list_env_map.items():
+            value = os.getenv(env_key, "")
+            if value:
+                items = [item.strip() for item in value.split(",") if item.strip()]
+                self._set_nested(self._data, path, items)
 
     @staticmethod
     def _coerce(val: str) -> Any:
@@ -128,7 +144,7 @@ class Config:
     def get(self, key_path: str, default: Any = None) -> Any:
         """Get config by dot-separated path. e.g. 'database.path'."""
         keys = key_path.split(".")
-        data = self._data
+        data: Any = self._data
         for k in keys:
             if isinstance(data, dict):
                 data = data.get(k)
@@ -137,8 +153,88 @@ class Config:
         return data if data is not None else default
 
     def to_dict(self) -> dict[str, Any]:
-        return dict(self._data)
+        return copy.deepcopy(self._data)
 
 
 # Singleton
 config = Config()
+
+
+def resolve_runtime_path(value: str | Path) -> Path:
+    """Resolve configured paths to repo-local or user-writable installed locations."""
+    candidate = Path(value).expanduser()
+    if candidate.is_absolute():
+        return candidate
+    if (_PROJECT_ROOT / "pyproject.toml").exists():
+        return _PROJECT_ROOT / candidate
+    base = Path(os.getenv("COGNITIVE_DATA_DIR", Path.home() / ".cognitive-loop-os")).expanduser()
+    parts = candidate.parts[1:] if candidate.parts and candidate.parts[0] in {"data", "config"} else candidate.parts
+    return base.joinpath(*parts)
+
+
+_ALLOWED_ROLES = {"admin", "user", "readonly"}
+_FORBIDDEN_SECRETS = {"dev-key-change-me", "change-me", "changeme", "secret"}
+
+
+def _is_strong_secret(value: str) -> bool:
+    return len(value) >= 32 and value.lower() not in _FORBIDDEN_SECRETS and len(set(value)) >= 8
+
+
+def _read_valid_api_key_file(path: Path) -> dict[str, dict[str, str]] | None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    valid = isinstance(data, dict) and bool(data) and all(
+        isinstance(key, str)
+        and _is_strong_secret(key)
+        and isinstance(value, dict)
+        and value.get("role") in _ALLOWED_ROLES
+        and isinstance(value.get("name"), str)
+        and bool(value.get("name", "").strip())
+        for key, value in data.items()
+    )
+    return data if valid else None
+
+
+def _has_valid_api_key_file(path: Path) -> bool:
+    return _read_valid_api_key_file(path) is not None
+
+
+def validate_runtime_config(current: Config = config) -> None:
+    """Fail fast when a production profile keeps development-only safety defaults."""
+    environment = str(current.get("app.environment", "development")).lower()
+    if environment not in {"production", "prod"}:
+        return
+    if not bool(current.get("auth.enabled", False)):
+        raise RuntimeError("production requires auth.enabled=true")
+    origins = current.get("cors.allow_origins", ["*"])
+    if not isinstance(origins, list) or not origins or not all(
+        isinstance(item, str) and item == item.strip() and bool(item) for item in origins
+    ):
+        raise RuntimeError("production CORS origins must be a non-empty list of strings")
+    if "*" in origins:
+        raise RuntimeError("production requires an explicit CORS origin allowlist")
+    methods = current.get("cors.allow_methods", [])
+    allowed_methods = {"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
+    if not isinstance(methods, list) or not methods or not all(item in allowed_methods for item in methods):
+        raise RuntimeError("production CORS methods must be an explicit supported-method list")
+    headers = current.get("cors.allow_headers", [])
+    if not isinstance(headers, list) or not headers or not all(
+        isinstance(item, str) and item == item.strip() and bool(item) and item != "*" for item in headers
+    ):
+        raise RuntimeError("production CORS headers must be a non-empty list of strings")
+    key_file = resolve_runtime_path(str(current.get("auth.api_key_file", "config/api_keys.json")))
+    api_key = os.getenv("COGNITIVE_API_KEY", "")
+    jwt_secret = os.getenv("COGNITIVE_JWT_SECRET", "")
+    file_keys = _read_valid_api_key_file(key_file)
+    if key_file.exists() and file_keys is None:
+        raise RuntimeError("production auth.api_key_file contains invalid or weak records")
+    if not _is_strong_secret(api_key) and file_keys is None:
+        raise RuntimeError("production requires a strong COGNITIVE_API_KEY or auth.api_key_file")
+    if not _is_strong_secret(jwt_secret):
+        raise RuntimeError("production requires a strong COGNITIVE_JWT_SECRET")
+    if api_key and api_key == jwt_secret:
+        raise RuntimeError("production API key and JWT secret must be different")
+    if file_keys and any(key == jwt_secret for key in file_keys):
+        raise RuntimeError("production API keys and JWT secret must be different")

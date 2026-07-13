@@ -172,7 +172,11 @@ def test_sleep_loop_real_file_read_requires_evidence_before_done():
     assert started["ok"] is True
     tick = sl.tick_once()
     assert tick["success"] is True
-    task = sl.list_tasks(run_id=started["run_id"], limit=1)[0]
+    task = next(
+        item
+        for item in sl.list_tasks(run_id=started["run_id"], limit=20)
+        if item["executor"] == "file_read"
+    )
     result = task["result"]
     assert task["status"] == "done"
     assert result["tool"] == "file_read"
@@ -206,7 +210,11 @@ def test_sleep_loop_kb_search_runs_with_real_evidence_in_worker_context():
     assert started["ok"] is True
     tick = sl.tick_once()
     assert tick["success"] is True
-    task = sl.list_tasks(run_id=started["run_id"], limit=1)[0]
+    task = next(
+        item
+        for item in sl.list_tasks(run_id=started["run_id"], limit=20)
+        if item["executor"] == "kb_search" and not item.get("parent_id")
+    )
     result = task["result"]
     assert task["status"] == "done"
     assert result["tool"] == "kb_search"

@@ -1,13 +1,11 @@
-import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from shared.config import resolve_runtime_path
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-KB_ROOT = PROJECT_ROOT / "Knowledge-Base"
-if str(KB_ROOT) not in sys.path:
-    sys.path.insert(0, str(KB_ROOT))
-SAFE_OUTPUT_DIR = PROJECT_ROOT / "data" / "output"
+SAFE_OUTPUT_DIR = resolve_runtime_path("data/output")
 SAFE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -202,7 +200,7 @@ def _kb_search_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
     query = str(payload.get("query", ""))
     top_k = int(payload.get("top_k", 5))
 
-    from search import hybrid_search
+    from knowledge_base.search import hybrid_search
 
     items = hybrid_search(query, top_k=top_k)
     result["items"] = items
@@ -216,7 +214,7 @@ def _mk_search_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
     query = str(payload.get("query", ""))
     limit = int(payload.get("limit", 20))
 
-    from machine_knowledge import search_units
+    from knowledge_base.machine_knowledge import search_units
 
     items = search_units(query, limit=limit)
     result["items"] = items
@@ -231,7 +229,7 @@ def _context_pack_build_tool(payload: dict[str, Any], dry_run: bool) -> dict[str
     sources = payload.get("sources", [])
     constraints = payload.get("constraints", [])
 
-    from context_pack import build_context_pack
+    from knowledge_base.context_pack import build_context_pack
 
     ctx = build_context_pack(goal=goal, sources=sources, constraints=constraints)
     result["context_pack"] = ctx.to_dict()
@@ -246,7 +244,7 @@ def _taskpack_generate_tool(payload: dict[str, Any], dry_run: bool) -> dict[str,
     tools = payload.get("allowed_tools", ["echo"])
     risk = str(payload.get("risk_level", "low"))
 
-    from taskpack import build_taskpack
+    from knowledge_base.taskpack import build_taskpack
 
     task = build_taskpack(goal=goal, steps=steps, allowed_tools=tools, risk_level=risk)
     if dry_run:

@@ -1,26 +1,71 @@
 """Inspiration-Research API — SQLite-backed, v0.2."""
-import sys, uuid
+import re
+import sys
+import time
+import uuid
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "Inspiration-Research"))
 
-from fastapi import FastAPI
+from contracts.generator import generate_contract
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from intake.generator import generate_intake_card
+from project_radar.collectors.github_trending import (
+    collect_trending,
+    collect_trending_fallback,
+)
+from project_radar.outputs.generator import (
+    BriefItem,
+    build_daily_brief,
+    export_screening_csv,
+    screen_project,
+)
+from project_radar.scoring.scorer import score_project
 from pydantic import BaseModel
 
-from project_radar.scoring.scorer import score_project
-from project_radar.outputs.generator import (
-    build_daily_brief, screen_project, export_screening_csv, BriefItem,
-)
-from project_radar.collectors.github_trending import (
-    collect_trending, collect_trending_fallback, TrendingRepo,
-)
-from intake.generator import generate_intake_card
-from contracts.generator import generate_contract
-from shared.storage import insert, select_all, count
+from shared.config import config, validate_runtime_config
+from shared.storage import count, insert, select_all
 
+validate_runtime_config(config)
 app = FastAPI(title="Inspiration-Research", version="0.2.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=config.get("cors.allow_origins", ["*"]),
+    allow_methods=config.get("cors.allow_methods", ["GET", "POST"]),
+    allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
+)
+
+
+@app.middleware("http")
+async def authenticate_and_log(request: Request, call_next):
+    from shared.auth import authenticate_request
+
+    started = time.time()
+
+    user = authenticate_request(
+        request.url.path,
+        request.headers.get("X-API-Key", ""),
+        request.headers.get("Authorization", ""),
+    )
+    if not user:
+        return JSONResponse(
+            status_code=401,
+            content={"error": "unauthorized", "detail": "Valid API key or token required."},
+        )
+    response = await call_next(request)
+    response.headers["X-Process-Time-ms"] = str(round((time.time() - started) * 1000, 1))
+    return response
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    environment = str(config.get("app.environment", "development")).lower()
+    detail = str(exc)[:200] if environment not in {"production", "prod"} else "request failed"
+    return JSONResponse(status_code=500, content={"error": "internal_error", "detail": detail})
 
 
 class ResearchNoteIn(BaseModel):
@@ -163,4 +208,4 @@ def _guess(text: str) -> str:
     return "AI Agent/Coding"
 
 def _score(text: str, pattern: str, base: float) -> float:
-    import re; return min(base + len(re.findall(pattern, text)) * 0.5, 5.0)
+    return min(base + len(re.findall(pattern, text)) * 0.5, 5.0)

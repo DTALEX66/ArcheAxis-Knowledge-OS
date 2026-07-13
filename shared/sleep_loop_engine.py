@@ -28,10 +28,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from shared.config import resolve_runtime_path
 from shared.storage import DB_PATH, _conn
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-LOG_DIR = PROJECT_ROOT / "logs" / "sleep-loop"
+
+LOG_DIR = resolve_runtime_path("data/logs/sleep-loop")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 STATUS_IDLE = "idle"
@@ -144,7 +146,7 @@ class SleepLoopConfig:
 
 
 def _now() -> str:
-    return datetime.now().isoformat(timespec="seconds")
+    return datetime.now().isoformat(timespec="microseconds")
 
 
 def _new_id(prefix: str) -> str:
@@ -286,7 +288,7 @@ def get_active_run() -> dict[str, Any] | None:
     conn = _conn()
     row = conn.execute(
         "SELECT * FROM sleep_loop_runs WHERE status IN (?, ?, ?, ?) "
-        "ORDER BY started_at DESC LIMIT 1",
+        "ORDER BY started_at DESC, rowid DESC LIMIT 1",
         (STATUS_RUNNING, STATUS_SLEEPING, STATUS_PAUSED, STATUS_COOLING),
     ).fetchone()
     conn.close()
@@ -705,7 +707,7 @@ def _run_with_timeout(
 def _next_pending_task(conn: Any, run_id: str) -> dict[str, Any] | None:
     rows = conn.execute(
         "SELECT * FROM sleep_loop_tasks WHERE run_id=? AND status=? "
-        "ORDER BY priority ASC, created_at ASC LIMIT 20",
+        "ORDER BY priority ASC, created_at ASC, rowid ASC LIMIT 20",
         (run_id, TASK_PENDING),
     ).fetchall()
     for row in rows:
@@ -978,12 +980,12 @@ def list_tasks(
     if status:
         rows = conn.execute(
             "SELECT * FROM sleep_loop_tasks WHERE run_id=? AND status=? "
-            "ORDER BY created_at DESC LIMIT ?",
+            "ORDER BY created_at DESC, rowid DESC LIMIT ?",
             (rid, status, limit),
         ).fetchall()
     else:
         rows = conn.execute(
-            "SELECT * FROM sleep_loop_tasks WHERE run_id=? ORDER BY created_at DESC LIMIT ?",
+            "SELECT * FROM sleep_loop_tasks WHERE run_id=? ORDER BY created_at DESC, rowid DESC LIMIT ?",
             (rid, limit),
         ).fetchall()
     conn.close()

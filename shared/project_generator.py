@@ -78,7 +78,7 @@ def generate_project_from_topic(
         f"What was the hardest part of implementing {topic}?",
     ]
 
-    from taskpack import build_taskpack
+    from knowledge_base.taskpack import build_taskpack
 
     task = build_taskpack(
         goal=f"Master {topic} through project-based learning",

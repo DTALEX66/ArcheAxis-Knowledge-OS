@@ -21,7 +21,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from shared.storage import insert, select_all, select_one  # noqa: E402
+from shared.storage import DB_PATH, insert, select_all, select_one  # noqa: E402
 
 
 def create_canvas(name: str, description: str = "") -> dict[str, Any]:
@@ -175,7 +175,7 @@ def delete_canvas(canvas_id: str) -> bool:
     """Delete a canvas and all its contents."""
     import sqlite3
 
-    conn = sqlite3.connect(str(_PROJECT_ROOT / "data" / "cognitive_os.sqlite"))
+    conn = sqlite3.connect(str(DB_PATH))
     try:
         conn.execute("DELETE FROM canvases WHERE id=?", (canvas_id,))
         conn.execute("DELETE FROM canvas_nodes WHERE canvas_id=?", (canvas_id,))
