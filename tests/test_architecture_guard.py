@@ -30,6 +30,11 @@ def test_architecture_guard_rejects_new_boundary_violations(tmp_path: Path):
         "del sys.path[:]\n",
     )
     _write(tmp_path, "cli.py", "from sys import path as search_path\nsearch_path.append('vendor')\n")
+    _write(
+        tmp_path,
+        "inspiration_research/leak.py",
+        "import sys\nsys.path.append('vendor')\n",
+    )
     _write(tmp_path, "shared-contracts/schemas/leak.py", "from app.core import router\n")
     _write(
         tmp_path,
@@ -76,7 +81,7 @@ def test_architecture_guard_rejects_new_boundary_violations(tmp_path: Path):
     assert Counter(issue.code for issue in issues) == Counter(
         {
             "forbidden-absolute-path": 13,
-            "forbidden-sys-path-mutation": 8,
+            "forbidden-sys-path-mutation": 9,
             "reverse-business-dependency": 5,
             "reverse-facade-dependency": 5,
         }
@@ -85,6 +90,7 @@ def test_architecture_guard_rejects_new_boundary_violations(tmp_path: Path):
         "app/core/reverse.py",
         "app/new_bootstrap.py",
         "cli.py",
+        "inspiration_research/leak.py",
         "platform/leak.py",
         "shared-contracts/schemas/leak.py",
         "shared/personal_path.py",

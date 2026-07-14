@@ -9,7 +9,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。当前基线已经能摄入、检索、组织知识并执行受控工具；下一阶段集中补齐 Facade、架构边界、动态规划和可信反馈，而不是继续横向堆功能。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。当前基线已经能摄入、检索、组织知识并执行受控工具；五个公共 Facade 与 Architecture Guard 已建立，下一阶段进入版本化合同，之后才处理安全写入边界、动态规划和可信反馈。
 
 ## 规划与进度
 
@@ -19,7 +19,7 @@ Research → Evidence → Knowledge → Learning
 | --- | --- | --- | --- |
 | Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
-| Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | 🟡 进行中 | Runtime Facade 与 Architecture Guard 已交付；下一步 Knowledge/Research Facade |
+| Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
 | Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | ⬜ 规划中 | 等待 Phase 1 可运行边界完成 |
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
@@ -27,7 +27,7 @@ Research → Evidence → Knowledge → Learning
 | Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
 | Phase 10 | 产品化、诊断、升级与多端发布 | ⬜ 规划中 | 仅在 Alpha 闭环完成后启动 |
 
-### 当前里程碑：Phase 1.1
+### 已完成里程碑：Phase 1.1
 
 ```text
 规划记录收口 ✅
@@ -35,10 +35,10 @@ Research → Evidence → Knowledge → Learning
 → 最小 Facade 包装现有 route/permission/execute/trace ✅
 → 旧入口与 Facade 等价验证 ✅
 → Architecture Guard ✅
-→ Knowledge / Research / Enhancement / Contracts Facade
+→ Knowledge / Research / Enhancement / Contracts Facade ✅
 ```
 
-下一刀：以真实查询和 candidate 摄入合同实现 **Knowledge / Research Facade tracer bullet**，继续保留现有 API 兼容入口。
+下一刀：进入 **Phase 2 版本化 Contracts 与 legacy adapter**；不得把当前 identity re-export 误称为版本化 Schema。
 
 本阶段明确不做：数据库迁移、目录树搬迁、Planner/Evaluator 重写、依赖大升级，以及任何外部项目扫描。
 
@@ -74,7 +74,8 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 app/                    核心认知运行时、摄入、工具、工作流
 knowledge_base/         可安装的文档、卡片、检索、复习、机器知识与领域路由包
   routers/              稳定复合 API、质量 API、投影 API
-Inspiration-Research/   研究发现与候选项目雷达
+inspiration_research/   可安装的研究发现、Intake 与候选项目雷达包
+Inspiration-Research/   deprecated source-checkout launcher 与说明
 shared/                 SQLite、管道、证据、图谱、配置、鉴权等共享能力
 shared-contracts/       Schema、fixture、适配器和开源项目注册表
 tests/                  Core/共享能力测试

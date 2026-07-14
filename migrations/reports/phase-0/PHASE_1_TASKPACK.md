@@ -6,8 +6,11 @@
 
 - TP1.0 已完成：命名、编码与 repository convention 治理。
 - TP1.1 已完成：Runtime Facade tracer bullet，旧 `/run` 保留并复用新边界。
+- TP1.2 已完成：Knowledge keyword 查询与 Research IntakeCard candidate Facade；Research 已迁为可安装的 `inspiration_research` 包。
+- TP1.3 已完成：Enhancement candidate 与 Contracts identity re-export Facade。
 - TP1.4 已完成：AST Architecture Guard 已接入 CI，并以精确 grandfather 保留历史兼容点。
-- 下一任务：TP1.2 Knowledge 与 Research Facade。
+- TP1.6 已完成：CI、架构文档和旧入口兼容证据已收口。
+- Facade/Guard 工作包已完成；下一阶段进入路线图 Phase 2。TP1.5 安全项对应路线图 Phase 3，保持独立批次。
 - 验证频率、完整门禁与 reviewer 触发条件只由 [`docs/VERIFICATION_POLICY.md`](../../../docs/VERIFICATION_POLICY.md) 定义；本文件不复制一套可能漂移的门禁。
 
 ## 目标
@@ -39,13 +42,13 @@ Phase 0 的清单隔离、运行时临时目录和 API 快照属于已冻结的�
 2. 最小包装现有 `app/core` 与 `app/agent`，不得复制实现。
 3. 对比 Facade 与旧入口的标准对象结果。
 
-### TP1.2 Knowledge 与 Research Facade
+### TP1.2 Knowledge 与 Research Facade（已完成）
 
 1. 先写失败测试覆盖一个真实查询和一个 candidate 摄入路径。
 2. Knowledge Facade 调用 `knowledge_base` 稳定入口。
-3. Research Facade 隔离连字符目录兼容逻辑，调用方不得新增 `sys.path.insert`。
+3. Research 实现已迁为 canonical `inspiration_research` 包；连字符目录只保留 deprecated API launcher，调用方不再注入路径。
 
-### TP1.3 Enhancement 与 Contracts Facade
+### TP1.3 Enhancement 与 Contracts Facade（已完成）
 
 1. 用现有摘要/卡片/质量能力完成一个真实 artifact tracer bullet。
 2. Contracts Facade 先导出现有对象；版本化对象定义留给 Phase 2。
@@ -58,14 +61,14 @@ Phase 0 的清单隔离、运行时临时目录和 API 快照属于已冻结的�
 4. 禁止运行时代码硬编码外部项目或个人资料路径。
 5. 仅对白名单中的现有兼容点 grandfather，新增即失败。
 
-### TP1.5 Security Guards
+### TP1.5 Security Guards（对应路线图 Phase 3，未开始）
 
 1. 为 write/import/execute/backup 路由建立端点级 RBAC，`readonly` 变更请求必须 403。
 2. 建统一 `safe_http_fetch()`，拒绝私网/回环/链路本地和重定向逃逸，并限制响应大小。
 3. 所有 API 可达文件路径必须经过 approved-root containment；输入根与输出根分权。
 4. 为 SSRF、symlink/junction 逃逸和存储型 XSS 候选补失败优先回归测试。
 
-### TP1.6 CI 与文档收口
+### TP1.6 CI 与文档收口（已完成）
 
 1. 将 Architecture Guard 加入 CI。
 2. 更新当前架构图和 Facade 所有权表。

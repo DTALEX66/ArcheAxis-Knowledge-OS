@@ -32,6 +32,8 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
 
         from app.facades import ingest_candidate, query_knowledge
         from inspiration_research.api import app as canonical_app
+        from knowledge_base.api import app as knowledge_app
+        from fastapi.testclient import TestClient
 
         token = "facadefts" + uuid.uuid4().hex
         document = {
@@ -56,6 +58,22 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
         )
         assert raw_hit["rank"] != 999
 
+        legacy_search = TestClient(knowledge_app).post(
+            "/search",
+            json={"query": token, "mode": "keyword", "top_k": 10},
+        )
+        assert legacy_search.status_code == 200
+        legacy_body = legacy_search.json()
+        assert legacy_body["query"] == knowledge.query
+        assert legacy_body["mode"] == knowledge.mode
+        assert legacy_body["count"] == knowledge.count
+        assert [item["id"] for item in legacy_body["items"]] == [
+            item.id for item in knowledge.items
+        ]
+        assert [item["score"] for item in legacy_body["items"]] == [
+            item.keyword_score for item in knowledge.items
+        ]
+
         before_path = tuple(sys.path)
         intake = ingest_candidate(
             title="isolated research candidate",
@@ -72,6 +90,21 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
         assert stored["id"] == intake.intake_id
         assert stored["what_to_absorb"] == ["real generator", "real SQLite"]
         assert stored["what_not_to_absorb"] == ["mock storage"]
+
+        legacy_intake = TestClient(canonical_app).post(
+            "/intake-card",
+            json={
+                "title": "legacy intake entry",
+                "why": "prove the endpoint reuses the facade",
+                "what_to_absorb": ["shared boundary"],
+            },
+        )
+        assert legacy_intake.status_code == 200
+        legacy_payload = legacy_intake.json()
+        assert legacy_payload["intake_id"].startswith("intake_")
+        assert storage.select_one(
+            "ir_intake_cards", legacy_payload["intake_id"]
+        )["id"] == legacy_payload["intake_id"]
 
         legacy_app = importlib.import_module("Inspiration-Research.api").app
         assert legacy_app is canonical_app

@@ -23,7 +23,8 @@
 ```text
 app/                    当前认知运行时
 knowledge_base/         可安装的知识、学习和领域 API 包
-Inspiration-Research/   当前研究雷达和研究资产
+inspiration_research/   可安装的当前研究雷达和研究资产
+Inspiration-Research/   deprecated source-checkout launcher
 shared/                 现有跨域实现，逐步通过 Facade 收口
 shared-contracts/       现有 Schema、适配器与项目注册
 ```
@@ -65,10 +66,10 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 
 ### Phase 1.1 Facade 与架构守卫
 
-- 建立 Research、Knowledge、Enhancement、Runtime、Contracts 公共 Facade。
-- Facade 先调用当前 `app/shared/knowledge_base/Inspiration-Research` 实现。
-- CI 阻止 Contracts/Platform 反向依赖业务模块。
-- 新代码禁止增加 `sys.path.insert`。
+- **已完成** Research、Knowledge、Enhancement、Runtime、Contracts 公共 Facade。
+- Facade 调用当前 `app/shared/knowledge_base/inspiration_research` 真实实现。
+- CI 已阻止 Contracts/Platform 反向依赖业务模块。
+- 新代码禁止增加 `sys.path` 变异。
 - 禁止运行时代码引用 A 项目路径。
 
 ## Phase 2：版本化 Contracts

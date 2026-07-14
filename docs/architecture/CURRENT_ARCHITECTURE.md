@@ -9,8 +9,13 @@ Client / Agent / Cron
         │
         ▼
 app.main :8000
+├── Public Facades
+│   ├── runtime.py (route → permission → execute → trace)
+│   ├── knowledge.py (read-only keyword/FTS query)
+│   ├── research.py (persisted IntakeCard candidate)
+│   ├── enhancement.py (in-memory summary/card/quality candidate)
+│   └── contracts.py (identity exports of current runtime objects)
 ├── Core Runtime
-│   ├── facades/runtime.py (public route → permission → execute → trace boundary)
 │   ├── ingest / route / run
 │   ├── retrieval / tools / evaluation
 │   ├── memory / trace / lesson
@@ -68,12 +73,14 @@ source inventory
 | Facade | 状态 | 当前委托实现 | 兼容入口 |
 | --- | --- | --- | --- |
 | Runtime | tracer bullet 已接入 | `app.core.router`、`app.core.permissions`、`app.agent.executor`、`app.core.trace` | `POST /run` |
-| Knowledge | 待实现 | `knowledge_base` 稳定入口 | `/kb/*` |
-| Research | 待实现 | `Inspiration-Research` 兼容实现 | IR API |
-| Enhancement | 待实现 | 现有摘要、卡片与质量模块 | 现有 KB API |
-| Contracts | 待实现 | `app.schemas`、`shared-contracts` | 当前对象导入 |
+| Knowledge | tracer bullet 已接入 | `knowledge_base.search.keyword_search` | standalone `/search`、mounted `/kb/search` |
+| Research | tracer bullet 已接入 | `inspiration_research.intake.generator`、`shared.storage` | canonical IR API；旧 `Inspiration-Research.api` launcher |
+| Enhancement | tracer bullet 已接入 | `progressive_summarize`、`generate_from_markdown`、`audit_markdown_quality` | 现有细粒度能力保持不变 |
+| Contracts | tracer bullet 已接入 | `app.schemas` 对象 identity re-export | 当前对象导入 |
 
 Runtime Facade 只编排现有实现：允许 `app.main → app.facades → app.core/app.agent`，禁止底层业务模块反向依赖 Facade 或主应用。旧 `/run` 仍保留，回滚不需要数据库迁移。
+
+Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细节提升为稳定合同。Research 返回并持久化的是 `IntakeCard` candidate。Enhancement 只返回内存 candidate，不写数据库、不调用网络或 LLM。Contracts 不声明与 `shared-contracts` JSON Schema 等价；版本化 adapter 留给 Phase 2。
 
 ## Architecture Guard
 

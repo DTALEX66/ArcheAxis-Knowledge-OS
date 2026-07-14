@@ -14,6 +14,7 @@ _SCAN_ROOTS = (
     "app",
     "shared",
     "knowledge_base",
+    "inspiration_research",
     "Inspiration-Research",
     "shared-contracts",
     "platform",
@@ -55,39 +56,13 @@ _GRANDFATHERED_SYS_PATH_CALLS = {
     ("shared/source_discovery.py", 16, "sys.path.insert(0, str(_PROJECT_ROOT))"),
     ("shared/web_search.py", 21, "sys.path.insert(0, str(_PROJECT_ROOT))"),
     ("shared/youtube_extractor.py", 21, "sys.path.insert(0, str(_PROJECT_ROOT))"),
-    ("Inspiration-Research/api.py", 9, "sys.path.insert(0, str(_PROJECT_ROOT))"),
-    (
-        "Inspiration-Research/api.py",
-        10,
-        "sys.path.insert(0, str(_PROJECT_ROOT / 'Inspiration-Research'))",
-    ),
-    (
-        "Inspiration-Research/project_radar/outputs/generator.py",
-        16,
-        "sys.path.insert(0, str(_PROJECT_ROOT))",
-    ),
-    (
-        "Inspiration-Research/project_radar/outputs/generator.py",
-        17,
-        "sys.path.insert(0, str(_IR_DIR))",
-    ),
-    ("scripts/batch_score_registry.py", 10, "sys.path.insert(0, str(_PROJECT_ROOT))"),
-    (
-        "scripts/batch_score_registry.py",
-        11,
-        "sys.path.insert(0, str(_PROJECT_ROOT / 'Inspiration-Research'))",
-    ),
+
     (
         "scripts/check_repository_conventions.py",
         19,
         "sys.path.insert(0, str(_REPOSITORY_ROOT))",
     ),
-    ("scripts/run_daily.py", 12, "sys.path.insert(0, str(_PROJECT_ROOT))"),
-    (
-        "scripts/run_daily.py",
-        13,
-        "sys.path.insert(0, str(_PROJECT_ROOT / 'Inspiration-Research'))",
-    ),
+
     ("scripts/sleep_loop_worker.py", 18, "sys.path.insert(0, str(PROJECT_ROOT))"),
 }
 _GRANDFATHERED_REVERSE_IMPORTS = {

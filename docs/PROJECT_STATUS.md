@@ -5,8 +5,11 @@
 ## 已验证能力
 
 - Core `/run` 的 route/execute/trace/evaluate 存储链可运行；Planner 仍以固定 echo 步骤为主，不能视为真实动态认知闭环。
+- Runtime、Knowledge、Research、Enhancement、Contracts 五个 Facade 已有真实 tracer bullet；Contracts 当前仅 identity re-export，不是版本化 Schema。
+- Research 已迁为可安装的 `inspiration_research` 包；旧连字符目录只保留 deprecated source-checkout launcher。
+- Architecture Guard 在 CI 阻止新增路径注入、反向依赖和外部绝对路径硬编码。
 - Core 与 Knowledge-Base 使用单端口挂载。
-- Ruff 覆盖 `app shared knowledge_base Inspiration-Research` 及集成适配器和脚本。
+- Ruff 覆盖 `app shared knowledge_base inspiration_research Inspiration-Research` 及集成适配器和脚本。
 - OS 与 KB 使用分离测试套件，避免包名和 sleep-loop 状态账本互相干扰。
 - `/health` 实时递归统计 HTTP 操作，不再维护手写端点数字。
 - 数据库通用表名、排序字段经过标识符/Schema 校验。
@@ -28,7 +31,7 @@
 ## 仍保留的债务
 
 1. `knowledge_base/api.py` 仍包含遗留领域路由；复合、质量、投影路由已经拆出，后续继续按领域迁移。
-2. `Knowledge-Base` 已迁为可打包的 `knowledge_base`；`Inspiration-Research` 仍保留连字符兼容目录。
+2. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
 3. 旧细粒度 API 仍公开，路由面尚未真正缩减。
 4. 生产部署尚缺独立容器/反向代理/并发负载验证。
 5. OCR/ASR 的真实准确率取决于用户提供人工标注金标准，代码不能代替人工真值。
@@ -41,7 +44,7 @@
 python -m pytest tests -q --tb=short
 cd knowledge_base && python -m pytest tests -q --tb=short
 python -m pytest integration-tests -q --tb=short
-python -m ruff check app shared knowledge_base Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
+python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
 ```
 
 最终交付时以这些命令的真实输出为准，不以本页手写数字证明完成。
