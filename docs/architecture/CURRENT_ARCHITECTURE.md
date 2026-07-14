@@ -10,6 +10,7 @@ Client / Agent / Cron
         ▼
 app.main :8000
 ├── Core Runtime
+│   ├── facades/runtime.py (public route → permission → execute → trace boundary)
 │   ├── ingest / route / run
 │   ├── retrieval / tools / evaluation
 │   ├── memory / trace / lesson
@@ -55,12 +56,24 @@ source inventory
 
 ## 模块规则
 
-1. `app/` 负责认知运行时，不直接承载所有知识领域实现。
+1. `app/` 负责认知运行时，不直接承载所有知识领域实现；`app/facades/` 是跨模块调用的公共边界。
 2. `knowledge_base/routers/` 是稳定 API 表面；`api.py` 中的旧路由是待收敛兼容层。
 3. `shared/` 保存可跨 Core、KB、IR 复用的无 UI 能力。
 4. `shared-contracts/` 保存合同和适配器；适配器不得返回伪成功。
 5. `workspace/` 和 `docs/architecture/imported-designs/` 是方向记录与参考，不进入运行时导入。
 6. 运行时数据、日志、数据库、模型和用户知识不进入 Git。
+
+## Facade 所有权
+
+| Facade | 状态 | 当前委托实现 | 兼容入口 |
+| --- | --- | --- | --- |
+| Runtime | tracer bullet 已接入 | `app.core.router`、`app.core.permissions`、`app.agent.executor`、`app.core.trace` | `POST /run` |
+| Knowledge | 待实现 | `knowledge_base` 稳定入口 | `/kb/*` |
+| Research | 待实现 | `Inspiration-Research` 兼容实现 | IR API |
+| Enhancement | 待实现 | 现有摘要、卡片与质量模块 | 现有 KB API |
+| Contracts | 待实现 | `app.schemas`、`shared-contracts` | 当前对象导入 |
+
+Runtime Facade 只编排现有实现：允许 `app.main → app.facades → app.core/app.agent`，禁止底层业务模块反向依赖 Facade 或主应用。旧 `/run` 仍保留，回滚不需要数据库迁移。
 
 ## 当前债务
 

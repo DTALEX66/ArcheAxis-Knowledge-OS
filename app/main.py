@@ -103,14 +103,13 @@ def _http_route_counts() -> dict[str, int]:
 
 # ── Core endpoints ───────────────────────────────────────
 
-from app.agent.executor import execute
 from app.api.ingest import ingest
 from app.core.compiler import compile_task
-from app.core.permissions import check_permission
 from app.core.router import route
-from app.core.trace import list_traces, log_trace
+from app.core.trace import list_traces
 from app.evaluation.evaluator import evaluate
 from app.evaluation.feedback import compile_lesson
+from app.facades.runtime import execute_runtime
 from app.ingestion.file import IngestionError, ingest_directory, ingest_file
 from app.ingestion.multi_format import convert_directory as multi_convert_directory
 from app.ingestion.multi_format import convert_file, convert_url
@@ -248,17 +247,18 @@ def run(input_data: dict):
     save_memory(doc)
     context = retrieve(doc.content)
     task = compile_task(context)
-    perm = check_permission(task, doc.content)
-    if perm.requires_human_review:
+    runtime = execute_runtime(doc, task, decision=decision)
+    if runtime.permission.requires_human_review:
         return {
             "status": "blocked",
             "document": doc,
             "route": decision,
             "task": task,
-            "permission": perm.model_dump(),
+            "permission": runtime.permission.model_dump(),
         }
-    trace = execute(task, perm)
-    log_trace(trace)
+    trace = runtime.trace
+    if trace is None:  # defensive: an allowed execution must always produce a trace
+        raise RuntimeError("runtime facade returned no trace for an allowed task")
     eval_result = evaluate(trace)
     lesson = compile_lesson(eval_result, trace)
     save_lesson(lesson)
@@ -268,6 +268,7 @@ def run(input_data: dict):
         "route": decision,
         "context": context,
         "task": task,
+        "permission": runtime.permission.model_dump(),
         "trace": trace,
         "eval": eval_result,
         "lesson": lesson,

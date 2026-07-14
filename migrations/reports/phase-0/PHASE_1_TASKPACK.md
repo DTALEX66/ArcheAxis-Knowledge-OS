@@ -5,7 +5,8 @@
 ## 状态
 
 - TP1.0 已完成：命名、编码与 repository convention 治理。
-- 下一任务：TP1.1 Runtime Facade tracer bullet。
+- TP1.1 已完成：Runtime Facade tracer bullet，旧 `/run` 保留并复用新边界。
+- 下一任务：TP1.4 Architecture Guard；TP1.2–TP1.3 Facade 在 Guard 后继续。
 - 验证频率、完整门禁与 reviewer 触发条件只由 [`docs/VERIFICATION_POLICY.md`](../../../docs/VERIFICATION_POLICY.md) 定义；本文件不复制一套可能漂移的门禁。
 
 ## 目标
@@ -31,7 +32,7 @@
 
 Phase 0 的清单隔离、运行时临时目录和 API 快照属于已冻结的历史基线生成能力，由 `tests/test_phase0_baseline.py` 和 `migrations/reports/phase-0/` 保留，不再占用 TP1.0 编号，也不在 Phase 1 重复生成整套审计。
 
-### TP1.1 Runtime Facade tracer bullet
+### TP1.1 Runtime Facade tracer bullet（已完成）
 
 1. 先写失败合同测试：通过 Facade 完成 route → permission → execute → trace。
 2. 最小包装现有 `app/core` 与 `app/agent`，不得复制实现。
