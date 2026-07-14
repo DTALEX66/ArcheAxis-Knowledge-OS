@@ -1,6 +1,12 @@
 # Phase 1 TaskPack：Facade 与 Architecture Guard
 
-> 输入基线：`469c39dcedf187e4c99d816728a2b38524881694`。本 TaskPack 只建立可运行边界，不重写业务实现。
+> Phase 0 输入基线：`469c39dcedf187e4c99d816728a2b38524881694`。功能与治理基线：`46076da8942ee7cc0846b4f2d4c5c5af8dfa0a49`。本 TaskPack 只建立可运行边界，不重写业务实现。
+
+## 状态
+
+- TP1.0 已完成：命名、编码与 repository convention 治理。
+- 下一任务：TP1.1 Runtime Facade tracer bullet。
+- 验证频率、完整门禁与 reviewer 触发条件只由 [`docs/VERIFICATION_POLICY.md`](../../../docs/VERIFICATION_POLICY.md) 定义；本文件不复制一套可能漂移的门禁。
 
 ## 目标
 
@@ -15,12 +21,15 @@
 
 ## 垂直任务
 
-### TP1.0 基线可信度与完整测试矩阵
+### TP1.0 命名与编码治理（已完成）
 
-1. 保持 NUL/Unicode-safe HEAD 清单、dotfile、报告自排除与 index 隔离回归测试。
-2. 在任何测试导入前设置隔离数据目录，禁用 bytecode/pytest cache，保证活动数据库哈希不变。
-3. 修复 `Inspiration-Research/tests` 的包导入并加入 CI；每套测试记录 cwd、Python 版本和收集数。
-4. API 快照按 core、KB、IR 服务分组，区分 route 与 operation，禁止硬编码漂移数字。
+1. `config/naming-registry.yaml` 成为 canonical ID 的机器真相。
+2. `.editorconfig` 与 `.gitattributes` 定义编码和换行合同。
+3. `scripts/check_repository_conventions.py` 支持 worktree、index 与 HEAD 扫描。
+4. pre-commit 扫描 staged index，CI 扫描 Git HEAD。
+5. 详细合同见 [`docs/NAMING_ENCODING_CONVENTIONS.md`](../../../docs/NAMING_ENCODING_CONVENTIONS.md)。
+
+Phase 0 的清单隔离、运行时临时目录和 API 快照属于已冻结的历史基线生成能力，由 `tests/test_phase0_baseline.py` 和 `migrations/reports/phase-0/` 保留，不再占用 TP1.0 编号，也不在 Phase 1 重复生成整套审计。
 
 ### TP1.1 Runtime Facade tracer bullet
 
@@ -62,18 +71,7 @@
 
 ## 每个垂直任务门禁
 
-```bash
-python -m pytest <targeted-test> -q --tb=short
-python -m ruff check <changed-files> --no-cache
-python -m pytest tests -q --tb=short
-python -m pytest knowledge_base/tests -q --tb=short
-python -m pytest Inspiration-Research/tests -q --tb=short
-python -m pytest integration-tests -q --tb=short
-python -m ruff check app shared knowledge_base Inspiration-Research \
-  shared-contracts/adapters app/workflow integration-tests scripts --no-cache
-git diff --check
-git diff --cached --check
-```
+执行 [`docs/VERIFICATION_POLICY.md`](../../../docs/VERIFICATION_POLICY.md)：开发中每个行为只做一次 RED → GREEN 和 changed-file Ruff；冻结 diff 后按变更类型执行一次必要完整门禁；推送后只验收该提交对应的一次 GitHub Actions run。架构边界、安全、权限、数据库迁移或高风险外部写入才触发独立 reviewer。
 
 ## 验收
 
@@ -85,4 +83,4 @@ git diff --cached --check
 
 ## 回滚
 
-按 TP1.0–TP1.6 的独立提交逆序回滚。Facade 切换前保留旧入口，因此回滚不得要求数据库恢复。
+TP1.0 已作为独立治理提交交付；后续按 TP1.1–TP1.6 的独立提交逆序回滚。Facade 切换前保留旧入口，因此回滚不得要求数据库恢复。
