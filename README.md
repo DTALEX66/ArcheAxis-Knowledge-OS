@@ -2,7 +2,47 @@
 
 [![CI](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml)
 
-Cognitive-Loop-OS 是本地优先、证据约束的认知与知识运行时。当前模块化单体以 FastAPI、SQLite 和可安装 Knowledge Base 为核心，覆盖研究发现、内容摄入、检索、知识结构化、学习复习、受控执行、追踪和候选证据；动态规划、多维评估与端到端可信闭环仍在路线图中。
+Cognitive-Loop-OS 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的认知闭环：
+
+```text
+Research → Evidence → Knowledge → Learning
+→ Plan → Permission → Execution → Trace → Evaluation → Lesson
+```
+
+项目采用本地优先的 FastAPI/SQLite 模块化单体。当前基线已经能摄入、检索、组织知识并执行受控工具；下一阶段集中补齐 Facade、架构边界、动态规划和可信反馈，而不是继续横向堆功能。
+
+## 规划与进度
+
+进度按“真实闭环 + 回滚证据”判定，不按文件、接口或测试数量计算。
+
+| 阶段 | 目标 | 状态 | 当前检查点 |
+| --- | --- | --- | --- |
+| Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
+| Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
+| Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | 🟡 下一阶段 | 先同步旧 TaskPack，再交付 Runtime Facade tracer bullet |
+| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | ⬜ 规划中 | 等待 Phase 1 可运行边界完成 |
+| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
+| Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
+| Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ⬜ 规划中 | 替换固定 echo 与二值评价缺口 |
+| Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
+| Phase 10 | 产品化、诊断、升级与多端发布 | ⬜ 规划中 | 仅在 Alpha 闭环完成后启动 |
+
+### 当前里程碑：Phase 1.1
+
+```text
+规划记录收口
+→ Runtime Facade RED 合同测试
+→ 最小 Facade 包装现有 route/permission/execute/trace
+→ 旧入口与 Facade 等价验证
+→ Architecture Guard
+→ Knowledge / Research / Enhancement / Contracts Facade
+```
+
+下一刀：同步 `PHASE_1_TASKPACK.md` 的旧 TP1.0 编号与重复门禁，然后实现 **Runtime Facade tracer bullet**。
+
+本阶段明确不做：数据库迁移、目录树搬迁、Planner/Evaluator 重写、依赖大升级，以及任何外部项目扫描。
+
+完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)。
 
 ## 五分钟启动
 
@@ -16,7 +56,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 - Knowledge API：`http://127.0.0.1:8000/kb/docs`
 - 实时健康与路由数：`http://127.0.0.1:8000/health`
 
-## 稳定入口
+## 当前可运行基线
 
 | 入口 | 作用 |
 |---|---|
@@ -43,7 +83,7 @@ config/                 运行时策略与 canonical naming registry
 workspace/              Intake 与方向性记录，不是主运行时
 ```
 
-项目交接见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)，当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，Phase 0–10 规划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，文档入口见 [`docs/README.md`](docs/README.md)。命名与编码契约见 [`docs/NAMING_ENCODING_CONVENTIONS.md`](docs/NAMING_ENCODING_CONVENTIONS.md)，验证频率以 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md) 为唯一流程记录。
+当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，文档入口见 [`docs/README.md`](docs/README.md)。命名与编码契约见 [`docs/NAMING_ENCODING_CONVENTIONS.md`](docs/NAMING_ENCODING_CONVENTIONS.md)，验证频率以 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md) 为唯一流程记录。
 
 ## 命名与仓库治理
 
@@ -52,18 +92,9 @@ workspace/              Intake 与方向性记录，不是主运行时
 - pre-commit 检查 staged index，CI 检查 Git HEAD，避免本地工作树掩盖提交内容。
 - 文本默认 UTF-8、NFC 与 LF；Windows 命令脚本保留 CRLF 例外。
 
-## Obsidian-Assistance 吸收
+## 项目边界
 
-本仓库吸收的是通用能力，不复制正式 Vault、课程正文、私人路径、媒体、OCR/ASR 全文或缓存。最新吸收包括：
-
-- 文件级 JSONL 处理总账与失败重试；
-- 同名源文件防碰撞键；
-- 人工真值 CER/WER 准确率基准；
-- 内容命中后才允许生成证据候选；
-- 所有调用者提供的证据最高只作为候选；当前实现不具备服务端 provenance 注册或签名，因此不能自动升级为已核验；
-- 可恢复多格式目录摄入。
-
-完整映射见 [`docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md`](docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md)。
+外部项目能力吸收已经结束。后续只开发本仓库，不扫描、测试、修改或同步外部 `Obsidian-Assistance`、个人 Vault 或其他数据目录。历史映射保留在 [`docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md`](docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md)，不再作为新一轮迁移入口。
 
 ## 安全模式
 
