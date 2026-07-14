@@ -6,7 +6,8 @@
 
 - TP1.0 已完成：命名、编码与 repository convention 治理。
 - TP1.1 已完成：Runtime Facade tracer bullet，旧 `/run` 保留并复用新边界。
-- 下一任务：TP1.4 Architecture Guard；TP1.2–TP1.3 Facade 在 Guard 后继续。
+- TP1.4 已完成：AST Architecture Guard 已接入 CI，并以精确 grandfather 保留历史兼容点。
+- 下一任务：TP1.2 Knowledge 与 Research Facade。
 - 验证频率、完整门禁与 reviewer 触发条件只由 [`docs/VERIFICATION_POLICY.md`](../../../docs/VERIFICATION_POLICY.md) 定义；本文件不复制一套可能漂移的门禁。
 
 ## 目标
@@ -49,7 +50,7 @@ Phase 0 的清单隔离、运行时临时目录和 API 快照属于已冻结的�
 1. 用现有摘要/卡片/质量能力完成一个真实 artifact tracer bullet。
 2. Contracts Facade 先导出现有对象；版本化对象定义留给 Phase 2。
 
-### TP1.4 Architecture Guard
+### TP1.4 Architecture Guard（已完成）
 
 1. 为禁止依赖方向写失败测试。
 2. 禁止新代码增加 `sys.path.insert`。

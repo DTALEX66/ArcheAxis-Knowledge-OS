@@ -75,6 +75,10 @@ source inventory
 
 Runtime Facade 只编排现有实现：允许 `app.main → app.facades → app.core/app.agent`，禁止底层业务模块反向依赖 Facade 或主应用。旧 `/run` 仍保留，回滚不需要数据库迁移。
 
+## Architecture Guard
+
+`scripts/check_architecture.py` 使用 AST 扫描生产 Python 树。CI 会拒绝新增 `sys.path` 变异、Contracts/Platform 反向业务依赖、底层运行时反向 Facade 依赖，以及个人目录或外部盘符硬编码。历史兼容点按文件、行号和 AST 表达式精确 grandfather，不允许目录级宽泛豁免。
+
 ## 当前债务
 
 - `knowledge_base/api.py` 已将复合、质量和投影路由拆出，但仍有遗留领域路由；后续按 search/learning/obsidian/admin 继续迁移。

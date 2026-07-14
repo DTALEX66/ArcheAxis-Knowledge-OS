@@ -54,6 +54,9 @@ jobs:
       - name: Validate repository naming and encoding conventions
         run: python scripts/check_repository_conventions.py --source head
 
+      - name: Validate architecture boundaries
+        run: python scripts/check_architecture.py
+
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
 

@@ -19,7 +19,7 @@ Research → Evidence → Knowledge → Learning
 | --- | --- | --- | --- |
 | Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
-| Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | 🟡 下一阶段 | 先同步旧 TaskPack，再交付 Runtime Facade tracer bullet |
+| Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | 🟡 进行中 | Runtime Facade 与 Architecture Guard 已交付；下一步 Knowledge/Research Facade |
 | Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | ⬜ 规划中 | 等待 Phase 1 可运行边界完成 |
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
@@ -30,15 +30,15 @@ Research → Evidence → Knowledge → Learning
 ### 当前里程碑：Phase 1.1
 
 ```text
-规划记录收口
-→ Runtime Facade RED 合同测试
-→ 最小 Facade 包装现有 route/permission/execute/trace
-→ 旧入口与 Facade 等价验证
-→ Architecture Guard
+规划记录收口 ✅
+→ Runtime Facade RED 合同测试 ✅
+→ 最小 Facade 包装现有 route/permission/execute/trace ✅
+→ 旧入口与 Facade 等价验证 ✅
+→ Architecture Guard ✅
 → Knowledge / Research / Enhancement / Contracts Facade
 ```
 
-下一刀：同步 `PHASE_1_TASKPACK.md` 的旧 TP1.0 编号与重复门禁，然后实现 **Runtime Facade tracer bullet**。
+下一刀：以真实查询和 candidate 摄入合同实现 **Knowledge / Research Facade tracer bullet**，继续保留现有 API 兼容入口。
 
 本阶段明确不做：数据库迁移、目录树搬迁、Planner/Evaluator 重写、依赖大升级，以及任何外部项目扫描。
 
