@@ -421,9 +421,10 @@ def _row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
             except (json.JSONDecodeError, TypeError):
                 d[key[:-5]] = d[key]
             del d[key]
-    # Convert integer boolean fields
+    # Convert only valid SQLite integer booleans; preserve corrupt values so
+    # contract adapters can reject them instead of silently upgrading truth.
     for bool_key in ("success", "requires_human_review"):
-        if bool_key in d and d[bool_key] is not None:
+        if bool_key in d and type(d[bool_key]) is int and d[bool_key] in (0, 1):
             d[bool_key] = bool(d[bool_key])
     return d
 

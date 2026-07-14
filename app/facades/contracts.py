@@ -1,12 +1,18 @@
 """Identity-preserving exports of the existing runtime contracts."""
 
+from app.adapters.execution_trace import (
+    from_runtime_trace,
+    from_trace_row,
+    to_runtime_trace,
+    to_trace_row,
+)
 from app.adapters.taskpack import (
     RuntimeTaskProjection,
     from_knowledge_taskpack,
     project_to_runtime,
     to_knowledge_taskpack,
 )
-from app.contracts.v1 import CONTRACT_VERSION, TaskPackV1, TaskStepV1
+from app.contracts.v1 import CONTRACT_VERSION, ExecutionTraceV1, TaskPackV1, TaskStepV1
 from app.schemas import (
     AttentionDecision,
     ContextPack,
@@ -25,6 +31,7 @@ __all__ = [
     "CoreObject",
     "EvalResult",
     "ExecutionTrace",
+    "ExecutionTraceV1",
     "MachineLesson",
     "PermissionDecision",
     "RuntimeTaskProjection",
@@ -32,6 +39,10 @@ __all__ = [
     "TaskPackV1",
     "TaskStepV1",
     "from_knowledge_taskpack",
+    "from_runtime_trace",
+    "from_trace_row",
     "project_to_runtime",
+    "to_runtime_trace",
+    "to_trace_row",
     "to_knowledge_taskpack",
 ]

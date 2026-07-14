@@ -22,14 +22,25 @@ def test_contracts_facade_reexports_runtime_objects_by_identity():
         assert getattr(contracts, name) is getattr(runtime_schemas, name)
 
 
-def test_contracts_facade_publishes_only_completed_phase_two_taskpack_surface():
+def test_contracts_facade_publishes_completed_phase_two_surfaces():
+    from app.adapters.execution_trace import (
+        from_runtime_trace,
+        from_trace_row,
+        to_runtime_trace,
+        to_trace_row,
+    )
     from app.adapters.taskpack import (
         RuntimeTaskProjection,
         from_knowledge_taskpack,
         project_to_runtime,
         to_knowledge_taskpack,
     )
-    from app.contracts.v1 import CONTRACT_VERSION, TaskPackV1, TaskStepV1
+    from app.contracts.v1 import (
+        CONTRACT_VERSION,
+        ExecutionTraceV1,
+        TaskPackV1,
+        TaskStepV1,
+    )
     from app.facades import contracts
 
     assert contracts.CONTRACT_VERSION == CONTRACT_VERSION
@@ -39,10 +50,14 @@ def test_contracts_facade_publishes_only_completed_phase_two_taskpack_surface():
     assert contracts.from_knowledge_taskpack is from_knowledge_taskpack
     assert contracts.to_knowledge_taskpack is to_knowledge_taskpack
     assert contracts.project_to_runtime is project_to_runtime
+    assert contracts.ExecutionTraceV1 is ExecutionTraceV1
+    assert contracts.from_runtime_trace is from_runtime_trace
+    assert contracts.to_runtime_trace is to_runtime_trace
+    assert contracts.from_trace_row is from_trace_row
+    assert contracts.to_trace_row is to_trace_row
 
     deferred = {
         "ContextPackV1",
-        "ExecutionTraceV1",
         "EvaluationV1",
         "LessonV1",
         "SourceRecordV1",

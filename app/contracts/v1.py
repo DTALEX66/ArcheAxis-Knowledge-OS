@@ -12,6 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 CONTRACT_VERSION = "1.0.0"
 TASKPACK_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/taskpack.schema.json"
+EXECUTION_TRACE_SCHEMA_ID = (
+    "https://cognitive-loop-os.local/contracts/v1/execution-trace.schema.json"
+)
 
 
 class TaskStepV1(BaseModel):
@@ -41,3 +44,19 @@ class TaskPackV1(BaseModel):
     success_criteria: list[str] = Field(default_factory=list)
     risk_level: Literal["low", "medium", "high", "critical"] = "low"
     requires_review: bool = False
+
+
+class ExecutionTraceV1(BaseModel):
+    """Lossless canonical representation of the current runtime execution trace."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": EXECUTION_TRACE_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    trace_id: str
+    task_id: str | None = None
+    events: list[dict[str, object]] = Field(default_factory=list)
+    result: dict[str, object] = Field(default_factory=dict)
+    success: bool | None = None
+    created_at: str

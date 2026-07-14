@@ -1,5 +1,11 @@
 """Explicit adapters between canonical and legacy contracts."""
 
+from app.adapters.execution_trace import (
+    from_runtime_trace,
+    from_trace_row,
+    to_runtime_trace,
+    to_trace_row,
+)
 from app.adapters.taskpack import (
     ContractMappingError,
     RuntimeTaskProjection,
@@ -12,6 +18,10 @@ __all__ = [
     "ContractMappingError",
     "RuntimeTaskProjection",
     "from_knowledge_taskpack",
+    "from_runtime_trace",
+    "from_trace_row",
     "project_to_runtime",
+    "to_runtime_trace",
+    "to_trace_row",
     "to_knowledge_taskpack",
 ]
