@@ -4,6 +4,7 @@
 
 ## 当前事实
 
+- [`HANDOFF_2026-07-14.md`](HANDOFF_2026-07-14.md)：当前基线、已完成任务、验证证据、启动方式、限制和接手清单。
 - [`PROJECT_STATUS.md`](PROJECT_STATUS.md)：当前验证状态、已知限制和质量门禁。
 - [`EXECUTION_ROADMAP.md`](EXECUTION_ROADMAP.md)：Phase 0–10 执行顺序、边界、门禁和 Alpha 验收。
 - [`architecture/CURRENT_ARCHITECTURE.md`](architecture/CURRENT_ARCHITECTURE.md)：当前运行时架构与模块边界。

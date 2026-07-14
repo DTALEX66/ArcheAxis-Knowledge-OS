@@ -41,7 +41,7 @@ config/                 运行时策略
 workspace/              Intake 与方向性记录，不是主运行时
 ```
 
-当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，Phase 0–10 规划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，文档入口见 [`docs/README.md`](docs/README.md)。
+项目交接见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)，当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，Phase 0–10 规划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，文档入口见 [`docs/README.md`](docs/README.md)。
 
 ## Obsidian-Assistance 吸收
 
