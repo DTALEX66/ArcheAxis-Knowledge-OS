@@ -1,6 +1,6 @@
 # Phase 1 TaskPack：Facade 与 Architecture Guard
 
-> 输入基线：`89ae64fb6de524e742f4c127776d74223db3232e`。本 TaskPack 只建立可运行边界，不重写业务实现。
+> 输入基线：`469c39dcedf187e4c99d816728a2b38524881694`。本 TaskPack 只建立可运行边界，不重写业务实现。
 
 ## 目标
 
@@ -72,6 +72,7 @@ python -m pytest integration-tests -q --tb=short
 python -m ruff check app shared knowledge_base Inspiration-Research \
   shared-contracts/adapters app/workflow integration-tests scripts --no-cache
 git diff --check
+git diff --cached --check
 ```
 
 ## 验收

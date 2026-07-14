@@ -1,6 +1,6 @@
 # Phase 0 依赖基线
 
-> Git 基线：`89ae64fb6de524e742f4c127776d74223db3232e`。声明来源：`pyproject.toml`。
+> Git 基线：`469c39dcedf187e4c99d816728a2b38524881694`。声明来源：`pyproject.toml`。
 
 ## Python 与打包
 

@@ -220,7 +220,7 @@ run_all.sh,root,.sh,844,30,40b215ec5fe44cf60b83287baf9bd52e6ab813b854b337908c510
 run_windows.bat,root,.bat,115,4,e5ccb7a38d298d4acfd3a17242a48aec2c18e17b53697222f42be8730c8e0b9d
 run_windows.ps1,root,.ps1,112,4,407b71ee652c773ef9f3e95233a61e24cc121ca28747228448aed72f0a4f2df5
 scripts/batch_score_registry.py,scripts,.py,7189,192,dfc0c0bb45eba82b0a9843f6a17f7696cd0221a6f75215e98886ffa7db6a5e87
-scripts/generate_phase0_baseline.py,scripts,.py,48181,1048,296c1d8e7be63f1d458149a8b4103f33ca8ee9bc2cc737c3b7eb66aef7d16d81
+scripts/generate_phase0_baseline.py,scripts,.py,49297,1072,0e845331b99d0767201ef9891418baf342ebd4f6fa23ad701336fb1dc32cc371
 scripts/run_daily.py,scripts,.py,4995,137,d6858014e740975a83b0e622e7a5df4a3deec7e37a1b1ab27d998d2a61d47cba
 scripts/sleep_loop_worker.py,scripts,.py,1546,56,9328af00d1bfecbc86f6dad6bdcaad00f09d3740af012e0eb76ec90c22f38a6b
 shared-contracts/adapters/converters/__init__.py,shared-contracts,.py,70,1,b565d50a07330639403111c376400e20cc5ccc2fa954c7b1fac6f2192c76d4be
@@ -320,7 +320,7 @@ tests/test_imported_modules.py,tests,.py,2522,77,758e879f80f538cb49b84887e76189d
 tests/test_ingestion.py,tests,.py,545,17,4b3a4007644f293a8465b4fd0af5e5eae995dbce06ea3c8864f47f2b9142aa07
 tests/test_integrations.py,tests,.py,3773,115,f513a8078a0da59d9bd31007db7b3baeb30cad986a0a4f600134418ce8214c12
 tests/test_permission.py,tests,.py,1813,48,5b1f1461df32ec77ac60f046e3456a29f316a15c2a0597e8693f6faf5a2599a5
-tests/test_phase0_baseline.py,tests,.py,9246,247,8d2791962a0d7e91b9ba917a30ce6e3c57dc0ff36298b2059dc3c7b96ab21f4b
+tests/test_phase0_baseline.py,tests,.py,9961,270,e805568a57bb30791b04da0323c62ed8f5d354d1c114d98fa95fa593defc1ed3
 tests/test_quality_absorption.py,tests,.py,6819,164,34b71e125117e03a6f742946c281a6004bb205145f910cd2f3ac33f443445ac6
 tests/test_retriever.py,tests,.py,698,22,4c89591c797a4a31eed6a4b1613e6eaeefd883c92f11a5a98edf2f4b7e73bae9
 tests/test_router.py,tests,.py,1703,45,7221874031d2ce8a637bb7cfc20c1c83f050cbf31905415d191d30138dc002f7
