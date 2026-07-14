@@ -6,7 +6,7 @@
 
 - Core `/run` 的 route/execute/trace/evaluate 存储链可运行；Planner 仍以固定 echo 步骤为主，不能视为真实动态认知闭环。
 - Runtime、Knowledge、Research、Enhancement、Contracts 五个 Facade 已有真实 tracer bullet；Phase 1 的 Contracts 起点是 identity re-export，不代表全量版本化 Schema。
-- Phase 2 已建立 `TaskPackV1` 与 `ExecutionTraceV1`：TaskPack 支持 KB dataclass/SQLite row 无损往返、Runtime 窄投影和可回滚迁移；Execution Trace 支持 Runtime/SQLite row 无损往返并对未知行字段 fail closed。
+- Phase 2 已建立 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1` 与 `LessonV1`：TaskPack 支持 KB dataclass/SQLite row 无损往返、Runtime 窄投影和可回滚迁移；Execution Trace 与 Lesson 支持 Runtime/SQLite row 无损往返并对未知行字段 fail closed；Evaluation 支持 Runtime 无损往返。
 - Research 已迁为可安装的 `inspiration_research` 包；旧连字符目录只保留 deprecated source-checkout launcher。
 - Architecture Guard 在 CI 阻止新增路径注入、反向依赖和外部绝对路径硬编码。
 - Core 与 Knowledge-Base 使用单端口挂载。

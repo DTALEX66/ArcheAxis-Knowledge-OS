@@ -16,6 +16,7 @@ EXECUTION_TRACE_SCHEMA_ID = (
     "https://cognitive-loop-os.local/contracts/v1/execution-trace.schema.json"
 )
 EVALUATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evaluation.schema.json"
+LESSON_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/lesson.schema.json"
 
 
 class TaskStepV1(BaseModel):
@@ -75,3 +76,17 @@ class EvaluationV1(BaseModel):
     score: float
     failure_reason: str = ""
     improvement: str = ""
+
+
+class LessonV1(BaseModel):
+    """Lossless canonical representation of the current runtime machine lesson."""
+
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"$id": LESSON_SCHEMA_ID})
+
+    schema_version: Literal["1.0.0"]
+    lesson_id: str
+    pattern: str
+    lesson_type: Literal["success", "failure", "anti_pattern", "constraint"]
+    future_constraint: str
+    evidence_trace_id: str | None = None
+    created_at: str

@@ -74,7 +74,7 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 
 ## Phase 2：版本化 Contracts
 
-当前进度：`TaskPackV1` 已建立 KB dataclass 无损往返、SQLite row 合同与安全字段映射、Runtime 显式窄投影；`kb_taskpacks` 已通过带备份的幂等 migration 增加 `context_id`、`requires_review`，历史未知审核状态按需审核 fail closed，并具备离线 rollback 证明。`ExecutionTraceV1` 已建立 Runtime 无损往返和 SQLite/KB decoded row adapter，未知行字段拒绝静默丢弃；`EvaluationV1` 已建立当前 Runtime evaluation 的无损往返 adapter，并对未映射扩展字段 fail closed。
+当前进度：`TaskPackV1` 已建立 KB dataclass 无损往返、SQLite row 合同与安全字段映射、Runtime 显式窄投影；`kb_taskpacks` 已通过带备份的幂等 migration 增加 `context_id`、`requires_review`，历史未知审核状态按需审核 fail closed，并具备离线 rollback 证明。`ExecutionTraceV1` 已建立 Runtime 无损往返和 SQLite/KB decoded row adapter，未知行字段拒绝静默丢弃；`EvaluationV1` 已建立当前 Runtime evaluation 的无损往返 adapter，并对未映射扩展字段 fail closed；`LessonV1` 已建立 Runtime 与 SQLite decoded row 无损往返 adapter，未知行字段 fail closed。
 
 首批合同：
 

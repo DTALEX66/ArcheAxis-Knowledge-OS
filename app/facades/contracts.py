@@ -7,6 +7,12 @@ from app.adapters.execution_trace import (
     to_runtime_trace,
     to_trace_row,
 )
+from app.adapters.lesson import (
+    from_lesson_row,
+    from_runtime_lesson,
+    to_lesson_row,
+    to_runtime_lesson,
+)
 from app.adapters.taskpack import (
     RuntimeTaskProjection,
     from_knowledge_taskpack,
@@ -17,6 +23,7 @@ from app.contracts.v1 import (
     CONTRACT_VERSION,
     EvaluationV1,
     ExecutionTraceV1,
+    LessonV1,
     TaskPackV1,
     TaskStepV1,
 )
@@ -40,6 +47,7 @@ __all__ = [
     "EvaluationV1",
     "ExecutionTrace",
     "ExecutionTraceV1",
+    "LessonV1",
     "MachineLesson",
     "PermissionDecision",
     "RuntimeTaskProjection",
@@ -47,12 +55,16 @@ __all__ = [
     "TaskPackV1",
     "TaskStepV1",
     "from_knowledge_taskpack",
+    "from_lesson_row",
     "from_runtime_evaluation",
+    "from_runtime_lesson",
     "from_runtime_trace",
     "from_trace_row",
     "project_to_runtime",
+    "to_knowledge_taskpack",
+    "to_lesson_row",
     "to_runtime_evaluation",
+    "to_runtime_lesson",
     "to_runtime_trace",
     "to_trace_row",
-    "to_knowledge_taskpack",
 ]
