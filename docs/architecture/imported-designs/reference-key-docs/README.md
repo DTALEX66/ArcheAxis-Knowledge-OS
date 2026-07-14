@@ -1,4 +1,4 @@
-﻿# Reference Design Projects
+# Reference Design Projects
 
 These are open-source projects identified as useful for the Knowledge-Base Apple-style UI redesign.
 Clone them manually as needed:

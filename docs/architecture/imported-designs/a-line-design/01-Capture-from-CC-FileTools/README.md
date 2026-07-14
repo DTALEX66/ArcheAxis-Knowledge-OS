@@ -1,4 +1,4 @@
-﻿# CC File Tools → A 线 | 捕获系统
+# CC File Tools → A 线 | 捕获系统
 
 ## 参考来源
 

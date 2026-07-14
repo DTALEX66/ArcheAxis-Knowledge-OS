@@ -1,4 +1,4 @@
-﻿# CC Task 系统 — A 线规划 + B 线编排参考
+# CC Task 系统 — A 线规划 + B 线编排参考
 
 ## 文件位置：src/utils/tasks.ts（779 行）
 

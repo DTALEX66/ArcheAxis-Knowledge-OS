@@ -1,8 +1,8 @@
 # Dual System Integration: CC + CW -> Knowledge-Base A-Line + B-Line
 
 ## Overview
-This directory documents how **CC Source (CC) v2.1.88** (TypeScript, archived) and 
-**CW Source (CW)** (Python, open-source port) patterns were cross-referenced and 
+This directory documents how **CC Source (CC) v2.1.88** (TypeScript, archived) and
+**CW Source (CW)** (Python, open-source port) patterns were cross-referenced and
 integrated into the Knowledge-Base learning system.
 
 ## Architecture Mapping

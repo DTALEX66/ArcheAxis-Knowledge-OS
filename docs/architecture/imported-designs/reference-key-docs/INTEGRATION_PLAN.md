@@ -1,4 +1,4 @@
-﻿# 开源项目参考代码集成计划
+# 开源项目参考代码集成计划
 
 > Generated 2026-06-25 | Agent Knowledge-Base 参考代码提取
 > 基于 reference/GITHUB_REFERENCE_PROJECTS.md + EXTRACTION.md + A/B线分析报告

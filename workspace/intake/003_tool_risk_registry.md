@@ -1,8 +1,8 @@
 # Intake Card 003: Tool Risk Registry
 
-> Created: 2026-06-29  
-> Status: active  
-> Target phase: Phase 1 safety gate  
+> Created: 2026-06-29
+> Status: active
+> Target phase: Phase 1 safety gate
 > Scope: local tool registry, risk metadata, dry-run defaults, no external execution.
 
 ---

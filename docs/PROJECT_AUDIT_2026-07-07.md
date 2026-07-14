@@ -1,7 +1,7 @@
 # Cognitive-Loop-OS 全面审计报告
 
-审计日期：2026-07-07  
-审计角色：Backend Architect / Code Reviewer  
+审计日期：2026-07-07
+审计角色：Backend Architect / Code Reviewer
 审计范围：`app/`、`shared/`、`Knowledge-Base/`、`Inspiration-Research/`、`tests/`、配置、CI、Docker 与主要文档。`workspace/imports/` 视为吸收参考库，不计入主运行时代码，但涉及风险会单独标注。
 
 ---

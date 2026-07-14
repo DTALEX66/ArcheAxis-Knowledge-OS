@@ -1,8 +1,8 @@
 # Intake Card 001: Context Pack Scoring
 
-> Created: 2026-06-29  
-> Status: active  
-> Target phase: Phase 1 runtime quality improvement  
+> Created: 2026-06-29
+> Status: active
+> Target phase: Phase 1 runtime quality improvement
 > Scope: local deterministic scoring only; no external vector DB, no network, no LLM dependency.
 
 ---

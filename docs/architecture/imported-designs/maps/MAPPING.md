@@ -1,4 +1,4 @@
-﻿# 双线映射地图
+# 双线映射地图
 
 > CC = CC Source  /  CW = CW Source
 

@@ -1,4 +1,4 @@
-﻿# CC Hooks 系统 → A 线 | 主动训练系统 + 自动化触发
+# CC Hooks 系统 → A 线 | 主动训练系统 + 自动化触发
 
 ## 文件全景
 
@@ -67,13 +67,13 @@ class TrainingPipeline:
     def execute(subject: str):
         # Pre-training hooks
         self.pre_train(subject)  # 准备材料、设定目标
-        
+
         # 实际学习（由用户完成）
         results = self.study_session(subject)
-        
+
         # Post-training hooks
         self.post_train(results)  # 生成摘要、更新 FSRS
-        
+
         if results.failed:
             self.on_failure(results)  # 记录错题、推荐补救
 ```

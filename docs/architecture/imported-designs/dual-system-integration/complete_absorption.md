@@ -122,7 +122,7 @@ import {
   startRelevantMemoryPrefetch,
 } from './utils/attachments.js'
 /* eslint-disable @typescript-eslint/no-require-imports */
-const skillPrefetch 
+const skillPrefetch
 
 Key functions:
 - query(): Main API call with streaming + retry

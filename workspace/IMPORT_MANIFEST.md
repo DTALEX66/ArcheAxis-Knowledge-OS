@@ -1,7 +1,7 @@
 # Cognitive-OS Import Manifest
 
-> Created: 2026-06-29  
-> Repository: `D:\Project\Cognitive-OS`  
+> Created: 2026-06-29
+> Repository: `D:\Project\Cognitive-OS`
 > Purpose: Track reusable assets imported from `Knowledge-Base` and `Inspiration-Research` without mixing reference material directly into runtime code.
 
 ---

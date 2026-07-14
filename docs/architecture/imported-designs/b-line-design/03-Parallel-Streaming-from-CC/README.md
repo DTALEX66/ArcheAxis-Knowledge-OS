@@ -1,4 +1,4 @@
-﻿# CC StreamingToolExecutor → B 线 | 并行任务调度
+# CC StreamingToolExecutor → B 线 | 并行任务调度
 
 ## 参考来源
 

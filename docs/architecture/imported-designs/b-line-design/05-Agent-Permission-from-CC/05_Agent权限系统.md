@@ -1,8 +1,8 @@
 # 05 Agent权限系统
 
-> 子系统：05-Agent-Permission-from-CC  
-> 对应 B 线模块：Agent 操作安全控制  
-> 参考实现：Claude Code Tool.ts(754行)、PermissionContext.ts(379行)、permissionLogging.ts(220行)、toolExecution.ts(1745行)  
+> 子系统：05-Agent-Permission-from-CC
+> 对应 B 线模块：Agent 操作安全控制
+> 参考实现：Claude Code Tool.ts(754行)、PermissionContext.ts(379行)、permissionLogging.ts(220行)、toolExecution.ts(1745行)
 > 关联系统：A-Line 08 治理系统、B-Line 02 任务编排、B-Line 06 MCP 扩展系统
 
 ---

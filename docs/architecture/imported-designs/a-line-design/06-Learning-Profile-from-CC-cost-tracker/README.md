@@ -1,4 +1,4 @@
-﻿# CC cost-tracker → A 线 | 学习画像系统
+# CC cost-tracker → A 线 | 学习画像系统
 
 ## 文件位置：src/cost-tracker.ts（302 行）
 

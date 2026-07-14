@@ -65,7 +65,7 @@ Multilayer permission model:
 ### 1.5 Cost Tracker (cost-tracker.ts ? 323 lines)
 
 Tracks: totalCostUSD, totalInputTokens, totalOutputTokens,
-totalCache*Tokens, totalAPIDuration, totalToolDuration, 
+totalCache*Tokens, totalAPIDuration, totalToolDuration,
 totalLinesAdded/Removed, totalWebSearchRequests
 Per-model tracking via getUsageForModel()
 

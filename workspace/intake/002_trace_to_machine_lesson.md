@@ -1,8 +1,8 @@
 # Intake Card 002: Trace to MachineLesson
 
-> Created: 2026-06-29  
-> Status: active  
-> Target phase: Phase 1 feedback loop  
+> Created: 2026-06-29
+> Status: active
+> Target phase: Phase 1 feedback loop
 > Scope: deterministic lesson generation from local trace/eval only.
 
 ---
