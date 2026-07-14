@@ -57,7 +57,7 @@ services:
       cognitive-os:
         condition: service_healthy
     command: >
-      uvicorn Inspiration-Research.api:app --host 0.0.0.0 --port 8001
+      uvicorn inspiration_research.api:app --host 0.0.0.0 --port 8001
 
 volumes:
   cognitive-data:

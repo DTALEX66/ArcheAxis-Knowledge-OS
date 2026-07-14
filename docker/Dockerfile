@@ -12,6 +12,7 @@ COPY config/ ./config/
 COPY shared/ ./shared/
 COPY shared-contracts/ ./shared-contracts/
 COPY knowledge_base/ ./knowledge_base/
+COPY inspiration_research/ ./inspiration_research/
 COPY Inspiration-Research/ ./Inspiration-Research/
 
 RUN groupadd --gid 10001 cognitive \

@@ -6,17 +6,11 @@ Produces two outputs:
 """
 import csv
 import json
-import sys
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
-_IR_DIR = Path(__file__).resolve().parents[2]  # Inspiration-Research/
-_PROJECT_ROOT = _IR_DIR.parent  # Cognitive-Loop-OS/
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_IR_DIR))
-
-from project_radar.scoring.scorer import ProjectScores, score_project
+from inspiration_research.project_radar.scoring.scorer import ProjectScores, score_project
 from shared.config import resolve_runtime_path
 
 OUTPUT_DIR = resolve_runtime_path("data/reports")

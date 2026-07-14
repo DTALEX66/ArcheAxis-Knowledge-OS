@@ -3,17 +3,16 @@
 Heuristic scoring based on category + absorption_mode.
 """
 import json
-import sys
 from pathlib import Path
 
+from inspiration_research.project_radar.outputs.generator import (
+    export_screening_csv,
+    screen_project,
+)
+from inspiration_research.project_radar.scoring.scorer import score_project
+from shared.config import resolve_runtime_path
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Inspiration-Research"))
-
-from project_radar.outputs.generator import export_screening_csv, screen_project  # noqa: E402
-from project_radar.scoring.scorer import score_project  # noqa: E402
-
-from shared.config import resolve_runtime_path  # noqa: E402
 
 REGISTRY_PATH = _PROJECT_ROOT / "shared-contracts" / "registries" / "open_source_project_registry.json"
 

@@ -202,7 +202,7 @@ def test_dashboards_are_not_public_when_auth_is_enabled(monkeypatch):
 
 def test_inspiration_research_uses_shared_auth(monkeypatch):
     monkeypatch.setitem(config._data["auth"], "enabled", True)
-    ir_app = importlib.import_module("Inspiration-Research.api").app
+    ir_app = importlib.import_module("inspiration_research.api").app
     client = TestClient(ir_app)
     assert client.post("/research-note", json={"title": "x", "content": "y"}).status_code == 401
 

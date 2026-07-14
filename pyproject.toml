@@ -52,7 +52,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["app*", "shared*", "knowledge_base*", "config*"]
+include = ["app*", "shared*", "knowledge_base*", "inspiration_research*", "config*"]
 exclude = ["data*", "logs*", "tests*", "workspace*", "docker*"]
 namespaces = true
 
@@ -94,8 +94,7 @@ ignore = [
 "knowledge_base/api.py" = ["E501", "E702"]  # legacy compact endpoint bodies
 "app/main.py" = ["E402", "E501"]  # route imports follow application setup
 
-"Inspiration-Research/api.py" = ["E402", "E701", "E702"]  # legacy package bootstrap + compact models
-"Inspiration-Research/project_radar/outputs/generator.py" = ["E402"]  # legacy package bootstrap
+"inspiration_research/api.py" = ["E701", "E702"]  # legacy compact endpoint bodies
 
 [tool.ruff.format]
 quote-style = "double"

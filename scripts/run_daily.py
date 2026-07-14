@@ -4,27 +4,20 @@ Designed to be called by Hermes cron job or directly:
   python scripts/run_daily.py
 """
 import json
-import sys
 from datetime import date
-from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
-sys.path.insert(0, str(_PROJECT_ROOT / "Inspiration-Research"))
-
-from intake.generator import generate_intake_card  # noqa: E402
-from project_radar.collectors.github_trending import (  # noqa: E402
+from inspiration_research.intake.generator import generate_intake_card
+from inspiration_research.project_radar.collectors.github_trending import (
     collect_trending,
     collect_trending_fallback,
 )
-from project_radar.outputs.generator import (  # noqa: E402
+from inspiration_research.project_radar.outputs.generator import (
     BriefItem,
     build_daily_brief,
     export_screening_csv,
     screen_project,
 )
-
-from shared.config import resolve_runtime_path  # noqa: E402
+from shared.config import resolve_runtime_path
 
 OUTPUT_DIR = resolve_runtime_path("data/reports")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

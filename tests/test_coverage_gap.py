@@ -505,19 +505,10 @@ class TestKBApi:
 
 
 def _get_ir_app():
-    """Load Inspiration-Research FastAPI app (directory name has a hyphen)."""
-    import importlib.util
+    """Load the canonical Inspiration Research FastAPI app."""
+    from inspiration_research.api import app
 
-    ir_api_path = Path(_PROJECT_ROOT) / "Inspiration-Research" / "api.py"
-    spec = importlib.util.spec_from_file_location("ir_api", ir_api_path)
-    mod = importlib.util.module_from_spec(spec)
-    ir_dir = str(Path(_PROJECT_ROOT) / "Inspiration-Research")
-    if ir_dir not in sys.path:
-        sys.path.insert(0, ir_dir)
-    if str(_PROJECT_ROOT) not in sys.path:
-        sys.path.insert(0, str(_PROJECT_ROOT))
-    spec.loader.exec_module(mod)
-    return mod.app
+    return app
 
 
 class TestIRApi:

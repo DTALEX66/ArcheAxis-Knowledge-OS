@@ -1,5 +1,5 @@
 """Tests for project scorer."""
-from Inspiration_Research.project_radar.scoring.scorer import score_project
+from inspiration_research.project_radar.scoring.scorer import score_project
 
 
 def test_score_qualifies():

@@ -14,7 +14,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
 PID_OS=$!
 
 echo "[2/2] Inspiration-Research on port 8001"
-python -m uvicorn Inspiration-Research.api:app --host 127.0.0.1 --port 8001 &
+python -m uvicorn inspiration_research.api:app --host 127.0.0.1 --port 8001 &
 PID_IR=$!
 
 
