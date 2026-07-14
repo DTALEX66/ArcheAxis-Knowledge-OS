@@ -1,6 +1,8 @@
 # Cognitive-Loop-OS
 
-Cognitive-Loop-OS 是本地优先的认知与知识运行时。当前版本提供摄入、检索、知识结构化、学习复习、受控执行、追踪和候选证据能力；动态规划、多维评估与端到端可信闭环仍在路线图中。
+[![CI](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml)
+
+Cognitive-Loop-OS 是本地优先、证据约束的认知与知识运行时。当前模块化单体以 FastAPI、SQLite 和可安装 Knowledge Base 为核心，覆盖研究发现、内容摄入、检索、知识结构化、学习复习、受控执行、追踪和候选证据；动态规划、多维评估与端到端可信闭环仍在路线图中。
 
 ## 五分钟启动
 
@@ -37,11 +39,18 @@ shared/                 SQLite、管道、证据、图谱、配置、鉴权等�
 shared-contracts/       Schema、fixture、适配器和开源项目注册表
 tests/                  Core/共享能力测试
 knowledge_base/tests/   KB 独立测试
-config/                 运行时策略
+config/                 运行时策略与 canonical naming registry
 workspace/              Intake 与方向性记录，不是主运行时
 ```
 
-项目交接见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)，当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，Phase 0–10 规划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，文档入口见 [`docs/README.md`](docs/README.md)。
+项目交接见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)，当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，Phase 0–10 规划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，文档入口见 [`docs/README.md`](docs/README.md)。命名与编码契约见 [`docs/NAMING_ENCODING_CONVENTIONS.md`](docs/NAMING_ENCODING_CONVENTIONS.md)，验证频率以 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md) 为唯一流程记录。
+
+## 命名与仓库治理
+
+- 机器标识使用稳定英文 canonical ID；中英文只用于显示层。
+- `config/naming-registry.yaml` 是服务名称、别名、包名和 API 前缀的单一事实源。
+- pre-commit 检查 staged index，CI 检查 Git HEAD，避免本地工作树掩盖提交内容。
+- 文本默认 UTF-8、NFC 与 LF；Windows 命令脚本保留 CRLF 例外。
 
 ## Obsidian-Assistance 吸收
 
@@ -83,10 +92,11 @@ CORS 来源也可写入 `config/settings.yaml`。生产环境保留开发默认�
 ## 验证
 
 ```bash
-python -m pytest tests -q --tb=short
-cd knowledge_base && python -m pytest tests -q --tb=short
-python -m pytest integration-tests -q --tb=short
-python -m ruff check app shared knowledge_base Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
+python -m pytest tests/test_naming_conventions.py -q --tb=short  # 定向测试示例
+python scripts/check_repository_conventions.py --source worktree
+pre-commit run --all-files
 ```
+
+开发中只运行受影响的定向测试；diff 冻结后运行一次必要完整门禁，推送后以一次 GitHub CI 为准。详细触发规则见 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
 CI 使用 `pyproject.toml` 作为依赖与工具配置单一事实源；`requirements.txt` 仅作为兼容安装清单并与核心依赖保持同步。

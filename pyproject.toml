@@ -1,7 +1,7 @@
 [project]
 name = "cognitive-loop-os"
 version = "0.4.0"
-description = "Cognitive Loop OS — AI cognitive runtime with A/B/C three-line architecture"
+description = "Local-first cognitive and knowledge runtime with evidence-constrained workflows"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
