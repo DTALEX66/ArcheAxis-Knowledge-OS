@@ -1,8 +1,8 @@
 """Generate the reproducible Phase 0 repository baseline.
 
 The collector is intentionally read-only with respect to business code and databases. It writes
-only the requested reports under ``migrations/reports/phase-0`` and a runtime scratch directory
-under the repository's ignored ``data`` tree while importing the FastAPI application.
+only the requested reports under ``migrations/reports/phase-0``. Runtime imports and tests use a
+fresh temporary data root that is removed after every run.
 """
 
 from __future__ import annotations
@@ -18,9 +18,11 @@ import re
 import subprocess
 import sys
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 from fastapi.routing import APIRoute
@@ -45,6 +47,28 @@ _SECRET_PATTERNS = {
     "openai-key": re.compile(rb"sk-[A-Za-z0-9]{32,}"),
     "aws-access-key": re.compile(rb"AKIA[0-9A-Z]{16}"),
 }
+
+
+@contextmanager
+def _temporary_runtime() -> Iterator[Path]:
+    """Provide a unique runtime root and restore the caller's environment afterwards."""
+    previous_data_root = os.environ.get("COGNITIVE_DATA_DIR")
+    previous_bytecode = os.environ.get("PYTHONDONTWRITEBYTECODE")
+    with TemporaryDirectory(prefix="cognitive-phase0-") as directory:
+        runtime_root = Path(directory).resolve()
+        os.environ["COGNITIVE_DATA_DIR"] = str(runtime_root)
+        os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+        try:
+            yield runtime_root
+        finally:
+            if previous_data_root is None:
+                os.environ.pop("COGNITIVE_DATA_DIR", None)
+            else:
+                os.environ["COGNITIVE_DATA_DIR"] = previous_data_root
+            if previous_bytecode is None:
+                os.environ.pop("PYTHONDONTWRITEBYTECODE", None)
+            else:
+                os.environ["PYTHONDONTWRITEBYTECODE"] = previous_bytecode
 
 
 def load_dependency_data(path: Path) -> dict[str, Any]:
@@ -314,7 +338,7 @@ def _test_baseline(git_head: str, gate_results: dict[str, dict[str, Any]]) -> st
 
 > Git 基线：`{git_head}`。结果由本次真实命令执行生成，不复用历史测试数字。
 >
-> 隔离：所有子进程在导入项目前设置 `COGNITIVE_DATA_DIR=data/phase0-runtime`、`PYTHONDONTWRITEBYTECODE=1`，pytest 使用 `-p no:cacheprovider`。
+> 隔离：所有子进程在导入项目前设置每次运行唯一且自动删除的 `COGNITIVE_DATA_DIR`、`PYTHONDONTWRITEBYTECODE=1`，pytest 使用 `-p no:cacheprovider`。
 
 ## 门禁结果
 
@@ -328,6 +352,7 @@ def _test_baseline(git_head: str, gate_results: dict[str, dict[str, Any]]) -> st
 - `passed` 只表示该命令本次退出码为 0。
 - `observed-failure` 是非阻断诊断基线，必须保留真实错误规模，不能改写为通过。
 - `failed` 表示阻断门禁失败，保留真实摘要，不能改写为完成。
+- `worktree-diff-check` 只检查生成开始时的 worktree↔index；最终 staged diff 必须在暂存后另跑 `git diff --cached --check`。
 - Docker 未在本地执行时不得声称容器实机通过。
 - GitHub Actions 状态必须在推送后单独核对。
 """
@@ -562,6 +587,7 @@ python -m pytest integration-tests -q --tb=short
 python -m ruff check app shared knowledge_base Inspiration-Research {continuation}
   shared-contracts/adapters app/workflow integration-tests scripts --no-cache
 git diff --check
+git diff --cached --check
 ```
 
 ## 验收
@@ -786,8 +812,8 @@ def _security_findings() -> list[dict[str, str]]:
 
 
 def _collect_routes(repo_root: Path) -> list[dict[str, Any]]:
-    runtime_root = repo_root / "data" / "phase0-runtime"
-    os.environ.setdefault("COGNITIVE_DATA_DIR", str(runtime_root))
+    if not os.environ.get("COGNITIVE_DATA_DIR", "").strip():
+        raise RuntimeError("route collection requires an isolated COGNITIVE_DATA_DIR")
     from app.main import app
 
     main_routes = build_route_map(app)
@@ -977,7 +1003,7 @@ def _collect_gates(repo_root: Path, python: Path) -> dict[str, dict[str, Any]]:
                 ),
             )
         ),
-        "git-diff-check": _run(
+        "worktree-diff-check": _run(
             ["git", "diff", "--check"],
             repo_root,
             report_command="git diff --check",
@@ -1006,13 +1032,11 @@ def main(argv: list[str] | None = None) -> int:
         encoding="utf-8",
         check=True,
     ).stdout.strip()
-    runtime_root = repo_root / "data" / "phase0-runtime"
-    os.environ["COGNITIVE_DATA_DIR"] = str(runtime_root)
-    os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
     dependency_data = load_dependency_data(repo_root / "pyproject.toml")
-    gates = _collect_gates(repo_root, args.python.resolve())
+    with _temporary_runtime():
+        gates = _collect_gates(repo_root, args.python.resolve())
+        routes = _collect_routes(repo_root)
     scan = _secret_scan(repo_root, tracked, file_contents=head_blobs)
-    routes = _collect_routes(repo_root)
     written = write_phase0_reports(
         repo_root=repo_root,
         output_dir=output_dir,

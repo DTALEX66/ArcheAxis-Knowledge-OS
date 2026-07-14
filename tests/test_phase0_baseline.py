@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from scripts.generate_phase0_baseline import (
     _blocking_gate_failures,
     _extract_warnings,
     _read_head_blobs,
+    _temporary_runtime,
     _tracked_paths,
     build_file_inventory,
     build_route_map,
@@ -88,6 +90,25 @@ def test_non_blocking_diagnostic_uses_singular_summary() -> None:
     )
 
     assert result["summary"] == "1 error across 1 file; exit code 2"
+
+
+def test_temporary_runtime_is_unique_cleaned_and_restores_environment(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("COGNITIVE_DATA_DIR", "original-runtime")
+
+    with _temporary_runtime() as first:
+        assert first.is_dir()
+        assert Path(os.environ["COGNITIVE_DATA_DIR"]) == first
+        (first / "marker.txt").write_text("isolated\n", encoding="utf-8")
+
+    assert not first.exists()
+    assert os.environ["COGNITIVE_DATA_DIR"] == "original-runtime"
+
+    with _temporary_runtime() as second:
+        assert second != first
+
+    assert not second.exists()
 
 
 def test_inventory_can_hash_explicit_head_blob_instead_of_dirty_worktree(
@@ -223,6 +244,8 @@ def test_phase0_writer_creates_all_required_reports(tmp_path: Path) -> None:
     assert "- ResourceWarning: unclosed database" in test_baseline
     assert "database\n\n### knowledge-base-tests" in test_baseline
     assert "database### knowledge-base-tests" not in test_baseline
+    assert "最终 staged diff" in test_baseline
+    assert "git diff --cached --check" in test_baseline
     assert "observed-failure" in test_baseline
     assert "42 errors across 18 files" in test_baseline
     assert "inspiration-research-tests" in test_baseline
