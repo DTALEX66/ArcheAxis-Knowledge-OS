@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+import knowledge_base.routers.quality as quality_router
 from app.ingestion.multi_format import convert_directory_resumable
 from app.main import app
 from shared.accuracy_benchmark import evaluate_golden_pairs
@@ -97,7 +98,12 @@ def test_verification_requires_independent_sources():
     assert result["requires_human_review"] is True
 
 
-def test_composite_quality_api_and_path_boundary(tmp_path: Path):
+def test_composite_quality_api_and_path_boundary(
+    tmp_path: Path, monkeypatch
+):
+    simulated_project_root = tmp_path / "project-root"
+    simulated_project_root.mkdir()
+    monkeypatch.setattr(quality_router, "_PROJECT_ROOT", simulated_project_root)
     client = TestClient(app)
     response = client.post(
         "/kb/quality",

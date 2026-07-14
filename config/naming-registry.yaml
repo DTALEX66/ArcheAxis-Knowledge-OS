@@ -1,0 +1,46 @@
+version: 1
+required_locales:
+  - en-US
+  - zh-CN
+
+services:
+  core:
+    python_package: app
+    api_prefix: /
+    display:
+      en-US: Cognitive Runtime
+      zh-CN: 认知运行时
+    deprecated_aliases:
+      - cognitive-runtime
+      - Cognitive-OS
+      - Cognitive_OS
+      - cognitive-os
+      - cognitive_os
+      - Cognitive-Loop-OS
+
+  knowledge-base:
+    python_package: knowledge_base
+    api_prefix: /kb
+    display:
+      en-US: Knowledge Base
+      zh-CN: 知识库
+    deprecated_aliases:
+      - Knowledge-Base
+      - Knowledge_Base
+      - knowledge_base
+      - KB
+      - kb
+
+  inspiration-research:
+    python_package: inspiration_research
+    compatibility_path: Inspiration-Research
+    api_prefix: /
+    display:
+      en-US: Inspiration Research
+      zh-CN: 灵感研究
+    deprecated_aliases:
+      - Inspiration-Research
+      - Inspiration_Research
+      - inspiration_research
+      - IR
+      - ir

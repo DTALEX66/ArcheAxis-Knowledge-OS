@@ -57,6 +57,14 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 
 ## Phase 1：Facade 与 Architecture Guard
 
+### Phase 1.0 前置门禁：命名与编码契约
+
+- `config/naming-registry.yaml` 是服务 ID、Python package、兼容别名和中英文展示名的唯一机器真相。
+- `scripts/check_repository_conventions.py` 在 pre-commit 扫 index、在 CI 扫 HEAD，阻断编码、Unicode、路径和大小写差异。
+- 详细规则见 `docs/NAMING_ENCODING_CONVENTIONS.md`；历史名称只能作为显式 deprecated alias 迁移。
+
+### Phase 1.1 Facade 与架构守卫
+
 - 建立 Research、Knowledge、Enhancement、Runtime、Contracts 公共 Facade。
 - Facade 先调用当前 `app/shared/knowledge_base/Inspiration-Research` 实现。
 - CI 阻止 Contracts/Platform 反向依赖业务模块。
@@ -144,23 +152,22 @@ Sleep Loop 复用同一 Planner、Permission、Executor、Evidence、Evaluation 
 
 Phase 9 通过后再推进完整学习科学、Research Intelligence、多模态课件、MCP/Model Router/Multi-Agent、Web/Desktop/Mobile、Installer、Upgrade、Diagnostics 和 Public Alpha/Beta/Stable。
 
-## 每个 TaskPack 的门禁
+## 每个 TaskPack 的最小门禁
 
-1. 读取当前 Phase 和 Git 状态。
-2. 声明 Ownership 与禁止范围。
-3. 先写失败测试，再最小实现。
-4. 运行定向测试、changed-file Ruff/type gate。
-5. 运行相关合同、集成和安全测试。
-6. 检查 secrets、路径、运行时产物与 diff。
-7. 独立规范审查和代码质量审查。
-8. 显式路径暂存，不使用 `git add .`。
-9. 提交中写明回滚方式。
-10. Gate 通过后才进入下一 TaskPack。
+详细频率、触发条件和证据规则以 `docs/VERIFICATION_POLICY.md` 为准，路线图不再复制执行清单。
 
-## 当前最近任务
+1. 声明 Ownership、允许范围和禁止范围。
+2. 新行为执行定向 RED → GREEN；纯文档/格式变更只做 convention 与 diff 检查。
+3. 冻结 diff 后按变更类型运行一次必要完整本地门禁。
+4. 显式路径暂存并检查 secrets、运行时产物和 staged diff。
+5. 推送后只验收新提交对应的一次 GitHub Actions run。
 
-1. 完成安装后运行时可写路径。
-2. 每次阻塞修复后重新运行 Root、Knowledge Base、Integration、Ruff、wheel 和安全冒烟。
-3. 对最终冻结 diff 重新做独立审查；先前审查结果不自动覆盖后续修改。
-4. 分逻辑提交并同步远端。
-5. 基于最新干净 HEAD 执行 Phase 0，而不是继续访问 A 项目。
+独立审查只用于安全、权限、数据库迁移、架构移动和高风险外部写入；普通低风险修复不反复审计。
+
+## 当前执行计划：TP1.0
+
+1. 撤回与命名/编码治理无关的 lint 和审计扩展。
+2. 单独提交纯机械文本归一化，不改文档语义。
+3. 提交 naming registry、统一 scanner、EditorConfig、Git attributes、pre-commit 和 CI 门禁。
+4. 冻结最终 diff 后执行一次必要本地完整门禁。
+5. 推送两个小提交，只验收一次新 CI；远端健康后清理一次性本地克隆。

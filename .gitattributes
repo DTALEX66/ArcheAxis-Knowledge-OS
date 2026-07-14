@@ -1,9 +1,32 @@
-* text=auto
-*.py text eol=lf
-*.md text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.json text eol=lf
-*.sql text eol=lf
-*.ps1 text eol=crlf
+* text=auto eol=lf
+
 *.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.7z binary
+*.db binary
+*.dll binary
+*.doc binary
+*.docx binary
+*.exe binary
+*.gif binary
+*.gz binary
+*.ico binary
+*.jpeg binary
+*.jpg binary
+*.mp3 binary
+*.mp4 binary
+*.pdf binary
+*.png binary
+*.ppt binary
+*.pptx binary
+*.pyc binary
+*.sqlite binary
+*.tar binary
+*.wav binary
+*.webm binary
+*.webp binary
+*.xls binary
+*.xlsx binary
+*.zip binary

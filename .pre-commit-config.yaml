@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: repository-conventions
+        name: repository naming and encoding conventions
+        entry: python scripts/check_repository_conventions.py --source index
+        language: system
+        pass_filenames: false
+        always_run: true

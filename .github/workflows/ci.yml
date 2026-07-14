@@ -51,6 +51,9 @@ jobs:
       - name: Install project and development dependencies
         run: python -m pip install -e ".[dev]"
 
+      - name: Validate repository naming and encoding conventions
+        run: python scripts/check_repository_conventions.py --source head
+
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
 
