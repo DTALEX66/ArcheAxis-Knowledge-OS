@@ -14,7 +14,7 @@ app.main :8000
 │   ├── knowledge.py (read-only keyword/FTS query)
 │   ├── research.py (persisted IntakeCard candidate)
 │   ├── enhancement.py (in-memory summary/card/quality candidate)
-│   └── contracts.py (TaskPackV1/ExecutionTraceV1 + verified adapters; other objects remain identity exports)
+│   └── contracts.py (TaskPackV1/ExecutionTraceV1/EvaluationV1 + verified adapters; other objects remain identity exports)
 ├── Core Runtime
 │   ├── ingest / route / run
 │   ├── retrieval / tools / evaluation
@@ -76,13 +76,13 @@ source inventory
 | Knowledge | tracer bullet 已接入 | `knowledge_base.search.keyword_search` | standalone `/search`、mounted `/kb/search` |
 | Research | tracer bullet 已接入 | `inspiration_research.intake.generator`、`shared.storage` | canonical IR API；旧 `Inspiration-Research.api` launcher |
 | Enhancement | tracer bullet 已接入 | `progressive_summarize`、`generate_from_markdown`、`audit_markdown_quality` | 现有细粒度能力保持不变 |
-| Contracts | Phase 2 tracers | `TaskPackV1` + KB legacy adapter；`ExecutionTraceV1` + Runtime/SQLite row adapter；其余对象仍 identity re-export | 当前对象导入 |
+| Contracts | Phase 2 tracers | `TaskPackV1` + KB legacy adapter；`ExecutionTraceV1` + Runtime/SQLite row adapter；`EvaluationV1` + Runtime adapter；其余对象仍 identity re-export | 当前对象导入 |
 
 Runtime Facade 只编排现有实现：允许 `app.main → app.facades → app.core/app.agent`，禁止底层业务模块反向依赖 Facade 或主应用。旧 `/run` 仍保留，回滚不需要数据库迁移。
 
-Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细节提升为稳定合同。Research 返回并持久化的是 `IntakeCard` candidate。Enhancement 只返回内存 candidate，不写数据库、不调用网络或 LLM。Contracts 已建立 `TaskPackV1` 与 `ExecutionTraceV1`，但不声明与旧 JSON Schema 全量等价；其他版本化对象仍待 Phase 2 后续 tracer。
+Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细节提升为稳定合同。Research 返回并持久化的是 `IntakeCard` candidate。Enhancement 只返回内存 candidate，不写数据库、不调用网络或 LLM。Contracts 已建立 `TaskPackV1`、`ExecutionTraceV1` 与 `EvaluationV1`，但不声明与旧 JSON Schema 全量等价；其他版本化对象仍待 Phase 2 后续 tracer。
 
-`app/contracts/` 是纯 canonical 层，由 Architecture Guard 禁止反向依赖业务模块；`app/adapters/` 承担 KB/Runtime/SQLite row 映射。KB TaskPack 可逐字段无损往返；步骤实际工具成为 `requested_tools`，策略允许/阻止列表独立保留。Runtime 只接收 requested tools，投影公开不可表示字段，并对 review-required、critical risk、步骤/请求不一致及工具策略冲突 fail closed。`kb_taskpacks` 已由正式 runner 在启动时先备份再幂等迁移 `context_id` 与 `requires_review`；旧行未知审核状态及新行缺省审核状态均按需审核 fail closed，离线 rollback 可恢复备份字节。Execution Trace 可在 Runtime model、`ExecutionTraceV1` 与 SQLite/KB decoded row 间无损往返，row adapter 对未知列 fail closed，避免未来 Schema 扩展被静默丢弃。
+`app/contracts/` 是纯 canonical 层，由 Architecture Guard 禁止反向依赖业务模块；`app/adapters/` 承担 KB/Runtime/SQLite row 映射。KB TaskPack 可逐字段无损往返；步骤实际工具成为 `requested_tools`，策略允许/阻止列表独立保留。Runtime 只接收 requested tools，投影公开不可表示字段，并对 review-required、critical risk、步骤/请求不一致及工具策略冲突 fail closed。`kb_taskpacks` 已由正式 runner 在启动时先备份再幂等迁移 `context_id` 与 `requires_review`；旧行未知审核状态及新行缺省审核状态均按需审核 fail closed，离线 rollback 可恢复备份字节。Execution Trace 可在 Runtime model、`ExecutionTraceV1` 与 SQLite/KB decoded row 间无损往返，row adapter 对未知列 fail closed，避免未来 Schema 扩展被静默丢弃。Evaluation 可在当前 Runtime model 与 `EvaluationV1` 间逐字段无损往返，canonical 合同拒绝未映射扩展字段。
 
 ## Architecture Guard
 

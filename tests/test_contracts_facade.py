@@ -58,7 +58,6 @@ def test_contracts_facade_publishes_completed_phase_two_surfaces():
 
     deferred = {
         "ContextPackV1",
-        "EvaluationV1",
         "LessonV1",
         "SourceRecordV1",
         "validate_contract",

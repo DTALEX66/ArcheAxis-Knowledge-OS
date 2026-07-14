@@ -15,6 +15,7 @@ TASKPACK_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/taskpack.sche
 EXECUTION_TRACE_SCHEMA_ID = (
     "https://cognitive-loop-os.local/contracts/v1/execution-trace.schema.json"
 )
+EVALUATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evaluation.schema.json"
 
 
 class TaskStepV1(BaseModel):
@@ -60,3 +61,17 @@ class ExecutionTraceV1(BaseModel):
     result: dict[str, object] = Field(default_factory=dict)
     success: bool | None = None
     created_at: str
+
+
+class EvaluationV1(BaseModel):
+    """Lossless canonical representation of the current runtime evaluation."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": EVALUATION_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    success: bool
+    score: float
+    failure_reason: str = ""
+    improvement: str = ""
