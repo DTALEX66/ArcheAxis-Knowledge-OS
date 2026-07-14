@@ -309,6 +309,7 @@ def _test_baseline(git_head: str, gate_results: dict[str, dict[str, Any]]) -> st
                     "观测到的告警：\n\n" + "\n".join(f"- {warning}" for warning in warnings)
                 )
             details.append("\n".join(detail))
+    details_text = "\n\n".join(details)
     return f"""# Phase 0 测试基线
 
 > Git 基线：`{git_head}`。结果由本次真实命令执行生成，不复用历史测试数字。
@@ -321,7 +322,7 @@ def _test_baseline(git_head: str, gate_results: dict[str, dict[str, Any]]) -> st
 
 ## 执行命令
 
-{"".join(details)}
+{details_text}
 ## 解释规则
 
 - `passed` 只表示该命令本次退出码为 0。

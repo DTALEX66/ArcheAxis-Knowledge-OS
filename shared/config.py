@@ -165,10 +165,23 @@ def resolve_runtime_path(value: str | Path) -> Path:
     candidate = Path(value).expanduser()
     if candidate.is_absolute():
         return candidate
+    configured_root = os.getenv("COGNITIVE_DATA_DIR", "").strip()
+    if configured_root:
+        base = Path(configured_root).expanduser()
+        parts = (
+            candidate.parts[1:]
+            if candidate.parts and candidate.parts[0] in {"data", "config"}
+            else candidate.parts
+        )
+        return base.joinpath(*parts)
     if (_PROJECT_ROOT / "pyproject.toml").exists():
         return _PROJECT_ROOT / candidate
-    base = Path(os.getenv("COGNITIVE_DATA_DIR", Path.home() / ".cognitive-loop-os")).expanduser()
-    parts = candidate.parts[1:] if candidate.parts and candidate.parts[0] in {"data", "config"} else candidate.parts
+    base = Path.home() / ".cognitive-loop-os"
+    parts = (
+        candidate.parts[1:]
+        if candidate.parts and candidate.parts[0] in {"data", "config"}
+        else candidate.parts
+    )
     return base.joinpath(*parts)
 
 

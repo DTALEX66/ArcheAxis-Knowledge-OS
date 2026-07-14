@@ -75,6 +75,18 @@ def test_installed_runtime_paths_use_configured_writable_root(monkeypatch, tmp_p
     assert resolve_runtime_path("config/api_keys.json") == runtime_root / "api_keys.json"
 
 
+def test_source_checkout_honours_explicit_runtime_root(monkeypatch, tmp_path):
+    source_root = tmp_path / "source"
+    runtime_root = tmp_path / "runtime"
+    source_root.mkdir()
+    (source_root / "pyproject.toml").write_text("[project]\nname = 'fixture'\n")
+    monkeypatch.setattr(config_module, "_PROJECT_ROOT", source_root)
+    monkeypatch.setenv("COGNITIVE_DATA_DIR", str(runtime_root))
+
+    assert resolve_runtime_path("data/cognitive.sqlite") == runtime_root / "cognitive.sqlite"
+    assert resolve_runtime_path("config/api_keys.json") == runtime_root / "api_keys.json"
+
+
 def test_generated_jwt_secret_uses_runtime_data_root(monkeypatch, tmp_path):
     installed_root = tmp_path / "site-packages"
     runtime_root = tmp_path / "runtime"

@@ -221,6 +221,8 @@ def test_phase0_writer_creates_all_required_reports(tmp_path: Path) -> None:
     test_baseline = (output / "TEST_BASELINE.md").read_text(encoding="utf-8")
     assert "工作目录：`knowledge_base`" in test_baseline
     assert "- ResourceWarning: unclosed database" in test_baseline
+    assert "database\n\n### knowledge-base-tests" in test_baseline
+    assert "database### knowledge-base-tests" not in test_baseline
     assert "observed-failure" in test_baseline
     assert "42 errors across 18 files" in test_baseline
     assert "inspiration-research-tests" in test_baseline
