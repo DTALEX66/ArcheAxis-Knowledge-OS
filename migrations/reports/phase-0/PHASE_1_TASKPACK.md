@@ -1,6 +1,6 @@
 # Phase 1 TaskPack：Facade 与 Architecture Guard
 
-> 输入基线：`82b9df3f719d9212111536b454654f2243150f16`。本 TaskPack 只建立可运行边界，不重写业务实现。
+> 输入基线：`89ae64fb6de524e742f4c127776d74223db3232e`。本 TaskPack 只建立可运行边界，不重写业务实现。
 
 ## 目标
 

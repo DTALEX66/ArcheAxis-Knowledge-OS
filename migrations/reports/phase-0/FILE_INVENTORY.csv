@@ -220,6 +220,7 @@ run_all.sh,root,.sh,844,30,40b215ec5fe44cf60b83287baf9bd52e6ab813b854b337908c510
 run_windows.bat,root,.bat,115,4,e5ccb7a38d298d4acfd3a17242a48aec2c18e17b53697222f42be8730c8e0b9d
 run_windows.ps1,root,.ps1,112,4,407b71ee652c773ef9f3e95233a61e24cc121ca28747228448aed72f0a4f2df5
 scripts/batch_score_registry.py,scripts,.py,7189,192,dfc0c0bb45eba82b0a9843f6a17f7696cd0221a6f75215e98886ffa7db6a5e87
+scripts/generate_phase0_baseline.py,scripts,.py,48181,1048,296c1d8e7be63f1d458149a8b4103f33ca8ee9bc2cc737c3b7eb66aef7d16d81
 scripts/run_daily.py,scripts,.py,4995,137,d6858014e740975a83b0e622e7a5df4a3deec7e37a1b1ab27d998d2a61d47cba
 scripts/sleep_loop_worker.py,scripts,.py,1546,56,9328af00d1bfecbc86f6dad6bdcaad00f09d3740af012e0eb76ec90c22f38a6b
 shared-contracts/adapters/converters/__init__.py,shared-contracts,.py,70,1,b565d50a07330639403111c376400e20cc5ccc2fa954c7b1fac6f2192c76d4be
@@ -272,7 +273,7 @@ shared/bridge.py,shared,.py,2968,74,3388a5429352fe07bf0449aa374f95ce5aa0ee195690
 shared/bulk_ops.py,shared,.py,4191,135,7a48a772975a6b41d852c09143c339cd360576cbd927b5192ff14fc853cb1b74
 shared/canvas.py,shared,.py,5168,188,ebbfed5ff713c9172c00db8346ac24b9068bf1db02eba418ad111f7b98a5d0a6
 shared/collection_views.py,shared,.py,7263,223,258d0b474e97c9229bd95f31877d89697adae7b87002ca1f8383d2c22698e854
-shared/config.py,shared,.py,8973,240,e05418bc86744424aaaf1f9ef72264588f9097493b7dce0a71b0763e1709c872
+shared/config.py,shared,.py,9299,253,ed9db8c5fc09bc243e5670b2f68f838fe8aaafe7ff312a0fd1f04c7b58a52629
 shared/content_quality.py,shared,.py,2119,50,11506490b14087cb7c143e1945d29bd799ed4a544075cafacbb889347317bb04
 shared/cross_reference.py,shared,.py,9050,285,83db28ed1707abee033b282a9ea4241ec18064f03a779c3685c43336c9b70273
 shared/daily_notes.py,shared,.py,3451,122,5bbc1a9defb5442e18037ed33ca50f88d4bbacc78922dee0e64048ed1b3c38e3
@@ -314,11 +315,12 @@ tests/test_coverage_gap.py,tests,.py,17341,533,092e22ad69413b7f09c8757816ad00137
 tests/test_dedup.py,tests,.py,2648,80,1b9bd73f1188769b9f7ca302a30cc74ca057caf1248d3c69a60d79dbd6cbdd1a
 tests/test_deployment_config.py,tests,.py,1799,37,d8e3bc0177dc017bf10386b6ce2a3e87c480aa2804c465fe549d1835017ab59d
 tests/test_executor.py,tests,.py,1788,56,1fd33e9431e3b2d5a324c67af38e15a56781decb4ff35e9fc7f400b561ec9637
-tests/test_hardening.py,tests,.py,13213,314,dc050d5e0379b6f514869d63a9a9fc535f78e5b4173bb44e88313445edcfe104
+tests/test_hardening.py,tests,.py,13795,326,acba101713cbea066d16f981b84f4ae51887477ac604b3dc8453486b58f4ad0b
 tests/test_imported_modules.py,tests,.py,2522,77,758e879f80f538cb49b84887e76189d104ade92b1b1c10d0d820587a4bd2269d
 tests/test_ingestion.py,tests,.py,545,17,4b3a4007644f293a8465b4fd0af5e5eae995dbce06ea3c8864f47f2b9142aa07
 tests/test_integrations.py,tests,.py,3773,115,f513a8078a0da59d9bd31007db7b3baeb30cad986a0a4f600134418ce8214c12
 tests/test_permission.py,tests,.py,1813,48,5b1f1461df32ec77ac60f046e3456a29f316a15c2a0597e8693f6faf5a2599a5
+tests/test_phase0_baseline.py,tests,.py,9246,247,8d2791962a0d7e91b9ba917a30ce6e3c57dc0ff36298b2059dc3c7b96ab21f4b
 tests/test_quality_absorption.py,tests,.py,6819,164,34b71e125117e03a6f742946c281a6004bb205145f910cd2f3ac33f443445ac6
 tests/test_retriever.py,tests,.py,698,22,4c89591c797a4a31eed6a4b1613e6eaeefd883c92f11a5a98edf2f4b7e73bae9
 tests/test_router.py,tests,.py,1703,45,7221874031d2ce8a637bb7cfc20c1c83f050cbf31905415d191d30138dc002f7

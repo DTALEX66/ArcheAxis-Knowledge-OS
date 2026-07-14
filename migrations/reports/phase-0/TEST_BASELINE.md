@@ -1,6 +1,6 @@
 # Phase 0 测试基线
 
-> Git 基线：`82b9df3f719d9212111536b454654f2243150f16`。结果由本次真实命令执行生成，不复用历史测试数字。
+> Git 基线：`89ae64fb6de524e742f4c127776d74223db3232e`。结果由本次真实命令执行生成，不复用历史测试数字。
 >
 > 隔离：所有子进程在导入项目前设置 `COGNITIVE_DATA_DIR=data/phase0-runtime`、`PYTHONDONTWRITEBYTECODE=1`，pytest 使用 `-p no:cacheprovider`。
 
@@ -8,10 +8,10 @@
 
 | 项目 | 结果 |
 |---|---|
-| `root-tests` | **passed** — 144 passed, 5 warnings in 3.20s |
-| `knowledge-base-tests` | **passed** — 28 passed in 0.72s |
-| `integration-tests` | **passed** — 1 passed in 0.14s |
-| `inspiration-research-tests` | **observed-failure** — 1 error in 0.14s |
+| `root-tests` | **passed** — 145 passed, 5 warnings in 3.27s |
+| `knowledge-base-tests` | **passed** — 28 passed in 0.71s |
+| `integration-tests` | **passed** — 1 passed in 0.13s |
+| `inspiration-research-tests` | **observed-failure** — 1 error in 0.12s |
 | `ruff` | **passed** — All checks passed! |
 | `mypy-config-preflight` | **observed-failure** — 1 error across 1 file; exit code 2 |
 | `mypy-python-3.13-diagnostic` | **observed-failure** — 42 errors across 18 files; exit code 1 |
@@ -30,13 +30,17 @@ python -m pytest tests -q --tb=short -W default -p no:cacheprovider
 观测到的告警：
 
 - ResourceWarning: unclosed database in <sqlite3.Connection object>
-- StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.### knowledge-base-tests
+- StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+
+### knowledge-base-tests
 
 工作目录：`knowledge_base`
 
 ```bash
 python -m pytest tests -q --tb=short -p no:cacheprovider
 ```
+
+
 ### integration-tests
 
 工作目录：`.`
@@ -44,6 +48,8 @@ python -m pytest tests -q --tb=short -p no:cacheprovider
 ```bash
 python -m pytest integration-tests -q --tb=short -p no:cacheprovider
 ```
+
+
 ### inspiration-research-tests
 
 工作目录：`.`
@@ -51,6 +57,8 @@ python -m pytest integration-tests -q --tb=short -p no:cacheprovider
 ```bash
 python -m pytest Inspiration-Research/tests -q --tb=short -p no:cacheprovider
 ```
+
+
 ### ruff
 
 工作目录：`.`
@@ -58,6 +66,8 @@ python -m pytest Inspiration-Research/tests -q --tb=short -p no:cacheprovider
 ```bash
 python -m ruff check app shared knowledge_base Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --no-cache
 ```
+
+
 ### mypy-config-preflight
 
 工作目录：`.`
@@ -65,6 +75,8 @@ python -m ruff check app shared knowledge_base Inspiration-Research shared-contr
 ```bash
 python -m mypy app shared knowledge_base --ignore-missing-imports --no-error-summary
 ```
+
+
 ### mypy-python-3.13-diagnostic
 
 工作目录：`.`
@@ -72,6 +84,8 @@ python -m mypy app shared knowledge_base --ignore-missing-imports --no-error-sum
 ```bash
 python -m mypy app shared knowledge_base --ignore-missing-imports --python-version 3.13 --no-error-summary
 ```
+
+
 ### git-diff-check
 
 工作目录：`.`

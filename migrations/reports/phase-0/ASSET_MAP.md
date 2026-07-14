@@ -1,10 +1,10 @@
 # Phase 0 资产地图
 
-> Git 基线：`82b9df3f719d9212111536b454654f2243150f16`。本报告只覆盖当前仓库中的 Git 跟踪文件。
+> Git 基线：`89ae64fb6de524e742f4c127776d74223db3232e`。本报告只覆盖当前仓库中的 Git 跟踪文件。
 
 ## 总览
 
-- 跟踪文件：339
+- 跟踪文件：341
 - HTTP 路由条目：143
 - HTTP 操作：143
 - 审计边界：当前仓库；外部仓库、个人资料库和运行时用户数据均不在范围内。
@@ -32,10 +32,10 @@
 | `integration-tests` | 2 |
 | `knowledge_base` | 29 |
 | `root` | 15 |
-| `scripts` | 3 |
+| `scripts` | 4 |
 | `shared` | 45 |
 | `shared-contracts` | 39 |
-| `tests` | 20 |
+| `tests` | 21 |
 | `workspace` | 12 |
 
 ## 运行资产分工
