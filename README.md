@@ -20,7 +20,7 @@ Research → Evidence → Knowledge → Learning
 | Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
 | Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
-| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | 🟡 进行中 | TaskPackV1 首个 tracer；SQLite 缺列仍需独立迁移决策 |
+| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | 🟡 进行中 | TaskPackV1 已完成 KB/SQLite row 往返、Runtime 窄投影与可回滚迁移；其他合同仍待推进 |
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ⬜ 规划中 | 替换固定 echo 与二值评价缺口 |
@@ -38,9 +38,9 @@ Research → Evidence → Knowledge → Learning
 → Knowledge / Research / Enhancement / Contracts Facade ✅
 ```
 
-当前刀：**TaskPackV1 + KB legacy adapter** 已进入实现；Runtime 只接受显式窄投影，SQLite row adapter 尚未完成。
+当前刀：**TaskPackV1 + KB/SQLite legacy adapter** 已落地；Runtime 只接受显式窄投影，下一步继续 ExecutionTrace、Evaluation 与 Lesson 合同。
 
-本阶段明确不做：数据库迁移、目录树搬迁、Planner/Evaluator 重写、依赖大升级，以及任何外部项目扫描。
+本阶段明确不做：其他数据库迁移、目录树搬迁、Planner/Evaluator 重写、依赖大升级，以及任何外部项目扫描。
 
 完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)。
 

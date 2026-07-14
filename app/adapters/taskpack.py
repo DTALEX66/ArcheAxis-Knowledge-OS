@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from typing import Any
 
@@ -61,6 +62,66 @@ def to_knowledge_taskpack(contract: TaskPackV1) -> KnowledgeTaskPack:
         risk_level=contract.risk_level,
         requires_review=contract.requires_review,
     )
+
+
+def _row_list(row: dict[str, Any], field: str) -> list[Any]:
+    value = row.get(field)
+    if value is None:
+        value = row.get(f"{field}_json")
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError as exc:
+            raise ContractMappingError(f"invalid JSON in taskpack row field {field}") from exc
+    if not isinstance(value, list):
+        raise ContractMappingError(f"taskpack row field {field} must be a list")
+    return value
+
+
+def from_taskpack_row(row: dict[str, Any]) -> TaskPackV1:
+    """Map a migrated SQLite row to v1 without inventing safety fields."""
+
+    required = {"id", "context_id", "goal", "risk_level", "requires_review"}
+    missing = sorted(required - row.keys())
+    if missing:
+        raise ContractMappingError(f"taskpack row requires migration fields: {', '.join(missing)}")
+    review_value = row["requires_review"]
+    if review_value not in (0, 1, False, True):
+        raise ContractMappingError("taskpack row requires_review must be 0 or 1")
+    steps = _row_list(row, "steps")
+    return TaskPackV1(
+        schema_version=CONTRACT_VERSION,
+        task_id=str(row["id"]),
+        context_id=str(row["context_id"]),
+        goal=str(row["goal"]),
+        steps=steps,
+        requested_tools=_step_tools(steps),
+        declared_allowed_tools=_row_list(row, "allowed_tools"),
+        explicitly_blocked_tools=_row_list(row, "blocked_tools"),
+        constraints=_row_list(row, "constraints"),
+        success_criteria=_row_list(row, "success_criteria"),
+        risk_level=row["risk_level"],
+        requires_review=bool(review_value),
+    )
+
+
+def to_taskpack_row(contract: TaskPackV1) -> dict[str, Any]:
+    """Map v1 to the decoded row shape accepted by shared.storage.insert."""
+
+    if _step_tools(contract.steps) != contract.requested_tools:
+        raise ContractMappingError("requested_tools do not match step tools")
+    return {
+        "id": contract.task_id,
+        "context_id": contract.context_id,
+        "goal": contract.goal,
+        "steps": [step.model_dump() for step in contract.steps],
+        "allowed_tools": list(contract.declared_allowed_tools),
+        "blocked_tools": list(contract.explicitly_blocked_tools),
+        "constraints": list(contract.constraints),
+        "success_criteria": list(contract.success_criteria),
+        "risk_level": contract.risk_level,
+        "requires_review": int(contract.requires_review),
+    }
 
 
 def _step_tools(steps: list[dict[str, Any]] | list[TaskStepV1]) -> list[str]:

@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS kb_context_packs (
 
 CREATE TABLE IF NOT EXISTS kb_taskpacks (
     id TEXT PRIMARY KEY,
+    context_id TEXT NOT NULL DEFAULT '',
     goal TEXT NOT NULL,
     steps_json TEXT NOT NULL DEFAULT '[]',
     allowed_tools_json TEXT NOT NULL DEFAULT '[]',
@@ -96,6 +97,7 @@ CREATE TABLE IF NOT EXISTS kb_taskpacks (
     constraints_json TEXT NOT NULL DEFAULT '[]',
     success_criteria_json TEXT NOT NULL DEFAULT '[]',
     risk_level TEXT NOT NULL DEFAULT 'low',
+    requires_review INTEGER NOT NULL DEFAULT 1 CHECK(requires_review IN (0, 1)),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -290,11 +292,18 @@ def _conn() -> sqlite3.Connection:
 
 
 def init():
+    from shared import migration
+
+    if DB_PATH.is_file():
+        migration.migrate(db_path=DB_PATH, backup_dir=migration.BACKUP_DIR)
+
     c = _conn()
     c.executescript(IR_KB_TABLES)
     c.executescript(IR_KB_TABLES_EXT)
     c.commit()
     c.close()
+
+    migration.migrate(db_path=DB_PATH, backup_dir=migration.BACKUP_DIR)
 
 
 # ── Generic helpers ──
@@ -373,7 +382,16 @@ def insert(table: str, data: dict) -> None:
         table = _validated_table(c, table)
         cols = {r[1] for r in c.execute(f'PRAGMA table_info("{table}")').fetchall()}
         mapped = {}
+        if (
+            table == "kb_taskpacks"
+            and "task_id" in data
+            and "id" in data
+            and data["task_id"] != data["id"]
+        ):
+            raise ValueError("kb_taskpacks task_id and id must match")
         for key, value in data.items():
+            if table == "kb_taskpacks" and key == "task_id":
+                key = "id"
             column = f"{key}_json" if isinstance(value, (list, dict)) else key
             if column in cols:
                 mapped[column] = _json_dump(value) if isinstance(value, (list, dict)) else value

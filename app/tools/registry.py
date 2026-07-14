@@ -255,7 +255,6 @@ def _taskpack_generate_tool(payload: dict[str, Any], dry_run: bool) -> dict[str,
 
     task_dict = task.to_dict()
     task_dict["id"] = task_dict.pop("task_id")
-    task_dict.pop("context_id", None)
     insert("kb_taskpacks", task_dict)
     result["taskpack"] = task.to_dict()
     return result

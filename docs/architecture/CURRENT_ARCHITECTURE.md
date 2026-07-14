@@ -82,7 +82,7 @@ Runtime Facade 只编排现有实现：允许 `app.main → app.facades → app.
 
 Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细节提升为稳定合同。Research 返回并持久化的是 `IntakeCard` candidate。Enhancement 只返回内存 candidate，不写数据库、不调用网络或 LLM。Contracts 已建立首个 `TaskPackV1`，但不声明与旧 JSON Schema 全量等价；其他版本化对象仍待 Phase 2 后续 tracer。
 
-`app/contracts/` 是纯 canonical 层，由 Architecture Guard 禁止反向依赖业务模块；`app/adapters/` 承担 KB/Runtime 映射。KB TaskPack 可逐字段无损往返；步骤实际工具成为 `requested_tools`，策略允许/阻止列表独立保留。Runtime 只接收 requested tools，投影公开不可表示字段，并对 review-required、critical risk、步骤/请求不一致及工具策略冲突 fail closed。当前 SQLite 表缺列，因此没有 row round-trip 完成声明。
+`app/contracts/` 是纯 canonical 层，由 Architecture Guard 禁止反向依赖业务模块；`app/adapters/` 承担 KB/Runtime/SQLite row 映射。KB TaskPack 可逐字段无损往返；步骤实际工具成为 `requested_tools`，策略允许/阻止列表独立保留。Runtime 只接收 requested tools，投影公开不可表示字段，并对 review-required、critical risk、步骤/请求不一致及工具策略冲突 fail closed。`kb_taskpacks` 已由正式 runner 在启动时先备份再幂等迁移 `context_id` 与 `requires_review`；旧行未知审核状态及新行缺省审核状态均按需审核 fail closed，离线 rollback 可恢复备份字节。
 
 ## Architecture Guard
 

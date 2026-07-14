@@ -74,7 +74,7 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 
 ## Phase 2：版本化 Contracts
 
-当前进度：`TaskPackV1` 首个 tracer 已建立 KB 无损往返和 Runtime 显式窄投影；SQLite `kb_taskpacks` 缺少 `context_id`、`requires_review`，不得宣称 row round-trip 已完成。
+当前进度：`TaskPackV1` 已建立 KB dataclass 无损往返、SQLite row 合同与安全字段映射、Runtime 显式窄投影；`kb_taskpacks` 已通过带备份的幂等 migration 增加 `context_id`、`requires_review`，历史未知审核状态按需审核 fail closed，并具备离线 rollback 证明。
 
 首批合同：
 

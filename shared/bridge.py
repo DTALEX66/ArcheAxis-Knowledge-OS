@@ -30,9 +30,9 @@ def bridge_intake_to_kb(intake_card: dict) -> dict:
         allowed_tools=["echo", "file_read"],
         risk_level=intake_card.get("risk_level", "low"),
     )
+    task.context_id = ctx.context_id
     task_dict = task.to_dict()
     task_dict["id"] = task_dict.pop("task_id")
-    task_dict.pop("context_id", None)  # not in SQLite schema
     insert("kb_taskpacks", task_dict)
 
     return {"context_pack_id": ctx.context_id, "taskpack_id": task.task_id}
@@ -52,7 +52,6 @@ def bridge_contract_to_kb(contract: dict) -> dict:
     )
     task_dict = task.to_dict()
     task_dict["id"] = task_dict.pop("task_id")
-    task_dict.pop("context_id", None)
     insert("kb_taskpacks", task_dict)
     return {"taskpack_id": task.task_id}
 
