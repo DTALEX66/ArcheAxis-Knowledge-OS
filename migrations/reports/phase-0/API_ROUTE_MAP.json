@@ -1,0 +1,1308 @@
+{
+  "git_head": "82b9df3f719d9212111536b454654f2243150f16",
+  "route_count": 143,
+  "operation_count": 143,
+  "services": {
+    "core": {
+      "route_count": 20,
+      "operation_count": 20
+    },
+    "inspiration-research": {
+      "route_count": 14,
+      "operation_count": 14
+    },
+    "knowledge-base": {
+      "route_count": 109,
+      "operation_count": 109
+    }
+  },
+  "routes": [
+    {
+      "path": "/architecture",
+      "methods": [
+        "GET"
+      ],
+      "name": "architecture",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/auth/token",
+      "methods": [
+        "POST"
+      ],
+      "name": "auth_token",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/backup",
+      "methods": [
+        "POST"
+      ],
+      "name": "backup_db",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/backup/list",
+      "methods": [
+        "GET"
+      ],
+      "name": "backup_list",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/convert/directory",
+      "methods": [
+        "POST"
+      ],
+      "name": "convert_directory_api",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/convert/file",
+      "methods": [
+        "POST"
+      ],
+      "name": "convert_file_api",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/convert/url",
+      "methods": [
+        "POST"
+      ],
+      "name": "convert_url_api",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/health",
+      "methods": [
+        "GET"
+      ],
+      "name": "health",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/ingest",
+      "methods": [
+        "POST"
+      ],
+      "name": "ingest_api",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/ingest/directory",
+      "methods": [
+        "POST"
+      ],
+      "name": "ingest_directory_api",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/ingest/file",
+      "methods": [
+        "POST"
+      ],
+      "name": "ingest_file_api",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/memory/lessons",
+      "methods": [
+        "GET"
+      ],
+      "name": "lessons",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/memory/search",
+      "methods": [
+        "POST"
+      ],
+      "name": "memory_search",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/route",
+      "methods": [
+        "POST"
+      ],
+      "name": "route_api",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/run",
+      "methods": [
+        "POST"
+      ],
+      "name": "run",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/sleep-loop",
+      "methods": [
+        "GET"
+      ],
+      "name": "sleep_loop_get",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/sleep-loop",
+      "methods": [
+        "POST"
+      ],
+      "name": "sleep_loop_post",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/tools",
+      "methods": [
+        "GET"
+      ],
+      "name": "tools",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/traces",
+      "methods": [
+        "GET"
+      ],
+      "name": "traces",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/version",
+      "methods": [
+        "GET"
+      ],
+      "name": "version",
+      "operation_id": null,
+      "service": "core"
+    },
+    {
+      "path": "/contracts",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_contracts",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/daily-brief",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_daily_brief",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/daily-brief/auto",
+      "methods": [
+        "POST"
+      ],
+      "name": "auto_daily_brief",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/daily-briefs",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_daily_briefs",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/engineering-contract",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_contract",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/health",
+      "methods": [
+        "GET"
+      ],
+      "name": "health",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/intake-card",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_intake_card",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/intake-cards",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_intake_cards",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/research-note",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_research_note",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/research-notes",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_research_notes",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/score-project",
+      "methods": [
+        "POST"
+      ],
+      "name": "score_project_endpoint",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/screen-project",
+      "methods": [
+        "POST"
+      ],
+      "name": "screen_project_endpoint",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/screen-projects/batch",
+      "methods": [
+        "POST"
+      ],
+      "name": "screen_projects_batch",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/trending",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_trending",
+      "operation_id": null,
+      "service": "inspiration-research"
+    },
+    {
+      "path": "/kb/",
+      "methods": [
+        "GET"
+      ],
+      "name": "dashboard",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/a-to-b/candidates",
+      "methods": [
+        "GET"
+      ],
+      "name": "a_to_b_candidates",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/a-to-b/pending",
+      "methods": [
+        "GET"
+      ],
+      "name": "a_to_b_pending",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/a-to-b/publish/{candidate_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "a_to_b_publish",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/a-to-b/translate",
+      "methods": [
+        "POST"
+      ],
+      "name": "a_to_b_translate",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/analytics",
+      "methods": [
+        "GET"
+      ],
+      "name": "analytics",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/analytics/heatmap",
+      "methods": [
+        "GET"
+      ],
+      "name": "analytics_heatmap",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/analytics/streak",
+      "methods": [
+        "GET"
+      ],
+      "name": "analytics_streak",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/auto/atomicity",
+      "methods": [
+        "POST"
+      ],
+      "name": "auto_atomicity",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/auto/summarize",
+      "methods": [
+        "POST"
+      ],
+      "name": "auto_summarize",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/auto/tags",
+      "methods": [
+        "POST"
+      ],
+      "name": "auto_tags",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/backlinks/{target_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "backlinks",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/blocks/resolve",
+      "methods": [
+        "GET"
+      ],
+      "name": "resolve_block_ref",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/blocks/{source_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "extract_blocks",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/bulk/import",
+      "methods": [
+        "POST"
+      ],
+      "name": "bulk_import",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/canvas",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_canvases_endpoint",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/canvas",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_canvas_endpoint",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/canvas/{canvas_id}",
+      "methods": [
+        "DELETE"
+      ],
+      "name": "delete_canvas_endpoint",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/canvas/{canvas_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_canvas_endpoint",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/canvas/{canvas_id}/card",
+      "methods": [
+        "POST"
+      ],
+      "name": "canvas_add_card",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/canvas/{canvas_id}/connect",
+      "methods": [
+        "POST"
+      ],
+      "name": "canvas_add_connection",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/cards",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_cards",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/cards",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_card",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/context-pack",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_context_pack",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/context-packs",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_context_packs",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/cron/discover",
+      "methods": [
+        "POST"
+      ],
+      "name": "cron_discover",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/daily",
+      "methods": [
+        "GET"
+      ],
+      "name": "daily_note",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/daily/append",
+      "methods": [
+        "POST"
+      ],
+      "name": "daily_append",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/daily/timeline",
+      "methods": [
+        "GET"
+      ],
+      "name": "daily_timeline",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/dashboard",
+      "methods": [
+        "GET"
+      ],
+      "name": "dashboard",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/dataview/query",
+      "methods": [
+        "POST"
+      ],
+      "name": "dataview_query",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/diversity",
+      "methods": [
+        "GET"
+      ],
+      "name": "diversity",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/diversity/radar",
+      "methods": [
+        "GET"
+      ],
+      "name": "diversity_radar",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/diversity/{doc_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "diversity_analyze",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/documents",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_documents",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/documents",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_document",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/evidence",
+      "methods": [
+        "GET"
+      ],
+      "name": "evidence",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/evidence",
+      "methods": [
+        "POST"
+      ],
+      "name": "evidence_add",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/evidence/{doc_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "evidence_get",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/export",
+      "methods": [
+        "GET"
+      ],
+      "name": "export_kb",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/garden",
+      "methods": [
+        "GET"
+      ],
+      "name": "garden",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/garden/evergreen/{doc_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "garden_evergreen",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/garden/gaps",
+      "methods": [
+        "GET"
+      ],
+      "name": "garden_gaps",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/garden/orphans",
+      "methods": [
+        "GET"
+      ],
+      "name": "garden_orphans",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/garden/suggest/{doc_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "garden_suggest_connections",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/graph",
+      "methods": [
+        "GET"
+      ],
+      "name": "graph_view",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/graphrag/index",
+      "methods": [
+        "POST"
+      ],
+      "name": "graphrag_index",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/graphrag/search",
+      "methods": [
+        "POST"
+      ],
+      "name": "graphrag_search",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/health",
+      "methods": [
+        "GET"
+      ],
+      "name": "health",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/health/radar",
+      "methods": [
+        "GET"
+      ],
+      "name": "health_radar",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/credibility",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_score_credibility",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/cross-reference",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_cross_reference",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/extract",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_extract_content",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/facts",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_extract_facts",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/feeds",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_collect_feeds",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/fuse",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_fuse_sources",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/search",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_web_search",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/search-and-extract",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_search_and_extract",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/youtube/search",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_youtube_search",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/ir/youtube/transcript",
+      "methods": [
+        "POST"
+      ],
+      "name": "ir_youtube_transcript",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/machine-knowledge",
+      "methods": [
+        "GET"
+      ],
+      "name": "machine_knowledge_list",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/machine-knowledge",
+      "methods": [
+        "POST"
+      ],
+      "name": "machine_knowledge_create",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/machine-knowledge/search",
+      "methods": [
+        "GET"
+      ],
+      "name": "machine_knowledge_search",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/machine-knowledge/{unit_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "machine_knowledge_get",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/machine-knowledge/{unit_id}/deactivate",
+      "methods": [
+        "POST"
+      ],
+      "name": "machine_knowledge_deactivate",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/media/inventory",
+      "methods": [
+        "POST"
+      ],
+      "name": "media_inventory",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/mermaid",
+      "methods": [
+        "GET"
+      ],
+      "name": "mermaid",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/mermaid/flowchart",
+      "methods": [
+        "GET"
+      ],
+      "name": "mermaid_flowchart",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/mermaid/graph",
+      "methods": [
+        "GET"
+      ],
+      "name": "mermaid_graph",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/mermaid/timeline/{card_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "mermaid_timeline",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/missions/daily",
+      "methods": [
+        "GET"
+      ],
+      "name": "missions_daily",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/mistakes",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_mistakes",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/mistakes/patterns",
+      "methods": [
+        "GET"
+      ],
+      "name": "mistake_patterns",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/mistakes/{mistake_id}/resolve",
+      "methods": [
+        "POST"
+      ],
+      "name": "resolve_mistake_endpoint",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/obsidian/import",
+      "methods": [
+        "POST"
+      ],
+      "name": "obsidian_import",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/obsidian/import/apply",
+      "methods": [
+        "POST"
+      ],
+      "name": "obsidian_import_apply",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/obsidian/import/course",
+      "methods": [
+        "POST"
+      ],
+      "name": "obsidian_import_course",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/obsidian/project/card/{card_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "obsidian_project_card",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/obsidian/project/mku/{unit_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "obsidian_project_mku",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/obsidian/project/review/{card_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "obsidian_project_review",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/obsidian/scan",
+      "methods": [
+        "POST"
+      ],
+      "name": "obsidian_scan",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/pipeline",
+      "methods": [
+        "POST"
+      ],
+      "name": "pipeline_run",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/project/daily-brief/{brief_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "project_brief",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/project/lesson/{lesson_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "project_lesson",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/project/taskpack/{task_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "project_taskpack",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/project/trace/{trace_id}",
+      "methods": [
+        "POST"
+      ],
+      "name": "project_trace",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/projects",
+      "methods": [
+        "GET"
+      ],
+      "name": "projects",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/projects/generate",
+      "methods": [
+        "POST"
+      ],
+      "name": "projects_generate",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/projects/suggest",
+      "methods": [
+        "GET"
+      ],
+      "name": "projects_suggest",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/quality",
+      "methods": [
+        "POST"
+      ],
+      "name": "quality",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/retro",
+      "methods": [
+        "GET"
+      ],
+      "name": "retro",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/retro/weekly",
+      "methods": [
+        "GET"
+      ],
+      "name": "retro_weekly",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/reviews",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_review",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/reviews/due",
+      "methods": [
+        "GET"
+      ],
+      "name": "due_reviews",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/reviews/history/{card_id}",
+      "methods": [
+        "GET"
+      ],
+      "name": "review_history",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/search",
+      "methods": [
+        "POST"
+      ],
+      "name": "search",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/search/rebuild",
+      "methods": [
+        "POST"
+      ],
+      "name": "search_rebuild",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/search/stats",
+      "methods": [
+        "GET"
+      ],
+      "name": "search_stats",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/sources",
+      "methods": [
+        "POST"
+      ],
+      "name": "sources",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/sources/discover",
+      "methods": [
+        "POST"
+      ],
+      "name": "sources_discover",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/sources/match",
+      "methods": [
+        "POST"
+      ],
+      "name": "sources_match",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/taskpack",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_taskpack",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/taskpacks",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_taskpacks",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/types",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_object_types",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/types",
+      "methods": [
+        "POST"
+      ],
+      "name": "register_object_type",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/types/validate",
+      "methods": [
+        "POST"
+      ],
+      "name": "validate_object",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/types/{type_name}",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_object_type",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/views/{table}",
+      "methods": [
+        "GET"
+      ],
+      "name": "collection_view",
+      "operation_id": null,
+      "service": "knowledge-base"
+    },
+    {
+      "path": "/kb/views/{table}/aggregate",
+      "methods": [
+        "GET"
+      ],
+      "name": "collection_aggregate",
+      "operation_id": null,
+      "service": "knowledge-base"
+    }
+  ]
+}
