@@ -1,5 +1,7 @@
 # 006 Agent Configuration Pack
 
+> Status: superseded. This intake is historical evidence; active policy moved to `AGENTS.md` and `docs/VERIFICATION_POLICY.md`, and the former machine profile was retired because no runtime consumed it.
+
 ## 目标
 
 把当前 Codex/Agent 的工作方式沉淀到仓库里，但只上传公开脱敏版本。真实本机配置、凭据、私钥、Token、`.codex` 会保留在本地，不进入 Git。

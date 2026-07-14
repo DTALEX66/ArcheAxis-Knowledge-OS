@@ -26,7 +26,7 @@ information -> attention -> understanding -> structure -> memory -> learning -> 
 | Runtime settings | `config/settings.yaml` | App thresholds, execution defaults, memory backend |
 | Model settings | `config/models.yaml` | Current model/embedding provider placeholders |
 | Tool registry | `config/tools.yaml` | Tool names and risk levels |
-| Agent profile | `config/agent_profile.yaml` | Public agent behavior, safety, upload, and workflow policy |
+| Verification policy | `docs/VERIFICATION_POLICY.md` | Test cadence, review triggers, and evidence retention |
 | Human/agent guide | `AGENTS.md` | Readable operating rules for Codex and future agents |
 | Configuration index | `workspace/configuration/README.md` | Catalog of public vs private configuration categories |
 | Intake history | `workspace/intake/` | Stepwise design and implementation log |
@@ -108,13 +108,5 @@ The following must stay local and must not be committed:
 
 ## 9. Codex Configuration
 
-Codex-specific public configuration is stored in:
-
-| File | Purpose |
-| --- | --- |
-| `config/codex_profile.yaml` | Machine-readable Codex behavior profile |
-| `.codex.example/config.example.toml` | Safe example local config template |
-| `workspace/configuration/CODEX.md` | Human-readable Codex configuration guide |
-
-The real `.codex/` directory is private local state and must not be committed.
+Repository behavior is defined by this file plus `docs/VERIFICATION_POLICY.md`. `.codex.example/config.example.toml` is the only portable Codex template; it is not loaded automatically and contains no credentials. Real `.codex/` state remains private and uncommitted.
 

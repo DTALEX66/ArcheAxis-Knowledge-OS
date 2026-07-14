@@ -1,5 +1,7 @@
 # 007 Codex Configuration Pack
 
+> Status: superseded. This intake is historical evidence; active policy moved to `AGENTS.md` and `docs/VERIFICATION_POLICY.md`. `.codex.example/` remains the only portable template.
+
 ## 目标
 
 补齐 Codex 专用配置，但仍然只上传公开脱敏版本。真实 `.codex/`、连接器凭据、Token、API Key、SSH 私钥、会话状态都不进入仓库。

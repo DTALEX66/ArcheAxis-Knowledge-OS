@@ -212,6 +212,35 @@ def test_cli_scans_staged_index_and_returns_json_failure(
     assert output["issues"][0]["code"] == "unexpected-bom"
 
 
+def test_shadow_agent_profiles_are_retired_from_active_policy() -> None:
+    retired = (
+        "config/agent_profile.yaml",
+        "config/codex_profile.yaml",
+        "workspace/configuration/CODEX.md",
+    )
+    for relative in retired:
+        assert not (ROOT / relative).exists(), relative
+
+    active_policy = "\n".join(
+        (ROOT / relative).read_text(encoding="utf-8")
+        for relative in (
+            "AGENTS.md",
+            "workspace/README.md",
+            "workspace/configuration/README.md",
+        )
+    )
+    for relative in retired:
+        assert relative not in active_policy
+    assert "CODEX" not in active_policy
+
+    for relative in (
+        "workspace/intake/006_agent_configuration_pack.md",
+        "workspace/intake/007_codex_configuration_pack.md",
+    ):
+        history = (ROOT / relative).read_text(encoding="utf-8")
+        assert "Status: superseded" in history
+
+
 def test_repository_convention_gates_are_wired() -> None:
     editorconfig = (ROOT / ".editorconfig").read_text(encoding="utf-8")
     attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")

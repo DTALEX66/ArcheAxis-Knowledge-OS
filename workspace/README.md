@@ -9,7 +9,7 @@ workspace/
 ├── README.md           # 本文档
 ├── intake/             # 进口知识包 — 功能设计和实现记录
 ├── imports/            # 已清空 — 原参考材料已移至 docs/architecture/imported-designs/
-└── configuration/      # 配置说明 (CODEX, README)
+└── configuration/      # 活动配置与策略索引
 ```
 
 ## 已吸收的外部参考

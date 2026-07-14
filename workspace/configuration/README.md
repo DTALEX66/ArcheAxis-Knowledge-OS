@@ -1,44 +1,23 @@
 # Configuration Catalog
 
-This folder documents the public configuration that is safe to keep in the Cognitive-OS repository. It does not include local Codex session data, credentials, model provider secrets, SSH keys, or machine-specific private settings.
+This folder indexes active, public configuration. It never contains local Codex sessions, credentials, provider secrets, SSH keys, or personal paths.
 
-## Public Configuration
+## Active Sources of Truth
 
-| Category | Files | Audience | Notes |
-| --- | --- | --- | --- |
-| Agent operating guide | `AGENTS.md` | Human + agent | Main rules for safe Codex/agent work |
-| Agent machine profile | `config/agent_profile.yaml` | Agent + scripts | Structured, public, sanitized configuration |
-| Codex public profile | `config/codex_profile.yaml` | Codex + scripts | Codex-specific public policy and behavior template |
-| Codex example config | `.codex.example/config.example.toml` | Human + Codex | Example only, no real local state or secrets |
-| Runtime app settings | `config/settings.yaml` | App runtime | Thresholds, dry-run defaults, memory backend |
-| Model placeholders | `config/models.yaml` | App runtime | Stub/local placeholder providers for now |
-| Tool risk registry | `config/tools.yaml` | App runtime | Tool risk categories and default dry-run behavior |
-| Intake records | `workspace/intake/*.md` | Human + agent | Step-by-step implementation history |
-| Imported reference assets | `workspace/imports/**` | Human + agent | Selected reusable KB/IR material, not active runtime state |
-
-## Private Configuration Not Uploaded
-
-| Category | Examples | Reason |
+| Concern | File | Notes |
 | --- | --- | --- |
-| Credentials | SSH private keys, GitHub tokens, API keys | Secret material |
-| Real Codex state | `.codex/`, desktop session state, local MCP credentials | Machine/session specific |
-| Connector account links | OAuth tokens, cookies, remote account metadata | Personal account access |
-| Environment files | `.env`, `.npmrc`, `.pypirc` | Often contains secrets |
-| Runtime data | `data/memory`, logs, traces, cache, SQLite files | Generated local state |
-| External vault paths | Personal Obsidian vault absolute paths | Personal filesystem data |
+| Agent scope and safety | `AGENTS.md` | Auto-discovered repository operating rules |
+| Verification and review cadence | `docs/VERIFICATION_POLICY.md` | When to run each gate and require frozen review |
+| Runtime settings | `config/settings.yaml` | Application defaults |
+| Model placeholders | `config/models.yaml` | Runtime provider placeholders, not agent routing |
+| Tool risk registry | `config/tools.yaml` | Runtime tool names and risk levels |
+| Portable Codex example | `.codex.example/config.example.toml` | Optional template only; never real local state |
+| Intake records | `workspace/intake/*.md` | Historical design/implementation evidence, not active policy |
 
-## Configuration Boundaries
+## Boundaries
 
-- `AGENTS.md` describes how future agents should behave in this repository.
-- `config/agent_profile.yaml` mirrors the general agent policy in a structured form.
-- `config/codex_profile.yaml` adds Codex-specific behavior, sandbox, Git, and upload policy.
-- `.codex.example/` is a safe template directory. Real `.codex/` remains ignored.
-- Runtime configuration under `config/` should stay generic until real providers and deployment environments are chosen.
-- Private values should be injected through local environment files that remain ignored by Git.
-
-## Next Configuration Work
-
-1. Add environment-specific examples such as `.env.example` without real secrets.
-2. Add ingestion profiles for `obsidian`, `knowledge-base`, and `inspiration-research`.
-3. Add router evaluation samples under a dedicated non-secret test fixture directory.
-4. Add CI checks for compile, import, and basic API smoke tests.
+- `AGENTS.md` and `docs/VERIFICATION_POLICY.md` are the only active agent operating-policy sources.
+- `.codex.example/` is a non-secret example. Real `.codex/` state remains ignored.
+- Runtime configuration under `config/` is consumed by the application; it must not duplicate agent behavior or Git/review policy.
+- Historical intake and migration reports may mention retired files as past evidence; they must state when the design is superseded.
+- Private values belong in ignored local environment/configuration, never committed templates with real values.
