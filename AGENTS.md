@@ -9,7 +9,7 @@ Cognitive-OS is the front runtime for two primary systems:
 | System | Role | Current Relationship |
 | --- | --- | --- |
 | Knowledge-Base | A system for understanding, structure, memory, learning, review, and knowledge reuse. Packaged at `knowledge_base/` in this repository | Receives `KB` routed material |
-| Inspiration-Research | B system for research, comparison, inspiration, framework design, and strategy. Located at `Inspiration-Research/` in this repository | Receives `IR` routed material |
+| Inspiration-Research | B system for research, comparison, inspiration, framework design, and strategy. Packaged at `inspiration_research/`; the hyphenated directory is a deprecated launcher | Receives `IR` routed material |
 | Cognitive-OS | Front operating layer that routes information, runs tasks, stores traces, evaluates results, and forms machine lessons | This repository |
 | Obsidian | Upstream capture/source layer for a subset of KB inputs | Not the whole system |
 

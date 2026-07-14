@@ -38,6 +38,11 @@ def test_architecture_guard_rejects_new_boundary_violations(tmp_path: Path):
     _write(tmp_path, "shared-contracts/schemas/leak.py", "from app.core import router\n")
     _write(
         tmp_path,
+        "app/contracts/leak.py",
+        "from app.schemas import TaskPack\nfrom ..schemas import ContextPack\n",
+    )
+    _write(
+        tmp_path,
         "platform/leak.py",
         "import os, app\n"
         "import importlib as il\n"
@@ -82,11 +87,12 @@ def test_architecture_guard_rejects_new_boundary_violations(tmp_path: Path):
         {
             "forbidden-absolute-path": 13,
             "forbidden-sys-path-mutation": 9,
-            "reverse-business-dependency": 5,
+            "reverse-business-dependency": 7,
             "reverse-facade-dependency": 5,
         }
     )
     assert {issue.path for issue in issues} == {
+        "app/contracts/leak.py",
         "app/core/reverse.py",
         "app/new_bootstrap.py",
         "cli.py",

@@ -4,10 +4,10 @@ Research Note → IntakeCard → EngineeringContract
   → ContextPack → TaskPack
     → /run → PermissionCheck → Execute → Trace → Eval → Lesson
 """
+from app.adapters.taskpack import from_knowledge_taskpack, project_to_runtime
 from app.agent.executor import execute
 from app.core.permissions import check_permission
 from app.memory.database import save_lesson_db
-from app.schemas import TaskPack
 from inspiration_research.contracts.generator import generate_contract
 from inspiration_research.intake.generator import generate_intake_card
 from knowledge_base.context_pack import build_context_pack
@@ -58,16 +58,15 @@ def test_ir_to_kb_to_os_full_loop():
     )
     assert len(kb_task.steps) == 3
 
-    # Map KB TaskPack → OS TaskPack
-    task = TaskPack(
-        id=kb_task.task_id,
-        goal=kb_task.goal,
-        steps=kb_task.steps,
-        tools=kb_task.allowed_tools,
-        constraints=kb_task.constraints,
-        success_criteria=kb_task.success_criteria,
-        risk_level=kb_task.risk_level,
-    )
+    # Map KB TaskPack → canonical v1 → explicit narrower Runtime projection.
+    canonical_task = from_knowledge_taskpack(kb_task)
+    projection = project_to_runtime(canonical_task)
+    assert projection.task.tools == ["echo"]
+    assert projection.unmapped_fields == {
+        "declared_allowed_tools": kb_task.allowed_tools,
+        "explicitly_blocked_tools": kb_task.blocked_tools,
+    }
+    task = projection.task
 
     # ── Phase 3: Cognitive-OS — Permission → Execute → Trace → Lesson ──
     perm = check_permission(task, contract.goal)

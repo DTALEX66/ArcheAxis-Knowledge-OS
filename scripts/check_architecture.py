@@ -170,15 +170,21 @@ def _sys_path_mutation(
     return None
 
 
-def _imported_modules(node: ast.Import | ast.ImportFrom) -> list[str]:
+def _imported_modules(node: ast.Import | ast.ImportFrom, path: str) -> list[str]:
     if isinstance(node, ast.Import):
         return [alias.name for alias in node.names]
-    if not node.module:
-        return []
-    modules = [node.module]
-    if node.module == "app":
+
+    module = node.module or ""
+    if node.level:
+        package = path.removesuffix(".py").split("/")[:-1]
+        ascend = node.level - 1
+        base = package[: max(0, len(package) - ascend)]
+        module = ".".join(base + ([module] if module else []))
+
+    modules = [module] if module else []
+    if module in {"app", "app.contracts"}:
         modules.extend(
-            f"app.{alias.name}" for alias in node.names if alias.name in {"facades", "main"}
+            f"{module}.{alias.name}" for alias in node.names
         )
     return modules
 
@@ -258,7 +264,7 @@ def _non_runtime_string_nodes(tree: ast.AST) -> set[int]:
 
 
 def _is_contract_or_platform(path: str) -> bool:
-    return path.startswith(("shared-contracts/", "platform/"))
+    return path.startswith(("app/contracts/", "shared-contracts/", "platform/"))
 
 
 def _is_lower_runtime_module(path: str) -> bool:
@@ -281,6 +287,10 @@ def _dependency_issue(
 ) -> ArchitectureIssue | None:
     if _is_contract_or_platform(path):
         for source_module in modules:
+            if path.startswith("app/contracts/") and (
+                source_module == "app.contracts" or source_module.startswith("app.contracts.")
+            ):
+                continue
             if source_module.split(".", 1)[0] not in _BUSINESS_MODULES:
                 continue
             key = (path, line, source_module)
@@ -342,7 +352,7 @@ def scan_architecture(root: Path) -> list[ArchitectureIssue]:
 
             modules: list[str] = []
             if isinstance(node, (ast.Import, ast.ImportFrom)):
-                modules = _imported_modules(node)
+                modules = _imported_modules(node, path)
             elif isinstance(node, ast.Call):
                 imported = _dynamic_import(node, importlib_modules, importlib_functions)
                 if imported:
