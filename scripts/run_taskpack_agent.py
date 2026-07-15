@@ -229,7 +229,7 @@ class TaskPackRunner:
         session_id = result.session_id
         self._assert_frozen(baseline_head, baseline_tree)
 
-        for review_round in range(1, self.max_review_rounds + 1):
+        for review_round in range(1, self.max_review_rounds + 2):
             frozen_tree, frozen_status = self.repo.snapshot()
             review = self.agent.run_reviewer(
                 self._review_prompt(mission, frozen_tree, review_round)
@@ -245,6 +245,12 @@ class TaskPackRunner:
                 del session_id
                 self.repo.verify_released(baseline_head)
                 return
+
+            if review_round > self.max_review_rounds:
+                raise RunnerError(
+                    "review did not reach GO after "
+                    f"{self.max_review_rounds} repair rounds"
+                )
 
             previous_tree = frozen_tree
             result = self.agent.run_writer(

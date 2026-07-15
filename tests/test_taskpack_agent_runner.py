@@ -103,6 +103,50 @@ def test_high_risk_runner_resumes_one_writer_lineage_until_review_go() -> None:
     assert repo.released is True
 
 
+def test_high_risk_runner_allows_final_review_after_last_repair_round() -> None:
+    repo = FakeRepo()
+
+    class ProgressingAgent(FakeAgent):
+        repair_count = 0
+
+        def run_writer(self, prompt: str, *, resume: str | None = None) -> AgentResult:
+            self.writer_calls.append((resume, prompt))
+            if resume is None:
+                self.repo.staged_tree_value = "tree-v1"
+                self.repo.status_value = "M  shared/migration.py"
+            elif "NO-GO" in prompt:
+                self.repair_count += 1
+                self.repo.staged_tree_value = f"tree-v{self.repair_count + 1}"
+            elif "GO" in prompt:
+                self.repo.head_value = "released"
+                self.repo.status_value = ""
+            return AgentResult(stdout="writer complete", stderr="", session_id="session-A")
+
+    agent = ProgressingAgent(
+        repo,
+        [
+            "NO-GO\nfirst high",
+            "NO-GO\nsecond high",
+            "NO-GO\nthird high",
+            "GO",
+        ],
+    )
+
+    TaskPackRunner(repo=repo, agent=agent, max_review_rounds=3).run(
+        "repair the security boundary", risk="high"
+    )
+
+    assert len(agent.review_calls) == 4
+    assert [resume for resume, _ in agent.writer_calls] == [
+        None,
+        "session-A",
+        "session-A",
+        "session-A",
+        "session-A",
+    ]
+    assert repo.released is True
+
+
 def test_reviewer_must_not_change_the_frozen_tree() -> None:
     repo = FakeRepo()
     agent = FakeAgent(repo, ["GO"])
