@@ -32,6 +32,21 @@ def test_pytest_session_uses_an_isolated_runtime_root() -> None:
     assert storage.DB_PATH.parent == runtime
 
 
+def test_ci_test_jobs_use_minimal_uv_dependencies() -> None:
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    ci_requirements_path = root / "requirements-ci.txt"
+
+    assert ci_requirements_path.is_file()
+    ci_requirements = ci_requirements_path.read_text(encoding="utf-8").lower()
+    assert "astral-sh/setup-uv" in workflow
+    assert workflow.count("uv pip install --system -r requirements-ci.txt") >= 2
+    assert 'pip install -e ".[dev]"' not in workflow
+    assert "python -m pip install -r requirements.txt" in workflow
+    for heavy_dependency in ("litellm", "markitdown", "trafilatura"):
+        assert heavy_dependency not in ci_requirements
+
+
 def test_head_convention_scan_batches_git_blob_reads(tmp_path: Path, monkeypatch) -> None:
     import scripts.check_repository_conventions as conventions
 
