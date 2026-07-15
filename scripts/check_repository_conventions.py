@@ -186,22 +186,79 @@ def scan_path_set(paths: list[str]) -> list[ConventionIssue]:
     return sorted(issues)
 
 
+def _read_git_blobs(root: Path, object_ids: list[str]) -> list[bytes]:
+    """Read Git blobs in one process instead of spawning ``git show`` per file."""
+    if not object_ids:
+        return []
+    result = subprocess.run(
+        ["git", "cat-file", "--batch"],
+        cwd=root,
+        input="".join(f"{object_id}\n" for object_id in object_ids).encode("ascii"),
+        capture_output=True,
+        check=True,
+    )
+    output = result.stdout
+    cursor = 0
+    contents: list[bytes] = []
+    for expected_object_id in object_ids:
+        header_end = output.find(b"\n", cursor)
+        if header_end < 0:
+            raise RuntimeError("truncated git cat-file batch header")
+        header = output[cursor:header_end].decode("ascii").split()
+        if len(header) != 3 or header[1] != "blob":
+            raise RuntimeError(f"expected Git blob {expected_object_id}, got: {' '.join(header)}")
+        size = int(header[2])
+        content_start = header_end + 1
+        content_end = content_start + size
+        if content_end >= len(output) or output[content_end : content_end + 1] != b"\n":
+            raise RuntimeError(f"truncated git cat-file batch body for {expected_object_id}")
+        contents.append(output[content_start:content_end])
+        cursor = content_end + 1
+    return contents
+
+
+def _git_blob_entries(root: Path, source: str) -> list[tuple[str, str]]:
+    if source == "head":
+        command = ["git", "ls-tree", "-r", "-z", "HEAD"]
+        raw_entries = subprocess.run(command, cwd=root, capture_output=True, check=True).stdout
+        entries: list[tuple[str, str]] = []
+        for record in raw_entries.split(b"\0")[:-1]:
+            metadata, raw_path = record.split(b"\t", 1)
+            _, object_type, object_id = metadata.decode("ascii").split()
+            if object_type == "blob":
+                entries.append((raw_path.decode("utf-8"), object_id))
+        return entries
+
+    raw_entries = subprocess.run(
+        ["git", "ls-files", "-s", "-z"], cwd=root, capture_output=True, check=True
+    ).stdout
+    entries = []
+    for record in raw_entries.split(b"\0")[:-1]:
+        metadata, raw_path = record.split(b"\t", 1)
+        _, object_id, stage = metadata.decode("ascii").split()
+        if stage != "0":
+            raise RuntimeError(f"index contains an unmerged path: {raw_path.decode('utf-8')}")
+        entries.append((raw_path.decode("utf-8"), object_id))
+    return entries
+
+
 def scan_git_repository(root: Path, *, source: str = "worktree") -> list[ConventionIssue]:
     """Scan tracked paths from the worktree, index, or HEAD without mixing sources."""
     if source not in {"worktree", "index", "head"}:
         raise ValueError(f"unsupported Git source: {source!r}")
-    path_command = (
-        ["git", "ls-tree", "-r", "--name-only", "-z", "HEAD"]
-        if source == "head"
-        else ["git", "ls-files", "-z"]
-    )
-    raw_paths = subprocess.run(
-        path_command,
-        cwd=root,
-        capture_output=True,
-        check=True,
-    ).stdout
-    paths = raw_paths.decode("utf-8").split("\0")[:-1]
+
+    blob_contents: dict[str, bytes] = {}
+    if source == "worktree":
+        raw_paths = subprocess.run(
+            ["git", "ls-files", "-z"], cwd=root, capture_output=True, check=True
+        ).stdout
+        paths = raw_paths.decode("utf-8").split("\0")[:-1]
+    else:
+        entries = _git_blob_entries(root, source)
+        paths = [path for path, _ in entries]
+        contents = _read_git_blobs(root, [object_id for _, object_id in entries])
+        blob_contents = dict(zip(paths, contents, strict=True))
+
     issues = scan_path_set(paths)
     for path in paths:
         if source == "worktree":
@@ -217,13 +274,7 @@ def scan_git_repository(root: Path, *, source: str = "worktree") -> list[Convent
                 continue
             content = candidate.read_bytes()
         else:
-            revision = f"HEAD:{path}" if source == "head" else f":{path}"
-            content = subprocess.run(
-                ["git", "show", revision],
-                cwd=root,
-                capture_output=True,
-                check=True,
-            ).stdout
+            content = blob_contents[path]
         issues.extend(scan_text_bytes(path, content))
         if path == "config/naming-registry.yaml":
             issues.extend(scan_naming_registry_bytes(path, content))
