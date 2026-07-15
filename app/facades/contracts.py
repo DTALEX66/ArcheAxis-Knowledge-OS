@@ -15,6 +15,7 @@ from app.adapters.lesson import (
     to_lesson_row,
     to_runtime_lesson,
 )
+from app.adapters.research_package import build_candidate_research_package
 from app.adapters.source_record import from_kb_document_row, to_kb_document_row
 from app.adapters.taskpack import (
     RuntimeTaskProjection,
@@ -29,6 +30,7 @@ from app.contracts.v1 import (
     EvidenceV1,
     ExecutionTraceV1,
     LessonV1,
+    ResearchPackageV1,
     SourceRecordV1,
     TaskPackV1,
     TaskStepV1,
@@ -58,12 +60,14 @@ __all__ = [
     "LessonV1",
     "MachineLesson",
     "PermissionDecision",
+    "ResearchPackageV1",
     "RuntimeTaskProjection",
     "SourceRecordV1",
     "TaskPack",
     "TaskPackV1",
     "TaskStepV1",
     "bind_legacy_evidence",
+    "build_candidate_research_package",
     "from_match_result",
     "from_knowledge_taskpack",
     "from_kb_document_row",

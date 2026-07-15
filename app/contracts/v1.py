@@ -22,6 +22,9 @@ SOURCE_RECORD_SCHEMA_ID = (
 )
 CLAIM_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/claim.schema.json"
 EVIDENCE_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evidence.schema.json"
+RESEARCH_PACKAGE_SCHEMA_ID = (
+    "https://cognitive-loop-os.local/contracts/v1/research-package.schema.json"
+)
 
 
 class TaskStepV1(BaseModel):
@@ -116,6 +119,43 @@ class EvidenceV1(BaseModel):
     def enforce_provenance_governance(self) -> EvidenceV1:
         if self.provenance_status == "caller_supplied" and not self.requires_human_review:
             raise ValueError("caller_supplied evidence requires human review")
+        return self
+
+
+class ResearchPackageV1(BaseModel):
+    """Governed bundle of sources, claims, evidence, and open research risks."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": RESEARCH_PACKAGE_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    package_id: str = Field(min_length=1)
+    source_record_ids: list[str] = Field(min_length=1)
+    claim_ids: list[str] = Field(min_length=1)
+    evidence_ids: list[str] = Field(min_length=1)
+    independent_source_count: int = Field(ge=0)
+    conflicts: list[str]
+    unknowns: list[str]
+    risks: list[str]
+    verification_status: Literal[
+        "unverified", "caller_supplied_candidate", "server_verified"
+    ]
+    status: Literal["candidate", "ready_for_review", "verified", "rejected"]
+    provenance_status: Literal["caller_supplied", "server_verified"]
+    requires_human_review: bool
+    created_at: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def enforce_research_governance(self) -> ResearchPackageV1:
+        if self.status == "verified" and self.provenance_status != "server_verified":
+            raise ValueError("verified package requires server_verified provenance")
+        if self.verification_status == "server_verified" and (
+            self.provenance_status != "server_verified" or self.status != "verified"
+        ):
+            raise ValueError("server_verified status requires a verified server package")
+        if self.provenance_status == "caller_supplied" and not self.requires_human_review:
+            raise ValueError("caller_supplied package requires human review")
         return self
 
 
