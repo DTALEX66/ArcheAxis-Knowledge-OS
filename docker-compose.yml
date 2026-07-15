@@ -33,7 +33,7 @@ services:
       timeout: 5s
       retries: 3
     command: >
-      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-proxy-headers
 
   inspiration-research:
     build:

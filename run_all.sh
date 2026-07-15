@@ -10,7 +10,7 @@ echo "Starting Cognitive-Loop-OS services..."
 source .venv/Scripts/activate 2>/dev/null || source .venv/bin/activate
 
 echo "[1/2] Cognitive-OS + Knowledge-Base on port 8000"
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers &
 PID_OS=$!
 
 echo "[2/2] Inspiration-Research on port 8001"

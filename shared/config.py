@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+from ipaddress import ip_network
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +47,15 @@ _DEFAULTS: dict[str, Any] = {
         "enabled": False,  # set True in production
         "token_expire_hours": 24,
         "api_key_file": "config/api_keys.json",
+    },
+    "rate_limit": {
+        "enabled": True,
+        "window_seconds": 60,
+        "ordinary_read": 200,
+        "sensitive_write": 30,
+        "auth_token": 5,
+        "max_buckets_per_policy": 10_000,
+        "trusted_proxies": [],
     },
     "pipeline": {
         "max_content_chars": 10000,
@@ -98,6 +108,12 @@ class Config:
             "COGNITIVE_LOG_LEVEL": ["logging", "level"],
             "COGNITIVE_AUTH_ENABLED": ["auth", "enabled"],
             "COGNITIVE_JWT_SECRET": ["auth", "jwt_secret"],
+            "COGNITIVE_RATE_LIMIT_ENABLED": ["rate_limit", "enabled"],
+            "COGNITIVE_RATE_LIMIT_WINDOW_SECONDS": ["rate_limit", "window_seconds"],
+            "COGNITIVE_RATE_LIMIT_READ": ["rate_limit", "ordinary_read"],
+            "COGNITIVE_RATE_LIMIT_WRITE": ["rate_limit", "sensitive_write"],
+            "COGNITIVE_RATE_LIMIT_TOKEN": ["rate_limit", "auth_token"],
+            "COGNITIVE_RATE_LIMIT_MAX_BUCKETS": ["rate_limit", "max_buckets_per_policy"],
         }
         for env_key, path in env_map.items():
             val = os.getenv(env_key, "")
@@ -108,6 +124,7 @@ class Config:
             "COGNITIVE_CORS_ORIGINS": ["cors", "allow_origins"],
             "COGNITIVE_CORS_METHODS": ["cors", "allow_methods"],
             "COGNITIVE_CORS_HEADERS": ["cors", "allow_headers"],
+            "COGNITIVE_TRUSTED_PROXIES": ["rate_limit", "trusted_proxies"],
         }
         for env_key, path in list_env_map.items():
             value = os.getenv(env_key, "")
@@ -215,10 +232,45 @@ def _has_valid_api_key_file(path: Path) -> bool:
 
 
 def validate_runtime_config(current: Config = config) -> None:
-    """Fail fast when a production profile keeps development-only safety defaults."""
+    """Fail fast when runtime safety settings are invalid or unsafe in production."""
+    enabled = current.get("rate_limit.enabled", True)
+    if not isinstance(enabled, bool):
+        raise RuntimeError("rate_limit.enabled must be a boolean")
+    limits: dict[str, int] = {}
+    for name in (
+        "window_seconds",
+        "ordinary_read",
+        "sensitive_write",
+        "auth_token",
+        "max_buckets_per_policy",
+    ):
+        value = current.get(f"rate_limit.{name}")
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise RuntimeError(f"rate_limit.{name} must be a positive integer")
+        limits[name] = value
+    if not (
+        limits["sensitive_write"] < limits["ordinary_read"]
+        and limits["auth_token"] < limits["ordinary_read"]
+    ):
+        raise RuntimeError("sensitive write and auth token limits must be stricter than ordinary reads")
+    trusted_proxies = current.get("rate_limit.trusted_proxies", [])
+    if not isinstance(trusted_proxies, list) or not all(
+        isinstance(item, str) and item == item.strip() and bool(item) for item in trusted_proxies
+    ):
+        raise RuntimeError("rate_limit.trusted_proxies must be a list of IP addresses or CIDRs")
+    try:
+        for item in trusted_proxies:
+            ip_network(item, strict=False)
+    except ValueError as exc:
+        raise RuntimeError(
+            "rate_limit.trusted_proxies must contain only valid IP addresses or CIDRs"
+        ) from exc
+
     environment = str(current.get("app.environment", "development")).lower()
     if environment not in {"production", "prod"}:
         return
+    if not enabled:
+        raise RuntimeError("production requires gateway rate limiting")
     if not bool(current.get("auth.enabled", False)):
         raise RuntimeError("production requires auth.enabled=true")
     origins = current.get("cors.allow_origins", ["*"])

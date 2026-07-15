@@ -19,7 +19,13 @@ def cmd_serve(port: int = 8000) -> None:
     """Start the Cognitive-Loop-OS server."""
     import uvicorn
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=True,
+        proxy_headers=False,
+    )
 
 
 def cmd_pipeline(source: str, input_data: str) -> None:

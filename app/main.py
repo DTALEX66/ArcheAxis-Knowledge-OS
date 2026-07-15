@@ -3,7 +3,7 @@
 Port 8000: Core OS (route → execute → trace → eval → lesson)
 Port 8000/kb: Knowledge-Base (live-counted endpoints, dashboard, capabilities)
 
-Start: uvicorn app.main:app --host 0.0.0.0 --port 8000
+Start: uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-proxy-headers
 Then:  http://localhost:8000/docs     — Core API
        http://localhost:8000/kb/docs   — Knowledge-Base API
        http://localhost:8000/kb        — Dashboard
@@ -12,12 +12,16 @@ Then:  http://localhost:8000/docs     — Core API
 from __future__ import annotations
 
 import time
+from hashlib import sha256
+from ipaddress import ip_address, ip_network
+from threading import Lock
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from shared.config import config, validate_runtime_config
+from shared.rate_limit import RateLimiter
 
 validate_runtime_config(config)
 
@@ -39,11 +43,185 @@ app.add_middleware(
     allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
 )
 
+_RATE_LIMITER_LOCK = Lock()
+_RATE_LIMITER_SIGNATURE: tuple[int, int, int, int, int] | None = None
+_RATE_LIMITERS: dict[str, RateLimiter] = {}
+
+
+def _positive_rate_limit(name: str, default: int) -> int:
+    value = config.get(f"rate_limit.{name}", default)
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise RuntimeError(f"rate_limit.{name} must be a positive integer")
+    return value
+
+
+def _gateway_rate_limiters() -> dict[str, RateLimiter]:
+    """Return process-local policy limiters, rebuilding after a config change."""
+    global _RATE_LIMITER_SIGNATURE, _RATE_LIMITERS
+    window = _positive_rate_limit("window_seconds", 60)
+    signature = (
+        window,
+        _positive_rate_limit("ordinary_read", 200),
+        _positive_rate_limit("sensitive_write", 30),
+        _positive_rate_limit("auth_token", 5),
+        _positive_rate_limit("max_buckets_per_policy", 10_000),
+    )
+    with _RATE_LIMITER_LOCK:
+        if signature != _RATE_LIMITER_SIGNATURE:
+            _RATE_LIMITERS = {
+                "ordinary_read": RateLimiter(signature[1], window, max_keys=signature[4]),
+                "sensitive_write": RateLimiter(signature[2], window, max_keys=signature[4]),
+                "auth_token": RateLimiter(signature[3], window, max_keys=signature[4]),
+            }
+            _RATE_LIMITER_SIGNATURE = signature
+        return _RATE_LIMITERS
+
+
+def _rate_limit_policy(request: Request) -> str:
+    if request.url.path == "/auth/token":
+        return "auth_token"
+    if request.method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+        return "sensitive_write"
+    return "ordinary_read"
+
+
+def _trusted_proxy_networks():
+    configured = config.get("rate_limit.trusted_proxies", [])
+    if not isinstance(configured, list):
+        return []
+    try:
+        return [ip_network(entry, strict=False) for entry in configured if isinstance(entry, str)]
+    except ValueError:
+        return []
+
+
+def _direct_peer_is_trusted(request: Request) -> bool:
+    if not request.client:
+        return False
+    try:
+        peer = ip_address(request.client.host)
+    except ValueError:
+        return False
+    return any(peer in network for network in _trusted_proxy_networks())
+
+
+def _has_proxy_identity_headers(request: Request) -> bool:
+    return any(request.headers.get(name) for name in ("X-Forwarded-For", "Forwarded", "X-Real-IP"))
+
+
+def _has_ambiguous_credentials(request: Request) -> bool:
+    return bool(request.headers.get("X-API-Key") and request.headers.get("Authorization"))
+
+
+def _observed_client_host(request: Request) -> str:
+    """Resolve a client only through an explicitly trusted direct proxy chain."""
+    peer = request.client.host if request.client else "unknown-peer"
+    networks = _trusted_proxy_networks()
+    if not networks or not _direct_peer_is_trusted(request):
+        return peer
+
+    forwarded_for = request.headers.get("X-Forwarded-For", "")
+    try:
+        chain = [ip_address(item.strip()) for item in forwarded_for.split(",") if item.strip()]
+    except ValueError:
+        return peer
+    if not chain:
+        return peer
+    for candidate in reversed(chain):
+        if not any(candidate in network for network in networks):
+            return str(candidate)
+    return str(chain[0])
+
+
+def _rate_limit_identity(request: Request, user: dict) -> str:
+    auth_method = str(user.get("auth_method", "none"))
+    if auth_method == "api_key":
+        # Hash the credential immediately; raw keys never enter limiter state or responses.
+        credential = request.headers.get("X-API-Key", "")
+        if not credential:
+            authorization = request.headers.get("Authorization", "")
+            credential = authorization.removeprefix("Bearer ")
+        material = f"api_key\0{credential}".encode()
+    elif auth_method == "jwt":
+        material = f"jwt\0{user.get('sub', '')}".encode()
+    else:
+        material = f"anonymous\0{_observed_client_host(request)}".encode()
+    return sha256(material).hexdigest()
+
+
+def _pre_auth_identity(request: Request, *, untrusted_proxy_headers: bool) -> str:
+    if untrusted_proxy_headers:
+        # The socket peer may already have been rewritten by an outer ASGI layer.
+        # A fixed opaque bucket avoids trusting attacker-controlled header identity.
+        return sha256(b"untrusted-proxy-identity-headers").hexdigest()
+    return _rate_limit_identity(request, {"auth_method": "none"})
+
+
+def _rate_limit_rejection(policy: str, result) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "rate_limit_exceeded",
+            "detail": "request rate limit exceeded",
+            "policy": policy,
+            "retry_after_seconds": result.retry_after_seconds,
+        },
+        headers={
+            "Retry-After": str(result.retry_after_seconds),
+            "X-RateLimit-Limit": str(result.limit),
+            "X-RateLimit-Remaining": "0",
+        },
+    )
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.time()
+    untrusted_proxy_headers = _has_proxy_identity_headers(
+        request
+    ) and not _direct_peer_is_trusted(request)
+    ambiguous_credentials = _has_ambiguous_credentials(request)
+    rate_result = None
+    rate_policy = _rate_limit_policy(request)
+    limiter = None
+    pre_auth_key = ""
 
+    # Reserve capacity before every early rejection and credential parse. When an
+    # outer ASGI layer may have rewritten the peer, use one fixed fail-closed bucket.
+    if bool(config.get("rate_limit.enabled", True)):
+        limiter = _gateway_rate_limiters()[rate_policy]
+        pre_auth_key = (
+            f"{rate_policy}:pre_auth:"
+            f"{_pre_auth_identity(request, untrusted_proxy_headers=untrusted_proxy_headers)}"
+        )
+        rate_result = limiter.check(pre_auth_key)
+        if not rate_result.allowed:
+            return _rate_limit_rejection(rate_policy, rate_result)
+
+    rejection_headers = {}
+    if rate_result is not None:
+        rejection_headers = {
+            "X-RateLimit-Limit": str(rate_result.limit),
+            "X-RateLimit-Remaining": str(rate_result.remaining),
+        }
+    if untrusted_proxy_headers:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "untrusted_proxy_headers",
+                "detail": "proxy identity headers require an explicit trusted-proxy policy",
+            },
+            headers=rejection_headers,
+        )
+    if ambiguous_credentials:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "ambiguous_credentials",
+                "detail": "send exactly one of Authorization or X-API-Key",
+            },
+            headers=rejection_headers,
+        )
 
     # ── Auth check (skip allowlist) ──
     from shared.auth import authenticate_request
@@ -54,17 +232,33 @@ async def log_requests(request: Request, call_next):
         request.headers.get("Authorization", ""),
     )
     if not user:
+        headers = {}
+        if rate_result is not None:
+            headers = {
+                "X-RateLimit-Limit": str(rate_result.limit),
+                "X-RateLimit-Remaining": str(rate_result.remaining),
+            }
         return JSONResponse(
             status_code=401,
             content={
                 "error": "unauthorized",
                 "detail": "Valid API key or token required. Use X-API-Key header.",
             },
+            headers=headers,
         )
+
+    if limiter is not None and user.get("auth_method") in {"api_key", "jwt"}:
+        limiter.release(pre_auth_key)
+        rate_result = limiter.check(f"{rate_policy}:{_rate_limit_identity(request, user)}")
+        if not rate_result.allowed:
+            return _rate_limit_rejection(rate_policy, rate_result)
 
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
     response.headers["X-Process-Time-ms"] = str(duration)
+    if rate_result is not None:
+        response.headers["X-RateLimit-Limit"] = str(rate_result.limit)
+        response.headers["X-RateLimit-Remaining"] = str(rate_result.remaining)
     return response
 
 

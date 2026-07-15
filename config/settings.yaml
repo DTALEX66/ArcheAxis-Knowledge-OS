@@ -26,6 +26,17 @@ auth:
   enabled: false  # Set true in production
   token_expire_hours: 24
 
+# Process-local sliding-window limits. Each worker has independent counters.
+rate_limit:
+  enabled: true
+  window_seconds: 60
+  ordinary_read: 200
+  sensitive_write: 30
+  auth_token: 5
+  max_buckets_per_policy: 10000
+  # X-Forwarded-For is rejected unless the directly connected peer matches here.
+  trusted_proxies: []
+
 pipeline:
   max_content_chars: 10000
   default_actions: ["extract", "tag", "summarize", "index"]
