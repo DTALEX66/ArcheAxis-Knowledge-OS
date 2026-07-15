@@ -15,9 +15,9 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-import pytest
+import pytest  # noqa: E402
 
-from shared.storage import DB_PATH
+from shared.storage import DB_PATH  # noqa: E402
 
 # ── shared/storage ──────────────────────────────────────
 
@@ -26,7 +26,7 @@ class TestStorage:
     """shared/storage.py — CRUD + FTS5."""
 
     def test_insert_and_select(self):
-        from shared.storage import insert, select_one, select_all, count
+        from shared.storage import count, insert, select_all, select_one
 
         insert("kb_documents", {
             "id": "gap_test_s1", "title": "Storage Test",
@@ -51,7 +51,7 @@ class TestStorage:
         db.close()
 
     def test_fts5_search_and_sync(self):
-        from shared.storage import insert, fts5_sync, fts5_search
+        from shared.storage import fts5_search, fts5_sync, insert
 
         insert("kb_documents", {
             "id": "gap_fts5", "title": "FTS5 Test",
@@ -228,7 +228,8 @@ class TestCompiler:
         )
         task = compile_task(ctx)
         assert task.goal == "Build a vector search module"
-        assert len(task.steps) == 3
+        assert task.steps == []
+        assert task.tools == []
         assert task.risk_level == "low"
 
 
@@ -264,8 +265,19 @@ class TestEvaluator:
 
         trace = ExecutionTrace(
             task_id="t1",
-            events=[{"step": 1, "result": "ok"}],
-            result={"output": "done"},
+            events=[
+                {
+                    "step": {"tool": "file_read"},
+                    "result": {
+                        "tool": "file_read",
+                        "status": "ok",
+                        "dry_run": False,
+                        "path": "AGENTS.md",
+                        "content": "guide",
+                    },
+                }
+            ],
+            result={"status": "done"},
             success=True,
         )
         result = evaluate(trace)
@@ -296,7 +308,9 @@ class TestMultiFormat:
     """app/ingestion/multi_format.py — file/URL conversion."""
 
     def test_convert_markdown_file(self):
-        import tempfile, os
+        import os
+        import tempfile
+
         from app.ingestion.multi_format import convert_file
 
         with tempfile.NamedTemporaryFile(
@@ -314,7 +328,9 @@ class TestMultiFormat:
             os.unlink(tmp_path)
 
     def test_convert_txt_passthrough(self):
-        import tempfile, os
+        import os
+        import tempfile
+
         from app.ingestion.multi_format import convert_file
 
         with tempfile.NamedTemporaryFile(
@@ -331,7 +347,6 @@ class TestMultiFormat:
             os.unlink(tmp_path)
 
     def test_convert_nonexistent_file(self):
-        import pytest
         from app.ingestion.multi_format import convert_file
 
         with pytest.raises(RuntimeError):

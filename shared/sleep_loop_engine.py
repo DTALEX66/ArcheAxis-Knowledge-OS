@@ -30,6 +30,7 @@ from typing import Any
 
 from shared.config import resolve_runtime_path
 from shared.storage import DB_PATH, _conn
+from shared.tool_evidence import has_real_tool_evidence
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -362,22 +363,8 @@ def validate_real_task(task: dict[str, Any], cfg: SleepLoopConfig) -> tuple[bool
 
 
 def has_real_evidence(executor: str, result: dict[str, Any]) -> tuple[bool, str]:
-    """A task can be marked done only when its result carries verifiable evidence."""
-    if result.get("dry_run") is True:
-        return False, "dry_run_result_is_not_real"
-    if executor == "file_read":
-        if result.get("path") and "content" in result:
-            return True, "file_read_content_evidence"
-        return False, "missing_file_read_evidence"
-    if executor == "safe_write":
-        if result.get("written") is True and result.get("path"):
-            return True, "safe_write_written_evidence"
-        return False, "missing_safe_write_evidence"
-    if executor in {"kb_search", "mk_search"}:
-        if isinstance(result.get("count"), int) and isinstance(result.get("items"), list):
-            return True, f"{executor}_count_evidence"
-        return False, f"missing_{executor}_evidence"
-    return False, f"non_real_executor_result:{executor}"
+    """Compatibility wrapper around the runtime-wide evidence truth source."""
+    return has_real_tool_evidence(executor, result)
 
 
 def split_task(goal: str, max_items: int) -> list[dict[str, Any]]:

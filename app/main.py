@@ -263,7 +263,7 @@ def run(input_data: dict):
     lesson = compile_lesson(eval_result, trace)
     save_lesson(lesson)
     return {
-        "status": "done",
+        "status": "done" if eval_result.success else "failed",
         "document": doc,
         "route": decision,
         "context": context,

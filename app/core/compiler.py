@@ -1,17 +1,20 @@
+from app.agent.planner import plan_goal
 from app.schemas import ContextPack, TaskPack
 
 
 def compile_task(context: ContextPack) -> TaskPack:
     goal = context.query[:300] if context.query else "Process context"
+    steps = plan_goal(goal)
+    tools = list(dict.fromkeys(step["tool"] for step in steps))
     return TaskPack(
         goal=goal,
-        steps=[
-            {"id": 1, "name": "analyze_context", "type": "reasoning", "tool": "echo"},
-            {"id": 2, "name": "plan_next_action", "type": "planning", "tool": "echo"},
-            {"id": 3, "name": "produce_result", "type": "output", "tool": "echo"},
-        ],
+        steps=steps,
         constraints=["log every step", "do not execute high-risk actions without review"],
-        tools=["echo"],
+        tools=tools,
         risk_level="low",
-        success_criteria=["pipeline completes", "trace is written"],
+        success_criteria=[
+            "execution completes",
+            "every step returns an ok result",
+            "a non-dry-run tool result carries attributable evidence",
+        ],
     )
