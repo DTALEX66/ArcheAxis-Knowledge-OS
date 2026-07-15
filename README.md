@@ -9,7 +9,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。当前基线已经能摄入、检索、组织知识并执行受控工具；五个公共 Facade 与 Architecture Guard 已建立，下一阶段进入版本化合同，之后才处理安全写入边界、动态规划和可信反馈。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线与 Phase 1 Facade/Architecture Guard 已完成，当前正式处于 Phase 2 版本化 Contracts：Runtime 合同组已形成首条可回滚 tracer，Research 与 Knowledge 合同组继续推进；Phase 3 安全边界、Phase 7 真实 Runtime 和 Phase 9 Alpha 闭环尚未完成。
 
 ## 规划与进度
 
@@ -20,27 +20,28 @@ Research → Evidence → Knowledge → Learning
 | Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
 | Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
-| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | 🟡 进行中 | TaskPackV1 已完成 KB/SQLite row 往返、Runtime 窄投影与可回滚迁移；ExecutionTraceV1 已完成 Runtime/SQLite row 无损 adapter；其他合同仍待推进 |
+| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | 🟡 进行中 | TaskPackV1、ExecutionTraceV1、EvaluationV1、LessonV1 已完成首批严格 adapter；下一项为 SourceRecordV1，Research/Knowledge 合同组仍待推进 |
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ⬜ 规划中 | 替换固定 echo 与二值评价缺口 |
 | Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
 | Phase 10 | 产品化、诊断、升级与多端发布 | ⬜ 规划中 | 仅在 Alpha 闭环完成后启动 |
 
-### 已完成里程碑：Phase 1.1
+### 当前里程碑：Phase 2 Runtime 合同组
 
 ```text
-规划记录收口 ✅
-→ Runtime Facade RED 合同测试 ✅
-→ 最小 Facade 包装现有 route/permission/execute/trace ✅
-→ 旧入口与 Facade 等价验证 ✅
-→ Architecture Guard ✅
-→ Knowledge / Research / Enhancement / Contracts Facade ✅
+Phase 0 真实基线 ✅
+→ Phase 1 五个 Facade + Architecture Guard ✅
+→ TaskPackV1 + SQLite migration/rollback ✅
+→ ExecutionTraceV1 ✅
+→ EvaluationV1 ✅
+→ LessonV1 ✅
+→ SourceRecordV1 / Research contracts（下一步）
 ```
 
-当前刀：**ExecutionTraceV1 + Runtime/SQLite row adapter** 已落地；未知 SQLite 字段会 fail closed，下一步继续 Evaluation 与 Lesson 合同。
+当前刀：**SourceRecordV1 + legacy KB document/SQLite row adapter**。外部来源默认 `unverified`、进入 quarantine/candidate；legacy 投影不能表达的治理状态必须 fail closed。
 
-本阶段明确不做：其他数据库迁移、目录树搬迁、Planner/Evaluator 重写、依赖大升级，以及任何外部项目扫描。
+本阶段明确不宣称：Phase 3 安全 P0、Phase 4 Research 闭环、Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
 
 完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)。
 

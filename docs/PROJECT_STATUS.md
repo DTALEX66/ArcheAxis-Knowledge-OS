@@ -1,6 +1,10 @@
 # 项目当前状态
 
-> 更新：2026-07-14。本页是当前状态入口；旧审计文件是历史快照。
+> 更新：2026-07-15。本页是当前状态入口；旧审计文件是历史快照。
+
+## 当前阶段
+
+项目正式处于 **Phase 2：版本化 Contracts**。Phase 0 与 Phase 1 已完成；Phase 2 的 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1` Runtime 合同组已落地并通过远端 CI，下一项是 `SourceRecordV1`，随后推进 Claim/Evidence/ResearchPackage 与 Knowledge/Learning 合同。部分正式 migration 能力虽已前置完成，但 Phase 3 安全 P0 尚未正式进入；Phase 7–9 的真实 Runtime、统一 Sleep Loop 与 Minimum Complete System Alpha 均未完成。
 
 ## 已验证能力
 

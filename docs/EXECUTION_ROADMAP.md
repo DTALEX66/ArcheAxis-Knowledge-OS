@@ -167,10 +167,10 @@ Phase 9 通过后再推进完整学习科学、Research Intelligence、多模态
 
 独立审查只用于安全、权限、数据库迁移、架构移动和高风险外部写入；普通低风险修复不反复审计。
 
-## 当前执行计划：TP1.0
+## 当前执行计划：Phase 2 Research/Knowledge Contracts
 
-1. 撤回与命名/编码治理无关的 lint 和审计扩展。
-2. 单独提交纯机械文本归一化，不改文档语义。
-3. 提交 naming registry、统一 scanner、EditorConfig、Git attributes、pre-commit 和 CI 门禁。
-4. 冻结最终 diff 后执行一次必要本地完整门禁。
-5. 推送两个小提交，只验收一次新 CI；远端健康后清理一次性本地克隆。
+1. 完成 `SourceRecordV1` 与 legacy KB document/SQLite row adapter；外部来源默认 `unverified` 和 quarantine/candidate，不允许治理状态静默降级。
+2. 依次建立 `ClaimV1`、`EvidenceV1`、`ResearchPackageV1`，明确 provenance、来源独立性、冲突、未知与风险边界。
+3. 再推进 `KnowledgeUnit/Relation`、`LearningArtifact/MasterySignal`、`MachineKnowledgeUnit`，保持 candidate/approval/deprecation 可追溯。
+4. 每次只选择一条现有真实路径做纯合同与 Adapter tracer；除非有独立迁移 TaskPack，不直接复制或替换旧表。
+5. 完成 Phase 2 全部必要合同及门禁后才进入 Phase 3；已前置完成的 TaskPack migration runner 只计为复用资产，不代表 Phase 3 整体完成。
