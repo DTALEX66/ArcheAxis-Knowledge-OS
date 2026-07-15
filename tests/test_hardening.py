@@ -109,19 +109,32 @@ def test_auth_enabled_configuration_is_honoured(monkeypatch):
     assert auth.requires_auth("/health") is False
 
 
-def test_production_does_not_load_builtin_development_key(monkeypatch):
-    monkeypatch.setitem(config._data["app"], "environment", "production")
-    monkeypatch.delenv("COGNITIVE_ENV", raising=False)
+@pytest.mark.parametrize("environment", ["development", "dev", "local", "test", "production"])
+def test_absent_configuration_never_loads_an_administrator_key(monkeypatch, tmp_path, environment):
+    monkeypatch.setitem(config._data["app"], "environment", environment)
+    monkeypatch.setitem(config._data["auth"], "api_key_file", str(tmp_path / "missing.json"))
     monkeypatch.delenv("COGNITIVE_API_KEY", raising=False)
-    assert "dev-key-change-me" not in auth._load_api_keys()
+    assert auth._load_api_keys() == {}
+    assert auth.validate_api_key("dev-key-change-me") is None
 
 
-def test_development_key_is_explicitly_local(monkeypatch):
+def test_development_administrator_key_requires_explicit_strong_provisioning(
+    monkeypatch, admin_api_key
+):
     monkeypatch.setitem(config._data["app"], "environment", "development")
-    assert auth.validate_api_key("dev-key-change-me") == {
+    assert auth.validate_api_key(admin_api_key) == {
         "role": "admin",
-        "name": "default-dev-key",
+        "name": "env-admin",
     }
+
+
+@pytest.mark.parametrize("api_key", ["short", "change-me", "dev-key-change-me"])
+def test_development_rejects_weak_or_default_administrator_keys(monkeypatch, tmp_path, api_key):
+    monkeypatch.setitem(config._data["app"], "environment", "development")
+    monkeypatch.setitem(config._data["auth"], "api_key_file", str(tmp_path / "missing.json"))
+    monkeypatch.setenv("COGNITIVE_API_KEY", api_key)
+    assert auth._load_api_keys() == {}
+    assert auth.validate_api_key(api_key) is None
 
 
 def test_production_profile_fails_fast_on_development_defaults(monkeypatch):
@@ -164,14 +177,14 @@ def test_production_rejects_empty_api_key_file(monkeypatch, tmp_path):
         validate_runtime_config(current)
 
 
-def test_standalone_kb_enforces_shared_auth(monkeypatch):
+def test_standalone_kb_enforces_shared_auth(monkeypatch, admin_api_key):
     monkeypatch.setitem(config._data["auth"], "enabled", True)
     client = TestClient(standalone_kb_app)
     assert client.get("/documents").status_code == 401
-    assert client.get("/documents", headers={"X-API-Key": "dev-key-change-me"}).status_code == 200
+    assert client.get("/documents", headers={"X-API-Key": admin_api_key}).status_code == 200
 
 
-def test_only_admin_can_issue_bounded_tokens(monkeypatch):
+def test_non_admin_requester_cannot_select_admin_role(monkeypatch):
     monkeypatch.setitem(config._data["auth"], "enabled", True)
     monkeypatch.setenv("COGNITIVE_JWT_SECRET", "test-jwt-secret-value")
     client = TestClient(app)
@@ -182,20 +195,25 @@ def test_only_admin_can_issue_bounded_tokens(monkeypatch):
     )
     assert denied.status_code == 403
 
+
+def test_explicitly_provisioned_admin_can_issue_bounded_tokens(monkeypatch, admin_api_key):
+    monkeypatch.setitem(config._data["auth"], "enabled", True)
+    monkeypatch.setenv("COGNITIVE_JWT_SECRET", "test-jwt-secret-value")
+    client = TestClient(app)
     issued = client.post(
         "/auth/token?user_id=operator&role=readonly&expires_hours=2",
-        headers={"X-API-Key": "dev-key-change-me"},
+        headers={"X-API-Key": admin_api_key},
     )
     assert issued.status_code == 200
 
 
-def test_dashboards_are_not_public_when_auth_is_enabled(monkeypatch):
+def test_dashboards_are_not_public_when_auth_is_enabled(monkeypatch, admin_api_key):
     monkeypatch.setitem(config._data["auth"], "enabled", True)
     core = TestClient(app)
     kb = TestClient(standalone_kb_app)
     assert core.get("/kb/").status_code == 401
     assert kb.get("/").status_code == 401
-    headers = {"X-API-Key": "dev-key-change-me"}
+    headers = {"X-API-Key": admin_api_key}
     assert core.get("/kb/", headers=headers).status_code == 200
     assert kb.get("/", headers=headers).status_code == 200
 

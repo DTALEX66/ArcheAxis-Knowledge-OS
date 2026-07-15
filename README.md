@@ -115,6 +115,8 @@ auth.enabled: false
 cors.allow_origins: ["*"]
 ```
 
+管理员凭据没有内置默认值。任何环境启用鉴权后，都必须通过部署系统显式提供强 `COGNITIVE_API_KEY`，或在 `auth.api_key_file` 指向的本地运行时文件中配置强 key；未配置时所有受保护入口均拒绝访问。测试使用隔离 fixture 注入临时 key，不依赖全局开发凭据。
+
 生产模式必须显式设置：
 
 ```bash
@@ -125,7 +127,7 @@ export COGNITIVE_JWT_SECRET='<independent-jwt-secret-from-deployment-system>'
 export COGNITIVE_CORS_ORIGINS='https://your-ui.example'
 ```
 
-CORS 来源也可写入 `config/settings.yaml`。生产环境保留开发默认值、弱密钥、非法 key 文件或错误 CORS schema 时应用会拒绝启动。固定开发 Key 只在 development/local/test 环境加载。
+CORS 来源也可写入 `config/settings.yaml`。生产环境保留开发默认值、缺失或弱密钥、非法 key 文件或错误 CORS schema 时应用会拒绝启动。development/local/test 同样拒绝弱 API key，不会隐式获得管理员身份。
 
 数据库 `restore` 命令只生成并校验离线恢复候选，不覆盖活动数据库；实际切换必须先停止全部 API、healthcheck 和 worker，再由运维人员离线完成。
 

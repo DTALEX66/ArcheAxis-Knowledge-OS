@@ -2,7 +2,7 @@
 
 Architecture:
     ┌─────────────────────────────────────────┐
-    │  API Key (static, admin/dev)            │  ← X-API-Key header
+    │  API Key (provisioned administrator)    │  ← X-API-Key header
     │  JWT Token (dynamic, user sessions)     │  ← Authorization: Bearer
     │  No-auth allowlist (health, docs)       │  ← /health, /docs, /openapi
     └─────────────────────────────────────────┘
@@ -39,10 +39,7 @@ def _load_api_keys() -> dict[str, dict[str, str]]:
         resolve_runtime_path,
     )
 
-    environment = str(config.get("app.environment", "development")).lower()
     keys: dict[str, dict[str, str]] = {}
-    if environment in {"development", "dev", "local", "test"}:
-        keys["dev-key-change-me"] = {"role": "admin", "name": "default-dev-key"}
 
     # Try config file
     config_path = resolve_runtime_path(str(config.get("auth.api_key_file", "config/api_keys.json")))
@@ -50,9 +47,9 @@ def _load_api_keys() -> dict[str, dict[str, str]]:
     if loaded:
         keys.update(loaded)
 
-    # Environment key is only accepted weak in explicitly local development.
+    # Every environment requires explicit, strong administrator provisioning.
     env_key = os.getenv("COGNITIVE_API_KEY", "")
-    if env_key and (environment in {"development", "dev", "local", "test"} or _is_strong_secret(env_key)):
+    if _is_strong_secret(env_key):
         keys[env_key] = {"role": "admin", "name": "env-admin"}
 
     return keys

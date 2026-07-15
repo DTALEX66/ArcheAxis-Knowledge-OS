@@ -186,7 +186,7 @@ def resolve_runtime_path(value: str | Path) -> Path:
 
 
 _ALLOWED_ROLES = {"admin", "user", "readonly"}
-_FORBIDDEN_SECRETS = {"dev-key-change-me", "change-me", "changeme", "secret"}
+_FORBIDDEN_SECRETS = {"change-me", "changeme", "secret"}
 
 
 def _is_strong_secret(value: str) -> bool:
