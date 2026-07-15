@@ -23,6 +23,7 @@ def test_contracts_facade_reexports_runtime_objects_by_identity():
 
 
 def test_contracts_facade_publishes_completed_phase_two_surfaces():
+    from app.adapters.claim import bind_legacy_evidence, verify_with_legacy_evidence
     from app.adapters.execution_trace import (
         from_runtime_trace,
         from_trace_row,
@@ -38,6 +39,7 @@ def test_contracts_facade_publishes_completed_phase_two_surfaces():
     )
     from app.contracts.v1 import (
         CONTRACT_VERSION,
+        ClaimV1,
         ExecutionTraceV1,
         SourceRecordV1,
         TaskPackV1,
@@ -60,6 +62,9 @@ def test_contracts_facade_publishes_completed_phase_two_surfaces():
     assert contracts.SourceRecordV1 is SourceRecordV1
     assert contracts.from_kb_document_row is from_kb_document_row
     assert contracts.to_kb_document_row is to_kb_document_row
+    assert contracts.ClaimV1 is ClaimV1
+    assert contracts.bind_legacy_evidence is bind_legacy_evidence
+    assert contracts.verify_with_legacy_evidence is verify_with_legacy_evidence
 
     deferred = {
         "ContextPackV1",

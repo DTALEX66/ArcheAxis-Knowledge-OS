@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 CONTRACT_VERSION = "1.0.0"
 TASKPACK_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/taskpack.schema.json"
@@ -20,6 +20,7 @@ LESSON_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/lesson.schema.j
 SOURCE_RECORD_SCHEMA_ID = (
     "https://cognitive-loop-os.local/contracts/v1/source-record.schema.json"
 )
+CLAIM_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/claim.schema.json"
 
 
 class TaskStepV1(BaseModel):
@@ -67,6 +68,29 @@ class SourceRecordV1(BaseModel):
     provenance_status: Literal["unverified", "verified", "rejected"] = "unverified"
     quarantine_status: Literal["candidate", "released", "rejected"] = "candidate"
     created_at: str
+
+
+class ClaimV1(BaseModel):
+    """Atomic research claim with explicit provenance and review governance."""
+
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"$id": CLAIM_SCHEMA_ID})
+
+    schema_version: Literal["1.0.0"]
+    claim_id: str = Field(min_length=1)
+    statement: str = Field(min_length=1)
+    source_record_ids: list[str] = Field(min_length=1)
+    status: Literal["candidate", "verified", "rejected", "conflicted", "unknown"]
+    provenance_status: Literal["caller_supplied", "server_verified"]
+    requires_human_review: bool
+    created_at: str
+
+    @model_validator(mode="after")
+    def enforce_provenance_governance(self) -> ClaimV1:
+        if self.status == "verified" and self.provenance_status != "server_verified":
+            raise ValueError("verified claim requires server_verified provenance")
+        if self.provenance_status == "caller_supplied" and not self.requires_human_review:
+            raise ValueError("caller_supplied claim requires human review")
+        return self
 
 
 class ExecutionTraceV1(BaseModel):
