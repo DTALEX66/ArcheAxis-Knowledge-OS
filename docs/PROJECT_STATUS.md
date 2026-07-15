@@ -1,16 +1,16 @@
 # 项目当前状态
 
-> 更新：2026-07-15。本页是当前状态入口；旧审计文件是历史快照。
+> 更新：2026-07-16。本页是当前状态入口；旧审计文件是历史快照。
 
 ## 当前阶段
 
-项目正式处于 **Phase 2：版本化 Contracts**。Phase 0 与 Phase 1 已完成；Phase 2 的 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1` Runtime 合同组及 `SourceRecordV1`、`ClaimV1`、`EvidenceV1` 已落地，下一项是 `ResearchPackageV1`，随后推进 Knowledge/Learning 合同。部分正式 migration 能力虽已前置完成，但 Phase 3 安全 P0 尚未正式进入；Phase 7–9 的真实 Runtime、统一 Sleep Loop 与 Minimum Complete System Alpha 均未完成。
+项目已完成 **Phase 2：首批版本化 Contracts**。路线图明确列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已建立严格 canonical model 和现有真实路径 Adapter tracer。下一阶段是 Phase 3 安全和数据正确性 P0，入口任务为移除代码内默认管理员 Key；该高风险工作尚未开始。Phase 7–9 的真实 Runtime、统一 Sleep Loop 与 Minimum Complete System Alpha 均未完成。
 
 ## 已验证能力
 
 - Core `/run` 的 route/execute/trace/evaluate 存储链可运行；Planner 仍以固定 echo 步骤为主，不能视为真实动态认知闭环。
 - Runtime、Knowledge、Research、Enhancement、Contracts 五个 Facade 已有真实 tracer bullet；Phase 1 的 Contracts 起点是 identity re-export，不代表全量版本化 Schema。
-- Phase 2 已建立 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1`、`SourceRecordV1`、`ClaimV1` 与 `EvidenceV1`：TaskPack 支持 KB dataclass/SQLite row 无损往返、Runtime 窄投影，以及可修复历史 `requires_review DEFAULT 0` 的备份式 v3 migration/WAL rollback；Execution Trace 与 Lesson 支持 Runtime/SQLite row 无损往返并对未知行字段 fail closed；Evaluation 支持 Runtime 无损往返；SourceRecord 支持 legacy KB document/SQLite row 无损往返；Claim 将 caller-supplied evidence 深拷贝绑定到单一 claim；Evidence 只接受真实语义匹配结果并拒绝无匹配伪造、未知字段和 server-owned evidence 向 legacy verifier 降级。
+- Phase 2 已建立 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1`、`SourceRecordV1`、`ClaimV1`、`EvidenceV1`、`ResearchPackageV1`、`KnowledgeUnitV1`、`RelationV1`、`LearningArtifactV1`、`MasterySignalV1` 与 `MachineKnowledgeUnitV1`。新增 Learning Artifact 对现有 Enhancement candidate 无损往返且禁止 caller-supplied 状态升级；Machine Knowledge 对 decoded legacy row 无损往返，将旧 active 状态明确标为 unverified/deprecated，并拒绝 approved 治理语义向旧行静默降级。
 - Research 已迁为可安装的 `inspiration_research` 包；旧连字符目录只保留 deprecated source-checkout launcher。
 - Architecture Guard 在 CI 阻止新增路径注入、反向依赖和外部绝对路径硬编码。
 - Core 与 Knowledge-Base 使用单端口挂载。

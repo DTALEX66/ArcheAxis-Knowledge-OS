@@ -15,11 +15,19 @@ from app.adapters.knowledge_graph import (
     to_graph_entity_row,
     to_graph_relation_row,
 )
+from app.adapters.learning_artifact import (
+    from_enhancement_artifact,
+    to_enhancement_artifact,
+)
 from app.adapters.lesson import (
     from_lesson_row,
     from_runtime_lesson,
     to_lesson_row,
     to_runtime_lesson,
+)
+from app.adapters.machine_knowledge import (
+    from_machine_knowledge_row,
+    to_machine_knowledge_row,
 )
 from app.adapters.mastery_signal import from_learning_snapshots
 from app.adapters.research_package import build_candidate_research_package
@@ -37,7 +45,9 @@ from app.contracts.v1 import (
     EvidenceV1,
     ExecutionTraceV1,
     KnowledgeUnitV1,
+    LearningArtifactV1,
     LessonV1,
+    MachineKnowledgeUnitV1,
     MasterySignalV1,
     RelationV1,
     ResearchPackageV1,
@@ -68,7 +78,9 @@ __all__ = [
     "ExecutionTrace",
     "ExecutionTraceV1",
     "KnowledgeUnitV1",
+    "LearningArtifactV1",
     "LessonV1",
+    "MachineKnowledgeUnitV1",
     "MasterySignalV1",
     "MachineLesson",
     "PermissionDecision",
@@ -83,7 +95,9 @@ __all__ = [
     "build_candidate_research_package",
     "from_graph_entity_row",
     "from_graph_relation_row",
+    "from_enhancement_artifact",
     "from_learning_snapshots",
+    "from_machine_knowledge_row",
     "from_match_result",
     "from_knowledge_taskpack",
     "from_kb_document_row",
@@ -95,10 +109,12 @@ __all__ = [
     "project_to_runtime",
     "to_graph_entity_row",
     "to_graph_relation_row",
+    "to_enhancement_artifact",
     "to_knowledge_taskpack",
     "to_kb_document_row",
     "to_legacy_verification_evidence",
     "to_lesson_row",
+    "to_machine_knowledge_row",
     "to_runtime_evaluation",
     "to_runtime_lesson",
     "to_runtime_trace",

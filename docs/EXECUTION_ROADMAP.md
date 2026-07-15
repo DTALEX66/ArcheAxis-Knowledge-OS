@@ -74,7 +74,7 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 
 ## Phase 2：版本化 Contracts
 
-当前进度：`TaskPackV1` 已建立 KB dataclass 无损往返、SQLite row 合同与安全字段映射、Runtime 显式窄投影；`kb_taskpacks` 已通过带备份的幂等 migration 增加 `context_id`、`requires_review`，并由 v3 repair migration 修复历史 `DEFAULT 0` 非严格 Schema：重建时把不可信审核状态提升为需审核，支持并发串行、真实 WAL 数据库、verified backup 与离线 rollback。`ExecutionTraceV1` 已建立 Runtime 无损往返和 SQLite/KB decoded row adapter，未知行字段拒绝静默丢弃；`EvaluationV1` 已建立当前 Runtime evaluation 的无损往返 adapter，并对未映射扩展字段 fail closed；`LessonV1` 已建立 Runtime 与 SQLite decoded row 无损往返 adapter，未知行字段 fail closed；`SourceRecordV1` 已建立 legacy KB document/SQLite row 无损往返，默认隔离未验证来源，并拒绝 verified/released 状态向 legacy 静默降级；`ClaimV1` 已建立 caller-supplied evidence 绑定和保守 verification projection；`EvidenceV1` 已建立真实语义匹配结果投影，拒绝无匹配伪造、未知字段和 server-owned evidence 降级。
+当前进度：首批合同已完成。Runtime 组、Research 组、Knowledge/Relation、Learning Artifact/Mastery Signal 与 Machine Knowledge 均已建立显式 `V1` canonical model 和现有真实路径 Adapter tracer。旧对象可表示字段无损往返；未知字段 fail closed；窄投影显式报告损失；caller-supplied 或 legacy-unverified 数据不得自动升级为 verified、reviewed、approved 或 published。既有 `kb_taskpacks` migration 是已验证复用资产，不代表 Phase 3 完成。
 
 首批合同：
 
@@ -167,10 +167,10 @@ Phase 9 通过后再推进完整学习科学、Research Intelligence、多模态
 
 独立审查只用于安全、权限、数据库迁移、架构移动和高风险外部写入；普通低风险修复不反复审计。
 
-## 当前执行计划：Phase 2 Research/Knowledge Contracts
+## 当前执行计划：Phase 3 安全和数据正确性 P0
 
-1. `SourceRecordV1`、`ClaimV1` 与 `EvidenceV1` tracer 已完成；外部来源、caller-supplied claim/evidence 保持 candidate/人工复核，不允许治理状态静默升级或降级。
-2. 下一步建立 `ResearchPackageV1`，明确来源独立性、冲突、未知与风险边界。
-3. 再推进 `KnowledgeUnit/Relation`、`LearningArtifact/MasterySignal`、`MachineKnowledgeUnit`，保持 candidate/approval/deprecation 可追溯。
-4. 每次只选择一条现有真实路径做纯合同与 Adapter tracer；除非有独立迁移 TaskPack，不直接复制或替换旧表。
-5. 完成 Phase 2 全部必要合同及门禁后才进入 Phase 3；已前置完成的 TaskPack migration runner 只计为复用资产，不代表 Phase 3 整体完成。
+1. Phase 2 首批合同 Release Train 已完成；`ContextPackV1` 与通用 `validate_contract` 不在首批合同清单中，继续保持 deferred，不以空壳扩大 Facade。
+2. 下一项是移除代码内默认管理员 Key。
+3. 随后按本页 Phase 3 顺序推进角色提升、Safe HTTP、approved roots、稳定哈希、可重建索引、Rate Limiter 与正式 migration 边界。
+4. Phase 3 每个安全、权限或 migration 任务独立冻结、完整验证、审查和发布，不进入普通低风险批量。
+5. Phase 3–9 均未完成；不得因 Phase 2 合同齐备而提前宣称后续闭环完成。

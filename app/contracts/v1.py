@@ -32,6 +32,12 @@ RELATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/relation.sche
 MASTERY_SIGNAL_SCHEMA_ID = (
     "https://cognitive-loop-os.local/contracts/v1/mastery-signal.schema.json"
 )
+LEARNING_ARTIFACT_SCHEMA_ID = (
+    "https://cognitive-loop-os.local/contracts/v1/learning-artifact.schema.json"
+)
+MACHINE_KNOWLEDGE_UNIT_SCHEMA_ID = (
+    "https://cognitive-loop-os.local/contracts/v1/machine-knowledge-unit.schema.json"
+)
 
 
 class TaskStepV1(BaseModel):
@@ -162,6 +168,72 @@ class MasterySignalV1(BaseModel):
         )
         if self.is_mastered != expected:
             raise ValueError("is_mastered must match review evidence and unresolved mistakes")
+        return self
+
+
+class LearningArtifactV1(BaseModel):
+    """Governed canonical bundle produced by the current enhancement path."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": LEARNING_ARTIFACT_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    artifact_id: str = Field(min_length=1)
+    artifact_type: Literal["enhancement_bundle"]
+    source_record_ids: list[str]
+    summary: dict[str, Any]
+    cards: list[dict[str, Any]]
+    quality: dict[str, Any]
+    status: Literal["candidate", "reviewed", "rejected"]
+    provenance_status: Literal["caller_supplied", "server_verified"]
+    requires_human_review: bool
+    created_at: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def enforce_artifact_governance(self) -> LearningArtifactV1:
+        if self.provenance_status == "caller_supplied" and self.status != "candidate":
+            raise ValueError("caller_supplied artifact must remain candidate")
+        if self.provenance_status == "caller_supplied" and not self.requires_human_review:
+            raise ValueError("caller_supplied artifact requires human review")
+        return self
+
+
+class MachineKnowledgeUnitV1(BaseModel):
+    """Legacy-compatible machine knowledge with explicit governance state."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": MACHINE_KNOWLEDGE_UNIT_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    unit_id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    content: str
+    unit_type: str = Field(min_length=1)
+    tags: list[str]
+    confidence: float = Field(ge=0, le=1)
+    source_type: str = Field(min_length=1)
+    source_id: str
+    legacy_active: int = Field(ge=0, le=1)
+    lifecycle_status: Literal[
+        "candidate", "legacy_active_unverified", "approved", "deprecated"
+    ]
+    provenance_status: Literal["legacy_unverified", "caller_supplied", "server_verified"]
+    requires_human_review: bool
+    created_at: str = Field(min_length=1)
+    updated_at: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def enforce_machine_knowledge_governance(self) -> MachineKnowledgeUnitV1:
+        if self.provenance_status != "server_verified" and not self.requires_human_review:
+            raise ValueError("unverified machine knowledge requires human review")
+        if self.lifecycle_status == "approved" and self.provenance_status != "server_verified":
+            raise ValueError("approved machine knowledge requires server_verified provenance")
+        if self.lifecycle_status == "legacy_active_unverified" and self.legacy_active != 1:
+            raise ValueError("legacy_active_unverified knowledge must preserve active=1")
+        if self.lifecycle_status == "deprecated" and self.legacy_active != 0:
+            raise ValueError("deprecated knowledge must preserve active=0")
         return self
 
 

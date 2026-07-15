@@ -9,7 +9,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线与 Phase 1 Facade/Architecture Guard 已完成，当前正式处于 Phase 2 版本化 Contracts：Runtime 合同组已形成首条可回滚 tracer，Research 与 Knowledge 合同组继续推进；Phase 3 安全边界、Phase 7 真实 Runtime 和 Phase 9 Alpha 闭环尚未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard 与 Phase 2 首批版本化 Contracts 已完成；下一阶段是 Phase 3 安全和数据正确性 P0。Phase 3 尚未开始，Phase 7 真实 Runtime 和 Phase 9 Alpha 闭环也尚未完成。
 
 ## 规划与进度
 
@@ -20,14 +20,14 @@ Research → Evidence → Knowledge → Learning
 | Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
 | Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
-| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | 🟡 进行中 | TaskPackV1、ExecutionTraceV1、EvaluationV1、LessonV1、SourceRecordV1、ClaimV1、EvidenceV1 已完成严格 tracer；下一项为 ResearchPackageV1 |
+| Phase 2 | 版本化 Contracts 与旧对象 Adapter | ✅ 已完成首批合同 | 路线图列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已有严格 tracer |
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ⬜ 规划中 | 替换固定 echo 与二值评价缺口 |
 | Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
 | Phase 10 | 产品化、诊断、升级与多端发布 | ⬜ 规划中 | 仅在 Alpha 闭环完成后启动 |
 
-### 当前里程碑：Phase 2 Runtime 合同组
+### 当前里程碑：Phase 2 Contracts Release Train
 
 ```text
 Phase 0 真实基线 ✅
@@ -39,10 +39,14 @@ Phase 0 真实基线 ✅
 → SourceRecordV1 ✅
 → ClaimV1 ✅
 → EvidenceV1 ✅
-→ ResearchPackageV1（下一步）
+→ ResearchPackageV1 ✅
+→ KnowledgeUnitV1 + RelationV1 ✅
+→ LearningArtifactV1 + MasterySignalV1 ✅
+→ MachineKnowledgeUnitV1 ✅
+→ Phase 3 安全 P0（下一步）
 ```
 
-当前刀：**ResearchPackageV1 + 冲突/未知/风险边界**。已完成的 EvidenceV1 只接受真实语义匹配结果；无匹配不得伪造 Evidence，未知匹配字段和 server-owned evidence 向 legacy verifier 降级都会 fail closed。
+当前刀：**Phase 3 第一项——移除代码内默认管理员 Key**。该安全任务必须使用独立 frozen tree、完整门禁、必要 reviewer 与 exact-SHA CI，不混入本次低风险合同 Release Train。
 
 本阶段明确不宣称：Phase 3 安全 P0、Phase 4 Research 闭环、Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
 
