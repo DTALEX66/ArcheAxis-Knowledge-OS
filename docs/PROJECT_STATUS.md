@@ -4,13 +4,13 @@
 
 ## 当前阶段
 
-项目正式处于 **Phase 2：版本化 Contracts**。Phase 0 与 Phase 1 已完成；Phase 2 的 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1` Runtime 合同组已落地并通过远端 CI，下一项是 `SourceRecordV1`，随后推进 Claim/Evidence/ResearchPackage 与 Knowledge/Learning 合同。部分正式 migration 能力虽已前置完成，但 Phase 3 安全 P0 尚未正式进入；Phase 7–9 的真实 Runtime、统一 Sleep Loop 与 Minimum Complete System Alpha 均未完成。
+项目正式处于 **Phase 2：版本化 Contracts**。Phase 0 与 Phase 1 已完成；Phase 2 的 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1` Runtime 合同组及 `SourceRecordV1` 已落地，下一项是 `ClaimV1`，随后推进 Evidence/ResearchPackage 与 Knowledge/Learning 合同。部分正式 migration 能力虽已前置完成，但 Phase 3 安全 P0 尚未正式进入；Phase 7–9 的真实 Runtime、统一 Sleep Loop 与 Minimum Complete System Alpha 均未完成。
 
 ## 已验证能力
 
 - Core `/run` 的 route/execute/trace/evaluate 存储链可运行；Planner 仍以固定 echo 步骤为主，不能视为真实动态认知闭环。
 - Runtime、Knowledge、Research、Enhancement、Contracts 五个 Facade 已有真实 tracer bullet；Phase 1 的 Contracts 起点是 identity re-export，不代表全量版本化 Schema。
-- Phase 2 已建立 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1` 与 `LessonV1`：TaskPack 支持 KB dataclass/SQLite row 无损往返、Runtime 窄投影，以及可修复历史 `requires_review DEFAULT 0` 的备份式 v3 migration/WAL rollback；Execution Trace 与 Lesson 支持 Runtime/SQLite row 无损往返并对未知行字段 fail closed；Evaluation 支持 Runtime 无损往返。
+- Phase 2 已建立 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1` 与 `SourceRecordV1`：TaskPack 支持 KB dataclass/SQLite row 无损往返、Runtime 窄投影，以及可修复历史 `requires_review DEFAULT 0` 的备份式 v3 migration/WAL rollback；Execution Trace 与 Lesson 支持 Runtime/SQLite row 无损往返并对未知行字段 fail closed；Evaluation 支持 Runtime 无损往返；SourceRecord 支持 legacy KB document/SQLite row 无损往返，来源默认 `unverified` 和 candidate，verified/released 治理状态不得静默降级。
 - Research 已迁为可安装的 `inspiration_research` 包；旧连字符目录只保留 deprecated source-checkout launcher。
 - Architecture Guard 在 CI 阻止新增路径注入、反向依赖和外部绝对路径硬编码。
 - Core 与 Knowledge-Base 使用单端口挂载。

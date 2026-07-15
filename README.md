@@ -20,7 +20,7 @@ Research → Evidence → Knowledge → Learning
 | Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
 | Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
-| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | 🟡 进行中 | TaskPackV1、ExecutionTraceV1、EvaluationV1、LessonV1 已完成首批严格 adapter；下一项为 SourceRecordV1，Research/Knowledge 合同组仍待推进 |
+| Phase 2 | 版本化 Contracts 与旧 SQLite 对象 Adapter | 🟡 进行中 | TaskPackV1、ExecutionTraceV1、EvaluationV1、LessonV1、SourceRecordV1 已完成严格 adapter；下一项为 ClaimV1，Research/Knowledge 合同组继续推进 |
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ⬜ 规划中 | 替换固定 echo 与二值评价缺口 |
@@ -36,10 +36,11 @@ Phase 0 真实基线 ✅
 → ExecutionTraceV1 ✅
 → EvaluationV1 ✅
 → LessonV1 ✅
-→ SourceRecordV1 / Research contracts（下一步）
+→ SourceRecordV1 ✅
+→ ClaimV1 / EvidenceV1 / ResearchPackageV1（下一步）
 ```
 
-当前刀：**SourceRecordV1 + legacy KB document/SQLite row adapter**。外部来源默认 `unverified`、进入 quarantine/candidate；legacy 投影不能表达的治理状态必须 fail closed。
+当前刀：**ClaimV1 + provenance/evidence 边界**。已完成的 SourceRecordV1 会把 legacy KB document 默认提升为 `unverified`、quarantine/candidate；legacy 投影不能表达的 verified/released 状态会 fail closed。
 
 本阶段明确不宣称：Phase 3 安全 P0、Phase 4 Research 闭环、Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
 

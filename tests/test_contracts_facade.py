@@ -29,6 +29,7 @@ def test_contracts_facade_publishes_completed_phase_two_surfaces():
         to_runtime_trace,
         to_trace_row,
     )
+    from app.adapters.source_record import from_kb_document_row, to_kb_document_row
     from app.adapters.taskpack import (
         RuntimeTaskProjection,
         from_knowledge_taskpack,
@@ -38,6 +39,7 @@ def test_contracts_facade_publishes_completed_phase_two_surfaces():
     from app.contracts.v1 import (
         CONTRACT_VERSION,
         ExecutionTraceV1,
+        SourceRecordV1,
         TaskPackV1,
         TaskStepV1,
     )
@@ -55,10 +57,12 @@ def test_contracts_facade_publishes_completed_phase_two_surfaces():
     assert contracts.to_runtime_trace is to_runtime_trace
     assert contracts.from_trace_row is from_trace_row
     assert contracts.to_trace_row is to_trace_row
+    assert contracts.SourceRecordV1 is SourceRecordV1
+    assert contracts.from_kb_document_row is from_kb_document_row
+    assert contracts.to_kb_document_row is to_kb_document_row
 
     deferred = {
         "ContextPackV1",
-        "SourceRecordV1",
         "validate_contract",
     }
     assert deferred.isdisjoint(vars(contracts))

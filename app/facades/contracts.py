@@ -13,6 +13,7 @@ from app.adapters.lesson import (
     to_lesson_row,
     to_runtime_lesson,
 )
+from app.adapters.source_record import from_kb_document_row, to_kb_document_row
 from app.adapters.taskpack import (
     RuntimeTaskProjection,
     from_knowledge_taskpack,
@@ -24,6 +25,7 @@ from app.contracts.v1 import (
     EvaluationV1,
     ExecutionTraceV1,
     LessonV1,
+    SourceRecordV1,
     TaskPackV1,
     TaskStepV1,
 )
@@ -51,10 +53,12 @@ __all__ = [
     "MachineLesson",
     "PermissionDecision",
     "RuntimeTaskProjection",
+    "SourceRecordV1",
     "TaskPack",
     "TaskPackV1",
     "TaskStepV1",
     "from_knowledge_taskpack",
+    "from_kb_document_row",
     "from_lesson_row",
     "from_runtime_evaluation",
     "from_runtime_lesson",
@@ -62,6 +66,7 @@ __all__ = [
     "from_trace_row",
     "project_to_runtime",
     "to_knowledge_taskpack",
+    "to_kb_document_row",
     "to_lesson_row",
     "to_runtime_evaluation",
     "to_runtime_lesson",

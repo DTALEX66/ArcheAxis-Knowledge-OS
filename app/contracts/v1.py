@@ -17,6 +17,9 @@ EXECUTION_TRACE_SCHEMA_ID = (
 )
 EVALUATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evaluation.schema.json"
 LESSON_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/lesson.schema.json"
+SOURCE_RECORD_SCHEMA_ID = (
+    "https://cognitive-loop-os.local/contracts/v1/source-record.schema.json"
+)
 
 
 class TaskStepV1(BaseModel):
@@ -46,6 +49,24 @@ class TaskPackV1(BaseModel):
     success_criteria: list[str] = Field(default_factory=list)
     risk_level: Literal["low", "medium", "high", "critical"] = "low"
     requires_review: bool = False
+
+
+class SourceRecordV1(BaseModel):
+    """Versioned source content with explicit provenance and quarantine state."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": SOURCE_RECORD_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    source_id: str
+    title: str
+    content: str
+    source_locator: str
+    tags: list[str] = Field(default_factory=list)
+    provenance_status: Literal["unverified", "verified", "rejected"] = "unverified"
+    quarantine_status: Literal["candidate", "released", "rejected"] = "candidate"
+    created_at: str
 
 
 class ExecutionTraceV1(BaseModel):
