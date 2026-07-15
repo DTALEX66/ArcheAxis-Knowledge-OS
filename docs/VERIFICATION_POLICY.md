@@ -8,20 +8,21 @@
 
 ## 验证分层
 
-| 变更类型 | 开发中 | 冻结 diff 后 | 远端 |
+| 变更类型 | 开发中 | TaskPack checkpoint | 阶段 Release Train |
 | --- | --- | --- | --- |
-| 纯文档/机械格式 | convention scanner + `git diff --check` | 不跑全量 pytest | GitHub CI |
-| 业务或治理代码 | 受影响的定向测试 + changed-file Ruff | 完整本地门禁一次 | GitHub CI |
-| 打包/依赖 | 定向导入或 wheel smoke | 完整本地门禁 + wheel 一次 | GitHub CI |
-| 安全、权限、数据库、迁移、架构边界 | 定向测试 | 完整本地门禁 + 独立审查一次 | GitHub CI |
+| 纯文档/机械格式 | convention scanner + `git diff --check` | 本地 checkpoint，不跑全量 pytest | 阶段末统一 GitHub CI |
+| 低风险业务、合同或治理代码 | 受影响的定向 RED/GREEN + changed-file Ruff | 定向测试、diff/convention、可回滚本地 commit | 阶段末完整本地门禁一次 + 一次 GitHub CI |
+| 打包/依赖 | 定向导入或 wheel smoke | 完整本地门禁 + wheel 一次 | 独立 GitHub CI，不进入普通批量 |
+| 安全、权限、数据库、迁移、架构边界 | 定向测试 | 完整本地门禁 + 独立审查一次 | 独立 GitHub CI，不进入普通批量 |
 
 ## 必要门禁
 
-1. **开发中**：每个新行为只执行一次 RED → GREEN；小修后只重跑受影响测试。
-2. **提交前**：diff 冻结后运行一次对应完整本地门禁；若之后只改文档，不重复业务测试。
-3. **推送后**：只验收新提交对应的一次 GitHub Actions run；Python 版本矩阵交给 CI，不在本地重复模拟。
-4. **失败后**：先修根因，再重跑失败门禁；只有代码、依赖或 workflow 在完整门禁后发生变化，才重新执行完整门禁。
-5. **Wheel**：从 clean checkout 构建，或先精确清理 ignored `build/` 与 `*.egg-info/`；对删除/重命名的 package-data 必须检查 wheel 成员表，防止陈旧构建目录把已退役文件重新打包。
+1. **开发中**：每个新行为仍必须执行一次定向 RED → GREEN；集中测试不等于测试后补，也不允许多个未验证行为堆积。
+2. **TaskPack checkpoint**：低风险垂直切片只运行受影响测试、changed-file Ruff、diff/convention，形成可回滚的本地 commit；不重复 Root/KB/Integration 全量套件，也不逐个 push/CI。
+3. **阶段 Release Train**：同一大阶段的一组低风险 checkpoint 完成后，冻结聚合 diff，运行一次完整 Root/KB/Integration、完整 Ruff、Architecture Guard、convention 与 secrets 检查，再统一 push 并验收最新 SHA 的一次 GitHub Actions run。
+4. **高风险旁路**：安全、权限、数据库、迁移、架构、打包/依赖变更不得等待阶段末；每个独立 frozen tree 立即执行完整门禁、必要 reviewer、push 和 exact-SHA CI。
+5. **失败后**：定向失败只重跑受影响门禁；阶段完整门禁失败先定位到具体 checkpoint，修根因后只重跑失败门禁，最终聚合 tree 变化后再执行一次完整门禁。
+6. **Wheel**：从 clean checkout 构建，或先精确清理 ignored `build/` 与 `*.egg-info/`；对删除/重命名的 package-data 必须检查 wheel 成员表，防止陈旧构建目录把已退役文件重新打包。
 
 ## 审计触发
 
@@ -42,7 +43,7 @@
 1. 一个 TaskPack 使用一个持续 writer 会话，直到形成提交、明确阻塞或用户中止；不得按固定时间片反复启动全新 agent 并重读相同上下文。
 2. 一次性 `hermes chat -q` 不得启动异步 reviewer 后立即退出；需要独立审查时，使用能等待结果的持续父会话或同步只读 reviewer。
 3. reviewer 只在本策略列出的高风险触发点执行一次。普通版本化合同与 Adapter 不因“更放心”逐轮重审。
-4. 开发循环只运行受影响测试；完整门禁、冻结 tree 和远端 CI 各执行一次。没有生产 diff 的循环不得重复这些步骤。
+4. 开发循环只运行受影响测试；普通低风险 TaskPack 形成本地 checkpoint，完整门禁、聚合 frozen tree 和远端 CI 每个阶段 Release Train 各执行一次。没有生产 diff 的循环不得重复这些步骤。
 5. 每个后续周期先读取 Git 状态和上一周期最终结果；若 HEAD、tree 与失败证据未变化，必须继续原任务或停止，不能重新发现、重新冻结、重新派审。
 
 ### 正式 TaskPack runner
@@ -55,7 +56,7 @@ python scripts/run_taskpack_agent.py \
   --risk low
 ```
 
-- `--risk low`：一个 Hermes writer 会话完成 RED/GREEN、一次冻结后完整门禁、commit、push 与 exact-SHA CI。
+- `--risk low`：用于阶段 Release Train 或用户明确要求立即发布的低风险任务；一个 Hermes writer 会话完成聚合 frozen tree、完整门禁、commit、push 与 exact-SHA CI。阶段内普通低风险切片只做定向 checkpoint，不逐个调用完整 release runner。
 - `--risk high`：writer 先冻结全部 staged 改动且禁止 commit；runner 同步等待只读 reviewer。`NO-GO` 使用 stderr 中的 `session_id` 续接同一 writer lineage 修复，`GO` 后才续接发布。
 - runner 在送审前拒绝 unstaged、untracked 和冲突文件；审查前后比较 `git write-tree` 与 porcelain status，reviewer 只要产生任何写入就立即失败。
 - 发布验收由 runner 独立执行：工作区 clean、HEAD 前进、fetch/prune、`HEAD == origin/main`、该 HEAD 的 GitHub Actions 全部成功。
@@ -63,7 +64,7 @@ python scripts/run_taskpack_agent.py \
 
 ## 证据与记录
 
-每个 TaskPack 只保留：
+每个低风险 TaskPack checkpoint 只保留本地 commit 与定向 RED/GREEN 结果；每个阶段 Release Train 只保留：
 
 - 最终提交 SHA；
 - 最后一次必要本地门禁结果；
