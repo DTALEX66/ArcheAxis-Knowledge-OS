@@ -21,6 +21,7 @@ SOURCE_RECORD_SCHEMA_ID = (
     "https://cognitive-loop-os.local/contracts/v1/source-record.schema.json"
 )
 CLAIM_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/claim.schema.json"
+EVIDENCE_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evidence.schema.json"
 
 
 class TaskStepV1(BaseModel):
@@ -90,6 +91,31 @@ class ClaimV1(BaseModel):
             raise ValueError("verified claim requires server_verified provenance")
         if self.provenance_status == "caller_supplied" and not self.requires_human_review:
             raise ValueError("caller_supplied claim requires human review")
+        return self
+
+
+class EvidenceV1(BaseModel):
+    """Text-grounded evidence with explicit caller/server provenance."""
+
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"$id": EVIDENCE_SCHEMA_ID})
+
+    schema_version: Literal["1.0.0"]
+    evidence_id: str = Field(min_length=1)
+    claim_id: str = Field(min_length=1)
+    matched_term: str = Field(min_length=1)
+    source_locator: str = Field(min_length=1)
+    location: str
+    asset_locator: str
+    kind: str = Field(min_length=1)
+    context: str = Field(min_length=1)
+    status: Literal["matched", "unverified", "rejected"]
+    provenance_status: Literal["caller_supplied", "server_verified"]
+    requires_human_review: bool
+
+    @model_validator(mode="after")
+    def enforce_provenance_governance(self) -> EvidenceV1:
+        if self.provenance_status == "caller_supplied" and not self.requires_human_review:
+            raise ValueError("caller_supplied evidence requires human review")
         return self
 
 

@@ -2,6 +2,7 @@
 
 from app.adapters.claim import bind_legacy_evidence, verify_with_legacy_evidence
 from app.adapters.evaluation import from_runtime_evaluation, to_runtime_evaluation
+from app.adapters.evidence import from_match_result, to_legacy_verification_evidence
 from app.adapters.execution_trace import (
     from_runtime_trace,
     from_trace_row,
@@ -25,6 +26,7 @@ from app.contracts.v1 import (
     CONTRACT_VERSION,
     ClaimV1,
     EvaluationV1,
+    EvidenceV1,
     ExecutionTraceV1,
     LessonV1,
     SourceRecordV1,
@@ -50,6 +52,7 @@ __all__ = [
     "CoreObject",
     "EvalResult",
     "EvaluationV1",
+    "EvidenceV1",
     "ExecutionTrace",
     "ExecutionTraceV1",
     "LessonV1",
@@ -61,6 +64,7 @@ __all__ = [
     "TaskPackV1",
     "TaskStepV1",
     "bind_legacy_evidence",
+    "from_match_result",
     "from_knowledge_taskpack",
     "from_kb_document_row",
     "from_lesson_row",
@@ -71,6 +75,7 @@ __all__ = [
     "project_to_runtime",
     "to_knowledge_taskpack",
     "to_kb_document_row",
+    "to_legacy_verification_evidence",
     "to_lesson_row",
     "to_runtime_evaluation",
     "to_runtime_lesson",
