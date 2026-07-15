@@ -45,6 +45,22 @@
 4. 开发循环只运行受影响测试；完整门禁、冻结 tree 和远端 CI 各执行一次。没有生产 diff 的循环不得重复这些步骤。
 5. 每个后续周期先读取 Git 状态和上一周期最终结果；若 HEAD、tree 与失败证据未变化，必须继续原任务或停止，不能重新发现、重新冻结、重新派审。
 
+### 正式 TaskPack runner
+
+无人值守开发使用仓库内 [`scripts/run_taskpack_agent.py`](../scripts/run_taskpack_agent.py)，不再使用按固定分钟数杀进程并启动新 agent 的循环：
+
+```bash
+python scripts/run_taskpack_agent.py \
+  --mission-file migrations/reports/phase-2/PHASE_2_TASKPACK.md \
+  --risk low
+```
+
+- `--risk low`：一个 Hermes writer 会话完成 RED/GREEN、一次冻结后完整门禁、commit、push 与 exact-SHA CI。
+- `--risk high`：writer 先冻结全部 staged 改动且禁止 commit；runner 同步等待只读 reviewer。`NO-GO` 使用 stderr 中的 `session_id` 续接同一 writer lineage 修复，`GO` 后才续接发布。
+- runner 在送审前拒绝 unstaged、untracked 和冲突文件；审查前后比较 `git write-tree` 与 porcelain status，reviewer 只要产生任何写入就立即失败。
+- 发布验收由 runner 独立执行：工作区 clean、HEAD 前进、fetch/prune、`HEAD == origin/main`、该 HEAD 的 GitHub Actions 全部成功。
+- agent 调用不设置固定周期 timeout；仅远端 CI 等待有 20 分钟故障上限。旧的 `cognitive_7h_runner.py` 固定时间片模式已废弃。
+
 ## 证据与记录
 
 每个 TaskPack 只保留：
