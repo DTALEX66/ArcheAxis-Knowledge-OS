@@ -21,6 +21,7 @@ from app.adapters.lesson import (
     to_lesson_row,
     to_runtime_lesson,
 )
+from app.adapters.mastery_signal import from_learning_snapshots
 from app.adapters.research_package import build_candidate_research_package
 from app.adapters.source_record import from_kb_document_row, to_kb_document_row
 from app.adapters.taskpack import (
@@ -37,6 +38,7 @@ from app.contracts.v1 import (
     ExecutionTraceV1,
     KnowledgeUnitV1,
     LessonV1,
+    MasterySignalV1,
     RelationV1,
     ResearchPackageV1,
     SourceRecordV1,
@@ -67,6 +69,7 @@ __all__ = [
     "ExecutionTraceV1",
     "KnowledgeUnitV1",
     "LessonV1",
+    "MasterySignalV1",
     "MachineLesson",
     "PermissionDecision",
     "ResearchPackageV1",
@@ -80,6 +83,7 @@ __all__ = [
     "build_candidate_research_package",
     "from_graph_entity_row",
     "from_graph_relation_row",
+    "from_learning_snapshots",
     "from_match_result",
     "from_knowledge_taskpack",
     "from_kb_document_row",

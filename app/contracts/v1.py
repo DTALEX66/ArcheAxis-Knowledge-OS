@@ -29,6 +29,9 @@ KNOWLEDGE_UNIT_SCHEMA_ID = (
     "https://cognitive-loop-os.local/contracts/v1/knowledge-unit.schema.json"
 )
 RELATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/relation.schema.json"
+MASTERY_SIGNAL_SCHEMA_ID = (
+    "https://cognitive-loop-os.local/contracts/v1/mastery-signal.schema.json"
+)
 
 
 class TaskStepV1(BaseModel):
@@ -123,6 +126,42 @@ class EvidenceV1(BaseModel):
     def enforce_provenance_governance(self) -> EvidenceV1:
         if self.provenance_status == "caller_supplied" and not self.requires_human_review:
             raise ValueError("caller_supplied evidence requires human review")
+        return self
+
+
+class MasterySignalV1(BaseModel):
+    """Derived mastery decision with the learning snapshots that justify it."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": MASTERY_SIGNAL_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    calculation_version: Literal["review-outcome-v1"]
+    card_id: str = Field(min_length=1)
+    is_mastered: bool
+    review_ids: list[str]
+    mistake_ids: list[str]
+    review_count: int = Field(ge=0)
+    unresolved_mistake_ids: list[str]
+    latest_ease_factor: float | None
+    latest_review_quality: int | None = Field(default=None, ge=0, le=5)
+    review_status: Literal["draft", "reviewing", "struggling", "mastered"]
+
+    @model_validator(mode="after")
+    def enforce_grounded_mastery(self) -> MasterySignalV1:
+        if self.review_count != len(self.review_ids):
+            raise ValueError("review_count must match review_ids")
+        if not set(self.unresolved_mistake_ids).issubset(self.mistake_ids):
+            raise ValueError("unresolved mistakes must be present in mistake_ids")
+        expected = (
+            self.review_count >= 3
+            and not self.unresolved_mistake_ids
+            and self.latest_review_quality is not None
+            and self.latest_review_quality >= 4
+        )
+        if self.is_mastered != expected:
+            raise ValueError("is_mastered must match review evidence and unresolved mistakes")
         return self
 
 
