@@ -32,6 +32,8 @@
 - `shared/evidence_verification.py`：文本命中证据；所有调用者提供的内容最高为候选，当前没有服务端可信 provenance，必须人工复核。
 - `shared/content_quality.py`：乱码、水印、误导性 100% 和 Wikilink 静态审计。
 - `shared/oer_crosswalk.py`：静态开放来源发现建议（遗留文件名），不检索内容、不检查许可、不做 claim-level crosswalk。
+- CI 的 test/lint job 使用 `uv` 与 `requirements-ci.txt` 最小依赖；wheel-smoke 仍安装完整 `requirements.txt` 并在仓库外验证真实 wheel/runtime，避免以提速为由削弱发布覆盖。
+- `scripts/run_taskpack_agent.py`：一个 TaskPack 使用一个可续接 writer lineage；高风险任务同步 exact-tree reviewer，发布后强制 clean、`HEAD == origin/main` 与 exact-SHA CI。固定时间片反复重启 agent 的旧 runner 已废弃。
 
 ## 仍保留的债务
 
