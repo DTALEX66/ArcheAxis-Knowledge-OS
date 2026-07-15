@@ -6,7 +6,7 @@ or SQLite objects; adapters own those transitions explicitly.
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -25,6 +25,10 @@ EVIDENCE_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evidence.sche
 RESEARCH_PACKAGE_SCHEMA_ID = (
     "https://cognitive-loop-os.local/contracts/v1/research-package.schema.json"
 )
+KNOWLEDGE_UNIT_SCHEMA_ID = (
+    "https://cognitive-loop-os.local/contracts/v1/knowledge-unit.schema.json"
+)
+RELATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/relation.schema.json"
 
 
 class TaskStepV1(BaseModel):
@@ -157,6 +161,38 @@ class ResearchPackageV1(BaseModel):
         if self.provenance_status == "caller_supplied" and not self.requires_human_review:
             raise ValueError("caller_supplied package requires human review")
         return self
+
+
+class KnowledgeUnitV1(BaseModel):
+    """Lossless canonical representation of a legacy graph entity row."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": KNOWLEDGE_UNIT_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    unit_id: str = Field(min_length=1)
+    unit_type: str = Field(min_length=1)
+    properties: dict[str, Any]
+    graph_name: str = Field(min_length=1)
+    created_at: str = Field(min_length=1)
+
+
+class RelationV1(BaseModel):
+    """Lossless canonical representation of a directed legacy graph edge."""
+
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"$id": RELATION_SCHEMA_ID}
+    )
+
+    schema_version: Literal["1.0.0"]
+    relation_id: str = Field(min_length=1)
+    source_unit_id: str = Field(min_length=1)
+    target_unit_id: str = Field(min_length=1)
+    relation_type: str = Field(min_length=1)
+    weight: float
+    graph_name: str = Field(min_length=1)
+    created_at: str = Field(min_length=1)
 
 
 class ExecutionTraceV1(BaseModel):
