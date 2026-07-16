@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from shared.config import config, resolve_runtime_path
 
@@ -321,6 +323,56 @@ PUBLIC_KB_TABLES = frozenset(
         "machine_knowledge_units",
     }
 )
+_FTS_SOURCE_SPECS = {
+    "kb_documents": (
+        "kb_documents_fts",
+        "CREATE VIRTUAL TABLE {candidate} USING fts5("
+        "id UNINDEXED, title, content, source, tokenize='porter unicode61')",
+    ),
+    "kb_cards": (
+        "kb_cards_fts",
+        "CREATE VIRTUAL TABLE {candidate} USING fts5("
+        "id UNINDEXED, title, content, tags, tokenize='porter unicode61')",
+    ),
+}
+
+
+@dataclass(frozen=True)
+class FtsIndexCandidate:
+    """A validated, inactive FTS5 index produced from canonical KB rows."""
+
+    source_table: str
+    active_table: str
+    table_name: str
+    db_path: str
+    object_ids: tuple[str, ...]
+    count: int
+
+    def verify(self) -> bool:
+        """Verify candidate cardinality and IDs without touching the active index."""
+        try:
+            with sqlite3.connect(self.db_path) as connection:
+                actual_ids = tuple(
+                    str(row[0])
+                    for row in connection.execute(
+                        f'SELECT id FROM "{self.table_name}" ORDER BY rowid'
+                    ).fetchall()
+                )
+        except (OSError, sqlite3.Error) as exc:
+            raise RuntimeError("FTS candidate verification failed") from exc
+        if (
+            len(actual_ids) != self.count
+            or len(set(actual_ids)) != len(actual_ids)
+            or set(actual_ids) != set(self.object_ids)
+        ):
+            raise RuntimeError("FTS candidate verification failed")
+        return True
+
+    def discard(self) -> None:
+        """Drop this inactive candidate; the active index is never touched."""
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute(f'DROP TABLE IF EXISTS "{self.table_name}"')
+            connection.commit()
 
 
 def validate_public_table(table: str) -> str:
@@ -443,6 +495,56 @@ def count(table: str) -> int:
 
 
 # ── FTS5 search ─────────────────────────────────────────
+
+
+def build_fts_candidate(source_table: str) -> FtsIndexCandidate:
+    """Build an inactive FTS5 candidate from canonical KB rows.
+
+    The active FTS table is never written, renamed, or dropped.  Candidate
+    creation is cleaned up on failure; switching and rollback are separate
+    migration operations.
+    """
+    spec = _FTS_SOURCE_SPECS.get(source_table)
+    if spec is None:
+        raise ValueError(f"unsupported FTS source table: {source_table}")
+    active_table, create_sql = spec
+    connection = _conn()
+    candidate_table = f"{active_table}__candidate_{uuid4().hex}"
+    quoted_candidate = f'"{candidate_table}"'
+    try:
+        _validated_table(connection, source_table)
+        rows = connection.execute(
+            f'SELECT id, title, content FROM "{source_table}" ORDER BY rowid'
+        ).fetchall()
+        connection.execute(create_sql.format(candidate=quoted_candidate))
+        for row in rows:
+            connection.execute(
+                f'INSERT INTO {quoted_candidate}(id, title, content) VALUES (?, ?, ?)',
+                (row["id"], row["title"], row["content"]),
+            )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        connection.execute(f'DROP TABLE IF EXISTS {quoted_candidate}')
+        connection.commit()
+        raise
+    finally:
+        connection.close()
+    object_ids = tuple(str(row["id"]) for row in rows)
+    candidate = FtsIndexCandidate(
+        source_table=source_table,
+        active_table=active_table,
+        table_name=candidate_table,
+        db_path=str(DB_PATH),
+        object_ids=object_ids,
+        count=len(object_ids),
+    )
+    try:
+        candidate.verify()
+    except Exception:
+        candidate.discard()
+        raise
+    return candidate
 
 
 def fts5_search(table: str, query: str, top_k: int = 5) -> list[dict]:
