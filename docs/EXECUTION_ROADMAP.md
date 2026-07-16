@@ -96,9 +96,9 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 3. ✅ 统一 Safe HTTP：DNS、私网、metadata、redirect、大小、类型、timeout 与 hostile XML 边界。
 4. ✅ Approved Source Roots 和 symlink/junction containment。
 5. ✅ 用稳定哈希替换持久化 Python `hash()`；VectorDB 已使用 versioned `sha256-v1`，索引重建仍独立处理。
-6. 🟡 FTS/Vector 可重建、可回滚迁移：shadow candidate rebuild、验证、切换与 rollback 已完成；尚待通用 migration registry/operator 接管 owner 生命周期。
+6. 🟡 FTS/Vector 可重建、可回滚迁移：shadow candidate rebuild、验证、切换、rollback 与统一 owner registry/operator 已形成 frozen review candidate，等待 exact-tree GO 后发布。
 7. ✅ Rate Limiter 接入主网关；已覆盖身份分桶、proxy trust、早期拒绝预算和真实启动入口。
-8. **当前刀**：正式 Migration Runner——TaskPack migration 的备份、幂等、rollback 已成熟，下一步统一 registry/operator CLI、Vector/FTS owner 与 Phase 3 集成验收。
+8. **当前刀**：Phase 3 集成验收——正式 Migration Runner 已统一 TaskPack、Vector、FTS owner 及 status/apply/rollback CLI；下一步验证跨 owner 生产组合边界，不提前宣布 Phase 3 完成。
 
 设计包的 `ALPHA_SCHEMA.sql` 仅作为目标模型；当前表与目标表必须逐表映射，禁止直接执行。
 
@@ -171,6 +171,6 @@ Phase 9 通过后再推进完整学习科学、Research Intelligence、多模态
 
 1. Phase 2 首批合同 Release Train 已完成；`ContextPackV1` 与通用 `validate_contract` 不在首批合同清单中，继续保持 deferred，不以空壳扩大 Facade。
 2. Phase 3 的管理员凭据、Token 角色提升、Rate Limiter、Safe HTTP、approved roots、稳定哈希和 Vector/FTS shadow switch/rollback 边界已关闭。
-3. 下一项是通用 Migration Runner registry/operator CLI、Vector/FTS owner 接入与 Phase 3 集成验收。
+3. 通用 Migration Runner registry/operator CLI 与 Vector/FTS owner 接入已形成 frozen review candidate；GO-only 发布后下一项是独立的 Phase 3 集成验收 TaskPack。
 4. Phase 3 每个安全、权限或 migration 任务独立冻结、完整验证、审查和发布，不进入普通低风险批量。
 5. Phase 7 的 `file_read` tracer 不等于通用 Dynamic Planner；Phase 3–9 整体仍未完成，不得提前宣称 Alpha 闭环完成。

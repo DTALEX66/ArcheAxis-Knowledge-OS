@@ -463,6 +463,75 @@ def test_taskpack_repair_preserves_explicit_indexes(tmp_path: Path) -> None:
     assert "kb_taskpacks(goal)" in index_sql[0]
 
 
+def test_taskpack_repair_rejects_extra_implicit_unique_constraint_without_replacement(
+    tmp_path: Path,
+) -> None:
+    from shared.migration import migrate
+
+    database = tmp_path / "runtime.sqlite"
+    backups = tmp_path / "backups"
+    with closing(sqlite3.connect(database)) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE kb_taskpacks (
+                id TEXT PRIMARY KEY,
+                context_id TEXT NOT NULL DEFAULT '',
+                goal TEXT NOT NULL,
+                steps_json TEXT NOT NULL DEFAULT '[]',
+                allowed_tools_json TEXT NOT NULL DEFAULT '[]',
+                blocked_tools_json TEXT NOT NULL DEFAULT '[]',
+                constraints_json TEXT NOT NULL DEFAULT '[]',
+                success_criteria_json TEXT NOT NULL DEFAULT '[]',
+                risk_level TEXT NOT NULL DEFAULT 'low',
+                requires_review INTEGER NOT NULL DEFAULT 0 CHECK(requires_review IN (0, 1)),
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(goal)
+            );
+            CREATE TABLE schema_migrations (
+                version INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+            INSERT INTO schema_migrations(version, name)
+            VALUES (2, 'taskpack_contract_v1');
+            INSERT INTO kb_taskpacks(id, goal)
+            VALUES ('task-unique', 'unique goal must remain constrained');
+            """
+        )
+        connection.commit()
+        before_schema = connection.execute(
+            "SELECT type, name, tbl_name, sql FROM sqlite_master "
+            "WHERE tbl_name='kb_taskpacks' OR name='kb_taskpacks' "
+            "ORDER BY type, name"
+        ).fetchall()
+        before_rows = connection.execute(
+            "SELECT * FROM kb_taskpacks ORDER BY id"
+        ).fetchall()
+        before_migrations = connection.execute(
+            "SELECT version, name FROM schema_migrations ORDER BY version"
+        ).fetchall()
+
+    with pytest.raises(RuntimeError, match="unsupported kb_taskpacks table constraints"):
+        migrate(db_path=database, backup_dir=backups)
+
+    with closing(sqlite3.connect(database)) as connection:
+        after_schema = connection.execute(
+            "SELECT type, name, tbl_name, sql FROM sqlite_master "
+            "WHERE tbl_name='kb_taskpacks' OR name='kb_taskpacks' "
+            "ORDER BY type, name"
+        ).fetchall()
+        after_rows = connection.execute("SELECT * FROM kb_taskpacks ORDER BY id").fetchall()
+        after_migrations = connection.execute(
+            "SELECT version, name FROM schema_migrations ORDER BY version"
+        ).fetchall()
+        assert connection.execute(
+            "SELECT COUNT(*) FROM schema_migrations WHERE version=3"
+        ).fetchone()[0] == 0
+    assert after_schema == before_schema
+    assert after_rows == before_rows
+    assert after_migrations == before_migrations
+
+
 def test_storage_startup_detects_version_collision_before_any_ddl(
     monkeypatch, tmp_path: Path
 ) -> None:

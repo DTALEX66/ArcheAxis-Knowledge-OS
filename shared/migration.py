@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import sqlite3
+from collections.abc import Callable
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -279,6 +281,32 @@ def _validate_taskpack_repair_copy(connection: sqlite3.Connection) -> None:
         raise RuntimeError("kb_taskpacks repair did not fail closed")
 
 
+def _reject_unsupported_taskpack_table_constraints(connection: sqlite3.Connection) -> None:
+    table_row = connection.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='kb_taskpacks'"
+    ).fetchone()
+    table_sql = str(table_row["sql"] or "") if table_row is not None else ""
+    compact_sql = "".join(table_sql.upper().split())
+    index_rows = connection.execute("PRAGMA index_list(kb_taskpacks)").fetchall()
+    has_implicit_unique = any(str(row["origin"]) == "u" for row in index_rows)
+    has_foreign_key = connection.execute(
+        "PRAGMA foreign_key_list(kb_taskpacks)"
+    ).fetchone() is not None
+    check_count = len(re.findall(r"\bCHECK\s*\(", table_sql, flags=re.IGNORECASE))
+    has_expected_review_check = "CHECK(REQUIRES_REVIEWIN(0,1))" in compact_sql
+    has_unsupported_check = check_count > 1 or (
+        check_count == 1 and not has_expected_review_check
+    )
+    if (
+        has_implicit_unique
+        or has_foreign_key
+        or re.search(r"\bUNIQUE\s*\(", table_sql, flags=re.IGNORECASE)
+        or re.search(r"\bCONSTRAINT\b", table_sql, flags=re.IGNORECASE)
+        or has_unsupported_check
+    ):
+        raise RuntimeError("unsupported kb_taskpacks table constraints")
+
+
 def _repair_taskpack_review_schema(connection: sqlite3.Connection) -> None:
     if not _taskpack_v3_repair_required(connection):
         return
@@ -289,6 +317,7 @@ def _repair_taskpack_review_schema(connection: sqlite3.Connection) -> None:
     if columns != TASKPACK_COLUMNS:
         detail = ", ".join(sorted(columns ^ TASKPACK_COLUMNS))
         raise RuntimeError(f"cannot safely rebuild kb_taskpacks; unexpected columns: {detail}")
+    _reject_unsupported_taskpack_table_constraints(connection)
     dependent_schema = [
         str(row["sql"])
         for row in connection.execute(
@@ -350,7 +379,11 @@ def _taskpack_schema_change_required(
 
 
 def migrate(
-    *, db_path: str | Path = DB_PATH, backup_dir: str | Path = BACKUP_DIR
+    *,
+    db_path: str | Path = DB_PATH,
+    backup_dir: str | Path = BACKUP_DIR,
+    before_commit: Callable[[sqlite3.Connection, MigrationRun], None] | None = None,
+    backup_when_pending: bool = False,
 ) -> MigrationRun:
     """Apply pending migrations once, after creating a verified SQLite backup."""
 
@@ -366,7 +399,7 @@ def migrate(
             if not pending:
                 connection.commit()
                 return MigrationRun(applied=(), backup_path=None)
-            if _taskpack_schema_change_required(connection, pending):
+            if backup_when_pending or _taskpack_schema_change_required(connection, pending):
                 backup_path = _create_backup(database, backups, "+".join(pending))
             connection.execute(MIGRATIONS_TABLE)
             for version, name in TASKPACK_MIGRATIONS.items():
@@ -380,16 +413,24 @@ def migrate(
                     "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
                     (version, name),
                 )
+            run = MigrationRun(applied=pending, backup_path=backup_path)
+            if before_commit is not None:
+                before_commit(connection, run)
             connection.commit()
         except Exception:
             connection.rollback()
             raise
 
     _validate_database(database)
-    return MigrationRun(applied=pending, backup_path=backup_path)
+    return run
 
 
-def rollback(*, backup_path: str | Path, db_path: str | Path = DB_PATH) -> Path:
+def rollback(
+    *,
+    backup_path: str | Path,
+    db_path: str | Path = DB_PATH,
+    prepare_replacement: Callable[[Path], None] | None = None,
+) -> Path:
     """Restore a migration backup while the runtime is offline.
 
     Idle WAL state is checkpointed and switched to DELETE before replacement.
@@ -445,6 +486,9 @@ def rollback(*, backup_path: str | Path, db_path: str | Path = DB_PATH) -> Path:
     try:
         shutil.copyfile(backup, temporary)
         _validate_database(temporary)
+        if prepare_replacement is not None:
+            prepare_replacement(temporary)
+            _validate_database(temporary)
         temporary.replace(database)
     finally:
         temporary.unlink(missing_ok=True)

@@ -467,7 +467,8 @@ class FtsIndexCandidate:
         quoted_candidate = f'"{self.table_name}"'
         quoted_backup = f'"{backup_table}"'
         quoted_columns = ", ".join(f'"{column}"' for column in self.columns)
-        connection = _conn()
+        connection = sqlite3.connect(self.db_path)
+        connection.row_factory = sqlite3.Row
         try:
             _validated_table(connection, self.active_table)
             _validated_table(connection, self.table_name)
@@ -642,7 +643,9 @@ def count(table: str) -> int:
 # ── FTS5 search ─────────────────────────────────────────
 
 
-def build_fts_candidate(source_table: str) -> FtsIndexCandidate:
+def build_fts_candidate(
+    source_table: str, *, db_path: str | Path | None = None
+) -> FtsIndexCandidate:
     """Build an inactive FTS5 candidate from canonical KB rows.
 
     The active FTS table is never written, renamed, or dropped.  Candidate
@@ -653,7 +656,9 @@ def build_fts_candidate(source_table: str) -> FtsIndexCandidate:
     if spec is None:
         raise ValueError(f"unsupported FTS source table: {source_table}")
     active_table, create_sql, columns, source_columns = spec
-    connection = _conn()
+    database = Path(db_path or DB_PATH)
+    connection = sqlite3.connect(str(database))
+    connection.row_factory = sqlite3.Row
     candidate_table = f"{active_table}__candidate_{uuid4().hex}"
     quoted_candidate = f'"{candidate_table}"'
     try:
@@ -683,7 +688,7 @@ def build_fts_candidate(source_table: str) -> FtsIndexCandidate:
         source_table=source_table,
         active_table=active_table,
         table_name=candidate_table,
-        db_path=str(DB_PATH),
+        db_path=str(database),
         object_ids=object_ids,
         rowids=tuple(int(row["rowid"]) for row in rows),
         count=len(object_ids),

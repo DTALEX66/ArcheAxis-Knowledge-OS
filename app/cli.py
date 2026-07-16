@@ -12,7 +12,9 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 import sys
+from argparse import ArgumentParser
 
 
 def cmd_serve(port: int = 8000) -> None:
@@ -58,6 +60,29 @@ def cmd_health() -> None:
     }
     print(json.dumps(stats, ensure_ascii=False, indent=2))
 
+
+
+def cmd_migrate(args: list[str]) -> None:
+    """Run the non-interactive migration operator against an explicit database."""
+    parser = ArgumentParser(prog="cognitive-os migrate")
+    parser.add_argument("action", choices=("status", "apply", "rollback"))
+    parser.add_argument("--owner")
+    parser.add_argument("--db", required=True)
+    parser.add_argument("--backup-dir", required=True)
+    options = parser.parse_args(args)
+    os.environ["COGNITIVE_DB_PATH"] = options.db
+
+    from shared.migration_runner import MigrationOperator
+
+    operator = MigrationOperator(db_path=options.db, backup_dir=options.backup_dir)
+    if options.action == "status":
+        result = operator.status()
+    else:
+        if not options.owner:
+            parser.error("--owner is required for apply and rollback")
+        function = operator.apply if options.action == "apply" else operator.rollback
+        result = function(options.owner)
+    print(json.dumps(result, ensure_ascii=True, indent=2, sort_keys=True))
 
 
 def cmd_stats() -> None:
@@ -118,6 +143,9 @@ def main() -> None:
         raise SystemExit(1)
 
     command = sys.argv[1]
+    if command == "migrate":
+        cmd_migrate(sys.argv[2:])
+        return
     if command not in COMMANDS:
         print(f"Unknown command: {command}")
         print(f"Available: {', '.join(COMMANDS)}")

@@ -16,9 +16,12 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import sqlite3
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
@@ -32,6 +35,12 @@ DEFAULT_DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cog
 _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
+def vector_fingerprint(vector: np.ndarray) -> str:
+    """Return a deterministic digest for one normalized float32 embedding."""
+    array = np.asarray(vector, dtype=np.float32)
+    return hashlib.sha256(array.tobytes()).hexdigest()
+
+
 @dataclass(frozen=True)
 class VectorIndexRollback:
     """Rollback handle for one successful vector candidate activation."""
@@ -42,19 +51,54 @@ class VectorIndexRollback:
     dim: int
     db_path: str
 
-    def rollback(self) -> None:
-        """Restore the pre-activation index and remove migration-owned tables."""
+    def rollback(
+        self,
+        *,
+        expected_active_fingerprint: dict[str, object] | None = None,
+        before_commit: Callable[[sqlite3.Connection], None] | None = None,
+    ) -> None:
+        """Atomically restore the pre-activation index and remove migration tables."""
         active_db = VectorDB(table_name=self.active_table, dim=self.dim, db_path=self.db_path)
         backup_db = VectorDB(table_name=self.backup_table, dim=self.dim, db_path=self.db_path)
         candidate_db = VectorDB(
             table_name=self.candidate_table, dim=self.dim, db_path=self.db_path
         )
-        if not backup_db._index_exists() or not active_db._index_exists():
-            raise ValueError("rollback source missing")
-        records = backup_db._records()
-        active_db._replace_records(records)
-        candidate_db.drop()
-        backup_db.drop()
+        connection = active_db._get_conn()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            if expected_active_fingerprint is not None:
+                current_fingerprint = active_db.fingerprint(connection=connection)
+                if current_fingerprint != expected_active_fingerprint:
+                    raise RuntimeError("active vector index changed since apply")
+            required = {
+                active_db.table_name,
+                active_db._map_table,
+                backup_db.table_name,
+                backup_db._map_table,
+            }
+            existing = {
+                str(row[0])
+                for row in connection.execute(
+                    f"SELECT name FROM sqlite_master WHERE name IN ({','.join('?' for _ in required)})",
+                    tuple(required),
+                )
+            }
+            if existing != required:
+                raise ValueError("rollback source missing")
+            rows = backup_db._records_in_connection(connection)
+            active_db._replace_records_in_transaction(connection, rows)
+            VectorDB._drop_index(
+                connection, candidate_db.table_name, candidate_db._map_table
+            )
+            VectorDB._drop_index(connection, backup_db.table_name, backup_db._map_table)
+            if before_commit is not None:
+                before_commit(connection)
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
 
 
 @dataclass(frozen=True)
@@ -67,8 +111,9 @@ class VectorIndexCandidate:
     db_path: str
     object_ids: tuple[str, ...]
     count: int
+    vector_fingerprints: tuple[tuple[str, str], ...]
 
-    def verify(self) -> bool:
+    def verify(self, connection: sqlite3.Connection | None = None) -> bool:
         """Verify candidate cardinality and IDs without mutating either index.
 
         Verification is intentionally fail-closed so activation can require an
@@ -77,44 +122,68 @@ class VectorIndexCandidate:
         """
         candidate_db = VectorDB(table_name=self.table_name, dim=self.dim, db_path=self.db_path)
         try:
-            actual_count = candidate_db.count()
-            actual_ids = set(candidate_db.list_ids(limit=max(self.count, 1)))
+            if connection is None:
+                records = candidate_db._records()
+            else:
+                records = candidate_db._records_in_connection(connection)
         except Exception as exc:
             raise RuntimeError("candidate verification failed") from exc
-        if actual_count != self.count or actual_ids != set(self.object_ids):
+        actual_fingerprints = tuple(
+            sorted((object_id, vector_fingerprint(vector)) for object_id, vector in records)
+        )
+        if (
+            len(records) != self.count
+            or {object_id for object_id, _ in records} != set(self.object_ids)
+            or actual_fingerprints != self.vector_fingerprints
+        ):
             raise RuntimeError("candidate verification failed")
         return True
 
-    def activate(self) -> VectorIndexRollback:
+    def activate(
+        self,
+        *,
+        before_switch: Callable[[sqlite3.Connection], None] | None = None,
+        before_commit: Callable[[sqlite3.Connection, VectorIndexRollback], None]
+        | None = None,
+    ) -> VectorIndexRollback:
         """Replace the active contents after validation and retain a rollback copy."""
-        self.verify()
         active_db = VectorDB(table_name=self.active_table, dim=self.dim, db_path=self.db_path)
         candidate_db = VectorDB(
             table_name=self.table_name, dim=self.dim, db_path=self.db_path
         )
-        if not active_db._index_exists():
-            raise RuntimeError("active vector index is missing")
-        candidate_records = candidate_db._records()
-        active_records = active_db._records()
         backup_table = f"{self.active_table}__rollback_{uuid4().hex}"
         backup_db = VectorDB(table_name=backup_table, dim=self.dim, db_path=self.db_path)
-        backup_db.init()
-        try:
-            backup_db._replace_records(active_records)
-            active_db._replace_records(candidate_records)
-        except Exception:
-            try:
-                active_db._replace_records(active_records)
-            finally:
-                backup_db.drop()
-            raise
-        return VectorIndexRollback(
+        rollback = VectorIndexRollback(
             active_table=self.active_table,
             backup_table=backup_table,
             candidate_table=self.table_name,
             dim=self.dim,
             db_path=self.db_path,
         )
+        connection = active_db._get_conn()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            if not active_db._index_exists_in_connection(connection):
+                raise RuntimeError("active vector index is missing")
+            self.verify(connection=connection)
+            if before_switch is not None:
+                before_switch(connection)
+            candidate_records = candidate_db._records_in_connection(connection)
+            active_records = active_db._records_in_connection(connection)
+            backup_db._init_in_transaction(connection)
+            backup_db._replace_records_in_transaction(connection, active_records)
+            active_db._replace_records_in_transaction(connection, candidate_records)
+            if before_commit is not None:
+                before_commit(connection, rollback)
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            with suppress(Exception):
+                backup_db.drop()
+            raise
+        finally:
+            connection.close()
+        return rollback
 
     def discard(self) -> None:
         """Drop this inactive candidate; the active index is never touched."""
@@ -155,55 +224,102 @@ class VectorDB:
         """Create the vec0 virtual table + id-map table if they don't exist."""
         conn = self._get_conn()
         try:
-            conn.execute(
-                f"CREATE TABLE IF NOT EXISTS {self._map_table} ("
-                "  object_id TEXT PRIMARY KEY,"
-                "  rowid INTEGER UNIQUE"
-                ")"
-            )
-            conn.execute(
-                f"CREATE VIRTUAL TABLE IF NOT EXISTS {self.table_name} "
-                f"USING vec0(embedding float[{self.dim}])"
-            )
+            self._init_in_transaction(conn)
             conn.commit()
         finally:
             conn.close()
+
+    def _init_in_transaction(self, connection: sqlite3.Connection) -> None:
+        """Create this vec0 index using a caller-owned transaction."""
+        connection.execute(
+            f"CREATE TABLE IF NOT EXISTS {self._map_table} ("
+            "  object_id TEXT PRIMARY KEY,"
+            "  rowid INTEGER UNIQUE"
+            ")"
+        )
+        connection.execute(
+            f"CREATE VIRTUAL TABLE IF NOT EXISTS {self.table_name} "
+            f"USING vec0(embedding float[{self.dim}])"
+        )
+
+    def _index_exists_in_connection(self, connection: sqlite3.Connection) -> bool:
+        """Return whether both physical tables for this index exist on a connection."""
+        names = {
+            row["name"]
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE name IN (?, ?)",
+                (self.table_name, self._map_table),
+            )
+        }
+        return names == {self.table_name, self._map_table}
 
     def _index_exists(self) -> bool:
         """Return whether both physical tables for this index exist."""
         conn = self._get_conn()
         try:
-            names = {
-                row["name"]
-                for row in conn.execute(
-                    "SELECT name FROM sqlite_master WHERE name IN (?, ?)",
-                    (self.table_name, self._map_table),
-                )
-            }
-            return names == {self.table_name, self._map_table}
+            return self._index_exists_in_connection(conn)
         finally:
             conn.close()
+
+    def _records_in_connection(
+        self, connection: sqlite3.Connection
+    ) -> tuple[tuple[str, np.ndarray], ...]:
+        """Read complete indexed records for a shadow copy operation."""
+        rows = connection.execute(
+            f"SELECT m.object_id, v.embedding FROM {self._map_table} AS m "
+            f"JOIN {self.table_name} AS v ON v.rowid=m.rowid ORDER BY m.rowid"
+        ).fetchall()
+        records = []
+        for row in rows:
+            vector = np.frombuffer(bytes(row["embedding"]), dtype=np.float32).copy()
+            if vector.shape != (self.dim,):
+                raise RuntimeError(f"vector record has unexpected shape: {vector.shape}")
+            records.append((str(row["object_id"]), vector))
+        return tuple(records)
 
     def _records(self) -> tuple[tuple[str, np.ndarray], ...]:
         """Read complete indexed records for a shadow copy operation."""
         conn = self._get_conn()
         try:
-            rows = conn.execute(
-                f"SELECT m.object_id, v.embedding FROM {self._map_table} AS m "
-                f"JOIN {self.table_name} AS v ON v.rowid=m.rowid ORDER BY m.rowid"
-            ).fetchall()
-            records = []
-            for row in rows:
-                vector = np.frombuffer(bytes(row["embedding"]), dtype=np.float32).copy()
-                if vector.shape != (self.dim,):
-                    raise RuntimeError(f"vector record has unexpected shape: {vector.shape}")
-                records.append((str(row["object_id"]), vector))
-            return tuple(records)
+            return self._records_in_connection(conn)
         finally:
             conn.close()
 
-    def _replace_records(self, records: Iterable[tuple[str, np.ndarray]]) -> None:
-        """Atomically replace this already-created index with validated records."""
+    def fingerprint(
+        self, connection: sqlite3.Connection | None = None
+    ) -> dict[str, object]:
+        """Return a deterministic fingerprint for this vector index."""
+        if connection is None:
+            conn = self._get_conn()
+            try:
+                return self.fingerprint(connection=conn)
+            finally:
+                conn.close()
+        records = self._records_in_connection(connection)
+        payload = {
+            "table": self.table_name,
+            "dim": self.dim,
+            "records": sorted(
+                (object_id, vector_fingerprint(vector)) for object_id, vector in records
+            ),
+        }
+        encoded = json.dumps(
+            payload, ensure_ascii=True, separators=(",", ":")
+        ).encode("utf-8")
+        return {
+            "kind": "vector",
+            "table": self.table_name,
+            "dim": self.dim,
+            "row_count": len(records),
+            "sha256": hashlib.sha256(encoded).hexdigest(),
+        }
+
+    def _replace_records_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        records: Iterable[tuple[str, np.ndarray]],
+    ) -> None:
+        """Replace this index using a transaction owned by the caller."""
         materialized = tuple(records)
         object_ids: set[str] = set()
         prepared: list[tuple[str, bytes]] = []
@@ -216,21 +332,25 @@ class VectorDB:
             object_ids.add(object_id)
             prepared.append((object_id, array.tobytes()))
 
+        connection.execute(f"DELETE FROM {self.table_name}")
+        connection.execute(f"DELETE FROM {self._map_table}")
+        for object_id, blob in prepared:
+            rowid = self._to_rowid(object_id)
+            connection.execute(
+                f"INSERT INTO {self._map_table}(object_id, rowid) VALUES (?, ?)",
+                (object_id, rowid),
+            )
+            connection.execute(
+                f"INSERT INTO {self.table_name}(rowid, embedding) VALUES (?, ?)",
+                (rowid, blob),
+            )
+
+    def _replace_records(self, records: Iterable[tuple[str, np.ndarray]]) -> None:
+        """Atomically replace this already-created index with validated records."""
         conn = self._get_conn()
         try:
             conn.execute("BEGIN IMMEDIATE")
-            conn.execute(f"DELETE FROM {self.table_name}")
-            conn.execute(f"DELETE FROM {self._map_table}")
-            for object_id, blob in prepared:
-                rowid = self._to_rowid(object_id)
-                conn.execute(
-                    f"INSERT INTO {self._map_table}(object_id, rowid) VALUES (?, ?)",
-                    (object_id, rowid),
-                )
-                conn.execute(
-                    f"INSERT INTO {self.table_name}(rowid, embedding) VALUES (?, ?)",
-                    (rowid, blob),
-                )
+            self._replace_records_in_transaction(conn, records)
             conn.commit()
         except Exception:
             conn.rollback()
@@ -294,14 +414,27 @@ class VectorDB:
             db_path=self.db_path,
             object_ids=tuple(object_ids),
             count=len(object_ids),
+            vector_fingerprints=tuple(
+                sorted(
+                    (object_id, vector_fingerprint(vector))
+                    for object_id, vector in zip(object_ids, vectors, strict=True)
+                )
+            ),
         )
+
+    @staticmethod
+    def _drop_index(
+        connection: sqlite3.Connection, table_name: str, map_table: str
+    ) -> None:
+        """Drop one vector index using the caller's transaction."""
+        connection.execute(f"DROP TABLE IF EXISTS {map_table}")
+        connection.execute(f"DROP TABLE IF EXISTS {table_name}")
 
     def drop(self) -> None:
         """Drop the virtual table + map (for teardown / rebuild)."""
         conn = self._get_conn()
         try:
-            conn.execute(f"DROP TABLE IF EXISTS {self._map_table}")
-            conn.execute(f"DROP TABLE IF EXISTS {self.table_name}")
+            self._drop_index(conn, self.table_name, self._map_table)
             conn.commit()
         finally:
             conn.close()
