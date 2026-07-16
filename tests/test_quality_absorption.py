@@ -9,10 +9,11 @@ import knowledge_base.routers.quality as quality_router
 from app.ingestion.multi_format import convert_directory_resumable
 from app.main import app
 from shared.accuracy_benchmark import evaluate_golden_pairs
+from shared.approved_paths import ApprovedRoots
 from shared.content_quality import audit_markdown_quality
 from shared.evidence_verification import match_evidence, verification_status
 from shared.oer_crosswalk import build_crosswalk
-from shared.processing_manifest import ProcessingManifest, source_artifact_key
+from shared.processing_manifest import ProcessingManifest, file_sha256, source_artifact_key
 
 
 def test_processing_manifest_resumes_only_latest_success(tmp_path: Path):
@@ -25,6 +26,30 @@ def test_processing_manifest_resumes_only_latest_success(tmp_path: Path):
     assert manifest.resumable_sources() == {"c.zip"}
     assert manifest.summary() == {"failed": 2, "linked": 1, "total": 3}
     assert len(manifest.history("a.pdf")) == 2
+
+
+def test_resume_rejects_manifest_output_outside_approved_root(tmp_path: Path):
+    source_root = tmp_path / "source"
+    approved_output = tmp_path / "approved"
+    outside = tmp_path / "outside.md"
+    source = source_root / "a.txt"
+    source_root.mkdir()
+    approved_output.mkdir()
+    source.write_text("source", encoding="utf-8")
+    outside.write_text("outside", encoding="utf-8")
+
+    manifest = ProcessingManifest(tmp_path / "manifest.jsonl")
+    manifest.record(
+        "a.txt",
+        status="converted",
+        handler="test",
+        output=str(outside),
+        metadata={"source_sha256": file_sha256(source), "output_sha256": file_sha256(outside)},
+    )
+
+    assert not manifest.can_resume(
+        "a.txt", source, approved_roots=ApprovedRoots(output_roots=[approved_output])
+    )
 
 
 def test_source_artifact_key_avoids_same_name_collisions(tmp_path: Path):

@@ -4,8 +4,10 @@ from pathlib import Path
 from typing import Any
 
 from app.schemas import CoreObject
+from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+APPROVED_ROOTS = ApprovedRoots(source_roots=[PROJECT_ROOT])
 DEFAULT_EXTENSIONS = {".md", ".markdown", ".txt"}
 MAX_FILE_BYTES = 2_000_000
 MAX_DIRECTORY_FILES = 100
@@ -19,16 +21,10 @@ def _resolve_project_path(path: str) -> Path:
     if not str(path).strip():
         raise IngestionError("path is required")
 
-    raw = Path(str(path))
-    candidate = raw if raw.is_absolute() else PROJECT_ROOT / raw
-    resolved = candidate.resolve()
-
     try:
-        resolved.relative_to(PROJECT_ROOT)
-    except ValueError as exc:
+        return APPROVED_ROOTS.resolve_source(path, must_exist=False)
+    except ApprovedRootsError as exc:
         raise IngestionError("path must stay inside the Cognitive-OS project root") from exc
-
-    return resolved
 
 
 def _relative_source(path: Path) -> str:

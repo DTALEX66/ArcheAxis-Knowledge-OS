@@ -16,6 +16,8 @@ import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from shared.approved_paths import ApprovedRoots, ApprovedRootsError
+
 
 @dataclass
 class WriteItem:
@@ -43,6 +45,7 @@ class SafeWriter:
         project_root: str | Path = ".",
         backup_dir: str | Path | None = None,
         dry_run: bool = True,
+        approved_roots: ApprovedRoots | None = None,
     ):
         self.project_root = Path(project_root).expanduser().resolve()
         if not self.project_root.exists():
@@ -54,7 +57,12 @@ class SafeWriter:
                 / ".safe_writer_backups"
                 / _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
             )
+        self.approved_roots = approved_roots or ApprovedRoots(output_roots=[self.project_root])
         self.backup_dir = Path(backup_dir).expanduser().resolve()
+        try:
+            self.backup_dir = self.approved_roots.resolve_output(self.backup_dir)
+        except ApprovedRootsError as exc:
+            raise ValueError(f"backup_dir outside approved output roots: {self.backup_dir}") from exc
         self.dry_run = dry_run
         self.items: list[WriteItem] = []
 
@@ -63,20 +71,18 @@ class SafeWriter:
         rel = Path(relative_path)
         if rel.is_absolute():
             raise ValueError(f"relative_path must not be absolute: {relative_path}")
-        target = (self.project_root / rel).resolve()
         try:
-            target.relative_to(self.project_root)
-        except ValueError as exc:
+            return self.approved_roots.resolve_output(rel)
+        except ApprovedRootsError as exc:
             raise ValueError(f"path traversal blocked: {relative_path}") from exc
-        return target
 
     def _backup_existing(self, target: Path) -> Path:
         """Copy existing file to backup directory."""
         try:
-            rel = target.relative_to(self.project_root)
-        except ValueError as exc:
-            raise ValueError("backup target outside project") from exc
-        backup_path = (self.backup_dir / rel).resolve()
+            rel = self.approved_roots.relative_output(target)
+            backup_path = self.approved_roots.resolve_output(self.backup_dir / rel)
+        except ApprovedRootsError as exc:
+            raise ValueError("backup target outside approved output roots") from exc
         if not self.dry_run:
             backup_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(target, backup_path)

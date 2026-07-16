@@ -9,12 +9,13 @@ Adapted from: scripts/v6/pdf_page_snapshot.py + video_keyframe_extract.py
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Any
 
+from shared.approved_paths import ApprovedRoots, ApprovedRootsError
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+_APPROVED_ROOTS = ApprovedRoots(source_roots=[_PROJECT_ROOT], output_roots=[_PROJECT_ROOT / "data"])
 
 
 def extract_pdf_pages(
@@ -22,6 +23,7 @@ def extract_pdf_pages(
     output_dir: str = "",
     pages: list[int] | None = None,
     dpi: int = 150,
+    approved_roots: ApprovedRoots | None = None,
 ) -> dict[str, Any]:
     """Extract pages from a PDF as PNG images.
 
@@ -41,14 +43,18 @@ def extract_pdf_pages(
     except ImportError:
         return {"error": "PyMuPDF not installed. Run: pip install PyMuPDF", "pdf": pdf_path}
 
-    pdf_file = Path(pdf_path)
+    policy = approved_roots or _APPROVED_ROOTS
+    try:
+        pdf_file = policy.resolve_source(pdf_path)
+        out_dir = policy.resolve_output(output_dir or "media")
+    except ApprovedRootsError as exc:
+        return {"error": str(exc), "pdf": pdf_path}
     if not pdf_file.exists():
         return {"error": "PDF not found", "pdf": pdf_path}
 
-    out_dir = Path(output_dir) if output_dir else pdf_file.parent
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    doc = fitz.open(pdf_path)
+    doc = fitz.open(str(pdf_file))
     if pages is None:
         pages = list(range(min(5, len(doc))))
 
@@ -77,6 +83,7 @@ def extract_video_keyframes(
     output_dir: str = "",
     interval_seconds: float = 30,
     max_frames: int = 10,
+    approved_roots: ApprovedRoots | None = None,
 ) -> dict[str, Any]:
     """Extract keyframes from a video using ffmpeg.
 
@@ -97,11 +104,15 @@ def extract_video_keyframes(
     if not shutil.which("ffmpeg"):
         return {"error": "ffmpeg not found in PATH. Install ffmpeg first.", "video": video_path}
 
-    video_file = Path(video_path)
+    policy = approved_roots or _APPROVED_ROOTS
+    try:
+        video_file = policy.resolve_source(video_path)
+        out_dir = policy.resolve_output(output_dir or "media/keyframes")
+    except ApprovedRootsError as exc:
+        return {"error": str(exc), "video": video_path}
     if not video_file.exists():
         return {"error": "Video not found", "video": video_path}
 
-    out_dir = Path(output_dir) if output_dir else video_file.parent / "keyframes"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     output_pattern = str(out_dir / f"{video_file.stem}_frame_%03d.png")
@@ -111,7 +122,7 @@ def extract_video_keyframes(
             [
                 "ffmpeg",
                 "-i",
-                video_path,
+                str(video_file),
                 "-vf",
                 f"fps=1/{interval_seconds}",
                 "-vframes",

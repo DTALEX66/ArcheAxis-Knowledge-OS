@@ -6,6 +6,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
+
+from shared.approved_paths import ApprovedRoots
 from shared.safe_writer import SafeWriter
 
 
@@ -52,3 +54,20 @@ class TestSafeWriter:
             writer = SafeWriter(project_root=tmp, dry_run=True)
             with pytest.raises(ValueError, match="path traversal|absolute"):
                 writer.apply_write("/etc/passwd", "evil")
+
+    def test_external_approved_output_root_backs_up_consistently(self):
+        with tempfile.TemporaryDirectory() as project, tempfile.TemporaryDirectory() as output:
+            target = Path(output, "doc.md")
+            target.write_text("original", encoding="utf-8")
+            roots = ApprovedRoots(output_roots=[output])
+            writer = SafeWriter(
+                project_root=project,
+                backup_dir=Path(output, "backups"),
+                approved_roots=roots,
+                dry_run=False,
+            )
+            item = writer.apply_write("doc.md", "updated")
+            assert item.action == "overwrite"
+            assert target.read_text(encoding="utf-8") == "updated"
+            assert item.backup_path is not None
+            assert Path(item.backup_path).read_text(encoding="utf-8") == "original"

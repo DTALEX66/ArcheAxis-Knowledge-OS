@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.approved_paths import ApprovedRoots, ApprovedRootsError
+
 SUCCESS_STATUSES = frozenset({"converted", "linked"})
 VALID_STATUSES = frozenset({"converted", "linked", "failed", "needs_review"})
 
@@ -114,7 +116,13 @@ class ProcessingManifest:
             if item.get("status") in SUCCESS_STATUSES
         }
 
-    def can_resume(self, source: str, source_path: str | Path) -> bool:
+    def can_resume(
+        self,
+        source: str,
+        source_path: str | Path,
+        *,
+        approved_roots: ApprovedRoots | None = None,
+    ) -> bool:
         """Verify source and durable output fingerprints before skipping work."""
         normalized = source.replace("\\", "/")
         item = self.latest().get(normalized)
@@ -125,6 +133,11 @@ class ProcessingManifest:
             return False
         source_file = Path(source_path)
         output = Path(str(item.get("output", "")))
+        if approved_roots is not None:
+            try:
+                output = approved_roots.resolve_output(output)
+            except ApprovedRootsError:
+                return False
         if not source_file.is_file() or not output.is_file():
             return False
         try:

@@ -2,11 +2,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 from shared.config import resolve_runtime_path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SAFE_OUTPUT_DIR = resolve_runtime_path("data/output")
 SAFE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+APPROVED_PATHS = ApprovedRoots(source_roots=[PROJECT_ROOT], output_roots=[SAFE_OUTPUT_DIR])
 
 
 @dataclass(frozen=True)
@@ -88,10 +90,8 @@ def _base_result(spec: ToolSpec, dry_run: bool, status: str = "ok") -> dict[str,
 
 def _resolve_inside_project(path_value: str) -> Path | None:
     try:
-        path = (PROJECT_ROOT / path_value).resolve()
-        path.relative_to(PROJECT_ROOT.resolve())
-        return path
-    except Exception:
+        return APPROVED_PATHS.resolve_source(path_value, must_exist=False)
+    except ApprovedRootsError:
         return None
 
 
@@ -123,12 +123,11 @@ def file_read_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
 def safe_write_tool(payload: dict[str, Any], dry_run: bool) -> dict[str, Any]:
     spec = TOOL_REGISTRY["safe_write"]
     result = _base_result(spec, dry_run)
-    filename = str(payload.get("filename", "output.txt")).replace("..", "_")
+    filename = str(payload.get("filename", "output.txt"))
     content = str(payload.get("content", ""))
-    target = (SAFE_OUTPUT_DIR / filename).resolve()
     try:
-        target.relative_to(SAFE_OUTPUT_DIR.resolve())
-    except Exception:
+        target = APPROVED_PATHS.resolve_output(filename)
+    except ApprovedRootsError:
         result.update(
             {"status": "blocked", "error": "safe_write target must stay under data/output"}
         )

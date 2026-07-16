@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+from shared.approved_paths import ApprovedRoots, ApprovedRootsError
+
 
 @dataclass
 class ObsidianProjection:
@@ -186,15 +188,21 @@ def write_projection(proj: ObsidianProjection, vault_root: str = "", dry_run: bo
             "preview": proj.rendered_body[:500],
         }
 
-    target = Path(vault_root) / proj.target_path if vault_root else Path(proj.target_path)
-
     if dry_run or proj.write_policy == "dry_run":
+        target = Path(vault_root) / proj.target_path if vault_root else Path(proj.target_path)
         return {
             "status": "dry_run",
             "target": str(target),
             "preview": proj.rendered_body[:500],
             "full_length": len(proj.rendered_body),
         }
+
+    if not str(vault_root).strip():
+        return {"status": "blocked", "reason": "vault_root is required for writes"}
+    try:
+        target = ApprovedRoots(output_roots=[vault_root]).resolve_output(proj.target_path)
+    except ApprovedRootsError as exc:
+        return {"status": "blocked", "reason": str(exc)}
 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(proj.rendered_body, encoding="utf-8")

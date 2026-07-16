@@ -17,15 +17,15 @@ router = APIRouter(prefix="/project", tags=["projection"])
 
 
 @router.post("/taskpack/{task_id}")
-def project_taskpack(task_id: str, dry_run: bool = True):
+def project_taskpack(task_id: str, vault_root: str = "", dry_run: bool = True):
     task = select_one("kb_taskpacks", task_id)
     if not task:
         return {"error": "not found"}
-    return write_projection(render_taskpack(task), dry_run=dry_run)
+    return write_projection(render_taskpack(task), vault_root=vault_root, dry_run=dry_run)
 
 
 @router.post("/trace/{trace_id}")
-def project_trace(trace_id: str, dry_run: bool = True):
+def project_trace(trace_id: str, vault_root: str = "", dry_run: bool = True):
     from app.memory.database import list_traces_db
 
     traces = [
@@ -35,11 +35,11 @@ def project_trace(trace_id: str, dry_run: bool = True):
     ]
     if not traces:
         return {"error": "not found"}
-    return write_projection(render_trace(traces[0]), dry_run=dry_run)
+    return write_projection(render_trace(traces[0]), vault_root=vault_root, dry_run=dry_run)
 
 
 @router.post("/lesson/{lesson_id}")
-def project_lesson(lesson_id: str, dry_run: bool = True):
+def project_lesson(lesson_id: str, vault_root: str = "", dry_run: bool = True):
     from app.memory.database import list_lessons_db
 
     lessons = [
@@ -49,12 +49,12 @@ def project_lesson(lesson_id: str, dry_run: bool = True):
     ]
     if not lessons:
         return {"error": "not found"}
-    return write_projection(render_lesson(lessons[0]), dry_run=dry_run)
+    return write_projection(render_lesson(lessons[0]), vault_root=vault_root, dry_run=dry_run)
 
 
 @router.post("/daily-brief/{brief_id}")
-def project_brief(brief_id: str, dry_run: bool = True):
+def project_brief(brief_id: str, vault_root: str = "", dry_run: bool = True):
     brief = select_one("ir_daily_briefs", brief_id)
     if not brief:
         return {"error": "not found"}
-    return write_projection(render_daily_brief(brief), dry_run=dry_run)
+    return write_projection(render_daily_brief(brief), vault_root=vault_root, dry_run=dry_run)

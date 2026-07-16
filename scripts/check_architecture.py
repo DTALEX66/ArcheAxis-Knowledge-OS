@@ -291,6 +291,8 @@ def _dependency_issue(
                 source_module == "app.contracts" or source_module.startswith("app.contracts.")
             ):
                 continue
+            if source_module == "shared.approved_paths":
+                continue
             if source_module.split(".", 1)[0] not in _BUSINESS_MODULES:
                 continue
             key = (path, line, source_module)

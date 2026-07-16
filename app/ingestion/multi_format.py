@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 from shared.safe_http import SafeHTTPPolicy, fetch
 
 # ── Format detection ──
@@ -264,6 +265,15 @@ def convert_directory_resumable(
         raise ValueError(f"directory not found: {root}")
     manifest_file = Path(manifest_path).resolve()
     artifacts = Path(output_dir).resolve() if output_dir else manifest_file.parent / "artifacts"
+    output_root = Path(output_dir).resolve() if output_dir else manifest_file.parent
+    if not output_root.is_dir():
+        output_root = output_root.parent
+    manifest_root = manifest_file.parent if manifest_file.parent.is_dir() else manifest_file.parent.parent
+    if not output_root.is_dir() or not manifest_root.is_dir():
+        raise ValueError(f"output root parent not found: {output_root}")
+    approved = ApprovedRoots(source_roots=[root], output_roots=[output_root, manifest_root])
+    manifest_file = approved.resolve_output(manifest_file)
+    artifacts = approved.resolve_output(artifacts)
     artifacts.mkdir(parents=True, exist_ok=True)
     manifest = ProcessingManifest(manifest_file)
     results: list[dict] = []
@@ -274,11 +284,14 @@ def convert_directory_resumable(
             break
         if not file_path.is_file():
             continue
-        resolved_file = file_path.resolve()
+        try:
+            resolved_file = approved.resolve_source(file_path)
+        except ApprovedRootsError:
+            continue
         if resolved_file == manifest_file or artifacts in resolved_file.parents:
             continue
         relative = resolved_file.relative_to(root).as_posix()
-        if manifest.can_resume(relative, resolved_file):
+        if manifest.can_resume(relative, resolved_file, approved_roots=approved):
             latest = manifest.latest()[relative]
             resumed += 1
             results.append(

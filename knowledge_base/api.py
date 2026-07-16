@@ -559,7 +559,7 @@ def obsidian_import_course(vault_root: str = "", course_path: str = "", dry_run:
 
 
 @app.post("/obsidian/project/card/{card_id}")
-def obsidian_project_card(card_id: str, dry_run: bool = True):
+def obsidian_project_card(card_id: str, vault_root: str = "", dry_run: bool = True):
     """Project a KB card to Obsidian markdown."""
     from shared.obsidian_projection import render_card
 
@@ -567,11 +567,11 @@ def obsidian_project_card(card_id: str, dry_run: bool = True):
     if not card:
         return {"error": "card not found"}
     proj = render_card(card)
-    return write_projection(proj, dry_run=dry_run)
+    return write_projection(proj, vault_root=vault_root, dry_run=dry_run)
 
 
 @app.post("/obsidian/project/review/{card_id}")
-def obsidian_project_review(card_id: str, dry_run: bool = True):
+def obsidian_project_review(card_id: str, vault_root: str = "", dry_run: bool = True):
     """Project a card with review history to Obsidian."""
     from knowledge_base.reviews import get_review_history
     from shared.obsidian_projection import render_review_card
@@ -581,11 +581,11 @@ def obsidian_project_review(card_id: str, dry_run: bool = True):
         return {"error": "card not found"}
     reviews = get_review_history(card_id, limit=20)
     proj = render_review_card(card, reviews)
-    return write_projection(proj, dry_run=dry_run)
+    return write_projection(proj, vault_root=vault_root, dry_run=dry_run)
 
 
 @app.post("/obsidian/project/mku/{unit_id}")
-def obsidian_project_mku(unit_id: str, dry_run: bool = True):
+def obsidian_project_mku(unit_id: str, vault_root: str = "", dry_run: bool = True):
     """Project a machine knowledge unit to Obsidian."""
     from shared.obsidian_projection import render_machine_knowledge
 
@@ -593,7 +593,7 @@ def obsidian_project_mku(unit_id: str, dry_run: bool = True):
     if not unit:
         return {"error": "unit not found"}
     proj = render_machine_knowledge(unit)
-    return write_projection(proj, dry_run=dry_run)
+    return write_projection(proj, vault_root=vault_root, dry_run=dry_run)
 
 
 # ── Obsidian-absorbed: Backlinks + Graph + Dataview + Daily ──
