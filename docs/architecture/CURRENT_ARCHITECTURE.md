@@ -37,14 +37,17 @@ SQLite + FTS5 + sqlite-vec + NetworkX + local artifacts
 input
 → attention route
 → retrieve
-→ compile fixed echo-based steps
+→ plan supported explicit intent (`read file:` currently verified)
 → permission
-→ execute registered tool (often echo in the current planner path)
+→ execute registered tool
+→ validate attributable non-dry-run evidence
 → trace
-→ binary success evaluation
+→ multidimensional execution/status/evidence evaluation
 → candidate lesson
 → memory
 ```
+
+不支持的 Goal 不得 fallback 为 echo 成功；echo、no-op、preview 和 dry-run 不是成功证据。当前只把 `read file:` 作为已验证纵向切片，尚未宣称通用 Dynamic Planner 完成。
 
 ## 知识质量闭环
 
@@ -59,6 +62,14 @@ source inventory
 → KB index
 ```
 
+## 主网关安全边界
+
+- 生产与开发 runtime 不内置管理员凭据；凭据必须由 operator 或隔离测试 fixture 显式提供。
+- Token 签发重新认证调用者，普通调用者不能通过请求字段选择管理员角色。
+- 主网关按普通读、敏感写和 `/auth/token` 使用独立限流策略；认证 API Key/JWT subject 与匿名 peer 分桶不保存原始凭据。
+- 所有仓库拥有的 Uvicorn 启动入口禁用隐式 proxy-header rewriting。只有直接 peer 命中显式 `trusted_proxies` 时才解析 XFF；未受信代理头与双凭据早期拒绝同样消耗 pre-auth 预算。
+- 当前 Rate Limiter 为单进程内存实现；文档不把它描述为多进程或分布式一致限流器。
+
 ## 模块规则
 
 1. `app/` 负责认知运行时，不直接承载所有知识领域实现；`app/facades/` 是跨模块调用的公共边界。
@@ -72,7 +83,7 @@ source inventory
 
 | Facade | 状态 | 当前委托实现 | 兼容入口 |
 | --- | --- | --- | --- |
-| Runtime | tracer bullet 已接入 | `app.core.router`、`app.core.permissions`、`app.agent.executor`、`app.core.trace` | `POST /run` |
+| Runtime | `file_read` 真实证据 tracer 已接入 | `app.agent.planner`、`app.core.permissions`、`app.agent.executor`、`shared.tool_evidence`、多维 evaluator | `POST /run` |
 | Knowledge | tracer bullet 已接入 | `knowledge_base.search.keyword_search` | standalone `/search`、mounted `/kb/search` |
 | Research | tracer bullet 已接入 | `inspiration_research.intake.generator`、`shared.storage` | canonical IR API；旧 `Inspiration-Research.api` launcher |
 | Enhancement | tracer bullet 已接入 | `progressive_summarize`、`generate_from_markdown`、`audit_markdown_quality` | 现有细粒度能力保持不变 |
@@ -93,3 +104,5 @@ Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细
 - `knowledge_base/api.py` 已将复合、质量和投影路由拆出，但仍有遗留领域路由；后续按 search/learning/obsidian/admin 继续迁移。
 - Knowledge Base 已迁为正规可安装包；2026-07-14 本地隔离 wheel smoke 已验证模板、运行入口和 runtime root，远端 CI 仍以提交后的实际结果为准。
 - 旧细粒度 API 尚未全部隐藏或废弃，因此实时路由数仍较高。
+- Safe HTTP、统一 approved roots、稳定哈希和可回滚 FTS/Vector rebuild 尚未完成。
+- Runtime 只验证了 `file_read` 显式意图；通用 Planner、Reviewed Feedback 与 Sleep Loop 统一执行 port 仍待完成。

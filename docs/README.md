@@ -4,7 +4,7 @@
 
 ## 当前事实
 
-- [`HANDOFF_2026-07-14.md`](HANDOFF_2026-07-14.md)：当前基线、已完成任务、验证证据、启动方式、限制和接手清单。
+- [`HANDOFF_2026-07-16.md`](HANDOFF_2026-07-16.md)：当前基线、已完成任务、验证证据、安全边界和下一 TaskPack 接手清单。
 - [`PROJECT_STATUS.md`](PROJECT_STATUS.md)：当前验证状态、已知限制和质量门禁。
 - [`EXECUTION_ROADMAP.md`](EXECUTION_ROADMAP.md)：Phase 0–10 执行顺序、边界、门禁和 Alpha 验收。
 - [`architecture/CURRENT_ARCHITECTURE.md`](architecture/CURRENT_ARCHITECTURE.md)：当前运行时架构与模块边界。
@@ -23,4 +23,5 @@
 
 ## 历史快照
 
+- `HANDOFF_2026-07-14.md`：Phase 2 进行期交接，已由 2026-07-16 版本取代。
 - `PROJECT_AUDIT_2026-07-07.md`：2026-07-07 的审计快照。其中 `/run`、Ruff、版本漂移等问题已在后续修复；不得当作当前状态直接引用。

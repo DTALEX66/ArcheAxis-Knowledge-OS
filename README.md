@@ -9,7 +9,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard 与 Phase 2 首批版本化 Contracts 已完成；下一阶段是 Phase 3 安全和数据正确性 P0。Phase 3 尚未开始，Phase 7 真实 Runtime 和 Phase 9 Alpha 闭环也尚未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard 与 Phase 2 首批版本化 Contracts 已完成。Phase 3 安全和数据正确性 P0 正在推进：源码内置管理员凭据、Token 角色提升与主网关限流已经关闭，下一项是统一 Safe HTTP。Phase 7 已有一条真实 `file_read` 证据闭环，但通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Alpha 仍未完成。
 
 ## 规划与进度
 
@@ -21,13 +21,13 @@ Research → Evidence → Knowledge → Learning
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
 | Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
 | Phase 2 | 版本化 Contracts 与旧对象 Adapter | ✅ 已完成首批合同 | 路线图列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已有严格 tracer |
-| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ⬜ 规划中 | 安全任务独立提交，不混入 Facade |
+| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | 🟡 进行中 | 管理员凭据、角色提升、Rate Limiter 已完成；下一项 Safe HTTP |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
-| Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ⬜ 规划中 | 替换固定 echo 与二值评价缺口 |
+| Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | 🟡 已有首条纵向 tracer | `file_read` 已有真实证据链；通用规划与 Sleep/Runtime 统一仍待完成 |
 | Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
 | Phase 10 | 产品化、诊断、升级与多端发布 | ⬜ 规划中 | 仅在 Alpha 闭环完成后启动 |
 
-### 当前里程碑：Phase 2 Contracts Release Train
+### 当前里程碑：Phase 3 安全和数据正确性 P0
 
 ```text
 Phase 0 真实基线 ✅
@@ -43,14 +43,17 @@ Phase 0 真实基线 ✅
 → KnowledgeUnitV1 + RelationV1 ✅
 → LearningArtifactV1 + MasterySignalV1 ✅
 → MachineKnowledgeUnitV1 ✅
-→ Phase 3 安全 P0（下一步）
+→ 移除代码内默认管理员 Key ✅
+→ 阻止 Token 请求者自选管理员角色 ✅
+→ 主网关 Rate Limiter + proxy trust 边界 ✅
+→ 统一 Safe HTTP（当前刀）
 ```
 
-当前刀：**Phase 3 第一项——移除代码内默认管理员 Key**。该安全任务必须使用独立 frozen tree、完整门禁、必要 reviewer 与 exact-SHA CI，不混入本次低风险合同 Release Train。
+当前刀：**Phase 3 第三项——统一 Safe HTTP**。必须统一 DNS/IP、私网和 metadata 拒绝、redirect 逐跳复核、响应大小、Content-Type 与 timeout；它属于安全边界，继续使用独立 frozen tree、完整门禁、reviewer 与 exact-SHA CI。
 
-本阶段明确不宣称：Phase 3 安全 P0、Phase 4 Research 闭环、Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
+本阶段明确不宣称：Phase 3 安全 P0 整体、Phase 4 Research 闭环、通用 Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
 
-完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-14.md`](docs/HANDOFF_2026-07-14.md)。
+完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-16.md`](docs/HANDOFF_2026-07-16.md)。
 
 ## 五分钟启动
 
@@ -68,7 +71,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers
 
 | 入口 | 作用 |
 |---|---|
-| `POST /run` | route → retrieve → echo-based compile → permission → registered tool execution → binary evaluation → memory |
+| `POST /run` | route → retrieve → supported-intent plan → permission → real tool evidence → multidimensional evaluation → lesson；当前已验证 `read file:` 纵向切片 |
 | `POST /kb/pipeline` | 提取、标签、摘要、事实候选与索引；不自动证明事实正确 |
 | `POST /kb/search` | 关键词、向量或混合检索 |
 | `GET/POST /sleep-loop?action=...` | 有证据约束的无人值守任务循环 |

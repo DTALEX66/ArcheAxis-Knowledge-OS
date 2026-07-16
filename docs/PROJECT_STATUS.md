@@ -4,11 +4,11 @@
 
 ## 当前阶段
 
-项目已完成 **Phase 2：首批版本化 Contracts**。路线图明确列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已建立严格 canonical model 和现有真实路径 Adapter tracer。下一阶段是 Phase 3 安全和数据正确性 P0，入口任务为移除代码内默认管理员 Key；该高风险工作尚未开始。Phase 7–9 的真实 Runtime、统一 Sleep Loop 与 Minimum Complete System Alpha 均未完成。
+项目已完成 **Phase 2：首批版本化 Contracts**，当前处于 **Phase 3：安全和数据正确性 P0**。源码内置管理员凭据已移除，Token 请求者自选管理员角色已阻断，主网关 Rate Limiter 与 proxy trust 边界已发布；下一项是统一 Safe HTTP。Phase 7 已完成 `read file:` 的真实工具证据纵向 tracer，但通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Minimum Complete System Alpha 均未完成。
 
 ## 已验证能力
 
-- Core `/run` 的 route/execute/trace/evaluate 存储链可运行；Planner 仍以固定 echo 步骤为主，不能视为真实动态认知闭环。
+- Core `/run` 的 route/execute/trace/evaluate/lesson 链可运行；显式 `read file: <repo-relative-path>` 已规划为真实 `file_read`，并要求非 dry-run、可归因工具证据和多维 Evaluation。其他 Goal 尚无通用 Dynamic Planner，不能把单一 tracer 视为完整认知闭环。
 - Runtime、Knowledge、Research、Enhancement、Contracts 五个 Facade 已有真实 tracer bullet；Phase 1 的 Contracts 起点是 identity re-export，不代表全量版本化 Schema。
 - Phase 2 已建立 `TaskPackV1`、`ExecutionTraceV1`、`EvaluationV1`、`LessonV1`、`SourceRecordV1`、`ClaimV1`、`EvidenceV1`、`ResearchPackageV1`、`KnowledgeUnitV1`、`RelationV1`、`LearningArtifactV1`、`MasterySignalV1` 与 `MachineKnowledgeUnitV1`。新增 Learning Artifact 对现有 Enhancement candidate 无损往返且禁止 caller-supplied 状态升级；Machine Knowledge 对 decoded legacy row 无损往返，将旧 active 状态明确标为 unverified/deprecated，并拒绝 approved 治理语义向旧行静默降级。
 - Research 已迁为可安装的 `inspiration_research` 包；旧连字符目录只保留 deprecated source-checkout launcher。
@@ -20,6 +20,8 @@
 - 数据库通用表名、排序字段经过标识符/Schema 校验。
 - `/kb/export` 只允许明确的知识表白名单。
 - `auth.enabled` 已接入中间件；生产模式拒绝关闭鉴权、通配 CORS 或缺少 API Key。
+- Runtime 源码不再内置管理员 Key；开发和测试凭据必须显式配置，Token 请求者不能自行提升为管理员。
+- 主网关已接入分策略 Rate Limiter；所有受跟踪 Uvicorn 入口禁用隐式 proxy-header rewriting，未受信代理头、双凭据与无效认证的早期拒绝也必须消耗 pre-auth 限额并进入确定性 429 边界。
 - n8n、Airflow、LiteLLM 和 crawler 适配器不再返回 stub 假成功。
 - Obsidian 外部路径必须显式传入，API 不再默认访问个人 E 盘。
 - 外部 A 项目（Obsidian-Assistance）的分析与通用能力吸收已结束；后续严格只读且不再扫描或作为迁移目标。
@@ -33,7 +35,7 @@
 - `shared/content_quality.py`：乱码、水印、误导性 100% 和 Wikilink 静态审计。
 - `shared/oer_crosswalk.py`：静态开放来源发现建议（遗留文件名），不检索内容、不检查许可、不做 claim-level crosswalk。
 - CI 的 test/lint job 使用 `uv` 与 `requirements-ci.txt` 最小依赖；wheel-smoke 仍安装完整 `requirements.txt` 并在仓库外验证真实 wheel/runtime，避免以提速为由削弱发布覆盖。
-- `scripts/run_taskpack_agent.py`：一个 TaskPack 使用一个可续接 writer lineage；高风险任务同步 exact-tree reviewer，发布后强制 clean、`HEAD == origin/main` 与 exact-SHA CI。固定时间片反复重启 agent 的旧 runner 已废弃。
+- `scripts/run_taskpack_agent.py`：一个 TaskPack 使用一个可续接 writer lineage；高风险任务同步 exact-tree reviewer，允许最多 N 次 NO-GO 修复并在最后一次修复后保留终局 review，发布后强制 clean、`HEAD == origin/main` 与 exact-SHA CI。固定时间片反复重启 agent 的旧 runner 已废弃。
 
 ## 仍保留的债务
 
@@ -43,7 +45,8 @@
 4. 生产部署尚缺独立容器/反向代理/并发负载验证。
 5. OCR/ASR 的真实准确率取决于用户提供人工标注金标准，代码不能代替人工真值。
 6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
-7. Dynamic Planner、多维 Evaluation、Lesson 反馈和统一 Runtime/Sleep Loop 仍属于后续路线图，而非当前完成能力。
+7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
+8. Safe HTTP、approved source/output roots、稳定持久化哈希、可回滚 FTS/Vector rebuild 和通用 Migration Runner 尚未完成。
 
 ## 正式门禁
 

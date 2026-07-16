@@ -91,14 +91,14 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 
 按顺序关闭：
 
-1. 移除代码内默认管理员 Key。
-2. 阻止 Token 请求者自选管理员角色。
-3. 统一 Safe HTTP：DNS、私网、metadata、redirect、大小、类型、timeout。
-4. Approved Source Roots 和 symlink/junction containment。
-5. 用稳定哈希替换持久化 Python `hash()`。
-6. FTS/Vector 可重建、可回滚迁移。
-7. Rate Limiter 接入主网关。
-8. 正式 Migration Runner、备份、重复运行和回滚测试。
+1. ✅ 移除代码内默认管理员 Key。
+2. ✅ 阻止 Token 请求者自选管理员角色。
+3. **当前刀**：统一 Safe HTTP——DNS、私网、metadata、redirect、大小、类型、timeout。
+4. 🟡 Approved Source Roots 和 symlink/junction containment：已有局部 `Path.resolve()/relative_to()`，尚未形成统一根策略和 Windows junction 负向证据。
+5. ⬜ 用稳定哈希替换持久化 Python `hash()`。
+6. 🟡 FTS/Vector 可重建、可回滚迁移：已有局部 rebuild，尚无 canonical rows shadow rebuild/切换/rollback。
+7. ✅ Rate Limiter 接入主网关；已覆盖身份分桶、proxy trust、早期拒绝预算和真实启动入口。
+8. 🟡 正式 Migration Runner：TaskPack migration 的备份、幂等、rollback 已成熟，尚待通用 registry/operator CLI 与 FTS/Vector owner 接入。
 
 设计包的 `ALPHA_SCHEMA.sql` 仅作为目标模型；当前表与目标表必须逐表映射，禁止直接执行。
 
@@ -127,7 +127,7 @@ Research/User Source → Knowledge Unit → Relation
 
 ## Phase 7：真实 Runtime
 
-当前固定 echo Planner 和二值 Evaluator 是核心缺口。目标闭环：
+`read file: <repo-relative-path>` 已形成第一条真实 Planner → Permission → Evidence → Evaluation → Lesson tracer；echo/no-op/dry-run 不再能通过成功评估。当前核心缺口是把该单一显式意图扩展为通用 Dynamic Planner，并让更多工具和 Sleep Loop 复用同一证据语义。目标闭环：
 
 ```text
 Goal → Intent → Context → Dynamic Plan → Permission
@@ -170,7 +170,7 @@ Phase 9 通过后再推进完整学习科学、Research Intelligence、多模态
 ## 当前执行计划：Phase 3 安全和数据正确性 P0
 
 1. Phase 2 首批合同 Release Train 已完成；`ContextPackV1` 与通用 `validate_contract` 不在首批合同清单中，继续保持 deferred，不以空壳扩大 Facade。
-2. 下一项是移除代码内默认管理员 Key。
-3. 随后按本页 Phase 3 顺序推进角色提升、Safe HTTP、approved roots、稳定哈希、可重建索引、Rate Limiter 与正式 migration 边界。
+2. Phase 3 的内置管理员凭据、Token 角色提升和主网关 Rate Limiter 已关闭并通过 exact-SHA CI。
+3. 下一项是统一 Safe HTTP；随后推进 approved roots、稳定哈希、可回滚 FTS/Vector rebuild 与通用 migration 边界。
 4. Phase 3 每个安全、权限或 migration 任务独立冻结、完整验证、审查和发布，不进入普通低风险批量。
-5. Phase 3–9 均未完成；不得因 Phase 2 合同齐备而提前宣称后续闭环完成。
+5. Phase 7 的 `file_read` tracer 不等于通用 Dynamic Planner；Phase 3–9 整体仍未完成，不得提前宣称 Alpha 闭环完成。
