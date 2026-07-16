@@ -1400,7 +1400,10 @@ def test_phase4_api_returns_explicit_client_and_migration_errors(
 
 
 def test_phase4_wheel_configuration_excludes_nested_test_packages() -> None:
-    import tomllib
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
 
     config = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
     excluded = set(config["tool"]["setuptools"]["packages"]["find"]["exclude"])
