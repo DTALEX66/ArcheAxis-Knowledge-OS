@@ -39,6 +39,7 @@ Thumbs.db
 # Codex/Hermes local state
 .codex/
 .hermes/
+workspace/.loop-status.md
 
 # Sub-project runtime data
 Inspiration-Research/data/
