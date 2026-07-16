@@ -95,7 +95,7 @@ Phase 0 只审计本仓库，不访问 Obsidian-Assistance，不移动业务代�
 2. ✅ 阻止 Token 请求者自选管理员角色。
 3. **当前刀**：统一 Safe HTTP——DNS、私网、metadata、redirect、大小、类型、timeout。
 4. 🟡 Approved Source Roots 和 symlink/junction containment：已有局部 `Path.resolve()/relative_to()`，尚未形成统一根策略和 Windows junction 负向证据。
-5. ⬜ 用稳定哈希替换持久化 Python `hash()`。
+5. ✅ 用稳定哈希替换持久化 Python `hash()`；VectorDB 已使用 versioned `sha256-v1`，索引重建仍独立处理。
 6. 🟡 FTS/Vector 可重建、可回滚迁移：已有局部 rebuild，尚无 canonical rows shadow rebuild/切换/rollback。
 7. ✅ Rate Limiter 接入主网关；已覆盖身份分桶、proxy trust、早期拒绝预算和真实启动入口。
 8. 🟡 正式 Migration Runner：TaskPack migration 的备份、幂等、rollback 已成熟，尚待通用 registry/operator CLI 与 FTS/Vector owner 接入。

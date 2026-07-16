@@ -23,6 +23,7 @@ from pathlib import Path
 import numpy as np
 
 from shared.config import config, resolve_runtime_path
+from shared.stable_hash import stable_hash_text
 
 DEFAULT_DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
 _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -90,7 +91,7 @@ class VectorDB:
 
     def _to_rowid(self, object_id: str) -> int:
         """Map a string object_id to an integer rowid (stable hash)."""
-        return abs(hash(object_id)) % (2**53)
+        return int(stable_hash_text(object_id, namespace="vector-rowid")[:14], 16) % (2**53)
 
     def _resolve_rowid(self, object_id: str, conn: sqlite3.Connection) -> int:
         """Return the stored integer rowid for *object_id*, inserting a new
@@ -299,7 +300,7 @@ class SimpleTextEmbedder:
 
         for n in range(self.ngram_range[0], self.ngram_range[1] + 1):
             for ng in self._char_ngrams(text, n):
-                h = abs(hash(ng)) % self.dim
+                h = int(stable_hash_text(ng, namespace="embedding-ngram")[:14], 16) % self.dim
                 vec[h] += 1.0
                 ngram_count += 1
 
