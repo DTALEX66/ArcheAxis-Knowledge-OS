@@ -131,6 +131,38 @@ class TestVectorDB:
         assert self.vdb.list_ids() == ["active"]
         candidate.discard()
 
+    def test_activate_candidate_and_rollback_restore_each_index(self):
+        e = SimpleTextEmbedder(dim=128)
+        self.vdb.insert("active", e.embed("active source"))
+        candidate = self.vdb.build_candidate([("candidate", e.embed("candidate source"))])
+
+        rollback = candidate.activate()
+
+        assert self.vdb.list_ids() == ["candidate"]
+        assert self.vdb.count() == 1
+        assert rollback.active_table == "test_vec_kb_p1_1"
+        assert rollback.backup_table != rollback.active_table
+        assert VectorDB(rollback.backup_table, 128).list_ids() == ["active"]
+
+        rollback.rollback()
+
+        assert self.vdb.list_ids() == ["active"]
+        assert self.vdb.count() == 1
+        with pytest.raises(ValueError, match="rollback source missing"):
+            rollback.rollback()
+
+    def test_activate_rejects_tampered_candidate_without_touching_active_index(self):
+        e = SimpleTextEmbedder(dim=128)
+        self.vdb.insert("active", e.embed("active source"))
+        candidate = self.vdb.build_candidate([("candidate", e.embed("candidate source"))])
+        VectorDB(candidate.table_name, 128).delete("candidate")
+
+        with pytest.raises(RuntimeError, match="candidate verification failed"):
+            candidate.activate()
+        assert self.vdb.list_ids() == ["active"]
+        assert self.vdb.count() == 1
+        candidate.discard()
+
     def test_build_candidate_rejects_duplicate_ids_without_leaking_tables(self):
         e = SimpleTextEmbedder(dim=128)
         with pytest.raises(ValueError, match="duplicate object_id"):

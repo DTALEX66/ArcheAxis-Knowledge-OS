@@ -33,13 +33,33 @@ _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 @dataclass(frozen=True)
-class VectorIndexCandidate:
-    """A validated, inactive vector index produced by a shadow rebuild.
+class VectorIndexRollback:
+    """Rollback handle for one successful vector candidate activation."""
 
-    The candidate owns only its temporary SQLite tables.  It deliberately has no
-    switch operation yet: callers must validate it before a future migration
-    boundary is allowed to replace the active index.
-    """
+    active_table: str
+    backup_table: str
+    candidate_table: str
+    dim: int
+    db_path: str
+
+    def rollback(self) -> None:
+        """Restore the pre-activation index and remove migration-owned tables."""
+        active_db = VectorDB(table_name=self.active_table, dim=self.dim, db_path=self.db_path)
+        backup_db = VectorDB(table_name=self.backup_table, dim=self.dim, db_path=self.db_path)
+        candidate_db = VectorDB(
+            table_name=self.candidate_table, dim=self.dim, db_path=self.db_path
+        )
+        if not backup_db._index_exists() or not active_db._index_exists():
+            raise ValueError("rollback source missing")
+        records = backup_db._records()
+        active_db._replace_records(records)
+        candidate_db.drop()
+        backup_db.drop()
+
+
+@dataclass(frozen=True)
+class VectorIndexCandidate:
+    """A validated, inactive vector index produced by a shadow rebuild."""
 
     active_table: str
     table_name: str
@@ -51,9 +71,9 @@ class VectorIndexCandidate:
     def verify(self) -> bool:
         """Verify candidate cardinality and IDs without mutating either index.
 
-        Verification is intentionally fail-closed so a later switch operation can
-        require an intact candidate as a precondition.  The active table is not
-        opened or modified by this check.
+        Verification is intentionally fail-closed so activation can require an
+        intact candidate as a precondition.  The active table is not opened or
+        modified by this check.
         """
         candidate_db = VectorDB(table_name=self.table_name, dim=self.dim, db_path=self.db_path)
         try:
@@ -64,6 +84,37 @@ class VectorIndexCandidate:
         if actual_count != self.count or actual_ids != set(self.object_ids):
             raise RuntimeError("candidate verification failed")
         return True
+
+    def activate(self) -> VectorIndexRollback:
+        """Replace the active contents after validation and retain a rollback copy."""
+        self.verify()
+        active_db = VectorDB(table_name=self.active_table, dim=self.dim, db_path=self.db_path)
+        candidate_db = VectorDB(
+            table_name=self.table_name, dim=self.dim, db_path=self.db_path
+        )
+        if not active_db._index_exists():
+            raise RuntimeError("active vector index is missing")
+        candidate_records = candidate_db._records()
+        active_records = active_db._records()
+        backup_table = f"{self.active_table}__rollback_{uuid4().hex}"
+        backup_db = VectorDB(table_name=backup_table, dim=self.dim, db_path=self.db_path)
+        backup_db.init()
+        try:
+            backup_db._replace_records(active_records)
+            active_db._replace_records(candidate_records)
+        except Exception:
+            try:
+                active_db._replace_records(active_records)
+            finally:
+                backup_db.drop()
+            raise
+        return VectorIndexRollback(
+            active_table=self.active_table,
+            backup_table=backup_table,
+            candidate_table=self.table_name,
+            dim=self.dim,
+            db_path=self.db_path,
+        )
 
     def discard(self) -> None:
         """Drop this inactive candidate; the active index is never touched."""
@@ -115,6 +166,75 @@ class VectorDB:
                 f"USING vec0(embedding float[{self.dim}])"
             )
             conn.commit()
+        finally:
+            conn.close()
+
+    def _index_exists(self) -> bool:
+        """Return whether both physical tables for this index exist."""
+        conn = self._get_conn()
+        try:
+            names = {
+                row["name"]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE name IN (?, ?)",
+                    (self.table_name, self._map_table),
+                )
+            }
+            return names == {self.table_name, self._map_table}
+        finally:
+            conn.close()
+
+    def _records(self) -> tuple[tuple[str, np.ndarray], ...]:
+        """Read complete indexed records for a shadow copy operation."""
+        conn = self._get_conn()
+        try:
+            rows = conn.execute(
+                f"SELECT m.object_id, v.embedding FROM {self._map_table} AS m "
+                f"JOIN {self.table_name} AS v ON v.rowid=m.rowid ORDER BY m.rowid"
+            ).fetchall()
+            records = []
+            for row in rows:
+                vector = np.frombuffer(bytes(row["embedding"]), dtype=np.float32).copy()
+                if vector.shape != (self.dim,):
+                    raise RuntimeError(f"vector record has unexpected shape: {vector.shape}")
+                records.append((str(row["object_id"]), vector))
+            return tuple(records)
+        finally:
+            conn.close()
+
+    def _replace_records(self, records: Iterable[tuple[str, np.ndarray]]) -> None:
+        """Atomically replace this already-created index with validated records."""
+        materialized = tuple(records)
+        object_ids: set[str] = set()
+        prepared: list[tuple[str, bytes]] = []
+        for object_id, vector in materialized:
+            if not isinstance(object_id, str) or not object_id or object_id in object_ids:
+                raise ValueError("replacement records must have unique non-empty IDs")
+            array = np.asarray(vector, dtype=np.float32)
+            if array.shape != (self.dim,):
+                raise ValueError(f"replacement vector must have shape ({self.dim},)")
+            object_ids.add(object_id)
+            prepared.append((object_id, array.tobytes()))
+
+        conn = self._get_conn()
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute(f"DELETE FROM {self.table_name}")
+            conn.execute(f"DELETE FROM {self._map_table}")
+            for object_id, blob in prepared:
+                rowid = self._to_rowid(object_id)
+                conn.execute(
+                    f"INSERT INTO {self._map_table}(object_id, rowid) VALUES (?, ?)",
+                    (object_id, rowid),
+                )
+                conn.execute(
+                    f"INSERT INTO {self.table_name}(rowid, embedding) VALUES (?, ?)",
+                    (rowid, blob),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             conn.close()
 
