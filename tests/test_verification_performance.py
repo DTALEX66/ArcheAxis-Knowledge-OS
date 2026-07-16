@@ -43,6 +43,7 @@ def test_ci_test_jobs_use_minimal_uv_dependencies() -> None:
     assert workflow.count("uv pip install --system -r requirements-ci.txt") >= 2
     assert 'pip install -e ".[dev]"' not in workflow
     assert "python -m pip install -r requirements.txt" in workflow
+    assert "defusedxml" in ci_requirements
     for heavy_dependency in ("litellm", "markitdown", "trafilatura"):
         assert heavy_dependency not in ci_requirements
 
