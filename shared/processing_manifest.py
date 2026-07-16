@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
+from shared.research_boundary import unreviewed_research_references
 
 SUCCESS_STATUSES = frozenset({"converted", "linked"})
 VALID_STATUSES = frozenset({"converted", "linked", "failed", "needs_review"})
@@ -73,6 +74,10 @@ class ProcessingManifest:
         error: str = "",
         metadata: dict[str, Any] | None = None,
     ) -> ProcessingRecord:
+        if unreviewed_research_references([source]):
+            raise ValueError(
+                "candidate or external manifest sources require server-owned Phase 5 review provenance"
+            )
         if status not in VALID_STATUSES:
             raise ValueError(f"unsupported processing status: {status}")
         item = ProcessingRecord(
@@ -141,10 +146,9 @@ class ProcessingManifest:
         if not source_file.is_file() or not output.is_file():
             return False
         try:
-            return (
-                metadata.get("source_sha256") == file_sha256(source_file)
-                and metadata.get("output_sha256") == file_sha256(output)
-            )
+            return metadata.get("source_sha256") == file_sha256(source_file) and metadata.get(
+                "output_sha256"
+            ) == file_sha256(output)
         except OSError:
             return False
 

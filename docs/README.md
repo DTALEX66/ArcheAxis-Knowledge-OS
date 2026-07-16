@@ -25,3 +25,6 @@
 
 - `HANDOFF_2026-07-14.md`：Phase 2 进行期交接，已由 2026-07-16 版本取代。
 - `PROJECT_AUDIT_2026-07-07.md`：2026-07-07 的审计快照。其中 `/run`、Ruff、版本漂移等问题已在后续修复；不得当作当前状态直接引用。
+## Phase 4 Research Index Note
+
+Current Phase 4 Research status is recorded in `PROJECT_STATUS.md`, `HANDOFF_2026-07-16.md`, and `EXECUTION_ROADMAP.md`. The implemented scope is the candidate-only GitHub repository workflow ending in a persisted `ResearchPackageV1`; it does not claim Phase 5, Phase 9 Alpha, or verified truth promotion.

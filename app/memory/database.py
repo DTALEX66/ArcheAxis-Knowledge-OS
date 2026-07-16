@@ -7,6 +7,7 @@ import sqlite3
 from typing import Any
 
 from shared.config import config, resolve_runtime_path
+from shared.research_boundary import unreviewed_research_references
 
 DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -135,7 +136,15 @@ def init_db() -> None:
 # ── CoreObject ──────────────────────────────────────────
 
 
+def _reject_unreviewed_object_source(obj: dict[str, Any]) -> None:
+    if unreviewed_research_references([obj.get("source", "")]):
+        raise ValueError(
+            "candidate or external core-memory sources require server-owned Phase 5 review provenance"
+        )
+
+
 def save_core_object(obj: dict[str, Any]) -> None:
+    _reject_unreviewed_object_source(obj)
     conn = _get_conn()
     try:
         conn.execute(
@@ -218,6 +227,7 @@ def save_route(route_data: dict[str, Any]) -> None:
 
 
 def save_memory_record(obj: dict[str, Any]) -> None:
+    _reject_unreviewed_object_source(obj)
     conn = _get_conn()
     try:
         conn.execute(

@@ -4,6 +4,7 @@ Produces two outputs:
   - daily_brief.json: 5-section brief (gold/design/tech/ai/github)
   - github_ai_projects.csv: screening table with scores
 """
+
 import csv
 import json
 from dataclasses import dataclass, field
@@ -29,9 +30,14 @@ class BriefItem:
 class DailyBrief:
     brief_id: str = ""
     date: str = ""
-    sections: dict = field(default_factory=lambda: {
-        "gold": [], "design": [], "technology": [], "ai": [],
-    })
+    sections: dict = field(
+        default_factory=lambda: {
+            "gold": [],
+            "design": [],
+            "technology": [],
+            "ai": [],
+        }
+    )
     github_ai_projects: list = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -39,8 +45,7 @@ class DailyBrief:
             "brief_id": self.brief_id,
             "date": self.date,
             "sections": {
-                k: [{"title": i.title, "summary": i.summary, "impact": i.impact}
-                    for i in v]
+                k: [{"title": i.title, "summary": i.summary, "impact": i.impact} for i in v]
                 for k, v in self.sections.items()
             },
             "github_ai_projects": self.github_ai_projects,
@@ -92,21 +97,31 @@ def screen_project(
     recommended_target: str = "IR",
 ) -> ProjectScreeningEntry:
     scores = score_project(
-        token_saving=token_saving, efficiency_gain=efficiency_gain,
-        local_first=local_first, system_fit=system_fit,
-        risk_penalty=risk_penalty, risk_level=risk_level,
+        token_saving=token_saving,
+        efficiency_gain=efficiency_gain,
+        local_first=local_first,
+        system_fit=system_fit,
+        risk_penalty=risk_penalty,
+        risk_level=risk_level,
     )
     next_action = "generate_intake_card" if scores.qualifies else "review"
     return ProjectScreeningEntry(
-        repo=repo, category=category, summary=summary,
+        repo=repo,
+        category=category,
+        summary=summary,
         absorption_mode=absorption_mode,
         recommended_target=recommended_target,
-        risk_level=risk_level, scores=scores, next_action=next_action,
+        risk_level=risk_level,
+        scores=scores,
+        next_action=next_action,
     )
 
 
-def export_screening_csv(entries: list[ProjectScreeningEntry],
-                         output_path: str | None = None) -> Path:
+def export_screening_csv(
+    entries: list[ProjectScreeningEntry], output_path: str | None = None
+) -> Path:
+    if entries:
+        raise ValueError("screening export requires server-owned Phase 5 review provenance")
     if output_path is None:
         today = date.today().isoformat()
         output_path = str(OUTPUT_DIR / f"github_ai_project_screening_{today}.csv")
@@ -116,23 +131,43 @@ def export_screening_csv(entries: list[ProjectScreeningEntry],
 
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow([
-            "repo", "category", "summary", "absorption_mode",
-            "recommended_target", "risk_level",
-            "token_saving", "efficiency_gain", "local_first",
-            "system_fit", "risk_penalty", "total", "qualifies",
-            "next_action",
-        ])
+        writer.writerow(
+            [
+                "repo",
+                "category",
+                "summary",
+                "absorption_mode",
+                "recommended_target",
+                "risk_level",
+                "token_saving",
+                "efficiency_gain",
+                "local_first",
+                "system_fit",
+                "risk_penalty",
+                "total",
+                "qualifies",
+                "next_action",
+            ]
+        )
         for e in entries:
-            writer.writerow([
-                e.repo, e.category, e.summary, e.absorption_mode,
-                e.recommended_target, e.risk_level,
-                e.scores.token_saving, e.scores.efficiency_gain,
-                e.scores.local_first, e.scores.system_fit,
-                e.scores.risk_penalty, e.scores.total,
-                "yes" if e.scores.qualifies else "no",
-                e.next_action,
-            ])
+            writer.writerow(
+                [
+                    e.repo,
+                    e.category,
+                    e.summary,
+                    e.absorption_mode,
+                    e.recommended_target,
+                    e.risk_level,
+                    e.scores.token_saving,
+                    e.scores.efficiency_gain,
+                    e.scores.local_first,
+                    e.scores.system_fit,
+                    e.scores.risk_penalty,
+                    e.scores.total,
+                    "yes" if e.scores.qualifies else "no",
+                    e.next_action,
+                ]
+            )
     return path
 
 
@@ -149,16 +184,28 @@ if __name__ == "__main__":
 
     # Screen some projects
     entries = [
-        screen_project("unclecode/crawl4ai", "Crawler",
-                       "Web to LLM-ready Markdown", token_saving=4.0,
-                       efficiency_gain=4.5, local_first=4.0,
-                       system_fit=4.0, absorption_mode="adapter",
-                       recommended_target="IR"),
-        screen_project("microsoft/markitdown", "Converter",
-                       "Multi-format to Markdown", token_saving=4.5,
-                       efficiency_gain=4.0, local_first=4.5,
-                       system_fit=4.0, absorption_mode="adapter",
-                       recommended_target="IR/KB"),
+        screen_project(
+            "unclecode/crawl4ai",
+            "Crawler",
+            "Web to LLM-ready Markdown",
+            token_saving=4.0,
+            efficiency_gain=4.5,
+            local_first=4.0,
+            system_fit=4.0,
+            absorption_mode="adapter",
+            recommended_target="IR",
+        ),
+        screen_project(
+            "microsoft/markitdown",
+            "Converter",
+            "Multi-format to Markdown",
+            token_saving=4.5,
+            efficiency_gain=4.0,
+            local_first=4.5,
+            system_fit=4.0,
+            absorption_mode="adapter",
+            recommended_target="IR/KB",
+        ),
     ]
     path = export_screening_csv(entries)
     print(f"\nCSV exported: {path}")

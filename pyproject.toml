@@ -54,7 +54,16 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["app*", "shared*", "knowledge_base*", "inspiration_research*", "config*"]
-exclude = ["data*", "logs*", "tests*", "workspace*", "docker*"]
+exclude = [
+    "data*",
+    "logs*",
+    "tests*",
+    "knowledge_base.tests*",
+    "*.tests",
+    "*.tests.*",
+    "workspace*",
+    "docker*",
+]
 namespaces = true
 
 [tool.setuptools.package-data]

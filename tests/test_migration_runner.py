@@ -53,9 +53,7 @@ def _create_current_taskpack_database(path: Path) -> None:
             )
             """
         )
-        connection.execute(
-            "INSERT INTO kb_taskpacks(id, goal) VALUES ('fresh', 'current schema')"
-        )
+        connection.execute("INSERT INTO kb_taskpacks(id, goal) VALUES ('fresh', 'current schema')")
         connection.commit()
 
 
@@ -120,8 +118,7 @@ def _ordinary_vector_insert(
         sv.load(connection)
         connection.enable_load_extension(False)
         connection.execute(
-            f"INSERT OR REPLACE INTO {vector_db._map_table}(object_id, rowid) "
-            "VALUES (?, ?)",
+            f"INSERT OR REPLACE INTO {vector_db._map_table}(object_id, rowid) VALUES (?, ?)",
             (object_id, rowid),
         )
         connection.execute(
@@ -174,6 +171,7 @@ def test_registry_is_deterministic_and_rejects_duplicate_identity(tmp_path: Path
     assert identities == [
         ("fts.cards", 1, "kb_cards_fts"),
         ("fts.documents", 1, "kb_documents_fts"),
+        ("research.sqlite", 1, "research_packages_v1"),
         ("taskpack.sqlite", 3, "kb_taskpacks"),
         ("vector.cards", 1, "vec_kb_cards"),
         ("vector.documents", 1, "vec_kb_documents"),
@@ -238,16 +236,22 @@ def test_fts_owner_applies_verified_candidate_and_rolls_back_previous_index(tmp_
     assert applied["state"] == "applied"
     assert applied["provenance"]["candidate_verified"] is True
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'verified'"
-        ).fetchone()[0] == "doc-new"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'verified'"
+            ).fetchone()[0]
+            == "doc-new"
+        )
 
     rolled_back = operator.rollback("fts.documents")
     assert rolled_back["state"] == "rolled_back"
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
 
 
 def test_applied_taskpack_owner_fails_closed_when_schema_ledger_drifts(tmp_path: Path) -> None:
@@ -258,9 +262,7 @@ def test_applied_taskpack_owner_fails_closed_when_schema_ledger_drifts(tmp_path:
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     operator.apply("taskpack.sqlite")
     with closing(sqlite3.connect(database)) as connection:
-        connection.execute(
-            "UPDATE schema_migrations SET name='tampered_owner' WHERE version=3"
-        )
+        connection.execute("UPDATE schema_migrations SET name='tampered_owner' WHERE version=3")
         connection.commit()
 
     with pytest.raises(RuntimeError, match="migration version 3 name collision"):
@@ -289,9 +291,12 @@ def test_fts_failed_verification_preserves_active_index_and_records_failure(tmp_
     assert failed["state"] == "failed"
     assert failed["provenance"]["error_type"] == "RuntimeError"
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
     candidate.discard()
 
 
@@ -338,10 +343,16 @@ def test_operator_rollback_replace_failure_preserves_active_database_and_records
         operator.rollback("taskpack.sqlite")
 
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT sql FROM sqlite_master WHERE type='table' AND name='kb_taskpacks'"
-        ).fetchone()[0] == migrated_sql
-        assert connection.execute("SELECT goal FROM kb_taskpacks WHERE id='legacy'").fetchone()[0] == "preserve"
+        assert (
+            connection.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='kb_taskpacks'"
+            ).fetchone()[0]
+            == migrated_sql
+        )
+        assert (
+            connection.execute("SELECT goal FROM kb_taskpacks WHERE id='legacy'").fetchone()[0]
+            == "preserve"
+        )
     failed = _state(operator.status(), "taskpack.sqlite")
     assert failed["state"] == "failed"
     assert failed["provenance"]["operation"] == "rollback"
@@ -384,7 +395,7 @@ def test_taskpack_schema_and_applied_provenance_are_atomic(monkeypatch, tmp_path
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     original_insert = operator._insert_record
 
-    def fail_applied_record(connection, owner, *, state, operation, provenance):
+    def fail_applied_record(connection, owner, *, state, operation, provenance, run_id=None):
         if state == "applied":
             raise RuntimeError("injected atomic provenance failure")
         return original_insert(
@@ -402,9 +413,12 @@ def test_taskpack_schema_and_applied_provenance_are_atomic(monkeypatch, tmp_path
     with closing(sqlite3.connect(database)) as connection:
         columns = {row[1] for row in connection.execute("PRAGMA table_info(kb_taskpacks)")}
         assert "context_id" not in columns
-        assert connection.execute(
-            "SELECT COUNT(*) FROM sqlite_master WHERE name='schema_migrations'"
-        ).fetchone()[0] == 0
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE name='schema_migrations'"
+            ).fetchone()[0]
+            == 0
+        )
     assert _state(operator.status(), "taskpack.sqlite")["state"] == "failed"
 
     monkeypatch.undo()
@@ -426,18 +440,25 @@ def test_fresh_current_taskpack_schema_gets_verified_backup_and_rollback(tmp_pat
     assert applied["state"] == "applied"
     assert applied["provenance"]["backup_path"]
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT COUNT(*) FROM schema_migrations WHERE version IN (2, 3)"
-        ).fetchone()[0] == 2
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version IN (2, 3)"
+            ).fetchone()[0]
+            == 2
+        )
 
     assert operator.rollback("taskpack.sqlite")["state"] == "rolled_back"
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT COUNT(*) FROM sqlite_master WHERE name='schema_migrations'"
-        ).fetchone()[0] == 0
-        assert connection.execute(
-            "SELECT goal FROM kb_taskpacks WHERE id='fresh'"
-        ).fetchone()[0] == "current schema"
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE name='schema_migrations'"
+            ).fetchone()[0]
+            == 0
+        )
+        assert (
+            connection.execute("SELECT goal FROM kb_taskpacks WHERE id='fresh'").fetchone()[0]
+            == "current schema"
+        )
 
 
 def test_empty_database_fails_closed_as_missing_taskpack_target(tmp_path: Path) -> None:
@@ -571,9 +592,10 @@ def test_taskpack_rollback_rejects_runtime_data_drift(tmp_path: Path) -> None:
         operator.rollback("taskpack.sqlite")
 
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT goal FROM kb_taskpacks WHERE id='legacy'"
-        ).fetchone()[0] == "new runtime work"
+        assert (
+            connection.execute("SELECT goal FROM kb_taskpacks WHERE id='legacy'").fetchone()[0]
+            == "new runtime work"
+        )
 
 
 def test_taskpack_rollback_preserves_later_operator_provenance(tmp_path: Path) -> None:
@@ -610,18 +632,14 @@ def test_taskpack_provenance_prepare_failure_does_not_replace_database(
     with pytest.raises(RuntimeError, match="injected provenance preparation failure"):
         operator.rollback("taskpack.sqlite")
     with closing(sqlite3.connect(database)) as connection:
-        columns = {
-            row[1] for row in connection.execute("PRAGMA table_info(kb_taskpacks)")
-        }
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(kb_taskpacks)")}
     assert "requires_review" in columns
 
     monkeypatch.undo()
     assert operator.rollback("taskpack.sqlite")["state"] == "rolled_back"
 
 
-def test_taskpack_rollback_lease_survives_database_replacement(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_taskpack_rollback_lease_survives_database_replacement(monkeypatch, tmp_path: Path) -> None:
     from shared import migration
     from shared.migration_runner import MigrationOperator
 
@@ -662,9 +680,7 @@ def test_owner_guard_release_cannot_delete_a_replaced_lease(tmp_path: Path) -> N
     owner = operator.registry.get("taskpack.sqlite")
     lock_database = operator._lock_database
 
-    with operator._owner_guard(owner), closing(
-        sqlite3.connect(lock_database)
-    ) as connection:
+    with operator._owner_guard(owner), closing(sqlite3.connect(lock_database)) as connection:
         connection.execute(
             "UPDATE migration_operator_locks SET token='replacement' WHERE owner=?",
             (owner.owner,),
@@ -672,9 +688,12 @@ def test_owner_guard_release_cannot_delete_a_replaced_lease(tmp_path: Path) -> N
         connection.commit()
 
     with closing(sqlite3.connect(lock_database)) as connection:
-        assert connection.execute(
-            "SELECT token FROM migration_operator_locks WHERE owner=?", (owner.owner,)
-        ).fetchone()[0] == "replacement"
+        assert (
+            connection.execute(
+                "SELECT token FROM migration_operator_locks WHERE owner=?", (owner.owner,)
+            ).fetchone()[0]
+            == "replacement"
+        )
 
 
 def test_fts_provenance_failure_is_atomic_even_if_handle_rollback_fails(
@@ -688,7 +707,7 @@ def test_fts_provenance_failure_is_atomic_even_if_handle_rollback_fails(
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     original_insert = operator._insert_record
 
-    def fail_applied_record(connection, owner, *, state, operation, provenance):
+    def fail_applied_record(connection, owner, *, state, operation, provenance, run_id=None):
         if state == "applied":
             raise RuntimeError("injected FTS provenance failure")
         return original_insert(
@@ -704,9 +723,12 @@ def test_fts_provenance_failure_is_atomic_even_if_handle_rollback_fails(
         operator.apply("fts.documents")
 
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
     assert _state(operator.status(), "fts.documents")["state"] == "failed"
 
 
@@ -724,7 +746,7 @@ def test_vector_provenance_failure_is_atomic_even_if_handle_rollback_fails(
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     original_insert = operator._insert_record
 
-    def fail_applied_record(connection, owner, *, state, operation, provenance):
+    def fail_applied_record(connection, owner, *, state, operation, provenance, run_id=None):
         if state == "applied":
             raise RuntimeError("injected vector provenance failure")
         return original_insert(
@@ -773,9 +795,12 @@ def test_concurrent_fts_apply_has_one_owner_and_preserves_original_rollback(
 
     assert first.rollback("fts.documents")["state"] == "rolled_back"
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
 
 
 def test_concurrent_fts_apply_with_different_backup_dirs_uses_one_owner_lease(
@@ -810,9 +835,12 @@ def test_concurrent_fts_apply_with_different_backup_dirs_uses_one_owner_lease(
 
     assert first.rollback("fts.documents")["state"] == "rolled_back"
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
 
 
 def test_cli_apply_with_alternate_backup_dir_respects_active_owner_lease(
@@ -848,9 +876,12 @@ def test_cli_apply_with_alternate_backup_dir_respects_active_owner_lease(
     assert completed.returncode != 0
     assert "migration owner is busy: fts.documents" in completed.stderr
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
 
 
 def test_fts_rollback_rejects_corrupted_provenance_before_foreign_database_touch(
@@ -899,9 +930,12 @@ def test_fts_rollback_rejects_corrupted_provenance_before_foreign_database_touch
         operator.rollback("fts.documents")
 
     with closing(sqlite3.connect(foreign)) as connection:
-        assert connection.execute(
-            "SELECT id FROM foreign_fts WHERE foreign_fts MATCH 'active'"
-        ).fetchone()[0] == "foreign-active"
+        assert (
+            connection.execute(
+                "SELECT id FROM foreign_fts WHERE foreign_fts MATCH 'active'"
+            ).fetchone()[0]
+            == "foreign-active"
+        )
     assert _sqlite_table_names(
         foreign,
         "foreign_fts",
@@ -983,9 +1017,12 @@ def test_fts_rollback_rejects_post_apply_active_drift_and_allows_retry(
         operator.rollback("fts.documents")
 
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'drift'"
-        ).fetchone()[0] == "runtime-drift"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'drift'"
+            ).fetchone()[0]
+            == "runtime-drift"
+        )
         retained = connection.execute(
             "SELECT provenance_json FROM migration_operator_runs "
             "WHERE owner='fts.documents' AND state='applied'"
@@ -1002,9 +1039,12 @@ def test_fts_rollback_rejects_post_apply_active_drift_and_allows_retry(
 
     assert operator.rollback("fts.documents")["state"] == "rolled_back"
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
 
 
 def test_vector_rollback_rejects_post_apply_active_drift_and_allows_retry(
@@ -1079,9 +1119,12 @@ def test_taskpack_rollback_rolled_back_provenance_failure_keeps_applied_state(
     with closing(sqlite3.connect(database)) as connection:
         columns = {row[1] for row in connection.execute("PRAGMA table_info(kb_taskpacks)")}
         assert "requires_review" in columns
-        assert connection.execute(
-            "SELECT COUNT(*) FROM schema_migrations WHERE version IN (2, 3)"
-        ).fetchone()[0] == 2
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version IN (2, 3)"
+            ).fetchone()[0]
+            == 2
+        )
     failed = _state(operator.status(), "taskpack.sqlite")
     assert failed["state"] == "failed"
     assert failed["provenance"]["operation"] == "rollback"
@@ -1160,9 +1203,12 @@ def test_fts_rollback_rolled_back_provenance_failure_keeps_applied_state(
         operator.rollback("fts.documents")
 
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'verified'"
-        ).fetchone()[0] == "doc-new"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'verified'"
+            ).fetchone()[0]
+            == "doc-new"
+        )
     failed = _state(operator.status(), "fts.documents")
     assert failed["state"] == "failed"
     assert failed["provenance"]["operation"] == "rollback"
@@ -1170,9 +1216,12 @@ def test_fts_rollback_rolled_back_provenance_failure_keeps_applied_state(
     monkeypatch.undo()
     assert operator.rollback("fts.documents")["state"] == "rolled_back"
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
 
 
 def test_fts_apply_blocks_ordinary_source_writer_during_activation(
@@ -1198,8 +1247,7 @@ def test_fts_apply_blocks_ordinary_source_writer_during_activation(
         with closing(sqlite3.connect(database, timeout=0)) as connection:
             try:
                 connection.execute(
-                    "UPDATE kb_documents SET content='ordinary source writer' "
-                    "WHERE id='doc-new'"
+                    "UPDATE kb_documents SET content='ordinary source writer' WHERE id='doc-new'"
                 )
                 connection.commit()
                 writer_succeeded.set()
@@ -1217,9 +1265,10 @@ def test_fts_apply_blocks_ordinary_source_writer_during_activation(
     assert writer_blocked.is_set()
     assert not writer_succeeded.is_set()
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute(
-            "SELECT content FROM kb_documents WHERE id='doc-new'"
-        ).fetchone()[0] == "verified candidate content"
+        assert (
+            connection.execute("SELECT content FROM kb_documents WHERE id='doc-new'").fetchone()[0]
+            == "verified candidate content"
+        )
 
 
 def test_vector_apply_blocks_ordinary_active_writer_during_activation(
@@ -1316,10 +1365,7 @@ def test_fts_rollback_blocks_ordinary_active_writer_during_snapshot(
             setattr(self._inner, name, value)
 
         def execute(self, sql, parameters=()):
-            if (
-                f'FROM "{backup_table}"' in str(sql)
-                and not attempted.is_set()
-            ):
+            if f'FROM "{backup_table}"' in str(sql) and not attempted.is_set():
                 try_ordinary_writer()
             return self._inner.execute(sql, parameters)
 
@@ -1336,9 +1382,12 @@ def test_fts_rollback_blocks_ordinary_active_writer_during_snapshot(
     assert writer_blocked.is_set()
     assert not writer_succeeded.is_set()
     with closing(real_connect(str(database))) as connection:
-        assert connection.execute(
-            "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
-        ).fetchone()[0] == "doc-old"
+        assert (
+            connection.execute(
+                "SELECT id FROM kb_documents_fts WHERE kb_documents_fts MATCH 'previous'"
+            ).fetchone()[0]
+            == "doc-old"
+        )
 
 
 def test_vector_rollback_blocks_ordinary_active_writer_during_validation(

@@ -102,6 +102,7 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
             MigrationOwner("vector.cards", 1, "vec_kb_cards", "vector"),
             MigrationOwner("fts.documents", 1, "kb_documents_fts", "fts"),
             MigrationOwner("fts.cards", 1, "kb_cards_fts", "fts"),
+            MigrationOwner("research.sqlite", 1, "research_packages_v1", "sqlite_research"),
         ]
     )
 
@@ -165,9 +166,7 @@ class MigrationOperator:
         resolved = database.resolve()
         identity = str(resolved).casefold()
         digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
-        return resolved.with_name(
-            f".{resolved.name}.{digest}.migration_operator_locks.lockdb"
-        )
+        return resolved.with_name(f".{resolved.name}.{digest}.migration_operator_locks.lockdb")
 
     def _lock_connect(self) -> sqlite3.Connection:
         self._lock_database.parent.mkdir(parents=True, exist_ok=True)
@@ -188,9 +187,7 @@ class MigrationOperator:
             name = str(item["name"])
             if name in excluded:
                 continue
-            payload.append(
-                [str(item["type"]), name, str(item["tbl_name"]), str(item["sql"] or "")]
-            )
+            payload.append([str(item["type"]), name, str(item["tbl_name"]), str(item["sql"] or "")])
             if str(item["type"]) != "table":
                 continue
             quoted_name = name.replace('"', '""')
@@ -321,7 +318,8 @@ class MigrationOperator:
             state_clause = " AND state=?" if state is not None else ""
             parameters: tuple[Any, ...] = owner.identity + ((state,) if state is not None else ())
             row = connection.execute(
-                f"SELECT state, operation, provenance_json, recorded_at FROM {_OPERATOR_TABLE} "
+                f"SELECT run_id, state, operation, provenance_json, recorded_at "
+                f"FROM {_OPERATOR_TABLE} "
                 f"WHERE owner=? AND version=? AND target=?{state_clause} "
                 "ORDER BY recorded_at DESC, run_id DESC LIMIT 1",
                 parameters,
@@ -329,6 +327,7 @@ class MigrationOperator:
         if row is None:
             return None
         return {
+            "run_id": str(row["run_id"]),
             "state": str(row["state"]),
             "operation": str(row["operation"]),
             "provenance": json.loads(str(row["provenance_json"])),
@@ -343,6 +342,7 @@ class MigrationOperator:
         state: str,
         operation: str,
         provenance: dict[str, Any],
+        run_id: str | None = None,
     ) -> dict[str, Any]:
         recorded_at = datetime.now(timezone.utc).isoformat()
         payload = {
@@ -358,7 +358,7 @@ class MigrationOperator:
             "run_id, owner, version, target, state, operation, provenance_json, recorded_at"
             ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
-                uuid4().hex,
+                run_id or uuid4().hex,
                 owner.owner,
                 owner.version,
                 owner.target,
@@ -446,6 +446,30 @@ class MigrationOperator:
         for owner in self.registry.owners:
             latest = self._latest(owner)
             if latest is not None:
+                if latest["state"] == "applied" and owner.kind in {"sqlite", "sqlite_research"}:
+                    try:
+                        live = (
+                            migration.status(db_path=self.db_path)
+                            if owner.kind == "sqlite"
+                            else self._research_status()
+                        )
+                        if live["pending"] or (owner.kind == "sqlite" and not live["total"]):
+                            raise RuntimeError("live schema does not match applied owner")
+                    except Exception as exc:
+                        result.append(
+                            self._item(
+                                owner,
+                                "failed",
+                                {
+                                    **latest["provenance"],
+                                    "reason": "live_schema_drift",
+                                    "error_type": type(exc).__name__,
+                                },
+                                operation="status",
+                                recorded_at=latest["recorded_at"],
+                            )
+                        )
+                        continue
                 result.append(
                     self._item(
                         owner,
@@ -470,8 +494,21 @@ class MigrationOperator:
                 except Exception as exc:
                     state = "failed"
                     provenance.update(error_type=type(exc).__name__, operation="status")
+            elif owner.kind == "sqlite_research":
+                try:
+                    research = self._research_status()
+                    state = "applied" if not research["pending"] else "pending"
+                    provenance["schema_migrations"] = research
+                except Exception as exc:
+                    state = "failed"
+                    provenance.update(error_type=type(exc).__name__, operation="status")
             result.append(self._item(owner, state, provenance))
         return result
+
+    def _research_status(self) -> dict[str, object]:
+        from shared import research_migration
+
+        return research_migration.status(db_path=self.db_path)
 
     def _build_candidate(self, owner: MigrationOwner) -> Any:
         if owner.kind == "fts":
@@ -508,8 +545,7 @@ class MigrationOperator:
         ).fetchall()
         embedder = SimpleTextEmbedder(dim=_VECTOR_DIM)
         return tuple(
-            (str(row["id"]), embedder.embed(f'{row["title"]}\n{row["content"]}'))
-            for row in rows
+            (str(row["id"]), embedder.embed(f"{row['title']}\n{row['content']}")) for row in rows
         )
 
     def _validate_candidate(
@@ -571,13 +607,56 @@ class MigrationOperator:
                     },
                 )
                 raise error
+        current_research: dict[str, object] | None = None
+        if owner.kind == "sqlite_research":
+            try:
+                current_research = self._research_status()
+            except Exception as exc:
+                self._record(
+                    owner,
+                    state="failed",
+                    operation="apply",
+                    provenance=self._failure_provenance(exc, "apply"),
+                )
+                raise
         latest = self._latest(owner)
+        if (
+            owner.kind == "sqlite_research"
+            and latest is None
+            and current_research is not None
+            and not current_research["pending"]
+        ):
+            error = RuntimeError("research schema was applied outside MigrationOperator")
+            self._record(
+                owner,
+                state="failed",
+                operation="apply",
+                provenance={
+                    "error_type": type(error).__name__,
+                    "operation": "apply",
+                    "reason": "externally_applied",
+                },
+            )
+            raise error
         if latest is not None and latest["state"] == "applied":
             if owner.kind == "sqlite":
                 try:
                     current = migration.status(db_path=self.db_path)
                     if current["pending"]:
                         raise RuntimeError("applied migration owner has pending schema migrations")
+                except Exception as exc:
+                    self._record(
+                        owner,
+                        state="failed",
+                        operation="apply",
+                        provenance=self._failure_provenance(exc, "apply"),
+                    )
+                    raise
+            elif owner.kind == "sqlite_research":
+                try:
+                    current = self._research_status()
+                    if current["pending"]:
+                        raise RuntimeError("applied research owner has pending schema migrations")
                 except Exception as exc:
                     self._record(
                         owner,
@@ -593,17 +672,14 @@ class MigrationOperator:
                 operation=latest["operation"],
                 recorded_at=latest["recorded_at"],
             )
-        if (
-            latest is not None
-            and latest["state"] == "failed"
-            and latest["operation"] == "rollback"
-        ):
+        if latest is not None and latest["state"] == "failed" and latest["operation"] == "rollback":
             raise RuntimeError(f"rollback must be retried before apply for owner: {owner.owner}")
         built_here = False
         rollback_handle: Any | None = None
         try:
             if owner.kind == "sqlite":
                 applied_item: dict[str, Any] | None = None
+                operator_run_id = uuid4().hex
 
                 def record_before_commit(
                     connection: sqlite3.Connection, run: migration.MigrationRun
@@ -612,16 +688,13 @@ class MigrationOperator:
                     backup = run.backup_path
                     if backup is None:
                         raise RuntimeError(
-                            "SQLite schema is applied without operator rollback "
-                            "provenance"
+                            "SQLite schema is applied without operator rollback provenance"
                         )
                     provenance = {
                         "applied_migrations": list(run.applied),
                         "backup_path": str(backup),
                         "backup_sha256": _sha256(backup),
-                        "database_fingerprint_after_apply": self._database_fingerprint(
-                            connection
-                        ),
+                        "database_fingerprint_after_apply": self._database_fingerprint(connection),
                     }
                     applied_item = self._insert_record(
                         connection,
@@ -629,6 +702,7 @@ class MigrationOperator:
                         state="applied",
                         operation="apply",
                         provenance=provenance,
+                        run_id=operator_run_id,
                     )
 
                 migration.migrate(
@@ -636,11 +710,53 @@ class MigrationOperator:
                     backup_dir=self.backup_dir,
                     before_commit=record_before_commit,
                     backup_when_pending=True,
+                    operator_run_id=operator_run_id,
                 )
                 if applied_item is None:
                     raise RuntimeError(
                         "SQLite schema is applied without operator rollback provenance"
                     )
+                return applied_item
+            if owner.kind == "sqlite_research":
+                from shared import research_migration
+
+                applied_item = None
+                operator_run_id = uuid4().hex
+
+                def record_research_before_commit(
+                    connection: sqlite3.Connection, run: migration.MigrationRun
+                ) -> None:
+                    nonlocal applied_item
+                    backup = run.backup_path
+                    if backup is None:
+                        raise RuntimeError(
+                            "research SQLite schema is applied without operator rollback provenance"
+                        )
+                    provenance = {
+                        "applied_migrations": list(run.applied),
+                        "backup_path": str(backup),
+                        "backup_sha256": _sha256(backup),
+                        "database_fingerprint_after_apply": self._database_fingerprint(connection),
+                    }
+                    applied_item = self._insert_record(
+                        connection,
+                        owner,
+                        state="applied",
+                        operation="apply",
+                        provenance=provenance,
+                        run_id=operator_run_id,
+                    )
+
+                research_migration.migrate(
+                    db_path=self.db_path,
+                    backup_dir=self.backup_dir,
+                    before_commit=record_research_before_commit,
+                    backup_when_pending=True,
+                    operator_run_id=operator_run_id,
+                    _operator_capability=research_migration._OPERATOR_CAPABILITY,
+                )
+                if applied_item is None:
+                    raise RuntimeError("research schema apply has no operator provenance")
                 return applied_item
             if candidate is None:
                 candidate = self._build_candidate(owner)
@@ -651,16 +767,12 @@ class MigrationOperator:
             def validate_shadow_before_switch(connection: sqlite3.Connection) -> None:
                 self._validate_candidate(owner, candidate, connection=connection)
 
-            def record_shadow_before_commit(
-                connection: sqlite3.Connection, handle: Any
-            ) -> None:
+            def record_shadow_before_commit(connection: sqlite3.Connection, handle: Any) -> None:
                 nonlocal applied_item
                 provenance = {
                     "candidate_verified": True,
                     "candidate_target": str(candidate.table_name),
-                    "active_fingerprint": self._active_index_fingerprint(
-                        owner, connection
-                    ),
+                    "active_fingerprint": self._active_index_fingerprint(owner, connection),
                     "rollback": {
                         "kind": owner.kind,
                         "data": _json_safe(asdict(handle)),
@@ -732,9 +844,7 @@ class MigrationOperator:
             try:
                 dim = int(data.get("dim", -1))
             except (TypeError, ValueError) as exc:
-                raise RuntimeError(
-                    "rollback provenance does not match migration owner"
-                ) from exc
+                raise RuntimeError("rollback provenance does not match migration owner") from exc
             if dim != _VECTOR_DIM:
                 raise RuntimeError("rollback provenance does not match migration owner")
             data["dim"] = dim
@@ -749,30 +859,36 @@ class MigrationOperator:
 
     def _rollback_locked(self, owner: MigrationOwner) -> dict[str, Any]:
         latest = self._latest(owner)
-        if (
-            latest is not None
-            and latest["state"] == "failed"
-            and latest["operation"] == "rollback"
-        ):
+        if latest is not None and latest["state"] == "failed" and latest["operation"] == "rollback":
             latest = self._latest_with_state(owner, "applied")
         if latest is None or latest["state"] != "applied":
             raise RuntimeError(f"no applied migration to roll back for owner: {owner.owner}")
         try:
-            if owner.kind == "sqlite":
+            if owner.kind in {"sqlite", "sqlite_research"}:
                 backup_value = latest["provenance"].get("backup_path")
                 if not backup_value:
                     raise RuntimeError("applied SQLite migration has no rollback backup")
                 backup = Path(str(backup_value))
                 backup_hash = _sha256(backup)
-                expected_fingerprint = latest["provenance"].get(
-                    "database_fingerprint_after_apply"
-                )
+                if latest["provenance"].get("backup_sha256") != backup_hash:
+                    raise RuntimeError("rollback backup hash does not match operator provenance")
+                raw_migrations = latest["provenance"].get("applied_migrations")
+                if not isinstance(raw_migrations, list) or not raw_migrations:
+                    raise RuntimeError("rollback provenance has no applied migrations")
+                expected_migrations = {str(item) for item in raw_migrations}
+                if owner.kind == "sqlite":
+                    if not expected_migrations <= set(migration.TASKPACK_MIGRATIONS.values()):
+                        raise RuntimeError("rollback provenance does not match migration owner")
+                elif expected_migrations != {migration.RESEARCH_SCHEMA_MIGRATION_NAME}:
+                    raise RuntimeError("rollback provenance does not match migration owner")
+                expected_fingerprint = latest["provenance"].get("database_fingerprint_after_apply")
                 if not expected_fingerprint:
                     raise RuntimeError("applied SQLite migration has no state fingerprint")
                 with closing(self._connect()) as connection:
                     current_fingerprint = self._database_fingerprint(connection)
                 if current_fingerprint != expected_fingerprint:
-                    raise RuntimeError("database changed since TaskPack apply")
+                    label = "TaskPack" if owner.kind == "sqlite" else owner.owner
+                    raise RuntimeError(f"database changed since {label} apply")
                 operator_runs = self._snapshot_operator_runs()
                 rolled_back_item: dict[str, Any] | None = None
                 provenance = {
@@ -786,9 +902,7 @@ class MigrationOperator:
                     with closing(sqlite3.connect(str(database))) as connection:
                         connection.row_factory = sqlite3.Row
                         connection.execute("BEGIN IMMEDIATE")
-                        self._restore_operator_runs_in_connection(
-                            connection, operator_runs
-                        )
+                        self._restore_operator_runs_in_connection(connection, operator_runs)
                         rolled_back_item = self._insert_record(
                             connection,
                             owner,
@@ -804,15 +918,15 @@ class MigrationOperator:
                             (*owner.identity, rolled_back_item["recorded_at"]),
                         ).fetchone()
                         if record is None:
-                            raise RuntimeError(
-                                "replacement database lacks rollback provenance"
-                            )
+                            raise RuntimeError("replacement database lacks rollback provenance")
                         connection.commit()
 
                 migration.rollback(
                     backup_path=backup,
                     db_path=self.db_path,
                     prepare_replacement=prepare_replacement,
+                    expected_migrations=expected_migrations,
+                    expected_operator_run_id=latest["run_id"],
                 )
                 if rolled_back_item is None:
                     raise RuntimeError("SQLite rollback has no operator provenance")

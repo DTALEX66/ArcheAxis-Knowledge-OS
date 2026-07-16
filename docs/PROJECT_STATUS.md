@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-项目已完成 **Phase 2：首批版本化 Contracts**，当前处于 **Phase 3：安全和数据正确性 P0 收口**。管理员凭据、角色提升、Rate Limiter、Safe HTTP、approved roots、稳定持久化哈希以及 Vector/FTS shadow candidate verify/switch/rollback 边界已建立；下一项是通用 Migration Runner 与 Phase 3 集成验收。Phase 7 已完成 `read file:` 的真实工具证据纵向 tracer，但通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Minimum Complete System Alpha 均未完成。
+项目已完成 **Phase 4：GitHub Research candidate-only 闭环**。管理员凭据、角色提升、Rate Limiter、Safe HTTP、approved roots、稳定持久化哈希、Vector/FTS shadow 边界和通用 Migration Runner 已建立；GitHub repository 可形成 quarantined、可追溯、持久化且必须人工复核的 ResearchPackage。下一项是 Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理。通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Minimum Complete System Alpha 均未完成。
 
 ## 已验证能力
 
@@ -23,7 +23,7 @@
 - Runtime 源码不再内置管理员 Key；开发和测试凭据必须显式配置，Token 请求者不能自行提升为管理员。
 - 主网关已接入分策略 Rate Limiter；所有受跟踪 Uvicorn 入口禁用隐式 proxy-header rewriting，未受信代理头、双凭据与无效认证的早期拒绝也必须消耗 pre-auth 限额并进入确定性 429 边界。
 - 外部 HTTP 调用已收敛到 Safe HTTP policy，覆盖私网/metadata/redirect/响应大小/类型/timeout；本地摄入与投影使用 approved roots 和 symlink/junction containment。
-- 持久化哈希已使用 versioned SHA-256；Vector/FTS 已有 inactive/shadow rebuild、验证、activation、rollback 边界，但尚未统一注册到通用 migration operator。
+- 持久化哈希已使用 versioned SHA-256；TaskPack、Vector、FTS 与 Research schema 已统一注册到 migration operator。
 - n8n、Airflow、LiteLLM 和 crawler 适配器不再返回 stub 假成功。
 - Obsidian 外部路径必须显式传入，API 不再默认访问个人 E 盘。
 - 外部 A 项目（Obsidian-Assistance）的分析与通用能力吸收已结束；后续严格只读且不再扫描或作为迁移目标。
@@ -48,7 +48,7 @@
 5. OCR/ASR 的真实准确率取决于用户提供人工标注金标准，代码不能代替人工真值。
 6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
 7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
-8. 通用 Migration Runner registry/operator CLI 与 Phase 3 跨边界集成验收尚未完成；现有 TaskPack migration 和 Vector/FTS rebuild owner 仍需统一。
+8. Phase 5 尚未把 Research candidate 接入 Knowledge/Learning/Mastery/Machine Knowledge 的审批、版本与弃用闭环。
 
 ## 正式门禁
 
@@ -60,3 +60,13 @@ python -m ruff check app shared knowledge_base inspiration_research Inspiration-
 ```
 
 最终交付时以这些命令的真实输出为准，不以本页手写数字证明完成。
+## Phase 4 Research Closure Update
+
+Phase 4 Research is now implemented for the GitHub repository source path. The current supported closure is:
+
+```text
+canonical GitHub URL -> Safe HTTP collect -> quarantine -> parse -> claims
+-> evidence -> cross-validation findings -> persisted candidate ResearchPackageV1
+```
+
+The implementation persists source records, source provenance, claims, evidence, research packages, governance findings, and the package-to-intake relation in SQLite tables owned exclusively by `MigrationOperator` owner `research.sqlite` / migration `004_phase4_research_package_v1`. Apply and rollback require owner-bound backup hashes and manifests; status revalidates the live schema. The storage and strict-read boundaries reconstruct and validate the complete candidate provenance graph. Legacy external trending/auto routes fail closed. External GitHub content is never promoted to verified truth, same-repository metadata/README extraction counts as one independent source group, and every package requires human review. Phase 5+, general Alpha, and full five-loop system closure remain out of scope.

@@ -98,7 +98,9 @@ def _load_adapter(relative: str, module_name: str):
 def test_litellm_adapter_returns_real_provider_response(monkeypatch):
     fake_response = SimpleNamespace(
         model="provider/model",
-        choices=[SimpleNamespace(message=SimpleNamespace(content="real answer"), finish_reason="stop")],
+        choices=[
+            SimpleNamespace(message=SimpleNamespace(content="real answer"), finish_reason="stop")
+        ],
         usage=SimpleNamespace(total_tokens=12),
     )
     monkeypatch.setitem(
@@ -128,8 +130,10 @@ def test_url_conversion_fetches_html_through_safe_http(monkeypatch):
     calls = []
     monkeypatch.setattr(
         "app.ingestion.multi_format.fetch",
-        lambda url, **kwargs: calls.append((url, kwargs))
-        or SimpleNamespace(body=b"<html><article>safe page</article></html>"),
+        lambda url, **kwargs: (
+            calls.append((url, kwargs))
+            or SimpleNamespace(body=b"<html><article>safe page</article></html>")
+        ),
     )
     monkeypatch.setattr(
         "app.ingestion.multi_format._via_trafilatura",
@@ -138,7 +142,10 @@ def test_url_conversion_fetches_html_through_safe_http(monkeypatch):
 
     result = convert_url("https://example.com/page")
 
-    assert result == ("# extracted <html><article>safe page</article></html>", "safe-http+trafilatura")
+    assert result == (
+        "# extracted <html><article>safe page</article></html>",
+        "safe-http+trafilatura",
+    )
     assert calls[0][1]["policy"].max_bytes == 5_000_000
 
 
@@ -153,15 +160,11 @@ def test_feed_fetch_uses_safe_http(monkeypatch):
     assert _fetch_url("https://example.com/feed.xml") == b"<rss />"
 
 
-def test_github_registry_search_uses_safe_http(monkeypatch):
+def test_github_registry_search_is_retired() -> None:
     from inspiration_research.project_radar.collectors.github_trending import _search_github
 
-    monkeypatch.setattr(
-        "inspiration_research.project_radar.collectors.github_trending.fetch",
-        lambda url, **kwargs: SimpleNamespace(body=b'{"items": [{"full_name": "owner/repo"}]}'),
-    )
-
-    assert _search_github("safe query") == [{"full_name": "owner/repo"}]
+    with pytest.raises(RuntimeError, match="legacy GitHub search is disabled"):
+        _search_github("safe query")
 
 
 def test_youtube_oembed_uses_safe_http(monkeypatch):

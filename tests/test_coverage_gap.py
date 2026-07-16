@@ -28,10 +28,14 @@ class TestStorage:
     def test_insert_and_select(self):
         from shared.storage import count, insert, select_all, select_one
 
-        insert("kb_documents", {
-            "id": "gap_test_s1", "title": "Storage Test",
-            "content": "testing insert and select",
-        })
+        insert(
+            "kb_documents",
+            {
+                "id": "gap_test_s1",
+                "title": "Storage Test",
+                "content": "testing insert and select",
+            },
+        )
         row = select_one("kb_documents", "gap_test_s1")
         assert row is not None
         assert row["title"] == "Storage Test"
@@ -44,6 +48,7 @@ class TestStorage:
 
         # cleanup
         import sqlite3
+
         db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", ("gap_test_s1",))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", ("gap_test_s1",))
@@ -53,14 +58,22 @@ class TestStorage:
     def test_fts5_search_and_sync(self):
         from shared.storage import fts5_search, fts5_sync, insert
 
-        insert("kb_documents", {
-            "id": "gap_fts5", "title": "FTS5 Test",
-            "content": "full text search with porter stemming",
-        })
-        fts5_sync("kb_documents", {
-            "id": "gap_fts5", "title": "FTS5 Test",
-            "content": "full text search with porter stemming",
-        })
+        insert(
+            "kb_documents",
+            {
+                "id": "gap_fts5",
+                "title": "FTS5 Test",
+                "content": "full text search with porter stemming",
+            },
+        )
+        fts5_sync(
+            "kb_documents",
+            {
+                "id": "gap_fts5",
+                "title": "FTS5 Test",
+                "content": "full text search with porter stemming",
+            },
+        )
         results = fts5_search("kb_documents", "search stemming", top_k=5)
         assert len(results) >= 1
         assert any(r["id"] == "gap_fts5" for r in results)
@@ -71,6 +84,7 @@ class TestStorage:
 
         # cleanup
         import sqlite3
+
         db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", ("gap_fts5",))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", ("gap_fts5",))
@@ -80,10 +94,15 @@ class TestStorage:
     def test_insert_json_fields(self):
         from shared.storage import insert, select_one
 
-        insert("kb_documents", {
-            "id": "gap_json", "title": "JSON Test",
-            "content": "test", "tags": ["tag1", "tag2"],
-        })
+        insert(
+            "kb_documents",
+            {
+                "id": "gap_json",
+                "title": "JSON Test",
+                "content": "test",
+                "tags": ["tag1", "tag2"],
+            },
+        )
         row = select_one("kb_documents", "gap_json")
         assert row is not None
         assert isinstance(row.get("tags"), list)
@@ -91,6 +110,7 @@ class TestStorage:
 
         # cleanup
         import sqlite3
+
         db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", ("gap_json",))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", ("gap_json",))
@@ -104,73 +124,31 @@ class TestStorage:
 class TestBridge:
     """shared/bridge.py — IR→KB bridge functions."""
 
-    def test_bridge_intake_to_kb(self):
+    def test_bridge_intake_to_kb_requires_phase5_review_provenance(self):
         from shared.bridge import bridge_intake_to_kb
-        from shared.storage import select_one
 
         intake = {
             "id": "intake_test_1",
             "why": "Evaluate sqlite-vec for vector search",
             "risk_level": "low",
+            "phase4_candidate": True,
+            "requires_human_review": True,
         }
-        result = bridge_intake_to_kb(intake)
-        assert "context_pack_id" in result
-        assert "taskpack_id" in result
+        with pytest.raises(RuntimeError, match="server-owned review provenance"):
+            bridge_intake_to_kb(intake)
 
-        # Verify both created in DB
-        ctx = select_one("kb_context_packs", result["context_pack_id"])
-        assert ctx is not None
-        assert "vector search" in ctx.get("goal", "")
-
-        task = select_one("kb_taskpacks", result["taskpack_id"])
-        assert task is not None
-
-        # cleanup
-        import sqlite3
-        db = sqlite3.connect(str(DB_PATH))
-        for tid in [result["context_pack_id"], result["taskpack_id"]]:
-            db.execute("DELETE FROM kb_context_packs WHERE id=?", (tid,))
-            db.execute("DELETE FROM kb_taskpacks WHERE id=?", (tid,))
-        db.commit()
-        db.close()
-
-    def test_bridge_contract_to_kb(self):
+    def test_bridge_contract_to_kb_requires_phase5_review_provenance(self):
         from shared.bridge import bridge_contract_to_kb
-        from shared.storage import select_one
 
         contract = {"goal": "Absorb firecrawl adapter", "risk_level": "medium"}
-        result = bridge_contract_to_kb(contract)
-        assert "taskpack_id" in result
+        with pytest.raises(RuntimeError, match="server-owned review provenance"):
+            bridge_contract_to_kb(contract)
 
-        task = select_one("kb_taskpacks", result["taskpack_id"])
-        assert task is not None
-        assert "firecrawl" in task.get("goal", "")
-
-        # cleanup
-        import sqlite3
-        db = sqlite3.connect(str(DB_PATH))
-        db.execute("DELETE FROM kb_taskpacks WHERE id=?", (result["taskpack_id"],))
-        db.commit()
-        db.close()
-
-    def test_bridge_trending_to_kb(self):
+    def test_bridge_trending_to_kb_is_retired(self):
         from shared.bridge import bridge_trending_to_kb
 
-        repos = [
-            {"repo": "test/repo1", "qualifies": True, "stars": 100},
-            {"repo": "test/repo2", "qualifies": False, "stars": 0},
-        ]
-        result = bridge_trending_to_kb(repos)
-        assert result["bridged"] == 1
-        assert result["items"][0]["repo"] == "test/repo1"
-
-        # cleanup
-        import sqlite3
-        db = sqlite3.connect(str(DB_PATH))
-        for item in result["items"]:
-            db.execute("DELETE FROM kb_context_packs WHERE id=?", (item["context_pack_id"],))
-        db.commit()
-        db.close()
+        with pytest.raises(RuntimeError, match="legacy trending bridge is disabled"):
+            bridge_trending_to_kb([{"repo": "test/repo1", "qualifies": True, "stars": 100}])
 
 
 # ── shared/logging ──────────────────────────────────────
@@ -181,10 +159,12 @@ class TestLogging:
 
     def test_logger_imports(self):
         from shared.logging import logger
+
         assert logger is not None
 
     def test_logger_levels(self):
         from shared.logging import logger
+
         # All levels should work without error
         logger.debug("gap test debug")
         logger.info("gap test info")
@@ -200,11 +180,13 @@ class TestScheduler:
 
     def test_list_jobs_empty(self):
         from app.core.scheduler import list_jobs
+
         jobs = list_jobs()
         assert isinstance(jobs, list)
 
     def test_is_running(self):
         from app.core.scheduler import is_running
+
         # Scheduler not started in test, but should not crash
         assert isinstance(is_running(), bool)
 
@@ -246,7 +228,10 @@ class TestPlanner:
         task = TaskPack(
             goal="test",
             steps=[{"id": 1, "name": "step1"}, {"id": 2, "name": "step2"}],
-            constraints=[], tools=[], risk_level="low", success_criteria=[],
+            constraints=[],
+            tools=[],
+            risk_level="low",
+            success_criteria=[],
         )
         steps = plan(task)
         assert len(steps) == 2
@@ -381,30 +366,47 @@ class TestKBApi:
         app = _get_kb_app()
         client = TestClient(app)
         # Create
-        resp = client.post("/documents", json={
-            "title": "Gap Test Doc", "content": "test content for coverage gap",
-            "source": "test",
-        })
+        resp = client.post(
+            "/documents",
+            json={
+                "title": "Gap Test Doc",
+                "content": "test content for coverage gap",
+                "source": "test",
+            },
+        )
         assert resp.status_code == 200
         doc_id = resp.json()["id"]
 
         # Search (hybrid)
-        resp2 = client.post("/search", json={
-            "query": "coverage gap", "top_k": 5, "mode": "hybrid",
-        })
+        resp2 = client.post(
+            "/search",
+            json={
+                "query": "coverage gap",
+                "top_k": 5,
+                "mode": "hybrid",
+            },
+        )
         assert resp2.status_code == 200
         assert resp2.json()["count"] >= 0
 
         # Vector search
-        resp3 = client.post("/search", json={
-            "query": "test content", "mode": "vector",
-        })
+        resp3 = client.post(
+            "/search",
+            json={
+                "query": "test content",
+                "mode": "vector",
+            },
+        )
         assert resp3.status_code == 200
 
         # Keyword search
-        resp4 = client.post("/search", json={
-            "query": "test", "mode": "keyword",
-        })
+        resp4 = client.post(
+            "/search",
+            json={
+                "query": "test",
+                "mode": "keyword",
+            },
+        )
         assert resp4.status_code == 200
 
         # Search stats
@@ -414,6 +416,7 @@ class TestKBApi:
 
         # Cleanup
         import sqlite3
+
         db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_documents WHERE id=?", (doc_id,))
         db.execute("DELETE FROM kb_documents_fts WHERE id=?", (doc_id,))
@@ -427,17 +430,25 @@ class TestKBApi:
         client = TestClient(app)
 
         # Create card
-        resp = client.post("/cards", json={
-            "title": "Review Test Card", "content": "test review flow",
-        })
+        resp = client.post(
+            "/cards",
+            json={
+                "title": "Review Test Card",
+                "content": "test review flow",
+            },
+        )
         assert resp.status_code == 200
         card = resp.json()
         card_id = card.get("card_id") or card.get("id")
 
         # Record review
-        resp2 = client.post("/reviews", json={
-            "card_id": card_id, "quality": 4,
-        })
+        resp2 = client.post(
+            "/reviews",
+            json={
+                "card_id": card_id,
+                "quality": 4,
+            },
+        )
         assert resp2.status_code == 200
         assert "next_review_at" in resp2.json()
 
@@ -459,6 +470,7 @@ class TestKBApi:
 
         # Cleanup
         import sqlite3
+
         db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM kb_cards WHERE id=?", (card_id,))
         db.execute("DELETE FROM kb_cards_fts WHERE id=?", (card_id,))
@@ -483,10 +495,14 @@ class TestKBApi:
         app = _get_kb_app()
         client = TestClient(app)
         # Create
-        resp = client.post("/machine-knowledge", json={
-            "title": "Gap Test MKU", "content": "test machine knowledge",
-            "unit_type": "rule",
-        })
+        resp = client.post(
+            "/machine-knowledge",
+            json={
+                "title": "Gap Test MKU",
+                "content": "test machine knowledge",
+                "unit_type": "rule",
+            },
+        )
         assert resp.status_code == 200
         unit_id = resp.json()["id"]
 
@@ -510,6 +526,7 @@ class TestKBApi:
 
         # Cleanup
         import sqlite3
+
         db = sqlite3.connect(str(DB_PATH))
         db.execute("DELETE FROM machine_knowledge_units WHERE id=?", (unit_id,))
         db.commit()

@@ -40,6 +40,9 @@ TASKPACK_MIGRATIONS = {
     TASKPACK_MIGRATION_VERSION: TASKPACK_MIGRATION_NAME,
     TASKPACK_REPAIR_VERSION: TASKPACK_REPAIR_NAME,
 }
+RESEARCH_SCHEMA_MIGRATION_VERSION = 4
+RESEARCH_SCHEMA_MIGRATION_NAME = "phase4_research_package_v1"
+ROLLBACK_MIGRATION_NAMES = set(TASKPACK_MIGRATIONS.values()) | {RESEARCH_SCHEMA_MIGRATION_NAME}
 TASKPACK_COLUMNS = {
     "id",
     "context_id",
@@ -112,7 +115,13 @@ def _backup_manifest_path(backup: Path) -> Path:
     return backup.with_suffix(f"{backup.suffix}.manifest.json")
 
 
-def _create_backup(database: Path, backup_dir: Path, migration_name: str) -> Path:
+def _create_backup(
+    database: Path,
+    backup_dir: Path,
+    migration_name: str,
+    *,
+    operator_run_id: str | None = None,
+) -> Path:
     backup_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
     destination = backup_dir / f"pre_migration_{stamp}_{uuid4().hex[:8]}.sqlite"
@@ -127,6 +136,7 @@ def _create_backup(database: Path, backup_dir: Path, migration_name: str) -> Pat
             "migration": migration_name,
             "source_database": str(database.resolve(strict=True)),
             "backup_sha256": _sha256(destination),
+            "operator_run_id": operator_run_id,
         }
         temporary_manifest.write_text(
             json.dumps(payload, ensure_ascii=True, sort_keys=True), encoding="utf-8"
@@ -170,8 +180,7 @@ def _recorded_taskpack_migrations(connection: sqlite3.Connection) -> dict[int, s
     return {
         int(row["version"]): str(row["name"])
         for row in connection.execute(
-            "SELECT version, name FROM schema_migrations "
-            "WHERE version IN (?, ?) OR name IN (?, ?)",
+            "SELECT version, name FROM schema_migrations WHERE version IN (?, ?) OR name IN (?, ?)",
             (
                 TASKPACK_MIGRATION_VERSION,
                 TASKPACK_REPAIR_VERSION,
@@ -207,29 +216,24 @@ def _taskpack_migrations_pending(connection: sqlite3.Connection) -> tuple[str, .
         return ()
 
     columns = {
-        str(row["name"])
-        for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
+        str(row["name"]) for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
     }
     if TASKPACK_MIGRATION_VERSION in recorded:
         missing_columns = {"context_id", "requires_review"} - columns
         if missing_columns:
             detail = ", ".join(sorted(missing_columns))
             raise RuntimeError(f"recorded migration schema mismatch; missing: {detail}")
-    if (
-        TASKPACK_REPAIR_VERSION in recorded
-        and not _requires_review_schema_is_fail_closed(connection)
+    if TASKPACK_REPAIR_VERSION in recorded and not _requires_review_schema_is_fail_closed(
+        connection
     ):
         raise RuntimeError("recorded repair migration schema mismatch")
 
-    return tuple(
-        name for version, name in TASKPACK_MIGRATIONS.items() if version not in recorded
-    )
+    return tuple(name for version, name in TASKPACK_MIGRATIONS.items() if version not in recorded)
 
 
 def _apply_taskpack_migration(connection: sqlite3.Connection) -> None:
     columns = {
-        str(row["name"])
-        for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
+        str(row["name"]) for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
     }
     if "context_id" not in columns:
         connection.execute(
@@ -289,14 +293,12 @@ def _reject_unsupported_taskpack_table_constraints(connection: sqlite3.Connectio
     compact_sql = "".join(table_sql.upper().split())
     index_rows = connection.execute("PRAGMA index_list(kb_taskpacks)").fetchall()
     has_implicit_unique = any(str(row["origin"]) == "u" for row in index_rows)
-    has_foreign_key = connection.execute(
-        "PRAGMA foreign_key_list(kb_taskpacks)"
-    ).fetchone() is not None
+    has_foreign_key = (
+        connection.execute("PRAGMA foreign_key_list(kb_taskpacks)").fetchone() is not None
+    )
     check_count = len(re.findall(r"\bCHECK\s*\(", table_sql, flags=re.IGNORECASE))
     has_expected_review_check = "CHECK(REQUIRES_REVIEWIN(0,1))" in compact_sql
-    has_unsupported_check = check_count > 1 or (
-        check_count == 1 and not has_expected_review_check
-    )
+    has_unsupported_check = check_count > 1 or (check_count == 1 and not has_expected_review_check)
     if (
         has_implicit_unique
         or has_foreign_key
@@ -311,8 +313,7 @@ def _repair_taskpack_review_schema(connection: sqlite3.Connection) -> None:
     if not _taskpack_v3_repair_required(connection):
         return
     columns = {
-        str(row["name"])
-        for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
+        str(row["name"]) for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
     }
     if columns != TASKPACK_COLUMNS:
         detail = ", ".join(sorted(columns ^ TASKPACK_COLUMNS))
@@ -366,8 +367,7 @@ def _taskpack_schema_change_required(
     connection: sqlite3.Connection, pending: tuple[str, ...]
 ) -> bool:
     columns = {
-        str(row["name"])
-        for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
+        str(row["name"]) for row in connection.execute("PRAGMA table_info(kb_taskpacks)").fetchall()
     }
     if TASKPACK_MIGRATION_NAME in pending and {"context_id", "requires_review"} - columns:
         return True
@@ -384,6 +384,7 @@ def migrate(
     backup_dir: str | Path = BACKUP_DIR,
     before_commit: Callable[[sqlite3.Connection, MigrationRun], None] | None = None,
     backup_when_pending: bool = False,
+    operator_run_id: str | None = None,
 ) -> MigrationRun:
     """Apply pending migrations once, after creating a verified SQLite backup."""
 
@@ -400,7 +401,12 @@ def migrate(
                 connection.commit()
                 return MigrationRun(applied=(), backup_path=None)
             if backup_when_pending or _taskpack_schema_change_required(connection, pending):
-                backup_path = _create_backup(database, backups, "+".join(pending))
+                backup_path = _create_backup(
+                    database,
+                    backups,
+                    "+".join(pending),
+                    operator_run_id=operator_run_id,
+                )
             connection.execute(MIGRATIONS_TABLE)
             for version, name in TASKPACK_MIGRATIONS.items():
                 if name not in pending:
@@ -430,6 +436,8 @@ def rollback(
     backup_path: str | Path,
     db_path: str | Path = DB_PATH,
     prepare_replacement: Callable[[Path], None] | None = None,
+    expected_migrations: set[str] | None = None,
+    expected_operator_run_id: str | None = None,
 ) -> Path:
     """Restore a migration backup while the runtime is offline.
 
@@ -451,7 +459,12 @@ def rollback(
     if (
         manifest.get("schema_version") != 1
         or not recorded_migrations
-        or not recorded_migrations <= set(TASKPACK_MIGRATIONS.values())
+        or not recorded_migrations <= ROLLBACK_MIGRATION_NAMES
+        or (expected_migrations is not None and recorded_migrations != expected_migrations)
+        or (
+            expected_operator_run_id is not None
+            and manifest.get("operator_run_id") != expected_operator_run_id
+        )
         or manifest.get("backup_sha256") != _sha256(backup)
     ):
         raise RuntimeError("backup provenance manifest is invalid")

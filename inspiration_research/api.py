@@ -4,16 +4,15 @@ import re
 import time
 import uuid
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.facades.research import ingest_candidate
-from inspiration_research.contracts.generator import generate_contract
-from inspiration_research.project_radar.collectors.github_trending import (
-    collect_trending,
-    collect_trending_fallback,
+from app.facades.research import (
+    get_research_package,
+    ingest_candidate,
+    research_github_repository,
 )
 from inspiration_research.project_radar.outputs.generator import (
     BriefItem,
@@ -23,6 +22,8 @@ from inspiration_research.project_radar.outputs.generator import (
 )
 from inspiration_research.project_radar.scoring.scorer import score_project
 from shared.config import config, validate_runtime_config
+from shared.research_store import ResearchPersistenceError
+from shared.safe_http import SafeHTTPError
 from shared.storage import count, insert, select_all
 
 validate_runtime_config(config)
@@ -64,140 +65,259 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 class ResearchNoteIn(BaseModel):
-    title: str; content: str; source: str = "manual"; tags: list[str] = []
+    title: str
+    content: str
+    source: str = "manual"
+    tags: list[str] = []
+
 
 class IntakeRequest(BaseModel):
-    title: str; why: str; what_to_absorb: list[str]
-    what_not_to_absorb: list[str] = []; risk_level: str = "low"
+    title: str
+    why: str
+    what_to_absorb: list[str]
+    what_not_to_absorb: list[str] = []
+    risk_level: str = "low"
     target_repo: str = "Knowledge-Base"
 
+
+class GitHubResearchRequest(BaseModel):
+    repository_url: str
+
+
 class ContractRequest(BaseModel):
-    intake_id: str; goal: str; deliverables: list[str]
-    acceptance_criteria: list[str] = []; blocked_actions: list[str] = []
-    risk_level: str = "low"; target_repo: str = "Cognitive-OS"
+    intake_id: str
+    goal: str
+    deliverables: list[str]
+    acceptance_criteria: list[str] = []
+    blocked_actions: list[str] = []
+    risk_level: str = "low"
+    target_repo: str = "Cognitive-OS"
+
 
 class ScoreRequest(BaseModel):
-    token_saving: float = 0.0; efficiency_gain: float = 0.0
-    local_first: float = 0.0; system_fit: float = 0.0
-    risk_penalty: float = 0.0; risk_level: str = "low"
+    token_saving: float = 0.0
+    efficiency_gain: float = 0.0
+    local_first: float = 0.0
+    system_fit: float = 0.0
+    risk_penalty: float = 0.0
+    risk_level: str = "low"
+
 
 class BriefSectionIn(BaseModel):
-    title: str; summary: str; impact: str = "watch"
+    title: str
+    summary: str
+    impact: str = "watch"
+
 
 class DailyBriefRequest(BaseModel):
-    gold: list[BriefSectionIn] = []; design: list[BriefSectionIn] = []
-    technology: list[BriefSectionIn] = []; ai: list[BriefSectionIn] = []
+    gold: list[BriefSectionIn] = []
+    design: list[BriefSectionIn] = []
+    technology: list[BriefSectionIn] = []
+    ai: list[BriefSectionIn] = []
+
 
 class ScreenRequest(BaseModel):
-    repo: str; category: str; summary: str = ""
-    token_saving: float = 0.0; efficiency_gain: float = 0.0
-    local_first: float = 0.0; system_fit: float = 0.0
-    risk_penalty: float = 0.0; risk_level: str = "low"
-    absorption_mode: str = "reference"; recommended_target: str = "IR"
+    repo: str
+    category: str
+    summary: str = ""
+    token_saving: float = 0.0
+    efficiency_gain: float = 0.0
+    local_first: float = 0.0
+    system_fit: float = 0.0
+    risk_penalty: float = 0.0
+    risk_level: str = "low"
+    absorption_mode: str = "reference"
+    recommended_target: str = "IR"
 
 
 @app.get("/health")
-def health(): return {"status": "ok", "system": "inspiration-research"}
+def health():
+    return {"status": "ok", "system": "inspiration-research"}
+
 
 @app.post("/research-note")
 def create_research_note(note: ResearchNoteIn):
+    if note.source.strip().lower() not in {"manual", "local"}:
+        raise HTTPException(
+            status_code=409,
+            detail="external research notes must use the governed ResearchPackage candidate path",
+        )
     r = {"id": f"note_{uuid.uuid4().hex[:12]}", **note.model_dump()}
-    insert("ir_research_notes", r); return r
+    insert("ir_research_notes", r)
+    return r
+
 
 @app.get("/research-notes")
 def list_research_notes(limit: int = 20):
     return {"count": count("ir_research_notes"), "items": select_all("ir_research_notes", limit)}
 
+
 @app.post("/intake-card")
 def create_intake_card(req: IntakeRequest):
     return ingest_candidate(**req.model_dump()).model_dump()
+
 
 @app.get("/intake-cards")
 def list_intake_cards(limit: int = 20):
     return {"count": count("ir_intake_cards"), "items": select_all("ir_intake_cards", limit)}
 
+
+@app.post("/research/github-repository")
+def create_github_research_package(req: GitHubResearchRequest, request: Request):
+    fetcher = getattr(request.app.state, "research_github_fetcher", None)
+    try:
+        return research_github_repository(req.repository_url, fetcher=fetcher).model_dump()
+    except SafeHTTPError as exc:
+        raise HTTPException(status_code=502, detail="GitHub response failed safety policy") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        if "research schema migration is pending" in str(exc):
+            raise HTTPException(status_code=503, detail="Research migration is pending") from exc
+        raise
+
+
+@app.get("/research/packages/{package_id}")
+def get_research_package_endpoint(package_id: str):
+    try:
+        return get_research_package(package_id).model_dump()
+    except ResearchPersistenceError as exc:
+        if "research package not found" in str(exc):
+            raise HTTPException(status_code=404, detail="Research package not found") from exc
+        raise
+    except RuntimeError as exc:
+        if "research schema migration is pending" in str(exc):
+            raise HTTPException(status_code=503, detail="Research migration is pending") from exc
+        raise
+
+
 @app.post("/engineering-contract")
 def create_contract(req: ContractRequest):
-    c = generate_contract(goal=req.goal, deliverables=req.deliverables,
-                          acceptance_criteria=req.acceptance_criteria,
-                          blocked_actions=req.blocked_actions,
-                          risk_level=req.risk_level, target_repo=req.target_repo)
-    insert("ir_contracts", c.to_dict()); return c.to_dict()
+    del req
+    raise HTTPException(
+        status_code=409,
+        detail="engineering-contract promotion requires server-owned Phase 5 review provenance",
+    )
+
 
 @app.get("/contracts")
 def list_contracts(limit: int = 20):
     return {"count": count("ir_contracts"), "items": select_all("ir_contracts", limit)}
 
+
 @app.post("/score-project")
 def score_project_endpoint(req: ScoreRequest):
     r = score_project(**req.model_dump())
-    return {"scores": {k: getattr(r, k) for k in ["token_saving","efficiency_gain","local_first","system_fit","risk_penalty","total"]}, "qualifies": r.qualifies}
+    return {
+        "scores": {
+            k: getattr(r, k)
+            for k in [
+                "token_saving",
+                "efficiency_gain",
+                "local_first",
+                "system_fit",
+                "risk_penalty",
+                "total",
+            ]
+        },
+        "qualifies": r.qualifies,
+    }
+
 
 @app.post("/daily-brief")
 def create_daily_brief(req: DailyBriefRequest):
     brief = build_daily_brief(
         gold_items=[BriefItem(**g.model_dump()) for g in req.gold] if req.gold else None,
         design_items=[BriefItem(**d.model_dump()) for d in req.design] if req.design else None,
-        tech_items=[BriefItem(**t.model_dump()) for t in req.technology] if req.technology else None,
-        ai_items=[BriefItem(**a.model_dump()) for a in req.ai] if req.ai else None)
-    insert("ir_daily_briefs", brief.to_dict()); return brief.to_dict()
+        tech_items=[BriefItem(**t.model_dump()) for t in req.technology]
+        if req.technology
+        else None,
+        ai_items=[BriefItem(**a.model_dump()) for a in req.ai] if req.ai else None,
+    )
+    insert("ir_daily_briefs", brief.to_dict())
+    return brief.to_dict()
+
 
 @app.get("/daily-briefs")
 def list_daily_briefs(limit: int = 10):
     return {"count": count("ir_daily_briefs"), "items": select_all("ir_daily_briefs", limit)}
 
+
 @app.post("/screen-project")
 def screen_project_endpoint(req: ScreenRequest):
     e = screen_project(**req.model_dump())
-    return {"repo": e.repo, "category": e.category, "absorption_mode": e.absorption_mode,
-            "scores": {k: getattr(e.scores, k) for k in ["token_saving","efficiency_gain","local_first","system_fit","risk_penalty","total"]},
-            "qualifies": e.scores.qualifies, "next_action": e.next_action}
+    return {
+        "repo": e.repo,
+        "category": e.category,
+        "absorption_mode": e.absorption_mode,
+        "scores": {
+            k: getattr(e.scores, k)
+            for k in [
+                "token_saving",
+                "efficiency_gain",
+                "local_first",
+                "system_fit",
+                "risk_penalty",
+                "total",
+            ]
+        },
+        "qualifies": e.scores.qualifies,
+        "next_action": e.next_action,
+    }
+
 
 @app.post("/screen-projects/batch")
 def screen_projects_batch(requests: list[ScreenRequest]):
     entries = [screen_project(**r.model_dump()) for r in requests]
-    csv_path = export_screening_csv(entries)
-    return {"count": len(entries), "qualified": sum(1 for e in entries if e.scores.qualifies),
-            "items": [{"repo": e.repo, "total": e.scores.total, "qualifies": e.scores.qualifies} for e in entries],
-            "csv_exported": str(csv_path)}
+    try:
+        csv_path = export_screening_csv(entries)
+    except ValueError as exc:
+        if "server-owned Phase 5 review provenance" in str(exc):
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise
+    return {
+        "count": len(entries),
+        "qualified": sum(1 for e in entries if e.scores.qualifies),
+        "items": [
+            {"repo": e.repo, "total": e.scores.total, "qualifies": e.scores.qualifies}
+            for e in entries
+        ],
+        "csv_exported": str(csv_path),
+    }
+
 
 @app.get("/trending")
 def get_trending(since: str = "weekly", count: int = 10):
-    repos = collect_trending(since=since, per_page=count) or collect_trending_fallback(count)
-    return {"since": since, "count": len(repos),
-            "items": [{"repo": r.repo, "description": r.description, "stars": r.stars,
-                        "language": r.language, "url": r.url, "topics": r.topics} for r in repos]}
+    del since, count
+    raise HTTPException(
+        status_code=409,
+        detail="legacy external collection is disabled; use /research/github-repository",
+    )
+
 
 @app.post("/daily-brief/auto")
 def auto_daily_brief(since: str = "weekly", count: int = 10):
-    repos = collect_trending(since=since, per_page=count) or collect_trending_fallback(count)
-    entries = []
-    for r in repos:
-        d = (r.description + " " + " ".join(r.topics)).lower()
-        entries.append(screen_project(
-            repo=r.repo, category=_guess(d), summary=r.description[:200],
-            token_saving=_score(d, "ai|coding|agent|auto", 3.5),
-            efficiency_gain=_score(d, "ai|coding|tool|pipeline", 3.5),
-            local_first=_score(d, "local|self-hosted|offline|oss", 4.0),
-            system_fit=_score(d, "ai|llm|agent|rag|mcp|coding", 4.0),
-            risk_penalty=0.5 if any(k in d for k in ["shell","exec","sudo"]) else 0.0,
-            risk_level="low", absorption_mode="candidate", recommended_target="IR"))
-    brief = build_daily_brief(ai_items=[BriefItem(title=r.repo, summary=r.description[:100], impact="evaluate") for r in repos[:5]])
-    brief.github_ai_projects = [e.repo for e in entries if e.scores.qualifies]
-    csv_path = export_screening_csv(entries)
-    insert("ir_daily_briefs", brief.to_dict())
-    # Bridge to KB
-    from shared.bridge import bridge_trending_to_kb
-    bridged = bridge_trending_to_kb([{"repo": e.repo, "qualifies": e.scores.qualifies} for e in entries])
-    return {"brief": brief.to_dict(), "qualified": sum(1 for e in entries if e.scores.qualifies),
-            "total": len(entries), "csv": str(csv_path), "bridged_to_kb": bridged}
+    del since, count
+    raise HTTPException(
+        status_code=409,
+        detail="legacy external collection is disabled; use /research/github-repository",
+    )
+
 
 def _guess(text: str) -> str:
-    for kw, cat in [("crawl|scrape|parser|extract","Crawler"),("convert|markdown|pdf|doc","Document to Markdown"),
-                     ("agent|coding|codex|copilot","AI Agent/Coding"),("llm|gateway|model","LLM Gateway"),
-                     ("rag|knowledge|search","RAG/Document Intelligence"),("memory","Memory"),("mcp|tool","Agent SDK")]:
-        if any(k in text for k in kw.split("|")): return cat
+    for kw, cat in [
+        ("crawl|scrape|parser|extract", "Crawler"),
+        ("convert|markdown|pdf|doc", "Document to Markdown"),
+        ("agent|coding|codex|copilot", "AI Agent/Coding"),
+        ("llm|gateway|model", "LLM Gateway"),
+        ("rag|knowledge|search", "RAG/Document Intelligence"),
+        ("memory", "Memory"),
+        ("mcp|tool", "Agent SDK"),
+    ]:
+        if any(k in text for k in kw.split("|")):
+            return cat
     return "AI Agent/Coding"
+
 
 def _score(text: str, pattern: str, base: float) -> float:
     return min(base + len(re.findall(pattern, text)) * 0.5, 5.0)

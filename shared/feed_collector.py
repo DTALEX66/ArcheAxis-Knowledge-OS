@@ -11,7 +11,6 @@ Usage:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any
 
 from defusedxml import ElementTree as DefusedElementTree
@@ -183,32 +182,8 @@ def collect_and_ingest(
     urls: list[str],
     max_items: int = 10,
 ) -> dict[str, Any]:
-    """Collect feeds and ingest into IR as research notes.
-
-    Returns:
-        {collected, ingested, items}.
-    """
-    import uuid
-
-    from shared.storage import insert
-
-    items = collect_feeds(urls, max_items=max_items)
-    now = datetime.now(timezone.utc).isoformat()
-
-    ingested = 0
-    for item in items:
-        note_id = f"rn_{uuid.uuid4().hex[:12]}"
-        insert(
-            "ir_research_notes",
-            {
-                "id": note_id,
-                "title": item.get("title", "Untitled")[:200],
-                "content": item.get("description", "")[:2000],
-                "source": item.get("source_feed", "rss"),
-                "tags": ["rss-feed"],
-                "created_at": now,
-            },
-        )
-        ingested += 1
-
-    return {"collected": len(items), "ingested": ingested, "items": items}
+    """Reject the retired feed-to-research-note persistence bypass."""
+    del urls, max_items
+    raise RuntimeError(
+        "legacy feed ingestion is disabled; external material must use a governed candidate path"
+    )

@@ -20,6 +20,7 @@ from typing import Any
 
 import networkx as nx
 
+from shared.research_boundary import unreviewed_research_references
 from shared.storage import insert, select_all
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -90,6 +91,10 @@ class GraphDB:
 
     def add_entity(self, entity_id: str, entity_type: str = "node", **props: Any) -> None:
         """Add or update an entity node."""
+        if unreviewed_research_references([entity_id]):
+            raise ValueError(
+                "candidate or external graph entities require server-owned Phase 5 review provenance"
+            )
         self._load()
         self._g.add_node(entity_id, entity_type=entity_type, **props)
         self._persist_entity(entity_id, entity_type, props)
@@ -98,6 +103,10 @@ class GraphDB:
         self, source: str, target: str, relation: str, weight: float = 1.0
     ) -> dict[str, Any]:
         """Add a directed edge between entities."""
+        if unreviewed_research_references([source, target]):
+            raise ValueError(
+                "candidate or external graph relations require server-owned Phase 5 review provenance"
+            )
         self._load()
         # Ensure nodes exist (lazy auto-create)
         if source not in self._g:

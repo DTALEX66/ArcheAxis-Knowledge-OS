@@ -15,6 +15,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
+from shared.research_boundary import unreviewed_research_references  # noqa: E402
 from shared.storage import insert, select_all  # noqa: E402
 
 
@@ -41,6 +42,10 @@ def index_evidence(
     """
     import uuid
 
+    if unreviewed_research_references([source_path]):
+        raise ValueError(
+            "candidate or external evidence sources require server-owned Phase 5 review provenance"
+        )
     eid = f"ev_{uuid.uuid4().hex[:12]}"
     evidence = {
         "id": eid,
