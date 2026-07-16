@@ -18,7 +18,10 @@ from __future__ import annotations
 
 import re
 import sqlite3
+from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
+from uuid import uuid4
 
 import numpy as np
 
@@ -27,6 +30,27 @@ from shared.stable_hash import stable_hash_text
 
 DEFAULT_DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
 _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+@dataclass(frozen=True)
+class VectorIndexCandidate:
+    """A validated, inactive vector index produced by a shadow rebuild.
+
+    The candidate owns only its temporary SQLite tables.  It deliberately has no
+    switch operation yet: callers must validate it before a future migration
+    boundary is allowed to replace the active index.
+    """
+
+    active_table: str
+    table_name: str
+    dim: int
+    db_path: str
+    object_ids: tuple[str, ...]
+    count: int
+
+    def discard(self) -> None:
+        """Drop this inactive candidate; the active index is never touched."""
+        VectorDB(table_name=self.table_name, dim=self.dim, db_path=self.db_path).drop()
 
 
 class VectorDB:
@@ -76,6 +100,64 @@ class VectorDB:
             conn.commit()
         finally:
             conn.close()
+
+    def build_candidate(
+        self, records: Iterable[tuple[str, np.ndarray]]
+    ) -> VectorIndexCandidate:
+        """Build and validate an inactive shadow index from canonical records.
+
+        This method never drops or writes the active index.  Record IDs and
+        vector dimensions are validated before candidate tables are created;
+        candidate tables are removed automatically if construction or validation
+        fails.  Switching and rollback remain separate migration operations.
+        """
+        materialized = tuple(records)
+        object_ids: list[str] = []
+        vectors: list[np.ndarray] = []
+        seen: set[str] = set()
+        for record in materialized:
+            try:
+                object_id, vector = record
+            except (TypeError, ValueError) as exc:
+                raise ValueError("candidate records must be (object_id, vector) pairs") from exc
+            if not isinstance(object_id, str) or not object_id:
+                raise ValueError("candidate object_id must be a non-empty string")
+            if object_id in seen:
+                raise ValueError(f"duplicate object_id in candidate: {object_id!r}")
+            seen.add(object_id)
+            array = np.asarray(vector, dtype=np.float32)
+            if array.shape != (self.dim,):
+                raise ValueError(
+                    f"candidate vector for {object_id!r} must have shape ({self.dim},)"
+                )
+            object_ids.append(object_id)
+            vectors.append(array)
+
+        candidate_table = f"{self.table_name}__candidate_{uuid4().hex}"
+        candidate_db = VectorDB(
+            table_name=candidate_table,
+            dim=self.dim,
+            db_path=self.db_path,
+        )
+        try:
+            candidate_db.init()
+            for object_id, vector in zip(object_ids, vectors, strict=True):
+                candidate_db.insert(object_id, vector)
+            actual_ids = set(candidate_db.list_ids(limit=max(len(object_ids), 1)))
+            if candidate_db.count() != len(object_ids) or actual_ids != seen:
+                raise RuntimeError("candidate index validation failed")
+        except Exception:
+            candidate_db.drop()
+            raise
+
+        return VectorIndexCandidate(
+            active_table=self.table_name,
+            table_name=candidate_table,
+            dim=self.dim,
+            db_path=self.db_path,
+            object_ids=tuple(object_ids),
+            count=len(object_ids),
+        )
 
     def drop(self) -> None:
         """Drop the virtual table + map (for teardown / rebuild)."""

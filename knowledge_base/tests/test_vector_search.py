@@ -97,6 +97,33 @@ class TestVectorDB:
         assert len(ids) == 5
         assert "id_0" in ids
 
+    def test_build_candidate_keeps_active_index_untouched(self):
+        e = SimpleTextEmbedder(dim=128)
+        self.vdb.insert("active", e.embed("active source"))
+
+        candidate = self.vdb.build_candidate(
+            [
+                ("candidate-a", e.embed("candidate source a")),
+                ("candidate-b", e.embed("candidate source b")),
+            ]
+        )
+
+        assert candidate.active_table == "test_vec_kb_p1_1"
+        assert candidate.table_name != candidate.active_table
+        assert candidate.object_ids == ("candidate-a", "candidate-b")
+        assert candidate.count == 2
+        assert self.vdb.count() == 1
+        assert self.vdb.list_ids() == ["active"]
+        candidate.discard()
+
+    def test_build_candidate_rejects_duplicate_ids_without_leaking_tables(self):
+        e = SimpleTextEmbedder(dim=128)
+        with pytest.raises(ValueError, match="duplicate object_id"):
+            self.vdb.build_candidate(
+                [("same", e.embed("one")), ("same", e.embed("two"))]
+            )
+        assert self.vdb.count() == 0
+
 
 # ── vector_search module ────────────────────────────────
 
