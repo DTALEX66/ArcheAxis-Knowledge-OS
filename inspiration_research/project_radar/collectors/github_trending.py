@@ -7,10 +7,11 @@ and auto-detection of already-registered projects in the open-source registry.
 from __future__ import annotations
 
 import json
-import urllib.error
-import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
+
+from shared.safe_http import SafeHTTPError, SafeHTTPPolicy, fetch
 
 
 @dataclass
@@ -66,22 +67,30 @@ def _search_github(query: str, per_page: int = 10) -> list[dict]:
     """Search GitHub repos via REST API. No auth = 10 req/min."""
     url = (
         f"https://api.github.com/search/repositories"
-        f"?q={urllib.request.quote(query)}"
+        f"?q={quote(query)}"
         f"&sort=stars&order=desc&per_page={per_page}"
     )
-    req = urllib.request.Request(url)
-    req.add_header("Accept", "application/vnd.github.v3+json")
-    req.add_header("User-Agent", "Cognitive-Loop-OS/0.3")
-
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return data.get("items", [])
-    except urllib.error.HTTPError as e:
-        if e.code == 403:
-            print(f"GitHub API rate limited: {e}")
+        response = fetch(
+            url,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "User-Agent": "Cognitive-Loop-OS/0.3",
+            },
+            policy=SafeHTTPPolicy(
+                timeout=15,
+                max_bytes=2_000_000,
+                allowed_hosts=("api.github.com",),
+                allowed_content_types=("application/json",),
+            ),
+        )
+        data = json.loads(response.body.decode("utf-8"))
+        return data.get("items", [])
+    except SafeHTTPError as exc:
+        if "HTTP status 403" in str(exc):
+            print(f"GitHub API rate limited: {exc}")
         return []
-    except Exception as e:
+    except (UnicodeDecodeError, json.JSONDecodeError) as e:
         print(f"GitHub API error: {e}")
         return []
 

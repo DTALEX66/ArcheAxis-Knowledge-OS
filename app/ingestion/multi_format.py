@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.safe_http import SafeHTTPPolicy, fetch
+
 # ── Format detection ──
 
 
@@ -87,16 +89,10 @@ def _via_docling(file_path: str | Path) -> str:
 # ── Engine: trafilatura (web/HTML) ──
 
 
-def _via_trafilatura(source: str, is_url: bool = False) -> str:
+def _via_trafilatura(source: str) -> str:
     import trafilatura
 
-    if is_url:
-        downloaded = trafilatura.fetch_url(source)
-        if downloaded is None:
-            raise RuntimeError(f"trafilatura failed to fetch: {source}")
-        text = trafilatura.extract(downloaded, output_format="markdown")
-    else:
-        text = trafilatura.extract(source, output_format="markdown")
+    text = trafilatura.extract(source, output_format="markdown")
     if not text:
         raise RuntimeError("trafilatura extraction returned empty")
     return text
@@ -190,25 +186,15 @@ def convert_url(url: str) -> tuple[str, str]:
     Returns:
         (markdown_content, engine_used)
     """
-    # Try crawl4ai first (best quality for JS-heavy pages)
-    try:
-        import asyncio
-
-        from crawl4ai import AsyncWebCrawler
-
-        async def _crawl():
-            async with AsyncWebCrawler() as crawler:
-                result = await crawler.arun(url=url)
-                return result.markdown
-
-        return asyncio.run(_crawl()), "crawl4ai"
-    except ImportError:
-        pass
-    except Exception:
-        pass
-
-    # Fallback to trafilatura
-    return _via_trafilatura(url, is_url=True), "trafilatura"
+    response = fetch(
+        url,
+        policy=SafeHTTPPolicy(
+            max_bytes=5_000_000,
+            allowed_content_types=("text/html", "application/xhtml+xml"),
+        ),
+    )
+    html = response.body.decode("utf-8", errors="replace")
+    return _via_trafilatura(html), "safe-http+trafilatura"
 
 
 # ── Batch conversion ──

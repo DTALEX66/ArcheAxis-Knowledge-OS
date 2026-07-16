@@ -11,16 +11,13 @@ Usage:
 
 from __future__ import annotations
 
-import sys
-import urllib.request
-import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+from defusedxml import ElementTree as DefusedElementTree
+from defusedxml.common import DefusedXmlException
 
+from shared.safe_http import SafeHTTPError, SafeHTTPPolicy, fetch
 
 # ── Built-in feed discovery ─────────────────────────────
 
@@ -50,7 +47,7 @@ BUILTIN_FEEDS: dict[str, list[str]] = {
 
 def _parse_rss(xml_bytes: bytes) -> list[dict[str, Any]]:
     """Parse RSS 2.0 XML into items."""
-    root = ET.fromstring(xml_bytes)
+    root = DefusedElementTree.fromstring(xml_bytes)
     items = []
     for item in root.iter("item"):
         entry: dict[str, Any] = {
@@ -78,7 +75,7 @@ def _parse_rss(xml_bytes: bytes) -> list[dict[str, Any]]:
 def _parse_atom(xml_bytes: bytes) -> list[dict[str, Any]]:
     """Parse Atom XML into items."""
     ns = {"atom": "http://www.w3.org/2005/Atom"}
-    root = ET.fromstring(xml_bytes)
+    root = DefusedElementTree.fromstring(xml_bytes)
     items = []
     for entry in root.findall("atom:entry", ns):
         title_el = entry.find("atom:title", ns)
@@ -105,16 +102,25 @@ def _parse_atom(xml_bytes: bytes) -> list[dict[str, Any]]:
 def _fetch_url(url: str, timeout: int = 15) -> bytes | None:
     """Fetch a URL, return bytes or None."""
     try:
-        req = urllib.request.Request(
+        response = fetch(
             url,
             headers={
                 "User-Agent": "Cognitive-Loop-OS/0.3 Feed Collector",
                 "Accept": "application/rss+xml, application/atom+xml, application/xml",
             },
+            policy=SafeHTTPPolicy(
+                timeout=min(timeout, 60),
+                max_bytes=2_000_000,
+                allowed_content_types=(
+                    "application/atom+xml",
+                    "application/rss+xml",
+                    "application/xml",
+                    "text/xml",
+                ),
+            ),
         )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.read()
-    except Exception:
+        return response.body
+    except SafeHTTPError:
         return None
 
 
@@ -144,10 +150,14 @@ def collect_feeds(
         if not data:
             continue
 
-        # Try RSS, then Atom
-        items = _parse_rss(data)
-        if not items:
-            items = _parse_atom(data)
+        # Try RSS, then Atom. Malformed or hostile XML is a failed feed, not a
+        # reason to abort the entire collection batch.
+        try:
+            items = _parse_rss(data)
+            if not items:
+                items = _parse_atom(data)
+        except (DefusedXmlException, DefusedElementTree.ParseError):
+            continue
 
         for item in items:
             key = item["link"] or item["title"]

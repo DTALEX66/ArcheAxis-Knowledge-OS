@@ -11,15 +11,10 @@ Usage:
 
 from __future__ import annotations
 
-import sys
 import urllib.parse
-import urllib.request
-from pathlib import Path
 from typing import Any
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
-
+from shared.safe_http import SafeHTTPError, SafeHTTPPolicy, fetch
 
 # ── DuckDuckGo search (no API key) ─────────────────────
 
@@ -27,17 +22,20 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 def _ddg_html_search(query: str, limit: int = 10) -> list[dict[str, Any]]:
     """Search DuckDuckGo via HTML (lite version, no JS)."""
     url = f"https://lite.duckduckgo.com/lite/?q={urllib.parse.quote(query)}"
-    req = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": "Cognitive-Loop-OS/0.3 WebSearch",
-        },
-    )
-
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            html = resp.read().decode("utf-8", errors="replace")
-    except Exception:
+        response = fetch(
+            url,
+            headers={
+                "User-Agent": "Cognitive-Loop-OS/0.3 WebSearch",
+            },
+            policy=SafeHTTPPolicy(
+                max_bytes=5_000_000,
+                allowed_hosts=("lite.duckduckgo.com",),
+                allowed_content_types=("text/html",),
+            ),
+        )
+        html = response.body.decode("utf-8", errors="replace")
+    except (SafeHTTPError, UnicodeDecodeError):
         return []
 
     # Parse DuckDuckGo Lite results
@@ -101,11 +99,18 @@ def extract_content(url: str, max_chars: int = 10000) -> dict[str, Any]:
     Returns:
         {url, title, content, char_count, engine}.
     """
-    # Try trafilatura first
+    # Fetch once through Safe HTTP, then extract locally.
     try:
         import trafilatura
 
-        downloaded = trafilatura.fetch_url(url)
+        response = fetch(
+            url,
+            policy=SafeHTTPPolicy(
+                max_bytes=5_000_000,
+                allowed_content_types=("text/html", "application/xhtml+xml"),
+            ),
+        )
+        downloaded = response.body.decode("utf-8", errors="replace")
         if downloaded:
             result = trafilatura.extract(
                 downloaded, include_links=False, include_images=False, include_tables=False
@@ -121,20 +126,21 @@ def extract_content(url: str, max_chars: int = 10000) -> dict[str, Any]:
     except Exception:
         pass
 
-    # Fallback: requests + BeautifulSoup
+    # Fallback: BeautifulSoup over the same bounded response.
     try:
-        import requests
         from bs4 import BeautifulSoup
 
-        resp = requests.get(
+        response = fetch(
             url,
-            timeout=15,
             headers={
                 "User-Agent": "Cognitive-Loop-OS/0.3 ContentExtractor",
             },
+            policy=SafeHTTPPolicy(
+                max_bytes=5_000_000,
+                allowed_content_types=("text/html", "application/xhtml+xml"),
+            ),
         )
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
+        soup = BeautifulSoup(response.body, "html.parser")
 
         # Remove script, style, nav, footer
         for tag in soup(["script", "style", "nav", "footer", "header"]):

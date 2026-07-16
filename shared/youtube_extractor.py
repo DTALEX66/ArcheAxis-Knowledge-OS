@@ -11,14 +11,14 @@ Usage:
 
 from __future__ import annotations
 
+import json
 import re
-import sys
-import urllib.request
-from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
+from defusedxml import ElementTree as DefusedElementTree
+
+from shared.safe_http import SafeHTTPError, SafeHTTPPolicy, fetch
 
 
 def _extract_video_id(url: str) -> str | None:
@@ -40,24 +40,24 @@ def get_video_info(video_id: str) -> dict[str, Any]:
         f"https://www.youtube.com/oembed?url=https://youtube.com/watch?v={video_id}&format=json"
     )
     try:
-        req = urllib.request.Request(
+        response = fetch(
             oembed_url,
-            headers={
-                "User-Agent": "Cognitive-Loop-OS/0.3",
-            },
+            headers={"User-Agent": "Cognitive-Loop-OS/0.3"},
+            policy=SafeHTTPPolicy(
+                max_bytes=256_000,
+                allowed_hosts=("www.youtube.com", "youtube.com"),
+                allowed_content_types=("application/json",),
+            ),
         )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            import json
-
-            data = json.loads(resp.read().decode("utf-8"))
-            return {
-                "video_id": video_id,
-                "title": data.get("title", ""),
-                "author": data.get("author_name", ""),
-                "thumbnail": data.get("thumbnail_url", ""),
-                "url": f"https://youtube.com/watch?v={video_id}",
-            }
-    except Exception:
+        data = json.loads(response.body.decode("utf-8"))
+        return {
+            "video_id": video_id,
+            "title": data.get("title", ""),
+            "author": data.get("author_name", ""),
+            "thumbnail": data.get("thumbnail_url", ""),
+            "url": f"https://youtube.com/watch?v={video_id}",
+        }
+    except (SafeHTTPError, UnicodeDecodeError, json.JSONDecodeError):
         return {"video_id": video_id, "title": "", "author": "", "error": "oembed failed"}
 
 
@@ -115,36 +115,38 @@ def search_youtube(query: str, max_results: int = 5) -> list[dict[str, Any]]:
 
     Returns list of {video_id, title, url}.
     """
-    encoded = urllib.parse.quote(query)
+    encoded = quote(query)
     feed_url = f"https://www.youtube.com/feeds/videos.xml?q={encoded}"
 
     try:
-        req = urllib.request.Request(
+        response = fetch(
             feed_url,
             headers={
                 "User-Agent": "Cognitive-Loop-OS/0.3",
             },
+            policy=SafeHTTPPolicy(
+                max_bytes=2_000_000,
+                allowed_hosts=("www.youtube.com", "youtube.com"),
+                allowed_content_types=("application/atom+xml", "application/xml", "text/xml"),
+            ),
         )
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            import xml.etree.ElementTree as ET
-
-            ns = {"atom": "http://www.w3.org/2005/Atom"}
-            root = ET.fromstring(resp.read())
-            results = []
-            for entry in root.findall("atom:entry", ns)[:max_results]:
-                title_el = entry.find("atom:title", ns)
-                link_el = entry.find("atom:link", ns)
-                vid = ""
-                if link_el is not None:
-                    href = link_el.get("href", "")
-                    vid = _extract_video_id(href) or ""
-                results.append(
-                    {
-                        "video_id": vid,
-                        "title": title_el.text if title_el is not None else "",
-                        "url": f"https://youtube.com/watch?v={vid}",
-                    }
-                )
-            return results
-    except Exception:
+        ns = {"atom": "http://www.w3.org/2005/Atom"}
+        root = DefusedElementTree.fromstring(response.body)
+        results = []
+        for entry in root.findall("atom:entry", ns)[:max_results]:
+            title_el = entry.find("atom:title", ns)
+            link_el = entry.find("atom:link", ns)
+            vid = ""
+            if link_el is not None:
+                href = link_el.get("href", "")
+                vid = _extract_video_id(href) or ""
+            results.append(
+                {
+                    "video_id": vid,
+                    "title": title_el.text if title_el is not None else "",
+                    "url": f"https://youtube.com/watch?v={vid}",
+                }
+            )
+        return results
+    except (SafeHTTPError, DefusedElementTree.ParseError):
         return []
