@@ -9,7 +9,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard 与 Phase 2 首批版本化 Contracts 已完成。Phase 3 安全和数据正确性 P0 正在推进：源码内置管理员凭据、Token 角色提升与主网关限流已经关闭，下一项是统一 Safe HTTP。Phase 7 已有一条真实 `file_read` 证据闭环，但通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Alpha 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard 与 Phase 2 首批版本化 Contracts 已完成。Phase 3 安全和数据正确性 P0 正在收口：管理员凭据、Token 角色提升、主网关限流、Safe HTTP、approved roots、稳定哈希及 Vector/FTS shadow rebuild/switch/rollback 边界已经建立；下一项是通用 Migration Runner 与 Phase 3 集成验收。Phase 7 已有一条真实 `file_read` 证据闭环，但通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Alpha 仍未完成。
 
 ## 规划与进度
 
@@ -21,7 +21,7 @@ Research → Evidence → Knowledge → Learning
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
 | Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
 | Phase 2 | 版本化 Contracts 与旧对象 Adapter | ✅ 已完成首批合同 | 路线图列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已有严格 tracer |
-| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | 🟡 进行中 | 管理员凭据、角色提升、Rate Limiter 已完成；下一项 Safe HTTP |
+| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | 🟡 收口中 | Safe HTTP、roots、stable hash、Vector/FTS 回滚边界已完成；下一项通用 Migration Runner |
 | Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | 🟡 已有首条纵向 tracer | `file_read` 已有真实证据链；通用规划与 Sleep/Runtime 统一仍待完成 |
 | Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
@@ -46,10 +46,12 @@ Phase 0 真实基线 ✅
 → 移除代码内默认管理员 Key ✅
 → 阻止 Token 请求者自选管理员角色 ✅
 → 主网关 Rate Limiter + proxy trust 边界 ✅
-→ 统一 Safe HTTP（当前刀）
+→ 统一 Safe HTTP + approved roots ✅
+→ stable hash + Vector/FTS shadow switch/rollback ✅
+→ 通用 Migration Runner + Phase 3 集成验收（当前刀）
 ```
 
-当前刀：**Phase 3 第三项——统一 Safe HTTP**。必须统一 DNS/IP、私网和 metadata 拒绝、redirect 逐跳复核、响应大小、Content-Type 与 timeout；它属于安全边界，继续使用独立 frozen tree、完整门禁、reviewer 与 exact-SHA CI。
+当前刀：**Phase 3 第八项——通用 Migration Runner 与集成收口**。需要把现有 TaskPack migration、Vector/FTS candidate activation/rollback 纳入可注册 owner、operator status/apply/rollback 与一致的 provenance 边界；它属于数据库与架构边界，继续使用独立 frozen tree、完整门禁、reviewer 与 exact-SHA CI。
 
 本阶段明确不宣称：Phase 3 安全 P0 整体、Phase 4 Research 闭环、通用 Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
 

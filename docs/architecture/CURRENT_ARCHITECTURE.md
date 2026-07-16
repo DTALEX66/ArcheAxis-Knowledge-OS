@@ -104,5 +104,5 @@ Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细
 - `knowledge_base/api.py` 已将复合、质量和投影路由拆出，但仍有遗留领域路由；后续按 search/learning/obsidian/admin 继续迁移。
 - Knowledge Base 已迁为正规可安装包；2026-07-14 本地隔离 wheel smoke 已验证模板、运行入口和 runtime root，远端 CI 仍以提交后的实际结果为准。
 - 旧细粒度 API 尚未全部隐藏或废弃，因此实时路由数仍较高。
-- Safe HTTP、统一 approved roots、稳定哈希和可回滚 FTS/Vector rebuild 尚未完成。
+- Safe HTTP、approved roots、versioned stable hash 与 Vector/FTS shadow rebuild/switch/rollback 已建立；通用 migration registry/operator 和 owner 生命周期统一尚未完成。
 - Runtime 只验证了 `file_read` 显式意图；通用 Planner、Reviewed Feedback 与 Sleep Loop 统一执行 port 仍待完成。
