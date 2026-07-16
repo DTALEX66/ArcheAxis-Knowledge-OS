@@ -11,6 +11,7 @@ from typing import Any
 from uuid import uuid4
 
 from shared.config import config, resolve_runtime_path
+from shared.stable_hash import stable_hash_text
 
 
 def _resolve_database_path() -> Path:
@@ -328,13 +329,78 @@ _FTS_SOURCE_SPECS = {
         "kb_documents_fts",
         "CREATE VIRTUAL TABLE {candidate} USING fts5("
         "id UNINDEXED, title, content, source, tokenize='porter unicode61')",
+        ("id", "title", "content", "source"),
+        ("id", "title", "content", "source"),
     ),
     "kb_cards": (
         "kb_cards_fts",
         "CREATE VIRTUAL TABLE {candidate} USING fts5("
         "id UNINDEXED, title, content, tags, tokenize='porter unicode61')",
+        ("id", "title", "content", "tags"),
+        ("id", "title", "content", "tags_json AS tags"),
     ),
 }
+
+
+def _fts_row_fingerprint(row: sqlite3.Row, columns: tuple[str, ...]) -> str:
+    payload = json.dumps(
+        [row[column] for column in columns],
+        ensure_ascii=False,
+        separators=(",", ":"),
+        default=str,
+    )
+    return stable_hash_text(payload, namespace="fts-row")
+
+
+@dataclass(frozen=True)
+class FtsIndexRollback:
+    """Rollback handle for one successful FTS candidate activation."""
+
+    active_table: str
+    backup_table: str
+    candidate_table: str
+    create_sql: str
+    columns: tuple[str, ...]
+    db_path: str
+
+    def rollback(self) -> None:
+        """Restore the pre-activation FTS rows and remove migration tables."""
+        connection = sqlite3.connect(self.db_path)
+        quoted_active = f'"{self.active_table}"'
+        quoted_backup = f'"{self.backup_table}"'
+        quoted_candidate = f'"{self.candidate_table}"'
+        quoted_columns = ", ".join(f'"{column}"' for column in self.columns)
+        try:
+            names = {
+                row[0]
+                for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE name IN (?, ?)",
+                    (self.active_table, self.backup_table),
+                )
+            }
+            if names != {self.active_table, self.backup_table}:
+                raise ValueError("FTS rollback source missing")
+            rows = connection.execute(
+                f"SELECT rowid, {quoted_columns} FROM {quoted_backup} ORDER BY rowid"
+            ).fetchall()
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(f"DELETE FROM {quoted_active}")
+            for row in rows:
+                values = (row[0], *row[1:])
+                placeholders = ", ".join("?" for _ in values)
+                connection.execute(
+                    f"INSERT INTO {quoted_active}(rowid, {quoted_columns}) "
+                    f"VALUES ({placeholders})",
+                    values,
+                )
+            connection.execute(f"DROP TABLE IF EXISTS {quoted_candidate}")
+            connection.execute(f"DROP TABLE {quoted_backup}")
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
 
 
 @dataclass(frozen=True)
@@ -346,27 +412,106 @@ class FtsIndexCandidate:
     table_name: str
     db_path: str
     object_ids: tuple[str, ...]
+    rowids: tuple[int, ...]
     count: int
+    row_fingerprints: tuple[str, ...]
+    create_sql: str
+    columns: tuple[str, ...]
 
     def verify(self) -> bool:
-        """Verify candidate cardinality and IDs without touching the active index."""
+        """Verify candidate payload and source without touching active FTS."""
+        spec = _FTS_SOURCE_SPECS.get(self.source_table)
+        if spec is None:
+            raise RuntimeError("FTS candidate verification failed")
+        _, _, columns, source_columns = spec
+        quoted_columns = ", ".join(f'"{column}"' for column in columns)
         try:
             with sqlite3.connect(self.db_path) as connection:
-                actual_ids = tuple(
-                    str(row[0])
-                    for row in connection.execute(
-                        f'SELECT id FROM "{self.table_name}" ORDER BY rowid'
-                    ).fetchall()
+                connection.row_factory = sqlite3.Row
+                candidate_rows = connection.execute(
+                    f'SELECT rowid, {quoted_columns} FROM "{self.table_name}" ORDER BY rowid'
+                ).fetchall()
+                source_rows = connection.execute(
+                    f'SELECT rowid, {", ".join(source_columns)} FROM "{self.source_table}" ORDER BY rowid'
+                ).fetchall()
+                actual_rowids = tuple(int(row["rowid"]) for row in candidate_rows)
+                actual_ids = tuple(str(row["id"]) for row in candidate_rows)
+                actual_fingerprints = tuple(
+                    _fts_row_fingerprint(row, columns) for row in candidate_rows
+                )
+                source_rowids = tuple(int(row["rowid"]) for row in source_rows)
+                source_ids = tuple(str(row["id"]) for row in source_rows)
+                source_fingerprints = tuple(
+                    _fts_row_fingerprint(row, columns) for row in source_rows
                 )
         except (OSError, sqlite3.Error) as exc:
             raise RuntimeError("FTS candidate verification failed") from exc
         if (
             len(actual_ids) != self.count
             or len(set(actual_ids)) != len(actual_ids)
-            or set(actual_ids) != set(self.object_ids)
+            or actual_rowids != self.rowids
+            or actual_ids != self.object_ids
+            or actual_fingerprints != self.row_fingerprints
+            or source_rowids != self.rowids
+            or source_ids != self.object_ids
+            or source_fingerprints != self.row_fingerprints
         ):
             raise RuntimeError("FTS candidate verification failed")
         return True
+
+    def activate(self) -> FtsIndexRollback:
+        """Replace active FTS rows after verification and retain a rollback copy."""
+        self.verify()
+        backup_table = f"{self.active_table}__rollback_{uuid4().hex}"
+        quoted_active = f'"{self.active_table}"'
+        quoted_candidate = f'"{self.table_name}"'
+        quoted_backup = f'"{backup_table}"'
+        quoted_columns = ", ".join(f'"{column}"' for column in self.columns)
+        connection = _conn()
+        try:
+            _validated_table(connection, self.active_table)
+            _validated_table(connection, self.table_name)
+            connection.execute(self.create_sql.format(candidate=quoted_backup))
+            active_rows = connection.execute(
+                f"SELECT rowid, {quoted_columns} FROM {quoted_active} ORDER BY rowid"
+            ).fetchall()
+            candidate_rows = connection.execute(
+                f"SELECT rowid, {quoted_columns} FROM {quoted_candidate} ORDER BY rowid"
+            ).fetchall()
+            connection.execute("BEGIN IMMEDIATE")
+            for row in active_rows:
+                values = (row[0], *row[1:])
+                placeholders = ", ".join("?" for _ in values)
+                connection.execute(
+                    f"INSERT INTO {quoted_backup}(rowid, {quoted_columns}) "
+                    f"VALUES ({placeholders})",
+                    values,
+                )
+            connection.execute(f"DELETE FROM {quoted_active}")
+            for row in candidate_rows:
+                values = (row[0], *row[1:])
+                placeholders = ", ".join("?" for _ in values)
+                connection.execute(
+                    f"INSERT INTO {quoted_active}(rowid, {quoted_columns}) "
+                    f"VALUES ({placeholders})",
+                    values,
+                )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            connection.execute(f"DROP TABLE IF EXISTS {quoted_backup}")
+            connection.commit()
+            raise
+        finally:
+            connection.close()
+        return FtsIndexRollback(
+            active_table=self.active_table,
+            backup_table=backup_table,
+            candidate_table=self.table_name,
+            create_sql=self.create_sql,
+            columns=self.columns,
+            db_path=self.db_path,
+        )
 
     def discard(self) -> None:
         """Drop this inactive candidate; the active index is never touched."""
@@ -507,20 +652,23 @@ def build_fts_candidate(source_table: str) -> FtsIndexCandidate:
     spec = _FTS_SOURCE_SPECS.get(source_table)
     if spec is None:
         raise ValueError(f"unsupported FTS source table: {source_table}")
-    active_table, create_sql = spec
+    active_table, create_sql, columns, source_columns = spec
     connection = _conn()
     candidate_table = f"{active_table}__candidate_{uuid4().hex}"
     quoted_candidate = f'"{candidate_table}"'
     try:
         _validated_table(connection, source_table)
         rows = connection.execute(
-            f'SELECT id, title, content FROM "{source_table}" ORDER BY rowid'
+            f'SELECT rowid, {", ".join(source_columns)} FROM "{source_table}" ORDER BY rowid'
         ).fetchall()
         connection.execute(create_sql.format(candidate=quoted_candidate))
+        quoted_columns = ", ".join(f'"{column}"' for column in columns)
+        placeholders = ", ".join("?" for _ in range(len(columns) + 1))
         for row in rows:
             connection.execute(
-                f'INSERT INTO {quoted_candidate}(id, title, content) VALUES (?, ?, ?)',
-                (row["id"], row["title"], row["content"]),
+                f"INSERT INTO {quoted_candidate}(rowid, {quoted_columns}) "
+                f"VALUES ({placeholders})",
+                (row["rowid"], *(row[column] for column in columns)),
             )
         connection.commit()
     except Exception:
@@ -537,7 +685,11 @@ def build_fts_candidate(source_table: str) -> FtsIndexCandidate:
         table_name=candidate_table,
         db_path=str(DB_PATH),
         object_ids=object_ids,
+        rowids=tuple(int(row["rowid"]) for row in rows),
         count=len(object_ids),
+        row_fingerprints=tuple(_fts_row_fingerprint(row, columns) for row in rows),
+        create_sql=create_sql,
+        columns=columns,
     )
     try:
         candidate.verify()
