@@ -114,6 +114,21 @@ class TestVectorDB:
         assert candidate.count == 2
         assert self.vdb.count() == 1
         assert self.vdb.list_ids() == ["active"]
+        assert candidate.verify() is True
+        candidate.discard()
+
+    def test_candidate_verification_fails_closed_without_touching_active_index(self):
+        e = SimpleTextEmbedder(dim=128)
+        self.vdb.insert("active", e.embed("active source"))
+        candidate = self.vdb.build_candidate([("candidate", e.embed("candidate source"))])
+
+        candidate_db = VectorDB(table_name=candidate.table_name, dim=128)
+        candidate_db.delete("candidate")
+
+        with pytest.raises(RuntimeError, match="candidate verification failed"):
+            candidate.verify()
+        assert self.vdb.count() == 1
+        assert self.vdb.list_ids() == ["active"]
         candidate.discard()
 
     def test_build_candidate_rejects_duplicate_ids_without_leaking_tables(self):

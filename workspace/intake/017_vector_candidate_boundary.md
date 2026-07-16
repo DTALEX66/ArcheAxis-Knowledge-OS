@@ -9,10 +9,11 @@
 - 新增 `VectorDB.build_candidate(records)`，在 active index 之外生成唯一 candidate 表；
 - 在创建 candidate 表前拒绝空 ID、重复 ID、错误向量维度和非法 record 结构；
 - candidate 构建后校验记录数与 object ID 集合；
-- 构建或校验失败时自动清理 candidate 表；
+- 增加 `VectorIndexCandidate.verify()`：切换前可重复验证 candidate 的记录数和 object ID 集合，异常或不一致时 fail closed；验证只读 candidate，不触碰 active index；
+- 构建阶段校验失败时自动清理 candidate 表；
 - `VectorIndexCandidate.discard()` 只删除 candidate，不触碰 active index；
-- 测试证明 active index 在 candidate 构建期间保持不变。
+- 测试证明 active index 在 candidate 构建和 candidate 验证失败期间保持不变。
 
-## 后续边界
+## 本轮边界
 
-candidate 只是迁移的中间态，不代表已切换或已完成 rollback。后续独立切片必须先定义 canonical rows/FTS 对应合同，再实现 verify → switch → rollback，并保持 active index 在失败路径可恢复。
+`verify()` 只建立 candidate 完整性前置条件，不执行 active switch、rollback、FTS rebuild 或数据库 schema migration。

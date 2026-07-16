@@ -48,6 +48,23 @@ class VectorIndexCandidate:
     object_ids: tuple[str, ...]
     count: int
 
+    def verify(self) -> bool:
+        """Verify candidate cardinality and IDs without mutating either index.
+
+        Verification is intentionally fail-closed so a later switch operation can
+        require an intact candidate as a precondition.  The active table is not
+        opened or modified by this check.
+        """
+        candidate_db = VectorDB(table_name=self.table_name, dim=self.dim, db_path=self.db_path)
+        try:
+            actual_count = candidate_db.count()
+            actual_ids = set(candidate_db.list_ids(limit=max(self.count, 1)))
+        except Exception as exc:
+            raise RuntimeError("candidate verification failed") from exc
+        if actual_count != self.count or actual_ids != set(self.object_ids):
+            raise RuntimeError("candidate verification failed")
+        return True
+
     def discard(self) -> None:
         """Drop this inactive candidate; the active index is never touched."""
         VectorDB(table_name=self.table_name, dim=self.dim, db_path=self.db_path).drop()
