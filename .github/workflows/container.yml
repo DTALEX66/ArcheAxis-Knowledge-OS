@@ -135,7 +135,7 @@ jobs:
           test "$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml exec -T caddy /usr/bin/caddy version)" = "v2.11.4"
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml exec -T core sh -c 'printf persisted > /app/data/container-persistence.txt'
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml restart core
-          docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml up -d --wait core caddy
+          curl --retry 60 --retry-delay 2 --retry-all-errors -fsS http://127.0.0.1:8080/health >/dev/null
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml exec -T core sh -c 'test "$(cat /app/data/container-persistence.txt)" = "persisted"'
 
       - name: Exercise verified backup and offline restore activation

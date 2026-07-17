@@ -8,11 +8,12 @@ from argparse import Namespace
 from pathlib import Path
 
 import pytest
+import yaml
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
     import tomli as tomllib
-import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -455,8 +456,11 @@ def test_container_workflow_builds_real_stack_and_checks_runtime_contracts():
     assert "restart core" in workflow
     restart = workflow.index("restart core")
     first_backup_write = workflow.index("restore-before")
-    post_restart_wait = workflow.index("up -d --wait core caddy", restart)
-    assert restart < post_restart_wait < first_backup_write
+    post_restart_health = workflow.index(
+        "curl --retry 60 --retry-delay 2 --retry-all-errors -fsS http://127.0.0.1:8080/health",
+        restart,
+    )
+    assert restart < post_restart_health < first_backup_write
     assert "restore-candidate" in workflow
     assert "restore-activate" in workflow
     assert "integrity" in workflow
