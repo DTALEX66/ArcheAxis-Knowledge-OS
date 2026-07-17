@@ -287,6 +287,15 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
             return {"owner": owner, "state": "applied"}
 
         def status(self):
+            assert events == [
+                "lease-enter",
+                "prepare-file",
+                "checkpoint",
+                "operator-init",
+                "apply",
+                "checkpoint",
+            ]
+            events.append("status")
             return []
 
     backup_dir_path = backup_dir
@@ -304,6 +313,8 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
         "checkpoint",
         "operator-init",
         "apply",
+        "checkpoint",
+        "status",
         "lease-exit",
     ]
 

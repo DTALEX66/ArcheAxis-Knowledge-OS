@@ -86,10 +86,12 @@ def run_migration(_: argparse.Namespace) -> int:
             if owner.kind.startswith("sqlite")
         ]
         backup.ensure_volume_identity(database)
+        backup.prepare_runtime_database()
+        status = operator.status()
     payload = {
         "database": str(database),
         "operator_results": results,
-        "status": operator.status(),
+        "status": status,
     }
     print(json.dumps(payload, default=_json_default, sort_keys=True), flush=True)
     return 0
