@@ -10,7 +10,7 @@ from inspiration_research.project_radar.scoring.scorer import score_project
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 REGISTRY_PATH = (
-    _PROJECT_ROOT / "shared-contracts" / "registries" / "open_source_project_registry.json"
+    _PROJECT_ROOT / "inspiration_research" / "resources" / "open_source_project_registry.json"
 )
 
 
