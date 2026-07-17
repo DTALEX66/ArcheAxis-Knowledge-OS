@@ -407,6 +407,13 @@ def _require_offline_database(database: Path) -> None:
                 raise
 
 
+def prepare_runtime_database() -> None:
+    """Checkpoint residual WAL state after the sole runtime lease is acquired."""
+
+    if DB_PATH.is_file():
+        _require_offline_database(DB_PATH)
+
+
 def _activate_restore_locked(candidate: Path, candidate_hash: str, database: Path) -> str:
     _require_offline_database(database)
     live_metadata = _validate_sqlite_database(database)

@@ -206,6 +206,39 @@ def test_container_entrypoint_delegates_to_existing_migration_and_backup_apis():
     assert "INSERT INTO schema_migrations" not in entrypoint
 
 
+def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock(monkeypatch):
+    from app import container_entrypoint
+    from shared import backup
+
+    events: list[str] = []
+
+    class ExecReachedError(RuntimeError):
+        pass
+
+    monkeypatch.setattr(backup, "acquire_runtime_lock", lambda: events.append("lock"))
+    monkeypatch.setattr(
+        backup,
+        "prepare_runtime_database",
+        lambda: events.append("checkpoint"),
+        raising=False,
+    )
+    monkeypatch.setattr(
+        container_entrypoint,
+        "_validate_storage_schema",
+        lambda: events.append("validate"),
+    )
+
+    def stop_at_exec(_command):
+        events.append("exec")
+        raise ExecReachedError
+
+    monkeypatch.setattr(container_entrypoint, "_exec_process", stop_at_exec)
+
+    with pytest.raises(ExecReachedError):
+        container_entrypoint.run_core(Namespace())
+    assert events == ["lock", "checkpoint", "validate", "exec"]
+
+
 def test_container_migration_records_operator_provenance_and_backup(
     monkeypatch, tmp_path, capsys
 ):
