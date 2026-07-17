@@ -1,0 +1,6 @@
+services:
+  caddy:
+    volumes:
+      - ./docker/Caddyfile.ci:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config

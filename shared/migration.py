@@ -78,8 +78,9 @@ class MigrationRun:
     backup_path: Path | None
 
 
-def _connect(path: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(str(path), timeout=30.0)
+def _connect(path: Path, *, read_only: bool = False) -> sqlite3.Connection:
+    target = f"{path.resolve().as_uri()}?mode=ro" if read_only else str(path)
+    connection = sqlite3.connect(target, timeout=30.0, uri=read_only)
     connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     return connection
@@ -97,7 +98,7 @@ def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
 def _validate_database(path: Path) -> None:
     if not path.is_file():
         raise FileNotFoundError(f"SQLite database not found: {path}")
-    with closing(_connect(path)) as connection:
+    with closing(_connect(path, read_only=True)) as connection:
         result = connection.execute("PRAGMA integrity_check").fetchone()[0]
         if result != "ok":
             raise RuntimeError(f"SQLite integrity check failed for {path}: {result}")
@@ -514,7 +515,7 @@ def status(*, db_path: str | Path = DB_PATH) -> dict[str, object]:
 
     database = Path(db_path)
     _validate_database(database)
-    with closing(_connect(database)) as connection:
+    with closing(_connect(database, read_only=True)) as connection:
         taskpack_exists = _table_exists(connection, "kb_taskpacks")
         pending = _taskpack_migrations_pending(connection)
         recorded = _recorded_taskpack_migrations(connection)

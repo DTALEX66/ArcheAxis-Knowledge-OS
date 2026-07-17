@@ -147,14 +147,17 @@ def retro(action: str = "weekly", days: int = 7):
 
 
 @router.get("/projects")
-def projects(action: str = "suggest", topic: str = "", limit: int = 5):
-    if action == "generate" and topic:
-        from shared.project_generator import generate_project_from_topic
-
-        return generate_project_from_topic(topic)
+def projects(limit: int = 5):
     from shared.project_generator import suggest_projects
 
     return suggest_projects(limit=limit)
+
+
+@router.post("/project/generate")
+def generate_project(topic: str):
+    from shared.project_generator import generate_project_from_topic
+
+    return generate_project_from_topic(topic)
 
 
 @router.post("/sources")

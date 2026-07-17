@@ -61,6 +61,7 @@ CATEGORY_SCORES = {
 
 ABSORPTION_BONUS = {
     "Adapter": 0.5,
+    "优先Adapter": 0.5,
     "Adapter/参考": 0.3,
     "候选Adapter": 0.4,
     "Adapter候选": 0.4,
@@ -74,6 +75,11 @@ ABSORPTION_BONUS = {
     "谨慎后置": -0.5,
     "工具候选": 0.2,
     "只参考/后置": -0.3,
+    "只收集/不自动执行": -0.5,
+    "后置/参考": -0.3,
+    "插件筛选": 0.1,
+    "替代参考": 0.0,
+    "直接可用": 0.5,
 }
 
 RISK_PENALTY = {

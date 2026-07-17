@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from importlib import resources
 
 
 @dataclass
@@ -118,22 +119,25 @@ def _search_github(query: str, per_page: int = 10) -> list[dict]:
 
 
 def _load_registry_repos() -> set[str]:
-    """Load already-registered repo names from the open-source registry."""
+    """Load already-registered repo names from the packaged frozen registry."""
     try:
-        from pathlib import Path
-
-        registry_path = (
-            Path(__file__).resolve().parents[3]
-            / "shared-contracts"
-            / "registries"
-            / "open_source_project_registry.json"
+        registry = resources.files("inspiration_research.resources").joinpath(
+            "open_source_project_registry.json"
         )
-        if registry_path.exists():
-            data = json.loads(registry_path.read_text(encoding="utf-8"))
-            return {p.get("name", "") for p in data.get("projects", [])}
-    except Exception:
-        pass
-    return set()
+        data = json.loads(registry.read_text(encoding="utf-8"))
+    except (FileNotFoundError, ModuleNotFoundError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError("open-source project registry is missing or invalid") from exc
+    projects = data.get("projects") if isinstance(data, dict) else None
+    if not isinstance(projects, list):
+        raise RuntimeError("open-source project registry must contain a projects list")
+    repos = {
+        str(project.get("name", "")).strip()
+        for project in projects
+        if isinstance(project, dict) and str(project.get("name", "")).strip()
+    }
+    if not repos:
+        raise RuntimeError("open-source project registry is empty")
+    return repos
 
 
 def collect_trending(

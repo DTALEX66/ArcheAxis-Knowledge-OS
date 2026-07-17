@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import builtins
 import importlib
+import os
 import sqlite3
+import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing, suppress
 from pathlib import Path
 from threading import Barrier, BrokenBarrierError
+from types import SimpleNamespace
 
 import pytest
 
@@ -31,6 +34,73 @@ def test_migration_import_does_not_require_python311_datetime_utc(monkeypatch) -
         sys.modules.pop("shared.migration", None)
         if existing_module is not None:
             sys.modules["shared.migration"] = existing_module
+
+
+def test_storage_import_creates_no_database(monkeypatch, tmp_path: Path) -> None:
+    database = tmp_path / "import-only.sqlite"
+    env = os.environ.copy()
+    env["COGNITIVE_DB_PATH"] = str(database)
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from shared import storage; from app.memory import database; "
+            "assert storage.DB_PATH == database.DB_PATH; "
+            "assert not storage.DB_PATH.exists()",
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert not database.exists()
+
+
+def test_core_container_startup_before_migration_fails_closed(monkeypatch, tmp_path: Path) -> None:
+    from app import container_entrypoint
+    from shared import backup, storage
+
+    database = tmp_path / "missing.sqlite"
+    monkeypatch.setattr(storage, "DB_PATH", database)
+    monkeypatch.setattr(backup, "DB_PATH", database)
+    monkeypatch.setattr(
+        container_entrypoint,
+        "_exec_process",
+        lambda _command: pytest.fail("core must not exec before schema validation"),
+    )
+
+    try:
+        with pytest.raises(RuntimeError, match="has not been migrated"):
+            container_entrypoint.run_core(object())
+    finally:
+        backup.release_runtime_lock()
+
+
+def test_container_migration_holds_target_operator_lease(monkeypatch, tmp_path: Path) -> None:
+    from app import container_entrypoint
+    from app.memory import database as memory_database
+    from shared import backup, migration, storage
+
+    database = tmp_path / "migration.sqlite"
+    monkeypatch.setattr(backup, "DB_PATH", database)
+    monkeypatch.setattr(storage, "DB_PATH", database)
+    monkeypatch.setattr(memory_database, "DB_PATH", database)
+
+    def migrate_while_locked(**_kwargs):
+        with pytest.raises(
+            RuntimeError, match="requires the app to be offline"
+        ), backup.runtime_lease(database):
+            pass
+        return SimpleNamespace(applied=(), backup_path=None)
+
+    monkeypatch.setattr(migration, "migrate", migrate_while_locked)
+    monkeypatch.setattr(migration, "status", lambda **_kwargs: {"pending": []})
+
+    assert container_entrypoint.run_migration(object()) == 0
+    with backup.runtime_lease(database):
+        pass
 
 
 def _create_legacy_taskpack_database(path: Path) -> None:
@@ -71,7 +141,9 @@ def _create_legacy_taskpack_database(path: Path) -> None:
         conn.commit()
 
 
-def _create_partially_migrated_taskpack_database(path: Path, *, review_default: int = 0) -> None:
+def _create_partially_migrated_taskpack_database(
+    path: Path, *, review_default: int = 0
+) -> None:
     _create_legacy_taskpack_database(path)
     with closing(sqlite3.connect(path)) as conn:
         conn.execute("ALTER TABLE kb_taskpacks ADD COLUMN context_id TEXT NOT NULL DEFAULT ''")
@@ -226,12 +298,9 @@ def test_taskpack_migration_rejects_repair_name_collision_before_backup(
         after_sql = connection.execute(
             "SELECT sql FROM sqlite_master WHERE type='table' AND name='kb_taskpacks'"
         ).fetchone()[0]
-        assert (
-            connection.execute("SELECT COUNT(*) FROM schema_migrations WHERE version=3").fetchone()[
-                0
-            ]
-            == 0
-        )
+        assert connection.execute(
+            "SELECT COUNT(*) FROM schema_migrations WHERE version=3"
+        ).fetchone()[0] == 0
     assert before_sql == after_sql
     assert not backups.exists()
 
@@ -272,7 +341,9 @@ def test_taskpack_v3_normalizes_old_zero_even_when_schema_is_already_strict(
     backups = tmp_path / "backups"
     _create_partially_migrated_taskpack_database(database, review_default=1)
     with closing(sqlite3.connect(database)) as connection:
-        connection.execute("UPDATE kb_taskpacks SET requires_review=0 WHERE id='task-legacy'")
+        connection.execute(
+            "UPDATE kb_taskpacks SET requires_review=0 WHERE id='task-legacy'"
+        )
         connection.commit()
 
     result = migrate(db_path=database, backup_dir=backups)
@@ -280,29 +351,24 @@ def test_taskpack_v3_normalizes_old_zero_even_when_schema_is_already_strict(
     assert result.applied == ("taskpack_review_fail_closed_v1",)
     assert result.backup_path is not None
     with closing(sqlite3.connect(database)) as connection:
-        assert (
-            connection.execute(
-                "SELECT requires_review FROM kb_taskpacks WHERE id='task-legacy'"
-            ).fetchone()[0]
-            == 1
+        assert connection.execute(
+            "SELECT requires_review FROM kb_taskpacks WHERE id='task-legacy'"
+        ).fetchone()[0] == 1
+        assert connection.execute(
+            "SELECT name FROM schema_migrations WHERE version=3"
+        ).fetchone()[0] == "taskpack_review_fail_closed_v1"
+        connection.execute(
+            "UPDATE kb_taskpacks SET requires_review=0 WHERE id='task-legacy'"
         )
-        assert (
-            connection.execute("SELECT name FROM schema_migrations WHERE version=3").fetchone()[0]
-            == "taskpack_review_fail_closed_v1"
-        )
-        connection.execute("UPDATE kb_taskpacks SET requires_review=0 WHERE id='task-legacy'")
         connection.commit()
 
     second = migrate(db_path=database, backup_dir=backups)
     assert second.applied == ()
     assert second.backup_path is None
     with closing(sqlite3.connect(database)) as connection:
-        assert (
-            connection.execute(
-                "SELECT requires_review FROM kb_taskpacks WHERE id='task-legacy'"
-            ).fetchone()[0]
-            == 0
-        )
+        assert connection.execute(
+            "SELECT requires_review FROM kb_taskpacks WHERE id='task-legacy'"
+        ).fetchone()[0] == 0
 
 
 def test_taskpack_migration_repairs_existing_review_column_without_fail_closed_schema(
@@ -395,12 +461,9 @@ def test_taskpack_repair_enforces_review_constraint_behavior(tmp_path: Path) -> 
             "INSERT INTO kb_taskpacks(id, goal) VALUES (?, ?)",
             ("task-default-review", "Default review must fail closed"),
         )
-        assert (
-            connection.execute(
-                "SELECT requires_review FROM kb_taskpacks WHERE id='task-default-review'"
-            ).fetchone()[0]
-            == 1
-        )
+        assert connection.execute(
+            "SELECT requires_review FROM kb_taskpacks WHERE id='task-default-review'"
+        ).fetchone()[0] == 1
         for index, invalid_value in enumerate((None, 2, -1)):
             with pytest.raises(sqlite3.IntegrityError):
                 connection.execute(
@@ -421,7 +484,9 @@ def test_taskpack_repair_validation_failure_rolls_back_atomically(
         before_sql = connection.execute(
             "SELECT sql FROM sqlite_master WHERE type='table' AND name='kb_taskpacks'"
         ).fetchone()[0]
-        before_rows = connection.execute("SELECT * FROM kb_taskpacks ORDER BY id").fetchall()
+        before_rows = connection.execute(
+            "SELECT * FROM kb_taskpacks ORDER BY id"
+        ).fetchall()
         before_migrations = connection.execute(
             "SELECT version, name FROM schema_migrations ORDER BY version"
         ).fetchall()
@@ -441,12 +506,9 @@ def test_taskpack_repair_validation_failure_rolls_back_atomically(
         after_migrations = connection.execute(
             "SELECT version, name FROM schema_migrations ORDER BY version"
         ).fetchall()
-        assert (
-            connection.execute(
-                "SELECT COUNT(*) FROM sqlite_master WHERE name='kb_taskpacks__repair'"
-            ).fetchone()[0]
-            == 0
-        )
+        assert connection.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE name='kb_taskpacks__repair'"
+        ).fetchone()[0] == 0
     assert after_sql == before_sql
     assert after_rows == before_rows
     assert after_migrations == before_migrations
@@ -530,12 +592,9 @@ def test_taskpack_repair_rejects_extra_implicit_unique_constraint_without_replac
         after_migrations = connection.execute(
             "SELECT version, name FROM schema_migrations ORDER BY version"
         ).fetchall()
-        assert (
-            connection.execute("SELECT COUNT(*) FROM schema_migrations WHERE version=3").fetchone()[
-                0
-            ]
-            == 0
-        )
+        assert connection.execute(
+            "SELECT COUNT(*) FROM schema_migrations WHERE version=3"
+        ).fetchone()[0] == 0
     assert after_schema == before_schema
     assert after_rows == before_rows
     assert after_migrations == before_migrations
@@ -567,7 +626,7 @@ def test_storage_startup_detects_version_collision_before_any_ddl(
     monkeypatch.setattr(migration, "BACKUP_DIR", backups)
 
     with pytest.raises(RuntimeError, match="migration version 2 name collision"):
-        storage.init()
+        migration.migrate(db_path=database, backup_dir=backups)
 
     with sqlite3.connect(database) as conn:
         tables = {
@@ -678,7 +737,9 @@ def test_migrated_taskpack_row_round_trips_canonical_safety_fields(tmp_path: Pat
     }
 
 
-def test_storage_startup_runs_backed_up_taskpack_migration(monkeypatch, tmp_path: Path) -> None:
+def test_explicit_storage_schema_then_migration_records_taskpack_versions(
+    monkeypatch, tmp_path: Path
+) -> None:
     from shared import migration, storage
 
     database = tmp_path / "runtime.sqlite"
@@ -687,11 +748,13 @@ def test_storage_startup_runs_backed_up_taskpack_migration(monkeypatch, tmp_path
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(migration, "BACKUP_DIR", backups)
 
-    storage.init()
+    migration.migrate(db_path=database, backup_dir=backups)
 
     with sqlite3.connect(database) as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(kb_taskpacks)")}
-        applied = conn.execute("SELECT name FROM schema_migrations WHERE version=2").fetchone()[0]
+        applied = conn.execute(
+            "SELECT name FROM schema_migrations WHERE version=2"
+        ).fetchone()[0]
     assert {"context_id", "requires_review"} <= columns
     assert applied == "taskpack_contract_v1"
     backup_paths = list(backups.glob("pre_migration_*.sqlite"))
@@ -706,7 +769,7 @@ def test_storage_startup_runs_backed_up_taskpack_migration(monkeypatch, tmp_path
     assert backup_tables == {"kb_taskpacks"}
 
 
-def test_storage_startup_repairs_partial_v2_once(monkeypatch, tmp_path: Path) -> None:
+def test_explicit_migration_repairs_partial_v2_once(monkeypatch, tmp_path: Path) -> None:
     from shared import migration, storage
 
     database = tmp_path / "runtime.sqlite"
@@ -715,16 +778,17 @@ def test_storage_startup_repairs_partial_v2_once(monkeypatch, tmp_path: Path) ->
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(migration, "BACKUP_DIR", backups)
 
-    storage.init()
+    migration.migrate(db_path=database, backup_dir=backups)
     first_backups = list(backups.glob("pre_migration_*.sqlite"))
-    storage.init()
+    migration.migrate(db_path=database, backup_dir=backups)
 
     with closing(sqlite3.connect(database)) as connection:
         table_sql = connection.execute(
             "SELECT sql FROM sqlite_master WHERE type='table' AND name='kb_taskpacks'"
         ).fetchone()[0]
         migrations = connection.execute(
-            "SELECT version, name FROM schema_migrations WHERE version IN (2, 3) ORDER BY version"
+            "SELECT version, name FROM schema_migrations WHERE version IN (2, 3) "
+            "ORDER BY version"
         ).fetchall()
         review = connection.execute(
             "SELECT requires_review FROM kb_taskpacks WHERE id='task-legacy'"
@@ -853,9 +917,7 @@ def test_taskpack_rollback_replace_failure_preserves_migrated_database(
     assert database.read_bytes() == migrated_bytes
 
 
-def test_fresh_storage_defaults_omitted_review_status_to_required(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_fresh_storage_defaults_omitted_review_status_to_required(monkeypatch, tmp_path: Path) -> None:
     from shared import migration, storage
 
     database = tmp_path / "runtime.sqlite"
@@ -920,13 +982,12 @@ def test_intake_bridge_fails_closed_without_phase5_review_provenance(
     monkeypatch, tmp_path: Path
 ) -> None:
     from shared import migration, storage
+    from shared.bridge import bridge_intake_to_kb
 
     database = tmp_path / "runtime.sqlite"
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(migration, "BACKUP_DIR", tmp_path / "backups")
     storage.init()
-
-    from shared.bridge import bridge_intake_to_kb
 
     with sqlite3.connect(database) as connection:
         before = tuple(

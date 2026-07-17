@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.agent.executor import execute
-from app.schemas import TaskPack, PermissionDecision, ExecutionTrace
+from app.schemas import ExecutionTrace, PermissionDecision, TaskPack
 
 
 def make_task(tools=None, steps=None, risk="low"):

@@ -225,7 +225,7 @@ async def log_requests(request: Request, call_next):
         )
 
     # ── Auth check (skip allowlist) ──
-    from shared.auth import authenticate_request
+    from shared.auth import authenticate_request, authorize_request
 
     user = authenticate_request(
         request.url.path,
@@ -248,11 +248,23 @@ async def log_requests(request: Request, call_next):
             headers=headers,
         )
 
+    request.state.identity = user
+
     if limiter is not None and user.get("auth_method") in {"api_key", "jwt"}:
         limiter.release(pre_auth_key)
         rate_result = limiter.check(f"{rate_policy}:{_rate_limit_identity(request, user)}")
         if not rate_result.allowed:
             return _rate_limit_rejection(rate_policy, rate_result)
+
+    if not authorize_request(user, request.method, request.url.path):
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": "forbidden",
+                "detail": "The authenticated role is not allowed to perform this operation.",
+            },
+            headers=rejection_headers,
+        )
 
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
@@ -274,9 +286,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ── Mount packaged Knowledge-Base sub-application ──
+from inspiration_research.api import app as research_app
 from knowledge_base.api import app as kb_app
 
 app.mount("/kb", kb_app)
+app.mount("/internal/research", research_app)
 
 
 def _http_route_counts() -> dict[str, int]:

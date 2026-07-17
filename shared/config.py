@@ -204,10 +204,23 @@ def resolve_runtime_path(value: str | Path) -> Path:
 
 _ALLOWED_ROLES = {"admin", "user", "readonly"}
 _FORBIDDEN_SECRETS = {"change-me", "changeme", "secret"}
+_FORBIDDEN_SECRET_PATTERNS = (
+    "replace-with",
+    "placeholder",
+    "example-secret",
+    "strong-random-api-key",
+    "strong-random-jwt-secret",
+)
 
 
 def _is_strong_secret(value: str) -> bool:
-    return len(value) >= 32 and value.lower() not in _FORBIDDEN_SECRETS and len(set(value)) >= 8
+    normalized = value.lower()
+    return (
+        len(value) >= 32
+        and normalized not in _FORBIDDEN_SECRETS
+        and not any(pattern in normalized for pattern in _FORBIDDEN_SECRET_PATTERNS)
+        and len(set(value)) >= 8
+    )
 
 
 def _read_valid_api_key_file(path: Path) -> dict[str, dict[str, str]] | None:

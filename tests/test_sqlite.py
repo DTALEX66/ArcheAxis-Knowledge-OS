@@ -1,7 +1,12 @@
 """Tests for SQLite database layer."""
 from app.memory.database import (
-    init_db, save_core_object, search_core_objects,
-    save_trace, list_traces_db, save_lesson_db, list_lessons_db,
+    init_db,
+    list_lessons_db,
+    list_traces_db,
+    save_core_object,
+    save_lesson_db,
+    save_trace,
+    search_core_objects,
 )
 
 
@@ -40,4 +45,4 @@ class TestSQLite:
         }
         save_lesson_db(lesson)
         lessons = list_lessons_db(limit=500)
-        assert any(l["id"] == "lesson_test_001" for l in lessons)
+        assert any(item["id"] == "lesson_test_001" for item in lessons)

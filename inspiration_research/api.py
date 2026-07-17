@@ -38,7 +38,7 @@ app.add_middleware(
 
 @app.middleware("http")
 async def authenticate_and_log(request: Request, call_next):
-    from shared.auth import authenticate_request
+    from shared.auth import authenticate_request, authorize_request
 
     started = time.time()
 
@@ -52,6 +52,13 @@ async def authenticate_and_log(request: Request, call_next):
             status_code=401,
             content={"error": "unauthorized", "detail": "Valid API key or token required."},
         )
+    canonical_path = f"/internal/research{request.url.path}"
+    if not authorize_request(user, request.method, canonical_path):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "forbidden", "detail": "role is not authorized for this operation"},
+        )
+    request.state.identity = user
     response = await call_next(request)
     response.headers["X-Process-Time-ms"] = str(round((time.time() - started) * 1000, 1))
     return response

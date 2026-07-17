@@ -1,5 +1,4 @@
 """Tests for permission system."""
-import pytest
 from app.core.permissions import check_permission
 from app.schemas import TaskPack
 

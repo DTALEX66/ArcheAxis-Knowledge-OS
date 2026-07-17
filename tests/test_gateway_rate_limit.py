@@ -376,20 +376,29 @@ def test_ambiguous_api_key_and_authorization_headers_are_rejected_before_auth(mo
 
 def test_deployment_entrypoints_disable_uvicorn_proxy_header_rewriting():
     root = Path(__file__).resolve().parents[1]
-    entrypoints = (
-        root / "Dockerfile",
-        root / "docker" / "Dockerfile",
-        root / "docker-compose.yml",
-        root / "ecosystem.config.cjs",
-    )
+    direct_entrypoints = (root / "ecosystem.config.cjs",)
+    assert not (root / "docker" / "Dockerfile").exists()
 
-    for entrypoint in entrypoints:
+    for entrypoint in direct_entrypoints:
         launch_lines = [
             line for line in entrypoint.read_text(encoding="utf-8").splitlines()
             if "app.main:app" in line
         ]
         assert launch_lines, f"missing app.main launch in {entrypoint}"
         assert all("--no-proxy-headers" in line for line in launch_lines), entrypoint
+
+    adapter = root / "app" / "container_entrypoint.py"
+    launch_lines = [
+        line for line in adapter.read_text(encoding="utf-8").splitlines()
+        if "app.main:app" in line
+    ]
+    assert launch_lines, f"missing app.main launch in {adapter}"
+    assert "--no-proxy-headers" in adapter.read_text(encoding="utf-8")
+
+    dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
+    assert 'ENTRYPOINT ["python", "-m", "app.container_entrypoint"]' in dockerfile
+    compose = (root / "docker-compose.yml").read_text(encoding="utf-8")
+    assert 'command: ["core"]' in compose
 
 
 def test_local_launchers_disable_uvicorn_proxy_header_rewriting(monkeypatch):
@@ -401,12 +410,15 @@ def test_local_launchers_disable_uvicorn_proxy_header_rewriting(monkeypatch):
         root / "run_all.sh",
     )
     for launcher in launchers:
-        launch_lines = [
-            line for line in launcher.read_text(encoding="utf-8").splitlines()
-            if "app.main:app" in line
-        ]
-        assert launch_lines, f"missing app.main launch in {launcher}"
-        assert all("--no-proxy-headers" in line for line in launch_lines), launcher
+        text = launcher.read_text(encoding="utf-8")
+        launch_lines = [line for line in text.splitlines() if "app.main:app" in line]
+        if launch_lines:
+            assert all("--no-proxy-headers" in line for line in launch_lines), launcher
+        else:
+            assert "app.container_entrypoint core" in text, launcher
+
+    container_entrypoint = (root / "app" / "container_entrypoint.py").read_text(encoding="utf-8")
+    assert '"--no-proxy-headers"' in container_entrypoint
 
     calls = []
     monkeypatch.setitem(

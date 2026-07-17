@@ -22,6 +22,11 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 from shared.storage import insert, select_all, select_one  # noqa: E402
 
 
+def get_daily(day: str = "") -> dict[str, Any] | None:
+    """Read a daily note without creating or mutating storage."""
+    return select_one("daily_notes", day or date.today().isoformat())
+
+
 def get_or_create_daily(day: str = "") -> dict[str, Any]:
     """Get or create the daily note for a given day.
 
@@ -34,7 +39,7 @@ def get_or_create_daily(day: str = "") -> dict[str, Any]:
     if not day:
         day = date.today().isoformat()
 
-    existing = select_one("daily_notes", day)
+    existing = get_daily(day)
     if existing:
         return existing
 

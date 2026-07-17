@@ -286,27 +286,95 @@ CREATE TABLE IF NOT EXISTS kb_evidence (
 """
 
 
+REQUIRED_SCHEMA_TABLES = frozenset(
+    {
+        "ir_research_notes",
+        "ir_intake_cards",
+        "ir_contracts",
+        "ir_daily_briefs",
+        "kb_documents",
+        "kb_cards",
+        "kb_context_packs",
+        "kb_taskpacks",
+        "kb_reviews",
+        "kb_mistakes",
+        "episodic_memory",
+        "machine_knowledge_units",
+        "a_to_b_candidates",
+        "graph_entities",
+        "graph_relations",
+        "kb_links",
+        "daily_notes",
+        "canvases",
+        "canvas_nodes",
+        "canvas_edges",
+        "kb_evidence",
+        "schema_migrations",
+        "core_objects",
+        "routes",
+        "memory_records",
+        "taskpacks",
+        "execution_traces",
+        "eval_results",
+        "machine_lessons",
+        "tool_calls",
+        "permission_decisions",
+    }
+)
+
+
 def _conn() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(str(DB_PATH))
+    c = sqlite3.connect(str(DB_PATH), timeout=30.0)
+    c.execute("PRAGMA busy_timeout=30000")
     c.execute("PRAGMA journal_mode=WAL")
     c.row_factory = sqlite3.Row
     return c
 
 
-def init():
-    from shared import migration
+def init() -> None:
+    """Create the owned storage schema without applying migrations.
 
-    if DB_PATH.is_file():
-        migration.migrate(db_path=DB_PATH, backup_dir=migration.BACKUP_DIR)
-
+    Containerized production calls this only from the one-shot migration command.
+    Long-running app startup must use ``validate_schema`` instead.
+    """
     c = _conn()
-    c.executescript(IR_KB_TABLES)
-    c.executescript(IR_KB_TABLES_EXT)
-    c.commit()
-    c.close()
+    try:
+        c.executescript(IR_KB_TABLES)
+        c.executescript(IR_KB_TABLES_EXT)
+        c.commit()
+    finally:
+        c.close()
 
-    migration.migrate(db_path=DB_PATH, backup_dir=migration.BACKUP_DIR)
+
+def validate_schema() -> None:
+    """Validate the existing SQLite schema and migration ledger read-only."""
+    from shared import migration, research_migration
+
+    if not DB_PATH.is_file():
+        raise RuntimeError(f"SQLite schema has not been migrated: {DB_PATH}")
+    uri = f"{DB_PATH.resolve().as_uri()}?mode=ro"
+    try:
+        with sqlite3.connect(uri, uri=True) as connection:
+            connection.row_factory = sqlite3.Row
+            if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                raise RuntimeError(f"SQLite integrity check failed for {DB_PATH}")
+            existing = {
+                str(row["name"])
+                for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type IN ('table', 'view')"
+                )
+            }
+    except sqlite3.Error as exc:
+        raise RuntimeError(f"SQLite schema validation failed for {DB_PATH}") from exc
+    missing = sorted(REQUIRED_SCHEMA_TABLES - existing)
+    if missing:
+        raise RuntimeError(f"SQLite schema is incomplete; missing: {', '.join(missing)}")
+    status = migration.status(db_path=DB_PATH)
+    if status.get("pending"):
+        pending = ", ".join(str(item) for item in status["pending"])
+        raise RuntimeError(f"SQLite migrations are pending: {pending}")
+    research_migration.require_applied(db_path=DB_PATH)
 
 
 # ── Generic helpers ──
@@ -787,7 +855,3 @@ def fts5_sync(table: str, data: dict) -> None:
         pass  # FTS table not yet created — non-fatal
     finally:
         c.close()
-
-
-# Auto-init
-init()

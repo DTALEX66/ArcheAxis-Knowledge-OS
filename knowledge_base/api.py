@@ -61,7 +61,7 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.time()
-    from shared.auth import authenticate_request
+    from shared.auth import authenticate_request, authorize_request
 
     user = authenticate_request(
         request.url.path,
@@ -76,6 +76,13 @@ async def log_requests(request: Request, call_next):
                 "detail": "Valid API key or token required. Use X-API-Key header.",
             },
         )
+    canonical_path = f"/kb{request.url.path}"
+    if not authorize_request(user, request.method, canonical_path):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "forbidden", "detail": "role is not authorized for this operation"},
+        )
+    request.state.identity = user
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
     response.headers["X-Process-Time-ms"] = str(duration)
@@ -640,7 +647,18 @@ def dataview_query(query_str: str = ""):
 
 @app.get("/daily")
 def daily_note(day: str = ""):
-    """Get or create today's daily note."""
+    """Read a daily note without creating it."""
+    from shared.daily_notes import get_daily
+
+    note = get_daily(day)
+    if note is None:
+        raise HTTPException(status_code=404, detail="daily note not found")
+    return note
+
+
+@app.post("/daily")
+def daily_note_create(day: str = ""):
+    """Create the requested daily note if it does not exist."""
     from shared.daily_notes import get_or_create_daily
 
     return get_or_create_daily(day)

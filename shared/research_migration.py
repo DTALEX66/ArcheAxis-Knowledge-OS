@@ -159,6 +159,14 @@ def _connect(path: Path) -> sqlite3.Connection:
     return connection
 
 
+def _connect_readonly(path: Path) -> sqlite3.Connection:
+    uri = f"{path.resolve().as_uri()}?mode=ro"
+    connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+    connection.execute("PRAGMA busy_timeout=30000")
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
 def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
     return migration._table_exists(connection, table)
 
@@ -372,7 +380,7 @@ def require_applied(*, db_path: str | Path) -> None:
     if not database.is_file():
         raise RuntimeError("phase4 research schema migration is pending")
     migration._validate_database(database)
-    with closing(_connect(database)) as connection:
+    with closing(_connect_readonly(database)) as connection:
         pending = _pending(connection)
     if pending:
         raise RuntimeError("phase4 research schema migration is pending")

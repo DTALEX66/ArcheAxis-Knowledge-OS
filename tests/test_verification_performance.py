@@ -42,7 +42,9 @@ def test_ci_test_jobs_use_minimal_uv_dependencies() -> None:
     assert "astral-sh/setup-uv" in workflow
     assert workflow.count("uv pip install --system -r requirements-ci.txt") >= 2
     assert 'pip install -e ".[dev]"' not in workflow
-    assert "python -m pip install -r requirements.txt" in workflow
+    assert "uv export --frozen --no-dev --no-emit-project" in workflow
+    assert "python -m pip install --require-hashes -r locked-runtime.txt" in workflow
+    assert "python -m pip install -r requirements.txt" not in workflow
     assert "defusedxml" in ci_requirements
     for heavy_dependency in ("litellm", "markitdown", "trafilatura"):
         assert heavy_dependency not in ci_requirements

@@ -34,7 +34,7 @@ rate_limit:
   sensitive_write: 30
   auth_token: 5
   max_buckets_per_policy: 10000
-  # X-Forwarded-For is rejected unless the directly connected peer matches here.
+  # Caddy overwrites X-Forwarded-For; the app trusts it only from this edge CIDR.
   trusted_proxies: []
 
 pipeline:
