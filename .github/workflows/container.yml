@@ -135,6 +135,7 @@ jobs:
           test "$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml exec -T caddy /usr/bin/caddy version)" = "v2.11.4"
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml exec -T core sh -c 'printf persisted > /app/data/container-persistence.txt'
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml restart core
+          docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml up -d --wait core caddy
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml exec -T core sh -c 'test "$(cat /app/data/container-persistence.txt)" = "persisted"'
 
       - name: Exercise verified backup and offline restore activation
@@ -142,7 +143,7 @@ jobs:
         run: |
           set -euo pipefail
           api_key="$(grep '^COGNITIVE_API_KEY=' .env.container | cut -d= -f2-)"
-          curl -fsS \
+          curl --retry 10 --retry-delay 1 --retry-all-errors -fsS \
             -H "X-API-Key: ${api_key}" \
             -H "Content-Type: application/json" \
             --data '{"title":"restore-before","content":"expected restored document","source":"ci"}' \
@@ -150,7 +151,7 @@ jobs:
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm integrity
           backup_path="$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm backup | tail -n1)"
           test -n "$backup_path"
-          curl -fsS \
+          curl --retry 10 --retry-delay 1 --retry-all-errors -fsS \
             -H "X-API-Key: ${api_key}" \
             -H "Content-Type: application/json" \
             --data '{"title":"restore-after","content":"must disappear after restore","source":"ci"}' \

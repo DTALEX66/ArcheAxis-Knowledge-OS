@@ -8,7 +8,10 @@ from argparse import Namespace
 from pathlib import Path
 
 import pytest
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
+    import tomli as tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -450,6 +453,10 @@ def test_container_workflow_builds_real_stack_and_checks_runtime_contracts():
     assert "_load_registry_repos" in workflow
     assert "id -u" in workflow
     assert "restart core" in workflow
+    restart = workflow.index("restart core")
+    first_backup_write = workflow.index("restore-before")
+    post_restart_wait = workflow.index("up -d --wait core caddy", restart)
+    assert restart < post_restart_wait < first_backup_write
     assert "restore-candidate" in workflow
     assert "restore-activate" in workflow
     assert "integrity" in workflow
