@@ -25,15 +25,13 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
 
         runtime_root = Path(os.environ["COGNITIVE_DATA_DIR"]).resolve()
         from shared import storage
-        from shared import migration
-        from app.memory import database as memory_database
+        from app.container_entrypoint import run_migration
+        from argparse import Namespace
 
         expected_db = runtime_root / "cognitive_os.sqlite"
         assert storage.DB_PATH.resolve() == expected_db
         assert expected_db.is_relative_to(runtime_root)
-        storage.init()
-        memory_database.init_db()
-        migration.migrate(db_path=storage.DB_PATH, backup_dir=migration.BACKUP_DIR)
+        assert run_migration(Namespace()) == 0
 
         from app.facades import ingest_candidate, query_knowledge
         from inspiration_research.api import app as canonical_app

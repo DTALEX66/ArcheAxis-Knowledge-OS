@@ -349,7 +349,8 @@ def init() -> None:
 
 def validate_schema() -> None:
     """Validate the existing SQLite schema and migration ledger read-only."""
-    from shared import migration, research_migration
+    from shared import core_schema, migration, research_migration
+    from shared.migration_runner import require_sqlite_owners_applied
 
     if not DB_PATH.is_file():
         raise RuntimeError(f"SQLite schema has not been migrated: {DB_PATH}")
@@ -365,6 +366,8 @@ def validate_schema() -> None:
                     "SELECT name FROM sqlite_master WHERE type IN ('table', 'view')"
                 )
             }
+            core_schema.validate(connection)
+            require_sqlite_owners_applied(connection)
     except sqlite3.Error as exc:
         raise RuntimeError(f"SQLite schema validation failed for {DB_PATH}") from exc
     missing = sorted(REQUIRED_SCHEMA_TABLES - existing)

@@ -3,7 +3,7 @@
 Port 8000: Core OS (route → execute → trace → eval → lesson)
 Port 8000/kb: Knowledge-Base (live-counted endpoints, dashboard, capabilities)
 
-Start: uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-proxy-headers
+Start: python -m app.container_entrypoint core
 Then:  http://localhost:8000/docs     — Core API
        http://localhost:8000/kb/docs   — Knowledge-Base API
        http://localhost:8000/kb        — Dashboard

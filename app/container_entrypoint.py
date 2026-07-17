@@ -41,13 +41,13 @@ def _database_path() -> Path:
     return storage.DB_PATH
 
 
-def _create_storage_schema() -> Path:
-    from app.memory import database as memory_database
-    from shared import storage
-
-    storage.init()
-    memory_database.init_db()
-    return storage.DB_PATH
+def _prepare_database_file() -> Path:
+    database = _database_path()
+    database.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(str(database)) as connection:
+        if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise RuntimeError(f"SQLite integrity check failed for {database}")
+    return database
 
 
 def _validate_storage_schema() -> Path:
@@ -72,12 +72,12 @@ def run_core(_: argparse.Namespace) -> NoReturn:
 
 
 def run_migration(_: argparse.Namespace) -> int:
-    from shared import backup
+    from shared import backup, migration
     from shared.migration_runner import MigrationOperator
 
     with backup.runtime_lease():
-        database = _create_storage_schema()
-        operator = MigrationOperator(db_path=database)
+        database = _prepare_database_file()
+        operator = MigrationOperator(db_path=database, backup_dir=migration.BACKUP_DIR)
         results = [
             operator.apply(owner.owner)
             for owner in operator.registry.owners
@@ -94,10 +94,11 @@ def run_migration(_: argparse.Namespace) -> int:
 
 
 def run_migration_status(_: argparse.Namespace) -> int:
+    from shared import migration
     from shared.migration_runner import MigrationOperator
 
     database = _database_path()
-    operator = MigrationOperator(db_path=database)
+    operator = MigrationOperator(db_path=database, backup_dir=migration.BACKUP_DIR)
     print(
         json.dumps(
             {"database": str(database), "status": operator.status()},

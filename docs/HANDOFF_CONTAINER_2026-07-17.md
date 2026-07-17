@@ -57,21 +57,27 @@ candidate-only promotion boundary.
 
 ## Migration ownership
 
-`migration` is the only container schema owner. It initializes the baseline
-storage tables, then invokes `MigrationOperator` in deterministic registry order
-for every owner whose kind starts with `sqlite`:
+`migration` is the only container schema owner. It creates only the empty SQLite
+file, then invokes `MigrationOperator` in deterministic registry order for every
+owner whose kind starts with `sqlite`:
 
+- `core.sqlite`, owning both baseline DDL groups and their normalized schema contract;
 - `taskpack.sqlite`;
 - `research.sqlite`.
 
 Vector and FTS owners are not startup schema owners; they require an existing
 active index and remain explicit operator actions. Core startup performs only
-read-only schema validation and fails before Uvicorn if migration is incomplete.
+read-only canonical schema and current operator-provenance validation and fails
+before Uvicorn if migration is incomplete or any named table has drifted columns,
+constraints, or indexes.
 
 Migration, restore activation, and the long-lived Core process use the same
-target-scoped runtime lease. Restore activation must run with Core and Caddy
-stopped and holds that lease continuously across verification, replacement,
-post-restore validation, and compensation.
+target-scoped runtime lease. The published `cognitive-os serve`, PM2, Windows,
+and POSIX launchers all delegate to `app.container_entrypoint core`; effectful
+`cognitive-os pipeline` and `cognitive-os migrate apply/rollback` hold the same
+explicit target lease for their full operation. Restore activation must run with
+Core and Caddy stopped and holds that lease continuously across verification,
+replacement, post-restore validation, and compensation.
 
 ## Configuration and secrets
 

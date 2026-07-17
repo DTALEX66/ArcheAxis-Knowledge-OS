@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+import os
 import secrets
-import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -374,18 +373,13 @@ def test_ambiguous_api_key_and_authorization_headers_are_rejected_before_auth(mo
     assert auth_calls == 0
 
 
-def test_deployment_entrypoints_disable_uvicorn_proxy_header_rewriting():
+def test_deployment_entrypoints_use_the_lease_aware_core_launcher():
     root = Path(__file__).resolve().parents[1]
-    direct_entrypoints = (root / "ecosystem.config.cjs",)
     assert not (root / "docker" / "Dockerfile").exists()
 
-    for entrypoint in direct_entrypoints:
-        launch_lines = [
-            line for line in entrypoint.read_text(encoding="utf-8").splitlines()
-            if "app.main:app" in line
-        ]
-        assert launch_lines, f"missing app.main launch in {entrypoint}"
-        assert all("--no-proxy-headers" in line for line in launch_lines), entrypoint
+    ecosystem = (root / "ecosystem.config.cjs").read_text(encoding="utf-8")
+    assert "app.main:app" not in ecosystem
+    assert "app.container_entrypoint core" in ecosystem
 
     adapter = root / "app" / "container_entrypoint.py"
     launch_lines = [
@@ -401,7 +395,7 @@ def test_deployment_entrypoints_disable_uvicorn_proxy_header_rewriting():
     assert 'command: ["core"]' in compose
 
 
-def test_local_launchers_disable_uvicorn_proxy_header_rewriting(monkeypatch):
+def test_local_launchers_delegate_to_the_lease_aware_core_entrypoint(monkeypatch):
     root = Path(__file__).resolve().parents[1]
     launchers = (
         root / "run_windows.bat",
@@ -411,24 +405,18 @@ def test_local_launchers_disable_uvicorn_proxy_header_rewriting(monkeypatch):
     )
     for launcher in launchers:
         text = launcher.read_text(encoding="utf-8")
-        launch_lines = [line for line in text.splitlines() if "app.main:app" in line]
-        if launch_lines:
-            assert all("--no-proxy-headers" in line for line in launch_lines), launcher
-        else:
-            assert "app.container_entrypoint core" in text, launcher
+        assert "app.main:app" not in text, launcher
+        assert "app.container_entrypoint core" in text, launcher
 
     container_entrypoint = (root / "app" / "container_entrypoint.py").read_text(encoding="utf-8")
     assert '"--no-proxy-headers"' in container_entrypoint
 
     calls = []
-    monkeypatch.setitem(
-        sys.modules,
-        "uvicorn",
-        SimpleNamespace(run=lambda *args, **kwargs: calls.append((args, kwargs))),
-    )
+    from app import container_entrypoint
     from app.cli import cmd_serve
 
+    monkeypatch.setattr(container_entrypoint, "run_core", lambda args: calls.append(args))
+    monkeypatch.delenv("COGNITIVE_PORT", raising=False)
     cmd_serve(port=8123)
-    assert calls == [
-        (("app.main:app",), {"host": "0.0.0.0", "port": 8123, "reload": True, "proxy_headers": False})
-    ]
+    assert len(calls) == 1
+    assert os.environ["COGNITIVE_PORT"] == "8123"

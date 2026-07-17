@@ -48,11 +48,14 @@ fails until the operator generates real values. Set `COGNITIVE_DOMAIN`,
 docker compose --env-file .env.container up -d migration core caddy
 ```
 
-`migration` is the only container schema owner. It creates the baseline schema and
-then applies every registry owner whose kind starts with `sqlite`, currently
-`taskpack.sqlite` and `research.sqlite`. `core` starts only after the migration
-job succeeds, validates the schema read-only, and then serves Core, `/kb`, and
-`/internal/research` from one process, establishing one durable SQLite writer.
+`migration` is the only container schema owner. It creates only the empty database
+file, then applies every registry owner whose kind starts with `sqlite`, currently
+`core.sqlite`, `taskpack.sqlite`, and `research.sqlite`. `core.sqlite` owns both
+baseline DDL groups and their normalized table/constraint/index contract; no
+container entry point creates tables outside `MigrationOperator`. `core` starts
+only after the migration job succeeds, validates the complete schema and current
+operator provenance through read-only SQLite connections, and then serves Core,
+`/kb`, and `/internal/research` from one process, establishing one durable SQLite writer.
 Caddy is the only public entry point and blocks `/internal/*`.
 
 The gateway enforces role authorization after authentication: `readonly` is

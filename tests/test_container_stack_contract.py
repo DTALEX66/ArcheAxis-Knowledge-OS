@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import os
 import re
 import sqlite3
 from argparse import Namespace
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -162,6 +164,8 @@ def test_build_backend_and_registry_data_are_frozen_package_inputs():
     assert "sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3" in lock
     assert "sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef" in lock
     assert "COPY shared-contracts/" not in dockerfile
+    ci_workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    assert '"shared/core_schema.py"' in ci_workflow
     assert (ROOT / "inspiration_research" / "resources" / "open_source_project_registry.json").is_file()
     assert not (ROOT / "shared-contracts" / "registries" / "open_source_project_registry.json").exists()
     assert not (ROOT / "shared-contracts" / "registries" / "open_source_project_registry.csv").exists()
@@ -196,6 +200,8 @@ def test_container_entrypoint_delegates_to_existing_migration_and_backup_apis():
     assert "backup.activate_restore" in entrypoint
     assert "backup.acquire_runtime_lock" in entrypoint
     assert "with backup.runtime_lease()" in entrypoint
+    assert "storage.init()" not in entrypoint
+    assert "memory_database.init_db()" not in entrypoint
     assert "CREATE TABLE schema_migrations" not in entrypoint
     assert "INSERT INTO schema_migrations" not in entrypoint
 
@@ -217,7 +223,7 @@ def test_container_migration_records_operator_provenance_and_backup(
     assert container_entrypoint.run_migration(Namespace()) == 0
     payload = json.loads(capsys.readouterr().out)
     owners = {result["owner"] for result in payload["operator_results"]}
-    assert owners == {"research.sqlite", "taskpack.sqlite"}
+    assert owners == {"core.sqlite", "research.sqlite", "taskpack.sqlite"}
     assert all(result["state"] == "applied" for result in payload["operator_results"])
     with sqlite3.connect(database) as connection:
         rows = set(
@@ -232,6 +238,35 @@ def test_container_migration_records_operator_provenance_and_backup(
     assert {(owner, "applied", "apply") for owner in owners} <= rows
     assert research_table == (1,)
     assert list(backup_dir.glob("*.sqlite"))
+
+
+def test_container_migration_status_uses_current_authoritative_backup_dir(
+    monkeypatch, tmp_path, capsys
+):
+    from app import container_entrypoint
+    from shared import migration, migration_runner, storage
+
+    database = tmp_path / "runtime" / "cognitive.sqlite"
+    backup_dir = tmp_path / "configured-backups"
+    monkeypatch.setattr(storage, "DB_PATH", database)
+    monkeypatch.setattr(migration, "BACKUP_DIR", backup_dir)
+
+    class RecordingOperator:
+        def __init__(self, *, db_path, backup_dir):
+            assert Path(db_path).resolve() == database.resolve()
+            assert Path(backup_dir).resolve() == backup_dir_path
+
+        def status(self):
+            return [{"owner": "core.sqlite", "state": "pending"}]
+
+    backup_dir_path = backup_dir.resolve()
+    monkeypatch.setattr(migration_runner, "MigrationOperator", RecordingOperator)
+
+    assert container_entrypoint.run_migration_status(Namespace()) == 0
+    assert json.loads(capsys.readouterr().out) == {
+        "database": str(database),
+        "status": [{"owner": "core.sqlite", "state": "pending"}],
+    }
 
 
 def test_core_schema_validation_requires_phase4_research_migration(
@@ -254,6 +289,53 @@ def test_core_schema_validation_requires_phase4_research_migration(
         connection.execute("DROP TABLE research_packages_v1")
 
     with pytest.raises(RuntimeError, match="research migration schema"):
+        storage.validate_schema()
+
+
+def test_core_schema_validation_requires_baseline_operator_provenance(
+    monkeypatch, tmp_path, capsys
+):
+    from app import container_entrypoint
+    from app.memory import database as memory_database
+    from shared import backup, migration, storage
+
+    database = tmp_path / "runtime" / "cognitive.sqlite"
+    backup_dir = tmp_path / "backups"
+    for module in (storage, memory_database, backup, migration):
+        monkeypatch.setattr(module, "DB_PATH", database)
+    monkeypatch.setattr(backup, "BACKUP_DIR", backup_dir)
+    monkeypatch.setattr(migration, "BACKUP_DIR", backup_dir)
+
+    assert container_entrypoint.run_migration(Namespace()) == 0
+    capsys.readouterr()
+    with sqlite3.connect(database) as connection:
+        connection.execute("DELETE FROM migration_operator_runs WHERE owner='core.sqlite'")
+
+    with pytest.raises(RuntimeError, match="operator provenance"):
+        storage.validate_schema()
+
+
+def test_core_schema_validation_rejects_named_but_malformed_baseline_table(
+    monkeypatch, tmp_path, capsys
+):
+    from app import container_entrypoint
+    from app.memory import database as memory_database
+    from shared import backup, migration, storage
+
+    database = tmp_path / "runtime" / "cognitive.sqlite"
+    backup_dir = tmp_path / "backups"
+    for module in (storage, memory_database, backup, migration):
+        monkeypatch.setattr(module, "DB_PATH", database)
+    monkeypatch.setattr(backup, "BACKUP_DIR", backup_dir)
+    monkeypatch.setattr(migration, "BACKUP_DIR", backup_dir)
+
+    assert container_entrypoint.run_migration(Namespace()) == 0
+    capsys.readouterr()
+    with sqlite3.connect(database) as connection:
+        connection.execute("DROP TABLE permission_decisions")
+        connection.execute("CREATE TABLE permission_decisions (id TEXT PRIMARY KEY)")
+
+    with pytest.raises(RuntimeError, match="baseline schema"):
         storage.validate_schema()
 
 
@@ -295,6 +377,94 @@ def test_core_schema_validation_uses_readonly_research_connection(
 
     assert calls == [database]
     assert all(not path.exists() for path in sidecars)
+
+
+def test_cli_pipeline_holds_target_runtime_lease(monkeypatch):
+    from app.cli import cmd_pipeline
+    from shared import backup, pipeline, storage
+
+    events: list[tuple[str, Path]] = []
+
+    @contextmanager
+    def recording_lease(target):
+        resolved = Path(target).resolve()
+        events.append(("enter", resolved))
+        try:
+            yield
+        finally:
+            events.append(("exit", resolved))
+
+    def recording_pipeline(*, source, input_data):
+        assert events == [("enter", storage.DB_PATH.resolve())]
+        return {"source": source, "input": input_data}
+
+    monkeypatch.setattr(backup, "runtime_lease", recording_lease)
+    monkeypatch.setattr(pipeline, "run_pipeline", recording_pipeline)
+
+    cmd_pipeline("text", "payload")
+
+    assert events == [
+        ("enter", storage.DB_PATH.resolve()),
+        ("exit", storage.DB_PATH.resolve()),
+    ]
+
+
+@pytest.mark.parametrize("action", ("apply", "rollback"))
+def test_cli_effectful_migration_holds_explicit_target_runtime_lease(
+    action, monkeypatch, tmp_path, capsys
+):
+    from app.cli import cmd_migrate
+    from shared import backup, migration_runner
+
+    database = tmp_path / "explicit.sqlite"
+    backup_dir = tmp_path / "backups"
+    events: list[tuple[str, Path]] = []
+
+    @contextmanager
+    def recording_lease(target):
+        resolved = Path(target).resolve()
+        events.append(("enter", resolved))
+        try:
+            yield
+        finally:
+            events.append(("exit", resolved))
+
+    class RecordingOperator:
+        def __init__(self, *, db_path, backup_dir):
+            assert Path(db_path).resolve() == database.resolve()
+            assert Path(backup_dir).resolve() == backup_dir_path
+
+        def apply(self, owner):
+            assert events == [("enter", database.resolve())]
+            return {"action": "apply", "owner": owner}
+
+        def rollback(self, owner):
+            assert events == [("enter", database.resolve())]
+            return {"action": "rollback", "owner": owner}
+
+    backup_dir_path = backup_dir.resolve()
+    monkeypatch.setattr(backup, "runtime_lease", recording_lease)
+    monkeypatch.setattr(migration_runner, "MigrationOperator", RecordingOperator)
+    monkeypatch.delenv("COGNITIVE_DB_PATH", raising=False)
+
+    cmd_migrate(
+        [
+            action,
+            "--owner",
+            "taskpack.sqlite",
+            "--db",
+            str(database),
+            "--backup-dir",
+            str(backup_dir),
+        ]
+    )
+
+    assert events == [
+        ("enter", database.resolve()),
+        ("exit", database.resolve()),
+    ]
+    assert "COGNITIVE_DB_PATH" not in os.environ
+    assert json.loads(capsys.readouterr().out)["action"] == action
 
 
 def test_compose_defines_production_stack_without_direct_app_ports():

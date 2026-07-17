@@ -169,6 +169,7 @@ def test_registry_is_deterministic_and_rejects_duplicate_identity(tmp_path: Path
 
     assert identities == sorted(identities)
     assert identities == [
+        ("core.sqlite", 1, "core_schema_v1"),
         ("fts.cards", 1, "kb_cards_fts"),
         ("fts.documents", 1, "kb_documents_fts"),
         ("research.sqlite", 1, "research_packages_v1"),
@@ -194,6 +195,36 @@ def test_registry_is_deterministic_and_rejects_duplicate_identity(tmp_path: Path
     )
     with pytest.raises(ValueError, match="duplicate migration target ownership"):
         MigrationRegistry([*registry.owners, target_collision])
+
+
+def test_core_baseline_owner_apply_status_and_rollback_are_provenanced(tmp_path: Path) -> None:
+    from shared import core_schema
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "runtime.sqlite"
+    backups = tmp_path / "backups"
+    with closing(sqlite3.connect(database)):
+        pass
+    operator = MigrationOperator(db_path=database, backup_dir=backups)
+
+    assert _state(operator.status(), "core.sqlite")["state"] == "pending"
+    applied = operator.apply("core.sqlite")
+    assert applied["state"] == "applied"
+    assert applied["provenance"]["backup_sha256"]
+    assert applied["provenance"]["schema_contract_objects"] == len(
+        core_schema.expected_contract()
+    )
+    assert _state(operator.status(), "core.sqlite")["state"] == "applied"
+    with closing(sqlite3.connect(database)) as connection:
+        core_schema.validate(connection)
+
+    rolled_back = operator.rollback("core.sqlite")
+    assert rolled_back["state"] == "rolled_back"
+    assert _state(operator.status(), "core.sqlite")["state"] == "rolled_back"
+    with closing(sqlite3.connect(database)) as connection:
+        assert connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='core_objects'"
+        ).fetchone() is None
 
 
 def test_taskpack_operator_status_apply_duplicate_run_and_rollback_provenance(

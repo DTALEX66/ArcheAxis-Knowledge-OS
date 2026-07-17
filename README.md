@@ -82,7 +82,7 @@ Phase 0 真实基线 ✅
 
 ```bash
 python -m pip install -e ".[dev]"
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers
+python -m app.container_entrypoint core
 ```
 
 - Core API：`http://127.0.0.1:8000/docs`

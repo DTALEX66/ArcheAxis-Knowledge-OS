@@ -95,6 +95,7 @@ jobs:
               "shared/research_store.py",
               "shared/research_migration.py",
               "shared/migration_runner.py",
+              "shared/core_schema.py",
               "inspiration_research/api.py",
           }
           def forbidden_member(name: str) -> bool:

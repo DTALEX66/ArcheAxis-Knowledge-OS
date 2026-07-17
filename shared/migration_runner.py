@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from shared import migration
+from shared import core_schema, migration
 
 _OPERATOR_TABLE = "migration_operator_runs"
 _OPERATOR_TABLE_SQL = f"""
@@ -97,6 +97,12 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
 
     return MigrationRegistry(
         [
+            MigrationOwner(
+                core_schema.BASELINE_OWNER,
+                core_schema.BASELINE_VERSION,
+                core_schema.BASELINE_TARGET,
+                "sqlite_core",
+            ),
             MigrationOwner("taskpack.sqlite", 3, "kb_taskpacks", "sqlite"),
             MigrationOwner("vector.documents", 1, "vec_kb_documents", "vector"),
             MigrationOwner("vector.cards", 1, "vec_kb_cards", "vector"),
@@ -137,6 +143,32 @@ def _canonical_sql_value(value: Any) -> tuple[str, Any]:
     if isinstance(value, int):
         return ("integer", value)
     return ("text", str(value))
+
+
+def require_sqlite_owners_applied(
+    connection: sqlite3.Connection,
+    registry: MigrationRegistry | None = None,
+) -> None:
+    """Require current applied provenance for every SQLite schema owner, read-only."""
+    owners = tuple(
+        owner for owner in (registry or default_registry()).owners if owner.kind.startswith("sqlite")
+    )
+    if not migration._table_exists(connection, _OPERATOR_TABLE):
+        raise RuntimeError("SQLite operator provenance is missing")
+    missing: list[str] = []
+    for owner in owners:
+        row = connection.execute(
+            f"SELECT state FROM {_OPERATOR_TABLE} "
+            "WHERE owner=? AND version=? AND target=? "
+            "ORDER BY rowid DESC LIMIT 1",
+            owner.identity,
+        ).fetchone()
+        if row is None or str(row[0]) != "applied":
+            missing.append(owner.owner)
+    if missing:
+        raise RuntimeError(
+            "SQLite operator provenance is not applied for: " + ", ".join(sorted(missing))
+        )
 
 
 class MigrationOperator:
@@ -446,13 +478,22 @@ class MigrationOperator:
         for owner in self.registry.owners:
             latest = self._latest(owner)
             if latest is not None:
-                if latest["state"] == "applied" and owner.kind in {"sqlite", "sqlite_research"}:
+                if latest["state"] == "applied" and owner.kind in {
+                    "sqlite",
+                    "sqlite_research",
+                    "sqlite_core",
+                }:
                     try:
-                        live = (
-                            migration.status(db_path=self.db_path)
-                            if owner.kind == "sqlite"
-                            else self._research_status()
-                        )
+                        if owner.kind == "sqlite_core":
+                            with closing(self._connect()) as connection:
+                                core_schema.validate(connection)
+                            live = {"pending": []}
+                        else:
+                            live = (
+                                migration.status(db_path=self.db_path)
+                                if owner.kind == "sqlite"
+                                else self._research_status()
+                            )
                         if live["pending"] or (owner.kind == "sqlite" and not live["total"]):
                             raise RuntimeError("live schema does not match applied owner")
                     except Exception as exc:
@@ -665,6 +706,18 @@ class MigrationOperator:
                         provenance=self._failure_provenance(exc, "apply"),
                     )
                     raise
+            elif owner.kind == "sqlite_core":
+                try:
+                    with closing(self._connect()) as connection:
+                        core_schema.validate(connection)
+                except Exception as exc:
+                    self._record(
+                        owner,
+                        state="failed",
+                        operation="apply",
+                        provenance=self._failure_provenance(exc, "apply"),
+                    )
+                    raise
             return self._item(
                 owner,
                 "applied",
@@ -677,6 +730,37 @@ class MigrationOperator:
         built_here = False
         rollback_handle: Any | None = None
         try:
+            if owner.kind == "sqlite_core":
+                operator_run_id = uuid4().hex
+                with closing(self._connect()) as connection:
+                    connection.execute("BEGIN IMMEDIATE")
+                    backup = migration._create_backup(
+                        self.db_path,
+                        self.backup_dir,
+                        core_schema.BASELINE_MIGRATION_NAME,
+                        operator_run_id=operator_run_id,
+                    )
+                    core_schema.apply(connection)
+                    core_schema.validate(connection)
+                    provenance = {
+                        "applied_migrations": [core_schema.BASELINE_MIGRATION_NAME],
+                        "backup_path": str(backup),
+                        "backup_sha256": _sha256(backup),
+                        "database_fingerprint_after_apply": self._database_fingerprint(
+                            connection
+                        ),
+                        "schema_contract_objects": len(core_schema.expected_contract()),
+                    }
+                    applied_item = self._insert_record(
+                        connection,
+                        owner,
+                        state="applied",
+                        operation="apply",
+                        provenance=provenance,
+                        run_id=operator_run_id,
+                    )
+                    connection.commit()
+                return applied_item
             if owner.kind == "sqlite":
                 applied_item: dict[str, Any] | None = None
                 operator_run_id = uuid4().hex
@@ -864,7 +948,7 @@ class MigrationOperator:
         if latest is None or latest["state"] != "applied":
             raise RuntimeError(f"no applied migration to roll back for owner: {owner.owner}")
         try:
-            if owner.kind in {"sqlite", "sqlite_research"}:
+            if owner.kind in {"sqlite", "sqlite_research", "sqlite_core"}:
                 backup_value = latest["provenance"].get("backup_path")
                 if not backup_value:
                     raise RuntimeError("applied SQLite migration has no rollback backup")
@@ -879,7 +963,10 @@ class MigrationOperator:
                 if owner.kind == "sqlite":
                     if not expected_migrations <= set(migration.TASKPACK_MIGRATIONS.values()):
                         raise RuntimeError("rollback provenance does not match migration owner")
-                elif expected_migrations != {migration.RESEARCH_SCHEMA_MIGRATION_NAME}:
+                elif owner.kind == "sqlite_research":
+                    if expected_migrations != {migration.RESEARCH_SCHEMA_MIGRATION_NAME}:
+                        raise RuntimeError("rollback provenance does not match migration owner")
+                elif expected_migrations != {core_schema.BASELINE_MIGRATION_NAME}:
                     raise RuntimeError("rollback provenance does not match migration owner")
                 expected_fingerprint = latest["provenance"].get("database_fingerprint_after_apply")
                 if not expected_fingerprint:

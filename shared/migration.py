@@ -20,6 +20,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from shared.config import config, resolve_runtime_path
+from shared.core_schema import BASELINE_MIGRATION_NAME
 
 DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
 BACKUP_DIR = resolve_runtime_path(str(config.get("database.backup_dir", "data/backups")))
@@ -42,7 +43,10 @@ TASKPACK_MIGRATIONS = {
 }
 RESEARCH_SCHEMA_MIGRATION_VERSION = 4
 RESEARCH_SCHEMA_MIGRATION_NAME = "phase4_research_package_v1"
-ROLLBACK_MIGRATION_NAMES = set(TASKPACK_MIGRATIONS.values()) | {RESEARCH_SCHEMA_MIGRATION_NAME}
+ROLLBACK_MIGRATION_NAMES = set(TASKPACK_MIGRATIONS.values()) | {
+    RESEARCH_SCHEMA_MIGRATION_NAME,
+    BASELINE_MIGRATION_NAME,
+}
 TASKPACK_COLUMNS = {
     "id",
     "context_id",
