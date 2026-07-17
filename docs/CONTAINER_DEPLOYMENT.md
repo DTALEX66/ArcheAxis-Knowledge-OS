@@ -93,13 +93,16 @@ before Uvicorn starts.
 ## Backup
 
 ```bash
-docker compose --env-file .env.container --profile ops run --rm integrity
-docker compose --env-file .env.container --profile ops run --rm backup
+docker compose --env-file .env.container --profile ops run --rm --no-deps integrity
+docker compose --env-file .env.container --profile ops run --rm --no-deps backup
 ```
 
 Backups are SQLite backup API snapshots plus a manifest binding source identity,
 backup SHA256, migration ledger, migration status, and required domain
-invariants. A missing or mismatched manifest is rejected.
+invariants. A missing or mismatched manifest is rejected. The explicit
+`--no-deps` is required for ops one-shots: the stack has already completed its
+schema gate, and starting the `migration` dependency while Core holds the runtime
+lease must fail closed rather than rerun schema ownership online.
 
 ## Restore Drill
 
@@ -107,7 +110,7 @@ Stage a candidate from an exact verified backup:
 
 ```bash
 export COGNITIVE_RESTORE_BACKUP=/app/data/backups/cognitive_os_YYYYMMDDTHHMMSS.sqlite
-docker compose --env-file .env.container --profile ops run --rm restore-candidate
+docker compose --env-file .env.container --profile ops run --rm --no-deps restore-candidate
 ```
 
 ## Restore Activation
@@ -117,7 +120,7 @@ Activate only while the app is offline:
 ```bash
 docker compose --env-file .env.container stop caddy core
 export COGNITIVE_RESTORE_CANDIDATE=/app/data/backups/restore-candidates/restore_YYYYMMDDTHHMMSS.sqlite
-docker compose --env-file .env.container --profile ops run --rm restore-activate
+docker compose --env-file .env.container --profile ops run --rm --no-deps restore-activate
 docker compose --env-file .env.container up -d core caddy
 ```
 

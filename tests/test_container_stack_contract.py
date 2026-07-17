@@ -434,6 +434,7 @@ def test_container_deployment_docs_cover_required_operations_and_limits():
         "SQLite",
         "shared.migration",
         "one durable SQLite writer",
+        "--no-deps",
     ):
         assert phrase in docs
 
@@ -463,6 +464,9 @@ def test_container_workflow_builds_real_stack_and_checks_runtime_contracts():
     assert restart < post_restart_health < first_backup_write
     assert "restore-candidate" in workflow
     assert "restore-activate" in workflow
+    assert workflow.count("run --rm --no-deps") >= 4
+    assert "run --rm integrity" not in workflow
+    assert "run --rm backup" not in workflow
     assert "integrity" in workflow
     assert "stop caddy core" in workflow
     assert "ghcr.io/${GITHUB_REPOSITORY,,}" in workflow

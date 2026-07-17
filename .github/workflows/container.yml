@@ -148,8 +148,8 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{"title":"restore-before","content":"expected restored document","source":"ci"}' \
             http://127.0.0.1:8080/kb/documents >/dev/null
-          docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm integrity
-          backup_path="$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm backup | tail -n1)"
+          docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm --no-deps integrity
+          backup_path="$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm --no-deps backup | tail -n1)"
           test -n "$backup_path"
           curl --retry 10 --retry-delay 1 --retry-all-errors -fsS \
             -H "X-API-Key: ${api_key}" \
@@ -157,9 +157,9 @@ jobs:
             --data '{"title":"restore-after","content":"must disappear after restore","source":"ci"}' \
             http://127.0.0.1:8080/kb/documents >/dev/null
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml stop caddy core
-          candidate_path="$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm -e COGNITIVE_RESTORE_BACKUP="$backup_path" restore-candidate | tail -n1)"
+          candidate_path="$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm --no-deps -e COGNITIVE_RESTORE_BACKUP="$backup_path" restore-candidate | tail -n1)"
           test -n "$candidate_path"
-          docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm -e COGNITIVE_RESTORE_CANDIDATE="$candidate_path" restore-activate
+          docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm --no-deps -e COGNITIVE_RESTORE_CANDIDATE="$candidate_path" restore-activate
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml up -d --wait core caddy
           curl --retry 60 --retry-delay 2 --retry-all-errors -fsS http://127.0.0.1:8080/health >/dev/null
           restored="$(curl -fsS -H "X-API-Key: ${api_key}" 'http://127.0.0.1:8080/kb/documents?limit=50')"
