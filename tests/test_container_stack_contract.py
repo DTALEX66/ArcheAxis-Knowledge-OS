@@ -239,6 +239,75 @@ def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock
     assert events == ["lock", "checkpoint", "validate", "exec"]
 
 
+def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
+    from app import container_entrypoint
+    from shared import backup, migration, migration_runner
+
+    database = tmp_path / "runtime.sqlite"
+    backup_dir = tmp_path / "backups"
+    database.touch()
+    events: list[str] = []
+
+    @contextmanager
+    def recording_lease():
+        events.append("lease-enter")
+        try:
+            yield
+        finally:
+            events.append("lease-exit")
+
+    def prepare_file():
+        events.append("prepare-file")
+        return database
+
+    def checkpoint():
+        events.append("checkpoint")
+
+    class RecordingOperator:
+        def __init__(self, *, db_path, backup_dir):
+            assert Path(db_path) == database
+            assert Path(backup_dir) == backup_dir_path
+            assert events == ["lease-enter", "prepare-file", "checkpoint"]
+            events.append("operator-init")
+            self.registry = SimpleNamespace(
+                owners=(SimpleNamespace(owner="core.sqlite", kind="sqlite_core"),)
+            )
+
+        def apply(self, owner):
+            assert owner == "core.sqlite"
+            assert events == [
+                "lease-enter",
+                "prepare-file",
+                "checkpoint",
+                "operator-init",
+            ]
+            events.append("apply")
+            return {"owner": owner, "state": "applied"}
+
+        def status(self):
+            return []
+
+    backup_dir_path = backup_dir
+    monkeypatch.setattr(backup, "runtime_lease", recording_lease)
+    monkeypatch.setattr(backup, "prepare_runtime_database", checkpoint)
+    monkeypatch.setattr(migration, "BACKUP_DIR", backup_dir)
+    monkeypatch.setattr(container_entrypoint, "_prepare_database_file", prepare_file)
+    monkeypatch.setattr(migration_runner, "MigrationOperator", RecordingOperator)
+    monkeypatch.setattr(backup, "ensure_volume_identity", lambda _database: None)
+
+    assert container_entrypoint.run_migration(Namespace()) == 0
+    assert events == [
+        "lease-enter",
+        "prepare-file",
+        "checkpoint",
+        "operator-init",
+        "apply",
+        "lease-exit",
+    ]
+
+
 def test_container_migration_records_operator_provenance_and_backup(
     monkeypatch, tmp_path, capsys
 ):

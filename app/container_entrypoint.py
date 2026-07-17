@@ -78,6 +78,7 @@ def run_migration(_: argparse.Namespace) -> int:
 
     with backup.runtime_lease():
         database = _prepare_database_file()
+        backup.prepare_runtime_database()
         operator = MigrationOperator(db_path=database, backup_dir=migration.BACKUP_DIR)
         results = [
             operator.apply(owner.owner)
