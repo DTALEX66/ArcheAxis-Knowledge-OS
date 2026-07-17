@@ -160,11 +160,30 @@ def _connect(path: Path) -> sqlite3.Connection:
 
 
 def _connect_readonly(path: Path) -> sqlite3.Connection:
-    uri = f"{path.resolve().as_uri()}?mode=ro"
+    sidecars = [Path(f"{path}{suffix}") for suffix in ("-wal", "-shm")]
+    present = [sidecar.name for sidecar in sidecars if sidecar.exists()]
+    if present:
+        raise RuntimeError(
+            "read-only research access requires a checkpointed database without "
+            f"SQLite sidecars: {', '.join(present)}"
+        )
+    uri = f"{path.resolve().as_uri()}?mode=ro&immutable=1"
     connection = sqlite3.connect(uri, uri=True, timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
+    connection.execute("PRAGMA query_only=ON")
     connection.row_factory = sqlite3.Row
     return connection
+
+
+def _validate_readonly(connection: sqlite3.Connection, path: Path) -> None:
+    if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+        raise RuntimeError(f"SQLite integrity check failed for {path}")
+
+
+def _require_applied_connection(connection: sqlite3.Connection, path: Path) -> None:
+    _validate_readonly(connection, path)
+    if _pending(connection):
+        raise RuntimeError("phase4 research schema migration is pending")
 
 
 def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
@@ -354,8 +373,8 @@ def status(*, db_path: str | Path) -> dict[str, object]:
             ],
             "applied_list": [],
         }
-    migration._validate_database(database)
-    with closing(_connect(database)) as connection:
+    with closing(_connect_readonly(database)) as connection:
+        _validate_readonly(connection, database)
         pending = _pending(connection)
         applied = not pending
     return {
@@ -379,8 +398,5 @@ def require_applied(*, db_path: str | Path) -> None:
     database = Path(db_path)
     if not database.is_file():
         raise RuntimeError("phase4 research schema migration is pending")
-    migration._validate_database(database)
     with closing(_connect_readonly(database)) as connection:
-        pending = _pending(connection)
-    if pending:
-        raise RuntimeError("phase4 research schema migration is pending")
+        _require_applied_connection(connection, database)

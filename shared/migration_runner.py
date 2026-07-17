@@ -185,11 +185,31 @@ class MigrationOperator:
         self.backup_dir = Path(backup_dir).resolve()
         self.registry = registry or default_registry(self.db_path)
         self._lock_database = self._lock_database_for_target(self.db_path)
-        migration._validate_database(self.db_path)
+        if not self.db_path.is_file():
+            raise FileNotFoundError(f"SQLite database not found: {self.db_path}")
+        with closing(self._connect_readonly()) as connection:
+            result = connection.execute("PRAGMA integrity_check").fetchone()[0]
+            if result != "ok":
+                raise RuntimeError(f"SQLite integrity check failed for {self.db_path}: {result}")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(str(self.db_path), timeout=30.0)
         connection.execute("PRAGMA busy_timeout=30000")
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    def _connect_readonly(self) -> sqlite3.Connection:
+        sidecars = [Path(f"{self.db_path}{suffix}") for suffix in ("-wal", "-shm")]
+        present = [sidecar.name for sidecar in sidecars if sidecar.exists()]
+        if present:
+            raise RuntimeError(
+                "read-only migration status requires a checkpointed database without "
+                f"SQLite sidecars: {', '.join(present)}"
+            )
+        uri = f"{self.db_path.as_uri()}?mode=ro&immutable=1"
+        connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+        connection.execute("PRAGMA busy_timeout=30000")
+        connection.execute("PRAGMA query_only=ON")
         connection.row_factory = sqlite3.Row
         return connection
 
@@ -344,7 +364,7 @@ class MigrationOperator:
     def _latest_with_state(
         self, owner: MigrationOwner, state: str | None = None
     ) -> dict[str, Any] | None:
-        with closing(self._connect()) as connection:
+        with closing(self._connect_readonly()) as connection:
             if not migration._table_exists(connection, _OPERATOR_TABLE):
                 return None
             state_clause = " AND state=?" if state is not None else ""

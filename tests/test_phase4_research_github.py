@@ -714,6 +714,117 @@ def test_phase4_recorded_schema_rejects_index_drift(tmp_path: Path) -> None:
         research_migration.status(db_path=database)
 
 
+def test_phase4_api_facade_and_status_use_sidecar_free_readonly_connections(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from fastapi.testclient import TestClient
+
+    from app.facades.research import get_research_package, research_github_repository
+    from inspiration_research.api import app
+    from shared import research_migration, research_store, storage
+    from shared.migration_runner import MigrationOperator, MigrationOwner, MigrationRegistry
+
+    database = tmp_path / "phase4.sqlite"
+    _prepare_research_schema(database)
+    package_id = research_github_repository(
+        "https://github.com/octo/loop-os",
+        fetcher=_transport(),
+        db_path=database,
+    ).package.package_id
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        connection.execute("PRAGMA journal_mode=DELETE")
+    sidecars = [Path(f"{database}{suffix}") for suffix in ("-wal", "-shm")]
+    assert all(not path.exists() for path in sidecars)
+
+    original_connect = sqlite3.connect
+    calls: list[str] = []
+    query_only_calls: list[str] = []
+
+    class RecordingConnection:
+        def __init__(self, connection, locator: str):
+            object.__setattr__(self, "_connection", connection)
+            object.__setattr__(self, "_locator", locator)
+
+        def __setattr__(self, name, value):
+            if name in {"_connection", "_locator"}:
+                object.__setattr__(self, name, value)
+            else:
+                setattr(self._connection, name, value)
+
+        def execute(self, sql, *args, **kwargs):
+            if str(sql).strip().casefold() == "pragma query_only=on":
+                query_only_calls.append(self._locator)
+            return self._connection.execute(sql, *args, **kwargs)
+
+        def close(self):
+            return self._connection.close()
+
+        def __getattr__(self, name):
+            return getattr(self._connection, name)
+
+    def guarded_connect(target, *args, **kwargs):
+        locator = str(target)
+        if locator == ":memory:":
+            return original_connect(target, *args, **kwargs)
+        assert kwargs.get("uri") is True
+        assert "mode=ro" in locator
+        assert "immutable=1" in locator
+        calls.append(locator)
+        return RecordingConnection(original_connect(target, *args, **kwargs), locator)
+
+    monkeypatch.setattr(research_migration.sqlite3, "connect", guarded_connect)
+    monkeypatch.setattr(research_store.sqlite3, "connect", guarded_connect)
+    monkeypatch.setattr(storage, "DB_PATH", database)
+
+    assert research_migration.status(db_path=database)["pending"] == []
+    assert len(calls) == 1
+    assert get_research_package(package_id, db_path=database).package.package_id == package_id
+    assert len(calls) == 2
+    response = TestClient(app).get(f"/research/packages/{package_id}")
+    assert response.status_code == 200
+    assert response.json()["package"]["package_id"] == package_id
+    assert len(calls) == 3
+    registry = MigrationRegistry(
+        [MigrationOwner("research.sqlite", 1, "research_packages_v1", "sqlite_research")]
+    )
+    operator = MigrationOperator(
+        db_path=database,
+        backup_dir=tmp_path / "migration-backups",
+        registry=registry,
+    )
+    assert operator.status()[0]["owner"] == "research.sqlite"
+    assert query_only_calls == calls
+    assert all(not path.exists() for path in sidecars)
+
+
+def test_phase4_read_paths_fail_closed_without_mutating_live_sidecars(tmp_path: Path) -> None:
+    from app.facades.research import get_research_package, research_github_repository
+    from shared import research_migration
+
+    database = tmp_path / "phase4.sqlite"
+    _prepare_research_schema(database)
+    package_id = research_github_repository(
+        "https://github.com/octo/loop-os",
+        fetcher=_transport(),
+        db_path=database,
+    ).package.package_id
+    sidecars = [Path(f"{database}{suffix}") for suffix in ("-wal", "-shm")]
+    snapshots = {}
+    for sidecar, payload in zip(sidecars, (b"live-wal", b"live-shm"), strict=True):
+        sidecar.write_bytes(payload)
+        snapshots[sidecar] = payload
+
+    for reader in (
+        lambda: research_migration.status(db_path=database),
+        lambda: get_research_package(package_id, db_path=database),
+    ):
+        with pytest.raises(RuntimeError, match="checkpointed database"):
+            reader()
+        assert {path: path.read_bytes() for path in sidecars} == snapshots
+
+
 def test_phase4_research_schema_migration_status_backup_and_rollback(tmp_path: Path) -> None:
     from shared import research_migration
     from shared.migration_runner import MigrationOperator
