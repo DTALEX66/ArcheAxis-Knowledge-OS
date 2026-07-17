@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import re
@@ -362,9 +363,17 @@ class MigrationOperator:
         return self._latest_with_state(owner)
 
     def _latest_with_state(
-        self, owner: MigrationOwner, state: str | None = None
+        self,
+        owner: MigrationOwner,
+        state: str | None = None,
+        *,
+        connection: sqlite3.Connection | None = None,
     ) -> dict[str, Any] | None:
-        with closing(self._connect_readonly()) as connection:
+        if connection is None:
+            connection_context = closing(self._connect_readonly())
+        else:
+            connection_context = contextlib.nullcontext(connection)
+        with connection_context as connection:
             if not migration._table_exists(connection, _OPERATOR_TABLE):
                 return None
             state_clause = " AND state=?" if state is not None else ""
@@ -680,7 +689,8 @@ class MigrationOperator:
                     provenance=self._failure_provenance(exc, "apply"),
                 )
                 raise
-        latest = self._latest(owner)
+        with closing(self._connect()) as conn:
+            latest = self._latest_with_state(owner, connection=conn)
         if (
             owner.kind == "sqlite_research"
             and latest is None
