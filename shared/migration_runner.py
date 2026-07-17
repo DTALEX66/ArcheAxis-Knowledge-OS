@@ -504,75 +504,76 @@ class MigrationOperator:
         """Return all owner states without creating tables or changing the database."""
 
         result: list[dict[str, Any]] = []
-        for owner in self.registry.owners:
-            latest = self._latest(owner)
-            if latest is not None:
-                if latest["state"] == "applied" and owner.kind in {
-                    "sqlite",
-                    "sqlite_research",
-                    "sqlite_core",
-                }:
-                    try:
-                        if owner.kind == "sqlite_core":
-                            with closing(self._connect()) as connection:
-                                core_schema.validate(connection)
-                            live = {"pending": []}
-                        else:
-                            live = (
-                                migration.status(db_path=self.db_path)
-                                if owner.kind == "sqlite"
-                                else self._research_status()
+        with closing(self._connect_readonly()) as conn:
+            for owner in self.registry.owners:
+                latest = self._latest_with_state(owner, connection=conn)
+                if latest is not None:
+                    if latest["state"] == "applied" and owner.kind in {
+                        "sqlite",
+                        "sqlite_research",
+                        "sqlite_core",
+                    }:
+                        try:
+                            if owner.kind == "sqlite_core":
+                                with closing(self._connect_readonly()) as connection:
+                                    core_schema.validate(connection)
+                                live = {"pending": []}
+                            else:
+                                live = (
+                                    migration.status(db_path=self.db_path)
+                                    if owner.kind == "sqlite"
+                                    else self._research_status()
+                                )
+                            if live["pending"] or (owner.kind == "sqlite" and not live["total"]):
+                                raise RuntimeError("live schema does not match applied owner")
+                        except Exception as exc:
+                            result.append(
+                                self._item(
+                                    owner,
+                                    "failed",
+                                    {
+                                        **latest["provenance"],
+                                        "reason": "live_schema_drift",
+                                        "error_type": type(exc).__name__,
+                                    },
+                                    operation="status",
+                                    recorded_at=latest["recorded_at"],
+                                )
                             )
-                        if live["pending"] or (owner.kind == "sqlite" and not live["total"]):
-                            raise RuntimeError("live schema does not match applied owner")
-                    except Exception as exc:
-                        result.append(
-                            self._item(
-                                owner,
-                                "failed",
-                                {
-                                    **latest["provenance"],
-                                    "reason": "live_schema_drift",
-                                    "error_type": type(exc).__name__,
-                                },
-                                operation="status",
-                                recorded_at=latest["recorded_at"],
-                            )
+                            continue
+                    result.append(
+                        self._item(
+                            owner,
+                            latest["state"],
+                            latest["provenance"],
+                            operation=latest["operation"],
+                            recorded_at=latest["recorded_at"],
                         )
-                        continue
-                result.append(
-                    self._item(
-                        owner,
-                        latest["state"],
-                        latest["provenance"],
-                        operation=latest["operation"],
-                        recorded_at=latest["recorded_at"],
                     )
-                )
-                continue
-            provenance: dict[str, Any] = {"database": str(self.db_path)}
-            state = "pending"
-            if owner.kind == "sqlite":
-                try:
-                    taskpack = migration.status(db_path=self.db_path)
-                    if not taskpack["total"]:
+                    continue
+                provenance: dict[str, Any] = {"database": str(self.db_path)}
+                state = "pending"
+                if owner.kind == "sqlite":
+                    try:
+                        taskpack = migration.status(db_path=self.db_path)
+                        if not taskpack["total"]:
+                            state = "failed"
+                            provenance["reason"] = "target_missing"
+                        else:
+                            state = "applied" if not taskpack["pending"] else "pending"
+                        provenance["schema_migrations"] = taskpack
+                    except Exception as exc:
                         state = "failed"
-                        provenance["reason"] = "target_missing"
-                    else:
-                        state = "applied" if not taskpack["pending"] else "pending"
-                    provenance["schema_migrations"] = taskpack
-                except Exception as exc:
-                    state = "failed"
-                    provenance.update(error_type=type(exc).__name__, operation="status")
-            elif owner.kind == "sqlite_research":
-                try:
-                    research = self._research_status()
-                    state = "applied" if not research["pending"] else "pending"
-                    provenance["schema_migrations"] = research
-                except Exception as exc:
-                    state = "failed"
-                    provenance.update(error_type=type(exc).__name__, operation="status")
-            result.append(self._item(owner, state, provenance))
+                        provenance.update(error_type=type(exc).__name__, operation="status")
+                elif owner.kind == "sqlite_research":
+                    try:
+                        research = self._research_status()
+                        state = "applied" if not research["pending"] else "pending"
+                        provenance["schema_migrations"] = research
+                    except Exception as exc:
+                        state = "failed"
+                        provenance.update(error_type=type(exc).__name__, operation="status")
+                result.append(self._item(owner, state, provenance))
         return result
 
     def _research_status(self) -> dict[str, object]:

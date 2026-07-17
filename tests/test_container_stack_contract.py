@@ -258,9 +258,12 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
         finally:
             events.append("lease-exit")
 
-    def prepare_file():
-        events.append("prepare-file")
+    def ensure_file():
+        events.append("ensure-file")
         return database
+
+    def integrity_check():
+        events.append("integrity")
 
     def checkpoint():
         events.append("checkpoint")
@@ -269,7 +272,7 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
         def __init__(self, *, db_path, backup_dir):
             assert Path(db_path) == database
             assert Path(backup_dir) == backup_dir_path
-            assert events == ["lease-enter", "prepare-file", "checkpoint"]
+            assert events == ["lease-enter", "ensure-file", "checkpoint", "integrity"]
             events.append("operator-init")
             self.registry = SimpleNamespace(
                 owners=(
@@ -282,16 +285,18 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
             if owner == "core.sqlite":
                 assert events == [
                     "lease-enter",
-                    "prepare-file",
+                    "ensure-file",
                     "checkpoint",
+                    "integrity",
                     "operator-init",
                 ]
                 events.append("apply-core")
             elif owner == "research.sqlite":
                 assert events == [
                     "lease-enter",
-                    "prepare-file",
+                    "ensure-file",
                     "checkpoint",
+                    "integrity",
                     "operator-init",
                     "apply-core",
                     "checkpoint",
@@ -304,8 +309,9 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
         def status(self):
             assert events == [
                 "lease-enter",
-                "prepare-file",
+                "ensure-file",
                 "checkpoint",
+                "integrity",
                 "operator-init",
                 "apply-core",
                 "checkpoint",
@@ -320,7 +326,8 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
     monkeypatch.setattr(backup, "runtime_lease", recording_lease)
     monkeypatch.setattr(backup, "prepare_runtime_database", checkpoint)
     monkeypatch.setattr(migration, "BACKUP_DIR", backup_dir)
-    monkeypatch.setattr(container_entrypoint, "_prepare_database_file", prepare_file)
+    monkeypatch.setattr(container_entrypoint, "_ensure_database_file", ensure_file)
+    monkeypatch.setattr(container_entrypoint, "_prepare_database_file", integrity_check)
     monkeypatch.setattr(migration_runner, "MigrationOperator", RecordingOperator)
     monkeypatch.setattr(
         backup, "ensure_volume_identity", lambda _database: events.append("identity")
@@ -329,8 +336,9 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
     assert container_entrypoint.run_migration(Namespace()) == 0
     assert events == [
         "lease-enter",
-        "prepare-file",
+        "ensure-file",
         "checkpoint",
+        "integrity",
         "operator-init",
         "apply-core",
         "checkpoint",

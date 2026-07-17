@@ -8,6 +8,7 @@ import os
 import sqlite3
 import subprocess
 import sys
+from contextlib import closing
 from pathlib import Path
 from typing import NoReturn
 
@@ -44,9 +45,19 @@ def _database_path() -> Path:
 def _prepare_database_file() -> Path:
     database = _database_path()
     database.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(str(database)) as connection:
+    if not database.is_file():
+        return database
+    uri = f"{database.resolve().as_uri()}?mode=ro&immutable=1"
+    with closing(sqlite3.connect(uri, uri=True, timeout=30.0)) as connection:
         if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
             raise RuntimeError(f"SQLite integrity check failed for {database}")
+    return database
+
+
+def _ensure_database_file() -> Path:
+    database = _database_path()
+    database.parent.mkdir(parents=True, exist_ok=True)
+    database.touch(exist_ok=True)
     return database
 
 
@@ -77,8 +88,9 @@ def run_migration(_: argparse.Namespace) -> int:
     from shared.migration_runner import MigrationOperator
 
     with backup.runtime_lease():
-        database = _prepare_database_file()
+        database = _ensure_database_file()
         backup.prepare_runtime_database()
+        _prepare_database_file()
         operator = MigrationOperator(db_path=database, backup_dir=migration.BACKUP_DIR)
         results = []
         for owner in operator.registry.owners:
