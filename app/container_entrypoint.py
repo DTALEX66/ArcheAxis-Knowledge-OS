@@ -80,13 +80,13 @@ def run_migration(_: argparse.Namespace) -> int:
         database = _prepare_database_file()
         backup.prepare_runtime_database()
         operator = MigrationOperator(db_path=database, backup_dir=migration.BACKUP_DIR)
-        results = [
-            operator.apply(owner.owner)
-            for owner in operator.registry.owners
-            if owner.kind.startswith("sqlite")
-        ]
+        results = []
+        for owner in operator.registry.owners:
+            if not owner.kind.startswith("sqlite"):
+                continue
+            results.append(operator.apply(owner.owner))
+            backup.prepare_runtime_database()
         backup.ensure_volume_identity(database)
-        backup.prepare_runtime_database()
         status = operator.status()
     payload = {
         "database": str(database),

@@ -190,7 +190,7 @@ def test_container_entrypoint_delegates_to_existing_migration_and_backup_apis():
     entrypoint = (ROOT / "app" / "container_entrypoint.py").read_text(encoding="utf-8")
     assert "MigrationOperator" in entrypoint
     assert "for owner in operator.registry.owners" in entrypoint
-    assert 'if owner.kind.startswith("sqlite")' in entrypoint
+    assert 'if not owner.kind.startswith("sqlite"):' in entrypoint
     assert "operator.apply(owner.owner)" in entrypoint
     assert 'operator.apply("taskpack.sqlite")' not in entrypoint
     assert "migration.migrate" not in entrypoint
@@ -272,18 +272,33 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
             assert events == ["lease-enter", "prepare-file", "checkpoint"]
             events.append("operator-init")
             self.registry = SimpleNamespace(
-                owners=(SimpleNamespace(owner="core.sqlite", kind="sqlite_core"),)
+                owners=(
+                    SimpleNamespace(owner="core.sqlite", kind="sqlite_core"),
+                    SimpleNamespace(owner="research.sqlite", kind="sqlite_research"),
+                )
             )
 
         def apply(self, owner):
-            assert owner == "core.sqlite"
-            assert events == [
-                "lease-enter",
-                "prepare-file",
-                "checkpoint",
-                "operator-init",
-            ]
-            events.append("apply")
+            if owner == "core.sqlite":
+                assert events == [
+                    "lease-enter",
+                    "prepare-file",
+                    "checkpoint",
+                    "operator-init",
+                ]
+                events.append("apply-core")
+            elif owner == "research.sqlite":
+                assert events == [
+                    "lease-enter",
+                    "prepare-file",
+                    "checkpoint",
+                    "operator-init",
+                    "apply-core",
+                    "checkpoint",
+                ]
+                events.append("apply-research")
+            else:  # pragma: no cover - guards the contract fixture
+                raise AssertionError(owner)
             return {"owner": owner, "state": "applied"}
 
         def status(self):
@@ -292,8 +307,11 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
                 "prepare-file",
                 "checkpoint",
                 "operator-init",
-                "apply",
+                "apply-core",
                 "checkpoint",
+                "apply-research",
+                "checkpoint",
+                "identity",
             ]
             events.append("status")
             return []
@@ -304,7 +322,9 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
     monkeypatch.setattr(migration, "BACKUP_DIR", backup_dir)
     monkeypatch.setattr(container_entrypoint, "_prepare_database_file", prepare_file)
     monkeypatch.setattr(migration_runner, "MigrationOperator", RecordingOperator)
-    monkeypatch.setattr(backup, "ensure_volume_identity", lambda _database: None)
+    monkeypatch.setattr(
+        backup, "ensure_volume_identity", lambda _database: events.append("identity")
+    )
 
     assert container_entrypoint.run_migration(Namespace()) == 0
     assert events == [
@@ -312,8 +332,11 @@ def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp
         "prepare-file",
         "checkpoint",
         "operator-init",
-        "apply",
+        "apply-core",
         "checkpoint",
+        "apply-research",
+        "checkpoint",
+        "identity",
         "status",
         "lease-exit",
     ]
@@ -814,3 +837,44 @@ def test_all_ci_actions_are_commit_pinned():
         "astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e",
     ):
         assert action in workflow
+
+
+def test_migration_restored_wal_database_accepts_all_owners_and_passes_integrity(
+    monkeypatch, tmp_path, capsys
+):
+    from app import container_entrypoint
+    from app.memory import database as memory_database
+    from shared import backup, migration, storage
+
+    database = tmp_path / "runtime" / "cognitive_os.sqlite"
+    backup_dir = tmp_path / "backups"
+    database.parent.mkdir(parents=True)
+
+    for module in (storage, memory_database, backup, migration):
+        monkeypatch.setattr(module, "DB_PATH", database)
+    monkeypatch.setattr(backup, "BACKUP_DIR", backup_dir)
+    monkeypatch.setattr(migration, "BACKUP_DIR", backup_dir)
+
+    # Simulate a database freshly restored from backup: the SQLite backup()
+    # API creates a clean copy in DELETE journal mode.  The migration entry
+    # point must accept whichever journal mode the restored copy has.
+    sqlite3.connect(database).close()
+
+    # Run the real container migration entry point on the restored db
+    assert container_entrypoint.run_migration(Namespace()) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    # All owners report non-failed terminal state
+    for result in payload["operator_results"]:
+        assert result["state"] == "applied", f"{result['owner']} state: {result['state']}"
+    status = payload["status"]
+    assert isinstance(status, list)
+    for entry in status:
+        assert entry["state"] != "failed", f"{entry['owner']} status: {entry['state']}"
+
+    # Integrity is ok
+    with sqlite3.connect(database) as connection:
+        assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+
+    # No production DB path is touched
+    assert database == migration.DB_PATH or Path(migration.DB_PATH) == database

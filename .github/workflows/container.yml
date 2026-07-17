@@ -164,7 +164,10 @@ jobs:
           candidate_path="$(docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm --no-deps -e COGNITIVE_RESTORE_BACKUP="$backup_path" restore-candidate | tail -n1)"
           test -n "$candidate_path"
           docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops run --rm --no-deps -e COGNITIVE_RESTORE_CANDIDATE="$candidate_path" restore-activate
-          docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml up -d --wait core caddy
+          if ! docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml up -d --wait core caddy; then
+            docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml logs --no-color migration core caddy
+            exit 1
+          fi
           curl --retry 60 --retry-delay 2 --retry-all-errors -fsS http://127.0.0.1:8080/health >/dev/null
           restored="$(curl -fsS -H "X-API-Key: ${api_key}" 'http://127.0.0.1:8080/kb/documents?limit=50')"
           printf '%s' "$restored" | grep -q 'restore-before'
