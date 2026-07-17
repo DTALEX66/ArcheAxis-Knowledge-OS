@@ -394,18 +394,30 @@ def test_core_schema_validation_uses_readonly_research_connection(
     sidecars = [Path(f"{database}{suffix}") for suffix in ("-wal", "-shm")]
     assert all(not path.exists() for path in sidecars)
     calls: list[Path] = []
+    original_connect = sqlite3.connect
 
     def recording_connect(target: Path):
         calls.append(target)
-        uri = f"{target.resolve().as_uri()}?mode=ro"
-        connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+        uri = f"{target.resolve().as_uri()}?mode=ro&immutable=1"
+        connection = original_connect(uri, uri=True, timeout=30.0)
         connection.execute("PRAGMA busy_timeout=30000")
+        connection.execute("PRAGMA query_only=ON")
         connection.row_factory = sqlite3.Row
         return connection
+
+    def forbidden_connect(target, *args, **kwargs):
+        if str(target) == ":memory:":
+            return original_connect(target, *args, **kwargs)
+        raise AssertionError("startup validation bypassed the unified readonly connector")
+
+    def forbidden_status(*_args, **_kwargs):
+        raise AssertionError("startup validation opened a second migration status connection")
 
     monkeypatch.setattr(
         research_migration, "_connect_readonly", recording_connect, raising=False
     )
+    monkeypatch.setattr(storage.sqlite3, "connect", forbidden_connect)
+    monkeypatch.setattr(migration, "status", forbidden_status)
     storage.validate_schema()
 
     assert calls == [database]

@@ -354,30 +354,30 @@ def validate_schema() -> None:
 
     if not DB_PATH.is_file():
         raise RuntimeError(f"SQLite schema has not been migrated: {DB_PATH}")
-    uri = f"{DB_PATH.resolve().as_uri()}?mode=ro"
     try:
-        with sqlite3.connect(uri, uri=True) as connection:
-            connection.row_factory = sqlite3.Row
-            if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-                raise RuntimeError(f"SQLite integrity check failed for {DB_PATH}")
+        with research_migration._connect_readonly(DB_PATH) as connection:
+            research_migration._require_applied_connection(connection, DB_PATH)
             existing = {
                 str(row["name"])
                 for row in connection.execute(
                     "SELECT name FROM sqlite_master WHERE type IN ('table', 'view')"
                 )
             }
+            missing = sorted(REQUIRED_SCHEMA_TABLES - existing)
+            if missing:
+                raise RuntimeError(f"SQLite schema is incomplete; missing: {', '.join(missing)}")
             core_schema.validate(connection)
             require_sqlite_owners_applied(connection)
+            pending = migration._taskpack_migrations_pending(connection)
+            if pending:
+                formatted = ", ".join(
+                    f"{version:03d}_{name}"
+                    for version, name in migration.TASKPACK_MIGRATIONS.items()
+                    if name in pending
+                )
+                raise RuntimeError(f"SQLite migrations are pending: {formatted}")
     except sqlite3.Error as exc:
         raise RuntimeError(f"SQLite schema validation failed for {DB_PATH}") from exc
-    missing = sorted(REQUIRED_SCHEMA_TABLES - existing)
-    if missing:
-        raise RuntimeError(f"SQLite schema is incomplete; missing: {', '.join(missing)}")
-    status = migration.status(db_path=DB_PATH)
-    if status.get("pending"):
-        pending = ", ".join(str(item) for item in status["pending"])
-        raise RuntimeError(f"SQLite migrations are pending: {pending}")
-    research_migration.require_applied(db_path=DB_PATH)
 
 
 # ── Generic helpers ──
