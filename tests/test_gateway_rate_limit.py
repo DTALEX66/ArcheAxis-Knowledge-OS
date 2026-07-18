@@ -375,25 +375,20 @@ def test_ambiguous_api_key_and_authorization_headers_are_rejected_before_auth(mo
 
 def test_deployment_entrypoints_use_the_lease_aware_core_launcher():
     root = Path(__file__).resolve().parents[1]
-    assert not (root / "docker" / "Dockerfile").exists()
+    assert not (root / "Dockerfile").exists()
+    assert not (root / "docker-compose.yml").exists()
 
     ecosystem = (root / "ecosystem.config.cjs").read_text(encoding="utf-8")
     assert "app.main:app" not in ecosystem
-    assert "app.container_entrypoint core" in ecosystem
+    assert "app.runtime_entrypoint core" in ecosystem
 
-    adapter = root / "app" / "container_entrypoint.py"
+    adapter = root / "app" / "runtime_entrypoint.py"
     launch_lines = [
         line for line in adapter.read_text(encoding="utf-8").splitlines()
         if "app.main:app" in line
     ]
     assert launch_lines, f"missing app.main launch in {adapter}"
     assert "--no-proxy-headers" in adapter.read_text(encoding="utf-8")
-
-    dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
-    assert 'ENTRYPOINT ["python", "-m", "app.container_entrypoint"]' in dockerfile
-    compose = (root / "docker-compose.yml").read_text(encoding="utf-8")
-    assert 'command: ["core"]' in compose
-
 
 def test_local_launchers_delegate_to_the_lease_aware_core_entrypoint(monkeypatch):
     root = Path(__file__).resolve().parents[1]
@@ -406,16 +401,16 @@ def test_local_launchers_delegate_to_the_lease_aware_core_entrypoint(monkeypatch
     for launcher in launchers:
         text = launcher.read_text(encoding="utf-8")
         assert "app.main:app" not in text, launcher
-        assert "app.container_entrypoint core" in text, launcher
+        assert "app.runtime_entrypoint core" in text, launcher
 
-    container_entrypoint = (root / "app" / "container_entrypoint.py").read_text(encoding="utf-8")
-    assert '"--no-proxy-headers"' in container_entrypoint
+    runtime_entrypoint = (root / "app" / "runtime_entrypoint.py").read_text(encoding="utf-8")
+    assert '"--no-proxy-headers"' in runtime_entrypoint
 
     calls = []
-    from app import container_entrypoint
+    from app import runtime_entrypoint
     from app.cli import cmd_serve
 
-    monkeypatch.setattr(container_entrypoint, "run_core", lambda args: calls.append(args))
+    monkeypatch.setattr(runtime_entrypoint, "run_core", lambda args: calls.append(args))
     monkeypatch.delenv("COGNITIVE_PORT", raising=False)
     cmd_serve(port=8123)
     assert len(calls) == 1

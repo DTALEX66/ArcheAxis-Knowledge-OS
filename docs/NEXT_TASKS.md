@@ -1,37 +1,20 @@
 # Cognitive-Loop-OS 后续任务列表
 
 > 更新：2026-07-18
-> 当前基线：`daf16f291a504689957101427f382890687d37cd`
+> 当前基线：`3920088bf1d1256895df4fbbdb76af53c3d707f8`
 > 原则：Git 是唯一源码真相；每个任务使用独立分支；先定向 RED/GREEN，再执行必要完整门禁；推送后核对 exact-SHA CI。
 
 ## 当前结论
 
 - Phase 0–4 基线已完成：安全边界、Facade/Contracts 起点、Migration Runner、GitHub Research candidate-only 闭环。
 - Vector/FTS candidate、显式 activation、rollback boundary 已完成。
-- 生产容器栈已完成；开发容器已改为 Git-mounted reusable toolchain。容器不再作为独立源码副本。
-- GHCR 自动发布已移除；当前容器职责是可复现部署与 CI smoke，不阻塞业务主线。
-- 旧的 `P00A_CONTAINER_CORRECTION_RELEASE` 是历史 reconciliation 报告，不是当前未完成任务。
+- Docker/Compose 开发与部署路径已主动移除；本仓库以本地 Python 运行时与标准 CI 为唯一支持路径。
+- 旧的 container reconciliation 报告仅保留为历史证据，不是当前未完成任务。
 - 当前工作区应保持 clean，主分支应与 `origin/main` 一致。
 
-## P0：开发环境收口（当前电脑完成后关闭）
+## P0：Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理（下一条业务主线）
 
-### P0.1 Docker Desktop 首次初始化
-
-**目标：** 在本机完成开发容器的真实 build/run，消除目前唯一的环境验证缺口。
-
-**动作：**
-
-1. 重启 Docker Desktop；如 Linux engine 仍为 stopped，重启 Windows 并确认 WSL2。
-2. 在仓库执行 `docker compose -f docker-compose.dev.yml config --quiet`。
-3. 执行 `docker compose -f docker-compose.dev.yml build dev`。
-4. 执行 `./run_dev_container.ps1 pytest tests/test_dev_container_contract.py -q`。
-5. 记录真实 Docker build/run 结果；不要把静态 YAML 解析当作容器实测。
-
-**验收：** dev image build 成功，容器内测试通过，源码修改能在宿主机 `git diff` 看到。
-
-## P1：Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理（下一条业务主线）
-
-### P1.1 Research candidate → KnowledgeUnit/Relation
+### P0.1 Research candidate → KnowledgeUnit/Relation
 
 **目标：** 将已持久化、quarantined 的 `ResearchPackageV1` 通过显式人工审批转换为候选 KnowledgeUnit/Relation。
 
@@ -46,7 +29,7 @@
 
 **验收：** candidate package 可生成 KnowledgeUnit/Relation candidate；无审批不得升级；拒绝/弃用保留 provenance；定向 RED/GREEN、迁移测试、全量 pytest、exact-SHA CI 通过。
 
-### P1.2 KnowledgeUnit/Relation 版本与弃用
+### P0.2 KnowledgeUnit/Relation 版本与弃用
 
 **目标：** 建立知识版本、冲突和弃用状态边界。
 
@@ -58,7 +41,7 @@
 
 **验收：** version graph、conflict review、deprecated projection、rollback/backup 证据完整。
 
-### P1.3 LearningArtifact/Mastery/MachineKnowledge 审批链
+### P0.3 LearningArtifact/Mastery/MachineKnowledge 审批链
 
 **目标：** 将 Knowledge candidate 接入学习产物、掌握信号和机器知识候选治理。
 
@@ -147,10 +130,9 @@ ResearchPackage candidate
 ## 当前唯一推荐顺序
 
 ```text
-P0.1 Docker engine 实测
-→ P1.1 Research candidate 接 KnowledgeUnit/Relation
-→ P1.2 版本/冲突/弃用
-→ P1.3 Learning/Mastery/MachineKnowledge 审批链
+P0.1 Research candidate 接 KnowledgeUnit/Relation
+→ P0.2 版本/冲突/弃用
+→ P0.3 Learning/Mastery/MachineKnowledge 审批链
 → P2.1 Dynamic Planner 最小切片
 → P2.2 Evaluation/Feedback
 → P3 Sleep Loop 统一执行

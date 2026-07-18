@@ -58,28 +58,28 @@ def test_storage_import_creates_no_database(monkeypatch, tmp_path: Path) -> None
     assert not database.exists()
 
 
-def test_core_container_startup_before_migration_fails_closed(monkeypatch, tmp_path: Path) -> None:
-    from app import container_entrypoint
+def test_core_runtime_startup_before_migration_fails_closed(monkeypatch, tmp_path: Path) -> None:
+    from app import runtime_entrypoint
     from shared import backup, storage
 
     database = tmp_path / "missing.sqlite"
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(backup, "DB_PATH", database)
     monkeypatch.setattr(
-        container_entrypoint,
+        runtime_entrypoint,
         "_exec_process",
         lambda _command: pytest.fail("core must not exec before schema validation"),
     )
 
     try:
         with pytest.raises(RuntimeError, match="has not been migrated"):
-            container_entrypoint.run_core(object())
+            runtime_entrypoint.run_core(object())
     finally:
         backup.release_runtime_lock()
 
 
-def test_container_migration_holds_target_operator_lease(monkeypatch, tmp_path: Path) -> None:
-    from app import container_entrypoint
+def test_runtime_migration_holds_target_operator_lease(monkeypatch, tmp_path: Path) -> None:
+    from app import runtime_entrypoint
     from app.memory import database as memory_database
     from shared import backup, migration, storage
 
@@ -98,7 +98,7 @@ def test_container_migration_holds_target_operator_lease(monkeypatch, tmp_path: 
     monkeypatch.setattr(migration, "migrate", migrate_while_locked)
     monkeypatch.setattr(migration, "status", lambda **_kwargs: {"pending": []})
 
-    assert container_entrypoint.run_migration(object()) == 0
+    assert runtime_entrypoint.run_migration(object()) == 0
     with backup.runtime_lease(database):
         pass
 

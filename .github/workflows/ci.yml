@@ -90,7 +90,7 @@ jobs:
           with zipfile.ZipFile(wheel) as archive:
               names = set(archive.namelist())
           required = {
-              "app/container_entrypoint.py",
+              "app/runtime_entrypoint.py",
               "app/research/github.py",
               "shared/research_store.py",
               "shared/research_migration.py",
@@ -134,7 +134,7 @@ jobs:
         env:
           COGNITIVE_DATA_DIR: ${{ runner.temp }}/cognitive-runtime
         run: |
-          python -m app.container_entrypoint migrate
+          python -m app.runtime_entrypoint migrate
           python -c "from pathlib import Path; import os, sys; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); import knowledge_base.cards.generator, knowledge_base.machine_knowledge.a_to_b, knowledge_base.search; from knowledge_base.api import app as kb_app; from fastapi.testclient import TestClient; kb=TestClient(kb_app); assert kb.get('/health').status_code == 200; assert kb.get('/reviews/due').status_code == 200; assert kb.get('/mistakes').status_code == 200; assert kb.get('/a-to-b/candidates').status_code == 200; assert kb.get('/machine-knowledge').status_code == 200; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); from app.main import app; from shared.sleep_loop_engine import LOG_DIR; c=TestClient(app); assert c.get('/health').status_code == 200; assert c.get('/kb').status_code == 200; runtime=Path(os.environ['COGNITIVE_DATA_DIR']); assert (runtime/'cognitive_os.sqlite').exists(); assert LOG_DIR == runtime/'logs'/'sleep-loop'"
           python -c "import app.research.github, shared.research_store, shared.research_migration; from inspiration_research.intake.generator import generate_intake_card; from inspiration_research.contracts.generator import generate_contract; from inspiration_research.api import app as ir_app; from app.facades import get_research_package, ingest_candidate, query_knowledge, research_github_repository; from fastapi.testclient import TestClient; assert generate_intake_card('t','w',['x']).intake_id.startswith('intake_'); assert generate_contract('g',['d']).contract_id.startswith('contract_'); routes={route.path for route in ir_app.routes}; assert {'/research/github-repository', '/research/packages/{package_id}'} <= routes; assert TestClient(ir_app).get('/health').status_code == 200; assert all(callable(item) for item in (get_research_package, ingest_candidate, query_knowledge, research_github_repository))"
           python -c "from app.contracts.v1 import TaskPackV1, TaskStepV1; from app.adapters.taskpack import from_knowledge_taskpack, project_to_runtime, to_knowledge_taskpack; from app.facades import contracts; from knowledge_base.taskpack import TaskPack; legacy=TaskPack(task_id='task_wheel', goal='wheel contract', steps=[{'step_id':'s1','action':'read','tool':'file_read'}], allowed_tools=['file_read','echo'], blocked_tools=['shell_exec']); canonical=from_knowledge_taskpack(legacy); projection=project_to_runtime(canonical); assert canonical.schema_version == '1.0.0'; assert isinstance(canonical.steps[0], TaskStepV1); assert canonical.requested_tools == ['file_read']; assert projection.task.tools == ['file_read']; assert to_knowledge_taskpack(canonical).to_dict() == legacy.to_dict(); assert TaskPackV1.model_json_schema()['\$id'].endswith('/contracts/v1/taskpack.schema.json'); assert contracts.TaskPackV1 is TaskPackV1"

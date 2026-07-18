@@ -7,13 +7,13 @@ call .venv\Scripts\activate
 if errorlevel 1 exit /b 1
 
 echo Running one-shot schema migration...
-python -m app.container_entrypoint migrate
+python -m app.runtime_entrypoint migrate
 if errorlevel 1 exit /b 1
 
 echo Starting unified Core + Knowledge-Base + internal Research on port 8000
 echo   Core docs:      http://127.0.0.1:8000/docs
 echo   Knowledge docs: http://127.0.0.1:8000/kb/docs
-python -m app.container_entrypoint core
+python -m app.runtime_entrypoint core
 
 popd
 endlocal

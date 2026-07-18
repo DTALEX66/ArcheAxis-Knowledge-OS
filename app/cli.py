@@ -20,7 +20,7 @@ from pathlib import Path
 
 def cmd_serve(port: int = 8000) -> None:
     """Start Core through the single lease-aware runtime entry point."""
-    from app.container_entrypoint import run_core
+    from app.runtime_entrypoint import run_core
 
     os.environ["COGNITIVE_PORT"] = str(port)
     run_core(Namespace())

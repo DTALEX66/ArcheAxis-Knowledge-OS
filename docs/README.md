@@ -5,7 +5,6 @@
 ## 当前事实
 
 - [`HANDOFF_2026-07-16.md`](HANDOFF_2026-07-16.md)：当前基线、已完成任务、验证证据、安全边界和下一 TaskPack 接手清单。
-- [`HANDOFF_CONTAINER_2026-07-17.md`](HANDOFF_CONTAINER_2026-07-17.md)：容器拓扑、迁移所有权、RBAC/代理边界、备份恢复、CI 发布与运维交接。
 - [`PROJECT_STATUS.md`](PROJECT_STATUS.md)：当前验证状态、已知限制和质量门禁。
 - [`EXECUTION_ROADMAP.md`](EXECUTION_ROADMAP.md)：Phase 0–10 执行顺序、边界、门禁和 Alpha 验收。
 - [`architecture/CURRENT_ARCHITECTURE.md`](architecture/CURRENT_ARCHITECTURE.md)：当前运行时架构与模块边界。

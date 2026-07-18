@@ -1,4 +1,4 @@
-"""Container command adapter for the packaged Cognitive-Loop-OS wheel."""
+"""Lease-aware runtime command adapter for Cognitive-Loop-OS."""
 
 from __future__ import annotations
 
