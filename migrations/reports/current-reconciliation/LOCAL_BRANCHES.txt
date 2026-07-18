@@ -1,0 +1,54 @@
+Generated: 2026-07-17T22:31:07+08:00
+
+CANONICAL REPOSITORY: D:/All projects/Cognitive-Loop-OS
+
+main
+  9a0886a00db739f9835f827f598616df835e5e6b
+  upstream origin/main
+  vs origin/main 0 ahead / 0 behind
+  disposition: authoritative clean baseline; preserve
+
+feature/phase4-research-closure
+  2812d061ee5f535d2d9c794c87fa743ae8c7e91b
+  upstream origin/feature/phase4-research-closure
+  vs main 2 commits ahead
+  PR #1 OPEN/CLEAN; exact-SHA CI success
+  disposition: preserve release candidate; do not delete or merge during P00
+
+fast/mastery-signal
+  98e7460ee26475d729da64356a659c1947c7ef1b
+  diverged from main; git cherry reports a unique patch
+  disposition: preserve; requires semantic reconciliation before any pruning
+
+fast/phase7-runtime
+  c2a8fc30edf5025a90757992e34e04effc71e6c1
+  git cherry marks patch-equivalent content already present in main
+  disposition: preserve historical pointer until explicit branch cleanup TaskPack
+
+fast/sleep-task-adapter
+  8c6a6808724847341afd33e3cad5510632981cdb
+  git cherry marks patch-equivalent content already present in main
+  disposition: preserve historical pointer until explicit branch cleanup TaskPack
+
+work/tp12-facades
+  8d5ba104a91918c30f7d96513b6553f406f74e3f
+  diverged from main; git cherry reports a unique patch
+  disposition: preserve; requires semantic reconciliation before pruning
+
+work/tp13-facades
+  68699aadf10326e708329767d386284abb069bf8
+  diverged from main; git cherry reports a unique patch
+  disposition: preserve; requires semantic reconciliation before pruning
+
+INDEPENDENT CLONE: D:/All projects/Cognitive-Loop-OS-container
+
+feat/complete-container-stack
+  53bd093b7684bdaed0ce7f6c9ff9326697d3d82b
+  origin branch at same committed SHA
+  21-path staged candidate, tree 3d99e200dff9d816a0767a3c46f0689575ed5b7c
+  disposition: preserve high-risk commit candidate and complete exact-tree review before publication
+
+main (inside independent clone)
+  83ec2f9d5460be1895863b75e0a01dd3082c2eff
+  behind origin/main by one commit
+  disposition: stale local pointer only; do not update or delete during P00

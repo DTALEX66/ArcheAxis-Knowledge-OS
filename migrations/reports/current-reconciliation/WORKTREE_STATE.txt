@@ -1,0 +1,28 @@
+Generated: 2026-07-17T22:31:07+08:00
+
+CANONICAL GIT WORKTREE REGISTRY
+worktree D:/All projects/Cognitive-Loop-OS
+HEAD 9a0886a00db739f9835f827f598616df835e5e6b
+branch refs/heads/main
+status clean
+
+INDEPENDENT CLONE NOT PRESENT IN ABOVE REGISTRY
+path D:/All projects/Cognitive-Loop-OS-container
+HEAD 53bd093b7684bdaed0ce7f6c9ff9326697d3d82b
+branch refs/heads/feat/complete-container-stack
+index tree 3d99e200dff9d816a0767a3c46f0689575ed5b7c
+status staged-only; no unstaged/untracked paths
+
+RUNNING-WRITER CHECK
+- Two Hermes-tracked container review processes were already exited; the second ended with interruption/termination before a verdict.
+- A separately visible Codex read-only review targeted an unrelated tree and exited before report writing.
+- Three P00 package-analysis subagents are read-only and operate only on the extracted temporary package.
+- No active process was identified as a writer in either Cognitive-Loop-OS checkout when reports were created.
+
+DISPOSITION
+- Canonical worktree: preserve clean baseline plus the nine untracked P00 reports, classified as generated report artifacts; do not commit during P00.
+- Repo-local ignored `.hermes/closure-tasks`, `.hermes/sleep-tasks`, status JSON, queue scripts and `__pycache__`: historical/runtime-generated evidence; preserve ignored, never stage as product truth.
+- Tracked `codex-taskpacks/`: existing historical TaskPack inputs; preserve, no P00 modification.
+- Independent container clone: preserve until staged high-risk candidate is reviewed and published or explicitly rejected.
+- No worktree was removed, repaired, pruned, or rewritten.
+- Unknown local changes after classification: none.

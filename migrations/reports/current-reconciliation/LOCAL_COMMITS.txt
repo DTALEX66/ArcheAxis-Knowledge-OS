@@ -1,0 +1,40 @@
+Generated: 2026-07-17T22:31:07+08:00
+
+REMOTE/CANDIDATE LINEAGE
+53bd093 ci: isolate container ops from migration dependencies
+401f865 ci: wait for restarted core without rerunning migration
+4392478 test: close container CI runtime gaps
+d3621bb feat: deliver production container stack
+2812d06 fix(ci): support phase 4 tests on Python 3.10
+c9919c0 feat(research): close phase 4 candidate pipeline
+9a0886a feat: add owner-scoped migration runner  [main, origin/main]
+
+PUBLISHED MAIN EVIDENCE
+9a0886a feat: add owner-scoped migration runner
+83ec2f9 docs: advance phase 3 handoff
+823c34b fix(ci): include XML safety dependency
+c49da1 feat(fts): add verified candidate activation rollback
+dd26dd9 feat(fts): add shadow rebuild candidate boundary
+0b3b5d1 feat(vector): add candidate switch rollback boundary
+b5ba755 feat(vector): verify shadow candidates before switch
+c62c802 feat(vector): add inactive rebuild candidates
+17434df feat(security): stabilize persisted hashes
+8d0bcd4 feat(security): enforce approved local roots
+f1d40b4 feat(security): add safe http facade
+af6dc26 feat(security): enforce gateway rate limits
+5165938 fix(security): remove built-in administrator credential
+40f97ce feat(contracts): complete phase 2 release train
+b727d8e feat(runtime): add evidence-backed file read slice
+7948e5f feat: adapt sleep ledger tasks to taskpack v1
+bf897f2 feat(contracts): add grounded mastery signal
+
+LOCAL DIVERGED BRANCH TIPS TO PRESERVE
+98e7460 fast/mastery-signal — unique patch according to git cherry
+c2a8fc3 fast/phase7-runtime — patch-equivalent content already in main
+8c6a680 fast/sleep-task-adapter — patch-equivalent content already in main
+8d5ba10 work/tp12-facades — unique patch according to git cherry
+68699aa work/tp13-facades — unique patch according to git cherry
+
+UNCOMMITTED FROZEN INDEX
+Tree 3d99e200dff9d816a0767a3c46f0689575ed5b7c in independent container clone.
+No commit SHA exists for this tree. It must not be represented as uploaded or CI-verified.
