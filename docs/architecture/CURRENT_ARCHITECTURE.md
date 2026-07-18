@@ -12,7 +12,7 @@ app.main :8000
 ├── Public Facades
 │   ├── runtime.py (route → permission → execute → trace)
 │   ├── knowledge.py (read-only keyword/FTS query)
-│   ├── research.py (persisted IntakeCard candidate)
+│   ├── research.py (GitHub quarantine → provenance graph → persisted candidate ResearchPackage)
 │   ├── enhancement.py (in-memory summary/card/quality candidate)
 │   └── contracts.py (Phase 2 首批 V1 contracts + verified adapters; legacy runtime objects remain identity exports)
 ├── Core Runtime
@@ -31,7 +31,7 @@ app.main :8000
 SQLite + FTS5 + sqlite-vec + NetworkX + local artifacts
 ```
 
-数据库和索引变更由 `shared.migration_runner.MigrationOperator` 统一编排。确定性 registry 注册 TaskPack SQLite、Vector documents/cards 和 FTS documents/cards owner；SQLite owner 复用 `shared/migration.py` 的 ledger、verified backup/manifest、幂等、碰撞检测与 offline rollback，并在同一 schema transaction 内写入 operator provenance。当前 schema 的 fresh TaskPack 表在 ledger-only apply 前仍创建 verified backup；缺失目标表的空数据库 fail closed。TaskPack whole-file rollback 先核对排除 operator 元数据的 post-apply 逻辑 fingerprint，数据/架构漂移时拒绝恢复，并在临时 replacement 中保全当前 operator provenance 后才原子替换。FTS owner 使用无 import-time storage 初始化的显式目标模块；Vector candidate 同时校验 ID、embedding-byte fingerprint 与 canonical source snapshot；Vector/FTS active switch、rollback handle 与 applied provenance 同 transaction 提交，Vector rollback 也在同一 transaction 内恢复 active rows 并清理 candidate/backup。跨进程 owner lease 位于显式 backup 目录的独立 SQLite sidecar，目标数据库替换不会释放 lease，且 token-scoped release 不会删除其他进程的 lease。CLI 仅接受显式数据库与 backup 目录，并输出 pending/applied/failed/rolled_back provenance。
+数据库和索引变更由 `shared.migration_runner.MigrationOperator` 统一编排。确定性 registry 注册 TaskPack SQLite、Phase 4 Research SQLite、Vector documents/cards 和 FTS documents/cards owner；SQLite owner 复用 `shared/migration.py` 的 ledger、verified backup/manifest、幂等、碰撞检测与 offline rollback，并在同一 schema transaction 内写入 operator provenance。当前 schema 的 fresh TaskPack 表在 ledger-only apply 前仍创建 verified backup；缺失目标表的空数据库 fail closed。TaskPack whole-file rollback 先核对排除 operator 元数据的 post-apply 逻辑 fingerprint，数据/架构漂移时拒绝恢复，并在临时 replacement 中保全当前 operator provenance 后才原子替换。FTS owner 使用无 import-time storage 初始化的显式目标模块；Vector candidate 同时校验 ID、embedding-byte fingerprint 与 canonical source snapshot；Vector/FTS active switch、rollback handle 与 applied provenance 同 transaction 提交，Vector rollback 也在同一 transaction 内恢复 active rows 并清理 candidate/backup。跨进程 owner lease 位于目标数据库相邻的隐藏 SQLite sidecar（`.<database-name>.<path-digest>.migration_operator_locks.lockdb`，digest 为 resolved database path 经 case-fold 后 SHA-256 的前 16 位十六进制字符），目标数据库替换不会释放 lease，且 token-scoped release 不会删除其他进程的 lease；显式 backup 目录仅保存 verified backup 与 manifest。CLI 仅接受显式数据库与 backup 目录，并输出 pending/applied/failed/rolled_back provenance。
 
 ## 主闭环
 
@@ -87,13 +87,13 @@ source inventory
 | --- | --- | --- | --- |
 | Runtime | `file_read` 真实证据 tracer 已接入 | `app.agent.planner`、`app.core.permissions`、`app.agent.executor`、`shared.tool_evidence`、多维 evaluator | `POST /run` |
 | Knowledge | tracer bullet 已接入 | `knowledge_base.search.keyword_search` | standalone `/search`、mounted `/kb/search` |
-| Research | tracer bullet 已接入 | `inspiration_research.intake.generator`、`shared.storage` | canonical IR API；旧 `Inspiration-Research.api` launcher |
+| Research | GitHub candidate-only 持久化闭环已接入 | `app.research.github`、`shared.research_store`、`MigrationOperator` owner `research.sqlite` | `POST /research/github-repository`、`GET /research/packages/{package_id}`；旧 external trending/auto 路径 fail closed |
 | Enhancement | tracer bullet 已接入 | `progressive_summarize`、`generate_from_markdown`、`audit_markdown_quality` | 现有细粒度能力保持不变 |
 | Contracts | Phase 2 首批 tracers 已完成 | Runtime、Research、Knowledge/Relation、Learning/Mastery 与 Machine Knowledge V1 contracts + 现有真实对象 adapters；legacy runtime objects 仍 identity re-export | 当前对象导入 |
 
 Runtime Facade 只编排现有实现：允许 `app.main → app.facades → app.core/app.agent`，禁止底层业务模块反向依赖 Facade 或主应用。旧 `/run` 仍保留，回滚不需要数据库迁移。
 
-Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细节提升为稳定合同。Research 返回并持久化的是 `IntakeCard` candidate。Enhancement 只返回内存 candidate，不写数据库、不调用网络或 LLM。Contracts 已完成路线图首批 V1 对象，但不声明与旧 JSON Schema 全量等价；未列入首批清单的 `ContextPackV1` 与通用 validator 仍 deferred。
+Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细节提升为稳定合同。Research 的 GitHub source path 返回并持久化完整 candidate graph：quarantined `SourceRecordV1`、source provenance、`ClaimV1`、`EvidenceV1`、governance findings、`ResearchPackageV1` 和受内容约束的 IntakeCard relation；写前与 strict read 都重算身份和 provenance，不提供自动 promotion。Enhancement 只返回内存 candidate，不写数据库、不调用网络或 LLM。Contracts 已完成路线图首批 V1 对象，但不声明与旧 JSON Schema 全量等价；未列入首批清单的 `ContextPackV1` 与通用 validator 仍 deferred。
 
 `app/contracts/` 是纯 canonical 层，由 Architecture Guard 禁止反向依赖业务模块；`app/adapters/` 承担 KB/Runtime/SQLite row 映射。KB TaskPack 可逐字段无损往返；Runtime 窄投影公开不可表示字段并 fail closed。Research contracts 保持来源、claim、evidence、冲突、未知与风险边界。Knowledge graph rows 保留属性与有向关系；Mastery Signal 由 review/mistake 快照推导。Learning Artifact 对当前 Enhancement candidate 深隔离往返，caller-supplied 数据只能保持 candidate 且必须人工复核。Machine Knowledge 对 decoded legacy row 深隔离往返，旧 active 只映射为 `legacy_active_unverified`，inactive 映射为 `deprecated`，任何 approved 状态向旧行投影都会 fail closed。
 
@@ -106,5 +106,5 @@ Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细
 - `knowledge_base/api.py` 已将复合、质量和投影路由拆出，但仍有遗留领域路由；后续按 search/learning/obsidian/admin 继续迁移。
 - Knowledge Base 已迁为正规可安装包；2026-07-14 本地隔离 wheel smoke 已验证模板、运行入口和 runtime root，远端 CI 仍以提交后的实际结果为准。
 - 旧细粒度 API 尚未全部隐藏或废弃，因此实时路由数仍较高。
-- Safe HTTP、approved roots、versioned stable hash、Vector/FTS shadow rebuild/switch/rollback 与通用 migration registry/operator 已建立；Phase 3 跨 owner 集成验收尚未完成。
+- Safe HTTP、approved roots、versioned stable hash、Vector/FTS shadow rebuild/switch/rollback 与通用 migration registry/operator 已建立并完成 Phase 3 跨 owner 集成验收；Phase 4 新增 operator-only `research.sqlite` owner。
 - Runtime 只验证了 `file_read` 显式意图；通用 Planner、Reviewed Feedback 与 Sleep Loop 统一执行 port 仍待完成。

@@ -7,9 +7,9 @@ import sqlite3
 from typing import Any
 
 from shared.config import config, resolve_runtime_path
+from shared.research_boundary import unreviewed_research_references
 
 DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS core_objects (
@@ -115,7 +115,9 @@ CREATE INDEX IF NOT EXISTS idx_permission_task ON permission_decisions(task_id);
 
 
 def _get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(DB_PATH))
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH), timeout=30.0)
+    conn.execute("PRAGMA busy_timeout=30000")
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.row_factory = sqlite3.Row
@@ -135,7 +137,15 @@ def init_db() -> None:
 # ── CoreObject ──────────────────────────────────────────
 
 
+def _reject_unreviewed_object_source(obj: dict[str, Any]) -> None:
+    if unreviewed_research_references([obj.get("source", "")]):
+        raise ValueError(
+            "candidate or external core-memory sources require server-owned Phase 5 review provenance"
+        )
+
+
 def save_core_object(obj: dict[str, Any]) -> None:
+    _reject_unreviewed_object_source(obj)
     conn = _get_conn()
     try:
         conn.execute(
@@ -218,6 +228,7 @@ def save_route(route_data: dict[str, Any]) -> None:
 
 
 def save_memory_record(obj: dict[str, Any]) -> None:
+    _reject_unreviewed_object_source(obj)
     conn = _get_conn()
     try:
         conn.execute(
@@ -427,7 +438,3 @@ def _row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         if bool_key in d and type(d[bool_key]) is int and d[bool_key] in (0, 1):
             d[bool_key] = bool(d[bool_key])
     return d
-
-
-# Auto-initialize on import
-init_db()

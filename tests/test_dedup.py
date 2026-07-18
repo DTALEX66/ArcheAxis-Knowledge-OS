@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from shared.dedup import dedup_service, content_hash, tokenize, jaccard_similarity
+from shared.dedup import content_hash, dedup_service, jaccard_similarity, tokenize
 
 
 class TestContentHash:

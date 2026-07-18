@@ -1,20 +1,19 @@
 @echo off
-REM Cognitive-Loop-OS — Launch unified runtime + research service
+REM Cognitive-Loop-OS — migrate once, then launch the unified single-writer runtime.
 setlocal
 pushd "%~dp0"
-echo Starting Cognitive-Loop-OS services...
 
-echo [1/2] Cognitive-OS + Knowledge-Base on port 8000
-start "Cognitive-OS" cmd /c "call .venv\Scripts\activate && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers"
+call .venv\Scripts\activate
+if errorlevel 1 exit /b 1
 
-echo [2/2] Inspiration-Research on port 8001
-start "IR" cmd /c "call .venv\Scripts\activate && python -m uvicorn inspiration_research.api:app --host 127.0.0.1 --port 8001"
+echo Running one-shot schema migration...
+python -m app.container_entrypoint migrate
+if errorlevel 1 exit /b 1
 
-echo.
-echo All services launched:
-echo   Cognitive-OS         http://127.0.0.1:8000/docs
-echo   Inspiration-Research http://127.0.0.1:8001/docs
-echo   Knowledge-Base       http://127.0.0.1:8000/kb/docs
-echo.
+echo Starting unified Core + Knowledge-Base + internal Research on port 8000
+echo   Core docs:      http://127.0.0.1:8000/docs
+echo   Knowledge docs: http://127.0.0.1:8000/kb/docs
+python -m app.container_entrypoint core
+
 popd
-pause
+endlocal

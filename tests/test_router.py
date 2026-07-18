@@ -1,5 +1,4 @@
 """Tests for attention router."""
-import pytest
 from app.core.router import route
 from app.schemas import CoreObject
 

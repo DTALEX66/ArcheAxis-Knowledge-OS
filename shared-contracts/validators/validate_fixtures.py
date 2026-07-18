@@ -1,10 +1,10 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 try:
     import jsonschema
-except ImportError:
-    raise SystemExit("请先安装 jsonschema：pip install jsonschema")
+except ImportError as exc:
+    raise SystemExit("请先安装 jsonschema：pip install jsonschema") from exc
 
 BASE = Path(__file__).resolve().parents[1]
 SCHEMAS = BASE / "schemas"

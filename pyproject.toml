@@ -29,12 +29,16 @@ dependencies = [
     "litellm==1.91.0",
 ]
 
+[dependency-groups]
+build = ["setuptools==83.0.0"]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
     "ruff>=0.5",
     "mypy>=1.8",
     "pre-commit>=3.7",
+    "tomli>=2.0; python_version < '3.11'",
 ]
 ingestion = [
     "crawl4ai>=0.1",
@@ -49,17 +53,27 @@ full = [
 cognitive-os = "app.cli:main"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools==83.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["app*", "shared*", "knowledge_base*", "inspiration_research*", "config*"]
-exclude = ["data*", "logs*", "tests*", "workspace*", "docker*"]
+exclude = [
+    "data*",
+    "logs*",
+    "tests*",
+    "knowledge_base.tests*",
+    "*.tests",
+    "*.tests.*",
+    "workspace*",
+    "docker*",
+]
 namespaces = true
 
 [tool.setuptools.package-data]
 knowledge_base = ["templates/*.html", "static/**/*"]
 config = ["*.yaml"]
+inspiration_research = ["resources/*.json"]
 
 [tool.ruff]
 target-version = "py310"

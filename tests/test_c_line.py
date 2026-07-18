@@ -1,5 +1,6 @@
 """C-line schema validation tests — 10 fixtures + 2 project candidates."""
-import subprocess, sys
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

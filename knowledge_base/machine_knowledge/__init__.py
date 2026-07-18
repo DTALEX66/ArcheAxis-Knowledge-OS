@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from shared.research_boundary import unreviewed_research_references
 from shared.storage import count, insert, select_all, select_one
 
 
@@ -35,6 +36,10 @@ def create_unit(
     Returns:
         The created unit dict.
     """
+    if unreviewed_research_references([source_id]):
+        raise ValueError(
+            "candidate or external machine-knowledge sources require server-owned Phase 5 review provenance"
+        )
     unit_id = f"mku_{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc).isoformat()
 

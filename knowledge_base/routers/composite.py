@@ -25,12 +25,24 @@ class PipelineRequest(BaseModel):
 def pipeline_run(req: PipelineRequest):
     from shared.pipeline import run_pipeline
 
-    return run_pipeline(
-        req.source,
-        req.input,
-        actions=req.actions or None,
-        auto_ingest=req.auto_ingest,
-    )
+    try:
+        return run_pipeline(
+            req.source,
+            req.input,
+            actions=req.actions or None,
+            auto_ingest=req.auto_ingest,
+        )
+    except RuntimeError as exc:
+        detail = str(exc)
+        if "external pipeline auto-ingest is disabled" in detail:
+            raise HTTPException(status_code=409, detail=detail) from exc
+        if "requires COGNITIVE_APPROVED_SOURCE_ROOTS" in detail:
+            raise HTTPException(status_code=503, detail=detail) from exc
+        if detail.startswith("file pipeline source"):
+            raise HTTPException(status_code=422, detail=detail) from exc
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/garden")
@@ -109,13 +121,18 @@ def evidence_add(
 ):
     from shared.evidence_index import index_evidence
 
-    return index_evidence(
-        doc_id,
-        source_type,
-        source_path,
-        confidence,
-        caption=caption,
-    )
+    try:
+        return index_evidence(
+            doc_id,
+            source_type,
+            source_path,
+            confidence,
+            caption=caption,
+        )
+    except ValueError as exc:
+        if "server-owned Phase 5 review provenance" in str(exc):
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise
 
 
 @router.get("/retro")
@@ -130,14 +147,17 @@ def retro(action: str = "weekly", days: int = 7):
 
 
 @router.get("/projects")
-def projects(action: str = "suggest", topic: str = "", limit: int = 5):
-    if action == "generate" and topic:
-        from shared.project_generator import generate_project_from_topic
-
-        return generate_project_from_topic(topic)
+def projects(limit: int = 5):
     from shared.project_generator import suggest_projects
 
     return suggest_projects(limit=limit)
+
+
+@router.post("/project/generate")
+def generate_project(topic: str):
+    from shared.project_generator import generate_project_from_topic
+
+    return generate_project_from_topic(topic)
 
 
 @router.post("/sources")
@@ -182,7 +202,12 @@ def bulk_import(items: str = "[]"):
         raise HTTPException(status_code=400, detail="items must be valid JSON") from exc
     if not isinstance(payload, list):
         raise HTTPException(status_code=400, detail="items must be a JSON array")
-    return run_bulk_import(payload)
+    try:
+        return run_bulk_import(payload)
+    except RuntimeError as exc:
+        if "external pipeline auto-ingest is disabled" in str(exc):
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise
 
 
 @router.get("/export")
@@ -198,6 +223,8 @@ def export_kb(format: str = "json", tables: str = ""):
 
 @router.post("/cron/discover")
 def cron_discover():
-    from shared.bulk_ops import cron_discover as run_discovery
-
-    return run_discovery()
+    """Reject the retired scheduled external collection bypass."""
+    raise HTTPException(
+        status_code=409,
+        detail="Legacy cron discovery is disabled; use a governed candidate path",
+    )

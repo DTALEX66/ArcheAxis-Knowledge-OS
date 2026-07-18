@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.memory.vector_db import SimpleTextEmbedder, VectorDB
+from shared.research_boundary import unreviewed_research_references
 from shared.storage import fts5_search, insert, select_all
 
 # ── singletons ──────────────────────────────────────────
@@ -53,6 +54,10 @@ def save_episode(
     Returns:
         The created episode dict.
     """
+    if unreviewed_research_references([source]):
+        raise ValueError(
+            "candidate or external episodic sources require server-owned Phase 5 review provenance"
+        )
     _ensure_init()
 
     episode_id = f"ep_{uuid.uuid4().hex[:12]}"

@@ -207,6 +207,121 @@ def test_explicitly_provisioned_admin_can_issue_bounded_tokens(monkeypatch, admi
     assert issued.status_code == 200
 
 
+def test_gateway_enforces_role_matrix(monkeypatch):
+    monkeypatch.setitem(config._data["auth"], "enabled", True)
+    monkeypatch.setitem(config._data["rate_limit"], "enabled", False)
+    monkeypatch.setenv(
+        "COGNITIVE_JWT_SECRET", "role-matrix-test-secret-0123456789-ABCDEF"
+    )
+    client = TestClient(app)
+    readonly = auth.create_token("reader", role="readonly")
+    user = auth.create_token("writer", role="user")
+
+    assert client.get(
+        "/tools", headers={"Authorization": f"Bearer {readonly}"}
+    ).status_code == 200
+    assert client.post(
+        "/ingest",
+        json={"content": "readonly must not write", "source": "test"},
+        headers={"Authorization": f"Bearer {readonly}"},
+    ).status_code == 403
+    for path in ("/backup", "/run", "/internal/research/intake-card"):
+        response = client.post(
+            path,
+            json={"content": "forbidden"},
+            headers={"Authorization": f"Bearer {user}"},
+        )
+        assert response.status_code == 403, path
+    for path in (
+        "/kb/obsidian/import/apply",
+        "/kb/search/rebuild",
+        "/kb/bulk/import",
+        "/kb/cron/discover",
+        "/kb/sources",
+        "/kb/pipeline",
+        "/kb/project/taskpack/task-1",
+        "/kb/projects/generate",
+        "/projects/generate",
+    ):
+        assert not auth.authorize_request(
+            {"role": "user", "auth_method": "jwt"}, "POST", path
+        ), path
+    assert TestClient(standalone_kb_app).post(
+        "/search/rebuild", headers={"Authorization": f"Bearer {user}"}
+    ).status_code == 403
+    allowed = client.post(
+        "/ingest",
+        json={"content": "ordinary user content", "source": "test"},
+        headers={"Authorization": f"Bearer {user}"},
+    )
+    assert allowed.status_code == 200
+    assert auth.authorize_request(
+        {"role": "admin", "auth_method": "jwt"}, "POST", "/backup"
+    )
+
+
+def test_readonly_daily_get_has_no_storage_side_effect(monkeypatch):
+    from shared.storage import count
+
+    monkeypatch.setitem(config._data["auth"], "enabled", True)
+    monkeypatch.setitem(config._data["rate_limit"], "enabled", False)
+    monkeypatch.setenv(
+        "COGNITIVE_JWT_SECRET", "readonly-daily-secret-0123456789-ABCDEF"
+    )
+    client = TestClient(app)
+    readonly = auth.create_token("reader", role="readonly")
+    headers = {"Authorization": f"Bearer {readonly}"}
+    before = count("daily_notes")
+
+    response = client.get("/kb/daily?day=2099-12-31", headers=headers)
+
+    assert response.status_code == 404
+    assert count("daily_notes") == before
+    assert client.post("/kb/daily?day=2099-12-31", headers=headers).status_code == 403
+    standalone = TestClient(standalone_kb_app)
+    assert standalone.post("/daily?day=2099-12-31", headers=headers).status_code == 403
+
+
+def test_project_generation_is_not_reachable_through_get_and_is_admin_only(
+    monkeypatch, admin_api_key
+):
+    from shared.storage import count
+
+    monkeypatch.setitem(config._data["auth"], "enabled", True)
+    monkeypatch.setitem(config._data["rate_limit"], "enabled", False)
+    monkeypatch.setenv(
+        "COGNITIVE_JWT_SECRET", "project-route-role-matrix-secret-123456789"
+    )
+    client = TestClient(app)
+    readonly = auth.create_token("reader", role="readonly")
+    user = auth.create_token("writer", role="user")
+    before = count("kb_taskpacks")
+
+    response = client.get(
+        "/kb/projects?action=generate&topic=test",
+        headers={"Authorization": f"Bearer {readonly}"},
+    )
+    assert response.status_code == 200
+    assert count("kb_taskpacks") == before
+    for token in (readonly, user):
+        for route in ("/kb/project/generate", "/kb/projects/generate"):
+            denied = client.post(
+                f"{route}?topic=test",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            assert denied.status_code == 403
+    assert client.post(
+        "/kb/projects/generate?topic=test",
+        headers={"X-API-Key": admin_api_key},
+    ).status_code == 200
+    standalone = TestClient(standalone_kb_app)
+    for route in ("/project/generate", "/projects/generate"):
+        assert standalone.post(
+            f"{route}?topic=test",
+            headers={"Authorization": f"Bearer {user}"},
+        ).status_code == 403
+
+
 def test_dashboards_are_not_public_when_auth_is_enabled(monkeypatch, admin_api_key):
     monkeypatch.setitem(config._data["auth"], "enabled", True)
     core = TestClient(app)
@@ -220,9 +335,18 @@ def test_dashboards_are_not_public_when_auth_is_enabled(monkeypatch, admin_api_k
 
 def test_inspiration_research_uses_shared_auth(monkeypatch):
     monkeypatch.setitem(config._data["auth"], "enabled", True)
+    monkeypatch.setenv(
+        "COGNITIVE_JWT_SECRET", "research-standalone-secret-0123456789-ABCDEF"
+    )
     ir_app = importlib.import_module("inspiration_research.api").app
     client = TestClient(ir_app)
     assert client.post("/research-note", json={"title": "x", "content": "y"}).status_code == 401
+    user = auth.create_token("writer", role="user")
+    assert client.post(
+        "/research-note",
+        json={"title": "x", "content": "y"},
+        headers={"Authorization": f"Bearer {user}"},
+    ).status_code == 403
 
 
 def test_production_rejects_weak_secrets(monkeypatch):
@@ -232,6 +356,36 @@ def test_production_rejects_weak_secrets(monkeypatch):
     monkeypatch.setenv("COGNITIVE_API_KEY", "short")
     monkeypatch.setenv("COGNITIVE_JWT_SECRET", "also-short")
     with pytest.raises(RuntimeError, match="strong COGNITIVE_API_KEY"):
+        validate_runtime_config(Config())
+
+
+@pytest.mark.parametrize(
+    ("api_key", "jwt_secret"),
+    [
+        (
+            "replace-with-strong-random-api-key-000000",
+            "test-jwt-secret-fedcba9876543210-HGFEDCBA",
+        ),
+        (
+            "test-api-key-0123456789abcdef-ABCDEFGH",
+            "replace-with-different-strong-random-jwt-secret-000000",
+        ),
+        (
+            "placeholder-api-key-0123456789abcdef",
+            "placeholder-jwt-secret-fedcba9876543210",
+        ),
+    ],
+)
+def test_production_rejects_documented_placeholder_secret_patterns(
+    monkeypatch, api_key, jwt_secret
+):
+    monkeypatch.setenv("COGNITIVE_ENV", "production")
+    monkeypatch.setenv("COGNITIVE_AUTH_ENABLED", "true")
+    monkeypatch.setenv("COGNITIVE_CORS_ORIGINS", "https://ui.example")
+    monkeypatch.setenv("COGNITIVE_API_KEY", api_key)
+    monkeypatch.setenv("COGNITIVE_JWT_SECRET", jwt_secret)
+
+    with pytest.raises(RuntimeError, match="strong"):
         validate_runtime_config(Config())
 
 

@@ -11,7 +11,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 class TestEvidenceIndex:
     def test_index_and_get_evidence(self):
-        from shared.evidence_index import index_evidence, get_evidence, evidence_health
+        from shared.evidence_index import evidence_health, get_evidence, index_evidence
 
         ev = index_evidence("test_doc_ev1", source_type="pdf",
                             source_path="/tmp/test.pdf", confidence="high",
@@ -28,6 +28,7 @@ class TestEvidenceIndex:
 
         # Cleanup
         import sqlite3
+
         from shared.storage import DB_PATH
 
         db = sqlite3.connect(str(DB_PATH))

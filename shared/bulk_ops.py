@@ -33,6 +33,15 @@ def bulk_import(items: list[dict[str, Any]]) -> dict[str, Any]:
     """
     from shared.pipeline import run_pipeline
 
+    external_sources = {"url", "youtube", "rss", "search"}
+    if any(
+        item.get("source", "text") in external_sources and item.get("auto_ingest", True)
+        for item in items
+    ):
+        raise RuntimeError(
+            "external pipeline auto-ingest is disabled; use a governed candidate path"
+        )
+
     results = []
     succeeded = 0
     failed = 0
@@ -112,24 +121,7 @@ def export_kb(format: str = "json", tables: list[str] | None = None) -> dict[str
 
 
 def cron_discover() -> dict[str, Any]:
-    """One-shot discovery pipeline for cron/scheduled execution.
-
-    Searches multiple sources, collects feeds, and returns new items.
-    Designed to be called from a cron job.
-    """
-    from shared.feed_collector import collect_and_ingest
-    from shared.web_search import search_web
-
-    results = {
-        "feeds": collect_and_ingest(
-            [
-                "https://arxiv.org/rss/cs.AI",
-                "https://huggingface.co/blog/feed.xml",
-            ],
-            max_items=3,
-        ),
-        "search": search_web("new AI knowledge management tool 2026", limit=3),
-        "timestamp": __import__("datetime").datetime.now().isoformat(),
-    }
-
-    return results
+    """Reject the retired scheduled external collection bypass."""
+    raise RuntimeError(
+        "legacy cron discovery is disabled; external material must use a governed candidate path"
+    )

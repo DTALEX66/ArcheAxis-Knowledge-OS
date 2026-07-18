@@ -25,6 +25,7 @@ from knowledge_base.search import hybrid_search, keyword_search, vector_search
 from knowledge_base.taskpack import build_taskpack
 from shared.config import config, validate_runtime_config
 from shared.obsidian_projection import write_projection
+from shared.research_boundary import unreviewed_research_references
 from shared.storage import count, fts5_sync, insert, select_all, select_one
 
 # ── App setup ────────────────────────────────────────────
@@ -60,8 +61,7 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.time()
-    from shared.auth import authenticate_request
-
+    from shared.auth import authenticate_request, authorize_request
 
     user = authenticate_request(
         request.url.path,
@@ -76,6 +76,13 @@ async def log_requests(request: Request, call_next):
                 "detail": "Valid API key or token required. Use X-API-Key header.",
             },
         )
+    canonical_path = f"/kb{request.url.path}"
+    if not authorize_request(user, request.method, canonical_path):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "forbidden", "detail": "role is not authorized for this operation"},
+        )
+    request.state.identity = user
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
     response.headers["X-Process-Time-ms"] = str(duration)
@@ -121,6 +128,14 @@ class ContextPackRequest(BaseModel):
     constraints: list[str] = []
 
 
+def _reject_unreviewed_research_references(references: list[str]) -> None:
+    if unreviewed_research_references(references):
+        raise HTTPException(
+            status_code=409,
+            detail="candidate or external sources require server-owned Phase 5 review provenance",
+        )
+
+
 class TaskPackRequest(BaseModel):
     goal: str
     steps: list[dict] = []
@@ -135,6 +150,7 @@ def health():
 
 @app.post("/documents")
 def create_document(doc: DocumentIn):
+    _reject_unreviewed_research_references([doc.source])
     r = {"id": f"doc_{uuid.uuid4().hex[:12]}", **doc.model_dump()}
     insert("kb_documents", r)
     # Auto-index for FTS5 + vector search + backlinks
@@ -156,6 +172,7 @@ def list_documents(limit: int = 20):
 
 @app.post("/cards")
 def create_card(req: CardRequest):
+    _reject_unreviewed_research_references(req.source_ids)
     card = KnowledgeCard(
         card_id=f"card_{uuid.uuid4().hex[:12]}",
         title=req.title,
@@ -180,6 +197,7 @@ def list_cards(limit: int = 20):
 
 @app.post("/context-pack")
 def create_context_pack(req: ContextPackRequest):
+    _reject_unreviewed_research_references(req.sources)
     ctx = build_context_pack(goal=req.goal, sources=req.sources, constraints=req.constraints)
     insert("kb_context_packs", ctx.to_dict())
     return ctx.to_dict()
@@ -629,7 +647,18 @@ def dataview_query(query_str: str = ""):
 
 @app.get("/daily")
 def daily_note(day: str = ""):
-    """Get or create today's daily note."""
+    """Read a daily note without creating it."""
+    from shared.daily_notes import get_daily
+
+    note = get_daily(day)
+    if note is None:
+        raise HTTPException(status_code=404, detail="daily note not found")
+    return note
+
+
+@app.post("/daily")
+def daily_note_create(day: str = ""):
+    """Create the requested daily note if it does not exist."""
     from shared.daily_notes import get_or_create_daily
 
     return get_or_create_daily(day)
@@ -812,7 +841,12 @@ def canvas_add_card(
     """Place a card on a canvas."""
     from shared.canvas import add_card
 
-    return add_card(canvas_id, object_id, object_type, x=x, y=y)
+    try:
+        return add_card(canvas_id, object_id, object_type, x=x, y=y)
+    except ValueError as exc:
+        if "server-owned Phase 5 review provenance" in str(exc):
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise
 
 
 @app.post("/canvas/{canvas_id}/connect")
@@ -825,7 +859,12 @@ def canvas_add_connection(
     """Add a connection between two cards on a canvas."""
     from shared.canvas import add_connection
 
-    return add_connection(canvas_id, source_node_id, target_node_id, label)
+    try:
+        return add_connection(canvas_id, source_node_id, target_node_id, label)
+    except ValueError as exc:
+        if "server-owned Phase 5 review provenance" in str(exc):
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise
 
 
 @app.delete("/canvas/{canvas_id}")
@@ -951,24 +990,12 @@ def ir_search_and_extract(query: str = "", search_limit: int = 3, extract_limit:
 
 @app.post("/ir/feeds")
 def ir_collect_feeds(urls: str = "", categories: str = "", max_items: int = 10):
-    """Collect articles from RSS/Atom feeds."""
-    from shared.feed_collector import collect_and_ingest, discover_feeds
-
-    if urls:
-        url_list = [u.strip() for u in urls.split(",") if u.strip()]
-    elif categories:
-        cat_list = [c.strip() for c in categories.split(",")]
-        discovered = discover_feeds(cat_list)
-        url_list = []
-        for feeds in discovered.values():
-            url_list.extend(feeds)
-    else:
-        url_list = [
-            "https://arxiv.org/rss/cs.AI",
-            "https://huggingface.co/blog/feed.xml",
-        ]
-
-    return collect_and_ingest(url_list, max_items=max_items)
+    """Reject the retired feed-to-research-note persistence bypass."""
+    del urls, categories, max_items
+    raise HTTPException(
+        status_code=409,
+        detail="Legacy feed ingestion is disabled; use a governed candidate path",
+    )
 
 
 @app.post("/ir/youtube/transcript")

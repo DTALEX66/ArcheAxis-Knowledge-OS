@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic import BaseModel, Field
 
+from app.research.github import research_github_repository as _research_github_repository
 from inspiration_research.intake.generator import generate_intake_card
+from shared.research_store import ResearchPackageGraph, load_research_package
 from shared.storage import insert
 
 
@@ -44,3 +48,28 @@ def ingest_candidate(
     }
     insert("ir_intake_cards", row)
     return ResearchIntakeResult(**payload)
+
+
+def research_github_repository(
+    repository_url: str,
+    *,
+    fetcher=None,
+    db_path: str | Path | None = None,
+) -> ResearchPackageGraph:
+    """Run the Phase 4 GitHub URL -> persisted candidate package workflow."""
+
+    return _research_github_repository(
+        repository_url,
+        fetcher=fetcher,
+        db_path=db_path,
+    )
+
+
+def get_research_package(
+    package_id: str,
+    *,
+    db_path: str | Path | None = None,
+) -> ResearchPackageGraph:
+    """Load a persisted research package and all bound objects."""
+
+    return load_research_package(package_id, db_path=db_path)

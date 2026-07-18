@@ -75,6 +75,44 @@ def authenticate_request(path: str, api_key: str = "", authorization: str = "") 
     return verify_token(token or api_key)
 
 
+_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+_ADMIN_ONLY_PREFIXES = (
+    "/auth/token",
+    "/backup",
+    "/convert/directory",
+    "/convert/file",
+    "/ingest/directory",
+    "/ingest/file",
+    "/internal/",
+    "/kb/bulk/",
+    "/kb/cron/",
+    "/kb/obsidian/",
+    "/kb/pipeline",
+    "/kb/project/",
+    "/kb/projects/",
+    "/project/",
+    "/projects/",
+    "/kb/search/rebuild",
+    "/kb/sources",
+    "/run",
+    "/sleep-loop",
+)
+
+
+def authorize_request(identity: dict[str, Any], method: str, path: str) -> bool:
+    """Apply the production role matrix after authentication."""
+    if identity.get("auth_method") == "none":
+        return True
+    role = identity.get("role")
+    if role == "admin":
+        return True
+    if role == "readonly":
+        return method.upper() in _SAFE_METHODS
+    if role != "user":
+        return False
+    return not any(path == prefix or path.startswith(prefix) for prefix in _ADMIN_ONLY_PREFIXES)
+
+
 # ── JWT-like token (HMAC, zero-dependency) ───────────────
 
 

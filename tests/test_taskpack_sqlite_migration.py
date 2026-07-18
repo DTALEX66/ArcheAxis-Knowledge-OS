@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import builtins
 import importlib
+import os
 import sqlite3
+import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing, suppress
 from pathlib import Path
 from threading import Barrier, BrokenBarrierError
+from types import SimpleNamespace
 
 import pytest
 
@@ -31,6 +34,73 @@ def test_migration_import_does_not_require_python311_datetime_utc(monkeypatch) -
         sys.modules.pop("shared.migration", None)
         if existing_module is not None:
             sys.modules["shared.migration"] = existing_module
+
+
+def test_storage_import_creates_no_database(monkeypatch, tmp_path: Path) -> None:
+    database = tmp_path / "import-only.sqlite"
+    env = os.environ.copy()
+    env["COGNITIVE_DB_PATH"] = str(database)
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from shared import storage; from app.memory import database; "
+            "assert storage.DB_PATH == database.DB_PATH; "
+            "assert not storage.DB_PATH.exists()",
+        ],
+        cwd=Path(__file__).resolve().parents[1],
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert not database.exists()
+
+
+def test_core_container_startup_before_migration_fails_closed(monkeypatch, tmp_path: Path) -> None:
+    from app import container_entrypoint
+    from shared import backup, storage
+
+    database = tmp_path / "missing.sqlite"
+    monkeypatch.setattr(storage, "DB_PATH", database)
+    monkeypatch.setattr(backup, "DB_PATH", database)
+    monkeypatch.setattr(
+        container_entrypoint,
+        "_exec_process",
+        lambda _command: pytest.fail("core must not exec before schema validation"),
+    )
+
+    try:
+        with pytest.raises(RuntimeError, match="has not been migrated"):
+            container_entrypoint.run_core(object())
+    finally:
+        backup.release_runtime_lock()
+
+
+def test_container_migration_holds_target_operator_lease(monkeypatch, tmp_path: Path) -> None:
+    from app import container_entrypoint
+    from app.memory import database as memory_database
+    from shared import backup, migration, storage
+
+    database = tmp_path / "migration.sqlite"
+    monkeypatch.setattr(backup, "DB_PATH", database)
+    monkeypatch.setattr(storage, "DB_PATH", database)
+    monkeypatch.setattr(memory_database, "DB_PATH", database)
+
+    def migrate_while_locked(**_kwargs):
+        with pytest.raises(
+            RuntimeError, match="requires the app to be offline"
+        ), backup.runtime_lease(database):
+            pass
+        return SimpleNamespace(applied=(), backup_path=None)
+
+    monkeypatch.setattr(migration, "migrate", migrate_while_locked)
+    monkeypatch.setattr(migration, "status", lambda **_kwargs: {"pending": []})
+
+    assert container_entrypoint.run_migration(object()) == 0
+    with backup.runtime_lease(database):
+        pass
 
 
 def _create_legacy_taskpack_database(path: Path) -> None:
@@ -504,9 +574,7 @@ def test_taskpack_repair_rejects_extra_implicit_unique_constraint_without_replac
             "WHERE tbl_name='kb_taskpacks' OR name='kb_taskpacks' "
             "ORDER BY type, name"
         ).fetchall()
-        before_rows = connection.execute(
-            "SELECT * FROM kb_taskpacks ORDER BY id"
-        ).fetchall()
+        before_rows = connection.execute("SELECT * FROM kb_taskpacks ORDER BY id").fetchall()
         before_migrations = connection.execute(
             "SELECT version, name FROM schema_migrations ORDER BY version"
         ).fetchall()
@@ -558,7 +626,7 @@ def test_storage_startup_detects_version_collision_before_any_ddl(
     monkeypatch.setattr(migration, "BACKUP_DIR", backups)
 
     with pytest.raises(RuntimeError, match="migration version 2 name collision"):
-        storage.init()
+        migration.migrate(db_path=database, backup_dir=backups)
 
     with sqlite3.connect(database) as conn:
         tables = {
@@ -591,11 +659,20 @@ def test_taskpack_migration_serializes_concurrent_startup(monkeypatch, tmp_path:
     both_probes_reached_backup = Barrier(2)
 
     def synchronized_backup(
-        database_path: Path, backup_dir: Path, migration_name: str
+        database_path: Path,
+        backup_dir: Path,
+        migration_name: str,
+        *,
+        operator_run_id: str | None = None,
     ) -> Path:
         with suppress(BrokenBarrierError):
             both_probes_reached_backup.wait(timeout=0.5)
-        return original_create_backup(database_path, backup_dir, migration_name)
+        return original_create_backup(
+            database_path,
+            backup_dir,
+            migration_name,
+            operator_run_id=operator_run_id,
+        )
 
     monkeypatch.setattr(migration, "_create_backup", synchronized_backup)
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -660,7 +737,9 @@ def test_migrated_taskpack_row_round_trips_canonical_safety_fields(tmp_path: Pat
     }
 
 
-def test_storage_startup_runs_backed_up_taskpack_migration(monkeypatch, tmp_path: Path) -> None:
+def test_explicit_storage_schema_then_migration_records_taskpack_versions(
+    monkeypatch, tmp_path: Path
+) -> None:
     from shared import migration, storage
 
     database = tmp_path / "runtime.sqlite"
@@ -669,7 +748,7 @@ def test_storage_startup_runs_backed_up_taskpack_migration(monkeypatch, tmp_path
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(migration, "BACKUP_DIR", backups)
 
-    storage.init()
+    migration.migrate(db_path=database, backup_dir=backups)
 
     with sqlite3.connect(database) as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(kb_taskpacks)")}
@@ -690,7 +769,7 @@ def test_storage_startup_runs_backed_up_taskpack_migration(monkeypatch, tmp_path
     assert backup_tables == {"kb_taskpacks"}
 
 
-def test_storage_startup_repairs_partial_v2_once(monkeypatch, tmp_path: Path) -> None:
+def test_explicit_migration_repairs_partial_v2_once(monkeypatch, tmp_path: Path) -> None:
     from shared import migration, storage
 
     database = tmp_path / "runtime.sqlite"
@@ -699,9 +778,9 @@ def test_storage_startup_repairs_partial_v2_once(monkeypatch, tmp_path: Path) ->
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(migration, "BACKUP_DIR", backups)
 
-    storage.init()
+    migration.migrate(db_path=database, backup_dir=backups)
     first_backups = list(backups.glob("pre_migration_*.sqlite"))
-    storage.init()
+    migration.migrate(db_path=database, backup_dir=backups)
 
     with closing(sqlite3.connect(database)) as connection:
         table_sql = connection.execute(
@@ -899,23 +978,27 @@ def test_storage_insert_preserves_complete_knowledge_taskpack(monkeypatch, tmp_p
     }
 
 
-def test_intake_bridge_persists_taskpack_context_link(monkeypatch, tmp_path: Path) -> None:
+def test_intake_bridge_fails_closed_without_phase5_review_provenance(
+    monkeypatch, tmp_path: Path
+) -> None:
     from shared import migration, storage
+    from shared.bridge import bridge_intake_to_kb
 
     database = tmp_path / "runtime.sqlite"
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(migration, "BACKUP_DIR", tmp_path / "backups")
     storage.init()
 
-    from shared.bridge import bridge_intake_to_kb
-
-    result = bridge_intake_to_kb(
-        {"id": "intake-1", "why": "Evaluate safely", "risk_level": "high"}
-    )
-    task = storage.select_one("kb_taskpacks", result["taskpack_id"])
-
-    assert task is not None
-    assert task["context_id"] == result["context_pack_id"]
-    assert task["risk_level"] == "high"
-    assert task["allowed_tools"] == ["echo", "file_read"]
-    assert task["blocked_tools"] == ["shell_exec", "code_exec", "delete_file"]
+    with sqlite3.connect(database) as connection:
+        before = tuple(
+            connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in ("kb_context_packs", "kb_taskpacks")
+        )
+    with pytest.raises(RuntimeError, match="server-owned review provenance"):
+        bridge_intake_to_kb({"id": "intake-1", "why": "Evaluate safely", "risk_level": "high"})
+    with sqlite3.connect(database) as connection:
+        after = tuple(
+            connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in ("kb_context_packs", "kb_taskpacks")
+        )
+    assert after == before

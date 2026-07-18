@@ -14,7 +14,9 @@ Usage:
 
 from __future__ import annotations
 
+import os
 from contextlib import suppress
+from pathlib import Path
 from typing import Any
 
 
@@ -35,6 +37,11 @@ def run_pipeline(
     Returns:
         Full pipeline result with each stage's output.
     """
+    external_sources = {"url", "youtube", "rss", "search"}
+    if source in external_sources and auto_ingest:
+        raise RuntimeError(
+            "external pipeline auto-ingest is disabled; use a governed candidate path"
+        )
     if actions is None:
         actions = ["extract", "tag", "summarize", "index"]
 
@@ -56,6 +63,27 @@ def run_pipeline(
     elif source == "text":
         content = input_data
         result["stages"]["extract"] = {"engine": "passthrough", "chars": len(content)}
+    elif source == "file":
+        from shared.approved_paths import ApprovedRoots
+
+        configured_roots = os.environ.get("COGNITIVE_APPROVED_SOURCE_ROOTS", "")
+        source_roots = [Path(item) for item in configured_roots.split(os.pathsep) if item.strip()]
+        if not source_roots:
+            raise RuntimeError("file pipeline requires COGNITIVE_APPROVED_SOURCE_ROOTS")
+        path = ApprovedRoots(source_roots=source_roots).resolve_source(input_data)
+        if not path.is_file():
+            raise RuntimeError("file pipeline source must be a regular file")
+        if path.stat().st_size > 2_000_000:
+            raise RuntimeError("file pipeline source exceeds 2000000 bytes")
+        try:
+            content = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as exc:
+            raise RuntimeError("file pipeline source must be valid UTF-8") from exc
+        title = path.stem
+        result["stages"]["extract"] = {
+            "engine": "approved-local-file",
+            "chars": len(content),
+        }
     elif source == "youtube":
         from shared.youtube_extractor import get_transcript
 
@@ -64,11 +92,11 @@ def run_pipeline(
         title = yt.get("title", "")
         result["stages"]["extract"] = {"engine": "youtube-transcript", "chars": len(content)}
     elif source == "rss":
-        from shared.feed_collector import collect_and_ingest
+        from shared.feed_collector import collect_feeds
 
-        rss = collect_and_ingest([input_data], max_items=5)
-        result["stages"]["extract"] = {"engine": "rss", "items": rss.get("collected", 0)}
-        return result  # RSS auto-ingests
+        items = collect_feeds([input_data], max_items=5)
+        result["stages"]["extract"] = {"engine": "rss", "items": len(items)}
+        return result
     elif source == "search":
         from shared.web_search import search_and_extract
 

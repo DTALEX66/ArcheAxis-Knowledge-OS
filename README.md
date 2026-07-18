@@ -1,5 +1,23 @@
 # Cognitive-Loop-OS
 
+## Phase 4 Research Status
+
+Phase 4 Research closure is implemented as a candidate-only workflow:
+
+```text
+canonical GitHub URL -> Safe HTTP collect -> quarantine -> parse -> claims
+-> evidence -> cross-validation findings -> persisted ResearchPackageV1
+```
+
+Public entry points:
+
+- Facade: `app.facades.research.research_github_repository()`
+- Read facade: `app.facades.research.get_research_package()`
+- API: `POST /research/github-repository`
+- API: `GET /research/packages/{package_id}`
+
+The workflow accepts only canonical `https://github.com/{owner}/{repo}` repository URLs, collects GitHub API metadata and README payloads through `shared.safe_http`, and revalidates status, final URL, media type, and byte limits at the production transport boundary. The complete provenance graph is persisted through the operator-only `research.sqlite` migration owner and revalidated on strict read. The storage boundary accepts candidate-only graphs (`status=candidate`, `provenance_status=caller_supplied`, `requires_human_review=True`); one GitHub repository does not satisfy verified-source independence. Legacy trending/daily/feed/cron/screening exports, caller-supplied IR-to-KB bridges, engineering-contract intake promotion, external research-note writes, KB Document/ContextPack/Card/Evidence/MachineKnowledge references, GraphDB entity/relation writes, Canvas card/connection writes, Episodic memory, processing manifests, and Core `/ingest*`/`/run` inputs that identify `research_package_*`, `intake_*`, `source_*`, `claim_*`, `evidence_*`, `finding_*`, or HTTP(S) sources all fail closed until Phase 5 provides server-owned review provenance. External `url/search/youtube/rss` pipeline requests cannot use automatic KB ingestion; read-only search/extract/feed parsing remains available when it does not persist or promote external material. Local `file` ingestion requires the server-configured `COGNITIVE_APPROVED_SOURCE_ROOTS` containment boundary; local `text` ingestion retains its existing contract. This does not claim Phase 5, Phase 9 Alpha, or full system closure.
+
 [![CI](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml)
 
 Cognitive-Loop-OS 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的认知闭环：
@@ -9,7 +27,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard 与 Phase 2 首批版本化 Contracts 已完成。Phase 3 安全和数据正确性 P0 正在收口：管理员凭据、Token 角色提升、主网关限流、Safe HTTP、approved roots、稳定哈希及 Vector/FTS shadow rebuild/switch/rollback 边界已经建立；下一项是通用 Migration Runner 与 Phase 3 集成验收。Phase 7 已有一条真实 `file_read` 证据闭环，但通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Alpha 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard、Phase 2 首批版本化 Contracts 与通用 Migration Runner 已完成。Phase 4 已建立 GitHub repository 到持久化 candidate ResearchPackage 的真实闭环，但不会把单仓库 metadata/README 提升为 verified truth。下一项是 Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理闭环；通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Alpha 仍未完成。
 
 ## 规划与进度
 
@@ -21,13 +39,14 @@ Research → Evidence → Knowledge → Learning
 | Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
 | Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
 | Phase 2 | 版本化 Contracts 与旧对象 Adapter | ✅ 已完成首批合同 | 路线图列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已有严格 tracer |
-| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | 🟡 收口中 | Safe HTTP、roots、stable hash、Vector/FTS 回滚边界已完成；下一项通用 Migration Runner |
-| Phase 4–6 | Research、Knowledge/Learning、Enhancement 闭环 | ⬜ 规划中 | 以 evidence/candidate 治理为前提 |
+| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ✅ 核心边界完成 | Safe HTTP、roots、stable hash、Vector/FTS 与统一 Migration Runner 已接通 |
+| Phase 4 | Research 闭环 | ✅ candidate-only 闭环完成 | GitHub URL → quarantined sources → claims/evidence/findings → SQLite → strict read |
+| Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ⬜ 待执行 | 复用 evidence/candidate 治理，不自动提升为已验证知识 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | 🟡 已有首条纵向 tracer | `file_read` 已有真实证据链；通用规划与 Sleep/Runtime 统一仍待完成 |
 | Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
 | Phase 10 | 产品化、诊断、升级与多端发布 | ⬜ 规划中 | 仅在 Alpha 闭环完成后启动 |
 
-### 当前里程碑：Phase 3 安全和数据正确性 P0
+### 当前里程碑：Phase 4 Research candidate closure
 
 ```text
 Phase 0 真实基线 ✅
@@ -48,12 +67,14 @@ Phase 0 真实基线 ✅
 → 主网关 Rate Limiter + proxy trust 边界 ✅
 → 统一 Safe HTTP + approved roots ✅
 → stable hash + Vector/FTS shadow switch/rollback ✅
-→ 通用 Migration Runner + Phase 3 集成验收（当前刀）
+→ 通用 Migration Runner + Phase 3 集成验收 ✅
+→ GitHub Research candidate-only 持久化闭环 ✅
+→ Phase 5 Knowledge/Learning/Mastery 治理（下一刀）
 ```
 
-当前刀：**Phase 3 第八项——通用 Migration Runner 与集成收口**。需要把现有 TaskPack migration、Vector/FTS candidate activation/rollback 纳入可注册 owner、operator status/apply/rollback 与一致的 provenance 边界；它属于数据库与架构边界，继续使用独立 frozen tree、完整门禁、reviewer 与 exact-SHA CI。
+下一刀：**Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理闭环**。Phase 4 的 candidate ResearchPackage 只能作为输入候选，后续仍必须保留人工审批、版本、弃用和 provenance 边界。
 
-本阶段明确不宣称：Phase 3 安全 P0 整体、Phase 4 Research 闭环、通用 Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
+本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth、Phase 5–6、通用 Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
 
 完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-16.md`](docs/HANDOFF_2026-07-16.md)。
 
@@ -61,7 +82,7 @@ Phase 0 真实基线 ✅
 
 ```bash
 python -m pip install -e ".[dev]"
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers
+python -m app.container_entrypoint core
 ```
 
 - Core API：`http://127.0.0.1:8000/docs`

@@ -21,6 +21,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
+from shared.research_boundary import unreviewed_research_references  # noqa: E402
 from shared.storage import DB_PATH, insert, select_all, select_one  # noqa: E402
 
 
@@ -71,6 +72,10 @@ def add_card(
     Returns:
         The card node dict.
     """
+    if unreviewed_research_references([canvas_id, object_id]):
+        raise ValueError(
+            "candidate or external canvas references require server-owned Phase 5 review provenance"
+        )
     node_id = f"node_{uuid.uuid4().hex[:12]}"
     node = {
         "id": node_id,
@@ -106,6 +111,10 @@ def add_connection(
     Returns:
         The edge dict.
     """
+    if unreviewed_research_references([canvas_id, source_node_id, target_node_id]):
+        raise ValueError(
+            "candidate or external canvas references require server-owned Phase 5 review provenance"
+        )
     edge_id = f"edge_{uuid.uuid4().hex[:12]}"
     edge = {
         "id": edge_id,

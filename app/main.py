@@ -3,7 +3,7 @@
 Port 8000: Core OS (route → execute → trace → eval → lesson)
 Port 8000/kb: Knowledge-Base (live-counted endpoints, dashboard, capabilities)
 
-Start: uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-proxy-headers
+Start: python -m app.container_entrypoint core
 Then:  http://localhost:8000/docs     — Core API
        http://localhost:8000/kb/docs   — Knowledge-Base API
        http://localhost:8000/kb        — Dashboard
@@ -22,6 +22,7 @@ from fastapi.responses import JSONResponse
 
 from shared.config import config, validate_runtime_config
 from shared.rate_limit import RateLimiter
+from shared.research_boundary import unreviewed_research_references
 
 validate_runtime_config(config)
 
@@ -177,9 +178,9 @@ def _rate_limit_rejection(policy: str, result) -> JSONResponse:
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.time()
-    untrusted_proxy_headers = _has_proxy_identity_headers(
+    untrusted_proxy_headers = _has_proxy_identity_headers(request) and not _direct_peer_is_trusted(
         request
-    ) and not _direct_peer_is_trusted(request)
+    )
     ambiguous_credentials = _has_ambiguous_credentials(request)
     rate_result = None
     rate_policy = _rate_limit_policy(request)
@@ -224,7 +225,7 @@ async def log_requests(request: Request, call_next):
         )
 
     # ── Auth check (skip allowlist) ──
-    from shared.auth import authenticate_request
+    from shared.auth import authenticate_request, authorize_request
 
     user = authenticate_request(
         request.url.path,
@@ -247,11 +248,23 @@ async def log_requests(request: Request, call_next):
             headers=headers,
         )
 
+    request.state.identity = user
+
     if limiter is not None and user.get("auth_method") in {"api_key", "jwt"}:
         limiter.release(pre_auth_key)
         rate_result = limiter.check(f"{rate_policy}:{_rate_limit_identity(request, user)}")
         if not rate_result.allowed:
             return _rate_limit_rejection(rate_policy, rate_result)
+
+    if not authorize_request(user, request.method, request.url.path):
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": "forbidden",
+                "detail": "The authenticated role is not allowed to perform this operation.",
+            },
+            headers=rejection_headers,
+        )
 
     response = await call_next(request)
     duration = round((time.time() - start) * 1000, 1)
@@ -273,9 +286,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ── Mount packaged Knowledge-Base sub-application ──
+from inspiration_research.api import app as research_app
 from knowledge_base.api import app as kb_app
 
 app.mount("/kb", kb_app)
+app.mount("/internal/research", research_app)
 
 
 def _http_route_counts() -> dict[str, int]:
@@ -373,8 +388,17 @@ def tools():
     return {"items": list_tools()}
 
 
+def _reject_unreviewed_input_source(input_data: dict) -> None:
+    if unreviewed_research_references([input_data.get("source", "")]):
+        raise HTTPException(
+            status_code=409,
+            detail="candidate or external sources require server-owned Phase 5 review provenance",
+        )
+
+
 @app.post("/ingest")
 def ingest_api(input_data: dict):
+    _reject_unreviewed_input_source(input_data)
     doc = ingest(input_data)
     save_memory(doc)
     return doc
@@ -382,6 +406,7 @@ def ingest_api(input_data: dict):
 
 @app.post("/ingest/file")
 def ingest_file_api(payload: dict):
+    _reject_unreviewed_input_source(payload)
     try:
         doc = ingest_file(
             str(payload.get("path", "")),
@@ -400,6 +425,7 @@ def ingest_file_api(payload: dict):
 
 @app.post("/ingest/directory")
 def ingest_directory_api(payload: dict):
+    _reject_unreviewed_input_source(payload)
     try:
         docs = ingest_directory(
             str(payload.get("path", "")),
@@ -429,6 +455,7 @@ def route_api(input_data: dict):
 
 @app.post("/run")
 def run(input_data: dict):
+    _reject_unreviewed_input_source(input_data)
     doc = ingest(input_data)
     decision = route(doc)
     doc.attention_score = decision.score

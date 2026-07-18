@@ -14,27 +14,25 @@ from __future__ import annotations
 import json
 import os
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
+from pathlib import Path
 
 
 def cmd_serve(port: int = 8000) -> None:
-    """Start the Cognitive-Loop-OS server."""
-    import uvicorn
+    """Start Core through the single lease-aware runtime entry point."""
+    from app.container_entrypoint import run_core
 
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=True,
-        proxy_headers=False,
-    )
+    os.environ["COGNITIVE_PORT"] = str(port)
+    run_core(Namespace())
 
 
 def cmd_pipeline(source: str, input_data: str) -> None:
-    """Run the pipeline on input."""
+    """Run the effectful pipeline under the target database runtime lease."""
+    from shared import backup, storage
     from shared.pipeline import run_pipeline
 
-    result = run_pipeline(source=source, input_data=input_data)
+    with backup.runtime_lease(storage.DB_PATH):
+        result = run_pipeline(source=source, input_data=input_data)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
@@ -70,8 +68,8 @@ def cmd_migrate(args: list[str]) -> None:
     parser.add_argument("--db", required=True)
     parser.add_argument("--backup-dir", required=True)
     options = parser.parse_args(args)
-    os.environ["COGNITIVE_DB_PATH"] = options.db
 
+    from shared import backup
     from shared.migration_runner import MigrationOperator
 
     operator = MigrationOperator(db_path=options.db, backup_dir=options.backup_dir)
@@ -81,7 +79,8 @@ def cmd_migrate(args: list[str]) -> None:
         if not options.owner:
             parser.error("--owner is required for apply and rollback")
         function = operator.apply if options.action == "apply" else operator.rollback
-        result = function(options.owner)
+        with backup.runtime_lease(Path(options.db)):
+            result = function(options.owner)
     print(json.dumps(result, ensure_ascii=True, indent=2, sort_keys=True))
 
 
