@@ -20,8 +20,10 @@ removes pip, setuptools, wheel, and the builder-only `jaraco.context`. No APT
 packages are installed. Caddy's runtime is a scratch image containing only a
 Caddy `v2.11.4` binary rebuilt by the digest-pinned Go 1.26.5 builder, its module
 build provenance, the CA bundle, and writable data/config directories; Alpine's
-curl/c-ares package set is not copied into production. The publish job pushes only
-when its deterministic rebuild has the same image ID as the completed smoke job.
+curl/c-ares package set is not copied into production. CI builds and exercises the
+same deterministic image used by the smoke stack; registry publication is deliberately
+not part of this repository until a package registry with confirmed write permission
+is selected.
 
 Before the stack starts, pinned Trivy checks both final runtime images for
 CRITICAL, HIGH, and MEDIUM vulnerabilities with an available fix. Any such finding
@@ -150,7 +152,7 @@ one replica without a separate SQLite and rate-limit review.
 
 ## Rollback
 
-Keep the previous immutable GHCR SHA tag available before upgrade. To roll back
-code, pull and retag that verified image as `cognitive-loop-os:${COGNITIVE_IMAGE_TAG}`
-and restart without rebuilding the current source tree. To roll back data, use
-only the verified offline restore activation flow above.
+Keep the previous verified image or build artifact available before upgrade. To roll
+back code, select that verified artifact and restart without rebuilding the current
+source tree. To roll back data, use only the verified offline restore activation flow
+above.

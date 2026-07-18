@@ -795,19 +795,10 @@ def test_container_workflow_builds_real_stack_and_checks_runtime_contracts():
     assert "run --rm backup" not in workflow
     assert "integrity" in workflow
     assert "stop caddy core" in workflow
-    assert "ghcr.io/${GITHUB_REPOSITORY,,}" in workflow
-    assert "docker push" in workflow
-    assert "needs: [quality, smoke]" in workflow
-    assert "packages: write" in workflow
-    top_permissions = workflow.split("jobs:", 1)[0]
-    smoke_job = workflow.split("  publish:", 1)[0].split("  smoke:", 1)[1]
-    publish_job = workflow.split("  publish:", 1)[1]
-    assert "packages: write" not in top_permissions
-    assert "packages: write" not in smoke_job
-    assert "packages: write" in publish_job
-    assert "github.event_name == 'push' && github.ref == 'refs/heads/main'" in workflow
-    assert "needs.smoke.outputs.image_id" in workflow
-    assert "Capture verified image identity" in workflow
+    assert "ghcr.io/${GITHUB_REPOSITORY,,}" not in workflow
+    assert "docker push" not in workflow
+    assert "packages: write" not in workflow
+    assert "Capture verified image identity" not in workflow
     assert "down -v --remove-orphans" in workflow
     assert "git ls-files" in workflow
     assert "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5" in workflow

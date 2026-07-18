@@ -39,8 +39,6 @@ jobs:
 
   smoke:
     runs-on: ubuntu-latest
-    outputs:
-      image_id: ${{ steps.verified_image.outputs.image_id }}
     permissions:
       contents: read
     steps:
@@ -187,76 +185,6 @@ jobs:
           fi
           git status --short
 
-      - name: Capture verified image identity
-        id: verified_image
-        run: echo "image_id=$(docker image inspect --format '{{.Id}}' cognitive-loop-os:ci)" >> "$GITHUB_OUTPUT"
-
-      - name: Tag and publish verified image to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        shell: bash
-        env:
-          GHCR_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          docker tag cognitive-loop-os:ci "$image:sha-${GITHUB_SHA}"
-          docker tag cognitive-loop-os:ci "$image:latest"
-          docker push "$image:sha-${GITHUB_SHA}"
-          docker push "$image:latest"
-
       - name: Tear down stack
         if: always()
         run: docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops down -v --remove-orphans
-
-  publish:
-    needs: [quality, smoke]
-    runs-on: ubuntu-latest
-    if: false  # publish moved into smoke job to avoid rebuild mismatch
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-
-      - name: Generate publish build environment
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat > .env.container <<EOF
-          COGNITIVE_API_KEY=$(openssl rand -hex 32)
-          COGNITIVE_JWT_SECRET=$(openssl rand -hex 32)
-          COGNITIVE_CORS_ORIGINS=http://127.0.0.1:8080
-          COGNITIVE_CORS_METHODS=GET,POST,DELETE,OPTIONS
-          COGNITIVE_CORS_HEADERS=Authorization,Content-Type,X-API-Key
-          COGNITIVE_DOMAIN=localhost
-          CADDY_TLS_EMAIL=ops@example.invalid
-          COGNITIVE_IMAGE_TAG=ci
-          CADDY_HTTP_PORT=8080
-          CADDY_HTTPS_PORT=8443
-          CADDY_INTERNAL_HTTP_PORT=8080
-          CADDY_INTERNAL_HTTPS_PORT=8443
-          EOF
-          chmod 600 .env.container
-
-      - name: Build verified image source
-        run: docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml build --pull
-
-      - name: Match the smoke-tested image
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(docker image inspect --format '{{.Id}}' cognitive-loop-os:ci)" = "${{ needs.smoke.outputs.image_id }}"
-
-      - name: Publish verified image to GHCR
-        shell: bash
-        env:
-          GHCR_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          docker tag cognitive-loop-os:ci "$image:sha-${GITHUB_SHA}"
-          docker tag cognitive-loop-os:ci "$image:latest"
-          docker push "$image:sha-${GITHUB_SHA}"
-          docker push "$image:latest"

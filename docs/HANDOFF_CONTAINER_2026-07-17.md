@@ -135,7 +135,7 @@ controls.
 Never copy a raw SQLite file over the live path and never activate a candidate
 while Core is running.
 
-## CI and publication
+## CI and image publication
 
 Pull requests run two container jobs:
 
@@ -145,10 +145,11 @@ Pull requests run two container jobs:
    Compose validation, real stack startup, RBAC/network checks, non-root checks,
    volume persistence, backup, mutation, offline restore, restart, and teardown.
 
-GHCR publication is a separate job restricted to a push on `main` and depends on
-both `quality` and `smoke`. It publishes immutable `sha-<commit>` plus `latest`
-only after the rebuilt image ID matches the smoke-tested image ID. A pull request
-must not publish an image.
+The workflow builds and exercises the container stack on pull requests and `main`.
+It intentionally does not publish to GHCR: the repository installation currently
+lacks permission to create organization packages. Select and configure a registry
+with confirmed write permission before adding publication back. Until then, retain
+the verified local/CI image or build artifact for deployment and rollback.
 
 ## Upgrade and rollback
 
@@ -156,7 +157,7 @@ Before an upgrade:
 
 1. run integrity;
 2. create and retain a verified backup;
-3. retain the previous immutable GHCR SHA tag;
+3. retain the previous verified image or build artifact;
 4. stop Caddy and Core;
 5. build/pull the new image;
 6. run migration;
@@ -173,8 +174,8 @@ verified offline restore flow.
   the PR `Container Stack` workflow.
 - SQLite remains single-host and single-writer. Do not scale `core` above one
   replica without a new storage, lease, and rate-limit review.
-- PR validation does not publish GHCR images; publication occurs only after merge
-  and a successful `main` workflow.
+- PR and `main` validation do not publish registry images; registry publication is
+  deferred until a registry with confirmed write permission is configured.
 - Phase 5 server-owned Research review provenance is not implemented here;
   candidate references continue to fail closed at downstream write boundaries.
 
