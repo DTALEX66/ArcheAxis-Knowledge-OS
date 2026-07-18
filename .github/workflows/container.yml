@@ -191,14 +191,26 @@ jobs:
         id: verified_image
         run: echo "image_id=$(docker image inspect --format '{{.Id}}' cognitive-loop-os:ci)" >> "$GITHUB_OUTPUT"
 
+      - name: Tag and publish verified image to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker tag cognitive-loop-os:ci "$image:sha-${GITHUB_SHA}"
+          docker tag cognitive-loop-os:ci "$image:latest"
+          docker push "$image:sha-${GITHUB_SHA}"
+          docker push "$image:latest"
+
       - name: Tear down stack
         if: always()
         run: docker compose --env-file .env.container -f docker-compose.yml -f docker-compose.ci.yml --profile ops down -v --remove-orphans
 
   publish:
-    runs-on: ubuntu-latest
-    needs: [quality, smoke]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false  # publish moved into smoke job to avoid rebuild mismatch
     permissions:
       contents: read
       packages: write
