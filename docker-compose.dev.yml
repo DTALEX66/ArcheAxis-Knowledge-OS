@@ -1,0 +1,25 @@
+name: cognitive-loop-os-dev
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    init: true
+    working_dir: /workspace
+    environment:
+      COGNITIVE_ENV: development
+      COGNITIVE_AUTH_ENABLED: "false"
+      COGNITIVE_DATA_DIR: /workspace/data
+      COGNITIVE_DB_PATH: /workspace/data/cognitive_os.sqlite
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - .:/workspace
+      - cognitive-dev-data:/workspace/data
+    command: ["sleep", "infinity"]
+    stdin_open: true
+    tty: true
+
+volumes:
+  cognitive-dev-data:
