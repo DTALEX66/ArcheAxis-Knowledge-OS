@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'cognitive-loop-os-api',
       script: 'python',
-      args: '-m app.container_entrypoint core',
+      args: '-m app.runtime_entrypoint core',
       cwd: __dirname,
       interpreter: 'none',
       autorestart: true,

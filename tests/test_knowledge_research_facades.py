@@ -25,7 +25,7 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
 
         runtime_root = Path(os.environ["COGNITIVE_DATA_DIR"]).resolve()
         from shared import storage
-        from app.container_entrypoint import run_migration
+        from app.runtime_entrypoint import run_migration
         from argparse import Namespace
 
         expected_db = runtime_root / "cognitive_os.sqlite"

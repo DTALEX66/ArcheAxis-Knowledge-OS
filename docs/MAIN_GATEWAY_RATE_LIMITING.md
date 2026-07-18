@@ -24,10 +24,10 @@ The write and token budgets must both be lower than the ordinary-read budget. Pr
 The supported launch command must disable Uvicorn's own proxy rewriting so the application receives the socket peer unchanged:
 
 ```bash
-python -m app.container_entrypoint core
+python -m app.runtime_entrypoint core
 ```
 
-Do not enable Uvicorn `--proxy-headers` in front of this application. Proxy identity ownership belongs to this gateway's explicit `trusted_proxies` policy; enabling a second trust layer outside the application destroys the original peer evidence before the gateway can evaluate it. The repository's CLI, Docker images, Compose service, PM2 configuration, and Windows/POSIX launch scripts all disable Uvicorn proxy-header rewriting, and targeted tests enforce those executable entrypoints rather than relying only on documentation.
+Do not enable Uvicorn `--proxy-headers` in front of this application. Proxy identity ownership belongs to this gateway's explicit `trusted_proxies` policy; enabling a second trust layer outside the application destroys the original peer evidence before the gateway can evaluate it. The repository's CLI, PM2 configuration, and Windows/POSIX launch scripts all disable Uvicorn proxy-header rewriting, and targeted tests enforce those executable entrypoints rather than relying only on documentation.
 
 Configure trusted proxies only when the gateway is actually reachable exclusively through those proxies. Trusting an address range that untrusted clients can occupy permits identity spoofing.
 

@@ -82,10 +82,8 @@ Phase 0 真实基线 ✅
 
 ```bash
 python -m pip install -e ".[dev]"
-python -m app.container_entrypoint core
+python -m app.runtime_entrypoint core
 ```
-
-跨电脑的可复用开发环境见 [`docs/DEV_CONTAINER.md`](docs/DEV_CONTAINER.md)。它挂载当前 Git 工作区，不保存第二份源码；任务通过分支、commit 和 push 回传主项目。
 
 - Core API：`http://127.0.0.1:8000/docs`
 - Knowledge Dashboard：`http://127.0.0.1:8000/kb`

@@ -3,7 +3,7 @@
 Port 8000: Core OS (route → execute → trace → eval → lesson)
 Port 8000/kb: Knowledge-Base (live-counted endpoints, dashboard, capabilities)
 
-Start: python -m app.container_entrypoint core
+Start: python -m app.runtime_entrypoint core
 Then:  http://localhost:8000/docs     — Core API
        http://localhost:8000/kb/docs   — Knowledge-Base API
        http://localhost:8000/kb        — Dashboard
