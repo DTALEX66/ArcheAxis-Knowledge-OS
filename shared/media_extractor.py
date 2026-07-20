@@ -15,7 +15,7 @@ from typing import Any
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
-_APPROVED_ROOTS = ApprovedRoots(source_roots=[_PROJECT_ROOT], output_roots=[_PROJECT_ROOT / "data"])
+_APPROVED_ROOTS = ApprovedRoots(source_roots=[_PROJECT_ROOT], output_roots=[_PROJECT_ROOT])
 
 
 def extract_pdf_pages(
@@ -46,7 +46,7 @@ def extract_pdf_pages(
     policy = approved_roots or _APPROVED_ROOTS
     try:
         pdf_file = policy.resolve_source(pdf_path)
-        out_dir = policy.resolve_output(output_dir or "media")
+        out_dir = policy.resolve_output(output_dir or "data/media")
     except ApprovedRootsError as exc:
         return {"error": str(exc), "pdf": pdf_path}
     if not pdf_file.exists():
@@ -107,7 +107,7 @@ def extract_video_keyframes(
     policy = approved_roots or _APPROVED_ROOTS
     try:
         video_file = policy.resolve_source(video_path)
-        out_dir = policy.resolve_output(output_dir or "media/keyframes")
+        out_dir = policy.resolve_output(output_dir or "data/media/keyframes")
     except ApprovedRootsError as exc:
         return {"error": str(exc), "video": video_path}
     if not video_file.exists():
@@ -166,7 +166,7 @@ def extract_audio_track(
     policy = approved_roots or _APPROVED_ROOTS
     try:
         video_file = policy.resolve_source(video_path)
-        out_dir = policy.resolve_output(output_dir or "media/audio")
+        out_dir = policy.resolve_output(output_dir or "data/media/audio")
     except ApprovedRootsError as exc:
         return {"error": str(exc), "video": video_path}
     if not video_file.is_file():
