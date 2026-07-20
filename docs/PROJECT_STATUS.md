@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-项目已完成 **Phase 9：Minimum Complete System Alpha**。GitHub Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、reviewed Evaluation 与统一 Sleep Loop 已形成五条受治理端到端闭环，并通过完整本地 release 门禁。GitHub repository 仍只形成 quarantined、可追溯、持久化且必须人工复核的 ResearchPackage；下一项是 Phase 10 产品化范围排序，不能自动将 candidate 提升为 verified truth。
+项目已完成 **Phase 9：Minimum Complete System Alpha**。GitHub Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、reviewed Evaluation 与统一 Sleep Loop 已形成五条受治理端到端闭环，并通过完整本地 release 门禁。Phase 10 已建立首个本地只读 diagnostics baseline：安全汇总 health 与 migration 状态计数，缺失 runtime database 或 migration 状态时 fail-closed 为 `unavailable`，且不暴露路径或 provenance。GitHub repository 仍只形成 quarantined、可追溯、持久化且必须人工复核的 ResearchPackage；尚未完成 Installer、多端发布或公开 Alpha/Beta/Stable，不能自动将 candidate 提升为 verified truth。
 
 ## 已验证能力
 

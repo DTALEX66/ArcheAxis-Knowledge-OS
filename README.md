@@ -97,6 +97,7 @@ python -m app.runtime_entrypoint core
 | 入口 | 作用 |
 |---|---|
 | `POST /run` | route → retrieve → supported-intent plan → permission → real tool evidence → multidimensional evaluation → lesson；当前已验证 `read file:` 纵向切片 |
+| `GET /diagnostics` | 本地只读 runtime/health 与 migration 状态计数；不泄露路径或 provenance，release metadata 未注入时明确为 unavailable |
 | `POST /kb/pipeline` | 提取、标签、摘要、事实候选与索引；不自动证明事实正确 |
 | `POST /kb/search` | 关键词、向量或混合检索 |
 | `GET/POST /sleep-loop?action=...` | 有证据约束的无人值守任务循环 |
