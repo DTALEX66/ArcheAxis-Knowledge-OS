@@ -236,10 +236,21 @@ def _finding_row(finding: GovernanceFinding) -> dict[str, object]:
 
 
 def _intake_row(graph: ResearchPackageGraph) -> dict[str, object]:
+    is_workspace_document = {
+        record.payload_role for record in graph.source_provenance
+    } == {"workspace_document"}
     return {
         "id": graph.intake_id,
-        "title": f"Research package candidate: {graph.canonical_url}",
-        "why": "Phase 4 GitHub repository research package candidate.",
+        "title": (
+            f"Document research candidate: {graph.sources[0].title}"
+            if is_workspace_document
+            else f"Research package candidate: {graph.canonical_url}"
+        ),
+        "why": (
+            "Local workspace document intake candidate."
+            if is_workspace_document
+            else "Phase 4 GitHub repository research package candidate."
+        ),
         "what_to_absorb_json": _json_dump(graph.package.claim_ids),
         "what_not_to_absorb_json": _json_dump(
             ["verified truth promotion without independent review"]
@@ -350,10 +361,16 @@ def _validate_candidate_graph(graph: ResearchPackageGraph) -> None:
         if not set(finding.evidence_ids) <= known_evidence:
             raise ResearchPersistenceError("governance finding references missing evidence")
 
-    from app.research.github import validate_github_graph_identity
-
     try:
-        validate_github_graph_identity(graph)
+        payload_roles = {record.payload_role for record in graph.source_provenance}
+        if payload_roles == {"workspace_document"}:
+            from app.research.document import validate_workspace_document_graph
+
+            validate_workspace_document_graph(graph)
+        else:
+            from app.research.github import validate_github_graph_identity
+
+            validate_github_graph_identity(graph)
     except ValueError as exc:
         raise ResearchPersistenceError(f"malformed research graph bindings: {exc}") from exc
 

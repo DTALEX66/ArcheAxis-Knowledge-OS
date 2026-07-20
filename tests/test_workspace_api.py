@@ -45,8 +45,10 @@ def test_workspace_mutations_use_local_principal_without_api_credentials() -> No
 def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp_path) -> None:
     from app.main import app
     from app.workspace import router
+    from tests.test_phase5_mcs_closed_loop import _database
 
-    monkeypatch.setattr(router, "DB_PATH", tmp_path / "cognitive.sqlite")
+    database = _database(tmp_path)
+    monkeypatch.setattr(router, "DB_PATH", database)
     monkeypatch.setattr(
         router.service,
         "intake_url",
@@ -71,6 +73,14 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
     assert uploaded.json()["source_type"] == "file"
     assert uploaded.json()["file_name"] == "notes.txt"
     assert "local intake content" in uploaded.json()["content"]
+    assert uploaded.json()["status"] == "candidate"
+    assert uploaded.json()["requires_human_review"] is True
+
+    from app.facades.research import get_research_package
+
+    package = get_research_package(uploaded.json()["package_id"], db_path=database)
+    assert package.package.status == "candidate"
+    assert package.sources[0].content == "local intake content"
 
 
 def test_workspace_github_intake_persists_a_candidate_research_package(tmp_path) -> None:

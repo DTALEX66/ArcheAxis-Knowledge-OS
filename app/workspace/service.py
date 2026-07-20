@@ -20,6 +20,7 @@ from app.knowledge.promotion import (
     ResearchKnowledgeApproval,
     promote_research_package_to_candidates,
 )
+from app.research.document import persist_workspace_document
 
 MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
 
@@ -67,13 +68,24 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
     except RuntimeError:
         stored_path.unlink(missing_ok=True)
         raise
+    source_format = detect_format(stored_path)
+    graph = persist_workspace_document(
+        title=safe_name,
+        content=markdown,
+        source_format=source_format,
+        extractor_identity=engine,
+        db_path=db_path,
+    )
     return {
         "source_type": "file",
         "file_name": safe_name,
-        "format": detect_format(stored_path),
+        "format": source_format,
         "engine": engine,
         "content": markdown,
         "char_count": len(markdown),
+        "package_id": graph.package.package_id,
+        "status": graph.package.status,
+        "requires_human_review": graph.package.requires_human_review,
     }
 
 
