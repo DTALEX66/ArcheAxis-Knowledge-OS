@@ -5,8 +5,10 @@ import sqlite3
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
+from urllib.parse import urlsplit
 from uuid import uuid4
 
+from app.facades.research import research_github_repository
 from app.ingestion.multi_format import convert_file, convert_url, detect_format
 from app.knowledge.closed_loop import (
     approve_learning_artifact,
@@ -22,7 +24,20 @@ from app.knowledge.promotion import (
 MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
 
 
-def intake_url(*, url: str) -> dict:
+def intake_url(*, url: str, db_path: str | Path, fetcher=None) -> dict:
+    parsed = urlsplit(url)
+    if parsed.hostname and parsed.hostname.rstrip(".").casefold() == "github.com":
+        graph = research_github_repository(url, fetcher=fetcher, db_path=db_path)
+        return {
+            "source_type": "github_repository",
+            "source": graph.canonical_url,
+            "package_id": graph.package.package_id,
+            "status": graph.package.status,
+            "requires_human_review": graph.package.requires_human_review,
+            "source_count": len(graph.sources),
+            "claim_count": len(graph.claims),
+            "evidence_count": len(graph.evidence),
+        }
     content, engine = convert_url(url)
     return {
         "source_type": "web",

@@ -96,7 +96,7 @@ def workspace_diagnostics() -> dict[str, object]:
 @router.post("/api/intake/url")
 def intake_url(payload: IntakeURL, request: Request) -> dict:
     _local_principal(request)
-    return _command_error(lambda: service.intake_url(url=payload.url))
+    return _command_error(lambda: service.intake_url(url=payload.url, db_path=DB_PATH))
 
 
 @router.post("/api/intake/upload")

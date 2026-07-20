@@ -50,7 +50,12 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
     monkeypatch.setattr(
         router.service,
         "intake_url",
-        lambda *, url: {"source_type": "web", "source": url, "content": "# extracted", "engine": "test"},
+        lambda *, url, db_path: {
+            "source_type": "web",
+            "source": url,
+            "content": "# extracted",
+            "engine": "test",
+        },
     )
     client = TestClient(app)
 
@@ -66,6 +71,28 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
     assert uploaded.json()["source_type"] == "file"
     assert uploaded.json()["file_name"] == "notes.txt"
     assert "local intake content" in uploaded.json()["content"]
+
+
+def test_workspace_github_intake_persists_a_candidate_research_package(tmp_path) -> None:
+    from app.facades.research import get_research_package
+    from app.workspace import service
+    from tests.test_phase4_research_github import _transport
+    from tests.test_phase5_mcs_closed_loop import _database
+
+    database = _database(tmp_path)
+
+    result = service.intake_url(
+        url="https://github.com/octo/loop-os",
+        db_path=database,
+        fetcher=_transport(),
+    )
+
+    assert result["source_type"] == "github_repository"
+    assert result["status"] == "candidate"
+    assert result["requires_human_review"] is True
+    package = get_research_package(result["package_id"], db_path=database)
+    assert package.package.package_id == result["package_id"]
+    assert package.package.status == "candidate"
 
 
 def test_workspace_http_flow_promotes_persisted_research_and_derives_mastery(
