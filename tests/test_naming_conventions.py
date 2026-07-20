@@ -260,5 +260,7 @@ def test_repository_convention_gates_are_wired() -> None:
 
 def test_workspace_upload_runtime_dependency_is_declared() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    ci_requirements = (ROOT / "requirements-ci.txt").read_text(encoding="utf-8")
 
     assert '"python-multipart>=' in pyproject
+    assert "python-multipart>=" in ci_requirements
