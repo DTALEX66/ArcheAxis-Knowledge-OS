@@ -348,6 +348,27 @@ def health():
     }
 
 
+@app.get("/diagnostics")
+def diagnostics():
+    """Return a safe, read-only summary of runtime and migration status."""
+    from collections import Counter
+
+    from shared.migration_runner import MigrationOperator
+
+    try:
+        migrations = dict(Counter(item["state"] for item in MigrationOperator().status())) or {
+            "unavailable": 1
+        }
+    except Exception:
+        migrations = {"unavailable": 1}
+    return {
+        "schema_version": "v1",
+        "health": health(),
+        "migrations": migrations,
+        "release": {"status": "unavailable"},
+    }
+
+
 @app.get("/version")
 def version():
     return {
