@@ -173,6 +173,12 @@ CREATE VIRTUAL TABLE IF NOT EXISTS episodic_memory_fts USING fts5(
     tokenize='porter unicode61'
 );
 
+CREATE TABLE IF NOT EXISTS evaluation_candidates_v1 (
+    id TEXT PRIMARY KEY, trace_id TEXT NOT NULL UNIQUE, evaluation_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('candidate','approved')), reviewer_id TEXT,
+    rationale TEXT, reviewed_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS machine_knowledge_candidates_v1 (
     id TEXT PRIMARY KEY, source_signal_id TEXT NOT NULL UNIQUE, unit_json TEXT NOT NULL,
     lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','approved','deprecated')),
