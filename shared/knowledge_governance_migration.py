@@ -17,11 +17,14 @@ KNOWLEDGE_VERSIONING_MIGRATION_VERSION = 7
 KNOWLEDGE_VERSIONING_MIGRATION_NAME = "phase5_knowledge_candidate_versioning_v1"
 KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_VERSION = 8
 KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_NAME = "phase5_knowledge_candidate_learning_artifacts_v1"
+LEARNING_APPROVAL_EVENT_MIGRATION_VERSION = 9
+LEARNING_APPROVAL_EVENT_MIGRATION_NAME = "phase5_learning_approval_events_v1"
 KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
     KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
     KNOWLEDGE_VERSIONING_MIGRATION_VERSION: KNOWLEDGE_VERSIONING_MIGRATION_NAME,
     KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_VERSION: KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_NAME,
+    LEARNING_APPROVAL_EVENT_MIGRATION_VERSION: LEARNING_APPROVAL_EVENT_MIGRATION_NAME,
 }
 KNOWLEDGE_GOVERNANCE_TABLES_V1 = (
     "knowledge_candidate_promotions_v1",
@@ -46,6 +49,10 @@ KNOWLEDGE_VERSIONING_OBJECTS = (
 LEARNING_ARTIFACT_OBJECTS = (
     "knowledge_candidate_learning_artifacts_v1",
     "idx_knowledge_candidate_learning_artifacts_source_v1",
+)
+LEARNING_APPROVAL_EVENT_OBJECTS = (
+    "learning_approval_events_v1",
+    "idx_learning_approval_events_artifact_v1",
 )
 KNOWLEDGE_GOVERNANCE_TABLES = (
     *KNOWLEDGE_GOVERNANCE_TABLES_V1,
@@ -144,6 +151,16 @@ CREATE TABLE IF NOT EXISTS knowledge_candidate_learning_artifacts_v1 (
 );
 CREATE INDEX IF NOT EXISTS idx_knowledge_candidate_learning_artifacts_source_v1
 ON knowledge_candidate_learning_artifacts_v1(source_unit_id, created_at, id);
+"""
+LEARNING_APPROVAL_EVENT_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS learning_approval_events_v1 (
+    id TEXT PRIMARY KEY, artifact_id TEXT NOT NULL, command_id TEXT NOT NULL UNIQUE,
+    reviewer_id TEXT NOT NULL, decision TEXT NOT NULL CHECK(decision = 'approved'),
+    rationale TEXT NOT NULL, reviewed_at TEXT NOT NULL, created_at TEXT NOT NULL,
+    FOREIGN KEY(artifact_id) REFERENCES knowledge_candidate_learning_artifacts_v1(id)
+);
+CREATE INDEX IF NOT EXISTS idx_learning_approval_events_artifact_v1
+ON learning_approval_events_v1(artifact_id, reviewed_at, id);
 """
 
 
@@ -257,14 +274,22 @@ def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
         return (KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_NAME,)
     if not artifact_exists:
         raise RuntimeError("recorded knowledge governance learning artifact schema drift")
+    approval_event_exists = migration._table_exists(connection, "learning_approval_events_v1")
+    if LEARNING_APPROVAL_EVENT_MIGRATION_VERSION not in recorded:
+        if approval_event_exists:
+            raise RuntimeError("unrecorded learning approval event schema mismatch")
+        return (LEARNING_APPROVAL_EVENT_MIGRATION_NAME,)
+    if not approval_event_exists:
+        raise RuntimeError("recorded learning approval event schema drift")
     _validate_schema(
         connection,
-        SCHEMA_V1_SQL + EVENT_SCHEMA_SQL + VERSIONING_SCHEMA_SQL + LEARNING_ARTIFACT_SCHEMA_SQL,
+        SCHEMA_V1_SQL + EVENT_SCHEMA_SQL + VERSIONING_SCHEMA_SQL + LEARNING_ARTIFACT_SCHEMA_SQL + LEARNING_APPROVAL_EVENT_SCHEMA_SQL,
         (
             *KNOWLEDGE_GOVERNANCE_V1_OBJECTS,
             *KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS,
             *KNOWLEDGE_VERSIONING_OBJECTS,
             *LEARNING_ARTIFACT_OBJECTS,
+            *LEARNING_APPROVAL_EVENT_OBJECTS,
         ),
     )
     return ()
@@ -315,6 +340,7 @@ def migrate(
                     KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: EVENT_SCHEMA_SQL,
                     KNOWLEDGE_VERSIONING_MIGRATION_VERSION: VERSIONING_SCHEMA_SQL,
                     KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_VERSION: LEARNING_ARTIFACT_SCHEMA_SQL,
+                    LEARNING_APPROVAL_EVENT_MIGRATION_VERSION: LEARNING_APPROVAL_EVENT_SCHEMA_SQL,
                 }
                 _execute_schema(connection, schemas[version])
                 connection.execute("INSERT INTO schema_migrations(version, name) VALUES (?, ?)", (version, name))

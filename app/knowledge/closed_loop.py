@@ -46,7 +46,8 @@ def approve_learning_artifact(
     if not command_id:
         raise ValueError("learning approval requires command_id")
     cards = approve_artifact_cards(
-        artifact_id, reviewer_id=reviewer_id, reviewed_at=reviewed_at, db_path=db_path
+        artifact_id, command_id=command_id, reviewer_id=reviewer_id,
+        reviewed_at=reviewed_at, db_path=db_path
     )
     return [card["id"] for card in cards]
 
