@@ -114,7 +114,7 @@ def to_taskpack_row(contract: TaskPackV1) -> dict[str, Any]:
         "id": contract.task_id,
         "context_id": contract.context_id,
         "goal": contract.goal,
-        "steps": [step.model_dump() for step in contract.steps],
+        "steps": [step.model_dump(exclude_defaults=True) for step in contract.steps],
         "allowed_tools": list(contract.declared_allowed_tools),
         "blocked_tools": list(contract.explicitly_blocked_tools),
         "constraints": list(contract.constraints),

@@ -671,7 +671,7 @@ class MigrationOperator:
                     provenance=self._failure_provenance(exc, "apply"),
                 )
                 raise
-            if not current["total"]:
+            if "total" in current and not current["total"]:
                 error = RuntimeError("TaskPack migration target is missing")
                 self._record(
                     owner,

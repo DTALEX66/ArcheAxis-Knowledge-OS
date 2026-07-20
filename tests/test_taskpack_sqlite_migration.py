@@ -88,12 +88,20 @@ def test_runtime_migration_holds_target_operator_lease(monkeypatch, tmp_path: Pa
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(memory_database, "DB_PATH", database)
 
-    def migrate_while_locked(**_kwargs):
+    def migrate_while_locked(**kwargs):
         with pytest.raises(
             RuntimeError, match="requires the app to be offline"
         ), backup.runtime_lease(database):
             pass
-        return SimpleNamespace(applied=(), backup_path=None)
+        backup_path = tmp_path / "migration.backup.sqlite"
+        backup_path.write_bytes(b"backup")
+        with sqlite3.connect(database) as connection:
+            connection.row_factory = sqlite3.Row
+            kwargs["before_commit"](
+                connection,
+                SimpleNamespace(applied=(), backup_path=backup_path),
+            )
+        return SimpleNamespace(applied=(), backup_path=backup_path)
 
     monkeypatch.setattr(migration, "migrate", migrate_while_locked)
     monkeypatch.setattr(migration, "status", lambda **_kwargs: {"pending": []})
