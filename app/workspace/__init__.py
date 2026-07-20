@@ -1,0 +1,1 @@
+"""Cognitive Workspace public boundary."""
