@@ -1,6 +1,6 @@
 # System Boundary — Cognitive-Loop-OS
 
-> 本文件描述当前边界。远期设计见 `docs/EXECUTION_ROADMAP.md`；旧端点数、测试数和“完成度”不作为能力证明。
+> 本文件描述当前边界。远期设计见 `docs/FUTURE_EXECUTION_BLUEPRINT.md`；旧端点数、测试数和“完成度”不作为能力证明。
 
 ## 当前拓扑
 

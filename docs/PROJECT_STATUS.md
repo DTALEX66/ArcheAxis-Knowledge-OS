@@ -48,7 +48,7 @@
 5. OCR/ASR 的真实准确率取决于用户提供人工标注金标准，代码不能代替人工真值。
 6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
 7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
-8. Phase 5 尚未把 Research candidate 接入 Knowledge/Learning/Mastery/Machine Knowledge 的审批、版本与弃用闭环。
+8. Research、Knowledge candidate、Learning Artifact、Mastery Signal 与 Machine Knowledge 的治理构件已有真实路径；尚缺将它们收敛为单一 command/outbox/worker/audit 时间线的可交互最小闭环。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
 
 ## 正式门禁
 

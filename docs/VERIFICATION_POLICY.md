@@ -52,7 +52,7 @@
 
 ```bash
 python scripts/run_taskpack_agent.py \
-  --mission-file migrations/reports/phase-2/PHASE_2_TASKPACK.md \
+  --mission-file <approved-repo-relative-taskpack.md> \
   --risk low
 ```
 

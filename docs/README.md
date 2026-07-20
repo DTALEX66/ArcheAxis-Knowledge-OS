@@ -2,11 +2,10 @@
 
 文档按“当前事实、运行操作、设计参考、历史快照”区分。历史审计中的数字不能代替实时测试和 `/health`。
 
-## 当前事实
+## 当前事实与未来方向
 
-- [`HANDOFF_2026-07-16.md`](HANDOFF_2026-07-16.md)：当前基线、已完成任务、验证证据、安全边界和下一 TaskPack 接手清单。
 - [`PROJECT_STATUS.md`](PROJECT_STATUS.md)：当前验证状态、已知限制和质量门禁。
-- [`EXECUTION_ROADMAP.md`](EXECUTION_ROADMAP.md)：Phase 0–10 执行顺序、边界、门禁和 Alpha 验收。
+- [`FUTURE_EXECUTION_BLUEPRINT.md`](FUTURE_EXECUTION_BLUEPRINT.md)：长期设计原则、候选轨道、延后项和进入执行门槛；不代表当前完成度。
 - [`architecture/CURRENT_ARCHITECTURE.md`](architecture/CURRENT_ARCHITECTURE.md)：当前运行时架构与模块边界。
 - [`ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md`](ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md)：Obsidian-Assistance 能力吸收总账。
 
@@ -23,8 +22,6 @@
 
 ## 历史快照
 
-- `HANDOFF_2026-07-14.md`：Phase 2 进行期交接，已由 2026-07-16 版本取代。
 - `PROJECT_AUDIT_2026-07-07.md`：2026-07-07 的审计快照。其中 `/run`、Ruff、版本漂移等问题已在后续修复；不得当作当前状态直接引用。
-## Phase 4 Research Index Note
 
-Current Phase 4 Research status is recorded in `PROJECT_STATUS.md`, `HANDOFF_2026-07-16.md`, and `EXECUTION_ROADMAP.md`. The implemented scope is the candidate-only GitHub repository workflow ending in a persisted `ResearchPackageV1`; it does not claim Phase 5, Phase 9 Alpha, or verified truth promotion.
+历史 handoff、TaskPack 与过期路线图已移除；Git 历史保留其可追溯性。当前 GitHub Research scope 以 `PROJECT_STATUS.md` 为准：它是 candidate-only、持久化的 `ResearchPackageV1` 工作流，不自动提升为 verified truth。

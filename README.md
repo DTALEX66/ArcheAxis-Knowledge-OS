@@ -78,7 +78,7 @@ Phase 0 真实基线 ✅
 
 本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或 Phase 10 的多端发布、Installer、公开 Alpha/Beta/Stable 已完成。
 
-完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-16.md`](docs/HANDOFF_2026-07-16.md)。
+未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
 
 ## 五分钟启动
 
