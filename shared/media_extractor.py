@@ -139,10 +139,27 @@ def extract_video_keyframes(
         )
 
         output_files = sorted(out_dir.glob(f"{video_file.stem}_frame_*.png"))
+        if not output_files:
+            return {"error": "ffmpeg produced no keyframes", "video": video_path}
+
+        import struct
+
+        dimensions: set[tuple[int, int]] = set()
+        for output_file in output_files:
+            header = output_file.read_bytes()[:24]
+            if len(header) < 24 or not header.startswith(b"\x89PNG\r\n\x1a\n"):
+                return {"error": "ffmpeg produced an invalid PNG keyframe", "video": video_path}
+            dimensions.add(struct.unpack(">II", header[16:24]))
+        if len(dimensions) != 1:
+            return {"error": "ffmpeg produced inconsistent keyframe dimensions", "video": video_path}
+        frame_width, frame_height = dimensions.pop()
+
         return {
             "video": video_path,
             "frames_extracted": len(output_files),
             "output_files": [str(f) for f in output_files],
+            "frame_width": frame_width,
+            "frame_height": frame_height,
         }
     except subprocess.TimeoutExpired:
         return {"error": "ffmpeg timed out", "video": video_path}

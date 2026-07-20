@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from shared.approved_paths import ApprovedRoots
-from shared.media_extractor import extract_audio_track
+from shared.media_extractor import extract_audio_track, extract_video_keyframes
 
 
 def test_extract_audio_track_creates_asr_ready_wav_with_real_ffmpeg(tmp_path: Path) -> None:
@@ -62,3 +62,48 @@ def test_extract_audio_track_creates_asr_ready_wav_with_real_ffmpeg(tmp_path: Pa
     assert audio.parent == output.resolve()
     assert audio.read_bytes().startswith(b"RIFF")
     assert audio.stat().st_size > 44
+
+
+def test_extract_video_keyframes_reports_verified_png_dimensions(tmp_path: Path) -> None:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        pytest.skip("ffmpeg is not installed")
+
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    source.mkdir()
+    output.mkdir()
+    video = source / "scene.mp4"
+    subprocess.run(
+        [
+            ffmpeg,
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=blue:s=48x32:d=0.25",
+            "-c:v",
+            "mpeg4",
+            str(video),
+            "-y",
+            "-loglevel",
+            "error",
+        ],
+        check=True,
+        timeout=30,
+    )
+
+    result = extract_video_keyframes(
+        str(video),
+        str(output),
+        interval_seconds=0.1,
+        max_frames=1,
+        approved_roots=ApprovedRoots(source_roots=[source], output_roots=[output]),
+    )
+
+    frame = Path(result["output_files"][0])
+    assert result["frames_extracted"] == 1
+    assert result["frame_width"] == 48
+    assert result["frame_height"] == 32
+    assert frame.parent == output.resolve()
+    assert frame.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert frame.stat().st_size > 24
