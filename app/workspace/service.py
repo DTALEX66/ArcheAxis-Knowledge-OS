@@ -1,7 +1,9 @@
 """Server-owned orchestration for one governed Cognitive Workspace case."""
 from __future__ import annotations
 
+import sqlite3
 from datetime import datetime, timezone
+from hashlib import sha256
 from pathlib import Path
 
 from app.knowledge.closed_loop import (
@@ -20,7 +22,56 @@ def now_utc() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _require_matching_promotion_command(
+    *, command_id: str, package_id: str, reviewer_id: str, rationale: str, db_path: str | Path
+) -> None:
+    with sqlite3.connect(Path(db_path)) as connection:
+        row = connection.execute(
+            "SELECT package_id, reviewer_id, decision, rationale "
+            "FROM knowledge_candidate_governance_events_v1 WHERE approval_id=?",
+            (command_id,),
+        ).fetchone()
+    if row is None:
+        return
+    recorded = tuple(str(item) for item in row)
+    requested = (package_id, reviewer_id, "approved", rationale)
+    if recorded != requested:
+        raise RuntimeError("workspace command id conflicts with an existing promotion receipt")
+
+
+def _require_matching_learning_command(
+    *, command_id: str, unit_id: str, reviewer_id: str, rationale: str, db_path: str | Path
+) -> None:
+    with sqlite3.connect(Path(db_path)) as connection:
+        row = connection.execute(
+            "SELECT source_unit_id, reviewer_id, rationale "
+            "FROM knowledge_candidate_learning_artifacts_v1 WHERE approval_id=?",
+            (command_id,),
+        ).fetchone()
+    if row is None:
+        return
+    if tuple(str(item) for item in row) != (unit_id, reviewer_id, rationale):
+        raise RuntimeError("workspace command id conflicts with an existing learning receipt")
+
+
+def _require_matching_practice_command(
+    *, command_id: str, quality: int, db_path: str | Path
+) -> None:
+    review_id = "practice_" + sha256(command_id.encode()).hexdigest()[:24]
+    with sqlite3.connect(Path(db_path)) as connection:
+        row = connection.execute("SELECT quality FROM kb_reviews WHERE id=?", (review_id,)).fetchone()
+    if row is not None and int(row[0]) != quality:
+        raise RuntimeError("workspace command id conflicts with an existing practice receipt")
+
+
 def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
+    _require_matching_promotion_command(
+        command_id=command_id,
+        package_id=package_id,
+        reviewer_id=reviewer_id,
+        rationale=rationale,
+        db_path=db_path,
+    )
     receipt = promote_research_package_to_candidates(
         ResearchKnowledgeApproval(
             approval_id=command_id,
@@ -42,6 +93,13 @@ def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rati
 
 
 def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
+    _require_matching_learning_command(
+        command_id=command_id,
+        unit_id=unit_id,
+        reviewer_id=reviewer_id,
+        rationale=rationale,
+        db_path=db_path,
+    )
     artifact = start_learning_candidate(
         unit_id=unit_id,
         approval_id=command_id,
@@ -65,6 +123,7 @@ def approve_learning(*, command_id: str, artifact_id: str, reviewer_id: str, db_
 
 
 def record_practice(*, command_id: str, artifact_id: str, quality: int, db_path: str | Path) -> dict:
+    _require_matching_practice_command(command_id=command_id, quality=quality, db_path=db_path)
     result = record_practice_evidence(
         artifact_id=artifact_id,
         command_id=command_id,

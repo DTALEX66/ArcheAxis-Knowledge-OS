@@ -33,6 +33,7 @@ persisted ResearchPackage
 - Research promotion 复用 `knowledge_candidate_governance_events_v1` 的持久审批 receipt。
 - Learning candidate 复用 `knowledge_candidate_learning_artifacts_v1` 的持久 approval ID。
 - Practice 复用确定性 review ID，Mastery 和 Machine candidate 均由现有受治理领域服务产生。
+- 已有 promotion、learning candidate 与 practice command ID 会先与持久 receipt 比对：同语义重放返回原结果，改变 package/unit/reviewer/rationale/quality 的重放返回 `409 conflict`。
 - API 只暴露最小 IDs、状态和 event type；不暴露数据库、备份或 provenance 文件路径。
 
 ## 运行前提

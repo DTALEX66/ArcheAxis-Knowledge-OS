@@ -62,6 +62,16 @@ def test_workspace_http_flow_promotes_persisted_research_and_derives_mastery(
         json={"command_id": "promote-1", "package_id": graph.package.package_id, "rationale": "grounded"},
     )
     assert promoted.status_code == 200
+    conflicting_promotion = client.post(
+        "/workspace/api/commands/promote-research",
+        headers=headers,
+        json={
+            "command_id": "promote-1",
+            "package_id": graph.package.package_id,
+            "rationale": "changed rationale",
+        },
+    )
+    assert conflicting_promotion.status_code == 409
     claim_id = next(item for item in promoted.json()["unit_ids"] if "claim" in item)
     learning = client.post(
         "/workspace/api/commands/start-learning", headers=headers,
@@ -69,6 +79,11 @@ def test_workspace_http_flow_promotes_persisted_research_and_derives_mastery(
     )
     assert learning.status_code == 200
     artifact_id = learning.json()["artifact_id"]
+    conflicting_learning = client.post(
+        "/workspace/api/commands/start-learning", headers=headers,
+        json={"command_id": "learning-1", "unit_id": claim_id, "rationale": "changed rationale"},
+    )
+    assert conflicting_learning.status_code == 409
     approved = client.post(
         "/workspace/api/commands/approve-learning", headers=headers,
         json={"command_id": "approve-1", "artifact_id": artifact_id},
@@ -82,6 +97,11 @@ def test_workspace_http_flow_promotes_persisted_research_and_derives_mastery(
     assert practice.status_code == 200
     assert practice.json()["mastered"] is True
     assert practice.json()["machine_candidate_id"]
+    conflicting_practice = client.post(
+        "/workspace/api/commands/record-practice", headers=headers,
+        json={"command_id": "practice-0", "artifact_id": artifact_id, "quality": 0},
+    )
+    assert conflicting_practice.status_code == 409
     case = client.get(f"/workspace/api/cases/{artifact_id}", headers=headers)
     assert case.status_code == 200
     assert any(event["event_type"] == "machine_knowledge_candidate_created" for event in case.json()["events"])
