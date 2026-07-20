@@ -110,6 +110,12 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
             MigrationOwner("fts.documents", 1, "kb_documents_fts", "fts"),
             MigrationOwner("fts.cards", 1, "kb_cards_fts", "fts"),
             MigrationOwner("research.sqlite", 1, "research_packages_v1", "sqlite_research"),
+            MigrationOwner(
+                "knowledge-governance.sqlite",
+                1,
+                "knowledge_candidate_promotions_v1",
+                "sqlite_knowledge",
+            ),
         ]
     )
 
@@ -873,6 +879,47 @@ class MigrationOperator:
                 if applied_item is None:
                     raise RuntimeError("research schema apply has no operator provenance")
                 return applied_item
+            if owner.kind == "sqlite_knowledge":
+                from shared import knowledge_governance_migration
+
+                applied_item = None
+                operator_run_id = uuid4().hex
+
+                def record_knowledge_before_commit(
+                    connection: sqlite3.Connection, run: migration.MigrationRun
+                ) -> None:
+                    nonlocal applied_item
+                    backup = run.backup_path
+                    if backup is None:
+                        raise RuntimeError(
+                            "knowledge governance schema is applied without operator rollback provenance"
+                        )
+                    provenance = {
+                        "applied_migrations": list(run.applied),
+                        "backup_path": str(backup),
+                        "backup_sha256": _sha256(backup),
+                        "database_fingerprint_after_apply": self._database_fingerprint(connection),
+                    }
+                    applied_item = self._insert_record(
+                        connection,
+                        owner,
+                        state="applied",
+                        operation="apply",
+                        provenance=provenance,
+                        run_id=operator_run_id,
+                    )
+
+                knowledge_governance_migration.migrate(
+                    db_path=self.db_path,
+                    backup_dir=self.backup_dir,
+                    before_commit=record_knowledge_before_commit,
+                    backup_when_pending=True,
+                    operator_run_id=operator_run_id,
+                    _operator_capability=knowledge_governance_migration._OPERATOR_CAPABILITY,
+                )
+                if applied_item is None:
+                    raise RuntimeError("knowledge governance schema apply has no operator provenance")
+                return applied_item
             if candidate is None:
                 candidate = self._build_candidate(owner)
                 built_here = True
@@ -979,7 +1026,7 @@ class MigrationOperator:
         if latest is None or latest["state"] != "applied":
             raise RuntimeError(f"no applied migration to roll back for owner: {owner.owner}")
         try:
-            if owner.kind in {"sqlite", "sqlite_research", "sqlite_core"}:
+            if owner.kind in {"sqlite", "sqlite_research", "sqlite_knowledge", "sqlite_core"}:
                 backup_value = latest["provenance"].get("backup_path")
                 if not backup_value:
                     raise RuntimeError("applied SQLite migration has no rollback backup")
@@ -996,6 +1043,9 @@ class MigrationOperator:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif owner.kind == "sqlite_research":
                     if expected_migrations != {migration.RESEARCH_SCHEMA_MIGRATION_NAME}:
+                        raise RuntimeError("rollback provenance does not match migration owner")
+                elif owner.kind == "sqlite_knowledge":
+                    if expected_migrations != {migration.KNOWLEDGE_GOVERNANCE_MIGRATION_NAME}:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif expected_migrations != {core_schema.BASELINE_MIGRATION_NAME}:
                     raise RuntimeError("rollback provenance does not match migration owner")

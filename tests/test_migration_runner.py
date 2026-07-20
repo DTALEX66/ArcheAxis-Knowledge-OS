@@ -172,6 +172,7 @@ def test_registry_is_deterministic_and_rejects_duplicate_identity(tmp_path: Path
         ("core.sqlite", 1, "core_schema_v1"),
         ("fts.cards", 1, "kb_cards_fts"),
         ("fts.documents", 1, "kb_documents_fts"),
+        ("knowledge-governance.sqlite", 1, "knowledge_candidate_promotions_v1"),
         ("research.sqlite", 1, "research_packages_v1"),
         ("taskpack.sqlite", 3, "kb_taskpacks"),
         ("vector.cards", 1, "vec_kb_cards"),

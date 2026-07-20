@@ -197,7 +197,12 @@ def test_runtime_migration_records_operator_provenance_and_backup(
     assert runtime_entrypoint.run_migration(Namespace()) == 0
     payload = json.loads(capsys.readouterr().out)
     owners = {result["owner"] for result in payload["operator_results"]}
-    assert owners == {"core.sqlite", "research.sqlite", "taskpack.sqlite"}
+    assert owners == {
+        "core.sqlite",
+        "knowledge-governance.sqlite",
+        "research.sqlite",
+        "taskpack.sqlite",
+    }
     assert all(result["state"] == "applied" for result in payload["operator_results"])
     with sqlite3.connect(database) as connection:
         rows = set(
