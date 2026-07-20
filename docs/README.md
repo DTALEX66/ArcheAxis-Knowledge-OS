@@ -18,7 +18,7 @@
 
 - `bc-lines/`：B/C 线设计和开源项目吸收注册。
 - `three-project-analysis/`：三项目边界与历史分析。
-- `architecture/imported-designs/`：吸收后保留的外部设计文档；不是当前实现证明。
+- [`architecture/imported-designs/reference-deliveries/archeaxis-2026/`](architecture/imported-designs/reference-deliveries/archeaxis-2026/)：用户提供的 ArcheAxis/MCS/Google Research 原始蓝图与校验清单；仅设计参考，不是当前实现证明。
 
 ## 历史快照
 
