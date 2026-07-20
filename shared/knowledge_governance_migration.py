@@ -23,6 +23,15 @@ KNOWLEDGE_GOVERNANCE_TABLES_V1 = (
     "knowledge_candidate_relations_v1",
 )
 KNOWLEDGE_GOVERNANCE_EVENT_TABLE = "knowledge_candidate_governance_events_v1"
+KNOWLEDGE_GOVERNANCE_V1_OBJECTS = (
+    *KNOWLEDGE_GOVERNANCE_TABLES_V1,
+    "idx_knowledge_candidate_units_promotion_v1",
+    "idx_knowledge_candidate_relations_promotion_v1",
+)
+KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS = (
+    KNOWLEDGE_GOVERNANCE_EVENT_TABLE,
+    "idx_knowledge_candidate_events_package_v1",
+)
 KNOWLEDGE_GOVERNANCE_TABLES = (*KNOWLEDGE_GOVERNANCE_TABLES_V1, KNOWLEDGE_GOVERNANCE_EVENT_TABLE)
 _OPERATOR_CAPABILITY = object()
 
@@ -124,6 +133,43 @@ def _recorded_versions(connection: sqlite3.Connection) -> set[int]:
     return recorded
 
 
+def _schema_objects(sql: str, names: tuple[str, ...]) -> dict[str, tuple[str, str, str]]:
+    with closing(sqlite3.connect(":memory:")) as expected_connection:
+        _execute_schema(expected_connection, sql)
+        placeholders = ", ".join("?" for _ in names)
+        rows = expected_connection.execute(
+            f"SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name IN ({placeholders})",
+            names,
+        ).fetchall()
+    return {
+        str(row[1]): (str(row[0]), str(row[2]), _normalize_sql(str(row[3] or "")))
+        for row in rows
+    }
+
+
+def _normalize_sql(sql: str) -> str:
+    return " ".join(sql.replace("IF NOT EXISTS", "").split()).casefold()
+
+
+def _validate_schema(connection: sqlite3.Connection, sql: str, names: tuple[str, ...]) -> None:
+    expected = _schema_objects(sql, names)
+    placeholders = ", ".join("?" for _ in names)
+    rows = connection.execute(
+        f"SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name IN ({placeholders})",
+        names,
+    ).fetchall()
+    actual = {
+        str(row["name"]): (
+            str(row["type"]),
+            str(row["tbl_name"]),
+            _normalize_sql(str(row["sql"] or "")),
+        )
+        for row in rows
+    }
+    if actual != expected:
+        raise RuntimeError("knowledge governance recorded schema drift")
+
+
 def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
     recorded = _recorded_versions(connection)
     v1_existing = {item for item in KNOWLEDGE_GOVERNANCE_TABLES_V1 if migration._table_exists(connection, item)}
@@ -134,12 +180,18 @@ def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
         return tuple(KNOWLEDGE_GOVERNANCE_MIGRATIONS.values())
     if v1_existing != set(KNOWLEDGE_GOVERNANCE_TABLES_V1):
         raise RuntimeError("recorded knowledge governance v1 schema drift")
+    _validate_schema(connection, SCHEMA_V1_SQL, KNOWLEDGE_GOVERNANCE_V1_OBJECTS)
     if KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION not in recorded:
         if event_exists:
             raise RuntimeError("unrecorded knowledge governance event schema mismatch")
         return (KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,)
     if not event_exists:
         raise RuntimeError("recorded knowledge governance event schema drift")
+    _validate_schema(
+        connection,
+        SCHEMA_V1_SQL + EVENT_SCHEMA_SQL,
+        (*KNOWLEDGE_GOVERNANCE_V1_OBJECTS, *KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS),
+    )
     return ()
 
 
