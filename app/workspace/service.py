@@ -40,12 +40,23 @@ def intake_url(*, url: str, db_path: str | Path, fetcher=None) -> dict:
             "evidence_count": len(graph.evidence),
         }
     content, engine = convert_url(url)
+    graph = persist_workspace_document(
+        title=url,
+        content=content,
+        source_format="html",
+        extractor_identity=engine,
+        source_locator=url,
+        db_path=db_path,
+    )
     return {
         "source_type": "web",
         "source": url,
-        "engine": engine,
-        "content": content,
-        "char_count": len(content),
+        "package_id": graph.package.package_id,
+        "status": graph.package.status,
+        "requires_human_review": graph.package.requires_human_review,
+        "source_count": len(graph.sources),
+        "claim_count": len(graph.claims),
+        "evidence_count": len(graph.evidence),
     }
 
 

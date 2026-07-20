@@ -363,7 +363,7 @@ def _validate_candidate_graph(graph: ResearchPackageGraph) -> None:
 
     try:
         payload_roles = {record.payload_role for record in graph.source_provenance}
-        if payload_roles == {"workspace_document"}:
+        if payload_roles in ({"workspace_document"}, {"workspace_web_document"}):
             from app.research.document import validate_workspace_document_graph
 
             validate_workspace_document_graph(graph)

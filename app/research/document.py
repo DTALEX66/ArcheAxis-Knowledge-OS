@@ -18,6 +18,7 @@ from shared.research_store import (
 from shared.stable_hash import stable_hash_text
 
 WORKSPACE_DOCUMENT_ROLE = "workspace_document"
+WORKSPACE_WEB_ROLE = "workspace_web_document"
 
 
 def _now_utc() -> str:
@@ -44,6 +45,7 @@ def build_workspace_document_graph(
     content: str,
     source_format: str,
     extractor_identity: str,
+    source_locator: str | None = None,
     created_at: str | None = None,
 ) -> ResearchPackageGraph:
     """Build one deterministic, review-required package from a local converted document."""
@@ -52,7 +54,9 @@ def build_workspace_document_graph(
     content_bytes = content.encode("utf-8")
     digest = hashlib.sha256(content_bytes).hexdigest()
     content_hash = f"sha256:{digest}"
-    locator = f"local-content://sha256/{digest}"
+    locator = source_locator or f"local-content://sha256/{digest}"
+    payload_role = WORKSPACE_WEB_ROLE if source_locator else WORKSPACE_DOCUMENT_ROLE
+    collector_identity = "workspace-web-intake-v1" if source_locator else "workspace-local-intake-v1"
     source_group_id = _id("source_group", locator)
     source_id = _id("source", locator, content_hash)
     package_id = _id("research_package", locator, content_hash)
@@ -82,9 +86,9 @@ def build_workspace_document_graph(
         content_type="text/markdown; charset=utf-8",
         media_type="text/markdown",
         byte_length=len(content_bytes),
-        collector_identity="workspace-local-intake-v1",
+        collector_identity=collector_identity,
         extractor_identity=extractor_identity,
-        payload_role=WORKSPACE_DOCUMENT_ROLE,
+        payload_role=payload_role,
     )
     claim = ClaimV1(
         schema_version=CONTRACT_VERSION,
@@ -151,12 +155,19 @@ def validate_workspace_document_graph(graph: ResearchPackageGraph) -> None:
         raise ValueError("workspace document graph must contain exactly one source")
     source = graph.sources[0]
     provenance = graph.source_provenance[0]
-    if provenance.payload_role != WORKSPACE_DOCUMENT_ROLE:
+    if provenance.payload_role not in {WORKSPACE_DOCUMENT_ROLE, WORKSPACE_WEB_ROLE}:
         raise ValueError("workspace document graph has an invalid payload role")
     content_bytes = source.content.encode("utf-8")
     digest = hashlib.sha256(content_bytes).hexdigest()
     content_hash = f"sha256:{digest}"
-    locator = f"local-content://sha256/{digest}"
+    if provenance.payload_role == WORKSPACE_WEB_ROLE:
+        locator = graph.canonical_url
+        if provenance.collector_identity != "workspace-web-intake-v1":
+            raise ValueError("workspace web collector identity is invalid")
+    else:
+        locator = f"local-content://sha256/{digest}"
+        if provenance.collector_identity != "workspace-local-intake-v1":
+            raise ValueError("workspace document collector identity is invalid")
     if graph.canonical_url != locator or source.source_locator != locator:
         raise ValueError("workspace document locator does not match content")
     if provenance.canonical_url != locator or provenance.source_locator != locator:
@@ -168,8 +179,6 @@ def validate_workspace_document_graph(graph: ResearchPackageGraph) -> None:
         raise ValueError("workspace document source identity does not match content")
     if graph.package.package_id != package_id or graph.intake_id != _id("intake", locator):
         raise ValueError("workspace document package identity does not match content")
-    if provenance.collector_identity != "workspace-local-intake-v1":
-        raise ValueError("workspace document collector identity is invalid")
     for claim in graph.claims:
         if claim.claim_id != _id("claim", package_id, claim.statement, claim.source_record_ids):
             raise ValueError("workspace document claim identity does not match semantics")
@@ -211,11 +220,13 @@ def persist_workspace_document(
     source_format: str,
     extractor_identity: str,
     db_path: str | Path,
+    source_locator: str | None = None,
 ) -> ResearchPackageGraph:
     graph = build_workspace_document_graph(
         title=title,
         content=content,
         source_format=source_format,
         extractor_identity=extractor_identity,
+        source_locator=source_locator,
     )
     return persist_research_graph(graph, db_path=db_path)

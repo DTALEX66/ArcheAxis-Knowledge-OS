@@ -156,6 +156,34 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
     assert package.sources[0].content == "local intake content"
 
 
+def test_workspace_web_intake_persists_a_minimal_candidate_research_package(
+    monkeypatch, tmp_path,
+) -> None:
+    from app.facades.research import get_research_package
+    from app.workspace import service
+    from tests.test_phase5_mcs_closed_loop import _database
+
+    database = _database(tmp_path)
+    monkeypatch.setattr(service, "convert_url", lambda url: ("# Grounded article\nBody.", "safe-http-test"))
+
+    result = service.intake_url(url="https://example.com/article", db_path=database)
+
+    assert result == {
+        "source_type": "web",
+        "source": "https://example.com/article",
+        "package_id": result["package_id"],
+        "status": "candidate",
+        "requires_human_review": True,
+        "source_count": 1,
+        "claim_count": 1,
+        "evidence_count": 1,
+    }
+    package = get_research_package(result["package_id"], db_path=database)
+    assert package.canonical_url == "https://example.com/article"
+    assert package.sources[0].source_locator == "https://example.com/article"
+    assert package.sources[0].content == "# Grounded article\nBody."
+
+
 def test_workspace_github_intake_persists_a_candidate_research_package(tmp_path) -> None:
     from app.facades.research import get_research_package
     from app.workspace import service
