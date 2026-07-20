@@ -36,6 +36,18 @@ def test_diagnostics_reports_explicit_release_version(monkeypatch) -> None:
     }
 
 
+def test_diagnostics_rejects_unsafe_release_version(monkeypatch) -> None:
+    from app.main import app
+    from shared.config import config
+
+    monkeypatch.setitem(config._data["app"], "release_version", "build/../../secret")
+
+    response = TestClient(app).get("/diagnostics")
+
+    assert response.status_code == 200
+    assert response.json()["release"] == {"status": "unavailable"}
+
+
 def test_release_version_environment_override(monkeypatch) -> None:
     from shared.config import Config
 

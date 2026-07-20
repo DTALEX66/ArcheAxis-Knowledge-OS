@@ -11,6 +11,7 @@ Then:  http://localhost:8000/docs     — Core API
 
 from __future__ import annotations
 
+import re
 import time
 from hashlib import sha256
 from ipaddress import ip_address, ip_network
@@ -362,6 +363,8 @@ def diagnostics():
     except Exception:
         migrations = {"unavailable": 1}
     release_version = str(config.get("app.release_version", "")).strip()
+    if not re.fullmatch(r"[A-Za-z0-9._+-]{1,128}", release_version):
+        release_version = ""
     return {
         "schema_version": "v1",
         "health": health(),
