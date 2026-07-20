@@ -1,6 +1,7 @@
 """Public boundary for the governed Cognitive Workspace."""
 from __future__ import annotations
 
+from ipaddress import ip_address
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
@@ -32,26 +33,21 @@ class StartLearningCommand(_Command):
     rationale: str = Field(min_length=1)
 
 
-class ApproveLearningCommand(_Command):
-    artifact_id: str = Field(min_length=1)
-
-
 class RecordPracticeCommand(_Command):
     artifact_id: str = Field(min_length=1)
     quality: int = Field(ge=0, le=5)
 
 
-def _review_principal(request: Request) -> dict[str, str]:
-    identity = getattr(request.state, "identity", None)
-    if not isinstance(identity, dict) or identity.get("auth_method") == "none":
-        raise HTTPException(status_code=401, detail="authenticated reviewer identity required")
-    subject = identity.get("sub") or identity.get("user_id")
-    role = identity.get("role")
-    if not isinstance(subject, str) or not subject:
-        raise HTTPException(status_code=401, detail="authenticated reviewer identity required")
-    if role not in {"admin", "user"}:
-        raise HTTPException(status_code=403, detail="reviewer capability required")
-    return {"subject": subject, "role": str(role)}
+def _local_principal(request: Request) -> dict[str, str]:
+    """Trust only direct loopback requests in the local-first workspace."""
+    host = request.client.host if request.client else ""
+    try:
+        is_loopback = ip_address(host).is_loopback
+    except ValueError:
+        is_loopback = host == "testclient"
+    if not is_loopback:
+        raise HTTPException(status_code=403, detail="workspace is available only from the local machine")
+    return {"subject": "local-workspace", "role": "local"}
 
 
 def _command_error(action):
@@ -69,14 +65,13 @@ def workspace_page() -> HTMLResponse:
         """<!doctype html><html lang='zh-CN'><head><meta charset='utf-8'>
 <title>Cognitive Workspace</title><style>
 body{font:16px system-ui;max-width:920px;margin:2rem auto;padding:0 1rem;background:#111;color:#eee}section{border:1px solid #555;border-radius:8px;padding:1rem;margin:1rem 0}input,button{padding:.55rem;margin:.2rem}input{min-width:14rem}button{cursor:pointer}pre{white-space:pre-wrap;background:#222;padding:1rem;border-radius:6px}
-</style></head><body><main><h1>Cognitive Workspace</h1><p>Authenticated governed candidate lifecycle.</p>
-<section><h2>Session authentication</h2><input id='auth-token' type='password' autocomplete='off' placeholder='API key or JWT (memory only)'></section>
+</style></head><body><main><h1>Cognitive Workspace</h1><p>Local-first candidate lifecycle. This workspace accepts direct local requests only.</p>
 <section><h2>Research → Knowledge</h2><form data-action='promote-research'><input name='command_id' placeholder='command id' required><input name='package_id' placeholder='persisted package id' required><input name='rationale' placeholder='rationale' required><button>Promote</button></form></section>
-<section><h2>Knowledge → Learning</h2><form data-action='start-learning'><input name='command_id' placeholder='command id' required><input name='unit_id' placeholder='candidate unit id' required><input name='rationale' placeholder='rationale' required><button>Create learning candidate</button></form><form data-action='approve-learning'><input name='command_id' placeholder='command id' required><input name='artifact_id' placeholder='artifact id' required><button>Approve learning</button></form></section>
+<section><h2>Knowledge → Learning</h2><form data-action='start-learning'><input name='command_id' placeholder='command id' required><input name='unit_id' placeholder='candidate unit id' required><input name='rationale' placeholder='rationale' required><button>Create learning material</button></form></section>
 <section><h2>Practice → Mastery</h2><form data-action='record-practice'><input name='command_id' placeholder='command id' required><input name='artifact_id' placeholder='artifact id' required><input name='quality' type='number' min='0' max='5' value='5' required><button>Record practice</button></form></section>
 <section><h2>Audit timeline</h2><input id='case-id' placeholder='artifact id'><button id='load-case'>Load case</button><pre id='result' aria-live='polite'>Ready.</pre></section>
 </main><script>
-const root=location.pathname;const out=document.querySelector('#result');const call=async(path,options={})=>{const token=document.querySelector('#auth-token').value.trim();const auth=token?{Authorization:'Bearer '+token}:{};const r=await fetch(path,{...options,headers:{'Content-Type':'application/json',...auth,...(options.headers||{})}});const p=await r.json();out.textContent=JSON.stringify(p,null,2);};
+const root=location.pathname;const out=document.querySelector('#result');const call=async(path,options={})=>{const r=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});const p=await r.json();out.textContent=JSON.stringify(p,null,2);};
 document.querySelectorAll('form[data-action]').forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();const data=Object.fromEntries(new FormData(form));if('quality'in data)data.quality=Number(data.quality);call(root+'/api/commands/'+form.dataset.action,{method:'POST',body:JSON.stringify(data)});}));
 document.querySelector('#load-case').addEventListener('click',()=>call(root+'/api/cases/'+encodeURIComponent(document.querySelector('#case-id').value)));
 </script></body></html>"""
@@ -92,7 +87,7 @@ def workspace_diagnostics() -> dict[str, object]:
 
 @router.post("/api/commands/promote-research")
 def promote_research(command: PromoteResearchCommand, request: Request) -> dict[str, Any]:
-    principal = _review_principal(request)
+    principal = _local_principal(request)
     return _command_error(
         lambda: service.promote_research(
             command_id=command.command_id, package_id=command.package_id,
@@ -103,7 +98,7 @@ def promote_research(command: PromoteResearchCommand, request: Request) -> dict[
 
 @router.post("/api/commands/start-learning")
 def start_learning(command: StartLearningCommand, request: Request) -> dict[str, Any]:
-    principal = _review_principal(request)
+    principal = _local_principal(request)
     return _command_error(
         lambda: service.start_learning(
             command_id=command.command_id, unit_id=command.unit_id,
@@ -112,20 +107,9 @@ def start_learning(command: StartLearningCommand, request: Request) -> dict[str,
     )
 
 
-@router.post("/api/commands/approve-learning")
-def approve_learning(command: ApproveLearningCommand, request: Request) -> dict[str, Any]:
-    principal = _review_principal(request)
-    return _command_error(
-        lambda: service.approve_learning(
-            command_id=command.command_id, artifact_id=command.artifact_id,
-            reviewer_id=principal["subject"], db_path=DB_PATH,
-        )
-    )
-
-
 @router.post("/api/commands/record-practice")
 def record_practice(command: RecordPracticeCommand, request: Request) -> dict[str, Any]:
-    _review_principal(request)
+    _local_principal(request)
     return _command_error(
         lambda: service.record_practice(
             command_id=command.command_id, artifact_id=command.artifact_id,
@@ -136,5 +120,5 @@ def record_practice(command: RecordPracticeCommand, request: Request) -> dict[st
 
 @router.get("/api/cases/{artifact_id}")
 def workspace_case(artifact_id: str, request: Request) -> dict[str, Any]:
-    _review_principal(request)
+    _local_principal(request)
     return _command_error(lambda: service.case_audit(artifact_id=artifact_id, db_path=DB_PATH))

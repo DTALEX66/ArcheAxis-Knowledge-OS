@@ -108,7 +108,19 @@ def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale
         reviewed_at=now_utc(),
         db_path=db_path,
     )
-    return {"command_id": command_id, "artifact_id": artifact.artifact_id, "status": "candidate"}
+    card_ids = approve_learning_artifact(
+        artifact_id=artifact.artifact_id,
+        command_id=f"local-approval-{command_id}",
+        reviewer_id=reviewer_id,
+        reviewed_at=now_utc(),
+        db_path=db_path,
+    )
+    return {
+        "command_id": command_id,
+        "artifact_id": artifact.artifact_id,
+        "card_ids": card_ids,
+        "status": "approved",
+    }
 
 
 def approve_learning(*, command_id: str, artifact_id: str, reviewer_id: str, db_path: str | Path) -> dict:
