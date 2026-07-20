@@ -13,9 +13,12 @@ KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION = 5
 KNOWLEDGE_GOVERNANCE_MIGRATION_NAME = "phase5_knowledge_candidate_governance_v1"
 KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION = 6
 KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME = "phase5_knowledge_candidate_governance_events_v1"
+KNOWLEDGE_VERSIONING_MIGRATION_VERSION = 7
+KNOWLEDGE_VERSIONING_MIGRATION_NAME = "phase5_knowledge_candidate_versioning_v1"
 KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
     KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
+    KNOWLEDGE_VERSIONING_MIGRATION_VERSION: KNOWLEDGE_VERSIONING_MIGRATION_NAME,
 }
 KNOWLEDGE_GOVERNANCE_TABLES_V1 = (
     "knowledge_candidate_promotions_v1",
@@ -32,7 +35,17 @@ KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS = (
     KNOWLEDGE_GOVERNANCE_EVENT_TABLE,
     "idx_knowledge_candidate_events_package_v1",
 )
-KNOWLEDGE_GOVERNANCE_TABLES = (*KNOWLEDGE_GOVERNANCE_TABLES_V1, KNOWLEDGE_GOVERNANCE_EVENT_TABLE)
+KNOWLEDGE_VERSIONING_OBJECTS = (
+    "knowledge_candidate_versions_v1",
+    "idx_knowledge_candidate_versions_key_v1",
+    "knowledge_candidate_conflict_reviews_v1",
+)
+KNOWLEDGE_GOVERNANCE_TABLES = (
+    *KNOWLEDGE_GOVERNANCE_TABLES_V1,
+    KNOWLEDGE_GOVERNANCE_EVENT_TABLE,
+    "knowledge_candidate_versions_v1",
+    "knowledge_candidate_conflict_reviews_v1",
+)
 _OPERATOR_CAPABILITY = object()
 
 SCHEMA_V1_SQL = """
@@ -95,6 +108,24 @@ CREATE TABLE IF NOT EXISTS knowledge_candidate_governance_events_v1 (
 CREATE INDEX IF NOT EXISTS idx_knowledge_candidate_events_package_v1
 ON knowledge_candidate_governance_events_v1(package_id, created_at, id);
 """
+VERSIONING_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS knowledge_candidate_versions_v1 (
+    id TEXT PRIMARY KEY, unit_id TEXT NOT NULL, canonical_key TEXT NOT NULL,
+    parent_version_id TEXT, content_json TEXT NOT NULL, content_fingerprint TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','conflict','deprecated')),
+    conflict_review_id TEXT, provenance_json TEXT NOT NULL, created_at TEXT NOT NULL,
+    FOREIGN KEY(unit_id) REFERENCES knowledge_candidate_units_v1(id),
+    FOREIGN KEY(parent_version_id) REFERENCES knowledge_candidate_versions_v1(id)
+);
+CREATE INDEX IF NOT EXISTS idx_knowledge_candidate_versions_key_v1 ON knowledge_candidate_versions_v1(canonical_key, created_at, id);
+CREATE TABLE IF NOT EXISTS knowledge_candidate_conflict_reviews_v1 (
+    id TEXT PRIMARY KEY, canonical_key TEXT NOT NULL, prior_version_id TEXT NOT NULL,
+    proposed_version_id TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('open','resolved')),
+    reviewer_id TEXT NOT NULL, created_at TEXT NOT NULL,
+    FOREIGN KEY(prior_version_id) REFERENCES knowledge_candidate_versions_v1(id),
+    FOREIGN KEY(proposed_version_id) REFERENCES knowledge_candidate_versions_v1(id)
+);
+"""
 
 
 def _connect(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
@@ -115,14 +146,13 @@ def _connect(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
 def _recorded_versions(connection: sqlite3.Connection) -> set[int]:
     if not migration._table_exists(connection, "schema_migrations"):
         return set()
+    versions = tuple(KNOWLEDGE_GOVERNANCE_MIGRATIONS)
+    names = tuple(KNOWLEDGE_GOVERNANCE_MIGRATIONS.values())
+    placeholders = ", ".join("?" for _ in versions)
     rows = connection.execute(
-        "SELECT version, name FROM schema_migrations WHERE version IN (?, ?) OR name IN (?, ?)",
-        (
-            KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION,
-            KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION,
-            KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
-            KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
-        ),
+        f"SELECT version, name FROM schema_migrations WHERE version IN ({placeholders}) "
+        f"OR name IN ({placeholders})",
+        (*versions, *names),
     ).fetchall()
     recorded: set[int] = set()
     for row in rows:
@@ -187,10 +217,27 @@ def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
         return (KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,)
     if not event_exists:
         raise RuntimeError("recorded knowledge governance event schema drift")
+    versioning_tables = {
+        "knowledge_candidate_versions_v1",
+        "knowledge_candidate_conflict_reviews_v1",
+    }
+    versioning_existing = {
+        item for item in versioning_tables if migration._table_exists(connection, item)
+    }
+    if KNOWLEDGE_VERSIONING_MIGRATION_VERSION not in recorded:
+        if versioning_existing:
+            raise RuntimeError("unrecorded knowledge governance versioning schema mismatch")
+        return (KNOWLEDGE_VERSIONING_MIGRATION_NAME,)
+    if versioning_existing != versioning_tables:
+        raise RuntimeError("recorded knowledge governance versioning schema drift")
     _validate_schema(
         connection,
-        SCHEMA_V1_SQL + EVENT_SCHEMA_SQL,
-        (*KNOWLEDGE_GOVERNANCE_V1_OBJECTS, *KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS),
+        SCHEMA_V1_SQL + EVENT_SCHEMA_SQL + VERSIONING_SCHEMA_SQL,
+        (
+            *KNOWLEDGE_GOVERNANCE_V1_OBJECTS,
+            *KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS,
+            *KNOWLEDGE_VERSIONING_OBJECTS,
+        ),
     )
     return ()
 
@@ -235,7 +282,12 @@ def migrate(
             for version, name in KNOWLEDGE_GOVERNANCE_MIGRATIONS.items():
                 if name not in pending:
                     continue
-                _execute_schema(connection, SCHEMA_V1_SQL if version == 5 else EVENT_SCHEMA_SQL)
+                schemas = {
+                    KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION: SCHEMA_V1_SQL,
+                    KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: EVENT_SCHEMA_SQL,
+                    KNOWLEDGE_VERSIONING_MIGRATION_VERSION: VERSIONING_SCHEMA_SQL,
+                }
+                _execute_schema(connection, schemas[version])
                 connection.execute("INSERT INTO schema_migrations(version, name) VALUES (?, ?)", (version, name))
             if _pending(connection):
                 raise RuntimeError("knowledge governance migration did not converge")
@@ -260,7 +312,16 @@ def status(*, db_path: str | Path) -> dict[str, object]:
                 raise RuntimeError("knowledge governance database integrity check failed")
             pending = _pending(connection)
     applied = [name for name in KNOWLEDGE_GOVERNANCE_MIGRATIONS.values() if name not in pending]
-    return {"total": 2, "applied": len(applied), "pending": [f"00{version}_{name}" for version, name in KNOWLEDGE_GOVERNANCE_MIGRATIONS.items() if name in pending], "applied_list": applied}
+    return {
+        "total": len(KNOWLEDGE_GOVERNANCE_MIGRATIONS),
+        "applied": len(applied),
+        "pending": [
+            f"00{version}_{name}"
+            for version, name in KNOWLEDGE_GOVERNANCE_MIGRATIONS.items()
+            if name in pending
+        ],
+        "applied_list": applied,
+    }
 
 
 def require_applied(*, db_path: str | Path) -> None:

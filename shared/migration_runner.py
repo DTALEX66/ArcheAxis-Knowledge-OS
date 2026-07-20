@@ -1045,15 +1045,12 @@ class MigrationOperator:
                     if expected_migrations != {migration.RESEARCH_SCHEMA_MIGRATION_NAME}:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif owner.kind == "sqlite_knowledge":
-                    allowed_migrations = (
-                        {migration.KNOWLEDGE_GOVERNANCE_MIGRATION_NAME},
-                        {
-                            migration.KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
-                            migration.KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
-                        },
-                        {migration.KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME},
-                    )
-                    if expected_migrations not in allowed_migrations:
+                    allowed_migrations = {
+                        migration.KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
+                        migration.KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
+                        migration.KNOWLEDGE_VERSIONING_MIGRATION_NAME,
+                    }
+                    if not expected_migrations <= allowed_migrations:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif expected_migrations != {core_schema.BASELINE_MIGRATION_NAME}:
                     raise RuntimeError("rollback provenance does not match migration owner")
