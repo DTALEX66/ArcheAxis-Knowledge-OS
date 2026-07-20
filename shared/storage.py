@@ -173,6 +173,14 @@ CREATE VIRTUAL TABLE IF NOT EXISTS episodic_memory_fts USING fts5(
     tokenize='porter unicode61'
 );
 
+CREATE TABLE IF NOT EXISTS machine_knowledge_candidates_v1 (
+    id TEXT PRIMARY KEY, source_signal_id TEXT NOT NULL UNIQUE, unit_json TEXT NOT NULL,
+    lifecycle_status TEXT NOT NULL CHECK(lifecycle_status IN ('candidate','approved','deprecated')),
+    approval_id TEXT UNIQUE, reviewer_id TEXT, rationale TEXT, updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_machine_knowledge_candidates_status_v1
+ON machine_knowledge_candidates_v1(lifecycle_status, updated_at, id);
+
 -- Phase 5: machine knowledge + A→B translation
 CREATE TABLE IF NOT EXISTS machine_knowledge_units (
     id TEXT PRIMARY KEY,
