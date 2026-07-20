@@ -361,11 +361,16 @@ def diagnostics():
         }
     except Exception:
         migrations = {"unavailable": 1}
+    release_version = str(config.get("app.release_version", "")).strip()
     return {
         "schema_version": "v1",
         "health": health(),
         "migrations": migrations,
-        "release": {"status": "unavailable"},
+        "release": (
+            {"status": "available", "version": release_version}
+            if release_version
+            else {"status": "unavailable"}
+        ),
     }
 
 

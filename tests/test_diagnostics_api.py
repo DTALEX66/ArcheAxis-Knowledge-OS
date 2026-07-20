@@ -16,8 +16,32 @@ def test_diagnostics_returns_safe_versioned_status() -> None:
     assert set(payload["migrations"]).issubset(
         {"applied", "pending", "failed", "rolled_back", "unavailable"}
     )
+    assert payload["release"] == {"status": "unavailable"}
     assert "backup_path" not in response.text
     assert "database_path" not in response.text
+
+
+def test_diagnostics_reports_explicit_release_version(monkeypatch) -> None:
+    from app.main import app
+    from shared.config import config
+
+    monkeypatch.setitem(config._data["app"], "release_version", "2026.07.20+build.42")
+
+    response = TestClient(app).get("/diagnostics")
+
+    assert response.status_code == 200
+    assert response.json()["release"] == {
+        "status": "available",
+        "version": "2026.07.20+build.42",
+    }
+
+
+def test_release_version_environment_override(monkeypatch) -> None:
+    from shared.config import Config
+
+    monkeypatch.setenv("COGNITIVE_RELEASE_VERSION", "2026.07.20+build.42")
+
+    assert Config().get("app.release_version") == "2026.07.20+build.42"
 
 
 def test_diagnostics_marks_empty_migration_status_unavailable(monkeypatch) -> None:

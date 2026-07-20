@@ -104,6 +104,7 @@ class Config:
         env_map: dict[str, list[str]] = {
             "COGNITIVE_ENV": ["app", "environment"],
             "COGNITIVE_PORT": ["app", "port"],
+            "COGNITIVE_RELEASE_VERSION": ["app", "release_version"],
             "COGNITIVE_DB_PATH": ["database", "path"],
             "COGNITIVE_LOG_LEVEL": ["logging", "level"],
             "COGNITIVE_AUTH_ENABLED": ["auth", "enabled"],
