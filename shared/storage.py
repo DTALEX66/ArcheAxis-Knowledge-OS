@@ -124,6 +124,15 @@ CREATE VIRTUAL TABLE IF NOT EXISTS kb_cards_fts USING fts5(
 
 
 IR_KB_TABLES_EXT = """
+CREATE TABLE IF NOT EXISTS mastery_signals_v1 (
+    id TEXT PRIMARY KEY,
+    card_id TEXT NOT NULL,
+    signal_json TEXT NOT NULL,
+    calculated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_mastery_signals_card_v1
+ON mastery_signals_v1(card_id, calculated_at, id);
+
 -- P2-1: review + mistake tables for A-line learning loop
 CREATE TABLE IF NOT EXISTS kb_reviews (
     id TEXT PRIMARY KEY,
