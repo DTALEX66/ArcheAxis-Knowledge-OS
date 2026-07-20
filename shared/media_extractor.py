@@ -200,12 +200,28 @@ def extract_audio_track(
     except subprocess.CalledProcessError as exc:
         return {"error": f"ffmpeg failed: {exc}", "video": video_path}
 
+    import wave
+
+    try:
+        with wave.open(str(output_file), "rb") as wav:
+            channels = wav.getnchannels()
+            sample_rate_hz = wav.getframerate()
+            sample_width_bytes = wav.getsampwidth()
+            sample_frames = wav.getnframes()
+    except (EOFError, wave.Error) as exc:
+        return {"error": f"ffmpeg produced invalid WAV: {exc}", "video": video_path}
+
+    if channels != 1 or sample_rate_hz != 16000 or sample_width_bytes != 2 or sample_frames <= 0:
+        return {"error": "ffmpeg produced audio that is not mono 16 kHz PCM16", "video": video_path}
+
     return {
         "video": video_path,
         "output_file": str(output_file),
-        "sample_rate_hz": 16000,
-        "channels": 1,
+        "sample_rate_hz": sample_rate_hz,
+        "channels": channels,
         "codec": "pcm_s16le",
+        "sample_frames": sample_frames,
+        "duration_seconds": sample_frames / sample_rate_hz,
     }
 
 

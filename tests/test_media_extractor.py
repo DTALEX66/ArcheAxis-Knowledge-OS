@@ -52,13 +52,13 @@ def test_extract_audio_track_creates_asr_ready_wav_with_real_ffmpeg(tmp_path: Pa
     )
 
     audio = Path(result["output_file"])
-    assert result == {
-        "video": str(video),
-        "output_file": str(audio),
-        "sample_rate_hz": 16000,
-        "channels": 1,
-        "codec": "pcm_s16le",
-    }
+    assert result["video"] == str(video)
+    assert result["output_file"] == str(audio)
+    assert result["sample_rate_hz"] == 16000
+    assert result["channels"] == 1
+    assert result["codec"] == "pcm_s16le"
+    assert result["sample_frames"] > 0
+    assert result["duration_seconds"] == pytest.approx(result["sample_frames"] / 16000)
     assert audio.parent == output.resolve()
     assert audio.read_bytes().startswith(b"RIFF")
     assert audio.stat().st_size > 44
