@@ -10,9 +10,21 @@ def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
 
     page = client.get("/workspace")
     assert page.status_code == 200
-    assert "Cognitive Workspace" in page.text
+    assert "元枢系统" in page.text
+    assert "ArcheAxis OS" in page.text
+    assert "元枢·观心" in page.text
+    assert "Cognitive-Loop-OS" not in page.text
     assert "API key" not in page.text
-    assert "Local-first" in page.text
+    assert 'id="intake-url-form"' in page.text
+    assert 'id="intake-file-form"' in page.text
+    assert "command_id" not in page.text
+
+    stylesheet = client.get("/workspace/assets/styles.css")
+    assert stylesheet.status_code == 200
+    assert "--accent:#C8A972" in stylesheet.text
+    application = client.get("/workspace/assets/app.js")
+    assert application.status_code == 200
+    assert "Command Palette" not in application.text
 
     diagnostics = client.get("/workspace/api/diagnostics")
     assert diagnostics.status_code == 200

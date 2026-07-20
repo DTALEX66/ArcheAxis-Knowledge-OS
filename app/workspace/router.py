@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 from ipaddress import ip_address
-from typing import Any
+from pathlib import Path
+from typing import Any, Literal
 
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.workspace import service
@@ -13,6 +14,7 @@ from shared.storage import DB_PATH
 
 WORKSPACE_PREFIX = "/" + "workspace"
 router = APIRouter(prefix=WORKSPACE_PREFIX, tags=["workspace"])
+WORKSPACE_UI_ROOT = Path(__file__).resolve().parents[2] / "workspace" / "ui" / "archeaxis"
 
 
 class IntakeURL(BaseModel):
@@ -65,20 +67,22 @@ def _command_error(action):
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
-@router.get("", response_class=HTMLResponse)
-def workspace_page() -> HTMLResponse:
-    return HTMLResponse(
-        """<!doctype html><html lang='zh-CN'><head><meta charset='utf-8'>
-<title>Cognitive Workspace</title><style>
-body{font:16px system-ui;max-width:920px;margin:2rem auto;padding:0 1rem;background:#111;color:#eee}section{border:1px solid #555;border-radius:8px;padding:1rem;margin:1rem 0}input,button{padding:.55rem;margin:.2rem}input{min-width:14rem}button{cursor:pointer}pre{white-space:pre-wrap;background:#222;padding:1rem;border-radius:6px}
-</style></head><body><main><h1>Cognitive Workspace</h1><p>Local-first candidate lifecycle. This workspace accepts direct local requests only.</p>
-<section><h2>导入内容</h2><p>输入网页地址，或拖入 PDF、Office、图片、文本等文件。系统会自动识别格式并转成可处理文本。</p><form id='url-intake'><input name='url' type='url' placeholder='粘贴网页 URL' required><button>提取网页</button></form><form id='file-intake'><input name='file' type='file' accept='.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.html,.htm,.md,.txt,.csv,.png,.jpg,.jpeg,.webp' required><button>导入文件</button></form></section>
-<section><h2>转换结果</h2><p>转换后的内容会显示在这里；后续将自动拆解为知识、学习材料和复习任务。</p><pre id='result' aria-live='polite'>准备就绪。选择网页或文件开始。</pre></section>
-</main><script>
-const root=location.pathname;const out=document.querySelector('#result');const show=async response=>{const data=await response.json();out.textContent=JSON.stringify(data,null,2);};
-document.querySelector('#url-intake').addEventListener('submit',event=>{event.preventDefault();const url=new FormData(event.currentTarget).get('url');show(fetch(root+'/api/intake/url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})}));});
-document.querySelector('#file-intake').addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget);show(fetch(root+'/api/intake/upload',{method:'POST',body:data}));});
-</script></body></html>"""
+@router.get("", response_class=FileResponse)
+def workspace_page() -> FileResponse:
+    return FileResponse(
+        WORKSPACE_UI_ROOT / "index.html",
+        media_type="text/html",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@router.get("/assets/{asset_name}", response_class=FileResponse)
+def workspace_asset(asset_name: Literal["styles.css", "app.js"]) -> FileResponse:
+    media_type = "text/css" if asset_name.endswith(".css") else "text/javascript"
+    return FileResponse(
+        WORKSPACE_UI_ROOT / asset_name,
+        media_type=media_type,
+        headers={"Cache-Control": "no-store"},
     )
 
 
