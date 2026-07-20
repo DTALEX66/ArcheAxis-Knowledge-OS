@@ -30,6 +30,32 @@ def test_workspace_mutations_use_local_principal_without_api_credentials() -> No
     assert response.status_code == 422
 
 
+def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp_path) -> None:
+    from app.main import app
+    from app.workspace import router
+
+    monkeypatch.setattr(router, "DB_PATH", tmp_path / "cognitive.sqlite")
+    monkeypatch.setattr(
+        router.service,
+        "intake_url",
+        lambda *, url: {"source_type": "web", "source": url, "content": "# extracted", "engine": "test"},
+    )
+    client = TestClient(app)
+
+    webpage = client.post("/workspace/api/intake/url", json={"url": "https://example.com/article"})
+    assert webpage.status_code == 200
+    assert webpage.json()["source_type"] == "web"
+
+    uploaded = client.post(
+        "/workspace/api/intake/upload",
+        files={"file": ("notes.txt", b"local intake content", "text/plain")},
+    )
+    assert uploaded.status_code == 200
+    assert uploaded.json()["source_type"] == "file"
+    assert uploaded.json()["file_name"] == "notes.txt"
+    assert "local intake content" in uploaded.json()["content"]
+
+
 def test_workspace_http_flow_promotes_persisted_research_and_derives_mastery(
     monkeypatch, tmp_path,
 ) -> None:

@@ -44,7 +44,7 @@ persisted ResearchPackage
 python -m app.runtime_entrypoint core
 ```
 
-Workspace 是 local-first：浏览器页面不收集 API key/JWT。仅允许本机 loopback 请求，服务端以固定的 `local-workspace` principal 写入审计记录；远程请求会收到 `403`。Research promotion、learning material projection 与 practice 均为本地直接操作，learning card 在创建时自动投影，无需单独审批页面。
+Workspace 是 local-first：浏览器页面不收集 API key/JWT。仅允许本机 loopback 请求，服务端以固定的 `local-workspace` principal 写入审计记录；远程请求会收到 `403`。用户从网页 URL 或本地文件开始：当前支持网页、PDF、Office、HTML、Markdown、文本、CSV 和图片转换；文件被暂存至 runtime 数据目录后转为 Markdown 预览。Research promotion、learning material projection 与 practice 均为本地直接操作，learning card 在创建时自动投影，无需单独审批页面。
 
 ## 验收
 

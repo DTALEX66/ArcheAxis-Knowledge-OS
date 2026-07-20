@@ -4,7 +4,7 @@ from __future__ import annotations
 from ipaddress import ip_address
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -13,6 +13,12 @@ from shared.storage import DB_PATH
 
 WORKSPACE_PREFIX = "/" + "workspace"
 router = APIRouter(prefix=WORKSPACE_PREFIX, tags=["workspace"])
+
+
+class IntakeURL(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    url: str = Field(min_length=1, max_length=2048)
 
 
 class _Command(BaseModel):
@@ -66,14 +72,12 @@ def workspace_page() -> HTMLResponse:
 <title>Cognitive Workspace</title><style>
 body{font:16px system-ui;max-width:920px;margin:2rem auto;padding:0 1rem;background:#111;color:#eee}section{border:1px solid #555;border-radius:8px;padding:1rem;margin:1rem 0}input,button{padding:.55rem;margin:.2rem}input{min-width:14rem}button{cursor:pointer}pre{white-space:pre-wrap;background:#222;padding:1rem;border-radius:6px}
 </style></head><body><main><h1>Cognitive Workspace</h1><p>Local-first candidate lifecycle. This workspace accepts direct local requests only.</p>
-<section><h2>Research → Knowledge</h2><form data-action='promote-research'><input name='command_id' placeholder='command id' required><input name='package_id' placeholder='persisted package id' required><input name='rationale' placeholder='rationale' required><button>Promote</button></form></section>
-<section><h2>Knowledge → Learning</h2><form data-action='start-learning'><input name='command_id' placeholder='command id' required><input name='unit_id' placeholder='candidate unit id' required><input name='rationale' placeholder='rationale' required><button>Create learning material</button></form></section>
-<section><h2>Practice → Mastery</h2><form data-action='record-practice'><input name='command_id' placeholder='command id' required><input name='artifact_id' placeholder='artifact id' required><input name='quality' type='number' min='0' max='5' value='5' required><button>Record practice</button></form></section>
-<section><h2>Audit timeline</h2><input id='case-id' placeholder='artifact id'><button id='load-case'>Load case</button><pre id='result' aria-live='polite'>Ready.</pre></section>
+<section><h2>导入内容</h2><p>输入网页地址，或拖入 PDF、Office、图片、文本等文件。系统会自动识别格式并转成可处理文本。</p><form id='url-intake'><input name='url' type='url' placeholder='粘贴网页 URL' required><button>提取网页</button></form><form id='file-intake'><input name='file' type='file' accept='.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.html,.htm,.md,.txt,.csv,.png,.jpg,.jpeg,.webp' required><button>导入文件</button></form></section>
+<section><h2>转换结果</h2><p>转换后的内容会显示在这里；后续将自动拆解为知识、学习材料和复习任务。</p><pre id='result' aria-live='polite'>准备就绪。选择网页或文件开始。</pre></section>
 </main><script>
-const root=location.pathname;const out=document.querySelector('#result');const call=async(path,options={})=>{const r=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});const p=await r.json();out.textContent=JSON.stringify(p,null,2);};
-document.querySelectorAll('form[data-action]').forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();const data=Object.fromEntries(new FormData(form));if('quality'in data)data.quality=Number(data.quality);call(root+'/api/commands/'+form.dataset.action,{method:'POST',body:JSON.stringify(data)});}));
-document.querySelector('#load-case').addEventListener('click',()=>call(root+'/api/cases/'+encodeURIComponent(document.querySelector('#case-id').value)));
+const root=location.pathname;const out=document.querySelector('#result');const show=async response=>{const data=await response.json();out.textContent=JSON.stringify(data,null,2);};
+document.querySelector('#url-intake').addEventListener('submit',event=>{event.preventDefault();const url=new FormData(event.currentTarget).get('url');show(fetch(root+'/api/intake/url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})}));});
+document.querySelector('#file-intake').addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget);show(fetch(root+'/api/intake/upload',{method:'POST',body:data}));});
 </script></body></html>"""
     )
 
@@ -83,6 +87,27 @@ def workspace_diagnostics() -> dict[str, object]:
     from app.main import diagnostics
 
     return diagnostics()
+
+
+@router.post("/api/intake/url")
+def intake_url(payload: IntakeURL, request: Request) -> dict:
+    _local_principal(request)
+    return _command_error(lambda: service.intake_url(url=payload.url))
+
+
+@router.post("/api/intake/upload")
+async def intake_upload(request: Request, file: UploadFile = File(...)) -> dict:
+    _local_principal(request)
+    try:
+        return service.intake_upload(
+            file_name=file.filename or "",
+            content=await file.read(),
+            db_path=DB_PATH,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/api/commands/promote-research")

@@ -5,7 +5,9 @@ import sqlite3
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
+from uuid import uuid4
 
+from app.ingestion.multi_format import convert_file, convert_url, detect_format
 from app.knowledge.closed_loop import (
     approve_learning_artifact,
     audit_closed_loop,
@@ -16,6 +18,48 @@ from app.knowledge.promotion import (
     ResearchKnowledgeApproval,
     promote_research_package_to_candidates,
 )
+
+MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
+
+
+def intake_url(*, url: str) -> dict:
+    content, engine = convert_url(url)
+    return {
+        "source_type": "web",
+        "source": url,
+        "engine": engine,
+        "content": content,
+        "char_count": len(content),
+    }
+
+
+def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dict:
+    if not file_name:
+        raise ValueError("uploaded file requires a name")
+    if not content:
+        raise ValueError("uploaded file is empty")
+    if len(content) > MAX_INTAKE_UPLOAD_BYTES:
+        raise ValueError("uploaded file exceeds the 25 MB local intake limit")
+    safe_name = Path(file_name).name
+    if safe_name != file_name:
+        raise ValueError("uploaded file name must not include a path")
+    upload_dir = Path(db_path).parent / "intake_uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    stored_path = upload_dir / f"{uuid4().hex}_{safe_name}"
+    stored_path.write_bytes(content)
+    try:
+        markdown, engine = convert_file(stored_path)
+    except RuntimeError:
+        stored_path.unlink(missing_ok=True)
+        raise
+    return {
+        "source_type": "file",
+        "file_name": safe_name,
+        "format": detect_format(stored_path),
+        "engine": engine,
+        "content": markdown,
+        "char_count": len(markdown),
+    }
 
 
 def now_utc() -> str:
