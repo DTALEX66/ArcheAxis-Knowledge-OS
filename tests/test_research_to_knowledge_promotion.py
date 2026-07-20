@@ -91,5 +91,11 @@ def test_rejected_research_package_is_audited_without_candidate_knowledge(tmp_pa
     assert result.units == []
     assert result.relations == []
     with closing(sqlite3.connect(database)) as connection:
-        assert connection.execute("SELECT decision FROM knowledge_candidate_promotions_v1").fetchone()[0] == "rejected"
+        assert (
+            connection.execute(
+                "SELECT decision FROM knowledge_candidate_governance_events_v1"
+            ).fetchone()[0]
+            == "rejected"
+        )
+        assert connection.execute("SELECT COUNT(*) FROM knowledge_candidate_promotions_v1").fetchone()[0] == 0
         assert connection.execute("SELECT COUNT(*) FROM knowledge_candidate_units_v1").fetchone()[0] == 0
