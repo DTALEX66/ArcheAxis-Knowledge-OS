@@ -50,7 +50,43 @@ def deprecate_machine_knowledge_candidate(approval: MachineKnowledgeApproval, *,
         row = connection.execute("SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE id=?", (approval.candidate_id,)).fetchone()
         if row is None:
             raise ValueError("machine knowledge candidate not found")
-        unit = MachineKnowledgeUnitV1.model_validate_json(row["unit_json"]).model_copy(update={"lifecycle_status": approval.decision, "updated_at": approval.reviewed_at})
+        current = MachineKnowledgeUnitV1.model_validate_json(row["unit_json"])
+        unit = MachineKnowledgeUnitV1.model_validate(
+            {
+                **current.model_dump(),
+                "legacy_active": 0,
+                "lifecycle_status": approval.decision,
+                "requires_human_review": approval.decision != "approved",
+                "updated_at": approval.reviewed_at,
+            }
+        )
         connection.execute("UPDATE machine_knowledge_candidates_v1 SET unit_json=?, lifecycle_status=?, approval_id=?, reviewer_id=?, rationale=?, updated_at=? WHERE id=?", (unit.model_dump_json(), approval.decision, approval.approval_id, approval.reviewer_id, approval.rationale, approval.reviewed_at, unit.unit_id))
         connection.commit()
         return unit
+
+
+def list_runtime_machine_knowledge(*, db_path: str | Path) -> list[MachineKnowledgeUnitV1]:
+    """Return only strictly validated, human-approved units for Runtime consumption."""
+    with sqlite3.connect(Path(db_path)) as connection:
+        connection.row_factory = sqlite3.Row
+        core_schema.validate(connection)
+        rows = connection.execute(
+            "SELECT id, unit_json, approval_id, reviewer_id, rationale "
+            "FROM machine_knowledge_candidates_v1 "
+            "WHERE lifecycle_status='approved' ORDER BY updated_at, id"
+        ).fetchall()
+
+    approved: list[MachineKnowledgeUnitV1] = []
+    for row in rows:
+        unit = MachineKnowledgeUnitV1.model_validate_json(row["unit_json"])
+        if (
+            unit.unit_id != row["id"]
+            or unit.lifecycle_status != "approved"
+            or unit.requires_human_review
+            or not row["approval_id"]
+            or not row["reviewer_id"]
+            or not row["rationale"]
+        ):
+            raise RuntimeError("approved machine knowledge payload conflicts with governance row")
+        approved.append(unit)
+    return approved
