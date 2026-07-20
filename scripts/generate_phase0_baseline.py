@@ -49,12 +49,18 @@ _SECRET_PATTERNS = {
 }
 
 
+def _task_runtime_tmp_root() -> Path:
+    root = Path(__file__).resolve().parents[1] / ".hermes" / "task-runtime" / "tmp"
+    root.mkdir(parents=True, exist_ok=True)
+    return root.resolve()
+
+
 @contextmanager
 def _temporary_runtime() -> Iterator[Path]:
-    """Provide a unique runtime root and restore the caller's environment afterwards."""
+    """Provide a unique project-contained runtime root and restore the caller environment."""
     previous_data_root = os.environ.get("COGNITIVE_DATA_DIR")
     previous_bytecode = os.environ.get("PYTHONDONTWRITEBYTECODE")
-    with TemporaryDirectory(prefix="cognitive-phase0-") as directory:
+    with TemporaryDirectory(prefix="cognitive-phase0-", dir=_task_runtime_tmp_root()) as directory:
         runtime_root = Path(directory).resolve()
         os.environ["COGNITIVE_DATA_DIR"] = str(runtime_root)
         os.environ["PYTHONDONTWRITEBYTECODE"] = "1"

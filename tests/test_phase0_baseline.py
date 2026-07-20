@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import subprocess
+import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -96,9 +97,14 @@ def test_temporary_runtime_is_unique_cleaned_and_restores_environment(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("COGNITIVE_DATA_DIR", "original-runtime")
+    for name in ("TMP", "TEMP", "TMPDIR"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(tempfile, "tempdir", None)
+    runtime_parent = Path(__file__).resolve().parents[1] / ".hermes" / "task-runtime" / "tmp"
 
     with _temporary_runtime() as first:
         assert first.is_dir()
+        assert first.parent == runtime_parent.resolve()
         assert Path(os.environ["COGNITIVE_DATA_DIR"]) == first
         (first / "marker.txt").write_text("isolated\n", encoding="utf-8")
 
@@ -107,6 +113,7 @@ def test_temporary_runtime_is_unique_cleaned_and_restores_environment(
 
     with _temporary_runtime() as second:
         assert second != first
+        assert second.parent == runtime_parent.resolve()
 
     assert not second.exists()
 
