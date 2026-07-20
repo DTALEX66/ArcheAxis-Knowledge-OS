@@ -2,9 +2,11 @@
 
 ## 交付物
 
-- `workspace/ui/archeaxis/index.html` — 可点击桌面工作台原型，26 个页面/详情态，24 项主导航，2 个详情页由项目/知识列表进入。
-- `workspace/ui/archeaxis/styles.css` — 双主题 Design Token、响应式布局、组件样式。
-- `workspace/ui/archeaxis/app.js` — 导航、主题切换、Command Palette、详情抽屉、审批弹窗、Job Center、Toast 交互。
+运行时资源已经归属 Python 包并随 wheel 发布；本目录只保留设计说明。
+
+- `app/workspace/ui/index.html` — 真实 `/workspace` 产品外壳，保留原型的信息架构并逐区接入后端。
+- `app/workspace/ui/assets/styles.css` — 双主题 Design Token、响应式布局、组件样式。
+- `app/workspace/ui/assets/app.js` — 导航、主题、导入 API、详情抽屉、Job Center 与 Toast 交互。
 
 ## 信息架构
 

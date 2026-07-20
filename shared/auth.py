@@ -243,6 +243,10 @@ def requires_auth(path: str) -> bool:
 
     if not bool(config.get("auth.enabled", False)):
         return False
+    # Workspace uses a separate mandatory local-only boundary and never accepts browser secrets.
+    workspace_prefix = "/" + "workspace"
+    if path == workspace_prefix or path.startswith(f"{workspace_prefix}/"):
+        return False
     # Allow exact matches
     if path in _AUTH_ALLOWLIST:
         return False

@@ -4,8 +4,9 @@ from __future__ import annotations
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
+from urllib.parse import urlsplit
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -13,8 +14,50 @@ from app.workspace import service
 from shared.storage import DB_PATH
 
 WORKSPACE_PREFIX = "/" + "workspace"
-router = APIRouter(prefix=WORKSPACE_PREFIX, tags=["workspace"])
-WORKSPACE_UI_ROOT = Path(__file__).resolve().parents[2] / "workspace" / "ui" / "archeaxis"
+WORKSPACE_UI_ROOT = Path(__file__).resolve().parent / "ui"
+WORKSPACE_SECURITY_HEADERS = {
+    "Cache-Control": "no-store",
+    "Content-Security-Policy": (
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "connect-src 'self'; img-src 'self' data:; font-src 'self' data:; "
+        "object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    ),
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "X-Frame-Options": "DENY",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+
+
+def _is_loopback_host(value: str) -> bool:
+    hostname = urlsplit(f"//{value}").hostname or ""
+    if hostname.casefold() in {"localhost", "testserver"}:
+        return True
+    try:
+        return ip_address(hostname).is_loopback
+    except ValueError:
+        return False
+
+
+def _require_local_request(request: Request) -> None:
+    peer = request.client.host if request.client else ""
+    if peer != "testclient" and not _is_loopback_host(peer):
+        raise HTTPException(status_code=403, detail="workspace is available only locally")
+    host = request.headers.get("host", "")
+    if not _is_loopback_host(host):
+        raise HTTPException(status_code=403, detail="workspace host must be loopback")
+    if request.headers.get("sec-fetch-site", "").casefold() == "cross-site":
+        raise HTTPException(status_code=403, detail="cross-site workspace request rejected")
+    origin = request.headers.get("origin", "")
+    if origin and urlsplit(origin).netloc.casefold() != host.casefold():
+        raise HTTPException(status_code=403, detail="workspace origin must be same-origin")
+
+
+router = APIRouter(
+    prefix=WORKSPACE_PREFIX,
+    tags=["workspace"],
+    dependencies=[Depends(_require_local_request)],
+)
 
 
 class IntakeURL(BaseModel):
@@ -48,13 +91,7 @@ class RecordPracticeCommand(_Command):
 
 def _local_principal(request: Request) -> dict[str, str]:
     """Trust only direct loopback requests in the local-first workspace."""
-    host = request.client.host if request.client else ""
-    try:
-        is_loopback = ip_address(host).is_loopback
-    except ValueError:
-        is_loopback = host == "testclient"
-    if not is_loopback:
-        raise HTTPException(status_code=403, detail="workspace is available only from the local machine")
+    _require_local_request(request)
     return {"subject": "local-workspace", "role": "local"}
 
 
@@ -72,7 +109,7 @@ def workspace_page() -> FileResponse:
     return FileResponse(
         WORKSPACE_UI_ROOT / "index.html",
         media_type="text/html",
-        headers={"Cache-Control": "no-store"},
+        headers=WORKSPACE_SECURITY_HEADERS,
     )
 
 
@@ -80,9 +117,9 @@ def workspace_page() -> FileResponse:
 def workspace_asset(asset_name: Literal["styles.css", "app.js"]) -> FileResponse:
     media_type = "text/css" if asset_name.endswith(".css") else "text/javascript"
     return FileResponse(
-        WORKSPACE_UI_ROOT / asset_name,
+        WORKSPACE_UI_ROOT / "assets" / asset_name,
         media_type=media_type,
-        headers={"Cache-Control": "no-store"},
+        headers=WORKSPACE_SECURITY_HEADERS,
     )
 
 
