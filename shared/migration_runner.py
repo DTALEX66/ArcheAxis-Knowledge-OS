@@ -1051,6 +1051,7 @@ class MigrationOperator:
                         migration.KNOWLEDGE_VERSIONING_MIGRATION_NAME,
                         migration.KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_NAME,
                         migration.LEARNING_APPROVAL_EVENT_MIGRATION_NAME,
+                        migration.MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
                     }
                     if not expected_migrations <= allowed_migrations:
                         raise RuntimeError("rollback provenance does not match migration owner")

@@ -18,6 +18,7 @@ def test_mastered_signal_creates_candidate_machine_knowledge_with_explicit_lifec
     with closing(sqlite3.connect(database)):
         pass
     MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("core.sqlite")
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("knowledge-governance.sqlite")
     with closing(sqlite3.connect(database)) as connection:
         connection.execute(
             "INSERT INTO mastery_signals_v1 VALUES ('signal-1', 'card-1', ?, '2026-07-20T16:00:00Z')",
@@ -43,6 +44,24 @@ def test_mastered_signal_creates_candidate_machine_knowledge_with_explicit_lifec
     assert deprecate_machine_knowledge_candidate(deprecated, db_path=database).lifecycle_status == "deprecated"
     with closing(sqlite3.connect(database)) as connection:
         assert connection.execute("SELECT COUNT(*) FROM machine_knowledge_units").fetchone()[0] == 0
+        events = connection.execute(
+            "SELECT approval_id, decision, reviewer_id FROM machine_knowledge_approval_events_v1 "
+            "ORDER BY reviewed_at, id"
+        ).fetchall()
+        assert events == [
+            ("approve-machine-1", "approved", "reviewer-1"),
+            ("deprecate-machine-1", "deprecated", "reviewer-1"),
+        ]
+
+    assert deprecate_machine_knowledge_candidate(deprecated, db_path=database).lifecycle_status == "deprecated"
+    with closing(sqlite3.connect(database)) as connection:
+        assert connection.execute(
+            "SELECT COUNT(*) FROM machine_knowledge_approval_events_v1"
+        ).fetchone()[0] == 2
+
+    conflicting_replay = deprecated.model_copy(update={"rationale": "changed rationale"})
+    with pytest.raises(RuntimeError, match="approval id conflicts"):
+        deprecate_machine_knowledge_candidate(conflicting_replay, db_path=database)
 
 
 def test_runtime_reads_only_approved_machine_knowledge(tmp_path):
@@ -58,6 +77,7 @@ def test_runtime_reads_only_approved_machine_knowledge(tmp_path):
     with closing(sqlite3.connect(database)):
         pass
     MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("core.sqlite")
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("knowledge-governance.sqlite")
 
     def add_mastered_signal(signal_id: str, card_id: str) -> None:
         with closing(sqlite3.connect(database)) as connection:
@@ -113,6 +133,7 @@ def test_runtime_machine_knowledge_fails_closed_on_tampered_approved_payload(tmp
     with closing(sqlite3.connect(database)):
         pass
     MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("core.sqlite")
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("knowledge-governance.sqlite")
     payload = (
         '{"schema_version":"1.0.0","unit_id":"tampered","title":"Tampered",'
         '"content":"unsafe","unit_type":"rule","tags":[],"confidence":0.8,'

@@ -8,7 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.contracts.v1 import MachineKnowledgeUnitV1, MasterySignalV1
-from shared import core_schema
+from shared import core_schema, knowledge_governance_migration
 
 
 class MachineKnowledgeApproval(BaseModel):
@@ -44,25 +44,41 @@ def create_machine_knowledge_candidate(
 
 
 def deprecate_machine_knowledge_candidate(approval: MachineKnowledgeApproval, *, db_path: str | Path) -> MachineKnowledgeUnitV1:
-    with sqlite3.connect(Path(db_path)) as connection:
+    database = Path(db_path)
+    knowledge_governance_migration.require_applied(db_path=database)
+    with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)
-        row = connection.execute("SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE id=?", (approval.candidate_id,)).fetchone()
-        if row is None:
-            raise ValueError("machine knowledge candidate not found")
-        current = MachineKnowledgeUnitV1.model_validate_json(row["unit_json"])
-        unit = MachineKnowledgeUnitV1.model_validate(
-            {
-                **current.model_dump(),
-                "legacy_active": 0,
-                "lifecycle_status": approval.decision,
-                "requires_human_review": approval.decision != "approved",
-                "updated_at": approval.reviewed_at,
-            }
-        )
-        connection.execute("UPDATE machine_knowledge_candidates_v1 SET unit_json=?, lifecycle_status=?, approval_id=?, reviewer_id=?, rationale=?, updated_at=? WHERE id=?", (unit.model_dump_json(), approval.decision, approval.approval_id, approval.reviewer_id, approval.rationale, approval.reviewed_at, unit.unit_id))
-        connection.commit()
-        return unit
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            existing = connection.execute(
+                "SELECT candidate_id, reviewer_id, decision, rationale, reviewed_at FROM machine_knowledge_approval_events_v1 WHERE approval_id=?",
+                (approval.approval_id,),
+            ).fetchone()
+            expected = (approval.candidate_id, approval.reviewer_id, approval.decision, approval.rationale, approval.reviewed_at)
+            if existing is not None and tuple(str(value) for value in existing) != expected:
+                raise RuntimeError("machine knowledge approval id conflicts with an existing receipt")
+            row = connection.execute("SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE id=?", (approval.candidate_id,)).fetchone()
+            if row is None:
+                raise ValueError("machine knowledge candidate not found")
+            current = MachineKnowledgeUnitV1.model_validate_json(row["unit_json"])
+            if existing is not None:
+                if current.lifecycle_status != approval.decision:
+                    raise RuntimeError("machine knowledge approval receipt conflicts with current lifecycle")
+                connection.commit()
+                return current
+            unit = MachineKnowledgeUnitV1.model_validate({**current.model_dump(), "legacy_active": 0, "lifecycle_status": approval.decision, "requires_human_review": approval.decision != "approved", "updated_at": approval.reviewed_at})
+            event_id = "machine_knowledge_approval_" + sha256(approval.approval_id.encode()).hexdigest()[:24]
+            connection.execute(
+                "INSERT INTO machine_knowledge_approval_events_v1 VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (event_id, approval.candidate_id, approval.approval_id, approval.reviewer_id, approval.decision, approval.rationale, approval.reviewed_at, approval.reviewed_at),
+            )
+            connection.execute("UPDATE machine_knowledge_candidates_v1 SET unit_json=?, lifecycle_status=?, approval_id=?, reviewer_id=?, rationale=?, updated_at=? WHERE id=?", (unit.model_dump_json(), approval.decision, approval.approval_id, approval.reviewer_id, approval.rationale, approval.reviewed_at, unit.unit_id))
+            connection.commit()
+            return unit
+        except Exception:
+            connection.rollback()
+            raise
 
 
 def list_runtime_machine_knowledge(*, db_path: str | Path) -> list[MachineKnowledgeUnitV1]:
