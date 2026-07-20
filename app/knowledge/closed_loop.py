@@ -79,11 +79,37 @@ def record_practice_evidence(
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         card_id = _card_id(connection, artifact_id)
-        connection.execute(
-            "INSERT OR IGNORE INTO kb_reviews(id, card_id, quality, interval_days, ease_factor, next_review_at, created_at) "
-            "VALUES (?, ?, ?, 1, 2.5, ?, ?)",
-            (review_id, card_id, quality, recorded_at, recorded_at),
-        )
+        existing_review = connection.execute(
+            "SELECT card_id, quality, created_at FROM kb_reviews WHERE id=?", (review_id,)
+        ).fetchone()
+        if existing_review is not None:
+            if str(existing_review["card_id"]) != card_id or int(existing_review["quality"]) != quality:
+                raise RuntimeError("practice command id conflicts with an existing receipt")
+            original_recorded_at = str(existing_review["created_at"])
+            signal_row = connection.execute(
+                "SELECT id, signal_json FROM mastery_signals_v1 "
+                "WHERE card_id=? AND calculated_at=? ORDER BY id LIMIT 1",
+                (card_id, original_recorded_at),
+            ).fetchone()
+            if signal_row is not None:
+                signal = MasterySignalV1.model_validate_json(signal_row["signal_json"])
+                candidate = connection.execute(
+                    "SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE source_signal_id=?",
+                    (str(signal_row["id"]),),
+                ).fetchone()
+                machine = (
+                    MachineKnowledgeUnitV1.model_validate_json(candidate["unit_json"])
+                    if candidate is not None
+                    else None
+                )
+                return PracticeResult(mastery_signal=signal, machine_knowledge=machine)
+            recorded_at = original_recorded_at
+        else:
+            connection.execute(
+                "INSERT INTO kb_reviews(id, card_id, quality, interval_days, ease_factor, next_review_at, created_at) "
+                "VALUES (?, ?, ?, 1, 2.5, ?, ?)",
+                (review_id, card_id, quality, recorded_at, recorded_at),
+            )
         connection.commit()
     signal = persist_mastery_signal(card_id, db_path=database, calculated_at=recorded_at)
     machine = None

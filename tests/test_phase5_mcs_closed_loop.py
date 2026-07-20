@@ -68,6 +68,35 @@ def test_governed_closed_loop_requires_learning_approval_then_persists_mastery_c
     assert result.mastery_signal.is_mastered is True
     assert result.machine_knowledge.lifecycle_status == "candidate"
 
+    with sqlite3.connect(database) as connection:
+        counts_before = tuple(
+            connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in ("kb_reviews", "mastery_signals_v1", "machine_knowledge_candidates_v1")
+        )
+    replay = record_practice_evidence(
+        artifact_id=artifact.artifact_id,
+        command_id="practice-3",
+        quality=5,
+        recorded_at="2026-07-20T11:00:00Z",
+        db_path=database,
+    )
+    assert replay == result
+    with sqlite3.connect(database) as connection:
+        counts_after = tuple(
+            connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in ("kb_reviews", "mastery_signals_v1", "machine_knowledge_candidates_v1")
+        )
+    assert counts_after == counts_before
+
+    with pytest.raises(RuntimeError, match="practice command id conflicts"):
+        record_practice_evidence(
+            artifact_id=artifact.artifact_id,
+            command_id="practice-3",
+            quality=0,
+            recorded_at="2026-07-20T11:00:00Z",
+            db_path=database,
+        )
+
     audit = audit_closed_loop(artifact.artifact_id, db_path=database)
     assert [event.event_type for event in audit] == [
         "learning_candidate_created", "learning_artifact_approved",
