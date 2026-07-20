@@ -48,6 +48,7 @@ class TaskStepV1(BaseModel):
     step_id: str
     action: str
     tool: str
+    parameters: dict[str, str] = Field(default_factory=dict)
 
 
 class TaskPackV1(BaseModel):

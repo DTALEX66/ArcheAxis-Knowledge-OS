@@ -54,7 +54,7 @@ def to_knowledge_taskpack(contract: TaskPackV1) -> KnowledgeTaskPack:
         task_id=contract.task_id,
         context_id=contract.context_id,
         goal=contract.goal,
-        steps=[step.model_dump() for step in contract.steps],
+        steps=[step.model_dump(exclude_defaults=True) for step in contract.steps],
         allowed_tools=list(contract.declared_allowed_tools),
         blocked_tools=list(contract.explicitly_blocked_tools),
         constraints=list(contract.constraints),
@@ -175,10 +175,22 @@ def project_to_runtime(contract: TaskPackV1) -> RuntimeTaskProjection:
         unmapped["explicitly_blocked_tools"] = list(contract.explicitly_blocked_tools)
     if contract.context_id:
         unmapped["context_id"] = contract.context_id
+    runtime_steps: list[dict[str, Any]] = []
+    reserved_step_fields = {"step_id", "action", "tool", "parameters"}
+    for step in contract.steps:
+        if set(step.parameters) & reserved_step_fields:
+            raise ContractMappingError("task step parameters cannot override canonical fields")
+        runtime_steps.append({
+            "id": step.step_id,
+            "name": step.action,
+            "type": "tool",
+            "tool": step.tool,
+            **step.parameters,
+        })
     task = RuntimeTaskPack(
         id=contract.task_id,
         goal=contract.goal,
-        steps=[step.model_dump() for step in contract.steps],
+        steps=runtime_steps,
         constraints=contract.constraints,
         tools=contract.requested_tools,
         risk_level=contract.risk_level,
