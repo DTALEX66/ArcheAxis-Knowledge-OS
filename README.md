@@ -16,7 +16,7 @@ Public entry points:
 - API: `POST /research/github-repository`
 - API: `GET /research/packages/{package_id}`
 
-The workflow accepts only canonical `https://github.com/{owner}/{repo}` repository URLs, collects GitHub API metadata and README payloads through `shared.safe_http`, and revalidates status, final URL, media type, and byte limits at the production transport boundary. The complete provenance graph is persisted through the operator-only `research.sqlite` migration owner and revalidated on strict read. The storage boundary accepts candidate-only graphs (`status=candidate`, `provenance_status=caller_supplied`, `requires_human_review=True`); one GitHub repository does not satisfy verified-source independence. Legacy trending/daily/feed/cron/screening exports, caller-supplied IR-to-KB bridges, engineering-contract intake promotion, external research-note writes, KB Document/ContextPack/Card/Evidence/MachineKnowledge references, GraphDB entity/relation writes, Canvas card/connection writes, Episodic memory, processing manifests, and Core `/ingest*`/`/run` inputs that identify `research_package_*`, `intake_*`, `source_*`, `claim_*`, `evidence_*`, `finding_*`, or HTTP(S) sources all fail closed until Phase 5 provides server-owned review provenance. External `url/search/youtube/rss` pipeline requests cannot use automatic KB ingestion; read-only search/extract/feed parsing remains available when it does not persist or promote external material. Local `file` ingestion requires the server-configured `COGNITIVE_APPROVED_SOURCE_ROOTS` containment boundary; local `text` ingestion retains its existing contract. This does not claim Phase 5, Phase 9 Alpha, or full system closure.
+The workflow accepts only canonical `https://github.com/{owner}/{repo}` repository URLs, collects GitHub API metadata and README payloads through `shared.safe_http`, and revalidates status, final URL, media type, and byte limits at the production transport boundary. The complete provenance graph is persisted through the operator-only `research.sqlite` migration owner and revalidated on strict read. The storage boundary accepts candidate-only graphs (`status=candidate`, `provenance_status=caller_supplied`, `requires_human_review=True`); one GitHub repository does not satisfy verified-source independence. Candidate promotion remains governed by explicit review, version, deprecation, and provenance contracts. Legacy trending/daily/feed/cron/screening exports, caller-supplied IR-to-KB bridges, engineering-contract intake promotion, external research-note writes, KB Document/ContextPack/Card/Evidence/MachineKnowledge references, GraphDB entity/relation writes, Canvas card/connection writes, Episodic memory, processing manifests, and Core `/ingest*`/`/run` inputs that identify `research_package_*`, `intake_*`, `source_*`, `claim_*`, `evidence_*`, `finding_*`, or HTTP(S) sources all fail closed unless server-owned review provenance is present. External `url/search/youtube/rss` pipeline requests cannot use automatic KB ingestion; read-only search/extract/feed parsing remains available when it does not persist or promote external material. Local `file` ingestion requires the server-configured `COGNITIVE_APPROVED_SOURCE_ROOTS` containment boundary; local `text` ingestion retains its existing contract. This does not claim public release or verified truth from candidate material.
 
 [![CI](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml)
 
@@ -27,7 +27,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0 基线、Phase 1 Facade/Architecture Guard、Phase 2 首批版本化 Contracts 与通用 Migration Runner 已完成。Phase 4 已建立 GitHub repository 到持久化 candidate ResearchPackage 的真实闭环，但不会把单仓库 metadata/README 提升为 verified truth。下一项是 Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理闭环；通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Alpha 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0–9 的 candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、Evaluation、Sleep Loop 与 Alpha 端到端闭环已完成；GitHub metadata/README 仍不会自动成为 verified truth。Phase 10 已建立本地只读 diagnostics baseline，Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
 
 ## 规划与进度
 
@@ -44,9 +44,9 @@ Research → Evidence → Knowledge → Learning
 | Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ✅ 最小真实闭环完成 | Planner、Permission、Evidence、Evaluation、Lesson 与 Sleep Loop 已验证 |
 | Phase 9 | Minimum Complete System Alpha | ✅ 五条端到端闭环完成 | 完整本地 release 门禁已通过 |
-| Phase 10 | 产品化、诊断、升级与多端发布 | 🟡 准备进入 | 功能范围仍须按独立 TaskPack 排序 |
+| Phase 10 | 产品化、诊断、升级与多端发布 | 🟡 diagnostics baseline 已完成 | Installer、多端发布与公开 release 范围仍须按独立 TaskPack 排序 |
 
-### 当前里程碑：Phase 9 Minimum Complete System Alpha
+### 当前里程碑：Phase 10 Diagnostics Baseline
 
 ```text
 Phase 0 真实基线 ✅
@@ -74,7 +74,7 @@ Phase 0 真实基线 ✅
 → Phase 9 五条 Alpha 端到端闭环 ✅
 ```
 
-下一刀：**Phase 10 产品化范围排序**。已完成 Alpha 闭环仍保留人工审批、版本、弃用和 provenance 边界；不因通过门禁自动提升 candidate 为 verified truth。
+下一刀：**Phase 10 Installer、多端发布与公开 release 范围排序**。已完成 Alpha 闭环仍保留人工审批、版本、弃用和 provenance 边界；不因通过门禁自动提升 candidate 为 verified truth。
 
 本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或 Phase 10 的多端发布、Installer、公开 Alpha/Beta/Stable 已完成。
 
