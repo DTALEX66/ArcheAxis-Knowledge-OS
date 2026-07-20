@@ -27,7 +27,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。Phase 0–9 的 candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、Evaluation、Sleep Loop 与 Alpha 端到端闭环已完成；GitHub metadata/README 仍不会自动成为 verified truth。Phase 10 已建立本地只读 diagnostics baseline，Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、Evaluation、Sleep Loop 与 Alpha tracer 均已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。将这些构件收敛为单一 command/outbox/worker/audit 时间线仍是未来方向。Phase 10 已建立本地只读 diagnostics baseline，Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
 
 ## 规划与进度
 
