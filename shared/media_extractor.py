@@ -150,6 +150,65 @@ def extract_video_keyframes(
         return {"error": f"ffmpeg failed: {e}", "video": video_path}
 
 
+def extract_audio_track(
+    video_path: str,
+    output_dir: str = "",
+    approved_roots: ApprovedRoots | None = None,
+) -> dict[str, Any]:
+    """Extract a mono 16 kHz PCM WAV suitable for a downstream ASR engine."""
+    import shutil
+    import subprocess
+
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        return {"error": "ffmpeg not found in PATH. Install ffmpeg first.", "video": video_path}
+
+    policy = approved_roots or _APPROVED_ROOTS
+    try:
+        video_file = policy.resolve_source(video_path)
+        out_dir = policy.resolve_output(output_dir or "media/audio")
+    except ApprovedRootsError as exc:
+        return {"error": str(exc), "video": video_path}
+    if not video_file.is_file():
+        return {"error": "Video not found", "video": video_path}
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    output_file = out_dir / f"{video_file.stem}.wav"
+    try:
+        subprocess.run(
+            [
+                ffmpeg,
+                "-i",
+                str(video_file),
+                "-vn",
+                "-ac",
+                "1",
+                "-ar",
+                "16000",
+                "-c:a",
+                "pcm_s16le",
+                str(output_file),
+                "-y",
+                "-loglevel",
+                "error",
+            ],
+            check=True,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        return {"error": "ffmpeg timed out", "video": video_path}
+    except subprocess.CalledProcessError as exc:
+        return {"error": f"ffmpeg failed: {exc}", "video": video_path}
+
+    return {
+        "video": video_path,
+        "output_file": str(output_file),
+        "sample_rate_hz": 16000,
+        "channels": 1,
+        "codec": "pcm_s16le",
+    }
+
+
 def media_inventory(source_dir: str) -> dict[str, Any]:
     """Scan a directory for PDFs and videos, return inventory for processing.
 
