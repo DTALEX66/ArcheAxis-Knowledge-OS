@@ -1,10 +1,10 @@
 # 项目当前状态
 
-> 更新：2026-07-16。本页是当前状态入口；旧审计文件是历史快照。
+> 更新：2026-07-20。本页是当前状态入口；旧审计文件是历史快照。
 
 ## 当前阶段
 
-项目已完成 **Phase 4：GitHub Research candidate-only 闭环**。管理员凭据、角色提升、Rate Limiter、Safe HTTP、approved roots、稳定持久化哈希、Vector/FTS shadow 边界和通用 Migration Runner 已建立；GitHub repository 可形成 quarantined、可追溯、持久化且必须人工复核的 ResearchPackage。下一项是 Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理。通用 Dynamic Planner、统一 Sleep Loop 与 Phase 9 Minimum Complete System Alpha 均未完成。
+项目已完成 **Phase 9：Minimum Complete System Alpha**。GitHub Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、reviewed Evaluation 与统一 Sleep Loop 已形成五条受治理端到端闭环，并通过完整本地 release 门禁。GitHub repository 仍只形成 quarantined、可追溯、持久化且必须人工复核的 ResearchPackage；下一项是 Phase 10 产品化范围排序，不能自动将 candidate 提升为 verified truth。
 
 ## 已验证能力
 

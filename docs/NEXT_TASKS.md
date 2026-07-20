@@ -102,7 +102,7 @@ ResearchPackage candidate
 
 每条闭环都需要真实运行证据、失败路径、持久化 provenance、测试与 CI SHA。
 
-## P5：产品化（Phase 9 通过后）
+## P5：产品化（Phase 9 已通过，待独立排序）
 
 仅在 Phase 9 完成后考虑：
 
@@ -113,7 +113,7 @@ ResearchPackage candidate
 - Installer/Upgrade/Diagnostics
 - Public Alpha/Beta/Stable
 
-当前不提前做 UI、移动端、3D/VR、Kubernetes、GHCR 发布或大规模微服务拆分。
+当前仍不提前做 UI、移动端、3D/VR、Kubernetes、GHCR 发布或大规模微服务拆分；每项必须建立独立 TaskPack、范围和门禁。
 
 ## 每个任务的固定执行协议
 
@@ -137,5 +137,5 @@ P0.1 Research candidate 接 KnowledgeUnit/Relation
 → P2.2 Evaluation/Feedback
 → P3 Sleep Loop 统一执行
 → P4 五条 Alpha 闭环
-→ P5 产品化
+→ P5 产品化范围排序与独立 TaskPack
 ```

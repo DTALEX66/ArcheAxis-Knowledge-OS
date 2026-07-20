@@ -41,12 +41,12 @@ Research → Evidence → Knowledge → Learning
 | Phase 2 | 版本化 Contracts 与旧对象 Adapter | ✅ 已完成首批合同 | 路线图列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已有严格 tracer |
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ✅ 核心边界完成 | Safe HTTP、roots、stable hash、Vector/FTS 与统一 Migration Runner 已接通 |
 | Phase 4 | Research 闭环 | ✅ candidate-only 闭环完成 | GitHub URL → quarantined sources → claims/evidence/findings → SQLite → strict read |
-| Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ⬜ 待执行 | 复用 evidence/candidate 治理，不自动提升为已验证知识 |
-| Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | 🟡 已有首条纵向 tracer | `file_read` 已有真实证据链；通用规划与 Sleep/Runtime 统一仍待完成 |
-| Phase 9 | Minimum Complete System Alpha | ⬜ 规划中 | 五条端到端闭环必须真实通过 |
-| Phase 10 | 产品化、诊断、升级与多端发布 | ⬜ 规划中 | 仅在 Alpha 闭环完成后启动 |
+| Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
+| Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ✅ 最小真实闭环完成 | Planner、Permission、Evidence、Evaluation、Lesson 与 Sleep Loop 已验证 |
+| Phase 9 | Minimum Complete System Alpha | ✅ 五条端到端闭环完成 | 完整本地 release 门禁已通过 |
+| Phase 10 | 产品化、诊断、升级与多端发布 | 🟡 准备进入 | 功能范围仍须按独立 TaskPack 排序 |
 
-### 当前里程碑：Phase 4 Research candidate closure
+### 当前里程碑：Phase 9 Minimum Complete System Alpha
 
 ```text
 Phase 0 真实基线 ✅
@@ -69,12 +69,14 @@ Phase 0 真实基线 ✅
 → stable hash + Vector/FTS shadow switch/rollback ✅
 → 通用 Migration Runner + Phase 3 集成验收 ✅
 → GitHub Research candidate-only 持久化闭环 ✅
-→ Phase 5 Knowledge/Learning/Mastery 治理（下一刀）
+→ Knowledge/Learning/Mastery/Machine Knowledge 治理 ✅
+→ Dynamic Planner、Evaluation 与 Sleep Loop 最小闭环 ✅
+→ Phase 9 五条 Alpha 端到端闭环 ✅
 ```
 
-下一刀：**Phase 5 Knowledge/Learning/Mastery/Machine Knowledge 治理闭环**。Phase 4 的 candidate ResearchPackage 只能作为输入候选，后续仍必须保留人工审批、版本、弃用和 provenance 边界。
+下一刀：**Phase 10 产品化范围排序**。已完成 Alpha 闭环仍保留人工审批、版本、弃用和 provenance 边界；不因通过门禁自动提升 candidate 为 verified truth。
 
-本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth、Phase 5–6、通用 Phase 7 Dynamic Planner、Phase 8 统一 Sleep Loop 或 Phase 9 Minimum Complete System Alpha 已完成。
+本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或 Phase 10 的多端发布、Installer、公开 Alpha/Beta/Stable 已完成。
 
 完整计划见 [`docs/EXECUTION_ROADMAP.md`](docs/EXECUTION_ROADMAP.md)，当前交接与执行顺序见 [`docs/HANDOFF_2026-07-16.md`](docs/HANDOFF_2026-07-16.md)。
 

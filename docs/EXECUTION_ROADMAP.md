@@ -171,10 +171,10 @@ Phase 9 通过后再推进完整学习科学、Research Intelligence、多模态
 
 独立审查只用于安全、权限、数据库迁移、架构移动和高风险外部写入；普通低风险修复不反复审计。
 
-## 当前执行计划：Phase 5 Knowledge/Learning 治理
+## 当前执行计划：Phase 10 产品化范围排序
 
 1. Phase 2 首批合同 Release Train 已完成；`ContextPackV1` 与通用 `validate_contract` 不在首批合同清单中，继续保持 deferred，不以空壳扩大 Facade。
 2. Phase 3 的安全、Safe HTTP、稳定哈希、Vector/FTS 与 Migration Runner 核心边界已关闭。
 3. Phase 4 GitHub source path 已形成 candidate-only 持久化闭环；单仓库 metadata/README 仍只算一个 source group。
-4. 下一 TaskPack 把 Research candidate 接入 KnowledgeUnit/Relation、Learning/Mastery 与 Machine Knowledge 的审批、版本、弃用边界。
-5. Phase 7 的 `file_read` tracer 不等于通用 Dynamic Planner；Phase 5–9 整体仍未完成，不得提前宣称 Alpha 闭环完成。
+4. Research candidate 到 KnowledgeUnit/Relation、Learning/Mastery、Machine Knowledge 的审批、版本、弃用边界已完成并经定向回归验证。
+5. Phase 9 的五条 Alpha 闭环已完成并通过完整本地 release 门禁；Phase 10 仍须为产品化能力建立独立范围、风险与验收标准。
