@@ -16,6 +16,9 @@ venv/
 .env.*
 !.env.container.example
 .tmp/
+/tmp/node-compile-cache/
+/desktop/src-tauri/gen/
+/desktop/src-tauri/target/
 
 # Runtime data
 data/

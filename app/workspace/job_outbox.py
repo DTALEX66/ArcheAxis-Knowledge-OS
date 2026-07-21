@@ -54,6 +54,71 @@ def _require_schema(connection: sqlite3.Connection) -> None:
         raise RuntimeError("workspace job/outbox migration is pending")
 
 
+def _require_existing_bindings(
+    connection: sqlite3.Connection,
+    *,
+    existing: sqlite3.Row,
+    command_id: str,
+    command_type: str,
+    aggregate_id: str,
+    request_json: str,
+    request_fingerprint: str,
+    job_state: str,
+    event_type: str,
+    result: dict[str, str],
+) -> dict[str, str]:
+    try:
+        stored_result = json.loads(str(existing["result_json"]))
+    except (json.JSONDecodeError, TypeError) as exc:
+        raise RuntimeError("workspace command persisted bindings are invalid") from exc
+    if (
+        str(existing["command_type"]) != command_type
+        or str(existing["request_fingerprint"]) != request_fingerprint
+        or str(existing["job_id"]) != result["job_id"]
+        or stored_result != result
+    ):
+        raise RuntimeError("workspace command persisted bindings are invalid")
+
+    jobs = connection.execute(
+        "SELECT job_id, command_id, job_type, aggregate_id, state, payload_json, "
+        "correlation_id, causation_id FROM workspace_jobs_v1 "
+        "WHERE job_id=? OR command_id=?",
+        (result["job_id"], command_id),
+    ).fetchall()
+    events = connection.execute(
+        "SELECT event_id, job_id, event_type, payload_json, state "
+        "FROM workspace_outbox_v1 WHERE event_id=? OR job_id=?",
+        (result["event_id"], result["job_id"]),
+    ).fetchall()
+    if len(jobs) != 1 or len(events) != 1:
+        raise RuntimeError("workspace command persisted bindings are invalid")
+    job = jobs[0]
+    event = events[0]
+    if (
+        tuple(str(value) for value in job)
+        != (
+            result["job_id"],
+            command_id,
+            command_type,
+            aggregate_id,
+            job_state,
+            request_json,
+            command_id,
+            command_id,
+        )
+        or tuple(str(value) for value in event)
+        != (
+            result["event_id"],
+            result["job_id"],
+            event_type,
+            request_json,
+            "pending",
+        )
+    ):
+        raise RuntimeError("workspace command persisted bindings are invalid")
+    return stored_result
+
+
 def record_command_in_transaction(
     connection: sqlite3.Connection,
     *,
@@ -84,17 +149,25 @@ def record_command_in_transaction(
     timestamp = _now()
     result = {"command_id": command_id, "event_id": event_id, "job_id": job_id}
     existing = connection.execute(
-        "SELECT request_fingerprint, result_json "
+        "SELECT command_type, request_fingerprint, job_id, result_json "
         "FROM workspace_command_receipts_v1 WHERE command_id=?",
         (command_id,),
     ).fetchone()
     if existing is not None:
         if existing["request_fingerprint"] != request_fingerprint:
             raise RuntimeError("command id conflicts with recorded request")
-        stored_result = json.loads(existing["result_json"])
-        if stored_result != result:
-            raise RuntimeError("recorded workspace command receipt is invalid")
-        return stored_result
+        return _require_existing_bindings(
+            connection,
+            existing=existing,
+            command_id=command_id,
+            command_type=command_type,
+            aggregate_id=aggregate_id,
+            request_json=request_json,
+            request_fingerprint=request_fingerprint,
+            job_state=job_state,
+            event_type=event_type,
+            result=result,
+        )
     connection.execute(
         "INSERT INTO workspace_jobs_v1("
         "job_id, command_id, job_type, aggregate_id, state, payload_json, "

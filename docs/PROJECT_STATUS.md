@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Product Stage A0 基线收口和 A1 受治理工作台建设期：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 尚未完成。本地 Workspace 已具备打包页面、loopback-only 写入和真实导入入口。Workspace Job/Outbox 的 migration owner、同事务写入、同步终态和严格 readback 已进入当前候选；Outbox dispatcher、Worker lease/checkpoint/retry、统一 Audit、SSE 与真实 Job Center 仍未完成。完整 OCR/ASR、Installer、多端发布及公开 Alpha/Beta/Stable 也尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Product Stage A0 真相基线收口期：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 尚未完成。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口和只返回聚合事实的状态接口。Workspace Job/Outbox migration owner、同事务写入、同步终态和严格 readback 已交付；Outbox dispatcher、Worker lease/checkpoint/retry、统一 Audit、SSE 与真实 Job Center 仍未完成。图像 OCR 基础依赖和真实图像门禁已验证；ASR、Installer、多端发布及公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
 
 ## 已验证能力
 
@@ -23,10 +23,11 @@
 - Runtime 源码不再内置管理员 Key；开发和测试凭据必须显式配置，Token 请求者不能自行提升为管理员。
 - 主网关已接入分策略 Rate Limiter；所有受跟踪 Uvicorn 入口禁用隐式 proxy-header rewriting，未受信代理头、双凭据与无效认证的早期拒绝也必须消耗 pre-auth 限额并进入确定性 429 边界。
 - 外部 HTTP 调用已收敛到 Safe HTTP policy，覆盖私网/metadata/redirect/响应大小/类型/timeout；本地摄入与投影使用 approved roots 和 symlink/junction containment。
-- 持久化哈希已使用 versioned SHA-256；TaskPack、Vector、FTS 与 Research schema 已统一注册到 migration operator。
+- 持久化哈希已使用 versioned SHA-256；Core、TaskPack、Vector、FTS、Research、Knowledge Governance 与 Workspace 共九个 owner 已统一注册到 migration operator。
 - Workspace 可将普通网页、GitHub URL 与 approved-root 本地文件持久化为候选 ResearchPackage，并通过独立连接严格读回；浏览器写入仅允许 loopback，本地页面不收集 API key/JWT。
+- Workspace 总览已移除静态运营数字和伪服务状态，只读取本地数据库聚合与 packaged unreleased Release Manifest；尚未接线的产品入口明确显示无真实数据。
 - Learning 审批与卡片投影使用同事务持久收据；Runtime 只读取 approved Machine Knowledge，Machine Knowledge 审批/弃用使用 append-only migration-owned 收据并拒绝冲突重放。
-- 媒体基础链已用真实 FFmpeg 验证 MP4 → 16 kHz mono PCM WAV、WAV 元数据读取和关键帧 PNG 尺寸核验；OCR/ASR 与时间戳证据仍未闭环。
+- 媒体基础链已用真实 FFmpeg 验证 MP4 → 16 kHz mono PCM WAV、WAV 元数据读取和关键帧 PNG 尺寸核验；图像 OCR 基础适配器已用真实图片验证，ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。
 - n8n、Airflow、LiteLLM 和 crawler 适配器不再返回 stub 假成功。
 - Obsidian 外部路径必须显式传入，API 不再默认访问个人 E 盘。
 - 外部 A 项目（Obsidian-Assistance）的分析与通用能力吸收已结束；后续严格只读且不再扫描或作为迁移目标。
@@ -72,4 +73,4 @@ canonical GitHub URL -> Safe HTTP collect -> quarantine -> parse -> claims
 -> evidence -> cross-validation findings -> persisted candidate ResearchPackageV1
 ```
 
-The implementation persists source records, source provenance, claims, evidence, research packages, governance findings, and the package-to-intake relation in SQLite tables owned exclusively by `MigrationOperator` owner `research.sqlite` / migration `004_phase4_research_package_v1`. Apply and rollback require owner-bound backup hashes and manifests; status revalidates the live schema. The storage and strict-read boundaries reconstruct and validate the complete candidate provenance graph. Legacy external trending/auto routes fail closed. External GitHub content is never promoted to verified truth, same-repository metadata/README extraction counts as one independent source group, and every package requires human review. Phase 5+, general Alpha, and full five-loop system closure remain out of scope.
+The implementation persists source records, source provenance, claims, evidence, research packages, governance findings, and the package-to-intake relation in SQLite tables owned exclusively by `MigrationOperator` owner `research.sqlite` / migration `004_phase4_research_package_v1`. Apply and rollback require owner-bound backup hashes and manifests; status revalidates the live schema. The storage and strict-read boundaries reconstruct and validate the complete candidate provenance graph. Legacy external trending/auto routes fail closed. External GitHub content is never promoted to verified truth, same-repository metadata/README extraction counts as one independent source group, and every package requires human review. This section documents only Phase 4 Research closure; it does not claim general Alpha or full five-loop system closure.

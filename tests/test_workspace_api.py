@@ -29,6 +29,16 @@ def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     assert "command_id" not in page.text
     assert "fonts.googleapis.com" not in page.text
     assert "onclick=" not in page.text
+    for fabricated_claim in (
+        "536 tests passed",
+        "PostgreSQL 适配层",
+        "Qdrant 兼容层",
+        "本地服务全部可达",
+        "队列 5 / 并发 2",
+        "生成 ArcheAxis 原型",
+    ):
+        assert fabricated_claim not in page.text
+    assert "尚未接入真实数据" in page.text
 
     stylesheet = client.get("/workspace/assets/styles.css")
     assert stylesheet.status_code == 200
@@ -98,6 +108,37 @@ def test_workspace_page_router_reacts_to_browser_hash_changes() -> None:
 
     assert "addEventListener('hashchange'" in application
     assert "openPage(location.hash.slice(1)||'overview')" in application
+    assert "const productRoutes=new Set" in application
+    assert "document.getElementById(`page-${page}`)" in application
+    assert "querySelector(`#page-${page}`)" not in application
+
+
+def test_workspace_frontend_status_and_intake_fail_closed() -> None:
+    from pathlib import Path
+
+    application = (
+        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
+    ).read_text(encoding="utf-8")
+
+    assert "function validateStatus(payload)" in application
+    assert "function renderStatusUnavailable()" in application
+    assert "capabilities.textContent=''" in application
+    assert "result.textContent='处理中…'" in application
+    assert "无法连接本地服务，请重试" in application
+    assert "payload.engine||'自动'" not in application
+    assert "payload.char_count||0" not in application
+    assert "payload.format||payload.source_type||'网页'" not in application
+
+
+def test_workspace_click_dispatch_does_not_treat_body_theme_as_a_button() -> None:
+    from pathlib import Path
+
+    application = (
+        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
+    ).read_text(encoding="utf-8")
+
+    assert "event.target.closest('button[data-theme]')" in application
+    assert "event.target.closest('[data-theme]')" not in application
 
 
 def test_workspace_diagnostics_ui_uses_the_safe_diagnostics_api() -> None:
@@ -108,23 +149,84 @@ def test_workspace_diagnostics_ui_uses_the_safe_diagnostics_api() -> None:
     application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
 
     assert 'id="diagnostics-summary"' in page
-    assert "'/workspace/api/diagnostics'" in application
-    assert "诊断数据不可用" in application
+    assert "'/workspace/api/status'" in application
+    assert "'/workspace/api/diagnostics'" not in application
+    assert "本地状态读取失败" in application
 
 
-def test_workspace_job_center_is_collapsed_by_default_without_inline_display_toggle() -> None:
+def test_workspace_does_not_render_a_fake_job_center() -> None:
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[1]
     page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
     application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
-    styles = (root / "app/workspace/ui/assets/styles.css").read_text(encoding="utf-8")
 
-    assert 'class="job collapsed"' in page
-    assert "原型任务" in page
-    assert "j.classList.toggle('open')" in application
-    assert "j.style.display" not in application
-    assert ".job.collapsed" in styles
+    assert 'class="job collapsed"' not in page
+    assert "原型任务" not in page
+    assert "job-toggle" not in application
+    assert "异步Worker、Outbox投递器、SSE和交互式Job Center尚未实现" in page
+
+
+def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_path) -> None:
+    from datetime import datetime
+
+    from app.main import app
+    from app.workspace import router, service
+    from shared.migration_runner import MigrationOperator
+    from tests.test_phase5_mcs_closed_loop import _database
+
+    database = _database(tmp_path)
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
+        "workspace.sqlite"
+    )
+    monkeypatch.setattr(router, "DB_PATH", database)
+    monkeypatch.setattr(
+        service,
+        "convert_url",
+        lambda _url: ("# Truthful workspace status\nVerified local content.", "test"),
+    )
+    service.intake_url(url="https://example.com/truth", db_path=database)
+
+    response = TestClient(app).get("/workspace/api/status")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["schema_version"] == "v1"
+    assert datetime.fromisoformat(payload["observed_at"].replace("Z", "+00:00")).tzinfo is not None
+    assert payload["components"] == {
+        "api": "available",
+        "database": "available",
+        "worker": "not_connected",
+        "outbox_dispatcher": "not_connected",
+        "server_sent_events": "not_connected",
+    }
+    assert payload["migrations"]
+    assert set(payload["migrations"]) <= {
+        "applied",
+        "pending",
+        "failed",
+        "rolled_back",
+        "unavailable",
+    }
+    assert payload["counts"]["research"] == {"candidate": 1}
+    assert payload["counts"]["jobs"] == {"succeeded": 1}
+    assert payload["counts"]["outbox"] == {"pending": 1}
+    assert payload["capabilities"]["asynchronous_worker"] == "not_implemented"
+    assert payload["capabilities"]["interactive_job_center"] == "not_implemented"
+    assert "database_path" not in response.text
+    assert "backup_path" not in response.text
+    assert '"job_id"' not in response.text
+    assert '"package_id"' not in response.text
+    assert '"command_id"' not in response.text
+
+    def unavailable_status(_operator):
+        raise RuntimeError("live migration probe requires a checkpoint")
+
+    monkeypatch.setattr(MigrationOperator, "status", unavailable_status)
+    unavailable = TestClient(app).get("/workspace/api/status")
+    assert unavailable.status_code == 200
+    assert unavailable.json()["migrations"] == {"unavailable": 1}
+    assert unavailable.json()["components"]["database"] == "available"
 
 
 def test_workspace_mutations_use_local_principal_without_api_credentials(monkeypatch) -> None:
@@ -171,6 +273,10 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
             "source": url,
             "content": "# extracted",
             "engine": "test",
+            "requires_human_review": True,
+            "source_count": 1,
+            "claim_count": 1,
+            "evidence_count": 1,
         },
     )
     client = TestClient(app)
@@ -186,13 +292,17 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
     assert uploaded.status_code == 200
     assert uploaded.json()["source_type"] == "file"
     assert uploaded.json()["file_name"] == "notes.txt"
-    assert "local intake content" in uploaded.json()["content"]
-    assert uploaded.json()["status"] == "candidate"
+    assert "local intake content" in uploaded.json()["content_preview"]
     assert uploaded.json()["requires_human_review"] is True
+    assert not {"package_id", "job_id", "command_id", "status"} & uploaded.json().keys()
+
+    import sqlite3
 
     from app.facades.research import get_research_package
 
-    package = get_research_package(uploaded.json()["package_id"], db_path=database)
+    with sqlite3.connect(database) as connection:
+        package_id = connection.execute("SELECT id FROM research_packages_v1").fetchone()[0]
+    package = get_research_package(str(package_id), db_path=database)
     assert package.package.status == "candidate"
     assert package.sources[0].content == "local intake content"
 
@@ -269,11 +379,10 @@ def test_workspace_http_job_readback_reloads_package_and_rejects_tampering(
     monkeypatch.setattr(router, "DB_PATH", database)
     monkeypatch.setattr(service, "convert_url", lambda url: ("# Job readback\nBody.", "test"))
 
-    created = TestClient(app).post(
-        "/workspace/api/intake/url", json={"url": "https://example.com/job-readback"}
+    payload = service.intake_url(
+        url="https://example.com/job-readback",
+        db_path=database,
     )
-    assert created.status_code == 200
-    payload = created.json()
 
     loaded = TestClient(app).get(f"/workspace/api/jobs/{payload['job_id']}")
     assert loaded.status_code == 200

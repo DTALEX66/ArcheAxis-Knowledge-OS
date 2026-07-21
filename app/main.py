@@ -11,7 +11,6 @@ Then:  http://localhost:8000/docs     — Core API
 
 from __future__ import annotations
 
-import re
 import time
 from contextlib import asynccontextmanager
 from hashlib import sha256
@@ -376,53 +375,27 @@ def diagnostics():
         }
     except Exception:
         migrations = {"unavailable": 1}
-    release_version = str(config.get("app.release_version", "")).strip()
-    if not re.fullmatch(r"[A-Za-z0-9._+-]{1,128}", release_version):
-        release_version = ""
+    from app.release import safe_release_summary
+
+    release = safe_release_summary()
     return {
         "schema_version": "v1",
         "health": health(),
         "migrations": migrations,
-        "release": (
-            {"status": "available", "version": release_version}
-            if release_version
-            else {"status": "unavailable"}
-        ),
+        "release": release,
     }
 
 
 @app.get("/version")
 def version():
+    from app.release import load_release_manifest, safe_release_summary
+
+    manifest = load_release_manifest()
     return {
-        "version": str(config.get("app.version", "0.4.0")),
-        "build": "Cognitive-Loop-OS unified runtime",
-        "capabilities": [
-            "FTS5 full-text search",
-            "sqlite-vec vector search",
-            "SM-2 spaced repetition",
-            "A→B machine knowledge translation",
-            "NetworkX graph database",
-            "Obsidian bidirectional bridge",
-            "Backlinks + Wikilinks",
-            "Dataview query engine",
-            "Collection views (table/board/calendar/gallery/list)",
-            "Canvas whiteboard",
-            "Auto-tagging + progressive summarization",
-            "Knowledge gardening (orphans/gaps/evergreen)",
-            "GraphRAG multi-hop search",
-            "RSS/Atom feed collection",
-            "Web search + content extraction",
-            "YouTube transcript extraction",
-            "Fact extraction (SPO triples)",
-            "Cross-reference + credibility scoring",
-            "Evidence tracking + health radar",
-            "Learning analytics + streak tracking",
-            "Retro summaries + daily missions",
-            "Project generator",
-            "Resumable file processing manifests",
-            "Human-grounded OCR/ASR accuracy benchmarks",
-            "Content-matched evidence verification",
-        ],
+        "product": manifest["product"]["english_name"],
+        "version": manifest["product"]["version"],
+        "release": safe_release_summary(),
+        "capabilities": manifest["capabilities"],
     }
 
 
@@ -660,9 +633,8 @@ graph TB
     Auth-->Router; Router-->Pipeline; Pipeline-->Search; Pipeline-->Garden
     Search-->SQLite; Search-->VecDB; Garden-->GraphDB; Review-->SQLite; SQLite-->Backup
 ```""",
-        "version": "0.4.0",
-        "modules": 36,
-        "tests": 106,
+        "version": str(config.get("app.version", "0.4.0")),
+        "measurement_note": "Module and test counts are intentionally not embedded.",
     }
 
 

@@ -16,12 +16,17 @@ def test_diagnostics_returns_safe_versioned_status() -> None:
     assert set(payload["migrations"]).issubset(
         {"applied", "pending", "failed", "rolled_back", "unavailable"}
     )
-    assert payload["release"] == {"status": "unavailable"}
+    assert payload["release"] == {
+        "status": "unreleased",
+        "version": "0.4.0",
+        "channel": "development",
+        "source_commit": "unavailable",
+    }
     assert "backup_path" not in response.text
     assert "database_path" not in response.text
 
 
-def test_diagnostics_reports_explicit_release_version(monkeypatch) -> None:
+def test_diagnostics_does_not_promote_unverified_release_override(monkeypatch) -> None:
     from app.main import app
     from shared.config import config
 
@@ -31,8 +36,10 @@ def test_diagnostics_reports_explicit_release_version(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json()["release"] == {
-        "status": "available",
-        "version": "2026.07.20+build.42",
+        "status": "unreleased",
+        "version": "0.4.0",
+        "channel": "development",
+        "source_commit": "unavailable",
     }
 
 
@@ -45,7 +52,12 @@ def test_diagnostics_rejects_unsafe_release_version(monkeypatch) -> None:
     response = TestClient(app).get("/diagnostics")
 
     assert response.status_code == 200
-    assert response.json()["release"] == {"status": "unavailable"}
+    assert response.json()["release"] == {
+        "status": "unreleased",
+        "version": "0.4.0",
+        "channel": "development",
+        "source_commit": "unavailable",
+    }
 
 
 def test_release_version_environment_override(monkeypatch) -> None:

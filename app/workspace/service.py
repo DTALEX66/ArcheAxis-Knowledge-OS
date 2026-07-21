@@ -234,6 +234,67 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
     }
 
 
+def workspace_status(*, db_path: str | Path) -> dict[str, object]:
+    """Return aggregate, non-identifying state for the local product shell."""
+    from collections import Counter
+
+    from app.release import load_release_manifest, safe_release_summary
+    from shared.migration_runner import MigrationOperator
+
+    def grouped(connection: sqlite3.Connection, table: str, column: str) -> dict[str, int]:
+        rows = connection.execute(
+            f"SELECT {column}, COUNT(*) FROM {table} GROUP BY {column} ORDER BY {column}"
+        ).fetchall()
+        return {str(state): int(count) for state, count in rows}
+
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.execute("PRAGMA busy_timeout=30000")
+        connection.execute("PRAGMA query_only=ON")
+        counts = {
+            "research": grouped(connection, "research_packages_v1", "status"),
+            "jobs": grouped(connection, "workspace_jobs_v1", "state"),
+            "outbox": grouped(connection, "workspace_outbox_v1", "state"),
+            "learning": grouped(
+                connection,
+                "knowledge_candidate_learning_artifacts_v1",
+                "status",
+            ),
+            "machine_knowledge": grouped(
+                connection,
+                "machine_knowledge_candidates_v1",
+                "lifecycle_status",
+            ),
+        }
+    try:
+        migration_states = dict(
+            Counter(
+                item["state"]
+                for item in MigrationOperator(
+                    db_path=Path(db_path),
+                    backup_dir=Path(db_path).parent / "backups",
+                ).status()
+            )
+        ) or {"unavailable": 1}
+    except Exception:
+        migration_states = {"unavailable": 1}
+    manifest = load_release_manifest()
+    return {
+        "schema_version": "v1",
+        "observed_at": now_utc(),
+        "release": safe_release_summary(),
+        "migrations": migration_states,
+        "components": {
+            "api": "available",
+            "database": "available",
+            "worker": "not_connected",
+            "outbox_dispatcher": "not_connected",
+            "server_sent_events": "not_connected",
+        },
+        "counts": counts,
+        "capabilities": manifest["capabilities"],
+    }
+
+
 def now_utc() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 

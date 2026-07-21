@@ -743,6 +743,9 @@ ingestion = [
 ]
 
 [package.dev-dependencies]
+browser = [
+    { name = "playwright" },
+]
 build = [
     { name = "setuptools" },
 ]
@@ -781,6 +784,7 @@ requires-dist = [
 provides-extras = ["dev", "ingestion", "full"]
 
 [package.metadata.requires-dev]
+browser = [{ name = "playwright", specifier = ">=1.61,<1.62" }]
 build = [{ name = "setuptools", specifier = "==83.0.0" }]
 
 [[package]]

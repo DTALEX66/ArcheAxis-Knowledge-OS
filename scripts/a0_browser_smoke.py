@@ -1,0 +1,140 @@
+"""Real Chromium regression gate for the local Workspace truth boundary."""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+
+from playwright.sync_api import Page, Route, sync_playwright
+from runtime_http_smoke import running_core
+
+WORKSPACE_ROOT = "/" + "workspace"
+STATUS_PATTERN = f"**{WORKSPACE_ROOT}/api/status"
+INTAKE_PATTERN = f"**{WORKSPACE_ROOT}/api/intake/url"
+
+
+def _partial_status(route: Route) -> None:
+    route.fulfill(status=200, content_type="application/json", body='{"schema_version":"v1"}')
+
+
+def _network_failure(route: Route) -> None:
+    route.abort("connectionfailed")
+
+
+def _intake_success(route: Route) -> None:
+    route.fulfill(
+        status=200,
+        content_type="application/json",
+        body=(
+            '{"source_type":"web","source_count":1,"claim_count":2,'
+            '"evidence_count":3,"requires_human_review":true}'
+        ),
+    )
+
+
+def _partial_intake_success(route: Route) -> None:
+    route.fulfill(status=200, content_type="application/json", body="{}")
+
+
+def exercise_workspace(page: Page, base_url: str) -> None:
+    console_errors: list[str] = []
+    page_errors: list[str] = []
+    page.on("console", lambda message: console_errors.append(message.text) if message.type == "error" else None)
+    page.on("pageerror", lambda error: page_errors.append(str(error)))
+
+    page.goto(f"{base_url}/workspace#overview]", wait_until="networkidle")
+    assert page.url.endswith("#unavailable")
+    assert page.get_by_role("heading", name="功能尚未接入").is_visible()
+
+    page.evaluate("location.hash = '#projects'")
+    page.get_by_role("heading", name="项目").wait_for()
+    page.evaluate("location.hash = '#overview]'")
+    page.get_by_role("heading", name="功能尚未接入").wait_for()
+
+    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
+    page.get_by_text("异步Worker", exact=True).wait_for()
+    assert "尚未实现" in page.locator("#capability-summary").inner_text()
+
+    page.route(STATUS_PATTERN, _partial_status)
+    page.goto(f"{base_url}/workspace#diagnostics", wait_until="networkidle")
+    page.get_by_role("button", name="刷新").click()
+    page.get_by_text("系统状态", exact=True).wait_for()
+    assert "本地状态读取失败" in page.locator("#diagnostics-summary").inner_text()
+    assert "能力状态" in page.locator("#capability-summary").inner_text()
+    assert "异步Worker" not in page.locator("#capability-summary").inner_text()
+    page.unroute(STATUS_PATTERN, _partial_status)
+
+    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
+    intake_button = page.get_by_role("button", name="导入资料")
+    intake_button.click()
+    dialog = page.get_by_role("dialog", name="导入资料")
+    assert dialog.get_attribute("aria-modal") == "true"
+    assert page.evaluate("document.activeElement?.id") == "intake-url"
+    page.keyboard.press("Escape")
+    assert page.evaluate("document.activeElement?.dataset.action") == "intake"
+    intake_button.click()
+    page.get_by_label("网页地址").fill("https://example.com/offline")
+    page.route(INTAKE_PATTERN, _network_failure)
+    page.get_by_role("button", name="导入网页或GitHub仓库").click()
+    page.get_by_text("无法连接本地服务，请重试", exact=False).wait_for()
+    assert "处理中" not in page.locator("#intake-result").inner_text()
+    assert console_errors and all("ERR_CONNECTION_FAILED" in error for error in console_errors)
+    console_errors.clear()
+    page.unroute(INTAKE_PATTERN, _network_failure)
+
+    page.get_by_label("网页地址").fill("https://example.com/truth")
+    page.route(INTAKE_PATTERN, _intake_success)
+    page.get_by_role("button", name="导入网页或GitHub仓库").click()
+    page.locator("#intake-result").filter(has_text="下一步：等待人工复核").wait_for()
+    result = page.locator("#intake-result").inner_text()
+    assert "来源记录：1" in result
+    assert "候选要点：2" in result
+    assert "证据记录：3" in result
+    assert "引擎：自动" not in result
+    assert "内容长度：0" not in result
+    assert all(identifier not in result for identifier in ("package_id", "job_id", "command_id"))
+    page.unroute(INTAKE_PATTERN, _intake_success)
+
+    page.get_by_label("网页地址").fill("https://example.com/partial")
+    page.route(INTAKE_PATTERN, _partial_intake_success)
+    page.get_by_role("button", name="导入网页或GitHub仓库").click()
+    page.locator("#intake-result").filter(has_text="处理失败").wait_for()
+    assert "处理完成" not in page.locator("#intake-result").inner_text()
+    page.unroute(INTAKE_PATTERN, _partial_intake_success)
+
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
+    assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
+    assert page.get_by_role("heading", name="观心总览").is_visible()
+    assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+
+    assert not page_errors, page_errors
+    assert not console_errors, console_errors
+
+
+def main() -> int:
+    data_dir = os.environ.get("COGNITIVE_DATA_DIR", "").strip()
+    if not data_dir:
+        raise RuntimeError("COGNITIVE_DATA_DIR must point to an isolated browser-smoke directory")
+    subprocess.run(
+        [sys.executable, "-m", "app.runtime_entrypoint", "migrate"],
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
+    with running_core() as base_url, sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        try:
+            page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            exercise_workspace(page, base_url)
+        finally:
+            browser.close()
+    print("A0 Chromium browser smoke passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

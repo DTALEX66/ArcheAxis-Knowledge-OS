@@ -21,3 +21,4 @@ ruff>=0.5
 sqlite-vec>=0.1.6
 structlog>=24.0
 tomli>=2.0; python_version < "3.11"
+uvicorn[standard]>=0.22
