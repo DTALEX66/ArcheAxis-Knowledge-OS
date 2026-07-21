@@ -11,9 +11,9 @@
 <header class="top">
   <div class="brand"><div class="mark"></div><div><div class="brand-name">元枢系统</div><div class="brand-sub">ARCHEAXIS OS</div></div></div>
   <div class="workspace-pill"><span class="dot"></span><b>元枢·观心</b><span class="kbd">LOCAL ONLY</span></div>
-  <div class="search"><input id="global-search" placeholder="搜索功能尚未接入" readonly><span class="kbd">A0</span></div>
+  <div class="search"><input id="global-search" aria-label="搜索（尚未接入）" placeholder="搜索功能尚未接入" readonly><span class="kbd">A0</span></div>
   <span class="chip"><span class="dot"></span>本地工作台</span>
-  <button class="icon-btn" data-page="diagnostics" title="系统诊断"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></button>
+  <button class="icon-btn" type="button" data-page="diagnostics" title="系统诊断" aria-label="系统诊断"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></button>
   <div class="theme"><button data-theme="yaojin">曜金</button><button data-theme="deepspace">深空</button></div>
   <div class="user"><div class="avatar">AL</div><div class="meta"><b>本地用户</b><div class="muted mono" id="clock">--:--:--</div></div></div>
 </header>
@@ -37,7 +37,7 @@
   <div class="empty"><b>尚未接入真实数据</b><p>不会展示样例数量、虚构进度、伪服务状态或不可执行按钮。</p><button class="btn" data-page="overview">返回观心总览</button></div>
 </section>
 </main>
-<div class="modal" id="intake-modal"><div class="dialog"><div class="card-title"><div><div class="eyebrow">LOCAL INTAKE</div><h2>导入资料</h2></div><button class="icon-btn" data-action="intake-close" aria-label="关闭">×</button></div><p class="muted">粘贴网页地址或选择本地文件。系统自动处理，不要求填写内部编号。</p><form class="form" id="intake-url-form"><div class="field"><label for="intake-url">网页地址</label><input id="intake-url" name="url" type="url" placeholder="https://example.com/article" required></div><button class="btn primary" type="submit">导入网页或GitHub仓库</button></form><div class="divider">或</div><form class="form" id="intake-file-form"><div class="field"><label for="intake-file">本地文件</label><input id="intake-file" name="file" type="file" required></div><button class="btn primary" type="submit">导入文件</button></form><pre class="result" id="intake-result" aria-live="polite"></pre></div></div>
+<div class="modal" id="intake-modal" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intake-title"><div class="card-title"><div><div class="eyebrow">LOCAL INTAKE</div><h2 id="intake-title">导入资料</h2></div><button class="icon-btn" type="button" data-action="intake-close" aria-label="关闭">×</button></div><p class="muted">粘贴网页地址或选择本地文件。系统自动处理，不要求填写内部编号。</p><form class="form" id="intake-url-form"><div class="field"><label for="intake-url">网页地址</label><input id="intake-url" name="url" type="url" placeholder="https://example.com/article" required></div><button class="btn primary" type="submit">导入网页或GitHub仓库</button></form><div class="divider">或</div><form class="form" id="intake-file-form"><div class="field"><label for="intake-file">本地文件</label><input id="intake-file" name="file" type="file" required></div><button class="btn primary" type="submit">导入文件</button></form><pre class="result" id="intake-result" aria-live="polite"></pre></div></div>
 <div class="toast" id="toast"></div>
 </div>
 <script src="/workspace/assets/app.js"></script>

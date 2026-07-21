@@ -1,6 +1,8 @@
 """Public boundary for the governed Cognitive Workspace."""
 from __future__ import annotations
 
+import hmac
+import os
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
@@ -8,7 +10,7 @@ from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.workspace import service
 from shared.storage import DB_PATH
@@ -64,6 +66,42 @@ class IntakeURL(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     url: str = Field(min_length=1, max_length=2048)
+
+
+class WorkspaceIntakeResult(BaseModel):
+    """Ordinary product response without persistence or command identifiers."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source_type: Literal["file", "web", "github_repository"]
+    requires_human_review: bool
+    file_name: str | None = None
+    format: str | None = None
+    engine: str | None = None
+    content_preview: str | None = None
+    char_count: int | None = Field(default=None, ge=0)
+    source_count: int | None = Field(default=None, ge=0)
+    claim_count: int | None = Field(default=None, ge=0)
+    evidence_count: int | None = Field(default=None, ge=0)
+
+
+def _product_intake_result(result: dict[str, Any]) -> WorkspaceIntakeResult:
+    content = result.get("content")
+    try:
+        return WorkspaceIntakeResult(
+            source_type=result.get("source_type"),
+            requires_human_review=result.get("requires_human_review"),
+            file_name=result.get("file_name"),
+            format=result.get("format"),
+            engine=result.get("engine"),
+            content_preview=content[:400] if isinstance(content, str) and content.strip() else None,
+            char_count=result.get("char_count"),
+            source_count=result.get("source_count"),
+            claim_count=result.get("claim_count"),
+            evidence_count=result.get("evidence_count"),
+        )
+    except ValidationError as exc:
+        raise HTTPException(status_code=500, detail="workspace intake result is unavailable") from exc
 
 
 class _Command(BaseModel):
@@ -136,20 +174,53 @@ def workspace_status(request: Request) -> dict[str, object]:
     return _command_error(lambda: service.workspace_status(db_path=DB_PATH))
 
 
-@router.post("/api/intake/url")
-def intake_url(payload: IntakeURL, request: Request) -> dict:
+@router.get("/api/_desktop/ready")
+def desktop_readiness(request: Request) -> dict[str, str]:
+    launch_token = os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
+    if not launch_token:
+        raise HTTPException(status_code=404, detail="not found")
+    supplied_token = request.headers.get("x-archeaxis-launch-token", "")
+    if not hmac.compare_digest(supplied_token, launch_token):
+        raise HTTPException(status_code=403, detail="invalid desktop launch token")
+    return {
+        "schema_version": "v1",
+        "product": "ArcheAxis OS",
+        "workspace": "ArcheAxis Cognitive Workspace",
+    }
+
+
+@router.post(
+    "/api/intake/url",
+    response_model=WorkspaceIntakeResult,
+    response_model_exclude_none=True,
+)
+def intake_url(payload: IntakeURL, request: Request) -> WorkspaceIntakeResult:
     _local_principal(request)
-    return _command_error(lambda: service.intake_url(url=payload.url, db_path=DB_PATH))
+    return _command_error(
+        lambda: _product_intake_result(service.intake_url(url=payload.url, db_path=DB_PATH))
+    )
 
 
-@router.post("/api/intake/upload")
-async def intake_upload(request: Request, file: UploadFile = File(...)) -> dict:
+@router.post(
+    "/api/intake/upload",
+    response_model=WorkspaceIntakeResult,
+    response_model_exclude_none=True,
+)
+async def intake_upload(
+    request: Request,
+    file: UploadFile = File(...),
+) -> WorkspaceIntakeResult:
     _local_principal(request)
     try:
-        return service.intake_upload(
-            file_name=file.filename or "",
-            content=await file.read(),
-            db_path=DB_PATH,
+        content = await file.read(service.MAX_INTAKE_UPLOAD_BYTES + 1)
+        if len(content) > service.MAX_INTAKE_UPLOAD_BYTES:
+            raise ValueError("uploaded file exceeds the 25 MB local intake limit")
+        return _product_intake_result(
+            service.intake_upload(
+                file_name=file.filename or "",
+                content=content,
+                db_path=DB_PATH,
+            )
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

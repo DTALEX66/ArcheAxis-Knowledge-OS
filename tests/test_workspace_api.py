@@ -273,6 +273,10 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
             "source": url,
             "content": "# extracted",
             "engine": "test",
+            "requires_human_review": True,
+            "source_count": 1,
+            "claim_count": 1,
+            "evidence_count": 1,
         },
     )
     client = TestClient(app)
@@ -288,13 +292,17 @@ def test_workspace_intake_accepts_web_sources_and_uploaded_text(monkeypatch, tmp
     assert uploaded.status_code == 200
     assert uploaded.json()["source_type"] == "file"
     assert uploaded.json()["file_name"] == "notes.txt"
-    assert "local intake content" in uploaded.json()["content"]
-    assert uploaded.json()["status"] == "candidate"
+    assert "local intake content" in uploaded.json()["content_preview"]
     assert uploaded.json()["requires_human_review"] is True
+    assert not {"package_id", "job_id", "command_id", "status"} & uploaded.json().keys()
+
+    import sqlite3
 
     from app.facades.research import get_research_package
 
-    package = get_research_package(uploaded.json()["package_id"], db_path=database)
+    with sqlite3.connect(database) as connection:
+        package_id = connection.execute("SELECT id FROM research_packages_v1").fetchone()[0]
+    package = get_research_package(str(package_id), db_path=database)
     assert package.package.status == "candidate"
     assert package.sources[0].content == "local intake content"
 
@@ -371,11 +379,10 @@ def test_workspace_http_job_readback_reloads_package_and_rejects_tampering(
     monkeypatch.setattr(router, "DB_PATH", database)
     monkeypatch.setattr(service, "convert_url", lambda url: ("# Job readback\nBody.", "test"))
 
-    created = TestClient(app).post(
-        "/workspace/api/intake/url", json={"url": "https://example.com/job-readback"}
+    payload = service.intake_url(
+        url="https://example.com/job-readback",
+        db_path=database,
     )
-    assert created.status_code == 200
-    payload = created.json()
 
     loaded = TestClient(app).get(f"/workspace/api/jobs/{payload['job_id']}")
     assert loaded.status_code == 200

@@ -93,3 +93,33 @@ def test_concurrent_enqueue_of_same_command_creates_one_record_set(tmp_path: Pat
         assert connection.execute("SELECT COUNT(*) FROM workspace_jobs_v1").fetchone()[0] == 1
         assert connection.execute("SELECT COUNT(*) FROM workspace_outbox_v1").fetchone()[0] == 1
         assert connection.execute("SELECT COUNT(*) FROM workspace_command_receipts_v1").fetchone()[0] == 1
+
+
+def test_idempotent_replay_rejects_damaged_job_outbox_or_receipt(tmp_path: Path) -> None:
+    import pytest
+
+    from app.workspace.job_outbox import enqueue_command
+
+    mutations = (
+        "DELETE FROM workspace_jobs_v1",
+        "UPDATE workspace_outbox_v1 SET payload_json='{}'",
+        "UPDATE workspace_command_receipts_v1 SET result_json='not-json'",
+    )
+    for index, mutation in enumerate(mutations):
+        case_dir = tmp_path / str(index)
+        case_dir.mkdir()
+        database = _workspace_database(case_dir)
+        request = {
+            "command_id": f"cmd-damaged-{index}",
+            "command_type": "intake.research",
+            "aggregate_id": "package-001",
+            "payload": {"package_id": "package-001"},
+            "db_path": database,
+        }
+        enqueue_command(**request)
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute(mutation)
+            connection.commit()
+
+        with pytest.raises(RuntimeError, match="persisted bindings are invalid"):
+            enqueue_command(**request)

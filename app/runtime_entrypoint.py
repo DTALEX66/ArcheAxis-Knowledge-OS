@@ -8,6 +8,9 @@ import os
 import sqlite3
 import subprocess
 import sys
+import threading
+import time
+from collections.abc import Iterator
 from contextlib import closing
 from pathlib import Path
 from typing import NoReturn
@@ -75,7 +78,117 @@ def _json_default(value: object) -> str:
 
 
 def run_core(_: argparse.Namespace) -> NoReturn:
+    if os.getenv("COGNITIVE_DESKTOP_CONTROL") == "stdio-v1":
+        _run_desktop_core()
     _exec_process(_uvicorn_command("app.main:app", 8000))
+
+
+def _run_desktop_core() -> NoReturn:
+    import uvicorn
+
+    host = os.getenv("COGNITIVE_HOST", "127.0.0.1")
+    if host != "127.0.0.1":
+        raise RuntimeError("desktop core must bind exactly to 127.0.0.1")
+    launch_token = os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
+    if len(launch_token) < 24:
+        raise RuntimeError("desktop core requires a strong launch token")
+    try:
+        port = int(os.getenv("COGNITIVE_PORT", "8000"))
+    except ValueError as exc:
+        raise RuntimeError("desktop core requires a valid port") from exc
+    if not 1 <= port <= 65535:
+        raise RuntimeError("desktop core port is outside the valid range")
+
+    server = uvicorn.Server(
+        uvicorn.Config(
+            "app.main:app",
+            host=host,
+            port=port,
+            workers=1,
+            proxy_headers=False,
+        )
+    )
+    shutdown_requested = threading.Event()
+
+    def watch_parent_pipe() -> None:
+        for command in _desktop_control_commands(sys.stdin):
+            if command == "shutdown":
+                shutdown_requested.set()
+                server.should_exit = True
+                return
+        shutdown_requested.set()
+        server.should_exit = True
+
+    threading.Thread(
+        target=watch_parent_pipe,
+        name="desktop-parent-pipe",
+        daemon=True,
+    ).start()
+    server.run()
+    if not shutdown_requested.is_set() and not server.started:
+        raise SystemExit(3)
+    raise SystemExit(0)
+
+
+def _desktop_control_commands(stream: object) -> Iterator[str]:
+    """Yield commands without a blocking TextIOWrapper read on Windows pipes."""
+    try:
+        descriptor = stream.fileno()  # type: ignore[attr-defined]
+    except (AttributeError, OSError):
+        while True:
+            line = stream.readline()  # type: ignore[attr-defined]
+            if line == "":
+                return
+            yield line.rstrip("\r\n")
+    else:
+        if os.name == "nt":
+            yield from _windows_desktop_control_commands(descriptor)
+            return
+        pending = b""
+        while True:
+            chunk = os.read(descriptor, 4096)
+            if not chunk:
+                return
+            pending += chunk
+            while b"\n" in pending:
+                line, pending = pending.split(b"\n", 1)
+                yield line.rstrip(b"\r").decode("utf-8", errors="replace")
+
+
+def _windows_desktop_control_commands(descriptor: int) -> Iterator[str]:
+    import ctypes
+    import msvcrt
+    from ctypes import wintypes
+
+    peek_named_pipe = ctypes.WinDLL("kernel32", use_last_error=True).PeekNamedPipe
+    peek_named_pipe.argtypes = [
+        wintypes.HANDLE,
+        wintypes.LPVOID,
+        wintypes.DWORD,
+        wintypes.LPVOID,
+        ctypes.POINTER(wintypes.DWORD),
+        wintypes.LPVOID,
+    ]
+    peek_named_pipe.restype = wintypes.BOOL
+    handle = wintypes.HANDLE(msvcrt.get_osfhandle(descriptor))
+    pending = b""
+    while True:
+        available = wintypes.DWORD()
+        if not peek_named_pipe(handle, None, 0, None, ctypes.byref(available), None):
+            error = ctypes.get_last_error()
+            if error in {109, 232}:
+                return
+            raise OSError(error, "PeekNamedPipe failed for desktop parent pipe")
+        if available.value == 0:
+            time.sleep(0.05)
+            continue
+        chunk = os.read(descriptor, min(available.value, 4096))
+        if not chunk:
+            return
+        pending += chunk
+        while b"\n" in pending:
+            line, pending = pending.split(b"\n", 1)
+            yield line.rstrip(b"\r").decode("utf-8", errors="replace")
 
 
 def run_migration(_: argparse.Namespace) -> int:
