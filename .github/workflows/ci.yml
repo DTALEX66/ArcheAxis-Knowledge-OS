@@ -181,7 +181,7 @@ jobs:
           assert (runtime / "cognitive_os.sqlite").exists()
           assert LOG_DIR == runtime / "logs" / "sleep-loop"
           PY
-          python - <<'PY'
+          COGNITIVE_DATA_DIR="${RUNNER_TEMP}/inspiration-runtime" python - <<'PY'
           import app.research.github
           import shared.research_migration
           import shared.research_store
