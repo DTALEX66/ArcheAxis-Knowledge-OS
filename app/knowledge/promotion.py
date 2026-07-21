@@ -131,6 +131,22 @@ def promote_research_package_to_candidates(approval: ResearchKnowledgeApproval, 
         try:
             existing = _receipt(connection, approval.approval_id)
             if existing is not None:
+                event = connection.execute(
+                    "SELECT package_id, reviewer_id, decision, rationale, candidate_fingerprint "
+                    "FROM knowledge_candidate_governance_events_v1 WHERE approval_id=?",
+                    (approval.approval_id,),
+                ).fetchone()
+                expected = (
+                    approval.package_id,
+                    approval.reviewer_id,
+                    approval.decision,
+                    approval.rationale,
+                    fingerprint,
+                )
+                if event is None or tuple(str(value) for value in event) != expected:
+                    raise RuntimeError(
+                        "promotion approval id conflicts with an existing semantic receipt"
+                    )
                 connection.rollback()
                 return existing
             projection = connection.execute("SELECT id FROM knowledge_candidate_promotions_v1 WHERE package_id=?", (approval.package_id,)).fetchone()

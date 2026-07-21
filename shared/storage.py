@@ -372,7 +372,7 @@ def init() -> None:
 
 def validate_schema() -> None:
     """Validate the existing SQLite schema and migration ledger read-only."""
-    from shared import core_schema, migration, research_migration
+    from shared import core_schema, migration, research_migration, workspace_migration
     from shared.migration_runner import require_sqlite_owners_applied
 
     if not DB_PATH.is_file():
@@ -390,6 +390,7 @@ def validate_schema() -> None:
             if missing:
                 raise RuntimeError(f"SQLite schema is incomplete; missing: {', '.join(missing)}")
             core_schema.validate(connection)
+            workspace_migration._require_applied_connection(connection, DB_PATH)
             require_sqlite_owners_applied(connection)
             pending = migration._taskpack_migrations_pending(connection)
             if pending:

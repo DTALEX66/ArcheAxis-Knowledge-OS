@@ -35,6 +35,12 @@ jobs:
       - name: Install minimal test dependencies
         run: uv pip install --system -r requirements-ci.txt
 
+      - name: Install and verify local OCR engine
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends tesseract-ocr tesseract-ocr-eng fonts-dejavu-core
+          tesseract --list-langs | grep --fixed-strings --line-regexp eng
+
       - name: Run OS-level tests
         run: python -m pytest tests/ -q --tb=short
 
@@ -101,9 +107,13 @@ jobs:
           required = {
               "app/runtime_entrypoint.py",
               "app/research/github.py",
+              "app/workspace/job_outbox.py",
               "shared/research_store.py",
               "shared/research_migration.py",
+              "shared/media_extractor.py",
               "shared/migration_runner.py",
+              "shared/runtime_guard.py",
+              "shared/workspace_migration.py",
               "shared/core_schema.py",
               "inspiration_research/api.py",
           }
@@ -146,6 +156,61 @@ jobs:
           python -m app.runtime_entrypoint migrate
           python -c "from pathlib import Path; import os, sys; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); import knowledge_base.cards.generator, knowledge_base.machine_knowledge.a_to_b, knowledge_base.search; from knowledge_base.api import app as kb_app; from fastapi.testclient import TestClient; kb=TestClient(kb_app); assert kb.get('/health').status_code == 200; assert kb.get('/reviews/due').status_code == 200; assert kb.get('/mistakes').status_code == 200; assert kb.get('/a-to-b/candidates').status_code == 200; assert kb.get('/machine-knowledge').status_code == 200; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); from app.main import app; from shared.sleep_loop_engine import LOG_DIR; c=TestClient(app); assert c.get('/health').status_code == 200; assert c.get('/kb').status_code == 200; runtime=Path(os.environ['COGNITIVE_DATA_DIR']); assert (runtime/'cognitive_os.sqlite').exists(); assert LOG_DIR == runtime/'logs'/'sleep-loop'"
           python -c "import app.research.github, shared.research_store, shared.research_migration; from inspiration_research.intake.generator import generate_intake_card; from inspiration_research.contracts.generator import generate_contract; from inspiration_research.api import app as ir_app; from app.facades import get_research_package, ingest_candidate, query_knowledge, research_github_repository; from fastapi.testclient import TestClient; assert generate_intake_card('t','w',['x']).intake_id.startswith('intake_'); assert generate_contract('g',['d']).contract_id.startswith('contract_'); routes={route.path for route in ir_app.routes}; assert {'/research/github-repository', '/research/packages/{package_id}'} <= routes; assert TestClient(ir_app).get('/health').status_code == 200; assert all(callable(item) for item in (get_research_package, ingest_candidate, query_knowledge, research_github_repository))"
+          python - <<'PY'
+          import os
+          import stat
+          import tempfile
+          from pathlib import Path
+
+          import PIL
+          import pytesseract
+          from PIL import Image
+          from shared.approved_paths import ApprovedRoots
+          from shared.media_extractor import extract_image_text
+
+          site_packages = "site-packages"
+          assert site_packages in str(Path(PIL.__file__).resolve())
+          assert site_packages in str(Path(pytesseract.__file__).resolve())
+          root = Path(tempfile.mkdtemp())
+          fake = root / "tesseract"
+          fake.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+          fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
+          os.environ["PATH"] = str(root) + os.pathsep + os.environ["PATH"]
+          image = root / "evidence.png"
+          Image.new("RGB", (8, 8), "white").save(image)
+          pytesseract.image_to_string = lambda *_args, **_kwargs: "installed wheel OCR"
+          result = extract_image_text(
+              str(image), approved_roots=ApprovedRoots(source_roots=[root], output_roots=[root])
+          )
+          assert result["text"] == "installed wheel OCR"
+          PY
+          python - <<'PY'
+          from pathlib import Path
+
+          import app.workspace.job_outbox as job_outbox
+          import shared.runtime_guard
+          import shared.workspace_migration
+          from app.main import app as application
+          from fastapi.testclient import TestClient
+
+          for module in (
+              job_outbox,
+              shared.runtime_guard,
+              shared.workspace_migration,
+          ):
+              assert "site-packages" in str(Path(module.__file__).resolve())
+          with TestClient(application) as client:
+              created = client.post(
+                  "/workspace/api/intake/upload",
+                  files={"file": ("wheel.txt", b"installed wheel job readback", "text/plain")},
+              )
+              assert created.status_code == 200, created.text
+              payload = created.json()
+              loaded = client.get(f"/workspace/api/jobs/{payload['job_id']}")
+              assert loaded.status_code == 200, loaded.text
+              assert loaded.json()["package_id"] == payload["package_id"]
+              assert loaded.json()["state"] == "succeeded"
+          PY
           python -c "from app.contracts.v1 import TaskPackV1, TaskStepV1; from app.adapters.taskpack import from_knowledge_taskpack, project_to_runtime, to_knowledge_taskpack; from app.facades import contracts; from knowledge_base.taskpack import TaskPack; legacy=TaskPack(task_id='task_wheel', goal='wheel contract', steps=[{'step_id':'s1','action':'read','tool':'file_read'}], allowed_tools=['file_read','echo'], blocked_tools=['shell_exec']); canonical=from_knowledge_taskpack(legacy); projection=project_to_runtime(canonical); assert canonical.schema_version == '1.0.0'; assert isinstance(canonical.steps[0], TaskStepV1); assert canonical.requested_tools == ['file_read']; assert projection.task.tools == ['file_read']; assert to_knowledge_taskpack(canonical).to_dict() == legacy.to_dict(); assert TaskPackV1.model_json_schema()['\$id'].endswith('/contracts/v1/taskpack.schema.json'); assert contracts.TaskPackV1 is TaskPackV1"
           cognitive-os health
           cognitive-os stats

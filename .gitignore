@@ -40,6 +40,7 @@ Thumbs.db
 # Codex/Hermes local state
 .codex/
 .hermes/
+/tools/tesseract/tessdata/
 workspace/.loop-status.md
 
 # Sub-project runtime data

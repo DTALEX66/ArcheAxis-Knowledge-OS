@@ -151,6 +151,19 @@ async def intake_upload(request: Request, file: UploadFile = File(...)) -> dict:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+@router.get("/api/jobs/{job_id}")
+def workspace_job(job_id: str, request: Request) -> dict[str, object]:
+    _local_principal(request)
+    try:
+        return service.intake_job(job_id=job_id, db_path=DB_PATH)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
 @router.post("/api/commands/promote-research")
 def promote_research(command: PromoteResearchCommand, request: Request) -> dict[str, Any]:
     principal = _local_principal(request)

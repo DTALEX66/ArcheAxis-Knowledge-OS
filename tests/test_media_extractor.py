@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -11,10 +12,24 @@ from shared.media_extractor import extract_audio_track, extract_image_text, extr
 
 
 def test_extract_image_text_uses_real_tesseract_with_approved_paths(tmp_path: Path) -> None:
-    pytest.importorskip("pytesseract")
+    try:
+        import pytesseract  # noqa: F401
+    except ImportError:
+        if os.getenv("CI"):
+            pytest.fail("CI must install pytesseract and Pillow")
+        pytest.skip("pytesseract is not installed")
     from PIL import Image, ImageDraw, ImageFont
 
-    font = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 40)
+    font_paths = (
+        Path("C:/Windows/Fonts/arial.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+    )
+    font_path = next((path for path in font_paths if path.is_file()), None)
+    if font_path is None:
+        if os.getenv("CI"):
+            pytest.fail("CI must install a supported OCR test font")
+        pytest.skip("no supported OCR test font is installed")
+    font = ImageFont.truetype(str(font_path), 40)
     source = tmp_path / "source"
     output = tmp_path / "output"
     source.mkdir()
@@ -30,6 +45,8 @@ def test_extract_image_text_uses_real_tesseract_with_approved_paths(tmp_path: Pa
     )
 
     if "error" in result:
+        if os.getenv("CI"):
+            pytest.fail(result["error"])
         pytest.skip(result["error"])
     assert result["image"] == str(image_path)
     assert result["engine"] == "tesseract"

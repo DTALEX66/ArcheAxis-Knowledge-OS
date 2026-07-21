@@ -269,7 +269,7 @@ def extract_image_text(
 
     executable = shutil.which("tesseract")
     if executable is None:
-        windows_default = Path(os.environ.get("ProgramFiles", "")) / "Tesseract-OCR" / "tesseract.exe"
+        windows_default = Path(os.environ.get("PROGRAMFILES", "")) / "Tesseract-OCR" / "tesseract.exe"
         executable = str(windows_default) if windows_default.is_file() else None
     if executable is None:
         return {"error": "tesseract not found in PATH. Install Tesseract-OCR first.", "image": image_path}

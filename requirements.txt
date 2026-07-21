@@ -15,4 +15,5 @@ markitdown>=0.1
 trafilatura>=1.6
 networkx>=3.0
 litellm==1.91.0
+pillow>=10.0
 pytesseract>=0.3.13

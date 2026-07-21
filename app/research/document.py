@@ -11,6 +11,7 @@ from app.adapters.research_package import build_candidate_research_package
 from app.contracts.v1 import CONTRACT_VERSION, ClaimV1, EvidenceV1, SourceRecordV1
 from shared.research_store import (
     GovernanceFinding,
+    ResearchBeforeCommit,
     ResearchPackageGraph,
     SourceProvenanceRecord,
     persist_research_graph,
@@ -221,6 +222,7 @@ def persist_workspace_document(
     extractor_identity: str,
     db_path: str | Path,
     source_locator: str | None = None,
+    before_commit: ResearchBeforeCommit | None = None,
 ) -> ResearchPackageGraph:
     graph = build_workspace_document_graph(
         title=title,
@@ -229,4 +231,4 @@ def persist_workspace_document(
         extractor_identity=extractor_identity,
         source_locator=source_locator,
     )
-    return persist_research_graph(graph, db_path=db_path)
+    return persist_research_graph(graph, db_path=db_path, before_commit=before_commit)

@@ -39,7 +39,8 @@ def test_runtime_entrypoint_delegates_to_existing_migration_and_backup_apis():
     assert "backup.backup" in entrypoint
     assert "backup.restore" in entrypoint
     assert "backup.activate_restore" in entrypoint
-    assert "core_runtime_guard" in entrypoint
+    assert "core_runtime_guard" not in entrypoint
+    assert "core_runtime_guard" in (ROOT / "app" / "main.py").read_text(encoding="utf-8")
     assert "with backup.runtime_lease()" in entrypoint
     assert "storage.init()" not in entrypoint
     assert "memory_database.init_db()" not in entrypoint
@@ -47,7 +48,7 @@ def test_runtime_entrypoint_delegates_to_existing_migration_and_backup_apis():
     assert "INSERT INTO schema_migrations" not in entrypoint
 
 
-def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock(monkeypatch):
+def test_core_launcher_delegates_runtime_lock_ownership_to_asgi_lifespan(monkeypatch):
     from app import runtime_entrypoint
     from shared import backup
 
@@ -56,18 +57,7 @@ def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock
     class ExecReachedError(RuntimeError):
         pass
 
-    monkeypatch.setattr(backup, "acquire_runtime_lock", lambda: events.append("lock"))
-    monkeypatch.setattr(
-        backup,
-        "prepare_runtime_database",
-        lambda: events.append("checkpoint"),
-        raising=False,
-    )
-    monkeypatch.setattr(
-        runtime_entrypoint,
-        "_validate_storage_schema",
-        lambda: events.append("validate"),
-    )
+    monkeypatch.setattr(backup, "acquire_runtime_lock", lambda: events.append("unexpected-lock"))
 
     def stop_at_exec(_command):
         events.append("exec")
@@ -77,35 +67,7 @@ def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock
 
     with pytest.raises(ExecReachedError):
         runtime_entrypoint.run_core(Namespace())
-    assert events == ["lock", "checkpoint", "validate", "exec"]
-
-
-def test_core_launcher_uses_the_shared_runtime_guard(monkeypatch):
-    from app import runtime_entrypoint
-
-    events: list[str] = []
-
-    @contextmanager
-    def recording_guard(*, validate):
-        events.append("guard-enter")
-        validate()
-        try:
-            yield
-        finally:
-            events.append("guard-exit")
-
-    monkeypatch.setattr(runtime_entrypoint, "core_runtime_guard", recording_guard)
-    monkeypatch.setattr(runtime_entrypoint, "_validate_storage_schema", lambda: events.append("validate"))
-    monkeypatch.setattr(
-        runtime_entrypoint,
-        "_exec_process",
-        lambda _command: (_ for _ in ()).throw(RuntimeError("exec reached")),
-    )
-
-    with pytest.raises(RuntimeError, match="exec reached"):
-        runtime_entrypoint.run_core(Namespace())
-
-    assert events == ["guard-enter", "validate", "guard-exit"]
+    assert events == ["exec"]
 
 
 def test_core_runtime_guard_releases_its_lease_after_validation_failure(monkeypatch):
@@ -121,9 +83,11 @@ def test_core_runtime_guard_releases_its_lease_after_validation_failure(monkeypa
         events.append("validate")
         raise RuntimeError("schema unavailable")
 
-    with pytest.raises(RuntimeError, match="schema unavailable"):
-        with core_runtime_guard(validate=fail_validation):
-            pytest.fail("guard must not enter when validation fails")
+    with (
+        pytest.raises(RuntimeError, match="schema unavailable"),
+        core_runtime_guard(validate=fail_validation),
+    ):
+        pytest.fail("guard must not enter when validation fails")
 
     assert events == ["lock", "checkpoint", "validate", "release"]
 
