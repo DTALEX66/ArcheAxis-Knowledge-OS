@@ -181,6 +181,22 @@ jobs:
           assert (runtime / "cognitive_os.sqlite").exists()
           assert LOG_DIR == runtime / "logs" / "sleep-loop"
           PY
+          python - <<'PY'
+          import os
+          import sqlite3
+          from pathlib import Path
+
+          runtime = Path(os.environ["COGNITIVE_DATA_DIR"])
+          database = runtime / "cognitive_os.sqlite"
+          connection = sqlite3.connect(database)
+          checkpoint = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+          assert checkpoint[0] == 0, checkpoint
+          mode = connection.execute("PRAGMA journal_mode=DELETE").fetchone()[0]
+          assert mode.casefold() == "delete", mode
+          connection.close()
+          sidecars = [database.with_name(database.name + suffix) for suffix in ("-wal", "-shm")]
+          assert not [path for path in sidecars if path.exists()], sidecars
+          PY
           COGNITIVE_DATA_DIR="${RUNNER_TEMP}/inspiration-runtime" python - <<'PY'
           import app.research.github
           import shared.research_migration
