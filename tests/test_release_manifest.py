@@ -3,10 +3,14 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict
-from importlib.metadata import version as installed_version
 from pathlib import Path
 
 import pytest
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 
 def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> None:
@@ -50,7 +54,8 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "vector.documents": [],
         "workspace.sqlite": [migration.WORKSPACE_SCHEMA_MIGRATION_NAME],
     }
-    assert manifest["product"]["version"] == installed_version("cognitive-loop-os")
+    project_metadata = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    assert manifest["product"]["version"] == project_metadata["project"]["version"]
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",

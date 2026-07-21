@@ -2,7 +2,7 @@
 name = "archeaxis-desktop-shell"
 version = "0.4.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 
 [lib]
 name = "archeaxis_desktop_shell"

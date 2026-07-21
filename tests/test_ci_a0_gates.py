@@ -8,6 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 
 
+def _job_section(workflow: str, name: str, next_name: str) -> str:
+    return workflow.split(f"\n  {name}:", 1)[1].split(f"\n  {next_name}:", 1)[0]
+
+
 def test_ci_runs_javascript_and_real_browser_gates() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
@@ -26,17 +30,32 @@ def test_ci_runs_windows_runtime_smoke() -> None:
     assert "python scripts/runtime_http_smoke.py" in workflow
 
 
+def test_ci_minimal_jobs_include_runtime_server_without_editable_install() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    test_job = _job_section(workflow, "test", "lint")
+    ci_requirements = (ROOT / "requirements-ci.txt").read_text(encoding="utf-8").lower()
+
+    assert "uvicorn[standard]>=" in ci_requirements
+    assert "uv pip install --system --no-deps -e ." not in test_job
+
+
 def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
+    desktop_job = _job_section(workflow, "desktop-shell", "a0-gates")
 
     assert "desktop-shell:" in workflow
-    assert 'python-version: "3.11.15"' in workflow
-    assert "python -m desktop.scripts.prepare_bundle" in workflow
-    assert "cargo test --test backend_lifecycle -- --ignored --nocapture" in workflow
-    assert "npm run tauri -- build --bundles nsis" in workflow
-    assert "desktop/src-tauri/target/release/bundle/nsis/*.exe" in workflow
-    assert "Verify the installed NSIS lifecycle" in workflow
-    assert "desktop/scripts/verify_nsis_install.ps1" in workflow
+    assert 'python-version: "3.11"' in desktop_job
+    assert "python -m desktop.scripts.prepare_bundle" in desktop_job
+    assert "cargo install cargo-audit --version 0.22.2 --locked" in desktop_job
+    assert "cargo audit --file Cargo.lock" in desktop_job
+    assert "cargo test --test backend_lifecycle -- --ignored --nocapture" in desktop_job
+    assert "npm run tauri -- build --bundles nsis" in desktop_job
+    assert "Verify the installed NSIS lifecycle" in desktop_job
+    assert "./desktop/scripts/verify_nsis_install.ps1" in desktop_job
+    assert (
+        'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe"'
+        in desktop_job
+    )
 
 
 def test_desktop_shell_uses_the_product_version_everywhere() -> None:
@@ -68,6 +87,7 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
 
 def test_wheel_gate_requires_release_and_workspace_assets() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
+    wheel_job = _job_section(workflow, "wheel-smoke", "browser-smoke")
 
     for member in (
         '"app/release-manifest.json"',
@@ -78,6 +98,8 @@ def test_wheel_gate_requires_release_and_workspace_assets() -> None:
         assert member in workflow
     assert "assert client.get(\"/workspace\").status_code == 200" in workflow
     assert "assert client.get(\"/workspace/api/status\").status_code == 200" in workflow
+    assert "payload['job_id']" not in wheel_job
+    assert "SELECT job_id, aggregate_id FROM workspace_jobs_v1" in wheel_job
 
 
 def test_ci_exposes_one_stable_a0_required_check() -> None:

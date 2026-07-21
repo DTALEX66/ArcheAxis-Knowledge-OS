@@ -87,12 +87,11 @@ fn run_inner() -> Result<(), String> {
 
     let exit_backend = Arc::clone(&backend);
     app.run(move |_handle, event| {
-        if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
-            if let Ok(mut state) = exit_backend.lock() {
-                if let Some(process) = state.as_mut() {
-                    process.shutdown();
-                }
-            }
+        if matches!(event, tauri::RunEvent::ExitRequested { .. })
+            && let Ok(mut state) = exit_backend.lock()
+            && let Some(process) = state.as_mut()
+        {
+            process.shutdown();
         }
     });
     Ok(())

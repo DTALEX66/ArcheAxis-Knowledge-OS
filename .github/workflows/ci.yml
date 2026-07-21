@@ -164,17 +164,20 @@ jobs:
           python - <<'PY'
           import os
           import sys
+          from importlib.metadata import version as installed_version
           from pathlib import Path
 
           import knowledge_base.cards.generator
           import knowledge_base.machine_knowledge.a_to_b
           import knowledge_base.search
           from app.main import app
+          from app.release import load_release_manifest
           from fastapi.testclient import TestClient
           from knowledge_base.api import app as kb_app
           from shared.sleep_loop_engine import LOG_DIR
 
           assert not any(Path(path).name.lower() == "knowledge_base" for path in sys.path if path)
+          assert installed_version("cognitive-loop-os") == load_release_manifest()["product"]["version"]
           with TestClient(kb_app) as kb:
               assert kb.get("/health").status_code == 200
               assert kb.get("/reviews/due").status_code == 200
@@ -266,6 +269,8 @@ jobs:
           assert result["text"] == "installed wheel OCR"
           PY
           python - <<'PY'
+          import os
+          import sqlite3
           from pathlib import Path
 
           import app.workspace.job_outbox as job_outbox
@@ -287,9 +292,17 @@ jobs:
               )
               assert created.status_code == 200, created.text
               payload = created.json()
-              loaded = client.get(f"/workspace/api/jobs/{payload['job_id']}")
+              assert not {"package_id", "job_id", "command_id", "event_id"} & payload.keys()
+              database = Path(os.environ["COGNITIVE_DATA_DIR"]) / "cognitive_os.sqlite"
+              with sqlite3.connect(database) as connection:
+                  rows = connection.execute(
+                      "SELECT job_id, aggregate_id FROM workspace_jobs_v1"
+                  ).fetchall()
+              assert len(rows) == 1, rows
+              job_id, package_id = rows[0]
+              loaded = client.get(f"/workspace/api/jobs/{job_id}")
               assert loaded.status_code == 200, loaded.text
-              assert loaded.json()["package_id"] == payload["package_id"]
+              assert loaded.json()["package_id"] == package_id
               assert loaded.json()["state"] == "succeeded"
           PY
           python -c "from app.contracts.v1 import TaskPackV1, TaskStepV1; from app.adapters.taskpack import from_knowledge_taskpack, project_to_runtime, to_knowledge_taskpack; from app.facades import contracts; from knowledge_base.taskpack import TaskPack; legacy=TaskPack(task_id='task_wheel', goal='wheel contract', steps=[{'step_id':'s1','action':'read','tool':'file_read'}], allowed_tools=['file_read','echo'], blocked_tools=['shell_exec']); canonical=from_knowledge_taskpack(legacy); projection=project_to_runtime(canonical); assert canonical.schema_version == '1.0.0'; assert isinstance(canonical.steps[0], TaskStepV1); assert canonical.requested_tools == ['file_read']; assert projection.task.tools == ['file_read']; assert to_knowledge_taskpack(canonical).to_dict() == legacy.to_dict(); assert TaskPackV1.model_json_schema()['\$id'].endswith('/contracts/v1/taskpack.schema.json'); assert contracts.TaskPackV1 is TaskPackV1"
@@ -353,7 +366,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.11.15"
+          python-version: "3.11"
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
@@ -368,6 +381,11 @@ jobs:
         run: |
           cargo fmt --all -- --check
           cargo test --lib
+      - name: Audit locked Rust dependencies
+        working-directory: desktop/src-tauri
+        run: |
+          cargo install cargo-audit --version 0.22.2 --locked --force
+          cargo audit --file Cargo.lock
       - name: Prepare the installed Python runtime
         run: >-
           python -m desktop.scripts.prepare_bundle
