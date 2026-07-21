@@ -154,7 +154,33 @@ jobs:
           COGNITIVE_DATA_DIR: ${{ runner.temp }}/cognitive-runtime
         run: |
           python -m app.runtime_entrypoint migrate
-          python -c "from pathlib import Path; import os, sys; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); import knowledge_base.cards.generator, knowledge_base.machine_knowledge.a_to_b, knowledge_base.search; from knowledge_base.api import app as kb_app; from fastapi.testclient import TestClient; kb=TestClient(kb_app); assert kb.get('/health').status_code == 200; assert kb.get('/reviews/due').status_code == 200; assert kb.get('/mistakes').status_code == 200; assert kb.get('/a-to-b/candidates').status_code == 200; assert kb.get('/machine-knowledge').status_code == 200; assert not any(Path(p).name.lower() == 'knowledge_base' for p in sys.path if p); from app.main import app; from shared.sleep_loop_engine import LOG_DIR; c=TestClient(app); assert c.get('/health').status_code == 200; assert c.get('/kb').status_code == 200; runtime=Path(os.environ['COGNITIVE_DATA_DIR']); assert (runtime/'cognitive_os.sqlite').exists(); assert LOG_DIR == runtime/'logs'/'sleep-loop'"
+          python - <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          import knowledge_base.cards.generator
+          import knowledge_base.machine_knowledge.a_to_b
+          import knowledge_base.search
+          from app.main import app
+          from fastapi.testclient import TestClient
+          from knowledge_base.api import app as kb_app
+          from shared.sleep_loop_engine import LOG_DIR
+
+          assert not any(Path(path).name.lower() == "knowledge_base" for path in sys.path if path)
+          with TestClient(kb_app) as kb:
+              assert kb.get("/health").status_code == 200
+              assert kb.get("/reviews/due").status_code == 200
+              assert kb.get("/mistakes").status_code == 200
+              assert kb.get("/a-to-b/candidates").status_code == 200
+              assert kb.get("/machine-knowledge").status_code == 200
+          with TestClient(app) as client:
+              assert client.get("/health").status_code == 200
+              assert client.get("/kb").status_code == 200
+          runtime = Path(os.environ["COGNITIVE_DATA_DIR"])
+          assert (runtime / "cognitive_os.sqlite").exists()
+          assert LOG_DIR == runtime / "logs" / "sleep-loop"
+          PY
           python -c "import app.research.github, shared.research_store, shared.research_migration; from inspiration_research.intake.generator import generate_intake_card; from inspiration_research.contracts.generator import generate_contract; from inspiration_research.api import app as ir_app; from app.facades import get_research_package, ingest_candidate, query_knowledge, research_github_repository; from fastapi.testclient import TestClient; assert generate_intake_card('t','w',['x']).intake_id.startswith('intake_'); assert generate_contract('g',['d']).contract_id.startswith('contract_'); routes={route.path for route in ir_app.routes}; assert {'/research/github-repository', '/research/packages/{package_id}'} <= routes; assert TestClient(ir_app).get('/health').status_code == 200; assert all(callable(item) for item in (get_research_package, ingest_candidate, query_knowledge, research_github_repository))"
           python - <<'PY'
           import os

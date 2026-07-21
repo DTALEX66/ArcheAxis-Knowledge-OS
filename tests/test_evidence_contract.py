@@ -139,6 +139,8 @@ def test_server_verified_evidence_cannot_enter_legacy_verifier():
 
 def test_real_image_ocr_projects_only_to_caller_supplied_evidence(tmp_path):
     pytest.importorskip("pytesseract")
+    from pathlib import Path
+
     from PIL import Image, ImageDraw, ImageFont
 
     from app.adapters.evidence import from_match_result
@@ -152,8 +154,24 @@ def test_real_image_ocr_projects_only_to_caller_supplied_evidence(tmp_path):
     output.mkdir()
     image_path = source / "evidence.png"
     image = Image.new("RGB", (640, 160), "white")
+    font_path = next(
+        (
+            path
+            for path in (
+                Path("C:/Windows/Fonts/arial.ttf"),
+                Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+            )
+            if path.is_file()
+        ),
+        None,
+    )
+    if font_path is None:
+        pytest.skip("no supported OCR test font is installed")
     ImageDraw.Draw(image).text(
-        (20, 50), "Cognitive Evidence 2026", fill="black", font=ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 40)
+        (20, 50),
+        "Cognitive Evidence 2026",
+        fill="black",
+        font=ImageFont.truetype(str(font_path), 40),
     )
     image.save(image_path)
     ocr = extract_image_text(str(image_path), approved_roots=ApprovedRoots(source_roots=[source], output_roots=[output]))
