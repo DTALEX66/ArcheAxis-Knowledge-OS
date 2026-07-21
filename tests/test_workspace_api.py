@@ -90,6 +90,16 @@ def test_workspace_runtime_assets_are_packaged() -> None:
     assert '"app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js"]' in pyproject
 
 
+def test_workspace_page_router_reacts_to_browser_hash_changes() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
+
+    assert "addEventListener('hashchange'" in application
+    assert "openPage(location.hash.slice(1)||'overview')" in application
+
+
 def test_workspace_mutations_use_local_principal_without_api_credentials(monkeypatch) -> None:
     from app.main import app
     from app.workspace import router

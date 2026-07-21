@@ -17,4 +17,5 @@ $('#palette').addEventListener('click',e=>{if(e.target.id==='palette')$('#palett
 $('#intake-modal').addEventListener('click',e=>{if(e.target.id==='intake-modal')closeIntake()});
 $('#intake-url-form').addEventListener('submit',async e=>{e.preventDefault();const url=new FormData(e.currentTarget).get('url');showIntakeResult(await fetch('/workspace/api/intake/url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})}))});
 $('#intake-file-form').addEventListener('submit',async e=>{e.preventDefault();showIntakeResult(await fetch('/workspace/api/intake/upload',{method:'POST',body:new FormData(e.currentTarget)}))});
+window.addEventListener('hashchange',()=>openPage(location.hash.slice(1)||'overview'));
 setTheme(state.theme);openPage(location.hash.slice(1)||'overview');setInterval(()=>{const t=new Date();$('#clock').textContent=t.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},1000);
