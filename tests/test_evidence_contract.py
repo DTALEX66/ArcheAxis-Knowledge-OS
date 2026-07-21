@@ -136,6 +136,37 @@ def test_server_verified_evidence_cannot_enter_legacy_verifier():
         to_legacy_verification_evidence(server_owned)
 
 
+
+def test_real_image_ocr_projects_only_to_caller_supplied_evidence(tmp_path):
+    pytest.importorskip("pytesseract")
+    from PIL import Image, ImageDraw, ImageFont
+
+    from app.adapters.evidence import from_match_result
+    from shared.approved_paths import ApprovedRoots
+    from shared.evidence_verification import match_evidence
+    from shared.media_extractor import extract_image_text
+
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    source.mkdir()
+    output.mkdir()
+    image_path = source / "evidence.png"
+    image = Image.new("RGB", (640, 160), "white")
+    ImageDraw.Draw(image).text(
+        (20, 50), "Cognitive Evidence 2026", fill="black", font=ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 40)
+    )
+    image.save(image_path)
+    ocr = extract_image_text(str(image_path), approved_roots=ApprovedRoots(source_roots=[source], output_roots=[output]))
+    if "error" in ocr:
+        pytest.skip(ocr["error"])
+    matched = match_evidence(["Cognitive Evidence 2026"], [{"source": str(image_path), "location": "image", "asset": str(image_path), "kind": "image", "text": ocr["text"]}])
+    evidence = from_match_result(matched, evidence_id="evidence-ocr-001", claim_id="claim-ocr-001").evidence
+
+    assert evidence.status == "matched"
+    assert evidence.provenance_status == "caller_supplied"
+    assert evidence.requires_human_review is True
+
+
 def test_contracts_facade_exports_evidence_v1_and_adapters():
     from app.adapters.evidence import from_match_result, to_legacy_verification_evidence
     from app.contracts.v1 import EvidenceV1
