@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import tempfile
+import threading
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
@@ -26,6 +27,12 @@ from app.workspace.job_outbox import command_request_fingerprint, record_complet
 from shared.research_store import ResearchPackageGraph, load_research_package
 
 MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
+_COMMAND_LOCKS = tuple(threading.RLock() for _ in range(64))
+
+
+def _command_lock(command_id: str) -> threading.RLock:
+    digest = sha256(command_id.encode("utf-8")).digest()
+    return _COMMAND_LOCKS[int.from_bytes(digest[:4], "big") % len(_COMMAND_LOCKS)]
 
 
 def _intake_command_id(package_id: str) -> str:
@@ -345,24 +352,25 @@ def _require_matching_practice_command(
 
 
 def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
-    _require_matching_promotion_command(
-        command_id=command_id,
-        package_id=package_id,
-        reviewer_id=reviewer_id,
-        rationale=rationale,
-        db_path=db_path,
-    )
-    receipt = promote_research_package_to_candidates(
-        ResearchKnowledgeApproval(
-            approval_id=command_id,
+    with _command_lock(command_id):
+        _require_matching_promotion_command(
+            command_id=command_id,
             package_id=package_id,
             reviewer_id=reviewer_id,
-            decision="approved",
             rationale=rationale,
-            reviewed_at=now_utc(),
-        ),
-        db_path=db_path,
-    )
+            db_path=db_path,
+        )
+        receipt = promote_research_package_to_candidates(
+            ResearchKnowledgeApproval(
+                approval_id=command_id,
+                package_id=package_id,
+                reviewer_id=reviewer_id,
+                decision="approved",
+                rationale=rationale,
+                reviewed_at=now_utc(),
+            ),
+            db_path=db_path,
+        )
     return {
         "command_id": command_id,
         "promotion_id": receipt.promotion_id,
@@ -373,23 +381,24 @@ def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rati
 
 
 def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
-    _require_matching_learning_command(
-        command_id=command_id,
-        unit_id=unit_id,
-        reviewer_id=reviewer_id,
-        rationale=rationale,
-        db_path=db_path,
-    )
-    reviewed_at = now_utc()
-    artifact, card_ids = start_and_approve_learning_candidate(
-        unit_id=unit_id,
-        approval_id=command_id,
-        approval_command_id=f"local-approval-{command_id}",
-        reviewer_id=reviewer_id,
-        rationale=rationale,
-        reviewed_at=reviewed_at,
-        db_path=db_path,
-    )
+    with _command_lock(command_id):
+        _require_matching_learning_command(
+            command_id=command_id,
+            unit_id=unit_id,
+            reviewer_id=reviewer_id,
+            rationale=rationale,
+            db_path=db_path,
+        )
+        reviewed_at = now_utc()
+        artifact, card_ids = start_and_approve_learning_candidate(
+            unit_id=unit_id,
+            approval_id=command_id,
+            approval_command_id=f"local-approval-{command_id}",
+            reviewer_id=reviewer_id,
+            rationale=rationale,
+            reviewed_at=reviewed_at,
+            db_path=db_path,
+        )
     return {
         "command_id": command_id,
         "artifact_id": artifact.artifact_id,
@@ -399,27 +408,29 @@ def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale
 
 
 def approve_learning(*, command_id: str, artifact_id: str, reviewer_id: str, db_path: str | Path) -> dict:
-    card_ids = approve_learning_artifact(
-        artifact_id=artifact_id,
-        command_id=command_id,
-        reviewer_id=reviewer_id,
-        reviewed_at=now_utc(),
-        db_path=db_path,
-    )
+    with _command_lock(command_id):
+        card_ids = approve_learning_artifact(
+            artifact_id=artifact_id,
+            command_id=command_id,
+            reviewer_id=reviewer_id,
+            reviewed_at=now_utc(),
+            db_path=db_path,
+        )
     return {"command_id": command_id, "artifact_id": artifact_id, "card_ids": card_ids, "status": "approved"}
 
 
 def record_practice(*, command_id: str, artifact_id: str, quality: int, db_path: str | Path) -> dict:
-    _require_matching_practice_command(
-        command_id=command_id, artifact_id=artifact_id, quality=quality, db_path=db_path
-    )
-    result = record_practice_evidence(
-        artifact_id=artifact_id,
-        command_id=command_id,
-        quality=quality,
-        recorded_at=now_utc(),
-        db_path=db_path,
-    )
+    with _command_lock(command_id):
+        _require_matching_practice_command(
+            command_id=command_id, artifact_id=artifact_id, quality=quality, db_path=db_path
+        )
+        result = record_practice_evidence(
+            artifact_id=artifact_id,
+            command_id=command_id,
+            quality=quality,
+            recorded_at=now_utc(),
+            db_path=db_path,
+        )
     return {
         "command_id": command_id,
         "artifact_id": artifact_id,
