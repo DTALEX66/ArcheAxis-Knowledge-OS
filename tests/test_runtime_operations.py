@@ -16,6 +16,17 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+def test_runtime_entrypoint_defaults_to_loopback_and_allows_explicit_host_override(monkeypatch):
+    from app import runtime_entrypoint
+
+    monkeypatch.delenv("COGNITIVE_HOST", raising=False)
+    assert runtime_entrypoint._uvicorn_command("app.main:app", 8000)[5] == "127.0.0.1"
+
+    monkeypatch.setenv("COGNITIVE_HOST", "0.0.0.0")
+    assert runtime_entrypoint._uvicorn_command("app.main:app", 8000)[5] == "0.0.0.0"
+
+
 def test_runtime_entrypoint_delegates_to_existing_migration_and_backup_apis():
     entrypoint = (ROOT / "app" / "runtime_entrypoint.py").read_text(encoding="utf-8")
     assert "MigrationOperator" in entrypoint

@@ -28,7 +28,7 @@ def _uvicorn_command(app_path: str, default_port: int) -> list[str]:
         "uvicorn",
         app_path,
         "--host",
-        os.getenv("COGNITIVE_HOST", "0.0.0.0"),
+        os.getenv("COGNITIVE_HOST", "127.0.0.1"),
         "--port",
         os.getenv("COGNITIVE_PORT", str(default_port)),
         *UVICORN_WORKER_ARGS,

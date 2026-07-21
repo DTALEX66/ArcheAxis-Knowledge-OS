@@ -8,7 +8,7 @@ app:
   release_version: ""
   environment: "development"
   port: 8000
-  host: "0.0.0.0"
+  host: "127.0.0.1"
 
 database:
   path: "data/cognitive_os.sqlite"
