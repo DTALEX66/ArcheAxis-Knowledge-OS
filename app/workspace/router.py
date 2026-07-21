@@ -130,6 +130,12 @@ def workspace_diagnostics() -> dict[str, object]:
     return diagnostics()
 
 
+@router.get("/api/status")
+def workspace_status(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_status(db_path=DB_PATH))
+
+
 @router.post("/api/intake/url")
 def intake_url(payload: IntakeURL, request: Request) -> dict:
     _local_principal(request)

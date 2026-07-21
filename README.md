@@ -2,7 +2,7 @@
 
 ## 当前产品状态
 
-元枢系统 / ArcheAxis OS 是本地优先、证据驱动的认知闭环系统；统一工作台为“元枢·观心 / ArcheAxis Cognitive Workspace”。当前浏览器工作台已接入真实网页、GitHub URL 与本地文件导入，Learning 与 Machine Knowledge 使用持久治理收据，真实媒体基础链已完成音轨和关键帧提取。Job/Outbox、完整 OCR/ASR、Installer 与公开发布仍在推进，详见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 和 [`docs/HANDOFF_2026-07-21.md`](docs/HANDOFF_2026-07-21.md)。
+元枢系统 / ArcheAxis OS 是本地优先、证据驱动的认知闭环系统；统一工作台为“元枢·观心 / ArcheAxis Cognitive Workspace”。当前浏览器工作台已接入真实网页、GitHub URL 与本地文件导入；Research graph、Job、Outbox 与命令收据可同事务持久化并严格读回，Learning 与 Machine Knowledge 使用持久治理收据。真实媒体基础链已完成音轨、关键帧和依赖驱动的图像 OCR 验证；ASR、Outbox dispatcher、异步 Worker、Installer 与公开发布仍未完成。详见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 和 [`docs/HANDOFF_2026-07-21.md`](docs/HANDOFF_2026-07-21.md)。
 
 ## Phase 4 Research Status
 
@@ -31,7 +31,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、Evaluation、Sleep Loop 与 Alpha tracer 均已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口，但将这些构件收敛为 migration-owned Job/Outbox/audit 时间线仍是后续高风险切片。Phase 10 已建立本地只读 diagnostics baseline 和 FFmpeg 媒体基础链；完整 OCR/ASR、Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口和 migration-owned Job/Outbox/receipt 同事务边界，但异步 Worker、dispatcher、统一 audit timeline 与 SSE 尚未实现。当前已建立本地 diagnostics、Release Manifest、FFmpeg 媒体基础链和图像 OCR 基线；ASR、Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
 
 ## 规划与进度
 
@@ -46,11 +46,11 @@ Research → Evidence → Knowledge → Learning
 | Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ✅ 核心边界完成 | Safe HTTP、roots、stable hash、Vector/FTS 与统一 Migration Runner 已接通 |
 | Phase 4 | Research 闭环 | ✅ candidate-only 闭环完成 | GitHub URL → quarantined sources → claims/evidence/findings → SQLite → strict read |
 | Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
-| Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ✅ 最小真实闭环完成 | Planner、Permission、Evidence、Evaluation、Lesson 与 Sleep Loop 已验证 |
-| Phase 9 | Minimum Complete System Alpha | ✅ 五条端到端闭环完成 | 完整本地 release 门禁已通过 |
-| Phase 10 | 产品化、诊断、媒体摄入、升级与多端发布 | 🟡 Workspace/diagnostics/媒体基础链推进中 | Job/Outbox、OCR/ASR、Installer 与公开 release 仍须按独立 TaskPack 收口 |
+| Phase 7–8 | 受限 Planner tracer、多维 Evaluation、Sleep Loop 构件 | 🟡 首条纵向 tracer 完成 | `read file:`、Permission、Evidence、Evaluation 与 Lesson 已验证；通用 Planner 和统一执行端口未完成 |
+| Phase 9 | Contract & Tracer Alpha | ✅ 历史合同/追踪基线完成 | 不等于完整产品 Alpha，也不证明公开 release |
+| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线已交付；ASR、浏览器/Windows门禁、Installer 与公开 release 仍待完成 |
 
-### 当前里程碑：Phase 10 本地 Workspace 与真实媒体摄入
+### 当前里程碑：Product Stage A0 真相基线
 
 ```text
 Phase 0 真实基线 ✅
@@ -74,13 +74,13 @@ Phase 0 真实基线 ✅
 → 通用 Migration Runner + Phase 3 集成验收 ✅
 → GitHub Research candidate-only 持久化闭环 ✅
 → Knowledge/Learning/Mastery/Machine Knowledge 治理 ✅
-→ Dynamic Planner、Evaluation 与 Sleep Loop 最小闭环 ✅
-→ Phase 9 五条 Alpha 端到端闭环 ✅
+→ `read file:` Planner tracer、Evaluation 与 Sleep Loop 构件 ✅
+→ Phase 9 Contract & Tracer Alpha 历史基线 ✅
 ```
 
-下一刀：先恢复真实 OCR 依赖并完成时间戳 Evidence，再建立正式 Workspace migration owner 和 graph/Job/Outbox 同事务闭环。已完成 Alpha 闭环仍保留审批、版本、弃用和 provenance 边界；不因通过门禁自动提升 candidate 为 verified truth。
+下一刀：完成 Stage A0 的真相文档、Release Manifest、JS/浏览器/Windows/fresh-wheel 门禁，再进入显式治理、异步 Worker、Outbox dispatcher、SSE 和用户级 Job Center。图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
 
-本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或 Phase 10 的多端发布、Installer、公开 Alpha/Beta/Stable 已完成。
+本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或多端发布、Installer、公开 Alpha/Beta/Stable 已完成。
 
 未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
 
@@ -88,6 +88,7 @@ Phase 0 真实基线 ✅
 
 ```bash
 python -m pip install -e ".[dev]"
+python -m app.runtime_entrypoint migrate
 python -m app.runtime_entrypoint core
 ```
 
@@ -101,7 +102,7 @@ python -m app.runtime_entrypoint core
 | 入口 | 作用 |
 |---|---|
 | `POST /run` | route → retrieve → supported-intent plan → permission → real tool evidence → multidimensional evaluation → lesson；当前已验证 `read file:` 纵向切片 |
-| `GET /diagnostics` | 本地只读 runtime/health 与 migration 状态计数；不泄露路径或 provenance，release metadata 未注入时明确为 unavailable |
+| `GET /diagnostics` | 本地只读 runtime/health、migration 状态计数和安全的 unreleased manifest 摘要；不泄露路径或 provenance |
 | `POST /kb/pipeline` | 提取、标签、摘要、事实候选与索引；不自动证明事实正确 |
 | `POST /kb/search` | 关键词、向量或混合检索 |
 | `GET/POST /sleep-loop?action=...` | 有证据约束的无人值守任务循环 |

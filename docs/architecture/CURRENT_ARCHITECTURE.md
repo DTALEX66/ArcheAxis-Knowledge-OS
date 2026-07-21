@@ -20,6 +20,10 @@ app.main :8000
 │   ├── retrieval / tools / evaluation
 │   ├── memory / trace / lesson
 │   └── sleep-loop
+├── /workspace local product shell
+│   ├── URL / GitHub / file intake
+│   ├── aggregate status / diagnostics
+│   └── synchronous Job / Outbox / Receipt persistence
 └── /kb mounted sub-application
     ├── routers/composite.py
     ├── routers/quality.py
@@ -31,7 +35,7 @@ app.main :8000
 SQLite + FTS5 + sqlite-vec + NetworkX + local artifacts
 ```
 
-数据库和索引变更由 `shared.migration_runner.MigrationOperator` 统一编排。确定性 registry 注册 TaskPack SQLite、Phase 4 Research SQLite、Vector documents/cards 和 FTS documents/cards owner；SQLite owner 复用 `shared/migration.py` 的 ledger、verified backup/manifest、幂等、碰撞检测与 offline rollback，并在同一 schema transaction 内写入 operator provenance。当前 schema 的 fresh TaskPack 表在 ledger-only apply 前仍创建 verified backup；缺失目标表的空数据库 fail closed。TaskPack whole-file rollback 先核对排除 operator 元数据的 post-apply 逻辑 fingerprint，数据/架构漂移时拒绝恢复，并在临时 replacement 中保全当前 operator provenance 后才原子替换。FTS owner 使用无 import-time storage 初始化的显式目标模块；Vector candidate 同时校验 ID、embedding-byte fingerprint 与 canonical source snapshot；Vector/FTS active switch、rollback handle 与 applied provenance 同 transaction 提交，Vector rollback 也在同一 transaction 内恢复 active rows 并清理 candidate/backup。跨进程 owner lease 位于目标数据库相邻的隐藏 SQLite sidecar（`.<database-name>.<path-digest>.migration_operator_locks.lockdb`，digest 为 resolved database path 经 case-fold 后 SHA-256 的前 16 位十六进制字符），目标数据库替换不会释放 lease，且 token-scoped release 不会删除其他进程的 lease；显式 backup 目录仅保存 verified backup 与 manifest。CLI 仅接受显式数据库与 backup 目录，并输出 pending/applied/failed/rolled_back provenance。
+数据库和索引变更由 `shared.migration_runner.MigrationOperator` 统一编排。确定性 registry 注册九个 owner：Core、TaskPack、Phase 4 Research、Knowledge Governance、Workspace SQLite，以及 Vector/FTS documents/cards；SQLite owner 复用 `shared/migration.py` 的 ledger、verified backup/manifest、幂等、碰撞检测与 offline rollback，并在同一 schema transaction 内写入 operator provenance。当前 schema 的 fresh TaskPack 表在 ledger-only apply 前仍创建 verified backup；缺失目标表的空数据库 fail closed。TaskPack whole-file rollback 先核对排除 operator 元数据的 post-apply 逻辑 fingerprint，数据/架构漂移时拒绝恢复，并在临时 replacement 中保全当前 operator provenance 后才原子替换。FTS owner 使用无 import-time storage 初始化的显式目标模块；Vector candidate 同时校验 ID、embedding-byte fingerprint 与 canonical source snapshot；Vector/FTS active switch、rollback handle 与 applied provenance 同 transaction 提交，Vector rollback 也在同一 transaction 内恢复 active rows 并清理 candidate/backup。跨进程 owner lease 位于目标数据库相邻的隐藏 SQLite sidecar（`.<database-name>.<path-digest>.migration_operator_locks.lockdb`，digest 为 resolved database path 经 case-fold 后 SHA-256 的前 16 位十六进制字符），目标数据库替换不会释放 lease，且 token-scoped release 不会删除其他进程的 lease；显式 backup 目录仅保存 verified backup 与 manifest。CLI 仅接受显式数据库与 backup 目录，并输出 pending/applied/failed/rolled_back provenance。
 
 ## 主闭环
 
@@ -106,5 +110,5 @@ Knowledge Facade 当前只承诺 keyword 模式，不把 vector/hybrid 实现细
 - `knowledge_base/api.py` 已将复合、质量和投影路由拆出，但仍有遗留领域路由；后续按 search/learning/obsidian/admin 继续迁移。
 - Knowledge Base 已迁为正规可安装包；2026-07-14 本地隔离 wheel smoke 已验证模板、运行入口和 runtime root，远端 CI 仍以提交后的实际结果为准。
 - 旧细粒度 API 尚未全部隐藏或废弃，因此实时路由数仍较高。
-- Safe HTTP、approved roots、versioned stable hash、Vector/FTS shadow rebuild/switch/rollback 与通用 migration registry/operator 已建立并完成 Phase 3 跨 owner 集成验收；Phase 4 新增 operator-only `research.sqlite` owner。
+- Safe HTTP、approved roots、versioned stable hash、Vector/FTS shadow rebuild/switch/rollback 与通用 migration registry/operator 已建立；当前 registry 同时拥有 Core、TaskPack、Research、Knowledge Governance 与 Workspace SQLite schema。
 - Runtime 只验证了 `file_read` 显式意图；通用 Planner、Reviewed Feedback 与 Sleep Loop 统一执行 port 仍待完成。

@@ -74,6 +74,7 @@ exclude = [
 namespaces = true
 
 [tool.setuptools.package-data]
+app = ["release-manifest.json"]
 "app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js"]
 knowledge_base = ["templates/*.html", "static/**/*"]
 config = ["*.yaml"]
