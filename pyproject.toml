@@ -34,6 +34,7 @@ dependencies = [
 
 [dependency-groups]
 build = ["setuptools==83.0.0"]
+browser = ["playwright>=1.61,<1.62"]
 
 [project.optional-dependencies]
 dev = [

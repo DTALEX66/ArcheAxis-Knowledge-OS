@@ -23,7 +23,7 @@
   "dependency_lock": {
     "path": "uv.lock",
     "algorithm": "sha256",
-    "digest": "450410bb40f095bb0c9d9e7fd7d28c2a60c695911445d0dd2f2d26e761cdd35f",
+    "digest": "2e4fd5aca736c3ac5ff74eaa0cd4e7c55b0e88e360c5cf3faf10fa71ce8c666c",
     "format_version": 1,
     "revision": 3
   },

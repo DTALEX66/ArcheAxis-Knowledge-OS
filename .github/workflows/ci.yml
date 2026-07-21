@@ -81,6 +81,9 @@ jobs:
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
 
+      - name: Validate Workspace JavaScript syntax
+        run: node --check app/workspace/ui/assets/app.js
+
   wheel-smoke:
     runs-on: ubuntu-latest
     steps:
@@ -105,9 +108,13 @@ jobs:
           with zipfile.ZipFile(wheel) as archive:
               names = set(archive.namelist())
           required = {
+              "app/release-manifest.json",
               "app/runtime_entrypoint.py",
               "app/research/github.py",
               "app/workspace/job_outbox.py",
+              "app/workspace/ui/index.html",
+              "app/workspace/ui/assets/styles.css",
+              "app/workspace/ui/assets/app.js",
               "shared/research_store.py",
               "shared/research_migration.py",
               "shared/media_extractor.py",
@@ -177,6 +184,8 @@ jobs:
           with TestClient(app) as client:
               assert client.get("/health").status_code == 200
               assert client.get("/kb").status_code == 200
+              assert client.get("/workspace").status_code == 200
+              assert client.get("/workspace/api/status").status_code == 200
           runtime = Path(os.environ["COGNITIVE_DATA_DIR"])
           assert (runtime / "cognitive_os.sqlite").exists()
           assert LOG_DIR == runtime / "logs" / "sleep-loop"
@@ -286,3 +295,72 @@ jobs:
           python -c "from app.contracts.v1 import TaskPackV1, TaskStepV1; from app.adapters.taskpack import from_knowledge_taskpack, project_to_runtime, to_knowledge_taskpack; from app.facades import contracts; from knowledge_base.taskpack import TaskPack; legacy=TaskPack(task_id='task_wheel', goal='wheel contract', steps=[{'step_id':'s1','action':'read','tool':'file_read'}], allowed_tools=['file_read','echo'], blocked_tools=['shell_exec']); canonical=from_knowledge_taskpack(legacy); projection=project_to_runtime(canonical); assert canonical.schema_version == '1.0.0'; assert isinstance(canonical.steps[0], TaskStepV1); assert canonical.requested_tools == ['file_read']; assert projection.task.tools == ['file_read']; assert to_knowledge_taskpack(canonical).to_dict() == legacy.to_dict(); assert TaskPackV1.model_json_schema()['\$id'].endswith('/contracts/v1/taskpack.schema.json'); assert contracts.TaskPackV1 is TaskPackV1"
           cognitive-os health
           cognitive-os stats
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked browser test dependencies
+        run: |
+          uv pip install --system -r requirements-ci.txt
+          uv export --frozen --only-group browser --no-emit-project --format requirements-txt --output-file locked-browser.txt
+          uv pip install --system --require-hashes -r locked-browser.txt
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Run real Workspace browser regressions
+        env:
+          COGNITIVE_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
+        run: python scripts/a0_browser_smoke.py
+
+  windows-runtime-smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: requirements-ci.txt
+      - name: Install minimal runtime smoke dependencies
+        run: uv pip install --system -r requirements-ci.txt
+      - name: Migrate fresh Windows runtime
+        env:
+          COGNITIVE_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+        run: python -m app.runtime_entrypoint migrate
+      - name: Run Windows Core and Workspace HTTP smoke
+        env:
+          COGNITIVE_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+        run: python scripts/runtime_http_smoke.py
+
+  a0-gates:
+    if: ${{ always() }}
+    needs: [test, lint, wheel-smoke, browser-smoke, windows-runtime-smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every A0 gate
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          WHEEL_RESULT: ${{ needs.wheel-smoke.result }}
+          BROWSER_RESULT: ${{ needs.browser-smoke.result }}
+          WINDOWS_RESULT: ${{ needs.windows-runtime-smoke.result }}
+        run: |
+          for result in "$TEST_RESULT" "$LINT_RESULT" "$WHEEL_RESULT" "$BROWSER_RESULT" "$WINDOWS_RESULT"; do
+            if [ "$result" != "success" ]; then
+              echo "A0 dependency failed or was skipped: $result"
+              exit 1
+            fi
+          done
