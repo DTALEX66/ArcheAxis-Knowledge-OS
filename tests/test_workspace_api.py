@@ -100,6 +100,33 @@ def test_workspace_page_router_reacts_to_browser_hash_changes() -> None:
     assert "openPage(location.hash.slice(1)||'overview')" in application
 
 
+def test_workspace_diagnostics_ui_uses_the_safe_diagnostics_api() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
+    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
+
+    assert 'id="diagnostics-summary"' in page
+    assert "'/workspace/api/diagnostics'" in application
+    assert "诊断数据不可用" in application
+
+
+def test_workspace_job_center_is_collapsed_by_default_without_inline_display_toggle() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
+    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
+    styles = (root / "app/workspace/ui/assets/styles.css").read_text(encoding="utf-8")
+
+    assert 'class="job collapsed"' in page
+    assert "原型任务" in page
+    assert "j.classList.toggle('open')" in application
+    assert "j.style.display" not in application
+    assert ".job.collapsed" in styles
+
+
 def test_workspace_mutations_use_local_principal_without_api_credentials(monkeypatch) -> None:
     from app.main import app
     from app.workspace import router
