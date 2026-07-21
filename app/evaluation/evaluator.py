@@ -27,6 +27,7 @@ def evaluate(trace: ExecutionTrace) -> EvalResult:
         "execution": execution_complete,
         "steps": steps_complete,
         "evidence": evidence_complete,
+        "safety": safety_complete,
     }
     success = all(dimensions.values())
     score = round(sum(dimensions.values()) / len(dimensions), 3)
@@ -86,7 +87,7 @@ def evaluate(trace: ExecutionTrace) -> EvalResult:
         improvement=(
             "retain the trace-bound evidence path"
             if success
-            else "require completed ok steps with attributable non-dry-run tool evidence"
+            else "require completed safe steps with attributable non-dry-run tool evidence"
         ),
         dimensions=reported_dimensions,
     )

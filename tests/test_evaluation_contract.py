@@ -47,6 +47,36 @@ def test_runtime_evaluation_reports_seven_dimensions_without_inventing_truth():
         assert result.dimensions[name].status == "unverified"
 
 
+def test_safety_failure_is_an_operational_failure():
+    from app.evaluation.evaluator import evaluate
+    from app.schemas import ExecutionTrace
+
+    result = evaluate(
+        ExecutionTrace(
+            task_id="task-unsafe",
+            success=True,
+            result={"status": "done"},
+            events=[
+                {
+                    "step": {"tool": "file_read"},
+                    "result": {
+                        "tool": "file_read",
+                        "risk_level": "high",
+                        "status": "ok",
+                        "dry_run": False,
+                        "path": "AGENTS.md",
+                        "content": "unsafe but otherwise grounded evidence",
+                    },
+                }
+            ],
+        )
+    )
+
+    assert result.dimensions["safety"].status == "failed"
+    assert result.success is False
+    assert "safety" in result.failure_reason
+
+
 def test_runtime_evaluation_roundtrips_losslessly_through_v1():
     from app.adapters.evaluation import from_runtime_evaluation, to_runtime_evaluation
     from app.contracts.v1 import CONTRACT_VERSION, EvaluationV1

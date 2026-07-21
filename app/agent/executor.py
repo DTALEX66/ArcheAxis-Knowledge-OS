@@ -31,6 +31,7 @@ def execute(task: TaskPack, permission: PermissionDecision | None = None) -> Exe
         return trace
 
     blocked_set = set(permission.blocked_tools) if permission else set()
+    allowed_set = set(permission.allowed_tools) if permission else None
     results: list[dict] = []
     success = True
 
@@ -38,7 +39,7 @@ def execute(task: TaskPack, permission: PermissionDecision | None = None) -> Exe
         tool_name = step.get("tool", "echo")
 
         # ── Block gated tools ──
-        if tool_name in blocked_set:
+        if tool_name in blocked_set or (allowed_set is not None and tool_name not in allowed_set):
             event = {
                 "step": step,
                 "result": {
@@ -56,7 +57,7 @@ def execute(task: TaskPack, permission: PermissionDecision | None = None) -> Exe
 
         # ── Determine dry_run from permission policy ──
         dry_run = step.get("dry_run")
-        if dry_run is None and permission and permission.risk_level in ("medium", "high"):
+        if permission and permission.risk_level in ("medium", "high"):
             dry_run = True
 
         result = run_tool(tool_name, step, dry_run=dry_run)

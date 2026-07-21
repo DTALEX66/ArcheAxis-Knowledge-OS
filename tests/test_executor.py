@@ -54,3 +54,60 @@ class TestExecutor:
         for event in trace.events:
             # Events have 'step' dict containing step details
             assert "step" in event or "result" in event
+
+    def test_step_tool_must_be_explicitly_allowed(self, monkeypatch):
+        task = TaskPack(
+            id="task_test_001",
+            goal="reject an undeclared write",
+            steps=[{"step_id": "s1", "tool": "safe_write", "dry_run": False}],
+            tools=["safe_write"],
+        )
+        permission = PermissionDecision(
+            task_id=task.id,
+            risk_level="low",
+            allowed_tools=[],
+            blocked_tools=[],
+            reason="test",
+        )
+        monkeypatch.setattr(
+            "app.agent.executor.run_tool",
+            lambda *args, **kwargs: (_ for _ in ()).throw(
+                AssertionError("an unauthorized tool must not execute")
+            ),
+        )
+
+        trace = execute(task, permission)
+
+        assert trace.success is False
+        assert trace.events[0]["result"]["status"] == "blocked"
+
+    def test_medium_risk_forces_dry_run_even_when_step_requests_real_run(self, monkeypatch):
+        task = TaskPack(
+            id="task_test_001",
+            goal="preview a write",
+            steps=[{"step_id": "s1", "tool": "safe_write", "dry_run": False}],
+            tools=["safe_write"],
+        )
+        permission = PermissionDecision(
+            task_id=task.id,
+            risk_level="medium",
+            allowed_tools=["safe_write"],
+            reason="medium-risk tools are dry-run only",
+        )
+        calls = []
+
+        def tracked(tool_name, step, *, dry_run):
+            calls.append((tool_name, dry_run))
+            return {
+                "tool": tool_name,
+                "risk_level": "medium",
+                "dry_run": dry_run,
+                "status": "ok",
+            }
+
+        monkeypatch.setattr("app.agent.executor.run_tool", tracked)
+
+        trace = execute(task, permission)
+
+        assert trace.success is True
+        assert calls == [("safe_write", True)]
