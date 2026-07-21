@@ -12,6 +12,8 @@ from contextlib import closing
 from pathlib import Path
 from typing import NoReturn
 
+from shared.runtime_guard import core_runtime_guard
+
 UVICORN_WORKER_ARGS = ["--workers", "1"]
 
 
@@ -75,12 +77,8 @@ def _json_default(value: object) -> str:
 
 
 def run_core(_: argparse.Namespace) -> NoReturn:
-    from shared import backup
-
-    backup.acquire_runtime_lock()
-    backup.prepare_runtime_database()
-    _validate_storage_schema()
-    _exec_process(_uvicorn_command("app.main:app", 8000))
+    with core_runtime_guard(validate=_validate_storage_schema):
+        _exec_process(_uvicorn_command("app.main:app", 8000))
 
 
 def run_migration(_: argparse.Namespace) -> int:

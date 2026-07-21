@@ -167,8 +167,8 @@ def test_concurrent_gateway_calls_cannot_oversubscribe_a_bucket(monkeypatch):
     )
 
     def request_once(_: int) -> int:
-        with TestClient(app, client=("198.51.100.30", 50000)) as client:
-            return client.get("/version").status_code
+        client = TestClient(app, client=("198.51.100.30", 50000))
+        return client.get("/version").status_code
 
     with ThreadPoolExecutor(max_workers=20) as executor:
         statuses = list(executor.map(request_once, range(20)))
