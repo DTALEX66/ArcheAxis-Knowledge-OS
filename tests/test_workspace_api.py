@@ -720,76 +720,88 @@ def test_workspace_http_commands_serialize_same_id_semantic_conflicts(
     from app.facades.research import research_github_repository
     from app.main import app
     from app.workspace import router
+    from shared import storage
     from shared.config import config
+    from shared.migration_runner import MigrationOperator
     from tests.test_phase4_research_github import _transport
     from tests.test_phase5_mcs_closed_loop import _database
 
     database = _database(tmp_path)
+    operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups")
+    operator.apply("taskpack.sqlite")
+    operator.apply("workspace.sqlite")
     monkeypatch.setattr(router, "DB_PATH", database)
+    monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setitem(config._data["auth"], "enabled", False)
     monkeypatch.setitem(config._data["rate_limit"], "enabled", False)
     graph = research_github_repository(
         "https://github.com/octo/loop-os", fetcher=_transport(), db_path=database
     )
 
-    def post(path: str, payload: dict[str, object]):
-        return TestClient(app).post(path, json=payload)
+    with TestClient(app) as client:
 
-    promotion_payloads = [
-        {
-            "command_id": "concurrent-promote",
-            "package_id": graph.package.package_id,
-            "rationale": "semantic-a" if index < 4 else "semantic-b",
-        }
-        for index in range(8)
-    ]
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        promotions = list(
-            pool.map(
-                lambda payload: post("/workspace/api/commands/promote-research", payload),
-                promotion_payloads,
-            )
-        )
-    assert sorted(response.status_code for response in promotions) == [200] * 4 + [409] * 4
-    promotion = next(response.json() for response in promotions if response.status_code == 200)
-    claim_id = next(item for item in promotion["unit_ids"] if "claim" in item)
+        def post(path: str, payload: dict[str, object]):
+            return client.post(path, json=payload)
 
-    learning_payloads = [
-        {
-            "command_id": "concurrent-learning",
-            "unit_id": claim_id,
-            "rationale": "semantic-a" if index < 4 else "semantic-b",
-        }
-        for index in range(8)
-    ]
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        learnings = list(
-            pool.map(
-                lambda payload: post("/workspace/api/commands/start-learning", payload),
-                learning_payloads,
+        promotion_payloads = [
+            {
+                "command_id": "concurrent-promote",
+                "package_id": graph.package.package_id,
+                "rationale": "semantic-a" if index < 4 else "semantic-b",
+            }
+            for index in range(8)
+        ]
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            promotions = list(
+                pool.map(
+                    lambda payload: post("/workspace/api/commands/promote-research", payload),
+                    promotion_payloads,
+                )
             )
-        )
-    assert sorted(response.status_code for response in learnings) == [200] * 4 + [409] * 4
-    artifact_id = next(
-        response.json()["artifact_id"] for response in learnings if response.status_code == 200
-    )
+        assert sorted(response.status_code for response in promotions) == [200] * 4 + [
+            409
+        ] * 4
+        promotion = next(response.json() for response in promotions if response.status_code == 200)
+        claim_id = next(item for item in promotion["unit_ids"] if "claim" in item)
 
-    practice_payloads = [
-        {
-            "command_id": "concurrent-practice",
-            "artifact_id": artifact_id,
-            "quality": 5 if index < 4 else 0,
-        }
-        for index in range(8)
-    ]
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        practices = list(
-            pool.map(
-                lambda payload: post("/workspace/api/commands/record-practice", payload),
-                practice_payloads,
+        learning_payloads = [
+            {
+                "command_id": "concurrent-learning",
+                "unit_id": claim_id,
+                "rationale": "semantic-a" if index < 4 else "semantic-b",
+            }
+            for index in range(8)
+        ]
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            learnings = list(
+                pool.map(
+                    lambda payload: post("/workspace/api/commands/start-learning", payload),
+                    learning_payloads,
+                )
             )
+        assert sorted(response.status_code for response in learnings) == [200] * 4 + [409] * 4
+        artifact_id = next(
+            response.json()["artifact_id"]
+            for response in learnings
+            if response.status_code == 200
         )
-    assert sorted(response.status_code for response in practices) == [200] * 4 + [409] * 4
+
+        practice_payloads = [
+            {
+                "command_id": "concurrent-practice",
+                "artifact_id": artifact_id,
+                "quality": 5 if index < 4 else 0,
+            }
+            for index in range(8)
+        ]
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            practices = list(
+                pool.map(
+                    lambda payload: post("/workspace/api/commands/record-practice", payload),
+                    practice_payloads,
+                )
+            )
+        assert sorted(response.status_code for response in practices) == [200] * 4 + [409] * 4
     with sqlite3.connect(database) as connection:
         assert connection.execute(
             "SELECT COUNT(*) FROM knowledge_candidate_governance_events_v1 "

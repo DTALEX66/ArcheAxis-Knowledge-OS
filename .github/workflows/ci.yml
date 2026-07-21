@@ -181,7 +181,37 @@ jobs:
           assert (runtime / "cognitive_os.sqlite").exists()
           assert LOG_DIR == runtime / "logs" / "sleep-loop"
           PY
-          python -c "import app.research.github, shared.research_store, shared.research_migration; from inspiration_research.intake.generator import generate_intake_card; from inspiration_research.contracts.generator import generate_contract; from inspiration_research.api import app as ir_app; from app.facades import get_research_package, ingest_candidate, query_knowledge, research_github_repository; from fastapi.testclient import TestClient; assert generate_intake_card('t','w',['x']).intake_id.startswith('intake_'); assert generate_contract('g',['d']).contract_id.startswith('contract_'); routes={route.path for route in ir_app.routes}; assert {'/research/github-repository', '/research/packages/{package_id}'} <= routes; assert TestClient(ir_app).get('/health').status_code == 200; assert all(callable(item) for item in (get_research_package, ingest_candidate, query_knowledge, research_github_repository))"
+          python - <<'PY'
+          import app.research.github
+          import shared.research_migration
+          import shared.research_store
+          from app.facades import (
+              get_research_package,
+              ingest_candidate,
+              query_knowledge,
+              research_github_repository,
+          )
+          from fastapi.testclient import TestClient
+          from inspiration_research.api import app as ir_app
+          from inspiration_research.contracts.generator import generate_contract
+          from inspiration_research.intake.generator import generate_intake_card
+
+          assert generate_intake_card("t", "w", ["x"]).intake_id.startswith("intake_")
+          assert generate_contract("g", ["d"]).contract_id.startswith("contract_")
+          routes = {route.path for route in ir_app.routes}
+          assert {"/research/github-repository", "/research/packages/{package_id}"} <= routes
+          with TestClient(ir_app) as client:
+              assert client.get("/health").status_code == 200
+          assert all(
+              callable(item)
+              for item in (
+                  get_research_package,
+                  ingest_candidate,
+                  query_knowledge,
+                  research_github_repository,
+              )
+          )
+          PY
           python - <<'PY'
           import os
           import stat
