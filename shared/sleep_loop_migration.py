@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from collections.abc import Callable, Iterator
 from contextlib import closing
@@ -71,7 +72,8 @@ CREATE TABLE IF NOT EXISTS sleep_loop_tasks (
     lease_expires_at TEXT,
     heartbeat_at TEXT,
     next_attempt_at TEXT,
-    terminal_trace_id TEXT NOT NULL DEFAULT ''
+    terminal_trace_id TEXT NOT NULL DEFAULT '',
+    requires_review INTEGER NOT NULL DEFAULT 1 CHECK(requires_review IN (0, 1))
 );
 CREATE INDEX IF NOT EXISTS idx_sleep_loop_tasks_run_status
 ON sleep_loop_tasks(run_id, status, priority, created_at);
@@ -112,6 +114,11 @@ CREATE TABLE IF NOT EXISTS sleep_loop_events (
 CREATE INDEX IF NOT EXISTS idx_sleep_loop_events_run_created
 ON sleep_loop_events(run_id, created_at DESC);
 """
+
+PREVIOUS_SCHEMA_SQL = SCHEMA_SQL.replace(
+    ",\n    requires_review INTEGER NOT NULL DEFAULT 1 CHECK(requires_review IN (0, 1))\n",
+    "\n",
+)
 
 LEGACY_SCHEMA_SQL = """
 CREATE TABLE sleep_loop_runs (
@@ -203,13 +210,17 @@ def _apply_schema(connection: sqlite3.Connection) -> None:
 
 
 def _normalize_sql(sql: str) -> str:
-    return " ".join(sql.replace("IF NOT EXISTS", "").split()).casefold()
+    normalized = " ".join(sql.replace("IF NOT EXISTS", "").split()).casefold()
+    normalized = re.sub(r"\s*,\s*", ",", normalized)
+    normalized = re.sub(r"\(\s*", "(", normalized)
+    return re.sub(r"\s*\)", ")", normalized)
 
 
-def _expected_objects() -> dict[str, tuple[str, str, str]]:
+def _expected_objects_for_schema(script: str) -> dict[str, tuple[str, str, str]]:
     names = SLEEP_LOOP_TABLES + SLEEP_LOOP_INDEXES
     with closing(sqlite3.connect(":memory:")) as connection:
-        _apply_schema(connection)
+        for statement in _statements(script):
+            connection.execute(statement)
         placeholders = ", ".join("?" for _ in names)
         rows = connection.execute(
             f"SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name IN ({placeholders})",
@@ -219,6 +230,14 @@ def _expected_objects() -> dict[str, tuple[str, str, str]]:
         str(row[1]): (str(row[0]), str(row[2]), _normalize_sql(str(row[3] or "")))
         for row in rows
     }
+
+
+def _expected_objects() -> dict[str, tuple[str, str, str]]:
+    return _expected_objects_for_schema(SCHEMA_SQL)
+
+
+def _previous_expected_objects() -> dict[str, tuple[str, str, str]]:
+    return _expected_objects_for_schema(PREVIOUS_SCHEMA_SQL)
 
 
 def _legacy_expected_objects() -> dict[str, tuple[str, str, str]]:
@@ -263,21 +282,27 @@ def _actual_objects(
     }
 
 
-def _recorded(connection: sqlite3.Connection) -> bool:
+def _recorded_migrations(connection: sqlite3.Connection) -> tuple[str, ...]:
     if not migration._table_exists(connection, "schema_migrations"):
-        return False
+        return ()
+    versions = tuple(migration.SLEEP_LOOP_MIGRATIONS)
+    names = tuple(migration.SLEEP_LOOP_MIGRATIONS.values())
+    version_placeholders = ", ".join("?" for _ in versions)
+    name_placeholders = ", ".join("?" for _ in names)
     rows = connection.execute(
-        "SELECT version, name FROM schema_migrations WHERE version=? OR name=?",
-        (SLEEP_LOOP_MIGRATION_VERSION, SLEEP_LOOP_MIGRATION_NAME),
+        "SELECT version, name FROM schema_migrations "
+        f"WHERE version IN ({version_placeholders}) OR name IN ({name_placeholders})",
+        (*versions, *names),
     ).fetchall()
-    if not rows:
-        return False
-    if len(rows) != 1 or tuple(rows[0]) != (
-        SLEEP_LOOP_MIGRATION_VERSION,
-        SLEEP_LOOP_MIGRATION_NAME,
-    ):
-        raise RuntimeError("sleep loop migration version/name collision")
-    return True
+    recorded = {(int(row[0]), str(row[1])) for row in rows}
+    for version, name in recorded:
+        if migration.SLEEP_LOOP_MIGRATIONS.get(version) != name:
+            raise RuntimeError("sleep loop migration version/name collision")
+    return tuple(
+        name
+        for version, name in migration.SLEEP_LOOP_MIGRATIONS.items()
+        if (version, name) in recorded
+    )
 
 
 def _validate_schema(connection: sqlite3.Connection) -> None:
@@ -292,14 +317,27 @@ def _validate_schema(connection: sqlite3.Connection) -> None:
 
 
 def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
-    if _recorded(connection):
+    applied = _recorded_migrations(connection)
+    all_migrations = tuple(migration.SLEEP_LOOP_MIGRATIONS.values())
+    previous_name = migration.SLEEP_LOOP_MIGRATIONS[min(migration.SLEEP_LOOP_MIGRATIONS)]
+    if applied == all_migrations:
         _validate_schema(connection)
         return ()
     expected = _expected_objects()
     actual = _actual_objects(connection, expected)
-    if actual and actual not in (expected, _legacy_expected_objects()):
+    if SLEEP_LOOP_MIGRATION_NAME in applied:
+        raise RuntimeError("sleep loop migration history is incomplete")
+    if previous_name in applied:
+        if applied != (previous_name,) or actual != _previous_expected_objects():
+            raise RuntimeError("sleep loop recorded schema drift")
+        return (SLEEP_LOOP_MIGRATION_NAME,)
+    if actual and actual not in (
+        expected,
+        _previous_expected_objects(),
+        _legacy_expected_objects(),
+    ):
         raise RuntimeError("unrecorded sleep loop schema drift")
-    return (SLEEP_LOOP_MIGRATION_NAME,)
+    return all_migrations
 
 
 def _upgrade_schema(connection: sqlite3.Connection) -> None:
@@ -309,6 +347,12 @@ def _upgrade_schema(connection: sqlite3.Connection) -> None:
         _apply_schema(connection)
         return
     if actual == expected:
+        return
+    if actual == _previous_expected_objects():
+        connection.execute(
+            "ALTER TABLE sleep_loop_tasks ADD COLUMN requires_review INTEGER NOT NULL "
+            "DEFAULT 1 CHECK(requires_review IN (0, 1))"
+        )
         return
     if actual != _legacy_expected_objects():
         raise RuntimeError("unrecorded sleep loop schema drift")
@@ -362,15 +406,19 @@ def migrate(
                 backup_path = migration._create_backup(
                     database,
                     backups,
-                    SLEEP_LOOP_MIGRATION_NAME,
+                    "+".join(pending),
                     operator_run_id=operator_run_id,
                 )
             connection.execute(migration.MIGRATIONS_TABLE)
             _upgrade_schema(connection)
-            connection.execute(
-                "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
-                (SLEEP_LOOP_MIGRATION_VERSION, SLEEP_LOOP_MIGRATION_NAME),
-            )
+            versions_by_name = {
+                name: version for version, name in migration.SLEEP_LOOP_MIGRATIONS.items()
+            }
+            for name in pending:
+                connection.execute(
+                    "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
+                    (versions_by_name[name], name),
+                )
             _validate_schema(connection)
             run = migration.MigrationRun(applied=pending, backup_path=backup_path)
             if before_commit is not None:
@@ -386,18 +434,34 @@ def migrate(
 def status(*, db_path: str | Path) -> dict[str, object]:
     database = Path(db_path)
     if not database.is_file():
-        pending = (SLEEP_LOOP_MIGRATION_NAME,)
+        pending = tuple(migration.SLEEP_LOOP_MIGRATIONS.values())
     else:
         with closing(_connect(database, readonly=True)) as connection:
             pending = _pending(connection)
-    applied = not pending
-    label = f"{SLEEP_LOOP_MIGRATION_VERSION:03d}_{SLEEP_LOOP_MIGRATION_NAME}"
+    pending_set = set(pending)
+    labels = [
+        f"{version:03d}_{name}"
+        for version, name in migration.SLEEP_LOOP_MIGRATIONS.items()
+    ]
+    pending_labels = [
+        f"{version:03d}_{name}"
+        for version, name in migration.SLEEP_LOOP_MIGRATIONS.items()
+        if name in pending_set
+    ]
+    applied_labels = [label for label in labels if label not in pending_labels]
     return {
-        "total": 1,
-        "applied": 1 if applied else 0,
-        "pending": [] if applied else [label],
-        "applied_list": [label] if applied else [],
+        "total": len(labels),
+        "applied": len(applied_labels),
+        "pending": pending_labels,
+        "applied_list": applied_labels,
     }
+
+
+def _require_schema_applied_connection(
+    connection: sqlite3.Connection, database: Path
+) -> None:
+    if _pending(connection):
+        raise RuntimeError(f"sleep loop schema migration is pending: {database}")
 
 
 def require_applied(*, db_path: str | Path) -> None:
@@ -406,5 +470,7 @@ def require_applied(*, db_path: str | Path) -> None:
         raise RuntimeError("sleep loop schema migration is pending")
     with closing(_connect(database)) as connection:
         connection.execute("PRAGMA query_only=ON")
-        if _pending(connection):
-            raise RuntimeError("sleep loop schema migration is pending")
+        _require_schema_applied_connection(connection, database)
+        from shared.migration_runner import require_sqlite_owner_applied
+
+        require_sqlite_owner_applied(connection, "sleep-loop.sqlite")

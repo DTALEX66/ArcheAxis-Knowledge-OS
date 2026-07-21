@@ -116,7 +116,7 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
                 "knowledge_candidate_promotions_v1",
                 "sqlite_knowledge",
             ),
-            MigrationOwner("sleep-loop.sqlite", 1, "sleep_loop_tasks", "sqlite_sleep"),
+            MigrationOwner("sleep-loop.sqlite", 2, "sleep_loop_tasks", "sqlite_sleep"),
             MigrationOwner("workspace.sqlite", 1, "workspace_jobs_v1", "sqlite_workspace"),
         ]
     )
@@ -154,6 +154,28 @@ def _canonical_sql_value(value: Any) -> tuple[str, Any]:
     return ("text", str(value))
 
 
+def require_sqlite_owner_applied(
+    connection: sqlite3.Connection,
+    owner_name: str,
+    registry: MigrationRegistry | None = None,
+) -> None:
+    """Require one exact SQLite owner provenance receipt, without schema callbacks."""
+
+    owner = (registry or default_registry()).get(owner_name)
+    if not owner.kind.startswith("sqlite"):
+        raise ValueError(f"migration owner is not SQLite-backed: {owner_name}")
+    if not migration._table_exists(connection, _OPERATOR_TABLE):
+        raise RuntimeError("SQLite operator provenance is missing")
+    row = connection.execute(
+        f"SELECT state FROM {_OPERATOR_TABLE} "
+        "WHERE owner=? AND version=? AND target=? "
+        "ORDER BY rowid DESC LIMIT 1",
+        owner.identity,
+    ).fetchone()
+    if row is None or str(row[0]) != "applied":
+        raise RuntimeError(f"SQLite operator provenance is not applied for: {owner.owner}")
+
+
 def require_sqlite_owners_applied(
     connection: sqlite3.Connection,
     registry: MigrationRegistry | None = None,
@@ -162,17 +184,15 @@ def require_sqlite_owners_applied(
     owners = tuple(
         owner for owner in (registry or default_registry()).owners if owner.kind.startswith("sqlite")
     )
-    if not migration._table_exists(connection, _OPERATOR_TABLE):
-        raise RuntimeError("SQLite operator provenance is missing")
     missing: list[str] = []
     for owner in owners:
-        row = connection.execute(
-            f"SELECT state FROM {_OPERATOR_TABLE} "
-            "WHERE owner=? AND version=? AND target=? "
-            "ORDER BY rowid DESC LIMIT 1",
-            owner.identity,
-        ).fetchone()
-        if row is None or str(row[0]) != "applied":
+        try:
+            require_sqlite_owner_applied(
+                connection,
+                owner.owner,
+                registry=registry,
+            )
+        except RuntimeError:
             missing.append(owner.owner)
     if missing:
         raise RuntimeError(
@@ -614,7 +634,11 @@ class MigrationOperator:
                 elif owner.kind == "sqlite_sleep":
                     try:
                         sleep_loop = self._sleep_status()
-                        state = "applied" if not sleep_loop["pending"] else "pending"
+                        if sleep_loop["pending"]:
+                            state = "pending"
+                        else:
+                            state = "failed"
+                            provenance["reason"] = "missing_operator_provenance"
                         provenance["schema_migrations"] = sleep_loop
                     except Exception as exc:
                         state = "failed"
@@ -1251,7 +1275,13 @@ class MigrationOperator:
                 elif owner.kind == "sqlite_sleep":
                     from shared import sleep_loop_migration
 
-                    if expected_migrations != {sleep_loop_migration.SLEEP_LOOP_MIGRATION_NAME}:
+                    known_migrations = set(migration.SLEEP_LOOP_MIGRATIONS.values())
+                    if (
+                        not expected_migrations
+                        or sleep_loop_migration.SLEEP_LOOP_MIGRATION_NAME
+                        not in expected_migrations
+                        or not expected_migrations <= known_migrations
+                    ):
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif owner.kind == "sqlite_workspace":
                     if expected_migrations != {migration.WORKSPACE_SCHEMA_MIGRATION_NAME}:

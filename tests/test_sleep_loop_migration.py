@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from contextlib import closing
+from inspect import getsource
 from pathlib import Path
 
 import pytest
@@ -41,6 +42,16 @@ def _state(items: list[dict[str, object]], owner: str) -> dict[str, object]:
     return next(item for item in items if item["owner"] == owner)
 
 
+def _migrate_all_sqlite_owners(database: Path, backups: Path):
+    from shared.migration_runner import MigrationOperator
+
+    operator = MigrationOperator(db_path=database, backup_dir=backups)
+    for owner in operator.registry.owners:
+        if owner.kind.startswith("sqlite"):
+            operator.apply(owner.owner)
+    return operator
+
+
 def test_sleep_loop_owner_creates_lease_schema_with_provenance_and_rollback(
     tmp_path: Path,
 ) -> None:
@@ -63,6 +74,7 @@ def test_sleep_loop_owner_creates_lease_schema_with_provenance_and_rollback(
             str(row[1]) for row in connection.execute("PRAGMA table_info(sleep_loop_tasks)")
         }
         assert {
+            "requires_review",
             "idempotency_key",
             "request_fingerprint",
             "attempt_no",
@@ -122,6 +134,45 @@ def test_sleep_loop_runtime_accepts_applied_schema_with_live_wal_sidecars(tmp_pa
         writer.close()
 
 
+def test_sleep_loop_owner_upgrades_recorded_v12_to_review_gate_v13(tmp_path: Path) -> None:
+    from shared import migration, sleep_loop_migration
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "lease-v12.sqlite"
+    with closing(sqlite3.connect(database)) as connection:
+        connection.executescript(sleep_loop_migration.PREVIOUS_SCHEMA_SQL)
+        connection.execute(migration.MIGRATIONS_TABLE)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
+            (12, migration.SLEEP_LOOP_MIGRATIONS[12]),
+        )
+        connection.execute(
+            "INSERT INTO sleep_loop_runs(id, status, goal, started_at, updated_at) "
+            "VALUES ('run-v12', 'stopped', 'upgrade', '2026-01-01', '2026-01-01')"
+        )
+        connection.execute(
+            "INSERT INTO sleep_loop_tasks(id, run_id, title, content, created_at) "
+            "VALUES ('task-v12', 'run-v12', 'review', 'review', '2026-01-01')"
+        )
+        connection.commit()
+
+    operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
+    applied = operator.apply("sleep-loop.sqlite")
+
+    assert applied["state"] == "applied"
+    assert applied["provenance"]["applied_migrations"] == [
+        migration.SLEEP_LOOP_MIGRATIONS[13]
+    ]
+    with closing(sqlite3.connect(database)) as connection:
+        assert connection.execute(
+            "SELECT requires_review FROM sleep_loop_tasks WHERE id='task-v12'"
+        ).fetchone()[0] == 1
+        assert connection.execute(
+            "SELECT version, name FROM schema_migrations WHERE version IN (12, 13) "
+            "ORDER BY version"
+        ).fetchall() == list(migration.SLEEP_LOOP_MIGRATIONS.items())
+
+
 def test_sleep_loop_owner_upgrades_legacy_ledger_without_losing_rows(tmp_path: Path) -> None:
     from shared.migration_runner import MigrationOperator
 
@@ -162,6 +213,7 @@ def test_sleep_loop_owner_upgrades_legacy_ledger_without_losing_rows(tmp_path: P
             "SELECT * FROM sleep_loop_tasks WHERE id='task-1'"
         ).fetchone()
         assert task is not None
+        assert task["requires_review"] == 1
         assert task["lease_token"] == ""
         assert task["attempt_no"] == 0
         recovered = {
@@ -185,3 +237,66 @@ def test_sleep_loop_owner_upgrades_legacy_ledger_without_losing_rows(tmp_path: P
         }
         assert "lease_token" not in columns
         assert connection.execute("SELECT COUNT(*) FROM sleep_loop_tasks").fetchone()[0] == 3
+
+
+def test_sleep_loop_runtime_rejects_missing_operator_provenance(tmp_path: Path) -> None:
+    from shared import sleep_loop_migration
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "missing-provenance.sqlite"
+    with closing(sqlite3.connect(database)):
+        pass
+    operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
+    operator.apply("sleep-loop.sqlite")
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute(
+            "DELETE FROM migration_operator_runs WHERE owner='sleep-loop.sqlite'"
+        )
+        connection.commit()
+
+    with pytest.raises(RuntimeError, match="operator provenance"):
+        sleep_loop_migration.require_applied(db_path=database)
+    assert _state(operator.status(), "sleep-loop.sqlite")["state"] == "failed"
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "DROP TABLE sleep_loop_attempts",
+        "CREATE INDEX unexpected_sleep_runtime_index ON sleep_loop_tasks(title)",
+        (
+            "CREATE TRIGGER unexpected_sleep_runtime_trigger "
+            "AFTER UPDATE ON sleep_loop_tasks BEGIN SELECT 1; END"
+        ),
+    ],
+)
+def test_core_schema_validation_rejects_sleep_owner_drift(
+    monkeypatch, tmp_path: Path, mutation: str
+) -> None:
+    from shared import storage
+
+    database = tmp_path / "core-sleep-drift.sqlite"
+    with closing(sqlite3.connect(database)):
+        pass
+    _migrate_all_sqlite_owners(database, tmp_path / "backups")
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute(mutation)
+        connection.commit()
+    monkeypatch.setattr(storage, "DB_PATH", database)
+
+    with pytest.raises(RuntimeError, match="sleep loop recorded schema drift"):
+        storage.validate_schema()
+
+
+def test_standalone_sleep_worker_runs_unified_schema_gate_before_loop(monkeypatch) -> None:
+    from scripts import sleep_loop_worker
+    from shared import storage
+
+    calls = []
+    monkeypatch.setattr(storage, "validate_schema_online", lambda: calls.append("validated"))
+
+    sleep_loop_worker._validate_runtime_schema()
+
+    assert calls == ["validated"]
+    main_source = getsource(sleep_loop_worker.main)
+    assert main_source.index("_validate_runtime_schema()") < main_source.index("while True")

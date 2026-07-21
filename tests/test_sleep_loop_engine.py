@@ -1001,3 +1001,44 @@ def test_sleep_loop_survives_worker_process_restarts_with_durable_readback():
     assert len(attempts) == 2
     assert {item["status"] for item in attempts} == {"done"}
     assert all(item["trace_id"] for item in attempts)
+
+
+def test_sleep_loop_requires_review_survives_ledger_roundtrip_and_fingerprint():
+    import pytest
+
+    from app.adapters.sleep_taskpack import (
+        ContractMappingError,
+        project_sleep_ledger_task_for_execution,
+    )
+    from shared import sleep_loop_engine as sl
+
+    sl.stop_loop("test_cleanup")
+    request = {
+        "title": "reviewed write",
+        "content": "reviewed write",
+        "executor": "safe_write",
+        "payload": {"filename": "reviewed.txt", "content": "x", "dry_run": False},
+        "requires_review": True,
+        "idempotency_key": "reviewed-write-1",
+    }
+    started = sl.start_loop(
+        "review gate persistence",
+        {"tasks": [request], "config": {"max_runtime_hours": None}},
+    )
+    cfg = sl.SleepLoopConfig.from_payload(started["config"])
+    persisted = sl.list_tasks(started["run_id"], limit=1)[0]
+
+    assert bool(persisted["requires_review"]) is True
+    with pytest.raises(ContractMappingError, match="requires_review"):
+        project_sleep_ledger_task_for_execution(
+            persisted,
+            declared_allowed_tools=["safe_write"],
+        )
+    with pytest.raises(ValueError, match="idempotency key was reused"):
+        sl.add_task(
+            started["run_id"],
+            {**request, "requires_review": False},
+            cfg,
+            cycle_no=1,
+        )
+    sl.stop_loop("test_done")

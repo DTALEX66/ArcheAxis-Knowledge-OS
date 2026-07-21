@@ -402,6 +402,7 @@ def add_task(
         "dependencies": dependencies,
         "max_retries": int(task.get("max_retries", cfg.max_retries)),
         "risk_level": str(task.get("risk_level", "low")),
+        "requires_review": bool(task.get("requires_review", False)),
     }
     request_fingerprint = _sleep_task_request_fingerprint(normalized_request)
     supplied_key = str(task.get("idempotency_key", "")).strip()
@@ -451,9 +452,9 @@ def add_task(
         conn.execute(
             "INSERT INTO sleep_loop_tasks "
             "(id, run_id, parent_id, cycle_no, title, content, status, priority, executor, "
-            "payload_json, dependencies_json, retries, max_retries, risk_level, error, created_at, "
-            "idempotency_key, request_fingerprint) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)",
+            "payload_json, dependencies_json, retries, max_retries, risk_level, requires_review, "
+            "error, created_at, idempotency_key, request_fingerprint) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?)",
             (
                 task_id,
                 run_id,
@@ -468,6 +469,7 @@ def add_task(
                 _dump(normalized_request["dependencies"]),
                 normalized_request["max_retries"],
                 normalized_request["risk_level"],
+                1 if normalized_request["requires_review"] else 0,
                 "" if allowed else reason,
                 _now(),
                 idempotency_key,

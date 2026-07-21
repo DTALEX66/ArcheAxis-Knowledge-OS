@@ -36,7 +36,14 @@ def _sleep_seconds() -> int:
     return int(cfg.get("active_poll_interval_seconds", 1))
 
 
+def _validate_runtime_schema() -> None:
+    from shared.storage import validate_schema_online
+
+    validate_schema_online()
+
+
 def main() -> None:
+    _validate_runtime_schema()
     print("[sleep-loop-worker] started", flush=True)
     while True:
         try:

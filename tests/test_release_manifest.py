@@ -49,7 +49,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "fts.documents": [],
         "knowledge-governance.sqlite": list(KNOWLEDGE_GOVERNANCE_MIGRATIONS.values()),
         "research.sqlite": [migration.RESEARCH_SCHEMA_MIGRATION_NAME],
-        "sleep-loop.sqlite": [migration.SLEEP_LOOP_MIGRATION_NAME],
+        "sleep-loop.sqlite": list(migration.SLEEP_LOOP_MIGRATIONS.values()),
         "taskpack.sqlite": list(migration.TASKPACK_MIGRATIONS.values()),
         "vector.cards": [],
         "vector.documents": [],

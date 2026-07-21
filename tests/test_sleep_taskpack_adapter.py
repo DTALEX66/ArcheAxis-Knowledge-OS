@@ -14,6 +14,7 @@ def _ledger_task(**overrides):
         "payload": {"path": "docs/design.md"},
         "dependencies": ["slt_parent_001", "slt_parent_002"],
         "risk_level": "low",
+        "requires_review": False,
     }
     task.update(overrides)
     return task
@@ -117,4 +118,21 @@ def test_sleep_execution_projection_does_not_assume_ledger_dependencies_succeede
     with pytest.raises(ContractMappingError, match="dependencies not proven complete"):
         project_sleep_ledger_task_for_execution(
             _ledger_task(), declared_allowed_tools=["file_read"]
+        )
+
+
+def test_sleep_execution_projection_rejects_ledger_without_review_receipt():
+    from app.adapters.sleep_taskpack import (
+        ContractMappingError,
+        project_sleep_ledger_task_for_execution,
+    )
+
+    task = _ledger_task()
+    task.pop("requires_review")
+
+    with pytest.raises(ContractMappingError, match="persisted requires_review"):
+        project_sleep_ledger_task_for_execution(
+            task,
+            declared_allowed_tools=["file_read"],
+            satisfied_dependency_ids=task["dependencies"],
         )
