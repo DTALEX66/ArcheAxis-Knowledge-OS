@@ -7,7 +7,33 @@ from pathlib import Path
 import pytest
 
 from shared.approved_paths import ApprovedRoots
-from shared.media_extractor import extract_audio_track, extract_video_keyframes
+from shared.media_extractor import extract_audio_track, extract_image_text, extract_video_keyframes
+
+
+def test_extract_image_text_uses_real_tesseract_with_approved_paths(tmp_path: Path) -> None:
+    pytest.importorskip("pytesseract")
+    from PIL import Image, ImageDraw, ImageFont
+
+    font = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 40)
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    source.mkdir()
+    output.mkdir()
+    image_path = source / "evidence.png"
+    image = Image.new("RGB", (640, 160), "white")
+    ImageDraw.Draw(image).text((20, 50), "Cognitive Evidence 2026", fill="black", font=font)
+    image.save(image_path)
+
+    result = extract_image_text(
+        str(image_path),
+        approved_roots=ApprovedRoots(source_roots=[source], output_roots=[output]),
+    )
+
+    if "error" in result:
+        pytest.skip(result["error"])
+    assert result["image"] == str(image_path)
+    assert result["engine"] == "tesseract"
+    assert "cognitive evidence 2026" in result["text"].lower()
 
 
 def test_extract_audio_track_creates_asr_ready_wav_with_real_ffmpeg(tmp_path: Path) -> None:
