@@ -1,5 +1,9 @@
 # Cognitive-Loop-OS
 
+## 当前产品状态
+
+元枢系统 / ArcheAxis OS 是本地优先、证据驱动的认知闭环系统；统一工作台为“元枢·观心 / ArcheAxis Cognitive Workspace”。当前浏览器工作台已接入真实网页、GitHub URL 与本地文件导入，Learning 与 Machine Knowledge 使用持久治理收据，真实媒体基础链已完成音轨和关键帧提取。Job/Outbox、完整 OCR/ASR、Installer 与公开发布仍在推进，详见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 和 [`docs/HANDOFF_2026-07-21.md`](docs/HANDOFF_2026-07-21.md)。
+
 ## Phase 4 Research Status
 
 Phase 4 Research closure is implemented as a candidate-only workflow:
@@ -27,7 +31,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、Evaluation、Sleep Loop 与 Alpha tracer 均已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。将这些构件收敛为单一 command/outbox/worker/audit 时间线仍是未来方向。Phase 10 已建立本地只读 diagnostics baseline，Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、Evaluation、Sleep Loop 与 Alpha tracer 均已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口，但将这些构件收敛为 migration-owned Job/Outbox/audit 时间线仍是后续高风险切片。Phase 10 已建立本地只读 diagnostics baseline 和 FFmpeg 媒体基础链；完整 OCR/ASR、Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
 
 ## 规划与进度
 
@@ -44,9 +48,9 @@ Research → Evidence → Knowledge → Learning
 | Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
 | Phase 7–8 | Dynamic Planner、多维 Evaluation、统一 Sleep Loop | ✅ 最小真实闭环完成 | Planner、Permission、Evidence、Evaluation、Lesson 与 Sleep Loop 已验证 |
 | Phase 9 | Minimum Complete System Alpha | ✅ 五条端到端闭环完成 | 完整本地 release 门禁已通过 |
-| Phase 10 | 产品化、诊断、升级与多端发布 | 🟡 diagnostics baseline 已完成 | Installer、多端发布与公开 release 范围仍须按独立 TaskPack 排序 |
+| Phase 10 | 产品化、诊断、媒体摄入、升级与多端发布 | 🟡 Workspace/diagnostics/媒体基础链推进中 | Job/Outbox、OCR/ASR、Installer 与公开 release 仍须按独立 TaskPack 收口 |
 
-### 当前里程碑：Phase 10 Diagnostics Baseline
+### 当前里程碑：Phase 10 本地 Workspace 与真实媒体摄入
 
 ```text
 Phase 0 真实基线 ✅
@@ -74,7 +78,7 @@ Phase 0 真实基线 ✅
 → Phase 9 五条 Alpha 端到端闭环 ✅
 ```
 
-下一刀：**Phase 10 Installer、多端发布与公开 release 范围排序**。已完成 Alpha 闭环仍保留人工审批、版本、弃用和 provenance 边界；不因通过门禁自动提升 candidate 为 verified truth。
+下一刀：先恢复真实 OCR 依赖并完成时间戳 Evidence，再建立正式 Workspace migration owner 和 graph/Job/Outbox 同事务闭环。已完成 Alpha 闭环仍保留审批、版本、弃用和 provenance 边界；不因通过门禁自动提升 candidate 为 verified truth。
 
 本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或 Phase 10 的多端发布、Installer、公开 Alpha/Beta/Stable 已完成。
 

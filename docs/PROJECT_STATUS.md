@@ -1,10 +1,10 @@
 # 项目当前状态
 
-> 更新：2026-07-20。本页是当前状态入口；旧审计文件是历史快照。
+> 更新：2026-07-21。本页是当前状态入口；旧审计文件是历史快照。当前恢复现场见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)。
 
 ## 当前阶段
 
-项目已完成 **Phase 9：Minimum Complete System Alpha**。GitHub Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、reviewed Evaluation 与统一 Sleep Loop 已形成五条受治理端到端闭环，并通过完整本地 release 门禁。Phase 10 已建立首个本地只读 diagnostics baseline：安全汇总 health 与 migration 状态计数，缺失 runtime database 或 migration 状态时 fail-closed 为 `unavailable`，且不暴露路径或 provenance。GitHub repository 仍只形成 quarantined、可追溯、持久化且必须人工复核的 ResearchPackage；尚未完成 Installer、多端发布或公开 Alpha/Beta/Stable，不能自动将 candidate 提升为 verified truth。
+项目已完成 **Phase 9：Minimum Complete System Alpha**，并进入 Phase 10 的本地产品工作台与真实媒体摄入阶段。GitHub/普通网页/本地文件 Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、reviewed Evaluation 与统一 Sleep Loop 已形成受治理闭环；本地 Workspace 已具备打包页面、loopback-only 写入边界和真实导入入口。Phase 10 diagnostics 仍是只读 baseline；Job/Outbox、完整 OCR/ASR、Installer、多端发布与公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
 
 ## 已验证能力
 
@@ -24,6 +24,9 @@
 - 主网关已接入分策略 Rate Limiter；所有受跟踪 Uvicorn 入口禁用隐式 proxy-header rewriting，未受信代理头、双凭据与无效认证的早期拒绝也必须消耗 pre-auth 限额并进入确定性 429 边界。
 - 外部 HTTP 调用已收敛到 Safe HTTP policy，覆盖私网/metadata/redirect/响应大小/类型/timeout；本地摄入与投影使用 approved roots 和 symlink/junction containment。
 - 持久化哈希已使用 versioned SHA-256；TaskPack、Vector、FTS 与 Research schema 已统一注册到 migration operator。
+- Workspace 可将普通网页、GitHub URL 与 approved-root 本地文件持久化为候选 ResearchPackage，并通过独立连接严格读回；浏览器写入仅允许 loopback，本地页面不收集 API key/JWT。
+- Learning 审批与卡片投影使用同事务持久收据；Runtime 只读取 approved Machine Knowledge，Machine Knowledge 审批/弃用使用 append-only migration-owned 收据并拒绝冲突重放。
+- 媒体基础链已用真实 FFmpeg 验证 MP4 → 16 kHz mono PCM WAV、WAV 元数据读取和关键帧 PNG 尺寸核验；OCR/ASR 与时间戳证据仍未闭环。
 - n8n、Airflow、LiteLLM 和 crawler 适配器不再返回 stub 假成功。
 - Obsidian 外部路径必须显式传入，API 不再默认访问个人 E 盘。
 - 外部 A 项目（Obsidian-Assistance）的分析与通用能力吸收已结束；后续严格只读且不再扫描或作为迁移目标。
@@ -45,10 +48,10 @@
 2. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
 3. 旧细粒度 API 仍公开，路由面尚未真正缩减。
 4. 生产部署尚缺独立容器/反向代理/并发负载验证。
-5. OCR/ASR 的真实准确率取决于用户提供人工标注金标准，代码不能代替人工真值。
+5. OCR 当前存在本地恢复现场：Tesseract 可执行文件没有语言模型，真实 OCR 测试尚未 GREEN；ASR、时间戳和内容匹配 Evidence 也未闭环。OCR/ASR 的真实准确率仍取决于人工标注金标准。
 6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
 7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
-8. Research、Knowledge candidate、Learning Artifact、Mastery Signal 与 Machine Knowledge 的治理构件已有真实路径；尚缺将它们收敛为单一 command/outbox/worker/audit 时间线的可交互最小闭环。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
+8. Research、Knowledge candidate、Learning Artifact、Mastery Signal 与 Machine Knowledge 的治理构件已有真实路径；尚缺正式 `workspace.sqlite` migration owner、connection-scoped Research writer，以及 graph/Job/Outbox 同事务的可交互时间线。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
 
 ## 正式门禁
 
