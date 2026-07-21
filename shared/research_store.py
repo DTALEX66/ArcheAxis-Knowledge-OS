@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from contextlib import closing
 from pathlib import Path
 from typing import Literal
@@ -55,6 +55,9 @@ class ResearchPackageGraph(BaseModel):
     claims: list[ClaimV1]
     evidence: list[EvidenceV1]
     findings: list[GovernanceFinding]
+
+
+ResearchBeforeCommit = Callable[[sqlite3.Connection, ResearchPackageGraph], None]
 
 
 def _database_path(db_path: str | Path | None) -> Path:
@@ -379,6 +382,7 @@ def persist_research_graph(
     graph: ResearchPackageGraph,
     *,
     db_path: str | Path | None = None,
+    before_commit: ResearchBeforeCommit | None = None,
 ) -> ResearchPackageGraph:
     """Persist a complete research graph transactionally and return the stored graph."""
 
@@ -434,6 +438,8 @@ def persist_research_graph(
                 },
                 primary_key=("package_id", "intake_id"),
             )
+            if before_commit is not None:
+                before_commit(connection, graph)
             connection.commit()
         except Exception:
             connection.rollback()

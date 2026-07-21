@@ -62,6 +62,18 @@ def test_mastered_signal_creates_candidate_machine_knowledge_with_explicit_lifec
     conflicting_replay = deprecated.model_copy(update={"rationale": "changed rationale"})
     with pytest.raises(RuntimeError, match="approval id conflicts"):
         deprecate_machine_knowledge_candidate(conflicting_replay, db_path=database)
+    resurrection = approved.model_copy(
+        update={
+            "approval_id": "resurrect-machine-1",
+            "reviewed_at": "2026-07-20T16:03:00Z",
+        }
+    )
+    with pytest.raises(RuntimeError, match="deprecated.*terminal"):
+        deprecate_machine_knowledge_candidate(resurrection, db_path=database)
+    with closing(sqlite3.connect(database)) as connection:
+        assert connection.execute(
+            "SELECT COUNT(*) FROM machine_knowledge_approval_events_v1"
+        ).fetchone()[0] == 2
 
 
 def test_runtime_reads_only_approved_machine_knowledge(tmp_path):

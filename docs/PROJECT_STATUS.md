@@ -1,10 +1,10 @@
 # 项目当前状态
 
-> 更新：2026-07-21。本页是当前状态入口；旧审计文件是历史快照。当前恢复现场见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)。
+> 更新：2026-07-21。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 当前阶段
 
-项目已完成 **Phase 9：Minimum Complete System Alpha**，并进入 Phase 10 的本地产品工作台与真实媒体摄入阶段。GitHub/普通网页/本地文件 Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Dynamic Planner、reviewed Evaluation 与统一 Sleep Loop 已形成受治理闭环；本地 Workspace 已具备打包页面、loopback-only 写入边界和真实导入入口。Phase 10 diagnostics 仍是只读 baseline；Job/Outbox、完整 OCR/ASR、Installer、多端发布与公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Product Stage A0 基线收口和 A1 受治理工作台建设期：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 尚未完成。本地 Workspace 已具备打包页面、loopback-only 写入和真实导入入口。Workspace Job/Outbox 的 migration owner、同事务写入、同步终态和严格 readback 已进入当前候选；Outbox dispatcher、Worker lease/checkpoint/retry、统一 Audit、SSE 与真实 Job Center 仍未完成。完整 OCR/ASR、Installer、多端发布及公开 Alpha/Beta/Stable 也尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
 
 ## 已验证能力
 
@@ -48,10 +48,10 @@
 2. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
 3. 旧细粒度 API 仍公开，路由面尚未真正缩减。
 4. 生产部署尚缺独立容器/反向代理/并发负载验证。
-5. OCR 当前存在本地恢复现场：Tesseract 可执行文件没有语言模型，真实 OCR 测试尚未 GREEN；ASR、时间戳和内容匹配 Evidence 也未闭环。OCR/ASR 的真实准确率仍取决于人工标注金标准。
+5. OCR 的 Pillow/pytesseract 依赖、Tesseract `eng` 语言数据、真实图像测试和 CI 字体/语言门禁已 GREEN；ASR、时间戳、内容匹配 Evidence 与人工标注准确率基准仍未闭环。
 6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
 7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
-8. Research、Knowledge candidate、Learning Artifact、Mastery Signal 与 Machine Knowledge 的治理构件已有真实路径；尚缺正式 `workspace.sqlite` migration owner、connection-scoped Research writer，以及 graph/Job/Outbox 同事务的可交互时间线。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
+8. `workspace.sqlite` migration owner、connection-scoped Research writer、Research graph/Job/Outbox 同事务、严格 Job readback 与同步命令终态已交付；仍缺 Outbox dispatcher、SSE 审计时间线和不暴露内部 ID 的用户级 Job Center。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
 
 ## 正式门禁
 

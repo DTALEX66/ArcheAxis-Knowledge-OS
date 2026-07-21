@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 import time
+from contextlib import asynccontextmanager
 from hashlib import sha256
 from ipaddress import ip_address, ip_network
 from threading import Lock
@@ -29,7 +30,18 @@ validate_runtime_config(config)
 
 # ── Core app ─────────────────────────────────────────────
 
+
+@asynccontextmanager
+async def core_runtime_lifespan(_: FastAPI):
+    from shared.runtime_guard import core_runtime_guard
+    from shared.storage import validate_schema
+
+    with core_runtime_guard(validate=validate_schema):
+        yield
+
+
 app = FastAPI(
+    lifespan=core_runtime_lifespan,
     title="Cognitive-Loop-OS",
     version=str(config.get("app.version", "0.4.0")),
     description="AI cognitive runtime with an integrated Knowledge-Base. "

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -7,7 +8,49 @@ from pathlib import Path
 import pytest
 
 from shared.approved_paths import ApprovedRoots
-from shared.media_extractor import extract_audio_track, extract_video_keyframes
+from shared.media_extractor import extract_audio_track, extract_image_text, extract_video_keyframes
+
+
+def test_extract_image_text_uses_real_tesseract_with_approved_paths(tmp_path: Path) -> None:
+    try:
+        import pytesseract  # noqa: F401
+    except ImportError:
+        if os.getenv("CI"):
+            pytest.fail("CI must install pytesseract and Pillow")
+        pytest.skip("pytesseract is not installed")
+    from PIL import Image, ImageDraw, ImageFont
+
+    font_paths = (
+        Path("C:/Windows/Fonts/arial.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+    )
+    font_path = next((path for path in font_paths if path.is_file()), None)
+    if font_path is None:
+        if os.getenv("CI"):
+            pytest.fail("CI must install a supported OCR test font")
+        pytest.skip("no supported OCR test font is installed")
+    font = ImageFont.truetype(str(font_path), 40)
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    source.mkdir()
+    output.mkdir()
+    image_path = source / "evidence.png"
+    image = Image.new("RGB", (640, 160), "white")
+    ImageDraw.Draw(image).text((20, 50), "Cognitive Evidence 2026", fill="black", font=font)
+    image.save(image_path)
+
+    result = extract_image_text(
+        str(image_path),
+        approved_roots=ApprovedRoots(source_roots=[source], output_roots=[output]),
+    )
+
+    if "error" in result:
+        if os.getenv("CI"):
+            pytest.fail(result["error"])
+        pytest.skip(result["error"])
+    assert result["image"] == str(image_path)
+    assert result["engine"] == "tesseract"
+    assert "cognitive evidence 2026" in result["text"].lower()
 
 
 def test_extract_audio_track_creates_asr_ready_wav_with_real_ffmpeg(tmp_path: Path) -> None:

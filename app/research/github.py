@@ -16,6 +16,7 @@ from app.adapters.research_package import build_candidate_research_package
 from app.contracts.v1 import CONTRACT_VERSION, ClaimV1, EvidenceV1, SourceRecordV1
 from shared.research_store import (
     GovernanceFinding,
+    ResearchBeforeCommit,
     ResearchPackageGraph,
     SourceProvenanceRecord,
     persist_research_graph,
@@ -911,9 +912,10 @@ def research_github_repository(
     *,
     fetcher: Callable[..., SafeHTTPResponse] | None = None,
     db_path: str | Path | None = None,
+    before_commit: ResearchBeforeCommit | None = None,
 ) -> ResearchPackageGraph:
     """Collect, parse, govern, persist, and reload one GitHub research package."""
 
     collected = collect_github_repository(repository_url, fetcher=fetcher)
     graph = build_github_research_graph(collected)
-    return persist_research_graph(graph, db_path=db_path)
+    return persist_research_graph(graph, db_path=db_path, before_commit=before_commit)

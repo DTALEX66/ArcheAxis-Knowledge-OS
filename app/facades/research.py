@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.research.github import research_github_repository as _research_github_repository
 from inspiration_research.intake.generator import generate_intake_card
-from shared.research_store import ResearchPackageGraph, load_research_package
+from shared.research_store import ResearchBeforeCommit, ResearchPackageGraph, load_research_package
 from shared.storage import insert
 
 
@@ -55,6 +55,7 @@ def research_github_repository(
     *,
     fetcher=None,
     db_path: str | Path | None = None,
+    before_commit: ResearchBeforeCommit | None = None,
 ) -> ResearchPackageGraph:
     """Run the Phase 4 GitHub URL -> persisted candidate package workflow."""
 
@@ -62,6 +63,7 @@ def research_github_repository(
         repository_url,
         fetcher=fetcher,
         db_path=db_path,
+        before_commit=before_commit,
     )
 
 

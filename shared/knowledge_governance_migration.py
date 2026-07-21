@@ -234,89 +234,91 @@ def _normalize_sql(sql: str) -> str:
     return " ".join(sql.replace("IF NOT EXISTS", "").split()).casefold()
 
 
-def _validate_schema(connection: sqlite3.Connection, sql: str, names: tuple[str, ...]) -> None:
-    expected = _schema_objects(sql, names)
-    placeholders = ", ".join("?" for _ in names)
+def _actual_owned_schema_objects(
+    connection: sqlite3.Connection,
+    expected: dict[str, tuple[str, str, str]],
+) -> dict[str, tuple[str, str, str]]:
+    expected_names = tuple(expected)
+    owned_tables = tuple(
+        name for name, definition in expected.items() if definition[0] == "table"
+    )
+    name_placeholders = ", ".join("?" for _ in expected_names)
+    table_placeholders = ", ".join("?" for _ in owned_tables)
     rows = connection.execute(
-        f"SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name IN ({placeholders})",
-        names,
+        "SELECT type, name, tbl_name, sql FROM sqlite_master "
+        "WHERE sql IS NOT NULL AND "
+        f"(name IN ({name_placeholders}) OR tbl_name IN ({table_placeholders}))",
+        (*expected_names, *owned_tables),
     ).fetchall()
-    actual = {
+    return {
         str(row["name"]): (
             str(row["type"]),
             str(row["tbl_name"]),
-            _normalize_sql(str(row["sql"] or "")),
+            _normalize_sql(str(row["sql"])),
         )
         for row in rows
     }
+
+
+def _validate_schema(connection: sqlite3.Connection, sql: str, names: tuple[str, ...]) -> None:
+    expected = _schema_objects(sql, names)
+    actual = _actual_owned_schema_objects(connection, expected)
     if actual != expected:
         raise RuntimeError("knowledge governance recorded schema drift")
 
 
 def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
     recorded = _recorded_versions(connection)
-    v1_existing = {item for item in KNOWLEDGE_GOVERNANCE_TABLES_V1 if migration._table_exists(connection, item)}
-    event_exists = migration._table_exists(connection, KNOWLEDGE_GOVERNANCE_EVENT_TABLE)
-    if KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION not in recorded:
-        if v1_existing or event_exists:
-            raise RuntimeError("unrecorded knowledge governance schema mismatch")
-        return tuple(KNOWLEDGE_GOVERNANCE_MIGRATIONS.values())
-    if v1_existing != set(KNOWLEDGE_GOVERNANCE_TABLES_V1):
-        raise RuntimeError("recorded knowledge governance v1 schema drift")
-    _validate_schema(connection, SCHEMA_V1_SQL, KNOWLEDGE_GOVERNANCE_V1_OBJECTS)
-    if KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION not in recorded:
-        if event_exists:
-            raise RuntimeError("unrecorded knowledge governance event schema mismatch")
-        return (KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,)
-    if not event_exists:
-        raise RuntimeError("recorded knowledge governance event schema drift")
-    versioning_tables = {
-        "knowledge_candidate_versions_v1",
-        "knowledge_candidate_conflict_reviews_v1",
-    }
-    versioning_existing = {
-        item for item in versioning_tables if migration._table_exists(connection, item)
-    }
-    if KNOWLEDGE_VERSIONING_MIGRATION_VERSION not in recorded:
-        if versioning_existing:
-            raise RuntimeError("unrecorded knowledge governance versioning schema mismatch")
-        return (KNOWLEDGE_VERSIONING_MIGRATION_NAME,)
-    if versioning_existing != versioning_tables:
-        raise RuntimeError("recorded knowledge governance versioning schema drift")
-    artifact_table = "knowledge_candidate_learning_artifacts_v1"
-    artifact_exists = migration._table_exists(connection, artifact_table)
-    if KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_VERSION not in recorded:
-        if artifact_exists:
-            raise RuntimeError("unrecorded knowledge governance learning artifact schema mismatch")
-        return (KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_NAME,)
-    if not artifact_exists:
-        raise RuntimeError("recorded knowledge governance learning artifact schema drift")
-    approval_event_exists = migration._table_exists(connection, "learning_approval_events_v1")
-    if LEARNING_APPROVAL_EVENT_MIGRATION_VERSION not in recorded:
-        if approval_event_exists:
-            raise RuntimeError("unrecorded learning approval event schema mismatch")
-        return (LEARNING_APPROVAL_EVENT_MIGRATION_NAME,)
-    if not approval_event_exists:
-        raise RuntimeError("recorded learning approval event schema drift")
-    machine_event_exists = migration._table_exists(connection, "machine_knowledge_approval_events_v1")
-    if MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION not in recorded:
-        if machine_event_exists:
-            raise RuntimeError("unrecorded machine knowledge approval event schema mismatch")
-        return (MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,)
-    if not machine_event_exists:
-        raise RuntimeError("recorded machine knowledge approval event schema drift")
-    _validate_schema(
-        connection,
-        SCHEMA_V1_SQL + EVENT_SCHEMA_SQL + VERSIONING_SCHEMA_SQL + LEARNING_ARTIFACT_SCHEMA_SQL + LEARNING_APPROVAL_EVENT_SCHEMA_SQL + MACHINE_KNOWLEDGE_APPROVAL_EVENT_SCHEMA_SQL,
+    specifications = (
         (
-            *KNOWLEDGE_GOVERNANCE_V1_OBJECTS,
-            *KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS,
-            *KNOWLEDGE_VERSIONING_OBJECTS,
-            *LEARNING_ARTIFACT_OBJECTS,
-            *LEARNING_APPROVAL_EVENT_OBJECTS,
-            *MACHINE_KNOWLEDGE_APPROVAL_EVENT_OBJECTS,
+            KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION,
+            KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
+            SCHEMA_V1_SQL,
+            KNOWLEDGE_GOVERNANCE_V1_OBJECTS,
+        ),
+        (
+            KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION,
+            KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
+            EVENT_SCHEMA_SQL,
+            KNOWLEDGE_GOVERNANCE_EVENT_OBJECTS,
+        ),
+        (
+            KNOWLEDGE_VERSIONING_MIGRATION_VERSION,
+            KNOWLEDGE_VERSIONING_MIGRATION_NAME,
+            VERSIONING_SCHEMA_SQL,
+            KNOWLEDGE_VERSIONING_OBJECTS,
+        ),
+        (
+            KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_VERSION,
+            KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_NAME,
+            LEARNING_ARTIFACT_SCHEMA_SQL,
+            LEARNING_ARTIFACT_OBJECTS,
+        ),
+        (
+            LEARNING_APPROVAL_EVENT_MIGRATION_VERSION,
+            LEARNING_APPROVAL_EVENT_MIGRATION_NAME,
+            LEARNING_APPROVAL_EVENT_SCHEMA_SQL,
+            LEARNING_APPROVAL_EVENT_OBJECTS,
+        ),
+        (
+            MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION,
+            MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
+            MACHINE_KNOWLEDGE_APPROVAL_EVENT_SCHEMA_SQL,
+            MACHINE_KNOWLEDGE_APPROVAL_EVENT_OBJECTS,
         ),
     )
+    for index, (version, _name, schema_sql, object_names) in enumerate(specifications):
+        if version in recorded:
+            _validate_schema(connection, schema_sql, object_names)
+            continue
+        later_versions = {item[0] for item in specifications[index + 1 :]}
+        if recorded & later_versions:
+            raise RuntimeError("knowledge governance migration schema is not contiguous")
+        for _, _, pending_sql, pending_objects in specifications[index:]:
+            expected = _schema_objects(pending_sql, pending_objects)
+            if _actual_owned_schema_objects(connection, expected):
+                raise RuntimeError("unrecorded knowledge governance schema mismatch")
+        return tuple(item[1] for item in specifications[index:])
     return ()
 
 

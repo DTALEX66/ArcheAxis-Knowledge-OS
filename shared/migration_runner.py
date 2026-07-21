@@ -116,6 +116,7 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
                 "knowledge_candidate_promotions_v1",
                 "sqlite_knowledge",
             ),
+            MigrationOwner("workspace.sqlite", 1, "workspace_jobs_v1", "sqlite_workspace"),
         ]
     )
 
@@ -517,6 +518,8 @@ class MigrationOperator:
                     if latest["state"] == "applied" and owner.kind in {
                         "sqlite",
                         "sqlite_research",
+                        "sqlite_knowledge",
+                        "sqlite_workspace",
                         "sqlite_core",
                     }:
                         try:
@@ -525,11 +528,28 @@ class MigrationOperator:
                                     core_schema.validate(connection)
                                 live = {"pending": []}
                             else:
-                                live = (
-                                    migration.status(db_path=self.db_path)
-                                    if owner.kind == "sqlite"
-                                    else self._research_status()
+                                if owner.kind == "sqlite":
+                                    live = migration.status(db_path=self.db_path)
+                                elif owner.kind == "sqlite_research":
+                                    live = self._research_status()
+                                elif owner.kind == "sqlite_knowledge":
+                                    live = self._knowledge_status()
+                                else:
+                                    live = self._workspace_status()
+                            if owner.kind == "sqlite_knowledge" and live["pending"]:
+                                result.append(
+                                    self._item(
+                                        owner,
+                                        "pending",
+                                        {
+                                            **latest["provenance"],
+                                            "schema_migrations": live,
+                                        },
+                                        operation="status",
+                                        recorded_at=latest["recorded_at"],
+                                    )
                                 )
+                                continue
                             if live["pending"] or (owner.kind == "sqlite" and not live["total"]):
                                 raise RuntimeError("live schema does not match applied owner")
                         except Exception as exc:
@@ -579,6 +599,22 @@ class MigrationOperator:
                     except Exception as exc:
                         state = "failed"
                         provenance.update(error_type=type(exc).__name__, operation="status")
+                elif owner.kind == "sqlite_knowledge":
+                    try:
+                        knowledge = self._knowledge_status()
+                        state = "applied" if not knowledge["pending"] else "pending"
+                        provenance["schema_migrations"] = knowledge
+                    except Exception as exc:
+                        state = "failed"
+                        provenance.update(error_type=type(exc).__name__, operation="status")
+                elif owner.kind == "sqlite_workspace":
+                    try:
+                        workspace = self._workspace_status()
+                        state = "applied" if not workspace["pending"] else "pending"
+                        provenance["schema_migrations"] = workspace
+                    except Exception as exc:
+                        state = "failed"
+                        provenance.update(error_type=type(exc).__name__, operation="status")
                 result.append(self._item(owner, state, provenance))
         return result
 
@@ -586,6 +622,16 @@ class MigrationOperator:
         from shared import research_migration
 
         return research_migration.status(db_path=self.db_path)
+
+    def _knowledge_status(self) -> dict[str, object]:
+        from shared import knowledge_governance_migration
+
+        return knowledge_governance_migration.status(db_path=self.db_path)
+
+    def _workspace_status(self) -> dict[str, object]:
+        from shared import workspace_migration
+
+        return workspace_migration.status(db_path=self.db_path)
 
     def _build_candidate(self, owner: MigrationOwner) -> Any:
         if owner.kind == "fts":
@@ -717,6 +763,7 @@ class MigrationOperator:
             )
             raise error
         if latest is not None and latest["state"] == "applied":
+            incremental_upgrade = False
             if owner.kind == "sqlite":
                 try:
                     current = migration.status(db_path=self.db_path)
@@ -743,6 +790,32 @@ class MigrationOperator:
                         provenance=self._failure_provenance(exc, "apply"),
                     )
                     raise
+            elif owner.kind == "sqlite_knowledge":
+                try:
+                    current = self._knowledge_status()
+                    if current["pending"]:
+                        incremental_upgrade = True
+                except Exception as exc:
+                    self._record(
+                        owner,
+                        state="failed",
+                        operation="apply",
+                        provenance=self._failure_provenance(exc, "apply"),
+                    )
+                    raise
+            elif owner.kind == "sqlite_workspace":
+                try:
+                    current = self._workspace_status()
+                    if current["pending"]:
+                        raise RuntimeError("applied workspace owner has a pending schema migration")
+                except Exception as exc:
+                    self._record(
+                        owner,
+                        state="failed",
+                        operation="apply",
+                        provenance=self._failure_provenance(exc, "apply"),
+                    )
+                    raise
             elif owner.kind == "sqlite_core":
                 try:
                     with closing(self._connect()) as connection:
@@ -755,13 +828,14 @@ class MigrationOperator:
                         provenance=self._failure_provenance(exc, "apply"),
                     )
                     raise
-            return self._item(
-                owner,
-                "applied",
-                latest["provenance"],
-                operation=latest["operation"],
-                recorded_at=latest["recorded_at"],
-            )
+            if not incremental_upgrade:
+                return self._item(
+                    owner,
+                    "applied",
+                    latest["provenance"],
+                    operation=latest["operation"],
+                    recorded_at=latest["recorded_at"],
+                )
         if latest is not None and latest["state"] == "failed" and latest["operation"] == "rollback":
             raise RuntimeError(f"rollback must be retried before apply for owner: {owner.owner}")
         built_here = False
@@ -878,6 +952,47 @@ class MigrationOperator:
                 )
                 if applied_item is None:
                     raise RuntimeError("research schema apply has no operator provenance")
+                return applied_item
+            if owner.kind == "sqlite_workspace":
+                from shared import workspace_migration
+
+                applied_item = None
+                operator_run_id = uuid4().hex
+
+                def record_workspace_before_commit(
+                    connection: sqlite3.Connection, run: migration.MigrationRun
+                ) -> None:
+                    nonlocal applied_item
+                    backup = run.backup_path
+                    if backup is None:
+                        raise RuntimeError(
+                            "workspace schema is applied without operator rollback provenance"
+                        )
+                    provenance = {
+                        "applied_migrations": list(run.applied),
+                        "backup_path": str(backup),
+                        "backup_sha256": _sha256(backup),
+                        "database_fingerprint_after_apply": self._database_fingerprint(connection),
+                    }
+                    applied_item = self._insert_record(
+                        connection,
+                        owner,
+                        state="applied",
+                        operation="apply",
+                        provenance=provenance,
+                        run_id=operator_run_id,
+                    )
+
+                workspace_migration.migrate(
+                    db_path=self.db_path,
+                    backup_dir=self.backup_dir,
+                    before_commit=record_workspace_before_commit,
+                    backup_when_pending=True,
+                    operator_run_id=operator_run_id,
+                    _operator_capability=workspace_migration._OP_CAPABILITY,
+                )
+                if applied_item is None:
+                    raise RuntimeError("workspace schema apply has no operator provenance")
                 return applied_item
             if owner.kind == "sqlite_knowledge":
                 from shared import knowledge_governance_migration
@@ -1026,7 +1141,13 @@ class MigrationOperator:
         if latest is None or latest["state"] != "applied":
             raise RuntimeError(f"no applied migration to roll back for owner: {owner.owner}")
         try:
-            if owner.kind in {"sqlite", "sqlite_research", "sqlite_knowledge", "sqlite_core"}:
+            if owner.kind in {
+                "sqlite",
+                "sqlite_research",
+                "sqlite_knowledge",
+                "sqlite_workspace",
+                "sqlite_core",
+            }:
                 backup_value = latest["provenance"].get("backup_path")
                 if not backup_value:
                     raise RuntimeError("applied SQLite migration has no rollback backup")
@@ -1054,6 +1175,9 @@ class MigrationOperator:
                         migration.MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
                     }
                     if not expected_migrations <= allowed_migrations:
+                        raise RuntimeError("rollback provenance does not match migration owner")
+                elif owner.kind == "sqlite_workspace":
+                    if expected_migrations != {migration.WORKSPACE_SCHEMA_MIGRATION_NAME}:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif expected_migrations != {core_schema.BASELINE_MIGRATION_NAME}:
                     raise RuntimeError("rollback provenance does not match migration owner")

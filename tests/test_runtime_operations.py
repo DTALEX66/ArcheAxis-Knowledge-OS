@@ -16,6 +16,17 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+def test_runtime_entrypoint_defaults_to_loopback_and_allows_explicit_host_override(monkeypatch):
+    from app import runtime_entrypoint
+
+    monkeypatch.delenv("COGNITIVE_HOST", raising=False)
+    assert runtime_entrypoint._uvicorn_command("app.main:app", 8000)[5] == "127.0.0.1"
+
+    monkeypatch.setenv("COGNITIVE_HOST", "0.0.0.0")
+    assert runtime_entrypoint._uvicorn_command("app.main:app", 8000)[5] == "0.0.0.0"
+
+
 def test_runtime_entrypoint_delegates_to_existing_migration_and_backup_apis():
     entrypoint = (ROOT / "app" / "runtime_entrypoint.py").read_text(encoding="utf-8")
     assert "MigrationOperator" in entrypoint
@@ -28,7 +39,8 @@ def test_runtime_entrypoint_delegates_to_existing_migration_and_backup_apis():
     assert "backup.backup" in entrypoint
     assert "backup.restore" in entrypoint
     assert "backup.activate_restore" in entrypoint
-    assert "backup.acquire_runtime_lock" in entrypoint
+    assert "core_runtime_guard" not in entrypoint
+    assert "core_runtime_guard" in (ROOT / "app" / "main.py").read_text(encoding="utf-8")
     assert "with backup.runtime_lease()" in entrypoint
     assert "storage.init()" not in entrypoint
     assert "memory_database.init_db()" not in entrypoint
@@ -36,7 +48,7 @@ def test_runtime_entrypoint_delegates_to_existing_migration_and_backup_apis():
     assert "INSERT INTO schema_migrations" not in entrypoint
 
 
-def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock(monkeypatch):
+def test_core_launcher_delegates_runtime_lock_ownership_to_asgi_lifespan(monkeypatch):
     from app import runtime_entrypoint
     from shared import backup
 
@@ -45,18 +57,7 @@ def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock
     class ExecReachedError(RuntimeError):
         pass
 
-    monkeypatch.setattr(backup, "acquire_runtime_lock", lambda: events.append("lock"))
-    monkeypatch.setattr(
-        backup,
-        "prepare_runtime_database",
-        lambda: events.append("checkpoint"),
-        raising=False,
-    )
-    monkeypatch.setattr(
-        runtime_entrypoint,
-        "_validate_storage_schema",
-        lambda: events.append("validate"),
-    )
+    monkeypatch.setattr(backup, "acquire_runtime_lock", lambda: events.append("unexpected-lock"))
 
     def stop_at_exec(_command):
         events.append("exec")
@@ -66,7 +67,29 @@ def test_core_restart_checkpoints_residual_sidecars_after_acquiring_runtime_lock
 
     with pytest.raises(ExecReachedError):
         runtime_entrypoint.run_core(Namespace())
-    assert events == ["lock", "checkpoint", "validate", "exec"]
+    assert events == ["exec"]
+
+
+def test_core_runtime_guard_releases_its_lease_after_validation_failure(monkeypatch):
+    from shared import backup
+    from shared.runtime_guard import core_runtime_guard
+
+    events: list[str] = []
+    monkeypatch.setattr(backup, "acquire_runtime_lock", lambda: events.append("lock"))
+    monkeypatch.setattr(backup, "prepare_runtime_database", lambda: events.append("checkpoint"))
+    monkeypatch.setattr(backup, "release_runtime_lock", lambda: events.append("release"))
+
+    def fail_validation() -> None:
+        events.append("validate")
+        raise RuntimeError("schema unavailable")
+
+    with (
+        pytest.raises(RuntimeError, match="schema unavailable"),
+        core_runtime_guard(validate=fail_validation),
+    ):
+        pytest.fail("guard must not enter when validation fails")
+
+    assert events == ["lock", "checkpoint", "validate", "release"]
 
 
 def test_migration_checkpoints_wal_before_constructing_operator(monkeypatch, tmp_path):
@@ -202,6 +225,7 @@ def test_runtime_migration_records_operator_provenance_and_backup(
         "knowledge-governance.sqlite",
         "research.sqlite",
         "taskpack.sqlite",
+        "workspace.sqlite",
     }
     assert all(result["state"] == "applied" for result in payload["operator_results"])
     with sqlite3.connect(database) as connection:

@@ -10,10 +10,12 @@ from app.contracts.v1 import LearningArtifactV1, MachineKnowledgeUnitV1, Mastery
 from app.knowledge.learning_artifact import (
     KnowledgeLearningArtifactApproval,
     approve_artifact_cards,
+    approve_artifact_cards_on_connection,
     create_candidate_learning_artifact,
+    create_candidate_learning_artifact_on_connection,
 )
-from app.knowledge.machine_knowledge import create_machine_knowledge_candidate
-from app.knowledge.mastery import persist_mastery_signal
+from app.knowledge.machine_knowledge import create_machine_knowledge_candidate_on_connection
+from app.knowledge.mastery import persist_mastery_signal_on_connection
 from shared import knowledge_governance_migration
 
 
@@ -40,6 +42,45 @@ def start_learning_candidate(
     )
 
 
+def start_and_approve_learning_candidate(
+    *,
+    unit_id: str,
+    approval_id: str,
+    approval_command_id: str,
+    reviewer_id: str,
+    rationale: str,
+    reviewed_at: str,
+    db_path: str | Path,
+) -> tuple[LearningArtifactV1, list[str]]:
+    """Create and approve a learning candidate in one caller-visible transaction."""
+    database = Path(db_path)
+    knowledge_governance_migration.require_applied(db_path=database)
+    approval = KnowledgeLearningArtifactApproval(
+        approval_id=approval_id,
+        unit_id=unit_id,
+        reviewer_id=reviewer_id,
+        rationale=rationale,
+        reviewed_at=reviewed_at,
+    )
+    with sqlite3.connect(database) as connection:
+        connection.row_factory = sqlite3.Row
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            artifact = create_candidate_learning_artifact_on_connection(connection, approval)
+            cards = approve_artifact_cards_on_connection(
+                connection,
+                artifact.artifact_id,
+                command_id=approval_command_id,
+                reviewer_id=reviewer_id,
+                reviewed_at=reviewed_at,
+            )
+            connection.commit()
+            return artifact, [card["id"] for card in cards]
+        except Exception:
+            connection.rollback()
+            raise
+
+
 def approve_learning_artifact(
     *, artifact_id: str, command_id: str, reviewer_id: str, reviewed_at: str, db_path: str | Path
 ) -> list[str]:
@@ -53,18 +94,18 @@ def approve_learning_artifact(
 
 
 def _card_id(connection: sqlite3.Connection, artifact_id: str) -> str:
+    artifact = connection.execute(
+        "SELECT id FROM knowledge_candidate_learning_artifacts_v1 WHERE id=?", (artifact_id,)
+    ).fetchone()
+    if artifact is None:
+        raise ValueError("practice requires an existing learning artifact")
+    card_id = f"{artifact_id}-card-0"
     row = connection.execute(
-        "SELECT id FROM kb_cards WHERE id GLOB ? ORDER BY id LIMIT 1", (f"{artifact_id}-card-*",)
+        "SELECT id FROM kb_cards WHERE id=?", (card_id,)
     ).fetchone()
     if row is None:
         raise ValueError("practice requires an approved learning artifact")
     return str(row[0])
-
-
-def _signal_id(card_id: str, calculated_at: str, signal: MasterySignalV1) -> str:
-    return "mastery_" + sha256(
-        f"{card_id}:{calculated_at}:{signal.model_dump_json()}".encode()
-    ).hexdigest()[:24]
 
 
 def record_practice_evidence(
@@ -79,49 +120,61 @@ def record_practice_evidence(
     review_id = "practice_" + sha256(command_id.encode()).hexdigest()[:24]
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
-        card_id = _card_id(connection, artifact_id)
-        existing_review = connection.execute(
-            "SELECT card_id, quality, created_at FROM kb_reviews WHERE id=?", (review_id,)
-        ).fetchone()
-        if existing_review is not None:
-            if str(existing_review["card_id"]) != card_id or int(existing_review["quality"]) != quality:
-                raise RuntimeError("practice command id conflicts with an existing receipt")
-            original_recorded_at = str(existing_review["created_at"])
-            signal_row = connection.execute(
-                "SELECT id, signal_json FROM mastery_signals_v1 "
-                "WHERE card_id=? AND calculated_at=? ORDER BY id LIMIT 1",
-                (card_id, original_recorded_at),
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            existing_review = connection.execute(
+                "SELECT card_id, quality, created_at FROM kb_reviews WHERE id=?", (review_id,)
             ).fetchone()
-            if signal_row is not None:
-                signal = MasterySignalV1.model_validate_json(signal_row["signal_json"])
-                candidate = connection.execute(
-                    "SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE source_signal_id=?",
-                    (str(signal_row["id"]),),
+            if existing_review is not None:
+                if (
+                    str(existing_review["card_id"]) != f"{artifact_id}-card-0"
+                    or int(existing_review["quality"]) != quality
+                ):
+                    raise RuntimeError("practice command id conflicts with an existing receipt")
+                card_id = _card_id(connection, artifact_id)
+                recorded_at = str(existing_review["created_at"])
+                signal_row = connection.execute(
+                    "SELECT id, signal_json FROM mastery_signals_v1 "
+                    "WHERE card_id=? AND calculated_at=? ORDER BY id LIMIT 1",
+                    (card_id, recorded_at),
                 ).fetchone()
-                machine = (
-                    MachineKnowledgeUnitV1.model_validate_json(candidate["unit_json"])
-                    if candidate is not None
-                    else None
+                if signal_row is not None:
+                    signal = MasterySignalV1.model_validate_json(signal_row["signal_json"])
+                    candidate = connection.execute(
+                        "SELECT unit_json FROM machine_knowledge_candidates_v1 "
+                        "WHERE source_signal_id=?",
+                        (str(signal_row["id"]),),
+                    ).fetchone()
+                    machine = (
+                        MachineKnowledgeUnitV1.model_validate_json(candidate["unit_json"])
+                        if candidate is not None
+                        else None
+                    )
+                    connection.commit()
+                    return PracticeResult(mastery_signal=signal, machine_knowledge=machine)
+            else:
+                card_id = _card_id(connection, artifact_id)
+                connection.execute(
+                    "INSERT INTO kb_reviews(id, card_id, quality, interval_days, ease_factor, "
+                    "next_review_at, created_at) VALUES (?, ?, ?, 1, 2.5, ?, ?)",
+                    (review_id, card_id, quality, recorded_at, recorded_at),
                 )
-                return PracticeResult(mastery_signal=signal, machine_knowledge=machine)
-            recorded_at = original_recorded_at
-        else:
-            connection.execute(
-                "INSERT INTO kb_reviews(id, card_id, quality, interval_days, ease_factor, next_review_at, created_at) "
-                "VALUES (?, ?, ?, 1, 2.5, ?, ?)",
-                (review_id, card_id, quality, recorded_at, recorded_at),
+            signal, signal_id = persist_mastery_signal_on_connection(
+                connection, card_id, calculated_at=recorded_at
             )
-        connection.commit()
-    signal = persist_mastery_signal(card_id, db_path=database, calculated_at=recorded_at)
-    machine = None
-    if signal.is_mastered:
-        with sqlite3.connect(database) as connection:
-            connection.row_factory = sqlite3.Row
-            signal_id = _signal_id(card_id, recorded_at, signal)
-            machine = create_machine_knowledge_candidate(
-                signal_id, title="Reviewed learning rule", content="Apply the reviewed learning rule.", db_path=database
-            )
-    return PracticeResult(mastery_signal=signal, machine_knowledge=machine)
+            machine = None
+            if signal.is_mastered:
+                machine = create_machine_knowledge_candidate_on_connection(
+                    connection,
+                    signal_id,
+                    title="Reviewed learning rule",
+                    content="Apply the reviewed learning rule.",
+                )
+            connection.commit()
+            return PracticeResult(mastery_signal=signal, machine_knowledge=machine)
+        except Exception:
+            connection.rollback()
+            raise
 
 
 def audit_closed_loop(artifact_id: str, *, db_path: str | Path) -> list[ClosedLoopAuditEvent]:

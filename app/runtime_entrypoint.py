@@ -28,7 +28,7 @@ def _uvicorn_command(app_path: str, default_port: int) -> list[str]:
         "uvicorn",
         app_path,
         "--host",
-        os.getenv("COGNITIVE_HOST", "0.0.0.0"),
+        os.getenv("COGNITIVE_HOST", "127.0.0.1"),
         "--port",
         os.getenv("COGNITIVE_PORT", str(default_port)),
         *UVICORN_WORKER_ARGS,
@@ -75,11 +75,6 @@ def _json_default(value: object) -> str:
 
 
 def run_core(_: argparse.Namespace) -> NoReturn:
-    from shared import backup
-
-    backup.acquire_runtime_lock()
-    backup.prepare_runtime_database()
-    _validate_storage_schema()
     _exec_process(_uvicorn_command("app.main:app", 8000))
 
 

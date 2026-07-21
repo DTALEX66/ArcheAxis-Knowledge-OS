@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import builtins
 import importlib
 import os
@@ -58,24 +59,20 @@ def test_storage_import_creates_no_database(monkeypatch, tmp_path: Path) -> None
     assert not database.exists()
 
 
-def test_core_runtime_startup_before_migration_fails_closed(monkeypatch, tmp_path: Path) -> None:
-    from app import runtime_entrypoint
+def test_core_runtime_lifespan_before_migration_fails_closed(monkeypatch, tmp_path: Path) -> None:
+    from app.main import app, core_runtime_lifespan
     from shared import backup, storage
 
     database = tmp_path / "missing.sqlite"
     monkeypatch.setattr(storage, "DB_PATH", database)
     monkeypatch.setattr(backup, "DB_PATH", database)
-    monkeypatch.setattr(
-        runtime_entrypoint,
-        "_exec_process",
-        lambda _command: pytest.fail("core must not exec before schema validation"),
-    )
+    async def enter_lifespan() -> None:
+        async with core_runtime_lifespan(app):
+            pytest.fail("lifespan must not enter before schema migration")
 
-    try:
-        with pytest.raises(RuntimeError, match="has not been migrated"):
-            runtime_entrypoint.run_core(object())
-    finally:
-        backup.release_runtime_lock()
+    with pytest.raises(RuntimeError, match="has not been migrated"):
+        asyncio.run(enter_lifespan())
+    assert backup._RUNTIME_LOCK_FD is None
 
 
 def test_runtime_migration_holds_target_operator_lease(monkeypatch, tmp_path: Path) -> None:

@@ -242,6 +242,51 @@ def extract_audio_track(
     }
 
 
+
+def extract_image_text(
+    image_path: str,
+    *,
+    language: str = "eng",
+    approved_roots: ApprovedRoots | None = None,
+) -> dict[str, Any]:
+    """Extract text from an approved image with a locally installed Tesseract engine."""
+    try:
+        import pytesseract
+        from PIL import Image
+    except ImportError:
+        return {"error": "pytesseract and Pillow are required for image OCR", "image": image_path}
+
+    policy = approved_roots or _APPROVED_ROOTS
+    try:
+        image_file = policy.resolve_source(image_path)
+    except ApprovedRootsError as exc:
+        return {"error": str(exc), "image": image_path}
+    if not image_file.is_file():
+        return {"error": "Image not found", "image": image_path}
+
+    import os
+    import shutil
+
+    executable = shutil.which("tesseract")
+    if executable is None:
+        windows_default = Path(os.environ.get("PROGRAMFILES", "")) / "Tesseract-OCR" / "tesseract.exe"
+        executable = str(windows_default) if windows_default.is_file() else None
+    if executable is None:
+        return {"error": "tesseract not found in PATH. Install Tesseract-OCR first.", "image": image_path}
+    pytesseract.pytesseract.tesseract_cmd = executable
+    try:
+        text = pytesseract.image_to_string(Image.open(image_file), lang=language).strip()
+    except (OSError, RuntimeError) as exc:
+        return {"error": f"tesseract OCR failed: {exc}", "image": image_path}
+    return {
+        "image": image_path,
+        "engine": "tesseract",
+        "language": language,
+        "text": text,
+        "char_count": len(text),
+    }
+
+
 def media_inventory(source_dir: str) -> dict[str, Any]:
     """Scan a directory for PDFs and videos, return inventory for processing.
 
