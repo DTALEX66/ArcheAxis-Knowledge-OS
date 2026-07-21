@@ -46,6 +46,9 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "desktop-shell:" in workflow
     assert 'python-version: "3.11"' in desktop_job
     assert "python -m desktop.scripts.prepare_bundle" in desktop_job
+    assert desktop_job.index("Prepare the installed Python runtime") < desktop_job.index(
+        "Test the Windows Rust library"
+    )
     assert "cargo install cargo-audit --version 0.22.2 --locked" in desktop_job
     assert "cargo audit --file Cargo.lock" in desktop_job
     assert "cargo test --test backend_lifecycle -- --ignored --nocapture" in desktop_job

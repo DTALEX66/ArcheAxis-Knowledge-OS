@@ -376,6 +376,11 @@ jobs:
       - name: Install locked desktop tooling
         working-directory: desktop
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare the installed Python runtime
+        run: >-
+          python -m desktop.scripts.prepare_bundle
+          --repository .
+          --destination .hermes/desktop-runtime-v1
       - name: Test the Windows Rust library
         working-directory: desktop/src-tauri
         run: |
@@ -386,11 +391,6 @@ jobs:
         run: |
           cargo install cargo-audit --version 0.22.2 --locked --force
           cargo audit --file Cargo.lock
-      - name: Prepare the installed Python runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --repository .
-          --destination .hermes/desktop-runtime-v1
       - name: Test the development and installed backend lifecycles
         working-directory: desktop/src-tauri
         run: cargo test --test backend_lifecycle -- --ignored --nocapture
