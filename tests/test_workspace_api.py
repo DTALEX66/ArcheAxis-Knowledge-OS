@@ -130,6 +130,17 @@ def test_workspace_frontend_status_and_intake_fail_closed() -> None:
     assert "payload.format||payload.source_type||'网页'" not in application
 
 
+def test_workspace_click_dispatch_does_not_treat_body_theme_as_a_button() -> None:
+    from pathlib import Path
+
+    application = (
+        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
+    ).read_text(encoding="utf-8")
+
+    assert "event.target.closest('button[data-theme]')" in application
+    assert "event.target.closest('[data-theme]')" not in application
+
+
 def test_workspace_diagnostics_ui_uses_the_safe_diagnostics_api() -> None:
     from pathlib import Path
 
