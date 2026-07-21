@@ -70,4 +70,26 @@ def test_enqueue_command_is_idempotent_and_rejects_conflicting_reuse(tmp_path: P
 
     with closing(sqlite3.connect(database)) as connection:
         assert connection.execute("SELECT COUNT(*) FROM workspace_jobs_v1").fetchone()[0] == 1
+
+
+def test_concurrent_enqueue_of_same_command_creates_one_record_set(tmp_path: Path) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    from app.workspace.job_outbox import enqueue_command
+
+    database = _workspace_database(tmp_path)
+    request = {
+        "command_id": "cmd-concurrent",
+        "command_type": "intake.research",
+        "aggregate_id": "package-001",
+        "payload": {"package_id": "package-001"},
+        "db_path": database,
+    }
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        receipts = list(executor.map(lambda _: enqueue_command(**request), range(8)))
+
+    assert len({receipt["job_id"] for receipt in receipts}) == 1
+    with closing(sqlite3.connect(database)) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM workspace_jobs_v1").fetchone()[0] == 1
         assert connection.execute("SELECT COUNT(*) FROM workspace_outbox_v1").fetchone()[0] == 1
+        assert connection.execute("SELECT COUNT(*) FROM workspace_command_receipts_v1").fetchone()[0] == 1
