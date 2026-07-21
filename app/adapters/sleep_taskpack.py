@@ -8,6 +8,7 @@ from typing import Any
 
 from app.adapters.taskpack import ContractMappingError
 from app.contracts.v1 import CONTRACT_VERSION, TaskPackV1
+from app.schemas import TaskPack as RuntimeTaskPack
 
 _NON_EXECUTING_EXECUTORS = {
     "context_pack_build",
@@ -140,3 +141,43 @@ def project_sleep_ledger_task_for_execution(
         )
 
     return from_sleep_ledger_task(task, declared_allowed_tools=allowed_tools)
+
+
+def project_sleep_ledger_task_to_runtime(
+    task: dict[str, Any],
+    *,
+    declared_allowed_tools: Iterable[str] | None = None,
+    satisfied_dependency_ids: Iterable[str] | None = None,
+) -> RuntimeTaskPack:
+    """Validate one ledger task and preserve its real payload for Runtime."""
+
+    canonical = project_sleep_ledger_task_for_execution(
+        task,
+        declared_allowed_tools=declared_allowed_tools,
+        satisfied_dependency_ids=satisfied_dependency_ids,
+    )
+    payload = task.get("payload", {})
+    reserved = {"id", "name", "type", "tool"}
+    conflicts = sorted(reserved & set(payload))
+    if conflicts:
+        raise ContractMappingError(
+            "sleep payload cannot override runtime step fields: " + ", ".join(conflicts)
+        )
+    step = canonical.steps[0]
+    return RuntimeTaskPack(
+        id=canonical.task_id,
+        goal=canonical.goal,
+        steps=[
+            {
+                "id": step.step_id,
+                "name": "sleep_runtime_execute",
+                "type": "tool",
+                "tool": step.tool,
+                **payload,
+            }
+        ],
+        constraints=list(canonical.constraints),
+        tools=list(canonical.requested_tools),
+        risk_level=canonical.risk_level,
+        success_criteria=list(canonical.success_criteria),
+    )

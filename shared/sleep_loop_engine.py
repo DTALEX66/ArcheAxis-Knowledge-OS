@@ -20,7 +20,10 @@ import gc
 import json
 import os
 import re
+import threading
+import time
 import uuid
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import asdict, dataclass
@@ -28,7 +31,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from shared import sleep_loop_migration
 from shared.config import resolve_runtime_path
+from shared.stable_hash import stable_hash_text
 from shared.storage import DB_PATH, _conn
 from shared.tool_evidence import has_real_tool_evidence
 
@@ -54,6 +59,8 @@ TASK_ARCHIVED = "archived"
 
 REAL_EXECUTORS = {"file_read", "safe_write", "kb_search", "mk_search"}
 NON_REAL_EXECUTORS = {"echo", "context_pack_build", "taskpack_generate"}
+REPLAY_SAFE_EXECUTORS = {"file_read", "kb_search", "mk_search"}
+_RUNTIME_TASK_EXECUTOR: Callable[[dict[str, Any]], dict[str, Any]] | None = None
 
 HARD_BLOCK_PATTERNS = [
     r"人工.*(确认|输入|问答)|弹窗|交互式|human\s*review|manual\s*confirm",
@@ -158,6 +165,16 @@ def _dump(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def _sleep_task_request_fingerprint(request: dict[str, Any]) -> str:
+    canonical = json.dumps(
+        request,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return stable_hash_text(canonical, namespace="sleep-task-request-v1")
+
+
 def _load(value: str | None, default: Any = None) -> Any:
     if value in (None, ""):
         return default
@@ -168,70 +185,9 @@ def _load(value: str | None, default: Any = None) -> Any:
 
 
 def init_sleep_loop_schema() -> None:
-    conn = _conn()
-    conn.executescript(
-        """
-        CREATE TABLE IF NOT EXISTS sleep_loop_runs (
-            id TEXT PRIMARY KEY,
-            status TEXT NOT NULL DEFAULT 'idle',
-            goal TEXT NOT NULL DEFAULT '',
-            cycle_no INTEGER NOT NULL DEFAULT 0,
-            failure_streak INTEGER NOT NULL DEFAULT 0,
-            next_cycle_at TEXT,
-            started_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            stopped_at TEXT,
-            stop_reason TEXT NOT NULL DEFAULT '',
-            config_json TEXT NOT NULL DEFAULT '{}',
-            seed_tasks_json TEXT NOT NULL DEFAULT '[]'
-        );
+    """Require the operator-owned Sleep Loop schema without mutating it."""
 
-        CREATE TABLE IF NOT EXISTS sleep_loop_tasks (
-            id TEXT PRIMARY KEY,
-            run_id TEXT NOT NULL,
-            parent_id TEXT NOT NULL DEFAULT '',
-            cycle_no INTEGER NOT NULL DEFAULT 0,
-            title TEXT NOT NULL,
-            content TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
-            priority INTEGER NOT NULL DEFAULT 100,
-            executor TEXT NOT NULL DEFAULT 'kb_search',
-            payload_json TEXT NOT NULL DEFAULT '{}',
-            dependencies_json TEXT NOT NULL DEFAULT '[]',
-            retries INTEGER NOT NULL DEFAULT 0,
-            max_retries INTEGER NOT NULL DEFAULT 3,
-            derived_count INTEGER NOT NULL DEFAULT 0,
-            risk_level TEXT NOT NULL DEFAULT 'low',
-            result_json TEXT NOT NULL DEFAULT '{}',
-            error TEXT NOT NULL DEFAULT '',
-            created_at TEXT NOT NULL,
-            started_at TEXT,
-            finished_at TEXT
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_sleep_loop_tasks_run_status
-            ON sleep_loop_tasks(run_id, status, priority, created_at);
-        CREATE INDEX IF NOT EXISTS idx_sleep_loop_tasks_parent
-            ON sleep_loop_tasks(parent_id);
-
-        CREATE TABLE IF NOT EXISTS sleep_loop_events (
-            id TEXT PRIMARY KEY,
-            run_id TEXT NOT NULL DEFAULT '',
-            task_id TEXT NOT NULL DEFAULT '',
-            level TEXT NOT NULL DEFAULT 'info',
-            event_type TEXT NOT NULL,
-            message TEXT NOT NULL,
-            metadata_json TEXT NOT NULL DEFAULT '{}',
-            created_at TEXT NOT NULL
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_sleep_loop_events_run_created
-            ON sleep_loop_events(run_id, created_at DESC);
-        """
-    )
-    conn.commit()
-    conn.close()
-
+    sleep_loop_migration.require_applied(db_path=DB_PATH)
 
 def _append_file_log(level: str, event_type: str, message: str) -> None:
     path = LOG_DIR / f"sleep-loop-{datetime.now():%Y%m%d}.log"
@@ -429,41 +385,104 @@ def add_task(
     allowed, reason = guard_task(str(task.get("content", task.get("title", ""))), cfg)
     if allowed:
         allowed, reason = validate_real_task(task, cfg)
+    dependencies = task.get("dependencies", [])
+    if not isinstance(dependencies, list) or not all(
+        isinstance(dependency, str) and dependency.strip() for dependency in dependencies
+    ):
+        raise ValueError("sleep task dependencies must be non-empty string IDs")
+    dependencies = list(dict.fromkeys(dependency.strip() for dependency in dependencies))
+    normalized_request = {
+        "parent_id": parent_id,
+        "cycle_no": cycle_no,
+        "title": str(task.get("title", "未命名任务"))[:200],
+        "content": str(task.get("content", task.get("title", ""))),
+        "priority": int(task.get("priority", 100)),
+        "executor": str(task.get("executor", "")),
+        "payload": task.get("payload", {}),
+        "dependencies": dependencies,
+        "max_retries": int(task.get("max_retries", cfg.max_retries)),
+        "risk_level": str(task.get("risk_level", "low")),
+    }
+    request_fingerprint = _sleep_task_request_fingerprint(normalized_request)
+    supplied_key = str(task.get("idempotency_key", "")).strip()
+    if len(supplied_key) > 200:
+        raise ValueError("sleep task idempotency key exceeds 200 characters")
+    if supplied_key and cycle_no > 1:
+        cycle_suffix = f":cycle:{cycle_no}"
+        idempotency_key = (
+            f"{supplied_key}{cycle_suffix}"
+            if len(supplied_key) + len(cycle_suffix) <= 200
+            else f"cycle:{cycle_no}:{stable_hash_text(supplied_key)}"
+        )
+    else:
+        idempotency_key = supplied_key or request_fingerprint
     task_id = _new_id("slt")
     status = TASK_PENDING if allowed else TASK_BLOCKED
     conn = _conn()
-    counts = _queue_counts(conn, run_id)
-    if counts["pending"] + counts["running"] >= cfg.global_queue_limit:
-        status = TASK_BLOCKED
-        reason = "global_queue_limit_reached"
-    conn.execute(
-        "INSERT INTO sleep_loop_tasks "
-        "(id, run_id, parent_id, cycle_no, title, content, status, priority, executor, "
-        "payload_json, dependencies_json, retries, max_retries, risk_level, error, created_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)",
-        (
-            task_id,
-            run_id,
-            parent_id,
-            cycle_no,
-            str(task.get("title", "未命名任务"))[:200],
-            str(task.get("content", task.get("title", ""))),
-            status,
-            int(task.get("priority", 100)),
-            str(task.get("executor", "")),
-            _dump(task.get("payload", {})),
-            _dump(task.get("dependencies", [])),
-            int(task.get("max_retries", cfg.max_retries)),
-            str(task.get("risk_level", "low")),
-            "" if allowed else reason,
-            _now(),
-        ),
-    )
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        existing = conn.execute(
+            "SELECT id, status, error, request_fingerprint FROM sleep_loop_tasks "
+            "WHERE run_id=? AND idempotency_key=?",
+            (run_id, idempotency_key),
+        ).fetchone()
+        if existing is not None:
+            if str(existing["request_fingerprint"]) != request_fingerprint:
+                raise ValueError("idempotency key was reused with a different request")
+            conn.commit()
+            return {
+                "id": str(existing["id"]),
+                "status": str(existing["status"]),
+                "reason": str(existing["error"] or reason),
+                "deduplicated": True,
+            }
+        if dependencies:
+            placeholders = ", ".join("?" for _ in dependencies)
+            dependency_rows = conn.execute(
+                f"SELECT id FROM sleep_loop_tasks WHERE run_id=? AND id IN ({placeholders})",
+                (run_id, *dependencies),
+            ).fetchall()
+            if {str(row["id"]) for row in dependency_rows} != set(dependencies):
+                raise ValueError("sleep task dependencies must exist in the same run")
+        counts = _queue_counts(conn, run_id)
+        if counts["pending"] + counts["running"] >= cfg.global_queue_limit:
+            status = TASK_BLOCKED
+            reason = "global_queue_limit_reached"
+        conn.execute(
+            "INSERT INTO sleep_loop_tasks "
+            "(id, run_id, parent_id, cycle_no, title, content, status, priority, executor, "
+            "payload_json, dependencies_json, retries, max_retries, risk_level, error, created_at, "
+            "idempotency_key, request_fingerprint) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)",
+            (
+                task_id,
+                run_id,
+                normalized_request["parent_id"],
+                normalized_request["cycle_no"],
+                normalized_request["title"],
+                normalized_request["content"],
+                status,
+                normalized_request["priority"],
+                normalized_request["executor"],
+                _dump(normalized_request["payload"]),
+                _dump(normalized_request["dependencies"]),
+                normalized_request["max_retries"],
+                normalized_request["risk_level"],
+                "" if allowed else reason,
+                _now(),
+                idempotency_key,
+                request_fingerprint,
+            ),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
     if not allowed:
         log_event("task_blocked", reason, run_id=run_id, task_id=task_id, level="warning")
-    return {"id": task_id, "status": status, "reason": reason}
+    return {"id": task_id, "status": status, "reason": reason, "deduplicated": False}
 
 
 def start_loop(goal: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -506,13 +525,12 @@ def start_loop(goal: str, payload: dict[str, Any] | None = None) -> dict[str, An
     log_event(
         "loop_started", "就寝无人值守循环已开启", run_id=run_id, metadata={"config": cfg.to_dict()}
     )
-    for task in seed_tasks:
-        add_task(run_id, task, cfg, cycle_no=1)
+    added = [add_task(run_id, task, cfg, cycle_no=1) for task in seed_tasks]
     return {
         "ok": True,
         "run_id": run_id,
         "status": STATUS_RUNNING,
-        "queued": len(seed_tasks),
+        "queued": sum(not item["deduplicated"] for item in added),
         "config": cfg.to_dict(),
     }
 
@@ -530,8 +548,15 @@ def stop_loop(
         (target_status, _now(), _now(), reason, active["id"]),
     )
     conn.execute(
-        "UPDATE sleep_loop_tasks SET status=?, finished_at=?, error=? WHERE run_id=? AND status=?",
+        "UPDATE sleep_loop_tasks SET status=?, finished_at=?, error=?, lease_owner='', "
+        "lease_token='', lease_expires_at=NULL, heartbeat_at=NULL "
+        "WHERE run_id=? AND status=?",
         (TASK_FAILED, _now(), reason, active["id"], TASK_RUNNING),
+    )
+    conn.execute(
+        "UPDATE sleep_loop_attempts SET status=?, error=?, finished_at=? "
+        "WHERE run_id=? AND status=?",
+        (TASK_FAILED, reason, _now(), active["id"], TASK_RUNNING),
     )
     conn.commit()
     conn.close()
@@ -649,70 +674,350 @@ def _resource_guard(run_id: str, cfg: SleepLoopConfig) -> dict[str, Any]:
 
 def _parse_derived_tasks(result: dict[str, Any]) -> list[dict[str, Any]]:
     derived = result.get("derived_tasks")
-    if isinstance(derived, list):
-        return [x for x in derived if isinstance(x, dict)]
-    text = _dump(result)
-    tasks: list[dict[str, Any]] = []
-    for line in text.splitlines():
-        match = re.search(r"(?:TODO|NEXT|DERIVED)[:：]\s*(.+)", line, re.IGNORECASE)
-        if match:
-            item = match.group(1).strip()
-            tasks.append(
-                {
-                    "title": item[:80],
-                    "content": item,
-                    "executor": "kb_search",
-                    "payload": {"query": item, "top_k": 5},
-                }
-            )
-    return tasks
+    if not isinstance(derived, list):
+        return []
+    return [item for item in derived if isinstance(item, dict)]
 
 
-def _execute_payload(executor: str, payload: dict[str, Any]) -> dict[str, Any]:
-    from app.tools.registry import run_tool
+def _execute_runtime_task(task: dict[str, Any]) -> dict[str, Any]:
+    executor = _RUNTIME_TASK_EXECUTOR
+    if executor is None:
+        raise RuntimeError("sleep runtime task executor port is not configured")
+    return executor(task)
 
-    if executor not in REAL_EXECUTORS:
-        return {"status": "blocked", "error": f"executor_not_allowed:{executor}"}
-    run_payload = dict(payload)
-    dry_run = run_payload.pop("dry_run", None)
-    return run_tool(executor, run_payload, dry_run=dry_run)
+
+def configure_runtime_task_executor(
+    executor: Callable[[dict[str, Any]], dict[str, Any]],
+) -> None:
+    """Configure the upper-layer Runtime execution port at a composition root."""
+
+    global _RUNTIME_TASK_EXECUTOR
+    _RUNTIME_TASK_EXECUTOR = executor
 
 
 def _run_with_timeout(
-    executor: str, payload: dict[str, Any], timeout_seconds: int
+    task: dict[str, Any],
+    timeout_seconds: int,
+    *,
+    heartbeat: Callable[[], bool | None] | None = None,
 ) -> dict[str, Any]:
-    with ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(_execute_payload, executor, payload)
-        try:
-            return future.result(timeout=timeout_seconds)
-        except FutureTimeout:
-            return {"status": "error", "error": "task_timeout", "timeout_seconds": timeout_seconds}
-        except Exception as exc:  # noqa: BLE001 - ledger must record and continue
-            return {"status": "error", "error": str(exc)[:300]}
+    pool = ThreadPoolExecutor(max_workers=1)
+    future = pool.submit(_execute_runtime_task, task)
+    deadline = time.monotonic() + timeout_seconds
+    interval = min(5.0, max(0.25, timeout_seconds / 3))
+    try:
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                future.cancel()
+                return {
+                    "status": "error",
+                    "error": "task_timeout",
+                    "timeout_seconds": timeout_seconds,
+                }
+            try:
+                return future.result(timeout=min(interval, remaining))
+            except FutureTimeout:
+                if heartbeat is not None and heartbeat() is False:
+                    future.cancel()
+                    return {"status": "error", "error": "lease_lost"}
+            except Exception as exc:  # noqa: BLE001 - ledger must record and continue
+                return {"status": "error", "error": str(exc)[:300]}
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
 
 
 def _next_pending_task(conn: Any, run_id: str) -> dict[str, Any] | None:
     rows = conn.execute(
         "SELECT * FROM sleep_loop_tasks WHERE run_id=? AND status=? "
+        "AND (next_attempt_at IS NULL OR next_attempt_at<=?) "
         "ORDER BY priority ASC, created_at ASC, rowid ASC LIMIT 20",
-        (run_id, TASK_PENDING),
+        (run_id, TASK_PENDING, datetime.now().isoformat(timespec="microseconds")),
     ).fetchall()
     for row in rows:
         task = _row_to_dict(row)
         deps = task.get("dependencies", []) or []
         if not deps:
             return task
-        placeholders = ",".join("?" for _ in deps)
-        done = conn.execute(
-            f"SELECT COUNT(*) FROM sleep_loop_tasks WHERE id IN ({placeholders}) AND status=?",
-            (*deps, TASK_DONE),
-        ).fetchone()[0]
-        if done == len(deps):
+        placeholders = ", ".join("?" for _ in deps)
+        dependency_rows = conn.execute(
+            f"SELECT id, status FROM sleep_loop_tasks WHERE run_id=? AND id IN ({placeholders})",
+            (run_id, *deps),
+        ).fetchall()
+        dependency_states = {
+            str(dependency["id"]): str(dependency["status"])
+            for dependency in dependency_rows
+        }
+        missing = [dependency for dependency in deps if dependency not in dependency_states]
+        failed = [
+            dependency
+            for dependency in deps
+            if dependency_states.get(dependency)
+            in {TASK_FAILED, TASK_BLOCKED, TASK_ARCHIVED}
+        ]
+        if missing or failed:
+            detail = ",".join((*missing, *failed))[:240]
+            conn.execute(
+                "UPDATE sleep_loop_tasks SET status=?, error=?, finished_at=? "
+                "WHERE id=? AND run_id=? AND status=?",
+                (
+                    TASK_BLOCKED,
+                    f"dependency_terminal_failure:{detail}",
+                    _now(),
+                    task["id"],
+                    run_id,
+                    TASK_PENDING,
+                ),
+            )
+            continue
+        if all(dependency_states.get(dependency) == TASK_DONE for dependency in deps):
             return task
     return None
 
 
-def tick_once() -> dict[str, Any]:
+def claim_next_task(
+    run_id: str,
+    cfg: SleepLoopConfig,
+    *,
+    worker_id: str,
+) -> dict[str, Any] | None:
+    """Atomically lease one dependency-ready task to one worker."""
+
+    init_sleep_loop_schema()
+    owner = str(worker_id).strip()
+    if not owner or len(owner) > 128:
+        raise ValueError("sleep loop worker_id must be between 1 and 128 characters")
+    conn = _conn()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        run = conn.execute(
+            "SELECT status FROM sleep_loop_runs WHERE id=?",
+            (run_id,),
+        ).fetchone()
+        if run is None or str(run["status"]) != STATUS_RUNNING:
+            conn.commit()
+            return None
+        task = _next_pending_task(conn, run_id)
+        if task is None:
+            conn.commit()
+            return None
+        claimed_at = datetime.now()
+        lease_token = _new_id("lease")
+        lease_expires_at = claimed_at + timedelta(seconds=cfg.task_timeout_seconds)
+        claimed_at_text = claimed_at.isoformat(timespec="microseconds")
+        updated = conn.execute(
+            "UPDATE sleep_loop_tasks SET status=?, started_at=?, attempt_no=attempt_no+1, "
+            "lease_owner=?, lease_token=?, lease_expires_at=?, heartbeat_at=? "
+            "WHERE id=? AND run_id=? AND status=?",
+            (
+                TASK_RUNNING,
+                claimed_at_text,
+                owner,
+                lease_token,
+                lease_expires_at.isoformat(timespec="microseconds"),
+                claimed_at_text,
+                task["id"],
+                run_id,
+                TASK_PENDING,
+            ),
+        )
+        if updated.rowcount != 1:
+            conn.rollback()
+            return None
+        attempt_no = int(task.get("attempt_no", 0)) + 1
+        conn.execute(
+            "INSERT INTO sleep_loop_attempts(id, task_id, run_id, attempt_no, lease_owner, "
+            "lease_token, status, started_at, heartbeat_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                _new_id("sla"),
+                task["id"],
+                run_id,
+                attempt_no,
+                owner,
+                lease_token,
+                TASK_RUNNING,
+                claimed_at_text,
+                claimed_at_text,
+            ),
+        )
+        row = conn.execute(
+            "SELECT * FROM sleep_loop_tasks WHERE id=? AND lease_token=?",
+            (task["id"], lease_token),
+        ).fetchone()
+        conn.commit()
+        if row is None:
+            raise RuntimeError("claimed sleep task could not be read back")
+        return _row_to_dict(row)
+    finally:
+        conn.close()
+
+
+def heartbeat_task(
+    task_id: str,
+    *,
+    lease_token: str,
+    worker_id: str,
+    extend_seconds: int,
+    now: datetime | None = None,
+) -> bool:
+    """Extend one live lease only when the worker still owns its exact token."""
+
+    init_sleep_loop_schema()
+    owner = str(worker_id).strip()
+    token = str(lease_token).strip()
+    if not owner or not token:
+        return False
+    extension = max(1, min(int(extend_seconds), 300))
+    heartbeat_at = now or datetime.now()
+    heartbeat_at_text = heartbeat_at.isoformat(timespec="microseconds")
+    lease_expires_at = heartbeat_at + timedelta(seconds=extension)
+    conn = _conn()
+    try:
+        updated = conn.execute(
+            "UPDATE sleep_loop_tasks SET heartbeat_at=?, lease_expires_at=? "
+            "WHERE id=? AND status=? AND lease_owner=? AND lease_token=? "
+            "AND lease_expires_at>?",
+            (
+                heartbeat_at_text,
+                lease_expires_at.isoformat(timespec="microseconds"),
+                task_id,
+                TASK_RUNNING,
+                owner,
+                token,
+                heartbeat_at_text,
+            ),
+        )
+        if updated.rowcount == 1:
+            conn.execute(
+                "UPDATE sleep_loop_attempts SET heartbeat_at=? "
+                "WHERE task_id=? AND lease_owner=? AND lease_token=? AND status=?",
+                (heartbeat_at_text, task_id, owner, token, TASK_RUNNING),
+            )
+        conn.commit()
+        return updated.rowcount == 1
+    finally:
+        conn.close()
+
+
+def recover_expired_leases(
+    run_id: str,
+    *,
+    now: datetime | None = None,
+) -> dict[str, int]:
+    """Recover expired work without blindly replaying uncertain writes."""
+
+    init_sleep_loop_schema()
+    recovered_at = now or datetime.now()
+    recovered_at_text = recovered_at.isoformat(timespec="microseconds")
+    requeued = 0
+    requires_reconciliation = 0
+    events: list[tuple[str, str, str]] = []
+    conn = _conn()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        rows = conn.execute(
+            "SELECT * FROM sleep_loop_tasks WHERE run_id=? AND status=? "
+            "AND lease_expires_at IS NOT NULL AND lease_expires_at<=? "
+            "ORDER BY lease_expires_at ASC, rowid ASC",
+            (run_id, TASK_RUNNING, recovered_at_text),
+        ).fetchall()
+        for row in rows:
+            task = _row_to_dict(row)
+            retries = int(task.get("retries", 0)) + 1
+            max_retries = int(task.get("max_retries", 0))
+            replay_safe = str(task.get("executor", "")) in REPLAY_SAFE_EXECUTORS
+            if replay_safe and retries <= max_retries:
+                backoff_seconds = min(300, 2 ** min(retries, 8))
+                next_attempt_at = recovered_at + timedelta(seconds=backoff_seconds)
+                updated = conn.execute(
+                    "UPDATE sleep_loop_tasks SET status=?, retries=?, error=?, started_at=NULL, "
+                    "next_attempt_at=?, lease_owner='', lease_token='', lease_expires_at=NULL, "
+                    "heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=?",
+                    (
+                        TASK_PENDING,
+                        retries,
+                        "lease_expired_requeued",
+                        next_attempt_at.isoformat(timespec="microseconds"),
+                        task["id"],
+                        TASK_RUNNING,
+                        task["lease_token"],
+                    ),
+                )
+                if updated.rowcount == 1:
+                    receipt = conn.execute(
+                        "UPDATE sleep_loop_attempts SET status=?, error=?, finished_at=? "
+                        "WHERE task_id=? AND lease_token=? AND status=?",
+                        (
+                            "lease_expired_requeued",
+                            "lease_expired_requeued",
+                            recovered_at_text,
+                            task["id"],
+                            task["lease_token"],
+                            TASK_RUNNING,
+                        ),
+                    )
+                    if receipt.rowcount != 1:
+                        raise RuntimeError("expired sleep lease has no running attempt receipt")
+                    requeued += 1
+                    events.append(
+                        (str(task["id"]), "lease_expired_requeued", "expired read lease requeued")
+                    )
+                continue
+            reason = (
+                "unknown_outcome_requires_reconciliation"
+                if not replay_safe
+                else "lease_retry_budget_exhausted"
+            )
+            updated = conn.execute(
+                "UPDATE sleep_loop_tasks SET status=?, retries=?, error=?, finished_at=?, "
+                "lease_owner='', lease_token='', lease_expires_at=NULL, heartbeat_at=NULL "
+                "WHERE id=? AND status=? AND lease_token=?",
+                (
+                    TASK_BLOCKED,
+                    retries,
+                    reason,
+                    recovered_at_text,
+                    task["id"],
+                    TASK_RUNNING,
+                    task["lease_token"],
+                ),
+            )
+            if updated.rowcount == 1:
+                receipt = conn.execute(
+                    "UPDATE sleep_loop_attempts SET status=?, error=?, finished_at=? "
+                    "WHERE task_id=? AND lease_token=? AND status=?",
+                    (
+                        "reconciliation_required",
+                        reason,
+                        recovered_at_text,
+                        task["id"],
+                        task["lease_token"],
+                        TASK_RUNNING,
+                    ),
+                )
+                if receipt.rowcount != 1:
+                    raise RuntimeError("expired sleep lease has no running attempt receipt")
+                requires_reconciliation += 1
+                events.append((str(task["id"]), "lease_reconciliation_required", reason))
+        conn.commit()
+    finally:
+        conn.close()
+    for task_id, event_type, message in events:
+        log_event(
+            event_type,
+            message,
+            run_id=run_id,
+            task_id=task_id,
+            level="warning",
+        )
+    return {
+        "requeued": requeued,
+        "requires_reconciliation": requires_reconciliation,
+    }
+
+
+def tick_once(*, worker_id: str | None = None) -> dict[str, Any]:
     """Run one bounded scheduler tick.
 
     A PM2/cron/worker loop can call this repeatedly.  The function never asks for
@@ -740,6 +1045,7 @@ def tick_once() -> dict[str, Any]:
     if int(active.get("failure_streak", 0)) >= cfg.failure_streak_limit:
         return stop_loop("failure_streak_limit_reached", target_status=STATUS_HALTED)
 
+    recover_expired_leases(run_id)
     conn = _conn()
     counts = _queue_counts(conn, run_id)
 
@@ -802,20 +1108,27 @@ def tick_once() -> dict[str, Any]:
             run_id=run_id,
             metadata={"cycle_no": next_cycle},
         )
-        for task in seed_tasks[: cfg.max_split_tasks]:
+        added = [
             add_task(run_id, task, cfg, cycle_no=next_cycle)
+            for task in seed_tasks[: cfg.max_split_tasks]
+        ]
         gc.collect()
         return {
             "ok": True,
             "status": STATUS_RUNNING,
             "run_id": run_id,
             "cycle_no": next_cycle,
-            "queued": len(seed_tasks),
+            "queued": sum(not item["deduplicated"] for item in added),
         }
 
-    task = _next_pending_task(conn, run_id)
+    conn.close()
+    effective_worker_id = worker_id or f"sleep-worker-{os.getpid()}-{threading.get_ident()}"
+    task = claim_next_task(
+        run_id,
+        cfg,
+        worker_id=effective_worker_id,
+    )
     if not task:
-        conn.close()
         return {
             "ok": True,
             "status": STATUS_RUNNING,
@@ -824,44 +1137,54 @@ def tick_once() -> dict[str, Any]:
         }
 
     task_id = task["id"]
+    lease_token = str(task["lease_token"])
     allowed, reason = guard_task(task.get("content", ""), cfg)
     if not allowed:
+        conn = _conn()
         conn.execute(
-            "UPDATE sleep_loop_tasks SET status=?, error=?, finished_at=? WHERE id=?",
-            (TASK_BLOCKED, reason, _now(), task_id),
+            "UPDATE sleep_loop_tasks SET status=?, error=?, finished_at=?, lease_owner='', "
+            "lease_token='', lease_expires_at=NULL, heartbeat_at=NULL "
+            "WHERE id=? AND status=? AND lease_token=?",
+            (TASK_BLOCKED, reason, _now(), task_id, TASK_RUNNING, lease_token),
         )
         conn.commit()
         conn.close()
         log_event("hard_boundary_block", reason, run_id=run_id, task_id=task_id, level="alert")
         return stop_loop("high_risk_task_detected", target_status=STATUS_HALTED)
 
-    conn.execute(
-        "UPDATE sleep_loop_tasks SET status=?, started_at=? WHERE id=?",
-        (TASK_RUNNING, _now(), task_id),
-    )
-    conn.commit()
-    conn.close()
     log_event("task_started", task.get("title", ""), run_id=run_id, task_id=task_id)
 
     executor = task.get("executor", "")
-    result = _run_with_timeout(executor, task.get("payload", {}), cfg.task_timeout_seconds)
-    success = result.get("status") not in {"error", "blocked"}
+    result = _run_with_timeout(
+        task,
+        cfg.task_timeout_seconds,
+        heartbeat=lambda: heartbeat_task(
+            task_id,
+            lease_token=lease_token,
+            worker_id=effective_worker_id,
+            extend_seconds=cfg.task_timeout_seconds,
+        ),
+    )
+    success = result.get("runtime_status") == "done"
     if success:
-        evidence_ok, evidence_reason = has_real_evidence(str(executor), result)
+        _, evidence_reason = has_real_evidence(str(executor), result)
         result["real_evidence"] = evidence_reason
-        if not evidence_ok:
-            result["status"] = "error"
-            result["error"] = evidence_reason
-            success = False
 
     conn = _conn()
     if success:
-        conn.execute(
-            "UPDATE sleep_loop_tasks SET status=?, result_json=?, finished_at=? WHERE id=?",
-            (TASK_DONE, _dump(result), _now(), task_id),
-        )
-        conn.execute(
-            "UPDATE sleep_loop_runs SET failure_streak=0, updated_at=? WHERE id=?", (_now(), run_id)
+        terminal_update = conn.execute(
+            "UPDATE sleep_loop_tasks SET status=?, result_json=?, finished_at=?, "
+            "terminal_trace_id=?, lease_owner='', lease_token='', lease_expires_at=NULL, "
+            "heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=?",
+            (
+                TASK_DONE,
+                _dump(result),
+                _now(),
+                str(result.get("trace_id", "")),
+                task_id,
+                TASK_RUNNING,
+                lease_token,
+            ),
         )
         log_level = "info"
         event_type = "task_done"
@@ -869,36 +1192,113 @@ def tick_once() -> dict[str, Any]:
     else:
         retries = int(task.get("retries", 0)) + 1
         max_retries = int(task.get("max_retries", cfg.max_retries))
-        if retries <= max_retries:
-            conn.execute(
+        unknown_write_outcome = (
+            str(executor) not in REPLAY_SAFE_EXECUTORS
+            and str(result.get("error", "")) == "task_timeout"
+        )
+        if unknown_write_outcome:
+            terminal_update = conn.execute(
+                "UPDATE sleep_loop_tasks SET status=?, retries=?, result_json=?, error=?, "
+                "finished_at=?, lease_owner='', lease_token='', lease_expires_at=NULL, "
+                "heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=?",
+                (
+                    TASK_BLOCKED,
+                    retries,
+                    _dump(result),
+                    "unknown_outcome_requires_reconciliation",
+                    _now(),
+                    task_id,
+                    TASK_RUNNING,
+                    lease_token,
+                ),
+            )
+            event_type = "task_reconciliation_required"
+            message = "写任务超时，执行结果未知，禁止自动重放"
+        elif retries <= max_retries:
+            terminal_update = conn.execute(
                 "UPDATE sleep_loop_tasks SET status=?, retries=?, result_json=?, "
-                "error=?, started_at=NULL WHERE id=?",
-                (TASK_PENDING, retries, _dump(result), str(result.get("error", ""))[:300], task_id),
+                "error=?, started_at=NULL, lease_owner='', lease_token='', "
+                "lease_expires_at=NULL, heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=?",
+                (
+                    TASK_PENDING,
+                    retries,
+                    _dump(result),
+                    str(result.get("error", ""))[:300],
+                    task_id,
+                    TASK_RUNNING,
+                    lease_token,
+                ),
             )
             event_type = "task_retry_scheduled"
             message = f"任务失败，安排第 {retries}/{max_retries} 次重试"
         else:
-            conn.execute(
+            terminal_update = conn.execute(
                 "UPDATE sleep_loop_tasks SET status=?, retries=?, result_json=?, "
-                "error=?, finished_at=? WHERE id=?",
+                "error=?, finished_at=?, terminal_trace_id=?, lease_owner='', lease_token='', "
+                "lease_expires_at=NULL, heartbeat_at=NULL "
+                "WHERE id=? AND status=? AND lease_token=?",
                 (
                     TASK_ARCHIVED,
                     retries,
                     _dump(result),
                     str(result.get("error", ""))[:300],
                     _now(),
+                    str(result.get("trace_id", "")),
                     task_id,
+                    TASK_RUNNING,
+                    lease_token,
                 ),
-            )
-            conn.execute(
-                "UPDATE sleep_loop_runs SET failure_streak=failure_streak+1, "
-                "updated_at=? WHERE id=?",
-                (_now(), run_id),
             )
             event_type = "task_failed_archived"
             message = "任务重试耗尽，归档并继续"
         log_level = "warning"
 
+    if terminal_update.rowcount != 1:
+        conn.rollback()
+        conn.close()
+        return {
+            "ok": False,
+            "status": STATUS_RUNNING,
+            "run_id": run_id,
+            "task_id": task_id,
+            "success": False,
+            "reason": "lease_lost",
+        }
+    attempt_status = {
+        "task_done": TASK_DONE,
+        "task_retry_scheduled": "retry_scheduled",
+        "task_reconciliation_required": TASK_BLOCKED,
+        "task_failed_archived": TASK_ARCHIVED,
+    }[event_type]
+    receipt_update = conn.execute(
+        "UPDATE sleep_loop_attempts SET status=?, trace_id=?, result_json=?, error=?, "
+        "finished_at=? WHERE task_id=? AND attempt_no=? AND lease_token=? AND status=?",
+        (
+            attempt_status,
+            str(result.get("trace_id", "")),
+            _dump(result),
+            str(result.get("error", ""))[:300],
+            _now(),
+            task_id,
+            int(task["attempt_no"]),
+            lease_token,
+            TASK_RUNNING,
+        ),
+    )
+    if receipt_update.rowcount != 1:
+        conn.rollback()
+        conn.close()
+        raise RuntimeError("sleep task terminal receipt update failed")
+    if success:
+        conn.execute(
+            "UPDATE sleep_loop_runs SET failure_streak=0, updated_at=? WHERE id=?",
+            (_now(), run_id),
+        )
+    elif event_type == "task_failed_archived":
+        conn.execute(
+            "UPDATE sleep_loop_runs SET failure_streak=failure_streak+1, updated_at=? WHERE id=?",
+            (_now(), run_id),
+        )
     conn.commit()
     conn.close()
     log_event(
@@ -910,7 +1310,7 @@ def tick_once() -> dict[str, Any]:
         metadata={"result": result},
     )
 
-    derived = _parse_derived_tasks(result)
+    derived = _parse_derived_tasks(result) if success else []
     if derived:
         if len(derived) > cfg.derived_task_limit:
             log_event(
@@ -920,8 +1320,24 @@ def tick_once() -> dict[str, Any]:
                 task_id=task_id,
                 level="alert",
             )
-        for item in derived[: cfg.derived_task_limit]:
-            add_task(run_id, item, cfg, parent_id=task_id, cycle_no=int(task.get("cycle_no", 0)))
+        for index, item in enumerate(derived[: cfg.derived_task_limit]):
+            try:
+                add_task(
+                    run_id,
+                    item,
+                    cfg,
+                    parent_id=task_id,
+                    cycle_no=int(task.get("cycle_no", 0)),
+                )
+            except (RuntimeError, ValueError) as exc:
+                log_event(
+                    "derived_task_rejected",
+                    "结构化衍生任务未通过队列约束",
+                    run_id=run_id,
+                    task_id=task_id,
+                    level="warning",
+                    metadata={"index": index, "reason": str(exc)[:300]},
+                )
 
     return {
         "ok": True,
@@ -975,6 +1391,33 @@ def list_tasks(
             "SELECT * FROM sleep_loop_tasks WHERE run_id=? ORDER BY created_at DESC, rowid DESC LIMIT ?",
             (rid, limit),
         ).fetchall()
+    conn.close()
+    return [_row_to_dict(row) for row in rows]
+
+
+def list_attempts(
+    *,
+    task_id: str | None = None,
+    run_id: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    init_sleep_loop_schema()
+    limit = max(1, min(int(limit), 500))
+    conn = _conn()
+    if task_id:
+        rows = conn.execute(
+            "SELECT * FROM sleep_loop_attempts WHERE task_id=? "
+            "ORDER BY attempt_no DESC LIMIT ?",
+            (task_id, limit),
+        ).fetchall()
+    elif run_id:
+        rows = conn.execute(
+            "SELECT * FROM sleep_loop_attempts WHERE run_id=? "
+            "ORDER BY started_at DESC, rowid DESC LIMIT ?",
+            (run_id, limit),
+        ).fetchall()
+    else:
+        rows = []
     conn.close()
     return [_row_to_dict(row) for row in rows]
 
@@ -1068,7 +1511,3 @@ stateDiagram-v2
     Stopped --> [*]
     Halted --> [*]
 ```"""
-
-
-# Keep schema ready for API/worker imports.
-init_sleep_loop_schema()

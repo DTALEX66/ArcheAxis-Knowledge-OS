@@ -224,6 +224,7 @@ def test_runtime_migration_records_operator_provenance_and_backup(
         "core.sqlite",
         "knowledge-governance.sqlite",
         "research.sqlite",
+        "sleep-loop.sqlite",
         "taskpack.sqlite",
         "workspace.sqlite",
     }

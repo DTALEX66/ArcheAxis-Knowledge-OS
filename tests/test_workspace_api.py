@@ -837,6 +837,7 @@ def test_workspace_http_commands_serialize_same_id_semantic_conflicts(
 
     database = _database(tmp_path)
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups")
+    operator.apply("sleep-loop.sqlite")
     operator.apply("taskpack.sqlite")
     operator.apply("workspace.sqlite")
     monkeypatch.setattr(router, "DB_PATH", database)

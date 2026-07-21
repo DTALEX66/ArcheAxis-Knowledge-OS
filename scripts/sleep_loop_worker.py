@@ -18,9 +18,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 
-
 def _engine():
-    from shared.sleep_loop_engine import status, tick_once
+    from app.sleep_runtime import tick_once
+    from shared.sleep_loop_engine import status
 
     return status, tick_once
 

@@ -61,11 +61,17 @@ class ExecutionTrace(BaseModel):
     created_at: str = Field(default_factory=now_iso)
 
 
+class EvaluationDimension(BaseModel):
+    status: Literal["passed", "failed", "unverified"]
+    reason: str
+
+
 class EvalResult(BaseModel):
     success: bool
     score: float
     failure_reason: str = ""
     improvement: str = ""
+    dimensions: dict[str, EvaluationDimension] = Field(default_factory=dict)
 
 
 class MachineLesson(BaseModel):

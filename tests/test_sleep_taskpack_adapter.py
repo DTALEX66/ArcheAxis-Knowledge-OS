@@ -57,6 +57,28 @@ def test_sleep_execution_projection_accepts_declared_real_task():
     assert canonical.declared_allowed_tools == ["file_read"]
 
 
+def test_sleep_execution_projection_builds_runtime_task_with_real_payload():
+    from app.adapters.sleep_taskpack import project_sleep_ledger_task_to_runtime
+
+    runtime = project_sleep_ledger_task_to_runtime(
+        _ledger_task(),
+        declared_allowed_tools=["file_read"],
+        satisfied_dependency_ids=["slt_parent_001", "slt_parent_002"],
+    )
+
+    assert runtime.id == "slt_001"
+    assert runtime.tools == ["file_read"]
+    assert runtime.steps == [
+        {
+            "id": "slt_001:execute",
+            "name": "sleep_runtime_execute",
+            "type": "tool",
+            "tool": "file_read",
+            "path": "docs/design.md",
+        }
+    ]
+
+
 @pytest.mark.parametrize(
     ("task", "allowed_tools", "message"),
     [

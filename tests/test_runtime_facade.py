@@ -34,6 +34,42 @@ def test_runtime_facade_routes_permissions_executes_and_traces(monkeypatch):
     assert persisted == [result.trace]
 
 
+def test_runtime_composite_port_owns_terminal_evaluation_and_lesson(monkeypatch):
+    from app.facades import runtime as runtime_module
+
+    monkeypatch.setattr(runtime_module, "log_trace", lambda trace: None)
+    real = runtime_module.run_runtime_task(
+        CoreObject(content="Execute a grounded file read."),
+        TaskPack(
+            id="task-runtime-real",
+            goal="read file: AGENTS.md",
+            steps=[
+                {
+                    "id": 1,
+                    "name": "read_file",
+                    "tool": "file_read",
+                    "path": "AGENTS.md",
+                    "dry_run": False,
+                }
+            ],
+            tools=["file_read"],
+        ),
+    )
+
+    assert real.status == "done"
+    assert real.evaluation.success is True
+    assert real.lesson.lesson_type == "success"
+    assert real.lesson.evidence_trace_id == real.trace.id
+
+    fake = runtime_module.run_runtime_task(
+        CoreObject(content="Execute an echo placeholder."), _echo_task()
+    )
+    assert fake.status == "failed"
+    assert fake.evaluation.success is False
+    assert fake.lesson.lesson_type == "failure"
+    assert fake.lesson.evidence_trace_id == fake.trace.id
+
+
 def test_runtime_facade_stops_before_execution_when_review_is_required(monkeypatch):
     from app.facades import runtime as runtime_module
 
@@ -84,3 +120,29 @@ def test_legacy_run_reuses_comparable_runtime_contract(monkeypatch):
     assert [event["result"]["tool"] for event in legacy["trace"].events] == [
         event["result"]["tool"] for event in direct.trace.events
     ]
+
+
+def test_legacy_run_delegates_terminal_semantics_to_composite_port(monkeypatch):
+    import app.main as main_module
+    from app.facades import runtime as runtime_module
+    from app.schemas import ContextPack
+
+    context = ContextPack(query="read file: AGENTS.md", summary="isolated runtime context")
+    calls = []
+    original = runtime_module.run_runtime_task
+
+    def tracked(*args, **kwargs):
+        calls.append((args, kwargs))
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(main_module, "save_memory", lambda document: None)
+    monkeypatch.setattr(main_module, "retrieve", lambda query: context)
+    monkeypatch.setattr(main_module, "list_reviewed_feedback", lambda **kwargs: [])
+    monkeypatch.setattr(main_module, "save_lesson", lambda lesson: None)
+    monkeypatch.setattr(main_module, "run_runtime_task", tracked, raising=False)
+    monkeypatch.setattr(runtime_module, "log_trace", lambda trace: None)
+
+    response = main_module.run({"content": "read file: AGENTS.md", "source": "contract"})
+
+    assert response["status"] == "done"
+    assert len(calls) == 1

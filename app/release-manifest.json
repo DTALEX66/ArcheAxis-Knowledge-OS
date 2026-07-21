@@ -34,6 +34,7 @@
       {"owner": "fts.documents", "version": 1, "target": "kb_documents_fts", "kind": "fts", "steps": []},
       {"owner": "knowledge-governance.sqlite", "version": 1, "target": "knowledge_candidate_promotions_v1", "kind": "sqlite_knowledge", "steps": ["phase5_knowledge_candidate_governance_v1", "phase5_knowledge_candidate_governance_events_v1", "phase5_knowledge_candidate_versioning_v1", "phase5_knowledge_candidate_learning_artifacts_v1", "phase5_learning_approval_events_v1", "phase5_machine_knowledge_approval_events_v1"]},
       {"owner": "research.sqlite", "version": 1, "target": "research_packages_v1", "kind": "sqlite_research", "steps": ["phase4_research_package_v1"]},
+      {"owner": "sleep-loop.sqlite", "version": 1, "target": "sleep_loop_tasks", "kind": "sqlite_sleep", "steps": ["phase8_sleep_loop_runtime_leases_v1"]},
       {"owner": "taskpack.sqlite", "version": 3, "target": "kb_taskpacks", "kind": "sqlite", "steps": ["taskpack_contract_v1", "taskpack_review_fail_closed_v1"]},
       {"owner": "vector.cards", "version": 1, "target": "vec_kb_cards", "kind": "vector", "steps": []},
       {"owner": "vector.documents", "version": 1, "target": "vec_kb_documents", "kind": "vector", "steps": []},
