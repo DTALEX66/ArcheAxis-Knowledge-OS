@@ -116,6 +116,7 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
                 "knowledge_candidate_promotions_v1",
                 "sqlite_knowledge",
             ),
+            MigrationOwner("workspace.sqlite", 1, "workspace_jobs_v1", "sqlite_workspace"),
         ]
     )
 
@@ -879,6 +880,47 @@ class MigrationOperator:
                 if applied_item is None:
                     raise RuntimeError("research schema apply has no operator provenance")
                 return applied_item
+            if owner.kind == "sqlite_workspace":
+                from shared import workspace_migration
+
+                applied_item = None
+                operator_run_id = uuid4().hex
+
+                def record_workspace_before_commit(
+                    connection: sqlite3.Connection, run: migration.MigrationRun
+                ) -> None:
+                    nonlocal applied_item
+                    backup = run.backup_path
+                    if backup is None:
+                        raise RuntimeError(
+                            "workspace schema is applied without operator rollback provenance"
+                        )
+                    provenance = {
+                        "applied_migrations": list(run.applied),
+                        "backup_path": str(backup),
+                        "backup_sha256": _sha256(backup),
+                        "database_fingerprint_after_apply": self._database_fingerprint(connection),
+                    }
+                    applied_item = self._insert_record(
+                        connection,
+                        owner,
+                        state="applied",
+                        operation="apply",
+                        provenance=provenance,
+                        run_id=operator_run_id,
+                    )
+
+                workspace_migration.migrate(
+                    db_path=self.db_path,
+                    backup_dir=self.backup_dir,
+                    before_commit=record_workspace_before_commit,
+                    backup_when_pending=True,
+                    operator_run_id=operator_run_id,
+                    _operator_capability=workspace_migration._OP_CAPABILITY,
+                )
+                if applied_item is None:
+                    raise RuntimeError("workspace schema apply has no operator provenance")
+                return applied_item
             if owner.kind == "sqlite_knowledge":
                 from shared import knowledge_governance_migration
 
@@ -1026,7 +1068,13 @@ class MigrationOperator:
         if latest is None or latest["state"] != "applied":
             raise RuntimeError(f"no applied migration to roll back for owner: {owner.owner}")
         try:
-            if owner.kind in {"sqlite", "sqlite_research", "sqlite_knowledge", "sqlite_core"}:
+            if owner.kind in {
+                "sqlite",
+                "sqlite_research",
+                "sqlite_knowledge",
+                "sqlite_workspace",
+                "sqlite_core",
+            }:
                 backup_value = latest["provenance"].get("backup_path")
                 if not backup_value:
                     raise RuntimeError("applied SQLite migration has no rollback backup")
@@ -1054,6 +1102,9 @@ class MigrationOperator:
                         migration.MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
                     }
                     if not expected_migrations <= allowed_migrations:
+                        raise RuntimeError("rollback provenance does not match migration owner")
+                elif owner.kind == "sqlite_workspace":
+                    if expected_migrations != {migration.WORKSPACE_SCHEMA_MIGRATION_NAME}:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif expected_migrations != {core_schema.BASELINE_MIGRATION_NAME}:
                     raise RuntimeError("rollback provenance does not match migration owner")

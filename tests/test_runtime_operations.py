@@ -202,6 +202,7 @@ def test_runtime_migration_records_operator_provenance_and_backup(
         "knowledge-governance.sqlite",
         "research.sqlite",
         "taskpack.sqlite",
+        "workspace.sqlite",
     }
     assert all(result["state"] == "applied" for result in payload["operator_results"])
     with sqlite3.connect(database) as connection:
