@@ -549,8 +549,12 @@
       "absorption_mode": "Adapter",
       "risk_policy": "standard_review",
       "source_status": "candidate",
-      "execution_state": "adapter_contract_pending",
-      "note": "Trace/评估/调用观测"
+      "execution_state": "implemented",
+      "note": "Trace/评估/调用观测",
+      "implementation_evidence": [
+        "shared-contracts/adapters/observability/langfuse_adapter.py",
+        "tests/test_langfuse_adapter.py"
+      ]
     },
     {
       "project_id": "osp_0049",
