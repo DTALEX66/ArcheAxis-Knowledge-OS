@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Product Stage A0 真相基线收口期：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 尚未完成。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口和只返回聚合事实的状态接口。Workspace Job/Outbox migration owner、同事务写入、同步终态和严格 readback 已交付；Outbox dispatcher、Worker lease/checkpoint/retry、统一 Audit、SSE 与真实 Job Center 仍未完成。图像 OCR 基础依赖和真实图像门禁已验证；ASR、Installer、多端发布及公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Product Stage A0 真相基线收口期：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 尚未完成。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的只读 Job Center。Workspace Job/Outbox migration owner、同事务写入、同步终态和严格 readback 已交付；Outbox dispatcher、Worker lease/checkpoint/retry、统一 Audit、SSE 与交互式 Job Center 仍未完成。图像 OCR 基础依赖和真实图像门禁已验证；ASR、Installer、多端发布及公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
 
 ## 已验证能力
 
@@ -52,7 +52,7 @@
 5. OCR 的 Pillow/pytesseract 依赖、Tesseract `eng` 语言数据、真实图像测试和 CI 字体/语言门禁已 GREEN；ASR、时间戳、内容匹配 Evidence 与人工标注准确率基准仍未闭环。
 6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
 7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
-8. `workspace.sqlite` migration owner、connection-scoped Research writer、Research graph/Job/Outbox 同事务、严格 Job readback 与同步命令终态已交付；仍缺 Outbox dispatcher、SSE 审计时间线和不暴露内部 ID 的用户级 Job Center。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
+8. `workspace.sqlite` migration owner、connection-scoped Research writer、Research graph/Job/Outbox 同事务、严格 Job readback、同步命令终态与不暴露内部 ID 的用户级只读 Job Center 已交付；仍缺 Outbox dispatcher、SSE 审计时间线和交互式 Job Center。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
 
 ## 正式门禁
 

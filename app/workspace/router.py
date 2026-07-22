@@ -228,6 +228,12 @@ async def intake_upload(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+@router.get("/api/jobs")
+def workspace_jobs(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_jobs(db_path=DB_PATH))
+
+
 @router.get("/api/jobs/{job_id}")
 def workspace_job(job_id: str, request: Request) -> dict[str, object]:
     _local_principal(request)

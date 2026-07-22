@@ -2,7 +2,7 @@
 
 ## 当前产品状态
 
-元枢系统 / ArcheAxis OS 是本地优先、证据驱动的认知闭环系统；统一工作台为“元枢·观心 / ArcheAxis Cognitive Workspace”。当前浏览器工作台已接入真实网页、GitHub URL 与本地文件导入；Research graph、Job、Outbox 与命令收据可同事务持久化并严格读回，Learning 与 Machine Knowledge 使用持久治理收据。真实媒体基础链已完成音轨、关键帧和依赖驱动的图像 OCR 验证；ASR、Outbox dispatcher、异步 Worker、Installer 与公开发布仍未完成。详见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 和 [`docs/HANDOFF_2026-07-21.md`](docs/HANDOFF_2026-07-21.md)。
+元枢系统 / ArcheAxis OS 是本地优先、证据驱动的认知闭环系统；统一工作台为“元枢·观心 / ArcheAxis Cognitive Workspace”。当前浏览器工作台已接入真实网页、GitHub URL 与本地文件导入，以及不暴露内部审计 ID 的只读 Job Center；Research graph、Job、Outbox 与命令收据可同事务持久化并严格读回，Learning 与 Machine Knowledge 使用持久治理收据。真实媒体基础链已完成音轨、关键帧和依赖驱动的图像 OCR 验证；ASR、Outbox dispatcher、异步 Worker、Installer 与公开发布仍未完成。详见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 和 [`docs/HANDOFF_2026-07-21.md`](docs/HANDOFF_2026-07-21.md)。
 
 ## Phase 4 Research Status
 
@@ -31,7 +31,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口和 migration-owned Job/Outbox/receipt 同事务边界，但异步 Worker、dispatcher、统一 audit timeline 与 SSE 尚未实现。当前已建立本地 diagnostics、Release Manifest、FFmpeg 媒体基础链和图像 OCR 基线；ASR、Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/receipt 同事务边界及只读 Job Center；异步 Worker、dispatcher、统一 audit timeline、SSE 与交互式 Job Center 尚未实现。当前已建立本地 diagnostics、Release Manifest、FFmpeg 媒体基础链和图像 OCR 基线；ASR、Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
 
 ## 规划与进度
 

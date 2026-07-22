@@ -241,6 +241,73 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
     }
 
 
+def workspace_jobs(*, db_path: str | Path) -> dict[str, object]:
+    """Return strict, non-identifying projections for the local Job Center."""
+
+    with sqlite3.connect(Path(db_path)) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT j.job_id, j.command_id, j.job_type, j.state, j.payload_json, "
+            "j.correlation_id, j.causation_id, j.updated_at, o.event_id, o.event_type, "
+            "o.state AS outbox_state, o.payload_json AS outbox_payload_json, "
+            "r.command_id AS receipt_command_id, r.command_type AS receipt_command_type, "
+            "r.job_id AS receipt_job_id, r.result_json "
+            "FROM workspace_jobs_v1 AS j "
+            "LEFT JOIN workspace_outbox_v1 AS o ON o.job_id=j.job_id "
+            "LEFT JOIN workspace_command_receipts_v1 AS r ON r.job_id=j.job_id "
+            "ORDER BY j.updated_at DESC, j.job_id DESC"
+        ).fetchall()
+        orphan_count = connection.execute(
+            "SELECT "
+            "(SELECT COUNT(*) FROM workspace_outbox_v1 AS o "
+            "LEFT JOIN workspace_jobs_v1 AS j ON j.job_id=o.job_id WHERE j.job_id IS NULL) + "
+            "(SELECT COUNT(*) FROM workspace_command_receipts_v1 AS r "
+            "LEFT JOIN workspace_jobs_v1 AS j ON j.job_id=r.job_id WHERE j.job_id IS NULL)"
+        ).fetchone()[0]
+    if orphan_count:
+        raise RuntimeError("workspace job persisted bindings are inconsistent")
+
+    projections: list[dict[str, str]] = []
+    for row in rows:
+        command_id = str(row["command_id"])
+        job_id = str(row["job_id"])
+        job_type = str(row["job_type"])
+        job_state = str(row["state"])
+        expected_job_id = "job_" + sha256(command_id.encode("utf-8")).hexdigest()[:24]
+        expected_event_id = "outbox_" + sha256(command_id.encode("utf-8")).hexdigest()[:24]
+        try:
+            payload = json.loads(str(row["payload_json"]))
+            outbox_payload = json.loads(str(row["outbox_payload_json"]))
+            result = json.loads(str(row["result_json"]))
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise RuntimeError("workspace job contains malformed persisted JSON") from exc
+        if (
+            job_type != "intake.research"
+            or job_state not in {"queued", "succeeded"}
+            or job_id != expected_job_id
+            or str(row["correlation_id"]) != command_id
+            or str(row["causation_id"]) != command_id
+            or str(row["event_id"]) != expected_event_id
+            or str(row["event_type"]) != f"{job_type}.{job_state}"
+            or str(row["receipt_command_id"]) != command_id
+            or str(row["receipt_command_type"]) != job_type
+            or str(row["receipt_job_id"]) != job_id
+            or payload != outbox_payload
+            or result
+            != {"command_id": command_id, "event_id": expected_event_id, "job_id": expected_job_id}
+        ):
+            raise RuntimeError("workspace job persistence binding is invalid")
+        projections.append(
+            {
+                "activity": "资料导入",
+                "state": job_state,
+                "delivery_state": str(row["outbox_state"]),
+                "updated_at": str(row["updated_at"]),
+            }
+        )
+    return {"schema_version": "v1", "jobs": projections}
+
+
 def workspace_status(*, db_path: str | Path) -> dict[str, object]:
     """Return aggregate, non-identifying state for the local product shell."""
     from collections import Counter
