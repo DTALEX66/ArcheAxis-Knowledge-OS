@@ -38,7 +38,7 @@
       {"owner": "taskpack.sqlite", "version": 3, "target": "kb_taskpacks", "kind": "sqlite", "steps": ["taskpack_contract_v1", "taskpack_review_fail_closed_v1"]},
       {"owner": "vector.cards", "version": 1, "target": "vec_kb_cards", "kind": "vector", "steps": []},
       {"owner": "vector.documents", "version": 1, "target": "vec_kb_documents", "kind": "vector", "steps": []},
-      {"owner": "workspace.sqlite", "version": 1, "target": "workspace_jobs_v1", "kind": "sqlite_workspace", "steps": ["phase5_workspace_job_outbox_v1"]}
+      {"owner": "workspace.sqlite", "version": 2, "target": "workspace_delivery_receipts_v1", "kind": "sqlite_workspace", "steps": ["phase5_workspace_job_outbox_v1", "phase5_workspace_delivery_receipts_v2"]}
     ]
   },
   "capabilities": {

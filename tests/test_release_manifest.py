@@ -53,7 +53,10 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "taskpack.sqlite": list(migration.TASKPACK_MIGRATIONS.values()),
         "vector.cards": [],
         "vector.documents": [],
-        "workspace.sqlite": [migration.WORKSPACE_SCHEMA_MIGRATION_NAME],
+        "workspace.sqlite": [
+            migration.WORKSPACE_SCHEMA_MIGRATION_NAME,
+            migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,
+        ],
     }
     project_metadata = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     assert manifest["product"]["version"] == project_metadata["project"]["version"]

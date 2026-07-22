@@ -178,7 +178,7 @@ def test_registry_is_deterministic_and_rejects_duplicate_identity(tmp_path: Path
         ("taskpack.sqlite", 3, "kb_taskpacks"),
         ("vector.cards", 1, "vec_kb_cards"),
         ("vector.documents", 1, "vec_kb_documents"),
-        ("workspace.sqlite", 1, "workspace_jobs_v1"),
+        ("workspace.sqlite", 2, "workspace_delivery_receipts_v1"),
     ]
 
     duplicate = MigrationOwner(

@@ -30,15 +30,20 @@ def test_dispatch_once_delivers_one_pending_event_and_records_worker_checkpoint(
     )
     received: list[dict[str, object]] = []
 
+    def receive(event: dict[str, object]) -> dict[str, object]:
+        received.append(event)
+        return {"event_id": event["event_id"], "proof": {"consumer": "test"}}
+
     result = dispatch_once(
         db_path=database,
         worker_name="workspace-outbox-test",
-        handler=received.append,
+        handler=receive,
     )
 
     assert result == {"status": "delivered", "attempt": 1}
     assert received == [
         {
+            "event_id": receipt["event_id"],
             "event_type": "intake.research.queued",
             "payload": {"package_id": "package-001"},
         }
@@ -96,6 +101,34 @@ def test_dispatch_once_marks_handler_failure_as_failed_with_a_checkpoint(tmp_pat
     assert checkpoint is not None
 
 
+def test_dispatch_once_rejects_a_noop_handler_confirmation(tmp_path: Path) -> None:
+    from app.workspace.job_outbox import enqueue_command
+    from app.workspace.outbox_dispatcher import dispatch_once
+
+    database = _workspace_database(tmp_path)
+    receipt = enqueue_command(
+        command_id="cmd-dispatch-noop",
+        command_type="intake.research",
+        aggregate_id="package-noop",
+        payload={"package_id": "package-noop"},
+        db_path=database,
+    )
+
+    result = dispatch_once(
+        db_path=database,
+        worker_name="workspace-outbox-test",
+        handler=lambda _: None,
+    )
+
+    assert result == {"status": "failed", "attempt": 1}
+    with closing(sqlite3.connect(database)) as connection:
+        event = connection.execute(
+            "SELECT state, delivered_at FROM workspace_outbox_v1 WHERE event_id=?",
+            (receipt["event_id"],),
+        ).fetchone()
+    assert event == ("failed", None)
+
+
 def test_dispatch_once_reclaims_an_expired_lease_before_delivery(tmp_path: Path) -> None:
     from app.workspace.job_outbox import enqueue_command
     from app.workspace.outbox_dispatcher import dispatch_once
@@ -120,7 +153,7 @@ def test_dispatch_once_reclaims_an_expired_lease_before_delivery(tmp_path: Path)
     result = dispatch_once(
         db_path=database,
         worker_name="workspace-outbox-test",
-        handler=lambda _: None,
+        handler=lambda event: {"event_id": event["event_id"], "proof": {"consumer": "test"}},
     )
 
     assert result == {"status": "delivered", "attempt": 5}

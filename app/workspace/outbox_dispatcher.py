@@ -81,8 +81,17 @@ def _record_checkpoint(
     )
 
 
+def _confirmation_is_valid(claimed: dict[str, Any], confirmation: object) -> bool:
+    return (
+        isinstance(confirmation, dict)
+        and confirmation.get("event_id") == claimed["event_id"]
+        and isinstance(confirmation.get("proof"), dict)
+        and bool(confirmation["proof"])
+    )
+
+
 def dispatch_once(
-    *, db_path: str | Path, worker_name: str, handler: Callable[[dict[str, object]], None]
+    *, db_path: str | Path, worker_name: str, handler: Callable[[dict[str, object]], object]
 ) -> dict[str, object]:
     """Deliver at most one pending or expired leased event through a lease-fenced handler."""
 
@@ -104,7 +113,15 @@ def dispatch_once(
         return {"status": "idle"}
 
     try:
-        handler({"event_type": claimed["event_type"], "payload": claimed["payload"]})
+        confirmation = handler(
+            {
+                "event_id": claimed["event_id"],
+                "event_type": claimed["event_type"],
+                "payload": claimed["payload"],
+            }
+        )
+        if not _confirmation_is_valid(claimed, confirmation):
+            raise RuntimeError("workspace handler confirmation is invalid")
     except Exception:
         final_state = "failed"
         delivered_at = None

@@ -117,7 +117,7 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
                 "sqlite_knowledge",
             ),
             MigrationOwner("sleep-loop.sqlite", 2, "sleep_loop_tasks", "sqlite_sleep"),
-            MigrationOwner("workspace.sqlite", 1, "workspace_jobs_v1", "sqlite_workspace"),
+            MigrationOwner("workspace.sqlite", 2, "workspace_delivery_receipts_v1", "sqlite_workspace"),
         ]
     )
 
@@ -1284,7 +1284,16 @@ class MigrationOperator:
                     ):
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif owner.kind == "sqlite_workspace":
-                    if expected_migrations != {migration.WORKSPACE_SCHEMA_MIGRATION_NAME}:
+                    valid_workspace_migration_sets = {
+                        frozenset({migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME}),
+                        frozenset(
+                            {
+                                migration.WORKSPACE_SCHEMA_MIGRATION_NAME,
+                                migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,
+                            }
+                        ),
+                    }
+                    if frozenset(expected_migrations) not in valid_workspace_migration_sets:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif expected_migrations != {core_schema.BASELINE_MIGRATION_NAME}:
                     raise RuntimeError("rollback provenance does not match migration owner")
