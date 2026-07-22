@@ -85,6 +85,7 @@ def _confirmation_is_valid(claimed: dict[str, Any], confirmation: object) -> boo
     return (
         isinstance(confirmation, dict)
         and confirmation.get("event_id") == claimed["event_id"]
+        and confirmation.get("lease_token") == claimed["lease_token"]
         and isinstance(confirmation.get("proof"), dict)
         and bool(confirmation["proof"])
     )
@@ -118,6 +119,7 @@ def dispatch_once(
                 "event_id": claimed["event_id"],
                 "event_type": claimed["event_type"],
                 "payload": claimed["payload"],
+                "lease_token": claimed["lease_token"],
             }
         )
         if not _confirmation_is_valid(claimed, confirmation):

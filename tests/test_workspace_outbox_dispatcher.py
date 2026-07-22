@@ -32,7 +32,11 @@ def test_dispatch_once_delivers_one_pending_event_and_records_worker_checkpoint(
 
     def receive(event: dict[str, object]) -> dict[str, object]:
         received.append(event)
-        return {"event_id": event["event_id"], "proof": {"consumer": "test"}}
+        return {
+            "event_id": event["event_id"],
+            "lease_token": event["lease_token"],
+            "proof": {"consumer": "test"},
+        }
 
     result = dispatch_once(
         db_path=database,
@@ -46,6 +50,7 @@ def test_dispatch_once_delivers_one_pending_event_and_records_worker_checkpoint(
             "event_id": receipt["event_id"],
             "event_type": "intake.research.queued",
             "payload": {"package_id": "package-001"},
+            "lease_token": received[0]["lease_token"],
         }
     ]
     with closing(sqlite3.connect(database)) as connection:
@@ -153,7 +158,11 @@ def test_dispatch_once_reclaims_an_expired_lease_before_delivery(tmp_path: Path)
     result = dispatch_once(
         db_path=database,
         worker_name="workspace-outbox-test",
-        handler=lambda event: {"event_id": event["event_id"], "proof": {"consumer": "test"}},
+        handler=lambda event: {
+            "event_id": event["event_id"],
+            "lease_token": event["lease_token"],
+            "proof": {"consumer": "test"},
+        },
     )
 
     assert result == {"status": "delivered", "attempt": 5}

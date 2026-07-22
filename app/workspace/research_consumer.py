@@ -31,9 +31,12 @@ def make_intake_research_handler(
     def consume(event: dict[str, object]) -> dict[str, object]:
         event_id = event.get("event_id")
         payload = event.get("payload")
+        lease_token = event.get("lease_token")
         if (
             event.get("event_type") != "intake.research.succeeded"
             or not isinstance(event_id, str)
+            or not isinstance(lease_token, str)
+            or not lease_token
             or not isinstance(payload, dict)
             or set(payload) != {"package_id"}
             or not isinstance(payload.get("package_id"), str)
@@ -51,10 +54,17 @@ def make_intake_research_handler(
             connection.execute("BEGIN IMMEDIATE")
             try:
                 event_row = connection.execute(
-                    "SELECT event_type, payload_json, state FROM workspace_outbox_v1 WHERE event_id=?",
-                    (event_id,),
+                    "SELECT 1 FROM workspace_outbox_v1 WHERE event_id=? AND event_type=? "
+                    "AND payload_json=? AND state='leased' AND lease_token=? "
+                    "AND julianday(lease_expires_at)>julianday('now')",
+                    (
+                        event_id,
+                        "intake.research.succeeded",
+                        _canonical_json(payload),
+                        lease_token,
+                    ),
                 ).fetchone()
-                if event_row != ("intake.research.succeeded", _canonical_json(payload), "leased"):
+                if event_row is None:
                     raise RuntimeError("workspace research consumer event binding is invalid")
                 existing = connection.execute(
                     "SELECT consumer_name, proof_json FROM workspace_delivery_receipts_v1 WHERE event_id=?",
@@ -72,6 +82,6 @@ def make_intake_research_handler(
             except Exception:
                 connection.rollback()
                 raise
-        return {"event_id": event_id, "proof": proof}
+        return {"event_id": event_id, "lease_token": lease_token, "proof": proof}
 
     return consume
