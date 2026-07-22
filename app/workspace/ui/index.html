@@ -36,6 +36,10 @@
   <div class="page-head"><div><div class="eyebrow">LOCAL JOB CENTER</div><h1>知行任务执行</h1><p class="desc">仅展示本地数据库严格绑定的同步记录与投递状态；不会显示内部编号、伪进度或未经证实的执行结果。</p></div><div class="head-actions"><button class="btn primary" data-action="jobs-refresh">刷新任务</button></div></div>
   <div class="card"><div class="card-title"><h2>最近任务</h2><span class="status ok"><i></i>同步记录</span></div><div class="list" id="job-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地任务记录</span></div></div></div></div>
 </section>
+<section class="page" id="page-research">
+  <div class="page-head"><div><div class="eyebrow">HUMAN REVIEW QUEUE</div><h1>察微研究</h1><p class="desc">仅显示需要人工复核的本地 Research。批准前必须填写理由；内部记录编号不会显示。</p></div><div class="head-actions"><button class="btn primary" data-action="research-refresh">刷新队列</button></div></div>
+  <div class="card"><div class="card-title"><h2>待审核资料</h2><span class="status warn"><i></i>人工复核</span></div><div class="list" id="research-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地待审核资料</span></div></div></div></div>
+</section>
 <section class="page" id="page-unavailable">
   <div class="page-head"><div><div class="eyebrow">ROADMAP</div><h1 id="unavailable-title">功能尚未接入</h1><p class="desc">此入口用于保持产品信息架构，但当前版本没有可验证的真实数据或操作。</p></div></div>
   <div class="empty"><b>尚未接入真实数据</b><p>不会展示样例数量、虚构进度、伪服务状态或不可执行按钮。</p><button class="btn" data-page="overview">返回观心总览</button></div>

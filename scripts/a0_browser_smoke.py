@@ -12,6 +12,7 @@ from runtime_http_smoke import running_core
 WORKSPACE_ROOT = "/" + "workspace"
 STATUS_PATTERN = f"**{WORKSPACE_ROOT}/api/status"
 INTAKE_PATTERN = f"**{WORKSPACE_ROOT}/api/intake/url"
+RESEARCH_PATTERN = f"**{WORKSPACE_ROOT}/api/research"
 
 
 def _partial_status(route: Route) -> None:
@@ -35,6 +36,14 @@ def _intake_success(route: Route) -> None:
 
 def _partial_intake_success(route: Route) -> None:
     route.fulfill(status=200, content_type="application/json", body="{}")
+
+
+def _research_queue(route: Route) -> None:
+    route.fulfill(status=200, content_type="application/json", body=(
+        '{"schema_version":"v1","items":[{"source":"https://example.com/review",'
+        '"claim_count":2,"evidence_count":3,"verification":"unverified",'
+        '"created_at":"2026-07-23T00:00:00Z"}]}'
+    ))
 
 
 def exercise_workspace(page: Page, base_url: str) -> None:
@@ -102,6 +111,13 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.locator("#intake-result").filter(has_text="处理失败").wait_for()
     assert "处理完成" not in page.locator("#intake-result").inner_text()
     page.unroute(INTAKE_PATTERN, _partial_intake_success)
+
+    page.route(RESEARCH_PATTERN, _research_queue)
+    page.goto(f"{base_url}/workspace#research", wait_until="networkidle")
+    page.get_by_role("heading", name="察微研究").wait_for()
+    page.get_by_text("https://example.com/review", exact=True).wait_for()
+    assert page.get_by_role("button", name="批准进入知识候选").is_visible()
+    page.unroute(RESEARCH_PATTERN, _research_queue)
 
     page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")

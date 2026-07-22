@@ -369,6 +369,41 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
     }
 
 
+def research_review_queue(*, db_path: str | Path) -> dict[str, object]:
+    """Return user-readable pending Research without exposing persistence IDs."""
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.execute("PRAGMA busy_timeout=30000")
+        connection.execute("PRAGMA query_only=ON")
+        rows = connection.execute(
+            "SELECT canonical_url, claim_ids_json, evidence_ids_json, verification_status, created_at "
+            "FROM research_packages_v1 WHERE status IN ('candidate', 'ready_for_review') "
+            "AND requires_human_review=1 ORDER BY created_at DESC, canonical_url"
+        ).fetchall()
+    items = []
+    for source, claims, evidence, verification, created_at in rows:
+        try:
+            claim_count = len(json.loads(str(claims)))
+            evidence_count = len(json.loads(str(evidence)))
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise RuntimeError("workspace research queue contains malformed persisted data") from exc
+        items.append({"source": str(source), "claim_count": claim_count, "evidence_count": evidence_count,
+                      "verification": str(verification), "created_at": str(created_at)})
+    return {"schema_version": "v1", "items": items}
+
+
+def promote_research_source(*, command_id: str, source: str, reviewer_id: str, rationale: str,
+                            db_path: str | Path) -> dict:
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        row = connection.execute(
+            "SELECT id FROM research_packages_v1 WHERE canonical_url=? "
+            "AND status IN ('candidate', 'ready_for_review') AND requires_human_review=1", (source,)
+        ).fetchone()
+    if row is None:
+        raise ValueError("该资料不在待审核队列中")
+    return promote_research(command_id=command_id, package_id=str(row[0]), reviewer_id=reviewer_id,
+                            rationale=rationale, db_path=db_path)
+
+
 def now_utc() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
