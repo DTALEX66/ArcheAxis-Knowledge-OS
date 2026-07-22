@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -63,8 +63,27 @@ def run_runtime_task(
     task: TaskPack,
     *,
     decision: AttentionDecision | None = None,
+    sleep_ledger_task: dict[str, Any] | None = None,
+    dependency_proof: object | None = None,
 ) -> RuntimeTaskResult:
     """Authorize, execute, evaluate, and derive one trace-bound terminal result."""
+
+    if any(item.startswith("sleep_ledger_status=") for item in task.constraints):
+        if sleep_ledger_task is None:
+            raise ValueError("sleep runtime task requires scheduler dependency proof")
+        from app.adapters.sleep_taskpack import project_sleep_ledger_task_to_runtime
+        from shared import sleep_loop_engine
+
+        verified_dependencies = sleep_loop_engine.require_scheduler_dependency_proof(
+            sleep_ledger_task, dependency_proof
+        )
+        expected = project_sleep_ledger_task_to_runtime(
+            sleep_ledger_task,
+            declared_allowed_tools=sleep_loop_engine.REAL_EXECUTORS,
+            satisfied_dependency_ids=verified_dependencies,
+        )
+        if task.model_dump(mode="json") != expected.model_dump(mode="json"):
+            raise ValueError("sleep runtime task does not match durable scheduler projection")
 
     execution = execute_runtime(document, task, decision=decision)
     if execution.permission.requires_human_review:

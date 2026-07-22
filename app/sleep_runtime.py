@@ -2,25 +2,43 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
 
 from app.adapters.sleep_taskpack import project_sleep_ledger_task_to_runtime
+from app.adapters.taskpack import ContractMappingError
 from app.facades.runtime import run_runtime_task
 from app.schemas import CoreObject
 from shared import sleep_loop_engine
 
 
-def execute_sleep_runtime_task(task: dict[str, Any]) -> dict[str, Any]:
+def execute_sleep_runtime_task(
+    task: dict[str, Any],
+    *,
+    dependency_proof: object | None = None,
+    satisfied_dependency_ids: Iterable[str] | None = None,
+) -> dict[str, Any]:
     """Project one leased ledger task through the canonical Runtime facade."""
 
+    if satisfied_dependency_ids is not None:
+        raise ContractMappingError("scheduler dependency proof is required")
+    try:
+        verified_dependency_ids = sleep_loop_engine.require_scheduler_dependency_proof(
+            task,
+            dependency_proof,
+        )
+    except ValueError as exc:
+        raise ContractMappingError(str(exc)) from exc
     runtime_task = project_sleep_ledger_task_to_runtime(
         task,
         declared_allowed_tools=sleep_loop_engine.REAL_EXECUTORS,
-        satisfied_dependency_ids=task.get("dependencies", []),
+        satisfied_dependency_ids=verified_dependency_ids,
     )
     outcome = run_runtime_task(
         CoreObject(content=str(task.get("content") or task.get("title") or "")),
         runtime_task,
+        sleep_ledger_task=task,
+        dependency_proof=dependency_proof,
     )
     result: dict[str, Any] = {}
     if outcome.trace and outcome.trace.events:

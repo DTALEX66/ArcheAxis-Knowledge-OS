@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from pathlib import Path
 from typing import Any
 
 from shared.config import config, resolve_runtime_path
@@ -114,9 +115,10 @@ CREATE INDEX IF NOT EXISTS idx_permission_task ON permission_decisions(task_id);
 """
 
 
-def _get_conn() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DB_PATH), timeout=30.0)
+def _get_conn(db_path: str | Path | None = None) -> sqlite3.Connection:
+    database = Path(db_path) if db_path is not None else DB_PATH
+    database.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(database), timeout=30.0)
     conn.execute("PRAGMA busy_timeout=30000")
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
@@ -285,8 +287,8 @@ def save_taskpack(task: dict[str, Any]) -> None:
 # ── ExecutionTrace ─────────────────────────────────────
 
 
-def save_trace(trace: dict[str, Any]) -> None:
-    conn = _get_conn()
+def save_trace(trace: dict[str, Any], *, db_path: str | Path | None = None) -> None:
+    conn = _get_conn(db_path)
     try:
         conn.execute(
             "INSERT OR REPLACE INTO execution_traces VALUES (?,?,?,?,?,?)",

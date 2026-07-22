@@ -70,6 +70,23 @@ def test_runtime_composite_port_owns_terminal_evaluation_and_lesson(monkeypatch)
     assert fake.lesson.evidence_trace_id == fake.trace.id
 
 
+def test_runtime_facade_rejects_sleep_contract_without_scheduler_proof():
+    import pytest
+
+    from app.facades import runtime as runtime_module
+
+    sleep_task = TaskPack(
+        id="slt_forged",
+        goal="Bypass Sleep scheduler",
+        steps=[{"id": 1, "name": "read", "tool": "file_read", "path": "AGENTS.md"}],
+        tools=["file_read"],
+        constraints=["sleep_ledger_status=running"],
+    )
+
+    with pytest.raises(ValueError, match="scheduler dependency proof"):
+        runtime_module.run_runtime_task(CoreObject(content="Read AGENTS"), sleep_task)
+
+
 def test_runtime_facade_stops_before_execution_when_review_is_required(monkeypatch):
     from app.facades import runtime as runtime_module
 

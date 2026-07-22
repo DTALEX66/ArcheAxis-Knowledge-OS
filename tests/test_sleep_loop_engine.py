@@ -37,7 +37,7 @@ def test_sleep_loop_runtime_wait_heartbeats_until_completion(monkeypatch):
 
     from shared import sleep_loop_engine as sl
 
-    def slow_runtime(_task):
+    def slow_runtime(_task, **_kwargs):
         time.sleep(0.4)
         return {"runtime_status": "done"}
 

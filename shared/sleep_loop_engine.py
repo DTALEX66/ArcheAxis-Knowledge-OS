@@ -61,7 +61,107 @@ TASK_ARCHIVED = "archived"
 REAL_EXECUTORS = {"file_read", "safe_write", "kb_search", "mk_search"}
 NON_REAL_EXECUTORS = {"echo", "context_pack_build", "taskpack_generate"}
 REPLAY_SAFE_EXECUTORS = {"file_read", "kb_search", "mk_search"}
-_RUNTIME_TASK_EXECUTOR: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+_SCHEDULER_PROOF_CAPABILITY = object()
+_RUNTIME_TASK_EXECUTOR: Callable[..., dict[str, Any]] | None = None
+
+
+class _SchedulerDependencyProof:
+    """Process-local capability issued only after the scheduler reads durable dependencies."""
+
+    __slots__ = ("_capability", "dependency_ids", "lease_token", "run_id", "task_id")
+
+    def __init__(
+        self,
+        *,
+        task_id: str,
+        run_id: str,
+        dependency_ids: frozenset[str],
+        lease_token: str,
+        capability: object,
+    ) -> None:
+        self.task_id = task_id
+        self.run_id = run_id
+        self.dependency_ids = dependency_ids
+        self.lease_token = lease_token
+        self._capability = capability
+
+
+def _issue_scheduler_dependency_proof(
+    task: dict[str, Any], dependency_ids: frozenset[str], *, lease_token: str
+) -> _SchedulerDependencyProof:
+    return _SchedulerDependencyProof(
+        task_id=str(task["id"]),
+        run_id=str(task["run_id"]),
+        dependency_ids=dependency_ids,
+        lease_token=lease_token,
+        capability=_SCHEDULER_PROOF_CAPABILITY,
+    )
+
+
+def require_scheduler_dependency_proof(task: dict[str, Any], proof: object) -> frozenset[str]:
+    """Return durable dependency IDs only for a matching scheduler-issued capability."""
+
+    if not isinstance(proof, _SchedulerDependencyProof):
+        raise ValueError("scheduler dependency proof is required")
+    if (
+        proof._capability is not _SCHEDULER_PROOF_CAPABILITY
+        or proof.task_id != str(task.get("id", ""))
+        or proof.run_id != str(task.get("run_id", ""))
+    ):
+        raise ValueError("scheduler dependency proof does not match the leased task")
+    if not proof.lease_token or proof.lease_token != str(task.get("lease_token", "")):
+        raise ValueError("scheduler proof has no matching durable lease")
+    conn = _conn()
+    try:
+        task_row = conn.execute(
+            "SELECT status, dependencies_json, lease_token, lease_expires_at FROM sleep_loop_tasks "
+            "WHERE id=? AND run_id=?",
+            (proof.task_id, proof.run_id),
+        ).fetchone()
+        if task_row is None or str(task_row["status"]) != TASK_RUNNING:
+            raise ValueError("scheduler proof has no matching durable dependency state")
+        try:
+            durable_dependency_list = json.loads(str(task_row["dependencies_json"] or "[]"))
+        except json.JSONDecodeError as exc:
+            raise ValueError("scheduler proof has invalid durable task dependencies") from exc
+        if (
+            not isinstance(durable_dependency_list, list)
+            or not all(isinstance(item, str) and item.strip() for item in durable_dependency_list)
+            or len(set(durable_dependency_list)) != len(durable_dependency_list)
+        ):
+            raise ValueError("scheduler proof has invalid durable task dependencies")
+        durable_dependencies = frozenset(item.strip() for item in durable_dependency_list)
+        supplied_dependencies = frozenset(str(item) for item in task.get("dependencies", []) or [])
+        if (
+            proof.dependency_ids != durable_dependencies
+            or supplied_dependencies != durable_dependencies
+        ):
+            raise ValueError("scheduler proof does not match durable task dependencies")
+        lease_expires_at = str(task_row["lease_expires_at"] or "")
+        if (
+            str(task_row["lease_token"] or "") != proof.lease_token
+            or not lease_expires_at
+            or lease_expires_at <= _now()
+        ):
+            raise ValueError("scheduler proof has no matching durable lease")
+        if durable_dependencies:
+            placeholders = ", ".join("?" for _ in durable_dependencies)
+            dependency_rows = conn.execute(
+                f"SELECT id, status FROM sleep_loop_tasks WHERE run_id=? AND id IN ({placeholders})",
+                (proof.run_id, *durable_dependencies),
+            ).fetchall()
+            durable_states = {
+                str(row["id"]): str(row["status"])
+                for row in dependency_rows
+            }
+            if (
+                set(durable_states) != set(durable_dependencies)
+                or any(durable_states[dependency] != TASK_DONE for dependency in durable_dependencies)
+            ):
+                raise ValueError("scheduler proof has no matching durable dependency state")
+    finally:
+        conn.close()
+    return durable_dependencies
 
 HARD_BLOCK_PATTERNS = [
     r"人工.*(确认|输入|问答)|弹窗|交互式|human\s*review|manual\s*confirm",
@@ -726,15 +826,19 @@ def _parse_derived_tasks(result: dict[str, Any]) -> list[dict[str, Any]]:
     return [item for item in derived if isinstance(item, dict)]
 
 
-def _execute_runtime_task(task: dict[str, Any]) -> dict[str, Any]:
+def _execute_runtime_task(
+    task: dict[str, Any],
+    *,
+    dependency_proof: object,
+) -> dict[str, Any]:
     executor = _RUNTIME_TASK_EXECUTOR
     if executor is None:
         raise RuntimeError("sleep runtime task executor port is not configured")
-    return executor(task)
+    return executor(task, dependency_proof=dependency_proof)
 
 
 def configure_runtime_task_executor(
-    executor: Callable[[dict[str, Any]], dict[str, Any]],
+    executor: Callable[..., dict[str, Any]],
 ) -> None:
     """Configure the upper-layer Runtime execution port at a composition root."""
 
@@ -746,10 +850,15 @@ def _run_with_timeout(
     task: dict[str, Any],
     timeout_seconds: int,
     *,
+    dependency_proof: object | None = None,
     heartbeat: Callable[[], bool | None] | None = None,
 ) -> dict[str, Any]:
     pool = ThreadPoolExecutor(max_workers=1)
-    future = pool.submit(_execute_runtime_task, task)
+    future = pool.submit(
+        _execute_runtime_task,
+        task,
+        dependency_proof=dependency_proof,
+    )
     deadline = time.monotonic() + timeout_seconds
     interval = min(5.0, max(0.25, timeout_seconds / 3))
     try:
@@ -909,7 +1018,13 @@ def claim_next_task(
         conn.commit()
         if row is None:
             raise RuntimeError("claimed sleep task could not be read back")
-        return _row_to_dict(row)
+        claimed_task = _row_to_dict(row)
+        claimed_task["_scheduler_dependency_proof"] = _issue_scheduler_dependency_proof(
+            claimed_task,
+            frozenset(str(dependency) for dependency in claimed_task.get("dependencies", []) or []),
+            lease_token=lease_token,
+        )
+        return claimed_task
     finally:
         conn.close()
 
@@ -1199,6 +1314,10 @@ def tick_once(*, worker_id: str | None = None) -> dict[str, Any]:
 
     task_id = task["id"]
     lease_token = str(task["lease_token"])
+    dependency_proof = task.pop("_scheduler_dependency_proof", None)
+    if not isinstance(dependency_proof, _SchedulerDependencyProof):
+        raise RuntimeError("claimed sleep task has no scheduler dependency proof")
+    require_scheduler_dependency_proof(task, dependency_proof)
     allowed, reason = guard_task(task.get("content", ""), cfg)
     if not allowed:
         conn = _conn()
@@ -1219,6 +1338,7 @@ def tick_once(*, worker_id: str | None = None) -> dict[str, Any]:
     result = _run_with_timeout(
         task,
         cfg.task_timeout_seconds,
+        dependency_proof=dependency_proof,
         heartbeat=lambda: heartbeat_task(
             task_id,
             lease_token=lease_token,
@@ -1236,7 +1356,8 @@ def tick_once(*, worker_id: str | None = None) -> dict[str, Any]:
         terminal_update = conn.execute(
             "UPDATE sleep_loop_tasks SET status=?, result_json=?, finished_at=?, "
             "terminal_trace_id=?, lease_owner='', lease_token='', lease_expires_at=NULL, "
-            "heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=?",
+            "heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=? "
+            "AND julianday(lease_expires_at) > julianday('now')",
             (
                 TASK_DONE,
                 _dump(result),
@@ -1261,7 +1382,8 @@ def tick_once(*, worker_id: str | None = None) -> dict[str, Any]:
             terminal_update = conn.execute(
                 "UPDATE sleep_loop_tasks SET status=?, retries=?, result_json=?, error=?, "
                 "finished_at=?, lease_owner='', lease_token='', lease_expires_at=NULL, "
-                "heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=?",
+                "heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=? "
+                "AND julianday(lease_expires_at) > julianday('now')",
                 (
                     TASK_BLOCKED,
                     retries,
@@ -1279,7 +1401,8 @@ def tick_once(*, worker_id: str | None = None) -> dict[str, Any]:
             terminal_update = conn.execute(
                 "UPDATE sleep_loop_tasks SET status=?, retries=?, result_json=?, "
                 "error=?, started_at=NULL, lease_owner='', lease_token='', "
-                "lease_expires_at=NULL, heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=?",
+                "lease_expires_at=NULL, heartbeat_at=NULL WHERE id=? AND status=? AND lease_token=? "
+                "AND julianday(lease_expires_at) > julianday('now')",
                 (
                     TASK_PENDING,
                     retries,
@@ -1297,7 +1420,8 @@ def tick_once(*, worker_id: str | None = None) -> dict[str, Any]:
                 "UPDATE sleep_loop_tasks SET status=?, retries=?, result_json=?, "
                 "error=?, finished_at=?, terminal_trace_id=?, lease_owner='', lease_token='', "
                 "lease_expires_at=NULL, heartbeat_at=NULL "
-                "WHERE id=? AND status=? AND lease_token=?",
+                "WHERE id=? AND status=? AND lease_token=? "
+                "AND julianday(lease_expires_at) > julianday('now')",
                 (
                     TASK_ARCHIVED,
                     retries,
