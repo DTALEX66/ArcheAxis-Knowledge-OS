@@ -114,6 +114,27 @@ def test_sleep_loop_runtime_refuses_to_create_an_unmigrated_schema(
         ).fetchone() is None
 
 
+def test_sleep_loop_schema_rejects_second_active_run(tmp_path: Path) -> None:
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "single-active.sqlite"
+    with closing(sqlite3.connect(database)):
+        pass
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply(
+        "sleep-loop.sqlite"
+    )
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute(
+            "INSERT INTO sleep_loop_runs(id, status, started_at, updated_at) "
+            "VALUES ('active-1', 'running', '2026-01-01', '2026-01-01')"
+        )
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "INSERT INTO sleep_loop_runs(id, status, started_at, updated_at) "
+                "VALUES ('active-2', 'paused', '2026-01-01', '2026-01-01')"
+            )
+
+
 def test_sleep_loop_runtime_accepts_applied_schema_with_live_wal_sidecars(tmp_path: Path) -> None:
     from shared import sleep_loop_migration
     from shared.migration_runner import MigrationOperator

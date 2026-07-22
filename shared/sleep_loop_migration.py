@@ -19,6 +19,7 @@ SLEEP_LOOP_TABLES = (
     "sleep_loop_events",
 )
 SLEEP_LOOP_INDEXES = (
+    "idx_sleep_loop_runs_single_active",
     "idx_sleep_loop_tasks_run_status",
     "idx_sleep_loop_tasks_parent",
     "idx_sleep_loop_tasks_idempotency",
@@ -43,6 +44,9 @@ CREATE TABLE IF NOT EXISTS sleep_loop_runs (
     config_json TEXT NOT NULL DEFAULT '{}',
     seed_tasks_json TEXT NOT NULL DEFAULT '[]'
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sleep_loop_runs_single_active
+ON sleep_loop_runs((1))
+WHERE status IN ('running', 'sleeping', 'paused', 'cooling');
 CREATE TABLE IF NOT EXISTS sleep_loop_tasks (
     id TEXT PRIMARY KEY,
     run_id TEXT NOT NULL,
@@ -118,6 +122,11 @@ ON sleep_loop_events(run_id, created_at DESC);
 PREVIOUS_SCHEMA_SQL = SCHEMA_SQL.replace(
     ",\n    requires_review INTEGER NOT NULL DEFAULT 1 CHECK(requires_review IN (0, 1))\n",
     "\n",
+).replace(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_sleep_loop_runs_single_active\n"
+    "ON sleep_loop_runs((1))\n"
+    "WHERE status IN ('running', 'sleeping', 'paused', 'cooling');\n",
+    "",
 )
 
 LEGACY_SCHEMA_SQL = """
@@ -352,6 +361,10 @@ def _upgrade_schema(connection: sqlite3.Connection) -> None:
         connection.execute(
             "ALTER TABLE sleep_loop_tasks ADD COLUMN requires_review INTEGER NOT NULL "
             "DEFAULT 1 CHECK(requires_review IN (0, 1))"
+        )
+        connection.execute(
+            "CREATE UNIQUE INDEX idx_sleep_loop_runs_single_active ON sleep_loop_runs((1)) "
+            "WHERE status IN ('running', 'sleeping', 'paused', 'cooling')"
         )
         return
     if actual != _legacy_expected_objects():

@@ -26,6 +26,7 @@ import uuid
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
+from contextlib import suppress
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -380,8 +381,11 @@ def add_task(
     *,
     parent_id: str = "",
     cycle_no: int = 0,
+    _connection: Any | None = None,
 ) -> dict[str, Any]:
-    init_sleep_loop_schema()
+    owns_connection = _connection is None
+    if owns_connection:
+        init_sleep_loop_schema()
     allowed, reason = guard_task(str(task.get("content", task.get("title", ""))), cfg)
     if allowed:
         allowed, reason = validate_real_task(task, cfg)
@@ -419,9 +423,10 @@ def add_task(
         idempotency_key = supplied_key or request_fingerprint
     task_id = _new_id("slt")
     status = TASK_PENDING if allowed else TASK_BLOCKED
-    conn = _conn()
+    conn = _connection or _conn()
     try:
-        conn.execute("BEGIN IMMEDIATE")
+        if owns_connection:
+            conn.execute("BEGIN IMMEDIATE")
         existing = conn.execute(
             "SELECT id, status, error, request_fingerprint FROM sleep_loop_tasks "
             "WHERE run_id=? AND idempotency_key=?",
@@ -430,7 +435,8 @@ def add_task(
         if existing is not None:
             if str(existing["request_fingerprint"]) != request_fingerprint:
                 raise ValueError("idempotency key was reused with a different request")
-            conn.commit()
+            if owns_connection:
+                conn.commit()
             return {
                 "id": str(existing["id"]),
                 "status": str(existing["status"]),
@@ -476,23 +482,22 @@ def add_task(
                 request_fingerprint,
             ),
         )
-        conn.commit()
+        if owns_connection:
+            conn.commit()
     except Exception:
-        conn.rollback()
+        if owns_connection:
+            conn.rollback()
         raise
     finally:
-        conn.close()
-    if not allowed:
+        if owns_connection:
+            conn.close()
+    if not allowed and owns_connection:
         log_event("task_blocked", reason, run_id=run_id, task_id=task_id, level="warning")
     return {"id": task_id, "status": status, "reason": reason, "deduplicated": False}
 
 
 def start_loop(goal: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     init_sleep_loop_schema()
-    active = get_active_run()
-    if active and active.get("status") != STATUS_STOPPED:
-        return {"ok": False, "error": "sleep loop already active", "run": active}
-
     payload = payload or {}
     cfg = SleepLoopConfig.from_payload(payload.get("config", {}))
     raw_tasks = payload.get("tasks") or split_task(goal, cfg.max_split_tasks)
@@ -515,19 +520,59 @@ def start_loop(goal: str, payload: dict[str, Any] | None = None) -> dict[str, An
     run_id = _new_id("slr")
     now = _now()
     conn = _conn()
-    conn.execute(
-        "INSERT INTO sleep_loop_runs "
-        "(id, status, goal, cycle_no, failure_streak, started_at, updated_at, "
-        "config_json, seed_tasks_json) "
-        "VALUES (?, ?, ?, 1, 0, ?, ?, ?, ?)",
-        (run_id, STATUS_RUNNING, goal, now, now, _dump(cfg.to_dict()), _dump(seed_tasks)),
-    )
-    conn.commit()
-    conn.close()
-    log_event(
-        "loop_started", "就寝无人值守循环已开启", run_id=run_id, metadata={"config": cfg.to_dict()}
-    )
-    added = [add_task(run_id, task, cfg, cycle_no=1) for task in seed_tasks]
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        active_row = conn.execute(
+            "SELECT * FROM sleep_loop_runs WHERE status IN (?, ?, ?, ?) "
+            "ORDER BY started_at DESC, rowid DESC LIMIT 1",
+            (STATUS_RUNNING, STATUS_SLEEPING, STATUS_PAUSED, STATUS_COOLING),
+        ).fetchone()
+        if active_row is not None:
+            conn.commit()
+            return {
+                "ok": False,
+                "error": "sleep loop already active",
+                "run": _row_to_dict(active_row),
+            }
+        conn.execute(
+            "INSERT INTO sleep_loop_runs "
+            "(id, status, goal, cycle_no, failure_streak, started_at, updated_at, "
+            "config_json, seed_tasks_json) "
+            "VALUES (?, ?, ?, 1, 0, ?, ?, ?, ?)",
+            (
+                run_id,
+                STATUS_RUNNING,
+                goal,
+                now,
+                now,
+                _dump(cfg.to_dict()),
+                _dump(seed_tasks),
+            ),
+        )
+        added = [
+            add_task(run_id, task, cfg, cycle_no=1, _connection=conn)
+            for task in seed_tasks
+        ]
+        conn.execute(
+            "INSERT INTO sleep_loop_events "
+            "(id, run_id, task_id, level, event_type, message, metadata_json, created_at) "
+            "VALUES (?, ?, '', 'info', 'loop_started', ?, ?, ?)",
+            (
+                _new_id("evt"),
+                run_id,
+                "就寝无人值守循环已开启",
+                _dump({"config": cfg.to_dict()}),
+                _now(),
+            ),
+        )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+    with suppress(OSError):
+        _append_file_log("info", "loop_started", "就寝无人值守循环已开启")
     return {
         "ok": True,
         "run_id": run_id,
@@ -733,7 +778,7 @@ def _next_pending_task(conn: Any, run_id: str) -> dict[str, Any] | None:
     rows = conn.execute(
         "SELECT * FROM sleep_loop_tasks WHERE run_id=? AND status=? "
         "AND (next_attempt_at IS NULL OR next_attempt_at<=?) "
-        "ORDER BY priority ASC, created_at ASC, rowid ASC LIMIT 20",
+        "ORDER BY priority ASC, created_at ASC, rowid ASC",
         (run_id, TASK_PENDING, datetime.now().isoformat(timespec="microseconds")),
     ).fetchall()
     for row in rows:
@@ -797,6 +842,20 @@ def claim_next_task(
             (run_id,),
         ).fetchone()
         if run is None or str(run["status"]) != STATUS_RUNNING:
+            conn.commit()
+            return None
+        live_running = int(
+            conn.execute(
+                "SELECT COUNT(*) FROM sleep_loop_tasks WHERE run_id=? AND status=? "
+                "AND lease_expires_at>?",
+                (
+                    run_id,
+                    TASK_RUNNING,
+                    datetime.now().isoformat(timespec="microseconds"),
+                ),
+            ).fetchone()[0]
+        )
+        if live_running >= cfg.max_parallel_tasks:
             conn.commit()
             return None
         task = _next_pending_task(conn, run_id)

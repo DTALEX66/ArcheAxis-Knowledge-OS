@@ -1042,3 +1042,181 @@ def test_sleep_loop_requires_review_survives_ledger_roundtrip_and_fingerprint():
             cycle_no=1,
         )
     sl.stop_loop("test_done")
+
+
+def test_start_loop_rolls_back_run_and_all_seeds_when_late_seed_is_invalid():
+    import pytest
+
+    from shared import sleep_loop_engine as sl
+
+    sl.stop_loop("test_cleanup")
+    connection = sl._conn()
+    before = {
+        table: {str(row[0]) for row in connection.execute(f"SELECT id FROM {table}")}
+        for table in ("sleep_loop_runs", "sleep_loop_tasks", "sleep_loop_events")
+    }
+    connection.close()
+    try:
+        with pytest.raises(ValueError, match="dependencies must exist in the same run"):
+            sl.start_loop(
+                "atomic start",
+                {
+                    "tasks": [
+                        {
+                            "title": "valid seed",
+                            "content": "valid seed",
+                            "executor": "file_read",
+                            "payload": {"path": "AGENTS.md"},
+                        },
+                        {
+                            "title": "invalid seed",
+                            "content": "invalid seed",
+                            "executor": "file_read",
+                            "payload": {"path": "README.md"},
+                            "dependencies": ["missing-seed"],
+                        },
+                    ],
+                    "config": {"max_runtime_hours": None},
+                },
+            )
+        connection = sl._conn()
+        after = {
+            table: {str(row[0]) for row in connection.execute(f"SELECT id FROM {table}")}
+            for table in ("sleep_loop_runs", "sleep_loop_tasks", "sleep_loop_events")
+        }
+        connection.close()
+        assert after == before
+    finally:
+        sl.stop_loop("test_cleanup")
+
+
+def test_concurrent_start_publishes_exactly_one_complete_active_run(monkeypatch):
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    from shared import sleep_loop_engine as sl
+
+    sl.stop_loop("test_cleanup")
+    barrier = threading.Barrier(2)
+    original_get_active_run = sl.get_active_run
+
+    def synchronized_get_active_run():
+        active = original_get_active_run()
+        barrier.wait(timeout=2)
+        return active
+
+    monkeypatch.setattr(sl, "get_active_run", synchronized_get_active_run)
+    payload = {
+        "tasks": [
+            {
+                "title": "single complete seed",
+                "content": "single complete seed",
+                "executor": "file_read",
+                "payload": {"path": "AGENTS.md"},
+            }
+        ],
+        "config": {"max_runtime_hours": None},
+    }
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: sl.start_loop("concurrent start", payload), range(2)))
+
+    successes = [result for result in results if result["ok"]]
+    rejected = [result for result in results if not result["ok"]]
+    connection = sl._conn()
+    active_runs = connection.execute(
+        "SELECT id FROM sleep_loop_runs WHERE status IN ('running','sleeping','paused','cooling')"
+    ).fetchall()
+    task_count = connection.execute(
+        "SELECT COUNT(*) FROM sleep_loop_tasks WHERE run_id=?",
+        (successes[0]["run_id"],),
+    ).fetchone()[0]
+    connection.close()
+
+    assert len(successes) == 1
+    assert len(rejected) == 1
+    assert len(active_runs) == 1
+    assert task_count == 1
+    monkeypatch.setattr(sl, "get_active_run", original_get_active_run)
+    sl.stop_loop("test_done")
+
+
+def test_claim_enforces_max_parallel_tasks_inside_claim_transaction():
+    from concurrent.futures import ThreadPoolExecutor
+
+    from shared import sleep_loop_engine as sl
+
+    sl.stop_loop("test_cleanup")
+    started = sl.start_loop(
+        "bounded parallel claims",
+        {
+            "tasks": [
+                {
+                    "title": f"task {index}",
+                    "content": f"task {index}",
+                    "executor": "file_read",
+                    "payload": {"path": "AGENTS.md"},
+                }
+                for index in range(2)
+            ],
+            "config": {"max_parallel_tasks": 1, "max_runtime_hours": None},
+        },
+    )
+    cfg = sl.SleepLoopConfig.from_payload(started["config"])
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        claims = list(
+            pool.map(
+                lambda worker: sl.claim_next_task(
+                    started["run_id"], cfg, worker_id=worker
+                ),
+                ("worker-a", "worker-b"),
+            )
+        )
+
+    assert sum(claim is not None for claim in claims) == 1
+    assert len(sl.list_tasks(started["run_id"], status="running")) == 1
+    sl.stop_loop("test_done")
+
+
+def test_claim_scans_past_twenty_dependency_waiters_to_find_ready_task():
+    from shared import sleep_loop_engine as sl
+
+    sl.stop_loop("test_cleanup")
+    started = sl.start_loop(
+        "dependency scan",
+        {
+            "tasks": [
+                {
+                    "title": "ready prerequisite",
+                    "content": "ready prerequisite",
+                    "priority": 100,
+                    "executor": "file_read",
+                    "payload": {"path": "AGENTS.md"},
+                }
+            ],
+            "config": {"max_runtime_hours": None},
+        },
+    )
+    cfg = sl.SleepLoopConfig.from_payload(started["config"])
+    prerequisite = sl.list_tasks(started["run_id"], limit=1)[0]
+    for index in range(20):
+        sl.add_task(
+            started["run_id"],
+            {
+                "title": f"waiting {index}",
+                "content": f"waiting {index}",
+                "priority": 1,
+                "executor": "file_read",
+                "payload": {"path": "AGENTS.md"},
+                "dependencies": [prerequisite["id"]],
+            },
+            cfg,
+            cycle_no=1,
+        )
+
+    claimed = sl.claim_next_task(started["run_id"], cfg, worker_id="progress-worker")
+
+    assert claimed is not None
+    assert claimed["id"] == prerequisite["id"]
+    sl.stop_loop("test_done")
