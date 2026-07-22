@@ -26,11 +26,19 @@
     <div class="card"><div class="card-title"><h2>已接入流程</h2><span class="status ok"><i></i>本地</span></div><div class="list"><div class="row"><div class="row-main"><b>资料导入</b><span>网页、GitHub仓库地址和本地文件</span></div></div><div class="row"><div class="row-main"><b>受治理持久化</b><span>Research、Job、Outbox和命令收据同事务写入</span></div></div><div class="row"><div class="row-main"><b>严格读回</b><span>持久化绑定不一致时拒绝返回</span></div></div></div></div>
     <div class="card"><div class="card-title"><h2>能力边界</h2><span class="status warn"><i></i>开发版</span></div><div class="list" id="capability-summary"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取Release Manifest</span></div></div></div></div>
   </div>
-  <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前说明</h2></div><p class="muted">异步Worker、Outbox投递器、SSE和交互式Job Center尚未实现。导航中的后续产品模块只保留信息架构入口，并明确显示“尚未接入真实数据”。</p></div>
+  <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前说明</h2></div><p class="muted">只读 Job Center 已接入，展示严格绑定的本地同步记录。异步 Worker、Outbox 投递器、SSE 和交互式 Job Center 尚未实现；其余后续产品模块只保留信息架构入口，并明确显示“尚未接入真实数据”。</p></div>
 </section>
 <section class="page" id="page-diagnostics">
   <div class="page-head"><div><div class="eyebrow">LOCAL SYSTEM HEALTH</div><h1>系统诊断</h1><p class="desc">只读显示API、迁移与开发版发布信息；不泄露数据库路径或备份位置。</p></div><div class="head-actions"><button class="btn primary" data-action="refresh">刷新</button></div></div>
   <div class="grid cols-4" id="diagnostics-summary" aria-live="polite"><div class="card metric"><span>API</span><b>加载中</b><span class="delta info">正在读取本地诊断</span></div></div>
+</section>
+<section class="page" id="page-runtime">
+  <div class="page-head"><div><div class="eyebrow">LOCAL JOB CENTER</div><h1>知行任务执行</h1><p class="desc">仅展示本地数据库严格绑定的同步记录与投递状态；不会显示内部编号、伪进度或未经证实的执行结果。</p></div><div class="head-actions"><button class="btn primary" data-action="jobs-refresh">刷新任务</button></div></div>
+  <div class="card"><div class="card-title"><h2>最近任务</h2><span class="status ok"><i></i>同步记录</span></div><div class="list" id="job-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地任务记录</span></div></div></div></div>
+</section>
+<section class="page" id="page-research">
+  <div class="page-head"><div><div class="eyebrow">HUMAN REVIEW QUEUE</div><h1>察微研究</h1><p class="desc">仅显示需要人工复核的本地 Research。批准前必须填写理由；内部记录编号不会显示。</p></div><div class="head-actions"><button class="btn primary" data-action="research-refresh">刷新队列</button></div></div>
+  <div class="card"><div class="card-title"><h2>待审核资料</h2><span class="status warn"><i></i>人工复核</span></div><div class="list" id="research-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地待审核资料</span></div></div></div></div>
 </section>
 <section class="page" id="page-unavailable">
   <div class="page-head"><div><div class="eyebrow">ROADMAP</div><h1 id="unavailable-title">功能尚未接入</h1><p class="desc">此入口用于保持产品信息架构，但当前版本没有可验证的真实数据或操作。</p></div></div>

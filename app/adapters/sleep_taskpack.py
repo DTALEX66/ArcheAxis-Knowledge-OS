@@ -8,6 +8,7 @@ from typing import Any
 
 from app.adapters.taskpack import ContractMappingError
 from app.contracts.v1 import CONTRACT_VERSION, TaskPackV1
+from app.schemas import TaskPack as RuntimeTaskPack
 
 _NON_EXECUTING_EXECUTORS = {
     "context_pack_build",
@@ -46,6 +47,8 @@ def from_sleep_ledger_task(
         raise ContractMappingError("sleep ledger task requires id")
     if not executor:
         raise ContractMappingError("sleep ledger task requires executor")
+    if "requires_review" not in task:
+        raise ContractMappingError("sleep ledger task requires persisted requires_review")
     if not isinstance(payload, dict):
         raise ContractMappingError("sleep ledger task payload must be an object")
     if not isinstance(dependencies, list) or not all(
@@ -80,7 +83,7 @@ def from_sleep_ledger_task(
         constraints=constraints,
         success_criteria=[],
         risk_level=task.get("risk_level", "low"),
-        requires_review=bool(task.get("requires_review", False)),
+        requires_review=bool(task["requires_review"]),
     )
 
 
@@ -103,6 +106,8 @@ def project_sleep_ledger_task_for_execution(
     dependencies = task.get("dependencies", [])
     allowed_tools = list(declared_allowed_tools or [])
 
+    if "requires_review" not in task:
+        raise ContractMappingError("sleep ledger task requires persisted requires_review")
     if status == "blocked":
         raise ContractMappingError("blocked sleep ledger task cannot be projected for execution")
     if not isinstance(payload, dict):
@@ -128,7 +133,7 @@ def project_sleep_ledger_task_for_execution(
         raise ContractMappingError("critical sleep task cannot be projected for execution")
     if executor not in allowed_tools:
         raise ContractMappingError(f"executor is not declared allowed: {executor or '<missing>'}")
-    if task.get("requires_review", False) not in (False, 0):
+    if task["requires_review"] not in (False, 0):
         raise ContractMappingError("runtime execution cannot bypass requires_review")
     if not isinstance(dependencies, list):
         raise ContractMappingError("sleep ledger task dependencies must be a list")
@@ -140,3 +145,43 @@ def project_sleep_ledger_task_for_execution(
         )
 
     return from_sleep_ledger_task(task, declared_allowed_tools=allowed_tools)
+
+
+def project_sleep_ledger_task_to_runtime(
+    task: dict[str, Any],
+    *,
+    declared_allowed_tools: Iterable[str] | None = None,
+    satisfied_dependency_ids: Iterable[str] | None = None,
+) -> RuntimeTaskPack:
+    """Validate one ledger task and preserve its real payload for Runtime."""
+
+    canonical = project_sleep_ledger_task_for_execution(
+        task,
+        declared_allowed_tools=declared_allowed_tools,
+        satisfied_dependency_ids=satisfied_dependency_ids,
+    )
+    payload = task.get("payload", {})
+    reserved = {"id", "name", "type", "tool"}
+    conflicts = sorted(reserved & set(payload))
+    if conflicts:
+        raise ContractMappingError(
+            "sleep payload cannot override runtime step fields: " + ", ".join(conflicts)
+        )
+    step = canonical.steps[0]
+    return RuntimeTaskPack(
+        id=canonical.task_id,
+        goal=canonical.goal,
+        steps=[
+            {
+                "id": step.step_id,
+                "name": "sleep_runtime_execute",
+                "type": "tool",
+                "tool": step.tool,
+                **payload,
+            }
+        ],
+        constraints=list(canonical.constraints),
+        tools=list(canonical.requested_tools),
+        risk_level=canonical.risk_level,
+        success_criteria=list(canonical.success_criteria),
+    )

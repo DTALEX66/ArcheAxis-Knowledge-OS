@@ -154,7 +154,7 @@ def test_workspace_diagnostics_ui_uses_the_safe_diagnostics_api() -> None:
     assert "本地状态读取失败" in application
 
 
-def test_workspace_does_not_render_a_fake_job_center() -> None:
+def test_workspace_job_center_does_not_render_fake_execution_progress() -> None:
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[1]
@@ -164,7 +164,7 @@ def test_workspace_does_not_render_a_fake_job_center() -> None:
     assert 'class="job collapsed"' not in page
     assert "原型任务" not in page
     assert "job-toggle" not in application
-    assert "异步Worker、Outbox投递器、SSE和交互式Job Center尚未实现" in page
+    assert "只读 Job Center 已接入" in page
 
 
 def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_path) -> None:
@@ -837,6 +837,7 @@ def test_workspace_http_commands_serialize_same_id_semantic_conflicts(
 
     database = _database(tmp_path)
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups")
+    operator.apply("sleep-loop.sqlite")
     operator.apply("taskpack.sqlite")
     operator.apply("workspace.sqlite")
     monkeypatch.setattr(router, "DB_PATH", database)

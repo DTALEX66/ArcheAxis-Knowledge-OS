@@ -41,7 +41,30 @@ class TestPermission:
         assert perm.risk_level == "high"
 
     def test_mixed_tools_split(self):
-        task = make_task(tools=["echo", "code_exec"])
+        task = TaskPack(
+            id="task_test_001",
+            goal="test",
+            steps=[
+                {"step_id": "s1", "tool": "echo"},
+                {"step_id": "s2", "tool": "code_exec"},
+            ],
+            tools=["echo", "code_exec"],
+        )
         perm = check_permission(task)
         assert "echo" in perm.allowed_tools
         assert "code_exec" in perm.blocked_tools
+
+    def test_step_tools_must_match_declared_tools(self):
+        task = TaskPack(
+            id="task_undeclared_write",
+            goal="must not execute an undeclared write",
+            steps=[{"step_id": "s1", "tool": "safe_write", "dry_run": False}],
+            tools=[],
+        )
+
+        perm = check_permission(task)
+
+        assert perm.requires_human_review is True
+        assert perm.allowed_tools == []
+        assert perm.blocked_tools == ["safe_write"]
+        assert "do not match" in perm.reason

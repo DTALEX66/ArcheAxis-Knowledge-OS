@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import tempfile
+import threading
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
@@ -26,6 +27,12 @@ from app.workspace.job_outbox import command_request_fingerprint, record_complet
 from shared.research_store import ResearchPackageGraph, load_research_package
 
 MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
+_COMMAND_LOCKS = tuple(threading.RLock() for _ in range(64))
+
+
+def _command_lock(command_id: str) -> threading.RLock:
+    digest = sha256(command_id.encode("utf-8")).digest()
+    return _COMMAND_LOCKS[int.from_bytes(digest[:4], "big") % len(_COMMAND_LOCKS)]
 
 
 def _intake_command_id(package_id: str) -> str:
@@ -234,6 +241,73 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
     }
 
 
+def workspace_jobs(*, db_path: str | Path) -> dict[str, object]:
+    """Return strict, non-identifying projections for the local Job Center."""
+
+    with sqlite3.connect(Path(db_path)) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT j.job_id, j.command_id, j.job_type, j.state, j.payload_json, "
+            "j.correlation_id, j.causation_id, j.updated_at, o.event_id, o.event_type, "
+            "o.state AS outbox_state, o.payload_json AS outbox_payload_json, "
+            "r.command_id AS receipt_command_id, r.command_type AS receipt_command_type, "
+            "r.job_id AS receipt_job_id, r.result_json "
+            "FROM workspace_jobs_v1 AS j "
+            "LEFT JOIN workspace_outbox_v1 AS o ON o.job_id=j.job_id "
+            "LEFT JOIN workspace_command_receipts_v1 AS r ON r.job_id=j.job_id "
+            "ORDER BY j.updated_at DESC, j.job_id DESC"
+        ).fetchall()
+        orphan_count = connection.execute(
+            "SELECT "
+            "(SELECT COUNT(*) FROM workspace_outbox_v1 AS o "
+            "LEFT JOIN workspace_jobs_v1 AS j ON j.job_id=o.job_id WHERE j.job_id IS NULL) + "
+            "(SELECT COUNT(*) FROM workspace_command_receipts_v1 AS r "
+            "LEFT JOIN workspace_jobs_v1 AS j ON j.job_id=r.job_id WHERE j.job_id IS NULL)"
+        ).fetchone()[0]
+    if orphan_count:
+        raise RuntimeError("workspace job persisted bindings are inconsistent")
+
+    projections: list[dict[str, str]] = []
+    for row in rows:
+        command_id = str(row["command_id"])
+        job_id = str(row["job_id"])
+        job_type = str(row["job_type"])
+        job_state = str(row["state"])
+        expected_job_id = "job_" + sha256(command_id.encode("utf-8")).hexdigest()[:24]
+        expected_event_id = "outbox_" + sha256(command_id.encode("utf-8")).hexdigest()[:24]
+        try:
+            payload = json.loads(str(row["payload_json"]))
+            outbox_payload = json.loads(str(row["outbox_payload_json"]))
+            result = json.loads(str(row["result_json"]))
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise RuntimeError("workspace job contains malformed persisted JSON") from exc
+        if (
+            job_type != "intake.research"
+            or job_state not in {"queued", "succeeded"}
+            or job_id != expected_job_id
+            or str(row["correlation_id"]) != command_id
+            or str(row["causation_id"]) != command_id
+            or str(row["event_id"]) != expected_event_id
+            or str(row["event_type"]) != f"{job_type}.{job_state}"
+            or str(row["receipt_command_id"]) != command_id
+            or str(row["receipt_command_type"]) != job_type
+            or str(row["receipt_job_id"]) != job_id
+            or payload != outbox_payload
+            or result
+            != {"command_id": command_id, "event_id": expected_event_id, "job_id": expected_job_id}
+        ):
+            raise RuntimeError("workspace job persistence binding is invalid")
+        projections.append(
+            {
+                "activity": "资料导入",
+                "state": job_state,
+                "delivery_state": str(row["outbox_state"]),
+                "updated_at": str(row["updated_at"]),
+            }
+        )
+    return {"schema_version": "v1", "jobs": projections}
+
+
 def workspace_status(*, db_path: str | Path) -> dict[str, object]:
     """Return aggregate, non-identifying state for the local product shell."""
     from collections import Counter
@@ -295,6 +369,41 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
     }
 
 
+def research_review_queue(*, db_path: str | Path) -> dict[str, object]:
+    """Return user-readable pending Research without exposing persistence IDs."""
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.execute("PRAGMA busy_timeout=30000")
+        connection.execute("PRAGMA query_only=ON")
+        rows = connection.execute(
+            "SELECT canonical_url, claim_ids_json, evidence_ids_json, verification_status, created_at "
+            "FROM research_packages_v1 WHERE status IN ('candidate', 'ready_for_review') "
+            "AND requires_human_review=1 ORDER BY created_at DESC, canonical_url"
+        ).fetchall()
+    items = []
+    for source, claims, evidence, verification, created_at in rows:
+        try:
+            claim_count = len(json.loads(str(claims)))
+            evidence_count = len(json.loads(str(evidence)))
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise RuntimeError("workspace research queue contains malformed persisted data") from exc
+        items.append({"source": str(source), "claim_count": claim_count, "evidence_count": evidence_count,
+                      "verification": str(verification), "created_at": str(created_at)})
+    return {"schema_version": "v1", "items": items}
+
+
+def promote_research_source(*, command_id: str, source: str, reviewer_id: str, rationale: str,
+                            db_path: str | Path) -> dict:
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        row = connection.execute(
+            "SELECT id FROM research_packages_v1 WHERE canonical_url=? "
+            "AND status IN ('candidate', 'ready_for_review') AND requires_human_review=1", (source,)
+        ).fetchone()
+    if row is None:
+        raise ValueError("该资料不在待审核队列中")
+    return promote_research(command_id=command_id, package_id=str(row[0]), reviewer_id=reviewer_id,
+                            rationale=rationale, db_path=db_path)
+
+
 def now_utc() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -345,24 +454,25 @@ def _require_matching_practice_command(
 
 
 def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
-    _require_matching_promotion_command(
-        command_id=command_id,
-        package_id=package_id,
-        reviewer_id=reviewer_id,
-        rationale=rationale,
-        db_path=db_path,
-    )
-    receipt = promote_research_package_to_candidates(
-        ResearchKnowledgeApproval(
-            approval_id=command_id,
+    with _command_lock(command_id):
+        _require_matching_promotion_command(
+            command_id=command_id,
             package_id=package_id,
             reviewer_id=reviewer_id,
-            decision="approved",
             rationale=rationale,
-            reviewed_at=now_utc(),
-        ),
-        db_path=db_path,
-    )
+            db_path=db_path,
+        )
+        receipt = promote_research_package_to_candidates(
+            ResearchKnowledgeApproval(
+                approval_id=command_id,
+                package_id=package_id,
+                reviewer_id=reviewer_id,
+                decision="approved",
+                rationale=rationale,
+                reviewed_at=now_utc(),
+            ),
+            db_path=db_path,
+        )
     return {
         "command_id": command_id,
         "promotion_id": receipt.promotion_id,
@@ -373,23 +483,24 @@ def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rati
 
 
 def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
-    _require_matching_learning_command(
-        command_id=command_id,
-        unit_id=unit_id,
-        reviewer_id=reviewer_id,
-        rationale=rationale,
-        db_path=db_path,
-    )
-    reviewed_at = now_utc()
-    artifact, card_ids = start_and_approve_learning_candidate(
-        unit_id=unit_id,
-        approval_id=command_id,
-        approval_command_id=f"local-approval-{command_id}",
-        reviewer_id=reviewer_id,
-        rationale=rationale,
-        reviewed_at=reviewed_at,
-        db_path=db_path,
-    )
+    with _command_lock(command_id):
+        _require_matching_learning_command(
+            command_id=command_id,
+            unit_id=unit_id,
+            reviewer_id=reviewer_id,
+            rationale=rationale,
+            db_path=db_path,
+        )
+        reviewed_at = now_utc()
+        artifact, card_ids = start_and_approve_learning_candidate(
+            unit_id=unit_id,
+            approval_id=command_id,
+            approval_command_id=f"local-approval-{command_id}",
+            reviewer_id=reviewer_id,
+            rationale=rationale,
+            reviewed_at=reviewed_at,
+            db_path=db_path,
+        )
     return {
         "command_id": command_id,
         "artifact_id": artifact.artifact_id,
@@ -399,27 +510,29 @@ def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale
 
 
 def approve_learning(*, command_id: str, artifact_id: str, reviewer_id: str, db_path: str | Path) -> dict:
-    card_ids = approve_learning_artifact(
-        artifact_id=artifact_id,
-        command_id=command_id,
-        reviewer_id=reviewer_id,
-        reviewed_at=now_utc(),
-        db_path=db_path,
-    )
+    with _command_lock(command_id):
+        card_ids = approve_learning_artifact(
+            artifact_id=artifact_id,
+            command_id=command_id,
+            reviewer_id=reviewer_id,
+            reviewed_at=now_utc(),
+            db_path=db_path,
+        )
     return {"command_id": command_id, "artifact_id": artifact_id, "card_ids": card_ids, "status": "approved"}
 
 
 def record_practice(*, command_id: str, artifact_id: str, quality: int, db_path: str | Path) -> dict:
-    _require_matching_practice_command(
-        command_id=command_id, artifact_id=artifact_id, quality=quality, db_path=db_path
-    )
-    result = record_practice_evidence(
-        artifact_id=artifact_id,
-        command_id=command_id,
-        quality=quality,
-        recorded_at=now_utc(),
-        db_path=db_path,
-    )
+    with _command_lock(command_id):
+        _require_matching_practice_command(
+            command_id=command_id, artifact_id=artifact_id, quality=quality, db_path=db_path
+        )
+        result = record_practice_evidence(
+            artifact_id=artifact_id,
+            command_id=command_id,
+            quality=quality,
+            recorded_at=now_utc(),
+            db_path=db_path,
+        )
     return {
         "command_id": command_id,
         "artifact_id": artifact_id,

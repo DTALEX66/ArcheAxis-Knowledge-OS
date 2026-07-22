@@ -330,15 +330,15 @@ from app.api.ingest import ingest
 from app.core.compiler import compile_task
 from app.core.router import route
 from app.core.trace import list_traces
-from app.evaluation.evaluator import evaluate
-from app.evaluation.feedback import compile_lesson
-from app.facades.runtime import execute_runtime
+from app.evaluation.governance import list_reviewed_feedback
+from app.facades.runtime import run_runtime_task
 from app.ingestion.file import IngestionError, ingest_directory, ingest_file
 from app.ingestion.multi_format import convert_directory as multi_convert_directory
 from app.ingestion.multi_format import convert_file, convert_url
 from app.memory.store import list_lessons, save_lesson, save_memory, search_memory
 from app.rag.retriever import retrieve
 from app.tools.registry import list_tools
+from shared import storage
 
 
 @app.get("/health")
@@ -483,8 +483,11 @@ def run(input_data: dict):
         return {"status": "needs_review", "document": doc, "route": decision}
     save_memory(doc)
     context = retrieve(doc.content)
-    task = compile_task(context)
-    runtime = execute_runtime(doc, task, decision=decision)
+    task = compile_task(
+        context,
+        reviewed_feedback=list_reviewed_feedback(db_path=storage.DB_PATH),
+    )
+    runtime = run_runtime_task(doc, task, decision=decision)
     if runtime.permission.requires_human_review:
         return {
             "status": "blocked",
@@ -494,13 +497,13 @@ def run(input_data: dict):
             "permission": runtime.permission.model_dump(),
         }
     trace = runtime.trace
-    if trace is None:  # defensive: an allowed execution must always produce a trace
-        raise RuntimeError("runtime facade returned no trace for an allowed task")
-    eval_result = evaluate(trace)
-    lesson = compile_lesson(eval_result, trace)
+    eval_result = runtime.evaluation
+    lesson = runtime.lesson
+    if trace is None or eval_result is None or lesson is None:
+        raise RuntimeError("runtime composite port returned an incomplete terminal result")
     save_lesson(lesson)
     return {
-        "status": "done" if eval_result.success else "failed",
+        "status": runtime.status,
         "document": doc,
         "route": decision,
         "context": context,
@@ -643,11 +646,15 @@ graph TB
 
 @app.get("/sleep-loop")
 def sleep_loop_get(
-    action: str = "status", run_id: str = "", status_filter: str = "", limit: int = 100
+    action: str = "status",
+    run_id: str = "",
+    task_id: str = "",
+    status_filter: str = "",
+    limit: int = 100,
 ):
     """Composite read endpoint for the bedtime unattended loop panel.
 
-    Actions: status | tasks | logs | config | architecture
+    Actions: status | tasks | attempts | logs | config | architecture
     """
     from shared import sleep_loop_engine as sl
 
@@ -656,6 +663,14 @@ def sleep_loop_get(
     if action == "tasks":
         return {
             "items": sl.list_tasks(run_id=run_id or None, status=status_filter or None, limit=limit)
+        }
+    if action == "attempts":
+        return {
+            "items": sl.list_attempts(
+                task_id=task_id or None,
+                run_id=run_id or None,
+                limit=limit,
+            )
         }
     if action == "logs":
         return {"items": sl.list_events(run_id=run_id or None, limit=limit)}
@@ -685,7 +700,9 @@ async def sleep_loop_post(request: Request, action: str = "tick"):
     if action == "resume":
         return sl.resume_loop()
     if action == "tick":
-        return sl.tick_once()
+        from app.sleep_runtime import tick_once as tick_sleep_loop
+
+        return tick_sleep_loop()
     if action == "config":
         return sl.set_config(payload.get("config", payload))
     raise HTTPException(status_code=400, detail=f"unknown sleep-loop action: {action}")

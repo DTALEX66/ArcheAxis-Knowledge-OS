@@ -46,21 +46,20 @@
 4. 开发循环只运行受影响测试；普通低风险 TaskPack 形成本地 checkpoint，完整门禁、聚合 frozen tree 和远端 CI 每个阶段 Release Train 各执行一次。没有生产 diff 的循环不得重复这些步骤。
 5. 每个后续周期先读取 Git 状态和上一周期最终结果；若 HEAD、tree 与失败证据未变化，必须继续原任务或停止，不能重新发现、重新冻结、重新派审。
 
-### 正式 TaskPack runner
+### 全局 TaskPack runner 的项目适配
 
-无人值守开发使用仓库内 [`scripts/run_taskpack_agent.py`](../scripts/run_taskpack_agent.py)，不再使用按固定分钟数杀进程并启动新 agent 的循环：
+通用 Hermes + CC Switch + Codex TaskPack runner 由
+`D:/All projects/Workflow-assistance/scripts/workflow/run_taskpack_agent.py`
+维护；本仓库不再保留或分叉该执行器。调用时必须明确传入：
 
-```bash
-python scripts/run_taskpack_agent.py \
-  --mission-file <approved-repo-relative-taskpack.md> \
-  --risk low
-```
+- `--repo D:/All projects/Cognitive-Loop-OS`；
+- 与实际候选分支一致的 `--remote-ref`，不得默认假定 `origin/main`；
+- `cognitive-loop-os` 及其他所需项目技能；
+- 本项目批准的 TaskPack 与风险等级。
 
-- `--risk low`：用于阶段 Release Train 或用户明确要求立即发布的低风险任务；一个 Hermes writer 会话完成聚合 frozen tree、完整门禁、commit、push 与 exact-SHA CI。阶段内普通低风险切片只做定向 checkpoint，不逐个调用完整 release runner。
-- `--risk high`：writer 先冻结全部 staged 改动且禁止 commit；runner 同步等待只读 reviewer。`NO-GO` 使用 stderr 中的 `session_id` 续接同一 writer lineage 修复，`GO` 后才续接发布。
-- runner 在送审前拒绝 unstaged、untracked 和冲突文件；审查前后比较 `git write-tree` 与 porcelain status，reviewer 只要产生任何写入就立即失败。
-- 发布验收由 runner 独立执行：工作区 clean、HEAD 前进、fetch/prune、`HEAD == origin/main`、该 HEAD 的 GitHub Actions 全部成功。
-- agent 调用不设置固定周期 timeout；仅远端 CI 等待有 20 分钟故障上限。旧的 `cognitive_7h_runner.py` 固定时间片模式已废弃。
+高风险路径仍遵循本政策的完整门禁、frozen tree review 与 exact-SHA CI；
+全局 runner 只提供单 writer、会话续接与 exact-tree 编排，不替代本项目的
+架构、SQLite、权限和发布判断。旧的固定时间片 runner 已废弃。
 
 ## 证据与记录
 

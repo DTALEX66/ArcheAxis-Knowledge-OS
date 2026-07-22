@@ -54,6 +54,7 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "cargo test --test backend_lifecycle -- --ignored --nocapture" in desktop_job
     assert "npm run tauri -- build --bundles nsis" in desktop_job
     assert "Verify the installed NSIS lifecycle" in desktop_job
+    assert "timeout-minutes: 45" in desktop_job
     assert "./desktop/scripts/verify_nsis_install.ps1" in desktop_job
     assert (
         'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe"'

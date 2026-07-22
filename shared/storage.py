@@ -370,36 +370,65 @@ def init() -> None:
         c.close()
 
 
-def validate_schema() -> None:
-    """Validate the existing SQLite schema and migration ledger read-only."""
-    from shared import core_schema, migration, research_migration, workspace_migration
+def _validate_schema_connection(connection: sqlite3.Connection, database: Path) -> None:
+    from shared import (
+        core_schema,
+        migration,
+        research_migration,
+        sleep_loop_migration,
+        workspace_migration,
+    )
     from shared.migration_runner import require_sqlite_owners_applied
+
+    research_migration._require_applied_connection(connection, database)
+    existing = {
+        str(row["name"])
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master WHERE type IN ('table', 'view')"
+        )
+    }
+    missing = sorted(REQUIRED_SCHEMA_TABLES - existing)
+    if missing:
+        raise RuntimeError(f"SQLite schema is incomplete; missing: {', '.join(missing)}")
+    core_schema.validate(connection)
+    workspace_migration._require_applied_connection(connection, database)
+    sleep_loop_migration._require_schema_applied_connection(connection, database)
+    require_sqlite_owners_applied(connection)
+    pending = migration._taskpack_migrations_pending(connection)
+    if pending:
+        formatted = ", ".join(
+            f"{version:03d}_{name}"
+            for version, name in migration.TASKPACK_MIGRATIONS.items()
+            if name in pending
+        )
+        raise RuntimeError(f"SQLite migrations are pending: {formatted}")
+
+
+def validate_schema() -> None:
+    """Validate a checkpointed SQLite schema through one immutable connection."""
+
+    from shared import research_migration
 
     if not DB_PATH.is_file():
         raise RuntimeError(f"SQLite schema has not been migrated: {DB_PATH}")
     try:
         with research_migration._connect_readonly(DB_PATH) as connection:
-            research_migration._require_applied_connection(connection, DB_PATH)
-            existing = {
-                str(row["name"])
-                for row in connection.execute(
-                    "SELECT name FROM sqlite_master WHERE type IN ('table', 'view')"
-                )
-            }
-            missing = sorted(REQUIRED_SCHEMA_TABLES - existing)
-            if missing:
-                raise RuntimeError(f"SQLite schema is incomplete; missing: {', '.join(missing)}")
-            core_schema.validate(connection)
-            workspace_migration._require_applied_connection(connection, DB_PATH)
-            require_sqlite_owners_applied(connection)
-            pending = migration._taskpack_migrations_pending(connection)
-            if pending:
-                formatted = ", ".join(
-                    f"{version:03d}_{name}"
-                    for version, name in migration.TASKPACK_MIGRATIONS.items()
-                    if name in pending
-                )
-                raise RuntimeError(f"SQLite migrations are pending: {formatted}")
+            _validate_schema_connection(connection, DB_PATH)
+    except sqlite3.Error as exc:
+        raise RuntimeError(f"SQLite schema validation failed for {DB_PATH}") from exc
+
+
+def validate_schema_online() -> None:
+    """Validate the live WAL-capable Runtime schema without mutating or checkpointing it."""
+
+    if not DB_PATH.is_file():
+        raise RuntimeError(f"SQLite schema has not been migrated: {DB_PATH}")
+    try:
+        with sqlite3.connect(str(DB_PATH), timeout=30.0) as connection:
+            connection.execute("PRAGMA busy_timeout=30000")
+            connection.execute("PRAGMA query_only=ON")
+            connection.row_factory = sqlite3.Row
+            _validate_schema_connection(connection, DB_PATH)
     except sqlite3.Error as exc:
         raise RuntimeError(f"SQLite schema validation failed for {DB_PATH}") from exc
 

@@ -14,6 +14,7 @@ def _ledger_task(**overrides):
         "payload": {"path": "docs/design.md"},
         "dependencies": ["slt_parent_001", "slt_parent_002"],
         "risk_level": "low",
+        "requires_review": False,
     }
     task.update(overrides)
     return task
@@ -57,6 +58,28 @@ def test_sleep_execution_projection_accepts_declared_real_task():
     assert canonical.declared_allowed_tools == ["file_read"]
 
 
+def test_sleep_execution_projection_builds_runtime_task_with_real_payload():
+    from app.adapters.sleep_taskpack import project_sleep_ledger_task_to_runtime
+
+    runtime = project_sleep_ledger_task_to_runtime(
+        _ledger_task(),
+        declared_allowed_tools=["file_read"],
+        satisfied_dependency_ids=["slt_parent_001", "slt_parent_002"],
+    )
+
+    assert runtime.id == "slt_001"
+    assert runtime.tools == ["file_read"]
+    assert runtime.steps == [
+        {
+            "id": "slt_001:execute",
+            "name": "sleep_runtime_execute",
+            "type": "tool",
+            "tool": "file_read",
+            "path": "docs/design.md",
+        }
+    ]
+
+
 @pytest.mark.parametrize(
     ("task", "allowed_tools", "message"),
     [
@@ -95,4 +118,21 @@ def test_sleep_execution_projection_does_not_assume_ledger_dependencies_succeede
     with pytest.raises(ContractMappingError, match="dependencies not proven complete"):
         project_sleep_ledger_task_for_execution(
             _ledger_task(), declared_allowed_tools=["file_read"]
+        )
+
+
+def test_sleep_execution_projection_rejects_ledger_without_review_receipt():
+    from app.adapters.sleep_taskpack import (
+        ContractMappingError,
+        project_sleep_ledger_task_for_execution,
+    )
+
+    task = _ledger_task()
+    task.pop("requires_review")
+
+    with pytest.raises(ContractMappingError, match="persisted requires_review"):
+        project_sleep_ledger_task_for_execution(
+            task,
+            declared_allowed_tools=["file_read"],
+            satisfied_dependency_ids=task["dependencies"],
         )

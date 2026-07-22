@@ -33,12 +33,12 @@ def run_reviewed_artifact_task(
     if permission.requires_human_review:
         raise ValueError("artifact task requires human review")
     trace = execute(projection.task, permission)
-    log_trace(trace)
     database = Path(db_path)
     database.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(database):
         pass
     MigrationOperator(db_path=database, backup_dir=database.parent / "backups").apply("core.sqlite")
+    log_trace(trace, db_path=database)
     return ArtifactRuntimeResult(
         artifact_id=artifact_id,
         trace=trace,

@@ -37,19 +37,36 @@ def check_permission(task: TaskPack, content: str = "") -> PermissionDecision:
 
     list_tools()
 
+    declared_tools = list(dict.fromkeys(task.tools))
+    step_tools = list(
+        dict.fromkeys(str(step.get("tool", "echo")) for step in task.steps)
+    )
+    if set(declared_tools) != set(step_tools):
+        blocked_mismatch = list(dict.fromkeys([*step_tools, *declared_tools]))
+        return PermissionDecision(
+            task_id=task.id,
+            risk_level="high",
+            allowed_tools=[],
+            blocked_tools=blocked_mismatch,
+            requires_human_review=True,
+            reason=(
+                "declared task tools do not match executable step tools: "
+                f"declared={declared_tools}, steps={step_tools}"
+            ),
+        )
+
     # ── Check each requested tool ──
-    for tool_name in task.tools:
+    for tool_name in declared_tools:
         tool_risk = TOOL_RISK.get(tool_name, "medium")
         policy = RISK_POLICY.get(tool_risk, RISK_POLICY["medium"])
+        max_risk = _escalate_risk(max_risk, tool_risk)
 
         if policy["blocked"]:
             blocked.append(tool_name)
             reasons.append(f"{tool_name}: critical risk — permanently blocked")
-            max_risk = _escalate_risk(max_risk, "critical")
         elif not policy["auto"]:
             blocked.append(tool_name)
             reasons.append(f"{tool_name}: high risk — requires human review")
-            max_risk = _escalate_risk(max_risk, "high")
         else:
             allowed.append(tool_name)
 

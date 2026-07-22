@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import atexit
 import os
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -27,9 +29,13 @@ atexit.register(_RUNTIME.cleanup)
 
 
 def pytest_configure() -> None:
-    from app.memory import database as memory_database
     from shared import migration, storage
+    from shared.migration_runner import MigrationOperator, default_registry
 
-    storage.init()
-    memory_database.init_db()
-    migration.migrate(db_path=storage.DB_PATH, backup_dir=migration.BACKUP_DIR)
+    storage.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with closing(sqlite3.connect(storage.DB_PATH)):
+        pass
+    operator = MigrationOperator(db_path=storage.DB_PATH, backup_dir=migration.BACKUP_DIR)
+    for owner in default_registry().owners:
+        if owner.kind.startswith("sqlite"):
+            operator.apply(owner.owner)

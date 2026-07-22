@@ -59,12 +59,23 @@ CREATE TABLE IF NOT EXISTS workspace_worker_checkpoints_v1 (
 );
 """
 
-WORKSPACE_TABLES = (
+WORKSPACE_DELIVERY_RECEIPT_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS workspace_delivery_receipts_v1 (
+    event_id TEXT PRIMARY KEY REFERENCES workspace_outbox_v1(event_id),
+    consumer_name TEXT NOT NULL,
+    proof_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+"""
+
+WORKSPACE_V1_TABLES = (
     "workspace_jobs_v1",
     "workspace_outbox_v1",
     "workspace_command_receipts_v1",
     "workspace_worker_checkpoints_v1",
 )
+WORKSPACE_DELIVERY_RECEIPT_TABLE = "workspace_delivery_receipts_v1"
+WORKSPACE_TABLES = WORKSPACE_V1_TABLES + (WORKSPACE_DELIVERY_RECEIPT_TABLE,)
 WORKSPACE_INDEXES = ("idx_workspace_jobs_state_v1", "idx_workspace_outbox_state_v1")
 _OP_CAPABILITY = object()
 
@@ -100,10 +111,16 @@ def _normalize_schema_sql(sql: str) -> str:
     return " ".join(sql.replace("IF NOT EXISTS", "").split()).casefold()
 
 
-def _expected_schema_objects() -> dict[str, tuple[str, str, str]]:
-    names = WORKSPACE_TABLES + WORKSPACE_INDEXES
+def _expected_schema_objects(*, include_delivery_receipts: bool) -> dict[str, tuple[str, str, str]]:
+    names = (
+        WORKSPACE_V1_TABLES
+        + ((WORKSPACE_DELIVERY_RECEIPT_TABLE,) if include_delivery_receipts else ())
+        + WORKSPACE_INDEXES
+    )
     with closing(sqlite3.connect(":memory:")) as connection:
         _apply_schema(connection)
+        if include_delivery_receipts:
+            _apply_delivery_receipt_schema(connection)
         placeholders = ", ".join("?" for _ in names)
         rows = connection.execute(
             f"SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name IN ({placeholders})",
@@ -138,31 +155,42 @@ def _actual_owned_schema_objects(
     }
 
 
-def _workspace_schema_recorded(connection: sqlite3.Connection) -> bool:
+def _recorded_workspace_migrations(connection: sqlite3.Connection) -> set[str]:
     if not _table_exists(connection, "schema_migrations"):
-        return False
+        return set()
     rows = connection.execute(
-        "SELECT version, name FROM schema_migrations WHERE version=? OR name=?",
+        "SELECT version, name FROM schema_migrations "
+        "WHERE version IN (?, ?) OR name IN (?, ?)",
         (
             migration.WORKSPACE_SCHEMA_MIGRATION_VERSION,
+            migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_VERSION,
             migration.WORKSPACE_SCHEMA_MIGRATION_NAME,
+            migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,
         ),
     ).fetchall()
-    recorded = False
+    known = {
+        migration.WORKSPACE_SCHEMA_MIGRATION_VERSION: migration.WORKSPACE_SCHEMA_MIGRATION_NAME,
+        migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_VERSION: migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,
+    }
+    recorded: set[str] = set()
     for row in rows:
         version, name = int(row["version"]), str(row["name"])
-        if (
-            version == migration.WORKSPACE_SCHEMA_MIGRATION_VERSION
-            and name == migration.WORKSPACE_SCHEMA_MIGRATION_NAME
-        ):
-            recorded = True
-            continue
-        raise RuntimeError("workspace migration version/name collision")
+        if known.get(version) != name:
+            raise RuntimeError("workspace migration version/name collision")
+        recorded.add(name)
+    if (
+        migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME in recorded
+        and migration.WORKSPACE_SCHEMA_MIGRATION_NAME not in recorded
+    ):
+        raise RuntimeError("workspace delivery receipt migration is recorded without v1 schema")
     return recorded
 
 
 def _validate_recorded_schema(connection: sqlite3.Connection) -> None:
-    expected = _expected_schema_objects()
+    recorded = _recorded_workspace_migrations(connection)
+    expected = _expected_schema_objects(
+        include_delivery_receipts=migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME in recorded
+    )
     actual = _actual_owned_schema_objects(connection, expected)
     mismatches = sorted(
         {name for name, definition in expected.items() if actual.get(name) != definition}
@@ -175,7 +203,7 @@ def _validate_recorded_schema(connection: sqlite3.Connection) -> None:
 
 
 def _validate_unrecorded_schema(connection: sqlite3.Connection) -> None:
-    expected = _expected_schema_objects()
+    expected = _expected_schema_objects(include_delivery_receipts=False)
     actual = _actual_owned_schema_objects(connection, expected)
     mismatches = sorted(
         {name for name, definition in actual.items() if expected.get(name) != definition}
@@ -187,19 +215,26 @@ def _validate_unrecorded_schema(connection: sqlite3.Connection) -> None:
         )
 
 
-def _pending(connection: sqlite3.Connection) -> bool:
-    recorded = _workspace_schema_recorded(connection)
-    if recorded:
+def _pending_migrations(connection: sqlite3.Connection) -> tuple[str, ...]:
+    recorded = _recorded_workspace_migrations(connection)
+    if migration.WORKSPACE_SCHEMA_MIGRATION_NAME in recorded:
         _validate_recorded_schema(connection)
-        return False
-    _validate_unrecorded_schema(connection)
-    return True
+    else:
+        _validate_unrecorded_schema(connection)
+    return tuple(
+        name
+        for name in (
+            migration.WORKSPACE_SCHEMA_MIGRATION_NAME,
+            migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,
+        )
+        if name not in recorded
+    )
 
 
 def _require_applied_connection(connection: sqlite3.Connection, path: Path) -> None:
     if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
         raise RuntimeError(f"SQLite integrity check failed for {path}")
-    if _pending(connection):
+    if _pending_migrations(connection):
         raise RuntimeError("workspace job/outbox schema migration is pending")
 
 
@@ -210,12 +245,19 @@ def _apply_schema(connection: sqlite3.Connection) -> None:
             connection.execute(sql)
 
 
+def _apply_delivery_receipt_schema(connection: sqlite3.Connection) -> None:
+    for statement in WORKSPACE_DELIVERY_RECEIPT_SCHEMA_SQL.split(";"):
+        sql = statement.strip()
+        if sql:
+            connection.execute(sql)
+
+
 def status(*, db_path: str | Path) -> dict[str, object]:
     database = Path(db_path)
     if not database.is_file():
         return {"pending": True, "tables": []}
     with closing(_connect_readonly(database)) as connection:
-        pending = _pending(connection)
+        pending = bool(_pending_migrations(connection))
         return {
             "pending": pending,
             "tables": [name for name in WORKSPACE_TABLES if _table_exists(connection, name)],
@@ -237,7 +279,8 @@ def migrate(
     if not database.is_file():
         raise FileNotFoundError(f"SQLite database not found: {database}")
     with closing(_connect(database)) as connection:
-        if not _pending(connection):
+        pending = _pending_migrations(connection)
+        if not pending:
             return migration.MigrationRun((), None)
         connection.execute("BEGIN IMMEDIATE")
         try:
@@ -245,20 +288,30 @@ def migrate(
                 migration._create_backup(
                     database,
                     Path(backup_dir),
-                    migration.WORKSPACE_SCHEMA_MIGRATION_NAME,
+                    "+".join(pending),
                     operator_run_id=operator_run_id,
                 )
                 if backup_when_pending
                 else None
             )
             connection.execute(migration.MIGRATIONS_TABLE)
-            _apply_schema(connection)
-            connection.execute(
-                "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
-                (migration.WORKSPACE_SCHEMA_MIGRATION_VERSION, migration.WORKSPACE_SCHEMA_MIGRATION_NAME),
-            )
+            if migration.WORKSPACE_SCHEMA_MIGRATION_NAME in pending:
+                _apply_schema(connection)
+                connection.execute(
+                    "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
+                    (migration.WORKSPACE_SCHEMA_MIGRATION_VERSION, migration.WORKSPACE_SCHEMA_MIGRATION_NAME),
+                )
+            if migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME in pending:
+                _apply_delivery_receipt_schema(connection)
+                connection.execute(
+                    "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
+                    (
+                        migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_VERSION,
+                        migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,
+                    ),
+                )
             _validate_recorded_schema(connection)
-            run = migration.MigrationRun((migration.WORKSPACE_SCHEMA_MIGRATION_NAME,), backup)
+            run = migration.MigrationRun(pending, backup)
             if before_commit is not None:
                 before_commit(connection, run)
             connection.commit()

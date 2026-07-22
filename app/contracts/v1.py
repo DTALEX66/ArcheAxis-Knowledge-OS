@@ -323,6 +323,15 @@ class ExecutionTraceV1(BaseModel):
     created_at: str
 
 
+class EvaluationDimensionV1(BaseModel):
+    """One explicitly reviewed, failed, or unverified evaluation dimension."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["passed", "failed", "unverified"]
+    reason: str
+
+
 class EvaluationV1(BaseModel):
     """Lossless canonical representation of the current runtime evaluation."""
 
@@ -335,6 +344,7 @@ class EvaluationV1(BaseModel):
     score: float
     failure_reason: str = ""
     improvement: str = ""
+    dimensions: dict[str, EvaluationDimensionV1] = Field(default_factory=dict)
 
 
 class LessonV1(BaseModel):

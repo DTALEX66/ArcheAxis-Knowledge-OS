@@ -117,6 +117,11 @@ class PromoteResearchCommand(_Command):
     rationale: str = Field(min_length=1)
 
 
+class PromoteResearchSourceCommand(_Command):
+    source: str = Field(min_length=1, max_length=2048)
+    rationale: str = Field(min_length=1)
+
+
 class StartLearningCommand(_Command):
     unit_id: str = Field(min_length=1)
     rationale: str = Field(min_length=1)
@@ -228,6 +233,18 @@ async def intake_upload(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+@router.get("/api/jobs")
+def workspace_jobs(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_jobs(db_path=DB_PATH))
+
+
+@router.get("/api/research")
+def workspace_research_queue(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.research_review_queue(db_path=DB_PATH))
+
+
 @router.get("/api/jobs/{job_id}")
 def workspace_job(job_id: str, request: Request) -> dict[str, object]:
     _local_principal(request)
@@ -250,6 +267,15 @@ def promote_research(command: PromoteResearchCommand, request: Request) -> dict[
             reviewer_id=principal["subject"], rationale=command.rationale, db_path=DB_PATH,
         )
     )
+
+
+@router.post("/api/research/approve")
+def promote_research_source(command: PromoteResearchSourceCommand, request: Request) -> dict[str, Any]:
+    principal = _local_principal(request)
+    return _command_error(lambda: service.promote_research_source(
+        command_id=command.command_id, source=command.source, reviewer_id=principal["subject"],
+        rationale=command.rationale, db_path=DB_PATH,
+    ))
 
 
 @router.post("/api/commands/start-learning")

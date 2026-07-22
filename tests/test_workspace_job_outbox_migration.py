@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -47,6 +48,94 @@ def test_workspace_owner_applies_job_outbox_schema_and_rolls_back_safely(tmp_pat
         assert "workspace_command_receipts_v1" not in tables
         assert "workspace_worker_checkpoints_v1" not in tables
         assert connection.execute("SELECT id FROM sentinel").fetchone()[0] == "preserve"
+
+
+def test_workspace_owner_applies_event_bound_delivery_receipt_schema(tmp_path: Path) -> None:
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "workspace.sqlite"
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute("CREATE TABLE sentinel(id TEXT PRIMARY KEY)")
+        connection.commit()
+
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("workspace.sqlite")
+
+    with closing(sqlite3.connect(database)) as connection:
+        receipt_columns = {
+            str(row[1])
+            for row in connection.execute("PRAGMA table_info(workspace_delivery_receipts_v1)")
+        }
+    assert receipt_columns == {
+        "event_id",
+        "consumer_name",
+        "proof_json",
+        "created_at",
+    }
+
+
+def test_workspace_owner_upgrades_a_recorded_v1_schema_to_delivery_receipts(tmp_path: Path) -> None:
+    from shared import migration, workspace_migration
+
+    database = tmp_path / "workspace.sqlite"
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute(migration.MIGRATIONS_TABLE)
+        workspace_migration._apply_schema(connection)
+        connection.execute(
+            "INSERT INTO schema_migrations(version, name) VALUES (?, ?)",
+            (migration.WORKSPACE_SCHEMA_MIGRATION_VERSION, migration.WORKSPACE_SCHEMA_MIGRATION_NAME),
+        )
+        connection.commit()
+
+    run = workspace_migration.migrate(
+        db_path=database,
+        backup_dir=tmp_path / "backups",
+        _operator_capability=workspace_migration._OP_CAPABILITY,
+    )
+
+    assert run.applied == (migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,)
+    with closing(sqlite3.connect(database)) as connection:
+        assert connection.execute(
+            "SELECT name FROM schema_migrations WHERE version=?",
+            (migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_VERSION,),
+        ).fetchone() == (migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,)
+
+
+def test_workspace_v2_rollback_rejects_v1_only_provenance(tmp_path: Path) -> None:
+    import pytest
+
+    from shared import migration
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "workspace.sqlite"
+    with closing(sqlite3.connect(database)):
+        pass
+    operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
+    operator.apply("workspace.sqlite")
+    with closing(sqlite3.connect(database)) as connection:
+        row = connection.execute(
+            "SELECT rowid, provenance_json FROM migration_operator_runs "
+            "WHERE owner='workspace.sqlite' AND state='applied'"
+        ).fetchone()
+        assert row is not None
+        provenance = json.loads(row[1])
+        provenance["applied_migrations"] = [
+            migration.WORKSPACE_SCHEMA_MIGRATION_NAME
+        ]
+        backup_path = Path(str(provenance["backup_path"]))
+        manifest_path = migration._backup_manifest_path(backup_path)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["migration"] = migration.WORKSPACE_SCHEMA_MIGRATION_NAME
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=True, sort_keys=True), encoding="utf-8"
+        )
+        connection.execute(
+            "UPDATE migration_operator_runs SET provenance_json=? WHERE rowid=?",
+            (json.dumps(provenance, ensure_ascii=True, sort_keys=True), row[0]),
+        )
+        connection.commit()
+
+    with pytest.raises(RuntimeError, match="rollback provenance does not match migration owner"):
+        operator.rollback("workspace.sqlite")
 
 
 def test_workspace_schema_and_ledger_roll_back_when_operator_callback_fails(tmp_path: Path) -> None:

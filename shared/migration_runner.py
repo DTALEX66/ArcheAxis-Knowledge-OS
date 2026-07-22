@@ -116,7 +116,8 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
                 "knowledge_candidate_promotions_v1",
                 "sqlite_knowledge",
             ),
-            MigrationOwner("workspace.sqlite", 1, "workspace_jobs_v1", "sqlite_workspace"),
+            MigrationOwner("sleep-loop.sqlite", 2, "sleep_loop_tasks", "sqlite_sleep"),
+            MigrationOwner("workspace.sqlite", 2, "workspace_delivery_receipts_v1", "sqlite_workspace"),
         ]
     )
 
@@ -153,6 +154,28 @@ def _canonical_sql_value(value: Any) -> tuple[str, Any]:
     return ("text", str(value))
 
 
+def require_sqlite_owner_applied(
+    connection: sqlite3.Connection,
+    owner_name: str,
+    registry: MigrationRegistry | None = None,
+) -> None:
+    """Require one exact SQLite owner provenance receipt, without schema callbacks."""
+
+    owner = (registry or default_registry()).get(owner_name)
+    if not owner.kind.startswith("sqlite"):
+        raise ValueError(f"migration owner is not SQLite-backed: {owner_name}")
+    if not migration._table_exists(connection, _OPERATOR_TABLE):
+        raise RuntimeError("SQLite operator provenance is missing")
+    row = connection.execute(
+        f"SELECT state FROM {_OPERATOR_TABLE} "
+        "WHERE owner=? AND version=? AND target=? "
+        "ORDER BY rowid DESC LIMIT 1",
+        owner.identity,
+    ).fetchone()
+    if row is None or str(row[0]) != "applied":
+        raise RuntimeError(f"SQLite operator provenance is not applied for: {owner.owner}")
+
+
 def require_sqlite_owners_applied(
     connection: sqlite3.Connection,
     registry: MigrationRegistry | None = None,
@@ -161,17 +184,15 @@ def require_sqlite_owners_applied(
     owners = tuple(
         owner for owner in (registry or default_registry()).owners if owner.kind.startswith("sqlite")
     )
-    if not migration._table_exists(connection, _OPERATOR_TABLE):
-        raise RuntimeError("SQLite operator provenance is missing")
     missing: list[str] = []
     for owner in owners:
-        row = connection.execute(
-            f"SELECT state FROM {_OPERATOR_TABLE} "
-            "WHERE owner=? AND version=? AND target=? "
-            "ORDER BY rowid DESC LIMIT 1",
-            owner.identity,
-        ).fetchone()
-        if row is None or str(row[0]) != "applied":
+        try:
+            require_sqlite_owner_applied(
+                connection,
+                owner.owner,
+                registry=registry,
+            )
+        except RuntimeError:
             missing.append(owner.owner)
     if missing:
         raise RuntimeError(
@@ -519,6 +540,7 @@ class MigrationOperator:
                         "sqlite",
                         "sqlite_research",
                         "sqlite_knowledge",
+                        "sqlite_sleep",
                         "sqlite_workspace",
                         "sqlite_core",
                     }:
@@ -534,6 +556,8 @@ class MigrationOperator:
                                     live = self._research_status()
                                 elif owner.kind == "sqlite_knowledge":
                                     live = self._knowledge_status()
+                                elif owner.kind == "sqlite_sleep":
+                                    live = self._sleep_status()
                                 else:
                                     live = self._workspace_status()
                             if owner.kind == "sqlite_knowledge" and live["pending"]:
@@ -607,6 +631,18 @@ class MigrationOperator:
                     except Exception as exc:
                         state = "failed"
                         provenance.update(error_type=type(exc).__name__, operation="status")
+                elif owner.kind == "sqlite_sleep":
+                    try:
+                        sleep_loop = self._sleep_status()
+                        if sleep_loop["pending"]:
+                            state = "pending"
+                        else:
+                            state = "failed"
+                            provenance["reason"] = "missing_operator_provenance"
+                        provenance["schema_migrations"] = sleep_loop
+                    except Exception as exc:
+                        state = "failed"
+                        provenance.update(error_type=type(exc).__name__, operation="status")
                 elif owner.kind == "sqlite_workspace":
                     try:
                         workspace = self._workspace_status()
@@ -627,6 +663,11 @@ class MigrationOperator:
         from shared import knowledge_governance_migration
 
         return knowledge_governance_migration.status(db_path=self.db_path)
+
+    def _sleep_status(self) -> dict[str, object]:
+        from shared import sleep_loop_migration
+
+        return sleep_loop_migration.status(db_path=self.db_path)
 
     def _workspace_status(self) -> dict[str, object]:
         from shared import workspace_migration
@@ -803,6 +844,19 @@ class MigrationOperator:
                         provenance=self._failure_provenance(exc, "apply"),
                     )
                     raise
+            elif owner.kind == "sqlite_sleep":
+                try:
+                    current = self._sleep_status()
+                    if current["pending"]:
+                        raise RuntimeError("applied sleep loop owner has a pending schema migration")
+                except Exception as exc:
+                    self._record(
+                        owner,
+                        state="failed",
+                        operation="apply",
+                        provenance=self._failure_provenance(exc, "apply"),
+                    )
+                    raise
             elif owner.kind == "sqlite_workspace":
                 try:
                     current = self._workspace_status()
@@ -952,6 +1006,47 @@ class MigrationOperator:
                 )
                 if applied_item is None:
                     raise RuntimeError("research schema apply has no operator provenance")
+                return applied_item
+            if owner.kind == "sqlite_sleep":
+                from shared import sleep_loop_migration
+
+                applied_item = None
+                operator_run_id = uuid4().hex
+
+                def record_sleep_before_commit(
+                    connection: sqlite3.Connection, run: migration.MigrationRun
+                ) -> None:
+                    nonlocal applied_item
+                    backup = run.backup_path
+                    if backup is None:
+                        raise RuntimeError(
+                            "sleep loop schema is applied without operator rollback provenance"
+                        )
+                    provenance = {
+                        "applied_migrations": list(run.applied),
+                        "backup_path": str(backup),
+                        "backup_sha256": _sha256(backup),
+                        "database_fingerprint_after_apply": self._database_fingerprint(connection),
+                    }
+                    applied_item = self._insert_record(
+                        connection,
+                        owner,
+                        state="applied",
+                        operation="apply",
+                        provenance=provenance,
+                        run_id=operator_run_id,
+                    )
+
+                sleep_loop_migration.migrate(
+                    db_path=self.db_path,
+                    backup_dir=self.backup_dir,
+                    before_commit=record_sleep_before_commit,
+                    backup_when_pending=True,
+                    operator_run_id=operator_run_id,
+                    _operator_capability=sleep_loop_migration._OPERATOR_CAPABILITY,
+                )
+                if applied_item is None:
+                    raise RuntimeError("sleep loop schema apply has no operator provenance")
                 return applied_item
             if owner.kind == "sqlite_workspace":
                 from shared import workspace_migration
@@ -1145,6 +1240,7 @@ class MigrationOperator:
                 "sqlite",
                 "sqlite_research",
                 "sqlite_knowledge",
+                "sqlite_sleep",
                 "sqlite_workspace",
                 "sqlite_core",
             }:
@@ -1176,8 +1272,28 @@ class MigrationOperator:
                     }
                     if not expected_migrations <= allowed_migrations:
                         raise RuntimeError("rollback provenance does not match migration owner")
+                elif owner.kind == "sqlite_sleep":
+                    from shared import sleep_loop_migration
+
+                    known_migrations = set(migration.SLEEP_LOOP_MIGRATIONS.values())
+                    if (
+                        not expected_migrations
+                        or sleep_loop_migration.SLEEP_LOOP_MIGRATION_NAME
+                        not in expected_migrations
+                        or not expected_migrations <= known_migrations
+                    ):
+                        raise RuntimeError("rollback provenance does not match migration owner")
                 elif owner.kind == "sqlite_workspace":
-                    if expected_migrations != {migration.WORKSPACE_SCHEMA_MIGRATION_NAME}:
+                    valid_workspace_migration_sets = {
+                        frozenset({migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME}),
+                        frozenset(
+                            {
+                                migration.WORKSPACE_SCHEMA_MIGRATION_NAME,
+                                migration.WORKSPACE_DELIVERY_RECEIPT_MIGRATION_NAME,
+                            }
+                        ),
+                    }
+                    if frozenset(expected_migrations) not in valid_workspace_migration_sets:
                         raise RuntimeError("rollback provenance does not match migration owner")
                 elif expected_migrations != {core_schema.BASELINE_MIGRATION_NAME}:
                     raise RuntimeError("rollback provenance does not match migration owner")
