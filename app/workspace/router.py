@@ -119,7 +119,7 @@ class PromoteResearchCommand(_Command):
 
 class PromoteResearchSourceCommand(_Command):
     source: str = Field(min_length=1, max_length=2048)
-    rationale: str = Field(min_length=1)
+    rationale: str = Field(default="本地工作台审核", min_length=0)
 
 
 class StartLearningCommand(_Command):
