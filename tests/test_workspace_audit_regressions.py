@@ -99,7 +99,7 @@ def test_workspace_research_queue_and_approval_use_only_user_readable_source(mon
     assert queue.json()["items"][0]["source"] == source
     assert not ({"package_id", "unit_id", "artifact_id", "command_id"} & queue.json()["items"][0].keys())
     approved = client.post("/workspace/api/research/approve", json={
-        "command_id": "ui-review-1", "source": source, "rationale": "资料来源与候选要点已核验",
+        "command_id": "ui-review-1", "source": source,
     })
     assert approved.status_code == 200
     assert received["source"] == source

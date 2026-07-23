@@ -119,7 +119,6 @@ class PromoteResearchCommand(_Command):
 
 class PromoteResearchSourceCommand(_Command):
     source: str = Field(min_length=1, max_length=2048)
-    rationale: str = Field(default="本地工作台审核", min_length=0)
 
 
 class StartLearningCommand(_Command):
@@ -274,7 +273,7 @@ def promote_research_source(command: PromoteResearchSourceCommand, request: Requ
     principal = _local_principal(request)
     return _command_error(lambda: service.promote_research_source(
         command_id=command.command_id, source=command.source, reviewer_id=principal["subject"],
-        rationale=command.rationale, db_path=DB_PATH,
+        rationale="", db_path=DB_PATH,
     ))
 
 
