@@ -114,6 +114,7 @@ ignore = [
 "tests/**/*.py" = ["S101"] # allow assert in tests
 "knowledge_base/api.py" = ["E501", "E702"]  # legacy compact endpoint bodies
 "app/main.py" = ["E402", "E501"]  # route imports follow application setup
+"integration-tests/**/*.py" = ["N999"]  # hyphen in integration test directory name
 
 "inspiration_research/api.py" = ["E701", "E702"]  # legacy compact endpoint bodies
 
