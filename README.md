@@ -1,13 +1,13 @@
 # Cognitive-Loop-OS
 
-> **元枢·观心 / ArcheAxis Cognitive Workspace**：本地优先、证据驱动的认知工作台，把网页、GitHub 仓库和本地文件转化为可追溯、可审核、可回读的研究—知识—学习—执行闭环。
+> **元枢·观心 / ArcheAxis Cognitive Workspace**：本地优先、证据驱动的认知工作台，连接真实导入、candidate 治理和可追溯的认知执行基础链。
 
 ## 当前重点
 
-- **真实 Workspace 闭环**：网页、GitHub URL、本地文件导入 → Research → Evidence → Knowledge → Learning → Mastery → Plan → Permission → Execution → Trace → Evaluation → Lesson。
+- **真实 Workspace 基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
 - **可治理的运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **双端验证**：Chromium 真实 HTTP/SQLite 回放与 Windows Tauri 桌面壳共用同一隔离数据边界；Windows 构建、NSIS 安装生命周期和 exact-SHA CI 已通过。
-- **当前版本**：`0.4.0`，主线 CI 全绿；仓库仍处于 `unreleased` 状态，公开 Alpha/Beta/Stable 发布尚未宣告。
+- **双端验证**：CI 已包含 Windows Tauri 构建、运行时和 NSIS 生命周期门禁；完整 HTTP → SQLite → Chromium/Tauri UI 投递、点击级 WebView 证据和公开发布资产仍在收口。
+- **当前版本**：`0.4.0`；Release Manifest 仍为 `unreleased / public=false`，公开 Alpha/Beta/Stable 发布尚未宣告。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
@@ -38,7 +38,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/receipt 同事务边界及只读 Job Center；异步 Worker、dispatcher、统一 audit timeline、SSE 与交互式 Job Center 尚未实现。当前已建立本地 diagnostics、Release Manifest、FFmpeg 媒体基础链和图像 OCR 基线；ASR、Installer、多端发布与公开 Alpha/Beta/Stable 仍未完成。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/receipt 同事务边界和只读 Job Center；dispatcher 已有服务级成功/失败/重试/lease 保护，但完整 HTTP → SQLite → Chromium/Tauri UI 投递、统一 audit timeline、SSE、通用 Planner、异步 Worker 和交互式用户级 Job Center 尚未实现。当前已有 Release Manifest、媒体基础链、图像 OCR、Windows 构建和 NSIS 生命周期门禁；ASR、公开发布资产与 Tauri WebView 点击级证据仍未闭环。
 
 ## 规划与进度
 
@@ -55,7 +55,7 @@ Research → Evidence → Knowledge → Learning
 | Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
 | Phase 7–8 | 受限 Planner tracer、多维 Evaluation、Sleep Loop 构件 | 🟡 首条纵向 tracer 完成 | `read file:`、Permission、Evidence、Evaluation 与 Lesson 已验证；通用 Planner 和统一执行端口未完成 |
 | Phase 9 | Contract & Tracer Alpha | ✅ 历史合同/追踪基线完成 | 不等于完整产品 Alpha，也不证明公开 release |
-| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线已交付；ASR、浏览器/Windows门禁、Installer 与公开 release 仍待完成 |
+| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线与 Windows/NSIS 门禁已接入；真实 UI 投递、ASR、公开发布资产仍待完成 |
 
 ### 当前里程碑：Product Stage A0 真相基线
 
@@ -85,9 +85,9 @@ Phase 0 真实基线 ✅
 → Phase 9 Contract & Tracer Alpha 历史基线 ✅
 ```
 
-下一刀：完成 Stage A0 的真相文档、Release Manifest、JS/浏览器/Windows/fresh-wheel 门禁，再进入显式治理、异步 Worker、Outbox dispatcher、SSE 和用户级 Job Center。图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
+下一刀：把已有 Job/Outbox/Receipt 服务级证据接到真实 HTTP → SQLite → Chromium/Tauri UI 投递，补齐 pending/delivered、失败→retry→replay、无重启回读和 Tauri WebView 点击级证据；随后再推进通用 Planner、异步 Worker、SSE 和用户级 Job Center。图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
 
-本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或多端发布、Installer、公开 Alpha/Beta/Stable 已完成。
+本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、公开发布资产、公开 Alpha/Beta/Stable 已完成。
 
 未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
 
