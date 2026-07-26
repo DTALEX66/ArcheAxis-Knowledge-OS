@@ -131,6 +131,19 @@ class RecordPracticeCommand(_Command):
     quality: int = Field(ge=0, le=5)
 
 
+class SourceLearningCommand(_Command):
+    source: str = Field(min_length=1, max_length=2048)
+
+
+class SourcePracticeCommand(_Command):
+    source: str = Field(min_length=1, max_length=2048)
+    quality: int = Field(ge=0, le=5)
+
+
+class RuntimeApprovalCommand(_Command):
+    title: str = Field(min_length=1, max_length=512)
+
+
 def _local_principal(request: Request) -> dict[str, str]:
     """Trust only direct loopback requests in the local-first workspace."""
     _require_local_request(request)
@@ -238,10 +251,97 @@ def workspace_jobs(request: Request) -> dict[str, object]:
     return _command_error(lambda: service.workspace_jobs(db_path=DB_PATH))
 
 
+@router.get("/api/delivery")
+def workspace_delivery(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_delivery(db_path=DB_PATH))
+
+
+@router.post("/api/delivery/dispatch")
+def dispatch_delivery(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.dispatch_delivery_once(db_path=DB_PATH))
+
+
+@router.post("/api/delivery/retry")
+def retry_delivery(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.retry_failed_delivery(db_path=DB_PATH))
+
+
 @router.get("/api/research")
 def workspace_research_queue(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.research_review_queue(db_path=DB_PATH))
+
+
+@router.get("/api/knowledge")
+def workspace_knowledge(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_knowledge(db_path=DB_PATH))
+
+
+@router.get("/api/learning")
+def workspace_learning(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_learning(db_path=DB_PATH))
+
+
+@router.get("/api/evolution")
+def workspace_evolution(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_evolution(db_path=DB_PATH))
+
+
+@router.get("/api/lifecycle")
+def workspace_lifecycle(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_lifecycle(db_path=DB_PATH))
+
+
+@router.get("/api/runtime/knowledge")
+def workspace_runtime_knowledge(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_runtime_knowledge(db_path=DB_PATH))
+
+
+@router.get("/api/runtime/candidates")
+def workspace_runtime_candidates(request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_runtime_candidates(db_path=DB_PATH))
+
+
+@router.post("/api/knowledge/start-learning")
+def start_learning_from_knowledge(command: SourceLearningCommand, request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(
+        lambda: service.start_learning_source(
+            command_id=command.command_id, source=command.source, db_path=DB_PATH
+        )
+    )
+
+
+@router.post("/api/learning/practice")
+def practice_from_learning(command: SourcePracticeCommand, request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(
+        lambda: service.record_practice_source(
+            command_id=command.command_id,
+            source=command.source,
+            quality=command.quality,
+            db_path=DB_PATH,
+        )
+    )
+
+
+@router.post("/api/runtime/approve")
+def approve_runtime_candidate(command: RuntimeApprovalCommand, request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(
+        lambda: service.approve_runtime_title(
+            command_id=command.command_id, title=command.title, db_path=DB_PATH
+        )
+    )
 
 
 @router.get("/api/jobs/{job_id}")
@@ -271,10 +371,11 @@ def promote_research(command: PromoteResearchCommand, request: Request) -> dict[
 @router.post("/api/research/approve")
 def promote_research_source(command: PromoteResearchSourceCommand, request: Request) -> dict[str, Any]:
     principal = _local_principal(request)
-    return _command_error(lambda: service.promote_research_source(
+    result = _command_error(lambda: service.promote_research_source(
         command_id=command.command_id, source=command.source, reviewer_id=principal["subject"],
-        rationale="", db_path=DB_PATH,
+        rationale="local workspace governed research approval", db_path=DB_PATH,
     ))
+    return {"source": command.source, "status": result.get("status", "candidate")}
 
 
 @router.post("/api/commands/start-learning")

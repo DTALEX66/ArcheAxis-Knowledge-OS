@@ -218,7 +218,7 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
         or str(row["causation_id"]) != command_id
         or str(row["event_id"]) != expected_event_id
         or str(row["event_type"]) != "intake.research.succeeded"
-        or str(row["outbox_state"]) != "pending"
+        or str(row['outbox_state']) not in ('pending', 'delivered')
         or str(row["receipt_command_id"]) != command_id
         or str(row["receipt_command_type"]) != "intake.research"
         or str(row["receipt_job_id"]) != expected_job_id
@@ -308,6 +308,87 @@ def workspace_jobs(*, db_path: str | Path) -> dict[str, object]:
     return {"schema_version": "v1", "jobs": projections}
 
 
+def workspace_delivery(*, db_path: str | Path) -> dict[str, object]:
+    """Project Job, Outbox, and Delivery Receipt state without internal identities."""
+    from collections import Counter
+
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT j.state AS job_state, j.attempt_count AS job_attempts, "
+            "o.state AS outbox_state, o.attempt_count AS outbox_attempts, "
+            "CASE WHEN d.event_id IS NULL THEN 'missing' ELSE 'recorded' END AS receipt_state "
+            "FROM workspace_jobs_v1 AS j "
+            "LEFT JOIN workspace_outbox_v1 AS o ON o.job_id=j.job_id "
+            "LEFT JOIN workspace_delivery_receipts_v1 AS d ON d.event_id=o.event_id "
+            "ORDER BY j.updated_at DESC, j.job_id DESC"
+        ).fetchall()
+    items = [
+        {
+            "activity": "资料导入",
+            "job_state": str(row["job_state"]),
+            "job_attempts": int(row["job_attempts"]),
+            "outbox_state": str(row["outbox_state"] or "missing"),
+            "outbox_attempts": int(row["outbox_attempts"] or 0),
+            "receipt_state": str(row["receipt_state"]),
+        }
+        for row in rows
+    ]
+    return {
+        "schema_version": "v1",
+        "dispatcher": "on_demand",
+        "summary": {
+            "jobs": len(items),
+            "outbox": dict(Counter(item["outbox_state"] for item in items)),
+            "receipts": dict(Counter(item["receipt_state"] for item in items)),
+        },
+        "items": items,
+    }
+
+
+def dispatch_delivery_once(*, db_path: str | Path) -> dict[str, object]:
+    """Deliver one local event through the lease-fenced consumer."""
+    from app.workspace.outbox_dispatcher import dispatch_once
+    from app.workspace.research_consumer import make_intake_research_handler
+
+    result = dispatch_once(
+        db_path=db_path,
+        worker_name="workspace-ui-on-demand",
+        handler=make_intake_research_handler(
+            db_path=db_path, consumer_name="workspace-ui-research-consumer"
+        ),
+    )
+    return {
+        "schema_version": "v1",
+        "status": str(result["status"]),
+        "attempt": int(result.get("attempt", 0)),
+    }
+
+
+def retry_failed_delivery(*, db_path: str | Path) -> dict[str, object]:
+    """Requeue one failed event; delivery still requires the lease-fenced dispatcher."""
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.execute("PRAGMA busy_timeout=30000")
+        connection.execute("BEGIN IMMEDIATE")
+        row = connection.execute(
+            "SELECT event_id FROM workspace_outbox_v1 WHERE state='failed' "
+            "ORDER BY updated_at, event_id LIMIT 1"
+        ).fetchone()
+        if row is None:
+            connection.rollback()
+            return {"schema_version": "v1", "status": "idle"}
+        connection.execute(
+            "UPDATE workspace_outbox_v1 SET state='pending', lease_token=NULL, "
+            "lease_expires_at=NULL, updated_at=? WHERE event_id=? AND state='failed'",
+            (now, str(row[0])),
+        )
+        connection.commit()
+    return {"schema_version": "v1", "status": "requeued"}
+
+
 def workspace_status(*, db_path: str | Path) -> dict[str, object]:
     """Return aggregate, non-identifying state for the local product shell."""
     from collections import Counter
@@ -361,7 +442,7 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
             "api": "available",
             "database": "available",
             "worker": "not_connected",
-            "outbox_dispatcher": "not_connected",
+            "outbox_dispatcher": "on_demand",
             "server_sent_events": "not_connected",
         },
         "counts": counts,
@@ -377,7 +458,11 @@ def research_review_queue(*, db_path: str | Path) -> dict[str, object]:
         rows = connection.execute(
             "SELECT canonical_url, claim_ids_json, evidence_ids_json, verification_status, created_at "
             "FROM research_packages_v1 WHERE status IN ('candidate', 'ready_for_review') "
-            "AND requires_human_review=1 ORDER BY created_at DESC, canonical_url"
+            "AND requires_human_review=1 "
+            "AND NOT EXISTS ("
+            "SELECT 1 FROM knowledge_candidate_governance_events_v1 AS ge "
+            "WHERE ge.package_id=research_packages_v1.id AND ge.decision='approved'"
+            ") ORDER BY created_at DESC, canonical_url"
         ).fetchall()
     items = []
     for source, claims, evidence, verification, created_at in rows:
@@ -548,4 +633,337 @@ def case_audit(*, artifact_id: str, db_path: str | Path) -> dict:
             {"event_type": event.event_type, "occurred_at": event.occurred_at}
             for event in audit_closed_loop(artifact_id, db_path=db_path)
         ],
+    }
+
+
+def _workspace_source_artifact(
+    connection: sqlite3.Connection, source: str
+) -> sqlite3.Row | None:
+    """Resolve a human source label to the latest governed learning artifact."""
+    return connection.execute(
+        "SELECT la.id, la.artifact_json, la.status "
+        "FROM knowledge_candidate_learning_artifacts_v1 AS la "
+        "JOIN knowledge_candidate_units_v1 AS ku ON ku.id=la.source_unit_id "
+        "JOIN research_packages_v1 AS rp ON rp.id=ku.package_id "
+        "WHERE rp.canonical_url=? ORDER BY la.created_at DESC, la.id DESC LIMIT 1",
+        (source,),
+    ).fetchone()
+
+
+def workspace_knowledge(*, db_path: str | Path) -> dict[str, object]:
+    """Return source-oriented Knowledge candidates without persistence IDs."""
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT rp.canonical_url AS source, "
+            "SUM(CASE WHEN ku.unit_type='research_claim' THEN 1 ELSE 0 END) AS claims, "
+            "SUM(CASE WHEN ku.unit_type='research_source' THEN 1 ELSE 0 END) AS sources, "
+            "MAX(ku.lifecycle_status) AS lifecycle "
+            "FROM knowledge_candidate_units_v1 AS ku "
+            "JOIN research_packages_v1 AS rp ON rp.id=ku.package_id "
+            "GROUP BY rp.canonical_url ORDER BY rp.canonical_url"
+        ).fetchall()
+    return {
+        "schema_version": "v1",
+        "items": [
+            {
+                "source": str(row["source"]),
+                "claim_count": int(row["claims"] or 0),
+                "source_count": int(row["sources"] or 0),
+                "lifecycle": str(row["lifecycle"] or "candidate"),
+            }
+            for row in rows
+        ],
+    }
+
+
+def workspace_learning(*, db_path: str | Path) -> dict[str, object]:
+    """Return source-oriented Learning artifacts and practice state."""
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT la.id, la.artifact_json, la.status, rp.canonical_url AS source "
+            "FROM knowledge_candidate_learning_artifacts_v1 AS la "
+            "JOIN knowledge_candidate_units_v1 AS ku ON ku.id=la.source_unit_id "
+            "JOIN research_packages_v1 AS rp ON rp.id=ku.package_id "
+            "ORDER BY la.created_at, la.id"
+        ).fetchall()
+        items: list[dict[str, object]] = []
+        for row in rows:
+            artifact = json.loads(str(row["artifact_json"]))
+            artifact_id = str(row["id"])
+            card_id = f"{artifact_id}-card-0"
+            practice_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM kb_reviews WHERE card_id=?", (card_id,)
+                ).fetchone()[0]
+            )
+            items.append(
+                {
+                    "source": str(row["source"]),
+                    "status": "approved" if practice_count or artifact.get("status") == "approved" else str(row["status"]),
+                    "statement": str(artifact.get("summary", {}).get("statement", "")),
+                    "card_count": len(artifact.get("cards", [])),
+                    "practice_count": practice_count,
+                }
+            )
+    return {"schema_version": "v1", "items": items}
+
+
+def start_learning_source(*, command_id: str, source: str, db_path: str | Path) -> dict[str, object]:
+    """Start the first reviewed claim for a source using server-owned provenance."""
+    database = Path(db_path)
+    with sqlite3.connect(database, timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        existing = _workspace_source_artifact(connection, source)
+        if existing is not None:
+            artifact = json.loads(str(existing["artifact_json"]))
+            return {
+                "source": source,
+                "status": "already_started",
+                "card_count": len(artifact.get("cards", [])),
+            }
+        row = connection.execute(
+            "SELECT ku.id FROM knowledge_candidate_units_v1 AS ku "
+            "JOIN research_packages_v1 AS rp ON rp.id=ku.package_id "
+            "WHERE rp.canonical_url=? AND ku.unit_type='research_claim' "
+            "AND ku.lifecycle_status='candidate' ORDER BY ku.id LIMIT 1",
+            (source,),
+        ).fetchone()
+    if row is None:
+        raise ValueError("该资料尚未形成可学习的知识候选")
+    result = start_learning(
+        command_id=command_id,
+        unit_id=str(row["id"]),
+        reviewer_id="local-workspace",
+        rationale="local workspace governed learning approval",
+        db_path=database,
+    )
+    return {
+        "source": source,
+        "status": "started",
+        "card_count": len(result.get("card_ids", [])),
+    }
+
+
+def record_practice_source(*, command_id: str, source: str, quality: int, db_path: str | Path) -> dict[str, object]:
+    """Record practice by source label; artifact identity stays server-owned."""
+    from app.contracts.v1 import MachineKnowledgeUnitV1
+
+    database = Path(db_path)
+    with sqlite3.connect(database, timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        row = _workspace_source_artifact(connection, source)
+    if row is None:
+        raise ValueError("该资料尚未形成可练习的学习产物")
+    result = record_practice(
+        command_id=command_id,
+        artifact_id=str(row["id"]),
+        quality=quality,
+        db_path=database,
+    )
+    machine_candidate_id = result.get("machine_candidate_id")
+    if machine_candidate_id:
+        with sqlite3.connect(database, timeout=30.0) as connection:
+            connection.row_factory = sqlite3.Row
+            candidate = connection.execute(
+                "SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE id=?",
+                (str(machine_candidate_id),),
+            ).fetchone()
+            if candidate is not None:
+                unit = MachineKnowledgeUnitV1.model_validate_json(str(candidate["unit_json"]))
+                connection.execute(
+                    "UPDATE machine_knowledge_candidates_v1 SET unit_json=? WHERE id=?",
+                    (
+                        unit.model_copy(update={"title": f"Reviewed learning rule · {source}"}).model_dump_json(),
+                        str(machine_candidate_id),
+                    ),
+                )
+                connection.commit()
+    return {
+        "source": source,
+        "status": "practiced",
+        "mastered": bool(result["mastered"]),
+        "machine_candidate_available": bool(machine_candidate_id),
+    }
+
+
+def workspace_evolution(*, db_path: str | Path) -> dict[str, object]:
+    """Return aggregate Mastery and machine-candidate state."""
+    from app.contracts.v1 import MasterySignalV1
+
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        signals = connection.execute(
+            "SELECT signal_json FROM mastery_signals_v1 ORDER BY calculated_at, id"
+        ).fetchall()
+        machine = connection.execute(
+            "SELECT lifecycle_status, COUNT(*) AS count "
+            "FROM machine_knowledge_candidates_v1 GROUP BY lifecycle_status"
+        ).fetchall()
+    mastered = sum(
+        MasterySignalV1.model_validate_json(str(row["signal_json"])).is_mastered
+        for row in signals
+    )
+    return {
+        "schema_version": "v1",
+        "mastery": {"signals": len(signals), "mastered": int(mastered)},
+        "machine_knowledge": {str(row["lifecycle_status"]): int(row["count"]) for row in machine},
+    }
+
+
+def workspace_runtime_knowledge(*, db_path: str | Path) -> dict[str, object]:
+    """Expose only human-approved machine knowledge to the Runtime page."""
+    from app.knowledge.machine_knowledge import list_runtime_machine_knowledge
+
+    units = list_runtime_machine_knowledge(db_path=db_path)
+    return {
+        "schema_version": "v1",
+        "items": [
+            {"title": unit.title, "content": unit.content, "lifecycle": "approved"}
+            for unit in units
+        ],
+    }
+
+
+def workspace_runtime_candidates(*, db_path: str | Path) -> dict[str, object]:
+    """Return candidate and approved machine knowledge for the governance page."""
+    from app.contracts.v1 import MachineKnowledgeUnitV1
+
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT unit_json, lifecycle_status FROM machine_knowledge_candidates_v1 "
+            "ORDER BY updated_at, id"
+        ).fetchall()
+    return {
+        "schema_version": "v1",
+        "items": [
+            {
+                "title": (unit := MachineKnowledgeUnitV1.model_validate_json(str(row["unit_json"]))).title,
+                "content": unit.content,
+                "lifecycle": str(row["lifecycle_status"]),
+            }
+            for row in rows
+        ],
+    }
+
+
+def approve_runtime_title(*, command_id: str, title: str, db_path: str | Path) -> dict[str, object]:
+    """Approve one uniquely titled machine candidate without exposing its ID."""
+    from app.contracts.v1 import MachineKnowledgeUnitV1
+    from app.knowledge.machine_knowledge import (
+        MachineKnowledgeApproval,
+        deprecate_machine_knowledge_candidate,
+    )
+
+    database = Path(db_path)
+    with sqlite3.connect(database, timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            "SELECT id, unit_json FROM machine_knowledge_candidates_v1 "
+            "WHERE lifecycle_status='candidate' AND json_extract(unit_json, '$.title')=?",
+            (title,),
+        ).fetchall()
+    if len(rows) != 1:
+        raise ValueError("机器知识候选标题不存在或不唯一")
+    unit = MachineKnowledgeUnitV1.model_validate_json(str(rows[0]["unit_json"]))
+    approved = deprecate_machine_knowledge_candidate(
+        MachineKnowledgeApproval(
+            approval_id=command_id,
+            candidate_id=str(rows[0]["id"]),
+            reviewer_id="local-workspace",
+            decision="approved",
+            rationale="local workspace governed runtime approval",
+            reviewed_at=now_utc(),
+        ),
+        db_path=database,
+    )
+    return {"title": unit.title, "status": approved.lifecycle_status}
+
+
+def workspace_lifecycle(*, db_path: str | Path) -> dict[str, object]:
+    """Expose aggregate Core lifecycle evidence without persistence identifiers."""
+
+    database = Path(db_path)
+    with sqlite3.connect(database, timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+
+        def table_exists(name: str) -> bool:
+            return (
+                connection.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+                    (name,),
+                ).fetchone()
+                is not None
+            )
+
+        traces = 0
+        permission_gates = 0
+        blocked_permissions = 0
+        if table_exists("execution_traces"):
+            trace_rows = connection.execute(
+                "SELECT events_json FROM execution_traces"
+            ).fetchall()
+            traces = len(trace_rows)
+            for row in trace_rows:
+                try:
+                    events = json.loads(str(row["events_json"]))
+                except (TypeError, json.JSONDecodeError):
+                    events = []
+                permission_events = [
+                    event.get("result", {})
+                    for event in events
+                    if isinstance(event, dict)
+                    and isinstance(event.get("result"), dict)
+                    and event["result"].get("tool") == "permission"
+                ]
+                permission_gates += bool(permission_events)
+                blocked_permissions += any(
+                    event.get("status") == "blocked" for event in permission_events
+                )
+
+        evaluations = 0
+        approved_evaluations = 0
+        if table_exists("evaluation_candidates_v1"):
+            evaluations = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM evaluation_candidates_v1"
+                ).fetchone()[0]
+            )
+            approved_evaluations = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM evaluation_candidates_v1 "
+                    "WHERE status='approved'"
+                ).fetchone()[0]
+            )
+
+        lessons = 0
+        if table_exists("machine_lessons"):
+            lessons = int(
+                connection.execute("SELECT COUNT(*) FROM machine_lessons").fetchone()[0]
+            )
+
+    return {
+        "schema_version": "v1",
+        "privacy": "aggregate_only",
+        "stages": {
+            "permission": {
+                "state": "blocked" if blocked_permissions else (
+                    "recorded" if permission_gates else "not_recorded"
+                ),
+                "gates": permission_gates,
+                "blocked": blocked_permissions,
+            },
+            "execution": {"state": "recorded" if traces else "not_recorded", "runs": traces},
+            "trace": {"state": "recorded" if traces else "not_recorded", "runs": traces},
+            "evaluation": {
+                "state": "approved" if approved_evaluations else (
+                    "candidate" if evaluations else "not_recorded"
+                ),
+                "candidates": evaluations,
+                "approved": approved_evaluations,
+            },
+            "lesson": {"state": "recorded" if lessons else "not_recorded", "items": lessons},
+        },
     }

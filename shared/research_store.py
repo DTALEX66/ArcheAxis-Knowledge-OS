@@ -624,13 +624,15 @@ def load_research_package(
     package_id: str,
     *,
     db_path: str | Path | None = None,
+    live_wal: bool = False,
 ) -> ResearchPackageGraph:
     """Load and strictly validate a persisted research package graph."""
 
     database = _database_path(db_path)
     if not database.is_file():
         raise RuntimeError("phase4 research schema migration is pending")
-    with closing(research_migration._connect_readonly(database)) as connection:
+    connector = research_migration._connect_consumer_readonly if live_wal else research_migration._connect_readonly
+    with closing(connector(database)) as connection:
         research_migration._require_applied_connection(connection, database)
         package_row = connection.execute(
             "SELECT * FROM research_packages_v1 WHERE id=?",

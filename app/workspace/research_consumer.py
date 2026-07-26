@@ -44,7 +44,7 @@ def make_intake_research_handler(
         ):
             raise RuntimeError("workspace research consumer received an invalid event")
         package_id = payload["package_id"]
-        graph = load_research_package(package_id, db_path=database)
+        graph = load_research_package(package_id, db_path=database, live_wal=True)
         if graph.package.package_id != package_id:
             raise RuntimeError("workspace research consumer graph binding is invalid")
         proof = {"package_id": package_id}

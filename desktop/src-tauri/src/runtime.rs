@@ -115,6 +115,60 @@ mod tests {
     }
 
     #[test]
+    fn development_data_root_is_under_project_task_runtime_boundary() {
+        let temp = tempdir().expect("temporary directory");
+        let root = temp.path().join("repo");
+        let manifest = root.join("desktop/src-tauri");
+        let python = root.join(".venv/Scripts/python.exe");
+        fs::create_dir_all(python.parent().expect("python parent")).expect("create venv");
+        fs::create_dir_all(&manifest).expect("create manifest directory");
+        fs::write(&python, b"test").expect("create python marker");
+
+        let resolved = resolve_runtime(
+            &manifest,
+            &temp.path().join("unused-resources"),
+            &temp.path().join("unused-data"),
+            true,
+        )
+        .expect("development runtime");
+
+        let expected_prefix = root.join(".hermes/task-runtime/");
+        assert!(
+            resolved.data_dir.starts_with(&expected_prefix),
+            "dev data root must be under .hermes/task-runtime/: {}",
+            resolved.data_dir.display(),
+        );
+    }
+
+    #[test]
+    fn installed_data_root_is_writable_and_outside_repository_checkout() {
+        let temp = tempdir().expect("temporary directory");
+        let resources = temp.path().join("resources");
+        let local_data = temp.path().join("local-data");
+        let python = resources.join("runtime/python/python.exe");
+        fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
+        fs::write(&python, b"test").expect("create python marker");
+        let checkout_root = temp.path().join("repo");
+        fs::create_dir_all(&checkout_root).expect("create checkout marker");
+
+        let resolved = resolve_runtime(
+            &checkout_root.join("irrelevant-manifest"),
+            &resources,
+            &local_data,
+            false,
+        )
+        .expect("installed runtime");
+
+        assert!(
+            !resolved.data_dir.starts_with(&checkout_root),
+            "installed data root must not be inside the repository checkout: {}",
+            resolved.data_dir.display(),
+        );
+        assert!(resolved.isolated, "installed runtime must be isolated");
+        assert_ne!(resolved.cwd, resolved.data_dir.parent().unwrap_or(&resolved.cwd));
+    }
+
+    #[test]
     fn missing_bundled_runtime_fails_instead_of_falling_back_to_path() {
         let temp = tempdir().expect("temporary directory");
         let error = resolve_runtime(

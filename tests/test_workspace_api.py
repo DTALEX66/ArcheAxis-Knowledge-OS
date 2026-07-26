@@ -167,6 +167,52 @@ def test_workspace_job_center_does_not_render_fake_execution_progress() -> None:
     assert "只读 Job Center 已接入" in page
 
 
+def test_workspace_evidence_lifecycle_page_is_wired_in_ui() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
+    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
+
+    assert 'id="page-evidence"' in page
+    assert "'evidence'" in application
+    assert "lifecycle" in page.lower() or "证据" in page
+    assert "validateLifecycle" in application
+    assert "renderLifecycle" in application
+    assert "refreshLifecycle" in application
+    assert "renderLifecycleUnavailable" in application
+    assert "'/workspace/api/lifecycle'" in application
+    assert "permission" in application and "execution" in application
+    assert "evaluation" in application and "lesson" in application
+    assert "command_id" not in page
+    assert "package_id" not in page
+
+
+def test_workspace_lifecycle_frontend_fail_closed_and_schema_validation() -> None:
+    from pathlib import Path
+
+    application = (
+        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
+    ).read_text(encoding="utf-8")
+
+    assert "function validateLifecycle(payload)" in application
+    assert "function renderLifecycle(payload)" in application
+    assert "function renderLifecycleUnavailable()" in application
+    assert "lifecycle-refresh" in application
+    assert "本地生命周期读取失败" in application
+
+
+def test_workspace_lifecycle_ui_navigation_wires_evidence_page() -> None:
+    from pathlib import Path
+
+    application = (
+        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
+    ).read_text(encoding="utf-8")
+
+    assert "page==='evidence'" in application or "'evidence'" in application
+    assert "lifecycle" in application
+
+
 def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_path) -> None:
     from datetime import datetime
 
@@ -197,7 +243,7 @@ def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_pat
         "api": "available",
         "database": "available",
         "worker": "not_connected",
-        "outbox_dispatcher": "not_connected",
+        "outbox_dispatcher": "on_demand",
         "server_sent_events": "not_connected",
     }
     assert payload["migrations"]
@@ -212,7 +258,7 @@ def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_pat
     assert payload["counts"]["jobs"] == {"succeeded": 1}
     assert payload["counts"]["outbox"] == {"pending": 1}
     assert payload["capabilities"]["asynchronous_worker"] == "not_implemented"
-    assert payload["capabilities"]["interactive_job_center"] == "not_implemented"
+    assert payload["capabilities"]["interactive_job_center"] == "available"
     assert "database_path" not in response.text
     assert "backup_path" not in response.text
     assert '"job_id"' not in response.text
