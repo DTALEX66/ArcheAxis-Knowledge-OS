@@ -38,7 +38,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/receipt 同事务边界和只读 Job Center；dispatcher 已有服务级成功/失败/重试/lease 保护，但完整 HTTP → SQLite → Chromium/Tauri UI 投递、统一 audit timeline、SSE、通用 Planner、异步 Worker 和交互式用户级 Job Center 尚未实现。当前已有 Release Manifest、媒体基础链、图像 OCR、Windows 构建和 NSIS 生命周期门禁；ASR、公开发布资产与 Tauri WebView 点击级证据仍未闭环。
+项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/Receipt 同事务边界、按需 dispatcher 与用户级状态/投影页面；dispatcher 已有服务级成功/失败/重试/lease 保护，真实 Chromium upload → dispatch → receipt → reload gate 正在纳入本阶段验证。统一 audit timeline、SSE、通用 Planner、异步 Worker、完整 Tauri WebView 点击级证据和公开发布资产仍未闭环。当前已有 Release Manifest、媒体基础链、图像 OCR、Windows 构建和 NSIS 生命周期门禁；ASR 仍未闭环。
 
 ## 规划与进度
 
@@ -55,7 +55,7 @@ Research → Evidence → Knowledge → Learning
 | Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
 | Phase 7–8 | 受限 Planner tracer、多维 Evaluation、Sleep Loop 构件 | 🟡 首条纵向 tracer 完成 | `read file:`、Permission、Evidence、Evaluation 与 Lesson 已验证；通用 Planner 和统一执行端口未完成 |
 | Phase 9 | Contract & Tracer Alpha | ✅ 历史合同/追踪基线完成 | 不等于完整产品 Alpha，也不证明公开 release |
-| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线与 Windows/NSIS 门禁已接入；真实 UI 投递、ASR、公开发布资产仍待完成 |
+| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线、按需 dispatcher、真实 Chromium delivery gate 与 Windows/NSIS 门禁已接入；Tauri WebView 点击级证据、ASR、公开发布资产仍待完成 |
 
 ### 当前里程碑：Product Stage A0 真相基线
 
@@ -85,7 +85,7 @@ Phase 0 真实基线 ✅
 → Phase 9 Contract & Tracer Alpha 历史基线 ✅
 ```
 
-下一刀：把已有 Job/Outbox/Receipt 服务级证据接到真实 HTTP → SQLite → Chromium/Tauri UI 投递，补齐 pending/delivered、失败→retry→replay、无重启回读和 Tauri WebView 点击级证据；随后再推进通用 Planner、异步 Worker、SSE 和用户级 Job Center。图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
+下一刀：让真实 Chromium delivery gate 在 exact-SHA CI 中闭合，并继续补齐失败→retry→replay、Tauri WebView 点击级证据和同一隔离数据集的桌面回读；随后再推进公开发布资产、通用 Planner、异步 Worker、SSE 和更完整的用户级 Job Center。图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
 
 本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、公开发布资产、公开 Alpha/Beta/Stable 已完成。
 

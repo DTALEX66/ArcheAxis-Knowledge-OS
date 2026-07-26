@@ -26,7 +26,7 @@
     <div class="card"><div class="card-title"><h2>已接入流程</h2><span class="status ok"><i></i>本地</span></div><div class="list"><div class="row"><div class="row-main"><b>资料导入</b><span>网页、GitHub仓库地址和本地文件</span></div></div><div class="row"><div class="row-main"><b>受治理持久化</b><span>Research、Job、Outbox和命令收据同事务写入</span></div></div><div class="row"><div class="row-main"><b>严格读回</b><span>持久化绑定不一致时拒绝返回</span></div></div></div></div>
     <div class="card"><div class="card-title"><h2>能力边界</h2><span class="status warn"><i></i>开发版</span></div><div class="list" id="capability-summary"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取Release Manifest</span></div></div></div></div>
   </div>
-  <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前说明</h2></div><p class="muted">只读 Job Center 已接入，展示严格绑定的本地同步记录。异步 Worker、Outbox 投递器、SSE 和交互式 Job Center 尚未实现；其余后续产品模块只保留信息架构入口，并明确显示“尚未接入真实数据”。</p></div>
+  <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前说明</h2></div><p class="muted">Job / Delivery 投影已接入，展示严格绑定的本地同步记录，并支持按需投递与失败重试。异步 Worker、SSE 和更完整的交互式 Job Center 尚未实现；其余后续产品模块只保留信息架构入口，并明确显示“尚未接入真实数据”。</p></div>
 </section>
 <section class="page" id="page-diagnostics">
   <div class="page-head"><div><div class="eyebrow">LOCAL SYSTEM HEALTH</div><h1>系统诊断</h1><p class="desc">只读显示API、迁移与开发版发布信息；不泄露数据库路径或备份位置。</p></div><div class="head-actions"><button class="btn primary" data-action="refresh">刷新</button></div></div>

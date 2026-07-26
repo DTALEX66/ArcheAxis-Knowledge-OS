@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 from playwright.sync_api import Page, Route, sync_playwright
 from runtime_http_smoke import running_core
@@ -132,6 +133,56 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     assert not console_errors, console_errors
 
 
+def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
+    """Prove real upload → SQLite outbox → dispatch → receipt → UI reread."""
+    source_path = Path(data_dir) / "browser-delivery.txt"
+    source_path.write_text("Real Chromium delivery readback", encoding="utf-8")
+    try:
+        page.keyboard.press("Escape")
+        page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
+        page.get_by_role("button", name="导入资料").click()
+        page.set_input_files("#intake-file", str(source_path))
+        page.get_by_role("button", name="导入文件").click()
+        intake_result = page.locator("#intake-result")
+        intake_result.wait_for()
+        page.wait_for_function(
+            "() => !document.querySelector('#intake-result')?.textContent.includes('处理中')"
+        )
+        if "处理完成" not in intake_result.inner_text():
+            raise AssertionError(f"real upload failed: {intake_result.inner_text()}")
+        page.keyboard.press("Escape")
+
+        page.evaluate("location.hash = '#runtime'")
+        page.get_by_role("heading", name="知行任务执行").wait_for()
+        delivery = page.locator("#delivery-center")
+        delivery.get_by_text("Outbox pending：1", exact=False).wait_for()
+        delivery_text = delivery.inner_text()
+        assert "Receipt missing：1" in delivery_text
+        assert "状态：succeeded · 投递：pending" in page.locator("#job-center").inner_text()
+        assert all(
+            identifier not in delivery_text
+            for identifier in ("package_id", "job_id", "command_id", "event_internal")
+        )
+
+        page.get_by_role("button", name="投递下一条").click()
+        delivery.get_by_text("Receipt recorded：1", exact=False).wait_for()
+        delivery_text = delivery.inner_text()
+        assert "投递器：on_demand" in delivery_text
+        assert "Outbox pending：0" in delivery_text
+        assert "Receipt missing：0" in delivery_text
+        assert "Outbox：delivered" in delivery_text
+        assert "Receipt：recorded" in delivery_text
+
+        page.reload(wait_until="networkidle")
+        page.get_by_role("heading", name="知行任务执行").wait_for()
+        delivery_text = page.locator("#delivery-center").inner_text()
+        assert "Outbox pending：0" in delivery_text
+        assert "Receipt recorded：1" in delivery_text
+        assert "Receipt missing：0" in delivery_text
+    finally:
+        source_path.unlink(missing_ok=True)
+
+
 def main() -> int:
     data_dir = os.environ.get("COGNITIVE_DATA_DIR", "").strip()
     if not data_dir:
@@ -146,6 +197,11 @@ def main() -> int:
         try:
             page = browser.new_page(viewport={"width": 1440, "height": 1000})
             exercise_workspace(page, base_url)
+            delivery_page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            try:
+                exercise_real_delivery(delivery_page, base_url, data_dir)
+            finally:
+                delivery_page.close()
         finally:
             browser.close()
     print("A0 Chromium browser smoke passed")
