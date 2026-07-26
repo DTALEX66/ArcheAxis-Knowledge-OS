@@ -164,7 +164,7 @@ def test_workspace_job_center_does_not_render_fake_execution_progress() -> None:
     assert 'class="job collapsed"' not in page
     assert "原型任务" not in page
     assert "job-toggle" not in application
-    assert "只读 Job Center 已接入" in page
+    assert "Job / Delivery 投影已接入" in page
 
 
 def test_workspace_evidence_lifecycle_page_is_wired_in_ui() -> None:
