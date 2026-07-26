@@ -91,6 +91,8 @@ Phase 0 真实基线 ✅
 
 未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
 
+开源项目、知识库软件与 Obsidian/PKM 的吸收状态、前后端阶段、Adapter 边界和验收门禁见 [`docs/ABSORPTION_EXECUTION_MATRIX.md`](docs/ABSORPTION_EXECUTION_MATRIX.md)；候选登记不等于运行时集成。
+
 ## 五分钟启动
 
 ```bash

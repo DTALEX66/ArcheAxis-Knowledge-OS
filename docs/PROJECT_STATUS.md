@@ -42,6 +42,7 @@
 - `shared/oer_crosswalk.py`：静态开放来源发现建议（遗留文件名），不检索内容、不检查许可、不做 claim-level crosswalk。
 - CI 的 test/lint job 使用 `uv` 与 `requirements-ci.txt` 最小依赖；wheel-smoke 仍安装完整 `requirements.txt` 并在仓库外验证真实 wheel/runtime，避免以提速为由削弱发布覆盖。
 - 全局 TaskPack runner 由 `D:/All projects/Workflow-assistance/scripts/workflow/run_taskpack_agent.py` 维护；OS 调用时显式传入 `cognitive-loop-os`、实际目标远端与本项目 TaskPack。它提供单 writer、冻结复审和 exact-SHA 编排，但不替代本项目的架构/数据库/权限门禁。
+- 开源项目、知识库软件与 Obsidian/PKM 的阶段化吸收矩阵见 `docs/ABSORPTION_EXECUTION_MATRIX.md`；registry/ledger 当前各有 101 个项目，状态由机器账本和真实 implementation evidence 决定。
 
 ## 仍保留的债务
 
