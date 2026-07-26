@@ -127,9 +127,9 @@ def test_release_manifest_marks_unimplemented_product_surfaces_truthfully() -> N
     capabilities = load_release_manifest()["capabilities"]
     assert capabilities["workspace_job_outbox_receipts"] == "available"
     assert capabilities["asynchronous_worker"] == "not_implemented"
-    assert capabilities["outbox_dispatcher"] == "not_implemented"
+    assert capabilities["outbox_dispatcher"] == "available"
     assert capabilities["server_sent_events"] == "not_implemented"
-    assert capabilities["interactive_job_center"] == "not_implemented"
+    assert capabilities["interactive_job_center"] == "available"
     assert capabilities["postgresql_runtime"] == "not_implemented"
     assert capabilities["qdrant_runtime"] == "not_implemented"
 

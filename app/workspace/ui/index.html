@@ -35,10 +35,39 @@
 <section class="page" id="page-runtime">
   <div class="page-head"><div><div class="eyebrow">LOCAL JOB CENTER</div><h1>知行任务执行</h1><p class="desc">仅展示本地数据库严格绑定的同步记录与投递状态；不会显示内部编号、伪进度或未经证实的执行结果。</p></div><div class="head-actions"><button class="btn primary" data-action="jobs-refresh">刷新任务</button></div></div>
   <div class="card"><div class="card-title"><h2>最近任务</h2><span class="status ok"><i></i>同步记录</span></div><div class="list" id="job-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地任务记录</span></div></div></div></div>
+  <div class="card"><div class="card-title"><h2>Outbox / Receipt 投影</h2><span class="status warn"><i></i>真实状态</span></div><div class="list" id="delivery-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取投递与回执状态</span></div></div></div></div>
 </section>
 <section class="page" id="page-research">
-  <div class="page-head"><div><div class="eyebrow">HUMAN REVIEW QUEUE</div><h1>察微研究</h1><p class="desc">仅显示需要人工复核的本地 Research。批准前必须填写理由；内部记录编号不会显示。</p></div><div class="head-actions"><button class="btn primary" data-action="research-refresh">刷新队列</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">HUMAN REVIEW QUEUE</div><h1>察微研究</h1><p class="desc">仅显示需要人工复核的本地 Research。批准动作由本地治理链记录，用户不需要填写内部理由。</p></div><div class="head-actions"><button class="btn primary" data-action="research-refresh">刷新队列</button></div></div>
   <div class="card"><div class="card-title"><h2>待审核资料</h2><span class="status warn"><i></i>人工复核</span></div><div class="list" id="research-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地待审核资料</span></div></div></div></div>
+</section>
+<section class="page" id="page-knowledge">
+  <div class="page-head"><div><div class="eyebrow">KNOWLEDGE CANDIDATES</div><h1>藏识知识</h1><p class="desc">Research 批准后形成的候选知识；每条来源都能继续进入 Learning，状态来自同一 SQLite。</p></div><div class="head-actions"><button class="btn primary" data-action="knowledge-refresh">刷新知识</button></div></div>
+  <div class="card"><div class="card-title"><h2>候选知识</h2><span class="status candidate"><i></i>候选治理</span></div><div class="list" id="knowledge-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取真实知识候选</span></div></div></div></div>
+</section>
+<section class="page" id="page-learning">
+  <div class="page-head"><div><div class="eyebrow">LEARNING LOOP</div><h1>学习路线</h1><p class="desc">从候选知识创建学习卡片，再记录真实练习；操作按来源绑定，内部产物编号不会进入页面。</p></div><div class="head-actions"><button class="btn primary" data-action="learning-refresh">刷新学习</button></div></div>
+  <div class="card"><div class="card-title"><h2>学习产物</h2><span class="status info"><i></i>真实回读</span></div><div class="list" id="learning-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取真实学习产物</span></div></div></div></div>
+</section>
+<section class="page" id="page-evolution">
+  <div class="page-head"><div><div class="eyebrow">MASTERY FEEDBACK</div><h1>知新评估进化</h1><p class="desc">展示真实练习产生的 Mastery 信号和机器知识候选，未批准内容不会进入 Runtime。</p></div><div class="head-actions"><button class="btn primary" data-action="evolution-refresh">刷新评估</button></div></div>
+  <div class="grid cols-4" id="evolution-summary" aria-live="polite"><div class="card metric"><span>真实状态</span><b>加载中</b><span class="delta info">正在读取 Mastery</span></div></div>
+</section>
+<section class="page" id="page-machine">
+  <div class="page-head"><div><div class="eyebrow">APPROVED RUNTIME KNOWLEDGE</div><h1>知衡机器知识</h1><p class="desc">只读显示已经通过人工治理、允许 Runtime 消费的机器知识；候选内容不会伪装成已批准。</p></div><div class="head-actions"><button class="btn primary" data-action="machine-refresh">刷新机器知识</button></div></div>
+  <div class="card"><div class="card-title"><h2>Runtime 可消费知识</h2><span class="status ok"><i></i>approved-only</span></div><div class="list" id="machine-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取 approved-only 投影</span></div></div></div></div>
+</section>
+<section class="page" id="page-evidence">
+  <div class="page-head"><div><div class="eyebrow">LIFE CYCLE EVIDENCE</div><h1>证据中心·生命周期</h1><p class="desc">只展示真实持久化的核心循环聚合状态；不包含内部编号、伪进度或未经证实的计数。</p></div><div class="head-actions"><button class="btn primary" data-action="lifecycle-refresh">刷新生命周期</button></div></div>
+  <div class="grid cols-4" id="lifecycle-permission" aria-live="polite"><div class="card metric"><span>权限门禁</span><b>加载中</b><span class="delta info">正在读取生命周期状态</span></div></div>
+  <div class="grid cols-4" style="margin-top:16px">
+    <div class="card" id="lifecycle-execution-card"><div class="card-title"><h2>执行</h2></div><div class="list" id="lifecycle-execution"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取执行记录</span></div></div></div></div>
+    <div class="card" id="lifecycle-trace-card"><div class="card-title"><h2>追踪</h2></div><div class="list" id="lifecycle-trace"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取追踪记录</span></div></div></div></div>
+  </div>
+  <div class="grid cols-2" style="margin-top:16px">
+    <div class="card" id="lifecycle-evaluation-card"><div class="card-title"><h2>评估</h2><span class="status info"><i></i>候选治理</span></div><div class="list" id="lifecycle-evaluation"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取评估状态</span></div></div></div></div>
+    <div class="card" id="lifecycle-lesson-card"><div class="card-title"><h2>机器教训</h2><span class="status info"><i></i>持久化记录</span></div><div class="list" id="lifecycle-lesson"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取教训记录</span></div></div></div></div>
+  </div>
 </section>
 <section class="page" id="page-unavailable">
   <div class="page-head"><div><div class="eyebrow">ROADMAP</div><h1 id="unavailable-title">功能尚未接入</h1><p class="desc">此入口用于保持产品信息架构，但当前版本没有可验证的真实数据或操作。</p></div></div>

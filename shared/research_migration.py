@@ -175,6 +175,15 @@ def _connect_readonly(path: Path) -> sqlite3.Connection:
     return connection
 
 
+def _connect_consumer_readonly(path: Path) -> sqlite3.Connection:
+    """Open a query-only connection that can safely read a live WAL database."""
+    connection = sqlite3.connect(str(path), timeout=30.0)
+    connection.execute("PRAGMA busy_timeout=30000")
+    connection.execute("PRAGMA query_only=ON")
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
 def _validate_readonly(connection: sqlite3.Connection, path: Path) -> None:
     if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
         raise RuntimeError(f"SQLite integrity check failed for {path}")
