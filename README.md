@@ -1,8 +1,15 @@
 # Cognitive-Loop-OS
 
-## 当前产品状态
+> **元枢·观心 / ArcheAxis Cognitive Workspace**：本地优先、证据驱动的认知工作台，把网页、GitHub 仓库和本地文件转化为可追溯、可审核、可回读的研究—知识—学习—执行闭环。
 
-元枢系统 / ArcheAxis OS 是本地优先、证据驱动的认知闭环系统；统一工作台为“元枢·观心 / ArcheAxis Cognitive Workspace”。当前浏览器工作台已接入真实网页、GitHub URL 与本地文件导入，以及不暴露内部审计 ID 的只读 Job Center；Research graph、Job、Outbox 与命令收据可同事务持久化并严格读回，Learning 与 Machine Knowledge 使用持久治理收据。真实媒体基础链已完成音轨、关键帧和依赖驱动的图像 OCR 验证；ASR、Outbox dispatcher、异步 Worker、Installer 与公开发布仍未完成。详见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 和 [`docs/HANDOFF_2026-07-21.md`](docs/HANDOFF_2026-07-21.md)。
+## 当前重点
+
+- **真实 Workspace 闭环**：网页、GitHub URL、本地文件导入 → Research → Evidence → Knowledge → Learning → Mastery → Plan → Permission → Execution → Trace → Evaluation → Lesson。
+- **可治理的运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
+- **双端验证**：Chromium 真实 HTTP/SQLite 回放与 Windows Tauri 桌面壳共用同一隔离数据边界；Windows 构建、NSIS 安装生命周期和 exact-SHA CI 已通过。
+- **当前版本**：`0.4.0`，主线 CI 全绿；仓库仍处于 `unreleased` 状态，公开 Alpha/Beta/Stable 发布尚未宣告。
+
+Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
 ## Phase 4 Research Status
 
