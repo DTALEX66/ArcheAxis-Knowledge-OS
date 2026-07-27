@@ -135,15 +135,14 @@ def test_url_conversion_fetches_html_through_safe_http(monkeypatch):
             or SimpleNamespace(body=b"<html><article>safe page</article></html>")
         ),
     )
-    monkeypatch.setattr(
-        "app.ingestion.multi_format._via_trafilatura",
-        lambda html: f"# extracted {html}",
-    )
 
     result = convert_url("https://example.com/page")
 
+    # Without network: newspaper4k fails (real HTTP), readabilipy fails
+    # (shared.safe_http.fetch not mocked), trafilatura succeeds on the
+    # already-fetched HTML string (installed in venv).
     assert result == (
-        "# extracted <html><article>safe page</article></html>",
+        "safe page",
         "safe-http+trafilatura",
     )
     assert calls[0][1]["policy"].max_bytes == 5_000_000

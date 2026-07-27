@@ -96,6 +96,24 @@ Research candidate → human review → Knowledge candidate/version
 
 Model/provider、Agent/tool/MCP/plugin registry、sync、desktop/mobile、installer、upgrade、公开版本和企业/多租户均属于后续独立轨道。它们需要各自的风险、能力、隐私、离线恢复、供应链、兼容与发布验收；不得作为早期闭环的捷径。
 
+### Track H–N — 全量候选吸收的依赖序列
+
+候选开源项目、知识库软件和 Obsidian/PKM 生态已统一登记，但登记不代表运行时集成。后续按以下依赖序列逐个建立 TaskPack：
+
+```text
+R0 账本真相与 registry 对齐
+→ A0 当前 Workspace/Tauri/恢复基线收口
+→ H 文档摄入与 Research Adapter Foundry
+→ I Knowledge / Search / Graph / Memory
+→ J Obsidian / PKM Compatibility Layer
+→ K Evaluation / Observability / Provider
+→ L Runtime / Agent / Workflow
+→ M Workspace Frontend / Desktop Product
+→ N Release / Installer / Distribution
+```
+
+每个候选项目必须固定 source revision/license，明确 direct/adapter/reference/deferred 模式，拥有 contract、RED/GREEN、真实成功与 unavailable/fallback 测试、数据边界、回滚和 exact-SHA CI。`reference_only` 与 `deferred_review` 项目不得被描述为已安装或已吸收；Obsidian 全面兼容必须单独通过 Vault fixture、附件/链接/语义、增量/冲突和 Windows/Tauri readback 门禁。完整矩阵见 [`ABSORPTION_EXECUTION_MATRIX.md`](ABSORPTION_EXECUTION_MATRIX.md)。
+
 ## Google Research / 500 AI 候选资产
 
 该交付包的长期价值是 **Research-to-Practice 选择标准**，不是批量导入任务：

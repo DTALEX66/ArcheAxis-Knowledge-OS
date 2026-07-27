@@ -28,17 +28,17 @@
 
 ## 当前问题与边界
 
-### P0：严格 portable data mode 尚未实现
+### 已修复：项目 staged/portable data root 外溢
 
-当前 installed runtime 的 `resolve_runtime()` 使用 Tauri `app_local_data_dir()` 同时作为工作目录与 `COGNITIVE_DATA_DIR`。因此复制的 executable 虽能免安装启动，但运行数据和 WebView2 profile 仍落入：
+项目内 `.hermes` staged/portable bundle 的 `resolve_runtime()` 现在识别最近的项目根，并将工作目录与 `COGNITIVE_DATA_DIR` 固定到：
 
 ```text
-%LOCALAPPDATA%\com.archeaxis.cognitive-workspace\
+<project>\.hermes\task-runtime\desktop-installed\
 ```
 
-证据：`desktop/src-tauri/src/lib.rs:47-57` 传入 `app_local_data_dir()`；`desktop/src-tauri/src/runtime.rs:46-51` 将它作为 `cwd`/`data_dir`。这不是数据随目录携带的严格便携产品，不能称为完整 portable release。
+证据：`desktop/src-tauri/src/runtime.rs` 的 project-root detection 与 Rust regression test。Python runtime 在没有显式 `COGNITIVE_DATA_DIR` 且不处于源码 checkout 时也会 fail-closed，不再回退到用户 Home。
 
-**完成条件：** 增加显式、可测试的 portable mode 合同（例如 executable 邻近的可写 data root 或受控启动参数）；默认安装版仍保留 per-user local data；禁止 portable mode 回退到用户 profile；新增 Rust/unit、安装/复制运行、退出清理测试。
+普通外部 NSIS 安装仍使用其显式 per-user data root；它与项目内 staged/portable bundle 是不同所有权边界，不能把安装器的用户数据误当成项目 checkout 产物。剩余验收是运行一次真实 staged bundle，证明启动、关闭、恢复和 WebView profile 全链路均落在项目根下。
 
 ### P1：桌面用户说明缺失
 

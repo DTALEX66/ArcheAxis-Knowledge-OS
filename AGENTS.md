@@ -38,6 +38,9 @@ information -> attention -> understanding -> structure -> memory -> learning -> 
 - Do not access `E:\` unless the user explicitly confirms the exact path, action, and impact range.
 - Do not upload or print secrets: `.env`, `.codex`, SSH private keys, API keys, tokens, cookies, credentials, or password files.
 - Do not commit runtime memory, local caches, virtual environments, logs, or generated databases.
+- Project-owned outputs from Cognitive-OS code, tests, ingestion, builds, and reviews must use the project-local ignored runtime/build locations; a wrapper is the preferred containment path but is not an OS sandbox.
+- Do not claim ownership of Hermes, Codex, CC Switch, Workflow-assistance, GitHub delegation, session, cron, Kanban, or other workflow-infrastructure files merely because their names mention this project. Those artifacts remain in their owning workflow directory.
+- Files found in `%TEMP%`, a user home, or another project are ambiguous until content, Git worktree, process, and generation command establish ownership; preserve and mark unresolved rather than delete or move them.
 - Prefer small, auditable changes that can be reverted with one commit.
 - Do not use destructive actions such as recursive deletion, hard reset, forced push, or mass overwrite unless the user separately confirms scope.
 

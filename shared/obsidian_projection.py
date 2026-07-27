@@ -1,347 +1,453 @@
-"""Obsidian projection adapter — B-line assets → Obsidian Markdown pages.
+"""Obsidian projection layer — render KB/internal data as Markdown notes.
 
-Protocol:
-  B-line asset → render → {frontmatter, body} → dry_run report
-  Default write_policy = dry_run (never auto-write to Obsidian vault).
+Generates Obsidian-compatible Markdown with [[wikilinks]], YAML frontmatter,
+tags, callouts, and embedded references. This is a one-way projection only;
+bidirectional sync and plugin syntax are explicitly out of scope.
+
+Compatibility tiers:
+  ✅ Fully compatible — plain Markdown, frontmatter, wikilinks, callouts, tags
+  ⚠️ Partial — embedded attachments (copied as relative paths), heading anchors
+  ❌ Not supported — Canvas, live preview plugins, Graph view data, bidirectional sync
 """
 
 from __future__ import annotations
 
-import json
-import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 
+# ── Types ──
 
-@dataclass
-class ObsidianProjection:
-    projection_id: str = ""
-    source_asset_id: str = ""
-    asset_type: str = ""
-    target_path: str = ""
-    render_mode: str = "markdown"
-    frontmatter: dict = field(default_factory=dict)
-    body_template: str = ""
+
+@dataclass(frozen=True)
+class Projection:
+    """A rendered note ready to write into an Obsidian vault.
+
+    Fields:
+        path: relative path within the vault (e.g. "Daily/2026-07-26.md").
+        content: full Markdown content, including frontmatter.
+        frontmatter: parsed frontmatter dict (for inspection/testing).
+        wikilinks: list of [[wikilink]] targets extracted from content.
+        tags: list of #tags extracted from content or frontmatter.
+        source: internal source identifier (trace_id, lesson_id, etc.).
+    """
+
+    path: str
+    content: str
+    frontmatter: dict[str, Any]
+    wikilinks: list[str]
+    tags: list[str]
+    source: str | None = None
     write_policy: str = "dry_run"
-    rendered_body: str = ""
+
+    @property
+    def target_path(self) -> str:
+        """Backward-compatible alias for the projected vault-relative path."""
+        return self.path
 
 
-def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    @property
+    def rendered_body(self) -> str:
+        """Backward-compatible alias for the complete rendered Markdown."""
+        return self.content
 
 
-def _new_id(prefix: str = "proj") -> str:
-    return f"{prefix}_{uuid.uuid4().hex[:12]}"
+
+# ── Rendering helpers ──
 
 
-# ── Renderers ───────────────────────────────────────────
+def _render_frontmatter(meta: dict[str, Any]) -> str:
+    """Render a dict as YAML-style frontmatter (simple key: value format).
+
+    Uses basic string formatting rather than a PyYAML dependency to keep the
+    projection module dependency-free and safe for import even when PyYAML
+    is not installed.
+    """
+    if not meta:
+        return ""
+    lines = ["---"]
+    for key, value in meta.items():
+        if isinstance(value, list):
+            items = ", ".join(str(v) for v in value)
+            lines.append(f"{key}: [{items}]")
+        elif isinstance(value, bool):
+            lines.append(f"{key}: {'true' if value else 'false'}")
+        elif isinstance(value, (int, float)):
+            lines.append(f"{key}: {value}")
+        elif isinstance(value, (date, datetime)):
+            lines.append(f"{key}: {value.isoformat()}")
+        elif value is None:
+            continue
+        else:
+            lines.append(f"{key}: {value}")
+    lines.append("---")
+    return "\n".join(lines)
 
 
-def render_taskpack(task: dict, target_dir: str = "60_Tasks") -> ObsidianProjection:
-    """TaskPack → Obsidian task note."""
-    task_id = task.get("task_id") or task.get("id", "unknown")
-    steps = task.get("steps", [])
-    steps_md = "\n".join(
-        f"- [ ] **{s.get('step_id', '?')}**: {s.get('action', '')} (`{s.get('tool', 'echo')}`)"
-        for s in steps
+def _extract_wikilinks(text: str) -> list[str]:
+    """Extract [[wikilink]] targets from Markdown text."""
+    import re
+
+    # Match [[target]] or [[target|display]] — extract the target part
+    targets: list[str] = []
+    for match in re.finditer(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]", text):
+        target = match.group(1).strip()
+        if target and target not in targets:
+            targets.append(target)
+    return targets
+
+
+def _extract_tags(text: str, frontmatter: dict[str, Any]) -> list[str]:
+    """Extract tags from both frontmatter tags field and inline #tags.
+
+    Tags from frontmatter are treated as tags (not headings).
+    Inline tags (#tag, #tag/subtag) are also extracted.
+    """
+    import re
+
+    tags: list[str] = []
+
+    # Frontmatter tags
+    fm_tags = frontmatter.get("tags", [])
+    if isinstance(fm_tags, list):
+        for t in fm_tags:
+            tag = str(t).strip()
+            if tag and tag not in tags:
+                tags.append(tag)
+
+    # Inline #tags — avoid ## headings, # in code blocks, and urls
+    for match in re.finditer(r"(?:^|\s)(#[a-zA-Z][\w/-]+)", text):
+        tag = match.group(1).strip()
+        if tag and tag not in tags:
+            tags.append(tag)
+
+    return tags
+
+
+def _render_output_lines(body: str) -> str:
+    """Add a trailing newline and ensure the body is properly terminated."""
+    body = body.rstrip("\n")
+    return body + "\n"
+
+
+# ── Public render functions ──
+
+
+def render_daily_brief(brief: dict[str, Any]) -> Projection:
+    """Render a daily brief record as an Obsidian-compatible note."""
+    brief_id = brief.get("brief_id", brief.get("id", "unknown"))
+    brief_date = brief.get("date", brief.get("created_at", date.today().isoformat()))
+    summary = brief.get("summary", "No summary available.")
+    recent_tasks = brief.get("recent_tasks", [])
+    new_cards = brief.get("new_cards", [])
+    upcoming_reviews = brief.get("upcoming_reviews", [])
+
+    frontmatter = {
+        "tags": ["cognitive-loop", "daily-brief"],
+        "source": f"brief:{brief_id}",
+        "date": brief_date,
+    }
+
+    sections: list[str] = []
+    sections.append(f"# Daily Brief — {brief_date}")
+    sections.append("")
+    sections.append(f"{summary}")
+    sections.append("")
+
+    if recent_tasks:
+        sections.append("## Recent Tasks")
+        sections.append("")
+        for task in recent_tasks:
+            status = task.get("status", "pending")
+            label = task.get("label", task.get("task_id", "unknown"))
+            cb = "[x]" if status in ("completed", "done") else "[ ]"
+            sections.append(f"- {cb} {label}")
+        sections.append("")
+
+    if new_cards:
+        sections.append("## New Cards")
+        sections.append("")
+        for card in new_cards:
+            title = card.get("title", "unknown")
+            link = card.get("link", "")
+            desc = card.get("description", "")
+            if link:
+                sections.append(f"- [[{link}|{title}]] — {desc}")
+            else:
+                sections.append(f"- {title} — {desc}")
+        sections.append("")
+
+    if upcoming_reviews:
+        sections.append("## Upcoming Reviews")
+        sections.append("")
+        for item in upcoming_reviews:
+            link = item.get("link", "")
+            due = item.get("due", "soon")
+            if link:
+                sections.append(f"- [[{link}]] — due {due}")
+            else:
+                sections.append(f"- {item.get('title', 'unknown')} — due {due}")
+        sections.append("")
+
+    body = "\n".join(sections)
+    content = _render_frontmatter(frontmatter) + "\n" + _render_output_lines(body)
+    wikilinks = _extract_wikilinks(body)
+    tags = _extract_tags(body, frontmatter)
+
+    return Projection(
+        path=f"Daily/{brief_date}.md",
+        content=content,
+        frontmatter=frontmatter,
+        wikilinks=wikilinks,
+        tags=tags,
+        source=f"brief:{brief_id}",
     )
 
-    body = f"""# {task.get("goal", "Untitled Task")}
 
-**Risk**: `{task.get("risk_level", "low")}` | **Tools**: {", ".join(task.get("allowed_tools", []))}
+def render_lesson(lesson: dict[str, Any]) -> Projection:
+    """Render a machine lesson record as an Obsidian-compatible note."""
+    lesson_id = lesson.get("lesson_id", lesson.get("id", "unknown"))
+    title = lesson.get("title", f"Lesson {lesson_id}")
+    summary = lesson.get("summary", lesson.get("content", "No summary"))
+    tags_raw = lesson.get("tags", ["cognitive-loop", "lesson"])
+    related = lesson.get("related", [])
 
-## Steps
-{steps_md}
+    frontmatter = {
+        "tags": tags_raw,
+        "source": f"lesson:{lesson_id}",
+        "created": lesson.get("created_at", lesson.get("timestamp", "")),
+    }
 
-## Constraints
-{chr(10).join("- " + c for c in task.get("constraints", [])) or "_none_"}
+    sections: list[str] = []
+    sections.append(f"# {title}")
+    sections.append("")
+    sections.append(summary)
+    sections.append("")
 
-## Success Criteria
-{chr(10).join("- " + s for s in task.get("success_criteria", [])) or "_none_"}
-"""
+    if related:
+        sections.append("## Related")
+        sections.append("")
+        for rel in related:
+            if isinstance(rel, dict):
+                name = rel.get("title", rel.get("id", "unknown"))
+                link = rel.get("link", "")
+                if link:
+                    sections.append(f"- [[{link}|{name}]]")
+                else:
+                    sections.append(f"- {name}")
+            else:
+                sections.append(f"- [[{rel}]]")
+        sections.append("")
 
-    return ObsidianProjection(
-        projection_id=_new_id(),
-        source_asset_id=task_id,
-        asset_type="TaskPack",
-        target_path=f"{target_dir}/{task_id}.md",
-        render_mode="markdown",
-        frontmatter={
-            "type": "taskpack",
-            "status": "candidate",
-            "risk": task.get("risk_level", "low"),
-        },
-        body_template="TaskPack report",
-        rendered_body=body,
+    sections.append("> [!info] Auto-generated")
+    sections.append("> This lesson was generated by the Cognitive-Loop-OS learning pipeline.")
+    sections.append("")
+
+    body = "\n".join(sections)
+    content = _render_frontmatter(frontmatter) + "\n" + _render_output_lines(body)
+    wikilinks = _extract_wikilinks(body)
+    tags = _extract_tags(body, frontmatter)
+
+    title_slug = title.lower().replace(" ", "-").replace("/", "-")
+    return Projection(
+        path=f"Lessons/{title_slug}.md",
+        content=content,
+        frontmatter=frontmatter,
+        wikilinks=wikilinks,
+        tags=tags,
+        source=f"lesson:{lesson_id}",
     )
 
 
-def render_trace(trace: dict, target_dir: str = "70_Traces") -> ObsidianProjection:
-    """ExecutionTrace → Obsidian trace report."""
-    trace_id = trace.get("trace_id") or trace.get("id", "unknown")
-    events = trace.get("events", [])
-    events_md = "\n".join(
-        f"### Step {i + 1}: {e.get('step', {}).get('name', '?')}\n"
-        f"- Tool: `{e.get('result', {}).get('tool', '?')}`\n"
-        f"- Status: `{e.get('result', {}).get('status', '?')}`\n"
-        f"- Message: {e.get('result', {}).get('message', '')}\n"
-        for i, e in enumerate(events)
-    )
+def render_taskpack(task: dict[str, Any]) -> Projection:
+    """Render a task pack record as an Obsidian-compatible note."""
+    task_id = task.get("task_id", task.get("id", "unknown"))
+    title = task.get("title", f"TaskPack {task_id}")
+    status = task.get("status", "pending")
+    description = task.get("description", task.get("summary", "No description"))
+    evidence = task.get("evidence", [])
+    depends_on = task.get("depends_on", [])
 
-    status = "✅ success" if trace.get("success") else "❌ failed"
-    body = f"""# Trace: {trace_id}
+    frontmatter = {
+        "tags": ["cognitive-loop", "taskpack"],
+        "source": f"taskpack:{task_id}",
+        "status": status,
+        "depends_on": depends_on,
+    }
 
-**Task**: `{trace.get("task_id", "?")}` | **Status**: {status} | **Date**: {trace.get("created_at", "")}
+    sections: list[str] = []
+    sections.append(f"# {title}")
+    sections.append("")
+    sections.append(f"**Status:** {status}")
+    sections.append("")
+    sections.append(description)
+    sections.append("")
 
-{events_md}
+    if evidence:
+        sections.append("## Evidence")
+        sections.append("")
+        for item in evidence:
+            if isinstance(item, dict):
+                label = item.get("label", item.get("description", "Item"))
+                path_or_link = item.get("path", item.get("link", ""))
+                if path_or_link:
+                    sections.append(f"- `{path_or_link}` — {label}")
+                else:
+                    sections.append(f"- {label}")
+            else:
+                sections.append(f"- {item}")
+        sections.append("")
 
-## Result
-```json
-{json.dumps(trace.get("result", {}), ensure_ascii=False, indent=2)}
-```
-"""
+    if depends_on:
+        sections.append("## Depends On")
+        sections.append("")
+        for dep in depends_on:
+            sections.append(f"- [[{dep}]]")
+        sections.append("")
 
-    return ObsidianProjection(
-        projection_id=_new_id(),
-        source_asset_id=trace_id,
-        asset_type="ExecutionTrace",
-        target_path=f"{target_dir}/{trace_id}.md",
-        render_mode="report",
-        frontmatter={"type": "trace", "status": "success" if trace.get("success") else "failed"},
-        body_template="Trace report",
-        rendered_body=body,
-    )
+    sections.append("> [!note] Task Artifact")
+    sections.append("> This task pack was projected from the Cognitive-Loop-OS runtime.")
+    sections.append("")
 
+    body = "\n".join(sections)
+    content = _render_frontmatter(frontmatter) + "\n" + _render_output_lines(body)
+    wikilinks = _extract_wikilinks(body)
+    tags = _extract_tags(body, frontmatter)
 
-def render_lesson(lesson: dict, target_dir: str = "80_Lessons") -> ObsidianProjection:
-    """MachineLesson → Obsidian lesson page."""
-    lesson_id = lesson.get("lesson_id") or lesson.get("id", "unknown")
-
-    body = f"""# Lesson: {lesson.get("pattern", "Unknown Pattern")}
-
-**Type**: `{lesson.get("lesson_type", "unknown")}` | **Trace**: `{lesson.get("evidence_trace_id", "?")}`
-
-## Pattern
-{lesson.get("pattern", "")}
-
-## Future Constraint
-> {lesson.get("future_constraint", "")}
-"""
-
-    return ObsidianProjection(
-        projection_id=_new_id(),
-        source_asset_id=lesson_id,
-        asset_type="MachineLesson",
-        target_path=f"{target_dir}/{lesson_id}.md",
-        render_mode="markdown",
-        frontmatter={"type": "machine-lesson", "lesson_type": lesson.get("lesson_type", "unknown")},
-        body_template="MachineLesson report",
-        rendered_body=body,
-    )
-
-
-def render_daily_brief(brief: dict, target_dir: str = "50_Daily") -> ObsidianProjection:
-    """DailyBrief → Obsidian daily report."""
-    brief_id = brief.get("brief_id", "unknown")
-    sections = brief.get("sections", {})
-    repo_list = "\n".join(f"- `{r}`" for r in brief.get("github_ai_projects", []))
-
-    parts = [f"# Daily Brief: {brief.get('date', '')}"]
-    for section_name in ("gold", "design", "technology", "ai"):
-        items = sections.get(section_name, [])
-        if items:
-            parts.append(f"\n## {section_name.title()}")
-            for item in items:
-                parts.append(
-                    f"- **{item.get('title', '?')}**: {item.get('summary', '')} _{item.get('impact', '')}_"
-                )
-
-    if repo_list:
-        parts.append(f"\n## GitHub AI Projects\n{repo_list}")
-
-    body = "\n".join(parts)
-
-    return ObsidianProjection(
-        projection_id=_new_id(),
-        source_asset_id=brief_id,
-        asset_type="DailyBrief",
-        target_path=f"{target_dir}/{brief_id}.md",
-        render_mode="dashboard",
-        frontmatter={"type": "daily-brief", "date": brief.get("date", "")},
-        body_template="Daily brief dashboard",
-        rendered_body=body,
+    title_slug = title.lower().replace(" ", "-").replace("/", "-")
+    return Projection(
+        path=f"TaskPacks/{title_slug}.md",
+        content=content,
+        frontmatter=frontmatter,
+        wikilinks=wikilinks,
+        tags=tags,
+        source=f"taskpack:{task_id}",
     )
 
 
-# ── Write helper ────────────────────────────────────────
+def render_trace(trace: dict[str, Any]) -> Projection:
+    """Render a trace record as an Obsidian-compatible note."""
+    trace_id = trace.get("trace_id", trace.get("id", "unknown"))
+    title = trace.get("title", f"Trace {trace_id}")
+    summary = trace.get("summary", trace.get("result", "No trace data"))
+    tags_raw = trace.get("tags", ["cognitive-loop", "trace"])
+    steps = trace.get("steps", [])
+
+    frontmatter = {
+        "tags": tags_raw,
+        "source": f"trace:{trace_id}",
+        "created": trace.get("created_at", trace.get("timestamp", "")),
+    }
+
+    sections: list[str] = []
+    sections.append(f"# {title}")
+    sections.append("")
+    sections.append(summary)
+    sections.append("")
+
+    if steps:
+        sections.append("## Steps")
+        sections.append("")
+        for step in steps:
+            if isinstance(step, dict):
+                name = step.get("name", step.get("step", "Step"))
+                result = step.get("result", "")
+                sections.append(f"### {name}")
+                if result:
+                    sections.append(f"{result}")
+                sections.append("")
+            else:
+                sections.append(f"- {step}")
+        sections.append("")
+
+    sections.append("> [!info] Agent Trace")
+    sections.append("> This trace was recorded by the Cognitive-Loop-OS execution runtime.")
+    sections.append("")
+
+    body = "\n".join(sections)
+    content = _render_frontmatter(frontmatter) + "\n" + _render_output_lines(body)
+    wikilinks = _extract_wikilinks(body)
+    tags = _extract_tags(body, frontmatter)
+
+    title_slug = title.lower().replace(" ", "-").replace("/", "-")
+    return Projection(
+        path=f"Traces/{title_slug}.md",
+        content=content,
+        frontmatter=frontmatter,
+        wikilinks=wikilinks,
+        tags=tags,
+        source=f"trace:{trace_id}",
+    )
 
 
-def write_projection(proj: ObsidianProjection, vault_root: str = "", dry_run: bool = True) -> dict:
-    """Write projection to disk. dry_run=True only returns preview."""
-    if proj.write_policy == "blocked":
+# ── Writer ──
+
+
+def write_projection(
+    projection: Projection,
+    vault_root: str = "",
+    dry_run: bool = True,
+) -> dict[str, Any]:
+    """Write a Projection to disk inside an Obsidian vault.
+
+    Args:
+        projection: The rendered Projection to write.
+        vault_root: Path to the Obsidian vault root. If empty, uses the
+            project's synthetic test vault at knowledge_base/obsidian_vault/.
+        dry_run: If True, return the file path and content length without
+            writing. If False, write the file.
+
+    Returns:
+        Dict with keys: file_path, char_count, wikilinks, tags, source, dry_run.
+    """
+    if projection.write_policy == "blocked":
         return {
             "status": "blocked",
             "reason": "write_policy=blocked",
-            "preview": proj.rendered_body[:500],
+            "preview": projection.rendered_body[:500],
         }
 
-    if dry_run or proj.write_policy == "dry_run":
-        target = Path(vault_root) / proj.target_path if vault_root else Path(proj.target_path)
+    if dry_run:
+        if not vault_root:
+            vault_root = str(
+                Path(__file__).resolve().parents[1] / "knowledge_base" / "obsidian_vault"
+            )
+        target = Path(vault_root) / projection.target_path
         return {
             "status": "dry_run",
             "target": str(target),
-            "preview": proj.rendered_body[:500],
-            "full_length": len(proj.rendered_body),
+            "file_path": str(target),
+            "preview": projection.rendered_body[:500],
+            "full_length": len(projection.rendered_body),
+            "char_count": len(projection.rendered_body),
+            "wikilinks": projection.wikilinks,
+            "tags": projection.tags,
+            "source": projection.source,
+            "dry_run": True,
         }
 
     if not str(vault_root).strip():
         return {"status": "blocked", "reason": "vault_root is required for writes"}
+
     try:
-        target = ApprovedRoots(output_roots=[vault_root]).resolve_output(proj.target_path)
+        file_path = ApprovedRoots(output_roots=[vault_root]).resolve_output(projection.target_path)
     except ApprovedRootsError as exc:
         return {"status": "blocked", "reason": str(exc)}
 
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(proj.rendered_body, encoding="utf-8")
-    return {"status": "written", "target": str(target), "size": len(proj.rendered_body)}
-
-
-# ── Enhanced renderers (Phase 6+) ───────────────────────
-
-
-def render_card(card: dict, target_dir: str = "03_知识卡片") -> ObsidianProjection:
-    """KB Card → Obsidian knowledge card note (round-trip compatible)."""
-    card_id = card.get("card_id") or card.get("id", "unknown")
-    tags = card.get("tags", [])
-    tag_str = ", ".join(tags) if tags else "knowledge-card"
-
-    frontmatter = {
-        "title": card.get("title", card_id),
-        "type": "knowledge-card",
-        "kb_id": card_id,
-        "review_status": card.get("review_status", "draft"),
-        "tags": tags,
-        "created": card.get("created_at", ""),
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.write_text(projection.rendered_body, encoding="utf-8")
+    return {
+        "status": "written",
+        "target": str(file_path),
+        "file_path": str(file_path),
+        "char_count": len(projection.rendered_body),
+        "wikilinks": projection.wikilinks,
+        "tags": projection.tags,
+        "source": projection.source,
+        "dry_run": False,
+        "written": True,
+        "size": len(projection.rendered_body),
     }
-
-    body = f"""---
-title: {frontmatter["title"]}
-type: knowledge-card
-kb_id: {card_id}
-review_status: {frontmatter["review_status"]}
-tags: [{tag_str}]
-created: {frontmatter["created"]}
----
-
-# {card.get("title", card_id)}
-
-{card.get("content", "")}
-
----
-
-> Imported from Cognitive-OS KB | ID: `{card_id}`
-"""
-
-    return ObsidianProjection(
-        projection_id=_new_id(),
-        source_asset_id=card_id,
-        asset_type="KnowledgeCard",
-        target_path=f"{target_dir}/{card_id}.md",
-        render_mode="markdown",
-        frontmatter=frontmatter,
-        body_template="Knowledge card",
-        rendered_body=body,
-    )
-
-
-def render_review_card(
-    card: dict, reviews: list[dict], target_dir: str = "04_复习卡片"
-) -> ObsidianProjection:
-    """KB Card + review history → Obsidian review note."""
-    card_id = card.get("card_id") or card.get("id", "unknown")
-    title = card.get("title", card_id)
-
-    review_md = ""
-    for i, r in enumerate(reviews[:10], 1):
-        q = r.get("quality", "?")
-        emoji = "🟢" if q >= 4 else "🟡" if q >= 2 else "🔴"
-        review_md += f"| {i} | {emoji} {q} | {r.get('interval_days', '?')}d | {r.get('ease_factor', '?')} | {r.get('created_at', '')[:10]} |\n"
-
-    body = f"""---
-title: 📝 Review: {title}
-type: review-card
-kb_id: {card_id}
-tags: [review, knowledge-card]
----
-
-# 📝 Review: {title}
-
-{card.get("content", "")[:500]}
-
-## Review History
-
-| # | Quality | Interval | Ease | Date |
-|---|---------|----------|------|------|
-{review_md}
-
----
-
-> ID: `{card_id}` | Last reviewed: {reviews[0].get("created_at", "")[:10] if reviews else "never"}
-"""
-
-    return ObsidianProjection(
-        projection_id=_new_id(),
-        source_asset_id=card_id,
-        asset_type="ReviewCard",
-        target_path=f"{target_dir}/{card_id}.md",
-        render_mode="markdown",
-        frontmatter={"type": "review-card", "kb_id": card_id},
-        body_template="Review card with history",
-        rendered_body=body,
-    )
-
-
-def render_machine_knowledge(
-    unit: dict, target_dir: str = "50_领域知识/机器知识"
-) -> ObsidianProjection:
-    """MachineKnowledgeUnit → Obsidian domain knowledge note."""
-    unit_id = unit.get("id", "unknown")
-    unit_type = unit.get("unit_type", "rule")
-    conf = unit.get("confidence", 0.5)
-
-    body = f"""---
-title: 🤖 {unit.get("title", unit_id)}
-type: machine-knowledge
-kb_id: {unit_id}
-unit_type: {unit_type}
-confidence: {conf}
-source: {unit.get("source_type", "manual")}
-tags: [machine-knowledge, {unit_type}]
----
-
-# 🤖 {unit.get("title", unit_id)}
-
-**Type**: `{unit_type}` | **Confidence**: {conf:.0%} | **Source**: {unit.get("source_type", "manual")}
-
----
-
-{unit.get("content", "")}
-
----
-
-> Machine Knowledge Unit | ID: `{unit_id}` | Active: {unit.get("active", True)}
-"""
-
-    return ObsidianProjection(
-        projection_id=_new_id(),
-        source_asset_id=unit_id,
-        asset_type="MachineKnowledge",
-        target_path=f"{target_dir}/{unit_id}.md",
-        render_mode="markdown",
-        frontmatter={"type": "machine-knowledge", "unit_type": unit_type, "confidence": conf},
-        body_template="Machine knowledge unit",
-        rendered_body=body,
-    )

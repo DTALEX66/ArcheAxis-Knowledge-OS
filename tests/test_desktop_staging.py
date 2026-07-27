@@ -63,3 +63,10 @@ def test_tauri_maps_the_staged_runtime_to_the_installed_runtime_root() -> None:
     assert config["bundle"]["resources"] == {
         "../../.hermes/desktop-runtime-v1/runtime": "runtime"
     }
+
+
+def test_tauri_maps_webview_profile_to_the_resolved_runtime_data_root() -> None:
+    repository = Path(__file__).resolve().parents[1]
+    source = (repository / "desktop/src-tauri/src/lib.rs").read_text(encoding="utf-8")
+
+    assert ".data_directory(runtime.data_dir.clone())" in source

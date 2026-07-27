@@ -147,3 +147,132 @@ def test_truth_docs_do_not_overstate_startup_migration_or_delivery() -> None:
     assert "applies the five registered SQLite owners" in migration
     assert "## 当前候选基线" in handoff
     assert "Hermes cron `" not in handoff
+
+
+# ════════════════════════════════════════════════════════════
+# N-001: Release artifact checksum, provenance, build gate
+# ════════════════════════════════════════════════════════════
+
+
+def test_release_checksum_script_generates_valid_sha256_manifest(tmp_path) -> None:
+    """Verify scripts/release_checksum.py produces correct sha256sum format."""
+    import hashlib
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "release_checksum.py"
+    assert script.exists(), "release_checksum.py not found"
+
+    # Create a dummy wheel file
+    wheel = tmp_path / "cognitive_loop_os-0.4.0-py3-none-any.whl"
+    wheel.write_text("fake wheel content", encoding="utf-8")
+    expected_digest = hashlib.sha256(b"fake wheel content").hexdigest()
+
+    output = tmp_path / "checksums.txt"
+    result = subprocess.run(
+        [sys.executable, str(script), "--wheel", str(wheel), "--output", str(output)],
+        capture_output=True, text=True, cwd=Path(__file__).resolve().parents[1],
+    )
+    assert result.returncode == 0, f"script failed: {result.stderr}"
+
+    lines = output.read_text(encoding="utf-8").strip().split("\n")
+    assert len(lines) == 1, f"expected 1 checksum line, got {len(lines)}"
+    digest, name = lines[0].split("  ", 1)
+    assert digest == expected_digest, f"digest mismatch: {digest} != {expected_digest}"
+    assert name == wheel.name, f"filename mismatch: {name} != {wheel.name}"
+
+
+def test_release_checksum_script_refuses_missing_artifact(tmp_path) -> None:
+    """Verify release_checksum.py errors on missing paths."""
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "release_checksum.py"
+    output = tmp_path / "checksums.txt"
+    result = subprocess.run(
+        [sys.executable, str(script), "--wheel", str(tmp_path / "nonexistent.whl"),
+         "--output", str(output)],
+        capture_output=True, text=True, cwd=Path(__file__).resolve().parents[1],
+    )
+    assert result.returncode != 0, "should have failed on missing artifact"
+
+
+def test_release_checksum_script_refuses_no_artifacts(tmp_path) -> None:
+    """Verify release_checksum.py errors when no --wheel or --installer given."""
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "release_checksum.py"
+    output = tmp_path / "checksums.txt"
+    result = subprocess.run(
+        [sys.executable, str(script), "--output", str(output)],
+        capture_output=True, text=True, cwd=Path(__file__).resolve().parents[1],
+    )
+    assert result.returncode != 0, "should have failed without artifact arguments"
+
+
+def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) -> None:
+    """Verify scripts/release_inject_identity.py writes valid identity manifest."""
+    import json
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "release_inject_identity.py"
+    assert script.exists(), "release_inject_identity.py not found"
+
+    output = tmp_path / "release-identity.json"
+    commit = "7e0d883cbcd5acec9a3e75c13189ee4734dc976c"
+    tree = "5aeaa2c070ef677e6cb5a131f3ff5242cc58f172"
+    result = subprocess.run(
+        [sys.executable, str(script),
+         "--commit", commit,
+         "--tree", tree,
+         "--branch", "feat/absorption-roadmap-r0",
+         "--output", str(output)],
+        capture_output=True, text=True, cwd=Path(__file__).resolve().parents[1],
+    )
+    assert result.returncode == 0, f"script failed: {result.stderr}"
+
+    identity = json.loads(output.read_text(encoding="utf-8"))
+    assert identity["schema_version"] == "1.0.0"
+    assert identity["source"]["commit"] == commit
+    assert identity["source"]["tree"] == tree
+    assert identity["source"]["branch"] == "feat/absorption-roadmap-r0"
+    assert identity["source"]["ci_run"] is None  # no GITHUB_RUN_ID in test
+
+
+def test_release_identity_injection_rejects_invalid_sha(tmp_path) -> None:
+    """Verify release_inject_identity.py rejects non-40-hex values."""
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "release_inject_identity.py"
+    output = tmp_path / "release-identity.json"
+    result = subprocess.run(
+        [sys.executable, str(script),
+         "--commit", "bad-sha",
+         "--tree", "5aeaa2c070ef677e6cb5a131f3ff5242cc58f172",
+         "--branch", "test",
+         "--output", str(output)],
+        capture_output=True, text=True, cwd=Path(__file__).resolve().parents[1],
+    )
+    assert result.returncode != 0, "should have rejected invalid SHA"
+
+
+def test_public_release_requires_exact_source_identity() -> None:
+    """Verify release.py load_release_manifest rejects public release
+    with unavailable source identity."""
+    from app.release import load_release_manifest
+
+    manifest = load_release_manifest()
+    assert manifest["release"]["public"] is False
+    assert manifest["source"]["commit"] == "unavailable"
+    assert manifest["source"]["tree"] == "unavailable"
+
+
+def test_capability_public_installer_not_implemented() -> None:
+    """Verify release manifest correctly reports public_installer as not_implemented."""
+    from app.release import load_release_manifest
+
+    capabilities = load_release_manifest()["capabilities"]
+    assert capabilities["public_installer"] == "not_implemented"

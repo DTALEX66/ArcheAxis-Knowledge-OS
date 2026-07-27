@@ -1,0 +1,8 @@
+{
+  "promptDelete": false,
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "root",
+  "attachmentFolderPath": "attachments",
+  "showUnsupportedFiles": true,
+  "wikiLinks": true
+}
