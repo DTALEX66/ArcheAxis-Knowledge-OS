@@ -179,7 +179,7 @@ config = Config()
 
 
 def resolve_runtime_path(value: str | Path) -> Path:
-    """Resolve configured paths to repo-local or user-writable installed locations."""
+    """Resolve paths without falling back to an uncontrolled user-home directory."""
     candidate = Path(value).expanduser()
     if candidate.is_absolute():
         return candidate
@@ -194,13 +194,10 @@ def resolve_runtime_path(value: str | Path) -> Path:
         return base.joinpath(*parts)
     if (_PROJECT_ROOT / "pyproject.toml").exists():
         return _PROJECT_ROOT / candidate
-    base = Path.home() / ".cognitive-loop-os"
-    parts = (
-        candidate.parts[1:]
-        if candidate.parts and candidate.parts[0] in {"data", "config"}
-        else candidate.parts
+    raise RuntimeError(
+        "runtime data root is not configured; set COGNITIVE_DATA_DIR "
+        "before using an installed or relocated runtime"
     )
-    return base.joinpath(*parts)
 
 
 _ALLOWED_ROLES = {"admin", "user", "readonly"}

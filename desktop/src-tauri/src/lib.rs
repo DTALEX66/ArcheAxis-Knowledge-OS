@@ -66,6 +66,7 @@ fn run_inner() -> Result<(), String> {
                     .resizable(true)
                     .center()
                     .devtools(cfg!(debug_assertions))
+                    .data_directory(runtime.data_dir.clone())
                     .on_navigation(move |target| navigation_allowed(target, port))
                     .on_new_window(|_, _| NewWindowResponse::Deny)
                     .on_download(|_, _| false)

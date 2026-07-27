@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuntimeSpec {
@@ -6,6 +6,24 @@ pub struct RuntimeSpec {
     pub cwd: PathBuf,
     pub data_dir: PathBuf,
     pub isolated: bool,
+}
+
+fn project_root_for_resource(resource_dir: &Path) -> Option<PathBuf> {
+    resource_dir
+        .ancestors()
+        .find(|candidate| {
+            if !candidate.join("pyproject.toml").is_file() || !candidate.join(".hermes").is_dir() {
+                return false;
+            }
+            let Ok(relative) = resource_dir.strip_prefix(candidate.join(".hermes")) else {
+                return false;
+            };
+            !matches!(
+                relative.components().next(),
+                Some(Component::Normal(name)) if name == "task-runtime"
+            )
+        })
+        .map(Path::to_path_buf)
 }
 
 pub fn resolve_runtime(
@@ -43,10 +61,13 @@ pub fn resolve_runtime(
             python.display()
         ));
     }
+    let data_dir = project_root_for_resource(resource_dir)
+        .map(|root| root.join(".hermes/task-runtime/desktop-installed"))
+        .unwrap_or_else(|| local_data_dir.to_path_buf());
     Ok(RuntimeSpec {
         python,
-        cwd: local_data_dir.to_path_buf(),
-        data_dir: local_data_dir.to_path_buf(),
+        cwd: data_dir.clone(),
+        data_dir,
         isolated: true,
     })
 }
@@ -166,6 +187,30 @@ mod tests {
         );
         assert!(resolved.isolated, "installed runtime must be isolated");
         assert_ne!(resolved.cwd, resolved.data_dir.parent().unwrap_or(&resolved.cwd));
+    }
+
+    #[test]
+    fn project_bundle_installed_mode_uses_project_task_runtime_boundary() {
+        let temp = tempdir().expect("temporary directory");
+        let repository = temp.path().join("repo");
+        let resources = repository.join(".hermes/portable-archeaxis/resources");
+        let local_data = temp.path().join("user-local-data");
+        let python = resources.join("runtime/python/python.exe");
+        fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
+        fs::create_dir_all(repository.join(".hermes")).expect("create project boundary");
+        fs::write(repository.join("pyproject.toml"), b"[project]\nname = 'fixture'\n")
+            .expect("create project marker");
+        fs::write(&python, b"test").expect("create python marker");
+
+        let resolved = resolve_runtime(&resources, &resources, &local_data, false)
+            .expect("project bundle runtime");
+
+        assert_eq!(
+            resolved.data_dir,
+            repository.join(".hermes/task-runtime/desktop-installed")
+        );
+        assert_eq!(resolved.cwd, resolved.data_dir);
+        assert_ne!(resolved.data_dir, local_data);
     }
 
     #[test]

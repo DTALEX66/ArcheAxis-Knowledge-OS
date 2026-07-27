@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from dataclasses import replace
 
 import pytest
 
@@ -78,13 +79,13 @@ def test_rejects_windows_junction_escape_when_supported(tmp_path):
 
 def test_projection_requires_approved_vault_for_real_writes(tmp_path):
     projection = render_taskpack({"id": "task-1", "goal": "safe"})
-    projection.write_policy = "apply"
+    projection = replace(projection, write_policy="apply")
 
     assert write_projection(projection, dry_run=False)["status"] == "blocked"
 
     vault = tmp_path / "vault"
     vault.mkdir()
-    projection.target_path = "../escape.md"
+    projection = replace(projection, path="../escape.md")
     result = write_projection(projection, vault_root=str(vault), dry_run=False)
     assert result["status"] == "blocked"
     assert not (tmp_path / "escape.md").exists()

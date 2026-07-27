@@ -1,6 +1,6 @@
 # 全量候选吸收执行矩阵
 
-> 更新：2026-07-26。本文是后续 TaskPack 的阶段入口，不是“全部项目已集成”的能力声明。
+> 更新：2026-07-27。本文是后续 TaskPack 的阶段入口，不是“全部项目已集成”的能力声明。
 >
 > 机器真相：`inspiration_research/resources/open_source_project_registry.json` 与 `open_source_absorption_ledger.json`。当前 registry/ledger 均为 101 个项目：`implemented=8`、`adapter_contract_pending=27`、`deferred_review=38`、`reference_only=28`。
 

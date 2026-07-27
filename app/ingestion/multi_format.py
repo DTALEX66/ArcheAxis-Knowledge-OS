@@ -1,27 +1,36 @@
 """Multi-format document ingestion adapter.
 
 Unified entry point for converting PDF, Word, PPT, Excel, HTML, images, and
-web pages into clean Markdown. Wraps the best open-source converters:
+web pages into clean text/Markdown. Uses the shared adapter contract and
+fallback fixtures for graceful unavailable-engine handling.
 
-  Format          | Engine                | pip package
-  ────────────────┼───────────────────────┼─────────────────
-  PDF (simple)    | markitdown            | markitdown
-  PDF (complex)   | marker-pdf / docling  | marker-pdf, docling
-  PDF (Chinese)   | PaddleOCR / MinerU    | paddleocr, mineru
-  DOCX/PPTX/XLSX  | markitdown            | markitdown
-  HTML / Webpage  | trafilatura           | trafilatura
-  Web (JS-heavy)  | crawl4ai              | crawl4ai
-  Images (OCR)    | PaddleOCR             | paddleocr
+  Format          | Engines (in priority order)
+  ────────────────┼──────────────────────────────────────────
+  PDF             | markitdown → marker-pdf → docling
+  DOCX / PPT/XLS  | markitdown
+  HTML            | trafilatura → safe-http+raw
+  Image           | pytesseract+tesseract (OCR)
+  TXT / MD        | passthrough (always available)
 
-All engines are optional — fallback chain tries each in order.
+All engines are optional. The adapter contract (shared/adapter_contract)
+classifies each as installed / unavailable; the call chain tries each
+declared engine and returns the first success or a clear error.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
+from urllib.parse import urlsplit
 
+from shared.adapter_contract import (
+    AdapterResult,
+)
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 from shared.safe_http import SafeHTTPPolicy, fetch
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+_APPROVED_ROOTS = ApprovedRoots(source_roots=[_PROJECT_ROOT], output_roots=[_PROJECT_ROOT])
 
 # ── Format detection ──
 
@@ -48,113 +57,170 @@ def detect_format(file_path: str | Path) -> str:
         ".gif": "image",
         ".bmp": "image",
         ".webp": "image",
+        ".mp4": "media_video",
+        ".mov": "media_video",
+        ".mkv": "media_video",
+        ".avi": "media_video",
+        ".webm": "media_video",
+        ".mp3": "media_audio",
+        ".wav": "media_audio",
+        ".m4a": "media_audio",
+        ".flac": "media_audio",
         ".csv": "csv",
     }
     return mapping.get(ext, "unknown")
 
 
-# ── Engine: markitdown (multi-format, simplest) ──
+# ── Engine wrappers ──
 
 
-def _via_markitdown(file_path: str | Path) -> str:
+def _via_markitdown(file_path: str) -> AdapterResult:
     from markitdown import MarkItDown
 
     md = MarkItDown()
     result = md.convert(str(file_path))
-    return result.text_content
+    text = result.text_content
+    return AdapterResult(
+        success=True,
+        content=text,
+        engine="markitdown",
+        metadata={"char_count": len(text)},
+    )
 
 
-# ── Engine: marker-pdf (high quality PDF) ──
-
-
-def _via_marker(file_path: str | Path) -> str:
+def _via_marker(file_path: str) -> AdapterResult:
     from marker.converters.pdf import PdfConverter
     from marker.models import create_model_dict
 
     converter = PdfConverter(artifact_dict=create_model_dict())
-    rendered = converter(str(file_path))
-    return rendered.markdown
+    rendered = converter(file_path)
+    text = rendered.markdown
+    return AdapterResult(
+        success=True,
+        content=text,
+        engine="marker-pdf",
+        metadata={"char_count": len(text)},
+    )
 
 
-# ── Engine: docling (advanced PDF with tables) ──
-
-
-def _via_docling(file_path: str | Path) -> str:
+def _via_docling(file_path: str) -> AdapterResult:
     from docling.document_converter import DocumentConverter
 
     converter = DocumentConverter()
-    result = converter.convert(str(file_path))
-    return result.document.export_to_markdown()
+    result = converter.convert(file_path)
+    text = result.document.export_to_markdown()
+    return AdapterResult(
+        success=True,
+        content=text,
+        engine="docling",
+        metadata={"char_count": len(text)},
+    )
 
 
-# ── Engine: trafilatura (web/HTML) ──
-
-
-def _via_trafilatura(source: str) -> str:
+def _via_trafilatura(html: str) -> AdapterResult:
     import trafilatura
 
-    text = trafilatura.extract(source, output_format="markdown")
+    text = trafilatura.extract(html, output_format="markdown")
     if not text:
-        raise RuntimeError("trafilatura extraction returned empty")
-    return text
+        return AdapterResult(
+            success=False, content="", engine="trafilatura", error="trafilatura returned empty"
+        )
+    return AdapterResult(
+        success=True,
+        content=text,
+        engine="trafilatura",
+        metadata={"char_count": len(text)},
+    )
 
 
-# ── Engine: plain text / markdown passthrough ──
+def _via_read(file_path: str) -> AdapterResult:
+    text = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    return AdapterResult(
+        success=True,
+        content=text,
+        engine="passthrough",
+        metadata={"char_count": len(text)},
+    )
 
 
-def _via_read(file_path: str | Path) -> str:
-    return Path(file_path).read_text(encoding="utf-8", errors="replace")
+# ── Adapter-framework wrappers (using shared/adapter_fixtures) ──
+# These integrate the adapter contract (O-series) into the product pipeline.
 
 
-# ── Fallback chain ──
+def _via_adapter_fixtures(fmt: str, adapters: list[str]) -> list[tuple[str, Any]]:
+    """Build engine chain entries for the given format from adapter fixtures.
 
-# Ordered by quality/preference per format
-_ENGINES = {
+    Each adapter name maps to a function in ``shared.adapter_fixtures``.
+    Returns (engine_name, wrapper_fn) tuples ready for ``_ENGINES``.
+    """
+    # Lazy-import to avoid pulling heavy trees at module level
+    import shared.adapter_fixtures as _af
+
+    supported = {
+        "convert_newspaper4k",
+        "convert_readabilipy",
+        "convert_scrapling",
+        "convert_pillow",
+        "convert_ffmpeg",
+        "convert_youtube_transcript",
+        "convert_docling",
+        "convert_markitdown",
+        "convert_trafilatura",
+    }
+    from shared.adapter_contract import AdapterInput
+
+    entries: list[tuple[str, Any]] = []
+    for name in adapters:
+        if name not in supported:
+            continue
+
+        def _make_wrapper(_name=name):
+            def wrapper(file_path: str) -> AdapterResult:
+                inp = AdapterInput(source=file_path)
+                return getattr(_af, _name)(inp)
+            return wrapper
+
+        entries.append((name.replace("convert_", ""), _make_wrapper()))
+    return entries
+
+
+# ── Engine chain map ──
+
+_ENGINES: dict[str, list[tuple[str, Any]]] = {
     "pdf": [
-        ("docling", _via_docling),
+        ("markitdown", _via_markitdown),
         ("marker-pdf", _via_marker),
-        ("markitdown", _via_markitdown),
+        ("docling", _via_docling),
     ],
-    "docx": [
-        ("markitdown", _via_markitdown),
-    ],
-    "pptx": [
-        ("markitdown", _via_markitdown),
-    ],
-    "xlsx": [
-        ("markitdown", _via_markitdown),
-    ],
+    "docx": [("markitdown", _via_markitdown)],
+    "pptx": [("markitdown", _via_markitdown)],
+    "xlsx": [("markitdown", _via_markitdown)],
+    "csv": [("markitdown", _via_markitdown)],
     "html": [
-        (
-            "trafilatura",
-            lambda p: _via_trafilatura(Path(p).read_text(encoding="utf-8", errors="replace")),
-        ),
-        ("markitdown", _via_markitdown),
+        ("trafilatura", lambda p: _via_trafilatura(Path(p).read_text(encoding="utf-8", errors="replace"))),
+        ("safe-http+raw", _via_read),
     ],
     "image": [
+        *(_via_adapter_fixtures("image", ["convert_pillow"])),
         ("markitdown", _via_markitdown),
     ],
-    "md": [
-        ("passthrough", _via_read),
-    ],
-    "txt": [
-        ("passthrough", _via_read),
-    ],
-    "csv": [
-        ("markitdown", _via_markitdown),
-    ],
+    "media_video": _via_adapter_fixtures("media_video", ["convert_ffmpeg"]),
+    "media_audio": _via_adapter_fixtures("media_audio", ["convert_ffmpeg"]),
+    "article": _via_adapter_fixtures("article", ["convert_newspaper4k", "convert_readabilipy"]),
+    "md": [("passthrough", _via_read)],
+    "txt": [("passthrough", _via_read)],
 }
 
 
 def convert_file(file_path: str | Path, fmt: str | None = None) -> tuple[str, str]:
-    """Convert a file to Markdown text.
+    """Convert a file to text/Markdown using the best available engine.
 
     Args:
         file_path: Path to the input file.
-        fmt: Optional format override ("pdf", "docx", etc.). Auto-detected if None.
+        fmt: Optional format override (auto-detected if None).
 
     Returns:
-        (markdown_content, engine_used) tuple.
+        (text_content, engine_used) tuple.
 
     Raises:
         RuntimeError: If all engines fail for this format.
@@ -162,31 +228,56 @@ def convert_file(file_path: str | Path, fmt: str | None = None) -> tuple[str, st
     fmt = fmt or detect_format(file_path)
     engines = _ENGINES.get(fmt)
 
-    if not engines or engines is None:
+    if not engines:
         # Unknown format — try markitdown as universal fallback
         engines = [("markitdown", _via_markitdown)]
-
-    if engines is None:
-        engines = []
 
     errors = []
     for engine_name, engine_fn in engines:
         try:
-            return engine_fn(str(file_path)), engine_name
+            result: AdapterResult = engine_fn(str(file_path))
+            if result.success:
+                return result.content, result.engine
+            errors.append(f"{engine_name}: {result.error}")
         except ImportError as e:
             errors.append(f"{engine_name}: not installed ({e})")
         except Exception as e:
             errors.append(f"{engine_name}: {e}")
 
-    raise RuntimeError(f"No engine could convert {fmt} file '{file_path}': {'; '.join(errors)}")
+    raise RuntimeError(
+        f"No engine could convert {fmt} file '{file_path}': {'; '.join(errors)}"
+    )
 
 
 def convert_url(url: str) -> tuple[str, str]:
-    """Fetch and convert a web page URL to Markdown.
+    """Fetch and convert a web page URL to text/Markdown.
+
+    Uses the adapter contract to determine the best available web engine.
+    Falls back to raw HTML (no markdown conversion) when no web extraction
+    engine is installed.
+
+    Tries installed adapters in priority order:
+      1. newspaper4k (news articles, auto-detect if supported)
+      2. readabilipy (Mozilla Readability — general article extraction)
+      3. trafilatura (if installed)
+      4. safe-http+raw (always available)
 
     Returns:
-        (markdown_content, engine_used)
+        (text_content, engine_used)
+
+    Raises:
+        RuntimeError: If HTTP fetch fails.
     """
+    parsed = urlsplit(url)
+    hostname = (parsed.hostname or "").rstrip(".").casefold()
+    if hostname in {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"}:
+        from shared.adapter_contract import AdapterInput
+        from shared.adapter_fixtures import convert_youtube_transcript
+
+        transcript = convert_youtube_transcript(AdapterInput(source=url))
+        if transcript.success:
+            return transcript.content, transcript.engine
+
     response = fetch(
         url,
         policy=SafeHTTPPolicy(
@@ -195,7 +286,47 @@ def convert_url(url: str) -> tuple[str, str]:
         ),
     )
     html = response.body.decode("utf-8", errors="replace")
-    return _via_trafilatura(html), "safe-http+trafilatura"
+
+    # Try installed web adapters through the adapter contract
+    from shared.adapter_contract import AdapterInput
+    from shared.adapter_fixtures import (
+        convert_newspaper4k,
+        convert_readabilipy,
+    )
+
+    inp = AdapterInput(source=url)
+    adapter_results: list[tuple[str, AdapterResult]] = []
+
+    # 1) newspaper4k — news article extraction
+    try:
+        result = convert_newspaper4k(inp)
+        adapter_results.append(("newspaper4k", result))
+    except Exception:
+        pass
+
+    # 2) readabilipy — general readability extraction
+    try:
+        result = convert_readabilipy(inp)
+        adapter_results.append(("readabilipy", result))
+    except Exception:
+        pass
+
+    # 3) trafilatura — HTML extraction
+    try:
+        import trafilatura  # noqa: F401
+        text = trafilatura.extract(html, output_format="markdown")
+        if text:
+            return text, "safe-http+trafilatura"
+    except ImportError:
+        pass
+
+    # 4) Return first successful adapter result
+    for engine_name, result in adapter_results:
+        if result.success:
+            return result.content, f"safe-http+{engine_name}"
+
+    # Fallback: return raw HTML (always available)
+    return html, "safe-http+raw"
 
 
 # ── Batch conversion ──
@@ -211,8 +342,6 @@ def convert_directory(
     Returns list of {path, format, content, engine}.
     Skips files where all engines fail (logs warning).
     """
-    from pathlib import Path
-
     from loguru import logger
 
     results = []

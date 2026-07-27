@@ -297,13 +297,26 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# ── Mount packaged Knowledge-Base sub-application ──
+# ── Mount packaged sub-applications (fault-tolerant) ──
 from app.workspace.router import router as workspace_router
-from inspiration_research.api import app as research_app
-from knowledge_base.api import app as kb_app
 
-app.mount("/kb", kb_app)
-app.mount("/internal/research", research_app)
+_research_app = None
+_kb_app = None
+try:
+    from inspiration_research.api import app as research_app
+    _research_app = research_app
+except ImportError:
+    pass
+try:
+    from knowledge_base.api import app as kb_app
+    _kb_app = kb_app
+except ImportError:
+    pass
+
+if _research_app is not None:
+    app.mount("/internal/research", _research_app)
+if _kb_app is not None:
+    app.mount("/kb", _kb_app)
 app.include_router(workspace_router)
 
 

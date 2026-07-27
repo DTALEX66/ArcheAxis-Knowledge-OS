@@ -260,6 +260,26 @@ def _non_runtime_string_nodes(tree: ast.AST) -> set[int]:
                 for value in ast.walk(node)
                 if isinstance(value, ast.Constant) and isinstance(value.value, str)
             )
+        is_redact_pattern_assignment = (
+            isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "_REDACT_PATTERNS"
+                for target in node.targets
+            )
+        ) or (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and node.target.id == "_REDACT_PATTERNS"
+        )
+        if is_redact_pattern_assignment and node.value is not None:
+            # Redaction regexes may intentionally contain examples of user-home
+            # or vault paths. They are matching rules, not runtime filesystem
+            # locations, so do not classify their literals as path writes.
+            result.update(
+                id(value)
+                for value in ast.walk(node.value)
+                if isinstance(value, ast.Constant) and isinstance(value.value, str)
+            )
     return result
 
 

@@ -10,21 +10,86 @@ from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from app.facades.research import research_github_repository
-from app.ingestion.multi_format import convert_file, convert_url, detect_format
-from app.knowledge.closed_loop import (
-    approve_learning_artifact,
-    audit_closed_loop,
-    record_practice_evidence,
-    start_and_approve_learning_candidate,
-)
-from app.knowledge.promotion import (
-    ResearchKnowledgeApproval,
-    promote_research_package_to_candidates,
-)
-from app.research.document import persist_workspace_document
 from app.workspace.job_outbox import command_request_fingerprint, record_completed_command
-from shared.research_store import ResearchPackageGraph, load_research_package
+
+# Heavy dependencies loaded lazily inside functions to avoid numpy/vector chain at import time.
+# Each intake function calls _import_heavy() before use.
+_HEAVY_IMPORTED: dict[str, object] | None = None
+research_github_repository = None
+convert_file = None
+convert_url = None
+detect_format = None
+approve_learning_artifact = None
+audit_closed_loop = None
+record_practice_evidence = None
+start_and_approve_learning_candidate = None
+ResearchKnowledgeApproval = None
+promote_research_package_to_candidates = None
+persist_workspace_document = None
+ResearchPackageGraph = None
+load_research_package = None
+
+
+def _import_heavy() -> None:
+    """Lazy-import heavy research/knowledge/ingestion dependencies."""
+    global _HEAVY_IMPORTED
+    if _HEAVY_IMPORTED is None:
+        from app.facades.research import research_github_repository as _research_github_repository
+        from app.ingestion.multi_format import (
+            convert_file as _convert_file,
+        )
+        from app.ingestion.multi_format import (
+            convert_url as _convert_url,
+        )
+        from app.ingestion.multi_format import (
+            detect_format as _detect_format,
+        )
+        from app.knowledge.closed_loop import (
+            approve_learning_artifact as _approve_learning_artifact,
+        )
+        from app.knowledge.closed_loop import (
+            audit_closed_loop as _audit_closed_loop,
+        )
+        from app.knowledge.closed_loop import (
+            record_practice_evidence as _record_practice_evidence,
+        )
+        from app.knowledge.closed_loop import (
+            start_and_approve_learning_candidate as _start_and_approve_learning_candidate,
+        )
+        from app.knowledge.promotion import (
+            ResearchKnowledgeApproval as _ResearchKnowledgeApproval,
+        )
+        from app.knowledge.promotion import (
+            promote_research_package_to_candidates as _promote_research_package_to_candidates,
+        )
+        from app.research.document import persist_workspace_document as _persist_workspace_document
+        from shared.research_store import (
+            ResearchPackageGraph as _ResearchPackageGraph,
+        )
+        from shared.research_store import (
+            load_research_package as _load_research_package,
+        )
+        _HEAVY_IMPORTED = {
+            "research_github_repository": _research_github_repository,
+            "convert_file": _convert_file,
+            "convert_url": _convert_url,
+            "detect_format": _detect_format,
+            "approve_learning_artifact": _approve_learning_artifact,
+            "audit_closed_loop": _audit_closed_loop,
+            "record_practice_evidence": _record_practice_evidence,
+            "start_and_approve_learning_candidate": _start_and_approve_learning_candidate,
+            "ResearchKnowledgeApproval": _ResearchKnowledgeApproval,
+            "promote_research_package_to_candidates": _promote_research_package_to_candidates,
+            "persist_workspace_document": _persist_workspace_document,
+            "ResearchPackageGraph": _ResearchPackageGraph,
+            "load_research_package": _load_research_package,
+        }
+
+    # Preserve module-level seams used by callers and tests while restoring any
+    # temporary monkeypatch that has already been undone.
+    for name, imported in _HEAVY_IMPORTED.items():
+        if globals().get(name) is None:
+            globals()[name] = imported
 
 MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
 _COMMAND_LOCKS = tuple(threading.RLock() for _ in range(64))
@@ -46,8 +111,9 @@ def _intake_job_id(package_id: str) -> str:
 
 def _intake_before_commit(
     connection: sqlite3.Connection,
-    graph: ResearchPackageGraph,
+    graph,
 ) -> None:
+    _import_heavy()
     package_id = graph.package.package_id
     command_id = _intake_command_id(package_id)
     record_completed_command(
@@ -60,6 +126,7 @@ def _intake_before_commit(
 
 
 def intake_url(*, url: str, db_path: str | Path, fetcher=None) -> dict:
+    _import_heavy()
     parsed = urlsplit(url)
     if parsed.hostname and parsed.hostname.rstrip(".").casefold() == "github.com":
         graph = research_github_repository(
@@ -103,6 +170,7 @@ def intake_url(*, url: str, db_path: str | Path, fetcher=None) -> dict:
 
 
 def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dict:
+    _import_heavy()
     if not file_name:
         raise ValueError("uploaded file requires a name")
     if not content:
@@ -156,6 +224,7 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
 
 
 def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
+    _import_heavy()
     if not job_id.startswith("job_") or len(job_id) != 28:
         raise ValueError("workspace job id is invalid")
     with sqlite3.connect(Path(db_path)) as connection:
