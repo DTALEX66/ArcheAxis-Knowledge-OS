@@ -1,12 +1,25 @@
 """Shared test fixtures."""
+import os
 import secrets
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
 
 # Make app importable from tests/
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_PROJECT_ROOT))
+
+_TASK_RUNTIME = _PROJECT_ROOT / ".hermes" / "task-runtime"
+_TASK_TMP = _TASK_RUNTIME / "pytest-tmp"
+_TASK_PYCACHE = _TASK_RUNTIME / "pycache"
+for _path in (_TASK_TMP, _TASK_PYCACHE):
+    _path.mkdir(parents=True, exist_ok=True)
+for _name in ("TMP", "TEMP", "TMPDIR"):
+    os.environ[_name] = str(_TASK_TMP)
+os.environ["PYTHONPYCACHEPREFIX"] = str(_TASK_PYCACHE)
+tempfile.tempdir = str(_TASK_TMP)
 
 
 @pytest.fixture
