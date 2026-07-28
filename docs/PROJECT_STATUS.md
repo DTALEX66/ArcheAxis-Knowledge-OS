@@ -1,10 +1,10 @@
 # 项目当前状态
 
-> 更新：2026-07-27。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
+> 更新：2026-07-28。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Product Stage A0 真相基线收口期：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 尚未完成。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry 和 receipt 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收、统一 Audit、SSE、异步 Worker 与交互式 Job Center 仍未完成。图像 OCR 基础依赖、真实图像门禁、Windows 构建和 NSIS 生命周期门禁已验证；ASR、公开 Installer 资产、多端发布及公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Product Stage A0 真相基线收口期：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 尚未完成。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。A1 桌面壳已在当前分支接入 Violet Core 紫曜主题、一级 Rail、动态二级导航、认知 Inspector 和真实活动坞，并通过当前树 Chromium smoke 验证；Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry 和 receipt 已交付。Tauri WebView 点击级验收、统一 Audit、SSE、异步 Worker 与交互式 Job Center 仍未完成。图像 OCR 基础依赖、真实图像门禁、Windows 构建和 NSIS 生命周期门禁已验证；ASR、公开 Installer 资产、多端发布及公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
 
 ## 已验证能力
 
@@ -25,7 +25,7 @@
 - 外部 HTTP 调用已收敛到 Safe HTTP policy，覆盖私网/metadata/redirect/响应大小/类型/timeout；本地摄入与投影使用 approved roots 和 symlink/junction containment。
 - 持久化哈希已使用 versioned SHA-256；Core、TaskPack、Vector、FTS、Research、Knowledge Governance 与 Workspace 共九个 owner 已统一注册到 migration operator。
 - Workspace 可将普通网页、GitHub URL 与 approved-root 本地文件持久化为候选 ResearchPackage，并通过独立连接严格读回；浏览器写入仅允许 loopback，本地页面不收集 API key/JWT；本地 Chromium upload → dispatch → receipt → reload smoke 已验证。
-- Workspace 总览已移除静态运营数字和伪服务状态，只读取本地数据库聚合与 packaged unreleased Release Manifest；Job/Delivery 页面已提供真实 pending/delivered/receipt 聚合与按需操作，尚未接线的产品入口明确显示无真实数据。
+- Workspace 总览已移除静态运营数字和伪服务状态，只读取本地数据库聚合与 packaged unreleased Release Manifest；A1 Violet Core 壳层、Rail、二级导航、Inspector 和活动坞已通过真实 Chromium 交互/响应式 smoke；Job/Delivery 页面已提供真实 pending/delivered/receipt 聚合与按需操作，尚未接线的产品入口明确显示无真实数据。
 - Learning 审批与卡片投影使用同事务持久收据；Runtime 只读取 approved Machine Knowledge，Machine Knowledge 审批/弃用使用 append-only migration-owned 收据并拒绝冲突重放。
 - 媒体基础链已用真实 FFmpeg 验证 MP4 → 16 kHz mono PCM WAV、WAV 元数据读取和关键帧 PNG 尺寸核验；图像 OCR 基础适配器已用真实图片验证，ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。
 - n8n、Airflow、LiteLLM 和 crawler 适配器不再返回 stub 假成功。

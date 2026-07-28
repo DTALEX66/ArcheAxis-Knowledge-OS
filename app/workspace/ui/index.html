@@ -6,18 +6,30 @@
   <title>元枢系统 ArcheAxis OS · 元枢·观心</title>
   <link rel="stylesheet" href="/workspace/assets/styles.css">
 </head>
-<body data-theme="yaojin">
+<body data-theme="violet-core">
 <div class="app">
 <header class="top">
-  <div class="brand"><div class="mark"></div><div><div class="brand-name">元枢系统</div><div class="brand-sub">ARCHEAXIS OS</div></div></div>
+  <div class="brand"><div class="mark" aria-hidden="true"></div><div><div class="brand-name">元枢桌面</div><div class="brand-sub">ARCHEAXIS DESKTOP</div></div></div>
+  <div class="top-tabs" aria-label="工作区标签"><span class="top-tab active">观心工作台</span><span class="top-tab muted-tab">本地运行时</span><span class="top-tab muted-tab">+ 规划中</span></div>
   <div class="workspace-pill"><span class="dot"></span><b>元枢·观心</b><span class="kbd">LOCAL ONLY</span></div>
-  <div class="search"><input id="global-search" aria-label="搜索（尚未接入）" placeholder="搜索功能尚未接入" readonly><span class="kbd">A0</span></div>
+  <div class="search"><input id="global-search" aria-label="全局命令入口（尚未接入）" placeholder="全局命令入口尚未接入" readonly><span class="kbd">A0</span></div>
+  <button class="command-btn" type="button" data-action="command-open" aria-label="打开全局命令入口">命令入口</button>
   <span class="chip"><span class="dot"></span>本地工作台</span>
   <button class="icon-btn" type="button" data-page="diagnostics" title="系统诊断" aria-label="系统诊断"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></button>
-  <div class="theme"><button data-theme="yaojin">曜金</button><button data-theme="deepspace">深空</button></div>
+  <div class="theme" aria-label="主题"><button data-theme="violet-core">紫曜</button><button data-theme="yaojin">曜金</button><button data-theme="deepspace">深空</button></div>
   <div class="user"><div class="avatar">AL</div><div class="meta"><b>本地用户</b><div class="muted mono" id="clock">--:--:--</div></div></div>
 </header>
-<aside class="nav" id="nav"></aside>
+<aside class="rail" id="rail" aria-label="一级模块">
+  <button class="rail-item active" type="button" data-module="guanxin" title="观心"><span class="rail-glyph">◈</span><span>观心</span></button>
+  <button class="rail-item" type="button" data-module="zhiti" title="智体"><span class="rail-glyph">✦</span><span>智体</span></button>
+  <button class="rail-item" type="button" data-module="zhixing" title="知行"><span class="rail-glyph">➜</span><span>知行</span></button>
+  <button class="rail-item" type="button" data-module="chawei" title="察微"><span class="rail-glyph">⌕</span><span>察微</span></button>
+  <button class="rail-item" type="button" data-module="cangshi" title="藏识"><span class="rail-glyph">▣</span><span>藏识</span></button>
+  <button class="rail-item" type="button" data-module="workflow" title="流程"><span class="rail-glyph">⌘</span><span>流程</span></button>
+  <button class="rail-item" type="button" data-module="connect" title="连接"><span class="rail-glyph">⌁</span><span>连接</span></button>
+  <button class="rail-item" type="button" data-module="system" title="系统"><span class="rail-glyph">⚙</span><span>系统</span></button>
+</aside>
+<aside class="nav subnav" id="nav" aria-label="二级导航"></aside>
 <main class="main">
 <section class="page active" id="page-overview">
   <div class="page-head"><div><div class="eyebrow">GUANXIN OVERVIEW</div><h1>观心总览</h1><p class="desc">只展示本机数据库和发布清单可证明的状态；没有证据的数据不会出现在这里。</p></div><div class="head-actions"><button class="btn primary" data-action="intake">导入资料</button><button class="btn" data-page="diagnostics">系统诊断</button></div></div>
@@ -74,6 +86,14 @@
   <div class="empty"><b>尚未接入真实数据</b><p>不会展示样例数量、虚构进度、伪服务状态或不可执行按钮。</p><button class="btn" data-page="overview">返回观心总览</button></div>
 </section>
 </main>
+<aside class="inspector" id="inspector" aria-label="认知检查器">
+  <div class="inspector-head"><div><div class="eyebrow">COGNITIVE INSPECTOR</div><b>认知检查器</b></div><button class="icon-btn" type="button" data-action="inspector-toggle" aria-label="折叠认知检查器">×</button></div>
+  <div class="inspector-body" id="inspector-body"><div class="inspector-core"><span class="core-orb">◈</span><b>当前工作区</b><span class="muted">只展示已验证的聚合状态</span></div><div class="inspector-list"><div><span>Status</span><b id="inspector-status">读取中</b></div><div><span>Source</span><b>本地 SQLite 投影</b></div><div><span>Evidence</span><b id="inspector-evidence">等待状态读回</b></div><div><span>Lifecycle</span><b>Research → Knowledge</b></div><div><span>Capability</span><b>A1 · Shell</b></div></div><p class="muted small">任务级 Inspector 将在 A2 接入，不显示内部编号。</p></div>
+</aside>
+<section class="activity-dock" id="activity-dock" aria-label="活动坞">
+  <div class="dock-head"><div class="dock-brand"><span class="dock-pulse"></span><b>活动坞</b><span class="muted">真实本地状态</span></div><div class="dock-actions"><span id="dock-summary" class="muted">读取中</span><button class="icon-btn" type="button" data-action="dock-toggle" aria-label="折叠活动坞">⌄</button></div></div>
+  <div class="dock-body" id="dock-body"><div class="dock-card"><span class="dock-label">JOB</span><b id="dock-jobs">读取中</b><span>真实任务</span></div><div class="dock-card"><span class="dock-label">DELIVERY</span><b id="dock-delivery">读取中</b><span>待投递 / 失败</span></div><div class="dock-card"><span class="dock-label">REVIEW</span><b id="dock-review">读取中</b><span>待人工复核</span></div><div class="dock-card dock-note"><span class="dock-label">TRUTH BOUNDARY</span><b>不显示伪进度</b><span>状态来自本地 API</span></div></div>
+</section>
 <div class="modal" id="intake-modal" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intake-title"><div class="card-title"><div><div class="eyebrow">LOCAL INTAKE</div><h2 id="intake-title">导入资料</h2></div><button class="icon-btn" type="button" data-action="intake-close" aria-label="关闭">×</button></div><p class="muted">粘贴网页地址或选择本地文件。系统自动处理，不要求填写内部编号。</p><form class="form" id="intake-url-form"><div class="field"><label for="intake-url">网页地址</label><input id="intake-url" name="url" type="url" placeholder="https://example.com/article" required></div><button class="btn primary" type="submit">导入网页或GitHub仓库</button></form><div class="divider">或</div><form class="form" id="intake-file-form"><div class="field"><label for="intake-file">本地文件</label><input id="intake-file" name="file" type="file" required></div><button class="btn primary" type="submit">导入文件</button></form><pre class="result" id="intake-result" aria-live="polite"></pre></div></div>
 <div class="toast" id="toast"></div>
 </div>

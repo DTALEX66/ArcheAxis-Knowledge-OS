@@ -6,7 +6,7 @@
 
 - **真实 Workspace 基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
 - **可治理的运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **双端验证**：CI 已包含 Windows Tauri 构建、运行时和 NSIS 生命周期门禁；本地真实 HTTP → SQLite → Chromium upload → dispatch → receipt → reload smoke 已通过，Tauri WebView 点击级证据和公开发布资产仍在收口。
+- **桌面 Workspace A1**：当前分支已接入 Violet Core 紫曜桌面壳、一级模块 Rail、动态二级导航、认知 Inspector 和真实活动坞；真实 Chromium 已验证壳层交互、响应式布局以及 HTTP → SQLite → Chromium upload → dispatch → receipt → reload 链路。Tauri WebView 点击级证据和公开发布资产仍在收口，不能用 Chromium 结果替代。
 - **当前版本**：`0.4.0`；Release Manifest 仍为 `unreleased / public=false`，公开 Alpha/Beta/Stable 发布尚未宣告。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
