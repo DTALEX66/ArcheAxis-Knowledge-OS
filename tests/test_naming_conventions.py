@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import tomllib
+
 import json
 import subprocess
 import unicodedata
@@ -259,8 +261,8 @@ def test_repository_convention_gates_are_wired() -> None:
 
 
 def test_workspace_upload_runtime_dependency_is_declared() -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    ci_requirements = (ROOT / "requirements-ci.txt").read_text(encoding="utf-8")
 
     assert '"python-multipart>=' in pyproject
-    assert "python-multipart>=" in ci_requirements
+    assert "python-multipart>=0.0.20" in project["dependency-groups"]["ci"]

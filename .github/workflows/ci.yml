@@ -30,13 +30,17 @@ jobs:
         uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
-          cache-dependency-glob: requirements-ci*.txt
+          cache-dependency-glob: uv.lock
 
-      - name: Install minimal test dependencies
-        run: uv pip install --system -r requirements-ci.txt
+      - name: Install locked minimal test dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
 
-      - name: Install adapter test dependencies
-        run: uv pip install --system -r requirements-ci-adapters.txt
+      - name: Install locked adapter test dependencies
+        run: |
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
 
       - name: Install and verify local OCR engine
         run: |
@@ -70,10 +74,12 @@ jobs:
         uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
-          cache-dependency-glob: requirements-ci*.txt
+          cache-dependency-glob: uv.lock
 
-      - name: Install minimal lint dependencies
-        run: uv pip install --system -r requirements-ci.txt
+      - name: Install locked minimal lint dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
 
       - name: Validate repository naming and encoding conventions
         run: python scripts/check_repository_conventions.py --source head
@@ -327,7 +333,8 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install locked browser test dependencies
         run: |
-          uv pip install --system -r requirements-ci.txt
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
           uv export --frozen --only-group browser --no-emit-project --format requirements-txt --output-file locked-browser.txt
           uv pip install --system --require-hashes -r locked-browser.txt
       - name: Install Chromium
@@ -349,9 +356,11 @@ jobs:
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
-          cache-dependency-glob: requirements-ci*.txt
-      - name: Install minimal runtime smoke dependencies
-        run: uv pip install --system -r requirements-ci.txt
+          cache-dependency-glob: uv.lock
+      - name: Install locked minimal runtime smoke dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
       - name: Migrate fresh Windows runtime
         env:
           COGNITIVE_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime

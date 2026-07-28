@@ -34,9 +34,12 @@ def test_ci_runs_windows_runtime_smoke() -> None:
 def test_ci_minimal_jobs_include_runtime_server_without_editable_install() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
     test_job = _job_section(workflow, "test", "lint")
-    ci_requirements = (ROOT / "requirements-ci.txt").read_text(encoding="utf-8").lower()
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    ci_group = project["dependency-groups"]["ci"]
 
-    assert "uvicorn[standard]>=" in ci_requirements
+    assert "uvicorn[standard]>=0.22" in ci_group
+    assert "uv export --frozen --only-group ci" in test_job
+    assert "--require-hashes -r locked-ci.txt" in test_job
     assert "uv pip install --system --no-deps -e ." not in test_job
 
 
@@ -132,9 +135,7 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
     assert project["tool"]["mypy"]["python_version"] == "3.11"
     assert 'python-version: ["3.11", "3.12", "3.13"]' in test_job
     assert '"3.10"' not in test_job
-    adapter_requirements = ROOT / "requirements-ci-adapters.txt"
-    assert adapter_requirements.exists()
-    adapter_text = adapter_requirements.read_text(encoding="utf-8")
+    ci_adapters = project["dependency-groups"]["ci-adapters"]
     for requirement in (
         "markitdown>=0.1",
         "newspaper4k>=0.9",
@@ -142,11 +143,10 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
         "trafilatura>=1.6",
         "youtube-transcript-api>=1.2",
     ):
-        assert requirement in adapter_text
-    assert "Install adapter test dependencies" in test_job
-    assert "-r requirements-ci-adapters.txt" in test_job
+        assert requirement in ci_adapters
+    assert "--only-group ci-adapters" in test_job
     assert "ffmpeg tesseract-ocr" in test_job
-    assert "cache-dependency-glob: requirements-ci*.txt" in workflow
+    assert "cache-dependency-glob: uv.lock" in workflow
 
     for job_name, next_name in (
         ("lint", "wheel-smoke"),
