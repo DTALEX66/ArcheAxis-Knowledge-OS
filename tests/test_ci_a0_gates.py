@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,7 +45,7 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     desktop_job = _job_section(workflow, "desktop-shell", "a0-gates")
 
     assert "desktop-shell:" in workflow
-    assert 'python-version: "3.11"' in desktop_job
+    assert 'python-version: "3.12"' in desktop_job
     assert "python -m desktop.scripts.prepare_bundle" in desktop_job
     assert desktop_job.index("Prepare the installed Python runtime") < desktop_job.index(
         "Test the Windows Rust library"
@@ -116,3 +117,27 @@ def test_ci_exposes_one_stable_a0_required_check() -> None:
     )
     assert 'if: ${{ always() }}' in workflow
     assert "exit 1" in workflow
+
+
+def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    manifest = json.loads((ROOT / "app" / "release-manifest.json").read_text(encoding="utf-8"))
+    test_job = _job_section(workflow, "test", "lint")
+
+    assert project["project"]["requires-python"] == ">=3.11"
+    assert manifest["product"]["requires_python"] == ">=3.11"
+    assert project["tool"]["ruff"]["target-version"] == "py311"
+    assert {"UP017", "UP042"} <= set(project["tool"]["ruff"]["lint"]["ignore"])
+    assert project["tool"]["mypy"]["python_version"] == "3.11"
+    assert 'python-version: ["3.11", "3.12", "3.13"]' in test_job
+    assert '"3.10"' not in test_job
+
+    for job_name, next_name in (
+        ("lint", "wheel-smoke"),
+        ("wheel-smoke", "browser-smoke"),
+        ("browser-smoke", "windows-runtime-smoke"),
+        ("windows-runtime-smoke", "desktop-shell"),
+        ("desktop-shell", "a0-gates"),
+    ):
+        assert 'python-version: "3.12"' in _job_section(workflow, job_name, next_name)
