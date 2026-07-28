@@ -1,7 +1,4 @@
 # Minimal dependencies required by CI test and lint jobs.
-# Runtime-only ingestion/LLM packages remain covered by wheel-smoke via requirements.txt;
-# these adapter packages are also required because the OS-level contract tests exercise
-# their installed paths directly.
 apscheduler>=3.10
 beautifulsoup4>=4.11
 defusedxml>=0.7.1
@@ -10,8 +7,6 @@ httpx2>=0.28
 jinja2>=3.1,<4
 jsonschema>=4.0
 loguru>=0.7
-markitdown>=0.1
-newspaper4k>=0.9
 networkx>=3.0
 numpy>=1.24
 pillow>=10.0
@@ -21,12 +16,9 @@ playwright>=1.61,<1.62
 pytesseract>=0.3.13
 python-multipart>=0.0.20
 pyyaml>=6.0
-readabilipy>=0.3
 requests>=2.28
 ruff>=0.5
 sqlite-vec>=0.1.6
 structlog>=24.0
 tomli>=2.0; python_version < "3.11"
-trafilatura>=1.6
 uvicorn[standard]>=0.22
-youtube-transcript-api>=1.2

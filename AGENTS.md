@@ -2,6 +2,10 @@
 
 This file is the public, sanitized operating configuration for Codex/agent work inside this repository. It describes how an agent should work on Cognitive-OS without exposing local credentials, private keys, tokens, machine-specific secrets, or personal files.
 
+## Rule ownership and precedence
+
+Global Hermes workflow rules own the general execution protocol: single-writer coordination, project-data containment, secret handling, safe editing, testing, and exact-SHA delivery. This file owns only Cognitive-Loop-OS-specific boundaries, architecture facts, and repository conventions. When a global rule and this file overlap, follow the stricter rule and keep the project wording as a concrete exception or example rather than duplicating the global procedure.
+
 ## 1. Project Mission
 
 Cognitive-OS is the front runtime for two primary systems:
@@ -31,30 +35,25 @@ information -> attention -> understanding -> structure -> memory -> learning -> 
 | Configuration index | `workspace/configuration/README.md` | Catalog of public vs private configuration categories |
 | Intake history | `workspace/intake/` | Stepwise design and implementation log |
 
-## 3. Safety Rules
+## 3. Project-Specific Safety Boundaries
 
-- Work inside the current repository unless the user explicitly names another exact project path.
 - The external A project named `Obsidian-Assistance` is already audited and absorbed: do not scan, test, modify, synchronize, or use it as a migration target in future Cognitive-Loop-OS work.
 - Do not access `E:\` unless the user explicitly confirms the exact path, action, and impact range.
-- Do not upload or print secrets: `.env`, `.codex`, SSH private keys, API keys, tokens, cookies, credentials, or password files.
-- Do not commit runtime memory, local caches, virtual environments, logs, or generated databases.
-- Project-owned outputs from Cognitive-OS code, tests, ingestion, builds, and reviews must use the project-local ignored runtime/build locations; a wrapper is the preferred containment path but is not an OS sandbox.
+- Project-owned outputs from Cognitive-OS code, tests, ingestion, builds, and reviews must use the project-local ignored runtime/build locations defined by the global project-data boundary; a wrapper is preferred but is not an OS sandbox.
 - Do not claim ownership of Hermes, Codex, CC Switch, Workflow-assistance, GitHub delegation, session, cron, Kanban, or other workflow-infrastructure files merely because their names mention this project. Those artifacts remain in their owning workflow directory.
 - Files found in `%TEMP%`, a user home, or another project are ambiguous until content, Git worktree, process, and generation command establish ownership; preserve and mark unresolved rather than delete or move them.
-- Prefer small, auditable changes that can be reverted with one commit.
-- Do not use destructive actions such as recursive deletion, hard reset, forced push, or mass overwrite unless the user separately confirms scope.
 
-## 4. Git Rules
+## 4. Project-Specific Git Conventions
 
 Before modifying repository files:
 
-```powershell
+```bash
 git status --short
 ```
 
 After modifying repository files:
 
-```powershell
+```bash
 git diff --stat
 git status --short
 ```
@@ -62,9 +61,7 @@ git status --short
 Upload policy:
 
 - Use explicit paths when staging files.
-- Avoid `git add .`.
-- Do not commit or push unrelated local changes.
-- Do not force push.
+- Keep the working tree limited to the requested project scope; the global Git safety rules govern force pushes, destructive commands, and unrelated changes.
 - Commit messages should describe the functional scope.
 
 ## 5. Network Rules
