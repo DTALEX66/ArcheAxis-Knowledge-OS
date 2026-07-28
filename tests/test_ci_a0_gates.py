@@ -132,6 +132,21 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
     assert project["tool"]["mypy"]["python_version"] == "3.11"
     assert 'python-version: ["3.11", "3.12", "3.13"]' in test_job
     assert '"3.10"' not in test_job
+    adapter_requirements = ROOT / "requirements-ci-adapters.txt"
+    assert adapter_requirements.exists()
+    adapter_text = adapter_requirements.read_text(encoding="utf-8")
+    for requirement in (
+        "markitdown>=0.1",
+        "newspaper4k>=0.9",
+        "readabilipy>=0.3",
+        "trafilatura>=1.6",
+        "youtube-transcript-api>=1.2",
+    ):
+        assert requirement in adapter_text
+    assert "Install adapter test dependencies" in test_job
+    assert "-r requirements-ci-adapters.txt" in test_job
+    assert "ffmpeg tesseract-ocr" in test_job
+    assert "cache-dependency-glob: requirements-ci*.txt" in workflow
 
     for job_name, next_name in (
         ("lint", "wheel-smoke"),

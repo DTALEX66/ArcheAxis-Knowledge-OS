@@ -1,0 +1,7 @@
+# Optional ingestion adapters exercised by the OS-level contract tests.
+# Kept separate from requirements-ci.txt so lint/wheel jobs remain minimal.
+markitdown>=0.1
+newspaper4k>=0.9
+readabilipy>=0.3
+trafilatura>=1.6
+youtube-transcript-api>=1.2
