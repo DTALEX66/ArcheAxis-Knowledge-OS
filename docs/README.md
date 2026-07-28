@@ -4,6 +4,7 @@
 
 ## 当前事实与未来方向
 
+- [`PRODUCT_POSITIONING.md`](PRODUCT_POSITIONING.md)：对外标准定位、双向学习知识链和术语边界。
 - [`PROJECT_STATUS.md`](PROJECT_STATUS.md)：当前验证状态、已知限制和质量门禁。
 - [`FUTURE_EXECUTION_BLUEPRINT.md`](FUTURE_EXECUTION_BLUEPRINT.md)：长期设计原则、候选轨道、延后项和进入执行门槛；不代表当前完成度。
 - [`architecture/CURRENT_ARCHITECTURE.md`](architecture/CURRENT_ARCHITECTURE.md)：当前运行时架构与模块边界。

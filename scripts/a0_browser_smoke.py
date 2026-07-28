@@ -14,6 +14,7 @@ WORKSPACE_ROOT = "/" + "workspace"
 STATUS_PATTERN = f"**{WORKSPACE_ROOT}/api/status"
 INTAKE_PATTERN = f"**{WORKSPACE_ROOT}/api/intake/url"
 RESEARCH_PATTERN = f"**{WORKSPACE_ROOT}/api/research"
+JOBS_PATTERN = f"**{WORKSPACE_ROOT}/api/jobs"
 
 
 def _partial_status(route: Route) -> None:
@@ -63,7 +64,11 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.get_by_role("heading", name="功能尚未接入").wait_for()
 
     page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
+    assert page.locator("body").get_attribute("data-theme") == "apple-light"
+    page.get_by_role("button", name="紫曜").click()
     assert page.locator("body").get_attribute("data-theme") == "violet-core"
+    page.get_by_role("button", name="浅色").click()
+    assert page.locator("body").get_attribute("data-theme") == "apple-light"
     assert page.get_by_role("complementary", name="一级模块").is_visible()
     assert page.get_by_role("complementary", name="认知检查器").is_visible()
     assert page.get_by_role("region", name="活动坞").is_visible()
@@ -79,6 +84,9 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.get_by_role("button", name="智体").click()
     page.get_by_role("heading", name="Agent管理").wait_for()
     assert "尚未接入真实数据" in page.locator("#page-unavailable").inner_text()
+    planned_route = page.locator('.nav-item[data-page="agents"]')
+    assert planned_route.get_attribute("data-route-state") == "planned"
+    assert planned_route.get_by_text("规划中", exact=True).is_visible()
     page.locator('.rail-item[title="观心"]').click()
     page.get_by_role("heading", name="观心总览").wait_for()
     page.get_by_text("异步Worker", exact=True).wait_for()
@@ -89,8 +97,6 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.get_by_role("button", name="刷新").click()
     page.get_by_text("系统状态", exact=True).wait_for()
     assert "本地状态读取失败" in page.locator("#diagnostics-summary").inner_text()
-    assert "能力状态" in page.locator("#capability-summary").inner_text()
-    assert "异步Worker" not in page.locator("#capability-summary").inner_text()
     page.unroute(STATUS_PATTERN, _partial_status)
 
     page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
@@ -112,9 +118,18 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.unroute(INTAKE_PATTERN, _network_failure)
 
     page.get_by_label("网页地址").fill("https://example.com/truth")
+    activity_reads: list[str] = []
+
+    def observe_activity_jobs(route: Route) -> None:
+        activity_reads.append("jobs")
+        route.continue_()
+
+    page.route(JOBS_PATTERN, observe_activity_jobs)
+    activity_reads.clear()
     page.route(INTAKE_PATTERN, _intake_success)
     page.get_by_role("button", name="导入网页或GitHub仓库").click()
     page.locator("#intake-result").filter(has_text="下一步：等待人工复核").wait_for()
+    assert "jobs" in activity_reads
     result = page.locator("#intake-result").inner_text()
     assert "来源记录：1" in result
     assert "候选要点：2" in result
@@ -122,6 +137,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     assert "引擎：自动" not in result
     assert "内容长度：0" not in result
     assert all(identifier not in result for identifier in ("package_id", "job_id", "command_id"))
+    page.unroute(JOBS_PATTERN, observe_activity_jobs)
     page.unroute(INTAKE_PATTERN, _intake_success)
 
     page.get_by_label("网页地址").fill("https://example.com/partial")

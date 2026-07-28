@@ -5,7 +5,7 @@
     "name": "元枢系统",
     "english_name": "ArcheAxis OS",
     "workspace_name": "元枢·观心",
-    "workspace_english_name": "ArcheAxis Cognitive Workspace",
+    "workspace_english_name": "ArcheAxis Human-AI Learning Workspace",
     "version": "0.4.0",
     "requires_python": ">=3.10"
   },

@@ -1,14 +1,14 @@
 [project]
 name = "cognitive-loop-os"
 version = "0.4.0"
-description = "Local-first cognitive and knowledge runtime with evidence-constrained workflows"
+description = "Local-first, evidence-driven, bidirectional learning and knowledge system for individuals and AI"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [
     { name = "DTALEX66" },
 ]
-keywords = ["cognitive-os", "knowledge-base", "agent", "fastapi", "sqlite-vec"]
+keywords = ["local-first", "evidence-driven", "learning-system", "knowledge-management", "fastapi", "sqlite-vec", "tauri"]
 
 dependencies = [
     "fastapi>=0.133,<0.134",
