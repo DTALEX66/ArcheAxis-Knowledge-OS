@@ -214,6 +214,7 @@ def test_release_checksum_script_refuses_no_artifacts(tmp_path) -> None:
 def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) -> None:
     """Verify scripts/release_inject_identity.py writes valid identity manifest."""
     import json
+    import os
     import subprocess
     import sys
 
@@ -229,7 +230,10 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
          "--tree", tree,
          "--branch", "feat/absorption-roadmap-r0",
          "--output", str(output)],
-        capture_output=True, text=True, cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parents[1],
+        env={key: value for key, value in os.environ.items() if key != "GITHUB_RUN_ID"},
     )
     assert result.returncode == 0, f"script failed: {result.stderr}"
 
