@@ -1,0 +1,49 @@
+# Public, non-secret baseline for every runtime profile.
+app:
+  name: "Cognitive-Loop-OS"
+  version: "0.4.0"
+  environment: "development"
+  port: 8000
+  host: "127.0.0.1"
+
+database:
+  path: "data/cognitive_os.sqlite"
+  journal_mode: "WAL"
+  backup_dir: "data/backups"
+
+logging:
+  level: "INFO"
+  console: true
+  file: true
+  file_dir: "data/logs"
+  rotation: "10 MB"
+  retention: "7 days"
+
+auth:
+  enabled: false
+  token_expire_hours: 24
+
+rate_limit:
+  enabled: true
+  window_seconds: 60
+  ordinary_read: 200
+  sensitive_write: 30
+  auth_token: 5
+  max_buckets_per_policy: 10000
+  trusted_proxies: []
+
+pipeline:
+  max_content_chars: 10000
+  default_actions: ["extract", "tag", "summarize", "index"]
+  auto_ingest: true
+
+search:
+  fts5_enabled: true
+  vector_enabled: true
+  vector_dim: 384
+  default_top_k: 5
+
+cors:
+  allow_origins: ["*"]
+  allow_methods: ["GET", "POST", "DELETE"]
+  allow_headers: ["Authorization", "Content-Type", "X-API-Key"]
