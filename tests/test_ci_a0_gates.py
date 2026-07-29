@@ -38,6 +38,7 @@ def test_ci_minimal_jobs_include_runtime_server_without_editable_install() -> No
     ci_group = project["dependency-groups"]["ci"]
 
     assert "uvicorn[standard]>=0.22" in ci_group
+    assert "playwright>=1.61,<1.62" in ci_group
     assert "uv export --frozen --only-group ci" in test_job
     assert "--require-hashes -r locked-ci.txt" in test_job
     assert "uv pip install --system --no-deps -e ." not in test_job
