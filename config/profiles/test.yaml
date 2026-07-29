@@ -1,0 +1,6 @@
+app:
+  environment: "test"
+database:
+  path: "data/test/cognitive_os.sqlite"
+logging:
+  file: false

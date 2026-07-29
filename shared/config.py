@@ -77,15 +77,29 @@ _DEFAULTS: dict[str, Any] = {
 
 
 class Config:
-    """Singleton configuration with YAML + env override."""
+    """Runtime configuration with public YAML layers and env overrides.
 
-    def __init__(self) -> None:
+    Load order is intentionally explicit and backward-compatible:
+    built-in defaults -> config/defaults.yaml -> config/settings.yaml
+    (legacy active source) -> config/profiles/<profile>.yaml -> env overrides.
+    """
+
+    _SUPPORTED_PROFILES = {"desktop", "development", "test", "production"}
+
+    def __init__(self, profile: str | None = None) -> None:
+        selected = profile if profile is not None else os.getenv("COGNITIVE_PROFILE", "development")
+        self.profile = selected.strip().lower() or "development"
+        if self.profile not in self._SUPPORTED_PROFILES:
+            supported = ", ".join(sorted(self._SUPPORTED_PROFILES))
+            raise ValueError(f"unknown configuration profile: {self.profile}; expected one of {supported}")
         self._data = copy.deepcopy(_DEFAULTS)
-        self._load_yaml()
+        self._load_yaml("defaults.yaml")
+        self._load_yaml("settings.yaml")
+        self._load_yaml(Path("profiles") / f"{self.profile}.yaml")
         self._apply_env()
 
-    def _load_yaml(self) -> None:
-        config_path = _PROJECT_ROOT / "config" / "settings.yaml"
+    def _load_yaml(self, relative_path: str | Path) -> None:
+        config_path = _PROJECT_ROOT / "config" / relative_path
         if not config_path.exists():
             return
         try:

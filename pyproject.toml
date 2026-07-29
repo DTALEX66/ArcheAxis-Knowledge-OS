@@ -110,7 +110,7 @@ namespaces = true
 app = ["release-manifest.json"]
 "app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js"]
 knowledge_base = ["templates/*.html", "static/**/*"]
-config = ["*.yaml"]
+config = ["*.yaml", "profiles/*.yaml"]
 inspiration_research = ["resources/*.json"]
 
 [tool.ruff]
