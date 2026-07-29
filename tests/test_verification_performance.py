@@ -35,19 +35,19 @@ def test_pytest_session_uses_an_isolated_runtime_root() -> None:
 def test_ci_test_jobs_use_minimal_uv_dependencies() -> None:
     root = Path(__file__).resolve().parents[1]
     workflow = (root / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-    ci_requirements_path = root / "requirements-ci.txt"
+    import tomllib
 
-    assert ci_requirements_path.is_file()
-    ci_requirements = ci_requirements_path.read_text(encoding="utf-8").lower()
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    ci_requirements = project["dependency-groups"]["ci"]
+
     assert "astral-sh/setup-uv" in workflow
-    assert workflow.count("uv pip install --system -r requirements-ci.txt") >= 2
+    assert workflow.count("uv export --frozen --only-group ci") >= 3
     assert 'pip install -e ".[dev]"' not in workflow
-    assert "uv export --frozen --no-dev --no-emit-project" in workflow
     assert "python -m pip install --require-hashes -r locked-runtime.txt" in workflow
     assert "python -m pip install -r requirements.txt" not in workflow
-    assert "defusedxml" in ci_requirements
+    assert "defusedxml>=0.7.1" in ci_requirements
     for heavy_dependency in ("litellm", "markitdown", "trafilatura"):
-        assert heavy_dependency not in ci_requirements
+        assert not any(heavy_dependency in requirement for requirement in ci_requirements)
 
 
 def test_head_convention_scan_batches_git_blob_reads(tmp_path: Path, monkeypatch) -> None:

@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -30,15 +30,22 @@ jobs:
         uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
-          cache-dependency-glob: requirements-ci.txt
+          cache-dependency-glob: uv.lock
 
-      - name: Install minimal test dependencies
-        run: uv pip install --system -r requirements-ci.txt
+      - name: Install locked minimal test dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+
+      - name: Install locked adapter test dependencies
+        run: |
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
 
       - name: Install and verify local OCR engine
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends tesseract-ocr tesseract-ocr-eng fonts-dejavu-core
+          sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core
           tesseract --list-langs | grep --fixed-strings --line-regexp eng
 
       - name: Run OS-level tests
@@ -61,16 +68,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
-          cache-dependency-glob: requirements-ci.txt
+          cache-dependency-glob: uv.lock
 
-      - name: Install minimal lint dependencies
-        run: uv pip install --system -r requirements-ci.txt
+      - name: Install locked minimal lint dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
 
       - name: Validate repository naming and encoding conventions
         run: python scripts/check_repository_conventions.py --source head
@@ -92,7 +101,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: pip
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
       - name: Build wheel from locked backend
@@ -317,14 +326,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - name: Install locked browser test dependencies
         run: |
-          uv pip install --system -r requirements-ci.txt
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
           uv export --frozen --only-group browser --no-emit-project --format requirements-txt --output-file locked-browser.txt
           uv pip install --system --require-hashes -r locked-browser.txt
       - name: Install Chromium
@@ -342,13 +352,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
-          cache-dependency-glob: requirements-ci.txt
-      - name: Install minimal runtime smoke dependencies
-        run: uv pip install --system -r requirements-ci.txt
+          cache-dependency-glob: uv.lock
+      - name: Install locked minimal runtime smoke dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
       - name: Migrate fresh Windows runtime
         env:
           COGNITIVE_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
@@ -367,7 +379,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
