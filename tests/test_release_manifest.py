@@ -134,6 +134,64 @@ def test_release_manifest_marks_unimplemented_product_surfaces_truthfully() -> N
     assert capabilities["qdrant_runtime"] == "not_implemented"
 
 
+def test_bundled_release_identity_exposes_a_verified_public_release_summary(
+    monkeypatch, tmp_path
+) -> None:
+    from app import release
+
+    identity_path = tmp_path / "release-identity.json"
+    identity_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0.0",
+                "release": {
+                    "tag": "v0.4.0",
+                    "version": "0.4.0",
+                    "channel": "stable",
+                    "public": True,
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+                },
+                "source": {
+                    "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+                    "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
+                    "ci_run": 30548553629,
+                    "ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(release, "_ARTIFACT_IDENTITY_PATH", identity_path)
+    release.load_artifact_release_identity.cache_clear()
+
+    assert release.safe_release_summary() == {
+        "status": "released",
+        "version": "0.4.0",
+        "channel": "stable",
+        "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+        "tag": "v0.4.0",
+        "ci_run": 30548553629,
+        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+    }
+    assert release.effective_capabilities()["public_installer"] == "available"
+
+
+def test_bundled_release_identity_rejects_semantically_wrong_urls(monkeypatch, tmp_path) -> None:
+    from app import release
+
+    identity = {
+        "schema_version": "1.0.0",
+        "release": {"tag": "v0.4.0", "version": "0.4.0", "channel": "stable", "public": True, "url": "https://github.com/foreign-owner/foreign-repo/releases/tag/v0.4.0"},
+        "source": {"commit": "34ca0fbd5ae636314a3403c473bde9247ef95907", "tree": "d144559cdd81e1ca582231ea8bdcbd27821716", "ci_run": 30548553629, "ci_url": "https://github.com/foreign-owner/foreign-repo/actions/runs/30548553629"},
+    }
+    path = tmp_path / "release-identity.json"
+    path.write_text(json.dumps(identity), encoding="utf-8")
+    monkeypatch.setattr(release, "_ARTIFACT_IDENTITY_PATH", path, raising=False)
+    release.load_artifact_release_identity.cache_clear()
+    with pytest.raises(RuntimeError, match="invalid release fields"):
+        release.load_artifact_release_identity()
+
+
 def test_truth_docs_do_not_overstate_startup_migration_or_delivery() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
@@ -228,12 +286,16 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
         [sys.executable, str(script),
          "--commit", commit,
          "--tree", tree,
-         "--branch", "feat/absorption-roadmap-r0",
+
+         "--tag", "v0.4.0",
+         "--version", "0.4.0",
+         "--url", "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+         "--ci-url", "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
          "--output", str(output)],
         capture_output=True,
         text=True,
         cwd=Path(__file__).resolve().parents[1],
-        env={key: value for key, value in os.environ.items() if key != "GITHUB_RUN_ID"},
+        env={**os.environ, "GITHUB_RUN_ID": "30548553629"},
     )
     assert result.returncode == 0, f"script failed: {result.stderr}"
 
@@ -241,8 +303,15 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
     assert identity["schema_version"] == "1.0.0"
     assert identity["source"]["commit"] == commit
     assert identity["source"]["tree"] == tree
-    assert identity["source"]["branch"] == "feat/absorption-roadmap-r0"
-    assert identity["source"]["ci_run"] is None  # no GITHUB_RUN_ID in test
+    assert identity["release"] == {
+        "tag": "v0.4.0",
+        "version": "0.4.0",
+        "channel": "stable",
+        "public": True,
+        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+    }
+    assert identity["source"]["ci_url"] == "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629"
+    assert identity["source"]["ci_run"] == 30548553629
 
 
 def test_release_identity_injection_rejects_invalid_sha(tmp_path) -> None:

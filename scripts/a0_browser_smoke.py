@@ -214,6 +214,9 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.set_viewport_size({"width": 390, "height": 844})
     expect(inspector).to_have_attribute("aria-hidden", "true")
     assert inspector.evaluate("element => element.hasAttribute('inert')")
+    page.wait_for_function(
+        """() => document.querySelector('#inspector').getBoundingClientRect().left >= window.innerWidth"""
+    )
     inspector_geometry = page.evaluate(
         """() => { const rect = document.querySelector('#inspector').getBoundingClientRect(); return { left: rect.left, viewportWidth: window.innerWidth }; }"""
     )

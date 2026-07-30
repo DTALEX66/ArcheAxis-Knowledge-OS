@@ -24,6 +24,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Generate release artifact checksum manifest")
     parser.add_argument("--wheel", type=str, help="Path to the .whl file")
     parser.add_argument("--installer", type=str, help="Path to the NSIS installer .exe")
+    parser.add_argument("--artifact", action="append", default=[], help="Additional release payload path")
     parser.add_argument("--output", type=str, required=True, help="Output checksum file path")
     args = parser.parse_args()
 
@@ -47,8 +48,15 @@ def main() -> int:
             return 1
         artifacts.append(("installer", installer))
 
+    for artifact_value in args.artifact:
+        artifact = Path(artifact_value)
+        if not artifact.is_file():
+            print(f"ERROR: artifact not found: {artifact}", file=sys.stderr)
+            return 1
+        artifacts.append(("artifact", artifact))
+
     if not artifacts:
-        print("ERROR: at least one of --wheel or --installer is required", file=sys.stderr)
+        print("ERROR: at least one release payload is required", file=sys.stderr)
         return 1
 
     for label, path in artifacts:

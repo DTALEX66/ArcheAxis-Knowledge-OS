@@ -401,14 +401,14 @@ def diagnostics():
 
 @app.get("/version")
 def version():
-    from app.release import load_release_manifest, safe_release_summary
+    from app.release import effective_capabilities, load_release_manifest, safe_release_summary
 
     manifest = load_release_manifest()
     return {
         "product": manifest["product"]["english_name"],
         "version": manifest["product"]["version"],
         "release": safe_release_summary(),
-        "capabilities": manifest["capabilities"],
+        "capabilities": effective_capabilities(),
     }
 
 

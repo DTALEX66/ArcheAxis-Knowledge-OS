@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 _MANIFEST_PATH = Path(__file__).with_name("release-manifest.json")
+_ARTIFACT_IDENTITY_PATH: Path | None = None
+_RELEASE_REPOSITORY_URL = "https://github.com/DTALEX66/Cognitive-Loop-OS"
 _ALLOWED_CAPABILITY_STATES = {"available", "dependency_required", "not_implemented"}
 _CAPABILITY_KEYS = {
     "local_url_file_github_intake",
@@ -154,9 +156,67 @@ def load_release_manifest() -> dict[str, Any]:
     return manifest
 
 
+@lru_cache(maxsize=1)
+def load_artifact_release_identity() -> dict[str, Any] | None:
+    """Read verified release identity packaged alongside a bundled runtime."""
+    identity_path = _ARTIFACT_IDENTITY_PATH or next(
+        (parent / "release-identity.json" for parent in _MANIFEST_PATH.parents if (parent / "release-identity.json").is_file()),
+        _MANIFEST_PATH.parent.parent / "release-identity.json",
+    )
+    if not identity_path.is_file():
+        return None
+
+    identity = json.loads(identity_path.read_text(encoding="utf-8"))
+    _require_exact_keys(identity, {"schema_version", "release", "source"}, "artifact identity")
+    if identity["schema_version"] != "1.0.0":
+        raise RuntimeError("unsupported artifact release identity schema")
+
+    release = _require_exact_keys(
+        identity["release"], {"tag", "version", "channel", "public", "url"}, "artifact release"
+    )
+    source = _require_exact_keys(
+        identity["source"], {"commit", "tree", "ci_run", "ci_url"}, "artifact source"
+    )
+    manifest = load_release_manifest()
+    if (
+        release["tag"] != f"v{manifest['product']['version']}"
+        or release["version"] != manifest["product"]["version"]
+        or release["channel"] != "stable"
+        or release["public"] is not True
+        or not isinstance(release["url"], str)
+        or release["url"] != f"{_RELEASE_REPOSITORY_URL}/releases/tag/{release['tag']}"
+    ):
+        raise RuntimeError("artifact release identity has invalid release fields")
+    if (
+        not isinstance(source["commit"], str)
+        or _HEX_40.fullmatch(source["commit"]) is None
+        or not isinstance(source["tree"], str)
+        or _HEX_40.fullmatch(source["tree"]) is None
+        or not isinstance(source["ci_run"], int)
+        or source["ci_run"] < 1
+        or not isinstance(source["ci_url"], str)
+        or source["ci_url"] != f"{_RELEASE_REPOSITORY_URL}/actions/runs/{source['ci_run']}"
+    ):
+        raise RuntimeError("artifact release identity has invalid source fields")
+    return identity
+
+
 def safe_release_summary() -> dict[str, object]:
     """Expose no filesystem paths or unverifiable test-count claims."""
     manifest = load_release_manifest()
+    identity = load_artifact_release_identity()
+    if identity is not None:
+        artifact_release = identity["release"]
+        artifact_source = identity["source"]
+        return {
+            "status": "released",
+            "version": artifact_release["version"],
+            "channel": artifact_release["channel"],
+            "source_commit": artifact_source["commit"],
+            "tag": artifact_release["tag"],
+            "ci_run": artifact_source["ci_run"],
+            "url": artifact_release["url"],
+        }
     release = manifest["release"]
     source = manifest["source"]
     return {
@@ -165,3 +225,11 @@ def safe_release_summary() -> dict[str, object]:
         "channel": release["channel"],
         "source_commit": source["commit"],
     }
+
+
+def effective_capabilities() -> dict[str, str]:
+    """Report the installer capability only when bundled release identity verifies it."""
+    capabilities = dict(load_release_manifest()["capabilities"])
+    if load_artifact_release_identity() is not None:
+        capabilities["public_installer"] = "available"
+    return capabilities
