@@ -31,7 +31,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Inject release identity")
     parser.add_argument("--commit", required=True, help="Exact Git commit SHA (40 hex chars)")
     parser.add_argument("--tree", required=True, help="Exact Git tree hash (40 hex chars)")
-    parser.add_argument("--branch", required=True, help="Git branch name")
+
+    parser.add_argument("--tag", required=True, help="Release tag")
+    parser.add_argument("--version", required=True, help="Product version")
+    parser.add_argument("--url", required=True, help="Canonical GitHub Release URL")
+    parser.add_argument("--ci-url", required=True, help="Canonical GitHub Actions run URL")
     parser.add_argument("--output", required=True, help="Output identity manifest path")
     args = parser.parse_args()
 
@@ -46,22 +50,30 @@ def main() -> int:
         return 1
 
     ci_run = os.environ.get("GITHUB_RUN_ID")
-    if ci_run:
-        try:
-            ci_run = int(ci_run)
-        except ValueError:
-            print(f"WARNING: GITHUB_RUN_ID is not a valid integer: {ci_run}", file=sys.stderr)
-            ci_run = None
+    try:
+        ci_run = int(ci_run or "")
+    except ValueError:
+        print("ERROR: GITHUB_RUN_ID must be a positive integer", file=sys.stderr)
+        return 1
+    if ci_run < 1 or args.tag != f"v{args.version}" or not args.url.startswith("https://") or not args.ci_url.startswith("https://"):
+        print("ERROR: invalid release identity arguments", file=sys.stderr)
+        return 1
 
     identity = {
         "schema_version": "1.0.0",
+        "release": {
+            "tag": args.tag,
+            "version": args.version,
+            "channel": "stable",
+            "public": True,
+            "url": args.url,
+        },
         "source": {
             "commit": commit,
             "tree": tree,
-            "branch": args.branch,
             "ci_run": ci_run,
+            "ci_url": args.ci_url,
         },
-        "generated_at": "ISO-8601",  # placeholder — CI may not have tz
     }
 
     output = Path(args.output)
@@ -71,7 +83,7 @@ def main() -> int:
     print(f"Identity manifest written: {output}")
     print(f"  commit: {commit}")
     print(f"  tree:   {tree}")
-    print(f"  branch: {args.branch}")
+
     print(f"  ci_run: {ci_run}")
     return 0
 

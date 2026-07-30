@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: ${{ github.ref_type == 'tag' }}
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - name: Require tag target to equal main
+        shell: pwsh
+        run: |
+          if ((git rev-parse origin/main).Trim() -ne $env:GITHUB_SHA) {
+            throw "release tag must point to the current main commit"
+          }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked build tooling
+        run: uv sync --frozen
+      - name: Install locked desktop tooling
+        working-directory: desktop
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare bundled runtime and inject exact release identity
+        shell: pwsh
+        run: |
+          python -m desktop.scripts.prepare_bundle --repository . --destination .hermes/desktop-runtime-v1
+          $tree = git rev-parse "$env:GITHUB_SHA^{tree}"
+          python scripts/release_inject_identity.py `
+            --commit $env:GITHUB_SHA `
+            --tree $tree `
+            --tag $env:GITHUB_REF_NAME `
+            --version 0.4.0 `
+            --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
+            --ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
+            --output .hermes/desktop-runtime-v1/runtime/release-identity.json
+      - name: Build Windows NSIS installer
+        working-directory: desktop
+        run: npm run tauri -- build --bundles nsis
+      - name: Verify installed NSIS lifecycle
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe")
+          if ($installers.Count -ne 1) { throw "expected exactly one NSIS installer, found $($installers.Count)" }
+          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installers[0].FullName -RequireReleaseIdentity
+      - name: Build release wheel and checksums
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release-assets | Out-Null
+          uv build --wheel --out-dir release-assets
+          $wheel = @(Get-ChildItem "release-assets/*.whl")
+          $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe")
+          if ($wheel.Count -ne 1 -or $installers.Count -ne 1) { throw "expected one wheel and one NSIS installer" }
+          Copy-Item $installers[0].FullName release-assets/
+          Copy-Item .hermes/desktop-runtime-v1/runtime/release-identity.json release-assets/
+          python scripts/release_checksum.py --wheel $wheel[0].FullName --installer (Join-Path release-assets $installers[0].Name) --artifact release-assets/release-identity.json --output release-assets/SHA256SUMS.txt
+      - name: Publish verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: gh release create $env:GITHUB_REF_NAME release-assets/* --verify-tag --title "ArcheAxis OS $env:GITHUB_REF_NAME" --generate-notes

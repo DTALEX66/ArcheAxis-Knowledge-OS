@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory = $true)]
-    [string]$Installer
+    [string]$Installer,
+    [switch]$RequireReleaseIdentity
 )
 
 $ErrorActionPreference = 'Stop'
@@ -94,6 +95,16 @@ try {
     $status = Invoke-RestMethod "$base/workspace/api/status"
     if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.4.0') {
         throw 'installed Workspace returned an invalid product response'
+    }
+    if ($RequireReleaseIdentity) {
+        $version = Invoke-RestMethod "$base/version"
+        if (
+            $version.release.status -ne 'released' -or
+            $version.release.tag -ne 'v0.4.0' -or
+            $version.capabilities.public_installer -ne 'available'
+        ) {
+            throw 'installed runtime did not expose the verified public release identity'
+        }
     }
     [void]$activeShell.CloseMainWindow()
     if (-not $activeShell.WaitForExit(15000)) {
