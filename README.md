@@ -1,6 +1,8 @@
-# Cognitive-Loop-OS
+# ArcheAxis OS（元枢系统）
 
-> **元枢·观心 / ArcheAxis Cognitive Workspace**：本地优先、证据驱动的认知工作台，连接真实导入、Research→Knowledge→Learning candidate 治理、可审计执行和 Windows 桌面发布门禁。
+> **ArcheAxis OS is a local-first, evidence-driven Human–AI learning, knowledge, and cognitive-governance desktop.**
+
+> **本地优先的 Human + Agent + Cognitive Governance Desktop：同一份知识，人学得更深，AI 用得更准。**
 
 ## 当前重点
 
