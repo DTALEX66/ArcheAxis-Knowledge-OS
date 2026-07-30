@@ -4,14 +4,17 @@
 
 > **本地优先的 Human + Agent + Cognitive Governance Desktop：同一份知识，人学得更深，AI 用得更准。**
 
+ArcheAxis OS 以受治理的统一知识底座连接个人学习链和 AI 使用链。所有外部材料、人工输入和 AI 输出都先是可追溯的 Candidate；只有经过明确治理的内容才能进入后续学习或 Runtime 使用。
+
 ## 当前重点
 
-- **真实 Workspace 基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
-- **可治理的运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **双端验证**：CI 已包含 Windows Tauri 构建、运行时和 NSIS 生命周期门禁；本地真实 HTTP → SQLite → Chromium upload → dispatch → receipt → reload smoke 已通过，Tauri WebView 点击级证据和公开发布资产仍在收口。
+- **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
+- **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
+- **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
+- **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。真实 Chromium 验证壳层交互后方可发布；Tauri WebView 点击级证据和公开发布资产仍未闭环，不能用 Chromium 结果替代。
 - **当前版本**：`0.4.0`；Release Manifest 仍为 `unreleased / public=false`，公开 Alpha/Beta/Stable 发布尚未宣告。
 
-Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
+Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
 ## Phase 4 Research Status
 

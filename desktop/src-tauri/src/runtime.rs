@@ -186,7 +186,10 @@ mod tests {
             resolved.data_dir.display(),
         );
         assert!(resolved.isolated, "installed runtime must be isolated");
-        assert_ne!(resolved.cwd, resolved.data_dir.parent().unwrap_or(&resolved.cwd));
+        assert_ne!(
+            resolved.cwd,
+            resolved.data_dir.parent().unwrap_or(&resolved.cwd)
+        );
     }
 
     #[test]
@@ -198,8 +201,11 @@ mod tests {
         let python = resources.join("runtime/python/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
         fs::create_dir_all(repository.join(".hermes")).expect("create project boundary");
-        fs::write(repository.join("pyproject.toml"), b"[project]\nname = 'fixture'\n")
-            .expect("create project marker");
+        fs::write(
+            repository.join("pyproject.toml"),
+            b"[project]\nname = 'fixture'\n",
+        )
+        .expect("create project marker");
         fs::write(&python, b"test").expect("create python marker");
 
         let resolved = resolve_runtime(&resources, &resources, &local_data, false)
