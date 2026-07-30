@@ -269,6 +269,31 @@ def test_release_checksum_script_refuses_no_artifacts(tmp_path) -> None:
     assert result.returncode != 0, "should have failed without artifact arguments"
 
 
+def test_release_workflow_stages_installer_under_provider_stable_name() -> None:
+    """The checksum filename must equal the name exposed by GitHub Releases."""
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'ArcheAxis.OS-Windows-x64-setup.exe' in workflow
+    assert 'Copy-Item $installers[0].FullName $installerAsset' in workflow
+    assert '--installer $installerAsset' in workflow
+
+
+def test_release_workflow_publishes_only_checksum_bound_allowlist() -> None:
+    """No wildcard or unlisted staging payload may reach a public release."""
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'gh release create $env:GITHUB_REF_NAME release-assets/*' not in workflow
+    assert 'Verify checksum manifest payload equality' in workflow
+    assert '$releaseAssets = @(' in workflow
+    assert 'gh release create $env:GITHUB_REF_NAME $releaseAssets' in workflow
+
+
 def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) -> None:
     """Verify scripts/release_inject_identity.py writes valid identity manifest."""
     import json

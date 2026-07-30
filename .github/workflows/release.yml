@@ -67,11 +67,34 @@ jobs:
           $wheel = @(Get-ChildItem "release-assets/*.whl")
           $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe")
           if ($wheel.Count -ne 1 -or $installers.Count -ne 1) { throw "expected one wheel and one NSIS installer" }
-          Copy-Item $installers[0].FullName release-assets/
+          $installerAsset = Join-Path release-assets "ArcheAxis.OS-Windows-x64-setup.exe"
+          Copy-Item $installers[0].FullName $installerAsset
           Copy-Item .hermes/desktop-runtime-v1/runtime/release-identity.json release-assets/
-          python scripts/release_checksum.py --wheel $wheel[0].FullName --installer (Join-Path release-assets $installers[0].Name) --artifact release-assets/release-identity.json --output release-assets/SHA256SUMS.txt
+          python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset --artifact release-assets/release-identity.json --output release-assets/SHA256SUMS.txt
+      - name: Verify checksum manifest payload equality
+        shell: pwsh
+        run: |
+          $manifestNames = @(Get-Content release-assets/SHA256SUMS.txt | ForEach-Object {
+            if ($_ -notmatch '^[0-9a-fA-F]{64}  (.+)$') { throw "invalid SHA256SUMS line: $_" }
+            $Matches[1]
+          })
+          $payloadNames = @(Get-ChildItem release-assets -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-Object Name)
+          $manifestComparison = Compare-Object ($manifestNames | Sort-Object) ($payloadNames | Sort-Object)
+          if ($manifestComparison) { throw "SHA256SUMS payload set differs from staged payload set: $($manifestComparison | Out-String)" }
+          if ($manifestNames.Count -ne 3 -or ($manifestNames | Select-Object -Unique).Count -ne 3) {
+            throw "expected exactly three unique checksum-bound payloads"
+          }
       - name: Publish verified assets
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
-        run: gh release create $env:GITHUB_REF_NAME release-assets/* --verify-tag --title "ArcheAxis OS $env:GITHUB_REF_NAME" --generate-notes
+        run: |
+          $wheel = @(Get-ChildItem "release-assets/*.whl")
+          if ($wheel.Count -ne 1) { throw "expected exactly one release wheel" }
+          $releaseAssets = @(
+            $wheel[0].FullName,
+            (Resolve-Path "release-assets/ArcheAxis.OS-Windows-x64-setup.exe").Path,
+            (Resolve-Path "release-assets/release-identity.json").Path,
+            (Resolve-Path "release-assets/SHA256SUMS.txt").Path
+          )
+          gh release create $env:GITHUB_REF_NAME $releaseAssets --verify-tag --title "ArcheAxis OS $env:GITHUB_REF_NAME" --generate-notes
