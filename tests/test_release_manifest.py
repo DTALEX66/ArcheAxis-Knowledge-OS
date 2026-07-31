@@ -30,7 +30,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "channel": "development",
         "public": False,
     }
-    assert manifest["product"]["version"] == "0.4.0"
+    assert manifest["product"]["version"] == "0.4.1"
     assert manifest["source"]["commit"] == "unavailable"
     assert manifest["verification"]["embedded_test_counts"] is False
     lock_digest = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
@@ -63,7 +63,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",
-        "version": "0.4.0",
+        "version": "0.4.1",
         "channel": "development",
         "source_commit": "unavailable",
     }
@@ -145,11 +145,11 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
             {
                 "schema_version": "1.0.0",
                 "release": {
-                    "tag": "v0.4.0",
-                    "version": "0.4.0",
+                    "tag": "v0.4.1",
+                    "version": "0.4.1",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.1",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
@@ -166,12 +166,12 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
 
     assert release.safe_release_summary() == {
         "status": "released",
-        "version": "0.4.0",
+        "version": "0.4.1",
         "channel": "stable",
         "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
-        "tag": "v0.4.0",
+        "tag": "v0.4.1",
         "ci_run": 30548553629,
-        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.1",
     }
     assert release.effective_capabilities()["public_installer"] == "available"
 

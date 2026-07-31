@@ -94,6 +94,57 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
     } == {product_version}
 
 
+def test_v0_4_1_release_candidate_uses_one_version_everywhere() -> None:
+    expected_version = "0.4.1"
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
+    )
+    package = json.loads((ROOT / "desktop/package.json").read_text(encoding="utf-8"))
+    package_lock = json.loads(
+        (ROOT / "desktop/package-lock.json").read_text(encoding="utf-8")
+    )
+    tauri = json.loads(
+        (ROOT / "desktop/src-tauri/tauri.conf.json").read_text(encoding="utf-8")
+    )
+    cargo = tomllib.loads(
+        (ROOT / "desktop/src-tauri/Cargo.toml").read_text(encoding="utf-8")
+    )
+    release_workflow = (
+        ROOT / ".github/workflows/release.yml"
+    ).read_text(encoding="utf-8")
+
+    assert {
+        project["project"]["version"],
+        manifest["product"]["version"],
+        package["version"],
+        package_lock["version"],
+        package_lock["packages"][""]["version"],
+        tauri["version"],
+        cargo["package"]["version"],
+    } == {expected_version}
+    assert f"--version {expected_version}" in release_workflow
+    assert (
+        'name = "cognitive-loop-os"\nversion = "0.4.1"\nsource = { editable = "." }'
+        in (ROOT / "uv.lock").read_text(encoding="utf-8")
+    )
+    for path in (
+        "config/defaults.yaml",
+        "config/settings.yaml",
+        "shared/config.py",
+        "app/main.py",
+        "knowledge_base/api.py",
+        "desktop/scripts/verify_nsis_install.ps1",
+    ):
+        text = (ROOT / path).read_text(encoding="utf-8")
+        assert expected_version in text
+        assert "0.4.0" not in text
+    lifecycle = (ROOT / "desktop/scripts/verify_nsis_install.ps1").read_text(
+        encoding="utf-8"
+    )
+    assert "v0.4.1" in lifecycle
+
+
 def test_wheel_gate_requires_release_and_workspace_assets() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
     wheel_job = _job_section(workflow, "wheel-smoke", "browser-smoke")

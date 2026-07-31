@@ -46,7 +46,7 @@ jobs:
             --commit $env:GITHUB_SHA `
             --tree $tree `
             --tag $env:GITHUB_REF_NAME `
-            --version 0.4.0 `
+            --version 0.4.1 `
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
             --ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
             --output .hermes/desktop-runtime-v1/runtime/release-identity.json

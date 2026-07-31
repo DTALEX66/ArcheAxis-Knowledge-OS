@@ -1,4 +1,4 @@
-"""Knowledge-Base API — SQLite-backed, v0.4.0.
+"""Knowledge-Base API — SQLite-backed, v0.4.1.
 
 Route counts are reported live by the mounted Core ``/health`` endpoint.
 Full OpenAPI documentation at /docs.
@@ -34,7 +34,7 @@ validate_runtime_config(config)
 
 app = FastAPI(
     title="Cognitive-Loop-OS Knowledge-Base",
-    version="0.4.0",
+    version="0.4.1",
     description="Knowledge management runtime. Absorbs capabilities from Obsidian, Tana, Notion, Logseq, Roam, Heptabase, Capacities, Anytype, GraphRAG, and Zettelkasten.",
     docs_url="/docs",
     redoc_url="/redoc",
