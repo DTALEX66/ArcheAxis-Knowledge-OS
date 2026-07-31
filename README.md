@@ -13,6 +13,7 @@ ArcheAxis OS 以受治理的统一知识底座连接个人学习链和 AI 使用
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
 - **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。真实 Chromium 验证壳层交互后方可发布；Tauri WebView 点击级证据和公开发布资产仍未闭环，不能用 Chromium 结果替代。
 - **当前版本**：`0.4.1`；Release Manifest 仍为 `unreleased / public=false`，公开 Alpha/Beta/Stable 发布尚未宣告。
+- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；它不证明完整发布完整性。`v0.4.1` 只有在 merge-SHA CI、tag、公开资产集合、下载后 SHA-256、release identity 与 installer lifecycle 全部回读通过后才可宣称发布。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
@@ -190,3 +191,10 @@ pre-commit run --all-files
 开发中只运行受影响的定向测试；diff 冻结后运行一次必要完整门禁，推送后以一次 GitHub CI 为准。详细触发规则见 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
 CI 使用 `pyproject.toml` 作为依赖与工具配置单一事实源；`requirements.txt` 仅作为兼容安装清单并与核心依赖保持同步。
+
+## 许可、安全与变更记录
+
+- 项目许可：[`LICENSE`](LICENSE)
+- 第三方组件说明：[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
+- 漏洞报告：[`SECURITY.md`](SECURITY.md)
+- 发布历史与已知完整性限制：[`CHANGELOG.md`](CHANGELOG.md)

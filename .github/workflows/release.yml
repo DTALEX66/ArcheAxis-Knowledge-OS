@@ -13,6 +13,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 45
     permissions:
+      actions: read
       contents: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -27,6 +28,24 @@ jobs:
         run: |
           if ((git rev-parse origin/main).Trim() -ne $env:GITHUB_SHA) {
             throw "release tag must point to the current main commit"
+          }
+      - name: Require successful exact-SHA CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $ciRuns = @(
+            gh run list --commit $env:GITHUB_SHA --workflow CI --limit 100 `
+              --json databaseId,headSha,conclusion,status,url,workflowName,createdAt | ConvertFrom-Json
+          )
+          $successfulRuns = @($ciRuns | Where-Object {
+            $_.workflowName -eq "CI" -and
+            $_.headSha -eq $env:GITHUB_SHA -and
+            $_.status -eq "completed" -and
+            $_.conclusion -eq "success"
+          })
+          if ($successfulRuns.Count -lt 1) {
+            throw "exact-SHA CI did not complete successfully"
           }
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
@@ -84,7 +103,7 @@ jobs:
           if ($manifestNames.Count -ne 3 -or ($manifestNames | Select-Object -Unique).Count -ne 3) {
             throw "expected exactly three unique checksum-bound payloads"
           }
-      - name: Publish verified assets
+      - name: Upload verified assets to draft release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
@@ -97,4 +116,77 @@ jobs:
             (Resolve-Path "release-assets/release-identity.json").Path,
             (Resolve-Path "release-assets/SHA256SUMS.txt").Path
           )
-          gh release create $env:GITHUB_REF_NAME $releaseAssets --verify-tag --title "ArcheAxis OS $env:GITHUB_REF_NAME" --generate-notes
+          gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis OS $env:GITHUB_REF_NAME" --generate-notes
+      - name: Read back and verify draft release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $expectedAssets = @(
+            "ArcheAxis.OS-Windows-x64-setup.exe",
+            "cognitive_loop_os-0.4.1-py3-none-any.whl",
+            "release-identity.json",
+            "SHA256SUMS.txt"
+          ) | Sort-Object
+          $release = gh release view $env:GITHUB_REF_NAME --json tagName,targetCommitish,isDraft,assets,url | ConvertFrom-Json
+          if ($release.tagName -ne $env:GITHUB_REF_NAME) { throw "release tag readback mismatch" }
+          if ($release.isDraft -ne $true) { throw "release draft state mismatch" }
+          $acceptedReleaseTargets = @("main", $env:GITHUB_SHA)
+          if ($release.targetCommitish -notin $acceptedReleaseTargets) {
+            throw "release target commit is neither main nor exact workflow SHA"
+          }
+          if ((git rev-list -n 1 "$($release.tagName)^{}").Trim() -ne $env:GITHUB_SHA) {
+            throw "release tag target does not equal the exact workflow SHA"
+          }
+          $publicAssets = @($release.assets | ForEach-Object name | Sort-Object)
+          if (Compare-Object $expectedAssets $publicAssets) {
+            throw "public asset set differs from expected release asset set"
+          }
+          $downloadRoot = ".hermes/task-runtime/release-download-readback"
+          New-Item -ItemType Directory -Force $downloadRoot | Out-Null
+          gh release download $env:GITHUB_REF_NAME --dir $downloadRoot
+          foreach ($asset in $release.assets) {
+            if (-not $asset.digest -or -not $asset.digest.StartsWith("sha256:")) {
+              throw "provider digest is missing for $($asset.name)"
+            }
+            $downloadedDigest = (Get-FileHash "$downloadRoot/$($asset.name)" -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($asset.digest.ToLowerInvariant() -ne "sha256:$downloadedDigest") {
+              throw "provider digest differs from downloaded asset for $($asset.name)"
+            }
+          }
+          $manifest = Get-Content "$downloadRoot/SHA256SUMS.txt" | ForEach-Object {
+            if ($_ -notmatch '^([0-9a-fA-F]{64})  (.+)$') { throw "invalid downloaded SHA256SUMS line: $_" }
+            [pscustomobject]@{ digest = $Matches[1].ToLowerInvariant(); name = $Matches[2] }
+          }
+          $expectedPayloads = @($expectedAssets | Where-Object { $_ -ne "SHA256SUMS.txt" } | Sort-Object)
+          $manifestPayloads = @($manifest | ForEach-Object name | Sort-Object)
+          if (Compare-Object $expectedPayloads $manifestPayloads) {
+            throw "downloaded checksum payload set differs from expected payload set"
+          }
+          foreach ($entry in $manifest) {
+            $actual = (Get-FileHash "$downloadRoot/$($entry.name)" -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $entry.digest) { throw "downloaded SHA-256 mismatch for $($entry.name)" }
+            $asset = @($release.assets | Where-Object name -eq $entry.name)
+            if ($asset.Count -ne 1 -or -not $asset[0].digest) { throw "missing provider digest for $($entry.name)" }
+            if ($asset[0].digest.ToLowerInvariant() -ne "sha256:$actual") { throw "provider digest mismatch for $($entry.name)" }
+          }
+          $identity = Get-Content "$downloadRoot/release-identity.json" -Raw | ConvertFrom-Json
+          $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
+          if ($identity.release.tag -ne $env:GITHUB_REF_NAME -or $identity.source.commit -ne $env:GITHUB_SHA) {
+            throw "downloaded release identity does not bind tag and exact commit"
+          }
+          if ($identity.source.tree -ne $tree) {
+            throw "downloaded release identity tree mismatch"
+          }
+          if ($identity.source.ci_url -ne "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID") {
+            throw "downloaded release identity CI URL mismatch"
+          }
+          if ($identity.source.ci_run -ne [int64]$env:GITHUB_RUN_ID -or $identity.release.url -ne $release.url) {
+            throw "downloaded release identity provenance readback mismatch"
+          }
+      - name: Publish verified draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release edit $env:GITHUB_REF_NAME --draft=false
