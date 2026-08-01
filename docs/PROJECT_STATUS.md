@@ -1,6 +1,12 @@
 # 项目当前状态
 
-> 更新：2026-07-27。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
+> 更新：2026-08-01。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
+
+## 发布真相
+
+- 当前源码版本为 `0.4.1`，但 packaged source manifest 仍为 `unreleased / public=false`；源码字段不会预先宣告公开发布。
+- `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
+- 新版本只有在 tag 精确绑定受保护 `main`、exact-SHA CI 全绿、公开资产集合与 checksum payload allowlist 双向一致、provider digest 可核验、下载后 SHA-256 复算通过、release identity 读回一致、installer lifecycle 通过后，才可报告发布完成。当前没有签名发布声明。
 
 ## 当前阶段
 

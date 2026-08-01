@@ -30,7 +30,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "channel": "development",
         "public": False,
     }
-    assert manifest["product"]["version"] == "0.4.0"
+    assert manifest["product"]["version"] == "0.4.1"
     assert manifest["source"]["commit"] == "unavailable"
     assert manifest["verification"]["embedded_test_counts"] is False
     lock_digest = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
@@ -63,7 +63,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",
-        "version": "0.4.0",
+        "version": "0.4.1",
         "channel": "development",
         "source_commit": "unavailable",
     }
@@ -145,11 +145,11 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
             {
                 "schema_version": "1.0.0",
                 "release": {
-                    "tag": "v0.4.0",
-                    "version": "0.4.0",
+                    "tag": "v0.4.1",
+                    "version": "0.4.1",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.1",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
@@ -166,12 +166,12 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
 
     assert release.safe_release_summary() == {
         "status": "released",
-        "version": "0.4.0",
+        "version": "0.4.1",
         "channel": "stable",
         "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
-        "tag": "v0.4.0",
+        "tag": "v0.4.1",
         "ci_run": 30548553629,
-        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.1",
     }
     assert release.effective_capabilities()["public_installer"] == "available"
 
@@ -292,6 +292,85 @@ def test_release_workflow_publishes_only_checksum_bound_allowlist() -> None:
     assert 'Verify checksum manifest payload equality' in workflow
     assert '$releaseAssets = @(' in workflow
     assert 'gh release create $env:GITHUB_REF_NAME $releaseAssets' in workflow
+
+
+def test_release_truth_documents_preserve_historical_and_source_manifest_truth() -> None:
+    root = Path(__file__).resolve().parents[1]
+    required = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CHANGELOG.md"]
+    for relative in required:
+        assert (root / relative).is_file(), f"missing release truth document: {relative}"
+
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    status = (root / "docs" / "PROJECT_STATUS.md").read_text(encoding="utf-8")
+    changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
+    combined = "\n".join((readme, status, changelog))
+    assert "v0.4.0" in combined
+    assert "historical" in combined.lower()
+    assert "incomplete checksum payload coverage" in combined
+    assert "unreleased / public=false" in combined
+    assert "artifacts are signed" not in changelog.lower()
+
+
+def test_release_workflow_downloads_and_rehashes_exact_public_asset_set() -> None:
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Read back and verify draft release assets" in workflow
+    assert "gh release view $env:GITHUB_REF_NAME --json tagName,targetCommitish,isDraft,assets,url" in workflow
+    assert "gh release download $env:GITHUB_REF_NAME" in workflow
+    assert "Get-FileHash" in workflow
+    assert "provider digest" in workflow.lower()
+    assert "public asset set differs from expected release asset set" in workflow
+
+
+def test_release_workflow_requires_exact_sha_ci_before_building_release_assets() -> None:
+    """A tag bound to main cannot bypass the successful CI run for that exact SHA."""
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Require successful exact-SHA CI" in workflow
+    assert 'gh run list --commit $env:GITHUB_SHA --workflow CI' in workflow
+    assert "exact-SHA CI did not complete successfully" in workflow
+    assert workflow.index("Require successful exact-SHA CI") < workflow.index(
+        "Prepare bundled runtime and inject exact release identity"
+    )
+
+
+def test_release_workflow_keeps_assets_draft_until_readback_closes() -> None:
+    """No asset becomes public before its GitHub inventory and downloaded bytes verify."""
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    draft_create = 'gh release create $env:GITHUB_REF_NAME $releaseAssets --draft'
+    download = "gh release download $env:GITHUB_REF_NAME"
+    publish = 'gh release edit $env:GITHUB_REF_NAME --draft=false'
+    assert draft_create in workflow
+    assert "Read back and verify draft release assets" in workflow
+    assert "$release.isDraft -ne $true" in workflow
+    assert "release draft state mismatch" in workflow
+    assert publish in workflow
+    assert workflow.index(draft_create) < workflow.index(download) < workflow.index(publish)
+
+
+def test_release_workflow_readback_binds_target_and_identity_tree() -> None:
+    """The downloaded identity must bind all Git provenance, not only its commit."""
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert '$acceptedReleaseTargets = @("main", $env:GITHUB_SHA)' in workflow
+    assert '$release.targetCommitish -notin $acceptedReleaseTargets' in workflow
+    assert "release target commit is neither main nor exact workflow SHA" in workflow
+    assert '$identity.source.tree -ne $tree' in workflow
+    assert "downloaded release identity tree mismatch" in workflow
+    assert "downloaded release identity CI URL mismatch" in workflow
 
 
 def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) -> None:

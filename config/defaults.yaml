@@ -1,7 +1,7 @@
 # Public, non-secret baseline for every runtime profile.
 app:
   name: "Cognitive-Loop-OS"
-  version: "0.4.0"
+  version: "0.4.1"
   environment: "development"
   port: 8000
   host: "127.0.0.1"
