@@ -1,7 +1,7 @@
 # Workspace BFF v1 Contract
 
-Status: **BE01 implementation candidate — read-only contract**  
-Owner: Cognitive-OS workspace boundary  
+Status: **BE01 implementation candidate — read-only contract**
+Owner: Cognitive-OS workspace boundary
 Scope: local loopback product shell only
 
 ## 1. Boundary
