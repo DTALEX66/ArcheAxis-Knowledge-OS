@@ -93,14 +93,14 @@ try {
     $base = "http://127.0.0.1:$($normal.Listener.LocalPort)"
     $workspaceStatus = (Invoke-WebRequest "$base/workspace" -UseBasicParsing).StatusCode
     $status = Invoke-RestMethod "$base/workspace/api/status"
-    if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.4.1') {
+    if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.4.2') {
         throw 'installed Workspace returned an invalid product response'
     }
     if ($RequireReleaseIdentity) {
         $version = Invoke-RestMethod "$base/version"
         if (
             $version.release.status -ne 'released' -or
-            $version.release.tag -ne 'v0.4.1' -or
+            $version.release.tag -ne 'v0.4.2' -or
             $version.capabilities.public_installer -ne 'available'
         ) {
             throw 'installed runtime did not expose the verified public release identity'

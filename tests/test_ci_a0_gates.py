@@ -94,8 +94,8 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
     } == {product_version}
 
 
-def test_v0_4_1_release_candidate_uses_one_version_everywhere() -> None:
-    expected_version = "0.4.1"
+def test_v0_4_2_release_candidate_uses_one_version_everywhere() -> None:
+    expected_version = "0.4.2"
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     manifest = json.loads(
         (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
@@ -125,7 +125,7 @@ def test_v0_4_1_release_candidate_uses_one_version_everywhere() -> None:
     } == {expected_version}
     assert f"--version {expected_version}" in release_workflow
     assert (
-        'name = "cognitive-loop-os"\nversion = "0.4.1"\nsource = { editable = "." }'
+        'name = "cognitive-loop-os"\nversion = "0.4.2"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")
     )
     for path in (
@@ -142,7 +142,7 @@ def test_v0_4_1_release_candidate_uses_one_version_everywhere() -> None:
     lifecycle = (ROOT / "desktop/scripts/verify_nsis_install.ps1").read_text(
         encoding="utf-8"
     )
-    assert "v0.4.1" in lifecycle
+    assert "v0.4.2" in lifecycle
 
 
 def test_wheel_gate_requires_release_and_workspace_assets() -> None:
