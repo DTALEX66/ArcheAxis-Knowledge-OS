@@ -279,6 +279,8 @@ def test_release_workflow_stages_installer_under_provider_stable_name() -> None:
     assert 'ArcheAxis.OS-Windows-x64-setup.exe' in workflow
     assert 'Copy-Item $installers[0].FullName $installerAsset' in workflow
     assert '--installer $installerAsset' in workflow
+    assert "Where-Object Name -eq '.gitignore'" in workflow
+    assert "Remove-Item -Force" in workflow
 
 
 def test_release_workflow_publishes_only_checksum_bound_allowlist() -> None:
