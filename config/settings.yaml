@@ -4,7 +4,7 @@
 
 app:
   name: "Cognitive-Loop-OS"
-  version: "0.4.2"
+  version: "0.4.3"
   release_version: ""
   environment: "development"
   port: 8000
