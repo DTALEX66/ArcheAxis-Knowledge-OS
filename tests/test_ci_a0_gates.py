@@ -63,8 +63,12 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "./desktop/scripts/verify_nsis_install.ps1" in desktop_job
     assert (
         'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe"'
-        in desktop_job
+        not in desktop_job
     )
+    assert 'Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis"' in desktop_job
+    assert 'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
+    assert 'ArcheAxis OS_$($package.version)_x64-setup.exe' in desktop_job
+    assert 'Write-Host "NSIS installers found:' in desktop_job
 
 
 def test_desktop_shell_uses_the_product_version_everywhere() -> None:
