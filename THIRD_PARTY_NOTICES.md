@@ -7,7 +7,7 @@ packages, bundled binaries, fonts, or other components.
 ## Declared direct Python dependencies
 
 The release dependency contract is `pyproject.toml` plus the exact resolved
-`uv.lock`. At version 0.4.1 the direct runtime declarations are:
+`uv.lock`. At version 0.4.2 the direct runtime declarations are:
 
 `fastapi`, `python-multipart`, `uvicorn`, `pydantic`, `numpy`, `requests`,
 `pyyaml`, `beautifulsoup4`, `defusedxml`, `apscheduler`, `sqlite-vec`, `loguru`,

@@ -25,7 +25,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 _DEFAULTS: dict[str, Any] = {
     "app": {
         "name": "Cognitive-Loop-OS",
-        "version": "0.4.1",
+        "version": "0.4.2",
         "environment": "development",
         "port": 8000,
         "host": "0.0.0.0",
