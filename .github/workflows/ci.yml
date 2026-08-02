@@ -384,6 +384,17 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+      - name: Cache Rust registry, audit tool, and target
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            desktop/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-audit-0.22.2
+          restore-keys: |
+            ${{ runner.os }}-cargo-
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Install locked desktop tooling
@@ -402,7 +413,12 @@ jobs:
       - name: Audit locked Rust dependencies
         working-directory: desktop/src-tauri
         run: |
-          cargo install cargo-audit --version 0.22.2 --locked --force
+          $cargoBin = Join-Path $HOME ".cargo/bin"
+          $env:PATH = "$cargoBin;$env:PATH"
+          $cargoAudit = Join-Path $cargoBin "cargo-audit.exe"
+          if (-not (Test-Path $cargoAudit)) {
+            cargo install cargo-audit --version 0.22.2 --locked
+          }
           cargo audit --file Cargo.lock
       - name: Test the development and installed backend lifecycles
         working-directory: desktop/src-tauri
