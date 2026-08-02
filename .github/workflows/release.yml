@@ -184,7 +184,8 @@ jobs:
           if ($identity.source.ci_url -ne "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID") {
             throw "downloaded release identity CI URL mismatch"
           }
-          if ($identity.source.ci_run -ne [int64]$env:GITHUB_RUN_ID -or $identity.release.url -ne $release.url) {
+          $canonicalReleaseUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME"
+          if ($identity.source.ci_run -ne [int64]$env:GITHUB_RUN_ID -or $identity.release.url -ne $canonicalReleaseUrl) {
             throw "downloaded release identity provenance readback mismatch"
           }
       - name: Publish verified draft release
