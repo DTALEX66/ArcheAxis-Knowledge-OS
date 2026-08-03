@@ -65,7 +65,7 @@ jobs:
             --commit $env:GITHUB_SHA `
             --tree $tree `
             --tag $env:GITHUB_REF_NAME `
-            --version 0.4.2 `
+            --version 0.4.3 `
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
             --ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
             --output .hermes/desktop-runtime-v1/runtime/release-identity.json
@@ -127,7 +127,7 @@ jobs:
         run: |
           $expectedAssets = @(
             "ArcheAxis.OS-Windows-x64-setup.exe",
-            "cognitive_loop_os-0.4.2-py3-none-any.whl",
+            "cognitive_loop_os-0.4.3-py3-none-any.whl",
             "release-identity.json",
             "SHA256SUMS.txt"
           ) | Sort-Object

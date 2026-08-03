@@ -63,8 +63,12 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "./desktop/scripts/verify_nsis_install.ps1" in desktop_job
     assert (
         'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe"'
-        in desktop_job
+        not in desktop_job
     )
+    assert 'Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis"' in desktop_job
+    assert 'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
+    assert 'ArcheAxis OS_$($package.version)_x64-setup.exe' in desktop_job
+    assert 'Write-Host "NSIS installers found:' in desktop_job
 
 
 def test_desktop_shell_uses_the_product_version_everywhere() -> None:
@@ -94,8 +98,8 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
     } == {product_version}
 
 
-def test_v0_4_2_release_candidate_uses_one_version_everywhere() -> None:
-    expected_version = "0.4.2"
+def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
+    expected_version = "0.4.3"
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     manifest = json.loads(
         (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
@@ -125,7 +129,7 @@ def test_v0_4_2_release_candidate_uses_one_version_everywhere() -> None:
     } == {expected_version}
     assert f"--version {expected_version}" in release_workflow
     assert (
-        'name = "cognitive-loop-os"\nversion = "0.4.2"\nsource = { editable = "." }'
+        'name = "cognitive-loop-os"\nversion = "0.4.3"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")
     )
     for path in (
@@ -142,7 +146,7 @@ def test_v0_4_2_release_candidate_uses_one_version_everywhere() -> None:
     lifecycle = (ROOT / "desktop/scripts/verify_nsis_install.ps1").read_text(
         encoding="utf-8"
     )
-    assert "v0.4.2" in lifecycle
+    assert "v0.4.3" in lifecycle
 
 
 def test_wheel_gate_requires_release_and_workspace_assets() -> None:
