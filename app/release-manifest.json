@@ -6,7 +6,7 @@
     "english_name": "ArcheAxis OS",
     "workspace_name": "元枢·观心",
     "workspace_english_name": "ArcheAxis Cognitive Workspace",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "requires_python": ">=3.11"
   },
   "release": {
@@ -23,7 +23,7 @@
   "dependency_lock": {
     "path": "uv.lock",
     "algorithm": "sha256",
-    "digest": "b7ef311cbc8fe71d44e6d409c23c00fde7353d410cbf806e210f3eb212d6a1bb",
+    "digest": "8c10473d1ccf68bc09151c7fe4e508dcdcd9585567f6746d136b4fed9383688f",
     "format_version": 1,
     "revision": 4
   },

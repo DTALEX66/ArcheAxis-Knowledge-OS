@@ -19,7 +19,7 @@ use std::sync::{Arc, Mutex};
 #[cfg(windows)]
 use tauri::webview::NewWindowResponse;
 #[cfg(windows)]
-use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 #[cfg(windows)]
 pub fn run() {
@@ -82,6 +82,11 @@ fn run_inner() -> Result<(), String> {
                 app.handle().exit(1);
             }
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if matches!(event, WindowEvent::CloseRequested { .. }) {
+                window.app_handle().exit(0);
+            }
         })
         .build(tauri::generate_context!())
         .map_err(|error| format!("desktop shell startup failed: {error}"))?;
