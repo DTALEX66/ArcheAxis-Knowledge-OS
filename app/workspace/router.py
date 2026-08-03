@@ -12,7 +12,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from app.workspace import service
+from app.workspace import bff, service
+from app.workspace.bff import BFFNotFoundError, BFFUnavailableError
 from shared.storage import DB_PATH
 
 WORKSPACE_PREFIX = "/" + "workspace"
@@ -189,6 +190,40 @@ def workspace_diagnostics() -> dict[str, object]:
 def workspace_status(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.workspace_status(db_path=DB_PATH))
+
+
+def _bff_error(action):
+    try:
+        return action()
+    except BFFNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="workspace object was not found") from exc
+    except (BFFUnavailableError, RuntimeError) as exc:
+        raise HTTPException(status_code=503, detail="workspace projection is unavailable") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/api/v1/home")
+def workspace_bff_home(request: Request) -> dict[str, object]:
+    """Read-only v1 home projection; persistence IDs never cross this boundary."""
+    _local_principal(request)
+    return _bff_error(lambda: bff.home(db_path=DB_PATH))
+
+
+@router.get("/api/v1/activity")
+def workspace_bff_activity(
+    request: Request, limit: int = 20, cursor: str | None = None
+) -> dict[str, object]:
+    """Stable cursor-paginated activity projection."""
+    _local_principal(request)
+    return _bff_error(lambda: bff.activity(db_path=DB_PATH, limit=limit, cursor=cursor))
+
+
+@router.get("/api/v1/objects/{public_ref}")
+def workspace_bff_object(public_ref: str, request: Request) -> dict[str, object]:
+    """Resolve only opaque public references to read-only object DTOs."""
+    _local_principal(request)
+    return _bff_error(lambda: bff.object_by_ref(db_path=DB_PATH, reference=public_ref))
 
 
 @router.get("/api/_desktop/ready")
