@@ -82,17 +82,17 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     assert page.evaluate("document.body.classList.contains('dock-collapsed')")
     page.get_by_role("button", name="展开活动坞").click()
     assert not page.evaluate("document.body.classList.contains('dock-collapsed')")
-    page.get_by_role("button", name="智体").click()
+    page.get_by_role("button", name="AI").click()
     page.get_by_role("heading", name="Agent管理").wait_for()
     assert "尚未接入真实数据" in page.locator("#page-unavailable").inner_text()
     planned_route = page.locator('.nav-item[data-page="agents"]')
     assert planned_route.get_attribute("data-route-state") == "planned"
     assert planned_route.get_by_text("规划中", exact=True).is_visible()
-    page.locator('.rail-item[title="观心"]').click()
+    page.locator('.rail-item[title="首页"]').click()
     page.get_by_role("heading", name="观心总览").wait_for()
     page.get_by_text("异步Worker", exact=True).wait_for()
     assert "尚未实现" in page.locator("#capability-summary").inner_text()
-    page.locator('.rail-item[title="知行"]').click()
+    page.locator('.rail-item[title="首页"]').click()
     delivery_route = page.locator('.nav-item[data-page="delivery"]')
     assert delivery_route.get_attribute("data-route-state") == "partial"
     assert delivery_route.get_by_text("部分接入", exact=True).is_visible()
@@ -100,7 +100,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.get_by_role("heading", name="投递回执").wait_for()
     assert page.url.endswith("#delivery")
 
-    page.locator('.rail-item[title="藏识"]').click()
+    page.locator('.rail-item[title="学习"]').click()
     learning_route = page.locator('.nav-item[data-page="learning"]')
     learning_route.get_by_text("学习路线", exact=True).click()
     page.get_by_role("heading", name="学习路线").wait_for()
@@ -227,34 +227,34 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     assert inspector.get_attribute("aria-hidden") == "false"
     assert not inspector.evaluate("element => element.hasAttribute('inert')")
 
-    page.locator('.rail-item[title="知行"]').click()
+    page.locator('.rail-item[title="首页"]').click()
     assert page.evaluate("document.body.classList.contains('subnav-open')")
-    assert page.locator('.rail-item[title="知行"]').get_attribute("aria-expanded") == "true"
+    assert page.locator('.rail-item[title="首页"]').get_attribute("aria-expanded") == "true"
     assert page.locator("#nav").get_attribute("aria-hidden") == "false"
     assert not page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.evaluate("document.activeElement?.dataset.page") == "runtime"
+    assert page.evaluate("document.activeElement?.dataset.page") == "overview"
     page.locator('.nav-item[data-page="delivery"]').click()
     page.get_by_role("heading", name="投递回执").wait_for()
     assert page.url.endswith("#delivery")
     assert not page.evaluate("document.body.classList.contains('subnav-open')")
-    assert page.evaluate("document.activeElement?.getAttribute('title')") == "知行"
-    assert page.locator('.rail-item[title="知行"]').get_attribute("aria-expanded") == "false"
+    assert page.evaluate("document.activeElement?.getAttribute('title')") == "首页"
+    assert page.locator('.rail-item[title="首页"]').get_attribute("aria-expanded") == "false"
     assert page.locator("#nav").get_attribute("aria-hidden") == "true"
     assert page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
 
-    page.locator('.rail-item[title="藏识"]').click()
+    page.locator('.rail-item[title="学习"]').click()
     assert page.evaluate("document.body.classList.contains('subnav-open')")
     page.locator('.nav-item[data-page="learning"]').click()
     page.get_by_role("heading", name="学习路线").wait_for()
     assert page.url.endswith("#learning")
     assert not page.evaluate("document.body.classList.contains('subnav-open')")
 
-    page.locator('.rail-item[title="藏识"]').click()
+    page.locator('.rail-item[title="学习"]').click()
     assert page.evaluate("document.body.classList.contains('subnav-open')")
     page.keyboard.press("Escape")
     assert not page.evaluate("document.body.classList.contains('subnav-open')")
-    assert page.evaluate("document.activeElement?.getAttribute('title')") == "藏识"
-    assert page.locator('.rail-item[title="藏识"]').get_attribute("aria-expanded") == "false"
+    assert page.evaluate("document.activeElement?.getAttribute('title')") == "学习"
+    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "false"
     assert page.locator("#nav").get_attribute("aria-hidden") == "true"
     assert page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
 
@@ -263,17 +263,17 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.set_viewport_size({"width": 1280, "height": 800})
     expect(page.locator("#nav")).to_have_attribute("aria-hidden", "false")
     assert not page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.locator('.rail-item[title="藏识"]').get_attribute("aria-expanded") == "true"
+    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "true"
     page.locator('.nav-item[data-page="learning"]').focus()
     page.set_viewport_size({"width": 390, "height": 844})
     expect(page.locator("#nav")).to_have_attribute("aria-hidden", "true")
     assert page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.evaluate("document.activeElement?.getAttribute('title')") == "藏识"
-    assert page.locator('.rail-item[title="藏识"]').get_attribute("aria-expanded") == "false"
+    assert page.evaluate("document.activeElement?.getAttribute('title')") == "学习"
+    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "false"
     page.set_viewport_size({"width": 1280, "height": 800})
     expect(page.locator("#nav")).to_have_attribute("aria-hidden", "false")
     assert not page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.locator('.rail-item[title="藏识"]').get_attribute("aria-expanded") == "true"
+    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "true"
 
     assert not page_errors, page_errors
     assert not console_errors, console_errors
