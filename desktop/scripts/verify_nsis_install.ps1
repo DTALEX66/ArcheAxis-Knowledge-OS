@@ -43,6 +43,22 @@ function Wait-ArcheAxisBackend {
     throw 'installed desktop backend did not become ready'
 }
 
+function Wait-ArcheAxisWindow {
+    param([System.Diagnostics.Process]$Shell)
+
+    for ($attempt = 0; $attempt -lt 80; $attempt++) {
+        Start-Sleep -Milliseconds 250
+        $Shell.Refresh()
+        if ($Shell.HasExited) {
+            throw "desktop shell exited before its main window became ready with $($Shell.ExitCode)"
+        }
+        if ($Shell.MainWindowHandle -ne [IntPtr]::Zero) {
+            return $Shell.MainWindowHandle
+        }
+    }
+    throw "desktop shell main window was not ready; pid=$($Shell.Id) handle=$($Shell.MainWindowHandle)"
+}
+
 function Stop-ArcheAxisInstallation {
     $uninstaller = Join-Path $installRoot 'uninstall.exe'
     if (Test-Path $uninstaller) {
@@ -106,9 +122,14 @@ try {
             throw 'installed runtime did not expose the verified public release identity'
         }
     }
-    [void]$activeShell.CloseMainWindow()
+    $windowHandle = Wait-ArcheAxisWindow -Shell $activeShell
+    $closeSent = $activeShell.CloseMainWindow()
+    if (-not $closeSent) {
+        throw "desktop shell rejected WM_CLOSE; pid=$($activeShell.Id) handle=$windowHandle"
+    }
     if (-not $activeShell.WaitForExit(15000)) {
-        throw 'desktop shell did not exit after closing its main window'
+        $activeShell.Refresh()
+        throw "desktop shell did not exit after WM_CLOSE; pid=$($activeShell.Id) handle=$windowHandle main_window=$($activeShell.MainWindowHandle)"
     }
     Start-Sleep -Seconds 1
     if (Get-Process -Id $normal.Child.ProcessId -ErrorAction SilentlyContinue) {

@@ -147,6 +147,12 @@ def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
         encoding="utf-8"
     )
     assert "v0.4.4" in lifecycle
+    assert "function Wait-ArcheAxisWindow" in lifecycle
+    assert "$Shell.Refresh()" in lifecycle
+    assert "$Shell.MainWindowHandle -ne [IntPtr]::Zero" in lifecycle
+    assert "$closeSent = $activeShell.CloseMainWindow()" in lifecycle
+    assert "desktop shell rejected WM_CLOSE" in lifecycle
+    assert "desktop shell did not exit after WM_CLOSE" in lifecycle
 
 
 def test_wheel_gate_requires_release_and_workspace_assets() -> None:
