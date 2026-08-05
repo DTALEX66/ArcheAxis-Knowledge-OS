@@ -45,6 +45,7 @@
 <section class="page" id="page-runtime">
   <div class="page-head"><div><div class="eyebrow">LOCAL JOB CENTER</div><h1>知行任务执行</h1><p class="desc">仅展示本地数据库严格绑定的同步记录与投递状态；不会显示内部编号、伪进度或未经证实的执行结果。</p></div><div class="head-actions"><button class="btn primary" data-action="jobs-refresh">刷新任务</button></div></div>
   <div class="card"><div class="card-title"><h2>最近任务</h2><span class="status ok"><i></i>同步记录</span></div><div class="list" id="job-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地任务记录</span></div></div></div></div>
+  <div class="card task-cockpit" id="task-cockpit"><div class="card-title"><div><h2>任务驾驶舱</h2><span class="muted small">只显示可由本地 API 读回的任务状态</span></div><span class="status info"><i></i>A2 · 真实回读</span></div><div class="cockpit-grid"><div class="cockpit-lane"><span class="eyebrow">SELECTED TASK</span><b id="cockpit-task-name">请选择任务</b><span id="cockpit-task-state" class="muted">从上方任务列表选择</span></div><div class="cockpit-lane"><span class="eyebrow">DELIVERY</span><b id="cockpit-delivery-state">等待读取</b><span id="cockpit-delivery-detail" class="muted">投递状态来自同一事务投影</span></div><div class="cockpit-lane"><span class="eyebrow">LIFECYCLE</span><b id="cockpit-lifecycle-state">等待读取</b><span id="cockpit-lifecycle-detail" class="muted">执行 → 追踪 → 评估 → 教训</span></div></div><div class="cockpit-timeline" id="cockpit-timeline" aria-live="polite"><div class="row"><div class="row-main"><b>尚未选择任务</b><span>不会显示伪进度或未经证实的完成状态</span></div></div></div></div>
   <div class="card"><div class="card-title"><h2>Outbox / Receipt 投影</h2><span class="status warn"><i></i>真实状态</span></div><div class="list" id="delivery-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取投递与回执状态</span></div></div></div></div>
 </section>
 <section class="page" id="page-research">
@@ -54,6 +55,10 @@
 <section class="page" id="page-knowledge">
   <div class="page-head"><div><div class="eyebrow">KNOWLEDGE CANDIDATES</div><h1>藏识知识</h1><p class="desc">Research 批准后形成的候选知识；每条来源都能继续进入 Learning，状态来自同一 SQLite。</p></div><div class="head-actions"><button class="btn primary" data-action="knowledge-refresh">刷新知识</button></div></div>
   <div class="card"><div class="card-title"><h2>候选知识</h2><span class="status candidate"><i></i>候选治理</span></div><div class="list" id="knowledge-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取真实知识候选</span></div></div></div></div>
+</section>
+<section class="page" id="page-canvas">
+  <div class="page-head"><div><div class="eyebrow">GOVERNED KNOWLEDGE CANVAS</div><h1>认知画布</h1><p class="desc">只回放本地 SQLite 中已治理的节点与连线；候选研究不会自动写入画布。</p></div><div class="head-actions"><input id="canvas-name" class="canvas-name" placeholder="新画布名称" aria-label="新画布名称"><button class="btn primary" data-action="canvas-create">创建画布</button></div></div>
+  <div class="split canvas-layout"><div class="card"><div class="card-title"><h2>画布列表</h2><span class="status info"><i></i>A3 · 本地回读</span></div><div class="list" id="canvas-list"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取已持久化画布</span></div></div></div></div><div class="card"><div class="card-title"><div><h2>空间回放</h2><span class="muted small">节点位置由后端持久化数据决定</span></div><span id="canvas-replay" class="status info"><i></i>执行回放读取中</span></div><div class="canvas-board" id="canvas-board" aria-live="polite">加载中</div></div></div>
 </section>
 <section class="page" id="page-learning">
   <div class="page-head"><div><div class="eyebrow">LEARNING LOOP</div><h1>学习路线</h1><p class="desc">从候选知识创建学习卡片，再记录真实练习；操作按来源绑定，内部产物编号不会进入页面。</p></div><div class="head-actions"><button class="btn primary" data-action="learning-refresh">刷新学习</button></div></div>
