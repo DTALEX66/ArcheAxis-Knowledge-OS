@@ -85,7 +85,14 @@ fn run_inner() -> Result<(), String> {
         })
         .on_window_event(|window, event| {
             if matches!(event, WindowEvent::CloseRequested { .. }) {
-                window.app_handle().exit(0);
+                let app_handle = window.app_handle().clone();
+                std::thread::spawn(move || {
+                    // Let the native WM_CLOSE callback return before asking
+                    // Tauri to stop its event loop; synchronous exit here can
+                    // leave the shell alive after CloseMainWindow succeeds.
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                    app_handle.exit(0);
+                });
             }
         })
         .build(tauri::generate_context!())
