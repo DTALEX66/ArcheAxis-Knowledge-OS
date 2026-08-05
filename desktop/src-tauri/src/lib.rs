@@ -90,7 +90,7 @@ fn run_inner() -> Result<(), String> {
                     // Let the native WM_CLOSE callback return before asking
                     // Tauri to stop its event loop; synchronous exit here can
                     // leave the shell alive after CloseMainWindow succeeds.
-                    std::thread::sleep(std::time::Duration::from_millis(50));
+                    std::thread::sleep(std::time::Duration::from_millis(500));
                     app_handle.exit(0);
                 });
             }
