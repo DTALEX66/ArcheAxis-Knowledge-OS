@@ -87,15 +87,12 @@ fn run_inner() -> Result<(), String> {
         })
         .on_window_event(|window, event| {
             if matches!(event, WindowEvent::CloseRequested { .. }) {
-                let _ = window.close();
-                let app_handle = window.app_handle().clone();
-                std::thread::spawn(move || {
-                    // Let the native WM_CLOSE callback return before asking
-                    // Tauri to stop its event loop; synchronous exit here can
-                    // leave the shell alive after CloseMainWindow succeeds.
-                    std::thread::sleep(std::time::Duration::from_millis(500));
-                    app_handle.exit(0);
-                });
+                // WM_CLOSE is already being handled. Destroying the native
+                // window avoids re-entering CloseRequested through window.close
+                // and lets the normal ExitRequested hook synchronously reap
+                // the owned backend before the shell exits.
+                let _ = window.destroy();
+                window.app_handle().exit(0);
             }
         })
         .build(tauri::generate_context!())
