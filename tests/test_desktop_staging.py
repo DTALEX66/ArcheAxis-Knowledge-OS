@@ -70,3 +70,14 @@ def test_tauri_maps_webview_profile_to_the_resolved_runtime_data_root() -> None:
     source = (repository / "desktop/src-tauri/src/lib.rs").read_text(encoding="utf-8")
 
     assert ".data_directory(runtime.data_dir.clone())" in source
+
+
+def test_portable_launcher_sets_an_explicit_data_root() -> None:
+    repository = Path(__file__).resolve().parents[1]
+    launcher = (
+        repository / "desktop/portable/launch_portable.ps1"
+    ).read_text(encoding="utf-8")
+
+    assert "$env:COGNITIVE_PORTABLE_ROOT = $dataRoot" in launcher
+    assert "Start-Process -FilePath $portableExe" in launcher
+    assert "COGNITIVE_DATA_DIR" not in launcher

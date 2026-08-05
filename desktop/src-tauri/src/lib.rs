@@ -11,9 +11,9 @@ use backend::BackendProcess;
 #[cfg(windows)]
 use navigation::navigation_allowed;
 #[cfg(windows)]
-use runtime::resolve_runtime;
+use runtime::resolve_runtime_with_portable_root;
 #[cfg(windows)]
-use std::path::Path;
+use std::path::{Path, PathBuf};
 #[cfg(windows)]
 use std::sync::{Arc, Mutex};
 #[cfg(windows)]
@@ -48,11 +48,13 @@ fn run_inner() -> Result<(), String> {
                     .path()
                     .app_local_data_dir()
                     .map_err(|error| error.to_string())?;
-                let runtime = resolve_runtime(
+                let portable_root = std::env::var_os("COGNITIVE_PORTABLE_ROOT").map(PathBuf::from);
+                let runtime = resolve_runtime_with_portable_root(
                     Path::new(env!("CARGO_MANIFEST_DIR")),
                     &resources,
                     &local_data,
                     cfg!(debug_assertions),
+                    portable_root.as_deref(),
                 )?;
                 let process = BackendProcess::launch(&runtime)?;
                 let port = process.port;

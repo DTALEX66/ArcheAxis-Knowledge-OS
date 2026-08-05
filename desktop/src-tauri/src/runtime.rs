@@ -32,6 +32,22 @@ pub fn resolve_runtime(
     local_data_dir: &Path,
     development: bool,
 ) -> Result<RuntimeSpec, String> {
+    resolve_runtime_with_portable_root(
+        manifest_dir,
+        resource_dir,
+        local_data_dir,
+        development,
+        None,
+    )
+}
+
+pub fn resolve_runtime_with_portable_root(
+    manifest_dir: &Path,
+    resource_dir: &Path,
+    local_data_dir: &Path,
+    development: bool,
+    portable_root: Option<&Path>,
+) -> Result<RuntimeSpec, String> {
     if development {
         let desktop_dir = manifest_dir
             .parent()
@@ -61,6 +77,20 @@ pub fn resolve_runtime(
             python.display()
         ));
     }
+    if let Some(portable_root) = portable_root {
+        if !portable_root.is_absolute() {
+            return Err(format!(
+                "portable data root must be absolute: {}",
+                portable_root.display()
+            ));
+        }
+        return Ok(RuntimeSpec {
+            python,
+            cwd: portable_root.to_path_buf(),
+            data_dir: portable_root.to_path_buf(),
+            isolated: true,
+        });
+    }
     let data_dir = project_root_for_resource(resource_dir)
         .map(|root| root.join(".hermes/task-runtime/desktop-installed"))
         .unwrap_or_else(|| local_data_dir.to_path_buf());
@@ -74,8 +104,9 @@ pub fn resolve_runtime(
 
 #[cfg(test)]
 mod tests {
-    use super::{RuntimeSpec, resolve_runtime};
+    use super::{RuntimeSpec, resolve_runtime, resolve_runtime_with_portable_root};
     use std::fs;
+    use std::path::Path;
     use tempfile::tempdir;
 
     #[test]
@@ -231,5 +262,50 @@ mod tests {
         .expect_err("missing runtime must fail closed");
 
         assert!(error.contains("bundled Python runtime"));
+    }
+
+    #[test]
+    fn explicit_portable_root_overrides_installed_user_data_root() {
+        let temp = tempdir().expect("temporary directory");
+        let resources = temp.path().join("resources");
+        let local_data = temp.path().join("user-local-data");
+        let portable_root = temp.path().join("portable-data");
+        let python = resources.join("runtime/python/python.exe");
+        fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
+        fs::write(&python, b"test").expect("create python marker");
+
+        let resolved = resolve_runtime_with_portable_root(
+            &temp.path().join("manifest"),
+            &resources,
+            &local_data,
+            false,
+            Some(&portable_root),
+        )
+        .expect("portable runtime");
+
+        assert_eq!(resolved.data_dir, portable_root);
+        assert_eq!(resolved.cwd, resolved.data_dir);
+        assert_ne!(resolved.data_dir, local_data);
+        assert!(resolved.isolated);
+    }
+
+    #[test]
+    fn portable_root_must_be_absolute() {
+        let temp = tempdir().expect("temporary directory");
+        let resources = temp.path().join("resources");
+        let python = resources.join("runtime/python/python.exe");
+        fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
+        fs::write(&python, b"test").expect("create python marker");
+
+        let error = resolve_runtime_with_portable_root(
+            &temp.path().join("manifest"),
+            &resources,
+            &temp.path().join("user-local-data"),
+            false,
+            Some(Path::new("portable-data")),
+        )
+        .expect_err("relative portable root must fail closed");
+
+        assert!(error.contains("portable data root must be absolute"));
     }
 }
