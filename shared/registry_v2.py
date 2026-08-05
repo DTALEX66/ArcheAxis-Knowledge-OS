@@ -42,6 +42,14 @@ class RiskPolicy(str, Enum):
     RESTRICTED = "restricted"
 
 
+class EvidenceState(str, Enum):
+    """Provenance state; unknown data must never be treated as verified."""
+
+    UNKNOWN = "unknown"
+    RECORDED = "recorded"
+    VERIFIED = "verified"
+
+
 @dataclass(frozen=True)
 class LicenseInfo:
     spdx: str | None = None
@@ -58,6 +66,20 @@ class RiskAssessment:
     dependency_risk: str | None = None
     security_supply_chain_risk: str | None = None
     architecture_fit_score: float | None = None
+
+
+@dataclass(frozen=True)
+class ProvenanceEvidence:
+    """Evidence fields that may remain unknown until independently collected."""
+
+    canonical_source: str | None = None
+    source_revision: str | None = None
+    license_snapshot: str | None = None
+    implementation_paths: tuple[str, ...] = ()
+    rollback_handle: str | None = None
+    state: EvidenceState = EvidenceState.UNKNOWN
+    test_evidence: tuple[str, ...] = ()
+    runtime_evidence: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -78,6 +100,8 @@ class RegistryEntryV2:
     note: str = ""
     aliases: list[str] = field(default_factory=list)
     requires_human_review: bool = True
+    # Appended after all V1 fields to preserve the public positional API.
+    provenance: ProvenanceEvidence = field(default_factory=ProvenanceEvidence)
 
     @classmethod
     def from_v1(cls, entry: dict[str, Any]) -> RegistryEntryV2:
@@ -95,7 +119,77 @@ class RegistryEntryV2:
                 entry.get("risk_policy", "standard_review")
             ),
             note=entry.get("note", ""),
+            provenance=cls._provenance_from_entry(entry),
             requires_human_review=True,
+        )
+
+    @staticmethod
+    def _provenance_from_entry(entry: dict[str, Any]) -> ProvenanceEvidence:
+        raw = entry.get("provenance", {})
+        if not isinstance(raw, dict):
+            raw = {}
+        def evidence_values(key: str, legacy_key: str | None = None) -> tuple[Any, ...]:
+            values = raw.get(key, entry.get(legacy_key, ()) if legacy_key else ())
+            if isinstance(values, str):
+                return (values,)
+            if isinstance(values, (list, tuple)):
+                # Preserve malformed values so a claimed verified record cannot
+                # become valid merely by silently dropping an invalid value.
+                return tuple(values)
+            return ()
+
+        paths = evidence_values("implementation_paths", "implementation_evidence")
+        test_evidence = evidence_values("test_evidence")
+        runtime_evidence = evidence_values("runtime_evidence")
+        state = raw.get("state", entry.get("evidence_state", "unknown"))
+        try:
+            evidence_state = EvidenceState(state)
+        except ValueError:
+            evidence_state = EvidenceState.UNKNOWN
+        canonical_source = raw.get("canonical_source", entry.get("canonical_source"))
+        source_revision = raw.get("source_revision", entry.get("source_revision"))
+        license_snapshot = raw.get("license_snapshot", entry.get("license_snapshot"))
+        rollback_handle = raw.get("rollback_handle", entry.get("rollback_handle"))
+        def nonempty_text(value: Any) -> bool:
+            return isinstance(value, str) and bool(value.strip())
+
+        def nonempty_evidence(values: tuple[Any, ...]) -> bool:
+            return bool(values) and all(nonempty_text(value) for value in values)
+
+        complete_evidence = (
+            nonempty_text(canonical_source)
+            and nonempty_text(source_revision)
+            and nonempty_text(license_snapshot)
+            and nonempty_evidence(paths)
+            and nonempty_evidence(test_evidence)
+            and nonempty_evidence(runtime_evidence)
+            and nonempty_text(rollback_handle)
+        )
+        if (
+            evidence_state is EvidenceState.VERIFIED
+            and not complete_evidence
+        ) or (
+            evidence_state is EvidenceState.RECORDED
+            and not (
+                nonempty_text(canonical_source)
+                or nonempty_text(source_revision)
+                or nonempty_text(license_snapshot)
+                or nonempty_evidence(paths)
+                or nonempty_evidence(test_evidence)
+                or nonempty_evidence(runtime_evidence)
+                or nonempty_text(rollback_handle)
+            )
+        ):
+            evidence_state = EvidenceState.UNKNOWN
+        return ProvenanceEvidence(
+            canonical_source=canonical_source,
+            source_revision=source_revision,
+            license_snapshot=license_snapshot,
+            implementation_paths=paths,
+            test_evidence=test_evidence,
+            runtime_evidence=runtime_evidence,
+            rollback_handle=rollback_handle,
+            state=evidence_state,
         )
 
     @staticmethod
@@ -146,3 +240,56 @@ def validate_registry(entries: list[dict[str, Any]]) -> tuple[list[RegistryEntry
             errors.append(f"entry [{i}] ({asset_id}): {exc}")
 
     return migrated, errors
+
+
+def validate_registry_ledger_pair(
+    registry_entries: list[dict[str, Any]], ledger_entries: list[dict[str, Any]]
+) -> list[str]:
+    """Check identity and status boundaries without upgrading any candidate."""
+    errors: list[str] = []
+    def index_entries(entries: list[dict[str, Any]], label: str) -> dict[str, dict[str, Any]]:
+        indexed: dict[str, dict[str, Any]] = {}
+        for index, entry in enumerate(entries):
+            project_id = entry.get("project_id")
+            if not isinstance(project_id, str) or not project_id:
+                errors.append(f"{label} entry [{index}]: project_id must be non-empty string")
+            elif project_id in indexed:
+                errors.append(f"{label} entry [{index}]: duplicate project_id {project_id}")
+            else:
+                indexed[project_id] = entry
+        return indexed
+
+    registry_by_id = index_entries(registry_entries, "registry")
+    ledger_by_id = index_entries(ledger_entries, "ledger")
+    if errors:
+        return errors
+    if set(registry_by_id) != set(ledger_by_id):
+        errors.append("registry and ledger project_id sets differ")
+        return errors
+    shared_fields = (
+        "name",
+        "category",
+        "recommended_target",
+        "absorption_mode",
+        "risk_policy",
+        "note",
+    )
+    for project_id, source in registry_by_id.items():
+        ledger = ledger_by_id[project_id]
+        for field_name in (*shared_fields, "status"):
+            ledger_field = "source_status" if field_name == "status" else field_name
+            if field_name not in source or ledger_field not in ledger:
+                errors.append(f"{project_id}: missing identity field: {field_name}")
+            elif source[field_name] != ledger[ledger_field]:
+                errors.append(f"{project_id}: shared field differs: {field_name}")
+        execution_state = ledger.get("execution_state")
+        if not isinstance(execution_state, str) or execution_state not in {
+            "implemented",
+            "adapter_contract_pending",
+            "deferred_review",
+            "reference_only",
+        }:
+            errors.append(f"{project_id}: invalid execution_state {execution_state!r}")
+        if execution_state == "implemented" and not ledger.get("implementation_evidence"):
+            errors.append(f"{project_id}: implemented entry lacks implementation_evidence")
+    return errors
