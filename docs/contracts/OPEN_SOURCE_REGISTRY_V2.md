@@ -26,12 +26,17 @@ Each future V2 entry may record:
 - `source_revision`
 - `license_snapshot`
 - `implementation_paths`
+- `test_evidence`
+- `runtime_evidence`
 - `rollback_handle`
 - `state`
 
 Missing values are represented as `null` or an empty collection and mean
-`unknown`; they are not replaced with guessed URLs, revisions, licenses, or
-synthetic implementation paths.
+`unknown`; they are not replaced with guessed URLs, revisions, licenses, test,
+runtime, or synthetic implementation paths. `recorded` requires at least one
+non-empty evidence field. `verified` requires all source, revision, license,
+implementation, test, runtime, and rollback evidence fields to be non-empty
+and type-valid.
 
 ## Registry/ledger boundary
 

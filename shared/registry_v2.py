@@ -78,6 +78,8 @@ class ProvenanceEvidence:
     implementation_paths: tuple[str, ...] = ()
     rollback_handle: str | None = None
     state: EvidenceState = EvidenceState.UNKNOWN
+    test_evidence: tuple[str, ...] = ()
+    runtime_evidence: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -126,15 +128,19 @@ class RegistryEntryV2:
         raw = entry.get("provenance", {})
         if not isinstance(raw, dict):
             raw = {}
-        paths = raw.get("implementation_paths", entry.get("implementation_evidence", ()))
-        if isinstance(paths, str):
-            paths = (paths,)
-        elif isinstance(paths, list):
-            # Preserve malformed values so a claimed verified record cannot
-            # become valid merely by silently dropping an invalid path.
-            paths = tuple(paths)
-        elif not isinstance(paths, tuple):
-            paths = ()
+        def evidence_values(key: str, legacy_key: str | None = None) -> tuple[Any, ...]:
+            values = raw.get(key, entry.get(legacy_key, ()) if legacy_key else ())
+            if isinstance(values, str):
+                return (values,)
+            if isinstance(values, (list, tuple)):
+                # Preserve malformed values so a claimed verified record cannot
+                # become valid merely by silently dropping an invalid value.
+                return tuple(values)
+            return ()
+
+        paths = evidence_values("implementation_paths", "implementation_evidence")
+        test_evidence = evidence_values("test_evidence")
+        runtime_evidence = evidence_values("runtime_evidence")
         state = raw.get("state", entry.get("evidence_state", "unknown"))
         try:
             evidence_state = EvidenceState(state)
@@ -144,17 +150,35 @@ class RegistryEntryV2:
         source_revision = raw.get("source_revision", entry.get("source_revision"))
         license_snapshot = raw.get("license_snapshot", entry.get("license_snapshot"))
         rollback_handle = raw.get("rollback_handle", entry.get("rollback_handle"))
-        if evidence_state is EvidenceState.VERIFIED and not (
-            isinstance(canonical_source, str)
-            and canonical_source.strip()
-            and isinstance(source_revision, str)
-            and source_revision.strip()
-            and isinstance(license_snapshot, str)
-            and license_snapshot.strip()
-            and paths
-            and all(isinstance(path, str) and path.strip() for path in paths)
-            and isinstance(rollback_handle, str)
-            and rollback_handle.strip()
+        def nonempty_text(value: Any) -> bool:
+            return isinstance(value, str) and bool(value.strip())
+
+        def nonempty_evidence(values: tuple[Any, ...]) -> bool:
+            return bool(values) and all(nonempty_text(value) for value in values)
+
+        complete_evidence = (
+            nonempty_text(canonical_source)
+            and nonempty_text(source_revision)
+            and nonempty_text(license_snapshot)
+            and nonempty_evidence(paths)
+            and nonempty_evidence(test_evidence)
+            and nonempty_evidence(runtime_evidence)
+            and nonempty_text(rollback_handle)
+        )
+        if (
+            evidence_state is EvidenceState.VERIFIED
+            and not complete_evidence
+        ) or (
+            evidence_state is EvidenceState.RECORDED
+            and not (
+                nonempty_text(canonical_source)
+                or nonempty_text(source_revision)
+                or nonempty_text(license_snapshot)
+                or nonempty_evidence(paths)
+                or nonempty_evidence(test_evidence)
+                or nonempty_evidence(runtime_evidence)
+                or nonempty_text(rollback_handle)
+            )
         ):
             evidence_state = EvidenceState.UNKNOWN
         return ProvenanceEvidence(
@@ -162,6 +186,8 @@ class RegistryEntryV2:
             source_revision=source_revision,
             license_snapshot=license_snapshot,
             implementation_paths=paths,
+            test_evidence=test_evidence,
+            runtime_evidence=runtime_evidence,
             rollback_handle=rollback_handle,
             state=evidence_state,
         )
