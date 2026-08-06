@@ -237,7 +237,7 @@ def desktop_readiness(request: Request) -> dict[str, str]:
     return {
         "schema_version": "v1",
         "product": "ArcheAxis OS",
-        "workspace": "ArcheAxis Cognitive Workspace",
+        "workspace": "Human–AI Learning Workspace",
     }
 
 

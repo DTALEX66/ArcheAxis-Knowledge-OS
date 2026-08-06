@@ -41,9 +41,9 @@ async def core_runtime_lifespan(_: FastAPI):
 
 app = FastAPI(
     lifespan=core_runtime_lifespan,
-    title="Cognitive-Loop-OS",
+    title="ArcheAxis OS — Human–AI Learning Workspace",
     version=str(config.get("app.version", "0.4.4")),
-    description="AI cognitive runtime with an integrated Knowledge-Base. "
+    description="Local-first, evidence-driven Human–AI Learning Workspace for personal knowledge and AI-assisted learning. "
     "Absorbs Obsidian, Tana, Notion, Logseq, Roam, Heptabase, GraphRAG, Zettelkasten.",
     docs_url="/docs",
     redoc_url="/redoc",
