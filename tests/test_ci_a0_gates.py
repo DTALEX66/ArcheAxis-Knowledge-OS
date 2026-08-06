@@ -80,6 +80,7 @@ def test_desktop_close_request_destroys_native_window_before_exit() -> None:
     assert "WindowEvent::CloseRequested" in close_handler
     assert "window.destroy()" in close_handler
     assert "window.app_handle().exit(0)" in close_handler
+    assert "api.prevent_close()" in close_handler
     assert "window.close()" not in close_handler
     assert "thread::sleep" not in close_handler
 
