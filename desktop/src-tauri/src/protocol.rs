@@ -26,7 +26,7 @@ pub fn readiness_payload_valid(body: &str) -> bool {
     };
     payload.schema_version == "v1"
         && payload.product == "ArcheAxis OS"
-        && payload.workspace == "ArcheAxis Cognitive Workspace"
+        && payload.workspace == "Human–AI Learning Workspace"
 }
 
 #[cfg(test)]
@@ -45,13 +45,13 @@ mod tests {
     #[test]
     fn readiness_requires_the_exact_product_identity() {
         assert!(readiness_payload_valid(
-            r#"{"schema_version":"v1","product":"ArcheAxis OS","workspace":"ArcheAxis Cognitive Workspace"}"#
+            r#"{"schema_version":"v1","product":"ArcheAxis OS","workspace":"Human–AI Learning Workspace"}"#
         ));
         assert!(!readiness_payload_valid(
-            r#"{"schema_version":"v2","product":"ArcheAxis OS","workspace":"ArcheAxis Cognitive Workspace"}"#
+            r#"{"schema_version":"v2","product":"ArcheAxis OS","workspace":"Human–AI Learning Workspace"}"#
         ));
         assert!(!readiness_payload_valid(
-            r#"{"schema_version":"v1","product":"Another Service","workspace":"ArcheAxis Cognitive Workspace"}"#
+            r#"{"schema_version":"v1","product":"Another Service","workspace":"Human–AI Learning Workspace"}"#
         ));
         assert!(!readiness_payload_valid("not-json"));
     }
