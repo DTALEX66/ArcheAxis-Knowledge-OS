@@ -71,6 +71,19 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert 'Write-Host "NSIS installers found:' in desktop_job
 
 
+def test_desktop_close_request_destroys_native_window_before_exit() -> None:
+    source = (ROOT / "desktop/src-tauri/src/lib.rs").read_text(encoding="utf-8")
+
+    close_handler = source.split(".on_window_event(|window, event|", 1)[1].split(
+        ".build(tauri::generate_context!())", 1
+    )[0]
+    assert "WindowEvent::CloseRequested" in close_handler
+    assert "window.destroy()" in close_handler
+    assert "window.app_handle().exit(0)" in close_handler
+    assert "window.close()" not in close_handler
+    assert "thread::sleep" not in close_handler
+
+
 def test_desktop_shell_uses_the_product_version_everywhere() -> None:
     product_version = json.loads(
         (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
