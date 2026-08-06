@@ -42,7 +42,7 @@ async def core_runtime_lifespan(_: FastAPI):
 app = FastAPI(
     lifespan=core_runtime_lifespan,
     title="ArcheAxis OS — Human–AI Learning Workspace",
-    version=str(config.get("app.version", "0.4.4")),
+    version=str(config.get("app.version", "0.4.5")),
     description="Local-first, evidence-driven Human–AI Learning Workspace for personal knowledge and AI-assisted learning. "
     "Absorbs Obsidian, Tana, Notion, Logseq, Roam, Heptabase, GraphRAG, Zettelkasten.",
     docs_url="/docs",
@@ -362,7 +362,7 @@ def health():
     return {
         "status": "ok",
         "system": "cognitive-loop-os",
-        "version": str(config.get("app.version", "0.4.4")),
+        "version": str(config.get("app.version", "0.4.5")),
         "endpoints": _http_route_counts(),
         "stats": {
             "documents": _c("kb_documents"),
@@ -649,7 +649,7 @@ graph TB
     Auth-->Router; Router-->Pipeline; Pipeline-->Search; Pipeline-->Garden
     Search-->SQLite; Search-->VecDB; Garden-->GraphDB; Review-->SQLite; SQLite-->Backup
 ```""",
-        "version": str(config.get("app.version", "0.4.4")),
+        "version": str(config.get("app.version", "0.4.5")),
         "measurement_note": "Module and test counts are intentionally not embedded.",
     }
 

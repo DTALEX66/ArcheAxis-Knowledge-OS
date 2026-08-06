@@ -113,7 +113,7 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
 
 
 def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
-    expected_version = "0.4.4"
+    expected_version = "0.4.5"
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     manifest = json.loads(
         (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
@@ -143,7 +143,7 @@ def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
     } == {expected_version}
     assert f"--version {expected_version}" in release_workflow
     assert (
-        'name = "cognitive-loop-os"\nversion = "0.4.4"\nsource = { editable = "." }'
+        'name = "cognitive-loop-os"\nversion = "0.4.5"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")
     )
     for path in (
@@ -160,7 +160,7 @@ def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
     lifecycle = (ROOT / "desktop/scripts/verify_nsis_install.ps1").read_text(
         encoding="utf-8"
     )
-    assert "v0.4.4" in lifecycle
+    assert "v0.4.5" in lifecycle
     assert "function Wait-ArcheAxisWindow" in lifecycle
     assert "$Shell.Refresh()" in lifecycle
     assert "$Shell.MainWindowHandle -ne [IntPtr]::Zero" in lifecycle
