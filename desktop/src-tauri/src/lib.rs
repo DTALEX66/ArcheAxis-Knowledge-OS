@@ -86,12 +86,11 @@ fn run_inner() -> Result<(), String> {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if matches!(event, WindowEvent::CloseRequested { .. }) {
-                // WM_CLOSE is already being handled. Destroying the native
-                // window avoids re-entering CloseRequested through window.close
-                // and lets the normal ExitRequested hook synchronously reap
-                // the owned backend before the shell exits.
-                let _ = window.destroy();
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                // WM_CLOSE is already being handled. Prevent Tauri's default
+                // close path and let the ExitRequested hook close the owned
+                // backend and terminate the shell exactly once.
+                api.prevent_close();
                 window.app_handle().exit(0);
             }
         })
