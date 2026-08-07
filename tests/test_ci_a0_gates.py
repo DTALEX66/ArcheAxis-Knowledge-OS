@@ -103,12 +103,19 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
     )
     assert cargo_version is not None
 
+    cargo_lock_root = re.search(
+        r'name = "archeaxis-desktop-shell"\nversion = "([^"]+)"',
+        (ROOT / "desktop/src-tauri/Cargo.lock").read_text(encoding="utf-8"),
+    )
+    assert cargo_lock_root is not None, "Cargo.lock root package not found"
+
     assert {
         package["version"],
         package_lock["version"],
         package_lock["packages"][""]["version"],
         tauri["version"],
         cargo_version.group(1),
+        cargo_lock_root.group(1),
     } == {product_version}
 
 

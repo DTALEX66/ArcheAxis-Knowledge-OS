@@ -17,7 +17,8 @@
   "source": {
     "commit": "unavailable",
     "tree": "unavailable",
-    "ci_run": "unavailable",
+    "verification_ci_run_id": "unavailable",
+    "release_run_id": "unavailable",
     "reason": "Exact source and CI identity are injected only into a verified release artifact."
   },
   "dependency_lock": {

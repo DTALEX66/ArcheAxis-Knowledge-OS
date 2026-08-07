@@ -143,6 +143,52 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
     identity_path.write_text(
         json.dumps(
             {
+                "schema_version": "2.0.0",
+                "release": {
+                    "tag": "v0.4.5",
+                    "version": "0.4.5",
+                    "channel": "stable",
+                    "public": True,
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
+                },
+                "source": {
+                    "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+                    "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
+                    "verification_ci_run_id": 30548553629,
+                    "verification_ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                    "release_run_id": 30548553630,
+                    "release_run_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553630",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(release, "_ARTIFACT_IDENTITY_PATH", identity_path)
+    release.load_artifact_release_identity.cache_clear()
+
+    assert release.safe_release_summary() == {
+        "status": "released",
+        "version": "0.4.5",
+        "channel": "stable",
+        "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+        "tag": "v0.4.5",
+        "verification_ci_run_id": 30548553629,
+        "release_run_id": 30548553630,
+        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
+    }
+    assert release.effective_capabilities()["public_installer"] == "available"
+
+
+def test_bundled_release_identity_v1_reader_still_accepted_for_backward_compat(
+    monkeypatch, tmp_path
+) -> None:
+    """Schema v1 (legacy ci_run/ci_url) remains readable for migration/diagnostics."""
+    from app import release
+
+    identity_path = tmp_path / "release-identity.json"
+    identity_path.write_text(
+        json.dumps(
+            {
                 "schema_version": "1.0.0",
                 "release": {
                     "tag": "v0.4.5",
@@ -164,25 +210,54 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
     monkeypatch.setattr(release, "_ARTIFACT_IDENTITY_PATH", identity_path)
     release.load_artifact_release_identity.cache_clear()
 
-    assert release.safe_release_summary() == {
-        "status": "released",
-        "version": "0.4.5",
-        "channel": "stable",
-        "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
-        "tag": "v0.4.5",
-        "ci_run": 30548553629,
-        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
-    }
+    summary = release.safe_release_summary()
+    assert summary["status"] == "released"
+    assert summary["ci_run"] == 30548553629
     assert release.effective_capabilities()["public_installer"] == "available"
+
+
+def test_release_identity_v2_rejects_verification_equal_release_run(monkeypatch, tmp_path) -> None:
+    """A selective/main-bind run can never be mistaken for release qualification."""
+    from app import release
+
+    identity_path = tmp_path / "release-identity.json"
+    identity_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "2.0.0",
+                "release": {
+                    "tag": "v0.4.5",
+                    "version": "0.4.5",
+                    "channel": "stable",
+                    "public": True,
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
+                },
+                "source": {
+                    "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+                    "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
+                    "verification_ci_run_id": 30548553629,
+                    "verification_ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                    "release_run_id": 30548553629,
+                    "release_run_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(release, "_ARTIFACT_IDENTITY_PATH", identity_path)
+    release.load_artifact_release_identity.cache_clear()
+
+    with pytest.raises(RuntimeError, match="invalid v2 source fields"):
+        release.load_artifact_release_identity()
 
 
 def test_bundled_release_identity_rejects_semantically_wrong_urls(monkeypatch, tmp_path) -> None:
     from app import release
 
     identity = {
-        "schema_version": "1.0.0",
+        "schema_version": "2.0.0",
         "release": {"tag": "v0.4.0", "version": "0.4.0", "channel": "stable", "public": True, "url": "https://github.com/foreign-owner/foreign-repo/releases/tag/v0.4.0"},
-        "source": {"commit": "34ca0fbd5ae636314a3403c473bde9247ef95907", "tree": "d144559cdd81e1ca582231ea8bdcbd27821716", "ci_run": 30548553629, "ci_url": "https://github.com/foreign-owner/foreign-repo/actions/runs/30548553629"},
+        "source": {"commit": "34ca0fbd5ae636314a3403c473bde9247ef95907", "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716", "verification_ci_run_id": 30548553629, "verification_ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629", "release_run_id": 30548553630, "release_run_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553630"},
     }
     path = tmp_path / "release-identity.json"
     path.write_text(json.dumps(identity), encoding="utf-8")
@@ -313,6 +388,26 @@ def test_release_truth_documents_preserve_historical_and_source_manifest_truth()
     assert "artifacts are signed" not in changelog.lower()
 
 
+def test_release_ledger_documents_historical_truth_and_provenance_defect() -> None:
+    root = Path(__file__).resolve().parents[1]
+    ledger = (root / "docs" / "RELEASE_LEDGER.md").read_text(encoding="utf-8")
+
+    # Ledger covers every tag from v0.4.0 through the current dev version.
+    for tag in ("v0.4.0", "v0.4.1", "v0.4.2", "v0.4.3", "v0.4.4", "v0.4.5"):
+        assert tag in ledger, f"ledger missing {tag}"
+
+    # v0.4.4 provenance defect is recorded, not silently dropped.
+    assert "30839451084" in ledger
+    assert "30837105199" in ledger
+    assert "provenance" in ledger.lower()
+    assert "verification_ci_run_id" in ledger
+    assert "release_run_id" in ledger
+    assert "schema v1" in ledger
+
+    # Policy: never rewrite history; future releases use schema v2.
+    assert "not" in ledger and "rewrite" in ledger.lower()
+
+
 def test_release_workflow_downloads_and_rehashes_exact_public_asset_set() -> None:
     root = Path(__file__).resolve().parents[1]
     workflow = (root / ".github" / "workflows" / "release.yml").read_text(
@@ -372,7 +467,9 @@ def test_release_workflow_readback_binds_target_and_identity_tree() -> None:
     assert "release target commit is neither main nor exact workflow SHA" in workflow
     assert '$identity.source.tree -ne $tree' in workflow
     assert "downloaded release identity tree mismatch" in workflow
-    assert "downloaded release identity CI URL mismatch" in workflow
+    assert "downloaded release identity verification CI identity is missing" in workflow
+    assert "release identity must be schema v2" in workflow
+    assert "verification CI run must differ from the release workflow run" in workflow
 
 
 def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) -> None:
@@ -396,17 +493,18 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
          "--tag", "v0.4.0",
          "--version", "0.4.0",
          "--url", "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
-         "--ci-url", "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+         "--verification-ci-run-id", "30548553629",
+         "--verification-ci-url", "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
          "--output", str(output)],
         capture_output=True,
         text=True,
         cwd=Path(__file__).resolve().parents[1],
-        env={**os.environ, "GITHUB_RUN_ID": "30548553629"},
+        env={**os.environ, "GITHUB_RUN_ID": "30548553630"},
     )
     assert result.returncode == 0, f"script failed: {result.stderr}"
 
     identity = json.loads(output.read_text(encoding="utf-8"))
-    assert identity["schema_version"] == "1.0.0"
+    assert identity["schema_version"] == "2.0.0"
     assert identity["source"]["commit"] == commit
     assert identity["source"]["tree"] == tree
     assert identity["release"] == {
@@ -416,8 +514,40 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
         "public": True,
         "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
     }
+    assert identity["source"]["verification_ci_url"] == "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629"
+    assert identity["source"]["verification_ci_run_id"] == 30548553629
+    assert identity["source"]["release_run_id"] == 30548553630
+    assert identity["source"]["release_run_url"] == "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553630"
+
+
+def test_release_identity_injection_writes_v1_for_backward_compat(tmp_path) -> None:
+    """Schema v1 injection remains available for migration/diagnostics."""
+    import os
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "release_inject_identity.py"
+    output = tmp_path / "release-identity-v1.json"
+    result = subprocess.run(
+        [sys.executable, str(script),
+         "--commit", "7e0d883cbcd5acec9a3e75c13189ee4734dc976c",
+         "--tree", "5aeaa2c070ef677e6cb5a131f3ff5242cc58f172",
+         "--tag", "v0.4.0",
+         "--version", "0.4.0",
+         "--url", "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+         "--schema-version", "1.0.0",
+         "--ci-url", "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+         "--output", str(output)],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "GITHUB_RUN_ID": "30548553630"},
+    )
+    assert result.returncode == 0, f"script failed: {result.stderr}"
+    identity = json.loads(output.read_text(encoding="utf-8"))
+    assert identity["schema_version"] == "1.0.0"
+    assert identity["source"]["ci_run"] == 30548553630
     assert identity["source"]["ci_url"] == "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629"
-    assert identity["source"]["ci_run"] == 30548553629
 
 
 def test_release_identity_injection_rejects_invalid_sha(tmp_path) -> None:
