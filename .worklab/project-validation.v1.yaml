@@ -119,6 +119,7 @@ risk_classes:
       - "knowledge_base/**"
       - "inspiration_research/**"
       - "integration-tests/**"
+      - "tests/**"
       - "scripts/check_*.py"
     gates: [static, lint, py-primary]
 
