@@ -52,6 +52,11 @@ def _path_matches(pattern: str, path: str) -> bool:
     if pat.endswith("/**"):
         prefix = pat[:-3]
         return norm == prefix.rstrip("/") or norm.startswith(prefix.rstrip("/") + "/")
+    # support a leading **/ matching the path with or without a directory prefix
+    # (e.g. **/*.md must also match a root-level README.md / AGENTS.md)
+    if pat.startswith("**/"):
+        remainder = pat[3:]
+        return fnmatch.fnmatchcase(norm, remainder)
     return False
 
 
