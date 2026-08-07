@@ -37,6 +37,10 @@ def _require_exact_keys(value: object, expected: set[str], label: str) -> dict[s
     return value
 
 
+def _require_repo_url(url: str, run_id: int) -> bool:
+    return url == f"{_RELEASE_REPOSITORY_URL}/actions/runs/{run_id}"
+
+
 @lru_cache(maxsize=1)
 def load_release_manifest() -> dict[str, Any]:
     manifest = json.loads(_MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -82,7 +86,9 @@ def load_release_manifest() -> dict[str, Any]:
     ):
         raise RuntimeError("release manifest has invalid release state")
     source = _require_exact_keys(
-        manifest["source"], {"commit", "tree", "ci_run", "reason"}, "source"
+        manifest["source"],
+        {"commit", "tree", "verification_ci_run_id", "release_run_id", "reason"},
+        "source",
     )
     for field in ("commit", "tree"):
         value = source[field]
@@ -92,12 +98,15 @@ def load_release_manifest() -> dict[str, Any]:
             raise RuntimeError(f"release manifest has invalid source.{field}")
     if not isinstance(source["reason"], str) or not source["reason"]:
         raise RuntimeError("release manifest source.reason must be non-empty")
-    if source["ci_run"] != "unavailable" and (
-        not isinstance(source["ci_run"], int) or source["ci_run"] < 1
-    ):
-        raise RuntimeError("release manifest has invalid source.ci_run")
+    for field in ("verification_ci_run_id", "release_run_id"):
+        value = source[field]
+        if value != "unavailable" and (
+            not isinstance(value, int) or value < 1
+        ):
+            raise RuntimeError(f"release manifest has invalid source.{field}")
     if release["public"] and any(
-        source[field] == "unavailable" for field in ("commit", "tree", "ci_run")
+        source[field] == "unavailable"
+        for field in ("commit", "tree", "verification_ci_run_id", "release_run_id")
     ):
         raise RuntimeError("public release manifest requires exact source and CI identity")
     dependency_lock = _require_exact_keys(
@@ -156,9 +165,60 @@ def load_release_manifest() -> dict[str, Any]:
     return manifest
 
 
+def _validate_identity_source_v2(source: dict[str, Any]) -> None:
+    if (
+        not isinstance(source["commit"], str)
+        or _HEX_40.fullmatch(source["commit"]) is None
+        or not isinstance(source["tree"], str)
+        or _HEX_40.fullmatch(source["tree"]) is None
+        or not isinstance(source["verification_ci_run_id"], int)
+        or source["verification_ci_run_id"] < 1
+        or not isinstance(source["verification_ci_url"], str)
+        or not _require_repo_url(source["verification_ci_url"], source["verification_ci_run_id"])
+        or not isinstance(source["release_run_id"], int)
+        or source["release_run_id"] < 1
+        or not isinstance(source["release_run_url"], str)
+        or not _require_repo_url(source["release_run_url"], source["release_run_id"])
+        or source["verification_ci_run_id"] == source["release_run_id"]
+    ):
+        raise RuntimeError("artifact release identity has invalid v2 source fields")
+
+
+def _validate_identity_source_v1(source: dict[str, Any]) -> None:
+    if (
+        not isinstance(source["commit"], str)
+        or _HEX_40.fullmatch(source["commit"]) is None
+        or not isinstance(source["tree"], str)
+        or _HEX_40.fullmatch(source["tree"]) is None
+        or not isinstance(source["ci_run"], int)
+        or source["ci_run"] < 1
+        or not isinstance(source["ci_url"], str)
+        or not _require_repo_url(source["ci_url"], source["ci_run"])
+    ):
+        raise RuntimeError("artifact release identity has invalid v1 source fields")
+
+
+def _validate_identity_release(release: dict[str, Any], version: str) -> None:
+    if (
+        release["tag"] != f"v{version}"
+        or release["version"] != version
+        or release["channel"] != "stable"
+        or release["public"] is not True
+        or not isinstance(release["url"], str)
+        or release["url"] != f"{_RELEASE_REPOSITORY_URL}/releases/tag/{release['tag']}"
+    ):
+        raise RuntimeError("artifact release identity has invalid release fields")
+
+
 @lru_cache(maxsize=1)
 def load_artifact_release_identity() -> dict[str, Any] | None:
-    """Read verified release identity packaged alongside a bundled runtime."""
+    """Read verified release identity packaged alongside a bundled runtime.
+
+    Supports both schema v1 (legacy ``ci_run/ci_url``) and schema v2
+    (``verification_ci_run_id`` / ``release_run_id`` separated). v2 requires
+    the verification and release run IDs to differ, so a selective or
+    main-bind run can never be mistaken for full release qualification.
+    """
     identity_path = _ARTIFACT_IDENTITY_PATH or next(
         (parent / "release-identity.json" for parent in _MANIFEST_PATH.parents if (parent / "release-identity.json").is_file()),
         _MANIFEST_PATH.parent.parent / "release-identity.json",
@@ -168,37 +228,42 @@ def load_artifact_release_identity() -> dict[str, Any] | None:
 
     identity = json.loads(identity_path.read_text(encoding="utf-8"))
     _require_exact_keys(identity, {"schema_version", "release", "source"}, "artifact identity")
-    if identity["schema_version"] != "1.0.0":
-        raise RuntimeError("unsupported artifact release identity schema")
+    schema = identity["schema_version"]
 
-    release = _require_exact_keys(
-        identity["release"], {"tag", "version", "channel", "public", "url"}, "artifact release"
-    )
-    source = _require_exact_keys(
-        identity["source"], {"commit", "tree", "ci_run", "ci_url"}, "artifact source"
-    )
-    manifest = load_release_manifest()
-    if (
-        release["tag"] != f"v{manifest['product']['version']}"
-        or release["version"] != manifest["product"]["version"]
-        or release["channel"] != "stable"
-        or release["public"] is not True
-        or not isinstance(release["url"], str)
-        or release["url"] != f"{_RELEASE_REPOSITORY_URL}/releases/tag/{release['tag']}"
-    ):
-        raise RuntimeError("artifact release identity has invalid release fields")
-    if (
-        not isinstance(source["commit"], str)
-        or _HEX_40.fullmatch(source["commit"]) is None
-        or not isinstance(source["tree"], str)
-        or _HEX_40.fullmatch(source["tree"]) is None
-        or not isinstance(source["ci_run"], int)
-        or source["ci_run"] < 1
-        or not isinstance(source["ci_url"], str)
-        or source["ci_url"] != f"{_RELEASE_REPOSITORY_URL}/actions/runs/{source['ci_run']}"
-    ):
-        raise RuntimeError("artifact release identity has invalid source fields")
-    return identity
+    if schema == "2.0.0":
+        release = _require_exact_keys(
+            identity["release"], {"tag", "version", "channel", "public", "url"}, "artifact release"
+        )
+        source = _require_exact_keys(
+            identity["source"],
+            {
+                "commit",
+                "tree",
+                "verification_ci_run_id",
+                "verification_ci_url",
+                "release_run_id",
+                "release_run_url",
+            },
+            "artifact source",
+        )
+        version = load_release_manifest()["product"]["version"]
+        _validate_identity_release(release, version)
+        _validate_identity_source_v2(source)
+        return identity
+
+    if schema == "1.0.0":
+        release = _require_exact_keys(
+            identity["release"], {"tag", "version", "channel", "public", "url"}, "artifact release"
+        )
+        source = _require_exact_keys(
+            identity["source"], {"commit", "tree", "ci_run", "ci_url"}, "artifact source"
+        )
+        version = load_release_manifest()["product"]["version"]
+        _validate_identity_release(release, version)
+        _validate_identity_source_v1(source)
+        return identity
+
+    raise RuntimeError("unsupported artifact release identity schema")
 
 
 def safe_release_summary() -> dict[str, object]:
@@ -208,6 +273,17 @@ def safe_release_summary() -> dict[str, object]:
     if identity is not None:
         artifact_release = identity["release"]
         artifact_source = identity["source"]
+        if identity["schema_version"] == "2.0.0":
+            return {
+                "status": "released",
+                "version": artifact_release["version"],
+                "channel": artifact_release["channel"],
+                "source_commit": artifact_source["commit"],
+                "tag": artifact_release["tag"],
+                "verification_ci_run_id": artifact_source["verification_ci_run_id"],
+                "release_run_id": artifact_source["release_run_id"],
+                "url": artifact_release["url"],
+            }
         return {
             "status": "released",
             "version": artifact_release["version"],

@@ -30,6 +30,7 @@ jobs:
             throw "release tag must point to the current main commit"
           }
       - name: Require successful exact-SHA CI
+        id: require_ci
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
@@ -43,10 +44,14 @@ jobs:
             $_.headSha -eq $env:GITHUB_SHA -and
             $_.status -eq "completed" -and
             $_.conclusion -eq "success"
-          })
+          } | Sort-Object createdAt -Descending)
           if ($successfulRuns.Count -lt 1) {
             throw "exact-SHA CI did not complete successfully"
           }
+          $verificationRun = $successfulRuns[0]
+          $canonicalRunUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$($verificationRun.databaseId)"
+          "verification_run_id=$($verificationRun.databaseId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "verification_run_url=$canonicalRunUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
@@ -67,7 +72,8 @@ jobs:
             --tag $env:GITHUB_REF_NAME `
             --version 0.4.5 `
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
-            --ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
+            --verification-ci-run-id ${{ steps.require_ci.outputs.verification_run_id }} `
+            --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
             --output .hermes/desktop-runtime-v1/runtime/release-identity.json
       - name: Build Windows NSIS installer
         working-directory: desktop
@@ -174,6 +180,9 @@ jobs:
             if ($asset[0].digest.ToLowerInvariant() -ne "sha256:$actual") { throw "provider digest mismatch for $($entry.name)" }
           }
           $identity = Get-Content "$downloadRoot/release-identity.json" -Raw | ConvertFrom-Json
+          if ($identity.schema_version -ne "2.0.0") {
+            throw "release identity must be schema v2 (verification/release runs separated)"
+          }
           $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
           if ($identity.release.tag -ne $env:GITHUB_REF_NAME -or $identity.source.commit -ne $env:GITHUB_SHA) {
             throw "downloaded release identity does not bind tag and exact commit"
@@ -181,11 +190,15 @@ jobs:
           if ($identity.source.tree -ne $tree) {
             throw "downloaded release identity tree mismatch"
           }
-          if ($identity.source.ci_url -ne "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID") {
-            throw "downloaded release identity CI URL mismatch"
+          if (-not $identity.source.verification_ci_run_id -or -not $identity.source.verification_ci_url) {
+            throw "downloaded release identity verification CI identity is missing"
+          }
+          if ($identity.source.verification_ci_run_id -eq $identity.source.release_run_id) {
+            throw "verification CI run must differ from the release workflow run"
           }
           $canonicalReleaseUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME"
-          if ($identity.source.ci_run -ne [int64]$env:GITHUB_RUN_ID -or $identity.release.url -ne $canonicalReleaseUrl) {
+          $canonicalReleaseRunUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          if ($identity.source.release_run_id -ne [int64]$env:GITHUB_RUN_ID -or $identity.source.release_run_url -ne $canonicalReleaseRunUrl -or $identity.release.url -ne $canonicalReleaseUrl) {
             throw "downloaded release identity provenance readback mismatch"
           }
       - name: Publish verified draft release

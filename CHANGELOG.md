@@ -11,6 +11,16 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 - Added a post-publication gate that reads back the exact public asset set,
   provider digests, release identity, and downloaded SHA-256 payloads.
 
+## [0.4.4] - historical release
+
+`v0.4.4` is the current historical public stable Release (2026-08-03). Asset
+hashes are valid and cross-check against provider digests. A known provenance
+defect is recorded: its `release-identity.json` is schema v1 and `source.ci_run`
+points at the Release run (`30839451084`) rather than the verification CI run
+(`30837105199`). The tag/Release/assets are intentionally preserved; see
+`docs/RELEASE_LEDGER.md` for the full ledger and v0.4.0–v0.4.4 history. Future
+releases must use identity schema v2 with distinct verification/release runs.
+
 ## [0.4.0] - historical release
 
 `v0.4.0` is retained as historical publication evidence. Readback found
