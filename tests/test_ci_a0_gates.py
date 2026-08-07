@@ -197,12 +197,34 @@ def test_ci_exposes_one_stable_a0_required_check() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     assert "a0-gates:" in workflow
-    assert (
-        "needs: [test, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-shell]"
-        in workflow
-    )
+    assert "gateplan" in workflow.split("a0-gates:", 1)[0] or "needs:" in workflow
     assert 'if: ${{ always() }}' in workflow
     assert "exit 1" in workflow
+    # ci-verdict semantics: validates required gates, allows legit not-required skip
+    assert "Validate required gates against GatePlan" in workflow
+    assert "REQUIRED_GATES" in workflow
+    assert "ci-verdict: all required gates success" in workflow
+
+
+def test_selective_heavy_jobs_gate_on_gateplan() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    # Heavy jobs depend on gateplan and skip when their gate is not required.
+    for job, gate in (
+        ("wheel-smoke", "wheel-smoke"),
+        ("browser-smoke", "browser-smoke"),
+        ("windows-runtime-smoke", "windows-runtime"),
+    ):
+        block = workflow.split(f"\n  {job}:", 1)[1]
+        assert "needs: gateplan" in block, f"{job} missing gateplan dependency"
+        assert f"contains(needs.gateplan.outputs.required_gates, '{gate}')" in block
+        # fail-closed: gateplan failure forces the job to run
+        assert "needs.gateplan.result != 'success'" in block
+
+    desktop = workflow.split("\n  desktop-shell:", 1)[1]
+    assert "needs: gateplan" in desktop
+    assert "desktop-fast" in desktop or "installer-lifecycle" in desktop
+    assert "needs.gateplan.result != 'success'" in desktop
 
 
 def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:

@@ -157,10 +157,12 @@ def test_pr_concurrency_cancels_stale_runs_but_not_main() -> None:
     assert "github.event.pull_request.number" in workflow
 
 
-def test_ci_emits_gateplan_shadow_artifact() -> None:
+def test_ci_emits_gateplan_artifact() -> None:
     workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 
     assert "gateplan:" in workflow
-    assert "Generate deterministic GatePlan (shadow)" in workflow
+    assert "Generate deterministic GatePlan" in workflow
     assert "scripts.ci.classify" in workflow
     assert "gateplan.json" in workflow
+    assert "required_gates=" in workflow
+    assert "GITHUB_OUTPUT" in workflow

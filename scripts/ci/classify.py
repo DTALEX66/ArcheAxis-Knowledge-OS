@@ -95,7 +95,8 @@ def classify_paths(
         matched_reasons.append("force_full:CI_FORCE_FULL")
 
     # full-qualification dominates every other gate
-    if "full-qualification" in gates:
+    is_full = "full-qualification" in gates
+    if is_full:
         gates = {"full-qualification", "ci-verdict"}
 
     gates = set(ALWAYS_GATES) | gates
@@ -109,6 +110,7 @@ def classify_paths(
         "unknown_paths": unknown_paths,
         "required_gates": required,
         "force_full": force_full,
+        "full_qualification": is_full,
     }
     digest = hashlib.sha256(
         json.dumps(digest_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -121,6 +123,7 @@ def classify_paths(
         "unknown_paths": unknown_paths,
         "required_gates": required,
         "force_full": force_full,
+        "full_qualification": is_full,
         "digest": digest,
     }
 
