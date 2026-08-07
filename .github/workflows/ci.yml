@@ -50,6 +50,8 @@ jobs:
           plan["base_sha"] = base
           plan["head_sha"] = head
           plan["mode"] = "standalone"
+          import os
+          os.makedirs(".hermes/task-runtime", exist_ok=True)
           with open(".hermes/task-runtime/gateplan.json", "w", encoding="utf-8") as f:
               json.dump(plan, f, indent=2)
           print(json.dumps(plan, indent=2))
