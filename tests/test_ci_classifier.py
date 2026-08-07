@@ -35,6 +35,15 @@ def test_ordinary_python_requires_py_primary() -> None:
     assert "full-qualification" not in plan["required_gates"]
 
 
+def test_root_level_markdown_classifies_as_docs() -> None:
+    # AGENTS.md / README.md are root-level .md files that must match **/*.md
+    # (docs-mechanical), not be treated as unknown.
+    plan = _classify(["AGENTS.md", "README.md"])
+    assert plan["full_qualification"] is False
+    assert plan["unknown_paths"] == []
+    assert {"static"} <= set(plan["required_gates"])
+
+
 def test_tests_directory_classifies_as_ordinary_python() -> None:
     # tests/** must not be treated as unknown (which would force full).
     plan = _classify(["tests/test_truth_reset_contract.py", "tests/test_api.py"])
