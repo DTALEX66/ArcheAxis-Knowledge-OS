@@ -1,7 +1,7 @@
 [project]
 name = "cognitive-loop-os"
 version = "0.4.5"
-description = "Local-first, evidence-driven Human–AI Learning Workspace for personal knowledge and AI-assisted learning"
+description = "Local-first, evidence-driven Human–AI Learning Workspace — a bidirectional learning and knowledge system for individuals and AI"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

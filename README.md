@@ -1,6 +1,6 @@
 # ArcheAxis OS（元枢系统）
 
-> **ArcheAxis OS is a local-first, evidence-driven Human–AI Learning Workspace for personal knowledge and AI-assisted learning.**
+> **ArcheAxis OS is a local-first, evidence-driven Human–AI Learning Workspace — a bidirectional learning and knowledge system for individuals and AI.**
 
 > **面向个人与 AI 的本地优先、证据驱动学习知识工作台：同一份知识，人学得更深，AI 用得更准。**
 

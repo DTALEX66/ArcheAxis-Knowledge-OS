@@ -14,7 +14,7 @@
 | Research service ID | `inspiration-research` | Inspiration Research / 灵感研究 | canonical |
 | Research Python package | `inspiration_research` | 不直接展示 | canonical |
 | Product identity | — | ArcheAxis OS / 元枢系统 | product display |
-| Workspace identity | — | ArcheAxis Cognitive Workspace / 元枢·观心 | product display |
+| Workspace identity | — | Human–AI Learning Workspace / 元枢·观心 | product display |
 
 ## Reference classes
 
