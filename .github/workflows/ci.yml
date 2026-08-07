@@ -35,20 +35,25 @@ jobs:
           python -m pip install --quiet --user pyyaml
           python - <<'PY'
           import json, os, subprocess, sys
-          base = os.environ.get("BASE_SHA") or "main"
+          base = os.environ.get("BASE_SHA") or "origin/main"
           head = os.environ.get("HEAD_SHA") or "HEAD"
           force_full = (os.environ.get("CI_FORCE_FULL") or "").lower() in ("1", "true", "yes")
-          if base == head:
+          # Fail-closed: if we cannot compute a trustworthy diff we must run full
+          # qualification, never silently skip heavy gates.
+          try:
+              out = subprocess.run(
+                  ["git", "diff", "--name-only", base, head],
+                  capture_output=True, text=True, check=True,
+              ).stdout.splitlines()
+              paths = [p for p in out if p.strip()]
+              if not paths and base != head:
+                  # Two-point diff empty but commits differ -> uncertain; force full.
+                  print("WARNING: empty diff between different commits; forcing full")
+                  force_full = True
+          except subprocess.CalledProcessError as exc:
+              print(f"WARNING: git diff failed ({exc}); forcing full qualification")
               paths = []
-          else:
-              try:
-                  out = subprocess.run(
-                      ["git", "diff", "--name-only", base + "...", head],
-                      capture_output=True, text=True, check=True,
-                  ).stdout.splitlines()
-                  paths = [p for p in out if p.strip()]
-              except subprocess.CalledProcessError:
-                  paths = []
+              force_full = True
           sys.path.insert(0, ".")
           from scripts.ci.classify import classify_paths
           plan = classify_paths(paths, force_full=force_full)
