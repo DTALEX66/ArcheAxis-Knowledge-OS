@@ -1,0 +1,135 @@
+# Project Validation Profile — Cognitive-Loop-OS
+#
+# Deterministic changed-path classifier input. Maps real paths to risk classes
+# and a required Gate set. The classifier unions Gate sets across all matched
+# classes and forces `full-qualification` on unknown/CI/security/schema paths.
+# This profile is the OS-local risk source of truth in standalone mode.
+
+schema_version: "1.0"
+project_id: "DTALEX66/Cognitive-Loop-OS"
+controller_protocol: ">=1.0,<2.0"
+
+modes:
+  standalone: required
+  managed: optional
+
+fallback:
+  unknown_change: full-qualification
+  controller_unavailable: standalone
+  invalid_evidence: full-qualification
+
+# Ordered path prefixes. First match wins for classification; Gate sets are
+# then unioned across every matching risk class so mixed changes take the
+# broadest required set.
+risk_classes:
+  - id: ci-policy
+    description: CI workflow, classifier, gate registry, release scripts
+    paths:
+      - ".github/**"
+      - ".worklab/**"
+      - "scripts/ci/**"
+      - "scripts/release_*.py"
+    gates: [full-qualification]
+
+  - id: security-permissions
+    description: Permissions, secrets, SSRF, path/symlink boundaries
+    paths:
+      - scripts/check_architecture.py
+      - scripts/check_repository_conventions.py
+      - shared/approved_paths.py
+      - shared/runtime_guard.py
+    gates: [full-qualification]
+
+  - id: db-migration
+    description: Schema, migrations, data recovery
+    paths:
+      - "shared/*_migration.py"
+      - shared/core_schema.py
+      - shared/migration_runner.py
+      - "**/migrations/**"
+    gates: [full-qualification]
+
+  - id: installer
+    description: Bundle, stage, NSIS, exit/uninstall
+    paths:
+      - "desktop/scripts/**"
+      - desktop/src-tauri/tauri.conf.json
+      - desktop/src-tauri/build.rs
+      - desktop/package.json
+    gates: [desktop-fast, desktop-build, installer-lifecycle]
+
+  - id: desktop-build
+    description: Tauri build/config/resources
+    paths:
+      - desktop/src-tauri/tauri.conf.json
+      - desktop/src-tauri/build.rs
+      - "desktop/src-tauri/icons/**"
+    gates: [desktop-fast, desktop-build]
+
+  - id: rust-tauri
+    description: Rust/Tauri non-packaging logic
+    paths:
+      - "desktop/src-tauri/**/*.rs"
+    gates: [desktop-fast]
+
+  - id: cargo-npm-deps
+    description: Cargo/npm ecosystem dependencies
+    paths:
+      - desktop/src-tauri/Cargo.lock
+      - desktop/package-lock.json
+    gates: [desktop-fast]
+
+  - id: wheel-packaging
+    description: package-data, entry points, wheel config
+    paths:
+      - pyproject.toml
+      - MANIFEST.in
+      - app/release-manifest.json
+    gates: [static, lint, py-primary, wheel-smoke]
+
+  - id: python-compat
+    description: Public Python contracts and dependency matrix
+    paths:
+      - pyproject.toml
+      - uv.lock
+      - "shared-contracts/**"
+    gates: [static, lint, py-compat, wheel-smoke]
+
+  - id: windows-runtime
+    description: Windows storage, migration, process, path handling
+    paths:
+      - "windows/**"
+      - "shared/*windows*"
+      - desktop/src-tauri/src/backend.rs
+    gates: [static, lint, py-primary, windows-runtime]
+
+  - id: ui
+    description: UI resources, interaction, BFF/API consumed by UI
+    paths:
+      - "app/workspace/ui/**"
+      - "desktop/src/**/*.tsx"
+      - "desktop/src/**/*.ts"
+    gates: [static, lint, py-primary, browser-smoke]
+
+  - id: ordinary-python
+    description: Ordinary Python backend business logic
+    paths:
+      - "app/**"
+      - "shared/**"
+      - "knowledge_base/**"
+      - "inspiration_research/**"
+      - "integration-tests/**"
+      - "scripts/check_*.py"
+    gates: [static, lint, py-primary]
+
+  - id: docs-mechanical
+    description: Documentation, ledgers, no runtime semantics
+    paths:
+      - "docs/**"
+      - README.md
+      - CHANGELOG.md
+      - "**/*.md"
+    gates: [static]
+
+# Gate sets are ordered so that `full-qualification` (whenever present in any
+# matched class) dominates. Multiple non-full classes union normally.

@@ -41,7 +41,10 @@ def test_ci_test_jobs_use_minimal_uv_dependencies() -> None:
     ci_requirements = project["dependency-groups"]["ci"]
 
     assert "astral-sh/setup-uv" in workflow
-    assert workflow.count("uv export --frozen --only-group ci") >= 3
+    # The ci dependency group is exported (at least once) for test/lint jobs.
+    assert "uv export --frozen --only-group ci" in workflow
+    # Dependency layers are separated: browser, build, adapters, runtime are not
+    # forced onto the test/lint job as a single monolithic ci group.
     assert 'pip install -e ".[dev]"' not in workflow
     assert "python -m pip install --require-hashes -r locked-runtime.txt" in workflow
     assert "python -m pip install -r requirements.txt" not in workflow

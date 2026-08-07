@@ -6,10 +6,56 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
 jobs:
+  gateplan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Generate deterministic GatePlan (shadow)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python -m pip install --quiet --user pyyaml
+          python - <<'PY'
+          import json, os, subprocess
+          base = os.environ.get("BASE_SHA") or "main"
+          head = os.environ.get("HEAD_SHA") or "HEAD"
+          if base == head:
+              print("no diff (base==head)")
+              paths = []
+          else:
+              try:
+                  out = subprocess.run(
+                      ["git", "diff", "--name-only", base + "...", head],
+                      capture_output=True, text=True, check=True,
+                  ).stdout.splitlines()
+                  paths = [p for p in out if p.strip()]
+              except subprocess.CalledProcessError:
+                  paths = []
+          import sys
+          sys.path.insert(0, ".")
+          from scripts.ci.classify import classify_paths
+          plan = classify_paths(paths)
+          plan["base_sha"] = base
+          plan["head_sha"] = head
+          plan["mode"] = "standalone"
+          with open(".hermes/task-runtime/gateplan.json", "w", encoding="utf-8") as f:
+              json.dump(plan, f, indent=2)
+          print(json.dumps(plan, indent=2))
+          PY
+          test -f .hermes/task-runtime/gateplan.json && echo "GatePlan written"
+
   test:
     runs-on: ubuntu-latest
     strategy:
