@@ -160,7 +160,7 @@ jobs:
   wheel-smoke:
     runs-on: ubuntu-latest
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || contains(needs.gateplan.outputs.required_gates, 'wheel-smoke') }}
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'wheel-smoke') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -387,7 +387,7 @@ jobs:
   browser-smoke:
     runs-on: ubuntu-latest
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || contains(needs.gateplan.outputs.required_gates, 'browser-smoke') }}
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'browser-smoke') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -415,7 +415,7 @@ jobs:
   windows-runtime-smoke:
     runs-on: windows-latest
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || contains(needs.gateplan.outputs.required_gates, 'windows-runtime') }}
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'windows-runtime') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -444,7 +444,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 45
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') || contains(needs.gateplan.outputs.required_gates, 'desktop-build') }}
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') || contains(needs.gateplan.outputs.required_gates, 'desktop-build') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:

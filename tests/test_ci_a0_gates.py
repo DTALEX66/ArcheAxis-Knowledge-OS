@@ -209,7 +209,8 @@ def test_ci_exposes_one_stable_a0_required_check() -> None:
 def test_selective_heavy_jobs_gate_on_gateplan() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    # Heavy jobs depend on gateplan and skip when their gate is not required.
+    # Heavy jobs depend on gateplan and skip when their gate is not required,
+    # BUT run under full-qualification or when gateplan fails (fail-closed).
     for job, gate in (
         ("wheel-smoke", "wheel-smoke"),
         ("browser-smoke", "browser-smoke"),
@@ -218,13 +219,15 @@ def test_selective_heavy_jobs_gate_on_gateplan() -> None:
         block = workflow.split(f"\n  {job}:", 1)[1]
         assert "needs: gateplan" in block, f"{job} missing gateplan dependency"
         assert f"contains(needs.gateplan.outputs.required_gates, '{gate}')" in block
-        # fail-closed: gateplan failure forces the job to run
+        # fail-closed: gateplan failure OR full-qualification forces the job to run
         assert "needs.gateplan.result != 'success'" in block
+        assert "full_qualification == 'true'" in block
 
     desktop = workflow.split("\n  desktop-shell:", 1)[1]
     assert "needs: gateplan" in desktop
     assert "desktop-fast" in desktop or "installer-lifecycle" in desktop
     assert "needs.gateplan.result != 'success'" in desktop
+    assert "full_qualification == 'true'" in desktop
 
 
 def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
