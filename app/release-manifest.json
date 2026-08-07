@@ -6,7 +6,7 @@
     "english_name": "ArcheAxis OS",
     "workspace_name": "元枢·观心",
     "workspace_english_name": "Human–AI Learning Workspace",
-    "version": "0.4.4",
+    "version": "0.4.5",
     "requires_python": ">=3.11"
   },
   "release": {
@@ -23,7 +23,7 @@
   "dependency_lock": {
     "path": "uv.lock",
     "algorithm": "sha256",
-    "digest": "8c10473d1ccf68bc09151c7fe4e508dcdcd9585567f6746d136b4fed9383688f",
+    "digest": "f04af47b951ef78919f06a9fbc216a04cdb56aba875e395c5edfebdaaf918010",
     "format_version": 1,
     "revision": 4
   },

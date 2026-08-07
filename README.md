@@ -12,8 +12,8 @@ ArcheAxis OS 以受治理的统一知识底座连接个人学习链和 AI 使用
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
 - **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。真实 Chromium 验证壳层交互后方可发布；Tauri WebView 点击级证据和公开发布资产仍未闭环，不能用 Chromium 结果替代。
-- **当前版本**：`0.4.2`；Release Manifest 仍为 `unreleased / public=false`，公开 Alpha/Beta/Stable 发布尚未宣告。
-- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；`v0.4.1` 也是保留且不可重写的历史 tag。`v0.4.2` 只有在 merge-SHA CI、tag、公开资产集合、下载后 SHA-256、release identity 与 installer lifecycle 全部回读通过后才可宣称发布。
+- **当前版本**：`0.4.5`；这是开发线真相收口版本，Release Manifest 仍为 `unreleased / public=false`，公开 Alpha/Beta/Stable 发布尚未宣告。
+- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；`v0.4.1` 与 `v0.4.2` 也是保留且不可重写的历史 tag。`v0.4.5` 只有在 merge-SHA CI、tag、公开资产集合、下载后 SHA-256、release identity 与 installer lifecycle 全部回读通过后才可宣称发布。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
