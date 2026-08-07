@@ -24,9 +24,8 @@ from knowledge_base.routers.quality import router as quality_router
 from knowledge_base.search import hybrid_search, keyword_search, vector_search
 from knowledge_base.taskpack import build_taskpack
 from shared.config import config, validate_runtime_config
-from shared.obsidian_projection import write_projection
 from shared.research_boundary import unreviewed_research_references
-from shared.storage import count, fts5_sync, insert, select_all, select_one
+from shared.storage import count, fts5_sync, insert, select_all
 
 # ── App setup ────────────────────────────────────────────
 
@@ -578,40 +577,41 @@ def obsidian_import_course(vault_root: str = "", course_path: str = "", dry_run:
 
 @app.post("/obsidian/project/card/{card_id}")
 def obsidian_project_card(card_id: str, vault_root: str = "", dry_run: bool = True):
-    """Project a KB card to Obsidian markdown."""
-    from shared.obsidian_projection import render_card
+    """Project a KB card to Obsidian markdown.
 
-    card = select_one("kb_cards", card_id)
-    if not card:
-        return {"error": "card not found"}
-    proj = render_card(card)
-    return write_projection(proj, vault_root=vault_root, dry_run=dry_run)
+    Unimplemented: the `render_card` projection renderer is not yet available.
+    Fails closed with 501 rather than raising ImportError at runtime.
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="capability_unavailable: render_card projection is not yet implemented",
+    )
 
 
 @app.post("/obsidian/project/review/{card_id}")
 def obsidian_project_review(card_id: str, vault_root: str = "", dry_run: bool = True):
-    """Project a card with review history to Obsidian."""
-    from knowledge_base.reviews import get_review_history
-    from shared.obsidian_projection import render_review_card
+    """Project a card with review history to Obsidian.
 
-    card = select_one("kb_cards", card_id)
-    if not card:
-        return {"error": "card not found"}
-    reviews = get_review_history(card_id, limit=20)
-    proj = render_review_card(card, reviews)
-    return write_projection(proj, vault_root=vault_root, dry_run=dry_run)
+    Unimplemented: the `render_review_card` projection renderer is not yet
+    available. Fails closed with 501 rather than raising ImportError.
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="capability_unavailable: render_review_card projection is not yet implemented",
+    )
 
 
 @app.post("/obsidian/project/mku/{unit_id}")
 def obsidian_project_mku(unit_id: str, vault_root: str = "", dry_run: bool = True):
-    """Project a machine knowledge unit to Obsidian."""
-    from shared.obsidian_projection import render_machine_knowledge
+    """Project a machine knowledge unit to Obsidian.
 
-    unit = select_one("machine_knowledge_units", unit_id)
-    if not unit:
-        return {"error": "unit not found"}
-    proj = render_machine_knowledge(unit)
-    return write_projection(proj, vault_root=vault_root, dry_run=dry_run)
+    Unimplemented: the `render_machine_knowledge` projection renderer is not
+    yet available. Fails closed with 501 rather than raising ImportError.
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="capability_unavailable: render_machine_knowledge projection is not yet implemented",
+    )
 
 
 # ── Obsidian-absorbed: Backlinks + Graph + Dataview + Daily ──

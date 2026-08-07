@@ -1,10 +1,18 @@
-# AGENTS.md - Cognitive-OS Agent Operating Guide
+# AGENTS.md - ArcheAxis OS (Human–AI Learning Workspace) Operating Guide
 
-This file is the public, sanitized operating configuration for Codex/agent work inside this repository. It describes how an agent should work on Cognitive-OS without exposing local credentials, private keys, tokens, machine-specific secrets, or personal files.
+This file is the public, sanitized operating configuration for Codex/agent work inside this repository. It describes how an agent should work on ArcheAxis OS — a local-first, evidence-driven Human–AI Learning Workspace — without exposing local credentials, private keys, tokens, machine-specific secrets, or personal files.
 
 ## 1. Project Mission
 
-Cognitive-OS is the front runtime for two primary systems:
+ArcheAxis OS is a local-first, evidence-driven Human–AI Learning & Knowledge
+Workspace. The current minimum closed loop is broad compatibility: absorbing
+mature capabilities from comparable software. The first high-fidelity vertical
+slice is Obsidian Vault / Markdown / JSON Canvas. Implementation prefers legal
+dependencies, SDKs/APIs/CLIs, fork/vendor, and Adapter/sidecar before building
+from scratch. Heavy blueprints (general Agent Runtime, multi-agent,
+Marketplace, 3D/VR, enterprise collaboration) are deferred.
+
+The legacy runtime exposed two supporting surfaces:
 
 | System | Role | Current Relationship |
 | --- | --- | --- |
@@ -12,12 +20,6 @@ Cognitive-OS is the front runtime for two primary systems:
 | Inspiration-Research | B system for research, comparison, inspiration, framework design, and strategy. Packaged at `inspiration_research/`; the hyphenated directory is a deprecated launcher | Receives `IR` routed material |
 | Cognitive-OS | Front operating layer that routes information, runs tasks, stores traces, evaluates results, and forms machine lessons | This repository |
 | Obsidian | Upstream capture/source layer for a subset of KB inputs | Not the whole system |
-
-The target cognition loop is:
-
-```text
-information -> attention -> understanding -> structure -> memory -> learning -> action -> feedback
-```
 
 ## 2. Configuration Categories
 
