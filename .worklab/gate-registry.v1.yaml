@@ -1,0 +1,55 @@
+# Gate Registry — Cognitive-Loop-OS
+#
+# Stable symbolic Gate IDs. A Gate is a *semantic* capability; it is not bound
+# to a fixed GitHub job name. The `ci-verdict` aggregator expands these against
+# the actual workflow and requires every *required* Gate to be `success`. A
+# Gate may only be `skipped` when the GatePlan marks it `not-required`.
+#
+# Gate IDs are the contract surface shared with WORK-LAB. WORK-LAB may select
+# only Gates registered here; it may never inject an arbitrary shell command.
+
+schema_version: "1.0"
+
+gates:
+  - id: static
+    description: Convention, architecture, static rules
+    required: always
+  - id: lint
+    description: Ruff / JS syntax / project scanners
+    required: conditional
+  - id: py-primary
+    description: Primary Python version full OS/KB/integration suite
+    required: conditional
+  - id: py-compat
+    description: Supported Python version compatibility matrix
+    required: conditional
+  - id: browser-smoke
+    description: Real Chromium workspace smoke
+    required: conditional
+  - id: windows-runtime
+    description: Windows migration / runtime / HTTP
+    required: conditional
+  - id: desktop-fast
+    description: cargo fmt/test and fast backend lifecycle
+    required: conditional
+  - id: desktop-build
+    description: Tauri release build / bundle input validation
+    required: conditional
+  - id: installer-lifecycle
+    description: NSIS build / install / start / exit / upgrade / uninstall
+    required: conditional
+  - id: wheel-smoke
+    description: Wheel build, external install, package-data
+    required: conditional
+  - id: ci-verdict
+    description: Stable aggregator that validates the GatePlan and required Gates
+    required: always
+  - id: full-qualification
+    description: Logical profile expanding to every required Gate in the registry
+    required: conditional
+  - id: release-verify
+    description: tag / asset / installer / download readback
+    required: conditional
+
+# full-qualification is a logical profile, not a fixed job count. It expands to
+# the union of every Gate the workflow can provide for a formal release.
