@@ -258,6 +258,64 @@ def workspace_planner_preview(payload: PlannerRequest, request: Request) -> dict
     }
 
 
+def _planner_public_result(step: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
+    """Return only bounded, user-facing fields from a low-risk planner tool."""
+    public = {
+        "tool": result.get("tool"),
+        "status": result.get("status"),
+        "risk_level": result.get("risk_level"),
+    }
+    if step["tool"] == "file_read":
+        public["path"] = step["path"]
+        content = result.get("content")
+        if isinstance(content, str):
+            public["content_preview"] = content[:400]
+    elif step["tool"] == "kb_search":
+        public["count"] = result.get("count", 0)
+    if result.get("error"):
+        public["error"] = str(result["error"])
+    return public
+
+
+@router.post("/api/planner/execute")
+def workspace_planner_execute(payload: PlannerRequest, request: Request) -> dict[str, object]:
+    """Execute only the planner's explicit, read-only project/knowledge grammar."""
+    _local_principal(request)
+    from app.agent.planner import plan_goal
+    from app.tools.registry import run_tool
+
+    steps = plan_goal(payload.goal)
+    if not steps:
+        return {
+            "schema_version": "v1",
+            "status": "unsupported",
+            "execution": "bounded_read_only",
+            "results": [],
+        }
+    results = []
+    for step in steps:
+        if step["tool"] == "file_read":
+            tool_payload = {"path": step["path"]}
+        elif step["tool"] == "kb_search":
+            tool_payload = {"query": step["query"], "top_k": step["top_k"]}
+        else:
+            return {
+                "schema_version": "v1",
+                "status": "blocked",
+                "execution": "bounded_read_only",
+                "results": [],
+            }
+        result = run_tool(step["tool"], tool_payload, dry_run=False)
+        results.append(_planner_public_result(step, result))
+    status = "completed" if all(item["status"] == "ok" for item in results) else "blocked"
+    return {
+        "schema_version": "v1",
+        "status": status,
+        "execution": "bounded_read_only",
+        "results": results,
+    }
+
+
 def _bff_error(action):
     try:
         return action()
