@@ -8,7 +8,9 @@ Obsidian projection path.
 
 from __future__ import annotations
 
+import os
 import sqlite3
+import tempfile
 from pathlib import Path
 
 _SCHEMA = """
@@ -22,6 +24,10 @@ CREATE TABLE IF NOT EXISTS compat_revisions (
 """
 
 
+class RevisionConflictError(RuntimeError):
+    """Raised when an external edit makes a revision write unsafe."""
+
+
 class RevisionLog:
     """Revisioned writes with rollback to prior content."""
 
@@ -32,15 +38,21 @@ class RevisionLog:
         self._conn.execute(_SCHEMA)
         self._conn.commit()
 
-    def record(self, path: Path, content: str) -> None:
+    def record(self, path: Path, content: str, *, expected_hash: str | None = None) -> None:
         """Record the prior content, then write the new content atomically.
 
         The prior content is snapshotted into the revision ledger before the
         new content is written, enabling rollback.
         """
         resolved = path.resolve()
-        rel = resolved.relative_to(self.vault_root).as_posix()
+        try:
+            rel = resolved.relative_to(self.vault_root).as_posix()
+        except ValueError as exc:
+            raise RevisionConflictError("revision path escaped approved vault root") from exc
         prior = resolved.read_text(encoding="utf-8") if resolved.exists() else ""
+        current_hash = _sha256(prior)
+        if expected_hash is not None and current_hash != expected_hash:
+            raise RevisionConflictError("expected hash does not match current file")
         now = _now()
         self._conn.execute(
             "INSERT INTO compat_revisions (relative_path, prior_hash, prior_content,"
@@ -49,21 +61,35 @@ class RevisionLog:
         )
         self._conn.commit()
         # atomic write via temp + rename
-        tmp = resolved.with_suffix(resolved.suffix + ".tmp")
-        tmp.write_text(content, encoding="utf-8")
-        tmp.replace(resolved)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=resolved.parent, delete=False
+        ) as handle:
+            handle.write(content)
+            tmp_name = handle.name
+        os.replace(tmp_name, resolved)
 
-    def rollback(self, path: Path) -> None:
+    def rollback(self, path: Path, *, expected_hash: str | None = None) -> None:
         """Restore the most recent prior content for a path."""
         resolved = path.resolve()
-        rel = resolved.relative_to(self.vault_root).as_posix()
+        try:
+            rel = resolved.relative_to(self.vault_root).as_posix()
+        except ValueError as exc:
+            raise RevisionConflictError("rollback path escaped approved vault root") from exc
         row = self._conn.execute(
             "SELECT prior_content FROM compat_revisions WHERE relative_path=? ORDER BY id DESC LIMIT 1",
             (rel,),
         ).fetchone()
         if row is None:
             return
-        resolved.write_text(row[0], encoding="utf-8")
+        current = resolved.read_text(encoding="utf-8") if resolved.exists() else ""
+        if expected_hash is not None and _sha256(current) != expected_hash:
+            raise RevisionConflictError("expected hash does not match current file")
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=resolved.parent, delete=False
+        ) as handle:
+            handle.write(row[0])
+            tmp_name = handle.name
+        os.replace(tmp_name, resolved)
 
 
 def _now() -> str:

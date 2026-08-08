@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS compat_files (
     frontmatter_json TEXT NOT NULL,
     body_hash TEXT NOT NULL,
     is_canvas INTEGER NOT NULL DEFAULT 0,
+    is_binary INTEGER NOT NULL DEFAULT 0,
+    mime_type TEXT,
     imported_at TEXT NOT NULL
 );
 """
@@ -40,6 +42,15 @@ class ImportSession:
         self.approved = ApprovedRoots(source_roots=[self.vault_root])
         self._conn = sqlite3.connect(store)
         self._conn.execute(_SCHEMA)
+        columns = {
+            row[1] for row in self._conn.execute("PRAGMA table_info(compat_files)")
+        }
+        if "is_binary" not in columns:
+            self._conn.execute(
+                "ALTER TABLE compat_files ADD COLUMN is_binary INTEGER NOT NULL DEFAULT 0"
+            )
+        if "mime_type" not in columns:
+            self._conn.execute("ALTER TABLE compat_files ADD COLUMN mime_type TEXT")
         self._conn.commit()
         self._losses: list[dict[str, object]] = []
 
@@ -81,10 +92,11 @@ class ImportSession:
             # idempotent upsert keyed on relative path
             self._conn.execute(
                 "INSERT INTO compat_files (relative_path, source_hash, file_size,"
-                " frontmatter_json, body_hash, is_canvas, imported_at) VALUES (?,?,?,?,?,?,?)"
+                " frontmatter_json, body_hash, is_canvas, is_binary, mime_type, imported_at) VALUES (?,?,?,?,?,?,?,?,?)"
                 " ON CONFLICT(relative_path) DO UPDATE SET source_hash=excluded.source_hash,"
                 " file_size=excluded.file_size, frontmatter_json=excluded.frontmatter_json,"
                 " body_hash=excluded.body_hash, is_canvas=excluded.is_canvas,"
+                " is_binary=excluded.is_binary, mime_type=excluded.mime_type,"
                 " imported_at=excluded.imported_at",
                 (
                     vf.relative_path,
@@ -93,6 +105,8 @@ class ImportSession:
                     _json(vf.frontmatter),
                     _sha256(vf.body),
                     1 if vf.is_canvas else 0,
+                    1 if vf.is_binary else 0,
+                    vf.mime_type,
                     now,
                 ),
             )

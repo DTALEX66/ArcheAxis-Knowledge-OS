@@ -143,3 +143,36 @@ def test_loss_report_detects_unknown_content(store: Path, vault: Path) -> None:
     assert isinstance(report, list)
     # No silent loss for a clean note.
     assert all(item["kind"] != "silent_loss" for item in report)
+
+
+def test_binary_attachment_is_not_decoded_as_text(store: Path, vault: Path) -> None:
+    from shared.compat.import_session import ImportSession
+
+    attachment = vault / "attachments" / "image.png"
+    payload = bytes([0, 159, 255, 10, 1])
+    attachment.write_bytes(payload)
+    files = ImportSession(store, vault).scan()
+    item = next(file for file in files if file.relative_path == "attachments/image.png")
+    assert item.is_binary is True
+    assert item.mime_type == "image/png"
+    assert item.raw_bytes == payload
+    assert item.file_size == len(payload)
+
+
+def test_revision_rejects_external_change_and_rollback_is_fenced(store: Path, vault: Path) -> None:
+    from shared.compat.revision import RevisionConflictError, RevisionLog
+
+    note = _note(vault / "notes" / "a.md", "title: A", "v1\n")
+    original = note.read_text(encoding="utf-8")
+    import hashlib
+
+    expected = hashlib.sha256(original.encode("utf-8")).hexdigest()
+    rev = RevisionLog(store, vault)
+    note.write_text("external\n", encoding="utf-8")
+    with pytest.raises(RevisionConflictError):
+        rev.record(note, content="local\n", expected_hash=expected)
+
+    rev.record(note, content="local\n")
+    note.write_text("another external edit\n", encoding="utf-8")
+    with pytest.raises(RevisionConflictError):
+        rev.rollback(note, expected_hash=hashlib.sha256(b"local\n").hexdigest())
