@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from app.workspace import bff, service
+from app.workspace import bff, service, vault
 from app.workspace.bff import BFFNotFoundError, BFFUnavailableError
 from shared.storage import DB_PATH
 
@@ -67,6 +67,20 @@ class IntakeURL(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     url: str = Field(min_length=1, max_length=2048)
+
+
+class VaultRootRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    root: str = Field(min_length=1, max_length=4096)
+
+
+class VaultFileRequest(VaultRootRequest):
+    relative_path: str = Field(min_length=1, max_length=4096)
+
+
+class VaultSearchRequest(VaultRootRequest):
+    query: str = Field(min_length=1, max_length=256)
 
 
 class WorkspaceIntakeResult(BaseModel):
@@ -190,6 +204,33 @@ def workspace_diagnostics() -> dict[str, object]:
 def workspace_status(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.workspace_status(db_path=DB_PATH))
+
+
+@router.post("/api/vault/inspect")
+def workspace_vault_inspect(payload: VaultRootRequest, request: Request) -> dict[str, object]:
+    """Inspect an explicitly selected Vault without writing to it."""
+    _local_principal(request)
+    return _command_error(lambda: vault.inspect_vault(root=payload.root, store=DB_PATH))
+
+
+@router.post("/api/vault/file")
+def workspace_vault_file(payload: VaultFileRequest, request: Request) -> dict[str, object]:
+    """Read one Markdown/Canvas file through the approved-root boundary."""
+    _local_principal(request)
+    return _command_error(
+        lambda: vault.read_file(
+            root=payload.root, store=DB_PATH, relative_path=payload.relative_path
+        )
+    )
+
+
+@router.post("/api/vault/search")
+def workspace_vault_search(payload: VaultSearchRequest, request: Request) -> dict[str, object]:
+    """Search the selected Vault locally without exposing absolute paths."""
+    _local_principal(request)
+    return _command_error(
+        lambda: vault.search_vault(root=payload.root, store=DB_PATH, query=payload.query)
+    )
 
 
 def _bff_error(action):
