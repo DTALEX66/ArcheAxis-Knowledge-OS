@@ -121,7 +121,7 @@ def main() -> int:
         assert version["release"]["status"] == "unreleased"
         assert status["schema_version"] == "v1"
         assert status["components"]["api"] == "available"
-        assert "元枢·观心" in page
+        assert "元枢工作台" in page
         assert "validateStatus" in javascript
         assert "--accent" in stylesheet
         print(f"runtime HTTP smoke passed at {base_url}")
