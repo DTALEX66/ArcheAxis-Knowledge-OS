@@ -35,6 +35,34 @@ REGISTRY_PATH = ROOT / ".worklab" / "gate-registry.v1.yaml"
 ALWAYS_GATES = {"ci-verdict"}
 
 
+def resolve_diff_refs(
+    event_name: str,
+    *,
+    push_before: str | None = None,
+    push_after: str | None = None,
+    pull_base: str | None = None,
+    pull_head: str | None = None,
+) -> tuple[str, str, bool]:
+    """Resolve trusted two-point diff refs for a GitHub event.
+
+    Push events must use the event's before/after SHAs. Pull requests must use
+    the base/head SHAs supplied by GitHub so a missing or shallow ref cannot
+    silently turn a selective plan into an accidental full run.
+    """
+
+    if event_name == "push":
+        base = push_before or "origin/main"
+        head = push_after or "HEAD"
+        trusted = bool(push_before and push_after and set(push_before) != {"0"})
+        return base, head, trusted
+    if event_name == "pull_request":
+        base = pull_base or "origin/main"
+        head = pull_head or "HEAD"
+        trusted = bool(pull_base and pull_head)
+        return base, head, trusted
+    return "origin/main", "HEAD", False
+
+
 def _load_yaml(path: Path) -> dict[str, Any]:
     try:
         import yaml  # local import so classifier works in minimal CI envs
