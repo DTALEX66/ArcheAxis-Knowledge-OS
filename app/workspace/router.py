@@ -86,6 +86,12 @@ class VaultSearchRequest(VaultRootRequest):
     query: str = Field(min_length=1, max_length=256)
 
 
+class PlannerRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    goal: str = Field(min_length=1, max_length=512)
+
+
 class WorkspaceIntakeResult(BaseModel):
     """Ordinary product response without persistence or command identifiers."""
 
@@ -234,6 +240,21 @@ def workspace_vault_search(payload: VaultSearchRequest, request: Request) -> dic
     return _command_error(
         lambda: vault.search_vault(root=payload.root, store=DB_PATH, query=payload.query)
     )
+
+
+@router.post("/api/planner/preview")
+def workspace_planner_preview(payload: PlannerRequest, request: Request) -> dict[str, object]:
+    """Preview only the bounded, explicitly supported planner grammar."""
+    _local_principal(request)
+    from app.agent.planner import plan_goal
+
+    steps = plan_goal(payload.goal)
+    return {
+        "schema_version": "v1",
+        "status": "supported" if steps else "unsupported",
+        "execution": "preview_only",
+        "steps": steps,
+    }
 
 
 def _bff_error(action):
