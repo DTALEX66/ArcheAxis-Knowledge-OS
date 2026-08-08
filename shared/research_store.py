@@ -445,7 +445,11 @@ def persist_research_graph(
             connection.rollback()
             raise
 
-    return load_research_package(graph.package.package_id, db_path=database)
+    # The caller is still inside the live runtime after committing the intake
+    # transaction. SQLite may retain WAL/SHM sidecars, so use the query-only
+    # live-WAL reader here; immutable checkpoint-only reads remain reserved for
+    # offline/external consumers.
+    return load_research_package(graph.package.package_id, db_path=database, live_wal=True)
 
 
 def _claim_kinds(claims: Sequence[ClaimV1]) -> dict[str, str]:
