@@ -3,17 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>元枢系统 ArcheAxis OS · 元枢·观心</title>
+  <title>元枢工作台 ArcheAxis Workspace</title>
   <link rel="stylesheet" href="/workspace/assets/styles.css">
 </head>
 <body data-theme="apple-light">
 <div class="app">
 <header class="top">
-  <div class="brand"><div class="mark" aria-hidden="true"></div><div><div class="brand-name">元枢桌面</div><div class="brand-sub">ARCHEAXIS DESKTOP</div></div></div>
-  <div class="top-tabs" aria-label="工作区标签"><span class="top-tab active">观心工作台</span><span class="top-tab muted-tab">本地运行时</span><span class="top-tab muted-tab">+ 规划中</span></div>
-  <div class="workspace-pill"><span class="dot"></span><b>元枢·观心</b><span class="kbd">LOCAL ONLY</span></div>
-  <div class="search"><input id="global-search" aria-label="全局命令入口（尚未接入）" placeholder="全局命令入口尚未接入" readonly><span class="kbd">A0</span></div>
-  <button class="command-btn" type="button" data-action="command-open" aria-label="打开全局命令入口">命令入口</button>
+  <div class="brand"><div class="mark" aria-hidden="true"></div><div><div class="brand-name">元枢工作台</div><div class="brand-sub">ARCHEAXIS WORKSPACE</div></div></div>
+  <div class="top-tabs" aria-label="工作区标签"><span class="top-tab active">元枢工作台</span><span class="top-tab muted-tab">Obsidian 兼容工作台</span></div>
+  <div class="workspace-pill"><span class="dot"></span><b>ArcheAxis Workspace</b><span class="kbd">LOCAL ONLY</span></div>
   <button class="icon-btn inspector-external-trigger" type="button" data-action="inspector-toggle" aria-controls="inspector" aria-expanded="false" aria-label="展开上下文与证据检查器">◧</button>
   <span class="chip"><span class="dot"></span>本地工作台</span>
   <button class="icon-btn" type="button" data-page="diagnostics" title="系统诊断" aria-label="系统诊断"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></button>
@@ -24,19 +22,19 @@
   <button class="rail-item active" type="button" data-module="home" title="首页" aria-controls="nav" aria-expanded="false"><span class="rail-glyph">◈</span><span>首页</span></button>
   <button class="rail-item" type="button" data-module="knowledge" title="资料与知识" aria-controls="nav" aria-expanded="false"><span class="rail-glyph">▣</span><span>资料与知识</span></button>
   <button class="rail-item" type="button" data-module="learning" title="学习" aria-controls="nav" aria-expanded="false"><span class="rail-glyph">➜</span><span>学习</span></button>
-  <button class="rail-item" type="button" data-module="ai" title="AI" aria-controls="nav" aria-expanded="false"><span class="rail-glyph">✦</span><span>AI</span></button>
+
   <button class="rail-item system-entry" type="button" data-module="system" title="系统" aria-controls="nav" aria-expanded="false"><span class="rail-glyph">⚙</span><span>系统</span></button>
 </aside>
 <aside class="nav subnav" id="nav" aria-label="二级导航" aria-hidden="true" inert></aside>
 <main class="main">
 <section class="page active" id="page-overview">
-  <div class="page-head"><div><div class="eyebrow">GUANXIN OVERVIEW</div><h1>观心总览</h1><p class="desc">只展示本机数据库和发布清单可证明的状态；没有证据的数据不会出现在这里。</p></div><div class="head-actions"><button class="btn primary" data-action="intake">导入资料</button><button class="btn" data-page="diagnostics">系统诊断</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">ARCHEAXIS WORKSPACE</div><h1>元枢工作台</h1><p class="desc">本地优先的知识工作区；当前以 Obsidian Vault、Markdown 与 JSON Canvas 兼容纵切为阶段重点。</p></div><div class="head-actions"><button class="btn primary" data-action="intake">导入资料</button><button class="btn" data-page="diagnostics">系统诊断</button></div></div>
   <div class="grid cols-4" id="status-summary" aria-live="polite"><div class="card metric"><span>真实状态</span><b>加载中</b><span class="delta info">正在读取本地数据库</span></div></div>
   <div class="grid cols-2" style="margin-top:16px">
     <div class="card"><div class="card-title"><h2>已接入流程</h2><span class="status ok"><i></i>本地</span></div><div class="list"><div class="row"><div class="row-main"><b>资料导入</b><span>网页、GitHub仓库地址和本地文件</span></div></div><div class="row"><div class="row-main"><b>受治理持久化</b><span>Research、Job、Outbox和命令收据同事务写入</span></div></div><div class="row"><div class="row-main"><b>严格读回</b><span>持久化绑定不一致时拒绝返回</span></div></div></div></div>
     <div class="card"><div class="card-title"><h2>能力边界</h2><span class="status warn"><i></i>开发版</span></div><div class="list" id="capability-summary"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取Release Manifest</span></div></div></div></div>
   </div>
-  <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前说明</h2></div><p class="muted">Job / Delivery 投影已接入，展示严格绑定的本地记录，并支持 lease-fenced 后台 Worker、按需投递与失败重试。SSE 和更完整的交互式 Job Center仍在后续闭环；其余产品模块只保留信息架构入口，并明确显示“尚未接入真实数据”。</p></div>
+  <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前阶段</h2></div><p class="muted">当前产品优先验证开放格式互操作与用户资料所有权。Vault 读取、编辑、附件、Canvas、冲突和回读能力完成完整桌面证据前，不宣称全面或双向兼容。</p></div>
 </section>
 <section class="page" id="page-diagnostics">
   <div class="page-head"><div><div class="eyebrow">LOCAL SYSTEM HEALTH</div><h1>系统诊断</h1><p class="desc">只读显示API、迁移与开发版发布信息；不泄露数据库路径或备份位置。</p></div><div class="head-actions"><button class="btn primary" data-action="refresh">刷新</button></div></div>

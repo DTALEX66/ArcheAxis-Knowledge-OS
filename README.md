@@ -1,10 +1,14 @@
-# ArcheAxis OS（元枢系统）
+# ArcheAxis Workspace（元枢工作台）
 
-> **ArcheAxis OS is a local-first, evidence-driven Human–AI Learning Workspace — a bidirectional learning and knowledge system for individuals and AI.**
+> **ArcheAxis Workspace is a local-first, evidence-driven Human–AI learning and knowledge workspace.**
 
-> **面向个人与 AI 的本地优先、证据驱动学习知识工作台：同一份知识，人学得更深，AI 用得更准。**
+> **面向个人与 AI 的本地优先、证据驱动学习与知识工作台：同一份开放格式资料，人学得更深，AI 用得更准。**
 
-ArcheAxis OS 以受治理的统一知识底座连接个人学习链和 AI 使用链。所有外部材料、人工输入和 AI 输出都先是可追溯的 Candidate；只有经过明确治理的内容才能进入后续学习或 Runtime 使用。
+ArcheAxis Workspace 以用户可读、可回滚的开放格式资料为中心，连接个人学习链和 AI 使用链。所有外部材料、人工输入和 AI 输出都先是可追溯的 Candidate；只有经过明确治理的内容才能进入后续学习或受限使用。仓库技术 ID `Cognitive-Loop-OS` 仅为 Git/分发兼容身份，不是产品主名称。
+
+> **当前阶段：Obsidian-compatible Workspace foundation。** Markdown、JSON Canvas 和 Vault 互操作是第一条高保真纵切；在编辑、附件、冲突、回滚和 Windows/Tauri 重启回读全部有证据前，不宣称全面或双向兼容。
+
+命名合同见 [`docs/NAMING_CONTRACT_V2.md`](docs/NAMING_CONTRACT_V2.md)，机器可读规则见 [`config/product-naming-registry.yaml`](config/product-naming-registry.yaml)。
 
 ## 当前重点
 
@@ -37,7 +41,7 @@ The workflow accepts only canonical `https://github.com/{owner}/{repo}` reposito
 
 [![CI](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml)
 
-ArcheAxis OS 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的学习—知识—应用闭环：
+ArcheAxis Workspace 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的资料—学习—引用闭环：
 
 ```text
 Research → Evidence → Knowledge → Learning
@@ -128,7 +132,7 @@ python -m app.runtime_entrypoint core
 ## 当前模块边界
 
 ```text
-app/                    核心认知运行时、摄入、工具、工作流
+app/                    核心服务、摄入、工具、工作流（技术实现边界）
 knowledge_base/         可安装的文档、卡片、检索、复习、机器知识与领域路由包
   routers/              稳定复合 API、质量 API、投影 API
 inspiration_research/   可安装的研究发现、Intake 与候选项目雷达包

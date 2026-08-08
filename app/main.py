@@ -41,10 +41,11 @@ async def core_runtime_lifespan(_: FastAPI):
 
 app = FastAPI(
     lifespan=core_runtime_lifespan,
-    title="ArcheAxis OS — Human–AI Learning Workspace",
+    title="ArcheAxis Workspace — Human–AI Learning Workspace",
     version=str(config.get("app.version", "0.4.5")),
-    description="Local-first, evidence-driven Human–AI Learning Workspace for personal knowledge and AI-assisted learning. "
-    "Absorbs Obsidian, Tana, Notion, Logseq, Roam, Heptabase, GraphRAG, Zettelkasten.",
+    description="Local-first, evidence-driven Human–AI learning and knowledge workspace. "
+    "The current vertical targets approved Vault roots, Markdown, JSON Canvas, revisions, conflicts and readback. "
+    "Third-party projects are reference or planned adapters unless the compatibility matrix says otherwise.",
     docs_url="/docs",
     redoc_url="/redoc",
 )

@@ -2,9 +2,9 @@
   "schema_version": "1.0.0",
   "product": {
     "id": "cognitive-loop-os",
-    "name": "元枢系统",
-    "english_name": "ArcheAxis OS",
-    "workspace_name": "元枢·观心",
+    "name": "元枢工作台",
+    "english_name": "ArcheAxis Workspace",
+    "workspace_name": "元枢工作台",
     "workspace_english_name": "Human–AI Learning Workspace",
     "version": "0.4.5",
     "requires_python": ">=3.11"

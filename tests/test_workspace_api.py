@@ -19,9 +19,9 @@ def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     assert page.headers["x-content-type-options"] == "nosniff"
     assert page.headers["referrer-policy"] == "no-referrer"
     assert page.headers["x-frame-options"] == "DENY"
-    assert "元枢系统" in page.text
-    assert "ArcheAxis OS" in page.text
-    assert "元枢·观心" in page.text
+    assert "元枢工作台" in page.text
+    assert "ArcheAxis Workspace" in page.text
+    assert "元枢·观心" not in page.text
     assert "Cognitive-Loop-OS" not in page.text
     assert "API key" not in page.text
     assert 'id="intake-url-form"' in page.text
@@ -164,7 +164,7 @@ def test_workspace_job_center_does_not_render_fake_execution_progress() -> None:
     assert 'class="job collapsed"' not in page
     assert "原型任务" not in page
     assert "job-toggle" not in application
-    assert "Job / Delivery 投影已接入" in page
+    assert "当前阶段" in page
 
 
 def test_workspace_evidence_lifecycle_page_is_wired_in_ui() -> None:
