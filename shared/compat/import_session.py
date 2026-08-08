@@ -9,6 +9,7 @@ idempotent.
 
 from __future__ import annotations
 
+import os
 import sqlite3
 from pathlib import Path
 
@@ -45,7 +46,8 @@ class ImportSession:
     def _scan_paths(self) -> list[Path]:
         """Enumerate files under the vault, rejecting symlink escapes."""
         results: list[Path] = []
-        for root, dirs, files in self.vault_root.walk():
+        for root_name, dirs, files in os.walk(self.vault_root, topdown=True, followlinks=False):
+            root = Path(root_name)
             # drop symlink dirs that escape the approved root
             kept: list[str] = []
             for d in dirs:
@@ -54,9 +56,9 @@ class ImportSession:
                     self.approved.resolve_source(candidate)
                     kept.append(d)
                 except ApprovedRootsError:
-                    self._losses.append(
-                        {"kind": "symlink_escape", "path": (root / d).as_posix()}
-                    )
+                    raise ApprovedRootsError(
+                        f"vault traversal escaped approved root: {(root / d).as_posix()}"
+                    ) from None
             dirs[:] = kept
             for f in files:
                 results.append(root / f)
