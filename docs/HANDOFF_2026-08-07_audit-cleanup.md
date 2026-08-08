@@ -5,7 +5,7 @@
 - 仓库：`DTALEX66/Cognitive-Loop-OS`（public）
 - main HEAD：`ed0888f1ef0b107b263734a9ac9478e53e90ec49`（本地 == 云端）
 - 工作树：clean（0 changes）
-- 开发线版本：`0.4.5`（unreleased / development / public=false）
+- 开发线版本：`0.5.0`（unreleased / development / public=false）
 - Release 状态：`v0.4.0`、`v0.4.4` 历史公开；`v0.4.2` draft；无新 tag/Release
 
 ## 2. 已完成里程碑（本阶段）

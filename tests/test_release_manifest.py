@@ -30,7 +30,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "channel": "development",
         "public": False,
     }
-    assert manifest["product"]["version"] == "0.4.5"
+    assert manifest["product"]["version"] == "0.5.0"
     assert manifest["source"]["commit"] == "unavailable"
     assert manifest["verification"]["embedded_test_counts"] is False
     lock_digest = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
@@ -63,7 +63,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",
-        "version": "0.4.5",
+        "version": "0.5.0",
         "channel": "development",
         "source_commit": "unavailable",
     }
@@ -145,11 +145,11 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
             {
                 "schema_version": "2.0.0",
                 "release": {
-                    "tag": "v0.4.5",
-                    "version": "0.4.5",
+                    "tag": "v0.5.0",
+                    "version": "0.5.0",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
@@ -168,13 +168,13 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
 
     assert release.safe_release_summary() == {
         "status": "released",
-        "version": "0.4.5",
+        "version": "0.5.0",
         "channel": "stable",
         "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
-        "tag": "v0.4.5",
+        "tag": "v0.5.0",
         "verification_ci_run_id": 30548553629,
         "release_run_id": 30548553630,
-        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
+        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
     }
     assert release.effective_capabilities()["public_installer"] == "available"
 
@@ -191,11 +191,11 @@ def test_bundled_release_identity_v1_reader_still_accepted_for_backward_compat(
             {
                 "schema_version": "1.0.0",
                 "release": {
-                    "tag": "v0.4.5",
-                    "version": "0.4.5",
+                    "tag": "v0.5.0",
+                    "version": "0.5.0",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
@@ -226,11 +226,11 @@ def test_release_identity_v2_rejects_verification_equal_release_run(monkeypatch,
             {
                 "schema_version": "2.0.0",
                 "release": {
-                    "tag": "v0.4.5",
-                    "version": "0.4.5",
+                    "tag": "v0.5.0",
+                    "version": "0.5.0",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5",
+                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
@@ -393,7 +393,7 @@ def test_release_ledger_documents_historical_truth_and_provenance_defect() -> No
     ledger = (root / "docs" / "RELEASE_LEDGER.md").read_text(encoding="utf-8")
 
     # Ledger covers every tag from v0.4.0 through the current dev version.
-    for tag in ("v0.4.0", "v0.4.1", "v0.4.2", "v0.4.3", "v0.4.4", "v0.4.5"):
+    for tag in ("v0.4.0", "v0.4.1", "v0.4.2", "v0.4.3", "v0.4.4", "v0.5.0"):
         assert tag in ledger, f"ledger missing {tag}"
 
     # v0.4.4 provenance defect is recorded, not silently dropped.

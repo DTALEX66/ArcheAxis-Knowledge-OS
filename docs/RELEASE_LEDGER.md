@@ -23,7 +23,7 @@ correct provenance.
 | `v0.4.2` | yes | draft | no | unpublished | Draft Release only; never published. |
 | `v0.4.3` | yes | no | — | — | Remediation tag; no public Release. |
 | `v0.4.4` | yes | yes | yes | 2026-08-03 | Current historical public stable Release. |
-| `v0.4.5` | no | no | — | — | Current development version; no tag, no Release. |
+| `v0.5.0` | no | no | — | — | Current development version; no tag, no Release. |
 
 ## v0.4.4 release evidence
 
@@ -80,5 +80,5 @@ with `verification_ci_run_id` / `release_run_id` kept distinct.
   `verification_ci_run_id` ≠ `release_run_id`; asset allowlist + provider
   digest + downloaded SHA-256 recompute; install/start/restart/exit/uninstall
   evidence.
-- Current development line is `0.4.5`, `unreleased`, `development`,
+- Current development line is `0.5.0`, `unreleased`, `development`,
   `public=false`.
