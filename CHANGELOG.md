@@ -11,6 +11,14 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 - Added a post-publication gate that reads back the exact public asset set,
   provider digests, release identity, and downloaded SHA-256 payloads.
 
+## [0.5.0] - 2026-08-09
+
+`v0.5.0` is the public stable Release. Merge-SHA Full Qualification,
+Windows installer lifecycle, exact asset allowlist, SHA-256 recomputation,
+and schema-v2 release identity readback passed. The source manifest remains a
+deliberate `unreleased / development / public=false` placeholder; the verified
+public identity is carried by the release artifact.
+
 ## [0.4.4] - historical release
 
 `v0.4.4` is the current historical public stable Release (2026-08-03). Asset

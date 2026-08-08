@@ -23,7 +23,7 @@ correct provenance.
 | `v0.4.2` | yes | draft | no | unpublished | Draft Release only; never published. |
 | `v0.4.3` | yes | no | — | — | Remediation tag; no public Release. |
 | `v0.4.4` | yes | yes | yes | 2026-08-03 | Current historical public stable Release. |
-| `v0.5.0` | no | no | — | — | Current development version; no tag, no Release. |
+| `v0.5.0` | yes | yes | yes | 2026-08-09 | Public stable Release; exact-SHA qualification, installer lifecycle, asset allowlist, checksum and identity readback passed. |
 
 ## v0.4.4 release evidence
 
@@ -66,6 +66,28 @@ project policy this historical tag/Release is preserved and **not** edited
 in place; the defect is recorded here. Future releases must use schema v2
 with `verification_ci_run_id` / `release_run_id` kept distinct.
 
+## v0.5.0 release evidence
+
+- GitHub Release URL: <https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0>
+- Release run: `31277061510`
+- Verification (merge-SHA Full Qualification) run: `31276290892`
+- Tag target commit: `fe977577da53dafa4528da908898995ba316b53a`
+- Tag target tree: `3219c3fba0298d475fcd197c506b06d89422fda9`
+- Published assets (4), all present in `SHA256SUMS.txt` and re-hashed after download:
+
+| Asset | Provider SHA-256 digest |
+| --- | --- |
+| `ArcheAxis.OS-Windows-x64-setup.exe` | `142a56e8fff2bdcb0ef5d78f287e0f500eafe58f0e3f9ba1f0db73c28bb58239` |
+| `cognitive_loop_os-0.5.0-py3-none-any.whl` | `5ec1c460096f06376636e18379cbac44b06038c8203e39a8f106258c165018a1` |
+| `release-identity.json` | `aaf4cc157bde171b6670a5d8dcb7f7d7314361d8ff264bb6ef56a2126d8983b1` |
+| `SHA256SUMS.txt` | `7df2637e185e8fe8d2d4be193f95527e984117ffb9ac83d60362ac5e66341deb` |
+
+The downloaded `release-identity.json` is schema v2 and binds the public
+release to the exact commit/tree, verification CI run `31276290892`, and
+release workflow run `31277061510`. The source manifest intentionally remains
+`unreleased / development / public=false`; that is a source-truth placeholder,
+not a contradiction of the verified artifact identity.
+
 ## v0.4.0 release evidence
 
 - GitHub Release URL: <https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0>
@@ -80,5 +102,5 @@ with `verification_ci_run_id` / `release_run_id` kept distinct.
   `verification_ci_run_id` ≠ `release_run_id`; asset allowlist + provider
   digest + downloaded SHA-256 recompute; install/start/restart/exit/uninstall
   evidence.
-- Current development line is `0.5.0`, `unreleased`, `development`,
-  `public=false`.
+- Source manifest line is `0.5.0`, `unreleased`, `development`, `public=false`;
+  public artifact identity is recorded separately in the verified Release.
