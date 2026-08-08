@@ -2,14 +2,17 @@
 from __future__ import annotations
 
 import hmac
+import json
 import os
+import time
+from datetime import datetime, timezone
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.workspace import bff, service, vault
@@ -331,6 +334,36 @@ def workspace_jobs(request: Request) -> dict[str, object]:
 def workspace_delivery(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.workspace_delivery(db_path=DB_PATH))
+
+
+def _audit_event() -> str:
+    payload = {
+        "schema_version": "v1",
+        "observed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "projection": service.workspace_delivery(db_path=DB_PATH),
+    }
+    return "event: audit\\ndata: " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\\n\\n"
+
+
+@router.get("/api/audit/stream")
+def workspace_audit_stream(request: Request, once: bool = False) -> StreamingResponse:
+    """Stream the durable Workspace delivery projection as SSE audit events."""
+    _local_principal(request)
+
+    def events():
+        yield _audit_event()
+        if once:
+            return
+        deadline = time.monotonic() + 25.0
+        while time.monotonic() < deadline:
+            time.sleep(1.0)
+            yield _audit_event()
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.post("/api/delivery/dispatch")
