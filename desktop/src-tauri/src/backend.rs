@@ -2,7 +2,7 @@ use crate::job::Job;
 use crate::protocol::{launch_token, readiness_payload_valid};
 use crate::runtime::RuntimeSpec;
 use std::collections::VecDeque;
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
@@ -11,6 +11,7 @@ use std::time::{Duration, Instant};
 
 const MIGRATION_TIMEOUT: Duration = Duration::from_secs(120);
 const READINESS_TIMEOUT: Duration = Duration::from_secs(30);
+const READINESS_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(8);
 const MAX_LOG_LINES: usize = 200;
 const SANITIZED_ENVIRONMENT: [&str; 11] = [
@@ -180,7 +181,7 @@ fn wait_for_readiness(
                 format_logs(logs)
             ));
         }
-        if probe_readiness(port, token) {
+        if probe_readiness(port, token).is_ok() {
             return Ok(());
         }
         if Instant::now() >= deadline {
@@ -189,34 +190,89 @@ fn wait_for_readiness(
                 format_logs(logs)
             ));
         }
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(READINESS_POLL_INTERVAL);
     }
 }
 
-fn probe_readiness(port: u16, token: &str) -> bool {
+fn probe_readiness(port: u16, token: &str) -> Result<(), &'static str> {
     let address = ([127, 0, 0, 1], port).into();
     let Ok(mut stream) = TcpStream::connect_timeout(&address, Duration::from_millis(300)) else {
-        return false;
+        return Err("connect");
     };
-    let _ = stream.set_read_timeout(Some(Duration::from_millis(500)));
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
     let request = format!(
-        "GET /workspace/api/_desktop/ready HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nX-ArcheAxis-Launch-Token: {token}\r\nConnection: close\r\n\r\n"
+        "GET /workspace/api/_desktop/ready HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\nX-ArcheAxis-Launch-Token: {token}\r\nConnection: close\r\n\r\n"
     );
     if stream.write_all(request.as_bytes()).is_err() {
-        return false;
+        return Err("write");
     }
-    let mut response = String::new();
-    if stream.read_to_string(&mut response).is_err() {
-        return false;
+    let mut response = Vec::new();
+    let mut buffer = [0_u8; 4096];
+    loop {
+        match stream.read(&mut buffer) {
+            Ok(0) => break,
+            Ok(size) => response.extend_from_slice(&buffer[..size]),
+            Err(error) if matches!(error.kind(), ErrorKind::TimedOut | ErrorKind::WouldBlock) => {
+                break;
+            }
+            Err(_) if !response.is_empty() => break,
+            Err(_) => return Err("read-before-response"),
+        }
     }
-    let Some((headers, body)) = response.split_once("\r\n\r\n") else {
-        return false;
+    let Ok(response) = String::from_utf8(response) else {
+        return Err("utf8");
     };
-    headers
+    let Some((headers, body)) = response.split_once("\r\n\r\n") else {
+        return Err("headers");
+    };
+    let payload = response_body(headers, body).or_else(|| json_body(body));
+    if !headers
         .lines()
         .next()
         .is_some_and(|line| line == "HTTP/1.1 200 OK" || line == "HTTP/1.0 200 OK")
-        && readiness_payload_valid(body)
+    {
+        return Err("status");
+    }
+    let Some(payload) = payload else {
+        return Err("body");
+    };
+    if !readiness_payload_valid(&payload) {
+        return Err("identity");
+    }
+    Ok(())
+}
+
+fn response_body(headers: &str, body: &str) -> Option<String> {
+    let chunked = headers.lines().any(|line| {
+        line.split_once(':').is_some_and(|(name, value)| {
+            name.eq_ignore_ascii_case("transfer-encoding")
+                && value.trim().eq_ignore_ascii_case("chunked")
+        })
+    });
+    if !chunked {
+        return json_body(body);
+    }
+
+    let mut remaining = body;
+    let mut decoded = String::new();
+    loop {
+        let (size_line, after_size) = remaining.split_once("\r\n")?;
+        let size = usize::from_str_radix(size_line.split(';').next()?.trim(), 16).ok()?;
+        if size == 0 {
+            return json_body(&decoded);
+        }
+        let (chunk, after_chunk) = after_size.split_at_checked(size)?;
+        let after_chunk = after_chunk.strip_prefix("\r\n")?;
+        decoded.push_str(chunk);
+        remaining = after_chunk;
+    }
+}
+
+fn json_body(body: &str) -> Option<String> {
+    let trimmed = body.trim();
+    let start = trimmed.find('{')?;
+    let end = trimmed.rfind('}')?;
+    (start <= end).then(|| trimmed[start..=end].to_owned())
 }
 
 fn wait_for_exit(child: &mut Child, timeout: Duration) -> Result<std::process::ExitStatus, String> {
@@ -275,7 +331,7 @@ fn format_logs(logs: &LogBuffer) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::runtime_command;
+    use super::{readiness_payload_valid, response_body, runtime_command};
     use crate::runtime::RuntimeSpec;
     use std::ffi::OsStr;
     use std::path::PathBuf;
@@ -298,5 +354,14 @@ mod tests {
 
         assert_eq!(setting, Some(OsStr::new("1")));
         assert_eq!(arguments, [OsStr::new("-B"), OsStr::new("-I")]);
+    }
+
+    #[test]
+    fn readiness_decodes_chunked_http_json_before_validation() {
+        let headers = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked";
+        let body = "63\r\n{\"schema_version\":\"v1\",\"product\":\"ArcheAxis Workspace\",\"workspace\":\"Human–AI Learning Workspace\"}\r\n0\r\n\r\n";
+
+        let decoded = response_body(headers, body).expect("chunked body");
+        assert!(readiness_payload_valid(&decoded));
     }
 }
