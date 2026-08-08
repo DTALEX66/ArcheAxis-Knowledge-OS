@@ -4,13 +4,13 @@
 
 ## 发布真相
 
-- 当前开发线源码版本为 `0.5.0`，packaged source manifest 仍为 `unreleased / public=false`；源码字段不会预先宣告公开发布。
+- 当前源码版本为 `0.5.0`，packaged source manifest 按合同仍为 `unreleased / public=false`；公开稳定 Release `v0.5.0` 已由独立 artifact identity 记录并完成下载回读，源码字段不会预先宣告公开发布。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
-- 新版本只有在 tag 精确绑定受保护 `main`、exact-SHA CI 全绿、公开资产集合与 checksum payload allowlist 双向一致、provider digest 可核验、下载后 SHA-256 复算通过、release identity 读回一致、installer lifecycle 通过后，才可报告发布完成。当前没有签名发布声明。
+- `v0.5.0` 已满足 tag 精确绑定受保护 `main`、merge-SHA Full Qualification、公开资产集合与 checksum payload allowlist 双向一致、provider digest 可核验、下载后 SHA-256 复算、release identity 读回和 installer lifecycle；当前没有签名发布声明。
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Workspace 的 Obsidian-compatible Workspace foundation 阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry 和 receipt 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收、统一 Audit、SSE、异步 Worker 与交互式 Job Center 仍未完成。图像 OCR 基础依赖、真实图像门禁、Windows 构建和 NSIS 生命周期门禁已验证；ASR、公开 Installer 资产、多端发布及公开 Alpha/Beta/Stable 尚未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Workspace 的 Obsidian-compatible Workspace foundation 阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry、SSE 和 lease-fenced Worker 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收和交互式 Job Center 仍属于后续产品证据。图像 OCR 基础依赖、真实图像门禁、Windows 构建、NSIS lifecycle 和公开 `v0.5.0` installer 资产已验证；ASR、签名发布、多端发布及更高阶 Alpha/Beta 能力仍未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
 
 ## 已验证能力
 

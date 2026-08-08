@@ -15,9 +15,9 @@ ArcheAxis Workspace 以用户可读、可回滚的开放格式资料为中心，
 - **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。真实 Chromium 验证壳层交互后方可发布；Tauri WebView 点击级证据和公开发布资产仍未闭环，不能用 Chromium 结果替代。
-- **当前版本**：`0.5.0`；这是开发线真相收口版本，Release Manifest 仍为 `unreleased / public=false`，公开 Alpha/Beta/Stable 发布尚未宣告。
-- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；`v0.4.1` 与 `v0.4.2` 也是保留且不可重写的历史 tag。`v0.5.0` 只有在 merge-SHA CI、tag、公开资产集合、下载后 SHA-256、release identity 与 installer lifecycle 全部回读通过后才可宣称发布。
+- **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。Chromium/Tauri 运行时证据与公开发布资产属于不同证据层；`v0.5.0` 的 Windows installer lifecycle 和公开资产已通过独立 Release 门禁，不能用其中一层替代另一层。
+- **当前版本**：`0.5.0`；源码 Release Manifest 按合同继续保持 `unreleased / public=false`，真实公开身份只写入并验证发布资产。公开稳定 Release `v0.5.0` 已完成 tag、exact-SHA CI、installer lifecycle、checksum、identity 和下载后回读。
+- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；`v0.4.1`、`v0.4.2`、`v0.4.3` 与 `v0.4.4` 也是保留且不可重写的历史记录。`v0.5.0` 的公开资产与身份回读证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 
