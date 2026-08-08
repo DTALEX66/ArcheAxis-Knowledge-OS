@@ -971,3 +971,33 @@ def test_workspace_http_commands_serialize_same_id_semantic_conflicts(
             "SELECT COUNT(*) FROM kb_reviews WHERE id LIKE 'practice_%'"
         ).fetchone()[0] == 1
         assert connection.execute("SELECT COUNT(*) FROM mastery_signals_v1").fetchone()[0] == 1
+
+
+def test_workspace_jobs_reads_live_wal_after_http_style_intake(monkeypatch, tmp_path) -> None:
+    """Internal Job Center projections must read an active WAL safely."""
+    import sqlite3
+
+    from app.workspace import service
+    from shared.migration_runner import MigrationOperator
+    from tests.test_phase5_mcs_closed_loop import _database
+
+    database = _database(tmp_path)
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply(
+        "workspace.sqlite"
+    )
+    monkeypatch.setattr(service, "convert_url", lambda _: ("# live wal\nBody.", "test"))
+
+    intake = service.intake_url(url="https://example.com/live-wal", db_path=database)
+    writer = sqlite3.connect(database, timeout=30.0)
+    writer.execute("PRAGMA journal_mode=WAL")
+    writer.execute("UPDATE workspace_jobs_v1 SET updated_at=updated_at")
+    writer.commit()
+    sidecars = [database.with_name(f"{database.name}{suffix}") for suffix in ("-wal", "-shm")]
+    try:
+        assert any(sidecar.exists() for sidecar in sidecars)
+        jobs = service.workspace_jobs(db_path=database)
+        assert jobs["jobs"][0]["state"] == "succeeded"
+        assert jobs["jobs"][0]["delivery_state"] == "pending"
+        assert intake["job_id"]
+    finally:
+        writer.close()
