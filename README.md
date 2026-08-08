@@ -48,7 +48,7 @@ Research → Evidence → Knowledge → Learning
 → Plan → Permission → Execution → Trace → Evaluation → Lesson
 ```
 
-项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/Receipt 同事务边界、按需 dispatcher 与用户级状态/投影页面；dispatcher 已有服务级成功/失败/重试/lease 保护，本地真实 Chromium upload → dispatch → receipt → reload gate 已通过验证。统一 audit timeline、SSE、通用 Planner、异步 Worker、完整 Tauri WebView 点击级证据和公开发布资产仍未闭环。当前已有 Release Manifest、媒体基础链、图像 OCR、Windows 构建和 NSIS 生命周期门禁；ASR 仍未闭环。
+本项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/Receipt 同事务边界、按需 dispatcher 与用户级状态/投影页面；dispatcher 已有服务级成功/失败/重试/lease 保护，本地真实 Chromium upload → dispatch → receipt → reload gate 已通过验证。审计事件流、SSE、lease-fenced 异步 Worker 和 Job Center 投影已接入；通用 Planner、完整 Tauri WebView 点击级证据和更完整的用户级 Job Center 交互仍未闭环。当前已有 Release Manifest、媒体基础链、图像 OCR、Windows 构建、NSIS 生命周期门禁和公开 `v0.5.0` 发布资产；ASR 仍未闭环。
 
 ## 规划与进度
 
@@ -95,9 +95,9 @@ Phase 0 真实基线 ✅
 → Phase 9 Contract & Tracer Alpha 历史基线 ✅
 ```
 
-下一刀：把已通过本地验证的 Chromium delivery gate 纳入 exact-SHA CI，并继续补齐失败→retry→replay、Tauri WebView 点击级证据和同一隔离数据集的桌面回读；随后再推进公开发布资产、通用 Planner、异步 Worker、SSE 和更完整的用户级 Job Center。图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
+下一刀：继续补齐失败→retry→replay 的完整 UI/CI 矩阵、Tauri WebView 点击级证据和同一隔离数据集的桌面回读，并推进通用 Planner 与更完整的用户级 Job Center 交互。公开 `v0.5.0` 资产已完成独立 Release 门禁和下载回读；图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
 
-本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、公开发布资产、公开 Alpha/Beta/Stable 已完成。
+本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、通用 Planner、完整用户级 Job Center、公开 Alpha/Beta 能力已完成；公开稳定 `v0.5.0` 发布资产本身已完成并有独立回读证据。
 
 未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
 
