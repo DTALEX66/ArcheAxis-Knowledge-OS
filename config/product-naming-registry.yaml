@@ -1,0 +1,60 @@
+version: 2
+status: active
+product:
+  brand:
+    en-US: ArcheAxis
+    zh-CN: 元枢
+    class: display
+  name:
+    en-US: ArcheAxis Workspace
+    zh-CN: 元枢工作台
+    class: display
+  description:
+    en-US: A local-first, evidence-driven Human–AI learning and knowledge workspace.
+    zh-CN: 本地优先、证据驱动的 Human–AI 学习与知识工作台。
+    class: display
+  compatibility_stage:
+    en-US: Obsidian-compatible Workspace
+    zh-CN: Obsidian 兼容工作台
+    class: display
+  deprecated_display:
+    - value: ArcheAxis OS
+      class: legacy
+      allowed_surfaces: [desktop_protocol, installer_migration, historical_release]
+    - value: 元枢系统
+      class: legacy
+      allowed_surfaces: [historical_release, compatibility_docs]
+    - value: 元枢·观心
+      class: forbidden_default
+      allowed_surfaces: [user_defined_profile_only]
+technical_ids:
+  repository:
+    value: Cognitive-Loop-OS
+    class: legacy
+    allowed_surfaces: [git, historical_docs, project_root]
+  python_distribution:
+    values: [cognitive-loop-os, cognitive-os]
+    class: alias
+    allowed_surfaces: [existing_install, existing_cli, compatibility_docs]
+  tauri_identifier:
+    value: com.archeaxis.cognitive-workspace
+    class: legacy
+    allowed_surfaces: [desktop_protocol, installer_migration]
+  service_registry:
+    source: config/naming-registry.yaml
+    class: canonical_machine_identity
+    allowed_surfaces: [api, database, events, configuration]
+forbidden_default_terms:
+  - Cognitive-Loop-OS
+  - Cognitive OS
+  - 认知操作系统
+  - 认知运行时
+  - 元枢·观心
+  - 通用 Agent OS
+rules:
+  default_ui_product_name: ArcheAxis Workspace
+  default_ui_product_name_zh: 元枢工作台
+  preserve_technical_compatibility_ids: true
+  github_repository_rename: explicit_decision_required
+  tauri_identifier_change: migration_and_rollback_required
+  data_directory_change: migration_and_readback_required

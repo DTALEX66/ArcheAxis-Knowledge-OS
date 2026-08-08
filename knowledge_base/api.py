@@ -32,9 +32,9 @@ from shared.storage import count, fts5_sync, insert, select_all
 validate_runtime_config(config)
 
 app = FastAPI(
-    title="Cognitive-Loop-OS Knowledge-Base",
+    title="ArcheAxis Workspace Knowledge Services",
     version="0.4.5",
-    description="Knowledge management runtime. Absorbs capabilities from Obsidian, Tana, Notion, Logseq, Roam, Heptabase, Capacities, Anytype, GraphRAG, and Zettelkasten.",
+    description="Knowledge management services for the ArcheAxis Workspace. Open-format Vault compatibility is implemented through the shared compatibility kernel; third-party products are reference or planned adapters unless the compatibility matrix says otherwise.",
     docs_url="/docs",
     redoc_url="/redoc",
 )

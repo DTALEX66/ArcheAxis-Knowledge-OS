@@ -1,12 +1,12 @@
-# ArcheAxis OS 产品定位
+# ArcheAxis Workspace 产品定位
 
-> **ArcheAxis OS is a local-first, evidence-driven, bidirectional learning and knowledge system for individuals and AI.**
+> **ArcheAxis Workspace is a local-first, evidence-driven Human–AI learning and knowledge workspace.**
 
 > **同一份知识，人学得更深，AI 用得更准。**
 
 ## 定位边界
 
-ArcheAxis OS 的产品中心是受治理的学习与知识底座，而不是通用 Agent 平台。它将个人学习和 AI 使用连接到同一份可追溯的 Source、Claim、Evidence 与 Knowledge 之上。
+ArcheAxis Workspace 的产品中心是用户可读、可回滚的开放格式资料与受治理的学习知识底座，而不是通用 Agent 平台。它将个人学习和 AI 使用连接到同一份可追溯的 Source、Claim、Evidence 与 Knowledge 之上。
 
 本页定义对外定位和术语边界；它不宣称当前所有产品页面、Agent 功能或自动化能力已实现。当前可验证能力和限制以 [`PROJECT_STATUS.md`](PROJECT_STATUS.md) 与 [`VERIFICATION_POLICY.md`](VERIFICATION_POLICY.md) 为准。
 

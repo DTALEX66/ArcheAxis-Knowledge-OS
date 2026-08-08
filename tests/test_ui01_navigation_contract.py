@@ -54,5 +54,5 @@ def test_ui01_exposes_only_four_daily_rail_entries_and_separates_system() -> Non
     parser = _RailParser()
     parser.feed((root / "app/workspace/ui/index.html").read_text(encoding="utf-8"))
 
-    assert parser.daily_entries == ["首页", "资料与知识", "学习", "AI"]
+    assert parser.daily_entries == ["首页", "资料与知识", "学习"]
     assert parser.system_entries == ["系统"]

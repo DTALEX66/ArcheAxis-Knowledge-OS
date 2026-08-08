@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import tomllib
-
 import json
 import subprocess
+import tomllib
 import unicodedata
 from pathlib import Path
 
 import pytest
+import yaml
 
 from scripts.check_repository_conventions import (
     main as conventions_main,
@@ -266,3 +266,23 @@ def test_workspace_upload_runtime_dependency_is_declared() -> None:
 
     assert '"python-multipart>=' in pyproject
     assert "python-multipart>=0.0.20" in project["dependency-groups"]["ci"]
+
+
+def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
+    registry = yaml.safe_load(
+        (ROOT / "config" / "product-naming-registry.yaml").read_text(encoding="utf-8")
+    )
+    product = registry["product"]
+    assert product["name"] == {
+        "en-US": "ArcheAxis Workspace",
+        "zh-CN": "元枢工作台",
+        "class": "display",
+    }
+    assert registry["rules"]["default_ui_product_name"] == "ArcheAxis Workspace"
+    assert "元枢·观心" in registry["forbidden_default_terms"]
+
+    ui = (ROOT / "app" / "workspace" / "ui" / "index.html").read_text(encoding="utf-8")
+    assert "ArcheAxis Workspace" in ui
+    assert "元枢工作台" in ui
+    assert "元枢·观心" not in ui
+    assert "全局命令入口尚未接入" not in ui
