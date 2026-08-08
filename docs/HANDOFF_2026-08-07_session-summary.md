@@ -13,7 +13,7 @@
 
 ```text
 main HEAD     f555b0560a1443b1ba385d106de3536becaf2bb9（本地 == 云端，工作树 clean）
-开发线版本    0.4.5
+开发线版本    0.5.0
 发布状态      unreleased / development / public=false
 历史 Release  v0.4.0、v0.4.4 公开；v0.4.2 draft；tags v0.4.0–v0.4.4（保留不重写）
 ```

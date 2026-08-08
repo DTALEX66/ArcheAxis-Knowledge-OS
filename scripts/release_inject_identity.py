@@ -15,8 +15,8 @@ Usage:
     python scripts/release_inject_identity.py \
         --commit $(git rev-parse HEAD) \
         --tree $(git write-tree) \
-        --tag v0.4.5 --version 0.4.5 \
-        --url https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.5 \
+        --tag v0.5.0 --version 0.5.0 \
+        --url https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0 \
         --verification-ci-run-id 987654 \
         --verification-ci-url https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/987654 \
         --output .hermes/desktop-runtime-v1/runtime/release-identity.json

@@ -1,4 +1,4 @@
-"""Knowledge-Base API — SQLite-backed, v0.4.5.
+"""Knowledge-Base API — SQLite-backed, v0.5.0.
 
 Route counts are reported live by the mounted Core ``/health`` endpoint.
 Full OpenAPI documentation at /docs.
@@ -33,7 +33,7 @@ validate_runtime_config(config)
 
 app = FastAPI(
     title="ArcheAxis Workspace Knowledge Services",
-    version="0.4.5",
+    version="0.5.0",
     description="Knowledge management services for the ArcheAxis Workspace. Open-format Vault compatibility is implemented through the shared compatibility kernel; third-party products are reference or planned adapters unless the compatibility matrix says otherwise.",
     docs_url="/docs",
     redoc_url="/redoc",

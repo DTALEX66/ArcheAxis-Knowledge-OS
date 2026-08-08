@@ -70,7 +70,7 @@ jobs:
             --commit $env:GITHUB_SHA `
             --tree $tree `
             --tag $env:GITHUB_REF_NAME `
-            --version 0.4.5 `
+            --version 0.5.0 `
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
             --verification-ci-run-id ${{ steps.require_ci.outputs.verification_run_id }} `
             --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
@@ -133,7 +133,7 @@ jobs:
         run: |
           $expectedAssets = @(
             "ArcheAxis.OS-Windows-x64-setup.exe",
-            "cognitive_loop_os-0.4.5-py3-none-any.whl",
+            "cognitive_loop_os-0.5.0-py3-none-any.whl",
             "release-identity.json",
             "SHA256SUMS.txt"
           ) | Sort-Object
