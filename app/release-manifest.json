@@ -49,7 +49,7 @@
     "audio_track_and_video_keyframes": "available",
     "image_ocr": "dependency_required",
     "asr_transcription": "not_implemented",
-    "asynchronous_worker": "not_implemented",
+    "asynchronous_worker": "available",
     "outbox_dispatcher": "available",
     "server_sent_events": "not_implemented",
     "interactive_job_center": "available",

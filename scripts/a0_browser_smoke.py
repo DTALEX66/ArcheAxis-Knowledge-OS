@@ -91,7 +91,8 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.locator('.rail-item[title="首页"]').click()
     page.get_by_role("heading", name="观心总览").wait_for()
     page.get_by_text("异步Worker", exact=True).wait_for()
-    assert "尚未实现" in page.locator("#capability-summary").inner_text()
+    assert "异步Worker" in page.locator("#capability-summary").inner_text()
+    assert "已接入" in page.locator("#capability-summary").inner_text()
     page.locator('.rail-item[title="首页"]').click()
     delivery_route = page.locator('.nav-item[data-page="delivery"]')
     assert delivery_route.get_attribute("data-route-state") == "partial"
@@ -313,7 +314,7 @@ def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
         page.get_by_role("button", name="投递下一条").click()
         delivery.get_by_text("Receipt recorded：1", exact=False).wait_for()
         delivery_text = delivery.inner_text()
-        assert "投递器：on_demand" in delivery_text
+        assert "投递器：lease_fenced" in delivery_text
         assert "Outbox pending：0" in delivery_text
         assert "Receipt missing：0" in delivery_text
         assert "Outbox：delivered" in delivery_text
