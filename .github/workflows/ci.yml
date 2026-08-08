@@ -529,6 +529,7 @@ jobs:
           COGNITIVE_RATE_LIMIT_READ: "10000"
           COGNITIVE_RATE_LIMIT_WRITE: "1000"
           COGNITIVE_RATE_LIMIT_TOKEN: "100"
+          COGNITIVE_RATE_LIMIT_ENABLED: "false"
         run: cargo test --test backend_lifecycle -- --ignored --nocapture
 
   desktop-build:
@@ -624,6 +625,7 @@ jobs:
           COGNITIVE_RATE_LIMIT_READ: "10000"
           COGNITIVE_RATE_LIMIT_WRITE: "1000"
           COGNITIVE_RATE_LIMIT_TOKEN: "100"
+          COGNITIVE_RATE_LIMIT_ENABLED: "false"
         run: |
           $package = Get-Content "desktop/package.json" -Raw | ConvertFrom-Json
           $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
