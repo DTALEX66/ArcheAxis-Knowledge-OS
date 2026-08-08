@@ -1,6 +1,7 @@
 """Public boundary for the governed Cognitive Workspace."""
 from __future__ import annotations
 
+import hashlib
 import hmac
 import json
 import os
@@ -357,28 +358,53 @@ def workspace_delivery(request: Request) -> dict[str, object]:
     return _command_error(lambda: service.workspace_delivery(db_path=DB_PATH))
 
 
-def _audit_event() -> str:
+def _audit_snapshot() -> tuple[str, dict[str, object]]:
     payload = {
         "schema_version": "v1",
         "observed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "projection": service.workspace_delivery(db_path=DB_PATH),
     }
-    return "event: audit\\ndata: " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\\n\\n"
+    fingerprint_payload = {key: value for key, value in payload.items() if key != "observed_at"}
+    event_id = hashlib.sha256(
+        json.dumps(fingerprint_payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()[:24]
+    return event_id, payload
+
+
+def _audit_event(*, event_id: str, payload: dict[str, object]) -> str:
+    return (
+        f"id: {event_id}\n"
+        "event: audit\n"
+        "data: "
+        + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        + "\n\n"
+    )
 
 
 @router.get("/api/audit/stream")
 def workspace_audit_stream(request: Request, once: bool = False) -> StreamingResponse:
-    """Stream the durable Workspace delivery projection as SSE audit events."""
+    """Stream durable projection snapshots with resumable event fingerprints."""
     _local_principal(request)
+    last_event_id = request.headers.get("last-event-id", "").strip()
 
     def events():
-        yield _audit_event()
+        event_id, payload = _audit_snapshot()
+        if event_id == last_event_id:
+            yield ": heartbeat\n\n"
+        else:
+            yield _audit_event(event_id=event_id, payload=payload)
         if once:
             return
         deadline = time.monotonic() + 25.0
+        previous_id = event_id
         while time.monotonic() < deadline:
             time.sleep(1.0)
-            yield _audit_event()
+            event_id, payload = _audit_snapshot()
+            if event_id == previous_id:
+                yield ": heartbeat\n\n"
+                continue
+            previous_id = event_id
+            yield _audit_event(event_id=event_id, payload=payload)
 
     return StreamingResponse(
         events(),
