@@ -6,8 +6,15 @@ controlled failed-state fixture after the success path is proven.
 from __future__ import annotations
 
 import sqlite3
+import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
+
+if __package__ in (None, ""):
+    # Keep the tracked smoke runnable both as ``pytest`` and as the documented
+    # direct script from Git-Bash/Windows Python.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from playwright.sync_api import sync_playwright
 

@@ -120,6 +120,24 @@ def _http(method: str, url: str, body: dict | None = None) -> dict:
 
 BASE = "http://127.0.0.1:18723/workspace"
 RECORDS: list[dict] = []
+EVIDENCE = {
+    "success": False,
+    "malformed_200": False,
+    "network_failure": False,
+    "pending": False,
+    "failed": False,
+    "retry": False,
+    "replay": False,
+    "delivered": False,
+    "restart_readback": False,
+}
+
+
+def prove(key: str, condition: bool) -> None:
+    """Record a matrix row only after its semantic assertion passed."""
+    if key not in EVIDENCE:
+        raise KeyError(f"unknown evidence key: {key}")
+    EVIDENCE[key] = EVIDENCE[key] or bool(condition)
 
 
 def record(name: str, result: dict) -> bool:
@@ -184,6 +202,7 @@ def main():
         # ── 1. Health + status (baseline) ──
         r = _http("GET", f"{BASE}/api/status")
         record("1.1 status - baseline", r)
+        prove("success", r.get("status") == 200 and r.get("parsed", {}).get("schema_version") == "v1")
         r = _http("GET", f"{BASE}/api/delivery")
         record("1.2 delivery - baseline (no jobs)", r)
 
@@ -233,6 +252,7 @@ def main():
         assert delivery_data.get("schema_version") == "v1", f"Bad delivery schema: {delivery_data}"
         summary = delivery_data.get("summary", {})
         assert summary.get("jobs", 0) > 0, f"No jobs in delivery: {delivery_data}"
+        prove("pending", summary.get("outbox", {}).get("pending", 0) > 0)
         print(f"\n  Delivery summary: {json.dumps(summary, ensure_ascii=False)}")
 
         # ── 5. Dispatch delivery (on-demand) ──
@@ -254,16 +274,20 @@ def main():
         assert delivery_restart == delivery_dispatched, (
             f"Restart readback divergence: {delivery_dispatched} != {delivery_restart}"
         )
+        prove("restart_readback", True)
+        prove("delivered", summary2.get("outbox", {}).get("delivered", 0) > 0)
         ok = "\u2713"
         print(f"  {ok} Restart readback: state identical")
 
         # ── 8. Malformed 200 handling ──
         r = _http("GET", f"{BASE}/api/diagnostics")
         record("8.1 diagnostics - available", r)
+        prove("malformed_200", r.get("status") == 200 and isinstance(r.get("parsed"), dict))
 
         # ── 9. Network failure simulation ──
         r = _http("GET", "http://127.0.0.1:19999/workspace/api/status")
         record("9.1 network failure - unreachable port", r)
+        prove("network_failure", r.get("status") == -1 and r.get("parsed", {}).get("error") == "connection_failed")
 
         # ── 10. Job Center ──
         r = _http("GET", f"{BASE}/api/jobs")
@@ -304,6 +328,7 @@ def main():
         assert summary_failed.get("outbox", {}).get("failed", 0) > 0, (
             f"Expected failed outbox entry, got: {summary_failed}"
         )
+        prove("failed", True)
 
         # 12.2 Retry the failed event
         r = _http("POST", f"{BASE}/api/delivery/retry")
@@ -311,6 +336,7 @@ def main():
         retry_result = r.get("parsed", {})
         print(f"  Retry result: {json.dumps(retry_result, ensure_ascii=False)}")
         assert retry_result.get("status") == "requeued", f"Retry failed: {retry_result}"
+        prove("retry", r.get("status") == 200 and retry_result.get("status") == "requeued")
 
         # 12.3 Verify retry put it back to pending
         r = _http("GET", f"{BASE}/api/delivery")
@@ -321,6 +347,7 @@ def main():
         assert summary_retried.get("outbox", {}).get("pending", 0) > 0, (
             f"Expected pending after retry, got: {summary_retried}"
         )
+        prove("pending", True)
 
         # 12.4 Dispatch again (replay after retry)
         r = _http("POST", f"{BASE}/api/delivery/dispatch")
@@ -336,11 +363,14 @@ def main():
         assert summary_replay.get("outbox", {}).get("delivered", 0) > 0, (
             f"Expected delivered after replay, got: {summary_replay}"
         )
+        prove("replay", r.get("status") == 200 and summary_replay.get("receipts", {}).get("recorded", 0) > 0)
+        prove("delivered", True)
 
         # 12.6 Restart readback again after replay
         r = _http("GET", f"{BASE}/api/delivery")
         record("12.6 delivery - restart readback after replay", r)
         assert r.get("parsed", {}) == delivery_replay, "Restart readback after replay diverged"
+        prove("restart_readback", True)
         print("  ✓ Restart readback after replay: identical")
 
     except Exception as exc:
@@ -359,42 +389,7 @@ def main():
     print("\n" + "=" * 60)
     print("MATRIX RESULTS")
     print("=" * 60)
-    matrix = {
-        "success": False, "malformed_200": False, "network_failure": False,
-        "pending": False, "failed": False, "retry": False,
-        "replay": False, "delivered": False, "restart_readback": False,
-    }
-
-    for rec in RECORDS:
-        name = rec["name"]
-        if "status - baseline" in name and rec["ok"]:
-            matrix["success"] = True
-        if "diagnostics - available" in name and rec["ok"]:
-            matrix["malformed_200"] = True
-        if "network failure" in name:
-            matrix["network_failure"] = True if not rec["ok"] else matrix.get("network_failure", False)
-        if "after intake" in name and rec["ok"]:
-            matrix["pending"] = True
-        if "dispatch" in name and rec["ok"] and "retry" not in name:
-            matrix["delivered"] = True
-        if "after dispatch" in name and rec["ok"] and "retry" not in name and "replay" not in name:
-            matrix["replay"] = True
-        if "restart readback" in name and rec["ok"] and "replay" not in name:
-            matrix["restart_readback"] = True
-        if "jobs - after" in name and rec["ok"]:
-            pass  # exists but not a retry path
-        if "after force-fail" in name and rec["ok"]:
-            matrix["failed"] = True
-        if "retry failed delivery" in name and rec["ok"]:
-            matrix["retry"] = True
-        if "delivery - after retry" in name and rec["ok"]:
-            matrix["pending"] = True
-        if "dispatch after retry (replay)" in name and rec["ok"]:
-            matrix["replay"] = True
-        if "delivery - after replay dispatch" in name and rec["ok"]:
-            matrix["delivered"] = True
-        if "restart readback after replay" in name and rec["ok"]:
-            matrix["restart_readback"] = True
+    matrix = dict(EVIDENCE)
 
     all_ok = all(matrix.values())
     for key, val in matrix.items():

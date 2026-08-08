@@ -297,7 +297,11 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
         or result != expected_result
     ):
         raise RuntimeError("workspace job persistence binding is invalid")
-    graph = load_research_package(package_id, db_path=db_path)
+    # This is an internal live-runtime projection.  The server may still have
+    # WAL/SHM sidecars after the intake transaction, so use the query-only
+    # live-WAL reader rather than the immutable checkpoint-only reader used by
+    # offline/external read paths.
+    graph = load_research_package(package_id, db_path=db_path, live_wal=True)
     return {
         "job_id": expected_job_id,
         "state": str(row["state"]),
