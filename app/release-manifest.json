@@ -51,7 +51,7 @@
     "asr_transcription": "not_implemented",
     "asynchronous_worker": "available",
     "outbox_dispatcher": "available",
-    "server_sent_events": "not_implemented",
+    "server_sent_events": "available",
     "interactive_job_center": "available",
     "postgresql_runtime": "not_implemented",
     "qdrant_runtime": "not_implemented",

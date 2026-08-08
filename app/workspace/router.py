@@ -2,17 +2,20 @@
 from __future__ import annotations
 
 import hmac
+import json
 import os
+import time
+from datetime import datetime, timezone
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from app.workspace import bff, service
+from app.workspace import bff, service, vault
 from app.workspace.bff import BFFNotFoundError, BFFUnavailableError
 from shared.storage import DB_PATH
 
@@ -67,6 +70,26 @@ class IntakeURL(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     url: str = Field(min_length=1, max_length=2048)
+
+
+class VaultRootRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    root: str = Field(min_length=1, max_length=4096)
+
+
+class VaultFileRequest(VaultRootRequest):
+    relative_path: str = Field(min_length=1, max_length=4096)
+
+
+class VaultSearchRequest(VaultRootRequest):
+    query: str = Field(min_length=1, max_length=256)
+
+
+class PlannerRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    goal: str = Field(min_length=1, max_length=512)
 
 
 class WorkspaceIntakeResult(BaseModel):
@@ -192,6 +215,48 @@ def workspace_status(request: Request) -> dict[str, object]:
     return _command_error(lambda: service.workspace_status(db_path=DB_PATH))
 
 
+@router.post("/api/vault/inspect")
+def workspace_vault_inspect(payload: VaultRootRequest, request: Request) -> dict[str, object]:
+    """Inspect an explicitly selected Vault without writing to it."""
+    _local_principal(request)
+    return _command_error(lambda: vault.inspect_vault(root=payload.root, store=DB_PATH))
+
+
+@router.post("/api/vault/file")
+def workspace_vault_file(payload: VaultFileRequest, request: Request) -> dict[str, object]:
+    """Read one Markdown/Canvas file through the approved-root boundary."""
+    _local_principal(request)
+    return _command_error(
+        lambda: vault.read_file(
+            root=payload.root, store=DB_PATH, relative_path=payload.relative_path
+        )
+    )
+
+
+@router.post("/api/vault/search")
+def workspace_vault_search(payload: VaultSearchRequest, request: Request) -> dict[str, object]:
+    """Search the selected Vault locally without exposing absolute paths."""
+    _local_principal(request)
+    return _command_error(
+        lambda: vault.search_vault(root=payload.root, store=DB_PATH, query=payload.query)
+    )
+
+
+@router.post("/api/planner/preview")
+def workspace_planner_preview(payload: PlannerRequest, request: Request) -> dict[str, object]:
+    """Preview only the bounded, explicitly supported planner grammar."""
+    _local_principal(request)
+    from app.agent.planner import plan_goal
+
+    steps = plan_goal(payload.goal)
+    return {
+        "schema_version": "v1",
+        "status": "supported" if steps else "unsupported",
+        "execution": "preview_only",
+        "steps": steps,
+    }
+
+
 def _bff_error(action):
     try:
         return action()
@@ -290,6 +355,36 @@ def workspace_jobs(request: Request) -> dict[str, object]:
 def workspace_delivery(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.workspace_delivery(db_path=DB_PATH))
+
+
+def _audit_event() -> str:
+    payload = {
+        "schema_version": "v1",
+        "observed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "projection": service.workspace_delivery(db_path=DB_PATH),
+    }
+    return "event: audit\\ndata: " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\\n\\n"
+
+
+@router.get("/api/audit/stream")
+def workspace_audit_stream(request: Request, once: bool = False) -> StreamingResponse:
+    """Stream the durable Workspace delivery projection as SSE audit events."""
+    _local_principal(request)
+
+    def events():
+        yield _audit_event()
+        if once:
+            return
+        deadline = time.monotonic() + 25.0
+        while time.monotonic() < deadline:
+            time.sleep(1.0)
+            yield _audit_event()
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.post("/api/delivery/dispatch")

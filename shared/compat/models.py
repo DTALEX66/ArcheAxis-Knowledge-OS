@@ -13,8 +13,10 @@ upgrade to the pinned ruamel.yaml).
 
 from __future__ import annotations
 
+import mimetypes
 import re
 from dataclasses import dataclass, field
+from hashlib import sha256
 from pathlib import Path
 
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
@@ -97,6 +99,16 @@ def _serialize_fm_order_preserving(
 
 
 @dataclass
+class AttachmentRef:
+    """Binary attachment metadata; attachment bytes are never decoded as text."""
+
+    relative_path: str
+    source_hash: str
+    file_size: int
+    mime_type: str
+
+
+@dataclass
 class VaultFile:
     """A canonical, loss-checked vault file (markdown or canvas)."""
 
@@ -109,14 +121,29 @@ class VaultFile:
     file_size: int = 0
     is_canvas: bool = False
     unknown_fields: list[str] = field(default_factory=list)
+    is_binary: bool = False
+    mime_type: str | None = None
+    raw_bytes: bytes = b""
 
     @classmethod
     def from_path(cls, path: Path, *, vault: Path) -> VaultFile:
         """Read a vault file, resolving relative to the vault root."""
         resolved = path.resolve()
         rel = resolved.relative_to(vault.resolve())
-        text = resolved.read_text(encoding="utf-8")
         is_canvas = rel.suffix.lower() == ".canvas"
+        is_binary = not is_canvas and rel.suffix.lower() not in {".md", ".markdown"}
+        if is_binary:
+            raw_bytes = resolved.read_bytes()
+            return cls(
+                relative_path=rel.as_posix(),
+                raw_text="",
+                source_hash=sha256(raw_bytes).hexdigest(),
+                file_size=len(raw_bytes),
+                is_binary=True,
+                mime_type=mimetypes.guess_type(resolved.name)[0] or "application/octet-stream",
+                raw_bytes=raw_bytes,
+            )
+        text = resolved.read_text(encoding="utf-8")
         frontmatter: dict[str, object] = {}
         body = text
         comments: list[str] = []
