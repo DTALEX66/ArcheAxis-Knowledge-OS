@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import sqlite3
@@ -113,8 +114,18 @@ class MigrationRun:
 
 
 def _connect(path: Path, *, read_only: bool = False) -> sqlite3.Connection:
-    target = f"{path.resolve().as_uri()}?mode=ro" if read_only else str(path)
-    connection = sqlite3.connect(target, timeout=30.0, uri=read_only)
+    resolved = path.resolve()
+    use_uri = read_only
+    if read_only and os.name == "nt" and len(str(resolved)) >= 240:
+        target = str(resolved)
+        if not target.startswith("\\\\?\\"):
+            target = "\\\\?\\" + target
+        use_uri = False
+    else:
+        target = f"{resolved.as_uri()}?mode=ro" if read_only else str(path)
+    connection = sqlite3.connect(target, timeout=30.0, uri=use_uri)
+    if read_only and not use_uri:
+        connection.execute("PRAGMA query_only=ON")
     connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     return connection

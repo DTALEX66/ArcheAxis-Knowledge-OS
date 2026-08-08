@@ -45,8 +45,15 @@ INVARIANT_TABLES = (
 )
 
 
-def _sqlite_uri(path: Path) -> str:
-    return f"{path.resolve().as_uri()}?mode=ro"
+def _sqlite_uri(path: Path) -> tuple[str, bool]:
+    """Return a read-only connection target, preserving Windows long paths."""
+    resolved = path.resolve()
+    if os.name == "nt" and len(str(resolved)) >= 240:
+        native_path = str(resolved)
+        if not native_path.startswith("\\\\?\\"):
+            native_path = "\\\\?\\" + native_path
+        return native_path, False
+    return f"{resolved.as_uri()}?mode=ro", True
 
 
 def _manifest_path(path: Path) -> Path:
@@ -181,9 +188,12 @@ def _sha256(path: Path) -> str:
 
 def _sqlite_backup(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with closing(sqlite3.connect(_sqlite_uri(source), uri=True)) as src, closing(
+    source_target, source_uri = _sqlite_uri(source)
+    with closing(sqlite3.connect(source_target, uri=source_uri)) as src, closing(
         sqlite3.connect(str(destination))
     ) as dst:
+        if not source_uri:
+            src.execute("PRAGMA query_only=ON")
         src.backup(dst)
 
 
@@ -204,7 +214,10 @@ def _validate_sqlite_database(path: Path) -> dict[str, object]:
     if not path.is_file():
         raise FileNotFoundError(f"SQLite database not found: {path}")
     try:
-        with closing(sqlite3.connect(_sqlite_uri(path), uri=True)) as connection:
+        target, uri = _sqlite_uri(path)
+        with closing(sqlite3.connect(target, uri=uri)) as connection:
+            if not uri:
+                connection.execute("PRAGMA query_only=ON")
             connection.row_factory = sqlite3.Row
             integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
             if integrity != "ok":
