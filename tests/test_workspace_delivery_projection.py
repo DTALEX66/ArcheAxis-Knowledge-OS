@@ -64,7 +64,7 @@ def test_workspace_delivery_projects_job_outbox_and_receipt_without_ids(tmp_path
 
     assert payload == {
         "schema_version": "v1",
-        "dispatcher": "on_demand",
+        "dispatcher": "lease_fenced",
         "summary": {
             "jobs": 1,
             "outbox": {"delivered": 1},

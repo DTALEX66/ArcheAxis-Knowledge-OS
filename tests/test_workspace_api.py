@@ -242,8 +242,8 @@ def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_pat
     assert payload["components"] == {
         "api": "available",
         "database": "available",
-        "worker": "not_connected",
-        "outbox_dispatcher": "on_demand",
+        "worker": "available",
+        "outbox_dispatcher": "lease_fenced",
         "server_sent_events": "not_connected",
     }
     assert payload["migrations"]
@@ -257,7 +257,7 @@ def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_pat
     assert payload["counts"]["research"] == {"candidate": 1}
     assert payload["counts"]["jobs"] == {"succeeded": 1}
     assert payload["counts"]["outbox"] == {"pending": 1}
-    assert payload["capabilities"]["asynchronous_worker"] == "not_implemented"
+    assert payload["capabilities"]["asynchronous_worker"] == "available"
     assert payload["capabilities"]["interactive_job_center"] == "available"
     assert "database_path" not in response.text
     assert "backup_path" not in response.text

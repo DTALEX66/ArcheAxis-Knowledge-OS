@@ -405,7 +405,7 @@ def workspace_delivery(*, db_path: str | Path) -> dict[str, object]:
     ]
     return {
         "schema_version": "v1",
-        "dispatcher": "on_demand",
+        "dispatcher": "lease_fenced",
         "summary": {
             "jobs": len(items),
             "outbox": dict(Counter(item["outbox_state"] for item in items)),
@@ -510,8 +510,8 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
         "components": {
             "api": "available",
             "database": "available",
-            "worker": "not_connected",
-            "outbox_dispatcher": "on_demand",
+            "worker": "available",
+            "outbox_dispatcher": "lease_fenced",
             "server_sent_events": "not_connected",
         },
         "counts": counts,
