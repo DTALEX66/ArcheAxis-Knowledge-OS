@@ -608,6 +608,7 @@ def _require_matching_practice_command(
 
 
 def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
+    _import_heavy()
     with _command_lock(command_id):
         _require_matching_promotion_command(
             command_id=command_id,
@@ -637,6 +638,7 @@ def promote_research(*, command_id: str, package_id: str, reviewer_id: str, rati
 
 
 def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale: str, db_path: str | Path) -> dict:
+    _import_heavy()
     with _command_lock(command_id):
         _require_matching_learning_command(
             command_id=command_id,
@@ -664,6 +666,7 @@ def start_learning(*, command_id: str, unit_id: str, reviewer_id: str, rationale
 
 
 def approve_learning(*, command_id: str, artifact_id: str, reviewer_id: str, db_path: str | Path) -> dict:
+    _import_heavy()
     with _command_lock(command_id):
         card_ids = approve_learning_artifact(
             artifact_id=artifact_id,
@@ -676,6 +679,7 @@ def approve_learning(*, command_id: str, artifact_id: str, reviewer_id: str, db_
 
 
 def record_practice(*, command_id: str, artifact_id: str, quality: int, db_path: str | Path) -> dict:
+    _import_heavy()
     with _command_lock(command_id):
         _require_matching_practice_command(
             command_id=command_id, artifact_id=artifact_id, quality=quality, db_path=db_path
@@ -696,6 +700,7 @@ def record_practice(*, command_id: str, artifact_id: str, quality: int, db_path:
 
 
 def case_audit(*, artifact_id: str, db_path: str | Path) -> dict:
+    _import_heavy()
     return {
         "artifact_id": artifact_id,
         "events": [
