@@ -28,16 +28,29 @@ jobs:
       - name: Generate deterministic GatePlan
         id: gateplan
         env:
+          EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
           CI_FORCE_FULL: ${{ vars.CI_FORCE_FULL }}
         run: |
           python -m pip install --quiet --user pyyaml
           python - <<'PY'
           import json, os, subprocess, sys
-          base = os.environ.get("BASE_SHA") or "origin/main"
-          head = os.environ.get("HEAD_SHA") or "HEAD"
+          from scripts.ci.classify import resolve_diff_refs
+
+          base, head, refs_trusted = resolve_diff_refs(
+              os.environ.get("EVENT_NAME", ""),
+              push_before=os.environ.get("PUSH_BEFORE"),
+              push_after=os.environ.get("PUSH_AFTER"),
+              pull_base=os.environ.get("BASE_SHA"),
+              pull_head=os.environ.get("HEAD_SHA"),
+          )
           force_full = (os.environ.get("CI_FORCE_FULL") or "").lower() in ("1", "true", "yes")
+          if not refs_trusted:
+              print("WARNING: event diff refs are incomplete; forcing full qualification")
+              force_full = True
           # Fail-closed: if we cannot compute a trustworthy diff we must run full
           # qualification, never silently skip heavy gates.
           try:
@@ -76,9 +89,11 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -122,8 +137,37 @@ jobs:
       - name: Run integration tests
         run: python -m pytest integration-tests/ -q --tb=short
 
+  py-compat:
+    runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-compat') }}
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked compatibility dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Compile and import compatibility surface
+        run: |
+          python -m compileall -q app shared knowledge_base scripts
+          python -m pytest tests/test_imported_modules.py -q --tb=short
+
   lint:
     runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'lint') || contains(needs.gateplan.outputs.required_gates, 'static') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -440,11 +484,11 @@ jobs:
           COGNITIVE_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
         run: python scripts/runtime_http_smoke.py
 
-  desktop-shell:
+  desktop-fast:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') || contains(needs.gateplan.outputs.required_gates, 'desktop-build') }}
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -469,9 +513,6 @@ jobs:
             ${{ runner.os }}-cargo-
       - name: Install locked Python runtime
         run: uv sync --frozen
-      - name: Install locked desktop tooling
-        working-directory: desktop
-        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Prepare the installed Python runtime
         run: >-
           python -m desktop.scripts.prepare_bundle
@@ -482,6 +523,45 @@ jobs:
         run: |
           cargo fmt --all -- --check
           cargo test --lib
+      - name: Test the development and installed backend lifecycles
+        working-directory: desktop/src-tauri
+        run: cargo test --test backend_lifecycle -- --ignored --nocapture
+
+  desktop-build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-build') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            desktop/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Install locked Python runtime
+        run: uv sync --frozen
+      - name: Install locked desktop tooling
+        working-directory: desktop
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare the installed Python runtime
+        run: >-
+          python -m desktop.scripts.prepare_bundle
+          --repository .
+          --destination .hermes/desktop-runtime-v1
       - name: Audit locked Rust dependencies
         working-directory: desktop/src-tauri
         run: |
@@ -492,9 +572,6 @@ jobs:
             cargo install cargo-audit --version 0.22.2 --locked
           }
           cargo audit --file Cargo.lock
-      - name: Test the development and installed backend lifecycles
-        working-directory: desktop/src-tauri
-        run: cargo test --test backend_lifecycle -- --ignored --nocapture
       - name: Build the Windows release and NSIS installer
         working-directory: desktop
         run: |
@@ -516,6 +593,27 @@ jobs:
           if ($installers[0].Name -ne $expected) {
             throw "unexpected NSIS installer '$($installers[0].Name)', expected '$expected'"
           }
+      - name: Upload the built installer for lifecycle verification
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: nsis-installer
+          path: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  installer-lifecycle:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    needs: [gateplan, desktop-build]
+    if: ${{ always() && needs.desktop-build.result == 'success' && (needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')) }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Download the exact built installer
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e
+        with:
+          name: nsis-installer
+          path: desktop/src-tauri/target/release/bundle/nsis
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         run: |
@@ -533,18 +631,21 @@ jobs:
 
   a0-gates:
     if: ${{ always() }}
-    needs: [gateplan, test, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-shell]
+    needs: [gateplan, test, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle]
     runs-on: ubuntu-latest
     steps:
       - name: Validate required gates against GatePlan (ci-verdict)
         env:
           REQUIRED_GATES: ${{ needs.gateplan.outputs.required_gates }}
           TEST_RESULT: ${{ needs.test.result }}
+          COMPAT_RESULT: ${{ needs.py-compat.result }}
           LINT_RESULT: ${{ needs.lint.result }}
           WHEEL_RESULT: ${{ needs.wheel-smoke.result }}
           BROWSER_RESULT: ${{ needs.browser-smoke.result }}
           WINDOWS_RESULT: ${{ needs.windows-runtime-smoke.result }}
-          DESKTOP_RESULT: ${{ needs.desktop-shell.result }}
+          DESKTOP_FAST_RESULT: ${{ needs.desktop-fast.result }}
+          DESKTOP_BUILD_RESULT: ${{ needs.desktop-build.result }}
+          INSTALLER_RESULT: ${{ needs.installer-lifecycle.result }}
         run: |
           # GatePlan failed -> full qualification must run; fail closed.
           if [ "${{ needs.gateplan.result }}" != "success" ]; then
@@ -563,13 +664,16 @@ jobs:
             fi
           }
           require test "$TEST_RESULT"
+          require py-compat "$COMPAT_RESULT"
           require lint "$LINT_RESULT"
           require wheel-smoke "$WHEEL_RESULT"
           require browser-smoke "$BROWSER_RESULT"
           require windows-runtime "$WINDOWS_RESULT"
-          require desktop-fast "$DESKTOP_RESULT"
+          require desktop-fast "$DESKTOP_FAST_RESULT"
+          require desktop-build "$DESKTOP_BUILD_RESULT"
+          require installer-lifecycle "$INSTALLER_RESULT"
           # A not-required job that RAN and failed is still a failure.
-          for spec in "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_RESULT"; do
+          for spec in "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT"; do
             name="${spec%%:*}"; result="${spec##*:}"
             if [ "$result" = "failure" ]; then
               echo "gate '$name' failed even though not required"

@@ -13,6 +13,36 @@ REGISTRY = ROOT / ".worklab" / "gate-registry.v1.yaml"
 PYTHON = sys.executable
 
 
+def test_push_diff_refs_use_event_before_and_after() -> None:
+    from scripts.ci.classify import resolve_diff_refs
+
+    assert resolve_diff_refs(
+        "push",
+        push_before="1111111",
+        push_after="2222222",
+    ) == ("1111111", "2222222", True)
+
+
+def test_pull_request_diff_refs_use_prospective_merge_inputs() -> None:
+    from scripts.ci.classify import resolve_diff_refs
+
+    assert resolve_diff_refs(
+        "pull_request",
+        pull_base="3333333",
+        pull_head="4444444",
+    ) == ("3333333", "4444444", True)
+
+
+def test_missing_push_before_is_untrusted_and_fails_closed() -> None:
+    from scripts.ci.classify import resolve_diff_refs
+
+    assert resolve_diff_refs("push", push_after="2222222") == (
+        "origin/main",
+        "2222222",
+        False,
+    )
+
+
 def _classify(paths: list[str], force_full: bool = False) -> dict:
     cmd = [PYTHON, str(CLASSIFIER), "--base", "a" * 40, "--head", "b" * 40, "--paths", *paths]
     if force_full:

@@ -46,21 +46,25 @@ def test_ci_minimal_jobs_include_runtime_server_without_editable_install() -> No
 
 def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
-    desktop_job = _job_section(workflow, "desktop-shell", "a0-gates")
+    desktop_job = _job_section(workflow, "desktop-build", "installer-lifecycle")
 
-    assert "desktop-shell:" in workflow
+    assert "desktop-fast:" in workflow
+    assert "desktop-build:" in workflow
+    assert "installer-lifecycle:" in workflow
     assert 'python-version: "3.12"' in desktop_job
     assert "python -m desktop.scripts.prepare_bundle" in desktop_job
-    assert desktop_job.index("Prepare the installed Python runtime") < desktop_job.index(
+    desktop_fast = _job_section(workflow, "desktop-fast", "desktop-build")
+    assert desktop_fast.index("Prepare the installed Python runtime") < desktop_fast.index(
         "Test the Windows Rust library"
     )
     assert "cargo install cargo-audit --version 0.22.2 --locked" in desktop_job
     assert "cargo audit --file Cargo.lock" in desktop_job
-    assert "cargo test --test backend_lifecycle -- --ignored --nocapture" in desktop_job
     assert "npm run tauri -- build --bundles nsis" in desktop_job
-    assert "Verify the installed NSIS lifecycle" in desktop_job
-    assert "timeout-minutes: 45" in desktop_job
-    assert "./desktop/scripts/verify_nsis_install.ps1" in desktop_job
+    assert "timeout-minutes: 30" in desktop_job
+    lifecycle_job = _job_section(workflow, "installer-lifecycle", "a0-gates")
+    assert "./desktop/scripts/verify_nsis_install.ps1" in lifecycle_job
+    assert "actions/upload-artifact@" in desktop_job
+    assert "actions/download-artifact@" in lifecycle_job
     assert (
         'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe"'
         not in desktop_job
@@ -80,7 +84,7 @@ def test_desktop_close_request_destroys_native_window_before_exit() -> None:
     assert "WindowEvent::CloseRequested" in close_handler
     assert "api.prevent_close()" in close_handler
     assert "window.app_handle().exit(0)" in close_handler
-    assert "window.destroy()" not in close_handler
+    assert "window.destroy()" in close_handler
     assert "window.close()" not in close_handler
     assert "thread::sleep" not in close_handler
 
@@ -223,11 +227,15 @@ def test_selective_heavy_jobs_gate_on_gateplan() -> None:
         assert "needs.gateplan.result != 'success'" in block
         assert "full_qualification == 'true'" in block
 
-    desktop = workflow.split("\n  desktop-shell:", 1)[1]
-    assert "needs: gateplan" in desktop
-    assert "desktop-fast" in desktop or "installer-lifecycle" in desktop
-    assert "needs.gateplan.result != 'success'" in desktop
-    assert "full_qualification == 'true'" in desktop
+    for job, gate in (
+        ("desktop-fast", "desktop-fast"),
+        ("desktop-build", "desktop-build"),
+        ("installer-lifecycle", "installer-lifecycle"),
+    ):
+        block = workflow.split(f"\n  {job}:", 1)[1]
+        assert gate in block
+        assert "needs.gateplan.result != 'success'" in block
+        assert "full_qualification == 'true'" in block
 
 
 def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
@@ -241,7 +249,9 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
     assert project["tool"]["ruff"]["target-version"] == "py311"
     assert {"UP017", "UP042"} <= set(project["tool"]["ruff"]["lint"]["ignore"])
     assert project["tool"]["mypy"]["python_version"] == "3.11"
-    assert 'python-version: ["3.11", "3.12", "3.13"]' in test_job
+    assert 'python-version: ["3.12"]' in test_job
+    compat_job = _job_section(workflow, "py-compat", "lint")
+    assert 'python-version: ["3.11", "3.13"]' in compat_job
     assert '"3.10"' not in test_job
     ci_adapters = project["dependency-groups"]["ci-adapters"]
     for requirement in (
@@ -260,7 +270,8 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
         ("lint", "wheel-smoke"),
         ("wheel-smoke", "browser-smoke"),
         ("browser-smoke", "windows-runtime-smoke"),
-        ("windows-runtime-smoke", "desktop-shell"),
-        ("desktop-shell", "a0-gates"),
+        ("windows-runtime-smoke", "desktop-fast"),
+        ("desktop-fast", "desktop-build"),
+        ("desktop-build", "installer-lifecycle"),
     ):
         assert 'python-version: "3.12"' in _job_section(workflow, job_name, next_name)
