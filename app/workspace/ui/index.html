@@ -36,6 +36,11 @@
   </div>
   <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前阶段</h2></div><p class="muted">当前产品优先验证开放格式互操作与用户资料所有权。Vault 读取、编辑、附件、Canvas、冲突和回读能力完成完整桌面证据前，不宣称全面或双向兼容。</p></div>
 </section>
+<section class="page" id="page-vault">
+  <div class="page-head"><div><div class="eyebrow">READ-ONLY VAULT WORKBENCH</div><h1>Vault 工作台</h1><p class="desc">选择本地 Vault 根目录，读取 Markdown、JSON Canvas 和附件元数据；当前不会写回或编辑原始文件。</p></div><div class="head-actions"><button class="btn primary" data-action="vault-refresh">扫描 Vault</button></div></div>
+  <div class="card"><div class="card-title"><h2>本地 Vault</h2><span class="status ok"><i></i>只读</span></div><div class="form-row"><label for="vault-root">Vault 根目录</label><input id="vault-root" type="text" placeholder="例如：D:\\Vaults\\Learning" autocomplete="off"><button class="btn" data-action="vault-refresh">扫描</button></div><div class="form-row"><label for="vault-query">全文搜索</label><input id="vault-query" type="search" placeholder="搜索 Markdown / Canvas 文本"><button class="btn" data-action="vault-search">搜索</button></div></div>
+  <div class="grid cols-2" style="margin-top:16px"><div class="card"><div class="card-title"><h2>文件与附件</h2></div><pre class="data-block" id="vault-files">尚未扫描</pre></div><div class="card"><div class="card-title"><h2>搜索结果</h2></div><pre class="data-block" id="vault-results">尚未搜索</pre><div class="card-title" style="margin-top:16px"><h2>Loss report</h2></div><pre class="data-block" id="vault-loss">尚未扫描</pre></div></div>
+</section>
 <section class="page" id="page-diagnostics">
   <div class="page-head"><div><div class="eyebrow">LOCAL SYSTEM HEALTH</div><h1>系统诊断</h1><p class="desc">只读显示API、迁移与开发版发布信息；不泄露数据库路径或备份位置。</p></div><div class="head-actions"><button class="btn primary" data-action="refresh">刷新</button></div></div>
   <div class="grid cols-4" id="diagnostics-summary" aria-live="polite"><div class="card metric"><span>API</span><b>加载中</b><span class="delta info">正在读取本地诊断</span></div></div>
