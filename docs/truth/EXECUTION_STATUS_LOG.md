@@ -565,3 +565,14 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert 54cc276
+
+### LOG-20260809-044 — EVIDENCE INDEX — PASS
+
+- 时间：2026-08-09T17:45:00+08:00
+- 执行分支：codex/frozen-roadmap-deepseek-v1
+- 候选提交：a28d9332dc7093e1126526e9e5f8fe606489e36c
+- 变更：docs/truth/H0_H1_STATUS_HANDOFF.md 新增附录 A 证据索引（任务 → commit → CI run）；修正续接 LOG 至 LOG-043
+- 验证：git diff --check PASS；文档 11 节 + 附录完整
+- 证据等级：STRUCTURAL
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：revert a28d933
