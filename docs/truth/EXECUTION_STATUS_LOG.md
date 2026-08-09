@@ -654,3 +654,13 @@
 - 证据等级：LOCAL_RUNTIME；EXACT_SHA_CI 待 PR #72 head 1c688c7
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权
 - 回滚：revert 1c688c7
+
+### LOG-20260809-052 — PR #72 head 1c688c7 exact-head CI — PASS
+
+- 时间：2026-08-09T19:05:00+08:00
+- 候选提交/tree：head 1c688c71eace449be2972acc538c0a8eb31dab89；run 31326205396
+- 验证：completed/success；gateplan、lint、test(3.12)、wheel-smoke、a0-gates 全 PASS；browser-smoke、desktop-build、desktop-fast、installer-lifecycle、py-compat、windows-runtime-smoke 正确 SKIP（纯 Python+文档变更）；mergeStateStatus CLEAN
+- 意义：GOV-001/020/021/024/025/030/022A后端 + AXW-021A 审查警告B修复全部 exact-SHA CI 证据
+- 证据等级：EXACT_SHA_CI（head 1c688c7）
+- 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：关闭/丢弃 PR #72
