@@ -123,3 +123,42 @@
 - 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`
 - 风险/剩余项：`docs/PROJECT_STATUS.md` 作为阅读入口位于 main，权威分支与 main 尚不同树；后续按 release train 同步
 - 回滚：revert `ae5ff5745fa690b4c52f3e1f926d7143733b8adc`
+
+### LOG-20260809-006 — AXW-003A — PASS
+
+- 时间：2026-08-09T22:55:00+08:00
+- 执行分支：`axw/execution-h0`（隔离 worktree，基于 origin/main `492fac5`）
+- 候选提交：`8cdfb21116892885a0bfa014ff0d7171f2761407`
+- 基线输入：`AXW-BASE-0` PASS（依赖满足）
+- 变更：`.github/workflows/ci.yml` a0-gates 聚合段由 job 名 `require test` 改为语义 gate ID（`py-primary`→TEST_RESULT、`static`/`lint`→LINT_RESULT）；not-required-but-failed 检查补全 test/py-compat/lint 并修正 windows-runtime-smoke job 名；`tests/test_ci_a0_gates.py` 新增 2 个反向回归测试
+- 验证：RED（2 个新测试先失败，证明缺陷）→ GREEN（`36 passed`）；Ruff changed-file PASS；architecture guard PASS；repository convention PASS；独立只读 reviewer 全部检查点 PASS、无 gate 不一致、无 CI 回归风险
+- 证据等级：`LOCAL_RUNTIME`（CLI 定向测试）；`EXACT_SHA_CI` 为 `NOT EXECUTED`（尚未进入 main PR）
+- 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`
+- 风险/剩余项：需将执行分支推入 PR 后跑 exact-SHA CI 才升级为 EXACT_SHA_CI；PR/merge 未获当前授权
+- 回滚：revert `8cdfb21116892885a0bfa014ff0d7171f2761407`
+
+### LOG-20260809-007 — AXW-007A — PASS
+
+- 时间：2026-08-09T22:56:00+08:00
+- 执行分支：`axw/execution-h0`
+- 候选提交：`275bd904b5eb00fa02adee4d596cfa909a6c71fb`
+- 基线输入：`AXW-BASE-0` PASS
+- 变更：新增 `scripts/doctor_windows.ps1`（PowerShell 7：检测 Python/Node/Rust/PowerShell、中文/空格路径、端口、编码、可写目录，输出无绝对私人路径的结构化 JSON）；新增 `tests/test_doctor_windows.py` 6 个测试
+- 验证：`6 passed`；Ruff changed-file PASS；architecture guard PASS
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`
+- 风险/剩余项：需 PR exact-SHA CI 升级证据
+- 回滚：revert `275bd904b5eb00fa02adee4d596cfa909a6c71fb`
+
+### LOG-20260809-008 — AXW-011A — PASS
+
+- 时间：2026-08-09T22:57:00+08:00
+- 执行分支：`axw/execution-h0`；产物在项目忽略目录 `.hermes/task-runtime/pdf-corpus`
+- 候选提交：不适用（corpus 不进 Git；证据记录于 manifest）
+- 基线输入：`AXW-BASE-0` PASS
+- 变更：生成 6 个真实二进制 PDF corpus（文本/多页/中英混合/加密/扫描无文本层/损坏截断）+ `manifest.json`（SHA-256、来源、许可、语义预期）；Oracle 校验每个样本语义
+- 验证：Oracle `failures=0`；6/6 PASS；corrupt→`PdfStreamError`（fail-closed）、encrypted→`FileNotDecryptedError`、multipage→6 页、zh→中文保真、scan→text_len=0、en→phrase 命中；中文用 STSong-Light CID 字体
+- 证据等级：`LOCAL_RUNTIME`（真实二进制 + pypdf/reportlab 校验）；不涉及 CI
+- 安装态：corpus 是测试输入，`LIVE_INSTALLED` 为 `NOT EXECUTED`
+- 风险/剩余项：corpus 为合成样本（MIT 项目自有），后续 AXW-012B 需用其驱动真实 PDF 提取修复；真实外部 PDF 样本可后续按许可补充
+- 回滚：删除 `.hermes/task-runtime/pdf-corpus`
