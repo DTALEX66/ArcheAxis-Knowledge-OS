@@ -223,5 +223,30 @@ H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 | H1 | AXW-030A | `5579d61` | PR #72 CI |
 | H1 | AXW-022A（后端） | `78091cc` | PR #72 CI `31322840300` |
 
-权威分支提交链：`codex/frozen-roadmap-deepseek-v1`（LOG-004~043，最新 `21fefab`）。
+权威分支提交链：`codex/frozen-roadmap-deepseek-v1`（LOG-004~045，最新 `d086a5d`）。
 H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 merge）。
+
+
+## 附录 B：本地测试结果汇总（命令 → 结果）
+
+各任务 checkpoint 的本地定向测试结果（均在锁定 CI 环境 `uv run --frozen --only-group ci` 下执行，Ruff/architecture/convention 门禁全过）：
+
+| 测试文件 | 结果 | 对应任务 |
+|---|---|---|
+| `test_ci_a0_gates.py` + `test_ci_classifier.py` | 38 passed | AXW-003A/003C |
+| `test_doctor_windows.py` | 6 passed | AXW-007A |
+| `test_pdf_extraction.py` | 3 passed | AXW-012B |
+| `test_raw_asset.py` | 8 passed | AXW-012A/020A |
+| `test_machine_knowledge_contract.py` + `test_machine_knowledge_candidates.py` | 11 passed | GOV-001 |
+| `test_conversion_run.py` | 4 passed | AXW-020B |
+| `test_evidence_anchor.py` | 6 passed | AXW-020C |
+| `test_import_job.py` | 4 passed | AXW-021A |
+| `test_workspace_crash_recovery.py` + `test_workspace_outbox_dispatcher.py` | 6 passed | AXW-021B |
+| `test_evidence_graph.py` | 5 passed | AXW-024A |
+| `test_evidence_bundle.py` + `test_evidence_graph.py` + `test_evidence_anchor.py` | 16 passed | AXW-024B |
+| `test_retrieval_practice.py` | 4 passed | AXW-025A |
+| `test_teach_back.py` | 5 passed | AXW-025B |
+| `test_workspace_bff_contract.py` | 5 passed | AXW-030A |
+| `test_pdf_serve.py` | 3 passed | AXW-022A（后端） |
+
+全部 checkpoint 均通过 `ruff check`（changed-file）、`scripts/check_architecture.py`（PASS）、`scripts/check_repository_conventions.py`（PASS）。
