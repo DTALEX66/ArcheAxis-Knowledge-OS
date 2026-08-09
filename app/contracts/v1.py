@@ -217,6 +217,10 @@ class MachineKnowledgeUnitV1(BaseModel):
     source_type: str = Field(min_length=1)
     source_id: str
     legacy_active: int = Field(ge=0, le=1)
+    # GOV-001: a unit may be scoped to a retrieval domain. None (default) means
+    # a generic rule visible to any retrieval; a set value means the unit is only
+    # visible to retrievals requesting that exact scope.
+    scope: str | None = None
     lifecycle_status: Literal[
         "candidate", "legacy_active_unverified", "approved", "deprecated"
     ]

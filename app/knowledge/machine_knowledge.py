@@ -26,7 +26,7 @@ def _candidate_id(signal_id: str) -> str:
 
 
 def create_machine_knowledge_candidate_on_connection(
-    connection: sqlite3.Connection, signal_id: str, *, title: str, content: str
+    connection: sqlite3.Connection, signal_id: str, *, title: str, content: str, scope: str | None = None
 ) -> MachineKnowledgeUnitV1:
     """Write one candidate without committing the caller-owned transaction."""
     core_schema.validate(connection)
@@ -41,7 +41,7 @@ def create_machine_knowledge_candidate_on_connection(
     ).fetchone()
     if row is None or not MasterySignalV1.model_validate_json(row["signal_json"]).is_mastered:
         raise ValueError("machine knowledge candidate requires a mastered signal")
-    unit = MachineKnowledgeUnitV1(schema_version="1.0.0", unit_id=_candidate_id(signal_id), title=title, content=content, unit_type="rule", tags=[], confidence=0.8, source_type="mastery_signal", source_id=signal_id, legacy_active=0, lifecycle_status="candidate", provenance_status="server_verified", requires_human_review=True, created_at=row["calculated_at"], updated_at=row["calculated_at"])
+    unit = MachineKnowledgeUnitV1(schema_version="1.0.0", unit_id=_candidate_id(signal_id), title=title, content=content, unit_type="rule", tags=[], confidence=0.8, source_type="mastery_signal", source_id=signal_id, legacy_active=0, scope=scope, lifecycle_status="candidate", provenance_status="server_verified", requires_human_review=True, created_at=row["calculated_at"], updated_at=row["calculated_at"])
     connection.execute(
         "INSERT INTO machine_knowledge_candidates_v1 VALUES (?, ?, ?, 'candidate', NULL, NULL, NULL, ?)",
         (unit.unit_id, signal_id, unit.model_dump_json(), row["calculated_at"]),
@@ -50,14 +50,14 @@ def create_machine_knowledge_candidate_on_connection(
 
 
 def create_machine_knowledge_candidate(
-    signal_id: str, *, title: str, content: str, db_path: str | Path
+    signal_id: str, *, title: str, content: str, db_path: str | Path, scope: str | None = None
 ) -> MachineKnowledgeUnitV1:
     with sqlite3.connect(Path(db_path)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
             unit = create_machine_knowledge_candidate_on_connection(
-                connection, signal_id, title=title, content=content
+                connection, signal_id, title=title, content=content, scope=scope
             )
             connection.commit()
             return unit
@@ -106,8 +106,13 @@ def deprecate_machine_knowledge_candidate(approval: MachineKnowledgeApproval, *,
             raise
 
 
-def list_runtime_machine_knowledge(*, db_path: str | Path) -> list[MachineKnowledgeUnitV1]:
-    """Return only strictly validated, human-approved units for Runtime consumption."""
+def list_runtime_machine_knowledge(
+    *, db_path: str | Path, scope: str | None = None
+) -> list[MachineKnowledgeUnitV1]:
+    """Return only strictly validated, human-approved units for Runtime
+    consumption. GOV-001: when a retrieval scope is supplied, only approved
+    units whose scope matches (or that are generic/scope-less) are returned.
+    """
     with sqlite3.connect(Path(db_path)) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)
@@ -129,5 +134,7 @@ def list_runtime_machine_knowledge(*, db_path: str | Path) -> list[MachineKnowle
             or not row["rationale"]
         ):
             raise RuntimeError("approved machine knowledge payload conflicts with governance row")
+        if scope is not None and unit.scope is not None and unit.scope != scope:
+            continue
         approved.append(unit)
     return approved
