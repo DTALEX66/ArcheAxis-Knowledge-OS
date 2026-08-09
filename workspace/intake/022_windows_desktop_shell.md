@@ -33,4 +33,4 @@ Tauri
 
 Windows CI 在生成 NSIS 后必须真实执行安装、启动、Workspace HTTP、正常关闭、强制终止进程树、字节码零增长和卸载零残留验证；仅检查 EXE 文件存在不能作为安装闭环证据。
 
-当前 Release Manifest 仍保持 `unreleased`、`public=false`。未签名安装器只用于本地 Alpha 验证，不能作为公开发行或已建立发布身份的证据。
+当前源码 Release Manifest 仍保持 `unreleased`、`public=false`；这不否定已独立验证的公开 `v0.5.0` artifact identity、资产 checksum 与 installer lifecycle。当前没有签名发布声明；后续未签名构建仍不能自动作为新的公开发行证据。
