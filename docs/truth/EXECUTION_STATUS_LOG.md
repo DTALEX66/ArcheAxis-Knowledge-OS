@@ -598,3 +598,14 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert d08fc72
+
+### LOG-20260809-047 — EXECUTION PROTOCOL COMPLIANCE — PASS
+
+- 时间：2026-08-09T18:15:00+08:00
+- 执行分支：codex/frozen-roadmap-deepseek-v1
+- 候选提交：71211cdeceda7990ce78ddbca3e8be01e10e3ad2
+- 变更：docs/truth/H0_H1_STATUS_HANDOFF.md 新增附录 C 执行协议遵循确认（RED→GREEN、单 writer、fail-closed、不写 PASS 冒充、未授权不 merge 等）；文档 11 节 + 附录 A/B/C 完整
+- 验证：git diff --check PASS
+- 证据等级：STRUCTURAL
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：revert 71211cd
