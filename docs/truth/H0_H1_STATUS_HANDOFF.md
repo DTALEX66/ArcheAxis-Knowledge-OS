@@ -91,7 +91,28 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 3. **AXW-H1-EXIT 裁决**：同一 PDF 形成 RawAsset→派生块→Evidence→学习记录→受控 AI 候选，安装态重启后成立
 4. H1 完成后进入 H2（多格式适配）或按所有者决定顺序
 
-## 7. 边界与安全确认
+## 7. H1 交付物清单（供后续批次引用）
+
+H1 分支 `axw/execution-h1` 相对 main 新增/修改 26 文件，1942 行。核心模块：
+
+| 模块 | 职责 | 对应任务 |
+|---|---|---|
+| `app/evidence/anchor.py` | EvidenceAnchor + IndexRevision | AXW-020C |
+| `app/evidence/graph.py` | Claim/Evidence 核心图 | AXW-024A |
+| `app/evidence/bundle.py` | CrossValidation Bundle | AXW-024B |
+| `app/evidence/pdf_serve.py` | 内容寻址 PDF 字节服务 | AXW-022A（后端） |
+| `app/ingestion/raw_asset.py` | RawAsset 不可变存储 + 完整合同 | AXW-012A/020A |
+| `app/ingestion/conversion_run.py` | ConversionRun/DerivedDocument/Block | AXW-020B |
+| `app/ingestion/import_job.py` | 导入 Job/Outbox/Receipt 同事务 | AXW-021A |
+| `app/knowledge/machine_knowledge.py` | scope 过滤 + 治理 | GOV-001 |
+| `app/knowledge/retrieval_practice.py` | 学习目标/检索练习 | AXW-025A |
+| `app/knowledge/teach_back.py` | Teach-Back/迁移证据 | AXW-025B |
+
+配套测试（13 个新测试文件）覆盖：`test_evidence_anchor/bundle/graph/pdf_serve`、`test_conversion_run`、`test_import_job`、`test_retrieval_practice`、`test_teach_back`、`test_raw_asset`、`test_machine_knowledge_*`、`test_workspace_bff_contract`、`test_workspace_crash_recovery`。
+
+设计文档：`workspace/intake/2026-08-09-AXW-020R-reuse-matrix.md`（对象复用矩阵）。
+
+## 8. 边界与安全确认
 
 - 未访问 `E:\`；未读取/输出任何凭据、token、私钥、cookie 或私人正文
 - 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~038 无改写）
@@ -99,7 +120,7 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 - PR #71 已 merge（H0，获授权）；PR #72 未 merge（H1，未获授权）
 - 无遗留 ArcheAxis 进程；安装测试已彻底卸载
 
-## 8. 后续阶段概览（H2-H10 与增补）
+## 9. 后续阶段概览（H2-H10 与增补）
 
 冻结基线定义后续 Horizon；每阶段需完成其冻结任务后进入下一 Horizon：
 
@@ -116,7 +137,7 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 - `AXW-KLC-EXIT` 是 `AXW-055`、`AXW-060` 的强制补充前置
 - H1 的 RawAsset/Evidence/Learning 后端（已交付）是 H2-H5 与增补的共享基础
 
-## 9. 最终状态判定
+## 10. 最终状态判定
 
 ```text
 H0（v0.5.1 可信恢复）：PASS（已 merge main）
