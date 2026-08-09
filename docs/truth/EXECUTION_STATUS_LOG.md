@@ -587,3 +587,14 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert 7e69a74
+
+### LOG-20260809-046 — LOCAL TEST RESULTS APPENDIX — PASS
+
+- 时间：2026-08-09T18:05:00+08:00
+- 执行分支：codex/frozen-roadmap-deepseek-v1
+- 候选提交：d08fc723d4d85bbeacdf71660aee3c3cab128815
+- 变更：docs/truth/H0_H1_STATUS_HANDOFF.md 新增附录 B 本地测试结果汇总（各任务 checkpoint 的 pytest 通过数）；修正附录 A 权威分支链至 LOG-045/d086a5d
+- 验证：git diff --check PASS；文档 11 节 + 附录 A/B 完整
+- 证据等级：STRUCTURAL
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：revert d08fc72
