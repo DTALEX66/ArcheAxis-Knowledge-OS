@@ -609,3 +609,14 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert 71211cd
+
+### LOG-20260809-048 — VERIFICATION POLICY COMPLIANCE — PASS
+
+- 时间：2026-08-09T18:25:00+08:00
+- 执行分支：codex/frozen-roadmap-deepseek-v1
+- 候选提交：2ce697a46dde8f046011ca69a8a6554bf9c2dd62
+- 变更：docs/truth/H0_H1_STATUS_HANDOFF.md 新增附录 D 验证政策遵循记录（RED→GREEN、checkpoint 只跑受影响测试、阶段一次完整门禁+CI、高风险独立审查、wheel clean 构建、审计触发说明）；文档 11 节 + 附录 A/B/C/D 完整
+- 验证：git diff --check PASS
+- 证据等级：STRUCTURAL
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：revert 2ce697a
