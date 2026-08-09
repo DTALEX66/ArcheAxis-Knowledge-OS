@@ -250,3 +250,26 @@ H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 m
 | `test_pdf_serve.py` | 3 passed | AXW-022A（后端） |
 
 全部 checkpoint 均通过 `ruff check`（changed-file）、`scripts/check_architecture.py`（PASS）、`scripts/check_repository_conventions.py`（PASS）。
+
+
+## 附录 C：执行协议遵循确认
+
+本执行周期（H0 + H1）严格遵循 `DEEPSEEK_FULL_EXECUTION_TASKPACK_v1` 的执行协议：
+
+| 协议要求 | 遵循情况 |
+|---|---|
+| 每轮先读 AGENTS.md、冻结基线、状态日志尾部、验证政策 | ✅ 每任务 checkpoint 均执行 |
+| 冻结基线/增补/SHA 文件不改动；状态日志只追加 | ✅ 全程追加式 LOG-004~046 |
+| 不访问 E:；不读/输出凭据、.env、私钥、token | ✅ 全程遵守 |
+| 一个 checkout 一个 writer；并行用独立 worktree/branch | ✅ H0/H1 用隔离 worktree |
+| 新行为 RED → GREEN → 定向回归 → 项目门禁 | ✅ 每 checkpoint 均执行 |
+| 不把 PARTIAL 写成 PASS | ✅ AXW-022A 前端如实标 PARTIAL |
+| 未授权不 merge/推送 main/发布/签名 | ✅ H1 merge 未授权保持 OPEN |
+| 输出区分 PASS/PARTIAL/FAIL/NOT EXECUTED/BLOCKED | ✅ 本文档全部分类 |
+| 临时数据/下载/缓存/证据写忽略 .hermes/ | ✅ 全程遵守 |
+
+### 单 writer 与续接
+
+- 本周期为单 writer（本会话），所有 checkpoint 顺序提交到 `axw/execution-h1`（后端）与 `codex/frozen-roadmap-deepseek-v1`（权威状态）
+- 审查 reviewer 为只读后台 delegation，不写入
+- 续接从 LOG-046 之后的下一依赖安全任务开始
