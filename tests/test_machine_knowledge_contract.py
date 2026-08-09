@@ -126,3 +126,32 @@ def test_contracts_facade_exports_machine_knowledge_surface():
     assert contracts.MachineKnowledgeUnitV1 is MachineKnowledgeUnitV1
     assert contracts.from_machine_knowledge_row is from_machine_knowledge_row
     assert contracts.to_machine_knowledge_row is to_machine_knowledge_row
+
+
+def test_scoped_unit_cannot_round_trip_to_legacy_row():
+    """GOV-001 review: a scoped unit has no legacy row representation, so it
+    must fail closed rather than silently drop its scope."""
+    from app.adapters.machine_knowledge import to_machine_knowledge_row
+    from app.adapters.taskpack import ContractMappingError
+    from app.contracts.v1 import MachineKnowledgeUnitV1
+
+    unit = MachineKnowledgeUnitV1(
+        schema_version="1.0.0",
+        unit_id="mku-scoped",
+        title="Scoped",
+        content="rule",
+        unit_type="rule",
+        tags=[],
+        confidence=0.8,
+        source_type="mastery_signal",
+        source_id="signal-1",
+        legacy_active=0,
+        scope="knowledge",
+        lifecycle_status="deprecated",
+        provenance_status="server_verified",
+        requires_human_review=False,
+        created_at="now",
+        updated_at="now",
+    )
+    with pytest.raises(ContractMappingError, match="cannot represent a scoped unit"):
+        to_machine_knowledge_row(unit)

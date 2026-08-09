@@ -60,6 +60,13 @@ def to_machine_knowledge_row(unit: MachineKnowledgeUnitV1) -> dict[str, Any]:
         raise ContractMappingError(
             "legacy machine knowledge row cannot represent approved governance"
         )
+    # AXW-020C/GOV-001 review: the legacy row has no scope column, so a scoped
+    # unit cannot be round-tripped losslessly. Fail closed instead of silently
+    # dropping the scope on the legacy path.
+    if unit.scope is not None:
+        raise ContractMappingError(
+            "legacy machine knowledge row cannot represent a scoped unit"
+        )
     expected_status = "legacy_active_unverified" if unit.legacy_active else "deprecated"
     if unit.lifecycle_status != expected_status:
         raise ContractMappingError(
