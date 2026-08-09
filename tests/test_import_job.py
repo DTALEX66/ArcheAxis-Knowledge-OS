@@ -88,6 +88,35 @@ def test_failed_conversion_leaves_no_orphan_outbox(tmp_path) -> None:
     assert raw_files == [], f"orphan raw files after failed import: {raw_files}"
 
 
+def test_failed_import_writes_durable_failure_record(tmp_path) -> None:
+    """AXW-012A contract: a failed import must leave a durable failure record
+    (auditable) even though the transaction and the raw file are rolled back."""
+    import hashlib
+
+    from app.ingestion.import_job import ImportJobError, run_import_with_receipt
+
+    db = tmp_path / "import-fail-record.sqlite"
+    _migrate(db)
+    store = ImportJobStore(db_path=db, raw_root=tmp_path / "raw")
+    blob = b"# content that will fail"
+    digest = hashlib.sha256(blob).hexdigest()
+
+    def broken(raw):
+        raise ValueError("converter exploded")
+
+    with pytest.raises(ImportJobError):
+        run_import_with_receipt(
+            store, command_id="cmd-fail-record", source_name="x.md",
+            blob=blob, convert=broken,
+        )
+
+    # A durable failure record exists under the store's failure dir.
+    failures = (tmp_path / "raw").glob("_failures/*.json")
+    records = [p for p in failures if p.is_file()]
+    assert len(records) == 1, f"expected 1 failure record, got {[p.name for p in records]}"
+    assert digest in records[0].name
+
+
 def test_import_idempotent_same_command(tmp_path) -> None:
     """AXW-021A: the same command id with the same semantic input must be
     idempotent — re-importing returns the same result without extra rows."""

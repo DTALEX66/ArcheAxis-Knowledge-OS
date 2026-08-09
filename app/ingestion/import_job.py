@@ -80,8 +80,14 @@ def run_import_with_receipt(
                 converted=converted,
             )
         except Exception as exc:
+            # AXW-012A contract: a failed import must leave a durable failure
+            # record (auditable), even though the transaction rolls back.
+            store.assets._record_failure(
+                original.sha256, source_name, f"import failed: {exc}"
+            )
             # SQLite rolls back. Clean up the byte file written by this attempt
-            # so a failed import leaves no orphaned original file behind.
+            # so a failed import leaves no orphaned original file behind
+            # (AXW-021A rollback semantics; the failure record retains the audit).
             if wrote_original:
                 store.assets.remove_original(original.sha256)
             if isinstance(exc, ImportJobError):
