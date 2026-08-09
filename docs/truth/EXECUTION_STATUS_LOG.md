@@ -446,3 +446,24 @@
 - 证据等级：`EXACT_SHA_CI`（head `873e652`）
 - 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-022A/022B、025B、030A/030B/030C、AXW-H1-EXIT 仍待执行
 - 回滚：关闭/丢弃 PR #72
+
+### LOG-20260809-033 — AXW-025B — PASS
+
+- 时间：2026-08-09T16:15:00+08:00
+- 执行分支：`axw/execution-h1`
+- 候选提交：`d9b03e24fa38319d2dfcc0e4bccc0e3035898e99`
+- 基线输入：`AXW-025A` PASS
+- 变更：`app/knowledge/teach_back.py`（TeachBackRecord + TransferItem——学习者自述、迁移题、人类 truth/prediction 对、来源可追溯）
+- 验证：RED→GREEN；`5 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `d9b03e2`
+
+### LOG-20260809-034 — AXW-030A — PASS（复用现有 + 补 DTO 边界测试）
+
+- 时间：2026-08-09T16:16:00+08:00
+- 候选提交：`5579d61413e8c39aa32d61ec5fd360b18f8cc45f`
+- 基线输入：`AXW-020C/024B/025B` PASS
+- 变更：确认现有 `app/workspace/bff.py` 已实现版本化 DTO（public_ref 隐藏内部 ID、schema_version v1、cursor 分页、只读）；补充 `test_bff_v1_dto_never_exposes_sqlite_internals` 断言 v1 API 响应不含内部表名/列名/持久化 ID
+- 验证：bff contract `5 passed`；Ruff PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `5579d61`
