@@ -42,7 +42,10 @@ class RawAssetRecord:
     sha256: str
     size_bytes: int
     source_name: str
-    converted: str | None
+    mime_type: str = "application/octet-stream"
+    retention_policy: str = "retained"
+    save_state: str = "saved"
+    converted: str | None = None
     error: str | None = None
 
     @property
@@ -77,9 +80,18 @@ class RawAssetStore:
             raise RawAssetStoreError(f"raw asset not present: {digest}")
         return p
 
-    def store_original(self, blob: bytes, source_name: str) -> RawAssetRecord:
+    def store_original(
+        self,
+        blob: bytes,
+        source_name: str,
+        *,
+        mime_type: str | None = None,
+        retention_policy: str | None = None,
+    ) -> RawAssetRecord:
         """Persist the original bytes immutably and return a record. Raises on
-        empty input so empty content can never masquerade as a source asset."""
+        empty input so empty content can never masquerade as a source asset.
+        MIME and retention policy are optional; sane defaults are applied.
+        """
         if not source_name.strip():
             raise RawAssetStoreError("source_name is required")
         if not blob:
@@ -96,6 +108,9 @@ class RawAssetStore:
             sha256=digest,
             size_bytes=len(blob),
             source_name=source_name,
+            mime_type=mime_type or "application/octet-stream",
+            retention_policy=retention_policy or "retained",
+            save_state="saved",
             converted=None,
         )
 
