@@ -84,7 +84,7 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 |---|---|---|
 | AXW-003A（CI gate identity） | 全部检查点 PASS，无回归风险 | 无需修复 |
 | GOV-001（scope 过滤） | 全部 PASS，1 低危 WARNING | WARNING 已修复（adapter fail-closed） |
-| AXW-021A（事务一致性） | 1 核心缺陷 + 2 警告 | 孤儿文件已修复 + ImportJobError 统一 + 补测试 |
+| AXW-021A（事务一致性） | 1 核心缺陷 + 2 警告 | 全部落实：孤儿文件已修复（`bb951f0`）+ ImportJobError 统一 + 持久失败记录（`1c688c7`）+ 补测试 |
 
 ## 5. 关键决策与偏差记录
 
@@ -217,7 +217,7 @@ H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 | H0 | 全部（13 项） | merge `f269a01`（PR #71） | main CI `31320800285` 全绿 |
 | H1 | GOV-001 | `ad4480e`+`f09f940` | 独立审查 PASS；PR #72 CI |
 | H1 | AXW-020R/020A/020B/020C | `4a62440`/`c09379e`/`bc6cad2`/`514841d` | PR #72 CI |
-| H1 | AXW-021A/021B | `9ca07ff`+`bb951f0`/`9abded5` | 独立审查（孤儿文件修复）；PR #72 CI |
+| H1 | AXW-021A/021B | `9ca07ff`+`bb951f0`+`1c688c7`/`9abded5` | 独立审查（孤儿文件+失败记录）；PR #72 CI |
 | H1 | AXW-024A/024B | `58c5664`/`dd7a0a0` | PR #72 CI |
 | H1 | AXW-025A/025B | `873e652`/`d9b03e2` | PR #72 CI |
 | H1 | AXW-030A | `5579d61` | PR #72 CI |
