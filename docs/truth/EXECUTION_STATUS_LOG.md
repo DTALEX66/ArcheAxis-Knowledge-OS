@@ -532,3 +532,14 @@
 - 证据等级：`STRUCTURAL`
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert `94fddb9`
+
+### LOG-20260809-041 — H0 DELIVERABLE INVENTORY — PASS
+
+- 时间：2026-08-09T17:15:00+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 候选提交：`a826007079aa6a8a74fe2e3057a0b594011e3bf2`
+- 变更：`docs/truth/H0_H1_STATUS_HANDOFF.md` 第 7 节扩展为"H0 + H1 交付物清单"——H0（15 文件/766 行，已 merge main）+ H1（26 文件/1942 行，PR #72 未 merge）核心模块与测试映射
+- 验证：`git diff --check` PASS；文档结构 10 节完整
+- 证据等级：`STRUCTURAL`
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：revert `a826007`
