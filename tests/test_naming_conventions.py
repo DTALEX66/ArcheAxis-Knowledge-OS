@@ -103,12 +103,18 @@ def test_repository_scanner_validates_registry_semantics() -> None:
     ] == ["invalid-naming-registry"]
 
 
-def test_frozen_execution_baseline_rejects_content_changes() -> None:
-    baseline_path = "docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md"
-    baseline = (ROOT / baseline_path).read_bytes()
+@pytest.mark.parametrize(
+    "frozen_path",
+    [
+        "docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md",
+        "docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md",
+    ],
+)
+def test_frozen_execution_documents_reject_content_changes(frozen_path: str) -> None:
+    frozen = (ROOT / frozen_path).read_bytes()
 
-    assert scan_frozen_document_bytes(baseline_path, baseline) == []
-    issues = scan_frozen_document_bytes(baseline_path, baseline + b"changed\n")
+    assert scan_frozen_document_bytes(frozen_path, frozen) == []
+    issues = scan_frozen_document_bytes(frozen_path, frozen + b"changed\n")
 
     assert [issue.code for issue in issues] == ["frozen-document-modified"]
 

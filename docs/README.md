@@ -16,6 +16,11 @@
 - [`HERMES_SLEEP_LOOP_ENGINE.md`](HERMES_SLEEP_LOOP_ENGINE.md)：无人值守循环。
 - 根目录 `README.md`：安装、启动、稳定入口和验证命令。
 
+## 当前执行包
+
+- [`taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)：DeepSeek 可续跑的全量执行协议。
+- [`taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)：Crawl4AI、Spidering 及前后端网页知识摄取强制增补。
+
 ## 设计与参考
 
 - `bc-lines/`：B/C 线设计和开源项目吸收注册。

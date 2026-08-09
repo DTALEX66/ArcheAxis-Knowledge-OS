@@ -19,6 +19,7 @@
 - [`FROZEN_EXECUTION_BASELINE_v1_2026-08-09.sha256`](FROZEN_EXECUTION_BASELINE_v1_2026-08-09.sha256)：冻结文件的 SHA-256。
 - [`EXECUTION_STATUS_LOG.md`](EXECUTION_STATUS_LOG.md)：只追加的进度、证据、阻塞和偏差记录。
 - [`../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)：供 DeepSeek 长任务执行的控制协议。
+- [`../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)：用户批准的 Crawl4AI、Spidering 与前后端网页知识摄取强制增补包；不改写冻结 v1。
 
 ## 冻结规则
 
@@ -29,4 +30,4 @@
 3. 如确需新任务，先追加 `CHANGE_PROPOSAL`；
 4. 只有用户明确批准新基线时，才新增版本文件；不得替换 v1。
 
-仓库 convention gate 会验证冻结文件的固定 SHA-256，防止误改。Git 历史和云端提交 SHA 提供第二层对照依据。
+仓库 convention gate 会验证冻结文件和批准增补包的固定 SHA-256，防止误改。Git 历史和云端提交 SHA 提供第二层对照依据。

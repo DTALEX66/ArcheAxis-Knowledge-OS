@@ -4,6 +4,8 @@
 >
 > 唯一任务定义源：[`../truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`](../truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md)
 >
+> 强制增补：[`MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
+>
 > 状态写入：[`../truth/EXECUTION_STATUS_LOG.md`](../truth/EXECUTION_STATUS_LOG.md)
 >
 > 执行模式：Windows-first、单集成 writer、可续跑、证据驱动、按依赖逐项关闭。
@@ -17,7 +19,7 @@
 
 绝对规则：
 1. 每轮先完整读取项目 AGENTS.md、冻结基线、状态日志尾部、验证政策及当前任务相关代码。
-2. 永远不得修改冻结基线及其 SHA 文件；状态只能追加到状态日志末尾。
+2. 永远不得修改冻结基线、强制增补包及其 SHA 文件；状态只能追加到状态日志末尾。
 3. 不访问 E:\，不读取或输出任何凭据、.env、认证存储、私钥、token、cookie、浏览器数据或私人正文。
 4. 不覆盖未知脏改动。一个 checkout 只有一个 writer；其他 agent 只读，或使用独立 branch/worktree。
 5. 所有临时文件、下载、缓存、日志和证据只写仓库忽略的 .hermes/。
@@ -40,6 +42,8 @@
 repository: <LOCAL_CHECKOUT_PATH>
 remote: git@github.com:DTALEX66/Cognitive-Loop-OS.git
 baseline: docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md
+mandatory_addenda:
+  - docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md
 status_log: docs/truth/EXECUTION_STATUS_LOG.md
 verification_policy: docs/VERIFICATION_POLICY.md
 requested_scope: first_eligible_task
@@ -52,23 +56,25 @@ external_side_effects: none_unless_currently_authorized
 
 1. `AGENTS.md`。
 2. 冻结基线的第 1–3 节，以及当前 Horizon/任务行。
-3. 状态日志最后一个相关记录，而不是重读所有历史日志。
-4. `docs/VERIFICATION_POLICY.md`。
-5. `git status --short`、branch、HEAD、origin、divergence 和 worktree 列表。
-6. 当前任务直接相关的实现、测试、manifest、调用点和相邻约定。
+3. 与当前 Horizon 相关的所有批准增补包；网页摄取必须读取 Web Addendum。
+4. 状态日志最后一个相关记录，而不是重读所有历史日志。
+5. `docs/VERIFICATION_POLICY.md`。
+6. `git status --short`、branch、HEAD、origin、divergence 和 worktree 列表。
+7. 当前任务直接相关的实现、测试、manifest、调用点和相邻约定。
 
 禁止为了“全量”而无差别读取用户目录、其他项目、所有 Git 历史或整个外部 corpus。
 
 ## 4. 下一任务选择算法
 
 ```text
-1. 解析冻结任务表，保持文件顺序。
+1. 解析冻结任务表和所有批准的强制增补包，构建有效任务 DAG；不回写任何冻结定义。
 2. 从状态日志构建每个 task 的最新追加状态；没有记录即 UNASSESSED。
 3. 排除 PASS 和未获激活的 DEFERRED。
-4. 选择所有依赖均 PASS 的第一个任务。
+4. 选择所有依赖均 PASS 的第一个任务；同层任务按冻结基线、批准增补包的顺序执行。
 5. 如果已有 IN_PROGRESS，先续接该任务，不重复建立新基线或新计划。
 6. 如果任务被 BLOCKED，选择同 Horizon 中不依赖该阻塞项的下一个可执行任务。
-7. 如果没有可执行任务，输出最小阻塞集合和所需授权，不虚构进展。
+7. `AXW-WEB-EXIT` 是 `AXW-H2-EXIT`、`AXW-055` 和 `AXW-060` 的强制补充前置条件。
+8. 如果没有可执行任务，输出最小阻塞集合和所需授权，不虚构进展。
 ```
 
 不得把 milestone/Program/对象名当作依赖；只接受冻结文件中的具体任务 ID。
@@ -192,7 +198,8 @@ git diff --check
 | `B03` | `AXW-012B`, `AXW-010A`, `AXW-009C` | 一个实现 writer | wheel/bundle exact-SHA |
 | `B04` | `AXW-012C`, `AXW-009D`, `AXW-006A/B/C`, `AXW-010B`, `AXW-004B` | Windows 与供应链只读 reviewer | H0 release train |
 | `B05` | H1 对象、Job、PDF reader、Evidence、Learning、UI | 按冻结依赖逐任务 checkpoint | H1 release train |
-| `B06` | H2 每个格式 Adapter | 每个格式独立 branch，集成 writer 串行吸收 | 每格式资格 + H2 train |
+| `B05-WEB` | `AXW-WEB-000A/B` 至 `AXW-WEB-EXIT` | Crawl4AI、Spider、安全/corpus reviewer 可并行；前后端由集成 writer 汇合 | Web provider、Windows bundle 与前后端 E2E train |
+| `B06` | H2 每个格式 Adapter；`AXW-H2-EXIT` 还需 `AXW-WEB-EXIT` | 每个格式独立 branch，集成 writer 串行吸收 | 每格式资格 + H2 train |
 | `B07` | H3 Obsidian C0–C4 | 读写链保持单 writer | H3 Windows/Vault train |
 | `B08` | H4 双学习闭环 | eval reviewer 只读并行 | 单主题全闭环 train |
 | `B09` | H5 export/restore/perf/a11y/release | 高风险任务分别 frozen review | v1.0 release qualification |
@@ -237,7 +244,7 @@ git diff --check
 
 只有以下情况可以停止当前全量执行：
 
-1. H0–H5 全部按冻结标准 PASS；
+1. H0–H5 与全部强制增补包均按各自标准 PASS；
 2. 当前任务需要用户新增权限、所有者决策、签名材料或外部服务状态；
 3. 发现数据损坏、秘密暴露风险或目标路径不明确，继续可能扩大影响；
 4. 冻结任务存在真实不可满足矛盾，已追加 `DEVIATION/BLOCKED` 和最小 `CHANGE_PROPOSAL`；

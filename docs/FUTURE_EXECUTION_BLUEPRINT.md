@@ -24,6 +24,8 @@ World → Research → Source / Claim / Evidence → reviewed Knowledge
       → Evaluation / Lesson / Conflict → reviewed Knowledge Update
 ```
 
+其中 `World → Research` 必须包含受治理的 Web Knowledge Intake：单页、动态网页、整站发现和网页链接中的多格式文件都先形成原始快照与 candidate，不直接成为事实。
+
 系统保持单仓库、模块化单体、统一 FastAPI 网关、统一合同、迁移与审计。未来能力通过真实 Facade、版本化 contract、行为对比和小型可回滚切片渐进接入；不得为愿景预建空目录、平行数据库、微服务或第二套运行时。
 
 ## 长期领域地图
@@ -31,6 +33,7 @@ World → Research → Source / Claim / Evidence → reviewed Knowledge
 | 领域 | 责任 | 未来边界 |
 | --- | --- | --- |
 | Research / VeriScope | 外部资料、quarantine、证据、冲突与审核 | 外部内容不自动成为真相 |
+| Web Knowledge Intake | 单页/整站抓取、动态渲染、多格式路由、网页快照与证据锚点 | Safe HTTP 默认；Crawl4AI/Spider 隔离；不继承浏览器登录态，不绕过 robots/ToS |
 | Knowledge / Archive | 知识版本、关系、冲突、范围与弃用 | 审批和 supersedes 追加，不静默覆盖 |
 | Human Learning | 学习资产、练习、错题、掌握与迁移 | 学习行为不等同于事实正确性 |
 | Visual Teaching | 事实、记忆、视觉、教学四层资产 | 优先结构化、可编辑 `VisualArtifact`，不是只产 PNG |
@@ -48,6 +51,7 @@ World → Research → Source / Claim / Evidence → reviewed Knowledge
 5. **可解释审计。** 任一对象可反查来源、证据、审核、派生、模型/工具、版本、失效和 supersedes 关系。
 6. **本地优先与安全失败。** 继续使用 approved roots、Safe HTTP、迁移 owner、备份哈希和 fail-closed 规则；密钥、私有正文、绝对路径不进入日志或诊断包。
 7. **先最小闭环，后体验与规模。** 不先做微服务、Kubernetes、Neo4j、全量 React、多端同步、3D/VR、通用多 Agent 或模型激活。
+8. **网页是外部不可信输入。** 每次 DNS/重定向重验、限制域/页数/深度/字节/时间/并发，保存原始快照和 provenance；网页 prompt、脚本和声明不能成为系统指令或已验证知识。
 
 ## 未来执行序列
 
@@ -80,6 +84,21 @@ Research candidate → human review → Knowledge candidate/version
 
 前端 API 类型从 OpenAPI/contract 生成或验证；不让前端直接读 SQLite。旧诊断页面可继续保留为兼容入口。
 
+### Track W — Web Knowledge Intake（用户已激活）
+
+网页知识摄取是前后端一等能力，不再只是未来候选。当前仓库已有单 URL UI/API、Safe HTTP、Trafilatura 和名为 Crawl4AI 的适配器，但尚不能据此宣称 Crawl4AI 已真实集成或支持整站抓取。
+
+固定 provider 分工：
+
+- Safe HTTP + Trafilatura/readability：静态单页默认路径；
+- [`unclecode/crawl4ai`](https://github.com/unclecode/crawl4ai)：隔离动态浏览器 worker，处理 JavaScript 页面和结构化 Markdown；
+- 用户称为 Spidering 的第二引擎：候选映射为 [`spider-rs/spider`](https://github.com/spider-rs/spider)，负责受限整站发现、页面流和站点图；必须先由所有者确认 exact URL；
+- 已有 PDF/Office/OCR/媒体 Adapter：处理网页发现的下载文件，不在 crawler 内复制转换实现。
+
+后端必须建立 WebIntakeRequest、FetchPolicy、CrawlJob/Page、WebSnapshot、LinkEdge 和 WebEvidenceAnchor，复用 RawAsset、Job、Outbox、Evidence 和 candidate/review。前端必须提供范围预检、单页/整站/sitemap、provider/render、抓取限制、robots 状态、进度、逐页格式/失败、暂停/取消/恢复、预览和人工复核。
+
+该 Track 的固定任务、威胁模型与安装态门禁见 [`taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)。完成 `AXW-WEB-EXIT` 是多格式、单主题闭环和 v1.0 发布资格的补充前置条件。
+
 ### Track D — Visual Teaching MVP
 
 先引入经审核知识派生的 `VisualArtifact` 合同及可编辑结构化语义，再实现四类低风险 renderer：概念图、流程图、课程结构、卡片图解。图片、SVG、PPT 或 Canvas 是导出/renderer，不是唯一事实源。生成任务必须是 candidate 并绑定来源、审核和版本。
@@ -104,6 +123,7 @@ Model/provider、Agent/tool/MCP/plugin registry、sync、desktop/mobile、instal
 R0 账本真相与 registry 对齐
 → A0 当前 Workspace/Tauri/恢复基线收口
 → H 文档摄入与 Research Adapter Foundry
+→ W Crawl4AI/Spider 前后端网页知识摄取
 → I Knowledge / Search / Graph / Memory
 → J Obsidian / PKM Compatibility Layer
 → K Evaluation / Observability / Provider

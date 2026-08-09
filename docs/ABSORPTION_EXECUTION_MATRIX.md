@@ -1,6 +1,6 @@
 # 全量候选吸收执行矩阵
 
-> 更新：2026-07-27。本文是后续 TaskPack 的阶段入口，不是“全部项目已集成”的能力声明。
+> 更新：2026-08-09。本文是后续 TaskPack 的阶段入口，不是“全部项目已集成”的能力声明。
 >
 > 机器真相：`inspiration_research/resources/open_source_project_registry.json` 与 `open_source_absorption_ledger.json`。当前 registry/ledger 均为 101 个项目：`implemented=8`、`adapter_contract_pending=27`、`deferred_review=38`、`reference_only=28`。
 
@@ -15,12 +15,12 @@
 
 所有新候选必须记录 source revision、license、风险、数据外部性、目标边界、降级方案、fixture 和 rollback handle。外部仓库、模型、课程和 Vault 内容先进入 candidate/quarantine，不能自动成为 verified truth。
 
-## 二、当前已验证实现
+## 二、当前实现证据（非安装态资格）
 
 | 项目 | 当前落点 | 证据 |
 |---|---|---|
 | LiteLLM | `shared-contracts/adapters/llm/litellm_adapter.py` | `tests/test_integrations.py` |
-| Crawl4AI | `shared-contracts/adapters/crawlers/crawl4ai_adapter.py` | `tests/test_integrations.py` |
+| Crawl4AI | `shared-contracts/adapters/crawlers/crawl4ai_adapter.py` | 当前测试只证明适配器委托 `convert_url()`；直接 Crawl4AI 调用尚未证明，状态为 `integrated-unqualified` |
 | Trafilatura | `app/ingestion/multi_format.py`、`shared/web_search.py` | ingestion 真实路径 |
 | MarkItDown | `app/ingestion/multi_format.py` | `tests/test_coverage_gap.py` |
 | Langfuse | `shared-contracts/adapters/observability/langfuse_adapter.py` | `tests/test_langfuse_adapter.py` |
@@ -28,7 +28,7 @@
 | sqlite-vec | `app/memory/vector_db.py` | `knowledge_base/tests/test_vector_search.py` |
 | Loguru | `shared/logging.py`、`app/ingestion/multi_format.py` | 真实日志/摄入路径 |
 
-这些项目仍受本仓库的 contract、权限、SQLite、Candidate 和 CI 约束；不能因为依赖或文件名相似就扩大能力声明。
+这些项目仍受本仓库的 contract、权限、SQLite、Candidate 和 CI 约束；不能因为依赖或文件名相似就扩大能力声明。用户指定的 Spidering 尚无仓库内实现；候选映射 `spider-rs/spider` 必须先确认 exact URL，当前不得登记为 implemented。
 
 ## 三、阶段依赖序列
 
@@ -103,7 +103,8 @@ R0 账本真相与 registry 对齐
 ### 项目分组
 
 - 第一批 Adapter：Docling、Unstructured、MinerU、marker、pymupdf4llm、PaddleOCR、Scrapling、Crawlee、newspaper4k。
-- 已实现能力：MarkItDown、Trafilatura、Crawl4AI，补齐 fallback/不可用证据。
+- 已实现基础：MarkItDown、Trafilatura；Crawl4AI 必须补真实 provider 调用，不能再依赖命名兼容壳。
+- 用户强制吸收：`unclecode/crawl4ai` 与确认后的 Spidering 上游；形成前后端 Web Knowledge Intake。
 - 高风险后置：Firecrawl、browser-use，先做 Safe HTTP/权限/限网审计。
 
 ### 后端
@@ -121,6 +122,16 @@ R0 账本真相与 registry 对齐
 ### 门禁
 
 每个 Adapter 一组真实成功 fixture + 一组 unavailable/fallback fixture；核心安装不因可选重型依赖失效。
+
+### H-WEB — 强制网页知识摄取
+
+**后端：** Safe HTTP 静态路径、Crawl4AI 动态 worker、Spider 受限整站遍历、RawAsset/WebSnapshot、MIME 多格式路由、CrawlJob/checkpoint、EvidenceAnchor 与 candidate-only 投影。
+
+**前端：** 单页/整站/sitemap、范围预检、provider/render 选择、页数/深度/域/并发限制、robots 状态、任务进度、逐页结果、失败/重试、暂停/取消/恢复、预览和人工复核。
+
+**安全：** 每次 DNS/重定向重验、SSRF/私网拒绝、响应/页面/时间上限、登录态默认关闭、prompt injection 隔离、robots/ToS 可见、日志脱敏。
+
+**门禁：** 以 [`taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md) 为固定任务合同；`AXW-WEB-EXIT` 通过前不得宣称 Crawl4AI/Spider、整站或网页多格式为安装版能力。
 
 ---
 

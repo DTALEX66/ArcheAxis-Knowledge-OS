@@ -66,6 +66,9 @@ _FROZEN_DOCUMENT_HASHES = {
     "docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md": (
         "ef3066231d8251562c6b9fb361e9a0a0424c100c6c27b6ec4de8ebba7b585155"
     ),
+    "docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md": (
+        "971e0ee9ba32f6b30c8d8435dbb4d5c46574f0dbba96210ce00076055afedb19"
+    ),
 }
 
 
