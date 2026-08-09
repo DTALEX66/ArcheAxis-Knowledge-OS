@@ -272,3 +272,16 @@
 - 安装态：capabilities 由 manifest 投影（产品运行时同源），不新增安装态验证
 - 风险/剩余项：AXW-006C 的 payload 级 SBOM 与打包内容逐项核对仍待独立 release 门禁；AXW-004B 的 UI/文档/发布元数据一致性部分由既有测试覆盖，正式 release 级核对待 merge 后
 - 回滚：revert `39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8`
+
+### LOG-20260809-017 — PR #71 final head exact-SHA CI — PASS
+
+- 时间：2026-08-09T23:59:45+08:00
+- 执行分支：`axw/execution-h0`；PR `https://github.com/DTALEX66/Cognitive-Loop-OS/pull/71`
+- 候选提交/tree：head `39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8`；run `31320022571`
+- 变更：无代码行为变更；最终 head 含 AXW-003A/003C/007A/009B/012A/012B/010B/006C 全部 checkpoint
+- 验证：run `31320022571` `completed/success`；全部 11 个 job PASS——gateplan、lint、test(3.12)、py-compat(3.11/3.13)、wheel-smoke、browser-smoke、windows-runtime-smoke、desktop-fast、desktop-build(13m43s)、installer-lifecycle、a0-gates；mergeStateStatus `CLEAN`
+- 意义：最终 head 的完整 EXACT_SHA_CI 全绿；AXW-010B 能力诚实投影测试与 AXW-006C NOTICE 变更随 CI 验证
+- 证据等级：`EXACT_SHA_CI`（head `39df7d2`，run `31320022571`）
+- 安装态：installer-lifecycle PASS（CI Windows 安装态）
+- 风险/剩余项：PR 仍未 merge（未获 merge 授权）；merge 后需 merge-SHA main CI 与全新 clean bundle 才能完成 AXW-003B 完整资格链；AXW-H0-EXIT 最终裁决待 merge
+- 回滚：关闭/丢弃 PR #71
