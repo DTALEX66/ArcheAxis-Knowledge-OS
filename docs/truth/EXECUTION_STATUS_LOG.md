@@ -240,3 +240,20 @@
 - 安装态：CI Windows runner 真实安装态验证 PASS；但 H0 的 AXW-012C 安装态真实 PDF 导入流程仍待独立执行（本机/下一阶段）
 - 风险/剩余项：PR #71 未 merge（未获授权）；AXW-009C 的"版本/哈希跨 artifact 双向一致"仅由 wheel-smoke + manifest digest 部分证明，发布级核对待 AXW-010B；AXW-012C 安装态 PDF 仍为 `NOT EXECUTED`
 - 回滚：关闭/丢弃 PR #71
+
+### LOG-20260809-015 — AXW-012C — PASS (LIVE_INSTALLED)
+
+- 时间：2026-08-09T23:59:00+08:00
+- 执行分支：`axw/execution-h0`；本机安装态验证，安装器为 PR #71 exact head `35066f8` 构建产物
+- 候选提交/tree：`35066f8c99c8767f0a1944ec573333791c74572f`；安装器 SHA-256 `5b0fb0a60c947efbd092b54c6c8875f0da3f2f9af4372429e82cbd1e47bb88d5`
+- 基线输入：`AXW-009C` PASS、`AXW-011A` PASS、`AXW-012A` PASS
+- 变更：本机 NSIS 安装态执行真实 PDF 流程（无代码变更）
+- 验证（`LIVE_INSTALLED`）：
+  - 安装→启动→Workspace 200
+  - `POST /workspace/api/intake/upload` 上传真实 PDF `en-single.pdf` → `format=pdf`、`engine=markitdown`、`char_count=211`、`source_type=file`、`requires_human_review=true`
+  - durable jobs=1；优雅关闭；重启后新端口 53138、jobs=1、`restart_has_original_job=true`；`clean_uninstall=true`
+  - 安装目录与 appdata 卸载后均清除
+- 证据等级：`LIVE_INSTALLED`（真实 Windows 安装态 + markitdown[pdf] 引擎成功转换真实 PDF）
+- 安装态：完整闭环 PASS
+- 风险/剩余项：页级 EvidenceAnchor 与 PDF 阅读器交互（AXW-022A/B，H1）不在 H0 范围；`job_id` 字段名投影待核实（jobs 投影返回的 id 字段名与脚本读取的 `job_id` 可能不同，但 `restart_has_original_job=true` 已证明 durable 保留）
+- 回滚：不适用（纯验证，无代码变更；安装器为未发布候选）
