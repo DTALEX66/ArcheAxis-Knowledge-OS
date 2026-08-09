@@ -226,3 +226,17 @@
 - 安装态：`LIVE_INSTALLED` 由 installer-lifecycle job 覆盖（install→start→exit→uninstall），但 H0 的 AXW-012C 真实 PDF 安装态流程仍待独立执行
 - 风险/剩余项：PR 未 merge（未获 merge 授权）；AXW-009C clean-bundle 复现性、AXW-009D 完整生命周期（升级/重启/数据保留）、AXW-012C 安装态 PDF、AXW-H0-EXIT 裁决仍待执行
 - 回滚：关闭/丢弃 PR #71 或 revert 对应 commit；CI 已通过 exact head
+
+### LOG-20260809-014 — AXW-009C + AXW-009D — PASS (EXACT_SHA_CI)
+
+- 时间：2026-08-09T23:55:00+08:00
+- 执行分支：`axw/execution-h0`；PR #71 head `35066f8c99c8767f0a1944ec573333791c74572f`，run `31318879327`
+- 基线输入：AXW-009B、AXW-010A、AXW-012B、AXW-007A 前置（CI 全绿）
+- 变更：无新代码变更；记录 CI 已完成的 clean bundle 与安装态生命周期证据
+- 验证：
+  - AXW-009C（Exact-tree clean bundle）：CI `desktop-build` 从 clean checkout `35066f8` 构建，`prepare_bundle` 打包 locked Python runtime + 当前 wheel；`wheel-smoke` PASS（仓库外安装验证）；安装器 `ArcheAxis OS_0.5.0_x64-setup.exe` SHA-256 `5b0fb0a60c947efbd092b54c6c8875f0da3f2f9af4372429e82cbd1e47bb88d5`
+  - AXW-009D（Installer 生命周期）：CI `installer-lifecycle` 对 exact 安装器验证 `{"Version":"0.5.0","WorkspaceStatus":200,"PycGrowth":0,"GracefulShutdown":true,"ForcedTreeCleanup":true,"CleanUninstall":true}` 全 PASS
+- 证据等级：`EXACT_SHA_CI`（head `35066f8`）；`PUBLICATION` 不适用（未发布）
+- 安装态：CI Windows runner 真实安装态验证 PASS；但 H0 的 AXW-012C 安装态真实 PDF 导入流程仍待独立执行（本机/下一阶段）
+- 风险/剩余项：PR #71 未 merge（未获授权）；AXW-009C 的"版本/哈希跨 artifact 双向一致"仅由 wheel-smoke + manifest digest 部分证明，发布级核对待 AXW-010B；AXW-012C 安装态 PDF 仍为 `NOT EXECUTED`
+- 回滚：关闭/丢弃 PR #71
