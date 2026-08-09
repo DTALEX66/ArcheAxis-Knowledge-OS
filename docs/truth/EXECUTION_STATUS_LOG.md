@@ -197,3 +197,15 @@
 - 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 为 `NOT EXECUTED`
 - 安装态：已确认 ci-adapters 环境含 pdfminer/pdfplumber/markitdown[pdf]；`LIVE_INSTALLED` 尚未在 NSIS 安装态复跑（待 AXW-012C）
 - 回滚：revert `d7acc8b34d7c3594a18a96669921263166cc9e66`
+
+### LOG-20260809-012 — AXW-009B — PARTIAL
+
+- 时间：2026-08-09T23:30:00+08:00
+- 执行分支：`axw/execution-h0`
+- 候选提交：`b35aae0ca4478f12cfff9968d954f87e30bf29cf`
+- 基线输入：`AXW-BASE-0` PASS
+- 变更：`app/release-manifest.json` dependency_lock.digest 同步为 `9916e6db...`，revision 4→5（AXW-012B 变更 uv.lock 后一致性）；确认源码版本各处一致 0.5.0
+- 验证：release manifest/identity 测试 `30 passed`；`uv lock --check` PASS
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 为 `NOT EXECUTED`（待 PR #71）
+- 状态：`PARTIAL` —— 源码/lock/manifest 版本一致已证，但 wheel 级版本一致性、安装器版本注入和 UI 版本仍需在打包门禁中验证（AXW-009C/009D）
+- 回滚：revert `b35aae0ca4478f12cfff9968d954f87e30bf29cf`
