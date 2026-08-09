@@ -304,7 +304,7 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
     assert '"3.10"' not in test_job
     ci_adapters = project["dependency-groups"]["ci-adapters"]
     for requirement in (
-        "markitdown>=0.1",
+        "markitdown[pdf]>=0.1",
         "newspaper4k>=0.9",
         "readabilipy>=0.3",
         "trafilatura>=1.6",
