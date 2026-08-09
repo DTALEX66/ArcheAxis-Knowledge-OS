@@ -5,9 +5,19 @@
 > 基线：`AXW-FROZEN-v1-2026-08-09`
 > 权威分支：`codex/frozen-roadmap-deepseek-v1`
 > 执行分支：`axw/execution-h0`（已 merge）、`axw/execution-h1`（PR #72，未 merge）
-> 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~038）
+> 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~044）
 
 本文是任务包要求的状态交接文档，汇总 H0/H1 全部任务的验收状态、证据等级、阻塞与收口路径。所有 PASS 均绑定真实 exact-SHA/CI/审查/安装态证据；未完成项如实标 `PARTIAL`/`UNVERIFIED`，不冒充完成。
+
+**权威源文件（相对本文件）：**
+
+- 冻结基线：[`FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`](FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md)
+- 追加式状态日志：[`EXECUTION_STATUS_LOG.md`](EXECUTION_STATUS_LOG.md)
+- 权威契约：[`AUTHORITY_CONTRACT.md`](AUTHORITY_CONTRACT.md)
+- 当前状态 Truth：[`CURRENT_STATE_TRUTH.md`](CURRENT_STATE_TRUTH.md)
+- 执行任务包：[`../../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](../../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)
+- Web 增补：[`../../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](../../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
+- Capability-first 增补：[`../../taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](../../taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
 
 ## 1. 仓库与分支基线
 
@@ -164,7 +174,7 @@ H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 ## 9. 边界与安全确认
 
 - 未访问 `E:\`；未读取/输出任何凭据、token、私钥、cookie 或私人正文
-- 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~038 无改写）
+- 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~044 无改写）
 - canonical 主工作区与用户 WIP 未触碰；`.hermes/` 外的仓库文件未改动
 - PR #71 已 merge（H0，获授权）；PR #72 未 merge（H1，未获授权）
 - 无遗留 ArcheAxis 进程；安装测试已彻底卸载
