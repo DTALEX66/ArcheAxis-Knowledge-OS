@@ -285,3 +285,33 @@
 - 安装态：installer-lifecycle PASS（CI Windows 安装态）
 - 风险/剩余项：PR 仍未 merge（未获 merge 授权）；merge 后需 merge-SHA main CI 与全新 clean bundle 才能完成 AXW-003B 完整资格链；AXW-H0-EXIT 最终裁决待 merge
 - 回滚：关闭/丢弃 PR #71
+
+### LOG-20260809-018 — PR #71 MERGE + merge-SHA main CI — PASS
+
+- 时间：2026-08-09T23:59:50+08:00
+- 动作：所有者授权 squash merge PR #71
+- merge SHA：`f269a0128dfee9573699efd24562f96e8a713c70`
+- 状态：PR #71 `MERGED`（merged 2026-08-09T15:19:27Z）；`origin/main` 更新为 `f269a012...`
+- 验证：merge-SHA main CI run `31320800285` `completed/success`；12 个 job 全部 success——gateplan、test、py-compat(3.11/3.13)、lint、wheel-smoke、browser-smoke、windows-runtime-smoke、desktop-fast、desktop-build、installer-lifecycle、a0-gates
+- 意义：AXW-003B 完整资格链关闭——同一 merge-SHA `f269a012` 的 GatePlan、运行矩阵与结果全部 PASS；`PUBLICATION` 尚未执行（未创建 release）
+- 证据等级：`EXACT_SHA_CI`（merge-SHA `f269a012`，run `31320800285`）
+- 风险/剩余项：官方 main 现含 H0 全部 checkpoint；后续 H1 需基于新 main
+- 回滚：官方 main 已有该合并；如需回退须新 PR revert
+
+### LOG-20260809-019 — AXW-H0-EXIT — PASS（v0.5.1 发布裁决）
+
+- 时间：2026-08-09T23:59:55+08:00
+- 裁决基线：`AXW-FROZEN-v1` H0 全部依赖
+- 依赖状态：
+  - AXW-003B：PASS（merge-SHA `f269a012` main CI run `31320800285` 全绿）
+  - AXW-003C：PASS（依赖/parser 分类，wheel/installer 门禁触发验证）
+  - AXW-004B：PASS（safe_release_summary 统一版本投影，既有测试覆盖）
+  - AXW-004C：PASS（状态日志全程追加式，LOG-004~018 无改写）
+  - AXW-006C：PASS（THIRD_PARTY_NOTICES 含 markitdown[pdf] 及 pdf 依赖；payload 级 SBOM 待正式 release 门禁）
+  - AXW-009D：PASS（installer 生命周期，CI + 本机 LIVE_INSTALLED）
+  - AXW-010B：PASS（capability 诚实投影测试，ASR 等 not_implemented）
+  - AXW-012C：PASS（安装态真实 PDF 流程 LIVE_INSTALLED）
+- 裁决：**H0（v0.5.1 可信恢复）全部冻结验收 PASS**
+- 限制声明：`PUBLICATION`（正式 release 上传/签名）尚未执行；本裁决证明"可信恢复所需代码、CI、bundle、安装态 PDF、Windows 生命周期与供应链 NOTICE"全绿，不等于已公开发布 v0.5.1
+- 证据等级：聚合 `EXACT_SHA_CI` + `LIVE_INSTALLED`
+- 回滚：不适用（代码已合 main；发布动作仍待所有者单独授权）
