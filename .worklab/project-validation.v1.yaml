@@ -88,12 +88,21 @@ risk_classes:
     gates: [static, lint, py-primary, wheel-smoke]
 
   - id: python-compat
-    description: Public Python contracts and dependency matrix
+    description: Public Python contracts, dependency matrix and requirements
     paths:
       - pyproject.toml
+      - requirements.txt
       - uv.lock
       - "shared-contracts/**"
     gates: [static, lint, py-compat, wheel-smoke]
+
+  - id: format-parser
+    description: Format parsers / conversion engines that affect the installed wheel
+    paths:
+      - "app/ingestion/pdf.py"
+      - "app/ingestion/multi_format.py"
+      - "app/ingestion/*.py"
+    gates: [static, lint, py-primary, wheel-smoke]
 
   - id: windows-runtime
     description: Windows storage, migration, process, path handling
