@@ -65,7 +65,7 @@ Research → Evidence → Knowledge → Learning
 | Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
 | Phase 7–8 | 受限 Planner tracer、多维 Evaluation、Sleep Loop 构件 | 🟡 首条纵向 tracer 完成 | `read file:`、Permission、Evidence、Evaluation 与 Lesson 已验证；通用 Planner 和统一执行端口未完成 |
 | Phase 9 | Contract & Tracer Alpha | ✅ 历史合同/追踪基线完成 | 不等于完整产品 Alpha，也不证明公开 release |
-| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线、按需 dispatcher、本地真实 Chromium delivery gate 与 Windows/NSIS 门禁已验证；Tauri WebView 点击级证据、ASR、公开发布资产仍待完成 |
+| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线、按需 dispatcher、本地真实 Chromium delivery gate、Windows/NSIS 门禁与公开 `v0.5.0` 资产已验证；Tauri WebView 点击级证据、ASR、签名发布与更高阶用户交互仍待完成 |
 
 ### 当前里程碑：Product Stage A0 真相基线
 
