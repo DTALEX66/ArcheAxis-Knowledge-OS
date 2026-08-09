@@ -436,3 +436,13 @@
 - 验证：RED→GREEN；`4 passed`；Ruff/architecture PASS
 - 证据等级：`LOCAL_RUNTIME`
 - 回滚：revert `873e652`
+
+### LOG-20260809-032 — PR #72 head `873e652` exact-head CI — PASS
+
+- 时间：2026-08-09T16:08:00+08:00
+- 候选提交/tree：head `873e65235556db8b492331c9ed90282d76630e0a`；run `31322424582`
+- 验证：`completed/success`；gateplan、lint、test(3.12)、wheel-smoke、a0-gates 全 PASS；browser-smoke、desktop-build、desktop-fast、installer-lifecycle、py-compat、windows-runtime-smoke 正确 SKIP（纯 Python+文档变更）；mergeStateStatus `CLEAN`
+- 意义：GOV-001/020R/020A/020B/020C/021A/021B/024A/024B/025A 的 exact-SHA CI 证据；AXW-003C 选择性门禁持续正确
+- 证据等级：`EXACT_SHA_CI`（head `873e652`）
+- 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-022A/022B、025B、030A/030B/030C、AXW-H1-EXIT 仍待执行
+- 回滚：关闭/丢弃 PR #72
