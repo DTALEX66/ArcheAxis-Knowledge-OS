@@ -162,3 +162,38 @@
 - 安装态：corpus 是测试输入，`LIVE_INSTALLED` 为 `NOT EXECUTED`
 - 风险/剩余项：corpus 为合成样本（MIT 项目自有），后续 AXW-012B 需用其驱动真实 PDF 提取修复；真实外部 PDF 样本可后续按许可补充
 - 回滚：删除 `.hermes/task-runtime/pdf-corpus`
+
+### LOG-20260809-009 — AXW-012A — PASS
+
+- 时间：2026-08-09T23:10:00+08:00
+- 执行分支：`axw/execution-h0`
+- 候选提交：`7b7df254286df7f4fee73fdf6f500a2f9e4a7f55`
+- 基线输入：`AXW-BASE-0` PASS
+- 变更：新增 `app/ingestion/raw_asset.py`（RawAsset-first 不可变存储：原件先 SHA-256 内容寻址保存再转换；转换失败保留原件+失败记录）；新增 `tests/test_raw_asset.py` 6 测试
+- 验证：RED→GREEN（6 passed）；Ruff（--fix 后 All checks passed）；architecture guard PASS；convention PASS；故障注入（ValueError/OSError/store/interrupt/generic 5 点）证明无原件丢失
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`
+- 回滚：revert `7b7df254286df7f4fee73fdf6f500a2f9e4a7f55`
+
+### LOG-20260809-010 — AXW-003C — PASS
+
+- 时间：2026-08-09T23:12:00+08:00
+- 执行分支：`axw/execution-h0`
+- 候选提交：`9ff5ba6e8b22b3671e3ddf542087598c729aafe7`
+- 基线输入：`AXW-003A` PASS
+- 变更：`.worklab/project-validation.v1.yaml` 增加 `format-parser` 风险类（pdf.py/multi_format.py → wheel-smoke）；`requirements.txt` 归入 `python-compat`（不再强制 full-qualification）；`tests/test_ci_classifier.py` 新增 2 个路径变异回归测试
+- 验证：RED→GREEN（38 passed）；Ruff/architecture/convention PASS
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 回滚：revert `9ff5ba6e8b22b3671e3ddf542087598c729aafe7`
+
+### LOG-20260809-011 — AXW-012B — PASS
+
+- 时间：2026-08-09T23:15:00+08:00
+- 执行分支：`axw/execution-h0`
+- 候选提交：`d7acc8b34d7c3594a18a96669921263166cc9e66`
+- 基线输入：`AXW-011A` PASS、`AXW-012A` PASS、`AXW-003C` PASS
+- 变更：`pyproject.toml` 产品依赖与 ci-adapters 从 `markitdown>=0.1` 改为 `markitdown[pdf]>=0.1`；`requirements.txt` 同步；`uv.lock` 更新（新增 pdfminer-six、pdfplumber、pypdfium2，digest `9916e6db...`）；`tests/test_pdf_extraction.py` 用真实 PDF 二进制替换文本伪装测试
+- 验证：真实 PDF（含 "Evidence Driven Learning" 文本流）经产品 convert 路径由 markitdown 成功提取；`3 passed`；适配器回归 `87 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 安装态：已确认 ci-adapters 环境含 pdfminer/pdfplumber/markitdown[pdf]；`LIVE_INSTALLED` 尚未在 NSIS 安装态复跑（待 AXW-012C）
+- 回滚：revert `d7acc8b34d7c3594a18a96669921263166cc9e66`
