@@ -10,6 +10,7 @@ fallback fixtures for graceful unavailable-engine handling.
   DOCX / PPT/XLS  | markitdown
   HTML            | trafilatura → safe-http+raw
   Image           | pytesseract+tesseract (OCR)
+  JSON Canvas     | native JSON Canvas text-node projection
   TXT / MD        | passthrough (always available)
 
 All engines are optional. The adapter contract (shared/adapter_contract)
@@ -19,6 +20,7 @@ declared engine and returns the first success or a clear error.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -50,6 +52,7 @@ def detect_format(file_path: str | Path) -> str:
         ".htm": "html",
         ".md": "md",
         ".markdown": "md",
+        ".canvas": "canvas",
         ".txt": "txt",
         ".png": "image",
         ".jpg": "image",
@@ -143,6 +146,39 @@ def _via_read(file_path: str) -> AdapterResult:
     )
 
 
+def _via_canvas(file_path: str) -> AdapterResult:
+    """Project JSON Canvas nodes without executing files or following links."""
+    payload = json.loads(Path(file_path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or not isinstance(payload.get("nodes"), list):
+        raise ValueError("JSON Canvas document must contain a nodes array")
+
+    sections: list[str] = []
+    for node in payload["nodes"]:
+        if not isinstance(node, dict):
+            raise ValueError("JSON Canvas node must be an object")
+        node_type = node.get("type")
+        if node_type == "text":
+            text = node.get("text")
+            if not isinstance(text, str):
+                raise ValueError("JSON Canvas text node must contain string text")
+            if text.strip():
+                sections.append(text.strip())
+        elif node_type in {"file", "link", "group"}:
+            label = node.get("file") or node.get("url") or node.get("label")
+            if isinstance(label, str) and label.strip():
+                sections.append(f"- {node_type}: {label.strip()}")
+        else:
+            raise ValueError(f"unsupported JSON Canvas node type: {node_type!r}")
+
+    text = "\n\n".join(sections)
+    return AdapterResult(
+        success=True,
+        content=text,
+        engine="json-canvas",
+        metadata={"char_count": len(text), "node_count": len(payload["nodes"])},
+    )
+
+
 # ── Adapter-framework wrappers (using shared/adapter_fixtures) ──
 # These integrate the adapter contract (O-series) into the product pipeline.
 
@@ -209,6 +245,7 @@ _ENGINES: dict[str, list[tuple[str, Any]]] = {
     "article": _via_adapter_fixtures("article", ["convert_newspaper4k", "convert_readabilipy"]),
     "md": [("passthrough", _via_read)],
     "txt": [("passthrough", _via_read)],
+    "canvas": [("json-canvas", _via_canvas)],
 }
 
 

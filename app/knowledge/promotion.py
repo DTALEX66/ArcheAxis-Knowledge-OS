@@ -121,8 +121,11 @@ def _record_event(connection: sqlite3.Connection, approval: ResearchKnowledgeApp
 def promote_research_package_to_candidates(approval: ResearchKnowledgeApproval, *, db_path: str | Path) -> ResearchKnowledgePromotionReceipt:
     """Persist governed candidate projections and immutable human decision events."""
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
-    graph = load_research_package(approval.package_id, db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
+    # The live runtime may retain WAL/SHM sidecars after intake. Approval is an
+    # internal read path, so use the query-only live-WAL connector; immutable
+    # checkpoint-only reads remain reserved for offline consumers.
+    graph = load_research_package(approval.package_id, db_path=database, live_wal=True)
     promotion_id = _stable_id("knowledge-promotion", approval.package_id)
     fingerprint = sha256(json.dumps(graph.model_dump(), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     with sqlite3.connect(database) as connection:

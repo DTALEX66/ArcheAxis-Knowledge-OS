@@ -253,6 +253,7 @@ class TestMultiFormatAdapter:
         assert detect_format("doc.docx") == "docx"
         assert detect_format("page.html") == "html"
         assert detect_format("readme.md") == "md"
+        assert detect_format("map.canvas") == "canvas"
         assert detect_format("data.csv") == "csv"
         assert detect_format("image.png") == "image"
         assert detect_format("clip.mp4") == "media_video"
@@ -324,6 +325,21 @@ class TestMultiFormatAdapter:
         content, engine = convert_file(str(f))
         assert "# Title" in content
         assert engine == "passthrough"
+
+    def test_json_canvas_projects_text_nodes_without_execution(self, tmp_path):
+        from app.ingestion.multi_format import convert_file
+
+        f = tmp_path / "lesson.canvas"
+        f.write_text(
+            '{"nodes":[{"id":"a","type":"text","text":"# Lesson\\n\\nRecall"},'
+            '{"id":"b","type":"link","url":"https://example.invalid"}],"edges":[]}',
+            encoding="utf-8",
+        )
+        content, engine = convert_file(f)
+
+        assert "# Lesson" in content
+        assert "https://example.invalid" in content
+        assert engine == "json-canvas"
 
     def test_pdf_uses_markitdown(self, tmp_path):
         """PDF conversion uses markitdown when installed."""
