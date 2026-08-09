@@ -576,3 +576,14 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert a28d933
+
+### LOG-20260809-045 — AUTHORITY SOURCE LINKS — PASS
+
+- 时间：2026-08-09T17:55:00+08:00
+- 执行分支：codex/frozen-roadmap-deepseek-v1
+- 候选提交：7e69a7441d9176fc8a896833721e283783f809dd
+- 变更：docs/truth/H0_H1_STATUS_HANDOFF.md 头部补充权威源文件链接（冻结基线/状态日志/权威契约/Current State Truth/任务包/Web 增补/KLC 增补）；修正状态日志范围至 LOG-044
+- 验证：git diff --check PASS；全部 7 个引用路径有效
+- 证据等级：STRUCTURAL
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：revert 7e69a74
