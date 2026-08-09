@@ -91,9 +91,27 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 3. **AXW-H1-EXIT 裁决**：同一 PDF 形成 RawAsset→派生块→Evidence→学习记录→受控 AI 候选，安装态重启后成立
 4. H1 完成后进入 H2（多格式适配）或按所有者决定顺序
 
-## 7. H1 交付物清单（供后续批次引用）
+## 7. 交付物清单（H0 + H1，供后续批次引用）
 
-H1 分支 `axw/execution-h1` 相对 main 新增/修改 26 文件，1942 行。核心模块：
+### H0 交付物（已 merge main，`f269a01`）
+
+H0 分支相对基线基点 `492fac5` 新增/修改 15 文件，766 行。核心变更：
+
+| 文件 | 职责 | 对应任务 |
+|---|---|---|
+| `app/ingestion/raw_asset.py` | RawAsset 不可变存储（最小） | AXW-012A |
+| `scripts/doctor_windows.ps1` | Windows/PowerShell 7 doctor | AXW-007A |
+| `pyproject.toml` / `requirements.txt` / `uv.lock` | `markitdown[pdf]` PDF 依赖 | AXW-012B |
+| `app/release-manifest.json` | 依赖锁 digest 同步 | AXW-009B |
+| `.github/workflows/ci.yml` | ci-verdict 语义 gate ID | AXW-003A |
+| `.worklab/project-validation.v1.yaml` | 依赖/parser 分类 | AXW-003C |
+| `THIRD_PARTY_NOTICES.md` | PDF 依赖 NOTICE | AXW-006C |
+
+配套测试：`test_ci_a0_gates`、`test_ci_classifier`、`test_doctor_windows`、`test_pdf_extraction`、`test_raw_asset`、`test_workspace_api`。
+
+### H1 交付物（PR #72，未 merge）
+
+H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 
 | 模块 | 职责 | 对应任务 |
 |---|---|---|
