@@ -642,3 +642,15 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert bc769a4
+
+### LOG-20260809-051 — AXW-021A REVIEW WARNING B RESOLVED — PASS
+
+- 时间：2026-08-09T18:55:00+08:00
+- 执行分支：axw/execution-h1
+- 候选提交：1c688c71eace449be2972acc538c0a8eb31dab89
+- 基线输入：AXW-021A 独立审查（deleg_756965ce）返回警告 B（失败不写 durable failure record，偏离 AXW-012A 契约）
+- 变更：app/ingestion/import_job.py 失败分支写 _record_failure 持久失败记录后再回滚事务与孤儿文件；test_import_job.py 新增 test_failed_import_writes_durable_failure_record
+- 验证：RED→GREEN；test_import_job `5 passed`；Ruff/architecture PASS
+- 证据等级：LOCAL_RUNTIME；EXACT_SHA_CI 待 PR #72 head 1c688c7
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权
+- 回滚：revert 1c688c7
