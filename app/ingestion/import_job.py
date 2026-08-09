@@ -50,18 +50,18 @@ def run_import_with_receipt(
     outbox + receipt are written. On any failure everything is rolled back so
     no orphaned outbox event points at a job that never completed.
     """
+    wrote_original = False
     with sqlite3.connect(store.db_path) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
             # 1. Persist the original bytes immutably (content-addressed).
             original = store.assets.store_original(blob, source_name)
+            wrote_original = True  # content-addressed file exists for this import
             # 2. Convert; a failure raises and rolls back the whole set.
-            try:
-                converted = convert(blob)
-            except BaseException as exc:  # noqa: BLE001
-                raise ImportJobError(f"conversion failed: {exc}") from exc
-            # 3. Write receipt + job + outbox in the same transaction.
+            converted = convert(blob)
+            # 3. Write receipt + job + outbox in the same transaction. A
+            #    conflict (same command_id, different input) raises RuntimeError.
             record = record_command_in_transaction(
                 connection,
                 command_id=command_id,
@@ -79,6 +79,11 @@ def run_import_with_receipt(
                 raw_sha256=original.sha256,
                 converted=converted,
             )
-        except Exception:
-            connection.rollback()
-            raise
+        except Exception as exc:
+            # SQLite rolls back. Clean up the byte file written by this attempt
+            # so a failed import leaves no orphaned original file behind.
+            if wrote_original:
+                store.assets.remove_original(original.sha256)
+            if isinstance(exc, ImportJobError):
+                raise
+            raise ImportJobError(str(exc)) from exc

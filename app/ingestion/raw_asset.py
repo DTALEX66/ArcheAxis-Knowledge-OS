@@ -71,6 +71,16 @@ class RawAssetStore:
     def has(self, digest: str) -> bool:
         return self._original_path(digest).exists()
 
+    def remove_original(self, digest: str) -> bool:
+        """Delete a stored original by digest. Returns True if it existed and
+        was removed. Used to clean up an orphaned file when an enclosing
+        import transaction is rolled back after the byte write."""
+        p = self._original_path(digest)
+        if p.exists():
+            p.unlink()
+            return True
+        return False
+
     def has_failure(self, digest: str) -> bool:
         return self._failure_path(digest).exists()
 
