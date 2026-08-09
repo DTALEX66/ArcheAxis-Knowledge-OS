@@ -554,3 +554,14 @@
 - 证据等级：`STRUCTURAL`
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert `4a4c8f8`
+
+### LOG-20260809-043 — KEY DECISIONS & DEVIATIONS — PASS
+
+- 时间：2026-08-09T17:35:00+08:00
+- 执行分支：codex/frozen-roadmap-deepseek-v1
+- 候选提交：54cc2764dcda7a4c0919e95bda8cead21ed79fb9
+- 变更：docs/truth/H0_H1_STATUS_HANDOFF.md 新增第 5 节"关键决策与偏差记录"——DEVIATION（AXW-022A 前端延迟独立批次、030A/B/C 复用现有实现）、CHANGE_PROPOSAL（无）、未授权动作（H1 merge fail-closed）；章节重排为 1-11
+- 验证：git diff --check PASS；文档结构 11 节完整
+- 证据等级：STRUCTURAL
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
+- 回滚：revert 54cc276
