@@ -107,3 +107,19 @@
 - 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`
 - 风险/剩余项：canonical 工作区存在未知脏改动（含 format capability/online corpus 新文件），已隔离在 `axw/execution-h0` 执行，未覆盖；后续实现全部在该 worktree
 - 回滚：删除 worktree `axw/execution-h0` 即可，不触碰 canonical 或冻结文件
+
+### LOG-20260809-005 — AXW-001A + AXW-001B — PASS
+
+- 时间：2026-08-09T22:45:00+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 候选提交/tree：`ae5ff5745fa690b4c52f3e1f926d7143733b8adc`
+- 基线输入：`AXW-BASE-0` PASS（依赖满足）
+- 变更：
+  - AXW-001A：新增 `docs/truth/CURRENT_STATE_TRUTH.md`，固定 Current State Truth 唯一阅读入口 `docs/PROJECT_STATUS.md`，把“实现且已验证 / 实现未验证 / candidate / 规划 / 历史”严格分开，并记录基线身份、当前阶段总判定和证据等级
+  - AXW-001B：新增 `docs/truth/AUTHORITY_CONTRACT.md`，固定权威顺序（用户指令 > 冻结基线 > 状态日志 > AGENTS/验证政策 > 公开文档 > 历史蓝图），明确不可覆盖项与冲突处理
+- 验证：`python scripts/check_repository_conventions.py` exit 0（PASS）；`git diff --check` exit 0（PASS）；`git diff --cached --check` exit 0（PASS）
+- 证据等级：`STRUCTURAL`（文档任务，按协议跳过 RED/GREEN）
+- 云端：本地权威分支已提交，稍后统一 push；`EXACT_SHA_CI` 为 `NOT EXECUTED`（文档任务，尚未进入 main PR）
+- 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`
+- 风险/剩余项：`docs/PROJECT_STATUS.md` 作为阅读入口位于 main，权威分支与 main 尚不同树；后续按 release train 同步
+- 回滚：revert `ae5ff5745fa690b4c52f3e1f926d7143733b8adc`
