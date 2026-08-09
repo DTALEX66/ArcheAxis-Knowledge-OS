@@ -94,3 +94,16 @@
 - 边界：未访问 E 盘，未读取凭据、浏览器状态或私人 corpus，未改动主 checkout；LOG-20260809-002 的 Spider exact URL 阻塞由本次较新所有者决策取代，但历史记录保留
 - 风险/剩余项：内容尚未合并 main；PR/merge/release 未执行；所有候选的实际 Windows benchmark、许可证 payload 审计、实现和安装态资格仍须逐任务完成
 - 回滚：revert `491bef9eeca4d9a9ecb5422c0e1642393b4a9470`；三个冻结文件和历史状态仍可追溯
+
+### LOG-20260809-004 — AXW-BASE-0 — PASS
+
+- 时间：2026-08-09T22:30:00+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`（状态记录）+ 新建隔离执行 worktree `axw/execution-h0`
+- 候选提交/tree：状态记录提交见本 LOG 的 Git commit；执行 worktree 为 `origin/main` `492fac5982c693eb668d31cc51a6a59bac83b7a1` / tree `8eaf7962fd0d043d36658aa3c92fe0ca91fe0705`
+- 基线输入：无依赖（`AXW-BASE-0` 为 DAG 根）
+- 变更：从最新云端 `origin/main` 建立隔离执行 worktree `D:/All projects/Cognitive-Loop-OS/.hermes/task-runtime/axw-exec`，分支 `axw/execution-h0`；记录 Git root、branch、HEAD、origin/main、分叉与脏路径 owner
+- 验证：`git status --short --branch` CLEAN；`git rev-parse HEAD` = `492fac5`；`git write-tree` = `8eaf7962fd0d043d36658aa3c92fe0ca91fe0705`；Python 3.11.15、PowerShell 7.6.3；canonical 工作区未修改
+- 云端：`EXACT_SHA_CI` 为 `NOT EXECUTED`（实现分支尚未 push/PR）
+- 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`
+- 风险/剩余项：canonical 工作区存在未知脏改动（含 format capability/online corpus 新文件），已隔离在 `axw/execution-h0` 执行，未覆盖；后续实现全部在该 worktree
+- 回滚：删除 worktree `axw/execution-h0` 即可，不触碰 canonical 或冻结文件
