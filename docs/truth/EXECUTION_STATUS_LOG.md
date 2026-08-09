@@ -77,3 +77,20 @@
 - 安装态：本次只交付任务、规划和蓝图；Crawl4AI、Spider、前端、后端和 Windows E2E 实现均为 `NOT EXECUTED`
 - 风险/剩余项：必须由所有者确认 Spidering exact GitHub URL；内容尚未合并 main，PR/merge/发布未执行
 - 回滚：revert `e7102416155aa53a13de0fb6b6edf959e07d5528`；冻结 v1 与先前发布记录保持可追溯
+
+### LOG-20260809-003 — CAPABILITY-FIRST-KNOWLEDGE-LIFECYCLE — PASS
+
+- 时间：2026-08-09T21:35:05+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 候选提交/tree：`491bef9eeca4d9a9ecb5422c0e1642393b4a9470` / `d19393cf3b4b94f1fe91b78c81972b1be446b6df`
+- 所有者决策：Crawl4AI、Spidering 或其他候选可以不进入最终产品；static/dynamic/site/search/multiformat/course/learning/AI-reuse 能力必须交付，复用优先，自研只作 benchmark 证明后的兜底
+- 变更：新增独立冻结的 41 项 `AXW-KLC-*` 任务和 SHA-256；把搜索→摄取→转换→证据/知识→课程→人类学习→AI 复用→评测写入 DeepSeek 包、未来蓝图、吸收矩阵和导航；不修改冻结 v1 或 Web v1 原文
+- 候选结论：Crawlee Python 为统一 HTTP/Playwright/队列高优先候选；Crawl4AI、Spider、Scrapy 为质量/吞吐挑战者；Docling、PaddleOCR/Tesseract、Whisper/FFmpeg、Tree-sitter 等按格式 profile 竞赛；Firecrawl/SearXNG/Browsertrix 和完整 LMS 受 AGPL/GPL 与部署边界限制，默认仅隔离 sidecar 或参考
+- 验证：`git diff --cached --check` PASS；repository convention PASS；44 个定向测试 PASS；changed-file Ruff PASS；7 个相关文档 28 条本地链接无缺失；三份任务定义共 159 个唯一 ID、无未知依赖、无环；独立只读 reviewer 提出 1 个 DeepSeek ID 权威范围矛盾，修复后对 tree `d19393cf...` 复核 PASS
+- 冻结哈希：baseline `ef3066231d8251562c6b9fb361e9a0a0424c100c6c27b6ec4de8ebba7b585155`；Web v1 `971e0ee9ba32f6b30c8d8435dbb4d5c46574f0dbba96210ce00076055afedb19`；KLC v1 `2bfd1192b3119121fd921c59721890d751adbdcb9383fa4d9b15ce714a4ed288`
+- 云端：远端分支 SHA 回读为 `491bef9eeca4d9a9ecb5422c0e1642393b4a9470`，GitHub Contents API 回读 KLC Addendum 与 DeepSeek 双增补入口成功；`PUBLICATION` 为 `PASS`
+- CI：当前 CI 只响应 main push/PR，独立分支 push 未触发；`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 安装态：本次只交付冻结任务、规划、蓝图、候选研究和验证规则；搜索、crawler、转换、课程、Learning Player、AI reuse 和 Windows E2E 运行时实现均为 `NOT EXECUTED`
+- 边界：未访问 E 盘，未读取凭据、浏览器状态或私人 corpus，未改动主 checkout；LOG-20260809-002 的 Spider exact URL 阻塞由本次较新所有者决策取代，但历史记录保留
+- 风险/剩余项：内容尚未合并 main；PR/merge/release 未执行；所有候选的实际 Windows benchmark、许可证 payload 审计、实现和安装态资格仍须逐任务完成
+- 回滚：revert `491bef9eeca4d9a9ecb5422c0e1642393b4a9470`；三个冻结文件和历史状态仍可追溯
