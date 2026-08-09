@@ -4,8 +4,8 @@
 > 任务包：`DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`
 > 基线：`AXW-FROZEN-v1-2026-08-09`
 > 权威分支：`codex/frozen-roadmap-deepseek-v1`
-> 执行分支：`axw/execution-h0`（已 merge）、`axw/execution-h1`（PR #72）
-> 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~037）
+> 执行分支：`axw/execution-h0`（已 merge）、`axw/execution-h1`（PR #72，未 merge）
+> 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~038）
 
 本文是任务包要求的状态交接文档，汇总 H0/H1 全部任务的验收状态、证据等级、阻塞与收口路径。所有 PASS 均绑定真实 exact-SHA/CI/审查/安装态证据；未完成项如实标 `PARTIAL`/`UNVERIFIED`，不冒充完成。
 
@@ -19,7 +19,7 @@
 | H0 main CI | run `31320800285` 全绿 |
 | H1 分支 | `axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint） |
 | H1 exact-head CI | run `31322840300` 全绿（head `78091cc`） |
-| 权威分支 | `codex/frozen-roadmap-deepseek-v1` at `b43d030` |
+| 权威分支 | `codex/frozen-roadmap-deepseek-v1` at `ba4cd81` |
 | 用户 WIP | canonical 主工作区未触碰 |
 
 ## 2. H0（v0.5.1 可信恢复）— 已完成并 merge
