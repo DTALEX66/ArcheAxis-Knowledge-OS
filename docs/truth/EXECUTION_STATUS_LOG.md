@@ -315,3 +315,50 @@
 - 限制声明：`PUBLICATION`（正式 release 上传/签名）尚未执行；本裁决证明"可信恢复所需代码、CI、bundle、安装态 PDF、Windows 生命周期与供应链 NOTICE"全绿，不等于已公开发布 v0.5.1
 - 证据等级：聚合 `EXACT_SHA_CI` + `LIVE_INSTALLED`
 - 回滚：不适用（代码已合 main；发布动作仍待所有者单独授权）
+
+### LOG-20260809-020 — GOV-001 — PASS
+
+- 时间：2026-08-09T15:45:00+08:00
+- 执行分支：`axw/execution-h1`（基于 main `f269a01`）
+- 候选提交：`ad4480e56109721c4acbb94607782a05f012edb4` + `f09f94079caf302c47bc38332a8e21cec7e6a667`
+- 基线输入：`AXW-H0-EXIT` PASS
+- 变更：`MachineKnowledgeUnitV1` 增加 `scope`；`list_runtime_machine_knowledge(scope=...)` 只返回 approved 且 scope 匹配/通用的 unit；adapter 对 scoped unit 的 legacy round-trip 显式 fail-closed
+- 验证：RED→GREEN；machine knowledge `11 passed`；Ruff/architecture PASS；独立只读审查全部检查点 PASS（1 低危 WARNING 已通过 fail-closed 修复关闭）
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 待 PR #72
+- 回滚：revert `f09f940`
+
+### LOG-20260809-021 — AXW-020R — PASS
+
+- 时间：2026-08-09T15:46:00+08:00
+- 候选提交：`4a624407c9436bf60cbc63691b84a9a6e645578a`
+- 变更：`workspace/intake/2026-08-09-AXW-020R-reuse-matrix.md` 映射 H1 域对象到现有实现，禁止平行重建
+- 验证：convention PASS；`git diff --check` PASS
+- 证据等级：`STRUCTURAL`
+- 回滚：revert `4a62440`
+
+### LOG-20260809-022 — AXW-020A — PASS
+
+- 时间：2026-08-09T15:47:00+08:00
+- 候选提交：`c09379e345fc477707293fd68219ab7406a85cd4`
+- 变更：`RawAssetRecord` 增加 mime_type/retention_policy/save_state；`store_original` 可选参数向后兼容
+- 验证：RED→GREEN；raw asset `8 passed`；Ruff PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `c09379e`
+
+### LOG-20260809-023 — AXW-020B — PASS
+
+- 时间：2026-08-09T15:48:00+08:00
+- 候选提交：`bc6cad22f00aae6e36219911ce8ef0317b7e02cf`
+- 变更：`app/ingestion/conversion_run.py`（ConversionRun→DerivedDocument→DerivedBlocks，稳定内容派生 ID、版本、LossReport、SQLite 持久化）
+- 验证：RED→GREEN；`4 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `bc6cad2`
+
+### LOG-20260809-024 — AXW-020C — PASS
+
+- 时间：2026-08-09T15:49:00+08:00
+- 候选提交：`514841d744f8b6add6246f8d4b883c951a80d96e`
+- 变更：`app/evidence/anchor.py`（EvidenceAnchor 支持页/块/字符区域/源版本；IndexRevision 可重建且不冒充事实源）
+- 验证：RED→GREEN；`6 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `514841d`
