@@ -56,7 +56,7 @@ def register_candidate_knowledge_version(
     proposal: KnowledgeVersionProposal, *, db_path: str | Path
 ) -> CandidateKnowledgeVersionReceipt:
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     content_json = _dump(proposal.content)
     fingerprint = sha256(content_json.encode()).hexdigest()
     version_id = _stable_id("knowledge-version", proposal.proposal_id)
@@ -115,7 +115,7 @@ def deprecate_candidate_knowledge_version(
     deprecation: KnowledgeVersionDeprecation, *, db_path: str | Path
 ) -> None:
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")

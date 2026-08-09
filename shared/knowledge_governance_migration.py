@@ -181,12 +181,19 @@ ON machine_knowledge_approval_events_v1(candidate_id, reviewed_at, id);
 """
 
 
-def _connect(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
+def _connect(
+    path: Path, *, readonly: bool = False, live_wal: bool = False
+) -> sqlite3.Connection:
     if readonly:
-        sidecars = [Path(f"{path}{suffix}") for suffix in ("-wal", "-shm")]
-        if any(item.exists() for item in sidecars):
-            raise RuntimeError("knowledge governance read requires checkpointed database")
-        connection = sqlite3.connect(f"{path.resolve().as_uri()}?mode=ro&immutable=1", uri=True, timeout=30.0)
+        if live_wal:
+            connection = sqlite3.connect(str(path), timeout=30.0)
+        else:
+            sidecars = [Path(f"{path}{suffix}") for suffix in ("-wal", "-shm")]
+            if any(item.exists() for item in sidecars):
+                raise RuntimeError("knowledge governance read requires checkpointed database")
+            connection = sqlite3.connect(
+                f"{path.resolve().as_uri()}?mode=ro&immutable=1", uri=True, timeout=30.0
+            )
         connection.execute("PRAGMA query_only=ON")
     else:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -385,12 +392,12 @@ def migrate(
     return run
 
 
-def status(*, db_path: str | Path) -> dict[str, object]:
+def status(*, db_path: str | Path, live_wal: bool = False) -> dict[str, object]:
     database = Path(db_path)
     if not database.is_file():
         pending = tuple(KNOWLEDGE_GOVERNANCE_MIGRATIONS.values())
     else:
-        with closing(_connect(database, readonly=True)) as connection:
+        with closing(_connect(database, readonly=True, live_wal=live_wal)) as connection:
             if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise RuntimeError("knowledge governance database integrity check failed")
             pending = _pending(connection)
@@ -407,6 +414,6 @@ def status(*, db_path: str | Path) -> dict[str, object]:
     }
 
 
-def require_applied(*, db_path: str | Path) -> None:
-    if status(db_path=db_path)["pending"]:
+def require_applied(*, db_path: str | Path, live_wal: bool = False) -> None:
+    if status(db_path=db_path, live_wal=live_wal)["pending"]:
         raise RuntimeError("phase5 knowledge governance schema migration is pending")

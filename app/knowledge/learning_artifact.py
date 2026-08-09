@@ -74,7 +74,7 @@ def create_candidate_learning_artifact(
     approval: KnowledgeLearningArtifactApproval, *, db_path: str | Path
 ) -> LearningArtifactV1:
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
@@ -166,7 +166,7 @@ def approve_artifact_cards(
     if not command_id:
         raise ValueError("learning approval requires command_id")
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")

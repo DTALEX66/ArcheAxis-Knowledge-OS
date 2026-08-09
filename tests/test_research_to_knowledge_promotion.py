@@ -99,3 +99,24 @@ def test_rejected_research_package_is_audited_without_candidate_knowledge(tmp_pa
         )
         assert connection.execute("SELECT COUNT(*) FROM knowledge_candidate_promotions_v1").fetchone()[0] == 0
         assert connection.execute("SELECT COUNT(*) FROM knowledge_candidate_units_v1").fetchone()[0] == 0
+
+
+def test_approval_reads_live_wal_database(tmp_path: Path) -> None:
+    from app.facades.research import research_github_repository
+    from app.knowledge.promotion import promote_research_package_to_candidates
+
+    database = tmp_path / "live-wal.sqlite"
+    _prepare_database(database)
+    graph = research_github_repository(
+        "https://github.com/octo/loop-os", fetcher=_transport(), db_path=database
+    )
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute("PRAGMA journal_mode=WAL")
+        connection.commit()
+
+    receipt = promote_research_package_to_candidates(
+        _approval(graph.package.package_id), db_path=database
+    )
+
+    assert receipt.lifecycle_status == "candidate"
+    assert receipt.package_id == graph.package.package_id

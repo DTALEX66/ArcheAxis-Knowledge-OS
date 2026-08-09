@@ -68,7 +68,7 @@ def create_machine_knowledge_candidate(
 
 def deprecate_machine_knowledge_candidate(approval: MachineKnowledgeApproval, *, db_path: str | Path) -> MachineKnowledgeUnitV1:
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)

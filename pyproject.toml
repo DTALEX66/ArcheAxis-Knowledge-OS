@@ -51,6 +51,7 @@ ci = [
     "pytest>=7.0",
     "playwright>=1.61,<1.62",
     "pytesseract>=0.3.13",
+    "markitdown>=0.1",
     "python-multipart>=0.0.20",
     "pyyaml>=6.0",
     "requests>=2.28",

@@ -54,7 +54,7 @@ def start_and_approve_learning_candidate(
 ) -> tuple[LearningArtifactV1, list[str]]:
     """Create and approve a learning candidate in one caller-visible transaction."""
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     approval = KnowledgeLearningArtifactApproval(
         approval_id=approval_id,
         unit_id=unit_id,
@@ -116,7 +116,7 @@ def record_practice_evidence(
     if not 0 <= quality <= 5:
         raise ValueError("practice quality must be between 0 and 5")
     database = Path(db_path)
-    knowledge_governance_migration.require_applied(db_path=database)
+    knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     review_id = "practice_" + sha256(command_id.encode()).hexdigest()[:24]
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
