@@ -11,7 +11,9 @@ The release dependency contract is `pyproject.toml` plus the exact resolved
 
 `fastapi`, `python-multipart`, `uvicorn`, `pydantic`, `numpy`, `requests`,
 `pyyaml`, `beautifulsoup4`, `defusedxml`, `apscheduler`, `sqlite-vec`, `loguru`,
-`structlog`, `markitdown`, `trafilatura`, `networkx`, `litellm`, `pillow`, and
+`structlog`, `markitdown[pdf]` (with `pdfminer-six`, `pdfplumber`, and
+`pypdfium2` for PDF extraction), `trafilatura`, `networkx`, `litellm`,
+`pillow`, and
 `pytesseract`.
 
 Optional or development groups additionally declare `setuptools`,

@@ -673,20 +673,29 @@ jobs:
               fi
             fi
           }
-          require test "$TEST_RESULT"
-          require py-compat "$COMPAT_RESULT"
+          # AXW-003A: gate on the GatePlan semantic IDs, not GitHub job names.
+          # GatePlan emits `py-primary` for the OS/KB/integration suite (its
+          # result arrives via the `test` job) and `static` for convention and
+          # architecture checks (carried by the `lint` job). Requiring the bare
+          # job name `test` would never match GatePlan and would let a required
+          # py-primary failure pass as green.
+          require py-primary "$TEST_RESULT"
+          require static "$LINT_RESULT"
           require lint "$LINT_RESULT"
+          require py-compat "$COMPAT_RESULT"
           require wheel-smoke "$WHEEL_RESULT"
           require browser-smoke "$BROWSER_RESULT"
           require windows-runtime "$WINDOWS_RESULT"
           require desktop-fast "$DESKTOP_FAST_RESULT"
           require desktop-build "$DESKTOP_BUILD_RESULT"
           require installer-lifecycle "$INSTALLER_RESULT"
-          # A not-required job that RAN and failed is still a failure.
-          for spec in "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT"; do
+          # A not-required job that RAN and failed is still a failure. Use the
+          # job names (the only labels the `needs.*.result` are keyed by) but
+          # check them against their real job results.
+          for spec in "test:$TEST_RESULT" "py-compat:$COMPAT_RESULT" "lint:$LINT_RESULT" "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime-smoke:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT"; do
             name="${spec%%:*}"; result="${spec##*:}"
             if [ "$result" = "failure" ]; then
-              echo "gate '$name' failed even though not required"
+              echo "job '$name' failed even though its gate was not required"
               exit 1
             fi
           done

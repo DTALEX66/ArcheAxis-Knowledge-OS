@@ -210,6 +210,55 @@ def test_ci_exposes_one_stable_a0_required_check() -> None:
     assert "ci-verdict: all required gates success" in workflow
 
 
+def test_ci_verdict_requires_semantic_gate_ids_not_job_names() -> None:
+    """AXW-003A: the aggregator must gate on GatePlan semantic IDs, not the
+    GitHub job name. GatePlan emits `py-primary` for the OS/KB suite and
+    `static` for convention/architecture checks. A `require test` that matches
+    the job name instead of the gate ID can never fire, letting a required
+    `py-primary` failure slip through as a green ci-verdict.
+    """
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    verdict = workflow.split("Validate required gates against GatePlan", 1)[1]
+
+    # The aggregator must reference every required-conditional gate by its
+    # semantic GatePlan ID (the same string the classifier emits), not a bare
+    # GitHub job name.
+    for gate_id in (
+        "py-primary",
+        "static",
+        "lint",
+        "py-compat",
+        "wheel-smoke",
+        "browser-smoke",
+        "windows-runtime",
+        "desktop-fast",
+        "desktop-build",
+        "installer-lifecycle",
+    ):
+        assert f"require {gate_id}" in verdict, f"ci-verdict missing require {gate_id}"
+
+    # The job name `test` is not a GatePlan ID; requiring it is a no-op that
+    # would mask a required py-primary failure. Its presence is the AXW-003A bug.
+    assert "require test " not in verdict.replace("test ", "", 0).replace(
+        "py-primary", ""
+    ) or "require test " not in verdict
+
+
+def test_ci_verdict_does_not_require_orphan_job_name_test() -> None:
+    """AXW-003A reverse regression: ci-verdict must never `require test` because
+    GatePlan never emits a `test` gate; `py-primary` is the semantic ID for the
+    OS/KB/integration suite. Requiring `test` (the GitHub job name) is dead code
+    that lets a required py-primary suite failure pass the aggregate.
+    """
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    verdict = workflow.split("Validate required gates against GatePlan", 1)[1]
+    # The verdict body must not contain a `require test` invocation (job-name gate).
+    # It may mention `test` in the env var TEST_RESULT only, not as a require key.
+    assert "require test " not in verdict
+    # Sanity: the suite env var that carries the OS/KB test result is present.
+    assert "TEST_RESULT" in verdict
+
+
 def test_selective_heavy_jobs_gate_on_gateplan() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
@@ -255,7 +304,7 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
     assert '"3.10"' not in test_job
     ci_adapters = project["dependency-groups"]["ci-adapters"]
     for requirement in (
-        "markitdown>=0.1",
+        "markitdown[pdf]>=0.1",
         "newspaper4k>=0.9",
         "readabilipy>=0.3",
         "trafilatura>=1.6",

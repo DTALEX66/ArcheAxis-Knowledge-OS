@@ -104,6 +104,31 @@ def test_wheel_packaging_requires_wheel_smoke() -> None:
     assert "wheel-smoke" in plan["required_gates"]
 
 
+def test_requirements_change_triggers_wheel_and_compat_not_full_scan() -> None:
+    """AXW-003C: a requirements.txt change is a dependency change that must
+    rebuild and smoke the wheel and the compat matrix. It must NOT degrade into
+    a blanket full-qualification scan, and it must NOT be treated as unknown.
+    """
+    plan = _classify(["requirements.txt"])
+    assert plan["full_qualification"] is False, plan
+    assert "wheel-smoke" in plan["required_gates"]
+    assert "py-compat" in plan["required_gates"]
+    assert plan["unknown_paths"] == []
+
+
+def test_parser_change_triggers_wheel_smoke() -> None:
+    """AXW-003C: changing a format parser (pdf/multi-format) affects what the
+    installed wheel can convert, so the wheel must be rebuilt and smoked. The
+    plain py-primary-only classification would miss install-state regressions.
+    """
+    for path in ("app/ingestion/pdf.py", "app/ingestion/multi_format.py"):
+        plan = _classify([path])
+        assert plan["full_qualification"] is False, (path, plan)
+        assert "py-primary" in plan["required_gates"]
+        assert "wheel-smoke" in plan["required_gates"], f"{path} missing wheel-smoke"
+        assert plan["unknown_paths"] == [], (path, plan["unknown_paths"])
+
+
 def test_ci_policy_change_forces_full() -> None:
     plan = _classify([".github/workflows/ci.yml"])
     assert "full-qualification" not in plan["required_gates"]  # logical profile
