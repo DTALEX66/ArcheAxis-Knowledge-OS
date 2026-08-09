@@ -4,6 +4,7 @@
 
 ## 当前事实与未来方向
 
+- [`truth/README.md`](truth/README.md)：Truth Spine、冻结任务基线、追加式执行状态与 DeepSeek 全量执行入口。
 - [`PRODUCT_POSITIONING.md`](PRODUCT_POSITIONING.md)：ArcheAxis OS 对外产品定位、治理边界与术语。
 - [`PROJECT_STATUS.md`](PROJECT_STATUS.md)：当前验证状态、已知限制和质量门禁。
 - [`FUTURE_EXECUTION_BLUEPRINT.md`](FUTURE_EXECUTION_BLUEPRINT.md)：长期设计原则、候选轨道、延后项和进入执行门槛；不代表当前完成度。

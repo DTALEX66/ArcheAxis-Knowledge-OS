@@ -14,6 +14,7 @@ from scripts.check_repository_conventions import (
 )
 from scripts.check_repository_conventions import (
     normalize_text_bytes,
+    scan_frozen_document_bytes,
     scan_git_repository,
     scan_naming_registry_bytes,
     scan_path_set,
@@ -100,6 +101,16 @@ def test_repository_scanner_validates_registry_semantics() -> None:
     assert [
         issue.code for issue in scan_naming_registry_bytes(registry_path, invalid)
     ] == ["invalid-naming-registry"]
+
+
+def test_frozen_execution_baseline_rejects_content_changes() -> None:
+    baseline_path = "docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md"
+    baseline = (ROOT / baseline_path).read_bytes()
+
+    assert scan_frozen_document_bytes(baseline_path, baseline) == []
+    issues = scan_frozen_document_bytes(baseline_path, baseline + b"changed\n")
+
+    assert [issue.code for issue in issues] == ["frozen-document-modified"]
 
 
 def test_text_scanner_reports_encoding_and_normalization_violations() -> None:

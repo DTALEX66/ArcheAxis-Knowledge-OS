@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -61,6 +62,11 @@ _RESERVED_WINDOWS_NAMES = {
 }
 _ZERO_WIDTH = {"\u200b", "\u200c", "\u200d", "\u2060"}
 _WINDOWS_EOL_SUFFIXES = {".bat", ".cmd", ".ps1"}
+_FROZEN_DOCUMENT_HASHES = {
+    "docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md": (
+        "ef3066231d8251562c6b9fb361e9a0a0424c100c6c27b6ec4de8ebba7b585155"
+    ),
+}
 
 
 @dataclass(frozen=True, order=True)
@@ -144,6 +150,23 @@ def scan_naming_registry_bytes(path: str, content: bytes) -> list[ConventionIssu
     except (UnicodeDecodeError, yaml.YAMLError, NamingRegistryError) as exc:
         return [ConventionIssue("invalid-naming-registry", path, str(exc))]
     return []
+
+
+def scan_frozen_document_bytes(path: str, content: bytes) -> list[ConventionIssue]:
+    """Reject accidental edits to owner-approved frozen comparison baselines."""
+    expected = _FROZEN_DOCUMENT_HASHES.get(path)
+    if expected is None:
+        return []
+    actual = hashlib.sha256(content).hexdigest()
+    if actual == expected:
+        return []
+    return [
+        ConventionIssue(
+            "frozen-document-modified",
+            path,
+            f"expected sha256 {expected}, got {actual}",
+        )
+    ]
 
 
 def scan_path_set(paths: list[str]) -> list[ConventionIssue]:
@@ -276,6 +299,7 @@ def scan_git_repository(root: Path, *, source: str = "worktree") -> list[Convent
         else:
             content = blob_contents[path]
         issues.extend(scan_text_bytes(path, content))
+        issues.extend(scan_frozen_document_bytes(path, content))
         if path == "config/naming-registry.yaml":
             issues.extend(scan_naming_registry_bytes(path, content))
     return sorted(issues)
