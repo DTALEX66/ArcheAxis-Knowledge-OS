@@ -209,3 +209,20 @@
 - 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 为 `NOT EXECUTED`（待 PR #71）
 - 状态：`PARTIAL` —— 源码/lock/manifest 版本一致已证，但 wheel 级版本一致性、安装器版本注入和 UI 版本仍需在打包门禁中验证（AXW-009C/009D）
 - 回滚：revert `b35aae0ca4478f12cfff9968d954f87e30bf29cf`
+
+### LOG-20260809-013 — H0 PR #71 exact-head CI — PASS (EXACT_SHA_CI)
+
+- 时间：2026-08-09T23:50:00+08:00
+- 执行分支：`axw/execution-h0`；PR `https://github.com/DTALEX66/Cognitive-Loop-OS/pull/71`
+- 候选提交/tree：head `35066f8c99c8767f0a1944ec573333791c74572f`；run `31318879327`
+- 基线输入：AXW-003A/003C/007A/009B/012A/012B 本地 checkpoint
+- 变更：无代码变更（纯 CI 验收记录）；历史：初版 run `31318538398` 因过时测试断言 `markitdown>=0.1` 失败，已修复为 `markitdown[pdf]>=0.1` 并推送 `35066f8`
+- 验证：run `31318879327` `completed/success`；全部 job PASS——gateplan、lint、test(3.12)、py-compat(3.11/3.13)、wheel-smoke、browser-smoke、windows-runtime-smoke、desktop-fast、desktop-build(13m10s)、installer-lifecycle、a0-gates；mergeStateStatus `CLEAN`
+- 意义：
+  - AXW-003A 的 a0-gates 聚合正确（语义 gate ID 修复在真实 CI 生效）
+  - AXW-003C 依赖/parser 分类触发 wheel-smoke + installer 门禁（验证修复）
+  - AXW-012B 的 `markitdown[pdf]` 进入 wheel 且 wheel-smoke PASS；installer-lifecycle PASS 证明安装态可用
+- 证据等级：`EXACT_SHA_CI`（PR #71 head `35066f8`）
+- 安装态：`LIVE_INSTALLED` 由 installer-lifecycle job 覆盖（install→start→exit→uninstall），但 H0 的 AXW-012C 真实 PDF 安装态流程仍待独立执行
+- 风险/剩余项：PR 未 merge（未获 merge 授权）；AXW-009C clean-bundle 复现性、AXW-009D 完整生命周期（升级/重启/数据保留）、AXW-012C 安装态 PDF、AXW-H0-EXIT 裁决仍待执行
+- 回滚：关闭/丢弃 PR #71 或 revert 对应 commit；CI 已通过 exact head
