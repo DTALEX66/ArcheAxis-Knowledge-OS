@@ -405,3 +405,34 @@
 - 证据等级：`EXACT_SHA_CI`（head `bb951f0`）
 - 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-022A/022B、024A/024B、025A/025B、030A/030B/030C、AXW-H1-EXIT 仍待执行
 - 回滚：关闭/丢弃 PR #72
+
+### LOG-20260809-029 — AXW-024A — PASS
+
+- 时间：2026-08-09T16:05:00+08:00
+- 执行分支：`axw/execution-h1`
+- 候选提交：`58c5664483f1f11d2cc0ea1cbadbdf922dbb8401`
+- 基线输入：`AXW-020C` PASS
+- 变更：`app/evidence/graph.py`（ClaimEvidenceGraph——一条 Claim 关联多 Evidence，每节点可追溯来源/生成/审核/scope/provenance；fail-closed 拒绝跨 claim、caller-supplied 无 review、空 evidence）
+- 验证：RED→GREEN；`5 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 待 PR #72 head `873e652`
+- 回滚：revert `58c5664`
+
+### LOG-20260809-030 — AXW-024B — PASS
+
+- 时间：2026-08-09T16:06:00+08:00
+- 候选提交：`dd7a0a05a5850b51f54e95bf9070e73ad338405d`
+- 基线输入：`AXW-024A` PASS
+- 变更：`app/evidence/bundle.py`（EvidenceBundle——supports/refutes/qualifies 关系、跨来源比较、冲突检测、人工审核门禁；caller-supplied bundle 需 review、非法关系/未知 evidence 拒绝）
+- 验证：RED→GREEN；evidence 全量 `16 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `dd7a0a0`
+
+### LOG-20260809-031 — AXW-025A — PASS
+
+- 时间：2026-08-09T16:07:00+08:00
+- 候选提交：`873e65235556db8b492331c9ed90282d76630e0a`
+- 基线输入：`AXW-024A` PASS
+- 变更：`app/knowledge/retrieval_practice.py`（LearningObjective + RetrievalPractice——评分只由答案决定，模型置信度永不作为学习准确率）
+- 验证：RED→GREEN；`4 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `873e652`
