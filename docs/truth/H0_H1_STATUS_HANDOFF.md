@@ -84,12 +84,26 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 - ❌ 阻塞：**AXW-022B**（证据批注）依赖 AXW-022A 前端 PDF.js 渲染，前端未实现
 - 故 AXW-H1-EXIT **未裁决**（须 022 前端完成 + H1 merge 授权后裁决）
 
-## 6. 收口路径（H1 完成剩余）
+## 6. 收口路径与可操作执行队列（H1 完成剩余）
 
-1. **独立前端批次**：集成 PDF.js 到 `app/workspace/ui/assets/` + 更新 package-data/NOTICE → 实现分页/缩放/搜索 + 证据批注（022A/022B）→ 浏览器/WebView 点击级验证
-2. 征求 **H1 merge 授权** → merge-SHA main CI（run 需全绿）
-3. **AXW-H1-EXIT 裁决**：同一 PDF 形成 RawAsset→派生块→Evidence→学习记录→受控 AI 候选，安装态重启后成立
-4. H1 完成后进入 H2（多格式适配）或按所有者决定顺序
+### A. AXW-022A/022B 前端批次（当前唯一实现阻塞）
+
+1. **PDF.js 集成**：下载 PDF.js 单文件构建（Apache-2.0）到 `app/workspace/ui/assets/pdf.min.js`；更新 `pyproject.toml` package-data 的 `app.workspace` 条目（`ui/assets/*.js` 已含，确认覆盖）
+2. **许可证审计**：`THIRD_PARTY_NOTICES.md` 新增 PDF.js（Apache-2.0）；记录 source revision/license（AXW-006C）
+3. **后端端点**：在 `app/workspace/router.py` 新增只读 `GET /api/pdf/{content_key}`，调用 `app/evidence/pdf_serve.resolve_pdf_bytes`；绑定项目 `.hermes` RawAsset 根
+4. **前端页面**：在 `page-evidence` 或新增 `page-pdf` 实现分页/缩放/搜索，用 `pdf_serve` 内容 key 加载原件；读取失败显示"不可用"（Truth 投影，AXW-030C）
+5. **证据批注（022B）**：文本/区域选择生成 `EvidenceAnchor`（复用 `app/evidence/anchor.py`）；从 Claim/Evidence 回跳
+6. **验证**：本地 `uv run --frozen --only-group ci pytest` + browser-smoke；WebView 点击级验证（分页/缩放/搜索/批注）
+7. **推送 PR → exact-head CI → 征求 merge 授权**
+
+### B. H1 收口
+
+1. 征求 **H1 merge 授权** → merge-SHA main CI（run 需全绿）
+2. **AXW-H1-EXIT 裁决**：同一 PDF 形成 RawAsset→派生块→Evidence→学习记录→受控 AI 候选，安装态重启后成立
+
+### C. H2 续接（H1 完成后）
+
+H2 首个依赖安全任务：`AXW-023A`（DOCX Adapter）——复用 `app/ingestion/conversion_run.py` + `app/evidence/pdf_serve.py` 模式，建立 DOCX fixture/Oracle → Adapter 合同 → 缺依赖降级 → 源码测试 → bundle/安装态资格。每格式独立完成，不互相冒充。
 
 ## 7. 交付物清单（H0 + H1，供后续批次引用）
 
