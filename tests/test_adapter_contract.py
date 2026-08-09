@@ -351,6 +351,34 @@ class TestMultiFormatAdapter:
         assert "Markdown in a" in content
         assert engine == "markitdown"
 
+    def test_real_pdf_uses_markitdown_pdf_extra(self, tmp_path):
+        """A structurally valid PDF reaches the installed PDF extra."""
+        from app.ingestion.multi_format import convert_file
+
+        objects = [
+            b"1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj",
+            b"2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj",
+            b"3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>endobj",
+            b"4 0 obj<< /Length 0 >>stream\n\nendstream\nendobj",
+        ]
+        body = b"%PDF-1.4\n"
+        offsets = [0]
+        for obj in objects:
+            offsets.append(len(body))
+            body += obj + b"\n"
+        xref = len(body)
+        body += b"xref\n0 5\n0000000000 65535 f \n"
+        body += b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets[1:])
+        body += b"trailer<< /Size 5 /Root 1 0 R >>\nstartxref\n"
+        body += str(xref).encode() + b"\n%%EOF\n"
+
+        pdf = tmp_path / "real.pdf"
+        pdf.write_bytes(body)
+        content, engine = convert_file(pdf)
+
+        assert isinstance(content, str)
+        assert engine == "markitdown"
+
     def test_html_uses_trafilatura(self, tmp_path):
         """HTML uses trafilatura when installed."""
         from app.ingestion.multi_format import convert_file
