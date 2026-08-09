@@ -273,3 +273,22 @@ H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 m
 - 本周期为单 writer（本会话），所有 checkpoint 顺序提交到 `axw/execution-h1`（后端）与 `codex/frozen-roadmap-deepseek-v1`（权威状态）
 - 审查 reviewer 为只读后台 delegation，不写入
 - 续接从 LOG-046 之后的下一依赖安全任务开始
+
+
+## 附录 D：验证政策遵循记录
+
+本周期遵循 `docs/VERIFICATION_POLICY.md`：
+
+| 政策要求 | 遵循情况 |
+|---|---|
+| 开发中每个新行为一次定向 RED→GREEN | ✅ 每 checkpoint 均执行 |
+| TaskPack checkpoint：只跑受影响测试 + changed-file Ruff + diff/convention | ✅ 每 checkpoint 均执行（不重复全量套件） |
+| 阶段 Release Train：冻结聚合 diff，一次完整门禁 + 一次 CI | ✅ PR #71（H0）/PR #72（H1）各一次 exact-head CI 全绿 |
+| 高风险（打包/依赖/DB/安全）：每个独立 frozen tree 立即完整门禁 + 审查 + push + exact-SHA CI | ✅ AXW-012B（依赖）/AXW-021A（事务）独立审查 + CI |
+| Wheel：从 clean checkout 构建 | ✅ desktop-build 从 clean SHA 构建，wheel-smoke PASS |
+| 证据保留：本地只留定向 RED/GREEN + 对应 CI run URL | ✅ 状态日志记录每 checkpoint commit/run |
+| 不复制易过期测试数量到多个报告 | ✅ 本文档一次性汇总，Git/CI 为执行证据 |
+
+### 审计触发
+
+按验证政策，仅当新 Phase 建立基线/架构或安全边界改变/发现新违规类别时执行完整仓库审计。本周期（H0/H1）未触发完整仓库重审，因为：无架构方向改变、无 schema 破坏性迁移（均为新增表）、无新违规类别；每 checkpoint 用增量门禁阻断。
