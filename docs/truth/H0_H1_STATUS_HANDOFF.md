@@ -197,4 +197,21 @@ H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 公开正式发布：NO-GO（未授权，H0-H5 未完）
 ```
 
-本文是任务包的状态交接文档；后续执行从 LOG-038 之后的下一依赖安全任务继续。
+本文是任务包的状态交接文档；后续执行从 LOG-043 之后的下一依赖安全任务继续。
+
+
+## 附录 A：证据索引（任务 → commit → CI）
+
+| 阶段 | 任务 | 候选 commit/tree | CI run / 证据 |
+|---|---|---|---|
+| H0 | 全部（13 项） | merge `f269a01`（PR #71） | main CI `31320800285` 全绿 |
+| H1 | GOV-001 | `ad4480e`+`f09f940` | 独立审查 PASS；PR #72 CI |
+| H1 | AXW-020R/020A/020B/020C | `4a62440`/`c09379e`/`bc6cad2`/`514841d` | PR #72 CI |
+| H1 | AXW-021A/021B | `9ca07ff`+`bb951f0`/`9abded5` | 独立审查（孤儿文件修复）；PR #72 CI |
+| H1 | AXW-024A/024B | `58c5664`/`dd7a0a0` | PR #72 CI |
+| H1 | AXW-025A/025B | `873e652`/`d9b03e2` | PR #72 CI |
+| H1 | AXW-030A | `5579d61` | PR #72 CI |
+| H1 | AXW-022A（后端） | `78091cc` | PR #72 CI `31322840300` |
+
+权威分支提交链：`codex/frozen-roadmap-deepseek-v1`（LOG-004~043，最新 `21fefab`）。
+H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 merge）。
