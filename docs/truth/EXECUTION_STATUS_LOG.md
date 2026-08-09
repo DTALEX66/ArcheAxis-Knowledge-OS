@@ -362,3 +362,16 @@
 - 验证：RED→GREEN；`6 passed`；Ruff/architecture PASS
 - 证据等级：`LOCAL_RUNTIME`
 - 回滚：revert `514841d`
+
+### LOG-20260809-025 — PR #72 exact-head CI — PASS
+
+- 时间：2026-08-09T15:50:00+08:00
+- 执行分支：`axw/execution-h1`；PR `https://github.com/DTALEX66/Cognitive-Loop-OS/pull/72`
+- 候选提交/tree：head `f09f94079caf302c47bc38332a8e21cec7e6a667`；run `31321865354`
+- 变更：无代码变更（纯 CI 验收记录）
+- 验证：run `31321865354` `completed/success`；gateplan、lint、test(3.12)、wheel-smoke、a0-gates 全 PASS；browser-smoke、desktop-build、desktop-fast、installer-lifecycle、py-compat、windows-runtime-smoke 正确 SKIP（本次变更纯 Python+文档，无 UI/桌面/兼容/Windows 路径——AXW-003C 分类修复生效）；mergeStateStatus `CLEAN`
+- 意义：GOV-001/020R/020A/020B/020C 的 exact-SHA CI 证据；AXW-003C 选择性门禁在真实 H1 变更上正确工作
+- 证据等级：`EXACT_SHA_CI`（head `f09f940`，run `31321865354`）
+- 安装态：不适用（本次无桌面/安装器变更，installer-lifecycle 正确 SKIP）
+- 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-021A/021B、022A/022B、024A/024B、025A/025B、030A/030B/030C、AXW-H1-EXIT 仍待执行
+- 回滚：关闭/丢弃 PR #72
