@@ -50,3 +50,16 @@
 ## 追加记录
 
 <!-- 新记录只能追加到此行之后。 -->
+
+### LOG-20260809-001 — CHECKPOINT-FROZEN-DOCS — PASS
+
+- 时间：2026-08-09T20:37:10+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 候选提交/tree：`636bae2cb50c589e4d58e28c553b736613002b7e` / `7f2d881c389f3c0326b35063476255ccf14c3d9b`
+- 基线输入：用户批准的冻结任务清单与 DeepSeek 全量执行包交付；不声明任何 AXW 实现任务完成
+- 变更：新增冻结基线、SHA-256、Truth 导航、追加式状态日志、DeepSeek 执行协议、intake，以及冻结哈希 convention guard
+- 验证：`git diff --cached --check` PASS；repository convention PASS；42 个定向测试 PASS；changed-file Ruff PASS；architecture guard PASS；99 个任务 ID 无重复、无未知依赖、无环；5 个新文档的本地链接无缺失
+- 云端：`https://github.com/DTALEX66/Cognitive-Loop-OS/tree/codex/frozen-roadmap-deepseek-v1`；远端分支 SHA 回读为 `636bae2cb50c589e4d58e28c553b736613002b7e`；该分支 push 不触发当前仅面向 main/PR 的 CI，`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 安装态：不适用于本次文档与治理校验，`LIVE_INSTALLED` 为 `NOT EXECUTED`
+- 风险/剩余项：内容已上传独立分支，尚未合并 main；PR、merge、branch protection 和 release 均未获本次授权且未执行
+- 回滚：在后续集成分支 revert `636bae2cb50c589e4d58e28c553b736613002b7e`；冻结 v1 的 Git 历史仍保留用于对照
