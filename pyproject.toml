@@ -24,7 +24,7 @@ dependencies = [
     "sqlite-vec>=0.1.6",
     "loguru>=0.7",
     "structlog>=24.0",
-    "markitdown>=0.1",
+    "markitdown[pdf]>=0.1",
     "trafilatura>=1.6",
     "networkx>=3.0",
     "litellm==1.91.0",
@@ -61,7 +61,7 @@ ci = [
     "uvicorn[standard]>=0.22",
 ]
 ci-adapters = [
-    "markitdown>=0.1",
+    "markitdown[pdf]>=0.1",
     "newspaper4k>=0.9",
     "readabilipy>=0.3",
     "trafilatura>=1.6",
