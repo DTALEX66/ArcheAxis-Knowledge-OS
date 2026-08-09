@@ -76,7 +76,24 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 | GOV-001（scope 过滤） | 全部 PASS，1 低危 WARNING | WARNING 已修复（adapter fail-closed） |
 | AXW-021A（事务一致性） | 1 核心缺陷 + 2 警告 | 孤儿文件已修复 + ImportJobError 统一 + 补测试 |
 
-## 5. AXW-H1-EXIT — 当前 BLOCKED
+## 5. 关键决策与偏差记录
+
+任务包要求：实现路径变化（目标仍有效）记录 `DEVIATION`；建议新增/替换记录 `CHANGE_PROPOSAL`。本轮决策：
+
+| 类型 | 记录 | 说明 |
+|---|---|---|
+| DEVIATION | AXW-022A 前端 PDF.js 渲染延迟到独立批次 | 目标（PDF 阅读器）仍有效；先交付后端内容寻址 PDF 字节服务（`pdf_serve.py`）作为可证子集，前端渲染因需下载大型外部库 + WebView 验证而独立成批 |
+| DEVIATION | AXW-030A/030B/030C 复用现有实现 | 现有 `bff.py`（版本化 DTO）、前端导航（Canonical IA）、`app.js`（Truth 投影）已满足验收，补测试而非重写 |
+| CHANGE_PROPOSAL | 无 | 本轮未提出需要新增/替换冻结任务的定义 |
+| 未授权动作 | H1 merge 保持未执行 | 用户对 H1 merge 授权未明确选择，按 fail-closed 未执行（PR #72 保持 OPEN） |
+
+### 历史增补决策（已记录于冻结发布）
+
+- `LOG-003`：Capability-first 增补（AXW-KLC-*，41 项）——能力优先于品牌，Crawlee 为统一候选
+- `LOG-002`：Web 增补（AXW-WEB-*，19 项）——网页知识摄取强制范围
+- 历史 `LOG-002` 的 Spider exact URL 阻塞由 `LOG-003` 较新所有者决策取代，历史记录保留
+
+## 6. AXW-H1-EXIT — 当前 BLOCKED
 
 冻结依赖：`GOV-001`、`AXW-021B`、`AXW-022B`、`AXW-024B`、`AXW-025B`、`AXW-030C`
 
@@ -84,7 +101,7 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 - ❌ 阻塞：**AXW-022B**（证据批注）依赖 AXW-022A 前端 PDF.js 渲染，前端未实现
 - 故 AXW-H1-EXIT **未裁决**（须 022 前端完成 + H1 merge 授权后裁决）
 
-## 6. 收口路径与可操作执行队列（H1 完成剩余）
+## 7. 收口路径与可操作执行队列（H1 完成剩余）
 
 ### A. AXW-022A/022B 前端批次（当前唯一实现阻塞）
 
@@ -105,7 +122,7 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 
 H2 首个依赖安全任务：`AXW-023A`（DOCX Adapter）——复用 `app/ingestion/conversion_run.py` + `app/evidence/pdf_serve.py` 模式，建立 DOCX fixture/Oracle → Adapter 合同 → 缺依赖降级 → 源码测试 → bundle/安装态资格。每格式独立完成，不互相冒充。
 
-## 7. 交付物清单（H0 + H1，供后续批次引用）
+## 8. 交付物清单（H0 + H1，供后续批次引用）
 
 ### H0 交付物（已 merge main，`f269a01`）
 
@@ -144,7 +161,7 @@ H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 
 设计文档：`workspace/intake/2026-08-09-AXW-020R-reuse-matrix.md`（对象复用矩阵）。
 
-## 8. 边界与安全确认
+## 9. 边界与安全确认
 
 - 未访问 `E:\`；未读取/输出任何凭据、token、私钥、cookie 或私人正文
 - 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~038 无改写）
@@ -152,7 +169,7 @@ H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 - PR #71 已 merge（H0，获授权）；PR #72 未 merge（H1，未获授权）
 - 无遗留 ArcheAxis 进程；安装测试已彻底卸载
 
-## 9. 后续阶段概览（H2-H10 与增补）
+## 10. 后续阶段概览（H2-H10 与增补）
 
 冻结基线定义后续 Horizon；每阶段需完成其冻结任务后进入下一 Horizon：
 
@@ -169,7 +186,7 @@ H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 - `AXW-KLC-EXIT` 是 `AXW-055`、`AXW-060` 的强制补充前置
 - H1 的 RawAsset/Evidence/Learning 后端（已交付）是 H2-H5 与增补的共享基础
 
-## 10. 最终状态判定
+## 11. 最终状态判定
 
 ```text
 H0（v0.5.1 可信恢复）：PASS（已 merge main）
