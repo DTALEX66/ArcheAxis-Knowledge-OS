@@ -477,3 +477,15 @@
 - 证据等级：`EXACT_SHA_CI`（head `5579d61`）
 - 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-022A/022B、030B/030C、AXW-H1-EXIT 仍待执行
 - 回滚：关闭/丢弃 PR #72
+
+### LOG-20260809-036 — AXW-022A (backend) — PARTIAL
+
+- 时间：2026-08-09T16:30:00+08:00
+- 执行分支：`axw/execution-h1`
+- 候选提交：`78091cc1c6347293ef2c95eba76ca5b814567f21`
+- 基线输入：`AXW-020A/020B/020C` PASS
+- 变更：`app/evidence/pdf_serve.py`（内容寻址 PDF 服务——按 sha256 提供原件字节给 PDF.js 阅读器，只读、限大小、不暴露存储路径）
+- 验证：RED→GREEN；`3 passed`；Ruff/architecture PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 状态：`PARTIAL` —— 后端 PDF 字节服务已就绪，但前端 PDF.js 渲染（分页/缩放/搜索/证据批注）尚未实现，需独立前端批次 + WebView 点击级验证
+- 回滚：revert `78091cc`
