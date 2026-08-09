@@ -375,3 +375,33 @@
 - 安装态：不适用（本次无桌面/安装器变更，installer-lifecycle 正确 SKIP）
 - 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-021A/021B、022A/022B、024A/024B、025A/025B、030A/030B/030C、AXW-H1-EXIT 仍待执行
 - 回滚：关闭/丢弃 PR #72
+
+### LOG-20260809-026 — AXW-021A — PASS
+
+- 时间：2026-08-09T15:55:00+08:00
+- 执行分支：`axw/execution-h1`
+- 候选提交：`9ca07ff491274e8b565ac8483c9f9a08cf0be8c0` + 审查修复 `bb951f0606c879935095388ff4203a8fefa97bd7`
+- 基线输入：`AXW-020R/020A/020B/020C` PASS
+- 变更：`app/ingestion/import_job.py`（ImportJobStore + run_import_with_receipt，复用 record_command_in_transaction 单事务写 job/outbox/receipt + RawAssetStore 存原件）
+- 验证：RED→GREEN；`4 passed`（成功/失败回滚/幂等/冲突）；Ruff/architecture PASS；独立只读审查发现 1 核心缺陷（孤儿文件）并 2 警告，全部落实修复——convert 失败与冲突路径清理孤儿原始文件、统一抛 ImportJobError、补孤儿文件断言测试
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 待 PR #72 head `bb951f0`
+- 回滚：revert `bb951f0`
+
+### LOG-20260809-027 — AXW-021B — PASS
+
+- 时间：2026-08-09T15:56:00+08:00
+- 候选提交：`9abded5ee831752bec650476d75bf9a941785707`
+- 基线输入：`AXW-021A` PASS
+- 变更：`tests/test_workspace_crash_recovery.py` 故障测试——崩溃恢复（lease 过期回收 + attempt 递增）、handler 失败记录（failed 态无 delivered_at）；复用现有 lease-fenced outbox dispatcher
+- 验证：`2 passed`（+ dispatcher 回归 `6 passed`）；Ruff PASS
+- 证据等级：`LOCAL_RUNTIME`
+- 回滚：revert `9abded5`
+
+### LOG-20260809-028 — PR #72 head `bb951f0` exact-head CI — PASS
+
+- 时间：2026-08-09T15:57:00+08:00
+- 候选提交/tree：head `bb951f0606c879935095388ff4203a8fefa97bd7`；run `31322175855`
+- 验证：`completed/success`；gateplan、lint、test(3.12)、wheel-smoke、a0-gates 全 PASS；browser-smoke、desktop-build、desktop-fast、installer-lifecycle、py-compat、windows-runtime-smoke 正确 SKIP（纯 Python+文档变更）；mergeStateStatus `CLEAN`
+- 证据等级：`EXACT_SHA_CI`（head `bb951f0`）
+- 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-022A/022B、024A/024B、025A/025B、030A/030B/030C、AXW-H1-EXIT 仍待执行
+- 回滚：关闭/丢弃 PR #72
