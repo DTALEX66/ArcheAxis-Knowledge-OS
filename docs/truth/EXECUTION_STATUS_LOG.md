@@ -489,3 +489,13 @@
 - 证据等级：`LOCAL_RUNTIME`
 - 状态：`PARTIAL` —— 后端 PDF 字节服务已就绪，但前端 PDF.js 渲染（分页/缩放/搜索/证据批注）尚未实现，需独立前端批次 + WebView 点击级验证
 - 回滚：revert `78091cc`
+
+### LOG-20260809-037 — PR #72 head `78091cc` exact-head CI — PASS
+
+- 时间：2026-08-09T16:40:00+08:00
+- 候选提交/tree：head `78091cc1c6347293ef2c95eba76ca5b814567f21`；run `31322840300`
+- 验证：`completed/success`；gateplan、lint、test(3.12)、wheel-smoke、a0-gates 全 PASS；browser-smoke、desktop-build、desktop-fast、installer-lifecycle、py-compat、windows-runtime-smoke 正确 SKIP（纯 Python+文档变更）；mergeStateStatus `CLEAN`
+- 意义：GOV-001/020/021/024/025/030 + AXW-022A 后端全部 exact-SHA CI 证据
+- 证据等级：`EXACT_SHA_CI`（head `78091cc`）
+- 风险/剩余项：PR #72 未 merge；AXW-022A/022B 前端部分仍待独立前端批次；AXW-H1-EXIT 待 022 前端 + merge 授权
+- 回滚：关闭/丢弃 PR #72
