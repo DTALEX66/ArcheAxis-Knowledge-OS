@@ -257,3 +257,18 @@
 - 安装态：完整闭环 PASS
 - 风险/剩余项：页级 EvidenceAnchor 与 PDF 阅读器交互（AXW-022A/B，H1）不在 H0 范围；`job_id` 字段名投影待核实（jobs 投影返回的 id 字段名与脚本读取的 `job_id` 可能不同，但 `restart_has_original_job=true` 已证明 durable 保留）
 - 回滚：不适用（纯验证，无代码变更；安装器为未发布候选）
+
+### LOG-20260809-016 — AXW-010B + AXW-006C — PASS
+
+- 时间：2026-08-09T23:59:30+08:00
+- 执行分支：`axw/execution-h0`
+- 候选提交：`39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8`
+- 基线输入：AXW-010A、AXW-012C PASS
+- 变更：
+  - AXW-010B：新增测试断言 `/workspace/api/status` capabilities 诚实投影——`asr_transcription`/`postgresql_runtime`/`qdrant_runtime`/`public_installer`=not_implemented、`image_ocr`=dependency_required、可用能力=available；拒绝 runtime 不提供的伪可用
+  - AXW-006C：`THIRD_PARTY_NOTICES.md` 列出 `markitdown[pdf]`（含 pdfminer-six、pdfplumber、pypdfium2），使打包 PDF 依赖可审计
+- 验证：`test_workspace_capability_projection_is_honest` PASS；workspace_api 全量 `25 passed`；Ruff PASS（--fix 后）；机制经 `safe_release_summary`（AXW-004B 版本投影）与 manifest capabilities（AXW-010B 能力投影）验证
+- 证据等级：`LOCAL_RUNTIME`；`EXACT_SHA_CI` 待 PR #71 新 head `39df7d2` CI 结果
+- 安装态：capabilities 由 manifest 投影（产品运行时同源），不新增安装态验证
+- 风险/剩余项：AXW-006C 的 payload 级 SBOM 与打包内容逐项核对仍待独立 release 门禁；AXW-004B 的 UI/文档/发布元数据一致性部分由既有测试覆盖，正式 release 级核对待 merge 后
+- 回滚：revert `39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8`
