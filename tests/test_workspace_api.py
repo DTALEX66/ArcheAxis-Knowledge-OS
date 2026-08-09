@@ -1001,3 +1001,39 @@ def test_workspace_jobs_reads_live_wal_after_http_style_intake(monkeypatch, tmp_
         assert intake["job_id"]
     finally:
         writer.close()
+
+
+def test_workspace_capability_projection_is_honest(monkeypatch, tmp_path) -> None:
+    """AXW-010B: the status endpoint must project capabilities truthfully. Any
+    unimplemented capability must read not_implemented, never available, so a
+    route can never claim a capability the installed runtime does not provide.
+    """
+    from app.main import app
+    from app.workspace import router
+    from shared.migration_runner import MigrationOperator
+    from tests.test_phase5_mcs_closed_loop import _database
+
+    database = _database(tmp_path)
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
+        "workspace.sqlite"
+    )
+
+    monkeypatch.setattr(router, "DB_PATH", database)
+
+    response = TestClient(app).get("/workspace/api/status")
+    assert response.status_code == 200
+    caps = response.json()["capabilities"]
+
+    # ASR has no real engine -> must stay not_implemented (never available).
+    assert caps["asr_transcription"] == "not_implemented"
+    assert caps["postgresql_runtime"] == "not_implemented"
+    assert caps["qdrant_runtime"] == "not_implemented"
+    assert caps["public_installer"] == "not_implemented"
+    # Image OCR depends on an external Tesseract engine -> dependency_required.
+    assert caps["image_ocr"] == "dependency_required"
+    # Genuinely wired capabilities must read available.
+    assert caps["asynchronous_worker"] == "available"
+    assert caps["workspace_job_outbox_receipts"] == "available"
+    # Every capability value must be a recognized projection token.
+    allowed = {"available", "dependency_required", "not_implemented"}
+    assert all(caps[k] in allowed for k in caps)
