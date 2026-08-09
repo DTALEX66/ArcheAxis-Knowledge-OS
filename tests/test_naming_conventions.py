@@ -108,6 +108,7 @@ def test_repository_scanner_validates_registry_semantics() -> None:
     [
         "docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md",
         "docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md",
+        "docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md",
     ],
 )
 def test_frozen_execution_documents_reject_content_changes(frozen_path: str) -> None:

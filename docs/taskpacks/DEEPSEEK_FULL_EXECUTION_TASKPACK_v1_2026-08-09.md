@@ -4,7 +4,7 @@
 >
 > 唯一任务定义源：[`../truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`](../truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md)
 >
-> 强制增补：[`MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
+> 强制增补：[`MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)；[`MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
 >
 > 状态写入：[`../truth/EXECUTION_STATUS_LOG.md`](../truth/EXECUTION_STATUS_LOG.md)
 >
@@ -24,6 +24,7 @@
 4. 不覆盖未知脏改动。一个 checkout 只有一个 writer；其他 agent 只读，或使用独立 branch/worktree。
 5. 所有临时文件、下载、缓存、日志和证据只写仓库忽略的 .hermes/。
 6. 优先复用合法开源实现；先固定 source revision/license，再比较质量、Windows、CPU、体积、隐私和回滚。不能把候选登记描述为已集成。
+6A. 强制的是经过验证的能力，不是供应商品牌；Crawler、parser、LMS 或 RAG 项目可以落选、替换或只吸收设计，但对应强制 profile 不能被删除。
 7. 新行为按 RED → GREEN → 定向回归 → 项目门禁执行。失败、跳过、取消、未运行、不同 SHA 的 CI 都不是 PASS。
 8. 源码测试不能证明 bundle；bundle 不能证明 installer；installer 启动不能证明完整用户流程。
 9. 不用 WSL 代替 Windows 安装态资格；不做 Python→Rust 全面重写。
@@ -44,6 +45,7 @@ remote: git@github.com:DTALEX66/Cognitive-Loop-OS.git
 baseline: docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md
 mandatory_addenda:
   - docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md
+  - docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md
 status_log: docs/truth/EXECUTION_STATUS_LOG.md
 verification_policy: docs/VERIFICATION_POLICY.md
 requested_scope: first_eligible_task
@@ -56,7 +58,7 @@ external_side_effects: none_unless_currently_authorized
 
 1. `AGENTS.md`。
 2. 冻结基线的第 1–3 节，以及当前 Horizon/任务行。
-3. 与当前 Horizon 相关的所有批准增补包；网页摄取必须读取 Web Addendum。
+3. 与当前 Horizon 相关的所有批准增补包；网页摄取必须读取 Web Addendum，搜索—摄取—课程—学习—AI 复用任务必须再读取 Capability-first Lifecycle Addendum。
 4. 状态日志最后一个相关记录，而不是重读所有历史日志。
 5. `docs/VERIFICATION_POLICY.md`。
 6. `git status --short`、branch、HEAD、origin、divergence 和 worktree 列表。
@@ -74,10 +76,11 @@ external_side_effects: none_unless_currently_authorized
 5. 如果已有 IN_PROGRESS，先续接该任务，不重复建立新基线或新计划。
 6. 如果任务被 BLOCKED，选择同 Horizon 中不依赖该阻塞项的下一个可执行任务。
 7. `AXW-WEB-EXIT` 是 `AXW-H2-EXIT`、`AXW-055` 和 `AXW-060` 的强制补充前置条件。
-8. 如果没有可执行任务，输出最小阻塞集合和所需授权，不虚构进展。
+8. `AXW-KLC-EXIT` 是 `AXW-055` 和 `AXW-060` 的强制补充前置条件；Web v1 中的品牌绑定按较新的 Capability-first Addendum 解释。
+9. 如果没有可执行任务，输出最小阻塞集合和所需授权，不虚构进展。
 ```
 
-不得把 milestone/Program/对象名当作依赖；只接受冻结文件中的具体任务 ID。
+不得把 milestone/Program/对象名当作依赖；只接受冻结基线及已批准增补包中的具体任务 ID。
 
 ## 5. 单任务状态机
 
@@ -166,9 +169,10 @@ git diff --check
 1. 搜索仓库现有实现和 registry，避免重复建设。
 2. 查官方仓库/文档，固定 URL、revision、license 和维护状态。
 3. 用代表性 corpus 比较候选的准确性、LossReport、Windows、CPU、体积和失败行为。
-4. 优先选择最小合法依赖或 Adapter；只有不能满足冻结验收时才自研。
-5. 实际进入 bundle 后更新 RDR/SBOM/NOTICE；只作参考的候选不得声明为 integrated。
-6. 任何 license 不明确、来源不可固定或需要秘密配置的候选默认隔离并标记 BLOCKED/DEFERRED。
+4. 优先选择最小合法依赖或 Adapter；允许一个候选覆盖多个 capability profile，也允许多个候选组成 ensemble。
+5. 只有预冻结 benchmark 证明现有实现、library、CLI、sidecar 和合法 fork/vendor 都不能满足强制 profile 时才自研，并记录停止条件和维护 owner。
+6. 实际进入 bundle 后更新 RDR/SBOM/NOTICE；只作参考的候选不得声明为 integrated。
+7. 任何 license 不明确、来源不可固定或需要秘密配置的候选默认隔离并标记 BLOCKED/DEFERRED。
 
 ## 10. Corpus 扩展协议
 
@@ -198,10 +202,11 @@ git diff --check
 | `B03` | `AXW-012B`, `AXW-010A`, `AXW-009C` | 一个实现 writer | wheel/bundle exact-SHA |
 | `B04` | `AXW-012C`, `AXW-009D`, `AXW-006A/B/C`, `AXW-010B`, `AXW-004B` | Windows 与供应链只读 reviewer | H0 release train |
 | `B05` | H1 对象、Job、PDF reader、Evidence、Learning、UI | 按冻结依赖逐任务 checkpoint | H1 release train |
-| `B05-WEB` | `AXW-WEB-000A/B` 至 `AXW-WEB-EXIT` | Crawl4AI、Spider、安全/corpus reviewer 可并行；前后端由集成 writer 汇合 | Web provider、Windows bundle 与前后端 E2E train |
+| `B05-WEB` | `AXW-WEB-000A/B` 至 `AXW-WEB-EXIT` | crawler 候选、安全/corpus reviewer 可并行；按 capability benchmark 选型，前后端由集成 writer 汇合 | Web provider、Windows bundle 与前后端 E2E train |
+| `B05-KLC` | `AXW-KLC-000` 至 `AXW-KLC-EXIT` | 搜索、转换、课程、学习、检索、评测 reviewer 可并行；领域对象与集成始终单 writer | 全知识生命周期、准确率与安装态 E2E train |
 | `B06` | H2 每个格式 Adapter；`AXW-H2-EXIT` 还需 `AXW-WEB-EXIT` | 每个格式独立 branch，集成 writer 串行吸收 | 每格式资格 + H2 train |
 | `B07` | H3 Obsidian C0–C4 | 读写链保持单 writer | H3 Windows/Vault train |
-| `B08` | H4 双学习闭环 | eval reviewer 只读并行 | 单主题全闭环 train |
+| `B08` | H4 双学习闭环；`AXW-055` 还需 `AXW-KLC-EXIT` | eval reviewer 只读并行 | 多来源、多格式、多样式全闭环 train |
 | `B09` | H5 export/restore/perf/a11y/release | 高风险任务分别 frozen review | v1.0 release qualification |
 | `B10+` | H6–H10 | 默认不执行 | 每个 Horizon 需所有者重新激活 |
 

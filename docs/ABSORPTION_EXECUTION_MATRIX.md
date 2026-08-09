@@ -28,7 +28,7 @@
 | sqlite-vec | `app/memory/vector_db.py` | `knowledge_base/tests/test_vector_search.py` |
 | Loguru | `shared/logging.py`、`app/ingestion/multi_format.py` | 真实日志/摄入路径 |
 
-这些项目仍受本仓库的 contract、权限、SQLite、Candidate 和 CI 约束；不能因为依赖或文件名相似就扩大能力声明。用户指定的 Spidering 尚无仓库内实现；候选映射 `spider-rs/spider` 必须先确认 exact URL，当前不得登记为 implemented。
+这些项目仍受本仓库的 contract、权限、SQLite、Candidate 和 CI 约束；不能因为依赖或文件名相似就扩大能力声明。Spider、Crawlee、Scrapy 等均可竞争站点抓取 profile；品牌身份不再阻塞，但任何候选在真实代码、失败语义和安装态证据齐全前都不得登记为 implemented/qualified。
 
 ## 三、阶段依赖序列
 
@@ -36,7 +36,9 @@
 R0 账本真相与 registry 对齐
 → A0 Workspace/Tauri/失败恢复/portable 基线
 → H 文档摄入与 Research Adapter Foundry
+→ W 可替换 Provider 的网页知识摄取
 → I Knowledge / Search / Graph / Memory
+→ KLC 搜索—摄取—课程—学习—AI 复用全生命周期
 → J Obsidian / PKM Compatibility
 → K Evaluation / Observability / Provider
 → L Runtime / Agent / Workflow
@@ -103,8 +105,8 @@ R0 账本真相与 registry 对齐
 ### 项目分组
 
 - 第一批 Adapter：Docling、Unstructured、MinerU、marker、pymupdf4llm、PaddleOCR、Scrapling、Crawlee、newspaper4k。
-- 已实现基础：MarkItDown、Trafilatura；Crawl4AI 必须补真实 provider 调用，不能再依赖命名兼容壳。
-- 用户强制吸收：`unclecode/crawl4ai` 与确认后的 Spidering 上游；形成前后端 Web Knowledge Intake。
+- 已实现基础：MarkItDown、Trafilatura；名为 Crawl4AI 的兼容壳不能当作动态抓取证明。
+- 用户强制吸收的是 static/dynamic/site/search/multiformat 能力，而不是两个品牌。Crawlee Python、Crawl4AI、Spider、Scrapy 等进入同一预冻结 benchmark，最终只打包通过门禁的最小合法组合。
 - 高风险后置：Firecrawl、browser-use，先做 Safe HTTP/权限/限网审计。
 
 ### 后端
@@ -125,13 +127,33 @@ R0 账本真相与 registry 对齐
 
 ### H-WEB — 强制网页知识摄取
 
-**后端：** Safe HTTP 静态路径、Crawl4AI 动态 worker、Spider 受限整站遍历、RawAsset/WebSnapshot、MIME 多格式路由、CrawlJob/checkpoint、EvidenceAnchor 与 candidate-only 投影。
+**后端：** Safe HTTP 静态路径、可替换 dynamic worker、可替换受限整站 provider、RawAsset/WebSnapshot、MIME 多格式路由、CrawlJob/checkpoint、EvidenceAnchor 与 candidate-only 投影。
 
 **前端：** 单页/整站/sitemap、范围预检、provider/render 选择、页数/深度/域/并发限制、robots 状态、任务进度、逐页结果、失败/重试、暂停/取消/恢复、预览和人工复核。
 
 **安全：** 每次 DNS/重定向重验、SSRF/私网拒绝、响应/页面/时间上限、登录态默认关闭、prompt injection 隔离、robots/ToS 可见、日志脱敏。
 
-**门禁：** 以 [`taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md) 为固定任务合同；`AXW-WEB-EXIT` 通过前不得宣称 Crawl4AI/Spider、整站或网页多格式为安装版能力。
+**门禁：** Web v1 保留固定任务与安全合同，供应商语义由较新的 Capability-first Addendum 覆盖；`AXW-WEB-EXIT` 通过前不得宣称动态、整站或网页多格式为安装版能力。
+
+### H-KLC — 强制能力优先知识生命周期
+
+**目标：** 把“搜索→摄取→转换→证据/知识→课程→人类学习→AI 复用→评测”提升为一个可恢复、可量化、前后端完整的产品主链，而不是若干 parser、页面或 RAG Demo。
+
+**候选组合：**
+
+- 搜索/发现：通用 Web、学术、代码、Feed/API 和用户批准本地源使用统一 Connector；SearXNG 仅为 AGPL sidecar 候选。
+- 抓取：Safe HTTP/Trafilatura 为静态基线；Crawlee Python、Crawl4AI、Spider、Scrapy 按 profile benchmark；Firecrawl 主要吸收 API/Job 设计。
+- 转换：Docling 为高保真结构候选，MarkItDown 为快速 fallback，Tika/Unstructured 为广覆盖 sidecar 候选，PaddleOCR/Tesseract 与 Whisper/FFmpeg 分别覆盖 OCR 和媒体。
+- 课程/学习：吸收 Open edX、Moodle、H5P 的课程/活动设计但初期不复制 GPL/AGPL 平台；py-fsrs 为调度候选，xAPI 2.0 为本地学习事件语义参考。
+- AI 复用：SQLite FTS5/sqlite-vec/NetworkX 保持本地基线；Haystack/LlamaIndex 主要吸收组件合同，Qdrant 为大库可选 sidecar，Ragas 只能辅助评测。
+
+**后端：** 复用 RawAsset、DerivedDocument、Evidence、Claim、Knowledge、LearningArtifact、MasterySignal、AI Asset、Job/Outbox；增加 SearchPlan、QualityProfile、CourseBlueprint、Lesson/Assessment、RetrievalTrace 等最小合同。所有阶段幂等、版本化、可暂停/取消/恢复并默认 candidate。
+
+**前端：** Discovery、Intake、Conversion Quality、Knowledge Review、Course Studio、Learning Player、AI Reuse、Evaluation 使用同一来源和对象链；普通用户选质量/速度/离线策略，不被供应商品牌绑架。
+
+**准确率：** 原件/来源完整、证据可解析、无伪引用、approved-only 和安全边界为零容忍；搜索、提取、OCR、媒体、课程、学习和 AI 指标按人类真值、盲测、样本量、95% CI 和错误分层评估。
+
+**门禁：** [`taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md) 是强制合同；`AXW-KLC-EXIT` 通过前不得宣称全面知识学习链、课程生产线或 AI 有证据复用已完成。
 
 ---
 
@@ -260,9 +282,10 @@ forbidden intent、path escape、SSRF、timeout、crash/restart、lease fencing�
 以下项目全部保留在矩阵，但不提前进入核心：
 
 - Dify、Open WebUI、AnythingLLM、RAGFlow、FastGPT、LobeChat、PrivateGPT、Kotaemon：只参考产品/UX。
-- LangChain、LlamaIndex、Haystack、Semantic Kernel：只参考抽象。
+- LangChain、LlamaIndex、Haystack、Semantic Kernel：默认参考抽象；只有 KLC benchmark 证明现有核心缺口且 Adapter 不建立第二套状态内核时才可选接入。
 - AutoGen、CrewAI、OpenHands、browser-use：高风险 deferred。
-- Qdrant、Chroma、Milvus、Kùzu、Neo4j、Elasticsearch：可替换 Adapter spike，不替换 SQLite/MigrationOperator。
+- Qdrant、Chroma、Milvus、Kùzu、Neo4j、Elasticsearch：可替换 Adapter spike，不替换 SQLite/MigrationOperator；大库门禁通过后才可成为可选 profile。
+- Open edX、Moodle、H5P：吸收课程、活动、互操作与 UX 设计；GPL/AGPL 审查前不复制进核心、不默认部署完整 LMS。
 - Ghidra、radare2、Frida、pwntools、sqlmap 等：只进入安全研究库，禁止自动执行链。
 
 ## 五、启动与完成定义
