@@ -467,3 +467,13 @@
 - 验证：bff contract `5 passed`；Ruff PASS
 - 证据等级：`LOCAL_RUNTIME`
 - 回滚：revert `5579d61`
+
+### LOG-20260809-035 — PR #72 head `5579d61` exact-head CI — PASS
+
+- 时间：2026-08-09T16:25:00+08:00
+- 候选提交/tree：head `5579d61413e8c39aa32d61ec5fd360b18f8cc45f`；run `31322607811`
+- 验证：`completed/success`；gateplan、lint、test(3.12)、wheel-smoke、a0-gates 全 PASS；browser-smoke、desktop-build、desktop-fast、installer-lifecycle、py-compat、windows-runtime-smoke 正确 SKIP（纯 Python+文档变更）；mergeStateStatus `CLEAN`
+- 意义：GOV-001/020/021/024/025A/025B/030A 全部 exact-SHA CI 证据
+- 证据等级：`EXACT_SHA_CI`（head `5579d61`）
+- 风险/剩余项：PR #72 未 merge（H1 merge 未获授权）；AXW-022A/022B、030B/030C、AXW-H1-EXIT 仍待执行
+- 回滚：关闭/丢弃 PR #72
