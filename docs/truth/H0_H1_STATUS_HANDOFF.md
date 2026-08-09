@@ -94,19 +94,37 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 ## 7. 边界与安全确认
 
 - 未访问 `E:\`；未读取/输出任何凭据、token、私钥、cookie 或私人正文
-- 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~037 无改写）
+- 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~038 无改写）
 - canonical 主工作区与用户 WIP 未触碰；`.hermes/` 外的仓库文件未改动
 - PR #71 已 merge（H0，获授权）；PR #72 未 merge（H1，未获授权）
 - 无遗留 ArcheAxis 进程；安装测试已彻底卸载
 
-## 8. 最终状态判定
+## 8. 后续阶段概览（H2-H10 与增补）
+
+冻结基线定义后续 Horizon；每阶段需完成其冻结任务后进入下一 Horizon：
+
+- **H2（多格式适配）**：DOCX/PPTX/XLSX/OCR/HTML/音视频 6 个 Adapter，每格式独立 fixture/Oracle/bundle/安装态证据；`AXW-H2-EXIT` 依赖 `AXW-H1-EXIT` + Web/KLC 增补前置
+- **H3（Obsidian/Markdown/Canvas C4）**：C0-C4 读写链 + 冲突/回滚 + 安装态资格；依赖 `AXW-H1-EXIT`
+- **H4（双学习闭环）**：引用式 AI 回答 + FSRS 调度 + Approved-only Assets + 评测 corpus；依赖 H2/H3 完成
+- **H5（稳定 v1.0）**：导出/备份/升级/性能/a11y/release qualification；`AXW-H5-EXIT` 依赖全部前序
+- **H6-H10**：Parking Lot，默认 `DEFERRED`，需所有者显式激活 + 独立 TaskPack + 风险审查
+- **Web 增补（AXW-WEB-\*）** 与 **Capability-first 增补（AXW-KLC-\*）**：搜索/摄取/课程/学习/AI 复用全生命周期，按各自冻结依赖在 H0/H1 后的对应 Horizon 激活
+
+### 增补前置依赖关系
+
+- `AXW-WEB-EXIT` 是 `AXW-H2-EXIT`、`AXW-055`、`AXW-060` 的强制补充前置
+- `AXW-KLC-EXIT` 是 `AXW-055`、`AXW-060` 的强制补充前置
+- H1 的 RawAsset/Evidence/Learning 后端（已交付）是 H2-H5 与增补的共享基础
+
+## 9. 最终状态判定
 
 ```text
 H0（v0.5.1 可信恢复）：PASS（已 merge main）
 H1 后端核心：PASS（GOV-001 + 020/021/024/025/030 全部）
 H1 前端 PDF 阅读器：PARTIAL（后端就绪，前端待独立批次）
 AXW-H1-EXIT：BLOCKED（待 022 前端 + merge 授权）
+H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 公开正式发布：NO-GO（未授权，H0-H5 未完）
 ```
 
-本文是任务包的状态交接文档；后续执行从 LOG-037 之后的下一依赖安全任务继续。
+本文是任务包的状态交接文档；后续执行从 LOG-038 之后的下一依赖安全任务继续。
