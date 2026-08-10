@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-07-28",
+  "repository": "DTALEX66/Cognitive-Loop-OS",
+  "last_visible_main_sha": "a92e6730a267f4268ff64d92be5d2fc17bce59e5",
+  "decisions": [
+    {
+      "id": "positioning",
+      "status": "frozen",
+      "value_zh": "面向个人与 AI 的本地优先、证据驱动、双向重型学习知识系统",
+      "value_en": "Local-first, evidence-driven, bidirectional learning and knowledge system for individuals and AI"
+    },
+    {
+      "id": "core_language",
+      "status": "frozen",
+      "value": "Python remains the core language"
+    },
+    {
+      "id": "desktop_boundary",
+      "status": "frozen",
+      "value": "Rust/Tauri only for desktop host, OS boundary and process lifecycle"
+    },
+    {
+      "id": "frontend",
+      "status": "planned",
+      "value": "Static JS for A1; TypeScript/React as a separate later migration"
+    },
+    {
+      "id": "database",
+      "status": "frozen",
+      "value": "SQLite remains the local core database"
+    },
+    {
+      "id": "default_ui_theme",
+      "status": "planned",
+      "value": "Apple-light default; Violet Core dark theme retained"
+    },
+    {
+      "id": "agent_role",
+      "status": "frozen",
+      "value": "Agent is an AI-usage application layer, not the product center"
+    }
+  ]
+}

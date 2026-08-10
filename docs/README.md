@@ -28,6 +28,7 @@
 - `three-project-analysis/`：三项目边界与历史分析。
 - [`architecture/imported-designs/reference-deliveries/archeaxis-2026/`](architecture/imported-designs/reference-deliveries/archeaxis-2026/)：用户提供的 ArcheAxis/MCS/Google Research 原始蓝图与校验清单；仅设计参考，不是当前实现证明。
 - [`architecture/imported-designs/reference-deliveries/archeaxis-2026/planning-2026-08-09/`](architecture/imported-designs/reference-deliveries/archeaxis-2026/planning-2026-08-09/)：2026-08-09 原始蓝图、规划、v3/v4 任务包与 handoff 的不可变来源归档；当前执行仍由冻结基线和批准增补定义。
+- [`architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/`](architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/)：项目本地 Hermes 边界中历史蓝图、规划、任务包和 manifests 的去重归档；不包含 prompts、对话正文或构建缓存。
 
 ## 历史快照
 

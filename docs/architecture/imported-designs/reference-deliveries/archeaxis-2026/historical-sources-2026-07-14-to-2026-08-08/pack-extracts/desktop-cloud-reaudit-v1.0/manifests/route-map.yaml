@@ -1,0 +1,57 @@
+schema_version: 1.0.0
+modules:
+  guanxin:
+    label: 观心
+    status: available
+    pages:
+      - id: overview
+        label: 观心总览
+        source: /workspace/api/status
+  zhiti:
+    label: 智体
+    status: planned
+    pages:
+      - id: agents
+        label: Agent 管理
+        status: planned
+  zhixing:
+    label: 知行
+    status: partial
+    pages:
+      - id: runtime
+        label: 任务执行
+        sources:
+          - /workspace/api/jobs
+          - /workspace/api/delivery
+  chawei:
+    label: 察微
+    status: available
+    pages:
+      - id: research
+        source: /workspace/api/research
+      - id: evidence
+        source: /workspace/api/lifecycle
+  cangshi:
+    label: 藏识
+    status: available
+    pages:
+      - id: knowledge
+        source: /workspace/api/knowledge
+      - id: learning
+        source: /workspace/api/learning
+      - id: evolution
+        source: /workspace/api/evolution
+      - id: machine
+        source: /workspace/api/runtime/candidates
+  workflow:
+    label: 流程
+    status: planned
+  connect:
+    label: 连接
+    status: planned
+  system:
+    label: 系统
+    status: available
+    pages:
+      - id: diagnostics
+        source: /workspace/api/status

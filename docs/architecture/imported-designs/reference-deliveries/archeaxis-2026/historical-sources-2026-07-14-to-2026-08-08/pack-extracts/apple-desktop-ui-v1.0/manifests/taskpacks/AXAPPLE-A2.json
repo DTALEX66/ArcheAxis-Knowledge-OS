@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "AXAPPLE-A2",
+  "project": "cognitive-loop-os",
+  "repository": "DTALEX66/Cognitive-Loop-OS",
+  "visible_baseline": "2cdf11e2b85154c15cfd621c04dae8f6c90d693b",
+  "risk": "medium",
+  "objective": "Implement truthful Guanxin, Research and Knowledge pages using current public projections.",
+  "allowed_paths": [
+    "app/workspace/ui/**",
+    "workspace public projection read paths",
+    "tests",
+    "docs"
+  ],
+  "dependencies": [
+    "AXAPPLE-A1"
+  ],
+  "forbidden": [
+    "modify or delete files outside the Cognitive-Loop-OS repository",
+    "scan or modify personal Vaults, E drive content, or other projects",
+    "force push or hard reset over remote updates",
+    "invent agent, model, cost, token, progress, system resource, or operational data",
+    "expose internal package/job/command/event/database identifiers",
+    "weaken loopback, CSP, auth, Safe HTTP, Tauri navigation, migration, backup, or provenance boundaries"
+  ],
+  "gates": [
+    "python scripts/check_repository_conventions.py --source worktree",
+    "python scripts/check_architecture.py",
+    "node --check app/workspace/ui/assets/app.js",
+    "python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts",
+    "python -m pytest tests/ -q --tb=short",
+    "cd knowledge_base && python -m pytest tests/ -q --tb=short",
+    "python -m pytest integration-tests/ -q --tb=short",
+    "COGNITIVE_DATA_DIR=<isolated-dir> python scripts/a0_browser_smoke.py"
+  ]
+}

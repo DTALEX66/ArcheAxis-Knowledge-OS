@@ -22,6 +22,7 @@
 | `ArcheAxis_OS_MCS_Phase5_v0.1.0.zip` | `ce94e63ae551ee65d60aaf9315d90a148c184fcc4da8b5cf8df79c2bc3a28c05` | Phase 5 受治理最低闭环验收参考 |
 | `ArcheAxis_OS_MCS_Phase5_v0.1.0.sha256` | — | 用户提供的 MCS zip 校验记录；与上列 zip 一致 |
 | [`planning-2026-08-09/`](planning-2026-08-09/) | 见目录内 `ORIGINAL_SOURCE_MANIFEST.sha256` 与 `REPOSITORY_COPY_MANIFEST.sha256` | ArcheAxis Workspace 原始蓝图、规划、v3/v4 任务包与 2026-08-10 handoff；仅作来源追溯 |
+| [`historical-sources-2026-07-14-to-2026-08-08/`](historical-sources-2026-07-14-to-2026-08-08/) | 见目录内三份 SHA-256 清单 | 从项目本地 Hermes 边界收敛的历史蓝图、规划、任务包与 manifests；已去重，并排除 prompts、对话正文和构建/解包缓存 |
 
 ## 已吸收的稳定决策
 

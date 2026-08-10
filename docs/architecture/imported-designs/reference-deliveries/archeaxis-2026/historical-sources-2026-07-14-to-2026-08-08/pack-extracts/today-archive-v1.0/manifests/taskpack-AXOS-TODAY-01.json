@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "AXOS-TODAY-01",
+  "title": "Reposition ArcheAxis OS as a bidirectional heavy learning and knowledge system",
+  "repository": "DTALEX66/Cognitive-Loop-OS",
+  "visible_baseline": "a92e6730a267f4268ff64d92be5d2fc17bce59e5",
+  "risk": "low-medium",
+  "writer": "HERMES",
+  "reviewer": "Codex read-only",
+  "allowed_paths": [
+    "README.md",
+    "pyproject.toml metadata only",
+    "app/release-manifest.json product description/display fields only",
+    "docs/**/*.md",
+    "app/workspace/ui display text only if required",
+    "config/naming-registry.yaml display aliases only if required",
+    "directly related tests"
+  ],
+  "forbidden": [
+    "database schemas or migrations",
+    "runtime planner or execution behavior",
+    "research/knowledge/learning persistence behavior",
+    "auth, Safe HTTP, Tauri security or release state",
+    "version bump",
+    "other projects, personal Vaults, E drive or workflow infrastructure",
+    "force push or hard reset"
+  ],
+  "completion": [
+    "positioning consistent across primary public docs and metadata",
+    "agent described as AI-usage layer",
+    "candidate/approved truth unchanged",
+    "version and release state unchanged",
+    "necessary tests and gates pass",
+    "revertible commit and PR"
+  ]
+}

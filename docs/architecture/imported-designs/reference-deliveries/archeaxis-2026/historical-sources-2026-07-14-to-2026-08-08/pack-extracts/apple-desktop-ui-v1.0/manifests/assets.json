@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "warning": "All numbers, identities, model names, costs and progress in the images are visual placeholders only.",
+  "screens": [
+    {
+      "file": "01_guanxin_dashboard.png",
+      "page": "观心总览"
+    },
+    {
+      "file": "02_agent_center.png",
+      "page": "智体中心"
+    },
+    {
+      "file": "03_task_mission_control.png",
+      "page": "知行任务驾驶舱"
+    },
+    {
+      "file": "04_research_dashboard.png",
+      "page": "察微研究"
+    },
+    {
+      "file": "05_knowledge_editor.png",
+      "page": "藏识知识编辑器"
+    },
+    {
+      "file": "06_cognitive_canvas.png",
+      "page": "认知画布"
+    },
+    {
+      "file": "07_execution_replay.png",
+      "page": "证真回放"
+    },
+    {
+      "file": "08_connection_system.png",
+      "page": "连接管理/系统控制"
+    }
+  ]
+}

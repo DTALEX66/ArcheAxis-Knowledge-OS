@@ -1,0 +1,23 @@
+{
+  "name": "AXOS_OpenSource_Absorption_Pack",
+  "version": "1.0",
+  "scan_date": "2026-07-25",
+  "project_count": 57,
+  "files": [
+    "00_使用说明.md",
+    "01_总览与最终裁定.md",
+    "02_项目能力总表.csv",
+    "03_AXOS_开源能力总表.xlsx",
+    "04_AXOS能力吸收矩阵.md",
+    "05_OpenHuman系列专项拆解.md",
+    "06_分阶段实施路线.md",
+    "07_HERMES_执行任务包.md",
+    "08_POC验收测试集.md",
+    "09_许可证与供应链风险.md",
+    "10_机器可读项目注册表.json",
+    "11_来源链接清单.md",
+    "12_AXOS核心合同草案.yaml",
+    "13_2026新增研究候选.md",
+    "manifest.json"
+  ]
+}

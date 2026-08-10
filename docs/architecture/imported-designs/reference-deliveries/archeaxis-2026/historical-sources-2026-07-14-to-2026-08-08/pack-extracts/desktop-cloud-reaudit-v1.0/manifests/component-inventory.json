@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "shell": [
+    "TopBar",
+    "WorkspaceTabs",
+    "PrimaryRail",
+    "SecondarySidebar",
+    "MainWorkspace",
+    "CognitiveInspector",
+    "ActivityDock"
+  ],
+  "existing_real_components": [
+    "StatusMetrics",
+    "CapabilityList",
+    "IntakeModal",
+    "JobList",
+    "DeliveryProjection",
+    "ResearchQueue",
+    "KnowledgeQueue",
+    "LearningQueue",
+    "EvolutionMetrics",
+    "MachineKnowledgeQueue",
+    "LifecycleProjection",
+    "Diagnostics"
+  ],
+  "planned_components": [
+    "TaskMissionControl",
+    "TaskTimeline",
+    "ArtifactPanel",
+    "ResearchCanvas",
+    "KnowledgeCanvas",
+    "ExecutionReplay",
+    "AgentFleet",
+    "WorkflowBuilder"
+  ],
+  "forbidden_fake_components": [
+    "MockAgentRunningCard",
+    "FakeTokenCost",
+    "EstimatedProgressWithoutBackend",
+    "StaticOperationalMetrics"
+  ]
+}

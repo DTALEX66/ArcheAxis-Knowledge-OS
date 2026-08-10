@@ -1,0 +1,50 @@
+schema_version: 1.0.0
+status: design-target-not-applied
+
+runtime:
+  python:
+    desktop_target: "3.12"
+    minimum_future: "3.11"
+    ci_future: ["3.11", "3.12", "3.13"]
+
+architecture:
+  backend: "Python + FastAPI + Pydantic"
+  desktop: "Rust + Tauri"
+  frontend_a1: "HTML + CSS + JavaScript"
+  frontend_future: "TypeScript + React + Vite"
+  database: "SQLite + FTS5 + sqlite-vec"
+
+database:
+  journal_mode: WAL
+  synchronous: NORMAL
+  foreign_keys: true
+  busy_timeout_ms: 30000
+  wal_autocheckpoint_pages: 1000
+  integrity_check_on_startup: true
+
+pipeline:
+  auto_process_candidate: true
+  auto_promote_to_knowledge: false
+  preview_max_chars: 10000
+  chunking:
+    target_tokens: 900
+    overlap_tokens: 120
+    strategy: semantic-heading-aware
+
+search:
+  active_embedding_profile: multilingual-local-v1
+  embedding_profiles:
+    multilingual-local-v1:
+      provider: local
+      dimension: 384
+      normalization: l2
+      schema_version: 1
+  keyword: "pre-tokenized + FTS"
+  fuzzy: "trigram"
+  semantic: "sqlite-vec"
+  final: "keyword + vector + rerank"
+
+ui:
+  information_center: "learning-and-knowledge"
+  default_theme: apple-light
+  dark_theme: violet-core

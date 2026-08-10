@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "routes": [
+    {
+      "id": "overview",
+      "label": "观心总览",
+      "stage": "A1",
+      "status": "available"
+    },
+    {
+      "id": "agent-center",
+      "label": "智体中心",
+      "stage": "A3",
+      "status": "planned"
+    },
+    {
+      "id": "tasks",
+      "label": "知行任务",
+      "stage": "A3",
+      "status": "partial"
+    },
+    {
+      "id": "canvas",
+      "label": "认知画布",
+      "stage": "A4",
+      "status": "planned"
+    },
+    {
+      "id": "replay",
+      "label": "证真回放",
+      "stage": "A4",
+      "status": "planned"
+    },
+    {
+      "id": "research",
+      "label": "察微研究",
+      "stage": "A2",
+      "status": "available"
+    },
+    {
+      "id": "knowledge",
+      "label": "藏识知识",
+      "stage": "A2",
+      "status": "available"
+    },
+    {
+      "id": "workflow",
+      "label": "流程自动化",
+      "stage": "later",
+      "status": "planned"
+    },
+    {
+      "id": "connections",
+      "label": "连接管理",
+      "stage": "A5",
+      "status": "planned"
+    },
+    {
+      "id": "system",
+      "label": "系统控制",
+      "stage": "A5",
+      "status": "partial"
+    }
+  ]
+}

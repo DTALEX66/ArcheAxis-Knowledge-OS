@@ -1,0 +1,42 @@
+{
+  "name": "ArcheAxis Violet Core",
+  "version": "1.0.0",
+  "themes": {
+    "violet-core": {
+      "background": "#070A13",
+      "deep": "#0B1020",
+      "surface_1": "#10172A",
+      "surface_2": "#141D34",
+      "surface_3": "#1A2540",
+      "text_primary": "#F3F5FA",
+      "text_secondary": "#A3ACC0",
+      "accent": "#7C5CFF",
+      "accent_bright": "#AA76FF",
+      "evidence": "#4DB7FF",
+      "approved": "#4DBB84",
+      "review": "#D8A84E",
+      "failed": "#D65A67",
+      "border": "rgba(155,121,255,.16)",
+      "border_strong": "rgba(155,121,255,.36)"
+    }
+  },
+  "layout": {
+    "topbar_px": 52,
+    "primary_rail_px": 56,
+    "secondary_sidebar_px": 264,
+    "inspector_px": 352,
+    "dock_collapsed_px": 42,
+    "dock_expanded_px": 188,
+    "minimum_desktop": "960x640"
+  },
+  "radius": {
+    "button": 8,
+    "panel": 10,
+    "card": 12
+  },
+  "motion_ms": {
+    "fast": 120,
+    "normal": 180,
+    "slow": 220
+  }
+}

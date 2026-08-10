@@ -1,0 +1,41 @@
+schema_version: "0.1"
+providers:
+  ParserProvider:
+    input: SourceArtifactV1
+    output: DocumentParseV1
+  OCRProvider:
+    input: PageImageV1
+    output: OCRPageV1
+  EmbedderProvider:
+    input: ChunkBatchV1
+    output: EmbeddingBatchV1
+  RerankerProvider:
+    input: RetrievalCandidateBatchV1
+    output: RankedCandidateBatchV1
+  MemoryProvider:
+    input: MemoryCommandV1
+    output: MemoryResultV1
+  AgentExecutorProvider:
+    input: AgentTaskV1
+    output: AgentRunV1
+  EvalProvider:
+    input: EvalCaseV1
+    output: EvalResultV1
+
+contracts:
+  SourceArtifactV1:
+    fields: [artifact_id, uri, mime_type, sha256, captured_at, source, taint]
+  DocumentParseV1:
+    fields: [parse_id, artifact_id, parser, parser_version, pages, blocks, evidence, confidence]
+  KnowledgeUnitV1:
+    fields: [knowledge_id, version, status, claims, evidence_refs, ontology_version]
+  MemoryFactV1:
+    fields: [fact_id, subject_id, predicate, object_value, valid_from, valid_to, recorded_at, source_episode_id, confidence, supersedes]
+  ContextPackV1:
+    fields: [context_id, intent_id, knowledge_refs, memory_refs, file_refs, compressed_artifacts, token_budget]
+  AgentRunV1:
+    fields: [run_id, root_run_id, parent_run_id, task_id, graph_version, checkpoint_id, status, usage, cost, failure_reason]
+  CompressedArtifactV1:
+    fields: [artifact_id, source_artifact_id, strategy, original_size, compressed_size, recovery_token, checksum]
+  EvalCaseV1:
+    fields: [case_id, dataset_version, input, expected, metrics, policy]

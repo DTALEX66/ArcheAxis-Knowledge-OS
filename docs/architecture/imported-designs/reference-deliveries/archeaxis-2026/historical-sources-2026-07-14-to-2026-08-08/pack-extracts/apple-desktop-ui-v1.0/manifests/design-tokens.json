@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "theme": "apple-light",
+  "colors": {
+    "bg_app": "#F4F7FC",
+    "bg_panel": "rgba(255,255,255,.82)",
+    "bg_solid": "#FFFFFF",
+    "text_primary": "#10162B",
+    "text_secondary": "#6F7890",
+    "border_soft": "rgba(45,61,105,.09)",
+    "border_strong": "rgba(91,82,230,.18)",
+    "accent": "#5B57F1",
+    "accent_2": "#7E68FF",
+    "success": "#21B87A",
+    "info": "#2989F5",
+    "review": "#F3A629",
+    "failed": "#EF5662",
+    "planned": "#A0A9BA"
+  },
+  "radius_px": {
+    "control": 10,
+    "card": 16,
+    "large_panel": 20
+  },
+  "shadow": {
+    "card": "0 8px 28px rgba(35,52,95,.07)",
+    "floating": "0 16px 48px rgba(35,52,95,.12)"
+  },
+  "layout_px": {
+    "sidebar": 228,
+    "topbar": 64,
+    "inspector": 320,
+    "statusbar": 40,
+    "minimum_width": 960,
+    "minimum_height": 640
+  }
+}

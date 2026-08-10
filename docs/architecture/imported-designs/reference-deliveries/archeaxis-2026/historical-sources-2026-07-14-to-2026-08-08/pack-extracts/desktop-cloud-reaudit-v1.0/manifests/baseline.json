@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-27T16:38:46+00:00",
+  "repository": "DTALEX66/Cognitive-Loop-OS",
+  "branch": "main",
+  "visible_head": "2cdf11e2b85154c15cfd621c04dae8f6c90d693b",
+  "visible_head_message": "test(workspace): prove Chromium delivery readback (#12)",
+  "warning": "User reported newer cloud changes, but the connected GitHub source exposed no newer main commit. Re-resolve remote before execution.",
+  "observed_files": {
+    "app/workspace/ui/index.html": "b34d508e14092fe1367544406f4e16c01fdae3a6",
+    "app/workspace/ui/assets/styles.css": "a455eca708b376e2e7c6b5a79fb96244ed97e9b5",
+    "app/workspace/ui/assets/app.js": "b0a204ded7bd543cb63017f231443bfc7db421d5",
+    "app/workspace/router.py": "ae853ecd4ddbc9bf477a27f34bcb6e4995f11eb9",
+    "desktop/src-tauri/tauri.conf.json": "22f5e8d7534301bd0e4d4df1e992f33de0ea96a9",
+    ".github/workflows/ci.yml": "f83921ce5bb5a144e80d39e97ae658ba4aab3b4e"
+  }
+}

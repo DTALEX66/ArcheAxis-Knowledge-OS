@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "AXDESK-A3",
+  "project": "cognitive-loop-os",
+  "risk": "high",
+  "repository": "DTALEX66/Cognitive-Loop-OS",
+  "objective": "Add read-only cognitive canvas and execution replay projections.",
+  "dependencies": [
+    "AXDESK-A2 merged and green",
+    "node/edge public projection contract approved"
+  ],
+  "allowed_paths": [
+    "app/workspace/**",
+    "app/contracts/**",
+    "app/adapters/**",
+    "shared projection modules",
+    "tests and documentation"
+  ],
+  "forbidden": [
+    "delete or modify files outside the repository",
+    "scan or modify personal Vaults or external projects",
+    "expose internal persistence identifiers",
+    "invent agent/model/cost/progress data",
+    "weaken loopback, CSP, Tauri navigation, auth or migration boundaries",
+    "force push or hard reset over remote updates"
+  ],
+  "gates": [
+    "python scripts/check_repository_conventions.py --source worktree",
+    "python scripts/check_architecture.py",
+    "node --check app/workspace/ui/assets/app.js",
+    "python -m pytest tests/ -q --tb=short",
+    "cd knowledge_base && python -m pytest tests/ -q --tb=short",
+    "python -m pytest integration-tests/ -q --tb=short",
+    "COGNITIVE_DATA_DIR=<isolated-dir> python scripts/a0_browser_smoke.py"
+  ]
+}
