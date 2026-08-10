@@ -686,3 +686,15 @@
 - 证据等级：EXACT_SHA_CI（head 5468d4a）
 - 风险/剩余项：PR #73 未 merge（未获 merge 授权）；H1 后端仍在 PR #72 未 merge；AXW-022A 前端 PDF.js 待独立批次
 - 回滚：关闭/丢弃 PR #73
+
+### LOG-20260810-055 — PLANNING SOURCES ARCHIVED — PASS
+
+- 时间：2026-08-10T21:05:06+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 归档提交：`501a78cc27461adeee5072ffbe296755d3e105fe`
+- 变更：将用户提供的 v0.5 多格式审计任务包、Future Master Blueprint v1、Codex 主任务包 v3、Final Master TaskPack v4 与 Context Handoff 纳入 `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/planning-2026-08-09/`；新增原件 ZIP、原件 SHA 清单、规范化仓库副本 SHA 清单和来源演变说明；修复父级参考目录的两个失效相对链接。
+- 验证：原件 ZIP 5/5 条目与桌面源 SHA-256 一致；仓库副本 5/5 与 `REPOSITORY_COPY_MANIFEST.sha256` 一致；26 个本地链接 PASS；联合任务 DAG 159 个唯一 ID、无重复、未知依赖或环；`test_naming_conventions.py` 19 passed；repository convention 与 `git diff --check` PASS。
+- 云端回读：`origin/codex/frozen-roadmap-deepseek-v1` = `501a78cc27461adeee5072ffbe296755d3e105fe`，本地/云端 `0/0`。
+- 证据等级：`PUBLICATION`（分支文件与 SHA 回读）；不等于 exact-SHA CI、main 合并、实现完成或安装态资格。
+- 权威边界：本次只归档历史来源；当前任务定义仍由冻结基线与批准增补包提供，状态仍只在本日志追加。
+- 回滚：revert `501a78c`。
