@@ -5,9 +5,14 @@
 > 基线：`AXW-FROZEN-v1-2026-08-09`
 > 权威分支：`codex/frozen-roadmap-deepseek-v1`
 > 执行分支：`axw/execution-h0`（已 merge）、`axw/execution-h1`（PR #72，未 merge）
-> 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~048）
+> 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~057）
 
 本文是任务包要求的状态交接文档，汇总 H0/H1 全部任务的验收状态、证据等级、阻塞与收口路径。所有 PASS 均绑定真实 exact-SHA/CI/审查/安装态证据；未完成项如实标 `PARTIAL`/`UNVERIFIED`，不冒充完成。
+
+> 2026-08-11 事实纠正：`origin/main=ae59790` 已包含 PR #73 的 squash
+> merge；`origin/axw/execution-h1=1c688c7` 仍不在 main；权威规划分支为
+> `origin/codex/frozen-roadmap-deepseek-v1=978f11b`。历史 SHA 和状态记录保留，
+> 当前续接以 LOG-057 及实时 Git/GitHub 回读为准。
 
 **权威源文件（相对本文件）：**
 
@@ -15,9 +20,9 @@
 - 追加式状态日志：[`EXECUTION_STATUS_LOG.md`](EXECUTION_STATUS_LOG.md)
 - 权威契约：[`AUTHORITY_CONTRACT.md`](AUTHORITY_CONTRACT.md)
 - 当前状态 Truth：[`CURRENT_STATE_TRUTH.md`](CURRENT_STATE_TRUTH.md)
-- 执行任务包：[`../../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](../../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)
-- Web 增补：[`../../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](../../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
-- Capability-first 增补：[`../../taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](../../taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
+- 执行任务包：[`../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)
+- Web 增补：[`../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
+- Capability-first 增补：[`../taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](../taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
 
 ## 1. 仓库与分支基线
 
@@ -27,9 +32,9 @@
 | 基线基点 | `origin/main` = `492fac5982c693eb668d31cc51a6a59bac83b7a1` |
 | H0 merge-SHA | `f269a0128dfee9573699efd24562f96e8a713c70`（PR #71） |
 | H0 main CI | run `31320800285` 全绿 |
-| H1 分支 | `axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint） |
-| H1 exact-head CI | run `31322840300` 全绿（head `78091cc`） |
-| 权威分支 | `codex/frozen-roadmap-deepseek-v1` at `ba4cd81` |
+| H1 分支 | `origin/axw/execution-h1`（head `1c688c7`；相对当前 main：main-only 1、H1-only 16） |
+| H1 exact-head CI | run `31326205396` 全绿（head `1c688c7`，仓库状态日志证据） |
+| 权威分支 | `origin/codex/frozen-roadmap-deepseek-v1` at `978f11b` |
 | 用户 WIP | canonical 主工作区未触碰 |
 
 ## 2. H0（v0.5.1 可信恢复）— 已完成并 merge
@@ -74,7 +79,7 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 
 ### AXW-022A PARTIAL 说明
 
-- **后端已交付**：`app/evidence/pdf_serve.py` 提供内容寻址 PDF 字节服务（sha256 key、只读、限大小、不暴露路径），`3 passed`，已过 PR #72 CI
+- **后端已交付**：`app/evidence/pdf_serve.py` 提供内容寻址 PDF 字节服务（sha256 key、只读、限大小、不暴露路径），`3 passed`，head `1c688c7` 已过 exact-head CI run `31326205396`
 - **前端未交付**：PDF.js 渲染（分页/缩放/搜索/证据批注）需下载大型外部库 + 打包进 wheel/desktop + WebView 点击级验证，属独立前端批次
 - 前端是纯静态 JS（无 npm 构建），PDF.js 需作为静态资源放入 `app/workspace/ui/assets/` 并更新 `pyproject.toml` package-data + NOTICE（许可证审计）
 
@@ -95,7 +100,7 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 | DEVIATION | AXW-022A 前端 PDF.js 渲染延迟到独立批次 | 目标（PDF 阅读器）仍有效；先交付后端内容寻址 PDF 字节服务（`pdf_serve.py`）作为可证子集，前端渲染因需下载大型外部库 + WebView 验证而独立成批 |
 | DEVIATION | AXW-030A/030B/030C 复用现有实现 | 现有 `bff.py`（版本化 DTO）、前端导航（Canonical IA）、`app.js`（Truth 投影）已满足验收，补测试而非重写 |
 | CHANGE_PROPOSAL | 无 | 本轮未提出需要新增/替换冻结任务的定义 |
-| 未授权动作 | H1 merge 保持未执行 | 用户对 H1 merge 授权未明确选择，按 fail-closed 未执行（PR #72 保持 OPEN） |
+| 未授权动作 | H1 merge 保持未执行 | `origin/axw/execution-h1@1c688c7` 不是当前 `origin/main` 的祖先；未取得 merge 授权，不推断 PR 当前 UI 状态 |
 
 ### 历史增补决策（已记录于冻结发布）
 
@@ -112,6 +117,10 @@ H0 已合并到 main（`f269a01`），全部冻结验收 PASS。`PUBLICATION`（
 - 故 AXW-H1-EXIT **未裁决**（须 022 前端完成 + H1 merge 授权后裁决）
 
 ## 7. 收口路径与可操作执行队列（H1 完成剩余）
+
+审计后的完整 H0–H5/Web/KLC 队列见
+[`DEEPSEEK_POST_AUDIT_FULL_EXECUTION_TASKPACK_v1_2026-08-11.md`](../taskpacks/DEEPSEEK_POST_AUDIT_FULL_EXECUTION_TASKPACK_v1_2026-08-11.md)。
+该文件是派生执行队列，不覆盖冻结基线和批准增补包。
 
 ### A. AXW-022A/022B 前端批次（当前唯一实现阻塞）
 
@@ -150,7 +159,7 @@ H0 分支相对基线基点 `492fac5` 新增/修改 15 文件，766 行。核心
 
 配套测试：`test_ci_a0_gates`、`test_ci_classifier`、`test_doctor_windows`、`test_pdf_extraction`、`test_raw_asset`、`test_workspace_api`。
 
-### H1 交付物（PR #72，未 merge）
+### H1 交付物（远端 H1 分支，尚未进入 main）
 
 H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 
@@ -176,7 +185,7 @@ H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 - 未访问 `E:\`；未读取/输出任何凭据、token、私钥、cookie 或私人正文
 - 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~048 无改写）
 - canonical 主工作区与用户 WIP 未触碰；`.hermes/` 外的仓库文件未改动
-- PR #71 已 merge（H0，获授权）；PR #72 未 merge（H1，未获授权）
+- PR #71 已 merge（H0，获授权）；H1 head `1c688c7` 未进入当前 main（未获 merge 授权）
 - 无遗留 ArcheAxis 进程；安装测试已彻底卸载
 
 ## 10. 后续阶段概览（H2-H10 与增补）
@@ -207,7 +216,7 @@ H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 公开正式发布：NO-GO（未授权，H0-H5 未完）
 ```
 
-本文是任务包的状态交接文档；后续执行从 LOG-043 之后的下一依赖安全任务继续。
+本文是任务包的状态交接文档；后续执行从 LOG-057 之后的下一依赖安全任务继续。
 
 
 ## 附录 A：证据索引（任务 → commit → CI）
@@ -221,10 +230,11 @@ H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 | H1 | AXW-024A/024B | `58c5664`/`dd7a0a0` | PR #72 CI |
 | H1 | AXW-025A/025B | `873e652`/`d9b03e2` | PR #72 CI |
 | H1 | AXW-030A | `5579d61` | PR #72 CI |
-| H1 | AXW-022A（后端） | `78091cc` | PR #72 CI `31322840300` |
+| H1 | AXW-022A（后端） | `1c688c7` | exact-head CI `31326205396` |
 
-权威分支提交链：`codex/frozen-roadmap-deepseek-v1`（LOG-004~048，最新 `dd499ae`）。
-H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 merge）。
+权威分支：`origin/codex/frozen-roadmap-deepseek-v1@978f11b`；main 状态日志
+已同步 LOG-054~056 并在 LOG-057 追加事实纠正。
+H1 分支：`origin/axw/execution-h1@1c688c7`，相对当前 main 有 16 个独有提交，尚未进入 main。
 
 
 ## 附录 B：本地测试结果汇总（命令 → 结果）
@@ -272,7 +282,7 @@ H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 m
 
 - 本周期为单 writer（本会话），所有 checkpoint 顺序提交到 `axw/execution-h1`（后端）与 `codex/frozen-roadmap-deepseek-v1`（权威状态）
 - 审查 reviewer 为只读后台 delegation，不写入
-- 续接从 LOG-048 之后的下一依赖安全任务开始
+- 续接从 LOG-057 之后的下一依赖安全任务开始
 
 
 ## 附录 D：验证政策遵循记录
@@ -306,4 +316,4 @@ H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 m
 - AXW-H1-EXIT：**BLOCKED**（阻塞：022 前端 + H1 merge 授权）
 - 全部证据（commit/CI run/测试/审查）、决策/偏差、交付物清单、执行/验证政策遵循、收口路径
 
-后续执行按本文档第 7 节（收口路径）从 LOG-049 之后继续；如需续接，读本文档 + `EXECUTION_STATUS_LOG.md` 尾部即可恢复上下文。
+后续执行按本文档第 7 节（收口路径）从 LOG-057 之后继续；如需续接，读本文档 + `EXECUTION_STATUS_LOG.md` 尾部即可恢复上下文。

@@ -1,6 +1,6 @@
 # Verification Policy
 
-> 适用范围：仅限 `Cognitive-Loop-OS`。本文件是本仓库验证频率、审计触发和证据保留的唯一流程记录。
+> 适用范围：仅限 `Cognitive-Loop-OS`。本文件是本仓库验证频率、审计触发和证据保留的唯一流程记录。Windows 命令、Git 语义、环境失败、精确清理和完成状态遵循 `docs/CODEX_EXECUTION_RELIABILITY.md`。
 
 ## 目标
 
@@ -72,10 +72,17 @@
 
 不在路线图、技能和多个报告中复制易过期的测试数量、文件数量和中间失败日志。Git 历史与 CI 日志是执行证据，文档只记录稳定规则和当前决策。
 
+报告必须区分 `PLANNED`、`IMPLEMENTED_LOCAL`、`TESTED_LOCAL`、
+`BRANCH_PUBLISHED`、`CI_PASS_EXACT_SHA`、`MERGED` 和
+`INSTALLED_RUNTIME_VERIFIED`。环境或 shell 失败单独分类，不得写成产品测试失败。
+
 ## 本地与云端健康
 
-- 临时数据只能写入本仓库 `.tmp/`、测试专用目录或已忽略的构建目录；结束前删除。
+- 临时数据只能写入本仓库已忽略的 `.hermes/task-runtime/`、测试专用目录或已忽略的构建目录；需要保留的任务证据写入 `.hermes/task-artifacts/`。
 - 禁止验证命令读写其他项目或数据目录。
+- 清理必须针对已验证的 exact target 并检查 reparse point、错误状态和删除后置条件；Git 干净不能替代 ignored residue 验证。
 - 提交前要求无未暂存变更、无凭据、无运行时数据库或缓存泄漏。
 - 推送后必须确认远端 SHA 与本地提交一致且 CI 通过。
-- 使用一次性本地克隆的交付流程，在远端验证完成后删除该克隆；远端仓库作为唯一长期代码真相。
+- 交付隔离优先使用项目内 `.hermes/task-runtime/` worktree；只有 clean-clone
+  qualification 明确需要时才创建项目内一次性克隆。远端验证完成后仅删除已
+  核验的 exact clone/worktree，远端仓库作为唯一长期代码真相。

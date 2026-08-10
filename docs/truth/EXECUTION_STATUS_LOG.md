@@ -675,3 +675,54 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert 34727c1
+
+### LOG-20260809-054 — CLOUD DESC SYNC PR #73 — PASS
+
+- 时间：2026-08-09T19:25:00+08:00
+- 执行分支：docs/sync-authority-blueprints（基于 main f269a01）
+- 候选提交：5468d4aa53c4e7931f5e2aa0f8ad1ba8f88693b7
+- 变更：将 CODEX 冻结蓝图/增补包/truth 交接文档（docs/truth/ + docs/taskpacks/）同步进 main；更新 README（新增冻结执行基线节）与 docs/PROJECT_STATUS.md（新增冻结执行基线节）引用权威文档；SHA 文件已校验匹配
+- 验证：PR #73 exact-head CI run 31343762542 completed/success（gateplan/lint/a0-gates PASS，桌面/UI/兼容 job 正确 SKIP）；mergeStateStatus CLEAN；convention PASS
+- 证据等级：EXACT_SHA_CI（head 5468d4a）
+- 风险/剩余项：PR #73 未 merge（未获 merge 授权）；H1 后端仍在 PR #72 未 merge；AXW-022A 前端 PDF.js 待独立批次
+- 回滚：关闭/丢弃 PR #73
+
+### LOG-20260810-055 — PLANNING SOURCES ARCHIVED — PASS
+
+- 时间：2026-08-10T21:05:06+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 归档提交：`501a78cc27461adeee5072ffbe296755d3e105fe`
+- 变更：将用户提供的 v0.5 多格式审计任务包、Future Master Blueprint v1、Codex 主任务包 v3、Final Master TaskPack v4 与 Context Handoff 纳入 `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/planning-2026-08-09/`；新增原件 ZIP、原件 SHA 清单、规范化仓库副本 SHA 清单和来源演变说明；修复父级参考目录的两个失效相对链接。
+- 验证：原件 ZIP 5/5 条目与桌面源 SHA-256 一致；仓库副本 5/5 与 `REPOSITORY_COPY_MANIFEST.sha256` 一致；26 个本地链接 PASS；联合任务 DAG 159 个唯一 ID、无重复、未知依赖或环；`test_naming_conventions.py` 19 passed；repository convention 与 `git diff --check` PASS。
+- 云端回读：`origin/codex/frozen-roadmap-deepseek-v1` = `501a78cc27461adeee5072ffbe296755d3e105fe`，本地/云端 `0/0`。
+- 证据等级：`PUBLICATION`（分支文件与 SHA 回读）；不等于 exact-SHA CI、main 合并、实现完成或安装态资格。
+- 权威边界：本次只归档历史来源；当前任务定义仍由冻结基线与批准增补包提供，状态仍只在本日志追加。
+- 回滚：revert `501a78c`。
+
+### LOG-20260810-056 — HISTORICAL PLANNING SOURCES DEDUPED AND PUBLISHED — PASS
+
+- 时间：2026-08-10T21:50:07+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 归档提交：`9a91e7d143493bfda1bfb723aa83713306a6969d`
+- 变更：将项目本地 Hermes 边界中此前未进入 Git 的历史蓝图、规划、任务包、验收资料与 manifests 收敛到 `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/`；22 个物理源件经去重和筛选后形成 99 个仓库文件，并保留原始源、选中压缩包条目和仓库副本三类 SHA-256 清单。
+- 隐私/冗余边界：3 个 Desktop/Cloud 复审 ZIP 为同 SHA 副本，2 个对话归档 ZIP 为同 SHA 副本，3 个 CI TaskPack 也为同 SHA 副本；原 ZIP、prompts、对话时间线、截图、HTML 原型和执行脚本均未提交，只保留合规项目规划内容与原始 SHA 证据。
+- 验证：物理源清单 22/22、仓库副本清单 99/99；85 个选中压缩包条目无 prompt/对话时间线/PNG/HTML/PowerShell；文本高置信秘密与机器路径扫描 PASS；3 个 DOCX 内部 XML 扫描 PASS；repository convention（index）PASS；`test_naming_conventions.py` 19 passed；`git diff --cached --check` PASS。
+- 云端回读：`origin/codex/frozen-roadmap-deepseek-v1` = 本地 `9a91e7d143493bfda1bfb723aa83713306a6969d`。
+- 证据等级：`PUBLICATION`（分支文件与 SHA 回读）；不等于 exact-SHA CI、main 合并、实现完成或安装态资格。
+- 权威边界：历史归档不覆盖冻结基线、批准增补或本状态日志；清理本地缓存不得删除未提交工作树或唯一证据。
+- 回滚：revert `9a91e7d`。
+
+### LOG-20260811-057 — POST-AUDIT TRUTH AND RELIABILITY — CORRECTION
+
+- 时间：2026-08-11T00:02:56+08:00
+- 执行分支：`codex/execution-reliability-standards`（基于 `origin/main@ae59790`）
+- 候选状态：`IMPLEMENTED_LOCAL`，未获 commit/push/merge 授权
+- PR #73 事实纠正：实时 Git fetch 回读 `origin/main=ae59790f64541cb3d759d2f0955d33e0db7417b1`，提交主题为 `docs: sync authority blueprints and update repository description (#73)`；LOG-054 的“未 merge”风险已经过期。PR head `5468d4a` 与 squash merge SHA `ae59790` 不同是正常语义。用户提供的可靠性 TaskPack 记录 merge-SHA CI run `31343953923` success；本轮未通过 GitHub 页面重新取得 live CI readback，不把该记录升级为新的现场验证。
+- H0 审计纠正：功能恢复与历史安装态证据保持 PASS；严格冻结治理闭环改判 `PARTIAL/REQUALIFICATION_REQUIRED`。`AXW-004A`、`AXW-006A`、`AXW-006B`、`AXW-007B` 缺少独立关闭记录，`AXW-010A` 缺少真实目标环境 availability/quality/fidelity probe；LOG-019 同时写 `AXW-006C PASS` 与 payload SBOM 待正式 release，不能证明完整供应链闭环。
+- H1 事实纠正：`origin/axw/execution-h1=1c688c71eace449be2972acc538c0a8eb31dab89`；相对当前 main 为 main-only 1、H1-only 16，H1 head 不是 main 祖先。旧 handoff 的 `78091cc`/run `31322840300` 已更新为 head `1c688c7`/run `31326205396`；H1 前端和 EXIT 仍未完成。
+- 规划/实现边界：Web/KLC 的增补与历史蓝图发布只证明 `PLANNED`/`BRANCH_PUBLISHED`，不证明 runtime implementation、CI、merge 或安装态资格。
+- 文档修复：H0/H1 handoff 的 3 个 `../../taskpacks/` 失效链接改为 `../taskpacks/`；同步当前 H1/权威分支/日志续接事实；新增 `docs/CODEX_EXECUTION_RELIABILITY.md`、配置索引、intake 和 `DEEPSEEK_POST_AUDIT_FULL_EXECUTION_TASKPACK_v1_2026-08-11.md`。
+- 本地验证：项目根 `.venv` 明确含 `pdfminer`/`pdfplumber`；`tests/test_pdf_extraction.py` 为 `3 passed, 1 warning`；本轮 pytest basetemp 已验证删除。
+- runtime residue：`audit-main-pdf-20260810` 经项目安全工具返回 `BLOCKED_RUNTIME_CLEANUP`（exit 2）；ACL 不可读、无 handle 工具、目录属性无 reparse 标志，目标保留。未提权改 ACL、未夺取所有权、未强杀进程。
+- 证据等级：结构性 Git/readback + LOCAL_RUNTIME；commit、push、exact-SHA CI、merge、安装态运行均 `NOT EXECUTED`。
+- 回滚：源码文档修改可精确反向；本日志保持 append-only，如本纠正有误只能追加新 CORRECTION。

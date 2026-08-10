@@ -29,6 +29,7 @@ The legacy runtime exposed two supporting surfaces:
 | Model settings | `config/models.yaml` | Current model/embedding provider placeholders |
 | Tool registry | `config/tools.yaml` | Tool names and risk levels |
 | Verification policy | `docs/VERIFICATION_POLICY.md` | Test cadence, review triggers, and evidence retention |
+| Execution reliability | `docs/CODEX_EXECUTION_RELIABILITY.md` | Windows shell, Git, cleanup, environment, and evidence rules |
 | Human/agent guide | `AGENTS.md` | Readable operating rules for Codex and future agents |
 | Configuration index | `workspace/configuration/README.md` | Catalog of public vs private configuration categories |
 | Intake history | `workspace/intake/` | Stepwise design and implementation log |
@@ -43,6 +44,7 @@ The legacy runtime exposed two supporting surfaces:
 - Project-owned outputs from Cognitive-OS code, tests, ingestion, builds, and reviews must use the project-local ignored runtime/build locations; a wrapper is the preferred containment path but is not an OS sandbox.
 - Do not claim ownership of Hermes, Codex, CC Switch, Workflow-assistance, GitHub delegation, session, cron, Kanban, or other workflow-infrastructure files merely because their names mention this project. Those artifacts remain in their owning workflow directory.
 - Files found in `%TEMP%`, a user home, or another project are ambiguous until content, Git worktree, process, and generation command establish ownership; preserve and mark unresolved rather than delete or move them.
+- Runtime cleanup must target one exact, verified, regenerable path inside this repository. Check for reparse points and verify the postcondition; never treat a clean Git status as proof that ignored residue was removed.
 - Prefer small, auditable changes that can be reverted with one commit.
 - Do not use destructive actions such as recursive deletion, hard reset, forced push, or mass overwrite unless the user separately confirms scope.
 
@@ -63,6 +65,9 @@ git status --short
 
 Upload policy:
 
+- Resolve `HEAD`, the current branch, its explicit upstream, and the intended base separately. A branch matching its upstream does not imply that it matches `origin/main`.
+- Prefer explicit refs such as `HEAD` and `origin/main`. Quote every Git `@{...}` revision expression in PowerShell, or avoid the shorthand entirely.
+- After `git fetch`, resolve every depended-on ref again; do not reuse a pre-fetch SHA expansion.
 - Use explicit paths when staging files.
 - Avoid `git add .`.
 - Do not commit or push unrelated local changes.
@@ -90,6 +95,10 @@ For each implementation round:
 5. Run the smallest useful verification.
 6. Report what changed, what was tested, what remains uncertain, and how to roll back.
 
+Windows commands, Python environment selection, runtime cleanup, Git/PR
+interpretation, and completion evidence must follow
+`docs/CODEX_EXECUTION_RELIABILITY.md`.
+
 ## 7. Current System Boundaries
 
 - Core file ingestion reads only inside the project root.
@@ -113,5 +122,7 @@ The following must stay local and must not be committed:
 
 ## 9. Codex Configuration
 
-Repository behavior is defined by this file plus `docs/VERIFICATION_POLICY.md`. `.codex.example/config.example.toml` is the only portable Codex template; it is not loaded automatically and contains no credentials. Real `.codex/` state remains private and uncommitted.
-
+Repository behavior is defined by this file, `docs/VERIFICATION_POLICY.md`, and
+`docs/CODEX_EXECUTION_RELIABILITY.md`. `.codex.example/config.example.toml` is
+the only portable Codex template; it is not loaded automatically and contains
+no credentials. Real `.codex/` state remains private and uncommitted.
