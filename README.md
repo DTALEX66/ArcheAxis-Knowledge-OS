@@ -67,6 +67,20 @@ Research → Evidence → Knowledge → Learning
 | Phase 9 | Contract & Tracer Alpha | ✅ 历史合同/追踪基线完成 | 不等于完整产品 Alpha，也不证明公开 release |
 | Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线、按需 dispatcher、本地真实 Chromium delivery gate、Windows/NSIS 门禁与公开 `v0.5.0` 资产已验证；Tauri WebView 点击级证据、ASR、签名发布与更高阶用户交互仍待完成 |
 
+### 冻结执行基线（权威任务包）
+
+CODEX 冻结的后续执行蓝图与增补包已进入仓库 `docs/`，作为后续 Horizon（H1-H10 与 Web/KLC 增补）的唯一定义源：
+
+- 冻结基线：[`docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`](docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md)（H0-H10 全部任务定义）
+- 执行任务包：[`docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)
+- Web 增补：[`docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
+- Capability-first 增补：[`docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
+- 追加式状态日志：[`docs/truth/EXECUTION_STATUS_LOG.md`](docs/truth/EXECUTION_STATUS_LOG.md)
+- 状态交接文档：[`docs/truth/H0_H1_STATUS_HANDOFF.md`](docs/truth/H0_H1_STATUS_HANDOFF.md)
+- 权威契约：[`docs/truth/AUTHORITY_CONTRACT.md`](docs/truth/AUTHORITY_CONTRACT.md)
+
+> 说明：这些文档与历史 `docs/FUTURE_EXECUTION_BLUEPRINT.md` 并存；冻结基线与增补包是当前任务的权威定义，历史蓝图仅作迁移输入（权威顺序见 `AUTHORITY_CONTRACT.md`）。H1 后端已完成但仍在 PR 中未 merge，`PROJECT_STATUS` 与 README 的产品能力描述以 main 实际状态为准。
+
 ### 当前里程碑：Product Stage A0 真相基线
 
 ```text
