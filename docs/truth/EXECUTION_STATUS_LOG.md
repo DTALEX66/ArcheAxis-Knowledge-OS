@@ -726,3 +726,17 @@
 - runtime residue：`audit-main-pdf-20260810` 经项目安全工具返回 `BLOCKED_RUNTIME_CLEANUP`（exit 2）；ACL 不可读、无 handle 工具、目录属性无 reparse 标志，目标保留。未提权改 ACL、未夺取所有权、未强杀进程。
 - 证据等级：结构性 Git/readback + LOCAL_RUNTIME；commit、push、exact-SHA CI、merge、安装态运行均 `NOT EXECUTED`。
 - 回滚：源码文档修改可精确反向；本日志保持 append-only，如本纠正有误只能追加新 CORRECTION。
+
+### LOG-20260811-058 — EXECUTION RELIABILITY BRANCH PUBLICATION — PASS
+
+- 时间：2026-08-11T00:17:14+08:00
+- 执行分支：`codex/execution-reliability-standards`
+- 已发布提交：`781dd93ff34018e785f3cc1ba0c3d4266ad08adc`
+- 变更：发布执行可靠性规范、H0/H1 truth 纠正、PR #73 squash merge 纠正、审计后 DeepSeek H0–H5/Web/KLC 全量任务包和配置/intake 索引。
+- 本地门禁：PDF 定向测试 `3 passed, 1 warning`；repository convention（worktree/index）PASS；相对链接 9/9 PASS；DeepSeek 后续任务覆盖 98/98；`git diff --check` PASS。
+- 云端回读：`origin/codex/execution-reliability-standards=781dd93ff34018e785f3cc1ba0c3d4266ad08adc`，与本地 HEAD 一致。
+- CI：GitHub CLI 对该 branch 查询返回空列表；push 未触发 exact-SHA Actions，状态为 `NOT EXECUTED`，不得写 PASS。
+- 边界：PR、merge、release、安装态运行均 `NOT EXECUTED`；ignored `audit-main-pdf-20260810` 保持 `BLOCKED_RUNTIME_CLEANUP`，未上传。
+- 证据等级：`PUBLICATION`（远端 branch SHA readback），不等于 exact-SHA CI、main merge 或 live installed。
+- 递归记录边界：本条日志自身的 follow-up commit/push 由 Git 历史和最终 remote SHA 回读证明，不再为记录“记录提交”而无限追加状态行。
+- 回滚：通过新 PR/revert 回退已发布提交；不得 force-push 或改写本日志历史。
