@@ -698,3 +698,16 @@
 - 证据等级：`PUBLICATION`（分支文件与 SHA 回读）；不等于 exact-SHA CI、main 合并、实现完成或安装态资格。
 - 权威边界：本次只归档历史来源；当前任务定义仍由冻结基线与批准增补包提供，状态仍只在本日志追加。
 - 回滚：revert `501a78c`。
+
+### LOG-20260810-056 — HISTORICAL PLANNING SOURCES DEDUPED AND PUBLISHED — PASS
+
+- 时间：2026-08-10T21:50:07+08:00
+- 执行分支：`codex/frozen-roadmap-deepseek-v1`
+- 归档提交：`9a91e7d143493bfda1bfb723aa83713306a6969d`
+- 变更：将项目本地 Hermes 边界中此前未进入 Git 的历史蓝图、规划、任务包、验收资料与 manifests 收敛到 `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/`；22 个物理源件经去重和筛选后形成 99 个仓库文件，并保留原始源、选中压缩包条目和仓库副本三类 SHA-256 清单。
+- 隐私/冗余边界：3 个 Desktop/Cloud 复审 ZIP 为同 SHA 副本，2 个对话归档 ZIP 为同 SHA 副本，3 个 CI TaskPack 也为同 SHA 副本；原 ZIP、prompts、对话时间线、截图、HTML 原型和执行脚本均未提交，只保留合规项目规划内容与原始 SHA 证据。
+- 验证：物理源清单 22/22、仓库副本清单 99/99；85 个选中压缩包条目无 prompt/对话时间线/PNG/HTML/PowerShell；文本高置信秘密与机器路径扫描 PASS；3 个 DOCX 内部 XML 扫描 PASS；repository convention（index）PASS；`test_naming_conventions.py` 19 passed；`git diff --cached --check` PASS。
+- 云端回读：`origin/codex/frozen-roadmap-deepseek-v1` = 本地 `9a91e7d143493bfda1bfb723aa83713306a6969d`。
+- 证据等级：`PUBLICATION`（分支文件与 SHA 回读）；不等于 exact-SHA CI、main 合并、实现完成或安装态资格。
+- 权威边界：历史归档不覆盖冻结基线、批准增补或本状态日志；清理本地缓存不得删除未提交工作树或唯一证据。
+- 回滚：revert `9a91e7d`。
