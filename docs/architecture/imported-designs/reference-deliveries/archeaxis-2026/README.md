@@ -2,7 +2,7 @@
 
 > **状态：外部设计与验收参考，非当前实现、非运行时依赖、非可直接执行任务。**
 >
-> 本目录保留用户提供的原始交付，以支持未来的设计追溯。当前可验证能力以 `docs/PROJECT_STATUS.md`、实际代码、测试和 Git 历史为准；可执行排序以 `docs/FUTURE_EXECUTION_BLUEPRINT.md` 为准。
+> 本目录保留用户提供的原始交付，以支持未来的设计追溯。当前可验证能力以 `docs/PROJECT_STATUS.md`、实际代码、测试和 Git 历史为准；可执行任务以 `docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`、批准增补与 `docs/truth/EXECUTION_STATUS_LOG.md` 为准。
 
 ## 使用边界
 
@@ -21,7 +21,8 @@
 | `Cognitive_Loop_OS_GoogleResearch_500AI_Delivery_v1.0.zip` | `029056323290a0dfc8d2cd4b809fe44bac21bba84d223cd582ed94216ba550f0` | Research-to-Practice 候选资产与验收材料 |
 | `ArcheAxis_OS_MCS_Phase5_v0.1.0.zip` | `ce94e63ae551ee65d60aaf9315d90a148c184fcc4da8b5cf8df79c2bc3a28c05` | Phase 5 受治理最低闭环验收参考 |
 | `ArcheAxis_OS_MCS_Phase5_v0.1.0.sha256` | — | 用户提供的 MCS zip 校验记录；与上列 zip 一致 |
+| [`planning-2026-08-09/`](planning-2026-08-09/) | 见目录内 `ORIGINAL_SOURCE_MANIFEST.sha256` 与 `REPOSITORY_COPY_MANIFEST.sha256` | ArcheAxis Workspace 原始蓝图、规划、v3/v4 任务包与 2026-08-10 handoff；仅作来源追溯 |
 
 ## 已吸收的稳定决策
 
-这些交付中可复用且已被收敛到仓库规划的原则，见 [`../../../FUTURE_EXECUTION_BLUEPRINT.md`](../../../FUTURE_EXECUTION_BLUEPRINT.md)：模块化单体、候选默认、审核门、追加式事实、版本/审计、命令幂等、事务 outbox、可恢复 worker、结构化可编辑教学资产，以及 2D 优先的空间记忆。
+这些交付中可复用且已被收敛到仓库规划的原则，见 [`../../../../FUTURE_EXECUTION_BLUEPRINT.md`](../../../../FUTURE_EXECUTION_BLUEPRINT.md)：模块化单体、候选默认、审核门、追加式事实、版本/审计、命令幂等、事务 outbox、可恢复 worker、结构化可编辑教学资产，以及 2D 优先的空间记忆。冻结任务和批准增补的权威顺序见 [`../../../../truth/AUTHORITY_CONTRACT.md`](../../../../truth/AUTHORITY_CONTRACT.md)。
