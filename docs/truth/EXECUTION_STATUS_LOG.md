@@ -1348,3 +1348,12 @@
 
 - PR #120 squash merged → main `a68742d`
 - 3 I001 import 排序 + 1 F841; CI ruff 范围不含 tests/ (卫生)
+
+
+### LOG-20260812-116 — PR #121 MERGED (外置依赖文档更新) — PASS
+
+- PR #121 squash merged → main `c17e0e8`
+- EXTERNAL_DEPENDENCIES.md: 登记 ci-adapters 组 (rapidocr-onnxruntime/
+  faster-whisper/markitdown/newspaper4k/readabilipy/trafilatura)、
+  吸收+Magika 标记已 merge、HF 模型缓存位置
+- 双写同步: OS configuration 仓库 → `8ab8bee` (master)
