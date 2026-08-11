@@ -175,7 +175,10 @@ def run_pipeline(
             index_document_links(kb_id, content)
 
     # ── Stage 6: Cross-reference ─────────────────────
-    if "crossref" in actions and kb_id:
+    # MFX-012: crossref is a credibility heuristic independent of the KB
+    # index stage; it must run whenever content exists (kb_id is an index
+    # artifact, not a crossref prerequisite).
+    if "crossref" in actions and content:
         from shared.cross_reference import score_credibility
 
         # MFX-012: score_credibility is a legacy domain/keyword heuristic.
@@ -183,7 +186,10 @@ def run_pipeline(
         # 'legacy_heuristic'); it must NEVER be promoted to a 'verified',
         # 'web-verified', or evidence state. Real claim verification uses the
         # EvidenceConnector / obsidian-web-crosscheck pipeline.
-        cred = score_credibility({"title": title, "content": content, "url": input_data})
+        cross_title = title or result["stages"].get("tag", {}).get("keywords", [""])[0]
+        cred = score_credibility(
+            {"title": cross_title, "content": content, "url": input_data}
+        )
         cred["classification"] = "legacy_heuristic"
         cred["verified"] = False
         result["stages"]["crossref"] = cred
