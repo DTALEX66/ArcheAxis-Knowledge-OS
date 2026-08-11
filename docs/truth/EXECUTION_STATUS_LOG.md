@@ -1250,3 +1250,12 @@
 - graph_rag 首次测试 (2): index 计数 (fake GraphDB/VectorDB/embedder)、
   多跳搜索扩展+综合评分; 模块级 DB 单例用 fake 替换无需 sqlite-vec
 - **13/13 零测试 shared 组件全部清零**
+
+
+### LOG-20260812-105 — PR #114 MERGED (schemas/daily_notes 测试) — PASS
+
+- PR #114 squash merged → main `9008fcd`
+- schemas 15 测试 (响应包络默认值/字段/必填校验/请求模型默认值)
+- daily_notes 8 测试 (get/create/append/timeline cutoff/link_to_daily)
+- **shared/*.py 全部 15 模块测试覆盖完成**
+- 本地全量 1389 passed, 5 skipped, 0 failed
