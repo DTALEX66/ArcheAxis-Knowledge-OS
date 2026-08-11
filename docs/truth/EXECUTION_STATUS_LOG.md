@@ -1108,3 +1108,15 @@
   不可用空段 / 可用委托 silero / 音频损坏降级 / 探针不抛异常
 - 注入假 torch/torchaudio 模块, 无需重依赖
 - H2 组件覆盖补全: bakeoff + engines + audio_vad 全部有测试
+
+
+### LOG-20260812-092 — PR #101 MERGED (DataCite 解析修复) — PASS
+
+- PR #101 squash merged → main `63515ad`
+- public_evidence (#82, 首次测试覆盖) 发现 2 真实缺陷:
+  ①DataCite {data:{attributes}} 被当 Crossref {message} 解析 → 命中恒 None
+  ②_extract_year 缺 Crossref 'issued' / DataCite 'publicationYear'
+- 真实网络验证: Crossref 10.1038/nature12373 title/year/authors 全解析;
+  DataCite 10.5284/1046878 title/year 解析 (修复前 None)
+- 7 新测试 (路由/错误抑制/hit 往返)
+- 本地全量 1260 passed, 5 skipped
