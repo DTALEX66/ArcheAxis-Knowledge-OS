@@ -722,3 +722,15 @@
 - 证据等级：EXACT_SHA_CI + merge-SHA main CI 双绿
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 渲染仍 PARTIAL（真实资料源无 PDF 样本，不伪造，需独立前端批次）；AXW-H1-EXIT 待 022 前端完成；公开发布 NO-GO
 - 回滚：revert merge SHA fba208f（需单独评审）
+
+### LOG-20260810-058 — PDF HTTP ENDPOINT PR #74 — PASS
+
+- 时间：2026-08-10
+- 执行分支：feat/axw022a-pdf-http-endpoint
+- 候选提交：6e9dbfd3db8e986a8b15927ce1537063a6f46a63
+- 变更：AXW-022A 后端 pdf_serve 接入 GET /workspace/api/pdf/{content_key} HTTP 端点（内容寻址、只读、fail-closed）；真实 PDF 端到端验证
+- 验证：exact-head CI 31493237744 completed/success（gateplan/lint/test/a0-gates PASS，桌面/UI 正确 SKIP）；mergeStateStatus CLEAN；本地 4 passed（2 真实 PDF 字节级 + 2 fail-closed）
+- 真实输入：时间简史（插图本）322页/18.9MB + 缤纷的语言学 120页/2.2MB，均图文；HTTP 读回字节 SHA-256 一致
+- 证据等级：EXACT_SHA_CI + LOCAL_RUNTIME（真实 PDF 字节保真）
+- 风险/剩余项：PR #74 未 merge（未获授权）；PDF.js 前端渲染（分页/缩放/搜索 + 证据批注 + WebView 点击级）仍待独立前端批次；AXW-H1-EXIT 待 022 前端完成
+- 回滚：关闭/丢弃 PR #74
