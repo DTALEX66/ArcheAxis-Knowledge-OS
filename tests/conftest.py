@@ -27,6 +27,16 @@ os.environ.setdefault("COGNITIVE_RATE_LIMIT_TOKEN", "100")
 tempfile.tempdir = str(_TASK_TMP)
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register the --run-network flag used by live-API connector tests."""
+    parser.addoption(
+        "--run-network",
+        action="store_true",
+        default=False,
+        help="Run live-network tests (DOI/API connector calls).",
+    )
+
+
 @pytest.fixture
 def admin_api_key(monkeypatch: pytest.MonkeyPatch) -> str:
     """Provision an isolated, explicit administrator key for one test."""
