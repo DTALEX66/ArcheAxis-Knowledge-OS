@@ -331,8 +331,8 @@ class TestMultiFormatAdapter:
 
         f = tmp_path / "lesson.canvas"
         f.write_text(
-            '{"nodes":[{"id":"a","type":"text","text":"# Lesson\\n\\nRecall"},'
-            '{"id":"b","type":"link","url":"https://example.invalid"}],"edges":[]}',
+            '{"nodes":[{"id":"a","type":"text","x":0,"y":0,"width":200,"height":60,"text":"# Lesson\\n\\nRecall"},'
+            '{"id":"b","type":"link","x":200,"y":0,"width":200,"height":60,"url":"https://example.invalid"}],"edges":[]}',
             encoding="utf-8",
         )
         content, engine = convert_file(f)

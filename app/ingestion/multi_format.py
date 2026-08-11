@@ -77,6 +77,52 @@ def detect_format(file_path: str | Path) -> str:
     return mapping.get(ext, "unknown")
 
 
+# ── Content-based format detection (H2: Magika ONNX) ──
+
+# Magika label → multi_format key mapping
+_CONTENT_FORMAT_MAP: dict[str, str] = {
+    "pdf": "pdf", "docx": "docx", "xlsx": "xlsx", "pptx": "pptx",
+    "doc": "docx", "xls": "xlsx", "ppt": "pptx",
+    "odt": "docx", "ods": "xlsx", "odp": "pptx",
+    "html": "html", "xml": "html", "sgml": "html",
+    "txt": "txt", "markdown": "md", "csv": "csv", "tsv": "csv",
+    "json": "txt", "yaml": "txt", "toml": "txt",
+    "png": "image", "jpeg": "image", "gif": "image", "webp": "image",
+    "bmp": "image", "tiff": "image", "ico": "image", "svg": "image",
+    "mp3": "media_audio", "wav": "media_audio", "flac": "media_audio",
+    "m4a": "media_audio", "ogg": "media_audio",
+    "mp4": "media_video", "mkv": "media_video", "webm": "media_video",
+    "flv": "media_video",
+    "zip": "unknown", "tar": "unknown", "gzip": "unknown",
+    "epub": "docx", "rtf": "docx",
+    "python": "txt", "javascript": "txt", "shell": "txt",
+}
+
+
+def detect_format_from_content(file_path: str | Path) -> str:
+    """Use Magika content detection for robust format identification.
+
+    Falls back to extension-based detection if Magika model is unavailable
+    or if the detected label doesn't map to a known engine.
+    """
+    path = Path(file_path)
+    if not path.is_file():
+        return detect_format(file_path)
+
+    try:
+        from shared.file_detection import detect, is_available
+
+        if not is_available():
+            return detect_format(file_path)
+
+        content = path.read_bytes()[:8192]  # first 8KB sufficient for Magika
+        result = detect(content, path_hint=path.name)
+        label = str(result.get("label", "unknown"))
+        return _CONTENT_FORMAT_MAP.get(label, detect_format(file_path))
+    except (OSError, ImportError):
+        return detect_format(file_path)
+
+
 # ── Engine wrappers ──
 
 
@@ -197,28 +243,32 @@ def _via_read(file_path: str) -> AdapterResult:
 
 
 def _via_canvas(file_path: str) -> AdapterResult:
-    """Project JSON Canvas nodes without executing files or following links."""
-    payload = json.loads(Path(file_path).read_text(encoding="utf-8"))
-    if not isinstance(payload, dict) or not isinstance(payload.get("nodes"), list):
-        raise ValueError("JSON Canvas document must contain a nodes array")
+    """Project JSON Canvas nodes without executing files or following links.
+
+    Uses shared/json_canvas.py validator (ADS-003) for spec-compliant validation.
+    Unknown fields are preserved on roundtrip.
+    """
+    from shared.json_canvas import validate_json_canvas, CanvasError
+
+    raw = Path(file_path).read_text(encoding="utf-8")
+    payload = json.loads(raw)
+
+    try:
+        validate_json_canvas(payload)
+    except CanvasError as e:
+        raise ValueError(f"Invalid JSON Canvas: {e}") from e
 
     sections: list[str] = []
     for node in payload["nodes"]:
-        if not isinstance(node, dict):
-            raise ValueError("JSON Canvas node must be an object")
         node_type = node.get("type")
         if node_type == "text":
             text = node.get("text")
-            if not isinstance(text, str):
-                raise ValueError("JSON Canvas text node must contain string text")
-            if text.strip():
+            if isinstance(text, str) and text.strip():
                 sections.append(text.strip())
         elif node_type in {"file", "link", "group"}:
             label = node.get("file") or node.get("url") or node.get("label")
             if isinstance(label, str) and label.strip():
                 sections.append(f"- {node_type}: {label.strip()}")
-        else:
-            raise ValueError(f"unsupported JSON Canvas node type: {node_type!r}")
 
     text = "\n\n".join(sections)
     return AdapterResult(
@@ -299,21 +349,36 @@ _ENGINES: dict[str, list[tuple[str, Any]]] = {
 }
 
 
-def convert_file(file_path: str | Path, fmt: str | None = None) -> tuple[str, str]:
+def convert_file(
+    file_path: str | Path,
+    fmt: str | None = None,
+    *,
+    quality: bool = False,
+) -> tuple[str, str] | tuple[str, str, dict[str, object]]:
     """Convert a file to text/Markdown using the best available engine.
 
     Args:
         file_path: Path to the input file.
         fmt: Optional format override (auto-detected if None).
+        quality: If True, also return quality assessment dict as third element.
 
     Returns:
-        (text_content, engine_used) tuple.
+        (text_content, engine_used) tuple, or (text_content, engine_used, quality)
+        if quality=True.
 
     Raises:
         RuntimeError: If all engines fail for this format.
     """
-    fmt = fmt or detect_format(file_path)
+    fmt = fmt or detect_format_from_content(file_path)
     engines = _ENGINES.get(fmt)
+
+    def _return(text: str, engine: str) -> tuple[str, str] | tuple[str, str, dict[str, object]]:
+        if quality:
+            from shared.text_quality import assess_conversion
+
+            q = assess_conversion(source_path=str(file_path), output_text=text)
+            return text, engine, q
+        return text, engine
 
     if not engines:
         # Unknown format — try markitdown as universal fallback
@@ -328,7 +393,7 @@ def convert_file(file_path: str | Path, fmt: str | None = None) -> tuple[str, st
             # metadata-only or placeholder result) must not be claimed as
             # content success (MFX-010 honest-capability guard).
             if result.success and result.content.strip():
-                return result.content, result.engine
+                return _return(result.content, result.engine)
             reason = result.error or "returned empty content"
             errors.append(f"{engine_name}: {reason}")
         except ImportError as e:
