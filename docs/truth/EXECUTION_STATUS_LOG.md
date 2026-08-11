@@ -1365,3 +1365,20 @@
 - THIRD_PARTY_NOTICES 补 Vendored models 节: Magika ONNX (Apache-2.0,
   standard_v3_0, shared/models/magika/) — EXTERNAL_DEPENDENCIES 3.2
   引用缺失项修复
+
+
+### LOG-20260812-118 — PR #122 MERGED (Magika 许可登记) — PASS
+
+- PR #122 squash merged → main `f0bd1ca`
+- THIRD_PARTY_NOTICES 补 Vendored models 节 (Magika ONNX Apache-2.0)
+
+
+### LOG-20260812-119 — PR #123 MERGED (uv.lock 漂移修复) — PASS
+
+- PR #123 squash merged → main `629978c`
+- 修复 3 个依赖漂移: ①httpx2 幽灵包 (不存在的包名) → httpx;
+  ②faster-whisper/rapidocr-onnxruntime (#98/#99) 从未入 lock
+  (仅手动安装) → uv lock 补锁; ③release-manifest digest 同步 (rev 6)
+- CI 首跑 lint 失败 (release-manifest.json missing-final-newline) →
+  amend 加末尾 LF → force-push → 全绿 (run 31543019316)
+- 全量 1458 passed, 5 skipped; 门禁干净
