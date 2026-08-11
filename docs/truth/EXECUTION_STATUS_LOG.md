@@ -869,3 +869,19 @@
 - 内容：吸收总图谱分析落地（SUPPLY_CHAIN_LEDGER v2 46组件 + ABSORPTION_EXECUTION_MATRIX v2 + 许可纠错10项）
 - 旧"implemented=8"漂移、旧阶段序列、旧许可结论均已更正
 - 回滚：revert 8e4f1cf
+
+
+### LOG-20260812-070 — HISTORICAL DEBT RESOLUTION + NAMING SYSTEM MIGRATION — PASS
+
+- 时间：2026-08-12
+- PR #69 merged（桌面控制台窗口修复）→ main `c9e8bda`
+- 命名体系迁移：Cognitive-Loop-OS → ArcheAxis Workspace（9 文件，33 处）
+  - GitHub 仓库名 "Cognitive-Loop-OS" 不变（仅 Git 标识符）
+  - 产品名统一为 "ArcheAxis Workspace / 元枢工作台"
+- 文档漂移修复：
+  - PROJECT_STATUS.md: H1/PDF.js merge 状态更新为"已 merge"
+  - PROJECT_STATUS.md: 吸收账本数字 101→46（ledger v2）
+  - H0_H1_STATUS_HANDOFF.md: 全部 "PR #72 未 merge" 更正为已 merge
+- Worktree 清理：10 个已 merge 分支的 worktree 移除
+- PR #81（吸收实现 + 命名更新）待 CI → merge
+- 回滚：revert 各 commit
