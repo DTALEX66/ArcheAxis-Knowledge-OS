@@ -1298,3 +1298,13 @@
 - 此前 API 层由 test_workspace_vault_api 覆盖 (只读契约);
   函数层错误路径由本 PR 补齐
 - 本地全量 1420 passed, 5 skipped
+
+
+### LOG-20260812-110 — PR #118 MERGED (SM-2 调度测试) — PASS
+
+- PR #118 squash merged → main `24b7e24`
+- knowledge_base.reviews 首次直接测试 (11): _sm2_interval 纯算法
+  (越界/失败重置/首/二/增长间隔/ease 下限)、schedule_review
+  (首次/mastered 转变/struggling + 状态更新)、due 过滤、history 过滤
+- 此前仅间接覆盖 (mermaid/gardener 测试中 mock)
+- 本地全量 1420 passed, 5 skipped
