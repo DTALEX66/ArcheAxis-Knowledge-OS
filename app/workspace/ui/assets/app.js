@@ -86,3 +86,89 @@ function setModule(module,trigger){const group=nav.find(([name])=>groupModule[na
 async function refreshActivityDock(){try{const [jobs,delivery,research]=await Promise.all([fetchJson('/workspace/api/jobs').then(validateJobs),fetchJson('/workspace/api/delivery').then(validateDelivery),fetchJson('/workspace/api/research')]);if(!isRecord(research)||research.schema_version!=='v1'||!Array.isArray(research.items))throw new Error('invalid workspace research');const reviewCount=research.items.length;const pending=(delivery.summary.outbox?.pending||0)+(delivery.summary.outbox?.failed||0);$('#dock-jobs').textContent=String(jobs.jobs.length);$('#dock-delivery').textContent=`${pending} / ${delivery.summary.receipts?.recorded||0}`;$('#dock-review').textContent=String(reviewCount);$('#dock-summary').textContent=`${jobs.jobs.length} jobs · ${pending} pending/failed · ${reviewCount} review`;$('#inspector-status').textContent='本地 API 可读';$('#inspector-evidence').textContent=`${delivery.summary.receipts?.recorded||0} receipts`}catch{$('#dock-summary').textContent='真实活动读取失败';$('#dock-jobs').textContent='不可用';$('#dock-delivery').textContent='不可用';$('#dock-review').textContent='不可用';$('#inspector-status').textContent='不可用';$('#inspector-evidence').textContent='等待重新读取'}}
 document.addEventListener('click',event=>{const rail=event.target.closest('.rail-item[data-module]');if(rail){setModule(rail.dataset.module,rail);return}const action=event.target.closest('[data-action]');if(!action)return;if(action.dataset.action==='inspector-toggle'){const closing=!state.inspectorCollapsed;if(!closing)state.inspectorTrigger=action;state.inspectorCollapsed=closing;localStorage.setItem('aa-inspector',state.inspectorCollapsed?'collapsed':'open');applyShellState({restoreFocus:closing});if(!closing)$('.inspector-internal-trigger')?.focus();return}if(action.dataset.action==='dock-toggle'){state.dockCollapsed=!state.dockCollapsed;localStorage.setItem('aa-dock',state.dockCollapsed?'collapsed':'open');applyShellState();return}});
 applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterval(()=>void refreshActivityDock(),3000);
+
+
+/* AXW-022A PDF.js evidence viewer — content-addressed, read-only.
+   Renders original PDF bytes from /workspace/api/pdf/<sha256:key>. */
+(function(){
+  if (typeof pdfjsLib === "undefined") { return; } // pdf.min.js not loaded; degrade silently
+  const state = { doc: null, page: 1, zoom: 1.0, pending: 0, matchPage: -1 };
+  const viewer = () => document.getElementById("pdf-viewer");
+  const $info = () => document.getElementById("pdf-page-info");
+  const $zinfo = () => document.getElementById("pdf-zoom-info");
+  const $prev = () => document.getElementById("pdf-prev");
+  const $next = () => document.getElementById("pdf-next");
+
+  function setButtons() {
+    if (!$prev() || !$next()) return;
+    $prev().disabled = !state.doc || state.page <= 1;
+    $next().disabled = !state.doc || state.page >= state.doc.numPages;
+  }
+
+  async function renderPage() {
+    if (!state.doc) return;
+    const page = await state.doc.getPage(state.page);
+    const base = page.getViewport({ scale: state.zoom });
+    const container = viewer();
+    container.textContent = "";
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = base.width * dpr;
+    canvas.height = base.height * dpr;
+    canvas.style.width = base.width + "px";
+    canvas.style.height = base.height + "px";
+    await page.render({ canvasContext: ctx, viewport: base, transform: dpr !== 1 ? [dpr,0,0,dpr,0,0] : null }).promise;
+    container.appendChild(canvas);
+    if ($info()) $info().textContent = `${state.page} / ${state.doc.numPages}`;
+    setButtons();
+  }
+
+  async function loadPdf(key) {
+    const input = document.getElementById("pdf-key-input");
+    if (!input) return;
+    const k = (key || input.value || "").trim();
+    if (!/^sha256:[0-9a-f]{64}$/i.test(k)) { alert("内容键必须为 sha256:<64位hex>"); return; }
+    const container = viewer();
+    if (container) container.textContent = "加载 PDF 字节…";
+    try {
+      const resp = await fetch("/workspace/api/pdf/" + encodeURIComponent(k));
+      if (!resp.ok) { throw new Error("HTTP " + resp.status); }
+      const data = await resp.arrayBuffer();
+      state.doc = await pdfjsLib.getDocument({ data: data }).promise;
+      state.page = 1; state.zoom = 1.0; state.matchPage = -1;
+      if ($zinfo()) $zinfo().textContent = "100%";
+      await renderPage();
+    } catch (err) {
+      if (container) { container.textContent = ""; container.innerHTML = '<div class="empty"><b>PDF 加载失败</b><p>' + err.message + '</p></div>'; }
+    }
+  }
+
+  async function searchPdf() {
+    if (!state.doc) return;
+    const q = (document.getElementById("pdf-search-input").value || "").trim();
+    if (!q) { alert("请输入搜索词"); return; }
+    state.matchPage = -1;
+    for (let i = 1; i <= state.doc.numPages; i++) {
+      const page = await state.doc.getPage(i);
+      const text = await page.getTextContent();
+      const hay = text.items.map(function(it){ return it.str || ""; }).join(" ");
+      if (hay.indexOf(q) !== -1) { state.matchPage = i; break; }
+    }
+    if (state.matchPage > 0) { state.page = state.matchPage; await renderPage(); alert("在第 " + state.matchPage + " 页找到匹配"); }
+    else { alert("未找到匹配：" + q); }
+  }
+
+  document.addEventListener("click", function(ev){
+    const el = ev.target.closest("[data-action]");
+    if (!el) return;
+    switch (el.dataset.action) {
+      case "pdf-load": void loadPdf(); break;
+      case "pdf-prev": if (state.doc && state.page > 1) { state.page--; void renderPage(); } break;
+      case "pdf-next": if (state.doc && state.page < state.doc.numPages) { state.page++; void renderPage(); } break;
+      case "pdf-zoom-in": state.zoom = Math.min(3, Math.round((state.zoom + 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
+      case "pdf-zoom-out": state.zoom = Math.max(0.5, Math.round((state.zoom - 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
+      case "pdf-search": void searchPdf(); break;
+    }
+  });
+})();
