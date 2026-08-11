@@ -1024,3 +1024,12 @@
 - POST /api/vault/backups + /api/vault/restore
 - frontmatter 保留往返测试（read→edit→write 保持 YAML properties）
 - 4 新测试；C4 安全往返：读/写/冲突/备份/恢复 全链
+
+
+### LOG-20260812-084 — PR #93 MERGED (H3 backup list/restore UI) — PASS
+
+- PR #93 squash merged → main `7bc75e0`
+- UI: 备份列表按钮 + select + 恢复按钮；恢复后编辑器重新加载内容+哈希
+- Browser-verified: 4 backups listed / restore 200 / file reverted /
+  traversal guard 422
+- H3 纵切全链（含 UI）: inspect+read+search+write(乐观锁)+冲突+备份+恢复
