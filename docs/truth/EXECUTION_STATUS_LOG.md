@@ -1172,3 +1172,12 @@
   defaults、UI schema、unknown type
 - 无代码变更; 本地全量 1323 passed, 5 skipped
 - 零测试组件 8→7
+
+
+### LOG-20260812-098 — PR #107 MERGED (tool_evidence 测试) — PASS
+
+- PR #107 squash merged → main `e9b33a6`
+- tool_evidence 首次测试 (11): file_read/safe_write/kb_search/mk_search
+  证据判定、dry_run 非证据、非真实工具、缺失/不支持工具名、空白剥离
+- 无代码变更; 本地全量 1320 passed, 5 skipped
+- 零测试组件 7→6
