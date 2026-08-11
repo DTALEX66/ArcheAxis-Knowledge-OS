@@ -271,6 +271,12 @@ class MigrationOperator:
             payload.append([str(item["type"]), name, str(item["tbl_name"]), str(item["sql"] or "")])
             if str(item["type"]) != "table":
                 continue
+            # vec0 virtual tables cannot be SELECTed without the sqlite-vec
+            # extension loaded on this connection; their rows are derived
+            # from the companion *_id_map table and are fingerprinted there.
+            declared = str(item["sql"] or "")
+            if "USING vec0" in declared or "VIRTUAL TABLE" in declared:
+                continue
             quoted_name = name.replace('"', '""')
             rows = connection.execute(f'SELECT * FROM "{quoted_name}"').fetchall()
             canonical_rows = sorted(

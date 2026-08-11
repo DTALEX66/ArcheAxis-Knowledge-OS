@@ -128,7 +128,8 @@ def write_file(
 
     new_bytes = content.encode("utf-8")
     store_path = Path(store).expanduser().resolve()
-    backup_dir = store_path / "vault-backups"
+    # ``store`` is the SQLite database file path; backups live beside it.
+    backup_dir = store_path.parent / "vault-backups"
     backup_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     backup = backup_dir / f"{target.name}-{stamp}.bak"
