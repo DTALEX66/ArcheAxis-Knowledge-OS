@@ -1,0 +1,263 @@
+schema_version: "2.0"
+atlas_name: "ArcheAxis Learning Workspace — Capability Atlas"
+updated: "2026-08-12"
+authority: "ArcheAxis_Learning_Workspace_System_Blueprint_and_HERMES_Update_TaskPack_v1_2026-08-11"
+status_rules: "docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md"
+tombstone_rule: "任何 capability 的删除、降级、改名、合并均需 Owner Decision 和可追溯映射；删除 binding_core / binding_long_term 的测试/校验失败"
+
+capabilities:
+  - capability_id: "CAP-0010"
+    canonical_name: "原件资产与来源接入"
+    pillar: "P0"
+    product_layer: "Workspace"
+    authority_status: "binding_core"
+    roadmap_state: "critical_now"
+    activation_horizon: "H0-H1"
+    technical_state: "supported"
+    objects: ["RawAsset", "SourceRecord", "ImportBatch", "Hash", "Version", "Snapshot"]
+    views: ["导入", "原件", "版本"]
+    dependencies: []
+    entry_gate: ["approved root", "hash before write"]
+    exit_evidence: ["真实 PDF 导入闭环", "hash 读回"]
+    fallbacks: []
+    origin_requirement_ids: ["AXW-022A", "REQ-SOURCE-001"]
+
+  - capability_id: "CAP-0020"
+    canonical_name: "多格式转换"
+    pillar: "P0"
+    product_layer: "Workspace"
+    authority_status: "binding_core"
+    roadmap_state: "core_next"
+    activation_horizon: "H1-H2"
+    technical_state: "in_progress"
+    objects: ["ConversionRun", "DerivedDocument", "Block", "Page", "Region", "Table", "TranscriptSegment", "Anchor"]
+    views: ["转换", "质量", "损失报告"]
+    dependencies: ["MarkItDown", "Tesseract", "FFmpeg", "Magika"]
+    entry_gate: ["fixture", "质量指标", "安装验证"]
+    exit_evidence: ["CER/WER gate", "fixture 通过"]
+    fallbacks: ["extension fallback", "honest unavailable"]
+    origin_requirement_ids: ["AXW-023A", "MFX-010", "REQ-CONVERT-001"]
+
+  - capability_id: "CAP-0030"
+    canonical_name: "证据锚定与交叉核验"
+    pillar: "P1"
+    product_layer: "Evidence"
+    authority_status: "binding_core"
+    roadmap_state: "critical_now"
+    activation_horizon: "H1"
+    technical_state: "supported"
+    objects: ["EvidenceAnchor", "ClaimCandidate", "AnchoredClaim", "CrossValidationRecord", "VerifiedClaim", "EvidenceBundle"]
+    views: ["证据", "交叉验证", "冲突"]
+    dependencies: ["Crossref", "DataCite", "OpenAlex", "Wikidata"]
+    entry_gate: ["truth/prediction pairs", "公开可核验"]
+    exit_evidence: ["anchor 回跳", "交叉验证记录"]
+    fallbacks: ["无法公开核验标注"]
+    origin_requirement_ids: ["AXW-022B", "REQ-EVIDENCE-001"]
+
+  - capability_id: "CAP-0040"
+    canonical_name: "人类深度学习系统"
+    pillar: "P2"
+    product_layer: "Learning"
+    authority_status: "binding_core"
+    roadmap_state: "formal_later"
+    activation_horizon: "H4"
+    technical_state: "in_progress"
+    objects: ["LearningObjective", "RetrievalPractice", "FSRS卡片", "TeachBack", "学习画像"]
+    views: ["学习", "复习", "掌握度"]
+    dependencies: ["py-fsrs"]
+    entry_gate: ["EvidenceAnchor 绑定", "人工确认"]
+    exit_evidence: ["FSRS 调度", "练习记录"]
+    fallbacks: []
+    origin_requirement_ids: ["AXW-025A", "REQ-LEARNING-001"]
+
+  - capability_id: "CAP-0050"
+    canonical_name: "AI 学习资产与受控调用"
+    pillar: "P3"
+    product_layer: "AI Assets"
+    authority_status: "binding_long_term"
+    roadmap_state: "formal_later"
+    activation_horizon: "H4-H8"
+    technical_state: "planned"
+    objects: ["Memory", "Rule", "Skill", "Standard", "Context", "Evaluation", "GovernedAIAsset"]
+    views: ["AI 资产", "调用审计", "评测"]
+    dependencies: ["LiteLLM", "本地模型"]
+    entry_gate: ["人工批准", "证据绑定", "风险等级"]
+    exit_evidence: ["调用审计", "评测集"]
+    fallbacks: ["experimental 受限"]
+    origin_requirement_ids: ["REQ-AI-ASSET-001"]
+
+  - capability_id: "CAP-0060"
+    canonical_name: "LER 视觉教学与课件"
+    pillar: "P4"
+    product_layer: "Learning"
+    authority_status: "binding_long_term"
+    roadmap_state: "formal_later"
+    activation_horizon: "H6-H7"
+    technical_state: "planned"
+    objects: ["VisualTeaching", "CoursewarePackage", "VisualPackage", "讲义", "课件"]
+    views: ["视觉教学", "课件"]
+    dependencies: []
+    entry_gate: ["来源/证据锚点", "资产许可", "fallback"]
+    exit_evidence: ["统一 manifest", "静态降级"]
+    fallbacks: ["静态帧/文本降级"]
+    origin_requirement_ids: ["AXW-090", "REQ-LER-001"]
+
+  - capability_id: "CAP-0070"
+    canonical_name: "动态解释与仿真"
+    pillar: "P4"
+    product_layer: "Learning"
+    authority_status: "binding_long_term"
+    roadmap_state: "formal_later"
+    activation_horizon: "H7"
+    technical_state: "planned"
+    objects: ["AnimationScript", "Scene", "Step", "SimulationPackage", "实验记录"]
+    views: ["动画", "仿真"]
+    dependencies: []
+    entry_gate: ["输入输出", "可复现", "fallback"]
+    exit_evidence: ["操作事件", "反馈"]
+    fallbacks: ["静态帧/文本"]
+    origin_requirement_ids: ["AXW-090", "REQ-LER-002"]
+
+  - capability_id: "CAP-0080"
+    canonical_name: "空间记忆与沉浸学习"
+    pillar: "P5"
+    product_layer: "Learning"
+    authority_status: "binding_long_term"
+    roadmap_state: "experimental_later"
+    activation_horizon: "H7-H8"
+    technical_state: "planned"
+    objects: ["SpatialMemoryPackage", "World", "Palace", "Room", "Locus", "Object", "Route", "MoveMap", "ReviewEvent"]
+    views: ["空间记忆", "2D/2.5D/3D/VR/AR"]
+    dependencies: []
+    entry_gate: ["engine-agnostic 数据合同", "资产许可账本", "2D/text fallback"]
+    exit_evidence: ["学习效果评估", "fallback"]
+    fallbacks: ["文本路线", "2D Map", "CSS/Canvas 2.5D"]
+    origin_requirement_ids: ["AXW-090", "REQ-SPATIAL-001"]
+
+  - capability_id: "CAP-0090"
+    canonical_name: "研究、课程与项目工作空间"
+    pillar: "P6"
+    product_layer: "Workspace"
+    authority_status: "binding_long_term"
+    roadmap_state: "formal_later"
+    activation_horizon: "H6-H7"
+    technical_state: "planned"
+    objects: ["ResearchProject", "ResearchPackage", "Course", "Project", "Portfolio", "Rubric", "OutputProof"]
+    views: ["研究", "课程", "项目"]
+    dependencies: []
+    entry_gate: []
+    exit_evidence: []
+    fallbacks: []
+    origin_requirement_ids: ["AXW-091", "AXW-092", "AXW-093", "REQ-RESEARCH-001"]
+
+  - capability_id: "CAP-0100"
+    canonical_name: "开放互操作与生态适配器"
+    pillar: "P7"
+    product_layer: "Workspace"
+    authority_status: "binding_core"
+    roadmap_state: "core_next"
+    activation_horizon: "H3"
+    technical_state: "in_progress"
+    objects: ["Vault往返", "JSON Canvas", "Markdown", "Links", "Attachments", "Adapter"]
+    views: ["互操作", "适配器"]
+    dependencies: ["JSON Canvas", "MarkItDown"]
+    entry_gate: ["expected-hash", "原子写", "冲突检测"]
+    exit_evidence: ["C4 安全往返"]
+    fallbacks: []
+    origin_requirement_ids: ["AXW-090", "REQ-INTEROP-001"]
+
+  - capability_id: "CAP-0110"
+    canonical_name: "搜索、图谱与索引"
+    pillar: "P8"
+    product_layer: "Library"
+    authority_status: "binding_core"
+    roadmap_state: "core_next"
+    activation_horizon: "H3-H4"
+    technical_state: "in_progress"
+    objects: ["FTS", "向量索引", "图谱", "引用路径"]
+    views: ["搜索", "图谱"]
+    dependencies: ["sqlite-vec", "NetworkX"]
+    entry_gate: []
+    exit_evidence: ["索引可重建"]
+    fallbacks: ["FTS5 独立可用"]
+    origin_requirement_ids: ["REQ-SEARCH-001"]
+
+  - capability_id: "CAP-0120"
+    canonical_name: "桌面、平台与可选协作"
+    pillar: "P9"
+    product_layer: "Desktop"
+    authority_status: "binding_core"
+    roadmap_state: "critical_now"
+    activation_horizon: "H0-H5"
+    technical_state: "in_progress"
+    objects: ["Windows", "Tauri", "安装器", "更新"]
+    views: ["桌面"]
+    dependencies: ["Tauri", "NSIS"]
+    entry_gate: []
+    exit_evidence: ["安装态验证", "restart readback"]
+    fallbacks: []
+    origin_requirement_ids: ["AXW-096", "REQ-DESKTOP-001"]
+
+  - capability_id: "CAP-0130"
+    canonical_name: "受限受控执行探索"
+    pillar: "P10"
+    product_layer: "Exploration"
+    authority_status: "exploration"
+    roadmap_state: "deferred_retained"
+    activation_horizon: "H8-H10"
+    technical_state: "planned"
+    objects: ["受控执行 Adapter", "sandbox", "checkpoint", "trace", "rollback"]
+    views: []
+    dependencies: []
+    entry_gate: ["权限", "dry-run", "sandbox", "checkpoint", "trace", "cancel", "rollback"]
+    exit_evidence: []
+    fallbacks: []
+    origin_requirement_ids: ["AXW-098", "AXW-099", "REQ-EXPLORATION-001"]
+
+  - capability_id: "CAP-0140"
+    canonical_name: "备份、同步与发布"
+    pillar: "P8/P9"
+    product_layer: "Settings"
+    authority_status: "binding_long_term"
+    roadmap_state: "formal_later"
+    activation_horizon: "H5-H9"
+    technical_state: "planned"
+    objects: ["备份", "恢复", "同步", "发布", "导出"]
+    views: ["备份", "同步"]
+    dependencies: []
+    entry_gate: []
+    exit_evidence: ["完整导出", "恢复读回"]
+    fallbacks: []
+    origin_requirement_ids: ["AXW-094", "REQ-BACKUP-001"]
+
+  - capability_id: "CAP-0150"
+    canonical_name: "模型、Provider 与数据出境治理"
+    pillar: "P8"
+    product_layer: "AI Assets"
+    authority_status: "binding_long_term"
+    roadmap_state: "formal_later"
+    activation_horizon: "H4-H8"
+    technical_state: "planned"
+    objects: ["本地模型", "Provider", "成本", "Token", "延迟", "数据出境授权"]
+    views: ["模型", "Provider"]
+    dependencies: ["LiteLLM"]
+    entry_gate: ["授权", "manifest"]
+    exit_evidence: ["能力探针"]
+    fallbacks: []
+    origin_requirement_ids: ["AXW-095", "REQ-PROVIDER-001"]
+
+  - capability_id: "CAP-0160"
+    canonical_name: "可视化与空间学习表征"
+    pillar: "P4"
+    product_layer: "Learning"
+    authority_status: "binding_long_term"
+    roadmap_state: "formal_later"
+    activation_horizon: "H6-H8"
+    technical_state: "planned"
+    objects: ["图解", "概念图", "数据图表", "Learning Map", "Canvas", "Graph"]
+    views: ["可视化"]
+    dependencies: ["JSON Canvas"]
+    entry_gate: ["来源/证据锚点"]
+    exit_evidence: []
+    fallbacks: []
+    origin_requirement_ids: ["REQ-VISUAL-001"]

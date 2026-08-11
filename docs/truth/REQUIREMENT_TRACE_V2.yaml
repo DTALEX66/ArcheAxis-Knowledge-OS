@@ -1,0 +1,141 @@
+schema_version: "2.0"
+trace_name: "ArcheAxis Learning Workspace — Requirement Trace"
+updated: "2026-08-12"
+authority: "任务包 v1 2026-08-11 + Owner 决策"
+
+requirements:
+  - requirement_id: "REQ-SOURCE-001"
+    title: "原件保全与来源接入"
+    scope: "binding_core"
+    horizon: "H0-H1"
+    capabilities: ["CAP-0010"]
+    origin: "Owner 任务包 4.1 + 历史蓝图"
+    status: "met_partial"
+
+  - requirement_id: "REQ-CONVERT-001"
+    title: "多格式转换与质量门"
+    scope: "binding_core"
+    horizon: "H1-H2"
+    capabilities: ["CAP-0020"]
+    origin: "Owner 任务包 4.1"
+    status: "in_progress"
+
+  - requirement_id: "REQ-EVIDENCE-001"
+    title: "证据锚定交叉核验"
+    scope: "binding_core"
+    horizon: "H1"
+    capabilities: ["CAP-0030"]
+    origin: "Owner 任务包 4.2"
+    status: "met_partial"
+
+  - requirement_id: "REQ-LEARNING-001"
+    title: "人类深度学习链"
+    scope: "binding_core"
+    horizon: "H4"
+    capabilities: ["CAP-0040"]
+    origin: "Owner 任务包 4.3"
+    status: "in_progress"
+
+  - requirement_id: "REQ-AI-ASSET-001"
+    title: "AI 学习资产与受控调用"
+    scope: "binding_long_term"
+    horizon: "H4-H8"
+    capabilities: ["CAP-0050"]
+    origin: "Owner 任务包 4.4"
+    status: "planned"
+
+  - requirement_id: "REQ-LER-001"
+    title: "LER 视觉教学"
+    scope: "binding_long_term"
+    horizon: "H6-H7"
+    capabilities: ["CAP-0060"]
+    origin: "Owner 任务包 4.5"
+    status: "planned"
+
+  - requirement_id: "REQ-LER-002"
+    title: "动态解释与仿真"
+    scope: "binding_long_term"
+    horizon: "H7"
+    capabilities: ["CAP-0070"]
+    origin: "Owner 任务包 4.5"
+    status: "planned"
+
+  - requirement_id: "REQ-SPATIAL-001"
+    title: "空间记忆与沉浸学习"
+    scope: "binding_long_term"
+    horizon: "H7-H8"
+    capabilities: ["CAP-0080"]
+    origin: "Owner 任务包 4.6"
+    status: "planned"
+
+  - requirement_id: "REQ-RESEARCH-001"
+    title: "研究课程项目空间"
+    scope: "binding_long_term"
+    horizon: "H6-H7"
+    capabilities: ["CAP-0090"]
+    origin: "Owner 任务包 4.7"
+    status: "planned"
+
+  - requirement_id: "REQ-INTEROP-001"
+    title: "开放互操作与适配器"
+    scope: "binding_core"
+    horizon: "H3"
+    capabilities: ["CAP-0100"]
+    origin: "Owner 任务包 4.8"
+    status: "in_progress"
+
+  - requirement_id: "REQ-SEARCH-001"
+    title: "搜索图谱索引"
+    scope: "binding_core"
+    horizon: "H3-H4"
+    capabilities: ["CAP-0110"]
+    origin: "Owner 任务包 4.9"
+    status: "in_progress"
+
+  - requirement_id: "REQ-DESKTOP-001"
+    title: "桌面平台"
+    scope: "binding_core"
+    horizon: "H0-H5"
+    capabilities: ["CAP-0120"]
+    origin: "Owner 任务包 4.10"
+    status: "in_progress"
+
+  - requirement_id: "REQ-EXPLORATION-001"
+    title: "受控执行探索"
+    scope: "exploration"
+    horizon: "H8-H10"
+    capabilities: ["CAP-0130"]
+    origin: "Owner 任务包 4.11"
+    status: "deferred"
+
+  - requirement_id: "REQ-BACKUP-001"
+    title: "备份同步发布"
+    scope: "binding_long_term"
+    horizon: "H5-H9"
+    capabilities: ["CAP-0140"]
+    origin: "Owner 任务包 4.10"
+    status: "planned"
+
+  - requirement_id: "REQ-PROVIDER-001"
+    title: "模型 Provider 治理"
+    scope: "binding_long_term"
+    horizon: "H4-H8"
+    capabilities: ["CAP-0150"]
+    origin: "Owner 任务包 4.9"
+    status: "planned"
+
+  - requirement_id: "REQ-VISUAL-001"
+    title: "可视化表征"
+    scope: "binding_long_term"
+    horizon: "H6-H8"
+    capabilities: ["CAP-0160"]
+    origin: "Owner 任务包 4.5"
+    status: "planned"
+
+  - requirement_id: "REQ-IDENTITY-001"
+    title: "产品身份与命名"
+    scope: "binding_core"
+    horizon: "H0"
+    capabilities: []
+    origin: "Owner 任务包 2"
+    status: "met_partial"
