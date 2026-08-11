@@ -1201,3 +1201,14 @@
 - 无代码变更 (记录 len(tag)>2 过滤短 tag 行为)
 - 本地全量 1332 passed, 5 skipped
 - 零测试组件 5→4 (graph_rag/obsidian_importer/research_boundary/source_discovery)
+
+
+### LOG-20260812-101 — PR #110 MERGED (source_discovery 测试) — PASS
+
+- PR #110 squash merged → main `e0ea6d6`
+- source_discovery 首次测试 (8): 扩展名分类、跳过目录、缺失目录、
+  max_files、大小阈值、文件名前缀匹配卡片、无卡片
+- 陷阱记录: conftest 将 TMPDIR 指向 .hermes 隐藏树 + discover_sources
+  跳过隐藏路径 → 测试 monkeypatch Path.rglob/exists 用假文件树
+- 本地全量 1354 passed, 5 skipped
+- 零测试组件 4→3 (graph_rag/obsidian_importer/research_boundary)
