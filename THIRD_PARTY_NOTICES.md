@@ -50,6 +50,17 @@ PDF.js is © Mozilla and contributors, licensed under the Apache License 2.0.
 The full license text is preserved alongside the assets; redistribution must
 retain that notice. See `app/workspace/ui/assets/licenses/pdfjs-3.11.174-LICENSE.txt`.
 
+## Vendored models
+
+| Asset | Version | License | Bundled location |
+|---|---|---|---|
+| Magika ONNX model (`model.onnx`, `config.min.json`) | standard_v3_0 | Apache-2.0 | `shared/models/magika/` |
+| Magika LICENSE | standard_v3_0 | Apache-2.0 | `shared/models/magika/LICENSE` |
+
+Magika is © Google LLC, licensed under the Apache License 2.0. The full
+license text is preserved alongside the model; inference code is
+`shared/file_detection.py` (pure Python, no magika pip dependency).
+
 ## 2026-08-11 上游许可纠错与补充
 
 本轮吸收审计（来源：`ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md`）
