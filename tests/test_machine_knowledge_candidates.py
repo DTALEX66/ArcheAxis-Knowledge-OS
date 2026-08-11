@@ -162,3 +162,72 @@ def test_runtime_machine_knowledge_fails_closed_on_tampered_approved_payload(tmp
 
     with pytest.raises(RuntimeError, match="approved machine knowledge payload conflicts"):
         list_runtime_machine_knowledge(db_path=database)
+
+
+def test_runtime_machine_knowledge_filters_by_scope(tmp_path):
+    """GOV-001: AI retrieval must only use approved units whose scope matches
+    the requesting scope. A unit with a specific scope must NOT leak to a
+    different-scope retrieval; a scope-less (generic) approved unit remains
+    visible to any retrieval.
+    """
+    from app.knowledge.machine_knowledge import (
+        MachineKnowledgeApproval,
+        create_machine_knowledge_candidate,
+        deprecate_machine_knowledge_candidate,
+        list_runtime_machine_knowledge,
+    )
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "scoped-machine-knowledge.sqlite"
+    with closing(sqlite3.connect(database)):
+        pass
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("core.sqlite")
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply("knowledge-governance.sqlite")
+
+    def add_mastered(signal_id, card_id):
+        payload = (
+            '{"schema_version":"1.0.0","calculation_version":"review-outcome-v1",'
+            f'"card_id":"{card_id}","is_mastered":true,"review_ids":["r1","r2","r3"],'
+            '"mistake_ids":[],"review_count":3,"unresolved_mistake_ids":[],'
+            '"latest_ease_factor":2.5,"latest_review_quality":5,"review_status":"mastered"}'
+        )
+        with closing(sqlite3.connect(database)) as conn:
+            conn.execute(
+                "INSERT INTO mastery_signals_v1 VALUES (?, ?, ?, '2026-07-20T16:00:00Z')",
+                (signal_id, card_id, payload),
+            )
+            conn.commit()
+
+    # Two mastered signals -> two candidates; approve one scoped and one generic.
+    add_mastered("sig-scoped", "card-scoped")
+    add_mastered("sig-generic", "card-generic")
+    scoped = create_machine_knowledge_candidate(
+        "sig-scoped", title="Scoped", content="scoped rule", db_path=database, scope="knowledge"
+    )
+    generic = create_machine_knowledge_candidate(
+        "sig-generic", title="Generic", content="generic rule", db_path=database
+    )
+    for approval in (
+        MachineKnowledgeApproval(
+            approval_id="approve-scoped", candidate_id=scoped.unit_id, reviewer_id="r1",
+            decision="approved", rationale="ok", reviewed_at="2026-07-20T16:01:00Z",
+        ),
+        MachineKnowledgeApproval(
+            approval_id="approve-generic", candidate_id=generic.unit_id, reviewer_id="r1",
+            decision="approved", rationale="ok", reviewed_at="2026-07-20T16:02:00Z",
+        ),
+    ):
+        deprecate_machine_knowledge_candidate(approval, db_path=database)
+
+    # Retrieval scoped to 'knowledge' sees the scoped + generic unit.
+    knowledge_units = list_runtime_machine_knowledge(db_path=database, scope="knowledge")
+    assert {u.unit_id for u in knowledge_units} == {scoped.unit_id, generic.unit_id}
+
+    # Retrieval scoped elsewhere must NOT see the 'knowledge' scoped unit.
+    other_units = list_runtime_machine_knowledge(db_path=database, scope="research")
+    assert other_units and generic.unit_id in {u.unit_id for u in other_units}
+    assert scoped.unit_id not in {u.unit_id for u in other_units}
+
+    # Default (no scope) retrieval keeps backward compatibility: sees all approved.
+    all_units = list_runtime_machine_knowledge(db_path=database)
+    assert {u.unit_id for u in all_units} == {scoped.unit_id, generic.unit_id}

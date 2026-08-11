@@ -115,3 +115,32 @@ def test_store_defaults_to_project_ignored_runtime_root() -> None:
     root = str(store.root).replace("\\", "/")
     assert "/.hermes/" in root
     assert root.endswith("/task-runtime/raw-assets")
+
+
+def test_store_captures_full_asset_contract(tmp_path) -> None:
+    """AXW-020A: the stored record must capture source, MIME, size, save
+    state and retention policy so the RawAsset contract is complete and stable.
+    """
+    store = RawAssetStore(root=tmp_path / "raw")
+    blob = b"%PDF-1.4 fake pdf bytes"
+    record = store.store_original(
+        blob,
+        source_name="a.pdf",
+        mime_type="application/pdf",
+        retention_policy="permanent",
+    )
+    assert record.sha256 == _sha256(blob)
+    assert record.size_bytes == len(blob)
+    assert record.source_name == "a.pdf"
+    assert record.mime_type == "application/pdf"
+    assert record.retention_policy == "permanent"
+    assert record.save_state == "saved"
+    assert store.resolve(record.sha256).exists()
+
+
+def test_store_defaults_mime_and_retention(tmp_path) -> None:
+    """AXW-020A: MIME and retention must have sane defaults when omitted."""
+    store = RawAssetStore(root=tmp_path / "raw")
+    record = store.store_original(b"hello", source_name="note.txt")
+    assert record.mime_type == "application/octet-stream"
+    assert record.retention_policy == "retained"

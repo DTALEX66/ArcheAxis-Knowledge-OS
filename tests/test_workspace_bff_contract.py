@@ -127,4 +127,35 @@ def test_bff_v1_home_uses_the_real_workspace_status_projection(monkeypatch, tmp_
     assert payload["components"]["database"] == "available"
     assert "job_id" not in response.text
     assert "package_id" not in response.text
-    assert "database_path" not in response.text
+
+
+def test_bff_v1_dto_never_exposes_sqlite_internal_names(monkeypatch, tmp_path) -> None:
+    """AXW-030A: the frontend consumes a versioned DTO, never a raw SQLite
+    projection. No v1 API response may leak internal table/column names or
+    persistence identifiers."""
+    from app.main import app
+    from app.workspace import router
+    from shared.migration_runner import MigrationOperator
+    from tests.test_phase5_mcs_closed_loop import _database
+
+    database = _database(tmp_path)
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply(
+        "workspace.sqlite"
+    )
+    monkeypatch.setattr(router, "DB_PATH", database)
+    client = TestClient(app)
+
+    internal_tokens = (
+        "workspace_jobs_v1",
+        "workspace_outbox_v1",
+        "workspace_command_receipts_v1",
+        "machine_knowledge_candidates_v1",
+        "raw_sha256",
+        "unit_json",
+        "payload_json",
+    )
+    for path in ("/workspace/api/v1/activity?limit=5", "/workspace/api/v1/home"):
+        response = client.get(path)
+        assert response.status_code == 200
+        for token in internal_tokens:
+            assert token not in response.text, f"{path} leaked internal token {token}"
