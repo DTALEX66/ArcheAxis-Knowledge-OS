@@ -745,3 +745,12 @@
 - 证据等级：LOCAL_RUNTIME（真实服务 + 真实 PDF 字节保真）+ EXACT_SHA_CI（PR #74 run 31493237744）
 - 风险/剩余项：PR #74 未 merge（未获授权）；PDF.js 前端渲染（分页/缩放/搜索 + 证据批注 + WebView 点击级）仍待独立前端批次；AXW-H1-EXIT 待 022 前端完成
 - 回滚：关闭/丢弃 PR #74；删除本地 data/（未跟踪 runtime）
+
+### LOG-20260811-060 — PUBLIC CONTENT ACCURACY MECHANISM — PASS
+
+- 时间：2026-08-11
+- 变更：确立公开内容准确性保证机制=全网交叉比对（非模型置信度/CER-WER）；两公开书（时间简史+缤纷的语言学）11 事实点交叉核验 9 PASS+2 待补；obsidian-web-crosscheck 技能 v2 扩展覆盖公开书籍场景+书籍权威源速查；本文档追加机制声明
+- 验证：Wikipedia REST API 核验（Hubble 1929、宇宙常数 1917、黑洞、时间箭头、共时历时、索绪尔、乔姆斯基、神经语言学等）；报告 .hermes/task-runtime/web-crosscheck-report-2026-08-11.md
+- 证据等级：WEB_CROSSCHECK（公开权威来源交叉核验）
+- 风险/剩余项：PR #74 PDF 端点未 merge；PDF.js 前端渲染待独立批次；AXW-H1-EXIT 待 022 前端
+- 回滚：revert 本文档 commit
