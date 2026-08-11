@@ -1288,3 +1288,13 @@
 - CI 注意: 首跑 test(3.12) 失败 = GitHub Actions setup-uv 基础设施
   故障 (self-signed cert / API TLS), 与代码无关; rerun --failed 后全绿
 - 本地全量 1399 passed, 5 skipped
+
+
+### LOG-20260812-109 — PR #117 MERGED (vault search 函数测试) — PASS
+
+- PR #117 squash merged → main `93cc133`
+- search_vault (vault.py:64, H3) 首次函数级测试 (5): 命中+片段/hash、
+  大小写不敏感、无匹配、空查询拒绝、缺失目录拒绝
+- 此前 API 层由 test_workspace_vault_api 覆盖 (只读契约);
+  函数层错误路径由本 PR 补齐
+- 本地全量 1420 passed, 5 skipped
