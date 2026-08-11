@@ -130,11 +130,20 @@ def _rapidocr_stub(fp: Path) -> str:
     return "\n".join(lines)
 
 
+def _rapidocr_available() -> bool:
+    try:
+        import importlib.util
+
+        return importlib.util.find_spec("rapidocr_onnxruntime") is not None
+    except Exception:
+        return False
+
+
 RAPIDOCR = EngineUnderTest(
     name="rapidocr",
     fn=_rapidocr_stub,
-    available=False,
-    version="unknown (not installed)",
+    available=_rapidocr_available(),
+    version="1.4.4 (rapidocr-onnxruntime)" if _rapidocr_available() else "unknown (not installed)",
     notes="ONNX-based, no heavy framework dependency. Windows/CPU friendly.",
 )
 

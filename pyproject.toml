@@ -71,6 +71,7 @@ ci = [
 ci-adapters = [
     "markitdown[pdf]>=0.1",
     "newspaper4k>=0.9",
+    "rapidocr-onnxruntime>=1.4",
     "readabilipy>=0.3",
     "trafilatura>=1.6",
     "youtube-transcript-api>=1.2",

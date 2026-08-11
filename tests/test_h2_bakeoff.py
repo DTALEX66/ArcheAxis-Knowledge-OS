@@ -53,11 +53,12 @@ class TestBakeoffFramework:
         assert results == []
 
     def test_stub_engines_are_unavailable(self) -> None:
-        # Both tesseract variants use the system binary and are available
-        # whenever the binary + language data exist; everything else is a
-        # missing-dependency stub.
+        # Tesseract variants use the system binary; rapidocr activates when
+        # rapidocr-onnxruntime is installed (ci-adapters group). Only the
+        # heavy-framework stubs (paddleocr/easyocr) stay unavailable by
+        # default.
         for e in OCR_ENGINES:
-            if e.name in {"tesseract", "tesseract-chi-sim"}:
+            if e.name in {"tesseract", "tesseract-chi-sim", "rapidocr"}:
                 continue
             assert not e.available, f"{e.name} should be unavailable by default"
 
