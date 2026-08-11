@@ -1003,3 +1003,14 @@
   - POST /workspace/api/vault/write
 - 5 新测试；1237 Python tests 通过
 - H3 纵切：读（inspect/file/search）+ 写（write）闭环；C4 往返下一步是 frontend 接线
+
+
+### LOG-20260812-082 — PR #91 MERGED (H3 Vault edit-save UI + runtime fixes) — PASS
+
+- PR #91 squash merged → main `f90ca77`
+- index.html + app.js: 编辑文件输入 + 文本域 + 保存按钮；openVaultFile 记录磁盘哈希,
+  saveVaultFile 409 冲突提示 + 成功更新哈希/备份名
+- vault.py: 备份目录路径修复 (store=DB 文件 → parent/vault-backups)
+- migration_runner.py: vec0 虚拟表跳过直接 SELECT (无扩展连接), 由 *_id_map 指纹覆盖
+- 浏览器级验证: write 200 / stale-hash 409 / 文件未污染 / 备份创建
+- H3 纵切: inspect + read + search + write(乐观锁) + UI 编辑保存 全链路
