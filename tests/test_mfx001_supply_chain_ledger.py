@@ -65,8 +65,13 @@ def test_blocked_components_not_in_default_engine_chain() -> None:
         for c in _ledger()["components"]
         if c["disposition"] == "REVIEW-BLOCK"
     }
-    chain_text = json.dumps(multi_format._ENGINES, default=str)
-    for name in {"mineru", "funasr", "searxng", "zotero"}:
-        assert name not in chain_text.lower(), (
+    assert blocked, "expected at least one REVIEW-BLOCK component in ledger"
+    chain_text = json.dumps(multi_format._ENGINES, default=str).lower()
+    for name in blocked:
+        assert name not in chain_text, (
             f"blocked component {name} leaked into default engine chain"
         )
+    # guard: the ledger must still flag the historical blockers
+    # (zotero was never REVIEW-BLOCK — it is not in this disposition)
+    for name in {"mineru", "funasr / sensevoice", "searxng", "marker"}:
+        assert name in blocked, f"{name} expected REVIEW-BLOCK in ledger"
