@@ -1,4 +1,4 @@
-# Gate Registry — ArcheAxis Workspace
+# Gate Registry — ArcheAxis Learning Workspace
 #
 # Stable symbolic Gate IDs. A Gate is a *semantic* capability; it is not bound
 # to a fixed GitHub job name. The `ci-verdict` aggregator expands these against

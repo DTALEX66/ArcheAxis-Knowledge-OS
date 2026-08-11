@@ -242,6 +242,103 @@ def _git_blob_entries(root: Path, source: str) -> list[tuple[str, str]]:
     return entries
 
 
+def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIssue]:
+    """AXW-1209: reject legacy product names outside Legacy/Migration context.
+
+    Legacy product names (元枢工作台, ArcheAxis OS, ArcheAxis Workspace as a
+    product name) are allowed only in files that explicitly declare historical /
+    superseded / migration context or that are historical by nature (intake
+    records, handoffs, third-party notices, status logs). Current product name
+    is locked by docs/truth/NAMING_CONTRACT_V1.md.
+
+    Only active documentation surfaces are scanned: README, docs/current,
+    docs/blueprint, docs/architecture, docs/decisions, docs/environment,
+    docs/migration, docs/truth (newer files), config/, .worklab/.
+    """
+    pure = PurePosixPath(path)
+    if pure.suffix.casefold() not in {".md", ".yaml", ".yml", ".txt"}:
+        return []
+    if pure.name in {"NAMING_CONTRACT_V1.md", "PRODUCT_IDENTITY_V2.md"}:
+        return []
+    # Historical-by-nature surfaces are exempt (they record the past).
+    exempt_prefixes = (
+        "workspace/intake/",
+        "docs/architecture/imported-designs/",
+        "docs/taskpacks/",
+    )
+    exempt_files = {
+        "THIRD_PARTY_NOTICES.md",
+        "docs/truth/EXECUTION_STATUS_LOG.md",
+        "docs/truth/AUTHORITY_CONTRACT.md",
+        "docs/truth/CURRENT_STATE_TRUTH.md",
+        "docs/truth/README.md",
+        "docs/README.md",
+        "docs/NAMING_ALIGNMENT_MATRIX.md",
+        "docs/HANDOFF_2026-08-07_stage-summary.md",
+        "workspace/ui/archeaxis/README.md",
+        "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/README.md",
+    }
+    active_prefixes = (
+        "README.md",
+        "docs/current/",
+        "docs/blueprint/",
+        "docs/architecture/",
+        "docs/decisions/",
+        "docs/environment/",
+        "docs/migration/",
+        "docs/truth/",
+        "config/",
+        ".worklab/",
+    )
+    if not path.startswith(active_prefixes):
+        return []
+    if path.startswith(exempt_prefixes) or path in exempt_files:
+        return []
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return []
+    head = text[:600].casefold()
+    legacy_context = any(
+        marker in head
+        for marker in (
+            "superseded",
+            "legacy",
+            "historical",
+            "migration",
+            "compatibility",
+            "retired",
+            "旧名",
+            "历史",
+            "仅历史",
+            "暂不在维护",
+        )
+    )
+    if legacy_context:
+        return []
+    # 全文搜索的 retired/legacy 说明（如 SCOPE_LEDGER retired 条目、
+    # EXTERNAL_DEPENDENCIES 的固定字段说明）同样视为合法历史语境。
+    if "仅历史" in text or "暂不在维护" in text or "retired" in text.casefold():
+        return []
+    issues: list[ConventionIssue] = []
+    # 元枢/元枢工作台 as an active product name is forbidden outside legacy docs
+    for term, code in (
+        ("元枢工作台", "legacy-product-name"),
+        ("ArcheAxis OS", "legacy-product-name"),
+        ("ArcheAxis Workspace", "legacy-product-name"),
+    ):
+        if term in text:
+            issues.append(
+                ConventionIssue(
+                    code,
+                    path,
+                    f"legacy product name {term!r} outside Legacy/Migration context "
+                    "(see docs/truth/NAMING_CONTRACT_V1.md)",
+                )
+            )
+    return sorted(issues)
+
+
 def scan_git_repository(root: Path, *, source: str = "worktree") -> list[ConventionIssue]:
     """Scan tracked paths from the worktree, index, or HEAD without mixing sources."""
     if source not in {"worktree", "index", "head"}:
@@ -276,6 +373,7 @@ def scan_git_repository(root: Path, *, source: str = "worktree") -> list[Convent
         else:
             content = blob_contents[path]
         issues.extend(scan_text_bytes(path, content))
+        issues.extend(scan_naming_forbidden_terms(path, content))
         if path == "config/naming-registry.yaml":
             issues.extend(scan_naming_registry_bytes(path, content))
     return sorted(issues)

@@ -15,6 +15,7 @@ from scripts.check_repository_conventions import (
 from scripts.check_repository_conventions import (
     normalize_text_bytes,
     scan_git_repository,
+    scan_naming_forbidden_terms,
     scan_naming_registry_bytes,
     scan_path_set,
     scan_text_bytes,
@@ -290,3 +291,35 @@ def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
     assert "元枢工作台" not in ui
     assert "元枢·观心" not in ui
     assert "全局命令入口尚未接入" not in ui
+
+
+def test_forbidden_terms_reject_legacy_name_in_active_doc() -> None:
+    issues = scan_naming_forbidden_terms(
+        "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
+        "当前计划：元枢工作台 是主产品。".encode(),
+    )
+    assert any(i.code == "legacy-product-name" for i in issues)
+
+
+def test_forbidden_terms_allow_legacy_context_docs() -> None:
+    issues = scan_naming_forbidden_terms(
+        "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
+        "迁移说明：旧名元枢工作台 仅在 Legacy 语境出现。".encode(),
+    )
+    assert not [i for i in issues if i.code == "legacy-product-name"]
+
+
+def test_forbidden_terms_skip_historical_surfaces() -> None:
+    issues = scan_naming_forbidden_terms(
+        "workspace/intake/2026-07-01-note.md",
+        "当时产品名：元枢工作台。".encode(),
+    )
+    assert not [i for i in issues if i.code == "legacy-product-name"]
+
+
+def test_forbidden_terms_skip_non_active_paths() -> None:
+    issues = scan_naming_forbidden_terms(
+        "knowledge_base/readme.md",
+        "元枢工作台 相关。".encode(),
+    )
+    assert not [i for i in issues if i.code == "legacy-product-name"]
