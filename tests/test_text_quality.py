@@ -1,7 +1,5 @@
 """Tests for shared.text_quality (ADS-001/002: JiWER + RapidFuzz absorption)."""
 
-import math
-
 from shared.text_quality import alignment_similarity, cer, find_disagreement_spans, wer
 
 

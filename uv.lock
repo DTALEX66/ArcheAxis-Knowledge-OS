@@ -625,6 +625,7 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "defusedxml" },
     { name = "fastapi" },
+    { name = "fsrs" },
     { name = "jiwer" },
     { name = "litellm" },
     { name = "loguru" },
@@ -679,8 +680,10 @@ ci = [
     { name = "beautifulsoup4" },
     { name = "defusedxml" },
     { name = "fastapi" },
+    { name = "fsrs" },
     { name = "httpx2" },
     { name = "jinja2" },
+    { name = "jiwer" },
     { name = "jsonschema" },
     { name = "loguru" },
     { name = "networkx" },
@@ -693,6 +696,7 @@ ci = [
     { name = "pytest" },
     { name = "python-multipart" },
     { name = "pyyaml" },
+    { name = "rapidfuzz" },
     { name = "requests" },
     { name = "ruff" },
     { name = "sqlite-vec" },
@@ -715,6 +719,7 @@ requires-dist = [
     { name = "crawl4ai", marker = "extra == 'ingestion'", specifier = ">=0.1" },
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "fastapi", specifier = ">=0.133,<0.134" },
+    { name = "fsrs", specifier = ">=5.0" },
     { name = "jiwer", specifier = ">=3.1" },
     { name = "langfuse", marker = "extra == 'ingestion'", specifier = ">=4.0" },
     { name = "litellm", specifier = "==1.91.0" },
@@ -750,8 +755,10 @@ ci = [
     { name = "beautifulsoup4", specifier = ">=4.11" },
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "fastapi", specifier = ">=0.133,<0.134" },
+    { name = "fsrs", specifier = ">=5.0" },
     { name = "httpx2", specifier = ">=0.28" },
     { name = "jinja2", specifier = ">=3.1,<4" },
+    { name = "jiwer", specifier = ">=3.1" },
     { name = "jsonschema", specifier = ">=4.0" },
     { name = "loguru", specifier = ">=0.7" },
     { name = "networkx", specifier = ">=3.0" },
@@ -763,6 +770,7 @@ ci = [
     { name = "pytest", specifier = ">=7.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "rapidfuzz", specifier = ">=3.9" },
     { name = "requests", specifier = ">=2.28" },
     { name = "ruff", specifier = ">=0.5" },
     { name = "sqlite-vec", specifier = ">=0.1.6" },
@@ -1183,6 +1191,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/89/76/c615883b7b521ead2944bb3480398cbb07e12b7b4e4d073d3752eb721558/frozenlist-1.8.0-cp314-cp314t-win_amd64.whl", hash = "sha256:06be8f67f39c8b1dc671f5d83aaefd3358ae5cdcf8314552c57e7ed3e6475bdd", size = 49451, upload-time = "2025-10-06T05:37:53.425Z" },
     { url = "https://files.pythonhosted.org/packages/e0/a3/5982da14e113d07b325230f95060e2169f5311b1017ea8af2a29b374c289/frozenlist-1.8.0-cp314-cp314t-win_arm64.whl", hash = "sha256:102e6314ca4da683dca92e3b1355490fed5f313b768500084fbe6371fddfdb79", size = 42507, upload-time = "2025-10-06T05:37:54.513Z" },
     { url = "https://files.pythonhosted.org/packages/9a/9a/e35b4a917281c0b8419d4207f4334c8e8c5dbf4f3f5f9ada73958d937dcc/frozenlist-1.8.0-py3-none-any.whl", hash = "sha256:0c18a16eab41e82c295618a77502e17b195883241c563b00f0aa5106fc4eaa0d", size = 13409, upload-time = "2025-10-06T05:38:16.721Z" },
+]
+
+[[package]]
+name = "fsrs"
+version = "6.3.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7f/cf/3995867b03de059624aa49634d62895eef211f909b322c4a478dcd858bd8/fsrs-6.3.2.tar.gz", hash = "sha256:7fe79947ceb92ca35fdca3dfa511a239be15b317cde63d6643a2da6110844d91", size = 32766, upload-time = "2026-08-09T04:36:03.074Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/00/b9/c815e796480dd22441886f06b23f249a7ff2e3f41fc9bfaa428332e34b49/fsrs-6.3.2-py3-none-any.whl", hash = "sha256:bc55066c821164b1cff6d75b17a3ed8e86cfd45789e3d775cfcb895319ce9ba4", size = 22837, upload-time = "2026-08-09T04:36:01.932Z" },
 ]
 
 [[package]]

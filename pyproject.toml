@@ -32,6 +32,7 @@ dependencies = [
     "pytesseract>=0.3.13",
     "jiwer>=3.1",
     "rapidfuzz>=3.9",
+    "fsrs>=5.0",
 ]
 
 [dependency-groups]
@@ -59,6 +60,9 @@ ci = [
     "ruff>=0.5",
     "sqlite-vec>=0.1.6",
     "structlog>=24.0",
+    "jiwer>=3.1",
+    "rapidfuzz>=3.9",
+    "fsrs>=5.0",
     "tomli>=2.0; python_version < '3.11'",
     "uvicorn[standard]>=0.22",
 ]
