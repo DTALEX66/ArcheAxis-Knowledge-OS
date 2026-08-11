@@ -1391,3 +1391,12 @@
   Crossref/DataCite; 否则 claim-text OpenAlex; classification=
   public-evidence, verified=False
 - enrich_with_public_sources 扩展 claim_text/qid; 3 契约测试
+
+
+### LOG-20260812-121 — PR #125 MERGED (H2 SM-2 接入练习生命周期) — PASS
+
+- PR #125 squash merged → main `2d2e2ff`
+- h2-learning: record_practice_evidence 硬编码 (interval=1/ease=2.5/
+  next=now) → knowledge_base.reviews._sm2_interval 真实调度
+  (quality=5 连续 3 次 → 1/6/16 天递增)
+- 测试断言 interval 增长 [1,6,16] + ease>=2.5
