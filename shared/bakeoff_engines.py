@@ -45,7 +45,7 @@ def _paddleocr_stub(fp: Path) -> str:
     try:
         from paddleocr import PaddleOCR  # noqa: F811
     except ImportError:
-        raise RuntimeError("PaddleOCR not installed: pip install paddlepaddle paddleocr")
+        raise RuntimeError("PaddleOCR not installed: pip install paddlepaddle paddleocr") from None
     ocr = PaddleOCR(lang="ch")
     result = ocr.ocr(str(fp))
     lines = []
@@ -73,7 +73,7 @@ def _easyocr_stub(fp: Path) -> str:
     try:
         import easyocr  # noqa: F401
     except ImportError:
-        raise RuntimeError("EasyOCR not installed: pip install easyocr")
+        raise RuntimeError("EasyOCR not installed: pip install easyocr") from None
     import easyocr as _eocr
 
     reader = _eocr.Reader(["en", "ch_sim"])
@@ -97,10 +97,10 @@ def _rapidocr_stub(fp: Path) -> str:
     try:
         from rapidocr_onnxruntime import RapidOCR  # noqa: F401
     except ImportError:
-        raise RuntimeError("RapidOCR not installed: pip install rapidocr-onnxruntime")
-    from rapidocr_onnxruntime import RapidOCR as _ROCR
+        raise RuntimeError("RapidOCR not installed: pip install rapidocr-onnxruntime") from None
+    from rapidocr_onnxruntime import RapidOCR as RapidOCREngine
 
-    engine = _ROCR()
+    engine = RapidOCREngine()
     result, _ = engine(str(fp))
     lines = []
     if result:
@@ -132,7 +132,7 @@ def _faster_whisper_stub(fp: Path) -> str:
     try:
         from faster_whisper import WhisperModel
     except ImportError:
-        raise RuntimeError("faster-whisper not installed: pip install faster-whisper")
+        raise RuntimeError("faster-whisper not installed: pip install faster-whisper") from None
     model = WhisperModel("base", device="cpu", compute_type="int8")
     segments, _ = model.transcribe(str(fp))
     return " ".join(s.text for s in segments)
@@ -148,7 +148,7 @@ def _whisper_cpp_stub(fp: Path) -> str:
     try:
         from whisper_cpp import Whisper
     except ImportError:
-        raise RuntimeError("whisper.cpp not installed")
+        raise RuntimeError("whisper.cpp not installed") from None
     return Whisper(model_path="ggml-base.bin").transcribe(str(fp))
 
 

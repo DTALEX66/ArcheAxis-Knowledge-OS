@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import Any
 
 import numpy as np
 import onnxruntime as rt
@@ -37,7 +37,7 @@ def _load_model() -> None:
         return
     _config = json.loads(_CONFIG_PATH.read_text(encoding="utf-8"))
     _sess = rt.InferenceSession(str(_MODEL_PATH), providers=["CPUExecutionProvider"])
-    _labels = [str(l) for l in _config["target_labels_space"]]
+    _labels = [str(label) for label in _config["target_labels_space"]]
     _thresholds = _config.get("thresholds", {})
     _overwrites = _config.get("overwrite_map", {})
 
@@ -107,7 +107,7 @@ def _softmax(x: np.ndarray) -> np.ndarray:
 
 def _classify_group(label: str) -> str:
     """Map content label to a high-level ingestion group."""
-    TEXT_LABELS = {
+    text_labels = {
         "txt", "markdown", "json", "jsonl", "csv", "tsv", "xml", "html",
         "css", "javascript", "typescript", "python", "ruby", "rust", "go",
         "java", "cpp", "c", "shell", "batch", "powershell", "yaml", "toml",
@@ -117,22 +117,22 @@ def _classify_group(label: str) -> str:
         "proto", "handlebars", "jinja", "twig", "vue", "scss", "svg",
         "htaccess", "gitattributes", "gitmodules", "ignorefile", "po",
     }
-    OFFICE_LABELS = {
+    office_labels = {
         "doc", "docx", "xls", "xlsx", "xlsb", "ppt", "pptx",
         "odt", "ods", "odp", "rtf", "pdf", "epub",
     }
-    IMAGE_LABELS = {
+    image_labels = {
         "png", "jpeg", "gif", "bmp", "webp", "tiff", "ico",
         "icns", "psd", "tga", "emf", "wmf", "jp2", "svg",
     }
-    AUDIO_LABELS = {"mp3", "wav", "flac", "ogg", "midi", "m4a"}
-    VIDEO_LABELS = {"mp4", "mkv", "webm", "flv", "avi"}
-    ARCHIVE_LABELS = {
+    audio_labels = {"mp3", "wav", "flac", "ogg", "midi", "m4a"}
+    video_labels = {"mp4", "mkv", "webm", "flv", "avi"}
+    archive_labels = {
         "zip", "tar", "gzip", "bzip", "xz", "sevenzip", "rar",
         "cab", "deb", "rpm", "iso", "dmg", "lha", "mscompress",
         "squashfs", "xar", "xpi", "snap", "zlibstream",
     }
-    BINARY_LABELS = {
+    binary_labels = {
         "elf", "macho", "pebin", "coff", "wasm", "dex", "apk",
         "jar", "pythonbytecode", "javabytecode", "pickle",
         "pytorch", "onnx", "npy", "npz", "h5", "parquet",
@@ -140,19 +140,19 @@ def _classify_group(label: str) -> str:
         "ttf", "otf", "woff", "woff2",
     }
 
-    if label in TEXT_LABELS:
+    if label in text_labels:
         return "text"
-    if label in OFFICE_LABELS:
+    if label in office_labels:
         return "office"
-    if label in IMAGE_LABELS:
+    if label in image_labels:
         return "image"
-    if label in AUDIO_LABELS:
+    if label in audio_labels:
         return "audio"
-    if label in VIDEO_LABELS:
+    if label in video_labels:
         return "video"
-    if label in ARCHIVE_LABELS:
+    if label in archive_labels:
         return "archive"
-    if label in BINARY_LABELS:
+    if label in binary_labels:
         return "binary"
     return "unknown"
 

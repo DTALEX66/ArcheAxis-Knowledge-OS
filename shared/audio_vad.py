@@ -57,7 +57,6 @@ def silero_vad_segments(
 def _read_audio(path: str | Path, target_sr: int):
     """Read audio to mono 16kHz tensor. Returns None on failure."""
     try:
-        import torch
         import torchaudio
 
         wav, sr = torchaudio.load(str(path))

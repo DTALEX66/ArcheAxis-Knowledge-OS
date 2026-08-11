@@ -248,7 +248,7 @@ def _via_canvas(file_path: str) -> AdapterResult:
     Uses shared/json_canvas.py validator (ADS-003) for spec-compliant validation.
     Unknown fields are preserved on roundtrip.
     """
-    from shared.json_canvas import validate_json_canvas, CanvasError
+    from shared.json_canvas import CanvasError, validate_json_canvas
 
     raw = Path(file_path).read_text(encoding="utf-8")
     payload = json.loads(raw)

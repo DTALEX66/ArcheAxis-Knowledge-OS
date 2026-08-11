@@ -6,7 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_WORKSPACE = "Human–AI Learning Workspace"
 EXPECTED_POSITIONING = (
-    "ArcheAxis Workspace is a local-first, evidence-driven Human–AI learning and knowledge workspace"
+    "ArcheAxis Learning Workspace — a local-first, evidence-driven, "
+    "bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI"
 )
 
 
@@ -17,9 +18,10 @@ def test_public_product_truth_uses_learning_workspace_positioning() -> None:
         (ROOT / "README.md").read_text(encoding="utf-8").splitlines()[:60]
     )
 
-    assert manifest["product"]["english_name"] == "ArcheAxis Workspace"
+    assert manifest["product"]["english_name"] == "ArcheAxis Learning Workspace"
     assert manifest["product"]["workspace_english_name"] == EXPECTED_WORKSPACE
     assert EXPECTED_POSITIONING in readme_head
+    assert "星轨学习工作台（ArcheAxis Learning Workspace）" in readme_head
     assert "认知闭环" not in readme_head
     assert 'description = "Local-first, evidence-driven Human–AI learning and knowledge workspace' in pyproject
     assert '"learning-workspace"' in pyproject
