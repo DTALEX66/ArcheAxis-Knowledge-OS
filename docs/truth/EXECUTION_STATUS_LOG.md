@@ -1357,3 +1357,11 @@
   faster-whisper/markitdown/newspaper4k/readabilipy/trafilatura)、
   吸收+Magika 标记已 merge、HF 模型缓存位置
 - 双写同步: OS configuration 仓库 → `8ab8bee` (master)
+
+
+### LOG-20260812-117 — PR #122 MERGED (Magika 许可登记) — PASS
+
+- PR #122 squash merged → main `f0bd1ca`
+- THIRD_PARTY_NOTICES 补 Vendored models 节: Magika ONNX (Apache-2.0,
+  standard_v3_0, shared/models/magika/) — EXTERNAL_DEPENDENCIES 3.2
+  引用缺失项修复
