@@ -17,7 +17,7 @@ from shared.bakeoff import (
     report_json,
     run_bakeoff,
 )
-from shared.bakeoff_engines import OCR_ENGINES, TESSERACT, TESSERACT_CHI_SIM
+from shared.bakeoff_engines import ASR_ENGINES, OCR_ENGINES, TESSERACT, TESSERACT_CHI_SIM
 
 
 def _make_text_image(text: str, path: Path) -> None:
@@ -54,11 +54,11 @@ class TestBakeoffFramework:
 
     def test_stub_engines_are_unavailable(self) -> None:
         # Tesseract variants use the system binary; rapidocr activates when
-        # rapidocr-onnxruntime is installed (ci-adapters group). Only the
-        # heavy-framework stubs (paddleocr/easyocr) stay unavailable by
-        # default.
-        for e in OCR_ENGINES:
-            if e.name in {"tesseract", "tesseract-chi-sim", "rapidocr"}:
+        # rapidocr-onnxruntime is installed (ci-adapters group); faster-whisper
+        # activates when faster-whisper is installed. Only the heavy-framework
+        # stubs (paddleocr/easyocr/whisper.cpp) stay unavailable by default.
+        for e in OCR_ENGINES + ASR_ENGINES:
+            if e.name in {"tesseract", "tesseract-chi-sim", "rapidocr", "faster-whisper"}:
                 continue
             assert not e.available, f"{e.name} should be unavailable by default"
 

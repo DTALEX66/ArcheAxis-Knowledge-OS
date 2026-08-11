@@ -69,6 +69,7 @@ ci = [
     "uvicorn[standard]>=0.22",
 ]
 ci-adapters = [
+    "faster-whisper>=1.1",
     "markitdown[pdf]>=0.1",
     "newspaper4k>=0.9",
     "rapidocr-onnxruntime>=1.4",
