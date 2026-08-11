@@ -1266,3 +1266,13 @@
 - PR #114 squash merged → main `9008fcd`
 - schemas 15 + daily_notes 8; shared/*.py 全部 15 模块测试覆盖完成
 - 本地全量 1389 passed, 5 skipped
+
+
+### LOG-20260812-107 — PR #115 MERGED (pipeline 直接测试) — PASS
+
+- PR #115 squash merged → main `41a33a5`
+- run_pipeline 直接多阶段契约测试 (5): 完整动作链 (crossref
+  legacy_heuristic+verified=False)、最小动作子集、外源 auto-ingest
+  拒绝、file 源 approved-roots 要求、空内容短路
+- 此前仅间接覆盖 (mfx012 隔离/phase4)
+- 本地全量 1399 passed, 5 skipped
