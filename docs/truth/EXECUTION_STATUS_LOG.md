@@ -1242,3 +1242,11 @@
 - 陷阱: conftest TMPDIR 隐藏树 → scan_vault 测试 fake rglob 用相对 parts
 - 本地全量 1356 passed, 5 skipped
 - 零测试组件 2→1 (仅 graph_rag)
+
+
+### LOG-20260812-104 — PR #113 MERGED (graph_rag 测试) — PASS
+
+- PR #113 squash merged → main `76d25f1`
+- graph_rag 首次测试 (2): index 计数 (fake GraphDB/VectorDB/embedder)、
+  多跳搜索扩展+综合评分; 模块级 DB 单例用 fake 替换无需 sqlite-vec
+- **13/13 零测试 shared 组件全部清零**
