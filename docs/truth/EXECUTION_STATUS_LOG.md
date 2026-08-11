@@ -939,3 +939,13 @@
 - GitHub 描述更新：产品名 + NOT Agent OS + absorbed + blocked 项目 + deps 链接
 - 任务包作为 Owner 权威，定死不可漂移；阶段描述可更新
 - 分支 feat/axw1200-system-truth fc9e5dd，PR #84 待创建/CI
+
+
+### LOG-20260812-076 — PR #84 MERGED (AXW-1200 taskpack system truth) — PASS
+
+- PR #84 squash merged → main `535d1c3`
+- 17 交付文件全部入库（identity/naming/atlas/trace/ledger/graph/blueprint/LER/interop/migration/4 ADR）
+- README 首页锁死：产品身份 + 已吸收 + 吸收不了(许可阻断) + 外置依赖链接
+- GitHub 仓库描述锁死（ArcheAxis Learning Workspace, NOT Agent OS, blocked projects）
+- 修复：#82/#83 引入的 ruff（N806/E741/B904/N814）+ 契约测试对齐命名 V1 + manifest 更新
+- 命名契约 V1 binding；阶段描述可更新
