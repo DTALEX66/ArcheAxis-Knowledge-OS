@@ -90,9 +90,11 @@ RISK_PENALTY = {
 
 def category_key(raw: str) -> str:
     """Normalize category to match scoring table."""
-    # Handle combined categories like "RAG / AI App Platform"
+    # Normalize whitespace + slash spacing so "RAG / AI Platform"
+    # matches the table key "RAG/AI Platform".
+    norm = " ".join(raw.split()).replace(" / ", "/").lower()
     for key in CATEGORY_SCORES:
-        if key.lower() in raw.lower():
+        if key.lower() in norm or key.lower() in raw.lower():
             return key
     return raw
 
