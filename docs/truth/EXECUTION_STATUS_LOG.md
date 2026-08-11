@@ -1062,3 +1062,17 @@
   显式传入报 unrecognized arguments → tests/conftest.py 注册
 - 验证: --run-network → 9 passed (2 真实 DOI 查询, Crossref 200);
   默认 → 7 passed 2 skipped (CI 行为不变)
+
+
+### LOG-20260812-088 — PR #97 MERGED (real OCR bake-off) — PASS
+
+- PR #97 squash merged → main `169155e`
+- 首次真实 bake-off: Tesseract vs 3-fixture 语料 (en_clean/en_noisy/zh_clean
+  + ground truth) → CER/WER 报告 CSV+JSON
+- 真实发现: eng+chi_sim 对 CJK 插空格致 CER 0.8 虚高 → 拆双引擎变体
+  (tesseract-eng / tesseract-chi-sim); chi_sim 中文 CER 0.0
+- report_csv `or ""` 吞掉完美 0.0 → is not None 判断
+- 测试 helper CJK-first 字体序 (arial 渲染空白)
+- 真实数据: tesseract en_clean .0227/en_noisy .025/zh_clean 1.0;
+  chi-sim en_clean .0455/en_noisy .1/zh_clean 0.0
+- 本地全量 1249 passed, 5 skipped
