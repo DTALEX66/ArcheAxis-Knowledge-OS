@@ -6,7 +6,7 @@ fallback fixtures for graceful unavailable-engine handling.
 
   Format          | Engines (in priority order)
   ────────────────┼──────────────────────────────────────────
-  PDF             | markitdown → marker-pdf → docling
+  PDF             | markitdown → docling  (marker-pdf REVIEW-BLOCK, excluded)
   DOCX / PPT/XLS  | markitdown
   HTML            | trafilatura → safe-http+raw
   Image           | pytesseract+tesseract (real OCR; unavailable if no Tesseract)
@@ -328,7 +328,10 @@ def _via_adapter_fixtures(fmt: str, adapters: list[str]) -> list[tuple[str, Any]
 _ENGINES: dict[str, list[tuple[str, Any]]] = {
     "pdf": [
         ("markitdown", _via_markitdown),
-        ("marker-pdf", _via_marker),
+        # marker-pdf (_via_marker) EXCLUDED: supply-chain ledger B003
+        # (Marker) is REVIEW-BLOCK — code Apache-2.0 but weights are a
+        # modified OpenRAIL-M requiring separate review. Must not be a
+        # default engine. Re-add only after weight licensing resolves.
         ("docling", _via_docling),
     ],
     "docx": [("markitdown", _via_markitdown)],
