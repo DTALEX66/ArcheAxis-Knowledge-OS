@@ -1149,3 +1149,16 @@
 - 无代码变更; patch 差异记录: select_all 模块级 vs select_one 函数内
 - 本地全量 1290 passed, 5 skipped
 - 零测试组件 10→9
+
+
+### LOG-20260812-096 — PR #105 MERGED (Magika 检测修复) — PASS
+
+- PR #105 squash merged → main `31ec571`
+- 重大修复: vendored Magika (file_detection) 之前完全失效 (全 unknown)
+  ①双重 softmax: ONNX 已输出概率 (sum==1), 再 softmax 把 0.889→0.011
+  ②短内容 0 填充 (bytes.ljust) 而非 padding_token 256
+- 修复后: markdown .9992/jsonl .9728/png .9916/python .9407/csv .9999
+- 附带修复 latent canvas 回归: Magika 将 JSON Canvas 标 json→txt 映射
+  移除, .canvas 保留 json-canvas handler (测试暴露)
+- 9 新测试; 本地全量 1299 passed, 5 skipped
+- 零测试组件 9→8
