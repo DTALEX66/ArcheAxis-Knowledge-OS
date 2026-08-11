@@ -777,3 +777,12 @@
 - 范围：多格式识别转译 + 质量门控 + 选择性模型升级 + Claim 级异步全网验证 + 人工复核衔接；不覆盖 frozen authority 与 v4 主任务包
 - 记录：本文件为 append-only CHANGE_PROPOSAL 登记，不授权任何仓库/远端/用户数据/发布物修改
 - 回滚：撤销本次追加记录（历史状态不改写）
+
+
+### LOG-20260811-063 — AXW-MFX-WXV-v1 OWNER APPROVAL — APPROVED (6/6)
+
+- 时间：2026-08-11
+- 所有者决策：全部批准 6 项（方案 C 核心结构+默认异步验证；首批默认引擎；外部 LLM 默认关闭；MinerU/PyMuPDF/Marker/FunASR/Zotero/SearXNG 不入默认包；采用 AXW-MFX-* ID；append-only CHANGE_PROPOSAL 登记）
+- 授权范围：从 Batch 0（MFX-000/001/010/012 止损）开始执行；后续批次逐批推进
+- 执行约束：一项原子任务/一条分支/一个 PR；开始前重读云端 main/PR/CI/安装版；不改 frozen authority；冲突时停工作并提交 CHANGE_PROPOSAL
+- 回滚：Batch 0 各任务按各自规格可逆
