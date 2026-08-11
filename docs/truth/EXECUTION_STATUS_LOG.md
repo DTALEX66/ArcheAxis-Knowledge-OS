@@ -1181,3 +1181,12 @@
   证据判定、dry_run 非证据、非真实工具、缺失/不支持工具名、空白剥离
 - 无代码变更; 本地全量 1320 passed, 5 skipped
 - 零测试组件 7→6
+
+
+### LOG-20260812-099 — PR #108 MERGED (mermaid_gen 测试) — PASS
+
+- PR #108 squash merged → main `495ae2d`
+- mermaid_gen 首次测试 (8): flowchart 结构/回退、knowledge graph
+  (card 形状/safe id/边)、review timeline (空/有/截断)、safe id
+- 无代码变更; 本地全量 1332 passed, 5 skipped
+- 零测试组件 6→5
