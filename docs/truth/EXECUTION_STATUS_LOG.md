@@ -1382,3 +1382,12 @@
 - CI 首跑 lint 失败 (release-manifest.json missing-final-newline) →
   amend 加末尾 LF → force-push → 全绿 (run 31543019316)
 - 全量 1458 passed, 5 skipped; 门禁干净
+
+
+### LOG-20260812-120 — PR #124 MERGED (H2 evidence 接入管线) — PASS
+
+- PR #124 squash merged → main `9fa0558`
+- h2-evidence: pipeline Stage 7 evidence action — DOI 直接查
+  Crossref/DataCite; 否则 claim-text OpenAlex; classification=
+  public-evidence, verified=False
+- enrich_with_public_sources 扩展 claim_text/qid; 3 契约测试
