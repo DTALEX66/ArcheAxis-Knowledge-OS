@@ -243,28 +243,32 @@ def _via_read(file_path: str) -> AdapterResult:
 
 
 def _via_canvas(file_path: str) -> AdapterResult:
-    """Project JSON Canvas nodes without executing files or following links."""
-    payload = json.loads(Path(file_path).read_text(encoding="utf-8"))
-    if not isinstance(payload, dict) or not isinstance(payload.get("nodes"), list):
-        raise ValueError("JSON Canvas document must contain a nodes array")
+    """Project JSON Canvas nodes without executing files or following links.
+
+    Uses shared/json_canvas.py validator (ADS-003) for spec-compliant validation.
+    Unknown fields are preserved on roundtrip.
+    """
+    from shared.json_canvas import validate_json_canvas, CanvasError
+
+    raw = Path(file_path).read_text(encoding="utf-8")
+    payload = json.loads(raw)
+
+    try:
+        validate_json_canvas(payload)
+    except CanvasError as e:
+        raise ValueError(f"Invalid JSON Canvas: {e}") from e
 
     sections: list[str] = []
     for node in payload["nodes"]:
-        if not isinstance(node, dict):
-            raise ValueError("JSON Canvas node must be an object")
         node_type = node.get("type")
         if node_type == "text":
             text = node.get("text")
-            if not isinstance(text, str):
-                raise ValueError("JSON Canvas text node must contain string text")
-            if text.strip():
+            if isinstance(text, str) and text.strip():
                 sections.append(text.strip())
         elif node_type in {"file", "link", "group"}:
             label = node.get("file") or node.get("url") or node.get("label")
             if isinstance(label, str) and label.strip():
                 sections.append(f"- {node_type}: {label.strip()}")
-        else:
-            raise ValueError(f"unsupported JSON Canvas node type: {node_type!r}")
 
     text = "\n\n".join(sections)
     return AdapterResult(
