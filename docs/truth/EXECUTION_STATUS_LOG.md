@@ -1231,3 +1231,14 @@
   放行、大小写不敏感、空白剥离、空输入、非字符串强转
 - 无代码变更; 本地全量 1360 passed, 5 skipped
 - 零测试组件 3→2 (graph_rag/obsidian_importer)
+
+
+### LOG-20260812-103 — PR #112 MERGED (obsidian_importer 测试) — PASS
+
+- PR #112 squash merged → main `0ed8138`
+- obsidian_importer 首次测试 (12): vault folder map、frontmatter 解析
+  (simple/list/quoted/absent)、scan_vault 分类+跳过规则+缺失目录、
+  import_file (dry-run/not-found/card 导入)、import_vault dry-run
+- 陷阱: conftest TMPDIR 隐藏树 → scan_vault 测试 fake rglob 用相对 parts
+- 本地全量 1356 passed, 5 skipped
+- 零测试组件 2→1 (仅 graph_rag)
