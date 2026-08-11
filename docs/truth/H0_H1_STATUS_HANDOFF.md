@@ -7,6 +7,9 @@
 > 执行分支：`axw/execution-h0`（已 merge）、`axw/execution-h1`（PR #72，未 merge）
 > 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~048）
 
+> **后续更新（2026-08-12）**：PR #72（H1）已于 2026-08-10 merge 至 main（merge-SHA `fba208f`，见 LOG-064 AXW-H1-EXIT PASS）；`axw/execution-h0`/`axw/execution-h1` 远程分支已于 2026-08-12 清理。本文前半部分记录的"未 merge/未授权"是 2026-08-09 时的历史决策状态，保留作迁移输入；当前状态以 EXECUTION_STATUS_LOG 为准。
+
+
 本文是任务包要求的状态交接文档，汇总 H0/H1 全部任务的验收状态、证据等级、阻塞与收口路径。所有 PASS 均绑定真实 exact-SHA/CI/审查/安装态证据；未完成项如实标 `PARTIAL`/`UNVERIFIED`，不冒充完成。
 
 **权威源文件（相对本文件）：**
