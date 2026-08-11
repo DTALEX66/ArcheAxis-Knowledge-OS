@@ -981,3 +981,14 @@
 - README + .worklab 注释对齐 ArcheAxis Learning Workspace
 - 4 新测试；convention check 全绿
 - AXW-1209 文档投影门禁落地：命名禁词防回归
+
+
+### LOG-20260812-080 — PR #89 MERGED (AXW-1200~1210 taskpack COMPLETE) — PASS
+
+- PR #89 squash merged → main `0e8c730`
+- AXW-1200~1210 全部 11 项任务完成（1200 snapshot, 1201 naming, 1202 identity,
+  1203 atlas, 1204 trace/ledger/graph, 1205 LER, 1206 plan, 1207 interop,
+  1208 migration plan, 1209 lint guard, 1210 spine re-entry）
+- 命名迁移阶段 1-2（文档+UI）done；阶段 3+（打包/仓库/底层）Owner-gated
+- 任务包 v1 2026-08-11 全量落地：17 文件 + README/GitHub 描述锁死 + 命名禁词门禁
+- 17 PR（#69, #75-#89）全部 merge
