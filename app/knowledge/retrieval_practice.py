@@ -79,3 +79,27 @@ def score_retrieval_practice(
         raise ValueError("submitted answer is required")
     correct = submitted_answer.strip().lower() == practice.answer.strip().lower()
     return PracticeScore(correct=correct, accuracy_from_answer=True)
+
+
+# ── H2: FSRS scheduling bridge ──
+
+
+def schedule_next_review(correct: bool) -> dict[str, object]:
+    """Bridge retrieved practice score to FSRS scheduling.
+
+    Returns {'scheduled_days': int, 'state': str, 'stability': float|None}.
+    Integrates ADS-008 (py-fsrs v6) into the learning lifecycle.
+    """
+    from fsrs import Card, Rating
+
+    from shared.learning_scheduler import LearningScheduler
+
+    s = LearningScheduler()
+    card = Card()
+    rating = Rating.Good if correct else Rating.Again
+    _, summary = s.review(card, rating)
+    return {
+        "scheduled_days": summary.get("scheduled_days", 0),
+        "state": str(summary.get("state", "learning")),
+        "stability": summary.get("stability"),
+    }
