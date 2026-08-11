@@ -274,15 +274,19 @@ def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
     )
     product = registry["product"]
     assert product["name"] == {
-        "en-US": "ArcheAxis Workspace",
-        "zh-CN": "元枢工作台",
+        "en-US": "ArcheAxis Learning Workspace",
+        "zh-CN": "星轨学习工作台",
         "class": "display",
     }
-    assert registry["rules"]["default_ui_product_name"] == "ArcheAxis Workspace"
+    assert registry["rules"]["default_ui_product_name"] == "ArcheAxis Learning Workspace"
     assert "元枢·观心" in registry["forbidden_default_terms"]
+    assert "ArcheAxis Workspace" in [
+        d["value"] for d in product["deprecated_display"]
+    ]
 
     ui = (ROOT / "app" / "workspace" / "ui" / "index.html").read_text(encoding="utf-8")
-    assert "ArcheAxis Workspace" in ui
-    assert "元枢工作台" in ui
+    assert "ArcheAxis Learning Workspace" in ui
+    assert "星轨学习工作台" in ui
+    assert "元枢工作台" not in ui
     assert "元枢·观心" not in ui
     assert "全局命令入口尚未接入" not in ui

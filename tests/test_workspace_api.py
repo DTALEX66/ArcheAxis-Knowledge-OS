@@ -19,8 +19,8 @@ def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     assert page.headers["x-content-type-options"] == "nosniff"
     assert page.headers["referrer-policy"] == "no-referrer"
     assert page.headers["x-frame-options"] == "DENY"
-    assert "元枢工作台" in page.text
-    assert "ArcheAxis Workspace" in page.text
+    assert "星轨学习工作台" in page.text
+    assert "ArcheAxis Learning Workspace" in page.text
     assert "元枢·观心" not in page.text
     assert "Cognitive-Loop-OS" not in page.text
     assert "API key" not in page.text

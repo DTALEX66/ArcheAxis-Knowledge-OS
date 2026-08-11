@@ -44,7 +44,7 @@ def test_read_file_goal_produces_real_evidence_and_trace_bound_success_lesson(mo
     assert evidence["status"] == "ok"
     assert evidence["dry_run"] is False
     assert evidence["path"].endswith("AGENTS.md")
-    assert "ArcheAxis Workspace (Human–AI Learning Workspace)" in evidence["content"]
+    assert "星轨学习工作台（ArcheAxis Learning Workspace）" in evidence["content"]
     assert response["eval"].success is True
     assert response["eval"].score == 1.0
     assert response["lesson"].lesson_type == "success"

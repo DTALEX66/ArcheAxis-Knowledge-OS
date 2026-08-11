@@ -1,26 +1,32 @@
-version: 2
+version: 3
 status: active
 product:
   brand:
     en-US: ArcheAxis
-    zh-CN: 元枢
+    zh-CN: ArcheAxis
     class: display
   name:
-    en-US: ArcheAxis Workspace
-    zh-CN: 元枢工作台
+    en-US: ArcheAxis Learning Workspace
+    zh-CN: 星轨学习工作台
     class: display
   description:
-    en-US: A local-first, evidence-driven Human–AI learning and knowledge workspace.
-    zh-CN: 本地优先、证据驱动的 Human–AI 学习与知识工作台。
+    en-US: A local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace.
+    zh-CN: 本地优先、证据可追溯、开放互操作的人机双向学习与可信知识治理工作台。
     class: display
   compatibility_stage:
-    en-US: Obsidian-compatible Workspace
-    zh-CN: Obsidian 兼容工作台
+    en-US: Obsidian-compatible Workspace foundation
+    zh-CN: Obsidian 兼容工作台基础
     class: display
   deprecated_display:
+    - value: ArcheAxis Workspace
+      class: legacy
+      allowed_surfaces: [desktop_protocol, installer_migration, historical_release, compatibility_docs]
     - value: ArcheAxis OS
       class: legacy
       allowed_surfaces: [desktop_protocol, installer_migration, historical_release]
+    - value: 元枢工作台
+      class: legacy
+      allowed_surfaces: [historical_release, compatibility_docs]
     - value: 元枢系统
       class: legacy
       allowed_surfaces: [historical_release, compatibility_docs]
@@ -28,19 +34,7 @@ product:
       class: forbidden_default
       allowed_surfaces: [user_defined_profile_only]
 technical_ids:
-  repository:
-    value: Cognitive-Loop-OS
-    class: legacy
-    allowed_surfaces: [git, historical_docs, project_root]
-  python_distribution:
-    values: [cognitive-loop-os, cognitive-os]
-    class: alias
-    allowed_surfaces: [existing_install, existing_cli, compatibility_docs]
-  tauri_identifier:
-    value: com.archeaxis.cognitive-workspace
-    class: legacy
-    allowed_surfaces: [desktop_protocol, installer_migration]
-  service_registry:
+  registry:
     source: config/naming-registry.yaml
     class: canonical_machine_identity
     allowed_surfaces: [api, database, events, configuration]
@@ -51,9 +45,10 @@ forbidden_default_terms:
   - 认知运行时
   - 元枢·观心
   - 通用 Agent OS
+  - 星轨
 rules:
-  default_ui_product_name: ArcheAxis Workspace
-  default_ui_product_name_zh: 元枢工作台
+  default_ui_product_name: ArcheAxis Learning Workspace
+  default_ui_product_name_zh: 星轨学习工作台
   preserve_technical_compatibility_ids: true
   github_repository_rename: explicit_decision_required
   tauri_identifier_change: migration_and_rollback_required
