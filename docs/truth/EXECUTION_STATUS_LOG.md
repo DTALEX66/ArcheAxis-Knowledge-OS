@@ -734,3 +734,14 @@
 - 证据等级：EXACT_SHA_CI + LOCAL_RUNTIME（真实 PDF 字节保真）
 - 风险/剩余项：PR #74 未 merge（未获授权）；PDF.js 前端渲染（分页/缩放/搜索 + 证据批注 + WebView 点击级）仍待独立前端批次；AXW-H1-EXIT 待 022 前端完成
 - 回滚：关闭/丢弃 PR #74
+
+### LOG-20260811-059 — PDF HTTP ENDPOINT RUNTIME CLOSED LOOP — PASS
+
+- 时间：2026-08-11
+- 执行分支：feat/axw022a-pdf-http-endpoint（PR #74，head 6e9dbfd）
+- 变更：迁移 runtime DB（migrate 子命令，6 owner 全 applied）；启动 uvicorn（app.runtime_entrypoint core，127.0.0.1:8000）
+- 验证：真实运行时 HTTP 读回两真实 PDF——时间简史（插图本）18.9MB + 缤纷的语言学 2.2MB，均 HTTP 200，content-type application/pdf，字节 SHA-256 完全一致（9d35e2a6…c5 / a1d6cc1d…13）；服务日志 3 次 200 OK；测试客户端 4 passed
+- 意义：AXW-022A 后端→HTTP 端点的闭环由真实 uvicorn 服务 + 真实 PDF 证实（超出测试客户端证据）
+- 证据等级：LOCAL_RUNTIME（真实服务 + 真实 PDF 字节保真）+ EXACT_SHA_CI（PR #74 run 31493237744）
+- 风险/剩余项：PR #74 未 merge（未获授权）；PDF.js 前端渲染（分页/缩放/搜索 + 证据批注 + WebView 点击级）仍待独立前端批次；AXW-H1-EXIT 待 022 前端完成
+- 回滚：关闭/丢弃 PR #74；删除本地 data/（未跟踪 runtime）
