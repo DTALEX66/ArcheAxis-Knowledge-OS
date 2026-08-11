@@ -1,276 +1,166 @@
-# 全量候选吸收执行矩阵
+# 全量候选吸收执行矩阵（v2 — 2026-08-11 更新）
 
-> 更新：2026-07-27。本文是后续 TaskPack 的阶段入口，不是“全部项目已集成”的能力声明。
+> 更新：2026-08-11。基于 `ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md` 全面更新。
+> 旧 v1（2026-07-27）仍保留在 Git 历史，但不得再作为活跃状态引用。
+> 权威账本：`docs/truth/SUPPLY_CHAIN_LEDGER.json`（v2，46 个组件，含吸收决策）。
 >
-> 机器真相：`inspiration_research/resources/open_source_project_registry.json` 与 `open_source_absorption_ledger.json`。当前 registry/ledger 均为 101 个项目：`implemented=8`、`adapter_contract_pending=27`、`deferred_review=38`、`reference_only=28`。
+> **机器真相已迁移**：旧 registry/ledger（101 行，`implemented=8`）已被 ledger v2 替代。旧数字不反映当前真实集成状态（PDF.js、pytesseract 等已合并但旧账本未记录）。本文不再是"全部项目已集成"的能力声明——它是当前吸收决策和执行计划。
 
-## 一、吸收状态定义
+---
+
+## 一、吸收状态定义（v2 扩展）
 
 | 状态 | 进入条件 | 运行时含义 |
 |---|---|---|
-| `implemented` | reachable code path、implementation evidence、focused test、失败语义 | 已有受控实现，但只代表该 Adapter/能力，不代表整个上游项目被内置 |
-| `adapter_contract_pending` | 已确定价值和边界，但尚无完整 contract/测试/回滚 | 只可进入 TaskPack，不可默认安装或激活 |
-| `deferred_review` | 高风险、供应链、执行沙箱、远端服务或许可证/权限仍需审查 | 禁止安装、运行和生产激活 |
-| `reference_only` | 只吸收产品、架构、UX 或算法思想 | 不复制代码、不添加依赖、不宣称兼容 |
+| `CURRENT` | 真实代码路径 + 依赖/源码证据 + 测试 | 已有受控实现，但只代表该 Adapter/能力，不代表整个上游项目被内置。按 source/installed/release 三层资格分别标注。 |
+| `ADOPT` | 通过决策分析，选为某能力的首选方案 | 经 exact-revision RDR（ReuseDecisionRecord）后可集成。未完成 RDR 前不得加入依赖锁。 |
+| `EVALUATE` | 候选方案，需固定 fixture bake-off 比较 | 不默认使用；在多候选间用统一 corpus 比较后选 primary + fallback。 |
+| `SIDECAR` | 隔离、可卸载、非默认常驻能力 | 独立资源/进程；不进入核心依赖图或默认启动路径。 |
+| `REFERENCE` | 只吸收 UX、合同、算法或测试思想 | 不复制代码、不添加依赖、不宣称兼容。 |
+| `DEFER` | 长期有价值，但不进入 H0–H5 | H6+ 重新评估；当前不投入资源。 |
+| `REVIEW-BLOCK` | 许可、模型、安全或产品边界门禁未通过 | 默认关闭；capability probe 返回 disabled。 |
+| `REJECT-CORE` | 与当前产品定位（本地学习与知识工作台）无关 | 不进入产品依赖图；历史记录保留。 |
 
-所有新候选必须记录 source revision、license、风险、数据外部性、目标边界、降级方案、fixture 和 rollback handle。外部仓库、模型、课程和 Vault 内容先进入 candidate/quarantine，不能自动成为 verified truth。
+所有新候选必须记录 source revision、license（代码/模型/数据/资产分开）、风险、数据外部性、目标边界、降级方案、fixture 和 rollback handle。外部仓库、模型、课程和 Vault 内容先进入 candidate/quarantine，不能自动成为 verified truth。
 
-## 二、当前已验证实现
+---
 
-| 项目 | 当前落点 | 证据 |
-|---|---|---|
-| LiteLLM | `shared-contracts/adapters/llm/litellm_adapter.py` | `tests/test_integrations.py` |
-| Crawl4AI | `shared-contracts/adapters/crawlers/crawl4ai_adapter.py` | `tests/test_integrations.py` |
-| Trafilatura | `app/ingestion/multi_format.py`、`shared/web_search.py` | ingestion 真实路径 |
-| MarkItDown | `app/ingestion/multi_format.py` | `tests/test_coverage_gap.py` |
-| Langfuse | `shared-contracts/adapters/observability/langfuse_adapter.py` | `tests/test_langfuse_adapter.py` |
-| NetworkX | `app/memory/graph_db.py`、`shared/graph_rag.py` | 图能力路径 |
-| sqlite-vec | `app/memory/vector_db.py` | `knowledge_base/tests/test_vector_search.py` |
-| Loguru | `shared/logging.py`、`app/ingestion/multi_format.py` | 真实日志/摄入路径 |
+## 二、当前已集成项目（v2，按资格层表达）
 
-这些项目仍受本仓库的 contract、权限、SQLite、Candidate 和 CI 约束；不能因为依赖或文件名相似就扩大能力声明。
+| 项目 | 当前落点 | 资格层 | 最新决策 |
+|---|---|---|---|
+| PDF.js 3.11.174 | `app/workspace/ui/assets/` | source + installed | 保留；规划 5.x 升级 spike |
+| MarkItDown[pdf] | `app/ingestion/multi_format.py` | source + installed | 轻量 baseline；默认禁用 LLM OCR |
+| Trafilatura >=1.8 | `app/ingestion/multi_format.py` / `shared/web_search.py` | source + installed | 锁定 Apache-2.0 版本；补来源快照 |
+| pytesseract + Tesseract | `app/ingestion/multi_format.py` (MFX-010) | source + installed | Baseline OCR；诚实不可用时降级 |
+| Crawl4AI | Adapter | source | 动态页 sidecar；不常驻 |
+| LiteLLM | Adapter | source | 薄 Provider；core MIT / enterprise 另许可 |
+| Langfuse | Adapter | source | 本地 fallback；ee/ 另许可 |
+| sqlite-vec | `app/memory/vector_db.py` | source | 可选派生索引；FTS5 始终可降级 |
+| NetworkX | `app/memory/graph_db.py` / `shared/graph_rag.py` | source | 派生投影；Kùzu 归档不得替换 |
+| Loguru | `shared/logging.py` | source + installed | 保留；与 structlog 职责收敛 |
+| structlog | 直接依赖 | source + installed | 与 Loguru 收敛，避免双框架 |
+| APScheduler | Runtime scheduler | source | 保留现有范围；不扩展为编排器 |
 
-## 三、阶段依赖序列
+---
+
+## 三、当前产品阶段（替代旧 R0→A0→H→I→J→K→L→M→N 序列）
+
+旧序列已过时。当前实际阶段：
 
 ```text
-R0 账本真相与 registry 对齐
-→ A0 Workspace/Tauri/失败恢复/portable 基线
-→ H 文档摄入与 Research Adapter Foundry
-→ I Knowledge / Search / Graph / Memory
-→ J Obsidian / PKM Compatibility
-→ K Evaluation / Observability / Provider
-→ L Runtime / Agent / Workflow
-→ M Workspace Frontend / Desktop Product
-→ N Release / Installer / Distribution
+H0 — 真实产品闭环（v0.5.1，已 PASS 并 merge main）
+H1 — RawAsset / Evidence / 早期学习（已 PASS，全部 merge main）
+H2 — 多格式识别转译闭环（首个任务 AXW-023A DOCX 已入库；OCR/ASR/质量门待推进）
+H3 — Obsidian / Markdown / Canvas 兼容（JSON Canvas + 编辑器族）
+H4 — 学习调度 + Claim 级验证 + 可选本地模型
+H5 — 稳定 v1.0（导出/备份/升级/性能/a11y/release）
+H6–H10 — Parking Lot（需显式激活）
+Web 增补 / KLC 增补 — 按冻结依赖在对应 Horizon 激活
 ```
 
-每个阶段只在前置出口门禁 GREEN 后开始。每个阶段拆为独立 TaskPack，单 writer 修改、定向 RED/GREEN、完整测试、独立审查、显式 commit、exact-SHA CI。
+每个 Horizon 只在前置出口门禁 GREEN 后开始。每个阶段拆为独立 TaskPack，单 writer 修改、定向 RED/GREEN、完整测试、独立审查、显式 commit、exact-SHA CI。
+
+**关键纠正**：旧交接文档中"H1 未 merge、PDF.js 前端待实现"已过时（H1 已于 #72 合并、PDF.js 已于 #74 合并）；"implemented=8"的旧账本数字已被 ledger v2 替代。
 
 ---
 
-## R0 — 账本真相与路线冻结
+## 四、当前遗留问题与漂移
 
-**目标：** 消除 registry、ledger、文档和测试之间的状态/数量漂移。
+### 4.1 旧文档漂移（须在下一轮授权迁移中更正）
 
-### 后端/数据
+- `docs/PROJECT_STATUS.md` 仍写"H1 在 PR、PDF.js 前端待实现"
+- `docs/truth/H0_H1_STATUS_HANDOFF.md` 仍写 PR #72 未 merge
+- 旧 registry/ledger（2026-07-22）停留在 101 行 / implemented=8，未反映 PDF.js、pytesseract 等当前事实
 
-- 校验 101 个项目唯一 ID、状态闭集和风险降级。
-- 为候选补齐 canonical source、revision、license、target boundary、owner track、fixture、rollback 字段。
-- implemented 必须绑定真实代码路径和测试；禁止只凭 README/registry 升级。
-- 维护 `open_source_project_registry.json` 与 `open_source_absorption_ledger.json` 的一对一覆盖。
+### 4.2 吸收账本漂移
 
-### 前端/文档
-
-- 建立候选项目状态聚合的 Workspace 信息架构；未接入 API 时显示 unavailable。
-- 更新 `docs/PROJECT_STATUS.md`、`README.md`、蓝图和吸收总账的数字与状态边界。
-
-### 门禁
-
-- `tests/test_open_source_absorption_ledger.py`
-- `tests/test_registry_v2.py`
-- registry validator、ruff、完整 Python 测试、repository conventions、diff check。
+旧 ledger 的 `implemented=8` 和 registry 的 `candidate` 状态均已被 ledger v2 替代。旧数字不能继续被引用为"集成数量"或"待集成数量"。369 / 101 / 103 / 57 / 8 这些来源高度重叠，不能相加。
 
 ---
 
-## A0 — 当前产品基线收口
+## 五、推荐开源吸收任务包（只定义，不授权执行）
 
-**目标：** 在扩大吸收面前证明产品闭环和数据边界可信。
+### 包 A：Ledger Truth Reset
+- 冻结六套来源快照（369/101/103/57/historical-8/later-research）+ 哈希
+- 标准化 URL/名称；归并迁移别名
+- 建立 canonical component ledger（基于 ledger v2 schema）
+- 生成机器 reconciliation report
 
-### 后端
+### 包 B：Current Integration Qualification
+- 对 §二 12 个当前已接线项目建立 exact revision + 三层状态 + Windows capability probe + NOTICE/SBOM + failure fixture
 
-- HTTP→SQLite→Job/Outbox/Receipt→dispatch→delivered→reload readback。
-- failure/retry/replay、orphan/tamper、lease fencing、crash/restart recovery。
-- 可恢复 Worker：lease、checkpoint、pause、cancel、retry；统一 audit/SSE contract。
-- portable data-root；安装模式和 portable copy 模式分开隔离。
+### 包 C：H2 Recognition Provider Bake-off
+- PDF/Office：MarkItDown / Docling / 专用库
+- OCR：Tesseract / PaddleOCR / RapidOCR / EasyOCR bake-off
+- ASR：faster-whisper / whisper.cpp / sherpa-onnx bake-off
+- 统一固定 fixture corpus + CER/WER/结构/资源/失败率
 
-### 前端/桌面
+### 包 D：Evidence Connector Registry
+- Crossref / DataCite / OpenAlex / Wikidata / Europe PMC / NCBI / Open Library 首批连接器
+- 统一 rate-limit / cache / provenance / source-independence / egress policy
 
-- Workspace Job/Delivery 错误、重试、重放、恢复和空状态。
-- Chromium 真实交互与 reload readback。
-- Tauri WebView2 点击级上传、dispatch、刷新、关闭、重启、回读。
-- Windows 安装、升级、卸载、数据保留和恢复说明。
+### 包 E：Workspace/Learning OSS Qualification
+- Markdown parser + YAML roundtrip bake-off
+- 单编辑器族决策（CodeMirror 6 / Lexical / TipTap / BlockNote）
+- JSON Canvas + XYFlow；py-fsrs；Zotero/Anki/Joplin API Adapter
 
-### 门禁
-
-`tests/test_workspace_*`、真实 Chromium、Tauri/WebView、Windows runtime、NSIS lifecycle、同一隔离 SQLite 数据集。
-
----
-
-## H — 文档摄入与 Research Adapter Foundry
-
-**目标：** 外部文件/网页/媒体只通过统一 SourceRecord/ResearchPackage 进入 candidate。
-
-### 项目分组
-
-- 第一批 Adapter：Docling、Unstructured、MinerU、marker、pymupdf4llm、PaddleOCR、Scrapling、Crawlee、newspaper4k。
-- 已实现能力：MarkItDown、Trafilatura、Crawl4AI，补齐 fallback/不可用证据。
-- 高风险后置：Firecrawl、browser-use，先做 Safe HTTP/权限/限网审计。
-
-### 后端
-
-- 统一 content type、byte limit、source hash、engine/fallback、processing manifest。
-- Adapter 只返回 Markdown + metadata + source record，不直接写 Knowledge 表。
-- 原子落盘、approved roots、变更重跑、失败重试、symlink/junction containment。
-- PDF/DOCX/PPTX/XLSX/HTML/image/audio fixture 和语言/字体边界。
-
-### 前端
-
-- 导入向导、解析模式、预览、候选状态、逐文件失败/重试/checkpoint。
-- 展示来源、证据、provenance 和人工复核，不展示伪准确率。
-
-### 门禁
-
-每个 Adapter 一组真实成功 fixture + 一组 unavailable/fallback fixture；核心安装不因可选重型依赖失效。
+### 包 F：Supply Chain Minimum Set
+- Syft + pip-audit + 一个漏洞扫描器 + Gitleaks + Cosign（H5）
 
 ---
 
-## I — Knowledge / Search / Graph / Memory
+## 六、上游更新与纠错记录
 
-**目标：** 让 Knowledge/Learning/Mastery/Machine Knowledge 在版本、检索、图和回滚上真实可治理。
-
-### 后端
-
-- KnowledgeUnit/Relation/LearningArtifact/MasterySignal/MachineKnowledge 的 version、approval、deprecation、supersedes、provenance。
-- sqlite-vec 作为可选增强，FTS5 可独立降级；NetworkX 做本地图计算。
-- Graphiti、Kùzu、LanceDB、Mem0 只能 Adapter 化；不得直接写核心事实。
-- index rebuild、shadow switch、rollback、embedding version、stale index、孤儿节点、关系冲突。
-
-### 前端
-
-- Knowledge 候选/批准/弃用/版本/来源浏览。
-- keyword/vector/hybrid search、命中证据、降级状态。
-- Graph 只读 projection、关系来源、冲突和重建状态。
-- Learning/Mastery 练习和掌握信号，不把学习分数当事实准确率。
-
-### 门禁
-
-schema tamper、revision conflict、duplicate command、shadow rebuild/switch/rollback、Research→Knowledge→Learning→Mastery→Machine Knowledge lifecycle。
+| 项目 | 旧结论 | 2026-08-11 更新 |
+|---|---|---|
+| Marker | "GPL-3.0" | 代码 Apache-2.0；权重修改版 OpenRAIL-M。代码/权重分审。 |
+| MinerU | "Apache-2.0" | Apache-2.0 + 附加 MAU/收入阈值与在线服务标识义务。不得笼统写 Apache-2.0。 |
+| PyMuPDF4LLM | "AGPL/商业" | AGPL-3.0。只有明确接受 AGPL 或购商业许可后使用。 |
+| tldraw | "候选 SDK" | 生产需要 license key。不是 OSS 默认组件。REVIEW-BLOCK。 |
+| Kùzu | "graph DB 候选" | 上游 2025-10-10 归档。不得选为 primary。 |
+| H5P PHP Library | "core MIT" | **GPL-3.0**。旧 MIT 结论作废。 |
+| Phoenix | "开源观测" | **Elastic License 2.0**。不是 OSS。 |
+| Firecrawl | "API/crawler 候选" | 主体 **AGPL-3.0**；SDK/UI 部分 MIT。组件级审查。 |
+| LiteLLM | "MIT" | 核心 MIT；**enterprise/ 另许可**。 |
+| Langfuse | "MIT" | 核心 MIT；**ee/ 另许可**。 |
+| PDF.js | "3.11.174 已接入" | 上游已有 5.x。不盲升；建兼容/CVE 升级 spike。 |
 
 ---
 
-## J — Obsidian / PKM Compatibility
+## 七、不应吸收到产品核心的项目族
 
-**目标：** 明确兼容等级，不把普通 Markdown 导入误称为全面兼容。
+### 7.1 通用 Agent / 编码 Agent
+OpenHands、AutoGen、CrewAI、LangGraph、PydanticAI、OpenAI Agents SDK、Semantic Kernel、OpenCode、Aider、Claude Code、Cline、SWE-agent 等：
 
-### 后端
+- 可作为开发工具、typed contract 参考
+- **不作为 Workspace 产品能力**
+- 不得绕过现有 Job/Outbox/Receipt、Permission、Evidence 和 Human Review
+- H10 前不进入默认依赖图
 
-- `ObsidianVaultSourceV1`、`VaultFileV1`、`VaultLinkV1`、`AttachmentRefV1`、`SyncCursorV1`。
-- 显式 vault root、approved roots、隐藏目录/`.trash`/`.obsidian` 策略、大小限制。
-- 完整 YAML frontmatter、tags、tasks、aliases、wikilinks、Markdown links、block refs、callout、properties 的支持矩阵。
-- 图片/PDF/音频/视频 embed 和缺失附件报告。
-- 第一版明确 one-way import/export；后续再做增量、rename/delete、冲突、双向写回。
-- Joplin、Logseq、SiYuan、AFFiNE、Zotero 各自 Adapter，不污染核心模型。
+### 7.2 整体 RAG / 知识平台
+Dify、RAGFlow、Open WebUI、AnythingLLM、FastGPT、Kotaemon、Khoj 等只作产品/UX 参考。项目的事实层、开放文件和 EvidenceAnchor 不能交给另一套平台接管。
 
-### 前端/桌面
+### 7.3 Agent Memory / Graph RAG
+Mem0、Letta、Graphiti、Cognee、LightRAG、GraphRAG、KAG、HippoRAG 等继续留在 H7+ 研究池。
 
-- Vault 选择、授权、扫描预览、分类、链接/附件错误、人工确认。
-- 原文/解析语义差异预览；Import/Projection/Sync 明确单向/双向。
-- Chromium/Tauri 隔离 fixture vault 同路径 readback。
-
-### 门禁
-
-fixture 覆盖 frontmatter、wikilink、alias、Markdown link、tags、tasks、embed、附件、Canvas、missing links、rename/delete、duplicate import；负控覆盖路径逃逸、symlink/junction、恶意 frontmatter、循环链接、超大文件。
+### 7.4 安全研究实验室
+Ghidra、radare2、Rizin、Frida、pwntools、sqlmap、angr、AFL++、syzkaller、QEMU、Wireshark、ZAP、MobSF、Volatility、YARA 等全部 `isolated-lab/reference-only`。禁止进入自动执行链。
 
 ---
 
-## K — Evaluation / Observability / Provider
-
-### 后端
-
-- LiteLLM 保持 Adapter；Provider key 不进入代码、日志、trace、UI。
-- Promptfoo 做离线评估 Adapter；OpenTelemetry 可选 exporter；Langfuse 保持 payload-safe local fallback。
-- OpenAI Agents Python/Pydantic AI 仅做 typed Agent contract spike，不绕过 executor。
-- OpenCode/Aider 仅做受控开发/Git patch Adapter，不获得无边界 shell。
-
-### 前端
-
-- Evaluation dashboard：人工真值、CER/WER、证据、失败分类、candidate 状态。
-- Trace timeline、redaction、export 状态、provider unavailable/timeout/rate-limit。
-
-### 门禁
-
-provider unavailable、timeout、rate limit、redaction、no-key local mode、trace exporter failure；禁止把 model confidence 当 accuracy。
-
----
-
-## L — Runtime / Agent / Workflow
-
-### 后端
-
-- 将 `read file:` 扩展为有限 typed intents；每个 intent 有 permission、真实 tool evidence、失败/补偿/评估。
-- n8n、Airflow、Prefect 只做 Workflow Adapter；Job/Outbox/lease 仍由本项目拥有。
-- LangGraph 仅在本地可恢复状态机需要时接入；不复制第二套状态库。
-- OpenHands、AutoGen、CrewAI、browser-use 继续 deferred，直到沙箱、权限、审计、预算、kill/recovery 门禁完成。
-
-### 前端
-
-- Plan/Permission/Execution/Trace/Recovery 页面。
-- 用户只选择公开意图和安全参数，不输入内部 package/unit/command/lease ID。
-- 暂停、取消、重试、恢复、人工批准和 remediation。
-
-### 门禁
-
-forbidden intent、path escape、SSRF、timeout、crash/restart、lease fencing、duplicate/replay/tamper；动态 Planner 不得绕过 permission/review。
-
----
-
-## M — Workspace Frontend / Desktop Product
-
-### 前端
-
-- 导航 inventory 与真实 page inventory 对齐；未接入入口必须 unavailable。
-- typed DTO/API client；loading/empty/error/retry/stale/recovery 全状态。
-- Import、Research Review、Knowledge、Learning、Mastery、Machine Knowledge、Search、Graph、Obsidian/PKM、Jobs、Trace、Evaluation、Diagnostics 页面。
-- Chromium real browser matrix：用户动作、HTTP、持久化、reload、关闭/恢复。
-
-### 后端
-
-- 每个页面的聚合 projection/action reference、pagination/filter/sort、ETag/revision、error code、redaction。
-- 前端不读 SQLite，不暴露 command/package/artifact/lease/correlation ID。
-
-### 桌面
-
-- Tauri WebView2 readiness、Core lifecycle、data-root、profile、upgrade、uninstall、restore。
-- installed/portable 两模式独立验收。
-
----
-
-## N — Release / Installer / Distribution
-
-- tag-only workflow、isolated staging、exact commit/tree/CI identity。
-- checksum、SBOM/provenance、签名策略、artifact manifest。
-- NSIS install/upgrade/uninstall/recovery readback。
-- 发布前回读 GitHub Release asset；源码 manifest 继续 `unreleased/public=false`，直到完整链路 GREEN。
-
----
-
-## 四、明确后置池
-
-以下项目全部保留在矩阵，但不提前进入核心：
-
-- Dify、Open WebUI、AnythingLLM、RAGFlow、FastGPT、LobeChat、PrivateGPT、Kotaemon：只参考产品/UX。
-- LangChain、LlamaIndex、Haystack、Semantic Kernel：只参考抽象。
-- AutoGen、CrewAI、OpenHands、browser-use：高风险 deferred。
-- Qdrant、Chroma、Milvus、Kùzu、Neo4j、Elasticsearch：可替换 Adapter spike，不替换 SQLite/MigrationOperator。
-- Ghidra、radare2、Frida、pwntools、sqlmap 等：只进入安全研究库，禁止自动执行链。
-
-## 五、启动与完成定义
+## 八、启动与完成定义
 
 每个阶段开始前建立独立 TaskPack，包含用户目标/非目标、候选清单、revision/license、contract、数据边界、RED/GREEN、失败/回滚、fixture、CI 和 release gate。阶段出口必须同时有源代码、产品路由、真实运行时、测试、CI、文档和发布事实证据。
 
-当前首批队列：
+当前活跃队列（依 Horizon 顺序）：
 
 ```text
-R0-001 registry truth
-A0-001 Tauri delivery/retry/replay/readback
-A0-002 portable data-root
-H-001 document adapter fallback
-I-001 search/graph/vector rollback
-J-001 Obsidian one-way vault fixture
-K-001 evaluation/trace fallback
-L-001 typed runtime intent
-M-001 Workspace projection/error matrix
-N-001 release artifact chain
+H2 — 多格式识别闭环（MFX-010/012/001 已完成，AXW-023A DOCX 已入库）
+  → OCR bake-off、ASR bake-off、质量门、Evidence Connector Registry
+H3 — JSON Canvas + 编辑器族 + XYFlow
+H4 — py-fsrs + Claim 验证 + 可选本地模型
+H5 — release qualification
 ```
 
-“全部纳入计划”已完成；“全部运行时吸收”只有在每个项目通过自身门禁后才可逐项标记，不能用计划、registry、dry-run 或旧报告替代真实完成证据。
+"全部纳入计划"已完成；"全部运行时吸收"只有在每个项目通过自身门禁后才可逐项标记，不能用计划、registry、dry-run 或旧报告替代真实完成证据。

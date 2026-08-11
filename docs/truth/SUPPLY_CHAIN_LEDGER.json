@@ -1,52 +1,691 @@
 {
-  "schema_version": 1,
-  "ledger_name": "ArcheAxis OS / Cognitive-Loop-OS supply chain ledger",
+  "schema_version": 2,
+  "ledger_name": "ArcheAxis Workspace — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "status_gate": ["approved", "review_required", "blocked"],
-  "note": "MFX-001. Each component records licence gate + exact-revision tracking. code_license and model_license are kept separate. 'approved' means past licence review for default use; 'review_required'/'blocked' means capability probes must report the component as unavailable until licence decision. This ledger does not itself grant redistribution rights; it records the project's decision state.",
+  "updated": "2026-08-11",
+  "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
+  "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
+  "disposition_labels": {
+    "CURRENT": "Already integrated — source/binary evidence exists. State qualified by tier below.",
+    "ADOPT": "Recommended primary choice for the capability. Requires exact-revision RDR before integration.",
+    "EVALUATE": "Bake-off candidate — compare against peers with fixed fixtures before selecting.",
+    "SIDECAR": "Isolated, removable, not a default core dependency. Separate compliance path.",
+    "REFERENCE": "UX, contract, algorithm, or test-design reference only. Not a dependency.",
+    "DEFER": "Valuable for later horizons (H6+). Not for H0-H5 core.",
+    "REVIEW-BLOCK": "License, model, security, or product-boundary gate not passed. Default disabled.",
+    "REJECT-CORE": "Incompatible with product scope. Historical record preserved; not in dependency graph."
+  },
+  "qualification_tiers": [
+    "source",
+    "installed",
+    "release"
+  ],
+  "note": "This ledger encodes ABSORPTION DECISIONS, not just registration. Each entry is the result of analysis against license, capability fit, product boundary, and upstream state as of 2026-08-11. Code license and model/weight license are kept separate. 'RDR-REQUIRED' means exact tag/commit + license file hash + Windows probe + fixture must be recorded before claiming integrated status.",
   "components": [
-    {"name": "fastapi", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Declared direct runtime dependency"},
-    {"name": "uvicorn", "kind": "python", "code_license": "BSD-3-Clause", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "pydantic", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "numpy", "kind": "python", "code_license": "BSD-3-Clause", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "requests", "kind": "python", "code_license": "Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "pyyaml", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "beautifulsoup4", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "defusedxml", "kind": "python", "code_license": "PSF-2.0", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "apscheduler", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "sqlite-vec", "kind": "python", "code_license": "Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Optional vector enhancement; FTS5 independent fallback"},
-    {"name": "loguru", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "structlog", "kind": "python", "code_license": "MIT OR Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": ""},
-    {"name": "markitdown", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Optional deps (pdfminer-six, pdfplumber, pypdfium2) separately reviewed; narrow convert_local/stream only"},
-    {"name": "trafilatura", "kind": "python", "code_license": "Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Must pin >=1.8 (older versions GPL-3.0+)"},
-    {"name": "networkx", "kind": "python", "code_license": "BSD-3-Clause", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Local graph computation only"},
-    {"name": "litellm", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Adapter only; provider keys never committed"},
-    {"name": "pillow", "kind": "python", "code_license": "HPND / MIT-CMU", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Image metadata only; not a content-success source (MFX-010)"},
-    {"name": "pytesseract", "kind": "python", "code_license": "Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Requires system Tesseract; real OCR"},
-    {"name": "Tesseract-OCR", "kind": "system", "code_license": "Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "external binary", "notes": "100+ languages; tessdata separately reviewed; Windows packageable"},
-    {"name": "PDF.js", "kind": "web-asset", "code_license": "Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "3.11.174", "notes": "Vendored at app/workspace/ui/assets/; LICENSE preserved"},
-    {"name": "newspaper4k", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Optional dev/ingestion group"},
-    {"name": "readabilipy", "kind": "python", "code_license": "Apache-2.0", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Optional; HTML second result"},
-    {"name": "youtube-transcript-api", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "review_required", "revision_ref": "uv.lock", "notes": "Historical adapter regression; verify exact revision"},
-    {"name": "crawl4ai", "kind": "python", "code_license": "Apache-2.0", "model_license": null, "gate": "review_required", "revision_ref": "uv.lock", "notes": "Dynamic web; optional sidecar"},
-    {"name": "langfuse", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "approved", "revision_ref": "uv.lock", "notes": "Payload-safe local fallback"},
-    {"name": "promptfoo", "kind": "python", "code_license": "MIT", "model_license": null, "gate": "review_required", "revision_ref": "uv.lock", "notes": "Offline eval adapter"},
-    {"name": "docling", "kind": "python", "code_license": "MIT", "model_license": "see models", "gate": "review_required", "revision_ref": "TBD", "notes": "Complex doc pages only; per-model SBOM/licence gate required (MFX-001)"},
-    {"name": "paddleocr", "kind": "python", "code_license": "Apache-2.0", "model_license": "per-model", "gate": "review_required", "revision_ref": "TBD", "notes": "EVALUATE->BASELINE_CANDIDATE; per-model licence recorded; VLM not default"},
-    {"name": "easyocr", "kind": "python", "code_license": "Apache-2.0", "model_license": "per-model", "gate": "review_required", "revision_ref": "TBD", "notes": "EVALUATE; benchmark against real fixtures"},
-    {"name": "faster-whisper", "kind": "python", "code_license": "MIT", "model_license": "MIT", "gate": "review_required", "revision_ref": "TBD", "notes": "Local ASR baseline candidate; weights MIT"},
-    {"name": "whisper.cpp", "kind": "system", "code_license": "MIT", "model_license": "per-model", "gate": "review_required", "revision_ref": "TBD", "notes": "CPU/quantized/offline ASR alternative"},
-    {"name": "silero-vad", "kind": "python", "code_license": "MIT", "model_license": "MIT", "gate": "review_required", "revision_ref": "TBD", "notes": "VAD; preserve timelines"},
-    {"name": "ffmpeg/ffprobe", "kind": "system", "code_license": "LGPL-2.1+", "model_license": null, "gate": "review_required", "revision_ref": "build-config", "notes": "Build option may become GPL; fixed build config + NOTICE + capability probe required"},
-    {"name": "apache-tika", "kind": "system", "code_license": "Apache-2.0", "model_license": null, "gate": "review_required", "revision_ref": "TBD", "notes": "Legacy/rare formats sidecar; Java 17; sub-components separately listed"},
-    {"name": "mineru", "kind": "python", "code_license": "Apache-2.0+custom", "model_license": "see license", "gate": "blocked", "revision_ref": "TBD", "notes": "2026 additional conditions + online-service/scale clauses; default disabled until owner/legal review"},
-    {"name": "pymupdf", "kind": "python", "code_license": "AGPL-3.0", "model_license": null, "gate": "blocked", "revision_ref": "TBD", "notes": "Accept AGPL or purchase commercial licence before use"},
-    {"name": "marker", "kind": "python", "code_license": "GPL-3.0", "model_license": "commercial terms", "gate": "blocked", "revision_ref": "TBD", "notes": "DO_NOT_DEFAULT; combined licence + model boundary"},
-    {"name": "funasr/sensevoice", "kind": "python", "code_license": "MIT", "model_license": "custom-modifiable", "gate": "blocked", "revision_ref": "TBD", "notes": "Model protocol has behavioral + auto-revision clauses; not default"},
-    {"name": "zotero-translation-server", "kind": "system", "code_license": "AGPL", "model_license": null, "gate": "blocked", "revision_ref": "TBD", "notes": "Capable but needs isolation + AGPL decision"},
-    {"name": "searxng", "kind": "system", "code_license": "AGPL-3.0", "model_license": null, "gate": "blocked", "revision_ref": "TBD", "notes": "Optional sidecar; cannot embed and claim permissive"},
-    {"name": "grobid", "kind": "system", "code_license": "Apache-2.0", "model_license": null, "gate": "review_required", "revision_ref": "TBD", "notes": "Academic metadata/citation parsing; optional sidecar"},
-    {"name": "ocrmypdf", "kind": "system", "code_license": "MPL-2.0", "model_license": null, "gate": "review_required", "revision_ref": "TBD", "notes": "Searchable PDF copies; audit full binary licence matrix"},
-    {"name": "qpdf/pikepdf", "kind": "system", "code_license": "Apache-2.0 / MPL-2.0", "model_license": null, "gate": "review_required", "revision_ref": "TBD", "notes": "PDF diagnostics/reversible repair only"}
-  ]
+    {
+      "id": "C001",
+      "name": "PDF.js",
+      "version": "3.11.174",
+      "canonical_url": "https://github.com/mozilla/pdf.js",
+      "capability": "pdf-viewer",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "app/workspace/ui/assets/",
+      "evidence": "PR #74 merged; browser-verified paging/zoom/search",
+      "decision": "Retain 3.11.174. Plan compatibility/CVE upgrade spike to current 5.x. NOTICE recorded.",
+      "upstream_note": "Upstream at 5.x; our version is behind but validated. Do not blind-upgrade."
+    },
+    {
+      "id": "C002",
+      "name": "MarkItDown[pdf]",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/microsoft/markitdown",
+      "capability": "document-conversion",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "app/ingestion/multi_format.py",
+      "evidence": "PDF/DOCX/PPTX/XLSX conversion paths",
+      "decision": "Lightweight baseline for text-native PDF and Office. Disable default LLM OCR. pdfminer-six/pdfplumber/pypdfium2 transitive deps recorded separately.",
+      "upstream_note": "MIT; optional [docx] group requires separate python-docx decision."
+    },
+    {
+      "id": "C003",
+      "name": "Trafilatura",
+      "version": ">=1.8 (Apache-2.0)",
+      "canonical_url": "https://github.com/adbar/trafilatura",
+      "capability": "web-extraction",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "app/ingestion/multi_format.py; shared/web_search.py",
+      "evidence": "Static HTML baseline extraction",
+      "decision": "Must lock to modern Apache-2.0 versions (>=1.8). Older versions were GPL-3.0+. Add source-snapshot evidence.",
+      "upstream_note": "License changed at 1.8 from GPL-3.0+ to Apache-2.0. Verify locked version."
+    },
+    {
+      "id": "C004",
+      "name": "pytesseract + Tesseract-OCR",
+      "version": "system binary",
+      "canonical_url": "https://github.com/tesseract-ocr/tesseract",
+      "capability": "ocr-image",
+      "code_license": "Apache-2.0",
+      "model_license": "tessdata Apache-2.0",
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "app/ingestion/multi_format.py (_via_image_ocr, MFX-010)",
+      "evidence": "Real-image gate; honest unavailable when Tesseract absent",
+      "decision": "Baseline OCR. Language packs and Windows binary qualified separately. Not a complete H2 conversion loop yet — EvidenceAnchor per page/block still needed.",
+      "upstream_note": "100+ languages via tessdata. Windows packageable."
+    },
+    {
+      "id": "C005",
+      "name": "Crawl4AI",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/unclecode/crawl4ai",
+      "capability": "web-dynamic",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "shared-contracts/adapters/crawlers/crawl4ai_adapter.py",
+      "evidence": "Integration test; optional sidecar",
+      "decision": "Dynamic page sidecar ONLY. Never a default always-on crawler. SSRF/sandbox/snapshot/prompt-injection gates required before any automated use. Does not grant external content 'truth' identity.",
+      "upstream_note": "Apache-2.0."
+    },
+    {
+      "id": "C006",
+      "name": "LiteLLM",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/BerriAI/litellm",
+      "capability": "llm-provider-router",
+      "code_license": "MIT (core)",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "shared-contracts/adapters/llm/litellm_adapter.py",
+      "evidence": "Integration test",
+      "decision": "Thin provider adapter only. Core MIT; enterprise/ directory is separately licensed. Must not own business objects, data model, or auth state. Replaceable.",
+      "upstream_note": "Default branch != stable release; lock to exact release tag. Enterprise dir is NOT MIT."
+    },
+    {
+      "id": "C007",
+      "name": "Langfuse",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/langfuse/langfuse",
+      "capability": "observability",
+      "code_license": "MIT (core)",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "shared-contracts/adapters/observability/langfuse_adapter.py",
+      "evidence": "Adapter test; local fallback",
+      "decision": "Payload-safe local fallback required. EE/ directory is separately licensed. Redact secrets and PII before any trace export.",
+      "upstream_note": "Core MIT; ee/ dir separately licensed. NOT overall MIT."
+    },
+    {
+      "id": "C008",
+      "name": "sqlite-vec",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/asg017/sqlite-vec",
+      "capability": "vector-index",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "app/memory/vector_db.py",
+      "evidence": "Vector search tests",
+      "decision": "Optional derived index. FTS5 always available as independent fallback. Vector index can be deleted and rebuilt. Only switch to LanceDB if scale/corpus proves FTS5+sqlite-vec insufficient.",
+      "upstream_note": "Dual-license files; verify exact grant."
+    },
+    {
+      "id": "C009",
+      "name": "NetworkX",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/networkx/networkx",
+      "capability": "graph-computation",
+      "code_license": "BSD-3-Clause",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "app/memory/graph_db.py; shared/graph_rag.py",
+      "evidence": "Graph computation paths",
+      "decision": "Derived local graph projection only. Not a second truth layer. Kùzu archived — not a replacement candidate.",
+      "upstream_note": "Kùzu upstream archived 2025-10-10; do not select as primary."
+    },
+    {
+      "id": "C010",
+      "name": "Loguru",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/Delgan/loguru",
+      "capability": "logging",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "shared/logging.py; app/ingestion/multi_format.py",
+      "evidence": "Log paths active",
+      "decision": "Retain. Logs must never contain secret plaintext, credentials, internal absolute paths. Converge with structlog to avoid dual-framework duplication.",
+      "upstream_note": null
+    },
+    {
+      "id": "C011",
+      "name": "structlog",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/hynek/structlog",
+      "capability": "structured-logging",
+      "code_license": "MIT OR Apache-2.0",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "Direct dependency",
+      "evidence": "Structured log foundation",
+      "decision": "Converge responsibilities with Loguru — avoid maintaining two active log frameworks. One should be deprecated or scoped.",
+      "upstream_note": null
+    },
+    {
+      "id": "C012",
+      "name": "APScheduler",
+      "version": "uv.lock",
+      "canonical_url": "https://github.com/agronholm/apscheduler",
+      "capability": "scheduling",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "Runtime scheduler",
+      "evidence": "Scheduling in use",
+      "decision": "Retain existing narrow responsibility. Do not expand into workflow-orchestration territory (Temporal/Prefect/Airflow deferred).",
+      "upstream_note": null
+    },
+    {
+      "id": "A001",
+      "name": "Magika",
+      "canonical_url": "https://github.com/google/magika",
+      "capability": "file-type-routing",
+      "code_license": "Apache-2.0",
+      "model_license": "built-in model Apache-2.0",
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Route-only; not a security proof. Small local model, 200+ types. Bake-off against existing stdlib/libmagic.",
+      "upstream_note": null
+    },
+    {
+      "id": "A002",
+      "name": "PaddleOCR",
+      "canonical_url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "capability": "ocr-chinese-complex",
+      "code_license": "Apache-2.0",
+      "model_license": "per-model record required",
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Strongest Chinese/mixed candidate. Bake-off against Tesseract/EasyOCR/RapidOCR on fixed Chinese/English scanned corpus. VLM (PP-OCRv5) NOT default.",
+      "upstream_note": "Code Apache-2.0; model weights recorded per-model."
+    },
+    {
+      "id": "A003",
+      "name": "EasyOCR",
+      "canonical_url": "https://github.com/JaidedAI/EasyOCR",
+      "capability": "ocr-alternative",
+      "code_license": "Apache-2.0",
+      "model_license": "per-model record required",
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Bake-off candidate. Compare against Tesseract/PaddleOCR/RapidOCR on fixed fixtures. Do not select by reputation alone.",
+      "upstream_note": null
+    },
+    {
+      "id": "A004",
+      "name": "RapidOCR",
+      "canonical_url": "https://github.com/RapidAI/RapidOCR",
+      "capability": "ocr-windows-cpu",
+      "code_license": "Apache-2.0",
+      "model_license": "derived-model source review required",
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Windows/CPU/ONNX potential. Model hash and derivation chain must pass review before selection.",
+      "upstream_note": "Derived models — verify right chain."
+    },
+    {
+      "id": "A005",
+      "name": "faster-whisper",
+      "canonical_url": "https://github.com/SYSTRAN/faster-whisper",
+      "capability": "asr-batch",
+      "code_license": "MIT",
+      "model_license": "MIT (Whisper weights)",
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Primary local ASR candidate. CTranslate2-based, quantized, no API key. Compare WER/RAM/latency against whisper.cpp on fixed Chinese/English corpus.",
+      "upstream_note": "Code MIT; Whisper weights MIT. Separate qualification from other ASR candidates."
+    },
+    {
+      "id": "A006",
+      "name": "whisper.cpp",
+      "canonical_url": "https://github.com/ggml-org/whisper.cpp",
+      "capability": "asr-low-resource",
+      "code_license": "MIT",
+      "model_license": "per-model record required",
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "CPU/quantized/offline ASR alternative. Independent implementation from faster-whisper — use as bake-off partner and low-resource fallback.",
+      "upstream_note": "GGML models — each model's license recorded separately."
+    },
+    {
+      "id": "A007",
+      "name": "sherpa-onnx",
+      "canonical_url": "https://github.com/k2-fsa/sherpa-onnx",
+      "capability": "asr-streaming",
+      "code_license": "Apache-2.0",
+      "model_license": "per-model record required",
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Multi-platform/offline streaming ASR. Evaluate for specific language/streaming scenarios. Each model registered individually.",
+      "upstream_note": null
+    },
+    {
+      "id": "A008",
+      "name": "Silero VAD",
+      "canonical_url": "https://github.com/snakers4/silero-vad",
+      "capability": "voice-activity-detection",
+      "code_license": "MIT",
+      "model_license": "MIT",
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Local small model. Reduces silent-segment inference and hallucination. Retain timeline for EvidenceAnchor.",
+      "upstream_note": null
+    },
+    {
+      "id": "A009",
+      "name": "Docling",
+      "canonical_url": "https://github.com/docling-project/docling",
+      "capability": "document-complex",
+      "code_license": "MIT",
+      "model_license": "per-model SBOM required",
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Complex document pages only (tables, formulas, multi-column). Code MIT; models licensed independently. Pass model SBOM + Windows qualification before use. NOT a default all-document engine.",
+      "upstream_note": "Per-model license audit required."
+    },
+    {
+      "id": "A010",
+      "name": "Apache Tika",
+      "canonical_url": "https://github.com/apache/tika",
+      "capability": "document-legacy",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "SIDECAR",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Legacy/rare format rescue sidecar. Java 17+ dependency, subcomponent licenses shown separately. Not a primary engine; does not replace main conversion chain.",
+      "upstream_note": "1000+ formats. Java sidecar — resource/capability probe required."
+    },
+    {
+      "id": "A011",
+      "name": "Mozilla Readability",
+      "canonical_url": "https://github.com/mozilla/readability",
+      "capability": "web-extraction-fallback",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Second-result fallback when Trafilatura fails or produces high-difference output. Output must still be sanitized (HTML is untrusted).",
+      "upstream_note": null
+    },
+    {
+      "id": "A012",
+      "name": "Crawlee Python",
+      "canonical_url": "https://github.com/apify/crawlee-python",
+      "capability": "web-dynamic-fallback",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "SIDECAR",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Alternative dynamic page sidecar to Crawl4AI. Used only when static extraction is insufficient and user has authorized. Not a default always-on crawler.",
+      "upstream_note": null
+    },
+    {
+      "id": "A013",
+      "name": "JiWER",
+      "canonical_url": "https://github.com/jitsi/jiwer",
+      "capability": "cer-wer-metric",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Transparent CER/WER computation. ONLY compute when truth/prediction pairs exist. Never report CER/WER from engine confidence alone.",
+      "upstream_note": null
+    },
+    {
+      "id": "A014",
+      "name": "RapidFuzz",
+      "canonical_url": "https://github.com/rapidfuzz/RapidFuzz",
+      "capability": "text-alignment",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Candidate text alignment and difference localization. Does NOT arbitrate factual correctness. Used to locate DisagreementSpan positions.",
+      "upstream_note": null
+    },
+    {
+      "id": "A015",
+      "name": "py-fsrs",
+      "canonical_url": "https://github.com/open-spaced-repetition/py-fsrs",
+      "capability": "spaced-repetition",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Interval/scheduling for learning cards. Each card must point back to an EvidenceAnchor. H4 target.",
+      "upstream_note": null
+    },
+    {
+      "id": "A016",
+      "name": "JSON Canvas",
+      "canonical_url": "https://github.com/obsidianmd/jsoncanvas",
+      "capability": "canvas-file-format",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Open file format, not a library dependency. Unknown fields preserved on roundtrip. H3 target.",
+      "upstream_note": null
+    },
+    {
+      "id": "A017",
+      "name": "XYFlow",
+      "canonical_url": "https://github.com/xyflow/xyflow",
+      "capability": "canvas-ui",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "EVALUATE",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Canvas/Graph visualization. MIT license. File truth remains JSON Canvas. H3 target.",
+      "upstream_note": null
+    },
+    {
+      "id": "A018",
+      "name": "Crossref REST",
+      "canonical_url": "https://crossref.org/documentation/retrieve-metadata/rest-api/",
+      "capability": "evidence-doi",
+      "code_license": "public API",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "DOI/author/title/journal metadata. Public/polite pool. Read rate/concurrency headers; 429 backoff.",
+      "upstream_note": "API, not a library."
+    },
+    {
+      "id": "A019",
+      "name": "DataCite REST",
+      "canonical_url": "https://support.datacite.org/docs/api",
+      "capability": "evidence-dataset-doi",
+      "code_license": "public API",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "DataCite DOI and dataset metadata. Open metadata; preserve provenance.",
+      "upstream_note": "API, not a library."
+    },
+    {
+      "id": "A020",
+      "name": "OpenAlex",
+      "canonical_url": "https://openalex.org/",
+      "capability": "evidence-academic-graph",
+      "code_license": "freemium API",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Academic entity/citation graph. Freemium — free daily allowance, record service-side cost/caching. API key required.",
+      "upstream_note": "API; cost model changes — monitor."
+    },
+    {
+      "id": "A021",
+      "name": "Wikidata",
+      "canonical_url": "https://www.wikidata.org/",
+      "capability": "evidence-entity",
+      "code_license": "CC0 (data)",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Public entity/identifier/relationship queries. Narrow queries only. User-Agent/429/Retry-After. No fuzzy full-text verification.",
+      "upstream_note": "SPARQL/wbgetentities. NOT for full-text search."
+    },
+    {
+      "id": "A022",
+      "name": "Syft",
+      "canonical_url": "https://github.com/anchore/syft",
+      "capability": "sbom-generator",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "SBOM generation. Bound to build artifact. H5 release qualification.",
+      "upstream_note": null
+    },
+    {
+      "id": "A023",
+      "name": "pip-audit",
+      "canonical_url": "https://github.com/pypa/pip-audit",
+      "capability": "dependency-vuln-scan",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Python dependency vulnerability scan. Part of minimum supply-chain toolset.",
+      "upstream_note": null
+    },
+    {
+      "id": "A024",
+      "name": "Gitleaks",
+      "canonical_url": "https://github.com/gitleaks/gitleaks",
+      "capability": "secret-scan",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "ADOPT",
+      "qualification": [
+        "source"
+      ],
+      "decision": "Secret scanning. CI/release tool. NOT packaged into product.",
+      "upstream_note": null
+    },
+    {
+      "id": "B001",
+      "name": "MinerU",
+      "canonical_url": "https://github.com/opendatalab/MinerU",
+      "capability": "document-structure",
+      "code_license": "Apache-2.0 + additional conditions",
+      "model_license": "custom",
+      "disposition": "REVIEW-BLOCK",
+      "decision": "Apache-2.0 + additional MAU/revenue threshold and online-service identification obligations. NOT equal to plain Apache-2.0. Default disabled until owner/legal review.",
+      "upstream_note": "Custom conditions in LICENSE.md — do NOT describe as 'Apache-2.0'."
+    },
+    {
+      "id": "B002",
+      "name": "PyMuPDF4LLM",
+      "canonical_url": "https://github.com/pymupdf/pymupdf4llm",
+      "capability": "pdf-extraction",
+      "code_license": "AGPL-3.0",
+      "model_license": null,
+      "disposition": "REVIEW-BLOCK",
+      "decision": "AGPL-3.0. Must explicitly accept AGPL combination obligations or purchase commercial license before any use.",
+      "upstream_note": "Do not use under 'personal/non-profit exemption' assumption."
+    },
+    {
+      "id": "B003",
+      "name": "Marker",
+      "canonical_url": "https://github.com/datalab-to/marker",
+      "capability": "pdf-conversion",
+      "code_license": "Apache-2.0 (code)",
+      "model_license": "modified OpenRAIL-M (weights)",
+      "disposition": "REVIEW-BLOCK",
+      "decision": "CODE is Apache-2.0 (CORRECTED from old GPL-3.0 conclusion). WEIGHTS are modified OpenRAIL-M — separate review required. Do not select as default. Corrects historical 'code GPL' error.",
+      "upstream_note": "code/weight license split; old GPL-3.0 record is WRONG."
+    },
+    {
+      "id": "B004",
+      "name": "FunASR / SenseVoice",
+      "canonical_url": "https://github.com/modelscope/FunASR",
+      "capability": "asr-chinese",
+      "code_license": "MIT",
+      "model_license": "custom-modifiable",
+      "disposition": "REVIEW-BLOCK",
+      "decision": "Code MIT. MODEL license has behavioral clauses, auto-revision terms, and undefined jurisdiction. Not a default component. Review per specific model.",
+      "upstream_note": "Separate code vs model license — model terms are the blocker."
+    },
+    {
+      "id": "B005",
+      "name": "tldraw",
+      "canonical_url": "https://github.com/tldraw/tldraw",
+      "capability": "canvas-drawing",
+      "code_license": "custom (production requires license key)",
+      "model_license": null,
+      "disposition": "REVIEW-BLOCK",
+      "decision": "License requires a key for production use. NOT an open-source default component. Defer to H7+ as a commercial option.",
+      "upstream_note": "Dev environment OK; production requires license key. Do not treat as OSS."
+    },
+    {
+      "id": "B006",
+      "name": "Firecrawl",
+      "canonical_url": "https://github.com/firecrawl/firecrawl",
+      "capability": "web-crawler",
+      "code_license": "AGPL-3.0 (main); MIT (SDK/UI)",
+      "model_license": null,
+      "disposition": "REVIEW-BLOCK",
+      "decision": "Main service is AGPL-3.0. SDK/UI portions may be MIT — component-level review required. NOT a default embedded dependency. Remote service or AGPL sidecar only.",
+      "upstream_note": "AGPL main; some SDK/UI MIT. Do not summarize as one license."
+    },
+    {
+      "id": "B007",
+      "name": "H5P PHP Library",
+      "canonical_url": "https://github.com/h5p/h5p-php-library",
+      "capability": "interactive-content",
+      "code_license": "GPL-3.0",
+      "model_license": null,
+      "disposition": "REVIEW-BLOCK",
+      "decision": "GPL-3.0 (due to HTML Purifier dependency). Old 'core MIT' conclusion is WRONG. Content types licensed individually. Copyleft sidecar or content exchange only.",
+      "upstream_note": "Corrects historical MIT assumption."
+    },
+    {
+      "id": "B008",
+      "name": "Phoenix (Arize)",
+      "canonical_url": "https://github.com/Arize-ai/phoenix",
+      "capability": "observability-ui",
+      "code_license": "Elastic License 2.0",
+      "model_license": null,
+      "disposition": "REVIEW-BLOCK",
+      "decision": "Elastic License 2.0 — source-available, NOT open-source. Do not list as default OSS dependency. Reference only or independent deployment for evaluation.",
+      "upstream_note": "Do not write as 'OSS'. ELv2."
+    },
+    {
+      "id": "B009",
+      "name": "SearXNG",
+      "canonical_url": "https://github.com/searxng/searxng",
+      "capability": "search-aggregation",
+      "code_license": "AGPL-3.0",
+      "model_license": null,
+      "disposition": "REVIEW-BLOCK",
+      "decision": "AGPL-3.0. Optional sidecar for self-hosted search discovery. Cannot embed and claim permissive license.",
+      "upstream_note": null
+    },
+    {
+      "id": "X001_ARCHIVED",
+      "name": "Kùzu",
+      "canonical_url": "https://github.com/kuzudb/kuzu",
+      "capability": "graph-database",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "REJECT-CORE",
+      "decision": "Upstream archived 2025-10-10 (read-only). Must not be selected as primary graph component. Remove from active candidate list.",
+      "upstream_note": "ARCHIVED."
+    }
+  ],
+  "component_count": 46,
+  "disposition_summary": {
+    "CURRENT": 12,
+    "ADOPT": 13,
+    "EVALUATE": 9,
+    "SIDECAR": 2,
+    "REVIEW-BLOCK": 9,
+    "REJECT-CORE": 1
+  }
 }
