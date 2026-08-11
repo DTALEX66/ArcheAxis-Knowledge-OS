@@ -10,7 +10,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Workspace 的 Obsidian-compatible Workspace foundation 阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry、SSE 和 lease-fenced Worker 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收和交互式 Job Center 仍属于后续产品证据。图像 OCR 基础依赖、真实图像门禁、Windows 构建、NSIS lifecycle 和公开 `v0.5.0` installer 资产已验证；ASR、签名发布、多端发布及更高阶 Alpha/Beta 能力仍未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Learning Workspace 的 Obsidian-compatible Workspace foundation 阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry、SSE 和 lease-fenced Worker 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收和交互式 Job Center 仍属于后续产品证据。图像 OCR 基础依赖、真实图像门禁、Windows 构建、NSIS lifecycle 和公开 `v0.5.0` installer 资产已验证；ASR、签名发布、多端发布及更高阶 Alpha/Beta 能力仍未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V1.md`（ArcheAxis / 星轨学习工作台）。
 
 ## 已验证能力
 
