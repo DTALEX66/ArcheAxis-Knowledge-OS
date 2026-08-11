@@ -1327,3 +1327,10 @@
   空库 + storage.init() — 否则全量跑时 FTS candidate 计数断言被
   tests/ 共享真实库残留数据破坏 (object_ids 多行)
 - 全量 1458 passed (1420+38), 5 skipped, 0 failed
+
+
+### LOG-20260812-113 — PR #119 MERGED (kb 测试纳入) — PASS
+
+- PR #119 squash merged → main `f76280f`
+- knowledge_base/tests 38 测试激活 (testpaths) + DB 隔离 conftest
+- 全量 1458 passed (1420+38), 5 skipped, 0 failed
