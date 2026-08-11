@@ -95,6 +95,23 @@ def _query_doi(doi: str, hits: list[PublicEvidenceHit]) -> None:
         try:
             client = client_factory()
             result = client.lookup_doi(doi)
+            if name == "datacite":
+                # DataCite shape: {"data": {"attributes": {...}}}
+                attributes = result.get("data", {}).get("attributes", {})
+                title = None
+                titles = attributes.get("titles") or []
+                if titles and isinstance(titles[0], dict):
+                    title = titles[0].get("title")
+                hits.append(
+                    PublicEvidenceHit(
+                        source=name,
+                        doi=doi,
+                        title=str(title) if title else None,
+                        year=_extract_year(attributes),
+                        authors=_extract_authors(attributes),
+                    )
+                )
+                continue
             msg = result.get("message", result)
             items = msg.get("items", [msg]) if isinstance(msg, dict) else [msg]
             for item in items:
@@ -164,7 +181,8 @@ def _first_str(data: dict[str, Any], key: str) -> str | None:
 
 
 def _extract_year(data: dict[str, Any]) -> int | None:
-    for key in ("publication_year", "published-print", "created"):
+    # Crossref uses "issued.date-parts"; DataCite uses publicationYear.
+    for key in ("publication_year", "publicationYear", "published-print", "issued", "created"):
         val = data.get(key)
         if isinstance(val, dict):
             val = val.get("date-parts", [[None]])[0][0]
