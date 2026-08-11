@@ -12,9 +12,9 @@ from __future__ import annotations
 import csv
 import json
 import time
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
 
 __all__ = [
     "BakeoffResult",

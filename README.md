@@ -1,14 +1,74 @@
-# ArcheAxis Workspace（元枢工作台）
+# 星轨学习工作台（ArcheAxis Learning Workspace）
 
-> **ArcheAxis Workspace is a local-first, evidence-driven Human–AI learning and knowledge workspace.**
+> **ArcheAxis Learning Workspace — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
+>
+> **同一份可信知识，人学得更深，AI 用得更准。**
 
-> **面向个人与 AI 的本地优先、证据驱动学习与知识工作台：同一份开放格式资料，人学得更深，AI 用得更准。**
+主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Learning Workspace**；中文产品名 **星轨学习工作台**。
+仓库技术 ID `Cognitive-Loop-OS` 仅为 Git/分发兼容身份（历史兼容身份，不是产品名）；旧名"元枢/元枢工作台"只保留在历史、迁移与兼容说明中。
+项目状态：**Personal Research Project / 个人研究项目**（不等同于许可证）。
 
-ArcheAxis Workspace 以用户可读、可回滚的开放格式资料为中心，连接个人学习链和 AI 使用链。所有外部材料、人工输入和 AI 输出都先是可追溯的 Candidate；只有经过明确治理的内容才能进入后续学习或受限使用。仓库技术 ID `Cognitive-Loop-OS` 仅为 Git/分发兼容身份，不是产品主名称。
+> 官方定位：**本地优先、原件保全、证据可追溯、开放互操作的人机双向学习与可信知识治理工作台。**
+> 完整长版：本地优先、原件永久保全、全链路证据锚定交叉核验、开放全格式兼容、数据主权可控的人机双向学习与可信知识治理工作台。
+> 它是**系统级**人机双向学习与可信知识系统，**不等于**通用操作系统、通用 Agent Runtime、自治工作流平台或多 Agent 产品。
 
-> **当前阶段：Obsidian-compatible Workspace foundation。** Markdown、JSON Canvas 和 Vault 互操作是第一条高保真纵切；在编辑、附件、冲突、回滚和 Windows/Tauri 重启回读全部有证据前，不宣称全面或双向兼容。
+**权威文档（定死，不可漂移，更新需 Owner 决策）**：
+- 产品身份：[`docs/truth/PRODUCT_IDENTITY_V2.md`](docs/truth/PRODUCT_IDENTITY_V2.md)
+- 命名契约：[`docs/truth/NAMING_CONTRACT_V1.md`](docs/truth/NAMING_CONTRACT_V1.md)
+- 权威规则：[`docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md`](docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md)
+- 能力图谱：[`docs/truth/CAPABILITY_ATLAS_V2.yaml`](docs/truth/CAPABILITY_ATLAS_V2.yaml)
+- 总蓝图：[`docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md`](docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md)
 
-命名合同见 [`docs/NAMING_CONTRACT_V2.md`](docs/NAMING_CONTRACT_V2.md)，机器可读规则见 [`config/product-naming-registry.yaml`](config/product-naming-registry.yaml)。
+**当前阶段（可随实现更新）**：Obsidian-compatible Workspace foundation。
+Markdown、JSON Canvas 和 Vault 互操作是第一条高保真纵切；在编辑、附件、冲突、回滚和 Windows/Tauri 重启回读全部有证据前，不宣称全面或双向兼容。
+详见 [`docs/current/CURRENT_PRODUCT_PLAN_V2.md`](docs/current/CURRENT_PRODUCT_PLAN_V2.md) 与 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
+
+---
+
+## 外置依赖与不可吸收开源项目（锁死展示）
+
+> 本节内容**定死**：吸收不了的开源项目与需要外置的开源依赖链接在此锁死展示，不随阶段描述漂移。
+
+### 外置环境与工具链（必须单独安装/下载）
+
+| 依赖 | 用途 | 下载链接 |
+|---|---|---|
+| Python 3.11+ | 运行时 | https://www.python.org/downloads/windows/ |
+| uv | Python 包管理器 | https://github.com/astral-sh/uv/releases |
+| Tesseract-OCR 5.x | 图像 OCR 引擎 | https://github.com/UB-Mannheim/tesseract/wiki |
+| FFmpeg | 音视频处理 | https://ffmpeg.org/download.html |
+| Git | 版本控制 | https://git-scm.com/download/win |
+| Node.js LTS | 桌面构建（可选） | https://nodejs.org/ |
+| scoop | Windows 包管理（可选） | https://scoop.sh |
+
+完整清单与安装步骤见 [`docs/environment/EXTERNAL_DEPENDENCIES.md`](docs/environment/EXTERNAL_DEPENDENCIES.md)（同步于 `D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md`）。
+
+### 已吸收（代码/依赖已并入）
+
+JiWER、RapidFuzz、JSON Canvas（格式）、Crossref/DataCite/OpenAlex/Wikidata（API 连接器）、py-fsrs、Magika（ONNX 模型 vendored）、MarkItDown、Trafilatura、pytesseract、sqlite-vec、NetworkX、LiteLLM、Langfuse、Loguru、structlog、APScheduler、PDF.js（vendored）。
+权威决策账本：[`docs/truth/SUPPLY_CHAIN_LEDGER.json`](docs/truth/SUPPLY_CHAIN_LEDGER.json)。
+
+### 吸收不了 / 许可或边界阻断（外置保留，仅链接）
+
+| 项目 | 阻断原因 | 上游链接 |
+|---|---|---|
+| MinerU | Apache-2.0 + 附加 MAU/收入阈值/在线服务义务 | https://github.com/opendatalab/MinerU |
+| Marker | 代码 Apache-2.0，但权重受修改版 OpenRAIL-M 许可 | https://github.com/datalab-to/marker |
+| PyMuPDF4LLM | AGPL-3.0 | https://github.com/pymupdf/pymupdf4llm |
+| FunASR / SenseVoice | 代码 MIT，模型许可含行为条款/自动修订 | https://github.com/modelscope/FunASR |
+| tldraw | 生产使用要求商业 license key | https://github.com/tldraw/tldraw |
+| Firecrawl | 主体 AGPL-3.0（部分 SDK/UI MIT） | https://github.com/firecrawl/firecrawl |
+| H5P PHP Library | GPL-3.0（HTML Purifier 依赖） | https://github.com/h5p/h5p-php-library |
+| Phoenix (Arize) | Elastic License 2.0（非 OSS） | https://github.com/Arize-ai/phoenix |
+| SearXNG | AGPL-3.0 | https://github.com/searxng/searxng |
+| Kùzu | 上游已归档（2025-10-10） | https://github.com/kuzudb/kuzu |
+
+### 待 bake-off（H2 识别转译，需模型/硬件评估）
+
+faster-whisper (https://github.com/SYSTRAN/faster-whisper)、whisper.cpp (https://github.com/ggml-org/whisper.cpp)、PaddleOCR (https://github.com/PaddlePaddle/PaddleOCR)、RapidOCR (https://github.com/RapidAI/RapidOCR)、EasyOCR (https://github.com/JaidedAI/EasyOCR)、Docling (https://github.com/docling-project/docling)、Silero VAD (https://github.com/snakers4/silero-vad)、Magika (https://github.com/google/magika)。
+bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_engines.py`](shared/bakeoff_engines.py)。
+
+---
 
 ## 当前重点
 

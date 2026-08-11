@@ -1,0 +1,116 @@
+schema_version: "2.0"
+graph_name: "ArcheAxis Learning Workspace — Task Graph"
+updated: "2026-08-12"
+authority: "任务包 v1 2026-08-11"
+acyclic: true
+
+tasks:
+  - task_id: "AXW-1200"
+    title: "Repository Truth Snapshot & Authority Reset"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: []
+    requirement_ids: []
+    status: "done"
+    deliverable: "AXW1200_SNAPSHOT_RECEIPT.md"
+    rollback: "删除快照文档"
+
+  - task_id: "AXW-1201"
+    title: "Product Identity & Naming Contract"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: []
+    requirement_ids: ["REQ-IDENTITY-001"]
+    status: "done"
+    deliverable: "NAMING_CONTRACT_V1.md + PRODUCT_IDENTITY_V2.md"
+    depends_on: ["AXW-1200"]
+
+  - task_id: "AXW-1202"
+    title: "System-Level Product Truth & Boundary Contract"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: []
+    requirement_ids: ["REQ-IDENTITY-001"]
+    status: "done"
+    deliverable: "AUTHORITY_AND_STATUS_RULES_V1.md"
+    depends_on: ["AXW-1200"]
+
+  - task_id: "AXW-1203"
+    title: "Capability Atlas Completeness & Anti-Delete Contract"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: ["CAP-0010", "CAP-0020", "CAP-0030", "CAP-0040", "CAP-0050", "CAP-0060", "CAP-0070", "CAP-0080", "CAP-0090", "CAP-0100", "CAP-0110", "CAP-0120", "CAP-0130", "CAP-0140", "CAP-0150", "CAP-0160"]
+    requirement_ids: []
+    status: "done"
+    deliverable: "CAPABILITY_ATLAS_V2.yaml"
+    depends_on: ["AXW-1201", "AXW-1202"]
+
+  - task_id: "AXW-1204"
+    title: "Requirement Trace, Scope Ledger & Task Graph"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: []
+    requirement_ids: []
+    status: "done"
+    deliverable: "REQUIREMENT_TRACE_V2.yaml + SCOPE_LEDGER_V2.yaml + TASK_GRAPH_V2.yaml"
+    depends_on: ["AXW-1203"]
+
+  - task_id: "AXW-1205"
+    title: "LER / Visual / Courseware / Simulation / Spatial Blueprint"
+    horizon: "H0 文档治理"
+    state: "required_current (blueprint only)"
+    capability_ids: ["CAP-0060", "CAP-0070", "CAP-0080", "CAP-0160"]
+    requirement_ids: ["REQ-LER-001", "REQ-LER-002", "REQ-SPATIAL-001", "REQ-VISUAL-001"]
+    status: "pending"
+    deliverable: "LER_VISUAL_SPATIAL_LEARNING_V1.md"
+    depends_on: ["AXW-1204"]
+
+  - task_id: "AXW-1206"
+    title: "Current Reality, Capability Claims & UX Projection"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: []
+    requirement_ids: []
+    status: "pending"
+    deliverable: "CURRENT_PRODUCT_PLAN_V2.md"
+    depends_on: ["AXW-1204"]
+
+  - task_id: "AXW-1207"
+    title: "Open Interop, OSS Absorption & Asset Governance Update"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: ["CAP-0100"]
+    requirement_ids: ["REQ-INTEROP-001"]
+    status: "pending"
+    deliverable: "OPEN_INTEROP_AND_ADAPTER_POLICY_V1.md"
+    depends_on: ["AXW-1206"]
+
+  - task_id: "AXW-1208"
+    title: "Naming Migration Plan & Compatibility Guards"
+    horizon: "H0-H5"
+    state: "required_current (plan)"
+    capability_ids: []
+    requirement_ids: ["REQ-IDENTITY-001"]
+    status: "pending"
+    deliverable: "LEGACY_TO_ARCHEAXIS_NAMING_MIGRATION_V1.md"
+    depends_on: ["AXW-1201"]
+
+  - task_id: "AXW-1209"
+    title: "Documentation Projection, Validation & Release Guard"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: []
+    requirement_ids: []
+    status: "pending"
+    deliverable: "文档投影校验 + lint"
+    depends_on: ["AXW-1207", "AXW-1208"]
+
+  - task_id: "AXW-1210"
+    title: "H0-H5 Release Spine Re-Entry"
+    horizon: "H0"
+    state: "required_current"
+    capability_ids: []
+    requirement_ids: []
+    status: "pending"
+    deliverable: "CURRENT_PRODUCT_PLAN 更新"
+    depends_on: ["AXW-1206"]
