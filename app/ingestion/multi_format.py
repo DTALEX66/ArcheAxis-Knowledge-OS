@@ -9,13 +9,16 @@ fallback fixtures for graceful unavailable-engine handling.
   PDF             | markitdown → marker-pdf → docling
   DOCX / PPT/XLS  | markitdown
   HTML            | trafilatura → safe-http+raw
-  Image           | pytesseract+tesseract (OCR)
+  Image           | pytesseract+tesseract (real OCR; unavailable if no Tesseract)
+  Media (video/au)| convert_ffmpeg (metadata-only; no ASR — never claimed as content)
   JSON Canvas     | native JSON Canvas text-node projection
   TXT / MD        | passthrough (always available)
 
 All engines are optional. The adapter contract (shared/adapter_contract)
 classifies each as installed / unavailable; the call chain tries each
-declared engine and returns the first success or a clear error.
+declared engine and returns the first success with non-empty content or a
+clear error. A conversion never claims success from metadata alone
+(MFX-010 honest-capability guard).
 """
 
 from __future__ import annotations
@@ -87,6 +90,53 @@ def _via_markitdown(file_path: str) -> AdapterResult:
         success=True,
         content=text,
         engine="markitdown",
+        metadata={"char_count": len(text)},
+    )
+
+
+def _via_image_ocr(file_path: str) -> AdapterResult:
+    """OCR an image with Tesseract + pytesseract (real content conversion).
+
+    This is the honest image engine: it returns success only when real text
+    was extracted. If Tesseract/pytesseract is unavailable it returns a clear
+    unavailable failure (never a metadata-only fake success). An image whose
+    OCR yields no text is reported as a warning rather than content success.
+    """
+    import shared.adapter_fixtures as _af
+
+    if not (_af._tesseract_available() and _af._pytesseract_importable()):
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="ocr-unavailable",
+            error=(
+                "Image OCR requires Tesseract-OCR (system) and pytesseract (Python). "
+                "Install both to OCR images; no metadata is claimed as content."
+            ),
+        )
+    try:
+        import pytesseract
+        from PIL import Image
+
+        text = pytesseract.image_to_string(Image.open(str(file_path)))
+    except Exception as exc:  # pragma: no cover - depends on host tooling
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="pytesseract",
+            error=f"pytesseract OCR failed: {exc}",
+        )
+    if not text.strip():
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="pytesseract",
+            error="Image OCR returned no text; treat as degraded (no content).",
+        )
+    return AdapterResult(
+        success=True,
+        content=text,
+        engine="pytesseract+tesseract",
         metadata={"char_count": len(text)},
     )
 
@@ -237,7 +287,7 @@ _ENGINES: dict[str, list[tuple[str, Any]]] = {
         ("safe-http+raw", _via_read),
     ],
     "image": [
-        *(_via_adapter_fixtures("image", ["convert_pillow"])),
+        ("pytesseract+tesseract", _via_image_ocr),
         ("markitdown", _via_markitdown),
     ],
     "media_video": _via_adapter_fixtures("media_video", ["convert_ffmpeg"]),
@@ -273,9 +323,14 @@ def convert_file(file_path: str | Path, fmt: str | None = None) -> tuple[str, st
     for engine_name, engine_fn in engines:
         try:
             result: AdapterResult = engine_fn(str(file_path))
-            if result.success:
+            # Content post-condition: a conversion only "succeeds" when it
+            # produced non-empty text. Empty/whitespace-only output (e.g. a
+            # metadata-only or placeholder result) must not be claimed as
+            # content success (MFX-010 honest-capability guard).
+            if result.success and result.content.strip():
                 return result.content, result.engine
-            errors.append(f"{engine_name}: {result.error}")
+            reason = result.error or "returned empty content"
+            errors.append(f"{engine_name}: {reason}")
         except ImportError as e:
             errors.append(f"{engine_name}: not installed ({e})")
         except Exception as e:
