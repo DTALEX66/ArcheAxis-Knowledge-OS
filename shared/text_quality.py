@@ -57,3 +57,65 @@ def find_disagreement_spans(
             )
         i += step
     return spans
+
+
+# ── H2: Conversion quality gate ──
+
+
+def assess_conversion(
+    source_path: str | None = None,
+    output_text: str = "",
+    truth_text: str | None = None,
+    *,
+    min_char_ratio: float = 0.01,
+) -> dict[str, object]:
+    """Post-conversion quality assessment (routing → quality gate).
+
+    Returns a dict with:
+      - status: "PASS" | "WARN" | "FAIL"
+      - cer/wer: if truth provided
+      - char_count, empty, issues list
+    """
+    issues: list[str] = []
+    char_count = len(output_text)
+
+    if char_count == 0:
+        return {"status": "FAIL", "reason": "empty output", "char_count": 0, "issues": ["empty"]}
+
+    # Structural heuristics
+    control_char_ratio = sum(1 for c in output_text if ord(c) < 32 and c not in "\n\r\t") / max(char_count, 1)
+    if control_char_ratio > 0.05:
+        issues.append(f"high control chars ({control_char_ratio:.2%})")
+
+    # Source-to-output ratio
+    if source_path:
+        try:
+            from pathlib import Path
+
+            src_size = Path(source_path).stat().st_size
+            if src_size > 0 and char_count / src_size < min_char_ratio:
+                issues.append(f"low output ratio ({char_count}/{src_size})")
+        except OSError:
+            pass
+
+    # CER/WER if truth available
+    result: dict[str, object] = {
+        "char_count": char_count,
+        "issues": issues,
+        "status": "WARN" if issues else "PASS",
+    }
+    if truth_text:
+        result["cer"] = round(cer(truth_text, output_text), 4)
+        result["wer"] = round(wer(truth_text, output_text), 4)
+        if float(result["cer"]) > 0.3:
+            result["status"] = "FAIL"
+            issues.append("high CER")
+        elif float(result["cer"]) > 0.1:
+            if result["status"] != "FAIL":
+                result["status"] = "WARN"
+            issues.append("elevated CER")
+
+    result["issues"] = issues
+    if result.get("status") != "FAIL":
+        result["status"] = "WARN" if issues else "PASS"
+    return result
