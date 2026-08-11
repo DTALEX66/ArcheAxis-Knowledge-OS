@@ -911,3 +911,11 @@
   - py-fsrs v6 → 学习调度（schedule_next_review）
 - Lint 通过，74 适配器测试通过
 - 回滚：revert PR #82
+
+
+### LOG-20260812-073 — PR #82 MERGED (H2 pipeline integration) — PASS
+
+- PR #82 squash merged → main `f6b49b3`
+- 5 ADOPT 模块管线接入入库
+- 全部 9 个 PR（#69, #75-#82）已 merge 进 main
+- 权威日志: LOG-004~073
