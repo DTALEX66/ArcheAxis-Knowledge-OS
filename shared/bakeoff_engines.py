@@ -125,5 +125,40 @@ RAPIDOCR = EngineUnderTest(
 OCR_ENGINES: list[EngineUnderTest] = [TESSERACT, PADDLEOCR, EASYOCR, RAPIDOCR]
 
 
+# ── ASR engines (all unavailable — need model download) ──
+
+
+def _faster_whisper_stub(fp: Path) -> str:
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        raise RuntimeError("faster-whisper not installed: pip install faster-whisper")
+    model = WhisperModel("base", device="cpu", compute_type="int8")
+    segments, _ = model.transcribe(str(fp))
+    return " ".join(s.text for s in segments)
+
+
+FASTER_WHISPER = EngineUnderTest(
+    name="faster-whisper", fn=_faster_whisper_stub, available=False,
+    version="unknown", notes="MIT. CTranslate2-based. Best batch ASR candidate.",
+)
+
+
+def _whisper_cpp_stub(fp: Path) -> str:
+    try:
+        from whisper_cpp import Whisper
+    except ImportError:
+        raise RuntimeError("whisper.cpp not installed")
+    return Whisper(model_path="ggml-base.bin").transcribe(str(fp))
+
+
+WHISPER_CPP = EngineUnderTest(
+    name="whisper.cpp", fn=_whisper_cpp_stub, available=False,
+    version="unknown", notes="MIT. CPU/quantized. Independent from faster-whisper.",
+)
+
+ASR_ENGINES: list[EngineUnderTest] = [FASTER_WHISPER, WHISPER_CPP]
+
+
 def get_available_engines() -> list[EngineUnderTest]:
     return [e for e in OCR_ENGINES if e.available]
