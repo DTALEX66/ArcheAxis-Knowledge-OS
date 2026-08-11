@@ -810,3 +810,18 @@
 - 确认：gateplan/lint/test(3.12)/wheel-smoke/browser-smoke/a0-gates 全绿；产品/桌面 job 正确 SKIP
 - 补全 AXW-H1-EXIT 的 merge-SHA 证据（LOG-064 记录 exact-head + 裁决；本条记录 merge-SHA main CI）
 - main = `ebf7124`
+
+
+### LOG-20260811-066 — MFX BATCH 0 COMPLETE + AXW-022B + AXW-023A — PASS
+
+- 时间：2026-08-11
+- Batch 0（止损）三任务全部实现 + exact-head CI 全绿：
+  - MFX-010 假成功止损：PR #75（image 链改真实 OCR + 内容后置条件；CI CLEAN）
+  - MFX-012 legacy credibility 隔离：PR #76（score_credibility 标 legacy_heuristic + verified=False；CI CLEAN）
+  - MFX-001 供应链台账：PR #77（SUPPLY_CHAIN_LEDGER.json 40+ 组件 gate；CI CLEAN）
+- AXW-022B 证据批注：PR #78（POST/GET evidence anchor API + PDF 批注 UI；浏览器级 runtime POST/GET roundtrip 200）
+- AXW-023A DOCX Adapter：PR #79（结构化 docx adapter + conversion_run 持久化 + 缺依赖诚实降级；4 测试）
+- H2 首个任务 AXW-023A 已实现
+- 待办：征求 5 个 PR merge 授权；吸收账本核对（等 owner 开源清单）
+- 边界：未访问 E:\；未读凭据；冻结基线未动；状态日志追加式
+- 回滚：各 PR 独立 revert
