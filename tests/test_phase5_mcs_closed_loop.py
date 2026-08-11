@@ -137,3 +137,19 @@ def test_governed_closed_loop_requires_learning_approval_then_persists_mastery_c
     ]
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT COUNT(*) FROM mastery_signals_v1").fetchone()[0] == 3
+        # H2: SM-2 spaced repetition — intervals must grow across quality-5
+        # reviews (1 → 6 → ~15), not stay hard-coded at 1.
+        intervals = [
+            row[0]
+            for row in connection.execute(
+                "SELECT interval_days FROM kb_reviews ORDER BY created_at"
+            )
+        ]
+        assert intervals == [1, 6, 16]
+        ease_factors = [
+            row[0]
+            for row in connection.execute(
+                "SELECT ease_factor FROM kb_reviews ORDER BY created_at"
+            )
+        ]
+        assert all(ease >= 2.5 for ease in ease_factors)

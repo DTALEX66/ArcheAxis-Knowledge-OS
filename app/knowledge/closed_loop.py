@@ -154,10 +154,34 @@ def record_practice_evidence(
                     return PracticeResult(mastery_signal=signal, machine_knowledge=machine)
             else:
                 card_id = _card_id(connection, artifact_id)
+                # H2: SM-2 spaced repetition — replace hard-coded
+                # (interval=1, ease=2.5, next=now) with the real schedule
+                # from knowledge_base.reviews. The practice lifecycle is
+                # now a learning loop, not a fixed one-day cadence.
+                from knowledge_base.reviews import _sm2_interval
+
+                prev = connection.execute(
+                    "SELECT interval_days, ease_factor FROM kb_reviews "
+                    "WHERE card_id=? ORDER BY created_at DESC LIMIT 1",
+                    (card_id,),
+                ).fetchone()
+                prev_interval = int(prev["interval_days"]) if prev else 0
+                prev_ease = float(prev["ease_factor"]) if prev else 2.5
+                new_interval, new_ease, next_date = _sm2_interval(
+                    quality, prev_interval, prev_ease
+                )
                 connection.execute(
                     "INSERT INTO kb_reviews(id, card_id, quality, interval_days, ease_factor, "
-                    "next_review_at, created_at) VALUES (?, ?, ?, 1, 2.5, ?, ?)",
-                    (review_id, card_id, quality, recorded_at, recorded_at),
+                    "next_review_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        review_id,
+                        card_id,
+                        quality,
+                        new_interval,
+                        new_ease,
+                        next_date.isoformat(),
+                        recorded_at,
+                    ),
                 )
             signal, signal_id = persist_mastery_signal_on_connection(
                 connection, card_id, calculated_at=recorded_at
