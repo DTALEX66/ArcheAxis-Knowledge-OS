@@ -1086,3 +1086,16 @@
   tesseract-chi-sim .0485, tesseract-eng .3492
 - rapidocr ~1.3s/img vs tesseract ~100-200ms (精度换延迟)
 - 本地全量 1249 passed
+
+
+### LOG-20260812-090 — PR #99 MERGED (first real ASR bake-off) — PASS
+
+- PR #99 squash merged → main `1b2e1c3`
+- Windows SAPI TTS (Zira en-US / Huihui zh-CN) 生成 3 音频 fixture + ground truth
+- faster-whisper base (CPU int8, 模型 ~150MB) 实测:
+  en_clean CER 0.0 / en_slow CER 0.0 / zh_clean CER 0.2
+- zh CER 0.2 = 单个 机器→機器 繁简差异 (base 模型繁体偏重); 语言
+  自动检测 zh (1.00) 正确
+- faster-whisper 入 ci-adapters; FASTER_WHISPER.available 动态检测
+- 报告: bakeoff-results/bakeoff-asr-20260812.{csv,json}
+- H2 bake-off 现在覆盖 OCR (3 引擎) + ASR (1 引擎) 真实数据
