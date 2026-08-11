@@ -88,7 +88,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     assert settings_route.get_attribute("data-route-state") == "planned"
     settings_route.get_by_text("设置", exact=True).is_visible()
     page.locator('.rail-item[title="首页"]').click()
-    page.get_by_role("heading", name="元枢工作台").wait_for()
+    page.get_by_role("heading", name="星轨学习工作台").wait_for()
     page.get_by_text("异步Worker", exact=True).wait_for()
     assert "异步Worker" in page.locator("#capability-summary").inner_text()
     assert "已接入" in page.locator("#capability-summary").inner_text()
@@ -175,7 +175,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.set_viewport_size({"width": 390, "height": 844})
     page.evaluate("localStorage.removeItem('aa-inspector')")
     page.reload(wait_until="networkidle")
-    assert page.get_by_role("heading", name="元枢工作台").is_visible()
+    assert page.get_by_role("heading", name="星轨学习工作台").is_visible()
     assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     assert page.evaluate("document.body.classList.contains('inspector-collapsed')")
     inspector = page.locator("#inspector")
