@@ -93,6 +93,10 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
 (function(){
   if (typeof pdfjsLib === "undefined") { return; } // pdf.min.js not loaded; degrade silently
   const state = { doc: null, page: 1, zoom: 1.0, pending: 0, matchPage: -1 };
+  // Configure the PDF.js worker lazily from the same-origin asset (CSP-safe).
+  // Done at definition time inside the closure but only touches a static
+  // string assignment (no network / no worker spawn until a PDF is opened).
+  try { if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "/workspace/assets/pdf.worker.min.js"; } catch (e) {}
   const viewer = () => document.getElementById("pdf-viewer");
   const $info = () => document.getElementById("pdf-page-info");
   const $zinfo = () => document.getElementById("pdf-zoom-info");

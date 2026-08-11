@@ -96,8 +96,10 @@ def test_workspace_runtime_assets_are_packaged() -> None:
     assert (root / "app/workspace/ui/index.html").is_file()
     assert (root / "app/workspace/ui/assets/styles.css").is_file()
     assert (root / "app/workspace/ui/assets/app.js").is_file()
+    assert (root / "app/workspace/ui/assets/pdf.min.js").is_file()
+    assert (root / "app/workspace/ui/assets/pdf.worker.min.js").is_file()
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert '"app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js"]' in pyproject
+    assert '"app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js", "ui/assets/licenses/*.txt"]' in pyproject
 
 
 def test_workspace_page_router_reacts_to_browser_hash_changes() -> None:
