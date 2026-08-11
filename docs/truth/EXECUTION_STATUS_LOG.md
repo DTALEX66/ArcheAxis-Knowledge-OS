@@ -1334,3 +1334,11 @@
 - PR #119 squash merged → main `f76280f`
 - knowledge_base/tests 38 测试激活 (testpaths) + DB 隔离 conftest
 - 全量 1458 passed (1420+38), 5 skipped, 0 failed
+
+
+### LOG-20260812-114 — PR #120 MERGED (tests lint 修复) — PASS
+
+- PR #120 squash merged → main `a68742d`
+- 3 I001 import 排序自动修复 + test_daily_notes F841 未用变量
+- CI ruff 范围不含 tests/ (卫生性修复); 16 相关测试通过
+- 剩余 2 个预存 F841 (test_mfx001) 留待他日
