@@ -1076,3 +1076,13 @@
 - 真实数据: tesseract en_clean .0227/en_noisy .025/zh_clean 1.0;
   chi-sim en_clean .0455/en_noisy .1/zh_clean 0.0
 - 本地全量 1249 passed, 5 skipped
+
+
+### LOG-20260812-089 — PR #98 MERGED (rapidocr 激活) — PASS
+
+- PR #98 squash merged → main `b652ad8`
+- rapidocr-onnxruntime 入 ci-adapters; RAPIDOCR.available 动态 find_spec
+- 三引擎真实 bake-off (avg CER): rapidocr .0076 全胜 (含噪声图 0.0),
+  tesseract-chi-sim .0485, tesseract-eng .3492
+- rapidocr ~1.3s/img vs tesseract ~100-200ms (精度换延迟)
+- 本地全量 1249 passed
