@@ -48,7 +48,7 @@
 - `shared/oer_crosswalk.py`：静态开放来源发现建议（遗留文件名），不检索内容、不检查许可、不做 claim-level crosswalk。
 - CI 的 test/lint、browser 和 Windows runtime job 从 `pyproject.toml` 的锁定 `uv` dependency groups 导出带哈希的最小依赖；wheel-smoke 仍在仓库外验证真实 wheel/runtime，避免以提速为由削弱发布覆盖。
 - 全局 TaskPack runner 由 `D:/All projects/Workflow-assistance/scripts/workflow/run_taskpack_agent.py` 维护；OS 调用时显式传入 `cognitive-loop-os`、实际目标远端与本项目 TaskPack。它提供单 writer、冻结复审和 exact-SHA 编排，但不替代本项目的架构/数据库/权限门禁。
-- 开源项目、知识库软件与 Obsidian/PKM 的阶段化吸收矩阵见 `docs/ABSORPTION_EXECUTION_MATRIX.md`；registry/ledger 当前各有 101 个项目，状态由机器账本和真实 implementation evidence 决定。
+- 开源项目、知识库软件与 Obsidian/PKM 的阶段化吸收矩阵见 `docs/ABSORPTION_EXECUTION_MATRIX.md`（v2，2026-08-11 更新）；权威吸收决策账本见 `docs/truth/SUPPLY_CHAIN_LEDGER.json`（v2，46 个组件含吸收决策）。旧 101 行 registry/ledger（2026-07-22）已被替代。
 
 ## 仍保留的债务
 
@@ -72,7 +72,7 @@ CODEX 冻结的后续执行蓝图与增补包是后续 Horizon（H1-H10 与 Web/
 - 追加式状态日志：[`docs/truth/EXECUTION_STATUS_LOG.md`](truth/EXECUTION_STATUS_LOG.md)
 - 状态交接文档：[`docs/truth/H0_H1_STATUS_HANDOFF.md`](truth/H0_H1_STATUS_HANDOFF.md)
 
-当前进度：H0（v0.5.1 可信恢复）已完成并 merge main；H1 后端核心已完成但仍在 PR 中未 merge；AXW-022A 前端 PDF.js 渲染待独立批次。本页产品能力描述以 main 实际状态为准；任务/证据状态见上述权威文档。
+当前进度：H0（v0.5.1）已完成并 merge main；H1 后端核心（PR #72）已 merge main；AXW-022A PDF.js 前端渲染（PR #74）已 merge main；MFX Batch 0 止损（#75/#76/#77）已 merge；AXW-022B 证据批注（#78）已 merge；AXW-023A DOCX Adapter（#79）已 merge；吸收总图谱分析（#80）已 merge；ADOPT 项吸收实现（#81）待 merge。本页产品能力描述以 main 实际状态为准；任务/证据状态见上述权威文档。
 
 ## 正式门禁
 

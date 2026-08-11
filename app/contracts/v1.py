@@ -11,32 +11,32 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 CONTRACT_VERSION = "1.0.0"
-TASKPACK_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/taskpack.schema.json"
+TASKPACK_SCHEMA_ID = "https://archeaxis-workspace.local/contracts/v1/taskpack.schema.json"
 EXECUTION_TRACE_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/execution-trace.schema.json"
+    "https://archeaxis-workspace.local/contracts/v1/execution-trace.schema.json"
 )
-EVALUATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evaluation.schema.json"
-LESSON_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/lesson.schema.json"
+EVALUATION_SCHEMA_ID = "https://archeaxis-workspace.local/contracts/v1/evaluation.schema.json"
+LESSON_SCHEMA_ID = "https://archeaxis-workspace.local/contracts/v1/lesson.schema.json"
 SOURCE_RECORD_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/source-record.schema.json"
+    "https://archeaxis-workspace.local/contracts/v1/source-record.schema.json"
 )
-CLAIM_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/claim.schema.json"
-EVIDENCE_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evidence.schema.json"
+CLAIM_SCHEMA_ID = "https://archeaxis-workspace.local/contracts/v1/claim.schema.json"
+EVIDENCE_SCHEMA_ID = "https://archeaxis-workspace.local/contracts/v1/evidence.schema.json"
 RESEARCH_PACKAGE_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/research-package.schema.json"
+    "https://archeaxis-workspace.local/contracts/v1/research-package.schema.json"
 )
 KNOWLEDGE_UNIT_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/knowledge-unit.schema.json"
+    "https://archeaxis-workspace.local/contracts/v1/knowledge-unit.schema.json"
 )
-RELATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/relation.schema.json"
+RELATION_SCHEMA_ID = "https://archeaxis-workspace.local/contracts/v1/relation.schema.json"
 MASTERY_SIGNAL_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/mastery-signal.schema.json"
+    "https://archeaxis-workspace.local/contracts/v1/mastery-signal.schema.json"
 )
 LEARNING_ARTIFACT_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/learning-artifact.schema.json"
+    "https://archeaxis-workspace.local/contracts/v1/learning-artifact.schema.json"
 )
 MACHINE_KNOWLEDGE_UNIT_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/machine-knowledge-unit.schema.json"
+    "https://archeaxis-workspace.local/contracts/v1/machine-knowledge-unit.schema.json"
 )
 
 

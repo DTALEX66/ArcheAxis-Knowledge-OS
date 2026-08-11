@@ -1,4 +1,4 @@
-# Project Validation Profile — Cognitive-Loop-OS
+# Project Validation Profile — ArcheAxis Workspace
 #
 # Deterministic changed-path classifier input. Maps real paths to risk classes
 # and a required Gate set. The classifier unions Gate sets across all matched
@@ -6,7 +6,7 @@
 # This profile is the OS-local risk source of truth in standalone mode.
 
 schema_version: "1.0"
-project_id: "DTALEX66/Cognitive-Loop-OS"
+project_id: "DTALEX66/Cognitive-Loop-OS"  # GitHub repo name (unchanged); product = ArcheAxis Workspace
 controller_protocol: ">=1.0,<2.0"
 
 modes:

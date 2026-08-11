@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cognitive-Loop-OS CLI — unified command-line entry point.
+"""ArcheAxis Workspace CLI — unified command-line entry point.
 
 Usage:
     python -m app.cli serve              # Start server
@@ -93,7 +93,7 @@ def cmd_stats() -> None:
     from shared.config import config
     from shared.storage import count as _c
 
-    print(f"Cognitive-Loop-OS v{config.get('app.version', 'unknown')}")
+    print(f"ArcheAxis Workspace v{config.get('app.version', 'unknown')}")
     print("=" * 40)
     tables = [
         "kb_documents",

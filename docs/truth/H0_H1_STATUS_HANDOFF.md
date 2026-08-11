@@ -4,7 +4,7 @@
 > 任务包：`DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`
 > 基线：`AXW-FROZEN-v1-2026-08-09`
 > 权威分支：`codex/frozen-roadmap-deepseek-v1`
-> 执行分支：`axw/execution-h0`（已 merge）、`axw/execution-h1`（PR #72，未 merge）
+> 执行分支：`axw/execution-h0`（已 merge）、`axw/execution-h1`（PR #72，已 merge `fba208f`）
 > 状态日志：`docs/truth/EXECUTION_STATUS_LOG.md`（追加式，LOG-004~048）
 
 本文是任务包要求的状态交接文档，汇总 H0/H1 全部任务的验收状态、证据等级、阻塞与收口路径。所有 PASS 均绑定真实 exact-SHA/CI/审查/安装态证据；未完成项如实标 `PARTIAL`/`UNVERIFIED`，不冒充完成。
@@ -27,7 +27,7 @@
 | 基线基点 | `origin/main` = `492fac5982c693eb668d31cc51a6a59bac83b7a1` |
 | H0 merge-SHA | `f269a0128dfee9573699efd24562f96e8a713c70`（PR #71） |
 | H0 main CI | run `31320800285` 全绿 |
-| H1 分支 | `axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint） |
+| H1 分支 | `axw/execution-h1`（PR #72，已 merge `fba208f`） |
 | H1 exact-head CI | run `31322840300` 全绿（head `78091cc`） |
 | 权威分支 | `codex/frozen-roadmap-deepseek-v1` at `ba4cd81` |
 | 用户 WIP | canonical 主工作区未触碰 |
@@ -150,7 +150,7 @@ H0 分支相对基线基点 `492fac5` 新增/修改 15 文件，766 行。核心
 
 配套测试：`test_ci_a0_gates`、`test_ci_classifier`、`test_doctor_windows`、`test_pdf_extraction`、`test_raw_asset`、`test_workspace_api`。
 
-### H1 交付物（PR #72，未 merge）
+### H1 交付物（PR #72，已 merge `fba208f`）
 
 H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 
@@ -176,7 +176,7 @@ H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 - 未访问 `E:\`；未读取/输出任何凭据、token、私钥、cookie 或私人正文
 - 冻结基线、增补包、SHA 文件未改动；状态日志严格追加式（LOG-004~048 无改写）
 - canonical 主工作区与用户 WIP 未触碰；`.hermes/` 外的仓库文件未改动
-- PR #71 已 merge（H0，获授权）；PR #72 未 merge（H1，未获授权）
+- PR #71 已 merge（H0，获授权）；PR #72 已 merge（H1，获授权后 merge）
 - 无遗留 ArcheAxis 进程；安装测试已彻底卸载
 
 ## 10. 后续阶段概览（H2-H10 与增补）
@@ -224,7 +224,7 @@ H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 | H1 | AXW-022A（后端） | `78091cc` | PR #72 CI `31322840300` |
 
 权威分支提交链：`codex/frozen-roadmap-deepseek-v1`（LOG-004~048，最新 `dd499ae`）。
-H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 merge）。
+H1 分支：`axw/execution-h1`（PR #72，已 merge `fba208f`）。
 
 
 ## 附录 B：本地测试结果汇总（命令 → 结果）
@@ -283,7 +283,7 @@ H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 m
 |---|---|
 | 开发中每个新行为一次定向 RED→GREEN | ✅ 每 checkpoint 均执行 |
 | TaskPack checkpoint：只跑受影响测试 + changed-file Ruff + diff/convention | ✅ 每 checkpoint 均执行（不重复全量套件） |
-| 阶段 Release Train：冻结聚合 diff，一次完整门禁 + 一次 CI | ✅ PR #71（H0）/PR #72（H1）各一次 exact-head CI 全绿 |
+| 阶段 Release Train：冻结聚合 diff，一次完整门禁 + 一次 CI | ✅ PR #71（H0）/PR #72（H1，已 merge）各一次 exact-head CI 全绿 |
 | 高风险（打包/依赖/DB/安全）：每个独立 frozen tree 立即完整门禁 + 审查 + push + exact-SHA CI | ✅ AXW-012B（依赖）/AXW-021A（事务）独立审查 + CI |
 | Wheel：从 clean checkout 构建 | ✅ desktop-build 从 clean SHA 构建，wheel-smoke PASS |
 | 证据保留：本地只留定向 RED/GREEN + 对应 CI run URL | ✅ 状态日志记录每 checkpoint commit/run |
