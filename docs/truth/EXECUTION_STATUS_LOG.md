@@ -1447,3 +1447,12 @@
 - PR #128 squash merged → main `a2056d0`
 - 增强 MFX-001 测试暴露: B003 Marker REVIEW-BLOCK 却注册为默认
   PDF 引擎 → 移除; 测试改用账本 blocked 集合驱动
+
+
+### LOG-20260812-128 — PR #129 MERGED (占位清理) — PASS
+
+- PR #129 squash merged → main `98f7546`
+- app/agent/tool_router.py + app/core/attention.py: DEFERRED 标注
+- knowledge_base/taskpack/builder.py + context_pack/builder.py:
+  死壳删除 (实现都在 __init__.py)
+- 6 个 imported-designs 索引 README 确认是合法导航非占位
