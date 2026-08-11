@@ -1033,3 +1033,13 @@
 - Browser-verified: 4 backups listed / restore 200 / file reverted /
   traversal guard 422
 - H3 纵切全链（含 UI）: inspect+read+search+write(乐观锁)+冲突+备份+恢复
+
+
+### LOG-20260812-085 — PR #94 MERGED (TESSDATA_PREFIX env doc) — PASS
+
+- PR #94 squash merged → main `7a0e90d`
+- 本地 OCR 测试 skipped 根因: TESSDATA_PREFIX 指向不存在的
+  tesseract-languages/current; 实际数据在 4.1.0/
+- 修复: 双写 EXTERNAL_DEPENDENCIES.md (项目 + OS configuration d1819e9)
+- 验证: TESSDATA_PREFIX 设置后 2 OCR 测试 pass (1244 → 1246)
+- 本地全量: 1246 passed, 6 skipped (symlink 权限×3/网络×2/crossref×1)
