@@ -801,3 +801,12 @@
 - AXW-022A 全链路（后端端点+前端渲染+许可证+浏览器交互）闭环
 - H1-EXIT：冻结依赖 6/6 PASS（GOV-001/021B/022B/024B/025B/030C）→ AXW-H1-EXIT PASS
 - 回滚：PR #74 已 squash merge，如需回退 revert ebf7124
+
+
+### LOG-20260811-065 — H1 EXIT GATE: MERGE-SHA MAIN CI — PASS
+
+- 时间：2026-08-11
+- PR #74 mergeCommit `ebf7124` merge-SHA main CI run `31499045060` conclusion=**success**
+- 确认：gateplan/lint/test(3.12)/wheel-smoke/browser-smoke/a0-gates 全绿；产品/桌面 job 正确 SKIP
+- 补全 AXW-H1-EXIT 的 merge-SHA 证据（LOG-064 记录 exact-head + 裁决；本条记录 merge-SHA main CI）
+- main = `ebf7124`
