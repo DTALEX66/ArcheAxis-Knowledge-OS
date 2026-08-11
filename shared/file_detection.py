@@ -52,7 +52,10 @@ def detect(
     features = _extract_features(content)
     ort_inputs = {_sess.get_inputs()[0].name: features}
     raw = _sess.run(None, ort_inputs)[0]
-    probs = _softmax(raw[0])
+    # Magika's ONNX model already outputs softmax probabilities
+    # (raw.sum() == 1.0); applying _softmax again flattens the
+    # distribution and collapses every confident prediction to ~0.01.
+    probs = raw[0]
     idx = int(np.argmax(probs))
     conf = float(probs[idx])
     label = _labels[idx] if idx < len(_labels) else "unknown"
@@ -83,7 +86,7 @@ def _extract_features(content: bytes) -> np.ndarray:
 
     buf = content[:block]
     beg_raw = buf.lstrip(b"\r\n\t ")
-    beg_ints = list(beg_raw[:beg_size].ljust(beg_size, b"\x00"))
+    beg_ints = list(beg_raw[:beg_size])
     if len(beg_ints) < beg_size:
         beg_ints += [padding] * (beg_size - len(beg_ints))
 

@@ -86,7 +86,10 @@ _CONTENT_FORMAT_MAP: dict[str, str] = {
     "odt": "docx", "ods": "xlsx", "odp": "pptx",
     "html": "html", "xml": "html", "sgml": "html",
     "txt": "txt", "markdown": "md", "csv": "csv", "tsv": "csv",
-    "json": "txt", "yaml": "txt", "toml": "txt",
+    # JSON-like labels: fall back to extension detection so formats like
+    # .canvas (JSON Canvas) keep their specific handler instead of
+    # collapsing into generic text.
+    "yaml": "txt", "toml": "txt",
     "png": "image", "jpeg": "image", "gif": "image", "webp": "image",
     "bmp": "image", "tiff": "image", "ico": "image", "svg": "image",
     "mp3": "media_audio", "wav": "media_audio", "flac": "media_audio",
