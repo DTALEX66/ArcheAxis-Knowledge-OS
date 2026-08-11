@@ -1130,3 +1130,13 @@
   subject 'Python was') → 加可选 (was|were|is|are|has been)
 - 本地全量 1272 passed, 5 skipped
 - 零测试组件 13→11 (public_evidence/fact_extractor 已清)
+
+
+### LOG-20260812-094 — PR #103 MERGED (block_refs 测试) — PASS
+
+- PR #103 squash merged → main `9d6f400`
+- block_refs 首次测试 (11 测试): heading/paragraph id、slugify、resolve
+  (documents+cards 回退)、无效引用、((ref)) 解析、嵌套 embed、缺失 None
+- 无代码变更 (测试记录实际行为: 纯段落=单 p1 block; select_one 函数内 import)
+- 本地全量 1283 passed, 5 skipped
+- 零测试组件 11→10
