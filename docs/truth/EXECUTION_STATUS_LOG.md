@@ -1342,3 +1342,9 @@
 - 3 I001 import 排序自动修复 + test_daily_notes F841 未用变量
 - CI ruff 范围不含 tests/ (卫生性修复); 16 相关测试通过
 - 剩余 2 个预存 F841 (test_mfx001) 留待他日
+
+
+### LOG-20260812-115 — PR #120 MERGED (tests lint 修复) — PASS
+
+- PR #120 squash merged → main `a68742d`
+- 3 I001 import 排序 + 1 F841; CI ruff 范围不含 tests/ (卫生)
