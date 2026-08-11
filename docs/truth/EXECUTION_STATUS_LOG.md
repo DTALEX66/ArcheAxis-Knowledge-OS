@@ -1490,3 +1490,18 @@
 结论：C0-C3 实现与源码测试齐备（57 测试），C4 安装态资格
 （真实 Windows Vault 扫描/读/改/冲突/Obsidian 重开）未执行——
 AXW-H3-EXIT 裁决需后续发布流程，本记录不冒充 PASS。
+
+
+### LOG-20260812-133 — AXW-051/052 H4 学习侧任务状态核录 — PARTIAL
+
+冻结基线 H4 学习侧关键任务状态：
+
+| ID | 任务 | 实现 | 测试 | 安装态证据 |
+|---|---|---|---|---|
+| AXW-051A | FSRS 调度 | shared/learning_scheduler (py-fsrs) + retrieval_practice bridge (#125 SM-2 接入) | test_learning_scheduler 6 | 未核录 |
+| AXW-051B | 复习/掌握证据 | record_practice → mastery_signal + kb_reviews SM-2 | test_phase5_mcs_closed_loop | 未核录 |
+| AXW-052A | Approved-only AI Assets | LearningArtifact approval chain (approve/candidate/approved) | test_learning_artifact_* | 未核录 |
+
+结论：H4 学习侧核心（FSRS 调度、掌握证据、审批链）实现与源码测试齐备；
+AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
+与 AXW-054（对照评测 corpus）未在本批核录——后续发布流程裁决。
