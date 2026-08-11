@@ -1099,3 +1099,12 @@
 - faster-whisper 入 ci-adapters; FASTER_WHISPER.available 动态检测
 - 报告: bakeoff-results/bakeoff-asr-20260812.{csv,json}
 - H2 bake-off 现在覆盖 OCR (3 引擎) + ASR (1 引擎) 真实数据
+
+
+### LOG-20260812-091 — PR #100 MERGED (Silero VAD stub 测试) — PASS
+
+- PR #100 squash merged → main `c57aa05`
+- audio_vad.py (#83 引入) 零测试覆盖 → 补 4 测试:
+  不可用空段 / 可用委托 silero / 音频损坏降级 / 探针不抛异常
+- 注入假 torch/torchaudio 模块, 无需重依赖
+- H2 组件覆盖补全: bakeoff + engines + audio_vad 全部有测试
