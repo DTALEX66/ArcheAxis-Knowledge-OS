@@ -968,3 +968,16 @@
 - 修复 Rust chunked body 长度（63→6C）
 - 14 Rust lib tests + 1228 Python tests + 全 CI（含 desktop-build/installer-lifecycle）绿
 - 命名契约 V1 全链路落地：文档 → UI 阶段完成；打包/仓库/底层 planned
+
+
+### LOG-20260812-079 — PR #88 MERGED (AXW-1209 naming lint guard) — PASS
+
+- PR #88 squash merged → main `b5833d2`
+- scripts/check_repository_conventions.py + scan_naming_forbidden_terms:
+  活跃文档面（README/docs-current/blueprint/architecture/decisions/environment/
+  migration/truth/config/.worklab）拒绝旧产品名（元枢工作台/ArcheAxis OS/
+  ArcheAxis Workspace），历史性文件豁免（intake/taskpacks/imported-designs/
+  notices/status logs）
+- README + .worklab 注释对齐 ArcheAxis Learning Workspace
+- 4 新测试；convention check 全绿
+- AXW-1209 文档投影门禁落地：命名禁词防回归
