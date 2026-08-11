@@ -101,7 +101,7 @@ The workflow accepts only canonical `https://github.com/{owner}/{repo}` reposito
 
 [![CI](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/Cognitive-Loop-OS/actions/workflows/ci.yml)
 
-ArcheAxis Workspace 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的资料—学习—引用闭环：
+ArcheAxis Learning Workspace 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的资料—学习—引用闭环：
 
 ```text
 Research → Evidence → Knowledge → Learning
