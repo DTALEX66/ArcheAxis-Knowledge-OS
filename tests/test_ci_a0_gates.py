@@ -154,7 +154,7 @@ def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
     } == {expected_version}
     assert f"--version {expected_version}" in release_workflow
     assert (
-        'name = "cognitive-loop-os"\nversion = "0.5.0"\nsource = { editable = "." }'
+        'name = "archeaxis-workspace"\nversion = "0.5.0"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")
     )
     for path in (

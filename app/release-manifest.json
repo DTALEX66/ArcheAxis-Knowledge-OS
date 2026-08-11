@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "product": {
-    "id": "cognitive-loop-os",
+    "id": "archeaxis-workspace",
     "name": "星轨学习工作台",
     "english_name": "ArcheAxis Learning Workspace",
     "workspace_name": "星轨学习工作台",
@@ -24,9 +24,9 @@
   "dependency_lock": {
     "path": "uv.lock",
     "algorithm": "sha256",
-    "digest": "4ec32bc58bcd2fccd5d43659974983fc124f2af36c2661cf99f681a0bcf980b4",
+    "digest": "cfdf86a58c78452e4a915feab6ec3e15a11122589a85f71c90bc5dff68086cc9",
     "format_version": 1,
-    "revision": 6
+    "revision": 7
   },
   "migrations": {
     "owners": [

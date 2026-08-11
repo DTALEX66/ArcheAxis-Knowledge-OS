@@ -296,7 +296,7 @@ jobs:
           from shared.sleep_loop_engine import LOG_DIR
 
           assert not any(Path(path).name.lower() == "knowledge_base" for path in sys.path if path)
-          assert installed_version("cognitive-loop-os") == load_release_manifest()["product"]["version"]
+          assert installed_version("archeaxis-workspace") == load_release_manifest()["product"]["version"]
           with TestClient(kb_app) as kb:
               assert kb.get("/health").status_code == 200
               assert kb.get("/reviews/due").status_code == 200
@@ -425,8 +425,8 @@ jobs:
               assert loaded.json()["state"] == "succeeded"
           PY
           python -c "from app.contracts.v1 import TaskPackV1, TaskStepV1; from app.adapters.taskpack import from_knowledge_taskpack, project_to_runtime, to_knowledge_taskpack; from app.facades import contracts; from knowledge_base.taskpack import TaskPack; legacy=TaskPack(task_id='task_wheel', goal='wheel contract', steps=[{'step_id':'s1','action':'read','tool':'file_read'}], allowed_tools=['file_read','echo'], blocked_tools=['shell_exec']); canonical=from_knowledge_taskpack(legacy); projection=project_to_runtime(canonical); assert canonical.schema_version == '1.0.0'; assert isinstance(canonical.steps[0], TaskStepV1); assert canonical.requested_tools == ['file_read']; assert projection.task.tools == ['file_read']; assert to_knowledge_taskpack(canonical).to_dict() == legacy.to_dict(); assert TaskPackV1.model_json_schema()['\$id'].endswith('/contracts/v1/taskpack.schema.json'); assert contracts.TaskPackV1 is TaskPackV1"
-          cognitive-os health
-          cognitive-os stats
+          archeaxis health
+          archeaxis stats
 
   browser-smoke:
     runs-on: ubuntu-latest

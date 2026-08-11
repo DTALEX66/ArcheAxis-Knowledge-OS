@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 SOURCE_RECORD_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/source-record.schema.json"
+    "https://archeaxis.local/contracts/v1/source-record.schema.json"
 )
 
 

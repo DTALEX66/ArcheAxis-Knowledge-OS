@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 LEARNING_ARTIFACT_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/learning-artifact.schema.json"
+    "https://archeaxis.local/contracts/v1/learning-artifact.schema.json"
 )
 
 
