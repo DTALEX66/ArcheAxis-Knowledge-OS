@@ -153,7 +153,16 @@ RAPIDOCR = EngineUnderTest(
 OCR_ENGINES: list[EngineUnderTest] = [TESSERACT, TESSERACT_CHI_SIM, PADDLEOCR, EASYOCR, RAPIDOCR]
 
 
-# ── ASR engines (all unavailable — need model download) ──
+# ── ASR engines (need model download; faster-whisper activates on install) ──
+
+
+def _faster_whisper_available() -> bool:
+    try:
+        import importlib.util
+
+        return importlib.util.find_spec("faster_whisper") is not None
+    except Exception:
+        return False
 
 
 def _faster_whisper_stub(fp: Path) -> str:
@@ -167,8 +176,10 @@ def _faster_whisper_stub(fp: Path) -> str:
 
 
 FASTER_WHISPER = EngineUnderTest(
-    name="faster-whisper", fn=_faster_whisper_stub, available=False,
-    version="unknown", notes="MIT. CTranslate2-based. Best batch ASR candidate.",
+    name="faster-whisper", fn=_faster_whisper_stub,
+    available=_faster_whisper_available(),
+    version="1.2.1 (faster-whisper)" if _faster_whisper_available() else "unknown",
+    notes="MIT. CTranslate2-based. Best batch ASR candidate.",
 )
 
 
