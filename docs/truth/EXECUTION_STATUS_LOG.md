@@ -1214,16 +1214,6 @@
 - 零测试组件 4→3 (graph_rag/obsidian_importer/research_boundary)
 
 
-### LOG-20260812-101 — PR #110 MERGED (source_discovery 测试) — PASS
-
-- PR #110 squash merged → main `e0ea6d6`
-- source_discovery 首次测试 (8): 扩展名分类、跳过目录、缺失目录、
-  max_files、大小阈值、文件名前缀匹配卡片、无卡片
-- 陷阱记录: conftest 将 TMPDIR 指向 .hermes 隐藏树 + discover_sources
-  跳过隐藏路径 → 测试 monkeypatch Path.rglob/exists 用假文件树
-- 本地全量 1354 passed, 5 skipped
-- 零测试组件 4→3
-
 ### LOG-20260812-102 — PR #111 MERGED (research_boundary 测试) — PASS
 
 - PR #111 squash merged → main `c16a7f2`
@@ -1456,13 +1446,6 @@
 - knowledge_base/taskpack/builder.py + context_pack/builder.py:
   死壳删除 (实现都在 __init__.py)
 - 6 个 imported-designs 索引 README 确认是合法导航非占位
-
-
-### LOG-20260812-129 — PR #129 MERGED (占位卫生) — PASS
-
-- PR #129 squash merged → main `98f7546`
-- 2 死壳 builder 删除 + 2 deferred 模块标注
-- 安全审计: 0 敏感文件跟踪, 硬编码凭证 0, .gitignore 完整
 
 
 ### LOG-20260812-130 — PR #130 MERGED (H2 intake 记录) — PASS
