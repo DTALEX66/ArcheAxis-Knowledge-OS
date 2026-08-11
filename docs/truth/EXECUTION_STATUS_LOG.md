@@ -1407,3 +1407,11 @@
 - PR #125 squash merged → main `2d2e2ff`
 - record_practice_evidence 硬编码调度 → _sm2_interval 真实调度
   (1/6/16 天递增); 测试断言 [1,6,16] + ease>=2.5
+
+
+### LOG-20260812-123 — PR #126 MERGED (H2 bake-off CLI) — PASS
+
+- PR #126 squash merged → main `34eae0c`
+- scripts/run_bakeoff.py: 可重复 bake-off CLI (OCR/ASR 引擎对比,
+  CER/WER, CSV+JSON 报告; 不可用引擎诚实跳过)
+- 实跑验证: rapidocr 三语种 CER 0.0, faster-whisper en CER 0.0
