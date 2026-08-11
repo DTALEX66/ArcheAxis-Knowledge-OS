@@ -711,3 +711,14 @@
 - 证据等级：`PUBLICATION`（分支文件与 SHA 回读）；不等于 exact-SHA CI、main 合并、实现完成或安装态资格。
 - 权威边界：历史归档不覆盖冻结基线、批准增补或本状态日志；清理本地缓存不得删除未提交工作树或唯一证据。
 - 回滚：revert `9a91e7d`。
+
+### LOG-20260810-057 — PR #72 H1 BACKEND MERGED TO MAIN — PASS
+
+- 时间：2026-08-10
+- 执行分支：axw/execution-h1（squash merge）
+- 候选提交/merge SHA：fba208f2551f26acc64d82613500656159fc6801
+- 变更：H1 后端核心（GOV-001 + 020R/020A/020B/020C + 021A/021B + 024A/024B + 025A/025B + 030A/030B/030C + AXW-022A 后端 pdf_serve）经用户授权 squash merge 进入 main；RawAsset/Evidence/学习 DTO 后端真正落地
+- 验证：merge-SHA main CI 31492513039 completed/success（gateplan、test(3.12)、lint、wheel-smoke、a0-gates 全 PASS；浏览器/桌面/兼容 job 正确 SKIP）；merge 前 head 1c688c7 exact-SHA CI 已绿
+- 证据等级：EXACT_SHA_CI + merge-SHA main CI 双绿
+- 风险/剩余项：AXW-022A/022B 前端 PDF.js 渲染仍 PARTIAL（真实资料源无 PDF 样本，不伪造，需独立前端批次）；AXW-H1-EXIT 待 022 前端完成；公开发布 NO-GO
+- 回滚：revert merge SHA fba208f（需单独评审）
