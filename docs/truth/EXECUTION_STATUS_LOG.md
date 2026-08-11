@@ -919,3 +919,10 @@
 - 5 ADOPT 模块管线接入入库
 - 全部 9 个 PR（#69, #75-#82）已 merge 进 main
 - 权威日志: LOG-004~073
+
+
+### LOG-20260812-074 — PR #83 MERGED (H2 bake-off) — PASS
+
+- PR #83 merged → main b97035e
+- OCR/ASR bake-off framework + Silero VAD stub
+- 10 PRs merged (#69, #75-#83)
