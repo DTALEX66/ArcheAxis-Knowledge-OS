@@ -1400,3 +1400,10 @@
   next=now) → knowledge_base.reviews._sm2_interval 真实调度
   (quality=5 连续 3 次 → 1/6/16 天递增)
 - 测试断言 interval 增长 [1,6,16] + ease>=2.5
+
+
+### LOG-20260812-122 — PR #125 MERGED (H2 SM-2 接入) — PASS
+
+- PR #125 squash merged → main `2d2e2ff`
+- record_practice_evidence 硬编码调度 → _sm2_interval 真实调度
+  (1/6/16 天递增); 测试断言 [1,6,16] + ease>=2.5
