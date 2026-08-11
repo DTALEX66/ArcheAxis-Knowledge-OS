@@ -1423,3 +1423,10 @@
 - PROJECT_STATUS: ASR/Evidence 关闭环 (H2 bake-off 实跑 + Evidence
   接入); 进度列表 #81 已 merge + H2 链 #82/#97/#99/#105/#124/#125/#126
 - H2 管线整合全链闭环 (routing/quality/evidence/learning/bakeoff/commit)
+
+
+### LOG-20260812-125 — 远程分支清理 + #127 MERGED — PASS
+
+- #127 squash merged → main `0088bdb` (H2 状态文档)
+- 远程分支清理 68 个 (62 merged 残留 + 3 absorbed 孤儿 + 2 axw squash
+  + 1 empty); 保留 main/codex 权威/release-v0.4.0-contract/verification-summary
