@@ -47,6 +47,7 @@
 - **语言包**：额外安装 `chi_sim`（中文简体）和 `eng`（英文）
 - **路径**：`D:\All projects\OS configuration\toolchains\scoop\shims\tesseract`
 - **验证**：`tesseract --version`
+- **TESSDATA_PREFIX**：`D:\All projects\OS configuration\toolchains\scoop\apps\tesseract-languages\4.1.0`（scoop 无 `tesseract-languages/current`；不设此变量则 OCR 测试 skipped：`TESSDATA_PREFIX /c/Users/ALEX/scoop/apps/tesseract-languages/current does not exist`）
 - **Python 绑定**：`pytesseract>=0.3.13`（pyproject.toml 中已声明）
 
 ### 1.4 FFmpeg
