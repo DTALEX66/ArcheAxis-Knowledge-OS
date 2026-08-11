@@ -4,7 +4,7 @@ Verifies the framework operates correctly with the one available engine
 (Tesseract). Other engines are registered as unavailable stubs.
 """
 
-import tempfile
+import csv
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -17,16 +17,23 @@ from shared.bakeoff import (
     report_json,
     run_bakeoff,
 )
-from shared.bakeoff_engines import OCR_ENGINES, TESSERACT, get_available_engines
+from shared.bakeoff_engines import OCR_ENGINES, TESSERACT, TESSERACT_CHI_SIM
 
 
 def _make_text_image(text: str, path: Path) -> None:
     """Create a simple image with black text on white background."""
     img = Image.new("RGB", (400, 100), "white")
     draw = ImageDraw.Draw(img)
-    try:
-        font = ImageFont.truetype("arial.ttf", 20)
-    except OSError:
+    font = None
+    # CJK-first font order: arial.ttf exists on most systems but renders
+    # Chinese as blank boxes, producing empty OCR output.
+    for candidate in ("msyh.ttc", "simhei.ttf", "simsun.ttc", "arial.ttf"):
+        try:
+            font = ImageFont.truetype(candidate, 20)
+            break
+        except OSError:
+            continue
+    if font is None:
         font = ImageFont.load_default()
     draw.text((10, 10), text, fill="black", font=font)
     img.save(path)
@@ -46,9 +53,13 @@ class TestBakeoffFramework:
         assert results == []
 
     def test_stub_engines_are_unavailable(self) -> None:
+        # Both tesseract variants use the system binary and are available
+        # whenever the binary + language data exist; everything else is a
+        # missing-dependency stub.
         for e in OCR_ENGINES:
-            if e.name != "tesseract":
-                assert not e.available, f"{e.name} should be unavailable by default"
+            if e.name in {"tesseract", "tesseract-chi-sim"}:
+                continue
+            assert not e.available, f"{e.name} should be unavailable by default"
 
     def test_bakeoff_with_simple_text(self, tmp_path: Path) -> None:
         if not TESSERACT.available:
@@ -71,9 +82,36 @@ class TestBakeoffFramework:
         else:
             assert r.error is not None  # honest failure recorded
 
+    def test_chi_sim_engine_renders_cjk_without_spacing(self, tmp_path: Path) -> None:
+        if not TESSERACT_CHI_SIM.available:
+            return
+        img = tmp_path / "zh.png"
+        truth = tmp_path / "zh.txt"
+        _make_text_image("机器学习", img)
+        truth.write_text("机器学习", encoding="utf-8")
+
+        results = run_bakeoff([TESSERACT_CHI_SIM], load_fixtures(tmp_path))
+        assert len(results) == 1
+        r = results[0]
+        if r.success:
+            # The chi_sim model must not insert spaces between CJK glyphs;
+            # naive eng+chi_sim interleaving would push CER to ~0.8+.
+            assert r.cer is None or r.cer <= 0.5, f"chi_sim CER={r.cer}"
+
     def test_report_csv(self, tmp_path: Path) -> None:
         r = BakeoffResult(engine="test", fixture="f.png", file_size=100, success=True, cer=0.0)
         p = report_csv([r], tmp_path / "out.csv")
+        rows = list(csv.DictReader(p.open(encoding="utf-8")))
+        assert len(rows) == 1
+        # A perfect CER of 0.0 is falsy but must not be blanked by `or ""`.
+        assert rows[0]["cer"] == "0.0", rows[0]
+
+    def test_report_csv_blank_when_no_truth(self, tmp_path: Path) -> None:
+        r = BakeoffResult(engine="test", fixture="f.png", file_size=100, success=True)
+        p = report_csv([r], tmp_path / "out2.csv")
+        rows = list(csv.DictReader(p.open(encoding="utf-8")))
+        assert len(rows) == 1
+        assert rows[0]["cer"] == ""
         assert p.read_text(encoding="utf-8").startswith("engine,fixture")
 
     def test_report_json(self, tmp_path: Path) -> None:
