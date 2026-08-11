@@ -1430,3 +1430,13 @@
 - #127 squash merged → main `0088bdb` (H2 状态文档)
 - 远程分支清理 68 个 (62 merged 残留 + 3 absorbed 孤儿 + 2 axw squash
   + 1 empty); 保留 main/codex 权威/release-v0.4.0-contract/verification-summary
+
+
+### LOG-20260812-126 — PR #128 MERGED (Marker REVIEW-BLOCK 合规修复) — PASS
+
+- PR #128 squash merged → main `a2056d0`
+- 增强 MFX-001 测试暴露真实缺陷: 账本 B003 (Marker) REVIEW-BLOCK
+  (代码 Apache-2.0, 权重修改版 OpenRAIL-M 需单独审查) 却在默认
+  PDF 引擎链 (marker-pdf) — 移除; _via_marker 保留待审查通过
+- 测试改为账本 blocked 集合驱动 + 修正 zotero guard 陈旧断言
+- 全量 1461 passed
