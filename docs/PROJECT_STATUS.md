@@ -56,7 +56,7 @@
 2. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
 3. 旧细粒度 API 仍公开，路由面尚未真正缩减。
 4. 生产部署尚缺独立容器/反向代理/并发负载验证。
-5. OCR 的 Pillow/pytesseract 依赖、Tesseract `eng` 语言数据、真实图像测试和 CI 字体/语言门禁已 GREEN；ASR、时间戳、内容匹配 Evidence 与人工标注准确率基准仍未闭环。
+5. OCR 的 Pillow/pytesseract 依赖、Tesseract `eng` 语言数据、真实图像测试和 CI 字体/语言门禁已 GREEN；H2 bake-off 已实跑闭环：Tesseract（eng/chi_sim）与 RapidOCR 三语种对比（RapidOCR avg CER 0.0076 实测最优）、faster-whisper ASR 转写（英文 CER 0.0；中文需 chi 模型）、可重复运行的 `scripts/run_bakeoff.py` CLI 已入库；人工标注准确率基准、PaddleOCR/EasyOCR 及更大 ASR 模型仍需重依赖下载。
 6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
 7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
 8. `workspace.sqlite` migration owner、connection-scoped Research writer、Research graph/Job/Outbox 同事务、严格 Job readback、同步命令终态、按需 Outbox dispatcher、Delivery Receipt 与不暴露内部 ID 的用户级 Job/Delivery 投影已交付；仍缺真实 Tauri WebView 点击级投递证据、失败→retry→replay 的完整 UI/CI 矩阵、SSE 审计时间线、异步 Worker 和更完整交互式 Job Center。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
@@ -72,7 +72,7 @@ CODEX 冻结的后续执行蓝图与增补包是后续 Horizon（H1-H10 与 Web/
 - 追加式状态日志：[`docs/truth/EXECUTION_STATUS_LOG.md`](truth/EXECUTION_STATUS_LOG.md)
 - 状态交接文档：[`docs/truth/H0_H1_STATUS_HANDOFF.md`](truth/H0_H1_STATUS_HANDOFF.md)
 
-当前进度：H0（v0.5.1）已完成并 merge main；H1 后端核心（PR #72）已 merge main；AXW-022A PDF.js 前端渲染（PR #74）已 merge main；MFX Batch 0 止损（#75/#76/#77）已 merge；AXW-022B 证据批注（#78）已 merge；AXW-023A DOCX Adapter（#79）已 merge；吸收总图谱分析（#80）已 merge；ADOPT 项吸收实现（#81）待 merge。本页产品能力描述以 main 实际状态为准；任务/证据状态见上述权威文档。
+当前进度：H0（v0.5.1）已完成并 merge main；H1 后端核心（PR #72）已 merge main；AXW-022A PDF.js 前端渲染（PR #74）已 merge main；MFX Batch 0 止损（#75/#76/#77）已 merge；AXW-022B 证据批注（#78）已 merge；AXW-023A DOCX Adapter（#79）已 merge；吸收总图谱分析（#80）已 merge；ADOPT 项吸收实现（#81）已 merge；H2 管线整合已 merge（#82 路由/质量门、#97/#99 bake-off 实跑、#105 Magika 检测、#124 Evidence 接入、#125 SM-2 学习调度、#126 bake-off CLI）。本页产品能力描述以 main 实际状态为准；任务/证据状态见上述权威文档。
 
 ## 正式门禁
 
