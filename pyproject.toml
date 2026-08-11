@@ -33,6 +33,7 @@ dependencies = [
     "jiwer>=3.1",
     "rapidfuzz>=3.9",
     "fsrs>=5.0",
+    "onnxruntime>=1.18",
 ]
 
 [dependency-groups]
@@ -63,6 +64,7 @@ ci = [
     "jiwer>=3.1",
     "rapidfuzz>=3.9",
     "fsrs>=5.0",
+    "onnxruntime>=1.18",
     "tomli>=2.0; python_version < '3.11'",
     "uvicorn[standard]>=0.22",
 ]
