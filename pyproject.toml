@@ -1,5 +1,5 @@
 [project]
-name = "archeaxis-workspace"
+name = "cognitive-loop-os"
 version = "0.5.0"
 description = "Local-first, evidence-driven Human–AI learning and knowledge workspace"
 readme = "README.md"
