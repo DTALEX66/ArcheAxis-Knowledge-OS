@@ -163,6 +163,64 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
     else { alert("未找到匹配：" + q); }
   }
 
+  /* AXW-022B evidence annotation — pin a selection as a content-addressed
+     EvidenceAnchor and jump back from a stored anchor_id. */
+  function currentKey() {
+    const input = document.getElementById("pdf-key-input");
+    return (input && input.value || "").trim();
+  }
+  function selectedText() {
+    const sel = window.getSelection();
+    return (sel && sel.toString() || "").trim();
+  }
+  async function annotateEvidence() {
+    const $info = document.getElementById("pdf-anchor-info");
+    if (!state.doc || !state.page) { alert("请先打开 PDF"); return; }
+    const key = currentKey();
+    if (!/^sha256:[0-9a-f]{64}$/i.test(key)) { alert("内容键无效"); return; }
+    const text = selectedText();
+    if (!text) { alert("请先在页面中选中一段文本作为证据"); return; }
+    if ($info) $info.textContent = "写入证据锚点…";
+    try {
+      const rawSha = key.slice("sha256:".length);
+      const resp = await fetch("/workspace/api/evidence/anchor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          raw_sha256: rawSha,
+          source_revision: key,
+          locator: { page: state.page, selection: text.slice(0, 200) }
+        })
+      });
+      if (!resp.ok) { throw new Error("HTTP " + resp.status); }
+      const data = await resp.json();
+      if ($info) $info.textContent = "锚点 " + data.anchor_id;
+      else alert("锚点 " + data.anchor_id);
+    } catch (err) {
+      if ($info) $info.textContent = "写入失败: " + err.message;
+    }
+  }
+  async function jumpToAnchor() {
+    const $info = document.getElementById("pdf-anchor-info");
+    const input = document.getElementById("pdf-anchor-input");
+    const id = (input && input.value || "").trim();
+    if (!id) { alert("请输入证据锚点 id (ev...) "); return; }
+    if ($info) $info.textContent = "解析锚点…";
+    try {
+      const resp = await fetch("/workspace/api/evidence/anchor/" + encodeURIComponent(id));
+      if (!resp.ok) { throw new Error("HTTP " + resp.status); }
+      const a = await resp.json();
+      const page = a && a.locator && a.locator.page;
+      if (state.doc && typeof page === "number" && page >= 1 && page <= state.doc.numPages) {
+        state.page = page; await renderPage();
+      }
+      const loc = a && a.locator ? JSON.stringify(a.locator) : "";
+      if ($info) $info.textContent = "已回跳页 " + (page || "?") + (loc ? " · " + loc : "");
+    } catch (err) {
+      if ($info) $info.textContent = "回跳失败: " + err.message;
+    }
+  }
+
   document.addEventListener("click", function(ev){
     const el = ev.target.closest("[data-action]");
     if (!el) return;
@@ -173,6 +231,8 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
       case "pdf-zoom-in": state.zoom = Math.min(3, Math.round((state.zoom + 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
       case "pdf-zoom-out": state.zoom = Math.max(0.5, Math.round((state.zoom - 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
       case "pdf-search": void searchPdf(); break;
+      case "pdf-annotate": void annotateEvidence(); break;
+      case "pdf-jump": void jumpToAnchor(); break;
     }
   });
 })();
