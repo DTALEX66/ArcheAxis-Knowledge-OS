@@ -754,3 +754,13 @@
 - 证据等级：WEB_CROSSCHECK（公开权威来源交叉核验）
 - 风险/剩余项：PR #74 PDF 端点未 merge；PDF.js 前端渲染待独立批次；AXW-H1-EXIT 待 022 前端
 - 回滚：revert 本文档 commit
+
+### LOG-20260811-061 — ALL-FORMAT ACCURACY MECHANISM — PASS
+
+- 时间：2026-08-11
+- 变更：内容准确率机制扩展为全格式两层验证——识别转译层（高精度模型+CER/WER）+ 内容事实层（全网交叉对比，全格式通用）；覆盖 PDF/图片/音频/视频/Office；obsidian-web-crosscheck 技能 v3 同步扩展
+- 原则：识别转译置信度永不当作内容事实准确性；冲突记录差异不自动覆盖
+- 验证：沿用 LOG-060 案例（PDF 两书 11 事实点交叉核验 9 PASS+2 待补）
+- 证据等级：WEB_CROSSCHECK
+- 风险/剩余项：PR #74 PDF 端点+PDF.js vendoring 未 merge；前端渲染逻辑待批次；AXW-H1-EXIT 待 022 前端
+- 回滚：revert 本文档 commit
