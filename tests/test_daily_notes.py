@@ -60,7 +60,7 @@ def test_append_to_daily_adds_content(monkeypatch) -> None:
 
 
 def test_timeline_filters_by_cutoff(monkeypatch) -> None:
-    state = _patch_storage(monkeypatch)
+    _patch_storage(monkeypatch)
     # 3 days back + 10 days back (outside 7-day window)
     dn.get_or_create_daily("2026-08-10")
     dn.get_or_create_daily("2026-08-02")
