@@ -297,18 +297,22 @@ def fuse_sources(sources: list[dict[str, Any]]) -> dict[str, Any]:
 # ── H2: Public evidence enrichment ──
 
 
-def enrich_with_public_sources(doi: str | None = None) -> dict[str, object]:
-    """Query public evidence APIs for a given DOI.
+def enrich_with_public_sources(
+    doi: str | None = None,
+    claim_text: str | None = None,
+    qid: str | None = None,
+) -> dict[str, object]:
+    """Query public evidence APIs for a given DOI, claim text, or Wikidata entity.
 
     Returns {'hits': [...], 'source_count': int} or {'error': str}.
     Integrates ADS-004/005/006/007 connectors into the cross-validation pipeline.
     """
-    if not doi:
-        return {"error": "doi required"}
+    if not any((doi, claim_text, qid)):
+        return {"error": "doi, claim_text, or qid required"}
     try:
         from shared.public_evidence import query_public_sources
 
-        hits = query_public_sources(doi=doi)
+        hits = query_public_sources(doi=doi, claim_text=claim_text, qid=qid)
         return {"hits": [h.to_dict() for h in hits], "source_count": len(hits)}
     except ImportError as e:
         return {"error": f"public_evidence not available: {e}"}

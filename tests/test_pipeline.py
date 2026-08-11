@@ -74,3 +74,54 @@ def test_empty_text_returns_before_stages(monkeypatch) -> None:
     result = run_pipeline("text", "")
     assert result["stages"]["extract"]["chars"] == 0
     assert set(result["stages"].keys()) == {"extract"}
+
+
+def test_evidence_stage_queries_doi_when_present(monkeypatch) -> None:
+    """evidence action extracts a DOI from content and queries it."""
+
+    def fake_enrich(doi=None, claim_text=None):
+        return {
+            "hits": [{"source": "crossref", "id": doi, "title": "t"}],
+            "source_count": 1,
+        }
+
+    monkeypatch.setattr(
+        "shared.cross_reference.enrich_with_public_sources", fake_enrich
+    )
+    result = run_pipeline(
+        "text",
+        "Reference: https://doi.org/10.1038/s41586-020-2649-2 abstract",
+        actions=["evidence"],
+    )
+    ev = result["stages"]["evidence"]
+    assert ev["classification"] == "public-evidence"
+    assert ev["verified"] is False
+    assert ev["doi"] == "10.1038/s41586-020-2649-2"
+    assert ev["hits"][0]["id"] == "10.1038/s41586-020-2649-2"
+
+
+def test_evidence_stage_falls_back_to_claim_text_without_doi(monkeypatch) -> None:
+    """evidence action uses OpenAlex claim-text search when no DOI present."""
+
+    captured = {}
+
+    def fake_enrich(doi=None, claim_text=None):
+        captured["doi"] = doi
+        captured["claim_text"] = claim_text
+        return {"hits": [], "source_count": 0}
+
+    monkeypatch.setattr(
+        "shared.cross_reference.enrich_with_public_sources", fake_enrich
+    )
+    text = "Deep learning architectures for vision transformers."
+    result = run_pipeline("text", text, actions=["evidence"])
+    assert captured["doi"] is None
+    assert captured["claim_text"] == text[:300]
+    assert result["stages"]["evidence"]["classification"] == "public-evidence"
+    assert result["stages"]["evidence"]["verified"] is False
+
+
+def test_evidence_stage_absent_by_default(monkeypatch) -> None:
+    """evidence is not in the default actions; stages stay clean."""
+    result = run_pipeline("text", "Plain content without actions.")
+    assert "evidence" not in result["stages"]

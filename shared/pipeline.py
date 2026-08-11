@@ -194,6 +194,27 @@ def run_pipeline(
         cred["verified"] = False
         result["stages"]["crossref"] = cred
 
+    # ── Stage 7: Public evidence ────────────────────
+    # H2: EvidenceConnectors (Crossref/DataCite/OpenAlex/Wikidata) wired
+    # into the cross-validation pipeline. Optional action; only runs when
+    # explicitly requested. When a DOI is present in the content it is
+    # queried directly; otherwise the content is used as an OpenAlex
+    # claim-text search. Results are structured hits, never 'verified'.
+    if "evidence" in actions and content:
+        import re as _re
+
+        from shared.cross_reference import enrich_with_public_sources
+
+        doi_match = _re.search(r"10\.\d{4,9}/[^\s]+", content)
+        doi = doi_match.group(0).rstrip(".,;:") if doi_match else None
+        evidence = enrich_with_public_sources(doi=doi) if doi else enrich_with_public_sources(
+            claim_text=(title or content)[:300]
+        )
+        evidence["classification"] = "public-evidence"
+        evidence["verified"] = False
+        evidence["doi"] = doi
+        result["stages"]["evidence"] = evidence
+
     result["kb_id"] = kb_id
     result["title"] = title
     return result
