@@ -113,8 +113,10 @@ def report_csv(results: list[BakeoffResult], path: Path) -> Path:
                 "engine": r.engine,
                 "fixture": r.fixture,
                 "file_size": r.file_size,
-                "cer": r.cer or "",
-                "wer": r.wer or "",
+                # `or ""` would blank out a perfect CER of 0.0 (falsy);
+                # None means no ground truth, so emit empty explicitly.
+                "cer": r.cer if r.cer is not None else "",
+                "wer": r.wer if r.wer is not None else "",
                 "char_count": r.char_count,
                 "duration_ms": round(r.duration_ms, 1),
                 "success": r.success,

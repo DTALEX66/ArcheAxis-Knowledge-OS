@@ -21,20 +21,39 @@ __all__ = ["OCR_ENGINES", "get_available_engines"]
 # ── Tesseract (always available if system binary exists) ──
 
 
-def _tesseract(fp: Path) -> str:
+def _tesseract(fp: Path, *, lang: str = "eng") -> str:
     import pytesseract
     from PIL import Image
 
     img = Image.open(fp)
-    return pytesseract.image_to_string(img, lang="eng+chi_sim")
+    return pytesseract.image_to_string(img, lang=lang)
+
+
+def _tesseract_eng(fp: Path) -> str:
+    return _tesseract(fp, lang="eng")
+
+
+def _tesseract_chi_sim(fp: Path) -> str:
+    return _tesseract(fp, lang="chi_sim")
 
 
 TESSERACT = EngineUnderTest(
     name="tesseract",
-    fn=_tesseract,
+    fn=_tesseract_eng,
     available=True,
     version="5.5.0 (tesseract) + 1.85.0 (leptonica)",
-    notes="System binary; eng+chi_sim language data required.",
+    notes="System binary; English model. For Chinese use tesseract-chi-sim.",
+)
+
+# chi_sim model handles Chinese text without inserting spaces between
+# characters (eng+chi_sim does, which inflates CER); English fixtures are
+# still legible at slightly higher CER than the dedicated eng model.
+TESSERACT_CHI_SIM = EngineUnderTest(
+    name="tesseract-chi-sim",
+    fn=_tesseract_chi_sim,
+    available=True,
+    version="5.5.0 (tesseract) + 1.85.0 (leptonica)",
+    notes="System binary; Simplified-Chinese model. Recommended for CJK-first corpora.",
 )
 
 
@@ -122,7 +141,7 @@ RAPIDOCR = EngineUnderTest(
 
 # ── Registry ──
 
-OCR_ENGINES: list[EngineUnderTest] = [TESSERACT, PADDLEOCR, EASYOCR, RAPIDOCR]
+OCR_ENGINES: list[EngineUnderTest] = [TESSERACT, TESSERACT_CHI_SIM, PADDLEOCR, EASYOCR, RAPIDOCR]
 
 
 # ── ASR engines (all unavailable — need model download) ──
