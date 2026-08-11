@@ -1471,3 +1471,22 @@
 结论：实现与源码测试齐备（test_adapter_contract 84 测试、bake-off 实跑），
 但 AXW-H2-EXIT 要求的 exact-SHA 安装态资格证据未逐项核录——该资格
 裁决需 Owner/后续发布流程，本记录不冒充 PASS。
+
+
+### LOG-20260812-132 — AXW-040~045 H3 Vault C4 任务状态核录 — PARTIAL
+
+冻结基线 H3（Obsidian/Markdown/JSON Canvas C4）任务当前实现状态：
+
+| ID | 任务 | 实现 | 测试 | 安装态证据 |
+|---|---|---|---|---|
+| AXW-040 | C0 Vault 发现/身份 | inspect_vault + ImportSession (#90) | test_obsidian_vault | 未核录 |
+| AXW-041 | C1 Markdown/YAML/链接 | obsidian_vault parser (#91) | test_obsidian_vault 43 | 未核录 |
+| AXW-042 | C2 只读 Workbench | read/search API (#91/#117) | test_vault_search_api 5 | 未核录 |
+| AXW-044A | C3 Revision-safe write | write_file + hash 冲突 + backup (#90/#92) | test_vault_write_api 5 | 未核录 |
+| AXW-044B | 冲突/回滚/恢复 | restore_backup + 409 冲突 (#92/#93) | test_vault_restore_api 4 | 未核录 |
+| AXW-043A | JSON Canvas codec | JSON_CANVAS_ADOPTION.md 记录 | 待核 | 未核录 |
+| AXW-045 | C4 安装态资格 | — | — | 未执行 |
+
+结论：C0-C3 实现与源码测试齐备（57 测试），C4 安装态资格
+（真实 Windows Vault 扫描/读/改/冲突/Obsidian 重开）未执行——
+AXW-H3-EXIT 裁决需后续发布流程，本记录不冒充 PASS。
