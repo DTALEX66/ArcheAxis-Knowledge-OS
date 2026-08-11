@@ -764,3 +764,16 @@
 - 证据等级：WEB_CROSSCHECK
 - 风险/剩余项：PR #74 PDF 端点+PDF.js vendoring 未 merge；前端渲染逻辑待批次；AXW-H1-EXIT 待 022 前端
 - 回滚：revert 本文档 commit
+
+
+### LOG-20260811-062 — CHANGE_PROPOSAL REGISTRATION (AXW-MFX-WXV-v1) — REGISTERED / OWNER APPROVAL PENDING
+
+- 时间：2026-08-11
+- 提案：`ArcheAxis_Workspace_Multiformat_Recognition_Web_Verification_Enhancement_TaskPack_v1_2026-08-11.md`
+- 类型：CHANGE_PROPOSAL（未获所有者批准前不具执行权威）
+- 存档：`docs/change-proposals/ArcheAxis_Workspace_Multiformat_Recognition_Web_Verification_Enhancement_TaskPack_v1_2026-08-11.md`（SHA-256 `5331fdfa20ecf6ded5a8a770e0e6a4bfe3f4eb226d24e0c12082db44d6419609`）
+- 复核基线：`main@fba208f2551f26acc64d82613500656159fc6801`（已核对一致）；H1 对象与治理后端已合并事实确认
+- 状态：REGISTERED（审计/估算/任务拆分已就绪）；owner 决策 = PENDING（6 项批准项待所有者确认）
+- 范围：多格式识别转译 + 质量门控 + 选择性模型升级 + Claim 级异步全网验证 + 人工复核衔接；不覆盖 frozen authority 与 v4 主任务包
+- 记录：本文件为 append-only CHANGE_PROPOSAL 登记，不授权任何仓库/远端/用户数据/发布物修改
+- 回滚：撤销本次追加记录（历史状态不改写）
