@@ -26,7 +26,7 @@ _FACT_PATTERNS: list[tuple[str, str]] = [
         "is_a",
     ),
     (
-        r"(.+?)\s+(created|developed|built|made|designed|invented|founded)\s+(?:by\s+)?(.+?)(?:\.|,|\sin\s|$)",
+        r"(.+?)\s+(?:(?:was|were|is|are|has been)\s+)?(created|developed|built|made|designed|invented|founded)\s+(?:by\s+)?(.+?)(?:\.|,|\sin\s|$)",
         "created_by",
     ),
     (
