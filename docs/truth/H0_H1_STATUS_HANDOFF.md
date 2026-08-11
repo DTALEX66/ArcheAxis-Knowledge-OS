@@ -24,12 +24,16 @@
 | 项目 | 值 |
 |---|---|
 | canonical 项目 | `D:/All projects/Cognitive-Loop-OS` |
-| 基线基点 | `origin/main` = `492fac5982c693eb668d31cc51a6a59bac83b7a1` |
+| 基线基点 | `origin/main` = `492fac5982c693eb668d31cc51a6a59bac83b7a1`（执行起点） |
 | H0 merge-SHA | `f269a0128dfee9573699efd24562f96e8a713c70`（PR #71） |
 | H0 main CI | run `31320800285` 全绿 |
-| H1 分支 | `axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint） |
-| H1 exact-head CI | run `31322840300` 全绿（head `78091cc`） |
-| 权威分支 | `codex/frozen-roadmap-deepseek-v1` at `ba4cd81` |
+| H1 后端 merge-SHA | `fba208f2551f26acc64d82613500656159fc6801`（PR #72，2026-08-10） |
+| H1 后端 exact-head CI | head `1c688c7` run `31326205396` 全绿（含审查修复） |
+| H1 后端 merge-SHA main CI | run `31492513039` 全绿（gateplan/test/lint/wheel-smoke/a0-gates PASS） |
+| 描述文件 sync merge-SHA | `ae59790f64541cb3d759d2f0955d33e0db7417b1`（PR #73，2026-08-10） |
+| 描述文件 main CI | run `31343953923` 全绿 |
+| 当前 main | `fba208f2551f26acc64d82613500656159fc6801`（含 H0 + H1 后端 + 描述文件） |
+| 权威分支 | `codex/frozen-roadmap-deepseek-v1` at `4925750` |
 | 用户 WIP | canonical 主工作区未触碰 |
 
 ## 2. H0（v0.5.1 可信恢复）— 已完成并 merge
@@ -200,14 +204,14 @@ H1 分支相对 main 新增/修改 26 文件，1942 行。核心模块：
 
 ```text
 H0（v0.5.1 可信恢复）：PASS（已 merge main）
-H1 后端核心：PASS（GOV-001 + 020/021/024/025/030 全部）
-H1 前端 PDF 阅读器：PARTIAL（后端就绪，前端待独立批次）
-AXW-H1-EXIT：BLOCKED（待 022 前端 + merge 授权）
-H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
+H1 后端核心：PASS（已 merge main，PR #72 → fba208f，2026-08-10）
+H1 前端 PDF 阅读器：PARTIAL（后端 pdf_serve 已 merge；前端 PDF.js 渲染待独立批次，真实资料源无 PDF 样本，不伪造）
+AXW-H1-EXIT：BLOCKED（H1 后端已 merge；唯一阻塞 = 022 前端 PDF.js 完成）
+H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1-EXIT 完成）
 公开正式发布：NO-GO（未授权，H0-H5 未完）
 ```
 
-本文是任务包的状态交接文档；后续执行从 LOG-043 之后的下一依赖安全任务继续。
+本文是任务包的状态交接文档；后续执行从 LOG-057 之后的下一依赖安全任务继续。
 
 
 ## 附录 A：证据索引（任务 → commit → CI）
@@ -223,8 +227,9 @@ H2-H5 与 Web/KLC 增补：UNASSESSED（依赖 H1 完成）
 | H1 | AXW-030A | `5579d61` | PR #72 CI |
 | H1 | AXW-022A（后端） | `78091cc` | PR #72 CI `31322840300` |
 
-权威分支提交链：`codex/frozen-roadmap-deepseek-v1`（LOG-004~048，最新 `dd499ae`）。
-H1 分支：`axw/execution-h1`（PR #72，head `78091cc`，15 checkpoint，未 merge）。
+权威分支提交链：`codex/frozen-roadmap-deepseek-v1`（LOG-004~057，最新 `4925750`）。
+H1 分支：`axw/execution-h1`（PR #72，已 squash merge → `fba208f`，16 checkpoint）。
+H1 merge-SHA main CI：run `31492513039` 全绿。
 
 
 ## 附录 B：本地测试结果汇总（命令 → 结果）
