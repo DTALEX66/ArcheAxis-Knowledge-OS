@@ -1415,3 +1415,11 @@
 - scripts/run_bakeoff.py: 可重复 bake-off CLI (OCR/ASR 引擎对比,
   CER/WER, CSV+JSON 报告; 不可用引擎诚实跳过)
 - 实跑验证: rapidocr 三语种 CER 0.0, faster-whisper en CER 0.0
+
+
+### LOG-20260812-124 — PR #127 MERGED (H2 状态文档更新) — PASS
+
+- PR #127 squash merged → main `0088bdb`
+- PROJECT_STATUS: ASR/Evidence 关闭环 (H2 bake-off 实跑 + Evidence
+  接入); 进度列表 #81 已 merge + H2 链 #82/#97/#99/#105/#124/#125/#126
+- H2 管线整合全链闭环 (routing/quality/evidence/learning/bakeoff/commit)
