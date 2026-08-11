@@ -1,4 +1,4 @@
-# ArcheAxis Workspace — External Dependency & Environment Configuration
+# ArcheAxis Learning Workspace — External Dependency & Environment Configuration
 
 > 文档位置：`D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md`
 > 仓库同步：`docs/environment/EXTERNAL_DEPENDENCIES.md`
@@ -267,7 +267,7 @@ uv run python -m app.runtime_entrypoint
 ArcheAxis OS — a local-first, evidence-driven, bidirectional Human–AI Learning Workspace for individuals and AI.
 ```
 
-**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Workspace" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis OS" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
+**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Learning Workspace" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis OS" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
 
 ---
 

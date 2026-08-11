@@ -1,3 +1,7 @@
+> **SUPERSEDED (2026-08-12)**: 本文档为历史文档。产品命名与身份以
+> `docs/truth/NAMING_CONTRACT_V1.md`（ArcheAxis / ArcheAxis Learning Workspace / 星轨学习工作台）
+> 与 `docs/truth/PRODUCT_IDENTITY_V2.md` 为准。本文档仅保留历史与迁移语境，不再维护。
+>
 # ArcheAxis Workspace Naming Contract v2
 
 > 状态：`active / pre-release`
