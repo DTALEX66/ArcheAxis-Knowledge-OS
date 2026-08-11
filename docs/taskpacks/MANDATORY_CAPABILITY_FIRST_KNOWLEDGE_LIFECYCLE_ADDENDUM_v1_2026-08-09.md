@@ -1,3 +1,6 @@
+> **SUPERSEDED (2026-08-12)**: 本文档为历史任务包。产品命名与身份以
+> `docs/truth/NAMING_CONTRACT_V1.md` 与 `docs/truth/PRODUCT_IDENTITY_V2.md` 为准。
+>
 # Mandatory Capability-First Knowledge Lifecycle Addendum v1
 
 > 增补包 ID：`AXW-KLC-ADDENDUM-v1-2026-08-09`

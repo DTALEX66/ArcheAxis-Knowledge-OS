@@ -1,4 +1,4 @@
-# ArcheAxis Workspace Future Execution Blueprint
+# ArcheAxis Learning Workspace Future Execution Blueprint
 
 > 状态：未来设计与排序依据，不是当前能力声明、自动执行队列或发布承诺。
 >
@@ -8,7 +8,7 @@
 
 本蓝图将四份外部设计交付中的可复用原则，收敛为 Cognitive-Loop-OS 的唯一未来方向：
 
-- `ArcheAxis Workspace Overview`：产品愿景与八个业务域；
+- `ArcheAxis Learning Workspace Overview`：产品愿景与八个业务域；
 - `ArcheAxis OS V3.0 Blueprint`：模块化单体、统一网关及渐进迁移；
 - `ArcheAxis OS V3.1 Documentation`：事实/工作对象/投影区分、命令、Job、Outbox、审计与恢复；
 - Google Research / 500 AI Delivery：候选资产治理与 Research-to-Practice 闭环。
