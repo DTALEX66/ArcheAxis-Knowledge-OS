@@ -105,6 +105,15 @@ class VaultWriteRequest(VaultRootRequest):
     expected_hash: str | None = Field(default=None, min_length=64, max_length=64)
 
 
+class VaultBackupsRequest(VaultRootRequest):
+    relative_path: str = Field(min_length=1, max_length=4096)
+
+
+class VaultRestoreRequest(VaultRootRequest):
+    relative_path: str = Field(min_length=1, max_length=4096)
+    backup_name: str = Field(min_length=1, max_length=256)
+
+
 class PlannerRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -358,6 +367,31 @@ def workspace_vault_write(payload: VaultWriteRequest, request: Request) -> dict[
         ) from None
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/api/vault/backups")
+def workspace_vault_backups(
+    payload: VaultBackupsRequest, request: Request
+) -> dict[str, object]:
+    """List revertible backups for one Vault file (newest first)."""
+    _local_principal(request)
+    return vault.list_backups(store=DB_PATH, relative_path=payload.relative_path)
+
+
+@router.post("/api/vault/restore")
+def workspace_vault_restore(
+    payload: VaultRestoreRequest, request: Request
+) -> dict[str, object]:
+    """Restore a backup over the Vault file; current state is snapshotted first."""
+    _local_principal(request)
+    return _command_error(
+        lambda: vault.restore_backup(
+            root=payload.root,
+            store=DB_PATH,
+            relative_path=payload.relative_path,
+            backup_name=payload.backup_name,
+        )
+    )
 
 
 @router.post("/api/planner/preview")

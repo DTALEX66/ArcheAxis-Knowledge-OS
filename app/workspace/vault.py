@@ -162,3 +162,87 @@ class VaultWorkbenchConflictError(VaultWorkbenchError):
     def __init__(self, message: str, *, current_hash: str) -> None:
         super().__init__(message)
         self.current_hash = current_hash
+
+
+def _backup_dir(store: str | Path) -> Path:
+    store_path = Path(store).expanduser().resolve()
+    return store_path.parent / "vault-backups"
+
+
+def list_backups(*, store: str | Path, relative_path: str) -> dict[str, object]:
+    """List revertible backups for one Vault file (newest first)."""
+    directory = _backup_dir(store)
+    prefix = f"{Path(relative_path).name}-"
+    backups: list[dict[str, object]] = []
+    if directory.is_dir():
+        for candidate in sorted(directory.glob(f"{prefix}*.bak"), reverse=True):
+            backups.append(
+                {
+                    "backup_name": candidate.name,
+                    "file_size": candidate.stat().st_size,
+                    "modified": candidate.stat().st_mtime,
+                }
+            )
+    return {"schema_version": "v1", "relative_path": relative_path, "backups": backups}
+
+
+def restore_backup(
+    *,
+    root: str | Path,
+    store: str | Path,
+    relative_path: str,
+    backup_name: str,
+) -> dict[str, object]:
+    """Restore a backup over the Vault file (atomic replace, creates a new backup).
+
+    The current on-disk state is backed up first so the restore itself is
+    revertible. ``backup_name`` must be an exact filename from ``list_backups``
+    to avoid path traversal.
+    """
+    import hashlib
+    import os
+    import tempfile
+    from datetime import datetime, timezone
+
+    path = Path(root).expanduser().resolve()
+    if not path.is_dir():
+        raise VaultWorkbenchError("approved Vault root must be an existing directory")
+    target = (path / relative_path).resolve()
+    if path not in target.parents:
+        raise VaultWorkbenchError("relative_path must stay inside the Vault root")
+    if not target.is_file():
+        raise VaultWorkbenchError("target file does not exist")
+
+    backup = _backup_dir(store) / backup_name
+    if backup.parent != _backup_dir(store) or not backup.is_file():
+        raise VaultWorkbenchError("backup_name must be an exact existing backup filename")
+    if not backup.name.startswith(f"{target.name}-") or not backup.name.endswith(".bak"):
+        raise VaultWorkbenchError("backup_name does not belong to this Vault file")
+
+    current = target.read_bytes()
+    restored = backup.read_bytes()
+
+    # Keep a revertible snapshot of the current state before restoring.
+    directory = _backup_dir(store)
+    directory.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+    safety = directory / f"{target.name}-{stamp}.pre-restore.bak"
+    safety.write_bytes(current)
+
+    fd, tmp_name = tempfile.mkstemp(dir=str(target.parent), prefix=".awx-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(restored)
+        os.replace(tmp_name, target)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp_name)
+        raise
+
+    return {
+        "schema_version": "v1",
+        "relative_path": relative_path,
+        "restored_from": backup_name,
+        "source_hash": hashlib.sha256(restored).hexdigest(),
+        "pre_restore_backup": str(safety),
+    }
