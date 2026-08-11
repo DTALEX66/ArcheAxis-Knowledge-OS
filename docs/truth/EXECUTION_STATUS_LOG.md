@@ -1456,3 +1456,10 @@
 - knowledge_base/taskpack/builder.py + context_pack/builder.py:
   死壳删除 (实现都在 __init__.py)
 - 6 个 imported-designs 索引 README 确认是合法导航非占位
+
+
+### LOG-20260812-129 — PR #129 MERGED (占位卫生) — PASS
+
+- PR #129 squash merged → main `98f7546`
+- 2 死壳 builder 删除 + 2 deferred 模块标注
+- 安全审计: 0 敏感文件跟踪, 硬编码凭证 0, .gitignore 完整
