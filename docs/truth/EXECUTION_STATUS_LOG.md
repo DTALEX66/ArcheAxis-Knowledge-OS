@@ -898,3 +898,16 @@
   - 双向同步：D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md
 - CI：test(3.12)/py-compat/wheel-smoke/browser-smoke/windows-runtime-smoke 全部 PASS
 - 全部 7 个 PR（#75-#81）已 merge 进 main
+
+
+### LOG-20260812-072 — H2 PIPELINE INTEGRATION (PR #82) — PASS
+
+- PR #82（H2 管线整合）head `65888f9`，待 CI
+- 5 个 ADOPT 吸收模块全部接入实际处理链路：
+  - Magika ONNX → 摄入路由（detect_format_from_content）
+  - JiWER+RapidFuzz → 转换质量门（convert_file quality=True）
+  - 4 Evidence Connectors → 交叉验证（enrich_with_public_sources）
+  - JSON Canvas 验证器 → Canvas 格式处理（_via_canvas）
+  - py-fsrs v6 → 学习调度（schedule_next_review）
+- Lint 通过，74 适配器测试通过
+- 回滚：revert PR #82
