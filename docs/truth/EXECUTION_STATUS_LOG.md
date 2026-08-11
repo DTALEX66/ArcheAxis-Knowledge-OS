@@ -1162,3 +1162,13 @@
   移除, .canvas 保留 json-canvas handler (测试暴露)
 - 9 新测试; 本地全量 1299 passed, 5 skipped
 - 零测试组件 9→8
+
+
+### LOG-20260812-097 — PR #106 MERGED (object_types 测试) — PASS
+
+- PR #106 squash merged → main `ef2e318`
+- object_types 首次测试 (13): 内置类型、自定义注册 (parent 继承)、
+  table 覆盖、list_types、validate (required/type/choices/list)、
+  defaults、UI schema、unknown type
+- 无代码变更; 本地全量 1323 passed, 5 skipped
+- 零测试组件 8→7
