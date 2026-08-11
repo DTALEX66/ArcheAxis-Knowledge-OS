@@ -885,3 +885,16 @@
 - Worktree 清理：10 个已 merge 分支的 worktree 移除
 - PR #81（吸收实现 + 命名更新）待 CI → merge
 - 回滚：revert 各 commit
+
+
+### LOG-20260812-071 — PR #81 MERGED (absorption implementation + env docs) — PASS
+
+- PR #81 squash merged → main `74d44eb`（main `c9e8bda → 74d44eb`）
+- 内容：
+  - 吸收实现：JiWER + RapidFuzz + JSON Canvas 验证器 + 证据连接器(4) + py-fsrs + Magika 源码级吸收
+  - 命名体系：文档层迁移（ArcheAxis OS→Workspace），pyproject/CLI 回退
+  - 文档漂移修复：PROJECT_STATUS + HANDOFF 全部更新
+  - 外置依赖文档：EXTERNAL_DEPENDENCIES.md（279 行，含下载链接 + 安装清单）
+  - 双向同步：D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md
+- CI：test(3.12)/py-compat/wheel-smoke/browser-smoke/windows-runtime-smoke 全部 PASS
+- 全部 7 个 PR（#75-#81）已 merge 进 main
