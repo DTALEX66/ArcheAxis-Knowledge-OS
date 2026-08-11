@@ -1463,3 +1463,10 @@
 - PR #129 squash merged → main `98f7546`
 - 2 死壳 builder 删除 + 2 deferred 模块标注
 - 安全审计: 0 敏感文件跟踪, 硬编码凭证 0, .gitignore 完整
+
+
+### LOG-20260812-130 — PR #130 MERGED (H2 intake 记录) — PASS
+
+- PR #130 squash merged → main `996462f`
+- workspace/intake/2026-08-12-h2-pipeline-integration.md: H2 全链 +
+  MFX-001 合规修复 + 附带项 + 待办 + 回滚说明
