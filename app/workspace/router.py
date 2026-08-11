@@ -99,6 +99,12 @@ class VaultSearchRequest(VaultRootRequest):
     query: str = Field(min_length=1, max_length=256)
 
 
+class VaultWriteRequest(VaultRootRequest):
+    relative_path: str = Field(min_length=1, max_length=4096)
+    content: str = Field(min_length=0, max_length=16 * 1024 * 1024)
+    expected_hash: str | None = Field(default=None, min_length=64, max_length=64)
+
+
 class PlannerRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -327,6 +333,31 @@ def workspace_vault_search(payload: VaultSearchRequest, request: Request) -> dic
     return _command_error(
         lambda: vault.search_vault(root=payload.root, store=DB_PATH, query=payload.query)
     )
+
+
+@router.post("/api/vault/write")
+def workspace_vault_write(payload: VaultWriteRequest, request: Request) -> dict[str, object]:
+    """H3 C4-safe write: expected-hash optimistic lock + atomic replace + backup.
+
+    Returns 409 (fail-closed) when expected_hash does not match the current
+    on-disk source hash — the caller must re-read before retrying.
+    """
+    _local_principal(request)
+    try:
+        return vault.write_file(
+            root=payload.root,
+            store=DB_PATH,
+            relative_path=payload.relative_path,
+            content=payload.content,
+            expected_hash=payload.expected_hash,
+        )
+    except vault.VaultWorkbenchConflictError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={"message": str(exc), "current_hash": exc.current_hash},
+        ) from None
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/api/planner/preview")
