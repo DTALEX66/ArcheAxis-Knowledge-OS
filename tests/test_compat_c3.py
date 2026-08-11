@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from shared.compat.c3 import analyze_markdown, analyze_canvas, canvas_semantic_diff
+from shared.compat.c3 import analyze_canvas, analyze_markdown, canvas_semantic_diff
 
 
 def test_markdown_c3_extracts_links_tags_tasks_embeds_and_missing_targets(tmp_path: Path) -> None:
