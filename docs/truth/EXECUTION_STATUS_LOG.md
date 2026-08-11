@@ -957,3 +957,14 @@
 - AGENTS.md + PROJECT_STATUS.md aligned with NAMING_CONTRACT_V1
   (ArcheAxis Learning Workspace / 星轨学习工作台; doc-layer only)
 - 全部 13 PR（#69, #75-#85）merged
+
+
+### LOG-20260812-078 — PR #87 MERGED (UI naming migration) — PASS
+
+- PR #87 squash merged → main `34ee375`
+- 运行时 UI 文案源全部迁移：app/main.py title、router product、index.html 品牌/标题/标签、
+  desktop protocol.rs + backend.rs product 字符串、product-naming-registry.yaml v3、
+  5 个测试 + 2 个 smoke 脚本断言更新（元枢工作台 → 星轨学习工作台）
+- 修复 Rust chunked body 长度（63→6C）
+- 14 Rust lib tests + 1228 Python tests + 全 CI（含 desktop-build/installer-lifecycle）绿
+- 命名契约 V1 全链路落地：文档 → UI 阶段完成；打包/仓库/底层 planned
