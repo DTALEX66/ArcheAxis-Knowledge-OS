@@ -825,3 +825,19 @@
 - 待办：征求 5 个 PR merge 授权；吸收账本核对（等 owner 开源清单）
 - 边界：未访问 E:\；未读凭据；冻结基线未动；状态日志追加式
 - 回滚：各 PR 独立 revert
+
+
+### LOG-20260811-067 — 5 PRs MERGED TO MAIN (Batch 0 + AXW-022B + AXW-023A) — PASS
+
+- 时间：2026-08-11
+- 用户授权全部 5 个 PR squash merge 进 main：
+  - #75 MFX-010 假成功止损 → MERGED
+  - #76 MFX-012 legacy credibility 隔离 → MERGED
+  - #77 MFX-001 供应链台账 → MERGED
+  - #78 AXW-022B 证据批注 → MERGED
+  - #79 AXW-023A DOCX Adapter → MERGED
+- main: `ebf7124 → 633631e`（经历 da82986/19a428e/2a0ee131/d8769eda/633631e）
+- 云端 main 确认 docx_adapter.py / router.py / SUPPLY_CHAIN_LEDGER.json 存在
+- Batch 0 全部闭环 + AXW-022B 全链路 + AXW-023A（H2 首个）入库
+- 待办：merge-SHA main CI 确认；吸收账本核对（等 owner 开源清单）
+- 回滚：各 PR 独立 revert
