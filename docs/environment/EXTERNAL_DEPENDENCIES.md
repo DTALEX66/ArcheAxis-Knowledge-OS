@@ -129,7 +129,7 @@
 |---|---|---|---|
 | litellm | ==1.91.0 | MIT（核心） | LLM Provider 路由 |
 
-### 2.7 吸收实现新增（PR #81，待 merge）
+### 2.7 吸收实现（已 merge，PR #81 等）
 
 | 包 | 版本约束 | 许可 | 用途 |
 |---|---|---|---|
@@ -145,6 +145,20 @@
 | pytest | >=7.0 | MIT | 测试框架 |
 | ruff | >=0.5 | MIT | Linter/格式化 |
 | playwright | >=1.61,<1.62 | Apache-2.0 | 浏览器自动化 |
+
+### 2.9 ci-adapters 依赖组（H2 多模态 bake-off）
+
+| 包 | 版本约束 | 许可 | 用途 |
+|---|---|---|---|
+| rapidocr-onnxruntime | >=1.4 | Apache-2.0 | 三语种 OCR（avg CER 0.0076 实测最优，ONNX 无重框架） |
+| faster-whisper | >=1.1 | MIT | ASR 转写（base 模型首次运行自动下载 ~150MB 至 HF 缓存） |
+| markitdown[pdf] | >=0.1 | MIT | PDF/Office 文本提取 |
+| newspaper4k | >=0.9 | MIT | 新闻文章提取 |
+| readabilipy | >=0.3 | MIT | 正文可读性提取 |
+| trafilatura | >=1.6 | Apache-2.0 | 网页正文提取 |
+
+> 注意：faster-whisper 模型缓存位于 HF 缓存目录（`~/.cache/huggingface`），
+> base 模型约 150MB；RapidOCR 首次运行自动下载 PP-OCR ONNX 模型（~15MB）。
 
 ---
 
@@ -162,7 +176,7 @@
 - **记录**：`THIRD_PARTY_NOTICES.md`
 - **升级**：独立 spike，验证兼容/CVE/WebView/包大小后再升
 
-### 3.2 Magika ONNX 模型（PR #81，待 merge）
+### 3.2 Magika ONNX 模型（已 merge）
 
 - **来源**：https://github.com/google/magika
 - **模型**：standard_v3_0（3.1 MB ONNX）
