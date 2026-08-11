@@ -786,3 +786,18 @@
 - 授权范围：从 Batch 0（MFX-000/001/010/012 止损）开始执行；后续批次逐批推进
 - 执行约束：一项原子任务/一条分支/一个 PR；开始前重读云端 main/PR/CI/安装版；不改 frozen authority；冲突时停工作并提交 CHANGE_PROPOSAL
 - 回滚：Batch 0 各任务按各自规格可逆
+
+
+### LOG-20260811-064 — AXW-022A CLOSED / H1-EXIT — PASS (PDF ENDPOINT + PDF.js FRONTEND)
+
+- 时间：2026-08-11
+- PR #74 squash merged → main `ebf71247`（mergeCommit `ebf71247`；main `fba208f → ebf7124`）
+- 云端验证：`app/workspace/router.py`（SHA 97fd0a2a）+ `app/workspace/ui/assets/pdf.min.js`（320005 B）存在
+- 内容：
+  - AXW-022A 后端：`GET /api/pdf/{content_key}` 内容寻址只读字节服务（4 tests，真实 PDF SHA-256 保真）
+  - AXW-022A 前端：PDF.js 3.11.174 vendored + evidence 查看器（分页/缩放/搜索），浏览器级真实 PDF 验证（120 页《缤纷的语言学》1/120 渲染、翻页、缩放）
+  - 许可证：PDF.js Apache-2.0 记录于 THIRD_PARTY_NOTICES.md
+- CI：exact-head run 31498795006 全绿（gateplan/a0-gates/browser-smoke/lint/test/wheel-smoke PASS），mergeState CLEAN
+- AXW-022A 全链路（后端端点+前端渲染+许可证+浏览器交互）闭环
+- H1-EXIT：冻结依赖 6/6 PASS（GOV-001/021B/022B/024B/025B/030C）→ AXW-H1-EXIT PASS
+- 回滚：PR #74 已 squash merge，如需回退 revert ebf7124
