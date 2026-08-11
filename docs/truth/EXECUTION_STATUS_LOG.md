@@ -1043,3 +1043,13 @@
 - 修复: 双写 EXTERNAL_DEPENDENCIES.md (项目 + OS configuration d1819e9)
 - 验证: TESSDATA_PREFIX 设置后 2 OCR 测试 pass (1244 → 1246)
 - 本地全量: 1246 passed, 6 skipped (symlink 权限×3/网络×2/crossref×1)
+
+
+### LOG-20260812-086 — PR #95 MERGED (crossref stage kb_id 解耦) — PASS
+
+- PR #95 squash merged → main `1dd1884`
+- run_pipeline crossref 阶段不再依赖 kb_id（kb_id 是 index 阶段产物，
+  仅 auto_ingest=True 时产生）→ offline 运行 (actions=['crossref'],
+  auto_ingest=False) 时不再静默跳过；title 回退 tag keywords
+- 测试 test_pipeline_crossref_stage_is_not_verified 从 skip → pass
+- 本地全量: 1247 passed, 5 skipped (symlink×3/网络×2 合理)
