@@ -860,3 +860,12 @@
   - LiteLLM/Langfuse 核心 MIT，但 enterprise/ee/ 目录另许可
 - 产品边界确认：本地学习与知识工作台（非 Agent OS / RAG 平台）；Agent/编码/记忆/工作流/安全实验室项目全部后置
 - 回滚：本文档更新可独立 revert；不修改 frozen baseline
+
+
+### LOG-20260811-069 — PR #80 MERGED (absorption atlas v2) — PASS
+
+- 时间：2026-08-11
+- PR #80 squash merged → main `8e4f1cf`（main `633631e → 8e4f1cf`）
+- 内容：吸收总图谱分析落地（SUPPLY_CHAIN_LEDGER v2 46组件 + ABSORPTION_EXECUTION_MATRIX v2 + 许可纠错10项）
+- 旧"implemented=8"漂移、旧阶段序列、旧许可结论均已更正
+- 回滚：revert 8e4f1cf
