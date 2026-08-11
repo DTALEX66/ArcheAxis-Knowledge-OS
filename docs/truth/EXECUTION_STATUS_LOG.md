@@ -949,3 +949,11 @@
 - GitHub 仓库描述锁死（ArcheAxis Learning Workspace, NOT Agent OS, blocked projects）
 - 修复：#82/#83 引入的 ruff（N806/E741/B904/N814）+ 契约测试对齐命名 V1 + manifest 更新
 - 命名契约 V1 binding；阶段描述可更新
+
+
+### LOG-20260812-077 — PR #85 MERGED (naming doc alignment) — PASS
+
+- PR #85 squash merged → main `48a10db`
+- AGENTS.md + PROJECT_STATUS.md aligned with NAMING_CONTRACT_V1
+  (ArcheAxis Learning Workspace / 星轨学习工作台; doc-layer only)
+- 全部 13 PR（#69, #75-#85）merged
