@@ -1120,3 +1120,13 @@
   DataCite 10.5284/1046878 title/year 解析 (修复前 None)
 - 7 新测试 (路由/错误抑制/hit 往返)
 - 本地全量 1260 passed, 5 skipped
+
+
+### LOG-20260812-093 — PR #102 MERGED (fact_extractor 测试) — PASS
+
+- PR #102 squash merged → main `429f6cf`
+- fact_extractor 首次测试 (12 测试: 8 关系模式/of/max_facts/空/实体)
+- 修复 created_by 正则缺陷: be 动词被吞 (Python was created →
+  subject 'Python was') → 加可选 (was|were|is|are|has been)
+- 本地全量 1272 passed, 5 skipped
+- 零测试组件 13→11 (public_evidence/fact_extractor 已清)
