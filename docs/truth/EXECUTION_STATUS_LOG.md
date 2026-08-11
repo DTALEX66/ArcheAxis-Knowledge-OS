@@ -1276,3 +1276,15 @@
   拒绝、file 源 approved-roots 要求、空内容短路
 - 此前仅间接覆盖 (mfx012 隔离/phase4)
 - 本地全量 1399 passed, 5 skipped
+
+
+### LOG-20260812-108 — PR #116 MERGED (registry-scoring 测试) — PASS
+
+- PR #116 squash merged → main `70e0c88`
+- batch_score_registry 首次测试 (8): category_key (精确/组合/未知)、
+  score_registry_entry (qualify/高风险/未知类)、absorption bonus、main 禁用门
+- 修复 category_key 对 'RAG / AI Platform' 规范化缺失 (空白+斜杠间距)
+  → 组合类永不匹配评分行
+- CI 注意: 首跑 test(3.12) 失败 = GitHub Actions setup-uv 基础设施
+  故障 (self-signed cert / API TLS), 与代码无关; rerun --failed 后全绿
+- 本地全量 1399 passed, 5 skipped
