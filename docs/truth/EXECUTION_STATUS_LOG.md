@@ -841,3 +841,22 @@
 - Batch 0 全部闭环 + AXW-022B 全链路 + AXW-023A（H2 首个）入库
 - 待办：merge-SHA main CI 确认；吸收账本核对（等 owner 开源清单）
 - 回滚：各 PR 独立 revert
+
+
+### LOG-20260811-068 — ABSORPTION ATLAS ANALYSIS: LEDGER v2 + MATRIX v2 + NOTICES UPDATE — PASS
+
+- 时间：2026-08-11
+- 输入：`ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md`（369+项目全景、12当前集成、57精选、上游纠错）
+- 产出（真正分析吸收，非登记索引）：
+  - SUPPLY_CHAIN_LEDGER v2（46 组件，含吸收决策：12 CURRENT / 13 ADOPT / 9 EVALUATE / 2 SIDECAR / 9 REVIEW-BLOCK / 1 REJECT-CORE）
+  - ABSORPTION_EXECUTION_MATRIX v2（纠正旧阶段语境、过时状态、implemented=8 漂移）
+  - THIRD_PARTY_NOTICES 追加「2026-08-11 上游许可纠错」节（10 项历史结论更正）
+- 关键决策：
+  - 旧"implemented=8"被 ledger v2 替代，数字不可再引用为集成数量
+  - Marker 代码许可从 GPL-3.0 更正为 Apache-2.0（权重另审）
+  - H5P 从"core MIT"更正为 GPL-3.0
+  - Phoenix 从"开源观测"更正为 Elastic-2.0（非OSS）
+  - Kùzu 标归档；tldraw 商业许可阻断；Firecrawl AGPL 主/部分 MIT
+  - LiteLLM/Langfuse 核心 MIT，但 enterprise/ee/ 目录另许可
+- 产品边界确认：本地学习与知识工作台（非 Agent OS / RAG 平台）；Agent/编码/记忆/工作流/安全实验室项目全部后置
+- 回滚：本文档更新可独立 revert；不修改 frozen baseline
