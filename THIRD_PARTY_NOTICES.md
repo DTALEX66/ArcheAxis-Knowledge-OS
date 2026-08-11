@@ -35,3 +35,17 @@ Some development or verification paths can invoke separately installed tools
 such as Git, GitHub CLI, Tesseract OCR, Node.js/npm, Rust/Cargo, and NSIS. They
 are not relicensed by this repository. Their presence in a build log is not
 proof that they are included in a published asset.
+
+## Vendored web assets
+
+The workspace UI bundles third-party browser assets that are redistributed
+with the wheel under their own licenses:
+
+| Asset | Version | License | Bundled location |
+|---|---|---|---|
+| PDF.js (`pdf.min.js`, `pdf.worker.min.js`) | 3.11.174 | Apache-2.0 | `app/workspace/ui/assets/` |
+| PDF.js LICENSE | 3.11.174 | Apache-2.0 | `app/workspace/ui/assets/licenses/pdfjs-3.11.174-LICENSE.txt` |
+
+PDF.js is © Mozilla and contributors, licensed under the Apache License 2.0.
+The full license text is preserved alongside the assets; redistribution must
+retain that notice. See `app/workspace/ui/assets/licenses/pdfjs-3.11.174-LICENSE.txt`.

@@ -13,12 +13,18 @@ from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from app.evidence.pdf_serve import PdfServeError, build_pdf_serving_root, resolve_pdf_bytes
 from app.workspace import bff, service, vault
 from app.workspace.bff import BFFNotFoundError, BFFUnavailableError
+from shared.config import resolve_runtime_path
 from shared.storage import DB_PATH
+
+# Content-addressed PDF serving root backed by the RawAsset store, under the
+# same runtime data directory as the workspace SQLite DB.
+PDF_ROOT = build_pdf_serving_root(resolve_runtime_path("data"))
 
 WORKSPACE_PREFIX = "/" + "workspace"
 WORKSPACE_UI_ROOT = Path(__file__).resolve().parent / "ui"
@@ -194,7 +200,9 @@ def workspace_page() -> FileResponse:
 
 
 @router.get("/assets/{asset_name}", response_class=FileResponse)
-def workspace_asset(asset_name: Literal["styles.css", "app.js"]) -> FileResponse:
+def workspace_asset(
+    asset_name: Literal["styles.css", "app.js", "pdf.min.js", "pdf.worker.min.js"],
+) -> FileResponse:
     media_type = "text/css" if asset_name.endswith(".css") else "text/javascript"
     return FileResponse(
         WORKSPACE_UI_ROOT / "assets" / asset_name,
@@ -214,6 +222,22 @@ def workspace_diagnostics() -> dict[str, object]:
 def workspace_status(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.workspace_status(db_path=DB_PATH))
+
+
+@router.get("/api/pdf/{content_key}")
+def workspace_pdf(content_key: str, request: Request) -> Response:
+    """Serve original PDF bytes to the PDF.js reader by content key (sha256:).
+
+    Content-addressed and read-only: the reader never sees the storage path,
+    and empty/oversized/non-sha256 keys are rejected (fail-closed). Only valid
+    PDF byte content is served (application/pdf).
+    """
+    _local_principal(request)
+    try:
+        blob = resolve_pdf_bytes(PDF_ROOT, content_key)
+    except PdfServeError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return Response(content=blob, media_type="application/pdf")
 
 
 @router.post("/api/vault/inspect")

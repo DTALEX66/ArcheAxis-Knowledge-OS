@@ -85,6 +85,23 @@
   <div class="grid cols-2" style="margin-top:16px">
     <div class="card" id="lifecycle-evaluation-card"><div class="card-title"><h2>评估</h2><span class="status info"><i></i>候选治理</span></div><div class="list" id="lifecycle-evaluation"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取评估状态</span></div></div></div></div>
     <div class="card" id="lifecycle-lesson-card"><div class="card-title"><h2>机器教训</h2><span class="status info"><i></i>持久化记录</span></div><div class="list" id="lifecycle-lesson"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取教训记录</span></div></div></div></div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title"><h2>PDF 证据查看</h2><span class="status info"><i></i>内容寻址只读</span></div>
+    <div class="row" style="flex-wrap:wrap;gap:8px">
+      <input id="pdf-key-input" class="input" style="flex:1;min-width:240px" placeholder="输入 sha256: 内容键，如 sha256:..." aria-label="PDF 内容键" />
+      <button class="btn" type="button" data-action="pdf-load">打开 PDF</button>
+      <button class="btn" type="button" data-action="pdf-prev" disabled id="pdf-prev">‹ 上一页</button>
+      <span id="pdf-page-info" class="muted" style="align-self:center">—</span>
+      <button class="btn" type="button" data-action="pdf-next" disabled id="pdf-next">下一页 ›</button>
+      <button class="btn" type="button" data-action="pdf-zoom-in">＋</button>
+      <span id="pdf-zoom-info" class="muted" style="align-self:center">100%</span>
+      <button class="btn" type="button" data-action="pdf-zoom-out">－</button>
+      <input id="pdf-search-input" class="input" style="width:160px" placeholder="页内搜索..." aria-label="页内搜索" />
+      <button class="btn" type="button" data-action="pdf-search">搜索</button>
+    </div>
+    <div id="pdf-viewer" style="margin-top:12px;min-height:420px;border:1px solid var(--border,#333);background:#fff;overflow:auto;text-align:center">
+      <div class="empty" style="padding:40px"><b>未加载 PDF</b><p>输入内容键后打开；字节由 /workspace/api/pdf/&lt;key&gt; 内容寻址只读提供。</p></div>
+    </div>
   </div>
 </section>
 <section class="page" id="page-unavailable">
@@ -103,6 +120,7 @@
 <div class="modal" id="intake-modal" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intake-title"><div class="card-title"><div><div class="eyebrow">LOCAL INTAKE</div><h2 id="intake-title">导入资料</h2></div><button class="icon-btn" type="button" data-action="intake-close" aria-label="关闭">×</button></div><p class="muted">粘贴网页地址或选择本地文件。系统自动处理，不要求填写内部编号。</p><form class="form" id="intake-url-form"><div class="field"><label for="intake-url">网页地址</label><input id="intake-url" name="url" type="url" placeholder="https://example.com/article" required></div><button class="btn primary" type="submit">导入网页或GitHub仓库</button></form><div class="divider">或</div><form class="form" id="intake-file-form"><div class="field"><label for="intake-file">本地文件</label><input id="intake-file" name="file" type="file" required></div><button class="btn primary" type="submit">导入文件</button></form><pre class="result" id="intake-result" aria-live="polite"></pre></div></div>
 <div class="toast" id="toast"></div>
 </div>
+<script src="/workspace/assets/pdf.min.js"></script>
 <script src="/workspace/assets/app.js"></script>
 </body>
 </html>
