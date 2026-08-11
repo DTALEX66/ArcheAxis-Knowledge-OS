@@ -1053,3 +1053,12 @@
   auto_ingest=False) 时不再静默跳过；title 回退 tag keywords
 - 测试 test_pipeline_crossref_stage_is_not_verified 从 skip → pass
 - 本地全量: 1247 passed, 5 skipped (symlink×3/网络×2 合理)
+
+
+### LOG-20260812-087 — PR #96 MERGED (--run-network flag 注册) — PASS
+
+- PR #96 squash merged → main `2d959f9`
+- test_evidence_connectors 引用 --run-network 但 option 从未注册，
+  显式传入报 unrecognized arguments → tests/conftest.py 注册
+- 验证: --run-network → 9 passed (2 真实 DOI 查询, Crossref 200);
+  默认 → 7 passed 2 skipped (CI 行为不变)
