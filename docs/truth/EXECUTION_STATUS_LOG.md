@@ -992,3 +992,14 @@
 - 命名迁移阶段 1-2（文档+UI）done；阶段 3+（打包/仓库/底层）Owner-gated
 - 任务包 v1 2026-08-11 全量落地：17 文件 + README/GitHub 描述锁死 + 命名禁词门禁
 - 17 PR（#69, #75-#89）全部 merge
+
+
+### LOG-20260812-081 — PR #90 MERGED (H3 C4-safe Vault write) — PASS
+
+- PR #90 squash merged → main `59e3173`
+- H3 开放 Vault 往返写入侧落地：
+  - vault.write_file: expected-hash 乐观锁（409 fail-closed）、原子写（sibling temp + os.replace）、
+    备份到 store 边界可回滚、escape/binary/missing 拒绝
+  - POST /workspace/api/vault/write
+- 5 新测试；1237 Python tests 通过
+- H3 纵切：读（inspect/file/search）+ 写（write）闭环；C4 往返下一步是 frontend 接线
