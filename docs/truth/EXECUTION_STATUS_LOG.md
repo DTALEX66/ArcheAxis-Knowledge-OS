@@ -1190,3 +1190,14 @@
   (card 形状/safe id/边)、review timeline (空/有/截断)、safe id
 - 无代码变更; 本地全量 1332 passed, 5 skipped
 - 零测试组件 6→5
+
+
+### LOG-20260812-100 — PR #109 MERGED (knowledge_gardener 测试) — PASS
+
+- PR #109 squash merged → main `9c37073`
+- knowledge_gardener 首次测试 (9): 孤儿检测 (出入链索引/limit)、
+  关键词重叠连接建议、缺失源、gap 分析 (thin/string tags)、
+  evergreen 评分 (rich/seedling/not found)
+- 无代码变更 (记录 len(tag)>2 过滤短 tag 行为)
+- 本地全量 1332 passed, 5 skipped
+- 零测试组件 5→4 (graph_rag/obsidian_importer/research_boundary/source_discovery)
