@@ -1440,3 +1440,10 @@
   PDF 引擎链 (marker-pdf) — 移除; _via_marker 保留待审查通过
 - 测试改为账本 blocked 集合驱动 + 修正 zotero guard 陈旧断言
 - 全量 1461 passed
+
+
+### LOG-20260812-127 — PR #128 MERGED (Marker REVIEW-BLOCK 合规) — PASS
+
+- PR #128 squash merged → main `a2056d0`
+- 增强 MFX-001 测试暴露: B003 Marker REVIEW-BLOCK 却注册为默认
+  PDF 引擎 → 移除; 测试改用账本 blocked 集合驱动
