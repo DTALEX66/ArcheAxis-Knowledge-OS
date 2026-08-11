@@ -1259,3 +1259,10 @@
 - daily_notes 8 测试 (get/create/append/timeline cutoff/link_to_daily)
 - **shared/*.py 全部 15 模块测试覆盖完成**
 - 本地全量 1389 passed, 5 skipped, 0 failed
+
+
+### LOG-20260812-106 — PR #114 MERGED (schemas/daily_notes 测试) — PASS
+
+- PR #114 squash merged → main `9008fcd`
+- schemas 15 + daily_notes 8; shared/*.py 全部 15 模块测试覆盖完成
+- 本地全量 1389 passed, 5 skipped
