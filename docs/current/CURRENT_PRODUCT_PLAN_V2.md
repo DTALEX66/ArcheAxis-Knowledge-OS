@@ -43,16 +43,16 @@
 | 任务 | 状态 |
 |---|---|
 | AXW-1200 事实快照 | done |
-| AXW-1201 命名契约 | done |
+| AXW-1201 命名契约 | done（文档+UI 阶段 merged #85/#86/#87） |
 | AXW-1202 产品身份 | done |
 | AXW-1203 Capability Atlas | done |
 | AXW-1204 需求/范围/任务图 | done |
-| AXW-1205 LER 蓝图 | pending |
-| AXW-1206 当前现实 | pending |
-| AXW-1207 互操作策略 | pending |
-| AXW-1208 命名迁移计划 | pending |
-| AXW-1209 文档投影门禁 | pending |
-| AXW-1210 Release Spine | pending |
+| AXW-1205 LER 蓝图 | done |
+| AXW-1206 当前现实 | done |
+| AXW-1207 互操作策略 | done |
+| AXW-1208 命名迁移计划 | done（执行阶段 3+ planned，需 Owner 授权） |
+| AXW-1209 文档投影门禁 | done（命名禁词 lint merged #88） |
+| AXW-1210 Release Spine | done（主线保持：真实材料进入→证据→双向学习闭环） |
 
 ## 5. 修订记录
 
