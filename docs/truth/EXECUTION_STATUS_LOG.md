@@ -1308,3 +1308,11 @@
   (首次/mastered 转变/struggling + 状态更新)、due 过滤、history 过滤
 - 此前仅间接覆盖 (mermaid/gardener 测试中 mock)
 - 本地全量 1420 passed, 5 skipped
+
+
+### LOG-20260812-111 — PR #118 MERGED (SM-2 调度测试) — PASS
+
+- PR #118 squash merged → main `24b7e24`
+- knowledge_base.reviews 首次直接测试 (11): _sm2_interval 纯算法、
+  schedule_review (状态更新)、due/history 过滤
+- 本地全量 1420 passed, 5 skipped
