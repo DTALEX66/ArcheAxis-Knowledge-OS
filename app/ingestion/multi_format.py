@@ -433,7 +433,7 @@ def convert_url(url: str) -> tuple[str, str]:
 
         transcript = convert_youtube_transcript(AdapterInput(source=url))
         if transcript.success:
-            return _return(transcript.content, transcript.engine)
+            return transcript.content, transcript.engine
 
     response = fetch(
         url,
@@ -480,7 +480,7 @@ def convert_url(url: str) -> tuple[str, str]:
     # 4) Return first successful adapter result
     for engine_name, result in adapter_results:
         if result.success:
-            return _return(result.content, f"safe-http+{engine_name}")
+            return result.content, f"safe-http+{engine_name}"
 
     # Fallback: return raw HTML (always available)
     return html, "safe-http+raw"
