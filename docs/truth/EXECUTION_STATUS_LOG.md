@@ -1453,3 +1453,21 @@
 - PR #130 squash merged → main `996462f`
 - workspace/intake/2026-08-12-h2-pipeline-integration.md: H2 全链 +
   MFX-001 合规修复 + 附带项 + 待办 + 回滚说明
+
+
+### LOG-20260812-131 — AXW-023B~F 多格式适配器实现状态核录 — PARTIAL
+
+冻结基线 H2 格式适配器任务当前实现状态（诚实核录，非资格裁决）：
+
+| ID | 格式 | 实现 | 契约测试 | 安装态证据 |
+|---|---|---|---|---|
+| AXW-023A | DOCX | #79 merged | test_adapter_contract | 部分（#79 记录） |
+| AXW-023B | PPTX | markitdown/docling 链 | test_adapter_contract | 未核录 |
+| AXW-023C | XLSX/CSV | markitdown/docling 链 | test_adapter_contract | 未核录 |
+| AXW-023D | OCR | pytesseract/rapidocr + bake-off | test_adapter_contract + test_h2_bakeoff | bake-off 实跑（.hermes/task-runtime） |
+| AXW-023E | HTML/Web | trafilatura/newspaper4k/readabilipy | test_adapter_contract | 未核录 |
+| AXW-023F | 音视频 | ffmpeg + faster-whisper | test_adapter_contract | bake-off 实跑（.hermes/task-runtime） |
+
+结论：实现与源码测试齐备（test_adapter_contract 84 测试、bake-off 实跑），
+但 AXW-H2-EXIT 要求的 exact-SHA 安装态资格证据未逐项核录——该资格
+裁决需 Owner/后续发布流程，本记录不冒充 PASS。
