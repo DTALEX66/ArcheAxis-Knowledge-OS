@@ -16,6 +16,12 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from app.evidence.anchor import (
+    EvidenceAnchor,
+    build_evidence_anchor,
+    resolve_evidence_anchor,
+    store_evidence_anchor,
+)
 from app.evidence.pdf_serve import PdfServeError, build_pdf_serving_root, resolve_pdf_bytes
 from app.workspace import bff, service, vault
 from app.workspace.bff import BFFNotFoundError, BFFUnavailableError
@@ -97,6 +103,20 @@ class PlannerRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     goal: str = Field(min_length=1, max_length=512)
+
+
+class EvidenceAnchorRequest(BaseModel):
+    """Create a content-addressed EvidenceAnchor pinning raw source content.
+
+    ``locator`` is a free-form dict (page / block / char-region / timestamp)
+    describing where in the raw source the evidence lives.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    raw_sha256: str = Field(min_length=40, max_length=128)
+    source_revision: str = Field(min_length=1, max_length=512)
+    locator: dict[str, Any] = Field(default_factory=dict)
 
 
 class WorkspaceIntakeResult(BaseModel):
@@ -238,6 +258,48 @@ def workspace_pdf(content_key: str, request: Request) -> Response:
     except PdfServeError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return Response(content=blob, media_type="application/pdf")
+
+
+@router.post("/api/evidence/anchor")
+def workspace_create_anchor(payload: EvidenceAnchorRequest, request: Request) -> dict[str, object]:
+    """Create a content-addressed EvidenceAnchor from a PDF selection.
+
+    Accepts {raw_sha256, source_revision, locator} and returns the stable
+    anchor_id so the reader can later jump back to the pinned content.
+    """
+    _local_principal(request)
+    return _command_error(
+        lambda: _do_create_anchor(payload)
+    )
+
+
+def _do_create_anchor(payload: EvidenceAnchorRequest) -> dict[str, object]:
+    anchor: EvidenceAnchor = build_evidence_anchor(
+        raw_sha256=payload.raw_sha256,
+        source_revision=payload.source_revision,
+        locator=payload.locator,
+    )
+    store_evidence_anchor(DB_PATH, anchor)
+    return {"anchor_id": anchor.anchor_id, "locator": payload.locator}
+
+
+@router.get("/api/evidence/anchor/{anchor_id}")
+def workspace_get_anchor(anchor_id: str, request: Request) -> dict[str, object]:
+    """Resolve a stored EvidenceAnchor for jump-back from Claim/Evidence views."""
+    _local_principal(request)
+    return _command_error(lambda: _do_get_anchor(anchor_id))
+
+
+def _do_get_anchor(anchor_id: str) -> dict[str, object]:
+    anchor: EvidenceAnchor | None = resolve_evidence_anchor(DB_PATH, anchor_id)
+    if anchor is None:
+        raise HTTPException(status_code=404, detail=f"anchor not found: {anchor_id}")
+    return {
+        "anchor_id": anchor.anchor_id,
+        "raw_sha256": anchor.raw_sha256,
+        "source_revision": anchor.source_revision,
+        "locator": anchor.locator,
+    }
 
 
 @router.post("/api/vault/inspect")
