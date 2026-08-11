@@ -1014,3 +1014,13 @@
 - migration_runner.py: vec0 虚拟表跳过直接 SELECT (无扩展连接), 由 *_id_map 指纹覆盖
 - 浏览器级验证: write 200 / stale-hash 409 / 文件未污染 / 备份创建
 - H3 纵切: inspect + read + search + write(乐观锁) + UI 编辑保存 全链路
+
+
+### LOG-20260812-083 — PR #92 MERGED (H3 backup list/restore + frontmatter) — PASS
+
+- PR #92 squash merged → main `a8b773a`
+- vault.list_backups (newest-first) + restore_backup (原子恢复 + pre-restore
+  快照使恢复本身可回滚；精确文件名防穿越)
+- POST /api/vault/backups + /api/vault/restore
+- frontmatter 保留往返测试（read→edit→write 保持 YAML properties）
+- 4 新测试；C4 安全往返：读/写/冲突/备份/恢复 全链
