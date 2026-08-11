@@ -88,7 +88,16 @@ def score_credibility(source: dict[str, Any]) -> dict[str, Any]:
         source: dict with {title, content, source, url, ...}.
 
     Returns:
-        {score: 0-1, factors: {signal: contribution}, level: 'high'|'medium'|'low'}.
+        {score: 0-1, factors: {signal: contribution}, level: 'high'|'medium'|'low',
+         classification: always 'legacy_heuristic'}.
+
+    IMPORTANT (MFX-012): This is a LEGACY DOMAIN/KEYWORD HEURISTIC. It is a
+    coarse internal sort hint only. It must NEVER be written to EvidenceBundle,
+    CrossValidation, or any 'verified'/'web-verified'/'evidence' state. Trusted
+    domain suffixes, the word 'peer-reviewed', or a DOI-shaped substring in the
+    content do NOT constitute web verification of a claim. Use the
+    obsidian-web-crosscheck / EvidenceConnector pipeline for real fact
+    verification.
     """
     content = source.get("content", "") or ""
     url = source.get("url", "") or source.get("source", "") or ""
@@ -125,6 +134,7 @@ def score_credibility(source: dict[str, Any]) -> dict[str, Any]:
         "level": level,
         "domain": domain,
         "factors": factors,
+        "classification": "legacy_heuristic",
     }
 
 

@@ -178,7 +178,14 @@ def run_pipeline(
     if "crossref" in actions and kb_id:
         from shared.cross_reference import score_credibility
 
+        # MFX-012: score_credibility is a legacy domain/keyword heuristic.
+        # It is stored only as an internal stage hint (classification
+        # 'legacy_heuristic'); it must NEVER be promoted to a 'verified',
+        # 'web-verified', or evidence state. Real claim verification uses the
+        # EvidenceConnector / obsidian-web-crosscheck pipeline.
         cred = score_credibility({"title": title, "content": content, "url": input_data})
+        cred["classification"] = "legacy_heuristic"
+        cred["verified"] = False
         result["stages"]["crossref"] = cred
 
     result["kb_id"] = kb_id
