@@ -1316,3 +1316,14 @@
 - knowledge_base.reviews 首次直接测试 (11): _sm2_interval 纯算法、
   schedule_review (状态更新)、due/history 过滤
 - 本地全量 1420 passed, 5 skipped
+
+
+### LOG-20260812-112 — PR #119 MERGED (kb 测试纳入 + DB 隔离) — PASS
+
+- PR #119 squash merged → main `f76280f`
+- knowledge_base/tests 38 个测试此前从未被 pytest 收集 (testpaths
+  只含 tests/) = 死覆盖 → testpaths += knowledge_base/tests
+- 新增 kb conftest autouse fixture: storage.DB_PATH 重定向到全新
+  空库 + storage.init() — 否则全量跑时 FTS candidate 计数断言被
+  tests/ 共享真实库残留数据破坏 (object_ids 多行)
+- 全量 1458 passed (1420+38), 5 skipped, 0 failed
