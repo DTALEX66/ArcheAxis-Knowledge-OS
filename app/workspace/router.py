@@ -200,7 +200,9 @@ def workspace_page() -> FileResponse:
 
 
 @router.get("/assets/{asset_name}", response_class=FileResponse)
-def workspace_asset(asset_name: Literal["styles.css", "app.js"]) -> FileResponse:
+def workspace_asset(
+    asset_name: Literal["styles.css", "app.js", "pdf.min.js", "pdf.worker.min.js"],
+) -> FileResponse:
     media_type = "text/css" if asset_name.endswith(".css") else "text/javascript"
     return FileResponse(
         WORKSPACE_UI_ROOT / "assets" / asset_name,
