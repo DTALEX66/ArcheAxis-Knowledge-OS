@@ -1534,3 +1534,12 @@ AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 - 边界治理（workspace-hygiene）：D:\d/D:\tmp 溢出 ~58MB 清理；run_tests.sh 项目内 basetemp 路由 + conftest.py pycache resolve() 防护；AGENTS.md 测试边界规则
 - 修复：resolve_runtime_path/evaluation_fallback ARCHEAXIS_DATA_DIR 双读（CI wheel-smoke 曾失败）；protocol.rs readiness 验证 V2 产品名
 - 全量测试 1461 passed / 5 skipped；门禁 head 通过
+
+## LOG-141 — 云端仓库改名 + 本地物理目录改名（2026-08-12）
+- GitHub 仓库：DTALEX66/archeaxis-workspace → DTALEX66/ArcheAxis-Knowledge-OS（gh repo rename）
+- 本地物理目录：D:/All projects/Cognitive-Loop-OS → D:/All projects/ArcheAxis-Knowledge-OS（Owner 手动执行 rename_archeaxis.bat；junction 已删除）
+- remote URL 同步（HTTPS 新地址）+ fetch 验证通过
+- worktree 重建：旧注册失效（prune）+ 权威分支 worktree 重建至 .hermes/task-runtime/frozen-rd
+- PR #139：12 文件 URL 引用同步（docs/release/测试/handoff/LOG）；机器 ID（pyproject/CLI/schema）按契约 V2 保持
+- 残留：.hermes/task-runtime/worktrees/frozen-roadmap-deepseek-v1（Codex 沙箱 ACL 锁，16K 空壳）——保留待 Owner 处理
+- 全量测试 1461 passed / 门禁绿（新路径）
