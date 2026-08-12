@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cognitive-Loop-OS CLI — unified command-line entry point.
+"""ArcheAxis CLI — unified command-line entry point.
 
 Usage:
     python -m app.cli serve              # Start server
@@ -62,7 +62,7 @@ def cmd_health() -> None:
 
 def cmd_migrate(args: list[str]) -> None:
     """Run the non-interactive migration operator against an explicit database."""
-    parser = ArgumentParser(prog="cognitive-os migrate")
+    parser = ArgumentParser(prog="archeaxis migrate")
     parser.add_argument("action", choices=("status", "apply", "rollback"))
     parser.add_argument("--owner")
     parser.add_argument("--db", required=True)
@@ -93,7 +93,7 @@ def cmd_stats() -> None:
     from shared.config import config
     from shared.storage import count as _c
 
-    print(f"Cognitive-Loop-OS v{config.get('app.version', 'unknown')}")
+    print(f"ArcheAxis Learning Workspace v{config.get('app.version', 'unknown')}")
     print("=" * 40)
     tables = [
         "kb_documents",
@@ -137,7 +137,7 @@ COMMANDS = {
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("Usage: cognitive-os <command> [args]")
+        print("Usage: archeaxis <command> [args]")
         print(f"Commands: {', '.join(COMMANDS)}")
         raise SystemExit(1)
 

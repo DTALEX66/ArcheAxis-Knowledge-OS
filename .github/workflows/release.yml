@@ -133,7 +133,7 @@ jobs:
         run: |
           $expectedAssets = @(
             "ArcheAxis.OS-Windows-x64-setup.exe",
-            "cognitive_loop_os-0.5.0-py3-none-any.whl",
+            "archeaxis_workspace-0.5.0-py3-none-any.whl",
             "release-identity.json",
             "SHA256SUMS.txt"
           ) | Sort-Object

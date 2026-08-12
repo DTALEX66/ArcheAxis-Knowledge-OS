@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 RESEARCH_PACKAGE_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/research-package.schema.json"
+    "https://archeaxis.local/contracts/v1/research-package.schema.json"
 )
 
 

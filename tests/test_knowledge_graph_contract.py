@@ -4,9 +4,9 @@ import pytest
 from pydantic import ValidationError
 
 KNOWLEDGE_UNIT_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/knowledge-unit.schema.json"
+    "https://archeaxis.local/contracts/v1/knowledge-unit.schema.json"
 )
-RELATION_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/relation.schema.json"
+RELATION_SCHEMA_ID = "https://archeaxis.local/contracts/v1/relation.schema.json"
 
 
 def _entity_row():

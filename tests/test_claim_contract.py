@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-CLAIM_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/claim.schema.json"
+CLAIM_SCHEMA_ID = "https://archeaxis.local/contracts/v1/claim.schema.json"
 
 
 def _claim(**overrides):

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-EVIDENCE_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/evidence.schema.json"
+EVIDENCE_SCHEMA_ID = "https://archeaxis.local/contracts/v1/evidence.schema.json"
 
 
 def _evidence(**overrides):

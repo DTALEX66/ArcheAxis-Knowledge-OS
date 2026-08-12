@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 MACHINE_KNOWLEDGE_UNIT_SCHEMA_ID = (
-    "https://cognitive-loop-os.local/contracts/v1/machine-knowledge-unit.schema.json"
+    "https://archeaxis.local/contracts/v1/machine-knowledge-unit.schema.json"
 )
 
 

@@ -65,7 +65,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         cwd=repository,
         env=env,
     )
-    built_wheels = tuple(wheels.glob("cognitive_loop_os-*.whl"))
+    built_wheels = tuple(wheels.glob("archeaxis_workspace-*.whl"))
     if len(built_wheels) != 1:
         raise RuntimeError(f"expected exactly one Cognitive-OS wheel, found {len(built_wheels)}")
     _run(

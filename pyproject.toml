@@ -1,5 +1,5 @@
 [project]
-name = "cognitive-loop-os"
+name = "archeaxis-workspace"
 version = "0.5.0"
 description = "Local-first, evidence-driven Human–AI learning and knowledge workspace"
 readme = "README.md"
@@ -92,11 +92,11 @@ ingestion = [
     "promptfoo>=0.1",
 ]
 full = [
-    "cognitive-loop-os[dev,ingestion]",
+    "archeaxis-workspace[dev,ingestion]",
 ]
 
 [project.scripts]
-cognitive-os = "app.cli:main"
+archeaxis = "app.cli:main"
 
 [build-system]
 requires = ["setuptools==83.0.0"]

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-MASTERY_SIGNAL_SCHEMA_ID = "https://cognitive-loop-os.local/contracts/v1/mastery-signal.schema.json"
+MASTERY_SIGNAL_SCHEMA_ID = "https://archeaxis.local/contracts/v1/mastery-signal.schema.json"
 
 
 def test_mastery_signal_v1_schema_requires_explicit_calculation_version():
