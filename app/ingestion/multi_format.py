@@ -107,9 +107,21 @@ def detect_format_from_content(file_path: str | Path) -> str:
 
     Falls back to extension-based detection if Magika model is unavailable
     or if the detected label doesn't map to a known engine.
+
+    Text formats (txt/md/csv/tsv) trust the extension FIRST: Magika
+    frequently mislabels GBK/GB2312-encoded Chinese text files as csv or
+    html, which would route them to the wrong engine (e.g. markitdown)
+    and silently mangle the encoding. A .txt file is always read with
+    the passthrough engine's encoding cascade; content detection stays
+    authoritative only for formats whose extension is ambiguous or whose
+    content is genuinely binary.
     """
     path = Path(file_path)
     if not path.is_file():
+        return detect_format(file_path)
+
+    ext = path.suffix.lower()
+    if ext in {".txt", ".md", ".markdown", ".csv", ".tsv"}:
         return detect_format(file_path)
 
     try:
@@ -219,6 +231,73 @@ def _via_docling(file_path: str) -> AdapterResult:
     )
 
 
+def _via_pdf_ocr(file_path: str) -> AdapterResult:
+    """OCR a scanned PDF page-by-page with Tesseract + pytesseract.
+
+    Honest scanned-PDF engine: renders each page with PyMuPDF (fitz) and
+    OCRs it with Tesseract. Returns success only when real text was
+    extracted; a PDF whose pages all OCR to nothing (or missing tooling)
+    fails closed with a clear reason — never a metadata-only success.
+    Page markers keep the output anchored to source pages for later
+    evidence/cross-check work.
+    """
+    import shared.adapter_fixtures as _af
+
+    if not (_af._tesseract_available() and _af._pytesseract_importable()):
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="ocr-unavailable",
+            error=(
+                "Scanned-PDF OCR requires Tesseract-OCR (system), pytesseract "
+                "(Python) and PyMuPDF (fitz). Install all three to OCR scanned "
+                "PDFs; no metadata is claimed as content."
+            ),
+        )
+    try:
+        import fitz
+        import pytesseract
+        from PIL import Image
+        import io
+    except Exception as exc:  # pragma: no cover - depends on host tooling
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="pdf-ocr-unavailable",
+            error=f"Scanned-PDF OCR dependencies unavailable: {exc}",
+        )
+    try:
+        doc = fitz.open(file_path)
+        parts: list[str] = []
+        for page_no, page in enumerate(doc, 1):
+            pix = page.get_pixmap(dpi=200)
+            img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
+            text = pytesseract.image_to_string(img, lang="chi_sim+eng")
+            parts.append(f"<!-- page {page_no} -->\n{text.strip()}")
+        doc.close()
+    except Exception as exc:  # pragma: no cover - depends on host tooling
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="pytesseract",
+            error=f"Scanned-PDF OCR failed: {exc}",
+        )
+    content = "\n\n".join(parts)
+    if not content.strip():
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="pytesseract",
+            error="Scanned-PDF OCR returned no text; treat as degraded (no content).",
+        )
+    return AdapterResult(
+        success=True,
+        content=content,
+        engine="pytesseract+tesseract(pdf)",
+        metadata={"char_count": len(content)},
+    )
+
+
 def _via_trafilatura(html: str) -> AdapterResult:
     import trafilatura
 
@@ -236,13 +315,31 @@ def _via_trafilatura(html: str) -> AdapterResult:
 
 
 def _via_read(file_path: str) -> AdapterResult:
-    text = Path(file_path).read_text(encoding="utf-8", errors="replace")
+    raw = Path(file_path).read_bytes()
+    text = _decode_text_bytes(raw, file_path)
     return AdapterResult(
         success=True,
         content=text,
         engine="passthrough",
         metadata={"char_count": len(text)},
     )
+
+
+def _decode_text_bytes(raw: bytes, source: str = "<bytes>") -> str:
+    """Decode a text file with UTF-8 first, then common legacy encodings.
+
+    Chinese-Windows text files are frequently GBK/GB2312; a naive UTF-8
+    read with errors=replace silently mangles them. Decode strictly and
+    fall back through GB18030 (superset of GBK/GB2312) before finally
+    degrading to UTF-8-with-replacement so every caller gets real text
+    when a legacy encoding is in play.
+    """
+    for encoding in ("utf-8", "gb18030", "utf-16", "latin-1"):
+        try:
+            return raw.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return raw.decode("utf-8", errors="replace")
 
 
 def _via_canvas(file_path: str) -> AdapterResult:
@@ -332,6 +429,7 @@ _ENGINES: dict[str, list[tuple[str, Any]]] = {
         # (Marker) is REVIEW-BLOCK — code Apache-2.0 but weights are a
         # modified OpenRAIL-M requiring separate review. Must not be a
         # default engine. Re-add only after weight licensing resolves.
+        ("pytesseract+tesseract(pdf)", _via_pdf_ocr),
         ("docling", _via_docling),
     ],
     "docx": [("markitdown", _via_markitdown)],

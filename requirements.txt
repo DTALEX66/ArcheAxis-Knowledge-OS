@@ -11,7 +11,8 @@ apscheduler>=3.10
 sqlite-vec>=0.1.6
 loguru>=0.7
 structlog>=24.0
-markitdown[pdf]>=0.1
+markitdown[pdf,docx,pptx,xlsx]>=0.1
+pymupdf>=1.24
 trafilatura>=1.6
 networkx>=3.0
 litellm==1.91.0

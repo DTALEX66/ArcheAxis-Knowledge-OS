@@ -1,144 +1,144 @@
 {
-  "schema_version": "1.0.0",
-  "product": {
-    "id": "archeaxis-workspace",
-    "name": "星环知识平台",
-    "english_name": "ArcheAxis Knowledge",
-    "workspace_name": "ArcheAxis Learning Workspace",
-    "workspace_english_name": "Human–AI Learning Workspace",
-    "version": "0.5.0",
-    "requires_python": ">=3.11"
-  },
-  "release": {
-    "status": "unreleased",
-    "channel": "development",
-    "public": false
-  },
-  "source": {
-    "commit": "unavailable",
-    "tree": "unavailable",
-    "verification_ci_run_id": "unavailable",
-    "release_run_id": "unavailable",
-    "reason": "Exact source and CI identity are injected only into a verified release artifact."
-  },
-  "dependency_lock": {
-    "path": "uv.lock",
-    "algorithm": "sha256",
-    "digest": "cfdf86a58c78452e4a915feab6ec3e15a11122589a85f71c90bc5dff68086cc9",
-    "format_version": 1,
-    "revision": 7
-  },
-  "migrations": {
-    "owners": [
-      {
-        "owner": "core.sqlite",
-        "version": 1,
-        "target": "core_schema_v1",
-        "kind": "sqlite_core",
-        "steps": [
-          "core_sqlite_baseline_v1"
-        ]
-      },
-      {
-        "owner": "fts.cards",
-        "version": 1,
-        "target": "kb_cards_fts",
-        "kind": "fts",
-        "steps": []
-      },
-      {
-        "owner": "fts.documents",
-        "version": 1,
-        "target": "kb_documents_fts",
-        "kind": "fts",
-        "steps": []
-      },
-      {
-        "owner": "knowledge-governance.sqlite",
-        "version": 1,
-        "target": "knowledge_candidate_promotions_v1",
-        "kind": "sqlite_knowledge",
-        "steps": [
-          "phase5_knowledge_candidate_governance_v1",
-          "phase5_knowledge_candidate_governance_events_v1",
-          "phase5_knowledge_candidate_versioning_v1",
-          "phase5_knowledge_candidate_learning_artifacts_v1",
-          "phase5_learning_approval_events_v1",
-          "phase5_machine_knowledge_approval_events_v1"
-        ]
-      },
-      {
-        "owner": "research.sqlite",
-        "version": 1,
-        "target": "research_packages_v1",
-        "kind": "sqlite_research",
-        "steps": [
-          "phase4_research_package_v1"
-        ]
-      },
-      {
-        "owner": "sleep-loop.sqlite",
-        "version": 2,
-        "target": "sleep_loop_tasks",
-        "kind": "sqlite_sleep",
-        "steps": [
-          "phase8_sleep_loop_runtime_leases_v1",
-          "phase8_sleep_loop_review_gate_v2"
-        ]
-      },
-      {
-        "owner": "taskpack.sqlite",
-        "version": 3,
-        "target": "kb_taskpacks",
-        "kind": "sqlite",
-        "steps": [
-          "taskpack_contract_v1",
-          "taskpack_review_fail_closed_v1"
-        ]
-      },
-      {
-        "owner": "vector.cards",
-        "version": 1,
-        "target": "vec_kb_cards",
-        "kind": "vector",
-        "steps": []
-      },
-      {
-        "owner": "vector.documents",
-        "version": 1,
-        "target": "vec_kb_documents",
-        "kind": "vector",
-        "steps": []
-      },
-      {
-        "owner": "workspace.sqlite",
-        "version": 2,
-        "target": "workspace_delivery_receipts_v1",
-        "kind": "sqlite_workspace",
-        "steps": [
-          "phase5_workspace_job_outbox_v1",
-          "phase5_workspace_delivery_receipts_v2"
-        ]
-      }
+ "schema_version": "1.0.0",
+ "product": {
+  "id": "archeaxis-workspace",
+  "name": "星环知识平台",
+  "english_name": "ArcheAxis Knowledge",
+  "workspace_name": "ArcheAxis Learning Workspace",
+  "workspace_english_name": "Human–AI Learning Workspace",
+  "version": "0.5.0",
+  "requires_python": ">=3.11"
+ },
+ "release": {
+  "status": "unreleased",
+  "channel": "development",
+  "public": false
+ },
+ "source": {
+  "commit": "unavailable",
+  "tree": "unavailable",
+  "verification_ci_run_id": "unavailable",
+  "release_run_id": "unavailable",
+  "reason": "Exact source and CI identity are injected only into a verified release artifact."
+ },
+ "dependency_lock": {
+  "path": "uv.lock",
+  "algorithm": "sha256",
+  "digest": "aeb972ded5fe5c6057736e50a734cb7ca620f26be8560e93010f0689e90653d3",
+  "format_version": 1,
+  "revision": 7
+ },
+ "migrations": {
+  "owners": [
+   {
+    "owner": "core.sqlite",
+    "version": 1,
+    "target": "core_schema_v1",
+    "kind": "sqlite_core",
+    "steps": [
+     "core_sqlite_baseline_v1"
     ]
-  },
-  "capabilities": {
-    "local_url_file_github_intake": "available",
-    "workspace_job_outbox_receipts": "available",
-    "strict_governance_readback": "available",
-    "audio_track_and_video_keyframes": "available",
-    "image_ocr": "dependency_required",
-    "asr_transcription": "not_implemented",
-    "asynchronous_worker": "available",
-    "outbox_dispatcher": "available",
-    "server_sent_events": "available",
-    "interactive_job_center": "available",
-    "postgresql_runtime": "not_implemented",
-    "qdrant_runtime": "not_implemented",
-    "public_installer": "not_implemented"
-  },
-  "verification": {
-    "embedded_test_counts": false,
-    "evidence_policy": "This source manifest does not prove product completeness or a public release. Exact commit CI and artifact evidence are required for release claims."
-  }
+   },
+   {
+    "owner": "fts.cards",
+    "version": 1,
+    "target": "kb_cards_fts",
+    "kind": "fts",
+    "steps": []
+   },
+   {
+    "owner": "fts.documents",
+    "version": 1,
+    "target": "kb_documents_fts",
+    "kind": "fts",
+    "steps": []
+   },
+   {
+    "owner": "knowledge-governance.sqlite",
+    "version": 1,
+    "target": "knowledge_candidate_promotions_v1",
+    "kind": "sqlite_knowledge",
+    "steps": [
+     "phase5_knowledge_candidate_governance_v1",
+     "phase5_knowledge_candidate_governance_events_v1",
+     "phase5_knowledge_candidate_versioning_v1",
+     "phase5_knowledge_candidate_learning_artifacts_v1",
+     "phase5_learning_approval_events_v1",
+     "phase5_machine_knowledge_approval_events_v1"
+    ]
+   },
+   {
+    "owner": "research.sqlite",
+    "version": 1,
+    "target": "research_packages_v1",
+    "kind": "sqlite_research",
+    "steps": [
+     "phase4_research_package_v1"
+    ]
+   },
+   {
+    "owner": "sleep-loop.sqlite",
+    "version": 2,
+    "target": "sleep_loop_tasks",
+    "kind": "sqlite_sleep",
+    "steps": [
+     "phase8_sleep_loop_runtime_leases_v1",
+     "phase8_sleep_loop_review_gate_v2"
+    ]
+   },
+   {
+    "owner": "taskpack.sqlite",
+    "version": 3,
+    "target": "kb_taskpacks",
+    "kind": "sqlite",
+    "steps": [
+     "taskpack_contract_v1",
+     "taskpack_review_fail_closed_v1"
+    ]
+   },
+   {
+    "owner": "vector.cards",
+    "version": 1,
+    "target": "vec_kb_cards",
+    "kind": "vector",
+    "steps": []
+   },
+   {
+    "owner": "vector.documents",
+    "version": 1,
+    "target": "vec_kb_documents",
+    "kind": "vector",
+    "steps": []
+   },
+   {
+    "owner": "workspace.sqlite",
+    "version": 2,
+    "target": "workspace_delivery_receipts_v1",
+    "kind": "sqlite_workspace",
+    "steps": [
+     "phase5_workspace_job_outbox_v1",
+     "phase5_workspace_delivery_receipts_v2"
+    ]
+   }
+  ]
+ },
+ "capabilities": {
+  "local_url_file_github_intake": "available",
+  "workspace_job_outbox_receipts": "available",
+  "strict_governance_readback": "available",
+  "audio_track_and_video_keyframes": "available",
+  "image_ocr": "dependency_required",
+  "asr_transcription": "not_implemented",
+  "asynchronous_worker": "available",
+  "outbox_dispatcher": "available",
+  "server_sent_events": "available",
+  "interactive_job_center": "available",
+  "postgresql_runtime": "not_implemented",
+  "qdrant_runtime": "not_implemented",
+  "public_installer": "not_implemented"
+ },
+ "verification": {
+  "embedded_test_counts": false,
+  "evidence_policy": "This source manifest does not prove product completeness or a public release. Exact commit CI and artifact evidence are required for release claims."
+ }
 }
