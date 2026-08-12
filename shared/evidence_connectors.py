@@ -44,7 +44,7 @@ def _fetch(url: str, timeout: int = _DEFAULT_TIMEOUT) -> dict[str, Any]:
     req = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "ArcheAxis-Workspace/0.5 (evidence-connector; mailto:opensource@example.com)",
+            "User-Agent": "ArcheAxis-Knowledge/0.5 (evidence-connector; mailto:opensource@example.com)",
             "Accept": "application/json",
         },
     )
