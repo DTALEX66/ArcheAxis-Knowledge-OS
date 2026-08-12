@@ -8,7 +8,16 @@ from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 APPROVED_ROOTS = ApprovedRoots(source_roots=[PROJECT_ROOT])
-DEFAULT_EXTENSIONS = {".md", ".markdown", ".txt"}
+# Extension allowlist aligned with the multi-format engine chain
+# (app/ingestion/multi_format._ENGINES): any extension the conversion
+# engines can turn into text may be ingested through convert_file.
+DEFAULT_EXTENSIONS = {
+    ".md", ".markdown", ".txt", ".pdf", ".docx", ".doc", ".pptx", ".ppt",
+    ".xlsx", ".xls", ".csv", ".tsv", ".html", ".htm", ".xml", ".sgml",
+    ".canvas", ".json", ".yaml", ".yml", ".toml", ".png", ".jpg", ".jpeg",
+    ".gif", ".webp", ".bmp", ".tiff", ".ico", ".svg", ".mp3", ".wav",
+    ".flac", ".m4a", ".ogg", ".mp4", ".mkv", ".webm", ".flv",
+}
 MAX_FILE_BYTES = 2_000_000
 MAX_DIRECTORY_FILES = 100
 
@@ -43,8 +52,26 @@ def _read_text(path: Path, max_bytes: int = MAX_FILE_BYTES) -> str:
         raise IngestionError(f"unsupported file extension: {path.suffix}")
     if path.stat().st_size > max_bytes:
         raise IngestionError(f"file is too large: {_relative_source(path)}")
+    if path.suffix.lower() in {".md", ".markdown", ".txt", ".csv", ".tsv"}:
+        # Plain text: encoding cascade (UTF-8 -> GB18030 -> ...) so
+        # Chinese-Windows GBK files decode correctly instead of being
+        # silently mangled by a naive UTF-8 read.
+        from app.ingestion.multi_format import _decode_text_bytes
 
-    return path.read_text(encoding="utf-8", errors="ignore").strip()
+        return _decode_text_bytes(path.read_bytes()).strip()
+    # Rich/binary formats: run the real conversion engine chain
+    # (markitdown / pytesseract / ffmpeg / json-canvas ...). A format
+    # the chain cannot convert raises IngestionError instead of being
+    # silently ingested as empty or metadata-only (MFX-010).
+    from app.ingestion.multi_format import convert_file
+
+    try:
+        content, engine = convert_file(str(path))
+    except RuntimeError as exc:
+        raise IngestionError(f"conversion failed for {_relative_source(path)}: {exc}") from exc
+    if not content.strip():
+        raise IngestionError(f"conversion produced no text for {_relative_source(path)}")
+    return content.strip()
 
 
 def _metadata(path: Path, extra: dict[str, Any] | None = None) -> dict[str, Any]:
