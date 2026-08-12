@@ -6,7 +6,7 @@
 
 ## Product truth
 
-**ArcheAxis Workspace（元枢工作台）** is a local-first, evidence-driven Human–AI learning and knowledge workspace. The user-owned open-format workspace is primary; AI is a cited usage layer, not the product center.
+**ArcheAxis Knowledge（星环知识平台）** is a local-first, evidence-driven Human–AI learning and knowledge workspace. The user-owned open-format workspace is primary; AI is a cited usage layer, not the product center.
 
 ## Current vertical
 
