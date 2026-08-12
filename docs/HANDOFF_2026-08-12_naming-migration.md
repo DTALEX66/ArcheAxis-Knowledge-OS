@@ -52,7 +52,7 @@
 - **main**：`2694d86`（#131 merged）
 - **权威分支** `codex/frozen-roadmap-deepseek-v1`：LOG-001~133 + 契约 V1.1 记录
 - **canonical**：`D:\All projects\ArcheAxis-Knowledge-OS`（目录未改名，仍是旧路径——重命名只发生在 GitHub 远程）
-- **remote**：`git@github.com:DTALEX66/archeaxis-workspace.git`
+- **remote**：`git@github.com:DTALEX66/ArcheAxis-Knowledge-OS.git`
 - **开放 PR**：#132（CI 修复中）、#133（待核）
 - **本地全量测试**：1461 passed / 5 skipped / 0 failed
 - **测试铁律**：`env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest`

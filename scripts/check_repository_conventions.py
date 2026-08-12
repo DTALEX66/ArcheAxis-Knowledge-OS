@@ -249,7 +249,7 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     product name) are allowed only in files that explicitly declare historical /
     superseded / migration context or that are historical by nature (intake
     records, handoffs, third-party notices, status logs). Current product name
-    is locked by docs/truth/NAMING_CONTRACT_V1.md.
+    is locked by docs/truth/NAMING_CONTRACT_V2.md (V1 superseded).
 
     Only active documentation surfaces are scanned: README, docs/current,
     docs/blueprint, docs/architecture, docs/decisions, docs/environment,
@@ -260,9 +260,9 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     # docs, YAML config, and JSON config. Python/Rust sources are excluded
     # because test fixtures deliberately embed forbidden names to assert
     # rejection logic.
-    if pure.suffix.casefold() not in {".md", ".yaml", ".yml", ".txt", ".json"}:
+    if pure.suffix.casefold() not in {".md", ".yaml", ".yml", ".txt", ".json", ".html"}:
         return []
-    if pure.name in {"NAMING_CONTRACT_V1.md", "PRODUCT_IDENTITY_V2.md"}:
+    if pure.name in {"NAMING_CONTRACT_V1.md", "NAMING_CONTRACT_V2.md"}:
         return []
     # Historical-by-nature surfaces are exempt (they record the past).
     exempt_prefixes = (
@@ -329,6 +329,7 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     # 元枢/元枢工作台 as an active product name is forbidden outside legacy docs
     for term, code in (
         ("元枢工作台", "legacy-product-name"),
+        ("元枢系统", "legacy-product-name"),
         ("ArcheAxis OS", "legacy-product-name"),
         ("ArcheAxis Workspace", "legacy-product-name"),
     ):

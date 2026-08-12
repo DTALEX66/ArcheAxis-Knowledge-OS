@@ -116,10 +116,10 @@ fn show_startup_error(message: &str) {
     use windows::Win32::UI::WindowsAndMessaging::{MB_ICONERROR, MB_OK, MessageBoxW};
     use windows::core::PCWSTR;
 
-    let text: Vec<u16> = format!("元枢系统无法启动。\n\n{message}\0")
+    let text: Vec<u16> = format!("ArcheAxis Knowledge 无法启动。\n\n{message}\0")
         .encode_utf16()
         .collect();
-    let title: Vec<u16> = "元枢系统\0".encode_utf16().collect();
+    let title: Vec<u16> = "ArcheAxis Knowledge\0".encode_utf16().collect();
     unsafe {
         let _ = MessageBoxW(
             None,

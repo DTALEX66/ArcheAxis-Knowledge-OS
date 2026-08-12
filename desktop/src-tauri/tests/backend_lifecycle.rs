@@ -37,7 +37,7 @@ fn installed_core_launches_in_isolated_mode_and_shuts_down_cleanly() {
     let data_dir = root.join(".hermes/task-runtime/desktop-installed-lifecycle-smoke");
     std::fs::create_dir_all(&data_dir).expect("installed-runtime data directory must exist");
     let runtime = RuntimeSpec {
-        python: root.join(".hermes/desktop-runtime-v1/runtime/python/python.exe"),
+        python: root.join(".hermes/rt/runtime/python/python.exe"),
         cwd: data_dir.clone(),
         data_dir,
         isolated: true,

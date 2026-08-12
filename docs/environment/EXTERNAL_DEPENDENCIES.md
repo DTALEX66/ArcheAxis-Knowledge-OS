@@ -257,7 +257,7 @@ setx UV_CACHE_DIR "D:\All projects\OS configuration\uv-cache"
 setx UV_PROJECT_ENVIRONMENT "D:\All projects\OS configuration\ArcheAxis-Knowledge-OS-ci-venv"
 
 # 6. 克隆仓库
-git clone git@github.com:DTALEX66/archeaxis-workspace.git "D:\All projects\ArcheAxis-Knowledge-OS"
+git clone git@github.com:DTALEX66/ArcheAxis-Knowledge-OS.git "D:\All projects\ArcheAxis-Knowledge-OS"
 cd "D:\All projects\ArcheAxis-Knowledge-OS"
 
 # 7. 安装依赖

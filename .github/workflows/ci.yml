@@ -508,7 +508,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             desktop/src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-audit-0.22.2-naming-v2
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-audit-0.22.2-naming-v3
           restore-keys: |
             ${{ runner.os }}-cargo-naming-v2-
       - name: Install locked Python runtime
@@ -517,7 +517,7 @@ jobs:
         run: >-
           python -m desktop.scripts.prepare_bundle
           --repository .
-          --destination .hermes/desktop-runtime-v1
+          --destination .hermes/rt
       - name: Test the Windows Rust library
         working-directory: desktop/src-tauri
         run: |
@@ -537,10 +537,20 @@ jobs:
     timeout-minutes: 30
     needs: gateplan
     if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-build') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') }}
+    defaults:
+      run:
+        working-directory: D:\a\k
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Create short build path junction (NSIS MAX_PATH)
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        run: |
+          if (Test-Path "D:\a\k") { Remove-Item "D:\a\k" -Force }
+          New-Item -ItemType Junction -Path "D:\a\k" -Target $env:GITHUB_WORKSPACE | Out-Null
+          Write-Host "junction D:\a\k -> $env:GITHUB_WORKSPACE"
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -554,9 +564,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             desktop/src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build-naming-v2
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build-naming-v4
           restore-keys: |
-            ${{ runner.os }}-cargo-naming-v2-
+            ${{ runner.os }}-cargo-naming-v4-
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Install locked desktop tooling
@@ -566,7 +576,7 @@ jobs:
         run: >-
           python -m desktop.scripts.prepare_bundle
           --repository .
-          --destination .hermes/desktop-runtime-v1
+          --destination .hermes/rt
       - name: Audit locked Rust dependencies
         working-directory: desktop/src-tauri
         run: |
