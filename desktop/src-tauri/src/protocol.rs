@@ -25,7 +25,7 @@ pub fn readiness_payload_valid(body: &str) -> bool {
         return false;
     };
     payload.schema_version == "v1"
-        && payload.product == "ArcheAxis Learning Workspace"
+        && payload.product == "ArcheAxis Knowledge"
         && payload.workspace == "Human–AI Learning Workspace"
 }
 
@@ -45,7 +45,7 @@ mod tests {
     #[test]
     fn readiness_requires_the_exact_product_identity() {
         assert!(readiness_payload_valid(
-            r#"{"schema_version":"v1","product":"ArcheAxis Learning Workspace","workspace":"Human–AI Learning Workspace"}"#
+            r#"{"schema_version":"v1","product":"ArcheAxis Knowledge","workspace":"Human–AI Learning Workspace"}"#
         ));
         assert!(!readiness_payload_valid(
             r#"{"schema_version":"v2","product":"ArcheAxis OS","workspace":"Human–AI Learning Workspace"}"#
