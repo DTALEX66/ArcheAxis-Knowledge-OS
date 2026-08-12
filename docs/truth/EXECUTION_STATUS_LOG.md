@@ -1543,3 +1543,37 @@ AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 - PR #139：12 文件 URL 引用同步（docs/release/测试/handoff/LOG）；机器 ID（pyproject/CLI/schema）按契约 V2 保持
 - 残留：.hermes/task-runtime/worktrees/frozen-roadmap-deepseek-v1（Codex 沙箱 ACL 锁，16K 空壳）——保留待 Owner 处理
 - 全量测试 1461 passed / 门禁绿（新路径）
+
+## LOG-142 (2026-08-13) — 命名体系全量审计 + 全量测试 + 速度优化闭环
+
+**事件**：Owner 要求命名体系全量审计、全量测试、速度优化、双端一致。
+
+**审计发现与修复**：
+- 活跃面残留 4 处 → 修复：
+  - `desktop/bootstrap/index.html` title 元枢系统 → ArcheAxis Knowledge（用户可见）
+  - `desktop/src-tauri/src/lib.rs:119,122` 错误对话框标题元枢系统 → ArcheAxis Knowledge（用户可见）
+  - `desktop/scripts/verify_nsis_install.ps1:77` 安装错误消息 ArcheAxis OS → ArcheAxis Knowledge
+  - `shared/evidence_connectors.py:47` User-Agent ArcheAxis-Workspace → ArcheAxis-Knowledge（协议对外面）
+- 允许语境确认（正确保留）：protocol.rs 测试用例、契约映射表、门禁禁词定义、SUPERSEDED 历史文档、fixture 历史文件名
+- 门禁增强：禁词表 +元枢系统；扫描后缀 +.html；豁免指向修复（幽灵 PRODUCT_IDENTITY_V2.md → 实际文件）；active 前缀 +app/
+- 门禁自测：构造违规用例验证能拦截（lib.rs/元枢系统 html 面）——修复前拦不住，修复后拦截
+
+**测试**：本地 1461 passed / 5 skipped / 门禁绿；分类器自测 4 类全对（docs→static、rust→desktop-fast、installer→三件套、mixed→并集）
+
+**CI 修复（仓库改名引发）**：
+- NSIS MAX_PATH：改名 +6 字符使 makensis File 路径超 260 → junction 方案被 tauri 解析回真实路径失败 → 最终 .hermes/desktop-runtime-v1 → .hermes/rt（19→9 字符，246<260）修复，涉及 tauri.conf.json/ci.yml/release.yml/release_inject_identity/backend_lifecycle.rs/test_desktop_staging.py
+- 缓存 key 演进 v2→v3→v4→v5（合并失败互覆盖）→ v6（fast/build 分离 + restore-keys 前缀修复——原前缀含 hash 位置从未命中）
+- uv-desktop 缓存入 CI（prepare_bundle pip install 10min→秒级）
+- verify_nsis_install.ps1 WM_CLOSE 15s→30s（慢 runner 偶发超时修复）
+
+**速度分析结论**：
+- CI 总时长 15.5min（缓存命中）核心 = desktop-build Rust release 编译 ~17-19min 本质成本
+- runner 排队 0-22min = GitHub 免费 Windows runner 池限制（平台行为）
+- gateplan 智能调度已有效（docs-only → lint 13s）；py-compat 已精简；run_tests.sh 已有快速模式
+- 本地 1461 tests 47s 无单项瓶颈
+
+**上传/双端一致**：
+- main @ 3a40e57（3 优化 commit + 1 审计修复 commit 全部 push）
+- PR #139 MERGED（32c14a4）；PR #137 MERGED（b44fabb）；#138 MERGED（e90274f）
+- CI 最后 3 个 run 全绿（31616690343/31619814428/31621710655）
+- OS configuration EXTERNAL_DEPENDENCIES.md 同步新 URL+路径（bc0d62c）
