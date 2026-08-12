@@ -508,7 +508,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             desktop/src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-audit-0.22.2-naming-v2
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-audit-0.22.2-naming-v3
           restore-keys: |
             ${{ runner.os }}-cargo-naming-v2-
       - name: Install locked Python runtime
@@ -554,9 +554,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             desktop/src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build-naming-v2
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build-naming-v3
           restore-keys: |
-            ${{ runner.os }}-cargo-naming-v2-
+            ${{ runner.os }}-cargo-naming-v3-
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Install locked desktop tooling
