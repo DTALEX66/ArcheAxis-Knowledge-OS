@@ -546,6 +546,7 @@ jobs:
           persist-credentials: false
       - name: Create short build path junction (NSIS MAX_PATH)
         shell: pwsh
+        working-directory: ${{ github.workspace }}
         run: |
           if (Test-Path "D:\a\k") { Remove-Item "D:\a\k" -Force }
           New-Item -ItemType Junction -Path "D:\a\k" -Target $env:GITHUB_WORKSPACE | Out-Null
