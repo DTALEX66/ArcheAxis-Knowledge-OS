@@ -7,14 +7,14 @@
 ## 目录
 
 - `archeaxis-knowledge-ui/`：基础版本的多页面前端 UI。
-- `archeaxis-knowledge-ui-v2/`：液态玻璃方向的强化版本；其中 `visual-lesson-studio.html` 等页面通过共享的 `app.js` 与 `app.css` 组织。
+- `archeaxis-knowledge-ui-v2/`：当前主交付版本。各路由在保留 `app.js` 的 Mock Adapter 合同后加载 `app-v3.js`，形成统一的桌面工作台壳层、原件阅读器、证据账本、Canvas 与学习任务面；视觉规则位于 `liquid-glass.css`。
 - `deliverables/archeaxis-knowledge-workspace.html`：本轮主预览页面，展示“原件阅读面 + 证据路径 + 上下文检查器”的前端工作台。
 - `deliverables/archeaxis-knowledge-workspace-preview.png`：主预览页面的静态核验图。
 - `ArcheAxis-Knowledge-OPEN-DESIGN-UI-TaskPack-v1-2026-08-12.zip`：随本地 OSUI 项目一并交接的任务包归档。
 
 ## 运行与边界
 
-页面可作为静态 HTML 预览。界面中的数据、状态和交互均为前端演示；`Mock Adapter` 与 `UNBOUND` 表示后端集成尚未接入。后续实现应复用既有 `mock-adapter.js` 的边界约定，并在连接真实数据前单独完成接口与安全评审。
+页面可作为静态 HTML 预览。请从 `archeaxis-knowledge-ui-v2/index.html` 打开工作台总览；各功能页均有语义化 HTML 入口。界面中的数据、状态和交互均为前端演示；`Mock Adapter` 与 `UNBOUND` 表示后端集成尚未接入。后续实现应复用既有 `mock-adapter.js` 的边界约定，并在连接真实数据前单独完成接口与安全评审。
 
 ## 本轮核验
 
@@ -25,3 +25,5 @@
 ## 交接记录
 
 本目录由 OSUI 本地前端项目导入至 `DTALEX66/archeaxis-workspace` 的 `OSUI/` 子目录。提交记录是本次交接的可回滚边界。
+
+详见 `HANDOFF-2026-08-12.md`，其中包含交付范围、路由入口、验证证据、未绑定接口和后续绑定顺序。

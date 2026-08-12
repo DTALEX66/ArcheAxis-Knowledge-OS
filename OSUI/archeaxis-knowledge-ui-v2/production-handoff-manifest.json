@@ -1,8 +1,8 @@
 {
   "product":"ArcheAxis Knowledge",
-  "status":"prototype-unbound-v3",
+  "status":"workbench-prototype-unbound-v3",
   "scope":"Frontend design system and interaction prototype only; backend contracts are retained but out of scope.",
-  "entrypoint":"index.html",
+  "entrypoint":"index.html (loads app.js adapter contract and app-v3.js workbench layer)",
   "routes":16,
   "adapter":"MockAdapter with safe fallback",
   "realEndpoints":"UNBOUND",
@@ -11,6 +11,6 @@
   "assets":{"thirdPartyImages":false,"webFonts":false,"icons":"inline editable SVG","textures":"CSS paper-rule and coordinate-grid only"},
   "license":"Project-authored HTML/CSS/JS; system fonts only",
   "deliverables":["Semantic HTML routes","CSS token system","Mock adapter","Component manifest","Route dependency matrix","Motion and accessibility document","Reference audit","Visual quality report"],
-  "knownGaps":["Backend integration is intentionally out of scope","No Open Design source package","No PNG/PDF export","No real capability read-back"],
+  "knownGaps":["Backend integration is intentionally out of scope","No Open Design source package","No verified current PNG/PDF export from the OSUI source checkout","No real capability read-back"],
   "acceptance":{"mockVisible":true,"plannedCapabilitiesBlocked":true,"reducedMotion":true,"originalDerivativeSeparation":true,"evidenceAnchorsVisible":true,"desktopAndNarrowLayouts":true}
 }
