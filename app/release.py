@@ -10,7 +10,7 @@ from typing import Any
 
 _MANIFEST_PATH = Path(__file__).with_name("release-manifest.json")
 _ARTIFACT_IDENTITY_PATH: Path | None = None
-_RELEASE_REPOSITORY_URL = "https://github.com/DTALEX66/Cognitive-Loop-OS"
+_RELEASE_REPOSITORY_URL = "https://github.com/DTALEX66/archeaxis-workspace"
 _ALLOWED_CAPABILITY_STATES = {"available", "dependency_required", "not_implemented"}
 _CAPABILITY_KEYS = {
     "local_url_file_github_intake",

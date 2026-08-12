@@ -79,7 +79,7 @@ Upload policy:
 - GitHub remote for this repository is expected to use SSH:
 
 ```text
-git@github.com:DTALEX66/Cognitive-Loop-OS.git
+git@github.com:DTALEX66/archeaxis-workspace.git
 ```
 
 ## 6. Implementation Workflow
