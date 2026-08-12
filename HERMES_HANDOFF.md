@@ -1,4 +1,4 @@
-# Hermes handoff — Cognitive-Loop-OS
+# Hermes handoff — archeaxis-workspace
 
 Generated: 2026-07-23
 
@@ -6,7 +6,7 @@ Generated: 2026-07-23
 
 - Repository: `D:\All projects\Cognitive-Loop-OS`
 - Branch: `feat/runtime-evaluation-sleep-leases`
-- Cloud target: `git@github.com:DTALEX66/Cognitive-Loop-OS.git`
+- Cloud target: `git@github.com:DTALEX66/archeaxis-workspace.git`
 - The branch contains the governed runtime/sleep-loop release train. Before
   resuming any work, re-check `git status --short --branch`, the exact HEAD,
   and the associated GitHub Actions result.

@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
     SYNOPSIS
-      Windows/PowerShell 7 doctor for Cognitive-Loop-OS (AXW-007A).
+      Windows/PowerShell 7 doctor for archeaxis-workspace (AXW-007A).
 
     DESCRIPTION
       Detects the toolchain and Windows-environment prerequisites needed to run,

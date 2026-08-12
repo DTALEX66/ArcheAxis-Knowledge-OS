@@ -1,1 +1,1 @@
-"""Shared runtime services for Cognitive-Loop-OS."""
+"""Shared runtime services for archeaxis-workspace."""

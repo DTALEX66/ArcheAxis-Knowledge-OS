@@ -6,7 +6,7 @@ created: 2026-07-01
 
 # Card System
 
-The card system manages the life-cycle of knowledge cards within Cognitive-Loop-OS.
+The card system manages the life-cycle of knowledge cards within archeaxis-workspace.
 
 ## Overview
 

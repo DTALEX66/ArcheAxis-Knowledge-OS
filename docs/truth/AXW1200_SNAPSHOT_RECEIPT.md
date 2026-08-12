@@ -36,7 +36,7 @@
   - `FROZEN_EXECUTION_BASELINE_v1_2026-08-09`（冻结基线保留，H0–H10 结构有效）
   - 历史 v4 任务包、Future Blueprint、Handoff 文档（保留为历史）
 - 本任务包引入 `AXW-1200~1210` 规划治理编号，与既有 `AXW-*` 实现任务并存
-- 旧产品名（元枢 / Cognitive-Loop-OS）只保留 Legacy/Migration 语境
+- 旧产品名（元枢 / archeaxis-workspace）只保留 Legacy/Migration 语境
 
 ## 4. 本轮"系统级"边界声明
 
@@ -46,4 +46,4 @@
 
 1. GitHub 仓库描述（About）按 Owner 最新裁决锁死为产品身份 + 吸收不了的开源项目 + 外置依赖链接（见 README §0）
 2. 品牌可用性/商标/域名/PyPI/商店检索：**未核验**，设为 Owner Action gate
-3. 远端仓库改名 `DTALEX66/Cognitive-Loop-OS → archeaxis-workspace`：**未执行**（需 Owner 单独授权 + 迁移计划）
+3. 远端仓库改名 `DTALEX66/archeaxis-workspace → archeaxis-workspace`：**未执行**（需 Owner 单独授权 + 迁移计划）

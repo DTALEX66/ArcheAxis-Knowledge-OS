@@ -1,6 +1,6 @@
 # Obsidian Compatibility Matrix
 
-Status of Obsidian vault features supported by Cognitive-Loop-OS's
+Status of Obsidian vault features supported by archeaxis-workspace's
 Obsidian projection layer (`shared/obsidian_projection.py`) and the
 synthetic test vault (`knowledge_base/obsidian_vault/`).
 

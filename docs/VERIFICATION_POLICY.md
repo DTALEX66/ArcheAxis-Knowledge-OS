@@ -1,6 +1,6 @@
 # Verification Policy
 
-> 适用范围：仅限 `Cognitive-Loop-OS`。本文件是本仓库验证频率、审计触发和证据保留的唯一流程记录。
+> 适用范围：仅限 `archeaxis-workspace`。本文件是本仓库验证频率、审计触发和证据保留的唯一流程记录。
 
 ## 目标
 

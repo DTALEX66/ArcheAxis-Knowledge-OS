@@ -1,6 +1,6 @@
-# Cognitive Loop OS — Vault Home
+# archeaxis-workspace — Vault Home
 
-Welcome to the synthetic test vault for Cognitive-Loop-OS.
+Welcome to the synthetic test vault for archeaxis-workspace.
 
 This vault exercises the Obsidian-to-Cognitive-OS compatibility surface.
 

@@ -2,7 +2,7 @@
 
 ## 1. 项目状态
 
-- 仓库：`DTALEX66/Cognitive-Loop-OS`（public）
+- 仓库：`DTALEX66/archeaxis-workspace`（public）
 - main HEAD：`ed0888f1ef0b107b263734a9ac9478e53e90ec49`（本地 == 云端）
 - 工作树：clean（0 changes）
 - 开发线版本：`0.5.0`（unreleased / development / public=false）
@@ -72,7 +72,7 @@
 
 ## 5. Hermes 根目录（区分结论）
 
-**审计结论：Hermes 根目录内无任何 Cognitive-Loop-OS 项目 spill。**
+**审计结论：Hermes 根目录内无任何 archeaxis-workspace 项目 spill。**
 
 `C:/Users/ALEX/AppData/Local/hermes/` 下所有项均为 Hermes **全局基础设施**，全部保留，未删除：
 - `backups` 4.5G（受保护恢复备份）、`hermes-agent` 4.1G（Hermes 代码库）、`state.db` 2.5G（全局状态库）

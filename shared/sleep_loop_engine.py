@@ -8,7 +8,7 @@ Local-first implementation for the night-time unattended scenario:
 - quiet local logs only
 
 The module intentionally avoids external Redis/MySQL requirements so the engine
-can run offline inside the current Cognitive-Loop-OS/FastAPI runtime.  The table
+can run offline inside the current archeaxis-workspace/FastAPI runtime.  The table
 shape mirrors a future Redis/MySQL deployment boundary: queue state is explicit,
 all operations append immutable events, and runtime config is stored separately
 from execution records.

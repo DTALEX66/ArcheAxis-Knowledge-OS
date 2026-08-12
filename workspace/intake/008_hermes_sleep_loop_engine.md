@@ -10,7 +10,7 @@
 
 ## 本轮决策
 
-当前 Cognitive-Loop-OS 的实际运行时是 Python/FastAPI + SQLite，仓库内没有 Node 主服务、Redis/MySQL 部署基线。因此 v0.1 采用本地优先方案：
+当前 archeaxis-workspace 的实际运行时是 Python/FastAPI + SQLite，仓库内没有 Node 主服务、Redis/MySQL 部署基线。因此 v0.1 采用本地优先方案：
 
 - SQLite 作为无人值守任务账本，表结构保留未来 MySQL 迁移边界。
 - 数据库状态队列替代 Redis 队列，字段保留待执行/执行中/完成/失败/阻断状态。

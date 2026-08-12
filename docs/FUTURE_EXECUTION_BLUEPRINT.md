@@ -6,7 +6,7 @@
 
 ## 目的
 
-本蓝图将四份外部设计交付中的可复用原则，收敛为 Cognitive-Loop-OS 的唯一未来方向：
+本蓝图将四份外部设计交付中的可复用原则，收敛为 archeaxis-workspace 的唯一未来方向：
 
 - `ArcheAxis Learning Workspace Overview`：产品愿景与八个业务域；
 - `ArcheAxis OS V3.0 Blueprint`：模块化单体、统一网关及渐进迁移；

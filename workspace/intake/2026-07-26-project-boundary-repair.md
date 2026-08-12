@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repair covers only data proven to belong to Cognitive-Loop-OS. Hermes, CC Switch, Codex, Workflow-assistance, GitHub delegation, session, cron, Kanban, and other workflow-infrastructure paths are not project data and remain in their owning directories.
+This repair covers only data proven to belong to archeaxis-workspace. Hermes, CC Switch, Codex, Workflow-assistance, GitHub delegation, session, cron, Kanban, and other workflow-infrastructure paths are not project data and remain in their owning directories.
 
 ## Root causes found
 
@@ -16,7 +16,7 @@ This repair covers only data proven to belong to Cognitive-Loop-OS. Hermes, CC S
 - Project `.hermes` bundles now resolve installed runtime data to `.hermes/task-runtime/desktop-installed`.
 - Ordinary external installed packages retain their explicit per-user runtime root; this is separate from project portable/staged bundles.
 - Added Python and Rust regression tests for both fail-closed behavior and project-bundle data containment.
-- Migrated the verified Cognitive-Loop-OS fallback database and Tauri-owned persistent data into ignored project runtime storage; verified file hashes and SQLite integrity.
+- Migrated the verified archeaxis-workspace fallback database and Tauri-owned persistent data into ignored project runtime storage; verified file hashes and SQLite integrity.
 - Restored the known Hermes delegation batch to its original Hermes workflow path; no other workflow batch was moved or deleted.
 - Updated `AGENTS.md` to require ownership proof before moving or deleting external files.
 
@@ -27,7 +27,7 @@ This repair covers only data proven to belong to Cognitive-Loop-OS. Hermes, CC S
 - Repository convention check passed.
 - `git diff --check` passed.
 - Project runtime root exists at `.hermes/task-runtime/desktop-installed`.
-- Cognitive-Loop-OS-specific C-drive fallback/AppData source roots are absent after migration.
+- archeaxis-workspace-specific C-drive fallback/AppData source roots are absent after migration.
 - Hermes delegation root remains present and was not treated as project output.
 
 ## Safety note

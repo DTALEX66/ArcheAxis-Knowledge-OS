@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cognitive-Loop-OS — migrate once, then launch the unified single-writer runtime.
+# archeaxis-workspace — migrate once, then launch the unified single-writer runtime.
 set -e
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"

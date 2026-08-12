@@ -1,6 +1,6 @@
-# Handoff — Cognitive-Loop-OS 完整交接与阶段总结（2026-08-07 续）
+# Handoff — archeaxis-workspace 完整交接与阶段总结（2026-08-07 续）
 
-> 仓库：`DTALEX66/Cognitive-Loop-OS`（public）
+> 仓库：`DTALEX66/archeaxis-workspace`（public）
 > 交接基线：`main@bef99eea6a52e4f5a43eb58cdcc1499a43e3f5db`
 > 编制：2026-08-07（UTC 收尾）
 > 性质：阶段总结 + 交接 + 当前真实状态（含进行中 K2 与待查 CI）

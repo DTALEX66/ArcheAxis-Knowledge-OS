@@ -1,4 +1,4 @@
-"""Transactional, backed-up SQLite migrations for Cognitive-Loop-OS.
+"""Transactional, backed-up SQLite migrations for archeaxis-workspace.
 
 Migrations are code-owned and shipped with the application. Runtime data directories
 contain databases and backups only; they are never treated as a source of executable

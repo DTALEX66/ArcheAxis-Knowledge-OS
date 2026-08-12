@@ -1,4 +1,4 @@
-"""AST-based architecture boundary guard for Cognitive-Loop-OS."""
+"""AST-based architecture boundary guard for archeaxis-workspace."""
 
 from __future__ import annotations
 

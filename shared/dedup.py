@@ -1,7 +1,7 @@
 """Content deduplication service for IR + KB.
 
 Adapted from Star-Trails-Log dedup service.
-Generalized for Cognitive-Loop-OS: supports URL, title, and content-hash
+Generalized for archeaxis-workspace: supports URL, title, and content-hash
 deduplication across KB documents, research notes, intake cards, etc.
 """
 

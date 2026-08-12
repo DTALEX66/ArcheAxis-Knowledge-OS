@@ -1,9 +1,9 @@
-# Cognitive-Loop-OS Configuration
+# archeaxis-workspace Configuration
 # Override defaults from shared/config.py
 # Environment variables take precedence over this file.
 
 app:
-  name: "Cognitive-Loop-OS"
+  name: "archeaxis-workspace"
   version: "0.5.0"
   release_version: ""
   environment: "development"

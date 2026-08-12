@@ -42,7 +42,7 @@ def get_video_info(video_id: str) -> dict[str, Any]:
     try:
         response = fetch(
             oembed_url,
-            headers={"User-Agent": "Cognitive-Loop-OS/0.3"},
+            headers={"User-Agent": "archeaxis-workspace/0.3"},
             policy=SafeHTTPPolicy(
                 max_bytes=256_000,
                 allowed_hosts=("www.youtube.com", "youtube.com"),
@@ -122,7 +122,7 @@ def search_youtube(query: str, max_results: int = 5) -> list[dict[str, Any]]:
         response = fetch(
             feed_url,
             headers={
-                "User-Agent": "Cognitive-Loop-OS/0.3",
+                "User-Agent": "archeaxis-workspace/0.3",
             },
             policy=SafeHTTPPolicy(
                 max_bytes=2_000_000,

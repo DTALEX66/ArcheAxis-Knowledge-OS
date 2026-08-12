@@ -1,6 +1,6 @@
 # Knowledge-Base
 
-Knowledge-Base 是 Cognitive-Loop-OS 的知识资产与学习运行层，不再作为独立、无边界增长的 API 集合维护。
+Knowledge-Base 是 archeaxis-workspace 的知识资产与学习运行层，不再作为独立、无边界增长的 API 集合维护。
 
 ## 领域结构
 

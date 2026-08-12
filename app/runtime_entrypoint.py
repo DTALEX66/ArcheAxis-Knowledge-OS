@@ -1,4 +1,4 @@
-"""Lease-aware runtime command adapter for Cognitive-Loop-OS."""
+"""Lease-aware runtime command adapter for archeaxis-workspace."""
 
 from __future__ import annotations
 
