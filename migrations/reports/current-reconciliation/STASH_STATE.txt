@@ -1,9 +1,9 @@
 Generated: 2026-07-17T22:31:07+08:00
 
-D:/All projects/Cognitive-Loop-OS
+D:/All projects/ArcheAxis-Knowledge-OS
   git stash list: empty
 
-D:/All projects/Cognitive-Loop-OS-container
+D:/All projects/ArcheAxis-Knowledge-OS-container
   git stash list: empty
 
 Disposition: nothing to apply, drop, rewrite, or archive. No stash operation was performed.

@@ -590,7 +590,7 @@ jobs:
           }
           $package = Get-Content "desktop/package.json" -Raw | ConvertFrom-Json
           $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
-          $expected = "ArcheAxis OS_$($package.version)_x64-setup.exe"
+          $expected = "ArcheAxis Knowledge_$($package.version)_x64-setup.exe"
           Write-Host "NSIS installers found: $($installers.Name -join ', ')"
           if ($installers.Count -ne 1) {
             throw "expected exactly one NSIS installer, found $($installers.Count)"
@@ -629,7 +629,7 @@ jobs:
         run: |
           $package = Get-Content "desktop/package.json" -Raw | ConvertFrom-Json
           $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
-          $expected = "ArcheAxis OS_$($package.version)_x64-setup.exe"
+          $expected = "ArcheAxis Knowledge_$($package.version)_x64-setup.exe"
           Write-Host "NSIS installers found: $($installers.Name -join ', ')"
           if ($installers.Count -ne 1) {
             throw "expected exactly one NSIS installer, found $($installers.Count)"

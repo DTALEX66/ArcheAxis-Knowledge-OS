@@ -1,5 +1,5 @@
 schema_version: "2.0"
-ledger_name: "ArcheAxis Learning Workspace — Scope Ledger"
+ledger_name: "ArcheAxis Knowledge — Scope Ledger"
 updated: "2026-08-12"
 authority: "任务包 v1 2026-08-11"
 
@@ -30,7 +30,7 @@ scope_entries:
   - id: "SCOPE-005"
     item: "已退休定位"
     scope: "retired"
-    description: "元枢工作台、ArcheAxis OS、archeaxis-workspace 作为产品名（仅历史/迁移语境）"
+    description: "元枢工作台、ArcheAxis Knowledge、archeaxis-workspace 作为产品名（仅历史/迁移语境）"
 
 programs:
   - id: "AXW-090"

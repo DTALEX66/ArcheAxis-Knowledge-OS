@@ -125,7 +125,7 @@ jobs:
             (Resolve-Path "release-assets/release-identity.json").Path,
             (Resolve-Path "release-assets/SHA256SUMS.txt").Path
           )
-          gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis OS $env:GITHUB_REF_NAME" --generate-notes
+          gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis Knowledge $env:GITHUB_REF_NAME" --generate-notes
       - name: Read back and verify draft release assets
         env:
           GH_TOKEN: ${{ github.token }}

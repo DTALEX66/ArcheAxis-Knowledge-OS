@@ -41,7 +41,7 @@ async def core_runtime_lifespan(_: FastAPI):
 
 app = FastAPI(
     lifespan=core_runtime_lifespan,
-    title="ArcheAxis Learning Workspace — Human–AI Learning Workspace",
+    title="ArcheAxis Knowledge — Human–AI Learning Workspace",
     version=str(config.get("app.version", "0.5.0")),
     description="Local-first, evidence-driven Human–AI learning and knowledge workspace. "
     "The current vertical targets approved Vault roots, Markdown, JSON Canvas, revisions, conflicts and readback. "
@@ -366,7 +366,7 @@ def health():
 
     return {
         "status": "ok",
-        "system": "cognitive-loop-os",
+        "system": "ArcheAxis-Knowledge-OS",
         "version": str(config.get("app.version", "0.5.0")),
         "endpoints": _http_route_counts(),
         "stats": {

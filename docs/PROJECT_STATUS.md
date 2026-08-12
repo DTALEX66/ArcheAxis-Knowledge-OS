@@ -10,7 +10,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Learning Workspace 的 Obsidian-compatible Workspace foundation 阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry、SSE 和 lease-fenced Worker 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收和交互式 Job Center 仍属于后续产品证据。图像 OCR 基础依赖、真实图像门禁、Windows 构建、NSIS lifecycle 和公开 `v0.5.0` installer 资产已验证；ASR、签名发布、多端发布及更高阶 Alpha/Beta 能力仍未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V1.md`（ArcheAxis / 星轨学习工作台）。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Knowledge 的 Obsidian-compatible Workspace foundation 阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry、SSE 和 lease-fenced Worker 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收和交互式 Job Center 仍属于后续产品证据。图像 OCR 基础依赖、真实图像门禁、Windows 构建、NSIS lifecycle 和公开 `v0.5.0` installer 资产已验证；ASR、签名发布、多端发布及更高阶 Alpha/Beta 能力仍未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V1.md`（ArcheAxis / 星环知识平台）。
 
 ## 已验证能力
 
@@ -47,7 +47,7 @@
 - `shared/content_quality.py`：乱码、水印、误导性 100% 和 Wikilink 静态审计。
 - `shared/oer_crosswalk.py`：静态开放来源发现建议（遗留文件名），不检索内容、不检查许可、不做 claim-level crosswalk。
 - CI 的 test/lint、browser 和 Windows runtime job 从 `pyproject.toml` 的锁定 `uv` dependency groups 导出带哈希的最小依赖；wheel-smoke 仍在仓库外验证真实 wheel/runtime，避免以提速为由削弱发布覆盖。
-- 全局 TaskPack runner 由 `D:/All projects/Workflow-assistance/scripts/workflow/run_taskpack_agent.py` 维护；OS 调用时显式传入 `cognitive-loop-os`、实际目标远端与本项目 TaskPack。它提供单 writer、冻结复审和 exact-SHA 编排，但不替代本项目的架构/数据库/权限门禁。
+- 全局 TaskPack runner 由 `D:/All projects/Workflow-assistance/scripts/workflow/run_taskpack_agent.py` 维护；OS 调用时显式传入 `ArcheAxis-Knowledge-OS`、实际目标远端与本项目 TaskPack。它提供单 writer、冻结复审和 exact-SHA 编排，但不替代本项目的架构/数据库/权限门禁。
 - 开源项目、知识库软件与 Obsidian/PKM 的阶段化吸收矩阵见 `docs/ABSORPTION_EXECUTION_MATRIX.md`（v2，2026-08-11 更新）；权威吸收决策账本见 `docs/truth/SUPPLY_CHAIN_LEDGER.json`（v2，46 个组件含吸收决策）。旧 101 行 registry/ledger（2026-07-22）已被替代。
 
 ## 仍保留的债务

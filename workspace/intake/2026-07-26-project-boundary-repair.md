@@ -6,7 +6,7 @@ This repair covers only data proven to belong to archeaxis-workspace. Hermes, CC
 
 ## Root causes found
 
-1. `shared/config.py` had an implicit `Path.home() / ".cognitive-loop-os"` fallback when an installed or relocated runtime lacked `COGNITIVE_DATA_DIR`.
+1. `shared/config.py` had an implicit `Path.home() / ".ArcheAxis-Knowledge-OS"` fallback when an installed or relocated runtime lacked `COGNITIVE_DATA_DIR`.
 2. Tauri installed-mode resolution used `app_local_data_dir()` for every non-debug bundle, including project-owned staged/portable bundles.
 3. External Temp/AppData candidates were ambiguous until ownership was established from source code, test naming, Git worktree, process ownership, and generation path.
 

@@ -1,10 +1,10 @@
-# AGENTS.md - 星轨学习工作台（ArcheAxis Learning Workspace）Operating Guide
+# AGENTS.md - 星环知识平台（ArcheAxis Knowledge）Operating Guide
 
-This file is the public, sanitized operating configuration for Codex/agent work inside this repository. It describes how an agent should work on ArcheAxis Learning Workspace — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace — without exposing local credentials, private keys, tokens, machine-specific secrets, or personal files.
+This file is the public, sanitized operating configuration for Codex/agent work inside this repository. It describes how an agent should work on ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace — without exposing local credentials, private keys, tokens, machine-specific secrets, or personal files.
 
 ## 1. Project Mission
 
-ArcheAxis Learning Workspace is a local-first, evidence-driven, bidirectional Human–AI
+ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
 Learning & Trusted-Knowledge Workspace. The current minimum closed loop is broad compatibility: absorbing
 mature capabilities from comparable software. The first high-fidelity vertical
 slice is Obsidian Vault / Markdown / JSON Canvas. Implementation prefers legal
@@ -13,7 +13,7 @@ from scratch. Heavy blueprints (general Agent Runtime, multi-agent,
 Marketplace, 3D/VR, enterprise collaboration) are deferred; 3D/VR/AR, animation,
 simulation and spatial memory are retained as binding_long_term capabilities
 (see docs/truth/CAPABILITY_ATLAS_V2.yaml). Product identity and naming are
-locked by docs/truth/NAMING_CONTRACT_V1.md (ArcheAxis / 星轨学习工作台).
+locked by docs/truth/NAMING_CONTRACT_V1.md (ArcheAxis / 星环知识平台).
 
 The legacy runtime exposed two supporting surfaces:
 
@@ -39,7 +39,7 @@ The legacy runtime exposed two supporting surfaces:
 ## 3. Safety Rules
 
 - Work inside the current repository unless the user explicitly names another exact project path.
-- The external A project named `Obsidian-Assistance` is already audited and absorbed: do not scan, test, modify, synchronize, or use it as a migration target in future ArcheAxis Learning Workspace work.
+- The external A project named `Obsidian-Assistance` is already audited and absorbed: do not scan, test, modify, synchronize, or use it as a migration target in future ArcheAxis Knowledge work.
 - Do not access `E:\` unless the user explicitly confirms the exact path, action, and impact range.
 - Do not upload or print secrets: `.env`, `.codex`, SSH private keys, API keys, tokens, cookies, credentials, or password files.
 - Do not commit runtime memory, local caches, virtual environments, logs, or generated databases.

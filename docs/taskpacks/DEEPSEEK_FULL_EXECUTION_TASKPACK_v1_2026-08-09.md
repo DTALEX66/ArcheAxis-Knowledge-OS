@@ -13,7 +13,7 @@
 ## 1. 给 DeepSeek 的最高层指令
 
 ```text
-你是 DTALEX66/Cognitive-Loop-OS 的持续执行 agent。
+你是 DTALEX66/ArcheAxis-Knowledge-OS 的持续执行 agent。
 
 目标：按照冻结任务基线的依赖顺序，从第一个可执行且未 PASS 的任务开始，完成实现、测试、证据、提交候选和追加式状态记录。持续工作到当前授权范围全部完成，或遇到必须由用户处理的真实阻塞。
 
@@ -41,7 +41,7 @@
 
 ```yaml
 repository: <LOCAL_CHECKOUT_PATH>
-remote: git@github.com:DTALEX66/Cognitive-Loop-OS.git
+remote: git@github.com:DTALEX66/ArcheAxis-Knowledge-OS.git
 baseline: docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md
 mandatory_addenda:
   - docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md

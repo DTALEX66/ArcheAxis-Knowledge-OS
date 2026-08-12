@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'cognitive-loop-os-api',
+      name: 'ArcheAxis-Knowledge-OS-api',
       script: 'python',
       args: '-m app.runtime_entrypoint core',
       cwd: __dirname,

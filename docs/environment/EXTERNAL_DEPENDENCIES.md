@@ -1,4 +1,4 @@
-# ArcheAxis Learning Workspace — External Dependency & Environment Configuration
+# ArcheAxis Knowledge — External Dependency & Environment Configuration
 
 > 文档位置：`D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md`
 > 仓库同步：`docs/environment/EXTERNAL_DEPENDENCIES.md`
@@ -15,7 +15,7 @@
 | 变量 | 值 | 用途 |
 |---|---|---|
 | `UV_CACHE_DIR` | `D:\All projects\OS configuration\uv-cache` | uv 包缓存 |
-| `UV_PROJECT_ENVIRONMENT` | `D:\All projects\OS configuration\cognitive-loop-os-ci-venv` | 项目虚拟环境 |
+| `UV_PROJECT_ENVIRONMENT` | `D:\All projects\OS configuration\ArcheAxis-Knowledge-OS-ci-venv` | 项目虚拟环境 |
 | `HERMES_HOME` | `C:\Users\ALEX\AppData\Local\hermes` | Hermes Agent 配置（全局） |
 | `PYTHONPATH` | 清空（显式 `env -u PYTHONPATH`） | 避免污染 uv 环境 |
 
@@ -254,11 +254,11 @@ pip install uv
 
 # 5. 环境变量（用户级）
 setx UV_CACHE_DIR "D:\All projects\OS configuration\uv-cache"
-setx UV_PROJECT_ENVIRONMENT "D:\All projects\OS configuration\cognitive-loop-os-ci-venv"
+setx UV_PROJECT_ENVIRONMENT "D:\All projects\OS configuration\ArcheAxis-Knowledge-OS-ci-venv"
 
 # 6. 克隆仓库
-git clone git@github.com:DTALEX66/archeaxis-workspace.git "D:\All projects\Cognitive-Loop-OS"
-cd "D:\All projects\Cognitive-Loop-OS"
+git clone git@github.com:DTALEX66/archeaxis-workspace.git "D:\All projects\ArcheAxis-Knowledge-OS"
+cd "D:\All projects\ArcheAxis-Knowledge-OS"
 
 # 7. 安装依赖
 uv sync --frozen
@@ -279,10 +279,10 @@ uv run python -m app.runtime_entrypoint
 
 当前描述：
 ```
-ArcheAxis OS — a local-first, evidence-driven, bidirectional Human–AI Learning Workspace for individuals and AI.
+ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning Workspace for individuals and AI.
 ```
 
-**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Learning Workspace" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis OS" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
+**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Knowledge" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis Knowledge" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ArcheAxis Learning Workspace",
+  "productName": "ArcheAxis Knowledge",
   "version": "0.5.0",
   "identifier": "com.archeaxis.workspace",
   "build": {

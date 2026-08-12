@@ -6,8 +6,8 @@ product:
     zh-CN: ArcheAxis
     class: display
   name:
-    en-US: ArcheAxis Learning Workspace
-    zh-CN: 星轨学习工作台
+    en-US: ArcheAxis Knowledge
+    zh-CN: 星环知识平台
     class: display
   description:
     en-US: A local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace.
@@ -21,7 +21,7 @@ product:
     - value: ArcheAxis Workspace
       class: legacy
       allowed_surfaces: [desktop_protocol, installer_migration, historical_release, compatibility_docs]
-    - value: ArcheAxis OS
+    - value: ArcheAxis Knowledge
       class: legacy
       allowed_surfaces: [desktop_protocol, installer_migration, historical_release]
     - value: 元枢工作台
@@ -47,8 +47,8 @@ forbidden_default_terms:
   - 通用 Agent OS
   - 星轨
 rules:
-  default_ui_product_name: ArcheAxis Learning Workspace
-  default_ui_product_name_zh: 星轨学习工作台
+  default_ui_product_name: ArcheAxis Knowledge
+  default_ui_product_name_zh: 星环知识平台
   preserve_technical_compatibility_ids: true
   github_repository_rename: explicit_decision_required
   tauri_identifier_change: migration_and_rollback_required

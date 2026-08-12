@@ -1,4 +1,4 @@
-# Current State Truth — ArcheAxis OS
+# Current State Truth — ArcheAxis Knowledge
 
 > 文档 ID：`AXW-CURRENT-STATE-v1-2026-08-09`
 >

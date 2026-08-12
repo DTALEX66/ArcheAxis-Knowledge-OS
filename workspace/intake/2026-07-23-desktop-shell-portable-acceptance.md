@@ -2,7 +2,7 @@
 
 ## 结论
 
-`ArcheAxis OS` 已不是单纯浏览器预览：当前 `main` 包含可构建、可启动的 Windows Tauri 桌面壳。它启动随包附带的隔离 Python runtime，再以 WebView2 打开本机 `/workspace`。
+`ArcheAxis Knowledge` 已不是单纯浏览器预览：当前 `main` 包含可构建、可启动的 Windows Tauri 桌面壳。它启动随包附带的隔离 Python runtime，再以 WebView2 打开本机 `/workspace`。
 
 本次验收在本机以当前 `main`（`604a41275bad0671389f1200f1e9519ed77264bc`）完成；不把浏览器 smoke 或 Rust 单元测试误报为桌面安装验收。
 
@@ -10,7 +10,7 @@
 
 1. `npm --prefix desktop run tauri build` 成功，生成：
    - `desktop/src-tauri/target/release/archeaxis-desktop-shell.exe`
-   - `desktop/src-tauri/target/release/bundle/nsis/ArcheAxis OS_0.4.0_x64-setup.exe`
+   - `desktop/src-tauri/target/release/bundle/nsis/ArcheAxis Knowledge_0.4.0_x64-setup.exe`
 2. CI 的 exact-SHA `desktop-shell` 真实构建并执行 NSIS 安装验收，结果为：
    - `WorkspaceStatus=200`
    - `GracefulShutdown=true`

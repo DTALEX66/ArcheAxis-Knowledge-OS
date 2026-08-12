@@ -511,7 +511,7 @@ def desktop_readiness(request: Request) -> dict[str, str]:
         raise HTTPException(status_code=403, detail="invalid desktop launch token")
     return {
         "schema_version": "v1",
-        "product": "ArcheAxis Learning Workspace",
+        "product": "ArcheAxis Knowledge",
         "workspace": "Human–AI Learning Workspace",
     }
 

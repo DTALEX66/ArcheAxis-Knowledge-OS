@@ -34,7 +34,7 @@
 
 | 旧名称 | 现状 | 允许语境 |
 |---|---|---|
-| Cognitive-Loop-OS | 原仓库技术身份（已改名 archeaxis-workspace） | Git/CI/包名历史兼容（Legacy） |
+| ArcheAxis-Knowledge-OS | 原仓库技术身份（已改名 archeaxis-workspace） | Git/CI/包名历史兼容（Legacy） |
 | 元枢 / 元枢工作台 | 已弃用 | 历史、迁移、兼容说明 |
 | ArcheAxis OS | 旧产品名（曾用于 GitHub 描述） | 历史记录 |
 

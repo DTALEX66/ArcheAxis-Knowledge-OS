@@ -93,7 +93,7 @@ def cmd_stats() -> None:
     from shared.config import config
     from shared.storage import count as _c
 
-    print(f"ArcheAxis Learning Workspace v{config.get('app.version', 'unknown')}")
+    print(f"ArcheAxis Knowledge v{config.get('app.version', 'unknown')}")
     print("=" * 40)
     tables = [
         "kb_documents",

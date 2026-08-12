@@ -2,7 +2,7 @@
 
 ## Scope
 
-Repair the current `archeaxis-workspace` boundary without modifying the separate `C:\Users\ALEX\Cognitive-OS` repository. Project code and project-owned runtime data remain under `D:\All projects\Cognitive-Loop-OS`; external software, shared environments, portable tools, and related configuration remain under `D:\All projects\OS configuration`.
+Repair the current `archeaxis-workspace` boundary without modifying the separate `C:\Users\ALEX\Cognitive-OS` repository. Project code and project-owned runtime data remain under `D:\All projects\ArcheAxis-Knowledge-OS`; external software, shared environments, portable tools, and related configuration remain under `D:\All projects\OS configuration`.
 
 ## Repairs completed
 

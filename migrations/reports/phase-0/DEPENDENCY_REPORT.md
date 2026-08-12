@@ -37,7 +37,7 @@
 | `pytest>=7.0` | `dev` |
 | `ruff>=0.5` | `dev` |
 | `mypy>=1.8` | `dev` |
-| `cognitive-loop-os[dev,ingestion]` | `full` |
+| `ArcheAxis-Knowledge-OS[dev,ingestion]` | `full` |
 | `crawl4ai>=0.1` | `ingestion` |
 | `langfuse>=4.0` | `ingestion` |
 | `promptfoo>=0.1` | `ingestion` |
