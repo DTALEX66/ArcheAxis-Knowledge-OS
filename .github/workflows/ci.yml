@@ -508,7 +508,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             desktop/src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-audit-0.22.2
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-audit-0.22.2-naming-v2
           restore-keys: |
             ${{ runner.os }}-cargo-
       - name: Install locked Python runtime
@@ -554,7 +554,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             desktop/src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build-naming-v2
           restore-keys: |
             ${{ runner.os }}-cargo-
       - name: Install locked Python runtime
