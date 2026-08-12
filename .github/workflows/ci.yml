@@ -277,7 +277,7 @@ jobs:
       - name: Smoke-test installed runtime outside repository
         working-directory: ${{ runner.temp }}
         env:
-          COGNITIVE_DATA_DIR: ${{ runner.temp }}/cognitive-runtime
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-runtime
         run: |
           python -m app.runtime_entrypoint migrate
           python - <<'PY'
@@ -308,7 +308,7 @@ jobs:
               assert client.get("/kb").status_code == 200
               assert client.get("/workspace").status_code == 200
               assert client.get("/workspace/api/status").status_code == 200
-          runtime = Path(os.environ["COGNITIVE_DATA_DIR"])
+          runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])
           assert (runtime / "cognitive_os.sqlite").exists()
           assert LOG_DIR == runtime / "logs" / "sleep-loop"
           PY
@@ -317,7 +317,7 @@ jobs:
           import sqlite3
           from pathlib import Path
 
-          runtime = Path(os.environ["COGNITIVE_DATA_DIR"])
+          runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])
           database = runtime / "cognitive_os.sqlite"
           connection = sqlite3.connect(database)
           checkpoint = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
@@ -328,7 +328,7 @@ jobs:
           sidecars = [database.with_name(database.name + suffix) for suffix in ("-wal", "-shm")]
           assert not [path for path in sidecars if path.exists()], sidecars
           PY
-          COGNITIVE_DATA_DIR="${RUNNER_TEMP}/inspiration-runtime" python - <<'PY'
+          ARCHEAXIS_DATA_DIR="${RUNNER_TEMP}/inspiration-runtime" python - <<'PY'
           import app.research.github
           import shared.research_migration
           import shared.research_store
@@ -412,7 +412,7 @@ jobs:
               assert created.status_code == 200, created.text
               payload = created.json()
               assert not {"package_id", "job_id", "command_id", "event_id"} & payload.keys()
-              database = Path(os.environ["COGNITIVE_DATA_DIR"]) / "cognitive_os.sqlite"
+              database = Path(os.environ["ARCHEAXIS_DATA_DIR"]) / "cognitive_os.sqlite"
               with sqlite3.connect(database) as connection:
                   rows = connection.execute(
                       "SELECT job_id, aggregate_id FROM workspace_jobs_v1"
@@ -453,7 +453,7 @@ jobs:
         run: python -m playwright install --with-deps chromium
       - name: Run real Workspace browser regressions
         env:
-          COGNITIVE_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
         run: python scripts/a0_browser_smoke.py
 
   windows-runtime-smoke:
@@ -477,11 +477,11 @@ jobs:
           uv pip install --system --require-hashes -r locked-ci.txt
       - name: Migrate fresh Windows runtime
         env:
-          COGNITIVE_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
         run: python -m app.runtime_entrypoint migrate
       - name: Run Windows Core and Workspace HTTP smoke
         env:
-          COGNITIVE_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
         run: python scripts/runtime_http_smoke.py
 
   desktop-fast:
@@ -526,10 +526,10 @@ jobs:
       - name: Test the development and installed backend lifecycles
         working-directory: desktop/src-tauri
         env:
-          COGNITIVE_RATE_LIMIT_READ: "10000"
-          COGNITIVE_RATE_LIMIT_WRITE: "1000"
-          COGNITIVE_RATE_LIMIT_TOKEN: "100"
-          COGNITIVE_RATE_LIMIT_ENABLED: "false"
+          ARCHEAXIS_RATE_LIMIT_READ: "10000"
+          ARCHEAXIS_RATE_LIMIT_WRITE: "1000"
+          ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
+          ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
         run: cargo test --test backend_lifecycle -- --ignored --nocapture
 
   desktop-build:
@@ -622,10 +622,10 @@ jobs:
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         env:
-          COGNITIVE_RATE_LIMIT_READ: "10000"
-          COGNITIVE_RATE_LIMIT_WRITE: "1000"
-          COGNITIVE_RATE_LIMIT_TOKEN: "100"
-          COGNITIVE_RATE_LIMIT_ENABLED: "false"
+          ARCHEAXIS_RATE_LIMIT_READ: "10000"
+          ARCHEAXIS_RATE_LIMIT_WRITE: "1000"
+          ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
+          ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
         run: |
           $package = Get-Content "desktop/package.json" -Raw | ConvertFrom-Json
           $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)

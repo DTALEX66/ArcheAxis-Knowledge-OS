@@ -330,7 +330,7 @@ def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
 
 
 def main() -> int:
-    data_dir = os.environ.get("COGNITIVE_DATA_DIR", "").strip()
+    data_dir = os.environ.get("ARCHEAXIS_DATA_DIR", "").strip() or os.environ.get("COGNITIVE_DATA_DIR", "").strip()
     if not data_dir:
         raise RuntimeError("COGNITIVE_DATA_DIR must point to an isolated browser-smoke directory")
     subprocess.run(

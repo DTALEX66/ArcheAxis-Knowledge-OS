@@ -319,6 +319,10 @@ if _research_app is not None:
 if _kb_app is not None:
     app.mount("/kb", _kb_app)
 app.include_router(workspace_router)
+# Naming contract §4: canonical API root is /api/v1/ (workspace router
+# mounted under both the legacy /workspace path and the canonical root;
+# the legacy path stays until all clients flip).
+app.include_router(workspace_router, prefix="/api/v1")
 
 
 def _http_route_counts() -> dict[str, int]:
