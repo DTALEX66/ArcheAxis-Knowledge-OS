@@ -1505,3 +1505,13 @@ AXW-H3-EXIT 裁决需后续发布流程，本记录不冒充 PASS。
 结论：H4 学习侧核心（FSRS 调度、掌握证据、审批链）实现与源码测试齐备；
 AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 与 AXW-054（对照评测 corpus）未在本批核录——后续发布流程裁决。
+
+
+### LOG-20260812-134~138: 命名迁移 Step 1-2 闭环（Owner 授权 2026-08-12）
+- #131 MERGED → main `2694d86`：打包身份迁移（pyproject name/CLI/release-manifest id/schema URI `archeaxis.local` 22 处/uv.lock 重生成/manifest digest rev 7）；全量 1461 passed，门禁双绿
+- GitHub 仓库重命名 `DTALEX66/Cognitive-Loop-OS` → `DTALEX66/archeaxis-workspace`（Owner 确认）；remote 更新；EXTERNAL_DEPENDENCIES 双写同步
+- #132 MERGED → main `04273c9`：活动文件 URL 同步 + **Tauri 缓存路径修复**（cache key + restore-keys 加 `-naming-v2` 使重命名前旧缓存失效）
+- #135 MERGED → main `2581744`：OSUI 34 个 `.artifact.json` 补 LF（osui 直推 main 引入 34 lint issues 阻塞所有 PR；门禁级基础设施修复，OSUI 内容归 OPEN-DESIGN 会话）
+- #133 MERGED → main `5fc287b`：60 文档全量替换（本地绝对路径恢复；冻结/权威产物保留旧名）
+- #134 MERGED → main `66c6aac`：命名迁移 Step 1-2 交接文档
+- 教训：批量替换须排除本地绝对路径 + 契约映射表 + 冻结文档；GitHub Actions 缓存含旧路径时须同时改 cache key 和 restore-keys；osui 会话直推 main 未过门禁
