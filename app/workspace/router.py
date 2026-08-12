@@ -503,7 +503,7 @@ def workspace_bff_object(public_ref: str, request: Request) -> dict[str, object]
 
 @router.get("/api/_desktop/ready")
 def desktop_readiness(request: Request) -> dict[str, str]:
-    launch_token = os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
+    launch_token = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
     if not launch_token:
         raise HTTPException(status_code=404, detail="not found")
     supplied_token = request.headers.get("x-archeaxis-launch-token", "")

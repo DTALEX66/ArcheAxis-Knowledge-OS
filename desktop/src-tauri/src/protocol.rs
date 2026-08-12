@@ -51,6 +51,9 @@ mod tests {
             r#"{"schema_version":"v2","product":"ArcheAxis OS","workspace":"Human–AI Learning Workspace"}"#
         ));
         assert!(!readiness_payload_valid(
+            r#"{"schema_version":"v1","product":"ArcheAxis OS","workspace":"Human–AI Learning Workspace"}"#
+        ));
+        assert!(!readiness_payload_valid(
             r#"{"schema_version":"v1","product":"Another Service","workspace":"Human–AI Learning Workspace"}"#
         ));
         assert!(!readiness_payload_valid("not-json"));

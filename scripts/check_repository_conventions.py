@@ -256,7 +256,11 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     docs/migration, docs/truth (newer files), config/, .worklab/.
     """
     pure = PurePosixPath(path)
-    if pure.suffix.casefold() not in {".md", ".yaml", ".yml", ".txt"}:
+    # Active product surfaces scanned for legacy product names: markdown
+    # docs, YAML config, and JSON config. Python/Rust sources are excluded
+    # because test fixtures deliberately embed forbidden names to assert
+    # rejection logic.
+    if pure.suffix.casefold() not in {".md", ".yaml", ".yml", ".txt", ".json"}:
         return []
     if pure.name in {"NAMING_CONTRACT_V1.md", "PRODUCT_IDENTITY_V2.md"}:
         return []
@@ -288,6 +292,7 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
         "docs/migration/",
         "docs/truth/",
         "config/",
+        "desktop/",
         ".worklab/",
     )
     if not path.startswith(active_prefixes):

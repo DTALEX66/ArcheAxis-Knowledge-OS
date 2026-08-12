@@ -22,7 +22,7 @@ def cmd_serve(port: int = 8000) -> None:
     """Start Core through the single lease-aware runtime entry point."""
     from app.runtime_entrypoint import run_core
 
-    os.environ["COGNITIVE_PORT"] = str(port)
+    os.environ["ARCHEAXIS_PORT"] = str(port)
     run_core(Namespace())
 
 

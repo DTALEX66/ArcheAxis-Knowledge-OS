@@ -31,9 +31,9 @@ def _uvicorn_command(app_path: str, default_port: int) -> list[str]:
         "uvicorn",
         app_path,
         "--host",
-        os.getenv("COGNITIVE_HOST", "127.0.0.1"),
+        os.getenv("ARCHEAXIS_HOST") or os.getenv("COGNITIVE_HOST", "127.0.0.1"),
         "--port",
-        os.getenv("COGNITIVE_PORT", str(default_port)),
+        os.getenv("ARCHEAXIS_PORT") or os.getenv("COGNITIVE_PORT", str(default_port)),
         *UVICORN_WORKER_ARGS,
         "--no-proxy-headers",
     ]
@@ -78,7 +78,7 @@ def _json_default(value: object) -> str:
 
 
 def run_core(_: argparse.Namespace) -> NoReturn:
-    if os.getenv("COGNITIVE_DESKTOP_CONTROL") == "stdio-v1":
+    if os.getenv("ARCHEAXIS_DESKTOP_CONTROL") or os.getenv("COGNITIVE_DESKTOP_CONTROL", "") == "stdio-v1":
         _run_desktop_core()
     _exec_process(_uvicorn_command("app.main:app", 8000))
 
@@ -86,14 +86,14 @@ def run_core(_: argparse.Namespace) -> NoReturn:
 def _run_desktop_core() -> NoReturn:
     import uvicorn
 
-    host = os.getenv("COGNITIVE_HOST", "127.0.0.1")
+    host = os.getenv("ARCHEAXIS_HOST") or os.getenv("COGNITIVE_HOST", "127.0.0.1")
     if host != "127.0.0.1":
         raise RuntimeError("desktop core must bind exactly to 127.0.0.1")
-    launch_token = os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
+    launch_token = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
     if len(launch_token) < 24:
         raise RuntimeError("desktop core requires a strong launch token")
     try:
-        port = int(os.getenv("COGNITIVE_PORT", "8000"))
+        port = int(os.getenv("ARCHEAXIS_PORT") or os.getenv("COGNITIVE_PORT", "8000"))
     except ValueError as exc:
         raise RuntimeError("desktop core requires a valid port") from exc
     if not 1 <= port <= 65535:
@@ -254,7 +254,7 @@ def run_backup(_: argparse.Namespace) -> int:
 def run_restore_candidate(args: argparse.Namespace) -> int:
     from shared import backup
 
-    source = args.backup_path or os.getenv("COGNITIVE_RESTORE_BACKUP", "")
+    source = args.backup_path or os.getenv("ARCHEAXIS_RESTORE_BACKUP") or os.getenv("COGNITIVE_RESTORE_BACKUP", "")
     if not source:
         raise RuntimeError("restore-candidate requires COGNITIVE_RESTORE_BACKUP or a backup path")
     print(backup.restore(source), flush=True)
@@ -264,7 +264,7 @@ def run_restore_candidate(args: argparse.Namespace) -> int:
 def run_restore_activate(args: argparse.Namespace) -> int:
     from shared import backup
 
-    source = args.candidate_path or os.getenv("COGNITIVE_RESTORE_CANDIDATE", "")
+    source = args.candidate_path or os.getenv("ARCHEAXIS_RESTORE_CANDIDATE") or os.getenv("COGNITIVE_RESTORE_CANDIDATE", "")
     if not source:
         raise RuntimeError(
             "restore-activate requires COGNITIVE_RESTORE_CANDIDATE or a candidate path"
