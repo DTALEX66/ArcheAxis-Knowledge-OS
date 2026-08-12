@@ -503,7 +503,7 @@ def workspace_bff_object(public_ref: str, request: Request) -> dict[str, object]
 
 @router.get("/api/_desktop/ready")
 def desktop_readiness(request: Request) -> dict[str, str]:
-    launch_token = os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
+    launch_token = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", "")
     if not launch_token:
         raise HTTPException(status_code=404, detail="not found")
     supplied_token = request.headers.get("x-archeaxis-launch-token", "")
@@ -511,7 +511,7 @@ def desktop_readiness(request: Request) -> dict[str, str]:
         raise HTTPException(status_code=403, detail="invalid desktop launch token")
     return {
         "schema_version": "v1",
-        "product": "ArcheAxis Learning Workspace",
+        "product": "ArcheAxis Knowledge",
         "workspace": "Human–AI Learning Workspace",
     }
 

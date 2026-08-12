@@ -28,7 +28,7 @@ def test_development_version_is_one_truth_across_runtime_and_desktop_surfaces() 
     assert tauri["version"] == EXPECTED_DEVELOPMENT_VERSION
     assert cargo["package"]["version"] == EXPECTED_DEVELOPMENT_VERSION
     assert f"--version {EXPECTED_DEVELOPMENT_VERSION}" in release_workflow
-    assert "ArcheAxis.OS-Windows-x64-setup.exe" in release_workflow
+    assert "ArcheAxis.Knowledge-Windows-x64-setup.exe" in release_workflow
     assert f"**当前版本**：`{EXPECTED_DEVELOPMENT_VERSION}`" in readme
     assert f"源码版本为 `{EXPECTED_DEVELOPMENT_VERSION}`" in status
     assert f"-ne '{EXPECTED_DEVELOPMENT_VERSION}'" in lifecycle

@@ -10,7 +10,7 @@
 | PR | 内容 | 结果 |
 |---|---|---|
 | **#131** (merged → main `2694d86`) | 打包身份迁移：pyproject name → `archeaxis-workspace`、CLI 入口 → `archeaxis`、release-manifest id、schema URI → `archeaxis.local`（22 处）、uv.lock 重生成、CI/release.yml/prepare_bundle 同步、manifest digest rev 7 | 全量 1461 passed，门禁双绿 |
-| **GitHub 仓库重命名** | `DTALEX66/Cognitive-Loop-OS` → **`DTALEX66/archeaxis-workspace`**（Owner 确认授权） | 完成，remote 已更新 |
+| **GitHub 仓库重命名** | `DTALEX66/ArcheAxis-Knowledge-OS` → **`DTALEX66/archeaxis-workspace`**（Owner 确认授权） | 完成，remote 已更新 |
 | **OS configuration 同步** | EXTERNAL_DEPENDENCIES.md 双写（`8ab8bee..1b03433`） | 已推送 |
 
 ### 已创建待核
@@ -30,13 +30,13 @@
 
 ### 未解决（需下轮处理）
 1. **#132 CI 失败**（desktop-fast/desktop-build/a0-gates）
-   - 根因：Tauri 构建缓存路径错误。actions/cache 恢复了重命名前的缓存（内容含旧路径 `D:\a\Cognitive-Loop-OS\...\desktop\src-tauri\target\`），仓库重命名后 checkout 目录为 `D:\a\archeaxis-workspace\...` → os error 3 找不到路径
+   - 根因：Tauri 构建缓存路径错误。actions/cache 恢复了重命名前的缓存（内容含旧路径 `D:\a\ArcheAxis-Knowledge-OS\...\desktop\src-tauri\target\`），仓库重命名后 checkout 目录为 `D:\a\archeaxis-workspace\...` → os error 3 找不到路径
    - 修复方案：`ci.yml` 的 Rust cache `key` 加版本前缀（如 `-naming-v2`）使旧缓存失效 → 重跑 → 绿后 merge #132
 2. **#133 CI 未核**：绿后 merge
 3. **Step 3 剩余项**（§4 表中 ⏳ 项）：环境变量/API 根/事件/Bundle ID/Windows 数据根/可执行名/本地服务——需后续分步迁移（契约要求"分别迁移，禁止批量搜索替换"）
 
 ### 已解决（记录备查）
-- 62 文档批量替换误改本地绝对路径（`D:\All projects\Cognitive-Loop-OS` → 新名）→ 已恢复 11 处，测试 1461 passed 恢复
+- 62 文档批量替换误改本地绝对路径（`D:\All projects\ArcheAxis-Knowledge-OS` → 新名）→ 已恢复 11 处，测试 1461 passed 恢复
 - NAMING_CONTRACT §3 映射表被批量替换破坏 → 已恢复旧名 Legacy 语境 + §4 标 DONE + 修订 V1.1
 - #131 CI desktop-build 显示卡 35+ 分钟 → GitHub API 状态延迟，实际 PASS（13m54s），不重跑
 - bash 引号陷阱（commit message 括号被当命令）→ commit/push 分离执行
@@ -51,7 +51,7 @@
 
 - **main**：`2694d86`（#131 merged）
 - **权威分支** `codex/frozen-roadmap-deepseek-v1`：LOG-001~133 + 契约 V1.1 记录
-- **canonical**：`D:\All projects\Cognitive-Loop-OS`（目录未改名，仍是旧路径——重命名只发生在 GitHub 远程）
+- **canonical**：`D:\All projects\ArcheAxis-Knowledge-OS`（目录未改名，仍是旧路径——重命名只发生在 GitHub 远程）
 - **remote**：`git@github.com:DTALEX66/archeaxis-workspace.git`
 - **开放 PR**：#132（CI 修复中）、#133（待核）
 - **本地全量测试**：1461 passed / 5 skipped / 0 failed
@@ -60,7 +60,7 @@
 ## 4. 回滚路径
 
 - #131/#132/#133 均可 `git revert`（各自独立提交，互不耦合）
-- 仓库重命名可 `gh repo rename Cognitive-Loop-OS` 回滚（GitHub 保留旧名 301）
+- 仓库重命名可 `gh repo rename ArcheAxis-Knowledge-OS` 回滚（GitHub 保留旧名 301）
 - 缓存修复仅改 cache key，无代码风险
 
 ## 5. 下轮首要动作

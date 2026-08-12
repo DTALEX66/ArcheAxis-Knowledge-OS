@@ -87,7 +87,7 @@ class Config:
     _SUPPORTED_PROFILES = {"desktop", "development", "test", "production"}
 
     def __init__(self, profile: str | None = None) -> None:
-        selected = profile if profile is not None else os.getenv("COGNITIVE_PROFILE", "development")
+        selected = profile if profile is not None else os.getenv("ARCHEAXIS_PROFILE") or os.getenv("COGNITIVE_PROFILE", "development")
         self.profile = selected.strip().lower() or "development"
         if self.profile not in self._SUPPORTED_PROFILES:
             supported = ", ".join(sorted(self._SUPPORTED_PROFILES))
@@ -114,35 +114,62 @@ class Config:
         self._deep_merge(self._data, data)
 
     def _apply_env(self) -> None:
-        """Override config from environment variables."""
+        """Override config from environment variables.
+
+        Primary names use the ARCHEAXIS_* prefix (naming contract §4).
+        Legacy COGNITIVE_* names are still honored as fallbacks for a
+        smooth migration; they will be removed once all deployments flip.
+        """
         env_map: dict[str, list[str]] = {
-            "COGNITIVE_ENV": ["app", "environment"],
-            "COGNITIVE_PORT": ["app", "port"],
-            "COGNITIVE_RELEASE_VERSION": ["app", "release_version"],
-            "COGNITIVE_DB_PATH": ["database", "path"],
-            "COGNITIVE_LOG_LEVEL": ["logging", "level"],
-            "COGNITIVE_AUTH_ENABLED": ["auth", "enabled"],
-            "COGNITIVE_JWT_SECRET": ["auth", "jwt_secret"],
-            "COGNITIVE_RATE_LIMIT_ENABLED": ["rate_limit", "enabled"],
-            "COGNITIVE_RATE_LIMIT_WINDOW_SECONDS": ["rate_limit", "window_seconds"],
-            "COGNITIVE_RATE_LIMIT_READ": ["rate_limit", "ordinary_read"],
-            "COGNITIVE_RATE_LIMIT_WRITE": ["rate_limit", "sensitive_write"],
-            "COGNITIVE_RATE_LIMIT_TOKEN": ["rate_limit", "auth_token"],
-            "COGNITIVE_RATE_LIMIT_MAX_BUCKETS": ["rate_limit", "max_buckets_per_policy"],
+            "ARCHEAXIS_ENV": ["app", "environment"],
+            "ARCHEAXIS_PORT": ["app", "port"],
+            "ARCHEAXIS_RELEASE_VERSION": ["app", "release_version"],
+            "ARCHEAXIS_DB_PATH": ["database", "path"],
+            "ARCHEAXIS_LOG_LEVEL": ["logging", "level"],
+            "ARCHEAXIS_AUTH_ENABLED": ["auth", "enabled"],
+            "ARCHEAXIS_JWT_SECRET": ["auth", "jwt_secret"],
+            "ARCHEAXIS_RATE_LIMIT_ENABLED": ["rate_limit", "enabled"],
+            "ARCHEAXIS_RATE_LIMIT_WINDOW_SECONDS": ["rate_limit", "window_seconds"],
+            "ARCHEAXIS_RATE_LIMIT_READ": ["rate_limit", "ordinary_read"],
+            "ARCHEAXIS_RATE_LIMIT_WRITE": ["rate_limit", "sensitive_write"],
+            "ARCHEAXIS_RATE_LIMIT_TOKEN": ["rate_limit", "auth_token"],
+            "ARCHEAXIS_RATE_LIMIT_MAX_BUCKETS": ["rate_limit", "max_buckets_per_policy"],
         }
+        legacy_env_map: dict[str, str] = {
+            "ARCHEAXIS_ENV": "COGNITIVE_ENV",
+            "ARCHEAXIS_PORT": "COGNITIVE_PORT",
+            "ARCHEAXIS_RELEASE_VERSION": "COGNITIVE_RELEASE_VERSION",
+            "ARCHEAXIS_DB_PATH": "COGNITIVE_DB_PATH",
+            "ARCHEAXIS_LOG_LEVEL": "COGNITIVE_LOG_LEVEL",
+            "ARCHEAXIS_AUTH_ENABLED": "COGNITIVE_AUTH_ENABLED",
+            "ARCHEAXIS_JWT_SECRET": "COGNITIVE_JWT_SECRET",
+            "ARCHEAXIS_RATE_LIMIT_ENABLED": "COGNITIVE_RATE_LIMIT_ENABLED",
+            "ARCHEAXIS_RATE_LIMIT_WINDOW_SECONDS": "COGNITIVE_RATE_LIMIT_WINDOW_SECONDS",
+            "ARCHEAXIS_RATE_LIMIT_READ": "COGNITIVE_RATE_LIMIT_READ",
+            "ARCHEAXIS_RATE_LIMIT_WRITE": "COGNITIVE_RATE_LIMIT_WRITE",
+            "ARCHEAXIS_RATE_LIMIT_TOKEN": "COGNITIVE_RATE_LIMIT_TOKEN",
+            "ARCHEAXIS_RATE_LIMIT_MAX_BUCKETS": "COGNITIVE_RATE_LIMIT_MAX_BUCKETS",
+        }
+        # New names win; legacy names act as fallbacks.
         for env_key, path in env_map.items():
-            val = os.getenv(env_key, "")
+            val = os.getenv(env_key, "") or os.getenv(legacy_env_map.get(env_key, ""), "")
             if val:
                 self._set_nested(self._data, path, self._coerce(val))
 
         list_env_map = {
-            "COGNITIVE_CORS_ORIGINS": ["cors", "allow_origins"],
-            "COGNITIVE_CORS_METHODS": ["cors", "allow_methods"],
-            "COGNITIVE_CORS_HEADERS": ["cors", "allow_headers"],
-            "COGNITIVE_TRUSTED_PROXIES": ["rate_limit", "trusted_proxies"],
+            "ARCHEAXIS_CORS_ORIGINS": ["cors", "allow_origins"],
+            "ARCHEAXIS_CORS_METHODS": ["cors", "allow_methods"],
+            "ARCHEAXIS_CORS_HEADERS": ["cors", "allow_headers"],
+            "ARCHEAXIS_TRUSTED_PROXIES": ["rate_limit", "trusted_proxies"],
+        }
+        legacy_list_env_map: dict[str, str] = {
+            "ARCHEAXIS_CORS_ORIGINS": "COGNITIVE_CORS_ORIGINS",
+            "ARCHEAXIS_CORS_METHODS": "COGNITIVE_CORS_METHODS",
+            "ARCHEAXIS_CORS_HEADERS": "COGNITIVE_CORS_HEADERS",
+            "ARCHEAXIS_TRUSTED_PROXIES": "COGNITIVE_TRUSTED_PROXIES",
         }
         for env_key, path in list_env_map.items():
-            value = os.getenv(env_key, "")
+            value = os.getenv(env_key, "") or os.getenv(legacy_list_env_map.get(env_key, ""), "")
             if value:
                 items = [item.strip() for item in value.split(",") if item.strip()]
                 self._set_nested(self._data, path, items)
@@ -197,7 +224,7 @@ def resolve_runtime_path(value: str | Path) -> Path:
     candidate = Path(value).expanduser()
     if candidate.is_absolute():
         return candidate
-    configured_root = os.getenv("COGNITIVE_DATA_DIR", "").strip()
+    configured_root = os.getenv("ARCHEAXIS_DATA_DIR", "").strip() or os.getenv("COGNITIVE_DATA_DIR", "").strip()
     if configured_root:
         base = Path(configured_root).expanduser()
         parts = (
@@ -209,7 +236,7 @@ def resolve_runtime_path(value: str | Path) -> Path:
     if (_PROJECT_ROOT / "pyproject.toml").exists():
         return _PROJECT_ROOT / candidate
     raise RuntimeError(
-        "runtime data root is not configured; set COGNITIVE_DATA_DIR "
+        "runtime data root is not configured; set ARCHEAXIS_DATA_DIR "
         "before using an installed or relocated runtime"
     )
 

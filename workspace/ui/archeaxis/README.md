@@ -1,4 +1,4 @@
-# 元枢系统 ArcheAxis OS · 观心工作台 UI Prototype
+# 元枢系统 ArcheAxis Knowledge · 观心工作台 UI Prototype
 
 ## 交付物
 

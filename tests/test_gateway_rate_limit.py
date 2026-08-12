@@ -411,7 +411,7 @@ def test_local_launchers_delegate_to_the_lease_aware_core_entrypoint(monkeypatch
     from app.cli import cmd_serve
 
     monkeypatch.setattr(runtime_entrypoint, "run_core", lambda args: calls.append(args))
-    monkeypatch.delenv("COGNITIVE_PORT", raising=False)
+    monkeypatch.delenv("ARCHEAXIS_PORT", raising=False)
     cmd_serve(port=8123)
     assert len(calls) == 1
-    assert os.environ["COGNITIVE_PORT"] == "8123"
+    assert os.environ["ARCHEAXIS_PORT"] == "8123"

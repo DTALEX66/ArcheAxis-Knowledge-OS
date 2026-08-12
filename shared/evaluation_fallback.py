@@ -737,10 +737,10 @@ def validate_evaluation_schema(data: dict[str, Any]) -> list[ContractFailure]:
 def default_artifact_dir() -> Path:
     """Return the default project-local evaluation artifact directory.
 
-    Resolves relative to COGNITIVE_DATA_DIR, then project root, then
+    Resolves relative to ARCHEAXIS_DATA_DIR (fallback COGNITIVE_DATA_DIR), then project root, then
     .hermes/task-runtime/evaluation/. Creates if needed.
     """
-    env_dir = os.environ.get("COGNITIVE_DATA_DIR", "")
+    env_dir = os.environ.get("ARCHEAXIS_DATA_DIR", "") or os.environ.get("COGNITIVE_DATA_DIR", "")
     if env_dir:
         base = Path(env_dir)
     else:

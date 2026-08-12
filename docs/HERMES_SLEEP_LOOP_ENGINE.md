@@ -168,7 +168,7 @@ curl -X POST 'http://127.0.0.1:8000/sleep-loop?action=start' \
 ## 6. PM2
 
 ```bash
-pm2 start ecosystem.config.cjs --only cognitive-loop-os-api
+pm2 start ecosystem.config.cjs --only ArcheAxis-Knowledge-OS-api
 pm2 start ecosystem.config.cjs --only hermes-sleep-loop-worker
 pm2 logs hermes-sleep-loop-worker
 pm2 stop hermes-sleep-loop-worker

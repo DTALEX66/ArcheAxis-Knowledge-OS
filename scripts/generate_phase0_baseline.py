@@ -58,19 +58,19 @@ def _task_runtime_tmp_root() -> Path:
 @contextmanager
 def _temporary_runtime() -> Iterator[Path]:
     """Provide a unique project-contained runtime root and restore the caller environment."""
-    previous_data_root = os.environ.get("COGNITIVE_DATA_DIR")
+    previous_data_root = os.environ.get("ARCHEAXIS_DATA_DIR") or os.environ.get("COGNITIVE_DATA_DIR")
     previous_bytecode = os.environ.get("PYTHONDONTWRITEBYTECODE")
     with TemporaryDirectory(prefix="cognitive-phase0-", dir=_task_runtime_tmp_root()) as directory:
         runtime_root = Path(directory).resolve()
-        os.environ["COGNITIVE_DATA_DIR"] = str(runtime_root)
+        os.environ["ARCHEAXIS_DATA_DIR"] = str(runtime_root)
         os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
         try:
             yield runtime_root
         finally:
             if previous_data_root is None:
-                os.environ.pop("COGNITIVE_DATA_DIR", None)
+                os.environ.pop("ARCHEAXIS_DATA_DIR", None)
             else:
-                os.environ["COGNITIVE_DATA_DIR"] = previous_data_root
+                os.environ["ARCHEAXIS_DATA_DIR"] = previous_data_root
             if previous_bytecode is None:
                 os.environ.pop("PYTHONDONTWRITEBYTECODE", None)
             else:
@@ -818,7 +818,7 @@ def _security_findings() -> list[dict[str, str]]:
 
 
 def _collect_routes(repo_root: Path) -> list[dict[str, Any]]:
-    if not os.environ.get("COGNITIVE_DATA_DIR", "").strip():
+    if not os.environ.get("ARCHEAXIS_DATA_DIR", "").strip() or os.environ.get("COGNITIVE_DATA_DIR", "").strip():
         raise RuntimeError("route collection requires an isolated COGNITIVE_DATA_DIR")
     from app.main import app
 

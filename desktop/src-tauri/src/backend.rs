@@ -359,7 +359,7 @@ mod tests {
     #[test]
     fn readiness_decodes_chunked_http_json_before_validation() {
         let headers = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked";
-        let body = "6C\r\n{\"schema_version\":\"v1\",\"product\":\"ArcheAxis Learning Workspace\",\"workspace\":\"Human–AI Learning Workspace\"}\r\n0\r\n\r\n";
+        let body = "63\r\n{\"schema_version\":\"v1\",\"product\":\"ArcheAxis Knowledge\",\"workspace\":\"Human–AI Learning Workspace\"}\r\n0\r\n\r\n";
 
         let decoded = response_body(headers, body).expect("chunked body");
         assert!(readiness_payload_valid(&decoded));

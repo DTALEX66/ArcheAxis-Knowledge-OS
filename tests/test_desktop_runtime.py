@@ -35,7 +35,7 @@ def test_desktop_readiness_requires_exact_launch_token(monkeypatch) -> None:
     assert accepted.status_code == 200
     assert accepted.json() == {
         "schema_version": "v1",
-        "product": "ArcheAxis Learning Workspace",
+        "product": "ArcheAxis Knowledge",
         "workspace": "Human–AI Learning Workspace",
     }
     assert "token" not in accepted.text.casefold()

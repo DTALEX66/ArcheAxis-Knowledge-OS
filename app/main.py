@@ -41,7 +41,7 @@ async def core_runtime_lifespan(_: FastAPI):
 
 app = FastAPI(
     lifespan=core_runtime_lifespan,
-    title="ArcheAxis Learning Workspace — Human–AI Learning Workspace",
+    title="ArcheAxis Knowledge — Human–AI Learning Workspace",
     version=str(config.get("app.version", "0.5.0")),
     description="Local-first, evidence-driven Human–AI learning and knowledge workspace. "
     "The current vertical targets approved Vault roots, Markdown, JSON Canvas, revisions, conflicts and readback. "
@@ -319,6 +319,10 @@ if _research_app is not None:
 if _kb_app is not None:
     app.mount("/kb", _kb_app)
 app.include_router(workspace_router)
+# Naming contract §4: canonical API root is /api/v1/ (workspace router
+# mounted under both the legacy /workspace path and the canonical root;
+# the legacy path stays until all clients flip).
+app.include_router(workspace_router, prefix="/api/v1")
 
 
 def _http_route_counts() -> dict[str, int]:
@@ -362,7 +366,7 @@ def health():
 
     return {
         "status": "ok",
-        "system": "cognitive-loop-os",
+        "system": "ArcheAxis-Knowledge-OS",
         "version": str(config.get("app.version", "0.5.0")),
         "endpoints": _http_route_counts(),
         "stats": {

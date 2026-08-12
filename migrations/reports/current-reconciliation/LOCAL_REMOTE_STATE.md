@@ -4,7 +4,7 @@ Generated: `2026-07-17T22:31:07+08:00`
 
 ## Canonical checkout
 
-- Path: `D:/All projects/Cognitive-Loop-OS`
+- Path: `D:/All projects/ArcheAxis-Knowledge-OS`
 - Branch: `main`
 - HEAD: `9a0886a00db739f9835f827f598616df835e5e6b`
 - `origin/main`: `9a0886a00db739f9835f827f598616df835e5e6b`
@@ -16,7 +16,7 @@ Generated: `2026-07-17T22:31:07+08:00`
 
 ## Preserved independent delivery clone
 
-- Path: `D:/All projects/Cognitive-Loop-OS-container`
+- Path: `D:/All projects/ArcheAxis-Knowledge-OS-container`
 - This is an independent clone, not a worktree registered by the canonical checkout.
 - Branch: `feat/complete-container-stack`
 - HEAD: `53bd093b7684bdaed0ce7f6c9ff9326697d3d82b`

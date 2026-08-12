@@ -1,10 +1,10 @@
-# 星轨学习工作台（ArcheAxis Learning Workspace）
+# 星环知识平台（ArcheAxis Knowledge）
 
-> **ArcheAxis Learning Workspace — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
+> **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
 >
 > **同一份可信知识，人学得更深，AI 用得更准。**
 
-主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Learning Workspace**；中文产品名 **星轨学习工作台**。
+主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Knowledge**；中文产品名 **星环知识平台**。
 仓库技术 ID `archeaxis-workspace` 仅为 Git/分发兼容身份（历史兼容身份，不是产品名）；旧名"元枢/元枢工作台"只保留在历史、迁移与兼容说明中。
 项目状态：**Personal Research Project / 个人研究项目**（不等同于许可证）。
 
@@ -101,7 +101,7 @@ The workflow accepts only canonical `https://github.com/{owner}/{repo}` reposito
 
 [![CI](https://github.com/DTALEX66/archeaxis-workspace/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/archeaxis-workspace/actions/workflows/ci.yml)
 
-ArcheAxis Learning Workspace 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的资料—学习—引用闭环：
+ArcheAxis Knowledge 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的资料—学习—引用闭环：
 
 ```text
 Research → Evidence → Knowledge → Learning

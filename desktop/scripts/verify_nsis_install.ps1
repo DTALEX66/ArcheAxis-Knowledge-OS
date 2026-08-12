@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$installRoot = Join-Path $env:LOCALAPPDATA 'ArcheAxis OS'
+$installRoot = Join-Path $env:LOCALAPPDATA 'ArcheAxis Knowledge'
 $appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.cognitive-workspace'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
 $appDataExisted = Test-Path $appData
@@ -15,7 +15,7 @@ $activeShell = $null
 function Get-ArcheAxisRegistryEntries {
     return @(
         Get-ItemProperty $uninstallKey -ErrorAction SilentlyContinue |
-            Where-Object { $_.DisplayName -eq 'ArcheAxis OS' }
+            Where-Object { $_.DisplayName -eq 'ArcheAxis Knowledge' }
     )
 }
 

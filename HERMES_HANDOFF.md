@@ -4,7 +4,7 @@ Generated: 2026-07-23
 
 ## Current continuation point
 
-- Repository: `D:\All projects\Cognitive-Loop-OS`
+- Repository: `D:\All projects\ArcheAxis-Knowledge-OS`
 - Branch: `feat/runtime-evaluation-sleep-leases`
 - Cloud target: `git@github.com:DTALEX66/archeaxis-workspace.git`
 - The branch contains the governed runtime/sleep-loop release train. Before

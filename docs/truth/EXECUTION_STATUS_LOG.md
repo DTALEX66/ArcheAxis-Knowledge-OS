@@ -101,7 +101,7 @@
 - 执行分支：`codex/frozen-roadmap-deepseek-v1`（状态记录）+ 新建隔离执行 worktree `axw/execution-h0`
 - 候选提交/tree：状态记录提交见本 LOG 的 Git commit；执行 worktree 为 `origin/main` `492fac5982c693eb668d31cc51a6a59bac83b7a1` / tree `8eaf7962fd0d043d36658aa3c92fe0ca91fe0705`
 - 基线输入：无依赖（`AXW-BASE-0` 为 DAG 根）
-- 变更：从最新云端 `origin/main` 建立隔离执行 worktree `D:/All projects/Cognitive-Loop-OS/.hermes/task-runtime/axw-exec`，分支 `axw/execution-h0`；记录 Git root、branch、HEAD、origin/main、分叉与脏路径 owner
+- 变更：从最新云端 `origin/main` 建立隔离执行 worktree `D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/axw-exec`，分支 `axw/execution-h0`；记录 Git root、branch、HEAD、origin/main、分叉与脏路径 owner
 - 验证：`git status --short --branch` CLEAN；`git rev-parse HEAD` = `492fac5`；`git write-tree` = `8eaf7962fd0d043d36658aa3c92fe0ca91fe0705`；Python 3.11.15、PowerShell 7.6.3；canonical 工作区未修改
 - 云端：`EXACT_SHA_CI` 为 `NOT EXECUTED`（实现分支尚未 push/PR）
 - 安装态：不适用，`LIVE_INSTALLED` 为 `NOT EXECUTED`

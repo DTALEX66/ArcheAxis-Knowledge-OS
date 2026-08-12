@@ -1,6 +1,6 @@
 Generated: 2026-07-17T22:31:07+08:00
 
-CANONICAL REPOSITORY: D:/All projects/Cognitive-Loop-OS
+CANONICAL REPOSITORY: D:/All projects/ArcheAxis-Knowledge-OS
 
 main
   9a0886a00db739f9835f827f598616df835e5e6b
@@ -40,7 +40,7 @@ work/tp13-facades
   diverged from main; git cherry reports a unique patch
   disposition: preserve; requires semantic reconciliation before pruning
 
-INDEPENDENT CLONE: D:/All projects/Cognitive-Loop-OS-container
+INDEPENDENT CLONE: D:/All projects/ArcheAxis-Knowledge-OS-container
 
 feat/complete-container-stack
   53bd093b7684bdaed0ce7f6c9ff9326697d3d82b

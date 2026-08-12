@@ -13,7 +13,10 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 _TASK_RUNTIME = _PROJECT_ROOT / ".hermes" / "task-runtime"
 _TASK_TMP = _TASK_RUNTIME / "pytest-tmp"
-_TASK_PYCACHE = _TASK_RUNTIME / "pycache"
+# resolve() guards against MSYS /d/... path forms leaking into child
+# processes: a /d/All projects/... prefix would otherwise resolve to
+# D:\d\All projects\... on Windows Python (workspace-hygiene §project-local).
+_TASK_PYCACHE = (_TASK_RUNTIME / "pycache").resolve()
 for _path in (_TASK_TMP, _TASK_PYCACHE):
     _path.mkdir(parents=True, exist_ok=True)
 for _name in ("TMP", "TEMP", "TMPDIR"):

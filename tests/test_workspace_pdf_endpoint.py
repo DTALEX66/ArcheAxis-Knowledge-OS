@@ -15,8 +15,8 @@ from app.evidence.pdf_serve import build_pdf_serving_root, store_pdf_bytes
 # workspace's runtime attachments dir, which is NOT part of any git worktree,
 # so CI without local fixtures skips them (never fabricate). Only run locally.
 _REAL_PDFS = [
-    Path(r"D:/All projects/Cognitive-Loop-OS/.hermes/desktop-attachments/时间简史（插图本）.pdf"),
-    Path(r"D:/All projects/Cognitive-Loop-OS/.hermes/desktop-attachments/牛津通识读本：缤纷的语言学（中文版）.pdf"),
+    Path(r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/desktop-attachments/时间简史（插图本）.pdf"),
+    Path(r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/desktop-attachments/牛津通识读本：缤纷的语言学（中文版）.pdf"),
 ]
 
 

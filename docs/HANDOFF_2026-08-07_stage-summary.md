@@ -13,8 +13,8 @@
 main HEAD     bef99eea6a52e4f5a43eb58cdcc1499a43e3f5db（本地 == 云端，工作树 clean）
 开发线版本    0.5.0
 发布状态      unreleased / development / public=false
-对外定位      ArcheAxis OS / Human–AI Learning Workspace（云端 + 本地描述已统一）
-机器身份      cognitive-loop-os（按用户决定保留，0.5.0 收口窗口再改）
+对外定位      ArcheAxis Knowledge / Human–AI Learning Workspace（云端 + 本地描述已统一）
+机器身份      ArcheAxis-Knowledge-OS（按用户决定保留，0.5.0 收口窗口再改）
 历史 Release  v0.4.0、v0.4.4 公开；v0.4.2 draft；tags v0.4.0–v0.4.4（保留不重写）
 ```
 

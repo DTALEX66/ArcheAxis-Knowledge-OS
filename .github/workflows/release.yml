@@ -95,7 +95,7 @@ jobs:
           Get-ChildItem release-assets -Force -File |
             Where-Object Name -eq '.gitignore' |
             Remove-Item -Force
-          $installerAsset = Join-Path release-assets "ArcheAxis.OS-Windows-x64-setup.exe"
+          $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-Windows-x64-setup.exe"
           Copy-Item $installers[0].FullName $installerAsset
           Copy-Item .hermes/desktop-runtime-v1/runtime/release-identity.json release-assets/
           python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset --artifact release-assets/release-identity.json --output release-assets/SHA256SUMS.txt
@@ -121,18 +121,18 @@ jobs:
           if ($wheel.Count -ne 1) { throw "expected exactly one release wheel" }
           $releaseAssets = @(
             $wheel[0].FullName,
-            (Resolve-Path "release-assets/ArcheAxis.OS-Windows-x64-setup.exe").Path,
+            (Resolve-Path "release-assets/ArcheAxis.Knowledge-Windows-x64-setup.exe").Path,
             (Resolve-Path "release-assets/release-identity.json").Path,
             (Resolve-Path "release-assets/SHA256SUMS.txt").Path
           )
-          gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis OS $env:GITHUB_REF_NAME" --generate-notes
+          gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis Knowledge $env:GITHUB_REF_NAME" --generate-notes
       - name: Read back and verify draft release assets
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
           $expectedAssets = @(
-            "ArcheAxis.OS-Windows-x64-setup.exe",
+            "ArcheAxis.Knowledge-Windows-x64-setup.exe",
             "archeaxis_workspace-0.5.0-py3-none-any.whl",
             "release-identity.json",
             "SHA256SUMS.txt"

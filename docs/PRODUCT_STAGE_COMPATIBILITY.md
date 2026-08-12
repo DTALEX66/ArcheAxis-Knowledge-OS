@@ -1,12 +1,12 @@
 > **SUPERSEDED (2026-08-12)**: 本文档为历史文档。产品命名与身份以
-> `docs/truth/NAMING_CONTRACT_V1.md`（ArcheAxis / ArcheAxis Learning Workspace / 星轨学习工作台）
+> `docs/truth/NAMING_CONTRACT_V1.md`（ArcheAxis / ArcheAxis Knowledge / 星环知识平台）
 > 与 `docs/truth/PRODUCT_IDENTITY_V2.md` 为准。本文档仅保留历史与迁移语境，不再维护。
 >
 # Product Stage: Obsidian-compatible Workspace
 
 ## Product truth
 
-**ArcheAxis Workspace（元枢工作台）** is a local-first, evidence-driven Human–AI learning and knowledge workspace. The user-owned open-format workspace is primary; AI is a cited usage layer, not the product center.
+**ArcheAxis Knowledge（星环知识平台）** is a local-first, evidence-driven Human–AI learning and knowledge workspace. The user-owned open-format workspace is primary; AI is a cited usage layer, not the product center.
 
 ## Current vertical
 

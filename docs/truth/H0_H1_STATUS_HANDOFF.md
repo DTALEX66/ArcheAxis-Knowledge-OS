@@ -23,7 +23,7 @@
 
 | 项目 | 值 |
 |---|---|
-| canonical 项目 | `D:/All projects/Cognitive-Loop-OS` |
+| canonical 项目 | `D:/All projects/ArcheAxis-Knowledge-OS` |
 | 基线基点 | `origin/main` = `492fac5982c693eb668d31cc51a6a59bac83b7a1` |
 | H0 merge-SHA | `f269a0128dfee9573699efd24562f96e8a713c70`（PR #71） |
 | H0 main CI | run `31320800285` 全绿 |

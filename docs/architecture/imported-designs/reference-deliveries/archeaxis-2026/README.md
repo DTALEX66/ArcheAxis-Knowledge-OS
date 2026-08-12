@@ -15,9 +15,9 @@
 
 | 文件 | SHA-256 | 用途 |
 | --- | --- | --- |
-| `ArcheAxis OS Overview.docx` | `b4437158ad8f08dbbfe79a08212666056ce0347169f3bd7d8c8a46b8a3efb8b5` | 产品北极星、业务域和阶段边界 |
-| `ArcheAxis OS V3.0 Blueprint.docx` | `7169d7f9a111803e14d34d50935f6ca028bbfe5d81ab24dc11663c12393fbee1` | 模块化单体、领域/API/Worker 和渐进迁移蓝图 |
-| `ArcheAxis OS V3.1 Documentation.docx` | `e82075555f0a538f9495ead713d80de0af9994d30ee0ce450b4204af470b3c80` | 事实/工作对象/投影、命令、Outbox、恢复和安全深化规范 |
+| `ArcheAxis Knowledge Overview.docx` | `b4437158ad8f08dbbfe79a08212666056ce0347169f3bd7d8c8a46b8a3efb8b5` | 产品北极星、业务域和阶段边界 |
+| `ArcheAxis Knowledge V3.0 Blueprint.docx` | `7169d7f9a111803e14d34d50935f6ca028bbfe5d81ab24dc11663c12393fbee1` | 模块化单体、领域/API/Worker 和渐进迁移蓝图 |
+| `ArcheAxis Knowledge V3.1 Documentation.docx` | `e82075555f0a538f9495ead713d80de0af9994d30ee0ce450b4204af470b3c80` | 事实/工作对象/投影、命令、Outbox、恢复和安全深化规范 |
 | `Cognitive_Loop_OS_GoogleResearch_500AI_Delivery_v1.0.zip` | `029056323290a0dfc8d2cd4b809fe44bac21bba84d223cd582ed94216ba550f0` | Research-to-Practice 候选资产与验收材料 |
 | `ArcheAxis_OS_MCS_Phase5_v0.1.0.zip` | `ce94e63ae551ee65d60aaf9315d90a148c184fcc4da8b5cf8df79c2bc3a28c05` | Phase 5 受治理最低闭环验收参考 |
 | `ArcheAxis_OS_MCS_Phase5_v0.1.0.sha256` | — | 用户提供的 MCS zip 校验记录；与上列 zip 一致 |

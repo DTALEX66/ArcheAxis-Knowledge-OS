@@ -22,7 +22,7 @@ def cmd_serve(port: int = 8000) -> None:
     """Start Core through the single lease-aware runtime entry point."""
     from app.runtime_entrypoint import run_core
 
-    os.environ["COGNITIVE_PORT"] = str(port)
+    os.environ["ARCHEAXIS_PORT"] = str(port)
     run_core(Namespace())
 
 
@@ -93,7 +93,7 @@ def cmd_stats() -> None:
     from shared.config import config
     from shared.storage import count as _c
 
-    print(f"ArcheAxis Learning Workspace v{config.get('app.version', 'unknown')}")
+    print(f"ArcheAxis Knowledge v{config.get('app.version', 'unknown')}")
     print("=" * 40)
     tables = [
         "kb_documents",

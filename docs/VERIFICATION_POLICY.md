@@ -52,9 +52,9 @@
 `D:/All projects/Workflow-assistance/scripts/workflow/run_taskpack_agent.py`
 维护；本仓库不再保留或分叉该执行器。调用时必须明确传入：
 
-- `--repo D:/All projects/Cognitive-Loop-OS`；
+- `--repo D:/All projects/ArcheAxis-Knowledge-OS`；
 - 与实际候选分支一致的 `--remote-ref`，不得默认假定 `origin/main`；
-- `cognitive-loop-os` 及其他所需项目技能；
+- `ArcheAxis-Knowledge-OS` 及其他所需项目技能；
 - 本项目批准的 TaskPack 与风险等级。
 
 高风险路径仍遵循本政策的完整门禁、frozen tree review 与 exact-SHA CI；

@@ -1,9 +1,9 @@
 > ARCHIVED 2026-08-12 — 历史验证快照（2026-08-09），来源分支
 > `docs/verification-summary-2026-08-09`（git 对象无损保留）。
-> 含当时 NO-GO 结论与旧名（ArcheAxis OS/Cognitive-Loop-OS），为历史记录；
+> 含当时 NO-GO 结论与旧名（ArcheAxis Knowledge/ArcheAxis-Knowledge-OS），为历史记录；
 > 当前状态以 docs/truth/EXECUTION_STATUS_LOG.md 为准。
 >
-# Cognitive-Loop-OS 验证摘要与问题总表
+# ArcheAxis-Knowledge-OS 验证摘要与问题总表
 
 > 日期：2026-08-09
 >
@@ -13,9 +13,9 @@
 
 | 项目 | 当前值 |
 |---|---|
-| canonical 项目 | `D:/All projects/Cognitive-Loop-OS` |
-| 公开产品名 | ArcheAxis OS |
-| 开发仓库名 | Cognitive-Loop-OS |
+| canonical 项目 | `D:/All projects/ArcheAxis-Knowledge-OS` |
+| 公开产品名 | ArcheAxis Knowledge |
+| 开发仓库名 | ArcheAxis-Knowledge-OS |
 | 本次云端文档基线 | `origin/main` at `492fac5982c693eb668d31cc51a6a59bac83b7a1` |
 | 本地开发分支 | `feat/p1-compat-kernel-hardening` |
 | 本地开发分支 HEAD | `84a0dfdb9c3493421d7a4864065278bb06b51275` |
@@ -85,7 +85,7 @@ D:/All projects/ceshi/ArcheAxis-OS-internal-preview
 候选安装器：
 
 ```text
-ArcheAxis OS_0.5.0_x64-setup.exe
+ArcheAxis Knowledge_0.5.0_x64-setup.exe
 ```
 
 已回读：
