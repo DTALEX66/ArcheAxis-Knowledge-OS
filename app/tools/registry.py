@@ -30,7 +30,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         name="file_read",
         risk_level="low",
         default_dry_run=False,
-        description="Read a UTF-8 text file inside the Cognitive-OS project directory.",
+        description="Read a UTF-8 text file inside the ArcheAxis project directory.",
     ),
     "safe_write": ToolSpec(
         name="safe_write",
@@ -67,7 +67,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         name="taskpack_generate",
         risk_level="medium",
         default_dry_run=True,
-        description="Generate a TaskPack for Cognitive-OS execution.",
+        description="Generate a TaskPack for ArcheAxis execution.",
     ),
 }
 

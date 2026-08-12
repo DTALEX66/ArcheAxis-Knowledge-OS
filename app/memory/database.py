@@ -1,4 +1,4 @@
-"""SQLite database layer for Cognitive-OS — replaces JSONL flat files."""
+"""SQLite database layer for ArcheAxis — replaces JSONL flat files."""
 
 from __future__ import annotations
 

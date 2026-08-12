@@ -1,4 +1,4 @@
-"""Obsidian vault importer — bidirectional bridge: Obsidian ↔ Cognitive-OS KB.
+"""Obsidian vault importer — bidirectional bridge: Obsidian ↔ ArcheAxis KB.
 
 Scans an Obsidian vault directory, discovers notes by folder/type,
 parses YAML frontmatter, and imports them as KB documents, cards,

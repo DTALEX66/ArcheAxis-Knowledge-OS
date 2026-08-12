@@ -98,7 +98,7 @@ class ContractRequest(BaseModel):
     acceptance_criteria: list[str] = []
     blocked_actions: list[str] = []
     risk_level: str = "low"
-    target_repo: str = "Cognitive-OS"
+    target_repo: str = "ArcheAxis"
 
 
 class ScoreRequest(BaseModel):

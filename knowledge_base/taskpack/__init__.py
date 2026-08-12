@@ -1,4 +1,4 @@
-"""TaskPack builder — executable task definitions for Cognitive-OS."""
+"""TaskPack builder — executable task definitions for ArcheAxis."""
 
 from dataclasses import dataclass, field
 
