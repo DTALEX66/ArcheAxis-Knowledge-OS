@@ -1526,3 +1526,11 @@ AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 - windows-runtime-smoke：运行时 smoke（DB 初始化 + API 就绪）
 结论：AXW-H2-EXIT / H3-EXIT / H4-EXIT 的"安装态资格"已由 CI 链持续覆盖（安装→版本回读→生命周期），但"人工验收/正式发布资格裁决"仍属 Owner/发布流程——PARTIAL 维持，证据链已完整记录。
 - 附带：docs/verification-summary-2026-08-09 分支快照已归档入库 docs/verification/（banner 标注历史语境）
+
+## LOG-140 — 命名体系 V2 全量清扫 + 边界治理（2026-08-12）
+- PR #137 MERGED → main b44fabb：契约 V2 发布（ArcheAxis Knowledge/星环知识平台）+ Step 3d + 归档入库
+- PR #138 MERGED → main e90274f：V2 全量清扫（文档/UI/代码/测试断言）+ Rust readiness 协议身份（ArcheAxis Knowledge）+ chunk 长度修复
+- 本地目录 junction：D:/All projects/ArcheAxis-Knowledge-OS → Cognitive-Loop-OS（物理改名被会话占用阻塞，junction 过渡）
+- 边界治理（workspace-hygiene）：D:\d/D:\tmp 溢出 ~58MB 清理；run_tests.sh 项目内 basetemp 路由 + conftest.py pycache resolve() 防护；AGENTS.md 测试边界规则
+- 修复：resolve_runtime_path/evaluation_fallback ARCHEAXIS_DATA_DIR 双读（CI wheel-smoke 曾失败）；protocol.rs readiness 验证 V2 产品名
+- 全量测试 1461 passed / 5 skipped；门禁 head 通过
