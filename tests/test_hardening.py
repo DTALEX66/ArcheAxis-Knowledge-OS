@@ -69,7 +69,7 @@ def test_installed_runtime_paths_use_configured_writable_root(monkeypatch, tmp_p
     runtime_root = tmp_path / "runtime"
     installed_root.mkdir()
     monkeypatch.setattr(config_module, "_PROJECT_ROOT", installed_root)
-    monkeypatch.setenv("COGNITIVE_DATA_DIR", str(runtime_root))
+    monkeypatch.setenv("ARCHEAXIS_DATA_DIR", str(runtime_root))
 
     assert resolve_runtime_path("data/cognitive.sqlite") == runtime_root / "cognitive.sqlite"
     assert resolve_runtime_path("config/api_keys.json") == runtime_root / "api_keys.json"
@@ -81,7 +81,7 @@ def test_source_checkout_honours_explicit_runtime_root(monkeypatch, tmp_path):
     source_root.mkdir()
     (source_root / "pyproject.toml").write_text("[project]\nname = 'fixture'\n")
     monkeypatch.setattr(config_module, "_PROJECT_ROOT", source_root)
-    monkeypatch.setenv("COGNITIVE_DATA_DIR", str(runtime_root))
+    monkeypatch.setenv("ARCHEAXIS_DATA_DIR", str(runtime_root))
 
     assert resolve_runtime_path("data/cognitive.sqlite") == runtime_root / "cognitive.sqlite"
     assert resolve_runtime_path("config/api_keys.json") == runtime_root / "api_keys.json"
@@ -91,9 +91,10 @@ def test_installed_runtime_fails_closed_without_explicit_runtime_root(monkeypatc
     installed_root = tmp_path / "site-packages"
     installed_root.mkdir()
     monkeypatch.setattr(config_module, "_PROJECT_ROOT", installed_root)
+    monkeypatch.delenv("ARCHEAXIS_DATA_DIR", raising=False)
     monkeypatch.delenv("COGNITIVE_DATA_DIR", raising=False)
 
-    with pytest.raises(RuntimeError, match="COGNITIVE_DATA_DIR"):
+    with pytest.raises(RuntimeError, match="ARCHEAXIS_DATA_DIR"):
         resolve_runtime_path("data/cognitive.sqlite")
 
 
@@ -102,7 +103,7 @@ def test_generated_jwt_secret_uses_runtime_data_root(monkeypatch, tmp_path):
     runtime_root = tmp_path / "runtime"
     installed_root.mkdir()
     monkeypatch.setattr(config_module, "_PROJECT_ROOT", installed_root)
-    monkeypatch.setenv("COGNITIVE_DATA_DIR", str(runtime_root))
+    monkeypatch.setenv("ARCHEAXIS_DATA_DIR", str(runtime_root))
     monkeypatch.delenv("COGNITIVE_JWT_SECRET", raising=False)
 
     secret = auth._get_secret()

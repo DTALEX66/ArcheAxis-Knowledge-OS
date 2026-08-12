@@ -224,7 +224,7 @@ def resolve_runtime_path(value: str | Path) -> Path:
     candidate = Path(value).expanduser()
     if candidate.is_absolute():
         return candidate
-    configured_root = os.getenv("COGNITIVE_DATA_DIR", "").strip()
+    configured_root = os.getenv("ARCHEAXIS_DATA_DIR", "").strip() or os.getenv("COGNITIVE_DATA_DIR", "").strip()
     if configured_root:
         base = Path(configured_root).expanduser()
         parts = (
@@ -236,7 +236,7 @@ def resolve_runtime_path(value: str | Path) -> Path:
     if (_PROJECT_ROOT / "pyproject.toml").exists():
         return _PROJECT_ROOT / candidate
     raise RuntimeError(
-        "runtime data root is not configured; set COGNITIVE_DATA_DIR "
+        "runtime data root is not configured; set ARCHEAXIS_DATA_DIR "
         "before using an installed or relocated runtime"
     )
 
