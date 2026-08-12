@@ -24,7 +24,7 @@ def _resolve_project_path(path: str) -> Path:
     try:
         return APPROVED_ROOTS.resolve_source(path, must_exist=False)
     except ApprovedRootsError as exc:
-        raise IngestionError("path must stay inside the Cognitive-OS project root") from exc
+        raise IngestionError("path must stay inside the ArcheAxis project root") from exc
 
 
 def _relative_source(path: Path) -> str:

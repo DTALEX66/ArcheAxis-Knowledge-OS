@@ -1,4 +1,4 @@
-"""Provider and model capability contract for Cognitive-OS.
+"""Provider and model capability contract for ArcheAxis.
 
 Contract-first: define what a provider/model IS before wiring any specific implementation.
 """

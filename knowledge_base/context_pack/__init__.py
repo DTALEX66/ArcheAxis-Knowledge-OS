@@ -1,4 +1,4 @@
-"""ContextPack builder — assembles context for Cognitive-OS execution."""
+"""ContextPack builder — assembles context for ArcheAxis execution."""
 
 from dataclasses import dataclass, field
 

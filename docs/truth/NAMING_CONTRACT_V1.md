@@ -1,3 +1,8 @@
+> **SUPERSEDED (2026-08-12)**: 本文档为历史记录。产品命名与身份以
+> `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台；
+> ArcheAxis Learning Workspace 仅为内部视图）为准。本文档仅保留历史、
+> 迁移与兼容语境，不再维护。
+
 # Naming Contract — 命名契约 V1（AXW-1201）
 
 > 权威来源：`ArcheAxis_Learning_Workspace_System_Blueprint_and_HERMES_Update_TaskPack_v1_2026-08-11`

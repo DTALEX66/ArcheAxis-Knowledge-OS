@@ -1,4 +1,4 @@
-"""Cognitive-OS v2 — unified runtime for the Cognitive Loop.
+"""ArcheAxis v2 — unified runtime for the Cognitive Loop.
 
 Port 8000: Core OS (route → execute → trace → eval → lesson)
 Port 8000/kb: Knowledge-Base (live-counted endpoints, dashboard, capabilities)

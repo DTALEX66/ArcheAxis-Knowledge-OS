@@ -30,7 +30,7 @@ def generate_contract(
     acceptance_criteria: list | None = None,
     blocked_actions: list | None = None,
     risk_level: str = "low",
-    target_repo: str = "Cognitive-OS",
+    target_repo: str = "ArcheAxis",
 ) -> EngineeringContract:
     import uuid
     return EngineeringContract(

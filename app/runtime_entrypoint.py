@@ -277,7 +277,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    core = subparsers.add_parser("core", help="run the core Cognitive-OS API")
+    core = subparsers.add_parser("core", help="run the core ArcheAxis API")
     core.set_defaults(func=run_core)
 
 

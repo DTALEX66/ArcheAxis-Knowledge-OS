@@ -1,4 +1,4 @@
-"""Shared SQLite storage for IR + KB APIs — extends Cognitive-OS database."""
+"""Shared SQLite storage for IR + KB APIs — extends ArcheAxis database."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS ir_contracts (
     acceptance_criteria_json TEXT NOT NULL DEFAULT '[]',
     blocked_actions_json TEXT NOT NULL DEFAULT '[]',
     risk_level TEXT NOT NULL DEFAULT 'low',
-    target_repo TEXT NOT NULL DEFAULT 'Cognitive-OS',
+    target_repo TEXT NOT NULL DEFAULT 'ArcheAxis',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
