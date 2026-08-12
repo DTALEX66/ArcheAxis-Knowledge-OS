@@ -1,0 +1,10 @@
+{
+  "schemaVersion":"archeaxis-ui-components/v2",
+  "mode":"mock-adapter-unbound",
+  "tokens":"app.css",
+  "shell":["ProductTitleBar","PrimarySpaceRail","ContextSubnav","ContextEvidenceInspector","ActivityReceiptDock","MobileSpaceTabs"],
+  "primitives":["Button","Badge","Notice","Table","AnchorChip","EvidenceChain","PageRail","StatusScenarioSelector"],
+  "domain":["ResearchLedger","EvidenceMap","OriginalReader","DerivativeVersionPanel","ClaimRecord","EvidenceStance","LearningRoute","FocusPrompt","AIAssetRegistry","CapabilityMatrix","PlannedCapabilityBlueprint"],
+  "states":["ready","empty","partial","offline","conflict","error","blocked","planned","unknown"],
+  "accessibility":{"keyboard":"focus-visible on native controls","reducedMotion":"prefers-reduced-motion supported","canvasEquivalent":"list-view action present","spatialEquivalent":"2D map and written route present","statusRedundancy":"text, shape and color"}
+}

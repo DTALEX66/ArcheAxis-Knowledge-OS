@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "archeaxis-knowledge-ui/workspace-overview.html",
+  "entry": "archeaxis-knowledge-ui/workspace-overview.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-08-12T02:53:37.248Z",
+  "updatedAt": "2026-08-12T02:53:37.248Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

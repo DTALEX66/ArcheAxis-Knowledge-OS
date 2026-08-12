@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "archeaxis-knowledge-ui/spatial-memory.html",
+  "entry": "archeaxis-knowledge-ui/spatial-memory.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-08-12T02:54:07.330Z",
+  "updatedAt": "2026-08-12T02:54:07.330Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

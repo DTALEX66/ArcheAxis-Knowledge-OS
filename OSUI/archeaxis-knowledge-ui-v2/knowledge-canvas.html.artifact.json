@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "archeaxis-knowledge-ui/knowledge-canvas.html",
+  "entry": "archeaxis-knowledge-ui/knowledge-canvas.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-08-12T02:53:37.253Z",
+  "updatedAt": "2026-08-12T02:53:37.253Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}
