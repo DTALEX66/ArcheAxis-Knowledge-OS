@@ -149,15 +149,15 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
                     "version": "0.5.0",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
+                    "url": "https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.5.0",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
                     "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
                     "verification_ci_run_id": 30548553629,
-                    "verification_ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                    "verification_ci_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629",
                     "release_run_id": 30548553630,
-                    "release_run_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553630",
+                    "release_run_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553630",
                 },
             }
         ),
@@ -174,7 +174,7 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
         "tag": "v0.5.0",
         "verification_ci_run_id": 30548553629,
         "release_run_id": 30548553630,
-        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
+        "url": "https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.5.0",
     }
     assert release.effective_capabilities()["public_installer"] == "available"
 
@@ -195,13 +195,13 @@ def test_bundled_release_identity_v1_reader_still_accepted_for_backward_compat(
                     "version": "0.5.0",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
+                    "url": "https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.5.0",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
                     "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
                     "ci_run": 30548553629,
-                    "ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                    "ci_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629",
                 },
             }
         ),
@@ -230,15 +230,15 @@ def test_release_identity_v2_rejects_verification_equal_release_run(monkeypatch,
                     "version": "0.5.0",
                     "channel": "stable",
                     "public": True,
-                    "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.5.0",
+                    "url": "https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.5.0",
                 },
                 "source": {
                     "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
                     "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
                     "verification_ci_run_id": 30548553629,
-                    "verification_ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                    "verification_ci_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629",
                     "release_run_id": 30548553629,
-                    "release_run_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+                    "release_run_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629",
                 },
             }
         ),
@@ -257,7 +257,7 @@ def test_bundled_release_identity_rejects_semantically_wrong_urls(monkeypatch, t
     identity = {
         "schema_version": "2.0.0",
         "release": {"tag": "v0.4.0", "version": "0.4.0", "channel": "stable", "public": True, "url": "https://github.com/foreign-owner/foreign-repo/releases/tag/v0.4.0"},
-        "source": {"commit": "34ca0fbd5ae636314a3403c473bde9247ef95907", "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716", "verification_ci_run_id": 30548553629, "verification_ci_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629", "release_run_id": 30548553630, "release_run_url": "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553630"},
+        "source": {"commit": "34ca0fbd5ae636314a3403c473bde9247ef95907", "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716", "verification_ci_run_id": 30548553629, "verification_ci_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629", "release_run_id": 30548553630, "release_run_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553630"},
     }
     path = tmp_path / "release-identity.json"
     path.write_text(json.dumps(identity), encoding="utf-8")
@@ -492,9 +492,9 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
 
          "--tag", "v0.4.0",
          "--version", "0.4.0",
-         "--url", "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+         "--url", "https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.4.0",
          "--verification-ci-run-id", "30548553629",
-         "--verification-ci-url", "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+         "--verification-ci-url", "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629",
          "--output", str(output)],
         capture_output=True,
         text=True,
@@ -512,12 +512,12 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
         "version": "0.4.0",
         "channel": "stable",
         "public": True,
-        "url": "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+        "url": "https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.4.0",
     }
-    assert identity["source"]["verification_ci_url"] == "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629"
+    assert identity["source"]["verification_ci_url"] == "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629"
     assert identity["source"]["verification_ci_run_id"] == 30548553629
     assert identity["source"]["release_run_id"] == 30548553630
-    assert identity["source"]["release_run_url"] == "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553630"
+    assert identity["source"]["release_run_url"] == "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553630"
 
 
 def test_release_identity_injection_writes_v1_for_backward_compat(tmp_path) -> None:
@@ -534,9 +534,9 @@ def test_release_identity_injection_writes_v1_for_backward_compat(tmp_path) -> N
          "--tree", "5aeaa2c070ef677e6cb5a131f3ff5242cc58f172",
          "--tag", "v0.4.0",
          "--version", "0.4.0",
-         "--url", "https://github.com/DTALEX66/Cognitive-Loop-OS/releases/tag/v0.4.0",
+         "--url", "https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.4.0",
          "--schema-version", "1.0.0",
-         "--ci-url", "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629",
+         "--ci-url", "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629",
          "--output", str(output)],
         capture_output=True,
         text=True,
@@ -547,7 +547,7 @@ def test_release_identity_injection_writes_v1_for_backward_compat(tmp_path) -> N
     identity = json.loads(output.read_text(encoding="utf-8"))
     assert identity["schema_version"] == "1.0.0"
     assert identity["source"]["ci_run"] == 30548553630
-    assert identity["source"]["ci_url"] == "https://github.com/DTALEX66/Cognitive-Loop-OS/actions/runs/30548553629"
+    assert identity["source"]["ci_url"] == "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30548553629"
 
 
 def test_release_identity_injection_rejects_invalid_sha(tmp_path) -> None:

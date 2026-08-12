@@ -257,7 +257,7 @@ setx UV_CACHE_DIR "D:\All projects\OS configuration\uv-cache"
 setx UV_PROJECT_ENVIRONMENT "D:\All projects\OS configuration\cognitive-loop-os-ci-venv"
 
 # 6. 克隆仓库
-git clone git@github.com:DTALEX66/Cognitive-Loop-OS.git "D:\All projects\Cognitive-Loop-OS"
+git clone git@github.com:DTALEX66/archeaxis-workspace.git "D:\All projects\Cognitive-Loop-OS"
 cd "D:\All projects\Cognitive-Loop-OS"
 
 # 7. 安装依赖
