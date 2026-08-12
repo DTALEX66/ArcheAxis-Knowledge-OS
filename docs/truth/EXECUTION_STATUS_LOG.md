@@ -1515,3 +1515,14 @@ AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 - #133 MERGED → main `5fc287b`：60 文档全量替换（本地绝对路径恢复；冻结/权威产物保留旧名）
 - #134 MERGED → main `66c6aac`：命名迁移 Step 1-2 交接文档
 - 教训：批量替换须排除本地绝对路径 + 契约映射表 + 冻结文档；GitHub Actions 缓存含旧路径时须同时改 cache key 和 restore-keys；osui 会话直推 main 未过门禁
+
+
+### LOG-20260812-139: 冻结基线 H2/H3/H4 安装态证据核录（CI 持续验证）
+对照 FROZEN_EXECUTION_BASELINE 验收标准，映射 CI 安装态证据（每次 PR 全量运行）：
+- wheel-smoke job：构建并安装 `archeaxis-workspace` wheel → `importlib.metadata.version` == release-manifest version（exact-SHA 版本回读）
+- desktop-fast job：Tauri 桌面壳快速构建验证（cargo build debug）
+- desktop-build job：Windows release + NSIS installer 构建（Rust release + 打包）
+- installer-lifecycle job：下载 exact installer → 静默安装 → 生命周期验证（重启/卸载路径）
+- windows-runtime-smoke：运行时 smoke（DB 初始化 + API 就绪）
+结论：AXW-H2-EXIT / H3-EXIT / H4-EXIT 的"安装态资格"已由 CI 链持续覆盖（安装→版本回读→生命周期），但"人工验收/正式发布资格裁决"仍属 Owner/发布流程——PARTIAL 维持，证据链已完整记录。
+- 附带：docs/verification-summary-2026-08-09 分支快照已归档入库 docs/verification/（banner 标注历史语境）
