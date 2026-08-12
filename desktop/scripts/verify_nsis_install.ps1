@@ -74,7 +74,7 @@ if (-not (Test-Path -LiteralPath $Installer -PathType Leaf)) {
     throw "NSIS installer is missing: $Installer"
 }
 if ((Test-Path $installRoot) -or (Get-ArcheAxisRegistryEntries).Count -ne 0) {
-    throw 'refusing to overwrite an existing ArcheAxis OS installation'
+    throw 'refusing to overwrite an existing ArcheAxis Knowledge installation'
 }
 
 try {
