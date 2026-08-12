@@ -255,10 +255,11 @@ def _via_pdf_ocr(file_path: str) -> AdapterResult:
             ),
         )
     try:
+        import io
+
         import fitz
         import pytesseract
         from PIL import Image
-        import io
     except Exception as exc:  # pragma: no cover - depends on host tooling
         return AdapterResult(
             success=False,
