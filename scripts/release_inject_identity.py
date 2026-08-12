@@ -19,7 +19,7 @@ Usage:
         --url https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.5.0 \
         --verification-ci-run-id 987654 \
         --verification-ci-url https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/987654 \
-        --output .hermes/desktop-runtime-v1/runtime/release-identity.json
+        --output .hermes/rt/runtime/release-identity.json
 """
 
 from __future__ import annotations

@@ -64,7 +64,7 @@ jobs:
       - name: Prepare bundled runtime and inject exact release identity
         shell: pwsh
         run: |
-          python -m desktop.scripts.prepare_bundle --repository . --destination .hermes/desktop-runtime-v1
+          python -m desktop.scripts.prepare_bundle --repository . --destination .hermes/rt
           $tree = git rev-parse "$env:GITHUB_SHA^{tree}"
           python scripts/release_inject_identity.py `
             --commit $env:GITHUB_SHA `
@@ -74,7 +74,7 @@ jobs:
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
             --verification-ci-run-id ${{ steps.require_ci.outputs.verification_run_id }} `
             --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
-            --output .hermes/desktop-runtime-v1/runtime/release-identity.json
+            --output .hermes/rt/runtime/release-identity.json
       - name: Build Windows NSIS installer
         working-directory: desktop
         run: npm run tauri -- build --bundles nsis
@@ -97,7 +97,7 @@ jobs:
             Remove-Item -Force
           $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-Windows-x64-setup.exe"
           Copy-Item $installers[0].FullName $installerAsset
-          Copy-Item .hermes/desktop-runtime-v1/runtime/release-identity.json release-assets/
+          Copy-Item .hermes/rt/runtime/release-identity.json release-assets/
           python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset --artifact release-assets/release-identity.json --output release-assets/SHA256SUMS.txt
       - name: Verify checksum manifest payload equality
         shell: pwsh

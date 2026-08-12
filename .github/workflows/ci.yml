@@ -517,7 +517,7 @@ jobs:
         run: >-
           python -m desktop.scripts.prepare_bundle
           --repository .
-          --destination .hermes/desktop-runtime-v1
+          --destination .hermes/rt
       - name: Test the Windows Rust library
         working-directory: desktop/src-tauri
         run: |
@@ -576,7 +576,7 @@ jobs:
         run: >-
           python -m desktop.scripts.prepare_bundle
           --repository .
-          --destination .hermes/desktop-runtime-v1
+          --destination .hermes/rt
       - name: Audit locked Rust dependencies
         working-directory: desktop/src-tauri
         run: |
