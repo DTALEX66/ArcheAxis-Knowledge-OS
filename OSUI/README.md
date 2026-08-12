@@ -24,6 +24,6 @@
 
 ## 交接记录
 
-本目录由 OSUI 本地前端项目导入至 `DTALEX66/archeaxis-workspace` 的 `OSUI/` 子目录。提交记录是本次交接的可回滚边界。
+本目录由 OSUI 本地前端项目导入至 `DTALEX66/ArcheAxis-Knowledge-OS` 的 `OSUI/` 子目录。提交记录是本次交接的可回滚边界。
 
 详见 `HANDOFF-2026-08-12.md`，其中包含交付范围、路由入口、验证证据、未绑定接口和后续绑定顺序。
