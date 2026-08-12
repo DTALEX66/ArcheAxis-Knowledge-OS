@@ -27,7 +27,7 @@ correct provenance.
 
 ## v0.4.4 release evidence
 
-- GitHub Release URL: <https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.4.4>
+- GitHub Release URL: <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.4.4>
 - Release run: `30839451084`
 - Verification (exact-SHA CI) run: `30837105199`
 - Published assets (4), all present in `SHA256SUMS.txt`:
@@ -55,7 +55,7 @@ not the exact-SHA verification CI run `30837105199`:
     "commit": "f1117aebc19680513023bac6d20358ebfc7aabe6",
     "tree": "33db1766ba8e3a4e280c2bd587b8ac802d82fa72",
     "ci_run": 30839451084,
-    "ci_url": "https://github.com/DTALEX66/archeaxis-workspace/actions/runs/30839451084"
+    "ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30839451084"
   }
 }
 ```
@@ -68,7 +68,7 @@ with `verification_ci_run_id` / `release_run_id` kept distinct.
 
 ## v0.5.0 release evidence
 
-- GitHub Release URL: <https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.5.0>
+- GitHub Release URL: <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.5.0>
 - Release run: `31277061510`
 - Verification (merge-SHA Full Qualification) run: `31276290892`
 - Tag target commit: `fe977577da53dafa4528da908898995ba316b53a`
@@ -90,7 +90,7 @@ not a contradiction of the verified artifact identity.
 
 ## v0.4.0 release evidence
 
-- GitHub Release URL: <https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.4.0>
+- GitHub Release URL: <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.4.0>
 - Published 2026-07-30. Readback found the public installer name did not
   match its checksum-manifest name and an extra public payload was absent
   from the manifest. Retained as historical evidence; no rewrite.

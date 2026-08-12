@@ -6,7 +6,7 @@ Generated: 2026-07-23
 
 - Repository: `D:\All projects\ArcheAxis-Knowledge-OS`
 - Branch: `feat/runtime-evaluation-sleep-leases`
-- Cloud target: `git@github.com:DTALEX66/archeaxis-workspace.git`
+- Cloud target: `git@github.com:DTALEX66/ArcheAxis-Knowledge-OS.git`
 - The branch contains the governed runtime/sleep-loop release train. Before
   resuming any work, re-check `git status --short --branch`, the exact HEAD,
   and the associated GitHub Actions result.

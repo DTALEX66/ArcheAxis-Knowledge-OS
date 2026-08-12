@@ -16,9 +16,9 @@ Usage:
         --commit $(git rev-parse HEAD) \
         --tree $(git write-tree) \
         --tag v0.5.0 --version 0.5.0 \
-        --url https://github.com/DTALEX66/archeaxis-workspace/releases/tag/v0.5.0 \
+        --url https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.5.0 \
         --verification-ci-run-id 987654 \
-        --verification-ci-url https://github.com/DTALEX66/archeaxis-workspace/actions/runs/987654 \
+        --verification-ci-url https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/987654 \
         --output .hermes/desktop-runtime-v1/runtime/release-identity.json
 """
 
@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 
 _HEX_40 = re.compile(r"[0-9a-f]{40}")
-_REPO_URL = "https://github.com/DTALEX66/archeaxis-workspace"
+_REPO_URL = "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS"
 
 
 def _valid_run(value: str, label: str) -> int:
