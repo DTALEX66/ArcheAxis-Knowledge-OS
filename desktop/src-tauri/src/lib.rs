@@ -62,7 +62,7 @@ fn run_inner() -> Result<(), String> {
                     .parse()
                     .map_err(|error| format!("invalid Workspace URL: {error}"))?;
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
-                    .title("元枢·观心")
+                    .title("ArcheAxis Knowledge")
                     .inner_size(1280.0, 800.0)
                     .min_inner_size(960.0, 640.0)
                     .resizable(true)
