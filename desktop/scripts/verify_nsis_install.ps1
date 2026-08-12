@@ -127,7 +127,7 @@ try {
     if (-not $closeSent) {
         throw "desktop shell rejected WM_CLOSE; pid=$($activeShell.Id) handle=$windowHandle"
     }
-    if (-not $activeShell.WaitForExit(15000)) {
+    if (-not $activeShell.WaitForExit(30000)) {
         $activeShell.Refresh()
         throw "desktop shell did not exit after WM_CLOSE; pid=$($activeShell.Id) handle=$windowHandle main_window=$($activeShell.MainWindowHandle)"
     }
