@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run_tests.sh — ArcheAxis Knowledge (Cognitive-Loop-OS) 项目内测试入口
+# run_tests.sh — ArcheAxis Knowledge (ArcheAxis-Knowledge-OS) 项目内测试入口
 #
 # 固定 pytest basetemp / 临时目录到项目本地运行时根，防止测试产物溢出到
 # D:\clo-*、D:\tmp、C:\tmp 等外部路径（历史溢出根因修复，2026-08-12）。
