@@ -1,6 +1,6 @@
-# Handoff — Cognitive-Loop-OS 会话交接与信息摘要（2026-08-07）
+# Handoff — archeaxis-workspace 会话交接与信息摘要（2026-08-07）
 
-> 仓库：`DTALEX66/Cognitive-Loop-OS`（public）
+> 仓库：`DTALEX66/archeaxis-workspace`（public）
 > 交接基线：`main@f555b0560a1443b1ba385d106de3536becaf2bb9`
 > 编制：2026-08-07（UTC 收尾）
 > 性质：信息摘要 + 错误复盘 + 完整交付证据 + 后续路线
@@ -62,7 +62,7 @@ main HEAD     f555b0560a1443b1ba385d106de3536becaf2bb9（本地 == 云端，工�
 
 ### 2.4 Hermes 根目录区分
 
-**结论：`C:/Users/ALEX/AppData/Local/hermes/` 内无任何 Cognitive-Loop-OS 项目 spill。** 全部为 Hermes 全局基础设施（backups 4.5G、hermes-agent 4.1G、state.db 2.5G、skills/sessions/cron/config 等），**全部保留，未删除任何全局 state**。
+**结论：`C:/Users/ALEX/AppData/Local/hermes/` 内无任何 archeaxis-workspace 项目 spill。** 全部为 Hermes 全局基础设施（backups 4.5G、hermes-agent 4.1G、state.db 2.5G、skills/sessions/cron/config 等），**全部保留，未删除任何全局 state**。
 
 ### 2.5 外置配置区审计
 

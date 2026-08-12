@@ -22,7 +22,7 @@ def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     assert "星轨学习工作台" in page.text
     assert "ArcheAxis Learning Workspace" in page.text
     assert "元枢·观心" not in page.text
-    assert "Cognitive-Loop-OS" not in page.text
+    assert "archeaxis-workspace" not in page.text
     assert "API key" not in page.text
     assert 'id="intake-url-form"' in page.text
     assert 'id="intake-file-form"' in page.text

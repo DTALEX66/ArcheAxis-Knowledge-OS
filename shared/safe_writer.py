@@ -1,4 +1,4 @@
-"""Safe file writer for Cognitive-Loop-OS.
+"""Safe file writer for archeaxis-workspace.
 
 Adapted from Obsidian-Assistance V4 SafeVaultWriter.
 Generalized for project-local file operations:
@@ -179,7 +179,7 @@ class SafeWriter:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Safe writer for Cognitive-Loop-OS project files")
+    parser = argparse.ArgumentParser(description="Safe writer for archeaxis-workspace project files")
     parser.add_argument("--project-root", default=".")
     parser.add_argument("--relative-path", required=True)
     parser.add_argument("--content-file", required=True)

@@ -29,7 +29,7 @@
 
 | 旧名称 | 现状 | 允许语境 |
 |---|---|---|
-| Cognitive-Loop-OS | 当前仓库技术身份（GitHub repo 名） | Git/CI/包名历史兼容 |
+| Cognitive-Loop-OS | 原仓库技术身份（已改名 archeaxis-workspace） | Git/CI/包名历史兼容（Legacy） |
 | 元枢 / 元枢工作台 | 已弃用 | 历史、迁移、兼容说明 |
 | ArcheAxis OS | 旧产品名（曾用于 GitHub 描述） | 历史记录 |
 
@@ -37,7 +37,7 @@
 
 | 对象 | 目标标识 | 迁移状态 |
 |---|---|---|
-| GitHub 仓库 | `DTALEX66/archeaxis-workspace` | planned（需 Owner 授权） |
+| GitHub 仓库 | `DTALEX66/archeaxis-workspace` | ✅ DONE（2026-08-12，仓库已重命名） |
 | Machine ID / dist | `archeaxis-workspace` | planned |
 | Python 根导入 / CLI | `archeaxis` | planned |
 | 环境变量 | `ARCHEAXIS_*` | planned |

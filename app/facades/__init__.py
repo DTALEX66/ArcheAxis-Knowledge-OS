@@ -1,4 +1,4 @@
-"""Stable public facades for Cognitive-Loop-OS domains."""
+"""Stable public facades for archeaxis-workspace domains."""
 
 from app.facades import contracts
 from app.facades.enhancement import EnhancementArtifact, enhance_artifact

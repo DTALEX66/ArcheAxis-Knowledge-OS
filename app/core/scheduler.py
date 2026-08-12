@@ -1,4 +1,4 @@
-"""APScheduler-based background task scheduler for Cognitive-Loop-OS.
+"""APScheduler-based background task scheduler for archeaxis-workspace.
 
 Adapted from Star-Trails-Log discovery scheduler.
 Supports interval jobs (cognition loops, KB review, IR discovery)

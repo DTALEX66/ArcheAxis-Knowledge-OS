@@ -2,7 +2,7 @@
 
 > 日期：2026-07-13
 > 源：外部 A 项目 Obsidian-Assistance（只读审计，源仓库存在用户未提交修改）
-> 目标：本仓库 Cognitive-Loop-OS
+> 目标：本仓库 archeaxis-workspace
 
 ## 边界
 
@@ -49,11 +49,11 @@
 - 会显著扩大安装体积；
 - 不同机器的模型/GPU/系统二进制条件不同；
 - 模型置信度不能替代金标准准确率；
-- Cognitive-Loop-OS 应保存通用管道与证据合同，而不是课程专属运行环境。
+- archeaxis-workspace 应保存通用管道与证据合同，而不是课程专属运行环境。
 
 ### Vault 专属生成器
 
-课程主页、TALOS 模板、sidecar 和课程目录写入仍属于 Obsidian-Assistance。Cognitive-Loop-OS 吸收其算法和合同，不复制正式 Vault 操作。
+课程主页、TALOS 模板、sidecar 和课程目录写入仍属于 Obsidian-Assistance。archeaxis-workspace 吸收其算法和合同，不复制正式 Vault 操作。
 
 ## API 使用
 

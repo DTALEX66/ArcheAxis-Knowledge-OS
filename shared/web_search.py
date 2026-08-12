@@ -26,7 +26,7 @@ def _ddg_html_search(query: str, limit: int = 10) -> list[dict[str, Any]]:
         response = fetch(
             url,
             headers={
-                "User-Agent": "Cognitive-Loop-OS/0.3 WebSearch",
+                "User-Agent": "archeaxis-workspace/0.3 WebSearch",
             },
             policy=SafeHTTPPolicy(
                 max_bytes=5_000_000,
@@ -133,7 +133,7 @@ def extract_content(url: str, max_chars: int = 10000) -> dict[str, Any]:
         response = fetch(
             url,
             headers={
-                "User-Agent": "Cognitive-Loop-OS/0.3 ContentExtractor",
+                "User-Agent": "archeaxis-workspace/0.3 ContentExtractor",
             },
             policy=SafeHTTPPolicy(
                 max_bytes=5_000_000,

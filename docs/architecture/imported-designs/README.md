@@ -1,7 +1,7 @@
 # Imported Design Documents
 
 这些文档来自 Inspiration-Research 项目（DTALEX66/Inspiration-Research），
-在 Cognitive-Loop-OS 架构设计阶段作为参考吸收。
+在 archeaxis-workspace 架构设计阶段作为参考吸收。
 
 ## 来源
 
@@ -16,6 +16,6 @@
 
 ## 状态
 
-这些文档用于理解 Cognitive-Loop-OS 的双系统架构背景。
+这些文档用于理解 archeaxis-workspace 的双系统架构背景。
 实际代码实现已吸收到 `shared/`、`app/`、`knowledge_base/` 等目录中。
 原始 Python 参考代码和重复文档已从 `workspace/imports/` 中清理。

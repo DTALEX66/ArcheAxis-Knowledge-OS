@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-ArcheAxis OS / Cognitive-Loop-OS is licensed under the MIT License; see
+ArcheAxis OS / archeaxis-workspace is licensed under the MIT License; see
 [`LICENSE`](LICENSE). That license does not replace the licenses of third-party
 packages, bundled binaries, fonts, or other components.
 

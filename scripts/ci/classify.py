@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic changed-path risk classifier for Cognitive-Loop-OS CI.
+"""Deterministic changed-path risk classifier for archeaxis-workspace CI.
 
 Reads the project validation profile and produces a GatePlanV1 JSON artifact.
 Classification is fully deterministic: real base/head diff paths are matched

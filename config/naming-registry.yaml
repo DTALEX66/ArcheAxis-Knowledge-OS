@@ -16,7 +16,7 @@ services:
       - Cognitive_OS
       - cognitive-os
       - cognitive_os
-      - Cognitive-Loop-OS
+      - archeaxis-workspace
 
   knowledge-base:
     python_package: knowledge_base

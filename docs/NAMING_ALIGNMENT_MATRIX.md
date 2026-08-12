@@ -20,7 +20,7 @@
 
 ### Safe to preserve
 
-- `Cognitive-Loop-OS`: repository name, remote URL, project root, historical handoff and audit references.
+- `archeaxis-workspace`: repository name, remote URL, project root, historical handoff and audit references.
 - `Cognitive-OS`: deprecated core alias and historical architecture references.
 - `Knowledge-Base`: deprecated service alias, compatibility prose and historical task-pack references.
 - `Inspiration-Research`: physical compatibility directory and deprecated launcher path.
@@ -56,7 +56,7 @@ Each candidate requires a contract/test update and a remote exact-SHA review bef
 - Root layout contains both canonical Python packages and the intentionally retained
   `Inspiration-Research/` compatibility path.
 - User-facing desktop code consistently uses `ArcheAxis OS` / `元枢系统`; repository and historical
-  documents retain `Cognitive-Loop-OS` where that is the repository identity.
+  documents retain `archeaxis-workspace` where that is the repository identity.
 - No bulk rename is authorized by this matrix, and no runtime, credential, external-drive or user-WIP
   path is changed.
 

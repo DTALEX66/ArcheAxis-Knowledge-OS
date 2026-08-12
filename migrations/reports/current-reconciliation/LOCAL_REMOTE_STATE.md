@@ -10,7 +10,7 @@ Generated: `2026-07-17T22:31:07+08:00`
 - `origin/main`: `9a0886a00db739f9835f827f598616df835e5e6b`
 - Ahead / behind: `0 / 0`
 - Worktree: clean; no staged, unstaged, or untracked files.
-- Verified remote: `git@github.com:DTALEX66/Cognitive-Loop-OS.git`
+- Verified remote: `git@github.com:DTALEX66/archeaxis-workspace.git`
 - Fetch: `git fetch --prune origin` completed without altering a checkout.
 - Exact-SHA CI: GitHub Actions run `29517613689` for `9a0886a…` is completed/success.
 

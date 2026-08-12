@@ -6,7 +6,7 @@
 # This profile is the OS-local risk source of truth in standalone mode.
 
 schema_version: "1.0"
-project_id: "DTALEX66/Cognitive-Loop-OS"  # GitHub repo name (unchanged); product = ArcheAxis Learning Workspace
+project_id: "DTALEX66/archeaxis-workspace"  # GitHub repo name (unchanged); product = ArcheAxis Learning Workspace
 controller_protocol: ">=1.0,<2.0"
 
 modes:

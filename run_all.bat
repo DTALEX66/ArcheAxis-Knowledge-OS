@@ -1,5 +1,5 @@
 @echo off
-REM Cognitive-Loop-OS — migrate once, then launch the unified single-writer runtime.
+REM archeaxis-workspace — migrate once, then launch the unified single-writer runtime.
 setlocal
 pushd "%~dp0"
 

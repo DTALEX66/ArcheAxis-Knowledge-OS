@@ -1,4 +1,4 @@
-"""Unified logging for Cognitive-Loop-OS.
+"""Unified logging for archeaxis-workspace.
 
 Uses loguru for structured JSON logging.
 Drop-in replacement for print() calls across the project:

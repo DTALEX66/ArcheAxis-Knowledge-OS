@@ -24,7 +24,7 @@
 
 以下名称保留为技术和历史兼容身份，不得出现在普通用户主导航、首页标题或产品定位首句：
 
-- `Cognitive-Loop-OS`：Git 仓库、远端 URL、历史文档和内部 project root。
+- `archeaxis-workspace`：Git 仓库、远端 URL、历史文档和内部 project root。
 - `cognitive-loop-os`：Python/package 与现有发布兼容 ID。
 - `cognitive-os`：既有 CLI/API/配置兼容别名；不得新建同名产品表面。
 - `ArcheAxis OS`：既有 desktop protocol、installer migration 和历史 Release 的兼容身份；新用户显示层使用 `ArcheAxis Workspace`。

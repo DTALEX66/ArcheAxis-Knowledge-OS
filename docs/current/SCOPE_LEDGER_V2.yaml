@@ -30,7 +30,7 @@ scope_entries:
   - id: "SCOPE-005"
     item: "已退休定位"
     scope: "retired"
-    description: "元枢工作台、ArcheAxis OS、Cognitive-Loop-OS 作为产品名（仅历史/迁移语境）"
+    description: "元枢工作台、ArcheAxis OS、archeaxis-workspace 作为产品名（仅历史/迁移语境）"
 
 programs:
   - id: "AXW-090"

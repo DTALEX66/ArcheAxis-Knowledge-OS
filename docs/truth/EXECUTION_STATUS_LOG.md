@@ -59,7 +59,7 @@
 - 基线输入：用户批准的冻结任务清单与 DeepSeek 全量执行包交付；不声明任何 AXW 实现任务完成
 - 变更：新增冻结基线、SHA-256、Truth 导航、追加式状态日志、DeepSeek 执行协议、intake，以及冻结哈希 convention guard
 - 验证：`git diff --cached --check` PASS；repository convention PASS；42 个定向测试 PASS；changed-file Ruff PASS；architecture guard PASS；99 个任务 ID 无重复、无未知依赖、无环；5 个新文档的本地链接无缺失
-- 云端：`https://github.com/DTALEX66/Cognitive-Loop-OS/tree/codex/frozen-roadmap-deepseek-v1`；远端分支 SHA 回读为 `636bae2cb50c589e4d58e28c553b736613002b7e`；该分支 push 不触发当前仅面向 main/PR 的 CI，`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 云端：`https://github.com/DTALEX66/archeaxis-workspace/tree/codex/frozen-roadmap-deepseek-v1`；远端分支 SHA 回读为 `636bae2cb50c589e4d58e28c553b736613002b7e`；该分支 push 不触发当前仅面向 main/PR 的 CI，`EXACT_SHA_CI` 为 `NOT EXECUTED`
 - 安装态：不适用于本次文档与治理校验，`LIVE_INSTALLED` 为 `NOT EXECUTED`
 - 风险/剩余项：内容已上传独立分支，尚未合并 main；PR、merge、branch protection 和 release 均未获本次授权且未执行
 - 回滚：在后续集成分支 revert `636bae2cb50c589e4d58e28c553b736613002b7e`；冻结 v1 的 Git 历史仍保留用于对照
@@ -73,7 +73,7 @@
 - 变更：新增 19 项 Web 强制任务及独立 SHA-256；更新 DeepSeek 有效 DAG、未来蓝图、吸收矩阵、导航和 framework intake；未修改冻结 v1 文件
 - 验证：`git diff --cached --check` PASS；repository convention PASS；43 个定向测试 PASS；changed-file Ruff PASS；architecture guard PASS；冻结基线与增补共 118 个任务 ID 无重复、无未知依赖、无环；6 个相关文档的本地链接无缺失；一名独立只读 reviewer 对前后端/DAG 给出 PASS
 - 上游核验：Crawl4AI 确认为 `unclecode/crawl4ai`；Spidering 名称存在歧义，`spider-rs/spider` 仅为当前 MIT 候选，exact URL 待所有者确认；同名 `duzluk/spidering` 为 GPL-3.0，未被自动选用
-- 云端：`https://github.com/DTALEX66/Cognitive-Loop-OS/tree/codex/frozen-roadmap-deepseek-v1`；远端分支 SHA 回读为 `e7102416155aa53a13de0fb6b6edf959e07d5528`；该分支 push 不触发当前仅面向 main/PR 的 CI，`EXACT_SHA_CI` 为 `NOT EXECUTED`
+- 云端：`https://github.com/DTALEX66/archeaxis-workspace/tree/codex/frozen-roadmap-deepseek-v1`；远端分支 SHA 回读为 `e7102416155aa53a13de0fb6b6edf959e07d5528`；该分支 push 不触发当前仅面向 main/PR 的 CI，`EXACT_SHA_CI` 为 `NOT EXECUTED`
 - 安装态：本次只交付任务、规划和蓝图；Crawl4AI、Spider、前端、后端和 Windows E2E 实现均为 `NOT EXECUTED`
 - 风险/剩余项：必须由所有者确认 Spidering exact GitHub URL；内容尚未合并 main，PR/merge/发布未执行
 - 回滚：revert `e7102416155aa53a13de0fb6b6edf959e07d5528`；冻结 v1 与先前发布记录保持可追溯
@@ -213,7 +213,7 @@
 ### LOG-20260809-013 — H0 PR #71 exact-head CI — PASS (EXACT_SHA_CI)
 
 - 时间：2026-08-09T23:50:00+08:00
-- 执行分支：`axw/execution-h0`；PR `https://github.com/DTALEX66/Cognitive-Loop-OS/pull/71`
+- 执行分支：`axw/execution-h0`；PR `https://github.com/DTALEX66/archeaxis-workspace/pull/71`
 - 候选提交/tree：head `35066f8c99c8767f0a1944ec573333791c74572f`；run `31318879327`
 - 基线输入：AXW-003A/003C/007A/009B/012A/012B 本地 checkpoint
 - 变更：无代码变更（纯 CI 验收记录）；历史：初版 run `31318538398` 因过时测试断言 `markitdown>=0.1` 失败，已修复为 `markitdown[pdf]>=0.1` 并推送 `35066f8`
@@ -276,7 +276,7 @@
 ### LOG-20260809-017 — PR #71 final head exact-SHA CI — PASS
 
 - 时间：2026-08-09T23:59:45+08:00
-- 执行分支：`axw/execution-h0`；PR `https://github.com/DTALEX66/Cognitive-Loop-OS/pull/71`
+- 执行分支：`axw/execution-h0`；PR `https://github.com/DTALEX66/archeaxis-workspace/pull/71`
 - 候选提交/tree：head `39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8`；run `31320022571`
 - 变更：无代码行为变更；最终 head 含 AXW-003A/003C/007A/009B/012A/012B/010B/006C 全部 checkpoint
 - 验证：run `31320022571` `completed/success`；全部 11 个 job PASS——gateplan、lint、test(3.12)、py-compat(3.11/3.13)、wheel-smoke、browser-smoke、windows-runtime-smoke、desktop-fast、desktop-build(13m43s)、installer-lifecycle、a0-gates；mergeStateStatus `CLEAN`
@@ -366,7 +366,7 @@
 ### LOG-20260809-025 — PR #72 exact-head CI — PASS
 
 - 时间：2026-08-09T15:50:00+08:00
-- 执行分支：`axw/execution-h1`；PR `https://github.com/DTALEX66/Cognitive-Loop-OS/pull/72`
+- 执行分支：`axw/execution-h1`；PR `https://github.com/DTALEX66/archeaxis-workspace/pull/72`
 - 候选提交/tree：head `f09f94079caf302c47bc38332a8e21cec7e6a667`；run `31321865354`
 - 变更：无代码变更（纯 CI 验收记录）
 - 验证：run `31321865354` `completed/success`；gateplan、lint、test(3.12)、wheel-smoke、a0-gates 全 PASS；browser-smoke、desktop-build、desktop-fast、installer-lifecycle、py-compat、windows-runtime-smoke 正确 SKIP（本次变更纯 Python+文档，无 UI/桌面/兼容/Windows 路径——AXW-003C 分类修复生效）；mergeStateStatus `CLEAN`

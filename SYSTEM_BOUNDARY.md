@@ -1,4 +1,4 @@
-# System Boundary — Cognitive-Loop-OS
+# System Boundary — archeaxis-workspace
 
 > 本文件描述当前边界。远期设计见 `docs/FUTURE_EXECUTION_BLUEPRINT.md`；旧端点数、测试数和“完成度”不作为能力证明。
 
@@ -6,12 +6,12 @@
 
 | 区域 | 当前角色 | 状态 |
 |---|---|---|
-| Cognitive-Loop-OS | 唯一开发目标；Core 与 Knowledge Base 由 `app.main` 在端口 8000 统一提供 | 可运行，但 Planner 仍以固定 echo 步骤为主 |
+| archeaxis-workspace | 唯一开发目标；Core 与 Knowledge Base 由 `app.main` 在端口 8000 统一提供 | 可运行，但 Planner 仍以固定 echo 步骤为主 |
 | Inspiration-Research | 仓库内研究候选与雷达兼容服务 | 保留独立入口，后续经 Facade 收口 |
 | `shared-contracts` | Schema、fixture、validator 与真实/显式失败 adapter | 已接入部分门禁 |
 | 外部 A 项目 Obsidian-Assistance | 已完成只读分析与通用能力吸收 | 关闭后续扫描、测试、修改、同步与迁移 |
 
-Obsidian 只可通过显式输入路径或投影 adapter 参与；Cognitive-Loop-OS 不默认读取个人 Vault，也不把外部 A 项目作为运行时依赖。
+Obsidian 只可通过显式输入路径或投影 adapter 参与；archeaxis-workspace 不默认读取个人 Vault，也不把外部 A 项目作为运行时依赖。
 
 ## 当前 Core 边界
 

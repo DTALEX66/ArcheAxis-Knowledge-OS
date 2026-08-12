@@ -5,7 +5,7 @@ aliases: [Task Management, Context Pack System]
 
 # Task Management
 
-Tracks context packs and task executions within Cognitive-Loop-OS.
+Tracks context packs and task executions within archeaxis-workspace.
 
 ## Context Pack Structure
 

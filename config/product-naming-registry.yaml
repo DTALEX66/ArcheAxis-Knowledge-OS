@@ -39,7 +39,7 @@ technical_ids:
     class: canonical_machine_identity
     allowed_surfaces: [api, database, events, configuration]
 forbidden_default_terms:
-  - Cognitive-Loop-OS
+  - archeaxis-workspace
   - Cognitive OS
   - 认知操作系统
   - 认知运行时

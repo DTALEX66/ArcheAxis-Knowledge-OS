@@ -104,7 +104,7 @@ def _fetch_url(url: str, timeout: int = 15) -> bytes | None:
         response = fetch(
             url,
             headers={
-                "User-Agent": "Cognitive-Loop-OS/0.3 Feed Collector",
+                "User-Agent": "archeaxis-workspace/0.3 Feed Collector",
                 "Accept": "application/rss+xml, application/atom+xml, application/xml",
             },
             policy=SafeHTTPPolicy(

@@ -1,4 +1,4 @@
-# Cognitive-Loop-OS 冻结执行 — H0/H1 状态与交接文档
+# archeaxis-workspace 冻结执行 — H0/H1 状态与交接文档
 
 > 文档日期：2026-08-09
 > 任务包：`DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`

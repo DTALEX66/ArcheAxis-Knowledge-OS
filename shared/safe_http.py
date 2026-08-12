@@ -269,7 +269,7 @@ def fetch(
         raise SafeHTTPError(f"HTTP method not allowed: {method}")
     request_headers = {
         "Accept": ", ".join(active_policy.allowed_content_types),
-        "User-Agent": "Cognitive-Loop-OS/SafeHTTP",
+        "User-Agent": "archeaxis-workspace/SafeHTTP",
     }
     if headers:
         request_headers.update(headers)

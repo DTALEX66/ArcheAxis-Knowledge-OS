@@ -1,4 +1,4 @@
-# Cognitive-Loop-OS Workspace
+# archeaxis-workspace Workspace
 
 本工作区保存项目设计过程中的进口知识包（intake）和会议记录。
 
