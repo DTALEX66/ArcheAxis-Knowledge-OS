@@ -1577,3 +1577,23 @@ AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 - PR #139 MERGED（32c14a4）；PR #137 MERGED（b44fabb）；#138 MERGED（e90274f）
 - CI 最后 3 个 run 全绿（31616690343/31619814428/31621710655）
 - OS configuration EXTERNAL_DEPENDENCIES.md 同步新 URL+路径（bc0d62c）
+## LOG-143 (2026-08-13) — 真实资料全流程管线测试 + 9 缺陷修复闭环
+
+**触发**：用户要求真实测试（ceshi 课程资料库 66 PDF/24 docx/64 mp4/14 mp3/22 canvas）+ 网上补充格式，按管线全流程。
+
+**发现并修复 9 个真实缺陷**（全部 1461 passed + 门禁绿 + CI 验证）：
+1. **数据库 schema 漂移**：ir_contracts.target_repo DEFAULT 仍为改名前的 'Cognitive-OS'（契约已是 'ArcheAxis'），fail-closed 拒启 → 备份后重建开发库重新迁移（零业务数据）
+2. **docx/pptx/xlsx 引擎声明但依赖缺失**：pyproject 仅 markitdown[pdf] → markitdown[pdf,docx,pptx,xlsx]（mammoth/python-pptx/openpyxl）
+3. **扫描版 PDF 无 OCR**（素材库 6/66 是扫描件）→ 新增 _via_pdf_ocr（pymupdf 渲染 + tesseract chi_sim+eng，页码锚点，诚实 fail-closed）→ 4140 chars 实测
+4. **GBK txt 乱码**（12 个真实 txt 全 GBK）→ _decode_text_bytes 编码级联（utf-8→gb18030→utf-16→latin-1）
+5. **Magika 误判 GBK txt 为 csv** → 文本格式（txt/md/csv/tsv）扩展名优先
+6. **ingest_file 只支持 md/txt**（不接引擎链）→ DEFAULT_EXTENSIONS 对齐引擎链 + _read_text 接入 convert_file → 牛津 PDF 73K→REVIEW 0.95 入库
+7. **RTF 假成功**（markitdown 无 RTF 转换器，返回源码冒充内容）→ striprtf 引擎（1631 chars 真实文本）
+8. **ODT 假成功/假阳性** → odf-xml 引擎（defusedxml 解析 content.xml，XXE 安全）
+9. **ffmpeg 错误消息与测试断言不一致**（venv 重建后 ffmpeg 不在 PATH 暴露）→ 统一 'not found in PATH' + 断言双措辞
+
+**环境联动**：并行会话迁移 toolchains（ffmpeg/tesseract/scoop）至 OS External Configuration → TESSDATA_PREFIX/ffmpeg PATH 更新，ffmpeg 测试恢复（87 passed）。
+
+**验证矩阵**（12+2 格式全通）：PDF文字版/PDF扫描OCR/DOCX/PPTX/TXT-GBK/MP3/MP4/PNG-OCR/EPUB(网上样本 752K 傲慢与偏见)/XLSX/CANVAS/RTF/ODT；路由：DROP 低价值/KB 0.88/REVIEW 0.95 均正确；执行层无工具 fail-closed + 教训记录。
+
+**提交**：e916a8d（OCR+依赖+编码）、bbcfa33（ingest 引擎链）、0d3b37f（ruff）、78358ca（RTF/ODT）——main @ 78358ca 双端一致；CI run 31626120182 success。
