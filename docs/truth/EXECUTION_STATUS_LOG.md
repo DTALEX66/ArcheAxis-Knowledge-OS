@@ -998,3 +998,20 @@ index.html 按钮 + browser-smoke：
 教训：全量型 workflow（nightly）首跑前除静态预审计外，
 **手动 dispatch 一次是决定性验证**——比等 tick 提前发现
 gateplan 盲区（未被任何 push 路径触发过的测试依赖）。
+
+
+### LOG-166: nightly 覆盖缺口修复——integration-tests 纳入 full-suite
+
+复盘 Run #2 全绿时发现：pyproject `testpaths = [tests, knowledge_base/tests]`
+不含 integration-tests/（35 测试：test_ir_kb_os_loop 1 + test_real_case_e2e
+34）——ci.yml 用独立步骤跑它们，nightly full-suite 一条 pytest 命令
+从未收集——**Run #2 对集成层是假绿**。
+
+- 本地先验证：integration-tests/ 35 passed（4.22s）
+- 修复（b99d111）：full-suite 显式三目录
+  `pytest tests/ integration-tests/ knowledge_base/tests/`
+  （与 ci.yml 三步等效）
+- Run #3（b99d111）SUCCESS 2m44s：完整矩阵全绿
+
+教训：全量型 workflow 的"全量"必须对照 pytest 实际收集范围
+（testpaths 配置），不能假定 `pytest` 根运行 = 全部测试。
