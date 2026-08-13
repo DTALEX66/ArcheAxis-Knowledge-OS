@@ -136,7 +136,7 @@ def test_batch_pause_resume_shutdown_flow(client: TestClient, tmp_path: Path) ->
 
         resumed = client.post("/workspace/api/batch/control-batch/resume")
         assert resumed.status_code == 200
-        assert resumed.json()["state"] == "running"
+        assert resumed.json()["state"] in ("running", "finished")  # may finish instantly
 
     # wait for completion
     status = client.get("/workspace/api/batch/control-batch/status")
@@ -150,6 +150,39 @@ def test_batch_pause_resume_shutdown_flow(client: TestClient, tmp_path: Path) ->
     # unknown batch control is a 404
     missing = client.post("/workspace/api/batch/nope/pause")
     assert missing.status_code == 404
+
+
+def test_batch_shutdown_mid_run(client: TestClient, tmp_path: Path) -> None:
+    """Safe exit: shutdown stops pickup, persists the ledger, and the
+    rehydrated status reports the terminal shutdown state (AXW-096C)."""
+    source = tmp_path / "import-src3"
+    (source / "docs").mkdir(parents=True)
+    for index in range(200):
+        (source / "docs" / f"f{index:03d}.md").write_text(
+            f"# File {index}\n\n{'Body content. ' * 20}\n", encoding="utf-8"
+        )
+
+    batch = client.post(
+        "/workspace/api/batch/import",
+        json={"batch_id": "shutdown-batch", "source_dir": str(source), "pattern": "**/*", "max_files": 200},
+    )
+    assert batch.status_code == 200
+
+    # give workers a moment to pick up tasks, then shut down mid-run
+    time.sleep(0.1)
+    shutdown = client.post("/workspace/api/batch/shutdown-batch/shutdown")
+    assert shutdown.status_code == 200
+    assert shutdown.json()["state"] == "shutdown"
+
+    # ledger persisted: status readback works after the active batch is gone
+    status = client.get("/workspace/api/batch/shutdown-batch/status")
+    assert status.status_code == 200
+    body = status.json()
+    assert body["state"] in ("shutdown", "finished")  # finished if all done already
+    assert body["total"] == 200
+    completed = body["completed"]
+    assert 0 < completed < 200  # shutdown happened mid-run, not before/after
+    assert "docs/f000.md" in body["results"]
 
 
 def test_batch_import_rejects_missing_source(client: TestClient, tmp_path: Path) -> None:

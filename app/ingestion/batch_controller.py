@@ -99,7 +99,9 @@ class BatchImportController:
         with self._lock:
             self._tasks.extend(task_ids)
             self._state.total += len(task_ids)
-        self._append_event({"type": "tasks_added", "count": len(task_ids), "total": self._state.total})
+        self._append_event(
+            {"type": "tasks_added", "count": len(task_ids), "total": self._state.total, "tasks": list(task_ids)}
+        )
 
     # -- lifecycle ----------------------------------------------------------
 
@@ -235,6 +237,8 @@ class BatchImportController:
         failed: set[str] = set()
         controller._results = {}
         terminal_state = "idle"
+        all_tasks: list[str] = []
+        ledger_total = 0
         for line in Path(checkpoint_path).read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
@@ -242,6 +246,10 @@ class BatchImportController:
             event = record.get("event", {})
             event_type = event.get("type")
             if event_type == "tasks_added":
+                # New ledgers carry the full task list; old ledgers only
+                # recorded count/total (task list then cannot be recovered).
+                all_tasks.extend(event.get("tasks", []))
+                ledger_total = event.get("total", ledger_total)
                 continue
             if event_type == "batch_end":
                 terminal_state = event.get("state", "idle")
@@ -251,9 +259,12 @@ class BatchImportController:
             elif event_type == "task_failed":
                 failed.add(event["task"])
                 controller._results[event["task"]] = {"status": "failed", "error": event.get("error", "")}
+        # Tasks that never ran stay queued so an interrupted batch is
+        # resumable; total always reflects the full task set from the ledger.
+        controller._tasks = [t for t in all_tasks if t not in completed and t not in failed]
         controller._state = BatchState(batch_id=controller._new_batch_id())
         controller._state.state = terminal_state
         controller._state.completed = len(completed)
         controller._state.failed = len(failed)
-        controller._state.total = len(completed) + len(failed)
+        controller._state.total = len(all_tasks) if all_tasks else ledger_total
         return controller
