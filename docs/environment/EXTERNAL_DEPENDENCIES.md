@@ -73,6 +73,28 @@
 - **下载**：https://nodejs.org/
 - **验证**：`node --version`
 
+### 1.7 Rust toolchain（可选，仅桌面构建）
+
+- **用途**：Tauri 桌面应用编译（`desktop/src-tauri`）
+- **版本**：>=1.80（当前本机 1.88.0）
+- **下载**：https://rustup.rs
+- **安装**：`rustup toolchain install stable-msvc`（需先装 1.8 的 VS Build Tools）
+- **验证**：`rustc --version`、`cargo --version`
+
+### 1.8 VS Build Tools（MSVC，可选，仅桌面构建）
+
+- **用途**：Rust/桌面二进制链接所需的 MSVC 编译链（kernel32.lib 等 Windows SDK 库）
+- **下载**：https://visualstudio.microsoft.com/visual-cpp-build-tools/
+- **组件**：工作负载「使用 C++ 的桌面开发」+ Windows 11/10 SDK
+- **验证**：`vswhere.exe` 能找到且 `Windows Kits\10\Lib` 存在 kernel32.lib
+
+### 1.9 Playwright 浏览器（可选，仅浏览器自动化测试）
+
+- **用途**：browser-smoke 端到端测试
+- **下载**：https://playwright.dev/python/docs/browsers
+- **安装**：`playwright install chromium`
+- **缓存**：`PLAYWRIGHT_BROWSERS_PATH` 指向外部 `toolchains/playwright`
+
 ---
 
 ## 2. Python 包（pyproject.toml 管理）

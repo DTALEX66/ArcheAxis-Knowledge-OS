@@ -36,9 +36,13 @@ Markdown、JSON Canvas 和 Vault 互操作是第一条高保真纵切；在编�
 | Python 3.11+ | 运行时 | https://www.python.org/downloads/windows/ |
 | uv | Python 包管理器 | https://github.com/astral-sh/uv/releases |
 | Tesseract-OCR 5.x | 图像 OCR 引擎 | https://github.com/UB-Mannheim/tesseract/wiki |
+| Tesseract 语言包 | OCR 中文/英文识别（chi_sim + eng） | https://github.com/tesseract-ocr/tessdata |
 | FFmpeg | 音视频处理 | https://ffmpeg.org/download.html |
 | Git | 版本控制 | https://git-scm.com/download/win |
 | Node.js LTS | 桌面构建（可选） | https://nodejs.org/ |
+| Rust toolchain | Tauri 桌面构建 | https://rustup.rs |
+| VS Build Tools (MSVC) | Rust/桌面编译链 | https://visualstudio.microsoft.com/visual-cpp-build-tools/ |
+| Playwright 浏览器 | 浏览器自动化 | https://playwright.dev/python/docs/browsers |
 | scoop | Windows 包管理（可选） | https://scoop.sh |
 
 完整清单与安装步骤见 [`docs/environment/EXTERNAL_DEPENDENCIES.md`](docs/environment/EXTERNAL_DEPENDENCIES.md)（同步于 `D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`）。
