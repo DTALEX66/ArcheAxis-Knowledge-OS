@@ -823,3 +823,18 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   compileall（app/shared/knowledge_base/scripts）+ test_imported_modules
   → 全部 PASS；3.11 侧 target py311 风险更低
 - .venv 被 uv --python 3.13 重建后已 uv sync --frozen 恢复完整环境
+
+
+### LOG-155: AXW-096B PDF 阅读器键盘可达性覆盖（browser-smoke 扩展）
+
+- 补全 PDF 阅读器无鼠标键盘流断言（此前仅鼠标流）：
+  - #pdf-prev focus+Enter → 页码 2/2→1/2
+  - [data-action=pdf-zoom-out] focus+Enter → zoom 变化（zoom 按钮无 id，
+    仅 data-action——属性定位）
+  - 搜索输入 → Tab（断言焦点落"搜索"按钮）→ Enter → searchPdf 跳匹配页 2/2
+- 测试陷阱固化：keyboard.type 叠加已有输入值 → 查询串不匹配 → 必须先
+  fill("") 清空；CI 诊断扩展 activeElement + searchValue 到 state dump
+- commit 00f9c3f（scripts + index.html 注释触发 CI browser-smoke 实跑）
+  → Run 535 SUCCESS；本地 1531 passed / 9 skipped
+- nightly 调度观察延续：03:17 tick 后 50+ 分钟仍未触发（GitHub 调度器
+  跳过 tick，非本端可强制；workflow_dispatch 需认证）
