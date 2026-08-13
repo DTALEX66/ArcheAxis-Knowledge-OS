@@ -1084,3 +1084,22 @@ YAML 解析验证；CI Run 567 绿。
 
 结论：first-match-wins 设计下所有重叠路径归更广/fail-safe 类，
 无任何路径落入未覆盖状态。分类体系验证为 fail-safe 全覆盖。
+
+
+### LOG-171: release.yml 首跑预审计 PASS（夜间教训应用到发布链）
+
+release.yml 从未实跑（tag 触发，无 dispatch）——用 nightly 教训
+（解释器/依赖/环境）逐步骤审计：
+- 全部 Python 脚本（prepare_bundle/stage_runtime/release_checksum/
+  release_inject_identity）纯 stdlib → 系统 Python 可跑，无
+  nightly Run#4 式解释器错配
+- uv sync 装 .venv 但后续 python 命令用系统解释器——无影响
+  （脚本无第三方依赖）
+- release-identity.json 经 tauri.conf.json bundle resources
+  （../../.hermes/rt/runtime -> runtime）打包进 NSIS installer →
+  verify_nsis_install.ps1 -RequireReleaseIdentity 闭环成立
+- gh CLI / Rust / npm 均由 Windows 托管 runner 预装
+- 校验链（exact-SHA CI 门禁 → checksum manifest → provider
+  digest readback → identity 绑定）与 LOG-153 预审计一致
+
+唯一未实跑环节：NSIS 构建+安装（需真实 tag，Owner 动作）。
