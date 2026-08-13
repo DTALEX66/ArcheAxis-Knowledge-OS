@@ -807,3 +807,184 @@ def record_practice(command: RecordPracticeCommand, request: Request) -> dict[st
 def workspace_case(artifact_id: str, request: Request) -> dict[str, Any]:
     _local_principal(request)
     return _command_error(lambda: service.case_audit(artifact_id=artifact_id, db_path=DB_PATH))
+
+
+# ---------------------------------------------------------------------------
+# AXW-094A/B + AXW-096C operational surface: open-exchange export, verifiable
+# backup/restore, and controllable batch import. These make the library-level
+# implementations reachable from the Workspace API (022B lesson: a feature
+# that cannot be reached is not a feature).
+# ---------------------------------------------------------------------------
+
+class ExchangeExportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(default="exchange", min_length=1, max_length=128)
+    overwrite: bool = False
+
+
+class BackupRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(default="backup", min_length=1, max_length=128)
+
+
+class BackupRestoreRequest(BackupRequest):
+    dry_run: bool = True
+
+
+class BatchImportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    batch_id: str = Field(min_length=1, max_length=128)
+    source_dir: str = Field(min_length=1, max_length=4096)
+    pattern: str = Field(default="**/*", min_length=1, max_length=512)
+    max_files: int = Field(default=200, ge=1, le=10_000)
+    rate_per_second: float | None = Field(default=None, gt=0)
+    max_retries: int = Field(default=1, ge=0, le=5)
+
+
+def _exchange_root() -> Path:
+    return resolve_runtime_path("data") / "exchange"
+
+
+def _backup_root() -> Path:
+    return resolve_runtime_path("data") / "backups"
+
+
+def _batch_ledger(batch_id: str) -> Path:
+    return resolve_runtime_path("data") / "batch" / f"{batch_id}.jsonl"
+
+
+@router.post("/api/exchange/export")
+def workspace_exchange_export(payload: ExchangeExportRequest, request: Request) -> dict[str, Any]:
+    """Export raw/evidence/learning artifacts as an open exchange directory."""
+    _local_principal(request)
+    from app.exchange.export import export_knowledge_exchange, extract_exchange_items
+
+    def run() -> dict[str, Any]:
+        items = extract_exchange_items(
+            raw_root=resolve_runtime_path("data"),
+            evidence_db=DB_PATH,
+            learning_root=resolve_runtime_path("data") / "learning",
+        )
+        destination = _exchange_root() / payload.name
+        manifest = export_knowledge_exchange(
+            destination=destination,
+            overwrite=payload.overwrite,
+            **items,
+        )
+        return {
+            "destination": str(destination),
+            "item_count": manifest["item_count"],
+            "manifest_sha256": manifest["manifest_sha256"],
+        }
+
+    return _command_error(run)
+
+
+@router.get("/api/exchange/verify")
+def workspace_exchange_verify(request: Request, name: str = "exchange") -> dict[str, Any]:
+    """Verify an exchange directory (hash + coverage + schema)."""
+    _local_principal(request)
+    from app.exchange.export import verify_export
+
+    return _command_error(lambda: verify_export(_exchange_root() / name))
+
+
+@router.post("/api/backup/create")
+def workspace_backup_create(payload: BackupRequest, request: Request) -> dict[str, Any]:
+    """Snapshot the runtime data dir into a verifiable backup."""
+    _local_principal(request)
+    from app.exchange.backup import create_backup
+
+    def run() -> dict[str, Any]:
+        data_root = resolve_runtime_path("data")
+        data_root.mkdir(parents=True, exist_ok=True)
+        manifest = create_backup(
+            source=data_root,
+            backup_dir=_backup_root() / payload.name,
+        )
+        return {"destination": str(_backup_root() / payload.name), "file_count": manifest["file_count"]}
+
+    return _command_error(run)
+
+
+@router.get("/api/backup/verify")
+def workspace_backup_verify(request: Request, name: str = "backup") -> dict[str, Any]:
+    """Verify a backup snapshot (hashes + completeness + version)."""
+    _local_principal(request)
+    from app.exchange.backup import verify_backup
+
+    return _command_error(lambda: verify_backup(_backup_root() / name))
+
+
+@router.post("/api/backup/restore")
+def workspace_backup_restore(payload: BackupRestoreRequest, request: Request) -> dict[str, Any]:
+    """Restore a backup into the runtime data dir (dry-run by default)."""
+    _local_principal(request)
+    from app.exchange.backup import restore_backup
+
+    def run() -> dict[str, Any]:
+        return restore_backup(
+            backup_dir=_backup_root() / payload.name,
+            target=resolve_runtime_path("data"),
+            dry_run=payload.dry_run,
+        )
+
+    return _command_error(run)
+
+
+@router.post("/api/batch/import")
+def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dict[str, Any]:
+    """Run a controlled batch import (pause/resume/rate-limit/safe exit)."""
+    _local_principal(request)
+    from app.ingestion.batch_controller import BatchImportController
+    from app.ingestion.multi_format import convert_directory_resumable
+
+    controller = BatchImportController(
+        checkpoint_path=_batch_ledger(payload.batch_id),
+        max_retries=payload.max_retries,
+    )
+    source_root = Path(payload.source_dir)
+    if not source_root.is_dir():
+        raise HTTPException(status_code=400, detail=f"source_dir not found: {source_root}")
+    files = sorted(p for p in source_root.rglob(payload.pattern) if p.is_file())[: payload.max_files]
+    rel_tasks = [p.relative_to(source_root).as_posix() for p in files]
+    if not rel_tasks:
+        raise HTTPException(status_code=400, detail="no files matched the import pattern")
+    controller.add_tasks(rel_tasks)
+
+    artifacts_root = resolve_runtime_path("data") / "batch-artifacts" / payload.batch_id
+    artifacts_root.mkdir(parents=True, exist_ok=True)
+
+    def convert_worker(rel_path: str) -> dict[str, str]:
+        result = convert_directory_resumable(
+            directory=source_root,
+            manifest_path=artifacts_root / "manifest.json",
+            output_dir=artifacts_root,
+            pattern=f"**/{rel_path}",
+            max_files=1,
+        )
+        return {"result_digest": f"converted:{result.get('processed', 0)}"}
+
+    state = controller.run(convert_worker, max_concurrent=2, rate_per_second=payload.rate_per_second)
+    return {
+        "batch_id": payload.batch_id,
+        "state": state.state,
+        "total": state.total,
+        "completed": state.completed,
+        "failed": state.failed,
+    }
+
+
+@router.get("/api/batch/{batch_id}/status")
+def workspace_batch_status(batch_id: str, request: Request) -> dict[str, Any]:
+    """Read a batch ledger (results + attempts + counts)."""
+    _local_principal(request)
+    from app.ingestion.batch_controller import BatchImportController
+
+    ledger = _batch_ledger(batch_id)
+    if not ledger.is_file():
+        raise HTTPException(status_code=404, detail=f"no such batch: {batch_id}")
+    return BatchImportController.from_checkpoint(ledger).status()
