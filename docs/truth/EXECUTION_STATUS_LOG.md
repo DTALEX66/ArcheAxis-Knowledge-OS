@@ -838,3 +838,19 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   → Run 535 SUCCESS；本地 1531 passed / 9 skipped
 - nightly 调度观察延续：03:17 tick 后 50+ 分钟仍未触发（GitHub 调度器
   跳过 tick，非本端可强制；workflow_dispatch 需认证）
+
+
+### LOG-156: 096C 账本任务列表恢复缺陷修复 + 中途 shutdown 覆盖
+
+- 缺陷：tasks_added 事件只记 count/total 不记任务列表 → from_checkpoint
+  恢复后未完成任务静默消失（total 塌缩为已完成数）→ 违背"中断批次可
+  续跑"承诺
+- 修复：add_tasks 记录完整任务列表（保留 count/total 兼容旧账本）；
+  from_checkpoint 恢复未完成任务队列 + 重算计数 + total 取全量（旧账本
+  fallback 到记录的 total）
+- 新增 API 测试：中途 shutdown → 账本持久 → status 读回 terminal
+  shutdown 状态、total=200、0<completed<200、未完成任务完整
+- commit 976bf13；17 passed（api/batch_control/pipeline）；全量 1532
+  passed / 9 skipped
+- nightly 观察定论：默认分支=main 已确认、cron 正确、workflow 在 main
+  ——不触发属 GitHub 调度器跳过（外部行为，三次确认）
