@@ -222,7 +222,8 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
      (Regression-covered by scripts/a0_browser_smoke.py: exercise_pdf_reader;
       CI runs the full Chromium browser, local dev defaults to headless-shell;
       smoke entrypoint wraps failures into workflow annotations and anchors
-      the repo root on sys.path for direct script runs.) */
+      the repo root on sys.path for direct script runs; the anchor is
+      grandfathered in scripts/check_architecture.py.) */
   let cachedSelection = "";
   function syncAnnotateEnabled() {
     const btn = document.getElementById("pdf-annotate");
