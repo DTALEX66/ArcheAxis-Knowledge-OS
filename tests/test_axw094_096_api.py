@@ -371,3 +371,27 @@ def test_batch_control_unknown_batch_is_404(client: TestClient) -> None:
         response = client.post(f"/workspace/api/batch/ghost-batch/{action}")
         assert response.status_code == 404, f"{action}: {response.text}"
         assert "no active batch" in response.json()["detail"]
+
+
+def test_batch_import_rate_and_max_files_bounds(client: TestClient, tmp_path: Path) -> None:
+    """rate_per_second is accepted and forwarded; max_files bounds enforced."""
+    source = tmp_path / "rate-src"
+    (source / "docs").mkdir(parents=True)
+    for index in range(3):
+        (source / "docs" / f"f{index}.md").write_text(f"# File {index}\n", encoding="utf-8")
+
+    ok = client.post(
+        "/workspace/api/batch/import",
+        json={"batch_id": "rate-batch", "source_dir": str(source), "pattern": "**/*", "rate_per_second": 50.0},
+    )
+    assert ok.status_code == 200, ok.text
+
+    status = client.get("/workspace/api/batch/rate-batch/status")
+    assert status.status_code == 200, status.text
+
+    # max_files above the documented ceiling is rejected by validation
+    over = client.post(
+        "/workspace/api/batch/import",
+        json={"batch_id": "too-many", "source_dir": str(source), "pattern": "**/*", "max_files": 10_001},
+    )
+    assert over.status_code == 422, over.text
