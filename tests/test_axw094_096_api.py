@@ -48,6 +48,32 @@ def test_exchange_export_verify_roundtrip(client: TestClient) -> None:
     assert verify.status_code == 200, verify.text
 
 
+def test_exchange_verify_detects_tampering(client: TestClient) -> None:
+    """A mutated exported file must fail exchange verification."""
+    from shared.config import resolve_runtime_path
+
+    originals = resolve_runtime_path("data") / "originals"
+    originals.mkdir(parents=True, exist_ok=True)
+    (originals / "ex-tamper").write_bytes(b"original bytes")
+
+    export = client.post(
+        "/workspace/api/exchange/export",
+        json={"name": "ex-tamper-test", "overwrite": True},
+    )
+    assert export.status_code == 200, export.text
+    assert export.json()["item_count"] == 1
+
+    # corrupt one exported payload file (not the manifest)
+    exchange_dir = resolve_runtime_path("data") / "exchange" / "ex-tamper-test"
+    targets = [p for p in exchange_dir.rglob("*") if p.is_file() and p.name != "manifest.json"]
+    assert targets
+    targets[0].write_bytes(b"tampered content")
+
+    verify = client.get("/workspace/api/exchange/verify", params={"name": "ex-tamper-test"})
+    assert verify.status_code == 422, verify.text
+    assert "hash mismatch" in verify.json()["detail"]
+
+
 def test_exchange_export_verify_failure(client: TestClient) -> None:
     # verifying a non-existent exchange is a 400 with an explicit reason
     verify = client.get("/workspace/api/exchange/verify", params={"name": "missing"})
