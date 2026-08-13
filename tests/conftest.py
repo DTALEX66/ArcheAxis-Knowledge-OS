@@ -46,3 +46,39 @@ def admin_api_key(monkeypatch: pytest.MonkeyPatch) -> str:
     api_key = secrets.token_urlsafe(32)
     monkeypatch.setenv("COGNITIVE_API_KEY", api_key)
     return api_key
+
+
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    """Surface failing test ids as workflow annotations on CI (log-less).
+
+    GitHub Actions only exposes step logs to repo admins; annotations are
+    readable via the checks API. `::error::` lines on stdout are parsed by
+    the runner into annotations, so failed test names become visible.
+    """
+    if exitstatus == 0:
+        return
+    reports = session.config.stash.get(_failed_reports, [])
+    seen: set[str] = set()
+    for report in reports:
+        if report.nodeid in seen:
+            continue
+        seen.add(report.nodeid)
+        print(f"::error::PYTEST-FAILED {report.nodeid}")
+        if report.longrepr is not None:
+            print(f"::error::PYTEST-FAIL-REASON {str(report.longrepr)[:1200]}")
+        if len(seen) >= 25:
+            break
+
+
+_failed_reports = pytest.StashKey[list[pytest.TestReport]]()
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call) -> pytest.TestReport:
+    outcome = yield
+    report = outcome.get_result()
+    if report.when == "call" and report.failed:
+        session = item.session
+        reports = session.config.stash.setdefault(_failed_reports, [])
+        reports.append(report)
+    return report

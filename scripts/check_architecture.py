@@ -64,6 +64,11 @@ _GRANDFATHERED_SYS_PATH_CALLS = {
     ),
 
     ("scripts/sleep_loop_worker.py", 18, "sys.path.insert(0, str(PROJECT_ROOT))"),
+    (
+        "scripts/a0_browser_smoke.py",
+        14,
+        "sys.path.insert(0, str(Path(__file__).resolve().parents[1]))",
+    ),
 }
 _GRANDFATHERED_REVERSE_IMPORTS = {
     (
