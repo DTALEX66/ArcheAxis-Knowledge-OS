@@ -333,3 +333,11 @@ def test_batch_import_rejects_duplicate_active(client: TestClient, tmp_path: Pat
 def test_batch_status_unknown_batch(client: TestClient) -> None:
     status = client.get("/workspace/api/batch/does-not-exist/status")
     assert status.status_code == 404
+
+
+def test_batch_control_unknown_batch_is_404(client: TestClient) -> None:
+    """pause/resume/shutdown on a batch that is not active is a 404."""
+    for action in ("pause", "resume", "shutdown"):
+        response = client.post(f"/workspace/api/batch/ghost-batch/{action}")
+        assert response.status_code == 404, f"{action}: {response.text}"
+        assert "no active batch" in response.json()["detail"]
