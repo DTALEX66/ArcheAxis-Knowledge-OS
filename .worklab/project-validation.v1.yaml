@@ -25,6 +25,12 @@ fallback:
 # then unioned across every matching risk class so mixed changes take the
 # broadest required set.
 risk_classes:
+  - id: release-workflow
+    description: Release workflow/tag changes
+    paths:
+      - ".github/workflows/release.yml"
+    gates: [release-verify]
+
   - id: ci-policy
     description: CI workflow, classifier, gate registry, release scripts
     paths:
@@ -33,12 +39,6 @@ risk_classes:
       - "scripts/ci/**"
       - "scripts/release_*.py"
     gates: [static, lint]
-
-  - id: release-workflow
-    description: Release workflow/tag changes
-    paths:
-      - ".github/workflows/release.yml"
-    gates: [release-verify]
 
   - id: security-permissions
     description: Permissions, secrets, SSRF, path/symlink boundaries
@@ -164,3 +164,20 @@ risk_classes:
 unclassified:
   gates: [static, lint, py-primary]
   action: block-until-classified
+
+# AXC-130: optional external coordination contract (WORK-LAB).
+# WORK-LAB may READ this profile, validate its schema, observe CI and bind
+# its Task Ledger. It may NEVER modify business profiles, execute arbitrary
+# shell, write project DBs, or treat Observer state as project capability
+# truth. This project runs standalone without WORK-LAB.
+external_contract:
+  repo_id: "DTALEX66/ArcheAxis-Knowledge-OS"
+  workflow: "ci.yml (fast) + nightly.yml (compat) + release.yml (exact-SHA)"
+  stable_aggregate: "a0-gates"
+  gate_vocabulary: ".worklab/gate-registry.v1.yaml"
+  verification_tier: "staged (dev targeted / stage full CI / RC installed / Release exact-SHA)"
+  privacy_approved_roots:
+    - "<repo>/"
+  evidence_locations:
+    - ".hermes/task-runtime/"
+    - "data/backups/"

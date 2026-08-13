@@ -1,3 +1,7 @@
+# AXC-110: product-internal controlled tool risk registry only.
+# NOT global Agent tool permissions. General Planner is DEFERRED; do not
+# build an agent platform here. WORK-LAB does not read or override.
+
 tools:
   echo:
     risk: low

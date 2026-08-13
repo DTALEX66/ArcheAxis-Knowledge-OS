@@ -1,3 +1,7 @@
+# AXC-110: product-internal model/embedding ADAPTER config only.
+# This is NOT Hermes/Codex provider routing. WORK-LAB does not read or
+# override these values. DEFERRED: no general Planner; keep minimal.
+
 models:
   default_llm:
     provider: stub

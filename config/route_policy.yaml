@@ -1,3 +1,8 @@
+# AXC-110: product knowledge-routing policy (attention/risk routing).
+# TASK/agent/code_exec style routes are NOT global Agent permissions; if not
+# a current closed-loop entry they stay compatibility/deferred. WORK-LAB
+# does not read or override. CORS/auth/rate_limit/profile are product-owned.
+
 # Route policy configuration — single source of truth for attention routing.
 # Formerly hardcoded in app/core/router.py
 

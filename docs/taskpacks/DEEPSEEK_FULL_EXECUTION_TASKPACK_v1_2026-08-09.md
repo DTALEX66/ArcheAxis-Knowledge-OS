@@ -1,3 +1,9 @@
+﻿> [!NOTE] **ARCHIVED / SUPERSEDED (AXC-120, 2026-08-13)**
+> 历史任务包。当前权威：`docs/CONFIGURATION_AUTHORITY_INDEX.md` +
+> `docs/truth/CURRENT_STATE_TRUTH.md` + 当前 MCL TaskPack
+> （`docs/taskpacks/ArcheAxis-Knowledge-OS_Project_Config_CI_DeDup_TaskPack_2026-08-13.md`）。
+> 保留作迁移输入与历史证据，不作为新会话默认权威。
+
 # DeepSeek Full Execution TaskPack v1
 
 > TaskPack ID：`AXW-DEEPSEEK-FULL-v1-2026-08-09`
