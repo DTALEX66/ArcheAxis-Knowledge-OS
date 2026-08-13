@@ -959,3 +959,20 @@ index.html 按钮 + browser-smoke：
   get_by_role(name=) 而非 data-action 字面：pdf-load=「打开 PDF」、
   pdf-next=「下一页 ›」、pdf-jump=批注跳转段）
 - → 12/12 UI 动作全部有真实浏览器覆盖
+
+
+### LOG-164: nightly 首跑前最终预审计——4 job 全就绪
+
+逐 job 核实（首跑前最后一次静态+本地验证）：
+- py-compat (3.11/3.13)：`uv export --require-hashes` 兼容（uv.lock
+  全包带 hash）；`--no-emit-project` 后项目包经 cwd 导入（compileall
+  + test_imported_modules 本地已验证）
+- full-suite：`uv sync --frozen --group ci --group ci-adapters` +
+  全量 pytest = CI 主 workflow 同款命令
+- browser-smoke：实际只跑 tests/test_workspace_api.py（无
+  playwright 依赖——job 名有误导但无缺口；真实浏览器 smoke 由
+  ci.yml gate 覆盖）
+- windows-runtime：test_desktop_runtime + test_migration_runner
+  （本地模拟已验证）
+
+预期：本地 11:17（UTC 03:17）nightly 修复版首次实跑成功。
