@@ -73,6 +73,41 @@ def test_backup_create_verify_restore_dry_run(client: TestClient) -> None:
     assert restore.json()["dry_run"] is True
 
 
+def test_backup_real_restore_recovers_data(client: TestClient) -> None:
+    """A non-dry-run restore actually brings the data back (AXW-094B)."""
+    from shared.config import resolve_runtime_path
+
+    data_root = resolve_runtime_path("data")
+    originals = data_root / "originals"
+    originals.mkdir(parents=True, exist_ok=True)
+    seed = originals / "seed-key"
+    seed.write_bytes(b"precious bytes")
+    assert seed.exists()
+
+    create = client.post("/workspace/api/backup/create", json={"name": "real-restore"})
+    assert create.status_code == 200, create.text
+    assert create.json()["file_count"] >= 1
+
+    # simulate data loss in the live dir
+    seed.unlink()
+    assert not seed.exists()
+
+    real = client.post(
+        "/workspace/api/backup/restore",
+        json={"name": "real-restore", "dry_run": False},
+    )
+    assert real.status_code == 200, real.text
+    receipt = real.json()
+    assert receipt["dry_run"] is False
+    assert any(e["action"] == "create" for e in receipt["plan"])
+    assert receipt["restored_files"] >= 1
+    assert seed.read_bytes() == b"precious bytes"
+
+    # and the backup is still verifiable afterwards
+    verify = client.get("/workspace/api/backup/verify", params={"name": "real-restore"})
+    assert verify.status_code == 200, verify.text
+
+
 def test_batch_import_and_status(client: TestClient, tmp_path: Path) -> None:
     source = tmp_path / "import-src"
     (source / "docs").mkdir(parents=True)
