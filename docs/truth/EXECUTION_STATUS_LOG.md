@@ -877,3 +877,18 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
 - CHANGELOG [Unreleased] 追加本多轮功能变更：094A/B 导出备份三层
   （库/API/UI）、096A 中英文真实语料基准、096B 全键盘可达、
   096C 异步控制+账本恢复、CI 生态（nightly 修复 + Release 预审计）
+
+
+### LOG-159: Release 链路剩余环节本地验证——100% 覆盖
+
+- prepare_bundle.py 完整实跑（--repository . --destination
+  .hermes/task-runtime/rt-verify）：stage_runtime 复制独立 Python 3.13
+  → uv export requirements.locked → wheels 下载 → 项目 wheel 构建
+  （archeaxis_workspace-0.5.0-py3-none-any.whl）→ 安装到 staged runtime
+- staged runtime 真实验证：rt-verify/runtime/python/python.exe 独立
+  导入 app.workspace.router / shared.config / batch_controller → OK
+- verify_nsis_install.ps1 PowerShell AST 解析通过（语法有效；
+  实跑需真实 NSIS 安装器——发布时）
+- Release 链路本地可验证部分累计 100%（依赖存在/checksum/identity/
+  prepare_bundle/staged-runtime/PS 语法）；仅剩 NSIS 构建+安装实跑
+  （真实 Windows runner，Owner 发布时执行）
