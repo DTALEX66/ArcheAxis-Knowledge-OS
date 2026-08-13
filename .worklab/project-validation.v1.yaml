@@ -132,6 +132,8 @@ risk_classes:
     description: UI resources, interaction, BFF/API consumed by UI
     paths:
       - "app/workspace/ui/**"
+      - "app/workspace/router.py"
+      - "scripts/a0_browser_smoke.py"
       - "desktop/src/**/*.tsx"
       - "desktop/src/**/*.ts"
     gates: [static, lint, browser-smoke]
