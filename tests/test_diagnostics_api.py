@@ -26,6 +26,33 @@ def test_diagnostics_returns_safe_versioned_status() -> None:
     assert "database_path" not in response.text
 
 
+def test_diagnostics_contains_no_secrets_or_auth_state() -> None:
+    """AXW-097: diagnostics must never carry secrets, credentials, auth
+    state, private-body content, or absolute private paths — even nested."""
+    from app.main import app
+
+    response = TestClient(app).get("/diagnostics")
+    assert response.status_code == 200
+    text = response.text.lower()
+
+    for secret_marker in (
+        "token",
+        "secret",
+        "password",
+        "api_key",
+        "apikey",
+        "authorization",
+        "credential",
+        "cookie",
+        "private_key",
+        "ssh",
+    ):
+        assert secret_marker not in text, f"diagnostics leaked secret marker: {secret_marker}"
+
+    for path_marker in (r"c:\\", r"/users/", r"/home/", r"\\users\\", ":/"):
+        assert path_marker not in text, f"diagnostics leaked absolute path marker: {path_marker}"
+
+
 def test_diagnostics_does_not_promote_unverified_release_override(monkeypatch) -> None:
     from app.main import app
     from shared.config import config
