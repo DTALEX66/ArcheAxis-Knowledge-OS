@@ -892,3 +892,15 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
 - Release 链路本地可验证部分累计 100%（依赖存在/checksum/identity/
   prepare_bundle/staged-runtime/PS 语法）；仅剩 NSIS 构建+安装实跑
   （真实 Windows runner，Owner 发布时执行）
+
+
+### LOG-160: 096A 报告语料表一致性修复 + HANDOFF 同步
+
+- 发现文档缺陷：PERFORMANCE_BENCHMARK_096A.md 语料分层表与引用块
+  仍是初期纯英文数据（5 本/147.6KiB/4.5MiB），与中英混合测量表矛盾
+- 修复为实测值（corpus/sources.json + 分层目录统计）：
+  small=2 txt 2,415,262 B（1en+1zh）；medium=7 txt 6,074,578 B
+  （4en+2zh+副本）；large=14 txt 13,058,571 B（10en+4zh）；
+  规模-延迟区间同步（2.3→12.5 MiB，7→35 ms）
+- HERMES_HANDOFF 同步：LOG 范围 147..156→147..159、CI 连绿
+  524-537→524-542、补 UI 入口/409/Release 本地验证 100% 条目

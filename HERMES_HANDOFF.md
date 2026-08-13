@@ -9,16 +9,17 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
 - Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1532 passed / 9 skipped**; ruff + repository-conventions gate green on head.
 
-## Frozen-baseline execution state (LOG-147..156 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..159 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
-Implemented and CI-verified (continuous green: CI runs 524-537):
+Implemented and CI-verified (continuous green: CI runs 524-542):
 
 - **AXW-022B**: PDF evidence annotation reachable (text-layer overlay + cached selection); real browser-smoke first ran on CI at `85b3311` (run 31732780580).
 - **H5 implementation layer** (`5dc3d9b` + `d129aa3`): AXW-094A open-exchange export (`app/exchange/export.py`), AXW-094B verifiable backup (`app/exchange/backup.py`), AXW-096A performance benchmark (`shared/performance_benchmark.py`), AXW-096B keyboard accessibility (UI), AXW-096C batch import control (`app/ingestion/batch_controller.py`). EXIT is a verification gate, not an implementation prerequisite (precedent 023A-F/043B/050A).
 - **AXW-096A real data**: layered zh/en public-domain corpus (Gutenberg, sources.json provenance, corpus NOT committed) + real benchmark PASS (`01ad561`); toolchain `scripts/prepare_benchmark_corpus.py` / `scripts/run_performance_benchmark.py`; report `docs/truth/PERFORMANCE_BENCHMARK_096A.md`.
-- **Workspace API surface** (`81df63b`): exchange export/verify, backup create/verify/restore(dry-run), batch import/status.
-- **Async batch control** (`8ea9a05` + `976bf13`): pause/resume/shutdown on a live registry; ledger task-list recovery + terminal-state restoration (from_checkpoint) — interrupted batches are resumable, totals honest.
-- **CI ecosystem audit**: nightly zero-collection defect fixed (`af3df00`); Release workflow pre-first-run audit PASS (`7d72e34`, scripts dry-run verified); nightly py-compat 3.13 matrix verified locally (`9c9adb4`). nightly itself has never fired — GitHub scheduler skipped the 03:17 UTC tick (default branch/cron/file all confirmed correct; external behavior, not fixable locally; `workflow_dispatch` needs auth).
+- **Workspace API surface** (`81df63b`): exchange export/verify, backup create/verify/restore(dry-run), batch import/status — error semantics explicit (400/404/409/422).
+- **User-facing UI entry** (`892b87b`): Evidence page 开放交换与备份 card — four reachable buttons (export/verify/backup create/verify) with API round-trip asserted in browser-smoke (`#evidence` hash route).
+- **Async batch control** (`8ea9a05` + `976bf13` + `6011b81`): pause/resume/shutdown on a live registry; ledger task-list recovery + terminal-state restoration (from_checkpoint) — interrupted batches are resumable, totals honest; duplicate-active rejected 409 (covered).
+- **CI ecosystem audit**: nightly zero-collection defect fixed (`af3df00`); Release workflow pre-first-run audit PASS (`7d72e34`); nightly py-compat 3.13 matrix verified locally (`9c9adb4`); **Release pipeline local verification 100%** (`7eb0131`: prepare_bundle end-to-end + staged-runtime import + verify_nsis_install.ps1 AST parse). nightly itself has never fired — GitHub scheduler skipped the 03:17 UTC tick (default branch/cron/file all confirmed correct; external behavior, not fixable locally; `workflow_dispatch` needs auth).
 - Capability Atlas: CAP-0140 (AXW-094) projected `in_progress` (`01ad561`).
 
 ## Remaining work (Owner-gated — cannot be done autonomously)
