@@ -130,6 +130,8 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     # Headless-shell and full Chromium report slightly different console
     # noise (favicon 404s etc.); the invariant is that the routed failure
     # surfaced as a real network error, not that it is the only message.
+    if not any("ERR_CONNECTION_FAILED" in error for error in console_errors):
+        print(f"::error::NET-ERROR-MISSING console={console_errors} page_errors={page_errors}")
     assert any("ERR_CONNECTION_FAILED" in error for error in console_errors), console_errors
     console_errors.clear()
     page.unroute(INTAKE_PATTERN, _network_failure)
@@ -398,9 +400,9 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
                 anchorInfo: document.querySelector('#pdf-anchor-info')?.textContent,
             })"""
         )
-        print("PDF-READER-FAIL:", exc)
-        print("PDF-READER-STATE:", state_dump)
-        print("PDF-READER-CONSOLE:", console_errors)
+        print(f"::error::PDF-READER-FAIL: {exc}")
+        print(f"::error::PDF-READER-STATE: {state_dump}")
+        print(f"::error::PDF-READER-CONSOLE: {console_errors}")
         raise
     finally:
         pdf_path.unlink(missing_ok=True)
@@ -478,7 +480,12 @@ def main() -> int:
         browser = playwright.chromium.launch(headless=True)
         try:
             page = browser.new_page(viewport={"width": 1440, "height": 1000})
-            exercise_workspace(page, base_url)
+            try:
+                exercise_workspace(page, base_url)
+            except Exception:
+                print(f"::error::WORKSPACE-FAIL url={page.url}")
+                print(f"::error::WORKSPACE-HTML {page.locator('body').inner_text()[:500]}")
+                raise
             pdf_page = browser.new_page(viewport={"width": 1440, "height": 1000})
             try:
                 exercise_pdf_reader(pdf_page, base_url, data_dir)
