@@ -219,7 +219,8 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
      actual selection of PDF text; disable it again on selection loss.
      The selected text is cached because clicking the button clears the
      browser selection on mousedown before the click handler runs.
-     (Regression-covered by scripts/a0_browser_smoke.py: exercise_pdf_reader.) */
+     (Regression-covered by scripts/a0_browser_smoke.py: exercise_pdf_reader;
+      CI runs the full Chromium browser, local dev defaults to headless-shell.) */
   let cachedSelection = "";
   function syncAnnotateEnabled() {
     const btn = document.getElementById("pdf-annotate");
