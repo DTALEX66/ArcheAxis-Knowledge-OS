@@ -1103,3 +1103,21 @@ release.yml 从未实跑（tag 触发，无 dispatch）——用 nightly 教训
   digest readback → identity 绑定）与 LOG-153 预审计一致
 
 唯一未实跑环节：NSIS 构建+安装（需真实 tag，Owner 动作）。
+
+
+### LOG-172: H5 验收就绪矩阵核对（097 补证 / 096B 确认）
+
+H5 九任务逐一对冻结验收标准核对：
+- AXW-097（诊断包隐私）：补 test_diagnostics_contains_no_secrets_or_auth_state
+  （e610c4d，Run 571 绿）——全响应断言无 secret 标记
+  （token/secret/password/api_key/authorization/credential/cookie/
+  private_key/ssh）与无绝对路径标记（c:\ /users/ /home/ :/）
+- AXW-096B（键盘/语义）：browser-smoke exercise_keyboard_accessibility
+  确认完整——Tab 到达/Enter 激活、intake 焦点陷阱+Escape 焦点返回、
+  主题按钮 aria-label+aria-pressed、输入 aria-label、错误反馈
+  aria-live=polite、PDF reader 键盘可达、导航 rail aria 状态
+- 已知无自动覆盖项：对比度（视觉类检查，无 axe-core 审计——
+  记录不实现，Owner 视觉验收范畴）
+
+就绪状态：094A/094B/096A/096B/096C/097 = 实现+测试+CI 全绿；
+095/060/H5-EXIT = Owner（安装态/发布）。
