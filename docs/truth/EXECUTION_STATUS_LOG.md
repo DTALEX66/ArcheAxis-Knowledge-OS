@@ -812,3 +812,14 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   - pyproject version 0.5.0 与 release.yml --version 0.5.0 一致
   - 未跑部分：NSIS 构建 + 安装态验证（需真实 Windows runner，发布时验证）
 - 结论：Release 脚本层可运行性 PASS；发布执行留 Owner（AXW-097/060）
+
+
+### LOG-154: nightly 首次实跑点观察 + py-compat 3.13 矩阵本地验证
+
+- 03:17 UTC 调度点已过 ~16 分钟仍未触发（GitHub 调度器侧延迟，超出常见
+  5-15 分钟窗口；schedule 事件无法从本端强制，workflow_dispatch 需认证）
+  ——修复已就位（LOG-151），观察延续至下次 tick
+- 用本地 3.13 解释器模拟 nightly py-compat job（实跑最易挂的版本矩阵）：
+  compileall（app/shared/knowledge_base/scripts）+ test_imported_modules
+  → 全部 PASS；3.11 侧 target py311 风险更低
+- .venv 被 uv --python 3.13 重建后已 uv sync --frozen 恢复完整环境
