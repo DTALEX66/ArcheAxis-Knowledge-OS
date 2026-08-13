@@ -10,6 +10,16 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 - Added release-truth, licensing, third-party, and security documentation.
 - Added a post-publication gate that reads back the exact public asset set,
   provider digests, release identity, and downloaded SHA-256 payloads.
+- AXW-094A/B: open-exchange export and verifiable backup (library, Workspace
+  API, and user-facing UI entry on the Evidence page).
+- AXW-096A: performance benchmark with real layered zh/en public-domain
+  corpus (latency, memory, cold start, degradation thresholds).
+- AXW-096B: full keyboard accessibility for the workspace and the PDF
+  reader (Tab chains, focus + Enter flows, aria-live).
+- AXW-096C: async batch import with pause/resume/shutdown control and
+  ledger-based recovery (task list, counts, terminal state).
+- CI ecosystem: nightly compatibility workflow defect fixed; Release
+  workflow pre-first-run audit passed.
 
 ## [0.5.0] - 2026-08-09
 

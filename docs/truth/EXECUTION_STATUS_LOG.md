@@ -867,3 +867,13 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   （默认 page=overview——app.js hash 路由机制，调试中确认）
 - 本地真实浏览器 PASS（workspace + keyboard + PDF + exchange UI +
   delivery）；commit 892b87b；全量 1532 passed / 9 skipped
+
+
+### LOG-158: nightly 观察终止 + CHANGELOG [Unreleased] 同步
+
+- nightly 终查：03:17 tick 后 ~2h 仍未触发——本地侧三次排除（文件在
+  main、cron 正确、默认分支=main），纯 GitHub 调度器跳过（外部行为）；
+  观察终止，修复与全 job 本地验证均已就绪，等待未来 tick
+- CHANGELOG [Unreleased] 追加本多轮功能变更：094A/B 导出备份三层
+  （库/API/UI）、096A 中英文真实语料基准、096B 全键盘可达、
+  096C 异步控制+账本恢复、CI 生态（nightly 修复 + Release 预审计）
