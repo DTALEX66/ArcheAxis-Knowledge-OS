@@ -765,7 +765,6 @@
 - 风险/剩余项：PR #74 PDF 端点+PDF.js vendoring 未 merge；前端渲染逻辑待批次；AXW-H1-EXIT 待 022 前端
 - 回滚：revert 本文档 commit
 
-
 ### LOG-20260811-062 — CHANGE_PROPOSAL REGISTRATION (AXW-MFX-WXV-v1) — REGISTERED / OWNER APPROVAL PENDING
 
 - 时间：2026-08-11
@@ -778,7 +777,6 @@
 - 记录：本文件为 append-only CHANGE_PROPOSAL 登记，不授权任何仓库/远端/用户数据/发布物修改
 - 回滚：撤销本次追加记录（历史状态不改写）
 
-
 ### LOG-20260811-063 — AXW-MFX-WXV-v1 OWNER APPROVAL — APPROVED (6/6)
 
 - 时间：2026-08-11
@@ -786,7 +784,6 @@
 - 授权范围：从 Batch 0（MFX-000/001/010/012 止损）开始执行；后续批次逐批推进
 - 执行约束：一项原子任务/一条分支/一个 PR；开始前重读云端 main/PR/CI/安装版；不改 frozen authority；冲突时停工作并提交 CHANGE_PROPOSAL
 - 回滚：Batch 0 各任务按各自规格可逆
-
 
 ### LOG-20260811-064 — AXW-022A CLOSED / H1-EXIT — PASS (PDF ENDPOINT + PDF.js FRONTEND)
 
@@ -802,7 +799,6 @@
 - H1-EXIT：冻结依赖 6/6 PASS（GOV-001/021B/022B/024B/025B/030C）→ AXW-H1-EXIT PASS
 - 回滚：PR #74 已 squash merge，如需回退 revert ebf7124
 
-
 ### LOG-20260811-065 — H1 EXIT GATE: MERGE-SHA MAIN CI — PASS
 
 - 时间：2026-08-11
@@ -810,7 +806,6 @@
 - 确认：gateplan/lint/test(3.12)/wheel-smoke/browser-smoke/a0-gates 全绿；产品/桌面 job 正确 SKIP
 - 补全 AXW-H1-EXIT 的 merge-SHA 证据（LOG-064 记录 exact-head + 裁决；本条记录 merge-SHA main CI）
 - main = `ebf7124`
-
 
 ### LOG-20260811-066 — MFX BATCH 0 COMPLETE + AXW-022B + AXW-023A — PASS
 
@@ -826,7 +821,6 @@
 - 边界：未访问 E:\；未读凭据；冻结基线未动；状态日志追加式
 - 回滚：各 PR 独立 revert
 
-
 ### LOG-20260811-067 — 5 PRs MERGED TO MAIN (Batch 0 + AXW-022B + AXW-023A) — PASS
 
 - 时间：2026-08-11
@@ -841,7 +835,6 @@
 - Batch 0 全部闭环 + AXW-022B 全链路 + AXW-023A（H2 首个）入库
 - 待办：merge-SHA main CI 确认；吸收账本核对（等 owner 开源清单）
 - 回滚：各 PR 独立 revert
-
 
 ### LOG-20260811-068 — ABSORPTION ATLAS ANALYSIS: LEDGER v2 + MATRIX v2 + NOTICES UPDATE — PASS
 
@@ -861,7 +854,6 @@
 - 产品边界确认：本地学习与知识工作台（非 Agent OS / RAG 平台）；Agent/编码/记忆/工作流/安全实验室项目全部后置
 - 回滚：本文档更新可独立 revert；不修改 frozen baseline
 
-
 ### LOG-20260811-069 — PR #80 MERGED (absorption atlas v2) — PASS
 
 - 时间：2026-08-11
@@ -869,7 +861,6 @@
 - 内容：吸收总图谱分析落地（SUPPLY_CHAIN_LEDGER v2 46组件 + ABSORPTION_EXECUTION_MATRIX v2 + 许可纠错10项）
 - 旧"implemented=8"漂移、旧阶段序列、旧许可结论均已更正
 - 回滚：revert 8e4f1cf
-
 
 ### LOG-20260812-070 — HISTORICAL DEBT RESOLUTION + NAMING SYSTEM MIGRATION — PASS
 
@@ -886,7 +877,6 @@
 - PR #81（吸收实现 + 命名更新）待 CI → merge
 - 回滚：revert 各 commit
 
-
 ### LOG-20260812-071 — PR #81 MERGED (absorption implementation + env docs) — PASS
 
 - PR #81 squash merged → main `74d44eb`（main `c9e8bda → 74d44eb`）
@@ -898,7 +888,6 @@
   - 双向同步：D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md
 - CI：test(3.12)/py-compat/wheel-smoke/browser-smoke/windows-runtime-smoke 全部 PASS
 - 全部 7 个 PR（#75-#81）已 merge 进 main
-
 
 ### LOG-20260812-072 — H2 PIPELINE INTEGRATION (PR #82) — PASS
 
@@ -912,7 +901,6 @@
 - Lint 通过，74 适配器测试通过
 - 回滚：revert PR #82
 
-
 ### LOG-20260812-073 — PR #82 MERGED (H2 pipeline integration) — PASS
 
 - PR #82 squash merged → main `f6b49b3`
@@ -920,13 +908,11 @@
 - 全部 9 个 PR（#69, #75-#82）已 merge 进 main
 - 权威日志: LOG-004~073
 
-
 ### LOG-20260812-074 — PR #83 MERGED (H2 bake-off) — PASS
 
 - PR #83 merged → main b97035e
 - OCR/ASR bake-off framework + Silero VAD stub
 - 10 PRs merged (#69, #75-#83)
-
 
 ### LOG-20260812-075 — AXW-1200 TASKPACK EXECUTION (system blueprint + HERMES update) — PASS
 
@@ -940,7 +926,6 @@
 - 任务包作为 Owner 权威，定死不可漂移；阶段描述可更新
 - 分支 feat/axw1200-system-truth fc9e5dd，PR #84 待创建/CI
 
-
 ### LOG-20260812-076 — PR #84 MERGED (AXW-1200 taskpack system truth) — PASS
 
 - PR #84 squash merged → main `535d1c3`
@@ -950,14 +935,12 @@
 - 修复：#82/#83 引入的 ruff（N806/E741/B904/N814）+ 契约测试对齐命名 V1 + manifest 更新
 - 命名契约 V1 binding；阶段描述可更新
 
-
 ### LOG-20260812-077 — PR #85 MERGED (naming doc alignment) — PASS
 
 - PR #85 squash merged → main `48a10db`
 - AGENTS.md + PROJECT_STATUS.md aligned with NAMING_CONTRACT_V1
   (ArcheAxis Learning Workspace / 星轨学习工作台; doc-layer only)
 - 全部 13 PR（#69, #75-#85）merged
-
 
 ### LOG-20260812-078 — PR #87 MERGED (UI naming migration) — PASS
 
@@ -968,7 +951,6 @@
 - 修复 Rust chunked body 长度（63→6C）
 - 14 Rust lib tests + 1228 Python tests + 全 CI（含 desktop-build/installer-lifecycle）绿
 - 命名契约 V1 全链路落地：文档 → UI 阶段完成；打包/仓库/底层 planned
-
 
 ### LOG-20260812-079 — PR #88 MERGED (AXW-1209 naming lint guard) — PASS
 
@@ -982,7 +964,6 @@
 - 4 新测试；convention check 全绿
 - AXW-1209 文档投影门禁落地：命名禁词防回归
 
-
 ### LOG-20260812-080 — PR #89 MERGED (AXW-1200~1210 taskpack COMPLETE) — PASS
 
 - PR #89 squash merged → main `0e8c730`
@@ -992,7 +973,6 @@
 - 命名迁移阶段 1-2（文档+UI）done；阶段 3+（打包/仓库/底层）Owner-gated
 - 任务包 v1 2026-08-11 全量落地：17 文件 + README/GitHub 描述锁死 + 命名禁词门禁
 - 17 PR（#69, #75-#89）全部 merge
-
 
 ### LOG-20260812-081 — PR #90 MERGED (H3 C4-safe Vault write) — PASS
 
@@ -1004,7 +984,6 @@
 - 5 新测试；1237 Python tests 通过
 - H3 纵切：读（inspect/file/search）+ 写（write）闭环；C4 往返下一步是 frontend 接线
 
-
 ### LOG-20260812-082 — PR #91 MERGED (H3 Vault edit-save UI + runtime fixes) — PASS
 
 - PR #91 squash merged → main `f90ca77`
@@ -1015,7 +994,6 @@
 - 浏览器级验证: write 200 / stale-hash 409 / 文件未污染 / 备份创建
 - H3 纵切: inspect + read + search + write(乐观锁) + UI 编辑保存 全链路
 
-
 ### LOG-20260812-083 — PR #92 MERGED (H3 backup list/restore + frontmatter) — PASS
 
 - PR #92 squash merged → main `a8b773a`
@@ -1025,7 +1003,6 @@
 - frontmatter 保留往返测试（read→edit→write 保持 YAML properties）
 - 4 新测试；C4 安全往返：读/写/冲突/备份/恢复 全链
 
-
 ### LOG-20260812-084 — PR #93 MERGED (H3 backup list/restore UI) — PASS
 
 - PR #93 squash merged → main `7bc75e0`
@@ -1033,7 +1010,6 @@
 - Browser-verified: 4 backups listed / restore 200 / file reverted /
   traversal guard 422
 - H3 纵切全链（含 UI）: inspect+read+search+write(乐观锁)+冲突+备份+恢复
-
 
 ### LOG-20260812-085 — PR #94 MERGED (TESSDATA_PREFIX env doc) — PASS
 
@@ -1044,7 +1020,6 @@
 - 验证: TESSDATA_PREFIX 设置后 2 OCR 测试 pass (1244 → 1246)
 - 本地全量: 1246 passed, 6 skipped (symlink 权限×3/网络×2/crossref×1)
 
-
 ### LOG-20260812-086 — PR #95 MERGED (crossref stage kb_id 解耦) — PASS
 
 - PR #95 squash merged → main `1dd1884`
@@ -1054,7 +1029,6 @@
 - 测试 test_pipeline_crossref_stage_is_not_verified 从 skip → pass
 - 本地全量: 1247 passed, 5 skipped (symlink×3/网络×2 合理)
 
-
 ### LOG-20260812-087 — PR #96 MERGED (--run-network flag 注册) — PASS
 
 - PR #96 squash merged → main `2d959f9`
@@ -1062,7 +1036,6 @@
   显式传入报 unrecognized arguments → tests/conftest.py 注册
 - 验证: --run-network → 9 passed (2 真实 DOI 查询, Crossref 200);
   默认 → 7 passed 2 skipped (CI 行为不变)
-
 
 ### LOG-20260812-088 — PR #97 MERGED (real OCR bake-off) — PASS
 
@@ -1077,7 +1050,6 @@
   chi-sim en_clean .0455/en_noisy .1/zh_clean 0.0
 - 本地全量 1249 passed, 5 skipped
 
-
 ### LOG-20260812-089 — PR #98 MERGED (rapidocr 激活) — PASS
 
 - PR #98 squash merged → main `b652ad8`
@@ -1086,7 +1058,6 @@
   tesseract-chi-sim .0485, tesseract-eng .3492
 - rapidocr ~1.3s/img vs tesseract ~100-200ms (精度换延迟)
 - 本地全量 1249 passed
-
 
 ### LOG-20260812-090 — PR #99 MERGED (first real ASR bake-off) — PASS
 
@@ -1100,7 +1071,6 @@
 - 报告: bakeoff-results/bakeoff-asr-20260812.{csv,json}
 - H2 bake-off 现在覆盖 OCR (3 引擎) + ASR (1 引擎) 真实数据
 
-
 ### LOG-20260812-091 — PR #100 MERGED (Silero VAD stub 测试) — PASS
 
 - PR #100 squash merged → main `c57aa05`
@@ -1108,7 +1078,6 @@
   不可用空段 / 可用委托 silero / 音频损坏降级 / 探针不抛异常
 - 注入假 torch/torchaudio 模块, 无需重依赖
 - H2 组件覆盖补全: bakeoff + engines + audio_vad 全部有测试
-
 
 ### LOG-20260812-092 — PR #101 MERGED (DataCite 解析修复) — PASS
 
@@ -1121,7 +1090,6 @@
 - 7 新测试 (路由/错误抑制/hit 往返)
 - 本地全量 1260 passed, 5 skipped
 
-
 ### LOG-20260812-093 — PR #102 MERGED (fact_extractor 测试) — PASS
 
 - PR #102 squash merged → main `429f6cf`
@@ -1130,7 +1098,6 @@
   subject 'Python was') → 加可选 (was|were|is|are|has been)
 - 本地全量 1272 passed, 5 skipped
 - 零测试组件 13→11 (public_evidence/fact_extractor 已清)
-
 
 ### LOG-20260812-094 — PR #103 MERGED (block_refs 测试) — PASS
 
@@ -1141,7 +1108,6 @@
 - 本地全量 1283 passed, 5 skipped
 - 零测试组件 11→10
 
-
 ### LOG-20260812-095 — PR #104 MERGED (diversity_audit 测试) — PASS
 
 - PR #104 squash merged → main `8a24a26`
@@ -1149,7 +1115,6 @@
 - 无代码变更; patch 差异记录: select_all 模块级 vs select_one 函数内
 - 本地全量 1290 passed, 5 skipped
 - 零测试组件 10→9
-
 
 ### LOG-20260812-096 — PR #105 MERGED (Magika 检测修复) — PASS
 
@@ -1163,7 +1128,6 @@
 - 9 新测试; 本地全量 1299 passed, 5 skipped
 - 零测试组件 9→8
 
-
 ### LOG-20260812-097 — PR #106 MERGED (object_types 测试) — PASS
 
 - PR #106 squash merged → main `ef2e318`
@@ -1173,7 +1137,6 @@
 - 无代码变更; 本地全量 1323 passed, 5 skipped
 - 零测试组件 8→7
 
-
 ### LOG-20260812-098 — PR #107 MERGED (tool_evidence 测试) — PASS
 
 - PR #107 squash merged → main `e9b33a6`
@@ -1182,7 +1145,6 @@
 - 无代码变更; 本地全量 1320 passed, 5 skipped
 - 零测试组件 7→6
 
-
 ### LOG-20260812-099 — PR #108 MERGED (mermaid_gen 测试) — PASS
 
 - PR #108 squash merged → main `495ae2d`
@@ -1190,7 +1152,6 @@
   (card 形状/safe id/边)、review timeline (空/有/截断)、safe id
 - 无代码变更; 本地全量 1332 passed, 5 skipped
 - 零测试组件 6→5
-
 
 ### LOG-20260812-100 — PR #109 MERGED (knowledge_gardener 测试) — PASS
 
@@ -1202,7 +1163,6 @@
 - 本地全量 1332 passed, 5 skipped
 - 零测试组件 5→4 (graph_rag/obsidian_importer/research_boundary/source_discovery)
 
-
 ### LOG-20260812-101 — PR #110 MERGED (source_discovery 测试) — PASS
 
 - PR #110 squash merged → main `e0ea6d6`
@@ -1213,7 +1173,6 @@
 - 本地全量 1354 passed, 5 skipped
 - 零测试组件 4→3 (graph_rag/obsidian_importer/research_boundary)
 
-
 ### LOG-20260812-102 — PR #111 MERGED (research_boundary 测试) — PASS
 
 - PR #111 squash merged → main `c16a7f2`
@@ -1221,7 +1180,6 @@
   放行、大小写不敏感、空白剥离、空输入、非字符串强转
 - 无代码变更; 本地全量 1360 passed, 5 skipped
 - 零测试组件 3→2 (graph_rag/obsidian_importer)
-
 
 ### LOG-20260812-103 — PR #112 MERGED (obsidian_importer 测试) — PASS
 
@@ -1233,14 +1191,12 @@
 - 本地全量 1356 passed, 5 skipped
 - 零测试组件 2→1 (仅 graph_rag)
 
-
 ### LOG-20260812-104 — PR #113 MERGED (graph_rag 测试) — PASS
 
 - PR #113 squash merged → main `76d25f1`
 - graph_rag 首次测试 (2): index 计数 (fake GraphDB/VectorDB/embedder)、
   多跳搜索扩展+综合评分; 模块级 DB 单例用 fake 替换无需 sqlite-vec
 - **13/13 零测试 shared 组件全部清零**
-
 
 ### LOG-20260812-105 — PR #114 MERGED (schemas/daily_notes 测试) — PASS
 
@@ -1250,13 +1206,11 @@
 - **shared/*.py 全部 15 模块测试覆盖完成**
 - 本地全量 1389 passed, 5 skipped, 0 failed
 
-
 ### LOG-20260812-106 — PR #114 MERGED (schemas/daily_notes 测试) — PASS
 
 - PR #114 squash merged → main `9008fcd`
 - schemas 15 + daily_notes 8; shared/*.py 全部 15 模块测试覆盖完成
 - 本地全量 1389 passed, 5 skipped
-
 
 ### LOG-20260812-107 — PR #115 MERGED (pipeline 直接测试) — PASS
 
@@ -1266,7 +1220,6 @@
   拒绝、file 源 approved-roots 要求、空内容短路
 - 此前仅间接覆盖 (mfx012 隔离/phase4)
 - 本地全量 1399 passed, 5 skipped
-
 
 ### LOG-20260812-108 — PR #116 MERGED (registry-scoring 测试) — PASS
 
@@ -1279,7 +1232,6 @@
   故障 (self-signed cert / API TLS), 与代码无关; rerun --failed 后全绿
 - 本地全量 1399 passed, 5 skipped
 
-
 ### LOG-20260812-109 — PR #117 MERGED (vault search 函数测试) — PASS
 
 - PR #117 squash merged → main `93cc133`
@@ -1288,7 +1240,6 @@
 - 此前 API 层由 test_workspace_vault_api 覆盖 (只读契约);
   函数层错误路径由本 PR 补齐
 - 本地全量 1420 passed, 5 skipped
-
 
 ### LOG-20260812-110 — PR #118 MERGED (SM-2 调度测试) — PASS
 
@@ -1299,14 +1250,12 @@
 - 此前仅间接覆盖 (mermaid/gardener 测试中 mock)
 - 本地全量 1420 passed, 5 skipped
 
-
 ### LOG-20260812-111 — PR #118 MERGED (SM-2 调度测试) — PASS
 
 - PR #118 squash merged → main `24b7e24`
 - knowledge_base.reviews 首次直接测试 (11): _sm2_interval 纯算法、
   schedule_review (状态更新)、due/history 过滤
 - 本地全量 1420 passed, 5 skipped
-
 
 ### LOG-20260812-112 — PR #119 MERGED (kb 测试纳入 + DB 隔离) — PASS
 
@@ -1318,13 +1267,11 @@
   tests/ 共享真实库残留数据破坏 (object_ids 多行)
 - 全量 1458 passed (1420+38), 5 skipped, 0 failed
 
-
 ### LOG-20260812-113 — PR #119 MERGED (kb 测试纳入) — PASS
 
 - PR #119 squash merged → main `f76280f`
 - knowledge_base/tests 38 测试激活 (testpaths) + DB 隔离 conftest
 - 全量 1458 passed (1420+38), 5 skipped, 0 failed
-
 
 ### LOG-20260812-114 — PR #120 MERGED (tests lint 修复) — PASS
 
@@ -1333,12 +1280,10 @@
 - CI ruff 范围不含 tests/ (卫生性修复); 16 相关测试通过
 - 剩余 2 个预存 F841 (test_mfx001) 留待他日
 
-
 ### LOG-20260812-115 — PR #120 MERGED (tests lint 修复) — PASS
 
 - PR #120 squash merged → main `a68742d`
 - 3 I001 import 排序 + 1 F841; CI ruff 范围不含 tests/ (卫生)
-
 
 ### LOG-20260812-116 — PR #121 MERGED (外置依赖文档更新) — PASS
 
@@ -1348,7 +1293,6 @@
   吸收+Magika 标记已 merge、HF 模型缓存位置
 - 双写同步: OS configuration 仓库 → `8ab8bee` (master)
 
-
 ### LOG-20260812-117 — PR #122 MERGED (Magika 许可登记) — PASS
 
 - PR #122 squash merged → main `f0bd1ca`
@@ -1356,12 +1300,10 @@
   standard_v3_0, shared/models/magika/) — EXTERNAL_DEPENDENCIES 3.2
   引用缺失项修复
 
-
 ### LOG-20260812-118 — PR #122 MERGED (Magika 许可登记) — PASS
 
 - PR #122 squash merged → main `f0bd1ca`
 - THIRD_PARTY_NOTICES 补 Vendored models 节 (Magika ONNX Apache-2.0)
-
 
 ### LOG-20260812-119 — PR #123 MERGED (uv.lock 漂移修复) — PASS
 
@@ -1373,7 +1315,6 @@
   amend 加末尾 LF → force-push → 全绿 (run 31543019316)
 - 全量 1458 passed, 5 skipped; 门禁干净
 
-
 ### LOG-20260812-120 — PR #124 MERGED (H2 evidence 接入管线) — PASS
 
 - PR #124 squash merged → main `9fa0558`
@@ -1381,7 +1322,6 @@
   Crossref/DataCite; 否则 claim-text OpenAlex; classification=
   public-evidence, verified=False
 - enrich_with_public_sources 扩展 claim_text/qid; 3 契约测试
-
 
 ### LOG-20260812-121 — PR #125 MERGED (H2 SM-2 接入练习生命周期) — PASS
 
@@ -1391,13 +1331,11 @@
   (quality=5 连续 3 次 → 1/6/16 天递增)
 - 测试断言 interval 增长 [1,6,16] + ease>=2.5
 
-
 ### LOG-20260812-122 — PR #125 MERGED (H2 SM-2 接入) — PASS
 
 - PR #125 squash merged → main `2d2e2ff`
 - record_practice_evidence 硬编码调度 → _sm2_interval 真实调度
   (1/6/16 天递增); 测试断言 [1,6,16] + ease>=2.5
-
 
 ### LOG-20260812-123 — PR #126 MERGED (H2 bake-off CLI) — PASS
 
@@ -1406,7 +1344,6 @@
   CER/WER, CSV+JSON 报告; 不可用引擎诚实跳过)
 - 实跑验证: rapidocr 三语种 CER 0.0, faster-whisper en CER 0.0
 
-
 ### LOG-20260812-124 — PR #127 MERGED (H2 状态文档更新) — PASS
 
 - PR #127 squash merged → main `0088bdb`
@@ -1414,13 +1351,11 @@
   接入); 进度列表 #81 已 merge + H2 链 #82/#97/#99/#105/#124/#125/#126
 - H2 管线整合全链闭环 (routing/quality/evidence/learning/bakeoff/commit)
 
-
 ### LOG-20260812-125 — 远程分支清理 + #127 MERGED — PASS
 
 - #127 squash merged → main `0088bdb` (H2 状态文档)
 - 远程分支清理 68 个 (62 merged 残留 + 3 absorbed 孤儿 + 2 axw squash
   + 1 empty); 保留 main/codex 权威/release-v0.4.0-contract/verification-summary
-
 
 ### LOG-20260812-126 — PR #128 MERGED (Marker REVIEW-BLOCK 合规修复) — PASS
 
@@ -1431,13 +1366,11 @@
 - 测试改为账本 blocked 集合驱动 + 修正 zotero guard 陈旧断言
 - 全量 1461 passed
 
-
 ### LOG-20260812-127 — PR #128 MERGED (Marker REVIEW-BLOCK 合规) — PASS
 
 - PR #128 squash merged → main `a2056d0`
 - 增强 MFX-001 测试暴露: B003 Marker REVIEW-BLOCK 却注册为默认
   PDF 引擎 → 移除; 测试改用账本 blocked 集合驱动
-
 
 ### LOG-20260812-128 — PR #129 MERGED (占位清理) — PASS
 
@@ -1447,13 +1380,11 @@
   死壳删除 (实现都在 __init__.py)
 - 6 个 imported-designs 索引 README 确认是合法导航非占位
 
-
 ### LOG-20260812-130 — PR #130 MERGED (H2 intake 记录) — PASS
 
 - PR #130 squash merged → main `996462f`
 - workspace/intake/2026-08-12-h2-pipeline-integration.md: H2 全链 +
   MFX-001 合规修复 + 附带项 + 待办 + 回滚说明
-
 
 ### LOG-20260812-131 — AXW-023B~F 多格式适配器实现状态核录 — PARTIAL
 
@@ -1471,7 +1402,6 @@
 结论：实现与源码测试齐备（test_adapter_contract 84 测试、bake-off 实跑），
 但 AXW-H2-EXIT 要求的 exact-SHA 安装态资格证据未逐项核录——该资格
 裁决需 Owner/后续发布流程，本记录不冒充 PASS。
-
 
 ### LOG-20260812-132 — AXW-040~045 H3 Vault C4 任务状态核录 — PARTIAL
 
@@ -1491,7 +1421,6 @@
 （真实 Windows Vault 扫描/读/改/冲突/Obsidian 重开）未执行——
 AXW-H3-EXIT 裁决需后续发布流程，本记录不冒充 PASS。
 
-
 ### LOG-20260812-133 — AXW-051/052 H4 学习侧任务状态核录 — PARTIAL
 
 冻结基线 H4 学习侧关键任务状态：
@@ -1506,7 +1435,6 @@ AXW-H3-EXIT 裁决需后续发布流程，本记录不冒充 PASS。
 AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 与 AXW-054（对照评测 corpus）未在本批核录——后续发布流程裁决。
 
-
 ### LOG-20260812-134~138: 命名迁移 Step 1-2 闭环（Owner 授权 2026-08-12）
 - #131 MERGED → main `2694d86`：打包身份迁移（pyproject name/CLI/release-manifest id/schema URI `archeaxis.local` 22 处/uv.lock 重生成/manifest digest rev 7）；全量 1461 passed，门禁双绿
 - GitHub 仓库重命名 `DTALEX66/Cognitive-Loop-OS` → `DTALEX66/archeaxis-workspace`（Owner 确认）；remote 更新；EXTERNAL_DEPENDENCIES 双写同步
@@ -1515,7 +1443,6 @@ AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 - #133 MERGED → main `5fc287b`：60 文档全量替换（本地绝对路径恢复；冻结/权威产物保留旧名）
 - #134 MERGED → main `66c6aac`：命名迁移 Step 1-2 交接文档
 - 教训：批量替换须排除本地绝对路径 + 契约映射表 + 冻结文档；GitHub Actions 缓存含旧路径时须同时改 cache key 和 restore-keys；osui 会话直推 main 未过门禁
-
 
 ### LOG-20260812-139: 冻结基线 H2/H3/H4 安装态证据核录（CI 持续验证）
 对照 FROZEN_EXECUTION_BASELINE 验收标准，映射 CI 安装态证据（每次 PR 全量运行）：
@@ -1597,3 +1524,33 @@ AXW-024C/D（Evidence 关系版本化）、AXW-050A/B（引用式 AI 回答）
 **验证矩阵**（12+2 格式全通）：PDF文字版/PDF扫描OCR/DOCX/PPTX/TXT-GBK/MP3/MP4/PNG-OCR/EPUB(网上样本 752K 傲慢与偏见)/XLSX/CANVAS/RTF/ODT；路由：DROP 低价值/KB 0.88/REVIEW 0.95 均正确；执行层无工具 fail-closed + 教训记录。
 
 **提交**：e916a8d（OCR+依赖+编码）、bbcfa33（ingest 引擎链）、0d3b37f（ruff）、78358ca（RTF/ODT）——main @ 78358ca 双端一致；CI run 31626120182 success。
+
+## LOG-144 (2026-08-13) — 管线测试经验固化归档（skill + memory）
+
+**触发**：用户要求回顾本轮全部任务，总结错误/问题/修复方案，归档并固化经验。
+
+**测试方法论固化**（三层验证法，已入 skill multi-format-pipeline-testing v1.0.0）：
+1. **转换层**：真实素材库格式矩阵（14 格式：PDF文字/PDF扫描/DOCX/PPTX/TXT-GBK/MP3/MP4/PNG-OCR/EPUB/XLSX/CANVAS/RTF/ODT/HTML）——每格式过真实 API 而非直调引擎（暴露接线缺口）
+2. **路由层**：验证 DROP（低价值）/KB（知识）/REVIEW（高价值）决策正确性——牛津 PDF→REVIEW 0.95、考霸 DOCX→KB 0.88、直播链接 TXT→DROP
+3. **业务链**：ingest→research→knowledge→learning→evolution→machine API 链——研究链 intake-card 持久化+回读 ✅；research-note/engineering-contract 409 fail-closed 正确（外部不能绕过 Phase 5 审查）
+
+**9 缺陷 + 2 环境联动（全部修复验证）**：
+| # | 错误 | 根因 | 修复 |
+|---|---|---|---|
+| 1 | 服务拒启 baseline schema mismatch | 改名后 DB DDL 残留旧 target_repo | 备份→重建→迁移（开发空库） |
+| 2 | docx 无引擎 | 仅 markitdown[pdf] | pyproject 全格式 extra |
+| 3 | 扫描 PDF 空内容 | 引擎链无 OCR | _via_pdf_ocr（pymupdf+tesseract） |
+| 4 | GBK txt 乱码 | utf-8 硬读 | _decode_text_bytes 级联 |
+| 5 | GBK txt 误路由 csv | Magika 内容检测 | 文本格式扩展名优先 |
+| 6 | ingest_file 只支持 md/txt | 白名单未接引擎链 | DEFAULT_EXTENSIONS 对齐 + convert_file |
+| 7 | RTF 假成功（源码冒充内容） | markitdown 无 RTF 转换器 | striprtf 引擎 |
+| 8 | ODT 假成功/假阳性 | markitdown 无 ODF 转换器 | odf-xml 引擎（defusedxml） |
+| 9 | ffmpeg 断言脆弱 | 错误消息措辞与测试不符 | 统一措辞 + 双匹配 |
+| E1 | ffmpeg/tesseract 测试 skip | toolchains 迁移 OS External Configuration | TESSDATA_PREFIX + PATH 更新 |
+| E2 | venv 重建丢依赖 | 并行会话迁移联动 | uv sync 重装 + PATH 前缀随命令 |
+
+**经验固化动作**：
+- skill `multi-format-pipeline-testing` 新增 4 节（fake-success 引擎、ffmpeg 断言脆弱、toolchain 迁移/venv 重建联动、改名 schema 漂移）
+- memory 更新 toolchains 新路径 + ffmpeg/tesseract 环境要求
+
+**提交链**：main @ 78358ca（RTF/ODT 引擎）双端一致；权威分支 @ 5761821（LOG-143）→ 本 LOG-144
