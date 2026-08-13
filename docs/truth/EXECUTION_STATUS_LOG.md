@@ -976,3 +976,25 @@ index.html 按钮 + browser-smoke：
   （本地模拟已验证）
 
 预期：本地 11:17（UTC 03:17）nightly 修复版首次实跑成功。
+
+
+### LOG-165: nightly 首跑闭环——手动预触发发现真实缺陷 + 修复 + 复跑全绿
+
+不用等到本地 11:17 自动 tick——workflow_dispatch 手动预触发
+（api.github.com 直连 + git credential token，POST 204）：
+
+- **Run #1（4582507）失败**：full-suite 1m17s 挂
+  test_media_extractor.py:49（真实 tesseract OCR 测试 fail）；
+  py-compat 3.11/3.13 通过；browser-smoke/windows-runtime 依赖跳过。
+  根因：gateplan 驱动的 CI 从未选到 media 测试（media 文件从未
+  变更），真实 OCR 依赖缺失从未暴露——nightly 全量首次触及。
+- **修复（6b395b5）**：nightly full-suite 镜像 ci.yml 的
+  "Install and verify local OCR engine" 步骤（ffmpeg +
+  tesseract-ocr + tesseract-ocr-eng + fonts-dejavu-core +
+  tesseract --list-langs 验证）。
+- **Run #2（6b395b5）SUCCESS 2m52s**：4 job 全绿
+  （py-compat×2 + full-suite + browser-smoke + windows-runtime）。
+
+教训：全量型 workflow（nightly）首跑前除静态预审计外，
+**手动 dispatch 一次是决定性验证**——比等 tick 提前发现
+gateplan 盲区（未被任何 push 路径触发过的测试依赖）。
