@@ -9,9 +9,9 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
 - Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1580 passed / 9 skipped** (2026-08-15 local); ruff + repository-conventions gate green on head.
 
-## Frozen-baseline execution state (LOG-147..172 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..173 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
-Implemented and CI-verified (continuous green: CI runs 524-572):
+Implemented and CI-verified (continuous green: CI runs 524-577):
 
 - **AXW-022B**: PDF evidence annotation reachable (text-layer overlay + cached selection); real browser-smoke first ran on CI at `85b3311` (run 31732780580).
 - **H5 implementation layer** (`5dc3d9b` + `d129aa3`): AXW-094A open-exchange export (`app/exchange/export.py`), AXW-094B verifiable backup (`app/exchange/backup.py`), AXW-096A performance benchmark (`shared/performance_benchmark.py`), AXW-096B keyboard accessibility (UI), AXW-096C batch import control (`app/ingestion/batch_controller.py`). EXIT is a verification gate, not an implementation prerequisite (precedent 023A-F/043B/050A).
@@ -40,6 +40,10 @@ Implemented and CI-verified (continuous green: CI runs 524-572):
   assert no secrets/auth/paths anywhere in the response; AXW-096B keyboard
   coverage confirmed (focus trap, aria-live feedback, PDF reader keyboard
   reach); 6/9 tasks ready — 095/060/H5-EXIT remain Owner-gated.
+- **CI timeouts + nightly Run 6 (LOG-173)**: timeout-minutes added to all
+  ci.yml Python jobs (`24606db`) and all four nightly jobs (`c8a85ce`);
+  nightly Run 6 green 3m51s on the timeout build — scheduled tick
+  (local 11:17) is a formality.
 
 - **Coverage audits (LOG-163)**: all 51 workspace router endpoints and all
   12 UI data-action handlers now have test references (3 genuine route gaps
