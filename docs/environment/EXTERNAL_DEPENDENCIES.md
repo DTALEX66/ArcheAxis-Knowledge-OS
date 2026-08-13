@@ -1,6 +1,6 @@
 # ArcheAxis Knowledge — External Dependency & Environment Configuration
 
-> 文档位置：`D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md`
+> 文档位置：`D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`
 > 仓库同步：`docs/environment/EXTERNAL_DEPENDENCIES.md`
 > 更新：2026-08-12
 > 生产主机：Windows 10/11 x64
@@ -14,8 +14,8 @@
 
 | 变量 | 值 | 用途 |
 |---|---|---|
-| `UV_CACHE_DIR` | `D:\All projects\OS configuration\uv-cache` | uv 包缓存 |
-| `UV_PROJECT_ENVIRONMENT` | `D:\All projects\OS configuration\ArcheAxis-Knowledge-OS-ci-venv` | 项目虚拟环境 |
+| `UV_CACHE_DIR` | `D:\All projects\OS External Configuration\uv-cache` | uv 包缓存 |
+| `UV_PROJECT_ENVIRONMENT` | `D:\All projects\OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv` | 项目虚拟环境 |
 | `HERMES_HOME` | `C:\Users\ALEX\AppData\Local\hermes` | Hermes Agent 配置（全局） |
 | `PYTHONPATH` | 清空（显式 `env -u PYTHONPATH`） | 避免污染 uv 环境 |
 
@@ -45,9 +45,9 @@
 - **版本**：5.5.0（tesseract）+ 1.85.0（leptonica）
 - **下载**：https://github.com/UB-Mannheim/tesseract/wiki
 - **语言包**：额外安装 `chi_sim`（中文简体）和 `eng`（英文）
-- **路径**：`D:\All projects\OS configuration\toolchains\scoop\shims\tesseract`
+- **路径**：`D:\All projects\OS External Configuration\toolchains\scoop\shims\tesseract`
 - **验证**：`tesseract --version`
-- **TESSDATA_PREFIX**：`D:\All projects\OS configuration\toolchains\scoop\apps\tesseract-languages\4.1.0`（scoop 无 `tesseract-languages/current`；不设此变量则 OCR 测试 skipped：`TESSDATA_PREFIX /c/Users/ALEX/scoop/apps/tesseract-languages/current does not exist`）
+- **TESSDATA_PREFIX**：`D:\All projects\OS External Configuration\toolchains\scoop\apps\tesseract-languages\4.1.0`（scoop 无 `tesseract-languages/current`；不设此变量则 OCR 测试 skipped：`TESSDATA_PREFIX /c/Users/ALEX/scoop/apps/tesseract-languages/current does not exist`）
 - **Python 绑定**：`pytesseract>=0.3.13`（pyproject.toml 中已声明）
 
 ### 1.4 FFmpeg
@@ -55,7 +55,7 @@
 - **用途**：音视频解码、格式转换、关键帧提取
 - **版本**：>=6.0
 - **下载**：https://ffmpeg.org/download.html
-- **路径**：`D:\All projects\OS configuration\toolchains\scoop\shims\ffmpeg`
+- **路径**：`D:\All projects\OS External Configuration\toolchains\scoop\shims\ffmpeg`
 - **验证**：`ffmpeg -version`
 - **许可注意**：构建选项决定 LGPL/GPL；项目只用 LGPL 子集
 
@@ -222,7 +222,7 @@
 ## 6. 工具链路径（scoop 管理）
 
 ```
-D:\All projects\OS configuration\toolchains\
+D:\All projects\OS External Configuration\toolchains\
 ├── downloads/          # scoop 下载缓存
 ├── playwright/         # Playwright 浏览器
 ├── rust/               # Rust 工具链（Tauri 构建用）
@@ -253,8 +253,8 @@ tesseract --list-langs  # 应有 eng + chi_sim
 pip install uv
 
 # 5. 环境变量（用户级）
-setx UV_CACHE_DIR "D:\All projects\OS configuration\uv-cache"
-setx UV_PROJECT_ENVIRONMENT "D:\All projects\OS configuration\ArcheAxis-Knowledge-OS-ci-venv"
+setx UV_CACHE_DIR "D:\All projects\OS External Configuration\uv-cache"
+setx UV_PROJECT_ENVIRONMENT "D:\All projects\OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv"
 
 # 6. 克隆仓库
 git clone git@github.com:DTALEX66/ArcheAxis-Knowledge-OS.git "D:\All projects\ArcheAxis-Knowledge-OS"
@@ -290,5 +290,5 @@ ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI
 
 1. 任何新增系统工具、模型文件或外部 API 必须在本文档登记
 2. `pyproject.toml` 依赖变更自动反映到 `uv.lock`；本文档手动同步
-3. 文档同步位置：`D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md`（本地） ↔ `docs/environment/EXTERNAL_DEPENDENCIES.md`（仓库）
+3. 文档同步位置：`D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`（本地） ↔ `docs/environment/EXTERNAL_DEPENDENCIES.md`（仓库）
 4. 每季度或用重大版本升级时复审一次
