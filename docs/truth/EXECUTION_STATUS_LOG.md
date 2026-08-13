@@ -794,3 +794,21 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   + 状态恒为 idle（忽略账本 batch_end）→ 重算计数 + 恢复终端状态；
   中断批次保持 idle 可续跑、完成批次如实报告 finished
 - commit 8ea9a05（3 文件 +141）；全量 1531 passed / 9 skipped
+
+
+### LOG-153: Release workflow 首次实跑前审计（nightly 教训应用）——PASS
+
+- Release（v* tag → main 校验 → exact-SHA CI → bundle → NSIS → wheel
+  +SHA256SUMS → draft release → 读回）加入后从未跑过；按 nightly 教训
+  逐项审计可运行性：
+  - 7 个依赖文件全部存在（prepare_bundle.py / verify_nsis_install.ps1 /
+    release_inject_identity.py / release_checksum.py / package.json /
+    tauri.conf.json / package-lock.json）
+  - release_checksum.py dry-run：3 payload（wheel/installer/identity）
+    正确生成 SHA256SUMS（64 位 hex + 文件名精确匹配）→ exit 0
+  - release_inject_identity.py dry-run：schema 2.0.0 注入正确
+    （source.commit/tree/release_run_id/verification_ci_run_id +
+    release.version/tag）→ exit 0
+  - pyproject version 0.5.0 与 release.yml --version 0.5.0 一致
+  - 未跑部分：NSIS 构建 + 安装态验证（需真实 Windows runner，发布时验证）
+- 结论：Release 脚本层可运行性 PASS；发布执行留 Owner（AXW-097/060）
