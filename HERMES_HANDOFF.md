@@ -7,7 +7,7 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Repository: `D:\All projects\ArcheAxis-Knowledge-OS` (canonical, single writer: Hermes)
 - Branch: `main` — HEAD and origin in sync (verify with `git status --short --branch` before resuming)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
-- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1532 passed / 9 skipped**; ruff + repository-conventions gate green on head.
+- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1580 passed / 9 skipped** (2026-08-15 local); ruff + repository-conventions gate green on head.
 
 ## Frozen-baseline execution state (LOG-147..172 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
