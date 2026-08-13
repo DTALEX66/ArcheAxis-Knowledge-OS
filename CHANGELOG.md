@@ -18,6 +18,10 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
   reader (Tab chains, focus + Enter flows, aria-live).
 - AXW-096C: async batch import with pause/resume/shutdown control and
   ledger-based recovery (task list, counts, terminal state).
+- Nightly qualification now runs end-to-end: full-suite installs and verifies
+  the real OCR engine (tesseract + eng data + fonts, mirroring ci.yml), so the
+  full-matrix nightly tier is green and schedule-ready.
+
 - CI ecosystem: nightly compatibility workflow defect fixed; Release
   workflow pre-first-run audit passed.
 

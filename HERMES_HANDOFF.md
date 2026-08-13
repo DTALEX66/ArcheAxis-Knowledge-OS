@@ -9,9 +9,9 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
 - Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1532 passed / 9 skipped**; ruff + repository-conventions gate green on head.
 
-## Frozen-baseline execution state (LOG-147..162 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..165 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
-Implemented and CI-verified (continuous green: CI runs 524-545):
+Implemented and CI-verified (continuous green: CI runs 524-558):
 
 - **AXW-022B**: PDF evidence annotation reachable (text-layer overlay + cached selection); real browser-smoke first ran on CI at `85b3311` (run 31732780580).
 - **H5 implementation layer** (`5dc3d9b` + `d129aa3`): AXW-094A open-exchange export (`app/exchange/export.py`), AXW-094B verifiable backup (`app/exchange/backup.py`), AXW-096A performance benchmark (`shared/performance_benchmark.py`), AXW-096B keyboard accessibility (UI), AXW-096C batch import control (`app/ingestion/batch_controller.py`). EXIT is a verification gate, not an implementation prerequisite (precedent 023A-F/043B/050A).
@@ -21,6 +21,17 @@ Implemented and CI-verified (continuous green: CI runs 524-545):
 - **Async batch control** (`8ea9a05` + `976bf13` + `6011b81`): pause/resume/shutdown on a live registry; ledger task-list recovery + terminal-state restoration (from_checkpoint) — interrupted batches are resumable, totals honest; duplicate-active rejected 409 (covered).
 - **CI ecosystem audit**: nightly zero-collection defect fixed (`af3df00`); Release workflow pre-first-run audit PASS (`7d72e34`); nightly py-compat 3.13 matrix verified locally (`9c9adb4`); **Release pipeline local verification 100%** (`7eb0131`: prepare_bundle end-to-end + staged-runtime import + verify_nsis_install.ps1 AST parse). nightly next real trigger: **local 11:17 (03:17 UTC)** — the earlier "skipped tick" observation was a timezone misread (Actions page shows local +08:00 time; cron is UTC; see LOG-161); never-ran fully explained by add-time vs tick timeline (LOG-162).
 - Capability Atlas: CAP-0140 (AXW-094) projected `in_progress` (`01ad561`).
+
+- **Coverage audits (LOG-163)**: all 51 workspace router endpoints and all
+  12 UI data-action handlers now have test references (3 genuine route gaps
+  closed in `5fdba13`).
+- **Nightly first-run closed (LOG-164/165)**: pre-flight audit of all 4 jobs,
+  then a manual `workflow_dispatch` exposed a real gateplan-blind defect —
+  full-suite lacked the OCR engine install (tesseract/ffmpeg/fonts) that
+  ci.yml's OS-level job has; fixed in `6b395b5`, re-dispatched, **nightly
+  Run #2 all-green** (py-compat x2 + full-suite + browser-smoke +
+  windows-runtime). Scheduled nightly now expected to succeed at local
+  11:17 (UTC 03:17) daily.
 
 ## Remaining work (Owner-gated — cannot be done autonomously)
 
