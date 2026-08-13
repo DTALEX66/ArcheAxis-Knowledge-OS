@@ -159,6 +159,31 @@ def test_backup_verify_detects_tampering(client: TestClient) -> None:
     assert "corrupted" in verify.json()["detail"]
 
 
+def test_backup_restore_refuses_overwrite_without_flag(client: TestClient) -> None:
+    """Restoring over an existing file without overwrite=true is refused."""
+    from shared.config import resolve_runtime_path
+
+    data_root = resolve_runtime_path("data")
+    originals = data_root / "originals"
+    originals.mkdir(parents=True, exist_ok=True)
+    (originals / "conflict-key").write_bytes(b"precious bytes")
+
+    create = client.post("/workspace/api/backup/create", json={"name": "conflict-test"})
+    assert create.status_code == 200, create.text
+
+    # the live file now exists again with different content -> restore must refuse
+    (originals / "conflict-key").write_bytes(b"newer live content")
+
+    real = client.post(
+        "/workspace/api/backup/restore",
+        json={"name": "conflict-test", "dry_run": False},
+    )
+    assert real.status_code == 422, real.text
+    assert "restore refused" in real.json()["detail"]
+    # and the live file was NOT touched
+    assert (originals / "conflict-key").read_bytes() == b"newer live content"
+
+
 def test_batch_import_and_status(client: TestClient, tmp_path: Path) -> None:
     source = tmp_path / "import-src"
     (source / "docs").mkdir(parents=True)
