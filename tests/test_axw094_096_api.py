@@ -395,3 +395,21 @@ def test_batch_import_rate_and_max_files_bounds(client: TestClient, tmp_path: Pa
         json={"batch_id": "too-many", "source_dir": str(source), "pattern": "**/*", "max_files": 10_001},
     )
     assert over.status_code == 422, over.text
+
+
+def test_readonly_gap_endpoints_error_paths(client: TestClient) -> None:
+    """jobs/{id}, v1/objects/{ref}, cases/{id} reachable and honest for unknown ids."""
+    # invalid job id format -> 422 explicit; valid format but unknown -> 404
+    bad_job = client.get("/workspace/api/jobs/not-a-job")
+    assert bad_job.status_code == 422, bad_job.text
+    assert "invalid" in bad_job.json()["detail"]
+
+    job = client.get("/workspace/api/jobs/job_" + "a" * 24)
+    assert job.status_code == 404, job.text
+
+    obj = client.get("/workspace/api/v1/objects/ghost-ref-000000")
+    assert obj.status_code == 404, obj.text
+    assert "was not found" in obj.json()["detail"]
+
+    case = client.get("/workspace/api/cases/ghost-artifact-000000")
+    assert case.status_code in (404, 422), case.text  # unknown artifact, explicit error
