@@ -227,11 +227,14 @@ class BatchImportController:
 
         Tasks that never completed are re-queued; completed tasks keep their
         recorded digests (silent corruption is detectable by comparing the
-        re-read digest with the recorded one).
+        re-read digest with the recorded one). Counts are recomputed from
+        the ledger so the rehydrated state is always consistent.
         """
         controller = cls(checkpoint_path=checkpoint_path)
         completed: set[str] = set()
+        failed: set[str] = set()
         controller._results = {}
+        terminal_state = "idle"
         for line in Path(checkpoint_path).read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
@@ -240,12 +243,17 @@ class BatchImportController:
             event_type = event.get("type")
             if event_type == "tasks_added":
                 continue
-            if event_type == "task_completed":
+            if event_type == "batch_end":
+                terminal_state = event.get("state", "idle")
+            elif event_type == "task_completed":
                 completed.add(event["task"])
                 controller._results[event["task"]] = {"status": "completed", "result_digest": event.get("digest", "")}
             elif event_type == "task_failed":
+                failed.add(event["task"])
                 controller._results[event["task"]] = {"status": "failed", "error": event.get("error", "")}
         controller._state = BatchState(batch_id=controller._new_batch_id())
-        controller._state.state = "idle"
-        controller._state.total = len(completed) + controller._state.failed
+        controller._state.state = terminal_state
+        controller._state.completed = len(completed)
+        controller._state.failed = len(failed)
+        controller._state.total = len(completed) + len(failed)
         return controller

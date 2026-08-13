@@ -7,6 +7,7 @@ and batch import/status endpoints are reachable and honest end-to-end
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import pytest
@@ -89,15 +90,66 @@ def test_batch_import_and_status(client: TestClient, tmp_path: Path) -> None:
     )
     assert batch.status_code == 200, batch.text
     body = batch.json()
-    assert body["state"] == "finished"
-    assert body["completed"] == 2
-    assert body["failed"] == 0
+    assert body["state"] == "running"
+    assert body["total"] == 2
 
+    # poll until the background batch finishes
     status = client.get("/workspace/api/batch/api-test-batch/status")
-    assert status.status_code == 200, status.text
+    deadline = time.monotonic() + 30
+    while status.json()["state"] not in ("finished", "shutdown") and time.monotonic() < deadline:
+        time.sleep(0.2)
+        status = client.get("/workspace/api/batch/api-test-batch/status")
+    assert status.json()["state"] == "finished", status.text
+    assert status.json()["completed"] == 2
+    assert status.json()["failed"] == 0
+
+    # ledger readback after completion: digest-verified results persist
     results = status.json()["results"]
     assert results["docs/a.md"]["status"] == "completed"
     assert results["docs/b.md"]["result_digest"].startswith("converted:")
+
+
+def test_batch_pause_resume_shutdown_flow(client: TestClient, tmp_path: Path) -> None:
+    source = tmp_path / "import-src2"
+    (source / "docs").mkdir(parents=True)
+    for index in range(20):
+        (source / "docs" / f"f{index:02d}.md").write_text(
+            f"# File {index}\n\nBody {index}.\n", encoding="utf-8"
+        )
+
+    batch = client.post(
+        "/workspace/api/batch/import",
+        json={"batch_id": "control-batch", "source_dir": str(source), "pattern": "**/*", "max_files": 100},
+    )
+    assert batch.status_code == 200
+
+    # pause quickly (small files convert fast; worker startup gives us a window)
+    time.sleep(0.05)
+    paused = client.post("/workspace/api/batch/control-batch/pause")
+    assert paused.status_code == 200
+    assert paused.json()["state"] in ("paused", "running")  # pause may land after finish
+    if paused.json()["state"] == "paused":
+        before = client.get("/workspace/api/batch/control-batch/status").json()["completed"]
+        time.sleep(0.1)
+        after = client.get("/workspace/api/batch/control-batch/status").json()["completed"]
+        assert after <= before + 2  # max_concurrent=2: at most two in-flight tasks finish
+
+        resumed = client.post("/workspace/api/batch/control-batch/resume")
+        assert resumed.status_code == 200
+        assert resumed.json()["state"] == "running"
+
+    # wait for completion
+    status = client.get("/workspace/api/batch/control-batch/status")
+    deadline = time.monotonic() + 30
+    while status.json()["state"] not in ("finished", "shutdown") and time.monotonic() < deadline:
+        time.sleep(0.2)
+        status = client.get("/workspace/api/batch/control-batch/status")
+    assert status.json()["state"] == "finished"
+    assert status.json()["completed"] == 20
+
+    # unknown batch control is a 404
+    missing = client.post("/workspace/api/batch/nope/pause")
+    assert missing.status_code == 404
 
 
 def test_batch_import_rejects_missing_source(client: TestClient, tmp_path: Path) -> None:

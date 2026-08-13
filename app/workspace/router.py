@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import json
 import os
+import threading
 import time
 from datetime import datetime, timezone
 from ipaddress import ip_address
@@ -856,6 +857,11 @@ def _batch_ledger(batch_id: str) -> Path:
     return resolve_runtime_path("data") / "batch" / f"{batch_id}.jsonl"
 
 
+# Active background batch controllers (AXW-096C pause/resume/shutdown).
+_ACTIVE_BATCHES: dict[str, Any] = {}
+_BATCH_LOCK = threading.Lock()
+
+
 @router.post("/api/exchange/export")
 def workspace_exchange_export(payload: ExchangeExportRequest, request: Request) -> dict[str, Any]:
     """Export raw/evidence/learning artifacts as an open exchange directory."""
@@ -937,10 +943,19 @@ def workspace_backup_restore(payload: BackupRestoreRequest, request: Request) ->
 
 @router.post("/api/batch/import")
 def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dict[str, Any]:
-    """Run a controlled batch import (pause/resume/rate-limit/safe exit)."""
+    """Start a controlled batch import in the background.
+
+    Returns immediately with the batch id; progress is polled via
+    GET /api/batch/{id}/status and the batch can be paused, resumed or
+    safely shut down mid-run (AXW-096C: no orphan workers — daemon
+    threads die with the process, checkpoint ledger survives).
+    """
     _local_principal(request)
     from app.ingestion.batch_controller import BatchImportController
     from app.ingestion.multi_format import convert_directory_resumable
+
+    if payload.batch_id in _ACTIVE_BATCHES:
+        raise HTTPException(status_code=409, detail=f"batch already active: {payload.batch_id}")
 
     controller = BatchImportController(
         checkpoint_path=_batch_ledger(payload.batch_id),
@@ -968,13 +983,23 @@ def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dic
         )
         return {"result_digest": f"converted:{result.get('processed', 0)}"}
 
-    state = controller.run(convert_worker, max_concurrent=2, rate_per_second=payload.rate_per_second)
+    def run_batch() -> None:
+        try:
+            controller.run(convert_worker, max_concurrent=2, rate_per_second=payload.rate_per_second)
+        finally:
+            with _BATCH_LOCK:
+                _ACTIVE_BATCHES.pop(payload.batch_id, None)
+
+    with _BATCH_LOCK:
+        _ACTIVE_BATCHES[payload.batch_id] = controller
+    thread = threading.Thread(target=run_batch, name=f"batch-{payload.batch_id}", daemon=True)
+    thread.start()
+
     return {
         "batch_id": payload.batch_id,
-        "state": state.state,
-        "total": state.total,
-        "completed": state.completed,
-        "failed": state.failed,
+        "state": "running",
+        "total": controller.status()["total"],
+        "note": "poll /api/batch/{id}/status for progress; POST pause/resume/shutdown to control",
     }
 
 
@@ -984,7 +1009,49 @@ def workspace_batch_status(batch_id: str, request: Request) -> dict[str, Any]:
     _local_principal(request)
     from app.ingestion.batch_controller import BatchImportController
 
+    with _BATCH_LOCK:
+        active = _ACTIVE_BATCHES.get(batch_id)
+    if active is not None:
+        return active.status()
     ledger = _batch_ledger(batch_id)
     if not ledger.is_file():
         raise HTTPException(status_code=404, detail=f"no such batch: {batch_id}")
     return BatchImportController.from_checkpoint(ledger).status()
+
+
+@router.post("/api/batch/{batch_id}/pause")
+def workspace_batch_pause(batch_id: str, request: Request) -> dict[str, Any]:
+    """Pause task pickup; in-flight tasks finish, nothing is lost."""
+    _local_principal(request)
+    with _BATCH_LOCK:
+        active = _ACTIVE_BATCHES.get(batch_id)
+    if active is None:
+        raise HTTPException(status_code=404, detail=f"no active batch: {batch_id}")
+    active.pause()
+    return {"batch_id": batch_id, "state": active.status()["state"]}
+
+
+@router.post("/api/batch/{batch_id}/resume")
+def workspace_batch_resume(batch_id: str, request: Request) -> dict[str, Any]:
+    """Resume a paused batch."""
+    _local_principal(request)
+    with _BATCH_LOCK:
+        active = _ACTIVE_BATCHES.get(batch_id)
+    if active is None:
+        raise HTTPException(status_code=404, detail=f"no active batch: {batch_id}")
+    active.resume()
+    return {"batch_id": batch_id, "state": active.status()["state"]}
+
+
+@router.post("/api/batch/{batch_id}/shutdown")
+def workspace_batch_shutdown(batch_id: str, request: Request) -> dict[str, Any]:
+    """Safe exit: stop accepting tasks, join workers, persist the ledger."""
+    _local_principal(request)
+    with _BATCH_LOCK:
+        active = _ACTIVE_BATCHES.get(batch_id)
+    if active is None:
+        raise HTTPException(status_code=404, detail=f"no active batch: {batch_id}")
+    active.shutdown()
+    with _BATCH_LOCK:
+        _ACTIVE_BATCHES.pop(batch_id, None)
+    return {"batch_id": batch_id, "state": "shutdown"}
