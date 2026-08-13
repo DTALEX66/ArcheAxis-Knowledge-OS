@@ -6,21 +6,31 @@
 
 用最少但足够的验证保持本地与 GitHub 健康。验证必须回答一个具体风险，禁止为了“更放心”重复运行相同门禁。
 
-## 验证分层
+## 三大阶段与验证节奏（AXC-050）
 
-| 变更类型 | 开发中 | TaskPack checkpoint | 阶段 Release Train |
-| --- | --- | --- | --- |
-| 纯文档/机械格式 | convention scanner + `git diff --check` | 本地 checkpoint，不跑全量 pytest | 阶段末统一 GitHub CI |
-| 低风险业务、合同或治理代码 | 受影响的定向 RED/GREEN + changed-file Ruff | 定向测试、diff/convention、可回滚本地 commit | 阶段末完整本地门禁一次 + 一次 GitHub CI |
-| 打包/依赖 | 定向导入或 wheel smoke | 完整本地门禁 + wheel 一次 | 独立 GitHub CI，不进入普通批量 |
-| 安全、权限、数据库、迁移、架构边界 | 定向测试 | 完整本地门禁 + 独立审查一次 | 独立 GitHub CI，不进入普通批量 |
+固定三大阶段，每阶段结束执行一次完整项目 CI：
+
+1. **Intake/RawAsset/Conversion 底座**（导入、转换、OCR/ASR 引擎链）；
+2. **常规多格式/OCR/ASR/Evidence**（格式矩阵、证据、质量门）；
+3. **Knowledge/Human Learning/AI Asset/重启导出**（知识、学习、评估、机器知识、导出回读）。
+
+节奏定义：
+
+| 时机 | 验证 |
+| --- | --- |
+| 开发中 | 定向测试（30～90 秒）+ changed-file Ruff |
+| TaskPack checkpoint | 本地 commit，不 push、不跑全量 |
+| 每大阶段 | 一次 full project CI（聚合 diff 冻结后） |
+| nightly | 兼容矩阵（py 3.11/3.13）与长期 corpus |
+| RC | Windows 安装态全格式（wheel/Tauri/NSIS/E2E） |
+| Release | exact-SHA、SBOM、checksum、签名、下载回读 |
 
 ## 必要门禁
 
 1. **开发中**：每个新行为仍必须执行一次定向 RED → GREEN；集中测试不等于测试后补，也不允许多个未验证行为堆积。
-2. **TaskPack checkpoint**：低风险垂直切片只运行受影响测试、changed-file Ruff、diff/convention，形成可回滚的本地 commit；不重复 Root/KB/Integration 全量套件，也不逐个 push/CI。
-3. **阶段 Release Train**：同一大阶段的一组低风险 checkpoint 完成后，冻结聚合 diff，运行一次完整 Root/KB/Integration、完整 Ruff、Architecture Guard、convention 与 secrets 检查，再统一 push 并验收最新 SHA 的一次 GitHub Actions run。
-4. **高风险旁路**：安全、权限、数据库、迁移、架构、打包/依赖变更不得等待阶段末；每个独立 frozen tree 立即执行完整门禁、必要 reviewer、push 和 exact-SHA CI。
+2. **TaskPack checkpoint**：低风险垂直切片只运行受影响测试、changed-file Ruff、diff/convention，形成可回滚的本地 commit；不重复全量套件，也不逐个 push/CI。
+3. **阶段 Release Train**：同一大阶段的一组低风险 checkpoint 完成后，冻结聚合 diff，运行一次完整门禁（pytest 主集 + ruff + architecture/convention/secrets），再统一 push 并验收最新 SHA 的一次 GitHub Actions run。
+4. **高风险旁路**：安全、权限、数据库、迁移、架构、打包/依赖变更**立即定向验证对应风险**，但只有触及 stage/RC/Release 才执行 full CI 与制品 exact-SHA；普通小修（迁移修复、依赖补丁）走定向 + stage 聚合，不扩大到发布级流程。
 5. **失败后**：定向失败只重跑受影响门禁；阶段完整门禁失败先定位到具体 checkpoint，修根因后只重跑失败门禁，最终聚合 tree 变化后再执行一次完整门禁。
 6. **Wheel**：从 clean checkout 构建，或先精确清理 ignored `build/` 与 `*.egg-info/`；对删除/重命名的 package-data 必须检查 wheel 成员表，防止陈旧构建目录把已退役文件重新打包。
 
@@ -33,10 +43,6 @@
 - 现有门禁发现一种尚未建模的新违规类别。
 
 普通修复不重新做全仓审计。已建立 scanner 的问题由增量门禁阻断，不再反复生成同类报告。
-
-## 审查触发
-
-独立 reviewer 仅用于安全、权限、数据库迁移、架构移动和高风险外部写入。低风险文档、格式归一化、纯合同 Adapter 和已有规则的小修依靠定向测试、diff 检查与 CI，不反复派发 reviewer。
 
 ## 无人值守执行性能
 
@@ -57,6 +63,26 @@ WORK-LAB 是一个独立仓库，仅作为可选外部工作流协调工具通�
 高风险路径仍遵循本政策的完整门禁、frozen tree review 与 exact-SHA CI；
 外部协调工具只提供单 writer、会话续接与 exact-tree 编排，不替代本项目的
 架构、SQLite、权限和发布判断。
+
+## Hash 与幂等边界（AXC-090）
+
+- **产品实时**：RawAsset SHA-256、conversion revision、Evidence anchor/source digest、dedup identity。
+- **项目阶段**：frozen tree SHA、corpus manifest、stage qualification。
+- **Release-only**：wheel/installer checksum、exact-SHA release attestation、SBOM/signature/download readback。
+
+幂等只用于 intake、RawAsset 写入、Job/Outbox、migration、网络核验、批准/撤销、导出写入；纯转换计算、查询、UI 不做重复"认证"（不把每次转换/查询包装成幂等认证步骤）。
+
+## 审查触发（AXC-100）
+
+立即定向 reviewer（仅以下场景）：
+
+- 权限/安全；
+- migration/数据恢复；
+- 外部高风险写入；
+- release/签名；
+- 新的许可证硬风险。
+
+不需要 reviewer：文档、格式化、既有 Adapter 小修、测试补充、UI 文案、已有规则覆盖的普通缺陷。全仓审计只在新 Phase、架构/数据/安全边界改变或新违规类别时运行。
 
 ## 证据与记录
 

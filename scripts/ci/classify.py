@@ -4,9 +4,10 @@
 Reads the project validation profile and produces a GatePlanV1 JSON artifact.
 Classification is fully deterministic: real base/head diff paths are matched
 against the versioned ``.worklab/project-validation.v1.yaml`` risk classes and
-the required Gate sets are unioned. Unknown paths and CI/security/schema
-classes force ``full-qualification``. LLM judgement is never used to decide
-required Gates.
+the required Gate sets are unioned. Unknown paths run static+lint+primary and
+are marked ``unclassified`` (AXC-060) so merge is blocked until the profile
+gains a classification; ``full-qualification`` is reserved for explicit stage/RC
+qualification. LLM judgement is never used to decide required Gates.
 
 This is the OS-local standalone source of truth. WORK-LAB (when present) may
 only select Gates registered in ``gate-registry.v1.yaml``; it may never inject
@@ -33,6 +34,10 @@ ROOT = Path(__file__).resolve().parents[2]
 PROFILE_PATH = ROOT / ".worklab" / "project-validation.v1.yaml"
 REGISTRY_PATH = ROOT / ".worklab" / "gate-registry.v1.yaml"
 ALWAYS_GATES = {"ci-verdict"}
+# AXC-060: gates for paths no risk class matches. Unknown paths no longer
+# force full-qualification; they run a safe default set and are marked
+# `unclassified` so merge stays blocked until the profile is updated.
+UNCLASSIFIED_GATES = {"static", "lint", "py-primary"}
 
 
 def resolve_diff_refs(
@@ -119,15 +124,19 @@ def classify_paths(
             if hit:
                 break  # first class match for this path; unions still apply
         if not hit:
+            # AXC-060: unknown paths no longer force full-qualification.
+            # They run static+lint+primary and are marked unclassified so
+            # the merge is blocked until the profile gains a classification.
             unknown_paths.append(norm)
-            gates.add("full-qualification")
+            gates.update(UNCLASSIFIED_GATES)
 
     if force_full:
         gates.add("full-qualification")
         matched_classes.append("forced-full")
         matched_reasons.append("force_full:CI_FORCE_FULL")
 
-    # full-qualification dominates every other gate
+    # AXC-060: full-qualification is a logical stage/RC profile, never the
+    # unknown-path fallback. It still dominates when explicitly forced.
     is_full = "full-qualification" in gates
     if is_full:
         gates = {"full-qualification", "ci-verdict"}

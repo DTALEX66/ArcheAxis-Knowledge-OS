@@ -2,11 +2,14 @@
 #
 # Deterministic changed-path classifier input. Maps real paths to risk classes
 # and a required Gate set. The classifier unions Gate sets across all matched
-# classes and forces `full-qualification` on unknown/CI/security/schema paths.
+# classes. `full-qualification` is a logical stage/RC profile only and is NEVER
+# triggered by ordinary or unknown changes (AXC-060): unknown paths run
+# static + classification review and block merge until the profile is updated,
+# without defaulting to NSIS/full matrix.
 # This profile is the OS-local risk source of truth in standalone mode.
 
-schema_version: "1.0"
-project_id: "DTALEX66/archeaxis-workspace"  # GitHub repo name (unchanged); product = ArcheAxis Knowledge
+schema_version: "2.0"
+project_id: "DTALEX66/ArcheAxis-Knowledge-OS"  # product = ArcheAxis Knowledge
 controller_protocol: ">=1.0,<2.0"
 
 modes:
@@ -14,9 +17,9 @@ modes:
   managed: optional
 
 fallback:
-  unknown_change: full-qualification
+  unknown_change: unclassified-block  # static + primary + classification review; no full-qualification
   controller_unavailable: standalone
-  invalid_evidence: full-qualification
+  invalid_evidence: unclassified-block
 
 # Ordered path prefixes. First match wins for classification; Gate sets are
 # then unioned across every matching risk class so mixed changes take the
@@ -29,7 +32,13 @@ risk_classes:
       - ".worklab/**"
       - "scripts/ci/**"
       - "scripts/release_*.py"
-    gates: [full-qualification]
+    gates: [static, lint]
+
+  - id: release-workflow
+    description: Release workflow/tag changes
+    paths:
+      - ".github/workflows/release.yml"
+    gates: [release-verify]
 
   - id: security-permissions
     description: Permissions, secrets, SSRF, path/symlink boundaries
@@ -38,7 +47,7 @@ risk_classes:
       - scripts/check_repository_conventions.py
       - shared/approved_paths.py
       - shared/runtime_guard.py
-    gates: [full-qualification]
+    gates: [static, lint, security-targeted, py-primary]
 
   - id: db-migration
     description: Schema, migrations, data recovery
@@ -47,7 +56,7 @@ risk_classes:
       - shared/core_schema.py
       - shared/migration_runner.py
       - "**/migrations/**"
-    gates: [full-qualification]
+    gates: [static, lint, migration-targeted, py-primary]
 
   - id: installer
     description: Bundle, stage, NSIS, exit/uninstall
@@ -85,7 +94,7 @@ risk_classes:
       - pyproject.toml
       - MANIFEST.in
       - app/release-manifest.json
-    gates: [static, lint, py-primary, wheel-smoke]
+    gates: [static, lint, wheel-smoke]
 
   - id: python-compat
     description: Public Python contracts, dependency matrix and requirements
@@ -96,13 +105,20 @@ risk_classes:
       - "shared-contracts/**"
     gates: [static, lint, py-compat, wheel-smoke]
 
+  - id: dependency-change
+    description: Lock/license-affecting dependency changes
+    paths:
+      - uv.lock
+      - requirements.txt
+    gates: [static, lint, wheel-smoke]
+
   - id: format-parser
     description: Format parsers / conversion engines that affect the installed wheel
     paths:
       - "app/ingestion/pdf.py"
       - "app/ingestion/multi_format.py"
       - "app/ingestion/*.py"
-    gates: [static, lint, py-primary, wheel-smoke]
+    gates: [static, lint, format-targeted, wheel-smoke]
 
   - id: windows-runtime
     description: Windows storage, migration, process, path handling
@@ -118,7 +134,7 @@ risk_classes:
       - "app/workspace/ui/**"
       - "desktop/src/**/*.tsx"
       - "desktop/src/**/*.ts"
-    gates: [static, lint, py-primary, browser-smoke]
+    gates: [static, lint, browser-smoke]
 
   - id: ordinary-python
     description: Ordinary Python backend business logic
@@ -141,5 +157,10 @@ risk_classes:
       - "**/*.md"
     gates: [static]
 
-# Gate sets are ordered so that `full-qualification` (whenever present in any
-# matched class) dominates. Multiple non-full classes union normally.
+# Unknown path handling (AXC-060): the controller MUST classify with
+# static + primary tests first, mark the path `unclassified`, and BLOCK
+# merge until the profile gains a classification. It must NOT fall back
+# to full-qualification or run NSIS/desktop-build for unknown paths.
+unclassified:
+  gates: [static, lint, py-primary]
+  action: block-until-classified

@@ -1,0 +1,111 @@
+name: nightly
+
+# AXC-080: nightly tier — compatibility matrix + long corpus + browser/
+# windows runtime. Runs on schedule or manual dispatch; NOT on every push.
+# Fast path stays in ci.yml (gateplan-driven, minutes). Release stays in
+# release.yml (exact-SHA artifacts).
+
+on:
+  schedule:
+    - cron: "17 3 * * *"  # 03:17 UTC daily, off-peak runner queue
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch/tag/SHA to qualify"
+        required: false
+        default: "main"
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  py-compat:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked compatibility dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Compile and import compatibility surface
+        run: |
+          python -m compileall -q app shared knowledge_base scripts
+          python -m pytest tests/test_imported_modules.py -q --tb=short
+
+  full-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install ci + ci-adapters groups
+        run: |
+          uv sync --frozen --group ci --group ci-adapters
+      - name: Full Python suite
+        run: |
+          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest -q --tb=short
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    needs: full-suite
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install ci + ci-adapters
+        run: |
+          uv sync --frozen --group ci --group ci-adapters
+      - name: Browser smoke
+        run: |
+          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_workspace_api.py -q --tb=short -m "browser or workspace"
+
+  windows-runtime:
+    runs-on: windows-latest
+    needs: full-suite
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install ci + ci-adapters
+        run: |
+          uv sync --frozen --group ci --group ci-adapters
+      - name: Windows runtime tests
+        run: |
+          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_desktop_runtime.py tests/test_migration_runner.py -q --tb=short

@@ -118,34 +118,45 @@ def test_requirements_change_triggers_wheel_and_compat_not_full_scan() -> None:
 
 def test_parser_change_triggers_wheel_smoke() -> None:
     """AXW-003C: changing a format parser (pdf/multi-format) affects what the
-    installed wheel can convert, so the wheel must be rebuilt and smoked. The
-    plain py-primary-only classification would miss install-state regressions.
+    installed wheel can convert, so the wheel must be rebuilt and smoked.
+    AXC-060: format adapters run lint + format-targeted + wheel-smoke
+    (no py-primary full suite, no full-qualification).
     """
     for path in ("app/ingestion/pdf.py", "app/ingestion/multi_format.py"):
         plan = _classify([path])
         assert plan["full_qualification"] is False, (path, plan)
-        assert "py-primary" in plan["required_gates"]
-        assert "wheel-smoke" in plan["required_gates"], f"{path} missing wheel-smoke"
+        assert {"format-targeted", "wheel-smoke"} <= set(plan["required_gates"]), (
+            f"{path} missing format-targeted/wheel-smoke"
+        )
         assert plan["unknown_paths"] == [], (path, plan["unknown_paths"])
 
 
-def test_ci_policy_change_forces_full() -> None:
+def test_ci_policy_change_does_not_force_full() -> None:
+    """AXC-060: CI workflow changes run static+lint, not full-qualification."""
     plan = _classify([".github/workflows/ci.yml"])
-    assert "full-qualification" not in plan["required_gates"]  # logical profile
+    assert plan["full_qualification"] is False
     assert "ci-verdict" in plan["required_gates"]
-    # full-qualification collapses required gates to just the verdict aggregator
-    assert plan["required_gates"] == ["ci-verdict"]
+    assert {"static", "lint"} <= set(plan["required_gates"])
+    assert "full-qualification" not in plan["required_gates"]  # logical profile
 
 
-def test_classifier_self_change_forces_full() -> None:
+def test_classifier_self_change_does_not_force_full() -> None:
+    """AXC-060: classifier self-change runs its own gates, not full."""
     plan = _classify(["scripts/ci/classify.py"])
-    assert plan["required_gates"] == ["ci-verdict"]
+    assert plan["full_qualification"] is False
+    assert {"static", "lint"} <= set(plan["required_gates"])
 
 
-def test_unknown_path_forces_full() -> None:
+def test_unknown_path_is_unclassified_block() -> None:
+    """AXC-060: unknown paths run static+lint+primary and are marked
+    unclassified (merge blocked until the profile gains a class); they no
+    longer force full-qualification or NSIS/full matrix."""
     plan = _classify(["some/unknown/file.bin"])
-    assert plan["required_gates"] == ["ci-verdict"]
+    assert plan["full_qualification"] is False
     assert plan["unknown_paths"] == ["some/unknown/file.bin"]
+    assert {"static", "lint", "py-primary"} <= set(plan["required_gates"])
+    assert "desktop-build" not in plan["required_gates"]
+    assert "installer-lifecycle" not in plan["required_gates"]
 
 
 def test_mixed_change_takes_union() -> None:

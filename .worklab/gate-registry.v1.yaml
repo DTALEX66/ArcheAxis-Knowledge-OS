@@ -7,8 +7,10 @@
 #
 # Gate IDs are the contract surface shared with WORK-LAB. WORK-LAB may select
 # only Gates registered here; it may never inject an arbitrary shell command.
+# AXC-070: `full-qualification` is a logical stage/RC profile only and is never
+# triggered by ordinary or unknown changes.
 
-schema_version: "1.0"
+schema_version: "2.0"
 
 gates:
   - id: static
@@ -22,6 +24,18 @@ gates:
     required: conditional
   - id: py-compat
     description: Supported Python version compatibility matrix
+    required: conditional
+  - id: py-targeted
+    description: Affected/primary Python tests only (fast path)
+    required: conditional
+  - id: format-targeted
+    description: Format adapter targeted tests (conversion engines)
+    required: conditional
+  - id: migration-targeted
+    description: Migration + backup/rollback/restore targeted tests
+    required: conditional
+  - id: security-targeted
+    description: Security/path/network targeted tests
     required: conditional
   - id: browser-smoke
     description: Real Chromium workspace smoke
@@ -41,15 +55,19 @@ gates:
   - id: wheel-smoke
     description: Wheel build, external install, package-data
     required: conditional
-  - id: ci-verdict
-    description: Stable aggregator that validates the GatePlan and required Gates
-    required: always
-  - id: full-qualification
-    description: Logical profile expanding to every required Gate in the registry
+  - id: stage-verdict
+    description: Stage aggregation gate for a frozen phase tree
     required: conditional
   - id: release-verify
     description: tag / asset / installer / download readback
     required: conditional
+  - id: ci-verdict
+    description: Stable aggregator that validates the GatePlan and required Gates
+    required: always
+  - id: full-qualification
+    description: LOGICAL stage/RC profile expanding to every required Gate; never auto-triggered by ordinary/unknown paths (AXC-060/070)
+    required: conditional
 
-# full-qualification is a logical profile, not a fixed job count. It expands to
-# the union of every Gate the workflow can provide for a formal release.
+# full-qualification is a logical profile, not a fixed job count. It is used
+# only for stage/RC/Release qualification decisions, never as the unknown-path
+# fallback.
