@@ -95,13 +95,20 @@ jobs:
       - name: Install ci + ci-adapters
         run: |
           uv sync --frozen --group ci --group ci-adapters
-      - name: Browser smoke
-        # test_workspace_api.py is the full workspace API surface; the old
-        # `-m "browser or workspace"` selector matched ZERO tests (no markers
-        # are registered) and the job would have failed with exit 5 on its
-        # first real schedule run.
+      - name: Install locked browser test dependencies
+        # browser group (playwright) mirrors ci.yml's browser-smoke gate.
+        run: |
+          uv export --frozen --only-group browser --no-emit-project --format requirements-txt --output-file locked-browser.txt
+          uv pip install --system --require-hashes -r locked-browser.txt
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Workspace API suite
         run: |
           env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_workspace_api.py -q --tb=short
+      - name: Real Workspace browser regressions
+        env:
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
+        run: python scripts/a0_browser_smoke.py
 
   windows-runtime:
     runs-on: windows-latest
