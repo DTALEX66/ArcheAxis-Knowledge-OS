@@ -9,9 +9,9 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
 - Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1580 passed / 9 skipped** (2026-08-15 local); ruff + repository-conventions gate green on head.
 
-## Frozen-baseline execution state (LOG-147..173 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..174 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
-Implemented and CI-verified (continuous green: CI runs 524-577):
+Implemented and CI-verified (continuous green: CI runs 524-580):
 
 - **AXW-022B**: PDF evidence annotation reachable (text-layer overlay + cached selection); real browser-smoke first ran on CI at `85b3311` (run 31732780580).
 - **H5 implementation layer** (`5dc3d9b` + `d129aa3`): AXW-094A open-exchange export (`app/exchange/export.py`), AXW-094B verifiable backup (`app/exchange/backup.py`), AXW-096A performance benchmark (`shared/performance_benchmark.py`), AXW-096B keyboard accessibility (UI), AXW-096C batch import control (`app/ingestion/batch_controller.py`). EXIT is a verification gate, not an implementation prerequisite (precedent 023A-F/043B/050A).
@@ -44,6 +44,8 @@ Implemented and CI-verified (continuous green: CI runs 524-577):
   ci.yml Python jobs (`24606db`) and all four nightly jobs (`c8a85ce`);
   nightly Run 6 green 3m51s on the timeout build — scheduled tick
   (local 11:17) is a formality.
+- **Flaky fix (LOG-174 + `be6c23f`)**: batch shutdown test polled for
+  worker start instead of a fixed sleep; product code verified clean.
 
 - **Coverage audits (LOG-163)**: all 51 workspace router endpoints and all
   12 UI data-action handlers now have test references (3 genuine route gaps
