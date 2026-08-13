@@ -1015,3 +1015,25 @@ gateplan 盲区（未被任何 push 路径触发过的测试依赖）。
 
 教训：全量型 workflow 的"全量"必须对照 pytest 实际收集范围
 （testpaths 配置），不能假定 `pytest` 根运行 = 全部测试。
+
+
+### LOG-167: nightly browser-smoke 真实化——两轮修复闭环
+
+复盘发现 nightly 的 browser-smoke job 名不副实（只跑
+test_workspace_api.py，无 playwright/无真实浏览器）——夜间层
+永远不回归 UI。升级为镜像 ci.yml gate：browser 组 + Chromium +
+a0_browser_smoke.py：
+
+- **Run #4 失败（2m47s）**：SMOKE-FAIL —— a0_browser_smoke.py
+  spawn `sys.executable -m app.runtime_entrypoint migrate`，但依赖
+  在 venv 而脚本被系统解释器跑（browser 组 pip --system 只装系统）→
+  migrate 缺依赖。ci.yml gate 用 pip --system 全装所以没暴露。
+- **修复（d8db1ad）**：job 全面切 venv 模型——`uv sync` 三组
+  （ci+ci-adapters+browser）、`uv run` 装 Chromium、`uv run` 跑
+  smoke——sys.executable=venv Python，依赖齐全。本地先验证
+  （A0 Chromium browser smoke passed）。
+- **Run #5（d8db1ad）SUCCESS 3m22s**：py-compat×2 + full-suite
+  （含 integration）+ **真实浏览器回归** + windows-runtime 全绿。
+
+nightly 现在名副其实：全量测试 + 真实浏览器 + 兼容矩阵 +
+Windows 运行时。等待自动 tick（本地 11:17）。
