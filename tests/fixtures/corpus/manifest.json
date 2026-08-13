@@ -7,7 +7,7 @@
       "language": "zh",
       "source": "self-authored public-domain-style test sentence (no third-party text)",
       "license": "public-domain (self-authored test material)",
-      "sha256_truth": "602cc9629f74efc41a979aa5268cc9b51dad6aeabbe2e1d278214f3d2d8846e1",
+      "sha256_truth": "db4ccb23c4e13c186c117ee5ecea91bfa6b4136fbcc7777fbdd94c290b72d271",
       "privacy": "no personal data; constructed sample",
       "kind": "ocr"
     },
@@ -16,7 +16,7 @@
       "language": "en",
       "source": "self-authored public-domain-style test sentence",
       "license": "public-domain (self-authored test material)",
-      "sha256_truth": "639faf3702e1eb91402ab7ced48f57fde32d11c9f318273699989a550cf3bbea",
+      "sha256_truth": "9b22fb82f213b131408d107160b619e9794bcfbc2a8a381ae06ad563348665e6",
       "privacy": "no personal data; constructed sample",
       "kind": "ocr"
     },
@@ -25,7 +25,7 @@
       "language": "zh+en",
       "source": "self-authored public-domain-style mixed test sentence",
       "license": "public-domain (self-authored test material)",
-      "sha256_truth": "0d4a801db7e1b58b7a8af865643f1f749900280898dda07519af930dffe7e20e",
+      "sha256_truth": "ebd033a944c04c886ec2b96ba852ea1be489395c6a6f57f2a7ee0486360d5bb7",
       "privacy": "no personal data; constructed sample",
       "kind": "ocr"
     }
