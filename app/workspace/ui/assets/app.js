@@ -220,7 +220,8 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
      The selected text is cached because clicking the button clears the
      browser selection on mousedown before the click handler runs.
      (Regression-covered by scripts/a0_browser_smoke.py: exercise_pdf_reader;
-      CI runs the full Chromium browser, local dev defaults to headless-shell.) */
+      CI runs the full Chromium browser, local dev defaults to headless-shell;
+      smoke entrypoint wraps failures into workflow annotations.) */
   let cachedSelection = "";
   function syncAnnotateEnabled() {
     const btn = document.getElementById("pdf-annotate");
