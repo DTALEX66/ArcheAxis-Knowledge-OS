@@ -767,3 +767,17 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   planned → in_progress（094A/B 实现存在、验收未完成；遵循 AXW-010B
   仅已验证能力投影 supported 原则，不冒充）
 - PERFORMANCE_BENCHMARK_096A.md 更新为混合语料数据
+
+
+### LOG-151: nightly workflow 首次审计——修复零收集缺陷（AXC-080 健康化）
+
+- 发现：nightly（AXC-080 兼容矩阵，03:17 UTC schedule）加入后**从未跑过**
+- 缺陷：browser-smoke job 用 `-m "browser or workspace"` 过滤，但
+  tests/test_workspace_api.py（25 个测试）**无任何 pytest marker**、
+  pyproject 也未注册 markers → 0 收集 → pytest exit 5 → 首次实跑必失败
+- 修复：去掉死 marker 选择器（该文件即完整 workspace API 表面），
+  注释说明根因
+- 本地模拟全部 nightly job 命令：compileall（app/shared/knowledge_base/
+  scripts）+ test_imported_modules + test_workspace_api + test_desktop_runtime
+  + test_migration_runner → 73 passed
+- 下一实跑点：03:17 UTC（main 上该修复后首个 schedule tick）

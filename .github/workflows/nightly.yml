@@ -86,8 +86,12 @@ jobs:
         run: |
           uv sync --frozen --group ci --group ci-adapters
       - name: Browser smoke
+        # test_workspace_api.py is the full workspace API surface; the old
+        # `-m "browser or workspace"` selector matched ZERO tests (no markers
+        # are registered) and the job would have failed with exit 5 on its
+        # first real schedule run.
         run: |
-          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_workspace_api.py -q --tb=short -m "browser or workspace"
+          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_workspace_api.py -q --tb=short
 
   windows-runtime:
     runs-on: windows-latest
