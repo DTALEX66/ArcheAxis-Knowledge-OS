@@ -1052,3 +1052,19 @@ Windows 运行时。等待自动 tick（本地 11:17）。
 （描述本来就写 "BFF/API consumed by UI"）。分类器复验四个探针路径：
 router/a0/app.js → ui + browser-smoke；tests/* → ordinary-python
 不变。CI Run 565 绿。
+
+
+### LOG-169: targeted gates 假门修复——计划但不执行也不验证
+
+审计 gate-registry（18 gate）vs ci.yml（10 job）发现 4 个注册 gate
+（py-targeted/format-targeted/migration-targeted/security-targeted）
+GatePlan 可要求但：①无任何 job 响应（test job 只查 py-primary）；
+②ci-verdict 的 require 列表不含它们 → **fail-open 幻影门**——
+format-parser 变更（如 app/ingestion/pdf.py）计划 format-targeted
+但没有任何针对性测试执行、verdict 照常通过。
+
+修复（dfe287c）：
+- test job if 扩展：任一 targeted gate 被要求即运行（其全量
+  OS/KB/integration 套件保守覆盖全部 targeted 语义）
+- ci-verdict require 补 4 个 targeted（结果=test job）
+YAML 解析验证；CI Run 567 绿。
