@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OSUI · ArcheAxis Knowledge 主入口</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --fg: #172033;
+      --fg-2: #3c4657;
+      --muted: #6d7684;
+      --border: #d8e0ea;
+      --border-soft: #eef2f7;
+      --accent: #1769e0;
+      --accent-hover: #0f5dcc;
+      --accent-on: #ffffff;
+      --shadow: 0 12px 36px rgba(25, 38, 58, 0.08);
+      --focus-ring: 0 0 0 4px rgba(23, 105, 224, 0.22);
+      --font-body: "SF Pro Text", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      --font-display: "SF Pro Display", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--fg);
+      font: 15px/1.65 var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      border: 0;
+      background: none;
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    iframe:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      grid-template-rows: 68px 1fr;
+      overflow: hidden;
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 22px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 14px;
+      background: conic-gradient(from 20deg, var(--accent), #6aa9ff, var(--accent));
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .mark::after {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: 9px 15px 10px 15px;
+      background: var(--surface);
+      transform: rotate(28deg);
+    }
+
+    .brand b {
+      display: block;
+      font: 700 18px/1.25 var(--font-display);
+      letter-spacing: 0;
+    }
+
+    .brand span span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--fg-2);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .pill {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg-2);
+      font-weight: 650;
+    }
+
+    .sidebar {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .sidebar-head {
+      padding: 22px 20px 14px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font: 700 25px/1.35 var(--font-display);
+      letter-spacing: 0;
+    }
+
+    .sidebar-head p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .menu {
+      min-height: 0;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    .group {
+      margin-bottom: 14px;
+    }
+
+    .group-title {
+      padding: 9px 10px 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+    }
+
+    .route {
+      width: 100%;
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 4px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--fg-2);
+      text-align: left;
+    }
+
+    .route:hover {
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    .route.active {
+      background: #eaf2ff;
+      color: var(--accent);
+      font-weight: 750;
+    }
+
+    .route small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .sidebar-foot {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border-soft);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .viewer {
+      min-width: 0;
+      min-height: 0;
+      padding: 18px;
+      background: var(--bg);
+    }
+
+    .frame-wrap {
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: var(--surface);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      justify-self: center;
+    }
+
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .app {
+        height: auto;
+        min-height: 100vh;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 72vh;
+      }
+      .topbar { position: sticky; top: 0; z-index: 2; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+      .menu {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 10px;
+        max-height: none;
+      }
+      .group { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" data-od-id="osui-main-launcher">
+    <header class="topbar" data-od-id="osui-topbar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <span>
+          <b>OSUI 前端主入口</b>
+          <span>ArcheAxis Knowledge · 当前主版本</span>
+        </span>
+      </div>
+      <div class="status" data-od-id="osui-status">
+        <span class="pill">保留版本：archeaxis-knowledge-ui-v2</span>
+        <span class="pill">Mock Adapter · UNBOUND</span>
+      </div>
+    </header>
+
+    <aside class="sidebar" data-od-id="osui-route-sidebar">
+      <div class="sidebar-head">
+        <p class="eyebrow">Unified HTML Router</p>
+        <h1>一个入口调用所有页面</h1>
+        <p>点击左侧菜单，在右侧载入对应 HTML 页面；旧版、运行时副本、历史展开包和原包已归档。</p>
+      </div>
+
+      <nav class="menu" aria-label="OSUI 页面菜单" id="menu"></nav>
+
+      <div class="sidebar-foot">
+        根入口只负责组织页面，不连接真实后端、不读取用户资料、不改变 v2 页面内部合同。
+      </div>
+    </aside>
+
+    <main class="viewer" data-od-id="osui-page-viewer">
+      <div class="frame-wrap">
+        <iframe id="viewer" title="OSUI 页面预览" src="archeaxis-knowledge-ui-v2/workspace-overview.html"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const groups = [
+        {
+          title: "工作台",
+          items: [
+            ["工作台总览", "workspace-overview.html"],
+            ["通用摄取", "universal-intake.html"],
+            ["任务与回执", "jobs-receipts.html"]
+          ]
+        },
+        {
+          title: "资料与证据",
+          items: [
+            ["资料库", "library-browser.html"],
+            ["多格式阅读器", "multi-format-reader.html"],
+            ["证据工作台", "evidence-workbench.html"],
+            ["证据复核队列", "evidence-review-queue.html"],
+            ["知识 Canvas", "knowledge-canvas.html"]
+          ]
+        },
+        {
+          title: "学习",
+          items: [
+            ["学习主页", "learning-home.html"],
+            ["专注复习", "focus-review-session.html"],
+            ["Teach Back", "teachback-transfer.html"],
+            ["动态视觉课件", "visual-lesson-studio.html"],
+            ["空间记忆", "spatial-memory.html"]
+          ]
+        },
+        {
+          title: "AI 资产与设置",
+          items: [
+            ["AI 资产注册表", "ai-asset-registry.html"],
+            ["AI 资产详情", "ai-asset-detail.html"],
+            ["设置与能力矩阵", "settings-capabilities.html"]
+          ]
+        }
+      ];
+
+      const menu = document.getElementById("menu");
+      const viewer = document.getElementById("viewer");
+      const base = "archeaxis-knowledge-ui-v2/";
+
+      function activate(button) {
+        document.querySelectorAll(".route").forEach((item) => item.classList.toggle("active", item === button));
+        viewer.src = base + button.dataset.file;
+        try { localStorage.setItem("osui:selected-route", button.dataset.file); } catch (_) {}
+      }
+
+      groups.forEach((group) => {
+        const section = document.createElement("section");
+        section.className = "group";
+        section.innerHTML = `<div class="group-title">${group.title}</div>`;
+        group.items.forEach(([label, file]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "route";
+          button.dataset.file = file;
+          button.innerHTML = `<span class="dot" aria-hidden="true"></span><span>${label}<small>${file}</small></span>`;
+          button.addEventListener("click", () => activate(button));
+          section.appendChild(button);
+        });
+        menu.appendChild(section);
+      });
+
+      let initial = "workspace-overview.html";
+      try { initial = localStorage.getItem("osui:selected-route") || initial; } catch (_) {}
+      const first = Array.from(document.querySelectorAll(".route")).find((button) => button.dataset.file === initial) || document.querySelector(".route");
+      if (first) activate(first);
+    })();
+  </script>
+</body>
+</html>
