@@ -442,6 +442,8 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         raise
     finally:
         pdf_path.unlink(missing_ok=True)
+    page.goto(base_url + "/workspace#evidence")
+    exercise_exchange_ui(page, base_url)
 
 
 def exercise_keyboard_accessibility(page: Page, base_url: str) -> None:
@@ -499,6 +501,36 @@ def exercise_keyboard_accessibility(page: Page, base_url: str) -> None:
 
     # Error feedback region is announced via aria-live.
     assert page.locator("#intake-result").get_attribute("aria-live") == "polite"
+
+
+def exercise_exchange_ui(page: Page, base_url: str) -> None:
+    """AXW-094A/B UI reachability: the four exchange/backup buttons must
+    invoke the API and update the result area (binding + round-trip)."""
+    page.goto(base_url + "/workspace#evidence")
+    page.wait_for_load_state("networkidle")
+    has_card = page.evaluate("() => document.body.innerText.includes('开放交换与备份')")
+    has_pdf_card = page.evaluate("() => document.body.innerText.includes('PDF 证据查看')")
+    visible_sections = page.evaluate(
+        "() => [...document.querySelectorAll('section.page')].map(s => s.id + ':' + (s.offsetParent !== null)).join(',')"
+    )
+    print(
+        f"  exchange card present: {has_card}; pdf card present: {has_pdf_card}; sections: {visible_sections}"
+    )
+    page.get_by_role("heading", name="开放交换与备份").wait_for()
+    result = page.locator("#exchange-result")
+    assert "尚未执行" in result.inner_text()
+    for action in ("exchange-export", "exchange-verify", "backup-create", "backup-verify"):
+        page.locator(f'button[data-action="{action}"]').click()
+        page.wait_for_function(
+            "() => document.querySelector('#exchange-result')?.textContent !== '尚未执行导出/备份操作'"
+        )
+        page.wait_for_function(
+            "() => !document.querySelector('#exchange-result')?.textContent.startsWith('执行中')"
+        )
+    # every click produced a concrete verdict from the API (success or 422
+    # detail), never a dead button
+    final_text = result.inner_text()
+    assert "操作失败" in final_text or "{" in final_text, final_text
 
 
 def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:

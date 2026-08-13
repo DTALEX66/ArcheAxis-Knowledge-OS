@@ -110,6 +110,16 @@
       <div class="empty" style="padding:40px"><b>未加载 PDF</b><p>输入内容键后打开；字节由 /workspace/api/pdf/&lt;key&gt; 内容寻址只读提供。选中文本后点「批注为证据」生成 EvidenceAnchor。</p></div>
     </div>
   </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title"><h2>开放交换与备份</h2><span class="status info"><i></i>AXW-094A/B</span></div>
+    <div class="row" style="flex-wrap:wrap;gap:8px">
+      <button class="btn" type="button" data-action="exchange-export">导出交换数据</button>
+      <button class="btn" type="button" data-action="exchange-verify">校验交换</button>
+      <button class="btn" type="button" data-action="backup-create">创建备份</button>
+      <button class="btn" type="button" data-action="backup-verify">校验备份</button>
+    </div>
+    <div id="exchange-result" class="muted" style="margin-top:8px;white-space:pre-wrap">尚未执行导出/备份操作</div>
+  </div>
 </section>
 <section class="page" id="page-unavailable">
   <div class="page-head"><div><div class="eyebrow">ROADMAP</div><h1 id="unavailable-title">功能尚未接入</h1><p class="desc">此入口用于保持产品信息架构，但当前版本没有可验证的真实数据或操作。</p></div></div>

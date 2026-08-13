@@ -21,6 +21,7 @@ function renderStatus(payload){const target=$('#status-summary');target.textCont
 function renderStatusUnavailable(){const target=$('#status-summary');target.textContent='';target.append(metric('真实状态','不可用','本地状态读取失败','bad'));const capabilities=$('#capability-summary');capabilities.textContent='';const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent='能力状态';const value=document.createElement('span');value.textContent='不可用';main.append(name,value);row.append(main);capabilities.append(row)}
 function renderDiagnostics(payload){const target=$('#diagnostics-summary');target.textContent='';const health=payload.components.api==='available'?'正常':'不可用';const database=payload.components.database==='available'?'可读':'不可用';const migrations=Object.entries(payload.migrations).map(([name,count])=>`${name} ${count}`).join(' · ')||'不可用';target.append(metric('API',health,'本地回环服务'),metric('数据库',database,'只读聚合探针'),metric('迁移',migrations,'迁移状态实时读取'),metric('发布',payload.release.version,payload.release.status))}
 async function fetchJson(path){const response=await fetch(path);if(!response.ok)throw new Error(`${path} unavailable`);return response.json()}
+async function exchangeCommand(path, body){const result=$('#exchange-result');result.textContent='执行中…';try{const response=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);const data=await response.json();if(!response.ok)throw new Error(data.detail||`${path} failed (${response.status})`);result.textContent=JSON.stringify(data,null,2)}catch(err){result.textContent='操作失败: '+err.message}}
 async function refreshStatus(){try{renderStatus(validateStatus(await fetchJson('/workspace/api/status')))}catch{renderStatusUnavailable()}}
 async function refreshDiagnostics(){try{renderDiagnostics(validateStatus(await fetchJson('/workspace/api/status')))}catch{const target=$('#diagnostics-summary');target.textContent='';target.append(metric('系统状态','不可用','本地状态读取失败','bad'))}}
 function validateJobs(payload){if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.jobs))throw new Error('invalid workspace jobs');for(const job of payload.jobs){if(!isRecord(job)||Object.keys(job).length!==4||typeof job.activity!=='string'||typeof job.state!=='string'||typeof job.delivery_state!=='string'||typeof job.updated_at!=='string'||Number.isNaN(Date.parse(job.updated_at)))throw new Error('invalid workspace job')}return payload}
@@ -298,6 +299,10 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
       case "pdf-search": void searchPdf(); break;
       case "pdf-annotate": void annotateEvidence(); break;
       case "pdf-jump": void jumpToAnchor(); break;
+      case "exchange-export": void exchangeCommand("/workspace/api/exchange/export", {}); break;
+      case "exchange-verify": void exchangeCommand("/workspace/api/exchange/verify"); break;
+      case "backup-create": void exchangeCommand("/workspace/api/backup/create", {}); break;
+      case "backup-verify": void exchangeCommand("/workspace/api/backup/verify"); break;
     }
   });
 })();
