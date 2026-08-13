@@ -90,7 +90,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') || contains(needs.gateplan.outputs.required_gates, 'py-targeted') || contains(needs.gateplan.outputs.required_gates, 'format-targeted') || contains(needs.gateplan.outputs.required_gates, 'migration-targeted') || contains(needs.gateplan.outputs.required_gates, 'security-targeted') }}
     strategy:
       matrix:
         python-version: ["3.12"]
@@ -693,6 +693,10 @@ jobs:
           # job name `test` would never match GatePlan and would let a required
           # py-primary failure pass as green.
           require py-primary "$TEST_RESULT"
+          require py-targeted "$TEST_RESULT"
+          require format-targeted "$TEST_RESULT"
+          require migration-targeted "$TEST_RESULT"
+          require security-targeted "$TEST_RESULT"
           require static "$LINT_RESULT"
           require lint "$LINT_RESULT"
           require py-compat "$COMPAT_RESULT"
