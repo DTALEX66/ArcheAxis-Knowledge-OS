@@ -7,6 +7,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+# CI runs this script directly (`python scripts/a0_browser_smoke.py`) with a
+# system Python that does NOT have the project package installed
+# (--no-emit-project). Anchor the repository root on sys.path so `app.*`
+# imports resolve from the checkout, exactly like `uv run` does locally.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from playwright.sync_api import Page, Route, expect, sync_playwright
 from runtime_http_smoke import running_core
 
