@@ -72,8 +72,11 @@ jobs:
           sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core
           tesseract --list-langs | grep --fixed-strings --line-regexp eng
       - name: Full Python suite
+        # Explicit dirs: testpaths in pyproject covers tests/ + KB but NOT
+        # integration-tests/ (35 tests) — ci.yml runs them as a separate
+        # step; nightly's full-matrix job must mirror all three.
         run: |
-          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest -q --tb=short
+          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest -q --tb=short tests/ integration-tests/ knowledge_base/tests/
 
   browser-smoke:
     runs-on: ubuntu-latest
