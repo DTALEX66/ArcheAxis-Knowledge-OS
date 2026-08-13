@@ -854,3 +854,16 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   passed / 9 skipped
 - nightly 观察定论：默认分支=main 已确认、cron 正确、workflow 在 main
   ——不触发属 GitHub 调度器跳过（外部行为，三次确认）
+
+
+### LOG-157: AXW-094A/B 用户可见 UI 入口（022B 闭环最后一段）
+
+- 此前导出/备份仅库函数 + API（"功能存在但用户不可达"风险——022B 教训）
+- index.html 新增「开放交换与备份」卡片（导出/校验交换 + 创建/校验备份
+  4 按钮 + 结果区）；app.js 绑定 4 个 data-action + exchangeCommand
+  辅助（POST 带 JSON body / GET 校验；错误回显结果区）
+- browser-smoke 新增 exercise_exchange_ui：逐按钮点击断言 API 通路 +
+  结果区更新（绝不死按钮）；驱动 Evidence 页须用 #evidence hash 路由
+  （默认 page=overview——app.js hash 路由机制，调试中确认）
+- 本地真实浏览器 PASS（workspace + keyboard + PDF + exchange UI +
+  delivery）；commit 892b87b；全量 1532 passed / 9 skipped
