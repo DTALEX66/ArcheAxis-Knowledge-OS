@@ -23,24 +23,27 @@
 来源：gutenberg.org（id 84/1342/11/1661/98），许可 public-domain，逐样本
 sha256 已记录于 `corpus/sources.json`。
 
-## 测量（CPU-only，无 GPU）
+## 测量（CPU-only，无 GPU，中英文混合语料）
 
-| 层 | 转换中位延迟 | 转换 p95 | 内存峰值 |
+| 层 | 组成 | 转换中位延迟 | 内存峰值 |
 |---|---|---|---|
-| small | 2.649 ms | — | 1.162 MiB |
-| medium | 8.244 ms | — | 1.727 MiB |
-| large | 10.418 ms | — | 1.762 MiB |
+| small | 1 英文 + 1 中文 | 6.958 ms | 2.021 MiB |
+| medium | 4 英文 + 2 中文 | 17.061 ms | 2.028 MiB |
+| large | 10 英文 + 4 中文 | 35.089 ms | 2.037 MiB |
 
-- 冷启动（全新解释器 import core）：**52.751 ms 中位**（3 样本）
-- 转换链路：`convert_directory_resumable`（真实管线，非占位）
+- 冷启动（全新解释器 import core）：**53.236 ms 中位**（3 样本）
+- 转换链路：`convert_directory_resumable`（真实管线，非占位；中文经典小说
+  西遊記/紅樓夢/儒林外史/警世通言，公共领域）
 - 内存：tracemalloc 峰值
+- 规模-延迟关系近似线性（4.5→12.7 MiB 语料，延迟 10→35 ms），内存随规模
+  基本稳定（~2 MiB），无退化
 
 ## 降级阈值裁决
 
 | 阈值 | 限制 | 实测 | 裁决 |
 |---|---|---|---|
-| import-latency | 5000 ms | 52.751 ms | ✅ passed |
-| memory | 2048 MiB | 1.762 MiB | ✅ passed |
+| import-latency | 5000 ms | 53.236 ms | ✅ passed |
+| memory | 2048 MiB | 2.037 MiB | ✅ passed |
 
 **overall: passed** —— 完整 JSON 报告：
 `.hermes/task-runtime/benchmark/benchmark.json`（不入库）

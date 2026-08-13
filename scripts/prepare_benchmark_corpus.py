@@ -33,6 +33,14 @@ GUTENBERG_BOOKS: dict[int, str] = {
     43: "dracula-stoker",
 }
 
+# Public-domain Chinese titles on Project Gutenberg (classical novels).
+GUTENBERG_BOOKS_ZH: dict[int, str] = {
+    23962: "xiyouji",
+    24264: "hongloumeng",
+    24032: "rulingwaishi",
+    24141: "jingshitongyan",
+}
+
 
 def _sha256_bytes(blob: bytes) -> str:
     return hashlib.sha256(blob).hexdigest()
@@ -76,6 +84,7 @@ def main() -> int:
                 {
                     "id": book_id,
                     "title": name,
+                    "language": "en",
                     "source": f"https://www.gutenberg.org/ebooks/{book_id}",
                     "license": "public-domain (Project Gutenberg)",
                     "acquired_at": acquired_at,
@@ -97,6 +106,7 @@ def main() -> int:
             {
                 "id": book_id,
                 "title": name,
+                "language": "en",
                 "source": f"https://www.gutenberg.org/ebooks/{book_id}",
                 "license": "public-domain (Project Gutenberg)",
                 "acquired_at": acquired_at,
@@ -104,11 +114,61 @@ def main() -> int:
             }
         )
 
-    # Layering: small = first book, medium = first 4, large = all.
+    zh_ids = list(GUTENBERG_BOOKS_ZH)
+    if args.limit:
+        zh_ids = zh_ids[: max(0, args.limit - len(book_ids))]
+    for book_id in zh_ids:
+        name = GUTENBERG_BOOKS_ZH[book_id]
+        target = layers["large"] / f"{book_id}-{name}.txt"
+        if target.exists():
+            print(f"cached {name} (zh)")
+            sources.append(
+                {
+                    "id": book_id,
+                    "title": name,
+                    "language": "zh",
+                    "source": f"https://www.gutenberg.org/ebooks/{book_id}",
+                    "license": "public-domain (Project Gutenberg)",
+                    "acquired_at": acquired_at,
+                    "sha256": _sha256_bytes(target.read_bytes()),
+                }
+            )
+            continue
+        print(f"downloading {book_id} {name} (zh) ...")
+        try:
+            blob = download_book(book_id, proxy=args.proxy)
+        except Exception as exc:
+            print(f"  SKIP {book_id}: {exc}")
+            continue
+        if len(blob) < 10_000:
+            print(f"  SKIP {book_id}: suspiciously small ({len(blob)} bytes)")
+            continue
+        target.write_bytes(blob)
+        sources.append(
+            {
+                "id": book_id,
+                "title": name,
+                "language": "zh",
+                "source": f"https://www.gutenberg.org/ebooks/{book_id}",
+                "license": "public-domain (Project Gutenberg)",
+                "acquired_at": acquired_at,
+                "sha256": _sha256_bytes(blob),
+            }
+        )
+
+    # Layering: small = first en book + first zh book, medium = first 4 en
+    # + first 2 zh, large = all (identified by book id in the filename).
+    def book_id_of(path: Path) -> int:
+        return int(path.name.split("-", 1)[0])
+
     all_books = sorted((layers["large"]).glob("*.txt"))
-    for layer_name, count in (("small", 1), ("medium", 4)):
+    en_books = sorted(p for p in all_books if book_id_of(p) in GUTENBERG_BOOKS)
+    zh_books = sorted(p for p in all_books if book_id_of(p) in GUTENBERG_BOOKS_ZH)
+    small_books = list(en_books[:1]) + list(zh_books[:1])
+    medium_books = list(en_books[:4]) + list(zh_books[:2])
+    for layer_name, selected in (("small", small_books), ("medium", medium_books)):
         layer_dir = layers[layer_name]
-        for _index, book_path in enumerate(all_books[:count]):
+        for book_path in selected:
             target = layer_dir / book_path.name
             if not target.exists():
                 target.write_bytes(book_path.read_bytes())

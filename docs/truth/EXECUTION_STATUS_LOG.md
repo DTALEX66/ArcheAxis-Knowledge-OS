@@ -752,3 +752,18 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   checkpoint 一致性（from_checkpoint 恢复无重复转换）
 - docs/truth/PERFORMANCE_BENCHMARK_096A.md 记录指标与复现步骤
 - 真实大库 + H4-EXIT 验收仍留 Owner
+
+
+### LOG-150: 096A 中文语料层 + CAP-0140 Atlas 状态投影 + 基准更新
+
+- 基线要求语料覆盖中文/英文 → 补充 4 本公共领域中文经典（西遊記 23962 /
+  紅樓夢 24264 / 儒林外史 24032 / 警世通言 24141，gutendex 探测 + Gutenberg 下载）
+- 分层更新：small 1en+1zh（2.3 MiB）/ medium 4en+2zh（5.9 MiB）/ large
+  10en+4zh（12.7 MiB）；sources.json 记录 language 字段
+- 中英文混合基准（CPU-only）：转换中位 6.96/17.06/35.09 ms，内存峰值
+  2.02/2.03/2.04 MiB，冷启动 53.24 ms → 全部通过降级阈值（overall PASS）；
+  规模-延迟近似线性、内存稳定，无退化
+- CAP-0140（备份、同步与发布，origin AXW-094）technical_state:
+  planned → in_progress（094A/B 实现存在、验收未完成；遵循 AXW-010B
+  仅已验证能力投影 supported 原则，不冒充）
+- PERFORMANCE_BENCHMARK_096A.md 更新为混合语料数据

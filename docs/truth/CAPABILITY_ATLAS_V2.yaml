@@ -221,7 +221,7 @@ capabilities:
     authority_status: "binding_long_term"
     roadmap_state: "formal_later"
     activation_horizon: "H5-H9"
-    technical_state: "planned"
+    technical_state: "in_progress"
     objects: ["备份", "恢复", "同步", "发布", "导出"]
     views: ["备份", "同步"]
     dependencies: []
