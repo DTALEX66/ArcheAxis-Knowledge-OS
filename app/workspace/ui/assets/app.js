@@ -218,7 +218,8 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
   /* AXW-022B: enable the annotation button only when the user has an
      actual selection of PDF text; disable it again on selection loss.
      The selected text is cached because clicking the button clears the
-     browser selection on mousedown before the click handler runs. */
+     browser selection on mousedown before the click handler runs.
+     (Regression-covered by scripts/a0_browser_smoke.py: exercise_pdf_reader.) */
   let cachedSelection = "";
   function syncAnnotateEnabled() {
     const btn = document.getElementById("pdf-annotate");
