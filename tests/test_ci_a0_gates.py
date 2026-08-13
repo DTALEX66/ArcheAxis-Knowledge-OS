@@ -159,7 +159,6 @@ def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
     )
     for path in (
         "config/defaults.yaml",
-        "config/settings.yaml",
         "shared/config.py",
         "app/main.py",
         "knowledge_base/api.py",

@@ -25,6 +25,13 @@
 - 执行协议：`docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`
 - 权威顺序：`docs/truth/AUTHORITY_CONTRACT.md`
 
+## 3. 配置权威与命名冻结（AXC-000/010，2026-08-13）
+
+- 仓库名 `DTALEX66/ArcheAxis-Knowledge-OS` 为正式云端仓库名，**不再改名**（任务包禁止将其中 `OS` 判为漂移）。
+- 对外产品名 `ArcheAxis Knowledge｜星环知识平台`；内部工作台 `ArcheAxis Learning Workspace`；Python/技术包 `archeaxis-workspace`。
+- 配置权威唯一索引：`docs/CONFIGURATION_AUTHORITY_INDEX.md`（AXC-010）。
+- 任务包：`docs/taskpacks/ArcheAxis-Knowledge-OS_Project_Config_CI_DeDup_TaskPack_2026-08-13.md`（AXC-000~150，基线 1d9d875）。
+
 ## 3. 基线身份
 
 ```text

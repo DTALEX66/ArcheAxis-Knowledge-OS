@@ -1,55 +1,12 @@
-# archeaxis-workspace Configuration
-# Override defaults from shared/config.py
-# Environment variables take precedence over this file.
-
-app:
-  name: "archeaxis-workspace"
-  version: "0.5.0"
-  release_version: ""
-  environment: "development"
-  port: 8000
-  host: "127.0.0.1"
-
-database:
-  path: "data/cognitive_os.sqlite"
-  journal_mode: "WAL"
-  backup_dir: "data/backups"
-
-logging:
-  level: "INFO"
-  console: true
-  file: true
-  file_dir: "data/logs"
-  rotation: "10 MB"
-  retention: "7 days"
-
-auth:
-  enabled: false  # Set true in production
-  token_expire_hours: 24
-
-# Process-local sliding-window limits. Each worker has independent counters.
-rate_limit:
-  enabled: true
-  window_seconds: 60
-  ordinary_read: 200
-  sensitive_write: 30
-  auth_token: 5
-  max_buckets_per_policy: 10000
-  # Caddy overwrites X-Forwarded-For; the app trusts it only from this edge CIDR.
-  trusted_proxies: []
-
-pipeline:
-  max_content_chars: 10000
-  default_actions: ["extract", "tag", "summarize", "index"]
-  auto_ingest: true
-
-search:
-  fts5_enabled: true
-  vector_enabled: true
-  vector_dim: 384
-  default_top_k: 5
-
-cors:
-  allow_origins: ["*"]
-  allow_methods: ["GET", "POST", "DELETE"]
-  allow_headers: ["Authorization", "Content-Type", "X-API-Key"]
+# Legacy settings shim (AXC-020).
+#
+# This file used to duplicate config/defaults.yaml in full. Single default
+# truth now lives in config/defaults.yaml; per-profile differences live in
+# config/profiles/<profile>.yaml; local overrides are ignored files; env
+# overrides use ARCHEAXIS_* (legacy COGNITIVE_* accepted for migration).
+#
+# Load order (shared/config.py): built-in -> defaults.yaml -> this shim
+# (kept for backward compatibility) -> profiles/<profile>.yaml -> env.
+#
+# Keep this mapping EMPTY. Do not reintroduce duplicated default values.
+{}

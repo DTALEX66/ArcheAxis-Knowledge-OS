@@ -46,20 +46,17 @@
 4. 开发循环只运行受影响测试；普通低风险 TaskPack 形成本地 checkpoint，完整门禁、聚合 frozen tree 和远端 CI 每个阶段 Release Train 各执行一次。没有生产 diff 的循环不得重复这些步骤。
 5. 每个后续周期先读取 Git 状态和上一周期最终结果；若 HEAD、tree 与失败证据未变化，必须继续原任务或停止，不能重新发现、重新冻结、重新派审。
 
-### 全局 TaskPack runner 的项目适配
+### 外部协调工具（可选，AXC-030）
 
-通用 Hermes + CC Switch + Codex TaskPack runner 由
-`D:/All projects/Workflow-assistance/scripts/workflow/run_taskpack_agent.py`
-维护；本仓库不再保留或分叉该执行器。调用时必须明确传入：
-
-- `--repo D:/All projects/ArcheAxis-Knowledge-OS`；
-- 与实际候选分支一致的 `--remote-ref`，不得默认假定 `origin/main`；
-- `ArcheAxis-Knowledge-OS` 及其他所需项目技能；
-- 本项目批准的 TaskPack 与风险等级。
+WORK-LAB 是一个独立仓库，仅作为可选外部工作流协调工具通过稳定 CLI/协议
+与本项目协作；本项目不依赖其存在即可独立完成本地运行、CI、RC 与 Release。
+调用外部协调工具（如 TaskPack runner）时通过 WORK-LAB 稳定 CLI/registry
+入口，不硬编码绝对路径；必须传入与实际候选分支一致的 `--remote-ref`，
+不得默认假定 `origin/main`，并携带本项目批准的 TaskPack 与风险等级。
 
 高风险路径仍遵循本政策的完整门禁、frozen tree review 与 exact-SHA CI；
-全局 runner 只提供单 writer、会话续接与 exact-tree 编排，不替代本项目的
-架构、SQLite、权限和发布判断。旧的固定时间片 runner 已废弃。
+外部协调工具只提供单 writer、会话续接与 exact-tree 编排，不替代本项目的
+架构、SQLite、权限和发布判断。
 
 ## 证据与记录
 

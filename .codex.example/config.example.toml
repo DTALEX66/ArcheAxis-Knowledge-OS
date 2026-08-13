@@ -1,8 +1,11 @@
 # Public example only. Do not put secrets in this file.
-profile = 'cognitive-os'
-default_language = 'zh-CN'
-sandbox_mode = 'workspace-write'
-approval_style = 'ask-before-sensitive-actions'
+#
+# AXC-030: this template is a MINIMAL project pointer, not a Codex config.
+# Official Codex defaults + WORK-LAB user overlay own sandbox/approval/
+# provider/reporting; this project does not vend private copies of those.
+# This project is standalone: WORK-LAB is an optional external coordinator.
+
+profile = 'development'
 
 [workspace]
 root = '<project-root>'
@@ -10,37 +13,8 @@ default_scope = 'current_repository'
 protected_drives = ['E:/']
 
 [repository]
-remote = 'git@github.com:DTALEX66/Cognitive-OS.git'
+remote = 'https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git'
 branch = 'main'
-served_projects = ['Knowledge-Base', 'Inspiration-Research']
-upstream_segments = ['Obsidian']
 
-[git]
-run_status_before_edit = true
-run_diff_stat_after_edit = true
-run_status_after_edit = true
-use_explicit_staging_paths = true
-avoid_git_add_dot = true
-force_push = false
-
-[privacy]
-commit_real_codex_state = false
-commit_env_files = false
-commit_tokens = false
-commit_private_keys = false
-commit_connector_credentials = false
-
-[validation]
-python_compile = 'python -m compileall app'
-api_smoke_preference = 'fastapi_testclient'
-
-[reporting]
-language = 'zh-CN'
-sections = [
-  '做了什么',
-  '修改了哪些文件',
-  '执行了哪些命令',
-  '哪些地方没做或不确定',
-  '如何回滚',
-  '下一步建议',
-]
+# Optional external coordination (never a runtime prerequisite):
+# WORK-LAB stable CLI/registry may observe this repo's .worklab profiles.
