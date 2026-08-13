@@ -102,5 +102,11 @@ not a contradiction of the verified artifact identity.
   `verification_ci_run_id` ≠ `release_run_id`; asset allowlist + provider
   digest + downloaded SHA-256 recompute; install/start/restart/exit/uninstall
   evidence.
+- **Signature decision (recorded 2026-08-15, AXC-060)**: releases are
+  deliberately **not code-signed** (no commercial certificate; private/local
+  distribution channel). Integrity is carried by SHA-256SUMS.txt + provider
+  digests + release-identity.json binding tag→exact commit/tree→verification
+  CI run. If a public/enterprise channel is ever added, re-evaluate
+  Authenticode signing as a separate owner decision before publishing there.
 - Source manifest line is `0.5.0`, `unreleased`, `development`, `public=false`;
   public artifact identity is recorded separately in the verified Release.
