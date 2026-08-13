@@ -1037,3 +1037,18 @@ a0_browser_smoke.py：
 
 nightly 现在名副其实：全量测试 + 真实浏览器 + 兼容矩阵 +
 Windows 运行时。等待自动 tick（本地 11:17）。
+
+
+### LOG-168: gateplan 分类盲区修复——router.py 与 browser-smoke 脚本归入 ui 类
+
+审计 .worklab/project-validation.v1.yaml 对真实路径的分类发现两个
+盲区（本地用 classify_paths 实测确认）：
+- app/workspace/router.py（UI 消费的 BFF/API）只匹配 ordinary-python
+  → API 变更永不触发真实浏览器 browser-smoke gate（静默缺口）
+- scripts/a0_browser_smoke.py 不匹配任何类 → unclassified-block
+  （fail-closed 但脚本自身变更无法重新验证）
+
+修复（a03e27f）：ui 类 paths 增加 router.py + a0_browser_smoke.py
+（描述本来就写 "BFF/API consumed by UI"）。分类器复验四个探针路径：
+router/a0/app.js → ui + browser-smoke；tests/* → ordinary-python
+不变。CI Run 565 绿。
