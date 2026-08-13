@@ -698,3 +698,31 @@
 - 证据等级：EXACT_SHA_CI
 - 风险/剩余项：AXW-045/055/H2/H3/H4-EXIT 及 H5 全项需 Windows 安装态 + 真实 Vault 授权，属 Owner/发布流程
 - 回滚：revert 1b4cfc8
+
+### LOG-147: AXW-022B PDF evidence annotation made reachable + first real CI browser-smoke (2026-08-14)
+
+**缺陷**：PDF.js reader 只渲染 canvas、无 text layer → PDF 文本不可选择，
+"批注为证据"按钮永久 disabled 且无启用逻辑——AXW-022B 批注流程实际不可达
+（前端批次交付时未覆盖）。
+
+**修复**（commit 52720e1 + f9b328a + 3742fdb + 85b3311）：
+- renderPage 增加 overlay text layer（PDF.js textContent spans），文本可选；
+- selectionchange/keyup/mouseup 同步按钮 enabled 并缓存选中文本（点击按钮
+  mousedown 会清 selection，缓存防丢失）；renderPage 清缓存防跨页错注；
+- a0_browser_smoke 新增 exercise_pdf_reader：真实 2 页 PDF（pymupdf 生成）→
+  内容寻址存储 → 打开/翻页/缩放/搜索/选中/批注/回跳全链路真实 Chromium 断言；
+- smoke 启动清理 stale SQLite/PDF store（幂等）。
+
+**CI 首次实跑发现 3 层环境差异**（browser-smoke 历史 15 个 run 全 skipped）：
+1. 完整 Chromium vs 本地 headless-shell：console 噪声不同 →
+   ERR_CONNECTION_FAILED 断言 all→any；
+2. CI system python 无项目包（--no-emit-project）：脚本内 import app.* 失败 →
+   脚本锚定 repo root 到 sys.path + check_architecture 白名单（grandfather）；
+3. 无 admin 日志访问：::error:: workflow annotations 方案
+   （a0_browser_smoke 入口包装 + tests/conftest pytest_sessionfinish hook）
+   使失败详情经 checks API 可见。
+
+**验证**：本地 CI-SIM（无项目包 venv + ci/browser 组 + 仓库根直接运行）PASS；
+CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a0-gates
+全 success；双端一致 85b33114。
+
