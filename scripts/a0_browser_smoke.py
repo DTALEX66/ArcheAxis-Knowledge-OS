@@ -459,6 +459,14 @@ def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
 
 
 def main() -> int:
+    try:
+        return _main()
+    except Exception as exc:  # pragma: no cover - CI-only diagnostics
+        print(f"::error::SMOKE-FAIL: {type(exc).__name__}: {str(exc)[:1500]}")
+        raise
+
+
+def _main() -> int:
     data_dir = os.environ.get("ARCHEAXIS_DATA_DIR", "").strip() or os.environ.get("COGNITIVE_DATA_DIR", "").strip()
     if not data_dir:
         raise RuntimeError("COGNITIVE_DATA_DIR must point to an isolated browser-smoke directory")
