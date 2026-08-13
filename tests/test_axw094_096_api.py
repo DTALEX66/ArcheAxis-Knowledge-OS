@@ -108,6 +108,31 @@ def test_backup_real_restore_recovers_data(client: TestClient) -> None:
     assert verify.status_code == 200, verify.text
 
 
+def test_backup_verify_detects_tampering(client: TestClient) -> None:
+    """A mutated backup file must fail verification (checksum cross-check)."""
+    from shared.config import resolve_runtime_path
+
+    data_root = resolve_runtime_path("data")
+    originals = data_root / "originals"
+    originals.mkdir(parents=True, exist_ok=True)
+    (originals / "tamper-key").write_bytes(b"original bytes")
+
+    create = client.post("/workspace/api/backup/create", json={"name": "tamper-test"})
+    assert create.status_code == 200, create.text
+    assert create.json()["file_count"] >= 1
+
+    # locate and corrupt one backed-up file (not the manifest)
+    backup_dir = data_root / "backups" / "tamper-test"
+    targets = [p for p in backup_dir.rglob("*") if p.is_file() and p.name != "backup-manifest.json"]
+    assert targets
+    target = targets[0]
+    target.write_bytes(b"tampered content")
+
+    verify = client.get("/workspace/api/backup/verify", params={"name": "tamper-test"})
+    assert verify.status_code == 422, verify.text
+    assert "corrupted" in verify.json()["detail"]
+
+
 def test_batch_import_and_status(client: TestClient, tmp_path: Path) -> None:
     source = tmp_path / "import-src"
     (source / "docs").mkdir(parents=True)
