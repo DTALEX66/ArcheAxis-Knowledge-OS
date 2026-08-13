@@ -74,6 +74,36 @@ def test_exchange_verify_detects_tampering(client: TestClient) -> None:
     assert "hash mismatch" in verify.json()["detail"]
 
 
+def test_exchange_export_refuses_nonempty_without_overwrite(client: TestClient) -> None:
+    """A second export to the same name without overwrite=true is refused."""
+    from shared.config import resolve_runtime_path
+
+    originals = resolve_runtime_path("data") / "originals"
+    originals.mkdir(parents=True, exist_ok=True)
+    (originals / "ow-key").write_bytes(b"original bytes")
+
+    first = client.post(
+        "/workspace/api/exchange/export",
+        json={"name": "ow-test", "overwrite": False},
+    )
+    assert first.status_code == 200, first.text
+
+    # second export, same name, no overwrite -> refused
+    second = client.post(
+        "/workspace/api/exchange/export",
+        json={"name": "ow-test", "overwrite": False},
+    )
+    assert second.status_code == 422, second.text
+    assert "not empty" in second.json()["detail"]
+
+    # with overwrite=true the replacement succeeds
+    third = client.post(
+        "/workspace/api/exchange/export",
+        json={"name": "ow-test", "overwrite": True},
+    )
+    assert third.status_code == 200, third.text
+
+
 def test_exchange_export_verify_failure(client: TestClient) -> None:
     # verifying a non-existent exchange is a 400 with an explicit reason
     verify = client.get("/workspace/api/exchange/verify", params={"name": "missing"})
