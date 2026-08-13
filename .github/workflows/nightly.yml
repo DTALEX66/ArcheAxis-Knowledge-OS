@@ -64,6 +64,13 @@ jobs:
       - name: Install ci + ci-adapters groups
         run: |
           uv sync --frozen --group ci --group ci-adapters
+      - name: Install and verify local OCR engine
+        # Mirrors ci.yml OS-level tests: full-suite runs every test,
+        # including real-tesseract media tests that fail without the engine.
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core
+          tesseract --list-langs | grep --fixed-strings --line-regexp eng
       - name: Full Python suite
         run: |
           env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest -q --tb=short
