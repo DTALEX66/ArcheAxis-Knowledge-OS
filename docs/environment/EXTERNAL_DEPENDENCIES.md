@@ -5,8 +5,12 @@
 > 更新：2026-08-12
 > 生产主机：Windows 10/11 x64
 >
-> **本文是项目外置依赖的唯一权威文档。任何新增系统工具、模型文件、外部服务
+> **本文是 ArcheAxis-Knowledge-OS 项目外置依赖的唯一权威文档。任何新增系统工具、模型文件、外部服务
 > 或环境变量必须在此登记。CI 与本地开发环境均以此文档为准。**
+>
+> **范畴声明：本目录只管理本项目的外置环境依赖。全局配置（Hermes/Codex 侧 skills、
+> managed-config、SOUL.md）由 WORK-LAB 独立仓库推送管理，不属于本目录范畴；
+> 本目录中的 HERMES_HOME 仅作环境变量登记，不代表本目录拥有或管理全局配置。**
 
 ---
 
@@ -16,7 +20,7 @@
 |---|---|---|
 | `UV_CACHE_DIR` | `D:\All projects\OS External Configuration\uv-cache` | uv 包缓存 |
 | `UV_PROJECT_ENVIRONMENT` | `D:\All projects\OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv` | 项目虚拟环境 |
-| `HERMES_HOME` | `C:\Users\ALEX\AppData\Local\hermes` | Hermes Agent 配置（全局） |
+| `HERMES_HOME` | `C:\Users\ALEX\AppData\Local\hermes` | Hermes Agent 家目录（仅登记；全局配置由 WORK-LAB 管理，不在本目录范畴） |
 | `PYTHONPATH` | 清空（显式 `env -u PYTHONPATH`） | 避免污染 uv 环境 |
 
 ---
