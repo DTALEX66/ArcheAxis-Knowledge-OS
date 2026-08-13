@@ -25,6 +25,32 @@ class TestValidateJsonCanvas:
             ],
         })
 
+    def test_valid_edge_optional_fields_omitted(self) -> None:
+        """fromSide/toSide/fromEnd/toEnd are optional per the JSON Canvas
+        spec (defaults right/left/none/none). A real Obsidian canvas omits
+        them, so validation must not reject the document."""
+        validate_json_canvas({
+            "nodes": [
+                {"id": "a", "type": "text", "x": 0, "y": 0, "width": 100, "height": 50},
+                {"id": "b", "type": "text", "x": 200, "y": 0, "width": 100, "height": 50},
+            ],
+            "edges": [
+                {"id": "e1", "fromNode": "a", "toNode": "b"},
+            ],
+        })
+
+    def test_rejects_invalid_optional_side(self) -> None:
+        with pytest.raises(CanvasError, match="invalid 'fromSide'"):
+            validate_json_canvas({
+                "nodes": [
+                    {"id": "a", "type": "text", "x": 0, "y": 0, "width": 100, "height": 50},
+                    {"id": "b", "type": "text", "x": 200, "y": 0, "width": 100, "height": 50},
+                ],
+                "edges": [
+                    {"id": "e1", "fromNode": "a", "toNode": "b", "fromSide": "diagonal"},
+                ],
+            })
+
     def test_preserves_unknown_fields(self) -> None:
         data = {"nodes": [{"id": "a", "type": "text", "x": 0, "y": 0, "width": 100, "height": 50, "custom": "kept"}], "meta": {"foo": 1}}
         result = validate_json_canvas(data)

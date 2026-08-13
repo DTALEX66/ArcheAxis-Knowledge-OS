@@ -156,6 +156,73 @@ def write_file(
     }
 
 
+def write_canvas(
+    *,
+    root: str | Path,
+    store: str | Path,
+    relative_path: str,
+    canvas: dict[str, object],
+    expected_hash: str | None = None,
+) -> dict[str, object]:
+    """AXW-043B: validate + write a JSON Canvas document with C3 safety.
+
+    - Reuses the C3 revision-safe machinery (expected-hash optimistic lock,
+      sibling-temp atomic replace, revertible backup, fail-closed conflicts).
+    - Validates the document against the JSON Canvas spec before writing;
+      invalid documents are rejected and the file is left untouched.
+    - Unknown fields are preserved on round-trip (never silently dropped).
+    """
+    import json
+
+    from shared.json_canvas import CanvasError, validate_json_canvas
+
+    try:
+        normalized = validate_json_canvas(canvas)
+    except CanvasError as exc:
+        raise VaultWorkbenchError(f"invalid JSON Canvas: {exc}") from None
+
+    # Serialize with the same key order as provided (unknown fields kept),
+    # stable 2-space indent, ASCII-escaped-safe round trip via utf-8.
+    content = json.dumps(normalized, ensure_ascii=False, indent=2)
+    return write_file(
+        root=root,
+        store=store,
+        relative_path=relative_path,
+        content=content + "\n",
+        expected_hash=expected_hash,
+    )
+
+
+def read_canvas(
+    *,
+    root: str | Path,
+    store: str | Path,
+    relative_path: str,
+) -> dict[str, object]:
+    """AXW-043B: read + validate a JSON Canvas document.
+
+    Returns the parsed document (unknown fields preserved) plus the source
+    hash for optimistic-lock writes. Raises when the file is not a valid
+    JSON Canvas — the caller must not trust malformed canvas data.
+    """
+    import json
+
+    from shared.json_canvas import CanvasError, validate_json_canvas
+
+    result = read_file(root=root, store=store, relative_path=relative_path)
+    raw = result["raw_text"]
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError) as exc:
+        raise VaultWorkbenchError(f"invalid JSON Canvas: not valid JSON: {exc}") from None
+    try:
+        validate_json_canvas(data)
+    except CanvasError as exc:
+        raise VaultWorkbenchError(f"invalid JSON Canvas: {exc}") from None
+    result["canvas"] = data
+    return result
+
+
 class VaultWorkbenchConflictError(VaultWorkbenchError):
     """Raised when an expected-hash optimistic lock fails (409)."""
 

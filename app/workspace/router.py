@@ -95,6 +95,12 @@ class VaultFileRequest(VaultRootRequest):
     relative_path: str = Field(min_length=1, max_length=4096)
 
 
+class VaultCanvasWriteRequest(VaultRootRequest):
+    relative_path: str = Field(min_length=1, max_length=4096)
+    canvas: dict[str, Any] = Field(default_factory=dict)
+    expected_hash: str | None = Field(default=None, min_length=40, max_length=128)
+
+
 class VaultSearchRequest(VaultRootRequest):
     query: str = Field(min_length=1, max_length=256)
 
@@ -342,6 +348,38 @@ def workspace_vault_search(payload: VaultSearchRequest, request: Request) -> dic
     return _command_error(
         lambda: vault.search_vault(root=payload.root, store=DB_PATH, query=payload.query)
     )
+
+
+@router.post("/api/vault/canvas/read")
+def workspace_vault_canvas_read(payload: VaultFileRequest, request: Request) -> dict[str, object]:
+    """AXW-043B: read + validate a JSON Canvas document (unknown fields kept)."""
+    _local_principal(request)
+    return _command_error(
+        lambda: vault.read_canvas(
+            root=payload.root, store=DB_PATH, relative_path=payload.relative_path
+        )
+    )
+
+
+@router.post("/api/vault/canvas/write")
+def workspace_vault_canvas_write(payload: VaultCanvasWriteRequest, request: Request) -> dict[str, object]:
+    """AXW-043B: validate + C3-safe write of a JSON Canvas document."""
+    _local_principal(request)
+    try:
+        return vault.write_canvas(
+            root=payload.root,
+            store=DB_PATH,
+            relative_path=payload.relative_path,
+            canvas=payload.canvas,
+            expected_hash=payload.expected_hash,
+        )
+    except vault.VaultWorkbenchConflictError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={"message": str(exc), "current_hash": exc.current_hash},
+        ) from None
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/api/vault/write")

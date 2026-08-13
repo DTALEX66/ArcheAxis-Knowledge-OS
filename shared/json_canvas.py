@@ -104,11 +104,15 @@ def _validate_edge(e: Any, idx: int, seen: set[str]) -> None:
             raise CanvasError(f"edges[{idx}] missing '{field}'")
 
     for field in ("fromSide", "toSide"):
-        if e.get(field) not in _VALID_SIDES:
+        value = e.get(field)
+        # Optional per JSON Canvas spec: defaults are right / left.
+        if value is not None and value not in _VALID_SIDES:
             raise CanvasError(f"edges[{idx}] invalid '{field}'")
 
     for field in ("fromEnd", "toEnd"):
-        if e.get(field) not in _VALID_ENDS:
+        value = e.get(field)
+        # Optional per JSON Canvas spec: defaults are none.
+        if value is not None and value not in _VALID_ENDS:
             raise CanvasError(f"edges[{idx}] invalid '{field}'")
 
 

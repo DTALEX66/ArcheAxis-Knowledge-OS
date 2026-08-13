@@ -18,12 +18,12 @@ from knowledge_base.reviews import (
 def test_sm2_quality_out_of_range() -> None:
     try:
         _sm2_interval(-1, 0, 2.5)
-        assert False, "expected ValueError"
+        raise AssertionError("expected ValueError")
     except ValueError:
         pass
     try:
         _sm2_interval(6, 0, 2.5)
-        assert False, "expected ValueError"
+        raise AssertionError("expected ValueError")
     except ValueError:
         pass
 

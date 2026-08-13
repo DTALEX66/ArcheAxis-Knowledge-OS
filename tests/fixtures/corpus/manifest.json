@@ -1,0 +1,38 @@
+{
+  "schema_version": "v1",
+  "purpose": "AXW-054A: multi-lingual, multi-source evaluation corpus with human-labelled truth/prediction pairs for grounded-answer and retrieval evaluation. CER/WER pairs are consumed by shared/accuracy_benchmark.py (evaluate_golden_pairs).",
+  "samples": [
+    {
+      "sample_id": "zh-science-001",
+      "language": "zh",
+      "source": "self-authored public-domain-style test sentence (no third-party text)",
+      "license": "public-domain (self-authored test material)",
+      "sha256_truth": "602cc9629f74efc41a979aa5268cc9b51dad6aeabbe2e1d278214f3d2d8846e1",
+      "privacy": "no personal data; constructed sample",
+      "kind": "ocr"
+    },
+    {
+      "sample_id": "en-science-001",
+      "language": "en",
+      "source": "self-authored public-domain-style test sentence",
+      "license": "public-domain (self-authored test material)",
+      "sha256_truth": "639faf3702e1eb91402ab7ced48f57fde32d11c9f318273699989a550cf3bbea",
+      "privacy": "no personal data; constructed sample",
+      "kind": "ocr"
+    },
+    {
+      "sample_id": "mixed-bilingual-001",
+      "language": "zh+en",
+      "source": "self-authored public-domain-style mixed test sentence",
+      "license": "public-domain (self-authored test material)",
+      "sha256_truth": "0d4a801db7e1b58b7a8af865643f1f749900280898dda07519af930dffe7e20e",
+      "privacy": "no personal data; constructed sample",
+      "kind": "ocr"
+    }
+  ],
+  "grounding": {
+    "kind": "retrieval-grounded-answer",
+    "truth_format": "statement + source anchor (evidence_id)",
+    "note": "grounded-answer samples are evaluated by the AXW-050A/050B gates (anchor resolvability, scope, freshness, conflict); the text pairs below drive CER/WER for OCR/ASR engines."
+  }
+}
