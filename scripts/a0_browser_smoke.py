@@ -305,7 +305,15 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
     root = build_pdf_serving_root(Path(data_dir))
     content_key = store_pdf_bytes(root, blob)
 
+    console_errors: list[str] = []
+
+    def _capture_console(message) -> None:
+        if message.type in ("error", "warning") or message.text.startswith("PDF_"):
+            console_errors.append(f"[{message.type}] {message.text[:300]}")
+
     try:
+        page.on("console", _capture_console)
+        page.on("pageerror", lambda e: console_errors.append(f"[pageerror] {e}"))
         page.goto(f"{base_url}/workspace#evidence", wait_until="networkidle")
         page.get_by_role("heading", name="PDF 证据查看").wait_for()
         page.get_by_label("PDF 内容键").fill(content_key)
@@ -377,6 +385,20 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         # land on the annotated page (2) with the stored selection locator.
         assert "已回跳页 2" in (jump_text or ""), f"jump back failed: {jump_text!r}"
         assert "Reproducible Recall" in (jump_text or ""), f"locator missing: {jump_text!r}"
+    except Exception as exc:  # surface diagnostics on CI without admin log access
+        state_dump = page.evaluate(
+            """() => ({
+                pageInfo: document.querySelector('#pdf-page-info')?.textContent,
+                canvasCount: document.querySelectorAll('#pdf-viewer canvas').length,
+                spanCount: document.querySelectorAll('.pdf-text-layer span').length,
+                annotateDisabled: document.querySelector('#pdf-annotate')?.disabled,
+                anchorInfo: document.querySelector('#pdf-anchor-info')?.textContent,
+            })"""
+        )
+        print("PDF-READER-FAIL:", exc)
+        print("PDF-READER-STATE:", state_dump)
+        print("PDF-READER-CONSOLE:", console_errors)
+        raise
     finally:
         pdf_path.unlink(missing_ok=True)
 
