@@ -127,7 +127,10 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.get_by_role("button", name="导入网页或GitHub仓库").click()
     page.get_by_text("无法连接本地服务，请重试", exact=False).wait_for()
     assert "处理中" not in page.locator("#intake-result").inner_text()
-    assert console_errors and all("ERR_CONNECTION_FAILED" in error for error in console_errors)
+    # Headless-shell and full Chromium report slightly different console
+    # noise (favicon 404s etc.); the invariant is that the routed failure
+    # surfaced as a real network error, not that it is the only message.
+    assert any("ERR_CONNECTION_FAILED" in error for error in console_errors), console_errors
     console_errors.clear()
     page.unroute(INTAKE_PATTERN, _network_failure)
 
