@@ -396,6 +396,34 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         # land on the annotated page (2) with the stored selection locator.
         assert "已回跳页 2" in (jump_text or ""), f"jump back failed: {jump_text!r}"
         assert "Reproducible Recall" in (jump_text or ""), f"locator missing: {jump_text!r}"
+
+        # AXW-096B: PDF reader controls must be keyboard-reachable — focus +
+        # Enter activates prev/zoom-out/search exactly like a mouse click.
+        page.locator("#pdf-prev").focus()
+        page.keyboard.press("Enter")
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('1 /')"
+        )
+        zoom_before_kb = page.evaluate("document.querySelector('#pdf-zoom-info')?.textContent")
+        page.locator('button[data-action="pdf-zoom-out"]').focus()
+        page.keyboard.press("Enter")
+        page.wait_for_function(
+            f"() => document.querySelector('#pdf-zoom-info')?.textContent !== {zoom_before_kb!r}"
+        )
+        page.locator("#pdf-search-input").fill("")  # clear prior search text
+        page.locator("#pdf-search-input").focus()
+        page.keyboard.type("Reproducible")
+        page.keyboard.press("Tab")  # search input -> 搜索 button
+        kb_focus = page.evaluate(
+            "() => document.activeElement ? document.activeElement.getAttribute('data-action') || document.activeElement.id : 'none'"
+        )
+        page.keyboard.press("Enter")
+        # searchPdf jumps to the match page (2) — we are on page 1 after prev,
+        # so landing back on 2 / 2 proves the keyboard-triggered search ran.
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')"
+        )
+        print(f"  pdf keyboard focus after Tab: {kb_focus}")
     except Exception as exc:  # surface diagnostics on CI without admin log access
         state_dump = page.evaluate(
             """() => ({
@@ -404,6 +432,8 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
                 spanCount: document.querySelectorAll('.pdf-text-layer span').length,
                 annotateDisabled: document.querySelector('#pdf-annotate')?.disabled,
                 anchorInfo: document.querySelector('#pdf-anchor-info')?.textContent,
+                activeElement: document.activeElement ? (document.activeElement.getAttribute('data-action') || document.activeElement.id || document.activeElement.tagName) : 'none',
+                searchValue: document.querySelector('#pdf-search-input')?.value,
             })"""
         )
         print(f"::error::PDF-READER-FAIL: {exc}")
