@@ -1068,3 +1068,19 @@ format-parser 变更（如 app/ingestion/pdf.py）计划 format-targeted
   OS/KB/integration 套件保守覆盖全部 targeted 语义）
 - ci-verdict require 补 4 个 targeted（结果=test job）
 YAML 解析验证；CI Run 567 绿。
+
+
+### LOG-170: profile 全类一致性验证——16 类探针审计 PASS
+
+对 .worklab/project-validation.v1.yaml 全部 16 个风险类逐一用真实
+仓库路径探针（classify_paths 实测），3 个 FAIL 全部甄别为非缺陷：
+- desktop-build：tauri.conf.json 先被 installer 类匹配（更广，
+  fail-safe）——icons/** 是 desktop-build 独有路径（探针复验 ✅）
+- dependency-change：uv.lock/requirements.txt 先被 python-compat
+  匹配（含 py-compat + wheel-smoke，更广）——类冗余非缺口
+- windows-runtime：backend.rs 先被 rust-tauri 匹配（Rust 专用
+  测试合理）；shared/storage.py 探针选错（普通 Python 属
+  ordinary-python 正确）
+
+结论：first-match-wins 设计下所有重叠路径归更广/fail-safe 类，
+无任何路径落入未覆盖状态。分类体系验证为 fail-safe 全覆盖。
