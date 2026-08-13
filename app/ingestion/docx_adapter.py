@@ -135,4 +135,4 @@ def convert_docx_to_run(
         version=version,
     )
     store_conversion_run(db, run)
-    return {"run_id": run.run_id, "document_id": run.document_id, "block_count": len(blocks)}
+    return {"run_id": run.run_id, "document_id": run.document.document_id, "block_count": len(blocks)}
