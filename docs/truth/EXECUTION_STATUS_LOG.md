@@ -781,3 +781,16 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   scripts）+ test_imported_modules + test_workspace_api + test_desktop_runtime
   + test_migration_runner → 73 passed
 - 下一实跑点：03:17 UTC（main 上该修复后首个 schedule tick）
+
+
+### LOG-152: 096C 异步批量控制 API + from_checkpoint 一致性缺陷修复
+
+- nightly 审计（LOG-151 续）：browser-smoke job 的 `-m "browser or workspace"`
+  选择器零收集（无 marker 注册）→ 首次实跑必失败；已去掉死选择器并本地
+  模拟全部 nightly job 命令（compileall + 4 测试文件）73 passed
+- 096C 异步化：batch/import 后台 daemon 线程立即返回；pause/resume/shutdown
+  端点操作活跃注册表（404/409 显式语义）；status 活跃读内存、完成读账本
+- 真实缺陷修复：from_checkpoint 计数不恢复（completed=0 却有完成记录）
+  + 状态恒为 idle（忽略账本 batch_end）→ 重算计数 + 恢复终端状态；
+  中断批次保持 idle 可续跑、完成批次如实报告 finished
+- commit 8ea9a05（3 文件 +141）；全量 1531 passed / 9 skipped
