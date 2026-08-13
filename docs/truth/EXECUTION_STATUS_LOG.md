@@ -675,3 +675,26 @@
 - 证据等级：STRUCTURAL
 - 风险/剩余项：AXW-022A/022B 前端 PDF.js 待独立前端批次；AXW-H1-EXIT 待 022 前端 + H1 merge 授权；公开发布 NO-GO
 - 回滚：revert 34727c1
+
+
+### LOG-20260813-145 — H2 023B~F STRUCTURED ADAPTERS — PASS
+
+- 时间：2026-08-13T18:00:00+08:00
+- 执行分支：main
+- 候选提交：bba405a（push bba405a..bba405a）
+- 变更：app/ingestion/pptx_adapter.py / xlsx_adapter.py / ocr_adapter.py / html_adapter.py / media_adapter.py（各含 convert_* + convert_*_to_run + LossReport）；tests/fixtures/sample.pptx/sample.xlsx；tests/test_axw023b_f_adapters.py；修复 docx_adapter 等 5 处 run.document_id → run.document.document_id 潜在缺陷
+- 验证：本地 1467 passed / 9 skipped（wrapper env）、96 adapter 测试绿、ruff clean、convention gate green；CI run 31725714395 success（gateplan/lint/test/wheel-smoke/a0-gates）
+- 证据等级：EXACT_SHA_CI
+- 风险/剩余项：每个格式的安装态证据留给 AXW-H2-EXIT（RC 阶段）
+- 回滚：revert bba405a
+
+### LOG-20260813-146 — H3/H4 GOVERNANCE CLOSURES — PASS
+
+- 时间：2026-08-13T18:30:00+08:00
+- 执行分支：main
+- 候选提交：4841ed7 + 1b4cfc8（corpus LF 修复）
+- 变更：AXW-043B（vault.write_canvas/read_canvas + /api/vault/canvas/{read,write} + json_canvas 可选字段修复）、AXW-024C（app/evidence/relations.py 版本化关系+裁决）、AXW-024D（app/knowledge/freshness.py 追加式事件+投影）、AXW-050A（app/answer/grounded.py 引用式回答）、AXW-050B（app/answer/boundaries.py fail-safe 门）、AXW-051B（app/knowledge/due_queue.py FSRS due queue + 废除三次高分启发式）、AXW-052B（app/knowledge/skill_assets.py 低风险资产）、AXW-053（app/knowledge/transform.py 转换溯源）、AXW-054A（tests/fixtures/corpus 多语种语料+manifest）、AXW-054B（shared/answer_metrics.py Wilson CI 指标）；tests 61 项新增
+- 验证：本地 1528 passed / 9 skipped、70 task 测试绿、ruff clean（含 2 处 legacy B011 修复）、convention gate green；CI run 31727627025 success
+- 证据等级：EXACT_SHA_CI
+- 风险/剩余项：AXW-045/055/H2/H3/H4-EXIT 及 H5 全项需 Windows 安装态 + 真实 Vault 授权，属 Owner/发布流程
+- 回滚：revert 1b4cfc8
