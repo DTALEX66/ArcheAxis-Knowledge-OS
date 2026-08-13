@@ -737,3 +737,18 @@ CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a
   browser-smoke 新增 exercise_keyboard_accessibility（Tab/Enter/Escape 焦点闭环）
 - 096C 批量控制：pause/resume/全局限流/安全退出 join/有界重试/JSONL 账本 from_checkpoint 恢复
 - commit 5dc3d9b（11 文件 +1619 行，+34 测试）；全量 1522 passed / 9 skipped；ruff 绿
+
+
+### LOG-149: 096A 首轮真实基准 + 096C 管线集成 + 基准工具链
+
+- 基线 §12 明确"必须补充合法公开 corpus"→ 下载 5 本公共领域 Gutenberg
+  英文书（84/1342/11/1661/98），分层 small/medium/large（0.15/1.9/4.5 MiB），
+  sources.json 记录来源/许可/时间/SHA；语料正文不入库
+- scripts/prepare_benchmark_corpus.py + scripts/run_performance_benchmark.py：
+  可复现工具链；真实测量（convert_directory_resumable 中位延迟
+  2.6/8.2/10.4 ms，内存峰值 1.2/1.7/1.8 MiB，冷启动 52.8 ms，20 核 Win11）
+- 降级阈值 import-latency≤5000ms / memory≤2048MiB 全部通过 → overall PASS
+- 096C × 真实转换管线集成测试（2 个）：批量转换完整跑通 + 暂停/恢复
+  checkpoint 一致性（from_checkpoint 恢复无重复转换）
+- docs/truth/PERFORMANCE_BENCHMARK_096A.md 记录指标与复现步骤
+- 真实大库 + H4-EXIT 验收仍留 Owner
