@@ -112,6 +112,25 @@ def resolve_evidence_anchor(db: str | Path, anchor_id: str) -> EvidenceAnchor | 
     )
 
 
+def list_evidence_anchors(db: str | Path) -> list[EvidenceAnchor]:
+    """Return every stored evidence anchor (insertion order)."""
+    with sqlite3.connect(Path(db)) as conn:
+        conn.row_factory = sqlite3.Row
+        conn.executescript(_ANCHOR_SCHEMA)
+        rows = conn.execute(
+            "SELECT * FROM evidence_anchors ORDER BY rowid"
+        ).fetchall()
+    return [
+        EvidenceAnchor(
+            anchor_id=row["anchor_id"],
+            raw_sha256=row["raw_sha256"],
+            source_revision=row["source_revision"],
+            locator=json.loads(row["locator_json"]),
+        )
+        for row in rows
+    ]
+
+
 def mark_index_revision(
     db: str | Path,
     raw_sha256: str,

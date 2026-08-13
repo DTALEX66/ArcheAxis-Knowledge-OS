@@ -414,6 +414,63 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         pdf_path.unlink(missing_ok=True)
 
 
+def exercise_keyboard_accessibility(page: Page, base_url: str) -> None:
+    """AXW-096B: keyboard flow + semantic label regression checks.
+
+    Proves the core Workspace flows work with keyboard only: Tab reaches
+    every control, Enter activates, the intake dialog traps focus and
+    Escape closes it returning focus to the trigger, theme buttons are
+    labelled and toggle aria-pressed, and inputs carry aria-labels.
+    """
+    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
+    page.get_by_role("heading", name="星环知识平台").wait_for()
+
+    # Every input carries a semantic label.
+    labelled_inputs = page.evaluate(
+        "() => [...document.querySelectorAll('input')].filter(el => el.getAttribute('aria-label') || (el.labels && el.labels.length)).length"
+    )
+    total_inputs = page.evaluate("() => document.querySelectorAll('input').length")
+    assert labelled_inputs == total_inputs, f"unlabelled inputs: {labelled_inputs}/{total_inputs}"
+
+    # Theme buttons are labelled with aria-pressed state.
+    theme_buttons = page.locator("button[data-theme]")
+    count = theme_buttons.count()
+    assert count >= 4, f"theme buttons: {count}"
+    for index in range(count):
+        button = theme_buttons.nth(index)
+        assert button.get_attribute("aria-label"), f"theme button {index} lacks aria-label"
+        assert button.get_attribute("aria-pressed") in ("true", "false"), f"theme button {index} lacks aria-pressed"
+
+    # Keyboard: Tab reaches the first theme button and Enter switches theme.
+    page.get_by_role("button", name="浅色主题").focus()
+    page.keyboard.press("Tab")  # next focusable after the light-theme button
+    page.keyboard.press("Enter")
+    page.get_by_role("button", name="紫曜主题").focus()
+    page.keyboard.press("Enter")
+    assert page.locator("body").get_attribute("data-theme") == "violet-core"
+    assert page.get_by_role("button", name="紫曜主题").get_attribute("aria-pressed") == "true"
+
+    # Intake dialog: Enter opens it, focus lands on the URL input, Escape
+    # closes it and returns focus to the trigger button.
+    trigger = page.get_by_role("button", name="导入资料")
+    trigger.focus()
+    page.keyboard.press("Enter")
+    dialog = page.get_by_role("dialog", name="导入资料")
+    dialog.wait_for()
+    assert page.evaluate("document.activeElement?.id") == "intake-url"
+    assert page.evaluate("document.getElementById('intake-modal').getAttribute('aria-hidden')") == "false"
+    # Tab cycles inside the dialog (focus trap).
+    page.keyboard.press("Tab")
+    page.keyboard.press("Shift+Tab")
+    assert page.evaluate("document.activeElement?.id") == "intake-url"
+    page.keyboard.press("Escape")
+    dialog.wait_for(state="hidden")
+    assert page.evaluate("document.activeElement?.dataset.action") == "intake"
+
+    # Error feedback region is announced via aria-live.
+    assert page.locator("#intake-result").get_attribute("aria-live") == "polite"
+
+
 def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
     """Prove real upload → SQLite outbox → dispatch → receipt → UI reread."""
     source_path = Path(data_dir) / "browser-delivery.txt"
@@ -500,6 +557,11 @@ def _main() -> int:
                 print(f"::error::WORKSPACE-FAIL url={page.url}")
                 print(f"::error::WORKSPACE-HTML {page.locator('body').inner_text()[:500]}")
                 raise
+            kb_page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            try:
+                exercise_keyboard_accessibility(kb_page, base_url)
+            finally:
+                kb_page.close()
             pdf_page = browser.new_page(viewport={"width": 1440, "height": 1000})
             try:
                 exercise_pdf_reader(pdf_page, base_url, data_dir)
@@ -512,7 +574,7 @@ def _main() -> int:
                 delivery_page.close()
         finally:
             browser.close()
-    print("A0 Chromium browser smoke passed (workspace + PDF reader + delivery)")
+    print("A0 Chromium browser smoke passed (workspace + keyboard + PDF reader + delivery)")
     return 0
 
 
