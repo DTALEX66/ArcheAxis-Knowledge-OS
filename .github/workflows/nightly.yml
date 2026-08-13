@@ -92,23 +92,23 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
-      - name: Install ci + ci-adapters
+      - name: Install ci + ci-adapters + browser groups
+        # All three groups into the venv so the smoke script's spawned
+        # `sys.executable -m app.runtime_entrypoint migrate` runs against the
+        # same interpreter that has the project deps (ci.yml's gate uses
+        # pip --system instead; venv is more consistent for the nightly tier).
         run: |
-          uv sync --frozen --group ci --group ci-adapters
-      - name: Install locked browser test dependencies
-        # browser group (playwright) mirrors ci.yml's browser-smoke gate.
-        run: |
-          uv export --frozen --only-group browser --no-emit-project --format requirements-txt --output-file locked-browser.txt
-          uv pip install --system --require-hashes -r locked-browser.txt
+          uv sync --frozen --group ci --group ci-adapters --group browser
       - name: Install Chromium
-        run: python -m playwright install --with-deps chromium
+        run: uv run --frozen --group browser python -m playwright install --with-deps chromium
       - name: Workspace API suite
         run: |
           env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_workspace_api.py -q --tb=short
       - name: Real Workspace browser regressions
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
-        run: python scripts/a0_browser_smoke.py
+        run: |
+          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters --group browser python scripts/a0_browser_smoke.py
 
   windows-runtime:
     runs-on: windows-latest
