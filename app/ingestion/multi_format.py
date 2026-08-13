@@ -191,7 +191,7 @@ def _via_odt(file_path: str) -> AdapterResult:
     """
     import zipfile
 
-    from defusedxml import ElementTree as ET
+    from defusedxml import ElementTree as ET  # noqa: N817 - stdlib-style alias
 
     with zipfile.ZipFile(file_path) as zf:
         try:
