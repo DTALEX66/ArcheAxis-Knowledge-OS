@@ -1130,3 +1130,18 @@ dispatch 验证——Run #6 SUCCESS 3m51s：4 job 全绿（py-compat ×2、
 full-suite 含 OCR+integration、真实 Chromium browser-smoke、
 windows-runtime）。nightly 连续验证：Run 5 ✅ → Run 6 ✅（timeout
 版）。自动 tick（本地 11:17）预期绿。
+
+
+### LOG-174: batch shutdown flaky 调查与测试加固
+
+本地全量（-rs 模式）偶发失败 test_batch_shutdown_mid_run
+（JSONDecodeError: Extra data: line 1 column 2）。调查：
+- 单独跑 1/1 PASS、文件级 2/2 PASS、全量复跑 1/1 PASS（无 -rs）——
+  首败不可复现，仅全量时序下偶发
+- shutdown 实现核实：controller.shutdown（stop→join→state→event）
+  与 router 端点（单 dict 返回）均无双写可能——产品无缺陷
+- CI 从未见（连续 56 run + nightly 全量）——Windows 本地时序差异
+- 根因定位：测试用固定 time.sleep(0.1) 等 worker 启动——脆弱
+- 修复：改为轮询 status 直到 completed > 0（deadline 10s）再
+  shutdown——语义更强（确保真正 mid-run）且消除固定 sleep 时序
+- 验证：文件级 17 passed + 全量 1580 passed

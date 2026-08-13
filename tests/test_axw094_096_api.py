@@ -309,8 +309,15 @@ def test_batch_shutdown_mid_run(client: TestClient, tmp_path: Path) -> None:
     )
     assert batch.status_code == 200
 
-    # give workers a moment to pick up tasks, then shut down mid-run
-    time.sleep(0.1)
+    # wait until a worker has demonstrably started (completed > 0), then
+    # shut down mid-run — polling beats a fixed sleep for timing stability
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        probe = client.get("/workspace/api/batch/shutdown-batch/status")
+        assert probe.status_code == 200
+        if probe.json()["completed"] > 0:
+            break
+        time.sleep(0.05)
     shutdown = client.post("/workspace/api/batch/shutdown-batch/shutdown")
     assert shutdown.status_code == 200
     assert shutdown.json()["state"] == "shutdown"
