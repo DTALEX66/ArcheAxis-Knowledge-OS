@@ -941,3 +941,21 @@ git 时间线（提交时区 +0800）：
 **完全正常，无异常行为**。LOG-154/158 观察窗口（UTC 19:17-21:00）
 连加入时间（UTC 14:48）都晚于，窗口内不可能有 tick。
 预期：本地 11:17 后 nightly（修复版）首次实跑。
+
+
+### LOG-163: 全表面覆盖审计——router 51 端点 + UI 12 动作
+
+**Router 审计**（5fdba13）：全部 51 端点 vs 测试引用（f-string 模板
+容错 + /workspace 挂载前缀 + browser-smoke 交叉检查）：
+- 41 有引用；8 误报（测试用具体 id 值/UI 隐式加载）逐一核实排除
+- 3 真实 GAP 已补：GET /api/jobs/{job_id}（格式校验 422 +
+  合法格式未知 404）、GET /api/v1/objects/{public_ref}（404
+  "was not found"）、GET /api/cases/{artifact_id}（显式错误）
+- → 51/51 端点全部有测试引用
+
+**UI 动作审计**（本轮）：app.js 12 个 data-action 处理器 vs
+index.html 按钮 + browser-smoke：
+- 9 直接引用；3 疑似 GAP 全部核实为误报（smoke 用
+  get_by_role(name=) 而非 data-action 字面：pdf-load=「打开 PDF」、
+  pdf-next=「下一页 ›」、pdf-jump=批注跳转段）
+- → 12/12 UI 动作全部有真实浏览器覆盖
