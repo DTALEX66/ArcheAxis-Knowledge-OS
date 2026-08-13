@@ -41,7 +41,7 @@ Markdown、JSON Canvas 和 Vault 互操作是第一条高保真纵切；在编�
 | Node.js LTS | 桌面构建（可选） | https://nodejs.org/ |
 | scoop | Windows 包管理（可选） | https://scoop.sh |
 
-完整清单与安装步骤见 [`docs/environment/EXTERNAL_DEPENDENCIES.md`](docs/environment/EXTERNAL_DEPENDENCIES.md)（同步于 `D:\All projects\OS configuration\EXTERNAL_DEPENDENCIES.md`）。
+完整清单与安装步骤见 [`docs/environment/EXTERNAL_DEPENDENCIES.md`](docs/environment/EXTERNAL_DEPENDENCIES.md)（同步于 `D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`）。
 
 ### 已吸收（代码/依赖已并入）
 
