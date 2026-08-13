@@ -1121,3 +1121,12 @@ H5 九任务逐一对冻结验收标准核对：
 
 就绪状态：094A/094B/096A/096B/096C/097 = 实现+测试+CI 全绿；
 095/060/H5-EXIT = Owner（安装态/发布）。
+
+
+### LOG-173: nightly Run #6 全绿（timeout 版验证）
+
+ci.yml/nightly.yml timeout-minutes 补齐后（24606db/c8a85ce）手动
+dispatch 验证——Run #6 SUCCESS 3m51s：4 job 全绿（py-compat ×2、
+full-suite 含 OCR+integration、真实 Chromium browser-smoke、
+windows-runtime）。nightly 连续验证：Run 5 ✅ → Run 6 ✅（timeout
+版）。自动 tick（本地 11:17）预期绿。
