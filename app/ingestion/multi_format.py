@@ -83,7 +83,7 @@ def detect_format(file_path: str | Path) -> str:
 _CONTENT_FORMAT_MAP: dict[str, str] = {
     "pdf": "pdf", "docx": "docx", "xlsx": "xlsx", "pptx": "pptx",
     "doc": "docx", "xls": "xlsx", "ppt": "pptx",
-    "odt": "docx", "ods": "xlsx", "odp": "pptx",
+    "odt": "odt", "ods": "xlsx", "odp": "pptx",
     "html": "html", "xml": "html", "sgml": "html",
     "txt": "txt", "markdown": "md", "csv": "csv", "tsv": "csv",
     # JSON-like labels: fall back to extension detection so formats like
@@ -97,7 +97,7 @@ _CONTENT_FORMAT_MAP: dict[str, str] = {
     "mp4": "media_video", "mkv": "media_video", "webm": "media_video",
     "flv": "media_video",
     "zip": "unknown", "tar": "unknown", "gzip": "unknown",
-    "epub": "docx", "rtf": "docx",
+    "epub": "docx", "rtf": "rtf",
     "python": "txt", "javascript": "txt", "shell": "txt",
 }
 
@@ -152,6 +152,68 @@ def _via_markitdown(file_path: str) -> AdapterResult:
         content=text,
         engine="markitdown",
         metadata={"char_count": len(text)},
+    )
+
+
+def _via_rtf(file_path: str) -> AdapterResult:
+    """Parse RTF with striprtf (real content, never raw RTF source).
+
+    markitdown has no RTF converter and silently returns the raw RTF
+    source as "content"; striprtf actually decodes control words and
+    character escapes. Fail closed if striprtf is unavailable rather
+    than claiming source-as-content success.
+    """
+    try:
+        from striprtf.striprtf import rtf_to_text
+    except ImportError as exc:  # pragma: no cover - dependency gate
+        raise ValueError("striprtf not installed; cannot convert RTF") from exc
+
+    raw = Path(file_path).read_bytes()
+    # RTF is ASCII-escaped: decode leniently, striprtf handles \uN escapes.
+    text = rtf_to_text(raw.decode("ascii", errors="ignore"))
+    if not text.strip():
+        raise ValueError("RTF contained no readable text")
+    return AdapterResult(
+        success=True,
+        content=text.strip(),
+        engine="striprtf",
+        metadata={"char_count": len(text.strip())},
+    )
+
+
+def _via_odt(file_path: str) -> AdapterResult:
+    """Extract text from an ODF (ODT) zip container via stdlib XML.
+
+    ODT is a zip archive whose content.xml holds the document text in
+    ODF XML. markitdown lacks an ODF converter; this uses defusedxml
+    (already in the dependency tree) with stdlib zipfile, so no extra
+    dependency is required and XXE/billion-laughs is blocked.
+    """
+    import zipfile
+
+    from defusedxml import ElementTree as ET
+
+    with zipfile.ZipFile(file_path) as zf:
+        try:
+            content_xml = zf.read("content.xml")
+        except KeyError as exc:
+            raise ValueError("ODT archive missing content.xml") from exc
+
+    root = ET.fromstring(content_xml)
+    # Walk all text:p paragraphs, joining with newlines.
+    parts: list[str] = []
+    for elem in root.iter():
+        tag = elem.tag.rsplit("}", 1)[-1]  # strip namespace
+        if tag == "p":
+            parts.append("".join(elem.itertext()).strip())
+    text = "\n".join(p for p in parts if p)
+    if not text.strip():
+        raise ValueError("ODT contained no readable text")
+    return AdapterResult(
+        success=True,
+        content=text.strip(),
+        engine="odf-xml",
+        metadata={"char_count": len(text.strip())},
     )
 
 
@@ -451,6 +513,8 @@ _ENGINES: dict[str, list[tuple[str, Any]]] = {
     "md": [("passthrough", _via_read)],
     "txt": [("passthrough", _via_read)],
     "canvas": [("json-canvas", _via_canvas)],
+    "rtf": [("striprtf", _via_rtf), ("markitdown", _via_markitdown)],
+    "odt": [("odf-xml", _via_odt), ("markitdown", _via_markitdown)],
 }
 
 

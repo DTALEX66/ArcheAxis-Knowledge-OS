@@ -845,7 +845,7 @@ class TestFFmpegAdapter:
         with patch.object(shutil, "which", return_value=None):
             result = convert_ffmpeg(AdapterInput(source="test.mp4"))
             assert not result.success
-            assert "not installed" in (result.error or "").lower()
+            assert "not installed" in (result.error or "").lower() or "not found" in (result.error or "").lower()
             assert result.engine == "ffmpeg"
 
     def test_convert_ffmpeg_empty_source_fails_gracefully(self):

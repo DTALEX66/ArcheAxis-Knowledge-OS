@@ -718,7 +718,7 @@ def convert_ffmpeg(input_: AdapterInput) -> AdapterResult:
             success=False,
             content="",
             engine="ffmpeg",
-            error="ffmpeg is not installed or not in PATH. See https://ffmpeg.org/download.html",
+            error="ffmpeg executable not found in PATH. See https://ffmpeg.org/download.html",
         )
 
     source = input_.source
