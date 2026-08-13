@@ -726,3 +726,14 @@
 CI run 31732780580（85b3311）全绿：gateplan/lint/test(3.12)/browser-smoke/a0-gates
 全 success；双端一致 85b33114。
 
+
+### LOG-148: H5 实现层五项（094A/094B/096A/096B/096C）先行交付（EXIT 验收留 Owner）
+
+- 认知修正：冻结基线 EXIT 系验收裁决、非实现前置（先例 023A-F/043B/050A 一致）
+- 094A 开放交换 export：manifest v1 + 逐项 sha256 + 自哈希 + 全量重哈希校验（损坏/部分/schema 漂移显式失败）
+- 094B 备份/校验/恢复：可校验备份 + dry-run 演练恢复 + 原子写 + clobber 保护
+- 096A 性能基准框架：延迟采样(p95)/tracemalloc 内存/语料规模/硬件身份/降级阈值 fail-closed
+- 096B 键盘可访问性：全部 input 补 aria-label、主题按钮 aria-pressed、button type 全补；
+  browser-smoke 新增 exercise_keyboard_accessibility（Tab/Enter/Escape 焦点闭环）
+- 096C 批量控制：pause/resume/全局限流/安全退出 join/有界重试/JSONL 账本 from_checkpoint 恢复
+- commit 5dc3d9b（11 文件 +1619 行，+34 测试）；全量 1522 passed / 9 skipped；ruff 绿
