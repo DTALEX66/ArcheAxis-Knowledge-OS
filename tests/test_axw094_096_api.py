@@ -198,6 +198,27 @@ def test_batch_import_rejects_missing_source(client: TestClient, tmp_path: Path)
     assert "not found" in batch.json()["detail"]
 
 
+def test_batch_import_rejects_duplicate_active(client: TestClient, tmp_path: Path) -> None:
+    """A second import with the same batch_id while one is active is a 409."""
+    source = tmp_path / "dup-src"
+    (source / "docs").mkdir(parents=True)
+    for index in range(50):
+        (source / "docs" / f"f{index:02d}.md").write_text(f"# File {index}\n", encoding="utf-8")
+
+    first = client.post(
+        "/workspace/api/batch/import",
+        json={"batch_id": "dup-batch", "source_dir": str(source), "pattern": "**/*", "max_files": 50},
+    )
+    assert first.status_code == 200
+
+    second = client.post(
+        "/workspace/api/batch/import",
+        json={"batch_id": "dup-batch", "source_dir": str(source), "pattern": "**/*", "max_files": 50},
+    )
+    assert second.status_code == 409
+    assert "already active" in second.json()["detail"]
+
+
 def test_batch_status_unknown_batch(client: TestClient) -> None:
     status = client.get("/workspace/api/batch/does-not-exist/status")
     assert status.status_code == 404
