@@ -279,6 +279,108 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     assert not console_errors, console_errors
 
 
+def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
+    """AXW-022A/022B real-browser PDF reader: load → page → zoom → search.
+
+    Stores a real 2-page PDF (generated via PyMuPDF) into the content-
+    addressed serving root, opens it in the Evidence page, and proves the
+    PDF.js renderer pages, zooms and searches through the real UI.
+    """
+    # Generate a real 2-page PDF with a searchable text layer.
+    import pymupdf
+
+    from app.evidence.pdf_serve import build_pdf_serving_root, store_pdf_bytes
+
+    pdf_path = Path(data_dir) / "browser-pdf-sample.pdf"
+    doc = pymupdf.open()
+    for page_no, heading in ((1, "Evidence Anchoring"), (2, "Reproducible Recall")):
+        pdf_page_obj = doc.new_page()
+        pdf_page_obj.insert_text((72, 100), f"Page {page_no}: {heading}", fontsize=16)
+        pdf_page_obj.insert_text((72, 140), "Content-addressed original bytes stay local.", fontsize=11)
+    doc.save(str(pdf_path))
+    doc.close()
+    blob = pdf_path.read_bytes()
+
+    # resolve_runtime_path("data") == data_dir when ARCHEAXIS_DATA_DIR is set.
+    root = build_pdf_serving_root(Path(data_dir))
+    content_key = store_pdf_bytes(root, blob)
+
+    try:
+        page.goto(f"{base_url}/workspace#evidence", wait_until="networkidle")
+        page.get_by_role("heading", name="PDF 证据查看").wait_for()
+        page.get_by_label("PDF 内容键").fill(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+
+        # Renderer loaded: page info shows "1 / 2" once the first page draws.
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
+            timeout=15000,
+        )
+        assert page.locator("#pdf-viewer canvas").count() >= 1
+
+        # Next page via the real button.
+        page.get_by_role("button", name="下一页 ›").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')",
+            timeout=10000,
+        )
+
+        # Zoom in moves the zoom info off 100%.
+        page.get_by_role("button", name="＋").click()
+        assert page.locator("#pdf-zoom-info").inner_text() != "100%"
+
+        # Search finds the text on page 2. searchPdf loops pages asynchronously
+        # and only renders (and alerts) after the match is found; waiting for
+        # the dialog guarantees renderPage finished and the text layer is fresh.
+        page.get_by_label("页内搜索").fill("Reproducible")
+        with page.expect_event("dialog") as dialog_info:
+            page.get_by_role("button", name="搜索").click()
+        dialog = dialog_info.value
+        dialog.dismiss()
+
+        # Selecting text enables the evidence-annotation button (AXW-022B).
+        # The overlay text layer makes PDF text selectable; the canvas alone
+        # cannot hold a selection.
+        page.wait_for_function(
+            "() => document.querySelectorAll('.pdf-text-layer span').length > 0",
+            timeout=10000,
+        )
+        page.evaluate(
+            """() => {
+                const layer = document.querySelector('.pdf-text-layer');
+                const range = document.createRange();
+                range.selectNodeContents(layer);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.dispatchEvent(new Event('selectionchange'));
+            }"""
+        )
+        page.wait_for_function(
+            "() => !document.querySelector('#pdf-annotate').disabled",
+            timeout=10000,
+        )
+        # AXW-022B full loop: create the anchor, then jump back from it.
+        page.evaluate("() => document.getElementById('pdf-annotate').click()")
+        page.wait_for_timeout(2000)
+        diag_anchor = page.evaluate("document.querySelector('#pdf-anchor-info')?.textContent")
+        assert "锚点" in (diag_anchor or ""), f"anchor not created, info: {diag_anchor!r}"
+        anchor_id = page.evaluate(
+            "() => (document.querySelector('#pdf-anchor-info')?.textContent || '').split('锚点 ')[1]?.trim()"
+        )
+        assert anchor_id and anchor_id.startswith("ev_"), f"unexpected anchor: {anchor_id}"
+        page.get_by_label("证据锚点回跳").fill(anchor_id)
+        page.get_by_role("button", name="回跳").click()
+        page.wait_for_timeout(2000)
+        jump_text = page.evaluate("document.querySelector('#pdf-anchor-info')?.textContent")
+        # The annotation was taken on page 2 (after search); jumping back must
+        # land on the annotated page (2) with the stored selection locator.
+        assert "已回跳页 2" in (jump_text or ""), f"jump back failed: {jump_text!r}"
+        assert "Reproducible Recall" in (jump_text or ""), f"locator missing: {jump_text!r}"
+    finally:
+        pdf_path.unlink(missing_ok=True)
+
+
 def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
     """Prove real upload → SQLite outbox → dispatch → receipt → UI reread."""
     source_path = Path(data_dir) / "browser-delivery.txt"
@@ -333,6 +435,15 @@ def main() -> int:
     data_dir = os.environ.get("ARCHEAXIS_DATA_DIR", "").strip() or os.environ.get("COGNITIVE_DATA_DIR", "").strip()
     if not data_dir:
         raise RuntimeError("COGNITIVE_DATA_DIR must point to an isolated browser-smoke directory")
+    # The smoke must be repeatable against the same directory: drop the
+    # previous run's SQLite and PDF store so strict command-receipt reads
+    # never collide with stale bindings from an earlier invocation.
+    data_root = Path(data_dir)
+    for stale in data_root.glob("*.sqlite*"):
+        stale.unlink(missing_ok=True)
+    for stale in (data_root / "pdf").glob("*"):
+        if stale.is_file():
+            stale.unlink(missing_ok=True)
     subprocess.run(
         [sys.executable, "-m", "app.runtime_entrypoint", "migrate"],
         check=True,
@@ -343,6 +454,11 @@ def main() -> int:
         try:
             page = browser.new_page(viewport={"width": 1440, "height": 1000})
             exercise_workspace(page, base_url)
+            pdf_page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            try:
+                exercise_pdf_reader(pdf_page, base_url, data_dir)
+            finally:
+                pdf_page.close()
             delivery_page = browser.new_page(viewport={"width": 1440, "height": 1000})
             try:
                 exercise_real_delivery(delivery_page, base_url, data_dir)
@@ -350,7 +466,7 @@ def main() -> int:
                 delivery_page.close()
         finally:
             browser.close()
-    print("A0 Chromium browser smoke passed")
+    print("A0 Chromium browser smoke passed (workspace + PDF reader + delivery)")
     return 0
 
 

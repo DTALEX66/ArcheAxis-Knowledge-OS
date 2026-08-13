@@ -115,10 +115,13 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
 
   async function renderPage() {
     if (!state.doc) return;
+    cachedSelection = "";
     const page = await state.doc.getPage(state.page);
     const base = page.getViewport({ scale: state.zoom });
     const container = viewer();
     container.textContent = "";
+    // AXW-022B: the canvas paints the page; an overlay text layer makes the
+    // text selectable so "批注为证据" can capture the selection.
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
@@ -126,8 +129,43 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
     canvas.height = base.height * dpr;
     canvas.style.width = base.width + "px";
     canvas.style.height = base.height + "px";
+    canvas.style.position = "absolute";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
     await page.render({ canvasContext: ctx, viewport: base, transform: dpr !== 1 ? [dpr,0,0,dpr,0,0] : null }).promise;
-    container.appendChild(canvas);
+    const textLayer = document.createElement("div");
+    textLayer.className = "pdf-text-layer";
+    textLayer.style.position = "absolute";
+    textLayer.style.top = "0";
+    textLayer.style.left = "0";
+    textLayer.style.width = base.width + "px";
+    textLayer.style.height = base.height + "px";
+    textLayer.style.color = "transparent";
+    textLayer.style.overflow = "hidden";
+    textLayer.style.cursor = "text";
+    const wrap = document.createElement("div");
+    wrap.style.position = "relative";
+    wrap.style.width = base.width + "px";
+    wrap.style.height = base.height + "px";
+    wrap.style.margin = "0 auto";
+    wrap.appendChild(canvas);
+    wrap.appendChild(textLayer);
+    container.appendChild(wrap);
+    const textContent = await page.getTextContent();
+    for (const item of textContent.items) {
+      const tx = pdfjsLib.Util.transform(
+        pdfjsLib.Util.transform(base.transform, item.transform),
+        [1, 0, 0, 1, 0, 0]
+      );
+      const span = document.createElement("span");
+      span.textContent = item.str;
+      span.style.position = "absolute";
+      span.style.whiteSpace = "pre";
+      span.style.transformOrigin = "0 0";
+      span.style.transform = `translate(${tx[4]}px, ${tx[5]}px) scale(${tx[0]}, ${tx[3]})`;
+      span.style.fontSize = "1px";
+      textLayer.appendChild(span);
+    }
     if ($info()) $info().textContent = `${state.page} / ${state.doc.numPages}`;
     setButtons();
   }
@@ -177,12 +215,30 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
     const sel = window.getSelection();
     return (sel && sel.toString() || "").trim();
   }
+  /* AXW-022B: enable the annotation button only when the user has an
+     actual selection of PDF text; disable it again on selection loss.
+     The selected text is cached because clicking the button clears the
+     browser selection on mousedown before the click handler runs. */
+  let cachedSelection = "";
+  function syncAnnotateEnabled() {
+    const btn = document.getElementById("pdf-annotate");
+    if (!btn) return;
+    const text = selectedText();
+    // Only refresh the cache on a real selection; mousedown on the button
+    // clears the browser selection before the click handler runs, and we
+    // must not let that erase the text we are about to annotate.
+    if (text) cachedSelection = text;
+    btn.disabled = !(state.doc && state.page && cachedSelection);
+  }
+  document.addEventListener("selectionchange", syncAnnotateEnabled);
+  document.addEventListener("keyup", syncAnnotateEnabled);
+  document.addEventListener("mouseup", syncAnnotateEnabled);
   async function annotateEvidence() {
     const $info = document.getElementById("pdf-anchor-info");
     if (!state.doc || !state.page) { alert("请先打开 PDF"); return; }
     const key = currentKey();
     if (!/^sha256:[0-9a-f]{64}$/i.test(key)) { alert("内容键无效"); return; }
-    const text = selectedText();
+    const text = cachedSelection || selectedText();
     if (!text) { alert("请先在页面中选中一段文本作为证据"); return; }
     if ($info) $info.textContent = "写入证据锚点…";
     try {
