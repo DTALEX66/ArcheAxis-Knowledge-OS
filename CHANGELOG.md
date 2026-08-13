@@ -21,6 +21,15 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 - Nightly qualification now runs end-to-end: full-suite installs and verifies
   the real OCR engine (tesseract + eng data + fonts, mirroring ci.yml), so the
   full-matrix nightly tier is green and schedule-ready.
+- Nightly full-suite explicitly collects `tests/`, `integration-tests/` and
+  `knowledge_base/tests/` (previously integration-tests were never collected);
+  nightly browser-smoke now runs real Chromium regressions inside the venv.
+- CI gateplan is fully fail-closed: BFF/router and browser-smoke script
+  changes trigger browser-smoke; py/format/migration/security-targeted gates
+  are executed and verified (previously planned but never run).
+- AXW-097: diagnostics endpoint guarded by tests asserting no secrets,
+  credentials, auth state, or absolute private paths appear anywhere in the
+  response.
 
 - CI ecosystem: nightly compatibility workflow defect fixed; Release
   workflow pre-first-run audit passed.
