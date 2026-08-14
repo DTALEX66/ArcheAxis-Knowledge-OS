@@ -351,7 +351,9 @@ def test_release_workflow_stages_installer_under_provider_stable_name() -> None:
         encoding="utf-8"
     )
 
-    assert 'ArcheAxis.Knowledge-Windows-x64-setup.exe' in workflow
+    # the staged installer asset name is tag-derived (AXW-REL-002) but the
+    # stable naming shape must still be enforced by the workflow template
+    assert 'ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe' in workflow
     assert 'Copy-Item $installers[0].FullName $installerAsset' in workflow
     assert '--installer $installerAsset' in workflow
     assert "Where-Object Name -eq '.gitignore'" in workflow

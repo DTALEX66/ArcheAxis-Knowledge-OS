@@ -152,7 +152,14 @@ def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
         tauri["version"],
         cargo["package"]["version"],
     } == {expected_version}
-    assert f"--version {expected_version}" in release_workflow
+    # release workflow consumes the tag-derived version dynamically and
+    # verifies the four sources against the tag (AXW-REL-002): no hardcoded
+    # version/asset names may remain
+    assert "--version ${{ steps.resolve_version.outputs.release_version }}" in release_workflow
+    assert "Resolve and verify release version" in release_workflow
+    assert "release_version=" in release_workflow
+    assert "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe" in release_workflow
+    assert f"--version {expected_version}" not in release_workflow
     assert (
         'name = "archeaxis-workspace"\nversion = "0.5.0"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")

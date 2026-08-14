@@ -58,6 +58,29 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install locked build tooling
         run: uv sync --frozen
+      - name: Resolve and verify release version
+        id: resolve_version
+        shell: pwsh
+        run: |
+          $releaseVersion = $env:GITHUB_REF_NAME.TrimStart('v')
+          if ($releaseVersion -notmatch '^\d+\.\d+\.\d+$') {
+            throw "tag must be vX.Y.Z, got: $env:GITHUB_REF_NAME"
+          }
+          $pyVersion = [regex]::Match((Get-Content pyproject.toml -Raw), '^version\s*=\s*"([^"]+)"', 'Multiline').Groups[1].Value
+          $pkgVersion = (Get-Content desktop/package.json -Raw | ConvertFrom-Json).version
+          $tauriVersion = (Get-Content desktop/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $sources = [ordered]@{
+            pyproject = $pyVersion
+            package.json = $pkgVersion
+            tauri.conf.json = $tauriVersion
+          }
+          foreach ($entry in $sources.GetEnumerator()) {
+            if ($entry.Value -ne $releaseVersion) {
+              throw "version drift: tag=$releaseVersion but $($entry.Key)=$($entry.Value)"
+            }
+          }
+          "release_version=$releaseVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "Release version verified: $releaseVersion (tag/pyproject/package.json/tauri.conf.json all agree)"
       - name: Install locked desktop tooling
         working-directory: desktop
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -70,7 +93,7 @@ jobs:
             --commit $env:GITHUB_SHA `
             --tree $tree `
             --tag $env:GITHUB_REF_NAME `
-            --version 0.5.0 `
+            --version ${{ steps.resolve_version.outputs.release_version }} `
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
             --verification-ci-run-id ${{ steps.require_ci.outputs.verification_run_id }} `
             --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
@@ -95,7 +118,7 @@ jobs:
           Get-ChildItem release-assets -Force -File |
             Where-Object Name -eq '.gitignore' |
             Remove-Item -Force
-          $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-Windows-x64-setup.exe"
+          $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
           Copy-Item $installers[0].FullName $installerAsset
           Copy-Item .hermes/rt/runtime/release-identity.json release-assets/
           python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset --artifact release-assets/release-identity.json --output release-assets/SHA256SUMS.txt
@@ -121,7 +144,7 @@ jobs:
           if ($wheel.Count -ne 1) { throw "expected exactly one release wheel" }
           $releaseAssets = @(
             $wheel[0].FullName,
-            (Resolve-Path "release-assets/ArcheAxis.Knowledge-Windows-x64-setup.exe").Path,
+            (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe").Path,
             (Resolve-Path "release-assets/release-identity.json").Path,
             (Resolve-Path "release-assets/SHA256SUMS.txt").Path
           )
@@ -132,8 +155,8 @@ jobs:
         shell: pwsh
         run: |
           $expectedAssets = @(
-            "ArcheAxis.Knowledge-Windows-x64-setup.exe",
-            "archeaxis_workspace-0.5.0-py3-none-any.whl",
+            "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe",
+            "archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl",
             "release-identity.json",
             "SHA256SUMS.txt"
           ) | Sort-Object
