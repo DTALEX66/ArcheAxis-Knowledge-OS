@@ -1145,3 +1145,27 @@ windows-runtime）。nightly 连续验证：Run 5 ✅ → Run 6 ✅（timeout
 - 修复：改为轮询 status 直到 completed > 0（deadline 10s）再
   shutdown——语义更强（确保真正 mid-run）且消除固定 sleep 时序
 - 验证：文件级 17 passed + 全量 1580 passed
+
+
+---
+
+## LOG-175 — 2026-08-15 — AXW-REL-001/002/003 (Batch R0: real green + dynamic release naming + minimal ruleset)
+
+### AXW-REL-001 — Nightly pause/resume lifecycle race（三层根因，全部修复）
+- Nightly Run 7（schedule，e05765e）失败：`test_batch_pause_resume_shutdown_flow` `assert 404 == 200`
+- **缺陷1（产品·状态机）**：`pause()/resume()` 改 `_state.state` 无锁，与 `run()` 终态（有锁）竞态——pause 可覆盖 finished 为 paused 且永不恢复（悬挂）。修复：状态转换入 `self._lock`（无死锁：`_append_event` 用独立锁）。
+- **缺陷2（测试时序）**：固定 `sleep(0.05)` 与快速转换竞态——pause 落在批次完成+pop 之后 → 404（~5%/次复现）。修复：200 文件 + 轮询 `completed>0` 再 pause（确定性窗口）+ `after<=before+2` + resume + 等 finished。
+- **缺陷3（产品·ledger 并发）**：`_append_event` 每 worker 独立 `open("a")` 无锁——Python 的 seek-to-EOF 跨句柄非原子——行交错/覆盖损坏 JSONL——`records()` 容错跳过坏行——task_completed 事件静默丢失。内存中 completed=200，pop 后 status 端点 `from_checkpoint` 重放只有 199（决定性证据：`in_tasks=[True] attempts=[None] results={'docs/f130.md': None}` + worker trace `r=True`）。修复：`_ledger_lock` 串行化 append（独立锁，避免 pause/resume 持 `self._lock` 时死锁）+ append 吞 IO 错（best-effort 诊断，绝不杀 worker）+ `_process_task` 改 `except BaseException`（worker 线程任何异常必须进 retry/failed，不得静默丢任务）。
+- **缺陷4（测试环境瞬态）**：写 200 fixture 后 rglob 偶见 199（AV/索引短暂隐藏新建文件）→ total=199。修复：开始批次前轮询目录可见性到 200 + 断言 `total==200` + `completed+failed==total`。
+- 证据：独立 pytest 子进程循环——旧测试 iter 11/20/68 失败（404）；无 ledger 锁版 ~1.5-5%/次失败（missing 任务恒为 in_tasks=True/attempts=None/trace r=True）；最终版 **200/200 PASS**；文件级 17 passed；全量 1619 passed。
+
+### AXW-REL-002 — 动态版本与新命名 Release（不再硬编码 0.5.0）
+- release.yml 新增 `Resolve and verify release version` 步骤：`GITHUB_REF_NAME` 解析 `vX.Y.Z`（非 semver 拒绝）+ 校验 pyproject/package.json/tauri.conf.json 三源 == tag（漂移即 throw）+ 输出 `release_version`。
+- identity 注入、installer 资产名（`ArcheAxis.Knowledge-v<ver>-Windows-x64-Setup.exe`，任务包 §12.1）、release 资产列表、readback expected-assets 全部动态化——release.yml 零硬编码版本/名称残留（已验证）。
+- 版本一致性测试（3 个）同步更新为动态语义（断言 resolve_version 步骤存在 + 模板名 + 无硬编码残留）。
+
+### AXW-REL-003 — 最小 main ruleset（API 创建）
+- `main-protection`（branch, active）：`non_fast_forward`（禁 force push）+ `deletion`（禁删分支）+ `required_status_checks`（context `a0-gates`，loose）。
+- `tag-protection`（tag v*, active）：`update` + `deletion` 拒绝（禁 tag 覆盖/删除）。
+- **Schema 陷阱**：权威 OpenAPI schema 是 `parameters.required_status_checks: [{context}]` + `parameters.strict_required_status_checks_policy: bool`——扁平 `contexts`/`strict` 键全部 422 "data matches no possible input"（OpenAPI spec 已下载 `.hermes/task-runtime/github-openapi.json` 一次性使用）。
+- 签名决策已记录（RELEASE_LEDGER 803a5e3：不代码签名，完整性由 SHA256SUMS+digests+identity 承载）；探测用的 iso-* 测试 ruleset 已删除，仅留 2 个正式。
