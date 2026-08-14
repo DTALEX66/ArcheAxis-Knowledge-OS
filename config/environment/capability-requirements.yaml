@@ -1,0 +1,249 @@
+# =============================================================================
+# ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读）
+# -----------------------------------------------------------------------------
+# 权威文档：docs/environment/EXTERNAL_DEPENDENCIES.md（人类可读）
+# 本文件：  机器可读需求清单，供 host inventory / CI / 环境审计消费。
+# 同步规则：新增系统工具、模型、外部服务必须同时登记两处。
+#
+# 类别说明：
+#   toolchains — 工具链（编译器、包管理器、浏览器二进制等）
+#   runtimes   — 运行时环境（WebView2 运行时、虚拟环境、桌面运行时包）
+#   engines    — 引擎（OCR / ASR / 媒体转换等能力引擎）
+#   models     — 模型资产（ONNX 权重、whisper 模型等）
+#   plugins    — 内置插件资产（vendored 前端库等）
+#
+# 字段说明（与 config/schemas/capability-requirements.schema.json 严格对应）：
+#   name            唯一标识（小写连字符）
+#   purpose         用途（人类可读）
+#   version_range   兼容范围（不锁死；semver 区间或自由文本，见 schema pattern）
+#   platform        平台（windows-x64 等）
+#   license         SPDX 标识或明确许可声明
+#   source_url      官方来源（https URL；内置资产可写 "vendored"）
+#   install_method  scoop | uv | rustup | playwright-install | 下载安装器 |
+#                   自动下载 | 内置 | uv-sync | system
+#   healthcheck_command  健康检查命令（缺失时 inventory 记为 missing）
+#   required_by     依赖方（哪些测试/流程）：ci | tests | core-runtime |
+#                   desktop-build | desktop-runtime | browser-smoke | e2e |
+#                   ocr-pipeline | asr-pipeline | conversion | bakeoff |
+#                   file-detection | workspace-ui
+#   local_only      true = 必须在本机/本外部能力仓存在，不随项目分发、不自动安装
+# =============================================================================
+schema_version: "1.0"
+updated: "2026-08-14"
+source_of_truth: "docs/environment/EXTERNAL_DEPENDENCIES.md"
+description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单）"
+
+capabilities:
+  toolchains:
+    - name: python
+      purpose: "主运行时解释器（3.11 主 / 3.14 辅，scoop 管理）"
+      version_range: ">=3.11,<3.15"
+      platform: windows-x64
+      license: "PSF-2.0"
+      source_url: "https://www.python.org/downloads/windows/"
+      install_method: scoop
+      healthcheck_command: "python --version"
+      required_by: [core-runtime, ci, tests]
+      local_only: false
+
+    - name: uv
+      purpose: "依赖锁定、虚拟环境、包安装"
+      version_range: ">=0.7"
+      platform: windows-x64
+      license: "MIT OR Apache-2.0"
+      source_url: "https://github.com/astral-sh/uv/releases"
+      install_method: scoop
+      healthcheck_command: "uv --version"
+      required_by: [core-runtime, ci, tests]
+      local_only: false
+
+    - name: git
+      purpose: "版本控制"
+      version_range: ">=2.40"
+      platform: windows-x64
+      license: "GPL-2.0-only"
+      source_url: "https://git-scm.com/download/win"
+      install_method: scoop
+      healthcheck_command: "git --version"
+      required_by: [ci, tests, core-runtime]
+      local_only: false
+
+    - name: nodejs-lts
+      purpose: "Tauri 桌面壳前端构建（仅桌面构建）"
+      version_range: ">=22,<25"
+      platform: windows-x64
+      license: "MIT"
+      source_url: "https://nodejs.org/"
+      install_method: scoop
+      healthcheck_command: "node --version"
+      required_by: [desktop-build]
+      local_only: false
+
+    - name: rust
+      purpose: "Tauri 桌面应用编译（desktop/src-tauri）"
+      version_range: ">=1.80"
+      platform: windows-x64
+      license: "MIT OR Apache-2.0"
+      source_url: "https://rustup.rs"
+      install_method: rustup
+      healthcheck_command: "rustc --version"
+      required_by: [desktop-build]
+      local_only: true
+
+    - name: msvc
+      purpose: "MSVC 编译链（VS Build Tools：C++ 桌面工作负载 + Windows SDK）"
+      version_range: ">=17.0"
+      platform: windows-x64
+      license: "Proprietary (Microsoft EULA)"
+      source_url: "https://visualstudio.microsoft.com/visual-cpp-build-tools/"
+      install_method: 下载安装器
+      healthcheck_command: "vswhere.exe"
+      required_by: [desktop-build]
+      local_only: true
+
+    - name: playwright-chromium
+      purpose: "browser-smoke / e2e 测试浏览器（缓存于 toolchains/playwright）"
+      version_range: ">=1228"
+      platform: windows-x64
+      license: "BSD-3-Clause (Chromium)"
+      source_url: "https://playwright.dev/python/docs/browsers"
+      install_method: playwright-install
+      healthcheck_command: "playwright --version"
+      required_by: [browser-smoke, e2e]
+      local_only: true
+
+  runtimes:
+    - name: webview2-evergreen
+      purpose: "桌面壳 WebView2 运行时（Evergreen 自动更新，OS 级）"
+      version_range: "evergreen"
+      platform: windows-x64
+      license: "Proprietary (Microsoft)"
+      source_url: "https://developer.microsoft.com/microsoft-edge/webview2/"
+      install_method: system
+      healthcheck_command: "Get-ItemProperty 'HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'"
+      required_by: [desktop-runtime]
+      local_only: true
+
+    - name: archeaxis-ci-venv
+      purpose: "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）"
+      version_range: "python>=3.11"
+      platform: windows-x64
+      license: "n/a"
+      source_url: "n/a"
+      install_method: uv-sync
+      healthcheck_command: "uv run python --version"
+      required_by: [ci, tests]
+      local_only: true
+
+    - name: desktop-runtime-v1
+      purpose: "桌面运行时 v1（runtimes/desktop-runtime-v1）"
+      version_range: "v1"
+      platform: windows-x64
+      license: "n/a"
+      source_url: "n/a"
+      install_method: 内置
+      healthcheck_command: "Test-Path runtimes/desktop-runtime-v1"
+      required_by: [desktop-runtime]
+      local_only: true
+
+  engines:
+    - name: tesseract
+      purpose: "图像 OCR 引擎（scoop 5.5.0 + leptonica 1.85.0）"
+      version_range: ">=5.0,<6"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "https://github.com/UB-Mannheim/tesseract/wiki"
+      install_method: scoop
+      healthcheck_command: "tesseract --version"
+      required_by: [ocr-pipeline, conversion]
+      local_only: false
+
+    - name: tesseract-languages
+      purpose: "Tesseract 语言包（chi_sim 中文简体 + eng 英文；TESSDATA_PREFIX 指向 4.1.0 目录）"
+      version_range: "4.1.0"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "https://github.com/tesseract-ocr/tessdata"
+      install_method: scoop
+      healthcheck_command: "tesseract --list-langs"
+      required_by: [ocr-pipeline]
+      local_only: false
+
+    - name: ffmpeg
+      purpose: "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）"
+      version_range: ">=6.0"
+      platform: windows-x64
+      license: "LGPL-2.1-or-later"
+      source_url: "https://ffmpeg.org/download.html"
+      install_method: scoop
+      healthcheck_command: "ffmpeg -version"
+      required_by: [conversion, media-pipeline]
+      local_only: false
+
+    - name: rapidocr
+      purpose: "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）"
+      version_range: ">=1.4"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "https://github.com/RapidAI/RapidOCR"
+      install_method: uv
+      healthcheck_command: "uv run python -c \"import rapidocr_onnxruntime\""
+      required_by: [ocr-pipeline, bakeoff]
+      local_only: false
+
+    - name: faster-whisper
+      purpose: "ASR 转写引擎（base 模型首次运行自动下载至 HF 缓存 ~150MB）"
+      version_range: ">=1.1"
+      platform: windows-x64
+      license: "MIT"
+      source_url: "https://github.com/SYSTRAN/faster-whisper"
+      install_method: uv
+      healthcheck_command: "uv run python -c \"import faster_whisper\""
+      required_by: [asr-pipeline, bakeoff]
+      local_only: false
+
+  models:
+    - name: rapidocr-ppocr-onnx
+      purpose: "PP-OCR ONNX 模型（RapidOCR 首次运行自动下载 ~15MB）"
+      version_range: "latest"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "https://github.com/RapidAI/RapidOCR"
+      install_method: 自动下载
+      healthcheck_command: "首次运行验证"
+      required_by: [ocr-pipeline, bakeoff]
+      local_only: true
+
+    - name: faster-whisper-base
+      purpose: "Whisper base 模型（~150MB，HF 缓存 ~/.cache/huggingface）"
+      version_range: "base"
+      platform: windows-x64
+      license: "MIT"
+      source_url: "https://huggingface.co/Systran/faster-whisper-base"
+      install_method: 自动下载
+      healthcheck_command: "首次运行验证"
+      required_by: [asr-pipeline, bakeoff]
+      local_only: true
+
+    - name: magika-standard-v3
+      purpose: "文件类型检测 ONNX 模型（vendored 3.1MB，shared/models/magika）"
+      version_range: "standard_v3_0"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "vendored"
+      install_method: 内置
+      healthcheck_command: "Test-Path shared/models/magika/model.onnx"
+      required_by: [file-detection]
+      local_only: true
+
+  plugins:
+    - name: pdfjs
+      purpose: "PDF 渲染库（vendored 3.11.174，app/workspace/ui/assets）"
+      version_range: "3.11.174"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "vendored"
+      install_method: 内置
+      healthcheck_command: "Test-Path app/workspace/ui/assets/pdf.min.js"
+      required_by: [workspace-ui]
+      local_only: true

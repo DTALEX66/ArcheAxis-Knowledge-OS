@@ -1,0 +1,161 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://archeaxis.local/schemas/capability-requirements.schema.json",
+  "title": "CapabilityRequirements",
+  "description": "ArcheAxis-Knowledge-OS 外置能力需求规范（capability-requirements.yaml 转 JSON 后的严格校验 schema）。五类能力：toolchains / runtimes / engines / models / plugins。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated", "source_of_truth", "description", "capabilities"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "本文件格式版本，如 1.0"
+    },
+    "updated": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "最后更新日期 YYYY-MM-DD"
+    },
+    "source_of_truth": {
+      "type": "string",
+      "minLength": 1,
+      "description": "人类可读权威文档路径"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolchains", "runtimes", "engines", "models", "plugins"],
+      "properties": {
+        "toolchains": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/capability" }
+        },
+        "runtimes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/capability" }
+        },
+        "engines": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/capability" }
+        },
+        "models": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/capability" }
+        },
+        "plugins": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/capability" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "purpose",
+        "version_range",
+        "platform",
+        "license",
+        "source_url",
+        "install_method",
+        "healthcheck_command",
+        "required_by",
+        "local_only"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "description": "唯一标识，小写连字符"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 4,
+          "description": "用途说明"
+        },
+        "version_range": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[><=!~^0-9a-zA-Z.,\\s\\-+*\\[\\]()/_]+$",
+          "description": "兼容范围（不锁死），如 >=3.11,<3.15 / evergreen / v1 / latest"
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["windows-x64", "windows-x86", "linux-x64", "macos-x64", "macos-arm64", "any"]
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SPDX 标识或明确许可声明；n/a 表示不适用"
+        },
+        "source_url": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(https?://|vendored|n/a)",
+          "description": "官方来源；内置资产写 vendored"
+        },
+        "install_method": {
+          "type": "string",
+          "enum": [
+            "scoop",
+            "uv",
+            "rustup",
+            "playwright-install",
+            "下载安装器",
+            "自动下载",
+            "内置",
+            "uv-sync",
+            "system"
+          ]
+        },
+        "healthcheck_command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "健康检查命令；缺失时 inventory 记为 missing"
+        },
+        "required_by": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "core-runtime",
+              "ci",
+              "tests",
+              "desktop-build",
+              "desktop-runtime",
+              "browser-smoke",
+              "e2e",
+              "ocr-pipeline",
+              "asr-pipeline",
+              "conversion",
+              "media-pipeline",
+              "bakeoff",
+              "file-detection",
+              "workspace-ui"
+            ]
+          }
+        },
+        "local_only": {
+          "type": "boolean",
+          "description": "true = 必须在本机/本外部能力仓存在，不随项目分发、不自动安装"
+        }
+      }
+    }
+  }
+}
