@@ -319,11 +319,13 @@ def test_batch_pause_resume_shutdown_flow(client: TestClient, tmp_path: Path) ->
         # checkpoint diagnostic: dump every ledger event touching the missing
         # tasks plus retry/failed/batch_end records (same-process read)
         import json as _json
+
         from shared.config import resolve_runtime_path as _resolve
+
         ckpt = _resolve("data") / "batch" / "control-batch.jsonl"
         traces: list[str] = []
         tasks_all: list[str] = []
-        attempts_info: dict[str, Any] = status.json().get("attempts", {})
+        attempts_info: dict[str, object] = status.json().get("attempts", {})
         if ckpt.exists():
             for line in ckpt.read_text(encoding="utf-8", errors="replace").splitlines():
                 try:

@@ -95,9 +95,8 @@ class BatchImportController:
             # interleaved writes corrupt JSONL lines, silently dropping
             # events on rehydrate (AXW-REL-001). Separate lock: never take
             # self._lock here (pause/resume hold it while calling us).
-            with self._ledger_lock:
-                with self.checkpoint_path.open("a", encoding="utf-8") as handle:
-                    handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+            with self._ledger_lock, self.checkpoint_path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
         except Exception:
             # The ledger is best-effort diagnostics; a failed append must
             # never kill a worker thread and lose a task (AXW-REL-001).
