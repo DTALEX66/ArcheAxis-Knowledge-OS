@@ -101,7 +101,7 @@ jobs:
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
             --verification-ci-run-id ${{ steps.require_ci.outputs.verification_run_id }} `
             --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
-            --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,SBOM.cdx.json,SHA256SUMS.txt" `
+            --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,release-manifest.json,SBOM.cdx.json,THIRD_PARTY_NOTICES.txt,SHA256SUMS.txt" `
             --dependency-locks "uv.lock=$uvLockHash,desktop/package-lock.json=$npmLockHash,desktop/src-tauri/Cargo.lock=$cargoLockHash" `
             --output .hermes/rt/runtime/release-identity.json
       - name: Build Windows NSIS installer
@@ -138,12 +138,19 @@ jobs:
             --version ${{ steps.resolve_version.outputs.release_version }}
           python scripts/release_sbom.py `
             --version ${{ steps.resolve_version.outputs.release_version }} `
-            --out release-assets/SBOM.cdx.json
+            --out release-assets/SBOM.cdx.json `
+            --notices-out release-assets/THIRD_PARTY_NOTICES.txt
+          python scripts/release_manifest.py `
+            --version ${{ steps.resolve_version.outputs.release_version }} `
+            --assets release-assets `
+            --out release-assets/release-manifest.json
           python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset `
             --artifact release-assets/release-identity.json `
             --artifact (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip") `
             --artifact (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip") `
             --artifact release-assets/SBOM.cdx.json `
+            --artifact release-assets/release-manifest.json `
+            --artifact release-assets/THIRD_PARTY_NOTICES.txt `
             --output release-assets/SHA256SUMS.txt
       - name: Verify checksum manifest payload equality
         shell: pwsh
@@ -155,8 +162,8 @@ jobs:
           $payloadNames = @(Get-ChildItem release-assets -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-Object Name)
           $manifestComparison = Compare-Object ($manifestNames | Sort-Object) ($payloadNames | Sort-Object)
           if ($manifestComparison) { throw "SHA256SUMS payload set differs from staged payload set: $($manifestComparison | Out-String)" }
-          if ($manifestNames.Count -ne 6 -or ($manifestNames | Select-Object -Unique).Count -ne 6) {
-            throw "expected exactly six unique checksum-bound payloads"
+          if ($manifestNames.Count -ne 8 -or ($manifestNames | Select-Object -Unique).Count -ne 8) {
+            throw "expected exactly eight unique checksum-bound payloads"
           }
       - name: Upload verified assets to draft release
         env:
@@ -171,7 +178,9 @@ jobs:
             (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip").Path,
             (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip").Path,
             (Resolve-Path "release-assets/release-identity.json").Path,
+            (Resolve-Path "release-assets/release-manifest.json").Path,
             (Resolve-Path "release-assets/SBOM.cdx.json").Path,
+            (Resolve-Path "release-assets/THIRD_PARTY_NOTICES.txt").Path,
             (Resolve-Path "release-assets/SHA256SUMS.txt").Path
           )
           gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis Knowledge $env:GITHUB_REF_NAME" --generate-notes
@@ -186,7 +195,9 @@ jobs:
             "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip",
             "archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl",
             "release-identity.json",
+            "release-manifest.json",
             "SBOM.cdx.json",
+            "THIRD_PARTY_NOTICES.txt",
             "SHA256SUMS.txt"
           ) | Sort-Object
           $release = gh release view $env:GITHUB_REF_NAME --json tagName,targetCommitish,isDraft,assets,url | ConvertFrom-Json
@@ -254,7 +265,7 @@ jobs:
             throw "identity artifact manifest differs from public asset set"
           }
           $identityKinds = @($identity.artifacts | ForEach-Object kind | Sort-Object -Unique)
-          foreach ($kind in @("installer", "green", "portable", "wheel", "sbom", "checksums", "identity")) {
+          foreach ($kind in @("installer", "green", "portable", "wheel", "sbom", "checksums", "identity", "manifest", "notices")) {
             if ($kind -notin $identityKinds) { throw "identity artifact manifest missing kind: $kind" }
           }
           # v3: dependency lock hashes must match the downloaded lock files
