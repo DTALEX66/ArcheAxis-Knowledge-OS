@@ -4,15 +4,30 @@ Registers the existing ``app.ingestion.ocr_adapter`` as a builtin
 conversion plugin. The exported ``MANIFEST`` dict is compatible with
 ``contracts/plugin/plugin-manifest.schema.json``; ``healthcheck()`` probes
 the real adapter module (importlib find_spec) without importing it.
+
+``get_activator()`` (AXW-CAP-503 step 2) returns the activator callable
+for ``CapabilityStore.install_builtin()``: invoking it wraps the REAL
+``app.ingestion.ocr_adapter.convert_ocr`` function into a store-callable
+``FileConverter`` (convert(source_path, options) -> AdapterResult) and
+registers it with ``app.capability.conversion`` so
+``ConversionDispatcher.get_converter()`` can dispatch it. The single
+supported option key ``lang`` maps 1:1 onto the adapter's own ``lang``
+keyword argument; any other key is refused fail-closed. Conversion
+failures raise ``ConverterError`` (never a fake result).
 """
 
 from __future__ import annotations
 
 import importlib.util
+from collections.abc import Callable
 from typing import Any
+
+from app.capability.conversion import FileConverter, make_file_converter, register_active_converter
 
 ADAPTER_MODULE = "app.ingestion.ocr_adapter"
 ENTRY_POINT = f"{ADAPTER_MODULE}:convert_ocr"
+ADAPTER_FUNCTION = "convert_ocr"
+ALLOWED_OPTIONS: tuple[str, ...] = ("lang",)
 
 MANIFEST: dict[str, Any] = {
     "manifest_version": "1.0",
@@ -45,3 +60,26 @@ def healthcheck() -> dict[str, Any]:
         "plugin_id": plugin_id,
         "detail": f"adapter module importable: {ADAPTER_MODULE}",
     }
+
+
+def get_activator() -> Callable[[], FileConverter]:
+    """Return the activator for ``CapabilityStore.install_builtin()``.
+
+    The returned callable builds the converter service that wraps the
+    REAL ``app.ingestion.ocr_adapter.convert_ocr`` function and
+    registers it with ``app.capability.conversion``. Re-invocation is
+    idempotent (re-registration replaces the same plugin_id).
+    """
+
+    def activate() -> FileConverter:
+        service = make_file_converter(
+            plugin_id=MANIFEST["plugin_id"],
+            name=MANIFEST["name"],
+            adapter_module=ADAPTER_MODULE,
+            adapter_function=ADAPTER_FUNCTION,
+            allowed_options=ALLOWED_OPTIONS,
+        )
+        register_active_converter(MANIFEST["plugin_id"], service)
+        return service
+
+    return activate

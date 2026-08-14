@@ -102,11 +102,16 @@ def _quote_ident(name: str) -> str:
 
 
 def _connect(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
-    if readonly:
+    raw = str(path)
+    # SQLite's file: URI parser cannot express the \\?\ extended-path prefix
+    # (invalid uri authority). Extended paths connect natively on Windows;
+    # keep the URI readonly mode for plain paths only.
+    is_extended = raw.startswith("\\\\?\\")
+    if readonly and not is_extended:
         uri = f"{path.resolve().as_uri()}?mode=ro"
         connection = sqlite3.connect(uri, uri=True, timeout=30.0)
     else:
-        connection = sqlite3.connect(str(path), timeout=30.0)
+        connection = sqlite3.connect(raw, timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     return connection
 
