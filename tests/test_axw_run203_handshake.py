@@ -24,9 +24,8 @@ def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     # migration_state assertions are deterministic.
     monkeypatch.setenv("ARCHEAXIS_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.delenv("ARCHEAXIS_RUNTIME_PROFILE", raising=False)
-    from app.workspace.supervisor import BackendSupervisor
-
     import app.workspace.system as system_module
+    from app.workspace.supervisor import BackendSupervisor
 
     monkeypatch.setattr(system_module, "supervisor", BackendSupervisor())
     from app.main import app

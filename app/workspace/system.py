@@ -15,7 +15,7 @@ import subprocess
 import tomllib
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from app.workspace.router import _require_local_request

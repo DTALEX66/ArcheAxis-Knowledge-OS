@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """能力资产下载治理 CLI（AXW-ENV-105）。
 
 设计原则（详见 config/environment/download-governance.md）:
@@ -23,7 +22,6 @@ import hashlib
 import json
 import os
 import shutil
-import sys
 import tempfile
 import urllib.request
 from datetime import datetime, timezone
@@ -66,7 +64,7 @@ def download_to(url: str, dest: str) -> tuple[int, str]:
 
 
 def load_manifest(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as fh:
+    with open(path, encoding="utf-8") as fh:
         manifest = json.load(fh)
     if manifest.get("manifest_version") != MANIFEST_VERSION:
         raise ValueError(f"manifest 版本不兼容: {manifest.get('manifest_version')}")
@@ -107,7 +105,7 @@ def cmd_stage(args: argparse.Namespace) -> int:
     target = os.path.join(dest_dir, name)
     if os.path.exists(target) and not args.force:
         print(f"[stage] 拒绝覆盖已存在文件（静默覆盖被禁止）: {target}")
-        print(f"[stage] 如需强制覆盖请加 --force")
+        print("[stage] 如需强制覆盖请加 --force")
         return 2
 
     print(f"[stage] 来源: {args.url}")
@@ -150,7 +148,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
     print(f"[verify] MISMATCH: {staged}")
     print(f"[verify] 期望 {manifest['sha256']}")
     print(f"[verify] 实际 {actual}")
-    print(f"[verify] 建议: 立即 quarantine 该文件并重新 stage")
+    print("[verify] 建议: 立即 quarantine 该文件并重新 stage")
     return 1
 
 
@@ -176,7 +174,7 @@ def cmd_quarantine(args: argparse.Namespace) -> int:
     print(f"[quarantine] 已隔离 {len(moved)} 项 -> {qdir}")
     for m in moved:
         print(f"[quarantine]   {m}")
-    print(f"[quarantine] 隔离后该资产不再被任何 activate/verify 引用")
+    print("[quarantine] 隔离后该资产不再被任何 activate/verify 引用")
     return 0
 
 
@@ -187,7 +185,7 @@ def cmd_activate(args: argparse.Namespace) -> int:
     license_ = manifest.get("license") or "unknown"
     if license_ in ("", "unknown") and not args.force:
         print(f"[activate] 拒绝: 许可证未声明（license={license_!r}）。")
-        print(f"[activate] 治理规则：许可证未知的资产不得激活。请重新 stage 时传 --license，或 --force 显式放行。")
+        print("[activate] 治理规则：许可证未知的资产不得激活。请重新 stage 时传 --license，或 --force 显式放行。")
         return 2
 
     store_root = os.path.abspath(args.store_root)
@@ -208,7 +206,7 @@ def cmd_activate(args: argparse.Namespace) -> int:
             print(f"[activate] 暂存文件缺失或哈希不符，重新下载: {manifest['source_url']}")
             size, digest = download_to(manifest["source_url"], tmp_path)
             if digest != manifest["sha256"]:
-                print(f"[activate] 拒绝: 重新下载的 sha256 与 manifest 不符")
+                print("[activate] 拒绝: 重新下载的 sha256 与 manifest 不符")
                 print(f"[activate]   期望 {manifest['sha256']}")
                 print(f"[activate]   实际 {digest}")
                 return 1

@@ -19,9 +19,9 @@ from threading import Lock
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.security_headers import SecurityHeadersMiddleware
 from fastapi.responses import JSONResponse
 
+from app.security_headers import SecurityHeadersMiddleware
 from shared.config import config, validate_runtime_config
 from shared.rate_limit import RateLimiter
 from shared.research_boundary import unreviewed_research_references
@@ -303,8 +303,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ── Mount packaged sub-applications (fault-tolerant) ──
-from app.workspace.router import router as workspace_router
 from app.capability.router import router as capability_router
+from app.workspace.router import router as workspace_router
 from app.workspace.system import router as system_router
 
 _research_app = None

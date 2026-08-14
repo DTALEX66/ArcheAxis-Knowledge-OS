@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """从 capability-requirements.yaml 生成人类可读依赖文档（Markdown）。
 
 用法:
@@ -51,7 +50,7 @@ def load_yaml(path: str) -> dict:
             "错误: 需要 PyYAML。请在项目环境安装: uv add --dev pyyaml 或 pip install pyyaml\n"
         )
         raise SystemExit(2) from exc
-    with open(path, "r", encoding="utf-8") as fh:
+    with open(path, encoding="utf-8") as fh:
         data = yaml.safe_load(fh)
     if not isinstance(data, dict) or "capabilities" not in data:
         sys.stderr.write(f"错误: {path} 不是合法的 capability-requirements 文件\n")
@@ -63,7 +62,7 @@ def render(data: dict) -> str:
     lines: list[str] = []
     lines.append("# ArcheAxis Knowledge — 外置能力需求清单（机器可读生成）")
     lines.append("")
-    lines.append(f"> 本文档由 `scripts/generate_external_dependencies_doc.py` 从机器可读清单生成。")
+    lines.append("> 本文档由 `scripts/generate_external_dependencies_doc.py` 从机器可读清单生成。")
     lines.append(f"> 机器可读源：`config/environment/capability-requirements.yaml`（schema v{data.get('schema_version', '?')}）")
     lines.append(f"> 更新日期：{data.get('updated', '?')} | 权威人类文档：`{data.get('source_of_truth', '?')}`")
     lines.append(f"> 说明：{data.get('description', '')}")
