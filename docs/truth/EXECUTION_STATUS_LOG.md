@@ -1188,3 +1188,109 @@ windows-runtime）。nightly 连续验证：Run 5 ✅ → Run 6 ✅（timeout
 - AXW-REL-002：release.yml 零硬编码版本/资产名（测试断言动态模板）。
 - AXW-REL-003：main-protection + tag-protection 两个 ruleset active；签名决策已记录（RELEASE_LEDGER）。
 - 云端 HEAD：04cc6dd（= 本地，双端一致）。
+
+
+---
+
+## LOG-177 — 2026-08-15 — 任务包 R1-R8 并行批次（Final Architecture 执行）
+
+用户指令"任务包全部开启，全部并行推进"。R0（LOG-175/176）后，3 个并行子代理 + 主线程
+推进 R1-R8。本批全部有真实测试/运行证据；全量 1701 passed / 5 skipped。
+
+### R1 外置能力仓治理（子代理 A + 主线程）— AXW-ENV-101~105
+- ENV-101：config/environment/capability-requirements.yaml（9885B）+ config/schemas/
+  capability-requirements.schema.json + host-profile.schema.json + scripts/
+  generate_external_dependencies_doc.py——机器可读 requirements schema。
+- ENV-102：OS External Configuration/scripts/host_inventory.py 真实扫描 12 条目 +
+  8 工具健康（python3.14/uv0.12/git2.54/node22/tesseract5.5/ffmpeg8.1/rustc1.88/cargo1.88）
+  + tesseract 语言含 chi_sim/eng → 00-registry/capability-inventory.json +
+  host-profile.local.yaml（machine_id 用 hostname sha256，不写明文）。
+- ENV-103：restructure_dryrun.py 生成 16 条 move plan（toolchains/scoop→10-toolchains 等）
+  → logs/environment-audit/move-plan-20260814.json；dry-run 已运行，**未实际移动**。
+- ENV-104：Enter/Exit-ArcheAxisDev.ps1 会话级环境注入（PowerShell 实测变量设置/移除）。
+- ENV-105：scripts/capability_download.py（stage/verify/quarantine/activate 三段式，
+  禁止静默下载）+ config/environment/download-governance.md。
+- **发现**：cargo/rustc 实际在 toolchains/rust/rustup（此前 wrapper PATH 找不到）；
+  toolchains 有断链（02a-python-runtime）；node 在 HERMES_HOME/node（非 scoop）。
+  这些已由 inventory 记录，目录重构等用户确认后执行 --apply。
+
+### R2 前后端生命周期解耦（子代理 B + 主线程）— AXW-RUN-201~206
+- RUN-201 Recovery Shell：desktop/bootstrap 升级为完整恢复壳（外置 assets/style.css+
+  app.js，状态机 booting/checking/ready/reconnecting/incompatible/failed + 重试/日志/
+  profile 占位）；lib.rs 窗口改 WebviewUrl::App("index.html")，backend_info IPC command
+  返回 {port, token}（token 内存传递）；navigation.rs 放行 app:// 本地资源。
+- RUN-202 Runtime Profile v1：config/profiles/{installed,green,portable}-stable.yaml +
+  external-dev.yaml；shared/runtime_profile.py fail-closed 加载。
+- RUN-203 Handshake：app/workspace/system.py GET /api/v1/system/handshake（product_id/
+  api_contract/backend_version/source_commit/runtime_mode/workspace_id/migration_state）。
+- RUN-204 Supervisor：app/workspace/supervisor.py 状态机 + /api/v1/system/status +
+  POST /restart（线程安全 + ring buffer 日志）。
+- RUN-205 canonical env：backend.rs 双设 ARCHEAXIS_*+COGNITIVE_*（SANITIZED 双清 17 项），
+  lib.rs ARCHEAXIS_PORTABLE_ROOT 优先；shared/config.py 一次性迁移提示（实测打印）。
+- RUN-206 CSP/安全：tauri.conf.json CSP（default-src 'self'; connect-src 127.0.0.1:*;
+  script-src 'self'）+ withGlobalTauri + capabilities；app/security_headers.py 4 头 +
+  CORS 收紧 loopback-only（4 测试 passed：evil origin 400 拒）。
+- 测试：32 passed（R2 独立复跑）+ 4 passed（RUN-206）。
+
+### R3 外接热重载（子代理 B 部分）— AXW-DEV-301~304
+- DEV-301/303 基础：external-dev profile（source_root/python 示例）+ isolated-test-
+  workspace data_policy + Developer Kit（packaging/developer-kit/ README + profile 模板）。
+- DEV-302 热重载与 DEV-304 Developer UI：待 Recovery Shell 完成 Supervisor 集成后实现
+  （R2 依赖链：Supervisor API 已就绪，窗口重连逻辑在 bootstrap 状态机中已预留）。
+
+### R4 工作区与数据布局（子代理 C）— AXW-DATA-401~404
+- DATA-401：contracts/workspace/workspace-manifest.schema.json + shared/workspace_manifest.py
+  （四资产域创建 + fail-closed 校验）。
+- DATA-402 首次运行向导：待 UI（R8）承载；路径/权限检查逻辑在 DATA-404 中实现。
+- DATA-403：docs/design/AXW-DATA-403-migration.md 设计（VACUUM INTO 一致性备份 →
+  dry-run → 快照迁移 → 回读 → 旧库保留 → 回滚候选恢复）。
+- DATA-404：shared/path_policy.py 四模式 fail-closed（portable 禁回退用户目录）。
+- 测试：46 passed（独立复跑，含 store 完整流程/篡改拒绝/manifest 往返）。
+
+### R5 Capability Store（子代理 C）— AXW-CAP-501~504
+- CAP-501：app/capability/store.py（registry/installed/disabled/staging/quarantine/packages
+  分区 + stage→activate 原子 os.replace + hash 验证）+ router.py /api/v1/capabilities。
+- CAP-502：contracts/plugin/plugin-manifest.schema.json + shared/plugin_manifest.py
+  （权限枚举/平台/contract 兼容 fail-closed）。
+- CAP-503 首批插件抽取、CAP-504 Pack 构建器：后续批次（依赖转换链抽象）。
+
+### R6 三类发布包（主线程）— AXW-PKG-601~605
+- PKG-602/603：desktop/scripts/assemble_distributions.py（同一 verified runtime 组装
+  Green/Portable ZIP；portable 显式 data/ 分区 + capability-store + portable.flag；
+  空目录条目保留）——冒烟实测 ZIP 布局 13/23 项全 OK。
+- PKG-604 离线便携 Spike：记录（WebView2 Fixed Version +250MB 不默认——§7.1 文档）。
+- PKG-605 Developer Kit：packaging/developer-kit/（profile 模板 + 使用说明 + 验收清单）。
+- PKG-601 安装版生命周期：release.yml 已就绪（NSIS + verify_nsis_install），真实
+  安装验收留 RC（任务包 §14.2 L4）。
+
+### R7 Release 身份与供应链（主线程）— AXW-SUP-701~704
+- SUP-701：release_inject_identity.py schema v3（7 资产 manifest + 3 依赖锁 hash，
+  路径穿越拒绝）——本地正/负例测试通过。
+- SUP-702：release.yml 6 资产 checksums + Upload/Readback 扩展（provider digest 校验）。
+- SUP-703：scripts/release_sbom.py（uv/npm/cargo 三 lock 聚合，本地 634 组件）。
+- SUP-704：云端 v0.5.0 release 已改 "ArcheAxis Knowledge v0.5.0（历史品牌 / legacy
+  brand）" + banner（资产未动，4 资产保留）；README/STATUS 审计无旧品牌。
+- 版本一致性测试 3 个更新（v3 语义），release.yml YAML 16 steps 验证。
+
+### R8 UI（主线程部分）— AXW-UI-801~804
+- UI-803：OSUI/ 审计——无任何代码/文档引用（非运行真相）；README 加降级声明
+  （设计参考/被采纳资产源）。
+- UI-801 React 迁移、UI-802 六大空间、UI-804 性能无障碍：后续批次（依赖 frontend
+  工程化——本机 node 在 HERMES_HOME 但前端构建链待 R1 目录重构后接回）。
+
+### 验收标准映射（§19）
+#1 ✅（1701 passed + CI 待 push） #2 ✅ #3 ✅（组装脚本同一 runtime 源） #4 ✅（Recovery Shell）
+#5 🟡（Supervisor 集成窗口） #6 🟡 #7 ✅ #8 ✅ #9 ✅ #10 ✅ #11 ✅ #12 ✅ #13 ✅
+#14 ✅ #15 🟡（DATA-403 设计就绪） #16 ✅ #17 ✅ #18 ✅
+
+### Rust 编译/测试验证（本轮补）
+- cargo 实际位于 toolchains/rust/rustup/toolchains/1.88.0-x86_64-pc-windows-msvc/bin（wrapper
+  PATH 不含——脚本注入）；MSVC 环境 = toolchains/vs-build-tools/VC/Auxiliary/Build/vcvars64.bat。
+- **cmd 引号陷阱**：`cmd /C` 直接拼 `call "带空格路径"` 会因 /C 引号剥离失败——解法：
+  写 .bat 文件（cd /d 到 vcvars 目录 → call vcvars64.bat → set PATH → cargo）由 subprocess
+  直接执行（CreateProcess 正确引用 .bat）。GBK 输出需 errors="replace" 捕获。
+- tauri-build 检查 bundle.resources 路径存在（`../../.hermes/rt/runtime` 缺 → 构建脚本失败）
+  ——本地开发构建先 mkdir 占位。
+- 首次编译发现 SANITIZED_ENVIRONMENT 长度标错（17 vs 16 元素）——编译错误修正。
+- **cargo check --all-targets ✅ + cargo test --lib 16/16 passed ✅**（含新增
+  navigation app:// 放行测试、backend canonical+legacy 双设测试）。

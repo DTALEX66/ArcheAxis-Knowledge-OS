@@ -1,3 +1,10 @@
+> **状态：设计参考 / 被采纳资产源（AXW-UI-803，2026-08-15）**
+>
+> 本目录不再是可运行 UI 真相。当前唯一运行前端是 Tauri `frontendDist`
+> （`desktop/bootstrap/`，Recovery Shell）与后端 `/workspace` 页面；OSUI
+> 的组件、配色与布局作为设计资产被采纳，任何改动不影响运行 UI。
+> 迁移完成（AXW-UI-801 React 渐进迁移）后本目录归档为纯参考。
+
 # OSUI 前端交接包
 
 ## 范围

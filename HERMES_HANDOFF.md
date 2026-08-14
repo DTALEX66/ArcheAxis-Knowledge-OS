@@ -7,11 +7,11 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Repository: `D:\All projects\ArcheAxis-Knowledge-OS` (canonical, single writer: Hermes)
 - Branch: `main` — HEAD and origin in sync (verify with `git status --short --branch` before resuming)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
-- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1619 passed / 5 skipped** (2026-08-15 local); ruff + repository-conventions gate green on head.
+- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1) + Final Architecture TaskPack 2026-08-14 (R0-R8). Full suite: **1701 passed / 5 skipped** (2026-08-15 local, three dirs); ruff + repository-conventions gate green on head; cargo check + 16/16 Rust tests green.
 
-## Frozen-baseline execution state (LOG-147..176 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..177 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
-Implemented and CI-verified (continuous green: CI runs 524-583):
+Implemented and CI-verified (continuous green: CI runs 524-583, next push pending):
 
 - **AXW-022B**: PDF evidence annotation reachable (text-layer overlay + cached selection); real browser-smoke first ran on CI at `85b3311` (run 31732780580).
 - **H5 implementation layer** (`5dc3d9b` + `d129aa3`): AXW-094A open-exchange export (`app/exchange/export.py`), AXW-094B verifiable backup (`app/exchange/backup.py`), AXW-096A performance benchmark (`shared/performance_benchmark.py`), AXW-096B keyboard accessibility (UI), AXW-096C batch import control (`app/ingestion/batch_controller.py`). EXIT is a verification gate, not an implementation prerequisite (precedent 023A-F/043B/050A).
@@ -70,6 +70,42 @@ Implemented and CI-verified (continuous green: CI runs 524-583):
     enforced. Ruleset API schema trap documented (nested
     `required_status_checks: [{context}]` + `strict_required_status_checks_policy`).
     Signing decision already recorded (RELEASE_LEDGER).
+- **Final Architecture TaskPack R1-R8 batch (LOG-177, 2026-08-15)**:
+  - R1 (AXW-ENV-101~105): machine-readable capability-requirements.yaml +
+    2 JSON schemas + doc generator; host_inventory.py real scan (8 tools
+    health + tesseract langs) → 00-registry/; restructure_dryrun.py 16-move
+    plan (dry-run only, no actual moves); Enter/Exit-ArcheAxisDev.ps1
+    session env; capability_download.py stage/verify/quarantine/activate
+    governance. Deliverables live in OS External Configuration repo
+    (scripts/, 00-registry/, logs/) — uncommitted by design (local-only
+    inventory; task pack: not a public install dependency).
+  - R2 (AXW-RUN-201~206): Recovery Shell (bootstrap state machine + IPC
+    token, window opens frontendDist first); Runtime Profile v1 (4
+    config/profiles/*-stable.yaml + fail-closed loader); Backend Handshake
+    /api/v1/system/handshake; Supervisor state machine + /status + /restart;
+    canonical ARCHEAXIS_* env (Rust sets both, sanitizes both families);
+    CSP + security headers + CORS loopback-only. Rust: cargo check +
+    16/16 tests; Python: 36 tests.
+  - R3 (AXW-DEV-301~304): external-dev profile + Developer Kit
+    (packaging/developer-kit/) — hot-reload integration pending Supervisor
+    wiring in the shell.
+  - R4 (AXW-DATA-401~404): workspace manifest schema + impl (four asset
+    domains); path_policy.py four-mode fail-closed (portable never falls
+    back to user dir); DATA-403 migration design doc; 46 tests.
+  - R5 (AXW-CAP-501~504): Capability Store v1 (registry/installed/disabled/
+    staging/quarantine, atomic activate) + /api/v1/capabilities router;
+    Plugin Manifest v1 schema + validator.
+  - R6 (AXW-PKG-602/603/605): assemble_distributions.py Green/Portable ZIPs
+    from the same verified runtime (portable data/ zones + portable.flag);
+    smoke-tested ZIP layouts; Developer Kit.
+  - R7 (AXW-SUP-701~704): identity schema v3 (7-artifact manifest +
+    dependency lock hashes); release.yml 6-asset checksums/upload/readback;
+    release_sbom.py (634 components); v0.5.0 release renamed to historical
+    brand with banner (assets untouched).
+  - R8 (AXW-UI-803): OSUI audited (zero references) + downgrade banner;
+    React migration deferred to next batch (node toolchain restore).
+  - Acceptance §19: #1/#2/#3/#4/#7-#14/#16-#18 green; #5/#6/#15 partial
+    (Supervisor wiring, hot reload, migration implementation pending).
 
 - **Coverage audits (LOG-163)**: all 51 workspace router endpoints and all
   12 UI data-action handlers now have test references (3 genuine route gaps
