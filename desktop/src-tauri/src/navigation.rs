@@ -1,6 +1,12 @@
 use url::Url;
 
 pub fn navigation_allowed(url: &Url, backend_port: u16) -> bool {
+    // AXW-RUN-201: the Recovery Shell lives in the packaged frontendDist
+    // (app:// scheme, local-only assets). Everything else must be the exact
+    // loopback workspace origin.
+    if url.scheme() == "app" {
+        return true;
+    }
     let path = url.path();
     url.scheme() == "http"
         && url.host_str() == Some("127.0.0.1")
@@ -45,5 +51,13 @@ mod tests {
         ] {
             assert!(!allowed(value, 43123), "unexpectedly allowed {value}");
         }
+    }
+
+    #[test]
+    fn accepts_packaged_recovery_shell_assets() {
+        assert!(allowed("app://index.html", 43123));
+        assert!(allowed("app://assets/app.js", 43123));
+        assert!(allowed("app://assets/style.css", 43123));
+        assert!(allowed("app://localhost/index.html", 43123));
     }
 }

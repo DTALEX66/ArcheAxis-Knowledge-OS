@@ -19,6 +19,7 @@ from threading import Lock
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from app.security_headers import SecurityHeadersMiddleware
 from fastapi.responses import JSONResponse
 
 from shared.config import config, validate_runtime_config
@@ -52,10 +53,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config.get("cors.allow_origins", ["*"]),
+    allow_origin_regex=r"http://(127\.0\.0\.1|localhost):\d+",
+    allow_origins=[],
     allow_methods=config.get("cors.allow_methods", ["GET", "POST"]),
     allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
 )
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 _RATE_LIMITER_LOCK = Lock()
 _RATE_LIMITER_SIGNATURE: tuple[int, int, int, int, int] | None = None
@@ -300,6 +304,8 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # ── Mount packaged sub-applications (fault-tolerant) ──
 from app.workspace.router import router as workspace_router
+from app.capability.router import router as capability_router
+from app.workspace.system import router as system_router
 
 _research_app = None
 _kb_app = None
@@ -323,6 +329,10 @@ app.include_router(workspace_router)
 # mounted under both the legacy /workspace path and the canonical root;
 # the legacy path stays until all clients flip).
 app.include_router(workspace_router, prefix="/api/v1")
+# AXW-RUN-203/204: system router carries its own /api/v1/system prefix.
+app.include_router(system_router)
+# AXW-CAP-501: capability store router carries its own /api/v1/capabilities prefix.
+app.include_router(capability_router)
 
 
 def _http_route_counts() -> dict[str, int]:

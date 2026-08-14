@@ -1,0 +1,7 @@
+# Runtime profile v1 — portable-stable (AXW-RUN-202)
+# Portable build: bundled backend, data confined to the portable root,
+# no hot reload.
+name: portable-stable
+backend: bundled
+data_policy: portable-root-only
+reload: false

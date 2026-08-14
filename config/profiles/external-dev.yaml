@@ -1,0 +1,10 @@
+# Runtime profile v1 — external-dev (AXW-RUN-202)
+# External source checkout: backend runs from an external source root,
+# data confined to an isolated test workspace, hot reload enabled.
+name: external-dev
+backend: external-source
+data_policy: isolated-test-workspace
+reload: true
+# 本机示例注释：source_root 仅作为本机示例填写（开发机 D 盘 checkout）；
+# 发布包不得携带绝对路径，未配置时保持缺省。
+source_root: "D:/All projects/ArcheAxis-Knowledge-OS"

@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import sys
 from ipaddress import ip_network
 from pathlib import Path
 from typing import Any
@@ -219,12 +220,52 @@ class Config:
 config = Config()
 
 
+# ── Canonical vs legacy environment variables (AXW-RUN-205) ────────────
+#
+# Canonical names use the ARCHEAXIS_* prefix; legacy COGNITIVE_* names are
+# honored as fallbacks during migration and are tested for fallback
+# behavior. When a legacy variable is consumed because its canonical
+# counterpart is unset, a one-time stderr hint is emitted (guarded by the
+# ARCHEAXIS_LEGACY_HINT_SHOWN sentinel so it never repeats within a
+# process tree).
+_LEGACY_MIGRATION_HINT_SENTINEL = "ARCHEAXIS_LEGACY_HINT_SHOWN"
+
+
+def _warn_legacy_env_once(legacy_name: str, canonical_name: str) -> None:
+    """Print a migration hint to stderr at most once per process tree.
+
+    The sentinel environment variable prevents repeated hints from the
+    same process (and its children); unsetting it in tests re-arms the
+    hint for the next fallback.
+    """
+    if os.getenv(_LEGACY_MIGRATION_HINT_SENTINEL):
+        return
+    os.environ[_LEGACY_MIGRATION_HINT_SENTINEL] = "1"
+    print(
+        f"[migration] {legacy_name} is set but {canonical_name} is not; "
+        f"falling back to the legacy value. Set {canonical_name} to adopt "
+        f"the canonical ARCHEAXIS_* environment contract (COGNITIVE_* is "
+        f"deprecated and will be removed).",
+        file=sys.stderr,
+    )
+
+
 def resolve_runtime_path(value: str | Path) -> Path:
-    """Resolve paths without falling back to an uncontrolled user-home directory."""
+    """Resolve paths without falling back to an uncontrolled user-home directory.
+
+    Canonical root: ``ARCHEAXIS_DATA_DIR`` (wins when set).
+    Legacy fallback: ``COGNITIVE_DATA_DIR`` (used only when the canonical
+    variable is unset; emits a one-time stderr migration hint).
+    Default: project root (source checkouts).
+    """
     candidate = Path(value).expanduser()
     if candidate.is_absolute():
         return candidate
-    configured_root = os.getenv("ARCHEAXIS_DATA_DIR", "").strip() or os.getenv("COGNITIVE_DATA_DIR", "").strip()
+    configured_root = os.getenv("ARCHEAXIS_DATA_DIR", "").strip()
+    legacy_root = os.getenv("COGNITIVE_DATA_DIR", "").strip()
+    if not configured_root and legacy_root:
+        _warn_legacy_env_once("COGNITIVE_DATA_DIR", "ARCHEAXIS_DATA_DIR")
+        configured_root = legacy_root
     if configured_root:
         base = Path(configured_root).expanduser()
         parts = (

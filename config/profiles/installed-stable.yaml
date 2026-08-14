@@ -1,0 +1,7 @@
+# Runtime profile v1 — installed-stable (AXW-RUN-202)
+# Canonical installed distribution: bundled backend, user data dir,
+# no hot reload.
+name: installed-stable
+backend: bundled
+data_policy: installed-user-data
+reload: false

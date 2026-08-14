@@ -13,13 +13,38 @@ use navigation::navigation_allowed;
 #[cfg(windows)]
 use runtime::resolve_runtime_with_portable_root;
 #[cfg(windows)]
+use serde::Serialize;
+#[cfg(windows)]
 use std::path::{Path, PathBuf};
 #[cfg(windows)]
 use std::sync::{Arc, Mutex};
 #[cfg(windows)]
 use tauri::webview::NewWindowResponse;
 #[cfg(windows)]
-use tauri::{Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+
+/// Recovery Shell reads the backend endpoint over IPC; the launch token is
+/// kept in memory only (never persisted, never written to localStorage).
+#[cfg(windows)]
+#[derive(Clone, Serialize)]
+pub struct BackendInfo {
+    pub port: u16,
+    pub token: String,
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn backend_info(
+    state: State<'_, Arc<Mutex<Option<BackendProcess>>>>,
+) -> Result<Option<BackendInfo>, String> {
+    let guard = state
+        .lock()
+        .map_err(|_| "desktop backend state is poisoned".to_owned())?;
+    Ok(guard.as_ref().map(|process| BackendInfo {
+        port: process.port,
+        token: process.token.clone(),
+    }))
+}
 
 #[cfg(windows)]
 pub fn run() {
@@ -38,6 +63,7 @@ fn run_inner() -> Result<(), String> {
     let backend: Arc<Mutex<Option<BackendProcess>>> = Arc::new(Mutex::new(None));
     let setup_backend = Arc::clone(&backend);
     let app = tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![backend_info])
         .setup(move |app| {
             let result = (|| -> Result<(), String> {
                 let resources = app
@@ -48,7 +74,11 @@ fn run_inner() -> Result<(), String> {
                     .path()
                     .app_local_data_dir()
                     .map_err(|error| error.to_string())?;
-                let portable_root = std::env::var_os("COGNITIVE_PORTABLE_ROOT").map(PathBuf::from);
+                // AXW-RUN-205: canonical portable root first, legacy env as a
+                // tested fallback for two stable releases.
+                let portable_root = std::env::var_os("ARCHEAXIS_PORTABLE_ROOT")
+                    .or_else(|| std::env::var_os("COGNITIVE_PORTABLE_ROOT"))
+                    .map(PathBuf::from);
                 let runtime = resolve_runtime_with_portable_root(
                     Path::new(env!("CARGO_MANIFEST_DIR")),
                     &resources,
@@ -58,10 +88,11 @@ fn run_inner() -> Result<(), String> {
                 )?;
                 let process = BackendProcess::launch(&runtime)?;
                 let port = process.port;
-                let url = format!("http://127.0.0.1:{port}/workspace")
-                    .parse()
-                    .map_err(|error| format!("invalid Workspace URL: {error}"))?;
-                WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
+                // AXW-RUN-201: the window opens the local Recovery Shell
+                // (frontendDist) which polls the backend handshake over
+                // loopback and only navigates to /workspace when ready —
+                // the shell stays usable while the backend is down.
+                let shell = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                     .title("ArcheAxis Knowledge")
                     .inner_size(1280.0, 800.0)
                     .min_inner_size(960.0, 640.0)
@@ -74,6 +105,7 @@ fn run_inner() -> Result<(), String> {
                     .on_download(|_, _| false)
                     .build()
                     .map_err(|error| format!("failed to create Workspace window: {error}"))?;
+                let _ = shell;
                 *setup_backend
                     .lock()
                     .map_err(|_| "desktop backend state is poisoned".to_owned())? = Some(process);

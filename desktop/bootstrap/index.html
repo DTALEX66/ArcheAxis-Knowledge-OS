@@ -1,5 +1,41 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><title>ArcheAxis Knowledge</title></head>
-<body><p>正在启动 ArcheAxis Knowledge…</p></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ArcheAxis Knowledge</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main class="shell" id="shell" data-state="booting">
+    <header class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <h1>ArcheAxis Knowledge</h1>
+    </header>
+
+    <section class="panel" id="state-panel">
+      <div class="spinner" id="spinner" aria-hidden="true"></div>
+      <p class="state-line" id="state-line">正在启动…</p>
+      <p class="state-detail" id="state-detail"></p>
+    </section>
+
+    <section class="recovery" id="recovery" hidden>
+      <h2>后端需要修复</h2>
+      <p id="recovery-reason"></p>
+      <div class="actions">
+        <button type="button" id="btn-retry" class="primary">重试</button>
+        <button type="button" id="btn-logs">查看日志</button>
+        <button type="button" id="btn-profile" disabled title="切换运行配置（下一版本提供）">切换运行配置</button>
+      </div>
+      <pre id="log-view" hidden></pre>
+    </section>
+
+    <footer class="meta">
+      <span id="runtime-line">Runtime: —</span>
+      <span id="data-line">Data: —</span>
+    </footer>
+  </main>
+
+  <script src="assets/app.js" defer></script>
+</body>
 </html>

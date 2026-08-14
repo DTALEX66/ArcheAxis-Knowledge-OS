@@ -14,10 +14,17 @@ const READINESS_TIMEOUT: Duration = Duration::from_secs(30);
 const READINESS_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(8);
 const MAX_LOG_LINES: usize = 200;
-const SANITIZED_ENVIRONMENT: [&str; 11] = [
+const SANITIZED_ENVIRONMENT: [&str; 16] = [
     "PYTHONPATH",
     "PYTHONHOME",
     "VIRTUAL_ENV",
+    // canonical ARCHEAXIS_* (AXW-RUN-205) and legacy COGNITIVE_* are both
+    // stripped from the inherited environment; the launcher sets its own.
+    "ARCHEAXIS_HOST",
+    "ARCHEAXIS_PORT",
+    "ARCHEAXIS_DATA_DIR",
+    "ARCHEAXIS_DESKTOP_CONTROL",
+    "ARCHEAXIS_DESKTOP_LAUNCH_TOKEN",
     "COGNITIVE_DATA_DIR",
     "COGNITIVE_HOST",
     "COGNITIVE_PORT",
@@ -32,6 +39,7 @@ type LogBuffer = Arc<Mutex<VecDeque<String>>>;
 
 pub struct BackendProcess {
     pub port: u16,
+    pub token: String,
     child: Child,
     job: Job,
     logs: LogBuffer,
@@ -51,6 +59,12 @@ impl BackendProcess {
         let mut command = runtime_command(runtime);
         command
             .args(["-m", "app.runtime_entrypoint", "core"])
+            .env("ARCHEAXIS_HOST", "127.0.0.1")
+            .env("ARCHEAXIS_PORT", port.to_string())
+            .env("ARCHEAXIS_DESKTOP_CONTROL", "stdio-v1")
+            .env("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", &token)
+            // legacy COGNITIVE_* mirrors keep two stable releases readable
+            // (AXW-RUN-205); Python prefers ARCHEAXIS_* when both exist.
             .env("COGNITIVE_HOST", "127.0.0.1")
             .env("COGNITIVE_PORT", port.to_string())
             .env("COGNITIVE_DESKTOP_CONTROL", "stdio-v1")
@@ -74,6 +88,7 @@ impl BackendProcess {
         }
         Ok(Self {
             port,
+            token,
             child,
             job,
             logs,
@@ -117,6 +132,7 @@ fn runtime_command(runtime: &RuntimeSpec) -> Command {
         command.env_remove(name);
     }
     command
+        .env("ARCHEAXIS_DATA_DIR", &runtime.data_dir)
         .env("COGNITIVE_DATA_DIR", &runtime.data_dir)
         .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("PYTHONNOUSERSITE", "1")
@@ -363,5 +379,28 @@ mod tests {
 
         let decoded = response_body(headers, body).expect("chunked body");
         assert!(readiness_payload_valid(&decoded));
+    }
+
+    #[test]
+    fn runtime_command_sets_canonical_and_legacy_data_dir() {
+        let runtime = RuntimeSpec {
+            python: PathBuf::from("runtime/python/python.exe"),
+            cwd: PathBuf::from("writable-data"),
+            data_dir: PathBuf::from("writable-data"),
+            isolated: true,
+        };
+
+        let command = runtime_command(&runtime);
+        let envs = command.get_envs().collect::<Vec<_>>();
+        let canonical = envs
+            .iter()
+            .find(|(name, _)| *name == OsStr::new("ARCHEAXIS_DATA_DIR"))
+            .and_then(|(_, value)| *value);
+        let legacy = envs
+            .iter()
+            .find(|(name, _)| *name == OsStr::new("COGNITIVE_DATA_DIR"))
+            .and_then(|(_, value)| *value);
+        assert_eq!(canonical, Some(OsStr::new("writable-data")));
+        assert_eq!(legacy, Some(OsStr::new("writable-data")));
     }
 }

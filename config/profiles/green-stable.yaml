@@ -1,0 +1,7 @@
+# Runtime profile v1 — green-stable (AXW-RUN-202)
+# Green/rolling channel: bundled backend, user-selected data dir,
+# hot reload enabled.
+name: green-stable
+backend: bundled
+data_policy: selected-user-data
+reload: true
