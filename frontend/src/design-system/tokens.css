@@ -1,0 +1,202 @@
+/* AXW-UI-801/804 design tokens — restrained precision UI, purple gemstone
+   accent, light/dark with prefers-color-scheme, reduced-motion support. */
+:root {
+  color-scheme: light dark;
+
+  --ax-bg: #faf9f7;
+  --ax-bg-raised: #ffffff;
+  --ax-bg-inset: #f1efec;
+  --ax-fg: #221f1c;
+  --ax-fg-muted: #6b6660;
+  --ax-border: #dcd8d2;
+  --ax-accent: #6d3fa3;
+  --ax-accent-soft: #efe7f8;
+  --ax-danger: #b3261e;
+  --ax-radius: 6px;
+  --ax-space-1: 4px;
+  --ax-space-2: 8px;
+  --ax-space-3: 12px;
+  --ax-space-4: 16px;
+  --ax-font: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ax-bg: #17151a;
+    --ax-bg-raised: #201d24;
+    --ax-bg-inset: #121014;
+    --ax-fg: #ece8e4;
+    --ax-fg-muted: #a49d95;
+    --ax-border: #3a3540;
+    --ax-accent: #b78ae0;
+    --ax-accent-soft: #2e2338;
+    --ax-danger: #f2b8b3;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--ax-font);
+  background: var(--ax-bg);
+  color: var(--ax-fg);
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Status bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-3);
+  padding: var(--ax-space-2) var(--ax-space-3);
+  border-bottom: 1px solid var(--ax-border);
+  background: var(--ax-bg-raised);
+}
+.status-bar-brand {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.status-bar-center {
+  flex: 1;
+  text-align: center;
+}
+.status-bar-space {
+  font-variant: tabular-nums;
+  color: var(--ax-fg-muted);
+}
+.status-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--ax-border);
+}
+.status-pill--pending {
+  background: var(--ax-accent-soft);
+  color: var(--ax-accent);
+}
+
+/* Space rail */
+.space-rail {
+  width: 176px;
+  border-right: 1px solid var(--ax-border);
+  background: var(--ax-bg-raised);
+  padding: var(--ax-space-2);
+  overflow-y: auto;
+}
+.space-rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.space-rail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-2);
+  width: 100%;
+  padding: var(--ax-space-2) var(--ax-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--ax-radius);
+  background: transparent;
+  color: var(--ax-fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.space-rail-item:hover {
+  background: var(--ax-bg-inset);
+}
+.space-rail-item[aria-current="page"] {
+  background: var(--ax-accent-soft);
+  border-color: var(--ax-accent);
+}
+.space-rail-icon {
+  width: 18px;
+  text-align: center;
+  color: var(--ax-accent);
+}
+
+/* Center */
+.app-center {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--ax-space-4);
+}
+.space-view {
+  max-width: 720px;
+}
+.space-title {
+  margin: 0 0 var(--ax-space-2);
+  font-size: 22px;
+}
+.space-description {
+  margin: 0 0 var(--ax-space-2);
+  color: var(--ax-fg);
+}
+.space-hint {
+  margin: 0;
+  color: var(--ax-fg-muted);
+  font-size: 13px;
+}
+
+/* Inspector */
+.inspector {
+  width: 240px;
+  border-left: 1px solid var(--ax-border);
+  background: var(--ax-bg-raised);
+  padding: var(--ax-space-3);
+  overflow-y: auto;
+}
+.inspector-empty {
+  color: var(--ax-fg-muted);
+  font-size: 13px;
+}
+
+/* Activity dock */
+.activity-dock {
+  display: flex;
+  gap: var(--ax-space-2);
+  padding: var(--ax-space-2) var(--ax-space-3);
+  border-top: 1px solid var(--ax-border);
+  background: var(--ax-bg-raised);
+}
+.activity-dock-item[data-disabled="true"] {
+  color: var(--ax-fg-muted);
+  font-size: 13px;
+}
+
+/* AXW-UI-804 accessibility: visible focus, reduced motion */
+:focus-visible {
+  outline: 2px solid var(--ax-accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
