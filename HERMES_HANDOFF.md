@@ -9,9 +9,9 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
 - Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1) + Final Architecture TaskPack 2026-08-14 (R0-R8). Full suite: **1756 passed / 5 skipped** (2026-08-15 local, three dirs); ruff + repository-conventions gate green on head; cargo check + 16/16 Rust tests green.
 
-## Frozen-baseline execution state (LOG-147..177 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..179 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
-Implemented and CI-verified (continuous green: CI runs 524-586; 585 was the pre-lint-fix run, 586 green incl. desktop-build):
+Implemented and CI-verified (continuous green: CI runs 524-589; 585/588 were pre-fix runs — lint & cross-platform path — both fixed, latest green):
 
 - **AXW-022B**: PDF evidence annotation reachable (text-layer overlay + cached selection); real browser-smoke first ran on CI at `85b3311` (run 31732780580).
 - **H5 implementation layer** (`5dc3d9b` + `d129aa3`): AXW-094A open-exchange export (`app/exchange/export.py`), AXW-094B verifiable backup (`app/exchange/backup.py`), AXW-096A performance benchmark (`shared/performance_benchmark.py`), AXW-096B keyboard accessibility (UI), AXW-096C batch import control (`app/ingestion/batch_controller.py`). EXIT is a verification gate, not an implementation prerequisite (precedent 023A-F/043B/050A).

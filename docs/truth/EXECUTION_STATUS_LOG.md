@@ -1360,3 +1360,33 @@ reload 状态） #6 ✅（hotreload watcher + 前端面板） #7 ✅（isolated-
 clone_test_workspace） #8 ✅ #9 ✅ #10 ✅ #11 ✅ #12 ✅ #13 ✅ #14 ✅ #15 🟡（迁移实现完成，
 长路径真实验证待 L4） #16 ✅ #17 🟡（主链各段均有实现；端到端 UI 流程待 App Shell 接 Tauri）
 #18 ✅
+
+
+---
+
+## LOG-179 — 2026-08-15 — CI 588 跨平台缺陷修复（cap504）+ CI 589 绿
+
+承接 LOG-178。push 后 CI 588 test (3.12) 失败（本地 Windows 1756 全过）。
+
+### 根因（真实跨平台缺陷，非 flaky）
+- `scripts/capability_pack.py::_assert_safe_rel` 用 `os.path.isabs(rel)` 拒绝
+  绝对路径——Windows 上 `C:/absolute.txt` 判为绝对（抛 PackBuildError）；
+  **Linux 上盘符路径不是绝对路径**（仅 `/` 开头），测试
+  `test_unsafe_entry_paths_refused` 期望抛错但未抛（DID NOT RAISE）。
+- 本地 Windows 无法暴露；CI（Linux runner）首次暴露。
+
+### 修复
+- `_is_absolute_any_platform(p)`：`os.path.isabs(p) or re.match(r"^[A-Za-z]:[\\/]", p)
+  or p.startswith("\\\\")`——跨平台 fail-closed（盘符/UNC 前缀均拒绝）；
+  补 `import re`。
+- 本地复跑 test_axw_cap504_pack.py 11 passed（Windows 语义不破坏）。
+
+### 证据
+- commit `e260df1`；CI 589 ✅ success（e260df1f，含全量 1756 + desktop 构建）。
+- 双端一致 e260df1；工作树干净。
+
+### 教训固化（windows-development-environment 技能）
+- os.path.isabs 仅识别宿主平台绝对形式；CI 在 Linux 跑测试——Windows 本地
+  全绿 ≠ 跨平台全绿（路径/大小写/分隔符断言必须平台无关或双平台验证）。
+- GitHub Actions job logs 端点 302 重定向——curl 需 -L（否则 0 字节）。
+- git fsck broken link（缺失 tree）→ `git fetch origin --refetch` 恢复。
