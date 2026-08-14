@@ -33,6 +33,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import sys
 import zipfile
 from datetime import datetime, timezone
@@ -79,9 +80,21 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _is_absolute_any_platform(p: str) -> bool:
+    """Absolute-path detection that stays fail-closed on every OS.
+
+    ``os.path.isabs`` only understands the host platform's form; a Windows
+    drive/UNC path is relative on POSIX hosts. Pack entries must be rejected
+    regardless of the platform the pack is built or verified on.
+    """
+    if os.path.isabs(p):
+        return True
+    return bool(re.match(r"^[A-Za-z]:[\\/]", p) or p.startswith("\\\\"))
+
+
 def _assert_safe_rel(rel: str) -> None:
     """Refuse absolute paths and path traversal in pack entries."""
-    if os.path.isabs(rel) or ".." in Path(rel).parts:
+    if _is_absolute_any_platform(rel) or ".." in Path(rel).parts:
         raise PackBuildError(f"unsafe pack entry path: {rel!r}")
 
 
