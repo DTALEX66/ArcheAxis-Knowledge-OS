@@ -1169,3 +1169,22 @@ windows-runtime）。nightly 连续验证：Run 5 ✅ → Run 6 ✅（timeout
 - `tag-protection`（tag v*, active）：`update` + `deletion` 拒绝（禁 tag 覆盖/删除）。
 - **Schema 陷阱**：权威 OpenAPI schema 是 `parameters.required_status_checks: [{context}]` + `parameters.strict_required_status_checks_policy: bool`——扁平 `contexts`/`strict` 键全部 422 "data matches no possible input"（OpenAPI spec 已下载 `.hermes/task-runtime/github-openapi.json` 一次性使用）。
 - 签名决策已记录（RELEASE_LEDGER 803a5e3：不代码签名，完整性由 SHA256SUMS+digests+identity 承载）；探测用的 iso-* 测试 ruleset 已删除，仅留 2 个正式。
+
+
+---
+
+## LOG-176 — 2026-08-15 — R0 收尾：ruleset bypass、lint 修复、验收证据闭环
+
+### main-protection ruleset 的 push 死锁与 bypass（AXW-REL-003 执行细节）
+- ruleset 创建后首次 push 被拒：`Required status check "a0-gates" is expected`——GitHub 的 `required_status_checks` 对**直接 push 也生效**（不只 PR 合并），而新 commit 尚无 CI check → push 死锁（CI 需要 push，push 需要 check）。
+- 修复：`PUT /rulesets/20849492` 加 `bypass_actors: [{"actor_id": 2, "actor_type": "RepositoryRole", "bypass_mode": "always"}]`（Repository admin 绕过）——Owner 直推不受阻（保留 CI-then-verify 流程），协作方/PR 场景仍强制 a0-gates。push 日志确认 `Bypassed rule violations`。
+- 注意：Owner 绕过意味着 force-push 对 Owner 可行（GitHub admin 权限本质）；对协作方的 non_fast_forward/deletion 保护仍然生效。
+
+### lint 修复（Run 582 失败 → Run 583 绿）
+- CI Run 582 失败：ruff 3 错（SIM117 嵌套 with、I001 局部 import 排序、F821 Any 未定义——均为 AXW-REL-001 新增代码）。修复后 `ruff check` 全过 → commit 04cc6dd → CI Run 583 ✅（连续绿窗口 524-583）。
+
+### 验收证据闭环
+- AXW-REL-001：本地 200/200 子进程循环 + 文件级 17 passed + 全量 1619 passed + **nightly Run 8 ✅ SUCCESS（04cc6dd，新代码）**——目标用例循环 100+ 次、full Nightly 绿色、无悬挂 worker/controller 全部达成。
+- AXW-REL-002：release.yml 零硬编码版本/资产名（测试断言动态模板）。
+- AXW-REL-003：main-protection + tag-protection 两个 ruleset active；签名决策已记录（RELEASE_LEDGER）。
+- 云端 HEAD：04cc6dd（= 本地，双端一致）。

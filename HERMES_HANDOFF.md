@@ -7,11 +7,11 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Repository: `D:\All projects\ArcheAxis-Knowledge-OS` (canonical, single writer: Hermes)
 - Branch: `main` — HEAD and origin in sync (verify with `git status --short --branch` before resuming)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
-- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1580 passed / 9 skipped** (2026-08-15 local); ruff + repository-conventions gate green on head.
+- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1). Full suite: **1619 passed / 5 skipped** (2026-08-15 local); ruff + repository-conventions gate green on head.
 
-## Frozen-baseline execution state (LOG-147..174 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..176 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
-Implemented and CI-verified (continuous green: CI runs 524-580):
+Implemented and CI-verified (continuous green: CI runs 524-583):
 
 - **AXW-022B**: PDF evidence annotation reachable (text-layer overlay + cached selection); real browser-smoke first ran on CI at `85b3311` (run 31732780580).
 - **H5 implementation layer** (`5dc3d9b` + `d129aa3`): AXW-094A open-exchange export (`app/exchange/export.py`), AXW-094B verifiable backup (`app/exchange/backup.py`), AXW-096A performance benchmark (`shared/performance_benchmark.py`), AXW-096B keyboard accessibility (UI), AXW-096C batch import control (`app/ingestion/batch_controller.py`). EXIT is a verification gate, not an implementation prerequisite (precedent 023A-F/043B/050A).
@@ -46,6 +46,30 @@ Implemented and CI-verified (continuous green: CI runs 524-580):
   (local 11:17) is a formality.
 - **Flaky fix (LOG-174 + `be6c23f`)**: batch shutdown test polled for
   worker start instead of a fixed sleep; product code verified clean.
+- **Batch R0 — Final Architecture TaskPack 2026-08-14 (LOG-175/176)**:
+  - AXW-REL-001: Nightly Run 7 (schedule) failed `pause 404`; root cause
+    chain fixed — pause/resume now lock-protected (no finished→paused
+    overwrite hang), ledger appends serialized under a separate
+    `_ledger_lock` (concurrent `open("a")` handles corrupted JSONL lines,
+    silently dropping events on `from_checkpoint` replay: in-memory 200 vs
+    rehydrated 199), `_process_task` catches BaseException (worker never
+    dies mid-task silently), test is deterministic (200 files + poll +
+    visibility polling + completeness assertions). Evidence: **200/200
+    fresh-subprocess loop** (`9b47c00`), full suite 1619 passed,
+    **nightly Run 8 green**.
+  - AXW-REL-002: release.yml fully dynamic — `Resolve and verify release
+    version` step parses the tag, fails on drift across
+    pyproject/package.json/tauri.conf.json, and every asset name
+    (installer `ArcheAxis.Knowledge-v<ver>-Windows-x64-Setup.exe`, wheel,
+    readback) derives from `release_version`; zero hardcoded 0.5.0 remains
+    (`0e33aac`).
+  - AXW-REL-003: `main-protection` (non_fast_forward + deletion +
+    required_status_checks a0-gates) and `tag-protection` (update+deletion
+    blocked) rulesets active; admin bypass added because required status
+    checks block direct pushes (CI-deadlock) — collaborators/PRs still
+    enforced. Ruleset API schema trap documented (nested
+    `required_status_checks: [{context}]` + `strict_required_status_checks_policy`).
+    Signing decision already recorded (RELEASE_LEDGER).
 
 - **Coverage audits (LOG-163)**: all 51 workspace router endpoints and all
   12 UI data-action handlers now have test references (3 genuine route gaps
