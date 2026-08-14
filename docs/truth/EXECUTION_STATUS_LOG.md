@@ -1390,3 +1390,64 @@ clone_test_workspace） #8 ✅ #9 ✅ #10 ✅ #11 ✅ #12 ✅ #13 ✅ #14 ✅ #1
   全绿 ≠ 跨平台全绿（路径/大小写/分隔符断言必须平台无关或双平台验证）。
 - GitHub Actions job logs 端点 302 重定向——curl 需 -L（否则 0 字节）。
 - git fsck broken link（缺失 tree）→ `git fetch origin --refetch` 恢复。
+
+
+---
+
+## LOG-180 — 2026-08-15 — 任务包批次 3（cap503 激活接线、主链 e2e、vitest、R7 资产、ENV-103 执行、长路径）
+
+承接 LOG-179。3 个并行子代理（deleg_745e78e9）+ 主线程。全量 **1776 passed / 9 skipped**。
+
+### R5 转换插件真实接线（子代理 A）— AXW-CAP-503 Step 2 ✅
+- 6 个 builtin converter 模块各加 `get_activator()`（包装 app/ingestion/<adapter> 真实
+  转换函数；失败抛明确异常 fail-closed）；CapabilityStore 支持内置激活（install_builtin
+  已在上批）+ 新 `app/capability/conversion.py` 调度（get_converter(plugin_id) 未激活
+  返回 None 不静默 fallback；list_active_converters）。
+- 激活实测 6 个插件（ax.builtin.converter.docx/html/media/ocr/pptx/xlsx）。
+- 证据：tests/test_axw_cap503_activator.py + builtin 复跑 **24 passed**（独立验证）。
+
+### 验收 #17 主链端到端（子代理 B）— §19 #17 ✅
+- integration-tests/test_axw_main_chain_e2e.py：txt/md/html 三格式真实全链
+  （摄取 → 转换 → 证据账本 → 人类学习条目 → AI 资产登记+证据绑定），每段读回验证。
+- 独立复跑 **5 passed**（真实文件，非 mock）。
+
+### 前端测试接入（子代理 C）— AXW-UI-801/804 ✅
+- frontend 加 Vitest 2.1 + Testing Library + jsdom（npmmirror，109 包）；vite.config
+  test 配置 + setup.ts。
+- 3 个组件测试文件（App/SpaceRail/StatusBar——含 aria-current、键盘可达、landmark、
+  可访问名断言）；独立复跑 **vitest 9/9 passed** + vite build 0 警告。
+
+### R7 供应链资产补充（主线程）— AXW-SUP-701/702/703 ✅
+- scripts/release_manifest.py：release-manifest.json 生成器（产物清单
+  name/kind/size_bytes/sha256/webview2_mode/capability_packs）——本地真实生成验证。
+- scripts/release_sbom.py 加 --notices-out：THIRD_PARTY_NOTICES.txt（634 条；
+  npm lock license 字段提取——12/634 known，uv/cargo lock 无 license 属预期，
+  文档声明 best effort）。
+- release.yml：资产 6→8（+release-manifest.json + THIRD_PARTY_NOTICES.txt）——
+  identity v3 artifact-names、checksums、payload equality 8、Upload、Readback
+  expectedAssets + 9 kind 校验（manifest/notices 加入必需集合）；YAML 16 steps 验证。
+
+### ENV-103 执行（主线程）— AXW-ENV-103 ✅（低风险部分）
+- 执行 7/10 low-risk move（~13.5 GB）：toolchains/scoop→10-toolchains/scoop、
+  02a-python-runtime→10-toolchains/python、playwright→10-toolchains/playwright、
+  vs-build-tools→10-toolchains/msvc、downloads→60-cache/downloads、
+  runtimes/desktop-runtime-v1→20-runtimes/desktop-runtime-v1、
+  archives/portable-archeaxis→80-build/portable-staging。
+- 回滚清单：OS External Configuration/logs/environment-audit/rollback-20260815.json。
+- Enter-ArcheAxisDev.ps1 5 处旧路径引用同步（10-toolchains/...）；外置仓未自动 commit。
+- **Hold**：rust（rustup 内部路径）、uv-cache（UV_CACHE_DIR）、wsl2（注册表）、
+  ci-venv（high）——需环境变量/注册表确认后执行。
+- 验证：uv 正常；项目回归 14 passed 无断裂。
+
+### 验收 #15 长路径（主线程）— §19 #15 ✅（Windows \\?\ 语义）
+- tests/test_axw_long_path.py：本机实测**普通 >260 路径 mkdir 失败（WinError 3，
+  注册表 LongPathsEnabled 未开）**；NTFS 长路径靠 `\\?\` 前缀——测试用确定性
+  `\\?\` 路径验证 workspace 创建 + 迁移全流程（backup/dry-run/migrate/rollback）。
+- **真实产品修复**：migrate.py `_connect` 的 SQLite file: URI 模式无法表达 `\\?\`
+  前缀（invalid uri authority: %3F）→ 扩展路径走原生连接（readonly URI 仅普通路径）。
+- 测试 2 passed + data403 7 passed 无回归。
+
+### 验收映射（§19 更新）
+#15 ✅（长路径 \\?\ 验证 + migrate 修复；普通路径依赖 LongPathsEnabled 已文档化）
+#17 ✅（主链 e2e 真实跑绿） #16 ✅（release-manifest + notices 补齐 8 资产）
+其余沿用 LOG-178：14 条 ✅；剩余：UI 端到端接线（App Shell 接 Tauri）与 L4 三包发布。

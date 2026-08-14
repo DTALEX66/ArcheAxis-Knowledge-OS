@@ -7,9 +7,9 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Repository: `D:\All projects\ArcheAxis-Knowledge-OS` (canonical, single writer: Hermes)
 - Branch: `main` — HEAD and origin in sync (verify with `git status --short --branch` before resuming)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
-- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1) + Final Architecture TaskPack 2026-08-14 (R0-R8). Full suite: **1756 passed / 5 skipped** (2026-08-15 local, three dirs); ruff + repository-conventions gate green on head; cargo check + 16/16 Rust tests green.
+- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1) + Final Architecture TaskPack 2026-08-14 (R0-R8). Full suite: **1776 passed / 9 skipped** (2026-08-15 local, three dirs); ruff + repository-conventions gate green on head; cargo check + 16/16 Rust tests green; frontend vitest 9/9 + vite build 0 warnings.
 
-## Frozen-baseline execution state (LOG-147..179 in `docs/truth/EXECUTION_STATUS_LOG.md`)
+## Frozen-baseline execution state (LOG-147..180 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
 Implemented and CI-verified (continuous green: CI runs 524-589; 585/588 were pre-fix runs — lint & cross-platform path — both fixed, latest green):
 
@@ -137,6 +137,33 @@ Implemented and CI-verified (continuous green: CI runs 524-589; 585/588 were pre
   - Acceptance §19 update: #5/#6/#7 now green (supervisor+reload+isolated
     clone); #15/#17 partial (migration implemented; long-path + end-to-end
     UI flow pending L4 / App Shell wiring).
+- **Final Architecture TaskPack batch 3 (LOG-180, 2026-08-15)**:
+  - R5 (AXW-CAP-503 step 2): real activator wiring — each builtin converter
+    module exposes get_activator() wrapping the real ingestion adapter;
+    app/capability/conversion.py dispatcher (get_converter returns None for
+    inactive plugins, fail-closed; list_active_converters). 24 tests green
+    (activator + builtin, independently re-run).
+  - §19 #17: integration-tests/test_axw_main_chain_e2e.py — txt/md/html real
+    full chain (ingest → convert → evidence ledger → human learning entry →
+    AI asset registration with evidence binding, read-back verified).
+    5 tests green.
+  - AXW-UI-801/804: Vitest 2.1 + Testing Library + jsdom wired into
+    frontend; 3 component test files (App/SpaceRail/StatusBar with a11y
+    assertions) — 9/9 green + vite build 0 warnings.
+  - R7 (AXW-SUP-701/702/703): scripts/release_manifest.py (public asset
+    manifest generator); release_sbom.py --notices-out (THIRD_PARTY_NOTICES
+    .txt, 634 entries, npm license extraction); release.yml 6→8 assets
+    (identity v3 names, checksums, payload equality, upload, readback
+    expectedAssets + 9 required kinds).
+  - R1 (AXW-ENV-103 apply): 7/10 low-risk moves executed (~13.5 GB) with
+    rollback list (rollback-20260815.json); Enter-ArcheAxisDev.ps1 5 path
+    refs synced; rust/uv-cache/wsl2/ci-venv held (env/registry-dependent).
+  - §19 #15: Windows long-path — plain >260 fails without LongPathsEnabled
+    (documented); \\?\ extended-path workspace create + full migration
+    round-trip verified; migrate.py _connect fixed (SQLite URI parser cannot
+    express \\?\ — extended paths connect natively).
+  - Acceptance §19 update: #15/#17 now green; remaining: App Shell→Tauri
+    wiring (UI-801 step 2) and L4 real three-distribution publish.
 
 - **Coverage audits (LOG-163)**: all 51 workspace router endpoints and all
   12 UI data-action handlers now have test references (3 genuine route gaps
