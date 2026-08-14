@@ -74,6 +74,7 @@ class BatchImportController:
         self._pause_event.set()  # not paused initially
         self._stop_event = threading.Event()
         self._lock = threading.Lock()
+        self._ledger_lock = threading.Lock()
         self._workers: list[threading.Thread] = []
 
     @staticmethod
@@ -83,13 +84,24 @@ class BatchImportController:
     # -- ledger -------------------------------------------------------------
 
     def _append_event(self, event: dict[str, Any]) -> None:
-        record = {
-            "ts": datetime.now(timezone.utc).isoformat(),
-            "batch_id": self._state.batch_id,
-            "event": event,
-        }
-        with self.checkpoint_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+        try:
+            record = {
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "batch_id": self._state.batch_id,
+                "event": event,
+            }
+            # Serialize appends: concurrent workers each open("a") their own
+            # handle and Python's seek-to-EOF is not atomic across handles —
+            # interleaved writes corrupt JSONL lines, silently dropping
+            # events on rehydrate (AXW-REL-001). Separate lock: never take
+            # self._lock here (pause/resume hold it while calling us).
+            with self._ledger_lock:
+                with self.checkpoint_path.open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+        except Exception:
+            # The ledger is best-effort diagnostics; a failed append must
+            # never kill a worker thread and lose a task (AXW-REL-001).
+            pass
 
     # -- task management ----------------------------------------------------
 
@@ -179,7 +191,11 @@ class BatchImportController:
                 self._results[task_id] = {"status": "completed", "result_digest": digest}
                 self._state.completed += 1
             self._append_event({"type": "task_completed", "task": task_id, "digest": digest})
-        except Exception as exc:  # bounded retry, then record failure
+        except BaseException as exc:  # bounded retry, then record failure
+            # BaseException (not just Exception): a worker thread must never
+            # die silently mid-task and lose the task — KeyboardInterrupt
+            # only reaches the main thread; anything else here must land in
+            # the failed ledger instead of vanishing (AXW-REL-001)
             if attempt < self.max_retries:
                 self._attempts[task_id] = attempt + 1
                 self._append_event({"type": "task_retry", "task": task_id, "attempt": attempt + 1, "error": str(exc)[:200]})
@@ -193,16 +209,18 @@ class BatchImportController:
     # -- control ------------------------------------------------------------
 
     def pause(self) -> None:
-        if self._state.state == "running":
-            self._pause_event.clear()
-            self._state.state = "paused"
-            self._append_event({"type": "pause"})
+        with self._lock:
+            if self._state.state == "running":
+                self._pause_event.clear()
+                self._state.state = "paused"
+                self._append_event({"type": "pause"})
 
     def resume(self) -> None:
-        if self._state.state == "paused":
-            self._pause_event.set()
-            self._state.state = "running"
-            self._append_event({"type": "resume"})
+        with self._lock:
+            if self._state.state == "paused":
+                self._pause_event.set()
+                self._state.state = "running"
+                self._append_event({"type": "resume"})
 
     def shutdown(self) -> None:
         """Safe exit: stop picking up tasks, join workers, persist state."""

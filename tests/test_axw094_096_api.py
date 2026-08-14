@@ -253,31 +253,49 @@ def test_batch_import_and_status(client: TestClient, tmp_path: Path) -> None:
 def test_batch_pause_resume_shutdown_flow(client: TestClient, tmp_path: Path) -> None:
     source = tmp_path / "import-src2"
     (source / "docs").mkdir(parents=True)
-    for index in range(20):
-        (source / "docs" / f"f{index:02d}.md").write_text(
+    for index in range(200):
+        (source / "docs" / f"f{index:03d}.md").write_text(
             f"# File {index}\n\nBody {index}.\n", encoding="utf-8"
         )
 
     batch = client.post(
         "/workspace/api/batch/import",
-        json={"batch_id": "control-batch", "source_dir": str(source), "pattern": "**/*", "max_files": 100},
+        json={"batch_id": "control-batch", "source_dir": str(source), "pattern": "**/*", "max_files": 200},
     )
     assert batch.status_code == 200
 
-    # pause quickly (small files convert fast; worker startup gives us a window)
-    time.sleep(0.05)
+    # Windows AV/indexing can briefly hide just-written files from rglob —
+    # the batch total is derived from what rglob actually sees, so wait
+    # until all 200 fixtures are visible before starting the batch
+    deadline = time.monotonic() + 10.0
+    visible = 0
+    while time.monotonic() < deadline:
+        visible = len(list((source / "docs").iterdir()))
+        if visible == 200:
+            break
+        time.sleep(0.1)
+    assert visible == 200, f"only {visible}/200 fixture files visible to the filesystem"
+
+    # wait until a worker has demonstrably started (completed > 0) so the
+    # pause lands in an active window — fixed sleeps race fast conversions
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        probe = client.get("/workspace/api/batch/control-batch/status")
+        assert probe.status_code == 200
+        if probe.json()["completed"] > 0:
+            break
+        time.sleep(0.05)
     paused = client.post("/workspace/api/batch/control-batch/pause")
     assert paused.status_code == 200
-    assert paused.json()["state"] in ("paused", "running")  # pause may land after finish
-    if paused.json()["state"] == "paused":
-        before = client.get("/workspace/api/batch/control-batch/status").json()["completed"]
-        time.sleep(0.1)
-        after = client.get("/workspace/api/batch/control-batch/status").json()["completed"]
-        assert after <= before + 2  # max_concurrent=2: at most two in-flight tasks finish
+    assert paused.json()["state"] == "paused"  # deterministic: 200 files cannot finish yet
+    before = client.get("/workspace/api/batch/control-batch/status").json()["completed"]
+    time.sleep(0.1)
+    after = client.get("/workspace/api/batch/control-batch/status").json()["completed"]
+    assert after <= before + 2  # max_concurrent=2: at most two in-flight tasks finish
 
-        resumed = client.post("/workspace/api/batch/control-batch/resume")
-        assert resumed.status_code == 200
-        assert resumed.json()["state"] in ("running", "finished")  # may finish instantly
+    resumed = client.post("/workspace/api/batch/control-batch/resume")
+    assert resumed.status_code == 200
+    assert resumed.json()["state"] in ("running", "finished")  # may finish instantly
 
     # wait for completion
     status = client.get("/workspace/api/batch/control-batch/status")
@@ -286,7 +304,54 @@ def test_batch_pause_resume_shutdown_flow(client: TestClient, tmp_path: Path) ->
         time.sleep(0.2)
         status = client.get("/workspace/api/batch/control-batch/status")
     assert status.json()["state"] == "finished"
-    assert status.json()["completed"] == 20
+    assert status.json()["total"] == 200, f"batch total drifted: {status.json()['total']}"
+    # processing completeness: every task reached a terminal result. A rare
+    # environment transient (e.g. AV lock on a just-created file) may fail one
+    # conversion — that must surface visibly, not silently
+    if status.json()["completed"] + status.json()["failed"] != status.json()["total"]:
+        # diagnostic: which tasks never reached a terminal result?
+        results = status.json().get("results", {})
+        missing = [
+            t for t in range(200)
+            if f"docs/f{t:03d}.md" not in results
+            or results[f"docs/f{t:03d}.md"].get("status") not in ("completed", "failed")
+        ]
+        # checkpoint diagnostic: dump every ledger event touching the missing
+        # tasks plus retry/failed/batch_end records (same-process read)
+        import json as _json
+        from shared.config import resolve_runtime_path as _resolve
+        ckpt = _resolve("data") / "batch" / "control-batch.jsonl"
+        traces: list[str] = []
+        tasks_all: list[str] = []
+        attempts_info: dict[str, Any] = status.json().get("attempts", {})
+        if ckpt.exists():
+            for line in ckpt.read_text(encoding="utf-8", errors="replace").splitlines():
+                try:
+                    rec = _json.loads(line)
+                    ev = rec.get("event", {})
+                    blob = _json.dumps(ev, ensure_ascii=False)
+                    if ev.get("type") == "tasks_added":
+                        tasks_all = ev.get("tasks", [])
+                    if any(f"f{t:03d}.md" in blob for t in missing[:3]) or ev.get("type") in (
+                        "task_retry", "task_failed", "batch_end",
+                    ):
+                        traces.append(blob[:220])
+                except Exception:
+                    pass
+        miss_ids = [f"docs/f{t:03d}.md" for t in missing[:3]]
+        results_view = {k: results.get(k) for k in miss_ids}
+        keys_sample = list(results.keys())[:3]
+        f130ish = [k for k in results if "f130" in k or "130" in k][:5]
+        raise AssertionError(
+            f"incomplete batch: total={status.json()['total']} completed={status.json()['completed']} "
+            f"failed={status.json()['failed']} missing={missing[:10]}"
+            f" in_tasks={[m in tasks_all for m in miss_ids]}"
+            f" attempts={[attempts_info.get(m) for m in miss_ids]}"
+            f" results={results_view} keys_sample={keys_sample} f130ish={f130ish}"
+            f" ckpt_traces={' | '.join(traces[-12:]) if traces else 'none'}"
+        )
+    assert status.json()["completed"] + status.json()["failed"] == status.json()["total"]
+    assert status.json()["failed"] == 0, f"unexpected failed tasks: {status.json()['failed']}"
 
     # unknown batch control is a 404
     missing = client.post("/workspace/api/batch/nope/pause")
