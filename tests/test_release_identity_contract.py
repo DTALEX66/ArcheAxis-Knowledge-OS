@@ -54,14 +54,19 @@ def test_release_identity_injector_defaults_to_schema_v2() -> None:
     assert "release_run_id" in injector
 
 
-def test_release_workflow_enforces_schema_v2_and_separate_runs() -> None:
+def test_release_workflow_enforces_schema_v3_and_separate_runs() -> None:
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-    assert "release identity must be schema v2" in workflow
+    assert "release identity must be schema v3" in workflow
     assert "verification CI run must differ from the release workflow run" in workflow
     assert "verification_ci_run_id" in workflow
     assert "release_run_id" in workflow
     assert "verification_ci_url" in workflow
     assert "release_run_url" in workflow
+    # v3 multi-artifact manifest + dependency locks are enforced
+    assert "identity artifact manifest differs from public asset set" in workflow
+    assert "dependency lock hash mismatch" in workflow
+    assert "--artifact-names" in workflow
+    assert "--dependency-locks" in workflow
     # No stale single ci_run provenance readback remains.
     assert "identity.source.ci_run" not in workflow
     assert "identity.source.ci_url" not in workflow

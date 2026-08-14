@@ -470,7 +470,7 @@ def test_release_workflow_readback_binds_target_and_identity_tree() -> None:
     assert '$identity.source.tree -ne $tree' in workflow
     assert "downloaded release identity tree mismatch" in workflow
     assert "downloaded release identity verification CI identity is missing" in workflow
-    assert "release identity must be schema v2" in workflow
+    assert "release identity must be schema v3" in workflow
     assert "verification CI run must differ from the release workflow run" in workflow
 
 

@@ -55,17 +55,26 @@ def main() -> int:
     parser.add_argument("--version", required=True, help="Product version")
     parser.add_argument("--url", required=True, help="Canonical GitHub Release URL")
     parser.add_argument(
-        "--schema-version", choices=("1.0.0", "2.0.0"), default="2.0.0",
+        "--schema-version", choices=("1.0.0", "2.0.0", "3.0.0"), default="2.0.0",
         help="Identity schema to write (default 2.0.0)",
     )
     # v2 fields
     parser.add_argument(
         "--verification-ci-run-id", type=int,
-        help="Exact successful full-qualification CI run ID (v2)",
+        help="Exact successful full-qualification CI run ID (v2+)",
     )
     parser.add_argument(
         "--verification-ci-url",
-        help="Canonical verification CI run URL (v2)",
+        help="Canonical verification CI run URL (v2+)",
+    )
+    # v3 fields (AXW-SUP-701): multi-artifact identity + dependency locks
+    parser.add_argument(
+        "--artifact-names",
+        help="Comma-separated release artifact names (v3)",
+    )
+    parser.add_argument(
+        "--dependency-locks",
+        help="Comma-separated path=sha256 pairs of locked dependency files (v3)",
     )
     # legacy v1 field
     parser.add_argument(
@@ -116,6 +125,59 @@ def main() -> int:
             "release_run_id": release_run_id,
             "release_run_url": f"{_REPO_URL}/actions/runs/{release_run_id}",
         }
+    elif args.schema_version == "3.0.0":
+        # AXW-SUP-701: same proven source binding as v2, plus the full
+        # multi-artifact manifest and dependency lock hashes so every public
+        # asset is bound to the exact tree and locked dependency set.
+        if args.verification_ci_run_id is None or not args.verification_ci_url:
+            print(
+                "ERROR: --verification-ci-run-id and --verification-ci-url are required for schema 3.0.0",
+                file=sys.stderr,
+            )
+            return 1
+        if args.verification_ci_run_id < 1 or not args.verification_ci_url.startswith("https://"):
+            print("ERROR: invalid verification CI identity", file=sys.stderr)
+            return 1
+        source = {
+            "commit": commit,
+            "tree": tree,
+            "verification_ci_run_id": args.verification_ci_run_id,
+            "verification_ci_url": args.verification_ci_url,
+            "release_run_id": release_run_id,
+            "release_run_url": f"{_REPO_URL}/actions/runs/{release_run_id}",
+        }
+        artifacts: list[dict] = []
+        if not args.artifact_names:
+            print("ERROR: --artifact-names is required for schema 3.0.0", file=sys.stderr)
+            return 1
+        for name in (n.strip() for n in args.artifact_names.split(",") if n.strip()):
+            if not name or "/" in name or "\\" in name or ".." in name:
+                print(f"ERROR: invalid artifact name: {name}", file=sys.stderr)
+                return 1
+            kind = "sbom" if name == "SBOM.cdx.json" else (
+                "checksums" if name == "SHA256SUMS.txt" else (
+                    "identity" if name == "release-identity.json" else (
+                        "installer" if name.endswith("-Setup.exe") else (
+                            "green" if name.endswith("-Green.zip") else (
+                                "portable" if name.endswith("-Portable.zip") else "wheel"
+                            )
+                        )
+                    )
+                )
+            )
+            artifacts.append({"name": name, "kind": kind})
+        dependency_locks: dict[str, str] = {}
+        if args.dependency_locks:
+            for pair in args.dependency_locks.split(","):
+                pair = pair.strip()
+                if "=" not in pair:
+                    print(f"ERROR: invalid dependency lock pair: {pair}", file=sys.stderr)
+                    return 1
+                path, digest = pair.split("=", 1)
+                if len(digest) != 64 or not all(c in "0123456789abcdef" for c in digest):
+                    print(f"ERROR: invalid sha256 in dependency lock: {pair}", file=sys.stderr)
+                    return 1
+                dependency_locks[path.strip()] = digest
     else:
         if not args.ci_url:
             print("ERROR: --ci-url is required for schema 1.0.0", file=sys.stderr)
@@ -135,6 +197,9 @@ def main() -> int:
         "release": release,
         "source": source,
     }
+    if args.schema_version == "3.0.0":
+        identity["artifacts"] = artifacts
+        identity["dependency_locks"] = dependency_locks
 
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -145,10 +210,13 @@ def main() -> int:
     print(f"  commit: {commit}")
     print(f"  tree:   {tree}")
     print(f"  release_run_id: {release_run_id}")
-    if args.schema_version == "2.0.0":
+    if args.schema_version == "2.0.0" or args.schema_version == "3.0.0":
         print(f"  verification_ci_run_id: {args.verification_ci_run_id}")
     else:
         print(f"  ci_run: {release_run_id}")
+    if args.schema_version == "3.0.0":
+        print(f"  artifacts: {len(artifacts)}")
+        print(f"  dependency_locks: {len(dependency_locks)}")
     return 0
 
 

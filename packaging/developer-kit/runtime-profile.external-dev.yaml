@@ -1,0 +1,9 @@
+# Runtime Profile template: external-dev（AXW-RUN-202 / AXW-PKG-605）
+# 本机示例路径，不写入公共默认配置。
+name: external-dev
+backend: external-source
+data_policy: isolated-test-workspace
+reload: true
+# 以下路径仅作为本机 profile 示例（任务包 §8.2）：
+# source_root: D:/All projects/ArcheAxis-Knowledge-OS
+# python: D:/All projects/OS External Configuration/20-runtimes/core-dev/Scripts/python.exe

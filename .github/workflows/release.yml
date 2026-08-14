@@ -89,14 +89,20 @@ jobs:
         run: |
           python -m desktop.scripts.prepare_bundle --repository . --destination .hermes/rt
           $tree = git rev-parse "$env:GITHUB_SHA^{tree}"
+          $uvLockHash = (Get-FileHash uv.lock -Algorithm SHA256).Hash.ToLowerInvariant()
+          $npmLockHash = (Get-FileHash desktop/package-lock.json -Algorithm SHA256).Hash.ToLowerInvariant()
+          $cargoLockHash = (Get-FileHash desktop/src-tauri/Cargo.lock -Algorithm SHA256).Hash.ToLowerInvariant()
           python scripts/release_inject_identity.py `
             --commit $env:GITHUB_SHA `
             --tree $tree `
             --tag $env:GITHUB_REF_NAME `
             --version ${{ steps.resolve_version.outputs.release_version }} `
+            --schema-version 3.0.0 `
             --url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME" `
             --verification-ci-run-id ${{ steps.require_ci.outputs.verification_run_id }} `
             --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
+            --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,SBOM.cdx.json,SHA256SUMS.txt" `
+            --dependency-locks "uv.lock=$uvLockHash,desktop/package-lock.json=$npmLockHash,desktop/src-tauri/Cargo.lock=$cargoLockHash" `
             --output .hermes/rt/runtime/release-identity.json
       - name: Build Windows NSIS installer
         working-directory: desktop
@@ -121,7 +127,24 @@ jobs:
           $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
           Copy-Item $installers[0].FullName $installerAsset
           Copy-Item .hermes/rt/runtime/release-identity.json release-assets/
-          python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset --artifact release-assets/release-identity.json --output release-assets/SHA256SUMS.txt
+          # AXW-PKG-602/603: Green and Portable ZIPs assembled from the SAME
+          # verified runtime as the installer; AXW-SUP-703 SBOM from locks.
+          python desktop/scripts/assemble_distributions.py `
+            --exe desktop/src-tauri/target/release/ArcheAxis.exe `
+            --runtime .hermes/rt/runtime `
+            --frontend desktop/bootstrap `
+            --identity .hermes/rt/runtime/release-identity.json `
+            --out release-assets `
+            --version ${{ steps.resolve_version.outputs.release_version }}
+          python scripts/release_sbom.py `
+            --version ${{ steps.resolve_version.outputs.release_version }} `
+            --out release-assets/SBOM.cdx.json
+          python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset `
+            --artifact release-assets/release-identity.json `
+            --artifact (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip") `
+            --artifact (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip") `
+            --artifact release-assets/SBOM.cdx.json `
+            --output release-assets/SHA256SUMS.txt
       - name: Verify checksum manifest payload equality
         shell: pwsh
         run: |
@@ -132,8 +155,8 @@ jobs:
           $payloadNames = @(Get-ChildItem release-assets -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-Object Name)
           $manifestComparison = Compare-Object ($manifestNames | Sort-Object) ($payloadNames | Sort-Object)
           if ($manifestComparison) { throw "SHA256SUMS payload set differs from staged payload set: $($manifestComparison | Out-String)" }
-          if ($manifestNames.Count -ne 3 -or ($manifestNames | Select-Object -Unique).Count -ne 3) {
-            throw "expected exactly three unique checksum-bound payloads"
+          if ($manifestNames.Count -ne 6 -or ($manifestNames | Select-Object -Unique).Count -ne 6) {
+            throw "expected exactly six unique checksum-bound payloads"
           }
       - name: Upload verified assets to draft release
         env:
@@ -145,7 +168,10 @@ jobs:
           $releaseAssets = @(
             $wheel[0].FullName,
             (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe").Path,
+            (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip").Path,
+            (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip").Path,
             (Resolve-Path "release-assets/release-identity.json").Path,
+            (Resolve-Path "release-assets/SBOM.cdx.json").Path,
             (Resolve-Path "release-assets/SHA256SUMS.txt").Path
           )
           gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis Knowledge $env:GITHUB_REF_NAME" --generate-notes
@@ -156,8 +182,11 @@ jobs:
         run: |
           $expectedAssets = @(
             "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe",
+            "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip",
+            "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip",
             "archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl",
             "release-identity.json",
+            "SBOM.cdx.json",
             "SHA256SUMS.txt"
           ) | Sort-Object
           $release = gh release view $env:GITHUB_REF_NAME --json tagName,targetCommitish,isDraft,assets,url | ConvertFrom-Json
@@ -203,8 +232,8 @@ jobs:
             if ($asset[0].digest.ToLowerInvariant() -ne "sha256:$actual") { throw "provider digest mismatch for $($entry.name)" }
           }
           $identity = Get-Content "$downloadRoot/release-identity.json" -Raw | ConvertFrom-Json
-          if ($identity.schema_version -ne "2.0.0") {
-            throw "release identity must be schema v2 (verification/release runs separated)"
+          if ($identity.schema_version -ne "3.0.0") {
+            throw "release identity must be schema v3 (multi-artifact manifest with dependency locks)"
           }
           $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
           if ($identity.release.tag -ne $env:GITHUB_REF_NAME -or $identity.source.commit -ne $env:GITHUB_SHA) {
@@ -218,6 +247,20 @@ jobs:
           }
           if ($identity.source.verification_ci_run_id -eq $identity.source.release_run_id) {
             throw "verification CI run must differ from the release workflow run"
+          }
+          # v3: artifact manifest must cover exactly the public payload set
+          $identityNames = @($identity.artifacts | ForEach-Object name | Sort-Object)
+          if (Compare-Object $identityNames $expectedAssets) {
+            throw "identity artifact manifest differs from public asset set"
+          }
+          $identityKinds = @($identity.artifacts | ForEach-Object kind | Sort-Object -Unique)
+          foreach ($kind in @("installer", "green", "portable", "wheel", "sbom", "checksums", "identity")) {
+            if ($kind -notin $identityKinds) { throw "identity artifact manifest missing kind: $kind" }
+          }
+          # v3: dependency lock hashes must match the downloaded lock files
+          foreach ($entry in $identity.dependency_locks.PSObject.Properties) {
+            $actual = (Get-FileHash "$entry.Name" -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $entry.Value) { throw "dependency lock hash mismatch for $($entry.Name)" }
           }
           $canonicalReleaseUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME"
           $canonicalReleaseRunUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
