@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://archeaxis.local/contracts/plugin/plugin-manifest.schema.json",
+  "title": "PluginManifest",
+  "description": "Capability/plugin manifest v1. A pack is only eligible for the Capability Store when this manifest validates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "plugin_id",
+    "name",
+    "version",
+    "api_contract",
+    "permissions",
+    "platform",
+    "entry"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "plugin_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "api_contract": {
+      "type": "string",
+      "minLength": 1
+    },
+    "permissions": {
+      "type": "array",
+      "minItems": 0,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "files.read",
+          "files.write",
+          "network",
+          "process",
+          "model.load",
+          "ui.contribution"
+        ]
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "arch"],
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": ["windows", "linux", "macos", "any"]
+        },
+        "arch": {
+          "type": "string",
+          "enum": ["x86_64", "aarch64", "arm64", "any"]
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "cpu": { "type": "string" },
+        "memory_mb": { "type": "integer", "minimum": 0 },
+        "disk_mb": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1
+    },
+    "data_ownership": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "declared": { "type": "boolean" },
+        "note": { "type": "string" }
+      }
+    },
+    "healthcheck": {
+      "type": "string",
+      "minLength": 1
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "entry": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "definitions": {
+    "platform": {
+      "$ref": "#/properties/platform"
+    }
+  }
+}

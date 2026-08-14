@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://archeaxis.local/contracts/workspace/workspace-manifest.schema.json",
+  "title": "WorkspaceManifest",
+  "description": "One workspace, four asset domains: Source Archive, Evidence & Knowledge Ledger, Human Learning Vault, AI Asset Vault.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "workspace_id", "created_at", "name", "domains"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "domains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_archive",
+        "evidence_ledger",
+        "human_learning_vault",
+        "ai_asset_vault"
+      ],
+      "properties": {
+        "source_archive": { "$ref": "#/definitions/domain" },
+        "evidence_ledger": { "$ref": "#/definitions/domain" },
+        "human_learning_vault": { "$ref": "#/definitions/domain" },
+        "ai_asset_vault": { "$ref": "#/definitions/domain" }
+      }
+    },
+    "capability_lock": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/capability_lock_entry" }
+    },
+    "backup": { "$ref": "#/definitions/backup" },
+    "derived_cache_path": {
+      "type": "string"
+    },
+    "logs_path": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "type", "readonly"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "source_archive",
+            "evidence_ledger",
+            "human_learning_vault",
+            "ai_asset_vault"
+          ]
+        },
+        "readonly": {
+          "type": "boolean"
+        }
+      }
+    },
+    "capability_lock_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "version_range"],
+      "properties": {
+        "capability_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version_range": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location", "last_backup"],
+      "properties": {
+        "location": {
+          "type": "string"
+        },
+        "last_backup": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}
