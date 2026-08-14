@@ -734,3 +734,10 @@ async def sleep_loop_post(request: Request, action: str = "tick"):
     if action == "config":
         return sl.set_config(payload.get("config", payload))
     raise HTTPException(status_code=400, detail=f"unknown sleep-loop action: {action}")
+
+
+# ── AXW-DATA-402: first-run setup wizard (appended; middleware untouched) ──
+from app.setup.router import router as setup_router
+
+app.include_router(setup_router)
+

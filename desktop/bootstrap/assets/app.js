@@ -25,11 +25,17 @@ const BTN_RETRY = document.getElementById("btn-retry");
 const BTN_LOGS = document.getElementById("btn-logs");
 const RUNTIME_LINE = document.getElementById("runtime-line");
 const DATA_LINE = document.getElementById("data-line");
+const DEV_PANEL = document.getElementById("dev-panel");
+const DEV_RELOAD_STATUS = document.getElementById("dev-reload-status");
+const BTN_DEV_RELOAD = document.getElementById("btn-dev-reload");
 
 let backend = null; // { port, token } — memory only
 let pollTimer = null;
 let retries = 0;
 const MAX_RETRIES = 3;
+const DEV_STATUS_INTERVAL_MS = 10000;
+let devPollTimer = null;
+let devReloadInFlight = false;
 
 function setState(state, detail) {
   SHELL.dataset.state = state;
@@ -68,6 +74,69 @@ async function fetchHandshake() {
   return response.json();
 }
 
+async function fetchSystemStatus() {
+  if (!backend) return null;
+  const headers = { "Accept": "application/json" };
+  if (backend.token) headers["X-ArcheAxis-Launch-Token"] = backend.token;
+  const response = await fetch(`http://127.0.0.1:${backend.port}/api/v1/system/status`, { headers });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+function renderDevReloadStatus(reload) {
+  if (!reload) {
+    DEV_RELOAD_STATUS.textContent = "Reload: 状态不可用";
+    return;
+  }
+  const parts = [
+    reload.enabled ? "on" : "off",
+    `count ${reload.reload_count != null ? reload.reload_count : 0}`,
+  ];
+  if (reload.last_reload_at) parts.push(`last ${reload.last_reload_at}`);
+  DEV_RELOAD_STATUS.textContent = `Reload: ${parts.join(" · ")}`;
+}
+
+function pollDevReloadStatus() {
+  clearTimeout(devPollTimer);
+  fetchSystemStatus()
+    .then((body) => {
+      if (body && body.reload) renderDevReloadStatus(body.reload);
+    })
+    .catch(() => { /* keep previous status; retry on next tick */ })
+    .finally(() => {
+      devPollTimer = setTimeout(pollDevReloadStatus, DEV_STATUS_INTERVAL_MS);
+    });
+}
+
+async function triggerDevReload() {
+  if (devReloadInFlight || !backend) return;
+  devReloadInFlight = true;
+  BTN_DEV_RELOAD.disabled = true;
+  try {
+    const headers = { "Accept": "application/json", "Content-Type": "application/json" };
+    if (backend.token) headers["X-ArcheAxis-Launch-Token"] = backend.token;
+    const response = await fetch(`http://127.0.0.1:${backend.port}/api/v1/system/restart`, {
+      method: "POST",
+      headers,
+    });
+    DEV_RELOAD_STATUS.textContent = response.ok
+      ? "Reload: 已请求（202）"
+      : `Reload: 失败（HTTP ${response.status}）`;
+  } catch (error) {
+    DEV_RELOAD_STATUS.textContent = "Reload: 请求失败";
+  } finally {
+    devReloadInFlight = false;
+    BTN_DEV_RELOAD.disabled = false;
+  }
+}
+
+function enterExternalDevMode() {
+  // DEV BACKEND / TEST DATA panel — shown only for the external-dev profile.
+  DEV_PANEL.hidden = false;
+  renderDevReloadStatus(null);
+  pollDevReloadStatus();
+}
+
 function pollHandshake() {
   clearTimeout(pollTimer);
   fetchHandshake()
@@ -89,6 +158,10 @@ function pollHandshake() {
       }
       RUNTIME_LINE.textContent = `Runtime: ${info.runtime_mode || "bundled-stable"}`;
       DATA_LINE.textContent = `Data: ${info.workspace_id || "—"}`;
+      if (info.runtime_mode === "external-dev") {
+        // AXW-DEV-302: dev-mode panel (badge + reload status + manual reload).
+        enterExternalDevMode();
+      }
       setState("ready", `${info.product_name || "ArcheAxis Knowledge"} · API ${info.api_contract || "1.x"} · v${info.backend_version || "?"}`);
       setTimeout(() => {
         window.location.href = `http://127.0.0.1:${backend.port}/workspace`;
@@ -129,5 +202,6 @@ BTN_RETRY.addEventListener("click", () => {
 });
 
 BTN_LOGS.addEventListener("click", () => showLogs(LOG_VIEW.hidden));
+BTN_DEV_RELOAD.addEventListener("click", triggerDevReload);
 
 window.addEventListener("load", start);

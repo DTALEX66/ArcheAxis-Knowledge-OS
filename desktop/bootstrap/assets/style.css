@@ -97,3 +97,30 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   display: flex; justify-content: space-between; gap: 12px;
   margin-top: 16px; color: var(--muted); font-size: 12px;
 }
+
+/* AXW-DEV-302: external-dev mode panel (DEV BACKEND / TEST DATA) */
+.dev-panel {
+  margin-top: 16px; background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.45); border-radius: var(--radius);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+}
+
+.dev-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.dev-badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
+  color: #fff; background: var(--accent);
+  border-radius: 999px; padding: 4px 10px;
+}
+
+.dev-badge.test-data {
+  background: #b45309;
+  color: #fffbeb;
+}
+
+.dev-status { color: var(--muted); font-size: 12px; }
+
+.dev-panel .actions { margin: 0; }
+.dev-panel button { padding: 6px 14px; }

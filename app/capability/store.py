@@ -9,6 +9,7 @@ A partitioned, fail-closed store for capability packs:
       disabled/     — disabled packs
       quarantine/   — quarantined packs (with reason journal)
       packages/     — immutable pack archives (reserved for future use)
+      plugins/      — builtin plugin registrations (AXW-CAP-503)
 
 Lifecycle: stage(pack) → activate(staged_id) → disable/enable(id) →
 quarantine(id, reason). Every transition moves the pack directory and
@@ -22,12 +23,13 @@ import hashlib
 import json
 import os
 import shutil
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from shared.plugin_manifest import PluginManifest
+from shared.plugin_manifest import PluginManifest, load_manifest_from_mapping
 from shared.plugin_manifest import load as load_plugin_manifest
 
 REGISTRY_INDEX_VERSION = 1
@@ -36,7 +38,7 @@ STAGE_SIDECAR = ".stage.json"
 CAPABILITY_SIDECAR = ".capability.json"
 QUARANTINE_JOURNAL = ".quarantine.json"
 
-PARTITIONS = ("registry", "installed", "disabled", "staging", "quarantine", "packages")
+PARTITIONS = ("registry", "installed", "disabled", "staging", "quarantine", "packages", "plugins")
 
 
 class CapabilityStoreError(ValueError):
@@ -121,9 +123,11 @@ class CapabilityStore:
         self.disabled_dir = self.root / "disabled"
         self.quarantine_dir = self.root / "quarantine"
         self.packages_dir = self.root / "packages"
+        self.plugins_dir = self.root / "plugins"
         for partition in PARTITIONS:
             (self.root / partition).mkdir(parents=True, exist_ok=True)
         self._index_path = self.registry_dir / "index.json"
+        self._activators: dict[str, Callable[[], Any]] = {}
 
     # ── registry index ──────────────────────────────────────────────────
 
@@ -142,9 +146,7 @@ class CapabilityStore:
     def _write_index(self, records: dict[str, dict[str, Any]]) -> None:
         payload = {"version": REGISTRY_INDEX_VERSION, "records": records}
         tmp = self._index_path.with_suffix(".tmp")
-        tmp.write_text(
-            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-        )
+        tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         tmp.replace(self._index_path)
 
     def _record(self, plugin_id: str) -> CapabilityRecord:
@@ -242,6 +244,92 @@ class CapabilityStore:
         )
         return self._record(plugin_id)
 
+    # ── builtin injection (AXW-CAP-503) ─────────────────────────────────
+
+    def install_builtin(
+        self,
+        manifest: PluginManifest | dict[str, Any],
+        activator: Callable[[], Any] | None = None,
+    ) -> CapabilityRecord:
+        """Register a builtin plugin; idempotent and fail-closed.
+
+        First call materializes the validated manifest under
+        ``installed/<plugin_id>@<version>/`` (with its content hash
+        recorded), registers ``plugins/<plugin_id>.json`` and invokes the
+        optional ``activator`` exactly once. Subsequent calls with the
+        same manifest are idempotent: the existing record is returned and
+        the activator is NOT re-invoked. The installed pack is immutable:
+        any modification is detected via content-hash re-verification and
+        refused with CapabilityStoreError.
+        """
+        parsed = (
+            manifest
+            if isinstance(manifest, PluginManifest)
+            else load_manifest_from_mapping(manifest)
+        )
+        plugin_id = parsed.plugin_id
+        version = parsed.version
+        target = self.installed_dir / f"{plugin_id}@{version}"
+
+        records = self._read_index()
+        existing = records.get(plugin_id)
+
+        if target.is_dir():
+            actual_hash = _compute_content_hash(target)
+            if existing is None or existing.get("content_hash") != actual_hash:
+                raise CapabilityStoreError(
+                    f"builtin pack modified (hash mismatch); refusing to register {plugin_id}@{version}"
+                )
+            return CapabilityRecord.from_dict(existing)
+        if existing is not None:
+            raise CapabilityStoreError(
+                f"builtin {plugin_id}@{version} already registered at status "
+                f"{existing.get('status')!r}"
+            )
+
+        target.mkdir(parents=True, exist_ok=False)
+        (target / MANIFEST_FILENAME).write_text(
+            json.dumps(parsed.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        content_hash = _compute_content_hash(target)
+        now = _utc_now()
+        record = CapabilityRecord(
+            plugin_id=plugin_id,
+            version=version,
+            status="installed",
+            content_hash=content_hash,
+            activated_at=now,
+        )
+        records[plugin_id] = record.to_dict()
+        self._write_index(records)
+        (target / CAPABILITY_SIDECAR).write_text(
+            json.dumps(records[plugin_id], indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        (self.plugins_dir / f"{plugin_id}.json").write_text(
+            json.dumps(
+                {
+                    "kind": "builtin",
+                    "plugin_id": plugin_id,
+                    "version": version,
+                    "content_hash": content_hash,
+                    "manifest": parsed.to_dict(),
+                    "activated_at": now,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        if activator is not None:
+            self._activators[plugin_id] = activator
+            activator()
+        return record
+
+    def get_activator(self, plugin_id: str) -> Callable[[], Any] | None:
+        """Return the registered activator for a builtin plugin, if any."""
+        return self._activators.get(plugin_id)
+
     # ── disable / enable ────────────────────────────────────────────────
 
     def disable(self, plugin_id: str) -> CapabilityRecord:
@@ -303,9 +391,7 @@ class CapabilityStore:
         record = self._record(plugin_id)
         if record.status not in ("installed", "disabled"):
             raise CapabilityStoreError(f"capability {plugin_id} is not installed/disabled")
-        source_partition = (
-            self.installed_dir if record.status == "installed" else self.disabled_dir
-        )
+        source_partition = self.installed_dir if record.status == "installed" else self.disabled_dir
         source = source_partition / f"{plugin_id}@{record.version}"
         target = self.quarantine_dir / f"{plugin_id}@{record.version}"
         if not source.is_dir():
