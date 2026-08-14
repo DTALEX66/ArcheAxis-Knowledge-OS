@@ -7,7 +7,7 @@ Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
 - Repository: `D:\All projects\ArcheAxis-Knowledge-OS` (canonical, single writer: Hermes)
 - Branch: `main` — HEAD and origin in sync (verify with `git status --short --branch` before resuming)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
-- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1) + Final Architecture TaskPack 2026-08-14 (R0-R8). Full suite: **1701 passed / 5 skipped** (2026-08-15 local, three dirs); ruff + repository-conventions gate green on head; cargo check + 16/16 Rust tests green.
+- Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1) + Final Architecture TaskPack 2026-08-14 (R0-R8). Full suite: **1756 passed / 5 skipped** (2026-08-15 local, three dirs); ruff + repository-conventions gate green on head; cargo check + 16/16 Rust tests green.
 
 ## Frozen-baseline execution state (LOG-147..177 in `docs/truth/EXECUTION_STATUS_LOG.md`)
 
@@ -106,6 +106,37 @@ Implemented and CI-verified (continuous green: CI runs 524-586; 585 was the pre-
     React migration deferred to next batch (node toolchain restore).
   - Acceptance §19: #1/#2/#3/#4/#7-#14/#16-#18 green; #5/#6/#15 partial
     (Supervisor wiring, hot reload, migration implementation pending).
+- **Final Architecture TaskPack R1-R8 batch 2 (LOG-178, 2026-08-15)**:
+  - R3 (AXW-DEV-301~304): HotReloadWatcher (mtime poll, ignore rules, ring
+    buffer) + Supervisor request_reload/reload (external-dev fail-closed)
+    + reload fields in /status; bootstrap dev-mode panel (badge + reload
+    state + manual reload button); clone_test_workspace (new uuid4 id,
+    dst-exists raises); Developer Kit README workflow.
+  - R4 (AXW-DATA-402/403): app/setup wizard (GET /api/v1/setup/status +
+    POST /api/v1/setup/initialize idempotent) appended to main.py (middleware
+    untouched); app/workspace/migrate.py (VACUUM INTO backup → dry-run →
+    migrate to four asset domains → rollback hash readback → legacy DB kept,
+    idempotent).
+  - R5 (AXW-CAP-503/504): app/capability/builtin/ six converter plugin
+    registrations + discover() + store builtin injection; scripts/
+    capability_pack.py pack builder/verifier (per-file sha256). Guard fix:
+    sys.path.insert → importlib spec + sys.modules registration
+    (forbidden-sys-path-mutation); webview2_detect absolute paths →
+    os.environ (forbidden-absolute-path).
+  - R6 (AXW-PKG-601/604): install-lifecycle L4 checklist doc (verify_
+    nsis_install.ps1 already wired); webview2_detect.py real run — this
+    host: Evergreen absent, Fixed Version 151.0.4129.78 ~849 MB; offline
+    spike doc (Evergreen default, offline installer path, offline pack not
+    in default chain).
+  - R8 (AXW-UI-801/802/804): frontend/ React+TS+Vite App Shell skeleton
+    (six spaces Workspace/Library/Evidence/Learning/AI Assets/Settings per
+    §15.3; api client token-in-memory + product fail-closed; runtime state
+    machine mirroring Recovery Shell; a11y tokens focus-visible/reduced-
+    motion). npm via npmmirror (68 pkgs); vite build verified (44 modules,
+    0 warnings). UI-804 acceptance baseline doc.
+  - Acceptance §19 update: #5/#6/#7 now green (supervisor+reload+isolated
+    clone); #15/#17 partial (migration implemented; long-path + end-to-end
+    UI flow pending L4 / App Shell wiring).
 
 - **Coverage audits (LOG-163)**: all 51 workspace router endpoints and all
   12 UI data-action handlers now have test references (3 genuine route gaps

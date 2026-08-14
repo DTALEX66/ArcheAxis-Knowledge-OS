@@ -1294,3 +1294,69 @@ windows-runtime）。nightly 连续验证：Run 5 ✅ → Run 6 ✅（timeout
 - 首次编译发现 SANITIZED_ENVIRONMENT 长度标错（17 vs 16 元素）——编译错误修正。
 - **cargo check --all-targets ✅ + cargo test --lib 16/16 passed ✅**（含新增
   navigation app:// 放行测试、backend canonical+legacy 双设测试）。
+
+
+---
+
+## LOG-178 — 2026-08-15 — 任务包 R1-R8 第二批（cap503/504、data402/403、dev301-304、pkg601/604、ui801-804）
+
+承接 LOG-177。3 个并行子代理（deleg_739fe7e6）+ 主线程推进剩余任务。全量 **1756 passed / 5 skipped**。
+
+### R3 外接热重载（子代理 C）— AXW-DEV-301~304 ✅
+- DEV-301：app/workspace/hotreload.py（mtime 轮询监听 external-dev source_root *.py，
+  忽略 .git/.venv/.hermes/__pycache__/node_modules；环形缓冲 50 事件；start/stop 句柄）；
+  BackendSupervisor 增 request_reload()/reload()（非 external-dev 或 reload:false fail-closed）
+  + /status 响应 reload 字段（enabled/interval_ms/reload_count/last_reload_at）。
+- DEV-302：desktop/bootstrap/assets/app.js 增 external-dev 开发模式面板（徽标 + reload 状态
+  10s 轮询 + 手动重载按钮复用 POST /restart）。
+- DEV-303：app/workspace/test_workspace.py clone_test_workspace（四资产域 + manifest 复制、
+  新 uuid4 workspace_id、dst 存在抛错）。
+- DEV-304：packaging/developer-kit/README.md 补外部热重载工作流。
+- 证据：tests/test_axw_dev301_304.py（watcher 事件/ignore 规则/reload fail-closed/count 递增/
+  clone 幂等）。
+
+### R4 首次运行与迁移（子代理 B）— AXW-DATA-402/403 ✅
+- DATA-402：app/setup/（setup_status.py 就绪检查 + router.py GET /api/v1/setup/status +
+  POST /initialize 幂等创建）+ main.py 尾部追加挂载（middleware 区未动）。
+- DATA-403：app/workspace/migrate.py（VACUUM INTO 时间戳备份 → dry-run 计划 → 迁移到
+  新四资产域 → rollback 回读 hash 校验 → 旧库保留；幂等不重复备份）。
+- 证据：tests/test_axw_data402_setup.py（4 场景）+ test_axw_data403_migrate.py（含 blob 库
+  全流程）。
+
+### R5 内置插件与 Pack（子代理 A + 主线程修复）— AXW-CAP-503/504 ✅
+- CAP-503：app/capability/builtin/ 6 个转换插件注册模块（docx/html/media/ocr/pptx/xlsx，
+  manifest 兼容 + healthcheck 导入探测）+ discover() 统一入口 + CapabilityStore 内置注入。
+- CAP-504：scripts/capability_pack.py（pack.json + files/ 布局 + 逐文件 sha256 + verify 拒绝
+  结构/hash 违规）。
+- **主线程修复**：capability_pack.py 原 sys.path.insert 触发架构守卫
+  forbidden-sys-path-mutation → 改 importlib spec_from_file_location + sys.modules 注册
+  （dataclass 装饰器依赖 sys.modules）——守卫通过。
+- 证据：tests/test_axw_cap503_builtin.py + test_axw_cap504_pack.py（含负例）。
+
+### R6 安装生命周期与离线 Spike（主线程）— AXW-PKG-601/604 ✅
+- PKG-601：docs/design/AXW-PKG-601-install-lifecycle.md（CI 链路 + L4 真实验收清单 8 项：
+  干净安装/向导/后端关闭恢复/升级/修复/卸载保留/currentUser/中文空格长路径）；
+  verify_nsis_install.ps1 确认存在（release.yml 已接线）。
+- PKG-604：scripts/webview2_detect.py 真实运行——本机 Evergreen 无注册项、
+  **Fixed Version 151.0.4129.78 实测 ~849 MB**（官方声明 250 MB+，现代版本更大）；
+  spike 文档记录决策（Evergreen 默认 + 缺失时离线安装器；offline 包不接入默认组装链）。
+- **架构守卫修复**：webview2_detect.py 硬编码 `C:\Program Files (x86)` 绝对路径 →
+  改 os.environ 动态读取（forbidden-absolute-path 通过）。
+
+### R8 UI 渐进迁移（主线程）— AXW-UI-801/802/804 ✅（骨架批次）
+- UI-801：frontend/ React + TypeScript + Vite 骨架（任务包 §10 结构：app/spaces/components/
+  design-system/api/runtime；api client token 内存 + product fail-closed；runtime 状态机与
+  Recovery Shell 一致）。npm install 走 npmmirror（68 包 4s）；**vite build 真实成功**
+  （44 modules、146 KB JS / 47.6 KB gzip、0 警告——CSS 注释警告已修）。
+- UI-802：六大空间（Workspace/Library/Evidence/Learning/AI Assets/Settings——TaskPack §15.3）
+  SpaceRail 导航 + 6 空间占位组件 + aria-current/语义 landmark。
+- UI-804：tokens.css 实现 focus-visible/reduced-motion/对比度色板 + docs/design/
+  AXW-UI-804-a11y-performance.md（性能/无障碍/高 DPI 验收基线）。
+- UI-803 已在 LOG-177（OSUI 降级）。
+
+### 验收标准映射（§19 更新）
+#1 ✅（1756 passed + CI 待 push） #2 ✅ #3 ✅ #4 ✅ #5 ✅（Supervisor + Recovery Shell +
+reload 状态） #6 ✅（hotreload watcher + 前端面板） #7 ✅（isolated-test-workspace +
+clone_test_workspace） #8 ✅ #9 ✅ #10 ✅ #11 ✅ #12 ✅ #13 ✅ #14 ✅ #15 🟡（迁移实现完成，
+长路径真实验证待 L4） #16 ✅ #17 🟡（主链各段均有实现；端到端 UI 流程待 App Shell 接 Tauri）
+#18 ✅
