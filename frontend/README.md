@@ -21,8 +21,10 @@ frontend/
 ## 开发
 
 ```bash
-# 本机 node 在 HERMES_HOME（PATH shim 断链时用完整路径 + 镜像源）
-node "C:/Users/ALEX/AppData/Local/hermes/node/node_modules/npm/bin/npm-cli.js" \
+# node 使用共用外置库（OS External Configuration）的 nodejs-lts v24（新稳定版；
+# 原 HERMES_HOME node v22 已停用——重复以新稳定版为准）
+node "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/current/node.exe" \
+  "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/current/node_modules/npm/bin/npm-cli.js" \
   install --registry=https://registry.npmmirror.com
 npm run dev        # 127.0.0.1:5173（loopback only）
 npm run build      # tsc --noEmit && vite build → dist/

@@ -2,14 +2,16 @@
 
 > 文档位置：`D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`
 > 仓库同步：`docs/environment/EXTERNAL_DEPENDENCIES.md`
-> 更新：2026-08-12
+> 更新：2026-08-15
 > 生产主机：Windows 10/11 x64
 >
 > **本文是 ArcheAxis-Knowledge-OS 项目外置依赖的唯一权威文档。任何新增系统工具、模型文件、外部服务
 > 或环境变量必须在此登记。CI 与本地开发环境均以此文档为准。**
 >
-> **范畴声明：本目录只管理本项目的外置环境依赖。全局配置（Hermes/Codex 侧 skills、
-> managed-config、SOUL.md）由 WORK-LAB 独立仓库推送管理，不属于本目录范畴；
+> **范畴声明：本目录（OS External Configuration）是跨项目共用的外置依赖库；本项目消费的
+> 工具在 `00-registry/project-tool-index.yaml` 登记指向（避免共用后分不清归属）。
+> 本文只登记本项目（ArcheAxis-Knowledge-OS）使用的外置依赖子集。全局配置（Hermes/Codex 侧
+> skills、managed-config、SOUL.md）由 WORK-LAB 独立仓库推送管理，不属于本目录范畴；
 > 本目录中的 HERMES_HOME 仅作环境变量登记，不代表本目录拥有或管理全局配置。**
 
 ---
@@ -49,9 +51,9 @@
 - **版本**：5.5.0（tesseract）+ 1.85.0（leptonica）
 - **下载**：https://github.com/UB-Mannheim/tesseract/wiki
 - **语言包**：额外安装 `chi_sim`（中文简体）和 `eng`（英文）
-- **路径**：`D:\All projects\OS External Configuration\toolchains\scoop\shims\tesseract`
+- **路径**：`D:\All projects\OS External Configuration\10-toolchains\scoop\shims\tesseract`
 - **验证**：`tesseract --version`
-- **TESSDATA_PREFIX**：`D:\All projects\OS External Configuration\toolchains\scoop\apps\tesseract-languages\4.1.0`（scoop 无 `tesseract-languages/current`；不设此变量则 OCR 测试 skipped：`TESSDATA_PREFIX /c/Users/ALEX/scoop/apps/tesseract-languages/current does not exist`）
+- **TESSDATA_PREFIX**：`D:\All projects\OS External Configuration\10-toolchains\scoop\apps\tesseract-languages\current`（scoop 无 `tesseract-languages/current`；不设此变量则 OCR 测试 skipped：`TESSDATA_PREFIX /c/Users/ALEX/scoop/apps/tesseract-languages/current does not exist`）
 - **Python 绑定**：`pytesseract>=0.3.13`（pyproject.toml 中已声明）
 
 ### 1.4 FFmpeg
@@ -59,7 +61,7 @@
 - **用途**：音视频解码、格式转换、关键帧提取
 - **版本**：>=6.0
 - **下载**：https://ffmpeg.org/download.html
-- **路径**：`D:\All projects\OS External Configuration\toolchains\scoop\shims\ffmpeg`
+- **路径**：`D:\All projects\OS External Configuration\10-toolchains\scoop\shims\ffmpeg`
 - **验证**：`ffmpeg -version`
 - **许可注意**：构建选项决定 LGPL/GPL；项目只用 LGPL 子集
 
@@ -73,7 +75,7 @@
 ### 1.6 Node.js（可选，仅桌面构建）
 
 - **用途**：Tauri 桌面壳构建
-- **版本**：LTS（当前 22.x）
+- **版本**：LTS（当前 24.18.0）
 - **下载**：https://nodejs.org/
 - **验证**：`node --version`
 
@@ -248,7 +250,7 @@
 ## 6. 工具链路径（scoop 管理）
 
 ```
-D:\All projects\OS External Configuration\toolchains\
+D:\All projects\OS External Configuration\10-toolchains\
 ├── downloads/          # scoop 下载缓存
 ├── playwright/         # Playwright 浏览器
 ├── rust/               # Rust 工具链（Tauri 构建用）
