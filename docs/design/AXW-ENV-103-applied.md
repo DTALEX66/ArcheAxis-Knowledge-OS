@@ -3,6 +3,24 @@
 > 承接 dry-run plan（logs/environment-audit/move-plan-20260815.json）。本轮执行
 > **低风险 7 项**；中/高风险项 hold（需环境变量/注册表更新确认）。
 
+## 修正（2026-08-15 晚，Owner 边界澄清）
+
+Owner 澄清外置库边界：**共用库只放工具链/依赖本体**（node/python/rust/msvc/
+ffmpeg/tesseract/playwright/模型权重/共用缓存）；**构建产物、下载缓存、审计日志、
+运行数据一律留在项目自己的 `.hermes/task-runtime/`**。据此把下面 5 项构建产物从
+共用库迁回本项目 `.hermes/task-runtime/`：
+
+| 共用库原位置 → 项目位置 | 体积 |
+|---|---|
+| 80-build/portable-staging → `.hermes/task-runtime/build-staging/` | 357 MB |
+| 20-runtimes/desktop-runtime-v1 → `.hermes/task-runtime/desktop-runtime-v1/` | 349 MB |
+| 60-cache/downloads → `.hermes/task-runtime/downloads/` | 12 MB |
+| logs/environment-audit → `.hermes/task-runtime/environment-audit/` | <1 MB |
+| .hermes/task-runtime → `.hermes/task-runtime/shared-lib-runtime/` | 4 MB |
+
+共用库相应分区（20-runtimes/60-cache/80-build）保留为空，仅工具链/依赖本体留存。
+外置库 **不上传**（保持本地）。
+
 ## 已执行（7 项 low-risk move，~13.5 GB）
 
 | 源 → 目标 | 验证 |

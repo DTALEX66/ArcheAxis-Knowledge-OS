@@ -1,12 +1,38 @@
 # Hermes handoff — archeaxis-workspace
 
-Generated: 2026-08-14 (replaced stale 2026-07-23 copy)
+Generated: 2026-08-15 (replaced stale 2026-07-23 copy)
+
+## NEXT-RUN QUICKSTART（2026-08-15 晚 · 共用库改造后 · 给 DEEPSEEK HARNESS）
+
+> 只读本段即可开工，无需回读全历史。
+
+**当前状态**
+- 项目端 HEAD = `e2012d3`（= origin/main，双端一致，工作树干净）；全量 **1776 passed / 9 skipped**；CI **连续绿 524-593**。
+- 外置库 `D:\All projects\OS External Configuration` = **跨项目共用库（仅工具链/依赖本体）**；本项目构建产物已全部迁回 `.hermes/task-runtime/`；**外置库不上传（保持本地，不 commit 不 push）**。
+
+**下一轮任务（优先级从高到低）**
+1. **P0 项目配置规则减重**（Owner 指定优先）——见 `docs/design/` 与记忆；实测 `.hermes/cache` + `task-artifacts` 有 ~965MB 第三方 config/rules 垃圾，规则文档（AGENTS 6KB / VERIFICATION_POLICY 6.7KB / HANDOFF 15KB）可查冗余整合；GitHub ruleset（main/tag-protection）**不可动**。
+2. **AXW-WEB-CAPTURE-v3 TaskPack**（OWNER-APPROVED，源 `D:\All projects\AXW_WEB_CAPTURE_V3.zip` 已解到 `.hermes/task-runtime/axw-web-capture-v3/`）——22 任务 DAG：`000→001→003→010→011→012→020→021→022→023→024→030→032→042→EXIT`（消灭 web.py stub、统一 PolicyGate、Raw-first、真实非 mock E2E）；050-052 可选。
+3. **RC 三包发布**（`git tag v0.6.0` → release.yml 8 资产链 → L4 验收清单 AXW-PKG-601）。
+4. **App Shell 接 Tauri**（frontend/ dist → frontendDist）+ ENV-103 剩余 hold（rust/uv-cache/wsl2/ci-venv——环境变量/注册表确认后）。
+
+**关键环境事实**
+- 共用库工具（10-toolchains/scoop/apps/*/current）：node 24.18.0 / ffmpeg 8.1.2 / tesseract 5.5.0+126语言 / pandoc / gh 2.95.0 / git 2.54.0；python 10-toolchains/python（3.12.13/3.13.14）；rust toolchains/rust；msvc 10-toolchains/msvc。模型权重 40-models/（HF 216MB + ModelScope 896MB）。
+- 用户 PATH 已加 ffmpeg + tesseract（node 未加，避免覆盖 HERMES_HOME）；前端构建用完整路径指共用库 node v24。
+- junction 断链修复法：`cmd /c rd /s /q <name>` + `cmd /c mklink /J <name> <target>`（Python 3.11 无 is_junction；os.symlink 需特权）。
+- 项目工具消费索引：共用库 `00-registry/project-tool-index.yaml`。
+
+**铁律（不可违）**
+- terminal 必须经 `python "C:/Users/ALEX/AppData/Local/hermes/bin/hermes-project-data.py" --project . run -- <单命令>`；禁 chaining/重定向/内联绝对路径/多行 python -c（绕行=写脚本到 .hermes/task-runtime）。
+- 测试：`env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest`；门禁 `python scripts/check_repository_conventions.py --source head`。
+- 证据写项目内 `.hermes/task-runtime/`；外置库不上传；E: 盘不碰；数据边界不外溢。
 
 ## Current continuation point
 
 - Repository: `D:\All projects\ArcheAxis-Knowledge-OS` (canonical, single writer: Hermes)
-- Branch: `main` — HEAD and origin in sync (verify with `git status --short --branch` before resuming)
+- Branch: `main` — HEAD `e2012d3` and origin in sync (verify with `git status --short --branch` before resuming)
 - Cloud: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS` (push via 127.0.0.1:7890 proxy; api.github.com direct)
+- Shared external lib: `D:\All projects\OS External Configuration` (cross-project toolchain/dependency bodies only; build artifacts belong under each project's `.hermes/task-runtime/`; NOT uploaded). Tool index: `00-registry/project-tool-index.yaml`.
 - Baseline: AXC TaskPack 2026-08-13 (AXC-000~150 v1.1) + Final Architecture TaskPack 2026-08-14 (R0-R8). Full suite: **1776 passed / 9 skipped** (2026-08-15 local, three dirs); ruff + repository-conventions gate green on head; cargo check + 16/16 Rust tests green; frontend vitest 9/9 + vite build 0 warnings.
 
 ## Frozen-baseline execution state (LOG-147..180 in `docs/truth/EXECUTION_STATUS_LOG.md`)
