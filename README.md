@@ -4,6 +4,8 @@
 >
 > **同一份可信知识，人学得更深，AI 用得更准。**
 
+> **GitHub 交付**：上传/审核见 [`GITHUB_DELIVERY.md`](GITHUB_DELIVERY.md)（WORK-LAB 交付加速器）。
+
 主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Knowledge**；中文产品名 **星环知识平台**。
 仓库技术 ID `archeaxis-workspace` 仅为 Git/分发兼容身份（历史兼容身份，不是产品名）；旧名"元枢/元枢工作台"只保留在历史、迁移与兼容说明中。
 项目状态：**Personal Research Project / 个人研究项目**（不等同于许可证）。
