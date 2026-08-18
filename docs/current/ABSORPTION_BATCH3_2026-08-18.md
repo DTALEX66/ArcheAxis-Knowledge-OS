@@ -21,7 +21,7 @@
 | Cognee | graph_pipeline 加 **ontology 枚举约束 + grounding span 锚定** | ✅ app/knowledge/graph_pipeline.py |
 | colleague-skill | **SKILL.md frontmatter 规范 + Persona/Skill 双轨** | ✅ app/knowledge/skill_spec.py |
 | Hermes | skill_evolution.verify_patch 加 **回归基准门禁** | ✅ app/knowledge/skill_evolution.py |
-| DeepTutor | capabilities 注册表 + ChatOrchestrator 路由 | 后置（涉及新架构面） |
+| DeepTutor | capabilities 注册表 + 意图路由 + mastery gate | ✅ app/learning/capabilities.py（6 测试） |
 
 ## 4. D3 AI Learning OS（已落实 R1/R2）
 
