@@ -267,3 +267,51 @@ def conflict_report(db: str | Path, *, entity: str, predicate: str) -> dict[str,
         "current": resolve_current(db, entity=entity, predicate=predicate).as_dict()
         if resolve_current(db, entity=entity, predicate=predicate) else None,
     }
+
+
+
+def ingest_episode(
+    db: str | Path,
+    *,
+    episode_id: str,
+    source: str,
+    facts: list[dict[str, Any]],
+    confidence: float = 0.8,
+) -> list[TemporalFact]:
+    """Ingest one episode's extracted facts in a batch (D4 / Graphiti).
+
+    facts: [{"statement", "entity", "predicate", "object",
+             "valid_from"?, "valid_to"?}] — every fact is stamped with the
+    episode's ingested time (bi-temporal: valid window + ingestion separated).
+    Returns the created TemporalFact rows.
+    """
+    if not episode_id.strip():
+        raise TemporalGraphError("episode_id is required")
+    if not facts:
+        raise TemporalGraphError("facts must be non-empty")
+    created: list[TemporalFact] = []
+    for fact in facts:
+        created.append(add_fact(
+            db, statement=str(fact["statement"]), entity=str(fact["entity"]),
+            predicate=str(fact["predicate"]), object=str(fact["object"]),
+            source=f"{source} (episode {episode_id})", confidence=confidence,
+            valid_from=fact.get("valid_from"), valid_to=fact.get("valid_to"),
+        ))
+    return created
+
+
+def expire_facts(db: str | Path, *, as_of: str) -> int:
+    """Auto-expiry maintenance: mark active facts past valid_to as expired.
+
+    Returns the number of facts transitioned to status='expired'. Expired
+    facts drop out of active_facts but stay queryable as history (append-only).
+    """
+    if not as_of:
+        raise TemporalGraphError("as_of is required")
+    with _connect(db) as conn:
+        row = conn.execute(
+            "UPDATE temporal_facts SET status='expired' WHERE status='active' "
+            "AND valid_to IS NOT NULL AND valid_to <= ?",
+            (as_of,),
+        )
+        return int(row.rowcount or 0)
