@@ -1,0 +1,33 @@
+[
+  {
+    "pdf": "牛津通识读本：简明逻辑学（中文版）.pdf",
+    "pages": 30,
+    "before_chars": 20109,
+    "after_chars": 19971,
+    "removed_chars": 138,
+    "removed_ratio": 0.0069,
+    "running_noise": [
+      "本章要点"
+    ]
+  },
+  {
+    "pdf": "牛津通识读本：笛卡尔（中文版）.pdf",
+    "pages": 30,
+    "before_chars": 28126,
+    "after_chars": 27925,
+    "removed_chars": 201,
+    "removed_ratio": 0.0071,
+    "running_noise": [
+      "【注释】"
+    ]
+  },
+  {
+    "pdf": "牛津通识读本：大众经济学（中文版）.pdf",
+    "pages": 30,
+    "before_chars": 29408,
+    "after_chars": 29203,
+    "removed_chars": 205,
+    "removed_ratio": 0.007,
+    "running_noise": []
+  }
+]

@@ -10,6 +10,7 @@ CAP_AUDIO = 0
 PER_FILE_BUDGET = 10
 
 from app.ingestion.ocr_gate import assess as ocr_gate
+from app.ingestion.content_cleaner import clean_text as strip_noise
 
 def read_text(p):
     with open(p, "r", encoding="utf-8", errors="ignore") as f:
@@ -110,6 +111,7 @@ for dirpath, dirnames, filenames in os.walk(ROOT):
             continue
         if time.monotonic() - t0 > PER_FILE_BUDGET:
             stats["over_budget"] += 1
+        text = strip_noise(text)
         gate = ocr_gate(text).verdict if text.strip() else "fail"
         gates[gate] += 1
         total_chars += len(text)
