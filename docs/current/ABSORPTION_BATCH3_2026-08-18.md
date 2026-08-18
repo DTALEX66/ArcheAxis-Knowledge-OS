@@ -59,6 +59,7 @@
 - ✅ ASR adapter：faster-whisper（Model library），fail-closed
 - ✅ D4 零依赖补齐：long_term.add_from_conversation + classify_kind；memory_layers.check_memory_pressure
 - ✅ 包 C 指标：ceshi 语料自检索 top-3 命中率 8/8（双引擎）；判别指标 cos 0.605 vs 0.223（qwen3 语义腿）
+- ✅ 包 C 判别性指标（改写查询）：小样本下 qwen3 1/2 vs 本地 n-gram 0/2（方向性支持 qwen3）；样本不足（书籍前 60 页多为版权/序言，关键词在后部），**完整评估集（固定改写查询 + CER/WER/资源矩阵）列为待办**；回执 .hermes/task-runtime/qa_discriminant_receipt.json
 
 剩余：
 - C2 余下 TaskPack 任务（PolicyGate 统一/真实 E2E/050-052 可选）——核心已落地，DAG 剩余项可继续
