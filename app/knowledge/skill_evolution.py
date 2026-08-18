@@ -198,8 +198,14 @@ def verify_patch(
     *,
     test_results: dict[str, Any],
     reviewer: str = "evolution-loop",
+    regression_tolerance: float = 0.05,
 ) -> Literal["approved", "rejected"]:
-    """Gate a patch: all tests must pass before it can be applied."""
+    """Gate a patch: all tests must pass AND no benchmark regression.
+
+    test_results: {"tests": [{"name", "passed"}], "benchmark": {metric: {old, new}}}
+    A benchmark metric is treated as regression when new < old * (1 - tolerance)
+    (higher-is-better metrics; lower-is-better must be negated by the caller).
+    """
     with _connect(db) as conn:
         row = conn.execute("SELECT * FROM skill_patches WHERE patch_id=?", (patch_id,)).fetchone()
         if row is None:
@@ -210,7 +216,16 @@ def verify_patch(
         if not isinstance(tests, list) or not tests:
             raise SkillEvolutionError("verification requires a non-empty tests list")
         passed = all(isinstance(t, dict) and t.get("passed") is True for t in tests)
-        status = "approved" if passed else "rejected"
+        regressions: list[str] = []
+        benchmark = test_results.get("benchmark") or {}
+        if isinstance(benchmark, dict):
+            for metric, pair in benchmark.items():
+                if not isinstance(pair, dict) or "old" not in pair or "new" not in pair:
+                    continue
+                old_v, new_v = float(pair["old"]), float(pair["new"])
+                if old_v > 0 and new_v < old_v * (1.0 - regression_tolerance):
+                    regressions.append(f"{metric}: {old_v:.3f} -> {new_v:.3f}")
+        status = "approved" if (passed and not regressions) else "rejected"
         conn.execute(
             "UPDATE skill_patches SET status=?, test_results_json=?, reviewer=? WHERE patch_id=?",
             (status, json.dumps(test_results, ensure_ascii=False), reviewer, patch_id),

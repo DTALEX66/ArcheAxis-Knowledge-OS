@@ -35,3 +35,22 @@ def llm_embed(texts: list[str], *, model: str | None = None) -> list[list[float]
 
 def _as_vector(values: list[float] | Any) -> np.ndarray:
     return np.asarray(values, dtype=np.float32)
+
+
+def configured_embed_many(texts: list[str]) -> list[list[float]]:
+    """Embeddings driven by config (rag.embedding.provider).
+
+    provider=llm + configured model → remote embeddings; anything else or any
+    provider failure → local n-gram embedder (never a hard dependency).
+    """
+    try:
+        from shared.config import config
+        provider = str(config.get("rag.embedding.provider", "local") or "local").lower()
+        model = str(config.get("rag.embedding.model", "") or "").strip()
+    except Exception:
+        provider, model = "local", ""
+    if provider == "llm" and model:
+        remote = llm_embed(texts, model=model)
+        if remote is not None:
+            return remote
+    return embed_many(texts)

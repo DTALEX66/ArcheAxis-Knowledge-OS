@@ -59,10 +59,14 @@ def extract(
     glossary: dict[str, str] | None = None,
     patterns: tuple[Pattern, ...] = DEFAULT_PATTERNS,
     source: str = "unknown",
+    ontology: dict[str, Any] | None = None,
 ) -> ExtractResult:
     """Extract entities and relations from one text (deterministic)."""
     if not text.strip():
         raise GraphPipelineError("extract requires non-empty text")
+    allowed_relations = set((ontology or {}).get("relations", [])) or None
+    if allowed_relations == set():
+        allowed_relations = None
     entities: dict[str, str] = {}
     relations: list[tuple[str, str, str]] = []
     provenance: list[dict[str, Any]] = []
@@ -83,9 +87,13 @@ def extract(
                 continue
             entities.setdefault(src, "concept")
             entities.setdefault(tgt, "concept")
+            if allowed_relations is not None and predicate not in allowed_relations:
+                continue
             relations.append((src, predicate, tgt))
+            span = match.span()
             provenance.append({"kind": "relation", "source": source,
-                               "src": src, "predicate": predicate, "tgt": tgt})
+                               "src": src, "predicate": predicate, "tgt": tgt,
+                               "span": [span[0], span[1]]})
 
     return ExtractResult(entities=entities, relations=relations, provenance=provenance)
 

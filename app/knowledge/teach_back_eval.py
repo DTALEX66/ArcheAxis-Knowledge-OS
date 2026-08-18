@@ -191,3 +191,19 @@ def grade_with_llm(restatement: str, reference: str, *,
         return {k: parsed.get(k) for k in ("accuracy", "coverage", "paraphrase", "organization", "rationale")}
     except Exception:
         return None
+
+
+def grade_with_config(restatement: str, reference: str) -> dict[str, Any] | None:
+    """LLM grader driven by config (learning.teach_back.llm_model).
+
+    Returns the LLM grading dict, or None when no model is configured or the
+    provider call fails — callers must fall back to the rubric.
+    """
+    try:
+        from shared.config import config
+    except Exception:
+        return None
+    model = str(config.get("learning.teach_back.llm_model", "") or "").strip()
+    if not model:
+        return None
+    return grade_with_llm(restatement, reference, model=model)

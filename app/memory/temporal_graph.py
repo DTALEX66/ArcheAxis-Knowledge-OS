@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS temporal_facts (
     supersedes TEXT,
     confidence REAL NOT NULL,
     status TEXT NOT NULL DEFAULT 'active',  -- active | superseded | contradicted | expired
+    ingested_at TEXT,
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_tf_entity ON temporal_facts(entity, predicate);
@@ -76,6 +77,7 @@ class TemporalFact:
     supersedes: str | None
     confidence: float
     status: str
+    ingested_at: str | None
     created_at: str
 
     @property
@@ -88,7 +90,8 @@ class TemporalFact:
             "predicate": self.predicate, "object": self.object, "valid_from": self.valid_from,
             "valid_to": self.valid_to, "source": self.source, "version": self.version,
             "supersedes": self.supersedes, "confidence": self.confidence,
-            "status": self.status, "created_at": self.created_at,
+            "status": self.status, "ingested_at": self.ingested_at,
+            "created_at": self.created_at,
         }
 
 
@@ -116,7 +119,8 @@ def _row_to_fact(row: sqlite3.Row) -> TemporalFact:
                         valid_from=row["valid_from"], valid_to=row["valid_to"],
                         source=row["source"], version=row["version"],
                         supersedes=row["supersedes"], confidence=row["confidence"],
-                        status=row["status"], created_at=row["created_at"])
+                        status=row["status"], ingested_at=row["ingested_at"],
+                        created_at=row["created_at"])
 
 
 def add_fact(
@@ -142,16 +146,16 @@ def add_fact(
     with _connect(db) as conn:
         conn.execute(
             "INSERT INTO temporal_facts (fact_id, statement, entity, predicate, object, "
-            "valid_from, valid_to, source, version, supersedes, confidence, status, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, ?, 'active', ?)",
+            "valid_from, valid_to, source, version, supersedes, confidence, status, ingested_at, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, ?, 'active', ?, ?)",
             (fid, statement.strip(), entity.strip(), predicate.strip(), str(object),
-             valid_from, valid_to, source, confidence, created_at),
+             valid_from, valid_to, source, confidence, created_at, created_at),
         )
     return TemporalFact(fact_id=fid, statement=statement.strip(), entity=entity.strip(),
                         predicate=predicate.strip(), object=str(object),
                         valid_from=valid_from, valid_to=valid_to, source=source,
                         version=1, supersedes=None, confidence=confidence,
-                        status="active", created_at=created_at)
+                        status="active", ingested_at=created_at, created_at=created_at)
 
 
 def supersede_fact(
@@ -174,10 +178,10 @@ def supersede_fact(
         created_at = _now()
         conn.execute(
             "INSERT INTO temporal_facts (fact_id, statement, entity, predicate, object, "
-            "valid_from, valid_to, source, version, supersedes, confidence, status, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)",
+            "valid_from, valid_to, source, version, supersedes, confidence, status, ingested_at, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)",
             (new_id, statement, row["entity"], row["predicate"], row["object"],
-             row["valid_from"], valid_to, source, row["version"] + 1, fact_id, confidence, created_at),
+             row["valid_from"], valid_to, source, row["version"] + 1, fact_id, confidence, created_at, created_at),
         )
         conn.execute("UPDATE temporal_facts SET status='superseded' WHERE fact_id=?", (fact_id,))
         new_row = conn.execute("SELECT * FROM temporal_facts WHERE fact_id=?", (new_id,)).fetchone()
