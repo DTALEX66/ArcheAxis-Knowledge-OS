@@ -52,10 +52,16 @@
 - test_ocr_gate (6)、test_skill_spec_verify (8)、test_learner_state_profile (7) + 既有扩展
 - 全套 **170 passed**（后端）+ 17 vitest（前端）
 
-## 9. 待办（剩余）
+## 9. 待办（剩余，2026-08-18 深夜更新）
 
-- C2 AXW-WEB-CAPTURE-v3 TaskPack（22 任务，OWNER-APPROVED，最大块）
+已完成：
+- ✅ C2 核心：web.py raw-first 捕获（SafeHTTP PolicyGate + 原文保全 + 复用提取链），替换 stub
+- ✅ ASR adapter：faster-whisper（Model library），fail-closed
+- ✅ D4 零依赖补齐：long_term.add_from_conversation + classify_kind；memory_layers.check_memory_pressure
+- ✅ 包 C 指标：ceshi 语料自检索 top-3 命中率 8/8（双引擎）；判别指标 cos 0.605 vs 0.223（qwen3 语义腿）
+
+剩余：
+- C2 余下 TaskPack 任务（PolicyGate 统一/真实 E2E/050-052 可选）——核心已落地，DAG 剩余项可继续
 - B1-B8 Owner 门禁（RC v0.6.0 发布、Tauri 接线、H1-H4 EXIT、验收项）
-- D4 剩余零依赖补齐（long_term.add_from_conversation / memory_layers.check_memory_pressure）
-- 包 C 补充指标测试（top-k 命中率/QA 命中率/耗时矩阵）
-- A2/A5 配置接线已落地（learning.teach_back.llm_model / rag.embedding.provider），待配 key 启用
+- A2/A5 配置接线已落地，待配 key/模型启用（learning.teach_back.llm_model / rag.embedding.provider）
+- 规则文档整合（AGENTS/VERIFICATION_POLICY/HANDOFF 冗余，下轮）
