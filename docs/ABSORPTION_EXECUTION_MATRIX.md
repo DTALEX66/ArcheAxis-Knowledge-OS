@@ -164,3 +164,26 @@ H5 — release qualification
 ```
 
 "全部纳入计划"已完成；"全部运行时吸收"只有在每个项目通过自身门禁后才可逐项标记，不能用计划、registry、dry-run 或旧报告替代真实完成证据。
+
+
+---
+
+## 2026-08-18 执行批次（Owner 授权 · 代码已落库）
+
+将"登记未吸收"与 09 调研报告的新候选落成真实实现（详见 09 报告 §12）：
+
+| 新增实现 | 来源 | 状态 |
+| --- | --- | --- |
+| app/knowledge/knowledge_tracing.py（BKT EM + 在线更新） | OATutor/pyBKT/pyKT | CURRENT（9 tests） |
+| app/knowledge/dual_mastery.py（M0-M7/K0-K8/证据成熟度 + Gap） | 09 报告 | CURRENT（6 tests） |
+| app/knowledge/teach_back_eval.py（rubric + 误解提取） | Studyield/OpenCognition | CURRENT（6 tests） |
+| app/knowledge/distillation.py（人机蒸馏 候选→规则→技能） | colleague-skill | CURRENT（6 tests） |
+| app/memory/temporal_graph.py（时序事实/版本链/冲突） | Graphiti 概念 | CURRENT（6 tests） |
+| app/memory/reasoning_memory.py（轨迹→原则） | ReasoningBank | CURRENT（6 tests） |
+| app/knowledge/skill_evolution.py（演化闭环+门禁） | Hermes Self-Evolution/SkillRL | CURRENT（7 tests） |
+| app/memory/memory_layers.py（L1-L4 分层） | MemoryOS/MemOS/Hermes Memory OS | CURRENT（8 tests） |
+| app/rag/embedder.py + index.py（真实嵌入索引） | sqlite-vec | CURRENT（7 tests） |
+| app/api/learning.py（6 端点学习者状态） | Tutor MCP 概念 | CURRENT（路由注册） |
+| frontend Learning 空间三视图 + api/learning.ts | DeepTutor/Studyield/FSRS/OpenTutor | CURRENT（4 vitest） |
+
+治理边界维持：Mem0/Letta/Graphiti/Cognee 等仍属 H7+ 研究池（§7.3）；通用 Agent/RAG 平台不进核心（§7.1/7.2）；本批以本地自研等价能力覆盖其概念，未新增重型外部依赖。
