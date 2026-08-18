@@ -187,3 +187,22 @@ H5 — release qualification
 | frontend Learning 空间三视图 + api/learning.ts | DeepTutor/Studyield/FSRS/OpenTutor | CURRENT（4 vitest） |
 
 治理边界维持：Mem0/Letta/Graphiti/Cognee 等仍属 H7+ 研究池（§7.3）；通用 Agent/RAG 平台不进核心（§7.1/7.2）；本批以本地自研等价能力覆盖其概念，未新增重型外部依赖。
+
+
+---
+
+## 2026-08-18 并入批次 2（执行，代码已落库）
+
+| 新增实现 | 来源 | 状态 |
+| --- | --- | --- |
+| app/learning/quiz.py + learning_path.py | DeepTutor/OpenTutor/adaptive-KG | CURRENT（9 tests） |
+| app/learning/corpus_to_skill.py | Corpus2Skill | CURRENT（4 tests） |
+| app/knowledge/graph_pipeline.py（ECL） | Cognee | CURRENT（5 tests） |
+| app/agent/experience_harvest.py | Meta Knowledge Graph | CURRENT（5 tests） |
+| app/memory/memory_files.py | ReMe | CURRENT（3 tests） |
+| app/graph/community.py | GraphRAG | CURRENT（4 tests） |
+| app/adapters/anki_zotero.py | 包 E | CURRENT（8 tests 与 long_term 合并） |
+| app/memory/long_term.py | Mem0 | CURRENT（同上） |
+
+- 包 D（证据连接器）：确认已吸收（shared/evidence_connectors.py，ADS-004/005/006/007 + tests），未重复实现。
+- 全套吸收测试累计 **107 passed**（批 1: 69 + 批 2: 38）；治理边界不变，无新重型依赖。

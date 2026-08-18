@@ -39,7 +39,7 @@
 | # | 方向 | 责任 | 说明 |
 | --- | --- | --- | --- |
 | D1 | ~~Human Mastery → Machine Skill 自动蒸馏~~ | ✅ | co_learning_loop.py 已打通双向闭环（teach/distill/collaborate/review 全动作，8 测试） |
-| D2 | Machine Skill → 个人最优学习路径生成 | [Agent] | OpenTutor/adaptive-KG 方向 |
+| D2 | ~~Machine Skill → 个人最优学习路径生成~~ | ✅ | learning_path.py（先修图→个性化路径）+ quiz.py 已实现（批 2，38 测试） |
 | D3 | AI Learning OS 方向（AI 导师/自适应/知识蒸馏/个人能力模型） | [Agent] | 报告 §9.3 |
 | D4 | Agent Memory 技术栈选型实验（Mem0/Zep/Letta/Graphiti/Cognee） | [Agent] | H7+ 研究池内做 fixture bake-off |
 | D5 | 04 矩阵扩到 50–100 项目逐项判定（直接集成/借鉴架构/借鉴算法/排除） | [Agent] | 报告 §9.6 |
@@ -50,7 +50,7 @@
 | --- | --- | --- |
 | E1 | Mem0 / Letta / Graphiti / Cognee 等重型 Agent-Memory 框架 | H7+ 研究池（治理 §7.3）；概念已由本地模块覆盖 |
 | E2 | 通用 Agent / RAG 平台（LangGraph、Dify、RAGFlow、Open WebUI 等） | 不进核心（治理 §7.1/7.2） |
-| E3 | MinerU / PaddleOCR / Docling 深度解析 bake-off | C 级后置；Docling/PaddleOCR 已有 adapter 痕迹待核实 |
+| E3 | MinerU / PaddleOCR / Docling 深度解析 bake-off | C 级后置；包 D 证据连接器确认已吸收（shared/evidence_connectors.py ADS-004/007） |
 | E4 | Paperless AI Research Brain | 查无此名；按能力方向改盯 pdf-brain / PaperLeaf |
 | E5 | 外部库 ENV-103 剩余（rust/uv-cache/wsl2/ci-venv） | 环境/注册表确认后执行 |
 
