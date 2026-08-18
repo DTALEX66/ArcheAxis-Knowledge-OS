@@ -7,9 +7,9 @@
 
 | # | 任务 | 责任 | 状态/说明 |
 | --- | --- | --- | --- |
-| A1 | 提交吸收批次（25 文件：10 后端模块 + 学习 API + 前端 Learning 空间 + 测试 + 文档） | [Agent] | 工作树已有全部改动，未 commit/push |
+| A1 | ~~提交吸收批次~~ | ✅ | 已提交 3 个 commit：9fcb3be（代码）/ a26eca8（文档）/ d77badc（04 矩阵并入） |
 | A2 | Teach-Back LLM 精评启用（teach_back_eval.grade_with_llm 需 provider/API key） | [混合] | rubric 已可用；配 key 后启用 LLM 精评 |
-| A3 | 04 吸收矩阵正式并入 §11.5 建议（colleague-skill S 级 / Graphiti A→S 等） | [混合] | 已写入 09 报告 §11.5，待并入 04 矩阵 |
+| A3 | ~~04 吸收矩阵并入 §11.5~~ | ✅ | 已并入 d77badc（S: colleague-skill/Graphiti；A/B/C 全量） |
 | A4 | S/A 级候选代码级拆解 + 选型实验（colleague-skill / Graphiti / DeepTutor / Hermes Agent Self-Evolution / Cognee） | [Agent] | 09 报告 §9 方向 4 |
 | A5 | RAG 可选 LLM 嵌入 provider 配置（app/rag/embedder.llm_embed） | [混合] | 默认本地 n-gram，可选升级 |
 
@@ -38,7 +38,7 @@
 
 | # | 方向 | 责任 | 说明 |
 | --- | --- | --- | --- |
-| D1 | Human Mastery → Machine Skill 自动蒸馏实现与评测 | [Agent] | 本轮已落 distillation/skill_evolution 骨架，需打通自动蒸馏 + 评测门禁 |
+| D1 | ~~Human Mastery → Machine Skill 自动蒸馏~~ | ✅ | co_learning_loop.py 已打通双向闭环（teach/distill/collaborate/review 全动作，8 测试） |
 | D2 | Machine Skill → 个人最优学习路径生成 | [Agent] | OpenTutor/adaptive-KG 方向 |
 | D3 | AI Learning OS 方向（AI 导师/自适应/知识蒸馏/个人能力模型） | [Agent] | 报告 §9.3 |
 | D4 | Agent Memory 技术栈选型实验（Mem0/Zep/Letta/Graphiti/Cognee） | [Agent] | H7+ 研究池内做 fixture bake-off |
