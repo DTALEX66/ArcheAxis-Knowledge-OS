@@ -99,3 +99,92 @@ export function learningApi(
 }
 
 export type LearningApi = ReturnType<typeof learningApi>;
+
+// ── loop gap closure endpoints (quiz / path / tick / review outcome) ──
+
+export interface QuizItem {
+  item_id: string;
+  concept: string;
+  kind: "recall" | "mcq";
+  prompt: string;
+  answer: string;
+  distractors: string[];
+}
+
+export interface QuizResponse {
+  concept: string;
+  items: QuizItem[];
+}
+
+export interface PathStep {
+  concept: string;
+  kind: string;
+  reason: string;
+}
+
+export interface PathResponse {
+  goal: string;
+  steps: PathStep[];
+}
+
+export interface TickResponse {
+  node_id: string;
+  action: string;
+  state: Record<string, unknown>;
+  payload: Record<string, unknown>;
+}
+
+export interface ReviewOutcomeInput {
+  card_id: string;
+  command_id: string;
+  quality: number;
+  mistake_detail?: string;
+}
+
+export interface ReviewOutcomeResponse {
+  review_id: string;
+  mistake_id: string | null;
+  mastered: boolean;
+  review_count: number;
+  machine_knowledge_created: boolean;
+}
+
+export interface LearningApiExt extends ReturnType<typeof learningApi> {
+  quiz: (input: { concept: string; reference: string; keyTerms?: string[]; otherConcepts?: string[] }) => Promise<QuizResponse>;
+  learningPath: (input: { goal: string; graph: { nodes: string[]; edges: string[][] }; masteryMap?: Record<string, number> }) => Promise<PathResponse>;
+  tick: (input: Record<string, unknown>) => Promise<TickResponse>;
+  reviewOutcome: (input: ReviewOutcomeInput) => Promise<ReviewOutcomeResponse>;
+}
+
+export function learningApiExt(
+  baseUrl = "/api/v1/learning",
+  fetcher: typeof fetch = fetch,
+): LearningApiExt {
+  const base = learningApi(baseUrl, fetcher);
+  async function getJSON<T>(path: string): Promise<T> {
+    const res = await fetcher(`${baseUrl}${path}`);
+    if (!res.ok) throw new Error(`${path} -> ${res.status}`);
+    return (await res.json()) as T;
+  }
+  async function postJSON<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetcher(`${baseUrl}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`${path} -> ${res.status}`);
+    return (await res.json()) as T;
+  }
+  return {
+    ...base,
+    quiz: ({ concept, reference, keyTerms, otherConcepts }) => {
+      const params = new URLSearchParams({ concept, reference });
+      if (keyTerms?.length) params.set("key_terms", keyTerms.join(","));
+      if (otherConcepts?.length) params.set("other_concepts", otherConcepts.join(","));
+      return getJSON<QuizResponse>(`/quiz?${params.toString()}`);
+    },
+    learningPath: (input) => postJSON<PathResponse>("/learning-path", input),
+    tick: (input) => postJSON<TickResponse>("/tick", input),
+    reviewOutcome: (input) => postJSON<ReviewOutcomeResponse>("/review-outcome", input),
+  };
+}

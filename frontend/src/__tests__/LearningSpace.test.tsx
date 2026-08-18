@@ -109,3 +109,83 @@ describe("LearningSpace", () => {
     });
   });
 });
+
+describe("LearningSpace loop views", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("renders quiz and path tabs", () => {
+    render(<LearningSpace />);
+    expect(screen.getByRole("button", { name: "练习测验" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "学习路径" })).toBeInTheDocument();
+  });
+
+  it("generates quiz items and grades MCQ", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/quiz")) {
+        return jsonResponse({
+          concept: "BKT",
+          items: [
+            { item_id: "q1", concept: "BKT", kind: "mcq", prompt: "最匹配的术语？",
+              answer: "guess", distractors: ["srs", "irt"] },
+          ],
+        });
+      }
+      return jsonResponse({}, false);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<LearningSpace />);
+    await user.click(screen.getByRole("button", { name: "练习测验" }));
+    await user.type(screen.getByLabelText("知识参考"), "BKT 是隐马尔可夫模型");
+    await user.click(screen.getByRole("button", { name: "生成测验" }));
+    expect(await screen.findByText("最匹配的术语？")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "guess" }));
+    expect(screen.getByText("✓ 正确")).toBeInTheDocument();
+  });
+
+  it("builds a learning path from a prerequisite graph", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/learning-path")) {
+        expect(init?.method).toBe("POST");
+        return jsonResponse({
+          goal: "d",
+          steps: [
+            { concept: "a", kind: "prerequisite_gap", reason: "先修缺口" },
+            { concept: "b", kind: "must_learn", reason: "薄弱" },
+            { concept: "d", kind: "must_learn", reason: "目标概念" },
+          ],
+        });
+      }
+      return jsonResponse({}, false);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<LearningSpace />);
+    await user.click(screen.getByRole("button", { name: "学习路径" }));
+    await user.click(screen.getByRole("button", { name: "生成路径" }));
+    expect(await screen.findByText(/先修缺口/)).toBeInTheDocument();
+  });
+
+  it("submits a review outcome", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/review-outcome")) {
+        return jsonResponse({
+          review_id: "rv1", mistake_id: null, mastered: false,
+          review_count: 1, machine_knowledge_created: false,
+        });
+      }
+      return jsonResponse({ due_count: 1, due: [] });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<LearningSpace />);
+    await user.type(screen.getByLabelText("卡片 ID"), "card-x");
+    await user.click(screen.getByRole("button", { name: "提交复习结果" }));
+    expect(await screen.findByText(/已提交 card-x/)).toBeInTheDocument();
+  });
+});

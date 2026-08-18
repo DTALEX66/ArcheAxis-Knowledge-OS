@@ -4,18 +4,22 @@
 // to /api/v1/learning/* and never to an LLM directly.
 import { useEffect, useState } from "react";
 import {
-  learningApi,
-  type LearningApi,
+  learningApiExt,
+  type LearningApiExt,
   type MasteryDisplay,
+  type PathStep,
+  type QuizItem,
   type TeachBackInput,
 } from "../api/learning";
 
-type Tab = "review" | "mastery" | "teachback";
+type Tab = "review" | "mastery" | "teachback" | "quiz" | "path";
 
 const TABS: readonly { id: Tab; label: string }[] = [
   { id: "review", label: "复习队列" },
   { id: "mastery", label: "掌握度" },
   { id: "teachback", label: "Teach-Back" },
+  { id: "quiz", label: "练习测验" },
+  { id: "path", label: "学习路径" },
 ];
 
 const ACTION_LABELS: Record<string, string> = {
@@ -26,8 +30,11 @@ const ACTION_LABELS: Record<string, string> = {
   review_evidence: "证据过时 → 先核验",
 };
 
-function ReviewQueueView({ api }: { api: LearningApi }) {
+function ReviewQueueView({ api }: { api: LearningApiExt }) {
   const [dueCount, setDueCount] = useState<number | null>(null);
+  const [cardId, setCardId] = useState("");
+  const [quality, setQuality] = useState("3");
+  const [submitted, setSubmitted] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,11 +62,34 @@ function ReviewQueueView({ api }: { api: LearningApi }) {
       <p className="space-hint">
         {dueCount === null ? "加载中…" : `当前到期 ${dueCount} 张卡片`}
       </p>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            await api.reviewOutcome({
+              card_id: cardId.trim(),
+              command_id: `ui-${Date.now()}`,
+              quality: Number(quality),
+            });
+            setSubmitted(`已提交 ${cardId.trim()} (Q${quality})`);
+            setCardId("");
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "提交失败");
+          }
+        }}
+      >
+        <label htmlFor="rv-card">卡片 ID</label>
+        <input id="rv-card" value={cardId} onChange={(e) => setCardId(e.target.value)} placeholder="card_id" />
+        <label htmlFor="rv-quality">质量 (0-5)</label>
+        <input id="rv-quality" type="number" min={0} max={5} value={quality} onChange={(e) => setQuality(e.target.value)} />
+        <button type="submit" disabled={!cardId.trim()}>提交复习结果</button>
+      </form>
+      {submitted ? <p className="space-hint">{submitted}</p> : null}
     </section>
   );
 }
 
-function MasteryView({ api }: { api: LearningApi }) {
+function MasteryView({ api }: { api: LearningApiExt }) {
   const [cardId, setCardId] = useState("");
   const [state, setState] = useState<MasteryDisplay | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -138,7 +168,7 @@ function levelWidth(level: string, axis: "human" | "machine"): number {
   return Math.round(((index + 1) / levels.length) * 100);
 }
 
-function TeachBackView({ api }: { api: LearningApi }) {
+function TeachBackView({ api }: { api: LearningApiExt }) {
   const [form, setForm] = useState({
     record_id: "",
     concept: "",
@@ -146,7 +176,7 @@ function TeachBackView({ api }: { api: LearningApi }) {
     reference: "",
     key_terms: "",
   });
-  const [result, setResult] = useState<Awaited<ReturnType<LearningApi["teachBack"]>> | null>(null);
+  const [result, setResult] = useState<Awaited<ReturnType<LearningApiExt["teachBack"]>> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -205,9 +235,126 @@ function TeachBackView({ api }: { api: LearningApi }) {
   );
 }
 
+
+function QuizPanel({ api }: { api: LearningApiExt }) {
+  const [items, setItems] = useState<QuizItem[] | null>(null);
+  const [concept, setConcept] = useState("BKT");
+  const [reference, setReference] = useState("");
+  const [selected, setSelected] = useState<Record<string, string>>({});
+  const [feedback, setFeedback] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    if (!concept.trim() || !reference.trim()) return;
+    setBusy(true);
+    try {
+      const r = await api.quiz({ concept: concept.trim(), reference: reference.trim() });
+      setItems(r.items);
+      setSelected({});
+      setFeedback({});
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function answer(item: QuizItem, value: string) {
+    setSelected({ ...selected, [item.item_id]: value });
+    setFeedback({
+      ...feedback,
+      [item.item_id]: value === item.answer ? "✓ 正确" : `✗ 期望：${item.answer}`,
+    });
+  }
+
+  return (
+    <section aria-label="练习测验" className="learning-panel">
+      <h3>练习测验（recall / MCQ）</h3>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void load();
+        }}
+      >
+        <label htmlFor="qz-concept">概念</label>
+        <input id="qz-concept" value={concept} onChange={(e) => setConcept(e.target.value)} />
+        <label htmlFor="qz-reference">知识参考</label>
+        <textarea id="qz-reference" rows={2} value={reference} onChange={(e) => setReference(e.target.value)} />
+        <button type="submit" disabled={busy}>生成测验</button>
+      </form>
+      {items?.map((item) => (
+        <div key={item.item_id} className="quiz-item">
+          <p>{item.prompt}</p>
+          {item.kind === "mcq" ? (
+            <div>
+              {[...item.distractors, item.answer].map((opt) => (
+                <button key={opt} type="button" onClick={() => answer(item, opt)}>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button type="button" onClick={() => answer(item, item.answer)}>显示答案</button>
+          )}
+          {feedback[item.item_id] ? <p className="space-hint">{feedback[item.item_id]}</p> : null}
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function PathView({ api }: { api: LearningApiExt }) {
+  const [goal, setGoal] = useState("d");
+  const [graph, setGraph] = useState(`{"nodes":["a","b","c","d"],"edges":[["a","b"],["b","c"],["c","d"]]}`);
+  const [steps, setSteps] = useState<PathStep[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function build() {
+    setBusy(true);
+    setError(null);
+    try {
+      const parsed = JSON.parse(graph) as { nodes: string[]; edges: string[][] };
+      const r = await api.learningPath({ goal: goal.trim(), graph: parsed });
+      setSteps(r.steps);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "路径生成失败");
+      setSteps(null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section aria-label="学习路径" className="learning-panel">
+      <h3>个性化学习路径（先修图 → 拓扑顺序）</h3>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void build();
+        }}
+      >
+        <label htmlFor="path-goal">目标概念</label>
+        <input id="path-goal" value={goal} onChange={(e) => setGoal(e.target.value)} />
+        <label htmlFor="path-graph">先修图 JSON</label>
+        <textarea id="path-graph" rows={2} value={graph} onChange={(e) => setGraph(e.target.value)} />
+        <button type="submit" disabled={busy}>生成路径</button>
+      </form>
+      {error ? <p className="space-hint">生成失败：{error}</p> : null}
+      {steps ? (
+        <ol className="learning-path">
+          {steps.map((s) => (
+            <li key={s.concept}>
+              <strong>{s.concept}</strong> · {s.kind} — {s.reason}
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </section>
+  );
+}
+
 export function LearningSpace() {
   const [tab, setTab] = useState<Tab>("review");
-  const [api] = useState(() => learningApi());
+  const [api] = useState(() => learningApiExt());
 
   return (
     <section className="space-view" aria-labelledby="space-learning">
@@ -230,6 +377,8 @@ export function LearningSpace() {
       {tab === "review" ? <ReviewQueueView api={api} /> : null}
       {tab === "mastery" ? <MasteryView api={api} /> : null}
       {tab === "teachback" ? <TeachBackView api={api} /> : null}
+      {tab === "quiz" ? <QuizPanel api={api} /> : null}
+      {tab === "path" ? <PathView api={api} /> : null}
     </section>
   );
 }

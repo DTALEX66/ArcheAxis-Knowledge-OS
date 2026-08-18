@@ -146,7 +146,8 @@ def _local_reflection(trajectory: Trajectory) -> ReasoningPrinciple:
         statement = f"避免：{trajectory.error_pattern or '重复已知失败路径'}"
         category = "failure_pattern"
     else:
-        statement = f"做法：{trajectory.goal}"
+        steps_preview = "；".join(trajectory.steps[:3])
+        statement = f"做法：{trajectory.goal}（步骤：{steps_preview}）"
         category = "success_pattern"
     if _STRATEGY_MARKERS.search(trajectory.goal + " ".join(trajectory.steps)):
         category = "strategy"

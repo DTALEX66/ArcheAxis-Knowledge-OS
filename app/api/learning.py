@@ -86,10 +86,10 @@ def review_queue(limit: int = 20) -> dict[str, object]:
     if limit < 1 or limit > 200:
         raise HTTPException(status_code=400, detail="limit must be in [1, 200]")
     try:
-        due = due_queue(_db_path(), tz_offset_minutes=0)
+        result = due_queue(_db_path(), tz_offset_minutes=0, limit=limit)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail=f"review queue failed: {exc}") from exc
-    return {"due_count": len(due), "due": due[:limit]}
+    return {"due_count": int(result.get("count", 0)), "due": result.get("cards", [])}
 
 
 # ── teach-back ──────────────────────────────────────────────────────
@@ -188,3 +188,141 @@ def list_principles(query: str = "", top_k: int = 5) -> dict[str, object]:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"count": len(results), "principles": results}
+
+
+
+# ── loop dispatch (co-learning tick) ─────────────────────────────────
+
+_HUMAN_FIELDS = {"reviewed", "review_state", "stability_days", "bkt_mastery",
+                 "teach_back_score", "quiz_pass", "transfer_pass",
+                 "creation_evidence", "teaching_evidence"}
+_MACHINE_FIELDS = {"has_raw_source", "indexed", "structured", "reasoned",
+                   "procedural", "callable", "verified", "adapted", "transferable"}
+
+
+def _human_evidence(payload: dict[str, object]):
+    from app.knowledge.dual_mastery import HumanEvidence
+    kwargs = {k: v for k, v in payload.items() if k in _HUMAN_FIELDS}
+    return HumanEvidence(**kwargs)
+
+
+def _machine_evidence(payload: dict[str, object]):
+    from app.knowledge.dual_mastery import MachineEvidence
+    kwargs = {k: v for k, v in payload.items() if k in _MACHINE_FIELDS}
+    return MachineEvidence(**kwargs)
+
+
+@router.post("/tick")
+def learning_tick(payload: dict[str, object]) -> dict[str, object]:
+    """Dispatch one knowledge node by its mastery gap (TEACH/DISTILL/…).
+
+    human/machine: evidence bundles (dual_mastery fields).
+    teach: {concept, reference, key_terms?, quiz_item?, transfer_item?} for
+           TEACH_HUMAN; other_concepts feeds quiz distractors.
+    """
+    from app.knowledge.co_learning_loop import bidirectional_tick
+
+    try:
+        node_id = str(payload["node_id"])
+        human = _human_evidence(dict(payload.get("human") or {}))
+        machine = _machine_evidence(dict(payload.get("machine") or {}))
+        teach = payload.get("teach")
+        result = bidirectional_tick(
+            node_id=node_id, human=human, machine=machine,
+            teach=dict(teach) if isinstance(teach, dict) else None,
+            evidence_verified=bool(payload.get("evidence_verified", True)),
+            has_superseding=bool(payload.get("has_superseding", False)),
+            has_contradiction=bool(payload.get("has_contradiction", False)),
+        )
+        if result["action"] == "teach_human":
+            from app.learning.quiz import generate_quiz
+            plan = result["payload"]["plan"]
+            other = [str(c) for c in (payload.get("other_concepts") or [])]
+            items = generate_quiz(concept=plan["concept"],
+                                  reference=plan["teach_back_reference"],
+                                  key_terms=plan["key_terms"], other_concepts=other)
+            result["payload"]["quiz"] = [item.as_dict() for item in items]
+        return result
+    except KeyError as exc:
+        raise HTTPException(status_code=400, detail=f"missing field: {exc}") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+# ── quiz / learning path ─────────────────────────────────────────────
+
+@router.get("/quiz")
+def generate_quiz_endpoint(concept: str, reference: str, key_terms: str = "",
+                           other_concepts: str = "") -> dict[str, object]:
+    """Generate recall/MCQ items from machine knowledge (deterministic)."""
+    from app.learning.quiz import generate_quiz
+
+    if not concept.strip() or not reference.strip():
+        raise HTTPException(status_code=400, detail="concept and reference are required")
+    items = generate_quiz(
+        concept=concept, reference=reference,
+        key_terms=[t.strip() for t in key_terms.split(",") if t.strip()],
+        other_concepts=[c.strip() for c in other_concepts.split(",") if c.strip()],
+    )
+    return {"concept": concept, "items": [item.as_dict() for item in items]}
+
+
+@router.post("/learning-path")
+def build_learning_path(payload: dict[str, object]) -> dict[str, object]:
+    """Personalized learning path from a prerequisite graph + mastery map."""
+    from app.learning.learning_path import build_path
+
+    try:
+        goal = str(payload["goal"])
+        graph = dict(payload.get("graph") or {})
+        mastery = dict(payload.get("mastery_map") or {})
+        path = build_path(goal=goal, graph=graph, mastery_map=mastery)
+    except KeyError as exc:
+        raise HTTPException(status_code=400, detail=f"missing field: {exc}") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"goal": path.goal, "steps": path.as_list()}
+
+
+# ── review outcome persistence (loop gap A) ──────────────────────────
+
+@router.post("/review-outcome")
+def review_outcome(payload: dict[str, object]) -> dict[str, object]:
+    """Persist one learning outcome (teach-back/quiz/review) into the loop.
+
+    card_id + command_id (idempotency) + quality (0..5) + optional
+    mistake_detail. Writes kb_reviews (+kb_mistakes), recalculates mastery,
+    and promotes a machine-knowledge candidate when mastered.
+    """
+    from app.knowledge.learning_outcome import record_learning_outcome
+
+    try:
+        card_id = str(payload["card_id"])
+        command_id = str(payload["command_id"])
+        quality = int(payload["quality"])
+        mistake_detail = payload.get("mistake_detail")
+        recorded_at = str(payload.get("recorded_at") or _now_iso())
+    except KeyError as exc:
+        raise HTTPException(status_code=400, detail=f"missing field: {exc}") from exc
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=f"invalid payload: {exc}") from exc
+    try:
+        result = record_learning_outcome(
+            card_id=card_id, command_id=command_id, quality=quality,
+            recorded_at=recorded_at, db_path=_db_path(),
+            mistake_detail=str(mistake_detail) if mistake_detail else None,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "review_id": result["review_id"],
+        "mistake_id": result["mistake_id"],
+        "mastered": result["mastery_signal"].is_mastered,
+        "review_count": result["mastery_signal"].review_count,
+        "machine_knowledge_created": result["machine_knowledge"] is not None,
+    }
+
+
+def _now_iso() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
