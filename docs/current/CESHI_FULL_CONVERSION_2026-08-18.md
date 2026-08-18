@@ -36,3 +36,18 @@
   2. 音频 ASR 抽样验证 + sherpa-onnx/SenseVoice 中文方案评估
   3. 完整评估集（固定改写查询 + CER/WER/资源矩阵）—— 检索判别样本需扩大
 - 职责分离落地：本地模型负责转化/检索/问答，DeepSeek 负责全网交叉对比
+
+## 7. 模型补齐后全量重扫（2026-08-18 · 图片/PDF/pptx 已全部重识别）
+
+> 修复：TESSDATA_PREFIX 根因 + RapidOCR adapter（rapidocr_onnxruntime 已装）；sherpa-onnx 1.13.6 已装（SenseVoice 下载损坏，音频暂用 faster-whisper）。
+
+| 类别 | 之前 | 重扫后 | 说明 |
+| --- | --- | --- | --- |
+| 图片 png/jpg/webp/gif | 0/1269 失败 | **1273 成功**（rapidocr）| 仅 8 个失败（超大图/损坏：PIL 解压炸弹上限等）|
+| PDF（66 个，含之前 6 个失败） | 60 成功 / 6 失败 | **66/66 成功** | 失败项走 pymupdf+OCR 渲染兜底 |
+| pptx（4） | 跳过 | 4/4 成功 | pptx_adapter |
+| .doc（2 个旧格式） | 跳过 | 2 失败 | 旧二进制 .doc 需专门转换器（LibreOffice/antiword），暂缺 |
+| 音频（14 mp3 + 64 mp4） | 预算跳过 | **转写中**（faster-whisper 全量，后台）| 完成自动补回执 |
+
+- 重扫总回执 1343 条；fail-gate 20 条（主要为 2 个 .doc + 少量低质图片）
+- 图片 OCR 引擎实测：rapidocr 课程表 441 字/2.85s（中文准确）
