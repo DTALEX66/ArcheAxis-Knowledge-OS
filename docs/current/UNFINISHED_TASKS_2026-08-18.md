@@ -8,10 +8,10 @@
 | # | 任务 | 责任 | 状态/说明 |
 | --- | --- | --- | --- |
 | A1 | ~~提交吸收批次~~ | ✅ | 已提交 3 个 commit：9fcb3be（代码）/ a26eca8（文档）/ d77badc（04 矩阵并入） |
-| A2 | Teach-Back LLM 精评启用（teach_back_eval.grade_with_llm 需 provider/API key） | [混合] | rubric 已可用；配 key 后启用 LLM 精评 |
+| A2 | ~~Teach-Back LLM 精评接线~~ | ✅ 部分 | 配置 learning.teach_back.llm_model 已接线（grade_with_config），配 key 即启用 |
 | A3 | ~~04 吸收矩阵并入 §11.5~~ | ✅ | 已并入 d77badc（S: colleague-skill/Graphiti；A/B/C 全量） |
-| A4 | S/A 级候选代码级拆解 + 选型实验（colleague-skill / Graphiti / DeepTutor / Hermes Agent Self-Evolution / Cognee） | [Agent] | 09 报告 §9 方向 4 |
-| A5 | RAG 可选 LLM 嵌入 provider 配置（app/rag/embedder.llm_embed） | [混合] | 默认本地 n-gram，可选升级 |
+| A4 | ~~S/A 级候选代码级拆解~~ | ✅ | 5 项目拆解完成（批 3 文档 §3）；高优先 4 项已实现（bi-temporal/ontology/SKILL.md/verify gate） |
+| A5 | ~~RAG LLM 嵌入配置~~ | ✅ 部分 | rag.embedding.provider/model 已接线（configured_embed_many），配模型即启用 |
 
 ## B. 交接遗留（HERMES_HANDOFF · Owner 门禁）
 
@@ -30,7 +30,7 @@
 
 | # | 任务 | 责任 | 说明 |
 | --- | --- | --- | --- |
-| C1 | P0 项目配置规则减重 | [Agent] | .hermes/cache + task-artifacts ~965MB 第三方 config/rules；AGENTS 6KB/VERIFICATION_POLICY 6.7KB/HANDOFF 15KB 冗余整合；GitHub ruleset 不可动 |
+| C1 | ~~P0 配置/缓存减重~~ | ✅ 执行 | 纯缓存删除 3.81GB（批 3 文档 §7）；证据/构建产物保留；规则文档整合待下轮 |
 | C2 | AXW-WEB-CAPTURE-v3 TaskPack（22 任务 DAG） | [Agent] | OWNER-APPROVED；消灭 web.py stub、统一 PolicyGate、Raw-first、真实 E2E；050-052 可选 |
 | C3 | H2 推进（OCR/ASR/质量门） | [Agent] | H2 多格式识别转译闭环首个任务已入库，OCR/ASR 待推进 |
 
@@ -40,9 +40,9 @@
 | --- | --- | --- | --- |
 | D1 | ~~Human Mastery → Machine Skill 自动蒸馏~~ | ✅ | co_learning_loop.py + tick API + E2E 全链跑通（150 后端测试） |
 | D2 | ~~Machine Skill → 个人最优学习路径生成~~ | ✅ | learning_path.py + quiz.py + 前端学习路径/测验视图已实现 |
-| D3 | AI Learning OS 方向（AI 导师/自适应/知识蒸馏/个人能力模型） | [Agent] | 报告 §9.3 |
-| D4 | Agent Memory 技术栈选型实验（Mem0/Zep/Letta/Graphiti/Cognee） | [Agent] | H7+ 研究池内做 fixture bake-off |
-| D5 | 04 矩阵扩到 50–100 项目逐项判定（直接集成/借鉴架构/借鉴算法/排除） | [Agent] | 报告 §9.6 |
+| D3 | ~~AI Learning OS 方向~~ | ✅ | 10 项目调研 + learner_state（遗忘融合）+ learner_profile（置信校准）已实现 |
+| D4 | ~~Agent Memory 技术栈选型~~ | ✅ | 5 候选对比完成：无一直接引入，本地等价模块已确认；剩余零依赖补齐见批 3 文档 §9 |
+| D5 | ~~04 矩阵扩编~~ | ✅ | 4 新领域 38 项目判定（6/22/5/5）+ 优先集 10（批 3 文档 §6） |
 
 ## E. 明确未吸收 / 观察项（治理决策维持）
 
