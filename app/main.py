@@ -306,6 +306,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 from app.capability.router import router as capability_router
 from app.workspace.router import router as workspace_router
 from app.workspace.system import router as system_router
+from app.api.learning import router as learning_router
 
 _research_app = None
 _kb_app = None
@@ -333,6 +334,8 @@ app.include_router(workspace_router, prefix="/api/v1")
 app.include_router(system_router)
 # AXW-CAP-501: capability store router carries its own /api/v1/capabilities prefix.
 app.include_router(capability_router)
+# Learner-state API (Tutor-MCP-inspired): neutral learner state, provider-agnostic.
+app.include_router(learning_router)
 
 
 def _http_route_counts() -> dict[str, int]:
