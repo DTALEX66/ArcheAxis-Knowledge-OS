@@ -186,3 +186,26 @@ def recent_working(db: str | Path, *, top_k: int = 10) -> list[dict[str, Any]]:
 
 def working_memory_capacity() -> int:
     return WORKING_MEMORY_CAPACITY
+
+
+
+def check_memory_pressure(db: str | Path, *, pressure_ratio: float = 0.8) -> dict[str, Any]:
+    """L1 working-memory pressure (D4): when the ring buffer is near capacity,
+    suggest distilling older working items into higher layers.
+
+    Returns {"pressure": 0..1, "distill_suggested": bool, "l1_count": int,
+             "l1_capacity": int}.
+    """
+    with _connect(db) as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n FROM layered_memory WHERE layer=?",
+            (MemoryLayer.L1_WORKING.value,),
+        ).fetchone()
+        count = int(row["n"]) if row else 0
+    pressure = round(count / WORKING_MEMORY_CAPACITY, 3)
+    return {
+        "pressure": pressure,
+        "distill_suggested": pressure >= pressure_ratio,
+        "l1_count": count,
+        "l1_capacity": WORKING_MEMORY_CAPACITY,
+    }

@@ -146,3 +146,46 @@ def forget(db: str | Path, memory_id: str) -> None:
         if row is None:
             raise LongTermMemoryError(f"memory not found: {memory_id}")
         conn.execute("UPDATE long_term_memory SET status='forgotten' WHERE memory_id=?", (memory_id,))
+
+
+_MEMORY_KINDS = ("preference", "fact", "procedure", "project", "persona")
+
+
+def classify_kind(content: str) -> str:
+    """Coarse MemoryKind classification (D4, local)."""
+    lowered = content.lower()
+    if any(m in lowered for m in ("prefer", "喜欢", "偏好", "习惯", "i like")):
+        return "preference"
+    if any(m in lowered for m in ("步骤", "先", "然后", "最后", "ensure", "verify", "如何")):
+        return "procedure"
+    if any(m in lowered for m in ("project", "work-lab", "design-lab", "项目", "工单")):
+        return "project"
+    if any(m in lowered for m in ("我", "我的", "我是", "persona", "profile")):
+        return "persona"
+    return "fact"
+
+
+def add_from_conversation(
+    db: str | Path,
+    messages: list[dict[str, Any]],
+    *,
+    importance: float = 0.5,
+) -> list[str]:
+    """Extract and store key statements from a conversation (D4).
+
+    messages: [{"role": "user|assistant", "content": "..."}]. Every message is
+    classified by MemoryKind and stored via add(); returns the memory ids.
+    """
+    if not messages:
+        raise LongTermMemoryError("messages must be non-empty")
+    ids: list[str] = []
+    for message in messages:
+        content = str(message.get("content", "")).strip()
+        if not content:
+            continue
+        kind = classify_kind(content)
+        metadata = {"kind": kind, "role": message.get("role", "unknown")}
+        ids.append(add(db, content=content, metadata=metadata, importance=importance))
+    if not ids:
+        raise LongTermMemoryError("no usable content in messages")
+    return ids
