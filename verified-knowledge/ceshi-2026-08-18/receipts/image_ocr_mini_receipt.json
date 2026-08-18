@@ -1,0 +1,127 @@
+{
+  "ok": 20,
+  "fail": 0,
+  "total": 20,
+  "results": [
+    {
+      "file": "课程表.jpg",
+      "chars": 340,
+      "sec": 1.07,
+      "ok": true
+    },
+    {
+      "file": "课程表.jpg",
+      "chars": 340,
+      "sec": 1.04,
+      "ok": true
+    },
+    {
+      "file": "obs-command-banner.png",
+      "chars": 172,
+      "sec": 0.76,
+      "ok": true
+    },
+    {
+      "file": "obs-evidence-matrix.png",
+      "chars": 356,
+      "sec": 1.17,
+      "ok": true
+    },
+    {
+      "file": "obs-learning-map.png",
+      "chars": 215,
+      "sec": 1.02,
+      "ok": true
+    },
+    {
+      "file": "obs-mobile-navigation.png",
+      "chars": 107,
+      "sec": 0.83,
+      "ok": true
+    },
+    {
+      "file": "obs-project-atlas.png",
+      "chars": 223,
+      "sec": 1.07,
+      "ok": true
+    },
+    {
+      "file": "obs-reference-canvas-map.png",
+      "chars": 127,
+      "sec": 1.0,
+      "ok": true
+    },
+    {
+      "file": "obs-reference-command-banner.png",
+      "chars": 94,
+      "sec": 0.76,
+      "ok": true
+    },
+    {
+      "file": "obs-reference-dashboard-shell.png",
+      "chars": 552,
+      "sec": 1.71,
+      "ok": true
+    },
+    {
+      "file": "obs-reference-editor-shell.png",
+      "chars": 691,
+      "sec": 1.74,
+      "ok": true
+    },
+    {
+      "file": "obs-review-radar.png",
+      "chars": 113,
+      "sec": 0.79,
+      "ok": true
+    },
+    {
+      "file": "obs-settings-token-board.png",
+      "chars": 252,
+      "sec": 0.9,
+      "ok": true
+    },
+    {
+      "file": "其他_01.新媒体人到底是做什么的？_p1.png",
+      "chars": 196,
+      "sec": 0.75,
+      "ok": true
+    },
+    {
+      "file": "素材_分镜头脚本《无名之“背”》剪辑版_p2.png",
+      "chars": 661,
+      "sec": 1.27,
+      "ok": true
+    },
+    {
+      "file": "微信号_p1.png",
+      "chars": 1220,
+      "sec": 1.8,
+      "ok": true
+    },
+    {
+      "file": "微信号_p11.png",
+      "chars": 1036,
+      "sec": 1.56,
+      "ok": true
+    },
+    {
+      "file": "微信号_p15.png",
+      "chars": 1006,
+      "sec": 1.5,
+      "ok": true
+    },
+    {
+      "file": "微信号_p19.png",
+      "chars": 1115,
+      "sec": 1.55,
+      "ok": true
+    },
+    {
+      "file": "微信号_p7.png",
+      "chars": 1162,
+      "sec": 1.74,
+      "ok": true
+    }
+  ]
+}

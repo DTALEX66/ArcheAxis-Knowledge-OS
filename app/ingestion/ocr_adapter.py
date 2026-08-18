@@ -10,12 +10,73 @@ unavailable — no fake success, no automatic model downloads.
 from __future__ import annotations
 
 import contextlib
+import os
 import hashlib
 import re
 from pathlib import Path
 from typing import Any
 
 from shared.adapter_contract import AdapterResult
+
+_SCOOP_ROOT_CANDIDATES = (
+    Path(os.environ.get("OS_EXTERNAL_CONFIG", r"D:\All projects\OS External Configuration")),
+)
+
+
+def configure_tesseract() -> tuple[str, str]:
+    """Resolve tesseract binary + TESSDATA_PREFIX robustly (fixes broken env).
+
+    The user/session env may carry a stale TESSDATA_PREFIX (e.g. missing the
+    "10-" prefix) that makes every OCR call fail with "couldn't load any
+    languages". This resolver:
+      1. finds the binary via env -> shutil.which -> known scoop paths,
+      2. finds a valid tessdata dir via env -> scoop tesseract-languages ->
+         tesseract's own tessdata/,
+      3. pins pytesseract.tesseract_cmd and os.environ["TESSDATA_PREFIX"].
+    """
+    import shutil
+
+    binary = os.environ.get("TESSERACT_CMD", "") or shutil.which("tesseract") or ""
+    if not binary:
+        for root in _SCOOP_ROOT_CANDIDATES:
+            candidate = root / "10-toolchains" / "scoop" / "apps" / "tesseract" / "current" / "tesseract.exe"
+            if candidate.is_file():
+                binary = str(candidate)
+                break
+
+    def valid_tessdata(candidate: Path) -> bool:
+        return candidate.is_dir() and any(candidate.glob("*.traineddata"))
+
+    tessdata = ""
+    env_prefix = os.environ.get("TESSDATA_PREFIX", "")
+    if env_prefix and valid_tessdata(Path(env_prefix)):
+        tessdata = env_prefix
+    if not tessdata:
+        for root in _SCOOP_ROOT_CANDIDATES:
+            for prefix in ("10-toolchains", "toolchains"):
+                candidate = root / prefix / "scoop" / "apps" / "tesseract-languages" / "current"
+                if valid_tessdata(candidate):
+                    tessdata = str(candidate)
+                    break
+            if tessdata:
+                break
+    if not tessdata and binary:
+        own = Path(binary).parent / "tessdata"
+        if valid_tessdata(own):
+            tessdata = str(own)
+
+    try:
+        import pytesseract
+        if binary:
+            pytesseract.pytesseract.tesseract_cmd = binary
+        if tessdata:
+            os.environ["TESSDATA_PREFIX"] = tessdata
+    except ImportError:
+        pass
+    return binary, tessdata
+
+
+configure_tesseract()
 
 _LANG_HINTS = {
     "zh": re.compile(r"[\u4e00-\u9fff]"),

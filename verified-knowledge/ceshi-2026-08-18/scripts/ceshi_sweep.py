@@ -11,6 +11,7 @@ PER_FILE_BUDGET = 10
 
 from app.ingestion.ocr_gate import assess as ocr_gate
 from app.ingestion.content_cleaner import clean_text as strip_noise
+import app.ingestion.ocr_adapter as oa  # triggers tesseract auto-config
 
 def read_text(p):
     with open(p, "r", encoding="utf-8", errors="ignore") as f:
@@ -92,7 +93,11 @@ for dirpath, dirnames, filenames in os.walk(ROOT):
                 if img_done >= CAP_IMAGES:
                     stats["image_capped"] += 1
                     continue
-                text, engine = convert_image(p)
+                r = oa.convert_ocr(p, lang="eng+chi_sim")
+                if r.success:
+                    text, engine = r.content, "tesseract(ocr_adapter)"
+                else:
+                    raise RuntimeError(r.error or "ocr failed")
                 img_done += 1
             elif ext in {".mp3", ".m4a", ".wav", ".flac"}:
                 if aud_done >= CAP_AUDIO:
