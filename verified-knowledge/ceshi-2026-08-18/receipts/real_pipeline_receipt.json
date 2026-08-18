@@ -1,0 +1,16 @@
+{
+  "pdf": "D:/All projects/ceshi/牛津通识读本/牛津通识读本：简明逻辑学（中文版）.pdf",
+  "pages": 136,
+  "chars": 8805,
+  "ocr_gate": "pass",
+  "qwen_embedding_ok": true,
+  "local_top_chunk": 5,
+  "vector_hits": [
+    "('chunk-2', 0.8885888457298279)",
+    "('chunk-4', 0.998268187046051)"
+  ],
+  "ecl_entities": 0,
+  "ecl_relations": 0,
+  "skill_topics": 7,
+  "skill_procedures": 7
+}

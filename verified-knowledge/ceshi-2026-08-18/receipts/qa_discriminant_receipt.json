@@ -1,0 +1,55 @@
+{
+  "chunks": 60,
+  "queries": 6,
+  "evaluated": 1,
+  "qwen3_top3_hit": 0,
+  "qwen3_rate": 0.0,
+  "local_top3_hit": 0,
+  "local_rate": 0.0,
+  "qwen3_total_sec": 2.2,
+  "local_total_sec": 0.071,
+  "failures": 0,
+  "details": [
+    {
+      "query": "三段论推理的形式与有效性",
+      "target": null,
+      "note": "no chunk contains keyword"
+    },
+    {
+      "query": "演绎推理和归纳推理有什么不同",
+      "target": 5,
+      "local_hit": false,
+      "qwen_hit": false,
+      "local_top": [
+        23,
+        21,
+        19
+      ],
+      "qwen_top": [
+        23,
+        21,
+        22
+      ]
+    },
+    {
+      "query": "笛卡尔的怀疑方法是什么",
+      "target": null,
+      "note": "no chunk contains keyword"
+    },
+    {
+      "query": "我思故我在这句话的含义",
+      "target": null,
+      "note": "no chunk contains keyword"
+    },
+    {
+      "query": "逻辑学里有效性是什么意思",
+      "target": null,
+      "note": "no chunk contains keyword"
+    },
+    {
+      "query": "笛卡尔如何看身心关系",
+      "target": null,
+      "note": "no chunk contains keyword"
+    }
+  ]
+}

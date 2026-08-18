@@ -1,0 +1,8 @@
+{
+  "chunks": 24,
+  "queries": 8,
+  "qwen3_top3_hit": 8,
+  "qwen3_rate": 1.0,
+  "local_top3_hit": 8,
+  "local_rate": 1.0
+}

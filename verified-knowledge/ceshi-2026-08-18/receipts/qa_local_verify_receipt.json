@@ -1,0 +1,84 @@
+{
+  "docs": 84,
+  "chunks": 181,
+  "local_embed_sec": 0.28,
+  "qwen_embed_sec": 8.25,
+  "queries": [
+    {
+      "query": "费曼技巧的核心步骤是什么",
+      "target": null,
+      "local_top3_hit": false,
+      "qwen_top3_hit": false,
+      "qwen_top": [
+        19,
+        157,
+        159
+      ],
+      "local_top": [
+        80,
+        57,
+        64
+      ]
+    },
+    {
+      "query": "间隔复习怎么安排",
+      "target": 1,
+      "local_top3_hit": false,
+      "qwen_top3_hit": false,
+      "qwen_top": [
+        118,
+        103,
+        117
+      ],
+      "local_top": [
+        130,
+        118,
+        147
+      ]
+    },
+    {
+      "query": "三段论的结构",
+      "target": 130,
+      "local_top3_hit": false,
+      "qwen_top3_hit": false,
+      "qwen_top": [
+        160,
+        159,
+        162
+      ],
+      "local_top": [
+        92,
+        167,
+        134
+      ]
+    },
+    {
+      "query": "如何提高记忆力",
+      "target": 33,
+      "local_top3_hit": false,
+      "qwen_top3_hit": true,
+      "qwen_top": [
+        38,
+        37,
+        33
+      ],
+      "local_top": [
+        23,
+        25,
+        131
+      ]
+    }
+  ],
+  "llm_qa": [
+    {
+      "query": "费曼技巧的核心步骤是什么",
+      "answer": "不知道。",
+      "grounded": false
+    },
+    {
+      "query": "间隔复习怎么安排",
+      "answer": "间隔复习的安排通常需要根据课程内容的难易程度、学员的学习进度和复习效果来制定。一般来说，间隔复习可以按照以下步骤进行：\n\n1. **确定复习周期**：根据课程内容的复杂度和学员的学习能力，确定每次复习的时间间隔。例如，对于基础内容，可以设置为每天复习一次；对于较难的内容，可以设置为每两天复习一次。\n\n2. **制定复习计划**：根据复习周期，制定详细的复习计划。计划中应包括每个模块的复习时间、复习",
+      "grounded": true
+    }
+  ]
+}
