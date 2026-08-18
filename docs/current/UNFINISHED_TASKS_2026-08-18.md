@@ -38,8 +38,8 @@
 
 | # | 方向 | 责任 | 说明 |
 | --- | --- | --- | --- |
-| D1 | ~~Human Mastery → Machine Skill 自动蒸馏~~ | ✅ | co_learning_loop.py 已打通双向闭环（teach/distill/collaborate/review 全动作，8 测试） |
-| D2 | ~~Machine Skill → 个人最优学习路径生成~~ | ✅ | learning_path.py（先修图→个性化路径）+ quiz.py 已实现（批 2，38 测试） |
+| D1 | ~~Human Mastery → Machine Skill 自动蒸馏~~ | ✅ | co_learning_loop.py + tick API + E2E 全链跑通（150 后端测试） |
+| D2 | ~~Machine Skill → 个人最优学习路径生成~~ | ✅ | learning_path.py + quiz.py + 前端学习路径/测验视图已实现 |
 | D3 | AI Learning OS 方向（AI 导师/自适应/知识蒸馏/个人能力模型） | [Agent] | 报告 §9.3 |
 | D4 | Agent Memory 技术栈选型实验（Mem0/Zep/Letta/Graphiti/Cognee） | [Agent] | H7+ 研究池内做 fixture bake-off |
 | D5 | 04 矩阵扩到 50–100 项目逐项判定（直接集成/借鉴架构/借鉴算法/排除） | [Agent] | 报告 §9.6 |
