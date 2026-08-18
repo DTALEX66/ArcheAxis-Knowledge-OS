@@ -7,7 +7,8 @@ Generated: 2026-08-15 (replaced stale 2026-07-23 copy)
 > 只读本段即可开工，无需回读全历史。
 
 **当前状态**
-- 项目端 HEAD = `e2012d3`（= origin/main，双端一致，工作树干净）；全量 **1776 passed / 9 skipped**；CI **连续绿 524-593**。
+- 项目端 HEAD = `b9e52f4`（= origin/main，双端一致，工作树干净）；全量 **1776 passed / 9 skipped**（2026-08-15 基线）+ 本会话新增 **69 passed**（双向学习吸收批次）。
+- **2026-08-18 双向学习吸收批次**（见 `docs/HANDOFF_2026-08-18_dual-learning-absorption.md`）：调研报告 09（含 42 条目在线核实）+ 11 个后端学习引擎模块 + 学习者状态 API + 前端 Learning 空间（69 后端 + 13 前端测试）；04 吸收矩阵并入；双向闭环编排器 co_learning_loop.py 已打通。
 - 外置库 `D:\All projects\OS External Configuration` = **跨项目共用库（仅工具链/依赖本体）**；本项目构建产物已全部迁回 `.hermes/task-runtime/`；**外置库不上传（保持本地，不 commit 不 push）**。
 
 **下一轮任务（优先级从高到低）**
