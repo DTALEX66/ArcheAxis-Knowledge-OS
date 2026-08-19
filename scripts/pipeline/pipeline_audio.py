@@ -39,18 +39,27 @@ def main() -> None:
             if not os.path.exists(wav) or os.path.getsize(wav) == 0:
                 fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'ffmpeg failed'}); continue
             import subprocess as _sp
-            _dur = 0.0
+            import math as _math
             _pd = _sp.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1', wav],
                           capture_output=True, text=True)
             try: _dur = float((_pd.stdout or '0').strip() or 0)
             except ValueError: _dur = 0.0
-            r = transcribe_sense_voice(wav)
-            if not r:
-                if _dur and _dur <= 300:
-                    r = transcribe_fw(wav)  # fallback only for short clips
-                else:
-                    fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'sensevoice empty (long file, fw capped)'}); continue
-            text = strip_noise(r['text'])
+            # chunked SenseVoice: <=8min segments bound memory (long-audio fix)
+            parts = []
+            seg = 480.0
+            for _s in range(0, _math.ceil(max(_dur, 1) / seg)):
+                _seg_wav = os.path.join(WORK, f's{idx}_{_s}.wav')
+                _sp.run(['ffmpeg','-y','-ss',str(_s*seg),'-t',str(seg),'-i',wav,'-ac','1','-ar','16000',_seg_wav],
+                        capture_output=True, check=False)
+                if not os.path.exists(_seg_wav): continue
+                _r = transcribe_sense_voice(_seg_wav)
+                if _r:
+                    parts.append(_r['text'])
+                try: os.remove(_seg_wav)
+                except OSError: pass
+            if not parts:
+                fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'sensevoice empty'}); continue
+            text = strip_noise(''.join(parts))
             if not text.strip():
                 fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'empty transcript'}); continue
             ok += 1
