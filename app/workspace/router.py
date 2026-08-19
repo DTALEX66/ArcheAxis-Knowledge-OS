@@ -324,6 +324,22 @@ def _do_get_anchor(anchor_id: str) -> dict[str, object]:
     }
 
 
+
+@router.get("/api/evidence/anchors")
+def list_evidence_anchors_route(limit: int = 50) -> dict[str, object]:
+    """List evidence anchors (R4 Evidence space real data)."""
+    anchors = list_evidence_anchors(DB_PATH)
+    items = [
+        {
+            "anchor_id": a.anchor_id,
+            "raw_sha256": a.raw_sha256,
+            "source_revision": a.source_revision,
+            "locator": a.locator,
+        }
+        for a in anchors[-limit:]
+    ]
+    return {"count": len(items), "items": items}
+
 @router.post("/api/vault/inspect")
 def workspace_vault_inspect(payload: VaultRootRequest, request: Request) -> dict[str, object]:
     """Inspect an explicitly selected Vault without writing to it."""

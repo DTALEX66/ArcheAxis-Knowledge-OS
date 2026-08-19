@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-08-19",
+  "federation_v1": {
+    "contracts": [
+      "KnowledgeQueryV1",
+      "KnowledgeProjectionV1",
+      "CandidateSubmissionV1",
+      "CandidateReceiptV1",
+      "EvidenceIntakeV1",
+      "LearningRecordV1",
+      "ProvenanceRecordV1",
+      "RightsRecordV1",
+      "ExternalAssetRecordV1"
+    ],
+    "all_defined": true,
+    "module": "app/contracts/federation_v1.py",
+    "routes": [
+      "POST /api/v1/federation/candidates",
+      "GET /candidates/{id}/receipt",
+      "POST /candidates/{id}/verify",
+      "GET /knowledge",
+      "GET /records/{id}/hash",
+      "POST /external-assets",
+      "GET /external-assets"
+    ],
+    "idempotency": true,
+    "human_gate": true,
+    "pagination": true,
+    "hash_readback": true,
+    "external_asset_no_file_copy": true,
+    "tests": [
+      "tests/test_federation_v1.py (5)",
+      "integration-tests/test_federation_e2e003.py",
+      "integration-tests/test_knowledge_migration_pilot.py"
+    ]
+  },
+  "status": "PASS"
+}

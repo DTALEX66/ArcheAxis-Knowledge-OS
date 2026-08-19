@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-08-19",
+  "remote": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git",
+  "branch": "main",
+  "head_sha": "cd85de1e0d16bccbe98c7e01bf41e36e18f0d96d",
+  "sync": "local == origin/main",
+  "tree_clean": true,
+  "release": {
+    "version": "0.5.0",
+    "note": "legacy asset; current packaging under packaging/ (developer-kit)"
+  },
+  "python_root_package": "app (target archeaxis — not yet migrated)"
+}

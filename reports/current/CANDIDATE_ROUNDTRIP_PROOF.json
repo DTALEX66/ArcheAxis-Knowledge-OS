@@ -1,0 +1,46 @@
+{
+  "receipt": {
+    "submission_id": "fedsub_a33e3124aa15e24b27dbad0a",
+    "idempotency_key": "pilot-2026-08-19",
+    "status": "accepted",
+    "accepted": 3,
+    "rejected": 0,
+    "items_hash": "b9fd7c6903cdade8c3e4ded0497310285dd791b67450290fc901de6a176204de",
+    "created_at": "2026-08-19T14:36:12.896141+00:00"
+  },
+  "promoted": [
+    {
+      "candidate_id": "fedcand_2d0f69a9959f6c2c7a3560b1",
+      "item_key": "worklab-gate7"
+    },
+    {
+      "candidate_id": "fedcand_c8fd1a1c53982e2a119d7cd1",
+      "item_key": "designlab-mc12"
+    },
+    {
+      "candidate_id": "fedcand_5d3e267c162598acce1a3074",
+      "item_key": "external-sr9"
+    }
+  ],
+  "verified_total": 3,
+  "hash_readbacks": [
+    {
+      "entity_id": "fedcand_2d0f69a9959f6c2c7a3560b1",
+      "content_hash": "73f3d73f2447ac78b49a49d08556254eab8b40b3d8e88340300f0df744417648",
+      "claim": "WORK-LAB 治理规则：证据等级提升必须经过人工批准并留下审计轨迹",
+      "source_ref": "provenance://worklab/rules/gate-7"
+    },
+    {
+      "entity_id": "fedcand_c8fd1a1c53982e2a119d7cd1",
+      "content_hash": "9950949084d1d6bad751febbdff15de3638900ad12944c21a25b4f558544c40b",
+      "claim": "DESIGN-LAB MethodCard：设计交付物需双人复核并附检查清单",
+      "source_ref": "provenance://designlab/method/card-12"
+    },
+    {
+      "entity_id": "fedcand_5d3e267c162598acce1a3074",
+      "content_hash": "12e07301fa0196d72c0110f8c9907dece14451bfdbb88b075f8d5a450ab16d47",
+      "claim": "外置 SourceRecord：教材《逻辑学导论》第 3 章为三段论推理专题",
+      "source_ref": "provenance://external/source-record/sr-9"
+    }
+  ]
+}

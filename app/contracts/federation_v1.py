@@ -21,7 +21,7 @@ FEDERATION_SCHEMA_NS = "https://archeaxis.local/contracts/federation/v1"
 class KnowledgeQueryV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    query: str = Field(min_length=1)
+    query: str = ""  # empty = list-all within kind filter
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=20, ge=1, le=100)
     kind: Literal["verified", "candidate", "all"] = "verified"

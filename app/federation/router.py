@@ -49,8 +49,6 @@ def promote_candidate(candidate_id: str, payload: dict[str, str]) -> dict[str, o
 @router.get("/knowledge")
 def query_knowledge(query: str = "", page: int = 1, page_size: int = 20,
                     kind: str = "verified") -> dict[str, object]:
-    if not query.strip():
-        raise HTTPException(status_code=400, detail="query is required")
     request = KnowledgeQueryV1(query=query.strip(), page=page, page_size=page_size,
                                kind=kind)  # type: ignore[arg-type]
     try:

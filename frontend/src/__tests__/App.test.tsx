@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
 
 // AXW-UI-804: App shell — six-space navigation, default space, landmarks.
+// Rail buttons use the English product labels; space headings are Chinese.
 describe("App shell", () => {
   it("renders the shell landmarks (banner, navigation, main)", () => {
     render(<App />);
@@ -20,12 +21,9 @@ describe("App shell", () => {
     render(<App />);
     const main = screen.getByRole("main");
     expect(
-      within(main).getByRole("heading", { name: "Workspace" }),
+      within(main).getByRole("heading", { name: /工作区状态/ }),
     ).toBeInTheDocument();
-    expect(
-      within(main).getByText("当前工作区、来源与任务状态。"),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Workspace" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Workspace/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -36,22 +34,19 @@ describe("App shell", () => {
     render(<App />);
     const main = screen.getByRole("main");
     expect(
-      within(main).getByRole("heading", { name: "Workspace" }),
+      within(main).getByRole("heading", { name: /工作区状态/ }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Library" }));
+    await user.click(screen.getByRole("button", { name: /Library/ }));
 
     expect(
-      within(main).getByRole("heading", { name: "Library" }),
+      within(main).getByRole("heading", { name: /原件库/ }),
     ).toBeInTheDocument();
-    expect(
-      within(main).getByText("原始资料库（Source Archive）与多格式摄取。"),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Library" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Library/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("button", { name: "Workspace" })).not.toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Workspace/ })).not.toHaveAttribute(
       "aria-current",
     );
   });

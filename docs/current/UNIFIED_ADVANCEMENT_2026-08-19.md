@@ -70,3 +70,15 @@
 | **AA-P0-003 人类学习保留** | **确认 PASS** | 学习引擎未降级；E2E-001 仍在（test_learning_loop_e2e） |
 | **reports/current/** | **已建立** | INGESTION_REALITY_MATRIX.json（AA-P1-002 交付） |
 | 管线任务（F1/F8/F9） | 延后（用户指示） | 脚本已固化 scripts/pipeline/，随时可开跑 |
+
+## 八、最终推进状态（2026-08-19 收尾）
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| E2E-003 联邦回环（HTTP） | PASS | integration-tests/test_federation_e2e003.py（提交→回执→幂等→人工验证→查询→hash 回读） |
+| 知识迁移试点（3 对象） | PASS | integration-tests/test_knowledge_migration_pilot.py + reports/current/CANDIDATE_ROUNDTRIP_PROOF.json + FEDERATION_MIGRATION_REPORT.md |
+| R1 四库首启 + 重启回读 | PASS | integration-tests/test_r1_four_library_e2e.py（create_workspace 四域 + manifest 重载） |
+| R4 六空间真实化 | PARTIAL→**PASS(前端)** | 5 空间接真实 API（Evidence/Workspace/AI Assets/Library/Settings）；tsc 0；vitest 17/17；后端 evidence 列表端点新增 |
+| R5 Tauri 桌面 | 脚手架就位 / 构建 **BLOCKED** | src-tauri/（Cargo.toml/main.rs/tauri.conf.json）；本机无 cargo（G1 人工门禁） |
+| reports/current 交付 | PASS | CLOUD_BASELINE / EXACT_SHA_VERIFICATION / CONTRACT_CONFORMANCE / REMAINING_HUMAN_GATES / INGESTION_REALITY_MATRIX / FEDERATION_MIGRATION_REPORT / CANDIDATE_ROUNDTRIP_PROOF |
+| 管线任务 | 延后（用户指示） | scripts/pipeline/ 就绪 |
