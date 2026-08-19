@@ -71,6 +71,8 @@
 | F5 | sherpa-onnx 安装 | ✅ | uv pip 已装 1.13.6 |
 | F6 | 音频转写引擎优先级 | 就绪 | SenseVoice（快）→ faster-whisper（兜底） |
 | F7 | 全量重扫图片/PDF/pptx | ✅ 完成 | 1273 图片 + 66/66 PDF + 4/4 pptx（回执已归档） |
+| F8 | 视频画面转化（64 mp4 抽帧 OCR） | ⏸ 暂停（用户指示先调研） | 抽帧+RapidOCR 已实证（进步本/黑石案例/复合增长）；脚本 _video_full.py 就绪 |
+| F9 | 视频转化增强（PySceneDetect 场景切分 + Qwen2.5-VL 帧描述 + 字幕 SRT） | 待做（调研完成） | 见 docs/current/VIDEO_CONVERSION_RESEARCH_2026-08-19.md（V1-V5 优先级） |
 
 ### 共用库规则（用户强调，勿忘）
 - **工具链 / 外置依赖** → `D:\All projects\OS External Configuration`（如 tesseract/scoop/ffmpeg/7zip）
