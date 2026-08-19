@@ -10,13 +10,13 @@
 | --- | --- | --- | --- |
 | G1 | **音频全量转写**（14 mp3 等音频） | 🔄 进行中 | F1：SenseVoice 4 worker 并行分块转写；完成自动合并回执 |
 | G2 | **ollama 升级**（解 qwen3-reranker 接入 + 视觉 500 上游 bug#15828） | BLOCKED | 升级重启服务需避开其他会话；0.32.14 无 /api/rerank |
-| G3 | **MinerU 扫描 PDF 兜底** | PARTIAL | magic-pdf 依赖齐；模型下载 + 干净 venv 隔离待专项 |
+| G3 | **MinerU 扫描 PDF 兜底** | PARTIAL | magic-pdf 依赖齐+venv 隔离已解（PYTHONPATH='' 干净）；模型下载需 modelscope CLI（opendatalab/PDF-Extract-Kit-1.0）→ 专项 |
 | G4 | **.doc 旧格式 2 个** | FAIL | 需 LibreOffice/antiword（共用库无） |
-| G5 | **联邦契约实现**（EvidenceIntake/LearningRecord/Provenance/Rights V1 仅有模型无端点） | PARTIAL | KnowledgeQuery/CandidateSubmission/Receipt/Asset 已实现 |
+| G5 | **联邦契约实现**（EvidenceIntake/LearningRecord/Provenance/Rights V1） | ✅ 完成 | 4 记录类型端点+表+测试（10 联邦测试绿） |
 | G6 | **F9 视频增强 V4/V5**（VLM 帧描述 / 时间戳知识块） | PARTIAL | V1 场景切分+V2 帧OCR+V3 字幕完成；V4 被 ollama 视觉阻塞 |
-| G7 | **Python 根包 archeaxis 迁移**（现 app/） | NOT_EXECUTED | 新规划 §一 目标根包 |
-| G8 | **R1 四库首启 UX**（setup 骨架有，分库选择界面） | PARTIAL | 快/高级模式未做 UI |
-| G9 | **完整评估集固化**（固定改写查询+CER/WER/资源矩阵资产） | PARTIAL | 对比报告已产，未固化为可复现资产 |
+| G7 | **Python 根包 archeaxis** | ✅ 转发层 | archeaxis/ 包别名（archeaxis.app.main 可用）+ 测试；全量重命名留续项 |
+| G8 | **R1 四库首启 UX** | ✅ 基础 | Settings 空间"初始化四库工作区"按钮（POST initialize）真实接线 |
+| G9 | **完整评估集固化** | ✅ | scripts/pipeline/eval_retrieval.py（20 固定查询）+ EVAL_SET_RECEIPT.json |
 | G10 | **C2 Web 捕获余项**（PolicyGate 统一/DAG 收尾） | PARTIAL | web.py stub 已消灭；其余 DAG 待跑 |
 | G11 | **ENV-103 环境确认**（rust/uv-cache/wsl2/ci-venv） | NOT_EXECUTED | 环境/注册表确认 |
 | G12 | **R7 平台采集**（微信/抖音/B站等） | NOT_EXECUTED | 设计后置（核心闭环后） |
