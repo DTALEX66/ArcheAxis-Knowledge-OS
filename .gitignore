@@ -48,3 +48,8 @@ workspace/.loop-status.md
 # Sub-project runtime data
 Inspiration-Research/data/
 knowledge_base/data/
+
+# Tauri build artifacts (current src-tauri layout)
+/src-tauri/target/
+/src-tauri/gen/android/
+/src-tauri/gen/apple/
