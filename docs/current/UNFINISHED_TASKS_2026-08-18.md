@@ -58,3 +58,21 @@
 
 1. A1（提交吸收批次）→ B/C 中可自主项并行 → 04 并入（A3）→ D 按序。
 2. Owner 门禁项（B1-B8）在自主项就绪后逐项交 Owner。
+
+
+## F. 转化管线待办（2026-08-19 更新 · 模型/引擎已就绪）
+
+| # | 任务 | 状态 | 说明 |
+| --- | --- | --- | --- |
+| F1 | 音频全量转写（14 mp3 + 64 mp4） | ⏸ 暂停（用户指示） | **SenseVoice int8 已就绪且验证**（60s 中文讲座 1.74s，比 faster-whisper-large-v3 快 ~26x）；sherpa-onnx 1.13.6 已装；恢复时跑 .hermes/task-runtime/_audio_fast.py |
+| F2 | 2 个旧版 .doc 转换 | 待做 | 需 LibreOffice/antiword 转换器（共用库工具链） |
+| F3 | 8 张超大/损坏图片 | 待做 | PIL 解压炸弹上限（>89478485 像素）；可放大上限或跳过 |
+| F4 | SenseVoice 全量模型修复 | ✅ 已替代 | 原 999MB tar 损坏 → HF model.int8.onnx（228MB）+ tokens.txt 已下载到 Model library |
+| F5 | sherpa-onnx 安装 | ✅ | uv pip 已装 1.13.6 |
+| F6 | 音频转写引擎优先级 | 就绪 | SenseVoice（快）→ faster-whisper（兜底） |
+| F7 | 全量重扫图片/PDF/pptx | ✅ 完成 | 1273 图片 + 66/66 PDF + 4/4 pptx（回执已归档） |
+
+### 共用库规则（用户强调，勿忘）
+- **工具链 / 外置依赖** → `D:\All projects\OS External Configuration`（如 tesseract/scoop/ffmpeg/7zip）
+- **模型权重** → `D:\All projects\Model library`（如 ollama / whisper / sherpa-onnx / ComfyUI）
+- 两库均为**跨项目共用**；项目运行产物留在各自 `.hermes/task-runtime/`
