@@ -66,3 +66,47 @@ def transcribe(audio_path: str | Path) -> dict[str, Any]:
         }
     except Exception as exc:  # noqa: BLE001
         raise AsrError(f"transcription failed: {exc}") from exc
+
+
+
+_SENSE_VOICE_DIR = Path(r"D:\All projects\Model library\sherpa-onnx\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17")
+
+
+def _read_wav(path: Path):
+    """Read a 16-bit PCM wav as float32 mono (no soundfile dependency)."""
+    import wave
+    import numpy as np
+    with wave.open(str(path), "rb") as w:
+        sr = w.getframerate()
+        frames = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+        return sr, frames.astype(np.float32) / 32768.0
+
+
+def transcribe_sense_voice(audio_path: str | Path) -> dict[str, Any] | None:
+    """Fast Chinese ASR via sherpa-onnx + SenseVoice (int8, ~26x faster than
+    faster-whisper-large-v3 on CPU). Returns None when model/runtime missing.
+
+    Input must be a 16k mono wav; callers extract via ffmpeg first.
+    """
+    try:
+        import sherpa_onnx  # noqa: F401
+    except ImportError:
+        return None
+    model = _SENSE_VOICE_DIR / "model.int8.onnx"
+    tokens = _SENSE_VOICE_DIR / "tokens.txt"
+    if not model.is_file() or not tokens.is_file():
+        return None
+    try:
+        rec = sherpa_onnx.OfflineRecognizer.from_sense_voice(
+            model=str(model), tokens=str(tokens), num_threads=4)
+        sr, samples = _read_wav(Path(audio_path))
+        stream = rec.create_stream()
+        stream.accept_waveform(sr, samples)
+        rec.decode_stream(stream)
+        text = stream.result.text.strip()
+        if not text:
+            return None
+        return {"success": True, "text": text, "language": "zh",
+                "engine": "sherpa-sense-voice", "model": str(model)}
+    except Exception:
+        return None
