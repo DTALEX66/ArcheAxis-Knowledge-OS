@@ -12,9 +12,9 @@
 | Office docx/pptx/xlsx | adapter/markitdown | ✅ 24+4 | 同上 |
 | 图片 png/jpg/webp/gif | RapidOCR | ✅ 1273（8 超大失败） | 同上 |
 | 旧版 .doc | 需 LibreOffice/antiword | ⏸ F2 | 装转换器后 |
-| 音频 mp3/m4a | SenseVoice → faster-whisper | ⏸ F1 暂停 | **scripts/pipeline/pipeline_audio.py** |
-| 视频 mp4 画面 | 抽帧 + RapidOCR | ⏸ F8 暂停 | **scripts/pipeline/pipeline_video.py** |
-| 视频增强 | PySceneDetect + Qwen2.5-VL + 字幕 | ⏸ F9 待做 | V1-V5（见视频调研文档） |
+| 音频 mp3/m4a | SenseVoice → faster-whisper（<5min 兜底） | 🔄 F1 执行中 | **scripts/pipeline/pipeline_audio.py** |
+| 视频 mp4 画面 | 抽帧 + RapidOCR | ✅ F8 完成 64/64 | **scripts/pipeline/pipeline_video.py** |
+| 视频增强 | PySceneDetect + Qwen2.5-VL + 字幕 | 🟡 F9：V1 场景切分 ✅ V2=帧OCR ✅ V3 SRT ✅ / V4 VLM BLOCKED(ollama 500) | V1-V5（见视频调研文档） |
 | Web URL | raw-first 捕获 + 提取链 | ✅ web.py 实现 | C2 后续 |
 
 ## 2. 全链路多格式测试计划（恢复顺序）

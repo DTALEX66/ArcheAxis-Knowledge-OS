@@ -38,7 +38,18 @@ def main() -> None:
                            capture_output=True, check=False)
             if not os.path.exists(wav) or os.path.getsize(wav) == 0:
                 fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'ffmpeg failed'}); continue
-            r = transcribe_sense_voice(wav) or transcribe_fw(wav)
+            import subprocess as _sp
+            _dur = 0.0
+            _pd = _sp.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1', wav],
+                          capture_output=True, text=True)
+            try: _dur = float((_pd.stdout or '0').strip() or 0)
+            except ValueError: _dur = 0.0
+            r = transcribe_sense_voice(wav)
+            if not r:
+                if _dur and _dur <= 300:
+                    r = transcribe_fw(wav)  # fallback only for short clips
+                else:
+                    fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'sensevoice empty (long file, fw capped)'}); continue
             text = strip_noise(r['text'])
             if not text.strip():
                 fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'empty transcript'}); continue

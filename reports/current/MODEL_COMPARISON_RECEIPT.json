@@ -1,0 +1,36 @@
+{
+  "retrieval": {
+    "qwen3_embedding_hit_rate": 0.35,
+    "qwen_sec": 24.3,
+    "n_gram_hit_rate": 0.25,
+    "n_gram_sec": 0.0,
+    "queries": 20,
+    "k": 5
+  },
+  "asr": {
+    "sensevoice_chars": 242,
+    "faster_whisper_chars": 0,
+    "cer": null,
+    "fw_error": "AsrError('transcription failed: mkl_malloc: failed to allocate memory')"
+  },
+  "ocr": [
+    {
+      "file": "课程表.jpg",
+      "rapid_chars": 441,
+      "tesseract_chars": 340,
+      "cer": 0.857
+    },
+    {
+      "file": "课程表.jpg",
+      "rapid_chars": 441,
+      "tesseract_chars": 340,
+      "cer": 0.857
+    },
+    {
+      "file": "obs-command-banner.png",
+      "rapid_chars": 176,
+      "tesseract_chars": 172,
+      "cer": 0.562
+    }
+  ]
+}
