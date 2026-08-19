@@ -1,0 +1,7 @@
+{
+  "vector_only": 0.35,
+  "hybrid_rrf": 0.35,
+  "hybrid_rerank": 0.0,
+  "n": 20,
+  "rerank": "BLOCKED: ollama 0.32.14 no /api/rerank (upgrade or ONNX reranker)"
+}
