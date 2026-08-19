@@ -1,0 +1,215 @@
+{
+  "rows": [
+    {
+      "ext": ".ajson",
+      "total": 15071,
+      "converted": 15071,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".md",
+      "total": 5602,
+      "converted": 5602,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".png",
+      "total": 1214,
+      "converted": 1213,
+      "coverage": 0.999
+    },
+    {
+      "ext": ".json",
+      "total": 81,
+      "converted": 81,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".pdf",
+      "total": 66,
+      "converted": 66,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".mp4",
+      "total": 64,
+      "converted": 64,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".jpg",
+      "total": 55,
+      "converted": 50,
+      "coverage": 0.909
+    },
+    {
+      "ext": ".svg",
+      "total": 35,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".css",
+      "total": 29,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".docx",
+      "total": 24,
+      "converted": 24,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".js",
+      "total": 24,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".canvas",
+      "total": 22,
+      "converted": 22,
+      "coverage": 1.0
+    },
+    {
+      "ext": "",
+      "total": 20,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".sample",
+      "total": 14,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".txt",
+      "total": 13,
+      "converted": 13,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".cfg",
+      "total": 11,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".csv",
+      "total": 11,
+      "converted": 11,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".ps1",
+      "total": 10,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".webp",
+      "total": 7,
+      "converted": 5,
+      "coverage": 0.714
+    },
+    {
+      "ext": ".bak_20260628_140416",
+      "total": 6,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".gif",
+      "total": 5,
+      "converted": 5,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".pptx",
+      "total": 4,
+      "converted": 4,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".html",
+      "total": 4,
+      "converted": 4,
+      "coverage": 1.0
+    },
+    {
+      "ext": ".doc",
+      "total": 2,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".bak_20260628_142141",
+      "total": 2,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".idx",
+      "total": 2,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".pack",
+      "total": 2,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".rev",
+      "total": 2,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".graph",
+      "total": 1,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".bak-20260628-133212",
+      "total": 1,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".bak-20260628-134055",
+      "total": 1,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".bak_fix_smart_20260628_150853",
+      "total": 1,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".sh",
+      "total": 1,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": ".bak_exclude_generated_20260628_151956",
+      "total": 1,
+      "converted": 0,
+      "coverage": 0.0
+    },
+    {
+      "ext": "(audio, running)",
+      "total": 14,
+      "converted": 0,
+      "coverage": null
+    }
+  ],
+  "total_files": 22422
+}

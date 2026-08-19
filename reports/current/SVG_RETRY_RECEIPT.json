@@ -1,0 +1,293 @@
+{
+  "svg": [
+    {
+      "file": "Agent技能安全审计.svg",
+      "ok": true,
+      "chars": 160,
+      "head": "TALOS COURSE VISUAL MAP Agent技能安全审计 生成式课"
+    },
+    {
+      "file": "AI-LLM工具生态与Skill工程.svg",
+      "ok": true,
+      "chars": 168,
+      "head": "TALOS COURSE VISUAL MAP AILLM工具生态与Skill工"
+    },
+    {
+      "file": "AI研究搜索与OER交叉验证.svg",
+      "ok": true,
+      "chars": 159,
+      "head": "TALOS COURSE VISUAL MAP AI研究搜索与OER交叉验证 生"
+    },
+    {
+      "file": "GitHub自动化与代码审查工作流.svg",
+      "ok": true,
+      "chars": 164,
+      "head": "TALOS COURSE VISUAL MAP GitHub自动化与代码审查工作"
+    },
+    {
+      "file": "Obsidian与PKM自动化实战.svg",
+      "ok": true,
+      "chars": 182,
+      "head": "TALOS COURSE VISUAL MAP Obsidian与PkM自动化实"
+    },
+    {
+      "file": "UI-UX-Agent设计系统实战.svg",
+      "ok": true,
+      "chars": 176,
+      "head": "TALOS COURSE VISUAL MAP UIUXAgent设计系统实战 "
+    },
+    {
+      "file": "多Agent工程与任务编排.svg",
+      "ok": true,
+      "chars": 156,
+      "head": "TALOS COURSE VISUAL MAP 多Agent工程与任务编排 生成"
+    },
+    {
+      "file": "文档OCR与课程入库自动化.svg",
+      "ok": true,
+      "chars": 165,
+      "head": "TALOS COURSE VISUAL MAP 文档OCR与课程入库自动化 生成"
+    },
+    {
+      "file": "浏览器自动化与桌面控制.svg",
+      "ok": true,
+      "chars": 161,
+      "head": "TALOS COURSE VISUAL MAP 浏览器自动化与桌面控制 生成式课"
+    },
+    {
+      "file": "30天考霸训练营.svg",
+      "ok": true,
+      "chars": 124,
+      "head": "LEARNING OS 30天考霸训练营 生成式课程结构图·非原始证据图·用于课"
+    },
+    {
+      "file": "AI-Agent-Skills-实战课.svg",
+      "ok": true,
+      "chars": 142,
+      "head": "AI ENGINEERING Al AgentSkills实战课 生成式课程结构"
+    },
+    {
+      "file": "UI系统全能班.svg",
+      "ok": true,
+      "chars": 125,
+      "head": "DESIGN SYSTEM UI系统全能班 生成式课程结构图·非原始证据图·用于"
+    },
+    {
+      "file": "中央美院美术基础教学.svg",
+      "ok": true,
+      "chars": 129,
+      "head": "DESIGN SYSTEM 中央美院美术基础教学 生成式课程结构图·非原始证据图"
+    },
+    {
+      "file": "全栈新媒体运营.svg",
+      "ok": true,
+      "chars": 122,
+      "head": "GROWTH OPS 全栈新媒体运营 生成式课程结构图·非原始证据图·用于课程导"
+    },
+    {
+      "file": "大模型应用开发介绍.svg",
+      "ok": true,
+      "chars": 136,
+      "head": "AI ENGINEERING 大模型应用开发介绍 生成式课程结构图·非原始证据图"
+    },
+    {
+      "file": "大脑训练.svg",
+      "ok": true,
+      "chars": 119,
+      "head": "LEARNING OS 大脑训练 生成式课程结构图·非原始证据图·用于课程导航和"
+    },
+    {
+      "file": "思维导图与记忆宫殿教程.svg",
+      "ok": true,
+      "chars": 128,
+      "head": "LEARNING OS 思维导图与记忆宫殿教程 生成式课程结构图·非原始证据图·"
+    },
+    {
+      "file": "新媒体高阶运营增长实战训练.svg",
+      "ok": true,
+      "chars": 129,
+      "head": "GROWTH OPS 新媒体高阶运营增长实战训练 生成式课程结构图·非原始证据图"
+    },
+    {
+      "file": "有趣有料心理学.svg",
+      "ok": true,
+      "chars": 125,
+      "head": "COU RSE MA P 有趣有料心理学 生成式课程结构图·非原始证据图·用于课"
+    },
+    {
+      "file": "海马记忆法与记忆宫殿.svg",
+      "ok": true,
+      "chars": 127,
+      "head": "LEARNING OS 海马记忆法与记忆宫殿 生成式课程结构图·非原始证据图·用"
+    },
+    {
+      "file": "牛客算法直通套餐.svg",
+      "ok": true,
+      "chars": 128,
+      "head": "AI ENGINEERING 牛客算法直通套餐 生成式课程结构图·非原始证据图·"
+    },
+    {
+      "file": "网易视觉设计师养成计划.svg",
+      "ok": true,
+      "chars": 130,
+      "head": "DESIGN SYSTEM 网易视觉设计师养成计划 生成式课程结构图·非原始证据"
+    },
+    {
+      "file": "记忆圣经学习力合集.svg",
+      "ok": true,
+      "chars": 125,
+      "head": "LEARNING OS 记忆圣经学习力合集 生成式课程结构图·非原始证据图·用于"
+    },
+    {
+      "file": "设计师职业加速营.svg",
+      "ok": true,
+      "chars": 126,
+      "head": "DESIGN SYSTEM 设计师职业加速营 生成式课程结构图·非原始证据图·用"
+    },
+    {
+      "file": "设计转岗运营加速版.svg",
+      "ok": true,
+      "chars": 128,
+      "head": "DESIGN SYSTEM 设计转岗运营加速版 生成式课程结构图·非原始证据图·"
+    },
+    {
+      "file": "Photoshop-AIGC商业设计.svg",
+      "ok": true,
+      "chars": 141,
+      "head": "VISUAL COURSE MAP PhotoshopAlGC商业设计 生成式课"
+    },
+    {
+      "file": "品牌全案AI设计实战班.svg",
+      "ok": true,
+      "chars": 135,
+      "head": "VISUAL COURSE MAP 品牌全案AI设计实战班 生成式课程结构图·非"
+    },
+    {
+      "file": "清华视觉传达设计思维与方法.svg",
+      "ok": true,
+      "chars": 136,
+      "head": "VISUAL COURSE MAP 清华视觉传达设计思维与方法 生成式课程结构图"
+    },
+    {
+      "file": "版式设计.svg",
+      "ok": true,
+      "chars": 125,
+      "head": "VISUAL COURSE MAP 版式设计 生成式课程结构图·非原始证据图·候"
+    },
+    {
+      "file": "crystal-logo.svg",
+      "ok": false,
+      "chars": 0,
+      "head": ""
+    },
+    {
+      "file": "empty-state.svg",
+      "ok": true,
+      "chars": 6,
+      "head": "D00000"
+    }
+  ],
+  "retry_failed": [
+    {
+      "file": "第10堂视频课：如何升级你的沟通能力？_35s.png",
+      "ok": true,
+      "chars": 12
+    },
+    {
+      "file": "第1课：记忆测试，了解你的大脑_16s.png",
+      "ok": true,
+      "chars": 14
+    },
+    {
+      "file": "第1课：记忆测试，了解你的大脑_16s.png",
+      "ok": true,
+      "chars": 14
+    },
+    {
+      "file": "第1课：记忆测试，了解你的大脑_16s.png",
+      "ok": true,
+      "chars": 14
+    },
+    {
+      "file": "第2课：探索大脑，记忆的形成和特点_16s.png",
+      "ok": true,
+      "chars": 17
+    },
+    {
+      "file": "第1课：记忆测试，了解你的大脑_94s.png",
+      "ok": true,
+      "chars": 10
+    },
+    {
+      "file": "三命通会_p1.png",
+      "ok": true,
+      "chars": 12
+    },
+    {
+      "file": "三命通会_p1.png",
+      "ok": true,
+      "chars": 12
+    },
+    {
+      "file": "第一章_p14.png",
+      "ok": true,
+      "chars": 9
+    },
+    {
+      "file": "第一章_p20.png",
+      "ok": true,
+      "chars": 5
+    },
+    {
+      "file": "第一章_p13.png",
+      "ok": true,
+      "chars": 14
+    },
+    {
+      "file": "ref_01.png",
+      "ok": true,
+      "chars": 8
+    },
+    {
+      "file": "round10_ref_01.jpg",
+      "ok": true,
+      "chars": 7
+    },
+    {
+      "file": "round10_ref_01.jpg",
+      "ok": true,
+      "chars": 13
+    },
+    {
+      "file": "auto_ref_01.gif",
+      "ok": true,
+      "chars": 9
+    },
+    {
+      "file": "知识内化训练营-pdf-p001-4245d64f.png",
+      "ok": true,
+      "chars": 20
+    },
+    {
+      "file": "知识内化训练营-pdf-p001-9788c096.png",
+      "ok": true,
+      "chars": 14
+    },
+    {
+      "file": "知识内化训练营-pdf-p001-df386b6d.png",
+      "ok": true,
+      "chars": 8
+    },
+    {
+      "file": "知识内化训练营-video-000300-e4ff7760.png",
+      "ok": true,
+      "chars": 18
+    },
+    {
+      "file": "round14_keyframe_01.png",
+      "ok": true,
+      "chars": 13
+    }
+  ],
+  "ocr_cpu_sec": 22.73
+}

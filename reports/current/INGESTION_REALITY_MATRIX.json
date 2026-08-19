@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-08-19",
+  "generated_at": "2026-08-20",
   "head": "c83225b",
   "statuses": {
     "text-md-txt-csv-json-canvas-ajson": {
@@ -21,7 +21,7 @@
     "legacy-doc": {
       "status": "FAIL",
       "engine": "none",
-      "evidence": "2 files; needs LibreOffice/antiword"
+      "evidence": "2 files; needs LibreOffice/antiword (not in shared lib)"
     },
     "images-png-jpg-webp-gif": {
       "status": "PASS",
@@ -57,6 +57,16 @@
       "status": "PASS",
       "engine": "ocr_gate",
       "evidence": "6 tests"
+    },
+    "svg-vector": {
+      "status": "PASS",
+      "engine": "cairosvg->RapidOCR",
+      "evidence": "30/31 converted (course visual maps, 160-182 chars)"
+    },
+    "images-low-text": {
+      "status": "PASS-by-design",
+      "engine": "rapidocr",
+      "evidence": "20 screenshots converted but gate-fail (5-20 chars, minimal text content)"
     }
   }
 }
