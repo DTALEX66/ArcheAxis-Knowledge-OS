@@ -1,7 +1,7 @@
 """ASR adapter — H2 audio coverage (Model library faster-whisper).
 
 Local speech-to-text via faster-whisper using the shared model library
-(D:\All projects\Model library\whisper\<model>). Fail-closed: missing model
+(Model library/whisper/<model>). Fail-closed: missing model
 or runtime → AdapterResult-like error, never a silent empty transcript.
 
     resolve_model_dir()      → config/env-driven model directory
