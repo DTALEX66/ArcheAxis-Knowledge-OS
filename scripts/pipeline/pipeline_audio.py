@@ -12,7 +12,7 @@ import json, os, subprocess, sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 ROOT = r"D:/All projects/ceshi"
-OUT = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/audio_full_receipt.json"
+OUT = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/audio_full_receipt.json"  # part run uses suffix below
 WORK = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/audio-work"
 os.makedirs(WORK, exist_ok=True)
 
@@ -20,6 +20,17 @@ from app.ingestion.asr_adapter import transcribe_sense_voice, transcribe as tran
 from app.ingestion.content_cleaner import clean_text as strip_noise
 
 def main() -> None:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--part', type=int, default=0)
+    ap.add_argument('--parts', type=int, default=1)
+    args = ap.parse_args()
+    if args.parts > 1:
+        import pathlib as _pl
+        _out = _pl.Path(OUT)
+        OUT_PART = str(_out.with_name(_out.stem + f".part{args.part}.json"))
+    else:
+        OUT_PART = OUT
     files = []
     for dirpath, dirnames, filenames in os.walk(ROOT):
         for f in filenames:
@@ -27,9 +38,10 @@ def main() -> None:
                 p = os.path.join(dirpath, f)
                 if os.path.getsize(p) > 0:
                     files.append(p)
-    print('audio files:', len(files), flush=True)
+    files = [p for i, p in enumerate(sorted(files)) if i % args.parts == args.part]
+    print(f'audio files (part {args.part}/{args.parts}):', len(files), flush=True)
     receipts, ok, fail = [], 0, 0
-    for idx, p in enumerate(sorted(files)):
+    for idx, p in enumerate(files):
         rel = p.replace(ROOT + '/', '')
         t0 = __import__('time').monotonic()
         try:
@@ -72,7 +84,7 @@ def main() -> None:
         try: os.remove(wav)
         except OSError: pass
     summary = {'total': len(files), 'ok': ok, 'fail': fail}
-    with open(OUT, 'w', encoding='utf-8') as f:
+    with open(OUT_PART, 'w', encoding='utf-8') as f:
         json.dump({'summary': summary, 'receipts': receipts}, f, ensure_ascii=False)
     print('SUMMARY:', json.dumps(summary), flush=True)
 
