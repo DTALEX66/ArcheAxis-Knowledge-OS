@@ -47,3 +47,11 @@ export function getMachineKnowledge(): Promise<Record<string, unknown>> {
 export function getSetupStatus(): Promise<Record<string, unknown>> {
   return getJSON<Record<string, unknown>>("/api/v1/setup/status");
 }
+
+export async function initializeSetup(): Promise<Record<string, unknown>> {
+  const res = await fetch("/api/v1/setup/initialize", { method: "POST" });
+  if (!res.ok) {
+    throw new Error(`/api/v1/setup/initialize -> ${res.status}`);
+  }
+  return (await res.json()) as Record<string, unknown>;
+}

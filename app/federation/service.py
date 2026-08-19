@@ -273,3 +273,100 @@ def hash_readback(db: str | Path, entity_id: str) -> dict[str, Any]:
         ).hexdigest()
         return {"entity_id": entity_id, "content_hash": content_hash,
                 "claim": row["claim"], "source_ref": row["source_ref"]}
+
+
+# ── record types (EvidenceIntake / LearningRecord / Provenance / Rights) ──
+# Append-only record tables for the federation boundary (AA-P0-002 completion).
+
+_RECORD_SCHEMA = """
+CREATE TABLE IF NOT EXISTS federation_evidence_records_v1 (
+    record_id TEXT PRIMARY KEY, source_ref TEXT NOT NULL, anchor_json TEXT NOT NULL,
+    content_hash TEXT NOT NULL, rights TEXT NOT NULL, verified INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS federation_learning_records_v1 (
+    record_id TEXT PRIMARY KEY, concept TEXT NOT NULL, kind TEXT NOT NULL,
+    outcome_json TEXT NOT NULL, source_ref TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS federation_provenance_records_v1 (
+    record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, event TEXT NOT NULL,
+    actor TEXT NOT NULL, at TEXT NOT NULL, parent_id TEXT, created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS federation_rights_records_v1 (
+    record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, rights TEXT NOT NULL,
+    scope TEXT NOT NULL DEFAULT 'internal', source_ref TEXT, created_at TEXT NOT NULL
+);
+"""
+
+
+def _ensure_record_tables(conn: sqlite3.Connection) -> None:
+    conn.executescript(_RECORD_SCHEMA)
+
+
+def record_evidence(db: str | Path, record: "EvidenceIntakeV1") -> str:
+    """Evidence intake (append-only) — evidence object with anchor + hash."""
+    with _connect(db) as conn:
+        _ensure_record_tables(conn)
+        conn.execute(
+            "INSERT OR REPLACE INTO federation_evidence_records_v1 "
+            "(record_id, source_ref, anchor_json, content_hash, rights, verified, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (record.evidence_id, record.source_ref, json.dumps(record.anchor, ensure_ascii=False),
+             record.content_hash, record.rights, int(record.verified), _now()),
+        )
+    return record.evidence_id
+
+
+def record_learning(db: str | Path, record: "LearningRecordV1") -> str:
+    """Human learning record (append-only) — review/quiz/teach_back/mastery."""
+    with _connect(db) as conn:
+        _ensure_record_tables(conn)
+        conn.execute(
+            "INSERT OR REPLACE INTO federation_learning_records_v1 "
+            "(record_id, concept, kind, outcome_json, source_ref, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (record.record_id, record.concept, record.kind,
+             json.dumps(record.outcome, ensure_ascii=False), record.source_ref, _now()),
+        )
+    return record.record_id
+
+
+def record_provenance(db: str | Path, record: "ProvenanceRecordV1") -> str:
+    """Provenance event (append-only) — created/promoted/revoked/superseded."""
+    with _connect(db) as conn:
+        _ensure_record_tables(conn)
+        conn.execute(
+            "INSERT OR REPLACE INTO federation_provenance_records_v1 "
+            "(record_id, entity_id, event, actor, at, parent_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (record.record_id, record.entity_id, record.event, record.actor, record.at,
+             record.parent_id, _now()),
+        )
+    return record.record_id
+
+
+def record_rights(db: str | Path, record: "RightsRecordV1") -> str:
+    """Rights/permission record (append-only)."""
+    with _connect(db) as conn:
+        _ensure_record_tables(conn)
+        conn.execute(
+            "INSERT OR REPLACE INTO federation_rights_records_v1 "
+            "(record_id, entity_id, rights, scope, source_ref, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (record.record_id, record.entity_id, record.rights, record.scope,
+             record.source_ref, _now()),
+        )
+    return record.record_id
+
+
+def list_records(db: str | Path, kind: str, *, limit: int = 50) -> list[dict[str, Any]]:
+    """List latest records of a kind (evidence|learning|provenance|rights)."""
+    table = {
+        "evidence": "federation_evidence_records_v1",
+        "learning": "federation_learning_records_v1",
+        "provenance": "federation_provenance_records_v1",
+        "rights": "federation_rights_records_v1",
+    }[kind]
+    with _connect(db) as conn:
+        _ensure_record_tables(conn)
+        rows = conn.execute(
+            f"SELECT * FROM {table} ORDER BY created_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+    return [dict(r) for r in rows]

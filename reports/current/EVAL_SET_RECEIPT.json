@@ -1,0 +1,8 @@
+{
+  "queries": 20,
+  "k": 5,
+  "hit_rate": 0.35,
+  "sec": 19.0,
+  "corpus_chunks": 83,
+  "engine": "qwen3-embedding:0.6b"
+}
