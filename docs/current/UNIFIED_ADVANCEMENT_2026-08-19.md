@@ -79,6 +79,6 @@
 | 知识迁移试点（3 对象） | PASS | integration-tests/test_knowledge_migration_pilot.py + reports/current/CANDIDATE_ROUNDTRIP_PROOF.json + FEDERATION_MIGRATION_REPORT.md |
 | R1 四库首启 + 重启回读 | PASS | integration-tests/test_r1_four_library_e2e.py（create_workspace 四域 + manifest 重载） |
 | R4 六空间真实化 | PARTIAL→**PASS(前端)** | 5 空间接真实 API（Evidence/Workspace/AI Assets/Library/Settings）；tsc 0；vitest 17/17；后端 evidence 列表端点新增 |
-| R5 Tauri 桌面 | 脚手架就位 / 构建 **BLOCKED** | src-tauri/（Cargo.toml/main.rs/tauri.conf.json）；本机无 cargo（G1 人工门禁） |
+| R5 Tauri 桌面 | **PASS** | debug 构建成功（11.7MB）+ 启动冒烟通过；工具链在共用库（Rust 1.97.1/MSVC 14.44/WinSDK）；release 构建进行中 |
 | reports/current 交付 | PASS | CLOUD_BASELINE / EXACT_SHA_VERIFICATION / CONTRACT_CONFORMANCE / REMAINING_HUMAN_GATES / INGESTION_REALITY_MATRIX / FEDERATION_MIGRATION_REPORT / CANDIDATE_ROUNDTRIP_PROOF |
 | 管线任务 | 延后（用户指示） | scripts/pipeline/ 就绪 |

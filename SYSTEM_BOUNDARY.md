@@ -13,7 +13,7 @@
 | 摄取链（app/ingestion） | multi_format + web(raw-first) + OCR(RapidOCR/Tesseract) + ASR(SenseVoice) + 噪声过滤 + 质量门 | 已实现；多格式实测见 reports/current/INGESTION_REALITY_MATRIX.json |
 | 联邦知识 API（app/federation） | TP-20260819：批量 Candidate 提交（幂等）/Receipt/Verified 回读（分页）/hash readback/外置资产索引 | 已实现（tests/test_federation_v1.py 5 通过） |
 | 前端（frontend/src/spaces） | 六空间；Learning 空间真实数据，其余 5 个为占位符 | PARTIAL |
-| Tauri 桌面壳（src-tauri） | 未开始 | NOT_EXECUTED |
+| Tauri 桌面壳（src-tauri） | ✅ debug+release 构建成功（7.9-11.7MB）+ 启动冒烟通过；安装包待 R6 | PASS |
 | WORK-LAB / DESIGN-LAB | 独立仓库；仅通过本仓库稳定 API/契约协作，非运行时依赖 | 边界成立 |
 
 ## 当前 Core 边界
