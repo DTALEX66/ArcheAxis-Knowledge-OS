@@ -17,7 +17,7 @@
 | **MinerU**（opendatalab） | 扫描 PDF→Markdown，中文最强（juejin 对比） | 高优先：复杂版面/中文扫描件；依赖较重，装到共用库 |
 | **Docling**（IBM） | 版面分析/结构化 | 中：docx/pptx 复杂结构 |
 | **Marker** | PDF→MD | 参考（中文支持弱） |
-落地：✅ magic-pdf（真 MinerU）已装（torch/transformers/ultralytics/doclayout-yolo/rapid-table 依赖补齐，PyPI 的 mineru 是空包坑已避开）；⏳ 模型下载中（mineru-models → Model library）；就绪后作为扫描件兜底。
+落地：🟡 magic-pdf（真 MinerU）已装，依赖补齐（torch/transformers/ultralytics/doclayout-yolo/rapid-table；PyPI mineru=空包坑已避开）；**剩余**：模型权重下载（magic-pdf-dev 的下载入口需干净 venv，当前被 hermes-agent 的 pydantic 跨 venv 污染）+ 隔离环境——**转专项会话**；扫描件已有 pymupdf+OCR 兜底不阻塞。
 
 ### 1.2 OCR（现：RapidOCR + Tesseract）
 | 增强 | 说明 |
