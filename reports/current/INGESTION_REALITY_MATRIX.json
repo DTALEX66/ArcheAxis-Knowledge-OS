@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-19",
+  "head": "c83225b",
+  "statuses": {
+    "text-md-txt-csv-json-canvas-ajson": {
+      "status": "PASS",
+      "engine": "passthrough",
+      "evidence": "ceshi 20804 files; scripts/pipeline"
+    },
+    "pdf": {
+      "status": "PASS",
+      "engine": "pymupdf+ocr-fallback",
+      "evidence": "ceshi 66/66; rescan_all_receipt.json"
+    },
+    "office-docx-pptx-xlsx": {
+      "status": "PASS",
+      "engine": "adapters/markitdown",
+      "evidence": "24+4 real"
+    },
+    "legacy-doc": {
+      "status": "FAIL",
+      "engine": "none",
+      "evidence": "2 files; needs LibreOffice/antiword"
+    },
+    "images-png-jpg-webp-gif": {
+      "status": "PASS",
+      "engine": "rapidocr+tesseract",
+      "evidence": "ceshi 1273 ok / 8 oversized FAIL; TESSDATA_PREFIX fixed"
+    },
+    "audio-mp3-m4a": {
+      "status": "PARTIAL",
+      "engine": "sensevoice+faster-whisper",
+      "evidence": "26x verified; full run paused F1"
+    },
+    "video-frames": {
+      "status": "PARTIAL",
+      "engine": "frame-ocr",
+      "evidence": "proven; full run paused F8"
+    },
+    "video-enhance": {
+      "status": "NOT_EXECUTED",
+      "engine": "pyscenedetect+vlm+srt",
+      "evidence": "research done; V1-V5 pending"
+    },
+    "web-url": {
+      "status": "PASS",
+      "engine": "web.py raw-first",
+      "evidence": "4223B real; PolicyGate+raw preserve"
+    },
+    "noise-filter": {
+      "status": "PASS",
+      "engine": "content_cleaner",
+      "evidence": "7 tests; Oxford demo"
+    },
+    "quality-gate": {
+      "status": "PASS",
+      "engine": "ocr_gate",
+      "evidence": "6 tests"
+    }
+  }
+}

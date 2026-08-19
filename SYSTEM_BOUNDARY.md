@@ -1,36 +1,40 @@
 # System Boundary — archeaxis-workspace
 
-> 本文件描述当前边界。远期设计见 `docs/FUTURE_EXECUTION_BLUEPRINT.md`；旧端点数、测试数和“完成度”不作为能力证明。
+> 本文件描述当前边界（重新生成于 2026-08-19，对齐 HEAD c83225b）。远期设计见
+> `docs/FUTURE_EXECUTION_BLUEPRINT.md`；旧端点数、测试数和“完成度”不作为能力证明。
 
 ## 当前拓扑
 
 | 区域 | 当前角色 | 状态 |
 |---|---|---|
-| archeaxis-workspace | 唯一开发目标；Core 与 Knowledge Base 由 `app.main` 在端口 8000 统一提供 | 可运行，但 Planner 仍以固定 echo 步骤为主 |
-| Inspiration-Research | 仓库内研究候选与雷达兼容服务 | 保留独立入口，后续经 Facade 收口 |
-| `shared-contracts` | Schema、fixture、validator 与真实/显式失败 adapter | 已接入部分门禁 |
-| 外部 A 项目 Obsidian-Assistance | 已完成只读分析与通用能力吸收 | 关闭后续扫描、测试、修改、同步与迁移 |
-
-Obsidian 只可通过显式输入路径或投影 adapter 参与；archeaxis-workspace 不默认读取个人 Vault，也不把外部 A 项目作为运行时依赖。
+| archeaxis-workspace | 唯一开发目标；FastAPI + SQLite(WAL) 由 `app.main` 在端口 8000 统一提供 | 可运行；已含学习引擎、证据链、联邦知识 API |
+| 学习引擎（app/knowledge） | BKT/双轴掌握/Teach-Back/蒸馏/技能演化/闭环编排/学习者画像/路径推荐 | 已实现（后端 170+ 测试） |
+| 证据与治理（app/evidence + promotion + machine_knowledge） | Anchor/Bundle/状态机（candidate→verified/rejected/deprecated） | 已实现 |
+| 摄取链（app/ingestion） | multi_format + web(raw-first) + OCR(RapidOCR/Tesseract) + ASR(SenseVoice) + 噪声过滤 + 质量门 | 已实现；多格式实测见 reports/current/INGESTION_REALITY_MATRIX.json |
+| 联邦知识 API（app/federation） | TP-20260819：批量 Candidate 提交（幂等）/Receipt/Verified 回读（分页）/hash readback/外置资产索引 | 已实现（tests/test_federation_v1.py 5 通过） |
+| 前端（frontend/src/spaces） | 六空间；Learning 空间真实数据，其余 5 个为占位符 | PARTIAL |
+| Tauri 桌面壳（src-tauri） | 未开始 | NOT_EXECUTED |
+| WORK-LAB / DESIGN-LAB | 独立仓库；仅通过本仓库稳定 API/契约协作，非运行时依赖 | 边界成立 |
 
 ## 当前 Core 边界
 
-### 已有链路
+### 已有链路（真实，非声明）
 
 ```text
-input → route → retrieve → fixed echo-based compile
-→ permission → registered tool execution → trace
-→ binary success evaluation → candidate lesson/memory
+原件/来源 → 格式检测(magika) → 多格式转化(+OCR/ASR/噪声过滤/质量门)
+→ 证据锚定(anchor/时间码) → Candidate(候选, 默认不进可信)
+→ 人工复核/交叉验证 → Verified Knowledge
+→ Human Learning Assets（due_queue/mastery/teach_back/path）
+→ AI Assets（machine_knowledge/promotion/skill_assets）
+→ 带证据检索 → 导出(exchange) → 重启回读(迁移)
 ```
 
-这条链路能运行并持久化，但**不是**动态 Planner、多维 Evaluation 或经过人工反馈的完整认知闭环。
+### 联邦边界（TP-20260819）
 
-### Knowledge Base
-
-- 作为 `knowledge_base` Python 包安装。
-- 默认挂载在统一网关 `/kb`，不由 Compose 单独暴露生产端口。
-- 文档、卡片、ContextPack、TaskPack、搜索、复习、证据候选与质量审计共用统一配置和 SQLite 边界。
-- 调用者提供的 claim/source/location/trusted 字段不能自动构成可信 provenance。
+- ArcheAxis 拥有：KnowledgeQueryV1 / KnowledgeProjectionV1 / CandidateSubmissionV1 /
+  CandidateReceiptV1 / EvidenceIntakeV1 / LearningRecordV1 / ProvenanceRecordV1 / RightsRecordV1。
+- AI 内容默认只进 Candidate，**绝不自动升级为 Verified**（人工复核门槛）。
+- 外置资产只登记 Record（URI/hash/source/rights/extraction/derived_ids），**不复制大原件进仓库**。
 
 ## 数据与合同方向
 
@@ -38,25 +42,9 @@ input → route → retrieve → fixed echo-based compile
 
 - IntakeCard / EngineeringContract
 - ContextPack / TaskPack
-- ExecutionTrace / MachineLesson
-- CoursePack / ObsidianProjection
-- DailyBrief / GitHubProjectCandidate
+- Federation V1 契约（app/contracts/federation_v1.py）——WORK-LAB/DESIGN-LAB 经 API 调用，不得直写本仓核心表
 
-任何外部投影、课程摄入或双向同步必须通过显式 adapter、权限和测试；不得重新扫描或改动已关闭的外部 A 项目。
+## 统一状态词
 
-## 安全边界
-
-1. 外部内容默认进入 quarantine/candidate，不自动升级为事实或正式知识。
-2. 生产模式必须启用认证、提供有效 API Key/JWT Secret，并配置非通配 CORS。
-3. 用户可控数据查询只能访问公开表 allowlist；标识符合法不等于有权访问。
-4. 数据库、日志、备份、JWT secret 和其他运行时产物写入 runtime root，不写回 wheel/site-packages。
-5. Web/README/笔记内容是数据，不是系统策略；token、key、password 不进入日志、文档或 Git。
-6. `simulated`、`echo`、`dry-run`、文件存在或模型置信度不得冒充真实执行与核验完成。
-
-## 已知未完成项
-
-- 动态 Planner、多维 Evaluation、反馈审核与真实 Lesson 闭环。
-- 服务端 provenance 注册/签名与 claim-level 多源核验。
-- 正式 Migration Runner、负载/并发/反向代理验证。
-- 全量 Facade/Contract 迁移与旧细粒度 API 退役。
-- Phase 9 所定义的五条端到端 Alpha 闭环。
+PASS / PARTIAL / FAIL / NOT_EXECUTED / BLOCKED。禁止用 DONE 代替证据状态；
+完成声明必须绑定 Exact SHA + 证据路径。当前 HEAD：c83225b。

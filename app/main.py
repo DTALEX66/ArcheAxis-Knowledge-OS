@@ -744,3 +744,8 @@ from app.setup.router import router as setup_router
 
 app.include_router(setup_router)
 
+# ── TP-20260819: federation knowledge API (candidate/verified boundary) ──
+from app.federation.router import router as federation_router
+
+app.include_router(federation_router)
+
