@@ -1,12 +1,12 @@
 {
   "receipt": {
-    "submission_id": "fedsub_8a6e7b36ef0957860dffedbf",
+    "submission_id": "fedsub_ad1aa8bcd297bf7195c3ca3e",
     "idempotency_key": "pilot-2026-08-19",
     "status": "accepted",
     "accepted": 3,
     "rejected": 0,
     "items_hash": "b9fd7c6903cdade8c3e4ded0497310285dd791b67450290fc901de6a176204de",
-    "created_at": "2026-08-19T17:13:37.171234+00:00"
+    "created_at": "2026-08-20T13:17:19.216881+00:00"
   },
   "promoted": [
     {
