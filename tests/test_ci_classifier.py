@@ -131,12 +131,14 @@ def test_parser_change_triggers_wheel_smoke() -> None:
         assert plan["unknown_paths"] == [], (path, plan["unknown_paths"])
 
 
-def test_ci_policy_change_does_not_force_full() -> None:
-    """AXC-060: CI workflow changes run static+lint, not full-qualification."""
+def test_desktop_ci_policy_change_runs_desktop_gates_without_force_full() -> None:
+    """The desktop workflow must test its own packaging path after it changes."""
     plan = _classify([".github/workflows/ci.yml"])
     assert plan["full_qualification"] is False
     assert "ci-verdict" in plan["required_gates"]
-    assert {"static", "lint"} <= set(plan["required_gates"])
+    assert {"static", "lint", "desktop-fast", "desktop-build", "installer-lifecycle"} <= set(
+        plan["required_gates"]
+    )
     assert "full-qualification" not in plan["required_gates"]  # logical profile
 
 

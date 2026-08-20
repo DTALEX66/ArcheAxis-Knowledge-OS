@@ -25,6 +25,12 @@ fallback:
 # then unioned across every matching risk class so mixed changes take the
 # broadest required set.
 risk_classes:
+  - id: ci-desktop-build-policy
+    description: Windows desktop build or installer lifecycle workflow changes
+    paths:
+      - ".github/workflows/ci.yml"
+    gates: [static, lint, desktop-fast, desktop-build, installer-lifecycle]
+
   - id: release-workflow
     description: Release workflow/tag changes
     paths:
