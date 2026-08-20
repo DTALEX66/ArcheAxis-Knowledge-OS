@@ -19,3 +19,12 @@ def test_browser_environment_uses_short_project_hermes_root(tmp_path) -> None:
     assert environment["TMP"] == str(tmp_path / ".hermes")
     assert environment["TEMP"] == str(tmp_path / ".hermes")
     assert environment["TMPDIR"] == str(tmp_path / ".hermes")
+
+
+def test_browser_environment_uses_output_parent_outside_project_runtime(monkeypatch) -> None:
+    output = web_screenshot.Path("outside-runtime/page.png")
+    monkeypatch.setattr(web_screenshot.Path, "mkdir", lambda *args, **kwargs: None)
+
+    environment = web_screenshot._browser_environment(output)
+
+    assert environment["TMP"] == str(output.parent)
