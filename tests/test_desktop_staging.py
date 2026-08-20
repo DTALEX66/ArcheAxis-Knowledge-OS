@@ -100,6 +100,7 @@ def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
     assert "let app_handle = window.app_handle().clone();" in source
     assert "CLOSE_WATCHDOG_TIMEOUT" in source
     assert "std::thread::sleep(CLOSE_WATCHDOG_TIMEOUT);" in source
+    assert "std::process::exit(0);" in source
     assert ".try_lock()" in source
     assert "std::thread::spawn(move || {" in source
     assert "state.take()" in source

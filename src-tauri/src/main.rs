@@ -157,14 +157,17 @@ fn main() {
                     .ok()
                     .and_then(|mut state| state.take());
                 let app_handle = window.app_handle().clone();
-                let watchdog_handle = app_handle.clone();
                 std::thread::spawn(move || {
                     // A failed Core stop must not make a healthy desktop
                     // window survive WM_CLOSE indefinitely. The normal
                     // shutdown worker wins first; this is only a bounded
                     // escape hatch before the installer verifier's timeout.
+                    // AppHandle::exit depends on the Tauri event loop, which
+                    // is precisely the component that may be unresponsive
+                    // here. The Job Object owns Core and kills it when this
+                    // Windows process closes its handles.
                     std::thread::sleep(CLOSE_WATCHDOG_TIMEOUT);
-                    watchdog_handle.exit(0);
+                    std::process::exit(0);
                 });
                 std::thread::spawn(move || {
                     if let Some(mut process) = process {
