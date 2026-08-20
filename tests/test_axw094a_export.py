@@ -130,11 +130,35 @@ def test_store_bridge_collects_artifacts(tmp_path: Path) -> None:
     (learning_root / "deck").mkdir(parents=True)
     (learning_root / "deck" / "note.md").write_text("# note", encoding="utf-8")
 
-    payload = extract_exchange_items(raw_root=raw_root, learning_root=learning_root)
+    ai_asset_root = tmp_path / "ai-assets"
+    ai_asset_root.mkdir()
+    (ai_asset_root / "rule.json").write_text(
+        '{"asset":{"unit_id":"rule"},"evidence_binding":{"source_record_ids":["s1"]}}',
+        encoding="utf-8",
+    )
+
+    payload = extract_exchange_items(
+        raw_root=raw_root,
+        learning_root=learning_root,
+        ai_asset_root=ai_asset_root,
+    )
     assert payload["raw_assets"] == {"abc123": b"original"}
     assert payload["learning"] == {"deck/note.md": b"# note"}
+    assert payload["ai_assets"]["rule"]["asset"]["unit_id"] == "rule"
 
     dest = tmp_path / "exchange"
     manifest = export_knowledge_exchange(destination=dest, **payload)
-    assert manifest["item_count"] == 2
+    assert manifest["item_count"] == 3
     verify_export(dest)
+
+
+def test_store_bridge_collects_current_raw_asset_store_layout(tmp_path: Path) -> None:
+    raw_root = tmp_path / "raw-assets"
+    raw_root.mkdir()
+    digest = "a" * 64
+    (raw_root / digest).write_bytes(b"original")
+    (raw_root / "_metadata").mkdir()
+
+    payload = extract_exchange_items(raw_root=raw_root)
+
+    assert payload["raw_assets"] == {digest: b"original"}

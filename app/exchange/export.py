@@ -262,20 +262,36 @@ def extract_exchange_items(
     raw_root: str | Path | None = None,
     evidence_db: str | Path | None = None,
     learning_root: str | Path | None = None,
+    ai_asset_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Collect live-store artifacts into export-ready payloads.
 
     Convenience bridge from the on-disk stores to ``export_knowledge_exchange``:
     raw originals from a RawAssetStore root, evidence anchors from the
-    SQLite evidence DB, learning artifacts from a learning root. Returns
-    keyword arguments ready for the export function.
+    SQLite evidence DB, human-learning artifacts and approved AI-asset files
+    from their explicit Vault roots. Returns keyword arguments ready for the
+    export function.
     """
-    payload: dict[str, Any] = {"raw_assets": {}, "evidence": {}, "learning": {}}
+    payload: dict[str, Any] = {
+        "raw_assets": {},
+        "evidence": {},
+        "learning": {},
+        "ai_assets": {},
+    }
 
     if raw_root is not None:
-        for digest_path in sorted((Path(raw_root) / "originals").glob("*")):
+        root = Path(raw_root)
+        # Earlier stores use ``originals/``; RawAssetStore uses direct hex
+        # filenames with metadata/failure directories beside them.
+        originals = root / "originals"
+        candidates = originals.iterdir() if originals.is_dir() else root.iterdir()
+        for digest_path in sorted(candidates):
             if digest_path.is_file():
-                payload["raw_assets"][digest_path.name] = digest_path.read_bytes()
+                digest = digest_path.name
+                if originals.is_dir() or (
+                    len(digest) == 64 and all(char in "0123456789abcdef" for char in digest)
+                ):
+                    payload["raw_assets"][digest] = digest_path.read_bytes()
 
     if evidence_db is not None:
         from app.evidence.anchor import list_evidence_anchors
@@ -294,5 +310,18 @@ def extract_exchange_items(
             if artifact_path.is_file() and artifact_path.suffix != ".json":
                 rel = artifact_path.relative_to(learning_dir).as_posix()
                 payload["learning"][rel] = artifact_path.read_bytes()
+
+    if ai_asset_root is not None:
+        asset_dir = Path(ai_asset_root)
+        if asset_dir.is_dir():
+            for asset_path in sorted(asset_dir.rglob("*.json")):
+                try:
+                    value = json.loads(asset_path.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError) as exc:
+                    raise ExportError(f"AI asset is not valid JSON: {asset_path.name}") from exc
+                if not isinstance(value, dict):
+                    raise ExportError(f"AI asset must be a JSON object: {asset_path.name}")
+                item_id = asset_path.relative_to(asset_dir).with_suffix("").as_posix()
+                payload["ai_assets"][item_id] = value
 
     return payload

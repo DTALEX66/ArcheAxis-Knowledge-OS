@@ -875,6 +875,17 @@ def _exchange_root() -> Path:
     return resolve_runtime_path("data") / "exchange"
 
 
+def _workspace_domain_root(domain: str, fallback: Path) -> Path:
+    """Return a configured four-library domain without making setup mandatory."""
+    try:
+        from app.setup.setup_status import manifest_path
+        from shared.workspace_manifest import load
+
+        return Path(load(manifest_path()).domains[domain].path)
+    except (KeyError, OSError, ValueError):
+        return fallback
+
+
 def _backup_root() -> Path:
     return resolve_runtime_path("data") / "backups"
 
@@ -895,10 +906,12 @@ def workspace_exchange_export(payload: ExchangeExportRequest, request: Request) 
     from app.exchange.export import export_knowledge_exchange, extract_exchange_items
 
     def run() -> dict[str, Any]:
+        data_root = resolve_runtime_path("data")
         items = extract_exchange_items(
-            raw_root=resolve_runtime_path("data"),
+            raw_root=_workspace_domain_root("source_archive", data_root),
             evidence_db=DB_PATH,
-            learning_root=resolve_runtime_path("data") / "learning",
+            learning_root=_workspace_domain_root("human_learning_vault", data_root / "learning"),
+            ai_asset_root=_workspace_domain_root("ai_asset_vault", data_root / "ai-assets"),
         )
         destination = _exchange_root() / payload.name
         manifest = export_knowledge_exchange(
