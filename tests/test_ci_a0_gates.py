@@ -51,6 +51,9 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "desktop-fast:" in workflow
     assert "desktop-build:" in workflow
     assert "installer-lifecycle:" in workflow
+    assert '"archeaxis-tauri-build.log"' in desktop_job
+    assert "Tauri Windows build failed with exit code" in desktop_job
+    assert "::error title=tauri-build::" in desktop_job
     assert 'python-version: "3.12"' in desktop_job
     assert "python -m desktop.scripts.prepare_bundle" in desktop_job
     desktop_fast = _job_section(workflow, "desktop-fast", "desktop-build")

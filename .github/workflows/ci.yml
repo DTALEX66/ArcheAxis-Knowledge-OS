@@ -606,7 +606,17 @@ jobs:
       - name: Build the Windows release and NSIS installer
         run: |
           Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis" -Recurse -Force -ErrorAction SilentlyContinue
-          frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis
+          $buildLog = Join-Path $env:RUNNER_TEMP "archeaxis-tauri-build.log"
+          frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis 2>&1 |
+            Tee-Object -FilePath $buildLog
+          $buildExit = $LASTEXITCODE
+          if ($buildExit -ne 0) {
+            Get-Content -LiteralPath $buildLog -Tail 120 | ForEach-Object {
+              $escaped = $_.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+              Write-Host "::error title=tauri-build::$escaped"
+            }
+            throw "Tauri Windows build failed with exit code $buildExit; see tauri-build annotations"
+          }
       - name: Require the Windows release artifacts
         shell: pwsh
         run: |
