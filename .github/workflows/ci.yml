@@ -40,7 +40,10 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PUSH_BEFORE: ${{ github.event.before }}
           PUSH_AFTER: ${{ github.sha }}
-          CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL }}
+          # A signed-in operator can use workflow_dispatch. The explicit
+          # commit marker is an auditable fallback when a constrained GitHub
+          # integration can push but cannot dispatch Actions workflows.
+          CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL || contains(github.event.head_commit.message, '[full-qualification]') }}
         run: |
           python -m pip install --quiet --user pyyaml
           python - <<'PY'

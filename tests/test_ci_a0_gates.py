@@ -28,7 +28,7 @@ def test_ci_supports_explicit_full_qualification_for_a_selected_sha() -> None:
     assert "workflow_dispatch:" in workflow
     assert "force_full:" in workflow
     assert "Run every qualification gate for the selected SHA" in workflow
-    assert "CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL }}" in workflow
+    assert "CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL || contains(github.event.head_commit.message, '[full-qualification]') }}" in workflow
 
 
 def test_ci_runs_windows_runtime_smoke() -> None:
