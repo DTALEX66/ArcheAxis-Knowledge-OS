@@ -21,12 +21,26 @@ client = TestClient(app)
 @pytest.fixture()
 def fed_db(tmp_path):
     old = os.environ.get("ARCHEAXIS_DATA_DIR")
+    old_token = os.environ.get("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN")
     os.environ["ARCHEAXIS_DATA_DIR"] = str(tmp_path)
-    yield tmp_path / "cognitive_os.sqlite"
+    os.environ["ARCHEAXIS_DESKTOP_LAUNCH_TOKEN"] = "e2e-003-launch-token"
+    yield tmp_path / "archeaxis.sqlite"
     if old is None:
         os.environ.pop("ARCHEAXIS_DATA_DIR", None)
     else:
         os.environ["ARCHEAXIS_DATA_DIR"] = old
+    if old_token is None:
+        os.environ.pop("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", None)
+    else:
+        os.environ["ARCHEAXIS_DESKTOP_LAUNCH_TOKEN"] = old_token
+
+
+def _headers(actor: str, *scopes: str) -> dict[str, str]:
+    return {
+        "x-archeaxis-launch-token": "e2e-003-launch-token",
+        "x-archeaxis-actor": actor,
+        "x-archeaxis-scopes": " ".join(scopes),
+    }
 
 
 def test_e2e003_federation_roundtrip(fed_db):
@@ -45,14 +59,19 @@ def test_e2e003_federation_roundtrip(fed_db):
             ),
         ],
     )
-    resp = client.post("/api/v1/federation/candidates", json=payload.model_dump())
+    submit_headers = _headers("worklab-agent", "federation.write")
+    resp = client.post(
+        "/api/v1/federation/candidates", json=payload.model_dump(), headers=submit_headers
+    )
     assert resp.status_code == 200
     receipt = resp.json()["receipt"]
     assert receipt["status"] == "accepted"
     assert receipt["accepted"] == 2
 
     # idempotency: same key -> duplicate
-    resp2 = client.post("/api/v1/federation/candidates", json=payload.model_dump())
+    resp2 = client.post(
+        "/api/v1/federation/candidates", json=payload.model_dump(), headers=submit_headers
+    )
     assert resp2.status_code == 200
     assert resp2.json()["duplicate"] is True
 
@@ -75,8 +94,17 @@ def test_e2e003_federation_roundtrip(fed_db):
         """)
         row = conn.execute("SELECT id FROM federation_candidates_v1 WHERE item_key='r1'").fetchone()
         cand_id = row[0]
-    vr = client.post(f"/api/v1/federation/candidates/{cand_id}/verify",
-                     json={"reviewer": "human-reviewer"})
+    vr = client.post(
+        f"/api/v1/federation/candidates/{cand_id}/review",
+        json={
+            "decision": "verified",
+            "reviewer_id": "human-reviewer",
+            "rationale": "e2e human verification",
+            "expected_version": 1,
+            "idempotency_key": "e2e-003-review-r1",
+        },
+        headers=_headers("human-reviewer", "evidence.review"),
+    )
     assert vr.status_code == 200
     assert vr.json()["status"] == "verified"
 

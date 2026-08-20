@@ -313,7 +313,7 @@ jobs:
               assert client.get("/workspace").status_code == 200
               assert client.get("/workspace/api/status").status_code == 200
           runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])
-          assert (runtime / "cognitive_os.sqlite").exists()
+          assert (runtime / "archeaxis.sqlite").exists()
           assert LOG_DIR == runtime / "logs" / "sleep-loop"
           PY
           python - <<'PY'
@@ -322,7 +322,7 @@ jobs:
           from pathlib import Path
 
           runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])
-          database = runtime / "cognitive_os.sqlite"
+          database = runtime / "archeaxis.sqlite"
           connection = sqlite3.connect(database)
           checkpoint = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
           assert checkpoint[0] == 0, checkpoint
@@ -416,7 +416,7 @@ jobs:
               assert created.status_code == 200, created.text
               payload = created.json()
               assert not {"package_id", "job_id", "command_id", "event_id"} & payload.keys()
-              database = Path(os.environ["ARCHEAXIS_DATA_DIR"]) / "cognitive_os.sqlite"
+              database = Path(os.environ["ARCHEAXIS_DATA_DIR"]) / "archeaxis.sqlite"
               with sqlite3.connect(database) as connection:
                   rows = connection.execute(
                       "SELECT job_id, aggregate_id FROM workspace_jobs_v1"
