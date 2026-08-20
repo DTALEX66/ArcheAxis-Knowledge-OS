@@ -583,6 +583,54 @@ def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
         source_path.unlink(missing_ok=True)
 
 
+def exercise_real_six_space_learning_loop(page: Page, base_url: str) -> None:
+    """Prove real persisted data travels through the governed learning UI.
+
+    ``exercise_real_delivery`` has already uploaded a local source into this
+    isolated runtime database.  This function deliberately uses only browser
+    navigation and the public Workspace actions to promote that source through
+    Research, Knowledge, Learning, Evolution, Machine Knowledge, and its
+    approved-only Runtime state.
+    """
+    page.goto(f"{base_url}/workspace#research", wait_until="networkidle")
+    page.get_by_role("heading", name="察微研究").wait_for()
+    page.get_by_role("button", name="批准进入知识候选").click()
+    page.get_by_text("暂无待人工审核的资料", exact=True).wait_for()
+
+    page.goto(f"{base_url}/workspace#knowledge", wait_until="networkidle")
+    page.get_by_role("heading", name="藏识知识").wait_for()
+    page.get_by_role("button", name="开始学习").click()
+    page.wait_for_function(
+        "() => document.querySelector('#knowledge-queue')?.textContent.includes('生命周期：')"
+    )
+
+    page.goto(f"{base_url}/workspace#learning", wait_until="networkidle")
+    page.get_by_role("heading", name="学习路线").wait_for()
+    for practice_count in range(1, 4):
+        page.get_by_role("button", name="记录练习").click()
+        page.wait_for_function(
+            "count => document.querySelector('#learning-queue')?.textContent.includes(`练习：${count}`)",
+            arg=practice_count,
+        )
+
+    page.goto(f"{base_url}/workspace#evolution", wait_until="networkidle")
+    page.get_by_role("heading", name="知新评估进化").wait_for()
+    page.wait_for_function(
+        "() => document.querySelector('#evolution-summary')?.textContent.includes('已掌握')"
+    )
+    evolution = page.locator("#evolution-summary").inner_text()
+    assert "已掌握\n1" in evolution, evolution
+    assert "机器候选\n1" in evolution, evolution
+
+    page.goto(f"{base_url}/workspace#machine", wait_until="networkidle")
+    page.get_by_role("heading", name="知衡机器知识").wait_for()
+    page.get_by_role("button", name="批准进入 Runtime").click()
+    page.wait_for_function(
+        "() => document.querySelector('#machine-queue')?.textContent.includes('生命周期：approved')"
+    )
+    assert "批准进入 Runtime" not in page.locator("#machine-queue").inner_text()
+
+
 def main() -> int:
     try:
         return _main()
@@ -632,11 +680,15 @@ def _main() -> int:
             delivery_page = browser.new_page(viewport={"width": 1440, "height": 1000})
             try:
                 exercise_real_delivery(delivery_page, base_url, data_dir)
+                exercise_real_six_space_learning_loop(delivery_page, base_url)
             finally:
                 delivery_page.close()
         finally:
             browser.close()
-    print("A0 Chromium browser smoke passed (workspace + keyboard + PDF reader + delivery)")
+    print(
+        "A0 Chromium browser smoke passed "
+        "(workspace + keyboard + PDF reader + delivery + six-space learning loop)"
+    )
     return 0
 
 
