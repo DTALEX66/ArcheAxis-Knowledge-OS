@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 #[cfg(windows)]
 use std::sync::{Arc, Mutex};
 #[cfg(windows)]
-use tauri::{Manager, State, WindowEvent};
+use tauri::{Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 #[cfg(windows)]
 #[derive(Clone)]
@@ -95,12 +95,19 @@ fn main() {
             let local_data = app.path().app_local_data_dir()?;
             let legacy_manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("../desktop/src-tauri");
-            let runtime = runtime::resolve_runtime(
+            let executable = std::env::current_exe()?;
+            let portable_root = runtime::portable_root_for_executable(&executable);
+            let runtime = runtime::resolve_runtime_with_portable_root(
                 Path::new(&legacy_manifest),
                 &resources,
                 &local_data,
                 cfg!(debug_assertions),
+                portable_root.as_deref(),
             );
+            let webview_data_dir = runtime
+                .as_ref()
+                .map(|resolved| resolved.data_dir.clone())
+                .unwrap_or_else(|_| local_data.clone());
             // A failed Core start must leave the packaged UI running. The UI
             // exposes only the retry command and cannot obtain a loopback
             // token until this state successfully launches.
@@ -116,6 +123,11 @@ fn main() {
                         .map_err(|_| std::io::Error::other("desktop backend state is poisoned"))? = Some(process);
                 }
             }
+            WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+                .title("ArcheAxis Learning Workspace")
+                .inner_size(1280.0, 800.0)
+                .data_directory(webview_data_dir)
+                .build()?;
             Ok(())
         })
         .on_window_event(|window, event| {

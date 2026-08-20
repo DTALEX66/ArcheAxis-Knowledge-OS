@@ -8,6 +8,26 @@ pub struct RuntimeSpec {
     pub isolated: bool,
 }
 
+/// Resolve the data root for a portable distribution.  An explicitly supplied
+/// root remains the compatibility and automation override; a release archive
+/// can otherwise be launched directly when its executable sits beside the
+/// `portable.flag` marker.
+fn portable_root_from_marker(executable: &Path) -> Option<PathBuf> {
+    let distribution_root = executable.parent()?;
+    distribution_root
+        .join("portable.flag")
+        .is_file()
+        .then(|| distribution_root.join("data"))
+}
+
+pub fn portable_root_for_executable(executable: &Path) -> Option<PathBuf> {
+    std::env::var_os("ARCHEAXIS_PORTABLE_ROOT")
+        // AXW-RUN-205 compatibility window for the prior portable launcher.
+        .or_else(|| std::env::var_os("COGNITIVE_PORTABLE_ROOT"))
+        .map(PathBuf::from)
+        .or_else(|| portable_root_from_marker(executable))
+}
+
 fn project_root_for_resource(resource_dir: &Path) -> Option<PathBuf> {
     resource_dir
         .ancestors()
@@ -104,7 +124,10 @@ pub fn resolve_runtime_with_portable_root(
 
 #[cfg(test)]
 mod tests {
-    use super::{RuntimeSpec, resolve_runtime, resolve_runtime_with_portable_root};
+    use super::{
+        RuntimeSpec, portable_root_from_marker, resolve_runtime,
+        resolve_runtime_with_portable_root,
+    };
     use std::fs;
     use std::path::Path;
     use tempfile::tempdir;
@@ -307,5 +330,20 @@ mod tests {
         .expect_err("relative portable root must fail closed");
 
         assert!(error.contains("portable data root must be absolute"));
+    }
+
+    #[test]
+    fn portable_flag_beside_executable_selects_distribution_data_root() {
+        let temp = tempdir().expect("temporary directory");
+        let executable = temp.path().join("portable/ArcheAxis.exe");
+        fs::create_dir_all(executable.parent().expect("distribution root"))
+            .expect("create distribution root");
+        fs::write(executable.parent().expect("distribution root").join("portable.flag"), b"")
+            .expect("create portable marker");
+
+        assert_eq!(
+            portable_root_from_marker(&executable),
+            Some(temp.path().join("portable/data"))
+        );
     }
 }

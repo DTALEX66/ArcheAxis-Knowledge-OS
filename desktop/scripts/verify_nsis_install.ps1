@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $installRoot = Join-Path $env:LOCALAPPDATA 'ArcheAxis Knowledge'
-$appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.cognitive-workspace'
+$appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
 $appDataExisted = Test-Path $appData
 $ownsInstall = $false

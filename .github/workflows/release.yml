@@ -112,7 +112,7 @@ jobs:
           $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe")
           if ($installers.Count -ne 1) { throw "expected exactly one NSIS installer, found $($installers.Count)" }
           ./desktop/scripts/verify_nsis_install.ps1 -Installer $installers[0].FullName -RequireReleaseIdentity
-      - name: Build release wheel and checksums
+      - name: Build release wheel, installer, and distribution archives
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force release-assets | Out-Null
@@ -135,6 +135,21 @@ jobs:
             --identity .hermes/rt/runtime/release-identity.json `
             --out release-assets `
             --version ${{ steps.resolve_version.outputs.release_version }}
+      - name: Verify Green and Portable lifecycle
+        shell: pwsh
+        run: |
+          ./desktop/scripts/verify_zip_distributions.ps1 `
+            -GreenArchive (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip") `
+            -PortableArchive (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip") `
+            -RequireReleaseIdentity
+      - name: Build release metadata and checksums
+        shell: pwsh
+        run: |
+          $wheel = @(Get-ChildItem "release-assets/*.whl")
+          $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
+          if ($wheel.Count -ne 1 -or -not (Test-Path -LiteralPath $installerAsset -PathType Leaf)) {
+            throw "release payloads are missing after distribution lifecycle verification"
+          }
           python scripts/release_sbom.py `
             --version ${{ steps.resolve_version.outputs.release_version }} `
             --out release-assets/SBOM.cdx.json `

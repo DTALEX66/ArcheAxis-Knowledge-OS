@@ -373,6 +373,26 @@ def test_release_workflow_publishes_only_checksum_bound_allowlist() -> None:
     assert 'gh release create $env:GITHUB_REF_NAME $releaseAssets' in workflow
 
 
+def test_release_workflow_verifies_green_and_portable_lifecycle_before_metadata() -> None:
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+    lifecycle = (root / "desktop" / "scripts" / "verify_zip_distributions.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Verify Green and Portable lifecycle" in workflow
+    assert "verify_zip_distributions.ps1" in workflow
+    assert workflow.index("Verify Green and Portable lifecycle") < workflow.index(
+        "Build release metadata and checksums"
+    )
+    assert "runtime\\python\\python.exe" in lifecycle
+    assert "portable.flag" in lifecycle
+    assert "data\\data\\archeaxis.sqlite" in lifecycle
+    assert "for ($launch = 1; $launch -le 2; $launch++)" in lifecycle
+
+
 def test_release_truth_documents_preserve_historical_and_source_manifest_truth() -> None:
     root = Path(__file__).resolve().parents[1]
     required = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CHANGELOG.md"]

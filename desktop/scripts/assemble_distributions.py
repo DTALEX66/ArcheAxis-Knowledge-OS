@@ -79,9 +79,11 @@ def assemble_portable(exe: Path, runtime: Path, frontend: Path, identity: Path, 
     root = Path(PORTABLE_DIR)
     if root.exists():
         shutil.rmtree(root)
-    # program files under app/
-    _copy_tree(frontend, root / "app/frontend")
-    _copy_tree(runtime, root / "app/runtime")
+    # The Tauri shell resolves its resource root beside ArcheAxis.exe.  Keep
+    # portable program files at that same root so it uses the identical
+    # bundled runtime contract as Setup and Green (AXW-PKG-603).
+    _copy_tree(frontend, root / "frontend")
+    _copy_tree(runtime, root / "runtime")
     shutil.copy2(exe, root / "ArcheAxis.exe")
     _copy_tree(identity, root / "release-identity.json")
     # root-only data zones (P0-4): everything user-writable lives under data/
