@@ -93,10 +93,11 @@ def test_windows_runtime_requires_windows_smoke() -> None:
 
 
 def test_installer_requires_desktop_and_installer_gates() -> None:
-    plan = _classify(["desktop/scripts/verify_nsis_install.ps1"])
-    assert {"desktop-fast", "desktop-build", "installer-lifecycle"} <= set(
-        plan["required_gates"]
-    )
+    for path in ("desktop/scripts/verify_nsis_install.ps1", "frontend/vite.config.ts"):
+        plan = _classify([path])
+        assert {"desktop-fast", "desktop-build", "installer-lifecycle"} <= set(
+            plan["required_gates"]
+        ), path
 
 
 def test_wheel_packaging_requires_wheel_smoke() -> None:

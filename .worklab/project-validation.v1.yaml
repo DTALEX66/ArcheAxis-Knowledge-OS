@@ -68,6 +68,7 @@ risk_classes:
     description: Bundle, stage, NSIS, exit/uninstall
     paths:
       - "desktop/scripts/**"
+      - frontend/vite.config.ts
       - desktop/src-tauri/tauri.conf.json
       - desktop/src-tauri/build.rs
       - desktop/package.json

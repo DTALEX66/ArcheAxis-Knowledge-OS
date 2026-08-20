@@ -86,6 +86,14 @@ def test_root_tauri_shell_creates_its_webview_at_the_resolved_data_root() -> Non
     assert ".data_directory(webview_data_dir)" in source
 
 
+def test_vite_root_is_stable_when_tauri_builds_through_a_windows_junction() -> None:
+    repository = Path(__file__).resolve().parents[1]
+    vite = (repository / "frontend" / "vite.config.ts").read_text(encoding="utf-8")
+
+    assert 'fileURLToPath(new URL(".", import.meta.url))' in vite
+    assert "root: frontendRoot" in vite
+
+
 def test_portable_launcher_sets_an_explicit_data_root() -> None:
     repository = Path(__file__).resolve().parents[1]
     launcher = (
