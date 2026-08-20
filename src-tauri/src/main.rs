@@ -133,20 +133,29 @@ fn main() {
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 // The Windows close request alone does not reliably end the
-                // Tauri run loop on the packaged shell.  Shut down the owned
-                // backend first, then destroy the native window and exit.
+                // Tauri run loop on the packaged shell.  The backend shutdown
+                // can wait for up to several seconds, so do not perform it on
+                // the native event loop that must dispatch the exit request.
                 api.prevent_close();
-                if let Ok(mut state) = window.app_handle().state::<DesktopBackend>().process.lock() {
-                    if let Some(process) = state.as_mut() {
-                        process.shutdown();
-                    }
-                }
                 // Tauri requires exit requests to be issued outside the
                 // event-loop callback that received CloseRequested.  Do not
                 // synchronously destroy the window here: that can deadlock
                 // the same native event loop before the exit is dispatched.
                 let app_handle = window.app_handle().clone();
-                std::thread::spawn(move || app_handle.exit(0));
+                std::thread::spawn(move || {
+                    // Take ownership before shutdown so ExitRequested does
+                    // not block on the same Core process a second time.
+                    let process = app_handle
+                        .state::<DesktopBackend>()
+                        .process
+                        .lock()
+                        .ok()
+                        .and_then(|mut state| state.take());
+                    if let Some(mut process) = process {
+                        process.shutdown();
+                    }
+                    app_handle.exit(0);
+                });
             }
         })
         .build(tauri::generate_context!())
@@ -154,10 +163,13 @@ fn main() {
 
     app.run(move |_handle, event| {
         if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
-            if let Ok(mut state) = exit_backend.process.lock() {
-                if let Some(process) = state.as_mut() {
-                    process.shutdown();
-                }
+            let process = exit_backend
+                .process
+                .lock()
+                .ok()
+                .and_then(|mut state| state.take());
+            if let Some(mut process) = process {
+                process.shutdown();
             }
         }
     });
