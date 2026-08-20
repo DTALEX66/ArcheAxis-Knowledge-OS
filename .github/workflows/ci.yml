@@ -136,7 +136,14 @@ jobs:
         run: python -m pytest tests/ -q --tb=short
 
       - name: Run integration tests
-        run: python -m pytest integration-tests/ -q --tb=short
+        run: |
+          set +e
+          python -m pytest integration-tests/ -q --tb=short \
+            --junitxml=.hermes/task-runtime/integration-tests.junit.xml
+          test_status=$?
+          python scripts/ci/emit_pytest_annotations.py \
+            .hermes/task-runtime/integration-tests.junit.xml
+          exit "$test_status"
 
   py-compat:
     timeout-minutes: 15
