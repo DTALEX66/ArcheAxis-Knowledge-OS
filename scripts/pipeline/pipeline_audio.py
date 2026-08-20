@@ -2,7 +2,7 @@
 """pipeline_audio.py — 音频全量转写（F1）。
 
 用法（在项目根）:
-    env -u PYTHONPATH .venv\Scripts\python.exe scripts/pipeline/pipeline_audio.py
+    env -u PYTHONPATH .venv/Scripts/python.exe scripts/pipeline/pipeline_audio.py
 
 引擎：SenseVoice int8（快，~26x）→ faster-whisper 兜底。
 输入：D:/All projects/ceshi 全部 mp3/m4a/wav/flac/mp4（mp4 先 ffmpeg 提音轨）。
@@ -24,7 +24,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('--part', type=int, default=0)
     ap.add_argument('--parts', type=int, default=1)
+    ap.add_argument('--audio-only', action='store_true', help='skip .mp4 (video tracks deferred)')
     args = ap.parse_args()
+    if args.audio_only:
+        _AUDIO_EXTS = ('.mp3', '.m4a', '.wav', '.flac')
+    else:
+        _AUDIO_EXTS = ('.mp3', '.m4a', '.wav', '.flac', '.mp4')
     if args.parts > 1:
         import pathlib as _pl
         _out = _pl.Path(OUT)
@@ -34,7 +39,7 @@ def main() -> None:
     files = []
     for dirpath, dirnames, filenames in os.walk(ROOT):
         for f in filenames:
-            if f.lower().endswith(('.mp3', '.m4a', '.wav', '.flac', '.mp4')):
+            if f.lower().endswith(_AUDIO_EXTS):
                 p = os.path.join(dirpath, f)
                 if os.path.getsize(p) > 0:
                     files.append(p)
@@ -75,7 +80,7 @@ def main() -> None:
             if not text.strip():
                 fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'empty transcript'}); continue
             ok += 1
-            receipts.append({'file': rel, 'ok': True, 'engine': r.get('engine', 'asr'), 'chars': len(text),
+            receipts.append({'file': rel, 'ok': True, 'engine': 'sensevoice', 'chars': len(text),
                              'sec': round(__import__('time').monotonic() - t0, 1)})
             print(f'[{idx+1}/{len(files)}] ok {rel[:46]} ({len(text)}c)', flush=True)
         except Exception as e:
