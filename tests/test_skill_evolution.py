@@ -28,6 +28,16 @@ def test_insufficient_data_until_min_usages(tmp_path):
     assert evaluate_skill(db, "sk1").verdict == "insufficient_data"
 
 
+def test_record_usage_assigns_unique_ids_for_burst_events(tmp_path):
+    db = tmp_path / "se.sqlite"
+    usages = [
+        record_usage(db, skill_id="sk-burst", task="t", outcome="success")
+        for _ in range(8)
+    ]
+    assert len({usage.usage_id for usage in usages}) == len(usages)
+    assert evaluate_skill(db, "sk-burst").total_usages == len(usages)
+
+
 def test_keep_when_mostly_successful(tmp_path):
     db = tmp_path / "se.sqlite"
     _populate(db, "sk-good", successes=8, failures=1)

@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
+from uuid import uuid4
 
 MIN_EVALUATION_USAGES = 3
 RETIRE_SUCCESS_RATE = 0.4
@@ -125,7 +126,10 @@ def record_usage(
         raise SkillEvolutionError(f"invalid outcome: {outcome}")
     if outcome == "failure" and not failure_analysis:
         raise SkillEvolutionError("failure usages require a failure_analysis")
-    usage_id = _stable_id("usage", skill_id, task, _now())
+    # Usage records are append-only events.  A timestamp alone is not a unique
+    # event key on clocks with coarse resolution (notably Windows), so retain
+    # the timestamp as metadata and use a random value for the primary key.
+    usage_id = f"usage_{uuid4().hex}"
     created_at = _now()
     with _connect(db) as conn:
         conn.execute(
