@@ -51,6 +51,20 @@ def find_edge() -> str:
     return find_browser()
 
 
+def _browser_environment(out: Path) -> dict[str, str]:
+    """Keep Chromium's Unix singleton socket below its path-length limit."""
+    temp_root = out.parent
+    for parent in out.parents:
+        if parent.name == ".hermes":
+            temp_root = parent
+            break
+    temp_root.mkdir(parents=True, exist_ok=True)
+    environment = os.environ.copy()
+    for name in ("TMP", "TEMP", "TMPDIR"):
+        environment[name] = str(temp_root)
+    return environment
+
+
 def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict[str, Any]:
     """Headless screenshot of a URL into a PNG file.
 
@@ -63,6 +77,7 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
         [browser, "--headless", "--disable-gpu", "--no-sandbox",
          f"--window-size={width},800", f"--screenshot={out}", url],
         capture_output=True, timeout=60,
+        env=_browser_environment(out),
     )
     if not out.is_file() or out.stat().st_size == 0:
         raise WebScreenshotError(f"screenshot failed: {proc.stderr.decode(errors='ignore')[:200]}")
