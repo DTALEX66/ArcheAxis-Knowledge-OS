@@ -20,6 +20,7 @@ from app.exchange.export import (
     ExportError,
     export_knowledge_exchange,
     extract_exchange_items,
+    import_knowledge_exchange,
     verify_export,
 )
 
@@ -162,3 +163,45 @@ def test_store_bridge_collects_current_raw_asset_store_layout(tmp_path: Path) ->
     payload = extract_exchange_items(raw_root=raw_root)
 
     assert payload["raw_assets"] == {digest: b"original"}
+
+
+def test_verified_exchange_imports_into_fresh_four_library_workspace(tmp_path: Path) -> None:
+    source = tmp_path / "exchange"
+    raw_digest = "b" * 64
+    export_knowledge_exchange(
+        destination=source,
+        raw_assets={raw_digest: b"original"},
+        evidence={"ev_1": {"raw_sha256": raw_digest, "locator": {"page": 1}}},
+        learning={"Learning/note.md": b"# Imported learning\n"},
+        ai_assets={"rule": {"asset": {"unit_id": "rule"}}},
+    )
+
+    result = import_knowledge_exchange(
+        source=source,
+        workspace_parent=tmp_path / "isolated",
+        workspace_name="imported",
+    )
+
+    from shared.workspace_manifest import load
+
+    workspace_root = tmp_path / "isolated" / "imported"
+    manifest = load(result["workspace_manifest"])
+    assert result["status"] == "imported_untrusted"
+    assert result["imported_items"] == 4
+    assert (Path(manifest.domains["source_archive"].path) / "raw-assets" / raw_digest).read_bytes() == b"original"
+    assert (Path(manifest.domains["human_learning_vault"].path) / "Learning" / "note.md").read_bytes() == b"# Imported learning\n"
+    assert (Path(manifest.domains["ai_asset_vault"].path) / "rule.json").is_file()
+    receipt = json.loads(Path(result["receipt_path"]).read_text(encoding="utf-8"))
+    assert receipt["status"] == "imported_untrusted"
+    assert all(item["sha256"] for item in receipt["imported_items"])
+    assert Path(result["receipt_path"]).is_relative_to(workspace_root)
+
+
+def test_exchange_import_requires_fresh_workspace_destination(tmp_path: Path) -> None:
+    source = tmp_path / "exchange"
+    export_knowledge_exchange(destination=source, raw_assets={"c" * 64: b"original"})
+    parent = tmp_path / "isolated"
+    import_knowledge_exchange(source=source, workspace_parent=parent, workspace_name="imported")
+
+    with pytest.raises(ExportError, match="fresh workspace"):
+        import_knowledge_exchange(source=source, workspace_parent=parent, workspace_name="imported")

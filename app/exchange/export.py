@@ -85,6 +85,23 @@ def _copy_bytes(destination: Path, blob: bytes) -> str:
     return _sha256_bytes(blob)
 
 
+def _safe_relative_path(value: str) -> Path:
+    """Reject absolute and traversal paths supplied by an exchange manifest."""
+    path = Path(value)
+    if not value or path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+        raise ExportError(f"unsafe exchange relative path: {value!r}")
+    return path
+
+
+def _safe_target(root: Path, relative: str | Path) -> Path:
+    candidate = (root / _safe_relative_path(str(relative))).resolve(strict=False)
+    try:
+        candidate.relative_to(root.resolve())
+    except ValueError as exc:
+        raise ExportError(f"exchange path escapes its destination root: {relative!r}") from exc
+    return candidate
+
+
 def export_knowledge_exchange(
     *,
     destination: str | Path,
@@ -233,7 +250,11 @@ def verify_export(destination: str | Path) -> dict[str, Any]:
             failures.append(f"invalid item entry {raw_item!r}: {exc}")
             continue
         item_count += 1
-        target = destination / item.relative_path
+        try:
+            target = _safe_target(destination, item.relative_path)
+        except ExportError as exc:
+            failures.append(f"{item.kind}:{item.item_id} {exc}")
+            continue
         if not target.is_file():
             failures.append(f"{item.kind}:{item.item_id} missing file {item.relative_path}")
             continue
@@ -255,6 +276,91 @@ def verify_export(destination: str | Path) -> dict[str, Any]:
         )
 
     return {"manifest": manifest, "verified_items": item_count}
+
+
+def import_knowledge_exchange(
+    *,
+    source: str | Path,
+    workspace_parent: str | Path,
+    workspace_name: str,
+) -> dict[str, Any]:
+    """Import a verified exchange into a fresh isolated four-library workspace.
+
+    This is preservation, not promotion: evidence is retained as an imported
+    bundle and no Candidate/Verified lifecycle state is changed by import.
+    """
+    source_dir = Path(source)
+    verified = verify_export(source_dir)
+    manifest = verified["manifest"]
+    parent = Path(workspace_parent)
+    workspace_root = parent / workspace_name
+    if workspace_root.exists():
+        raise ExportError("exchange import requires a fresh workspace destination")
+
+    from shared.workspace_manifest import create_workspace
+
+    workspace = create_workspace(parent, workspace_name)
+    domains = {name: Path(domain.path) for name, domain in workspace.domains.items()}
+    evidence_root = domains["evidence_ledger"] / "imported-exchange"
+    mappings = {
+        "raw": domains["source_archive"] / "raw-assets",
+        "evidence": evidence_root,
+        "learning": domains["human_learning_vault"],
+        "ai_asset": domains["ai_asset_vault"],
+    }
+    imported: list[dict[str, str]] = []
+    for raw_item in manifest["items"]:
+        item = ExportItem.from_dict(raw_item)
+        if item.kind not in mappings:
+            raise ExportError(f"unsupported exchange item kind: {item.kind!r}")
+        source_path = _safe_target(source_dir, item.relative_path)
+        if not source_path.is_file() or _sha256_file(source_path) != item.sha256:
+            raise ExportError(f"exchange item changed before import: {item.relative_path}")
+        if item.kind == "raw":
+            relative = item.item_id
+        elif item.kind == "learning":
+            parts = _safe_relative_path(item.relative_path).parts
+            if parts[0] != "learning" or len(parts) < 2:
+                raise ExportError(f"learning item has invalid export path: {item.relative_path!r}")
+            relative = Path(*parts[1:])
+        elif item.kind == "ai_asset":
+            relative = Path(item.item_id).with_suffix(".json")
+        else:
+            relative = Path("evidence") / Path(item.item_id).with_suffix(".json")
+        destination = _safe_target(mappings[item.kind], relative)
+        if destination.exists():
+            raise ExportError(f"exchange import destination already exists: {destination.name}")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        blob = source_path.read_bytes()
+        destination.write_bytes(blob)
+        digest = _sha256_file(destination)
+        if digest != item.sha256:
+            raise RuntimeError(f"exchange import hash readback failed: {item.relative_path}")
+        imported.append(
+            {
+                "kind": item.kind,
+                "id": item.item_id,
+                "sha256": digest,
+                "destination": str(destination.relative_to(workspace_root)),
+            }
+        )
+    receipt = {
+        "schema_version": "v1",
+        "status": "imported_untrusted",
+        "source_manifest_sha256": manifest["manifest_sha256"],
+        "verified_source_items": verified["verified_items"],
+        "imported_items": imported,
+        "limitation": "Imported evidence remains review-required; import does not promote knowledge.",
+    }
+    receipt_path = evidence_root / "import-receipt.json"
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return {
+        "workspace_manifest": str(workspace_root / "manifest.json"),
+        "receipt_path": str(receipt_path),
+        "status": receipt["status"],
+        "imported_items": len(imported),
+    }
 
 
 def extract_exchange_items(
