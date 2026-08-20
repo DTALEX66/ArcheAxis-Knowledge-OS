@@ -445,19 +445,23 @@ def test_axw_main_chain_full_e2e(
 def test_axw_main_chain_pdf_records_page_anchored_conversion(axw_workspace: AxwWorkspace) -> None:
     """A real PDF upload preserves its raw hash and records a page anchor."""
     from app.ingestion.conversion_run import resolve_conversion_run
-    from tests.test_pdf_extraction import REAL_PDF
+    from tests.golden_pdf_fixture import GOLDEN_PDF
 
-    artifacts = _run_main_chain(axw_workspace, "golden.pdf", REAL_PDF)
+    artifacts = _run_main_chain(axw_workspace, "golden.pdf", GOLDEN_PDF)
     assert artifacts["intake"]["engine"] == "markitdown"
-    _assert_stage_ingestion(axw_workspace, artifacts, fmt="pdf", marker="Evidence Driven Learning")
+    _assert_stage_ingestion(axw_workspace, artifacts, fmt="pdf", marker="Golden Journey Evidence")
     conversion = resolve_conversion_run(
         axw_workspace.db, str(artifacts["intake"]["conversion_run_id"])
     )
     assert conversion is not None
     assert conversion.engine == "pdfplumber-structured"
     assert any(block.anchor.get("page_number") == 1 for block in conversion.blocks)
-    _assert_stage_evidence_ledger(axw_workspace, artifacts, marker="Evidence Driven Learning")
-    _assert_stage_human_learning(axw_workspace, artifacts, marker="Evidence Driven Learning")
+    assert any(block.kind == "table" and "Criterion" in block.text for block in conversion.blocks)
+    assert conversion.loss_report.loss_notes == [
+        "page 1: image semantics retained as a loss boundary"
+    ]
+    _assert_stage_evidence_ledger(axw_workspace, artifacts, marker="Golden Journey Evidence")
+    _assert_stage_human_learning(axw_workspace, artifacts, marker="Golden Journey Evidence")
     _assert_stage_ai_asset(axw_workspace, artifacts)
 
 
