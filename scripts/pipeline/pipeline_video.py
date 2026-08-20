@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 """视频画面转化：全部 mp4 抽帧 + RapidOCR（画面文字知识提取，非音轨）。"""
 import json, os, subprocess, sys, time
+from pathlib import Path
 sys.stdout.reconfigure(encoding='utf-8')
 
-ROOT = r"D:/All projects/ceshi"
-OUT = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/video_ocr_receipt.json"
-WORK = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/video-work"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ROOT = os.environ.get("ARCHEAXIS_PIPELINE_SOURCE_ROOT", "")
+OUT = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "video_ocr_receipt.json")
+WORK = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "video-work")
 os.makedirs(WORK, exist_ok=True)
 from app.ingestion.rapid_ocr_adapter import convert_image_rapid
 from app.ingestion.content_cleaner import clean_text as strip_noise
 from app.ingestion.ocr_gate import assess as ocr_gate
+
+if not ROOT:
+    raise SystemExit("set ARCHEAXIS_PIPELINE_SOURCE_ROOT to an approved source directory")
 
 videos = []
 for dirpath, dirnames, filenames in os.walk(ROOT):

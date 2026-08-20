@@ -74,6 +74,22 @@ class CandidateReceiptV1(BaseModel):
     created_at: str = ""
 
 
+class ReviewDecisionV1(BaseModel):
+    """An identity-bound, optimistic-concurrency review decision.
+
+    The actor comes from the authenticated local desktop session; this payload
+    repeats it so the service can persist a complete immutable review event.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: Literal["verified", "rejected", "disputed", "deprecated", "revoked"]
+    reviewer_id: str = Field(min_length=1, max_length=256)
+    rationale: str = Field(min_length=1, max_length=4096)
+    expected_version: int = Field(ge=1)
+    idempotency_key: str = Field(min_length=1, max_length=256)
+
+
 # ── Evidence / Learning / Provenance / Rights ────────────────────────
 
 class EvidenceIntakeV1(BaseModel):

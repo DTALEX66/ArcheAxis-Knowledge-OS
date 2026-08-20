@@ -5,20 +5,27 @@ import { EvidenceSpace } from "./EvidenceSpace";
 import { LearningSpace } from "./LearningSpace";
 import { AiAssetsSpace } from "./AiAssetsSpace";
 import { SettingsSpace } from "./SettingsSpace";
+import type { InspectionTarget } from "../components/Inspector";
 
 // SpaceView renders the active six-space content (AXW-UI-802).
-export function SpaceView({ spaceId }: { spaceId: SpaceId }) {
+export function SpaceView({
+  spaceId,
+  onInspect,
+}: {
+  spaceId: SpaceId;
+  onInspect: (target: InspectionTarget) => void;
+}) {
   switch (spaceId) {
     case "workspace":
       return <WorkspaceSpace />;
     case "library":
-      return <LibrarySpace />;
+      return <LibrarySpace onInspect={onInspect} />;
     case "evidence":
-      return <EvidenceSpace />;
+      return <EvidenceSpace onInspect={onInspect} />;
     case "learning":
       return <LearningSpace />;
     case "ai-assets":
-      return <AiAssetsSpace />;
+      return <AiAssetsSpace onInspect={onInspect} />;
     case "settings":
       return <SettingsSpace />;
   }

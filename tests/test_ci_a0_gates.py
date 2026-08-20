@@ -55,22 +55,22 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "python -m desktop.scripts.prepare_bundle" in desktop_job
     desktop_fast = _job_section(workflow, "desktop-fast", "desktop-build")
     assert desktop_fast.index("Prepare the installed Python runtime") < desktop_fast.index(
-        "Test the Windows Rust library"
+        "Test the canonical Windows desktop shell"
     )
     assert "cargo install cargo-audit --version 0.22.2 --locked" in desktop_job
     assert "cargo audit --file Cargo.lock" in desktop_job
-    assert "npm run tauri -- build --bundles nsis" in desktop_job
+    assert "frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis" in desktop_job
     assert "timeout-minutes: 30" in desktop_job
     lifecycle_job = _job_section(workflow, "installer-lifecycle", "a0-gates")
     assert "./desktop/scripts/verify_nsis_install.ps1" in lifecycle_job
     assert "actions/upload-artifact@" in desktop_job
     assert "actions/download-artifact@" in lifecycle_job
     assert (
-        'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe"'
+        'Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe"'
         not in desktop_job
     )
     assert 'Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis"' in desktop_job
-    assert 'Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
+    assert 'Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
     assert 'ArcheAxis Knowledge_$($package.version)_x64-setup.exe' in desktop_job
     assert 'Write-Host "NSIS installers found:' in desktop_job
 
@@ -122,9 +122,16 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
         cargo_lock_root.group(1),
     } == {product_version}
 
+    root_tauri = json.loads((ROOT / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+    root_cargo = tomllib.loads((ROOT / "src-tauri/Cargo.toml").read_text(encoding="utf-8"))
+    frontend = json.loads((ROOT / "frontend/package.json").read_text(encoding="utf-8"))
+    assert {root_tauri["version"], root_cargo["package"]["version"], frontend["version"]} == {
+        product_version
+    }
 
-def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
-    expected_version = "0.5.0"
+
+def test_v0_6_0_development_version_uses_one_version_everywhere() -> None:
+    expected_version = "0.6.0"
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     manifest = json.loads(
         (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
@@ -159,25 +166,23 @@ def test_v0_4_3_release_candidate_uses_one_version_everywhere() -> None:
     assert "Resolve and verify release version" in release_workflow
     assert "release_version=" in release_workflow
     assert "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe" in release_workflow
+    assert "frontend/package-lock.json" in release_workflow
+    assert "src-tauri/Cargo.lock" in release_workflow
+    assert "--exe src-tauri/target/release/ArcheAxis.exe" in release_workflow
+    assert "--frontend frontend/dist" in release_workflow
     assert f"--version {expected_version}" not in release_workflow
     assert (
-        'name = "archeaxis-workspace"\nversion = "0.5.0"\nsource = { editable = "." }'
+        'name = "archeaxis-workspace"\nversion = "0.6.0"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")
     )
-    for path in (
-        "config/defaults.yaml",
-        "shared/config.py",
-        "app/main.py",
-        "knowledge_base/api.py",
-        "desktop/scripts/verify_nsis_install.ps1",
-    ):
+    for path in ("config/defaults.yaml", "app/main.py", "desktop/scripts/verify_nsis_install.ps1"):
         text = (ROOT / path).read_text(encoding="utf-8")
         assert expected_version in text
-        assert "0.4.0" not in text
+        assert "0.5.0" not in text
     lifecycle = (ROOT / "desktop/scripts/verify_nsis_install.ps1").read_text(
         encoding="utf-8"
     )
-    assert "v0.5.0" in lifecycle
+    assert "v0.6.0" in lifecycle
     assert "function Wait-ArcheAxisWindow" in lifecycle
     assert "$Shell.Refresh()" in lifecycle
     assert "$Shell.MainWindowHandle -ne [IntPtr]::Zero" in lifecycle

@@ -69,7 +69,12 @@ def convert_docx(file_path: str | Path) -> AdapterResult:
     """
     path = Path(file_path)
     if not path.is_file():
-        return AdapterResult(success=False, content="", engine="docx-adapter", error="file not found")
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="docx-adapter",
+            error="DOCX file not found",
+        )
 
     try:
         from markitdown import MarkItDown

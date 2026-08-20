@@ -1,6 +1,6 @@
 app:
   environment: "test"
 database:
-  path: "data/test/cognitive_os.sqlite"
+  path: "data/test/archeaxis.sqlite"
 logging:
   file: false

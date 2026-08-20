@@ -10,9 +10,12 @@ callers may inspect or initialize the runtime.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Literal
 
-from app.setup.setup_status import initialize_workspace, setup_status
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.setup.setup_status import SetupRequest, SetupValidationError, initialize_workspace, setup_status
 from app.workspace.router import _require_local_request
 
 router = APIRouter(
@@ -22,6 +25,14 @@ router = APIRouter(
 )
 
 
+class SetupInitializeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mode: Literal["quick", "advanced"] = "quick"
+    root: str | None = Field(default=None, min_length=1, max_length=4096)
+    domains: dict[str, str] | None = None
+
+
 @router.get("/status")
 def get_setup_status() -> dict[str, object]:
     """Readiness steps for the first-run wizard (fail-closed, never 500)."""
@@ -29,10 +40,15 @@ def get_setup_status() -> dict[str, object]:
 
 
 @router.post("/initialize")
-def post_setup_initialize() -> dict[str, object]:
+def post_setup_initialize(payload: SetupInitializeRequest | None = None) -> dict[str, object]:
     """Create the workspace; idempotent — an existing valid workspace is
     returned as-is with ``already_existed=true``."""
     try:
-        return initialize_workspace()
+        request = None if payload is None else SetupRequest(
+            mode=payload.mode, root=payload.root, domains=payload.domains
+        )
+        return initialize_workspace(request)
+    except SetupValidationError as exc:
+        raise HTTPException(status_code=422, detail={"code": exc.code, "message": str(exc)}) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+        raise HTTPException(status_code=422, detail={"code": "invalid_setup", "message": str(exc)}) from exc

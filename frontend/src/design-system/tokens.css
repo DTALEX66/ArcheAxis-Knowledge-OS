@@ -175,6 +175,24 @@ body {
   color: var(--ax-fg-muted);
   font-size: 13px;
 }
+.inspector-title {
+  margin: 0 0 var(--ax-space-3);
+  font-size: 16px;
+}
+.inspector-details {
+  display: grid;
+  gap: var(--ax-space-1);
+  margin: 0;
+  font-size: 13px;
+}
+.inspector-details dt {
+  color: var(--ax-fg-muted);
+  margin-top: var(--ax-space-2);
+}
+.inspector-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
 
 /* Activity dock */
 .activity-dock {
@@ -187,6 +205,19 @@ body {
 .activity-dock-item[data-disabled="true"] {
   color: var(--ax-fg-muted);
   font-size: 13px;
+}
+
+button {
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  background: var(--ax-bg-raised);
+  color: var(--ax-fg);
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+button:hover {
+  background: var(--ax-bg-inset);
 }
 
 /* AXW-UI-804 accessibility: visible focus, reduced motion */

@@ -10,7 +10,7 @@ from typing import Any
 from shared.config import config, resolve_runtime_path
 from shared.research_boundary import unreviewed_research_references
 
-DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
+DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/archeaxis.sqlite")))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS core_objects (

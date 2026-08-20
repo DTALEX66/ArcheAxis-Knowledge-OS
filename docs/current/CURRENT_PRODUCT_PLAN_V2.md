@@ -1,7 +1,9 @@
 # Current Product Plan — 当前产品计划 V2（AXW-1206/1210）
 
-> 权威：任务包 v1 2026-08-11 + 当前 main `b97035e` 事实快照
-> 状态：阶段描述可随真实实现更新；能力边界与命名不可漂移
+> v0.6.0 执行基线（2026-08-20）：本页此前的 `b97035e` 快照和“supported”表述均为历史规划输入。当前状态统一为 `v0.6.0 development — PARTIAL`，只可由 exact-SHA Receipt 提升；规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
+
+> 权威：v0.6.0 最小可信闭环任务包（2026-08-20）+ 当前 exact-SHA 报告
+> 状态：阶段描述可随真实实现与 Receipt 更新；能力边界与命名不可漂移
 
 ## 1. 当前 Release Spine（必须优先可靠）
 

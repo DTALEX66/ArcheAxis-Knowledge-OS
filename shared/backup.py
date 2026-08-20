@@ -17,7 +17,7 @@ from uuid import UUID, uuid4
 
 from shared.config import config, resolve_runtime_path
 
-DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
+DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/archeaxis.sqlite")))
 BACKUP_DIR = resolve_runtime_path(str(config.get("database.backup_dir", "data/backups")))
 
 MANIFEST_VERSION = 1

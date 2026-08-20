@@ -25,7 +25,7 @@ def test_profile_overrides_legacy_settings_without_replacing_them() -> None:
     current = Config(profile="test")
 
     assert current.get("app.environment") == "test"
-    assert current.get("database.path") == "data/test/cognitive_os.sqlite"
+    assert current.get("database.path") == "data/test/archeaxis.sqlite"
     assert current.get("pipeline.default_actions") == ["extract", "tag", "summarize", "index"]
 
 
@@ -44,7 +44,7 @@ def test_explicit_profile_takes_precedence_over_environment(monkeypatch: pytest.
     current = Config(profile="development")
 
     assert current.get("app.environment") == "development"
-    assert current.get("database.path") == "data/cognitive_os.sqlite"
+    assert current.get("database.path") == "data/archeaxis.sqlite"
 
 
 def test_unknown_profile_fails_closed() -> None:

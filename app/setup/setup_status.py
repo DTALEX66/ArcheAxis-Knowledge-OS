@@ -16,14 +16,18 @@ Steps returned by ``readiness_steps()`` each carry
 
 from __future__ import annotations
 
+import os
+import shutil
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 from app.capability.store import CapabilityStore, CapabilityStoreError
 from app.workspace.supervisor import BackendSupervisorState, supervisor
 from shared.config import config, resolve_runtime_path
 from shared.path_policy import resolve_paths
 from shared.runtime_profile import resolve_runtime_mode
-from shared.workspace_manifest import create_workspace, load
+from shared.workspace_manifest import ASSET_DOMAINS, create_workspace, load
 
 WORKSPACE_NAME = "workspace"
 SETUP_STATUS_VERSION = "v1"
@@ -33,6 +37,22 @@ _STEP_STATES = ("pending", "ready", "blocked", "completed")
 # Migration marker written by app/workspace/migrate.py once the legacy
 # single database has been moved into the four-asset-domain layout.
 MIGRATION_MANIFEST_NAME = "migration-manifest.json"
+LEGACY_DATABASE_PATH = "data/cognitive_os.sqlite"
+
+
+class SetupValidationError(ValueError):
+    """Stable preflight error returned by the setup API."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+@dataclass(frozen=True)
+class SetupRequest:
+    mode: Literal["quick", "advanced"]
+    root: str | None = None
+    domains: dict[str, str] | None = None
 
 
 def workspaces_base() -> Path:
@@ -52,7 +72,7 @@ def manifest_path() -> Path:
 
 def legacy_db_path() -> Path:
     """Legacy monolithic SQLite path (same derivation as shared.storage.DB_PATH)."""
-    return resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
+    return resolve_runtime_path(LEGACY_DATABASE_PATH)
 
 
 def capability_store_root() -> Path:
@@ -246,18 +266,94 @@ def setup_status() -> dict[str, object]:
     }
 
 
-def initialize_workspace() -> dict[str, object]:
+def _normalize_path(value: str, field: str) -> Path:
+    if not value or not value.strip():
+        raise SetupValidationError("invalid_path", f"{field} must be a non-empty path")
+    raw = Path(value).expanduser()
+    if not raw.is_absolute():
+        raise SetupValidationError("path_not_absolute", f"{field} must be an absolute path")
+    return raw.resolve(strict=False)
+
+
+def _is_nested(first: Path, second: Path) -> bool:
+    try:
+        second.relative_to(first)
+        return first != second
+    except ValueError:
+        return False
+
+
+def _preflight_domain_paths(paths: dict[str, Path]) -> dict[str, dict[str, object]]:
+    values = list(paths.values())
+    if len(set(values)) != len(values):
+        raise SetupValidationError("duplicate_path", "four library paths must be distinct")
+    for index, path in enumerate(values):
+        for other in values[index + 1 :]:
+            if _is_nested(path, other) or _is_nested(other, path):
+                raise SetupValidationError("nested_path", "four library paths must not be nested")
+
+    health: dict[str, dict[str, object]] = {}
+    for domain, path in paths.items():
+        parent = path.parent
+        probe_parent = parent
+        while not probe_parent.exists() and probe_parent != probe_parent.parent:
+            probe_parent = probe_parent.parent
+        if not probe_parent.exists():
+            raise SetupValidationError("parent_missing", f"no existing parent directory for {domain}")
+        if not os.access(probe_parent, os.W_OK):
+            raise SetupValidationError("permission_denied", f"parent directory is not writable for {domain}")
+        try:
+            usage = shutil.disk_usage(probe_parent)
+        except OSError as exc:
+            raise SetupValidationError("disk_unavailable", f"cannot inspect disk for {domain}") from exc
+        health[domain] = {
+            "path": str(path),
+            "parent": str(probe_parent),
+            "free_bytes": usage.free,
+            "readonly": False,
+            "filesystem": "local-or-policy-unclassified",
+            "removable": "unknown",
+        }
+    return health
+
+
+def _domain_paths(request: SetupRequest) -> tuple[dict[str, Path], dict[str, dict[str, object]]]:
+    if request.mode == "quick":
+        root = _normalize_path(request.root or str(workspace_root()), "root")
+        paths = {domain: root / domain for domain in ASSET_DOMAINS}
+    else:
+        if request.domains is None or set(request.domains) != set(ASSET_DOMAINS):
+            raise SetupValidationError(
+                "invalid_domains", "advanced mode requires exactly the four named library paths"
+            )
+        paths = {
+            domain: _normalize_path(request.domains[domain], f"domains.{domain}")
+            for domain in ASSET_DOMAINS
+        }
+    return paths, _preflight_domain_paths(paths)
+
+
+def initialize_workspace(request: SetupRequest | None = None) -> dict[str, object]:
     """Create the workspace (idempotent — an existing valid workspace is
     returned as-is). Raises ``ValueError`` when an existing manifest is
     invalid (fail-closed)."""
+    request = request or SetupRequest(mode="quick", root=str(workspace_root()))
+    paths, health = _domain_paths(request)
     already_existed = manifest_path().is_file()
     # create_workspace is idempotent: it loads and returns the existing
     # manifest when one is already present.
-    manifest = create_workspace(workspaces_base(), WORKSPACE_NAME)
+    manifest = create_workspace(
+        workspaces_base(),
+        WORKSPACE_NAME,
+        domain_paths={domain: str(path) for domain, path in paths.items()},
+    )
     return {
         "initialized": True,
         "already_existed": already_existed,
         "workspace_id": manifest.workspace_id,
         "workspace_root": str(workspace_root()),
+        "mode": request.mode,
+        "library_health": health,
+        "domains": {key: value.path for key, value in manifest.domains.items()},
         "status": setup_status(),
     }

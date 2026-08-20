@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from app.workspace.job_outbox import command_request_fingerprint, record_completed_command
+from app.ingestion.raw_asset import RawAssetStore
 
 # Heavy dependencies loaded lazily inside functions to avoid numpy/vector chain at import time.
 # Each intake function calls _import_heavy() before use.
@@ -109,6 +110,23 @@ def _intake_job_id(package_id: str) -> str:
     return "job_" + sha256(command_id.encode("utf-8")).hexdigest()[:24]
 
 
+def _source_archive_root(database: Path) -> Path:
+    """Resolve the configured Source Archive without requiring setup to exist.
+
+    Older workspaces retain the database-adjacent fallback until they are
+    explicitly initialized/migrated; newly configured four-library workspaces
+    always preserve originals in their selected Source Archive.
+    """
+    try:
+        from app.setup.setup_status import manifest_path
+        from shared.workspace_manifest import load
+
+        manifest = load(manifest_path())
+        return Path(manifest.domains["source_archive"].path) / "raw-assets"
+    except (OSError, ValueError, KeyError):
+        return database.parent / "source_archive" / "raw-assets"
+
+
 def _intake_before_commit(
     connection: sqlite3.Connection,
     graph,
@@ -180,8 +198,14 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
     safe_name = Path(file_name).name
     if safe_name != file_name:
         raise ValueError("uploaded file name must not include a path")
-    upload_dir = Path(db_path).parent / "intake_uploads"
+    database = Path(db_path)
+    upload_dir = database.parent / "intake_uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
+    # Preserve the original before creating a conversion temp file. The source
+    # archive is content-addressed, so retries cannot overwrite the bytes that
+    # an anchor or future EvidenceBundle refers to.
+    raw_store = RawAssetStore(root=_source_archive_root(database))
+    original = raw_store.store_original(content, safe_name)
     suffix = Path(safe_name).suffix.casefold()
     stored_path = upload_dir / f"{sha256(content).hexdigest()}{suffix}"
     with tempfile.NamedTemporaryFile(
@@ -208,10 +232,12 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
             temporary_path.replace(stored_path)
     except Exception:
         temporary_path.unlink(missing_ok=True)
+        raw_store._record_failure(original.sha256, safe_name, "upload conversion failed")
         raise
     return {
         "source_type": "file",
         "file_name": safe_name,
+        "raw_sha256": original.sha256,
         "format": source_format,
         "engine": engine,
         "content": markdown,
@@ -379,6 +405,22 @@ def workspace_jobs(*, db_path: str | Path) -> dict[str, object]:
             }
         )
     return {"schema_version": "v1", "jobs": projections}
+
+
+def workspace_library(*, db_path: str | Path) -> dict[str, object]:
+    """Project the local source archive without exposing filesystem paths."""
+    archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
+    items = [
+        {
+            "source_name": record.source_name,
+            "raw_sha256": record.sha256,
+            "size_bytes": record.size_bytes,
+            "retention": record.retention_policy,
+            "conversion_state": "requires_attention" if record.error else "retained",
+        }
+        for record in archive.list_records()
+    ]
+    return {"schema_version": "v1", "items": items}
 
 
 def workspace_delivery(*, db_path: str | Path) -> dict[str, object]:

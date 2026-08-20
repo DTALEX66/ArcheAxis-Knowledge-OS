@@ -1,7 +1,15 @@
 {
-  "generated_at": "2026-08-19",
-  "local_head": "cd85de1e0d16bccbe98c7e01bf41e36e18f0d96d",
-  "origin_main": "cd85de1e0d16bccbe98c7e01bf41e36e18f0d96d",
+  "commit_sha": "9579cb2e9785b7a8aea9549626a3fc0287f67351",
+  "environment": {
+    "generator": "scripts/generate_current_reports.py",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.14"
+  },
+  "evidence_level": "STRUCTURAL",
+  "generated_at": "2026-08-20T17:03:57+00:00",
   "match": true,
-  "note": "verified via git fetch + rev-parse"
+  "origin_main_sha": "9579cb2e9785b7a8aea9549626a3fc0287f67351",
+  "schema_version": "1.0.0",
+  "scope": "local Git refs only; no CI, release, or installed-runtime claim",
+  "tree_sha": "24cc82aaa5c015ffe335f025c9998b30d53957c8"
 }

@@ -9,11 +9,13 @@
 输出：.hermes/task-runtime/audio_full_receipt.json
 """
 import json, os, subprocess, sys
+from pathlib import Path
 sys.stdout.reconfigure(encoding='utf-8')
 
-ROOT = r"D:/All projects/ceshi"
-OUT = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/audio_full_receipt.json"  # part run uses suffix below
-WORK = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/audio-work"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ROOT = os.environ.get("ARCHEAXIS_PIPELINE_SOURCE_ROOT", "")
+OUT = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "audio_full_receipt.json")
+WORK = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "audio-work")
 os.makedirs(WORK, exist_ok=True)
 
 from app.ingestion.asr_adapter import transcribe_sense_voice, transcribe as transcribe_fw
@@ -26,6 +28,8 @@ def main() -> None:
     ap.add_argument('--parts', type=int, default=1)
     ap.add_argument('--audio-only', action='store_true', help='skip .mp4 (video tracks deferred)')
     args = ap.parse_args()
+    if not ROOT:
+        raise SystemExit("set ARCHEAXIS_PIPELINE_SOURCE_ROOT to an approved source directory")
     if args.audio_only:
         _AUDIO_EXTS = ('.mp3', '.m4a', '.wav', '.flac')
     else:

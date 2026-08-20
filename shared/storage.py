@@ -15,7 +15,7 @@ from shared.stable_hash import stable_hash_text
 
 
 def _resolve_database_path() -> Path:
-    return resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite")))
+    return resolve_runtime_path(str(config.get("database.path", "data/archeaxis.sqlite")))
 
 
 DB_PATH = _resolve_database_path()

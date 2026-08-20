@@ -13,13 +13,25 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import tempfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from threading import Lock
 
 
 class RawAssetStoreError(ValueError):
     """Raised on invalid input or an unrecoverable storage failure."""
+
+
+_WRITE_LOCKS_GUARD = Lock()
+_WRITE_LOCKS: dict[str, Lock] = {}
+
+
+def _write_lock(digest: str) -> Lock:
+    """Return the process-local lock for one immutable content address."""
+    with _WRITE_LOCKS_GUARD:
+        return _WRITE_LOCKS.setdefault(digest, Lock())
 
 
 def _sha256(b: bytes) -> str:
@@ -61,12 +73,20 @@ class RawAssetStore:
         self.root.mkdir(parents=True, exist_ok=True)
         self._failures_dir = self.root / "_failures"
         self._failures_dir.mkdir(parents=True, exist_ok=True)
+        # Sidecar metadata makes the archive inspectable without exposing a
+        # storage path to the product UI. The original content remains the
+        # source of truth; a missing/corrupt sidecar must never hide it.
+        self._metadata_dir = self.root / "_metadata"
+        self._metadata_dir.mkdir(parents=True, exist_ok=True)
 
     def _original_path(self, digest: str) -> Path:
         return self.root / digest
 
     def _failure_path(self, digest: str) -> Path:
         return self._failures_dir / f"{digest}.json"
+
+    def _metadata_path(self, digest: str) -> Path:
+        return self._metadata_dir / f"{digest}.json"
 
     def has(self, digest: str) -> bool:
         return self._original_path(digest).exists()
@@ -108,13 +128,28 @@ class RawAssetStore:
             raise RawAssetStoreError("empty original bytes cannot be stored")
         digest = _sha256(blob)
         dest = self._original_path(digest)
-        # Immutable write: only write when the content-addressed file is absent,
-        # and verify the hash after writing (no silent partial/corrupt writes).
-        if not dest.exists():
-            dest.write_bytes(blob)
+        # Write through a sibling temporary file then atomically replace the
+        # content-addressed destination. Two identical concurrent uploads must
+        # never observe each other's partially-written bytes.
+        with _write_lock(digest):
+            if not dest.exists():
+                temporary_path: Path | None = None
+                try:
+                    with tempfile.NamedTemporaryFile(
+                        mode="wb", dir=self.root, prefix=f".{digest}.", delete=False
+                    ) as temporary:
+                        temporary.write(blob)
+                        temporary_path = Path(temporary.name)
+                    if _sha256(temporary_path.read_bytes()) != digest:
+                        raise RawAssetStoreError("raw asset hash mismatch before publish")
+                    os.replace(temporary_path, dest)
+                    temporary_path = None
+                finally:
+                    if temporary_path is not None:
+                        temporary_path.unlink(missing_ok=True)
             if _sha256(dest.read_bytes()) != digest:
-                raise RawAssetStoreError("raw asset hash mismatch after write")
-        return RawAssetRecord(
+                raise RawAssetStoreError("raw asset hash mismatch after publish")
+        record = RawAssetRecord(
             sha256=digest,
             size_bytes=len(blob),
             source_name=source_name,
@@ -123,6 +158,64 @@ class RawAssetStore:
             save_state="saved",
             converted=None,
         )
+        metadata_path = self._metadata_path(digest)
+        if not metadata_path.exists():
+            metadata_path.write_text(
+                json.dumps(
+                    {
+                        "sha256": record.sha256,
+                        "size_bytes": record.size_bytes,
+                        "source_name": record.source_name,
+                        "mime_type": record.mime_type,
+                        "retention_policy": record.retention_policy,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                ),
+                encoding="utf-8",
+            )
+        return record
+
+    def list_records(self) -> list[RawAssetRecord]:
+        """List retained originals without leaking their archive paths.
+
+        This is intentionally a resilient read projection: historical assets
+        created before sidecars are still shown with a neutral display name.
+        """
+        records: list[RawAssetRecord] = []
+        for asset in sorted(self.root.iterdir(), key=lambda item: item.name):
+            digest = asset.name
+            if (
+                not asset.is_file()
+                or len(digest) != 64
+                or any(char not in "0123456789abcdef" for char in digest)
+            ):
+                continue
+            metadata: dict[str, object] = {}
+            try:
+                candidate = json.loads(self._metadata_path(digest).read_text(encoding="utf-8"))
+                if isinstance(candidate, dict):
+                    metadata = candidate
+            except (OSError, json.JSONDecodeError):
+                pass
+            source_name = metadata.get("source_name")
+            mime_type = metadata.get("mime_type")
+            retention_policy = metadata.get("retention_policy")
+            records.append(
+                RawAssetRecord(
+                    sha256=digest,
+                    size_bytes=asset.stat().st_size,
+                    source_name=source_name if isinstance(source_name, str) and source_name else "未标注原件",
+                    mime_type=mime_type if isinstance(mime_type, str) and mime_type else "application/octet-stream",
+                    retention_policy=(
+                        retention_policy
+                        if isinstance(retention_policy, str) and retention_policy
+                        else "retained"
+                    ),
+                    error="conversion failed" if self.has_failure(digest) else None,
+                )
+            )
+        return records
 
     def _record_failure(self, digest: str, source_name: str, error: str) -> None:
         payload = {

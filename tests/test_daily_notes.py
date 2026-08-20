@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import shared.daily_notes as dn
 
 
@@ -62,12 +64,14 @@ def test_append_to_daily_adds_content(monkeypatch) -> None:
 def test_timeline_filters_by_cutoff(monkeypatch) -> None:
     _patch_storage(monkeypatch)
     # 3 days back + 10 days back (outside 7-day window)
-    dn.get_or_create_daily("2026-08-10")
-    dn.get_or_create_daily("2026-08-02")
+    in_range = (date.today() - timedelta(days=3)).isoformat()
+    out_of_range = (date.today() - timedelta(days=10)).isoformat()
+    dn.get_or_create_daily(in_range)
+    dn.get_or_create_daily(out_of_range)
     rows = dn.timeline(days=7)
     dates = [r["date"] for r in rows]
-    assert "2026-08-10" in dates
-    assert "2026-08-02" not in dates
+    assert in_range in dates
+    assert out_of_range not in dates
     assert rows[0]["preview"] != ""
     assert rows[0]["tag_count"] == 1
 

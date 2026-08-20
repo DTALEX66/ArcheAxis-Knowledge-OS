@@ -4,7 +4,8 @@
 用法: env -u PYTHONPATH .venv\\Scripts\\python.exe scripts/pipeline/eval_retrieval.py
 输出: reports/current/EVAL_SET_RECEIPT.json
 """
-import json, os, re, sys, time, urllib.request
+import argparse, json, os, re, sys, time, urllib.request
+from pathlib import Path
 sys.stdout.reconfigure(encoding='utf-8')
 
 FIXED_QUERIES = [
@@ -49,7 +50,20 @@ def hit_rate(chunks, chunk_emb, queries, k=5):
 
 def main():
     import glob
-    pdfs = [p for p in glob.glob(r"D:/All projects/ceshi/**/*.pdf", recursive=True) if "逻辑学" in p]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source-root", required=True, help="approved corpus root")
+    parser.add_argument(
+        "--receipt",
+        default=str(Path(__file__).resolve().parents[2] / "reports" / "current" / "EVAL_SET_RECEIPT.json"),
+    )
+    args = parser.parse_args()
+    pdfs = [
+        p
+        for p in glob.glob(str(Path(args.source_root) / "**" / "*.pdf"), recursive=True)
+        if "逻辑学" in p
+    ]
+    if not pdfs:
+        raise SystemExit("no matching PDF found under --source-root")
     chunks = build_corpus(pdfs[0])
     print("chunks:", len(chunks), flush=True)
     t0 = time.monotonic()
@@ -59,7 +73,7 @@ def main():
     result = {"queries": len(FIXED_QUERIES), "k": 5, "hit_rate": hr,
               "sec": dt, "corpus_chunks": len(chunks), "engine": "qwen3-embedding:0.6b"}
     print(json.dumps(result, ensure_ascii=False), flush=True)
-    with open(r"D:/All projects/ArcheAxis-Knowledge-OS/reports/current/EVAL_SET_RECEIPT.json", "w", encoding="utf-8") as f:
+    with open(args.receipt, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":

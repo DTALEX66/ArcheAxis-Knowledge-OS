@@ -1,10 +1,147 @@
-// R5: ArcheAxis desktop shell (scaffold). Build BLOCKED locally: cargo not installed.
-// Backend (FastAPI) is spawned as a supervised child process; this shell only
-// hosts the React build and supervises the backend (see docs/R5 plan).
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[cfg(windows)]
+#[path = "../../desktop/src-tauri/src/backend.rs"]
+mod backend;
+#[cfg(windows)]
+#[path = "../../desktop/src-tauri/src/job.rs"]
+mod job;
+#[cfg(windows)]
+#[path = "../../desktop/src-tauri/src/runtime.rs"]
+mod runtime;
+#[cfg(windows)]
+#[path = "../../desktop/src-tauri/src/protocol.rs"]
+mod protocol;
+
+#[cfg(windows)]
+use backend::BackendProcess;
+#[cfg(windows)]
+use serde::Serialize;
+#[cfg(windows)]
+use std::path::{Path, PathBuf};
+#[cfg(windows)]
+use std::sync::{Arc, Mutex};
+#[cfg(windows)]
+use tauri::{Manager, State, WindowEvent};
+
+#[cfg(windows)]
+#[derive(Clone)]
+struct DesktopBackend {
+    process: Arc<Mutex<Option<BackendProcess>>>,
+    runtime: Arc<Mutex<Option<runtime::RuntimeSpec>>>,
+}
+
+#[cfg(windows)]
+#[derive(Serialize)]
+struct BackendInfo {
+    port: u16,
+    token: String,
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>, String> {
+    let backend = state
+        .process
+        .lock()
+        .map_err(|_| "desktop backend state is poisoned".to_owned())?;
+    Ok(backend.as_ref().map(|process| BackendInfo {
+        port: process.port,
+        token: process.token.clone(),
+    }))
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn retry_backend(state: State<'_, DesktopBackend>) -> Result<BackendInfo, String> {
+    let mut process = state
+        .process
+        .lock()
+        .map_err(|_| "desktop backend state is poisoned".to_owned())?;
+    if let Some(existing) = process.as_ref() {
+        return Ok(BackendInfo {
+            port: existing.port,
+            token: existing.token.clone(),
+        });
+    }
+    let runtime = state
+        .runtime
+        .lock()
+        .map_err(|_| "desktop runtime state is poisoned".to_owned())?
+        .clone()
+        .ok_or_else(|| "desktop runtime could not be resolved during startup".to_owned())?;
+    let launched = BackendProcess::launch(&runtime)?;
+    let info = BackendInfo {
+        port: launched.port,
+        token: launched.token.clone(),
+    };
+    *process = Some(launched);
+    Ok(info)
+}
+
+#[cfg(windows)]
 fn main() {
-    tauri::Builder::default()
-        .run(tauri::generate_context!())
-        .expect("error while running ArcheAxis desktop");
+    let backend = DesktopBackend {
+        process: Arc::new(Mutex::new(None)),
+        runtime: Arc::new(Mutex::new(None)),
+    };
+    let startup_backend = backend.clone();
+    let exit_backend = backend.clone();
+    let app = tauri::Builder::default()
+        .manage(backend)
+        .invoke_handler(tauri::generate_handler![backend_info, retry_backend])
+        .setup(move |app| {
+            let resources = app.path().resource_dir()?;
+            let local_data = app.path().app_local_data_dir()?;
+            let legacy_manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../desktop/src-tauri");
+            let runtime = runtime::resolve_runtime(
+                Path::new(&legacy_manifest),
+                &resources,
+                &local_data,
+                cfg!(debug_assertions),
+            );
+            // A failed Core start must leave the packaged UI running. The UI
+            // exposes only the retry command and cannot obtain a loopback
+            // token until this state successfully launches.
+            if let Ok(runtime) = runtime {
+                *startup_backend
+                    .runtime
+                    .lock()
+                    .map_err(|_| std::io::Error::other("desktop runtime state is poisoned"))? = Some(runtime.clone());
+                if let Ok(process) = BackendProcess::launch(&runtime) {
+                    *startup_backend
+                        .process
+                        .lock()
+                        .map_err(|_| std::io::Error::other("desktop backend state is poisoned"))? = Some(process);
+                }
+            }
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            if matches!(event, WindowEvent::CloseRequested { .. }) {
+                if let Ok(mut state) = window.app_handle().state::<DesktopBackend>().process.lock() {
+                    if let Some(process) = state.as_mut() {
+                        process.shutdown();
+                    }
+                }
+            }
+        })
+        .build(tauri::generate_context!())
+        .expect("ArcheAxis desktop shell startup failed");
+
+    app.run(move |_handle, event| {
+        if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
+            if let Ok(mut state) = exit_backend.process.lock() {
+                if let Some(process) = state.as_mut() {
+                    process.shutdown();
+                }
+            }
+        }
+    });
+}
+
+#[cfg(not(windows))]
+fn main() {
+    panic!("ArcheAxis desktop shell is supported only on Windows");
 }

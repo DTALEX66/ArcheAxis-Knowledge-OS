@@ -75,7 +75,9 @@ def test_registry_v2_rejects_missing_id():
 
 
 def test_registry_v2_contract_is_frozen_for_package_discovery():
-    source = (Path(__file__).resolve().parents[1] / "shared" / "registry_v2.py").read_text()
+    source = (Path(__file__).resolve().parents[1] / "shared" / "registry_v2.py").read_text(
+        encoding="utf-8"
+    )
     assert "class RegistryEntryV2" in source
     assert "class AbsorptionMode" in source
     assert "class ProjectStatus" in source

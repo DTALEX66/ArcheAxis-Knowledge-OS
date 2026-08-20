@@ -18,8 +18,10 @@ from typing import Any
 
 from shared.adapter_contract import AdapterResult
 
-_SCOOP_ROOT_CANDIDATES = (
-    Path(os.environ.get("OS_EXTERNAL_CONFIG", r"D:\All projects\OS External Configuration")),
+_SCOOP_ROOT_CANDIDATES = tuple(
+    Path(value)
+    for value in (os.environ.get("OS_EXTERNAL_CONFIG", "").strip(),)
+    if value
 )
 
 

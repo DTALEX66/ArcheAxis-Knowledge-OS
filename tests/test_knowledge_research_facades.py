@@ -28,7 +28,7 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
         from app.runtime_entrypoint import run_migration
         from argparse import Namespace
 
-        expected_db = runtime_root / "cognitive_os.sqlite"
+        expected_db = runtime_root / "archeaxis.sqlite"
         assert storage.DB_PATH.resolve() == expected_db
         assert expected_db.is_relative_to(runtime_root)
         assert run_migration(Namespace()) == 0
@@ -135,4 +135,4 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
     )
     evidence = json.loads(completed.stdout.strip().splitlines()[-1])
     assert Path(evidence["db_path"]).resolve().is_relative_to(runtime_root.resolve())
-    assert (runtime_root / "cognitive_os.sqlite").exists()
+    assert (runtime_root / "archeaxis.sqlite").exists()

@@ -141,3 +141,40 @@ def test_unwritable_data_path_is_fail_closed(client: TestClient, tmp_path: Path)
         _assert_step_shape(other)
     assert status["ready"] is False
     assert _step(status["steps"], "workspace_exists")["state"] in {"pending", "blocked"}
+
+
+def test_quick_mode_places_all_four_libraries_under_user_root(
+    client: TestClient, tmp_path: Path
+) -> None:
+    root = tmp_path / "my-archeaxis-data"
+    response = client.post("/api/v1/setup/initialize", json={"mode": "quick", "root": str(root)})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["mode"] == "quick"
+    assert set(body["domains"]) == {
+        "source_archive", "evidence_ledger", "human_learning_vault", "ai_asset_vault"
+    }
+    for domain, location in body["domains"].items():
+        assert Path(location) == root / domain
+        assert Path(location).is_dir()
+        assert body["library_health"][domain]["free_bytes"] > 0
+
+
+def test_advanced_mode_requires_four_distinct_non_nested_library_paths(
+    client: TestClient, tmp_path: Path
+) -> None:
+    paths = {
+        "source_archive": str(tmp_path / "source"),
+        "evidence_ledger": str(tmp_path / "evidence"),
+        "human_learning_vault": str(tmp_path / "learning"),
+        "ai_asset_vault": str(tmp_path / "assets"),
+    }
+    response = client.post("/api/v1/setup/initialize", json={"mode": "advanced", "domains": paths})
+    assert response.status_code == 200, response.text
+    assert response.json()["mode"] == "advanced"
+
+    nested = dict(paths)
+    nested["ai_asset_vault"] = str(tmp_path / "source" / "assets")
+    rejected = client.post("/api/v1/setup/initialize", json={"mode": "advanced", "domains": nested})
+    assert rejected.status_code == 422
+    assert rejected.json()["detail"]["code"] == "nested_path"

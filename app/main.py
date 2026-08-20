@@ -43,7 +43,7 @@ async def core_runtime_lifespan(_: FastAPI):
 app = FastAPI(
     lifespan=core_runtime_lifespan,
     title="ArcheAxis Knowledge — Human–AI Learning Workspace",
-    version=str(config.get("app.version", "0.5.0")),
+    version=str(config.get("app.version", "0.6.0")),
     description="Local-first, evidence-driven Human–AI learning and knowledge workspace. "
     "The current vertical targets approved Vault roots, Markdown, JSON Canvas, revisions, conflicts and readback. "
     "Third-party projects are reference or planned adapters unless the compatibility matrix says otherwise.",
@@ -380,7 +380,7 @@ def health():
     return {
         "status": "ok",
         "system": "ArcheAxis-Knowledge-OS",
-        "version": str(config.get("app.version", "0.5.0")),
+        "version": str(config.get("app.version", "0.6.0")),
         "endpoints": _http_route_counts(),
         "stats": {
             "documents": _c("kb_documents"),
@@ -667,7 +667,7 @@ graph TB
     Auth-->Router; Router-->Pipeline; Pipeline-->Search; Pipeline-->Garden
     Search-->SQLite; Search-->VecDB; Garden-->GraphDB; Review-->SQLite; SQLite-->Backup
 ```""",
-        "version": str(config.get("app.version", "0.5.0")),
+        "version": str(config.get("app.version", "0.6.0")),
         "measurement_note": "Module and test counts are intentionally not embedded.",
     }
 
@@ -748,4 +748,3 @@ app.include_router(setup_router)
 from app.federation.router import router as federation_router
 
 app.include_router(federation_router)
-

@@ -13,7 +13,7 @@ describe("StatusBar", () => {
 
   it("renders a status badge with readable text (never color-only)", () => {
     render(<StatusBar activeSpace="workspace" />);
-    const badge = screen.getByText("后端状态：等待握手");
+    const badge = screen.getByText("正在验证本地后端…");
     expect(badge).toBeInTheDocument();
     expect(badge.textContent?.trim()).not.toBe("");
     expect(badge).toHaveAttribute("data-status", "pending");

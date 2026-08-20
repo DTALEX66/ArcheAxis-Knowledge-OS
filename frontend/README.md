@@ -33,8 +33,9 @@ npm run build      # tsc --noEmit && vite build → dist/
 ## 迁移路径（渐进）
 
 1. Recovery Shell（desktop/bootstrap，已交付）→ 保持为启动/恢复层；
-2. 本 App Shell 骨架（本轮）→ 后续批次接 Tauri frontendDist 与 handshake；
-3. Library / Evidence / Learning / AI Assets 逐空间从旧页面路由过渡。
+2. 本 App Shell → 根 `src-tauri/tauri.conf.json` 的 `frontendDist`，通过
+   Tauri IPC 取得一次性内存启动令牌并先完成产品握手；
+3. `desktop/` 只作为受测迁移来源，不能用于 v0.6 构建或发布。
 
 ## 约束
 

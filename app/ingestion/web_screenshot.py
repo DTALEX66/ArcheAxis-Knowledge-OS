@@ -7,13 +7,18 @@ extracted text + visual screenshot (PNG) which can feed OCR / VLM.
 from __future__ import annotations
 
 import subprocess
+import os
+import shutil
 from pathlib import Path
 from typing import Any
 
-_EDGE_CANDIDATES = (
-    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-)
+def _edge_candidates() -> tuple[Path, ...]:
+    roots = (os.environ.get("PROGRAMFILES(X86)", ""), os.environ.get("PROGRAMFILES", ""))
+    return tuple(
+        Path(root) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
+        for root in roots
+        if root
+    )
 
 
 class WebScreenshotError(ValueError):
@@ -21,9 +26,12 @@ class WebScreenshotError(ValueError):
 
 
 def find_edge() -> str:
-    for cand in _EDGE_CANDIDATES:
-        if Path(cand).is_file():
-            return cand
+    from_path = shutil.which("msedge")
+    if from_path:
+        return from_path
+    for candidate in _edge_candidates():
+        if candidate.is_file():
+            return str(candidate)
     raise WebScreenshotError("msedge not found (Windows Edge required for screenshots)")
 
 

@@ -8,7 +8,7 @@ Usage::
 
     from shared.index_manifest import IndexManifest
 
-    manifest = IndexManifest("data/cognitive_os.sqlite")
+    manifest = IndexManifest("data/archeaxis.sqlite")
     manifest.ensure_table()
 
     # Record an index after rebuild

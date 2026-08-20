@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/v1/learning", tags=["learning"])
 
 
 def _db_path() -> Path:
-    return Path(resolve_runtime_path(str(config.get("database.path", "data/cognitive_os.sqlite"))))
+    return Path(resolve_runtime_path(str(config.get("database.path", "data/archeaxis.sqlite"))))
 
 
 # ── dual mastery ────────────────────────────────────────────────────

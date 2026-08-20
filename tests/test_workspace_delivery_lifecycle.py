@@ -181,7 +181,7 @@ def main():
         return 1
 
     # Checkpoint WAL before starting the server (avoid sidecar issues)
-    db_path = DATA_DIR / "cognitive_os.sqlite"
+    db_path = DATA_DIR / "archeaxis.sqlite"
     if db_path.exists():
         with sqlite3.connect(str(db_path)) as _conn:
             _conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")

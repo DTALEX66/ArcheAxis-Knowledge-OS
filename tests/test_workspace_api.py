@@ -3,6 +3,28 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 
+def test_source_archive_projection_lists_retained_originals_without_paths(tmp_path, monkeypatch) -> None:
+    from app.ingestion.raw_asset import RawAssetStore
+    from app.main import app
+    from app.workspace import router
+
+    database = tmp_path / "archeaxis.sqlite"
+    RawAssetStore(root=tmp_path / "source_archive" / "raw-assets").store_original(
+        b"immutable source bytes", "notes.md"
+    )
+    monkeypatch.setattr(router, "DB_PATH", database)
+
+    response = TestClient(app).get("/workspace/api/library")
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["source_name"] == "notes.md"
+    assert item["size_bytes"] == len(b"immutable source bytes")
+    assert item["conversion_state"] == "retained"
+    assert len(item["raw_sha256"]) == 64
+    assert "path" not in item
+
+
 def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     from app.main import app
 
@@ -615,6 +637,11 @@ def test_workspace_upload_failure_removes_new_file_and_replay_reuses_content_pat
         )
     upload_dir = database.parent / "intake_uploads"
     assert list(upload_dir.iterdir()) == []
+    raw_dir = database.parent / "source_archive" / "raw-assets"
+    raw_files = [path for path in raw_dir.iterdir() if path.is_file()]
+    assert len(raw_files) == 1
+    assert raw_files[0].read_bytes() == b"Atomic upload"
+    assert list((raw_dir / "_failures").glob("*.json"))
 
     monkeypatch.setattr(service, "record_completed_command", original)
     first = service.intake_upload(
@@ -624,6 +651,7 @@ def test_workspace_upload_failure_removes_new_file_and_replay_reuses_content_pat
         file_name="atomic.txt", content=b"Atomic upload", db_path=database
     )
     assert replay["package_id"] == first["package_id"]
+    assert first["raw_sha256"] == replay["raw_sha256"]
     assert len(list(upload_dir.iterdir())) == 1
 
 

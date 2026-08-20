@@ -324,7 +324,12 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def create_workspace(root: str | Path, name: str) -> WorkspaceManifest:
+def create_workspace(
+    root: str | Path,
+    name: str,
+    *,
+    domain_paths: dict[str, str | Path] | None = None,
+) -> WorkspaceManifest:
     """Create a workspace directory tree with the four asset domains.
 
     Creates `<root>/<name>/` containing one directory per asset domain,
@@ -342,6 +347,12 @@ def create_workspace(root: str | Path, name: str) -> WorkspaceManifest:
         existing = load(manifest_path)
         return existing
 
+    if domain_paths is not None and set(domain_paths) != set(ASSET_DOMAINS):
+        raise ValueError("workspace domain paths must name each of the four asset domains exactly once")
+    resolved_domains = {
+        domain_key: Path(domain_paths[domain_key]) if domain_paths is not None else workspace_dir / domain_key
+        for domain_key in ASSET_DOMAINS
+    }
     created_at = _now_iso()
     manifest = WorkspaceManifest(
         schema_version=SCHEMA_VERSION,
@@ -350,7 +361,7 @@ def create_workspace(root: str | Path, name: str) -> WorkspaceManifest:
         name=str(name).strip(),
         domains={
             domain_key: DomainInfo(
-                path=str(workspace_dir / domain_key),
+                path=str(resolved_domains[domain_key]),
                 type=domain_key,
                 readonly=False,
             )

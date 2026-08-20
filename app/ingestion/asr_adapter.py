@@ -15,7 +15,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-DEFAULT_MODEL_DIR = r"D:\All projects\Model library\whisper"
+# A shared model library is optional and must be selected explicitly through
+# configuration or ARCHEAXIS_ASR_MODEL_DIR. Keep the fallback project-local so
+# this module never captures a developer-machine path in the release build.
+DEFAULT_MODEL_DIR = Path("models") / "whisper"
 DEFAULT_MODEL_NAME = "faster-whisper-large-v3-turbo"
 
 
@@ -24,7 +27,7 @@ class AsrError(ValueError):
 
 
 def resolve_model_dir() -> Path:
-    """Model directory from config (asr.model_dir) or env, else the shared lib."""
+    """Model directory from config or env, else an optional project-local path."""
     try:
         from shared.config import config
         configured = str(config.get("asr.model_dir", "") or "").strip()
@@ -69,7 +72,16 @@ def transcribe(audio_path: str | Path) -> dict[str, Any]:
 
 
 
-_SENSE_VOICE_DIR = Path(r"D:\All projects\Model library\sherpa-onnx\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17")
+def _sense_voice_dir() -> Path:
+    """Return an explicitly configured SenseVoice model location.
+
+    An absent configuration deliberately resolves inside project runtime data,
+    where the subsequent model-file check fails closed.
+    """
+    configured = os.environ.get("ARCHEAXIS_SENSE_VOICE_MODEL_DIR", "").strip()
+    if configured:
+        return Path(configured)
+    return Path(".hermes") / "task-runtime" / "models" / "sense-voice"
 
 
 def _read_wav(path: Path):
@@ -92,8 +104,9 @@ def transcribe_sense_voice(audio_path: str | Path) -> dict[str, Any] | None:
         import sherpa_onnx  # noqa: F401
     except ImportError:
         return None
-    model = _SENSE_VOICE_DIR / "model.int8.onnx"
-    tokens = _SENSE_VOICE_DIR / "tokens.txt"
+    model_dir = _sense_voice_dir()
+    model = model_dir / "model.int8.onnx"
+    tokens = model_dir / "tokens.txt"
     if not model.is_file() or not tokens.is_file():
         return None
     try:

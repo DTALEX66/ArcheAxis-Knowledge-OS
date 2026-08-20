@@ -1,13 +1,22 @@
 {
-  "generated_at": "2026-08-19",
-  "remote": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git",
   "branch": "main",
-  "head_sha": "cd85de1e0d16bccbe98c7e01bf41e36e18f0d96d",
-  "sync": "local == origin/main",
-  "tree_clean": true,
-  "release": {
-    "version": "0.5.0",
-    "note": "legacy asset; current packaging under packaging/ (developer-kit)"
+  "commit_sha": "9579cb2e9785b7a8aea9549626a3fc0287f67351",
+  "environment": {
+    "generator": "scripts/generate_current_reports.py",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.14"
   },
-  "python_root_package": "app (target archeaxis — not yet migrated)"
+  "evidence_level": "STRUCTURAL",
+  "generated_at": "2026-08-20T17:03:57+00:00",
+  "head_matches_origin_main": true,
+  "origin_main_sha": "9579cb2e9785b7a8aea9549626a3fc0287f67351",
+  "release": {
+    "state": "development",
+    "version": "0.6.0"
+  },
+  "remote": "git@github.com:DTALEX66/ArcheAxis-Knowledge-OS.git",
+  "schema_version": "1.0.0",
+  "taskpack_baseline_matches_head": false,
+  "taskpack_baseline_sha": "051ee2d0d14398d9e812e657ad82ad1a44e7ed58",
+  "tree_sha": "24cc82aaa5c015ffe335f025c9998b30d53957c8"
 }

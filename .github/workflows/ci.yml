@@ -513,9 +513,9 @@ jobs:
             ~/.cargo/bin
             ~/.cargo/registry
             ~/.cargo/git
-            desktop/src-tauri/target
+            src-tauri/target
             .hermes/cache/uv-desktop
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-fast-naming-v6
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}-fast-naming-v6
           restore-keys: |
             ${{ runner.os }}-cargo-
       - name: Install locked Python runtime
@@ -525,19 +525,19 @@ jobs:
           python -m desktop.scripts.prepare_bundle
           --repository .
           --destination .hermes/rt
-      - name: Test the Windows Rust library
-        working-directory: desktop/src-tauri
+      - name: Test the canonical Windows desktop shell
+        working-directory: src-tauri
         run: |
           cargo fmt --all -- --check
-          cargo test --lib
-      - name: Test the development and installed backend lifecycles
-        working-directory: desktop/src-tauri
+          cargo test
+      - name: Test the canonical desktop recovery contracts
+        working-directory: src-tauri
         env:
           ARCHEAXIS_RATE_LIMIT_READ: "10000"
           ARCHEAXIS_RATE_LIMIT_WRITE: "1000"
           ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
           ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
-        run: cargo test --test backend_lifecycle -- --ignored --nocapture
+        run: cargo test
 
   desktop-build:
     runs-on: windows-latest
@@ -571,15 +571,15 @@ jobs:
             ~/.cargo/bin
             ~/.cargo/registry
             ~/.cargo/git
-            desktop/src-tauri/target
+            src-tauri/target
             .hermes/cache/uv-desktop
-          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}-build-naming-v6
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}-build-naming-v6
           restore-keys: |
             ${{ runner.os }}-cargo-
       - name: Install locked Python runtime
         run: uv sync --frozen
-      - name: Install locked desktop tooling
-        working-directory: desktop
+      - name: Install locked frontend tooling
+        working-directory: frontend
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Prepare the installed Python runtime
         run: >-
@@ -587,7 +587,7 @@ jobs:
           --repository .
           --destination .hermes/rt
       - name: Audit locked Rust dependencies
-        working-directory: desktop/src-tauri
+        working-directory: src-tauri
         run: |
           $cargoBin = Join-Path $HOME ".cargo/bin"
           $env:PATH = "$cargoBin;$env:PATH"
@@ -597,18 +597,17 @@ jobs:
           }
           cargo audit --file Cargo.lock
       - name: Build the Windows release and NSIS installer
-        working-directory: desktop
         run: |
           Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis" -Recurse -Force -ErrorAction SilentlyContinue
-          npm run tauri -- build --bundles nsis
+          frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis
       - name: Require the Windows release artifacts
         shell: pwsh
         run: |
-          if (-not (Test-Path "desktop/src-tauri/target/release/archeaxis-desktop-shell.exe")) {
+          if (-not (Test-Path "src-tauri/target/release/ArcheAxis.exe")) {
             throw "release executable is missing"
           }
-          $package = Get-Content "desktop/package.json" -Raw | ConvertFrom-Json
-          $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
+          $package = Get-Content "frontend/package.json" -Raw | ConvertFrom-Json
+          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
           $expected = "ArcheAxis Knowledge_$($package.version)_x64-setup.exe"
           Write-Host "NSIS installers found: $($installers.Name -join ', ')"
           if ($installers.Count -ne 1) {
@@ -621,7 +620,7 @@ jobs:
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
         with:
           name: nsis-installer
-          path: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          path: src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
 
   installer-lifecycle:
@@ -637,7 +636,7 @@ jobs:
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e
         with:
           name: nsis-installer
-          path: desktop/src-tauri/target/release/bundle/nsis
+          path: src-tauri/target/release/bundle/nsis
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         env:
@@ -646,8 +645,8 @@ jobs:
           ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
           ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
         run: |
-          $package = Get-Content "desktop/package.json" -Raw | ConvertFrom-Json
-          $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
+          $package = Get-Content "frontend/package.json" -Raw | ConvertFrom-Json
+          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
           $expected = "ArcheAxis Knowledge_$($package.version)_x64-setup.exe"
           Write-Host "NSIS installers found: $($installers.Name -join ', ')"
           if ($installers.Count -ne 1) {

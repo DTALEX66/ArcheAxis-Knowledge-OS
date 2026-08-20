@@ -67,8 +67,8 @@ jobs:
             throw "tag must be vX.Y.Z, got: $env:GITHUB_REF_NAME"
           }
           $pyVersion = [regex]::Match((Get-Content pyproject.toml -Raw), '^version\s*=\s*"([^"]+)"', 'Multiline').Groups[1].Value
-          $pkgVersion = (Get-Content desktop/package.json -Raw | ConvertFrom-Json).version
-          $tauriVersion = (Get-Content desktop/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $pkgVersion = (Get-Content frontend/package.json -Raw | ConvertFrom-Json).version
+          $tauriVersion = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
           $sources = [ordered]@{
             pyproject = $pyVersion
             package.json = $pkgVersion
@@ -81,8 +81,8 @@ jobs:
           }
           "release_version=$releaseVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "Release version verified: $releaseVersion (tag/pyproject/package.json/tauri.conf.json all agree)"
-      - name: Install locked desktop tooling
-        working-directory: desktop
+      - name: Install locked frontend tooling
+        working-directory: frontend
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Prepare bundled runtime and inject exact release identity
         shell: pwsh
@@ -90,8 +90,8 @@ jobs:
           python -m desktop.scripts.prepare_bundle --repository . --destination .hermes/rt
           $tree = git rev-parse "$env:GITHUB_SHA^{tree}"
           $uvLockHash = (Get-FileHash uv.lock -Algorithm SHA256).Hash.ToLowerInvariant()
-          $npmLockHash = (Get-FileHash desktop/package-lock.json -Algorithm SHA256).Hash.ToLowerInvariant()
-          $cargoLockHash = (Get-FileHash desktop/src-tauri/Cargo.lock -Algorithm SHA256).Hash.ToLowerInvariant()
+          $npmLockHash = (Get-FileHash frontend/package-lock.json -Algorithm SHA256).Hash.ToLowerInvariant()
+          $cargoLockHash = (Get-FileHash src-tauri/Cargo.lock -Algorithm SHA256).Hash.ToLowerInvariant()
           python scripts/release_inject_identity.py `
             --commit $env:GITHUB_SHA `
             --tree $tree `
@@ -102,15 +102,14 @@ jobs:
             --verification-ci-run-id ${{ steps.require_ci.outputs.verification_run_id }} `
             --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
             --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,release-manifest.json,SBOM.cdx.json,THIRD_PARTY_NOTICES.txt,SHA256SUMS.txt" `
-            --dependency-locks "uv.lock=$uvLockHash,desktop/package-lock.json=$npmLockHash,desktop/src-tauri/Cargo.lock=$cargoLockHash" `
+            --dependency-locks "uv.lock=$uvLockHash,frontend/package-lock.json=$npmLockHash,src-tauri/Cargo.lock=$cargoLockHash" `
             --output .hermes/rt/runtime/release-identity.json
       - name: Build Windows NSIS installer
-        working-directory: desktop
-        run: npm run tauri -- build --bundles nsis
+        run: frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis
       - name: Verify installed NSIS lifecycle
         shell: pwsh
         run: |
-          $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe")
+          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe")
           if ($installers.Count -ne 1) { throw "expected exactly one NSIS installer, found $($installers.Count)" }
           ./desktop/scripts/verify_nsis_install.ps1 -Installer $installers[0].FullName -RequireReleaseIdentity
       - name: Build release wheel and checksums
@@ -119,7 +118,7 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           uv build --wheel --out-dir release-assets
           $wheel = @(Get-ChildItem "release-assets/*.whl")
-          $installers = @(Get-ChildItem "desktop/src-tauri/target/release/bundle/nsis/*.exe")
+          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe")
           if ($wheel.Count -ne 1 -or $installers.Count -ne 1) { throw "expected one wheel and one NSIS installer" }
           Get-ChildItem release-assets -Force -File |
             Where-Object Name -eq '.gitignore' |
@@ -130,9 +129,9 @@ jobs:
           # AXW-PKG-602/603: Green and Portable ZIPs assembled from the SAME
           # verified runtime as the installer; AXW-SUP-703 SBOM from locks.
           python desktop/scripts/assemble_distributions.py `
-            --exe desktop/src-tauri/target/release/ArcheAxis.exe `
+            --exe src-tauri/target/release/ArcheAxis.exe `
             --runtime .hermes/rt/runtime `
-            --frontend desktop/bootstrap `
+            --frontend frontend/dist `
             --identity .hermes/rt/runtime/release-identity.json `
             --out release-assets `
             --version ${{ steps.resolve_version.outputs.release_version }}

@@ -198,10 +198,19 @@ def _validate_identity_source_v1(source: dict[str, Any]) -> None:
         raise RuntimeError("artifact release identity has invalid v1 source fields")
 
 
-def _validate_identity_release(release: dict[str, Any], version: str) -> None:
+def _validate_identity_release(release: dict[str, Any]) -> None:
+    """Validate an artifact identity without conflating it with source HEAD.
+
+    A packaged identity can describe an older public release while the source
+    manifest deliberately describes a newer unreleased development version.
+    Requiring those versions to match makes historical release readback fail
+    immediately after a version bump and can tempt callers to rewrite history.
+    """
+    version = release["version"]
     if (
-        release["tag"] != f"v{version}"
-        or release["version"] != version
+        not isinstance(version, str)
+        or not version
+        or release["tag"] != f"v{version}"
         or release["channel"] != "stable"
         or release["public"] is not True
         or not isinstance(release["url"], str)
@@ -246,8 +255,7 @@ def load_artifact_release_identity() -> dict[str, Any] | None:
             },
             "artifact source",
         )
-        version = load_release_manifest()["product"]["version"]
-        _validate_identity_release(release, version)
+        _validate_identity_release(release)
         _validate_identity_source_v2(source)
         return identity
 
@@ -258,8 +266,7 @@ def load_artifact_release_identity() -> dict[str, Any] | None:
         source = _require_exact_keys(
             identity["source"], {"commit", "tree", "ci_run", "ci_url"}, "artifact source"
         )
-        version = load_release_manifest()["product"]["version"]
-        _validate_identity_release(release, version)
+        _validate_identity_release(release)
         _validate_identity_source_v1(source)
         return identity
 

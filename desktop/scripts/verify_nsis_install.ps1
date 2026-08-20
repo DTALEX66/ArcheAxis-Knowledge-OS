@@ -84,7 +84,7 @@ try {
     }
     $ownsInstall = $true
 
-    $executable = Join-Path $installRoot 'archeaxis-desktop-shell.exe'
+    $executable = Join-Path $installRoot 'ArcheAxis.exe'
     $python = Join-Path $installRoot 'runtime\python\python.exe'
     $doubleNestedPython = Join-Path $installRoot 'runtime\runtime\python\python.exe'
     if (-not (Test-Path $executable -PathType Leaf)) {
@@ -109,14 +109,14 @@ try {
     $base = "http://127.0.0.1:$($normal.Listener.LocalPort)"
     $workspaceStatus = (Invoke-WebRequest "$base/workspace" -UseBasicParsing).StatusCode
     $status = Invoke-RestMethod "$base/workspace/api/status"
-    if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.5.0') {
+    if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.0') {
         throw 'installed Workspace returned an invalid product response'
     }
     if ($RequireReleaseIdentity) {
         $version = Invoke-RestMethod "$base/version"
         if (
             $version.release.status -ne 'released' -or
-            $version.release.tag -ne 'v0.5.0' -or
+            $version.release.tag -ne 'v0.6.0' -or
             $version.capabilities.public_installer -ne 'available'
         ) {
             throw 'installed runtime did not expose the verified public release identity'

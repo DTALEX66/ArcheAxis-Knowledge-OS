@@ -63,7 +63,7 @@ def main() -> int:
             page.wait_for_function("""() => document.querySelector('#delivery-center')?.innerText.includes('Receipt recorded：1')""")
             assert "Outbox pending：0" in _summary(page)
 
-            database = DATA_DIR / "cognitive_os.sqlite"
+            database = DATA_DIR / "archeaxis.sqlite"
             with sqlite3.connect(database) as connection:
                 connection.execute(
                     "UPDATE workspace_outbox_v1 SET state='failed', lease_token=NULL, "

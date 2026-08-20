@@ -153,6 +153,7 @@ class WorkspaceIntakeResult(BaseModel):
     engine: str | None = None
     content_preview: str | None = None
     char_count: int | None = Field(default=None, ge=0)
+    raw_sha256: str | None = None
     source_count: int | None = Field(default=None, ge=0)
     claim_count: int | None = Field(default=None, ge=0)
     evidence_count: int | None = Field(default=None, ge=0)
@@ -169,6 +170,7 @@ def _product_intake_result(result: dict[str, Any]) -> WorkspaceIntakeResult:
             engine=result.get("engine"),
             content_preview=content[:400] if isinstance(content, str) and content.strip() else None,
             char_count=result.get("char_count"),
+            raw_sha256=result.get("raw_sha256"),
             source_count=result.get("source_count"),
             claim_count=result.get("claim_count"),
             evidence_count=result.get("evidence_count"),
@@ -614,6 +616,13 @@ async def intake_upload(
 def workspace_jobs(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.workspace_jobs(db_path=DB_PATH))
+
+
+@router.get("/api/library")
+def workspace_library(request: Request) -> dict[str, object]:
+    """List retained originals as a path-free Source Archive projection."""
+    _local_principal(request)
+    return _command_error(lambda: service.workspace_library(db_path=DB_PATH))
 
 
 @router.get("/api/delivery")

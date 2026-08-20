@@ -8,6 +8,7 @@ from app.contracts.federation_v1 import (
     CandidateSubmissionItemV1,
     ExternalAssetRecordV1,
     KnowledgeQueryV1,
+    ReviewDecisionV1,
 )
 from app.federation import service
 
@@ -103,3 +104,51 @@ def test_external_asset_record(tmp_path):
     assert assets[0]["uri"].endswith("method-card.svg")
     assert assets[0]["hash"] == "deadbeef0123"
     assert assets[0]["derived_ids"] == ["knowledge-1"]
+
+
+def test_review_is_versioned_idempotent_and_append_only(tmp_path):
+    db = tmp_path / "fed.sqlite"
+    service.submit_candidates(db, _submission("review-idem"))
+    import sqlite3
+
+    with sqlite3.connect(db) as conn:
+        candidate_id = conn.execute(
+            "SELECT id FROM federation_candidates_v1 WHERE item_key='a'"
+        ).fetchone()[0]
+
+    decision = ReviewDecisionV1(
+        decision="verified",
+        reviewer_id="reviewer-1",
+        rationale="anchor and source were reviewed",
+        expected_version=1,
+        idempotency_key="review-1",
+    )
+    first = service.review_candidate(db, candidate_id, decision)
+    second = service.review_candidate(db, candidate_id, decision)
+    assert first == {"candidate_id": candidate_id, "status": "verified", "version": 2, "duplicate": False}
+    assert second == {"candidate_id": candidate_id, "status": "verified", "version": 2, "duplicate": True}
+    with sqlite3.connect(db) as conn:
+        events = conn.execute(
+            "SELECT decision, version FROM federation_candidate_events_v1 "
+            "WHERE candidate_id=? ORDER BY version", (candidate_id,)
+        ).fetchall()
+    assert events == [("candidate", 1), ("verified", 2)]
+
+    with pytest.raises(service.FederationError, match="version conflict"):
+        service.review_candidate(
+            db,
+            candidate_id,
+            decision.model_copy(update={"decision": "revoked", "idempotency_key": "review-2"}),
+        )
+
+
+def test_external_asset_rejects_conflicting_reuse_of_identity(tmp_path):
+    db = tmp_path / "fed.sqlite"
+    source = ExternalAssetRecordV1(
+        asset_id="asset-1", uri="file:///source-a", hash="a", source="designlab"
+    )
+    service.register_external_asset(db, source)
+    with pytest.raises(service.FederationError, match="different content"):
+        service.register_external_asset(
+            db, source.model_copy(update={"hash": "different"})
+        )

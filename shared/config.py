@@ -32,7 +32,7 @@ _DEFAULTS: dict[str, Any] = {
         "host": "0.0.0.0",
     },
     "database": {
-        "path": "data/cognitive_os.sqlite",
+        "path": "data/archeaxis.sqlite",
         "journal_mode": "WAL",
         "backup_dir": "data/backups",
     },

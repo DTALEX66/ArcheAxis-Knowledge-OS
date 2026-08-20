@@ -1,6 +1,8 @@
 """Federation record types: evidence / learning / provenance / rights (AA-P0-002)."""
 from __future__ import annotations
 
+import pytest
+
 from app.contracts.federation_v1 import (
     EvidenceIntakeV1,
     LearningRecordV1,
@@ -48,3 +50,11 @@ def test_record_rights(tmp_path):
     service.record_rights(db, rec)
     rows = service.list_records(db, "rights")
     assert len(rows) == 1 and rows[0]["rights"] == "cc-by-4.0"
+
+
+def test_record_ids_are_append_only(tmp_path):
+    db = tmp_path / "fed.sqlite"
+    rec = RightsRecordV1(record_id="rr-1", entity_id="asset-1", rights="cc-by-4.0")
+    service.record_rights(db, rec)
+    with pytest.raises(service.FederationError, match="append-only"):
+        service.record_rights(db, rec)

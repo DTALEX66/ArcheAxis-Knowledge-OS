@@ -1,10 +1,12 @@
 # 项目当前状态
 
+> **v0.6.0 当前裁决（2026-08-20）**：`v0.6.0 development — PARTIAL`。以下未明确标为历史的 0.5.0 叙述是迁移核查输入，不是 v0.6.0 发布证据；当前 SHA、能力矩阵与证据层级必须由 `scripts/generate_current_reports.py` 生成的 `reports/current/` 报告和实际门禁运行决定。
+
 > 更新：2026-08-09。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
 
-- 当前源码版本为 `0.5.0`，packaged source manifest 按合同仍为 `unreleased / public=false`；公开稳定 Release `v0.5.0` 已由独立 artifact identity 记录并完成下载回读，源码字段不会预先宣告公开发布。
+- 当前源码版本为 `0.6.0`，packaged source manifest 按合同仍为 `unreleased / public=false`；公开稳定 Release `v0.5.0` 仅由独立 artifact identity 记录为历史，不会预先或隐式宣告 v0.6.0 公开发布。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
 - `v0.5.0` 已满足 tag 精确绑定受保护 `main`、merge-SHA Full Qualification、公开资产集合与 checksum payload allowlist 双向一致、provider digest 可核验、下载后 SHA-256 复算、release identity 读回和 installer lifecycle；当前没有签名发布声明。
 

@@ -32,6 +32,7 @@ export function createApiClient(baseUrl: string, token: string) {
       ...init,
       headers: {
         Authorization: `Bearer ${token}`,
+        ...(token ? { "X-ArcheAxis-Launch-Token": token } : {}),
         ...(init?.headers ?? {}),
       },
     });

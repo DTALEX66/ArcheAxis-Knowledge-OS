@@ -27,6 +27,7 @@ from app.contracts.federation_v1 import (
     ExternalAssetRecordV1,
     KnowledgeProjectionV1,
     KnowledgeQueryV1,
+    ReviewDecisionV1,
 )
 
 _SCHEMA = """
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS federation_candidates_v1 (
     status TEXT NOT NULL DEFAULT 'candidate',   -- candidate | verified | rejected
     verified_at TEXT,
     reviewer TEXT,
+    revision INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
     UNIQUE (idempotency_key, item_key)
 );
@@ -70,6 +72,20 @@ CREATE TABLE IF NOT EXISTS external_asset_records_v1 (
     derived_ids_json TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS federation_candidate_events_v1 (
+    event_id TEXT PRIMARY KEY,
+    candidate_id TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    decision TEXT NOT NULL,
+    actor TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(candidate_id, version),
+    UNIQUE(candidate_id, idempotency_key)
+);
+CREATE INDEX IF NOT EXISTS idx_fce_candidate_version
+    ON federation_candidate_events_v1(candidate_id, version DESC);
 """
 
 
@@ -84,9 +100,16 @@ class SubmissionResult:
 
 
 def _connect(db: str | Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(Path(db))
+    path = Path(db)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(federation_candidates_v1)")}
+    if "revision" not in columns:
+        conn.execute(
+            "ALTER TABLE federation_candidates_v1 ADD COLUMN revision INTEGER NOT NULL DEFAULT 1"
+        )
     return conn
 
 
@@ -131,7 +154,7 @@ def submit_candidates(db: str | Path, submission: CandidateSubmissionV1) -> Subm
         accepted = 0
         for item in submission.items:
             candidate_id = _stable_id("fedcand", submission.idempotency_key, item.item_key)
-            conn.execute(
+            inserted = conn.execute(
                 "INSERT OR IGNORE INTO federation_candidates_v1 "
                 "(id, submission_id, idempotency_key, item_key, submitter, claim, source_ref, "
                 "confidence, kind, rights, status, verified_at, reviewer, created_at) "
@@ -140,7 +163,20 @@ def submit_candidates(db: str | Path, submission: CandidateSubmissionV1) -> Subm
                  submission.submitter, item.claim, item.source_ref, item.confidence,
                  item.kind, item.rights, now),
             )
-            accepted += 1
+            if inserted.rowcount:
+                conn.execute(
+                    "INSERT INTO federation_candidate_events_v1 "
+                    "(event_id, candidate_id, version, decision, actor, rationale, idempotency_key, created_at) "
+                    "VALUES (?, ?, 1, 'candidate', ?, 'initial candidate submission', ?, ?)",
+                    (
+                        _stable_id("fedevent", candidate_id, "1"),
+                        candidate_id,
+                        submission.submitter,
+                        submission.idempotency_key,
+                        now,
+                    ),
+                )
+                accepted += 1
         conn.execute(
             "INSERT INTO federation_receipts_v1 (submission_id, idempotency_key, status, "
             "accepted, rejected, items_hash, created_at) VALUES (?, ?, 'accepted', ?, 0, ?, ?)",
@@ -174,21 +210,112 @@ def get_receipt(db: str | Path, submission_id: str) -> CandidateReceiptV1:
 
 # ── verified promotion (human-governed) / query ──────────────────────
 
-def promote_to_verified(db: str | Path, candidate_id: str, *, reviewer: str) -> None:
-    """Human-governed promotion: candidate -> verified (AA-P0-003: never auto)."""
+_ALLOWED_REVIEW_TRANSITIONS = {
+    "candidate": {"verified", "rejected", "disputed"},
+    "verified": {"deprecated", "revoked", "disputed"},
+    "rejected": {"disputed"},
+    "disputed": {"verified", "rejected", "deprecated", "revoked"},
+    "deprecated": {"revoked"},
+    "revoked": set(),
+}
+
+
+def review_candidate(
+    db: str | Path, candidate_id: str, decision: ReviewDecisionV1
+) -> dict[str, object]:
+    """Append and project one authenticated human review decision.
+
+    The immutable event table is authoritative.  The candidate row is only a
+    query projection kept in the same transaction for older consumers.
+    """
     with _connect(db) as conn:
         row = conn.execute(
             "SELECT * FROM federation_candidates_v1 WHERE id=?", (candidate_id,)
         ).fetchone()
         if row is None:
             raise FederationError(f"candidate not found: {candidate_id}")
-        if row["status"] != "candidate":
-            raise FederationError("only candidates can be promoted")
+        current_status = str(row["status"])
+        current_version = int(row["revision"])
+        duplicate = conn.execute(
+            "SELECT * FROM federation_candidate_events_v1 "
+            "WHERE candidate_id=? AND idempotency_key=?",
+            (candidate_id, decision.idempotency_key),
+        ).fetchone()
+        if duplicate is not None:
+            if (
+                duplicate["decision"] != decision.decision
+                or duplicate["actor"] != decision.reviewer_id
+                or duplicate["rationale"] != decision.rationale
+            ):
+                raise FederationError("idempotency key was already used for a different decision")
+            return {
+                "candidate_id": candidate_id,
+                "status": duplicate["decision"],
+                "version": int(duplicate["version"]),
+                "duplicate": True,
+            }
+        if decision.expected_version != current_version:
+            raise FederationError(
+                f"review version conflict: expected {decision.expected_version}, current {current_version}"
+            )
+        if decision.decision not in _ALLOWED_REVIEW_TRANSITIONS.get(current_status, set()):
+            raise FederationError(
+                f"invalid review transition: {current_status} -> {decision.decision}"
+            )
+        next_version = current_version + 1
+        now = _now()
         conn.execute(
-            "UPDATE federation_candidates_v1 SET status='verified', verified_at=?, reviewer=? "
-            "WHERE id=?",
-            (_now(), reviewer, candidate_id),
+            "INSERT INTO federation_candidate_events_v1 "
+            "(event_id, candidate_id, version, decision, actor, rationale, idempotency_key, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                _stable_id("fedevent", candidate_id, str(next_version), decision.idempotency_key),
+                candidate_id,
+                next_version,
+                decision.decision,
+                decision.reviewer_id,
+                decision.rationale,
+                decision.idempotency_key,
+                now,
+            ),
         )
+        conn.execute(
+            "UPDATE federation_candidates_v1 SET status=?, verified_at=?, reviewer=?, revision=? WHERE id=?",
+            (
+                decision.decision,
+                now if decision.decision == "verified" else None,
+                decision.reviewer_id,
+                next_version,
+                candidate_id,
+            ),
+        )
+    return {
+        "candidate_id": candidate_id,
+        "status": decision.decision,
+        "version": next_version,
+        "duplicate": False,
+    }
+
+
+def promote_to_verified(db: str | Path, candidate_id: str, *, reviewer: str) -> None:
+    """Legacy service wrapper; API callers must use :func:`review_candidate`."""
+    with _connect(db) as conn:
+        row = conn.execute(
+            "SELECT revision FROM federation_candidates_v1 WHERE id=?", (candidate_id,)
+        ).fetchone()
+    if row is None:
+        raise FederationError(f"candidate not found: {candidate_id}")
+    review_candidate(
+        db,
+        candidate_id,
+        ReviewDecisionV1(
+            decision="verified",
+            reviewer_id=reviewer,
+            rationale="legacy service promotion wrapper",
+            expected_version=int(row["revision"]),
+            idempotency_key=f"legacy-promote:{candidate_id}:{row['revision']}",
+        ),
+    )
 
 
 def query_verified(db: str | Path, request: KnowledgeQueryV1) -> KnowledgeProjectionV1:
@@ -229,15 +356,31 @@ def query_verified(db: str | Path, request: KnowledgeQueryV1) -> KnowledgeProjec
 # ── external asset records (AA-P1-001) ───────────────────────────────
 
 def register_external_asset(db: str | Path, record: ExternalAssetRecordV1) -> str:
-    """Register an external asset RECORD (URI/hash only; never copies the file)."""
+    """Register an external asset RECORD without silently overwriting history."""
     with _connect(db) as conn:
+        existing = conn.execute(
+            "SELECT * FROM external_asset_records_v1 WHERE asset_id=?", (record.asset_id,)
+        ).fetchone()
+        extraction = json.dumps(record.extraction, ensure_ascii=False, sort_keys=True)
+        derived_ids = json.dumps(record.derived_ids, ensure_ascii=False)
+        if existing is not None:
+            if (
+                existing["uri"] != record.uri
+                or existing["hash"] != record.hash
+                or existing["media_type"] != record.media_type
+                or existing["source"] != record.source
+                or existing["rights"] != record.rights
+                or existing["extraction_json"] != extraction
+                or existing["derived_ids_json"] != derived_ids
+            ):
+                raise FederationError("external asset id already exists with different content")
+            return record.asset_id
         conn.execute(
-            "INSERT OR REPLACE INTO external_asset_records_v1 "
+            "INSERT INTO external_asset_records_v1 "
             "(asset_id, uri, hash, media_type, source, rights, extraction_json, derived_ids_json, created_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (record.asset_id, record.uri, record.hash, record.media_type, record.source,
-             record.rights, json.dumps(record.extraction, ensure_ascii=False),
-             json.dumps(record.derived_ids, ensure_ascii=False),
+             record.rights, extraction, derived_ids,
              record.created_at or _now()),
         )
     return record.asset_id
@@ -303,14 +446,21 @@ def _ensure_record_tables(conn: sqlite3.Connection) -> None:
     conn.executescript(_RECORD_SCHEMA)
 
 
+def _append_record(conn: sqlite3.Connection, table: str, record_id: str, values: tuple[Any, ...]) -> None:
+    try:
+        conn.execute(f"INSERT INTO {table} VALUES ({','.join('?' for _ in values)})", values)
+    except sqlite3.IntegrityError as exc:
+        raise FederationError(f"append-only record already exists: {record_id}") from exc
+
+
 def record_evidence(db: str | Path, record: "EvidenceIntakeV1") -> str:
     """Evidence intake (append-only) — evidence object with anchor + hash."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
-        conn.execute(
-            "INSERT OR REPLACE INTO federation_evidence_records_v1 "
-            "(record_id, source_ref, anchor_json, content_hash, rights, verified, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        _append_record(
+            conn,
+            "federation_evidence_records_v1",
+            record.evidence_id,
             (record.evidence_id, record.source_ref, json.dumps(record.anchor, ensure_ascii=False),
              record.content_hash, record.rights, int(record.verified), _now()),
         )
@@ -321,9 +471,10 @@ def record_learning(db: str | Path, record: "LearningRecordV1") -> str:
     """Human learning record (append-only) — review/quiz/teach_back/mastery."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
-        conn.execute(
-            "INSERT OR REPLACE INTO federation_learning_records_v1 "
-            "(record_id, concept, kind, outcome_json, source_ref, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        _append_record(
+            conn,
+            "federation_learning_records_v1",
+            record.record_id,
             (record.record_id, record.concept, record.kind,
              json.dumps(record.outcome, ensure_ascii=False), record.source_ref, _now()),
         )
@@ -334,9 +485,10 @@ def record_provenance(db: str | Path, record: "ProvenanceRecordV1") -> str:
     """Provenance event (append-only) — created/promoted/revoked/superseded."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
-        conn.execute(
-            "INSERT OR REPLACE INTO federation_provenance_records_v1 "
-            "(record_id, entity_id, event, actor, at, parent_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        _append_record(
+            conn,
+            "federation_provenance_records_v1",
+            record.record_id,
             (record.record_id, record.entity_id, record.event, record.actor, record.at,
              record.parent_id, _now()),
         )
@@ -347,9 +499,10 @@ def record_rights(db: str | Path, record: "RightsRecordV1") -> str:
     """Rights/permission record (append-only)."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
-        conn.execute(
-            "INSERT OR REPLACE INTO federation_rights_records_v1 "
-            "(record_id, entity_id, rights, scope, source_ref, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        _append_record(
+            conn,
+            "federation_rights_records_v1",
+            record.record_id,
             (record.record_id, record.entity_id, record.rights, record.scope,
              record.source_ref, _now()),
         )
