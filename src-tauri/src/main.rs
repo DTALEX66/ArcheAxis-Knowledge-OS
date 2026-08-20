@@ -131,12 +131,18 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if matches!(event, WindowEvent::CloseRequested { .. }) {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                // The Windows close request alone does not reliably end the
+                // Tauri run loop on the packaged shell.  Shut down the owned
+                // backend first, then destroy the native window and exit.
+                api.prevent_close();
                 if let Ok(mut state) = window.app_handle().state::<DesktopBackend>().process.lock() {
                     if let Some(process) = state.as_mut() {
                         process.shutdown();
                     }
                 }
+                let _ = window.destroy();
+                window.app_handle().exit(0);
             }
         })
         .build(tauri::generate_context!())

@@ -86,6 +86,17 @@ def test_root_tauri_shell_creates_its_webview_at_the_resolved_data_root() -> Non
     assert ".data_directory(webview_data_dir)" in source
 
 
+def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
+    """The packaged root shell must not survive a WM_CLOSE on Windows."""
+    repository = Path(__file__).resolve().parents[1]
+    source = (repository / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
+
+    assert "WindowEvent::CloseRequested { api, .. }" in source
+    assert "api.prevent_close();" in source
+    assert "window.destroy();" in source
+    assert "window.app_handle().exit(0);" in source
+
+
 def test_vite_root_is_stable_when_tauri_builds_through_a_windows_junction() -> None:
     repository = Path(__file__).resolve().parents[1]
     vite = (repository / "frontend" / "vite.config.ts").read_text(encoding="utf-8")

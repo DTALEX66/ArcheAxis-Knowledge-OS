@@ -69,6 +69,7 @@ risk_classes:
     paths:
       - "desktop/scripts/**"
       - frontend/vite.config.ts
+      - "src-tauri/**"
       - desktop/src-tauri/tauri.conf.json
       - desktop/src-tauri/build.rs
       - desktop/package.json
