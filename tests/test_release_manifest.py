@@ -393,6 +393,21 @@ def test_release_workflow_verifies_green_and_portable_lifecycle_before_metadata(
     assert "for ($launch = 1; $launch -le 2; $launch++)" in lifecycle
 
 
+def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> None:
+    root = Path(__file__).resolve().parents[1]
+    lifecycle = (root / "desktop" / "scripts" / "verify_nsis_install.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "NSIS in-place upgrade" in lifecycle
+    assert "release-lifecycle-sentinel.txt" in lifecycle
+    assert "NSIS uninstall removed user data instead of retaining it" in lifecycle
+    assert "reinstalled Workspace did not read back retained user state" in lifecycle
+    assert "InPlaceUpgrade = $true" in lifecycle
+    assert "UninstallRetainsData = $true" in lifecycle
+    assert "ReinstallReadback = $true" in lifecycle
+
+
 def test_release_truth_documents_preserve_historical_and_source_manifest_truth() -> None:
     root = Path(__file__).resolve().parents[1]
     required = ["LICENSE", "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CHANGELOG.md"]

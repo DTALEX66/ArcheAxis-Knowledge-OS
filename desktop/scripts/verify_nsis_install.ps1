@@ -140,6 +140,40 @@ try {
         throw "installed Runtime wrote bytecode: before=$pycBefore after=$pycAfter"
     }
 
+    # The same package must be able to replace the installed program without
+    # replacing user state.  A release run cannot manufacture a prior signed
+    # version, so this is deliberately named an in-place upgrade rather than
+    # claiming cross-version migration coverage.
+    $persistedDatabase = Join-Path $appData 'data\archeaxis.sqlite'
+    if (-not (Test-Path -LiteralPath $persistedDatabase -PathType Leaf)) {
+        throw "first launch did not create the expected user database: $persistedDatabase"
+    }
+    $persistenceSentinel = Join-Path $appData 'data\release-lifecycle-sentinel.txt'
+    Set-Content -LiteralPath $persistenceSentinel -Value 'retain-this-user-state' -Encoding utf8 -NoNewline
+
+    $upgradeProcess = Start-Process -FilePath $Installer -ArgumentList '/S' -Wait -PassThru
+    if ($upgradeProcess.ExitCode -ne 0) {
+        throw "NSIS in-place upgrade exited with $($upgradeProcess.ExitCode)"
+    }
+    if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
+        throw 'NSIS in-place upgrade did not restore the desktop executable'
+    }
+    if (-not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
+        throw 'NSIS in-place upgrade removed user state'
+    }
+    $activeShell = Start-Process -FilePath $executable -PassThru
+    $upgraded = Wait-ArcheAxisBackend -Shell $activeShell
+    $upgradedBase = "http://127.0.0.1:$($upgraded.Listener.LocalPort)"
+    $upgradedStatus = Invoke-RestMethod "$upgradedBase/workspace/api/status"
+    if ($upgradedStatus.release.version -ne '0.6.0') {
+        throw 'in-place upgraded Workspace returned an invalid product response'
+    }
+    $upgradeCloseSent = $activeShell.CloseMainWindow()
+    if (-not $upgradeCloseSent -or -not $activeShell.WaitForExit(30000)) {
+        throw 'desktop shell did not close after in-place upgrade readback'
+    }
+    $activeShell = $null
+
     $activeShell = Start-Process -FilePath $executable -PassThru
     $forced = Wait-ArcheAxisBackend -Shell $activeShell
     $forcedChildId = $forced.Child.ProcessId
@@ -167,6 +201,38 @@ try {
     if ((Get-ArcheAxisRegistryEntries).Count -ne 0) {
         throw 'NSIS uninstall left an uninstall registry entry'
     }
+    if (-not (Test-Path -LiteralPath $persistedDatabase -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
+        throw 'NSIS uninstall removed user data instead of retaining it'
+    }
+
+    $reinstallProcess = Start-Process -FilePath $Installer -ArgumentList '/S' -Wait -PassThru
+    if ($reinstallProcess.ExitCode -ne 0) {
+        throw "NSIS reinstall exited with $($reinstallProcess.ExitCode)"
+    }
+    $activeShell = Start-Process -FilePath $executable -PassThru
+    $reinstalled = Wait-ArcheAxisBackend -Shell $activeShell
+    $reinstalledBase = "http://127.0.0.1:$($reinstalled.Listener.LocalPort)"
+    $reinstalledStatus = Invoke-RestMethod "$reinstalledBase/workspace/api/status"
+    if ($reinstalledStatus.release.version -ne '0.6.0' -or
+        -not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
+        throw 'reinstalled Workspace did not read back retained user state'
+    }
+    $reinstallCloseSent = $activeShell.CloseMainWindow()
+    if (-not $reinstallCloseSent -or -not $activeShell.WaitForExit(30000)) {
+        throw 'desktop shell did not close after reinstall readback'
+    }
+    $activeShell = $null
+
+    Stop-ArcheAxisInstallation
+    $ownsInstall = $false
+    if ((Test-Path -LiteralPath $installRoot) -or (Get-ArcheAxisRegistryEntries).Count -ne 0) {
+        throw 'NSIS final uninstall did not clean the installation state'
+    }
+    if (-not (Test-Path -LiteralPath $persistedDatabase -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
+        throw 'NSIS final uninstall removed retained user data'
+    }
 
     [pscustomobject]@{
         Version = $status.release.version
@@ -175,6 +241,9 @@ try {
         GracefulShutdown = $true
         ForcedTreeCleanup = $true
         CleanUninstall = $true
+        InPlaceUpgrade = $true
+        UninstallRetainsData = $true
+        ReinstallReadback = $true
     } | ConvertTo-Json -Compress
 }
 finally {
