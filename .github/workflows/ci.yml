@@ -125,7 +125,7 @@ jobs:
       - name: Install and verify local OCR engine
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core
+          sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core fonts-noto-cjk
           tesseract --list-langs | grep --fixed-strings --line-regexp eng
 
       - name: Run OS-level tests
