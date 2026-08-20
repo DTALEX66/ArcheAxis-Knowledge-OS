@@ -11,6 +11,7 @@ Verifies:
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -205,3 +206,21 @@ def test_exchange_import_requires_fresh_workspace_destination(tmp_path: Path) ->
 
     with pytest.raises(ExportError, match="fresh workspace"):
         import_knowledge_exchange(source=source, workspace_parent=parent, workspace_name="imported")
+
+
+def test_exchange_import_rejects_unsafe_manifest_before_creating_workspace(tmp_path: Path) -> None:
+    source = tmp_path / "exchange"
+    export_knowledge_exchange(destination=source, raw_assets={"d" * 64: b"original"})
+    manifest_path = source / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["items"][0]["path"] = "../outside"
+    body = {key: value for key, value in manifest.items() if key != "manifest_sha256"}
+    manifest["manifest_sha256"] = hashlib.sha256(
+        json.dumps(body, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8")
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    parent = tmp_path / "isolated"
+    with pytest.raises(ExportError, match="unsafe exchange relative path"):
+        import_knowledge_exchange(source=source, workspace_parent=parent, workspace_name="blocked")
+    assert not (parent / "blocked").exists()

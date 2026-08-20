@@ -297,39 +297,63 @@ def import_knowledge_exchange(
     if workspace_root.exists():
         raise ExportError("exchange import requires a fresh workspace destination")
 
-    from shared.workspace_manifest import create_workspace
-
-    workspace = create_workspace(parent, workspace_name)
-    domains = {name: Path(domain.path) for name, domain in workspace.domains.items()}
-    evidence_root = domains["evidence_ledger"] / "imported-exchange"
-    mappings = {
-        "raw": domains["source_archive"] / "raw-assets",
-        "evidence": evidence_root,
-        "learning": domains["human_learning_vault"],
-        "ai_asset": domains["ai_asset_vault"],
+    root_mappings = {
+        "raw": workspace_root / "source_archive" / "raw-assets",
+        "evidence": workspace_root / "evidence_ledger" / "imported-exchange",
+        "learning": workspace_root / "human_learning_vault",
+        "ai_asset": workspace_root / "ai_asset_vault",
     }
-    imported: list[dict[str, str]] = []
+    expected_prefixes = {
+        "raw": {"raw"},
+        "evidence": {"evidence", "relations"},
+        "learning": {"learning"},
+        "ai_asset": {"ai_asset"},
+    }
+    prepared: list[tuple[ExportItem, Path, Path, Path]] = []
+    destinations: set[Path] = set()
     for raw_item in manifest["items"]:
         item = ExportItem.from_dict(raw_item)
-        if item.kind not in mappings:
+        if item.kind not in root_mappings:
             raise ExportError(f"unsupported exchange item kind: {item.kind!r}")
-        source_path = _safe_target(source_dir, item.relative_path)
+        source_relative = _safe_relative_path(item.relative_path)
+        if source_relative.parts[0] not in expected_prefixes[item.kind]:
+            raise ExportError(f"exchange item has invalid kind/path binding: {item.relative_path!r}")
+        source_path = _safe_target(source_dir, source_relative)
         if not source_path.is_file() or _sha256_file(source_path) != item.sha256:
             raise ExportError(f"exchange item changed before import: {item.relative_path}")
         if item.kind == "raw":
-            relative = item.item_id
+            raw_id = _safe_relative_path(item.item_id)
+            if len(raw_id.parts) != 1:
+                raise ExportError(f"raw item id must be a filename: {item.item_id!r}")
+            relative = raw_id
         elif item.kind == "learning":
-            parts = _safe_relative_path(item.relative_path).parts
+            parts = source_relative.parts
             if parts[0] != "learning" or len(parts) < 2:
                 raise ExportError(f"learning item has invalid export path: {item.relative_path!r}")
             relative = Path(*parts[1:])
         elif item.kind == "ai_asset":
-            relative = Path(item.item_id).with_suffix(".json")
+            relative = _safe_relative_path(item.item_id).with_suffix(".json")
         else:
-            relative = Path("evidence") / Path(item.item_id).with_suffix(".json")
+            relative = Path("evidence") / _safe_relative_path(item.item_id).with_suffix(".json")
+        destination = _safe_target(root_mappings[item.kind], relative)
+        if destination in destinations:
+            raise ExportError(f"exchange import has colliding destination: {destination.name}")
+        destinations.add(destination)
+        prepared.append((item, source_path, root_mappings[item.kind], relative))
+
+    from shared.workspace_manifest import create_workspace
+
+    workspace = create_workspace(parent, workspace_name)
+    domains = {name: Path(domain.path) for name, domain in workspace.domains.items()}
+    mappings = {
+        "raw": domains["source_archive"] / "raw-assets",
+        "evidence": domains["evidence_ledger"] / "imported-exchange",
+        "learning": domains["human_learning_vault"],
+        "ai_asset": domains["ai_asset_vault"],
+    }
+    imported: list[dict[str, str]] = []
+    for item, source_path, _planned_root, relative in prepared:
         destination = _safe_target(mappings[item.kind], relative)
-        if destination.exists():
-            raise ExportError(f"exchange import destination already exists: {destination.name}")
         destination.parent.mkdir(parents=True, exist_ok=True)
         blob = source_path.read_bytes()
         destination.write_bytes(blob)
@@ -352,7 +376,7 @@ def import_knowledge_exchange(
         "imported_items": imported,
         "limitation": "Imported evidence remains review-required; import does not promote knowledge.",
     }
-    receipt_path = evidence_root / "import-receipt.json"
+    receipt_path = mappings["evidence"] / "import-receipt.json"
     receipt_path.parent.mkdir(parents=True, exist_ok=True)
     receipt_path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {
