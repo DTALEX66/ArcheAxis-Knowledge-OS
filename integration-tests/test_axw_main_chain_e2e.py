@@ -262,6 +262,8 @@ def _run_main_chain(ws: AxwWorkspace, file_name: str, content: bytes) -> dict[st
 def _assert_stage_ingestion(
     ws: AxwWorkspace, artifacts: dict[str, object], *, fmt: str, marker: str
 ) -> None:
+    from app.evidence.anchor import resolve_evidence_anchor
+    from app.ingestion.conversion_run import resolve_conversion_run
     from app.workspace import service
 
     intake = artifacts["intake"]
@@ -271,6 +273,17 @@ def _assert_stage_ingestion(
     assert intake["format"] == fmt
     assert intake["char_count"] > 0
     assert marker in str(intake["content"]), "converted content lost the source marker"
+    conversion = resolve_conversion_run(ws.db, str(intake["conversion_run_id"]))
+    assert conversion is not None, "upload conversion receipt is missing"
+    assert conversion.raw_sha256 == intake["raw_sha256"]
+    assert conversion.document.document_id == intake["derived_document_id"]
+    assert len(conversion.blocks) == intake["conversion_block_count"]
+    assert all(block.anchor for block in conversion.blocks)
+    upload_anchor = resolve_evidence_anchor(ws.db, str(intake["evidence_anchor_id"]))
+    assert upload_anchor is not None, "raw upload anchor is missing"
+    assert upload_anchor.raw_sha256 == intake["raw_sha256"]
+    assert upload_anchor.source_revision == intake["conversion_run_id"]
+    assert set(upload_anchor.locator["block_ids"]) == {block.block_id for block in conversion.blocks}
     job = service.intake_job(job_id=str(intake["job_id"]), db_path=ws.db)
     assert job["state"] == "succeeded", "intake job receipt must be succeeded"
 
@@ -426,6 +439,25 @@ def test_axw_main_chain_full_e2e(
     _assert_stage_ingestion(axw_workspace, artifacts, fmt=fmt, marker=marker)
     _assert_stage_evidence_ledger(axw_workspace, artifacts, marker=marker)
     _assert_stage_human_learning(axw_workspace, artifacts, marker=marker)
+    _assert_stage_ai_asset(axw_workspace, artifacts)
+
+
+def test_axw_main_chain_pdf_records_page_anchored_conversion(axw_workspace: AxwWorkspace) -> None:
+    """A real PDF upload preserves its raw hash and records a page anchor."""
+    from app.ingestion.conversion_run import resolve_conversion_run
+    from tests.test_pdf_extraction import REAL_PDF
+
+    artifacts = _run_main_chain(axw_workspace, "golden.pdf", REAL_PDF)
+    assert artifacts["intake"]["engine"] == "markitdown"
+    _assert_stage_ingestion(axw_workspace, artifacts, fmt="pdf", marker="Evidence Driven Learning")
+    conversion = resolve_conversion_run(
+        axw_workspace.db, str(artifacts["intake"]["conversion_run_id"])
+    )
+    assert conversion is not None
+    assert conversion.engine == "pdfplumber-structured"
+    assert any(block.anchor.get("page_number") == 1 for block in conversion.blocks)
+    _assert_stage_evidence_ledger(axw_workspace, artifacts, marker="Evidence Driven Learning")
+    _assert_stage_human_learning(axw_workspace, artifacts, marker="Evidence Driven Learning")
     _assert_stage_ai_asset(axw_workspace, artifacts)
 
 

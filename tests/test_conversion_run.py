@@ -72,3 +72,25 @@ def test_conversion_run_store_and_resolve(tmp_path) -> None:
 def test_conversion_run_requires_nonempty_blocks() -> None:
     with pytest.raises(ValueError):
         create_conversion_run("d" * 64, "z.pdf", [], engine="markitdown")
+
+
+def test_conversion_run_replay_is_idempotent_but_conflicts_on_changed_receipt(tmp_path) -> None:
+    db = tmp_path / "immutable-conversions.sqlite"
+    first = create_conversion_run(
+        "e" * 64,
+        "stable.pdf",
+        [{"kind": "page", "text": "first", "anchor": {"page": 1}}],
+        engine="pdfplumber",
+        loss_notes=["page 1: image semantics unavailable"],
+    )
+    store_conversion_run(db, first)
+    store_conversion_run(db, first)
+    changed = create_conversion_run(
+        "e" * 64,
+        "stable.pdf",
+        [{"kind": "page", "text": "changed", "anchor": {"page": 1}}],
+        engine="pdfplumber",
+    )
+    assert changed.run_id == first.run_id
+    with pytest.raises(RuntimeError, match="immutable receipt"):
+        store_conversion_run(db, changed)

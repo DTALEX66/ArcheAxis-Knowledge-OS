@@ -66,6 +66,7 @@ def create_conversion_run(
     blocks: list[dict[str, Any]],
     engine: str,
     version: int = 1,
+    loss_notes: list[str] | None = None,
 ) -> ConversionRun:
     """Build a ConversionRun with stable IDs derived from content identity.
 
@@ -99,7 +100,7 @@ def create_conversion_run(
         engine=engine,
         version=version,
         document=document,
-        loss_report=LossReport(block_count=len(derived_blocks)),
+        loss_report=LossReport(block_count=len(derived_blocks), loss_notes=list(loss_notes or [])),
     )
 
 
@@ -127,51 +128,122 @@ CREATE INDEX IF NOT EXISTS idx_blocks_run ON derived_blocks(run_id);
 """
 
 
-def store_conversion_run(db: str | Path, run: ConversionRun) -> None:
-    """Persist a ConversionRun and its blocks into the local SQLite store."""
-    with sqlite3.connect(Path(db)) as conn:
-        conn.executescript(_SCHEMA)
-        conn.execute(
-            "INSERT OR REPLACE INTO conversion_runs "
-            "(run_id, raw_sha256, source_name, engine, version, document_json, loss_report_json, created_at) "
-            "VALUES (?,?,?,?,?,?,?,?)",
+def ensure_conversion_run_schema(db: str | Path) -> None:
+    """Create the local derived-conversion schema before a caller transaction."""
+    with sqlite3.connect(Path(db)) as connection:
+        connection.executescript(_SCHEMA)
+
+
+def _document_payload(run: ConversionRun) -> str:
+    return json.dumps(
+        {
+            "document_id": run.document.document_id,
+            "raw_sha256": run.document.raw_sha256,
+            "engine": run.document.engine,
+            "version": run.document.version,
+        },
+        sort_keys=True,
+    )
+
+
+def _loss_payload(run: ConversionRun) -> str:
+    return json.dumps(
+        {
+            "block_count": run.loss_report.block_count,
+            "loss_notes": run.loss_report.loss_notes,
+        },
+        sort_keys=True,
+    )
+
+
+def _stored_blocks(connection: sqlite3.Connection, run_id: str) -> list[tuple[object, ...]]:
+    return [
+        tuple(row)
+        for row in connection.execute(
+            "SELECT block_id, run_id, document_id, kind, text, anchor_json "
+            "FROM derived_blocks WHERE run_id=? ORDER BY block_id",
+            (run_id,),
+        ).fetchall()
+    ]
+
+
+def _run_blocks(run: ConversionRun) -> list[tuple[object, ...]]:
+    return sorted(
+        [
             (
+                block.block_id,
                 run.run_id,
-                run.raw_sha256,
-                run.source_name,
-                run.engine,
-                run.version,
-                json.dumps(
-                    {
-                        "document_id": run.document.document_id,
-                        "raw_sha256": run.document.raw_sha256,
-                        "engine": run.document.engine,
-                        "version": run.document.version,
-                    }
-                ),
-                json.dumps(
-                    {
-                        "block_count": run.loss_report.block_count,
-                        "loss_notes": run.loss_report.loss_notes,
-                    }
-                ),
-                "now",
+                run.document.document_id,
+                block.kind,
+                block.text,
+                json.dumps(block.anchor, ensure_ascii=True, sort_keys=True),
+            )
+            for block in run.blocks
+        ]
+    )
+
+
+def store_conversion_run_on_connection(
+    connection: sqlite3.Connection, run: ConversionRun
+) -> None:
+    """Persist one immutable run in the caller-owned transaction.
+
+    Replaying an identical deterministic run is a no-op. A stable run id with
+    changed semantics is a conflict, never an overwrite.
+    """
+    existing = connection.execute(
+        "SELECT raw_sha256, source_name, engine, version, document_json, loss_report_json "
+        "FROM conversion_runs WHERE run_id=?",
+        (run.run_id,),
+    ).fetchone()
+    if existing is not None:
+        recorded = (
+            str(existing[0]), str(existing[1]), str(existing[2]), int(existing[3]),
+            str(existing[4]), str(existing[5]),
+        )
+        expected = (
+            run.raw_sha256, run.source_name, run.engine, run.version,
+            _document_payload(run), _loss_payload(run),
+        )
+        if recorded == expected and _stored_blocks(connection, run.run_id) == _run_blocks(run):
+            return
+        raise RuntimeError("conversion run id conflicts with an existing immutable receipt")
+    connection.execute(
+        "INSERT INTO conversion_runs "
+        "(run_id, raw_sha256, source_name, engine, version, document_json, loss_report_json, created_at) "
+        "VALUES (?,?,?,?,?,?,?,?)",
+        (
+            run.run_id,
+            run.raw_sha256,
+            run.source_name,
+            run.engine,
+            run.version,
+            _document_payload(run),
+            _loss_payload(run),
+            "now",
+        ),
+    )
+    for block in run.blocks:
+        connection.execute(
+            "INSERT INTO derived_blocks "
+            "(block_id, run_id, document_id, kind, text, anchor_json) VALUES (?,?,?,?,?,?)",
+            (
+                block.block_id,
+                run.run_id,
+                run.document.document_id,
+                block.kind,
+                block.text,
+                json.dumps(block.anchor, ensure_ascii=True, sort_keys=True),
             ),
         )
-        for block in run.blocks:
-            conn.execute(
-                "INSERT OR REPLACE INTO derived_blocks "
-                "(block_id, run_id, document_id, kind, text, anchor_json) VALUES (?,?,?,?,?,?)",
-                (
-                    block.block_id,
-                    run.run_id,
-                    run.document.document_id,
-                    block.kind,
-                    block.text,
-                    json.dumps(block.anchor, ensure_ascii=True, sort_keys=True),
-                ),
-            )
-        conn.commit()
+
+
+def store_conversion_run(db: str | Path, run: ConversionRun) -> None:
+    """Persist a ConversionRun and its blocks into the local SQLite store."""
+    ensure_conversion_run_schema(db)
+    with sqlite3.connect(Path(db)) as connection:
+        store_conversion_run_on_connection(connection, run)
+        connection.commit()
 
 
 def resolve_conversion_run(db: str | Path, run_id: str) -> ConversionRun | None:

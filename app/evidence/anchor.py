@@ -79,20 +79,49 @@ CREATE TABLE IF NOT EXISTS index_revisions (
 """
 
 
+def ensure_evidence_anchor_schema(db: str | Path) -> None:
+    """Create the evidence-anchor schema before a caller-owned transaction."""
+    with sqlite3.connect(Path(db)) as connection:
+        connection.executescript(_ANCHOR_SCHEMA)
+
+
+def _anchor_payload(anchor: EvidenceAnchor) -> tuple[str, str, str]:
+    return (
+        anchor.raw_sha256,
+        anchor.source_revision,
+        json.dumps(anchor.locator, ensure_ascii=True, sort_keys=True),
+    )
+
+
+def store_evidence_anchor_on_connection(
+    connection: sqlite3.Connection, anchor: EvidenceAnchor
+) -> None:
+    """Persist an immutable anchor in a caller-owned transaction.
+
+    A deterministic replay is a no-op; a conflicting anchor id is rejected so
+    callers cannot silently replace a historical evidence locator.
+    """
+    existing = connection.execute(
+        "SELECT raw_sha256, source_revision, locator_json FROM evidence_anchors WHERE anchor_id=?",
+        (anchor.anchor_id,),
+    ).fetchone()
+    expected = _anchor_payload(anchor)
+    if existing is not None:
+        if tuple(str(value) for value in existing) == expected:
+            return
+        raise RuntimeError("evidence anchor id conflicts with an immutable receipt")
+    connection.execute(
+        "INSERT INTO evidence_anchors "
+        "(anchor_id, raw_sha256, source_revision, locator_json) VALUES (?,?,?,?)",
+        (anchor.anchor_id, *expected),
+    )
+
+
 def store_evidence_anchor(db: str | Path, anchor: EvidenceAnchor) -> None:
-    with sqlite3.connect(Path(db)) as conn:
-        conn.executescript(_ANCHOR_SCHEMA)
-        conn.execute(
-            "INSERT OR REPLACE INTO evidence_anchors "
-            "(anchor_id, raw_sha256, source_revision, locator_json) VALUES (?,?,?,?)",
-            (
-                anchor.anchor_id,
-                anchor.raw_sha256,
-                anchor.source_revision,
-                json.dumps(anchor.locator, ensure_ascii=True, sort_keys=True),
-            ),
-        )
-        conn.commit()
+    ensure_evidence_anchor_schema(db)
+    with sqlite3.connect(Path(db)) as connection:
+        store_evidence_anchor_on_connection(connection, anchor)
+        connection.commit()
 
 
 def resolve_evidence_anchor(db: str | Path, anchor_id: str) -> EvidenceAnchor | None:

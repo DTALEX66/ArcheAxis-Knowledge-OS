@@ -57,6 +57,23 @@ def test_evidence_anchor_store_and_resolve(tmp_path) -> None:
     assert resolve_evidence_anchor(db, "ev_missing") is None
 
 
+def test_evidence_anchor_replay_is_idempotent_but_tampering_conflicts(tmp_path) -> None:
+    db = tmp_path / "immutable-anchor.sqlite"
+    anchor = build_evidence_anchor("f" * 64, "rev-7", {"page": 2})
+    store_evidence_anchor(db, anchor)
+    store_evidence_anchor(db, anchor)
+    import sqlite3
+
+    with sqlite3.connect(db) as connection:
+        connection.execute(
+            "UPDATE evidence_anchors SET locator_json=? WHERE anchor_id=?",
+            ('{"page":999}', anchor.anchor_id),
+        )
+        connection.commit()
+    with pytest.raises(RuntimeError, match="immutable receipt"):
+        store_evidence_anchor(db, anchor)
+
+
 def test_index_revision_is_rebuildable_but_never_source_of_truth(tmp_path) -> None:
     """An IndexRevision can be rebuilt from the raw source, and it must never
     be presented as the source of truth — its revision records the rebuild so

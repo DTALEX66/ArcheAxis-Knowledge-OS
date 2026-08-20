@@ -10,8 +10,8 @@ from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from app.workspace.job_outbox import command_request_fingerprint, record_completed_command
 from app.ingestion.raw_asset import RawAssetStore
+from app.workspace.job_outbox import command_request_fingerprint, record_completed_command
 
 # Heavy dependencies loaded lazily inside functions to avoid numpy/vector chain at import time.
 # Each intake function calls _import_heavy() before use.
@@ -216,13 +216,53 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
     try:
         markdown, engine = convert_file(temporary_path)
         source_format = detect_format(temporary_path)
+        from app.evidence.anchor import (
+            build_evidence_anchor,
+            ensure_evidence_anchor_schema,
+            store_evidence_anchor_on_connection,
+        )
+        from app.ingestion.conversion_run import (
+            ensure_conversion_run_schema,
+            store_conversion_run_on_connection,
+        )
+        from app.ingestion.structured_conversion import build_workspace_conversion_run
+
+        conversion_run = build_workspace_conversion_run(
+            source_path=temporary_path,
+            raw_sha256=original.sha256,
+            source_name=safe_name,
+            source_format=source_format,
+            converted_content=markdown,
+            extractor_identity=engine,
+        )
+        conversion_anchor = build_evidence_anchor(
+            raw_sha256=original.sha256,
+            source_revision=conversion_run.run_id,
+            locator={
+                "conversion_run_id": conversion_run.run_id,
+                "derived_document_id": conversion_run.document.document_id,
+                "source_format": source_format,
+                "block_ids": [block.block_id for block in conversion_run.blocks],
+            },
+        )
+        # Schema creation must occur outside persist_research_graph's transaction:
+        # sqlite executescript implicitly commits, which would break its atomic
+        # candidate-graph + job + conversion receipt boundary.
+        ensure_conversion_run_schema(database)
+        ensure_evidence_anchor_schema(database)
+
+        def before_commit(connection: sqlite3.Connection, graph) -> None:
+            _intake_before_commit(connection, graph)
+            store_conversion_run_on_connection(connection, conversion_run)
+            store_evidence_anchor_on_connection(connection, conversion_anchor)
+
         graph = persist_workspace_document(
             title=safe_name,
             content=markdown,
             source_format=source_format,
             extractor_identity=engine,
             db_path=db_path,
-            before_commit=_intake_before_commit,
+            before_commit=before_commit,
         )
         if stored_path.exists():
             if stored_path.read_bytes() != content:
@@ -246,6 +286,11 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         "job_id": _intake_job_id(graph.package.package_id),
         "status": graph.package.status,
         "requires_human_review": graph.package.requires_human_review,
+        "conversion_run_id": conversion_run.run_id,
+        "derived_document_id": conversion_run.document.document_id,
+        "conversion_block_count": len(conversion_run.blocks),
+        "conversion_loss_notes": conversion_run.loss_report.loss_notes,
+        "evidence_anchor_id": conversion_anchor.anchor_id,
     }
 
 
