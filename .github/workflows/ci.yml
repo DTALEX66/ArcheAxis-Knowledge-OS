@@ -606,10 +606,11 @@ jobs:
       - name: Build the Windows release and NSIS installer
         run: |
           Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis" -Recurse -Force -ErrorAction SilentlyContinue
-          $buildLog = Join-Path $env:RUNNER_TEMP "archeaxis-tauri-build.log"
-          # Keep the terminal output and public annotations aligned on failure.
-          frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis 2>&1 |
-            Tee-Object -FilePath $buildLog
+          $buildLog = ".hermes/task-runtime/tauri-build.log"
+          New-Item -ItemType Directory -Force (Split-Path -Parent $buildLog) | Out-Null
+          # Invoke the .cmd file through cmd.exe so its exit code and both
+          # streams are preserved rather than altered by a PowerShell pipeline.
+          & cmd.exe /d /s /c "frontend\node_modules\.bin\tauri.cmd build --config src-tauri\tauri.conf.json --bundles nsis > $buildLog 2>&1"
           $buildExit = $LASTEXITCODE
           if ($buildExit -ne 0) {
             Get-Content -LiteralPath $buildLog -Tail 120 | ForEach-Object {

@@ -51,7 +51,8 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "desktop-fast:" in workflow
     assert "desktop-build:" in workflow
     assert "installer-lifecycle:" in workflow
-    assert '"archeaxis-tauri-build.log"' in desktop_job
+    assert '".hermes/task-runtime/tauri-build.log"' in desktop_job
+    assert "& cmd.exe /d /s /c" in desktop_job
     assert "Tauri Windows build failed with exit code" in desktop_job
     assert "::error title=tauri-build::" in desktop_job
     assert 'python-version: "3.12"' in desktop_job
@@ -62,7 +63,7 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     )
     assert "cargo install cargo-audit --version 0.22.2 --locked" in desktop_job
     assert "cargo audit --file Cargo.lock" in desktop_job
-    assert "frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis" in desktop_job
+    assert "frontend\\node_modules\\.bin\\tauri.cmd build --config src-tauri\\tauri.conf.json --bundles nsis" in desktop_job
     assert "timeout-minutes: 30" in desktop_job
     lifecycle_job = _job_section(workflow, "installer-lifecycle", "a0-gates")
     assert "./desktop/scripts/verify_nsis_install.ps1" in lifecycle_job
