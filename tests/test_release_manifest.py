@@ -406,6 +406,10 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     # location rather than inventing an extra data/ directory.
     assert "Join-Path $appData 'archeaxis.sqlite'" in lifecycle
     assert "Join-Path $appData 'data\\archeaxis.sqlite'" not in lifecycle
+    # Every launched shell, including the post-upgrade and post-reinstall
+    # read-backs, must wait for its Tauri window before sending WM_CLOSE.
+    assert "$upgradeWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell" in lifecycle
+    assert "$reinstallWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell" in lifecycle
     assert "release-lifecycle-sentinel.txt" in lifecycle
     assert "NSIS uninstall removed user data instead of retaining it" in lifecycle
     assert "reinstalled Workspace did not read back retained user state" in lifecycle

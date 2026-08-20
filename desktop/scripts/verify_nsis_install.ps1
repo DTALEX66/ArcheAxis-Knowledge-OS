@@ -171,9 +171,10 @@ try {
     if ($upgradedStatus.release.version -ne '0.6.0') {
         throw 'in-place upgraded Workspace returned an invalid product response'
     }
+    $upgradeWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell
     $upgradeCloseSent = $activeShell.CloseMainWindow()
     if (-not $upgradeCloseSent -or -not $activeShell.WaitForExit(30000)) {
-        throw 'desktop shell did not close after in-place upgrade readback'
+        throw "desktop shell did not close after in-place upgrade readback; pid=$($activeShell.Id) handle=$upgradeWindowHandle"
     }
     $activeShell = $null
 
@@ -221,9 +222,10 @@ try {
         -not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
         throw 'reinstalled Workspace did not read back retained user state'
     }
+    $reinstallWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell
     $reinstallCloseSent = $activeShell.CloseMainWindow()
     if (-not $reinstallCloseSent -or -not $activeShell.WaitForExit(30000)) {
-        throw 'desktop shell did not close after reinstall readback'
+        throw "desktop shell did not close after reinstall readback; pid=$($activeShell.Id) handle=$reinstallWindowHandle"
     }
     $activeShell = $null
 
