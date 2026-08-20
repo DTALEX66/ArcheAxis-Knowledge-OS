@@ -98,6 +98,9 @@ def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
     # Core shutdown must also run off the native callback because it waits for
     # the child process before the exit request is dispatched.
     assert "let app_handle = window.app_handle().clone();" in source
+    assert "CLOSE_WATCHDOG_TIMEOUT" in source
+    assert "std::thread::sleep(CLOSE_WATCHDOG_TIMEOUT);" in source
+    assert ".try_lock()" in source
     assert "std::thread::spawn(move || {" in source
     assert "state.take()" in source
     close_handler = source.split(".on_window_event(|window, event| {", 1)[1].split(

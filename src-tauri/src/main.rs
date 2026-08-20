@@ -22,7 +22,12 @@ use std::path::{Path, PathBuf};
 #[cfg(windows)]
 use std::sync::{Arc, Mutex};
 #[cfg(windows)]
+use std::time::Duration;
+#[cfg(windows)]
 use tauri::{Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+
+#[cfg(windows)]
+const CLOSE_WATCHDOG_TIMEOUT: Duration = Duration::from_secs(12);
 
 #[cfg(windows)]
 #[derive(Clone)]
@@ -141,16 +146,27 @@ fn main() {
                 // event-loop callback that received CloseRequested.  Do not
                 // synchronously destroy the window here: that can deadlock
                 // the same native event loop before the exit is dispatched.
+                // Do not wait for a command that may be launching/retrying
+                // Core: the Job Object will reclaim any process that remains
+                // owned when the application exits.
+                let process = window
+                    .app_handle()
+                    .state::<DesktopBackend>()
+                    .process
+                    .try_lock()
+                    .ok()
+                    .and_then(|mut state| state.take());
                 let app_handle = window.app_handle().clone();
+                let watchdog_handle = app_handle.clone();
                 std::thread::spawn(move || {
-                    // Take ownership before shutdown so ExitRequested does
-                    // not block on the same Core process a second time.
-                    let process = app_handle
-                        .state::<DesktopBackend>()
-                        .process
-                        .lock()
-                        .ok()
-                        .and_then(|mut state| state.take());
+                    // A failed Core stop must not make a healthy desktop
+                    // window survive WM_CLOSE indefinitely. The normal
+                    // shutdown worker wins first; this is only a bounded
+                    // escape hatch before the installer verifier's timeout.
+                    std::thread::sleep(CLOSE_WATCHDOG_TIMEOUT);
+                    watchdog_handle.exit(0);
+                });
+                std::thread::spawn(move || {
                     if let Some(mut process) = process {
                         process.shutdown();
                     }
@@ -165,11 +181,14 @@ fn main() {
         if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
             let process = exit_backend
                 .process
-                .lock()
+                .try_lock()
                 .ok()
                 .and_then(|mut state| state.take());
             if let Some(mut process) = process {
-                process.shutdown();
+                // ExitRequested also runs on Tauri's event loop. Keep its
+                // Core teardown non-blocking; the Windows Job Object owns the
+                // child if the process exits before graceful shutdown ends.
+                std::thread::spawn(move || process.shutdown());
             }
         }
     });
