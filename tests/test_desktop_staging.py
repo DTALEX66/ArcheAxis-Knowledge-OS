@@ -94,7 +94,10 @@ def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
     assert "WindowEvent::CloseRequested { api, .. }" in source
     assert "api.prevent_close();" in source
     assert "window.destroy();" in source
-    assert "window.app_handle().exit(0);" in source
+    # Tauri forbids AppHandle::exit directly inside its event-loop callback;
+    # the actual process exit must be scheduled off that callback.
+    assert "let app_handle = window.app_handle().clone();" in source
+    assert "std::thread::spawn(move || app_handle.exit(0));" in source
 
 
 def test_vite_root_is_stable_when_tauri_builds_through_a_windows_junction() -> None:

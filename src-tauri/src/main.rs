@@ -142,7 +142,10 @@ fn main() {
                     }
                 }
                 let _ = window.destroy();
-                window.app_handle().exit(0);
+                // Tauri requires exit requests to be issued outside the
+                // event-loop callback that received CloseRequested.
+                let app_handle = window.app_handle().clone();
+                std::thread::spawn(move || app_handle.exit(0));
             }
         })
         .build(tauri::generate_context!())
