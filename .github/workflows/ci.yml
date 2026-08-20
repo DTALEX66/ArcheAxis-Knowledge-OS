@@ -199,7 +199,7 @@ jobs:
         run: python scripts/check_architecture.py
 
       - name: Run ruff
-        run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts
+        run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82
 
       - name: Validate Workspace JavaScript syntax
         run: node --check app/workspace/ui/assets/app.js

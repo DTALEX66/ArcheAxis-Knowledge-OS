@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.evidence.anchor import (
     EvidenceAnchor,
     build_evidence_anchor,
+    list_evidence_anchors,
     resolve_evidence_anchor,
     store_evidence_anchor,
 )

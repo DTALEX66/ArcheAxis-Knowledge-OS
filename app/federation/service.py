@@ -24,10 +24,14 @@ from typing import Any
 from app.contracts.federation_v1 import (
     CandidateReceiptV1,
     CandidateSubmissionV1,
+    EvidenceIntakeV1,
     ExternalAssetRecordV1,
     KnowledgeProjectionV1,
     KnowledgeQueryV1,
+    LearningRecordV1,
+    ProvenanceRecordV1,
     ReviewDecisionV1,
+    RightsRecordV1,
 )
 
 _SCHEMA = """
@@ -453,7 +457,7 @@ def _append_record(conn: sqlite3.Connection, table: str, record_id: str, values:
         raise FederationError(f"append-only record already exists: {record_id}") from exc
 
 
-def record_evidence(db: str | Path, record: "EvidenceIntakeV1") -> str:
+def record_evidence(db: str | Path, record: EvidenceIntakeV1) -> str:
     """Evidence intake (append-only) — evidence object with anchor + hash."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
@@ -467,7 +471,7 @@ def record_evidence(db: str | Path, record: "EvidenceIntakeV1") -> str:
     return record.evidence_id
 
 
-def record_learning(db: str | Path, record: "LearningRecordV1") -> str:
+def record_learning(db: str | Path, record: LearningRecordV1) -> str:
     """Human learning record (append-only) — review/quiz/teach_back/mastery."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
@@ -481,7 +485,7 @@ def record_learning(db: str | Path, record: "LearningRecordV1") -> str:
     return record.record_id
 
 
-def record_provenance(db: str | Path, record: "ProvenanceRecordV1") -> str:
+def record_provenance(db: str | Path, record: ProvenanceRecordV1) -> str:
     """Provenance event (append-only) — created/promoted/revoked/superseded."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
@@ -495,7 +499,7 @@ def record_provenance(db: str | Path, record: "ProvenanceRecordV1") -> str:
     return record.record_id
 
 
-def record_rights(db: str | Path, record: "RightsRecordV1") -> str:
+def record_rights(db: str | Path, record: RightsRecordV1) -> str:
     """Rights/permission record (append-only)."""
     with _connect(db) as conn:
         _ensure_record_tables(conn)
