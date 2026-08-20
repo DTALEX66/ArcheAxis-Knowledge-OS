@@ -8,7 +8,7 @@
 
 | # | 任务 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| G1 | **音频全量转写**（14 mp3 等音频） | 🔄 进行中 | F1：SenseVoice 4 worker 并行分块转写；完成自动合并回执 |
+| G1 | **音频转写** | ✅ mp3 14/14 完成 | 56,309 字符 0 失败；mp4 音轨 64 个延后（--audio-only） |
 | G2 | **ollama 升级**（解 qwen3-reranker 接入 + 视觉 500 上游 bug#15828） | BLOCKED | 升级重启服务需避开其他会话；0.32.14 无 /api/rerank |
 | G3 | **MinerU 扫描 PDF 兜底** | PARTIAL | magic-pdf 依赖齐+venv 隔离已解（PYTHONPATH='' 干净）；模型下载需 modelscope CLI（opendatalab/PDF-Extract-Kit-1.0）→ 专项 |
 | G4 | **.doc 旧格式 2 个** | FAIL | 需 LibreOffice/antiword（共用库无） |

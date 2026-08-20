@@ -11,8 +11,9 @@
 - **审计**：PIPELINE_CONFIG_AUDIT（配置对本机最优：嵌入 100% GPU、ASR/OCR CPU 最优、20 核并行）；gitignore target 3.4GB；任务清单按新规划清理
 
 ## 2. 进行中
-- **F1 音频转写：已停止（用户 08-20 指示）**；mp3 优先方案（--audio-only）已就绪，恢复时一条命令重跑
-- mp4 音轨：延后（与 F8 画面内容重叠，需数小时）
+- **F1 音频（mp3 14 个）：✅ 全部完成 14/14（56,309 字符，0 失败）**——回执 reports/current/AUDIO_FULL_RECEIPT.json
+- mp4 音轨（64 个）：延后（与 F8 画面内容重叠 + 需数小时）；--audio-only 已就绪随时可跑
+- 加速实测：zh-14M 流式不快于 SenseVoice（0.8x），SenseVoice 34x 为中文最优（文档已记）
 
 ## 3. 待办（外部/人工/专项）
 | # | 项 | 说明 |

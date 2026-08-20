@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "total": 14,
+    "ok": 14,
+    "fail": 0,
+    "total_chars": 56309
+  },
+  "receipts": [
+    {
+      "file": "D:/All projects/ceshi\\30天考霸训练营，北大博士后教你通关任何考试，助你高分拿下证书、岗位、考试(2)\\01预热课\\【学员分享1】-核聚老师学员，北大学子袁佩佩分享学习心得.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 5503,
+      "sec": 809.8
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第10堂音频课：为什么孩子不喜欢上学？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 2830,
+      "sec": 392.7
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第4堂音频课：为什么你学的知识不值钱？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 3848,
+      "sec": 613.9
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第8堂音频课：如何阅读一本书？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 4266,
+      "sec": 412.6
+    },
+    {
+      "file": "D:/All projects/ceshi\\30天考霸训练营，北大博士后教你通关任何考试，助你高分拿下证书、岗位、考试(2)\\01预热课\\【学员分享2】-核聚老师学员，清华学子张玲玲分享学习心得.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 5503,
+      "sec": 809.6
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第1堂音频课：对职场人来说，考证和学历多重要？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 2830,
+      "sec": 391.4
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第5堂音频课：为什么婚姻里也需要学习力？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 3848,
+      "sec": 614.7
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第9堂音频课：以知识为中心的学习有什么有效方法？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 4266,
+      "sec": 412.1
+    },
+    {
+      "file": "D:/All projects/ceshi\\30天考霸训练营，北大博士后教你通关任何考试，助你高分拿下证书、岗位、考试(2)\\30天考霸训练营，北大博士后教你通关任何考试，助你高分拿下证书、岗位、考试(2)\\01预热课\\【学员分享1】-核聚老师学员，北大学子袁佩佩分享学习心得.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 5503,
+      "sec": 811.6
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第2堂音频课：对现状不满想转行的年轻人，应该怎么做？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 2830,
+      "sec": 392.2
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第6堂音频课：为什么你越努力越焦虑？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 3848,
+      "sec": 613.6
+    },
+    {
+      "file": "D:/All projects/ceshi\\30天考霸训练营，北大博士后教你通关任何考试，助你高分拿下证书、岗位、考试(2)\\30天考霸训练营，北大博士后教你通关任何考试，助你高分拿下证书、岗位、考试(2)\\01预热课\\【学员分享2】-核聚老师学员，清华学子张玲玲分享学习心得.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 5503,
+      "sec": 810.7
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第3堂音频课：如何提起学习的兴趣？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 1936,
+      "sec": 320.7
+    },
+    {
+      "file": "D:/All projects/ceshi\\升级你的学习力，让你成为有效学习的高手（完结）\\音频课\\第7堂音频课：为什么你需要成长型思维？.mp3",
+      "ok": true,
+      "engine": "sensevoice",
+      "chars": 3795,
+      "sec": 619.2
+    }
+  ]
+}
