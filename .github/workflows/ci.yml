@@ -1,6 +1,13 @@
 name: CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      force_full:
+        description: Run every qualification gate for the selected SHA
+        required: false
+        default: true
+        type: boolean
   push:
     branches: [main]
   pull_request:
@@ -33,7 +40,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PUSH_BEFORE: ${{ github.event.before }}
           PUSH_AFTER: ${{ github.sha }}
-          CI_FORCE_FULL: ${{ vars.CI_FORCE_FULL }}
+          CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL }}
         run: |
           python -m pip install --quiet --user pyyaml
           python - <<'PY'

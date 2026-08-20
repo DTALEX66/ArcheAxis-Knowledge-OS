@@ -22,6 +22,15 @@ def test_ci_runs_javascript_and_real_browser_gates() -> None:
     assert "python -m playwright install --with-deps chromium" in workflow
 
 
+def test_ci_supports_explicit_full_qualification_for_a_selected_sha() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "workflow_dispatch:" in workflow
+    assert "force_full:" in workflow
+    assert "Run every qualification gate for the selected SHA" in workflow
+    assert "CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL }}" in workflow
+
+
 def test_ci_runs_windows_runtime_smoke() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
