@@ -18,6 +18,7 @@ import pytest
 from shared.obsidian_projection import (
     Projection,
     render_daily_brief,
+    render_learning_artifact,
     render_lesson,
     render_taskpack,
     render_trace,
@@ -136,6 +137,33 @@ class TestRenderDailyBrief:
 
 
 # ── Tests: render_lesson ──
+
+
+class TestRenderLearningArtifact:
+    """render_learning_artifact preserves governed source identifiers."""
+
+    def test_governed_learning_artifact(self):
+        artifact = {
+            "artifact_id": "learning-001",
+            "summary": {
+                "knowledge_unit_id": "claim-001",
+                "statement": "Evidence-backed claim",
+            },
+            "source_record_ids": ["source-001", "source-002"],
+        }
+        proj = render_learning_artifact(artifact)
+        assert proj.path == "Learning/learning-001.md"
+        assert "Evidence-backed claim" in proj.content
+        assert "source_unit_id: claim-001" in proj.content
+        assert "source-001" in proj.content
+        assert proj.frontmatter["tags"] == ["archeaxis", "human-learning"]
+        assert proj.source == "learning-artifact:learning-001"
+
+    def test_missing_governed_source_fields_fail_closed(self):
+        with pytest.raises(ValueError, match="governed source fields"):
+            render_learning_artifact(
+                {"artifact_id": "learning-001", "summary": {}, "source_record_ids": []}
+            )
 
 
 class TestRenderLesson:

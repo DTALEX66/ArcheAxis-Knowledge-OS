@@ -12,6 +12,7 @@ Compatibility tiers:
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -380,6 +381,62 @@ def render_trace(trace: dict[str, Any]) -> Projection:
         wikilinks=wikilinks,
         tags=tags,
         source=f"trace:{trace_id}",
+    )
+
+
+def render_learning_artifact(artifact: Mapping[str, Any]) -> Projection:
+    """Render a governed learning artifact as an Obsidian learning note.
+
+    The caller is responsible for loading the artifact from the governed ledger
+    and establishing that its card projection has received human approval.
+    This renderer deliberately accepts a mapping to keep this shared module
+    free of application-model imports.
+    """
+    artifact_id = str(artifact["artifact_id"])
+    summary = artifact.get("summary")
+    if not isinstance(summary, Mapping):
+        raise ValueError("learning artifact summary must be an object")
+    statement = str(summary.get("statement", "")).strip()
+    source_unit_id = str(summary.get("knowledge_unit_id", "")).strip()
+    source_ids = artifact.get("source_record_ids")
+    if not statement or not source_unit_id or not isinstance(source_ids, list):
+        raise ValueError("learning artifact is missing its governed source fields")
+    normalized_source_ids = [str(source_id) for source_id in source_ids]
+    if not normalized_source_ids or not all(normalized_source_ids):
+        raise ValueError("learning artifact source_record_ids must be non-empty strings")
+
+    frontmatter = {
+        "artifact_id": artifact_id,
+        "source_unit_id": source_unit_id,
+        "source_ids": normalized_source_ids,
+        "tags": ["archeaxis", "human-learning"],
+    }
+    sections = [
+        f"# {statement}",
+        "",
+        f"Artifact: `{artifact_id}`",
+        "",
+        "## Evidence Sources",
+        "",
+    ]
+    sections.extend(f"- `{source_id}`" for source_id in normalized_source_ids)
+    sections.extend(
+        [
+            "",
+            "> [!note] Human Learning Vault entry",
+            "> Projected from the governed learning ledger after explicit learning approval.",
+            "",
+        ]
+    )
+    body = "\n".join(sections)
+    content = _render_frontmatter(frontmatter) + "\n" + _render_output_lines(body)
+    return Projection(
+        path=f"Learning/{artifact_id}.md",
+        content=content,
+        frontmatter=frontmatter,
+        wikilinks=_extract_wikilinks(body),
+        tags=_extract_tags(body, frontmatter),
+        source=f"learning-artifact:{artifact_id}",
     )
 
 

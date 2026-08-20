@@ -31,6 +31,15 @@ def test_mastered_signal_creates_candidate_machine_knowledge_with_explicit_lifec
     )
     assert candidate.lifecycle_status == "candidate"
     assert candidate.requires_human_review is True
+    from app.knowledge.vault_projection import project_approved_machine_knowledge_asset
+
+    with pytest.raises(ValueError, match="approved machine knowledge unit"):
+        project_approved_machine_knowledge_asset(
+            candidate.unit_id,
+            db_path=database,
+            asset_root=tmp_path,
+            dry_run=False,
+        )
     approved = MachineKnowledgeApproval(
         approval_id="approve-machine-1", candidate_id=candidate.unit_id,
         reviewer_id="reviewer-1", decision="approved", rationale="reviewed", reviewed_at="2026-07-20T16:01:00Z"

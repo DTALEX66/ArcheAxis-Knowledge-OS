@@ -14,7 +14,8 @@ Real main chain under test (product modules only, no mocks):
            app.knowledge.promotion.promote_research_package_to_candidates
            app.knowledge.closed_loop.start_and_approve_learning_candidate
              -> knowledge_candidate_learning_artifacts_v1 + kb_cards
-           shared.obsidian_projection.write_projection -> human_learning_vault/*.md
+           app.knowledge.vault_projection.project_learning_artifact
+             -> human_learning_vault/*.md
   Stage 4  AI Asset Vault
            app.knowledge.closed_loop.record_practice_evidence x3
              -> mastery_signals_v1 -> machine_knowledge_candidates_v1
@@ -24,6 +25,8 @@ Real main chain under test (product modules only, no mocks):
              (human approval; candidates are never auto-trusted)
            app.knowledge.machine_knowledge.list_runtime_machine_knowledge
              (runtime read-back only returns approved units)
+           app.knowledge.vault_projection.project_approved_machine_knowledge_asset
+             -> ai_asset_vault/*.json
 
 Format support:
   - txt / md : passthrough engine, always available, zero external dependencies.
@@ -33,20 +36,11 @@ Format support:
                adapters need optional engines and are outside this
                no-external-dependency main chain (not covered here).
 
-Known product gaps (acceptance remainders, asserted to current real semantics):
-  GAP-1 Human Learning Vault file: the governed chain persists learning artifacts
-        and cards in the SQLite ledger only; no dedicated learning-artifact
-        renderer exists in shared/obsidian_projection (only daily brief / lesson /
-        taskpack / trace renderers). The test projects the REAL ledger artifact
-        through the REAL write_projection writer with a hand-built Projection.
-  GAP-2 AI Asset Vault file: no product writer projects machine-knowledge units
-        into ai_asset_vault/. The product registration is the governed ledger row
-        plus the human approval event. The test snapshots the REAL approved unit
-        JSON (with the traced evidence binding) into the domain directory.
-  GAP-3 AI asset registration requires human approval: candidates are created with
-        lifecycle_status="candidate" and requires_human_review=True; runtime
-        consumption only returns approved units. The test asserts this real
-        semantic end-to-end.
+Governance invariant:
+  AI asset registration requires human approval: candidates are created with
+  lifecycle_status="candidate" and requires_human_review=True; runtime
+  consumption only returns approved units. The test asserts this real semantic
+  end-to-end.
 
 Fail-closed: no exception is swallowed; every stage is read back and asserted.
 """
@@ -151,8 +145,11 @@ def _run_main_chain(ws: AxwWorkspace, file_name: str, content: bytes) -> dict[st
         ResearchKnowledgeApproval,
         promote_research_package_to_candidates,
     )
+    from app.knowledge.vault_projection import (
+        project_approved_machine_knowledge_asset,
+        project_learning_artifact,
+    )
     from app.workspace import service
-    from shared.obsidian_projection import Projection, write_projection
     from shared.research_store import load_research_package
 
     source_file = ws.source_archive / file_name
@@ -204,30 +201,12 @@ def _run_main_chain(ws: AxwWorkspace, file_name: str, content: bytes) -> dict[st
         reviewed_at=_now(),
         db_path=ws.db,
     )
-    statement = str(artifact.summary["statement"])
-    source_ids = list(artifact.source_record_ids)
-    note_body = (
-        "---\n"
-        f"artifact_id: {artifact.artifact_id}\n"
-        f"source_unit_id: {claim_unit.unit_id}\n"
-        f"source_ids: [{', '.join(source_ids)}]\n"
-        "tags: [axw-e2e, human-learning]\n"
-        "---\n"
-        f"# {statement}\n\n"
-        f"Artifact: `{artifact.artifact_id}`\n\n"
-        f"Sources: {', '.join(source_ids)}\n\n"
-        "> [!note] Human Learning Vault entry\n"
-        "> Projected from the governed learning ledger by the AXW main chain E2E test.\n"
+    written = project_learning_artifact(
+        artifact.artifact_id,
+        db_path=ws.db,
+        vault_root=ws.human_learning_vault,
+        dry_run=False,
     )
-    projection = Projection(
-        path=f"Learning/{artifact.artifact_id}.md",
-        content=note_body,
-        frontmatter={"artifact_id": artifact.artifact_id, "tags": ["axw-e2e", "human-learning"]},
-        wikilinks=[],
-        tags=["axw-e2e", "human-learning"],
-        source=f"learning-artifact:{artifact.artifact_id}",
-    )
-    written = write_projection(projection, vault_root=str(ws.human_learning_vault), dry_run=False)
 
     # ── Stage 4: practice x3 -> mastered signal -> machine knowledge -> approval ──
     machine = None
@@ -253,15 +232,11 @@ def _run_main_chain(ws: AxwWorkspace, file_name: str, content: bytes) -> dict[st
         db_path=ws.db,
     )
     runtime_units = list_runtime_machine_knowledge(db_path=ws.db)
-    binding = _trace_ai_asset_binding(ws.db, machine.unit_id)
-    asset_snapshot = ws.ai_asset_vault / f"{machine.unit_id}.json"
-    asset_snapshot.write_text(
-        json.dumps(
-            {"asset": approved.model_dump(), "evidence_binding": binding},
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
+    asset_write = project_approved_machine_knowledge_asset(
+        approved.unit_id,
+        db_path=ws.db,
+        asset_root=ws.ai_asset_vault,
+        dry_run=False,
     )
     return {
         "intake": intake,
@@ -279,37 +254,8 @@ def _run_main_chain(ws: AxwWorkspace, file_name: str, content: bytes) -> dict[st
         "machine": machine,
         "approved_unit": approved,
         "runtime_units": runtime_units,
-        "binding": binding,
-        "asset_snapshot": asset_snapshot,
-    }
-
-
-def _trace_ai_asset_binding(db: Path, machine_unit_id: str) -> dict[str, object]:
-    """Trace the real evidence binding: machine unit -> signal -> card -> ledger source."""
-    with sqlite3.connect(db) as connection:
-        connection.row_factory = sqlite3.Row
-        machine = connection.execute(
-            "SELECT source_signal_id FROM machine_knowledge_candidates_v1 WHERE id=?",
-            (machine_unit_id,),
-        ).fetchone()
-        assert machine is not None, "machine knowledge candidate row is missing"
-        signal_id = str(machine["source_signal_id"])
-        signal = connection.execute(
-            "SELECT card_id FROM mastery_signals_v1 WHERE id=?", (signal_id,)
-        ).fetchone()
-        assert signal is not None, "mastery signal row is missing"
-        card_id = str(signal["card_id"])
-        card = connection.execute(
-            "SELECT source_ids_json FROM kb_cards WHERE id=?", (card_id,)
-        ).fetchone()
-        assert card is not None, "learning card row is missing"
-        source_ids = json.loads(str(card["source_ids_json"]))
-        assert isinstance(source_ids, list) and all(isinstance(item, str) for item in source_ids)
-    return {
-        "machine_unit_id": machine_unit_id,
-        "source_signal_id": signal_id,
-        "card_id": card_id,
-        "source_record_ids": source_ids,
+        "binding": asset_write["evidence_binding"],
+        "asset_snapshot": Path(str(asset_write["file_path"])),
     }
 
 
