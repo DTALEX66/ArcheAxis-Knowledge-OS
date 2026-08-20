@@ -9,14 +9,14 @@
     "tier_a_ingestion_matrix": "PARTIAL",
     "windows_setup_green_portable_lifecycle": "NOT_EXECUTED"
   },
-  "commit_sha": "9579cb2e9785b7a8aea9549626a3fc0287f67351",
+  "commit_sha": "eaa467fe541bd6eec32eb2d2351df984e1eadf4a",
   "environment": {
     "generator": "scripts/generate_current_reports.py",
     "platform": "Windows-11-10.0.26100-SP0",
     "python": "3.13.14"
   },
   "evidence_level": "STRUCTURAL",
-  "generated_at": "2026-08-20T17:03:57+00:00",
+  "generated_at": "2026-08-20T17:21:30+00:00",
   "limitations": [
     "This matrix is a current planning projection, not runtime or CI evidence.",
     "A v0.6.0 release requires exact-SHA CI and the Golden Journey receipts."
@@ -24,5 +24,5 @@
   "overall_status": "PARTIAL",
   "release_gate": "NOT_EXECUTED",
   "schema_version": "1.0.0",
-  "tree_sha": "24cc82aaa5c015ffe335f025c9998b30d53957c8"
+  "tree_sha": "fd43431bcf9194b258b5f19532c6ea64d9fdc482"
 }
