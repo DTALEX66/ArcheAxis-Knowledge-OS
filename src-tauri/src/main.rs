@@ -141,9 +141,10 @@ fn main() {
                         process.shutdown();
                     }
                 }
-                let _ = window.destroy();
                 // Tauri requires exit requests to be issued outside the
-                // event-loop callback that received CloseRequested.
+                // event-loop callback that received CloseRequested.  Do not
+                // synchronously destroy the window here: that can deadlock
+                // the same native event loop before the exit is dispatched.
                 let app_handle = window.app_handle().clone();
                 std::thread::spawn(move || app_handle.exit(0));
             }

@@ -93,7 +93,7 @@ def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
 
     assert "WindowEvent::CloseRequested { api, .. }" in source
     assert "api.prevent_close();" in source
-    assert "window.destroy();" in source
+    assert "window.destroy();" not in source
     # Tauri forbids AppHandle::exit directly inside its event-loop callback;
     # the actual process exit must be scheduled off that callback.
     assert "let app_handle = window.app_handle().clone();" in source
