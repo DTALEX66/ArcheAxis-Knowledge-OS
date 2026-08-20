@@ -22,12 +22,7 @@ use std::path::{Path, PathBuf};
 #[cfg(windows)]
 use std::sync::{Arc, Mutex};
 #[cfg(windows)]
-use std::time::Duration;
-#[cfg(windows)]
 use tauri::{Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
-
-#[cfg(windows)]
-const CLOSE_WATCHDOG_TIMEOUT: Duration = Duration::from_secs(12);
 
 #[cfg(windows)]
 #[derive(Clone)]
@@ -136,19 +131,12 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
-                // The Windows close request alone does not reliably end the
-                // Tauri run loop on the packaged shell.  The backend shutdown
-                // can wait for up to several seconds, so do not perform it on
-                // the native event loop that must dispatch the exit request.
-                api.prevent_close();
-                // Tauri requires exit requests to be issued outside the
-                // event-loop callback that received CloseRequested.  Do not
-                // synchronously destroy the window here: that can deadlock
-                // the same native event loop before the exit is dispatched.
-                // Do not wait for a command that may be launching/retrying
-                // Core: the Job Object will reclaim any process that remains
-                // owned when the application exits.
+            if matches!(event, WindowEvent::CloseRequested { .. }) {
+                // Let Tauri's native close path end the window and event loop.
+                // Blocking or preventing WM_CLOSE here has proved racy on a
+                // packaged Windows shell. Core is held by a KILL_ON_JOB_CLOSE
+                // Job Object, so a process that exits before graceful teardown
+                // still reclaims the owned child process.
                 let process = window
                     .app_handle()
                     .state::<DesktopBackend>()
@@ -156,24 +144,10 @@ fn main() {
                     .try_lock()
                     .ok()
                     .and_then(|mut state| state.take());
-                let app_handle = window.app_handle().clone();
-                std::thread::spawn(move || {
-                    // A failed Core stop must not make a healthy desktop
-                    // window survive WM_CLOSE indefinitely. The normal
-                    // shutdown worker wins first; this is only a bounded
-                    // escape hatch before the installer verifier's timeout.
-                    // AppHandle::exit depends on the Tauri event loop, which
-                    // is precisely the component that may be unresponsive
-                    // here. The Job Object owns Core and kills it when this
-                    // Windows process closes its handles.
-                    std::thread::sleep(CLOSE_WATCHDOG_TIMEOUT);
-                    std::process::exit(0);
-                });
                 std::thread::spawn(move || {
                     if let Some(mut process) = process {
                         process.shutdown();
                     }
-                    app_handle.exit(0);
                 });
             }
         })

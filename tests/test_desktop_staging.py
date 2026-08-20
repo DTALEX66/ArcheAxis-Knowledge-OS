@@ -91,16 +91,11 @@ def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
     repository = Path(__file__).resolve().parents[1]
     source = (repository / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
 
-    assert "WindowEvent::CloseRequested { api, .. }" in source
-    assert "api.prevent_close();" in source
+    assert "matches!(event, WindowEvent::CloseRequested { .. })" in source
+    assert "api.prevent_close();" not in source
     assert "window.destroy();" not in source
-    # Tauri forbids AppHandle::exit directly inside its event-loop callback.
-    # Core shutdown must also run off the native callback because it waits for
-    # the child process before the exit request is dispatched.
-    assert "let app_handle = window.app_handle().clone();" in source
-    assert "CLOSE_WATCHDOG_TIMEOUT" in source
-    assert "std::thread::sleep(CLOSE_WATCHDOG_TIMEOUT);" in source
-    assert "std::process::exit(0);" in source
+    # Tauri's default WM_CLOSE path must remain in control. Backend cleanup is
+    # offloaded, and the Windows Job Object reclaims it if exit wins the race.
     assert ".try_lock()" in source
     assert "std::thread::spawn(move || {" in source
     assert "state.take()" in source
@@ -108,7 +103,6 @@ def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
         "        })\n        .build", 1
     )[0]
     assert close_handler.index("std::thread::spawn") < close_handler.index("process.shutdown")
-    assert close_handler.index("process.shutdown") < close_handler.index("app_handle.exit(0)")
 
 
 def test_vite_root_is_stable_when_tauri_builds_through_a_windows_junction() -> None:
