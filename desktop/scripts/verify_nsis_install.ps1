@@ -144,11 +144,14 @@ try {
     # replacing user state.  A release run cannot manufacture a prior signed
     # version, so this is deliberately named an in-place upgrade rather than
     # claiming cross-version migration coverage.
-    $persistedDatabase = Join-Path $appData 'data\archeaxis.sqlite'
+    # ARCHEAXIS_DATA_DIR is the runtime root.  resolve_runtime_path strips the
+    # leading `data` component from the configured relative database path, so
+    # the installed database lives directly below the app-local data root.
+    $persistedDatabase = Join-Path $appData 'archeaxis.sqlite'
     if (-not (Test-Path -LiteralPath $persistedDatabase -PathType Leaf)) {
         throw "first launch did not create the expected user database: $persistedDatabase"
     }
-    $persistenceSentinel = Join-Path $appData 'data\release-lifecycle-sentinel.txt'
+    $persistenceSentinel = Join-Path $appData 'release-lifecycle-sentinel.txt'
     Set-Content -LiteralPath $persistenceSentinel -Value 'retain-this-user-state' -Encoding utf8 -NoNewline
 
     $upgradeProcess = Start-Process -FilePath $Installer -ArgumentList '/S' -Wait -PassThru

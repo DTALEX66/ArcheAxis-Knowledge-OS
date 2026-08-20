@@ -400,6 +400,12 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     )
 
     assert "NSIS in-place upgrade" in lifecycle
+    # ``ARCHEAXIS_DATA_DIR`` is the runtime root.  The canonical resolver
+    # strips the leading ``data`` component from ``data/archeaxis.sqlite``;
+    # the lifecycle verifier must therefore inspect the actual database
+    # location rather than inventing an extra data/ directory.
+    assert "Join-Path $appData 'archeaxis.sqlite'" in lifecycle
+    assert "Join-Path $appData 'data\\archeaxis.sqlite'" not in lifecycle
     assert "release-lifecycle-sentinel.txt" in lifecycle
     assert "NSIS uninstall removed user data instead of retaining it" in lifecycle
     assert "reinstalled Workspace did not read back retained user state" in lifecycle
