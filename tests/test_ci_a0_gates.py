@@ -178,6 +178,9 @@ def test_v0_6_0_development_version_uses_one_version_everywhere() -> None:
     assert "--version ${{ steps.resolve_version.outputs.release_version }}" in release_workflow
     assert "Resolve and verify release version" in release_workflow
     assert "release_version=" in release_workflow
+    assert "'pyproject.toml' = $pyVersion" in release_workflow
+    assert "'package.json' = $pkgVersion" in release_workflow
+    assert "'tauri.conf.json' = $tauriVersion" in release_workflow
     assert "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe" in release_workflow
     assert "frontend/package-lock.json" in release_workflow
     assert "src-tauri/Cargo.lock" in release_workflow

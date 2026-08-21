@@ -70,9 +70,9 @@ jobs:
           $pkgVersion = (Get-Content frontend/package.json -Raw | ConvertFrom-Json).version
           $tauriVersion = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
           $sources = [ordered]@{
-            pyproject = $pyVersion
-            package.json = $pkgVersion
-            tauri.conf.json = $tauriVersion
+            'pyproject.toml' = $pyVersion
+            'package.json' = $pkgVersion
+            'tauri.conf.json' = $tauriVersion
           }
           foreach ($entry in $sources.GetEnumerator()) {
             if ($entry.Value -ne $releaseVersion) {
