@@ -28,6 +28,9 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
     cache = repository / ".hermes/cache/uv-desktop"
     env = os.environ.copy()
     env["UV_CACHE_DIR"] = str(cache)
+    # Keep wheel build discovery out of a developer-owned root .venv. The
+    # bundle staging environment is ephemeral project runtime state.
+    env["UV_PROJECT_ENVIRONMENT"] = str(cache / "build-project-venv")
 
     _run(
         [
