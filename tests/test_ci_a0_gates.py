@@ -31,6 +31,49 @@ def test_ci_supports_explicit_full_qualification_for_a_selected_sha() -> None:
     assert "CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL || contains(github.event.head_commit.message, '[full-qualification]') }}" in workflow
 
 
+def test_ci_runs_risk_owned_python_targets_without_the_primary_suite() -> None:
+    """Targeted GatePlan IDs must select a focused job, not the full suite."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    for job_name, gate_name, target in (
+        ("format-targeted", "format-targeted", "tests/test_ingestion.py"),
+        ("migration-targeted", "migration-targeted", "tests/test_migration_runner.py"),
+        ("security-targeted", "security-targeted", "tests/test_approved_paths.py"),
+    ):
+        block = workflow.split(f"\n  {job_name}:", 1)[1]
+        assert f"contains(needs.gateplan.outputs.required_gates, '{gate_name}')" in block
+        assert target in block
+
+    primary = _job_section(workflow, "test", "format-targeted")
+    assert "contains(needs.gateplan.outputs.required_gates, 'format-targeted')" not in primary
+    assert "contains(needs.gateplan.outputs.required_gates, 'migration-targeted')" not in primary
+    assert "contains(needs.gateplan.outputs.required_gates, 'security-targeted')" not in primary
+
+
+def test_ci_publishes_lock_bound_release_candidate_provenance() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    desktop = _job_section(workflow, "desktop-build", "installer-lifecycle")
+
+    assert "cache: npm" in desktop
+    assert "release-candidate.json" in desktop
+    assert "release-candidate" in desktop
+    assert "src-tauri/Cargo.lock" in desktop
+    assert "frontend/package-lock.json" in desktop
+    assert "uv.lock" in desktop
+
+
+def test_release_promotes_and_verifies_the_exact_ci_candidate() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+
+    assert "gh run download" in workflow
+    assert "release-candidate" in workflow
+    assert "release-candidate.json" in workflow
+    assert "candidate provenance commit mismatch" in workflow
+    assert "candidate installer SHA-256 mismatch" in workflow
+    assert "candidate executable SHA-256 mismatch" in workflow
+    assert "tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis" not in workflow
+
+
 def test_ci_runs_windows_runtime_smoke() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 

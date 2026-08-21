@@ -23,6 +23,11 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - name: Require tag target to equal main
         shell: pwsh
         run: |
@@ -52,6 +57,26 @@ jobs:
           $canonicalRunUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$($verificationRun.databaseId)"
           "verification_run_id=$($verificationRun.databaseId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "verification_run_url=$canonicalRunUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - name: Download and verify exact CI release candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $candidateRoot = '.hermes/task-runtime/release-candidate'
+          New-Item -ItemType Directory -Force $candidateRoot | Out-Null
+          gh run download ${{ steps.require_ci.outputs.verification_run_id }} --name release-candidate --dir $candidateRoot
+          $candidate = Get-Content "$candidateRoot/release-candidate.json" -Raw | ConvertFrom-Json
+          if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
+          foreach ($entry in $candidate.locks.PSObject.Properties) {
+            if ((Get-FileHash $entry.Name -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.Value) { throw "candidate lock digest mismatch: $($entry.Name)" }
+          }
+          $installer = Join-Path $candidateRoot $candidate.installer.name
+          if (-not (Test-Path -LiteralPath $installer) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'candidate installer SHA-256 mismatch' }
+          $executable = Join-Path $candidateRoot $candidate.executable.name
+          if (-not (Test-Path -LiteralPath $executable) -or (Get-FileHash $executable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.executable.sha256) { throw 'candidate executable SHA-256 mismatch' }
+          New-Item -ItemType Directory -Force 'src-tauri/target/release/bundle/nsis' | Out-Null
+          Copy-Item $installer 'src-tauri/target/release/bundle/nsis/'
+          Copy-Item $executable 'src-tauri/target/release/ArcheAxis.exe'
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
@@ -104,8 +129,6 @@ jobs:
             --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,release-manifest.json,SBOM.cdx.json,THIRD_PARTY_NOTICES.txt,SHA256SUMS.txt" `
             --dependency-locks "uv.lock=$uvLockHash,frontend/package-lock.json=$npmLockHash,src-tauri/Cargo.lock=$cargoLockHash" `
             --output .hermes/rt/runtime/release-identity.json
-      - name: Build Windows NSIS installer
-        run: frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis
       - name: Verify installed NSIS lifecycle
         shell: pwsh
         run: |

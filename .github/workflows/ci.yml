@@ -101,7 +101,7 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') || contains(needs.gateplan.outputs.required_gates, 'py-targeted') || contains(needs.gateplan.outputs.required_gates, 'format-targeted') || contains(needs.gateplan.outputs.required_gates, 'migration-targeted') || contains(needs.gateplan.outputs.required_gates, 'security-targeted') }}
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}
     strategy:
       matrix:
         python-version: ["3.12"]
@@ -154,6 +154,51 @@ jobs:
           python scripts/ci/emit_pytest_annotations.py \
             .hermes/task-runtime/integration-tests.junit.xml
           exit "$test_status"
+
+  format-targeted:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'format-targeted') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: { python-version: "3.12" }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with: { enable-cache: true, cache-dependency-glob: uv.lock }
+      - name: Run format adapter targets
+        run: uv run --frozen --group ci --group ci-adapters pytest tests/test_ingestion.py -q --tb=short
+
+  migration-targeted:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'migration-targeted') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: { python-version: "3.12" }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with: { enable-cache: true, cache-dependency-glob: uv.lock }
+      - name: Run migration targets
+        run: uv run --frozen --group ci pytest tests/test_migration_runner.py -q --tb=short
+
+  security-targeted:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'security-targeted') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: { python-version: "3.12" }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with: { enable-cache: true, cache-dependency-glob: uv.lock }
+      - name: Run security path targets
+        run: uv run --frozen --group ci pytest tests/test_approved_paths.py -q --tb=short
 
   py-compat:
     timeout-minutes: 15
@@ -582,6 +627,11 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
@@ -651,6 +701,22 @@ jobs:
           name: nsis-installer
           path: src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
+      - name: Stage lock-bound release candidate
+        shell: pwsh
+        run: |
+          $stage = '.hermes/task-runtime/release-candidate'
+          New-Item -ItemType Directory -Force $stage | Out-Null
+          $installer = @(Get-ChildItem 'src-tauri/target/release/bundle/nsis' -Filter '*.exe' -File)
+          if ($installer.Count -ne 1) { throw 'expected exactly one candidate installer' }
+          Copy-Item $installer[0].FullName "$stage/$($installer[0].Name)"
+          Copy-Item 'src-tauri/target/release/ArcheAxis.exe' "$stage/ArcheAxis.exe"
+          [ordered]@{ schema='archeaxis/release-candidate/v1'; commit=$env:GITHUB_SHA; locks=[ordered]@{ 'uv.lock'=(Get-FileHash 'uv.lock' -Algorithm SHA256).Hash.ToLowerInvariant(); 'frontend/package-lock.json'=(Get-FileHash 'frontend/package-lock.json' -Algorithm SHA256).Hash.ToLowerInvariant(); 'src-tauri/Cargo.lock'=(Get-FileHash 'src-tauri/Cargo.lock' -Algorithm SHA256).Hash.ToLowerInvariant() }; installer=[ordered]@{name=$installer[0].Name;sha256=(Get-FileHash "$stage/$($installer[0].Name)" -Algorithm SHA256).Hash.ToLowerInvariant()}; executable=[ordered]@{name='ArcheAxis.exe';sha256=(Get-FileHash "$stage/ArcheAxis.exe" -Algorithm SHA256).Hash.ToLowerInvariant()} } | ConvertTo-Json -Depth 5 | Set-Content "$stage/release-candidate.json" -Encoding utf8
+      - name: Upload immutable release candidate
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: release-candidate
+          path: .hermes/task-runtime/release-candidate/*
+          if-no-files-found: error
 
   installer-lifecycle:
     runs-on: windows-latest
@@ -689,13 +755,16 @@ jobs:
   a0-gates:
     timeout-minutes: 5
     if: ${{ always() }}
-    needs: [gateplan, test, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle]
+    needs: [gateplan, test, format-targeted, migration-targeted, security-targeted, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle]
     runs-on: ubuntu-latest
     steps:
       - name: Validate required gates against GatePlan (ci-verdict)
         env:
           REQUIRED_GATES: ${{ needs.gateplan.outputs.required_gates }}
           TEST_RESULT: ${{ needs.test.result }}
+          FORMAT_RESULT: ${{ needs.format-targeted.result }}
+          MIGRATION_RESULT: ${{ needs.migration-targeted.result }}
+          SECURITY_RESULT: ${{ needs.security-targeted.result }}
           COMPAT_RESULT: ${{ needs.py-compat.result }}
           LINT_RESULT: ${{ needs.lint.result }}
           WHEEL_RESULT: ${{ needs.wheel-smoke.result }}
@@ -729,9 +798,9 @@ jobs:
           # py-primary failure pass as green.
           require py-primary "$TEST_RESULT"
           require py-targeted "$TEST_RESULT"
-          require format-targeted "$TEST_RESULT"
-          require migration-targeted "$TEST_RESULT"
-          require security-targeted "$TEST_RESULT"
+          require format-targeted "$FORMAT_RESULT"
+          require migration-targeted "$MIGRATION_RESULT"
+          require security-targeted "$SECURITY_RESULT"
           require static "$LINT_RESULT"
           require lint "$LINT_RESULT"
           require py-compat "$COMPAT_RESULT"
@@ -744,7 +813,7 @@ jobs:
           # A not-required job that RAN and failed is still a failure. Use the
           # job names (the only labels the `needs.*.result` are keyed by) but
           # check them against their real job results.
-          for spec in "test:$TEST_RESULT" "py-compat:$COMPAT_RESULT" "lint:$LINT_RESULT" "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime-smoke:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT"; do
+          for spec in "test:$TEST_RESULT" "format-targeted:$FORMAT_RESULT" "migration-targeted:$MIGRATION_RESULT" "security-targeted:$SECURITY_RESULT" "py-compat:$COMPAT_RESULT" "lint:$LINT_RESULT" "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime-smoke:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT"; do
             name="${spec%%:*}"; result="${spec##*:}"
             if [ "$result" = "failure" ]; then
               echo "job '$name' failed even though its gate was not required"
