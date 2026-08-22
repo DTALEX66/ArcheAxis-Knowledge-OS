@@ -125,8 +125,7 @@ pub fn resolve_runtime_with_portable_root(
 #[cfg(test)]
 mod tests {
     use super::{
-        RuntimeSpec, portable_root_from_marker, resolve_runtime,
-        resolve_runtime_with_portable_root,
+        portable_root_from_marker, resolve_runtime, resolve_runtime_with_portable_root, RuntimeSpec,
     };
     use std::fs;
     use std::path::Path;
@@ -338,8 +337,14 @@ mod tests {
         let executable = temp.path().join("portable/ArcheAxis.exe");
         fs::create_dir_all(executable.parent().expect("distribution root"))
             .expect("create distribution root");
-        fs::write(executable.parent().expect("distribution root").join("portable.flag"), b"")
-            .expect("create portable marker");
+        fs::write(
+            executable
+                .parent()
+                .expect("distribution root")
+                .join("portable.flag"),
+            b"",
+        )
+        .expect("create portable marker");
 
         assert_eq!(
             portable_root_from_marker(&executable),

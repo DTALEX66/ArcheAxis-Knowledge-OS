@@ -92,19 +92,20 @@ fn run_inner() -> Result<(), String> {
                 // (frontendDist) which polls the backend handshake over
                 // loopback and only navigates to /workspace when ready —
                 // the shell stays usable while the backend is down.
-                let shell = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                    .title("ArcheAxis Knowledge")
-                    .inner_size(1280.0, 800.0)
-                    .min_inner_size(960.0, 640.0)
-                    .resizable(true)
-                    .center()
-                    .devtools(cfg!(debug_assertions))
-                    .data_directory(runtime.data_dir.clone())
-                    .on_navigation(move |target| navigation_allowed(target, port))
-                    .on_new_window(|_, _| NewWindowResponse::Deny)
-                    .on_download(|_, _| false)
-                    .build()
-                    .map_err(|error| format!("failed to create Workspace window: {error}"))?;
+                let shell =
+                    WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+                        .title("ArcheAxis Knowledge")
+                        .inner_size(1280.0, 800.0)
+                        .min_inner_size(960.0, 640.0)
+                        .resizable(true)
+                        .center()
+                        .devtools(cfg!(debug_assertions))
+                        .data_directory(runtime.data_dir.clone())
+                        .on_navigation(move |target| navigation_allowed(target, port))
+                        .on_new_window(|_, _| NewWindowResponse::Deny)
+                        .on_download(|_, _| false)
+                        .build()
+                        .map_err(|error| format!("failed to create Workspace window: {error}"))?;
                 let _ = shell;
                 *setup_backend
                     .lock()

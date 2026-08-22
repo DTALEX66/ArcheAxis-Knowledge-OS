@@ -194,7 +194,7 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
     }
 
 
-def test_v0_6_5_development_version_uses_one_version_everywhere() -> None:
+def test_v0_6_6_development_version_uses_one_version_everywhere() -> None:
     expected_version = "0.6.6"
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     manifest = json.loads(
