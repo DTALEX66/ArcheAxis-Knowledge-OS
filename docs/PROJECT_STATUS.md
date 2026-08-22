@@ -1,14 +1,14 @@
 # 项目当前状态
 
-> **v0.6.7 当前裁决（2026-08-23）**：`v0.6.7 development — PARTIAL`。本轮承接 v0.6.0 最小可信闭环任务包；既有 `v0.6.0` 至 `v0.6.6` 标签按不可改写策略保留且未公开发布。当前 SHA、能力矩阵与证据层级必须由 `scripts/generate_current_reports.py` 生成的 `reports/current/` 报告和实际门禁运行决定。
+> **v0.6.7 当前裁决（2026-08-23）**：`v0.6.7 stable — RELEASED`。标签精确绑定 `347d9f957b0509185df8c64e0578061a1ce2f9e3`；CI `32599003326`、Release `32599851308`、三种 Windows 分发包生命周期和 9 项公开资产独立下载读回均通过。此裁决只覆盖 v0.6.0 任务定义的最小闭环和已验证能力，不提升未实现的长期蓝图。
 
 > 更新：2026-08-09。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
 
-- 当前源码版本为 `0.6.7`，packaged source manifest 按合同仍为 `unreleased / public=false`；公开稳定 Release `v0.5.0` 与未公开历史标签 `v0.6.0` 至 `v0.6.6` 都不会预先或隐式宣告 v0.6.7 公开发布。
+- 当前源码版本为 `0.6.7`；packaged source manifest 按合同仍是 `unreleased / public=false`，正式发布资产中的 schema v3 identity 是 `stable / public=true`，两者分别表达源码占位真相和已发布资产真相。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
-- `v0.5.0` 已满足 tag 精确绑定受保护 `main`、merge-SHA Full Qualification、公开资产集合与 checksum payload allowlist 双向一致、provider digest 可核验、下载后 SHA-256 复算、release identity 读回和 installer lifecycle；当前没有签名发布声明。
+- `v0.6.7` 已满足 tag 精确绑定 `main`、exact-SHA Full Qualification、NSIS/Green/Portable 生命周期、公开资产集合与 checksum payload allowlist 双向一致、provider digest、下载后 SHA-256、schema v3 identity 和依赖锁读回；当前没有 Authenticode 签名声明。
 
 ## 当前阶段
 

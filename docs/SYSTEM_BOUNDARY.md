@@ -21,5 +21,7 @@ capabilities are replaceable adapters and must report honest degradation when
 missing. No installed build may require a development-machine absolute path.
 
 This document defines a release boundary, not a completion assertion. The
-current release state is `v0.6.7 development — PARTIAL` until exact-SHA tests,
-Golden Journey evidence, and Windows lifecycle evidence are available.
+current release state is `v0.6.7 stable — RELEASED`: exact-SHA CI,
+Golden Journey coverage, three Windows distribution lifecycles, and public
+asset readback are recorded in `docs/RELEASE_LEDGER.md`. This does not promote
+deferred capabilities outside the boundary above.

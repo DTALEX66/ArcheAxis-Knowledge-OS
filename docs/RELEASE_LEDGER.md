@@ -31,6 +31,35 @@ correct provenance.
 | `v0.6.4` | yes | no | — | — | Historical unpublished tag at `5a71ffa`; Release run `32592474961` passed path and identity checks, then the ZIP verifier hit the same nondeterministic `CloseMainWindow()` race previously fixed for NSIS. Preserved; remediation proceeded as `v0.6.5`. |
 | `v0.6.5` | yes | no | — | — | Historical unpublished tag at `809cd5d`; exact-SHA CI run `32593904745` passed. Release run `32594767473` passed the identity-bound NSIS lifecycle and exact-window ZIP shutdown, then exposed a verifier-only Portable database readback path error: it checked `data/data/archeaxis.sqlite` although the canonical resolver writes `data/archeaxis.sqlite`. Preserved; remediation proceeded as `v0.6.6`. |
 | `v0.6.6` | yes | draft | no | unpublished | Historical unpublished tag at `b6c92bd`; exact-SHA CI run `32596718833` passed. Release run `32597563772` passed all three Windows lifecycle gates and uploaded the draft asset set, then the final lock readback interpolated `"$entry.Name"` as an object string plus literal suffix instead of the property value. Preserved; remediation proceeds as `v0.6.7`. |
+| `v0.6.7` | yes | yes | yes | 2026-08-22 21:50:57 | Current public stable Release at `347d9f9`; exact-SHA CI, three Windows lifecycle gates, schema v3 identity, provider digests, checksum allowlist and independent downloaded-asset readback passed. |
+
+## v0.6.7 release evidence
+
+- GitHub Release URL: <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.7>
+- Tag commit: `347d9f957b0509185df8c64e0578061a1ce2f9e3`
+- Source tree: `ad150aad19c1ebe2766c3c1954ded8e5edd49b13`
+- Verification exact-SHA CI: `32599003326` (success)
+- Release workflow: `32599851308` (success; distinct from verification CI)
+- Published: `2026-08-22T21:50:57Z`; public, non-draft, non-prerelease
+- Independent readback: 9 assets downloaded; all provider SHA-256 digests matched;
+  `SHA256SUMS.txt` covered the other 8 payloads exactly.
+
+| Asset | Provider and downloaded SHA-256 |
+| --- | --- |
+| `ArcheAxis.Knowledge-v0.6.7-Windows-x64-Green.zip` | `044f48b489aaca115b4318ea806ddfb6e84cbbd91a478144f6b4e1bc71cbcea3` |
+| `ArcheAxis.Knowledge-v0.6.7-Windows-x64-Portable.zip` | `416b735fddcd032dfc4280c9824a37cac682cc392a9bcb016b4a866efaa9fef1` |
+| `ArcheAxis.Knowledge-v0.6.7-Windows-x64-Setup.exe` | `521d7d7c913682f0ef80b37f5bd333afc1abab8ac56043daee6ec98ac9989fd3` |
+| `archeaxis_workspace-0.6.7-py3-none-any.whl` | `5b592f7a2aa72f970944e926e22fdf49d2a1dfc988275091cc4b32b11ef1a6c8` |
+| `release-identity.json` | `2d82b2e69baa247c06d4aa78abf4c9e91ba8ad7603d6f6bf2d46e6660af09ca1` |
+| `release-manifest.json` | `d5d39c8d44e98ffba6de736f7d5154f51fca42e19f54234eafd63e32c1d031d3` |
+| `SBOM.cdx.json` | `e51644adf13fb78c27acdbd8312f2016e1d69e7e60613343f8020577e0499af8` |
+| `SHA256SUMS.txt` | `66945349746b00a094b9f1c02584d1d233283db90a0e031f2b50f1269bb8c6a4` |
+| `THIRD_PARTY_NOTICES.txt` | `b68e40ae34b96c4537c0a8144049513245e07232b536e698c0fadc166e7f97f9` |
+
+Downloaded `release-identity.json` is schema v3 and binds the public release to
+the exact tag/commit/tree, verification CI and Release run. Its dependency-lock
+hashes matched local `uv.lock`, `frontend/package-lock.json`, and
+`src-tauri/Cargo.lock`.
 
 ## v0.4.4 release evidence
 
