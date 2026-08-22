@@ -626,6 +626,33 @@ def workspace_library(request: Request) -> dict[str, object]:
     return _command_error(lambda: service.workspace_library(db_path=DB_PATH))
 
 
+@router.get("/api/library/{raw_sha256}/content", response_class=FileResponse)
+def workspace_library_content(raw_sha256: str, request: Request) -> FileResponse:
+    """Open one retained original by content identity, never by caller path."""
+    _local_principal(request)
+    try:
+        path, safe_name, media_type = service.source_archive_content(
+            raw_sha256=raw_sha256, db_path=DB_PATH
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return FileResponse(
+        path,
+        media_type=media_type,
+        filename=safe_name,
+        content_disposition_type="inline",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "default-src 'none'; sandbox",
+        },
+    )
+
+
 @router.get("/api/delivery")
 def workspace_delivery(request: Request) -> dict[str, object]:
     _local_principal(request)
@@ -769,6 +796,16 @@ def approve_runtime_candidate(command: RuntimeApprovalCommand, request: Request)
     _local_principal(request)
     return _command_error(
         lambda: service.approve_runtime_title(
+            command_id=command.command_id, title=command.title, db_path=DB_PATH
+        )
+    )
+
+
+@router.post("/api/runtime/deprecate")
+def deprecate_runtime_asset(command: RuntimeApprovalCommand, request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(
+        lambda: service.deprecate_runtime_title(
             command_id=command.command_id, title=command.title, db_path=DB_PATH
         )
     )

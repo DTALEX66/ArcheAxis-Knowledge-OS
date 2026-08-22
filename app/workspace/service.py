@@ -468,6 +468,28 @@ def workspace_library(*, db_path: str | Path) -> dict[str, object]:
     return {"schema_version": "v1", "items": items}
 
 
+def source_archive_content(
+    *, raw_sha256: str, db_path: str | Path
+) -> tuple[Path, str, str]:
+    """Resolve one retained original without accepting a filesystem path."""
+    if (
+        len(raw_sha256) != 64
+        or any(char not in "0123456789abcdef" for char in raw_sha256)
+    ):
+        raise ValueError("raw_sha256 must be 64 lowercase hexadecimal characters")
+    archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
+    if not archive.has(raw_sha256):
+        raise LookupError("source archive content was not found")
+    record = next(
+        (item for item in archive.list_records() if item.sha256 == raw_sha256),
+        None,
+    )
+    if record is None:
+        raise RuntimeError("source archive metadata projection is unavailable")
+    safe_name = Path(record.source_name).name.strip() or f"{raw_sha256}.bin"
+    return archive.resolve(raw_sha256), safe_name, record.mime_type
+
+
 def workspace_delivery(*, db_path: str | Path) -> dict[str, object]:
     """Project Job, Outbox, and Delivery Receipt state without internal identities."""
     from collections import Counter
@@ -1008,14 +1030,23 @@ def workspace_runtime_candidates(*, db_path: str | Path) -> dict[str, object]:
                 "title": (unit := MachineKnowledgeUnitV1.model_validate_json(str(row["unit_json"]))).title,
                 "content": unit.content,
                 "lifecycle": str(row["lifecycle_status"]),
+                "scope": unit.scope,
+                "version": unit.schema_version,
+                "evidence_source": unit.source_type,
             }
             for row in rows
         ],
     }
 
 
-def approve_runtime_title(*, command_id: str, title: str, db_path: str | Path) -> dict[str, object]:
-    """Approve one uniquely titled machine candidate without exposing its ID."""
+def _decide_runtime_title(
+    *,
+    command_id: str,
+    title: str,
+    decision: str,
+    db_path: str | Path,
+) -> dict[str, object]:
+    """Apply or replay one server-owned machine-knowledge decision by title."""
     from app.contracts.v1 import MachineKnowledgeUnitV1
     from app.knowledge.machine_knowledge import (
         MachineKnowledgeApproval,
@@ -1025,26 +1056,69 @@ def approve_runtime_title(*, command_id: str, title: str, db_path: str | Path) -
     database = Path(db_path)
     with sqlite3.connect(database, timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
+        existing = connection.execute(
+            "SELECT candidate_id, decision FROM machine_knowledge_approval_events_v1 "
+            "WHERE approval_id=?",
+            (command_id,),
+        ).fetchone()
+        if existing is not None:
+            unit_row = connection.execute(
+                "SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE id=?",
+                (str(existing["candidate_id"]),),
+            ).fetchone()
+            if unit_row is None:
+                raise RuntimeError("machine knowledge decision receipt lost its candidate")
+            unit = MachineKnowledgeUnitV1.model_validate_json(str(unit_row["unit_json"]))
+            if unit.title != title or str(existing["decision"]) != decision:
+                raise RuntimeError(
+                    "workspace command id conflicts with an existing runtime decision"
+                )
+            return {"title": unit.title, "status": decision}
+        required_lifecycle = "candidate" if decision == "approved" else "approved"
         rows = connection.execute(
             "SELECT id, unit_json FROM machine_knowledge_candidates_v1 "
-            "WHERE lifecycle_status='candidate' AND json_extract(unit_json, '$.title')=?",
-            (title,),
+            "WHERE lifecycle_status=? AND json_extract(unit_json, '$.title')=?",
+            (required_lifecycle, title),
         ).fetchall()
     if len(rows) != 1:
-        raise ValueError("机器知识候选标题不存在或不唯一")
+        raise ValueError("机器知识标题不存在、不唯一或当前状态不允许该决定")
     unit = MachineKnowledgeUnitV1.model_validate_json(str(rows[0]["unit_json"]))
-    approved = deprecate_machine_knowledge_candidate(
+    decided = deprecate_machine_knowledge_candidate(
         MachineKnowledgeApproval(
             approval_id=command_id,
             candidate_id=str(rows[0]["id"]),
             reviewer_id="local-workspace",
-            decision="approved",
-            rationale="local workspace governed runtime approval",
+            decision=decision,
+            rationale=f"local workspace governed runtime {decision}",
             reviewed_at=now_utc(),
         ),
         db_path=database,
     )
-    return {"title": unit.title, "status": approved.lifecycle_status}
+    return {"title": unit.title, "status": decided.lifecycle_status}
+
+
+def approve_runtime_title(
+    *, command_id: str, title: str, db_path: str | Path
+) -> dict[str, object]:
+    """Approve one uniquely titled machine candidate without exposing its ID."""
+    return _decide_runtime_title(
+        command_id=command_id,
+        title=title,
+        decision="approved",
+        db_path=db_path,
+    )
+
+
+def deprecate_runtime_title(
+    *, command_id: str, title: str, db_path: str | Path
+) -> dict[str, object]:
+    """Independently deprecate one approved AI asset by unique title."""
+    return _decide_runtime_title(
+        command_id=command_id,
+        title=title,
+        decision="deprecated",
+        db_path=db_path,
+    )
 
 
 def workspace_lifecycle(*, db_path: str | Path) -> dict[str, object]:
