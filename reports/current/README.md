@@ -1,0 +1,27 @@
+# Current report boundary
+
+This tracked directory is an entry point only. Historical execution snapshots
+were moved without deletion to
+`reports/history/pre-v0.6.7-current-snapshots/`; they must not be treated as
+the current Git, CI, Release, installed-runtime, or product-capability state.
+
+Live source/release/capability reports are generated from the checked-out Git
+state and the validated immutable Release receipt:
+
+```powershell
+python scripts/generate_current_reports.py
+```
+
+The default output is the ignored project-local directory
+`.hermes/task-artifacts/current-reports/`. This prevents a checked-in report
+from claiming that it contains its own commit SHA. The immutable v0.6.7 public
+release evidence is stored at
+`reports/release/v0.6.7/release-evidence.json`.
+
+Evidence layers remain separate:
+
+- Git source HEAD/tree and `origin/main` equality are structural facts;
+- the v0.6.7 receipt proves exact-SHA CI, three Windows lifecycles,
+  publication, and downloaded-asset readback;
+- each product capability remains `PARTIAL` or `NOT_EXECUTED` until its own
+  executable journey produces a SHA-bound receipt.

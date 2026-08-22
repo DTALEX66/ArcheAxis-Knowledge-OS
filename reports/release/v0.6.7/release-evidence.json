@@ -1,0 +1,93 @@
+{
+  "schema_version": "archeaxis.release-evidence.v1",
+  "release": {
+    "tag": "v0.6.7",
+    "version": "0.6.7",
+    "channel": "stable",
+    "public": true,
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-08-22T21:50:57Z",
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.7"
+  },
+  "source": {
+    "commit_sha": "347d9f957b0509185df8c64e0578061a1ce2f9e3",
+    "tree_sha": "ad150aad19c1ebe2766c3c1954ded8e5edd49b13"
+  },
+  "runs": {
+    "verification_ci": {
+      "id": 32599003326,
+      "conclusion": "success",
+      "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/32599003326"
+    },
+    "release": {
+      "id": 32599851308,
+      "conclusion": "success",
+      "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/32599851308"
+    }
+  },
+  "assets": [
+    {
+      "name": "ArcheAxis.Knowledge-v0.6.7-Windows-x64-Green.zip",
+      "size": 223968176,
+      "sha256": "044f48b489aaca115b4318ea806ddfb6e84cbbd91a478144f6b4e1bc71cbcea3"
+    },
+    {
+      "name": "ArcheAxis.Knowledge-v0.6.7-Windows-x64-Portable.zip",
+      "size": 224111828,
+      "sha256": "416b735fddcd032dfc4280c9824a37cac682cc392a9bcb016b4a866efaa9fef1"
+    },
+    {
+      "name": "ArcheAxis.Knowledge-v0.6.7-Windows-x64-Setup.exe",
+      "size": 154351652,
+      "sha256": "521d7d7c913682f0ef80b37f5bd333afc1abab8ac56043daee6ec98ac9989fd3"
+    },
+    {
+      "name": "archeaxis_workspace-0.6.7-py3-none-any.whl",
+      "size": 1067060,
+      "sha256": "5b592f7a2aa72f970944e926e22fdf49d2a1dfc988275091cc4b32b11ef1a6c8"
+    },
+    {
+      "name": "release-identity.json",
+      "size": 1811,
+      "sha256": "2d82b2e69baa247c06d4aa78abf4c9e91ba8ad7603d6f6bf2d46e6660af09ca1"
+    },
+    {
+      "name": "release-manifest.json",
+      "size": 1694,
+      "sha256": "d5d39c8d44e98ffba6de736f7d5154f51fca42e19f54234eafd63e32c1d031d3"
+    },
+    {
+      "name": "SBOM.cdx.json",
+      "size": 90760,
+      "sha256": "e51644adf13fb78c27acdbd8312f2016e1d69e7e60613343f8020577e0499af8"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 811,
+      "sha256": "66945349746b00a094b9f1c02584d1d233283db90a0e031f2b50f1269bb8c6a4"
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.txt",
+      "size": 26764,
+      "sha256": "b68e40ae34b96c4537c0a8144049513245e07232b536e698c0fadc166e7f97f9"
+    }
+  ],
+  "dependency_locks": {
+    "uv.lock": "b4500bd574c22b720d0be74bdb108172d129e9e8ece9c75ac3db52d3af3ba626",
+    "frontend/package-lock.json": "977f64eccc7e4d1550d9cbc6b6abf9f88bae6f5b047df90a8eff46f70bf29d41",
+    "src-tauri/Cargo.lock": "f4f317f1da8bba0f0a640225c28a9a93f589fecb3ac51c193c6ca9ae0edf2cd2"
+  },
+  "verification": {
+    "provider_digest_match": true,
+    "downloaded_sha256_match": true,
+    "public_asset_count": 9,
+    "checksum_payload_count": 8,
+    "identity_schema_version": "3.0.0",
+    "three_distribution_lifecycle": "PASS"
+  },
+  "limitations": [
+    "This receipt proves the v0.6.7 release and named lifecycle/readback gates only.",
+    "It does not promote incomplete product capabilities or deferred roadmap items."
+  ]
+}

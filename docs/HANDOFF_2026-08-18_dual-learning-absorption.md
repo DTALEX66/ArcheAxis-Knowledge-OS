@@ -11,7 +11,7 @@
   - §11：全量在线核实（42 条目：41 真实 / 1 查无此名 Paperless AI Research Brain；exact 21 / close 21 / partial 2 / not_found 1）
   - §12：实际吸收批次记录
 - workspace/intake/024_dual_learning_os_research_v1.md：框架方向影响记录
-- docs/current/UNFINISHED_TASKS_2026-08-18.md：任务清单（A 吸收收尾 / B Owner 门禁 / C P0 优先 / D 深挖 / E 未吸收观察）
+- docs/history/pre-v0.6.7-current-snapshots/UNFINISHED_TASKS_2026-08-18.md：历史任务清单（A 吸收收尾 / B Owner 门禁 / C P0 优先 / D 深挖 / E 未吸收观察）
 - docs/cross-project/WORKLAB_PUSH_PLAN.md：WORK-LAB 推送规划（v5 分层，阶段 1 文档推送约定 / 阶段 2 逆向归档触发条件 / 自动化后置）
 
 ### 1.2 后端吸收（11 个新模块 + 1 API，69 测试）
@@ -46,7 +46,7 @@
 ## 3. 定位不变式（已核对）
 PRODUCT_IDENTITY_V2（binding）：本地优先、原件保全、证据可追溯、开放互操作的人机双向学习与可信知识治理工作台；NOT Agent OS。本批吸收是加深实现，非漂移。
 
-## 4. 未完成任务（详见 docs/current/UNFINISHED_TASKS_2026-08-18.md）
+## 4. 未完成任务（历史快照见 docs/history/pre-v0.6.7-current-snapshots/UNFINISHED_TASKS_2026-08-18.md）
 - 已完成：A1（提交吸收批次）、A3（04 矩阵并入）、D1（双向闭环编排器）
 - 待办：A2（Teach-Back LLM 精评配 key）、A4（S/A 级候选代码级拆解选型）、C1（P0 配置减重约 965MB）、C2（AXW-WEB-CAPTURE-v3 22 任务）、D2（Skill→学习路径）、B1-B8（Owner 门禁：RC v0.6.0 发布、Tauri 接线、H1-H4 EXIT、AXW-045/055/012C/095/097/060 验收等）
 

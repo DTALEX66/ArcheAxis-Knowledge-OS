@@ -5,21 +5,19 @@
   2. DESIGN-LAB MethodCard（provenance://designlab/method/card-12）
   3. 外置 SourceRecord（provenance://external/source-record/sr-9）
 
-产出：reports/current/FEDERATION_MIGRATION_REPORT.md + CANDIDATE_ROUNDTRIP_PROOF.json
+产出：pytest 项目内临时目录中的 FEDERATION_MIGRATION_REPORT.md 与
+CANDIDATE_ROUNDTRIP_PROOF.json；测试不得污染 tracked reports。
 """
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from app.contracts.federation_v1 import (
-    CandidateSubmissionV1,
     CandidateSubmissionItemV1,
-    ExternalAssetRecordV1,
+    CandidateSubmissionV1,
     KnowledgeQueryV1,
 )
 from app.federation import service
@@ -85,14 +83,14 @@ def pilot_db(tmp_path):
     return str(tmp_path / "pilot.sqlite")
 
 
-def test_knowledge_migration_pilot(pilot_db):
+def test_knowledge_migration_pilot(pilot_db, tmp_path):
     proof = _run_pilot(pilot_db)
     assert proof["receipt"]["accepted"] == 3
     assert proof["verified_total"] == 3
     assert len(proof["hash_readbacks"]) == 3
     assert all(len(h["content_hash"]) == 64 for h in proof["hash_readbacks"])
     # persist proof + report (deliverables)
-    reports = Path("reports/current")
+    reports = tmp_path / "task-artifacts"
     reports.mkdir(parents=True, exist_ok=True)
     (reports / "CANDIDATE_ROUNDTRIP_PROOF.json").write_text(
         json.dumps(proof, ensure_ascii=False, indent=2), encoding="utf-8")
