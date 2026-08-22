@@ -5,7 +5,7 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_DEVELOPMENT_VERSION = "0.6.5"
+EXPECTED_DEVELOPMENT_VERSION = "0.6.6"
 
 
 def test_development_version_is_one_truth_across_runtime_and_desktop_surfaces() -> None:

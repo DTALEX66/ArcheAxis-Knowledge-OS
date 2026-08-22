@@ -30,7 +30,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "channel": "development",
         "public": False,
     }
-    assert manifest["product"]["version"] == "0.6.5"
+    assert manifest["product"]["version"] == "0.6.6"
     assert manifest["source"]["commit"] == "unavailable"
     assert manifest["verification"]["embedded_test_counts"] is False
     lock_digest = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
@@ -63,7 +63,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",
-        "version": "0.6.5",
+        "version": "0.6.6",
         "channel": "development",
         "source_commit": "unavailable",
     }
@@ -450,7 +450,11 @@ def test_release_workflow_verifies_green_and_portable_lifecycle_before_metadata(
     )
     assert "runtime\\python\\python.exe" in lifecycle
     assert "portable.flag" in lifecycle
-    assert "data\\data\\archeaxis.sqlite" in lifecycle
+    # ``ARCHEAXIS_DATA_DIR`` is already ``<portable-root>/data`` and the
+    # canonical resolver strips the leading ``data`` component from the
+    # configured ``data/archeaxis.sqlite`` path.
+    assert "Join-Path $Root 'data\\archeaxis.sqlite'" in lifecycle
+    assert "Join-Path $Root 'data\\data\\archeaxis.sqlite'" not in lifecycle
     assert "for ($launch = 1; $launch -le 2; $launch++)" in lifecycle
 
 
