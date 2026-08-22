@@ -407,7 +407,12 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     assert "Join-Path $appData 'archeaxis.sqlite'" in lifecycle
     assert "Join-Path $appData 'data\\archeaxis.sqlite'" not in lifecycle
     # Every launched shell, including the post-upgrade and post-reinstall
-    # read-backs, must wait for its Tauri window before sending WM_CLOSE.
+    # read-backs, must resolve the visible top-level window owned by the exact
+    # shell PID before sending WM_CLOSE. Process.CloseMainWindow() guesses a
+    # main handle and is racy once WebView2 has created auxiliary windows.
+    assert "function Close-ArcheAxisShell" in lifecycle
+    assert "[ArcheAxisWindow]::PostClose($WindowHandle, [uint32]$Shell.Id)" in lifecycle
+    assert ".CloseMainWindow()" not in lifecycle
     assert "$upgradeWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell" in lifecycle
     assert "$reinstallWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell" in lifecycle
     assert "release-lifecycle-sentinel.txt" in lifecycle

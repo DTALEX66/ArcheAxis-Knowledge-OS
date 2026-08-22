@@ -245,8 +245,10 @@ def test_v0_6_0_development_version_uses_one_version_everywhere() -> None:
     assert "v0.6.0" in lifecycle
     assert "function Wait-ArcheAxisWindow" in lifecycle
     assert "$Shell.Refresh()" in lifecycle
-    assert "$Shell.MainWindowHandle -ne [IntPtr]::Zero" in lifecycle
-    assert "$closeSent = $activeShell.CloseMainWindow()" in lifecycle
+    assert "class ArcheAxisWindow" in lifecycle
+    assert "FindVisibleTopLevelWindow([uint32]$Shell.Id)" in lifecycle
+    assert "PostClose($WindowHandle, [uint32]$Shell.Id)" in lifecycle
+    assert ".CloseMainWindow()" not in lifecycle
     assert "desktop shell rejected WM_CLOSE" in lifecycle
     assert "desktop shell did not exit after WM_CLOSE" in lifecycle
 

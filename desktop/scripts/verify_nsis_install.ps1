@@ -12,6 +12,106 @@ $appDataExisted = Test-Path $appData
 $ownsInstall = $false
 $activeShell = $null
 
+if (-not ('ArcheAxisWindow' -as [type])) {
+    Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+
+public static class ArcheAxisWindow
+{
+    private const uint WmClose = 0x0010;
+    private delegate bool EnumWindowsProc(IntPtr window, IntPtr parameter);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc callback, IntPtr parameter);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindow(IntPtr window);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(IntPtr window);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetWindowText(IntPtr window, StringBuilder text, int maximum);
+
+    [DllImport("user32.dll")]
+    private static extern int GetWindowTextLength(IntPtr window);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool PostMessage(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
+
+    private static List<Tuple<IntPtr, string>> Candidates(uint processId)
+    {
+        var matches = new List<Tuple<IntPtr, string>>();
+        EnumWindows((window, parameter) =>
+        {
+            uint owner;
+            GetWindowThreadProcessId(window, out owner);
+            var length = GetWindowTextLength(window);
+            if (owner == processId && IsWindowVisible(window) && length > 0)
+            {
+                var title = new StringBuilder(length + 1);
+                GetWindowText(window, title, title.Capacity);
+                matches.Add(Tuple.Create(window, title.ToString()));
+            }
+            return true;
+        }, IntPtr.Zero);
+        return matches;
+    }
+
+    public static IntPtr FindVisibleTopLevelWindow(uint processId)
+    {
+        var matches = Candidates(processId);
+        if (matches.Count == 1)
+        {
+            return matches[0].Item1;
+        }
+
+        IntPtr branded = IntPtr.Zero;
+        foreach (var match in matches)
+        {
+            if (!match.Item2.StartsWith("ArcheAxis", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+            if (branded != IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+            branded = match.Item1;
+        }
+        return branded;
+    }
+
+    public static string DescribeVisibleTopLevelWindows(uint processId)
+    {
+        var descriptions = new List<string>();
+        foreach (var match in Candidates(processId))
+        {
+            descriptions.Add(match.Item1.ToInt64() + ":" + match.Item2);
+        }
+        return descriptions.Count == 0 ? "none" : string.Join(",", descriptions);
+    }
+
+    public static bool PostClose(IntPtr window, uint expectedProcessId)
+    {
+        uint owner;
+        GetWindowThreadProcessId(window, out owner);
+        return IsWindow(window) && owner == expectedProcessId &&
+            PostMessage(window, WmClose, IntPtr.Zero, IntPtr.Zero);
+    }
+}
+'@
+}
+
 function Get-ArcheAxisRegistryEntries {
     return @(
         Get-ItemProperty $uninstallKey -ErrorAction SilentlyContinue |
@@ -52,11 +152,29 @@ function Wait-ArcheAxisWindow {
         if ($Shell.HasExited) {
             throw "desktop shell exited before its main window became ready with $($Shell.ExitCode)"
         }
-        if ($Shell.MainWindowHandle -ne [IntPtr]::Zero) {
-            return $Shell.MainWindowHandle
+        $window = [ArcheAxisWindow]::FindVisibleTopLevelWindow([uint32]$Shell.Id)
+        if ($window -ne [IntPtr]::Zero) {
+            return $window
         }
     }
-    throw "desktop shell main window was not ready; pid=$($Shell.Id) handle=$($Shell.MainWindowHandle)"
+    $candidates = [ArcheAxisWindow]::DescribeVisibleTopLevelWindows([uint32]$Shell.Id)
+    throw "desktop shell main window was not ready; pid=$($Shell.Id) candidates=$candidates"
+}
+
+function Close-ArcheAxisShell {
+    param(
+        [System.Diagnostics.Process]$Shell,
+        [IntPtr]$WindowHandle,
+        [string]$Context
+    )
+
+    if (-not [ArcheAxisWindow]::PostClose($WindowHandle, [uint32]$Shell.Id)) {
+        throw "desktop shell rejected WM_CLOSE; context=$Context pid=$($Shell.Id) handle=$WindowHandle"
+    }
+    if (-not $Shell.WaitForExit(30000)) {
+        $candidates = [ArcheAxisWindow]::DescribeVisibleTopLevelWindows([uint32]$Shell.Id)
+        throw "desktop shell did not exit after WM_CLOSE; context=$Context pid=$($Shell.Id) handle=$WindowHandle candidates=$candidates"
+    }
 }
 
 function Stop-ArcheAxisInstallation {
@@ -123,14 +241,7 @@ try {
         }
     }
     $windowHandle = Wait-ArcheAxisWindow -Shell $activeShell
-    $closeSent = $activeShell.CloseMainWindow()
-    if (-not $closeSent) {
-        throw "desktop shell rejected WM_CLOSE; pid=$($activeShell.Id) handle=$windowHandle"
-    }
-    if (-not $activeShell.WaitForExit(30000)) {
-        $activeShell.Refresh()
-        throw "desktop shell did not exit after WM_CLOSE; pid=$($activeShell.Id) handle=$windowHandle main_window=$($activeShell.MainWindowHandle)"
-    }
+    Close-ArcheAxisShell -Shell $activeShell -WindowHandle $windowHandle -Context 'initial readback'
     Start-Sleep -Seconds 1
     if (Get-Process -Id $normal.Child.ProcessId -ErrorAction SilentlyContinue) {
         throw 'owned Python survived normal desktop shutdown'
@@ -172,10 +283,7 @@ try {
         throw 'in-place upgraded Workspace returned an invalid product response'
     }
     $upgradeWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell
-    $upgradeCloseSent = $activeShell.CloseMainWindow()
-    if (-not $upgradeCloseSent -or -not $activeShell.WaitForExit(30000)) {
-        throw "desktop shell did not close after in-place upgrade readback; pid=$($activeShell.Id) handle=$upgradeWindowHandle"
-    }
+    Close-ArcheAxisShell -Shell $activeShell -WindowHandle $upgradeWindowHandle -Context 'in-place upgrade readback'
     $activeShell = $null
 
     $activeShell = Start-Process -FilePath $executable -PassThru
@@ -223,10 +331,7 @@ try {
         throw 'reinstalled Workspace did not read back retained user state'
     }
     $reinstallWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell
-    $reinstallCloseSent = $activeShell.CloseMainWindow()
-    if (-not $reinstallCloseSent -or -not $activeShell.WaitForExit(30000)) {
-        throw "desktop shell did not close after reinstall readback; pid=$($activeShell.Id) handle=$reinstallWindowHandle"
-    }
+    Close-ArcheAxisShell -Shell $activeShell -WindowHandle $reinstallWindowHandle -Context 'reinstall readback'
     $activeShell = $null
 
     Stop-ArcheAxisInstallation
