@@ -8,6 +8,7 @@ explicitly incomplete.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import platform
 import subprocess
@@ -73,8 +74,25 @@ def _failure_summary(output: str) -> str:
     return "\n".join(lines[-30:])
 
 
+def _project_runtime_root() -> Path:
+    common_dir = Path(
+        _git("rev-parse", "--path-format=absolute", "--git-common-dir")
+    )
+    return common_dir.parent / ".hermes" / "task-runtime"
+
+
 def _run_pytest(target: str) -> dict[str, object]:
-    command = [sys.executable, "-m", "pytest", target, "-q"]
+    target_digest = hashlib.sha256(target.encode("utf-8")).hexdigest()[:10]
+    basetemp = _project_runtime_root() / f"g-{target_digest}"
+    command = [
+        sys.executable,
+        "-m",
+        "pytest",
+        target,
+        "-q",
+        "--basetemp",
+        str(basetemp),
+    ]
     started = time.monotonic()
     try:
         completed = subprocess.run(

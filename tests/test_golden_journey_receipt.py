@@ -4,10 +4,30 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from scripts import generate_golden_journey_receipt as receipt_generator
+
+
+def test_golden_journey_runner_uses_project_local_short_basetemp(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(receipt_generator, "_project_runtime_root", lambda: tmp_path)
+    monkeypatch.setattr(
+        receipt_generator.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="", stderr=""),
+    )
+
+    result = receipt_generator._run_pytest("tests/test_example.py::test_example")
+
+    command = result["command"]
+    assert "--basetemp" in command
+    basetemp = Path(command[command.index("--basetemp") + 1])
+    assert basetemp.parent == tmp_path
+    assert basetemp.name.startswith("g-")
 
 
 def test_golden_journey_receipt_cli_can_be_invoked_as_a_script() -> None:
