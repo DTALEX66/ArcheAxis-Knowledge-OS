@@ -94,6 +94,7 @@ def test_ci_minimal_jobs_include_runtime_server_without_editable_install() -> No
     assert "uv export --frozen --only-group ci" in test_job
     assert "--require-hashes -r locked-ci.txt" in test_job
     assert "uv pip install --system --no-deps -e ." not in test_job
+    assert "fetch-depth: 0" in test_job
 
 
 def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
