@@ -64,6 +64,25 @@ def test_source_archive_content_rejects_invalid_or_missing_digest(
     ).status_code == 404
 
 
+def test_tauri_origin_requires_exact_desktop_launch_token(tmp_path, monkeypatch) -> None:
+    from app.main import app
+    from app.workspace import router
+
+    monkeypatch.setattr(router, "DB_PATH", tmp_path / "archeaxis.sqlite")
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", "test-launch-token-1234567890")
+    client = TestClient(app)
+    headers = {
+        "Origin": "http://tauri.localhost:5173",
+        "Sec-Fetch-Site": "cross-site",
+        "X-ArcheAxis-Launch-Token": "wrong-token",
+    }
+    assert client.get("/workspace/api/diagnostics", headers=headers).status_code == 403
+    headers["X-ArcheAxis-Launch-Token"] = "test-launch-token-1234567890"
+    accepted = client.get("/workspace/api/diagnostics", headers=headers)
+    assert accepted.status_code == 200
+    assert accepted.headers["access-control-allow-origin"] == "http://tauri.localhost:5173"
+
+
 def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     from app.main import app
 

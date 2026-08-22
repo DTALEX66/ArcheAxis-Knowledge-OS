@@ -53,7 +53,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://(127\.0\.0\.1|localhost):\d+",
+    allow_origin_regex=r"(?:http://(?:127\.0\.0\.1|localhost):\d+|http://tauri\.localhost(?::\d+)?)",
     allow_origins=[],
     allow_methods=config.get("cors.allow_methods", ["GET", "POST"]),
     allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
@@ -303,10 +303,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ── Mount packaged sub-applications (fault-tolerant) ──
+from app.api.learning import router as learning_router
 from app.capability.router import router as capability_router
 from app.workspace.router import router as workspace_router
 from app.workspace.system import router as system_router
-from app.api.learning import router as learning_router
 
 _research_app = None
 _kb_app = None

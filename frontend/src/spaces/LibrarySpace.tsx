@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
-import { listLibraryAssets, type LibraryAssetDto } from "../api/runtime";
+import { downloadLibraryAsset, listLibraryAssets, type LibraryAssetDto } from "../api/runtime";
 import type { InspectionTarget } from "../components/Inspector";
 
 export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [assets, setAssets] = useState<LibraryAssetDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -41,12 +42,21 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
                   lifecycle: asset.conversion_state,
                   rawSha256: asset.raw_sha256,
                   detail: `保留策略：${asset.retention}`,
-                })}>查看</button></td>
+                })}>查看</button>{" "}<button type="button" onClick={async () => {
+                  setMessage("正在读取原件…");
+                  try {
+                    const blob = await downloadLibraryAsset(asset.raw_sha256);
+                    setMessage(`已按内容标识读回 ${blob.size} B：${asset.source_name}`);
+                  } catch (e) {
+                    setMessage(`原件读取失败：${e instanceof Error ? e.message : String(e)}`);
+                  }
+                }}>打开原件</button></td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+      {message ? <p role="status" className="muted">{message}</p> : null}
     </Section>
   );
 }

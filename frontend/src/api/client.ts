@@ -27,7 +27,7 @@ export class ApiError extends Error {
 }
 
 export function createApiClient(baseUrl: string, token: string) {
-  async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  async function requestRaw(path: string, init?: RequestInit): Promise<Response> {
     const res = await fetch(`${baseUrl}${path}`, {
       ...init,
       headers: {
@@ -39,6 +39,11 @@ export function createApiClient(baseUrl: string, token: string) {
     if (!res.ok) {
       throw new ApiError(res.status, `${path} -> ${res.status}`);
     }
+    return res;
+  }
+
+  async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    const res = await requestRaw(path, init);
     return (await res.json()) as T;
   }
 
@@ -50,7 +55,7 @@ export function createApiClient(baseUrl: string, token: string) {
     return h;
   }
 
-  return { handshake, request };
+  return { handshake, request, requestRaw };
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;

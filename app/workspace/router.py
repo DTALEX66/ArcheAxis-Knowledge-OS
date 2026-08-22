@@ -60,6 +60,18 @@ def _is_loopback_host(value: str) -> bool:
         return False
 
 
+def _is_authenticated_tauri_origin(request: Request) -> bool:
+    """Allow the packaged WebView origin only with its in-memory launch token."""
+    origin = urlsplit(request.headers.get("origin", ""))
+    if origin.scheme.casefold() != "http" or origin.hostname != "tauri.localhost":
+        return False
+    expected = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv(
+        "COGNITIVE_DESKTOP_LAUNCH_TOKEN", ""
+    )
+    supplied = request.headers.get("x-archeaxis-launch-token", "")
+    return bool(expected) and hmac.compare_digest(supplied, expected)
+
+
 def _require_local_request(request: Request) -> None:
     peer = request.client.host if request.client else ""
     if peer != "testclient" and not _is_loopback_host(peer):
@@ -67,6 +79,8 @@ def _require_local_request(request: Request) -> None:
     host = request.headers.get("host", "")
     if not _is_loopback_host(host):
         raise HTTPException(status_code=403, detail="workspace host must be loopback")
+    if _is_authenticated_tauri_origin(request):
+        return
     if request.headers.get("sec-fetch-site", "").casefold() == "cross-site":
         raise HTTPException(status_code=403, detail="cross-site workspace request rejected")
     origin = request.headers.get("origin", "")

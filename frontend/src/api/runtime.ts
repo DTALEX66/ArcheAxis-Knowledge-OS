@@ -37,10 +37,41 @@ export interface ActivityJobsDto {
   jobs: ActivityJobDto[];
 }
 
+export interface ActivityItemDto {
+  public_ref: string;
+  kind: "job" | "source";
+  label: string;
+  state: string;
+  updated_at: string;
+}
+
+export interface ActivityPageDto {
+  items: ActivityItemDto[];
+  next_cursor: string | null;
+}
+
 export interface MachineKnowledgeDto {
   title: string;
   content: string;
   lifecycle: "approved";
+}
+
+export interface MachineKnowledgeCandidateDto {
+  title: string;
+  content: string;
+  lifecycle: "candidate" | "approved" | "deprecated";
+  version: string;
+  evidence_source: string;
+  scope: Record<string, unknown>;
+}
+
+export interface ResearchCandidateDto {
+  source: string;
+  status?: string;
+  claim_count?: number;
+  evidence_count?: number;
+  verification?: string;
+  created_at?: string;
 }
 
 export interface MachineKnowledgeListDto {
@@ -94,24 +125,62 @@ async function runtimeClient(): Promise<ApiClient> {
   return clientPromise;
 }
 
+export async function runtimeJSON<T>(path: string, init?: RequestInit): Promise<T> {
+  return (await runtimeClient()).request<T>(path, init);
+}
+
 async function getJSON<T>(path: string): Promise<T> {
   return (await runtimeClient()).request<T>(path);
 }
 
+function commandId(prefix: string): string {
+  const value = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+  return `workspace-${prefix}-${value}`;
+}
+
+async function postJSON<T>(path: string, body?: Record<string, unknown>): Promise<T> {
+  return (await runtimeClient()).request<T>(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+  });
+}
+
 export function listEvidenceAnchors(limit = 50): Promise<EvidenceListDto> {
-  return getJSON<EvidenceListDto>(`/api/evidence/anchors?limit=${limit}`);
+  return getJSON<EvidenceListDto>(`/workspace/api/evidence/anchors?limit=${limit}`);
 }
 
 export function getStatus(): Promise<StatusDto> {
-  return getJSON<StatusDto>("/api/status");
+  return getJSON<StatusDto>("/workspace/api/status");
 }
 
 export function getHome(): Promise<Record<string, unknown>> {
-  return getJSON<Record<string, unknown>>("/api/v1/home");
+  return getJSON<Record<string, unknown>>("/workspace/api/v1/home");
+}
+
+export function getActivity(limit = 5): Promise<ActivityPageDto> {
+  return getJSON<ActivityPageDto>(`/workspace/api/v1/activity?limit=${limit}`);
 }
 
 export function listLibraryAssets(): Promise<LibraryListDto> {
   return getJSON<LibraryListDto>("/workspace/api/library");
+}
+
+export async function downloadLibraryAsset(rawSha256: string): Promise<Blob> {
+  const response = await (await runtimeClient()).requestRaw(
+    `/workspace/api/library/${encodeURIComponent(rawSha256)}/content`,
+  );
+  return response.blob();
+}
+
+export function listResearchCandidates(): Promise<{ items: ResearchCandidateDto[] }> {
+  return getJSON<{ items: ResearchCandidateDto[] }>("/workspace/api/research");
+}
+
+export function approveResearchCandidate(source: string): Promise<Record<string, unknown>> {
+  return postJSON("/workspace/api/research/approve", {
+    command_id: commandId("research"), source,
+  });
 }
 
 export function getActivityJobs(): Promise<ActivityJobsDto> {
@@ -122,6 +191,22 @@ export function getMachineKnowledge(): Promise<MachineKnowledgeListDto> {
   return getJSON<MachineKnowledgeListDto>("/workspace/api/runtime/knowledge");
 }
 
+export function listMachineKnowledgeCandidates(): Promise<{ items: MachineKnowledgeCandidateDto[] }> {
+  return getJSON<{ items: MachineKnowledgeCandidateDto[] }>("/workspace/api/runtime/candidates");
+}
+
+export function approveMachineKnowledge(title: string): Promise<Record<string, unknown>> {
+  return postJSON("/workspace/api/runtime/approve", {
+    command_id: commandId("runtime-approve"), title,
+  });
+}
+
+export function deprecateMachineKnowledge(title: string): Promise<Record<string, unknown>> {
+  return postJSON("/workspace/api/runtime/deprecate", {
+    command_id: commandId("runtime-deprecate"), title,
+  });
+}
+
 export function getSetupStatus(): Promise<Record<string, unknown>> {
   return getJSON<Record<string, unknown>>("/api/v1/setup/status");
 }
@@ -129,5 +214,16 @@ export function getSetupStatus(): Promise<Record<string, unknown>> {
 export async function initializeSetup(): Promise<Record<string, unknown>> {
   return (await runtimeClient()).request<Record<string, unknown>>(
     "/api/v1/setup/initialize", { method: "POST" },
+  );
+}
+
+
+export function createBackup(name: string): Promise<Record<string, unknown>> {
+  return postJSON("/workspace/api/backup/create", { name });
+}
+
+export function verifyBackup(name: string): Promise<Record<string, unknown>> {
+  return getJSON<Record<string, unknown>>(
+    `/workspace/api/backup/verify?name=${encodeURIComponent(name)}`,
   );
 }

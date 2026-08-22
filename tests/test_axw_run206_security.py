@@ -54,3 +54,17 @@ def test_cors_rejects_non_loopback_localhost_variant(client: TestClient) -> None
         },
     )
     assert response.status_code == 400
+
+
+def test_cors_allows_tauri_local_origin_and_launch_token_header(client: TestClient) -> None:
+    response = client.options(
+        "/workspace/api/v1/home",
+        headers={
+            "Origin": "http://tauri.localhost:5173",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "x-archeaxis-launch-token",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://tauri.localhost:5173"
+    assert "x-archeaxis-launch-token" in response.headers["access-control-allow-headers"].casefold()

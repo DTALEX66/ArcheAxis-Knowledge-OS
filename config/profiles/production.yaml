@@ -5,4 +5,4 @@ auth:
 cors:
   allow_origins: ["http://127.0.0.1:8000"]
   allow_methods: ["GET", "POST", "DELETE"]
-  allow_headers: ["Authorization", "Content-Type", "X-API-Key"]
+  allow_headers: ["Authorization", "Content-Type", "X-API-Key", "X-ArcheAxis-Launch-Token"]

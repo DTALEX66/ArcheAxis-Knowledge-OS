@@ -4,6 +4,9 @@ export interface InspectionTarget {
   lifecycle: string;
   rawSha256?: string;
   detail?: string;
+  version?: string;
+  evidenceSource?: string;
+  updatedAt?: string;
 }
 
 // Right inspector: source/evidence/conflict/version (task pack §15.3).
@@ -17,6 +20,9 @@ export function Inspector({ target }: { target: InspectionTarget | null }) {
           <dt>来源</dt><dd>{target.source}</dd>
           <dt>状态</dt><dd>{target.lifecycle}</dd>
           {target.rawSha256 ? <><dt>原件哈希</dt><dd>{target.rawSha256}</dd></> : null}
+          {target.version ? <><dt>版本</dt><dd>{target.version}</dd></> : null}
+          {target.evidenceSource ? <><dt>证据来源</dt><dd>{target.evidenceSource}</dd></> : null}
+          {target.updatedAt ? <><dt>更新时间</dt><dd>{target.updatedAt}</dd></> : null}
           {target.detail ? <><dt>说明</dt><dd>{target.detail}</dd></> : null}
         </dl>
       </aside>
