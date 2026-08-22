@@ -29,6 +29,22 @@ _CAPABILITY_KEYS = {
 }
 _HEX_40 = re.compile(r"[0-9a-f]{40}")
 _HEX_64 = re.compile(r"[0-9a-f]{64}")
+_V3_ARTIFACT_KINDS = {
+    "installer",
+    "green",
+    "portable",
+    "wheel",
+    "identity",
+    "manifest",
+    "sbom",
+    "notices",
+    "checksums",
+}
+_V3_DEPENDENCY_LOCKS = {
+    "uv.lock",
+    "frontend/package-lock.json",
+    "src-tauri/Cargo.lock",
+}
 
 
 def _require_exact_keys(value: object, expected: set[str], label: str) -> dict[str, Any]:
@@ -219,14 +235,51 @@ def _validate_identity_release(release: dict[str, Any]) -> None:
         raise RuntimeError("artifact release identity has invalid release fields")
 
 
+def _validate_identity_v3(identity: dict[str, Any]) -> None:
+    artifacts = identity["artifacts"]
+    if not isinstance(artifacts, list) or len(artifacts) != len(_V3_ARTIFACT_KINDS):
+        raise RuntimeError("artifact release identity has invalid v3 artifact manifest")
+
+    names: set[str] = set()
+    kinds: set[str] = set()
+    for entry in artifacts:
+        artifact = _require_exact_keys(entry, {"name", "kind"}, "v3 artifact")
+        name = artifact["name"]
+        kind = artifact["kind"]
+        if (
+            not isinstance(name, str)
+            or not name
+            or "/" in name
+            or "\\" in name
+            or ".." in name
+            or name in names
+            or not isinstance(kind, str)
+            or kind not in _V3_ARTIFACT_KINDS
+            or kind in kinds
+        ):
+            raise RuntimeError("artifact release identity has invalid v3 artifact manifest")
+        names.add(name)
+        kinds.add(kind)
+    if kinds != _V3_ARTIFACT_KINDS:
+        raise RuntimeError("artifact release identity has invalid v3 artifact manifest")
+
+    dependency_locks = _require_exact_keys(
+        identity["dependency_locks"], _V3_DEPENDENCY_LOCKS, "v3 dependency locks"
+    )
+    if any(
+        not isinstance(digest, str) or _HEX_64.fullmatch(digest) is None
+        for digest in dependency_locks.values()
+    ):
+        raise RuntimeError("artifact release identity has invalid v3 dependency locks")
+
+
 @lru_cache(maxsize=1)
 def load_artifact_release_identity() -> dict[str, Any] | None:
     """Read verified release identity packaged alongside a bundled runtime.
 
-    Supports both schema v1 (legacy ``ci_run/ci_url``) and schema v2
-    (``verification_ci_run_id`` / ``release_run_id`` separated). v2 requires
-    the verification and release run IDs to differ, so a selective or
-    main-bind run can never be mistaken for full release qualification.
+    Supports schema v1 (legacy ``ci_run/ci_url``), schema v2 (separate
+    verification/release runs), and schema v3 (v2 provenance plus the exact
+    public artifact kinds and dependency-lock digests).
     """
     identity_path = _ARTIFACT_IDENTITY_PATH or next(
         (parent / "release-identity.json" for parent in _MANIFEST_PATH.parents if (parent / "release-identity.json").is_file()),
@@ -236,10 +289,15 @@ def load_artifact_release_identity() -> dict[str, Any] | None:
         return None
 
     identity = json.loads(identity_path.read_text(encoding="utf-8"))
-    _require_exact_keys(identity, {"schema_version", "release", "source"}, "artifact identity")
-    schema = identity["schema_version"]
+    if not isinstance(identity, dict):
+        raise RuntimeError("release manifest has invalid artifact identity fields")
+    schema = identity.get("schema_version")
 
-    if schema == "2.0.0":
+    if schema in {"2.0.0", "3.0.0"}:
+        expected_fields = {"schema_version", "release", "source"}
+        if schema == "3.0.0":
+            expected_fields.update({"artifacts", "dependency_locks"})
+        _require_exact_keys(identity, expected_fields, "artifact identity")
         release = _require_exact_keys(
             identity["release"], {"tag", "version", "channel", "public", "url"}, "artifact release"
         )
@@ -257,9 +315,12 @@ def load_artifact_release_identity() -> dict[str, Any] | None:
         )
         _validate_identity_release(release)
         _validate_identity_source_v2(source)
+        if schema == "3.0.0":
+            _validate_identity_v3(identity)
         return identity
 
     if schema == "1.0.0":
+        _require_exact_keys(identity, {"schema_version", "release", "source"}, "artifact identity")
         release = _require_exact_keys(
             identity["release"], {"tag", "version", "channel", "public", "url"}, "artifact release"
         )
@@ -280,7 +341,7 @@ def safe_release_summary() -> dict[str, object]:
     if identity is not None:
         artifact_release = identity["release"]
         artifact_source = identity["source"]
-        if identity["schema_version"] == "2.0.0":
+        if identity["schema_version"] in {"2.0.0", "3.0.0"}:
             return {
                 "status": "released",
                 "version": artifact_release["version"],

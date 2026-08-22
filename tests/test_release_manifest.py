@@ -30,7 +30,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "channel": "development",
         "public": False,
     }
-    assert manifest["product"]["version"] == "0.6.2"
+    assert manifest["product"]["version"] == "0.6.3"
     assert manifest["source"]["commit"] == "unavailable"
     assert manifest["verification"]["embedded_test_counts"] is False
     lock_digest = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
@@ -63,7 +63,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",
-        "version": "0.6.2",
+        "version": "0.6.3",
         "channel": "development",
         "source_commit": "unavailable",
     }
@@ -175,6 +175,67 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
         "verification_ci_run_id": 30548553629,
         "release_run_id": 30548553630,
         "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.5.0",
+    }
+    assert release.effective_capabilities()["public_installer"] == "available"
+
+
+def test_bundled_release_identity_v3_exposes_verified_public_release_summary(
+    monkeypatch, tmp_path
+) -> None:
+    from app import release
+
+    identity_path = tmp_path / "release-identity.json"
+    identity_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "3.0.0",
+                "release": {
+                    "tag": "v0.6.3",
+                    "version": "0.6.3",
+                    "channel": "stable",
+                    "public": True,
+                    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.3",
+                },
+                "source": {
+                    "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+                    "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
+                    "verification_ci_run_id": 30548553629,
+                    "verification_ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30548553629",
+                    "release_run_id": 30548553630,
+                    "release_run_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30548553630",
+                },
+                "artifacts": [
+                    {"name": "setup.exe", "kind": "installer"},
+                    {"name": "green.zip", "kind": "green"},
+                    {"name": "portable.zip", "kind": "portable"},
+                    {"name": "package.whl", "kind": "wheel"},
+                    {"name": "release-identity.json", "kind": "identity"},
+                    {"name": "release-manifest.json", "kind": "manifest"},
+                    {"name": "SBOM.cdx.json", "kind": "sbom"},
+                    {"name": "THIRD_PARTY_NOTICES.txt", "kind": "notices"},
+                    {"name": "SHA256SUMS.txt", "kind": "checksums"},
+                ],
+                "dependency_locks": {
+                    "uv.lock": "a" * 64,
+                    "frontend/package-lock.json": "b" * 64,
+                    "src-tauri/Cargo.lock": "c" * 64,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(release, "_ARTIFACT_IDENTITY_PATH", identity_path)
+    release.load_artifact_release_identity.cache_clear()
+
+    assert release.safe_release_summary() == {
+        "status": "released",
+        "version": "0.6.3",
+        "channel": "stable",
+        "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+        "tag": "v0.6.3",
+        "verification_ci_run_id": 30548553629,
+        "release_run_id": 30548553630,
+        "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.3",
     }
     assert release.effective_capabilities()["public_installer"] == "available"
 
@@ -570,6 +631,68 @@ def test_release_identity_injection_manifests_exact_commit_and_tree(tmp_path) ->
     assert identity["source"]["verification_ci_run_id"] == 30548553629
     assert identity["source"]["release_run_id"] == 30548553630
     assert identity["source"]["release_run_url"] == "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30548553630"
+
+
+def test_release_identity_injection_v3_emits_all_public_artifact_kinds(tmp_path) -> None:
+    import os
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "release_inject_identity.py"
+    output = tmp_path / "release-identity.json"
+    artifact_names = (
+        "ArcheAxis.Knowledge-v0.6.3-Windows-x64-Setup.exe,"
+        "ArcheAxis.Knowledge-v0.6.3-Windows-x64-Green.zip,"
+        "ArcheAxis.Knowledge-v0.6.3-Windows-x64-Portable.zip,"
+        "archeaxis_workspace-0.6.3-py3-none-any.whl,release-identity.json,"
+        "release-manifest.json,SBOM.cdx.json,THIRD_PARTY_NOTICES.txt,SHA256SUMS.txt"
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--commit",
+            "7e0d883cbcd5acec9a3e75c13189ee4734dc976c",
+            "--tree",
+            "5aeaa2c070ef677e6cb5a131f3ff5242cc58f172",
+            "--tag",
+            "v0.6.3",
+            "--version",
+            "0.6.3",
+            "--schema-version",
+            "3.0.0",
+            "--url",
+            "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.3",
+            "--verification-ci-run-id",
+            "30548553629",
+            "--verification-ci-url",
+            "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30548553629",
+            "--artifact-names",
+            artifact_names,
+            "--dependency-locks",
+            f"uv.lock={'a' * 64},frontend/package-lock.json={'b' * 64},src-tauri/Cargo.lock={'c' * 64}",
+            "--output",
+            str(output),
+        ],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "GITHUB_RUN_ID": "30548553630"},
+    )
+    assert result.returncode == 0, result.stderr
+
+    identity = json.loads(output.read_text(encoding="utf-8"))
+    assert {entry["kind"] for entry in identity["artifacts"]} == {
+        "installer",
+        "green",
+        "portable",
+        "wheel",
+        "identity",
+        "manifest",
+        "sbom",
+        "notices",
+        "checksums",
+    }
 
 
 def test_release_identity_injection_writes_v1_for_backward_compat(tmp_path) -> None:

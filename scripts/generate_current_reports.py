@@ -1,4 +1,4 @@
-"""Generate the machine-readable v0.6.2 current-state reports from Git.
+"""Generate the machine-readable v0.6.3 current-state reports from Git.
 
 These reports deliberately describe evidence available for the current tree;
 they do not promote structural inspection or historical receipts into release
@@ -62,7 +62,7 @@ def generate(output_dir: Path, baseline: str) -> None:
             "head_matches_origin_main": head == origin_main,
             "taskpack_baseline_sha": baseline,
             "taskpack_baseline_matches_head": head == baseline,
-            "release": {"version": "0.6.2", "state": "development"},
+            "release": {"version": "0.6.3", "state": "development"},
         },
     )
     _write_json(
@@ -92,7 +92,7 @@ def generate(output_dir: Path, baseline: str) -> None:
             },
             "limitations": [
                 "This matrix is a current planning projection, not runtime or CI evidence.",
-                "A v0.6.2 release requires exact-SHA CI and the Golden Journey receipts.",
+                "A v0.6.3 release requires exact-SHA CI and the Golden Journey receipts.",
             ],
         },
     )

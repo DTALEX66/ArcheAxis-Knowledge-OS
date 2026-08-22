@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-__version__ = "0.6.2"
+__version__ = "0.6.3"
 __product__ = "ArcheAxis Knowledge / 星环知识平台"
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent

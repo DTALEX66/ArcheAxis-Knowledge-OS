@@ -35,6 +35,25 @@ _HEX_40 = re.compile(r"[0-9a-f]{40}")
 _REPO_URL = "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS"
 
 
+def _artifact_kind(name: str) -> str:
+    exact_kinds = {
+        "release-identity.json": "identity",
+        "release-manifest.json": "manifest",
+        "SBOM.cdx.json": "sbom",
+        "THIRD_PARTY_NOTICES.txt": "notices",
+        "SHA256SUMS.txt": "checksums",
+    }
+    if name in exact_kinds:
+        return exact_kinds[name]
+    if name.endswith("-Setup.exe"):
+        return "installer"
+    if name.endswith("-Green.zip"):
+        return "green"
+    if name.endswith("-Portable.zip"):
+        return "portable"
+    return "wheel"
+
+
 def _valid_run(value: str, label: str) -> int:
     try:
         parsed = int(value or "")
@@ -154,18 +173,7 @@ def main() -> int:
             if not name or "/" in name or "\\" in name or ".." in name:
                 print(f"ERROR: invalid artifact name: {name}", file=sys.stderr)
                 return 1
-            kind = "sbom" if name == "SBOM.cdx.json" else (
-                "checksums" if name == "SHA256SUMS.txt" else (
-                    "identity" if name == "release-identity.json" else (
-                        "installer" if name.endswith("-Setup.exe") else (
-                            "green" if name.endswith("-Green.zip") else (
-                                "portable" if name.endswith("-Portable.zip") else "wheel"
-                            )
-                        )
-                    )
-                )
-            )
-            artifacts.append({"name": name, "kind": kind})
+            artifacts.append({"name": name, "kind": _artifact_kind(name)})
         dependency_locks: dict[str, str] = {}
         if args.dependency_locks:
             for pair in args.dependency_locks.split(","):

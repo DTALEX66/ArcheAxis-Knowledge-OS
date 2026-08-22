@@ -15,7 +15,7 @@ Generated: 2026-08-15 (replaced stale 2026-07-23 copy)
 **下一轮任务（优先级从高到低）**
 1. **P0 项目配置规则减重**（Owner 指定优先）——见 `docs/design/` 与记忆；实测 `.hermes/cache` + `task-artifacts` 有 ~965MB 第三方 config/rules 垃圾，规则文档（AGENTS 6KB / VERIFICATION_POLICY 6.7KB / HANDOFF 15KB）可查冗余整合；GitHub ruleset（main/tag-protection）**不可动**。
 2. **AXW-WEB-CAPTURE-v3 TaskPack**（OWNER-APPROVED，源 `D:\All projects\AXW_WEB_CAPTURE_V3.zip` 已解到 `.hermes/task-runtime/axw-web-capture-v3/`）——22 任务 DAG：`000→001→003→010→011→012→020→021→022→023→024→030→032→042→EXIT`（消灭 web.py stub、统一 PolicyGate、Raw-first、真实非 mock E2E）；050-052 可选。
-3. **RC 三包发布**（`v0.6.0`、`v0.6.1` 标签已占用且按策略不可改写；使用 `git tag v0.6.2` → release.yml 资产链 → L4 验收清单 AXW-PKG-601）。
+3. **RC 三包发布**（`v0.6.0`、`v0.6.1`、`v0.6.2` 标签已占用且按策略不可改写；使用 `git tag v0.6.3` → release.yml 资产链 → L4 验收清单 AXW-PKG-601）。
 4. **App Shell 接 Tauri**（frontend/ dist → frontendDist）+ ENV-103 剩余 hold（rust/uv-cache/wsl2/ci-venv——环境变量/注册表确认后）。
 
 **关键环境事实**

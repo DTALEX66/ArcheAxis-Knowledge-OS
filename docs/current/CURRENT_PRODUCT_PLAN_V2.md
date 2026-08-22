@@ -1,6 +1,6 @@
 # Current Product Plan — 当前产品计划 V2（AXW-1206/1210）
 
-> v0.6.2 修复发布基线（2026-08-23，承接 v0.6.0 任务包）：本页此前的 `b97035e` 快照和“supported”表述均为历史规划输入。`v0.6.1` 发布运行暴露身份注入后未重建 NSIS 的缺陷且标签不可改写；当前状态统一为 `v0.6.2 development — PARTIAL`，只可由 exact-SHA Receipt 与发布资产读回提升；规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
+> v0.6.3 修复发布基线（2026-08-23，承接 v0.6.0 任务包）：本页此前的 `b97035e` 快照和“supported”表述均为历史规划输入。`v0.6.1` 暴露身份注入后未重建 NSIS，`v0.6.2` 暴露 schema v3 生产者、运行时消费者与发布读回器契约漂移；当前状态统一为 `v0.6.3 development — PARTIAL`，只可由 exact-SHA Receipt 与发布资产读回提升；规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
 
 > 权威：v0.6.0 最小可信闭环任务包（2026-08-20）+ 当前 exact-SHA 报告
 > 状态：阶段描述可随真实实现与 Receipt 更新；能力边界与命名不可漂移
