@@ -26,7 +26,8 @@ correct provenance.
 | `v0.5.0` | yes | yes | yes | 2026-08-09 | Public stable Release; exact-SHA qualification, installer lifecycle, asset allowlist, checksum and identity readback passed. |
 | `v0.6.0` | yes | no | — | — | Historical unpublished tag at `0b633a6`; preserved by the immutable-tag policy. |
 | `v0.6.1` | yes | no | — | — | Historical unpublished tag at `f75021c`; Release run `32586776986` failed because the public identity was injected after the CI candidate installer had been built. Preserved. |
-| `v0.6.2` | yes | no | — | — | Historical unpublished tag at `8c649be`; Release run `32588200482` rebuilt the installer but the installed runtime rejected schema v3 identity, exposing producer/consumer contract drift. Preserved; remediation proceeds as `v0.6.3`. |
+| `v0.6.2` | yes | no | — | — | Historical unpublished tag at `8c649be`; Release run `32588200482` rebuilt the installer but the installed runtime rejected schema v3 identity, exposing producer/consumer contract drift. Preserved. |
+| `v0.6.3` | yes | no | — | — | Historical unpublished tag at `61b226a`; Release run `32590345393` passed the identity-bound NSIS lifecycle, then the ZIP lifecycle compared a non-normalized expected Python path to the canonical CIM path. Preserved; remediation proceeds as `v0.6.4`. |
 
 ## v0.4.4 release evidence
 
@@ -111,5 +112,5 @@ not a contradiction of the verified artifact identity.
   digests + release-identity.json binding tag→exact commit/tree→verification
   CI run. If a public/enterprise channel is ever added, re-evaluate
   Authenticode signing as a separate owner decision before publishing there.
-- Source manifest line is `0.6.3`, `unreleased`, `development`, `public=false`;
+- Source manifest line is `0.6.4`, `unreleased`, `development`, `public=false`;
   public artifact identity is recorded separately in the verified Release.

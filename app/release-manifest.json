@@ -6,7 +6,7 @@
     "english_name": "ArcheAxis Knowledge",
     "workspace_name": "ArcheAxis Learning Workspace",
     "workspace_english_name": "Human–AI Learning Workspace",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "requires_python": ">=3.11"
   },
   "release": {
@@ -24,7 +24,7 @@
   "dependency_lock": {
     "path": "uv.lock",
     "algorithm": "sha256",
-    "digest": "edb1aa974c122a790044b861a46810a3eaad1b1a9b0ff93f5a0b29ead4a62e7d",
+    "digest": "d22a07381c03beca00d490b67db657a044ca9e796f957b7853099fbb7c53960f",
     "format_version": 1,
     "revision": 7
   },

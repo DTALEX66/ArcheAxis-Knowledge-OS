@@ -71,7 +71,7 @@ function Assert-ReleaseIdentity {
     $version = Invoke-RestMethod "$BaseUrl/version"
     if (
         $version.release.status -ne 'released' -or
-        $version.release.tag -ne 'v0.6.3' -or
+        $version.release.tag -ne 'v0.6.4' -or
         $version.capabilities.public_installer -ne 'available'
     ) {
         throw 'distribution runtime did not expose the verified public release identity'
@@ -87,7 +87,7 @@ function Invoke-DistributionLifecycle {
     )
 
     $executable = Join-Path $Root 'ArcheAxis.exe'
-    $python = Join-Path $Root 'runtime\python\python.exe'
+    $python = [System.IO.Path]::GetFullPath((Join-Path $Root 'runtime\python\python.exe'))
     if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
         throw "distribution executable is missing: $executable"
     }
@@ -121,7 +121,7 @@ function Invoke-DistributionLifecycle {
             $base = "http://127.0.0.1:$($ready.Listener.LocalPort)"
             $workspaceStatus = (Invoke-WebRequest "$base/workspace" -UseBasicParsing).StatusCode
             $status = Invoke-RestMethod "$base/workspace/api/status"
-            if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.3') {
+            if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.4') {
                 throw 'distribution Workspace returned an invalid product response'
             }
             Assert-ReleaseIdentity -BaseUrl $base

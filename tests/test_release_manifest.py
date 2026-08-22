@@ -30,7 +30,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "channel": "development",
         "public": False,
     }
-    assert manifest["product"]["version"] == "0.6.3"
+    assert manifest["product"]["version"] == "0.6.4"
     assert manifest["source"]["commit"] == "unavailable"
     assert manifest["verification"]["embedded_test_counts"] is False
     lock_digest = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
@@ -63,7 +63,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",
-        "version": "0.6.3",
+        "version": "0.6.4",
         "channel": "development",
         "source_commit": "unavailable",
     }
@@ -452,6 +452,21 @@ def test_release_workflow_verifies_green_and_portable_lifecycle_before_metadata(
     assert "portable.flag" in lifecycle
     assert "data\\data\\archeaxis.sqlite" in lifecycle
     assert "for ($launch = 1; $launch -le 2; $launch++)" in lifecycle
+
+
+def test_zip_lifecycle_normalizes_expected_bundled_python_path() -> None:
+    lifecycle = (
+        Path(__file__).resolve().parents[1]
+        / "desktop"
+        / "scripts"
+        / "verify_zip_distributions.ps1"
+    ).read_text(encoding="utf-8")
+
+    assert (
+        "$python = [System.IO.Path]::GetFullPath((Join-Path $Root "
+        "'runtime\\python\\python.exe'))"
+    ) in lifecycle
+    assert "if ($ready.Child.ExecutablePath -ne $python)" in lifecycle
 
 
 def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> None:
