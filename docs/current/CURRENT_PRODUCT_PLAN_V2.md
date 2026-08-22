@@ -24,7 +24,7 @@
 | 四库 quick/advanced、迁移与重启回读 | `TESTED_LOCAL` | setup/manifest/migration/R1 定向测试 |
 | 审核后 Human/AI 双主体写入 | `TESTED_LOCAL` | 主链、学习审批与机器知识定向测试 |
 | 开放导出、备份与 fresh workspace 回读 | `TESTED_LOCAL` | export/backup 定向测试 |
-| 六空间真实 API 读取 | `PARTIAL` | Learning 较完整；其余空间缺任务包要求的多项操作 |
+| 六空间真实 API 闭环 | `PASS_LOCAL` | Workspace、Library、Evidence、Learning、AI Assets、Settings 均接真实后端；Chromium Tauri-origin 联调通过 |
 | 根 React Chromium Golden Journey | `NOT_EXECUTED` | 当前只有 Vitest/typecheck/build，不替代浏览器 E2E |
 | Recovery Shell 完整操作 | `PARTIAL` | 已有失败保活/retry；缺日志、安全模式、备份恢复、退出 |
 | Tier A 完整格式矩阵/nightly | `NOT_EXECUTED_CURRENT_SHA` | 单格式/Golden 定向证据不等于完整矩阵 |
