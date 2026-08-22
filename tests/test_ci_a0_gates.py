@@ -62,7 +62,7 @@ def test_ci_publishes_lock_bound_release_candidate_provenance() -> None:
     assert "uv.lock" in desktop
 
 
-def test_release_promotes_and_verifies_the_exact_ci_candidate() -> None:
+def test_release_qualifies_candidate_then_rebuilds_public_installer_with_identity() -> None:
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
 
     assert "gh run download" in workflow
@@ -71,7 +71,14 @@ def test_release_promotes_and_verifies_the_exact_ci_candidate() -> None:
     assert "candidate provenance commit mismatch" in workflow
     assert "candidate installer SHA-256 mismatch" in workflow
     assert "candidate executable SHA-256 mismatch" in workflow
-    assert "tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis" not in workflow
+    release_build = "tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis"
+    assert release_build in workflow
+    assert workflow.index("Prepare bundled runtime and inject exact release identity") < workflow.index(
+        "Build Windows NSIS installer"
+    )
+    assert workflow.index("Build Windows NSIS installer") < workflow.index(
+        "Verify installed NSIS lifecycle"
+    )
 
 
 def test_ci_runs_windows_runtime_smoke() -> None:
@@ -187,8 +194,8 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
     }
 
 
-def test_v0_6_1_development_version_uses_one_version_everywhere() -> None:
-    expected_version = "0.6.1"
+def test_v0_6_2_development_version_uses_one_version_everywhere() -> None:
+    expected_version = "0.6.2"
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     manifest = json.loads(
         (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
@@ -232,7 +239,7 @@ def test_v0_6_1_development_version_uses_one_version_everywhere() -> None:
     assert "--frontend frontend/dist" in release_workflow
     assert f"--version {expected_version}" not in release_workflow
     assert (
-        'name = "archeaxis-workspace"\nversion = "0.6.1"\nsource = { editable = "." }'
+        'name = "archeaxis-workspace"\nversion = "0.6.2"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")
     )
     for path in ("config/defaults.yaml", "app/main.py", "desktop/scripts/verify_nsis_install.ps1"):
@@ -242,7 +249,7 @@ def test_v0_6_1_development_version_uses_one_version_everywhere() -> None:
     lifecycle = (ROOT / "desktop/scripts/verify_nsis_install.ps1").read_text(
         encoding="utf-8"
     )
-    assert "v0.6.1" in lifecycle
+    assert "v0.6.2" in lifecycle
     assert "function Wait-ArcheAxisWindow" in lifecycle
     assert "$Shell.Refresh()" in lifecycle
     assert "class ArcheAxisWindow" in lifecycle

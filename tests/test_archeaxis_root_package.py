@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_root_package_aliases():
     import archeaxis
-    assert archeaxis.__version__ == "0.6.1"
+    assert archeaxis.__version__ == "0.6.2"
     assert archeaxis.__product__ == "ArcheAxis Knowledge / 星环知识平台"
 
     import archeaxis.federation

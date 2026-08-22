@@ -129,6 +129,8 @@ jobs:
             --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,release-manifest.json,SBOM.cdx.json,THIRD_PARTY_NOTICES.txt,SHA256SUMS.txt" `
             --dependency-locks "uv.lock=$uvLockHash,frontend/package-lock.json=$npmLockHash,src-tauri/Cargo.lock=$cargoLockHash" `
             --output .hermes/rt/runtime/release-identity.json
+      - name: Build Windows NSIS installer
+        run: frontend/node_modules/.bin/tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis
       - name: Verify installed NSIS lifecycle
         shell: pwsh
         run: |
