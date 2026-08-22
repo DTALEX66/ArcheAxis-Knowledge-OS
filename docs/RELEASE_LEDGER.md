@@ -29,7 +29,8 @@ correct provenance.
 | `v0.6.2` | yes | no | — | — | Historical unpublished tag at `8c649be`; Release run `32588200482` rebuilt the installer but the installed runtime rejected schema v3 identity, exposing producer/consumer contract drift. Preserved. |
 | `v0.6.3` | yes | no | — | — | Historical unpublished tag at `61b226a`; Release run `32590345393` passed the identity-bound NSIS lifecycle, then the ZIP lifecycle compared a non-normalized expected Python path to the canonical CIM path. Preserved. |
 | `v0.6.4` | yes | no | — | — | Historical unpublished tag at `5a71ffa`; Release run `32592474961` passed path and identity checks, then the ZIP verifier hit the same nondeterministic `CloseMainWindow()` race previously fixed for NSIS. Preserved; remediation proceeded as `v0.6.5`. |
-| `v0.6.5` | yes | no | — | — | Historical unpublished tag at `809cd5d`; exact-SHA CI run `32593904745` passed. Release run `32594767473` passed the identity-bound NSIS lifecycle and exact-window ZIP shutdown, then exposed a verifier-only Portable database readback path error: it checked `data/data/archeaxis.sqlite` although the canonical resolver writes `data/archeaxis.sqlite`. Preserved; remediation proceeds as `v0.6.6`. |
+| `v0.6.5` | yes | no | — | — | Historical unpublished tag at `809cd5d`; exact-SHA CI run `32593904745` passed. Release run `32594767473` passed the identity-bound NSIS lifecycle and exact-window ZIP shutdown, then exposed a verifier-only Portable database readback path error: it checked `data/data/archeaxis.sqlite` although the canonical resolver writes `data/archeaxis.sqlite`. Preserved; remediation proceeded as `v0.6.6`. |
+| `v0.6.6` | yes | draft | no | unpublished | Historical unpublished tag at `b6c92bd`; exact-SHA CI run `32596718833` passed. Release run `32597563772` passed all three Windows lifecycle gates and uploaded the draft asset set, then the final lock readback interpolated `"$entry.Name"` as an object string plus literal suffix instead of the property value. Preserved; remediation proceeds as `v0.6.7`. |
 
 ## v0.4.4 release evidence
 
@@ -114,5 +115,5 @@ not a contradiction of the verified artifact identity.
   digests + release-identity.json binding tag→exact commit/tree→verification
   CI run. If a public/enterprise channel is ever added, re-evaluate
   Authenticode signing as a separate owner decision before publishing there.
-- Source manifest line is `0.6.6`, `unreleased`, `development`, `public=false`;
+- Source manifest line is `0.6.7`, `unreleased`, `development`, `public=false`;
   public artifact identity is recorded separately in the verified Release.

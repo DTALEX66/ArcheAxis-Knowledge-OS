@@ -1,6 +1,6 @@
 # Current Product Plan — 当前产品计划 V2（AXW-1206/1210）
 
-> v0.6.6 修复发布基线（2026-08-23，承接 v0.6.0 任务包）：本页此前的 `b97035e` 快照和“supported”表述均为历史规划输入。连续修复已关闭发布安装器重建、schema v3 生产者/消费者/读回器契约漂移、ZIP Python 路径误判、ZIP 验证器遗留 `CloseMainWindow()` 的竞争条件，以及 Portable 数据库读回多加一层 `data/` 的验收路径错误；当前状态统一为 `v0.6.6 development — PARTIAL`，只可由 exact-SHA Receipt 与发布资产读回提升；规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
+> v0.6.7 修复发布基线（2026-08-23，承接 v0.6.0 任务包）：本页此前的 `b97035e` 快照和“supported”表述均为历史规划输入。连续修复已关闭发布安装器重建、schema v3 生产者/消费者/读回器契约漂移、ZIP Python 路径误判、ZIP 验证器遗留 `CloseMainWindow()` 的竞争条件、Portable 数据库读回多加一层 `data/` 的验收路径错误，以及 PowerShell 依赖锁属性路径插值错误；当前状态统一为 `v0.6.7 development — PARTIAL`，只可由 exact-SHA Receipt 与发布资产读回提升；规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
 
 > 权威：v0.6.0 最小可信闭环任务包（2026-08-20）+ 当前 exact-SHA 报告
 > 状态：阶段描述可随真实实现与 Receipt 更新；能力边界与命名不可漂移

@@ -309,7 +309,7 @@ jobs:
           }
           # v3: dependency lock hashes must match the downloaded lock files
           foreach ($entry in $identity.dependency_locks.PSObject.Properties) {
-            $actual = (Get-FileHash "$entry.Name" -Algorithm SHA256).Hash.ToLowerInvariant()
+            $actual = (Get-FileHash "$($entry.Name)" -Algorithm SHA256).Hash.ToLowerInvariant()
             if ($actual -ne $entry.Value) { throw "dependency lock hash mismatch for $($entry.Name)" }
           }
           $canonicalReleaseUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$env:GITHUB_REF_NAME"

@@ -30,7 +30,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "channel": "development",
         "public": False,
     }
-    assert manifest["product"]["version"] == "0.6.6"
+    assert manifest["product"]["version"] == "0.6.7"
     assert manifest["source"]["commit"] == "unavailable"
     assert manifest["verification"]["embedded_test_counts"] is False
     lock_digest = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
@@ -63,7 +63,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
     assert manifest["product"]["version"] == config.get("app.version")
     assert safe_release_summary() == {
         "status": "unreleased",
-        "version": "0.6.6",
+        "version": "0.6.7",
         "channel": "development",
         "source_commit": "unavailable",
     }
@@ -565,6 +565,7 @@ def test_release_workflow_downloads_and_rehashes_exact_public_asset_set() -> Non
     assert "gh release view $env:GITHUB_REF_NAME --json tagName,targetCommitish,isDraft,assets,url" in workflow
     assert "gh release download $env:GITHUB_REF_NAME" in workflow
     assert "Get-FileHash" in workflow
+    assert 'Get-FileHash "$($entry.Name)"' in workflow
     assert "provider digest" in workflow.lower()
     assert "public asset set differs from expected release asset set" in workflow
 

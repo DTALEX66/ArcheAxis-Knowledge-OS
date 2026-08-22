@@ -227,14 +227,14 @@ try {
     $base = "http://127.0.0.1:$($normal.Listener.LocalPort)"
     $workspaceStatus = (Invoke-WebRequest "$base/workspace" -UseBasicParsing).StatusCode
     $status = Invoke-RestMethod "$base/workspace/api/status"
-    if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.6') {
+    if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.7') {
         throw 'installed Workspace returned an invalid product response'
     }
     if ($RequireReleaseIdentity) {
         $version = Invoke-RestMethod "$base/version"
         if (
             $version.release.status -ne 'released' -or
-            $version.release.tag -ne 'v0.6.6' -or
+            $version.release.tag -ne 'v0.6.7' -or
             $version.capabilities.public_installer -ne 'available'
         ) {
             throw 'installed runtime did not expose the verified public release identity'
@@ -279,7 +279,7 @@ try {
     $upgraded = Wait-ArcheAxisBackend -Shell $activeShell
     $upgradedBase = "http://127.0.0.1:$($upgraded.Listener.LocalPort)"
     $upgradedStatus = Invoke-RestMethod "$upgradedBase/workspace/api/status"
-    if ($upgradedStatus.release.version -ne '0.6.6') {
+    if ($upgradedStatus.release.version -ne '0.6.7') {
         throw 'in-place upgraded Workspace returned an invalid product response'
     }
     $upgradeWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell
@@ -326,7 +326,7 @@ try {
     $reinstalled = Wait-ArcheAxisBackend -Shell $activeShell
     $reinstalledBase = "http://127.0.0.1:$($reinstalled.Listener.LocalPort)"
     $reinstalledStatus = Invoke-RestMethod "$reinstalledBase/workspace/api/status"
-    if ($reinstalledStatus.release.version -ne '0.6.6' -or
+    if ($reinstalledStatus.release.version -ne '0.6.7' -or
         -not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
         throw 'reinstalled Workspace did not read back retained user state'
     }
