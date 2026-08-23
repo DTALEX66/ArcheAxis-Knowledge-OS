@@ -16,6 +16,10 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
   const [rows, setRows] = useState<EvidenceAnchorDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [anchorCursor, setAnchorCursor] = useState<string | null>(null);
+  const [anchorHistory, setAnchorHistory] = useState<Array<string | null>>([]);
+  const [nextAnchorCursor, setNextAnchorCursor] = useState<string | null>(null);
+  const [anchorPageLoading, setAnchorPageLoading] = useState(false);
   const [bundles, setBundles] = useState<EvidenceBundleSummaryDto[]>([]);
   const [candidates, setCandidates] = useState<ResearchCandidateDto[]>([]);
   const [message, setMessage] = useState<string | null>(null);
@@ -25,10 +29,33 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
     setCandidates(data.items);
   }
 
+  async function loadAnchorPage(
+    cursor: string | null,
+    history: Array<string | null>,
+  ) {
+    setAnchorPageLoading(true);
+    try {
+      const data = await listEvidenceAnchors(50, cursor ?? undefined);
+      setRows(data.items);
+      setAnchorCursor(cursor);
+      setAnchorHistory(history);
+      setNextAnchorCursor(data.next_cursor);
+      setError(null);
+    } catch (e) {
+      setMessage(`读取证据页失败：${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setAnchorPageLoading(false);
+    }
+  }
+
   useEffect(() => {
     let alive = true;
     listEvidenceAnchors(50)
-      .then((d) => { if (alive) setRows(d.items); })
+      .then((d) => {
+        if (!alive) return;
+        setRows(d.items);
+        setNextAnchorCursor(d.next_cursor);
+      })
       .catch((e: Error) => { if (alive) setError(e.message); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -99,6 +126,26 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
           </table>
         )
       )}
+      {!loading && !error ? (
+        <p className="muted">
+          <button
+            type="button"
+            disabled={anchorPageLoading || anchorHistory.length === 0}
+            onClick={() => {
+              const previousCursor = anchorHistory[anchorHistory.length - 1] ?? null;
+              void loadAnchorPage(previousCursor, anchorHistory.slice(0, -1));
+            }}
+          >上一页</button>{" "}
+          <button
+            type="button"
+            disabled={anchorPageLoading || !nextAnchorCursor}
+            onClick={() => {
+              if (!nextAnchorCursor) return;
+              void loadAnchorPage(nextAnchorCursor, [...anchorHistory, anchorCursor]);
+            }}
+          >下一页</button>
+        </p>
+      ) : null}
       <h4>受治理 EvidenceBundle</h4>
       {bundles.length === 0 ? <p className="muted">暂无可查看的 EvidenceBundle</p> : (
         <ul className="action-list">{bundles.map((bundle) => (

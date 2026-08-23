@@ -98,6 +98,43 @@ def test_source_archive_content_rejects_invalid_or_missing_digest(
     ).status_code == 404
 
 
+def test_evidence_anchor_api_uses_cursor_pagination_without_internal_rowids(tmp_path, monkeypatch) -> None:
+    from app.evidence.anchor import build_evidence_anchor, store_evidence_anchor
+    from app.main import app
+    from app.workspace import router
+
+    database = tmp_path / "archeaxis.sqlite"
+    for index in range(3):
+        store_evidence_anchor(
+            database,
+            build_evidence_anchor(
+                raw_sha256=f"{index:x}" * 64,
+                source_revision=f"revision-{index}",
+                locator={"page": index + 1},
+            ),
+        )
+    monkeypatch.setattr(router, "DB_PATH", database)
+    client = TestClient(app)
+
+    first = client.get("/workspace/api/evidence/anchors?limit=2")
+
+    assert first.status_code == 200, first.text
+    first_page = first.json()
+    assert first_page["count"] == 2
+    assert [item["source_revision"] for item in first_page["items"]] == ["revision-0", "revision-1"]
+    assert isinstance(first_page["next_cursor"], str)
+    assert "rowid" not in first_page["next_cursor"]
+
+    second = client.get(
+        "/workspace/api/evidence/anchors",
+        params={"limit": 2, "cursor": first_page["next_cursor"]},
+    )
+    assert second.status_code == 200, second.text
+    assert [item["source_revision"] for item in second.json()["items"]] == ["revision-2"]
+    assert second.json()["next_cursor"] is None
+    assert client.get("/workspace/api/evidence/anchors?cursor=invalid").status_code == 422
+
+
 def test_bundle_inspection_route_projects_real_governed_ledger(tmp_path, monkeypatch) -> None:
     from app.evidence.ledger import EvidenceBundleDraft, EvidenceBundleEntry, store_bundle
     from app.main import app

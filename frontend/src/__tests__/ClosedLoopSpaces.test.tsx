@@ -94,6 +94,40 @@ describe("six-space real command loops", () => {
     }));
   });
 
+  it("pages Evidence anchors through the server cursor without growing the rendered list", async () => {
+    runtime.listEvidenceAnchors
+      .mockResolvedValueOnce({
+        count: 1,
+        items: [{ anchor_id: "anchor-first", raw_sha256: "a".repeat(64), source_revision: "revision-first", locator: { page: 1 } }],
+        next_cursor: "cursor-second",
+      })
+      .mockResolvedValueOnce({
+        count: 1,
+        items: [{ anchor_id: "anchor-second", raw_sha256: "b".repeat(64), source_revision: "revision-second", locator: { page: 2 } }],
+        next_cursor: null,
+      })
+      .mockResolvedValueOnce({
+        count: 1,
+        items: [{ anchor_id: "anchor-first", raw_sha256: "a".repeat(64), source_revision: "revision-first", locator: { page: 1 } }],
+        next_cursor: "cursor-second",
+      });
+    runtime.listEvidenceBundles.mockResolvedValue({ items: [] });
+    runtime.listResearchCandidates.mockResolvedValue({ items: [] });
+    const user = userEvent.setup();
+
+    render(<EvidenceSpace onInspect={vi.fn()} />);
+    expect(await screen.findByText("revision-f")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "下一页" }));
+
+    expect(runtime.listEvidenceAnchors).toHaveBeenLastCalledWith(50, "cursor-second");
+    expect(await screen.findByText("revision-s")).toBeInTheDocument();
+    expect(screen.queryByText("revision-f")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "下一页" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "上一页" }));
+    expect(runtime.listEvidenceAnchors).toHaveBeenLastCalledWith(50, undefined);
+    expect(await screen.findByText("revision-f")).toBeInTheDocument();
+  });
+
   it("approves and deprecates AI assets as independent governed actions", async () => {
     runtime.getMachineKnowledge.mockResolvedValue({ items: [{ title: "Approved", content: "body", lifecycle: "approved" }] });
     runtime.listMachineKnowledgeCandidates.mockResolvedValue({ items: [{ title: "Candidate", content: "draft", lifecycle: "candidate", version: "1.0.0", evidence_source: "mastery_signal", scope: {} }] });

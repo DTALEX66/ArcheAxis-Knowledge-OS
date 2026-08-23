@@ -20,7 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.evidence.anchor import (
     EvidenceAnchor,
     build_evidence_anchor,
-    list_evidence_anchors,
+    list_evidence_anchor_page,
     resolve_evidence_anchor,
     store_evidence_anchor,
 )
@@ -409,9 +409,16 @@ def workspace_bundle_inspection(bundle_id: str) -> dict[str, object]:
 
 
 @router.get("/api/evidence/anchors")
-def list_evidence_anchors_route(limit: int = 50) -> dict[str, object]:
-    """List evidence anchors (R4 Evidence space real data)."""
-    anchors = list_evidence_anchors(DB_PATH)
+def list_evidence_anchors_route(
+    limit: int = 50, cursor: str | None = None
+) -> dict[str, object]:
+    """List a bounded, cursor-paginated Evidence-anchor projection."""
+    try:
+        anchors, next_cursor = list_evidence_anchor_page(
+            DB_PATH, limit=limit, cursor=cursor
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="invalid evidence anchor page") from exc
     items = [
         {
             "anchor_id": a.anchor_id,
@@ -419,9 +426,9 @@ def list_evidence_anchors_route(limit: int = 50) -> dict[str, object]:
             "source_revision": a.source_revision,
             "locator": a.locator,
         }
-        for a in anchors[-limit:]
+        for a in anchors
     ]
-    return {"count": len(items), "items": items}
+    return {"count": len(items), "items": items, "next_cursor": next_cursor}
 
 @router.post("/api/vault/inspect")
 def workspace_vault_inspect(payload: VaultRootRequest, request: Request) -> dict[str, object]:

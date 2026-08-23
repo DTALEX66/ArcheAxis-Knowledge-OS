@@ -10,6 +10,7 @@ import pytest
 
 from app.evidence.anchor import (
     build_evidence_anchor,
+    list_evidence_anchor_page,
     mark_index_revision,
     rebuild_index_revision,
     resolve_evidence_anchor,
@@ -72,6 +73,29 @@ def test_evidence_anchor_replay_is_idempotent_but_tampering_conflicts(tmp_path) 
         connection.commit()
     with pytest.raises(RuntimeError, match="immutable receipt"):
         store_evidence_anchor(db, anchor)
+
+
+def test_evidence_anchor_page_uses_opaque_cursor_and_keeps_insertion_order(tmp_path) -> None:
+    db = tmp_path / "paged-anchors.sqlite"
+    for index in range(3):
+        store_evidence_anchor(
+            db,
+            build_evidence_anchor(
+                raw_sha256=f"{index:x}" * 64,
+                source_revision=f"revision-{index}",
+                locator={"page": index + 1},
+            ),
+        )
+
+    first, cursor = list_evidence_anchor_page(db, limit=2)
+    second, final_cursor = list_evidence_anchor_page(db, limit=2, cursor=cursor)
+
+    assert [anchor.source_revision for anchor in first] == ["revision-0", "revision-1"]
+    assert cursor and cursor != "2"
+    assert [anchor.source_revision for anchor in second] == ["revision-2"]
+    assert final_cursor is None
+    with pytest.raises(ValueError, match="invalid evidence anchor cursor"):
+        list_evidence_anchor_page(db, limit=2, cursor="not-a-cursor")
 
 
 def test_index_revision_is_rebuildable_but_never_source_of_truth(tmp_path) -> None:

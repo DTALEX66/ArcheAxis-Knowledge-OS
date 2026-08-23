@@ -20,6 +20,7 @@ export interface EvidenceAnchorDto {
 export interface EvidenceListDto {
   count: number;
   items: EvidenceAnchorDto[];
+  next_cursor: string | null;
 }
 
 export interface EvidenceBundleSummaryDto {
@@ -283,8 +284,11 @@ export function runtimePostJSON<T>(
   return postJSON<T>(path, body, prefix);
 }
 
-export function listEvidenceAnchors(limit = 50): Promise<EvidenceListDto> {
-  return getJSON<EvidenceListDto>(`/workspace/api/evidence/anchors?limit=${limit}`);
+export function listEvidenceAnchors(limit = 50, cursor?: string): Promise<EvidenceListDto> {
+  const query = cursor
+    ? `?limit=${limit}&cursor=${encodeURIComponent(cursor)}`
+    : `?limit=${limit}`;
+  return getJSON<EvidenceListDto>(`/workspace/api/evidence/anchors${query}`);
 }
 
 export function listEvidenceBundles(limit = 50): Promise<{ items: EvidenceBundleSummaryDto[] }> {

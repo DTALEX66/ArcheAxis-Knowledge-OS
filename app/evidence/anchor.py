@@ -8,6 +8,7 @@ original.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import sqlite3
@@ -77,6 +78,8 @@ CREATE TABLE IF NOT EXISTS index_revisions (
     rebuild_count INTEGER NOT NULL
 );
 """
+
+_ANCHOR_CURSOR_PREFIX = "evidence-anchor-v1:"
 
 
 def ensure_evidence_anchor_schema(db: str | Path) -> None:
@@ -158,6 +161,55 @@ def list_evidence_anchors(db: str | Path) -> list[EvidenceAnchor]:
         )
         for row in rows
     ]
+
+
+def _encode_anchor_cursor(rowid: int) -> str:
+    payload = f"{_ANCHOR_CURSOR_PREFIX}{rowid}".encode("ascii")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _decode_anchor_cursor(cursor: str) -> int:
+    try:
+        padded = cursor + "=" * (-len(cursor) % 4)
+        payload = base64.urlsafe_b64decode(padded.encode("ascii")).decode("ascii")
+        prefix, rowid_text = payload.rsplit(":", 1)
+        rowid = int(rowid_text)
+    except (UnicodeEncodeError, UnicodeDecodeError, ValueError, base64.binascii.Error) as exc:
+        raise ValueError("invalid evidence anchor cursor") from exc
+    if f"{prefix}:" != _ANCHOR_CURSOR_PREFIX or rowid < 1:
+        raise ValueError("invalid evidence anchor cursor")
+    return rowid
+
+
+def list_evidence_anchor_page(
+    db: str | Path, *, limit: int = 50, cursor: str | None = None
+) -> tuple[list[EvidenceAnchor], str | None]:
+    """Read a bounded insertion-ordered anchor page with an opaque cursor."""
+    if not 1 <= limit <= 100:
+        raise ValueError("evidence anchor page limit must be between 1 and 100")
+    after_rowid = _decode_anchor_cursor(cursor) if cursor else 0
+    with sqlite3.connect(Path(db)) as conn:
+        conn.row_factory = sqlite3.Row
+        conn.executescript(_ANCHOR_SCHEMA)
+        rows = conn.execute(
+            "SELECT rowid, anchor_id, raw_sha256, source_revision, locator_json "
+            "FROM evidence_anchors WHERE rowid>? ORDER BY rowid LIMIT ?",
+            (after_rowid, limit + 1),
+        ).fetchall()
+    page_rows = rows[:limit]
+    next_cursor = _encode_anchor_cursor(int(page_rows[-1]["rowid"])) if len(rows) > limit else None
+    return (
+        [
+            EvidenceAnchor(
+                anchor_id=row["anchor_id"],
+                raw_sha256=row["raw_sha256"],
+                source_revision=row["source_revision"],
+                locator=json.loads(row["locator_json"]),
+            )
+            for row in page_rows
+        ],
+        next_cursor,
+    )
 
 
 def mark_index_revision(
