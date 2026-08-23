@@ -1,5 +1,7 @@
 # 星环知识平台（ArcheAxis Knowledge）
 
+<!-- Legacy/Migration names below are compatibility context only. -->
+
 > **v0.6.9 已发布（2026-08-23）**：Recovery Shell 闭环、薄前端实时开发路径和风险选择 CI 已交付。精确提交 `de5b5ba` 的 main CI、NSIS/Green/Portable 生命周期、9 项公开资产、checksum 和 schema v3 identity 读回均通过。正式 Release：[`v0.6.9`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.9)。发布成功不等于所有长期蓝图能力已实现。
 
 > **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
@@ -9,7 +11,7 @@
 > **GitHub 交付**：上传/审核见 [`GITHUB_DELIVERY.md`](GITHUB_DELIVERY.md)（WORK-LAB 交付加速器）。
 
 主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Knowledge**；中文产品名 **星环知识平台**。
-仓库技术 ID `archeaxis-workspace` 仅为 Git/分发兼容身份（历史兼容身份，不是产品名）；旧名"元枢/元枢工作台"只保留在历史、迁移与兼容说明中。
+仓库技术 ID `archeaxis-workspace` 仅为 Git/分发兼容身份（历史兼容身份，不是产品名）；旧名"元枢/元枢工作台"只保留在 Legacy/Migration/兼容说明中。
 项目状态：**Personal Research Project / 个人研究项目**（不等同于许可证）。
 
 > 官方定位：**本地优先、原件保全、证据可追溯、开放互操作的人机双向学习与可信知识治理工作台。**
