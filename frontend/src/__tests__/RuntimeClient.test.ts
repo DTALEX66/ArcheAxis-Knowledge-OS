@@ -11,6 +11,7 @@ import {
   verifyBackup,
 } from "../api/runtime";
 import * as runtime from "../api/runtime";
+import { normalizeRecoveryLogTail, normalizeRecoveryStatus } from "../runtime/recovery";
 
 interface RecoveryRuntimeApi {
   getRecoveryStatus: () => Promise<{
@@ -98,7 +99,16 @@ describe("runtime handshake client", () => {
         };
       }
       if (command === "recovery_log_tail") return { lines: ["Core startup is unavailable"] };
-      if (command === "enter_safe_mode") return { safe_mode: true };
+      if (command === "enter_safe_mode") {
+        return {
+          state: "stopped",
+          safe_mode: true,
+          backend_available: false,
+          message: "Safe mode is active",
+          backups: ["cognitive_os_20260823T010203_000000Z.sqlite"],
+          external_dev: false,
+        };
+      }
       if (command === "restore_backup") return { status: "restored" };
       if (command === "exit_application") return undefined;
       throw new Error(`unexpected command: ${command}`);
@@ -121,14 +131,99 @@ describe("runtime handshake client", () => {
     await expect(recovery.restoreRecoveryBackup("../private-backup.axbak")).rejects.toThrow(
       /enumerated opaque backup/i,
     );
+    expect(invoke).toHaveBeenCalledTimes(6);
 
     expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
     expect(invoke).toHaveBeenNthCalledWith(2, "recovery_log_tail");
     expect(invoke).toHaveBeenNthCalledWith(3, "enter_safe_mode");
-    expect(invoke).toHaveBeenNthCalledWith(4, "restore_backup", {
+    expect(invoke).toHaveBeenNthCalledWith(4, "recovery_status");
+    expect(invoke).toHaveBeenNthCalledWith(5, "restore_backup", {
       name: "cognitive_os_20260823T010203_000000Z.sqlite",
     });
-    expect(invoke).toHaveBeenNthCalledWith(5, "exit_application");
+    expect(invoke).toHaveBeenNthCalledWith(6, "exit_application");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a backup removed from the fresh recovery status before restore", async () => {
+    const backup = "cognitive_os_20260823T010203_000000Z.sqlite";
+    const invoke = vi.fn()
+      .mockResolvedValueOnce({
+        state: "failed",
+        safe_mode: false,
+        backend_available: false,
+        message: "Core startup is unavailable",
+        backups: [backup],
+        external_dev: false,
+      })
+      .mockResolvedValueOnce({
+        state: "failed",
+        safe_mode: false,
+        backend_available: false,
+        message: "Core startup is unavailable",
+        backups: [],
+        external_dev: false,
+      });
+    window.__TAURI__ = { core: { invoke } };
+    const recovery = runtime as typeof runtime & RecoveryRuntimeApi;
+
+    await recovery.getRecoveryStatus();
+    await expect(recovery.restoreRecoveryBackup(backup)).rejects.toThrow(/fresh recovery status/i);
+
+    expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
+    expect(invoke).toHaveBeenNthCalledWith(2, "recovery_status");
+    expect(invoke).toHaveBeenCalledTimes(2);
+  });
+
+  it("withholds explicit sensitive diagnostic shapes at the recovery DTO boundary", () => {
+    expect(normalizeRecoveryStatus({
+      state: "failed",
+      message: "\u001b[31mAuthorization : Bearer top-secret\u001b[0m",
+    }).message).toBe("Recovery diagnostic withheld");
+
+    expect(normalizeRecoveryLogTail({
+      lines: [
+        "token = secret-value",
+        "see http://127.0.0.1/private",
+        "C:\\Users\\person\\private.db",
+        "/home/person/private.db",
+        "localhost:4312 unavailable",
+        `opaque ${"a".repeat(48)}`,
+      ],
+    }).lines).toEqual(Array(6).fill("Recovery diagnostic withheld"));
+  });
+
+  it("withholds control-split credential keys and padded Base64-like tokens", () => {
+    expect(normalizeRecoveryStatus({
+      state: "failed",
+      message: "to\nken = raw-secret",
+    }).message).toBe("Recovery diagnostic withheld");
+    expect(normalizeRecoveryLogTail({
+      lines: [
+        "to\tken: raw-secret",
+        "password\r= raw-secret",
+        `opaque ${"Q".repeat(40)}==`,
+        `opaque ${"a_".repeat(20)}=`,
+      ],
+    }).lines).toEqual(Array(4).fill("Recovery diagnostic withheld"));
+  });
+
+  it("scans the complete normalized diagnostic before applying the 240 character display bound", () => {
+    const safePrefix = "safe ".repeat(46);
+    expect(safePrefix).toHaveLength(230);
+
+    expect(normalizeRecoveryStatus({
+      state: "failed",
+      message: `${safePrefix}${"A".repeat(40)}==`,
+    }).message).toBe("Recovery diagnostic withheld");
+  });
+
+  it("preserves ordinary sanitized recovery text without keyword overmatching", () => {
+    expect(normalizeRecoveryStatus({
+      state: "failed",
+      message: "important security review remains available",
+    }).message).toBe("important security review remains available");
+    expect(normalizeRecoveryLogTail({
+      lines: ["Core stopped after a normal health check"],
+    }).lines).toEqual(["Core stopped after a normal health check"]);
   });
 });
