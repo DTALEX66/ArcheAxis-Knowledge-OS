@@ -12,7 +12,7 @@ import {
   type SetupRequestDto,
   type SetupStatusDto,
   verifyBackup,
-} from "../api/runtime";
+} from "../api/workspace";
 
 const DOMAIN_LABELS: Record<string, string> = {
   source_archive: "源文件归档库",

@@ -6,7 +6,7 @@ import {
   listResearchCandidates,
   type EvidenceAnchorDto,
   type ResearchCandidateDto,
-} from "../api/runtime";
+} from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
 
 export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {

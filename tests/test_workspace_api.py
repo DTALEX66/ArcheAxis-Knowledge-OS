@@ -83,6 +83,107 @@ def test_tauri_origin_requires_exact_desktop_launch_token(tmp_path, monkeypatch)
     assert accepted.headers["access-control-allow-origin"] == "http://tauri.localhost:5173"
 
 
+def test_desktop_write_rejects_missing_token_scope_or_idempotency_key(tmp_path, monkeypatch) -> None:
+    """A React-backed write needs all three desktop intent proofs."""
+    from app.main import app
+    from app.workspace import router
+
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", "test-launch-token-1234567890")
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_WRITE_SCOPES", "workspace:write")
+    monkeypatch.setattr(router, "_backup_root", lambda: tmp_path / "backups")
+    monkeypatch.setattr(router, "resolve_runtime_path", lambda _name: tmp_path / "data")
+    client = TestClient(app)
+
+    assert client.post("/workspace/api/backup/create", json={"name": "release"}).status_code == 403
+    assert client.post(
+        "/workspace/api/backup/create",
+        headers={"X-ArcheAxis-Launch-Token": "test-launch-token-1234567890"},
+        json={"name": "release"},
+    ).status_code == 403
+    assert client.post(
+        "/workspace/api/backup/create",
+        headers={
+            "X-ArcheAxis-Launch-Token": "test-launch-token-1234567890",
+            "X-ArcheAxis-Scopes": "workspace:write",
+        },
+        json={"name": "release"},
+    ).status_code == 422
+    assert client.post(
+        "/workspace/api/backup/create",
+        headers={
+            "X-ArcheAxis-Launch-Token": "test-launch-token-1234567890",
+            "X-ArcheAxis-Scopes": "workspace:write admin",
+            "Idempotency-Key": "workspace-backup-regression-extra-scope",
+        },
+        json={"name": "release"},
+    ).status_code == 403
+    accepted = client.post(
+        "/workspace/api/backup/create",
+        headers={
+            "X-ArcheAxis-Launch-Token": "test-launch-token-1234567890",
+            "X-ArcheAxis-Scopes": "workspace:write",
+            "Idempotency-Key": "workspace-backup-regression-1",
+        },
+        json={"name": "release"},
+    )
+    assert accepted.status_code == 200, accepted.text
+
+
+def test_desktop_learning_write_requires_the_same_token_scope_and_idempotency_proofs(
+    monkeypatch,
+) -> None:
+    from app.main import app
+
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", "test-launch-token-1234567890")
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_WRITE_SCOPES", "workspace:write")
+    client = TestClient(app)
+    payload = {
+        "record_id": "teach-back-1",
+        "concept": "BKT",
+        "restatement": "BKT models learned knowledge as a changing probability.",
+        "reference": "BKT models a learner's knowledge probability over time.",
+        "key_terms": ["knowledge", "probability"],
+    }
+
+    assert client.post("/api/v1/learning/teach-back", json=payload).status_code == 403
+    accepted = client.post(
+        "/api/v1/learning/teach-back",
+        headers={
+            "X-ArcheAxis-Launch-Token": "test-launch-token-1234567890",
+            "X-ArcheAxis-Scopes": "workspace:write",
+            "Idempotency-Key": "workspace-learning-teach-back-1",
+        },
+        json=payload,
+    )
+    assert accepted.status_code == 200, accepted.text
+
+
+def test_all_react_learning_write_routes_require_desktop_write_intent() -> None:
+    """Keep future Learning writes from bypassing the shared desktop boundary."""
+    from app.api.learning import router as learning_router
+    from app.workspace.router import _require_desktop_write_request
+
+    protected_paths = {
+        "/api/v1/learning/teach-back",
+        "/api/v1/learning/distill",
+        "/api/v1/learning/trajectory",
+        "/api/v1/learning/tick",
+        "/api/v1/learning/learning-path",
+        "/api/v1/learning/review-outcome",
+    }
+    routes = {
+        route.path: route
+        for route in learning_router.routes
+        if "POST" in getattr(route, "methods", set())
+    }
+    assert set(routes) == protected_paths
+    for route in routes.values():
+        assert any(
+            dependency.dependency is _require_desktop_write_request
+            for dependency in route.dependencies
+        )
+
+
 def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     from app.main import app
 

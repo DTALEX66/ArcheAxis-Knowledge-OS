@@ -13,7 +13,8 @@ import {
   resetRuntimeClient,
   restoreRecoveryBackup,
   retryDesktopBackend,
-} from "../api/runtime";
+} from "../api/workspace";
+import { runtimeProjectionMessage } from "../api/client";
 import {
   checkingRecoveryStatus,
   failedRecoveryStatus,
@@ -85,17 +86,18 @@ export function App() {
       if (!isCurrent(epoch)) return false;
       setDesktopReady(true);
       return true;
-    } catch {
+    } catch (error) {
       if (!isCurrent(epoch)) return false;
       setDesktopReady(false);
-      setRecoveryStatus(failedRecoveryStatus("Authenticated Core handshake failed.", status));
+      const message = runtimeProjectionMessage(error);
+      setRecoveryStatus(failedRecoveryStatus(message, status));
       try {
         const freshStatus = await getRecoveryStatus();
         if (!isCurrent(epoch)) return false;
-        setRecoveryStatus(failedRecoveryStatus("Authenticated Core handshake failed.", freshStatus));
+        setRecoveryStatus(failedRecoveryStatus(message, freshStatus));
       } catch {
         if (!isCurrent(epoch)) return false;
-        setRecoveryStatus(failedRecoveryStatus("Authenticated Core handshake failed.", status));
+        setRecoveryStatus(failedRecoveryStatus(message, status));
       }
       return false;
     }
@@ -155,16 +157,16 @@ export function App() {
         void check();
       }, DESKTOP_LIVENESS_INTERVAL_MS);
     };
-    const recoverHandshakeFailure = async (status: RecoveryStatusDto) => {
+    const recoverHandshakeFailure = async (status: RecoveryStatusDto, error: unknown) => {
       const claim = claimRecovery(
-        failedRecoveryStatus("Authenticated Core handshake failed.", status),
+        failedRecoveryStatus(runtimeProjectionMessage(error), status),
         true,
       );
       if (!claim) return;
       try {
         const freshStatus = await getRecoveryStatus();
         if (!recoveryIsCurrent(claim)) return;
-        setRecoveryStatus(failedRecoveryStatus("Authenticated Core handshake failed.", freshStatus));
+        setRecoveryStatus(failedRecoveryStatus(runtimeProjectionMessage(error), freshStatus));
       } catch {
         if (!recoveryIsCurrent(claim)) return;
       } finally {
@@ -187,9 +189,9 @@ export function App() {
       }
       try {
         await getStatus();
-      } catch {
+      } catch (error) {
         if (!loopIsCurrent()) return;
-        await recoverHandshakeFailure(status);
+        await recoverHandshakeFailure(status, error);
         return;
       }
       if (!loopIsCurrent()) return;

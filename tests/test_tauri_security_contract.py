@@ -4,7 +4,6 @@ import json
 import re
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -55,3 +54,12 @@ def test_root_desktop_registers_the_complete_narrow_recovery_command_surface() -
         "the webview must receive recovery data and operations only through "
         "the narrow Tauri command surface"
     )
+
+
+def test_desktop_issues_workspace_write_scope_to_core_and_backend_info() -> None:
+    source = (ROOT / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
+    backend_source = (ROOT / "desktop" / "src-tauri" / "src" / "backend.rs").read_text(
+        encoding="utf-8"
+    )
+    assert 'scopes: vec!["workspace:write".to_owned()]' in source
+    assert "ARCHEAXIS_DESKTOP_WRITE_SCOPES" in backend_source

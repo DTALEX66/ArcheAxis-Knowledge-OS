@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getActivity, type ActivityItemDto } from "../api/runtime";
+import { getActivity, type ActivityItemDto } from "../api/workspace";
 
 // Bottom activity dock: always projects durable Job/Outbox state. It never
 // labels arbitrary controls as completed work.

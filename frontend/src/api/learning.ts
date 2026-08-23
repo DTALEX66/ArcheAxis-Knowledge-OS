@@ -1,4 +1,4 @@
-import { runtimeJSON } from "./runtime";
+import { runtimeJSON, runtimePostJSON } from "./workspace";
 
 // Learner-state API client (Tutor-MCP-inspired): neutral learner state.
 // Provider-agnostic — the learner model belongs to ArcheAxis, not any LLM.
@@ -77,11 +77,7 @@ export function learningApi(
 
   async function postJSON<T>(path: string, body: unknown): Promise<T> {
     if (window.__TAURI__?.core?.invoke) {
-      return runtimeJSON<T>(`${baseUrl}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      return runtimePostJSON<T>(`${baseUrl}${path}`, body as Record<string, unknown>, "learning");
     }
     const res = await fetcher(`${baseUrl}${path}`, {
       method: "POST",
@@ -179,11 +175,7 @@ export function learningApiExt(
   }
   async function postJSON<T>(path: string, body: unknown): Promise<T> {
     if (window.__TAURI__?.core?.invoke) {
-      return runtimeJSON<T>(`${baseUrl}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      return runtimePostJSON<T>(`${baseUrl}${path}`, body as Record<string, unknown>, "learning");
     }
     const res = await fetcher(`${baseUrl}${path}`, {
       method: "POST",

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   exitRecoveryApplication,
   getRecoveryLogTail,
-} from "../api/runtime";
+} from "../api/workspace";
 import type { RecoveryStatusDto } from "../runtime/recovery";
 
 interface RecoveryShellProps {

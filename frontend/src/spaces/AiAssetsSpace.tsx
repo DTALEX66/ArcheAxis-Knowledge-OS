@@ -7,7 +7,7 @@ import {
   listMachineKnowledgeCandidates,
   type MachineKnowledgeCandidateDto,
   type MachineKnowledgeDto,
-} from "../api/runtime";
+} from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
 
 export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {

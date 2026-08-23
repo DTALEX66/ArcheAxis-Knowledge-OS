@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
-import { resetRuntimeClient } from "../api/runtime";
+import { resetRuntimeClient } from "../api/workspace";
 
 // AXW-UI-804: App shell — six-space navigation, default space, landmarks.
 // Rail buttons use the English product labels; space headings are Chinese.
@@ -113,6 +113,39 @@ describe("App shell", () => {
     expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
     expect(invoke).toHaveBeenNthCalledWith(2, "backend_info");
     expect(invoke).toHaveBeenNthCalledWith(3, "recovery_status");
+  });
+
+  it("projects a migrating workspace as a recoverable startup state", async () => {
+    window.__TAURI__ = {
+      core: {
+        invoke: vi.fn(async (command: string) => {
+          if (command === "recovery_status") {
+            return {
+              state: "ready", safe_mode: false, backend_available: true,
+              message: "Core is ready", backups: [], external_dev: false,
+            };
+          }
+          if (command === "backend_info") {
+            return { port: 4312, token: "memory-only", scopes: ["workspace:write"] };
+          }
+          return null;
+        }),
+      },
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.0",
+        source_commit: "abc1234", schema_version: 15, runtime_mode: "desktop",
+        workspace_id: "workspace-001", capabilities: [], migration_state: "migrating",
+      }),
+    } as Response));
+
+    render(<App />);
+
+    expect(await screen.findByText("Workspace migration is in progress.")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
   });
 
   it("never renders a control-split raw credential from desktop recovery status", async () => {

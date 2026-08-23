@@ -23,7 +23,7 @@ from app.setup.setup_status import (
     preflight_workspace,
     setup_status,
 )
-from app.workspace.router import _require_local_request
+from app.workspace.router import _require_desktop_write_request, _require_local_request
 
 router = APIRouter(
     prefix="/api/v1/setup",
@@ -61,7 +61,7 @@ def post_setup_preflight(payload: SetupInitializeRequest | None = None) -> dict[
         raise HTTPException(status_code=422, detail={"code": exc.code, "message": str(exc)}) from exc
 
 
-@router.post("/initialize")
+@router.post("/initialize", dependencies=[Depends(_require_desktop_write_request)])
 def post_setup_initialize(payload: SetupInitializeRequest | None = None) -> dict[str, object]:
     """Create the workspace; idempotent — an existing valid workspace is
     returned as-is with ``already_existed=true``."""

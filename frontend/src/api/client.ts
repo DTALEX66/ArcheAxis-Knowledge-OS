@@ -1,6 +1,5 @@
-// Loopback API client (AXW-UI-801). Token is held in memory only — never
-// persisted to localStorage (task pack §9.2). Fail-closed on product/api
-// contract mismatch.
+// The only credential-bearing HTTP client. Desktop credentials remain in the
+// invoking WebView process and are never persisted by this module.
 export interface Handshake {
   product_id: string;
   product_name: string;
@@ -14,48 +13,136 @@ export interface Handshake {
   migration_state: string;
 }
 
+export type RuntimeProjection =
+  | "offline"
+  | "backend_starting"
+  | "migrating"
+  | "incompatible"
+  | "unauthorized"
+  | "unavailable";
+
 const EXPECTED_PRODUCT_ID = "archeaxis-workspace";
+const EXPECTED_API_CONTRACT = "1.x";
+const WRITE_SCOPE = "workspace:write";
 
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public code: RuntimeProjection = "unavailable",
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
-export function createApiClient(baseUrl: string, token: string) {
+export function runtimeProjectionMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) return "Authenticated Core handshake failed.";
+  switch (error.code) {
+    case "offline":
+      return "Local Core is offline.";
+    case "backend_starting":
+      return "Core startup is still in progress.";
+    case "migrating":
+      return "Workspace migration is in progress.";
+    case "incompatible":
+      return "Core is incompatible with this application.";
+    case "unauthorized":
+      return "Desktop authorization was rejected.";
+    default:
+      return "Authenticated Core handshake failed.";
+  }
+}
+
+function unavailableCode(status: number): RuntimeProjection {
+  if (status === 401 || status === 403) return "unauthorized";
+  if (status === 503) return "backend_starting";
+  return "unavailable";
+}
+
+function incompatible(message: string): never {
+  throw new ApiError(0, message, "incompatible");
+}
+
+function nonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function validateHandshake(value: unknown): Handshake {
+  if (!value || typeof value !== "object") incompatible("runtime handshake is invalid");
+  const handshake = value as Record<string, unknown>;
+  if (handshake.product_id !== EXPECTED_PRODUCT_ID) incompatible(`product mismatch: ${String(handshake.product_id)}`);
+  if (!nonEmptyString(handshake.product_name)) incompatible("product identity is incomplete");
+  if (handshake.api_contract !== EXPECTED_API_CONTRACT) incompatible(`API contract mismatch: ${String(handshake.api_contract)}`);
+  if (
+    !nonEmptyString(handshake.backend_version)
+    || !nonEmptyString(handshake.source_commit)
+    || !nonEmptyString(handshake.runtime_mode)
+    || !nonEmptyString(handshake.workspace_id)
+  ) {
+    incompatible("runtime identity is incomplete");
+  }
+  if (!Number.isInteger(handshake.schema_version) || (handshake.schema_version as number) < 1) {
+    incompatible("runtime schema version is invalid");
+  }
+  if (!Array.isArray(handshake.capabilities) || handshake.capabilities.some((item) => typeof item !== "string")) {
+    incompatible("runtime capabilities are invalid");
+  }
+  if (handshake.migration_state === "migrating") {
+    throw new ApiError(503, "workspace migration is in progress", "migrating");
+  }
+  if (handshake.migration_state !== "ready") {
+    throw new ApiError(503, "workspace migration is unavailable", "backend_starting");
+  }
+  return handshake as unknown as Handshake;
+}
+
+export function createApiClient(baseUrl: string, token: string, scopes: string[] = []) {
   async function requestRaw(path: string, init?: RequestInit): Promise<Response> {
-    const res = await fetch(`${baseUrl}${path}`, {
-      ...init,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...(token ? { "X-ArcheAxis-Launch-Token": token } : {}),
-        ...(init?.headers ?? {}),
-      },
-    });
-    if (!res.ok) {
-      throw new ApiError(res.status, `${path} -> ${res.status}`);
+    let response: Response;
+    try {
+      response = await fetch(`${baseUrl}${path}`, {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(token ? { "X-ArcheAxis-Launch-Token": token } : {}),
+          ...(init?.headers ?? {}),
+        },
+      });
+    } catch {
+      throw new ApiError(0, "local Core is offline", "offline");
     }
-    return res;
+    if (!response.ok) {
+      throw new ApiError(response.status, `${path} -> ${response.status}`, unavailableCode(response.status));
+    }
+    return response;
   }
 
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await requestRaw(path, init);
-    return (await res.json()) as T;
+    const response = await requestRaw(path, init);
+    return (await response.json()) as T;
+  }
+
+  async function write<T>(path: string, body: Record<string, unknown>, idempotencyKey: string): Promise<T> {
+    if (!token || !scopes.includes(WRITE_SCOPE)) {
+      throw new ApiError(403, "desktop write scope is unavailable", "unauthorized");
+    }
+    return request<T>(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-ArcheAxis-Scopes": scopes.join(" "),
+        "Idempotency-Key": idempotencyKey,
+      },
+      body: JSON.stringify(body),
+    });
   }
 
   async function handshake(): Promise<Handshake> {
-    const h = await request<Handshake>("/api/v1/system/handshake");
-    if (h.product_id !== EXPECTED_PRODUCT_ID) {
-      throw new ApiError(0, `product mismatch: ${h.product_id}`);
-    }
-    return h;
+    return validateHandshake(await request<unknown>("/api/v1/system/handshake"));
   }
 
-  return { handshake, request, requestRaw };
+  return { handshake, request, requestRaw, write };
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;

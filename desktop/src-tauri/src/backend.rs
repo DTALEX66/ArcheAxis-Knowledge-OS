@@ -18,7 +18,7 @@ const FORCED_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(1);
 const RESTORE_TIMEOUT: Duration = Duration::from_secs(120);
 const MAX_LOG_LINES: usize = 200;
 const MAX_ONE_SHOT_OUTPUT_BYTES: usize = 16 * 1024;
-const SANITIZED_ENVIRONMENT: [&str; 16] = [
+const SANITIZED_ENVIRONMENT: [&str; 17] = [
     "PYTHONPATH",
     "PYTHONHOME",
     "VIRTUAL_ENV",
@@ -29,6 +29,7 @@ const SANITIZED_ENVIRONMENT: [&str; 16] = [
     "ARCHEAXIS_DATA_DIR",
     "ARCHEAXIS_DESKTOP_CONTROL",
     "ARCHEAXIS_DESKTOP_LAUNCH_TOKEN",
+    "ARCHEAXIS_DESKTOP_WRITE_SCOPES",
     "COGNITIVE_DATA_DIR",
     "COGNITIVE_HOST",
     "COGNITIVE_PORT",
@@ -67,6 +68,7 @@ impl BackendProcess {
             .env("ARCHEAXIS_PORT", port.to_string())
             .env("ARCHEAXIS_DESKTOP_CONTROL", "stdio-v1")
             .env("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", &token)
+            .env("ARCHEAXIS_DESKTOP_WRITE_SCOPES", "workspace:write")
             // legacy COGNITIVE_* mirrors keep two stable releases readable
             // (AXW-RUN-205); Python prefers ARCHEAXIS_* when both exist.
             .env("COGNITIVE_HOST", "127.0.0.1")

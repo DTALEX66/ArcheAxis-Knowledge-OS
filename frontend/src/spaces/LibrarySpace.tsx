@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
-import { downloadLibraryAsset, listLibraryAssets, type LibraryAssetDto } from "../api/runtime";
+import { downloadLibraryAsset, listLibraryAssets, type LibraryAssetDto } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
 
 export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
