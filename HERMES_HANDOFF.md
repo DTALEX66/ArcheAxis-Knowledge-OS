@@ -1,12 +1,12 @@
 # Hermes handoff — archeaxis-workspace
 
-Generated: 2026-08-23 (v0.6.8 release closure; older continuation notes retained below)
+Generated: 2026-08-23 (v0.6.9 release closure; older continuation notes retained below)
 
-> **Current authoritative continuation**: v0.6.8 is publicly released at
-> <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.8>.
-> Release commit `93e58a3b2c537dd348903dd2296933e0cfb5a503` passed exact-SHA CI
-> `32607097436` and Release run `32607789507`. See
-> `docs/HANDOFF_2026-08-23_v0.6.8-release.md`; older SHA/test-count statements
+> **Current authoritative continuation**: v0.6.9 is publicly released at
+> <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.9>.
+> Release commit `de5b5ba6efde2f306d029725c046b56d91226e4c` passed exact-SHA CI
+> `32622348279` and Release run `32623033058`. See
+> `docs/HANDOFF_2026-08-23_v0.6.9-release.md`; older SHA/test-count statements
 > below are historical context, not current evidence.
 
 ## NEXT-RUN QUICKSTART（2026-08-15 晚 · 共用库改造后 · 给 DEEPSEEK HARNESS）
@@ -22,7 +22,7 @@ Generated: 2026-08-23 (v0.6.8 release closure; older continuation notes retained
 **下一轮任务（优先级从高到低）**
 1. **P0 项目配置规则减重**（Owner 指定优先）——见 `docs/design/` 与记忆；实测 `.hermes/cache` + `task-artifacts` 有 ~965MB 第三方 config/rules 垃圾，规则文档（AGENTS 6KB / VERIFICATION_POLICY 6.7KB / HANDOFF 15KB）可查冗余整合；GitHub ruleset（main/tag-protection）**不可动**。
 2. **AXW-WEB-CAPTURE-v3 TaskPack**（OWNER-APPROVED，源 `D:\All projects\AXW_WEB_CAPTURE_V3.zip` 已解到 `.hermes/task-runtime/axw-web-capture-v3/`）——22 任务 DAG：`000→001→003→010→011→012→020→021→022→023→024→030→032→042→EXIT`（消灭 web.py stub、统一 PolicyGate、Raw-first、真实非 mock E2E）；050-052 可选。
-3. **RC 三包发布：已完成**（历史 v0.6.7 已由当前 `v0.6.8` 取代；CI `32607097436`，Release `32607789507`，9 项资产独立读回通过）。
+3. **RC 三包发布：已完成**（当前 `v0.6.9`；CI `32622348279`，Release `32623033058`，工作流全资产读回通过；本机额外读回 6/9 后按 Owner 指令停止大型下载）。
 4. **App Shell 接 Tauri**（frontend/ dist → frontendDist）+ ENV-103 剩余 hold（rust/uv-cache/wsl2/ci-venv——环境变量/注册表确认后）。
 
 **关键环境事实**

@@ -1,0 +1,61 @@
+{
+  "schema_version": "archeaxis.release-evidence.v1",
+  "release": {
+    "tag": "v0.6.9",
+    "version": "0.6.9",
+    "channel": "stable",
+    "public": true,
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-08-23T06:48:11Z",
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.9"
+  },
+  "source": {
+    "commit_sha": "de5b5ba6efde2f306d029725c046b56d91226e4c",
+    "tree_sha": "199eb5473c38e7d73ec078f7135d39bb756ce9be"
+  },
+  "runs": {
+    "verification_ci": {
+      "id": 32622348279,
+      "conclusion": "success",
+      "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/32622348279"
+    },
+    "release": {
+      "id": 32623033058,
+      "conclusion": "success",
+      "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/32623033058"
+    }
+  },
+  "assets": [
+    {"name": "ArcheAxis.Knowledge-v0.6.9-Windows-x64-Green.zip", "size": 224083602, "sha256": "b90f1e52e0fff5549d86b80c331a6313aa4221f0d98edec69c105e6b3953769b"},
+    {"name": "ArcheAxis.Knowledge-v0.6.9-Windows-x64-Portable.zip", "size": 224227254, "sha256": "244b0e5db1589fcb9b6be0c2bfd77da608f591e7018b5d6d1d26bdc4d6477a45"},
+    {"name": "ArcheAxis.Knowledge-v0.6.9-Windows-x64-Setup.exe", "size": 154430015, "sha256": "01b45e677fc92dc967d338d7c2cfe16106654e56addc57bd0ee47128ad81bd19"},
+    {"name": "archeaxis_workspace-0.6.9-py3-none-any.whl", "size": 1068050, "sha256": "a014e150eeb5d9f2aa3099794a7066c546d16226a889a45dfb5640e52718c3a2"},
+    {"name": "release-identity.json", "size": 1811, "sha256": "6b2119abcaef37aa79504f1cf053d2d67cbf87ff7b9d20d9b9959b3316dfad0e"},
+    {"name": "release-manifest.json", "size": 1694, "sha256": "aba8cf3a42091a04c0dbaba4c99b98b6cec6e57865ca784c4f334347c51d5a3a"},
+    {"name": "SBOM.cdx.json", "size": 90760, "sha256": "2bfeb90ee2407888e134ed59d56e93ef5f4fdc2b31c601050db78123904d225b"},
+    {"name": "SHA256SUMS.txt", "size": 811, "sha256": "67d8fe401a78b2937051f286443f3e23c5134325165dc26cf70610238378bcd3"},
+    {"name": "THIRD_PARTY_NOTICES.txt", "size": 26764, "sha256": "d69cd58494ba3a62b35efe9be217aa4a8e1bd81240734abcf4198344031004f0"}
+  ],
+  "dependency_locks": {
+    "uv.lock": "452e88f04b1fabe3eb1737aafc8a1c28d5fa6906d83023ae35f8e2e25cb65ff3",
+    "frontend/package-lock.json": "0f02aa436a3fedede06dcf83d2187708888a268a10b795d1848946017b24f3d0",
+    "src-tauri/Cargo.lock": "63566ebec4ce8286cfce3a51f32043da1e69c9dfbdd69e30389cbd36d2ba1b13"
+  },
+  "verification": {
+    "provider_digest_match": true,
+    "downloaded_sha256_match": true,
+    "release_workflow_public_download_readback": true,
+    "local_independent_downloaded_asset_count": 6,
+    "local_independent_downloaded_sha256_match": true,
+    "public_asset_count": 9,
+    "checksum_payload_count": 8,
+    "identity_schema_version": "3.0.0",
+    "three_distribution_lifecycle": "PASS"
+  },
+  "limitations": [
+    "This receipt proves the v0.6.9 release and named lifecycle/readback gates only.",
+    "The local extra readback downloaded 6 of 9 assets; the three large Windows payload downloads were stopped by owner direction.",
+    "It does not promote incomplete product capabilities or deferred roadmap items."
+  ]
+}
