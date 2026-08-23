@@ -214,6 +214,20 @@ def _validate_identity_source_v1(source: dict[str, Any]) -> None:
         raise RuntimeError("artifact release identity has invalid v1 source fields")
 
 
+def _validate_identity_source_candidate(source: dict[str, Any]) -> None:
+    if (
+        not isinstance(source["commit"], str)
+        or _HEX_40.fullmatch(source["commit"]) is None
+        or not isinstance(source["tree"], str)
+        or _HEX_40.fullmatch(source["tree"]) is None
+        or not isinstance(source["verification_ci_run_id"], int)
+        or source["verification_ci_run_id"] < 1
+        or not isinstance(source["verification_ci_url"], str)
+        or not _require_repo_url(source["verification_ci_url"], source["verification_ci_run_id"])
+    ):
+        raise RuntimeError("artifact candidate identity has invalid source fields")
+
+
 def _validate_identity_release(release: dict[str, Any]) -> None:
     """Validate an artifact identity without conflating it with source HEAD.
 
@@ -233,6 +247,18 @@ def _validate_identity_release(release: dict[str, Any]) -> None:
         or release["url"] != f"{_RELEASE_REPOSITORY_URL}/releases/tag/{release['tag']}"
     ):
         raise RuntimeError("artifact release identity has invalid release fields")
+
+
+def _validate_identity_candidate(candidate: dict[str, Any]) -> None:
+    version = candidate["version"]
+    if (
+        not isinstance(version, str)
+        or not version
+        or candidate["tag"] != f"v{version}"
+        or candidate["channel"] != "stable"
+        or candidate["public"] is not False
+    ):
+        raise RuntimeError("artifact candidate identity has invalid candidate fields")
 
 
 def _validate_identity_v3(identity: dict[str, Any]) -> None:
@@ -277,9 +303,10 @@ def _validate_identity_v3(identity: dict[str, Any]) -> None:
 def load_artifact_release_identity() -> dict[str, Any] | None:
     """Read verified release identity packaged alongside a bundled runtime.
 
-    Supports schema v1 (legacy ``ci_run/ci_url``), schema v2 (separate
-    verification/release runs), and schema v3 (v2 provenance plus the exact
-    public artifact kinds and dependency-lock digests).
+    Supports a non-public CI candidate identity plus release schemas v1
+    (legacy ``ci_run/ci_url``), v2 (separate verification/release runs), and
+    v3 (v2 provenance plus the exact public artifact kinds and dependency
+    lock digests).
     """
     identity_path = _ARTIFACT_IDENTITY_PATH or next(
         (parent / "release-identity.json" for parent in _MANIFEST_PATH.parents if (parent / "release-identity.json").is_file()),
@@ -292,6 +319,20 @@ def load_artifact_release_identity() -> dict[str, Any] | None:
     if not isinstance(identity, dict):
         raise RuntimeError("release manifest has invalid artifact identity fields")
     schema = identity.get("schema_version")
+
+    if schema == "candidate-1.0.0":
+        _require_exact_keys(identity, {"schema_version", "candidate", "source"}, "artifact candidate identity")
+        candidate = _require_exact_keys(
+            identity["candidate"], {"tag", "version", "channel", "public"}, "artifact candidate"
+        )
+        source = _require_exact_keys(
+            identity["source"],
+            {"commit", "tree", "verification_ci_run_id", "verification_ci_url"},
+            "artifact candidate source",
+        )
+        _validate_identity_candidate(candidate)
+        _validate_identity_source_candidate(source)
+        return identity
 
     if schema in {"2.0.0", "3.0.0"}:
         expected_fields = {"schema_version", "release", "source"}
@@ -339,6 +380,17 @@ def safe_release_summary() -> dict[str, object]:
     manifest = load_release_manifest()
     identity = load_artifact_release_identity()
     if identity is not None:
+        if identity["schema_version"] == "candidate-1.0.0":
+            candidate = identity["candidate"]
+            source = identity["source"]
+            return {
+                "status": "qualified",
+                "version": candidate["version"],
+                "channel": candidate["channel"],
+                "source_commit": source["commit"],
+                "tag": candidate["tag"],
+                "verification_ci_run_id": source["verification_ci_run_id"],
+            }
         artifact_release = identity["release"]
         artifact_source = identity["source"]
         if identity["schema_version"] in {"2.0.0", "3.0.0"}:
@@ -374,6 +426,7 @@ def safe_release_summary() -> dict[str, object]:
 def effective_capabilities() -> dict[str, str]:
     """Report the installer capability only when bundled release identity verifies it."""
     capabilities = dict(load_release_manifest()["capabilities"])
-    if load_artifact_release_identity() is not None:
+    identity = load_artifact_release_identity()
+    if identity is not None and identity["schema_version"] != "candidate-1.0.0":
         capabilities["public_installer"] = "available"
     return capabilities
