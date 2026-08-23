@@ -63,4 +63,29 @@ describe("SpaceRail", () => {
       expect(button.matches(":focus-visible")).toBe(true);
     }
   });
+
+  it("moves and activates space navigation with arrow keys, Home, and End", async () => {
+    const onNavigate = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <SpaceRail active="workspace" onNavigate={onNavigate} spaces={SPACES} />,
+    );
+
+    const workspace = screen.getByRole("button", { name: "Workspace" });
+    const library = screen.getByRole("button", { name: "Library" });
+    const settings = screen.getByRole("button", { name: "Settings" });
+    workspace.focus();
+
+    await user.keyboard("{ArrowDown}");
+    expect(library).toHaveFocus();
+    expect(onNavigate).toHaveBeenLastCalledWith("library");
+
+    await user.keyboard("{End}");
+    expect(settings).toHaveFocus();
+    expect(onNavigate).toHaveBeenLastCalledWith("settings");
+
+    await user.keyboard("{Home}");
+    expect(workspace).toHaveFocus();
+    expect(onNavigate).toHaveBeenLastCalledWith("workspace");
+  });
 });
