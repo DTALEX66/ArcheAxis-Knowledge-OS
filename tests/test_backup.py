@@ -10,6 +10,38 @@ import pytest
 from shared import backup as backup_module
 
 
+def test_restore_backup_stages_and_activates_explicit_backup_path(
+    monkeypatch, tmp_path, capsys
+):
+    from app import runtime_entrypoint
+
+    backup_path = tmp_path / "offline-backup.sqlite"
+    candidate_path = tmp_path / "restore-candidate.sqlite"
+    database_path = tmp_path / "runtime.sqlite"
+    events: list[tuple[str, str]] = []
+
+    def restore(source: str) -> str:
+        events.append(("restore", source))
+        return str(candidate_path)
+
+    def activate_restore(candidate: str) -> str:
+        events.append(("activate_restore", candidate))
+        return str(database_path)
+
+    monkeypatch.setattr(backup_module, "restore", restore)
+    monkeypatch.setattr(backup_module, "activate_restore", activate_restore)
+    monkeypatch.setenv("ARCHEAXIS_RESTORE_BACKUP", "legacy-env-backup.sqlite")
+    monkeypatch.setenv("COGNITIVE_RESTORE_BACKUP", "legacy-cognitive-backup.sqlite")
+
+    assert runtime_entrypoint.main(["restore-backup", str(backup_path)]) == 0
+
+    assert events == [
+        ("restore", str(backup_path)),
+        ("activate_restore", str(candidate_path)),
+    ]
+    assert capsys.readouterr().out == '{"status":"restored"}\n'
+
+
 def _create_migrated_database(monkeypatch, path: Path, backup_dir: Path, title: str) -> None:
     from app.memory import database as memory_database
     from shared import migration, storage
