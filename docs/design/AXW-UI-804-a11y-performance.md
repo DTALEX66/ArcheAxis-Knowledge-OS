@@ -36,6 +36,9 @@
   `ArrowRight`、`Home` 和 `End`；移动时焦点与当前空间一起更新。
 - 此项由 Vitest 及本地 Vite 的真实浏览器键盘操作验证。浏览器开发模式没有连接
   受认证后端时出现的数据加载错误，不是桌面运行时通过证据。
+- `main@752d928523d5e08372f216075a4fffbe8eb0d077` 的精确 CI
+  [`32670378861`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/32670378861)
+  已 success；该事实只覆盖此键盘改动的源码门禁。
 - 该补充不替代读屏、高 DPI、安装版或 10,000 行实际性能测量；它们仍需在目标
   设备和正式运行时分别取证。
 
