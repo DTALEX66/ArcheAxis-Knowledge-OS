@@ -48,6 +48,10 @@ Bundle 保存的是 RawAsset 身份与锚点的不可变快照，尚未在本切
 - 本地验证：`tests/test_evidence_bundle_ledger.py` 和 Workspace 路由定向测试共 8 passed；
   `frontend/src/__tests__/ClosedLoopSpaces.test.tsx` 11 passed；`npm run build`、变更 Python
   文件 Ruff 均通过。
+- `main@20fb72ad86b876a993f1ffe1a4c25da70bc0a0c2` 的风险选择 CI
+  [`32669760922`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/32669760922)
+  已 success（gateplan、lint、browser-smoke 和主测试）。因此该代码提交为
+  `CI_VERIFIED_EXACT_SHA`；按 GatePlan 跳过的桌面打包/安装器作业不构成运行时验证。
 
 这仍不是跨库 RawAsset 实体存在性核验、干净 Windows 桌面 E2E 或真实旧数据迁移证据；
 上述三项必须继续单独记录，不能由此 UI 读模型升级为运行时闭环结论。
