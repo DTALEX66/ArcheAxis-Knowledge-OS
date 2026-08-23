@@ -80,15 +80,42 @@ def test_v068_release_receipt_binds_exact_main_ci_release_and_assets() -> None:
     )
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     expected_assets = {
-        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Green.zip",
-        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Portable.zip",
-        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Setup.exe",
-        "archeaxis_workspace-0.6.8-py3-none-any.whl",
-        "release-identity.json",
-        "release-manifest.json",
-        "SBOM.cdx.json",
-        "SHA256SUMS.txt",
-        "THIRD_PARTY_NOTICES.txt",
+        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Green.zip": (
+            223972334,
+            "9a7b6c70fce906203a7474f56794784e8dc8b6a6a2ff1d8541f4469e89c1411b",
+        ),
+        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Portable.zip": (
+            224115986,
+            "173c0b7a5e5bc8062faabb760fe686909eb9a2b029c21cbfb8e08e6b17ace019",
+        ),
+        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Setup.exe": (
+            154349543,
+            "132d40a70f2ee1c82a1e57285aa7de57d987a3427d9d0c81952d76e4bc6fa3fc",
+        ),
+        "archeaxis_workspace-0.6.8-py3-none-any.whl": (
+            1068019,
+            "0cd48e51340882543b1c4259ec28a18c99d913195aceccaea6aea058e4724667",
+        ),
+        "release-identity.json": (
+            1811,
+            "e721f4ec63e03497c4f7ad412ea41b35992becaf49c0f40303f80d7a1785e28d",
+        ),
+        "release-manifest.json": (
+            1694,
+            "2fa2df150cbab003f2a270d8e0570e4ab152693bd3529c20f69dc315ee717644",
+        ),
+        "SBOM.cdx.json": (
+            90760,
+            "a774cb6ef31f2b9ddc61aefe0e450310e3345880ca093bbb3063b346c7b88296",
+        ),
+        "SHA256SUMS.txt": (
+            811,
+            "7fe4e0694720d2edf9a0cae602a25a67c4d08f759c74a9263a5ac86a74cf3ee7",
+        ),
+        "THIRD_PARTY_NOTICES.txt": (
+            26764,
+            "4ed609a56d846bda3f2bd55948cd6b7096319ea68a41b8845317bc8e4141fb47",
+        ),
     }
 
     assert receipt["release"] == {
@@ -108,7 +135,10 @@ def test_v068_release_receipt_binds_exact_main_ci_release_and_assets() -> None:
     assert receipt["runs"]["verification_ci"]["id"] == 32607097436
     assert receipt["runs"]["release"]["id"] == 32607789507
     assert receipt["runs"]["verification_ci"]["id"] != receipt["runs"]["release"]["id"]
-    assert {asset["name"] for asset in receipt["assets"]} == expected_assets
+    assert {
+        asset["name"]: (asset["size"], asset["sha256"])
+        for asset in receipt["assets"]
+    } == expected_assets
     assert receipt["verification"] == {
         "provider_digest_match": True,
         "downloaded_sha256_match": True,

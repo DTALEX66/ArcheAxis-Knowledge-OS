@@ -164,7 +164,7 @@ def generate(
     )
     if release_receipt is None:
         release_summary: dict[str, object] = {
-            "version": "0.6.7",
+            "version": "0.6.8",
             "state": "development",
             "evidence_level": "NOT_EXECUTED",
         }

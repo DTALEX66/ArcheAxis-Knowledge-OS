@@ -80,5 +80,10 @@ def test_current_reports_do_not_claim_exact_match_for_a_dirty_worktree(
     exact = json.loads((tmp_path / "EXACT_SHA_VERIFICATION.json").read_text())
     assert baseline["worktree_clean"] is False
     assert baseline["head_matches_origin_main"] is False
+    assert baseline["release"] == {
+        "version": "0.6.8",
+        "state": "development",
+        "evidence_level": "NOT_EXECUTED",
+    }
     assert exact["worktree_clean"] is False
     assert exact["match"] is False
