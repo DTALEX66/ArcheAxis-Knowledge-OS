@@ -94,7 +94,7 @@ describe("runtime handshake client", () => {
           safe_mode: false,
           backend_available: false,
           message: "Core startup is unavailable",
-          backups: ["backup-20260823T010203Z.axbak"],
+          backups: ["cognitive_os_20260823T010203_000000Z.sqlite"],
         };
       }
       if (command === "recovery_log_tail") return { lines: ["Core startup is unavailable"] };
@@ -110,13 +110,13 @@ describe("runtime handshake client", () => {
 
     await expect(recovery.getRecoveryStatus()).resolves.toMatchObject({
       state: "failed",
-      backups: ["backup-20260823T010203Z.axbak"],
+      backups: ["cognitive_os_20260823T010203_000000Z.sqlite"],
     });
     await expect(recovery.getRecoveryLogTail()).resolves.toEqual({
       lines: ["Core startup is unavailable"],
     });
     await recovery.enterRecoverySafeMode();
-    await recovery.restoreRecoveryBackup("backup-20260823T010203Z.axbak");
+    await recovery.restoreRecoveryBackup("cognitive_os_20260823T010203_000000Z.sqlite");
     await recovery.exitRecoveryApplication();
     await expect(recovery.restoreRecoveryBackup("../private-backup.axbak")).rejects.toThrow(
       /enumerated opaque backup/i,
@@ -126,7 +126,7 @@ describe("runtime handshake client", () => {
     expect(invoke).toHaveBeenNthCalledWith(2, "recovery_log_tail");
     expect(invoke).toHaveBeenNthCalledWith(3, "enter_safe_mode");
     expect(invoke).toHaveBeenNthCalledWith(4, "restore_backup", {
-      name: "backup-20260823T010203Z.axbak",
+      name: "cognitive_os_20260823T010203_000000Z.sqlite",
     });
     expect(invoke).toHaveBeenNthCalledWith(5, "exit_application");
     expect(fetchMock).not.toHaveBeenCalled();

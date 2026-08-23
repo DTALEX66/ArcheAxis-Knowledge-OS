@@ -13,6 +13,8 @@ mod recovery_contract_tests {
         RecoveryState, RecoveryStatusDto,
     };
 
+    const BACKUP_DISPLAY_NAME: &str = "cognitive_os_20260823T010203_000000Z.sqlite";
+
     fn contains_forbidden_key(value: &serde_json::Value, forbidden: &str) -> bool {
         match value {
             serde_json::Value::Object(object) => object.iter().any(|(key, nested)| {
@@ -21,6 +23,19 @@ mod recovery_contract_tests {
             serde_json::Value::Array(items) => items
                 .iter()
                 .any(|nested| contains_forbidden_key(nested, forbidden)),
+            _ => false,
+        }
+    }
+
+    fn contains_forbidden_text(value: &serde_json::Value, forbidden: &str) -> bool {
+        match value {
+            serde_json::Value::String(text) => text.contains(forbidden),
+            serde_json::Value::Object(object) => object
+                .values()
+                .any(|nested| contains_forbidden_text(nested, forbidden)),
+            serde_json::Value::Array(items) => items
+                .iter()
+                .any(|nested| contains_forbidden_text(nested, forbidden)),
             _ => false,
         }
     }
@@ -48,10 +63,10 @@ mod recovery_contract_tests {
 
     #[test]
     fn restore_selection_rejects_traversal_and_unknown_backup_names() {
-        let backups = ["backup-20260823T010203Z.axbak"];
+        let backups = [BACKUP_DISPLAY_NAME];
 
         assert!(
-            validate_enumerated_backup_name(backups, "backup-20260823T010203Z.axbak").is_ok()
+            validate_enumerated_backup_name(backups, BACKUP_DISPLAY_NAME).is_ok()
         );
         for invalid in [
             "../private.axbak",
@@ -64,6 +79,11 @@ mod recovery_contract_tests {
                 "accepted {invalid}"
             );
         }
+        let private_path = "C:\\Users\\Alex\\private\\cognitive_os_20260823T010203_000000Z.sqlite";
+        assert!(
+            validate_enumerated_backup_name([private_path], private_path).is_err(),
+            "accepted an enumerated private path"
+        );
     }
 
     #[test]
@@ -74,18 +94,42 @@ mod recovery_contract_tests {
 
         assert!(state.safe_mode());
         assert!(!state.may_start_core());
+        assert!(!state.may_run_migrations());
         assert!(state.recovery_operations_available());
     }
 
     #[test]
     fn recovery_dtos_exclude_tokens_paths_and_request_response_bodies() {
+        let unsafe_message = "token=launch-secret C:\\Users\\Alex\\private\\vault.db \
+            http://127.0.0.1:4312/api request={\"body\":\"response-secret\"}";
+        let private_backup =
+            "C:\\Users\\Alex\\private\\cognitive_os_20260823T010203_000000Z.sqlite";
         let status = RecoveryStatusDto::failed(
-            "Core startup is unavailable",
-            vec!["backup-20260823T010203Z.axbak".into()],
+            unsafe_message,
+            vec![BACKUP_DISPLAY_NAME.into(), private_backup.into()],
         );
-        let logs = RecoveryLogTailDto::new(vec!["Core startup is unavailable".into()]);
+        let logs = RecoveryLogTailDto::new(vec![unsafe_message.into()]);
         let status = serde_json::to_value(status).expect("status must serialize");
         let logs = serde_json::to_value(logs).expect("logs must serialize");
+
+        let status_object = status.as_object().expect("status DTO must be an object");
+        assert!(status_object.get("state").is_some_and(serde_json::Value::is_string));
+        assert!(status_object.get("safe_mode").is_some_and(serde_json::Value::is_boolean));
+        assert!(
+            status_object
+                .get("backend_available")
+                .is_some_and(serde_json::Value::is_boolean)
+        );
+        assert!(status_object.get("message").is_some_and(serde_json::Value::is_string));
+        let backup_names = status_object
+            .get("backups")
+            .and_then(serde_json::Value::as_array)
+            .expect("status DTO must contain backup display names");
+        assert_eq!(backup_names.len(), 1);
+        assert_eq!(backup_names[0].as_str(), Some(BACKUP_DISPLAY_NAME));
+
+        let logs_object = logs.as_object().expect("log DTO must be an object");
+        assert!(logs_object.get("lines").is_some_and(serde_json::Value::is_array));
 
         for dto in [&status, &logs] {
             let object = dto.as_object().expect("recovery DTO must be an object");
@@ -94,6 +138,18 @@ mod recovery_contract_tests {
                 assert!(
                     !contains_forbidden_key(dto, forbidden),
                     "DTO exposed nested {forbidden}"
+                );
+            }
+            for forbidden in [
+                "launch-secret",
+                "C:\\Users\\Alex\\private\\vault.db",
+                private_backup,
+                "http://127.0.0.1:4312/api",
+                "response-secret",
+            ] {
+                assert!(
+                    !contains_forbidden_text(dto, forbidden),
+                    "DTO serialized private value {forbidden}"
                 );
             }
         }

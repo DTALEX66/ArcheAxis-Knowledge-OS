@@ -23,7 +23,7 @@ const failedRecovery = {
   safe_mode: false,
   backend_available: false,
   message: "Core startup is unavailable",
-  backups: ["backup-20260823T010203Z.axbak"],
+  backups: ["cognitive_os_20260823T010203_000000Z.sqlite"],
 };
 
 describe("Recovery Shell", () => {
@@ -62,16 +62,18 @@ describe("Recovery Shell", () => {
     expect(await screen.findByText("Core startup is unavailable")).toBeInTheDocument();
 
     const backupChoice = await screen.findByLabelText("Available backups");
-    expect(within(backupChoice).getByRole("option", {
-      name: "backup-20260823T010203Z.axbak",
-    })).toBeInTheDocument();
+    const backupOption = within(backupChoice).getByRole("option", {
+      name: "cognitive_os_20260823T010203_000000Z.sqlite",
+    });
+    expect(backupOption).toHaveValue("cognitive_os_20260823T010203_000000Z.sqlite");
+    expect(backupOption).not.toHaveTextContent(/[\\/:]/);
     expect(screen.queryByRole("textbox", { name: /backup/i })).not.toBeInTheDocument();
-    await user.selectOptions(backupChoice, "backup-20260823T010203Z.axbak");
+    await user.selectOptions(backupChoice, "cognitive_os_20260823T010203_000000Z.sqlite");
     await user.click(screen.getByRole("button", { name: "Restore Backup" }));
     await user.click(await screen.findByRole("button", { name: "Confirm Restore" }));
 
     expect(recovery.restoreRecoveryBackup).toHaveBeenCalledWith(
-      "backup-20260823T010203Z.axbak",
+      "cognitive_os_20260823T010203_000000Z.sqlite",
     );
   });
 
