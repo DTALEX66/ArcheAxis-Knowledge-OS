@@ -69,6 +69,116 @@ def test_persisted_bundle_keeps_anchor_rights_scope_and_timing_after_readback(tm
     assert {entry.relation_kind for entry in restored.entries} == {"supports", "unknown"}
 
 
+def test_bundle_inspection_projects_review_conflict_rights_and_version_history(tmp_path: Path):
+    import json
+    import sqlite3
+
+    from app.evidence.ledger import (
+        BundleReview,
+        EvidenceBundleDraft,
+        get_bundle_inspection,
+        review_bundle,
+        store_bundle,
+    )
+
+    database = _migrated_database(tmp_path)
+    store_bundle(
+        EvidenceBundleDraft(
+            bundle_id="bundle-inspection",
+            claim_id="claim-inspection",
+            entries=[
+                _entry("inspection-support", relation_kind="supports", source_lineage="publisher-a"),
+                _entry("inspection-refutes", relation_kind="refutes", source_lineage="publisher-b"),
+            ],
+        ),
+        db_path=database,
+    )
+    review_bundle(
+        BundleReview(
+            review_id="inspection-review-1", bundle_id="bundle-inspection",
+            decision="not_verifiable", reviewer_id="reviewer-a", rationale="awaiting comparison",
+            reviewed_at="2026-08-24T00:00:00Z",
+        ),
+        db_path=database,
+    )
+    review_bundle(
+        BundleReview(
+            review_id="inspection-review-2", bundle_id="bundle-inspection",
+            decision="verified", reviewer_id="reviewer-b", rationale="independent sources compared",
+            reviewed_at="2026-08-24T00:01:00Z",
+        ),
+        db_path=database,
+    )
+    with sqlite3.connect(database) as connection:
+        first_version = "version-inspection-1"
+        second_version = "version-inspection-2"
+        provenance = json.dumps({"evidence_bundle_id": "bundle-inspection"})
+        connection.execute(
+            "INSERT INTO knowledge_candidate_versions_v1 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (first_version, "unit-1", "claim:inspection", None, "{}", "a" * 64,
+             "candidate", None, provenance, "2026-08-24T00:02:00Z"),
+        )
+        connection.execute(
+            "INSERT INTO knowledge_candidate_versions_v1 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (second_version, "unit-1", "claim:inspection", first_version, "{\"changed\":true}", "b" * 64,
+             "conflict", "conflict-inspection", provenance, "2026-08-24T00:03:00Z"),
+        )
+        connection.execute(
+            "INSERT INTO knowledge_candidate_conflict_reviews_v1 VALUES (?, ?, ?, ?, ?, ?, ?)",
+            ("conflict-inspection", "claim:inspection", first_version, second_version,
+             "open", "reviewer-b", "2026-08-24T00:03:00Z"),
+        )
+
+    inspection = get_bundle_inspection("bundle-inspection", db_path=database)
+
+    assert inspection["conflict"] is True
+    assert inspection["rights"] == ["cc-by-4.0"]
+    assert inspection["scopes"] == ["education"]
+    assert [item["decision"] for item in inspection["review_history"]] == [
+        "not_verifiable", "verified",
+    ]
+    assert [item["version_id"] for item in inspection["version_history"]] == [
+        first_version,
+        second_version,
+    ]
+    assert inspection["version_history"][1]["conflict"] == {
+        "id": "conflict-inspection", "status": "open",
+    }
+
+
+def test_bundle_summary_list_exposes_latest_human_review_without_entries(tmp_path: Path):
+    from app.evidence.ledger import (
+        BundleReview,
+        EvidenceBundleDraft,
+        list_bundle_summaries,
+        review_bundle,
+        store_bundle,
+    )
+
+    database = _migrated_database(tmp_path)
+    store_bundle(
+        EvidenceBundleDraft(
+            bundle_id="bundle-list", claim_id="claim-list", entries=[_entry("list-entry")]
+        ),
+        db_path=database,
+    )
+    review_bundle(
+        BundleReview(
+            review_id="list-review", bundle_id="bundle-list", decision="not_verifiable",
+            reviewer_id="reviewer", rationale="insufficient sources", reviewed_at="2026-08-24T01:00:00Z",
+        ),
+        db_path=database,
+    )
+
+    summaries = list_bundle_summaries(db_path=database, limit=10)
+
+    assert len(summaries) == 1
+    assert summaries[0]["bundle_id"] == "bundle-list"
+    assert summaries[0]["claim_id"] == "claim-list"
+    assert summaries[0]["review_decision"] == "not_verifiable"
+    assert summaries[0]["created_at"]
+
+
 def test_verified_bundle_requires_independent_sources_and_rejects_single_web_model_or_ocr(tmp_path: Path):
     from app.evidence.ledger import (
         BundleReview,

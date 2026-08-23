@@ -205,6 +205,106 @@ def get_bundle(bundle_id: str, *, db_path: str | Path) -> StoredEvidenceBundle:
         return _get_bundle(connection, bundle_id)
 
 
+def list_bundle_summaries(*, db_path: str | Path, limit: int = 50) -> list[dict[str, str | None]]:
+    """List compact persisted bundle summaries for the Evidence-space projection."""
+    if not 1 <= limit <= 100:
+        raise ValueError("bundle summary limit must be between 1 and 100")
+    with _connect(Path(db_path)) as connection:
+        rows = connection.execute(
+            "SELECT b.id, b.claim_id, b.created_at, ("
+            "SELECT r.decision FROM evidence_bundle_reviews_v1 r "
+            "WHERE r.bundle_id=b.id ORDER BY r.reviewed_at DESC, r.id DESC LIMIT 1"
+            ") AS review_decision "
+            "FROM evidence_bundles_v1 b ORDER BY b.created_at DESC, b.id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+    return [
+        {
+            "bundle_id": str(row["id"]),
+            "claim_id": str(row["claim_id"]),
+            "review_decision": row["review_decision"],
+            "created_at": str(row["created_at"]),
+        }
+        for row in rows
+    ]
+
+
+def get_bundle_inspection(bundle_id: str, *, db_path: str | Path) -> dict[str, Any]:
+    """Project one bundle's evidence, review, conflict and version history.
+
+    This is intentionally read-only: it combines only the persisted ledger
+    records and the candidate-version provenance that names this bundle.  It
+    does not infer verified status from a source count or mutate a conflict.
+    """
+    with _connect(Path(db_path)) as connection:
+        bundle = _get_bundle(connection, bundle_id)
+        review_rows = connection.execute(
+            "SELECT id, decision, reviewer_id, rationale, reviewed_at "
+            "FROM evidence_bundle_reviews_v1 WHERE bundle_id=? "
+            "ORDER BY reviewed_at, id",
+            (bundle_id,),
+        ).fetchall()
+        review_history = [
+            {
+                "review_id": str(row["id"]),
+                "decision": str(row["decision"]),
+                "reviewer_id": str(row["reviewer_id"]),
+                "rationale": str(row["rationale"]),
+                "reviewed_at": str(row["reviewed_at"]),
+            }
+            for row in review_rows
+        ]
+        version_rows = connection.execute(
+            "SELECT id, canonical_key, parent_version_id, lifecycle_status, "
+            "conflict_review_id, provenance_json, created_at "
+            "FROM knowledge_candidate_versions_v1 ORDER BY created_at, id"
+        ).fetchall()
+        version_history: list[dict[str, Any]] = []
+        for row in version_rows:
+            try:
+                provenance = json.loads(str(row["provenance_json"]))
+            except json.JSONDecodeError as exc:
+                raise EvidenceBundleError("candidate version provenance is invalid") from exc
+            if provenance.get("evidence_bundle_id") != bundle_id:
+                continue
+            conflict: dict[str, str] | None = None
+            conflict_review_id = row["conflict_review_id"]
+            if conflict_review_id is not None:
+                conflict_row = connection.execute(
+                    "SELECT id, status FROM knowledge_candidate_conflict_reviews_v1 WHERE id=?",
+                    (conflict_review_id,),
+                ).fetchone()
+                if conflict_row is None:
+                    raise EvidenceBundleError("candidate version conflict review is missing")
+                conflict = {
+                    "id": str(conflict_row["id"]),
+                    "status": str(conflict_row["status"]),
+                }
+            version_history.append(
+                {
+                    "version_id": str(row["id"]),
+                    "canonical_key": str(row["canonical_key"]),
+                    "parent_version_id": row["parent_version_id"],
+                    "lifecycle_status": str(row["lifecycle_status"]),
+                    "created_at": str(row["created_at"]),
+                    "conflict": conflict,
+                }
+            )
+    relation_kinds = {entry.relation_kind for entry in bundle.entries}
+    return {
+        "bundle_id": bundle.bundle_id,
+        "claim_id": bundle.claim_id,
+        "fingerprint": bundle.fingerprint,
+        "entries": [entry.model_dump(mode="json") for entry in bundle.entries],
+        "review_history": review_history,
+        "latest_review": review_history[-1] if review_history else None,
+        "conflict": "supports" in relation_kinds and "refutes" in relation_kinds,
+        "rights": sorted({entry.rights for entry in bundle.entries}),
+        "scopes": sorted({entry.scope for entry in bundle.entries}),
+        "version_history": version_history,
+    }
+
+
 def _require_verifiable(entries: list[EvidenceBundleEntry]) -> None:
     if len({entry.source_lineage for entry in entries}) < 2:
         raise EvidenceBundleError("verified bundle requires at least two independent source lineages")

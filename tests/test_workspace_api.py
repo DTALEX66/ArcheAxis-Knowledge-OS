@@ -98,6 +98,51 @@ def test_source_archive_content_rejects_invalid_or_missing_digest(
     ).status_code == 404
 
 
+def test_bundle_inspection_route_projects_real_governed_ledger(tmp_path, monkeypatch) -> None:
+    from app.evidence.ledger import EvidenceBundleDraft, EvidenceBundleEntry, store_bundle
+    from app.main import app
+    from app.workspace import router
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "archeaxis.sqlite"
+    database.touch()
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply(
+        "knowledge-governance.sqlite"
+    )
+    store_bundle(
+        EvidenceBundleDraft(
+            bundle_id="workspace-bundle", claim_id="workspace-claim",
+            entries=[
+                EvidenceBundleEntry(
+                    entry_id="workspace-entry", relation_kind="supports", raw_sha256="a" * 64,
+                    source_revision="2026-08-24T00:00:00Z", anchor={"page": 1},
+                    source_lineage="publisher", source_kind="document", scope="education", rights="cc-by-4.0",
+                )
+            ],
+        ),
+        db_path=database,
+    )
+    monkeypatch.setattr(router, "DB_PATH", database)
+
+    client = TestClient(app)
+    response = client.get("/workspace/api/evidence/bundles/workspace-bundle/inspection")
+
+    assert response.status_code == 200, response.text
+    projection = response.json()
+    assert projection["bundle_id"] == "workspace-bundle"
+    assert projection["rights"] == ["cc-by-4.0"]
+    assert projection["version_history"] == []
+
+    summaries = client.get("/workspace/api/evidence/bundles?limit=10")
+    assert summaries.status_code == 200, summaries.text
+    summary_items = summaries.json()["items"]
+    assert len(summary_items) == 1
+    assert summary_items[0]["bundle_id"] == "workspace-bundle"
+    assert summary_items[0]["claim_id"] == "workspace-claim"
+    assert summary_items[0]["review_decision"] is None
+    assert summary_items[0]["created_at"]
+
+
 def test_tauri_origin_requires_exact_desktop_launch_token(tmp_path, monkeypatch) -> None:
     from app.main import app
     from app.workspace import router

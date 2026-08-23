@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
 import {
   approveResearchCandidate,
+  getEvidenceBundleInspection,
   listEvidenceAnchors,
+  listEvidenceBundles,
   listResearchCandidates,
   type EvidenceAnchorDto,
+  type EvidenceBundleSummaryDto,
   type ResearchCandidateDto,
 } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
@@ -13,6 +16,7 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
   const [rows, setRows] = useState<EvidenceAnchorDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bundles, setBundles] = useState<EvidenceBundleSummaryDto[]>([]);
   const [candidates, setCandidates] = useState<ResearchCandidateDto[]>([]);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -34,9 +38,40 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
     refreshCandidates().catch((e: Error) => setMessage(`审核队列不可用：${e.message}`));
   }, []);
 
+  useEffect(() => {
+    let alive = true;
+    listEvidenceBundles(50)
+      .then((data) => { if (alive) setBundles(data.items); })
+      .catch((e: Error) => { if (alive) setMessage(`Bundle 账本不可用：${e.message}`); });
+    return () => { alive = false; };
+  }, []);
+
+  async function inspectBundle(bundleId: string) {
+    try {
+      const bundle = await getEvidenceBundleInspection(bundleId);
+      onInspect({
+        title: `证据 Bundle ${bundle.bundle_id}`,
+        source: bundle.claim_id,
+        lifecycle: bundle.latest_review?.decision ?? "unreviewed",
+        detail: `Bundle 指纹：${bundle.fingerprint}；条目数：${bundle.entries.length}`,
+        conflict: bundle.conflict,
+        rights: bundle.rights,
+        scopes: bundle.scopes,
+        review: bundle.latest_review,
+        versionHistory: bundle.version_history.map((version) => ({
+          versionId: version.version_id,
+          lifecycle: version.lifecycle_status,
+          conflictStatus: version.conflict?.status,
+        })),
+      });
+    } catch (e) {
+      setMessage(`读取 Bundle 失败：${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
   return (
     <Section title="证据账本（Evidence & Knowledge Ledger）">
-      <p className="muted">真实数据源：GET /api/evidence/anchors（证据锚定记录）</p>
+      <p className="muted">真实数据源：证据锚点与受治理 EvidenceBundle 的只读投影</p>
       {loading ? (
         <Loading label="证据账本" />
       ) : error ? (
@@ -63,6 +98,15 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
             </tbody>
           </table>
         )
+      )}
+      <h4>受治理 EvidenceBundle</h4>
+      {bundles.length === 0 ? <p className="muted">暂无可查看的 EvidenceBundle</p> : (
+        <ul className="action-list">{bundles.map((bundle) => (
+          <li key={bundle.bundle_id}>
+            <span>{bundle.claim_id} · {bundle.review_decision ?? "未审核"}</span>{" "}
+            <button type="button" onClick={() => { void inspectBundle(bundle.bundle_id); }}>查看 Bundle</button>
+          </li>
+        ))}</ul>
       )}
       <h4>待审核研究资料</h4>
       {candidates.length === 0 ? <p className="muted">暂无待审核资料</p> : (

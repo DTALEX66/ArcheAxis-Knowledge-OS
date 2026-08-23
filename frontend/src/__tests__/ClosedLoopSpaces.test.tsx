@@ -10,7 +10,8 @@ import { ActivityDock } from "../components/ActivityDock";
 
 const runtime = vi.hoisted(() => ({
   listLibraryAssets: vi.fn(), downloadLibraryAsset: vi.fn(),
-  listEvidenceAnchors: vi.fn(), listResearchCandidates: vi.fn(), approveResearchCandidate: vi.fn(),
+  listEvidenceAnchors: vi.fn(), listEvidenceBundles: vi.fn(), getEvidenceBundleInspection: vi.fn(),
+  listResearchCandidates: vi.fn(), approveResearchCandidate: vi.fn(),
   getMachineKnowledge: vi.fn(), listMachineKnowledgeCandidates: vi.fn(),
   approveMachineKnowledge: vi.fn(), deprecateMachineKnowledge: vi.fn(),
   getSetupStatus: vi.fn(), preflightSetup: vi.fn(), initializeSetup: vi.fn(), createBackup: vi.fn(), verifyBackup: vi.fn(),
@@ -45,6 +46,7 @@ describe("six-space real command loops", () => {
 
   it("approves a research candidate and refreshes the queue", async () => {
     runtime.listEvidenceAnchors.mockResolvedValue({ count: 0, items: [] });
+    runtime.listEvidenceBundles.mockResolvedValue({ items: [] });
     runtime.listResearchCandidates
       .mockResolvedValueOnce({ items: [{ source: "https://example.test/source", status: "review" }] })
       .mockResolvedValueOnce({ items: [] });
@@ -54,6 +56,42 @@ describe("six-space real command loops", () => {
     await user.click(await screen.findByRole("button", { name: "批准入账" }));
     expect(runtime.approveResearchCandidate).toHaveBeenCalledWith("https://example.test/source");
     await waitFor(() => expect(runtime.listResearchCandidates).toHaveBeenCalledTimes(2));
+  });
+
+  it("opens governed Bundle inspection with conflict, rights, review and version history", async () => {
+    runtime.listEvidenceAnchors.mockResolvedValue({ count: 0, items: [] });
+    runtime.listResearchCandidates.mockResolvedValue({ items: [] });
+    runtime.listEvidenceBundles.mockResolvedValue({
+      items: [{ bundle_id: "bundle-ui", claim_id: "claim-ui", review_decision: "verified", created_at: "2026-08-24T00:00:00Z" }],
+    });
+    runtime.getEvidenceBundleInspection.mockResolvedValue({
+      bundle_id: "bundle-ui",
+      claim_id: "claim-ui",
+      fingerprint: "fingerprint-ui",
+      entries: [],
+      review_history: [{ decision: "verified", reviewer_id: "reviewer-ui", reviewed_at: "2026-08-24T00:00:00Z", rationale: "human reviewed" }],
+      latest_review: { decision: "verified", reviewer_id: "reviewer-ui", reviewed_at: "2026-08-24T00:00:00Z", rationale: "human reviewed" },
+      conflict: true,
+      rights: ["CC-BY-4.0"],
+      scopes: ["workspace"],
+      version_history: [{ version_id: "version-ui", canonical_key: "key-ui", parent_version_id: null, lifecycle_status: "candidate", created_at: "2026-08-24T00:00:00Z", conflict: { id: "conflict-ui", status: "open" } }],
+    });
+    const onInspect = vi.fn();
+    const user = userEvent.setup();
+
+    render(<EvidenceSpace onInspect={onInspect} />);
+    await user.click(await screen.findByRole("button", { name: "查看 Bundle" }));
+
+    expect(runtime.getEvidenceBundleInspection).toHaveBeenCalledWith("bundle-ui");
+    expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({
+      title: "证据 Bundle bundle-ui",
+      source: "claim-ui",
+      conflict: true,
+      rights: ["CC-BY-4.0"],
+      scopes: ["workspace"],
+      review: expect.objectContaining({ decision: "verified" }),
+      versionHistory: [expect.objectContaining({ versionId: "version-ui", conflictStatus: "open" })],
+    }));
   });
 
   it("approves and deprecates AI assets as independent governed actions", async () => {

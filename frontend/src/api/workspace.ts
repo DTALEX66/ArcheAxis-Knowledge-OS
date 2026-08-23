@@ -22,6 +22,40 @@ export interface EvidenceListDto {
   items: EvidenceAnchorDto[];
 }
 
+export interface EvidenceBundleSummaryDto {
+  bundle_id: string;
+  claim_id: string;
+  review_decision: string | null;
+  created_at: string;
+}
+
+export interface EvidenceBundleReviewDto {
+  decision: string;
+  reviewer_id: string;
+  reviewed_at: string;
+  rationale: string;
+}
+
+export interface EvidenceBundleInspectionDto {
+  bundle_id: string;
+  claim_id: string;
+  fingerprint: string;
+  entries: Array<Record<string, unknown>>;
+  review_history: EvidenceBundleReviewDto[];
+  latest_review: EvidenceBundleReviewDto | null;
+  conflict: boolean;
+  rights: string[];
+  scopes: string[];
+  version_history: Array<{
+    version_id: string;
+    canonical_key: string;
+    parent_version_id: string | null;
+    lifecycle_status: string;
+    created_at: string;
+    conflict: { id: string; status: string } | null;
+  }>;
+}
+
 export interface LibraryAssetDto {
   source_name: string;
   raw_sha256: string;
@@ -251,6 +285,16 @@ export function runtimePostJSON<T>(
 
 export function listEvidenceAnchors(limit = 50): Promise<EvidenceListDto> {
   return getJSON<EvidenceListDto>(`/workspace/api/evidence/anchors?limit=${limit}`);
+}
+
+export function listEvidenceBundles(limit = 50): Promise<{ items: EvidenceBundleSummaryDto[] }> {
+  return getJSON<{ items: EvidenceBundleSummaryDto[] }>(`/workspace/api/evidence/bundles?limit=${limit}`);
+}
+
+export function getEvidenceBundleInspection(bundleId: string): Promise<EvidenceBundleInspectionDto> {
+  return getJSON<EvidenceBundleInspectionDto>(
+    `/workspace/api/evidence/bundles/${encodeURIComponent(bundleId)}/inspection`,
+  );
 }
 
 export function getStatus(): Promise<StatusDto> {

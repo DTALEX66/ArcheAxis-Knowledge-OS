@@ -37,3 +37,17 @@ PASS
 - `MERGED_MAIN` / `INSTALLED_RUNTIME_VERIFIED`：NOT EXECUTED。
 
 Bundle 保存的是 RawAsset 身份与锚点的不可变快照，尚未在本切片中跨数据库强制解析到 `RawAssetStore` 的实际文件存在性；跨源导入→RawAsset→Bundle→KnowledgeVersion 的真实 UI/E2E 仍是后续闭环验证，不应由本地单元测试替代。
+
+## 后续只读投影增量（2026-08-24）
+
+- Evidence Space 增加真实 `GET /workspace/api/evidence/bundles` 摘要列表及按
+  Bundle id 获取的 `GET /workspace/api/evidence/bundles/{id}/inspection`；两者只读取
+  已持久化的账本、人工审核和候选版本溯源，不新增写路径或独立前端状态库。
+- Inspector 对该投影明确呈现 supports/refutes 冲突、权利、范围、最近人工复核和关联
+  KnowledgeVersion/Conflict 状态。缺失或不可读的 Bundle 返回不可用，而非推断为已验证。
+- 本地验证：`tests/test_evidence_bundle_ledger.py` 和 Workspace 路由定向测试共 8 passed；
+  `frontend/src/__tests__/ClosedLoopSpaces.test.tsx` 11 passed；`npm run build`、变更 Python
+  文件 Ruff 均通过。
+
+这仍不是跨库 RawAsset 实体存在性核验、干净 Windows 桌面 E2E 或真实旧数据迁移证据；
+上述三项必须继续单独记录，不能由此 UI 读模型升级为运行时闭环结论。

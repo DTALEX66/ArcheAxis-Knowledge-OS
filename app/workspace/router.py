@@ -24,6 +24,11 @@ from app.evidence.anchor import (
     resolve_evidence_anchor,
     store_evidence_anchor,
 )
+from app.evidence.ledger import (
+    EvidenceBundleError,
+    get_bundle_inspection,
+    list_bundle_summaries,
+)
 from app.evidence.pdf_serve import PdfServeError, build_pdf_serving_root, resolve_pdf_bytes
 from app.workspace import bff, service, vault
 from app.workspace.bff import BFFNotFoundError, BFFUnavailableError
@@ -382,6 +387,24 @@ def _do_get_anchor(anchor_id: str) -> dict[str, object]:
         "source_revision": anchor.source_revision,
         "locator": anchor.locator,
     }
+
+
+@router.get("/api/evidence/bundles")
+def workspace_bundle_summaries(limit: int = 50) -> dict[str, object]:
+    """List compact persisted bundle summaries without exposing source paths."""
+    try:
+        return {"items": list_bundle_summaries(db_path=DB_PATH, limit=limit)}
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="invalid bundle summary limit") from exc
+
+
+@router.get("/api/evidence/bundles/{bundle_id}/inspection")
+def workspace_bundle_inspection(bundle_id: str) -> dict[str, object]:
+    """Read a persisted EvidenceBundle with its human-review and version history."""
+    try:
+        return get_bundle_inspection(bundle_id, db_path=DB_PATH)
+    except EvidenceBundleError as exc:
+        raise HTTPException(status_code=404, detail="evidence bundle inspection is unavailable") from exc
 
 
 
