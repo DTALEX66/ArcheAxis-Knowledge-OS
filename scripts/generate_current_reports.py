@@ -1,4 +1,4 @@
-"""Generate the machine-readable v0.6.7 current-state reports from Git.
+"""Generate machine-readable current-state reports from Git and v0.6.8 evidence.
 
 These reports deliberately describe evidence available for the current tree;
 they do not promote structural inspection or historical receipts into release
@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TASKPACK_BASELINE = "051ee2d0d14398d9e812e657ad82ad1a44e7ed58"
 DEFAULT_OUTPUT_DIR = ROOT / ".hermes" / "task-artifacts" / "current-reports"
 DEFAULT_RELEASE_EVIDENCE = (
-    ROOT / "reports" / "release" / "v0.6.7" / "release-evidence.json"
+    ROOT / "reports" / "release" / "v0.6.8" / "release-evidence.json"
 )
 REQUIRED_DEPENDENCY_LOCKS = {
     "uv.lock",
@@ -164,7 +164,7 @@ def generate(
     )
     if release_receipt is None:
         release_summary: dict[str, object] = {
-            "version": "0.6.7",
+            "version": "0.6.8",
             "state": "development",
             "evidence_level": "NOT_EXECUTED",
         }

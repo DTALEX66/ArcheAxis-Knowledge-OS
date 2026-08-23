@@ -1,4 +1,4 @@
-# System Boundary — ArcheAxis Knowledge v0.6.7
+# System Boundary — ArcheAxis Knowledge v0.6.8
 
 > 当前逐项状态以 `docs/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md`
 > 为准。实时 HEAD、tree、dirty、origin/main 与 CI 由

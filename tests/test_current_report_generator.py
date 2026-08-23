@@ -31,9 +31,9 @@ def test_current_report_generator_emits_exact_sha_bound_reports(tmp_path: Path) 
     assert baseline["tree_sha"] == exact["tree_sha"]
     assert baseline["taskpack_baseline_sha"] == DEFAULT_TASKPACK_BASELINE
     assert baseline["release"]["state"] == "stable"
-    assert baseline["release"]["tag"] == "v0.6.7"
+    assert baseline["release"]["tag"] == "v0.6.8"
     assert baseline["release"]["commit_sha"] == (
-        "347d9f957b0509185df8c64e0578061a1ce2f9e3"
+        "93e58a3b2c537dd348903dd2296933e0cfb5a503"
     )
     assert matrix["overall_status"] == "PARTIAL"
     assert matrix["release_gate"] == "PASS"
@@ -41,8 +41,8 @@ def test_current_report_generator_emits_exact_sha_bound_reports(tmp_path: Path) 
         "PASS"
     )
     assert matrix["capabilities"]["six_space_ui_real_data"] == "PARTIAL"
-    assert matrix["release_evidence"]["verification_ci_run_id"] == 32599003326
-    assert matrix["release_evidence"]["release_run_id"] == 32599851308
+    assert matrix["release_evidence"]["verification_ci_run_id"] == 32607097436
+    assert matrix["release_evidence"]["release_run_id"] == 32607789507
 
 
 def test_default_current_report_output_is_an_ignored_project_artifact() -> None:
@@ -80,5 +80,10 @@ def test_current_reports_do_not_claim_exact_match_for_a_dirty_worktree(
     exact = json.loads((tmp_path / "EXACT_SHA_VERIFICATION.json").read_text())
     assert baseline["worktree_clean"] is False
     assert baseline["head_matches_origin_main"] is False
+    assert baseline["release"] == {
+        "version": "0.6.8",
+        "state": "development",
+        "evidence_level": "NOT_EXECUTED",
+    }
     assert exact["worktree_clean"] is False
     assert exact["match"] is False

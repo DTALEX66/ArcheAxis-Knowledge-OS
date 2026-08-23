@@ -1,7 +1,7 @@
-# v0.6.7 System Boundary (v0.6.0 task scope)
+# v0.6.8 System Boundary (v0.6.0 task scope)
 
-ArcheAxis Knowledge is a local-first trusted-knowledge workspace. The v0.6.7
-remediation release carries the following v0.6.0-defined closed-loop boundary:
+ArcheAxis Knowledge is a local-first trusted-knowledge workspace. The v0.6.8
+release carries the following v0.6.0-defined closed-loop boundary:
 
 ```text
 Windows startup → four user-chosen libraries → RawAsset SHA-256 preservation
@@ -12,7 +12,7 @@ Windows startup → four user-chosen libraries → RawAsset SHA-256 preservation
 
 The canonical desktop implementation is `frontend/` plus root `src-tauri/`.
 `desktop/`, `OSUI/`, `app/workspace/ui/`, and root static pages are migration or
-reference surfaces, never v0.6.7 release authority.
+reference surfaces, never v0.6.8 release authority.
 
 WORK-LAB and DESIGN-LAB are external coordinators. They interact only through
 versioned APIs, commands, receipts, and events; they do not share the product's
@@ -21,7 +21,7 @@ capabilities are replaceable adapters and must report honest degradation when
 missing. No installed build may require a development-machine absolute path.
 
 This document defines a release boundary, not a completion assertion. The
-current release state is `v0.6.7 stable — RELEASED`: exact-SHA CI,
+current release state is `v0.6.8 stable — RELEASED`: exact-SHA CI,
 Golden Journey coverage, three Windows distribution lifecycles, and public
 asset readback are recorded in `docs/RELEASE_LEDGER.md`. This does not promote
 deferred capabilities outside the boundary above.
