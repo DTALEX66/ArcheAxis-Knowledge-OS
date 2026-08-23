@@ -94,6 +94,38 @@ export interface StatusDto {
   [k: string]: unknown;
 }
 
+export type SetupMode = "quick" | "advanced";
+
+export interface SetupRequestDto {
+  [key: string]: unknown;
+  mode: SetupMode;
+  root?: string;
+  domains?: Record<string, string>;
+}
+
+export interface SetupHealthDto {
+  free_bytes?: number;
+  readonly?: boolean;
+  filesystem?: string;
+  removable?: string;
+  [key: string]: unknown;
+}
+
+export interface SetupStatusDto {
+  ready?: boolean;
+  workspace_id?: string | null;
+  workspace_root?: string;
+  steps?: Array<{ id: string; state: string; message: string; action_hint: string }>;
+  [key: string]: unknown;
+}
+
+export interface SetupPreflightDto {
+  ready: boolean;
+  mode: SetupMode;
+  domains: Record<string, string>;
+  library_health: Record<string, SetupHealthDto>;
+}
+
 declare global {
   interface Window {
     __TAURI__?: { core?: { invoke: (command: string, args?: Record<string, unknown>) => Promise<unknown> } };
@@ -251,14 +283,16 @@ export function deprecateMachineKnowledge(title: string): Promise<Record<string,
   });
 }
 
-export function getSetupStatus(): Promise<Record<string, unknown>> {
-  return getJSON<Record<string, unknown>>("/api/v1/setup/status");
+export function getSetupStatus(): Promise<SetupStatusDto> {
+  return getJSON<SetupStatusDto>("/api/v1/setup/status");
 }
 
-export async function initializeSetup(): Promise<Record<string, unknown>> {
-  return (await runtimeClient()).request<Record<string, unknown>>(
-    "/api/v1/setup/initialize", { method: "POST" },
-  );
+export function preflightSetup(payload: SetupRequestDto): Promise<SetupPreflightDto> {
+  return postJSON<SetupPreflightDto>("/api/v1/setup/preflight", payload);
+}
+
+export function initializeSetup(payload: SetupRequestDto): Promise<Record<string, unknown>> {
+  return postJSON<Record<string, unknown>>("/api/v1/setup/initialize", payload);
 }
 
 

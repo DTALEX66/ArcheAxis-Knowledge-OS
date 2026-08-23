@@ -1,102 +1,187 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
 import {
   createBackup,
   getSetupStatus,
   initializeSetup,
+  preflightSetup,
   resetRuntimeClient,
   retryDesktopBackend,
+  type SetupMode,
+  type SetupPreflightDto,
+  type SetupRequestDto,
+  type SetupStatusDto,
   verifyBackup,
 } from "../api/runtime";
 
+const DOMAIN_LABELS: Record<string, string> = {
+  source_archive: "源文件归档库",
+  evidence_ledger: "证据账本库",
+  human_learning_vault: "人类学习库",
+  ai_asset_vault: "AI 资产库",
+};
+
+type WizardStage = "welcome" | "mode" | "paths" | "health" | "complete";
+
+function defaultRoot(status: SetupStatusDto | null): string {
+  return typeof status?.workspace_root === "string" ? status.workspace_root : "";
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export function SettingsSpace() {
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [data, setData] = useState<SetupStatusDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initializing, setInitializing] = useState(false);
-  const [initMsg, setInitMsg] = useState<string | null>(null);
+  const [stage, setStage] = useState<WizardStage>("welcome");
+  const [mode, setMode] = useState<SetupMode>("quick");
+  const [quickRoot, setQuickRoot] = useState("");
+  const [domains, setDomains] = useState<Record<string, string>>({});
+  const [preflight, setPreflight] = useState<SetupPreflightDto | null>(null);
+  const [wizardBusy, setWizardBusy] = useState(false);
+  const [wizardMessage, setWizardMessage] = useState<string | null>(null);
   const [backupName, setBackupName] = useState("");
   const [backupBusy, setBackupBusy] = useState(false);
 
   useEffect(() => {
     let alive = true;
     getSetupStatus()
-      .then((d) => { if (alive) setData(d); })
-      .catch((e: Error) => { if (alive) setError(e.message); })
+      .then((status) => {
+        if (!alive) return;
+        setData(status);
+        setQuickRoot(defaultRoot(status));
+        if (status.ready) setStage("complete");
+      })
+      .catch((requestError: Error) => { if (alive) setError(requestError.message); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);
 
-  const entries = data ? Object.entries(data).slice(0, 16) : [];
+  const request = useMemo<SetupRequestDto>(() => {
+    if (mode === "quick") return { mode, root: quickRoot.trim() };
+    return { mode, domains };
+  }, [domains, mode, quickRoot]);
+
+  const readinessSteps = Array.isArray(data?.steps) ? data.steps : [];
+  const selectedDomains = preflight?.domains ?? {};
+  const health = preflight?.library_health ?? {};
+  const canCheckHealth = mode === "quick"
+    ? Boolean(quickRoot.trim())
+    : Object.keys(DOMAIN_LABELS).every((domain) => Boolean(domains[domain]?.trim()));
+
+  async function checkHealth() {
+    setWizardBusy(true);
+    setWizardMessage(null);
+    try {
+      setPreflight(await preflightSetup(request));
+      setStage("health");
+    } catch (requestError) {
+      setWizardMessage(`路径检查失败：${errorMessage(requestError)}`);
+    } finally {
+      setWizardBusy(false);
+    }
+  }
+
+  async function createWorkspace() {
+    setWizardBusy(true);
+    setWizardMessage(null);
+    try {
+      const result = await initializeSetup(request);
+      const successMessage = `工作区已创建：${String(result.workspace_id ?? "—")}`;
+      setWizardMessage(successMessage);
+      setStage("complete");
+      try {
+        setData(await getSetupStatus());
+      } catch (refreshError) {
+        setWizardMessage(`${successMessage}；状态刷新失败：${errorMessage(refreshError)}`);
+      }
+    } catch (requestError) {
+      setWizardMessage(`创建失败：${errorMessage(requestError)}`);
+    } finally {
+      setWizardBusy(false);
+    }
+  }
+
   return (
     <Section title="设置与四库管理（Settings）">
-      <p className="muted">真实数据源：GET /api/v1/setup/status（首次启动向导状态）</p>
-      {loading ? (
-        <Loading label="设置" />
-      ) : error ? (
-        <DataError label="Settings" message={error} />
-      ) : (
-        <>
-          <button
-            type="button"
-            className="btn-primary"
-            disabled={initializing}
-            onClick={async () => {
-              setInitializing(true);
-              setInitMsg("初始化中…");
-              try {
-                const result = await initializeSetup();
-                setInitMsg(`初始化完成：workspace_id=${String(result.workspace_id ?? "—")}`);
-                setData(await getSetupStatus());
-              } catch (e) {
-                setInitMsg("初始化失败：" + (e instanceof Error ? e.message : String(e)));
-              } finally {
-                setInitializing(false);
-              }
-            }}
-          >
-            {initializing ? "初始化中…" : "初始化四库工作区"}
-          </button>
-          {initMsg ? <p className="muted">{initMsg}</p> : null}
+      <p className="muted">真实数据源：/api/v1/setup/status、/preflight、/initialize</p>
+      {loading ? <Loading label="设置" /> : error ? <DataError label="Settings" message={error} /> : <>
+        {stage === "welcome" && <div>
+          <h4>欢迎使用星环知识平台</h4>
+          <p>先选择四库的位置，系统会在创建前检查路径可写性与可用空间。</p>
+          <button type="button" className="btn-primary" onClick={() => setStage("mode")}>开始设置</button>
+        </div>}
+
+        {stage === "mode" && <div>
+          <h4>选择路径模式</h4>
+          <label><input type="radio" checked={mode === "quick"} onChange={() => setMode("quick")} /> 快速设置：四库位于同一根目录</label>
+          <label><input type="radio" checked={mode === "advanced"} onChange={() => setMode("advanced")} /> 高级设置：分别选择四个库的位置</label>
+          <div className="command-row"><button type="button" onClick={() => setStage("paths")}>继续</button></div>
+        </div>}
+
+        {stage === "paths" && <div>
+          <h4>{mode === "quick" ? "选择四库根路径" : "选择四个库路径"}</h4>
+          {mode === "quick" ? <label htmlFor="setup-root">四库根路径
+            <input id="setup-root" value={quickRoot} onChange={(event) => setQuickRoot(event.target.value)} placeholder="例如 D:\\ArcheAxis" />
+          </label> : Object.entries(DOMAIN_LABELS).map(([domain, label]) => <label key={domain} htmlFor={`setup-${domain}`}>{label}
+            <input id={`setup-${domain}`} value={domains[domain] ?? ""} onChange={(event) => setDomains((current) => ({ ...current, [domain]: event.target.value }))} placeholder="绝对路径" />
+          </label>)}
           <div className="command-row">
-            <label htmlFor="backup-name">备份名称</label>
-            <input id="backup-name" value={backupName} onChange={(event) => setBackupName(event.target.value)} placeholder="例如 release-check" />
-            <button type="button" disabled={backupBusy || !backupName.trim()} onClick={async () => {
-              setBackupBusy(true);
-              setInitMsg("正在创建备份…");
-              try {
-                await createBackup(backupName.trim());
-                const result = await verifyBackup(backupName.trim());
-                setInitMsg(result.valid === false ? "备份验证失败" : "备份验证通过");
-              } catch (e) {
-                setInitMsg(`备份失败：${e instanceof Error ? e.message : String(e)}`);
-              } finally {
-                setBackupBusy(false);
-              }
-            }}>创建并验证备份</button>
+            <button type="button" onClick={() => setStage("mode")}>返回</button>
+            <button type="button" className="btn-primary" disabled={wizardBusy || !canCheckHealth} onClick={checkHealth}>{wizardBusy ? "检查中…" : "检查四库健康"}</button>
           </div>
+        </div>}
+
+        {stage === "health" && <div>
+          <h4>四库健康检查</h4>
+          {Object.entries(DOMAIN_LABELS).map(([domain, label]) => {
+            const domainHealth = health[domain];
+            const healthDetails = [
+              typeof domainHealth?.free_bytes === "number" ? `${domainHealth.free_bytes} bytes 可用` : null,
+              domainHealth?.readonly === true ? "只读" : domainHealth?.readonly === false ? "可写" : null,
+              domainHealth?.filesystem,
+              domainHealth?.removable,
+            ].filter(Boolean).join(" · ");
+            return <div className="row" key={domain}>
+              <div className="row-main"><b>{label}</b><span>{selectedDomains[domain] ?? "—"}</span></div>
+              <span>{healthDetails || "未返回健康信息"}</span>
+            </div>;
+          })}
           <div className="command-row">
-            <button type="button" onClick={async () => {
-              setInitMsg("正在重试桌面后端…");
-              try {
-                await retryDesktopBackend();
-                resetRuntimeClient();
-                setData(await getSetupStatus());
-                setInitMsg("桌面后端已重新握手");
-              } catch (e) {
-                setInitMsg(`恢复失败：${e instanceof Error ? e.message : String(e)}`);
-              }
-            }}>重试桌面后端</button>
+            <button type="button" onClick={() => setStage("paths")}>返回修改</button>
+            <button type="button" className="btn-primary" disabled={wizardBusy} onClick={createWorkspace}>{wizardBusy ? "创建中…" : "创建工作区"}</button>
           </div>
-          <table className="data-table">
-            <tbody>
-              {entries.map(([k, v]) => (
-                <tr key={k}><th>{k}</th><td>{String(v ?? "—")}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
+        </div>}
+
+        {stage === "complete" && <div>
+          <h4>设置完成</h4>
+          <p>{wizardMessage ?? `工作区 ${data?.workspace_id ?? "已就绪"} 的四库状态已可读回。`}</p>
+          {!data?.ready && <button type="button" onClick={() => setStage("welcome")}>重新检查设置</button>}
+        </div>}
+
+        {wizardMessage && stage !== "complete" ? <p className="muted">{wizardMessage}</p> : null}
+        <h4>当前就绪状态</h4>
+        {readinessSteps.map((step) => <div className="row" key={step.id}>
+          <div className="row-main"><b>{step.id}</b><span>{step.message}</span></div><span>{step.state}</span>
+        </div>)}
+        <div className="command-row">
+          <label htmlFor="backup-name">备份名称</label>
+          <input id="backup-name" value={backupName} onChange={(event) => setBackupName(event.target.value)} placeholder="例如 release-check" />
+          <button type="button" disabled={backupBusy || !backupName.trim()} onClick={async () => {
+            setBackupBusy(true); setWizardMessage("正在创建备份…");
+            try { await createBackup(backupName.trim()); const result = await verifyBackup(backupName.trim()); setWizardMessage(result.valid === false ? "备份验证失败" : "备份验证通过"); }
+            catch (requestError) { setWizardMessage(`备份失败：${errorMessage(requestError)}`); }
+            finally { setBackupBusy(false); }
+          }}>创建并验证备份</button>
+        </div>
+        <div className="command-row"><button type="button" onClick={async () => {
+          setWizardMessage("正在重试桌面后端…");
+          try { await retryDesktopBackend(); resetRuntimeClient(); setData(await getSetupStatus()); setWizardMessage("桌面后端已重新握手"); }
+          catch (requestError) { setWizardMessage(`恢复失败：${errorMessage(requestError)}`); }
+        }}>重试桌面后端</button></div>
+      </>}
     </Section>
   );
 }
