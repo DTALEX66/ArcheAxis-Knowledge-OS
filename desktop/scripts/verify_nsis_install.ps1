@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$Installer,
-    [switch]$RequireReleaseIdentity
+    [switch]$RequireReleaseIdentity,
+    [switch]$RequireCandidateIdentity
 )
 
 $ErrorActionPreference = 'Stop'
@@ -194,6 +195,9 @@ if (-not (Test-Path -LiteralPath $Installer -PathType Leaf)) {
 if ((Test-Path $installRoot) -or (Get-ArcheAxisRegistryEntries).Count -ne 0) {
     throw 'refusing to overwrite an existing ArcheAxis Knowledge installation'
 }
+if ($RequireReleaseIdentity -and $RequireCandidateIdentity) {
+    throw 'release and candidate identity requirements are mutually exclusive'
+}
 
 try {
     $installerProcess = Start-Process -FilePath $Installer -ArgumentList '/S' -Wait -PassThru
@@ -238,6 +242,16 @@ try {
             $version.capabilities.public_installer -ne 'available'
         ) {
             throw 'installed runtime did not expose the verified public release identity'
+        }
+    }
+    if ($RequireCandidateIdentity) {
+        $version = Invoke-RestMethod "$base/version"
+        if (
+            $version.release.status -ne 'qualified' -or
+            $version.release.tag -ne 'v0.6.9' -or
+            $version.capabilities.public_installer -eq 'available'
+        ) {
+            throw 'installed runtime did not expose the verified non-public candidate identity'
         }
     }
     $windowHandle = Wait-ArcheAxisWindow -Shell $activeShell

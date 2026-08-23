@@ -60,9 +60,12 @@ def test_ci_publishes_lock_bound_release_candidate_provenance() -> None:
     assert "src-tauri/Cargo.lock" in desktop
     assert "frontend/package-lock.json" in desktop
     assert "uv.lock" in desktop
+    assert "frontend-dist.zip" in desktop
+    assert "release_candidate_inject_identity.py" in desktop
 
 
-def test_release_qualifies_candidate_then_rebuilds_public_installer_with_identity() -> None:
+def test_release_promotes_the_exact_ci_candidate_without_rebuilding_nsis() -> None:
+    """A release must publish the lifecycle-qualified CI installer byte-for-byte."""
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
 
     assert "gh run download" in workflow
@@ -71,14 +74,26 @@ def test_release_qualifies_candidate_then_rebuilds_public_installer_with_identit
     assert "candidate provenance commit mismatch" in workflow
     assert "candidate installer SHA-256 mismatch" in workflow
     assert "candidate executable SHA-256 mismatch" in workflow
+    assert "candidate frontend SHA-256 mismatch" in workflow
+    assert "Expand-Archive" in workflow
+    assert "promoted installer SHA-256 mismatch" in workflow
     release_build = "tauri.cmd build --config src-tauri/tauri.conf.json --bundles nsis"
-    assert release_build in workflow
-    assert workflow.index("Prepare bundled runtime and inject exact release identity") < workflow.index(
-        "Build Windows NSIS installer"
-    )
-    assert workflow.index("Build Windows NSIS installer") < workflow.index(
-        "Verify installed NSIS lifecycle"
-    )
+    assert release_build not in workflow
+    release_lifecycle = workflow.split("- name: Verify installed NSIS lifecycle", 1)[1].split(
+        "- name: Build release wheel, installer, and distribution archives", 1
+    )[0]
+    assert "-RequireReleaseIdentity" not in release_lifecycle
+
+
+def test_ci_lifecycle_verifies_the_published_release_candidate() -> None:
+    """The lifecycle gate must install the same candidate Release later promotes."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    lifecycle = _job_section(workflow, "installer-lifecycle", "a0-gates")
+
+    assert "name: release-candidate" in lifecycle
+    assert "release-candidate.json" in lifecycle
+    assert "candidate installer SHA-256 mismatch" in lifecycle
+    assert "-RequireCandidateIdentity" in lifecycle
 
 
 def test_ci_runs_windows_runtime_smoke() -> None:

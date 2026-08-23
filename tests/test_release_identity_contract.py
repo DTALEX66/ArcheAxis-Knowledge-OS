@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import re
 from pathlib import Path
 
@@ -52,6 +54,52 @@ def test_release_identity_injector_defaults_to_schema_v2() -> None:
     assert "--verification-ci-run-id" in injector
     assert "--verification-ci-url" in injector
     assert "release_run_id" in injector
+
+
+def test_candidate_identity_injector_writes_non_public_ci_qualification(tmp_path) -> None:
+    injector = ROOT / "scripts" / "release_candidate_inject_identity.py"
+    output = tmp_path / "release-identity.json"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(injector),
+            "--commit",
+            "34ca0fbd5ae636314a3403c473bde9247ef95907",
+            "--tree",
+            "d144559cdd81e1ca58223281ea8bdcbd27821716",
+            "--tag",
+            "v0.6.9",
+            "--version",
+            "0.6.9",
+            "--verification-ci-run-id",
+            "30548553629",
+            "--verification-ci-url",
+            "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30548553629",
+            "--output",
+            str(output),
+        ],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert json.loads(output.read_text(encoding="utf-8")) == {
+        "schema_version": "candidate-1.0.0",
+        "candidate": {
+            "tag": "v0.6.9",
+            "version": "0.6.9",
+            "channel": "stable",
+            "public": False,
+        },
+        "source": {
+            "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+            "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
+            "verification_ci_run_id": 30548553629,
+            "verification_ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30548553629",
+        },
+    }
 
 
 def test_release_workflow_enforces_schema_v3_and_separate_runs() -> None:

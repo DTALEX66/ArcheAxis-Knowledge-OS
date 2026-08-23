@@ -240,6 +240,47 @@ def test_bundled_release_identity_v3_exposes_verified_public_release_summary(
     assert release.effective_capabilities()["public_installer"] == "available"
 
 
+def test_bundled_candidate_identity_exposes_qualified_summary_without_public_installer(
+    monkeypatch, tmp_path
+) -> None:
+    """A CI-qualified installer must not claim tag publication before Release readback."""
+    from app import release
+
+    identity_path = tmp_path / "release-identity.json"
+    identity_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "candidate-1.0.0",
+                "candidate": {
+                    "tag": "v0.6.9",
+                    "version": "0.6.9",
+                    "channel": "stable",
+                    "public": False,
+                },
+                "source": {
+                    "commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+                    "tree": "d144559cdd81e1ca58223281ea8bdcbd27821716",
+                    "verification_ci_run_id": 30548553629,
+                    "verification_ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/30548553629",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(release, "_ARTIFACT_IDENTITY_PATH", identity_path)
+    release.load_artifact_release_identity.cache_clear()
+
+    assert release.safe_release_summary() == {
+        "status": "qualified",
+        "version": "0.6.9",
+        "channel": "stable",
+        "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
+        "tag": "v0.6.9",
+        "verification_ci_run_id": 30548553629,
+    }
+    assert release.effective_capabilities()["public_installer"] == "not_implemented"
+
+
 def test_bundled_release_identity_v1_reader_still_accepted_for_backward_compat(
     monkeypatch, tmp_path
 ) -> None:
