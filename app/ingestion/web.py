@@ -13,9 +13,10 @@ content-type text/html, optional host allowlist. Fail-closed.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import urlsplit
 
 from app.ingestion.raw_asset import RawAssetStore, RawAssetStoreError
