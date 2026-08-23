@@ -437,7 +437,7 @@ CREATE TABLE IF NOT EXISTS federation_learning_records_v1 (
 );
 CREATE TABLE IF NOT EXISTS federation_provenance_records_v1 (
     record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, event TEXT NOT NULL,
-    actor TEXT NOT NULL, at TEXT NOT NULL, parent_id TEXT, created_at TEXT NOT NULL
+    actor TEXT NOT NULL, at TEXT NOT NULL, parent_id TEXT, reason TEXT, created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS federation_rights_records_v1 (
     record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, rights TEXT NOT NULL,
@@ -445,14 +445,50 @@ CREATE TABLE IF NOT EXISTS federation_rights_records_v1 (
 );
 """
 
+_RECORD_COLUMNS = {
+    "federation_evidence_records_v1": (
+        "record_id", "source_ref", "anchor_json", "content_hash", "rights", "verified", "created_at",
+    ),
+    "federation_learning_records_v1": (
+        "record_id", "concept", "kind", "outcome_json", "source_ref", "created_at",
+    ),
+    "federation_provenance_records_v1": (
+        "record_id", "entity_id", "event", "actor", "at", "parent_id", "reason", "created_at",
+    ),
+    "federation_rights_records_v1": (
+        "record_id", "entity_id", "rights", "scope", "source_ref", "created_at",
+    ),
+}
+
 
 def _ensure_record_tables(conn: sqlite3.Connection) -> None:
     conn.executescript(_RECORD_SCHEMA)
+    columns = {
+        str(row[1])
+        for row in conn.execute("PRAGMA table_info(federation_provenance_records_v1)")
+    }
+    if "reason" not in columns:
+        conn.execute("ALTER TABLE federation_provenance_records_v1 ADD COLUMN reason TEXT")
+    for table in _RECORD_COLUMNS:
+        for operation, verb in (("UPDATE", "updated"), ("DELETE", "deleted")):
+            conn.execute(
+                f"CREATE TRIGGER IF NOT EXISTS {table}_append_only_no_{operation.lower()} "
+                f"BEFORE {operation} ON {table} "
+                "BEGIN "
+                f"SELECT RAISE(ABORT, 'append-only record cannot be {verb}'); "
+                "END"
+            )
 
 
 def _append_record(conn: sqlite3.Connection, table: str, record_id: str, values: tuple[Any, ...]) -> None:
+    columns = _RECORD_COLUMNS[table]
+    if len(columns) != len(values):
+        raise ValueError(f"append-only record shape mismatch: {table}")
     try:
-        conn.execute(f"INSERT INTO {table} VALUES ({','.join('?' for _ in values)})", values)
+        conn.execute(
+            f"INSERT INTO {table} ({','.join(columns)}) VALUES ({','.join('?' for _ in values)})",
+            values,
+        )
     except sqlite3.IntegrityError as exc:
         raise FederationError(f"append-only record already exists: {record_id}") from exc
 
@@ -494,7 +530,7 @@ def record_provenance(db: str | Path, record: ProvenanceRecordV1) -> str:
             "federation_provenance_records_v1",
             record.record_id,
             (record.record_id, record.entity_id, record.event, record.actor, record.at,
-             record.parent_id, _now()),
+             record.parent_id, record.reason, _now()),
         )
     return record.record_id
 
