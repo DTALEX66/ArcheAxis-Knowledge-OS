@@ -767,13 +767,13 @@ def workspace_audit_stream(request: Request, once: bool = False) -> StreamingRes
     )
 
 
-@router.post("/api/delivery/dispatch")
+@router.post("/api/delivery/dispatch", dependencies=[Depends(_require_desktop_write_request)])
 def dispatch_delivery(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.dispatch_delivery_once(db_path=DB_PATH))
 
 
-@router.post("/api/delivery/retry")
+@router.post("/api/delivery/retry", dependencies=[Depends(_require_desktop_write_request)])
 def retry_delivery(request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(lambda: service.retry_failed_delivery(db_path=DB_PATH))

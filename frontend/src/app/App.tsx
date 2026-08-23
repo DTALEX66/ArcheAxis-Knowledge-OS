@@ -325,7 +325,7 @@ export function App() {
         </main>
         <Inspector target={inspectionTarget} />
       </div>
-      <ActivityDock />
+      <ActivityDock onInspect={setInspectionTarget} />
     </div>
   );
 }

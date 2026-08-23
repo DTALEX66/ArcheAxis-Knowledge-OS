@@ -58,6 +58,21 @@ export interface ActivityPageDto {
   next_cursor: string | null;
 }
 
+export interface ActivityObjectDto {
+  label: string;
+  state: string;
+  source?: string;
+  updated_at?: string;
+}
+
+export interface DeliveryDto {
+  summary: {
+    jobs: number;
+    outbox: Record<string, number>;
+    receipts: Record<string, number>;
+  };
+}
+
 export interface MachineKnowledgeDto {
   title: string;
   content: string;
@@ -248,6 +263,22 @@ export function getHome(): Promise<Record<string, unknown>> {
 
 export function getActivity(limit = 5): Promise<ActivityPageDto> {
   return getJSON<ActivityPageDto>(`/workspace/api/v1/activity?limit=${limit}`);
+}
+
+export function getActivityObject(publicRef: string): Promise<ActivityObjectDto> {
+  return getJSON<ActivityObjectDto>(`/workspace/api/v1/objects/${encodeURIComponent(publicRef)}`);
+}
+
+export function getDelivery(): Promise<DeliveryDto> {
+  return getJSON<DeliveryDto>("/workspace/api/delivery");
+}
+
+export function dispatchDelivery(): Promise<{ status: string }> {
+  return postJSON("/workspace/api/delivery/dispatch", {}, "delivery-dispatch");
+}
+
+export function retryFailedDelivery(): Promise<{ status: string }> {
+  return postJSON("/workspace/api/delivery/retry", {}, "delivery-retry");
 }
 
 export function listLibraryAssets(): Promise<LibraryListDto> {

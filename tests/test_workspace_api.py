@@ -158,6 +158,23 @@ def test_desktop_learning_write_requires_the_same_token_scope_and_idempotency_pr
     assert accepted.status_code == 200, accepted.text
 
 
+def test_desktop_delivery_controls_require_the_shared_write_intent(monkeypatch) -> None:
+    from app.main import app
+
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", "test-launch-token-1234567890")
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_WRITE_SCOPES", "workspace:write")
+    client = TestClient(app)
+    assert client.post("/workspace/api/delivery/dispatch").status_code == 403
+    assert client.post("/workspace/api/delivery/retry").status_code == 403
+    headers = {
+        "X-ArcheAxis-Launch-Token": "test-launch-token-1234567890",
+        "X-ArcheAxis-Scopes": "workspace:write",
+        "Idempotency-Key": "workspace-delivery-control-1",
+    }
+    assert client.post("/workspace/api/delivery/dispatch", headers=headers).status_code == 200
+    assert client.post("/workspace/api/delivery/retry", headers=headers).status_code == 200
+
+
 def test_all_react_learning_write_routes_require_desktop_write_intent() -> None:
     """Keep future Learning writes from bypassing the shared desktop boundary."""
     from app.api.learning import router as learning_router

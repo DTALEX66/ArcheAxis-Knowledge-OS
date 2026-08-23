@@ -14,7 +14,8 @@ const runtime = vi.hoisted(() => ({
   getMachineKnowledge: vi.fn(), listMachineKnowledgeCandidates: vi.fn(),
   approveMachineKnowledge: vi.fn(), deprecateMachineKnowledge: vi.fn(),
   getSetupStatus: vi.fn(), preflightSetup: vi.fn(), initializeSetup: vi.fn(), createBackup: vi.fn(), verifyBackup: vi.fn(),
-  getHome: vi.fn(), getActivity: vi.fn(), retryDesktopBackend: vi.fn(), resetRuntimeClient: vi.fn(),
+  getHome: vi.fn(), getActivity: vi.fn(), getActivityObject: vi.fn(), getDelivery: vi.fn(),
+  dispatchDelivery: vi.fn(), retryFailedDelivery: vi.fn(), retryDesktopBackend: vi.fn(), resetRuntimeClient: vi.fn(),
 }));
 vi.mock("../api/workspace", () => runtime);
 
@@ -180,5 +181,32 @@ describe("six-space real command loops", () => {
     await user.click(await screen.findByRole("button", { name: "重试桌面后端" }));
     expect(runtime.retryDesktopBackend).toHaveBeenCalledOnce();
     expect(runtime.resetRuntimeClient).toHaveBeenCalledOnce();
+  });
+
+  it("opens a durable activity detail and runs only real delivery controls", async () => {
+    runtime.getActivity.mockResolvedValue({
+      items: [{ public_ref: "wr1_demo", kind: "job", label: "资料导入", state: "failed", updated_at: "2026-08-23T00:00:00Z" }],
+      next_cursor: null,
+    });
+    runtime.getDelivery.mockResolvedValue({ summary: { jobs: 1, outbox: { failed: 1 }, receipts: { missing: 1 } } });
+    runtime.getActivityObject.mockResolvedValue({
+      label: "资料导入", source: "https://example.test/raw", state: "failed", updated_at: "2026-08-23T00:00:00Z",
+    });
+    runtime.dispatchDelivery.mockResolvedValue({ status: "idle" });
+    runtime.retryFailedDelivery.mockResolvedValue({ status: "requeued" });
+    const onInspect = vi.fn();
+    const user = userEvent.setup();
+
+    render(<ActivityDock onInspect={onInspect} />);
+    await user.click(await screen.findByRole("button", { name: "查看活动详情" }));
+    expect(runtime.getActivityObject).toHaveBeenCalledWith("wr1_demo");
+    expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({
+      title: "资料导入", lifecycle: "failed", source: "https://example.test/raw",
+    }));
+    await user.click(screen.getByRole("button", { name: "投递下一条" }));
+    await user.click(screen.getByRole("button", { name: "重试失败投递" }));
+    expect(runtime.dispatchDelivery).toHaveBeenCalledOnce();
+    expect(runtime.retryFailedDelivery).toHaveBeenCalledOnce();
+    expect(screen.getByText("投递状态：requeued")).toBeInTheDocument();
   });
 });
