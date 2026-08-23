@@ -105,12 +105,21 @@ def test_installer_requires_desktop_and_installer_gates() -> None:
     for path in (
         "desktop/scripts/verify_nsis_install.ps1",
         "frontend/vite.config.ts",
-        "src-tauri/src/main.rs",
+        "src-tauri/tauri.conf.json",
     ):
         plan = _classify([path])
         assert {"desktop-fast", "desktop-build", "installer-lifecycle"} <= set(
             plan["required_gates"]
         ), path
+
+
+def test_tauri_rust_source_uses_fast_gate_without_rebuilding_installer() -> None:
+    for path in ("src-tauri/src/main.rs", "src-tauri/src/recovery.rs"):
+        plan = _classify([path])
+        assert "desktop-fast" in plan["required_gates"], path
+        assert "desktop-build" not in plan["required_gates"], path
+        assert "installer-lifecycle" not in plan["required_gates"], path
+        assert plan["unknown_paths"] == [], path
 
 
 def test_wheel_packaging_requires_wheel_smoke() -> None:
