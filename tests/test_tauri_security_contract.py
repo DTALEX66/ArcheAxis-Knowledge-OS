@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 
@@ -24,6 +25,33 @@ def test_root_tauri_config_has_restrictive_csp_and_no_legacy_product_name() -> N
 def test_root_desktop_keeps_the_recovery_ui_alive_and_retries_core_locally() -> None:
     source = (ROOT / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
     assert "fn retry_backend" in source
-    assert "generate_handler![backend_info, retry_backend]" in source
     assert "if let Ok(process) = BackendProcess::launch(&runtime)" in source
     assert "failed Core start must leave the packaged UI running" in source
+
+
+def test_root_desktop_registers_the_complete_narrow_recovery_command_surface() -> None:
+    source = (ROOT / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
+    handler = re.search(
+        r"invoke_handler\s*\(\s*tauri::generate_handler!\s*\[([^\]]+)\]",
+        source,
+        flags=re.DOTALL,
+    )
+    assert handler is not None, "Tauri command dispatcher is required"
+    registered = {
+        command.strip()
+        for command in handler.group(1).split(",")
+        if command.strip()
+    }
+    required = {
+        "backend_info",
+        "recovery_status",
+        "recovery_log_tail",
+        "enter_safe_mode",
+        "retry_backend",
+        "restore_backup",
+        "exit_application",
+    }
+    assert required <= registered, (
+        "the webview must receive recovery data and operations only through "
+        "the narrow Tauri command surface"
+    )

@@ -86,23 +86,36 @@ def test_root_tauri_shell_creates_its_webview_at_the_resolved_data_root() -> Non
     assert ".data_directory(webview_data_dir)" in source
 
 
-def test_root_tauri_shell_closes_its_window_and_exits_after_shutdown() -> None:
-    """The packaged root shell must not survive a WM_CLOSE on Windows."""
+def test_root_tauri_shell_closes_immediately_and_cleans_up_off_event_loop() -> None:
+    """WM_CLOSE and explicit Exit must never wait on a long recovery operation."""
     repository = Path(__file__).resolve().parents[1]
     source = (repository / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
 
     assert "matches!(event, WindowEvent::CloseRequested { .. })" in source
     assert "api.prevent_close();" not in source
     assert "window.destroy();" not in source
-    # Tauri's default WM_CLOSE path must remain in control. Backend cleanup is
-    # offloaded, and the Windows Job Object reclaims it if exit wins the race.
-    assert ".try_lock()" in source
-    assert "std::thread::spawn(move || {" in source
-    assert "state.take()" in source
+    # Tauri's default WM_CLOSE path remains in control. Core cleanup is always
+    # offloaded; the Job Object reclaims the child if app exit wins the race.
+    cleanup_helper = source.split("fn cleanup_backend_on_exit", 1)[1].split(
+        "#[tauri::command]", 1
+    )[0]
+    assert "std::thread::spawn(move || {" in cleanup_helper
+    assert "process.take()" in cleanup_helper
+    assert cleanup_helper.index("std::thread::spawn") < cleanup_helper.index(
+        "process.shutdown"
+    )
+
+    exit_command = source.split("fn exit_application", 1)[1].split(
+        "#[cfg(windows)]\nfn main", 1
+    )[0]
+    assert "app.exit(code)" in exit_command
+    assert "operations" not in exit_command
+    assert ".lock()" not in exit_command
+
     close_handler = source.split(".on_window_event(|window, event| {", 1)[1].split(
         "        })\n        .build", 1
     )[0]
-    assert close_handler.index("std::thread::spawn") < close_handler.index("process.shutdown")
+    assert "cleanup_backend_on_exit(state);" in close_handler
 
 
 def test_vite_root_is_stable_when_tauri_builds_through_a_windows_junction() -> None:

@@ -64,6 +64,13 @@ risk_classes:
       - "**/migrations/**"
     gates: [static, lint, migration-targeted, py-primary]
 
+  - id: rust-tauri-shell
+    description: Canonical Tauri shell Rust logic without packaging inputs
+    paths:
+      - "src-tauri/src/*.rs"
+      - "src-tauri/src/**/*.rs"
+    gates: [desktop-fast]
+
   - id: installer
     description: Bundle, stage, NSIS, exit/uninstall
     paths:
@@ -142,6 +149,7 @@ risk_classes:
       - "app/workspace/ui/**"
       - "app/workspace/router.py"
       - "scripts/a0_browser_smoke.py"
+      - "frontend/src/**"
       - "desktop/src/**/*.tsx"
       - "desktop/src/**/*.ts"
     gates: [static, lint, browser-smoke]

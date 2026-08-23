@@ -83,8 +83,17 @@ def test_tests_directory_classifies_as_ordinary_python() -> None:
 
 
 def test_ui_requires_browser_smoke() -> None:
-    plan = _classify(["app/workspace/ui/assets/app.js"])
-    assert "browser-smoke" in plan["required_gates"]
+    for path in (
+        "app/workspace/ui/assets/app.js",
+        "frontend/src/app/App.tsx",
+        "frontend/src/components/RecoveryShell.tsx",
+        "frontend/src/design-system/tokens.css",
+    ):
+        plan = _classify([path])
+        assert "browser-smoke" in plan["required_gates"], path
+        assert plan["unknown_paths"] == [], path
+        assert "desktop-build" not in plan["required_gates"], path
+        assert "installer-lifecycle" not in plan["required_gates"], path
 
 
 def test_windows_runtime_requires_windows_smoke() -> None:
@@ -96,12 +105,21 @@ def test_installer_requires_desktop_and_installer_gates() -> None:
     for path in (
         "desktop/scripts/verify_nsis_install.ps1",
         "frontend/vite.config.ts",
-        "src-tauri/src/main.rs",
+        "src-tauri/tauri.conf.json",
     ):
         plan = _classify([path])
         assert {"desktop-fast", "desktop-build", "installer-lifecycle"} <= set(
             plan["required_gates"]
         ), path
+
+
+def test_tauri_rust_source_uses_fast_gate_without_rebuilding_installer() -> None:
+    for path in ("src-tauri/src/main.rs", "src-tauri/src/recovery.rs"):
+        plan = _classify([path])
+        assert "desktop-fast" in plan["required_gates"], path
+        assert "desktop-build" not in plan["required_gates"], path
+        assert "installer-lifecycle" not in plan["required_gates"], path
+        assert plan["unknown_paths"] == [], path
 
 
 def test_wheel_packaging_requires_wheel_smoke() -> None:

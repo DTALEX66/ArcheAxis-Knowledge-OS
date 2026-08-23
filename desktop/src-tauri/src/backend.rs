@@ -4,8 +4,9 @@ use crate::runtime::RuntimeSpec;
 use std::collections::VecDeque;
 use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -13,7 +14,10 @@ const MIGRATION_TIMEOUT: Duration = Duration::from_secs(120);
 const READINESS_TIMEOUT: Duration = Duration::from_secs(30);
 const READINESS_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(8);
+const FORCED_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(1);
+const RESTORE_TIMEOUT: Duration = Duration::from_secs(120);
 const MAX_LOG_LINES: usize = 200;
+const MAX_ONE_SHOT_OUTPUT_BYTES: usize = 16 * 1024;
 const SANITIZED_ENVIRONMENT: [&str; 16] = [
     "PYTHONPATH",
     "PYTHONHOME",
@@ -41,7 +45,7 @@ pub struct BackendProcess {
     pub port: u16,
     pub token: String,
     child: Child,
-    job: Job,
+    job: Option<Job>,
     logs: LogBuffer,
 }
 
@@ -90,7 +94,7 @@ impl BackendProcess {
             port,
             token,
             child,
-            job,
+            job: Some(job),
             logs,
         })
     }
@@ -99,18 +103,33 @@ impl BackendProcess {
         if matches!(self.child.try_wait(), Ok(Some(_))) {
             return;
         }
+        if self.job.is_none() {
+            return;
+        }
         if let Some(mut stdin) = self.child.stdin.take() {
             let _ = stdin.write_all(b"shutdown\n");
             let _ = stdin.flush();
         }
-        if wait_for_exit(&mut self.child, SHUTDOWN_TIMEOUT).is_err() {
-            let _ = self.child.kill();
-            let _ = self.child.wait();
-        }
+        shutdown_job_owned_child(
+            &mut self.child,
+            &mut self.job,
+            SHUTDOWN_TIMEOUT,
+            FORCED_SHUTDOWN_TIMEOUT,
+        );
     }
 
     pub fn log_tail(&self) -> String {
         format_logs(&self.logs)
+    }
+
+    pub fn exit_diagnostic(&mut self) -> Result<Option<String>, String> {
+        self.child
+            .try_wait()
+            .map(|status| {
+                status
+                    .map(|status| format!("desktop Core exited with {status}\n{}", self.log_tail()))
+            })
+            .map_err(|error| format!("failed to inspect desktop Core: {error}"))
     }
 }
 
@@ -119,6 +138,131 @@ impl Drop for BackendProcess {
         self.shutdown();
         let _ = &self.job;
     }
+}
+
+fn shutdown_job_owned_child(
+    child: &mut Child,
+    job: &mut Option<Job>,
+    graceful_timeout: Duration,
+    forced_timeout: Duration,
+) {
+    if wait_for_exit(child, graceful_timeout).is_ok() {
+        return;
+    }
+    if job.take().is_none() {
+        let _ = child.kill();
+    }
+    let _ = wait_for_exit(child, forced_timeout);
+}
+
+struct BoundedOutput {
+    bytes: Vec<u8>,
+    truncated: bool,
+}
+
+fn read_bounded_output<R: Read>(mut reader: R) -> BoundedOutput {
+    let mut bytes = Vec::with_capacity(MAX_ONE_SHOT_OUTPUT_BYTES);
+    let mut truncated = false;
+    let mut chunk = [0_u8; 4096];
+    loop {
+        let Ok(size) = reader.read(&mut chunk) else {
+            break;
+        };
+        if size == 0 {
+            break;
+        }
+        let remaining = MAX_ONE_SHOT_OUTPUT_BYTES.saturating_sub(bytes.len());
+        let retained = remaining.min(size);
+        bytes.extend_from_slice(&chunk[..retained]);
+        truncated |= retained != size;
+    }
+    BoundedOutput { bytes, truncated }
+}
+
+fn spawn_bounded_output_reader<R: Read + Send + 'static>(
+    reader: R,
+) -> mpsc::Receiver<BoundedOutput> {
+    let (sender, receiver) = mpsc::sync_channel(1);
+    thread::spawn(move || {
+        let output = read_bounded_output(reader);
+        let _ = sender.send(output);
+    });
+    receiver
+}
+
+fn receive_bounded_output(
+    receiver: &mpsc::Receiver<BoundedOutput>,
+    deadline: Instant,
+    label: &str,
+) -> Result<BoundedOutput, String> {
+    let remaining = deadline.saturating_duration_since(Instant::now());
+    receiver
+        .recv_timeout(remaining)
+        .map_err(|_| format!("offline restore {label} reader did not finish before timeout"))
+}
+
+fn restore_receipt_valid(output: &[u8], truncated: bool) -> bool {
+    if truncated {
+        return false;
+    }
+    matches!(
+        std::str::from_utf8(output),
+        Ok("{\"status\":\"restored\"}")
+            | Ok("{\"status\":\"restored\"}\n")
+            | Ok("{\"status\":\"restored\"}\r\n")
+    )
+}
+
+pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(), String> {
+    let job = Job::new()?;
+    let deadline = Instant::now() + RESTORE_TIMEOUT;
+    let mut command = runtime_command(runtime);
+    command
+        .args(["-m", "app.runtime_entrypoint", "restore-backup"])
+        .arg(backup_path)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    let mut child = command
+        .spawn()
+        .map_err(|error| format!("failed to start offline restore: {error}"))?;
+    if let Err(error) = job.assign(&child) {
+        let _ = child.kill();
+        return Err(error);
+    }
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "offline restore stdout was unavailable".to_owned())?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| "offline restore stderr was unavailable".to_owned())?;
+    let stdout_reader = spawn_bounded_output_reader(stdout);
+    let stderr_reader = spawn_bounded_output_reader(stderr);
+    let status = wait_for_exit(
+        &mut child,
+        deadline.saturating_duration_since(Instant::now()),
+    );
+    // Closing this KILL_ON_JOB_CLOSE handle terminates every assigned descendant.
+    // That also closes inherited pipe handles before we attempt bounded collection.
+    drop(job);
+    let status = status.map_err(|error| format!("offline restore timed out: {error}"))?;
+    let stdout = receive_bounded_output(&stdout_reader, deadline, "stdout")?;
+    let stderr = receive_bounded_output(&stderr_reader, deadline, "stderr")?;
+    if !status.success() {
+        return Err(format!(
+            "offline restore failed with {status}: {}",
+            String::from_utf8_lossy(&stderr.bytes)
+        ));
+    }
+    if !restore_receipt_valid(&stdout.bytes, stdout.truncated) {
+        return Err(format!(
+            "offline restore returned an invalid receipt: {}",
+            String::from_utf8_lossy(&stdout.bytes)
+        ));
+    }
+    Ok(())
 }
 
 fn runtime_command(runtime: &RuntimeSpec) -> Command {
@@ -347,10 +491,18 @@ fn format_logs(logs: &LogBuffer) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{readiness_payload_valid, response_body, runtime_command};
+    use super::{
+        readiness_payload_valid, response_body, restore_receipt_valid, run_restore_backup,
+        runtime_command, shutdown_job_owned_child,
+    };
     use crate::runtime::RuntimeSpec;
     use std::ffi::OsStr;
+    use std::fs;
     use std::path::PathBuf;
+    use std::process::{Command, Stdio};
+    use std::thread;
+    use std::time::{Duration, Instant};
+    use tempfile::tempdir;
 
     #[test]
     fn installed_runtime_never_writes_bytecode_into_the_bundle() {
@@ -359,6 +511,7 @@ mod tests {
             cwd: PathBuf::from("writable-data"),
             data_dir: PathBuf::from("writable-data"),
             isolated: true,
+            external_dev: false,
         };
 
         let command = runtime_command(&runtime);
@@ -388,6 +541,7 @@ mod tests {
             cwd: PathBuf::from("writable-data"),
             data_dir: PathBuf::from("writable-data"),
             isolated: true,
+            external_dev: false,
         };
 
         let command = runtime_command(&runtime);
@@ -402,5 +556,135 @@ mod tests {
             .and_then(|(_, value)| *value);
         assert_eq!(canonical, Some(OsStr::new("writable-data")));
         assert_eq!(legacy, Some(OsStr::new("writable-data")));
+    }
+
+    #[test]
+    fn restore_receipt_rejects_paths_extra_output_and_truncation() {
+        assert!(restore_receipt_valid(b"{\"status\":\"restored\"}\n", false));
+        for invalid in [
+            b"{\"status\":\"restored\",\"path\":\"private.sqlite\"}".as_slice(),
+            b"C:\\private\\backup.sqlite\n{\"status\":\"restored\"}".as_slice(),
+            b"{\"status\":\"restored\"}\nextra".as_slice(),
+            b"{\"status\":\"failed\"}".as_slice(),
+            b"\xff\xfe".as_slice(),
+        ] {
+            assert!(!restore_receipt_valid(invalid, false));
+        }
+        assert!(!restore_receipt_valid(b"{\"status\":\"restored\"}", true));
+    }
+
+    #[test]
+    fn restore_does_not_wait_for_a_descendant_holding_inherited_pipes() {
+        let temp = tempdir().expect("temporary directory");
+        let fake_python = temp.path().join("fake-python.cmd");
+        fs::write(
+            &fake_python,
+            concat!(
+                "@echo off\r\n",
+                "start \"\" /b powershell.exe -NoProfile -NonInteractive ",
+                "-Command \"Start-Sleep -Seconds 5\"\r\n",
+                "echo {\"status\":\"restored\"}\r\n",
+                "exit /b 0\r\n"
+            ),
+        )
+        .expect("write fake runtime");
+        let runtime = RuntimeSpec {
+            python: fake_python,
+            cwd: temp.path().to_path_buf(),
+            data_dir: temp.path().join("data"),
+            isolated: false,
+            external_dev: true,
+        };
+        fs::create_dir(&runtime.data_dir).expect("create runtime data");
+        let started = Instant::now();
+
+        let result = run_restore_backup(&runtime, &temp.path().join("staged.sqlite"));
+
+        assert!(result.is_ok(), "fake restore failed: {result:?}");
+        assert!(
+            started.elapsed() < Duration::from_secs(2),
+            "restore waited for a pipe-holding descendant: {:?}",
+            started.elapsed()
+        );
+    }
+
+    #[test]
+    fn core_shutdown_drops_the_job_and_bounds_forced_exit_polling() {
+        let temp = tempdir().expect("temporary directory");
+        let stubborn_core = temp.path().join("stubborn-core.cmd");
+        fs::write(
+            &stubborn_core,
+            concat!(
+                "@echo off\r\n",
+                "ping.exe -n 2 127.0.0.1 >nul\r\n",
+                "start \"\" /b powershell.exe -NoProfile -NonInteractive ",
+                "-Command \"Start-Sleep -Seconds 5\"\r\n",
+                "powershell.exe -NoProfile -NonInteractive ",
+                "-Command \"Start-Sleep -Seconds 5\"\r\n"
+            ),
+        )
+        .expect("write stubborn Core fixture");
+        let mut child = Command::new(&stubborn_core)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("spawn stubborn Core fixture");
+        let mut job = Some(crate::job::Job::new().expect("create Core test job"));
+        job.as_ref()
+            .expect("Core test job")
+            .assign(&child)
+            .expect("assign stubborn Core to Job");
+        thread::sleep(Duration::from_millis(1200));
+        let started = Instant::now();
+
+        shutdown_job_owned_child(
+            &mut child,
+            &mut job,
+            Duration::from_millis(100),
+            Duration::from_secs(1),
+        );
+
+        assert!(job.is_none(), "forced shutdown retained the Job handle");
+        assert!(
+            started.elapsed() < Duration::from_secs(2),
+            "forced shutdown exceeded its bounded polling window: {:?}",
+            started.elapsed()
+        );
+        assert!(
+            child.try_wait().expect("inspect stubborn Core").is_some(),
+            "Job close did not terminate the stubborn Core"
+        );
+    }
+
+    #[test]
+    fn later_core_exit_is_reported_without_exposing_backend_info() {
+        let job = crate::job::Job::new().expect("create test job");
+        let child = Command::new("cmd.exe")
+            .args(["/d", "/c", "exit 7"])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("spawn short-lived child");
+        job.assign(&child).expect("assign child to test job");
+        let mut backend = super::BackendProcess {
+            port: 4312,
+            token: "test-only".to_owned(),
+            child,
+            job: Some(job),
+            logs: super::new_log_buffer(),
+        };
+        let deadline = Instant::now() + Duration::from_secs(2);
+
+        let diagnostic = loop {
+            if let Some(diagnostic) = backend.exit_diagnostic().expect("poll child exit") {
+                break diagnostic;
+            }
+            assert!(Instant::now() < deadline, "child exit was not detected");
+            thread::sleep(Duration::from_millis(20));
+        };
+
+        assert!(diagnostic.contains("exited"));
     }
 }
