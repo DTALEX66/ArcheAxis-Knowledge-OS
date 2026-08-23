@@ -35,7 +35,8 @@ def _cell_value(cell) -> tuple[str, bool]:
     """Return (value_text, is_formula). Formula cells keep the formula text
     plus the cached value so semantics survive round-trip."""
     if cell.data_type == "f" and cell.value:
-        return f"={cell.value}", True
+        formula = str(cell.value)
+        return formula if formula.startswith("=") else f"={formula}", True
     v = cell.value
     if v is None:
         return "", False

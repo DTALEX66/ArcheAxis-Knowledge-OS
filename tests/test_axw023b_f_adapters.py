@@ -86,6 +86,28 @@ def test_xlsx_without_engine_fails_closed() -> None:
     assert res.error, "failed conversion must explain why"
 
 
+def test_xlsx_real_formula_fixture_preserves_a1_anchor_and_formula_text(tmp_path) -> None:
+    """A Tier A workbook fixture keeps coordinates and formula text verbatim."""
+    openpyxl = __import__("openpyxl")
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Metrics"
+    sheet["A1"] = 2
+    sheet["A2"] = 3
+    sheet["A3"] = "=SUM(A1:A2)"
+    fixture = tmp_path / "tier-a-formula.xlsx"
+    workbook.save(fixture)
+    workbook.close()
+
+    result = convert_xlsx(fixture)
+
+    assert result.success, result.error
+    assert "A1:2" in result.content
+    assert "A3:=SUM(A1:A2)" in result.content
+    assert "A3:==SUM(A1:A2)" not in result.content
+    assert result.metadata["blocks"][0]["anchor"]["sheet"] == "Metrics"
+
+
 # ── AXW-023D OCR ─────────────────────────────────────────────────────────
 
 
