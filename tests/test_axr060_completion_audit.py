@@ -60,13 +60,33 @@ def test_axr060_audit_keeps_release_and_product_completion_separate() -> None:
     assert "NOT_EXECUTED" in text
 
 
-def test_tracked_current_surfaces_do_not_retain_stale_sha_snapshots() -> None:
-    release = json.loads(
-        (ROOT / "reports" / "release" / "v0.6.9" / "release-evidence.json").read_text(
-            encoding="utf-8"
+def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas() -> None:
+    releases = [
+        json.loads(
+            (ROOT / "reports" / "release" / version / "release-evidence.json").read_text(
+                encoding="utf-8"
+            )
         )
+        for version in ("v0.6.9", "v0.6.10")
+    ]
+    allowed_shas = {
+        value
+        for release in releases
+        for value in (
+            release["source"]["commit_sha"],
+            release["source"].get("tree_sha"),
+        )
+        if isinstance(value, str)
+    }
+    delta = (ROOT / "docs" / "current" / "AXR_060_POST_RELEASE_DELTA_2026-08-24.md").read_text(
+        encoding="utf-8"
     )
-    allowed_sha = release["source"]["commit_sha"]
+    latest = releases[-1]["source"]
+    assert latest["commit_sha"] in delta
+    assert latest["tree_sha"] in delta
+    document_commit = re.search(r"`main@([0-9a-f]{40})`", delta)
+    assert document_commit is not None
+    allowed_shas.add(document_commit.group(1))
     surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]
     surfaces.extend((ROOT / "docs" / "current").glob("*"))
     surfaces.extend((ROOT / "reports" / "current").glob("*"))
@@ -76,7 +96,7 @@ def test_tracked_current_surfaces_do_not_retain_stale_sha_snapshots() -> None:
             continue
         found.update(re.findall(r"\b[0-9a-f]{40}\b", path.read_text(encoding="utf-8")))
 
-    assert found <= {allowed_sha}
+    assert found <= allowed_shas
     assert sorted(path.name for path in (ROOT / "reports" / "current").iterdir()) == [
         "README.md"
     ]
