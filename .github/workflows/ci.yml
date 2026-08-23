@@ -686,8 +686,13 @@ jobs:
           New-Item -ItemType Directory -Force (Split-Path -Parent $buildLog) | Out-Null
           # Invoke the .cmd file through cmd.exe so its exit code and both
           # streams are preserved rather than altered by a PowerShell pipeline.
-          & cmd.exe /d /s /c "frontend\node_modules\.bin\tauri.cmd build --config src-tauri\tauri.conf.json --bundles nsis > $buildLog 2>&1"
-          $buildExit = $LASTEXITCODE
+          $buildCommand = "frontend\node_modules\.bin\tauri.cmd build --config src-tauri\tauri.conf.json --bundles nsis > $buildLog 2>&1"
+          $buildProcess = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/d', '/s', '/c', $buildCommand) -PassThru -NoNewWindow
+          if (-not $buildProcess.WaitForExit(1200000)) {
+            & taskkill.exe /pid $buildProcess.Id /t /f | Out-Null
+            throw "Tauri Windows build exceeded the 20 minute process deadline; see $buildLog"
+          }
+          $buildExit = $buildProcess.ExitCode
           if ($buildExit -ne 0) {
             Get-Content -LiteralPath $buildLog -Tail 120 | ForEach-Object {
               $escaped = $_.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')

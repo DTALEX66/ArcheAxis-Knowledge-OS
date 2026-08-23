@@ -135,7 +135,7 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "desktop-build:" in workflow
     assert "installer-lifecycle:" in workflow
     assert '".hermes/task-runtime/tauri-build.log"' in desktop_job
-    assert "& cmd.exe /d /s /c" in desktop_job
+    assert "Start-Process -FilePath 'cmd.exe'" in desktop_job
     assert "Tauri Windows build failed with exit code" in desktop_job
     assert "::error title=tauri-build::" in desktop_job
     assert 'python-version: "3.12"' in desktop_job
@@ -160,6 +160,16 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert 'Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
     assert 'ArcheAxis Knowledge_$($package.version)_x64-setup.exe' in desktop_job
     assert 'Write-Host "NSIS installers found:' in desktop_job
+
+
+def test_desktop_build_has_a_process_level_deadline() -> None:
+    """A hung Tauri child must not outlive the CI job timeout indefinitely."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    desktop_job = _job_section(workflow, "desktop-build", "installer-lifecycle")
+
+    assert "Start-Process -FilePath 'cmd.exe'" in desktop_job
+    assert "WaitForExit(1200000)" in desktop_job
+    assert "Tauri Windows build exceeded the 20 minute process deadline" in desktop_job
 
 
 def test_desktop_close_request_destroys_native_window_before_exit() -> None:
