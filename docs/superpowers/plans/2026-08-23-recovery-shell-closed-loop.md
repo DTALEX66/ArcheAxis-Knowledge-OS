@@ -61,12 +61,14 @@
 - Modify: `frontend/src/design-system/tokens.css`
 
 1. Add typed recovery command wrappers that never surface `BackendInfo` outside the existing handshake closure.
-2. Add an App bootstrap state machine: web development remains usable; Tauri must pass backend availability plus authenticated product handshake before the six-space shell renders.
+2. Add a minimal App bootstrap state machine: browser/Vite development remains immediately usable with HMR; Tauri must pass backend availability plus authenticated product handshake before the six-space shell renders.
 3. Render Recovery Shell for unavailable, migration/startup failure, incompatible identity, or stopped/safe-mode states. Provide explicit operation progress, success/error text, keyboard focus, live regions, and text labels independent of colour.
 4. Display sanitized bounded log lines on demand and enumerated backup names only. Confirm restore before invoking it, keep Core offline during restore, then offer normal retry.
 5. Show a persistent, text-bearing `DEV` marker whenever the explicitly enabled External Dev profile is active; never infer it from a debug build alone.
-6. Preserve visible focus and `prefers-reduced-motion`; add responsive recovery layout without changing the six-space information architecture.
-7. Run targeted Vitest, then full `npm test` and `npm run build` using the repository-local/external dependency cache already configured by the project.
+6. Keep Recovery Shell a thin projection over the stable Tauri recovery DTO: no business-space duplication, schema renderer, new state framework, embedded backend rules, or second frontend application. Backend data changes that preserve the versioned BFF/recovery contract must appear without rebuilding the Tauri shell.
+7. In explicitly enabled External Dev only, provide one small “reload current Core source” operation implemented as safe-mode stop followed by retry; it must not exist as an uncontrolled production updater.
+8. Preserve visible focus and `prefers-reduced-motion`; add responsive recovery layout without changing the six-space information architecture.
+9. Run targeted Vitest, then full `npm test` and one `npm run build` using the repository-local/external dependency cache already configured by the project.
 
 ## Task 5: Layered verification and delivery
 
@@ -76,7 +78,7 @@
 
 1. Run execution preflight for the exact Python/Rust/Node environments and keep all caches/evidence under `.hermes`.
 2. Run targeted Python, Rust, frontend tests; then risk-selected project gates and the full release-relevant gate once.
-3. Run a packaged Windows recovery smoke covering missing runtime/startup failure, migration failure fixture, wrong identity, retry, safe mode, sanitized logs, verified restore, and exit. Record exact commands and results without private paths or tokens.
+3. Run one packaged Windows recovery candidate smoke covering missing runtime/startup failure, migration failure fixture, wrong identity, retry, safe mode, sanitized logs, verified restore, and exit. Do not rebuild Setup/Green/Portable on each repair iteration; reserve the full distribution matrix for the final release gate. Record exact commands and results without private paths or tokens.
 4. Inspect final diff/status and request read-only code review. Resolve findings with regression tests.
 5. Update the completion audit only to the evidence level actually achieved (`PASS_LOCAL`, `PASS_PACKAGED`, or remaining `PARTIAL`).
 6. Commit explicit paths, push the feature branch, open/merge the approved delivery PR, verify exact-SHA CI, and read back `origin/main` before claiming cloud/local consistency.
