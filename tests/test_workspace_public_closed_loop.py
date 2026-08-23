@@ -67,6 +67,9 @@ def test_workspace_public_closed_loop_is_source_bound_without_internal_ids(monke
     assert candidates.status_code == 200
     candidate = candidates.json()["items"][0]
     assert candidate["lifecycle"] == "candidate"
+    assert candidate["version"] == "1.0.0"
+    assert candidate["evidence_source"] == "mastery_signal"
+    assert "scope" in candidate
     assert not forbidden.intersection(candidates.text)
 
     runtime_approval = client.post(
@@ -75,11 +78,34 @@ def test_workspace_public_closed_loop_is_source_bound_without_internal_ids(monke
     )
     assert runtime_approval.status_code == 200
     assert not forbidden.intersection(runtime_approval.json())
+    replayed_approval = client.post(
+        "/workspace/api/runtime/approve",
+        json={"command_id": "ui-runtime-1", "title": candidate["title"]},
+    )
+    assert replayed_approval.status_code == 200
+    assert replayed_approval.json() == runtime_approval.json()
 
     runtime = client.get("/workspace/api/runtime/knowledge")
     assert runtime.status_code == 200
     assert runtime.json()["items"][0]["lifecycle"] == "approved"
     assert not forbidden.intersection(runtime.text)
+
+    deprecated = client.post(
+        "/workspace/api/runtime/deprecate",
+        json={"command_id": "ui-runtime-deprecate-1", "title": candidate["title"]},
+    )
+    assert deprecated.status_code == 200
+    assert deprecated.json() == {"title": candidate["title"], "status": "deprecated"}
+    replayed_deprecation = client.post(
+        "/workspace/api/runtime/deprecate",
+        json={"command_id": "ui-runtime-deprecate-1", "title": candidate["title"]},
+    )
+    assert replayed_deprecation.status_code == 200
+    assert replayed_deprecation.json() == deprecated.json()
+    assert client.get("/workspace/api/runtime/knowledge").json()["items"] == []
+    after_deprecation = client.get("/workspace/api/runtime/candidates").json()["items"][0]
+    assert after_deprecation["lifecycle"] == "deprecated"
+    assert client.get("/workspace/api/learning").json()["items"][0]["card_count"] > 0
 
     assert client.post(
         "/workspace/api/knowledge/start-learning",
@@ -87,5 +113,9 @@ def test_workspace_public_closed_loop_is_source_bound_without_internal_ids(monke
     ).status_code == 422
     with sqlite3.connect(database) as connection:
         assert connection.execute(
-            "SELECT COUNT(*) FROM machine_knowledge_candidates_v1 WHERE lifecycle_status='approved'"
+            "SELECT COUNT(*) FROM machine_knowledge_candidates_v1 WHERE lifecycle_status='deprecated'"
         ).fetchone()[0] == 1
+        decisions = connection.execute(
+            "SELECT decision FROM machine_knowledge_approval_events_v1 ORDER BY created_at"
+        ).fetchall()
+        assert [row[0] for row in decisions] == ["approved", "deprecated"]

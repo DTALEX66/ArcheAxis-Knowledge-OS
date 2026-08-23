@@ -1,6 +1,6 @@
 [project]
 name = "archeaxis-workspace"
-version = "0.6.7"
+version = "0.6.8"
 description = "Local-first, evidence-driven Human–AI learning and knowledge workspace"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -60,6 +60,18 @@ def _is_loopback_host(value: str) -> bool:
         return False
 
 
+def _is_authenticated_tauri_origin(request: Request) -> bool:
+    """Allow the packaged WebView origin only with its in-memory launch token."""
+    origin = urlsplit(request.headers.get("origin", ""))
+    if origin.scheme.casefold() != "http" or origin.hostname != "tauri.localhost":
+        return False
+    expected = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv(
+        "COGNITIVE_DESKTOP_LAUNCH_TOKEN", ""
+    )
+    supplied = request.headers.get("x-archeaxis-launch-token", "")
+    return bool(expected) and hmac.compare_digest(supplied, expected)
+
+
 def _require_local_request(request: Request) -> None:
     peer = request.client.host if request.client else ""
     if peer != "testclient" and not _is_loopback_host(peer):
@@ -67,6 +79,8 @@ def _require_local_request(request: Request) -> None:
     host = request.headers.get("host", "")
     if not _is_loopback_host(host):
         raise HTTPException(status_code=403, detail="workspace host must be loopback")
+    if _is_authenticated_tauri_origin(request):
+        return
     if request.headers.get("sec-fetch-site", "").casefold() == "cross-site":
         raise HTTPException(status_code=403, detail="cross-site workspace request rejected")
     origin = request.headers.get("origin", "")
@@ -626,6 +640,33 @@ def workspace_library(request: Request) -> dict[str, object]:
     return _command_error(lambda: service.workspace_library(db_path=DB_PATH))
 
 
+@router.get("/api/library/{raw_sha256}/content", response_class=FileResponse)
+def workspace_library_content(raw_sha256: str, request: Request) -> FileResponse:
+    """Open one retained original by content identity, never by caller path."""
+    _local_principal(request)
+    try:
+        path, safe_name, media_type = service.source_archive_content(
+            raw_sha256=raw_sha256, db_path=DB_PATH
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return FileResponse(
+        path,
+        media_type=media_type,
+        filename=safe_name,
+        content_disposition_type="inline",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "default-src 'none'; sandbox",
+        },
+    )
+
+
 @router.get("/api/delivery")
 def workspace_delivery(request: Request) -> dict[str, object]:
     _local_principal(request)
@@ -769,6 +810,16 @@ def approve_runtime_candidate(command: RuntimeApprovalCommand, request: Request)
     _local_principal(request)
     return _command_error(
         lambda: service.approve_runtime_title(
+            command_id=command.command_id, title=command.title, db_path=DB_PATH
+        )
+    )
+
+
+@router.post("/api/runtime/deprecate")
+def deprecate_runtime_asset(command: RuntimeApprovalCommand, request: Request) -> dict[str, object]:
+    _local_principal(request)
+    return _command_error(
+        lambda: service.deprecate_runtime_title(
             command_id=command.command_id, title=command.title, db_path=DB_PATH
         )
     )

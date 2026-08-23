@@ -163,6 +163,38 @@ body {
   font-size: 13px;
 }
 
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--ax-space-3);
+}
+.summary-grid article,
+.command-row {
+  padding: var(--ax-space-3);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  background: var(--ax-bg-inset);
+}
+.summary-grid h4,
+.summary-grid p { margin: 0 0 var(--ax-space-2); }
+.tag-list,
+.action-list { padding-left: 20px; }
+.command-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ax-space-2);
+  margin: var(--ax-space-3) 0;
+}
+.command-row input {
+  min-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  background: var(--ax-bg-raised);
+  color: var(--ax-fg);
+}
+
 /* Inspector */
 .inspector {
   width: 240px;

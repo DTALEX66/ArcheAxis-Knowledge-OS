@@ -5,6 +5,24 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 
 ## [Unreleased]
 
+## [0.6.8] - 2026-08-23
+
+- Closed the source-preservation loop with digest-addressed original-content
+  readback and strict no-store, nosniff, sandbox, and launch-token controls.
+- Closed governed AI asset approval and independent deprecation with scoped,
+  versioned, evidence-linked, idempotent append-only receipts.
+- Connected all six desktop spaces to the real backend: Workspace status and
+  activity, Library original readback, Evidence research approval, Learning
+  loops, AI asset governance, and Settings initialization/backup verification.
+- Fixed Tauri-origin CORS/token handling and canonical Workspace API routing;
+  validated all six spaces in Chromium against a live backend with zero console
+  errors or warnings.
+- Hardened project-local test/runtime boundaries for Windows worktrees and
+  retained selective CI plus exact-SHA release-candidate promotion.
+- Local release qualification: 1977 Python tests passed with 7 intentional
+  skips, 25 frontend tests passed, production frontend build passed, and 14
+  Rust/Tauri tests passed.
+
 - The source Release Manifest remains `unreleased / public=false` until a
   release artifact receives an injected and verified public identity.
 - Added release-truth, licensing, third-party, and security documentation.

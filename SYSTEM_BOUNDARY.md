@@ -1,19 +1,21 @@
-# System Boundary — archeaxis-workspace
+# System Boundary — ArcheAxis Knowledge v0.6.7
 
-> 本文件描述当前边界（重新生成于 2026-08-19，对齐 HEAD c83225b）。远期设计见
-> `docs/FUTURE_EXECUTION_BLUEPRINT.md`；旧端点数、测试数和“完成度”不作为能力证明。
+> 当前逐项状态以 `docs/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md`
+> 为准。实时 HEAD、tree、dirty、origin/main 与 CI 由
+> `scripts/generate_current_reports.py` 生成到忽略的 `.hermes/task-artifacts/`；
+> 本文不嵌入会因提交自身而过期的 SHA。
 
 ## 当前拓扑
 
 | 区域 | 当前角色 | 状态 |
 |---|---|---|
-| archeaxis-workspace | 唯一开发目标；FastAPI + SQLite(WAL) 由 `app.main` 在端口 8000 统一提供 | 可运行；已含学习引擎、证据链、联邦知识 API |
-| 学习引擎（app/knowledge） | BKT/双轴掌握/Teach-Back/蒸馏/技能演化/闭环编排/学习者画像/路径推荐 | 已实现（后端 170+ 测试） |
-| 证据与治理（app/evidence + promotion + machine_knowledge） | Anchor/Bundle/状态机（candidate→verified/rejected/deprecated） | 已实现 |
-| 摄取链（app/ingestion） | multi_format + web(raw-first) + OCR(RapidOCR/Tesseract) + ASR(SenseVoice) + 噪声过滤 + 质量门 | 已实现；多格式实测见 reports/current/INGESTION_REALITY_MATRIX.json |
-| 联邦知识 API（app/federation） | TP-20260819：批量 Candidate 提交（幂等）/Receipt/Verified 回读（分页）/hash readback/外置资产索引 | 已实现（tests/test_federation_v1.py 5 通过） |
-| 前端（frontend/src/spaces） | 六空间；Learning 空间真实数据，其余 5 个为占位符 | PARTIAL |
-| Tauri 桌面壳（src-tauri） | ✅ debug+release 构建成功（7.9-11.7MB）+ 启动冒烟通过；安装包待 R6 | PASS |
+| archeaxis-workspace | FastAPI + SQLite(WAL) 的规范后端线 | `TESTED_LOCAL`（定向）；当前变更 exact-SHA CI 待执行 |
+| 学习引擎（app/knowledge） | BKT/双轴掌握/Teach-Back/学习投影 | `TESTED_LOCAL`；完整安装版旅程待执行 |
+| 证据与治理（app/evidence + promotion + machine_knowledge） | Anchor/Bundle/显式审核状态机 | `TESTED_LOCAL`；全账本 append-only 白名单仍 PARTIAL |
+| 摄取链（app/ingestion） | raw-first、SHA-256、ConversionRun、锚点和 LossReport | Golden PDF `TESTED_LOCAL`；Tier A 完整矩阵未执行 |
+| 联邦知识 API（app/federation） | Candidate/Receipt/Review/Verified/hash readback | `TESTED_LOCAL` |
+| 前端（frontend/src/spaces） | 六空间读取真实 API；Learning 具备交互 | `PARTIAL`；六空间 browser E2E 未执行 |
+| Tauri 桌面壳（src-tauri） | Supervisor、失败保活、retry、限制型 CSP | 基础生命周期 `RELEASE_PUBLISHED`；完整 Recovery `PARTIAL` |
 | WORK-LAB / DESIGN-LAB | 独立仓库；仅通过本仓库稳定 API/契约协作，非运行时依赖 | 边界成立 |
 
 ## 当前 Core 边界
@@ -47,4 +49,4 @@
 ## 统一状态词
 
 PASS / PARTIAL / FAIL / NOT_EXECUTED / BLOCKED。禁止用 DONE 代替证据状态；
-完成声明必须绑定 Exact SHA + 证据路径。当前 HEAD：c83225b。
+完成声明必须绑定 Exact SHA + 证据路径；当前源码 SHA 只从生成器与 Git 读取。

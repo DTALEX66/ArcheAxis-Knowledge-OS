@@ -1,11 +1,16 @@
-# -*- coding: utf-8 -*-
 """G9 完整评估集（可复现）：固定改写查询 → 检索命中率 + ASR/OCR 一致性。
 
 用法: env -u PYTHONPATH .venv\\Scripts\\python.exe scripts/pipeline/eval_retrieval.py
-输出: reports/current/EVAL_SET_RECEIPT.json
+输出: .hermes/task-artifacts/eval-retrieval/EVAL_SET_RECEIPT.json
 """
-import argparse, json, os, re, sys, time, urllib.request
+import argparse
+import json
+import re
+import sys
+import time
+import urllib.request
 from pathlib import Path
+
 sys.stdout.reconfigure(encoding='utf-8')
 
 FIXED_QUERIES = [
@@ -24,7 +29,8 @@ def build_corpus(pdf_path: str, cap: int = 400):
     chunks = []
     for p in paras:
         while len(p) > 800:
-            chunks.append(p[:800]); p = p[800:]
+            chunks.append(p[:800])
+            p = p[800:]
         chunks.append(p)
     return chunks[:cap]
 
@@ -36,7 +42,7 @@ def embed(texts):
         return json.load(r)["embeddings"]
 
 def cos(a, b):
-    return sum(x * y for x, y in zip(a, b))
+    return sum(x * y for x, y in zip(a, b, strict=True))
 
 def hit_rate(chunks, chunk_emb, queries, k=5):
     hits = 0
@@ -54,7 +60,12 @@ def main():
     parser.add_argument("--source-root", required=True, help="approved corpus root")
     parser.add_argument(
         "--receipt",
-        default=str(Path(__file__).resolve().parents[2] / "reports" / "current" / "EVAL_SET_RECEIPT.json"),
+        default=str(
+            Path(__file__).resolve().parents[2]
+            / ".hermes"
+            / "task-artifacts" / "eval-retrieval"
+            / "EVAL_SET_RECEIPT.json"
+        ),
     )
     args = parser.parse_args()
     pdfs = [
@@ -73,7 +84,9 @@ def main():
     result = {"queries": len(FIXED_QUERIES), "k": 5, "hit_rate": hr,
               "sec": dt, "corpus_chunks": len(chunks), "engine": "qwen3-embedding:0.6b"}
     print(json.dumps(result, ensure_ascii=False), flush=True)
-    with open(args.receipt, "w", encoding="utf-8") as f:
+    receipt = Path(args.receipt)
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    with receipt.open("w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":

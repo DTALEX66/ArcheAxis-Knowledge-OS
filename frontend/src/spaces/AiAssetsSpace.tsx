@@ -1,17 +1,37 @@
 import { useEffect, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
-import { getMachineKnowledge, type MachineKnowledgeDto } from "../api/runtime";
+import {
+  approveMachineKnowledge,
+  deprecateMachineKnowledge,
+  getMachineKnowledge,
+  listMachineKnowledgeCandidates,
+  type MachineKnowledgeCandidateDto,
+  type MachineKnowledgeDto,
+} from "../api/runtime";
 import type { InspectionTarget } from "../components/Inspector";
 
 export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [items, setItems] = useState<MachineKnowledgeDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [candidates, setCandidates] = useState<MachineKnowledgeCandidateDto[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function refresh() {
+    const [approved, governed] = await Promise.all([
+      getMachineKnowledge(), listMachineKnowledgeCandidates(),
+    ]);
+    setItems(approved.items);
+    setCandidates(governed.items.filter((item) => item.lifecycle === "candidate"));
+  }
 
   useEffect(() => {
     let alive = true;
-    getMachineKnowledge()
-      .then((d) => { if (alive) setItems(d.items); })
+    Promise.all([getMachineKnowledge(), listMachineKnowledgeCandidates()])
+      .then(([approved, governed]) => { if (alive) {
+        setItems(approved.items);
+        setCandidates(governed.items.filter((item) => item.lifecycle === "candidate"));
+      } })
       .catch((e: Error) => { if (alive) setError(e.message); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -38,12 +58,25 @@ export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTar
                   source: "Machine Knowledge",
                   lifecycle: item.lifecycle,
                   detail: item.content.slice(0, 280),
-                })}>查看</button></td>
+                })}>查看</button>{" "}<button type="button" aria-label={`弃用 ${item.title}`} onClick={async () => {
+                  try { await deprecateMachineKnowledge(item.title); setMessage("AI 资产已弃用"); await refresh(); }
+                  catch (e) { setMessage(`弃用失败：${e instanceof Error ? e.message : String(e)}`); }
+                }}>弃用</button></td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+      <h4>待治理候选</h4>
+      {candidates.length === 0 ? <p className="muted">暂无候选</p> : (
+        <ul className="action-list">{candidates.map((item) => (
+          <li key={item.title}><span>{item.title} · v{item.version} · {item.evidence_source}</span>{" "}<button type="button" aria-label={`批准 ${item.title}`} onClick={async () => {
+            try { await approveMachineKnowledge(item.title); setMessage("AI 资产已批准"); await refresh(); }
+            catch (e) { setMessage(`批准失败：${e instanceof Error ? e.message : String(e)}`); }
+          }}>批准</button></li>
+        ))}</ul>
+      )}
+      {message ? <p role="status" className="muted">{message}</p> : null}
     </Section>
   );
 }

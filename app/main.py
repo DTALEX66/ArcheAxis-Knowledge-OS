@@ -43,7 +43,7 @@ async def core_runtime_lifespan(_: FastAPI):
 app = FastAPI(
     lifespan=core_runtime_lifespan,
     title="ArcheAxis Knowledge — Human–AI Learning Workspace",
-    version=str(config.get("app.version", "0.6.7")),
+    version=str(config.get("app.version", "0.6.8")),
     description="Local-first, evidence-driven Human–AI learning and knowledge workspace. "
     "The current vertical targets approved Vault roots, Markdown, JSON Canvas, revisions, conflicts and readback. "
     "Third-party projects are reference or planned adapters unless the compatibility matrix says otherwise.",
@@ -53,7 +53,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://(127\.0\.0\.1|localhost):\d+",
+    allow_origin_regex=r"(?:http://(?:127\.0\.0\.1|localhost):\d+|http://tauri\.localhost(?::\d+)?)",
     allow_origins=[],
     allow_methods=config.get("cors.allow_methods", ["GET", "POST"]),
     allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
@@ -303,10 +303,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ── Mount packaged sub-applications (fault-tolerant) ──
+from app.api.learning import router as learning_router
 from app.capability.router import router as capability_router
 from app.workspace.router import router as workspace_router
 from app.workspace.system import router as system_router
-from app.api.learning import router as learning_router
 
 _research_app = None
 _kb_app = None
@@ -380,7 +380,7 @@ def health():
     return {
         "status": "ok",
         "system": "ArcheAxis-Knowledge-OS",
-        "version": str(config.get("app.version", "0.6.7")),
+        "version": str(config.get("app.version", "0.6.8")),
         "endpoints": _http_route_counts(),
         "stats": {
             "documents": _c("kb_documents"),
@@ -667,7 +667,7 @@ graph TB
     Auth-->Router; Router-->Pipeline; Pipeline-->Search; Pipeline-->Garden
     Search-->SQLite; Search-->VecDB; Garden-->GraphDB; Review-->SQLite; SQLite-->Backup
 ```""",
-        "version": str(config.get("app.version", "0.6.7")),
+        "version": str(config.get("app.version", "0.6.8")),
         "measurement_note": "Module and test counts are intentionally not embedded.",
     }
 

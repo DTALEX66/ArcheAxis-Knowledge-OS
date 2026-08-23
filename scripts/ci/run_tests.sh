@@ -16,17 +16,25 @@ ROOT_UNIX="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ROOT_WIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -W | sed 's|\\\\|/|g')"
 
 # 断言项目根：必须含 pyproject.toml + .git，防止目录索引错误扩大范围
-if [ ! -f "$ROOT_UNIX/pyproject.toml" ] || [ ! -d "$ROOT_UNIX/.git" ]; then
+if [ ! -f "$ROOT_UNIX/pyproject.toml" ] || [ ! -e "$ROOT_UNIX/.git" ]; then
   echo "FATAL: 不是有效的项目根: $ROOT_WIN" >&2
   exit 2
 fi
 
-RUNTIME="$ROOT_WIN/.hermes/task-runtime"
+# A linked worktree can itself live under the canonical repository's ignored
+# runtime tree. Anchor pytest data at the Git common-dir owner so that Windows
+# paths do not duplicate `.hermes/task-runtime/<worktree>/...`.
+GIT_COMMON_DIR="$(git -C "$ROOT_UNIX" rev-parse --path-format=absolute --git-common-dir)"
+PROJECT_DATA_ROOT="$(dirname "$GIT_COMMON_DIR")"
+RUNTIME="$PROJECT_DATA_ROOT/.hermes/task-runtime"
 TMPDIR_RUNTIME="$RUNTIME/tmp"
-mkdir -p "$TMPDIR_RUNTIME"
+UV_CACHE_DIR="$PROJECT_DATA_ROOT/.hermes/cache/uv"
+mkdir -p "$TMPDIR_RUNTIME" "$UV_CACHE_DIR"
+export UV_CACHE_DIR
 
-# 项目内 basetemp：每次运行一个带时间戳的子目录
-BASETEMP="$TMPDIR_RUNTIME/pytest-$(date +%Y%m%d-%H%M%S)"
+# 项目内 basetemp：保持名称短，避免深层 Windows worktree 叠加测试名后
+# 超过传统 Win32 260 字符路径上限。Bash PID 足以隔离并发启动的测试进程。
+BASETEMP="$RUNTIME/t-$BASHPID"
 mkdir -p "$BASETEMP"
 
 # 完整测试集（--full 加 knowledge_base/tests；记忆/惯例：uv run --frozen --group ci --group ci-adapters）

@@ -1,3 +1,5 @@
+import { runtimeJSON } from "./runtime";
+
 // Learner-state API client (Tutor-MCP-inspired): neutral learner state.
 // Provider-agnostic — the learner model belongs to ArcheAxis, not any LLM.
 export interface MasteryDisplay {
@@ -65,6 +67,7 @@ export function learningApi(
   fetcher: typeof fetch = fetch,
 ) {
   async function getJSON<T>(path: string): Promise<T> {
+    if (window.__TAURI__?.core?.invoke) return runtimeJSON<T>(`${baseUrl}${path}`);
     const res = await fetcher(`${baseUrl}${path}`);
     if (!res.ok) {
       throw new Error(`${path} -> ${res.status}`);
@@ -73,6 +76,13 @@ export function learningApi(
   }
 
   async function postJSON<T>(path: string, body: unknown): Promise<T> {
+    if (window.__TAURI__?.core?.invoke) {
+      return runtimeJSON<T>(`${baseUrl}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    }
     const res = await fetcher(`${baseUrl}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -162,11 +172,19 @@ export function learningApiExt(
 ): LearningApiExt {
   const base = learningApi(baseUrl, fetcher);
   async function getJSON<T>(path: string): Promise<T> {
+    if (window.__TAURI__?.core?.invoke) return runtimeJSON<T>(`${baseUrl}${path}`);
     const res = await fetcher(`${baseUrl}${path}`);
     if (!res.ok) throw new Error(`${path} -> ${res.status}`);
     return (await res.json()) as T;
   }
   async function postJSON<T>(path: string, body: unknown): Promise<T> {
+    if (window.__TAURI__?.core?.invoke) {
+      return runtimeJSON<T>(`${baseUrl}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    }
     const res = await fetcher(`${baseUrl}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

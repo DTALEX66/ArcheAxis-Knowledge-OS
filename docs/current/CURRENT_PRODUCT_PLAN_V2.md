@@ -1,6 +1,6 @@
 # Current Product Plan — 当前产品计划 V2（AXW-1206/1210）
 
-> v0.6.7 已发布基线（2026-08-23，承接 v0.6.0 任务包）：本页此前的 `b97035e` 快照和“supported”表述均为历史规划输入。连续修复已关闭发布安装器重建、schema v3 契约漂移、ZIP 路径与关闭窗口问题、Portable 数据库读回路径错误，以及 PowerShell 依赖锁属性路径插值错误；精确 SHA CI、三包 Windows 生命周期和公开资产读回已通过，当前状态为 `v0.6.7 stable — RELEASED`。规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
+> v0.6.7 已发布基线（2026-08-23，承接 v0.6.0 任务包）：旧快照和笼统的“supported”表述已归档为历史规划输入。连续修复已关闭发布安装器重建、schema v3 契约漂移、ZIP 路径与关闭窗口问题、Portable 数据库读回路径错误，以及 PowerShell 依赖锁属性路径插值错误；精确 SHA CI、三包 Windows 生命周期和公开资产读回已通过，当前状态为 `v0.6.7 stable — RELEASED`。规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
 
 > 权威：v0.6.0 最小可信闭环任务包（2026-08-20）+ 当前 exact-SHA 报告
 > 状态：阶段描述可随真实实现与 Receipt 更新；能力边界与命名不可漂移
@@ -14,21 +14,21 @@
 
 **当前第一项 = 可安装、可导入、可阅读、可重启回读的真实材料流。**
 
-## 2. 当前实现状态（以 main b97035e 为准）
+## 2. 当前实现状态
+
+权威逐项审计见 [`AXR_060_COMPLETION_AUDIT_2026-08-23.md`](AXR_060_COMPLETION_AUDIT_2026-08-23.md)。以下状态不由发布版本号自动提升：
 
 | 能力 | 状态 | 证据 |
 |---|---|---|
-| 真实 PDF 导入/阅读/渲染 | `supported` | PR #72/#74，浏览器验证 |
-| 证据锚点 API + PDF 批注 | `supported` | PR #78，浏览器验证 |
-| DOCX Adapter | `in_progress` | PR #79（诚实降级） |
-| 多格式摄入路由（Magika 内容检测） | `supported` | PR #81/#82 |
-| 转换质量门（CER/WER） | `supported` | PR #82 |
-| 证据连接器（Crossref/DataCite/OpenAlex/Wikidata） | `in_progress` | PR #82 |
-| JSON Canvas 验证/处理 | `supported` | PR #81/#82 |
-| FSRS 学习调度桥接 | `in_progress` | PR #82 |
-| OCR/ASR bake-off 框架 | `in_progress` | PR #83（引擎未装） |
-| OCR 真实可用 | `in_progress` | Tesseract 已装，PaddleOCR/RapidOCR 待 bake-off |
-| ASR | `planned` | faster-whisper/whisper.cpp 桩就绪 |
+| 真实 PDF 导入、原件 SHA、页锚点与 LossReport | `TESTED_LOCAL` | 当前 Golden PDF 生产主链定向测试 |
+| 四库 quick/advanced、迁移与重启回读 | `TESTED_LOCAL` | setup/manifest/migration/R1 定向测试 |
+| 审核后 Human/AI 双主体写入 | `TESTED_LOCAL` | 主链、学习审批与机器知识定向测试 |
+| 开放导出、备份与 fresh workspace 回读 | `TESTED_LOCAL` | export/backup 定向测试 |
+| 六空间真实 API 闭环 | `PASS_LOCAL` | Workspace、Library、Evidence、Learning、AI Assets、Settings 均接真实后端；Chromium Tauri-origin 联调通过 |
+| 根 React Chromium Golden Journey | `NOT_EXECUTED` | 当前只有 Vitest/typecheck/build，不替代浏览器 E2E |
+| Recovery Shell 完整操作 | `PARTIAL` | 已有失败保活/retry；缺日志、安全模式、备份恢复、退出 |
+| Tier A 完整格式矩阵/nightly | `NOT_EXECUTED_CURRENT_SHA` | 单格式/Golden 定向证据不等于完整矩阵 |
+| Setup/Green/Portable 公开交付 | `RELEASE_PUBLISHED` | v0.6.7 精确 SHA CI、生命周期及下载读回 |
 | 3D/VR/AR / 动画 / 仿真 / 空间记忆 | `planned`（长期蓝图） | 未实现，不展示 |
 | 通用 Agent / 自治演化 | `exploration` | 未实现，不展示 |
 
