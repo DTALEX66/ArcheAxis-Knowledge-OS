@@ -21,6 +21,8 @@ LEARNING_APPROVAL_EVENT_MIGRATION_VERSION = 9
 LEARNING_APPROVAL_EVENT_MIGRATION_NAME = "phase5_learning_approval_events_v1"
 MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION = 10
 MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME = "phase5_machine_knowledge_approval_events_v1"
+EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION = 15
+EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME = "phase5_evidence_bundle_ledger_v1"
 KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
     KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
@@ -28,6 +30,7 @@ KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_VERSION: KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_NAME,
     LEARNING_APPROVAL_EVENT_MIGRATION_VERSION: LEARNING_APPROVAL_EVENT_MIGRATION_NAME,
     MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION: MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
+    EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME,
 }
 KNOWLEDGE_GOVERNANCE_TABLES_V1 = (
     "knowledge_candidate_promotions_v1",
@@ -61,12 +64,22 @@ MACHINE_KNOWLEDGE_APPROVAL_EVENT_OBJECTS = (
     "machine_knowledge_approval_events_v1",
     "idx_machine_knowledge_approval_events_candidate_v1",
 )
+EVIDENCE_BUNDLE_LEDGER_OBJECTS = (
+    "evidence_bundles_v1",
+    "evidence_bundle_entries_v1",
+    "idx_evidence_bundle_entries_bundle_v1",
+    "evidence_bundle_reviews_v1",
+    "idx_evidence_bundle_reviews_bundle_v1",
+)
 KNOWLEDGE_GOVERNANCE_TABLES = (
     *KNOWLEDGE_GOVERNANCE_TABLES_V1,
     KNOWLEDGE_GOVERNANCE_EVENT_TABLE,
     "knowledge_candidate_versions_v1",
     "knowledge_candidate_conflict_reviews_v1",
     "knowledge_candidate_learning_artifacts_v1",
+    "evidence_bundles_v1",
+    "evidence_bundle_entries_v1",
+    "evidence_bundle_reviews_v1",
 )
 _OPERATOR_CAPABILITY = object()
 
@@ -178,6 +191,44 @@ CREATE TABLE IF NOT EXISTS machine_knowledge_approval_events_v1 (
 );
 CREATE INDEX IF NOT EXISTS idx_machine_knowledge_approval_events_candidate_v1
 ON machine_knowledge_approval_events_v1(candidate_id, reviewed_at, id);
+"""
+EVIDENCE_BUNDLE_LEDGER_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS evidence_bundles_v1 (
+    id TEXT PRIMARY KEY,
+    claim_id TEXT NOT NULL,
+    bundle_fingerprint TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS evidence_bundle_entries_v1 (
+    id TEXT PRIMARY KEY,
+    bundle_id TEXT NOT NULL,
+    relation_kind TEXT NOT NULL CHECK(relation_kind IN ('supports','refutes','unknown')),
+    raw_sha256 TEXT NOT NULL CHECK(length(raw_sha256) = 64),
+    source_revision TEXT NOT NULL,
+    anchor_json TEXT NOT NULL,
+    source_lineage TEXT NOT NULL,
+    source_kind TEXT NOT NULL,
+    valid_from TEXT,
+    valid_to TEXT,
+    scope TEXT NOT NULL,
+    rights TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(bundle_id) REFERENCES evidence_bundles_v1(id)
+);
+CREATE INDEX IF NOT EXISTS idx_evidence_bundle_entries_bundle_v1
+ON evidence_bundle_entries_v1(bundle_id, created_at, id);
+CREATE TABLE IF NOT EXISTS evidence_bundle_reviews_v1 (
+    id TEXT PRIMARY KEY,
+    bundle_id TEXT NOT NULL,
+    decision TEXT NOT NULL CHECK(decision IN ('verified','not_verifiable','rejected')),
+    reviewer_id TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    reviewed_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(bundle_id) REFERENCES evidence_bundles_v1(id)
+);
+CREATE INDEX IF NOT EXISTS idx_evidence_bundle_reviews_bundle_v1
+ON evidence_bundle_reviews_v1(bundle_id, reviewed_at, id);
 """
 
 
@@ -313,6 +364,12 @@ def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
             MACHINE_KNOWLEDGE_APPROVAL_EVENT_SCHEMA_SQL,
             MACHINE_KNOWLEDGE_APPROVAL_EVENT_OBJECTS,
         ),
+        (
+            EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION,
+            EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME,
+            EVIDENCE_BUNDLE_LEDGER_SCHEMA_SQL,
+            EVIDENCE_BUNDLE_LEDGER_OBJECTS,
+        ),
     )
     for index, (version, _name, schema_sql, object_names) in enumerate(specifications):
         if version in recorded:
@@ -376,6 +433,7 @@ def migrate(
                     KNOWLEDGE_LEARNING_ARTIFACT_MIGRATION_VERSION: LEARNING_ARTIFACT_SCHEMA_SQL,
                     LEARNING_APPROVAL_EVENT_MIGRATION_VERSION: LEARNING_APPROVAL_EVENT_SCHEMA_SQL,
                     MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION: MACHINE_KNOWLEDGE_APPROVAL_EVENT_SCHEMA_SQL,
+                    EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_SCHEMA_SQL,
                 }
                 _execute_schema(connection, schemas[version])
                 connection.execute("INSERT INTO schema_migrations(version, name) VALUES (?, ?)", (version, name))
