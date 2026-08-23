@@ -5,6 +5,19 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 
 ## [Unreleased]
 
+## [0.6.10] - 2026-08-24
+
+- Completed the desktop write-boundary handshake: the frontend obtains scoped
+  launch credentials, and Workspace plus Learning mutations require the shared
+  local token, scope, and idempotency-key transport contract.
+- Added raw-first web acquisition, append-only audit receipts, and governed
+  evidence-bundle migration coverage to the minimum closed-loop delivery.
+- Made the Activity Dock operational: users can inspect public activity
+  objects, dispatch the next queued delivery, and retry failed deliveries;
+  unsupported cancellation remains explicitly unavailable rather than faked.
+- Kept the frontend as a thin, Vite-served backend projection with HMR for
+  development and one final Windows release build for distribution.
+
 ## [0.6.9] - 2026-08-23
 
 - Added a bounded desktop Recovery Shell with safe mode, retry, sanitized logs,

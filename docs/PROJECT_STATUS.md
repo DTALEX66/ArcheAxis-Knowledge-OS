@@ -6,7 +6,7 @@
 
 ## 发布真相
 
-- 当前源码版本为 `0.6.9`；packaged source manifest 按合同仍是 `unreleased / public=false`，公开 v0.6.9 identity 为 `stable / public=true`。
+- 当前源码版本为 `0.6.10`；packaged source manifest 按合同仍是 `unreleased / public=false`，公开 v0.6.9 identity 为 `stable / public=true`。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
 - `v0.6.9` 已满足 tag 精确绑定 `main`、exact-SHA Full Qualification、NSIS/Green/Portable 生命周期、公开资产集合、checksum allowlist、schema v3 identity 和依赖锁读回；当前没有 Authenticode 签名声明。本机额外层只下载校验 6/9，三个大型包按 Owner 指令停止，不作为 9/9 本机读回声明。
 

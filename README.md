@@ -86,7 +86,7 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
 - **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。Chromium/Tauri 运行时证据与公开发布资产属于不同证据层；`v0.5.0` 的 Windows installer lifecycle 和公开资产已通过独立 Release 门禁，不能用其中一层替代另一层。
-- **当前版本**：`0.6.9`；源码 Release Manifest 按合同保持 `unreleased / public=false`；最新公开发布仍以发布台账为准，历史标签均不可改写。
+- **当前版本**：`0.6.10`；源码 Release Manifest 按合同保持 `unreleased / public=false`；最新公开发布仍以发布台账为准，历史标签均不可改写。
 - **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.9` 的精确 SHA、CI、生命周期、公开资产与身份读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
