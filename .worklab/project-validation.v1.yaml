@@ -142,6 +142,7 @@ risk_classes:
       - "app/workspace/ui/**"
       - "app/workspace/router.py"
       - "scripts/a0_browser_smoke.py"
+      - "frontend/src/**"
       - "desktop/src/**/*.tsx"
       - "desktop/src/**/*.ts"
     gates: [static, lint, browser-smoke]

@@ -83,8 +83,17 @@ def test_tests_directory_classifies_as_ordinary_python() -> None:
 
 
 def test_ui_requires_browser_smoke() -> None:
-    plan = _classify(["app/workspace/ui/assets/app.js"])
-    assert "browser-smoke" in plan["required_gates"]
+    for path in (
+        "app/workspace/ui/assets/app.js",
+        "frontend/src/app/App.tsx",
+        "frontend/src/components/RecoveryShell.tsx",
+        "frontend/src/design-system/tokens.css",
+    ):
+        plan = _classify([path])
+        assert "browser-smoke" in plan["required_gates"], path
+        assert plan["unknown_paths"] == [], path
+        assert "desktop-build" not in plan["required_gates"], path
+        assert "installer-lifecycle" not in plan["required_gates"], path
 
 
 def test_windows_runtime_requires_windows_smoke() -> None:
