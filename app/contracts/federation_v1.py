@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 FEDERATION_SCHEMA_NS = "https://archeaxis.local/contracts/federation/v1"
 
@@ -118,10 +118,20 @@ class ProvenanceRecordV1(BaseModel):
 
     record_id: str = Field(min_length=1)
     entity_id: str = Field(min_length=1)
-    event: str = Field(min_length=1)              # created | promoted | revoked | superseded
+    event: Literal["created", "promoted", "revoked", "superseded"]
     actor: str = Field(min_length=1)
     at: str = Field(min_length=1)
     parent_id: str | None = None
+    reason: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def correction_events_keep_their_audit_chain(self) -> ProvenanceRecordV1:
+        if self.event in {"revoked", "superseded"}:
+            if not self.parent_id:
+                raise ValueError(f"{self.event} provenance event requires parent_id")
+            if not self.reason:
+                raise ValueError(f"{self.event} provenance event requires reason")
+        return self
 
 
 class RightsRecordV1(BaseModel):
