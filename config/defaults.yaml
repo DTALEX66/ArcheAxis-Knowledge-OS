@@ -1,7 +1,7 @@
 # Public, non-secret baseline for every runtime profile.
 app:
   name: "archeaxis-workspace"
-  version: "0.6.8"
+  version: "0.6.9"
   release_version: ""
   environment: "development"
   port: 8000

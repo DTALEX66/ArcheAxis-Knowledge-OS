@@ -6,7 +6,7 @@
     "english_name": "ArcheAxis Knowledge",
     "workspace_name": "ArcheAxis Learning Workspace",
     "workspace_english_name": "Human–AI Learning Workspace",
-    "version": "0.6.8",
+    "version": "0.6.9",
     "requires_python": ">=3.11"
   },
   "release": {

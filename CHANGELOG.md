@@ -5,6 +5,17 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 
 ## [Unreleased]
 
+## [0.6.9] - 2026-08-23
+
+- Added a bounded desktop Recovery Shell with safe mode, retry, sanitized logs,
+  verified offline restore, immediate exit, and explicit External Dev reload.
+- Kept the existing six-space frontend as a thin projection over stable
+  recovery and authenticated BFF contracts; browser development retains HMR.
+- Hardened Windows process, backup identity, reparse-point, pipe deadline, and
+  diagnostic-redaction boundaries with independent Rust and frontend review.
+- Reduced ordinary frontend and Tauri source CI to risk-selected gates; full
+  Setup, Green, and Portable qualification remains reserved for Release.
+
 ## [0.6.8] - 2026-08-23
 
 - Closed the source-preservation loop with digest-addressed original-content
