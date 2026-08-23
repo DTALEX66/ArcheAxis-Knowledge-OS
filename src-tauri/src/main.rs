@@ -83,6 +83,24 @@ mod recovery_contract_tests {
     }
 
     #[test]
+    fn invalid_backup_selection_diagnostic_is_fixed_and_contains_no_user_value() {
+        let malicious_selection = "../private-token.sqlite";
+        let mut state = RecoveryState::failed("Core startup is unavailable");
+
+        state.record_diagnostic(super::RECOVERY_BACKUP_SELECTION_REJECTED);
+        let logs = state.log_tail();
+
+        assert_eq!(
+            logs.lines.last().map(String::as_str),
+            Some(super::RECOVERY_BACKUP_SELECTION_REJECTED)
+        );
+        assert!(!logs
+            .lines
+            .iter()
+            .any(|line| line.contains(malicious_selection)));
+    }
+
+    #[test]
     fn safe_mode_stops_core_and_preserves_recovery_operations() {
         let mut state = RecoveryState::failed("Core startup is unavailable");
 
@@ -92,6 +110,24 @@ mod recovery_contract_tests {
         assert!(!state.may_start_core());
         assert!(!state.may_run_migrations());
         assert!(state.recovery_operations_available());
+    }
+
+    #[test]
+    fn exit_dispatch_does_not_wait_for_a_long_operation_guard() {
+        let operations = std::sync::Mutex::new(());
+        let _long_operation = operations.lock().expect("hold long operation");
+        let (sent, received) = std::sync::mpsc::sync_channel(1);
+
+        super::dispatch_exit_immediately(|code| {
+            sent.send(code).expect("record exit dispatch");
+        });
+
+        assert_eq!(
+            received
+                .recv_timeout(std::time::Duration::from_millis(100))
+                .expect("exit dispatch was blocked"),
+            0
+        );
     }
 
     #[test]
@@ -175,8 +211,8 @@ mod runtime;
 use backend::{run_restore_backup, BackendProcess};
 #[cfg(windows)]
 use recovery::{
-    enumerate_backups, validate_enumerated_backup_name, EnumeratedBackup, RecoveryLogTailDto,
-    RecoveryState, RecoveryStatusDto,
+    enumerate_backups, stage_backup_for_restore, validate_enumerated_backup_name, EnumeratedBackup,
+    RecoveryLogTailDto, RecoveryState, RecoveryStatusDto,
 };
 #[cfg(windows)]
 use serde::Serialize;
@@ -197,6 +233,8 @@ const RECOVERY_RETRY_FAILED: &str = "RECOVERY_RETRY_FAILED";
 const RECOVERY_BACKUP_INVALID: &str = "RECOVERY_BACKUP_INVALID";
 #[cfg(windows)]
 const RECOVERY_RESTORE_FAILED: &str = "RECOVERY_RESTORE_FAILED";
+#[cfg(windows)]
+const RECOVERY_BACKUP_SELECTION_REJECTED: &str = "Backup selection was rejected";
 
 #[cfg(windows)]
 #[derive(Clone)]
@@ -247,6 +285,13 @@ struct RestoreReceiptDto {
 fn record_failure(state: &DesktopBackend, message: &str) {
     if let Ok(mut recovery) = state.recovery.lock() {
         recovery.record_failure(message);
+    }
+}
+
+#[cfg(windows)]
+fn record_invalid_backup_selection(state: &DesktopBackend) {
+    if let Ok(mut recovery) = state.recovery.lock() {
+        recovery.record_diagnostic(RECOVERY_BACKUP_SELECTION_REJECTED);
     }
 }
 
@@ -339,7 +384,15 @@ fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>,
 
 #[cfg(windows)]
 #[tauri::command]
-fn retry_backend(state: State<'_, DesktopBackend>) -> Result<BackendInfo, String> {
+async fn retry_backend(state: State<'_, DesktopBackend>) -> Result<BackendInfo, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || retry_backend_blocking(state))
+        .await
+        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
+}
+
+#[cfg(windows)]
+fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> {
     let _operation = state
         .operations
         .lock()
@@ -443,7 +496,15 @@ fn recovery_log_tail(state: State<'_, DesktopBackend>) -> Result<RecoveryLogTail
 
 #[cfg(windows)]
 #[tauri::command]
-fn enter_safe_mode(state: State<'_, DesktopBackend>) -> Result<RecoveryStatusDto, String> {
+async fn enter_safe_mode(state: State<'_, DesktopBackend>) -> Result<RecoveryStatusDto, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || enter_safe_mode_blocking(state))
+        .await
+        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
+}
+
+#[cfg(windows)]
+fn enter_safe_mode_blocking(state: DesktopBackend) -> Result<RecoveryStatusDto, String> {
     let _operation = state
         .operations
         .lock()
@@ -467,8 +528,19 @@ fn enter_safe_mode(state: State<'_, DesktopBackend>) -> Result<RecoveryStatusDto
 
 #[cfg(windows)]
 #[tauri::command]
-fn restore_backup(
+async fn restore_backup(
     state: State<'_, DesktopBackend>,
+    name: String,
+) -> Result<RestoreReceiptDto, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || restore_backup_blocking(state, name))
+        .await
+        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
+}
+
+#[cfg(windows)]
+fn restore_backup_blocking(
+    state: DesktopBackend,
     name: String,
 ) -> Result<RestoreReceiptDto, String> {
     let _operation = state
@@ -483,12 +555,19 @@ fn restore_backup(
         }
         RECOVERY_BACKUP_INVALID.to_owned()
     })?;
-    validate_enumerated_backup_name(backups.iter().map(|backup| backup.name.as_str()), &name)
-        .map_err(|_| RECOVERY_BACKUP_INVALID.to_owned())?;
-    let selected = backups
-        .into_iter()
-        .find(|backup| backup.name == name)
-        .ok_or_else(|| RECOVERY_BACKUP_INVALID.to_owned())?;
+    if validate_enumerated_backup_name(backups.iter().map(|backup| backup.name.as_str()), &name)
+        .is_err()
+    {
+        record_invalid_backup_selection(&state);
+        return Err(RECOVERY_BACKUP_INVALID.to_owned());
+    }
+    let initially_selected = match backups.into_iter().find(|backup| backup.name == name) {
+        Some(selected) => selected,
+        None => {
+            record_invalid_backup_selection(&state);
+            return Err(RECOVERY_BACKUP_INVALID.to_owned());
+        }
+    };
     let process = state
         .process
         .lock()
@@ -502,7 +581,32 @@ fn restore_backup(
         .lock()
         .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
         .enter_safe_mode();
-    match run_restore_backup(&runtime, &selected.canonical_path) {
+    let fresh_backups = enumerate_backups(&runtime.data_dir).map_err(|error| {
+        if let Ok(mut recovery) = state.recovery.lock() {
+            recovery.record_safe_mode_failure(&error);
+        }
+        RECOVERY_BACKUP_INVALID.to_owned()
+    })?;
+    let selected = match fresh_backups.into_iter().find(|backup| backup.name == name) {
+        Some(selected) => selected,
+        None => {
+            record_invalid_backup_selection(&state);
+            return Err(RECOVERY_BACKUP_INVALID.to_owned());
+        }
+    };
+    if !initially_selected.same_source_identity(&selected) {
+        record_invalid_backup_selection(&state);
+        return Err(RECOVERY_BACKUP_INVALID.to_owned());
+    }
+    let staged = stage_backup_for_restore(&runtime.data_dir, &selected).map_err(|_| {
+        record_invalid_backup_selection(&state);
+        RECOVERY_BACKUP_INVALID.to_owned()
+    })?;
+    staged.revalidate_for_restore().map_err(|_| {
+        record_invalid_backup_selection(&state);
+        RECOVERY_BACKUP_INVALID.to_owned()
+    })?;
+    match run_restore_backup(&runtime, staged.backup_path()) {
         Ok(()) => {
             state
                 .recovery
@@ -521,23 +625,33 @@ fn restore_backup(
 }
 
 #[cfg(windows)]
-#[tauri::command]
-fn exit_application(state: State<'_, DesktopBackend>, app: AppHandle) -> Result<(), String> {
-    let _operation = state
-        .operations
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
-    let process = state
-        .process
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
-        .take();
+fn dispatch_exit_immediately<F>(exit: F)
+where
+    F: FnOnce(i32),
+{
+    exit(0);
+}
+
+#[cfg(windows)]
+fn cleanup_backend_on_exit(state: DesktopBackend) {
     std::thread::spawn(move || {
+        let process = state
+            .process
+            .lock()
+            .ok()
+            .and_then(|mut process| process.take());
         if let Some(mut process) = process {
             process.shutdown();
         }
     });
-    app.exit(0);
+}
+
+#[cfg(windows)]
+#[tauri::command]
+fn exit_application(app: AppHandle) -> Result<(), String> {
+    dispatch_exit_immediately(|code| {
+        app.exit(code);
+    });
     Ok(())
 }
 
@@ -654,19 +768,7 @@ fn main() {
                     .state::<DesktopBackend>()
                     .inner()
                     .clone();
-                std::thread::spawn(move || {
-                    let Ok(_operation) = state.operations.lock() else {
-                        return;
-                    };
-                    let process = state
-                        .process
-                        .lock()
-                        .ok()
-                        .and_then(|mut process| process.take());
-                    if let Some(mut process) = process {
-                        process.shutdown();
-                    }
-                });
+                cleanup_backend_on_exit(state);
             }
         })
         .build(tauri::generate_context!())
@@ -678,19 +780,7 @@ fn main() {
             // ExitRequested runs on Tauri's event loop. Keep its Core teardown
             // non-blocking; the Windows Job Object still owns the child if the
             // process exits before graceful shutdown ends.
-            std::thread::spawn(move || {
-                let Ok(_operation) = state.operations.lock() else {
-                    return;
-                };
-                let process = state
-                    .process
-                    .lock()
-                    .ok()
-                    .and_then(|mut process| process.take());
-                if let Some(mut process) = process {
-                    process.shutdown();
-                }
-            });
+            cleanup_backend_on_exit(state);
         }
     });
 }

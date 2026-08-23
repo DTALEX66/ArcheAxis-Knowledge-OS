@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -14,6 +14,7 @@ const MIGRATION_TIMEOUT: Duration = Duration::from_secs(120);
 const READINESS_TIMEOUT: Duration = Duration::from_secs(30);
 const READINESS_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(8);
+const FORCED_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(1);
 const RESTORE_TIMEOUT: Duration = Duration::from_secs(120);
 const MAX_LOG_LINES: usize = 200;
 const MAX_ONE_SHOT_OUTPUT_BYTES: usize = 16 * 1024;
@@ -44,7 +45,7 @@ pub struct BackendProcess {
     pub port: u16,
     pub token: String,
     child: Child,
-    job: Job,
+    job: Option<Job>,
     logs: LogBuffer,
 }
 
@@ -93,7 +94,7 @@ impl BackendProcess {
             port,
             token,
             child,
-            job,
+            job: Some(job),
             logs,
         })
     }
@@ -102,14 +103,19 @@ impl BackendProcess {
         if matches!(self.child.try_wait(), Ok(Some(_))) {
             return;
         }
+        if self.job.is_none() {
+            return;
+        }
         if let Some(mut stdin) = self.child.stdin.take() {
             let _ = stdin.write_all(b"shutdown\n");
             let _ = stdin.flush();
         }
-        if wait_for_exit(&mut self.child, SHUTDOWN_TIMEOUT).is_err() {
-            let _ = self.child.kill();
-            let _ = self.child.wait();
-        }
+        shutdown_job_owned_child(
+            &mut self.child,
+            &mut self.job,
+            SHUTDOWN_TIMEOUT,
+            FORCED_SHUTDOWN_TIMEOUT,
+        );
     }
 
     pub fn log_tail(&self) -> String {
@@ -132,6 +138,21 @@ impl Drop for BackendProcess {
         self.shutdown();
         let _ = &self.job;
     }
+}
+
+fn shutdown_job_owned_child(
+    child: &mut Child,
+    job: &mut Option<Job>,
+    graceful_timeout: Duration,
+    forced_timeout: Duration,
+) {
+    if wait_for_exit(child, graceful_timeout).is_ok() {
+        return;
+    }
+    if job.take().is_none() {
+        let _ = child.kill();
+    }
+    let _ = wait_for_exit(child, forced_timeout);
 }
 
 struct BoundedOutput {
@@ -158,6 +179,28 @@ fn read_bounded_output<R: Read>(mut reader: R) -> BoundedOutput {
     BoundedOutput { bytes, truncated }
 }
 
+fn spawn_bounded_output_reader<R: Read + Send + 'static>(
+    reader: R,
+) -> mpsc::Receiver<BoundedOutput> {
+    let (sender, receiver) = mpsc::sync_channel(1);
+    thread::spawn(move || {
+        let output = read_bounded_output(reader);
+        let _ = sender.send(output);
+    });
+    receiver
+}
+
+fn receive_bounded_output(
+    receiver: &mpsc::Receiver<BoundedOutput>,
+    deadline: Instant,
+    label: &str,
+) -> Result<BoundedOutput, String> {
+    let remaining = deadline.saturating_duration_since(Instant::now());
+    receiver
+        .recv_timeout(remaining)
+        .map_err(|_| format!("offline restore {label} reader did not finish before timeout"))
+}
+
 fn restore_receipt_valid(output: &[u8], truncated: bool) -> bool {
     if truncated {
         return false;
@@ -172,6 +215,7 @@ fn restore_receipt_valid(output: &[u8], truncated: bool) -> bool {
 
 pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(), String> {
     let job = Job::new()?;
+    let deadline = Instant::now() + RESTORE_TIMEOUT;
     let mut command = runtime_command(runtime);
     command
         .args(["-m", "app.runtime_entrypoint", "restore-backup"])
@@ -184,7 +228,6 @@ pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(
         .map_err(|error| format!("failed to start offline restore: {error}"))?;
     if let Err(error) = job.assign(&child) {
         let _ = child.kill();
-        let _ = child.wait();
         return Err(error);
     }
     let stdout = child
@@ -195,24 +238,18 @@ pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(
         .stderr
         .take()
         .ok_or_else(|| "offline restore stderr was unavailable".to_owned())?;
-    let stdout_reader = thread::spawn(move || read_bounded_output(stdout));
-    let stderr_reader = thread::spawn(move || read_bounded_output(stderr));
-    let status = match wait_for_exit(&mut child, RESTORE_TIMEOUT) {
-        Ok(status) => status,
-        Err(error) => {
-            let _ = child.kill();
-            let _ = child.wait();
-            let _ = stdout_reader.join();
-            let _ = stderr_reader.join();
-            return Err(format!("offline restore timed out: {error}"));
-        }
-    };
-    let stdout = stdout_reader
-        .join()
-        .map_err(|_| "offline restore stdout reader failed".to_owned())?;
-    let stderr = stderr_reader
-        .join()
-        .map_err(|_| "offline restore stderr reader failed".to_owned())?;
+    let stdout_reader = spawn_bounded_output_reader(stdout);
+    let stderr_reader = spawn_bounded_output_reader(stderr);
+    let status = wait_for_exit(
+        &mut child,
+        deadline.saturating_duration_since(Instant::now()),
+    );
+    // Closing this KILL_ON_JOB_CLOSE handle terminates every assigned descendant.
+    // That also closes inherited pipe handles before we attempt bounded collection.
+    drop(job);
+    let status = status.map_err(|error| format!("offline restore timed out: {error}"))?;
+    let stdout = receive_bounded_output(&stdout_reader, deadline, "stdout")?;
+    let stderr = receive_bounded_output(&stderr_reader, deadline, "stderr")?;
     if !status.success() {
         return Err(format!(
             "offline restore failed with {status}: {}",
@@ -454,13 +491,18 @@ fn format_logs(logs: &LogBuffer) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{readiness_payload_valid, response_body, restore_receipt_valid, runtime_command};
+    use super::{
+        readiness_payload_valid, response_body, restore_receipt_valid, run_restore_backup,
+        runtime_command, shutdown_job_owned_child,
+    };
     use crate::runtime::RuntimeSpec;
     use std::ffi::OsStr;
+    use std::fs;
     use std::path::PathBuf;
     use std::process::{Command, Stdio};
     use std::thread;
     use std::time::{Duration, Instant};
+    use tempfile::tempdir;
 
     #[test]
     fn installed_runtime_never_writes_bytecode_into_the_bundle() {
@@ -532,6 +574,90 @@ mod tests {
     }
 
     #[test]
+    fn restore_does_not_wait_for_a_descendant_holding_inherited_pipes() {
+        let temp = tempdir().expect("temporary directory");
+        let fake_python = temp.path().join("fake-python.cmd");
+        fs::write(
+            &fake_python,
+            concat!(
+                "@echo off\r\n",
+                "start \"\" /b powershell.exe -NoProfile -NonInteractive ",
+                "-Command \"Start-Sleep -Seconds 5\"\r\n",
+                "echo {\"status\":\"restored\"}\r\n",
+                "exit /b 0\r\n"
+            ),
+        )
+        .expect("write fake runtime");
+        let runtime = RuntimeSpec {
+            python: fake_python,
+            cwd: temp.path().to_path_buf(),
+            data_dir: temp.path().join("data"),
+            isolated: false,
+            external_dev: true,
+        };
+        fs::create_dir(&runtime.data_dir).expect("create runtime data");
+        let started = Instant::now();
+
+        let result = run_restore_backup(&runtime, &temp.path().join("staged.sqlite"));
+
+        assert!(result.is_ok(), "fake restore failed: {result:?}");
+        assert!(
+            started.elapsed() < Duration::from_secs(2),
+            "restore waited for a pipe-holding descendant: {:?}",
+            started.elapsed()
+        );
+    }
+
+    #[test]
+    fn core_shutdown_drops_the_job_and_bounds_forced_exit_polling() {
+        let temp = tempdir().expect("temporary directory");
+        let stubborn_core = temp.path().join("stubborn-core.cmd");
+        fs::write(
+            &stubborn_core,
+            concat!(
+                "@echo off\r\n",
+                "ping.exe -n 2 127.0.0.1 >nul\r\n",
+                "start \"\" /b powershell.exe -NoProfile -NonInteractive ",
+                "-Command \"Start-Sleep -Seconds 5\"\r\n",
+                "powershell.exe -NoProfile -NonInteractive ",
+                "-Command \"Start-Sleep -Seconds 5\"\r\n"
+            ),
+        )
+        .expect("write stubborn Core fixture");
+        let mut child = Command::new(&stubborn_core)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("spawn stubborn Core fixture");
+        let mut job = Some(crate::job::Job::new().expect("create Core test job"));
+        job.as_ref()
+            .expect("Core test job")
+            .assign(&child)
+            .expect("assign stubborn Core to Job");
+        thread::sleep(Duration::from_millis(1200));
+        let started = Instant::now();
+
+        shutdown_job_owned_child(
+            &mut child,
+            &mut job,
+            Duration::from_millis(100),
+            Duration::from_secs(1),
+        );
+
+        assert!(job.is_none(), "forced shutdown retained the Job handle");
+        assert!(
+            started.elapsed() < Duration::from_secs(2),
+            "forced shutdown exceeded its bounded polling window: {:?}",
+            started.elapsed()
+        );
+        assert!(
+            child.try_wait().expect("inspect stubborn Core").is_some(),
+            "Job close did not terminate the stubborn Core"
+        );
+    }
+
+    #[test]
     fn later_core_exit_is_reported_without_exposing_backend_info() {
         let job = crate::job::Job::new().expect("create test job");
         let child = Command::new("cmd.exe")
@@ -546,7 +672,7 @@ mod tests {
             port: 4312,
             token: "test-only".to_owned(),
             child,
-            job,
+            job: Some(job),
             logs: super::new_log_buffer(),
         };
         let deadline = Instant::now() + Duration::from_secs(2);
