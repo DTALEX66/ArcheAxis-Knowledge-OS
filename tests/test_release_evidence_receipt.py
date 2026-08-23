@@ -72,3 +72,53 @@ def test_v067_release_receipt_records_all_dependency_lock_hashes() -> None:
         "This receipt proves the v0.6.7 release and named lifecycle/readback gates only.",
         "It does not promote incomplete product capabilities or deferred roadmap items.",
     ]
+
+
+def test_v068_release_receipt_binds_exact_main_ci_release_and_assets() -> None:
+    receipt_path = (
+        ROOT / "reports" / "release" / "v0.6.8" / "release-evidence.json"
+    )
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    expected_assets = {
+        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Green.zip",
+        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Portable.zip",
+        "ArcheAxis.Knowledge-v0.6.8-Windows-x64-Setup.exe",
+        "archeaxis_workspace-0.6.8-py3-none-any.whl",
+        "release-identity.json",
+        "release-manifest.json",
+        "SBOM.cdx.json",
+        "SHA256SUMS.txt",
+        "THIRD_PARTY_NOTICES.txt",
+    }
+
+    assert receipt["release"] == {
+        "tag": "v0.6.8",
+        "version": "0.6.8",
+        "channel": "stable",
+        "public": True,
+        "draft": False,
+        "prerelease": False,
+        "published_at": "2026-08-23T00:45:26Z",
+        "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.8",
+    }
+    assert receipt["source"] == {
+        "commit_sha": "93e58a3b2c537dd348903dd2296933e0cfb5a503",
+        "tree_sha": "545eaa7ef62bab9e92e55a9ef598012bb368680a",
+    }
+    assert receipt["runs"]["verification_ci"]["id"] == 32607097436
+    assert receipt["runs"]["release"]["id"] == 32607789507
+    assert receipt["runs"]["verification_ci"]["id"] != receipt["runs"]["release"]["id"]
+    assert {asset["name"] for asset in receipt["assets"]} == expected_assets
+    assert receipt["verification"] == {
+        "provider_digest_match": True,
+        "downloaded_sha256_match": True,
+        "public_asset_count": 9,
+        "checksum_payload_count": 8,
+        "identity_schema_version": "3.0.0",
+        "three_distribution_lifecycle": "PASS",
+    }
+    assert receipt["dependency_locks"] == {
+        "uv.lock": "726b49e66de4f52b48beb9a15bd5dc088183118dbbc455029ee55ee3e1b87ff4",
+        "frontend/package-lock.json": "19acd38d57620ab1ded9b02aeb4245eea1d6742e91d9d1eaba47e31a9a44e2f2",
+        "src-tauri/Cargo.lock": "2568f8eb0c2949f28591089f6e89c9aae958c699c64c63a89ba1c8f8cb226cd4",
+    }

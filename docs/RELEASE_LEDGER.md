@@ -31,7 +31,37 @@ correct provenance.
 | `v0.6.4` | yes | no | — | — | Historical unpublished tag at `5a71ffa`; Release run `32592474961` passed path and identity checks, then the ZIP verifier hit the same nondeterministic `CloseMainWindow()` race previously fixed for NSIS. Preserved; remediation proceeded as `v0.6.5`. |
 | `v0.6.5` | yes | no | — | — | Historical unpublished tag at `809cd5d`; exact-SHA CI run `32593904745` passed. Release run `32594767473` passed the identity-bound NSIS lifecycle and exact-window ZIP shutdown, then exposed a verifier-only Portable database readback path error: it checked `data/data/archeaxis.sqlite` although the canonical resolver writes `data/archeaxis.sqlite`. Preserved; remediation proceeded as `v0.6.6`. |
 | `v0.6.6` | yes | draft | no | unpublished | Historical unpublished tag at `b6c92bd`; exact-SHA CI run `32596718833` passed. Release run `32597563772` passed all three Windows lifecycle gates and uploaded the draft asset set, then the final lock readback interpolated `"$entry.Name"` as an object string plus literal suffix instead of the property value. Preserved; remediation proceeds as `v0.6.7`. |
-| `v0.6.7` | yes | yes | yes | 2026-08-22 21:50:57 | Current public stable Release at `347d9f9`; exact-SHA CI, three Windows lifecycle gates, schema v3 identity, provider digests, checksum allowlist and independent downloaded-asset readback passed. |
+| `v0.6.7` | yes | yes | yes | 2026-08-22 21:50:57 | Historical public stable Release at `347d9f9`; exact-SHA CI, three Windows lifecycle gates, schema v3 identity, provider digests, checksum allowlist and independent downloaded-asset readback passed. |
+| `v0.6.8` | yes | yes | yes | 2026-08-23 00:45:26 | Current public stable Release at `93e58a3`; six-space/source/AI closed-loop update, exact-SHA CI, three Windows lifecycle gates and independent 9-asset readback passed. |
+
+## v0.6.8 release evidence
+
+- GitHub Release URL: <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.8>
+- Tag commit: `93e58a3b2c537dd348903dd2296933e0cfb5a503`
+- Source tree: `545eaa7ef62bab9e92e55a9ef598012bb368680a`
+- Verification exact-SHA CI: `32607097436` (success)
+- Release workflow: `32607789507` (success; distinct from verification CI)
+- Published: `2026-08-23T00:45:26Z`; public, non-draft, non-prerelease
+- Independent readback: 9 assets downloaded; all provider SHA-256 digests matched;
+  `SHA256SUMS.txt` covered the other 8 payloads exactly.
+
+| Asset | Provider and downloaded SHA-256 |
+| --- | --- |
+| `ArcheAxis.Knowledge-v0.6.8-Windows-x64-Green.zip` | `9a7b6c70fce906203a7474f56794784e8dc8b6a6a2ff1d8541f4469e89c1411b` |
+| `ArcheAxis.Knowledge-v0.6.8-Windows-x64-Portable.zip` | `173c0b7a5e5bc8062faabb760fe686909eb9a2b029c21cbfb8e08e6b17ace019` |
+| `ArcheAxis.Knowledge-v0.6.8-Windows-x64-Setup.exe` | `132d40a70f2ee1c82a1e57285aa7de57d987a3427d9d0c81952d76e4bc6fa3fc` |
+| `archeaxis_workspace-0.6.8-py3-none-any.whl` | `0cd48e51340882543b1c4259ec28a18c99d913195aceccaea6aea058e4724667` |
+| `release-identity.json` | `e721f4ec63e03497c4f7ad412ea41b35992becaf49c0f40303f80d7a1785e28d` |
+| `release-manifest.json` | `2fa2df150cbab003f2a270d8e0570e4ab152693bd3529c20f69dc315ee717644` |
+| `SBOM.cdx.json` | `a774cb6ef31f2b9ddc61aefe0e450310e3345880ca093bbb3063b346c7b88296` |
+| `SHA256SUMS.txt` | `7fe4e0694720d2edf9a0cae602a25a67c4d08f759c74a9263a5ac86a74cf3ee7` |
+| `THIRD_PARTY_NOTICES.txt` | `4ed609a56d846bda3f2bd55948cd6b7096319ea68a41b8845317bc8e4141fb47` |
+
+Downloaded `release-identity.json` is schema v3 and binds the public release to
+the exact tag/commit/tree, verification CI and Release run. Its dependency-lock
+hashes matched local `uv.lock`, `frontend/package-lock.json`, and
+`src-tauri/Cargo.lock`. The complete machine-readable receipt is
+`reports/release/v0.6.8/release-evidence.json`.
 
 ## v0.6.7 release evidence
 
@@ -144,5 +174,5 @@ not a contradiction of the verified artifact identity.
   digests + release-identity.json binding tag→exact commit/tree→verification
   CI run. If a public/enterprise channel is ever added, re-evaluate
   Authenticode signing as a separate owner decision before publishing there.
-- Source manifest line is `0.6.7`, `unreleased`, `development`, `public=false`;
+- Source manifest line is `0.6.8`, `unreleased`, `development`, `public=false`;
   public artifact identity is recorded separately in the verified Release.

@@ -1,6 +1,6 @@
 # Current Product Plan — 当前产品计划 V2（AXW-1206/1210）
 
-> v0.6.7 已发布基线（2026-08-23，承接 v0.6.0 任务包）：旧快照和笼统的“supported”表述已归档为历史规划输入。连续修复已关闭发布安装器重建、schema v3 契约漂移、ZIP 路径与关闭窗口问题、Portable 数据库读回路径错误，以及 PowerShell 依赖锁属性路径插值错误；精确 SHA CI、三包 Windows 生命周期和公开资产读回已通过，当前状态为 `v0.6.7 stable — RELEASED`。规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
+> v0.6.8 已发布基线（2026-08-23，承接 v0.6.0 任务包）：旧快照和笼统的“supported”表述已归档为历史规划输入。六空间真实 API 闭环、Tauri-origin token/CORS、原件读回与 AI 资产治理已推进并验证；精确 SHA CI、三包 Windows 生命周期和公开资产读回已通过，当前状态为 `v0.6.8 stable — RELEASED`。规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
 
 > 权威：v0.6.0 最小可信闭环任务包（2026-08-20）+ 当前 exact-SHA 报告
 > 状态：阶段描述可随真实实现与 Receipt 更新；能力边界与命名不可漂移
@@ -25,10 +25,10 @@
 | 审核后 Human/AI 双主体写入 | `TESTED_LOCAL` | 主链、学习审批与机器知识定向测试 |
 | 开放导出、备份与 fresh workspace 回读 | `TESTED_LOCAL` | export/backup 定向测试 |
 | 六空间真实 API 闭环 | `PASS_LOCAL` | Workspace、Library、Evidence、Learning、AI Assets、Settings 均接真实后端；Chromium Tauri-origin 联调通过 |
-| 根 React Chromium Golden Journey | `NOT_EXECUTED` | 当前只有 Vitest/typecheck/build，不替代浏览器 E2E |
+| 根 React Chromium Golden Journey | `PARTIAL_BROWSER` | Tauri-origin 六空间真实后端点击联调 PASS；安装/升级/卸载/导出串行旅程仍未执行 |
 | Recovery Shell 完整操作 | `PARTIAL` | 已有失败保活/retry；缺日志、安全模式、备份恢复、退出 |
 | Tier A 完整格式矩阵/nightly | `NOT_EXECUTED_CURRENT_SHA` | 单格式/Golden 定向证据不等于完整矩阵 |
-| Setup/Green/Portable 公开交付 | `RELEASE_PUBLISHED` | v0.6.7 精确 SHA CI、生命周期及下载读回 |
+| Setup/Green/Portable 公开交付 | `RELEASE_PUBLISHED` | v0.6.8 精确 SHA CI、生命周期及下载读回 |
 | 3D/VR/AR / 动画 / 仿真 / 空间记忆 | `planned`（长期蓝图） | 未实现，不展示 |
 | 通用 Agent / 自治演化 | `exploration` | 未实现，不展示 |
 
