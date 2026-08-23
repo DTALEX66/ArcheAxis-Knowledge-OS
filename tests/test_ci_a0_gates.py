@@ -31,6 +31,14 @@ def test_ci_supports_explicit_full_qualification_for_a_selected_sha() -> None:
     assert "CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL || contains(github.event.head_commit.message, '[full-qualification]') }}" in workflow
 
 
+def test_ci_cancels_superseded_main_runs() -> None:
+    """The newest main SHA must never wait behind a stale failed release run."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "group: ci-${{ github.event_name" in workflow
+    assert "cancel-in-progress: true" in workflow
+
+
 def test_ci_runs_risk_owned_python_targets_without_the_primary_suite() -> None:
     """Targeted GatePlan IDs must select a focused job, not the full suite."""
     workflow = WORKFLOW.read_text(encoding="utf-8")

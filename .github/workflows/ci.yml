@@ -15,7 +15,9 @@ on:
 
 concurrency:
   group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # Main is latest-SHA-only: a superseded run can never qualify a Release and
+  # must not occupy the queue after its successor is pushed.
+  cancel-in-progress: true
 
 permissions:
   contents: read
