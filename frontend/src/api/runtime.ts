@@ -2,6 +2,14 @@
 // Every request shares the handshake client; no second unauthenticated client
 // or hard-coded runtime port is allowed.
 import { createApiClient, type ApiClient } from "./client";
+import {
+  isOpaqueBackupName,
+  normalizeRecoveryLogTail,
+  normalizeRecoveryStatus,
+  type RecoveryLogTailDto,
+  type RecoveryStatusDto,
+  type RestoreReceiptDto,
+} from "../runtime/recovery";
 export interface EvidenceAnchorDto {
   anchor_id: string;
   raw_sha256: string;
@@ -88,7 +96,7 @@ export interface StatusDto {
 
 declare global {
   interface Window {
-    __TAURI__?: { core?: { invoke: <T>(command: string) => Promise<T> } };
+    __TAURI__?: { core?: { invoke: (command: string, args?: Record<string, unknown>) => Promise<unknown> } };
   }
 }
 
@@ -100,9 +108,45 @@ export function resetRuntimeClient(): void {
   clientPromise = null;
 }
 
-export async function retryDesktopBackend(): Promise<void> {
+function recoveryInvoke(command: string, args?: Record<string, unknown>): Promise<unknown> {
   const invoke = window.__TAURI__?.core?.invoke;
-  if (invoke) await invoke("retry_backend");
+  if (!invoke) return Promise.reject(new Error("Recovery controls require the desktop runtime"));
+  return args === undefined ? invoke(command) : invoke(command, args);
+}
+
+export async function getRecoveryStatus(): Promise<RecoveryStatusDto> {
+  return normalizeRecoveryStatus(await recoveryInvoke("recovery_status"));
+}
+
+export async function getRecoveryLogTail(): Promise<RecoveryLogTailDto> {
+  return normalizeRecoveryLogTail(await recoveryInvoke("recovery_log_tail"));
+}
+
+export async function enterRecoverySafeMode(): Promise<RecoveryStatusDto> {
+  return normalizeRecoveryStatus(await recoveryInvoke("enter_safe_mode"));
+}
+
+export async function retryDesktopBackend(): Promise<void> {
+  await recoveryInvoke("retry_backend");
+}
+
+export async function restoreRecoveryBackup(name: string): Promise<RestoreReceiptDto> {
+  if (!isOpaqueBackupName(name)) {
+    throw new Error("Restore requires an enumerated opaque backup name");
+  }
+  const freshStatus = await getRecoveryStatus();
+  if (!freshStatus.backups.includes(name)) {
+    throw new Error("Restore selection is absent from the fresh recovery status");
+  }
+  const receipt = await recoveryInvoke("restore_backup", { name });
+  if ((receipt as { status?: unknown } | null)?.status !== "restored") {
+    throw new Error("Backup restore did not return a valid receipt");
+  }
+  return { status: "restored" };
+}
+
+export async function exitRecoveryApplication(): Promise<void> {
+  await recoveryInvoke("exit_application");
 }
 
 async function runtimeClient(): Promise<ApiClient> {
@@ -112,7 +156,7 @@ async function runtimeClient(): Promise<ApiClient> {
       const client = !invoke
         ? createApiClient("", "")
         : await (async () => {
-          const backend = await invoke<{ port: number; token: string }>("backend_info");
+          const backend = await invoke("backend_info") as { port: number; token: string } | null;
           if (!backend) throw new Error("desktop backend is unavailable; open Recovery Shell to retry");
           return createApiClient(`http://127.0.0.1:${backend.port}`, backend.token);
         })();

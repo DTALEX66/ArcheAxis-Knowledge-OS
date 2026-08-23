@@ -1,11 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
+import { resetRuntimeClient } from "../api/runtime";
 
 // AXW-UI-804: App shell — six-space navigation, default space, landmarks.
 // Rail buttons use the English product labels; space headings are Chinese.
 describe("App shell", () => {
+  afterEach(() => {
+    resetRuntimeClient();
+    delete window.__TAURI__;
+    vi.unstubAllGlobals();
+  });
+
   it("renders the shell landmarks (banner, navigation, main)", () => {
     render(<App />);
     expect(screen.getByRole("banner")).toBeInTheDocument();
@@ -15,6 +22,8 @@ describe("App shell", () => {
     expect(
       screen.getByRole("main", { name: "当前空间内容" }),
     ).toBeInTheDocument();
+    const webMode = screen.getByText(/浏览器开发模式/);
+    expect(webMode).toHaveAttribute("data-status", "development");
   });
 
   it("starts on the workspace space with aria-current on its rail button", () => {
@@ -49,5 +58,105 @@ describe("App shell", () => {
     expect(screen.getByRole("button", { name: /Workspace/ })).not.toHaveAttribute(
       "aria-current",
     );
+  });
+
+  it("replaces the six-space workspace with the Recovery Shell after desktop bootstrap fails", async () => {
+    window.__TAURI__ = {
+      core: {
+        invoke: vi.fn(async (command: string) => {
+          if (command === "recovery_status") {
+            return {
+              state: "failed",
+              safe_mode: false,
+              backend_available: false,
+              message: "Core startup is unavailable",
+              backups: [],
+            };
+          }
+          return null;
+        }),
+      },
+    };
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("main", { name: "Recovery Shell" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("navigation", { name: "主空间导航" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the Recovery Shell when a ready desktop fails the authenticated handshake", async () => {
+    const invoke = vi.fn(async (command: string) => {
+      if (command === "recovery_status") {
+        return {
+          state: "ready",
+          safe_mode: false,
+          backend_available: true,
+          message: "Core is ready",
+          backups: [],
+          external_dev: false,
+        };
+      }
+      if (command === "backend_info") return { port: 4312, token: "memory-only" };
+      return null;
+    });
+    window.__TAURI__ = { core: { invoke } };
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("handshake unavailable")));
+
+    render(<App />);
+
+    expect(await screen.findByRole("main", { name: "Recovery Shell" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
+    expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
+    expect(invoke).toHaveBeenNthCalledWith(2, "backend_info");
+    expect(invoke).toHaveBeenNthCalledWith(3, "recovery_status");
+  });
+
+  it("never renders a control-split raw credential from desktop recovery status", async () => {
+    const rawDiagnostic = "to\nken = raw-secret-value";
+    window.__TAURI__ = {
+      core: {
+        invoke: vi.fn(async (command: string) => command === "recovery_status" ? {
+          state: "failed",
+          safe_mode: false,
+          backend_available: false,
+          message: rawDiagnostic,
+          backups: [],
+          external_dev: false,
+        } : null),
+      },
+    };
+
+    render(<App />);
+
+    expect(await screen.findByText("Recovery diagnostic withheld")).toBeInTheDocument();
+    expect(screen.queryByText(rawDiagnostic)).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("raw-secret-value");
+  });
+
+  it("withholds a long token that begins after the visible display boundary", async () => {
+    const safePrefix = "safe ".repeat(46);
+    const rawDiagnostic = `${safePrefix}${"A".repeat(40)}==`;
+    window.__TAURI__ = {
+      core: {
+        invoke: vi.fn(async (command: string) => command === "recovery_status" ? {
+          state: "failed",
+          safe_mode: false,
+          backend_available: false,
+          message: rawDiagnostic,
+          backups: [],
+          external_dev: false,
+        } : null),
+      },
+    };
+
+    render(<App />);
+
+    expect(await screen.findByText("Recovery diagnostic withheld")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(safePrefix.slice(0, 50));
+    expect(document.body).not.toHaveTextContent("A".repeat(10));
   });
 });

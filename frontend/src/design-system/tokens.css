@@ -73,8 +73,21 @@ body {
   background: var(--ax-bg-raised);
 }
 .status-bar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-2);
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+.dev-marker {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--ax-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 .status-bar-center {
   flex: 1;
@@ -250,6 +263,117 @@ button {
 }
 button:hover {
   background: var(--ax-bg-inset);
+}
+button:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+/* Recovery Shell: a thin, responsive projection over the Tauri DTO. */
+.recovery-page {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 50% 0%, var(--ax-accent-soft), transparent 42%),
+    var(--ax-bg);
+}
+.recovery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-3);
+  padding: var(--ax-space-3) var(--ax-space-4);
+  border-bottom: 1px solid var(--ax-border);
+  background: color-mix(in srgb, var(--ax-bg-raised) 88%, transparent);
+}
+.recovery-brand { font-weight: 650; letter-spacing: 0.02em; }
+.recovery-shell {
+  width: 100%;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 6vw, 72px) var(--ax-space-4);
+}
+.recovery-card {
+  width: min(100%, 760px);
+  padding: clamp(20px, 4vw, 40px);
+  border: 1px solid var(--ax-border);
+  border-radius: calc(var(--ax-radius) * 2);
+  background: var(--ax-bg-raised);
+  box-shadow: 0 18px 54px color-mix(in srgb, var(--ax-fg) 10%, transparent);
+}
+.recovery-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ax-space-4);
+}
+.recovery-heading h1 { margin: 0; font-size: clamp(28px, 5vw, 42px); }
+.recovery-kicker {
+  margin: 0 0 var(--ax-space-1);
+  color: var(--ax-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.recovery-state {
+  padding: 4px 9px;
+  border: 1px solid var(--ax-border);
+  border-radius: 999px;
+  color: var(--ax-fg-muted);
+  font-size: 12px;
+}
+.recovery-message { color: var(--ax-fg-muted); line-height: 1.55; }
+.recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ax-space-2);
+  margin: var(--ax-space-4) 0;
+}
+.recovery-actions button { min-height: 36px; padding: 6px 12px; }
+.recovery-field { display: grid; gap: var(--ax-space-2); }
+.recovery-field label { font-size: 13px; font-weight: 600; }
+.recovery-field select {
+  width: 100%;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  background: var(--ax-bg);
+  color: var(--ax-fg);
+}
+.recovery-confirm,
+.recovery-logs {
+  margin-top: var(--ax-space-4);
+  padding: var(--ax-space-3);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius);
+  background: var(--ax-bg-inset);
+}
+.recovery-confirm p,
+.recovery-logs h2 { margin-top: 0; }
+.recovery-confirm button + button { margin-left: var(--ax-space-2); }
+.recovery-progress { color: var(--ax-accent); }
+.recovery-feedback:focus-visible {
+  outline: 2px solid var(--ax-accent);
+  outline-offset: 3px;
+  border-radius: var(--ax-radius);
+}
+.recovery-feedback [role="alert"] { color: var(--ax-danger); }
+.recovery-feedback [role="status"] { color: var(--ax-accent); }
+.recovery-logs { max-height: 260px; overflow: auto; }
+.recovery-logs h2 { font-size: 16px; }
+.recovery-logs ul { margin-bottom: 0; padding-left: 20px; }
+.recovery-logs li { margin: var(--ax-space-1) 0; overflow-wrap: anywhere; }
+
+@media (max-width: 560px) {
+  .recovery-shell { align-items: start; padding-inline: var(--ax-space-3); }
+  .recovery-card { padding: var(--ax-space-4); }
+  .recovery-heading { align-items: flex-start; flex-direction: column; }
+  .recovery-actions { display: grid; grid-template-columns: 1fr; }
 }
 
 /* AXW-UI-804 accessibility: visible focus, reduced motion */

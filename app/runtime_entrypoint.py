@@ -251,6 +251,15 @@ def run_backup(_: argparse.Namespace) -> int:
     return 0
 
 
+def run_restore_backup(args: argparse.Namespace) -> int:
+    from shared import backup
+
+    candidate = backup.restore(args.backup_path)
+    backup.activate_restore(candidate)
+    print(json.dumps({"status": "restored"}, separators=(",", ":")), flush=True)
+    return 0
+
+
 def run_restore_candidate(args: argparse.Namespace) -> int:
     from shared import backup
 
@@ -295,6 +304,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     backup = subparsers.add_parser("backup", help="create a verified SQLite backup")
     backup.set_defaults(func=run_backup)
+
+    restore_backup = subparsers.add_parser(
+        "restore-backup",
+        help="stage and atomically activate a verified offline restore",
+    )
+    restore_backup.add_argument("backup_path")
+    restore_backup.set_defaults(func=run_restore_backup)
 
     restore = subparsers.add_parser(
         "restore-candidate",

@@ -1,44 +1,43 @@
-import { useCallback, useEffect, useState } from "react";
-import { getStatus, resetRuntimeClient, retryDesktopBackend } from "../api/runtime";
 import { SpaceId } from "../spaces/spaces";
 
-// Top status bar: backend/task status + current space (task pack §15.3).
-export function StatusBar({ activeSpace }: { activeSpace: SpaceId }) {
-  const [state, setState] = useState("正在验证本地后端…");
+export type BackendDisplayState = "checking" | "available" | "unavailable" | "web";
 
-  const refresh = useCallback(async () => {
-    setState("正在验证本地后端…");
-    try {
-      await getStatus();
-      setState("后端状态：本地可用");
-    } catch {
-      setState("后端状态：不可用（可重试）");
-    }
-  }, []);
+interface StatusBarProps {
+  activeSpace: SpaceId;
+  backendState: BackendDisplayState;
+  externalDev?: boolean;
+}
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+const BACKEND_LABELS: Record<BackendDisplayState, string> = {
+  checking: "正在验证本地后端…",
+  available: "后端状态：本地可用",
+  unavailable: "后端状态：不可用",
+  web: "浏览器开发模式（Web development mode）",
+};
 
-  const retry = async () => {
-    try {
-      await retryDesktopBackend();
-    } catch {
-      // The following handshake read produces the user-facing unavailable
-      // state; do not expose Core internals or logs in the browser shell.
-    }
-    resetRuntimeClient();
-    void refresh();
-  };
+// Presentation only: App owns every readiness transition and recovery action.
+export function StatusBar({
+  activeSpace,
+  backendState,
+  externalDev = false,
+}: StatusBarProps) {
+  const displayStatus = backendState === "web"
+    ? "development"
+    : backendState === "checking" ? "pending" : backendState;
 
   return (
     <header className="status-bar" role="banner">
-      <div className="status-bar-brand">ArcheAxis Knowledge</div>
+      <div className="status-bar-brand">
+        ArcheAxis Knowledge
+        {externalDev ? <span className="dev-marker">DEV</span> : null}
+      </div>
       <div className="status-bar-center">
-        <span className="status-pill status-pill--pending" data-status="pending">
-          {state}
+        <span
+          className={`status-pill status-pill--${displayStatus}`}
+          data-status={displayStatus}
+        >
+          {BACKEND_LABELS[backendState]}
         </span>
-        {state.includes("不可用") ? <button type="button" onClick={retry}>重试</button> : null}
       </div>
       <div className="status-bar-space" aria-label="当前空间">
         {activeSpace}
