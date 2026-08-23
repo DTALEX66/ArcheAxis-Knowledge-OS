@@ -163,7 +163,102 @@ def test_record_storage_rejects_direct_mutation_and_deletion(tmp_path):
             )
 
 
+def test_all_append_only_record_tables_reject_direct_mutation_and_deletion(tmp_path):
+    db = tmp_path / "fed.sqlite"
+    service.record_evidence(
+        db,
+        EvidenceIntakeV1(
+            evidence_id="ev-1", source_ref="provenance://example/evidence",
+            anchor={"page": 1}, content_hash="abc", rights="internal-use",
+        ),
+    )
+    service.record_learning(
+        db,
+        LearningRecordV1(
+            record_id="lr-1", concept="append-only", kind="quiz", outcome={"score": 1},
+            source_ref="provenance://example/evidence",
+        ),
+    )
+    service.record_provenance(
+        db,
+        ProvenanceRecordV1(
+            record_id="pr-1", entity_id="candidate-1", event="created",
+            actor="human-reviewer", at="2026-08-24T00:00:00Z",
+        ),
+    )
+    service.record_rights(
+        db,
+        RightsRecordV1(record_id="rr-1", entity_id="asset-1", rights="cc-by-4.0"),
+    )
+
+    for table, record_id in (
+        ("federation_evidence_records_v1", "ev-1"),
+        ("federation_learning_records_v1", "lr-1"),
+        ("federation_provenance_records_v1", "pr-1"),
+        ("federation_rights_records_v1", "rr-1"),
+    ):
+        with sqlite3.connect(db) as connection:
+            with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+                connection.execute(
+                    f"UPDATE {table} SET record_id=record_id WHERE record_id=?", (record_id,)
+                )
+            with pytest.raises(sqlite3.IntegrityError, match="append-only"):
+                connection.execute(f"DELETE FROM {table} WHERE record_id=?", (record_id,))
+
+
+def test_append_only_writer_uses_the_complete_static_sql_allowlist():
+    expected_columns = {
+        "federation_evidence_records_v1": (
+            "record_id", "source_ref", "anchor_json", "content_hash", "rights", "verified", "created_at",
+        ),
+        "federation_learning_records_v1": (
+            "record_id", "concept", "kind", "outcome_json", "source_ref", "created_at",
+        ),
+        "federation_provenance_records_v1": (
+            "record_id", "entity_id", "event", "actor", "at", "parent_id", "reason", "created_at",
+        ),
+        "federation_rights_records_v1": (
+            "record_id", "entity_id", "rights", "scope", "source_ref", "created_at",
+        ),
+    }
+
+    assert {
+        table: f"INSERT INTO {table} ({','.join(columns)}) VALUES ({','.join('?' for _ in columns)})"
+        for table, columns in expected_columns.items()
+    } == service._RECORD_INSERT_SQL_ALLOWLIST
+    with pytest.raises(service.FederationError, match="not allowlisted"):
+        service._append_record(sqlite3.connect(":memory:"), "unlisted_table", "bad", ())
+
+
+def test_record_schema_migration_rolls_back_a_failed_forward_step(tmp_path, monkeypatch):
+    db = tmp_path / "legacy-fed.sqlite"
+    with sqlite3.connect(db) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE federation_provenance_records_v1 (
+                record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, event TEXT NOT NULL,
+                actor TEXT NOT NULL, at TEXT NOT NULL, parent_id TEXT, created_at TEXT NOT NULL
+            );
+            """
+        )
+
+    def fail_after_forward_schema(*_args, **_kwargs):
+        raise RuntimeError("injected trigger installation failure")
+
+    monkeypatch.setattr(service, "_create_append_only_triggers", fail_after_forward_schema)
+    with sqlite3.connect(db) as connection:
+        with pytest.raises(RuntimeError, match="injected trigger"):
+            service._ensure_record_tables(connection)
+        columns = {
+            row[1]
+            for row in connection.execute("PRAGMA table_info(federation_provenance_records_v1)")
+        }
+
+    assert "reason" not in columns
+
+
 def test_append_only_writer_does_not_issue_replace_sql():
-    source = inspect.getsource(service._append_record)
-    assert "INSERT INTO" in source
+    source = inspect.getsource(service)
+    assert service._RECORD_INSERT_SQL_ALLOWLIST
+    assert all(statement.startswith("INSERT INTO") for statement in service._RECORD_INSERT_SQL_ALLOWLIST.values())
     assert "OR REPLACE" not in source

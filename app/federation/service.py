@@ -425,25 +425,40 @@ def hash_readback(db: str | Path, entity_id: str) -> dict[str, Any]:
 # ── record types (EvidenceIntake / LearningRecord / Provenance / Rights) ──
 # Append-only record tables for the federation boundary (AA-P0-002 completion).
 
-_RECORD_SCHEMA = """
-CREATE TABLE IF NOT EXISTS federation_evidence_records_v1 (
-    record_id TEXT PRIMARY KEY, source_ref TEXT NOT NULL, anchor_json TEXT NOT NULL,
-    content_hash TEXT NOT NULL, rights TEXT NOT NULL, verified INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS federation_learning_records_v1 (
-    record_id TEXT PRIMARY KEY, concept TEXT NOT NULL, kind TEXT NOT NULL,
-    outcome_json TEXT NOT NULL, source_ref TEXT NOT NULL, created_at TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS federation_provenance_records_v1 (
-    record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, event TEXT NOT NULL,
-    actor TEXT NOT NULL, at TEXT NOT NULL, parent_id TEXT, reason TEXT, created_at TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS federation_rights_records_v1 (
-    record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, rights TEXT NOT NULL,
-    scope TEXT NOT NULL DEFAULT 'internal', source_ref TEXT, created_at TEXT NOT NULL
-);
-"""
+_RECORD_KIND_TABLES = {
+    "evidence": "federation_evidence_records_v1",
+    "learning": "federation_learning_records_v1",
+    "provenance": "federation_provenance_records_v1",
+    "rights": "federation_rights_records_v1",
+}
+
+_RECORD_CREATE_SQL_ALLOWLIST = {
+    "federation_evidence_records_v1": """
+        CREATE TABLE IF NOT EXISTS federation_evidence_records_v1 (
+            record_id TEXT PRIMARY KEY, source_ref TEXT NOT NULL, anchor_json TEXT NOT NULL,
+            content_hash TEXT NOT NULL, rights TEXT NOT NULL, verified INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        )
+    """,
+    "federation_learning_records_v1": """
+        CREATE TABLE IF NOT EXISTS federation_learning_records_v1 (
+            record_id TEXT PRIMARY KEY, concept TEXT NOT NULL, kind TEXT NOT NULL,
+            outcome_json TEXT NOT NULL, source_ref TEXT NOT NULL, created_at TEXT NOT NULL
+        )
+    """,
+    "federation_provenance_records_v1": """
+        CREATE TABLE IF NOT EXISTS federation_provenance_records_v1 (
+            record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, event TEXT NOT NULL,
+            actor TEXT NOT NULL, at TEXT NOT NULL, parent_id TEXT, reason TEXT, created_at TEXT NOT NULL
+        )
+    """,
+    "federation_rights_records_v1": """
+        CREATE TABLE IF NOT EXISTS federation_rights_records_v1 (
+            record_id TEXT PRIMARY KEY, entity_id TEXT NOT NULL, rights TEXT NOT NULL,
+            scope TEXT NOT NULL DEFAULT 'internal', source_ref TEXT, created_at TEXT NOT NULL
+        )
+    """,
+}
 
 _RECORD_COLUMNS = {
     "federation_evidence_records_v1": (
@@ -460,15 +475,18 @@ _RECORD_COLUMNS = {
     ),
 }
 
+_RECORD_INSERT_SQL_ALLOWLIST = {
+    table: f"INSERT INTO {table} ({','.join(columns)}) VALUES ({','.join('?' for _ in columns)})"
+    for table, columns in _RECORD_COLUMNS.items()
+}
+_RECORD_SELECT_SQL_ALLOWLIST = {
+    table: f"SELECT * FROM {table} ORDER BY created_at DESC LIMIT ?"
+    for table in _RECORD_COLUMNS
+}
 
-def _ensure_record_tables(conn: sqlite3.Connection) -> None:
-    conn.executescript(_RECORD_SCHEMA)
-    columns = {
-        str(row[1])
-        for row in conn.execute("PRAGMA table_info(federation_provenance_records_v1)")
-    }
-    if "reason" not in columns:
-        conn.execute("ALTER TABLE federation_provenance_records_v1 ADD COLUMN reason TEXT")
+
+def _create_append_only_triggers(conn: sqlite3.Connection) -> None:
+    """Install mutation guards only for tables in the static record allowlist."""
     for table in _RECORD_COLUMNS:
         for operation, verb in (("UPDATE", "updated"), ("DELETE", "deleted")):
             conn.execute(
@@ -480,15 +498,41 @@ def _ensure_record_tables(conn: sqlite3.Connection) -> None:
             )
 
 
+def _ensure_record_tables(conn: sqlite3.Connection) -> None:
+    """Atomically apply the allowlisted record schema and its forward migration.
+
+    Version one provenance tables lack ``reason``.  The only supported data
+    migration is additive; a failed installation rolls the entire transaction
+    back, while a successful record write is never schema-downgraded because
+    that could discard evidence history.
+    """
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        for statement in _RECORD_CREATE_SQL_ALLOWLIST.values():
+            conn.execute(statement)
+        columns = {
+            str(row[1])
+            for row in conn.execute("PRAGMA table_info(federation_provenance_records_v1)")
+        }
+        if "reason" not in columns:
+            conn.execute("ALTER TABLE federation_provenance_records_v1 ADD COLUMN reason TEXT")
+        _create_append_only_triggers(conn)
+    except Exception:
+        conn.rollback()
+        raise
+    else:
+        conn.commit()
+
+
 def _append_record(conn: sqlite3.Connection, table: str, record_id: str, values: tuple[Any, ...]) -> None:
-    columns = _RECORD_COLUMNS[table]
+    columns = _RECORD_COLUMNS.get(table)
+    statement = _RECORD_INSERT_SQL_ALLOWLIST.get(table)
+    if columns is None or statement is None:
+        raise FederationError(f"append-only table is not allowlisted: {table}")
     if len(columns) != len(values):
         raise ValueError(f"append-only record shape mismatch: {table}")
     try:
-        conn.execute(
-            f"INSERT INTO {table} ({','.join(columns)}) VALUES ({','.join('?' for _ in values)})",
-            values,
-        )
+        conn.execute(statement, values)
     except sqlite3.IntegrityError as exc:
         raise FederationError(f"append-only record already exists: {record_id}") from exc
 
@@ -551,15 +595,8 @@ def record_rights(db: str | Path, record: RightsRecordV1) -> str:
 
 def list_records(db: str | Path, kind: str, *, limit: int = 50) -> list[dict[str, Any]]:
     """List latest records of a kind (evidence|learning|provenance|rights)."""
-    table = {
-        "evidence": "federation_evidence_records_v1",
-        "learning": "federation_learning_records_v1",
-        "provenance": "federation_provenance_records_v1",
-        "rights": "federation_rights_records_v1",
-    }[kind]
+    table = _RECORD_KIND_TABLES[kind]
     with _connect(db) as conn:
         _ensure_record_tables(conn)
-        rows = conn.execute(
-            f"SELECT * FROM {table} ORDER BY created_at DESC LIMIT ?", (limit,)
-        ).fetchall()
+        rows = conn.execute(_RECORD_SELECT_SQL_ALLOWLIST[table], (limit,)).fetchall()
     return [dict(r) for r in rows]
