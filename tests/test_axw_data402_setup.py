@@ -160,6 +160,26 @@ def test_quick_mode_places_all_four_libraries_under_user_root(
         assert body["library_health"][domain]["free_bytes"] > 0
 
 
+def test_preflight_reports_quick_mode_health_without_creating_directories(
+    client: TestClient, tmp_path: Path
+) -> None:
+    root = tmp_path / "preflight-only"
+
+    response = client.post(
+        "/api/v1/setup/preflight", json={"mode": "quick", "root": str(root)}
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["ready"] is True
+    assert body["mode"] == "quick"
+    assert set(body["domains"]) == {
+        "source_archive", "evidence_ledger", "human_learning_vault", "ai_asset_vault"
+    }
+    assert all(item["free_bytes"] > 0 for item in body["library_health"].values())
+    assert not root.exists(), "preflight must not create the selected library root"
+
+
 def test_advanced_mode_requires_four_distinct_non_nested_library_paths(
     client: TestClient, tmp_path: Path
 ) -> None:

@@ -333,6 +333,17 @@ def _domain_paths(request: SetupRequest) -> tuple[dict[str, Path], dict[str, dic
     return paths, _preflight_domain_paths(paths)
 
 
+def preflight_workspace(request: SetupRequest) -> dict[str, object]:
+    """Validate selected library paths without creating a workspace or directories."""
+    paths, health = _domain_paths(request)
+    return {
+        "ready": True,
+        "mode": request.mode,
+        "domains": {domain: str(path) for domain, path in paths.items()},
+        "library_health": health,
+    }
+
+
 def initialize_workspace(request: SetupRequest | None = None) -> dict[str, object]:
     """Create the workspace (idempotent — an existing valid workspace is
     returned as-is). Raises ``ValueError`` when an existing manifest is
