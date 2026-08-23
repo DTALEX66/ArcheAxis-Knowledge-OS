@@ -28,6 +28,11 @@ def test_knowledge_governance_owner_is_independent_and_rollback_safe(tmp_path: P
         assert "knowledge_candidate_promotions_v1" in tables
         assert "knowledge_candidate_units_v1" in tables
         assert "knowledge_candidate_relations_v1" in tables
+        assert {
+            "evidence_bundles_v1",
+            "evidence_bundle_entries_v1",
+            "evidence_bundle_reviews_v1",
+        } <= tables
         assert "graph_entities" not in tables
         assert "graph_relations" not in tables
         assert connection.execute("SELECT id FROM sentinel").fetchone()[0] == "preserve"
@@ -42,6 +47,11 @@ def test_knowledge_governance_owner_is_independent_and_rollback_safe(tmp_path: P
         assert "knowledge_candidate_promotions_v1" not in tables
         assert "knowledge_candidate_units_v1" not in tables
         assert "knowledge_candidate_relations_v1" not in tables
+        assert not {
+            "evidence_bundles_v1",
+            "evidence_bundle_entries_v1",
+            "evidence_bundle_reviews_v1",
+        } & tables
         assert connection.execute("SELECT id FROM sentinel").fetchone()[0] == "preserve"
 
 
@@ -71,9 +81,12 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
         ]
         connection.executescript(
             """
+            DROP TABLE evidence_bundle_reviews_v1;
+            DROP TABLE evidence_bundle_entries_v1;
+            DROP TABLE evidence_bundles_v1;
             DROP TABLE machine_knowledge_approval_events_v1;
             DROP TABLE learning_approval_events_v1;
-            DELETE FROM schema_migrations WHERE version IN (9, 10);
+            DELETE FROM schema_migrations WHERE version IN (9, 10, 15);
             """
         )
         connection.execute(
@@ -93,6 +106,7 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
     assert upgraded["provenance"]["applied_migrations"] == [
         "phase5_learning_approval_events_v1",
         "phase5_machine_knowledge_approval_events_v1",
+        "phase5_evidence_bundle_ledger_v1",
     ]
     status = next(
         item for item in operator.status() if item["owner"] == "knowledge-governance.sqlite"
@@ -105,6 +119,9 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
         }
     assert "learning_approval_events_v1" in tables
     assert "machine_knowledge_approval_events_v1" in tables
+    assert "evidence_bundles_v1" in tables
+    assert "evidence_bundle_entries_v1" in tables
+    assert "evidence_bundle_reviews_v1" in tables
     runs_before_reapply = len(
         [
             row
