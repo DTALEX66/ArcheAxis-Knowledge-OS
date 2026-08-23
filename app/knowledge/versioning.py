@@ -21,6 +21,7 @@ class KnowledgeVersionProposal(BaseModel):
     canonical_key: str = Field(min_length=1)
     parent_version_id: str | None = None
     content: dict[str, object]
+    evidence_bundle_id: str = Field(min_length=1)
     reviewer_id: str = Field(min_length=1)
     reviewed_at: str = Field(min_length=1)
 
@@ -60,15 +61,21 @@ def register_candidate_knowledge_version(
     content_json = _dump(proposal.content)
     fingerprint = sha256(content_json.encode()).hexdigest()
     version_id = _stable_id("knowledge-version", proposal.proposal_id)
+    from app.evidence.ledger import get_human_reviewed_bundle_on_connection
+
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
             existing = connection.execute(
-                "SELECT parent_version_id, lifecycle_status, conflict_review_id FROM knowledge_candidate_versions_v1 WHERE id=?",
+                "SELECT parent_version_id, lifecycle_status, conflict_review_id, provenance_json "
+                "FROM knowledge_candidate_versions_v1 WHERE id=?",
                 (version_id,),
             ).fetchone()
             if existing is not None:
+                existing_provenance = json.loads(str(existing["provenance_json"]))
+                if existing_provenance.get("evidence_bundle_id") != proposal.evidence_bundle_id:
+                    raise ValueError("existing version proposal binds a different evidence bundle")
                 connection.rollback()
                 return CandidateKnowledgeVersionReceipt(
                     version_id=version_id,
@@ -82,6 +89,9 @@ def register_candidate_knowledge_version(
             ).fetchone()
             if unit is None:
                 raise ValueError("version proposal requires an active candidate unit")
+            bundle, bundle_review = get_human_reviewed_bundle_on_connection(
+                proposal.evidence_bundle_id, connection
+            )
             previous = connection.execute(
                 "SELECT id, content_fingerprint FROM knowledge_candidate_versions_v1 WHERE canonical_key=? ORDER BY created_at DESC, id DESC LIMIT 1",
                 (proposal.canonical_key,),
@@ -99,7 +109,17 @@ def register_candidate_knowledge_version(
                     "INSERT INTO knowledge_candidate_conflict_reviews_v1 VALUES (?, ?, ?, ?, 'open', ?, ?)",
                     (conflict_id, proposal.canonical_key, previous["id"], version_id, proposal.reviewer_id, proposal.reviewed_at),
                 )
-            provenance = {"promotion_id": unit["promotion_id"], "package_id": unit["package_id"], "unit_id": proposal.unit_id, "parent_version_id": proposal.parent_version_id, "reviewer_id": proposal.reviewer_id, "unit_provenance": json.loads(unit["provenance_json"])}
+            provenance = {
+                "promotion_id": unit["promotion_id"],
+                "package_id": unit["package_id"],
+                "unit_id": proposal.unit_id,
+                "parent_version_id": proposal.parent_version_id,
+                "reviewer_id": proposal.reviewer_id,
+                "evidence_bundle_id": bundle.bundle_id,
+                "evidence_bundle_fingerprint": bundle.fingerprint,
+                "evidence_review_decision": bundle_review.decision,
+                "unit_provenance": json.loads(unit["provenance_json"]),
+            }
             connection.execute(
                 "INSERT INTO knowledge_candidate_versions_v1 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (version_id, proposal.unit_id, proposal.canonical_key, proposal.parent_version_id, content_json, fingerprint, lifecycle, conflict_id, _dump(provenance), proposal.reviewed_at),

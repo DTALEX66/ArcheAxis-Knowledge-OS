@@ -97,8 +97,8 @@ with pytest.raises(EvidenceBundleError, match="independent sources"):
 
 **Interfaces:**
 - `KnowledgeVersionProposal` gains `evidence_bundle_id: str`.
-- `register_candidate_knowledge_version` rejects absent, unknown, unreviewed, rejected, or `not_verifiable` bundle ids.
-- Version `provenance_json` stores `evidence_bundle_id` plus the reviewed bundle fingerprint; existing content and conflict semantics stay unchanged.
+- `register_candidate_knowledge_version` rejects absent, unknown, or unreviewed bundle ids. Human-reviewed `not_verifiable` bundles remain eligible for a candidate version but their decision is persisted and they never satisfy the verified-only retrieval helper.
+- Version `provenance_json` stores `evidence_bundle_id`, bundle fingerprint, and review decision; existing content and conflict semantics stay unchanged.
 
 - [ ] **Step 1: Write a failing versioning test** that first creates a migrated bundle, reviews it, registers a candidate version, then reads the stored provenance; add a negative test for an unreviewed bundle.
 
@@ -107,9 +107,12 @@ with pytest.raises(EvidenceBundleError, match="independent sources"):
 - [ ] **Step 3: Add the required proposal field and query `get_reviewed_bundle` inside the existing immediate transaction boundary.**
 
 ```python
-bundle = get_reviewed_bundle(proposal.evidence_bundle_id, db_path=database)
+bundle, review = get_human_reviewed_bundle_on_connection(
+    proposal.evidence_bundle_id, connection
+)
 provenance["evidence_bundle_id"] = bundle.bundle_id
 provenance["evidence_bundle_fingerprint"] = bundle.fingerprint
+provenance["evidence_review_decision"] = review.decision
 ```
 
 - [ ] **Step 4: Re-run the focused version/bundle tests and verify both pass.**
