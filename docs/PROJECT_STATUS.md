@@ -1,14 +1,14 @@
 # 项目当前状态
 
-> **v0.6.9 发布裁决（2026-08-23）**：`v0.6.9 stable — RELEASED`。标签精确绑定 `de5b5ba6efde2f306d029725c046b56d91226e4c`；main CI `32622348279`、Release `32623033058`、三种 Windows 分发包生命周期和 9 项公开资产工作流读回均通过。该裁决只证明发布层；产品逐项结论仍为 `PARTIAL`，见 [`current/AXR_060_COMPLETION_AUDIT_2026-08-23.md`](current/AXR_060_COMPLETION_AUDIT_2026-08-23.md)。
+> **v0.6.10 发布裁决（2026-08-24）**：`v0.6.10 stable — RELEASED`。标签精确绑定 `3428a65cf6445918365f76b114cc11630d9640bb`；main CI `32665051446`、Release `32665840172`、三种 Windows 分发包生命周期和 9 项公开资产工作流读回均通过。该裁决只证明发布层；产品逐项结论仍为 `PARTIAL`，见 [`current/AXR_060_COMPLETION_AUDIT_2026-08-23.md`](current/AXR_060_COMPLETION_AUDIT_2026-08-23.md)。
 
-> 更新：2026-08-09。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
+> 更新：2026-08-24。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
 
-- 当前源码版本为 `0.6.10`；packaged source manifest 按合同仍是 `unreleased / public=false`，公开 v0.6.9 identity 为 `stable / public=true`。
+- 当前源码版本为 `0.6.10`；packaged source manifest 按合同仍是 `unreleased / public=false`，公开 v0.6.10 artifact identity 为 `stable / public=true`。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
-- `v0.6.9` 已满足 tag 精确绑定 `main`、exact-SHA Full Qualification、NSIS/Green/Portable 生命周期、公开资产集合、checksum allowlist、schema v3 identity 和依赖锁读回；当前没有 Authenticode 签名声明。本机额外层只下载校验 6/9，三个大型包按 Owner 指令停止，不作为 9/9 本机读回声明。
+- `v0.6.10` 已满足 tag 精确绑定 `main`、exact-SHA Full Qualification、NSIS/Green/Portable 生命周期、公开资产集合、checksum allowlist、schema v3 identity 和依赖锁读回；当前没有 Authenticode 签名声明。本机独立层下载校验 3/9 个小型元数据资产，Release workflow 完成 9/9 下载读回。
 
 ## 当前阶段
 

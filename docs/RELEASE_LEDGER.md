@@ -33,7 +33,21 @@ correct provenance.
 | `v0.6.6` | yes | draft | no | unpublished | Historical unpublished tag at `b6c92bd`; exact-SHA CI run `32596718833` passed. Release run `32597563772` passed all three Windows lifecycle gates and uploaded the draft asset set, then the final lock readback interpolated `"$entry.Name"` as an object string plus literal suffix instead of the property value. Preserved; remediation proceeds as `v0.6.7`. |
 | `v0.6.7` | yes | yes | yes | 2026-08-22 21:50:57 | Historical public stable Release at `347d9f9`; exact-SHA CI, three Windows lifecycle gates, schema v3 identity, provider digests, checksum allowlist and independent downloaded-asset readback passed. |
 | `v0.6.8` | yes | yes | yes | 2026-08-23 00:45:26 | Historical public stable Release at `93e58a3`; six-space/source/AI closed-loop update and independent 9-asset readback passed. |
-| `v0.6.9` | yes | yes | yes | 2026-08-23 06:48:11 | Current public stable Release at `de5b5ba`; Recovery Shell, thin frontend and risk-selected CI update; exact-SHA CI, three Windows lifecycle gates and workflow public-asset readback passed. |
+| `v0.6.9` | yes | yes | yes | 2026-08-23 06:48:11 | Historical public stable Release at `de5b5ba`; Recovery Shell, thin frontend and risk-selected CI update; exact-SHA CI, three Windows lifecycle gates and workflow public-asset readback passed. |
+| `v0.6.10` | yes | yes | yes | 2026-08-23 21:02:53 | Current public stable Release at `3428a65`; real Activity Dock actions, raw-first E2E correction and latest-SHA CI recovery; exact-SHA CI, three Windows lifecycle gates and workflow public-asset readback passed. |
+
+## v0.6.10 release evidence
+
+- GitHub Release URL: <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.10>
+- Tag commit: `3428a65cf6445918365f76b114cc11630d9640bb`
+- Source tree: `828ffe3039b65d1b2fccf9c9348233342818cea1`
+- Verification exact-SHA CI: `32665051446` (success)
+- Release workflow: `32665840172` (success; distinct from verification CI)
+- Published: `2026-08-23T21:02:53Z`; public, non-draft, non-prerelease
+- Public assets: 9; Release workflow download readback and all three distribution lifecycles PASS
+- Local extra readback: 3/9 small metadata assets; provider SHA-256 digests matched. Large Windows payloads were not redundantly downloaded locally.
+
+Machine-readable receipt: `reports/release/v0.6.10/release-evidence.json`.
 
 ## v0.6.9 release evidence
 
