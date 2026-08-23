@@ -1,6 +1,40 @@
 from __future__ import annotations
 
+import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
+
+
+def _loopback_write_request() -> object:
+    from starlette.requests import Request
+
+    return Request(
+        {
+            "type": "http",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/workspace/api/delivery/dispatch",
+            "query_string": b"",
+            "headers": [(b"host", b"127.0.0.1:8000")],
+            "client": ("127.0.0.1", 4242),
+            "server": ("127.0.0.1", 8000),
+        }
+    )
+
+
+def test_browser_smoke_write_bypass_requires_explicit_opt_in(monkeypatch) -> None:
+    """The legacy browser smoke may bypass only in its explicit test process."""
+    from app.workspace.router import _require_desktop_write_request
+
+    monkeypatch.delenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", raising=False)
+    monkeypatch.delenv("COGNITIVE_DESKTOP_LAUNCH_TOKEN", raising=False)
+    monkeypatch.delenv("ARCHEAXIS_BROWSER_SMOKE_WRITE_BYPASS", raising=False)
+    with pytest.raises(HTTPException) as rejected:
+        _require_desktop_write_request(_loopback_write_request())
+    assert rejected.value.status_code == 503
+
+    monkeypatch.setenv("ARCHEAXIS_BROWSER_SMOKE_WRITE_BYPASS", "1")
+    _require_desktop_write_request(_loopback_write_request())
 
 
 def test_source_archive_projection_lists_retained_originals_without_paths(tmp_path, monkeypatch) -> None:

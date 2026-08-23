@@ -643,6 +643,10 @@ def _main() -> int:
     data_dir = os.environ.get("ARCHEAXIS_DATA_DIR", "").strip() or os.environ.get("COGNITIVE_DATA_DIR", "").strip()
     if not data_dir:
         raise RuntimeError("COGNITIVE_DATA_DIR must point to an isolated browser-smoke directory")
+    # The legacy same-origin Workspace exercise predates the desktop WebView
+    # credential handoff.  Limit its no-token writes to this explicit CI smoke
+    # process; normal browser and desktop requests remain credential-gated.
+    os.environ["ARCHEAXIS_BROWSER_SMOKE_WRITE_BYPASS"] = "1"
     # The smoke must be repeatable against the same directory: drop the
     # previous run's SQLite and PDF store so strict command-receipt reads
     # never collide with stale bindings from an earlier invocation.

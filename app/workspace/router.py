@@ -93,16 +93,20 @@ def _require_desktop_write_request(request: Request) -> None:
 
     The desktop launcher injects both the launch token and its issued scopes
     into the Core environment.  A caller may request only a scope the launcher
-    issued, and every write needs a bounded idempotency key.  TestClient is
-    intentionally exempt only when no desktop credential has been configured;
-    it cannot model a launched desktop Core otherwise.
+    issued, and every write needs a bounded idempotency key. TestClient and the
+    explicit browser-smoke process are intentionally exempt only when no
+    desktop credential has been configured; neither can model a launched
+    desktop Core otherwise.
     """
     _require_local_request(request)
     expected_token = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv(
         "COGNITIVE_DESKTOP_LAUNCH_TOKEN", ""
     )
     if not expected_token:
-        if request.client is not None and request.client.host == "testclient":
+        if (
+            request.client is not None
+            and request.client.host == "testclient"
+        ) or os.getenv("ARCHEAXIS_BROWSER_SMOKE_WRITE_BYPASS") == "1":
             return
         raise HTTPException(status_code=503, detail="desktop write authorization is unavailable")
     supplied_token = request.headers.get("x-archeaxis-launch-token", "")
