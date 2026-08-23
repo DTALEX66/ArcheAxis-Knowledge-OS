@@ -28,6 +28,12 @@ CI 覆盖。
 | AXR-060-203 raw-first Web | `9cd8608` | `TESTED_LOCAL` + `CI_VERIFIED_EXACT_SHA` | 隔离网络的真实 HTTP 证据与页面级损失评估。 |
 | AXR-060-403 Dock | `cab4095` | `IMPLEMENTED_LOCAL` + `CI_VERIFIED_EXACT_SHA` | Inspector conflict/rights/full history，真实取消与错误详情合同。 |
 
+## 发布后精确 SHA 增量
+
+| 切片 | 已验证代码提交 | 精确 CI | 边界 |
+| --- | --- | --- | --- |
+| AXR-060-303 Bundle 只读检查器 | `main@20fb72ad86b876a993f1ffe1a4c25da70bc0a0c2` | `32669760922`，success | 风险选择 CI；不替代安装态或跨库 E2E。 |
+
 “已进入 main”仅证明源码与该 SHA 的 CI；不证明干净安装机、真实旧数据迁移或无障碍人工矩阵。
 
 ## 仍未关闭的最短执行顺序

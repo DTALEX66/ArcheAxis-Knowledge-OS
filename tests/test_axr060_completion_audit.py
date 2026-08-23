@@ -84,9 +84,9 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
     latest = releases[-1]["source"]
     assert latest["commit_sha"] in delta
     assert latest["tree_sha"] in delta
-    document_commit = re.search(r"`main@([0-9a-f]{40})`", delta)
-    assert document_commit is not None
-    allowed_shas.add(document_commit.group(1))
+    declared_delta_shas = set(re.findall(r"`main@([0-9a-f]{40})`", delta))
+    assert declared_delta_shas
+    allowed_shas.update(declared_delta_shas)
     surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]
     surfaces.extend((ROOT / "docs" / "current").glob("*"))
     surfaces.extend((ROOT / "reports" / "current").glob("*"))
