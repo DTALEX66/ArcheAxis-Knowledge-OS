@@ -15,6 +15,7 @@ import pytest
 HTML = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>测试页</title></head>
 <body><h1>记忆宫殿方法</h1>
 <p>记忆宫殿是一种利用空间位置编码信息来增强记忆的技术。地点法是最常用的记忆宫殿方法。</p>
+<p>学习者可以沿着熟悉的空间路径，把待记信息与地点逐一关联，再按路径回忆。</p>
 </body></html>"""
 
 
@@ -45,11 +46,6 @@ def _local_fetcher(html: bytes):
     return _fetch
 
 
-def _fake_convert_url(url, monkeypatch, text):
-    monkeypatch.setattr("app.ingestion.multi_format.convert_url",
-                        lambda u: (text, "test-html"))
-
-
 def _local_policy(local_site):
     from shared.safe_http import SafeHTTPPolicy
     import urllib.parse
@@ -57,9 +53,8 @@ def _local_policy(local_site):
     return SafeHTTPPolicy(allowed_ports=(80, 443, port))
 
 
-def test_web_full_chain_capture_extract(local_site, monkeypatch):
+def test_web_full_chain_capture_extract(local_site):
     from app.ingestion.web import capture_web
-    _fake_convert_url(local_site, monkeypatch, "记忆宫殿是一种利用空间位置编码信息来增强记忆的技术。")
     result = capture_web(local_site, policy=_local_policy(local_site),
                          raw_fetcher=_local_fetcher(HTML.encode("utf-8")))
     receipt = result["receipt"]
@@ -83,15 +78,13 @@ def test_web_full_chain_screenshot_ocr_crosscheck(local_site, tmp_path):
     assert ("记忆宫殿" in ocr["text"]) or ("记忆" in ocr["text"] and "宫殿" in ocr["text"])
 
 
-def test_web_full_chain_ingest_and_convert(local_site, monkeypatch):
-    # raw-first capture -> convert_url chain produces extracted text
+def test_web_full_chain_ingest_and_convert(local_site):
+    # Raw-first capture extracts only the saved HTML; it must not depend on a
+    # second URL fetch or the obsolete convert_url chain.
     from app.ingestion.web import capture_web
-    _fake_convert_url(local_site, monkeypatch,
-                      "记忆宫殿方法：利用空间位置编码信息增强记忆。地点法是最常用的记忆宫殿方法。"
-                      "学习者在脑中构建熟悉的空间路径，将待记信息与地点一一对应，"
-                      "回忆时沿路径依次检索，即可复现全部信息。")
     cap = capture_web(local_site, policy=_local_policy(local_site),
                       raw_fetcher=_local_fetcher(HTML.encode("utf-8")))
     assert cap["receipt"]["text_chars"] > 50
-    # conversion result content carries the knowledge
+    assert cap["receipt"]["text_chars"] == len(cap["text"])
+    # Extracted content carries the knowledge present in the saved raw page.
     assert "记忆宫殿" in cap["text"] or "空间位置" in cap["text"]
