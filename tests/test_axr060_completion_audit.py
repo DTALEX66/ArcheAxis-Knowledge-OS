@@ -62,7 +62,7 @@ def test_axr060_audit_keeps_release_and_product_completion_separate() -> None:
 
 def test_tracked_current_surfaces_do_not_retain_stale_sha_snapshots() -> None:
     release = json.loads(
-        (ROOT / "reports" / "release" / "v0.6.8" / "release-evidence.json").read_text(
+        (ROOT / "reports" / "release" / "v0.6.9" / "release-evidence.json").read_text(
             encoding="utf-8"
         )
     )

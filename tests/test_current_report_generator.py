@@ -31,9 +31,9 @@ def test_current_report_generator_emits_exact_sha_bound_reports(tmp_path: Path) 
     assert baseline["tree_sha"] == exact["tree_sha"]
     assert baseline["taskpack_baseline_sha"] == DEFAULT_TASKPACK_BASELINE
     assert baseline["release"]["state"] == "stable"
-    assert baseline["release"]["tag"] == "v0.6.8"
+    assert baseline["release"]["tag"] == "v0.6.9"
     assert baseline["release"]["commit_sha"] == (
-        "93e58a3b2c537dd348903dd2296933e0cfb5a503"
+        "de5b5ba6efde2f306d029725c046b56d91226e4c"
     )
     assert matrix["overall_status"] == "PARTIAL"
     assert matrix["release_gate"] == "PASS"
@@ -41,8 +41,8 @@ def test_current_report_generator_emits_exact_sha_bound_reports(tmp_path: Path) 
         "PASS"
     )
     assert matrix["capabilities"]["six_space_ui_real_data"] == "PARTIAL"
-    assert matrix["release_evidence"]["verification_ci_run_id"] == 32607097436
-    assert matrix["release_evidence"]["release_run_id"] == 32607789507
+    assert matrix["release_evidence"]["verification_ci_run_id"] == 32622348279
+    assert matrix["release_evidence"]["release_run_id"] == 32623033058
 
 
 def test_default_current_report_output_is_an_ignored_project_artifact() -> None:
