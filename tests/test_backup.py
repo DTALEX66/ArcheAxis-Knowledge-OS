@@ -42,6 +42,83 @@ def test_restore_backup_stages_and_activates_explicit_backup_path(
     assert capsys.readouterr().out == '{"status":"restored"}\n'
 
 
+def test_restore_backup_requires_path_before_calling_backup_code(monkeypatch, capsys):
+    from app import runtime_entrypoint
+
+    events: list[str] = []
+    monkeypatch.setattr(backup_module, "restore", lambda _source: events.append("restore"))
+    monkeypatch.setattr(
+        backup_module, "activate_restore", lambda _candidate: events.append("activate")
+    )
+
+    with pytest.raises(SystemExit) as error:
+        runtime_entrypoint.main(["restore-backup"])
+
+    assert error.value.code == 2
+    assert events == []
+    assert capsys.readouterr().out == ""
+
+
+def test_restore_backup_propagates_restore_failure_without_activation(
+    monkeypatch, tmp_path, capsys
+):
+    from app import runtime_entrypoint
+
+    backup_path = tmp_path / "offline-backup.sqlite"
+    failure = RuntimeError("restore failed")
+    events: list[tuple[str, str]] = []
+
+    def restore(source: str) -> str:
+        events.append(("restore", source))
+        raise failure
+
+    def activate_restore(candidate: str) -> str:
+        events.append(("activate_restore", candidate))
+        return candidate
+
+    monkeypatch.setattr(backup_module, "restore", restore)
+    monkeypatch.setattr(backup_module, "activate_restore", activate_restore)
+
+    with pytest.raises(RuntimeError) as error:
+        runtime_entrypoint.main(["restore-backup", str(backup_path)])
+
+    assert error.value is failure
+    assert events == [("restore", str(backup_path))]
+    assert capsys.readouterr().out == ""
+
+
+def test_restore_backup_propagates_activation_failure_without_success_receipt(
+    monkeypatch, tmp_path, capsys
+):
+    from app import runtime_entrypoint
+
+    backup_path = tmp_path / "offline-backup.sqlite"
+    candidate_path = tmp_path / "restore-candidate.sqlite"
+    failure = RuntimeError("activation failed")
+    events: list[tuple[str, str]] = []
+
+    def restore(source: str) -> str:
+        events.append(("restore", source))
+        return str(candidate_path)
+
+    def activate_restore(candidate: str) -> str:
+        events.append(("activate_restore", candidate))
+        raise failure
+
+    monkeypatch.setattr(backup_module, "restore", restore)
+    monkeypatch.setattr(backup_module, "activate_restore", activate_restore)
+
+    with pytest.raises(RuntimeError) as error:
+        runtime_entrypoint.main(["restore-backup", str(backup_path)])
+
+    assert error.value is failure
+    assert events == [
+        ("restore", str(backup_path)),
+        ("activate_restore", str(candidate_path)),
+    ]
+    assert capsys.readouterr().out == ""
+
+
 def _create_migrated_database(monkeypatch, path: Path, backup_dir: Path, title: str) -> None:
     from app.memory import database as memory_database
     from shared import migration, storage
