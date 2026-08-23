@@ -21,6 +21,7 @@ fn launches_token_bound_core_and_shuts_down_cleanly() {
         cwd: root.clone(),
         data_dir: root.join(".hermes/task-runtime/desktop-rust-lifecycle-smoke"),
         isolated: false,
+        external_dev: true,
     };
 
     let mut backend = BackendProcess::launch(&runtime)
@@ -41,6 +42,7 @@ fn installed_core_launches_in_isolated_mode_and_shuts_down_cleanly() {
         cwd: data_dir.clone(),
         data_dir,
         isolated: true,
+        external_dev: false,
     };
 
     let mut backend = BackendProcess::launch(&runtime)

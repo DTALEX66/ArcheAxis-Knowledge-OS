@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::path::{Component, Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -6,6 +7,11 @@ pub struct RuntimeSpec {
     pub cwd: PathBuf,
     pub data_dir: PathBuf,
     pub isolated: bool,
+    pub external_dev: bool,
+}
+
+pub fn external_dev_enabled(debug_build: bool, value: Option<&OsStr>) -> bool {
+    debug_build && value == Some(OsStr::new("1"))
 }
 
 /// Resolve the data root for a portable distribution.  An explicitly supplied
@@ -65,10 +71,27 @@ pub fn resolve_runtime_with_portable_root(
     manifest_dir: &Path,
     resource_dir: &Path,
     local_data_dir: &Path,
-    development: bool,
+    debug_build: bool,
     portable_root: Option<&Path>,
 ) -> Result<RuntimeSpec, String> {
-    if development {
+    let external_dev_flag = std::env::var_os("ARCHEAXIS_EXTERNAL_DEV");
+    resolve_runtime_for_profile(
+        manifest_dir,
+        resource_dir,
+        local_data_dir,
+        external_dev_enabled(debug_build, external_dev_flag.as_deref()),
+        portable_root,
+    )
+}
+
+fn resolve_runtime_for_profile(
+    manifest_dir: &Path,
+    resource_dir: &Path,
+    local_data_dir: &Path,
+    external_dev: bool,
+    portable_root: Option<&Path>,
+) -> Result<RuntimeSpec, String> {
+    if external_dev {
         let desktop_dir = manifest_dir
             .parent()
             .ok_or_else(|| "desktop manifest has no parent".to_owned())?;
@@ -87,6 +110,7 @@ pub fn resolve_runtime_with_portable_root(
             cwd: root.to_path_buf(),
             data_dir: root.join(".hermes/task-runtime/desktop-dev"),
             isolated: false,
+            external_dev: true,
         });
     }
 
@@ -109,6 +133,7 @@ pub fn resolve_runtime_with_portable_root(
             cwd: portable_root.to_path_buf(),
             data_dir: portable_root.to_path_buf(),
             isolated: true,
+            external_dev: false,
         });
     }
     let data_dir = project_root_for_resource(resource_dir)
@@ -119,17 +144,29 @@ pub fn resolve_runtime_with_portable_root(
         cwd: data_dir.clone(),
         data_dir,
         isolated: true,
+        external_dev: false,
     })
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        portable_root_from_marker, resolve_runtime, resolve_runtime_with_portable_root, RuntimeSpec,
+        external_dev_enabled, portable_root_from_marker, resolve_runtime,
+        resolve_runtime_for_profile, resolve_runtime_with_portable_root, RuntimeSpec,
     };
+    use std::ffi::OsStr;
     use std::fs;
     use std::path::Path;
     use tempfile::tempdir;
+
+    #[test]
+    fn external_dev_requires_debug_build_and_exact_one_flag() {
+        assert!(external_dev_enabled(true, Some(OsStr::new("1"))));
+        assert!(!external_dev_enabled(true, None));
+        assert!(!external_dev_enabled(true, Some(OsStr::new("true"))));
+        assert!(!external_dev_enabled(true, Some(OsStr::new("01"))));
+        assert!(!external_dev_enabled(false, Some(OsStr::new("1"))));
+    }
 
     #[test]
     fn development_uses_only_the_repository_virtual_environment() {
@@ -141,11 +178,12 @@ mod tests {
         fs::create_dir_all(&manifest).expect("create manifest directory");
         fs::write(&python, b"test").expect("create python marker");
 
-        let resolved = resolve_runtime(
+        let resolved = resolve_runtime_for_profile(
             &manifest,
             &temp.path().join("unused-resources"),
             &temp.path().join("unused-data"),
             true,
+            None,
         )
         .expect("development runtime");
 
@@ -156,6 +194,7 @@ mod tests {
                 cwd: root.clone(),
                 data_dir: root.join(".hermes/task-runtime/desktop-dev"),
                 isolated: false,
+                external_dev: true,
             }
         );
     }
@@ -184,6 +223,7 @@ mod tests {
                 cwd: local_data.clone(),
                 data_dir: local_data,
                 isolated: true,
+                external_dev: false,
             }
         );
     }
@@ -198,11 +238,12 @@ mod tests {
         fs::create_dir_all(&manifest).expect("create manifest directory");
         fs::write(&python, b"test").expect("create python marker");
 
-        let resolved = resolve_runtime(
+        let resolved = resolve_runtime_for_profile(
             &manifest,
             &temp.path().join("unused-resources"),
             &temp.path().join("unused-data"),
             true,
+            None,
         )
         .expect("development runtime");
 

@@ -4,6 +4,7 @@ use crate::runtime::RuntimeSpec;
 use std::collections::VecDeque;
 use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -13,7 +14,9 @@ const MIGRATION_TIMEOUT: Duration = Duration::from_secs(120);
 const READINESS_TIMEOUT: Duration = Duration::from_secs(30);
 const READINESS_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(8);
+const RESTORE_TIMEOUT: Duration = Duration::from_secs(120);
 const MAX_LOG_LINES: usize = 200;
+const MAX_ONE_SHOT_OUTPUT_BYTES: usize = 16 * 1024;
 const SANITIZED_ENVIRONMENT: [&str; 16] = [
     "PYTHONPATH",
     "PYTHONHOME",
@@ -112,6 +115,16 @@ impl BackendProcess {
     pub fn log_tail(&self) -> String {
         format_logs(&self.logs)
     }
+
+    pub fn exit_diagnostic(&mut self) -> Result<Option<String>, String> {
+        self.child
+            .try_wait()
+            .map(|status| {
+                status
+                    .map(|status| format!("desktop Core exited with {status}\n{}", self.log_tail()))
+            })
+            .map_err(|error| format!("failed to inspect desktop Core: {error}"))
+    }
 }
 
 impl Drop for BackendProcess {
@@ -119,6 +132,100 @@ impl Drop for BackendProcess {
         self.shutdown();
         let _ = &self.job;
     }
+}
+
+struct BoundedOutput {
+    bytes: Vec<u8>,
+    truncated: bool,
+}
+
+fn read_bounded_output<R: Read>(mut reader: R) -> BoundedOutput {
+    let mut bytes = Vec::with_capacity(MAX_ONE_SHOT_OUTPUT_BYTES);
+    let mut truncated = false;
+    let mut chunk = [0_u8; 4096];
+    loop {
+        let Ok(size) = reader.read(&mut chunk) else {
+            break;
+        };
+        if size == 0 {
+            break;
+        }
+        let remaining = MAX_ONE_SHOT_OUTPUT_BYTES.saturating_sub(bytes.len());
+        let retained = remaining.min(size);
+        bytes.extend_from_slice(&chunk[..retained]);
+        truncated |= retained != size;
+    }
+    BoundedOutput { bytes, truncated }
+}
+
+fn restore_receipt_valid(output: &[u8], truncated: bool) -> bool {
+    if truncated {
+        return false;
+    }
+    matches!(
+        std::str::from_utf8(output),
+        Ok("{\"status\":\"restored\"}")
+            | Ok("{\"status\":\"restored\"}\n")
+            | Ok("{\"status\":\"restored\"}\r\n")
+    )
+}
+
+pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(), String> {
+    let job = Job::new()?;
+    let mut command = runtime_command(runtime);
+    command
+        .args(["-m", "app.runtime_entrypoint", "restore-backup"])
+        .arg(backup_path)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    let mut child = command
+        .spawn()
+        .map_err(|error| format!("failed to start offline restore: {error}"))?;
+    if let Err(error) = job.assign(&child) {
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(error);
+    }
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "offline restore stdout was unavailable".to_owned())?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| "offline restore stderr was unavailable".to_owned())?;
+    let stdout_reader = thread::spawn(move || read_bounded_output(stdout));
+    let stderr_reader = thread::spawn(move || read_bounded_output(stderr));
+    let status = match wait_for_exit(&mut child, RESTORE_TIMEOUT) {
+        Ok(status) => status,
+        Err(error) => {
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = stdout_reader.join();
+            let _ = stderr_reader.join();
+            return Err(format!("offline restore timed out: {error}"));
+        }
+    };
+    let stdout = stdout_reader
+        .join()
+        .map_err(|_| "offline restore stdout reader failed".to_owned())?;
+    let stderr = stderr_reader
+        .join()
+        .map_err(|_| "offline restore stderr reader failed".to_owned())?;
+    if !status.success() {
+        return Err(format!(
+            "offline restore failed with {status}: {}",
+            String::from_utf8_lossy(&stderr.bytes)
+        ));
+    }
+    if !restore_receipt_valid(&stdout.bytes, stdout.truncated) {
+        return Err(format!(
+            "offline restore returned an invalid receipt: {}",
+            String::from_utf8_lossy(&stdout.bytes)
+        ));
+    }
+    Ok(())
 }
 
 fn runtime_command(runtime: &RuntimeSpec) -> Command {
@@ -347,10 +454,13 @@ fn format_logs(logs: &LogBuffer) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{readiness_payload_valid, response_body, runtime_command};
+    use super::{readiness_payload_valid, response_body, restore_receipt_valid, runtime_command};
     use crate::runtime::RuntimeSpec;
     use std::ffi::OsStr;
     use std::path::PathBuf;
+    use std::process::{Command, Stdio};
+    use std::thread;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn installed_runtime_never_writes_bytecode_into_the_bundle() {
@@ -359,6 +469,7 @@ mod tests {
             cwd: PathBuf::from("writable-data"),
             data_dir: PathBuf::from("writable-data"),
             isolated: true,
+            external_dev: false,
         };
 
         let command = runtime_command(&runtime);
@@ -388,6 +499,7 @@ mod tests {
             cwd: PathBuf::from("writable-data"),
             data_dir: PathBuf::from("writable-data"),
             isolated: true,
+            external_dev: false,
         };
 
         let command = runtime_command(&runtime);
@@ -402,5 +514,51 @@ mod tests {
             .and_then(|(_, value)| *value);
         assert_eq!(canonical, Some(OsStr::new("writable-data")));
         assert_eq!(legacy, Some(OsStr::new("writable-data")));
+    }
+
+    #[test]
+    fn restore_receipt_rejects_paths_extra_output_and_truncation() {
+        assert!(restore_receipt_valid(b"{\"status\":\"restored\"}\n", false));
+        for invalid in [
+            b"{\"status\":\"restored\",\"path\":\"private.sqlite\"}".as_slice(),
+            b"C:\\private\\backup.sqlite\n{\"status\":\"restored\"}".as_slice(),
+            b"{\"status\":\"restored\"}\nextra".as_slice(),
+            b"{\"status\":\"failed\"}".as_slice(),
+            b"\xff\xfe".as_slice(),
+        ] {
+            assert!(!restore_receipt_valid(invalid, false));
+        }
+        assert!(!restore_receipt_valid(b"{\"status\":\"restored\"}", true));
+    }
+
+    #[test]
+    fn later_core_exit_is_reported_without_exposing_backend_info() {
+        let job = crate::job::Job::new().expect("create test job");
+        let child = Command::new("cmd.exe")
+            .args(["/d", "/c", "exit 7"])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("spawn short-lived child");
+        job.assign(&child).expect("assign child to test job");
+        let mut backend = super::BackendProcess {
+            port: 4312,
+            token: "test-only".to_owned(),
+            child,
+            job,
+            logs: super::new_log_buffer(),
+        };
+        let deadline = Instant::now() + Duration::from_secs(2);
+
+        let diagnostic = loop {
+            if let Some(diagnostic) = backend.exit_diagnostic().expect("poll child exit") {
+                break diagnostic;
+            }
+            assert!(Instant::now() < deadline, "child exit was not detected");
+            thread::sleep(Duration::from_millis(20));
+        };
+
+        assert!(diagnostic.contains("exited"));
     }
 }
