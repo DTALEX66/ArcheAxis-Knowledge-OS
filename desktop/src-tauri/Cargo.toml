@@ -1,6 +1,6 @@
 [package]
 name = "archeaxis-desktop-shell"
-version = "0.6.10"
+version = "0.6.11"
 edition = "2024"
 rust-version = "1.88"
 

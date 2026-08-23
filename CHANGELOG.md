@@ -5,6 +5,9 @@ must be read from Git/GitHub; a source entry does not itself prove publication.
 
 ## [Unreleased]
 
+- Prepared the single `0.6.11` release candidate for the post-release closed-loop
+  batch; this source entry is not a published release claim.
+
 ## [0.6.10] - 2026-08-24
 
 - Completed the desktop write-boundary handshake: the frontend obtains scoped
