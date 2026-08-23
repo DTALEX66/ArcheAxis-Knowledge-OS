@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import base64
+from datetime import datetime
+from hashlib import sha256
+import sys
 
 import pytest
 
 from app.ingestion.web import WebCaptureError, capture_web, ingest_web
+from app.ingestion.raw_asset import RawAssetStore
 from app.ingestion.asr_adapter import AsrError, resolve_model_dir, transcribe
 from app.memory.long_term import add_from_conversation, classify_kind, LongTermMemoryError
 from app.memory.memory_layers import MemoryLayer, WORKING_MEMORY_CAPACITY, check_memory_pressure, store
@@ -30,22 +34,142 @@ def test_capture_requires_url():
         capture_web("")
 
 
-def test_capture_raw_first_with_injected_fetcher(monkeypatch):
-    raw = "<html><body>测试内容</body></html>".encode("utf-8")
+def test_capture_raw_first_with_injected_fetcher(tmp_path):
+    raw = b"<html><body>original document</body></html>"
 
     def fake_fetch(url, policy):
         return _FakeResponse(raw)
 
-    # patch convert_url to avoid network
-    monkeypatch.setattr("app.ingestion.multi_format.convert_url",
-                        lambda url: ("提取出的文本", "trafilatura"))
-    result = capture_web("https://example.com/page", raw_fetcher=fake_fetch)
+    result = capture_web(
+        "https://example.com/page",
+        raw_fetcher=fake_fetch,
+        raw_store=RawAssetStore(root=tmp_path / "raw-assets"),
+    )
     assert result["receipt"]["raw_bytes"] == len(raw)
-    assert result["receipt"]["text_chars"] == len("提取出的文本")
-    assert result["receipt"]["engine"] == "trafilatura"
+    assert result["receipt"]["text_chars"] == len(result["text"])
+    assert result["receipt"]["engine"] in {"safe-http+trafilatura", "safe-http+raw"}
     assert result["receipt"]["raw_hash"]
     assert base64.b64decode(result["raw"]) == raw
-    assert result["text"] == "提取出的文本"
+    assert "original document" in result["text"]
+
+
+def test_capture_extracts_the_saved_raw_snapshot_without_a_second_fetch(monkeypatch, tmp_path):
+    raw = b"<html><body>raw snapshot only</body></html>"
+
+    def fake_fetch(url, policy):
+        return _FakeResponse(raw)
+
+    def second_fetch_is_forbidden(url):
+        raise AssertionError("web capture must not fetch the URL a second time")
+
+    monkeypatch.setattr("app.ingestion.multi_format.convert_url", second_fetch_is_forbidden)
+
+    result = capture_web(
+        "https://example.com/page",
+        raw_fetcher=fake_fetch,
+        raw_store=RawAssetStore(root=tmp_path / "raw-assets"),
+    )
+
+    assert "raw snapshot only" in result["text"]
+
+
+def test_capture_receipt_binds_full_raw_hash_and_response_metadata(tmp_path):
+    raw = b"<html><body>immutable web response</body></html>"
+    response = _FakeResponse(
+        raw,
+        headers={
+            "content-type": "text/html; charset=utf-8",
+            "etag": '"revision-1"',
+            "last-modified": "Wed, 21 Oct 2015 07:28:00 GMT",
+        },
+    )
+    response.url = "https://example.com/final"
+
+    result = capture_web(
+        "https://example.com/original",
+        raw_fetcher=lambda _url, _policy: response,
+        raw_store=RawAssetStore(root=tmp_path / "raw-assets"),
+    )
+    receipt = result["receipt"]
+
+    assert receipt["raw_hash"] == sha256(raw).hexdigest()
+    assert receipt["final_url"] == "https://example.com/final"
+    assert receipt["content_type"] == "text/html"
+    assert receipt["etag"] == '"revision-1"'
+    assert receipt["last_modified"] == "Wed, 21 Oct 2015 07:28:00 GMT"
+    assert datetime.fromisoformat(receipt["captured_at"].replace("Z", "+00:00")).tzinfo is not None
+
+
+def test_capture_persists_raw_response_before_local_extraction(tmp_path):
+    raw = b"<html><body>persisted before conversion</body></html>"
+    store = RawAssetStore(root=tmp_path / "raw-assets")
+
+    result = capture_web(
+        "https://example.com/persist",
+        raw_fetcher=lambda _url, _policy: _FakeResponse(raw),
+        raw_store=store,
+    )
+
+    assert store.resolve(result["receipt"]["raw_hash"]).read_bytes() == raw
+
+
+def test_capture_marks_raw_html_fallback_as_degraded_loss(monkeypatch, tmp_path):
+    raw = b"<html><body>source retained</body></html>"
+    monkeypatch.setattr(
+        "app.ingestion.web._extract_saved_html",
+        lambda _raw: (raw.decode("utf-8"), "safe-http+raw"),
+    )
+
+    result = capture_web(
+        "https://example.com/raw",
+        raw_fetcher=lambda _url, _policy: _FakeResponse(raw),
+        raw_store=RawAssetStore(root=tmp_path / "raw-assets"),
+    )
+
+    assert result["loss_report"] == {
+        "status": "degraded",
+        "warnings": ["content extraction unavailable; raw HTML retained"],
+    }
+
+
+def test_capture_marks_successful_html_extraction_loss_as_not_assessed(monkeypatch, tmp_path):
+    raw = b"<html><body>text-focused extraction</body></html>"
+    monkeypatch.setattr(
+        "app.ingestion.web._extract_saved_html",
+        lambda _raw: ("text-focused extraction", "safe-http+trafilatura"),
+    )
+
+    result = capture_web(
+        "https://example.com/extracted",
+        raw_fetcher=lambda _url, _policy: _FakeResponse(raw),
+        raw_store=RawAssetStore(root=tmp_path / "raw-assets"),
+    )
+
+    assert result["loss_report"] == {
+        "status": "not_assessed",
+        "warnings": ["HTML extraction loss has not been structurally assessed"],
+    }
+
+
+def test_capture_keeps_raw_snapshot_when_optional_html_extractor_crashes(monkeypatch, tmp_path):
+    raw = b"<html><body>recoverable response</body></html>"
+
+    class BrokenTrafilatura:
+        @staticmethod
+        def extract(*_args, **_kwargs):
+            raise RuntimeError("extractor crashed")
+
+    monkeypatch.setitem(sys.modules, "trafilatura", BrokenTrafilatura)
+
+    result = capture_web(
+        "https://example.com/recover",
+        raw_fetcher=lambda _url, _policy: _FakeResponse(raw),
+        raw_store=RawAssetStore(root=tmp_path / "raw-assets"),
+    )
+
+    assert result["receipt"]["engine"] == "safe-http+raw"
+    assert result["loss_report"]["status"] == "degraded"
+    assert base64.b64decode(result["raw"]) == raw
 
 
 def test_capture_blocks_content_type(monkeypatch):
