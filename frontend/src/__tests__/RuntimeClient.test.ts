@@ -10,6 +10,21 @@ import {
   resetRuntimeClient,
   verifyBackup,
 } from "../api/runtime";
+import * as runtime from "../api/runtime";
+
+interface RecoveryRuntimeApi {
+  getRecoveryStatus: () => Promise<{
+    state: string;
+    safe_mode: boolean;
+    backend_available: boolean;
+    message: string;
+    backups: string[];
+  }>;
+  getRecoveryLogTail: () => Promise<{ lines: string[] }>;
+  enterRecoverySafeMode: () => Promise<unknown>;
+  restoreRecoveryBackup: (name: string) => Promise<unknown>;
+  exitRecoveryApplication: () => Promise<void>;
+}
 
 describe("runtime handshake client", () => {
   afterEach(() => {
@@ -69,5 +84,51 @@ describe("runtime handshake client", () => {
     expect(calls.some(([url]) => url.endsWith("/workspace/api/backup/verify?name=release-check"))).toBe(true);
     expect(calls.some(([url]) => url.endsWith("/workspace/api/v1/home"))).toBe(true);
     expect(calls.some(([url]) => url.endsWith("/workspace/api/v1/activity?limit=5"))).toBe(true);
+  });
+
+  it("uses Tauri-only recovery commands and rejects a backup name outside the enumerated opaque list", async () => {
+    const invoke = vi.fn(async (command: string) => {
+      if (command === "recovery_status") {
+        return {
+          state: "failed",
+          safe_mode: false,
+          backend_available: false,
+          message: "Core startup is unavailable",
+          backups: ["backup-20260823T010203Z.axbak"],
+        };
+      }
+      if (command === "recovery_log_tail") return { lines: ["Core startup is unavailable"] };
+      if (command === "enter_safe_mode") return { safe_mode: true };
+      if (command === "restore_backup") return { status: "restored" };
+      if (command === "exit_application") return undefined;
+      throw new Error(`unexpected command: ${command}`);
+    });
+    const fetchMock = vi.fn();
+    window.__TAURI__ = { core: { invoke } };
+    vi.stubGlobal("fetch", fetchMock);
+    const recovery = runtime as typeof runtime & RecoveryRuntimeApi;
+
+    await expect(recovery.getRecoveryStatus()).resolves.toMatchObject({
+      state: "failed",
+      backups: ["backup-20260823T010203Z.axbak"],
+    });
+    await expect(recovery.getRecoveryLogTail()).resolves.toEqual({
+      lines: ["Core startup is unavailable"],
+    });
+    await recovery.enterRecoverySafeMode();
+    await recovery.restoreRecoveryBackup("backup-20260823T010203Z.axbak");
+    await recovery.exitRecoveryApplication();
+    await expect(recovery.restoreRecoveryBackup("../private-backup.axbak")).rejects.toThrow(
+      /enumerated opaque backup/i,
+    );
+
+    expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
+    expect(invoke).toHaveBeenNthCalledWith(2, "recovery_log_tail");
+    expect(invoke).toHaveBeenNthCalledWith(3, "enter_safe_mode");
+    expect(invoke).toHaveBeenNthCalledWith(4, "restore_backup", {
+      name: "backup-20260823T010203Z.axbak",
+    });
+    expect(invoke).toHaveBeenNthCalledWith(5, "exit_application");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

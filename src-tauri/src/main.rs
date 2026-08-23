@@ -1,5 +1,105 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+// Task 1 freezes the Recovery Shell contract before its implementation exists.
+// The module is test-only so this RED stage does not alter packaged behavior.
+#[cfg(all(test, windows))]
+#[path = "recovery.rs"]
+mod recovery;
+
+#[cfg(all(test, windows))]
+mod recovery_contract_tests {
+    use super::recovery::{
+        sanitize_recovery_message, validate_enumerated_backup_name, RecoveryLogTailDto,
+        RecoveryState, RecoveryStatusDto,
+    };
+
+    fn contains_forbidden_key(value: &serde_json::Value, forbidden: &str) -> bool {
+        match value {
+            serde_json::Value::Object(object) => object.iter().any(|(key, nested)| {
+                key.eq_ignore_ascii_case(forbidden) || contains_forbidden_key(nested, forbidden)
+            }),
+            serde_json::Value::Array(items) => items
+                .iter()
+                .any(|nested| contains_forbidden_key(nested, forbidden)),
+            _ => false,
+        }
+    }
+
+    #[test]
+    fn sanitization_is_bounded_and_removes_tokens_paths_and_http_bodies() {
+        let input = format!(
+            "token=launch-secret C:\\Users\\Alex\\private\\vault.db \\ \\\\server\\share \\ \
+             http://127.0.0.1:4312/api body={{\"secret\":\"value\"}} {}",
+            "x".repeat(512)
+        );
+        let sanitized = sanitize_recovery_message(&input);
+
+        assert!(sanitized.len() <= 240);
+        for forbidden in [
+            "launch-secret",
+            "C:\\Users\\Alex\\private\\vault.db",
+            "\\\\server\\share",
+            "http://127.0.0.1:4312/api",
+            "\"secret\":\"value\"",
+        ] {
+            assert!(!sanitized.contains(forbidden), "leaked {forbidden}");
+        }
+    }
+
+    #[test]
+    fn restore_selection_rejects_traversal_and_unknown_backup_names() {
+        let backups = ["backup-20260823T010203Z.axbak"];
+
+        assert!(
+            validate_enumerated_backup_name(backups, "backup-20260823T010203Z.axbak").is_ok()
+        );
+        for invalid in [
+            "../private.axbak",
+            "C:\\private.axbak",
+            "backup/child.axbak",
+            "unknown.axbak",
+        ] {
+            assert!(
+                validate_enumerated_backup_name(backups, invalid).is_err(),
+                "accepted {invalid}"
+            );
+        }
+    }
+
+    #[test]
+    fn safe_mode_stops_core_and_preserves_recovery_operations() {
+        let mut state = RecoveryState::failed("Core startup is unavailable");
+
+        state.enter_safe_mode();
+
+        assert!(state.safe_mode());
+        assert!(!state.may_start_core());
+        assert!(state.recovery_operations_available());
+    }
+
+    #[test]
+    fn recovery_dtos_exclude_tokens_paths_and_request_response_bodies() {
+        let status = RecoveryStatusDto::failed(
+            "Core startup is unavailable",
+            vec!["backup-20260823T010203Z.axbak".into()],
+        );
+        let logs = RecoveryLogTailDto::new(vec!["Core startup is unavailable".into()]);
+        let status = serde_json::to_value(status).expect("status must serialize");
+        let logs = serde_json::to_value(logs).expect("logs must serialize");
+
+        for dto in [&status, &logs] {
+            let object = dto.as_object().expect("recovery DTO must be an object");
+            for forbidden in ["token", "path", "body", "request", "response", "secret"] {
+                assert!(!object.contains_key(forbidden), "DTO exposed {forbidden}");
+                assert!(
+                    !contains_forbidden_key(dto, forbidden),
+                    "DTO exposed nested {forbidden}"
+                );
+            }
+        }
+    }
+}
+
 #[cfg(windows)]
 #[path = "../../desktop/src-tauri/src/backend.rs"]
 mod backend;
