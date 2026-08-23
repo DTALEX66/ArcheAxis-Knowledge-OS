@@ -14,9 +14,11 @@ content-type text/html, optional host allowlist. Fail-closed.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Callable
 from urllib.parse import urlsplit
 
+from app.ingestion.raw_asset import RawAssetStore, RawAssetStoreError
 from shared.safe_http import SafeHTTPError, SafeHTTPPolicy, SafeHTTPResponse, fetch
 
 RawFetcher = Callable[[str, SafeHTTPPolicy], SafeHTTPResponse]
@@ -29,16 +31,31 @@ class WebCaptureError(ValueError):
 @dataclass(frozen=True)
 class CaptureReceipt:
     url: str
+    final_url: str
     status: int
     raw_bytes: int
     text_chars: int
     engine: str
     raw_hash: str
+    captured_at: str
+    content_type: str
+    etag: str | None
+    last_modified: str | None
 
     def as_dict(self) -> dict[str, Any]:
-        return {"url": self.url, "status": self.status, "raw_bytes": self.raw_bytes,
-                "text_chars": self.text_chars, "engine": self.engine,
-                "raw_hash": self.raw_hash}
+        return {
+            "url": self.url,
+            "final_url": self.final_url,
+            "status": self.status,
+            "raw_bytes": self.raw_bytes,
+            "text_chars": self.text_chars,
+            "engine": self.engine,
+            "raw_hash": self.raw_hash,
+            "captured_at": self.captured_at,
+            "content_type": self.content_type,
+            "etag": self.etag,
+            "last_modified": self.last_modified,
+        }
 
 
 def _validate(url: str, policy: SafeHTTPPolicy) -> str:
@@ -56,11 +73,28 @@ def _validate(url: str, policy: SafeHTTPPolicy) -> str:
     return url
 
 
+def _extract_saved_html(raw: bytes) -> tuple[str, str]:
+    """Extract from an already captured response without another network call."""
+    html = raw.decode("utf-8", errors="replace")
+    try:
+        import trafilatura
+
+        text = trafilatura.extract(html, output_format="markdown")
+        if text:
+            return text, "safe-http+trafilatura"
+    except Exception:  # noqa: BLE001 - optional extractor must degrade to retained raw HTML
+        # Optional extraction must not make a successfully captured original
+        # disappear or turn the intake into a false success claim.
+        pass
+    return html, "safe-http+raw"
+
+
 def capture_web(
     url: str,
     *,
     policy: SafeHTTPPolicy | None = None,
     raw_fetcher: RawFetcher | None = None,
+    raw_store: RawAssetStore | None = None,
 ) -> dict[str, Any]:
     """Raw-first web capture: validate → fetch → save raw → extract text.
 
@@ -68,6 +102,7 @@ def capture_web(
         url: http(s) URL.
         policy: SafeHTTP bounds (default: 2 MB, 15s, ports 80/443).
         raw_fetcher: injectable fetcher for tests (default: safe_http.fetch).
+        raw_store: content-addressed original store (default: project runtime store).
 
     Returns:
         {"receipt": CaptureReceipt.as_dict(), "raw": base64 raw HTML,
@@ -88,25 +123,56 @@ def capture_web(
     raw = bytes(response.body)
     if not raw:
         raise WebCaptureError("empty response body")
-    content_type = (response.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+    response_headers = {str(key).lower(): str(value) for key, value in response.headers.items()}
+    content_type = response_headers.get("content-type", "").split(";", 1)[0].strip().lower()
     if policy.allowed_content_types and content_type not in policy.allowed_content_types:
         raise WebCaptureError(f"content type not allowed: {content_type}")
 
     from hashlib import sha256
-    raw_hash = sha256(raw).hexdigest()[:16]
+    raw_hash = sha256(raw).hexdigest()
+    final_url = str(getattr(response, "url", target))
+    try:
+        original = (raw_store or RawAssetStore()).store_original(
+            raw,
+            final_url,
+            mime_type=content_type,
+        )
+    except RawAssetStoreError as exc:
+        raise WebCaptureError(f"could not preserve raw response: {exc}") from exc
+    if original.sha256 != raw_hash:
+        raise WebCaptureError("raw response hash mismatch after preservation")
 
-    # text extraction reuses the existing engine chain (raw-first, not raw-only)
-    from app.ingestion.multi_format import convert_url
-    text, engine = convert_url(target)
+    text, engine = _extract_saved_html(raw)
+    loss_report = (
+        {
+            "status": "degraded",
+            "warnings": ["content extraction unavailable; raw HTML retained"],
+        }
+        if engine == "safe-http+raw"
+        else {
+            "status": "not_assessed",
+            "warnings": ["HTML extraction loss has not been structurally assessed"],
+        }
+    )
 
     import base64
     return {
         "receipt": CaptureReceipt(
-            url=target, status=response.status, raw_bytes=len(raw),
-            text_chars=len(text), engine=engine, raw_hash=raw_hash,
+            url=target,
+            final_url=final_url,
+            status=response.status,
+            raw_bytes=len(raw),
+            text_chars=len(text),
+            engine=engine,
+            raw_hash=raw_hash,
+            captured_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            content_type=content_type,
+            etag=response_headers.get("etag"),
+            last_modified=response_headers.get("last-modified"),
         ).as_dict(),
         "raw": base64.b64encode(raw).decode("ascii"),
         "text": text,
+        "loss_report": loss_report,
         "policy": {"max_bytes": policy.max_bytes, "timeout": policy.timeout},
     }
 
