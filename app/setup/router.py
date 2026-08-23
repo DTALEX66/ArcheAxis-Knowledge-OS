@@ -15,8 +15,13 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.setup.setup_status import SetupRequest, SetupValidationError, initialize_workspace, setup_status
-from app.workspace.router import _require_local_request
+from app.setup.setup_status import (
+    SetupRequest,
+    SetupValidationError,
+    initialize_workspace,
+    setup_status,
+)
+from app.workspace.router import _require_desktop_write_request, _require_local_request
 
 router = APIRouter(
     prefix="/api/v1/setup",
@@ -39,7 +44,7 @@ def get_setup_status() -> dict[str, object]:
     return setup_status()
 
 
-@router.post("/initialize")
+@router.post("/initialize", dependencies=[Depends(_require_desktop_write_request)])
 def post_setup_initialize(payload: SetupInitializeRequest | None = None) -> dict[str, object]:
     """Create the workspace; idempotent — an existing valid workspace is
     returned as-is with ``already_existed=true``."""

@@ -88,6 +88,45 @@ def _require_local_request(request: Request) -> None:
         raise HTTPException(status_code=403, detail="workspace origin must be same-origin")
 
 
+def _require_desktop_write_request(request: Request) -> None:
+    """Require the ephemeral desktop credential on React product writes.
+
+    The desktop launcher injects both the launch token and its issued scopes
+    into the Core environment.  A caller may request only a scope the launcher
+    issued, and every write needs a bounded idempotency key.  TestClient is
+    intentionally exempt only when no desktop credential has been configured;
+    it cannot model a launched desktop Core otherwise.
+    """
+    _require_local_request(request)
+    expected_token = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv(
+        "COGNITIVE_DESKTOP_LAUNCH_TOKEN", ""
+    )
+    if not expected_token:
+        if request.client is not None and request.client.host == "testclient":
+            return
+        raise HTTPException(status_code=503, detail="desktop write authorization is unavailable")
+    supplied_token = request.headers.get("x-archeaxis-launch-token", "")
+    if not hmac.compare_digest(supplied_token, expected_token):
+        raise HTTPException(status_code=403, detail="desktop write authorization rejected")
+    issued_scopes = {
+        scope for scope in os.getenv("ARCHEAXIS_DESKTOP_WRITE_SCOPES", "").split()
+        if scope
+    }
+    requested_scopes = {
+        scope for scope in request.headers.get("x-archeaxis-scopes", "").split()
+        if scope
+    }
+    if (
+        "workspace:write" not in issued_scopes
+        or "workspace:write" not in requested_scopes
+        or not requested_scopes <= issued_scopes
+    ):
+        raise HTTPException(status_code=403, detail="desktop write scope rejected")
+    idempotency_key = request.headers.get("idempotency-key", "")
+    if not 1 <= len(idempotency_key) <= 200:
+        raise HTTPException(status_code=422, detail="idempotency key is required")
+
+
 router = APIRouter(
     prefix=WORKSPACE_PREFIX,
     tags=["workspace"],
@@ -805,7 +844,7 @@ def practice_from_learning(command: SourcePracticeCommand, request: Request) -> 
     )
 
 
-@router.post("/api/runtime/approve")
+@router.post("/api/runtime/approve", dependencies=[Depends(_require_desktop_write_request)])
 def approve_runtime_candidate(command: RuntimeApprovalCommand, request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(
@@ -815,7 +854,7 @@ def approve_runtime_candidate(command: RuntimeApprovalCommand, request: Request)
     )
 
 
-@router.post("/api/runtime/deprecate")
+@router.post("/api/runtime/deprecate", dependencies=[Depends(_require_desktop_write_request)])
 def deprecate_runtime_asset(command: RuntimeApprovalCommand, request: Request) -> dict[str, object]:
     _local_principal(request)
     return _command_error(
@@ -849,7 +888,7 @@ def promote_research(command: PromoteResearchCommand, request: Request) -> dict[
     )
 
 
-@router.post("/api/research/approve")
+@router.post("/api/research/approve", dependencies=[Depends(_require_desktop_write_request)])
 def promote_research_source(command: PromoteResearchSourceCommand, request: Request) -> dict[str, Any]:
     principal = _local_principal(request)
     result = _command_error(lambda: service.promote_research_source(
@@ -988,7 +1027,7 @@ def workspace_exchange_verify(request: Request, name: str = "exchange") -> dict[
     return _command_error(lambda: verify_export(_exchange_root() / name))
 
 
-@router.post("/api/backup/create")
+@router.post("/api/backup/create", dependencies=[Depends(_require_desktop_write_request)])
 def workspace_backup_create(payload: BackupRequest, request: Request) -> dict[str, Any]:
     """Snapshot the runtime data dir into a verifiable backup."""
     _local_principal(request)

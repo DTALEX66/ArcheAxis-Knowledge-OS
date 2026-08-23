@@ -16,7 +16,7 @@ const runtime = vi.hoisted(() => ({
   getSetupStatus: vi.fn(), initializeSetup: vi.fn(), createBackup: vi.fn(), verifyBackup: vi.fn(),
   getHome: vi.fn(), getActivity: vi.fn(), retryDesktopBackend: vi.fn(), resetRuntimeClient: vi.fn(),
 }));
-vi.mock("../api/runtime", () => runtime);
+vi.mock("../api/workspace", () => runtime);
 
 describe("six-space real command loops", () => {
   it("projects release, capabilities, counts, and recent activity on Workspace", async () => {

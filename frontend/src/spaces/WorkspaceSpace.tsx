@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
-import { getHome, type ActivityItemDto } from "../api/runtime";
+import { getHome, type ActivityItemDto } from "../api/workspace";
 
 interface HomeDto {
   release?: Record<string, unknown>;

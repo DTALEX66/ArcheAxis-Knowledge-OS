@@ -1,4 +1,4 @@
-// Real runtime API clients for Workspace/Library/Evidence/AI Assets/Settings.
+// Typed Workspace API facade for Workspace/Library/Evidence/AI Assets/Settings.
 // Every request shares the handshake client; no second unauthenticated client
 // or hard-coded runtime port is allowed.
 import { createApiClient, type ApiClient } from "./client";
@@ -156,9 +156,12 @@ async function runtimeClient(): Promise<ApiClient> {
       const client = !invoke
         ? createApiClient("", "")
         : await (async () => {
-          const backend = await invoke("backend_info") as { port: number; token: string } | null;
+          const backend = await invoke("backend_info") as { port: number; token: string; scopes?: unknown } | null;
           if (!backend) throw new Error("desktop backend is unavailable; open Recovery Shell to retry");
-          return createApiClient(`http://127.0.0.1:${backend.port}`, backend.token);
+          const scopes = Array.isArray(backend.scopes)
+            ? backend.scopes.filter((scope): scope is string => typeof scope === "string")
+            : [];
+          return createApiClient(`http://127.0.0.1:${backend.port}`, backend.token, scopes);
         })();
       // Do not allow a backend that failed the product/API handshake to serve
       // any UI projection. The launch token stays in the closure only.
@@ -169,8 +172,8 @@ async function runtimeClient(): Promise<ApiClient> {
   return clientPromise;
 }
 
-export async function runtimeJSON<T>(path: string, init?: RequestInit): Promise<T> {
-  return (await runtimeClient()).request<T>(path, init);
+export async function runtimeJSON<T>(path: string): Promise<T> {
+  return (await runtimeClient()).request<T>(path);
 }
 
 async function getJSON<T>(path: string): Promise<T> {
@@ -182,12 +185,21 @@ function commandId(prefix: string): string {
   return `workspace-${prefix}-${value}`;
 }
 
-async function postJSON<T>(path: string, body?: Record<string, unknown>): Promise<T> {
-  return (await runtimeClient()).request<T>(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body ?? {}),
-  });
+async function postJSON<T>(path: string, body?: Record<string, unknown>, prefix = "write"): Promise<T> {
+  const payload = body ?? {};
+  const suppliedCommandId = payload.command_id;
+  const idempotencyKey = typeof suppliedCommandId === "string"
+    ? suppliedCommandId
+    : commandId(prefix);
+  return (await runtimeClient()).write<T>(path, payload, idempotencyKey);
+}
+
+export function runtimePostJSON<T>(
+  path: string,
+  body: Record<string, unknown>,
+  prefix = "write",
+): Promise<T> {
+  return postJSON<T>(path, body, prefix);
 }
 
 export function listEvidenceAnchors(limit = 50): Promise<EvidenceListDto> {
@@ -256,14 +268,12 @@ export function getSetupStatus(): Promise<Record<string, unknown>> {
 }
 
 export async function initializeSetup(): Promise<Record<string, unknown>> {
-  return (await runtimeClient()).request<Record<string, unknown>>(
-    "/api/v1/setup/initialize", { method: "POST" },
-  );
+  return postJSON("/api/v1/setup/initialize", {}, "setup");
 }
 
 
 export function createBackup(name: string): Promise<Record<string, unknown>> {
-  return postJSON("/workspace/api/backup/create", { name });
+  return postJSON("/workspace/api/backup/create", { name }, "backup");
 }
 
 export function verifyBackup(name: string): Promise<Record<string, unknown>> {

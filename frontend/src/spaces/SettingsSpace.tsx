@@ -7,7 +7,7 @@ import {
   resetRuntimeClient,
   retryDesktopBackend,
   verifyBackup,
-} from "../api/runtime";
+} from "../api/workspace";
 
 export function SettingsSpace() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);

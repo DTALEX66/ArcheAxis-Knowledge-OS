@@ -18,7 +18,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from app.workspace.router import _require_local_request
+from app.workspace.router import _require_desktop_write_request, _require_local_request
 from app.workspace.supervisor import BackendSupervisorState, supervisor
 from shared.config import resolve_runtime_path
 from shared.runtime_profile import resolve_runtime_mode
@@ -117,7 +117,7 @@ def system_status(tail_n: int = 10) -> dict[str, object]:
     return supervisor.status(tail_n=tail_n)
 
 
-@router.post("/restart")
+@router.post("/restart", dependencies=[Depends(_require_desktop_write_request)])
 def system_restart() -> JSONResponse:
     """Idempotent simulated restart; 409 when the backend is not running."""
     try:

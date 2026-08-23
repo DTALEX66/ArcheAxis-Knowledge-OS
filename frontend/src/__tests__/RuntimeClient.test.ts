@@ -1,16 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   approveMachineKnowledge,
+  approveResearchCandidate,
   createBackup,
   deprecateMachineKnowledge,
   downloadLibraryAsset,
   getStatus,
   getActivity,
   getHome,
+  initializeSetup,
   resetRuntimeClient,
   verifyBackup,
-} from "../api/runtime";
-import * as runtime from "../api/runtime";
+} from "../api/workspace";
+import * as runtime from "../api/workspace";
 import { normalizeRecoveryLogTail, normalizeRecoveryStatus } from "../runtime/recovery";
 
 interface RecoveryRuntimeApi {
@@ -43,7 +45,11 @@ describe("runtime handshake client", () => {
         return {
           ok: true,
           status: 200,
-          json: async () => ({ product_id: "archeaxis-workspace" }),
+          json: async () => ({
+            product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.0",
+            source_commit: "abc1234", schema_version: 15, runtime_mode: "desktop",
+            workspace_id: "workspace-001", capabilities: [], migration_state: "ready",
+          }),
         } as Response;
       }
       expect(url).toBe("http://127.0.0.1:4312/workspace/api/status");
@@ -56,13 +62,23 @@ describe("runtime handshake client", () => {
   });
 
   it("uses typed governed commands and preserves authorization for source readback", async () => {
+    window.__TAURI__ = {
+      core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only", scopes: ["workspace:write"] }) },
+    };
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith("/api/v1/system/handshake")) {
-        return { ok: true, json: async () => ({ product_id: "archeaxis-workspace" }) } as Response;
+        return {
+          ok: true,
+          json: async () => ({
+            product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.0",
+            source_commit: "abc1234", schema_version: 15, runtime_mode: "desktop",
+            workspace_id: "workspace-001", capabilities: [], migration_state: "ready",
+          }),
+        } as Response;
       }
       if (url.includes("/content")) {
-        expect(init?.headers).toMatchObject({ Authorization: "Bearer " });
+        expect(init?.headers).toMatchObject({ Authorization: "Bearer memory-only" });
         return { ok: true, blob: async () => new Blob(["source"]) } as Response;
       }
       return { ok: true, json: async () => ({ status: "ok" }) } as Response;
@@ -85,6 +101,88 @@ describe("runtime handshake client", () => {
     expect(calls.some(([url]) => url.endsWith("/workspace/api/backup/verify?name=release-check"))).toBe(true);
     expect(calls.some(([url]) => url.endsWith("/workspace/api/v1/home"))).toBe(true);
     expect(calls.some(([url]) => url.endsWith("/workspace/api/v1/activity?limit=5"))).toBe(true);
+  });
+
+  it("rejects an incompatible API contract before requesting a workspace projection", async () => {
+    window.__TAURI__ = {
+      core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only", scopes: ["workspace:write"] }) },
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        product_id: "archeaxis-workspace",
+        product_name: "ArcheAxis Knowledge",
+        api_contract: "0.9",
+        backend_version: "0.6.0",
+        source_commit: "abc1234",
+        schema_version: 15,
+        runtime_mode: "desktop",
+        workspace_id: "workspace-001",
+        capabilities: [],
+        migration_state: "ready",
+      }),
+    } as Response));
+
+    await expect(getStatus()).rejects.toMatchObject({ code: "incompatible" });
+  });
+
+  it("rejects a handshake with incomplete runtime identity", async () => {
+    window.__TAURI__ = {
+      core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only", scopes: ["workspace:write"] }) },
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        product_id: "archeaxis-workspace", product_name: "", api_contract: "1.x",
+        backend_version: "0.6.0", source_commit: "", schema_version: 15,
+        runtime_mode: "desktop", workspace_id: "workspace-001", capabilities: [],
+        migration_state: "ready",
+      }),
+    } as Response));
+
+    await expect(getStatus()).rejects.toMatchObject({ code: "incompatible" });
+  });
+
+  it("attaches token scope and idempotency headers to every typed product write", async () => {
+    window.__TAURI__ = {
+      core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only", scopes: ["workspace:write"] }) },
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).endsWith("/api/v1/system/handshake")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            product_id: "archeaxis-workspace",
+            product_name: "ArcheAxis Knowledge",
+            api_contract: "1.x",
+            backend_version: "0.6.0",
+            source_commit: "abc1234",
+            schema_version: 15,
+            runtime_mode: "desktop",
+            workspace_id: "workspace-001",
+            capabilities: [],
+            migration_state: "ready",
+          }),
+        } as Response;
+      }
+      expect(init?.method).toBe("POST");
+      expect(init?.headers).toMatchObject({
+        "X-ArcheAxis-Launch-Token": "memory-only",
+        "X-ArcheAxis-Scopes": "workspace:write",
+        "Idempotency-Key": expect.stringMatching(/^workspace-/),
+      });
+      return { ok: true, status: 200, json: async () => ({ status: "ok" }) } as Response;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await approveMachineKnowledge("Candidate");
+    await deprecateMachineKnowledge("Candidate");
+    await approveResearchCandidate("https://example.com/research");
+    await createBackup("release-check");
+    await initializeSetup();
   });
 
   it("uses Tauri-only recovery commands and rejects a backup name outside the enumerated opaque list", async () => {

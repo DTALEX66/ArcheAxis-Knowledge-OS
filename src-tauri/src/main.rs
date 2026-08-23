@@ -273,6 +273,7 @@ struct DesktopBackend {
 struct BackendInfo {
     port: u16,
     token: String,
+    scopes: Vec<String>,
 }
 
 #[cfg(windows)]
@@ -379,6 +380,7 @@ fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>,
     Ok(backend.as_ref().map(|process| BackendInfo {
         port: process.port,
         token: process.token.clone(),
+        scopes: vec!["workspace:write".to_owned()],
     }))
 }
 
@@ -407,6 +409,7 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
         return Ok(BackendInfo {
             port: existing.port,
             token: existing.token.clone(),
+            scopes: vec!["workspace:write".to_owned()],
         });
     }
     state
@@ -454,6 +457,7 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
     let info = BackendInfo {
         port: launched.port,
         token: launched.token.clone(),
+        scopes: vec!["workspace:write".to_owned()],
     };
     *state
         .process

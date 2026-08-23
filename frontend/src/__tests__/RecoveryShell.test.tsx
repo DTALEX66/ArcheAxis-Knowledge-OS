@@ -15,8 +15,8 @@ const recovery = vi.hoisted(() => ({
   getStatus: vi.fn(),
 }));
 
-vi.mock("../api/runtime", async () => ({
-  ...(await vi.importActual<typeof import("../api/runtime")>("../api/runtime")),
+vi.mock("../api/workspace", async () => ({
+  ...(await vi.importActual<typeof import("../api/workspace")>("../api/workspace")),
   ...recovery,
 }));
 

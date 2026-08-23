@@ -19,8 +19,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.workspace.router import _require_desktop_write_request
 from shared.config import config, resolve_runtime_path
 
 router = APIRouter(prefix="/api/v1/learning", tags=["learning"])
@@ -94,7 +95,7 @@ def review_queue(limit: int = 20) -> dict[str, object]:
 
 # ── teach-back ──────────────────────────────────────────────────────
 
-@router.post("/teach-back")
+@router.post("/teach-back", dependencies=[Depends(_require_desktop_write_request)])
 def submit_teach_back(payload: dict[str, object]) -> dict[str, object]:
     """Record + rubric-evaluate a teach-back restatement (M3 evidence)."""
     from app.knowledge.teach_back_eval import score_teach_back
@@ -128,7 +129,7 @@ def submit_teach_back(payload: dict[str, object]) -> dict[str, object]:
 
 # ── human distillation ──────────────────────────────────────────────
 
-@router.post("/distill")
+@router.post("/distill", dependencies=[Depends(_require_desktop_write_request)])
 def record_distill(payload: dict[str, object]) -> dict[str, object]:
     """Record a candidate human principle for cross-case verification."""
     from app.knowledge.distillation import record_principle
@@ -152,10 +153,11 @@ def record_distill(payload: dict[str, object]) -> dict[str, object]:
 
 # ── reasoning memory ────────────────────────────────────────────────
 
-@router.post("/trajectory")
+@router.post("/trajectory", dependencies=[Depends(_require_desktop_write_request)])
 def save_trajectory(payload: dict[str, object]) -> dict[str, object]:
     """Save a trajectory and distill a reasoning principle from it."""
-    from app.memory.reasoning_memory import reflect, save_trajectory as save_traj
+    from app.memory.reasoning_memory import reflect
+    from app.memory.reasoning_memory import save_trajectory as save_traj
 
     try:
         goal = str(payload["goal"])
@@ -212,7 +214,7 @@ def _machine_evidence(payload: dict[str, object]):
     return MachineEvidence(**kwargs)
 
 
-@router.post("/tick")
+@router.post("/tick", dependencies=[Depends(_require_desktop_write_request)])
 def learning_tick(payload: dict[str, object]) -> dict[str, object]:
     """Dispatch one knowledge node by its mastery gap (TEACH/DISTILL/…).
 
@@ -267,7 +269,7 @@ def generate_quiz_endpoint(concept: str, reference: str, key_terms: str = "",
     return {"concept": concept, "items": [item.as_dict() for item in items]}
 
 
-@router.post("/learning-path")
+@router.post("/learning-path", dependencies=[Depends(_require_desktop_write_request)])
 def build_learning_path(payload: dict[str, object]) -> dict[str, object]:
     """Personalized learning path from a prerequisite graph + mastery map."""
     from app.learning.learning_path import build_path
@@ -286,7 +288,7 @@ def build_learning_path(payload: dict[str, object]) -> dict[str, object]:
 
 # ── review outcome persistence (loop gap A) ──────────────────────────
 
-@router.post("/review-outcome")
+@router.post("/review-outcome", dependencies=[Depends(_require_desktop_write_request)])
 def review_outcome(payload: dict[str, object]) -> dict[str, object]:
     """Persist one learning outcome (teach-back/quiz/review) into the loop.
 
