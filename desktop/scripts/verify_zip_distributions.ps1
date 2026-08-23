@@ -188,7 +188,7 @@ function Assert-ReleaseIdentity {
     $version = Invoke-RestMethod "$BaseUrl/version"
     if (
         $version.release.status -ne 'released' -or
-        $version.release.tag -ne 'v0.6.8' -or
+        $version.release.tag -ne 'v0.6.9' -or
         $version.capabilities.public_installer -ne 'available'
     ) {
         throw 'distribution runtime did not expose the verified public release identity'
@@ -240,7 +240,7 @@ function Invoke-DistributionLifecycle {
             $base = "http://127.0.0.1:$($ready.Listener.LocalPort)"
             $workspaceStatus = (Invoke-WebRequest "$base/workspace" -UseBasicParsing).StatusCode
             $status = Invoke-RestMethod "$base/workspace/api/status"
-            if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.8') {
+            if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.9') {
                 throw 'distribution Workspace returned an invalid product response'
             }
             Assert-ReleaseIdentity -BaseUrl $base

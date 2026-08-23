@@ -81,7 +81,7 @@ def test_current_reports_do_not_claim_exact_match_for_a_dirty_worktree(
     assert baseline["worktree_clean"] is False
     assert baseline["head_matches_origin_main"] is False
     assert baseline["release"] == {
-        "version": "0.6.8",
+        "version": "0.6.9",
         "state": "development",
         "evidence_level": "NOT_EXECUTED",
     }
