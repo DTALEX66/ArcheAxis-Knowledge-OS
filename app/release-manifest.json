@@ -65,7 +65,10 @@
           "phase5_knowledge_candidate_learning_artifacts_v1",
           "phase5_learning_approval_events_v1",
           "phase5_machine_knowledge_approval_events_v1",
-          "phase5_evidence_bundle_ledger_v1"
+          "phase5_evidence_bundle_ledger_v1",
+          "axr_learning_truth_v2",
+          "axr_source_truth_v2",
+          "axr_distillation_review_v1"
         ]
       },
       {
