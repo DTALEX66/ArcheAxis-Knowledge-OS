@@ -961,10 +961,8 @@ class TestReadabilipyAdapter:
         result = convert_readabilipy(AdapterInput(source=""))
         assert not result.success
 
-    def test_convert_readabilipy_local_html_file_extracts_content(self):
-        """A local fixture HTML file should produce extracted content."""
-        from pathlib import Path
-
+    def test_convert_readabilipy_local_html_file_extracts_content(self, tmp_path):
+        """A temporary HTML file should produce extracted content without dirtying Git."""
         from shared.adapter_fixtures import convert_readabilipy
 
         # Create a minimal article HTML fixture
@@ -974,9 +972,7 @@ class TestReadabilipyAdapter:
 <h1>Main Article Title</h1>
 <p>This is the article content that should be extracted by the readability algorithm.</p>
 </article><aside>Sidebar noise</aside></body></html>"""
-        fixture_dir = Path(__file__).resolve().parent / "fixtures"
-        fixture_dir.mkdir(parents=True, exist_ok=True)
-        fixture_path = fixture_dir / "readability_article.html"
+        fixture_path = tmp_path / "readability_article.html"
         fixture_path.write_text(html, encoding="utf-8")
 
         result = convert_readabilipy(AdapterInput(source=str(fixture_path)))
