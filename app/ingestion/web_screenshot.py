@@ -6,11 +6,13 @@ extracted text + visual screenshot (PNG) which can feed OCR / VLM.
 
 from __future__ import annotations
 
-import subprocess
 import os
 import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
+
 
 def _edge_candidates() -> tuple[Path, ...]:
     roots = (os.environ.get("PROGRAMFILES(X86)", ""), os.environ.get("PROGRAMFILES", ""))
@@ -51,17 +53,21 @@ def find_edge() -> str:
     return find_browser()
 
 
-def _browser_environment(out: Path) -> dict[str, str]:
-    """Keep Chromium's Unix singleton socket below its path-length limit."""
-    temp_root = out.parent
-    for parent in out.parents:
-        if parent.name == ".hermes":
-            temp_root = parent
-            break
-    temp_root.mkdir(parents=True, exist_ok=True)
+def _browser_environment(out: Path, profile: str) -> dict[str, str]:
+    """Keep Chromium's singleton socket + temp below its path-length limit.
+
+    GitHub-hosted runner workspaces are ~70 chars long; Chromium's
+    process-singleton socket lives under the user-data dir / TMPDIR and
+    FATALs once the path exceeds ~108 chars (Unix). Point TMP/TEMP/TMPDIR
+    at the system temp root (short: /tmp on Linux) and hand Chrome a
+    short, unique --user-data-dir profile. Both are process-lifetime
+    transients; the screenshot output itself stays under the project's
+    task-runtime (out_path).
+    """
     environment = os.environ.copy()
+    sys_temp = tempfile.gettempdir()
     for name in ("TMP", "TEMP", "TMPDIR"):
-        environment[name] = str(temp_root)
+        environment[name] = sys_temp
     return environment
 
 
@@ -73,14 +79,19 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
     browser = find_browser()
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    proc = subprocess.run(
-        [browser, "--headless", "--disable-gpu", "--no-sandbox",
-         f"--window-size={width},800", f"--screenshot={out}", url],
-        capture_output=True, timeout=60,
-        env=_browser_environment(out),
-    )
-    if not out.is_file() or out.stat().st_size == 0:
-        raise WebScreenshotError(f"screenshot failed: {proc.stderr.decode(errors='ignore')[:200]}")
+    profile = tempfile.mkdtemp(prefix="archeaxis-shot-")
+    try:
+        proc = subprocess.run(
+            [browser, "--headless", "--disable-gpu", "--no-sandbox",
+             f"--user-data-dir={profile}",
+             f"--window-size={width},800", f"--screenshot={out}", url],
+            capture_output=True, timeout=60,
+            env=_browser_environment(out, profile),
+        )
+        if not out.is_file() or out.stat().st_size == 0:
+            raise WebScreenshotError(f"screenshot failed: {proc.stderr.decode(errors='ignore')[:200]}")
+    finally:
+        shutil.rmtree(profile, ignore_errors=True)
     return {
         "ok": True,
         "path": str(out),
