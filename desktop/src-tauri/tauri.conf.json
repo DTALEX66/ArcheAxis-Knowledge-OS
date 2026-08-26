@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ArcheAxis Knowledge",
+  "productName": "ArcheAxis Knowledge Recovery",
   "version": "0.6.11",
-  "identifier": "com.archeaxis.workspace",
+  "identifier": "com.archeaxis.workspace.recovery",
   "build": {
     "frontendDist": "../bootstrap"
   },
@@ -26,8 +26,8 @@
     }
   },
   "bundle": {
-    "active": true,
-    "targets": ["nsis"],
+    "active": false,
+    "targets": [],
     "resources": {
       "../../.hermes/rt/runtime": "runtime"
     },

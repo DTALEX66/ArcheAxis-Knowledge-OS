@@ -3,21 +3,21 @@ from __future__ import annotations
 
 import pytest
 
+from app.knowledge.dual_mastery import (
+    GapAction,
+    HumanEvidence,
+    KnowledgeNodeState,
+    MachineEvidence,
+    evaluate_node,
+    human_mastery_level,
+    machine_mastery_level,
+)
 from app.learning.capabilities import (
     Capability,
     CapabilityError,
     CapabilityRegistry,
     default_registry,
     mastery_gate,
-)
-from app.knowledge.dual_mastery import (
-    GapAction,
-    HumanEvidence,
-    MachineEvidence,
-    KnowledgeNodeState,
-    evaluate_node,
-    human_mastery_level,
-    machine_mastery_level,
 )
 
 
@@ -46,6 +46,7 @@ def test_mastery_gate_orders_teaching():
         HumanEvidence(reviewed=True),
         MachineEvidence(has_raw_source=True, indexed=True, structured=True,
                         reasoned=True, procedural=True, callable=True, verified=True),
+        evidence_verified=True,
     )
     assert node.action == GapAction.TEACH_HUMAN
     order = mastery_gate(node, registry)
@@ -55,7 +56,8 @@ def test_mastery_gate_orders_teaching():
 def test_mastery_gate_distill_and_evidence():
     registry = default_registry()
     distill_node = evaluate_node("c2", HumanEvidence(reviewed=True, teaching_evidence=True),
-                                 MachineEvidence(has_raw_source=True, indexed=True))
+                                 MachineEvidence(has_raw_source=True, indexed=True),
+                                 evidence_verified=True)
     assert mastery_gate(distill_node, registry) == ["distill"]
     evidence_node = KnowledgeNodeState(
         node_id="c3", human_level=human_mastery_level(HumanEvidence(reviewed=True)),

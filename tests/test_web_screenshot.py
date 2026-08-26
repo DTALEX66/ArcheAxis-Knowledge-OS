@@ -27,4 +27,4 @@ def test_browser_environment_uses_output_parent_outside_project_runtime(monkeypa
 
     environment = web_screenshot._browser_environment(output)
 
-    assert environment["TMP"] == str(output.parent)
+    assert environment["TMP"] == str(output.parent.resolve())

@@ -43,12 +43,12 @@ with the wheel under their own licenses:
 
 | Asset | Version | License | Bundled location |
 |---|---|---|---|
-| PDF.js (`pdf.min.js`, `pdf.worker.min.js`) | 3.11.174 | Apache-2.0 | `app/workspace/ui/assets/` |
-| PDF.js LICENSE | 3.11.174 | Apache-2.0 | `app/workspace/ui/assets/licenses/pdfjs-3.11.174-LICENSE.txt` |
+| PDF.js (`pdf.mjs`, `pdf.worker.mjs`) | 6.2.108 | Apache-2.0 | `app/workspace/ui/assets/` |
+| PDF.js LICENSE | 6.2.108 | Apache-2.0 | `app/workspace/ui/assets/licenses/pdfjs-6.2.108-LICENSE.txt` |
 
 PDF.js is © Mozilla and contributors, licensed under the Apache License 2.0.
 The full license text is preserved alongside the assets; redistribution must
-retain that notice. See `app/workspace/ui/assets/licenses/pdfjs-3.11.174-LICENSE.txt`.
+retain that notice. See `app/workspace/ui/assets/licenses/pdfjs-6.2.108-LICENSE.txt`.
 
 ## Vendored models
 

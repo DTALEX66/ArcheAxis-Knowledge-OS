@@ -17,6 +17,10 @@ import tomllib
 from pathlib import Path
 
 
+class MissingCoverageError(RuntimeError):
+    """Raised when a canonical release dependency source is absent."""
+
+
 def _parse_uv_lock(lock: Path) -> list[dict]:
     data = tomllib.loads(lock.read_text(encoding="utf-8"))
     out = []
@@ -33,9 +37,10 @@ def _parse_uv_lock(lock: Path) -> list[dict]:
 def _parse_npm_lock(lock: Path) -> list[dict]:
     data = json.loads(lock.read_text(encoding="utf-8"))
     out = []
-    for name, entry in data.get("packages", {}).items():
-        if not name:
+    for package_path, entry in data.get("packages", {}).items():
+        if not package_path:
             continue
+        name = package_path.rsplit("node_modules/", 1)[-1]
         version = entry.get("version", "")
         out.append({
             "name": name,
@@ -72,6 +77,73 @@ def _licenses_from_components(components: list[dict]) -> dict[str, str]:
     return {c["name"]: (c.get("license") or "") for c in components if c.get("license")}
 
 
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _vendored_component(
+    *, name: str, version: str, kind: str, path: Path, license_id: str
+) -> dict:
+    return {
+        "name": name,
+        "version": version,
+        "purl": f"pkg:generic/{name}@{version}",
+        "type": kind,
+        "license": license_id,
+        "hashes": [{"alg": "SHA-256", "content": _sha256(path)}],
+        "path": path.as_posix(),
+    }
+
+
+def collect_components(root: Path) -> list[dict]:
+    """Collect canonical locks plus shipped vendored/model assets."""
+    required = (
+        (root / "uv.lock", _parse_uv_lock),
+        (root / "frontend/package-lock.json", _parse_npm_lock),
+        (root / "src-tauri/Cargo.lock", _parse_cargo_lock),
+    )
+    missing = [path.relative_to(root).as_posix() for path, _ in required if not path.is_file()]
+    if missing:
+        raise MissingCoverageError("missing canonical SBOM sources: " + ", ".join(missing))
+
+    components: list[dict] = []
+    for lock, parser_fn in required:
+        components.extend(parser_fn(lock))
+    for lock, parser_fn in (
+        (root / "desktop/package-lock.json", _parse_npm_lock),
+        (root / "desktop/src-tauri/Cargo.lock", _parse_cargo_lock),
+    ):
+        if lock.is_file():
+            components.extend(parser_fn(lock))
+
+    pdf_asset = root / "app/workspace/ui/assets/pdf.mjs"
+    pdf_worker = root / "app/workspace/ui/assets/pdf.worker.mjs"
+    pdf_license = root / "app/workspace/ui/assets/licenses/pdfjs-6.2.108-LICENSE.txt"
+    magika_model = root / "shared/models/magika/model.onnx"
+    magika_license = root / "shared/models/magika/LICENSE"
+    vendored_required = (pdf_asset, pdf_worker, pdf_license, magika_model, magika_license)
+    missing_vendored = [
+        path.relative_to(root).as_posix() for path in vendored_required if not path.is_file()
+    ]
+    if missing_vendored:
+        raise MissingCoverageError("missing vendored SBOM sources: " + ", ".join(missing_vendored))
+    components.extend(
+        [
+            _vendored_component(
+                name="pdfjs", version="6.2.108", kind="vendored-javascript",
+                path=pdf_asset, license_id="Apache-2.0",
+            ),
+            _vendored_component(
+                name="magika-model", version="0.6.3", kind="model",
+                path=magika_model, license_id="Apache-2.0",
+            ),
+        ]
+    )
+
+    deduped = {component["purl"]: component for component in components}
+    return sorted(deduped.values(), key=lambda component: (component["type"], component["name"]))
+
+
 def _write_notices(components: list[dict], licenses: dict[str, str], out: Path) -> None:
     """THIRD_PARTY_NOTICES.txt: one section per component with license id."""
     lines = [
@@ -102,18 +174,7 @@ def main() -> None:
     args = parser.parse_args()
 
     root = args.root
-    components: list[dict] = []
-    for lock, parser_fn, kind in (
-        (root / "uv.lock", _parse_uv_lock, "python"),
-        (root / "desktop/package-lock.json", _parse_npm_lock, "javascript"),
-        (root / "desktop/src-tauri/Cargo.lock", _parse_cargo_lock, "rust"),
-    ):
-        if lock.exists():
-            components.extend(parser_fn(lock))
-        else:
-            print(f"WARNING: {lock} missing; {kind} components skipped")
-
-    components.sort(key=lambda c: (c["type"], c["name"]))
+    components = collect_components(root)
     sbom = {
         "bomFormat": "CycloneDX",
         "specVersion": "1.5",

@@ -11,7 +11,7 @@ import pathlib
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _LEDGER = _ROOT / "docs" / "truth" / "SUPPLY_CHAIN_LEDGER.json"
 _ALLOWED_DISPOSITIONS: set[str] = {
-    "CURRENT", "ADOPT", "EVALUATE", "SIDECAR",
+    "CURRENT", "ADOPT_PRODUCT_BASE", "ADOPT", "EVALUATE", "SIDECAR",
     "REFERENCE", "DEFER", "REVIEW-BLOCK", "REJECT-CORE",
 }
 

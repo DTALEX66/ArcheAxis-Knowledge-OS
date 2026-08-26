@@ -1,8 +1,6 @@
 """Tests for the dual-mastery three-axis model (09 report §4.4-4.6)."""
 from __future__ import annotations
 
-import pytest
-
 from app.knowledge.dual_mastery import (
     EvidenceMaturity,
     GapAction,
@@ -30,13 +28,47 @@ def test_human_level_progression():
     assert human_mastery_level(HumanEvidence(reviewed=True, teaching_evidence=True))         == HumanMasteryLevel.M7_EXPERT
 
 
-def test_machine_level_progression():
-    assert machine_mastery_level(MachineEvidence()) == MachineMasteryLevel.K0_RAW
-    assert machine_mastery_level(MachineEvidence(has_raw_source=True)) == MachineMasteryLevel.K1_INDEXED
-    assert machine_mastery_level(MachineEvidence(has_raw_source=True, indexed=True))         == MachineMasteryLevel.K2_STRUCTURED
-    full = MachineEvidence(has_raw_source=True, indexed=True, structured=True, reasoned=True,
-                           procedural=True, callable=True, verified=True, adapted=True)
+def test_machine_level_progression_returns_highest_achieved_level():
+    assert machine_mastery_level(MachineEvidence()) == MachineMasteryLevel.NONE
+    assert machine_mastery_level(MachineEvidence(has_raw_source=True)) == MachineMasteryLevel.K0_RAW
+    assert machine_mastery_level(
+        MachineEvidence(has_raw_source=True, indexed=True)
+    ) == MachineMasteryLevel.K1_INDEXED
+    assert machine_mastery_level(
+        MachineEvidence(has_raw_source=True, indexed=True, structured=True)
+    ) == MachineMasteryLevel.K2_STRUCTURED
+    full = MachineEvidence(
+        has_raw_source=True,
+        indexed=True,
+        structured=True,
+        reasoned=True,
+        procedural=True,
+        callable=True,
+        verified=True,
+        adapted=True,
+        transferable=True,
+    )
     assert machine_mastery_level(full) == MachineMasteryLevel.K8_TRANSFERABLE
+
+
+def test_machine_level_does_not_skip_missing_receipts():
+    evidence = MachineEvidence(
+        has_raw_source=True,
+        indexed=True,
+        structured=True,
+        reasoned=True,
+        procedural=True,
+        callable=True,
+        verified=True,
+        transferable=True,
+    )
+    assert machine_mastery_level(evidence) == MachineMasteryLevel.K6_VERIFIED
+
+
+def test_evaluate_node_defaults_to_unverified_evidence():
+    node = evaluate_node("x", HumanEvidence(), MachineEvidence())
+    assert node.evidence == EvidenceMaturity.UNVERIFIED
+    assert node.action == GapAction.REVIEW_EVIDENCE
 
 
 def test_evidence_maturity_priority():
@@ -77,10 +109,11 @@ def test_evaluate_node_three_axis():
         HumanEvidence(reviewed=True, teach_back_score=0.9),
         MachineEvidence(has_raw_source=True, indexed=True, structured=True, reasoned=True,
                         procedural=True, callable=True, verified=True),
+        evidence_verified=True,
     )
     assert isinstance(node, KnowledgeNodeState)
     assert node.human_level == HumanMasteryLevel.M3_EXPLAIN
-    assert node.machine_level == MachineMasteryLevel.K7_ADAPTIVE
+    assert node.machine_level == MachineMasteryLevel.K6_VERIFIED
     assert node.action == GapAction.TEACH_HUMAN
     display = node.to_display()
     assert display["action"] == "teach_human"

@@ -53,19 +53,27 @@ def find_edge() -> str:
     return find_browser()
 
 
-def _browser_environment(out: Path, profile: str) -> dict[str, str]:
+def _short_temp_root(out: Path) -> Path:
+    """Return the nearest project-owned short root for Chromium sockets."""
+    resolved = out.resolve()
+    for parent in resolved.parents:
+        if parent.name == ".hermes":
+            return parent
+    return out.parent.resolve()
+
+
+def _browser_environment(out: Path) -> dict[str, str]:
     """Keep Chromium's singleton socket + temp below its path-length limit.
 
     GitHub-hosted runner workspaces are ~70 chars long; Chromium's
     process-singleton socket lives under the user-data dir / TMPDIR and
     FATALs once the path exceeds ~108 chars (Unix). Point TMP/TEMP/TMPDIR
-    at the system temp root (short: /tmp on Linux) and hand Chrome a
-    short, unique --user-data-dir profile. Both are process-lifetime
-    transients; the screenshot output itself stays under the project's
-    task-runtime (out_path).
+    at the project's short ``.hermes`` root and hand Chrome a short, unique
+    ``--user-data-dir`` there. This avoids both the Unix socket limit and any
+    project-data spill to the host temp directory.
     """
     environment = os.environ.copy()
-    sys_temp = tempfile.gettempdir()
+    sys_temp = str(_short_temp_root(out))
     for name in ("TMP", "TEMP", "TMPDIR"):
         environment[name] = sys_temp
     return environment
@@ -79,14 +87,16 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
     browser = find_browser()
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    profile = tempfile.mkdtemp(prefix="archeaxis-shot-")
+    profile_root = _short_temp_root(out) / "c"
+    profile_root.mkdir(parents=True, exist_ok=True)
+    profile = tempfile.mkdtemp(prefix="p-", dir=profile_root)
     try:
         proc = subprocess.run(
             [browser, "--headless", "--disable-gpu", "--no-sandbox",
              f"--user-data-dir={profile}",
              f"--window-size={width},800", f"--screenshot={out}", url],
             capture_output=True, timeout=60,
-            env=_browser_environment(out, profile),
+            env=_browser_environment(out),
         )
         if not out.is_file() or out.stat().st_size == 0:
             raise WebScreenshotError(f"screenshot failed: {proc.stderr.decode(errors='ignore')[:200]}")

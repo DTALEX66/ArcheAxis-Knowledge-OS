@@ -197,12 +197,14 @@
 ### 3.1 PDF.js
 
 - **来源**：https://github.com/mozilla/pdf.js
-- **版本**：3.11.174（上游当前 5.x）
 - **许可**：Apache-2.0
-- **位置**：`app/workspace/ui/assets/pdf.min.js` + `pdf.worker.min.js`
-- **许可文件**：`app/workspace/ui/assets/licenses/pdfjs-3.11.174-LICENSE.txt`
+- **位置**：`app/workspace/ui/assets/pdf.mjs` + `pdf.worker.mjs`
+- **版本**：`6.2.108`（upstream commit `0365cbde028bd92e58f2dab1bb70cd30ac7acfd7`）
+- **归档 SHA-256**：`b3e68d5cda70551a90b3f771419d379e20fc788ce056fa32de73608e01df47f4`
+- **安全配置**：`isEvalSupported:false`、`enableScripting:false`，同源 module worker + CSP
+- **许可文件**：`app/workspace/ui/assets/licenses/pdfjs-6.2.108-LICENSE.txt`
 - **记录**：`THIRD_PARTY_NOTICES.md`
-- **升级**：独立 spike，验证兼容/CVE/WebView/包大小后再升
+- **升级**：锁 exact release；升级必须验证恶意 PDF、WebView、CSP 与包大小
 
 ### 3.2 Magika ONNX 模型（已 merge）
 

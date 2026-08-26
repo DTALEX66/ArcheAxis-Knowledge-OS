@@ -20,8 +20,6 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
-from app.contracts.v1 import MachineKnowledgeUnitV1, MasterySignalV1
-from app.knowledge.machine_knowledge import create_machine_knowledge_candidate_on_connection
 from app.knowledge.mastery import persist_mastery_signal_on_connection
 from shared import core_schema
 
@@ -105,18 +103,21 @@ def record_learning_outcome(
             signal, signal_id = persist_mastery_signal_on_connection(
                 connection, card_id, calculated_at=recorded_at
             )
-            machine: MachineKnowledgeUnitV1 | None = None
+            machine = None
+            distillation_candidate: dict[str, str] | None = None
             if signal.is_mastered:
-                machine = create_machine_knowledge_candidate_on_connection(
-                    connection, signal_id, title="Mastered learning rule",
-                    content="Learner mastered this card; extract as reusable knowledge.",
-                )
+                distillation_candidate = {
+                    "source_card_id": card_id,
+                    "source_signal_id": signal_id,
+                    "status": "unverified",
+                }
             connection.commit()
             return {
                 "review_id": review_id,
                 "mistake_id": mistake_id,
                 "mastery_signal": signal,
                 "machine_knowledge": machine,
+                "distillation_candidate": distillation_candidate,
             }
         except Exception:
             connection.rollback()

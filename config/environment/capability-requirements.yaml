@@ -238,8 +238,8 @@ capabilities:
 
   plugins:
     - name: pdfjs
-      purpose: "PDF 渲染库（vendored 3.11.174，app/workspace/ui/assets）"
-      version_range: "3.11.174"
+      purpose: "PDF 渲染库（vendored 6.2.108，app/workspace/ui/assets；eval/scripting disabled）"
+      version_range: "6.2.108"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "vendored"

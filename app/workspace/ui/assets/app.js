@@ -101,7 +101,7 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
   // Configure the PDF.js worker lazily from the same-origin asset (CSP-safe).
   // Done at definition time inside the closure but only touches a static
   // string assignment (no network / no worker spawn until a PDF is opened).
-  try { if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "/workspace/assets/pdf.worker.min.js"; } catch (e) {}
+  try { if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "/workspace/assets/pdf.worker.mjs"; } catch (e) {}
   const viewer = () => document.getElementById("pdf-viewer");
   const $info = () => document.getElementById("pdf-page-info");
   const $zinfo = () => document.getElementById("pdf-zoom-info");
@@ -182,7 +182,11 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
       const resp = await fetch("/workspace/api/pdf/" + encodeURIComponent(k));
       if (!resp.ok) { throw new Error("HTTP " + resp.status); }
       const data = await resp.arrayBuffer();
-      state.doc = await pdfjsLib.getDocument({ data: data }).promise;
+      state.doc = await pdfjsLib.getDocument({
+        data: data,
+        isEvalSupported: false,
+        enableScripting: false,
+      }).promise;
       state.page = 1; state.zoom = 1.0; state.matchPage = -1;
       if ($zinfo()) $zinfo().textContent = "100%";
       await renderPage();

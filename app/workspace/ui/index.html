@@ -137,7 +137,6 @@
 <div class="modal" id="intake-modal" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intake-title"><div class="card-title"><div><div class="eyebrow">LOCAL INTAKE</div><h2 id="intake-title">导入资料</h2></div><button class="icon-btn" type="button" data-action="intake-close" aria-label="关闭">×</button></div><p class="muted">粘贴网页地址或选择本地文件。系统自动处理，不要求填写内部编号。</p><form class="form" id="intake-url-form"><div class="field"><label for="intake-url">网页地址</label><input id="intake-url" name="url" type="url" aria-label="网页地址" placeholder="https://example.com/article" required></div><button class="btn primary" type="submit">导入网页或GitHub仓库</button></form><div class="divider">或</div><form class="form" id="intake-file-form"><div class="field"><label for="intake-file">本地文件</label><input id="intake-file" name="file" type="file" aria-label="本地文件" required></div><button class="btn primary" type="submit">导入文件</button></form><pre class="result" id="intake-result" aria-live="polite"></pre></div></div>
 <div class="toast" id="toast"></div>
 </div>
-<script src="/workspace/assets/pdf.min.js"></script>
-<script src="/workspace/assets/app.js"></script>
+<script type="module" src="/workspace/assets/pdf-loader.mjs"></script>
 </body>
 </html>

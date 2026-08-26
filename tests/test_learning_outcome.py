@@ -43,7 +43,8 @@ def _migrated_db(tmp_path: Path) -> str:
 
 
 def _run_py(env: dict, code: str) -> str:
-    import subprocess, sys
+    import subprocess
+    import sys
     proc = subprocess.run(
         [sys.executable, "-c", code], env=env, capture_output=True, text=True, cwd=str(Path(__file__).resolve().parents[1])
     )
@@ -81,16 +82,21 @@ def test_review_and_mistake_persisted(tmp_path):
         assert mistakes[0]["resolved"] == 0
 
 
-def test_mastery_cascade_to_machine_candidate(tmp_path):
+def test_human_mastery_creates_only_unverified_distillation_candidate(tmp_path):
     db = _migrated_db(tmp_path)
     from app.knowledge.learning_outcome import record_learning_outcome
+    result = None
     for i in range(3):
-        record_learning_outcome(
+        result = record_learning_outcome(
             card_id="card-a", command_id=f"cmd-{i}", quality=5,
             recorded_at=f"2026-08-18T00:0{i}:00+00:00", db_path=db,
         )
     assert _signal_count(db) == 3
-    assert _candidate_count(db) == 1  # mastered → machine knowledge candidate
+    assert _candidate_count(db) == 0
+    assert result is not None
+    assert result["machine_knowledge"] is None
+    assert result["distillation_candidate"]["status"] == "unverified"
+    assert result["distillation_candidate"]["source_card_id"] == "card-a"
 
 
 def test_validation(tmp_path):

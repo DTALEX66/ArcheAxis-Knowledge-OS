@@ -410,10 +410,32 @@ def test_workspace_runtime_assets_are_packaged() -> None:
     assert (root / "app/workspace/ui/index.html").is_file()
     assert (root / "app/workspace/ui/assets/styles.css").is_file()
     assert (root / "app/workspace/ui/assets/app.js").is_file()
-    assert (root / "app/workspace/ui/assets/pdf.min.js").is_file()
-    assert (root / "app/workspace/ui/assets/pdf.worker.min.js").is_file()
+    assert (root / "app/workspace/ui/assets/pdf-loader.mjs").is_file()
+    assert (root / "app/workspace/ui/assets/pdf.mjs").is_file()
+    assert (root / "app/workspace/ui/assets/pdf.worker.mjs").is_file()
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert '"app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js", "ui/assets/licenses/*.txt"]' in pyproject
+    assert '"app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js", "ui/assets/*.mjs", "ui/assets/licenses/*.txt"]' in pyproject
+
+
+def test_workspace_pdf_runtime_disables_eval_and_document_scripting() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
+    loader = (root / "app/workspace/ui/assets/pdf-loader.mjs").read_text(encoding="utf-8")
+    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
+    router_source = (root / "app/workspace/router.py").read_text(encoding="utf-8")
+
+    assert 'type="module"' in page
+    assert 'src="/workspace/assets/pdf-loader.mjs"' in page
+    assert 'pdf.mjs' in loader
+    assert 'await import("/workspace/assets/app.js")' in loader
+    assert 'pdf.worker.mjs' in application
+    assert "isEvalSupported: false" in application
+    assert "enableScripting: false" in application
+    assert '"pdf-loader.mjs"' in router_source
+    assert '"pdf.mjs"' in router_source
+    assert '"pdf.worker.mjs"' in router_source
 
 
 def test_workspace_page_router_reacts_to_browser_hash_changes() -> None:

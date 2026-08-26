@@ -15,9 +15,8 @@ Design rules:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -34,6 +33,7 @@ class HumanMasteryLevel(str, Enum):
 
 
 class MachineMasteryLevel(str, Enum):
+    NONE = "NONE"
     K0_RAW = "K0"
     K1_INDEXED = "K1"
     K2_STRUCTURED = "K2"
@@ -65,7 +65,8 @@ HUMAN_LEVEL_ORDER = [HumanMasteryLevel.M0_SEEN, HumanMasteryLevel.M1_RECOGNIZE,
                      HumanMasteryLevel.M4_SOLVE, HumanMasteryLevel.M5_TRANSFER,
                      HumanMasteryLevel.M6_CREATE, HumanMasteryLevel.M7_EXPERT]
 
-MACHINE_LEVEL_ORDER = [MachineMasteryLevel.K0_RAW, MachineMasteryLevel.K1_INDEXED,
+MACHINE_LEVEL_ORDER = [MachineMasteryLevel.NONE, MachineMasteryLevel.K0_RAW,
+                       MachineMasteryLevel.K1_INDEXED,
                        MachineMasteryLevel.K2_STRUCTURED, MachineMasteryLevel.K3_REASONABLE,
                        MachineMasteryLevel.K4_PROCEDURAL, MachineMasteryLevel.K5_CALLABLE,
                        MachineMasteryLevel.K6_VERIFIED, MachineMasteryLevel.K7_ADAPTIVE,
@@ -124,22 +125,24 @@ def human_mastery_level(evidence: HumanEvidence) -> HumanMasteryLevel:
 
 
 def machine_mastery_level(evidence: MachineEvidence) -> MachineMasteryLevel:
-    """Place the machine knowledge on K0..K8 from explicit evidence."""
+    """Return the highest *achieved* contiguous level from explicit receipts."""
     if not evidence.has_raw_source:
-        return MachineMasteryLevel.K0_RAW
+        return MachineMasteryLevel.NONE
     if not evidence.indexed:
-        return MachineMasteryLevel.K1_INDEXED
+        return MachineMasteryLevel.K0_RAW
     if not evidence.structured:
-        return MachineMasteryLevel.K2_STRUCTURED
+        return MachineMasteryLevel.K1_INDEXED
     if not evidence.reasoned:
-        return MachineMasteryLevel.K3_REASONABLE
+        return MachineMasteryLevel.K2_STRUCTURED
     if not evidence.procedural:
-        return MachineMasteryLevel.K4_PROCEDURAL
+        return MachineMasteryLevel.K3_REASONABLE
     if not evidence.callable:
-        return MachineMasteryLevel.K5_CALLABLE
+        return MachineMasteryLevel.K4_PROCEDURAL
     if not evidence.verified:
-        return MachineMasteryLevel.K6_VERIFIED
+        return MachineMasteryLevel.K5_CALLABLE
     if not evidence.adapted:
+        return MachineMasteryLevel.K6_VERIFIED
+    if not evidence.transferable:
         return MachineMasteryLevel.K7_ADAPTIVE
     return MachineMasteryLevel.K8_TRANSFERABLE
 
@@ -173,13 +176,16 @@ def mastery_gap(human: HumanMasteryLevel, machine: MachineMasteryLevel,
     if evidence != EvidenceMaturity.CURRENT:
         return GapAction.REVIEW_EVIDENCE, 0
     h = HUMAN_LEVEL_ORDER.index(human)
-    k = MACHINE_LEVEL_ORDER.index(machine)
+    # NONE is a pre-K0 ineligibility state and must not shift the historical
+    # M0..M7 vs K0..K8 gap alignment.
+    k = MACHINE_LEVEL_ORDER.index(machine) - 1
     delta = k - h
     if delta > 0:
         return GapAction.TEACH_HUMAN, delta
     if delta < 0:
         return GapAction.DISTILL_HUMAN, delta
-    if k >= MACHINE_LEVEL_ORDER.index(MachineMasteryLevel.K6_VERIFIED) and             h >= HUMAN_LEVEL_ORDER.index(HumanMasteryLevel.M4_SOLVE):
+    if k >= MACHINE_LEVEL_ORDER.index(MachineMasteryLevel.K6_VERIFIED) - 1 and \
+            h >= HUMAN_LEVEL_ORDER.index(HumanMasteryLevel.M4_SOLVE):
         return GapAction.COLLABORATE, 0
     return GapAction.LEARN_FIRST, 0
 
@@ -213,7 +219,7 @@ class KnowledgeNodeState(BaseModel):
 
 
 def evaluate_node(node_id: str, human: HumanEvidence,
-                  machine: MachineEvidence, *, evidence_verified: bool = True,
+                  machine: MachineEvidence, *, evidence_verified: bool = False,
                   valid_to: str | None = None, has_superseding: bool = False,
                   has_contradiction: bool = False, now: str = "9999-12-31T00:00:00+00:00"
                   ) -> KnowledgeNodeState:

@@ -47,7 +47,7 @@ def test_learning_loop_e2e(tmp_path: Path):
         )
         conn.commit(); conn.close()
 
-        # 2) three strong reviews → mastery → machine knowledge candidate
+        # 2) three strong reviews -> human mastery only; no automatic machine truth
         for i in range(3):
             r = client.post("/api/v1/learning/review-outcome", json={
                 "card_id": "card-bkt", "command_id": f"e2e-r{i}",
@@ -55,9 +55,10 @@ def test_learning_loop_e2e(tmp_path: Path):
             })
             assert r.status_code == 200, r.text
         assert r.json()["mastered"] is True
-        assert r.json()["machine_knowledge_created"] is True
+        assert r.json()["machine_knowledge_created"] is False
+        assert r.json()["distillation_candidate"]["status"] == "unverified"
 
-        # 3) quiz generation from machine knowledge
+        # 3) quiz generation remains available from explicitly provided reference
         q = client.get("/api/v1/learning/quiz",
                        params={"concept": "BKT", "reference": "BKT 是隐马尔可夫模型，含 guess 与 slip 参数",
                                "key_terms": "guess,slip", "other_concepts": "SRS,IRT"})
@@ -65,21 +66,27 @@ def test_learning_loop_e2e(tmp_path: Path):
         items = q.json()["items"]
         assert any(item["kind"] == "mcq" for item in items)
 
-        # 4) mastery gap: machine knows more → TEACH_HUMAN with quiz plan
+        # 4) spoofed mastery is rejected; intent-only requests fail closed
+        spoof = client.post("/api/v1/learning/tick", json={
+            "node_id": "concept:bkt", "learner_id": "learner-e2e",
+            "human": {"reviewed": True},
+            "machine": {"has_raw_source": True, "verified": True},
+            "evidence_verified": True,
+            "action_intent": "review",
+            "idempotency_key": "e2e-tick-spoof",
+        })
+        assert spoof.status_code == 400, spoof.text
         t = client.post("/api/v1/learning/tick", json={
             "node_id": "concept:bkt",
-            "human": {"reviewed": True, "teach_back_score": 0.4},
-            "machine": {"has_raw_source": True, "indexed": True, "structured": True,
-                        "reasoned": True, "procedural": True, "callable": True, "verified": True},
-            "teach": {"concept": "BKT", "reference": "BKT 是隐马尔可夫模型，含 guess 与 slip 参数",
-                      "key_terms": ["guess", "slip"]},
-            "other_concepts": ["SRS", "IRT"],
+            "learner_id": "learner-e2e",
+            "action_intent": "review",
+            "idempotency_key": "e2e-tick-safe",
         })
         assert t.status_code == 200, t.text
         body = t.json()
-        assert body["action"] == "teach_human", body
-        assert body["payload"]["kind"] == "teach_plan"
-        assert body["payload"].get("quiz"), body
+        assert body["action"] == "review_evidence", body
+        assert body["state"]["human"]["level"] == "M0"
+        assert body["state"]["machine"]["level"] == "NONE"
 
         # 5) human expert distills → rule + skill registered
         d = client.post("/api/v1/learning/distill", json={
@@ -106,7 +113,7 @@ def test_learning_loop_e2e(tmp_path: Path):
 
         print(json.dumps({
             "mastered": True,
-            "machine_candidate": True,
+            "machine_candidate": False,
             "quiz_items": len(items),
             "tick_action": body["action"],
             "principle_id": principle_id,
@@ -115,11 +122,13 @@ def test_learning_loop_e2e(tmp_path: Path):
         }, ensure_ascii=False))
         """
     )
-    import subprocess, sys
+    import subprocess
+    import sys
     proc = subprocess.run([sys.executable, "-c", code], env=env,
                           capture_output=True, text=True, cwd=str(Path(__file__).resolve().parents[1]))
     assert proc.returncode == 0, f"E2E failed:\n{proc.stdout}\n{proc.stderr}"
     receipt = json.loads(proc.stdout.strip().splitlines()[-1])
-    assert receipt["tick_action"] == "teach_human"
+    assert receipt["tick_action"] == "review_evidence"
+    assert receipt["machine_candidate"] is False
     assert receipt["mastered"] is True
     print("E2E receipt:", receipt)

@@ -2,11 +2,12 @@
   "schema_version": 2,
   "ledger_name": "ArcheAxis Knowledge — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "updated": "2026-08-11",
+  "updated": "2026-08-27",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
   "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
   "disposition_labels": {
     "CURRENT": "Already integrated — source/binary evidence exists. State qualified by tier below.",
+    "ADOPT_PRODUCT_BASE": "Run as the downstream learning product shell; ArcheAxis keeps all authority objects and truth.",
     "ADOPT": "Recommended primary choice for the capability. Requires exact-revision RDR before integration.",
     "EVALUATE": "Bake-off candidate — compare against peers with fixed fixtures before selecting.",
     "SIDECAR": "Isolated, removable, not a default core dependency. Separate compliance path.",
@@ -25,7 +26,7 @@
     {
       "id": "C001",
       "name": "PDF.js",
-      "version": "3.11.174",
+      "version": "6.2.108",
       "canonical_url": "https://github.com/mozilla/pdf.js",
       "capability": "pdf-viewer",
       "code_license": "Apache-2.0",
@@ -36,9 +37,9 @@
         "installed"
       ],
       "product_path": "app/workspace/ui/assets/",
-      "evidence": "PR #74 merged; browser-verified paging/zoom/search",
-      "decision": "Retain 3.11.174. Plan compatibility/CVE upgrade spike to current 5.x. NOTICE recorded.",
-      "upstream_note": "Upstream at 5.x; our version is behind but validated. Do not blind-upgrade."
+      "evidence": "Vendored ESM build + worker; package-data and fail-closed browser options tested; exact browser smoke pending current tree",
+      "decision": "Upgrade to current fixed 6.2.108 line. Load as same-origin ES module; disable eval and document scripting. NOTICE and SBOM component required.",
+      "upstream_note": "6.2.108 includes the 2026 sandbox-escape advisory fix; archive/npm integrity recorded by project task evidence."
     },
     {
       "id": "C002",
@@ -668,6 +669,25 @@
       "upstream_note": null
     },
     {
+      "id": "C013",
+      "name": "DeepTutor",
+      "version": "v1.5.17",
+      "canonical_url": "https://github.com/HKUDS/DeepTutor",
+      "capability": "downstream-learning-product-shell",
+      "code_license": "Apache-2.0",
+      "model_license": "provider/model specific; no model weights vendored",
+      "disposition": "ADOPT_PRODUCT_BASE",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "external source body; project adapter under app/adapters/deeptutor",
+      "upstream_tag_object": "2e522f754c61be7760392151fd22939d570941b8",
+      "upstream_commit": "bd80a4d28a2093347ef080f98ae7cf8e3eee488e",
+      "tag_signature": "unsigned",
+      "decision": "Install and run as a replaceable downstream product shell. Its KB, memory, users, sessions and indexes are projections only; it cannot write Source/Anchor/Claim/Evidence/HumanLearning/MachineCompetence truth.",
+      "upstream_note": "Release v1.5.17 published 2026-08-24; Windows fixes included. Golden workflow and restart/rebuild evidence remain required before installed/release qualification."
+    },
+    {
       "id": "X001_ARCHIVED",
       "name": "Kùzu",
       "canonical_url": "https://github.com/kuzudb/kuzu",
@@ -679,9 +699,10 @@
       "upstream_note": "ARCHIVED."
     }
   ],
-  "component_count": 46,
+  "component_count": 47,
   "disposition_summary": {
     "CURRENT": 12,
+    "ADOPT_PRODUCT_BASE": 1,
     "ADOPT": 13,
     "EVALUATE": 9,
     "SIDECAR": 2,

@@ -60,13 +60,14 @@ def get_mastery(card_id: str) -> dict[str, object]:
     except Exception as exc:  # noqa: BLE001 — fail closed with a clean 4xx
         raise HTTPException(status_code=400, detail=f"mastery lookup failed: {exc}") from exc
 
-    signal = from_learning_snapshots(dict(card), [dict(r) for r in reviews],
+    card_snapshot = dict(card)
+    signal = from_learning_snapshots(card_snapshot, [dict(r) for r in reviews],
                                      [dict(m) for m in mistakes])
     human = HumanEvidence(
         reviewed=signal.review_count > 0,
-        review_state=str(card.get("review_status", "new")),
-        stability_days=float(card.get("stability_days") or 0.0),
-        bkt_mastery=float(card.get("bkt_mastery") or 0.0),
+        review_state=str(card_snapshot.get("review_status", "new")),
+        stability_days=float(card_snapshot.get("stability_days") or 0.0),
+        bkt_mastery=float(card_snapshot.get("bkt_mastery") or 0.0),
     )
     machine = MachineEvidence(has_raw_source=True, indexed=True, structured=True)
     node = evaluate_node(card_id, human, machine)
@@ -216,25 +217,43 @@ def _machine_evidence(payload: dict[str, object]):
 
 @router.post("/tick", dependencies=[Depends(_require_desktop_write_request)])
 def learning_tick(payload: dict[str, object]) -> dict[str, object]:
-    """Dispatch one knowledge node by its mastery gap (TEACH/DISTILL/…).
+    """Accept action intent only; truth-bearing axes are server-derived.
 
-    human/machine: evidence bundles (dual_mastery fields).
-    teach: {concept, reference, key_terms?, quiz_item?, transfer_item?} for
-           TEACH_HUMAN; other_concepts feeds quiz distractors.
+    Until durable evaluation receipts exist for the requested node, this path
+    deliberately returns ``review_evidence`` rather than inferring mastery.
     """
     from app.knowledge.co_learning_loop import bidirectional_tick
+    from app.knowledge.dual_mastery import HumanEvidence, MachineEvidence
+
+    forbidden = {
+        "human",
+        "machine",
+        "evidence_verified",
+        "has_superseding",
+        "has_contradiction",
+    }
+    asserted = sorted(forbidden.intersection(payload))
+    if asserted:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "truth fields are server-derived and cannot be asserted by the client: "
+                + ", ".join(asserted)
+            ),
+        )
 
     try:
         node_id = str(payload["node_id"])
-        human = _human_evidence(dict(payload.get("human") or {}))
-        machine = _machine_evidence(dict(payload.get("machine") or {}))
+        str(payload["learner_id"])
+        str(payload["action_intent"])
+        str(payload["idempotency_key"])
         teach = payload.get("teach")
         result = bidirectional_tick(
-            node_id=node_id, human=human, machine=machine,
+            node_id=node_id, human=HumanEvidence(), machine=MachineEvidence(),
             teach=dict(teach) if isinstance(teach, dict) else None,
-            evidence_verified=bool(payload.get("evidence_verified", True)),
-            has_superseding=bool(payload.get("has_superseding", False)),
-            has_contradiction=bool(payload.get("has_contradiction", False)),
+            evidence_verified=False,
+            has_superseding=False,
+            has_contradiction=False,
         )
         if result["action"] == "teach_human":
             from app.learning.quiz import generate_quiz
@@ -294,7 +313,7 @@ def review_outcome(payload: dict[str, object]) -> dict[str, object]:
 
     card_id + command_id (idempotency) + quality (0..5) + optional
     mistake_detail. Writes kb_reviews (+kb_mistakes), recalculates mastery,
-    and promotes a machine-knowledge candidate when mastered.
+    and emits an unverified distillation candidate when mastered.
     """
     from app.knowledge.learning_outcome import record_learning_outcome
 
@@ -322,6 +341,7 @@ def review_outcome(payload: dict[str, object]) -> dict[str, object]:
         "mastered": result["mastery_signal"].is_mastered,
         "review_count": result["mastery_signal"].review_count,
         "machine_knowledge_created": result["machine_knowledge"] is not None,
+        "distillation_candidate": result["distillation_candidate"],
     }
 
 
