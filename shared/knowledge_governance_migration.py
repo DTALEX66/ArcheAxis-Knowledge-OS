@@ -28,6 +28,8 @@ AXR_LEARNING_TRUTH_MIGRATION_VERSION = 16
 AXR_LEARNING_TRUTH_MIGRATION_NAME = "axr_learning_truth_v2"
 AXR_SOURCE_TRUTH_MIGRATION_VERSION = 17
 AXR_SOURCE_TRUTH_MIGRATION_NAME = "axr_source_truth_v2"
+AXR_DISTILLATION_REVIEW_MIGRATION_VERSION = 18
+AXR_DISTILLATION_REVIEW_MIGRATION_NAME = "axr_distillation_review_v1"
 KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
     KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
@@ -38,6 +40,7 @@ KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME,
     AXR_LEARNING_TRUTH_MIGRATION_VERSION: AXR_LEARNING_TRUTH_MIGRATION_NAME,
     AXR_SOURCE_TRUTH_MIGRATION_VERSION: AXR_SOURCE_TRUTH_MIGRATION_NAME,
+    AXR_DISTILLATION_REVIEW_MIGRATION_VERSION: AXR_DISTILLATION_REVIEW_MIGRATION_NAME,
 }
 KNOWLEDGE_GOVERNANCE_TABLES_V1 = (
     "knowledge_candidate_promotions_v1",
@@ -97,6 +100,12 @@ AXR_SOURCE_TRUTH_OBJECTS = (
     "archive_exports_v2",
     "idx_archive_exports_v2_source",
 )
+AXR_DISTILLATION_REVIEW_OBJECTS = (
+    "distillation_candidate_reviews_v2",
+    "idx_distillation_candidate_reviews_v2_candidate",
+    "machine_knowledge_candidates_v2",
+    "idx_machine_knowledge_candidates_v2_status",
+)
 KNOWLEDGE_GOVERNANCE_TABLES = (
     *KNOWLEDGE_GOVERNANCE_TABLES_V1,
     KNOWLEDGE_GOVERNANCE_EVENT_TABLE,
@@ -114,6 +123,8 @@ KNOWLEDGE_GOVERNANCE_TABLES = (
     "anchors_v2",
     "provenance_activities_v2",
     "archive_exports_v2",
+    "distillation_candidate_reviews_v2",
+    "machine_knowledge_candidates_v2",
 )
 _OPERATOR_CAPABILITY = object()
 
@@ -375,6 +386,34 @@ CREATE TABLE IF NOT EXISTS archive_exports_v2 (
 CREATE INDEX IF NOT EXISTS idx_archive_exports_v2_source
 ON archive_exports_v2(source_id, source_version, created_at, export_id);
 """
+AXR_DISTILLATION_REVIEW_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS distillation_candidate_reviews_v2 (
+    review_id TEXT PRIMARY KEY,
+    candidate_id TEXT NOT NULL,
+    decision TEXT NOT NULL CHECK(decision IN ('approved','rejected','revoked')),
+    evidence_bundle_id TEXT,
+    reviewer_id TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    reviewed_at TEXT NOT NULL,
+    FOREIGN KEY(candidate_id) REFERENCES distillation_candidates_v2(candidate_id),
+    FOREIGN KEY(evidence_bundle_id) REFERENCES evidence_bundles_v1(id)
+);
+CREATE INDEX IF NOT EXISTS idx_distillation_candidate_reviews_v2_candidate
+ON distillation_candidate_reviews_v2(candidate_id, reviewed_at, review_id);
+CREATE TABLE IF NOT EXISTS machine_knowledge_candidates_v2 (
+    machine_candidate_id TEXT PRIMARY KEY,
+    distillation_candidate_id TEXT NOT NULL UNIQUE,
+    status TEXT NOT NULL CHECK(status IN ('CANDIDATE','REVOKED')),
+    payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),
+    evidence_bundle_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    revoked_at TEXT,
+    FOREIGN KEY(distillation_candidate_id) REFERENCES distillation_candidates_v2(candidate_id),
+    FOREIGN KEY(evidence_bundle_id) REFERENCES evidence_bundles_v1(id)
+);
+CREATE INDEX IF NOT EXISTS idx_machine_knowledge_candidates_v2_status
+ON machine_knowledge_candidates_v2(status, created_at, machine_candidate_id);
+"""
 
 
 def _connect(
@@ -527,6 +566,12 @@ def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
             AXR_SOURCE_TRUTH_SCHEMA_SQL,
             AXR_SOURCE_TRUTH_OBJECTS,
         ),
+        (
+            AXR_DISTILLATION_REVIEW_MIGRATION_VERSION,
+            AXR_DISTILLATION_REVIEW_MIGRATION_NAME,
+            AXR_DISTILLATION_REVIEW_SCHEMA_SQL,
+            AXR_DISTILLATION_REVIEW_OBJECTS,
+        ),
     )
     for index, (version, _name, schema_sql, object_names) in enumerate(specifications):
         if version in recorded:
@@ -608,6 +653,7 @@ def migrate(
                     EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_SCHEMA_SQL,
                     AXR_LEARNING_TRUTH_MIGRATION_VERSION: AXR_LEARNING_TRUTH_SCHEMA_SQL,
                     AXR_SOURCE_TRUTH_MIGRATION_VERSION: AXR_SOURCE_TRUTH_SCHEMA_SQL,
+                    AXR_DISTILLATION_REVIEW_MIGRATION_VERSION: AXR_DISTILLATION_REVIEW_SCHEMA_SQL,
                 }
                 _execute_schema(connection, schemas[version])
                 if version == AXR_LEARNING_TRUTH_MIGRATION_VERSION:
