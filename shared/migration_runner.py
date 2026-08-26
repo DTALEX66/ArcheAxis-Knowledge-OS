@@ -1277,6 +1277,7 @@ class MigrationOperator:
                         migration.MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
                         migration.EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME,
                         migration.AXR_LEARNING_TRUTH_MIGRATION_NAME,
+                        migration.AXR_SOURCE_TRUTH_MIGRATION_NAME,
                     }
                     if not expected_migrations <= allowed_migrations:
                         raise RuntimeError("rollback provenance does not match migration owner")

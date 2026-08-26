@@ -26,6 +26,8 @@ EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION = 15
 EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME = "phase5_evidence_bundle_ledger_v1"
 AXR_LEARNING_TRUTH_MIGRATION_VERSION = 16
 AXR_LEARNING_TRUTH_MIGRATION_NAME = "axr_learning_truth_v2"
+AXR_SOURCE_TRUTH_MIGRATION_VERSION = 17
+AXR_SOURCE_TRUTH_MIGRATION_NAME = "axr_source_truth_v2"
 KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
     KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
@@ -35,6 +37,7 @@ KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION: MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
     EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME,
     AXR_LEARNING_TRUTH_MIGRATION_VERSION: AXR_LEARNING_TRUTH_MIGRATION_NAME,
+    AXR_SOURCE_TRUTH_MIGRATION_VERSION: AXR_SOURCE_TRUTH_MIGRATION_NAME,
 }
 KNOWLEDGE_GOVERNANCE_TABLES_V1 = (
     "knowledge_candidate_promotions_v1",
@@ -84,6 +87,16 @@ AXR_LEARNING_TRUTH_OBJECTS = (
     "idx_machine_competence_receipts_v2_node",
     "machine_competence_legacy_v2",
 )
+AXR_SOURCE_TRUTH_OBJECTS = (
+    "source_objects_v2",
+    "idx_source_objects_v2_sha",
+    "anchors_v2",
+    "idx_anchors_v2_source",
+    "provenance_activities_v2",
+    "idx_provenance_activities_v2_source",
+    "archive_exports_v2",
+    "idx_archive_exports_v2_source",
+)
 KNOWLEDGE_GOVERNANCE_TABLES = (
     *KNOWLEDGE_GOVERNANCE_TABLES_V1,
     KNOWLEDGE_GOVERNANCE_EVENT_TABLE,
@@ -97,6 +110,10 @@ KNOWLEDGE_GOVERNANCE_TABLES = (
     "distillation_candidates_v2",
     "machine_competence_receipts_v2",
     "machine_competence_legacy_v2",
+    "source_objects_v2",
+    "anchors_v2",
+    "provenance_activities_v2",
+    "archive_exports_v2",
 )
 _OPERATOR_CAPABILITY = object()
 
@@ -300,6 +317,64 @@ CREATE TABLE IF NOT EXISTS machine_competence_legacy_v2 (
     PRIMARY KEY(legacy_table, legacy_id)
 );
 """
+AXR_SOURCE_TRUTH_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS source_objects_v2 (
+    source_id TEXT NOT NULL,
+    version INTEGER NOT NULL CHECK(version >= 1),
+    raw_sha256 TEXT NOT NULL CHECK(length(raw_sha256) = 64),
+    byte_size INTEGER NOT NULL CHECK(byte_size >= 0),
+    media_type TEXT NOT NULL,
+    rights_status TEXT NOT NULL CHECK(rights_status IN (
+        'owned','licensed','public-domain','permission-recorded'
+    )),
+    rights_json TEXT NOT NULL CHECK(json_valid(rights_json)),
+    provenance_json TEXT NOT NULL CHECK(json_valid(provenance_json)),
+    original_retained INTEGER NOT NULL CHECK(original_retained = 1),
+    created_at TEXT NOT NULL,
+    PRIMARY KEY(source_id, version)
+);
+CREATE INDEX IF NOT EXISTS idx_source_objects_v2_sha
+ON source_objects_v2(raw_sha256, source_id, version);
+CREATE TABLE IF NOT EXISTS anchors_v2 (
+    anchor_id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    source_version INTEGER NOT NULL,
+    selector_json TEXT NOT NULL CHECK(json_valid(selector_json)),
+    quote_sha256 TEXT,
+    state TEXT NOT NULL CHECK(state IN ('CURRENT','STALE','ORPHANED')),
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(source_id, source_version) REFERENCES source_objects_v2(source_id, version)
+);
+CREATE INDEX IF NOT EXISTS idx_anchors_v2_source
+ON anchors_v2(source_id, source_version, state, anchor_id);
+CREATE TABLE IF NOT EXISTS provenance_activities_v2 (
+    activity_id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    source_version INTEGER NOT NULL,
+    activity_type TEXT NOT NULL,
+    agent TEXT NOT NULL,
+    used_json TEXT NOT NULL CHECK(json_valid(used_json)),
+    generated_json TEXT NOT NULL CHECK(json_valid(generated_json)),
+    started_at TEXT NOT NULL,
+    ended_at TEXT,
+    FOREIGN KEY(source_id, source_version) REFERENCES source_objects_v2(source_id, version)
+);
+CREATE INDEX IF NOT EXISTS idx_provenance_activities_v2_source
+ON provenance_activities_v2(source_id, source_version, started_at, activity_id);
+CREATE TABLE IF NOT EXISTS archive_exports_v2 (
+    export_id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    source_version INTEGER NOT NULL,
+    artifact_ref TEXT NOT NULL,
+    inventory_sha512 TEXT NOT NULL CHECK(length(inventory_sha512) = 128),
+    verified INTEGER NOT NULL CHECK(verified IN (0,1)),
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(source_id, source_version) REFERENCES source_objects_v2(source_id, version)
+);
+CREATE INDEX IF NOT EXISTS idx_archive_exports_v2_source
+ON archive_exports_v2(source_id, source_version, created_at, export_id);
+"""
 
 
 def _connect(
@@ -446,6 +521,12 @@ def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
             AXR_LEARNING_TRUTH_SCHEMA_SQL,
             AXR_LEARNING_TRUTH_OBJECTS,
         ),
+        (
+            AXR_SOURCE_TRUTH_MIGRATION_VERSION,
+            AXR_SOURCE_TRUTH_MIGRATION_NAME,
+            AXR_SOURCE_TRUTH_SCHEMA_SQL,
+            AXR_SOURCE_TRUTH_OBJECTS,
+        ),
     )
     for index, (version, _name, schema_sql, object_names) in enumerate(specifications):
         if version in recorded:
@@ -526,6 +607,7 @@ def migrate(
                     MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION: MACHINE_KNOWLEDGE_APPROVAL_EVENT_SCHEMA_SQL,
                     EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_SCHEMA_SQL,
                     AXR_LEARNING_TRUTH_MIGRATION_VERSION: AXR_LEARNING_TRUTH_SCHEMA_SQL,
+                    AXR_SOURCE_TRUTH_MIGRATION_VERSION: AXR_SOURCE_TRUTH_SCHEMA_SQL,
                 }
                 _execute_schema(connection, schemas[version])
                 if version == AXR_LEARNING_TRUTH_MIGRATION_VERSION:

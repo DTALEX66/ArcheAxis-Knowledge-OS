@@ -37,6 +37,10 @@ def test_knowledge_governance_owner_is_independent_and_rollback_safe(tmp_path: P
             "learning_events_v2",
             "distillation_candidates_v2",
             "machine_competence_receipts_v2",
+            "source_objects_v2",
+            "anchors_v2",
+            "provenance_activities_v2",
+            "archive_exports_v2",
         } <= tables
         assert "graph_entities" not in tables
         assert "graph_relations" not in tables
@@ -63,6 +67,10 @@ def test_knowledge_governance_owner_is_independent_and_rollback_safe(tmp_path: P
             "learning_events_v2",
             "distillation_candidates_v2",
             "machine_competence_receipts_v2",
+            "source_objects_v2",
+            "anchors_v2",
+            "provenance_activities_v2",
+            "archive_exports_v2",
         } & tables
         assert connection.execute("SELECT id FROM sentinel").fetchone()[0] == "preserve"
 
@@ -93,6 +101,10 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
         ]
         connection.executescript(
             """
+            DROP TABLE archive_exports_v2;
+            DROP TABLE provenance_activities_v2;
+            DROP TABLE anchors_v2;
+            DROP TABLE source_objects_v2;
             DROP TABLE machine_competence_legacy_v2;
             DROP TABLE machine_competence_receipts_v2;
             DROP TABLE distillation_candidates_v2;
@@ -102,7 +114,7 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
             DROP TABLE evidence_bundles_v1;
             DROP TABLE machine_knowledge_approval_events_v1;
             DROP TABLE learning_approval_events_v1;
-            DELETE FROM schema_migrations WHERE version IN (9, 10, 15, 16);
+            DELETE FROM schema_migrations WHERE version IN (9, 10, 15, 16, 17);
             """
         )
         connection.execute(
@@ -124,6 +136,7 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
         "phase5_machine_knowledge_approval_events_v1",
         "phase5_evidence_bundle_ledger_v1",
         "axr_learning_truth_v2",
+        "axr_source_truth_v2",
     ]
     status = next(
         item for item in operator.status() if item["owner"] == "knowledge-governance.sqlite"
@@ -142,6 +155,10 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
     assert "learning_events_v2" in tables
     assert "distillation_candidates_v2" in tables
     assert "machine_competence_receipts_v2" in tables
+    assert "source_objects_v2" in tables
+    assert "anchors_v2" in tables
+    assert "provenance_activities_v2" in tables
+    assert "archive_exports_v2" in tables
     runs_before_reapply = len(
         [
             row

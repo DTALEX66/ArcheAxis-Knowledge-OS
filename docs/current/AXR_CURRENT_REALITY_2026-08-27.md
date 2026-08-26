@@ -27,7 +27,9 @@ Owner 任务包审计基线为 `bf0c4839`。当前 `e8571b9` 比基线多 1 个�
 |---|---|---|
 | AXR-000 | DONE（结构层） | current pack/index/reality matrix 落盘；远端、Release、CI 已回读 |
 | AXR-010 | LOCAL PASS / CI PENDING | PDF.js 升至 6.2.108 ESM，禁 eval/文档脚本；SBOM 覆盖 uv、canonical/recovery npm+cargo、PDF.js 和 Magika；Recovery 壳改独立 identifier 且禁止打包 |
-| AXR-020 | LOCAL PASS / CI PENDING | 已修最高已达到 K、无源=`NONE`、默认 unverified、`/tick` 拒绝客户端自报三轴、sqlite Row 字典化、人类掌握只产 unverified DistillationCandidate；新增 `axr_learning_truth_v2` 增量 migration，旧机器值标 `UNMIGRATED`，机器 K 只从 verified EvidenceBundle 的连续 receipt 推导 |
+| AXR-020 | LOCAL PASS / CI PENDING | 已修最高已达到 K、无源=`NONE`、默认 unverified、`/tick` 拒绝客户端自报三轴、sqlite Row 字典化、人类掌握只产 unverified DistillationCandidate；新增 `axr_learning_truth_v2` 增量 migration，旧机器值标 `UNMIGRATED`，机器 K 只从 verified EvidenceBundle 的连续 receipt 推导；LearningEvent 已可 append/replay |
+| AXR-030 | LOCAL PASS / CI PENDING | `axr_source_truth_v2` 增量 migration 已新增 Source/Anchor/PROV/archive receipt；Source version 追加式、rights/fixity 可回读，新版本自动使旧 Anchor `STALE`；OCFL 1.1 export/fixity/tamper 校验通过 |
+| AXR-040 | PARTIAL / RUNTIME LIVE | DeepTutor v1.5.17（commit `bd80a4d…`，archive SHA-256 `95f651…`）源码/venv 已安装在共用外置依赖库，运行数据固定在项目 `.hermes/task-runtime/deeptutor-home`；HTTP/UI 200、浏览器 title=`DeepTutor`、页面显示 v1.5.17、console 0 error。offline doctor 因无模型配置/凭据 FAIL；不读取或代填凭据，LLM 黄金流待 Owner 在产品 UI 配置 provider 后验收 |
 
 ## 当前硬门
 

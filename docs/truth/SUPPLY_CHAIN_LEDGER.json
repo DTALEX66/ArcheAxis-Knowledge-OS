@@ -678,9 +678,14 @@
       "model_license": "provider/model specific; no model weights vendored",
       "disposition": "ADOPT_PRODUCT_BASE",
       "qualification": [
-        "source"
+        "source",
+        "runtime-installed",
+        "loopback-http-200",
+        "browser-shell-200"
       ],
-      "product_path": "external source body; project adapter under app/adapters/deeptutor",
+      "runtime_status": "PARTIAL_MODEL_CONFIGURATION_REQUIRED",
+      "archive_sha256": "95f6519174069c73f91bc694cfb9e661e8d8d44239003ba9916b450ee77a4ac3",
+      "product_path": "external source/venv body; project data under .hermes/task-runtime/deeptutor-home; authority adapter under app/adapters/deeptutor",
       "upstream_tag_object": "2e522f754c61be7760392151fd22939d570941b8",
       "upstream_commit": "bd80a4d28a2093347ef080f98ae7cf8e3eee488e",
       "tag_signature": "unsigned",
