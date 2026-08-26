@@ -27,7 +27,7 @@ Owner 任务包审计基线为 `bf0c4839`。当前 `e8571b9` 比基线多 1 个�
 |---|---|---|
 | AXR-000 | DONE（结构层） | current pack/index/reality matrix 落盘；远端、Release、CI 已回读 |
 | AXR-010 | LOCAL PASS / CI PENDING | PDF.js 升至 6.2.108 ESM，禁 eval/文档脚本；SBOM 覆盖 uv、canonical/recovery npm+cargo、PDF.js 和 Magika；Recovery 壳改独立 identifier 且禁止打包 |
-| AXR-020 | PARTIAL | 已修最高已达到 K、无源=`NONE`、默认 unverified、`/tick` 拒绝客户端自报三轴、sqlite Row 字典化、人类掌握只产 unverified DistillationCandidate；MachineCompetence V2 数据迁移/receipt 仍待增量 migration |
+| AXR-020 | LOCAL PASS / CI PENDING | 已修最高已达到 K、无源=`NONE`、默认 unverified、`/tick` 拒绝客户端自报三轴、sqlite Row 字典化、人类掌握只产 unverified DistillationCandidate；新增 `axr_learning_truth_v2` 增量 migration，旧机器值标 `UNMIGRATED`，机器 K 只从 verified EvidenceBundle 的连续 receipt 推导 |
 
 ## 当前硬门
 

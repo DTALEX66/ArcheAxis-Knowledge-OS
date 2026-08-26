@@ -13,6 +13,8 @@ def test_knowledge_governance_owner_is_independent_and_rollback_safe(tmp_path: P
     with closing(sqlite3.connect(database)) as connection:
         connection.execute("CREATE TABLE sentinel(id TEXT PRIMARY KEY)")
         connection.execute("INSERT INTO sentinel VALUES ('preserve')")
+        connection.execute("CREATE TABLE machine_knowledge(id TEXT PRIMARY KEY)")
+        connection.execute("INSERT INTO machine_knowledge VALUES ('legacy-k1')")
         connection.commit()
 
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
@@ -32,10 +34,17 @@ def test_knowledge_governance_owner_is_independent_and_rollback_safe(tmp_path: P
             "evidence_bundles_v1",
             "evidence_bundle_entries_v1",
             "evidence_bundle_reviews_v1",
+            "learning_events_v2",
+            "distillation_candidates_v2",
+            "machine_competence_receipts_v2",
         } <= tables
         assert "graph_entities" not in tables
         assert "graph_relations" not in tables
         assert connection.execute("SELECT id FROM sentinel").fetchone()[0] == "preserve"
+        assert connection.execute(
+            "SELECT migration_status FROM machine_competence_legacy_v2 "
+            "WHERE legacy_table='machine_knowledge' AND legacy_id='legacy-k1'"
+        ).fetchone()[0] == "UNMIGRATED"
 
     rolled_back = operator.rollback("knowledge-governance.sqlite")
     assert rolled_back["state"] == "rolled_back"
@@ -51,6 +60,9 @@ def test_knowledge_governance_owner_is_independent_and_rollback_safe(tmp_path: P
             "evidence_bundles_v1",
             "evidence_bundle_entries_v1",
             "evidence_bundle_reviews_v1",
+            "learning_events_v2",
+            "distillation_candidates_v2",
+            "machine_competence_receipts_v2",
         } & tables
         assert connection.execute("SELECT id FROM sentinel").fetchone()[0] == "preserve"
 
@@ -81,12 +93,16 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
         ]
         connection.executescript(
             """
+            DROP TABLE machine_competence_legacy_v2;
+            DROP TABLE machine_competence_receipts_v2;
+            DROP TABLE distillation_candidates_v2;
+            DROP TABLE learning_events_v2;
             DROP TABLE evidence_bundle_reviews_v1;
             DROP TABLE evidence_bundle_entries_v1;
             DROP TABLE evidence_bundles_v1;
             DROP TABLE machine_knowledge_approval_events_v1;
             DROP TABLE learning_approval_events_v1;
-            DELETE FROM schema_migrations WHERE version IN (9, 10, 15);
+            DELETE FROM schema_migrations WHERE version IN (9, 10, 15, 16);
             """
         )
         connection.execute(
@@ -107,6 +123,7 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
         "phase5_learning_approval_events_v1",
         "phase5_machine_knowledge_approval_events_v1",
         "phase5_evidence_bundle_ledger_v1",
+        "axr_learning_truth_v2",
     ]
     status = next(
         item for item in operator.status() if item["owner"] == "knowledge-governance.sqlite"
@@ -122,6 +139,9 @@ def test_existing_knowledge_owner_applies_all_pending_incremental_migrations(
     assert "evidence_bundles_v1" in tables
     assert "evidence_bundle_entries_v1" in tables
     assert "evidence_bundle_reviews_v1" in tables
+    assert "learning_events_v2" in tables
+    assert "distillation_candidates_v2" in tables
+    assert "machine_competence_receipts_v2" in tables
     runs_before_reapply = len(
         [
             row

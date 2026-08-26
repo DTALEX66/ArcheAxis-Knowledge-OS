@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 from contextlib import closing
+from datetime import UTC, datetime
 from pathlib import Path
 
 from shared import migration
@@ -23,6 +24,8 @@ MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION = 10
 MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME = "phase5_machine_knowledge_approval_events_v1"
 EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION = 15
 EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME = "phase5_evidence_bundle_ledger_v1"
+AXR_LEARNING_TRUTH_MIGRATION_VERSION = 16
+AXR_LEARNING_TRUTH_MIGRATION_NAME = "axr_learning_truth_v2"
 KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_MIGRATION_NAME,
     KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_VERSION: KNOWLEDGE_GOVERNANCE_EVENT_MIGRATION_NAME,
@@ -31,6 +34,7 @@ KNOWLEDGE_GOVERNANCE_MIGRATIONS = {
     LEARNING_APPROVAL_EVENT_MIGRATION_VERSION: LEARNING_APPROVAL_EVENT_MIGRATION_NAME,
     MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION: MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_NAME,
     EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_MIGRATION_NAME,
+    AXR_LEARNING_TRUTH_MIGRATION_VERSION: AXR_LEARNING_TRUTH_MIGRATION_NAME,
 }
 KNOWLEDGE_GOVERNANCE_TABLES_V1 = (
     "knowledge_candidate_promotions_v1",
@@ -71,6 +75,15 @@ EVIDENCE_BUNDLE_LEDGER_OBJECTS = (
     "evidence_bundle_reviews_v1",
     "idx_evidence_bundle_reviews_bundle_v1",
 )
+AXR_LEARNING_TRUTH_OBJECTS = (
+    "learning_events_v2",
+    "idx_learning_events_v2_learner_node",
+    "distillation_candidates_v2",
+    "idx_distillation_candidates_v2_status",
+    "machine_competence_receipts_v2",
+    "idx_machine_competence_receipts_v2_node",
+    "machine_competence_legacy_v2",
+)
 KNOWLEDGE_GOVERNANCE_TABLES = (
     *KNOWLEDGE_GOVERNANCE_TABLES_V1,
     KNOWLEDGE_GOVERNANCE_EVENT_TABLE,
@@ -80,6 +93,10 @@ KNOWLEDGE_GOVERNANCE_TABLES = (
     "evidence_bundles_v1",
     "evidence_bundle_entries_v1",
     "evidence_bundle_reviews_v1",
+    "learning_events_v2",
+    "distillation_candidates_v2",
+    "machine_competence_receipts_v2",
+    "machine_competence_legacy_v2",
 )
 _OPERATOR_CAPABILITY = object()
 
@@ -230,6 +247,59 @@ CREATE TABLE IF NOT EXISTS evidence_bundle_reviews_v1 (
 CREATE INDEX IF NOT EXISTS idx_evidence_bundle_reviews_bundle_v1
 ON evidence_bundle_reviews_v1(bundle_id, reviewed_at, id);
 """
+AXR_LEARNING_TRUTH_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS learning_events_v2 (
+    event_id TEXT PRIMARY KEY,
+    learner_id TEXT NOT NULL,
+    node_id TEXT NOT NULL,
+    event_type TEXT NOT NULL CHECK(event_type IN (
+        'review','quiz','teach_back','mistake','hint','session_started','session_completed'
+    )),
+    payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),
+    occurred_at TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    source_system TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_learning_events_v2_learner_node
+ON learning_events_v2(learner_id, node_id, occurred_at, event_id);
+CREATE TABLE IF NOT EXISTS distillation_candidates_v2 (
+    candidate_id TEXT PRIMARY KEY,
+    source_event_id TEXT NOT NULL UNIQUE,
+    source_card_id TEXT NOT NULL,
+    payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),
+    status TEXT NOT NULL CHECK(status IN ('unverified','reviewed','rejected','promoted')),
+    reviewer_id TEXT,
+    review_rationale TEXT,
+    created_at TEXT NOT NULL,
+    reviewed_at TEXT,
+    FOREIGN KEY(source_event_id) REFERENCES learning_events_v2(event_id)
+);
+CREATE INDEX IF NOT EXISTS idx_distillation_candidates_v2_status
+ON distillation_candidates_v2(status, created_at, candidate_id);
+CREATE TABLE IF NOT EXISTS machine_competence_receipts_v2 (
+    receipt_id TEXT PRIMARY KEY,
+    node_id TEXT NOT NULL,
+    task_id TEXT NOT NULL,
+    level TEXT NOT NULL CHECK(level IN ('K0','K1','K2','K3','K4','K5','K6','K7','K8')),
+    outcome TEXT NOT NULL CHECK(outcome IN ('passed','failed')),
+    evidence_bundle_id TEXT NOT NULL,
+    evaluator TEXT NOT NULL,
+    payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),
+    created_at TEXT NOT NULL,
+    UNIQUE(node_id, task_id, evaluator, evidence_bundle_id),
+    FOREIGN KEY(evidence_bundle_id) REFERENCES evidence_bundles_v1(id)
+);
+CREATE INDEX IF NOT EXISTS idx_machine_competence_receipts_v2_node
+ON machine_competence_receipts_v2(node_id, created_at, receipt_id);
+CREATE TABLE IF NOT EXISTS machine_competence_legacy_v2 (
+    legacy_table TEXT NOT NULL,
+    legacy_id TEXT NOT NULL,
+    migration_status TEXT NOT NULL CHECK(migration_status = 'UNMIGRATED'),
+    observed_at TEXT NOT NULL,
+    PRIMARY KEY(legacy_table, legacy_id)
+);
+"""
 
 
 def _connect(
@@ -370,6 +440,12 @@ def _pending(connection: sqlite3.Connection) -> tuple[str, ...]:
             EVIDENCE_BUNDLE_LEDGER_SCHEMA_SQL,
             EVIDENCE_BUNDLE_LEDGER_OBJECTS,
         ),
+        (
+            AXR_LEARNING_TRUTH_MIGRATION_VERSION,
+            AXR_LEARNING_TRUTH_MIGRATION_NAME,
+            AXR_LEARNING_TRUTH_SCHEMA_SQL,
+            AXR_LEARNING_TRUTH_OBJECTS,
+        ),
     )
     for index, (version, _name, schema_sql, object_names) in enumerate(specifications):
         if version in recorded:
@@ -390,6 +466,21 @@ def _execute_schema(connection: sqlite3.Connection, sql: str) -> None:
     for statement in sql.split(";"):
         if statement.strip():
             connection.execute(statement)
+
+
+def _mark_legacy_machine_state_unmigrated(connection: sqlite3.Connection) -> None:
+    """Quarantine legacy machine rows instead of inventing K-level evidence."""
+    observed_at = datetime.now(UTC).isoformat()
+    for table in ("machine_knowledge", "machine_knowledge_units"):
+        if not migration._table_exists(connection, table):
+            continue
+        rows = connection.execute(f'SELECT id FROM "{table}"').fetchall()
+        connection.executemany(
+            "INSERT OR IGNORE INTO machine_competence_legacy_v2 "
+            "(legacy_table, legacy_id, migration_status, observed_at) "
+            "VALUES (?, ?, 'UNMIGRATED', ?)",
+            ((table, str(row[0]), observed_at) for row in rows),
+        )
 
 
 def migrate(
@@ -434,8 +525,11 @@ def migrate(
                     LEARNING_APPROVAL_EVENT_MIGRATION_VERSION: LEARNING_APPROVAL_EVENT_SCHEMA_SQL,
                     MACHINE_KNOWLEDGE_APPROVAL_EVENT_MIGRATION_VERSION: MACHINE_KNOWLEDGE_APPROVAL_EVENT_SCHEMA_SQL,
                     EVIDENCE_BUNDLE_LEDGER_MIGRATION_VERSION: EVIDENCE_BUNDLE_LEDGER_SCHEMA_SQL,
+                    AXR_LEARNING_TRUTH_MIGRATION_VERSION: AXR_LEARNING_TRUTH_SCHEMA_SQL,
                 }
                 _execute_schema(connection, schemas[version])
+                if version == AXR_LEARNING_TRUTH_MIGRATION_VERSION:
+                    _mark_legacy_machine_state_unmigrated(connection)
                 connection.execute("INSERT INTO schema_migrations(version, name) VALUES (?, ?)", (version, name))
             if _pending(connection):
                 raise RuntimeError("knowledge governance migration did not converge")
