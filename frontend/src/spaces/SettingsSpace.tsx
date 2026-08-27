@@ -18,7 +18,7 @@ const DOMAIN_LABELS: Record<string, string> = {
   source_archive: "源文件归档库",
   evidence_ledger: "证据账本库",
   human_learning_vault: "人类学习库",
-  ai_asset_vault: "AI 资产库",
+  ai_asset_vault: "机器知识库",
 };
 
 type WizardStage = "welcome" | "mode" | "paths" | "health" | "complete";
@@ -89,7 +89,7 @@ export function SettingsSpace() {
     setWizardMessage(null);
     try {
       const result = await initializeSetup(request);
-      const successMessage = `工作区已创建：${String(result.workspace_id ?? "—")}`;
+      const successMessage = result.workspace_id ? "工作区已创建并通过读回" : "工作区已创建";
       setWizardMessage(successMessage);
       setStage("complete");
       try {
@@ -105,9 +105,9 @@ export function SettingsSpace() {
   }
 
   return (
-    <Section title="设置与四库管理（Settings）">
-      <p className="muted">真实数据源：/api/v1/setup/status、/preflight、/initialize</p>
-      {loading ? <Loading label="设置" /> : error ? <DataError label="Settings" message={error} /> : <>
+    <Section title="设置与四库管理">
+      <p className="muted">设置工作区位置，并在写入前完成路径和空间检查。</p>
+      {loading ? <Loading label="设置" /> : error ? <DataError label="设置" message={error} /> : <>
         {stage === "welcome" && <div>
           <h4>欢迎使用星环知识平台</h4>
           <p>先选择四库的位置，系统会在创建前检查路径可写性与可用空间。</p>
@@ -157,7 +157,7 @@ export function SettingsSpace() {
 
         {stage === "complete" && <div>
           <h4>设置完成</h4>
-          <p>{wizardMessage ?? `工作区 ${data?.workspace_id ?? "已就绪"} 的四库状态已可读回。`}</p>
+          <p>{wizardMessage ?? "工作区四库状态已可读回。"}</p>
           {!data?.ready && <button type="button" onClick={() => setStage("welcome")}>重新检查设置</button>}
         </div>}
 

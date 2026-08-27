@@ -199,6 +199,29 @@ def test_tauri_origin_requires_exact_desktop_launch_token(tmp_path, monkeypatch)
     assert accepted.headers["access-control-allow-origin"] == "http://tauri.localhost:5173"
 
 
+def test_external_dev_origin_requires_flag_and_exact_launch_token(tmp_path, monkeypatch) -> None:
+    from app.main import app
+    from app.workspace import router
+
+    monkeypatch.setattr(router, "DB_PATH", tmp_path / "archeaxis.sqlite")
+    monkeypatch.setenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN", "test-launch-token-1234567890")
+    headers = {
+        "Origin": "http://127.0.0.1:5173",
+        "Sec-Fetch-Site": "same-site",
+        "X-ArcheAxis-Launch-Token": "test-launch-token-1234567890",
+    }
+    client = TestClient(app)
+
+    assert client.get("/workspace/api/diagnostics", headers=headers).status_code == 403
+    monkeypatch.setenv("ARCHEAXIS_EXTERNAL_DEV", "1")
+    headers["X-ArcheAxis-Launch-Token"] = "wrong-token"
+    assert client.get("/workspace/api/diagnostics", headers=headers).status_code == 403
+    headers["X-ArcheAxis-Launch-Token"] = "test-launch-token-1234567890"
+    accepted = client.get("/workspace/api/diagnostics", headers=headers)
+    assert accepted.status_code == 200
+    assert accepted.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+
+
 def test_desktop_write_rejects_missing_token_scope_or_idempotency_key(tmp_path, monkeypatch) -> None:
     """A React-backed write needs all three desktop intent proofs."""
     from app.main import app

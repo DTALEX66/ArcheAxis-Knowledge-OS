@@ -753,7 +753,7 @@ fn main() {
                 record_failure(&startup_backend, &error);
             }
             WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("ArcheAxis Learning Workspace")
+                .title("星环知识平台（ArcheAxis Knowledge）")
                 .inner_size(1280.0, 800.0)
                 .data_directory(webview_data_dir)
                 .build()

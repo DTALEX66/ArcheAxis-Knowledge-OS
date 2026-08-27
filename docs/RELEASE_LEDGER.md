@@ -35,7 +35,7 @@ correct provenance.
 | `v0.6.8` | yes | yes | yes | 2026-08-23 00:45:26 | Historical public stable Release at `93e58a3`; six-space/source/AI closed-loop update and independent 9-asset readback passed. |
 | `v0.6.9` | yes | yes | yes | 2026-08-23 06:48:11 | Historical public stable Release at `de5b5ba`; Recovery Shell, thin frontend and risk-selected CI update; exact-SHA CI, three Windows lifecycle gates and workflow public-asset readback passed. |
 | `v0.6.10` | yes | yes | yes | 2026-08-23 21:02:53 | Historical public stable Release at `3428a65`; real Activity Dock actions, raw-first E2E correction and latest-SHA CI recovery; exact-SHA CI, three Windows lifecycle gates and workflow public-asset readback passed. |
-| `v0.6.11` | yes | yes | yes | 2026-08-27 13:45:33 | Current public stable Release at `86cecc7`; R2 truth/safety/product-base closure, DeepTutor local-model golden flow, exact-SHA CI `33076417510`, three Windows lifecycle gates and Release workflow `33077810146` public-asset readback passed. |
+| `v0.6.11` | yes | yes | yes | 2026-08-27 13:45:33 | Current public stable Release at `86cecc7`; R2 truth/safety/product-base closure, DeepTutor local-model golden flow, exact-SHA CI `33076417510`, three Windows lifecycle gates and Release workflow `33077810146` public-asset readback passed. Post-release audit found the release gate did not verify OSUI v3 design adoption or Chinese consistency; retained unchanged, remediation is append-only. |
 
 ## v0.6.11 release evidence
 
@@ -48,6 +48,7 @@ correct provenance.
 - Public assets: 9；Release workflow 已完成 draft/public 双阶段下载、provider digest、checksum allowlist 与三分发生命周期读回
 - Local independent readback: 9/9 全资产下载；provider digest、`SHA256SUMS.txt` 8 payload、schema v3 identity、tag/commit/tree、verification/release run 与 dependency locks 全部匹配
 - DeepTutor v1.5.17 + Ollama `qwen3:8b`: online doctor required checks PASS；Chromium 教学、答题反馈、无效答案恢复和 reload readback PASS，console 0 error
+- Known product defect after publication: v0.6.11 did not adopt the repository's authoritative OSUI v3 in the canonical Tauri/Workspace surfaces and still exposed mixed Chinese/English UI. This does not invalidate its engineering asset identity, but it invalidates any claim that v0.6.11 passed UI product acceptance. The tag and Release remain immutable.
 - Public provider SHA-256: Setup `f758f014…`；Green `4cf56787…`；Portable `17d81aaa…`；完整 9 资产值由 machine-readable receipt 保存
 - Machine-readable receipt: `reports/release/v0.6.11/release-evidence.json`
 

@@ -72,9 +72,24 @@ def exercise_workspace(page: Page, base_url: str) -> None:
 
     page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
     assert page.locator("body").get_attribute("data-theme") == "apple-light"
-    page.get_by_role("button", name="紫曜").click()
-    assert page.locator("body").get_attribute("data-theme") == "violet-core"
-    page.get_by_role("button", name="浅色").click()
+    assert page.locator(".workbench-hero").is_visible()
+    assert page.locator(".hero-ledger").is_visible()
+    assert page.locator(".next-actions").is_visible()
+    assert page.locator(".global-search").is_visible()
+    assert page.evaluate("document.body.classList.contains('dock-collapsed')")
+    visible_text = page.locator("body").inner_text()
+    for forbidden in (
+        "LOCAL ONLY",
+        "CONTEXT & EVIDENCE",
+        "LOCAL JOB CENTER",
+        "HUMAN REVIEW QUEUE",
+        "KNOWLEDGE CANDIDATES",
+        "TRUTH BOUNDARY",
+    ):
+        assert forbidden not in visible_text
+    page.get_by_role("button", name="深色外观").click()
+    assert page.locator("body").get_attribute("data-theme") == "deepspace"
+    page.get_by_role("button", name="浅色外观").click()
     assert page.locator("body").get_attribute("data-theme") == "apple-light"
     assert page.get_by_role("complementary", name="一级模块").is_visible()
     assert page.get_by_role("complementary", name="上下文与证据检查器").is_visible()
@@ -84,19 +99,19 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     assert page.evaluate("document.body.classList.contains('inspector-collapsed')")
     page.get_by_role("button", name="展开上下文与证据检查器").click()
     assert not page.evaluate("document.body.classList.contains('inspector-collapsed')")
-    page.get_by_role("button", name="折叠活动坞").click()
-    assert page.evaluate("document.body.classList.contains('dock-collapsed')")
     page.get_by_role("button", name="展开活动坞").click()
     assert not page.evaluate("document.body.classList.contains('dock-collapsed')")
+    page.get_by_role("button", name="折叠活动坞").click()
+    assert page.evaluate("document.body.classList.contains('dock-collapsed')")
     assert not page.get_by_role("button", name="AI").count()
     page.locator('.rail-item[title="系统"]').click()
     settings_route = page.locator('.nav-item[data-page="settings"]')
     assert settings_route.get_attribute("data-route-state") == "planned"
     settings_route.get_by_text("设置", exact=True).is_visible()
     page.locator('.rail-item[title="首页"]').click()
-    page.get_by_role("heading", name="星环知识平台").wait_for()
-    page.get_by_text("异步Worker", exact=True).wait_for()
-    assert "异步Worker" in page.locator("#capability-summary").inner_text()
+    page.get_by_role("heading", name="工作台总览").wait_for()
+    page.get_by_text("异步处理器", exact=True).wait_for()
+    assert "异步处理器" in page.locator("#capability-summary").inner_text()
     assert "已接入" in page.locator("#capability-summary").inner_text()
     page.locator('.rail-item[title="首页"]').click()
     delivery_route = page.locator('.nav-item[data-page="delivery"]')
@@ -111,6 +126,20 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     learning_route.get_by_text("学习路线", exact=True).click()
     page.get_by_role("heading", name="学习路线").wait_for()
     assert page.url.endswith("#learning")
+
+    page.goto(f"{base_url}/workspace#visual-lesson", wait_until="networkidle")
+    page.get_by_role("heading", name="视觉课件工作室").wait_for()
+    page.get_by_role("button", name="02 证据关系 支持、反驳与背景").click()
+    page.get_by_role("heading", name="主张需要关系，而不是伪精确评分。").wait_for()
+    assert page.get_by_text("播放未开放", exact=True).is_visible()
+
+    page.goto(f"{base_url}/workspace#spatial-memory", wait_until="networkidle")
+    page.get_by_role("heading", name="空间记忆", exact=True).wait_for()
+    assert page.get_by_text("文字等价路线", exact=True).is_visible()
+
+    page.goto(f"{base_url}/workspace#roadmap", wait_until="networkidle")
+    page.get_by_role("heading", name="底座、吸收与下一阶段").wait_for()
+    assert page.get_by_text("已运行底座", exact=True).is_visible()
 
     page.route(STATUS_PATTERN, _partial_status)
     page.goto(f"{base_url}/workspace#diagnostics", wait_until="networkidle")
@@ -130,7 +159,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     intake_button.click()
     page.get_by_label("网页地址").fill("https://example.com/offline")
     page.route(INTAKE_PATTERN, _network_failure)
-    page.get_by_role("button", name="导入网页或GitHub仓库").click()
+    page.get_by_role("button", name="导入网页或代码仓库").click()
     page.get_by_text("无法连接本地服务，请重试", exact=False).wait_for()
     assert "处理中" not in page.locator("#intake-result").inner_text()
     # Headless-shell and full Chromium report slightly different console
@@ -152,7 +181,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.route(JOBS_PATTERN, observe_activity_jobs)
     activity_reads.clear()
     page.route(INTAKE_PATTERN, _intake_success)
-    page.get_by_role("button", name="导入网页或GitHub仓库").click()
+    page.get_by_role("button", name="导入网页或代码仓库").click()
     page.locator("#intake-result").filter(has_text="下一步：等待人工复核").wait_for()
     assert "jobs" in activity_reads
     result = page.locator("#intake-result").inner_text()
@@ -167,7 +196,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
 
     page.get_by_label("网页地址").fill("https://example.com/partial")
     page.route(INTAKE_PATTERN, _partial_intake_success)
-    page.get_by_role("button", name="导入网页或GitHub仓库").click()
+    page.get_by_role("button", name="导入网页或代码仓库").click()
     page.locator("#intake-result").filter(has_text="处理失败").wait_for()
     assert "处理完成" not in page.locator("#intake-result").inner_text()
     page.unroute(INTAKE_PATTERN, _partial_intake_success)
@@ -186,7 +215,7 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.set_viewport_size({"width": 390, "height": 844})
     page.evaluate("localStorage.removeItem('aa-inspector')")
     page.reload(wait_until="networkidle")
-    assert page.get_by_role("heading", name="星环知识平台").is_visible()
+    assert page.get_by_role("heading", name="工作台总览").is_visible()
     assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     assert page.evaluate("document.body.classList.contains('inspector-collapsed')")
     inspector = page.locator("#inspector")
@@ -455,7 +484,7 @@ def exercise_keyboard_accessibility(page: Page, base_url: str) -> None:
     labelled and toggle aria-pressed, and inputs carry aria-labels.
     """
     page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
-    page.get_by_role("heading", name="星环知识平台").wait_for()
+    page.get_by_role("heading", name="工作台总览").wait_for()
 
     # Every input carries a semantic label.
     labelled_inputs = page.evaluate(
@@ -467,20 +496,20 @@ def exercise_keyboard_accessibility(page: Page, base_url: str) -> None:
     # Theme buttons are labelled with aria-pressed state.
     theme_buttons = page.locator("button[data-theme]")
     count = theme_buttons.count()
-    assert count >= 4, f"theme buttons: {count}"
+    assert count == 2, f"theme buttons: {count}"
     for index in range(count):
         button = theme_buttons.nth(index)
         assert button.get_attribute("aria-label"), f"theme button {index} lacks aria-label"
         assert button.get_attribute("aria-pressed") in ("true", "false"), f"theme button {index} lacks aria-pressed"
 
     # Keyboard: Tab reaches the first theme button and Enter switches theme.
-    page.get_by_role("button", name="浅色主题").focus()
+    page.get_by_role("button", name="浅色外观").focus()
     page.keyboard.press("Tab")  # next focusable after the light-theme button
     page.keyboard.press("Enter")
-    page.get_by_role("button", name="紫曜主题").focus()
+    page.get_by_role("button", name="深色外观").focus()
     page.keyboard.press("Enter")
-    assert page.locator("body").get_attribute("data-theme") == "violet-core"
-    assert page.get_by_role("button", name="紫曜主题").get_attribute("aria-pressed") == "true"
+    assert page.locator("body").get_attribute("data-theme") == "deepspace"
+    assert page.get_by_role("button", name="深色外观").get_attribute("aria-pressed") == "true"
 
     # Intake dialog: Enter opens it, focus lands on the URL input, Escape
     # closes it and returns focus to the trigger button.
@@ -555,30 +584,30 @@ def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
         page.evaluate("location.hash = '#runtime'")
         page.get_by_role("heading", name="知行任务执行").wait_for()
         delivery = page.locator("#delivery-center")
-        delivery.get_by_text("Outbox pending：1", exact=False).wait_for()
+        delivery.get_by_text("待投递：1", exact=False).wait_for()
         delivery_text = delivery.inner_text()
-        assert "Receipt missing：1" in delivery_text
-        assert "状态：succeeded · 投递：pending" in page.locator("#job-center").inner_text()
+        assert "缺失回执：1" in delivery_text
+        assert "状态：已完成 · 投递：待处理" in page.locator("#job-center").inner_text()
         assert all(
             identifier not in delivery_text
             for identifier in ("package_id", "job_id", "command_id", "event_internal")
         )
 
         page.get_by_role("button", name="投递下一条").click()
-        delivery.get_by_text("Receipt recorded：1", exact=False).wait_for()
+        delivery.get_by_text("已记录回执：1", exact=False).wait_for()
         delivery_text = delivery.inner_text()
-        assert "投递器：lease_fenced" in delivery_text
-        assert "Outbox pending：0" in delivery_text
-        assert "Receipt missing：0" in delivery_text
-        assert "Outbox：delivered" in delivery_text
-        assert "Receipt：recorded" in delivery_text
+        assert "投递处理状态：可用" in delivery_text
+        assert "待投递：0" in delivery_text
+        assert "缺失回执：0" in delivery_text
+        assert "投递：已投递" in delivery_text
+        assert "回执：已记录" in delivery_text
 
         page.reload(wait_until="networkidle")
         page.get_by_role("heading", name="知行任务执行").wait_for()
         delivery_text = page.locator("#delivery-center").inner_text()
-        assert "Outbox pending：0" in delivery_text
-        assert "Receipt recorded：1" in delivery_text
-        assert "Receipt missing：0" in delivery_text
+        assert "待投递：0" in delivery_text
+        assert "已记录回执：1" in delivery_text
+        assert "缺失回执：0" in delivery_text
     finally:
         source_path.unlink(missing_ok=True)
 
@@ -624,11 +653,11 @@ def exercise_real_six_space_learning_loop(page: Page, base_url: str) -> None:
 
     page.goto(f"{base_url}/workspace#machine", wait_until="networkidle")
     page.get_by_role("heading", name="知衡机器知识").wait_for()
-    page.get_by_role("button", name="批准进入 Runtime").click()
+    page.get_by_role("button", name="批准供机器使用").click()
     page.wait_for_function(
-        "() => document.querySelector('#machine-queue')?.textContent.includes('生命周期：approved')"
+        "() => document.querySelector('#machine-queue')?.textContent.includes('生命周期：已批准')"
     )
-    assert "批准进入 Runtime" not in page.locator("#machine-queue").inner_text()
+    assert "批准供机器使用" not in page.locator("#machine-queue").inner_text()
 
 
 def main() -> int:

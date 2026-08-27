@@ -25,10 +25,10 @@ describe("SpaceRail", () => {
       <SpaceRail active="workspace" onNavigate={onNavigate} spaces={SPACES} />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Library" }));
+    await user.click(screen.getByRole("button", { name: "资料库" }));
     expect(onNavigate).toHaveBeenCalledWith("library");
 
-    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "设置" }));
     expect(onNavigate).toHaveBeenCalledWith("settings");
   });
 
@@ -36,7 +36,7 @@ describe("SpaceRail", () => {
     render(
       <SpaceRail active="evidence" onNavigate={vi.fn()} spaces={SPACES} />,
     );
-    expect(screen.getByRole("button", { name: "Evidence" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "证据" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -71,9 +71,9 @@ describe("SpaceRail", () => {
       <SpaceRail active="workspace" onNavigate={onNavigate} spaces={SPACES} />,
     );
 
-    const workspace = screen.getByRole("button", { name: "Workspace" });
-    const library = screen.getByRole("button", { name: "Library" });
-    const settings = screen.getByRole("button", { name: "Settings" });
+    const workspace = screen.getByRole("button", { name: "工作台" });
+    const library = screen.getByRole("button", { name: "资料库" });
+    const settings = screen.getByRole("button", { name: "设置" });
     workspace.focus();
 
     await user.keyboard("{ArrowDown}");

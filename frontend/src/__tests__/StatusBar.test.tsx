@@ -8,7 +8,7 @@ describe("StatusBar", () => {
     render(<StatusBar activeSpace="library" backendState="available" />);
     const banner = screen.getByRole("banner");
     expect(within(banner).getByText("ArcheAxis Knowledge")).toBeInTheDocument();
-    expect(screen.getByLabelText("当前空间")).toHaveTextContent("library");
+    expect(screen.getByLabelText("当前空间")).toHaveTextContent("资料库");
   });
 
   it("renders a status badge with readable text (never color-only)", () => {
@@ -23,12 +23,12 @@ describe("StatusBar", () => {
     const { rerender } = render(
       <StatusBar activeSpace="workspace" backendState="available" externalDev />,
     );
-    expect(screen.getByText("DEV")).toBeInTheDocument();
+    expect(screen.getByText("开发")).toBeInTheDocument();
 
     rerender(
       <StatusBar activeSpace="workspace" backendState="available" externalDev={false} />,
     );
-    expect(screen.queryByText("DEV")).not.toBeInTheDocument();
+    expect(screen.queryByText("开发")).not.toBeInTheDocument();
   });
 
   it("renders unavailable state without exposing an unreachable recovery control", () => {

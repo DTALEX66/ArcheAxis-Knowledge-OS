@@ -43,7 +43,7 @@ const SENSITIVE_DIAGNOSTIC = [
   /\b(?:127\.0\.0\.1|localhost|\[?::1\]?)\s*:\s*\d{1,5}\b/i,
   /[A-Za-z0-9_-][A-Za-z0-9._~+/-]{38,}[A-Za-z0-9_-](?:={1,2})?/,
 ];
-const WITHHELD_DIAGNOSTIC = "Recovery diagnostic withheld";
+const WITHHELD_DIAGNOSTIC = "恢复诊断已隐藏";
 
 function record(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" ? value as Record<string, unknown> : {};
@@ -78,7 +78,7 @@ export function normalizeRecoveryStatus(value: unknown): RecoveryStatusDto {
     state,
     safe_mode: source.safe_mode === true,
     backend_available: source.backend_available === true,
-    message: sanitizeRecoveryDisplayText(source.message, "Recovery status unavailable"),
+    message: sanitizeRecoveryDisplayText(source.message, "恢复状态不可用"),
     backups,
     external_dev: source.external_dev === true,
   };
@@ -100,7 +100,7 @@ export function checkingRecoveryStatus(): RecoveryStatusDto {
     state: "checking",
     safe_mode: false,
     backend_available: false,
-    message: "Checking the local Core…",
+    message: "正在检查本地核心…",
     backups: [],
     external_dev: false,
   };

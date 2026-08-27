@@ -1,3 +1,5 @@
+import { stateLabel } from "../presentation/labels";
+
 export interface InspectionTarget {
   title: string;
   source: string;
@@ -40,9 +42,9 @@ export function Inspector({ target }: { target: InspectionTarget | null }) {
           {target.conflict !== undefined ? <><dt>证据冲突</dt><dd>{target.conflict ? "存在支持/反驳冲突" : "未发现支持/反驳冲突"}</dd></> : null}
           {target.rights?.length ? <><dt>权利标记</dt><dd>{target.rights.join("、")}</dd></> : null}
           {target.scopes?.length ? <><dt>适用范围</dt><dd>{target.scopes.join("、")}</dd></> : null}
-          {target.review ? <><dt>人工复核</dt><dd>{target.review.decision} · {target.review.reviewer_id} · {target.review.reviewed_at}<br />{target.review.rationale}</dd></> : null}
-          {target.versionHistory?.length ? <><dt>关联版本</dt><dd>{target.versionHistory.map((version) => (
-            <div key={version.versionId}>{version.versionId} · {version.lifecycle}{version.conflictStatus ? ` · 冲突 ${version.conflictStatus}` : ""}</div>
+          {target.review ? <><dt>人工复核</dt><dd>{stateLabel(target.review.decision)} · {target.review.reviewed_at}<br />{target.review.rationale}</dd></> : null}
+          {target.versionHistory?.length ? <><dt>关联版本</dt><dd>{target.versionHistory.map((version, index) => (
+            <div key={version.versionId}>版本 {index + 1} · {stateLabel(version.lifecycle)}{version.conflictStatus ? ` · 冲突 ${stateLabel(version.conflictStatus)}` : ""}</div>
           ))}</dd></> : null}
           {target.detail ? <><dt>说明</dt><dd>{target.detail}</dd></> : null}
         </dl>

@@ -61,12 +61,12 @@ describe("Recovery Shell", () => {
   it("replaces the workspace with a labelled recovery main and explicit controls", async () => {
     render(<App />);
 
-    const shell = await screen.findByRole("main", { name: "Recovery Shell" });
-    expect(within(shell).getByRole("button", { name: "Retry" })).toBeInTheDocument();
-    expect(within(shell).getByRole("button", { name: "Sanitized Logs" })).toBeInTheDocument();
-    expect(within(shell).getByRole("button", { name: "Safe Mode" })).toBeInTheDocument();
-    expect(within(shell).getByRole("button", { name: "Restore Backup" })).toBeInTheDocument();
-    expect(within(shell).getByRole("button", { name: "Exit" })).toBeInTheDocument();
+    const shell = await screen.findByRole("main", { name: "恢复工作台" });
+    expect(within(shell).getByRole("button", { name: "重试" })).toBeInTheDocument();
+    expect(within(shell).getByRole("button", { name: "安全诊断" })).toBeInTheDocument();
+    expect(within(shell).getByRole("button", { name: "安全模式" })).toBeInTheDocument();
+    expect(within(shell).getByRole("button", { name: "恢复备份" })).toBeInTheDocument();
+    expect(within(shell).getByRole("button", { name: "退出" })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
   });
 
@@ -74,12 +74,12 @@ describe("Recovery Shell", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "Sanitized Logs" }));
+    await user.click(await screen.findByRole("button", { name: "安全诊断" }));
     expect(recovery.getRecoveryLogTail).toHaveBeenCalledOnce();
-    const logRegion = await screen.findByRole("region", { name: "Sanitized Logs" });
+    const logRegion = await screen.findByRole("region", { name: "安全诊断日志" });
     expect(within(logRegion).getByText("Core startup is unavailable")).toBeInTheDocument();
 
-    const backupChoice = await screen.findByLabelText("Available backups");
+    const backupChoice = await screen.findByLabelText("可用备份");
     const backupOption = within(backupChoice).getByRole("option", {
       name: "cognitive_os_20260823T010203_000000Z.sqlite",
     });
@@ -87,8 +87,8 @@ describe("Recovery Shell", () => {
     expect(backupOption).not.toHaveTextContent(/[\\/:]/);
     expect(screen.queryByRole("textbox", { name: /backup/i })).not.toBeInTheDocument();
     await user.selectOptions(backupChoice, "cognitive_os_20260823T010203_000000Z.sqlite");
-    await user.click(screen.getByRole("button", { name: "Restore Backup" }));
-    await user.click(await screen.findByRole("button", { name: "Confirm Restore" }));
+    await user.click(screen.getByRole("button", { name: "恢复备份" }));
+    await user.click(await screen.findByRole("button", { name: "确认恢复" }));
 
     expect(recovery.restoreRecoveryBackup).toHaveBeenCalledWith(
       "cognitive_os_20260823T010203_000000Z.sqlite",
@@ -108,7 +108,7 @@ describe("Recovery Shell", () => {
       });
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "Retry" }));
+    await user.click(await screen.findByRole("button", { name: "重试" }));
 
     await waitFor(() => {
       expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
@@ -121,10 +121,10 @@ describe("Recovery Shell", () => {
     recovery.enterRecoverySafeMode.mockRejectedValue(new Error("safe mode unavailable"));
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "Safe Mode" }));
+    await user.click(await screen.findByRole("button", { name: "安全模式" }));
 
     const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent(/safe mode/i);
+    expect(alert).toHaveTextContent(/安全模式/);
     await waitFor(() => expect(alert.parentElement).toHaveFocus());
   });
 
@@ -133,9 +133,9 @@ describe("Recovery Shell", () => {
 
     render(<App />);
 
-    expect(screen.getByRole("button", { name: "Retry" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Safe Mode" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Exit" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "重试" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "安全模式" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "退出" })).toBeDisabled();
   });
 
   it("does not let a stale retry operation overwrite Safe Mode", async () => {
@@ -153,20 +153,20 @@ describe("Recovery Shell", () => {
       ...failedRecovery,
       state: "stopped",
       safe_mode: true,
-      message: "Safe Mode is active",
+      message: "安全模式已启用；本地核心保持停止。",
     });
     render(<App />);
 
-    const retry = await screen.findByRole("button", { name: "Retry" });
-    const safeMode = screen.getByRole("button", { name: "Safe Mode" });
+    const retry = await screen.findByRole("button", { name: "重试" });
+    const safeMode = screen.getByRole("button", { name: "安全模式" });
     act(() => {
       fireEvent.click(retry);
       fireEvent.click(safeMode);
     });
-    expect(await screen.findByText(/Safe Mode is active/)).toBeInTheDocument();
+    expect(await screen.findByText(/安全模式已启用/)).toBeInTheDocument();
 
     expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
-    expect(screen.getByRole("main", { name: "Recovery Shell" })).toBeInTheDocument();
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
   });
 
   it("ignores a deferred handshake from an unmounted operation generation", async () => {
@@ -184,7 +184,7 @@ describe("Recovery Shell", () => {
         ...failedRecovery,
         state: "stopped",
         safe_mode: true,
-        message: "Safe Mode is active",
+        message: "安全模式已启用；本地核心保持停止。",
       });
     recovery.getStatus.mockReturnValue(handshake.promise);
 
@@ -193,11 +193,11 @@ describe("Recovery Shell", () => {
     firstGeneration.unmount();
 
     render(<App />);
-    expect(await screen.findByText("Safe Mode is active")).toBeInTheDocument();
+    expect(await screen.findByText("安全模式已启用；本地核心保持停止。")).toBeInTheDocument();
     await act(async () => handshake.resolve({ status: "available" }));
 
     expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
-    expect(screen.getByRole("main", { name: "Recovery Shell" })).toBeInTheDocument();
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
   });
 
   it("moves a ready desktop into Recovery Shell when the liveness check observes Core stopped", async () => {
@@ -214,7 +214,7 @@ describe("Recovery Shell", () => {
       .mockResolvedValueOnce({
         ...failedRecovery,
         state: "stopped",
-        message: "Core stopped",
+        message: "本地核心已停止。",
       });
 
     render(<App />);
@@ -223,8 +223,8 @@ describe("Recovery Shell", () => {
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
 
-    expect(screen.getByRole("main", { name: "Recovery Shell" })).toBeInTheDocument();
-    expect(screen.getByText("Core stopped")).toBeInTheDocument();
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
+    expect(screen.getByText("本地核心已停止。")).toBeInTheDocument();
     expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(2);
     expect(recovery.getStatus).toHaveBeenCalledOnce();
   });
@@ -257,8 +257,8 @@ describe("Recovery Shell", () => {
 
     await act(async () => vi.advanceTimersByTimeAsync(10_000));
 
-    expect(screen.getByRole("main", { name: "Recovery Shell" })).toBeInTheDocument();
-    expect(screen.getByText("Authenticated Core handshake failed.")).toBeInTheDocument();
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
+    expect(screen.getByText("本地核心与当前桌面版本不兼容。")).toBeInTheDocument();
     expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(3);
     expect(recovery.getStatus).toHaveBeenCalledTimes(2);
   });
@@ -299,9 +299,9 @@ describe("Recovery Shell", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "Sanitized Logs" }));
+    await user.click(await screen.findByRole("button", { name: "安全诊断" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Loading sanitized logs");
+    expect(screen.getByRole("status")).toHaveTextContent("正在加载安全诊断日志");
     await act(async () => logs.resolve({ lines: [] }));
   });
 
@@ -312,17 +312,17 @@ describe("Recovery Shell", () => {
       .mockRejectedValueOnce(new Error("status unavailable"));
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "Restore Backup" }));
-    await user.click(screen.getByRole("button", { name: "Confirm Restore" }));
+    await user.click(await screen.findByRole("button", { name: "恢复备份" }));
+    await user.click(screen.getByRole("button", { name: "确认恢复" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Restore succeeded; status refresh unavailable",
+      "备份已恢复，但状态刷新不可用",
     );
-    expect(screen.queryByRole("button", { name: "Confirm Restore" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Restore Backup" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Restore Backup" }));
+    expect(screen.queryByRole("button", { name: "确认恢复" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "恢复备份" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "恢复备份" }));
     expect(recovery.restoreRecoveryBackup).toHaveBeenCalledOnce();
-    expect(screen.getByRole("main", { name: "Recovery Shell" })).toBeInTheDocument();
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
   });
 
   it("shows and sequences reload-current-core only for the explicit external DEV profile", async () => {
@@ -356,8 +356,8 @@ describe("Recovery Shell", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("DEV")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Reload Current Core" }));
+    expect(await screen.findByText("开发")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "重新加载当前核心" }));
     await screen.findByRole("navigation", { name: "主空间导航" });
 
     expect(order).toEqual([
@@ -373,9 +373,9 @@ describe("Recovery Shell", () => {
   it("does not expose reload-current-core outside the explicit external DEV profile", async () => {
     render(<App />);
 
-    await screen.findByRole("main", { name: "Recovery Shell" });
-    expect(screen.queryByRole("button", { name: "Reload Current Core" })).not.toBeInTheDocument();
-    expect(screen.queryByText("DEV")).not.toBeInTheDocument();
+    await screen.findByRole("main", { name: "恢复工作台" });
+    expect(screen.queryByRole("button", { name: "重新加载当前核心" })).not.toBeInTheDocument();
+    expect(screen.queryByText("开发")).not.toBeInTheDocument();
   });
 
   it("keeps async recovery actions live through a real StrictMode effect replay", async () => {
@@ -402,22 +402,22 @@ describe("Recovery Shell", () => {
     });
 
     render(<StrictMode><App /></StrictMode>);
-    await user.click(await screen.findByRole("button", { name: "Sanitized Logs" }));
-    expect(screen.getByText("Loading sanitized logs…")).toBeInTheDocument();
-    await act(async () => logs.resolve({ lines: ["Core stopped"] }));
+    await user.click(await screen.findByRole("button", { name: "安全诊断" }));
+    expect(screen.getByText("正在加载安全诊断日志…")).toBeInTheDocument();
+    await act(async () => logs.resolve({ lines: ["本地核心已停止。"] }));
 
-    const logSuccess = await screen.findByText("Sanitized logs loaded.");
-    expect(screen.queryByText("Loading sanitized logs…")).not.toBeInTheDocument();
+    const logSuccess = await screen.findByText("安全诊断日志已加载。");
+    expect(screen.queryByText("正在加载安全诊断日志…")).not.toBeInTheDocument();
     await waitFor(() => expect(logSuccess.parentElement).toHaveFocus());
 
-    await user.click(screen.getByRole("button", { name: "Restore Backup" }));
-    await user.click(screen.getByRole("button", { name: "Confirm Restore" }));
-    const restoreSuccess = await screen.findByText("Backup restored. Retry Core when ready.");
-    expect(screen.queryByRole("button", { name: "Confirm Restore" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Restore Backup" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "恢复备份" }));
+    await user.click(screen.getByRole("button", { name: "确认恢复" }));
+    const restoreSuccess = await screen.findByText("备份已恢复；准备好后可重试本地核心。");
+    expect(screen.queryByRole("button", { name: "确认恢复" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "恢复备份" })).toBeDisabled();
     await waitFor(() => expect(restoreSuccess.parentElement).toHaveFocus());
 
-    const reload = screen.getByRole("button", { name: "Reload Current Core" });
+    const reload = screen.getByRole("button", { name: "重新加载当前核心" });
     expect(reload).toBeEnabled();
     await user.click(reload);
     expect(await screen.findByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();

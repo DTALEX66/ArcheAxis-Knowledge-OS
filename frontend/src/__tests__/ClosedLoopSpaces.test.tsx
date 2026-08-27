@@ -31,8 +31,10 @@ describe("six-space real command loops", () => {
     });
     render(<WorkspaceSpace />);
     expect(await screen.findByText("0.6.7")).toBeInTheDocument();
-    expect(screen.getByText(/source_archive · available/)).toBeInTheDocument();
-    expect(screen.getByText(/资料导入 · completed/)).toBeInTheDocument();
+    expect(screen.getByText("原件档案")).toBeInTheDocument();
+    expect(screen.getAllByText("可用").length).toBeGreaterThan(0);
+    expect(screen.getByText("资料导入")).toBeInTheDocument();
+    expect(screen.getByText("已完成")).toBeInTheDocument();
   });
 
   it("reads an immutable source by content identity", async () => {
@@ -80,12 +82,12 @@ describe("six-space real command loops", () => {
     const user = userEvent.setup();
 
     render(<EvidenceSpace onInspect={onInspect} />);
-    await user.click(await screen.findByRole("button", { name: "查看 Bundle" }));
+    await user.click(await screen.findByRole("button", { name: "查看证据束" }));
 
     expect(runtime.getEvidenceBundleInspection).toHaveBeenCalledWith("bundle-ui");
     expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({
-      title: "证据 Bundle bundle-ui",
-      source: "claim-ui",
+      title: "受治理证据束",
+      source: "关联主张",
       conflict: true,
       rights: ["CC-BY-4.0"],
       scopes: ["workspace"],
@@ -116,16 +118,16 @@ describe("six-space real command loops", () => {
     const user = userEvent.setup();
 
     render(<EvidenceSpace onInspect={vi.fn()} />);
-    expect(await screen.findByText("revision-f")).toBeInTheDocument();
+    expect(await screen.findByText("aaaaaaaaaaaa")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "下一页" }));
 
     expect(runtime.listEvidenceAnchors).toHaveBeenLastCalledWith(50, "cursor-second");
-    expect(await screen.findByText("revision-s")).toBeInTheDocument();
-    expect(screen.queryByText("revision-f")).not.toBeInTheDocument();
+    expect(await screen.findByText("bbbbbbbbbbbb")).toBeInTheDocument();
+    expect(screen.queryByText("aaaaaaaaaaaa")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "下一页" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "上一页" }));
     expect(runtime.listEvidenceAnchors).toHaveBeenLastCalledWith(50, undefined);
-    expect(await screen.findByText("revision-f")).toBeInTheDocument();
+    expect(await screen.findByText("aaaaaaaaaaaa")).toBeInTheDocument();
   });
 
   it("approves and deprecates AI assets as independent governed actions", async () => {
@@ -236,7 +238,7 @@ describe("six-space real command loops", () => {
 
     for (const [label, path] of [
       ["源文件归档库", "D:\\Data\\source"], ["证据账本库", "D:\\Data\\evidence"],
-      ["人类学习库", "D:\\Data\\learning"], ["AI 资产库", "D:\\Data\\assets"],
+      ["人类学习库", "D:\\Data\\learning"], ["机器知识库", "D:\\Data\\assets"],
     ]) {
       await user.type(screen.getByLabelText(label), path);
     }
@@ -248,7 +250,7 @@ describe("six-space real command loops", () => {
     runtime.getSetupStatus.mockResolvedValue({ initialized: true });
     const user = userEvent.setup();
     render(<ActivityDock />);
-    expect(await screen.findByText(/资料导入 · completed/)).toBeInTheDocument();
+    expect(await screen.findByText(/资料导入 · 已完成/)).toBeInTheDocument();
     render(<SettingsSpace />);
     await user.click(await screen.findByRole("button", { name: "重试桌面后端" }));
     expect(runtime.retryDesktopBackend).toHaveBeenCalledOnce();
@@ -273,12 +275,12 @@ describe("six-space real command loops", () => {
     await user.click(await screen.findByRole("button", { name: "查看活动详情" }));
     expect(runtime.getActivityObject).toHaveBeenCalledWith("wr1_demo");
     expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({
-      title: "资料导入", lifecycle: "failed", source: "https://example.test/raw",
+      title: "资料导入", lifecycle: "失败", source: "https://example.test/raw",
     }));
     await user.click(screen.getByRole("button", { name: "投递下一条" }));
     await user.click(screen.getByRole("button", { name: "重试失败投递" }));
     expect(runtime.dispatchDelivery).toHaveBeenCalledOnce();
     expect(runtime.retryFailedDelivery).toHaveBeenCalledOnce();
-    expect(screen.getByText("投递状态：requeued")).toBeInTheDocument();
+    expect(screen.getByText("投递状态：已重新入队")).toBeInTheDocument();
   });
 });

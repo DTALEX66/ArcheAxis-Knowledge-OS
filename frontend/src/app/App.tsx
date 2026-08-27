@@ -114,7 +114,7 @@ export function App() {
       } catch {
         if (isCurrent(epoch)) {
           setDesktopReady(false);
-          setRecoveryStatus(failedRecoveryStatus("Desktop recovery status is unavailable."));
+          setRecoveryStatus(failedRecoveryStatus("桌面恢复状态不可用。"));
         }
       } finally {
         finishOperation(epoch);
@@ -179,7 +179,7 @@ export function App() {
         status = await getRecoveryStatus();
       } catch {
         if (!loopIsCurrent()) return;
-        claimRecovery(failedRecoveryStatus("Desktop recovery status is unavailable."), false);
+        claimRecovery(failedRecoveryStatus("桌面恢复状态不可用。"), false);
         return;
       }
       if (!loopIsCurrent()) return;
@@ -230,7 +230,7 @@ export function App() {
     setDesktopReady(false);
     try {
       const ready = await runRetry(epoch);
-      if (isCurrent(epoch) && !ready) throw new Error("Core retry did not complete");
+      if (isCurrent(epoch) && !ready) throw new Error("本地核心重试未完成");
     } finally {
       finishOperation(epoch);
     }
@@ -257,7 +257,7 @@ export function App() {
       setRecoveryStatus(status);
       resetRuntimeClient();
       const ready = await runRetry(epoch);
-      if (isCurrent(epoch) && !ready) throw new Error("Current Core reload did not complete");
+      if (isCurrent(epoch) && !ready) throw new Error("当前核心重新加载未完成");
     } finally {
       finishOperation(epoch);
     }
@@ -285,7 +285,7 @@ export function App() {
           state: "stopped",
           safe_mode: true,
           backend_available: false,
-          message: "Restore succeeded; status refresh unavailable.",
+          message: "备份已恢复，但状态刷新不可用。",
           backups: [],
           external_dev: recoveryStatus?.external_dev === true,
         });
@@ -310,7 +310,7 @@ export function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell archive-desk-shell">
       <StatusBar
         activeSpace={activeSpace}
         backendState={!desktop

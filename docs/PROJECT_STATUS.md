@@ -4,6 +4,8 @@
 
 > **v0.6.11 发布裁决（2026-08-27）**：`v0.6.11 stable — RELEASED`。不可变 annotated tag 精确解引用到 `86cecc7272152ef334869f61aae1f4d5ce82679b`；source tree `fe389f6a43d8295ffcc8109eaeced9436e361b03`；exact-SHA CI `33076417510` 和 Release workflow `33077810146` success；Setup/Green/Portable 生命周期、9 项公开资产 workflow readback 与本机独立 9/9 provider digest/checksum/schema v3 identity/dependency-lock 回读和 DeepTutor v1.5.17 + Ollama `qwen3:8b` 教学→反馈→无效答案恢复→reload 均通过。
 
+> **UI 发布缺口纠偏（2026-08-27）**：上述发布裁决不包含 OSUI v3 设计采用、中文一致性与真实视觉对比门，因此 v0.6.11 只能判定发布工程 PASS，不能判定 UI 产品验收 PASS。该 tag/Release 保持不可变；当前 main 的 OSUI Archive Desk 生产接入必须经过新的 Chromium/Tauri/exact-SHA 候选后才能进入后续版本。见 [`current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`](current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md)。
+
 > 更新：2026-08-27。本页是能力状态入口；R2 当前矩阵见 [`current/AXR_CURRENT_REALITY_2026-08-27.md`](current/AXR_CURRENT_REALITY_2026-08-27.md)。旧审计文件是历史快照；实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
@@ -15,7 +17,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Knowledge 的 Obsidian-compatible Workspace foundation 阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备打包页面、loopback-only 写入、真实导入入口、只返回聚合事实的状态接口，以及不暴露内部 ID 的 Job/Delivery 投影。Workspace Job/Outbox migration owner、同事务写入、同步终态、严格 readback、按需 dispatcher、服务级 lease/retry、SSE 和 lease-fenced Worker 已交付；本地真实 Chromium upload → dispatch → receipt → reload 门禁已验证，Tauri WebView 点击级验收和交互式 Job Center 仍属于后续产品证据。图像 OCR 基础依赖、真实图像门禁、Windows 构建、NSIS lifecycle 和公开 `v0.5.0` installer 资产已验证；ASR、签名发布、多端发布及更高阶 Alpha/Beta 能力仍未完成。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V1.md`（ArcheAxis / 星环知识平台）。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Knowledge 的 OSUI v3 production-adoption 与本地资料工作台纵切阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备真实导入、状态、Job/Delivery、证据、学习与机器知识投影；Archive Desk/Liquid Glass 壳层、中文优先词典、视觉课件/空间记忆规划面和产品设计史正在生产接入。Chromium 功能绿测不替代视觉比较，Tauri WebView 点击级验收仍属于后续产品证据。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台）。
 
 ## 已验证能力
 
@@ -57,14 +59,15 @@
 
 ## 仍保留的债务
 
-1. `knowledge_base/api.py` 仍包含遗留领域路由；复合、质量、投影路由已经拆出，后续继续按领域迁移。
-2. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
-3. 旧细粒度 API 仍公开，路由面尚未真正缩减。
-4. 生产部署尚缺独立容器/反向代理/并发负载验证。
-5. OCR 的 Pillow/pytesseract 依赖、Tesseract `eng` 语言数据、真实图像测试和 CI 字体/语言门禁已 GREEN；H2 bake-off 已实跑闭环：Tesseract（eng/chi_sim）与 RapidOCR 三语种对比（RapidOCR avg CER 0.0076 实测最优）、faster-whisper ASR 转写（英文 CER 0.0；中文需 chi 模型）、可重复运行的 `scripts/run_bakeoff.py` CLI 已入库；人工标注准确率基准、PaddleOCR/EasyOCR 及更大 ASR 模型仍需重依赖下载。
-6. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
-7. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
-8. `workspace.sqlite` migration owner、connection-scoped Research writer、Research graph/Job/Outbox 同事务、严格 Job readback、同步命令终态、按需 Outbox dispatcher、Delivery Receipt 与不暴露内部 ID 的用户级 Job/Delivery 投影已交付；仍缺真实 Tauri WebView 点击级投递证据、失败→retry→replay 的完整 UI/CI 矩阵、SSE 审计时间线、异步 Worker 和更完整交互式 Job Center。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
+1. v0.6.11 没有 UI 设计采用与语言一致性 release gate；当前纠偏尚未发布，必须完成真实 Chromium 多尺寸截图、Windows WebView、Tauri/installer、exact-SHA CI 和新版本资产读回。
+2. `knowledge_base/api.py` 仍包含遗留领域路由；复合、质量、投影路由已经拆出，后续继续按领域迁移。
+3. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
+4. 旧细粒度 API 仍公开，路由面尚未真正缩减。
+5. 生产部署尚缺独立容器/反向代理/并发负载验证。
+6. OCR 的 Pillow/pytesseract 依赖、Tesseract `eng` 语言数据、真实图像测试和 CI 字体/语言门禁已 GREEN；H2 bake-off 已实跑闭环：Tesseract（eng/chi_sim）与 RapidOCR 三语种对比（RapidOCR avg CER 0.0076 实测最优）、faster-whisper ASR 转写（英文 CER 0.0；中文需 chi 模型）、可重复运行的 `scripts/run_bakeoff.py` CLI 已入库；人工标注准确率基准、PaddleOCR/EasyOCR 及更大 ASR 模型仍需重依赖下载。
+7. Mypy 尚未作为零错误门禁；当前历史模块仍有返回类型、异构字典和可选导入类型债务。
+8. `file_read` 已打通 Planner/Evidence/Evaluation/Lesson 首条纵向 tracer；通用 Dynamic Planner、更多真实工具意图、Reviewed Feedback 和统一 Runtime/Sleep Loop 仍属于后续路线图。
+9. `workspace.sqlite` migration owner、connection-scoped Research writer、Research graph/Job/Outbox 同事务、严格 Job readback、同步命令终态、按需 Outbox dispatcher、Delivery Receipt 与不暴露内部 ID 的用户级 Job/Delivery 投影已交付；仍缺真实 Tauri WebView 点击级投递证据、失败→retry→replay 的完整 UI/CI 矩阵、SSE 审计时间线、异步 Worker 和更完整交互式 Job Center。未来编排方向见 `FUTURE_EXECUTION_BLUEPRINT.md`。
 
 ## 冻结执行基线（权威蓝图与增补）
 

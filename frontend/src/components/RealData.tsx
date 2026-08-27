@@ -1,5 +1,6 @@
 // Minimal real-data view primitives (no mock mixing).
 import type { ReactNode } from "react";
+import { userErrorMessage } from "../presentation/labels";
 
 export function Loading({ label }: { label: string }) {
   return <div className="space-card">加载中：{label}…</div>;
@@ -9,7 +10,7 @@ export function DataError({ label, message }: { label: string; message: string }
   return (
     <div className="space-card space-card-error">
       <strong>{label} 加载失败</strong>
-      <div className="muted">{message}</div>
+      <div className="muted">{userErrorMessage(message)}</div>
     </div>
   );
 }

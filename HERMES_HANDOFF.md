@@ -2,7 +2,11 @@
 
 Generated: 2026-08-27 (v0.6.11 R2 release closure; older continuation notes retained below)
 
-> **Current authoritative continuation**: `v0.6.11 stable — RELEASED`. Annotated tag `394feaadfb289c0570f9b259faf4f3232d57567c` 解引用到 release commit `86cecc7272152ef334869f61aae1f4d5ce82679b` / tree `fe389f6a43d8295ffcc8109eaeced9436e361b03`；exact-SHA CI `33076417510` 和 Release run `33077810146` success。Setup/Green/Portable 生命周期、9 项公开资产 workflow readback 与本机独立 9/9 下载/provider digest/SHA256SUMS/schema v3 identity/dependency-lock 回读，以及 DeepTutor v1.5.17 + Ollama `qwen3:8b` 教学→反馈→无效答案恢复→reload 均已通过。GitHub Latest 已是 <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11>。本 post-release receipt/docs 提交的 live HEAD 必须从 Git 读取；所有旧 SHA/test-count statements 仅为历史 context。
+> **Current authoritative continuation**: `v0.6.11 stable — RELEASED`. Annotated tag `394feaadfb289c0570f9b259faf4f3232d57567c` 解引用到 release commit `86cecc7272152ef334869f61aae1f4d5ce82679b` / tree `fe389f6a43d8295ffcc8109eaeced9436e361b03`；exact-SHA CI `33076417510` 和 Release run `33077810146` success。Setup/Green/Portable 生命周期、9 项公开资产 workflow readback 与本机独立 9/9 下载/provider digest/SHA256SUMS/schema v3 identity/dependency-lock 回读，以及 DeepTutor v1.5.17 + Ollama `qwen3:8b` 教学→反馈→无效答案恢复→reload 均已通过。
+>
+> **UI correction continuation（2026-08-27）**：v0.6.11 的发布门遗漏 OSUI v3 设计采用、中文一致性与视觉比较，故只能证明发布工程 PASS，不能证明 UI 产品验收 PASS。当前 post-release working candidate 已把 Archive Desk/Liquid Glass 接入 loopback Workspace 与主 Tauri React WebView，完成中文六空间、恢复壳、真实 Adapter、多尺寸 Chromium、真实原生 Tauri 启动与“工作台→资料库”点击；本地 74 frontend tests、Python 全量、cargo check/release build 均已验证。GitHub exact-SHA CI、NSIS lifecycle 与后续版本 readback 尚待当前提交上传后执行。权威记录：`docs/current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`。v0.6.11 不重写。
+>
+> GitHub Latest 已是 <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11>。本 post-release receipt/docs 提交的 live HEAD 必须从 Git 读取；所有旧 SHA/test-count statements 仅为历史 context。
 
 ## NEXT-RUN QUICKSTART（2026-08-15 晚 · 共用库改造后 · 给 DEEPSEEK HARNESS）
 

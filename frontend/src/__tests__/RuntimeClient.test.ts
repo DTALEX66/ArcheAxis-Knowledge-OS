@@ -14,6 +14,7 @@ import {
 } from "../api/workspace";
 import * as runtime from "../api/workspace";
 import { normalizeRecoveryLogTail, normalizeRecoveryStatus } from "../runtime/recovery";
+import { ApiError, runtimeProjectionMessage } from "../api/client";
 
 interface RecoveryRuntimeApi {
   getRecoveryStatus: () => Promise<{
@@ -34,6 +35,13 @@ describe("runtime handshake client", () => {
     resetRuntimeClient();
     delete window.__TAURI__;
     vi.unstubAllGlobals();
+  });
+
+  it("projects handshake failures as safe Chinese diagnostics", () => {
+    expect(runtimeProjectionMessage(new ApiError(0, "runtime identity is incomplete", "incompatible")))
+      .toBe("本地核心身份字段不完整。");
+    expect(runtimeProjectionMessage(new Error("network detail")))
+      .toBe("已认证的本地核心握手失败。");
   });
 
   it("validates the Tauri backend handshake before reading a projection", async () => {
@@ -61,6 +69,28 @@ describe("runtime handshake client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("accepts a ready first-run handshake before a workspace id exists", async () => {
+    window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only" }) } };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/v1/system/handshake")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.0",
+            source_commit: "abc1234", schema_version: 15, runtime_mode: "desktop",
+            workspace_id: null, capabilities: ["first_run_setup"], migration_state: "ready",
+          }),
+        } as Response;
+      }
+      return { ok: true, status: 200, json: async () => ({ status: "available" }) } as Response;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getStatus()).resolves.toEqual({ status: "available" });
+  });
+
   it("uses typed governed commands and preserves authorization for source readback", async () => {
     window.__TAURI__ = {
       core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only", scopes: ["workspace:write"] }) },
@@ -78,7 +108,8 @@ describe("runtime handshake client", () => {
         } as Response;
       }
       if (url.includes("/content")) {
-        expect(init?.headers).toMatchObject({ Authorization: "Bearer memory-only" });
+        expect(init?.headers).toMatchObject({ "X-ArcheAxis-Launch-Token": "memory-only" });
+        expect(init?.headers).not.toHaveProperty("Authorization");
         return { ok: true, blob: async () => new Blob(["source"]) } as Response;
       }
       return { ok: true, json: async () => ({ status: "ok" }) } as Response;
@@ -276,7 +307,7 @@ describe("runtime handshake client", () => {
     expect(normalizeRecoveryStatus({
       state: "failed",
       message: "\u001b[31mAuthorization : Bearer top-secret\u001b[0m",
-    }).message).toBe("Recovery diagnostic withheld");
+    }).message).toBe("恢复诊断已隐藏");
 
     expect(normalizeRecoveryLogTail({
       lines: [
@@ -287,14 +318,14 @@ describe("runtime handshake client", () => {
         "localhost:4312 unavailable",
         `opaque ${"a".repeat(48)}`,
       ],
-    }).lines).toEqual(Array(6).fill("Recovery diagnostic withheld"));
+    }).lines).toEqual(Array(6).fill("恢复诊断已隐藏"));
   });
 
   it("withholds control-split credential keys and padded Base64-like tokens", () => {
     expect(normalizeRecoveryStatus({
       state: "failed",
       message: "to\nken = raw-secret",
-    }).message).toBe("Recovery diagnostic withheld");
+    }).message).toBe("恢复诊断已隐藏");
     expect(normalizeRecoveryLogTail({
       lines: [
         "to\tken: raw-secret",
@@ -302,7 +333,7 @@ describe("runtime handshake client", () => {
         `opaque ${"Q".repeat(40)}==`,
         `opaque ${"a_".repeat(20)}=`,
       ],
-    }).lines).toEqual(Array(4).fill("Recovery diagnostic withheld"));
+    }).lines).toEqual(Array(4).fill("恢复诊断已隐藏"));
   });
 
   it("scans the complete normalized diagnostic before applying the 240 character display bound", () => {
@@ -312,7 +343,7 @@ describe("runtime handshake client", () => {
     expect(normalizeRecoveryStatus({
       state: "failed",
       message: `${safePrefix}${"A".repeat(40)}==`,
-    }).message).toBe("Recovery diagnostic withheld");
+    }).message).toBe("恢复诊断已隐藏");
   });
 
   it("preserves ordinary sanitized recovery text without keyword overmatching", () => {

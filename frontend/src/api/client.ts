@@ -37,20 +37,25 @@ export class ApiError extends Error {
 }
 
 export function runtimeProjectionMessage(error: unknown): string {
-  if (!(error instanceof ApiError)) return "Authenticated Core handshake failed.";
+  if (!(error instanceof ApiError)) return "已认证的本地核心握手失败。";
   switch (error.code) {
     case "offline":
-      return "Local Core is offline.";
+      return "本地核心当前离线。";
     case "backend_starting":
-      return "Core startup is still in progress.";
+      return "本地核心仍在启动。";
     case "migrating":
-      return "Workspace migration is in progress.";
+      return "工作区正在迁移。";
     case "incompatible":
-      return "Core is incompatible with this application.";
+      if (error.message === "runtime identity is incomplete") return "本地核心身份字段不完整。";
+      if (error.message.startsWith("product mismatch")) return "本地核心产品身份不匹配。";
+      if (error.message.startsWith("API contract mismatch")) return "本地核心接口契约不匹配。";
+      if (error.message === "runtime schema version is invalid") return "本地核心数据结构版本无效。";
+      if (error.message === "runtime capabilities are invalid") return "本地核心能力声明无效。";
+      return "本地核心与当前桌面版本不兼容。";
     case "unauthorized":
-      return "Desktop authorization was rejected.";
+      return "桌面本地授权被拒绝。";
     default:
-      return "Authenticated Core handshake failed.";
+      return "已认证的本地核心握手失败。";
   }
 }
 
@@ -78,7 +83,7 @@ function validateHandshake(value: unknown): Handshake {
     !nonEmptyString(handshake.backend_version)
     || !nonEmptyString(handshake.source_commit)
     || !nonEmptyString(handshake.runtime_mode)
-    || !nonEmptyString(handshake.workspace_id)
+    || (handshake.workspace_id !== null && !nonEmptyString(handshake.workspace_id))
   ) {
     incompatible("runtime identity is incomplete");
   }
@@ -104,7 +109,6 @@ export function createApiClient(baseUrl: string, token: string, scopes: string[]
       response = await fetch(`${baseUrl}${path}`, {
         ...init,
         headers: {
-          Authorization: `Bearer ${token}`,
           ...(token ? { "X-ArcheAxis-Launch-Token": token } : {}),
           ...(init?.headers ?? {}),
         },

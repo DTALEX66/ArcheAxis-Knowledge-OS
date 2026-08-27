@@ -651,6 +651,9 @@ jobs:
       - name: Install locked frontend tooling
         working-directory: frontend
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Enforce OSUI design and Chinese-first frontend contracts
+        working-directory: frontend
+        run: npm test -- --run
       - name: Prepare the installed Python runtime
         run: >-
           python -m desktop.scripts.prepare_bundle

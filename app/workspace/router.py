@@ -66,9 +66,15 @@ def _is_loopback_host(value: str) -> bool:
 
 
 def _is_authenticated_tauri_origin(request: Request) -> bool:
-    """Allow the packaged WebView origin only with its in-memory launch token."""
+    """Allow a packaged or explicitly-enabled dev WebView with its launch token."""
     origin = urlsplit(request.headers.get("origin", ""))
-    if origin.scheme.casefold() != "http" or origin.hostname != "tauri.localhost":
+    packaged = origin.scheme.casefold() == "http" and origin.hostname == "tauri.localhost"
+    external_dev = (
+        os.getenv("ARCHEAXIS_EXTERNAL_DEV") == "1"
+        and origin.scheme.casefold() == "http"
+        and _is_loopback_host(origin.netloc)
+    )
+    if not packaged and not external_dev:
         return False
     expected = os.getenv("ARCHEAXIS_DESKTOP_LAUNCH_TOKEN") or os.getenv(
         "COGNITIVE_DESKTOP_LAUNCH_TOKEN", ""
@@ -308,7 +314,7 @@ def workspace_page() -> FileResponse:
 
 @router.get("/assets/{asset_name}", response_class=FileResponse)
 def workspace_asset(
-    asset_name: Literal["styles.css", "app.js", "pdf-loader.mjs", "pdf.mjs", "pdf.worker.mjs"],
+    asset_name: Literal["styles.css", "osui-v3.css", "osui-production.css", "app.js", "production-ui.js", "pdf-loader.mjs", "pdf.mjs", "pdf.worker.mjs"],
 ) -> FileResponse:
     media_type = "text/css" if asset_name.endswith(".css") else "text/javascript"
     return FileResponse(

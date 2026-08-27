@@ -11,6 +11,7 @@ import {
   type ResearchCandidateDto,
 } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
+import { stateLabel } from "../presentation/labels";
 
 export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [rows, setRows] = useState<EvidenceAnchorDto[]>([]);
@@ -69,7 +70,7 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
     let alive = true;
     listEvidenceBundles(50)
       .then((data) => { if (alive) setBundles(data.items); })
-      .catch((e: Error) => { if (alive) setMessage(`Bundle 账本不可用：${e.message}`); });
+      .catch((e: Error) => { if (alive) setMessage(`证据束账本不可用：${e.message}`); });
     return () => { alive = false; };
   }, []);
 
@@ -77,10 +78,10 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
     try {
       const bundle = await getEvidenceBundleInspection(bundleId);
       onInspect({
-        title: `证据 Bundle ${bundle.bundle_id}`,
-        source: bundle.claim_id,
-        lifecycle: bundle.latest_review?.decision ?? "unreviewed",
-        detail: `Bundle 指纹：${bundle.fingerprint}；条目数：${bundle.entries.length}`,
+        title: "受治理证据束",
+        source: "关联主张",
+        lifecycle: stateLabel(bundle.latest_review?.decision ?? "unreviewed"),
+        detail: `证据束指纹：${bundle.fingerprint}；条目数：${bundle.entries.length}`,
         conflict: bundle.conflict,
         rights: bundle.rights,
         scopes: bundle.scopes,
@@ -92,31 +93,31 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
         })),
       });
     } catch (e) {
-      setMessage(`读取 Bundle 失败：${e instanceof Error ? e.message : String(e)}`);
+      setMessage(`读取证据束失败：${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
   return (
-    <Section title="证据账本（Evidence & Knowledge Ledger）">
-      <p className="muted">真实数据源：证据锚点与受治理 EvidenceBundle 的只读投影</p>
+    <Section title="证据账本">
+      <p className="muted">证据锚点与受治理证据束的只读投影。</p>
       {loading ? (
         <Loading label="证据账本" />
       ) : error ? (
-        <DataError label="Evidence" message={error} />
+        <DataError label="证据账本" message={error} />
       ) : (
         rows.length === 0 ? <p className="muted">暂无证据锚点记录</p> : (
           <table className="data-table">
-            <thead><tr><th>锚点 ID</th><th>原件哈希</th><th>来源修订</th><th>操作</th></tr></thead>
+            <thead><tr><th>证据锚点</th><th>原件指纹</th><th>锚点状态</th><th>操作</th></tr></thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, index) => (
                 <tr key={row.anchor_id}>
-                  <td>{row.anchor_id.slice(0, 18)}</td>
+                  <td>锚点 {index + 1}</td>
                   <td>{row.raw_sha256.slice(0, 12)}</td>
-                  <td>{row.source_revision.slice(0, 10)}</td>
+                  <td>已锚定</td>
                   <td><button type="button" onClick={() => onInspect({
-                    title: `证据锚点 ${row.anchor_id.slice(0, 12)}`,
-                    source: row.source_revision,
-                    lifecycle: "anchored",
+                    title: "证据锚点",
+                    source: "已保留原件版本",
+                    lifecycle: stateLabel("anchored"),
                     rawSha256: row.raw_sha256,
                     detail: `定位信息：${JSON.stringify(row.locator)}`,
                   })}>查看</button></td>
@@ -146,12 +147,12 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
           >下一页</button>
         </p>
       ) : null}
-      <h4>受治理 EvidenceBundle</h4>
-      {bundles.length === 0 ? <p className="muted">暂无可查看的 EvidenceBundle</p> : (
-        <ul className="action-list">{bundles.map((bundle) => (
+      <h4>受治理证据束</h4>
+      {bundles.length === 0 ? <p className="muted">暂无可查看的证据束</p> : (
+        <ul className="action-list">{bundles.map((bundle, index) => (
           <li key={bundle.bundle_id}>
-            <span>{bundle.claim_id} · {bundle.review_decision ?? "未审核"}</span>{" "}
-            <button type="button" onClick={() => { void inspectBundle(bundle.bundle_id); }}>查看 Bundle</button>
+            <span>证据束 {index + 1} · {stateLabel(bundle.review_decision ?? "unreviewed")}</span>{" "}
+            <button type="button" onClick={() => { void inspectBundle(bundle.bundle_id); }}>查看证据束</button>
           </li>
         ))}</ul>
       )}

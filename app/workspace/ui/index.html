@@ -5,18 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>星环知识平台 ArcheAxis Knowledge</title>
   <link rel="stylesheet" href="/workspace/assets/styles.css">
+  <link rel="stylesheet" href="/workspace/assets/osui-v3.css">
+  <link rel="stylesheet" href="/workspace/assets/osui-production.css">
 </head>
 <body data-theme="apple-light">
 <div class="app">
 <header class="top">
-  <div class="brand"><div class="mark" aria-hidden="true"></div><div><div class="brand-name">星环知识平台</div><div class="brand-sub">ARCHEAXIS LEARNING WORKSPACE</div></div></div>
-  <div class="top-tabs" aria-label="工作区标签"><span class="top-tab active">星环知识平台</span><span class="top-tab muted-tab">Obsidian 兼容工作台</span></div>
-  <div class="workspace-pill"><span class="dot"></span><b>ArcheAxis Learning Workspace</b><span class="kbd">LOCAL ONLY</span></div>
+  <div class="brand"><div class="mark" aria-hidden="true"></div><div><div class="brand-name">星环知识平台</div><div class="brand-sub">可信知识与学习工作台</div></div></div>
+  <label class="global-search" for="global-search"><span aria-hidden="true">⌕</span><input id="global-search" type="search" aria-label="搜索资料、主张或命令" placeholder="搜索资料、主张或命令"><kbd>Ctrl K</kbd></label>
   <button class="icon-btn inspector-external-trigger" type="button" data-action="inspector-toggle" aria-controls="inspector" aria-expanded="false" aria-label="展开上下文与证据检查器">◧</button>
-  <span class="chip"><span class="dot"></span>本地工作台</span>
   <button class="icon-btn" type="button" data-page="diagnostics" title="系统诊断" aria-label="系统诊断"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></button>
-  <div class="theme" aria-label="主题"><button type="button" data-theme="violet-core" aria-label="紫曜主题" aria-pressed="false">紫曜</button><button type="button" data-theme="apple-light" aria-label="浅色主题" aria-pressed="false">浅色</button><button type="button" data-theme="yaojin" aria-label="曜金主题" aria-pressed="false">曜金</button><button type="button" data-theme="deepspace" aria-label="深空主题" aria-pressed="false">深空</button></div>
-  <div class="user"><div class="avatar">AL</div><div class="meta"><b>本地用户</b><div class="muted mono" id="clock">--:--:--</div></div></div>
+  <div class="theme" aria-label="外观"><button type="button" data-theme="apple-light" aria-label="浅色外观" aria-pressed="false">浅色</button><button type="button" data-theme="deepspace" aria-label="深色外观" aria-pressed="false">深色</button></div>
 </header>
 <aside class="rail" id="rail" aria-label="一级模块">
   <button class="rail-item active" type="button" data-module="home" title="首页" aria-controls="nav" aria-expanded="false"><span class="rail-glyph">◈</span><span>首页</span></button>
@@ -28,55 +27,79 @@
 <aside class="nav subnav" id="nav" aria-label="二级导航" aria-hidden="true" inert></aside>
 <main class="main">
 <section class="page active" id="page-overview">
-  <div class="page-head"><div><div class="eyebrow">ARCHEAXIS KNOWLEDGE</div><h1>星环知识平台</h1><p class="desc">本地优先的知识工作区；当前以 Obsidian Vault、Markdown 与 JSON Canvas 兼容纵切为阶段重点。</p></div><div class="head-actions"><button class="btn primary" data-action="intake" type="button">导入资料</button><button class="btn" data-page="diagnostics" type="button">系统诊断</button></div></div>
-  <div class="grid cols-4" id="status-summary" aria-live="polite"><div class="card metric"><span>真实状态</span><b>加载中</b><span class="delta info">正在读取本地数据库</span></div></div>
-  <div class="grid cols-2" style="margin-top:16px">
-    <div class="card"><div class="card-title"><h2>已接入流程</h2><span class="status ok"><i></i>本地</span></div><div class="list"><div class="row"><div class="row-main"><b>资料导入</b><span>网页、GitHub仓库地址和本地文件</span></div></div><div class="row"><div class="row-main"><b>受治理持久化</b><span>Research、Job、Outbox和命令收据同事务写入</span></div></div><div class="row"><div class="row-main"><b>严格读回</b><span>持久化绑定不一致时拒绝返回</span></div></div></div></div>
-    <div class="card"><div class="card-title"><h2>能力边界</h2><span class="status warn"><i></i>开发版</span></div><div class="list" id="capability-summary"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取Release Manifest</span></div></div></div></div>
-  </div>
-  <div class="card" style="margin-top:16px"><div class="card-title"><h2>当前阶段</h2></div><p class="muted">当前产品优先验证开放格式互操作与用户资料所有权。Vault 读取、编辑、附件、Canvas、冲突和回读能力完成完整桌面证据前，不宣称全面或双向兼容。</p></div>
+  <div class="page-head"><div><div class="eyebrow">可信知识工作台</div><h1>工作台总览</h1><p class="desc">在同一个可审查工作面中继续研究，查看原件、主张、证据、学习与回执。</p></div><div class="head-actions"><button class="btn primary" data-action="intake" type="button">导入资料</button><button class="btn" data-page="diagnostics" type="button">系统诊断</button></div></div>
+  <section class="workbench-hero">
+    <div class="hero-ledger">
+      <span class="eyebrow">研究台账 · 当前上下文</span>
+      <h2>原件、主张与证据，留在同一个可审查的工作面。</h2>
+      <p>每个对象都能回到来源、版本和操作回执；未知状态不会被替换成零或伪进度。</p>
+      <div class="evidence-map" aria-label="证据关系"><span>原件</span><i>→</i><span>转换块</span><i>→</i><span>主张</span><i>→</i><span>证据束</span></div>
+      <div class="head-actions"><button class="btn primary" data-page="vault" type="button">继续阅读与复核</button><button class="btn" data-action="intake" type="button">导入新资料</button></div>
+    </div>
+    <aside class="next-actions" aria-label="下一步">
+      <span class="eyebrow">下一步</span>
+      <button type="button" data-page="vault"><span>01</span><b>查看原件与锚点</b><small>阅读、搜索和安全写回。</small></button>
+      <button type="button" data-page="evidence"><span>02</span><b>检查证据生命周期</b><small>执行、追踪、评估和机器教训。</small></button>
+      <button type="button" data-page="runtime"><span>03</span><b>处理任务与回执</b><small>失败保留原件，可恢复重试。</small></button>
+    </aside>
+  </section>
+  <section class="workspace-columns">
+    <article class="card research-ledger"><div class="card-title"><div><span class="eyebrow">真实状态</span><h2>当前工作区</h2></div><span class="status ok"><i></i>本地读回</span></div><div class="grid cols-4" id="status-summary" aria-live="polite"><div class="metric"><span>状态</span><b>加载中</b><span class="delta info">正在读取本地数据库</span></div></div></article>
+    <article class="card"><div class="card-title"><div><span class="eyebrow">流程与能力</span><h2>已接入的生产路径</h2></div></div><div class="list"><div class="row"><div class="row-main"><b>资料导入</b><span>网页、代码仓库地址和本地文件</span></div></div><div class="row"><div class="row-main"><b>受治理持久化</b><span>研究候选、任务、待投递记录和操作回执在同一事务中写入</span></div></div><div class="row"><div class="row-main"><b>严格读回</b><span>持久化绑定不一致时拒绝返回</span></div></div></div><div class="list" id="capability-summary"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取发布清单</span></div></div></div></article>
+  </section>
 </section>
 <section class="page" id="page-vault">
-  <div class="page-head"><div><div class="eyebrow">READ-ONLY VAULT WORKBENCH</div><h1>Vault 工作台</h1><p class="desc">选择本地 Vault 根目录，读取 Markdown、JSON Canvas 和附件元数据；当前不会写回或编辑原始文件。</p></div><div class="head-actions"><button class="btn primary" data-action="vault-refresh" type="button">扫描 Vault</button></div></div>
-  <div class="card"><div class="card-title"><h2>本地 Vault</h2><span class="status ok"><i></i>只读→已启用安全写回</span></div><div class="form-row"><label for="vault-root">Vault 根目录</label><input id="vault-root" type="text" aria-label="Vault 根目录" placeholder="例如：D:\Vaults\Learning" autocomplete="off"><button class="btn" data-action="vault-refresh" type="button">扫描</button></div><div class="form-row"><label for="vault-query">全文搜索</label><input id="vault-query" type="search" aria-label="搜索 Vault 文本" placeholder="搜索 Markdown / Canvas 文本"><button class="btn" data-action="vault-search" type="button">搜索</button></div><div class="form-row"><label for="vault-edit-file">编辑文件（相对路径）</label><input id="vault-edit-file" type="text" aria-label="相对路径" placeholder="notes.md" autocomplete="off"><button class="btn" data-action="vault-open" type="button">打开</button></div><div class="form-row" style="flex-direction:column;align-items:stretch;gap:8px"><textarea id="vault-editor" rows="10" spellcheck="false" style="width:100%;font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:8px;border:1px solid var(--border,#333);border-radius:6px;background:var(--surface,#111);color:var(--text,#e6e6e6)" placeholder="打开文件后在此编辑；保存时自动校验磁盘哈希，冲突会拒绝写入"></textarea><div style="display:flex;gap:8px;align-items:center"><button class="btn primary" data-action="vault-save" disabled id="vault-save-btn" type="button">保存（安全写回）</button><span class="muted" id="vault-save-status"></span></div></div><div class="form-row" style="margin-top:10px"><button class="btn" data-action="vault-list-backups" type="button">备份列表</button><select id="vault-backups" style="flex:1;min-width:0"><option value="">（无备份）</option></select><button class="btn" data-action="vault-restore" disabled id="vault-restore-btn" type="button">恢复选中备份</button><span class="muted" id="vault-restore-status"></span></div></div>
-  <div class="grid cols-2" style="margin-top:16px"><div class="card"><div class="card-title"><h2>文件与附件</h2></div><pre class="data-block" id="vault-files">尚未扫描</pre></div><div class="card"><div class="card-title"><h2>搜索结果</h2></div><pre class="data-block" id="vault-results">尚未搜索</pre><div class="card-title" style="margin-top:16px"><h2>Loss report</h2></div><pre class="data-block" id="vault-loss">尚未扫描</pre></div></div>
+  <div class="page-head"><div><div class="eyebrow">本地资料库工作台</div><h1>资料库工作台</h1><p class="desc">选择本地资料库根目录，读取 Markdown、JSON Canvas 和附件元数据；写回操作使用哈希冲突保护与可恢复备份。</p></div><div class="head-actions"><button class="btn primary" data-action="vault-refresh" type="button">扫描资料库</button></div></div>
+  <div class="card"><div class="card-title"><h2>本地资料库</h2><span class="status ok"><i></i>只读→已启用安全写回</span></div><div class="form-row"><label for="vault-root">资料库根目录</label><input id="vault-root" type="text" aria-label="资料库根目录" placeholder="例如：D:\Vaults\Learning" autocomplete="off"><button class="btn" data-action="vault-refresh" type="button">扫描</button></div><div class="form-row"><label for="vault-query">全文搜索</label><input id="vault-query" type="search" aria-label="搜索资料库文本" placeholder="搜索 Markdown / Canvas 文本"><button class="btn" data-action="vault-search" type="button">搜索</button></div><div class="form-row"><label for="vault-edit-file">编辑文件（相对路径）</label><input id="vault-edit-file" type="text" aria-label="相对路径" placeholder="notes.md" autocomplete="off"><button class="btn" data-action="vault-open" type="button">打开</button></div><div class="form-row" style="flex-direction:column;align-items:stretch;gap:8px"><textarea id="vault-editor" rows="10" spellcheck="false" style="width:100%;font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:8px;border:1px solid var(--border,#333);border-radius:6px;background:var(--surface,#111);color:var(--text,#e6e6e6)" placeholder="打开文件后在此编辑；保存时自动校验磁盘哈希，冲突会拒绝写入"></textarea><div style="display:flex;gap:8px;align-items:center"><button class="btn primary" data-action="vault-save" disabled id="vault-save-btn" type="button">保存（安全写回）</button><span class="muted" id="vault-save-status"></span></div></div><div class="form-row" style="margin-top:10px"><button class="btn" data-action="vault-list-backups" type="button">备份列表</button><select id="vault-backups" style="flex:1;min-width:0"><option value="">（无备份）</option></select><button class="btn" data-action="vault-restore" disabled id="vault-restore-btn" type="button">恢复选中备份</button><span class="muted" id="vault-restore-status"></span></div></div>
+  <div class="grid cols-2" style="margin-top:16px"><div class="card"><div class="card-title"><h2>文件与附件</h2></div><pre class="data-block" id="vault-files">尚未扫描</pre></div><div class="card"><div class="card-title"><h2>搜索结果</h2></div><pre class="data-block" id="vault-results">尚未搜索</pre><div class="card-title" style="margin-top:16px"><h2>转换损失报告</h2></div><pre class="data-block" id="vault-loss">尚未扫描</pre></div></div>
 </section>
 <section class="page" id="page-diagnostics">
-  <div class="page-head"><div><div class="eyebrow">LOCAL SYSTEM HEALTH</div><h1>系统诊断</h1><p class="desc">只读显示API、迁移与开发版发布信息；不泄露数据库路径或备份位置。</p></div><div class="head-actions"><button class="btn primary" data-action="refresh" type="button">刷新</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">本地系统状态</div><h1>系统诊断</h1><p class="desc">只读显示本地接口、数据迁移和发布状态；不泄露数据库路径或备份位置。</p></div><div class="head-actions"><button class="btn primary" data-action="refresh" type="button">刷新</button></div></div>
   <div class="grid cols-4" id="diagnostics-summary" aria-live="polite"><div class="card metric"><span>API</span><b>加载中</b><span class="delta info">正在读取本地诊断</span></div></div>
 </section>
 <section class="page" id="page-runtime">
-  <div class="page-head"><div><div class="eyebrow">LOCAL JOB CENTER</div><h1>知行任务执行</h1><p class="desc">仅展示本地数据库严格绑定的同步记录与投递状态；不会显示内部编号、伪进度或未经证实的执行结果。</p></div><div class="head-actions"><button class="btn primary" data-action="jobs-refresh" type="button">刷新任务</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">本地任务中心</div><h1>知行任务执行</h1><p class="desc">仅展示本地数据库严格绑定的同步记录与投递状态；不会显示内部编号、伪进度或未经证实的执行结果。</p></div><div class="head-actions"><button class="btn primary" data-action="jobs-refresh" type="button">刷新任务</button></div></div>
   <div class="card"><div class="card-title"><h2>最近任务</h2><span class="status ok"><i></i>同步记录</span></div><div class="list" id="job-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地任务记录</span></div></div></div></div>
-  <div class="card task-cockpit" id="task-cockpit"><div class="card-title"><div><h2>任务驾驶舱</h2><span class="muted small">只显示可由本地 API 读回的任务状态</span></div><span class="status info"><i></i>A2 · 真实回读</span></div><div class="cockpit-grid"><div class="cockpit-lane"><span class="eyebrow">SELECTED TASK</span><b id="cockpit-task-name">请选择任务</b><span id="cockpit-task-state" class="muted">从上方任务列表选择</span></div><div class="cockpit-lane"><span class="eyebrow">DELIVERY</span><b id="cockpit-delivery-state">等待读取</b><span id="cockpit-delivery-detail" class="muted">投递状态来自同一事务投影</span></div><div class="cockpit-lane"><span class="eyebrow">LIFECYCLE</span><b id="cockpit-lifecycle-state">等待读取</b><span id="cockpit-lifecycle-detail" class="muted">执行 → 追踪 → 评估 → 教训</span></div></div><div class="cockpit-timeline" id="cockpit-timeline" aria-live="polite"><div class="row"><div class="row-main"><b>尚未选择任务</b><span>不会显示伪进度或未经证实的完成状态</span></div></div></div></div>
-  <div class="card"><div class="card-title"><h2>Outbox / Receipt 投影</h2><span class="status warn"><i></i>真实状态</span></div><div class="list" id="delivery-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取投递与回执状态</span></div></div></div></div>
+  <div class="card task-cockpit" id="task-cockpit"><div class="card-title"><div><h2>任务驾驶舱</h2><span class="muted small">只显示可由本地 API 读回的任务状态</span></div><span class="status info"><i></i>真实回读</span></div><div class="cockpit-grid"><div class="cockpit-lane"><span class="eyebrow">当前任务</span><b id="cockpit-task-name">请选择任务</b><span id="cockpit-task-state" class="muted">从上方任务列表选择</span></div><div class="cockpit-lane"><span class="eyebrow">投递状态</span><b id="cockpit-delivery-state">等待读取</b><span id="cockpit-delivery-detail" class="muted">投递状态来自同一事务投影</span></div><div class="cockpit-lane"><span class="eyebrow">生命周期</span><b id="cockpit-lifecycle-state">等待读取</b><span id="cockpit-lifecycle-detail" class="muted">执行 → 追踪 → 评估 → 教训</span></div></div><div class="cockpit-timeline" id="cockpit-timeline" aria-live="polite"><div class="row"><div class="row-main"><b>尚未选择任务</b><span>不会显示伪进度或未经证实的完成状态</span></div></div></div></div>
+  <div class="card"><div class="card-title"><h2>待投递记录与回执</h2><span class="status warn"><i></i>真实状态</span></div><div class="list" id="delivery-center" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取投递与回执状态</span></div></div></div></div>
 </section>
 <section class="page" id="page-research">
-  <div class="page-head"><div><div class="eyebrow">HUMAN REVIEW QUEUE</div><h1>察微研究</h1><p class="desc">仅显示需要人工复核的本地 Research。批准动作由本地治理链记录，用户不需要填写内部理由。</p></div><div class="head-actions"><button class="btn primary" data-action="research-refresh" type="button">刷新队列</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">人工复核队列</div><h1>察微研究</h1><p class="desc">仅显示需要人工复核的本地研究候选。批准动作由本地治理链记录，用户不需要填写内部理由。</p></div><div class="head-actions"><button class="btn primary" data-action="research-refresh" type="button">刷新队列</button></div></div>
   <div class="card"><div class="card-title"><h2>待审核资料</h2><span class="status warn"><i></i>人工复核</span></div><div class="list" id="research-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取本地待审核资料</span></div></div></div></div>
 </section>
 <section class="page" id="page-knowledge">
-  <div class="page-head"><div><div class="eyebrow">KNOWLEDGE CANDIDATES</div><h1>藏识知识</h1><p class="desc">Research 批准后形成的候选知识；每条来源都能继续进入 Learning，状态来自同一 SQLite。</p></div><div class="head-actions"><button class="btn primary" data-action="knowledge-refresh" type="button">刷新知识</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">候选知识</div><h1>藏识知识</h1><p class="desc">研究候选批准后形成候选知识；每条来源都能继续进入学习流程，状态来自同一本地数据库。</p></div><div class="head-actions"><button class="btn primary" data-action="knowledge-refresh" type="button">刷新知识</button></div></div>
   <div class="card"><div class="card-title"><h2>候选知识</h2><span class="status candidate"><i></i>候选治理</span></div><div class="list" id="knowledge-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取真实知识候选</span></div></div></div></div>
 </section>
 <section class="page" id="page-canvas">
-  <div class="page-head"><div><div class="eyebrow">GOVERNED KNOWLEDGE CANVAS</div><h1>认知画布</h1><p class="desc">只回放本地 SQLite 中已治理的节点与连线；候选研究不会自动写入画布。</p></div><div class="head-actions"><input id="canvas-name" class="canvas-name" placeholder="新画布名称" aria-label="新画布名称"><button class="btn primary" data-action="canvas-create" type="button">创建画布</button></div></div>
-  <div class="split canvas-layout"><div class="card"><div class="card-title"><h2>画布列表</h2><span class="status info"><i></i>A3 · 本地回读</span></div><div class="list" id="canvas-list"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取已持久化画布</span></div></div></div></div><div class="card"><div class="card-title"><div><h2>空间回放</h2><span class="muted small">节点位置由后端持久化数据决定</span></div><span id="canvas-replay" class="status info"><i></i>执行回放读取中</span></div><div class="canvas-board" id="canvas-board" aria-live="polite">加载中</div></div></div>
+  <div class="page-head"><div><div class="eyebrow">受治理的知识画布</div><h1>认知画布</h1><p class="desc">只回放本地 SQLite 中已治理的节点与连线；候选研究不会自动写入画布。</p></div><div class="head-actions"><input id="canvas-name" class="canvas-name" placeholder="新画布名称" aria-label="新画布名称"><button class="btn primary" data-action="canvas-create" type="button">创建画布</button></div></div>
+  <div class="split canvas-layout"><div class="card"><div class="card-title"><h2>画布列表</h2><span class="status info"><i></i>本地回读</span></div><div class="list" id="canvas-list"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取已持久化画布</span></div></div></div></div><div class="card"><div class="card-title"><div><h2>空间回放</h2><span class="muted small">节点位置由后端持久化数据决定</span></div><span id="canvas-replay" class="status info"><i></i>执行回放读取中</span></div><div class="canvas-board" id="canvas-board" aria-live="polite">加载中</div></div></div>
 </section>
 <section class="page" id="page-learning">
-  <div class="page-head"><div><div class="eyebrow">LEARNING LOOP</div><h1>学习路线</h1><p class="desc">从候选知识创建学习卡片，再记录真实练习；操作按来源绑定，内部产物编号不会进入页面。</p></div><div class="head-actions"><button class="btn primary" data-action="learning-refresh" type="button">刷新学习</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">学习闭环</div><h1>学习路线</h1><p class="desc">从候选知识创建学习卡片，再记录真实练习；操作按来源绑定，内部产物编号不会进入页面。</p></div><div class="head-actions"><button class="btn primary" data-action="learning-refresh" type="button">刷新学习</button></div></div>
   <div class="card"><div class="card-title"><h2>学习产物</h2><span class="status info"><i></i>真实回读</span></div><div class="list" id="learning-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取真实学习产物</span></div></div></div></div>
 </section>
 <section class="page" id="page-evolution">
-  <div class="page-head"><div><div class="eyebrow">MASTERY FEEDBACK</div><h1>知新评估进化</h1><p class="desc">展示真实练习产生的 Mastery 信号和机器知识候选，未批准内容不会进入 Runtime。</p></div><div class="head-actions"><button class="btn primary" data-action="evolution-refresh" type="button">刷新评估</button></div></div>
-  <div class="grid cols-4" id="evolution-summary" aria-live="polite"><div class="card metric"><span>真实状态</span><b>加载中</b><span class="delta info">正在读取 Mastery</span></div></div>
+  <div class="page-head"><div><div class="eyebrow">掌握与反馈</div><h1>知新评估进化</h1><p class="desc">展示真实练习产生的 掌握信号和机器知识候选，未批准内容不会进入 Runtime。</p></div><div class="head-actions"><button class="btn primary" data-action="evolution-refresh" type="button">刷新评估</button></div></div>
+  <div class="grid cols-4" id="evolution-summary" aria-live="polite"><div class="card metric"><span>真实状态</span><b>加载中</b><span class="delta info">正在读取掌握状态</span></div></div>
 </section>
 <section class="page" id="page-machine">
-  <div class="page-head"><div><div class="eyebrow">APPROVED RUNTIME KNOWLEDGE</div><h1>知衡机器知识</h1><p class="desc">只读显示已经通过人工治理、允许 Runtime 消费的机器知识；候选内容不会伪装成已批准。</p></div><div class="head-actions"><button class="btn primary" data-action="machine-refresh" type="button">刷新机器知识</button></div></div>
-  <div class="card"><div class="card-title"><h2>Runtime 可消费知识</h2><span class="status ok"><i></i>approved-only</span></div><div class="list" id="machine-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取 approved-only 投影</span></div></div></div></div>
+  <div class="page-head"><div><div class="eyebrow">已批准的机器知识</div><h1>知衡机器知识</h1><p class="desc">只读显示已经通过人工治理、允许机器使用的机器知识；候选内容不会伪装成已批准。</p></div><div class="head-actions"><button class="btn primary" data-action="machine-refresh" type="button">刷新机器知识</button></div></div>
+  <div class="card"><div class="card-title"><h2>机器可用知识</h2><span class="status ok"><i></i>仅限已批准</span></div><div class="list" id="machine-queue" aria-live="polite"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取 仅限已批准 投影</span></div></div></div></div>
+</section>
+<section class="page" id="page-visual-lesson">
+  <div class="page-head"><div><div class="eyebrow">视觉教学规划</div><h1>视觉课件工作室</h1><p class="desc">保留场景、时间轴、暂停点和证据脚注；当前为可审查规划，不提供假播放或伪生成。</p></div><span class="status warn"><i></i>规划中</span></div>
+  <section class="lesson-studio">
+    <aside class="lesson-scenes"><span class="eyebrow">场景索引</span><button type="button" data-lesson-scene="0" aria-current="true"><span>01</span><b>对象边界</b><small>原件与派生产物</small></button><button type="button" data-lesson-scene="1"><span>02</span><b>证据关系</b><small>支持、反驳与背景</small></button><button type="button" data-lesson-scene="2"><span>03</span><b>复核停止点</b><small>回到来源再判断</small></button></aside>
+    <div class="studio-surface"><div class="studio-toolbar"><span id="lesson-stage-step">场景 01 · 对象边界</span><span class="status warn"><i></i>播放未开放</span></div><div class="studio-stage"><article class="stage-card"><span class="eyebrow">静态分镜</span><h2 id="lesson-stage-title">原件和派生产物不能由同一个结论替代。</h2><p id="lesson-stage-copy">先保留原件，再分别审查转译质量与事实证据。</p><span class="stage-anchor">证据脚注：等待真实学习对象</span></article></div><div class="timeline"><span>时间线 · 静态规划</span><div class="timeline-block active">对象边界</div><div class="timeline-block">证据关系</div><div class="timeline-block">停止点</div></div></div>
+  </section>
+</section>
+<section class="page" id="page-spatial-memory">
+  <div class="page-head"><div><div class="eyebrow">空间学习规划</div><h1>空间记忆</h1><p class="desc">优先提供二维地图、文字路线和低动效替代；三维与沉浸能力必须通过设备、性能和学习证据门禁。</p></div><span class="status warn"><i></i>规划中</span></div>
+  <section class="spatial-blueprint"><div class="spatial-map" aria-label="二维空间记忆规划"><span class="spatial-node entrance">入口<br><small>路线开始</small></span><span class="spatial-line line-one"></span><span class="spatial-node locus">知识锚点<br><small>等待真实对象</small></span><span class="spatial-line line-two"></span><span class="spatial-node evidence">证据束<br><small>必须已批准</small></span></div><aside class="spatial-route"><span class="eyebrow">文字等价路线</span><ol><li><b>入口</b><span>选择真实学习路线后建立。</span></li><li><b>知识锚点</b><span>关联原件、版本和证据状态。</span></li><li><b>返回证据</b><span>任何线索都能回到依据。</span></li></ol><p>当前没有真实空间学习对象，因此不显示样例数量或可执行入口。</p></aside></section>
 </section>
 <section class="page" id="page-evidence">
-  <div class="page-head"><div><div class="eyebrow">LIFE CYCLE EVIDENCE</div><h1>证据中心·生命周期</h1><p class="desc">只展示真实持久化的核心循环聚合状态；不包含内部编号、伪进度或未经证实的计数。</p></div><div class="head-actions"><button class="btn primary" data-action="lifecycle-refresh" type="button">刷新生命周期</button></div></div>
+  <div class="page-head"><div><div class="eyebrow">生命周期证据</div><h1>证据中心·生命周期</h1><p class="desc">只展示真实持久化的核心循环聚合状态；不包含内部编号、伪进度或未经证实的计数。</p></div><div class="head-actions"><button class="btn primary" data-action="lifecycle-refresh" type="button">刷新生命周期</button></div></div>
   <div class="grid cols-4" id="lifecycle-permission" aria-live="polite"><div class="card metric"><span>权限门禁</span><b>加载中</b><span class="delta info">正在读取生命周期状态</span></div></div>
   <div class="grid cols-4" style="margin-top:16px">
     <div class="card" id="lifecycle-execution-card"><div class="card-title"><h2>执行</h2></div><div class="list" id="lifecycle-execution"><div class="row"><div class="row-main"><b>加载中</b><span>正在读取执行记录</span></div></div></div></div>
@@ -106,12 +129,12 @@
       <button class="btn" type="button" data-action="pdf-jump">回跳</button>
       <span id="pdf-anchor-info" class="muted" style="align-self:center"></span>
     </div>
-    <div id="pdf-viewer" style="margin-top:12px;min-height:420px;border:1px solid var(--border,#333);background:#fff;overflow:auto;text-align:center">
+    <div id="pdf-viewer" class="source-paper" style="margin-top:12px;min-height:420px;border:1px solid var(--border,#333);background:#fff;overflow:auto;text-align:center">
       <div class="empty" style="padding:40px"><b>未加载 PDF</b><p>输入内容键后打开；字节由 /workspace/api/pdf/&lt;key&gt; 内容寻址只读提供。选中文本后点「批注为证据」生成 EvidenceAnchor。</p></div>
     </div>
   </div>
   <div class="card" style="margin-top:16px">
-    <div class="card-title"><h2>开放交换与备份</h2><span class="status info"><i></i>AXW-094A/B</span></div>
+    <div class="card-title"><h2>开放交换与备份</h2><span class="status info"><i></i>已接入</span></div>
     <div class="row" style="flex-wrap:wrap;gap:8px">
       <button class="btn" type="button" data-action="exchange-export">导出交换数据</button>
       <button class="btn" type="button" data-action="exchange-verify">校验交换</button>
@@ -121,22 +144,28 @@
     <div id="exchange-result" class="muted" style="margin-top:8px;white-space:pre-wrap">尚未执行导出/备份操作</div>
   </div>
 </section>
+<section class="page" id="page-roadmap">
+  <div class="page-head"><div><div class="eyebrow">当前阶段 · 产品路线图与设计史</div><h1>底座、吸收与下一阶段</h1><p class="desc">区分已运行底座、已接入能力、保留规划和历史设计，避免把文档、原型或登记误报成产品能力。</p></div></div>
+  <section class="roadmap-ledger"><article><span class="eyebrow">已运行底座</span><h2>DeepTutor v1.5.17</h2><p>作为可替换学习产品底座运行；核心原件、主张、证据、学习真值和机器能力仍由星环知识平台掌握。</p><span class="status ok"><i></i>已验证黄金流</span></article><article><span class="eyebrow">已吸收能力</span><h2>转换、检索、复习与本地运行</h2><p>Docling、MarkItDown、OCR、语音转写、向量检索、FSRS/BKT、PDF.js 和桌面打包通过窄适配器或受治理边界使用。</p><span class="status ok"><i></i>真实门禁</span></article><article><span class="eyebrow">保留规划</span><h2>视觉课件与空间记忆</h2><p>设计与接口已经保留；只有真实对象、能力探针、失败恢复、性能和无障碍证据齐全后才开放执行。</p><span class="status warn"><i></i>规划中</span></article></section>
+  <section class="history-ledger"><div><time>2026-08-12</time><b>OSUI v3 证据档案室设计交付</b><span>工作台、阅读器、证据工作台、学习页、视觉课件和空间记忆形成统一设计系统。</span></div><div><time>2026-08-27</time><b>生产接线修复</b><span>将 OSUI 设计令牌、壳层和中文优先语言接入真实 Workspace；演示适配器与未绑定接口不进入生产界面。</span></div></section>
+</section>
 <section class="page" id="page-unavailable">
-  <div class="page-head"><div><div class="eyebrow">ROADMAP</div><h1 id="unavailable-title">功能尚未接入</h1><p class="desc">此入口用于保持产品信息架构，但当前版本没有可验证的真实数据或操作。</p></div></div>
+  <div class="page-head"><div><div class="eyebrow">产品规划</div><h1 id="unavailable-title">功能尚未接入</h1><p class="desc">此入口用于保持产品信息架构，但当前版本没有可验证的真实数据或操作。</p></div></div>
   <div class="empty"><b>尚未接入真实数据</b><p>不会展示样例数量、虚构进度、伪服务状态或不可执行按钮。</p><button class="btn" data-page="overview" type="button">返回总览</button></div>
 </section>
 </main>
 <aside class="inspector" id="inspector" aria-label="上下文与证据检查器">
-  <div class="inspector-head"><div><div class="eyebrow">CONTEXT &amp; EVIDENCE</div><b>上下文与证据检查器</b></div><button class="icon-btn inspector-internal-trigger" type="button" data-action="inspector-toggle" aria-controls="inspector" aria-expanded="true" aria-label="折叠上下文与证据检查器">×</button></div>
-  <div class="inspector-body" id="inspector-body"><div class="inspector-core"><span class="core-orb">◈</span><b>当前工作区</b><span class="muted">只展示已验证的聚合状态</span></div><div class="inspector-list"><div><span>Status</span><b id="inspector-status">读取中</b></div><div><span>Source</span><b>本地 SQLite 投影</b></div><div><span>Evidence</span><b id="inspector-evidence">等待状态读回</b></div><div><span>Lifecycle</span><b>Research → Knowledge</b></div><div><span>Capability</span><b>A1 · Shell</b></div></div><p class="muted small">任务级 Inspector 将在 A2 接入，不显示内部编号。</p></div>
+  <div class="inspector-head"><div><div class="eyebrow">上下文与证据</div><b>上下文与证据检查器</b></div><button class="icon-btn inspector-internal-trigger" type="button" data-action="inspector-toggle" aria-controls="inspector" aria-expanded="true" aria-label="折叠上下文与证据检查器">×</button></div>
+  <div class="inspector-body" id="inspector-body"><div class="inspector-core"><span class="core-orb">◈</span><b>当前工作区</b><span class="muted">只展示已验证的聚合状态</span></div><div class="inspector-list"><div><span>状态</span><b id="inspector-status">读取中</b></div><div><span>来源</span><b>本地数据库投影</b></div><div><span>证据</span><b id="inspector-evidence">等待状态读回</b></div><div><span>生命周期</span><b>研究候选 → 可信知识</b></div><div><span>能力</span><b>桌面工作台</b></div></div><p class="muted small">检查器只展示用户可理解的聚合状态，不显示内部编号。</p></div>
 </aside>
 <section class="activity-dock" id="activity-dock" aria-label="活动坞">
   <div class="dock-head"><div class="dock-brand"><span class="dock-pulse"></span><b>活动坞</b><span class="muted">真实本地状态</span></div><div class="dock-actions"><span id="dock-summary" class="muted">读取中</span><button class="icon-btn" type="button" data-action="dock-toggle" aria-label="折叠活动坞">⌄</button></div></div>
-  <div class="dock-body" id="dock-body"><div class="dock-card"><span class="dock-label">JOB</span><b id="dock-jobs">读取中</b><span>真实任务</span></div><div class="dock-card"><span class="dock-label">DELIVERY</span><b id="dock-delivery">读取中</b><span>待投递 / 失败</span></div><div class="dock-card"><span class="dock-label">REVIEW</span><b id="dock-review">读取中</b><span>待人工复核</span></div><div class="dock-card dock-note"><span class="dock-label">TRUTH BOUNDARY</span><b>不显示伪进度</b><span>状态来自本地 API</span></div></div>
+  <div class="dock-body" id="dock-body"><div class="dock-card"><span class="dock-label">任务</span><b id="dock-jobs">读取中</b><span>真实任务</span></div><div class="dock-card"><span class="dock-label">投递状态</span><b id="dock-delivery">读取中</b><span>待投递 / 失败</span></div><div class="dock-card"><span class="dock-label">复核</span><b id="dock-review">读取中</b><span>待人工复核</span></div><div class="dock-card dock-note"><span class="dock-label">真值边界</span><b>不显示伪进度</b><span>状态来自本地接口</span></div></div>
 </section>
-<div class="modal" id="intake-modal" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intake-title"><div class="card-title"><div><div class="eyebrow">LOCAL INTAKE</div><h2 id="intake-title">导入资料</h2></div><button class="icon-btn" type="button" data-action="intake-close" aria-label="关闭">×</button></div><p class="muted">粘贴网页地址或选择本地文件。系统自动处理，不要求填写内部编号。</p><form class="form" id="intake-url-form"><div class="field"><label for="intake-url">网页地址</label><input id="intake-url" name="url" type="url" aria-label="网页地址" placeholder="https://example.com/article" required></div><button class="btn primary" type="submit">导入网页或GitHub仓库</button></form><div class="divider">或</div><form class="form" id="intake-file-form"><div class="field"><label for="intake-file">本地文件</label><input id="intake-file" name="file" type="file" aria-label="本地文件" required></div><button class="btn primary" type="submit">导入文件</button></form><pre class="result" id="intake-result" aria-live="polite"></pre></div></div>
+<div class="modal" id="intake-modal" aria-hidden="true"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intake-title"><div class="card-title"><div><div class="eyebrow">本地资料导入</div><h2 id="intake-title">导入资料</h2></div><button class="icon-btn" type="button" data-action="intake-close" aria-label="关闭">×</button></div><p class="muted">粘贴网页地址或选择本地文件。系统自动处理，不要求填写内部编号。</p><form class="form" id="intake-url-form"><div class="field"><label for="intake-url">网页地址</label><input id="intake-url" name="url" type="url" aria-label="网页地址" placeholder="https://example.com/article" required></div><button class="btn primary" type="submit">导入网页或代码仓库</button></form><div class="divider">或</div><form class="form" id="intake-file-form"><div class="field"><label for="intake-file">本地文件</label><input id="intake-file" name="file" type="file" aria-label="本地文件" required></div><button class="btn primary" type="submit">导入文件</button></form><pre class="result" id="intake-result" aria-live="polite"></pre></div></div>
 <div class="toast" id="toast"></div>
 </div>
+<script src="/workspace/assets/production-ui.js"></script>
 <script type="module" src="/workspace/assets/pdf-loader.mjs"></script>
 </body>
 </html>

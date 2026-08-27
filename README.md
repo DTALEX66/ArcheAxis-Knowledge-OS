@@ -2,7 +2,9 @@
 
 <!-- Legacy/Migration names below are compatibility context only. -->
 
-> **v0.6.9 已发布（2026-08-23）**：Recovery Shell 闭环、薄前端实时开发路径和风险选择 CI 已交付。精确提交 `de5b5ba` 的 main CI、NSIS/Green/Portable 生命周期、9 项公开资产、checksum 和 schema v3 identity 读回均通过。正式 Release：[`v0.6.9`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.9)。发布成功不等于所有长期蓝图能力已实现。
+> **v0.6.11 已发布（2026-08-27）**：exact-SHA CI、NSIS/Green/Portable 生命周期和 9 项公开资产读回已通过，正式 Release：[`v0.6.11`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11)。该不可变版本随后被确认遗漏 OSUI v3 设计采用与中文一致性验收；发布工程通过不等于 UI 产品验收通过。修复只追加到后续版本，不改写 v0.6.11。
+
+> **当前 UI 纠偏**：OSUI v3 Archive Desk / Liquid Glass 已开始接入生产 Workspace，Mock/UNBOUND 原型不直接发布；中文优先词典、真实 Adapter、视觉课件/空间记忆规划面、设计史和真实 Chromium 视觉门见 [`UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`](docs/current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md) 与 [`UI_V3_PRODUCT_ROADMAP.md`](docs/current/UI_V3_PRODUCT_ROADMAP.md)。在新 exact-SHA UI candidate 完成前，不宣称前端闭环。
 
 > **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
 >
@@ -20,14 +22,14 @@
 
 **权威文档（定死，不可漂移，更新需 Owner 决策）**：
 - 产品身份：[`docs/truth/PRODUCT_IDENTITY_V2.md`](docs/truth/PRODUCT_IDENTITY_V2.md)
-- 命名契约：[`docs/truth/NAMING_CONTRACT_V1.md`](docs/truth/NAMING_CONTRACT_V1.md)
+- 命名契约：[`docs/truth/NAMING_CONTRACT_V2.md`](docs/truth/NAMING_CONTRACT_V2.md)
 - 权威规则：[`docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md`](docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md)
 - 能力图谱：[`docs/truth/CAPABILITY_ATLAS_V2.yaml`](docs/truth/CAPABILITY_ATLAS_V2.yaml)
 - 总蓝图：[`docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md`](docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md)
 
-**当前阶段（可随实现更新）**：Obsidian-compatible Workspace foundation。
-Markdown、JSON Canvas 和 Vault 互操作是第一条高保真纵切；在编辑、附件、冲突、回滚和 Windows/Tauri 重启回读全部有证据前，不宣称全面或双向兼容。
-详见 [`docs/current/CURRENT_PRODUCT_PLAN_V2.md`](docs/current/CURRENT_PRODUCT_PLAN_V2.md) 与 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
+**当前阶段（可随实现更新）**：OSUI v3 生产接入与本地资料工作台纵切。
+Markdown、JSON Canvas 和资料库互操作继续保持真实数据边界；权威 OSUI 的证据档案室构图、中文优先语言和生产 Adapter 正在进入主 Workspace。在视觉、交互、Windows WebView 与新版本 exact-SHA 证据完成前，不宣称全面 UI 闭环。
+详见 [`docs/current/UI_V3_PRODUCT_ROADMAP.md`](docs/current/UI_V3_PRODUCT_ROADMAP.md)、[`docs/current/CURRENT_PRODUCT_PLAN_V2.md`](docs/current/CURRENT_PRODUCT_PLAN_V2.md) 与 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
 
 ---
 
@@ -85,7 +87,7 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 - **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。Chromium/Tauri 运行时证据与公开发布资产属于不同证据层；`v0.6.11` 是当前公开稳定版，已通过 exact-SHA Windows build、Setup/Green/Portable 生命周期、9 资产读回与 DeepTutor 本地模型黄金流。
+- **桌面 Workspace UI v3**：采用权威 OSUI Archive Desk / Liquid Glass，默认冷白纸面、低饱和蓝青锚点与中文优先界面；一级空间栏、动态二级导航、研究台账、上下文与证据检查器、折叠活动坞、视觉课件/空间记忆规划面和路线图入口已进入生产候选。Chromium/Tauri/UI 视觉证据与公开发布资产属于不同证据层；`v0.6.11` 仍是当前公开稳定版，但不代表此次 UI 纠偏已发布。
 - **当前版本**：`0.6.11`；源码 Release Manifest 按合同保持 `unreleased / public=false`，公开 artifact identity 为 `stable / public=true`；历史标签均不可改写。
 - **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.11` 的 tag/commit/tree、exact-SHA CI `33076417510`、Release run `33077810146`、三分发生命周期与 9 资产身份/摘要读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
 

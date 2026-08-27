@@ -13,6 +13,7 @@
 |---|---|---|---|
 | Structural | PASS | R2 已进入 `docs/taskpacks/` 并成为唯一 current forward pack；对象/任务/禁止项已落盘 | 不等于 DeepTutor 已安装或黄金流程已迁移 |
 | Local runtime | PASS（R2 release baseline） | Python `2070 passed / 7 skipped`；前端 Vitest/Vite build PASS；双 Tauri `cargo check --all-targets` PASS；A0 Chromium browser smoke PASS；DeepTutor `qwen3:8b` 教学→答题反馈→无效答案恢复→reload PASS，console errors=0 | 不自动提升 candidate knowledge |
+| UI design / localization | **FAIL（v0.6.11 release baseline） / PASS（post-release local candidate）** | v0.6.11 没有证明 OSUI v3 进入生产，也没有中文一致性或视觉对比门；当前工作候选已接入 Archive Desk/Liquid Glass、中文优先文案、真实 Adapter、视觉课件/空间记忆规划面，并完成多尺寸 Chromium、真实原生 Tauri WebView、工作台→资料库点击、前端 74 tests 与 Windows release build；仍需 GitHub exact-SHA CI、NSIS lifecycle 和新版本 readback | 不得把 v0.6.11 工程发布 PASS 表述为 UI 产品验收 PASS；本地候选也不等于已发布 |
 | exact-SHA CI | PASS（release baseline `86cecc7`） | GitHub Actions CI run `33076417510`：15 个 required jobs 全 success，含 desktop-build、installer-lifecycle、browser-smoke、a0-gates | 不替代公开 Release identity/readback |
 | Installed Windows | PASS（release baseline） | exact-SHA Setup 经 NSIS install→launch→upgrade→forced-exit→uninstall→reinstall；Release workflow 又验证 Setup、Green、Portable 生命周期 | 不替代公开下载摘要回读 |
 | Public release | PASS（v0.6.11 stable） | annotated tag `v0.6.11` 解引用到 `86cecc7272152ef334869f61aae1f4d5ce82679b`；Release run `33077810146` success；GitHub Latest=`v0.6.11`；9 资产 workflow readback + 本机独立全量下载/provider digest/SHA256SUMS/schema v3 identity/dependency-lock 回读 PASS | 发布层仍不自动提升任何 candidate knowledge |
@@ -45,3 +46,4 @@ Owner 任务包审计基线为 `bf0c4839`。当前 candidate `229e995` 已在该
 2. 任何外部产品数据只能是可删除投影；核心真值与项目运行数据留在本项目边界；
 3. 本发布后状态提交必须保持 README、PROJECT_STATUS、RELEASE_LEDGER、Current Reality 和 machine-readable receipt 一致；
 4. 发布完成不等于外部/candidate knowledge 自动成为 verified truth。
+5. 后续 stable 必须增加 OSUI 设计采用、中文一致性、真实浏览器视觉、Windows WebView 与人工视觉裁决；缺一项即 fail-closed。

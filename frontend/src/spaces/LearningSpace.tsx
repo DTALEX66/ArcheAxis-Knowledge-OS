@@ -12,19 +12,21 @@ import {
   type TeachBackInput,
 } from "../api/learning";
 
-type Tab = "review" | "mastery" | "teachback" | "quiz" | "path";
+type Tab = "review" | "mastery" | "teachback" | "quiz" | "path" | "visual" | "spatial";
 
 const TABS: readonly { id: Tab; label: string }[] = [
   { id: "review", label: "复习队列" },
   { id: "mastery", label: "掌握度" },
-  { id: "teachback", label: "Teach-Back" },
+  { id: "teachback", label: "复述检验" },
   { id: "quiz", label: "练习测验" },
   { id: "path", label: "学习路径" },
+  { id: "visual", label: "视觉课件" },
+  { id: "spatial", label: "空间记忆" },
 ];
 
 const ACTION_LABELS: Record<string, string> = {
-  teach_human: "AI 强于人 → 教你",
-  distill_human: "人强于 AI → 蒸馏你",
+  teach_human: "机器证据更强 → 引导学习",
+  distill_human: "人类证据更强 → 形成候选",
   collaborate: "双方已掌握 → 协作实践",
   learn_first: "双方未掌握 → 先学习",
   review_evidence: "证据过时 → 先核验",
@@ -78,9 +80,9 @@ function ReviewQueueView({ api }: { api: LearningApiExt }) {
           }
         }}
       >
-        <label htmlFor="rv-card">卡片 ID</label>
-        <input id="rv-card" value={cardId} onChange={(e) => setCardId(e.target.value)} placeholder="card_id" />
-        <label htmlFor="rv-quality">质量 (0-5)</label>
+        <label htmlFor="rv-card">待复习卡片</label>
+        <input id="rv-card" value={cardId} onChange={(e) => setCardId(e.target.value)} placeholder="选择或粘贴卡片引用" />
+        <label htmlFor="rv-quality">复习质量（0–5）</label>
         <input id="rv-quality" type="number" min={0} max={5} value={quality} onChange={(e) => setQuality(e.target.value)} />
         <button type="submit" disabled={!cardId.trim()}>提交复习结果</button>
       </form>
@@ -112,19 +114,19 @@ function MasteryView({ api }: { api: LearningApiExt }) {
 
   return (
     <section aria-label="掌握度" className="learning-panel">
-      <h3>双轴掌握度（Human / Machine / Evidence）</h3>
+      <h3>人类、机器与证据三轴掌握度</h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void load();
         }}
       >
-        <label htmlFor="mastery-card">卡片 ID</label>
+        <label htmlFor="mastery-card">学习卡片</label>
         <input
           id="mastery-card"
           value={cardId}
           onChange={(e) => setCardId(e.target.value)}
-          placeholder="card_id"
+          placeholder="选择或粘贴卡片引用"
         />
         <button type="submit" disabled={busy || !cardId.trim()}>
           {busy ? "查询中…" : "查询"}
@@ -134,22 +136,22 @@ function MasteryView({ api }: { api: LearningApiExt }) {
       {state ? (
         <dl className="mastery-bars">
           <div>
-            <dt>Human</dt>
-            <dd aria-label={`human ${state.human.level}`}>
+            <dt>人类掌握</dt>
+            <dd aria-label={`人类掌握 ${state.human.level}`}>
               <span className="bar" style={{ width: `${levelWidth(state.human.level, "human")}%` }} />
               {state.human.level} · {state.human.label}
             </dd>
           </div>
           <div>
-            <dt>Machine</dt>
-            <dd aria-label={`machine ${state.machine.level}`}>
+            <dt>机器掌握</dt>
+            <dd aria-label={`机器掌握 ${state.machine.level}`}>
               <span className="bar" style={{ width: `${levelWidth(state.machine.level, "machine")}%` }} />
               {state.machine.level} · {state.machine.label}
             </dd>
           </div>
           <div>
-            <dt>Evidence</dt>
-            <dd aria-label={`evidence ${state.evidence}`}>{state.evidence}</dd>
+            <dt>证据状态</dt>
+            <dd aria-label={`证据状态 ${state.evidence}`}>{state.evidence}</dd>
           </div>
           <p className="space-hint">
             建议动作：{ACTION_LABELS[state.action] ?? state.action}（Δ={state.delta}）
@@ -203,8 +205,8 @@ function TeachBackView({ api }: { api: LearningApiExt }) {
   }
 
   return (
-    <section aria-label="Teach-Back" className="learning-panel">
-      <h3>Teach-Back（你讲给 AI，AI 判断你理解了多少）</h3>
+    <section aria-label="复述检验" className="learning-panel">
+      <h3>复述检验（你讲给机器，系统检查理解程度）</h3>
       <form onSubmit={submit}>
         <label htmlFor="tb-concept">概念</label>
         <input id="tb-concept" value={form.concept} onChange={(e) => setForm({ ...form, concept: e.target.value })} />
@@ -218,7 +220,7 @@ function TeachBackView({ api }: { api: LearningApiExt }) {
       </form>
       {error ? <p className="space-hint">提交失败：{error}</p> : null}
       {result ? (
-        <dl className="teachback-result" aria-label="teach-back result">
+        <dl className="teachback-result" aria-label="复述检验结果">
           <div><dt>总体</dt><dd>{Math.round(result.evaluation.overall * 100)}% {result.evaluation.passes ? "✅ 达到 M3-解释" : "未达标"}</dd></div>
           <div><dt>准确</dt><dd>{Math.round(result.evaluation.accuracy * 100)}%</dd></div>
           <div><dt>覆盖</dt><dd>{Math.round(result.evaluation.coverage * 100)}%</dd></div>
@@ -267,7 +269,7 @@ function QuizPanel({ api }: { api: LearningApiExt }) {
 
   return (
     <section aria-label="练习测验" className="learning-panel">
-      <h3>练习测验（recall / MCQ）</h3>
+      <h3>练习测验（回忆 / 选择题）</h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -303,7 +305,7 @@ function QuizPanel({ api }: { api: LearningApiExt }) {
 
 function PathView({ api }: { api: LearningApiExt }) {
   const [goal, setGoal] = useState("d");
-  const [graph, setGraph] = useState(`{"nodes":["a","b","c","d"],"edges":[["a","b"],["b","c"],["c","d"]]}`);
+  const [prerequisites, setPrerequisites] = useState("a, b, c");
   const [steps, setSteps] = useState<PathStep[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -312,8 +314,10 @@ function PathView({ api }: { api: LearningApiExt }) {
     setBusy(true);
     setError(null);
     try {
-      const parsed = JSON.parse(graph) as { nodes: string[]; edges: string[][] };
-      const r = await api.learningPath({ goal: goal.trim(), graph: parsed });
+      const nodes = prerequisites.split(",").map((item) => item.trim()).filter(Boolean);
+      if (!nodes.includes(goal.trim())) nodes.push(goal.trim());
+      const edges = nodes.slice(0, -1).map((node, index) => [node, nodes[index + 1]]);
+      const r = await api.learningPath({ goal: goal.trim(), graph: { nodes, edges } });
       setSteps(r.steps);
     } catch (e) {
       setError(e instanceof Error ? e.message : "路径生成失败");
@@ -334,8 +338,8 @@ function PathView({ api }: { api: LearningApiExt }) {
       >
         <label htmlFor="path-goal">目标概念</label>
         <input id="path-goal" value={goal} onChange={(e) => setGoal(e.target.value)} />
-        <label htmlFor="path-graph">先修图 JSON</label>
-        <textarea id="path-graph" rows={2} value={graph} onChange={(e) => setGraph(e.target.value)} />
+        <label htmlFor="path-prerequisites">先修概念（用逗号分隔）</label>
+        <input id="path-prerequisites" value={prerequisites} onChange={(e) => setPrerequisites(e.target.value)} />
         <button type="submit" disabled={busy}>生成路径</button>
       </form>
       {error ? <p className="space-hint">生成失败：{error}</p> : null}
@@ -352,15 +356,50 @@ function PathView({ api }: { api: LearningApiExt }) {
   );
 }
 
+function VisualLessonBlueprint() {
+  return (
+    <section aria-label="视觉课件" className="learning-panel planning-panel">
+      <header className="planning-heading">
+        <div><span>视觉教学规划</span><h3>视觉课件工作室</h3></div>
+        <strong>播放未开放</strong>
+      </header>
+      <p className="space-description">保留场景、时间线、暂停点和证据脚注；当前为可审查规划，不提供假播放或伪生成。</p>
+      <div className="lesson-studio">
+        <aside className="lesson-scenes" aria-label="场景索引">
+          <article><span>01</span><div><b>对象边界</b><small>原件与派生产物</small></div></article>
+          <article><span>02</span><div><b>证据关系</b><small>支持、反驳与背景</small></div></article>
+          <article><span>03</span><div><b>复核停止点</b><small>回到来源再判断</small></div></article>
+        </aside>
+        <div className="studio-stage">
+          <article className="stage-card"><span>静态分镜</span><h4>原件和派生产物不能由同一个结论替代。</h4><p>先保留原件，再分别审查转译质量与事实证据。</p><small>证据脚注：等待真实学习对象</small></article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SpatialMemoryBlueprint() {
+  return (
+    <section aria-label="空间记忆" className="learning-panel planning-panel">
+      <header className="planning-heading"><div><span>空间学习规划</span><h3>空间记忆</h3></div><strong>规划中</strong></header>
+      <p className="space-description">优先提供二维地图、文字路线和低动效替代；三维与沉浸能力必须通过设备、性能和学习证据门禁。</p>
+      <div className="spatial-blueprint">
+        <div className="spatial-map" aria-label="二维空间记忆规划"><span>入口</span><i>→</i><span>知识锚点</span><i>→</i><span>证据束</span></div>
+        <aside className="spatial-route"><h4>文字等价路线</h4><ol><li>选择真实学习路线</li><li>关联原件、版本和证据状态</li><li>从任意线索返回证据</li></ol><p>当前没有真实空间学习对象，因此不显示样例数量或可执行入口。</p></aside>
+      </div>
+    </section>
+  );
+}
+
 export function LearningSpace() {
   const [tab, setTab] = useState<Tab>("review");
   const [api] = useState(() => learningApiExt());
 
   return (
     <section className="space-view" aria-labelledby="space-learning">
-      <h2 id="space-learning" className="space-title">Learning</h2>
+      <h2 id="space-learning" className="space-title">学习</h2>
       <p className="space-description">
-        人类学习库（Human Learning Vault）：FSRS 复习、双轴掌握度与 Teach-Back 理解验证。
+        人类学习库：FSRS 复习、三轴掌握度与复述理解检验。
       </p>
       <nav aria-label="学习功能" className="learning-tabs">
         {TABS.map((t) => (
@@ -379,6 +418,8 @@ export function LearningSpace() {
       {tab === "teachback" ? <TeachBackView api={api} /> : null}
       {tab === "quiz" ? <QuizPanel api={api} /> : null}
       {tab === "path" ? <PathView api={api} /> : null}
+      {tab === "visual" ? <VisualLessonBlueprint /> : null}
+      {tab === "spatial" ? <SpatialMemoryBlueprint /> : null}
     </section>
   );
 }

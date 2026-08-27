@@ -11,7 +11,7 @@ def test_cognitive_canvas_contract():
     assert 'data-page="canvas"' not in html  # secondary nav is rendered from the JS registry
     assert 'id="page-canvas"' in html
     assert 'id="canvas-board"' in html
-    assert "GOVERNED KNOWLEDGE CANVAS" in html
+    assert "受治理的知识画布" in html
     assert "fetchJson('/kb/canvas')" in js
     assert "function createCanvas()" in js
     assert "function selectCanvas(index)" in js

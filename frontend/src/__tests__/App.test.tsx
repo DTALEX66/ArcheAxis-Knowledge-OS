@@ -30,9 +30,9 @@ describe("App shell", () => {
     render(<App />);
     const main = screen.getByRole("main");
     expect(
-      within(main).getByRole("heading", { name: /工作区状态/ }),
+      within(main).getByRole("heading", { name: /工作台总览/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Workspace/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /工作台/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -43,19 +43,19 @@ describe("App shell", () => {
     render(<App />);
     const main = screen.getByRole("main");
     expect(
-      within(main).getByRole("heading", { name: /工作区状态/ }),
+      within(main).getByRole("heading", { name: /工作台总览/ }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Library/ }));
+    await user.click(screen.getByRole("button", { name: /资料库/ }));
 
     expect(
       within(main).getByRole("heading", { name: /原件库/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Library/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /资料库/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("button", { name: /Workspace/ })).not.toHaveAttribute(
+    expect(screen.getByRole("button", { name: /工作台/ })).not.toHaveAttribute(
       "aria-current",
     );
   });
@@ -81,7 +81,7 @@ describe("App shell", () => {
     render(<App />);
 
     expect(
-      await screen.findByRole("main", { name: "Recovery Shell" }),
+      await screen.findByRole("main", { name: "恢复工作台" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("navigation", { name: "主空间导航" }),
@@ -108,7 +108,7 @@ describe("App shell", () => {
 
     render(<App />);
 
-    expect(await screen.findByRole("main", { name: "Recovery Shell" })).toBeInTheDocument();
+    expect(await screen.findByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
     expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
     expect(invoke).toHaveBeenNthCalledWith(2, "backend_info");
@@ -144,7 +144,7 @@ describe("App shell", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("Workspace migration is in progress.")).toBeInTheDocument();
+    expect(await screen.findByText("本地核心与当前桌面版本不兼容。")).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
   });
 
@@ -165,7 +165,7 @@ describe("App shell", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("Recovery diagnostic withheld")).toBeInTheDocument();
+    expect(await screen.findByText(/恢复诊断已隐藏/)).toBeInTheDocument();
     expect(screen.queryByText(rawDiagnostic)).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("raw-secret-value");
   });
@@ -188,7 +188,7 @@ describe("App shell", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("Recovery diagnostic withheld")).toBeInTheDocument();
+    expect(await screen.findByText(/恢复诊断已隐藏/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent(safePrefix.slice(0, 50));
     expect(document.body).not.toHaveTextContent("A".repeat(10));
   });
