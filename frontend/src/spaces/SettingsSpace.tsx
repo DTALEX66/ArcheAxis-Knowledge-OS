@@ -70,7 +70,7 @@ export function SettingsSpace() {
         setQuickRoot(defaultRoot(status));
         if (status.ready) setStage("complete");
       })
-      .catch((requestError: Error) => { if (alive) setError(requestError.message); })
+      .catch((requestError: Error) => { if (alive) setError(userErrorMessage(requestError.message)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);

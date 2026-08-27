@@ -460,6 +460,7 @@ def workspace_library(*, db_path: str | Path) -> dict[str, object]:
             "source_name": record.source_name,
             "raw_sha256": record.sha256,
             "size_bytes": record.size_bytes,
+            "mime_type": record.mime_type,
             "retention": record.retention_policy,
             "conversion_state": "requires_attention" if record.error else "retained",
         }

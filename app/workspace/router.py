@@ -29,15 +29,11 @@ from app.evidence.ledger import (
     get_bundle_inspection,
     list_bundle_summaries,
 )
-from app.evidence.pdf_serve import PdfServeError, build_pdf_serving_root, resolve_pdf_bytes
+from app.evidence.pdf_serve import MAX_PDF_BYTES
 from app.workspace import bff, service, vault
 from app.workspace.bff import BFFNotFoundError, BFFUnavailableError
 from shared.config import resolve_runtime_path
 from shared.storage import DB_PATH
-
-# Content-addressed PDF serving root backed by the RawAsset store, under the
-# same runtime data directory as the workspace SQLite DB.
-PDF_ROOT = build_pdf_serving_root(resolve_runtime_path("data"))
 
 WORKSPACE_PREFIX = "/" + "workspace"
 WORKSPACE_UI_ROOT = Path(__file__).resolve().parent / "ui"
@@ -346,10 +342,25 @@ def workspace_pdf(content_key: str, request: Request) -> Response:
     PDF byte content is served (application/pdf).
     """
     _local_principal(request)
+    if not content_key.startswith("sha256:"):
+        raise HTTPException(status_code=404, detail="PDF original was not found")
+    digest = content_key.removeprefix("sha256:")
     try:
-        blob = resolve_pdf_bytes(PDF_ROOT, content_key)
-    except PdfServeError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        original, source_name, mime_type = service.source_archive_content(
+            raw_sha256=digest,
+            db_path=DB_PATH,
+        )
+        size_bytes = original.stat().st_size
+        if size_bytes < 1 or size_bytes > MAX_PDF_BYTES:
+            raise ValueError("PDF original size is outside the serving limit")
+        blob = original.read_bytes()
+    except (LookupError, OSError, RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="PDF original was not found") from exc
+    if (
+        not blob.startswith(b"%PDF-")
+        or (mime_type != "application/pdf" and Path(source_name).suffix.casefold() != ".pdf")
+    ):
+        raise HTTPException(status_code=404, detail="PDF original was not found")
     return Response(content=blob, media_type="application/pdf")
 
 

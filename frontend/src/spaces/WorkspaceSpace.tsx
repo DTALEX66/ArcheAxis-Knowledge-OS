@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DataError, Loading } from "../components/RealData";
 import { getHome, type ActivityItemDto } from "../api/workspace";
+import { userErrorMessage } from "../presentation/labels";
 import type { SpaceId } from "./spaces";
 
 interface HomeDto {
@@ -107,7 +108,7 @@ export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => vo
     let alive = true;
     getHome()
       .then((result) => { if (alive) setStatus(result as HomeDto); })
-      .catch((reason: Error) => { if (alive) setError(reason.message); })
+      .catch((reason: Error) => { if (alive) setError(userErrorMessage(reason.message)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);

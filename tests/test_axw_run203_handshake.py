@@ -83,6 +83,27 @@ def test_handshake_runtime_mode_env_driven(
     assert body["runtime_mode"] == "external-dev"
 
 
+def test_external_dev_handshake_and_setup_share_launcher_owned_root(
+    client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    launcher_root = tmp_path / "desktop-dev"
+    monkeypatch.setenv("ARCHEAXIS_DATA_DIR", str(launcher_root))
+    monkeypatch.setenv("ARCHEAXIS_LAUNCHER_DATA_DIR", str(launcher_root))
+    monkeypatch.setenv("ARCHEAXIS_TEST_WORKSPACE_ROOT", str(launcher_root))
+    monkeypatch.setenv("ARCHEAXIS_RUNTIME_PROFILE", "external-dev")
+    from app.setup.setup_status import workspace_root
+    from shared.config import resolve_runtime_path
+    from shared.path_policy import resolve_paths
+
+    body = client.get("/api/v1/system/handshake").json()
+    policy = resolve_paths(body["runtime_mode"])
+
+    assert body["runtime_mode"] == "external-dev"
+    assert policy.data_root == launcher_root
+    assert resolve_runtime_path("data") == launcher_root
+    assert workspace_root().is_relative_to(launcher_root)
+
+
 def test_handshake_migration_state_reflects_failed_supervisor(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -204,7 +204,8 @@ def exercise_workspace(page: Page, base_url: str) -> None:
     page.route(RESEARCH_PATTERN, _research_queue)
     page.goto(f"{base_url}/workspace#research", wait_until="networkidle")
     page.get_by_role("heading", name="察微研究").wait_for()
-    page.get_by_text("https://example.com/review", exact=True).wait_for()
+    page.get_by_text("网页来源 · example.com", exact=True).wait_for()
+    assert "https://example.com/review" not in page.locator("#research-queue").inner_text()
     assert page.get_by_role("button", name="批准进入知识候选").is_visible()
     page.unroute(RESEARCH_PATTERN, _research_queue)
 
@@ -329,7 +330,9 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
     # Generate a real 2-page PDF with a searchable text layer.
     import pymupdf
 
-    from app.evidence.pdf_serve import build_pdf_serving_root, store_pdf_bytes
+    from app.evidence.anchor import build_evidence_anchor, store_evidence_anchor
+    from app.ingestion.raw_asset import RawAssetStore
+    from shared.storage import DB_PATH
 
     pdf_path = Path(data_dir) / "browser-pdf-sample.pdf"
     doc = pymupdf.open()
@@ -341,9 +344,41 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
     doc.close()
     blob = pdf_path.read_bytes()
 
-    # resolve_runtime_path("data") == data_dir when ARCHEAXIS_DATA_DIR is set.
-    root = build_pdf_serving_root(Path(data_dir))
-    content_key = store_pdf_bytes(root, blob)
+    source_archive = RawAssetStore(Path(data_dir) / "source_archive" / "raw-assets")
+    stored_pdf = source_archive.store_original(
+        blob,
+        "browser-pdf-sample.pdf",
+        mime_type="application/pdf",
+    )
+    content_key = f"sha256:{stored_pdf.sha256}"
+    other_pdf = source_archive.store_original(
+        b"%PDF-1.4\nother PDF source",
+        "other-pdf-source.pdf",
+        mime_type="application/pdf",
+    )
+    other_content_key = f"sha256:{other_pdf.sha256}"
+    existing_page_anchor = build_evidence_anchor(
+        stored_pdf.sha256,
+        "existing-page-one",
+        {"page": 1},
+    )
+    store_evidence_anchor(DB_PATH, existing_page_anchor)
+    existing_anchor_id = existing_page_anchor.anchor_id
+    # More than one server page of unrelated/non-page anchors proves the UI
+    # paginates, filters to the selected PDF, and ignores conversion locators.
+    for index in range(105):
+        store_evidence_anchor(
+            DB_PATH,
+            build_evidence_anchor(
+                "f" * 64,
+                f"conversion-{index}",
+                {"block_id": f"block-{index}"},
+            ),
+        )
+    store_evidence_anchor(
+        DB_PATH,
+        build_evidence_anchor("e" * 64, "other-pdf", {"page": 2}),
+    )
 
     console_errors: list[str] = []
 
@@ -356,7 +391,41 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         page.on("pageerror", lambda e: console_errors.append(f"[pageerror] {e}"))
         page.goto(f"{base_url}/workspace#evidence", wait_until="networkidle")
         page.get_by_role("heading", name="PDF 证据查看").wait_for()
-        page.get_by_label("PDF 内容键").fill(content_key)
+
+        # Hold A's PDF request, switch to B, then release A. A stale response
+        # must never rebind or repaint after the source generation changed.
+        pdf_route_prefix = "/" + "/".join(("workspace", "api", "pdf")) + "/"
+        page.evaluate(
+            """({key, routePrefix}) => {
+                const originalFetch = window.fetch.bind(window);
+                let release;
+                window.__pdfHeld = false;
+                window.__releaseHeldPdf = () => release?.();
+                window.__restorePdfFetch = () => { window.fetch = originalFetch; };
+                window.fetch = (input, init) => {
+                    const url = String(input);
+                    if (url.includes(routePrefix) && url.includes(encodeURIComponent(key))) {
+                        return new Promise((resolve, reject) => {
+                            window.__pdfHeld = true;
+                            release = () => originalFetch(input, init).then(resolve, reject);
+                        });
+                    }
+                    return originalFetch(input, init);
+                };
+            }""",
+            {"key": content_key, "routePrefix": pdf_route_prefix},
+        )
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function("() => window.__pdfHeld === true")
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        page.evaluate("() => window.__releaseHeldPdf()")
+        page.wait_for_timeout(1000)
+        assert page.locator("#pdf-viewer canvas").count() == 0
+        assert page.locator("#pdf-page-info").inner_text() == "—"
+        page.evaluate("() => window.__restorePdfFetch()")
+
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
         page.get_by_role("button", name="打开 PDF").click()
 
         # Renderer loaded: page info shows "1 / 2" once the first page draws.
@@ -366,8 +435,110 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         )
         assert page.locator("#pdf-viewer canvas").count() >= 1
 
-        # Next page via the real button.
+        # Changing the source selection must unload the rendered document;
+        # otherwise an A selection could be anchored under B's identity.
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        assert page.locator("#pdf-viewer canvas").count() == 0
+        assert page.locator("#pdf-annotate").is_disabled()
+        assert page.locator("#pdf-page-info").inner_text() == "—"
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
+            timeout=15000,
+        )
+
+        # Wrap newly loaded PDF documents so getPage can be held while the
+        # active source is switched. Releasing after destroy must be handled as
+        # stale cancellation, never as an unhandled page/console error.
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        page.evaluate(
+            """async ({key, routePrefix}) => {
+                const bytes = await (await fetch(routePrefix + encodeURIComponent(key))).arrayBuffer();
+                const probeTask = pdfjsLib.getDocument({
+                    data: bytes,
+                    isEvalSupported: false,
+                    enableScripting: false,
+                });
+                const probeDocument = await probeTask.promise;
+                const prototype = Object.getPrototypeOf(probeDocument);
+                window.__pdfDocumentPrototype = prototype;
+                await probeTask.destroy();
+                const originalGetPage = prototype.getPage;
+                let release;
+                window.__pdfPageHeld = false;
+                window.__holdPdfPage = false;
+                window.__releasePdfPage = () => release?.();
+                window.__restorePdfDocument = () => { prototype.getPage = originalGetPage; };
+                prototype.getPage = async function(pageNumber) {
+                    if (window.__holdPdfPage) {
+                        window.__pdfPageHeld = true;
+                        await new Promise((resolve) => {
+                            release = () => {
+                                window.__holdPdfPage = false;
+                                window.__pdfPageHeld = false;
+                                resolve();
+                            };
+                        });
+                    }
+                    return originalGetPage.call(this, pageNumber);
+                };
+            }""",
+            {"key": content_key, "routePrefix": pdf_route_prefix},
+        )
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function("() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')")
+
+        console_errors.clear()
+        page.evaluate("() => { window.__holdPdfPage = true; }")
         page.get_by_role("button", name="下一页 ›").click()
+        page.wait_for_function("() => window.__pdfPageHeld === true")
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        page.evaluate("() => window.__releasePdfPage()")
+        page.wait_for_timeout(250)
+        assert page.locator("#pdf-page-info").inner_text() == "—"
+        assert not console_errors, console_errors
+
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function("() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')")
+        console_errors.clear()
+        page.evaluate("() => { window.__holdPdfPage = true; }")
+        page.get_by_label("页内搜索").fill("Reproducible")
+        page.get_by_role("button", name="搜索").click()
+        page.wait_for_function("() => window.__pdfPageHeld === true")
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        page.evaluate("() => window.__releasePdfPage()")
+        page.wait_for_timeout(250)
+        assert page.locator("#pdf-page-info").inner_text() == "—"
+        assert not console_errors, console_errors
+        page.evaluate("() => window.__restorePdfDocument()")
+
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
+            timeout=15000,
+        )
+
+        # A selected page-1 range must become non-annotatable synchronously
+        # when page 2 starts rendering, even while the old canvas is visible.
+        page.evaluate(
+            """() => {
+                const layer = document.querySelector('.pdf-text-layer');
+                const range = document.createRange();
+                range.selectNodeContents(layer);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.dispatchEvent(new Event('selectionchange'));
+            }"""
+        )
+        page.wait_for_function("() => !document.querySelector('#pdf-annotate').disabled")
+        page.get_by_role("button", name="下一页 ›").click()
+        assert page.locator("#pdf-annotate").is_disabled()
+        assert page.locator("#pdf-page-info").inner_text() != "1 / 2"
         page.wait_for_function(
             "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')",
             timeout=10000,
@@ -408,6 +579,96 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
             "() => !document.querySelector('#pdf-annotate').disabled",
             timeout=10000,
         )
+        anchor_create_route = "/" + "/".join(("workspace", "api", "evidence", "anchor"))
+        # On the same PDF, a late first failure must not overwrite the newer
+        # second success.
+        page.evaluate(
+            """(routePath) => {
+                const originalFetch = window.fetch.bind(window);
+                let rejectHeld;
+                let heldOnce = false;
+                window.__samePdfAnnotationHeld = false;
+                window.__rejectSamePdfAnnotation = () => rejectHeld?.(new Error('late first failure'));
+                window.__restoreSamePdfAnnotationFetch = () => { window.fetch = originalFetch; };
+                window.fetch = (input, init) => {
+                    if (!heldOnce && String(input).endsWith(routePath) && init?.method === 'POST') {
+                        heldOnce = true;
+                        return new Promise((_resolve, reject) => {
+                            window.__samePdfAnnotationHeld = true;
+                            rejectHeld = reject;
+                        });
+                    }
+                    return originalFetch(input, init);
+                };
+            }""",
+            anchor_create_route,
+        )
+        page.evaluate("() => document.getElementById('pdf-annotate').click()")
+        page.wait_for_function("() => window.__samePdfAnnotationHeld === true")
+        page.evaluate("() => document.getElementById('pdf-annotate').click()")
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-anchor-info')?.textContent === '证据锚点已记录'"
+        )
+        page.evaluate("() => window.__rejectSamePdfAnnotation()")
+        page.wait_for_timeout(500)
+        assert page.locator("#pdf-anchor-info").inner_text() == "证据锚点已记录"
+        page.evaluate("() => window.__restoreSamePdfAnnotationFetch()")
+
+        # A stale annotation failure from A must not write status into B.
+        page.evaluate(
+            """(routePath) => {
+                const originalFetch = window.fetch.bind(window);
+                let rejectHeld;
+                window.__annotationHeld = false;
+                window.__rejectHeldAnnotation = () => rejectHeld?.(new Error('delayed annotation failure'));
+                window.__restoreAnnotationFetch = () => { window.fetch = originalFetch; };
+                window.fetch = (input, init) => {
+                    if (String(input).endsWith(routePath) && init?.method === 'POST') {
+                        return new Promise((_resolve, reject) => {
+                            window.__annotationHeld = true;
+                            rejectHeld = reject;
+                        });
+                    }
+                    return originalFetch(input, init);
+                };
+            }""",
+            anchor_create_route,
+        )
+        page.evaluate("() => document.getElementById('pdf-annotate').click()")
+        page.wait_for_function("() => window.__annotationHeld === true")
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        page.evaluate("() => window.__rejectHeldAnnotation()")
+        page.wait_for_timeout(500)
+        assert page.locator("#pdf-anchor-info").inner_text() == ""
+        page.evaluate("() => window.__restoreAnnotationFetch()")
+
+        # Reopen A and restore a real page selection for the actual write.
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
+            timeout=15000,
+        )
+        page.get_by_role("button", name="下一页 ›").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')",
+            timeout=10000,
+        )
+        page.evaluate(
+            """() => {
+                const layer = document.querySelector('.pdf-text-layer');
+                const range = document.createRange();
+                range.selectNodeContents(layer);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.dispatchEvent(new Event('selectionchange'));
+            }"""
+        )
+        page.wait_for_function(
+            "() => !document.querySelector('#pdf-annotate').disabled",
+            timeout=10000,
+        )
         # AXW-022B full loop: create the anchor, then jump back from it.
         page.evaluate("() => document.getElementById('pdf-annotate').click()")
         page.wait_for_timeout(2000)
@@ -420,13 +681,137 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         # The create receipt no longer surfaces the internal anchor id; prove
         # the write path succeeded, then verify resolution through the API by
         # listing the persisted anchors (the jump input stays product language).
-        anchor_path = "/" + "/".join(("workspace", "api", "evidence", "anchors")) + "?limit=1"
-        anchor_list = page.evaluate(
-            f"async () => {{ const r = await fetch('{anchor_path}'); if (!r.ok) throw new Error('list failed'); return r.json(); }}"
-        )
-        resolved_anchor_id = (anchor_list.get("items") or [{}])[0].get("anchor_id")
+        resolved_anchor_id = page.get_by_label("选择证据锚点").input_value()
         assert resolved_anchor_id and resolved_anchor_id.startswith("ev"), f"anchor not persisted: {resolved_anchor_id!r}"
-        page.get_by_label("证据锚点回跳").fill(resolved_anchor_id)
+        # Reload from persistence: the matching page anchor is after >100
+        # unrelated anchors, so reaching it proves cursor pagination + filter.
+        page.reload(wait_until="networkidle")
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
+            timeout=15000,
+        )
+        page.locator(
+            f'#pdf-anchor-input option[value="{resolved_anchor_id}"]'
+        ).wait_for(state="attached", timeout=10000)
+        assert page.get_by_label("选择证据锚点").locator("option").count() == 3
+        # On the same PDF, a late page-1 response must not override the newer
+        # page-2 jump.
+        existing_resolve_path = f"{anchor_create_route}/{existing_anchor_id}"
+        page.evaluate(
+            """(routePath) => {
+                const originalFetch = window.fetch.bind(window);
+                let release;
+                window.__samePdfJumpHeld = false;
+                window.__releaseSamePdfJump = () => release?.();
+                window.__restoreSamePdfJumpFetch = () => { window.fetch = originalFetch; };
+                window.fetch = (input, init) => {
+                    if (String(input).endsWith(routePath) && (!init?.method || init.method === 'GET')) {
+                        return new Promise((resolve, reject) => {
+                            window.__samePdfJumpHeld = true;
+                            release = () => originalFetch(input, init).then(resolve, reject);
+                        });
+                    }
+                    return originalFetch(input, init);
+                };
+            }""",
+            existing_resolve_path,
+        )
+        page.get_by_label("选择证据锚点").select_option(existing_anchor_id)
+        page.get_by_role("button", name="回跳").click()
+        page.wait_for_function("() => window.__samePdfJumpHeld === true")
+        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
+        page.get_by_role("button", name="回跳").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')"
+        )
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-anchor-info')?.textContent === '已回跳至证据所在页'"
+        )
+        page.evaluate("() => window.__releaseSamePdfJump()")
+        page.wait_for_timeout(500)
+        assert page.locator("#pdf-page-info").inner_text().startswith("2 /")
+        assert page.locator("#pdf-anchor-info").inner_text() == "已回跳至证据所在页"
+        page.evaluate("() => window.__restoreSamePdfJumpFetch()")
+
+        # A stale jump success from A must not write status after switching B.
+        anchor_resolve_path = f"{anchor_create_route}/{resolved_anchor_id}"
+        page.evaluate(
+            """(routePath) => {
+                const originalFetch = window.fetch.bind(window);
+                let release;
+                window.__jumpHeld = false;
+                window.__releaseHeldJump = () => release?.();
+                window.__restoreJumpFetch = () => { window.fetch = originalFetch; };
+                window.fetch = (input, init) => {
+                    if (String(input).endsWith(routePath) && (!init?.method || init.method === 'GET')) {
+                        return new Promise((resolve, reject) => {
+                            window.__jumpHeld = true;
+                            release = () => originalFetch(input, init).then(resolve, reject);
+                        });
+                    }
+                    return originalFetch(input, init);
+                };
+            }""",
+            anchor_resolve_path,
+        )
+        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
+        page.get_by_role("button", name="回跳").click()
+        page.wait_for_function("() => window.__jumpHeld === true")
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        page.evaluate("() => window.__releaseHeldJump()")
+        page.wait_for_timeout(500)
+        assert page.locator("#pdf-anchor-info").inner_text() == ""
+        page.evaluate("() => window.__restoreJumpFetch()")
+
+        # Reopen A, restore the persisted matching anchor and jump for real.
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
+            timeout=15000,
+        )
+        page.locator(
+            f'#pdf-anchor-input option[value="{resolved_anchor_id}"]'
+        ).wait_for(state="attached", timeout=10000)
+
+        # A current jump whose target page genuinely fails to render must not
+        # publish a contradictory success receipt.
+        page.evaluate(
+            """async ({key, routePrefix}) => {
+                const bytes = await (await fetch(routePrefix + encodeURIComponent(key))).arrayBuffer();
+                const probeTask = pdfjsLib.getDocument({ data: bytes, isEvalSupported: false, enableScripting: false });
+                const probeDocument = await probeTask.promise;
+                const prototype = Object.getPrototypeOf(probeDocument);
+                await probeTask.destroy();
+                const originalGetPage = prototype.getPage;
+                window.__restoreFailingGetPage = () => { prototype.getPage = originalGetPage; };
+                prototype.getPage = async () => { throw new Error('forced page failure'); };
+            }""",
+            {"key": content_key, "routePrefix": pdf_route_prefix},
+        )
+        console_errors.clear()
+        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
+        page.get_by_role("button", name="回跳").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent === '页面不可用'"
+        )
+        assert page.locator("#pdf-anchor-info").inner_text() != "已回跳至证据所在页"
+        assert not console_errors, console_errors
+        page.evaluate("() => window.__restoreFailingGetPage()")
+
+        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
+        page.get_by_label("选择 PDF 原件").select_option(content_key)
+        page.get_by_role("button", name="打开 PDF").click()
+        page.wait_for_function(
+            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
+            timeout=15000,
+        )
+        page.locator(
+            f'#pdf-anchor-input option[value="{resolved_anchor_id}"]'
+        ).wait_for(state="attached", timeout=10000)
+        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
         page.get_by_role("button", name="回跳").click()
         page.wait_for_timeout(2000)
         jump_text = page.evaluate("document.querySelector('#pdf-anchor-info')?.textContent")
@@ -631,23 +1016,47 @@ def exercise_real_six_space_learning_loop(page: Page, base_url: str) -> None:
     """
     page.goto(f"{base_url}/workspace#research", wait_until="networkidle")
     page.get_by_role("heading", name="察微研究").wait_for()
+    assert "local-content://" not in page.locator("#research-queue").inner_text()
     page.get_by_role("button", name="批准进入知识候选").click()
     page.get_by_text("暂无待人工审核的资料", exact=True).wait_for()
 
     page.goto(f"{base_url}/workspace#knowledge", wait_until="networkidle")
     page.get_by_role("heading", name="藏识知识").wait_for()
-    page.get_by_role("button", name="开始学习").click()
-    page.wait_for_function(
-        "() => document.querySelector('#knowledge-queue')?.textContent.includes('生命周期：')"
-    )
+    assert "local-content://" not in page.locator("#knowledge-queue").inner_text()
+    start_learning_suffix = "/" + "/".join(("workspace", "api", "knowledge", "start-learning"))
+    with page.expect_response(
+        lambda response: response.url.endswith(start_learning_suffix)
+        and response.request.method == "POST"
+    ) as start_response:
+        page.get_by_role("button", name="开始学习").click()
+    assert start_response.value.status == 200, start_response.value.status
 
     page.goto(f"{base_url}/workspace#learning", wait_until="networkidle")
     page.get_by_role("heading", name="学习路线").wait_for()
-    for practice_count in range(1, 4):
-        page.get_by_role("button", name="记录练习").click()
+    learning_queue = page.locator("#learning-queue")
+    practice_parts = learning_queue.inner_text().split("练习：", 1)
+    assert len(practice_parts) == 2, learning_queue.inner_text()
+    assert "local-content://" not in learning_queue.inner_text()
+    initial_practice_count = int(practice_parts[1].split("·", 1)[0].strip())
+    learning_suffix = "/" + "/".join(("workspace", "api", "learning"))
+    practice_suffix = "/" + "/".join(("workspace", "api", "learning", "practice"))
+    for offset in range(1, 4):
+        with page.expect_response(
+            lambda response: response.url.endswith(practice_suffix)
+            and response.request.method == "POST"
+        ) as practice_response:
+            page.get_by_role("button", name="记录练习").click()
+        assert practice_response.value.status == 200, practice_response.value.status
+        expected_count = initial_practice_count + offset
+        learning_response = page.request.get(
+            f"{base_url}{learning_suffix}"
+        )
+        assert learning_response.status == 200, learning_response.text()
+        page.goto(f"{base_url}/workspace#learning", wait_until="networkidle")
+        page.get_by_role("heading", name="学习路线").wait_for()
         page.wait_for_function(
             "count => document.querySelector('#learning-queue')?.textContent.includes(`练习：${count}`)",
-            arg=practice_count,
+            arg=expected_count,
         )
 
     page.goto(f"{base_url}/workspace#evolution", wait_until="networkidle")
@@ -684,6 +1093,10 @@ def _main() -> int:
     # credential handoff.  Limit its no-token writes to this explicit CI smoke
     # process; normal browser and desktop requests remain credential-gated.
     os.environ["ARCHEAXIS_BROWSER_SMOKE_WRITE_BYPASS"] = "1"
+    # This one bounded smoke intentionally pages >100 anchors and exercises
+    # every product surface; raise only its child Core read budget so the gate
+    # measures UI/runtime behavior rather than the ordinary interactive quota.
+    os.environ["ARCHEAXIS_RATE_LIMIT_READ"] = "1000"
     # The smoke must be repeatable against the same directory: drop the
     # previous run's SQLite and PDF store so strict command-receipt reads
     # never collide with stale bindings from an earlier invocation.

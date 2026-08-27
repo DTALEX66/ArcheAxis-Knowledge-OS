@@ -3,15 +3,16 @@
 Resolves the data/program roots for each deployment form and refuses any
 resolution that would fall back to an uncontrolled location:
 
-- ``installed-stable`` — data lives under %LOCALAPPDATA%/ArcheAxis/Workspace;
-  the program directory (where the executable lives) is read-only.
+- ``installed-stable`` — data lives under %LOCALAPPDATA%/ArcheAxis/Workspace,
+  or the desktop launcher's sanitized authoritative data root; the program
+  directory (where the executable lives) is read-only.
 - ``green-stable``    — data defaults to the same LOCALAPPDATA location but
   may be redirected with ARCHEAXIS_DATA_DIR.
-- ``portable-stable`` — data must stay inside ARCHEAXIS_PORTABLE_ROOT/data;
-  when the portable root is unset, resolution raises ValueError. It never
-  falls back to LOCALAPPDATA or the user home directory.
-- ``external-dev``    — data is confined to the isolated test workspace
-  ARCHEAXIS_TEST_WORKSPACE_ROOT; unset root raises ValueError.
+- ``portable-stable`` — data must stay inside the desktop launcher's sanitized
+  data root or ARCHEAXIS_PORTABLE_ROOT/data; when neither is set, resolution
+  raises ValueError. It never falls back to LOCALAPPDATA or the user home.
+- ``external-dev``    — data is confined to the isolated test workspace and
+  must match the desktop launcher's authoritative root when present.
 
 Every ``resolve_data()`` result is re-checked against the allowed root, so
 ``..`` traversal or symlink escapes fail closed instead of leaking data
@@ -99,13 +100,24 @@ def _program_dir() -> Path:
     return Path(__file__).resolve().parents[1]
 
 
+def _launcher_data_dir() -> Path | None:
+    """Return the desktop launcher's authoritative child data root, if any."""
+    value = os.getenv("ARCHEAXIS_LAUNCHER_DATA_DIR", "").strip()
+    if not value:
+        return None
+    root = Path(value).expanduser()
+    if not root.is_absolute():
+        raise PathPolicyError("ARCHEAXIS_LAUNCHER_DATA_DIR must be absolute")
+    return root.resolve()
+
+
 def resolve_paths(mode: DeploymentMode) -> PathPolicy:
     """Resolve the path policy for a deployment form (fail-closed)."""
     if mode not in MODES:
         raise PathPolicyError(f"unknown deployment mode: {mode!r}")
 
     if mode == "installed-stable":
-        data_root = _local_app_data() / _INSTALLED_DATA_SUBROOT
+        data_root = _launcher_data_dir() or (_local_app_data() / _INSTALLED_DATA_SUBROOT)
         return PathPolicy(
             mode=mode,
             data_root=data_root,
@@ -130,6 +142,15 @@ def resolve_paths(mode: DeploymentMode) -> PathPolicy:
         )
 
     if mode == "portable-stable":
+        launcher_root = _launcher_data_dir()
+        if launcher_root is not None:
+            return PathPolicy(
+                mode=mode,
+                data_root=launcher_root,
+                program_dir=_program_dir(),
+                program_readonly=False,
+                allowed_roots=(launcher_root,),
+            )
         portable_root = os.getenv("ARCHEAXIS_PORTABLE_ROOT", "").strip()
         if not portable_root:
             raise PathPolicyError(
@@ -153,6 +174,11 @@ def resolve_paths(mode: DeploymentMode) -> PathPolicy:
             "external-dev deployment requires ARCHEAXIS_TEST_WORKSPACE_ROOT"
         )
     isolated = Path(test_root).resolve()
+    launcher_root = _launcher_data_dir()
+    if launcher_root is not None and launcher_root != isolated:
+        raise PathPolicyError(
+            "external-dev test root does not match the launcher-owned data root"
+        )
     return PathPolicy(
         mode=mode,
         data_root=isolated,

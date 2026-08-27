@@ -126,8 +126,40 @@ def test_tauri_surface_and_ci_share_the_ui_release_gate() -> None:
 
 def test_loopback_workspace_withholds_raw_api_errors_and_internal_receipts() -> None:
     script = (ROOT / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
+    page = INDEX.read_text(encoding="utf-8")
 
     assert "err.message" not in script
     assert "JSON.stringify(data,null,2)" not in script
     assert '"锚点 " + data.anchor_id' not in script
     assert "证据锚点已记录" in script
+    assert "/workspace/api/pdf/" not in page
+    assert "EvidenceAnchor" not in page
+    assert "打开保留的 PDF 原件" in page
+    assert "sha256:<64位hex>" not in script
+    assert 'aria-label="PDF 内容键"' not in page
+    assert 'aria-label="选择 PDF 原件"' in page
+    assert 'aria-label="选择证据锚点"' in page
+    assert "refreshPdfSources" in script
+    assert "refreshPdfAnchors" in script
+    assert "addAnchorOption" in script
+    for epoch in ("renderEpoch", "searchEpoch", "annotationEpoch", "jumpEpoch", "anchorEpoch"):
+        assert epoch in script
+    assert "return state.contentKey" in script
+    assert "previousLoadingTask.destroy()" in script
+    assert "state.renderedPage === state.page" in script
+    assert "state.renderedContentKey === state.contentKey" in script
+    assert "beginPdfNavigation({ preserveSearch: true })" in script
+    assert "beginPdfNavigation({ preserveJump: true })" in script
+    assert 'case "pdf-prev": if (state.doc && state.page > 1) { beginPdfNavigation();' in script
+    assert 'case "pdf-zoom-in": beginPdfNavigation();' in script
+    assert "const rendered = await renderPage();" in script
+    assert "state.renderedPage !== page || state.renderedContentKey !== key" in script
+    for visible_internal in (
+        "JSON.stringify(payload.loss_report)",
+        "source_hash.slice",
+        "detail.current_hash",
+        "payload.backup_path",
+        "payload.restored_from",
+        "option.textContent=`${backup.backup_name}",
+    ):
+        assert visible_internal not in script

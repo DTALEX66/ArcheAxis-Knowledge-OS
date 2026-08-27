@@ -8,7 +8,7 @@ import {
   type ActivityItemDto,
 } from "../api/workspace";
 import type { InspectionTarget } from "./Inspector";
-import { stateLabel } from "../presentation/labels";
+import { stateLabel, userErrorMessage } from "../presentation/labels";
 
 // Bottom activity dock: always projects durable Job/Outbox state. It never
 // labels arbitrary controls as completed work.
@@ -29,18 +29,29 @@ export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTar
     let alive = true;
     refresh()
       .then(() => { if (!alive) return; })
-      .catch((error: Error) => { if (alive) setSummary(`活动不可用：${error.message}`); });
+      .catch((error: Error) => {
+        if (!alive) return;
+        setSummary(`活动不可用：${userErrorMessage(error.message)}`);
+        setDelivery("投递状态：不可用");
+      });
     return () => { alive = false; };
   }, []);
 
   async function operate(action: () => Promise<{ status: string }>) {
+    let result: { status: string };
     try {
-      const result = await action();
-      setDelivery(`投递状态：${stateLabel(result.status)}`);
-      await refresh();
-      setDelivery(`投递状态：${stateLabel(result.status)}`);
+      result = await action();
     } catch (error) {
-      setDelivery(`投递状态：失败 ${error instanceof Error ? error.message : String(error)}`);
+      setDelivery(`投递状态：${userErrorMessage(error instanceof Error ? error.message : error)}`);
+      return;
+    }
+    const verdict = stateLabel(result.status);
+    setDelivery(`投递状态：${verdict}`);
+    try {
+      await refresh();
+      setDelivery(`投递状态：${verdict}`);
+    } catch {
+      setDelivery(`投递状态：${verdict}；读回暂不可用`);
     }
   }
 
@@ -55,7 +66,7 @@ export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTar
         detail: "活动详情已从本地回读",
       });
     } catch (error) {
-      setSummary(`活动详情不可用：${error instanceof Error ? error.message : String(error)}`);
+      setSummary(`活动详情不可用：${userErrorMessage(error instanceof Error ? error.message : error)}`);
     }
   }
 

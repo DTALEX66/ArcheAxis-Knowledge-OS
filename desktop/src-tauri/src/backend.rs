@@ -18,7 +18,7 @@ const FORCED_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(1);
 const RESTORE_TIMEOUT: Duration = Duration::from_secs(120);
 const MAX_LOG_LINES: usize = 200;
 const MAX_ONE_SHOT_OUTPUT_BYTES: usize = 16 * 1024;
-const SANITIZED_ENVIRONMENT: [&str; 19] = [
+const SANITIZED_ENVIRONMENT: [&str; 28] = [
     "PYTHONPATH",
     "PYTHONHOME",
     "VIRTUAL_ENV",
@@ -27,16 +27,25 @@ const SANITIZED_ENVIRONMENT: [&str; 19] = [
     "ARCHEAXIS_HOST",
     "ARCHEAXIS_PORT",
     "ARCHEAXIS_DATA_DIR",
+    "ARCHEAXIS_DB_PATH",
+    "ARCHEAXIS_CAPABILITY_ROOT",
     "ARCHEAXIS_DESKTOP_CONTROL",
     "ARCHEAXIS_DESKTOP_LAUNCH_TOKEN",
     "ARCHEAXIS_DESKTOP_WRITE_SCOPES",
     "ARCHEAXIS_EXTERNAL_DEV",
     "ARCHEAXIS_EXTERNAL_DEV_ACTIVE",
+    "ARCHEAXIS_RUNTIME_PROFILE",
+    "ARCHEAXIS_TEST_WORKSPACE_ROOT",
+    "ARCHEAXIS_LAUNCHER_DATA_DIR",
+    "ARCHEAXIS_PORTABLE_ROOT",
+    "COGNITIVE_PORTABLE_ROOT",
     "COGNITIVE_DATA_DIR",
+    "COGNITIVE_DB_PATH",
     "COGNITIVE_HOST",
     "COGNITIVE_PORT",
     "COGNITIVE_DESKTOP_CONTROL",
     "COGNITIVE_DESKTOP_LAUNCH_TOKEN",
+    "HERMES_PROJECT_RUNTIME_ROOT",
     "HTTP_PROXY",
     "HTTPS_PROXY",
     "ALL_PROXY",
@@ -282,12 +291,19 @@ fn runtime_command(runtime: &RuntimeSpec) -> Command {
     command
         .env("ARCHEAXIS_DATA_DIR", &runtime.data_dir)
         .env("COGNITIVE_DATA_DIR", &runtime.data_dir)
+        .env("ARCHEAXIS_RUNTIME_PROFILE", runtime.profile)
+        .env("ARCHEAXIS_LAUNCHER_DATA_DIR", &runtime.data_dir)
+        .env("ARCHEAXIS_DB_PATH", "data/archeaxis.sqlite")
+        .env("ARCHEAXIS_CAPABILITY_ROOT", runtime.data_dir.join("capabilities"))
+        .env("HERMES_PROJECT_RUNTIME_ROOT", &runtime.data_dir)
         .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("PYTHONNOUSERSITE", "1")
         .env("NO_PROXY", "127.0.0.1")
         .env("no_proxy", "127.0.0.1");
     if runtime.external_dev {
-        command.env("ARCHEAXIS_EXTERNAL_DEV_ACTIVE", "1");
+        command
+            .env("ARCHEAXIS_EXTERNAL_DEV_ACTIVE", "1")
+            .env("ARCHEAXIS_TEST_WORKSPACE_ROOT", &runtime.data_dir);
     }
     command
 }
@@ -519,6 +535,7 @@ mod tests {
             data_dir: PathBuf::from("writable-data"),
             isolated: true,
             external_dev: false,
+            profile: "installed-stable",
         };
 
         let command = runtime_command(&runtime);
@@ -549,6 +566,7 @@ mod tests {
             data_dir: PathBuf::from("writable-data"),
             isolated: true,
             external_dev: false,
+            profile: "installed-stable",
         };
 
         let command = runtime_command(&runtime);
@@ -573,10 +591,12 @@ mod tests {
             data_dir: PathBuf::from("writable-data"),
             isolated: true,
             external_dev: false,
+            profile: "installed-stable",
         };
         let development = RuntimeSpec {
             external_dev: true,
             isolated: false,
+            profile: "external-dev",
             ..installed.clone()
         };
 
@@ -600,6 +620,46 @@ mod tests {
             .iter()
             .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_EXTERNAL_DEV_ACTIVE"))
             .map(|(_, value)| *value);
+        let installed_profile = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_RUNTIME_PROFILE"))
+            .map(|(_, value)| *value);
+        let development_profile = development_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_RUNTIME_PROFILE"))
+            .map(|(_, value)| *value);
+        let installed_test_root = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_TEST_WORKSPACE_ROOT"))
+            .map(|(_, value)| *value);
+        let development_test_root = development_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_TEST_WORKSPACE_ROOT"))
+            .map(|(_, value)| *value);
+        let installed_launcher_root = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_LAUNCHER_DATA_DIR"))
+            .map(|(_, value)| *value);
+        let development_launcher_root = development_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_LAUNCHER_DATA_DIR"))
+            .map(|(_, value)| *value);
+        let installed_database_path = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_DB_PATH"))
+            .map(|(_, value)| *value);
+        let installed_legacy_database_path = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("COGNITIVE_DB_PATH"))
+            .map(|(_, value)| *value);
+        let installed_capability_root = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_CAPABILITY_ROOT"))
+            .map(|(_, value)| *value);
+        let installed_hermes_runtime_root = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("HERMES_PROJECT_RUNTIME_ROOT"))
+            .map(|(_, value)| *value);
 
         assert_eq!(installed_external_request, Some(None));
         assert_eq!(installed_external_active, Some(None));
@@ -607,6 +667,35 @@ mod tests {
         assert_eq!(
             development_external_active,
             Some(Some(OsStr::new("1")))
+        );
+        assert_eq!(installed_profile, Some(Some(OsStr::new("installed-stable"))));
+        assert_eq!(development_profile, Some(Some(OsStr::new("external-dev"))));
+        assert_eq!(installed_test_root, Some(None));
+        assert_eq!(
+            development_test_root,
+            Some(Some(OsStr::new("writable-data")))
+        );
+        assert_eq!(
+            installed_launcher_root,
+            Some(Some(OsStr::new("writable-data")))
+        );
+        assert_eq!(
+            development_launcher_root,
+            Some(Some(OsStr::new("writable-data")))
+        );
+        assert_eq!(
+            installed_database_path,
+            Some(Some(OsStr::new("data/archeaxis.sqlite")))
+        );
+        assert_eq!(installed_legacy_database_path, Some(None));
+        let expected_capability_root = PathBuf::from("writable-data").join("capabilities");
+        assert_eq!(
+            installed_capability_root,
+            Some(Some(expected_capability_root.as_os_str()))
+        );
+        assert_eq!(
+            installed_hermes_runtime_root,
+            Some(Some(OsStr::new("writable-data")))
         );
     }
 
@@ -646,6 +735,7 @@ mod tests {
             data_dir: temp.path().join("data"),
             isolated: false,
             external_dev: true,
+            profile: "external-dev",
         };
         fs::create_dir(&runtime.data_dir).expect("create runtime data");
         let started = Instant::now();

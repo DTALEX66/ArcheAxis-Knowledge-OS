@@ -9,7 +9,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from app.evidence.pdf_serve import build_pdf_serving_root, store_pdf_bytes
+from app.ingestion.raw_asset import RawAssetStore
 
 # Real user-supplied PDFs (text + illustrations). These live in the canonical
 # workspace's runtime attachments dir, which is NOT part of any git worktree,
@@ -24,10 +24,14 @@ def _client(tmp_path, monkeypatch):
     from app.main import app
     from app.workspace import router
 
-    pdf_root = build_pdf_serving_root(tmp_path)
-    monkeypatch.setattr(router, "PDF_ROOT", pdf_root)
     monkeypatch.setattr(router, "DB_PATH", tmp_path / "ws.sqlite")
-    return TestClient(app), pdf_root
+    source_archive = RawAssetStore(tmp_path / "source_archive" / "raw-assets")
+    return TestClient(app), source_archive
+
+
+def _store_pdf(store: RawAssetStore, blob: bytes, source_name: str = "document.pdf") -> str:
+    record = store.store_original(blob, source_name, mime_type="application/pdf")
+    return f"sha256:{record.sha256}"
 
 
 def _available_real_pdf() -> Path | None:
@@ -47,8 +51,8 @@ def test_pdf_endpoint_serves_real_pdf_bytes(monkeypatch, tmp_path) -> None:
         pytest.skip("no real PDF fixture present in desktop-attachments")
 
     blob = real.read_bytes()
-    client, pdf_root = _client(tmp_path, monkeypatch)
-    key = store_pdf_bytes(pdf_root, blob)
+    client, source_archive = _client(tmp_path, monkeypatch)
+    key = _store_pdf(source_archive, blob, real.name)
 
     resp = client.get(f"/workspace/api/pdf/{key}")
     assert resp.status_code == 200, resp.text
@@ -72,6 +76,26 @@ def test_pdf_endpoint_missing_content_404(monkeypatch, tmp_path) -> None:
     assert resp.status_code == 404
 
 
+def test_pdf_endpoint_reads_the_same_source_archive_listed_by_library(
+    monkeypatch, tmp_path
+) -> None:
+    blob = b"%PDF-1.4\n" + b"source archive PDF"
+    client, source_archive = _client(tmp_path, monkeypatch)
+    key = _store_pdf(source_archive, blob, "reader-source.pdf")
+
+    library = client.get("/workspace/api/library")
+    response = client.get(f"/workspace/api/pdf/{key}")
+
+    assert library.status_code == 200
+    assert [item["source_name"] for item in library.json()["items"]] == [
+        "reader-source.pdf"
+    ]
+    assert library.json()["items"][0]["mime_type"] == "application/pdf"
+    assert response.status_code == 200
+    assert response.content == blob
+    assert response.headers["content-type"] == "application/pdf"
+
+
 def test_pdf_endpoint_serves_both_real_pdfs(monkeypatch, tmp_path) -> None:
     """Both user-supplied PDFs (a 322-page illustrated book + a 120-page
     text book) must round-trip byte-exact over the HTTP endpoint."""
@@ -81,10 +105,10 @@ def test_pdf_endpoint_serves_both_real_pdfs(monkeypatch, tmp_path) -> None:
 
         pytest.skip("need both real PDFs present")
 
-    client, pdf_root = _client(tmp_path, monkeypatch)
+    client, source_archive = _client(tmp_path, monkeypatch)
     for real in present:
         blob = real.read_bytes()
-        key = store_pdf_bytes(pdf_root, blob)
+        key = _store_pdf(source_archive, blob, real.name)
         resp = client.get(f"/workspace/api/pdf/{key}")
         assert resp.status_code == 200, real.name
         assert resp.content == blob, f"byte mismatch for {real.name}"

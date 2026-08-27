@@ -35,7 +35,7 @@ export function Inspector({ target }: { target: InspectionTarget | null }) {
           <dt>条目</dt><dd>{target.title}</dd>
           <dt>来源</dt><dd>{target.source}</dd>
           <dt>状态</dt><dd>{target.lifecycle}</dd>
-          {target.rawSha256 ? <><dt>原件哈希</dt><dd>{target.rawSha256}</dd></> : null}
+          {target.rawSha256 ? <><dt>原件指纹</dt><dd>已记录</dd></> : null}
           {target.version ? <><dt>版本</dt><dd>{target.version}</dd></> : null}
           {target.evidenceSource ? <><dt>证据来源</dt><dd>{target.evidenceSource}</dd></> : null}
           {target.updatedAt ? <><dt>更新时间</dt><dd>{target.updatedAt}</dd></> : null}

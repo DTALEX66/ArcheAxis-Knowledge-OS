@@ -35,6 +35,20 @@ export function stateLabel(value: unknown): string {
   return typeof value === "string" ? STATE_LABELS[value] ?? "状态未知" : "状态未知";
 }
 
+export function sourceLabel(value: unknown, index = 0): string {
+  if (typeof value === "string") {
+    try {
+      const url = new URL(value);
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return `网页来源 · ${url.hostname}`;
+      }
+    } catch {
+      // Opaque/local source identities intentionally fall through.
+    }
+  }
+  return `本地资料 ${index + 1}`;
+}
+
 const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开系统诊断。";
 
 export function userErrorMessage(value: unknown): string {

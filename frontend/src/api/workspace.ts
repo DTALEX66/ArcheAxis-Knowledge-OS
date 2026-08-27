@@ -61,6 +61,7 @@ export interface LibraryAssetDto {
   source_name: string;
   raw_sha256: string;
   size_bytes: number;
+  mime_type?: string;
   retention: string;
   conversion_state: "retained" | "requires_attention";
 }

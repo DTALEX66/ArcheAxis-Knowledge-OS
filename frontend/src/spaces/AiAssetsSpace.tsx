@@ -33,7 +33,7 @@ export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTar
         setItems(approved.items);
         setCandidates(governed.items.filter((item) => item.lifecycle === "candidate"));
       } })
-      .catch((e: Error) => { if (alive) setError(e.message); })
+      .catch((e: Error) => { if (alive) setError(userErrorMessage(e.message)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);

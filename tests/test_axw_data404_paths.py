@@ -18,6 +18,7 @@ from shared.path_policy import PathPolicyError, resolve_paths
 
 def test_installed_stable_uses_localappdata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "LocalAppData"))
+    monkeypatch.delenv("ARCHEAXIS_LAUNCHER_DATA_DIR", raising=False)
     policy = resolve_paths("installed-stable")
     assert policy.mode == "installed-stable"
     assert policy.data_root == tmp_path / "LocalAppData" / "ArcheAxis" / "Workspace"
@@ -27,7 +28,22 @@ def test_installed_stable_uses_localappdata(tmp_path: Path, monkeypatch: pytest.
     assert policy.program_dir == Path(sys.executable).resolve().parent
 
 
+def test_installed_stable_prefers_launcher_owned_data_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    launcher_root = tmp_path / "launcher-owned"
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "LocalAppData"))
+    monkeypatch.setenv("ARCHEAXIS_DATA_DIR", str(tmp_path / "attacker-data"))
+    monkeypatch.setenv("ARCHEAXIS_LAUNCHER_DATA_DIR", str(launcher_root))
+
+    policy = resolve_paths("installed-stable")
+
+    assert policy.data_root == launcher_root
+    assert policy.allowed_roots == (launcher_root,)
+
+
 def test_installed_stable_requires_localappdata(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ARCHEAXIS_LAUNCHER_DATA_DIR", raising=False)
     monkeypatch.delenv("LOCALAPPDATA", raising=False)
     monkeypatch.delenv("LOCAL_APP_DATA", raising=False)
     with pytest.raises(PathPolicyError, match="LOCALAPPDATA"):
@@ -52,9 +68,23 @@ def test_green_stable_honors_data_dir_override(tmp_path: Path, monkeypatch: pyte
 
 def test_portable_stable_requires_portable_root(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("ARCHEAXIS_PORTABLE_ROOT", raising=False)
+    monkeypatch.delenv("ARCHEAXIS_LAUNCHER_DATA_DIR", raising=False)
     monkeypatch.setenv("LOCALAPPDATA", "C:/Users/someone/AppData/Local")
     with pytest.raises(PathPolicyError, match="ARCHEAXIS_PORTABLE_ROOT"):
         resolve_paths("portable-stable")
+
+
+def test_portable_stable_prefers_launcher_owned_data_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    launcher_root = tmp_path / "portable-data"
+    monkeypatch.setenv("ARCHEAXIS_PORTABLE_ROOT", str(tmp_path / "attacker-portable"))
+    monkeypatch.setenv("ARCHEAXIS_LAUNCHER_DATA_DIR", str(launcher_root))
+
+    policy = resolve_paths("portable-stable")
+
+    assert policy.data_root == launcher_root
+    assert policy.allowed_roots == (launcher_root,)
 
 
 def test_portable_stable_never_leaks_user_directory(
@@ -63,6 +93,7 @@ def test_portable_stable_never_leaks_user_directory(
     """Portable resolution must not fall back to LOCALAPPDATA even when the
     user directory exists and looks like a valid target."""
     local_app_data = tmp_path / "LocalAppData"
+    monkeypatch.delenv("ARCHEAXIS_LAUNCHER_DATA_DIR", raising=False)
     local_app_data.mkdir(parents=True)
     monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
     monkeypatch.setenv("ARCHEAXIS_PORTABLE_ROOT", str(tmp_path / "portable"))
@@ -79,6 +110,7 @@ def test_portable_stable_never_leaks_user_directory(
 
 
 def test_portable_resolve_data_stays_inside_portable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ARCHEAXIS_LAUNCHER_DATA_DIR", raising=False)
     monkeypatch.setenv("ARCHEAXIS_PORTABLE_ROOT", str(tmp_path / "portable"))
     policy = resolve_paths("portable-stable")
     resolved = policy.resolve_data("vault/notes.md")
@@ -99,6 +131,7 @@ def test_external_dev_requires_test_workspace_root(monkeypatch: pytest.MonkeyPat
 
 
 def test_external_dev_confines_to_test_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ARCHEAXIS_LAUNCHER_DATA_DIR", raising=False)
     monkeypatch.setenv("ARCHEAXIS_TEST_WORKSPACE_ROOT", str(tmp_path / "test-ws"))
     policy = resolve_paths("external-dev")
     assert policy.data_root == (tmp_path / "test-ws")
@@ -107,6 +140,16 @@ def test_external_dev_confines_to_test_workspace(tmp_path: Path, monkeypatch: py
     assert resolved == (tmp_path / "test-ws" / "fixtures" / "raw.txt")
     with pytest.raises(PathPolicyError):
         policy.resolve_data("../escape.txt")
+
+
+def test_external_dev_rejects_launcher_and_test_root_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ARCHEAXIS_LAUNCHER_DATA_DIR", str(tmp_path / "launcher-owned"))
+    monkeypatch.setenv("ARCHEAXIS_TEST_WORKSPACE_ROOT", str(tmp_path / "attacker-root"))
+
+    with pytest.raises(PathPolicyError, match="launcher-owned data root"):
+        resolve_paths("external-dev")
 
 
 def test_unknown_mode_rejected() -> None:

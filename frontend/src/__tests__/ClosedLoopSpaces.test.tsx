@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LibrarySpace } from "../spaces/LibrarySpace";
@@ -7,6 +7,7 @@ import { AiAssetsSpace } from "../spaces/AiAssetsSpace";
 import { SettingsSpace } from "../spaces/SettingsSpace";
 import { WorkspaceSpace } from "../spaces/WorkspaceSpace";
 import { ActivityDock } from "../components/ActivityDock";
+import { Inspector } from "../components/Inspector";
 
 const runtime = vi.hoisted(() => ({
   listLibraryAssets: vi.fn(), downloadLibraryAsset: vi.fn(),
@@ -21,6 +22,10 @@ const runtime = vi.hoisted(() => ({
 vi.mock("../api/workspace", () => runtime);
 
 describe("six-space real command loops", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("projects release, capabilities, counts, and recent activity on Workspace", async () => {
     runtime.getHome.mockResolvedValue({
       release: { version: "0.6.7", status: "unreleased", public: false },
@@ -57,6 +62,15 @@ describe("six-space real command loops", () => {
     expect(document.body).not.toHaveTextContent("dependency_required");
   });
 
+  it("withholds initial Workspace endpoint errors", async () => {
+    runtime.getHome.mockRejectedValue(new Error("/workspace/api/v1/home -> 500"));
+
+    render(<WorkspaceSpace onNavigate={vi.fn()} />);
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/v1/home");
+  });
+
   it("reads an immutable source by content identity", async () => {
     runtime.listLibraryAssets.mockResolvedValue({ items: [{ source_name: "note.md", raw_sha256: "a".repeat(64), size_bytes: 6, retention: "immutable", conversion_state: "retained" }] });
     runtime.downloadLibraryAsset.mockResolvedValue(new Blob(["source"]));
@@ -77,6 +91,15 @@ describe("six-space real command loops", () => {
     expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("/workspace/api/library");
     expect(document.body).not.toHaveTextContent("-> 500");
+  });
+
+  it("withholds initial Library load errors", async () => {
+    runtime.listLibraryAssets.mockRejectedValue(new Error("/workspace/api/library -> 500"));
+
+    render(<LibrarySpace onInspect={vi.fn()} />);
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/library");
   });
 
   it("approves a research candidate and refreshes the queue", async () => {
@@ -103,6 +126,23 @@ describe("six-space real command loops", () => {
     expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("/workspace/api/evidence");
     expect(document.body).not.toHaveTextContent("-> 500");
+  });
+
+  it("hides opaque Evidence source and hash identities", async () => {
+    const rawSha256 = "a".repeat(64);
+    runtime.listEvidenceAnchors.mockResolvedValue({ count: 1, items: [{ anchor_id: "anchor-private", raw_sha256: rawSha256, source_revision: "revision-private", locator: { page: 2 } }] });
+    runtime.listEvidenceBundles.mockResolvedValue({ items: [] });
+    runtime.listResearchCandidates.mockResolvedValue({ items: [{ source: "local-content://sha256/private", status: "review" }] });
+    const onInspect = vi.fn();
+
+    render(<EvidenceSpace onInspect={onInspect} />);
+
+    expect(await screen.findByText("本地资料 1")).toBeInTheDocument();
+    expect(screen.getByText("已记录")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("local-content://");
+    expect(document.body).not.toHaveTextContent(rawSha256.slice(0, 12));
+    await userEvent.setup().click(screen.getByRole("button", { name: "查看" }));
+    expect(onInspect).toHaveBeenCalledWith(expect.not.objectContaining({ rawSha256 }));
   });
 
   it("opens governed Bundle inspection with conflict, rights, review and version history", async () => {
@@ -161,18 +201,24 @@ describe("six-space real command loops", () => {
     runtime.listEvidenceBundles.mockResolvedValue({ items: [] });
     runtime.listResearchCandidates.mockResolvedValue({ items: [] });
     const user = userEvent.setup();
+    const onInspect = vi.fn();
 
-    render(<EvidenceSpace onInspect={vi.fn()} />);
-    expect(await screen.findByText("aaaaaaaaaaaa")).toBeInTheDocument();
+    render(<EvidenceSpace onInspect={onInspect} />);
+    expect(await screen.findByText("锚点 1")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "查看" }));
+    expect(onInspect).toHaveBeenLastCalledWith(expect.objectContaining({ detail: "定位：第 1 页" }));
+    expect(document.body).not.toHaveTextContent("aaaaaaaaaaaa");
     await user.click(screen.getByRole("button", { name: "下一页" }));
 
     expect(runtime.listEvidenceAnchors).toHaveBeenLastCalledWith(50, "cursor-second");
-    expect(await screen.findByText("bbbbbbbbbbbb")).toBeInTheDocument();
-    expect(screen.queryByText("aaaaaaaaaaaa")).not.toBeInTheDocument();
+    await screen.findByText("锚点 1");
+    await user.click(screen.getByRole("button", { name: "查看" }));
+    expect(onInspect).toHaveBeenLastCalledWith(expect.objectContaining({ detail: "定位：第 2 页" }));
+    expect(document.body).not.toHaveTextContent("bbbbbbbbbbbb");
     expect(screen.getByRole("button", { name: "下一页" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "上一页" }));
     expect(runtime.listEvidenceAnchors).toHaveBeenLastCalledWith(50, undefined);
-    expect(await screen.findByText("aaaaaaaaaaaa")).toBeInTheDocument();
+    expect(await screen.findByText("锚点 1")).toBeInTheDocument();
   });
 
   it("approves and deprecates AI assets as independent governed actions", async () => {
@@ -199,6 +245,34 @@ describe("six-space real command loops", () => {
 
     expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("/workspace/api/knowledge");
+  });
+
+  it("withholds initial Machine Knowledge load errors", async () => {
+    runtime.getMachineKnowledge.mockRejectedValue(new Error("/workspace/api/runtime/knowledge -> 500"));
+    runtime.listMachineKnowledgeCandidates.mockResolvedValue({ items: [] });
+
+    render(<AiAssetsSpace onInspect={vi.fn()} />);
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/runtime");
+  });
+
+  it("does not render a full source hash in the Inspector", () => {
+    const rawSha256 = "b".repeat(64);
+    render(<Inspector target={{ title: "原件", source: "原件档案", lifecycle: "已保留", rawSha256 }} />);
+
+    expect(screen.getByText("原件指纹")).toBeInTheDocument();
+    expect(screen.getByText("已记录")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(rawSha256);
+  });
+
+  it("withholds initial Settings endpoint errors", async () => {
+    runtime.getSetupStatus.mockRejectedValue(new Error("/workspace/api/setup/status -> 500"));
+
+    render(<SettingsSpace />);
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/setup/status");
   });
 
   it("creates and verifies a named backup", async () => {
@@ -317,6 +391,61 @@ describe("six-space real command loops", () => {
       await user.type(screen.getByLabelText(label), path);
     }
     expect(check).toBeEnabled();
+  });
+
+  it("withholds ActivityDock load errors from the global product surface", async () => {
+    runtime.getActivity.mockRejectedValue(new Error("/workspace/api/v1/activity -> 500"));
+    runtime.getDelivery.mockResolvedValue({ summary: { jobs: 0, outbox: {}, receipts: {} } });
+
+    render(<ActivityDock />);
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(screen.getByText("投递状态：不可用")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/v1/activity");
+    expect(document.body).not.toHaveTextContent("-> 500");
+  });
+
+  it("withholds ActivityDock delivery-operation errors", async () => {
+    runtime.getActivity.mockResolvedValue({ items: [], next_cursor: null });
+    runtime.getDelivery.mockResolvedValue({ summary: { jobs: 0, outbox: {}, receipts: {} } });
+    runtime.dispatchDelivery.mockRejectedValue(new Error("/workspace/api/delivery/dispatch -> 409"));
+    const user = userEvent.setup();
+
+    render(<ActivityDock />);
+    await screen.findByText("暂无持久化活动");
+    await user.click(screen.getByRole("button", { name: "投递下一条" }));
+
+    expect(await screen.findByText(/投递状态：本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/delivery");
+  });
+
+  it("preserves a successful delivery verdict when readback fails", async () => {
+    runtime.getActivity
+      .mockResolvedValueOnce({ items: [], next_cursor: null })
+      .mockRejectedValueOnce(new Error("/workspace/api/v1/activity -> 500"));
+    runtime.getDelivery.mockResolvedValue({ summary: { jobs: 0, outbox: {}, receipts: {} } });
+    runtime.dispatchDelivery.mockResolvedValue({ status: "requeued" });
+    const user = userEvent.setup();
+
+    render(<ActivityDock />);
+    await screen.findByText("暂无持久化活动");
+    await user.click(screen.getByRole("button", { name: "投递下一条" }));
+
+    expect(await screen.findByText("投递状态：已重新入队；读回暂不可用")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/v1/activity");
+  });
+
+  it("withholds ActivityDock detail errors", async () => {
+    runtime.getActivity.mockResolvedValue({ items: [{ public_ref: "wr1_demo", kind: "job", label: "资料导入", state: "failed", updated_at: "2026-08-23T00:00:00Z" }], next_cursor: null });
+    runtime.getDelivery.mockResolvedValue({ summary: { jobs: 1, outbox: {}, receipts: {} } });
+    runtime.getActivityObject.mockRejectedValue(new Error("/workspace/api/v1/activity/wr1_demo -> 500"));
+    const user = userEvent.setup();
+
+    render(<ActivityDock />);
+    await user.click(await screen.findByRole("button", { name: "查看活动详情" }));
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/v1/activity");
   });
 
   it("shows durable activity states and can retry desktop recovery", async () => {

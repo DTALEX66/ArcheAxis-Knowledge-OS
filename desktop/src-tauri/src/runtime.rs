@@ -8,6 +8,7 @@ pub struct RuntimeSpec {
     pub data_dir: PathBuf,
     pub isolated: bool,
     pub external_dev: bool,
+    pub profile: &'static str,
 }
 
 pub fn external_dev_enabled(debug_build: bool, value: Option<&OsStr>) -> bool {
@@ -111,6 +112,7 @@ fn resolve_runtime_for_profile(
             data_dir: root.join(".hermes/task-runtime/desktop-dev"),
             isolated: false,
             external_dev: true,
+            profile: "external-dev",
         });
     }
 
@@ -134,6 +136,7 @@ fn resolve_runtime_for_profile(
             data_dir: portable_root.to_path_buf(),
             isolated: true,
             external_dev: false,
+            profile: "portable-stable",
         });
     }
     let data_dir = project_root_for_resource(resource_dir)
@@ -145,6 +148,7 @@ fn resolve_runtime_for_profile(
         data_dir,
         isolated: true,
         external_dev: false,
+        profile: "installed-stable",
     })
 }
 
@@ -195,6 +199,7 @@ mod tests {
                 data_dir: root.join(".hermes/task-runtime/desktop-dev"),
                 isolated: false,
                 external_dev: true,
+                profile: "external-dev",
             }
         );
     }
@@ -224,6 +229,7 @@ mod tests {
                 data_dir: local_data,
                 isolated: true,
                 external_dev: false,
+                profile: "installed-stable",
             }
         );
     }

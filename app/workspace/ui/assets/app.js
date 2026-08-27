@@ -16,6 +16,7 @@ const capabilityStates=new Set(['available','dependency_required','not_implement
 const releaseStatusLabels={unreleased:'源码未发布',qualified:'已验证候选',released:'已发布'};
 const operationalStateLabels={succeeded:'已完成',completed:'已完成',running:'执行中',pending:'待处理',failed:'失败',blocked:'已阻断',delivered:'已投递',recorded:'已记录',missing:'缺失',available:'可用',candidate:'候选',approved:'已批准',unverified:'未核验',not_recorded:'未记录',ready_for_review:'待复核',rejected:'已拒绝',mastered:'已掌握',dependency_required:'需要依赖',not_implemented:'尚未实现',retrying:'重试中'};
 const stateLabel=value=>operationalStateLabels[value]||'状态未知';
+function sourceLabel(value,index){try{const url=new URL(value);if(['http:','https:'].includes(url.protocol))return `网页来源 · ${url.hostname}`}catch{}return `本地资料 ${index+1}`}
 const userErrorMessage=()=>"本地数据暂时不可用，请稍后重试。";
 const commandSuccessLabels={
   "/workspace/api/exchange/export":"交换包已导出",
@@ -46,11 +47,11 @@ async function refreshTaskCockpit(){try{const [jobs,lifecycle]=await Promise.all
 async function selectTask(activity){try{const [jobs,lifecycle]=await Promise.all([fetchJson('/workspace/api/jobs').then(validateJobs),fetchJson('/workspace/api/lifecycle').then(validateLifecycle)]);renderTaskCockpit(jobs.jobs.find(job=>job.activity===activity),lifecycle)}catch{$('#cockpit-task-state').textContent='任务详情读取失败'}}
 async function refreshRuntime(){await Promise.all([refreshJobs(),refreshDelivery(),refreshTaskCockpit()])}
 function commandId(prefix){return `${prefix}-${crypto.randomUUID()}`}
-function renderResearch(payload){const target=$('#research-queue');target.textContent='';if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.items))throw new Error('invalid research queue');if(!payload.items.length){const row=document.createElement('div');row.className='row';row.textContent='暂无待人工审核的资料';target.append(row);return}payload.items.forEach(item=>{if(!isRecord(item)||typeof item.source!=='string'||!Number.isInteger(item.claim_count)||!Number.isInteger(item.evidence_count)||typeof item.verification!=='string')throw new Error('invalid research queue');const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent=item.source;const detail=document.createElement('span');detail.textContent=`候选要点：${item.claim_count} · 证据：${item.evidence_count} · 核验：${stateLabel(item.verification)}`;main.append(name,detail);const button=document.createElement('button');button.className='btn';button.type='button';button.dataset.action='research-approve';button.dataset.source=item.source;button.textContent='批准进入知识候选';row.append(main,button);target.append(row)})}
+function renderResearch(payload){const target=$('#research-queue');target.textContent='';if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.items))throw new Error('invalid research queue');if(!payload.items.length){const row=document.createElement('div');row.className='row';row.textContent='暂无待人工审核的资料';target.append(row);return}payload.items.forEach((item,index)=>{if(!isRecord(item)||typeof item.source!=='string'||!Number.isInteger(item.claim_count)||!Number.isInteger(item.evidence_count)||typeof item.verification!=='string')throw new Error('invalid research queue');const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent=sourceLabel(item.source,index);const detail=document.createElement('span');detail.textContent=`候选要点：${item.claim_count} · 证据：${item.evidence_count} · 核验：${stateLabel(item.verification)}`;main.append(name,detail);const button=document.createElement('button');button.className='btn';button.type='button';button.dataset.action='research-approve';button.dataset.source=item.source;button.textContent='批准进入知识候选';row.append(main,button);target.append(row)})}
 async function refreshResearch(){try{renderResearch(await fetchJson('/workspace/api/research'))}catch{$('#research-queue').textContent='本地待审核资料读取失败'}}
-function renderKnowledge(payload){const target=$('#knowledge-queue');target.textContent='';if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.items))throw new Error('invalid knowledge queue');if(!payload.items.length){target.textContent='暂无已批准的知识候选';return}payload.items.forEach(item=>{if(!isRecord(item)||typeof item.source!=='string'||!Number.isInteger(item.claim_count)||!Number.isInteger(item.source_count)||typeof item.lifecycle!=='string')throw new Error('invalid knowledge item');const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent=item.source;const detail=document.createElement('span');detail.textContent=`候选要点：${item.claim_count} · 来源：${item.source_count} · 生命周期：${stateLabel(item.lifecycle)}`;main.append(name,detail);const button=document.createElement('button');button.className='btn';button.type='button';button.dataset.action='knowledge-start-learning';button.dataset.source=item.source;button.textContent='开始学习';row.append(main,button);target.append(row)})}
+function renderKnowledge(payload){const target=$('#knowledge-queue');target.textContent='';if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.items))throw new Error('invalid knowledge queue');if(!payload.items.length){target.textContent='暂无已批准的知识候选';return}payload.items.forEach((item,index)=>{if(!isRecord(item)||typeof item.source!=='string'||!Number.isInteger(item.claim_count)||!Number.isInteger(item.source_count)||typeof item.lifecycle!=='string')throw new Error('invalid knowledge item');const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent=sourceLabel(item.source,index);const detail=document.createElement('span');detail.textContent=`候选要点：${item.claim_count} · 来源：${item.source_count} · 生命周期：${stateLabel(item.lifecycle)}`;main.append(name,detail);const button=document.createElement('button');button.className='btn';button.type='button';button.dataset.action='knowledge-start-learning';button.dataset.source=item.source;button.textContent='开始学习';row.append(main,button);target.append(row)})}
 async function refreshKnowledge(){try{renderKnowledge(await fetchJson('/workspace/api/knowledge'))}catch{$('#knowledge-queue').textContent='本地知识候选读取失败'}}
-function renderLearning(payload){const target=$('#learning-queue');target.textContent='';if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.items))throw new Error('invalid learning queue');if(!payload.items.length){target.textContent='暂无学习产物；先在候选知识中开始学习';return}payload.items.forEach(item=>{if(!isRecord(item)||typeof item.source!=='string'||typeof item.status!=='string'||typeof item.statement!=='string'||!Number.isInteger(item.card_count)||!Number.isInteger(item.practice_count))throw new Error('invalid learning item');const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent=item.source;const detail=document.createElement('span');detail.textContent=`${item.statement||'已生成学习卡片'} · 卡片：${item.card_count} · 练习：${item.practice_count} · 状态：${stateLabel(item.status)}`;main.append(name,detail);const button=document.createElement('button');button.className='btn';button.type='button';button.dataset.action='learning-practice';button.dataset.source=item.source;button.textContent='记录练习';row.append(main,button);target.append(row)})}
+function renderLearning(payload){const target=$('#learning-queue');target.textContent='';if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.items))throw new Error('invalid learning queue');if(!payload.items.length){target.textContent='暂无学习产物；先在候选知识中开始学习';return}payload.items.forEach((item,index)=>{if(!isRecord(item)||typeof item.source!=='string'||typeof item.status!=='string'||typeof item.statement!=='string'||!Number.isInteger(item.card_count)||!Number.isInteger(item.practice_count))throw new Error('invalid learning item');const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent=item.statement||`学习内容 ${index+1}`;const detail=document.createElement('span');detail.textContent=`卡片：${item.card_count} · 练习：${item.practice_count} · 状态：${stateLabel(item.status)}`;main.append(name,detail);const button=document.createElement('button');button.className='btn';button.type='button';button.dataset.action='learning-practice';button.dataset.source=item.source;button.textContent='记录练习';row.append(main,button);target.append(row)})}
 async function refreshLearning(){try{renderLearning(await fetchJson('/workspace/api/learning'))}catch{$('#learning-queue').textContent='本地学习产物读取失败'}}
 function renderEvolution(payload){const target=$('#evolution-summary');target.textContent='';if(!isRecord(payload)||payload.schema_version!=='v1'||!isRecord(payload.mastery)||!isRecord(payload.machine_knowledge))throw new Error('invalid evolution projection');target.append(metric('掌握信号',payload.mastery.signals,'真实练习计算'),metric('已掌握',payload.mastery.mastered,'仅来自真实信号','ok'),metric('机器候选',payload.machine_knowledge.candidate||0,'尚未进入机器使用范围','warn'),metric('机器已批准',payload.machine_knowledge.approved||0,'仅限已批准'))}
 async function refreshEvolution(){try{renderEvolution(await fetchJson('/workspace/api/evolution'))}catch{$('#evolution-summary').textContent='本地评估状态读取失败'}}
@@ -73,12 +74,12 @@ function syncSubnavAccessibility(){const mobile=mobileSubnavQuery.matches;const 
 function closeSubnav({restoreFocus=false}={}){const wasOpen=state.subnavOpen;const trigger=state.subnavTrigger;state.subnavOpen=false;document.body.classList.remove('subnav-open');syncSubnavAccessibility();if(restoreFocus&&wasOpen&&trigger?.isConnected)trigger.focus()}
 function handleSubnavBreakpointChange(event){const target=$('#nav');state.subnavOpen=false;document.body.classList.remove('subnav-open');if(event.matches&&target?.contains(document.activeElement))activeModuleTrigger()?.focus();applyShellState();syncSubnavAccessibility()}
 mobileSubnavQuery.addEventListener('change',handleSubnavBreakpointChange);
-async function refreshVault(){const root=$('#vault-root')?.value.trim();if(!root)return;try{const response=await fetch('/workspace/api/vault/inspect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root})});if(!response.ok)throw new Error('vault inspect failed');const payload=await response.json();$('#vault-files').textContent=payload.files.map(item=>`${item.relative_path} · ${item.kind} · ${item.file_size} B`).join('\n')||'资料库为空';$('#vault-loss').textContent=payload.loss_report.length?JSON.stringify(payload.loss_report):'未发现损失报告'}catch{$('#vault-files').textContent='资料库读取失败；请确认根目录和本地权限';$('#vault-loss').textContent='不可用'}}
+async function refreshVault(){const root=$('#vault-root')?.value.trim();if(!root)return;try{const response=await fetch('/workspace/api/vault/inspect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root})});if(!response.ok)throw new Error('vault inspect failed');const payload=await response.json();$('#vault-files').textContent=payload.files.map(item=>`${item.relative_path} · ${item.kind} · ${item.file_size} B`).join('\n')||'资料库为空';$('#vault-loss').textContent=payload.loss_report.length?`发现 ${payload.loss_report.length} 条转换损失提示；请复核后继续`:'未发现损失报告'}catch{$('#vault-files').textContent='资料库读取失败；请确认根目录和本地权限';$('#vault-loss').textContent='不可用'}}
 async function searchVault(){const root=$('#vault-root')?.value.trim();const query=$('#vault-query')?.value.trim();if(!root||!query)return;try{const response=await fetch('/workspace/api/vault/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,query})});if(!response.ok)throw new Error('vault search failed');const payload=await response.json();$('#vault-results').textContent=payload.results.map(item=>`${item.relative_path}\n${item.snippet}`).join('\n\n')||'没有匹配结果'}catch{$('#vault-results').textContent='搜索失败；请确认资料库根目录'}}
-async function openVaultFile(){const root=$('#vault-root')?.value.trim();const relativePath=$('#vault-edit-file')?.value.trim();if(!root||!relativePath)return;const status=$('#vault-save-status'),btn=$('#vault-save-btn'),editor=$('#vault-editor');status.textContent='读取中…';try{const response=await fetch('/workspace/api/vault/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath})});if(!response.ok)throw new Error('vault file failed');const payload=await response.json();editor.value=payload.raw_text;state.vaultOpenHash=payload.source_hash;state.vaultOpenPath=relativePath;btn.disabled=false;status.textContent=`已打开 · 磁盘哈希 ${payload.source_hash.slice(0,12)}…`}catch{editor.value='';state.vaultOpenHash=null;btn.disabled=true;status.textContent='打开失败；请确认相对路径和资料库根目录'}}
-async function saveVaultFile(){const root=$('#vault-root')?.value.trim();if(!root||!state.vaultOpenHash)return;const status=$('#vault-save-status');status.textContent='保存中…';try{const response=await fetch('/workspace/api/vault/write',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:state.vaultOpenPath,content:$('#vault-editor').value,expected_hash:state.vaultOpenHash})});if(response.status===409){const detail=(await response.json()).detail;status.textContent=`冲突：文件已在磁盘被修改（当前哈希 ${String(detail.current_hash).slice(0,12)}…）；已拒绝写入，请重新打开`;return}if(!response.ok)throw new Error('vault write failed');const payload=await response.json();state.vaultOpenHash=payload.source_hash;status.textContent=`已保存 · 新哈希 ${payload.source_hash.slice(0,12)}… · 备份 ${payload.backup_path.split('\\').pop()}`;void refreshVault()}catch{status.textContent='保存失败；请确认资料库权限'}}
-async function listVaultBackups(){const root=$('#vault-root')?.value.trim();const relativePath=$('#vault-edit-file')?.value.trim();const status=$('#vault-restore-status');if(!root||!relativePath){status.textContent='请先输入相对路径';return}status.textContent='加载中…';try{const response=await fetch('/workspace/api/vault/backups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath})});if(!response.ok)throw new Error('vault backups failed');const payload=await response.json();const select=$('#vault-backups');select.textContent='';if(!payload.backups.length){const empty=document.createElement('option');empty.value='';empty.textContent='（无备份）';select.appendChild(empty);$('#vault-restore-btn').disabled=true;status.textContent='该文件暂无备份';return}payload.backups.forEach(backup=>{const option=document.createElement('option');option.value=backup.backup_name;option.textContent=`${backup.backup_name} · ${Math.round(backup.file_size)} B`;select.appendChild(option)});$('#vault-restore-btn').disabled=false;status.textContent=`找到 ${payload.backups.length} 个备份`}catch{status.textContent='备份列表加载失败'}}
-async function restoreVaultBackup(){const root=$('#vault-root')?.value.trim();const relativePath=$('#vault-edit-file')?.value.trim();const backupName=$('#vault-backups')?.value;const status=$('#vault-restore-status');if(!root||!relativePath||!backupName){status.textContent='请先选择备份';return}status.textContent='恢复中…';try{const response=await fetch('/workspace/api/vault/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath,backup_name:backupName})});if(!response.ok)throw new Error('vault restore failed');const payload=await response.json();status.textContent=`已恢复 ${payload.restored_from} · 新哈希 ${payload.source_hash.slice(0,12)}…`;state.vaultOpenHash=payload.source_hash;const opened=await fetch('/workspace/api/vault/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath})});if(opened.ok){const filePayload=await opened.json();$('#vault-editor').value=filePayload.raw_text;$('#vault-save-status').textContent=`已重新加载 · 哈希 ${filePayload.source_hash.slice(0,12)}…`;state.vaultOpenHash=filePayload.source_hash}void refreshVault();void listVaultBackups()}catch{status.textContent='恢复失败；请确认备份文件与权限'}}
+async function openVaultFile(){const root=$('#vault-root')?.value.trim();const relativePath=$('#vault-edit-file')?.value.trim();if(!root||!relativePath)return;const status=$('#vault-save-status'),btn=$('#vault-save-btn'),editor=$('#vault-editor');status.textContent='读取中…';try{const response=await fetch('/workspace/api/vault/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath})});if(!response.ok)throw new Error('vault file failed');const payload=await response.json();editor.value=payload.raw_text;state.vaultOpenHash=payload.source_hash;state.vaultOpenPath=relativePath;btn.disabled=false;status.textContent='已打开 · 内容指纹已记录'}catch{editor.value='';state.vaultOpenHash=null;btn.disabled=true;status.textContent='打开失败；请确认相对路径和资料库根目录'}}
+async function saveVaultFile(){const root=$('#vault-root')?.value.trim();if(!root||!state.vaultOpenHash)return;const status=$('#vault-save-status');status.textContent='保存中…';try{const response=await fetch('/workspace/api/vault/write',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:state.vaultOpenPath,content:$('#vault-editor').value,expected_hash:state.vaultOpenHash})});if(response.status===409){await response.json();status.textContent='冲突：文件已在磁盘被修改；已拒绝写入，请重新打开';return}if(!response.ok)throw new Error('vault write failed');const payload=await response.json();state.vaultOpenHash=payload.source_hash;status.textContent='已保存 · 内容指纹已更新 · 已创建恢复备份';void refreshVault()}catch{status.textContent='保存失败；请确认资料库权限'}}
+async function listVaultBackups(){const root=$('#vault-root')?.value.trim();const relativePath=$('#vault-edit-file')?.value.trim();const status=$('#vault-restore-status');if(!root||!relativePath){status.textContent='请先输入相对路径';return}status.textContent='加载中…';try{const response=await fetch('/workspace/api/vault/backups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath})});if(!response.ok)throw new Error('vault backups failed');const payload=await response.json();const select=$('#vault-backups');select.textContent='';if(!payload.backups.length){const empty=document.createElement('option');empty.value='';empty.textContent='（无备份）';select.appendChild(empty);$('#vault-restore-btn').disabled=true;status.textContent='该文件暂无备份';return}payload.backups.forEach((backup,index)=>{const option=document.createElement('option');option.value=backup.backup_name;option.textContent=`恢复点 ${index+1} · ${Math.round(backup.file_size)} B`;select.appendChild(option)});$('#vault-restore-btn').disabled=false;status.textContent=`找到 ${payload.backups.length} 个恢复点`}catch{status.textContent='备份列表加载失败'}}
+async function restoreVaultBackup(){const root=$('#vault-root')?.value.trim();const relativePath=$('#vault-edit-file')?.value.trim();const backupName=$('#vault-backups')?.value;const status=$('#vault-restore-status');if(!root||!relativePath||!backupName){status.textContent='请先选择恢复点';return}status.textContent='恢复中…';try{const response=await fetch('/workspace/api/vault/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath,backup_name:backupName})});if(!response.ok)throw new Error('vault restore failed');const payload=await response.json();status.textContent='已从恢复点恢复 · 内容指纹已更新';state.vaultOpenHash=payload.source_hash;const opened=await fetch('/workspace/api/vault/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,relative_path:relativePath})});if(opened.ok){const filePayload=await opened.json();$('#vault-editor').value=filePayload.raw_text;$('#vault-save-status').textContent='已重新加载 · 内容指纹已记录';state.vaultOpenHash=filePayload.source_hash}void refreshVault();void listVaultBackups()}catch{status.textContent='恢复失败；请确认恢复点与权限'}}
 function openPage(requestedPage){const page=productRoutes.has(requestedPage)?requestedPage:'unavailable';const requested=document.getElementById(`page-${page}`);const visible=requested||document.getElementById('page-unavailable');state.page=page;closeSubnav();renderNav();$$('.page').forEach(section=>section.classList.toggle('active',section===visible));if(visible.id==='page-unavailable')$('#unavailable-title').textContent=labelFor(page);history.replaceState(null,'',`#${page}`);if(page==='overview')void refreshStatus();if(page==='vault')void refreshVault();if(page==='diagnostics')void refreshDiagnostics();if(page==='runtime')void refreshRuntime();if(page==='research')void refreshResearch();if(page==='knowledge')void refreshKnowledge();if(page==='canvas')void refreshCanvas();if(page==='learning')void refreshLearning();if(page==='evolution')void refreshEvolution();if(page==='machine')void refreshMachine();if(page==='evidence')void refreshLifecycle()}
 function openIntake(trigger){const modal=$('#intake-modal'),result=$('#intake-result');state.intakeTrigger=trigger;result.textContent='';result.style.display='none';modal.setAttribute('aria-hidden','false');modal.classList.add('open');$('#intake-url').focus()}
 function closeIntake(){const modal=$('#intake-modal');if(!modal.classList.contains('open'))return;modal.classList.remove('open');modal.setAttribute('aria-hidden','true');const trigger=state.intakeTrigger;state.intakeTrigger=null;if(trigger?.isConnected)trigger.focus()}
@@ -107,7 +108,7 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
    Renders original PDF bytes from /workspace/api/pdf/<sha256:key>. */
 (function(){
   if (typeof pdfjsLib === "undefined") { return; } // pdf.min.js not loaded; degrade silently
-  const state = { doc: null, page: 1, zoom: 1.0, pending: 0, matchPage: -1 };
+  const state = { doc: null, loadingTask: null, contentKey: "", page: 1, renderedPage: 0, renderedContentKey: "", zoom: 1.0, pending: 0, matchPage: -1, generation: 0, renderEpoch: 0, searchEpoch: 0, annotationEpoch: 0, jumpEpoch: 0, anchorEpoch: 0 };
   // Configure the PDF.js worker lazily from the same-origin asset (CSP-safe).
   // Done at definition time inside the closure but only touches a static
   // string assignment (no network / no worker spawn until a PDF is opened).
@@ -118,19 +119,187 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
   const $prev = () => document.getElementById("pdf-prev");
   const $next = () => document.getElementById("pdf-next");
 
+  function syncJumpEnabled() {
+    const button = document.getElementById("pdf-jump");
+    const select = document.getElementById("pdf-anchor-input");
+    if (button) button.disabled = !(state.doc && state.contentKey && select?.value);
+  }
+
+  function beginPdfNavigation({ preserveSearch = false, preserveJump = false } = {}) {
+    if (!preserveSearch) state.searchEpoch += 1;
+    if (!preserveJump) state.jumpEpoch += 1;
+    state.annotationEpoch += 1;
+    cachedSelection = "";
+    const anchorInfo = document.getElementById("pdf-anchor-info");
+    if (anchorInfo) anchorInfo.textContent = "";
+    syncAnnotateEnabled();
+  }
+
+  function unloadPdfDocument() {
+    const previousLoadingTask = state.loadingTask;
+    state.generation += 1;
+    state.renderEpoch += 1;
+    state.searchEpoch += 1;
+    state.annotationEpoch += 1;
+    state.jumpEpoch += 1;
+    state.anchorEpoch += 1;
+    state.doc = null;
+    state.loadingTask = null;
+    state.contentKey = "";
+    state.page = 1;
+    state.renderedPage = 0;
+    state.renderedContentKey = "";
+    state.zoom = 1.0;
+    state.matchPage = -1;
+    cachedSelection = "";
+    const container = viewer();
+    if (container) container.textContent = "选择原件并打开后可查看 PDF。";
+    if ($info()) $info().textContent = "—";
+    if ($zinfo()) $zinfo().textContent = "100%";
+    const anchorInfo = document.getElementById("pdf-anchor-info");
+    if (anchorInfo) anchorInfo.textContent = "";
+    setButtons();
+    syncAnnotateEnabled();
+    syncJumpEnabled();
+    if (previousLoadingTask) void previousLoadingTask.destroy().catch(() => {});
+  }
+
+  function addAnchorOption(anchorId, label) {
+    const select = document.getElementById("pdf-anchor-input");
+    if (!select || !/^ev[_a-z0-9-]+$/i.test(anchorId || "")) return;
+    let option = [...select.options].find(item => item.value === anchorId);
+    if (!option) {
+      option = document.createElement("option");
+      option.value = anchorId;
+      select.appendChild(option);
+    }
+    option.textContent = label;
+    select.value = anchorId;
+    syncJumpEnabled();
+  }
+
+  async function refreshPdfSources() {
+    const select = document.getElementById("pdf-key-input");
+    if (!select) return;
+    try {
+      const response = await fetch("/workspace/api/library");
+      if (!response.ok) throw new Error("library unavailable");
+      const payload = await response.json();
+      const items = Array.isArray(payload.items) ? payload.items : [];
+      const pdfs = items.filter(item => typeof item.source_name === "string" && (/\.pdf$/i.test(item.source_name) || item.mime_type === "application/pdf") && /^[0-9a-f]{64}$/i.test(item.raw_sha256 || ""));
+      select.textContent = "";
+      const prompt = document.createElement("option");
+      prompt.value = "";
+      prompt.textContent = pdfs.length ? "选择已保留的 PDF 原件" : "暂无已保留的 PDF 原件";
+      select.appendChild(prompt);
+      pdfs.forEach((item, index) => {
+        const option = document.createElement("option");
+        option.value = `sha256:${item.raw_sha256}`;
+        option.textContent = `${item.source_name} · 原件 ${index + 1}`;
+        select.appendChild(option);
+      });
+    } catch {
+      select.textContent = "";
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "PDF 原件列表不可用";
+      select.appendChild(option);
+    }
+  }
+
+  async function refreshPdfAnchors() {
+    const select = document.getElementById("pdf-anchor-input");
+    const sourceSelect = document.getElementById("pdf-key-input");
+    if (!select) return;
+    const operation = ++state.anchorEpoch;
+    select.textContent = "";
+    const prompt = document.createElement("option");
+    prompt.value = "";
+    prompt.textContent = "请先选择 PDF 原件";
+    select.appendChild(prompt);
+    syncJumpEnabled();
+    const generation = state.generation;
+    const key = (sourceSelect?.value || "").trim();
+    const rawSha256 = /^sha256:[0-9a-f]{64}$/i.test(key) ? key.slice("sha256:".length) : "";
+    if (!rawSha256) return;
+    try {
+      const matching = [];
+      const seenCursors = new Set();
+      let cursor = "";
+      do {
+        const query = new URLSearchParams({ limit: "100" });
+        if (cursor) query.set("cursor", cursor);
+        const response = await fetch(`/workspace/api/evidence/anchors?${query}`);
+        if (operation !== state.anchorEpoch || generation !== state.generation || sourceSelect?.value !== key) return;
+        if (!response.ok) throw new Error("anchors unavailable");
+        const payload = await response.json();
+        if (operation !== state.anchorEpoch || generation !== state.generation || sourceSelect?.value !== key) return;
+        const items = Array.isArray(payload.items) ? payload.items : [];
+        matching.push(...items.filter(item => item.raw_sha256 === rawSha256 && Number.isInteger(item.locator?.page)));
+        const nextCursor = typeof payload.next_cursor === "string" ? payload.next_cursor : "";
+        if (nextCursor && seenCursors.has(nextCursor)) throw new Error("anchor cursor loop");
+        if (nextCursor) seenCursors.add(nextCursor);
+        cursor = nextCursor;
+      } while (cursor);
+      if (operation !== state.anchorEpoch || generation !== state.generation || sourceSelect?.value !== key) return;
+      matching.reverse().forEach((item, index) => addAnchorOption(item.anchor_id, `证据锚点 ${index + 1}`));
+      select.value = "";
+      select.options[0].textContent = matching.length ? "选择已记录的证据锚点" : "当前 PDF 暂无证据锚点";
+      syncJumpEnabled();
+    } catch {
+      if (operation === state.anchorEpoch && generation === state.generation && sourceSelect?.value === key) {
+        select.options[0].textContent = "证据锚点列表不可用";
+      }
+    }
+  }
+
   function setButtons() {
     if (!$prev() || !$next()) return;
     $prev().disabled = !state.doc || state.page <= 1;
     $next().disabled = !state.doc || state.page >= state.doc.numPages;
   }
 
-  async function renderPage() {
-    if (!state.doc) return;
+  function renderIsCurrent(generation, renderEpoch, documentHandle, pageNumber, zoom) {
+    return generation === state.generation
+      && renderEpoch === state.renderEpoch
+      && documentHandle === state.doc
+      && pageNumber === state.page
+      && zoom === state.zoom;
+  }
+
+  function failCurrentRender(generation, renderEpoch, documentHandle, pageNumber, zoom) {
+    if (!renderIsCurrent(generation, renderEpoch, documentHandle, pageNumber, zoom)) return;
+    state.renderedPage = 0;
+    state.renderedContentKey = "";
     cachedSelection = "";
-    const page = await state.doc.getPage(state.page);
-    const base = page.getViewport({ scale: state.zoom });
     const container = viewer();
-    container.textContent = "";
+    if (container) container.textContent = "当前页面暂时无法显示，请重试。";
+    if ($info()) $info().textContent = "页面不可用";
+    syncAnnotateEnabled();
+  }
+
+  async function renderPage() {
+    if (!state.doc) return false;
+    const generation = state.generation;
+    const documentHandle = state.doc;
+    const pageNumber = state.page;
+    const zoom = state.zoom;
+    const renderEpoch = ++state.renderEpoch;
+    state.renderedPage = 0;
+    state.renderedContentKey = "";
+    cachedSelection = "";
+    if ($info()) $info().textContent = "加载中…";
+    syncAnnotateEnabled();
+    let page;
+    try {
+      page = await documentHandle.getPage(pageNumber);
+    } catch {
+      failCurrentRender(generation, renderEpoch, documentHandle, pageNumber, zoom);
+      return false;
+    }
+    if (generation !== state.generation || renderEpoch !== state.renderEpoch || documentHandle !== state.doc || zoom !== state.zoom) return false;
+    const base = page.getViewport({ scale: zoom });
+    const container = viewer();
     // AXW-022B: the canvas paints the page; an overlay text layer makes the
     // text selectable so "批注为证据" can capture the selection.
     const canvas = document.createElement("canvas");
@@ -143,7 +312,13 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
     canvas.style.position = "absolute";
     canvas.style.top = "0";
     canvas.style.left = "0";
-    await page.render({ canvasContext: ctx, viewport: base, transform: dpr !== 1 ? [dpr,0,0,dpr,0,0] : null }).promise;
+    try {
+      await page.render({ canvasContext: ctx, viewport: base, transform: dpr !== 1 ? [dpr,0,0,dpr,0,0] : null }).promise;
+    } catch {
+      failCurrentRender(generation, renderEpoch, documentHandle, pageNumber, zoom);
+      return false;
+    }
+    if (generation !== state.generation || renderEpoch !== state.renderEpoch || documentHandle !== state.doc || pageNumber !== state.page || zoom !== state.zoom) return false;
     const textLayer = document.createElement("div");
     textLayer.className = "pdf-text-layer";
     textLayer.style.position = "absolute";
@@ -161,8 +336,14 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
     wrap.style.margin = "0 auto";
     wrap.appendChild(canvas);
     wrap.appendChild(textLayer);
-    container.appendChild(wrap);
-    const textContent = await page.getTextContent();
+    let textContent;
+    try {
+      textContent = await page.getTextContent();
+    } catch {
+      failCurrentRender(generation, renderEpoch, documentHandle, pageNumber, zoom);
+      return false;
+    }
+    if (generation !== state.generation || renderEpoch !== state.renderEpoch || documentHandle !== state.doc || pageNumber !== state.page || zoom !== state.zoom) return false;
     for (const item of textContent.items) {
       const tx = pdfjsLib.Util.transform(
         pdfjsLib.Util.transform(base.transform, item.transform),
@@ -177,54 +358,94 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
       span.style.fontSize = "1px";
       textLayer.appendChild(span);
     }
-    if ($info()) $info().textContent = `${state.page} / ${state.doc.numPages}`;
+    if (generation !== state.generation || renderEpoch !== state.renderEpoch || documentHandle !== state.doc || pageNumber !== state.page || zoom !== state.zoom) return false;
+    container.textContent = "";
+    container.appendChild(wrap);
+    state.renderedPage = pageNumber;
+    state.renderedContentKey = state.contentKey;
+    if ($info()) $info().textContent = `${pageNumber} / ${documentHandle.numPages}`;
     setButtons();
+    syncAnnotateEnabled();
+    return true;
   }
 
   async function loadPdf(key) {
     const input = document.getElementById("pdf-key-input");
     if (!input) return;
     const k = (key || input.value || "").trim();
-    if (!/^sha256:[0-9a-f]{64}$/i.test(k)) { alert("内容键必须为 sha256:<64位hex>"); return; }
+    if (!/^sha256:[0-9a-f]{64}$/i.test(k)) { alert("请先选择 PDF 原件"); return; }
+    unloadPdfDocument();
+    const generation = state.generation;
     const container = viewer();
     if (container) container.textContent = "加载 PDF 字节…";
     try {
       const resp = await fetch("/workspace/api/pdf/" + encodeURIComponent(k));
+      if (generation !== state.generation || input.value !== k) return;
       if (!resp.ok) { throw new Error("HTTP " + resp.status); }
       const data = await resp.arrayBuffer();
-      state.doc = await pdfjsLib.getDocument({
+      if (generation !== state.generation || input.value !== k) return;
+      const loadingTask = pdfjsLib.getDocument({
         data: data,
         isEvalSupported: false,
         enableScripting: false,
-      }).promise;
+      });
+      const documentHandle = await loadingTask.promise;
+      if (generation !== state.generation || input.value !== k) {
+        void loadingTask.destroy().catch(() => {});
+        return;
+      }
+      state.loadingTask = loadingTask;
+      state.doc = documentHandle;
+      state.contentKey = k;
       state.page = 1; state.zoom = 1.0; state.matchPage = -1;
       if ($zinfo()) $zinfo().textContent = "100%";
       await renderPage();
+      await refreshPdfAnchors();
     } catch {
-      if (container) { container.textContent = ""; container.innerHTML = '<div class="empty"><b>PDF 加载失败</b><p>本地文件暂时无法打开，请稍后重试。</p></div>'; }
+      if (generation === state.generation && input.value === k && container) {
+        container.textContent = "PDF 加载失败。本地文件暂时无法打开，请稍后重试。";
+      }
     }
   }
 
   async function searchPdf() {
     if (!state.doc) return;
+    const generation = state.generation;
+    const documentHandle = state.doc;
+    const operation = ++state.searchEpoch;
     const q = (document.getElementById("pdf-search-input").value || "").trim();
     if (!q) { alert("请输入搜索词"); return; }
-    state.matchPage = -1;
-    for (let i = 1; i <= state.doc.numPages; i++) {
-      const page = await state.doc.getPage(i);
-      const text = await page.getTextContent();
-      const hay = text.items.map(function(it){ return it.str || ""; }).join(" ");
-      if (hay.indexOf(q) !== -1) { state.matchPage = i; break; }
+    let matchedPage = -1;
+    try {
+      for (let i = 1; i <= documentHandle.numPages; i++) {
+        const page = await documentHandle.getPage(i);
+        if (operation !== state.searchEpoch || generation !== state.generation || documentHandle !== state.doc) return;
+        const text = await page.getTextContent();
+        if (operation !== state.searchEpoch || generation !== state.generation || documentHandle !== state.doc) return;
+        const hay = text.items.map(function(it){ return it.str || ""; }).join(" ");
+        if (hay.indexOf(q) !== -1) { matchedPage = i; break; }
+      }
+      if (operation !== state.searchEpoch || generation !== state.generation || documentHandle !== state.doc) return;
+      state.matchPage = matchedPage;
+      if (matchedPage > 0) {
+        beginPdfNavigation({ preserveSearch: true });
+        state.page = matchedPage;
+        const rendered = await renderPage();
+        if (!rendered) return;
+        if (operation !== state.searchEpoch || generation !== state.generation || documentHandle !== state.doc) return;
+        alert("在第 " + matchedPage + " 页找到匹配");
+      }
+      else { alert("未找到匹配：" + q); }
+    } catch {
+      if (operation !== state.searchEpoch || generation !== state.generation || documentHandle !== state.doc) return;
+      alert("搜索暂时不可用，请重试");
     }
-    if (state.matchPage > 0) { state.page = state.matchPage; await renderPage(); alert("在第 " + state.matchPage + " 页找到匹配"); }
-    else { alert("未找到匹配：" + q); }
   }
 
   /* AXW-022B evidence annotation — pin a selection as a content-addressed
      EvidenceAnchor and jump back from a stored anchor_id. */
   function currentKey() {
-    const input = document.getElementById("pdf-key-input");
-    return (input && input.value || "").trim();
+    return state.contentKey;
   }
   function selectedText() {
     const sel = window.getSelection();
@@ -248,19 +469,27 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
     // clears the browser selection before the click handler runs, and we
     // must not let that erase the text we are about to annotate.
     if (text) cachedSelection = text;
-    btn.disabled = !(state.doc && state.page && cachedSelection);
+    btn.disabled = !(
+      state.doc
+      && state.renderedPage === state.page
+      && state.renderedContentKey === state.contentKey
+      && cachedSelection
+    );
   }
   document.addEventListener("selectionchange", syncAnnotateEnabled);
   document.addEventListener("keyup", syncAnnotateEnabled);
   document.addEventListener("mouseup", syncAnnotateEnabled);
   async function annotateEvidence() {
     const $info = document.getElementById("pdf-anchor-info");
-    if (!state.doc || !state.page) { alert("请先打开 PDF"); return; }
-    const key = currentKey();
+    const key = state.renderedContentKey;
+    const pageNumber = state.renderedPage;
+    if (!state.doc || !key || key !== state.contentKey || pageNumber !== state.page) { alert("请等待当前页面加载完成"); return; }
     if (!/^sha256:[0-9a-f]{64}$/i.test(key)) { alert("内容键无效"); return; }
     const text = cachedSelection || selectedText();
     if (!text) { alert("请先在页面中选中一段文本作为证据"); return; }
     if ($info) $info.textContent = "写入证据锚点…";
+    const generation = state.generation;
+    const operation = ++state.annotationEpoch;
     try {
       const rawSha = key.slice("sha256:".length);
       const resp = await fetch("/workspace/api/evidence/anchor", {
@@ -269,46 +498,85 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
         body: JSON.stringify({
           raw_sha256: rawSha,
           source_revision: key,
-          locator: { page: state.page, selection: text.slice(0, 200) }
+          locator: { page: pageNumber, selection: text.slice(0, 200) }
         })
       });
+      if (operation !== state.annotationEpoch || generation !== state.generation || key !== state.renderedContentKey || pageNumber !== state.renderedPage) return;
       if (!resp.ok) { throw new Error("HTTP " + resp.status); }
-      await resp.json();
+      const data = await resp.json();
+      if (operation !== state.annotationEpoch || generation !== state.generation || key !== state.renderedContentKey || pageNumber !== state.renderedPage) return;
+      if (!data || typeof data.anchor_id !== "string") throw new Error("invalid anchor receipt");
+      state.anchorEpoch += 1;
+      addAnchorOption(data.anchor_id, "刚记录的证据锚点");
       if ($info) $info.textContent = "证据锚点已记录";
       else alert("证据锚点已记录");
     } catch {
-      if ($info) $info.textContent = `写入失败：${userErrorMessage()}`;
+      if (operation === state.annotationEpoch && generation === state.generation && key === state.renderedContentKey && pageNumber === state.renderedPage && $info) {
+        $info.textContent = `写入失败：${userErrorMessage()}`;
+      }
     }
   }
   async function jumpToAnchor() {
     const $info = document.getElementById("pdf-anchor-info");
     const input = document.getElementById("pdf-anchor-input");
     const id = (input && input.value || "").trim();
-    if (!id) { alert("请粘贴证据锚点引用"); return; }
+    if (!state.doc || !state.contentKey) { alert("请先打开 PDF 原件"); return; }
+    if (!id) { alert("请先选择证据锚点"); return; }
     if ($info) $info.textContent = "解析锚点…";
+    const generation = state.generation;
+    const key = currentKey();
+    const operation = ++state.jumpEpoch;
     try {
       const resp = await fetch("/workspace/api/evidence/anchor/" + encodeURIComponent(id));
+      if (operation !== state.jumpEpoch || generation !== state.generation || key !== currentKey() || input.value !== id) return;
       if (!resp.ok) { throw new Error("HTTP " + resp.status); }
       const a = await resp.json();
+      if (operation !== state.jumpEpoch || generation !== state.generation || key !== currentKey() || input.value !== id) return;
       const page = a && a.locator && a.locator.page;
-      if (state.doc && typeof page === "number" && page >= 1 && page <= state.doc.numPages) {
-        state.page = page; await renderPage();
+      const rawSha256 = currentKey().replace(/^sha256:/i, "");
+      if (a.raw_sha256 !== rawSha256) {
+        if ($info) $info.textContent = "证据锚点与当前 PDF 不匹配";
+        return;
       }
-      if ($info) $info.textContent = page ? "已回跳至证据所在页" : "证据位置不可用";
+      if (!Number.isInteger(page) || page < 1 || page > state.doc.numPages) {
+        if ($info) $info.textContent = "证据位置不可用";
+        return;
+      }
+      beginPdfNavigation({ preserveJump: true });
+      state.page = page;
+      const rendered = await renderPage();
+      if (!rendered) return;
+      if (operation !== state.jumpEpoch || generation !== state.generation || key !== currentKey() || input.value !== id) return;
+      if (state.renderedPage !== page || state.renderedContentKey !== key) return;
+      if ($info) $info.textContent = "已回跳至证据所在页";
     } catch {
-      if ($info) $info.textContent = `回跳失败：${userErrorMessage()}`;
+      if (operation === state.jumpEpoch && generation === state.generation && key === currentKey() && input.value === id && $info) {
+        $info.textContent = `回跳失败：${userErrorMessage()}`;
+      }
     }
   }
 
+  void refreshPdfSources();
+  void refreshPdfAnchors();
+  document.getElementById("pdf-key-input")?.addEventListener("change", () => {
+    unloadPdfDocument();
+    void refreshPdfAnchors();
+  });
+  document.getElementById("pdf-anchor-input")?.addEventListener("change", () => {
+    state.jumpEpoch += 1;
+    const anchorInfo = document.getElementById("pdf-anchor-info");
+    if (anchorInfo) anchorInfo.textContent = "";
+    syncJumpEnabled();
+  });
   document.addEventListener("click", function(ev){
     const el = ev.target.closest("[data-action]");
     if (!el) return;
     switch (el.dataset.action) {
       case "pdf-load": void loadPdf(); break;
-      case "pdf-prev": if (state.doc && state.page > 1) { state.page--; void renderPage(); } break;
-      case "pdf-next": if (state.doc && state.page < state.doc.numPages) { state.page++; void renderPage(); } break;
-      case "pdf-zoom-in": state.zoom = Math.min(3, Math.round((state.zoom + 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
-      case "pdf-zoom-out": state.zoom = Math.max(0.5, Math.round((state.zoom - 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
+      case "pdf-prev": if (state.doc && state.page > 1) { beginPdfNavigation(); state.page--; void renderPage(); } break;
+      case "pdf-next": if (state.doc && state.page < state.doc.numPages) { beginPdfNavigation(); state.page++; void renderPage(); } break;
+      case "pdf-zoom-in": beginPdfNavigation(); state.zoom = Math.min(3, Math.round((state.zoom + 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
+      case "pdf-zoom-out": beginPdfNavigation(); state.zoom = Math.max(0.5, Math.round((state.zoom - 0.25) * 100) / 100); if ($zinfo()) $zinfo().textContent = Math.round(state.zoom*100) + "%"; void renderPage(); break;
       case "pdf-search": void searchPdf(); break;
       case "pdf-annotate": void annotateEvidence(); break;
       case "pdf-jump": void jumpToAnchor(); break;

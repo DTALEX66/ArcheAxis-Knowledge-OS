@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { stateLabel, userErrorMessage } from "../presentation/labels";
+import { sourceLabel, stateLabel, userErrorMessage } from "../presentation/labels";
 
 describe("Chinese-first presentation labels", () => {
   it("translates persisted operational states without changing storage values", () => {
@@ -18,5 +18,10 @@ describe("Chinese-first presentation labels", () => {
     expect(userErrorMessage("/api/v1/home -> 500")).toBe("本地数据暂时不可用，请稍后重试或打开系统诊断。");
     expect(userErrorMessage("NetworkError: fetch failed")).toBe("本地数据暂时不可用，请稍后重试或打开系统诊断。");
     expect(userErrorMessage("资料库没有读取权限")).toBe("资料库没有读取权限");
+  });
+
+  it("hides opaque local source identities behind product labels", () => {
+    expect(sourceLabel("local-content://sha256/abcdef", 0)).toBe("本地资料 1");
+    expect(sourceLabel("https://example.com/review", 1)).toBe("网页来源 · example.com");
   });
 });

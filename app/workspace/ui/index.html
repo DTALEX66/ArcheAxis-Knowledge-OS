@@ -114,7 +114,7 @@
      + Enter on pdf-prev, pdf-zoom-out and the search Tab chain. -->
     <div class="card-title"><h2>PDF 证据查看</h2><span class="status info"><i></i>内容寻址只读</span></div>
     <div class="row" style="flex-wrap:wrap;gap:8px">
-      <input id="pdf-key-input" class="input" style="flex:1;min-width:240px" placeholder="输入 sha256: 内容键，如 sha256:..." aria-label="PDF 内容键" />
+      <select id="pdf-key-input" class="input" style="flex:1;min-width:240px" aria-label="选择 PDF 原件"><option value="">选择已保留的 PDF 原件</option></select>
       <button class="btn" type="button" data-action="pdf-load">打开 PDF</button>
       <button class="btn" type="button" data-action="pdf-prev" disabled id="pdf-prev">‹ 上一页</button>
       <span id="pdf-page-info" class="muted" style="align-self:center">—</span>
@@ -125,12 +125,12 @@
       <input id="pdf-search-input" class="input" style="width:160px" placeholder="页内搜索..." aria-label="页内搜索" />
       <button class="btn" type="button" data-action="pdf-search">搜索</button>
       <button class="btn" type="button" data-action="pdf-annotate" id="pdf-annotate" disabled>批注为证据</button>
-      <input id="pdf-anchor-input" class="input" style="width:180px" placeholder="粘贴证据锚点引用" aria-label="证据锚点回跳" />
-      <button class="btn" type="button" data-action="pdf-jump">回跳</button>
+      <select id="pdf-anchor-input" class="input" style="width:220px" aria-label="选择证据锚点"><option value="">选择已记录的证据锚点</option></select>
+      <button class="btn" type="button" data-action="pdf-jump" id="pdf-jump" disabled>回跳</button>
       <span id="pdf-anchor-info" class="muted" style="align-self:center"></span>
     </div>
     <div id="pdf-viewer" class="source-paper" style="margin-top:12px;min-height:420px;border:1px solid var(--border,#333);background:#fff;overflow:auto;text-align:center">
-      <div class="empty" style="padding:40px"><b>未加载 PDF</b><p>输入内容键后打开；字节由 /workspace/api/pdf/&lt;key&gt; 内容寻址只读提供。选中文本后点「批注为证据」生成 EvidenceAnchor。</p></div>
+      <div class="empty" style="padding:40px"><b>未加载 PDF</b><p>打开保留的 PDF 原件；内容按来源标识只读加载。选中文本后可批注为证据锚点。</p></div>
     </div>
   </div>
   <div class="card" style="margin-top:16px">

@@ -11,7 +11,7 @@ import {
   type ResearchCandidateDto,
 } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
-import { stateLabel, userErrorMessage } from "../presentation/labels";
+import { sourceLabel, stateLabel, userErrorMessage } from "../presentation/labels";
 
 export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [rows, setRows] = useState<EvidenceAnchorDto[]>([]);
@@ -81,7 +81,7 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
         title: "受治理证据束",
         source: "关联主张",
         lifecycle: stateLabel(bundle.latest_review?.decision ?? "unreviewed"),
-        detail: `证据束指纹：${bundle.fingerprint}；条目数：${bundle.entries.length}`,
+        detail: `证据束条目：${bundle.entries.length}；内容指纹已记录`,
         conflict: bundle.conflict,
         rights: bundle.rights,
         scopes: bundle.scopes,
@@ -107,19 +107,18 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
       ) : (
         rows.length === 0 ? <p className="muted">暂无证据锚点记录</p> : (
           <table className="data-table">
-            <thead><tr><th>证据锚点</th><th>原件指纹</th><th>锚点状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>证据锚点</th><th>原件状态</th><th>锚点状态</th><th>操作</th></tr></thead>
             <tbody>
               {rows.map((row, index) => (
                 <tr key={row.anchor_id}>
                   <td>锚点 {index + 1}</td>
-                  <td>{row.raw_sha256.slice(0, 12)}</td>
+                  <td>已记录</td>
                   <td>已锚定</td>
                   <td><button type="button" onClick={() => onInspect({
                     title: "证据锚点",
                     source: "已保留原件版本",
                     lifecycle: stateLabel("anchored"),
-                    rawSha256: row.raw_sha256,
-                    detail: `定位信息：${JSON.stringify(row.locator)}`,
+                    detail: typeof row.locator.page === "number" ? `定位：第 ${row.locator.page} 页` : "定位信息已记录",
                   })}>查看</button></td>
                 </tr>
               ))}
@@ -158,8 +157,8 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
       )}
       <h4>待审核研究资料</h4>
       {candidates.length === 0 ? <p className="muted">暂无待审核资料</p> : (
-        <ul className="action-list">{candidates.map((candidate) => (
-          <li key={candidate.source}><span>{candidate.source}</span>{" "}<button type="button" onClick={async () => {
+        <ul className="action-list">{candidates.map((candidate, index) => (
+          <li key={candidate.source}><span>{sourceLabel(candidate.source, index)}</span>{" "}<button type="button" onClick={async () => {
             try {
               await approveResearchCandidate(candidate.source);
               setMessage("已批准并写入证据治理账本");

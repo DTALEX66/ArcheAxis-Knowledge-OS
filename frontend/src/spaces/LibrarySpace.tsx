@@ -14,7 +14,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     let alive = true;
     listLibraryAssets()
       .then((d) => { if (alive) setAssets(d.items); })
-      .catch((e: Error) => { if (alive) setError(e.message); })
+      .catch((e: Error) => { if (alive) setError(userErrorMessage(e.message)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);
