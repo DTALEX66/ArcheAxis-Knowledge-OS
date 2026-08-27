@@ -87,6 +87,14 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
     declared_delta_shas = set(re.findall(r"`main@([0-9a-f]{40})`", delta))
     assert declared_delta_shas
     allowed_shas.update(declared_delta_shas)
+    r2_reality = (
+        ROOT / "docs" / "current" / "AXR_CURRENT_REALITY_2026-08-27.md"
+    ).read_text(encoding="utf-8")
+    declared_qualification_shas = set(
+        re.findall(r"Qualification baseline[^\n]*`([0-9a-f]{40})`", r2_reality)
+    )
+    assert declared_qualification_shas
+    allowed_shas.update(declared_qualification_shas)
     surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]
     surfaces.extend((ROOT / "docs" / "current").glob("*"))
     surfaces.extend((ROOT / "reports" / "current").glob("*"))

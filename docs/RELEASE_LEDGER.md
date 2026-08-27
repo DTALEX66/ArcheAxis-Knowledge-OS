@@ -36,6 +36,18 @@ correct provenance.
 | `v0.6.9` | yes | yes | yes | 2026-08-23 06:48:11 | Historical public stable Release at `de5b5ba`; Recovery Shell, thin frontend and risk-selected CI update; exact-SHA CI, three Windows lifecycle gates and workflow public-asset readback passed. |
 | `v0.6.10` | yes | yes | yes | 2026-08-23 21:02:53 | Current public stable Release at `3428a65`; real Activity Dock actions, raw-first E2E correction and latest-SHA CI recovery; exact-SHA CI, three Windows lifecycle gates and workflow public-asset readback passed. |
 
+## v0.6.11 qualified candidate evidence（not published）
+
+- Candidate commit: `229e99580c6e5440fede682cb3e4a74b0987d9ab`
+- Source tree: `2a530bb9150f49c29bcd570a4ee0f8900df55438`
+- Verification exact-SHA CI: `32998319094`（success；15 required jobs 全通过）
+- Downloaded CI Setup candidate SHA-256: `20e10f761e5f4698f5e8ad1d7548558bc0901fa860a63a3f87c4bca43379a266`
+- Locally assembled non-public Green SHA-256: `ec3d6e4dd3756d32f91a02b5bd3b77a8dde3f3e78a12851fa7cd0ce116ddf563`
+- Locally assembled non-public Portable SHA-256: `3cd2da91944f088b0ddd3e04c5f4422305d17ea7b2568029feac769c37ba3c13`
+- DeepTutor v1.5.17 + Ollama `qwen3:8b`: online doctor required checks PASS；Chromium 教学、答题反馈、无效答案恢复和 reload readback PASS，console 0 error
+- Publication state: **no v0.6.11 tag and no GitHub Release yet**。上述 ZIP 是 candidate preflight，不是公开资产；本状态真值提交必须重新取得 exact-SHA CI 后才能创建不可变 tag。
+- Project-local evidence: `.hermes/task-artifacts/axr-r2-release-candidate-229e995/`（忽略目录，不上传）
+
 ## v0.6.10 release evidence
 
 - GitHub Release URL: <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.10>

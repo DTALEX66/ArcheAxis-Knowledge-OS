@@ -2,7 +2,9 @@
 
 > **v0.6.10 发布裁决（2026-08-24）**：`v0.6.10 stable — RELEASED`。标签精确绑定 `3428a65cf6445918365f76b114cc11630d9640bb`；main CI `32665051446`、Release `32665840172`、三种 Windows 分发包生命周期和 9 项公开资产工作流读回均通过。该裁决只证明发布层；产品逐项结论仍为 `PARTIAL`，见 [`current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md`](current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md)。
 
-> 更新：2026-08-24。本页是能力状态入口；旧审计文件是历史快照。机器无关的恢复检查见 [`HANDOFF_2026-07-21.md`](HANDOFF_2026-07-21.md)，实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
+> **v0.6.11 R2 候选资格（2026-08-27）**：qualification baseline `229e99580c6e5440fede682cb3e4a74b0987d9ab` 的 exact-SHA CI `32998319094` 全 15 jobs success；Setup 候选完成 NSIS installed lifecycle 与下载 hash 回读，Green/Portable 已从同一 runtime/candidate identity 组装并验证。DeepTutor v1.5.17 + 本地 Ollama `qwen3:8b` 的真实浏览器教学、答题反馈、无效答案恢复和 reload 读回 PASS。该 baseline 尚未打 tag/公开发布；本状态真值更新提交必须重新资格验证，GitHub Latest 仍是 v0.6.10。
+
+> 更新：2026-08-27。本页是能力状态入口；R2 当前矩阵见 [`current/AXR_CURRENT_REALITY_2026-08-27.md`](current/AXR_CURRENT_REALITY_2026-08-27.md)。旧审计文件是历史快照；实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
 

@@ -1,11 +1,11 @@
 > [!NOTE] **ARCHIVED / SUPERSEDED (AXC-120, 2026-08-13)**
-> 历史任务包。当前权威：`docs/CONFIGURATION_AUTHORITY_INDEX.md` +
-> `docs/truth/CURRENT_STATE_TRUTH.md` + 当前 MCL TaskPack
-> （`docs/taskpacks/ArcheAxis-Knowledge-OS_Project_Config_CI_DeDup_TaskPack_2026-08-13.md`）。
+> 历史任务包。当前唯一前向任务包：
+> `docs/taskpacks/AXR-FINAL-20260826-R2-OSS-FAST-TRACK.md`；产品身份以
+> `docs/truth/NAMING_CONTRACT_V2.md` 为准。
 > 保留作迁移输入与历史证据，不作为新会话默认权威。
 
 > **SUPERSEDED (2026-08-12)**: 本文档为历史任务包。产品命名与身份以
-> `docs/truth/NAMING_CONTRACT_V1.md` 与 `docs/truth/PRODUCT_IDENTITY_V2.md` 为准。
+> `docs/truth/NAMING_CONTRACT_V2.md` 与 `docs/truth/PRODUCT_IDENTITY_V2.md` 为准。
 >
 # Mandatory Capability-First Knowledge Lifecycle Addendum v1
 

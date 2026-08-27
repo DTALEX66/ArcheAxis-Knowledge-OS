@@ -1,13 +1,8 @@
 # Hermes handoff — archeaxis-workspace
 
-Generated: 2026-08-23 (v0.6.9 release closure; older continuation notes retained below)
+Generated: 2026-08-27 (v0.6.11 R2 qualified-candidate closure; older continuation notes retained below)
 
-> **Current authoritative continuation**: v0.6.9 is publicly released at
-> <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.9>.
-> Release commit `de5b5ba6efde2f306d029725c046b56d91226e4c` passed exact-SHA CI
-> `32622348279` and Release run `32623033058`. See
-> `docs/HANDOFF_2026-08-23_v0.6.9-release.md`; older SHA/test-count statements
-> below are historical context, not current evidence.
+> **Current authoritative continuation**: qualification baseline `229e99580c6e5440fede682cb3e4a74b0987d9ab` is the fully qualified non-public v0.6.11 product candidate. Exact-SHA CI `32998319094` completed with all 15 required jobs successful, including browser, desktop build, Windows runtime and NSIS installed lifecycle. The Setup candidate was downloaded and hash-verified; Green/Portable were assembled from the same runtime/candidate identity and validated. DeepTutor v1.5.17 with local Ollama `qwen3:8b` passed online doctor plus browser teaching→review→invalid-answer recovery→reload. This status-truth refresh must itself receive a new exact-SHA qualification before tag creation; read live `HEAD` from Git rather than treating `229e995` as the post-refresh branch pointer. GitHub Latest remains v0.6.10 until the immutable v0.6.11 Release is published/read back. See `docs/current/AXR_CURRENT_REALITY_2026-08-27.md`; all older SHA/test-count statements below are historical context.
 
 ## NEXT-RUN QUICKSTART（2026-08-15 晚 · 共用库改造后 · 给 DEEPSEEK HARNESS）
 
