@@ -2,13 +2,14 @@
 
 > **v0.6.10 发布裁决（2026-08-24）**：`v0.6.10 stable — RELEASED`。标签精确绑定 `3428a65cf6445918365f76b114cc11630d9640bb`；main CI `32665051446`、Release `32665840172`、三种 Windows 分发包生命周期和 9 项公开资产工作流读回均通过。该裁决只证明发布层；产品逐项结论仍为 `PARTIAL`，见 [`current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md`](current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md)。
 
-> **v0.6.11 R2 候选资格（2026-08-27）**：qualification baseline `229e99580c6e5440fede682cb3e4a74b0987d9ab` 的 exact-SHA CI `32998319094` 全 15 jobs success；Setup 候选完成 NSIS installed lifecycle 与下载 hash 回读，Green/Portable 已从同一 runtime/candidate identity 组装并验证。DeepTutor v1.5.17 + 本地 Ollama `qwen3:8b` 的真实浏览器教学、答题反馈、无效答案恢复和 reload 读回 PASS。该 baseline 尚未打 tag/公开发布；本状态真值更新提交必须重新资格验证，GitHub Latest 仍是 v0.6.10。
+> **v0.6.11 发布裁决（2026-08-27）**：`v0.6.11 stable — RELEASED`。不可变 annotated tag 精确解引用到 `86cecc7272152ef334869f61aae1f4d5ce82679b`；source tree `fe389f6a43d8295ffcc8109eaeced9436e361b03`；exact-SHA CI `33076417510` 和 Release workflow `33077810146` success；Setup/Green/Portable 生命周期、9 项公开资产 workflow readback 与本机独立 9/9 provider digest/checksum/schema v3 identity/dependency-lock 回读和 DeepTutor v1.5.17 + Ollama `qwen3:8b` 教学→反馈→无效答案恢复→reload 均通过。
 
 > 更新：2026-08-27。本页是能力状态入口；R2 当前矩阵见 [`current/AXR_CURRENT_REALITY_2026-08-27.md`](current/AXR_CURRENT_REALITY_2026-08-27.md)。旧审计文件是历史快照；实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
 
-- 当前源码版本为 `0.6.11`；packaged source manifest 按合同仍是 `unreleased / public=false`，公开 v0.6.10 artifact identity 为 `stable / public=true`。
+- 当前源码版本为 `0.6.11`；packaged source manifest 按合同仍是 `unreleased / public=false`，公开 v0.6.11 artifact identity 为 `stable / public=true`。
+- `v0.6.11` 是当前公开 stable：tag/commit/tree、exact-SHA CI、三种 Windows 分发生命周期、公开 9 资产、schema v3 identity、依赖锁和下载摘要均已读回；DeepTutor 本地 provider/runtime 证据留在项目忽略目录，不作为公共资产上传。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
 - `v0.6.10` 已满足 tag 精确绑定 `main`、exact-SHA Full Qualification、NSIS/Green/Portable 生命周期、公开资产集合、checksum allowlist、schema v3 identity 和依赖锁读回；当前没有 Authenticode 签名声明。本机独立层下载校验 3/9 个小型元数据资产，Release workflow 完成 9/9 下载读回。
 

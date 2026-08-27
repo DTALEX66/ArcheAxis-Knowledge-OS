@@ -2,20 +2,20 @@
 
 - TaskPack：`AXR-FINAL-20260826-R2-OSS-FAST-TRACK`
 - Captured：2026-08-27（中国标准时间）
-- Qualification baseline：`229e99580c6e5440fede682cb3e4a74b0987d9ab`；该树与 `origin/main` 对齐并完成全部产品/发布门；本状态真值更新后的 live HEAD 必须从 Git 读取并重新资格验证
+- Release baseline：`86cecc7272152ef334869f61aae1f4d5ce82679b`；annotated tag `v0.6.11` 精确解引用到该 commit；实时 post-release docs HEAD 仍必须从 Git 读取
 - Canonical branch：`main`
-- 产品源码版本：`0.6.11 candidate`
-- 最新公开 Release：`v0.6.10`（2026-08-23，非当前 candidate）
+- 产品源码版本：`0.6.11 stable`
+- 最新公开 Release：`v0.6.11`（2026-08-27，stable/public）
 
 ## 分层事实
 
 | 证据层 | 状态 | 当前证据 | 不能推出 |
 |---|---|---|---|
 | Structural | PASS | R2 已进入 `docs/taskpacks/` 并成为唯一 current forward pack；对象/任务/禁止项已落盘 | 不等于 DeepTutor 已安装或黄金流程已迁移 |
-| Local runtime | PASS（R2 candidate） | Python `2070 passed / 7 skipped`；前端 Vitest/Vite build PASS；双 Tauri `cargo check --all-targets` PASS；A0 Chromium browser smoke PASS；DeepTutor `qwen3:8b` 教学→答题反馈→无效答案恢复→reload PASS，console errors=0 | 不等于公开 Release 已创建 |
-| exact-SHA CI | PASS（qualification baseline `229e995`） | GitHub Actions CI run `32998319094`：15 个 required jobs 全 success，含 desktop-build、installer-lifecycle、browser-smoke、a0-gates | 状态真值更新提交仍需新 exact-SHA CI；不等于 tag/公开资产已发布 |
-| Installed Windows | PASS（CI candidate） | exact-SHA Setup 候选经 Windows NSIS install→launch→upgrade→forced-exit→uninstall→reinstall 生命周期验证；下载候选逐文件 hash PASS | 仍不是公开下载回读 |
-| Public release | RELEASED v0.6.10 / NOT RELEASED v0.6.11 | GitHub Latest=`v0.6.10`；v0.6.11 仍 candidate | 不得声称 R2/DeepTutor 已发布 |
+| Local runtime | PASS（R2 release baseline） | Python `2070 passed / 7 skipped`；前端 Vitest/Vite build PASS；双 Tauri `cargo check --all-targets` PASS；A0 Chromium browser smoke PASS；DeepTutor `qwen3:8b` 教学→答题反馈→无效答案恢复→reload PASS，console errors=0 | 不自动提升 candidate knowledge |
+| exact-SHA CI | PASS（release baseline `86cecc7`） | GitHub Actions CI run `33076417510`：15 个 required jobs 全 success，含 desktop-build、installer-lifecycle、browser-smoke、a0-gates | 不替代公开 Release identity/readback |
+| Installed Windows | PASS（release baseline） | exact-SHA Setup 经 NSIS install→launch→upgrade→forced-exit→uninstall→reinstall；Release workflow 又验证 Setup、Green、Portable 生命周期 | 不替代公开下载摘要回读 |
+| Public release | PASS（v0.6.11 stable） | annotated tag `v0.6.11` 解引用到 `86cecc7272152ef334869f61aae1f4d5ce82679b`；Release run `33077810146` success；GitHub Latest=`v0.6.11`；9 资产 workflow readback + 本机独立全量下载/provider digest/SHA256SUMS/schema v3 identity/dependency-lock 回读 PASS | 发布层仍不自动提升任何 candidate knowledge |
 
 ## R2 基线差异
 
@@ -37,11 +37,11 @@ Owner 任务包审计基线为 `bf0c4839`。当前 candidate `229e995` 已在该
 | AXR-100 | PASS | Job Center/outbox/import job/ASR/取消恢复相关 36 passed；本机未安装模型的 ASR 路径按合同显式 fail/skip |
 | AXR-110 | PASS（retention-safe） | 结构化供应链与 SBOM 7 passed；DeepTutor/PDF.js 已锁 commit/hash/license；旧 `pdf.min.js`/worker 与 3.11.174 引用为零；Recovery 壳已独立 identifier 且不打包；三份旧 TaskPack 保留为历史证据并改指 R2/NAMING V2。其余历史资产无两项独立冗余证据，按保留优先原则不删除 |
 | AXR-120 | PASS | ArcheAxis federation/record/router security 22 passed；没有进入或修改 DESIGN-LAB 仓库，外部系统不能写核心真值 |
-| AXR-130 | PASS | exact-SHA CI `32998319094` 全 15 jobs success；Setup 候选下载后 manifest/lock/payload hash PASS；Green/Portable 由同一 runtime/identity 本地组装并完成结构、candidate identity、SHA-256 读回 |
+| AXR-130 | PASS | release baseline exact-SHA CI `33076417510` 全 15 jobs success；Release run `33077810146` 从该 CI 下载 exact candidate，重验 Setup/Green/Portable 生命周期并发布 9 资产 |
 
-## 当前硬门
+## 已闭环与持续约束
 
-1. 本状态真值更新形成新 commit 后，必须取得该新 exact-SHA 的完整 CI 与 release candidate；
+1. 公开 9 资产已全部独立下载并完成 provider digest、SHA256SUMS、schema v3 identity 和 dependency-lock 回读；machine receipt：`reports/release/v0.6.11/release-evidence.json`；
 2. 任何外部产品数据只能是可删除投影；核心真值与项目运行数据留在本项目边界；
-3. `v0.6.11` tag 必须绑定新的状态真值 commit，Release workflow 成功后再做公开 9 资产下载/hash/identity 回读；
-4. GitHub Latest、README、PROJECT_STATUS、RELEASE_LEDGER 和公开 Release identity 必须一致后才能宣称发布完成。
+3. 本发布后状态提交必须保持 README、PROJECT_STATUS、RELEASE_LEDGER、Current Reality 和 machine-readable receipt 一致；
+4. 发布完成不等于外部/candidate knowledge 自动成为 verified truth。

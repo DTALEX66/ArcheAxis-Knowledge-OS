@@ -85,9 +85,9 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 - **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。Chromium/Tauri 运行时证据与公开发布资产属于不同证据层；`v0.6.10` 是当前公开稳定版，`v0.6.11` R2 候选已通过 exact-SHA Windows build/installer lifecycle 与 DeepTutor 本地模型黄金流，但尚未打 tag/公开发布。
-- **当前版本**：`0.6.11`；源码 Release Manifest 按合同保持 `unreleased / public=false`；最新公开发布仍以发布台账为准，历史标签均不可改写。
-- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.10` 公开发布和 `v0.6.11` qualified candidate 的精确 SHA、CI、生命周期、资产与身份读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
+- **桌面 Workspace A1**：默认 Apple-light，Violet Core 保留为暗色主题；一级 Rail、动态二级导航、上下文与证据检查器和真实活动坞均已接入。Chromium/Tauri 运行时证据与公开发布资产属于不同证据层；`v0.6.11` 是当前公开稳定版，已通过 exact-SHA Windows build、Setup/Green/Portable 生命周期、9 资产读回与 DeepTutor 本地模型黄金流。
+- **当前版本**：`0.6.11`；源码 Release Manifest 按合同保持 `unreleased / public=false`，公开 artifact identity 为 `stable / public=true`；历史标签均不可改写。
+- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.11` 的 tag/commit/tree、exact-SHA CI `33076417510`、Release run `33077810146`、三分发生命周期与 9 资产身份/摘要读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
 

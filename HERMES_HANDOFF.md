@@ -1,8 +1,8 @@
 # Hermes handoff — archeaxis-workspace
 
-Generated: 2026-08-27 (v0.6.11 R2 qualified-candidate closure; older continuation notes retained below)
+Generated: 2026-08-27 (v0.6.11 R2 release closure; older continuation notes retained below)
 
-> **Current authoritative continuation**: qualification baseline `229e99580c6e5440fede682cb3e4a74b0987d9ab` is the fully qualified non-public v0.6.11 product candidate. Exact-SHA CI `32998319094` completed with all 15 required jobs successful, including browser, desktop build, Windows runtime and NSIS installed lifecycle. The Setup candidate was downloaded and hash-verified; Green/Portable were assembled from the same runtime/candidate identity and validated. DeepTutor v1.5.17 with local Ollama `qwen3:8b` passed online doctor plus browser teaching→review→invalid-answer recovery→reload. This status-truth refresh must itself receive a new exact-SHA qualification before tag creation; read live `HEAD` from Git rather than treating `229e995` as the post-refresh branch pointer. GitHub Latest remains v0.6.10 until the immutable v0.6.11 Release is published/read back. See `docs/current/AXR_CURRENT_REALITY_2026-08-27.md`; all older SHA/test-count statements below are historical context.
+> **Current authoritative continuation**: `v0.6.11 stable — RELEASED`. Annotated tag `394feaadfb289c0570f9b259faf4f3232d57567c` 解引用到 release commit `86cecc7272152ef334869f61aae1f4d5ce82679b` / tree `fe389f6a43d8295ffcc8109eaeced9436e361b03`；exact-SHA CI `33076417510` 和 Release run `33077810146` success。Setup/Green/Portable 生命周期、9 项公开资产 workflow readback 与本机独立 9/9 下载/provider digest/SHA256SUMS/schema v3 identity/dependency-lock 回读，以及 DeepTutor v1.5.17 + Ollama `qwen3:8b` 教学→反馈→无效答案恢复→reload 均已通过。GitHub Latest 已是 <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11>。本 post-release receipt/docs 提交的 live HEAD 必须从 Git 读取；所有旧 SHA/test-count statements 仅为历史 context。
 
 ## NEXT-RUN QUICKSTART（2026-08-15 晚 · 共用库改造后 · 给 DEEPSEEK HARNESS）
 

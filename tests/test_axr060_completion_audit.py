@@ -67,7 +67,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
                 encoding="utf-8"
             )
         )
-        for version in ("v0.6.9", "v0.6.10")
+        for version in ("v0.6.9", "v0.6.10", "v0.6.11")
     ]
     allowed_shas = {
         value
@@ -81,9 +81,9 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
     delta = (ROOT / "docs" / "current" / "AXR_060_POST_RELEASE_DELTA_2026-08-24.md").read_text(
         encoding="utf-8"
     )
-    latest = releases[-1]["source"]
-    assert latest["commit_sha"] in delta
-    assert latest["tree_sha"] in delta
+    delta_release = releases[-2]["source"]
+    assert delta_release["commit_sha"] in delta
+    assert delta_release["tree_sha"] in delta
     declared_delta_shas = set(re.findall(r"`main@([0-9a-f]{40})`", delta))
     assert declared_delta_shas
     allowed_shas.update(declared_delta_shas)
@@ -91,7 +91,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
         ROOT / "docs" / "current" / "AXR_CURRENT_REALITY_2026-08-27.md"
     ).read_text(encoding="utf-8")
     declared_qualification_shas = set(
-        re.findall(r"Qualification baseline[^\n]*`([0-9a-f]{40})`", r2_reality)
+        re.findall(r"(?:Qualification|Release) baseline[^\n]*`([0-9a-f]{40})`", r2_reality)
     )
     assert declared_qualification_shas
     allowed_shas.update(declared_qualification_shas)
