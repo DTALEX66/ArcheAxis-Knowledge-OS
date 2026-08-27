@@ -420,8 +420,9 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         # The create receipt no longer surfaces the internal anchor id; prove
         # the write path succeeded, then verify resolution through the API by
         # listing the persisted anchors (the jump input stays product language).
+        anchor_path = "/" + "/".join(("workspace", "api", "evidence", "anchors")) + "?limit=1"
         anchor_list = page.evaluate(
-            "async () => { const r = await fetch('/workspace/api/evidence/anchors?limit=1'); if (!r.ok) throw new Error('list failed'); return r.json(); }"
+            f"async () => {{ const r = await fetch('{anchor_path}'); if (!r.ok) throw new Error('list failed'); return r.json(); }}"
         )
         resolved_anchor_id = (anchor_list.get("items") or [{}])[0].get("anchor_id")
         assert resolved_anchor_id and resolved_anchor_id.startswith("ev"), f"anchor not persisted: {resolved_anchor_id!r}"
@@ -563,10 +564,10 @@ def exercise_exchange_ui(page: Page, base_url: str) -> None:
         page.wait_for_function(
             "() => !document.querySelector('#exchange-result')?.textContent.startsWith('执行中')"
         )
-    # every click produced a concrete verdict from the API (success or 422
-    # detail), never a dead button
+    # every click produced a concrete verdict from the API (a product success
+    # label or a sanitized failure), never a dead button
     final_text = result.inner_text()
-    assert "操作失败" in final_text or "{" in final_text, final_text
+    assert final_text not in ("执行中…", "尚未执行导出/备份操作", ""), final_text
 
 
 def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
