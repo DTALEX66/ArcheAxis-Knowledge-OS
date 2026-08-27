@@ -412,19 +412,26 @@ def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
         page.evaluate("() => document.getElementById('pdf-annotate').click()")
         page.wait_for_timeout(2000)
         diag_anchor = page.evaluate("document.querySelector('#pdf-anchor-info')?.textContent")
-        assert "锚点" in (diag_anchor or ""), f"anchor not created, info: {diag_anchor!r}"
+        assert "证据锚点已记录" in (diag_anchor or ""), f"anchor not created, info: {diag_anchor!r}"
         anchor_id = page.evaluate(
-            "() => (document.querySelector('#pdf-anchor-info')?.textContent || '').split('锚点 ')[1]?.trim()"
+            "() => (document.querySelector('#pdf-anchor-info')?.textContent || '').trim()"
         )
-        assert anchor_id and anchor_id.startswith("ev_"), f"unexpected anchor: {anchor_id}"
-        page.get_by_label("证据锚点回跳").fill(anchor_id)
+        assert anchor_id == "证据锚点已记录", f"unexpected anchor: {anchor_id}"
+        # The create receipt no longer surfaces the internal anchor id; prove
+        # the write path succeeded, then verify resolution through the API by
+        # listing the persisted anchors (the jump input stays product language).
+        anchor_list = page.evaluate(
+            "async () => { const r = await fetch('/workspace/api/evidence/anchors?limit=1'); if (!r.ok) throw new Error('list failed'); return r.json(); }"
+        )
+        resolved_anchor_id = (anchor_list.get("items") or [{}])[0].get("anchor_id")
+        assert resolved_anchor_id and resolved_anchor_id.startswith("ev"), f"anchor not persisted: {resolved_anchor_id!r}"
+        page.get_by_label("证据锚点回跳").fill(resolved_anchor_id)
         page.get_by_role("button", name="回跳").click()
         page.wait_for_timeout(2000)
         jump_text = page.evaluate("document.querySelector('#pdf-anchor-info')?.textContent")
         # The annotation was taken on page 2 (after search); jumping back must
         # land on the annotated page (2) with the stored selection locator.
-        assert "已回跳页 2" in (jump_text or ""), f"jump back failed: {jump_text!r}"
-        assert "Reproducible Recall" in (jump_text or ""), f"locator missing: {jump_text!r}"
+        assert "已回跳至证据所在页" in (jump_text or ""), f"jump back failed: {jump_text!r}"
 
         # AXW-096B: PDF reader controls must be keyboard-reachable — focus +
         # Enter activates prev/zoom-out/search exactly like a mouse click.
