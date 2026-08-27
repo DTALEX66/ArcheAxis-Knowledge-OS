@@ -122,3 +122,12 @@ def test_tauri_surface_and_ci_share_the_ui_release_gate() -> None:
     assert '.title("星环知识平台（ArcheAxis Knowledge）")' in tauri
     assert "Enforce OSUI design and Chinese-first frontend contracts" in workflow
     assert "npm test -- --run" in workflow
+
+
+def test_loopback_workspace_withholds_raw_api_errors_and_internal_receipts() -> None:
+    script = (ROOT / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
+
+    assert "err.message" not in script
+    assert "JSON.stringify(data,null,2)" not in script
+    assert '"锚点 " + data.anchor_id' not in script
+    assert "证据锚点已记录" in script

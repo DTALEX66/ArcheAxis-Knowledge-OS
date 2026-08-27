@@ -214,6 +214,8 @@ def test_external_dev_origin_requires_flag_and_exact_launch_token(tmp_path, monk
 
     assert client.get("/workspace/api/diagnostics", headers=headers).status_code == 403
     monkeypatch.setenv("ARCHEAXIS_EXTERNAL_DEV", "1")
+    assert client.get("/workspace/api/diagnostics", headers=headers).status_code == 403
+    monkeypatch.setenv("ARCHEAXIS_EXTERNAL_DEV_ACTIVE", "1")
     headers["X-ArcheAxis-Launch-Token"] = "wrong-token"
     assert client.get("/workspace/api/diagnostics", headers=headers).status_code == 403
     headers["X-ArcheAxis-Launch-Token"] = "test-launch-token-1234567890"

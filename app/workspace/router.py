@@ -70,7 +70,7 @@ def _is_authenticated_tauri_origin(request: Request) -> bool:
     origin = urlsplit(request.headers.get("origin", ""))
     packaged = origin.scheme.casefold() == "http" and origin.hostname == "tauri.localhost"
     external_dev = (
-        os.getenv("ARCHEAXIS_EXTERNAL_DEV") == "1"
+        os.getenv("ARCHEAXIS_EXTERNAL_DEV_ACTIVE") == "1"
         and origin.scheme.casefold() == "http"
         and _is_loopback_host(origin.netloc)
     )

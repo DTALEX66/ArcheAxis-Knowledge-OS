@@ -13,12 +13,21 @@ import {
   type SetupStatusDto,
   verifyBackup,
 } from "../api/workspace";
+import { stateLabel, userErrorMessage } from "../presentation/labels";
 
 const DOMAIN_LABELS: Record<string, string> = {
   source_archive: "源文件归档库",
   evidence_ledger: "证据账本库",
   human_learning_vault: "人类学习库",
   ai_asset_vault: "机器知识库",
+};
+
+const READINESS_LABELS: Record<string, string> = {
+  workspace_exists: "工作区",
+  manifest_valid: "工作区清单",
+  legacy_db_migration: "旧数据迁移",
+  paths_writable: "存储位置",
+  capability_store_ready: "能力存储",
 };
 
 type WizardStage = "welcome" | "mode" | "paths" | "health" | "complete";
@@ -28,7 +37,14 @@ function defaultRoot(status: SetupStatusDto | null): string {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+  return userErrorMessage(error instanceof Error ? error.message : error);
+}
+
+function readinessMessage(state: string): string {
+  if (state === "ready" || state === "completed") return "检查通过";
+  if (state === "pending") return "等待完成设置";
+  if (state === "blocked") return "需要处理；请重新检查设置或存储权限";
+  return "状态不可用";
 }
 
 export function SettingsSpace() {
@@ -164,7 +180,7 @@ export function SettingsSpace() {
         {wizardMessage && stage !== "complete" ? <p className="muted">{wizardMessage}</p> : null}
         <h4>当前就绪状态</h4>
         {readinessSteps.map((step) => <div className="row" key={step.id}>
-          <div className="row-main"><b>{step.id}</b><span>{step.message}</span></div><span>{step.state}</span>
+          <div className="row-main"><b>{READINESS_LABELS[step.id] ?? "设置检查"}</b><span>{readinessMessage(step.state)}</span></div><span>{stateLabel(step.state)}</span>
         </div>)}
         <div className="command-row">
           <label htmlFor="backup-name">备份名称</label>

@@ -28,18 +28,28 @@ describe("LearningSpace", () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/review-queue")) {
-        return jsonResponse({ due_count: 7, due: [] });
+        return jsonResponse({ due_count: 1, due: [{ card_id: "due-1", due_local: "2026-08-28T08:00:00Z", due_utc: "2026-08-28T00:00:00Z", fsrs_state: "review", stability_days: 3 }] });
       }
       return jsonResponse({}, false);
     });
     vi.stubGlobal("fetch", fetchMock);
     render(<LearningSpace />);
     await waitFor(() => {
-      expect(screen.getByText("当前到期 7 张卡片")).toBeInTheDocument();
+      expect(screen.getByText("当前到期 1 张卡片")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: /到期卡片 1/ })).toBeInTheDocument();
     });
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/learning/review-queue"),
     );
+  });
+
+  it("withholds learner endpoint details from visible errors", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({}, false)));
+    render(<LearningSpace />);
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/review-queue");
+    expect(document.body).not.toHaveTextContent("-> 500");
   });
 
   it("submits a teach-back and shows rubric scores", async () => {
@@ -78,6 +88,9 @@ describe("LearningSpace", () => {
   it("queries dual mastery and renders the three axes", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
+      if (url.includes("/review-queue")) {
+        return jsonResponse({ due_count: 1, due: [{ card_id: "c1", due_local: "2026-08-28T08:00:00Z", due_utc: "2026-08-28T00:00:00Z", fsrs_state: "review", stability_days: 3 }] });
+      }
       if (url.includes("/mastery/")) {
         return jsonResponse({
           card_id: "c1",
@@ -99,7 +112,7 @@ describe("LearningSpace", () => {
     const user = userEvent.setup();
     render(<LearningSpace />);
     await user.click(screen.getByRole("button", { name: "掌握度" }));
-    await user.type(screen.getByLabelText("学习卡片"), "c1");
+    await user.selectOptions(screen.getByLabelText("学习卡片"), "c1");
     await user.click(screen.getByRole("button", { name: "查询" }));
 
     await waitFor(() => {
@@ -139,6 +152,8 @@ describe("LearningSpace loop views", () => {
     const user = userEvent.setup();
     render(<LearningSpace />);
     await user.click(screen.getByRole("button", { name: "练习测验" }));
+    expect(screen.getByLabelText("概念")).toHaveValue("");
+    await user.type(screen.getByLabelText("概念"), "BKT");
     await user.type(screen.getByLabelText("知识参考"), "BKT 是隐马尔可夫模型");
     await user.click(screen.getByRole("button", { name: "生成测验" }));
     expect(await screen.findByText("最匹配的术语？")).toBeInTheDocument();
@@ -166,6 +181,10 @@ describe("LearningSpace loop views", () => {
     const user = userEvent.setup();
     render(<LearningSpace />);
     await user.click(screen.getByRole("button", { name: "学习路径" }));
+    expect(screen.getByLabelText("目标概念")).toHaveValue("");
+    expect(screen.getByLabelText("先修概念（用逗号分隔）")).toHaveValue("");
+    await user.type(screen.getByLabelText("目标概念"), "d");
+    await user.type(screen.getByLabelText("先修概念（用逗号分隔）"), "a, b, c");
     await user.click(screen.getByRole("button", { name: "生成路径" }));
     expect(await screen.findByText(/先修缺口/)).toBeInTheDocument();
   });
@@ -179,13 +198,13 @@ describe("LearningSpace loop views", () => {
           review_count: 1, machine_knowledge_created: false,
         });
       }
-      return jsonResponse({ due_count: 1, due: [] });
+      return jsonResponse({ due_count: 1, due: [{ card_id: "card-x", due_local: "2026-08-28T08:00:00Z", due_utc: "2026-08-28T00:00:00Z", fsrs_state: "review", stability_days: 3 }] });
     });
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<LearningSpace />);
-    await user.type(screen.getByLabelText("待复习卡片"), "card-x");
+    await user.selectOptions(await screen.findByLabelText("待复习卡片"), "card-x");
     await user.click(screen.getByRole("button", { name: "提交复习结果" }));
-    expect(await screen.findByText(/已提交 card-x/)).toBeInTheDocument();
+    expect(await screen.findByText(/已提交复习结果/)).toBeInTheDocument();
   });
 });

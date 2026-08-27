@@ -69,7 +69,7 @@ describe("runtime handshake client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("accepts a ready first-run handshake before a workspace id exists", async () => {
+  it("rejects a null workspace identity even when a caller claims first-run capability", async () => {
     window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only" }) } };
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -88,7 +88,7 @@ describe("runtime handshake client", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(getStatus()).resolves.toEqual({ status: "available" });
+    await expect(getStatus()).rejects.toMatchObject({ code: "incompatible" });
   });
 
   it("uses typed governed commands and preserves authorization for source readback", async () => {

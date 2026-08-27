@@ -18,7 +18,7 @@ const FORCED_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(1);
 const RESTORE_TIMEOUT: Duration = Duration::from_secs(120);
 const MAX_LOG_LINES: usize = 200;
 const MAX_ONE_SHOT_OUTPUT_BYTES: usize = 16 * 1024;
-const SANITIZED_ENVIRONMENT: [&str; 17] = [
+const SANITIZED_ENVIRONMENT: [&str; 19] = [
     "PYTHONPATH",
     "PYTHONHOME",
     "VIRTUAL_ENV",
@@ -30,6 +30,8 @@ const SANITIZED_ENVIRONMENT: [&str; 17] = [
     "ARCHEAXIS_DESKTOP_CONTROL",
     "ARCHEAXIS_DESKTOP_LAUNCH_TOKEN",
     "ARCHEAXIS_DESKTOP_WRITE_SCOPES",
+    "ARCHEAXIS_EXTERNAL_DEV",
+    "ARCHEAXIS_EXTERNAL_DEV_ACTIVE",
     "COGNITIVE_DATA_DIR",
     "COGNITIVE_HOST",
     "COGNITIVE_PORT",
@@ -284,6 +286,9 @@ fn runtime_command(runtime: &RuntimeSpec) -> Command {
         .env("PYTHONNOUSERSITE", "1")
         .env("NO_PROXY", "127.0.0.1")
         .env("no_proxy", "127.0.0.1");
+    if runtime.external_dev {
+        command.env("ARCHEAXIS_EXTERNAL_DEV_ACTIVE", "1");
+    }
     command
 }
 
@@ -558,6 +563,51 @@ mod tests {
             .and_then(|(_, value)| *value);
         assert_eq!(canonical, Some(OsStr::new("writable-data")));
         assert_eq!(legacy, Some(OsStr::new("writable-data")));
+    }
+
+    #[test]
+    fn runtime_command_owns_external_dev_activation() {
+        let installed = RuntimeSpec {
+            python: PathBuf::from("runtime/python/python.exe"),
+            cwd: PathBuf::from("writable-data"),
+            data_dir: PathBuf::from("writable-data"),
+            isolated: true,
+            external_dev: false,
+        };
+        let development = RuntimeSpec {
+            external_dev: true,
+            isolated: false,
+            ..installed.clone()
+        };
+
+        let installed_command = runtime_command(&installed);
+        let installed_envs = installed_command.get_envs().collect::<Vec<_>>();
+        let development_command = runtime_command(&development);
+        let development_envs = development_command.get_envs().collect::<Vec<_>>();
+        let installed_external_request = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_EXTERNAL_DEV"))
+            .map(|(_, value)| *value);
+        let installed_external_active = installed_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_EXTERNAL_DEV_ACTIVE"))
+            .map(|(_, value)| *value);
+        let development_external_request = development_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_EXTERNAL_DEV"))
+            .map(|(_, value)| *value);
+        let development_external_active = development_envs
+            .iter()
+            .find(|(key, _)| *key == OsStr::new("ARCHEAXIS_EXTERNAL_DEV_ACTIVE"))
+            .map(|(_, value)| *value);
+
+        assert_eq!(installed_external_request, Some(None));
+        assert_eq!(installed_external_active, Some(None));
+        assert_eq!(development_external_request, Some(None));
+        assert_eq!(
+            development_external_active,
+            Some(Some(OsStr::new("1")))
+        );
     }
 
     #[test]

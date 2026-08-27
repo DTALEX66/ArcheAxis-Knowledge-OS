@@ -8,7 +8,7 @@ export interface Handshake {
   source_commit: string;
   schema_version: number;
   runtime_mode: string;
-  workspace_id: string | null;
+  workspace_id: string;
   capabilities: string[];
   migration_state: string;
 }
@@ -83,7 +83,7 @@ function validateHandshake(value: unknown): Handshake {
     !nonEmptyString(handshake.backend_version)
     || !nonEmptyString(handshake.source_commit)
     || !nonEmptyString(handshake.runtime_mode)
-    || (handshake.workspace_id !== null && !nonEmptyString(handshake.workspace_id))
+    || !nonEmptyString(handshake.workspace_id)
   ) {
     incompatible("runtime identity is incomplete");
   }

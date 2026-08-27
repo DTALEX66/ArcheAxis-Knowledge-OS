@@ -11,13 +11,15 @@ import type { InspectionTarget } from "../components/Inspector";
 export function SpaceView({
   spaceId,
   onInspect,
+  onNavigate,
 }: {
   spaceId: SpaceId;
   onInspect: (target: InspectionTarget) => void;
+  onNavigate: (id: SpaceId) => void;
 }) {
   switch (spaceId) {
     case "workspace":
-      return <WorkspaceSpace />;
+      return <WorkspaceSpace onNavigate={onNavigate} />;
     case "library":
       return <LibrarySpace onInspect={onInspect} />;
     case "evidence":

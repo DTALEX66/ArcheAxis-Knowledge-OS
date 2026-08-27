@@ -23,18 +23,38 @@ vi.mock("../api/workspace", () => runtime);
 describe("six-space real command loops", () => {
   it("projects release, capabilities, counts, and recent activity on Workspace", async () => {
     runtime.getHome.mockResolvedValue({
-      release: { version: "0.6.7", state: "released" },
-      counts: { jobs: 3, evidence_anchors: 2 },
-      capabilities: { source_archive: "available", governed_learning: "available" },
-      components: { api: "available", database: "available" },
+      release: { version: "0.6.7", status: "unreleased", public: false },
+      counts: {
+        research: { candidate: 2 }, jobs: { succeeded: 3 }, outbox: { pending: 1 },
+        learning: { approved: 2 }, machine_knowledge: { candidate: 1 },
+      },
+      capabilities: {
+        local_url_file_github_intake: "available",
+        image_ocr: "dependency_required",
+        asr_transcription: "not_implemented",
+      },
+      components: {
+        api: "available", database: "available", worker: "available",
+        outbox_dispatcher: "lease_fenced", server_sent_events: "not_connected",
+      },
       recent_activity: [{ public_ref: "wr1_demo", kind: "job", label: "资料导入", state: "completed", updated_at: "2026-08-23T00:00:00Z" }],
     });
-    render(<WorkspaceSpace />);
+    render(<WorkspaceSpace onNavigate={vi.fn()} />);
     expect(await screen.findByText("0.6.7")).toBeInTheDocument();
-    expect(screen.getByText("原件档案")).toBeInTheDocument();
+    expect(screen.getByText("研究候选")).toBeInTheDocument();
+    expect(screen.getByText("待投递记录")).toBeInTheDocument();
+    expect(screen.getByText("投递处理器")).toBeInTheDocument();
+    expect(screen.getByText("租约保护")).toBeInTheDocument();
+    expect(screen.getByText("图像文字识别")).toBeInTheDocument();
+    expect(screen.getByText("需要依赖")).toBeInTheDocument();
+    expect(screen.getByText("语音转写")).toBeInTheDocument();
+    expect(screen.getByText("尚未实现")).toBeInTheDocument();
     expect(screen.getAllByText("可用").length).toBeGreaterThan(0);
     expect(screen.getByText("资料导入")).toBeInTheDocument();
     expect(screen.getByText("已完成")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("受治理状态");
+    expect(document.body).not.toHaveTextContent("lease_fenced");
+    expect(document.body).not.toHaveTextContent("dependency_required");
   });
 
   it("reads an immutable source by content identity", async () => {
@@ -44,6 +64,19 @@ describe("six-space real command loops", () => {
     render(<LibrarySpace onInspect={vi.fn()} />);
     await user.click(await screen.findByRole("button", { name: "打开原件" }));
     expect(runtime.downloadLibraryAsset).toHaveBeenCalledWith("a".repeat(64));
+  });
+
+  it("withholds Library endpoint details from visible errors", async () => {
+    runtime.listLibraryAssets.mockResolvedValue({ items: [{ source_name: "note.md", raw_sha256: "a".repeat(64), size_bytes: 6, retention: "immutable", conversion_state: "retained" }] });
+    runtime.downloadLibraryAsset.mockRejectedValue(new Error("/workspace/api/library/download -> 500"));
+    const user = userEvent.setup();
+
+    render(<LibrarySpace onInspect={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "打开原件" }));
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/library");
+    expect(document.body).not.toHaveTextContent("-> 500");
   });
 
   it("approves a research candidate and refreshes the queue", async () => {
@@ -58,6 +91,18 @@ describe("six-space real command loops", () => {
     await user.click(await screen.findByRole("button", { name: "批准入账" }));
     expect(runtime.approveResearchCandidate).toHaveBeenCalledWith("https://example.test/source");
     await waitFor(() => expect(runtime.listResearchCandidates).toHaveBeenCalledTimes(2));
+  });
+
+  it("withholds Evidence endpoint details from direct status messages", async () => {
+    runtime.listEvidenceAnchors.mockResolvedValue({ count: 0, items: [] });
+    runtime.listResearchCandidates.mockResolvedValue({ items: [] });
+    runtime.listEvidenceBundles.mockRejectedValue(new Error("/workspace/api/evidence/bundles -> 500"));
+
+    render(<EvidenceSpace onInspect={vi.fn()} />);
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/evidence");
+    expect(document.body).not.toHaveTextContent("-> 500");
   });
 
   it("opens governed Bundle inspection with conflict, rights, review and version history", async () => {
@@ -143,6 +188,19 @@ describe("six-space real command loops", () => {
     expect(runtime.deprecateMachineKnowledge).toHaveBeenCalledWith("Approved");
   });
 
+  it("withholds Machine Knowledge endpoint details from visible errors", async () => {
+    runtime.getMachineKnowledge.mockResolvedValue({ items: [{ title: "Approved", content: "body", lifecycle: "approved" }] });
+    runtime.listMachineKnowledgeCandidates.mockResolvedValue({ items: [] });
+    runtime.deprecateMachineKnowledge.mockRejectedValue(new Error("/workspace/api/knowledge/deprecate -> 500"));
+    const user = userEvent.setup();
+
+    render(<AiAssetsSpace onInspect={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "弃用 Approved" }));
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/workspace/api/knowledge");
+  });
+
   it("creates and verifies a named backup", async () => {
     runtime.getSetupStatus.mockResolvedValue({ initialized: true });
     runtime.createBackup.mockResolvedValue({ file_count: 2 });
@@ -154,6 +212,22 @@ describe("six-space real command loops", () => {
     expect(runtime.createBackup).toHaveBeenCalledWith("release-check");
     expect(runtime.verifyBackup).toHaveBeenCalledWith("release-check");
     expect(await screen.findByText(/备份验证通过/)).toBeInTheDocument();
+  });
+
+  it("uses product labels for readiness and withholds Settings endpoint errors", async () => {
+    runtime.getSetupStatus.mockResolvedValue({ ready: true, steps: [{ id: "paths_writable", state: "ready", message: "workspace data path is writable (D:/private)" }] });
+    runtime.createBackup.mockRejectedValue(new Error("/api/v1/setup/backup -> 500"));
+    const user = userEvent.setup();
+
+    render(<SettingsSpace />);
+    expect(await screen.findByText("存储位置")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("paths_writable");
+    expect(document.body).not.toHaveTextContent("D:/private");
+    await user.type(screen.getByLabelText("备份名称"), "review-check");
+    await user.click(screen.getByRole("button", { name: "创建并验证备份" }));
+
+    expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("/api/v1/setup");
   });
 
   it("checks four-library health before creating a first workspace", async () => {

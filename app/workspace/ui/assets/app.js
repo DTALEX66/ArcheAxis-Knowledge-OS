@@ -16,6 +16,13 @@ const capabilityStates=new Set(['available','dependency_required','not_implement
 const releaseStatusLabels={unreleased:'源码未发布',qualified:'已验证候选',released:'已发布'};
 const operationalStateLabels={succeeded:'已完成',completed:'已完成',running:'执行中',pending:'待处理',failed:'失败',blocked:'已阻断',delivered:'已投递',recorded:'已记录',missing:'缺失',available:'可用',candidate:'候选',approved:'已批准',unverified:'未核验',not_recorded:'未记录',ready_for_review:'待复核',rejected:'已拒绝',mastered:'已掌握',dependency_required:'需要依赖',not_implemented:'尚未实现',retrying:'重试中'};
 const stateLabel=value=>operationalStateLabels[value]||'状态未知';
+const userErrorMessage=()=>"本地数据暂时不可用，请稍后重试。";
+const commandSuccessLabels={
+  "/workspace/api/exchange/export":"交换包已导出",
+  "/workspace/api/exchange/verify":"交换包核验通过",
+  "/workspace/api/backup/create":"备份已创建",
+  "/workspace/api/backup/verify":"备份核验通过"
+};
 const productRoutes=new Set([...nav.flatMap(([,items])=>items.map(([page])=>page)),'unavailable']);
 const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 function validateStatus(payload){if(!isRecord(payload)||payload.schema_version!=='v1'||typeof payload.observed_at!=='string'||Number.isNaN(Date.parse(payload.observed_at))||!isRecord(payload.counts)||!isRecord(payload.capabilities)||!isRecord(payload.release)||!isRecord(payload.components)||!isRecord(payload.migrations))throw new Error('invalid workspace status');for(const groupName of ['research','jobs','outbox','learning','machine_knowledge']){const group=payload.counts[groupName];if(!isRecord(group)||Object.values(group).some(value=>!Number.isInteger(value)||value<0))throw new Error('invalid workspace counts')}for(const key of Object.keys(capabilityLabels)){if(!capabilityStates.has(payload.capabilities[key]))throw new Error('invalid workspace capabilities')}if(typeof payload.release.version!=='string'||!payload.release.version||typeof payload.release.status!=='string'||!payload.release.status||payload.components.api!=='available'||payload.components.database!=='available'||Object.keys(payload.migrations).length===0||Object.values(payload.migrations).some(value=>!Number.isInteger(value)||value<0))throw new Error('invalid workspace status projection');return payload}
@@ -24,7 +31,7 @@ function renderStatus(payload){const target=$('#status-summary');target.textCont
 function renderStatusUnavailable(){const target=$('#status-summary');target.textContent='';target.append(metric('真实状态','不可用','本地状态读取失败','bad'));const capabilities=$('#capability-summary');capabilities.textContent='';const row=document.createElement('div');row.className='row';const main=document.createElement('div');main.className='row-main';const name=document.createElement('b');name.textContent='能力状态';const value=document.createElement('span');value.textContent='不可用';main.append(name,value);row.append(main);capabilities.append(row)}
 function renderDiagnostics(payload){const target=$('#diagnostics-summary');target.textContent='';const health=payload.components.api==='available'?'正常':'不可用';const database=payload.components.database==='available'?'可读':'不可用';const migrations=Object.entries(payload.migrations).map(([name,count])=>`${name} ${count}`).join(' · ')||'不可用';target.append(metric('本地接口',health,'本地回环服务'),metric('数据库',database,'只读聚合探针'),metric('迁移',migrations,'迁移状态实时读取'),metric('发布',payload.release.version,releaseStatusLabels[payload.release.status]||'状态未知'))}
 async function fetchJson(path){const response=await fetch(path);if(!response.ok)throw new Error(`${path} unavailable`);return response.json()}
-async function exchangeCommand(path, body){const result=$('#exchange-result');result.textContent='执行中…';try{const response=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);const data=await response.json();if(!response.ok)throw new Error(data.detail||`${path} failed (${response.status})`);result.textContent=JSON.stringify(data,null,2)}catch(err){result.textContent='操作失败: '+err.message}}
+async function exchangeCommand(path, body){const result=$('#exchange-result');result.textContent='执行中…';try{const response=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);await response.json();if(!response.ok)throw new Error('command failed');result.textContent=commandSuccessLabels[path]||'操作已完成'}catch{result.textContent=`操作失败：${userErrorMessage()}`}}
 async function refreshStatus(){try{renderStatus(validateStatus(await fetchJson('/workspace/api/status')))}catch{renderStatusUnavailable()}}
 async function refreshDiagnostics(){try{renderDiagnostics(validateStatus(await fetchJson('/workspace/api/status')))}catch{const target=$('#diagnostics-summary');target.textContent='';target.append(metric('系统状态','不可用','本地状态读取失败','bad'))}}
 function validateJobs(payload){if(!isRecord(payload)||payload.schema_version!=='v1'||!Array.isArray(payload.jobs))throw new Error('invalid workspace jobs');for(const job of payload.jobs){if(!isRecord(job)||Object.keys(job).length!==4||typeof job.activity!=='string'||typeof job.state!=='string'||typeof job.delivery_state!=='string'||typeof job.updated_at!=='string'||Number.isNaN(Date.parse(job.updated_at)))throw new Error('invalid workspace job')}return payload}
@@ -193,8 +200,8 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
       state.page = 1; state.zoom = 1.0; state.matchPage = -1;
       if ($zinfo()) $zinfo().textContent = "100%";
       await renderPage();
-    } catch (err) {
-      if (container) { container.textContent = ""; container.innerHTML = '<div class="empty"><b>PDF 加载失败</b><p>' + err.message + '</p></div>'; }
+    } catch {
+      if (container) { container.textContent = ""; container.innerHTML = '<div class="empty"><b>PDF 加载失败</b><p>本地文件暂时无法打开，请稍后重试。</p></div>'; }
     }
   }
 
@@ -266,18 +273,18 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
         })
       });
       if (!resp.ok) { throw new Error("HTTP " + resp.status); }
-      const data = await resp.json();
-      if ($info) $info.textContent = "锚点 " + data.anchor_id;
-      else alert("锚点 " + data.anchor_id);
-    } catch (err) {
-      if ($info) $info.textContent = "写入失败: " + err.message;
+      await resp.json();
+      if ($info) $info.textContent = "证据锚点已记录";
+      else alert("证据锚点已记录");
+    } catch {
+      if ($info) $info.textContent = `写入失败：${userErrorMessage()}`;
     }
   }
   async function jumpToAnchor() {
     const $info = document.getElementById("pdf-anchor-info");
     const input = document.getElementById("pdf-anchor-input");
     const id = (input && input.value || "").trim();
-    if (!id) { alert("请输入证据锚点 id (ev...) "); return; }
+    if (!id) { alert("请粘贴证据锚点引用"); return; }
     if ($info) $info.textContent = "解析锚点…";
     try {
       const resp = await fetch("/workspace/api/evidence/anchor/" + encodeURIComponent(id));
@@ -287,10 +294,9 @@ applyShellState();syncSubnavAccessibility();void refreshActivityDock();setInterv
       if (state.doc && typeof page === "number" && page >= 1 && page <= state.doc.numPages) {
         state.page = page; await renderPage();
       }
-      const loc = a && a.locator ? JSON.stringify(a.locator) : "";
-      if ($info) $info.textContent = "已回跳页 " + (page || "?") + (loc ? " · " + loc : "");
-    } catch (err) {
-      if ($info) $info.textContent = "回跳失败: " + err.message;
+      if ($info) $info.textContent = page ? "已回跳至证据所在页" : "证据位置不可用";
+    } catch {
+      if ($info) $info.textContent = `回跳失败：${userErrorMessage()}`;
     }
   }
 

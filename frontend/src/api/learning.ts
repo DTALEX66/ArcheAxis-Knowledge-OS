@@ -17,9 +17,17 @@ export interface MasteryResponse {
   signal: Record<string, unknown>;
 }
 
+export interface DueCard {
+  card_id: string;
+  due_utc: string;
+  due_local: string | null;
+  fsrs_state: string;
+  stability_days: number | null;
+}
+
 export interface ReviewQueueResponse {
   due_count: number;
-  due: unknown[];
+  due: DueCard[];
 }
 
 export interface TeachBackInput {

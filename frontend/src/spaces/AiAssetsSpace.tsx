@@ -9,7 +9,7 @@ import {
   type MachineKnowledgeDto,
 } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
-import { stateLabel } from "../presentation/labels";
+import { stateLabel, userErrorMessage } from "../presentation/labels";
 
 export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [items, setItems] = useState<MachineKnowledgeDto[]>([]);
@@ -61,7 +61,7 @@ export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTar
                   detail: item.content.slice(0, 280),
                 })}>查看</button>{" "}<button type="button" aria-label={`弃用 ${item.title}`} onClick={async () => {
                   try { await deprecateMachineKnowledge(item.title); setMessage("机器知识已弃用"); await refresh(); }
-                  catch (e) { setMessage(`弃用失败：${e instanceof Error ? e.message : String(e)}`); }
+                  catch (e) { setMessage(userErrorMessage(e instanceof Error ? e.message : e)); }
                 }}>弃用</button></td>
               </tr>
             ))}
@@ -73,7 +73,7 @@ export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTar
         <ul className="action-list">{candidates.map((item) => (
           <li key={item.title}><span>{item.title} · v{item.version} · 证据已记录</span>{" "}<button type="button" aria-label={`批准 ${item.title}`} onClick={async () => {
             try { await approveMachineKnowledge(item.title); setMessage("机器知识已批准"); await refresh(); }
-            catch (e) { setMessage(`批准失败：${e instanceof Error ? e.message : String(e)}`); }
+            catch (e) { setMessage(userErrorMessage(e instanceof Error ? e.message : e)); }
           }}>批准</button></li>
         ))}</ul>
       )}

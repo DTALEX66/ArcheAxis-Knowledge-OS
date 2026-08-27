@@ -563,15 +563,22 @@ body {
   background: color-mix(in srgb, var(--ax-bg-inset) 58%, var(--ax-bg-raised));
 }
 
-.next-actions article {
+.next-action {
   display: grid;
   grid-template-columns: 30px 1fr;
   gap: 10px;
+  width: 100%;
   padding: 16px 0;
+  border: 0;
   border-bottom: 1px solid var(--ax-border);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
 }
 
-.next-actions article > span {
+.next-action > span {
   color: var(--ax-fg-muted);
   font: 11px ui-monospace, monospace;
 }

@@ -60,7 +60,7 @@ export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTar
   }
 
   return (
-    <footer className="activity-dock" aria-label="活动坞">
+    <footer id="activity-dock" className="activity-dock" aria-label="活动坞">
       <span className="activity-dock-item">{summary}</span>
       {items.slice(0, 3).map((item) => <span className="activity-dock-item" key={item.public_ref}>{item.label} · {stateLabel(item.state)} <button type="button" onClick={() => void inspect(item)}>查看活动详情</button></span>)}
       <span className="activity-dock-item">来源：任务 / 投递 / 回执</span>

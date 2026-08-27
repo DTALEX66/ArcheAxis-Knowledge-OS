@@ -26,6 +26,19 @@ describe("OSUI v3 production contract", () => {
     expect(screen.getByRole("heading", { name: "原件、主张与证据，留在同一个可审查的工作面。" })).toBeInTheDocument();
   });
 
+  it("makes every Workbench next action operable", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "查看原件与锚点" }));
+    expect(screen.getByRole("heading", { name: "原件库" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "工作台" }));
+    await user.click(screen.getByRole("button", { name: "检查证据生命周期" }));
+    expect(screen.getByRole("heading", { name: "证据账本" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "工作台" }));
+    expect(screen.getByRole("link", { name: "处理任务与回执" })).toHaveAttribute("href", "#activity-dock");
+  });
+
   it("does not expose the former mixed-language primary labels", () => {
     render(<App />);
 

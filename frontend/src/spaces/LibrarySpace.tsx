@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
 import { downloadLibraryAsset, listLibraryAssets, type LibraryAssetDto } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
-import { stateLabel } from "../presentation/labels";
+import { stateLabel, userErrorMessage } from "../presentation/labels";
 
 export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [assets, setAssets] = useState<LibraryAssetDto[]>([]);
@@ -49,7 +49,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
                     const blob = await downloadLibraryAsset(asset.raw_sha256);
                     setMessage(`已按内容标识读回 ${blob.size} B：${asset.source_name}`);
                   } catch (e) {
-                    setMessage(`原件读取失败：${e instanceof Error ? e.message : String(e)}`);
+                    setMessage(userErrorMessage(e instanceof Error ? e.message : e));
                   }
                 }}>打开原件</button></td>
               </tr>

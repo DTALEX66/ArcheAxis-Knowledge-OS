@@ -5,12 +5,14 @@
 import { useEffect, useState } from "react";
 import {
   learningApiExt,
+  type DueCard,
   type LearningApiExt,
   type MasteryDisplay,
   type PathStep,
   type QuizItem,
   type TeachBackInput,
 } from "../api/learning";
+import { userErrorMessage } from "../presentation/labels";
 
 type Tab = "review" | "mastery" | "teachback" | "quiz" | "path" | "visual" | "spatial";
 
@@ -32,8 +34,17 @@ const ACTION_LABELS: Record<string, string> = {
   review_evidence: "证据过时 → 先核验",
 };
 
+function dueCardLabel(card: DueCard, index: number): string {
+  if (!card.due_local) return `到期卡片 ${index + 1}`;
+  const due = new Date(card.due_local);
+  return Number.isNaN(due.getTime())
+    ? `到期卡片 ${index + 1}`
+    : `到期卡片 ${index + 1} · ${due.toLocaleString("zh-CN")}`;
+}
+
 function ReviewQueueView({ api }: { api: LearningApiExt }) {
   const [dueCount, setDueCount] = useState<number | null>(null);
+  const [dueCards, setDueCards] = useState<DueCard[]>([]);
   const [cardId, setCardId] = useState("");
   const [quality, setQuality] = useState("3");
   const [submitted, setSubmitted] = useState<string | null>(null);
@@ -44,10 +55,14 @@ function ReviewQueueView({ api }: { api: LearningApiExt }) {
     api
       .reviewQueue(20)
       .then((r) => {
-        if (alive) setDueCount(r.due_count);
+        if (alive) {
+          setDueCount(r.due_count);
+          setDueCards(r.due);
+          setCardId((current) => current || r.due[0]?.card_id || "");
+        }
       })
       .catch((e: unknown) => {
-        if (alive) setError(e instanceof Error ? e.message : "加载失败");
+        if (alive) setError(userErrorMessage(e instanceof Error ? e.message : e));
       });
     return () => {
       alive = false;
@@ -73,15 +88,17 @@ function ReviewQueueView({ api }: { api: LearningApiExt }) {
               command_id: `ui-${Date.now()}`,
               quality: Number(quality),
             });
-            setSubmitted(`已提交 ${cardId.trim()} (Q${quality})`);
-            setCardId("");
+            setSubmitted(`已提交复习结果（质量 ${quality}）`);
           } catch (err) {
-            setError(err instanceof Error ? err.message : "提交失败");
+            setError(userErrorMessage(err instanceof Error ? err.message : err));
           }
         }}
       >
         <label htmlFor="rv-card">待复习卡片</label>
-        <input id="rv-card" value={cardId} onChange={(e) => setCardId(e.target.value)} placeholder="选择或粘贴卡片引用" />
+        <select id="rv-card" value={cardId} disabled={dueCards.length === 0} onChange={(e) => setCardId(e.target.value)}>
+          {dueCards.length === 0 ? <option value="">暂无到期卡片</option> : null}
+          {dueCards.map((card, index) => <option key={card.card_id} value={card.card_id}>{dueCardLabel(card, index)}</option>)}
+        </select>
         <label htmlFor="rv-quality">复习质量（0–5）</label>
         <input id="rv-quality" type="number" min={0} max={5} value={quality} onChange={(e) => setQuality(e.target.value)} />
         <button type="submit" disabled={!cardId.trim()}>提交复习结果</button>
@@ -93,9 +110,24 @@ function ReviewQueueView({ api }: { api: LearningApiExt }) {
 
 function MasteryView({ api }: { api: LearningApiExt }) {
   const [cardId, setCardId] = useState("");
+  const [dueCards, setDueCards] = useState<DueCard[]>([]);
   const [state, setState] = useState<MasteryDisplay | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    api.reviewQueue(200)
+      .then((result) => {
+        if (!alive) return;
+        setDueCards(result.due);
+        setCardId(result.due[0]?.card_id ?? "");
+      })
+      .catch((reason: unknown) => {
+        if (alive) setError(userErrorMessage(reason instanceof Error ? reason.message : reason));
+      });
+    return () => { alive = false; };
+  }, [api]);
 
   async function load() {
     if (!cardId.trim()) return;
@@ -105,7 +137,7 @@ function MasteryView({ api }: { api: LearningApiExt }) {
       const r = await api.mastery(cardId.trim());
       setState(r.state);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "查询失败");
+      setError(userErrorMessage(e instanceof Error ? e.message : e));
       setState(null);
     } finally {
       setBusy(false);
@@ -122,12 +154,15 @@ function MasteryView({ api }: { api: LearningApiExt }) {
         }}
       >
         <label htmlFor="mastery-card">学习卡片</label>
-        <input
+        <select
           id="mastery-card"
           value={cardId}
+          disabled={dueCards.length === 0}
           onChange={(e) => setCardId(e.target.value)}
-          placeholder="选择或粘贴卡片引用"
-        />
+        >
+          {dueCards.length === 0 ? <option value="">暂无到期卡片</option> : null}
+          {dueCards.map((card, index) => <option key={card.card_id} value={card.card_id}>{dueCardLabel(card, index)}</option>)}
+        </select>
         <button type="submit" disabled={busy || !cardId.trim()}>
           {busy ? "查询中…" : "查询"}
         </button>
@@ -197,7 +232,7 @@ function TeachBackView({ api }: { api: LearningApiExt }) {
     try {
       setResult(await api.teachBack(input));
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "提交失败");
+      setError(userErrorMessage(e instanceof Error ? e.message : e));
       setResult(null);
     } finally {
       setBusy(false);
@@ -240,20 +275,25 @@ function TeachBackView({ api }: { api: LearningApiExt }) {
 
 function QuizPanel({ api }: { api: LearningApiExt }) {
   const [items, setItems] = useState<QuizItem[] | null>(null);
-  const [concept, setConcept] = useState("BKT");
+  const [concept, setConcept] = useState("");
   const [reference, setReference] = useState("");
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     if (!concept.trim() || !reference.trim()) return;
     setBusy(true);
+    setError(null);
     try {
       const r = await api.quiz({ concept: concept.trim(), reference: reference.trim() });
       setItems(r.items);
       setSelected({});
       setFeedback({});
+    } catch (reason) {
+      setError(userErrorMessage(reason instanceof Error ? reason.message : reason));
+      setItems(null);
     } finally {
       setBusy(false);
     }
@@ -280,8 +320,9 @@ function QuizPanel({ api }: { api: LearningApiExt }) {
         <input id="qz-concept" value={concept} onChange={(e) => setConcept(e.target.value)} />
         <label htmlFor="qz-reference">知识参考</label>
         <textarea id="qz-reference" rows={2} value={reference} onChange={(e) => setReference(e.target.value)} />
-        <button type="submit" disabled={busy}>生成测验</button>
+        <button type="submit" disabled={busy || !concept.trim() || !reference.trim()}>生成测验</button>
       </form>
+      {error ? <p className="space-hint">生成失败：{error}</p> : null}
       {items?.map((item) => (
         <div key={item.item_id} className="quiz-item">
           <p>{item.prompt}</p>
@@ -304,23 +345,25 @@ function QuizPanel({ api }: { api: LearningApiExt }) {
 }
 
 function PathView({ api }: { api: LearningApiExt }) {
-  const [goal, setGoal] = useState("d");
-  const [prerequisites, setPrerequisites] = useState("a, b, c");
+  const [goal, setGoal] = useState("");
+  const [prerequisites, setPrerequisites] = useState("");
   const [steps, setSteps] = useState<PathStep[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function build() {
+    const requestedGoal = goal.trim();
+    if (!requestedGoal) return;
     setBusy(true);
     setError(null);
     try {
       const nodes = prerequisites.split(",").map((item) => item.trim()).filter(Boolean);
-      if (!nodes.includes(goal.trim())) nodes.push(goal.trim());
+      if (!nodes.includes(requestedGoal)) nodes.push(requestedGoal);
       const edges = nodes.slice(0, -1).map((node, index) => [node, nodes[index + 1]]);
-      const r = await api.learningPath({ goal: goal.trim(), graph: { nodes, edges } });
+      const r = await api.learningPath({ goal: requestedGoal, graph: { nodes, edges } });
       setSteps(r.steps);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "路径生成失败");
+      setError(userErrorMessage(e instanceof Error ? e.message : e));
       setSteps(null);
     } finally {
       setBusy(false);
@@ -340,7 +383,7 @@ function PathView({ api }: { api: LearningApiExt }) {
         <input id="path-goal" value={goal} onChange={(e) => setGoal(e.target.value)} />
         <label htmlFor="path-prerequisites">先修概念（用逗号分隔）</label>
         <input id="path-prerequisites" value={prerequisites} onChange={(e) => setPrerequisites(e.target.value)} />
-        <button type="submit" disabled={busy}>生成路径</button>
+        <button type="submit" disabled={busy || !goal.trim()}>生成路径</button>
       </form>
       {error ? <p className="space-hint">生成失败：{error}</p> : null}
       {steps ? (

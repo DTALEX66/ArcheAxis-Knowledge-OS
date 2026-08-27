@@ -321,7 +321,7 @@ export function App() {
       <div className="app-body">
         <SpaceRail active={activeSpace} onNavigate={navigate} spaces={SPACES} />
         <main className="app-center" role="main" aria-label="当前空间内容">
-          <SpaceView spaceId={activeSpace} onInspect={setInspectionTarget} />
+          <SpaceView spaceId={activeSpace} onInspect={setInspectionTarget} onNavigate={navigate} />
         </main>
         <Inspector target={inspectionTarget} />
       </div>
