@@ -10,7 +10,8 @@ def test_task_cockpit_has_real_projection_contract():
 
     assert 'id="task-cockpit"' in html
     assert 'id="cockpit-timeline"' in html
-    assert "A2 · 真实回读" in html
+    assert "真实回读" in html
+    assert "A2 · 真实回读" not in html
     assert "fetchJson('/workspace/api/jobs')" in js
     assert "fetchJson('/workspace/api/lifecycle')" in js
     assert "function selectTask(activity)" in js
