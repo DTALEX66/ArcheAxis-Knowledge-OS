@@ -26,11 +26,11 @@ export interface InspectionTarget {
 }
 
 // Right inspector: source/evidence/conflict/version (task pack §15.3).
-export function Inspector({ target }: { target: InspectionTarget | null }) {
+export function Inspector({ target, onClose }: { target: InspectionTarget | null; onClose?: () => void }) {
   if (target) {
     return (
       <aside className="inspector" aria-label="检查器">
-        <h2 className="inspector-title">检查器</h2>
+        <div className="inspector-heading"><h2 className="inspector-title">检查器</h2>{onClose ? <button type="button" aria-label="关闭检查器" onClick={onClose}>×</button> : null}</div>
         <dl className="inspector-details">
           <dt>条目</dt><dd>{target.title}</dd>
           <dt>来源</dt><dd>{target.source}</dd>
@@ -53,6 +53,7 @@ export function Inspector({ target }: { target: InspectionTarget | null }) {
   }
   return (
     <aside className="inspector" aria-label="检查器">
+      {onClose ? <button type="button" className="inspector-empty-close" aria-label="关闭检查器" onClick={onClose}>×</button> : null}
       <div className="inspector-empty">选择条目以查看来源、证据与版本</div>
     </aside>
   );

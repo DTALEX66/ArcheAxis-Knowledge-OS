@@ -4,7 +4,7 @@
 
 > **v0.6.11 已发布（2026-08-27）**：exact-SHA CI、NSIS/Green/Portable 生命周期和 9 项公开资产读回已通过，正式 Release：[`v0.6.11`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11)。该不可变版本随后被确认遗漏 OSUI v3 设计采用与中文一致性验收；发布工程通过不等于 UI 产品验收通过。修复只追加到后续版本，不改写 v0.6.11。
 
-> **当前 UI 纠偏**：OSUI v3 Archive Desk / Liquid Glass 已开始接入生产 Workspace，Mock/UNBOUND 原型不直接发布；中文优先词典、真实 Adapter、视觉课件/空间记忆规划面、设计史和真实 Chromium 视觉门见 [`UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`](docs/current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md) 与 [`UI_V3_PRODUCT_ROADMAP.md`](docs/current/UI_V3_PRODUCT_ROADMAP.md)。在新 exact-SHA UI candidate 完成前，不宣称前端闭环。
+> **当前 UI 纠偏**：OSUI v3 已吸收进入 canonical React/Tauri 壳；当前单壳收敛分支继续清退 `/kb` 与根 legacy UI，补齐全局命令、二级导航、可折叠 Inspector/Activity Dock、React 原件/PDF/Anchor 工作台、DTO fail-closed、Recovery 前端先行启动与 390/360 响应式。DeepTutor 已纠正为可选学习 sidecar，不再宣称产品前端底座。实施证据见 [`FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](docs/current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md) 和 [`UI_V3_PRODUCT_ROADMAP.md`](docs/current/UI_V3_PRODUCT_ROADMAP.md)。当前分支完成原生 WebView/installer/exact-SHA/人工视觉复审前不宣称发布闭环。
 
 > **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
 >

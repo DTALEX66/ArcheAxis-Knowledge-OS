@@ -16,6 +16,7 @@ export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTar
   const [items, setItems] = useState<ActivityItemDto[]>([]);
   const [summary, setSummary] = useState("正在读取活动…");
   const [delivery, setDelivery] = useState("投递状态：读取中");
+  const [expanded, setExpanded] = useState(false);
 
   async function refresh() {
     const [activity, currentDelivery] = await Promise.all([getActivity(5), getDelivery()]);
@@ -72,13 +73,19 @@ export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTar
 
   return (
     <footer id="activity-dock" className="activity-dock" aria-label="活动坞">
-      <span className="activity-dock-item">{summary}</span>
-      {items.slice(0, 3).map((item) => <span className="activity-dock-item" key={item.public_ref}>{item.label} · {stateLabel(item.state)} <button type="button" onClick={() => void inspect(item)}>查看活动详情</button></span>)}
-      <span className="activity-dock-item">来源：任务 / 投递 / 回执</span>
-      <span className="activity-dock-item">{delivery}</span>
-      <button type="button" onClick={() => void operate(dispatchDelivery)}>投递下一条</button>
-      <button type="button" onClick={() => void operate(retryFailedDelivery)}>重试失败投递</button>
-      <button type="button" disabled title="当前投递协议尚未定义可撤销状态">取消投递（不可用）</button>
+      <div className="activity-dock-summary">
+        <span className="activity-dock-indicator" aria-hidden="true" />
+        <span className="activity-dock-item">{summary}</span>
+        <span className="activity-dock-item">{delivery}</span>
+        <button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>{expanded ? "⌄" : "⌃"}</button>
+      </div>
+      {expanded ? <div className="activity-dock-body">
+        {items.slice(0, 3).map((item) => <span className="activity-dock-item" key={item.public_ref}>{item.label} · {stateLabel(item.state)} <button type="button" onClick={() => void inspect(item)}>查看活动详情</button></span>)}
+        <span className="activity-dock-item">来源：任务 / 投递 / 回执</span>
+        <button type="button" onClick={() => void operate(dispatchDelivery)}>投递下一条</button>
+        <button type="button" onClick={() => void operate(retryFailedDelivery)}>重试失败投递</button>
+        <button type="button" disabled title="当前投递协议尚未定义可撤销状态">取消投递（不可用）</button>
+      </div> : null}
     </footer>
   );
 }

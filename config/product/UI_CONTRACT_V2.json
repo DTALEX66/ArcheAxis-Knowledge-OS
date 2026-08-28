@@ -6,9 +6,17 @@
   },
   "authority": "ArcheAxis",
   "productShell": {
-    "base": "DeepTutor",
-    "pinnedVersion": "v1.5.17",
-    "mode": "replaceable-downstream-projection"
+    "base": "ArcheAxis React/Tauri",
+    "mode": "canonical-native-shell",
+    "productionEntrypoint": "frontend/src/app/App.tsx"
+  },
+  "sidecars": {
+    "deeptutor": {
+      "version": "v1.5.17",
+      "role": "optional-learning-engine",
+      "mode": "replaceable-authority-projection",
+      "productNavigation": false
+    }
   },
   "providerConfiguration": {
     "insideGoldenFlow": false,

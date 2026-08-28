@@ -717,47 +717,59 @@ fn main() {
                 .as_ref()
                 .map(|resolved| resolved.data_dir.clone())
                 .unwrap_or_else(|_| local_data.clone());
-            // A failed Core start must leave the packaged UI running. The UI
-            // exposes only the retry command and cannot obtain a loopback
-            // token until this state successfully launches.
-            if let Ok(runtime) = resolved_runtime {
-                *startup_backend
-                    .runtime
-                    .lock()
-                    .map_err(|_| std::io::Error::other(RECOVERY_STATE_UNAVAILABLE))? =
-                    Some(runtime.clone());
-                *startup_backend
-                    .recovery
-                    .lock()
-                    .map_err(|_| std::io::Error::other(RECOVERY_STATE_UNAVAILABLE))? =
-                    RecoveryState::booting(runtime.external_dev);
-                let mut launch_error = None;
-                if let Ok(process) = BackendProcess::launch(&runtime).map_err(|error| {
-                    launch_error = Some(error);
-                }) {
+            // Create the packaged Recovery WebView before migration/Core startup.
+            // Backend launch can take up to the migration + readiness timeout;
+            // it must never leave the user staring at an absent window.
+            let pending_runtime = match resolved_runtime {
+                Ok(runtime) => {
                     *startup_backend
-                        .process
+                        .runtime
                         .lock()
                         .map_err(|_| std::io::Error::other(RECOVERY_STATE_UNAVAILABLE))? =
-                        Some(process);
-                    startup_backend
+                        Some(runtime.clone());
+                    *startup_backend
                         .recovery
                         .lock()
-                        .map_err(|_| std::io::Error::other(RECOVERY_STATE_UNAVAILABLE))?
-                        .mark_ready();
+                        .map_err(|_| std::io::Error::other(RECOVERY_STATE_UNAVAILABLE))? =
+                        RecoveryState::booting(runtime.external_dev);
+                    Some(runtime)
                 }
-                if let Some(error) = launch_error {
+                Err(error) => {
                     record_failure(&startup_backend, &error);
+                    None
                 }
-            } else if let Err(error) = resolved_runtime {
-                record_failure(&startup_backend, &error);
-            }
+            };
             WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("星环知识平台（ArcheAxis Knowledge）")
                 .inner_size(1280.0, 800.0)
                 .data_directory(webview_data_dir)
                 .build()
                 .map_err(|_| std::io::Error::other("RECOVERY_WINDOW_CREATE_FAILED"))?;
+            if let Some(runtime) = pending_runtime {
+                let launch_state = startup_backend.clone();
+                std::thread::spawn(move || {
+                    let Ok(_operation) = launch_state.operations.lock() else {
+                        record_failure(&launch_state, RECOVERY_STATE_UNAVAILABLE);
+                        return;
+                    };
+                    match BackendProcess::launch(&runtime) {
+                        Ok(process) => {
+                            if let Ok(mut slot) = launch_state.process.lock() {
+                                *slot = Some(process);
+                            } else {
+                                record_failure(&launch_state, RECOVERY_STATE_UNAVAILABLE);
+                                return;
+                            }
+                            if let Ok(mut recovery) = launch_state.recovery.lock() {
+                                recovery.mark_ready();
+                            } else {
+                                record_failure(&launch_state, RECOVERY_STATE_UNAVAILABLE);
+                            }
+                        }
+                        Err(error) => record_failure(&launch_state, &error),
+                    }
+                });
+            }
             Ok(())
         })
         .on_window_event(|window, event| {

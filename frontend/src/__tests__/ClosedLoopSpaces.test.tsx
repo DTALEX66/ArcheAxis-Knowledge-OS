@@ -80,6 +80,22 @@ describe("six-space real command loops", () => {
     expect(runtime.downloadLibraryAsset).toHaveBeenCalledWith("a".repeat(64));
   });
 
+  it("opens a retained PDF with its page anchors inside the canonical Library space", async () => {
+    const rawSha256 = "c".repeat(64);
+    runtime.listLibraryAssets.mockResolvedValue({ items: [{ source_name: "paper.pdf", raw_sha256: rawSha256, size_bytes: 1024, mime_type: "application/pdf", retention: "immutable", conversion_state: "retained" }] });
+    runtime.downloadLibraryAsset.mockResolvedValue(new Blob(["pdf"], { type: "application/pdf" }));
+    runtime.listEvidenceAnchors.mockResolvedValue({ count: 1, items: [{ anchor_id: "opaque-anchor", raw_sha256: rawSha256, source_revision: `sha256:${rawSha256}`, locator: { page: 2 } }], next_cursor: null });
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn(() => "blob:pdf-reader") });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
+
+    render(<LibrarySpace onInspect={vi.fn()} />);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "打开原件" }));
+
+    expect(await screen.findByTitle("PDF 原件阅读器")).toHaveAttribute("src", "blob:pdf-reader");
+    expect(screen.getByText("证据锚点 1 · 第 2 页")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("opaque-anchor");
+  });
+
   it("withholds Library endpoint details from visible errors", async () => {
     runtime.listLibraryAssets.mockResolvedValue({ items: [{ source_name: "note.md", raw_sha256: "a".repeat(64), size_bytes: 6, retention: "immutable", conversion_state: "retained" }] });
     runtime.downloadLibraryAsset.mockRejectedValue(new Error("/workspace/api/library/download -> 500"));
@@ -304,6 +320,27 @@ describe("six-space real command loops", () => {
     expect(document.body).not.toHaveTextContent("/api/v1/setup");
   });
 
+  it("blocks workspace creation when health preflight is not ready", async () => {
+    runtime.getSetupStatus.mockResolvedValue({ ready: false, steps: [] });
+    runtime.preflightSetup.mockResolvedValue({
+      ready: false,
+      mode: "quick",
+      domains: { source_archive: "D:\\ArcheAxis\\source_archive" },
+      library_health: { source_archive: { free_bytes: 0, readonly: true } },
+    });
+    const user = userEvent.setup();
+    render(<SettingsSpace />);
+
+    await user.click(await screen.findByRole("button", { name: "开始设置" }));
+    await user.click(screen.getByRole("button", { name: "继续" }));
+    await user.type(screen.getByLabelText("四库根路径"), "D:\\ArcheAxis");
+    await user.click(screen.getByRole("button", { name: "检查四库健康" }));
+
+    expect(await screen.findByRole("button", { name: "创建工作区" })).toBeDisabled();
+    expect(screen.getByText(/健康检查未通过/)).toBeInTheDocument();
+    expect(runtime.initializeSetup).not.toHaveBeenCalled();
+  });
+
   it("checks four-library health before creating a first workspace", async () => {
     runtime.getSetupStatus.mockResolvedValue({
       ready: false,
@@ -413,6 +450,7 @@ describe("six-space real command loops", () => {
 
     render(<ActivityDock />);
     await screen.findByText("暂无持久化活动");
+    await user.click(screen.getByRole("button", { name: "展开活动坞" }));
     await user.click(screen.getByRole("button", { name: "投递下一条" }));
 
     expect(await screen.findByText(/投递状态：本地数据暂时不可用/)).toBeInTheDocument();
@@ -429,6 +467,7 @@ describe("six-space real command loops", () => {
 
     render(<ActivityDock />);
     await screen.findByText("暂无持久化活动");
+    await user.click(screen.getByRole("button", { name: "展开活动坞" }));
     await user.click(screen.getByRole("button", { name: "投递下一条" }));
 
     expect(await screen.findByText("投递状态：已重新入队；读回暂不可用")).toBeInTheDocument();
@@ -442,6 +481,7 @@ describe("six-space real command loops", () => {
     const user = userEvent.setup();
 
     render(<ActivityDock />);
+    await user.click(await screen.findByRole("button", { name: "展开活动坞" }));
     await user.click(await screen.findByRole("button", { name: "查看活动详情" }));
 
     expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
@@ -453,6 +493,7 @@ describe("six-space real command loops", () => {
     runtime.getSetupStatus.mockResolvedValue({ initialized: true });
     const user = userEvent.setup();
     render(<ActivityDock />);
+    await user.click(await screen.findByRole("button", { name: "展开活动坞" }));
     expect(await screen.findByText(/资料导入 · 已完成/)).toBeInTheDocument();
     render(<SettingsSpace />);
     await user.click(await screen.findByRole("button", { name: "重试桌面后端" }));
@@ -475,6 +516,7 @@ describe("six-space real command loops", () => {
     const user = userEvent.setup();
 
     render(<ActivityDock onInspect={onInspect} />);
+    await user.click(await screen.findByRole("button", { name: "展开活动坞" }));
     await user.click(await screen.findByRole("button", { name: "查看活动详情" }));
     expect(runtime.getActivityObject).toHaveBeenCalledWith("wr1_demo");
     expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({

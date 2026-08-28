@@ -152,6 +152,7 @@ export function SettingsSpace() {
 
         {stage === "health" && <div>
           <h4>四库健康检查</h4>
+          {preflight?.ready === false ? <p role="status" className="muted">健康检查未通过；修复不可写、空间不足或文件系统问题后才能创建工作区。</p> : null}
           {Object.entries(DOMAIN_LABELS).map(([domain, label]) => {
             const domainHealth = health[domain];
             const healthDetails = [
@@ -167,7 +168,7 @@ export function SettingsSpace() {
           })}
           <div className="command-row">
             <button type="button" onClick={() => setStage("paths")}>返回修改</button>
-            <button type="button" className="btn-primary" disabled={wizardBusy} onClick={createWorkspace}>{wizardBusy ? "创建中…" : "创建工作区"}</button>
+            <button type="button" className="btn-primary" disabled={wizardBusy || preflight?.ready !== true} onClick={createWorkspace}>{wizardBusy ? "创建中…" : "创建工作区"}</button>
           </div>
         </div>}
 

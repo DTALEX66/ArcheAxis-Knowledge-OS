@@ -29,10 +29,11 @@ describe("App shell", () => {
   it("starts on the workspace space with aria-current on its rail button", () => {
     render(<App />);
     const main = screen.getByRole("main");
+    const rail = screen.getByRole("navigation", { name: "主空间导航" });
     expect(
       within(main).getByRole("heading", { name: /工作台总览/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /工作台/ })).toHaveAttribute(
+    expect(within(rail).getByRole("button", { name: /工作台/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -42,22 +43,50 @@ describe("App shell", () => {
     const user = userEvent.setup();
     render(<App />);
     const main = screen.getByRole("main");
+    const rail = screen.getByRole("navigation", { name: "主空间导航" });
     expect(
       within(main).getByRole("heading", { name: /工作台总览/ }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /资料库/ }));
+    await user.click(within(rail).getByRole("button", { name: /资料库/ }));
 
     expect(
       within(main).getByRole("heading", { name: /原件库/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /资料库/ })).toHaveAttribute(
+    expect(within(rail).getByRole("button", { name: /资料库/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("button", { name: /工作台/ })).not.toHaveAttribute(
+    expect(within(rail).getByRole("button", { name: /工作台/ })).not.toHaveAttribute(
       "aria-current",
     );
+  });
+
+  it("moves from the Recovery Shell into the workspace when background startup becomes ready", async () => {
+    let recoveryCalls = 0;
+    window.__TAURI__ = { core: { invoke: vi.fn(async (command: string) => {
+      if (command === "recovery_status") {
+        recoveryCalls += 1;
+        return recoveryCalls === 1
+          ? { state: "booting", safe_mode: false, backend_available: false, message: "正在启动", backups: [], external_dev: false }
+          : { state: "ready", safe_mode: false, backend_available: true, message: "已就绪", backups: [], external_dev: false };
+      }
+      if (command === "backend_info") return { port: 4312, token: "memory-only", scopes: ["workspace:write"] };
+      throw new Error(`unexpected command ${command}`);
+    }) } };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/v1/system/handshake")) return { ok: true, status: 200, json: async () => ({ product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.11", source_commit: "abc1234", schema_version: 15, runtime_mode: "desktop", workspace_id: "workspace-1", capabilities: [], migration_state: "ready" }) } as Response;
+      if (url.endsWith("/workspace/api/status")) return { ok: true, status: 200, json: async () => ({ status: "available" }) } as Response;
+      if (url.endsWith("/workspace/api/v1/home")) return { ok: true, status: 200, json: async () => ({ release: {}, counts: {}, capabilities: {}, components: {}, recent_activity: [] }) } as Response;
+      if (url.includes("/workspace/api/v1/activity")) return { ok: true, status: 200, json: async () => ({ items: [], next_cursor: null }) } as Response;
+      if (url.endsWith("/workspace/api/delivery")) return { ok: true, status: 200, json: async () => ({ summary: { jobs: 0, outbox: {}, receipts: {} } }) } as Response;
+      throw new Error(`unexpected URL ${url}`);
+    }));
+
+    render(<App />);
+    expect(await screen.findByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
+    expect(await screen.findByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
   });
 
   it("replaces the six-space workspace with the Recovery Shell after desktop bootstrap fails", async () => {

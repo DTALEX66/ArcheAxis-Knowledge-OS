@@ -6,7 +6,7 @@
 
 > **UI 发布缺口纠偏（2026-08-27）**：上述发布裁决不包含 OSUI v3 设计采用、中文一致性与真实视觉对比门，因此 v0.6.11 只能判定发布工程 PASS，不能判定 UI 产品验收 PASS。该 tag/Release 保持不可变；当前 main 的 OSUI Archive Desk 生产接入必须经过新的 Chromium/Tauri/exact-SHA 候选后才能进入后续版本。见 [`current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`](current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md)。
 
-> 更新：2026-08-27。本页是能力状态入口；R2 当前矩阵见 [`current/AXR_CURRENT_REALITY_2026-08-27.md`](current/AXR_CURRENT_REALITY_2026-08-27.md)。旧审计文件是历史快照；实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
+> 更新：2026-08-28。本页是能力状态入口；前端单壳收敛当前事实见 [`current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md)。旧审计文件是历史快照；实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
 
@@ -59,7 +59,7 @@
 
 ## 仍保留的债务
 
-1. v0.6.11 没有 UI 设计采用与语言一致性 release gate；当前纠偏尚未发布，必须完成真实 Chromium 多尺寸截图、Windows WebView、Tauri/installer、exact-SHA CI 和新版本资产读回。
+1. v0.6.11 没有 UI 设计采用与语言一致性 release gate；当前分支已完成 canonical React/Tauri 单壳、legacy Dashboard 清退、DTO/Setup/Recovery 修复与真实 Chromium 多尺寸门，仍须完成 Windows WebView、Tauri/installer、exact-SHA CI 和新版本资产读回。
 2. `knowledge_base/api.py` 仍包含遗留领域路由；复合、质量、投影路由已经拆出，后续继续按领域迁移。
 3. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
 4. 旧细粒度 API 仍公开，路由面尚未真正缩减。
