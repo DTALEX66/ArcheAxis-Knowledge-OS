@@ -48,12 +48,13 @@ def test_known_blocked_components_present_and_blocked() -> None:
 def test_approved_default_engines_present() -> None:
     """The default engine set must be present with CURRENT or ADOPT disposition."""
     data = {c["name"].lower(): c["disposition"] for c in _ledger()["components"]}
-    for name in ["markitdown", "pytesseract", "trafilatura", "pdf.js"]:
+    for name in ["markitdown", "pytesseract", "trafilatura"]:
         key = next((k for k in data if name in k), None)
         assert key is not None, f"{name} missing from ledger"
         assert data[key] in {"CURRENT", "ADOPT"}, (
             f"{name} expected CURRENT/ADOPT, got {data[key]}"
         )
+    assert data["pdf.js"] == "REFERENCE"
 
 
 def test_blocked_components_not_in_default_engine_chain() -> None:

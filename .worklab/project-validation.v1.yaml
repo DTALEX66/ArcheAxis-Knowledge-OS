@@ -146,7 +146,6 @@ risk_classes:
   - id: ui
     description: UI resources, interaction, BFF/API consumed by UI
     paths:
-      - "app/workspace/ui/**"
       - "app/workspace/router.py"
       - "scripts/a0_browser_smoke.py"
       - "frontend/src/**"

@@ -16,8 +16,9 @@ def _job_section(workflow: str, name: str, next_name: str) -> str:
 def test_ci_runs_javascript_and_real_browser_gates() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    assert "node --check app/workspace/ui/assets/app.js" in workflow
+    assert "node --check app/workspace/ui/assets/app.js" not in workflow
     assert "browser-smoke:" in workflow
+    assert "npm ci --prefix frontend" in workflow
     assert "python scripts/a0_browser_smoke.py" in workflow
     assert "python -m playwright install --with-deps chromium" in workflow
 
@@ -293,18 +294,15 @@ def test_v0_6_6_development_version_uses_one_version_everywhere() -> None:
     assert "desktop shell did not exit after WM_CLOSE" in lifecycle
 
 
-def test_wheel_gate_requires_release_and_workspace_assets() -> None:
+def test_wheel_gate_requires_release_but_not_the_retired_workspace_ui() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
     wheel_job = _job_section(workflow, "wheel-smoke", "browser-smoke")
 
-    for member in (
-        '"app/release-manifest.json"',
-        '"app/workspace/ui/index.html"',
-        '"app/workspace/ui/assets/styles.css"',
-        '"app/workspace/ui/assets/app.js"',
-    ):
-        assert member in workflow
-    assert "assert client.get(\"/workspace\").status_code == 200" in workflow
+    assert '"app/release-manifest.json"' in workflow
+    assert '"app/workspace/ui/index.html"' not in workflow
+    assert '"app/workspace/ui/assets/styles.css"' not in workflow
+    assert '"app/workspace/ui/assets/app.js"' not in workflow
+    assert "assert client.get(\"/workspace\").status_code == 410" in workflow
     assert "assert client.get(\"/workspace/api/status\").status_code == 200" in workflow
     assert "payload['job_id']" not in wheel_job
     assert "SELECT job_id, aggregate_id FROM workspace_jobs_v1" in wheel_job

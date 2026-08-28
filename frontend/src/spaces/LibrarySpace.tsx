@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
-import { downloadLibraryAsset, listEvidenceAnchors, listLibraryAssets, type EvidenceAnchorDto, type LibraryAssetDto } from "../api/workspace";
+import { downloadLibraryAsset, downloadPdfAsset, listEvidenceAnchors, listLibraryAssets, type EvidenceAnchorDto, type LibraryAssetDto } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
 import { stateLabel, userErrorMessage } from "../presentation/labels";
 
@@ -32,12 +32,14 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     setAnchors([]);
     setTextPreview(null);
     try {
-      const blob = await downloadLibraryAsset(asset.raw_sha256);
+      const pdf = asset.mime_type === "application/pdf" || /\.pdf$/i.test(asset.source_name);
+      const blob = pdf
+        ? await downloadPdfAsset(asset.raw_sha256)
+        : await downloadLibraryAsset(asset.raw_sha256);
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       const nextUrl = URL.createObjectURL(blob);
       setObjectUrl(nextUrl);
       setOpened(asset);
-      const pdf = asset.mime_type === "application/pdf" || /\.pdf$/i.test(asset.source_name);
       if (pdf) {
         const matching: EvidenceAnchorDto[] = [];
         let cursor: string | undefined;
@@ -96,7 +98,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
         <div className="library-reader-grid">
           <div className="library-document">
             {opened.mime_type === "application/pdf" || /\.pdf$/i.test(opened.source_name)
-              ? <iframe title="PDF 原件阅读器" src={objectUrl} />
+              ? <iframe title="PDF 原件阅读器" src={objectUrl} sandbox="" />
               : textPreview !== null ? <pre>{textPreview}</pre> : <p>该格式已保留，可通过系统关联应用继续查看。</p>}
           </div>
           <aside aria-label="原件证据锚点">

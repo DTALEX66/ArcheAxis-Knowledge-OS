@@ -1,7 +1,7 @@
 # UI v3 产品路线图
 
 - 当前轨道：canonical React/Tauri 单壳收敛已实现，当前分支待原生 WebView / installer / exact-SHA 验证
-- 生产入口：主 Tauri React WebView；`/workspace` 保留兼容纵切并逐步迁移到同一 React 能力面
+- 生产入口：主 Tauri React WebView；`/workspace` 产品页返回 410，仅保留 `/workspace/api/*`
 - 设计底座：Archive Desk + Liquid Glass
 - 语言：中文优先
 
@@ -14,7 +14,7 @@
 | OCR / ffmpeg / ASR | 部分到已接入 | 缺依赖时显式失败 |
 | sqlite-vec | 已接入 | 可重建索引 |
 | FSRS / BKT | 已接入 | 只影响人类学习证据 |
-| PDF.js 6.2.108 | 已接入 | 同源、禁 eval、禁文档脚本 |
+| PDF 阅读 | 已接入 | 后端魔数/大小校验；sandboxed Blob frame；不再分发 PDF.js |
 | Tauri / NSIS / Green / Portable | 已发布 | 项目数据边界独立 |
 
 ## 当前生产页面
@@ -31,8 +31,8 @@
 | 掌握与反馈 | 部分接入 | Human/Machine split projection |
 | 机器知识 | 部分接入 | Approved/candidate governance |
 | 证据中心 | 已接入 | Lifecycle/PDF/Anchor/Exchange/Backup |
-| 视觉课件 | 规划面已接入 | 暂无真实学习对象/播放器 |
-| 空间记忆 | 规划面已接入 | 暂无真实路线/设备能力 |
+| 视觉课件 | 文档规划 | 不进入普通用户导航 |
+| 空间记忆 | 文档规划 | 不进入普通用户导航 |
 | 路线图与设计史 | 已接入 | 受版本控制的产品真值 |
 
 ## 下一阶段

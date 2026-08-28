@@ -5,6 +5,7 @@ import {
   createBackup,
   deprecateMachineKnowledge,
   downloadLibraryAsset,
+  downloadPdfAsset,
   getStatus,
   getActivity,
   getHome,
@@ -141,6 +142,11 @@ describe("runtime handshake client", () => {
           }),
         } as Response;
       }
+      if (url.includes("/api/pdf/")) {
+        expect(init?.headers).toMatchObject({ "X-ArcheAxis-Launch-Token": "memory-only" });
+        expect(init?.headers).not.toHaveProperty("Authorization");
+        return { ok: true, blob: async () => new Blob(["%PDF-1.7"], { type: "application/pdf" }) } as Response;
+      }
       if (url.includes("/content")) {
         expect(init?.headers).toMatchObject({ "X-ArcheAxis-Launch-Token": "memory-only" });
         expect(init?.headers).not.toHaveProperty("Authorization");
@@ -161,6 +167,7 @@ describe("runtime handshake client", () => {
     await createBackup("release-check");
     await verifyBackup("release-check");
     await expect(downloadLibraryAsset("a".repeat(64))).resolves.toBeInstanceOf(Blob);
+    await expect(downloadPdfAsset("b".repeat(64))).resolves.toBeInstanceOf(Blob);
     await getHome();
     await getActivity();
 
@@ -172,6 +179,7 @@ describe("runtime handshake client", () => {
     expect(calls.some(([url]) => url.endsWith("/workspace/api/backup/verify?name=release-check"))).toBe(true);
     expect(calls.some(([url]) => url.endsWith("/workspace/api/v1/home"))).toBe(true);
     expect(calls.some(([url]) => url.endsWith("/workspace/api/v1/activity?limit=5"))).toBe(true);
+    expect(calls.some(([url]) => url.endsWith(`/workspace/api/pdf/sha256:${"b".repeat(64)}`))).toBe(true);
   });
 
   it("rejects an incompatible API contract before requesting a workspace projection", async () => {

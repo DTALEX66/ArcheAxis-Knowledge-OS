@@ -2,7 +2,7 @@
   "schema_version": 2,
   "ledger_name": "ArcheAxis Knowledge — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "updated": "2026-08-27",
+  "updated": "2026-08-29",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
   "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
   "disposition_labels": {
@@ -31,15 +31,12 @@
       "capability": "pdf-viewer",
       "code_license": "Apache-2.0",
       "model_license": null,
-      "disposition": "CURRENT",
-      "qualification": [
-        "source",
-        "installed"
-      ],
-      "product_path": "app/workspace/ui/assets/",
-      "evidence": "Vendored ESM build + worker; package-data and fail-closed browser options tested; exact browser smoke pending current tree",
-      "decision": "Upgrade to current fixed 6.2.108 line. Load as same-origin ES module; disable eval and document scripting. NOTICE and SBOM component required.",
-      "upstream_note": "6.2.108 includes the 2026 sandbox-escape advisory fix; archive/npm integrity recorded by project task evidence."
+      "disposition": "REFERENCE",
+      "qualification": [],
+      "product_path": null,
+      "evidence": "Historical loopback UI dependency removed when the duplicate product surface was retired; no PDF.js bytes are packaged or shipped.",
+      "decision": "Reference only. Canonical React/Tauri reads PDFs through the backend magic/size-validated application/pdf endpoint and a sandboxed Blob frame.",
+      "upstream_note": "The former 6.2.108 vendored assets and license remain recoverable from Git history but are absent from current release inputs."
     },
     {
       "id": "C002",

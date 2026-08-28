@@ -84,7 +84,6 @@ def test_tests_directory_classifies_as_ordinary_python() -> None:
 
 def test_ui_requires_browser_smoke() -> None:
     for path in (
-        "app/workspace/ui/assets/app.js",
         "frontend/src/app/App.tsx",
         "frontend/src/components/RecoveryShell.tsx",
         "frontend/src/design-system/tokens.css",
@@ -185,7 +184,7 @@ def test_unknown_path_is_unclassified_block() -> None:
 
 
 def test_mixed_change_takes_union() -> None:
-    plan = _classify(["app/main.py", "app/workspace/ui/assets/app.js", "docs/README.md"])
+    plan = _classify(["app/main.py", "frontend/src/app/App.tsx", "docs/README.md"])
     assert {"py-primary", "browser-smoke", "static"} <= set(plan["required_gates"])
 
 

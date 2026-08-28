@@ -235,15 +235,3 @@ capabilities:
       healthcheck_command: "Test-Path shared/models/magika/model.onnx"
       required_by: [file-detection]
       local_only: true
-
-  plugins:
-    - name: pdfjs
-      purpose: "PDF 渲染库（vendored 6.2.108，app/workspace/ui/assets；eval/scripting disabled）"
-      version_range: "6.2.108"
-      platform: windows-x64
-      license: "Apache-2.0"
-      source_url: "vendored"
-      install_method: 内置
-      healthcheck_command: "Test-Path app/workspace/ui/assets/pdf.min.js"
-      required_by: [workspace-ui]
-      local_only: true

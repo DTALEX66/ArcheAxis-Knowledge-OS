@@ -266,9 +266,6 @@ jobs:
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82
 
-      - name: Validate Workspace JavaScript syntax
-        run: node --check app/workspace/ui/assets/app.js
-
   wheel-smoke:
     timeout-minutes: 10
     runs-on: ubuntu-latest
@@ -300,9 +297,6 @@ jobs:
               "app/runtime_entrypoint.py",
               "app/research/github.py",
               "app/workspace/job_outbox.py",
-              "app/workspace/ui/index.html",
-              "app/workspace/ui/assets/styles.css",
-              "app/workspace/ui/assets/app.js",
               "shared/research_store.py",
               "shared/research_migration.py",
               "shared/media_extractor.py",
@@ -375,7 +369,7 @@ jobs:
           with TestClient(app) as client:
               assert client.get("/health").status_code == 200
               assert client.get("/kb").status_code == 200
-              assert client.get("/workspace").status_code == 200
+              assert client.get("/workspace").status_code == 410
               assert client.get("/workspace/api/status").status_code == 200
           runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])
           assert (runtime / "archeaxis.sqlite").exists()
@@ -506,6 +500,11 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -521,7 +520,9 @@ jobs:
           uv pip install --system --require-hashes -r locked-browser.txt
       - name: Install Chromium
         run: python -m playwright install --with-deps chromium
-      - name: Run real Workspace browser regressions
+      - name: Install locked canonical frontend tooling
+        run: npm ci --prefix frontend --ignore-scripts
+      - name: Run real canonical React browser regressions
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
         run: python scripts/a0_browser_smoke.py

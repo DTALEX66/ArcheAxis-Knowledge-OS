@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | `desktop/` | Supervisor、打包与生命周期逻辑的迁移来源 | 根 `src-tauri/` 实现同等 Supervisor、Recovery Shell、三形态构建与 Windows 生命周期回归后，Owner 批准删除。 |
 | `OSUI/` | legacy/reference | `frontend/` 的相应空间有真实 API、浏览器回归与可访问性证据后，Owner 批准删除。 |
-| `app/workspace/ui/` | legacy/reference | 根 React 线覆盖其仍需保留的用户工作流，并完成回归后，Owner 批准删除。 |
+| `app/workspace/ui/` | removed | canonical React/Tauri 已覆盖保留工作流；旧 loopback 产品壳、资产路由和 package-data 已删除。 |
 | 根静态页面 | legacy/reference | 替代路径具备等价真实功能并经 Owner 批准后，才可删除。 |
 
 任何 legacy/reference 路径不得作为 v0.6.0 发布产物的 UI 或桌面真相来源。

@@ -1,1150 +1,217 @@
-"""Real Chromium regression gate for the local Workspace truth boundary."""
-
+#!/usr/bin/env python3
+"""Real-browser smoke for the canonical React/Tauri product shell."""
 from __future__ import annotations
 
+import json
 import os
 import subprocess
-import sys
+import time
 from pathlib import Path
+from urllib.parse import urlsplit
+from urllib.request import urlopen
 
-# CI runs this script directly (`python scripts/a0_browser_smoke.py`) with a
-# system Python that does NOT have the project package installed
-# (--no-emit-project). Anchor the repository root on sys.path so `app.*`
-# imports resolve from the checkout, exactly like `uv run` does locally.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from playwright.sync_api import Route, sync_playwright
 
-from playwright.sync_api import Page, Route, expect, sync_playwright
-from runtime_http_smoke import running_core
+ROOT = Path(__file__).resolve().parents[1]
+RUNTIME = ROOT / ".hermes" / "task-runtime"
+ARTIFACTS = ROOT / ".hermes" / "task-artifacts" / "browser-smoke"
+PORT = 5187
+URL = f"http://127.0.0.1:{PORT}"
+API_PREFIX = "/" + "api"
+WORKSPACE_PREFIX = "/" + "workspace"
 
-WORKSPACE_ROOT = "/" + "workspace"
-STATUS_PATTERN = f"**{WORKSPACE_ROOT}/api/status"
-INTAKE_PATTERN = f"**{WORKSPACE_ROOT}/api/intake/url"
-RESEARCH_PATTERN = f"**{WORKSPACE_ROOT}/api/research"
-JOBS_PATTERN = f"**{WORKSPACE_ROOT}/api/jobs"
+HANDSHAKE = {
+    "product_id": "archeaxis-workspace",
+    "product_name": "ArcheAxis Knowledge",
+    "api_contract": "1.x",
+    "backend_version": "browser-smoke",
+    "source_commit": os.environ.get("GITHUB_SHA", "worktree"),
+    "schema_version": 15,
+    "runtime_mode": "browser-smoke",
+    "workspace_id": "browser-smoke",
+    "capabilities": [],
+    "migration_state": "ready",
+}
 
 
-def _partial_status(route: Route) -> None:
-    route.fulfill(status=200, content_type="application/json", body='{"schema_version":"v1"}')
+def api_payload(url: str) -> dict[str, object]:
+    path = urlsplit(url).path
+    if path == f"{API_PREFIX}/v1/system/handshake":
+        return HANDSHAKE
+    if path == f"{WORKSPACE_PREFIX}/api/v1/home":
+        return {
+            "release": {"version": "candidate", "status": "candidate", "public": False},
+            "counts": {"research": {"candidate": 0}, "jobs": {"succeeded": 0}},
+            "components": {"api": "available", "database": "available"},
+            "capabilities": {"local_url_file_github_intake": "available"},
+            "recent_activity": [],
+        }
+    if path == f"{WORKSPACE_PREFIX}/api/v1/activity":
+        return {"items": [], "next_cursor": None}
+    if path == f"{WORKSPACE_PREFIX}/api/delivery":
+        return {"summary": {"jobs": 0, "outbox": {}, "receipts": {}}}
+    if path == f"{WORKSPACE_PREFIX}/api/library":
+        return {"items": []}
+    if path == f"{WORKSPACE_PREFIX}/api/evidence/anchors":
+        return {"count": 0, "items": [], "next_cursor": None}
+    if path == f"{WORKSPACE_PREFIX}/api/evidence/bundles":
+        return {"items": []}
+    if path == f"{WORKSPACE_PREFIX}/api/research":
+        return {"items": []}
+    if path in {
+        f"{WORKSPACE_PREFIX}/api/runtime/knowledge",
+        f"{WORKSPACE_PREFIX}/api/runtime/candidates",
+    }:
+        return {"items": []}
+    if path == f"{API_PREFIX}/v1/setup/status":
+        return {"ready": True, "steps": []}
+    if path == f"{API_PREFIX}/v1/learning/review-queue":
+        return {"due_count": 0, "due": []}
+    if path == f"{WORKSPACE_PREFIX}/api/status":
+        return {"status": "available"}
+    return {}
 
 
-def _network_failure(route: Route) -> None:
-    route.abort("connectionfailed")
-
-
-def _intake_success(route: Route) -> None:
-    route.fulfill(
-        status=200,
-        content_type="application/json",
-        body=(
-            '{"source_type":"web","source_count":1,"claim_count":2,'
-            '"evidence_count":3,"requires_human_review":true}'
-        ),
+def start_vite(log_path: Path) -> tuple[subprocess.Popen[bytes], object]:
+    log = log_path.open("wb")
+    if os.name == "nt":
+        command = [
+            "cmd.exe", "/d", "/s", "/c",
+            f"npm --prefix frontend run dev -- --host 127.0.0.1 --port {PORT}",
+        ]
+    else:
+        command = [
+            "npm", "--prefix", "frontend", "run", "dev", "--",
+            "--host", "127.0.0.1", "--port", str(PORT),
+        ]
+    process = subprocess.Popen(
+        command,
+        cwd=ROOT,
+        stdout=log,
+        stderr=subprocess.STDOUT,
     )
-
-
-def _partial_intake_success(route: Route) -> None:
-    route.fulfill(status=200, content_type="application/json", body="{}")
-
-
-def _research_queue(route: Route) -> None:
-    route.fulfill(status=200, content_type="application/json", body=(
-        '{"schema_version":"v1","items":[{"source":"https://example.com/review",'
-        '"claim_count":2,"evidence_count":3,"verification":"unverified",'
-        '"created_at":"2026-07-23T00:00:00Z"}]}'
-    ))
-
-
-def exercise_workspace(page: Page, base_url: str) -> None:
-    console_errors: list[str] = []
-    page_errors: list[str] = []
-    page.on("console", lambda message: console_errors.append(message.text) if message.type == "error" else None)
-    page.on("pageerror", lambda error: page_errors.append(str(error)))
-    page.emulate_media(reduced_motion="reduce")
-
-    page.goto(f"{base_url}/workspace#overview]", wait_until="networkidle")
-    assert page.url.endswith("#unavailable")
-    assert page.get_by_role("heading", name="功能尚未接入").is_visible()
-
-    page.evaluate("location.hash = '#projects'")
-    page.get_by_role("heading", name="项目").wait_for()
-    page.evaluate("location.hash = '#overview]'")
-    page.get_by_role("heading", name="功能尚未接入").wait_for()
-
-    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
-    assert page.locator("body").get_attribute("data-theme") == "apple-light"
-    assert page.locator(".workbench-hero").is_visible()
-    assert page.locator(".hero-ledger").is_visible()
-    assert page.locator(".next-actions").is_visible()
-    assert page.locator(".global-search").is_visible()
-    assert page.evaluate("document.body.classList.contains('dock-collapsed')")
-    visible_text = page.locator("body").inner_text()
-    for forbidden in (
-        "LOCAL ONLY",
-        "CONTEXT & EVIDENCE",
-        "LOCAL JOB CENTER",
-        "HUMAN REVIEW QUEUE",
-        "KNOWLEDGE CANDIDATES",
-        "TRUTH BOUNDARY",
-    ):
-        assert forbidden not in visible_text
-    page.get_by_role("button", name="深色外观").click()
-    assert page.locator("body").get_attribute("data-theme") == "deepspace"
-    page.get_by_role("button", name="浅色外观").click()
-    assert page.locator("body").get_attribute("data-theme") == "apple-light"
-    assert page.get_by_role("complementary", name="一级模块").is_visible()
-    assert page.get_by_role("complementary", name="上下文与证据检查器").is_visible()
-    assert page.get_by_role("region", name="活动坞").is_visible()
-    assert page.get_by_role("button", name="折叠上下文与证据检查器").is_visible()
-    page.get_by_role("button", name="折叠上下文与证据检查器").click()
-    assert page.evaluate("document.body.classList.contains('inspector-collapsed')")
-    page.get_by_role("button", name="展开上下文与证据检查器").click()
-    assert not page.evaluate("document.body.classList.contains('inspector-collapsed')")
-    page.get_by_role("button", name="展开活动坞").click()
-    assert not page.evaluate("document.body.classList.contains('dock-collapsed')")
-    page.get_by_role("button", name="折叠活动坞").click()
-    assert page.evaluate("document.body.classList.contains('dock-collapsed')")
-    assert not page.get_by_role("button", name="AI").count()
-    page.locator('.rail-item[title="系统"]').click()
-    settings_route = page.locator('.nav-item[data-page="settings"]')
-    assert settings_route.get_attribute("data-route-state") == "planned"
-    settings_route.get_by_text("设置", exact=True).is_visible()
-    page.locator('.rail-item[title="首页"]').click()
-    page.get_by_role("heading", name="工作台总览").wait_for()
-    page.get_by_text("异步处理器", exact=True).wait_for()
-    assert "异步处理器" in page.locator("#capability-summary").inner_text()
-    assert "已接入" in page.locator("#capability-summary").inner_text()
-    page.locator('.rail-item[title="首页"]').click()
-    delivery_route = page.locator('.nav-item[data-page="delivery"]')
-    assert delivery_route.get_attribute("data-route-state") == "partial"
-    assert delivery_route.get_by_text("部分接入", exact=True).is_visible()
-    delivery_route.get_by_text("投递回执", exact=True).click()
-    page.get_by_role("heading", name="投递回执").wait_for()
-    assert page.url.endswith("#delivery")
-
-    page.locator('.rail-item[title="学习"]').click()
-    learning_route = page.locator('.nav-item[data-page="learning"]')
-    learning_route.get_by_text("学习路线", exact=True).click()
-    page.get_by_role("heading", name="学习路线").wait_for()
-    assert page.url.endswith("#learning")
-
-    page.goto(f"{base_url}/workspace#visual-lesson", wait_until="networkidle")
-    page.get_by_role("heading", name="视觉课件工作室").wait_for()
-    page.get_by_role("button", name="02 证据关系 支持、反驳与背景").click()
-    page.get_by_role("heading", name="主张需要关系，而不是伪精确评分。").wait_for()
-    assert page.get_by_text("播放未开放", exact=True).is_visible()
-
-    page.goto(f"{base_url}/workspace#spatial-memory", wait_until="networkidle")
-    page.get_by_role("heading", name="空间记忆", exact=True).wait_for()
-    assert page.get_by_text("文字等价路线", exact=True).is_visible()
-
-    page.goto(f"{base_url}/workspace#roadmap", wait_until="networkidle")
-    page.get_by_role("heading", name="底座、吸收与下一阶段").wait_for()
-    assert page.get_by_text("已运行底座", exact=True).is_visible()
-
-    page.route(STATUS_PATTERN, _partial_status)
-    page.goto(f"{base_url}/workspace#diagnostics", wait_until="networkidle")
-    page.get_by_role("button", name="刷新").click()
-    page.get_by_text("系统状态", exact=True).wait_for()
-    assert "本地状态读取失败" in page.locator("#diagnostics-summary").inner_text()
-    page.unroute(STATUS_PATTERN, _partial_status)
-
-    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
-    intake_button = page.get_by_role("button", name="导入资料")
-    intake_button.click()
-    dialog = page.get_by_role("dialog", name="导入资料")
-    assert dialog.get_attribute("aria-modal") == "true"
-    assert page.evaluate("document.activeElement?.id") == "intake-url"
-    page.keyboard.press("Escape")
-    assert page.evaluate("document.activeElement?.dataset.action") == "intake"
-    intake_button.click()
-    page.get_by_label("网页地址").fill("https://example.com/offline")
-    page.route(INTAKE_PATTERN, _network_failure)
-    page.get_by_role("button", name="导入网页或代码仓库").click()
-    page.get_by_text("无法连接本地服务，请重试", exact=False).wait_for()
-    assert "处理中" not in page.locator("#intake-result").inner_text()
-    # Headless-shell and full Chromium report slightly different console
-    # noise (favicon 404s etc.); the invariant is that the routed failure
-    # surfaced as a real network error, not that it is the only message.
-    if not any("ERR_CONNECTION_FAILED" in error for error in console_errors):
-        print(f"::error::NET-ERROR-MISSING console={console_errors} page_errors={page_errors}")
-    assert any("ERR_CONNECTION_FAILED" in error for error in console_errors), console_errors
-    console_errors.clear()
-    page.unroute(INTAKE_PATTERN, _network_failure)
-
-    page.get_by_label("网页地址").fill("https://example.com/truth")
-    activity_reads: list[str] = []
-
-    def observe_activity_jobs(route: Route) -> None:
-        activity_reads.append("jobs")
-        route.continue_()
-
-    page.route(JOBS_PATTERN, observe_activity_jobs)
-    activity_reads.clear()
-    page.route(INTAKE_PATTERN, _intake_success)
-    page.get_by_role("button", name="导入网页或代码仓库").click()
-    page.locator("#intake-result").filter(has_text="下一步：等待人工复核").wait_for()
-    assert "jobs" in activity_reads
-    result = page.locator("#intake-result").inner_text()
-    assert "来源记录：1" in result
-    assert "候选要点：2" in result
-    assert "证据记录：3" in result
-    assert "引擎：自动" not in result
-    assert "内容长度：0" not in result
-    assert all(identifier not in result for identifier in ("package_id", "job_id", "command_id"))
-    page.unroute(JOBS_PATTERN, observe_activity_jobs)
-    page.unroute(INTAKE_PATTERN, _intake_success)
-
-    page.get_by_label("网页地址").fill("https://example.com/partial")
-    page.route(INTAKE_PATTERN, _partial_intake_success)
-    page.get_by_role("button", name="导入网页或代码仓库").click()
-    page.locator("#intake-result").filter(has_text="处理失败").wait_for()
-    assert "处理完成" not in page.locator("#intake-result").inner_text()
-    page.unroute(INTAKE_PATTERN, _partial_intake_success)
-
-    page.route(RESEARCH_PATTERN, _research_queue)
-    page.goto(f"{base_url}/workspace#research", wait_until="networkidle")
-    page.get_by_role("heading", name="察微研究").wait_for()
-    page.get_by_text("网页来源 · example.com", exact=True).wait_for()
-    assert "https://example.com/review" not in page.locator("#research-queue").inner_text()
-    assert page.get_by_role("button", name="批准进入知识候选").is_visible()
-    page.unroute(RESEARCH_PATTERN, _research_queue)
-
-    page.set_viewport_size({"width": 1280, "height": 800})
-    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
-    assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
-
-    page.set_viewport_size({"width": 390, "height": 844})
-    page.evaluate("localStorage.removeItem('aa-inspector')")
-    page.reload(wait_until="networkidle")
-    assert page.get_by_role("heading", name="工作台总览").is_visible()
-    assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
-    assert page.evaluate("document.body.classList.contains('inspector-collapsed')")
-    inspector = page.locator("#inspector")
-    assert not inspector.evaluate("element => element.classList.contains('open')")
-    external_inspector_trigger = page.locator(".inspector-external-trigger")
-    expect(external_inspector_trigger).to_be_visible()
-    expect(external_inspector_trigger).to_have_attribute("aria-expanded", "false")
-    assert inspector.get_attribute("aria-hidden") == "true"
-    assert inspector.evaluate("element => element.hasAttribute('inert')")
-    external_inspector_trigger.click()
-    expect(external_inspector_trigger).to_have_attribute("aria-expanded", "true")
-    assert page.evaluate("document.activeElement?.classList.contains('inspector-internal-trigger')")
-    assert inspector.get_attribute("aria-hidden") == "false"
-    assert not inspector.evaluate("element => element.hasAttribute('inert')")
-    page.locator(".inspector-internal-trigger").click()
-    expect(external_inspector_trigger).to_have_attribute("aria-expanded", "false")
-    assert page.evaluate("document.activeElement?.classList.contains('inspector-external-trigger')")
-    assert inspector.get_attribute("aria-hidden") == "true"
-    assert inspector.evaluate("element => element.hasAttribute('inert')")
-    # A mobile-closed Inspector must become operable when the same document
-    # crosses to desktop. Desktop keeps its collapsed panel in the accessibility
-    # tree so its internal reopen trigger remains usable.
-    page.set_viewport_size({"width": 1280, "height": 800})
-    expect(inspector).to_have_attribute("aria-hidden", "false")
-    assert not inspector.evaluate("element => element.hasAttribute('inert')")
-    internal_inspector_trigger = page.locator(".inspector-internal-trigger")
-    expect(internal_inspector_trigger).to_be_visible()
-    internal_inspector_trigger.click()
-    expect(external_inspector_trigger).to_have_attribute("aria-expanded", "true")
-    assert inspector.evaluate("element => element.classList.contains('open')")
-
-    # A desktop-collapsed Inspector must become genuinely inaccessible off-canvas
-    # on mobile, while its external trigger remains an actual reopen path.
-    internal_inspector_trigger.click()
-    expect(external_inspector_trigger).to_have_attribute("aria-expanded", "false")
-    page.set_viewport_size({"width": 390, "height": 844})
-    expect(inspector).to_have_attribute("aria-hidden", "true")
-    assert inspector.evaluate("element => element.hasAttribute('inert')")
-    page.wait_for_function(
-        """() => document.querySelector('#inspector').getBoundingClientRect().left >= window.innerWidth"""
-    )
-    inspector_geometry = page.evaluate(
-        """() => { const rect = document.querySelector('#inspector').getBoundingClientRect(); return { left: rect.left, viewportWidth: window.innerWidth }; }"""
-    )
-    assert inspector_geometry["left"] >= inspector_geometry["viewportWidth"], inspector_geometry
-    expect(external_inspector_trigger).to_be_visible()
-    external_inspector_trigger.click()
-    expect(external_inspector_trigger).to_have_attribute("aria-expanded", "true")
-    assert inspector.get_attribute("aria-hidden") == "false"
-    assert not inspector.evaluate("element => element.hasAttribute('inert')")
-
-    page.locator('.rail-item[title="首页"]').click()
-    assert page.evaluate("document.body.classList.contains('subnav-open')")
-    assert page.locator('.rail-item[title="首页"]').get_attribute("aria-expanded") == "true"
-    assert page.locator("#nav").get_attribute("aria-hidden") == "false"
-    assert not page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.evaluate("document.activeElement?.dataset.page") == "overview"
-    page.locator('.nav-item[data-page="delivery"]').click()
-    page.get_by_role("heading", name="投递回执").wait_for()
-    assert page.url.endswith("#delivery")
-    assert not page.evaluate("document.body.classList.contains('subnav-open')")
-    assert page.evaluate("document.activeElement?.getAttribute('title')") == "首页"
-    assert page.locator('.rail-item[title="首页"]').get_attribute("aria-expanded") == "false"
-    assert page.locator("#nav").get_attribute("aria-hidden") == "true"
-    assert page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-
-    page.locator('.rail-item[title="学习"]').click()
-    assert page.evaluate("document.body.classList.contains('subnav-open')")
-    page.locator('.nav-item[data-page="learning"]').click()
-    page.get_by_role("heading", name="学习路线").wait_for()
-    assert page.url.endswith("#learning")
-    assert not page.evaluate("document.body.classList.contains('subnav-open')")
-
-    page.locator('.rail-item[title="学习"]').click()
-    assert page.evaluate("document.body.classList.contains('subnav-open')")
-    page.keyboard.press("Escape")
-    assert not page.evaluate("document.body.classList.contains('subnav-open')")
-    assert page.evaluate("document.activeElement?.getAttribute('title')") == "学习"
-    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "false"
-    assert page.locator("#nav").get_attribute("aria-hidden") == "true"
-    assert page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-
-    # Cross the responsive breakpoint without reloading. Desktop exposes the
-    # active module, while mobile closes and removes its routes from focus.
-    page.set_viewport_size({"width": 1280, "height": 800})
-    expect(page.locator("#nav")).to_have_attribute("aria-hidden", "false")
-    assert not page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "true"
-    page.locator('.nav-item[data-page="learning"]').focus()
-    page.set_viewport_size({"width": 390, "height": 844})
-    expect(page.locator("#nav")).to_have_attribute("aria-hidden", "true")
-    assert page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.evaluate("document.activeElement?.getAttribute('title')") == "学习"
-    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "false"
-    page.set_viewport_size({"width": 1280, "height": 800})
-    expect(page.locator("#nav")).to_have_attribute("aria-hidden", "false")
-    assert not page.locator("#nav").evaluate("element => element.hasAttribute('inert')")
-    assert page.locator('.rail-item[title="学习"]').get_attribute("aria-expanded") == "true"
-
-    assert not page_errors, page_errors
-    assert not console_errors, console_errors
-
-
-def exercise_pdf_reader(page: Page, base_url: str, data_dir: str) -> None:
-    """AXW-022A/022B real-browser PDF reader: load → page → zoom → search.
-
-    Stores a real 2-page PDF (generated via PyMuPDF) into the content-
-    addressed serving root, opens it in the Evidence page, and proves the
-    PDF.js renderer pages, zooms and searches through the real UI.
-    """
-    # Generate a real 2-page PDF with a searchable text layer.
-    import pymupdf
-
-    from app.evidence.anchor import build_evidence_anchor, store_evidence_anchor
-    from app.ingestion.raw_asset import RawAssetStore
-    from shared.storage import DB_PATH
-
-    pdf_path = Path(data_dir) / "browser-pdf-sample.pdf"
-    doc = pymupdf.open()
-    for page_no, heading in ((1, "Evidence Anchoring"), (2, "Reproducible Recall")):
-        pdf_page_obj = doc.new_page()
-        pdf_page_obj.insert_text((72, 100), f"Page {page_no}: {heading}", fontsize=16)
-        pdf_page_obj.insert_text((72, 140), "Content-addressed original bytes stay local.", fontsize=11)
-    doc.save(str(pdf_path))
-    doc.close()
-    blob = pdf_path.read_bytes()
-
-    source_archive = RawAssetStore(Path(data_dir) / "source_archive" / "raw-assets")
-    stored_pdf = source_archive.store_original(
-        blob,
-        "browser-pdf-sample.pdf",
-        mime_type="application/pdf",
-    )
-    content_key = f"sha256:{stored_pdf.sha256}"
-    other_pdf = source_archive.store_original(
-        b"%PDF-1.4\nother PDF source",
-        "other-pdf-source.pdf",
-        mime_type="application/pdf",
-    )
-    other_content_key = f"sha256:{other_pdf.sha256}"
-    existing_page_anchor = build_evidence_anchor(
-        stored_pdf.sha256,
-        "existing-page-one",
-        {"page": 1},
-    )
-    store_evidence_anchor(DB_PATH, existing_page_anchor)
-    existing_anchor_id = existing_page_anchor.anchor_id
-    # More than one server page of unrelated/non-page anchors proves the UI
-    # paginates, filters to the selected PDF, and ignores conversion locators.
-    for index in range(105):
-        store_evidence_anchor(
-            DB_PATH,
-            build_evidence_anchor(
-                "f" * 64,
-                f"conversion-{index}",
-                {"block_id": f"block-{index}"},
-            ),
-        )
-    store_evidence_anchor(
-        DB_PATH,
-        build_evidence_anchor("e" * 64, "other-pdf", {"page": 2}),
-    )
-
-    console_errors: list[str] = []
-
-    def _capture_console(message) -> None:
-        if message.type in ("error", "warning") or message.text.startswith("PDF_"):
-            console_errors.append(f"[{message.type}] {message.text[:300]}")
-
-    try:
-        page.on("console", _capture_console)
-        page.on("pageerror", lambda e: console_errors.append(f"[pageerror] {e}"))
-        page.goto(f"{base_url}/workspace#evidence", wait_until="networkidle")
-        page.get_by_role("heading", name="PDF 证据查看").wait_for()
-
-        # Hold A's PDF request, switch to B, then release A. A stale response
-        # must never rebind or repaint after the source generation changed.
-        pdf_route_prefix = "/" + "/".join(("workspace", "api", "pdf")) + "/"
-        page.evaluate(
-            """({key, routePrefix}) => {
-                const originalFetch = window.fetch.bind(window);
-                let release;
-                window.__pdfHeld = false;
-                window.__releaseHeldPdf = () => release?.();
-                window.__restorePdfFetch = () => { window.fetch = originalFetch; };
-                window.fetch = (input, init) => {
-                    const url = String(input);
-                    if (url.includes(routePrefix) && url.includes(encodeURIComponent(key))) {
-                        return new Promise((resolve, reject) => {
-                            window.__pdfHeld = true;
-                            release = () => originalFetch(input, init).then(resolve, reject);
-                        });
-                    }
-                    return originalFetch(input, init);
-                };
-            }""",
-            {"key": content_key, "routePrefix": pdf_route_prefix},
-        )
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function("() => window.__pdfHeld === true")
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        page.evaluate("() => window.__releaseHeldPdf()")
-        page.wait_for_timeout(1000)
-        assert page.locator("#pdf-viewer canvas").count() == 0
-        assert page.locator("#pdf-page-info").inner_text() == "—"
-        page.evaluate("() => window.__restorePdfFetch()")
-
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-
-        # Renderer loaded: page info shows "1 / 2" once the first page draws.
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
-            timeout=15000,
-        )
-        assert page.locator("#pdf-viewer canvas").count() >= 1
-
-        # Changing the source selection must unload the rendered document;
-        # otherwise an A selection could be anchored under B's identity.
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        assert page.locator("#pdf-viewer canvas").count() == 0
-        assert page.locator("#pdf-annotate").is_disabled()
-        assert page.locator("#pdf-page-info").inner_text() == "—"
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
-            timeout=15000,
-        )
-
-        # Wrap newly loaded PDF documents so getPage can be held while the
-        # active source is switched. Releasing after destroy must be handled as
-        # stale cancellation, never as an unhandled page/console error.
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        page.evaluate(
-            """async ({key, routePrefix}) => {
-                const bytes = await (await fetch(routePrefix + encodeURIComponent(key))).arrayBuffer();
-                const probeTask = pdfjsLib.getDocument({
-                    data: bytes,
-                    isEvalSupported: false,
-                    enableScripting: false,
-                });
-                const probeDocument = await probeTask.promise;
-                const prototype = Object.getPrototypeOf(probeDocument);
-                window.__pdfDocumentPrototype = prototype;
-                await probeTask.destroy();
-                const originalGetPage = prototype.getPage;
-                let release;
-                window.__pdfPageHeld = false;
-                window.__holdPdfPage = false;
-                window.__releasePdfPage = () => release?.();
-                window.__restorePdfDocument = () => { prototype.getPage = originalGetPage; };
-                prototype.getPage = async function(pageNumber) {
-                    if (window.__holdPdfPage) {
-                        window.__pdfPageHeld = true;
-                        await new Promise((resolve) => {
-                            release = () => {
-                                window.__holdPdfPage = false;
-                                window.__pdfPageHeld = false;
-                                resolve();
-                            };
-                        });
-                    }
-                    return originalGetPage.call(this, pageNumber);
-                };
-            }""",
-            {"key": content_key, "routePrefix": pdf_route_prefix},
-        )
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function("() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')")
-
-        console_errors.clear()
-        page.evaluate("() => { window.__holdPdfPage = true; }")
-        page.get_by_role("button", name="下一页 ›").click()
-        page.wait_for_function("() => window.__pdfPageHeld === true")
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        page.evaluate("() => window.__releasePdfPage()")
-        page.wait_for_timeout(250)
-        assert page.locator("#pdf-page-info").inner_text() == "—"
-        assert not console_errors, console_errors
-
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function("() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')")
-        console_errors.clear()
-        page.evaluate("() => { window.__holdPdfPage = true; }")
-        page.get_by_label("页内搜索").fill("Reproducible")
-        page.get_by_role("button", name="搜索").click()
-        page.wait_for_function("() => window.__pdfPageHeld === true")
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        page.evaluate("() => window.__releasePdfPage()")
-        page.wait_for_timeout(250)
-        assert page.locator("#pdf-page-info").inner_text() == "—"
-        assert not console_errors, console_errors
-        page.evaluate("() => window.__restorePdfDocument()")
-
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
-            timeout=15000,
-        )
-
-        # A selected page-1 range must become non-annotatable synchronously
-        # when page 2 starts rendering, even while the old canvas is visible.
-        page.evaluate(
-            """() => {
-                const layer = document.querySelector('.pdf-text-layer');
-                const range = document.createRange();
-                range.selectNodeContents(layer);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                document.dispatchEvent(new Event('selectionchange'));
-            }"""
-        )
-        page.wait_for_function("() => !document.querySelector('#pdf-annotate').disabled")
-        page.get_by_role("button", name="下一页 ›").click()
-        assert page.locator("#pdf-annotate").is_disabled()
-        assert page.locator("#pdf-page-info").inner_text() != "1 / 2"
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')",
-            timeout=10000,
-        )
-
-        # Zoom in moves the zoom info off 100%.
-        page.get_by_role("button", name="＋").click()
-        assert page.locator("#pdf-zoom-info").inner_text() != "100%"
-
-        # Search finds the text on page 2. searchPdf loops pages asynchronously
-        # and only renders (and alerts) after the match is found; waiting for
-        # the dialog guarantees renderPage finished and the text layer is fresh.
-        page.get_by_label("页内搜索").fill("Reproducible")
-        with page.expect_event("dialog") as dialog_info:
-            page.get_by_role("button", name="搜索").click()
-        dialog = dialog_info.value
-        dialog.dismiss()
-
-        # Selecting text enables the evidence-annotation button (AXW-022B).
-        # The overlay text layer makes PDF text selectable; the canvas alone
-        # cannot hold a selection.
-        page.wait_for_function(
-            "() => document.querySelectorAll('.pdf-text-layer span').length > 0",
-            timeout=10000,
-        )
-        page.evaluate(
-            """() => {
-                const layer = document.querySelector('.pdf-text-layer');
-                const range = document.createRange();
-                range.selectNodeContents(layer);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                document.dispatchEvent(new Event('selectionchange'));
-            }"""
-        )
-        page.wait_for_function(
-            "() => !document.querySelector('#pdf-annotate').disabled",
-            timeout=10000,
-        )
-        anchor_create_route = "/" + "/".join(("workspace", "api", "evidence", "anchor"))
-        # On the same PDF, a late first failure must not overwrite the newer
-        # second success.
-        page.evaluate(
-            """(routePath) => {
-                const originalFetch = window.fetch.bind(window);
-                let rejectHeld;
-                let heldOnce = false;
-                window.__samePdfAnnotationHeld = false;
-                window.__rejectSamePdfAnnotation = () => rejectHeld?.(new Error('late first failure'));
-                window.__restoreSamePdfAnnotationFetch = () => { window.fetch = originalFetch; };
-                window.fetch = (input, init) => {
-                    if (!heldOnce && String(input).endsWith(routePath) && init?.method === 'POST') {
-                        heldOnce = true;
-                        return new Promise((_resolve, reject) => {
-                            window.__samePdfAnnotationHeld = true;
-                            rejectHeld = reject;
-                        });
-                    }
-                    return originalFetch(input, init);
-                };
-            }""",
-            anchor_create_route,
-        )
-        page.evaluate("() => document.getElementById('pdf-annotate').click()")
-        page.wait_for_function("() => window.__samePdfAnnotationHeld === true")
-        page.evaluate("() => document.getElementById('pdf-annotate').click()")
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-anchor-info')?.textContent === '证据锚点已记录'"
-        )
-        page.evaluate("() => window.__rejectSamePdfAnnotation()")
-        page.wait_for_timeout(500)
-        assert page.locator("#pdf-anchor-info").inner_text() == "证据锚点已记录"
-        page.evaluate("() => window.__restoreSamePdfAnnotationFetch()")
-
-        # A stale annotation failure from A must not write status into B.
-        page.evaluate(
-            """(routePath) => {
-                const originalFetch = window.fetch.bind(window);
-                let rejectHeld;
-                window.__annotationHeld = false;
-                window.__rejectHeldAnnotation = () => rejectHeld?.(new Error('delayed annotation failure'));
-                window.__restoreAnnotationFetch = () => { window.fetch = originalFetch; };
-                window.fetch = (input, init) => {
-                    if (String(input).endsWith(routePath) && init?.method === 'POST') {
-                        return new Promise((_resolve, reject) => {
-                            window.__annotationHeld = true;
-                            rejectHeld = reject;
-                        });
-                    }
-                    return originalFetch(input, init);
-                };
-            }""",
-            anchor_create_route,
-        )
-        page.evaluate("() => document.getElementById('pdf-annotate').click()")
-        page.wait_for_function("() => window.__annotationHeld === true")
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        page.evaluate("() => window.__rejectHeldAnnotation()")
-        page.wait_for_timeout(500)
-        assert page.locator("#pdf-anchor-info").inner_text() == ""
-        page.evaluate("() => window.__restoreAnnotationFetch()")
-
-        # Reopen A and restore a real page selection for the actual write.
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
-            timeout=15000,
-        )
-        page.get_by_role("button", name="下一页 ›").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')",
-            timeout=10000,
-        )
-        page.evaluate(
-            """() => {
-                const layer = document.querySelector('.pdf-text-layer');
-                const range = document.createRange();
-                range.selectNodeContents(layer);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                document.dispatchEvent(new Event('selectionchange'));
-            }"""
-        )
-        page.wait_for_function(
-            "() => !document.querySelector('#pdf-annotate').disabled",
-            timeout=10000,
-        )
-        # AXW-022B full loop: create the anchor, then jump back from it.
-        page.evaluate("() => document.getElementById('pdf-annotate').click()")
-        page.wait_for_timeout(2000)
-        diag_anchor = page.evaluate("document.querySelector('#pdf-anchor-info')?.textContent")
-        assert "证据锚点已记录" in (diag_anchor or ""), f"anchor not created, info: {diag_anchor!r}"
-        anchor_id = page.evaluate(
-            "() => (document.querySelector('#pdf-anchor-info')?.textContent || '').trim()"
-        )
-        assert anchor_id == "证据锚点已记录", f"unexpected anchor: {anchor_id}"
-        # The create receipt no longer surfaces the internal anchor id; prove
-        # the write path succeeded, then verify resolution through the API by
-        # listing the persisted anchors (the jump input stays product language).
-        resolved_anchor_id = page.get_by_label("选择证据锚点").input_value()
-        assert resolved_anchor_id and resolved_anchor_id.startswith("ev"), f"anchor not persisted: {resolved_anchor_id!r}"
-        # Reload from persistence: the matching page anchor is after >100
-        # unrelated anchors, so reaching it proves cursor pagination + filter.
-        page.reload(wait_until="networkidle")
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
-            timeout=15000,
-        )
-        page.locator(
-            f'#pdf-anchor-input option[value="{resolved_anchor_id}"]'
-        ).wait_for(state="attached", timeout=10000)
-        assert page.get_by_label("选择证据锚点").locator("option").count() == 3
-        # On the same PDF, a late page-1 response must not override the newer
-        # page-2 jump.
-        existing_resolve_path = f"{anchor_create_route}/{existing_anchor_id}"
-        page.evaluate(
-            """(routePath) => {
-                const originalFetch = window.fetch.bind(window);
-                let release;
-                window.__samePdfJumpHeld = false;
-                window.__releaseSamePdfJump = () => release?.();
-                window.__restoreSamePdfJumpFetch = () => { window.fetch = originalFetch; };
-                window.fetch = (input, init) => {
-                    if (String(input).endsWith(routePath) && (!init?.method || init.method === 'GET')) {
-                        return new Promise((resolve, reject) => {
-                            window.__samePdfJumpHeld = true;
-                            release = () => originalFetch(input, init).then(resolve, reject);
-                        });
-                    }
-                    return originalFetch(input, init);
-                };
-            }""",
-            existing_resolve_path,
-        )
-        page.get_by_label("选择证据锚点").select_option(existing_anchor_id)
-        page.get_by_role("button", name="回跳").click()
-        page.wait_for_function("() => window.__samePdfJumpHeld === true")
-        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
-        page.get_by_role("button", name="回跳").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')"
-        )
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-anchor-info')?.textContent === '已回跳至证据所在页'"
-        )
-        page.evaluate("() => window.__releaseSamePdfJump()")
-        page.wait_for_timeout(500)
-        assert page.locator("#pdf-page-info").inner_text().startswith("2 /")
-        assert page.locator("#pdf-anchor-info").inner_text() == "已回跳至证据所在页"
-        page.evaluate("() => window.__restoreSamePdfJumpFetch()")
-
-        # A stale jump success from A must not write status after switching B.
-        anchor_resolve_path = f"{anchor_create_route}/{resolved_anchor_id}"
-        page.evaluate(
-            """(routePath) => {
-                const originalFetch = window.fetch.bind(window);
-                let release;
-                window.__jumpHeld = false;
-                window.__releaseHeldJump = () => release?.();
-                window.__restoreJumpFetch = () => { window.fetch = originalFetch; };
-                window.fetch = (input, init) => {
-                    if (String(input).endsWith(routePath) && (!init?.method || init.method === 'GET')) {
-                        return new Promise((resolve, reject) => {
-                            window.__jumpHeld = true;
-                            release = () => originalFetch(input, init).then(resolve, reject);
-                        });
-                    }
-                    return originalFetch(input, init);
-                };
-            }""",
-            anchor_resolve_path,
-        )
-        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
-        page.get_by_role("button", name="回跳").click()
-        page.wait_for_function("() => window.__jumpHeld === true")
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        page.evaluate("() => window.__releaseHeldJump()")
-        page.wait_for_timeout(500)
-        assert page.locator("#pdf-anchor-info").inner_text() == ""
-        page.evaluate("() => window.__restoreJumpFetch()")
-
-        # Reopen A, restore the persisted matching anchor and jump for real.
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
-            timeout=15000,
-        )
-        page.locator(
-            f'#pdf-anchor-input option[value="{resolved_anchor_id}"]'
-        ).wait_for(state="attached", timeout=10000)
-
-        # A current jump whose target page genuinely fails to render must not
-        # publish a contradictory success receipt.
-        page.evaluate(
-            """async ({key, routePrefix}) => {
-                const bytes = await (await fetch(routePrefix + encodeURIComponent(key))).arrayBuffer();
-                const probeTask = pdfjsLib.getDocument({ data: bytes, isEvalSupported: false, enableScripting: false });
-                const probeDocument = await probeTask.promise;
-                const prototype = Object.getPrototypeOf(probeDocument);
-                await probeTask.destroy();
-                const originalGetPage = prototype.getPage;
-                window.__restoreFailingGetPage = () => { prototype.getPage = originalGetPage; };
-                prototype.getPage = async () => { throw new Error('forced page failure'); };
-            }""",
-            {"key": content_key, "routePrefix": pdf_route_prefix},
-        )
-        console_errors.clear()
-        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
-        page.get_by_role("button", name="回跳").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent === '页面不可用'"
-        )
-        assert page.locator("#pdf-anchor-info").inner_text() != "已回跳至证据所在页"
-        assert not console_errors, console_errors
-        page.evaluate("() => window.__restoreFailingGetPage()")
-
-        page.get_by_label("选择 PDF 原件").select_option(other_content_key)
-        page.get_by_label("选择 PDF 原件").select_option(content_key)
-        page.get_by_role("button", name="打开 PDF").click()
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.includes('1 / 2')",
-            timeout=15000,
-        )
-        page.locator(
-            f'#pdf-anchor-input option[value="{resolved_anchor_id}"]'
-        ).wait_for(state="attached", timeout=10000)
-        page.get_by_label("选择证据锚点").select_option(resolved_anchor_id)
-        page.get_by_role("button", name="回跳").click()
-        page.wait_for_timeout(2000)
-        jump_text = page.evaluate("document.querySelector('#pdf-anchor-info')?.textContent")
-        # The annotation was taken on page 2 (after search); jumping back must
-        # land on the annotated page (2) with the stored selection locator.
-        assert "已回跳至证据所在页" in (jump_text or ""), f"jump back failed: {jump_text!r}"
-
-        # AXW-096B: PDF reader controls must be keyboard-reachable — focus +
-        # Enter activates prev/zoom-out/search exactly like a mouse click.
-        page.locator("#pdf-prev").focus()
-        page.keyboard.press("Enter")
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('1 /')"
-        )
-        zoom_before_kb = page.evaluate("document.querySelector('#pdf-zoom-info')?.textContent")
-        page.locator('button[data-action="pdf-zoom-out"]').focus()
-        page.keyboard.press("Enter")
-        page.wait_for_function(
-            f"() => document.querySelector('#pdf-zoom-info')?.textContent !== {zoom_before_kb!r}"
-        )
-        page.locator("#pdf-search-input").fill("")  # clear prior search text
-        page.locator("#pdf-search-input").focus()
-        page.keyboard.type("Reproducible")
-        page.keyboard.press("Tab")  # search input -> 搜索 button
-        kb_focus = page.evaluate(
-            "() => document.activeElement ? document.activeElement.getAttribute('data-action') || document.activeElement.id : 'none'"
-        )
-        page.keyboard.press("Enter")
-        # searchPdf jumps to the match page (2) — we are on page 1 after prev,
-        # so landing back on 2 / 2 proves the keyboard-triggered search ran.
-        page.wait_for_function(
-            "() => document.querySelector('#pdf-page-info')?.textContent.startsWith('2 /')"
-        )
-        print(f"  pdf keyboard focus after Tab: {kb_focus}")
-    except Exception as exc:  # surface diagnostics on CI without admin log access
-        state_dump = page.evaluate(
-            """() => ({
-                pageInfo: document.querySelector('#pdf-page-info')?.textContent,
-                canvasCount: document.querySelectorAll('#pdf-viewer canvas').length,
-                spanCount: document.querySelectorAll('.pdf-text-layer span').length,
-                annotateDisabled: document.querySelector('#pdf-annotate')?.disabled,
-                anchorInfo: document.querySelector('#pdf-anchor-info')?.textContent,
-                activeElement: document.activeElement ? (document.activeElement.getAttribute('data-action') || document.activeElement.id || document.activeElement.tagName) : 'none',
-                searchValue: document.querySelector('#pdf-search-input')?.value,
-            })"""
-        )
-        print(f"::error::PDF-READER-FAIL: {exc}")
-        print(f"::error::PDF-READER-STATE: {state_dump}")
-        print(f"::error::PDF-READER-CONSOLE: {console_errors}")
-        raise
-    finally:
-        pdf_path.unlink(missing_ok=True)
-    page.goto(base_url + "/workspace#evidence")
-    exercise_exchange_ui(page, base_url)
-
-
-def exercise_keyboard_accessibility(page: Page, base_url: str) -> None:
-    """AXW-096B: keyboard flow + semantic label regression checks.
-
-    Proves the core Workspace flows work with keyboard only: Tab reaches
-    every control, Enter activates, the intake dialog traps focus and
-    Escape closes it returning focus to the trigger, theme buttons are
-    labelled and toggle aria-pressed, and inputs carry aria-labels.
-    """
-    page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
-    page.get_by_role("heading", name="工作台总览").wait_for()
-
-    # Every input carries a semantic label.
-    labelled_inputs = page.evaluate(
-        "() => [...document.querySelectorAll('input')].filter(el => el.getAttribute('aria-label') || (el.labels && el.labels.length)).length"
-    )
-    total_inputs = page.evaluate("() => document.querySelectorAll('input').length")
-    assert labelled_inputs == total_inputs, f"unlabelled inputs: {labelled_inputs}/{total_inputs}"
-
-    # Theme buttons are labelled with aria-pressed state.
-    theme_buttons = page.locator("button[data-theme]")
-    count = theme_buttons.count()
-    assert count == 2, f"theme buttons: {count}"
-    for index in range(count):
-        button = theme_buttons.nth(index)
-        assert button.get_attribute("aria-label"), f"theme button {index} lacks aria-label"
-        assert button.get_attribute("aria-pressed") in ("true", "false"), f"theme button {index} lacks aria-pressed"
-
-    # Keyboard: Tab reaches the first theme button and Enter switches theme.
-    page.get_by_role("button", name="浅色外观").focus()
-    page.keyboard.press("Tab")  # next focusable after the light-theme button
-    page.keyboard.press("Enter")
-    page.get_by_role("button", name="深色外观").focus()
-    page.keyboard.press("Enter")
-    assert page.locator("body").get_attribute("data-theme") == "deepspace"
-    assert page.get_by_role("button", name="深色外观").get_attribute("aria-pressed") == "true"
-
-    # Intake dialog: Enter opens it, focus lands on the URL input, Escape
-    # closes it and returns focus to the trigger button.
-    trigger = page.get_by_role("button", name="导入资料")
-    trigger.focus()
-    page.keyboard.press("Enter")
-    dialog = page.get_by_role("dialog", name="导入资料")
-    dialog.wait_for()
-    assert page.evaluate("document.activeElement?.id") == "intake-url"
-    assert page.evaluate("document.getElementById('intake-modal').getAttribute('aria-hidden')") == "false"
-    # Tab cycles inside the dialog (focus trap).
-    page.keyboard.press("Tab")
-    page.keyboard.press("Shift+Tab")
-    assert page.evaluate("document.activeElement?.id") == "intake-url"
-    page.keyboard.press("Escape")
-    dialog.wait_for(state="hidden")
-    assert page.evaluate("document.activeElement?.dataset.action") == "intake"
-
-    # Error feedback region is announced via aria-live.
-    assert page.locator("#intake-result").get_attribute("aria-live") == "polite"
-
-
-def exercise_exchange_ui(page: Page, base_url: str) -> None:
-    """AXW-094A/B UI reachability: the four exchange/backup buttons must
-    invoke the API and update the result area (binding + round-trip)."""
-    page.goto(base_url + "/workspace#evidence")
-    page.wait_for_load_state("networkidle")
-    has_card = page.evaluate("() => document.body.innerText.includes('开放交换与备份')")
-    has_pdf_card = page.evaluate("() => document.body.innerText.includes('PDF 证据查看')")
-    visible_sections = page.evaluate(
-        "() => [...document.querySelectorAll('section.page')].map(s => s.id + ':' + (s.offsetParent !== null)).join(',')"
-    )
-    print(
-        f"  exchange card present: {has_card}; pdf card present: {has_pdf_card}; sections: {visible_sections}"
-    )
-    page.get_by_role("heading", name="开放交换与备份").wait_for()
-    result = page.locator("#exchange-result")
-    assert "尚未执行" in result.inner_text()
-    for action in ("exchange-export", "exchange-verify", "backup-create", "backup-verify"):
-        page.locator(f'button[data-action="{action}"]').click()
-        page.wait_for_function(
-            "() => document.querySelector('#exchange-result')?.textContent !== '尚未执行导出/备份操作'"
-        )
-        page.wait_for_function(
-            "() => !document.querySelector('#exchange-result')?.textContent.startsWith('执行中')"
-        )
-    # every click produced a concrete verdict from the API (a product success
-    # label or a sanitized failure), never a dead button
-    final_text = result.inner_text()
-    assert final_text not in ("执行中…", "尚未执行导出/备份操作", ""), final_text
-
-
-def exercise_real_delivery(page: Page, base_url: str, data_dir: str) -> None:
-    """Prove real upload → SQLite outbox → dispatch → receipt → UI reread."""
-    source_path = Path(data_dir) / "browser-delivery.txt"
-    source_path.write_text("Real Chromium delivery readback", encoding="utf-8")
-    try:
-        page.keyboard.press("Escape")
-        page.goto(f"{base_url}/workspace#overview", wait_until="networkidle")
-        page.get_by_role("button", name="导入资料").click()
-        page.set_input_files("#intake-file", str(source_path))
-        page.get_by_role("button", name="导入文件").click()
-        intake_result = page.locator("#intake-result")
-        intake_result.wait_for()
-        page.wait_for_function(
-            "() => !document.querySelector('#intake-result')?.textContent.includes('处理中')"
-        )
-        if "处理完成" not in intake_result.inner_text():
-            raise AssertionError(f"real upload failed: {intake_result.inner_text()}")
-        page.keyboard.press("Escape")
-
-        page.evaluate("location.hash = '#runtime'")
-        page.get_by_role("heading", name="知行任务执行").wait_for()
-        delivery = page.locator("#delivery-center")
-        delivery.get_by_text("待投递：1", exact=False).wait_for()
-        delivery_text = delivery.inner_text()
-        assert "缺失回执：1" in delivery_text
-        assert "状态：已完成 · 投递：待处理" in page.locator("#job-center").inner_text()
-        assert all(
-            identifier not in delivery_text
-            for identifier in ("package_id", "job_id", "command_id", "event_internal")
-        )
-
-        page.get_by_role("button", name="投递下一条").click()
-        delivery.get_by_text("已记录回执：1", exact=False).wait_for()
-        delivery_text = delivery.inner_text()
-        assert "投递处理状态：可用" in delivery_text
-        assert "待投递：0" in delivery_text
-        assert "缺失回执：0" in delivery_text
-        assert "投递：已投递" in delivery_text
-        assert "回执：已记录" in delivery_text
-
-        page.reload(wait_until="networkidle")
-        page.get_by_role("heading", name="知行任务执行").wait_for()
-        delivery_text = page.locator("#delivery-center").inner_text()
-        assert "待投递：0" in delivery_text
-        assert "已记录回执：1" in delivery_text
-        assert "缺失回执：0" in delivery_text
-    finally:
-        source_path.unlink(missing_ok=True)
-
-
-def exercise_real_six_space_learning_loop(page: Page, base_url: str) -> None:
-    """Prove real persisted data travels through the governed learning UI.
-
-    ``exercise_real_delivery`` has already uploaded a local source into this
-    isolated runtime database.  This function deliberately uses only browser
-    navigation and the public Workspace actions to promote that source through
-    Research, Knowledge, Learning, Evolution, Machine Knowledge, and its
-    approved-only Runtime state.
-    """
-    page.goto(f"{base_url}/workspace#research", wait_until="networkidle")
-    page.get_by_role("heading", name="察微研究").wait_for()
-    assert "local-content://" not in page.locator("#research-queue").inner_text()
-    page.get_by_role("button", name="批准进入知识候选").click()
-    page.get_by_text("暂无待人工审核的资料", exact=True).wait_for()
-
-    page.goto(f"{base_url}/workspace#knowledge", wait_until="networkidle")
-    page.get_by_role("heading", name="藏识知识").wait_for()
-    assert "local-content://" not in page.locator("#knowledge-queue").inner_text()
-    start_learning_suffix = "/" + "/".join(("workspace", "api", "knowledge", "start-learning"))
-    with page.expect_response(
-        lambda response: response.url.endswith(start_learning_suffix)
-        and response.request.method == "POST"
-    ) as start_response:
-        page.get_by_role("button", name="开始学习").click()
-    assert start_response.value.status == 200, start_response.value.status
-
-    page.goto(f"{base_url}/workspace#learning", wait_until="networkidle")
-    page.get_by_role("heading", name="学习路线").wait_for()
-    learning_queue = page.locator("#learning-queue")
-    practice_parts = learning_queue.inner_text().split("练习：", 1)
-    assert len(practice_parts) == 2, learning_queue.inner_text()
-    assert "local-content://" not in learning_queue.inner_text()
-    initial_practice_count = int(practice_parts[1].split("·", 1)[0].strip())
-    learning_suffix = "/" + "/".join(("workspace", "api", "learning"))
-    practice_suffix = "/" + "/".join(("workspace", "api", "learning", "practice"))
-    for offset in range(1, 4):
-        with page.expect_response(
-            lambda response: response.url.endswith(practice_suffix)
-            and response.request.method == "POST"
-        ) as practice_response:
-            page.get_by_role("button", name="记录练习").click()
-        assert practice_response.value.status == 200, practice_response.value.status
-        expected_count = initial_practice_count + offset
-        learning_response = page.request.get(
-            f"{base_url}{learning_suffix}"
-        )
-        assert learning_response.status == 200, learning_response.text()
-        page.goto(f"{base_url}/workspace#learning", wait_until="networkidle")
-        page.get_by_role("heading", name="学习路线").wait_for()
-        page.wait_for_function(
-            "count => document.querySelector('#learning-queue')?.textContent.includes(`练习：${count}`)",
-            arg=expected_count,
-        )
-
-    page.goto(f"{base_url}/workspace#evolution", wait_until="networkidle")
-    page.get_by_role("heading", name="知新评估进化").wait_for()
-    page.wait_for_function(
-        "() => document.querySelector('#evolution-summary')?.textContent.includes('已掌握')"
-    )
-    evolution = page.locator("#evolution-summary").inner_text()
-    assert "已掌握\n1" in evolution, evolution
-    assert "机器候选\n1" in evolution, evolution
-
-    page.goto(f"{base_url}/workspace#machine", wait_until="networkidle")
-    page.get_by_role("heading", name="知衡机器知识").wait_for()
-    page.get_by_role("button", name="批准供机器使用").click()
-    page.wait_for_function(
-        "() => document.querySelector('#machine-queue')?.textContent.includes('生命周期：已批准')"
-    )
-    assert "批准供机器使用" not in page.locator("#machine-queue").inner_text()
-
-
-def main() -> int:
-    try:
-        return _main()
-    except Exception as exc:  # pragma: no cover - CI-only diagnostics
-        print(f"::error::SMOKE-FAIL: {type(exc).__name__}: {str(exc)[:1500]}")
-        raise
-
-
-def _main() -> int:
-    data_dir = os.environ.get("ARCHEAXIS_DATA_DIR", "").strip() or os.environ.get("COGNITIVE_DATA_DIR", "").strip()
-    if not data_dir:
-        raise RuntimeError("COGNITIVE_DATA_DIR must point to an isolated browser-smoke directory")
-    # The legacy same-origin Workspace exercise predates the desktop WebView
-    # credential handoff.  Limit its no-token writes to this explicit CI smoke
-    # process; normal browser and desktop requests remain credential-gated.
-    os.environ["ARCHEAXIS_BROWSER_SMOKE_WRITE_BYPASS"] = "1"
-    # This one bounded smoke intentionally pages >100 anchors and exercises
-    # every product surface; raise only its child Core read budget so the gate
-    # measures UI/runtime behavior rather than the ordinary interactive quota.
-    os.environ["ARCHEAXIS_RATE_LIMIT_READ"] = "1000"
-    # The smoke must be repeatable against the same directory: drop the
-    # previous run's SQLite and PDF store so strict command-receipt reads
-    # never collide with stale bindings from an earlier invocation.
-    data_root = Path(data_dir)
-    for stale in data_root.glob("*.sqlite*"):
-        stale.unlink(missing_ok=True)
-    for stale in (data_root / "pdf").glob("*"):
-        if stale.is_file():
-            stale.unlink(missing_ok=True)
-    subprocess.run(
-        [sys.executable, "-m", "app.runtime_entrypoint", "migrate"],
-        check=True,
-        stdout=subprocess.DEVNULL,
-    )
-    with running_core() as base_url, sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            log.flush()
+            raise RuntimeError(f"Vite exited before readiness; inspect {log_path}")
         try:
-            page = browser.new_page(viewport={"width": 1440, "height": 1000})
-            try:
-                exercise_workspace(page, base_url)
-            except Exception:
-                print(f"::error::WORKSPACE-FAIL url={page.url}")
-                print(f"::error::WORKSPACE-HTML {page.locator('body').inner_text()[:500]}")
-                raise
-            kb_page = browser.new_page(viewport={"width": 1440, "height": 1000})
-            try:
-                exercise_keyboard_accessibility(kb_page, base_url)
-            finally:
-                kb_page.close()
-            pdf_page = browser.new_page(viewport={"width": 1440, "height": 1000})
-            try:
-                exercise_pdf_reader(pdf_page, base_url, data_dir)
-            finally:
-                pdf_page.close()
-            delivery_page = browser.new_page(viewport={"width": 1440, "height": 1000})
-            try:
-                exercise_real_delivery(delivery_page, base_url, data_dir)
-                exercise_real_six_space_learning_loop(delivery_page, base_url)
-            finally:
-                delivery_page.close()
-        finally:
+            with urlopen(URL, timeout=1) as response:  # noqa: S310 - fixed loopback URL
+                if response.status == 200:
+                    return process, log
+        except OSError:
+            time.sleep(0.2)
+    raise RuntimeError(f"Vite readiness timed out; inspect {log_path}")
+
+
+def stop_vite(process: subprocess.Popen[bytes], log: object) -> None:
+    process.terminate()
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=5)
+    log.close()
+
+
+def main() -> None:
+    RUNTIME.mkdir(parents=True, exist_ok=True)
+    ARTIFACTS.mkdir(parents=True, exist_ok=True)
+    process, log = start_vite(RUNTIME / "a0-canonical-vite.log")
+    errors: list[str] = []
+    viewports: dict[str, object] = {}
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            for width, height in ((1440, 1000), (1280, 800), (390, 844), (360, 640)):
+                context = browser.new_context(
+                    viewport={"width": width, "height": height},
+                    reduced_motion="reduce",
+                )
+                page = context.new_page()
+                page.on("pageerror", lambda error: errors.append(f"pageerror:{error}"))
+                page.on(
+                    "console",
+                    lambda message: errors.append(f"console:{message.text}")
+                    if message.type == "error" else None,
+                )
+
+                def route_api(route: Route) -> None:
+                    path = urlsplit(route.request.url).path
+                    if path.startswith(f"{API_PREFIX}/") or path.startswith(
+                        f"{WORKSPACE_PREFIX}/api/"
+                    ):
+                        route.fulfill(
+                            status=200,
+                            content_type="application/json",
+                            body=json.dumps(api_payload(route.request.url)),
+                        )
+                    else:
+                        route.continue_()
+
+                page.route("**/*", route_api)
+                page.goto(URL, wait_until="networkidle")
+                page.get_by_role("heading", name="工作台总览").wait_for()
+                geometry = page.evaluate("""() => {
+                    const box = (selector) => {
+                      const rect = document.querySelector(selector)?.getBoundingClientRect();
+                      return rect && {x:rect.x,y:rect.y,width:rect.width,height:rect.height,bottom:rect.bottom};
+                    };
+                    const context = document.querySelector('.context-subnav');
+                    return {
+                      scrollWidth: document.documentElement.scrollWidth,
+                      clientWidth: document.documentElement.clientWidth,
+                      rail: box('.space-rail'),
+                      dock: box('.activity-dock'),
+                      main: box('.app-center'),
+                      inspector: Boolean(document.querySelector('.inspector')),
+                      context: Boolean(context) && getComputedStyle(context).display !== 'none',
+                    };
+                }""")
+                assert geometry["scrollWidth"] <= geometry["clientWidth"], geometry
+                assert geometry["dock"]["bottom"] <= height + 0.5, geometry
+                if width <= 840:
+                    assert geometry["rail"]["width"] >= width - 1, geometry
+                    assert geometry["rail"]["height"] < 80, geometry
+                    assert not geometry["inspector"], geometry
+                    assert not geometry["context"], geometry
+                else:
+                    assert geometry["context"], geometry
+
+                page.get_by_role("button", name="打开全局命令").click()
+                page.get_by_role("dialog", name="全局命令").wait_for()
+                page.get_by_role("button", name="关闭全局命令").click()
+                page.locator('.space-rail-item[data-space-id="learning"]').click()
+                page.get_by_role("main").get_by_role("heading", name="学习").wait_for()
+                assert page.get_by_role("button", name="视觉课件").count() == 0
+                assert page.get_by_role("button", name="空间记忆").count() == 0
+                page.get_by_role("button", name="展开活动坞").click()
+                assert page.get_by_role("button", name="取消投递（不可用）").count() == 0
+
+                screenshot = ARTIFACTS / f"canonical-shell-{width}x{height}.png"
+                page.screenshot(path=str(screenshot), full_page=True)
+                viewports[f"{width}x{height}"] = {
+                    "geometry": geometry,
+                    "screenshot": str(screenshot.relative_to(ROOT)),
+                }
+                context.close()
             browser.close()
-    print(
-        "A0 Chromium browser smoke passed "
-        "(workspace + keyboard + PDF reader + delivery + six-space learning loop)"
-    )
-    return 0
+    finally:
+        stop_vite(process, log)
+
+    assert not errors, errors
+    tree = subprocess.check_output(["git", "write-tree"], cwd=ROOT, text=True).strip()
+    report = {
+        "schema": "archeaxis/canonical-browser-smoke/v2",
+        "status": "PASS",
+        "candidate_tree": tree,
+        "errors": errors,
+        "viewports": viewports,
+    }
+    output = ARTIFACTS / "canonical-browser-smoke.json"
+    output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(json.dumps(report, ensure_ascii=False))
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

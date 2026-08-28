@@ -14,7 +14,7 @@ import {
 } from "../api/learning";
 import { userErrorMessage } from "../presentation/labels";
 
-type Tab = "review" | "mastery" | "teachback" | "quiz" | "path" | "visual" | "spatial";
+type Tab = "review" | "mastery" | "teachback" | "quiz" | "path";
 
 const TABS: readonly { id: Tab; label: string }[] = [
   { id: "review", label: "复习队列" },
@@ -22,8 +22,6 @@ const TABS: readonly { id: Tab; label: string }[] = [
   { id: "teachback", label: "复述检验" },
   { id: "quiz", label: "练习测验" },
   { id: "path", label: "学习路径" },
-  { id: "visual", label: "视觉课件" },
-  { id: "spatial", label: "空间记忆" },
 ];
 
 const ACTION_LABELS: Record<string, string> = {
@@ -399,40 +397,6 @@ function PathView({ api }: { api: LearningApiExt }) {
   );
 }
 
-function VisualLessonBlueprint() {
-  return (
-    <section aria-label="视觉课件" className="learning-panel planning-panel">
-      <header className="planning-heading">
-        <div><span>视觉教学规划</span><h3>视觉课件工作室</h3></div>
-        <strong>播放未开放</strong>
-      </header>
-      <p className="space-description">保留场景、时间线、暂停点和证据脚注；当前为可审查规划，不提供假播放或伪生成。</p>
-      <div className="lesson-studio">
-        <aside className="lesson-scenes" aria-label="场景索引">
-          <article><span>01</span><div><b>对象边界</b><small>原件与派生产物</small></div></article>
-          <article><span>02</span><div><b>证据关系</b><small>支持、反驳与背景</small></div></article>
-          <article><span>03</span><div><b>复核停止点</b><small>回到来源再判断</small></div></article>
-        </aside>
-        <div className="studio-stage">
-          <article className="stage-card"><span>静态分镜</span><h4>原件和派生产物不能由同一个结论替代。</h4><p>先保留原件，再分别审查转译质量与事实证据。</p><small>证据脚注：等待真实学习对象</small></article>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SpatialMemoryBlueprint() {
-  return (
-    <section aria-label="空间记忆" className="learning-panel planning-panel">
-      <header className="planning-heading"><div><span>空间学习规划</span><h3>空间记忆</h3></div><strong>规划中</strong></header>
-      <p className="space-description">优先提供二维地图、文字路线和低动效替代；三维与沉浸能力必须通过设备、性能和学习证据门禁。</p>
-      <div className="spatial-blueprint">
-        <div className="spatial-map" aria-label="二维空间记忆规划"><span>入口</span><i>→</i><span>知识锚点</span><i>→</i><span>证据束</span></div>
-        <aside className="spatial-route"><h4>文字等价路线</h4><ol><li>选择真实学习路线</li><li>关联原件、版本和证据状态</li><li>从任意线索返回证据</li></ol><p>当前没有真实空间学习对象，因此不显示样例数量或可执行入口。</p></aside>
-      </div>
-    </section>
-  );
-}
 
 export function LearningSpace() {
   const [tab, setTab] = useState<Tab>("review");
@@ -461,8 +425,6 @@ export function LearningSpace() {
       {tab === "teachback" ? <TeachBackView api={api} /> : null}
       {tab === "quiz" ? <QuizPanel api={api} /> : null}
       {tab === "path" ? <PathView api={api} /> : null}
-      {tab === "visual" ? <VisualLessonBlueprint /> : null}
-      {tab === "spatial" ? <SpatialMemoryBlueprint /> : null}
     </section>
   );
 }

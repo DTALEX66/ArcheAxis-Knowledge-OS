@@ -285,7 +285,7 @@ def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
         d["value"] for d in product["deprecated_display"]
     ]
 
-    ui = (ROOT / "app" / "workspace" / "ui" / "index.html").read_text(encoding="utf-8")
+    ui = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
     assert "ArcheAxis Knowledge" in ui
     assert "星环知识平台" in ui
     assert "元枢工作台" not in ui

@@ -14,7 +14,7 @@ from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.evidence.anchor import (
@@ -36,19 +36,7 @@ from shared.config import resolve_runtime_path
 from shared.storage import DB_PATH
 
 WORKSPACE_PREFIX = "/" + "workspace"
-WORKSPACE_UI_ROOT = Path(__file__).resolve().parent / "ui"
-WORKSPACE_SECURITY_HEADERS = {
-    "Cache-Control": "no-store",
-    "Content-Security-Policy": (
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "connect-src 'self'; img-src 'self' data:; font-src 'self' data:; "
-        "object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
-    ),
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "no-referrer",
-    "X-Frame-Options": "DENY",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-}
+
 
 
 def _is_loopback_host(value: str) -> bool:
@@ -299,24 +287,17 @@ def _command_error(action):
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
-@router.get("", response_class=FileResponse)
-def workspace_page() -> FileResponse:
-    return FileResponse(
-        WORKSPACE_UI_ROOT / "index.html",
-        media_type="text/html",
-        headers=WORKSPACE_SECURITY_HEADERS,
-    )
-
-
-@router.get("/assets/{asset_name}", response_class=FileResponse)
-def workspace_asset(
-    asset_name: Literal["styles.css", "osui-v3.css", "osui-production.css", "app.js", "production-ui.js", "pdf-loader.mjs", "pdf.mjs", "pdf.worker.mjs"],
-) -> FileResponse:
-    media_type = "text/css" if asset_name.endswith(".css") else "text/javascript"
-    return FileResponse(
-        WORKSPACE_UI_ROOT / "assets" / asset_name,
-        media_type=media_type,
-        headers=WORKSPACE_SECURITY_HEADERS,
+@router.get("")
+def workspace_page(request: Request) -> JSONResponse:
+    """Retire the duplicate loopback product UI while retaining /workspace/api."""
+    _require_local_request(request)
+    return JSONResponse(
+        status_code=410,
+        content={
+            "detail": "The retired loopback UI is unavailable; use the desktop application.",
+            "canonical_surface": "desktop",
+        },
+        headers={"Cache-Control": "no-store"},
     )
 
 

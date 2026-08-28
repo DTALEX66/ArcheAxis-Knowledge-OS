@@ -11,7 +11,7 @@ import uuid
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from knowledge_base.cards import KnowledgeCard
@@ -219,11 +219,14 @@ def list_taskpacks(limit: int = 20):
 # ── Dashboard (Web UI) ────────────────────────────────────
 
 
-@app.get("/", response_class=RedirectResponse)
-@app.get("/dashboard", response_class=RedirectResponse)
-async def dashboard() -> RedirectResponse:
-    """Retire the duplicate dashboard and send users to the product shell."""
-    return RedirectResponse(url="/workspace#knowledge", status_code=307)
+@app.get("/")
+@app.get("/dashboard")
+async def dashboard() -> JSONResponse:
+    """Retire the duplicate dashboard without redirecting to another legacy UI."""
+    return JSONResponse(
+        status_code=410,
+        content={"detail": "The retired dashboard is unavailable; use the desktop application."},
+    )
 
 
 # ── Search ───────────��────────────────────────────────

@@ -84,7 +84,6 @@ export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTar
         <span className="activity-dock-item">来源：任务 / 投递 / 回执</span>
         <button type="button" onClick={() => void operate(dispatchDelivery)}>投递下一条</button>
         <button type="button" onClick={() => void operate(retryFailedDelivery)}>重试失败投递</button>
-        <button type="button" disabled title="当前投递协议尚未定义可撤销状态">取消投递（不可用）</button>
       </div> : null}
     </footer>
   );
