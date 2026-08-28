@@ -387,6 +387,7 @@ def safe_release_summary() -> dict[str, object]:
                 "status": "qualified",
                 "version": candidate["version"],
                 "channel": candidate["channel"],
+                "public": candidate["public"],
                 "source_commit": source["commit"],
                 "tag": candidate["tag"],
                 "verification_ci_run_id": source["verification_ci_run_id"],
@@ -398,6 +399,7 @@ def safe_release_summary() -> dict[str, object]:
                 "status": "released",
                 "version": artifact_release["version"],
                 "channel": artifact_release["channel"],
+                "public": artifact_release["public"],
                 "source_commit": artifact_source["commit"],
                 "tag": artifact_release["tag"],
                 "verification_ci_run_id": artifact_source["verification_ci_run_id"],
@@ -408,6 +410,7 @@ def safe_release_summary() -> dict[str, object]:
             "status": "released",
             "version": artifact_release["version"],
             "channel": artifact_release["channel"],
+            "public": artifact_release["public"],
             "source_commit": artifact_source["commit"],
             "tag": artifact_release["tag"],
             "ci_run": artifact_source["ci_run"],
@@ -419,6 +422,7 @@ def safe_release_summary() -> dict[str, object]:
         "status": release["status"],
         "version": manifest["product"]["version"],
         "channel": release["channel"],
+        "public": release["public"],
         "source_commit": source["commit"],
     }
 

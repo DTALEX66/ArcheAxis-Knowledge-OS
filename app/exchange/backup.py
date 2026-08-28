@@ -151,7 +151,7 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
             "backup verification failed: file_count mismatch "
             f"(manifest says {manifest.get('file_count')}, verified {verified})"
         )
-    return {"manifest": manifest, "verified_files": verified}
+    return {"valid": True, "manifest": manifest, "verified_files": verified}
 
 
 def restore_backup(

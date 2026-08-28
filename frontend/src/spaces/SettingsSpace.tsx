@@ -106,12 +106,19 @@ export function SettingsSpace() {
     try {
       const result = await initializeSetup(request);
       const successMessage = result.workspace_id ? "工作区已创建并通过读回" : "工作区已创建";
-      setWizardMessage(successMessage);
-      setStage("complete");
       try {
-        setData(await getSetupStatus());
+        const freshStatus = await getSetupStatus();
+        setData(freshStatus);
+        if (freshStatus.ready !== true) {
+          setStage("health");
+          setWizardMessage("工作区写入已返回，但四库尚未达到就绪状态。");
+          return;
+        }
+        setWizardMessage(successMessage);
+        setStage("complete");
       } catch (refreshError) {
-        setWizardMessage(`${successMessage}；状态刷新失败：${errorMessage(refreshError)}`);
+        setStage("health");
+        setWizardMessage(`工作区写入已返回，但就绪状态读回失败：${errorMessage(refreshError)}`);
       }
     } catch (requestError) {
       setWizardMessage(`创建失败：${errorMessage(requestError)}`);
@@ -188,7 +195,7 @@ export function SettingsSpace() {
           <input id="backup-name" value={backupName} onChange={(event) => setBackupName(event.target.value)} placeholder="例如 release-check" />
           <button type="button" disabled={backupBusy || !backupName.trim()} onClick={async () => {
             setBackupBusy(true); setWizardMessage("正在创建备份…");
-            try { await createBackup(backupName.trim()); const result = await verifyBackup(backupName.trim()); setWizardMessage(result.valid === false ? "备份验证失败" : "备份验证通过"); }
+            try { await createBackup(backupName.trim()); const result = await verifyBackup(backupName.trim()); if (result.valid !== true) throw new Error("backup verification projection is invalid"); setWizardMessage("备份验证通过"); }
             catch (requestError) { setWizardMessage(`备份失败：${errorMessage(requestError)}`); }
             finally { setBackupBusy(false); }
           }}>创建并验证备份</button>

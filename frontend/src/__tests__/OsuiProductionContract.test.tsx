@@ -47,6 +47,30 @@ describe("OSUI v3 production contract", () => {
     expect(screen.queryByText("Agent")).not.toBeInTheDocument();
   });
 
+  it("traps command focus, hides the background, supports arrows, and restores focus", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const trigger = screen.getByRole("button", { name: "打开全局命令" });
+    await user.click(trigger);
+    const search = screen.getByRole("searchbox", { name: "搜索空间或命令" });
+    expect(search).toHaveFocus();
+    await user.keyboard("{Control>}k{/Control}");
+    expect(document.querySelector(".app-shell")).toHaveAttribute("inert");
+    expect(document.querySelector(".app-shell")).toHaveAttribute("aria-hidden", "true");
+
+    await user.keyboard("{ArrowDown}");
+    const options = screen.getAllByRole("option");
+    expect(options[0]).toHaveFocus();
+    expect(options[0]).toHaveAttribute("aria-selected", "true");
+    options.at(-1)?.focus();
+    await user.tab();
+    expect(search).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(trigger).toHaveFocus();
+    expect(document.querySelector(".app-shell")).not.toHaveAttribute("inert");
+    expect(document.querySelector(".app-shell")).not.toHaveAttribute("aria-hidden");
+  });
+
   it("makes every Workbench next action operable", async () => {
     const user = userEvent.setup();
     render(<App />);

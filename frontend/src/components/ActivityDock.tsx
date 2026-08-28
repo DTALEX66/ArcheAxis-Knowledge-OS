@@ -22,8 +22,10 @@ export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTar
     const [activity, currentDelivery] = await Promise.all([getActivity(5), getDelivery()]);
     setItems(activity.items);
     setSummary(activity.items.length === 0 ? "暂无持久化活动" : `最近活动：${activity.items.length}`);
-    const failed = currentDelivery?.summary.outbox.failed ?? 0;
-    setDelivery(failed > 0 ? `投递状态：失败 ${failed}` : "投递状态：可用");
+    const failed = currentDelivery.summary.outbox.failed ?? 0;
+    setDelivery(currentDelivery.summary.jobs === 0
+      ? "投递状态：暂无记录"
+      : failed > 0 ? `投递状态：失败 ${failed}` : "投递状态：可用");
   }
 
   useEffect(() => {

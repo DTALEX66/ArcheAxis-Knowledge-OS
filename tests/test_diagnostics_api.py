@@ -20,6 +20,7 @@ def test_diagnostics_returns_safe_versioned_status() -> None:
         "status": "unreleased",
         "version": "0.6.11",
         "channel": "development",
+        "public": False,
         "source_commit": "unavailable",
     }
     assert "backup_path" not in response.text
@@ -66,6 +67,7 @@ def test_diagnostics_does_not_promote_unverified_release_override(monkeypatch) -
         "status": "unreleased",
         "version": "0.6.11",
         "channel": "development",
+        "public": False,
         "source_commit": "unavailable",
     }
 
@@ -83,6 +85,7 @@ def test_diagnostics_rejects_unsafe_release_version(monkeypatch) -> None:
         "status": "unreleased",
         "version": "0.6.11",
         "channel": "development",
+        "public": False,
         "source_commit": "unavailable",
     }
 

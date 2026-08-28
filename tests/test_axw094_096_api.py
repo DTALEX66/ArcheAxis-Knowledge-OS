@@ -118,6 +118,7 @@ def test_backup_create_verify_restore_dry_run(client: TestClient) -> None:
 
     verify = client.get("/workspace/api/backup/verify", params={"name": "test-backup"})
     assert verify.status_code == 200, verify.text
+    assert verify.json()["valid"] is True
     assert verify.json()["verified_files"] >= 0
 
     # dry-run restore into the live data dir must be safe (no writes)

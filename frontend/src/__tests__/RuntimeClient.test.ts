@@ -4,15 +4,23 @@ import {
   approveResearchCandidate,
   createBackup,
   deprecateMachineKnowledge,
+  dispatchDelivery,
   downloadLibraryAsset,
   downloadPdfAsset,
+  getActivityJobs,
+  getDelivery,
+  getHome,
+  getSetupStatus,
   getStatus,
   getActivity,
-  getHome,
   initializeSetup,
   listLibraryAssets,
+  listEvidenceBundles,
+  listEvidenceAnchors,
   listResearchCandidates,
+  preflightSetup,
   resetRuntimeClient,
+  retryFailedDelivery,
   verifyBackup,
 } from "../api/workspace";
 import * as runtime from "../api/workspace";
@@ -64,16 +72,19 @@ describe("runtime handshake client", () => {
         } as Response;
       }
       expect(url).toBe("http://127.0.0.1:4312/workspace/api/status");
-      return { ok: true, status: 200, json: async () => ({ status: "available" }) } as Response;
+      return { ok: true, status: 200, json: async () => ({
+        schema_version: "v1", observed_at: "2026-08-29T00:00:00Z",
+        release: { version: "0.6.11", status: "candidate", public: false }, components: {}, migrations: {}, counts: {}, capabilities: {},
+      }) } as Response;
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(getStatus()).resolves.toEqual({ status: "available" });
+    await expect(getStatus()).resolves.toMatchObject({ schema_version: "v1" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("rejects malformed successful product projections instead of rendering partial truth", async () => {
-    window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only" }) } };
+    window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only", scopes: ["workspace:write"] }) } };
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/api/v1/system/handshake")) {
@@ -96,12 +107,54 @@ describe("runtime handshake client", () => {
       if (url.endsWith("/workspace/api/research")) {
         return { ok: true, status: 200, json: async () => ({ items: [{}] }) } as Response;
       }
+      if (url.includes("/workspace/api/evidence/anchors")) {
+        return { ok: true, status: 200, json: async () => ({ count: 1, items: [{ anchor_id: "a", raw_sha256: "b".repeat(64), source_revision: "r", locator: "bad" }], next_cursor: null }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/v1/home")) {
+        return { ok: true, status: 200, json: async () => ({ release: {}, counts: {}, capabilities: {}, components: {}, recent_activity: "bad" }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/delivery")) {
+        return { ok: true, status: 200, json: async () => ({ summary: { jobs: 0, outbox: { failed: "zero" }, receipts: {} } }) } as Response;
+      }
+      if (url.endsWith("/api/v1/setup/status")) {
+        return { ok: true, status: 200, json: async () => ({ ready: "yes", steps: [] }) } as Response;
+      }
+      if (url.includes("/workspace/api/evidence/bundles")) {
+        return { ok: true, status: 200, json: async () => ({ items: [{ bundle_id: "b" }] }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/jobs")) {
+        return { ok: true, status: 200, json: async () => ({ jobs: [{ activity: "x" }] }) } as Response;
+      }
+      if (url.endsWith("/api/v1/setup/preflight")) {
+        return { ok: true, status: 200, json: async () => ({ ready: true, mode: "quick", domains: {}, library_health: {} }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/research/approve")) {
+        return { ok: true, status: 200, json: async () => ({}) } as Response;
+      }
+      if (url.endsWith("/workspace/api/delivery/dispatch") || url.endsWith("/workspace/api/delivery/retry")) {
+        return { ok: true, status: 200, json: async () => ({ status: "invented" }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/runtime/approve") || url.endsWith("/workspace/api/runtime/deprecate")) {
+        return { ok: true, status: 200, json: async () => ({}) } as Response;
+      }
       throw new Error(`unexpected URL ${url}`);
     }));
 
     await expect(listLibraryAssets()).rejects.toMatchObject({ code: "incompatible" });
     await expect(getActivity()).rejects.toMatchObject({ code: "incompatible" });
     await expect(listResearchCandidates()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getHome()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getDelivery()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getSetupStatus()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(listEvidenceBundles()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getActivityJobs()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(listEvidenceAnchors()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(preflightSetup({ mode: "quick", root: "D:/ArcheAxis" })).rejects.toMatchObject({ code: "incompatible" });
+    await expect(approveResearchCandidate("https://example.test/source")).rejects.toMatchObject({ code: "incompatible" });
+    await expect(dispatchDelivery()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(retryFailedDelivery()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(approveMachineKnowledge("Candidate")).rejects.toMatchObject({ code: "incompatible" });
+    await expect(deprecateMachineKnowledge("Approved")).rejects.toMatchObject({ code: "incompatible" });
   });
 
   it("rejects a null workspace identity even when a caller claims first-run capability", async () => {
@@ -119,7 +172,10 @@ describe("runtime handshake client", () => {
           }),
         } as Response;
       }
-      return { ok: true, status: 200, json: async () => ({ status: "available" }) } as Response;
+      return { ok: true, status: 200, json: async () => ({
+        schema_version: "v1", observed_at: "2026-08-29T00:00:00Z",
+        release: { version: "0.6.11", status: "candidate", public: false }, components: {}, migrations: {}, counts: {}, capabilities: {},
+      }) } as Response;
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -153,10 +209,25 @@ describe("runtime handshake client", () => {
         return { ok: true, blob: async () => new Blob(["source"]) } as Response;
       }
       if (url.endsWith("/workspace/api/v1/home")) {
-        return { ok: true, json: async () => ({ release: {}, counts: {}, capabilities: {}, components: {}, recent_activity: [] }) } as Response;
+        return { ok: true, json: async () => ({
+          release: { version: "0.6.11", status: "candidate", public: false },
+          counts: {}, capabilities: {}, components: {}, recent_activity: [],
+        }) } as Response;
       }
       if (url.includes("/workspace/api/v1/activity")) {
         return { ok: true, json: async () => ({ items: [], next_cursor: null }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/backup/create")) {
+        return { ok: true, json: async () => ({ file_count: 1 }) } as Response;
+      }
+      if (url.includes("/workspace/api/backup/verify")) {
+        return { ok: true, json: async () => ({ valid: true }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/runtime/approve")) {
+        return { ok: true, json: async () => ({ title: "Candidate", status: "approved" }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/runtime/deprecate")) {
+        return { ok: true, json: async () => ({ title: "Candidate", status: "deprecated" }) } as Response;
       }
       return { ok: true, json: async () => ({ status: "ok" }) } as Response;
     });
@@ -253,6 +324,38 @@ describe("runtime handshake client", () => {
         "X-ArcheAxis-Scopes": "workspace:write",
         "Idempotency-Key": expect.stringMatching(/^workspace-/),
       });
+      const url = String(input);
+      if (url.endsWith("/workspace/api/research/approve")) {
+        return { ok: true, status: 200, json: async () => ({ status: "candidate" }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/runtime/approve")) {
+        return { ok: true, status: 200, json: async () => ({ title: "Candidate", status: "approved" }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/runtime/deprecate")) {
+        return { ok: true, status: 200, json: async () => ({ title: "Candidate", status: "deprecated" }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/backup/create")) {
+        return { ok: true, status: 200, json: async () => ({ file_count: 1 }) } as Response;
+      }
+      if (url.endsWith("/api/v1/setup/initialize")) {
+        return { ok: true, status: 200, json: async () => ({
+          initialized: true,
+          workspace_id: "workspace-001",
+          workspace_root: "D:/ArcheAxis",
+          mode: "quick",
+          library_health: {
+            source_archive: {}, evidence_ledger: {}, human_learning_vault: {}, ai_asset_vault: {},
+          },
+          domains: {
+            source_archive: "D:/ArcheAxis/source", evidence_ledger: "D:/ArcheAxis/evidence",
+            human_learning_vault: "D:/ArcheAxis/learning", ai_asset_vault: "D:/ArcheAxis/assets",
+          },
+          status: {
+            schema_version: "v1", ready: true, workspace_id: "workspace-001", workspace_root: "D:/ArcheAxis",
+            steps: [{ id: "paths_writable", state: "ready", message: "ready", action_hint: "" }],
+          },
+        }) } as Response;
+      }
       return { ok: true, status: 200, json: async () => ({ status: "ok" }) } as Response;
     });
     vi.stubGlobal("fetch", fetchMock);
