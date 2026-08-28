@@ -41,10 +41,18 @@ def test_recovery_reads_never_wait_for_the_long_backend_launch_operation() -> No
     retry = source[source.index("fn retry_backend_blocking("):source.index("fn recovery_status(")]
     safe_mode = source[source.index("fn enter_safe_mode_blocking("):source.index("fn restore_backup_blocking(")]
 
+    restore = source[source.index("fn restore_backup_blocking("):source.index("fn dispatch_exit_immediately")]
+
+    assert "fn try_refresh_if_idle" in source
+    assert "TryLockError::WouldBlock" in source
+    assert "TryLockError::Poisoned" in source
     for read_only_command in (status, log_tail, backend_info):
-        assert ".operations" not in read_only_command
-    assert ".operations\n        .try_lock()" in retry
-    assert ".operations\n        .try_lock()" in safe_mode
+        assert "try_refresh_if_idle" in read_only_command
+    assert "return recovery_status_snapshot(&state);" in status
+    for write_command in (retry, safe_mode, restore):
+        assert "try_operation_guard" in write_command
+    assert safe_mode.index(".enter_safe_mode()") < safe_mode.index("process.shutdown()")
+    assert restore.index(".enter_safe_mode()") < restore.index("process.shutdown()")
     assert "RECOVERY_OPERATION_IN_PROGRESS" in source
 
 

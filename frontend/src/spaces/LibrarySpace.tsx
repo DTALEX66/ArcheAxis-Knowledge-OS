@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
 import { downloadLibraryAsset, downloadPdfAsset, listEvidenceAnchors, listLibraryAssets, type EvidenceAnchorDto, type LibraryAssetDto } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
@@ -13,6 +13,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [textPreview, setTextPreview] = useState<string | null>(null);
   const [anchors, setAnchors] = useState<EvidenceAnchorDto[]>([]);
+  const reader = useRef({ generation: 0, objectUrl: null as string | null, mounted: true });
 
   useEffect(() => {
     let alive = true;
@@ -23,11 +24,29 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     return () => { alive = false; };
   }, []);
 
-  useEffect(() => () => {
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
-  }, [objectUrl]);
+  useEffect(() => {
+    reader.current.mounted = true;
+    return () => {
+      reader.current.mounted = false;
+      reader.current.generation += 1;
+      if (reader.current.objectUrl) URL.revokeObjectURL(reader.current.objectUrl);
+      reader.current.objectUrl = null;
+    };
+  }, []);
+
+  function closeReader() {
+    reader.current.generation += 1;
+    if (reader.current.objectUrl) URL.revokeObjectURL(reader.current.objectUrl);
+    reader.current.objectUrl = null;
+    setObjectUrl(null);
+    setOpened(null);
+    setAnchors([]);
+    setTextPreview(null);
+  }
 
   async function openAsset(asset: LibraryAssetDto) {
+    const generation = ++reader.current.generation;
+    const isCurrent = () => reader.current.mounted && reader.current.generation === generation;
     setMessage("正在读取原件…");
     setAnchors([]);
     setTextPreview(null);
@@ -36,8 +55,14 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
       const blob = pdf
         ? await downloadPdfAsset(asset.raw_sha256)
         : await downloadLibraryAsset(asset.raw_sha256);
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (!isCurrent()) return;
       const nextUrl = URL.createObjectURL(blob);
+      if (!isCurrent()) {
+        URL.revokeObjectURL(nextUrl);
+        return;
+      }
+      if (reader.current.objectUrl) URL.revokeObjectURL(reader.current.objectUrl);
+      reader.current.objectUrl = nextUrl;
       setObjectUrl(nextUrl);
       setOpened(asset);
       if (pdf) {
@@ -46,19 +71,22 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
         const seen = new Set<string>();
         do {
           const page = await listEvidenceAnchors(100, cursor);
+          if (!isCurrent()) return;
           matching.push(...page.items.filter((anchor) => anchor.raw_sha256 === asset.raw_sha256));
           cursor = page.next_cursor ?? undefined;
           if (cursor && seen.has(cursor)) break;
           if (cursor) seen.add(cursor);
         } while (cursor);
-        setAnchors(matching);
+        if (isCurrent()) setAnchors(matching);
       } else if (blob.type.startsWith("text/") || /\.(md|txt|json|csv)$/i.test(asset.source_name)) {
-        setTextPreview((await blob.text()).slice(0, 20_000));
+        const preview = (await blob.text()).slice(0, 20_000);
+        if (!isCurrent()) return;
+        setTextPreview(preview);
       }
-      setMessage(`已打开原件：${asset.source_name}`);
+      if (isCurrent()) setMessage(`已打开原件：${asset.source_name}`);
     } catch (e) {
-      setOpened(null);
-      setObjectUrl(null);
+      if (!isCurrent()) return;
+      closeReader();
       setMessage(userErrorMessage(e instanceof Error ? e.message : e));
     }
   }
@@ -94,7 +122,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
         </table>
       )}
       {opened && objectUrl ? <section className="library-reader" aria-label="原件阅读器">
-        <header><div><span className="archive-eyebrow">当前原件</span><h4>{opened.source_name}</h4></div><button type="button" onClick={() => { URL.revokeObjectURL(objectUrl); setObjectUrl(null); setOpened(null); setAnchors([]); }}>关闭阅读器</button></header>
+        <header><div><span className="archive-eyebrow">当前原件</span><h4>{opened.source_name}</h4></div><button type="button" onClick={closeReader}>关闭阅读器</button></header>
         <div className="library-reader-grid">
           <div className="library-document">
             {opened.mime_type === "application/pdf" || /\.pdf$/i.test(opened.source_name)

@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前 canonical 用户壳只有 `frontend/` + 根 `src-tauri/`；旧 loopback Workspace 产品页、静态资产与 `/kb` Dashboard 已退役，`/workspace/api/*` 仅作为本地 API 边界。GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner、视觉课件与空间记忆仍是 deferred/文档规划，不进入普通用户导航。Chromium 功能绿测不替代原生 Tauri WebView 点击级证据。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台）。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前 canonical 用户壳只有 `frontend/` + 根 `src-tauri/`；旧 loopback Workspace 产品页、静态资产与 `/kb` Dashboard 已退役，`/workspace/api/*` 仅作为本地 API 边界。React 已覆盖工作台、原件列表/安全阅读、证据列表、学习、机器知识、设置与任务回执；旧页面中的 Intake、完整 Vault、Canvas、Exchange、PDF 文本层批注仍是 API-only/未迁移前端能力，不得写成已完成。Planner、视觉课件与空间记忆仍是 deferred/文档规划，不进入普通用户导航。Chromium 功能绿测不替代原生 Tauri WebView 点击级证据。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台）。
 
 ## 已验证能力
 

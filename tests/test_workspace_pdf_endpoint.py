@@ -94,6 +94,33 @@ def test_pdf_endpoint_reads_the_same_source_archive_listed_by_library(
     assert response.status_code == 200
     assert response.content == blob
     assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["x-content-type-options"] == "nosniff"
+
+
+def test_pdf_endpoint_rejects_tampered_content_address(monkeypatch, tmp_path) -> None:
+    blob = b"%PDF-1.4\noriginal"
+    client, source_archive = _client(tmp_path, monkeypatch)
+    key = _store_pdf(source_archive, blob, "tamper.pdf")
+    digest = key.removeprefix("sha256:")
+    source_archive.resolve(digest).write_bytes(b"%PDF-1.4\ndifferent")
+
+    response = client.get(f"/workspace/api/pdf/{key}")
+
+    assert response.status_code == 404
+
+
+def test_pdf_endpoint_reads_with_a_hard_byte_limit(monkeypatch, tmp_path) -> None:
+    from app.workspace import router
+
+    blob = b"%PDF-1.4\n" + b"x" * 32
+    client, source_archive = _client(tmp_path, monkeypatch)
+    key = _store_pdf(source_archive, blob, "bounded.pdf")
+    monkeypatch.setattr(router, "MAX_PDF_BYTES", 16)
+
+    response = client.get(f"/workspace/api/pdf/{key}")
+
+    assert response.status_code == 404
 
 
 def test_pdf_endpoint_serves_both_real_pdfs(monkeypatch, tmp_path) -> None:

@@ -11,10 +11,10 @@ from datetime import datetime, timezone
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.evidence.anchor import (
@@ -36,6 +36,19 @@ from shared.config import resolve_runtime_path
 from shared.storage import DB_PATH
 
 WORKSPACE_PREFIX = "/" + "workspace"
+MAX_LIBRARY_CONTENT_BYTES = 25 * 1024 * 1024
+
+
+def _read_content_addressed(path: Path, digest: str, limit: int) -> bytes:
+    with path.open("rb") as stream:
+        blob = stream.read(limit + 1)
+    if not blob:
+        raise ValueError("source archive content is empty")
+    if len(blob) > limit:
+        raise ValueError("source archive content exceeds the serving limit")
+    if hashlib.sha256(blob).hexdigest() != digest:
+        raise RuntimeError("source archive content hash mismatch")
+    return blob
 
 
 
@@ -331,10 +344,7 @@ def workspace_pdf(content_key: str, request: Request) -> Response:
             raw_sha256=digest,
             db_path=DB_PATH,
         )
-        size_bytes = original.stat().st_size
-        if size_bytes < 1 or size_bytes > MAX_PDF_BYTES:
-            raise ValueError("PDF original size is outside the serving limit")
-        blob = original.read_bytes()
+        blob = _read_content_addressed(original, digest, MAX_PDF_BYTES)
     except (LookupError, OSError, RuntimeError, ValueError) as exc:
         raise HTTPException(status_code=404, detail="PDF original was not found") from exc
     if (
@@ -342,7 +352,14 @@ def workspace_pdf(content_key: str, request: Request) -> Response:
         or (mime_type != "application/pdf" and Path(source_name).suffix.casefold() != ".pdf")
     ):
         raise HTTPException(status_code=404, detail="PDF original was not found")
-    return Response(content=blob, media_type="application/pdf")
+    return Response(
+        content=blob,
+        media_type="application/pdf",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.post("/api/evidence/anchor")
@@ -711,8 +728,8 @@ def workspace_library(request: Request) -> dict[str, object]:
     return _command_error(lambda: service.workspace_library(db_path=DB_PATH))
 
 
-@router.get("/api/library/{raw_sha256}/content", response_class=FileResponse)
-def workspace_library_content(raw_sha256: str, request: Request) -> FileResponse:
+@router.get("/api/library/{raw_sha256}/content")
+def workspace_library_content(raw_sha256: str, request: Request) -> Response:
     """Open one retained original by content identity, never by caller path."""
     _local_principal(request)
     try:
@@ -725,15 +742,26 @@ def workspace_library_content(raw_sha256: str, request: Request) -> FileResponse
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return FileResponse(
-        path,
+    if media_type.casefold() == "application/pdf" or Path(safe_name).suffix.casefold() == ".pdf":
+        raise HTTPException(status_code=415, detail="PDF content requires the validated PDF endpoint")
+    try:
+        blob = _read_content_addressed(path, raw_sha256, MAX_LIBRARY_CONTENT_BYTES)
+    except ValueError as exc:
+        raise HTTPException(status_code=413, detail="source archive content is too large") from exc
+    except OSError as exc:
+        raise HTTPException(status_code=404, detail="source archive content was not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail="source archive content identity mismatch") from exc
+    if blob.startswith(b"%PDF-"):
+        raise HTTPException(status_code=415, detail="PDF content requires the validated PDF endpoint")
+    return Response(
+        content=blob,
         media_type=media_type,
-        filename=safe_name,
-        content_disposition_type="inline",
         headers={
             "Cache-Control": "no-store",
             "X-Content-Type-Options": "nosniff",
             "Content-Security-Policy": "default-src 'none'; sandbox",
+            "Content-Disposition": f"attachment; filename*=UTF-8''{quote(safe_name, safe='')}",
         },
     )
 

@@ -80,7 +80,39 @@ def test_source_archive_content_opens_only_by_sha256(tmp_path, monkeypatch) -> N
     assert response.headers["cache-control"] == "no-store"
     assert response.headers["x-content-type-options"] == "nosniff"
     assert "notes.md" in response.headers["content-disposition"]
+    assert response.headers["content-disposition"].startswith("attachment")
     assert str(tmp_path) not in response.text
+
+
+def test_source_archive_generic_content_rejects_pdf_and_oversized_bytes(tmp_path, monkeypatch) -> None:
+    from app.ingestion.raw_asset import RawAssetStore
+    from app.main import app
+    from app.workspace import router
+
+    store = RawAssetStore(root=tmp_path / "source_archive" / "raw-assets")
+    pdf = store.store_original(b"%PDF-1.4\nbody", "paper.pdf", mime_type="application/pdf")
+    large = store.store_original(b"0123456789", "large.txt", mime_type="text/plain")
+    monkeypatch.setattr(router, "DB_PATH", tmp_path / "archeaxis.sqlite")
+    monkeypatch.setattr(router, "MAX_LIBRARY_CONTENT_BYTES", 8)
+    client = TestClient(app)
+
+    assert client.get(f"/workspace/api/library/{pdf.sha256}/content").status_code == 415
+    assert client.get(f"/workspace/api/library/{large.sha256}/content").status_code == 413
+
+
+def test_source_archive_generic_content_rejects_tampered_digest(tmp_path, monkeypatch) -> None:
+    from app.ingestion.raw_asset import RawAssetStore
+    from app.main import app
+    from app.workspace import router
+
+    store = RawAssetStore(root=tmp_path / "source_archive" / "raw-assets")
+    record = store.store_original(b"original text", "note.txt", mime_type="text/plain")
+    store.resolve(record.sha256).write_bytes(b"tampered text")
+    monkeypatch.setattr(router, "DB_PATH", tmp_path / "archeaxis.sqlite")
+
+    response = TestClient(app).get(f"/workspace/api/library/{record.sha256}/content")
+
+    assert response.status_code == 409
 
 
 def test_source_archive_content_rejects_invalid_or_missing_digest(
@@ -410,7 +442,7 @@ def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_pat
     assert payload["components"] == {
         "api": "available",
         "database": "available",
-        "worker": "available",
+        "worker": "not_connected",
         "outbox_dispatcher": "lease_fenced",
         "server_sent_events": "not_connected",
     }

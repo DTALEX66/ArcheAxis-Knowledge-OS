@@ -10,8 +10,58 @@ mod recovery_contract_tests {
         sanitize_recovery_message, validate_enumerated_backup_name, RecoveryLogTailDto,
         RecoveryState, RecoveryStatusDto,
     };
+    use super::{
+        try_operation_guard, try_refresh_if_idle, DesktopBackend,
+        RECOVERY_OPERATION_IN_PROGRESS, RECOVERY_STATE_UNAVAILABLE,
+    };
+    use std::sync::{Arc, Mutex};
 
     const BACKUP_DISPLAY_NAME: &str = "cognitive_os_20260823T010203_000000Z.sqlite";
+
+    fn idle_backend() -> DesktopBackend {
+        DesktopBackend {
+            process: Arc::new(Mutex::new(None)),
+            runtime: Arc::new(Mutex::new(None)),
+            resolver: Arc::new(Mutex::new(None)),
+            recovery: Arc::new(Mutex::new(RecoveryState::booting(false))),
+            operations: Arc::new(Mutex::new(())),
+        }
+    }
+
+    #[test]
+    fn recovery_reads_skip_refresh_and_writes_fail_fast_while_an_operation_runs() {
+        let state = idle_backend();
+        let operation = state.operations.lock().expect("operation lock");
+
+        assert_eq!(try_refresh_if_idle(&state), Ok(false));
+        assert!(matches!(
+            try_operation_guard(&state),
+            Err(error) if error == RECOVERY_OPERATION_IN_PROGRESS
+        ));
+
+        drop(operation);
+        assert_eq!(try_refresh_if_idle(&state), Ok(true));
+    }
+
+    #[test]
+    fn a_poisoned_operation_lock_is_not_reported_as_busy() {
+        let state = idle_backend();
+        let operations = state.operations.clone();
+        let _ = std::thread::spawn(move || {
+            let _operation = operations.lock().expect("operation lock");
+            panic!("poison operation lock");
+        })
+        .join();
+
+        assert_eq!(
+            try_refresh_if_idle(&state),
+            Err(RECOVERY_STATE_UNAVAILABLE.to_owned())
+        );
+        assert!(matches!(
+            try_operation_guard(&state),
+            Err(error) if error == RECOVERY_STATE_UNAVAILABLE
+        ));
+    }
 
     fn contains_forbidden_key(value: &serde_json::Value, forbidden: &str) -> bool {
         match value {
@@ -219,7 +269,7 @@ use serde::Serialize;
 #[cfg(windows)]
 use std::path::PathBuf;
 #[cfg(windows)]
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard, TryLockError};
 #[cfg(windows)]
 use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
@@ -289,6 +339,26 @@ fn record_failure(state: &DesktopBackend, message: &str) {
     if let Ok(mut recovery) = state.recovery.lock() {
         recovery.record_failure(message);
     }
+}
+
+#[cfg(windows)]
+fn try_operation_guard(state: &DesktopBackend) -> Result<MutexGuard<'_, ()>, String> {
+    match state.operations.try_lock() {
+        Ok(guard) => Ok(guard),
+        Err(TryLockError::WouldBlock) => Err(RECOVERY_OPERATION_IN_PROGRESS.to_owned()),
+        Err(TryLockError::Poisoned(_)) => Err(RECOVERY_STATE_UNAVAILABLE.to_owned()),
+    }
+}
+
+#[cfg(windows)]
+fn try_refresh_if_idle(state: &DesktopBackend) -> Result<bool, String> {
+    let _operation = match state.operations.try_lock() {
+        Ok(guard) => guard,
+        Err(TryLockError::WouldBlock) => return Ok(false),
+        Err(TryLockError::Poisoned(_)) => return Err(RECOVERY_STATE_UNAVAILABLE.to_owned()),
+    };
+    refresh_backend_state(state)?;
+    Ok(true)
 }
 
 #[cfg(windows)]
@@ -368,9 +438,20 @@ fn recovery_status_dto(
 }
 
 #[cfg(windows)]
+fn recovery_status_snapshot(state: &DesktopBackend) -> Result<RecoveryStatusDto, String> {
+    state
+        .recovery
+        .lock()
+        .map(|recovery| recovery.status(Vec::new()))
+        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())
+}
+
+#[cfg(windows)]
 #[tauri::command]
 fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>, String> {
-    refresh_backend_state(&state)?;
+    if !try_refresh_if_idle(&state)? {
+        return Ok(None);
+    }
     let backend = state
         .process
         .lock()
@@ -393,10 +474,7 @@ async fn retry_backend(state: State<'_, DesktopBackend>) -> Result<BackendInfo, 
 
 #[cfg(windows)]
 fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> {
-    let _operation = state
-        .operations
-        .try_lock()
-        .map_err(|_| RECOVERY_OPERATION_IN_PROGRESS.to_owned())?;
+    let _operation = try_operation_guard(&state)?;
     refresh_backend_state(&state)?;
     if let Some(existing) = state
         .process
@@ -472,7 +550,9 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
 #[cfg(windows)]
 #[tauri::command]
 fn recovery_status(state: State<'_, DesktopBackend>) -> Result<RecoveryStatusDto, String> {
-    refresh_backend_state(&state)?;
+    if !try_refresh_if_idle(&state)? {
+        return recovery_status_snapshot(&state);
+    }
     let runtime = current_runtime(&state)?;
     recovery_status_dto(&state, runtime.as_ref())
 }
@@ -480,7 +560,7 @@ fn recovery_status(state: State<'_, DesktopBackend>) -> Result<RecoveryStatusDto
 #[cfg(windows)]
 #[tauri::command]
 fn recovery_log_tail(state: State<'_, DesktopBackend>) -> Result<RecoveryLogTailDto, String> {
-    refresh_backend_state(&state)?;
+    try_refresh_if_idle(&state)?;
     state
         .recovery
         .lock()
@@ -499,10 +579,12 @@ async fn enter_safe_mode(state: State<'_, DesktopBackend>) -> Result<RecoverySta
 
 #[cfg(windows)]
 fn enter_safe_mode_blocking(state: DesktopBackend) -> Result<RecoveryStatusDto, String> {
-    let _operation = state
-        .operations
-        .try_lock()
-        .map_err(|_| RECOVERY_OPERATION_IN_PROGRESS.to_owned())?;
+    let _operation = try_operation_guard(&state)?;
+    state
+        .recovery
+        .lock()
+        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
+        .enter_safe_mode();
     let process = state
         .process
         .lock()
@@ -511,11 +593,6 @@ fn enter_safe_mode_blocking(state: DesktopBackend) -> Result<RecoveryStatusDto, 
     if let Some(mut process) = process {
         process.shutdown();
     }
-    state
-        .recovery
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
-        .enter_safe_mode();
     let runtime = current_runtime(&state)?;
     recovery_status_dto(&state, runtime.as_ref())
 }
@@ -537,10 +614,7 @@ fn restore_backup_blocking(
     state: DesktopBackend,
     name: String,
 ) -> Result<RestoreReceiptDto, String> {
-    let _operation = state
-        .operations
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
+    let _operation = try_operation_guard(&state)?;
     let runtime =
         current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
     let backups = enumerate_backups(&runtime.data_dir).map_err(|error| {
@@ -562,6 +636,11 @@ fn restore_backup_blocking(
             return Err(RECOVERY_BACKUP_INVALID.to_owned());
         }
     };
+    state
+        .recovery
+        .lock()
+        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
+        .enter_safe_mode();
     let process = state
         .process
         .lock()
@@ -570,11 +649,6 @@ fn restore_backup_blocking(
     if let Some(mut process) = process {
         process.shutdown();
     }
-    state
-        .recovery
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
-        .enter_safe_mode();
     let fresh_backups = enumerate_backups(&runtime.data_dir).map_err(|error| {
         if let Ok(mut recovery) = state.recovery.lock() {
             recovery.record_safe_mode_failure(&error);

@@ -64,11 +64,25 @@ def api_payload(url: str) -> dict[str, object]:
     }:
         return {"items": []}
     if path == f"{API_PREFIX}/v1/setup/status":
-        return {"ready": True, "steps": []}
+        return {
+            "schema_version": "v1",
+            "ready": True,
+            "workspace_id": "browser-smoke",
+            "workspace_root": "browser-smoke",
+            "steps": [{"id": "paths_writable", "state": "ready", "message": "ready", "action_hint": ""}],
+        }
     if path == f"{API_PREFIX}/v1/learning/review-queue":
         return {"due_count": 0, "due": []}
     if path == f"{WORKSPACE_PREFIX}/api/status":
-        return {"status": "available"}
+        return {
+            "schema_version": "v1",
+            "observed_at": "2026-08-29T00:00:00Z",
+            "release": {"version": "candidate", "status": "candidate", "public": False},
+            "components": {},
+            "migrations": {},
+            "counts": {},
+            "capabilities": {},
+        }
     return {}
 
 

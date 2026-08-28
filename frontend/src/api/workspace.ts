@@ -147,6 +147,13 @@ export interface StatusDto {
 
 export type SetupMode = "quick" | "advanced";
 
+const SETUP_DOMAIN_IDS = [
+  "source_archive",
+  "evidence_ledger",
+  "human_learning_vault",
+  "ai_asset_vault",
+] as const;
+
 export interface SetupRequestDto {
   [key: string]: unknown;
   mode: SetupMode;
@@ -205,10 +212,60 @@ function stringField(record: Record<string, unknown>, field: string, label: stri
   return record[field] as string;
 }
 
+function numberField(record: Record<string, unknown>, field: string, label: string): number {
+  if (typeof record[field] !== "number" || !Number.isFinite(record[field])) invalidProjection(label);
+  return record[field] as number;
+}
+
+function booleanField(record: Record<string, unknown>, field: string, label: string): boolean {
+  if (typeof record[field] !== "boolean") invalidProjection(label);
+  return record[field] as boolean;
+}
+
+function numericRecord(value: unknown, label: string): Record<string, number> {
+  const record = recordProjection(value, label);
+  if (Object.values(record).some((item) => typeof item !== "number" || !Number.isFinite(item) || item < 0)) {
+    invalidProjection(label);
+  }
+  return record as Record<string, number>;
+}
+
+function stringRecord(value: unknown, label: string): Record<string, string> {
+  const record = recordProjection(value, label);
+  if (Object.values(record).some((item) => typeof item !== "string")) invalidProjection(label);
+  return record as Record<string, string>;
+}
+
+function nestedNumericRecord(value: unknown, label: string): Record<string, Record<string, number>> {
+  const record = recordProjection(value, label);
+  for (const [key, nested] of Object.entries(record)) numericRecord(nested, `${label} ${key}`);
+  return record as Record<string, Record<string, number>>;
+}
+
 function requireItemFields(items: unknown[], fields: string[], label: string): void {
   for (const item of items) {
     const record = recordProjection(item, label);
     for (const field of fields) stringField(record, field, label);
+  }
+}
+
+function validateRelease(value: unknown, label: string): Record<string, unknown> {
+  const release = recordProjection(value, label);
+  stringField(release, "version", label);
+  stringField(release, "status", label);
+  booleanField(release, "public", label);
+  return release;
+}
+
+function validateSetupStatusRecord(record: Record<string, unknown>, label: string): void {
+  stringField(record, "schema_version", label);
+  booleanField(record, "ready", label);
+  stringField(record, "workspace_root", label);
+  if (!(record.workspace_id === null || typeof record.workspace_id === "string")) invalidProjection(label);
+  if (!Array.isArray(record.steps) || record.steps.length === 0) invalidProjection(label);
+  requireItemFields(record.steps, ["id", "state", "message", "action_hint"], `${label} step`);
+  if (record.ready === true && record.steps.some((step) => !["ready", "completed"].includes(String((step as Record<string, unknown>).state)))) {
+    invalidProjection(label);
   }
 }
 
@@ -318,12 +375,20 @@ export async function listEvidenceAnchors(limit = 50, cursor?: string): Promise<
     : `?limit=${limit}`;
   const record = itemsProjection<EvidenceAnchorDto>(await getJSON<unknown>(`/workspace/api/evidence/anchors${query}`), "evidence anchors");
   requireItemFields(record.items, ["anchor_id", "raw_sha256", "source_revision"], "evidence anchor");
+  for (const item of record.items) {
+    if (!/^[0-9a-f]{64}$/i.test(item.raw_sha256)) invalidProjection("evidence anchor");
+    const locator = recordProjection(item.locator, "evidence anchor locator");
+    if (locator.page !== undefined && (typeof locator.page !== "number" || !Number.isInteger(locator.page) || locator.page < 1)) invalidProjection("evidence anchor locator");
+  }
   if (typeof record.count !== "number" || !(record.next_cursor === null || typeof record.next_cursor === "string")) invalidProjection("evidence anchors");
   return record as unknown as EvidenceListDto;
 }
 
 export async function listEvidenceBundles(limit = 50): Promise<{ items: EvidenceBundleSummaryDto[] }> {
-  return itemsProjection<EvidenceBundleSummaryDto>(await getJSON<unknown>(`/workspace/api/evidence/bundles?limit=${limit}`), "evidence bundles");
+  const record = itemsProjection<EvidenceBundleSummaryDto>(await getJSON<unknown>(`/workspace/api/evidence/bundles?limit=${limit}`), "evidence bundles");
+  requireItemFields(record.items, ["bundle_id", "claim_id", "created_at"], "evidence bundle");
+  if (record.items.some((item) => !(item.review_decision === null || typeof item.review_decision === "string"))) invalidProjection("evidence bundle");
+  return record;
 }
 
 export async function getEvidenceBundleInspection(bundleId: string): Promise<EvidenceBundleInspectionDto> {
@@ -333,16 +398,52 @@ export async function getEvidenceBundleInspection(bundleId: string): Promise<Evi
   for (const field of ["entries", "review_history", "rights", "scopes", "version_history"]) {
     if (!Array.isArray(record[field])) invalidProjection("evidence bundle inspection");
   }
+  for (const field of ["bundle_id", "claim_id", "fingerprint"]) stringField(record, field, "evidence bundle inspection");
+  if ((record.rights as unknown[]).some((item) => typeof item !== "string") || (record.scopes as unknown[]).some((item) => typeof item !== "string")) invalidProjection("evidence bundle inspection");
+  for (const item of record.entries as unknown[]) recordProjection(item, "evidence bundle entry");
+  for (const item of record.review_history as unknown[]) {
+    const review = recordProjection(item, "evidence bundle review");
+    for (const field of ["decision", "reviewer_id", "reviewed_at", "rationale"]) stringField(review, field, "evidence bundle review");
+  }
+  if (record.latest_review !== null) {
+    const review = recordProjection(record.latest_review, "evidence bundle latest review");
+    for (const field of ["decision", "reviewer_id", "reviewed_at", "rationale"]) stringField(review, field, "evidence bundle latest review");
+  }
+  for (const item of record.version_history as unknown[]) {
+    const version = recordProjection(item, "evidence bundle version");
+    for (const field of ["version_id", "canonical_key", "lifecycle_status", "created_at"]) stringField(version, field, "evidence bundle version");
+    if (!(version.parent_version_id === null || typeof version.parent_version_id === "string")) invalidProjection("evidence bundle version");
+    if (version.conflict !== null) {
+      const conflict = recordProjection(version.conflict, "evidence bundle conflict");
+      stringField(conflict, "id", "evidence bundle conflict");
+      stringField(conflict, "status", "evidence bundle conflict");
+    }
+  }
   if (typeof record.conflict !== "boolean") invalidProjection("evidence bundle inspection");
   return record as unknown as EvidenceBundleInspectionDto;
 }
 
 export async function getStatus(): Promise<StatusDto> {
-  return recordProjection(await getJSON<unknown>("/workspace/api/status"), "workspace status") as StatusDto;
+  const record = recordProjection(await getJSON<unknown>("/workspace/api/status"), "workspace status");
+  stringField(record, "schema_version", "workspace status");
+  stringField(record, "observed_at", "workspace status");
+  validateRelease(record.release, "workspace status release");
+  stringRecord(record.components, "workspace status components");
+  numericRecord(record.migrations, "workspace status migrations");
+  nestedNumericRecord(record.counts, "workspace status counts");
+  stringRecord(record.capabilities, "workspace status capabilities");
+  return record as StatusDto;
 }
 
 export async function getHome(): Promise<Record<string, unknown>> {
-  return recordProjection(await getJSON<unknown>("/workspace/api/v1/home"), "workspace home");
+  const record = recordProjection(await getJSON<unknown>("/workspace/api/v1/home"), "workspace home");
+  validateRelease(record.release, "workspace home release");
+  nestedNumericRecord(record.counts, "workspace home counts");
+  stringRecord(record.capabilities, "workspace home capabilities");
+  stringRecord(record.components, "workspace home components");
+  if (!Array.isArray(record.recent_activity)) invalidProjection("workspace home activity");
+  requireItemFields(record.recent_activity, ["public_ref", "kind", "label", "state", "updated_at"], "workspace home activity");
+  return record;
 }
 
 export async function getActivity(limit = 5): Promise<ActivityPageDto> {
@@ -362,18 +463,26 @@ export async function getActivityObject(publicRef: string): Promise<ActivityObje
 export async function getDelivery(): Promise<DeliveryDto> {
   const record = recordProjection(await getJSON<unknown>("/workspace/api/delivery"), "delivery");
   const summary = recordProjection(record.summary, "delivery summary");
-  if (typeof summary.jobs !== "number") invalidProjection("delivery summary");
-  recordProjection(summary.outbox, "delivery outbox");
-  recordProjection(summary.receipts, "delivery receipts");
+  const jobs = numberField(summary, "jobs", "delivery summary");
+  const outbox = numericRecord(summary.outbox, "delivery outbox");
+  const receipts = numericRecord(summary.receipts, "delivery receipts");
+  if (jobs < 0 || Object.values(outbox).reduce((sum, item) => sum + item, 0) !== jobs || Object.values(receipts).reduce((sum, item) => sum + item, 0) !== jobs) invalidProjection("delivery summary");
   return record as unknown as DeliveryDto;
 }
 
+async function deliveryCommand(path: string, prefix: string, allowed: string[]): Promise<{ status: string }> {
+  const record = recordProjection(await postJSON<unknown>(path, {}, prefix), "delivery command");
+  const status = stringField(record, "status", "delivery command");
+  if (!allowed.includes(status)) invalidProjection("delivery command");
+  return { status };
+}
+
 export function dispatchDelivery(): Promise<{ status: string }> {
-  return postJSON("/workspace/api/delivery/dispatch", {}, "delivery-dispatch");
+  return deliveryCommand("/workspace/api/delivery/dispatch", "delivery-dispatch", ["idle", "delivered", "failed"]);
 }
 
 export function retryFailedDelivery(): Promise<{ status: string }> {
-  return postJSON("/workspace/api/delivery/retry", {}, "delivery-retry");
+  return deliveryCommand("/workspace/api/delivery/retry", "delivery-retry", ["idle", "requeued"]);
 }
 
 export async function listLibraryAssets(): Promise<LibraryListDto> {
@@ -406,15 +515,19 @@ export async function listResearchCandidates(): Promise<{ items: ResearchCandida
   return record;
 }
 
-export function approveResearchCandidate(source: string): Promise<Record<string, unknown>> {
-  return postJSON("/workspace/api/research/approve", {
+export async function approveResearchCandidate(source: string): Promise<Record<string, unknown>> {
+  const record = recordProjection(await postJSON<unknown>("/workspace/api/research/approve", {
     command_id: commandId("research"), source,
-  });
+  }), "research approval");
+  const status = stringField(record, "status", "research approval");
+  if (!["candidate", "approved"].includes(status)) invalidProjection("research approval");
+  return record;
 }
 
 export async function getActivityJobs(): Promise<ActivityJobsDto> {
   const record = recordProjection(await getJSON<unknown>("/workspace/api/jobs"), "jobs");
   if (!Array.isArray(record.jobs)) invalidProjection("jobs");
+  requireItemFields(record.jobs, ["activity", "state", "delivery_state", "updated_at"], "job");
   return record as unknown as ActivityJobsDto;
 }
 
@@ -430,43 +543,73 @@ export async function listMachineKnowledgeCandidates(): Promise<{ items: Machine
   return record;
 }
 
+async function machineKnowledgeCommand(path: string, prefix: string, title: string, expectedStatus: string): Promise<Record<string, unknown>> {
+  const record = recordProjection(await postJSON<unknown>(path, {
+    command_id: commandId(prefix), title,
+  }), "machine knowledge command");
+  if (stringField(record, "title", "machine knowledge command") !== title || stringField(record, "status", "machine knowledge command") !== expectedStatus) invalidProjection("machine knowledge command");
+  return record;
+}
+
 export function approveMachineKnowledge(title: string): Promise<Record<string, unknown>> {
-  return postJSON("/workspace/api/runtime/approve", {
-    command_id: commandId("runtime-approve"), title,
-  });
+  return machineKnowledgeCommand("/workspace/api/runtime/approve", "runtime-approve", title, "approved");
 }
 
 export function deprecateMachineKnowledge(title: string): Promise<Record<string, unknown>> {
-  return postJSON("/workspace/api/runtime/deprecate", {
-    command_id: commandId("runtime-deprecate"), title,
-  });
+  return machineKnowledgeCommand("/workspace/api/runtime/deprecate", "runtime-deprecate", title, "deprecated");
 }
 
 export async function getSetupStatus(): Promise<SetupStatusDto> {
-  return recordProjection(await getJSON<unknown>("/api/v1/setup/status"), "setup status") as SetupStatusDto;
+  const record = recordProjection(await getJSON<unknown>("/api/v1/setup/status"), "setup status");
+  validateSetupStatusRecord(record, "setup status");
+  return record as SetupStatusDto;
 }
 
 export async function preflightSetup(payload: SetupRequestDto): Promise<SetupPreflightDto> {
   const record = recordProjection(await postJSON<unknown>("/api/v1/setup/preflight", payload), "setup preflight");
   if (typeof record.ready !== "boolean" || !["quick", "advanced"].includes(String(record.mode))) invalidProjection("setup preflight");
-  recordProjection(record.domains, "setup domains");
-  recordProjection(record.library_health, "setup library health");
+  const domains = recordProjection(record.domains, "setup domains");
+  const health = recordProjection(record.library_health, "setup library health");
+  for (const domain of SETUP_DOMAIN_IDS) {
+    if (typeof domains[domain] !== "string" || !(domains[domain] as string).trim()) invalidProjection("setup domains");
+    const item = recordProjection(health[domain], `setup health ${domain}`);
+    numberField(item, "free_bytes", `setup health ${domain}`);
+    booleanField(item, "readonly", `setup health ${domain}`);
+    stringField(item, "filesystem", `setup health ${domain}`);
+    stringField(item, "removable", `setup health ${domain}`);
+  }
   return record as unknown as SetupPreflightDto;
 }
 
-export function initializeSetup(
+export async function initializeSetup(
   payload: SetupRequestDto = { mode: "quick" },
 ): Promise<Record<string, unknown>> {
-  return postJSON<Record<string, unknown>>("/api/v1/setup/initialize", payload, "setup");
+  const record = recordProjection(await postJSON<unknown>("/api/v1/setup/initialize", payload, "setup"), "setup initialize");
+  if (record.initialized !== true) invalidProjection("setup initialize");
+  for (const field of ["workspace_id", "workspace_root", "mode"]) stringField(record, field, "setup initialize");
+  if (!["quick", "advanced"].includes(String(record.mode))) invalidProjection("setup initialize");
+  const domains = recordProjection(record.domains, "setup initialize domains");
+  const health = recordProjection(record.library_health, "setup initialize library health");
+  for (const domain of SETUP_DOMAIN_IDS) {
+    stringField(domains, domain, "setup initialize domains");
+    recordProjection(health[domain], `setup initialize health ${domain}`);
+  }
+  const status = recordProjection(record.status, "setup initialize status");
+  validateSetupStatusRecord(status, "setup initialize status");
+  return record;
 }
 
 
-export function createBackup(name: string): Promise<Record<string, unknown>> {
-  return postJSON("/workspace/api/backup/create", { name }, "backup");
+export async function createBackup(name: string): Promise<Record<string, unknown>> {
+  const record = recordProjection(await postJSON<unknown>("/workspace/api/backup/create", { name }, "backup"), "backup create");
+  numberField(record, "file_count", "backup create");
+  return record;
 }
 
-export function verifyBackup(name: string): Promise<Record<string, unknown>> {
-  return getJSON<Record<string, unknown>>(
+export async function verifyBackup(name: string): Promise<Record<string, unknown>> {
+  const record = recordProjection(await getJSON<unknown>(
     `/workspace/api/backup/verify?name=${encodeURIComponent(name)}`,
-  );
+  ), "backup verify");
+  booleanField(record, "valid", "backup verify");
+  return record;
 }

@@ -65,6 +65,7 @@ def test_release_manifest_is_packaged_truth_and_matches_dependency_lock() -> Non
         "status": "unreleased",
         "version": "0.6.11",
         "channel": "development",
+        "public": False,
         "source_commit": "unavailable",
     }
 
@@ -170,6 +171,7 @@ def test_bundled_release_identity_exposes_a_verified_public_release_summary(
         "status": "released",
         "version": "0.5.0",
         "channel": "stable",
+        "public": True,
         "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
         "tag": "v0.5.0",
         "verification_ci_run_id": 30548553629,
@@ -231,6 +233,7 @@ def test_bundled_release_identity_v3_exposes_verified_public_release_summary(
         "status": "released",
         "version": "0.6.3",
         "channel": "stable",
+        "public": True,
         "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
         "tag": "v0.6.3",
         "verification_ci_run_id": 30548553629,
@@ -274,6 +277,7 @@ def test_bundled_candidate_identity_exposes_qualified_summary_without_public_ins
         "status": "qualified",
         "version": "0.6.9",
         "channel": "stable",
+        "public": False,
         "source_commit": "34ca0fbd5ae636314a3403c473bde9247ef95907",
         "tag": "v0.6.9",
         "verification_ci_run_id": 30548553629,

@@ -39,7 +39,7 @@ describe("six-space real command loops", () => {
         asr_transcription: "not_implemented",
       },
       components: {
-        api: "available", database: "available", worker: "available",
+        api: "available", database: "available", worker: "not_connected",
         outbox_dispatcher: "lease_fenced", server_sent_events: "not_connected",
       },
       recent_activity: [{ public_ref: "wr1_demo", kind: "job", label: "资料导入", state: "completed", updated_at: "2026-08-23T00:00:00Z" }],
@@ -98,6 +98,30 @@ describe("six-space real command loops", () => {
     expect(reader).toHaveAttribute("sandbox", "");
     expect(screen.getByText("证据锚点 1 · 第 2 页")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("opaque-anchor");
+  });
+
+  it("keeps the newest source open when an older download resolves later", async () => {
+    const pending = new Map<string, (blob: Blob) => void>();
+    runtime.listLibraryAssets.mockResolvedValue({
+      items: [
+        { source_name: "older.bin", raw_sha256: "a".repeat(64), size_bytes: 1, retention: "immutable", conversion_state: "retained" },
+        { source_name: "newer.bin", raw_sha256: "b".repeat(64), size_bytes: 1, retention: "immutable", conversion_state: "retained" },
+      ],
+    });
+    runtime.downloadLibraryAsset.mockImplementation((digest: string) => new Promise<Blob>((resolve) => pending.set(digest, resolve)));
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn((blob: Blob) => `blob:${blob.size}:${Math.random()}`) });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
+    const user = userEvent.setup();
+    render(<LibrarySpace onInspect={vi.fn()} />);
+    const openButtons = await screen.findAllByRole("button", { name: "打开原件" });
+
+    await user.click(openButtons[0]);
+    await user.click(openButtons[1]);
+    pending.get("b".repeat(64))?.(new Blob(["B"]));
+    expect(await screen.findByRole("heading", { name: "newer.bin" })).toBeInTheDocument();
+    pending.get("a".repeat(64))?.(new Blob(["A"]));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "newer.bin" })).toBeInTheDocument());
+    expect(screen.queryByRole("heading", { name: "older.bin" })).not.toBeInTheDocument();
   });
 
   it("withholds Library endpoint details from visible errors", async () => {
@@ -346,11 +370,13 @@ describe("six-space real command loops", () => {
   });
 
   it("checks four-library health before creating a first workspace", async () => {
-    runtime.getSetupStatus.mockResolvedValue({
-      ready: false,
-      workspace_root: "D:\\ArcheAxis\\workspace",
-      steps: [{ id: "paths_writable", state: "ready", message: "path writable", action_hint: "" }],
-    });
+    runtime.getSetupStatus
+      .mockResolvedValueOnce({
+        ready: false,
+        workspace_root: "D:\\ArcheAxis\\workspace",
+        steps: [{ id: "paths_writable", state: "ready", message: "path writable", action_hint: "" }],
+      })
+      .mockResolvedValueOnce({ ready: true, workspace_id: "ws-1", workspace_root: "D:\\ArcheAxis\\workspace", steps: [] });
     runtime.preflightSetup.mockResolvedValue({
       ready: true,
       mode: "quick",
@@ -383,7 +409,7 @@ describe("six-space real command loops", () => {
     expect(await screen.findByText("设置完成")).toBeInTheDocument();
   });
 
-  it("keeps a successful workspace creation successful when status refresh fails", async () => {
+  it("does not claim setup completion when status readback fails", async () => {
     runtime.getSetupStatus
       .mockResolvedValueOnce({ ready: false, workspace_root: "D:\\ArcheAxis\\workspace", steps: [] })
       .mockRejectedValueOnce(new Error("status refresh unavailable"));
@@ -410,8 +436,23 @@ describe("six-space real command loops", () => {
     await user.click(screen.getByRole("button", { name: "检查四库健康" }));
     await user.click(await screen.findByRole("button", { name: "创建工作区" }));
 
-    expect(await screen.findByText("设置完成")).toBeInTheDocument();
-    expect(screen.getByText(/工作区已创建.*状态刷新失败/)).toBeInTheDocument();
+    expect(await screen.findByText(/工作区写入已返回，但就绪状态读回失败/)).toBeInTheDocument();
+    expect(screen.queryByText("设置完成")).not.toBeInTheDocument();
+    expect(screen.getByText("四库健康检查")).toBeInTheDocument();
+  });
+
+  it("does not treat a malformed backup verification as success", async () => {
+    runtime.getSetupStatus.mockResolvedValue({ ready: true, workspace_root: "D:\\ArcheAxis", steps: [] });
+    runtime.createBackup.mockResolvedValue({ file_count: 1 });
+    runtime.verifyBackup.mockResolvedValue({});
+    const user = userEvent.setup();
+    render(<SettingsSpace />);
+
+    await user.type(await screen.findByLabelText("备份名称"), "malformed-check");
+    await user.click(screen.getByRole("button", { name: "创建并验证备份" }));
+
+    expect(await screen.findByText(/备份失败/)).toBeInTheDocument();
+    expect(screen.queryByText("备份验证通过")).not.toBeInTheDocument();
   });
 
   it("requires all four advanced library paths before health preflight", async () => {

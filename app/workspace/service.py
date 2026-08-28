@@ -624,7 +624,7 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
         "components": {
             "api": "available",
             "database": "available",
-            "worker": "available",
+            "worker": "not_connected",
             "outbox_dispatcher": "lease_fenced",
             "server_sent_events": "not_connected",
         },
