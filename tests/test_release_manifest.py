@@ -536,6 +536,8 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     )
 
     assert "NSIS in-place upgrade" in lifecycle
+    assert "$workspaceStatus -ne 410" in lifecycle
+    assert "[int]$_.Exception.Response.StatusCode" in lifecycle
     # ``ARCHEAXIS_DATA_DIR`` is the runtime root.  The canonical resolver
     # strips the leading ``data`` component from ``data/archeaxis.sqlite``;
     # the lifecycle verifier must therefore inspect the actual database
