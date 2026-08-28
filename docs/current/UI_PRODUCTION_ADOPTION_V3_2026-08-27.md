@@ -1,6 +1,6 @@
 # OSUI v3 生产接入与纠偏记录
 
-- 状态：`LOCAL VERIFIED / CLOUD EXACT-SHA PENDING`
+- 状态：`SUPERSEDED BY FRONTEND_CONSOLIDATION_V1_2026-08-28`
 - 日期：2026-08-27
 - 产品：ArcheAxis Knowledge｜星环知识平台
 - 设计基线：`OSUI/archeaxis-knowledge-ui-v2/`
@@ -128,7 +128,7 @@ frontend/src/presentation/labels.ts
 - 原生主工作台截图：`.hermes/task-artifacts/ui-redesign/tauri-native-osui-v3.png`，SHA-256 `f044523cb762373df45eb61f883df544e5fd8ae3f245bb38bcf103435320e9bd`。
 - 原生资料库点击截图：`.hermes/task-artifacts/ui-redesign/tauri-native-osui-v3-library.png`，SHA-256 `69f070ff4019250260f1576b484cfefef84eba80e92ac444f27f473060b652d8`。
 
-当前尚未完成的层是 GitHub exact-SHA CI、NSIS candidate lifecycle 和后续版本公共资产 readback；因此本地 UI 可判 PASS，但不得声称修复已经发布。
+本文记录 2026-08-27 的第一次生产接入。其“双壳层均为生产入口”和 DeepTutor 产品底座表述已被 2026-08-28 单壳收敛纠正；当前事实见 [`FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](FRONTEND_CONSOLIDATION_V1_2026-08-28.md)。公开 `v0.6.11` 仍未包含这些后续前端修复。
 
 ## 8. 不可重犯
 

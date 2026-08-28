@@ -6,6 +6,7 @@ import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView } from "../spaces/SpaceView";
 import { RecoveryShell } from "../components/RecoveryShell";
+import { ContextNav } from "../components/ContextNav";
 import {
   enterRecoverySafeMode,
   getRecoveryStatus,
@@ -23,6 +24,7 @@ import {
 } from "../runtime/recovery";
 
 const DESKTOP_LIVENESS_INTERVAL_MS = 10_000;
+const RECOVERY_BOOT_POLL_MS = 250;
 
 // AXW-UI-802: six-space shell following task pack §15.3 fixed structure:
 // top status bar | left rail (six spaces) | context subnav | center view |
@@ -31,6 +33,7 @@ export function App() {
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
   const [activeSpace, setActiveSpace] = useState<SpaceId>("workspace");
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
   const [verificationPending, setVerificationPending] = useState(desktop);
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatusDto | null>(
@@ -53,6 +56,11 @@ export function App() {
   const navigate = useCallback((id: SpaceId) => {
     setActiveSpace(id);
     setInspectionTarget(null);
+  }, []);
+
+  const inspect = useCallback((target: InspectionTarget) => {
+    setInspectionTarget(target);
+    setInspectorOpen(true);
   }, []);
 
   const beginOperation = useCallback(() => {
@@ -108,8 +116,16 @@ export function App() {
     const epoch = beginOperation();
     void (async () => {
       try {
-        const status = await getRecoveryStatus();
+        let status = await getRecoveryStatus();
         if (!isCurrent(epoch)) return;
+        while (status.state === "booting") {
+          setRecoveryStatus(status);
+          setDesktopReady(false);
+          await new Promise((resolve) => globalThis.setTimeout(resolve, RECOVERY_BOOT_POLL_MS));
+          if (!isCurrent(epoch)) return;
+          status = await getRecoveryStatus();
+          if (!isCurrent(epoch)) return;
+        }
         await verifyReadyStatus(status, epoch);
       } catch {
         if (isCurrent(epoch)) {
@@ -317,15 +333,19 @@ export function App() {
           ? "web"
           : verificationPending ? "checking" : desktopReady ? "available" : "unavailable"}
         externalDev={recoveryStatus?.external_dev === true}
+        onNavigate={navigate}
+        inspectorOpen={inspectorOpen}
+        onToggleInspector={() => setInspectorOpen((value) => !value)}
       />
       <div className="app-body">
         <SpaceRail active={activeSpace} onNavigate={navigate} spaces={SPACES} />
+        <ContextNav active={activeSpace} onNavigate={navigate} />
         <main className="app-center" role="main" aria-label="当前空间内容">
-          <SpaceView spaceId={activeSpace} onInspect={setInspectionTarget} onNavigate={navigate} />
+          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} />
         </main>
-        <Inspector target={inspectionTarget} />
+        {inspectorOpen ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
-      <ActivityDock onInspect={setInspectionTarget} />
+      <ActivityDock onInspect={inspect} />
     </div>
   );
 }

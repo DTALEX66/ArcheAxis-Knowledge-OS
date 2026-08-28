@@ -8,12 +8,10 @@ from __future__ import annotations
 
 import time
 import uuid
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from knowledge_base.cards import KnowledgeCard
@@ -49,9 +47,6 @@ app.add_middleware(
 app.include_router(composite_router)
 app.include_router(projection_router)
 app.include_router(quality_router)
-
-# Templates
-templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 
 # ── Middleware: request logging + timing ──────────────────
@@ -224,42 +219,11 @@ def list_taskpacks(limit: int = 20):
 # ── Dashboard (Web UI) ────────────────────────────────────
 
 
-@app.get("/", response_class=HTMLResponse)
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    """Render the main knowledge dashboard."""
-    from shared.knowledge_gardener import find_orphans
-    from shared.storage import count as _c
-    from shared.storage import select_all
-
-    cards = select_all("kb_cards", limit=10)
-    mkus = select_all("machine_knowledge_units", limit=10)
-    reviews_due_list = select_all("kb_reviews", limit=10, order="next_review_at ASC")
-    daily_list = select_all("daily_notes", limit=7, order="date DESC")
-    canvas_list = select_all("canvases", limit=10)
-    orphans = find_orphans(limit=10)
-
-    ctx = {
-        "stats": {
-            "documents": _c("kb_documents"),
-            "cards": _c("kb_cards"),
-            "reviews": _c("kb_reviews"),
-            "mistakes": _c("kb_mistakes"),
-            "mku": _c("machine_knowledge_units"),
-            "daily_notes": _c("daily_notes"),
-            "graph_nodes": _c("graph_entities"),
-            "orphans": len(orphans),
-            "active_units": sum(
-                1 for m in select_all("machine_knowledge_units", limit=200) if m.get("active", True)
-            ),
-        },
-        "recent_cards": cards,
-        "recent_mku": mkus,
-        "due_reviews": reviews_due_list,
-        "canvases": canvas_list,
-        "daily_timeline": daily_list,
-    }
-    return templates.TemplateResponse(request=request, name="dashboard.html", context=ctx)
+@app.get("/", response_class=RedirectResponse)
+@app.get("/dashboard", response_class=RedirectResponse)
+async def dashboard() -> RedirectResponse:
+    """Retire the duplicate dashboard and send users to the product shell."""
+    return RedirectResponse(url="/workspace#knowledge", status_code=307)
 
 
 # ── Search ───────────��────────────────────────────────

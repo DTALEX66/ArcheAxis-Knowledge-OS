@@ -676,7 +676,7 @@
       "capability": "downstream-learning-product-shell",
       "code_license": "Apache-2.0",
       "model_license": "provider/model specific; no model weights vendored",
-      "disposition": "ADOPT_PRODUCT_BASE",
+      "disposition": "SIDECAR",
       "qualification": [
         "source",
         "runtime-installed",
@@ -689,7 +689,7 @@
       "upstream_tag_object": "2e522f754c61be7760392151fd22939d570941b8",
       "upstream_commit": "bd80a4d28a2093347ef080f98ae7cf8e3eee488e",
       "tag_signature": "unsigned",
-      "decision": "Install and run as a replaceable downstream product shell. Its KB, memory, users, sessions and indexes are projections only; it cannot write Source/Anchor/Claim/Evidence/HumanLearning/MachineCompetence truth.",
+      "decision": "Keep as an optional replaceable learning sidecar behind the authority bridge. The canonical product shell is ArcheAxis React/Tauri; DeepTutor does not own product navigation. Its KB, memory, users, sessions and indexes are projections only and cannot write Source/Anchor/Claim/Evidence/HumanLearning/MachineCompetence truth.",
       "upstream_note": "Release v1.5.17 published 2026-08-24; Windows fixes included. Golden workflow and restart/rebuild evidence remain required before installed/release qualification."
     },
     {
@@ -707,10 +707,10 @@
   "component_count": 47,
   "disposition_summary": {
     "CURRENT": 12,
-    "ADOPT_PRODUCT_BASE": 1,
+    "ADOPT_PRODUCT_BASE": 0,
     "ADOPT": 13,
     "EVALUATE": 9,
-    "SIDECAR": 2,
+    "SIDECAR": 3,
     "REVIEW-BLOCK": 9,
     "REJECT-CORE": 1
   }

@@ -1,4 +1,5 @@
 import { SpaceId, SPACES } from "../spaces/spaces";
+import { CommandPalette } from "./CommandPalette";
 
 export type BackendDisplayState = "checking" | "available" | "unavailable" | "web";
 
@@ -6,6 +7,9 @@ interface StatusBarProps {
   activeSpace: SpaceId;
   backendState: BackendDisplayState;
   externalDev?: boolean;
+  onNavigate?: (id: SpaceId) => void;
+  inspectorOpen?: boolean;
+  onToggleInspector?: () => void;
 }
 
 const BACKEND_LABELS: Record<BackendDisplayState, string> = {
@@ -20,6 +24,9 @@ export function StatusBar({
   activeSpace,
   backendState,
   externalDev = false,
+  onNavigate = () => {},
+  inspectorOpen = true,
+  onToggleInspector = () => {},
 }: StatusBarProps) {
   const displayStatus = backendState === "web"
     ? "development"
@@ -33,6 +40,7 @@ export function StatusBar({
         <small>ArcheAxis Knowledge</small>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
+      <CommandPalette onNavigate={onNavigate} />
       <div className="status-bar-center">
         <span
           className={`status-pill status-pill--${displayStatus}`}
@@ -44,6 +52,7 @@ export function StatusBar({
       <div className="status-bar-space" aria-label="当前空间">
         {activeLabel}
       </div>
+      <button type="button" className="inspector-trigger" aria-label={inspectorOpen ? "折叠检查器" : "展开检查器"} aria-expanded={inspectorOpen} onClick={onToggleInspector}>◧</button>
     </header>
   );
 }

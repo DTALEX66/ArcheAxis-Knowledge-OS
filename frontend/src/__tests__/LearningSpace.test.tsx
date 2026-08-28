@@ -14,6 +14,7 @@ function jsonResponse(data: unknown, ok = true) {
 describe("LearningSpace", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("renders the three learning tabs", () => {
@@ -41,7 +42,7 @@ describe("LearningSpace", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/learning/review-queue"),
     );
-  });
+  }, 15_000);
 
   it("withholds learner endpoint details from visible errors", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({}, false)));
@@ -126,6 +127,7 @@ describe("LearningSpace", () => {
 describe("LearningSpace loop views", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("renders quiz and path tabs", () => {

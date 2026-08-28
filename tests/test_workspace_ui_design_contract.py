@@ -3,6 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from fastapi.testclient import TestClient
+
+from app.main import app
+
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "app/workspace/ui/index.html"
 ROUTER = ROOT / "app/workspace/router.py"
@@ -24,6 +28,13 @@ def test_workspace_loads_approved_osui_v3_assets() -> None:
     assert '"osui-v3.css"' in router
     assert '"osui-production.css"' in router
     assert '"production-ui.js"' in router
+
+
+def test_legacy_knowledge_dashboard_redirects_to_the_single_product_shell() -> None:
+    response = TestClient(app).get("/kb/", follow_redirects=False)
+
+    assert response.status_code in {302, 307, 308}
+    assert response.headers["location"] == "/workspace#knowledge"
 
 
 def test_workspace_uses_chinese_first_product_language() -> None:
@@ -124,6 +135,14 @@ def test_tauri_surface_and_ci_share_the_ui_release_gate() -> None:
     assert "npm test -- --run" in workflow
 
 
+def test_tauri_creates_recovery_webview_before_blocking_backend_startup() -> None:
+    source = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
+    setup = source[source.index(".setup(move |app|"):source.index(".on_window_event")]
+
+    assert setup.index("WebviewWindowBuilder::new") < setup.index("std::thread::spawn")
+    assert setup.index("std::thread::spawn") < setup.index("BackendProcess::launch")
+
+
 def test_loopback_workspace_withholds_raw_api_errors_and_internal_receipts() -> None:
     script = (ROOT / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
     page = INDEX.read_text(encoding="utf-8")
@@ -145,6 +164,7 @@ def test_loopback_workspace_withholds_raw_api_errors_and_internal_receipts() -> 
     for epoch in ("renderEpoch", "searchEpoch", "annotationEpoch", "jumpEpoch", "anchorEpoch"):
         assert epoch in script
     assert "return state.contentKey" in script
+    assert "typeof payload.detail" not in script
     assert "previousLoadingTask.destroy()" in script
     assert "state.renderedPage === state.page" in script
     assert "state.renderedContentKey === state.contentKey" in script

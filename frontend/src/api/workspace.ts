@@ -1,7 +1,7 @@
 // Typed Workspace API facade for Workspace/Library/Evidence/AI Assets/Settings.
 // Every request shares the handshake client; no second unauthenticated client
 // or hard-coded runtime port is allowed.
-import { createApiClient, type ApiClient } from "./client";
+import { ApiError, createApiClient, type ApiClient } from "./client";
 import {
   isOpaqueBackupName,
   normalizeRecoveryLogTail,
@@ -185,6 +185,33 @@ declare global {
 
 let clientPromise: Promise<ApiClient> | null = null;
 
+function invalidProjection(label: string): never {
+  throw new ApiError(502, `${label} projection is incompatible`, "incompatible");
+}
+
+function recordProjection(value: unknown, label: string): Record<string, unknown> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) invalidProjection(label);
+  return value as Record<string, unknown>;
+}
+
+function itemsProjection<T>(value: unknown, label: string): { items: T[] } & Record<string, unknown> {
+  const record = recordProjection(value, label);
+  if (!Array.isArray(record.items)) invalidProjection(label);
+  return record as { items: T[] } & Record<string, unknown>;
+}
+
+function stringField(record: Record<string, unknown>, field: string, label: string): string {
+  if (typeof record[field] !== "string") invalidProjection(label);
+  return record[field] as string;
+}
+
+function requireItemFields(items: unknown[], fields: string[], label: string): void {
+  for (const item of items) {
+    const record = recordProjection(item, label);
+    for (const field of fields) stringField(record, field, label);
+  }
+}
+
 // Recovery Shell calls this after a failed launch/handshake. It drops only an
 // in-memory rejected client; no endpoint or token is persisted in the UI.
 export function resetRuntimeClient(): void {
@@ -285,41 +312,60 @@ export function runtimePostJSON<T>(
   return postJSON<T>(path, body, prefix);
 }
 
-export function listEvidenceAnchors(limit = 50, cursor?: string): Promise<EvidenceListDto> {
+export async function listEvidenceAnchors(limit = 50, cursor?: string): Promise<EvidenceListDto> {
   const query = cursor
     ? `?limit=${limit}&cursor=${encodeURIComponent(cursor)}`
     : `?limit=${limit}`;
-  return getJSON<EvidenceListDto>(`/workspace/api/evidence/anchors${query}`);
+  const record = itemsProjection<EvidenceAnchorDto>(await getJSON<unknown>(`/workspace/api/evidence/anchors${query}`), "evidence anchors");
+  requireItemFields(record.items, ["anchor_id", "raw_sha256", "source_revision"], "evidence anchor");
+  if (typeof record.count !== "number" || !(record.next_cursor === null || typeof record.next_cursor === "string")) invalidProjection("evidence anchors");
+  return record as unknown as EvidenceListDto;
 }
 
-export function listEvidenceBundles(limit = 50): Promise<{ items: EvidenceBundleSummaryDto[] }> {
-  return getJSON<{ items: EvidenceBundleSummaryDto[] }>(`/workspace/api/evidence/bundles?limit=${limit}`);
+export async function listEvidenceBundles(limit = 50): Promise<{ items: EvidenceBundleSummaryDto[] }> {
+  return itemsProjection<EvidenceBundleSummaryDto>(await getJSON<unknown>(`/workspace/api/evidence/bundles?limit=${limit}`), "evidence bundles");
 }
 
-export function getEvidenceBundleInspection(bundleId: string): Promise<EvidenceBundleInspectionDto> {
-  return getJSON<EvidenceBundleInspectionDto>(
+export async function getEvidenceBundleInspection(bundleId: string): Promise<EvidenceBundleInspectionDto> {
+  const record = recordProjection(await getJSON<unknown>(
     `/workspace/api/evidence/bundles/${encodeURIComponent(bundleId)}/inspection`,
-  );
+  ), "evidence bundle inspection");
+  for (const field of ["entries", "review_history", "rights", "scopes", "version_history"]) {
+    if (!Array.isArray(record[field])) invalidProjection("evidence bundle inspection");
+  }
+  if (typeof record.conflict !== "boolean") invalidProjection("evidence bundle inspection");
+  return record as unknown as EvidenceBundleInspectionDto;
 }
 
-export function getStatus(): Promise<StatusDto> {
-  return getJSON<StatusDto>("/workspace/api/status");
+export async function getStatus(): Promise<StatusDto> {
+  return recordProjection(await getJSON<unknown>("/workspace/api/status"), "workspace status") as StatusDto;
 }
 
-export function getHome(): Promise<Record<string, unknown>> {
-  return getJSON<Record<string, unknown>>("/workspace/api/v1/home");
+export async function getHome(): Promise<Record<string, unknown>> {
+  return recordProjection(await getJSON<unknown>("/workspace/api/v1/home"), "workspace home");
 }
 
-export function getActivity(limit = 5): Promise<ActivityPageDto> {
-  return getJSON<ActivityPageDto>(`/workspace/api/v1/activity?limit=${limit}`);
+export async function getActivity(limit = 5): Promise<ActivityPageDto> {
+  const record = itemsProjection<ActivityItemDto>(await getJSON<unknown>(`/workspace/api/v1/activity?limit=${limit}`), "activity");
+  requireItemFields(record.items, ["public_ref", "kind", "label", "state", "updated_at"], "activity item");
+  if (!(record.next_cursor === null || typeof record.next_cursor === "string")) invalidProjection("activity");
+  return record as unknown as ActivityPageDto;
 }
 
-export function getActivityObject(publicRef: string): Promise<ActivityObjectDto> {
-  return getJSON<ActivityObjectDto>(`/workspace/api/v1/objects/${encodeURIComponent(publicRef)}`);
+export async function getActivityObject(publicRef: string): Promise<ActivityObjectDto> {
+  const record = recordProjection(await getJSON<unknown>(`/workspace/api/v1/objects/${encodeURIComponent(publicRef)}`), "activity object");
+  stringField(record, "label", "activity object");
+  stringField(record, "state", "activity object");
+  return record as unknown as ActivityObjectDto;
 }
 
-export function getDelivery(): Promise<DeliveryDto> {
-  return getJSON<DeliveryDto>("/workspace/api/delivery");
+export async function getDelivery(): Promise<DeliveryDto> {
+  const record = recordProjection(await getJSON<unknown>("/workspace/api/delivery"), "delivery");
+  const summary = recordProjection(record.summary, "delivery summary");
+  if (typeof summary.jobs !== "number") invalidProjection("delivery summary");
+  recordProjection(summary.outbox, "delivery outbox");
+  recordProjection(summary.receipts, "delivery receipts");
+  return record as unknown as DeliveryDto;
 }
 
 export function dispatchDelivery(): Promise<{ status: string }> {
@@ -330,8 +376,11 @@ export function retryFailedDelivery(): Promise<{ status: string }> {
   return postJSON("/workspace/api/delivery/retry", {}, "delivery-retry");
 }
 
-export function listLibraryAssets(): Promise<LibraryListDto> {
-  return getJSON<LibraryListDto>("/workspace/api/library");
+export async function listLibraryAssets(): Promise<LibraryListDto> {
+  const record = itemsProjection<LibraryAssetDto>(await getJSON<unknown>("/workspace/api/library"), "library");
+  requireItemFields(record.items, ["source_name", "raw_sha256", "retention", "conversion_state"], "library item");
+  if (record.items.some((item) => typeof item.size_bytes !== "number")) invalidProjection("library item");
+  return record as unknown as LibraryListDto;
 }
 
 export async function downloadLibraryAsset(rawSha256: string): Promise<Blob> {
@@ -341,8 +390,10 @@ export async function downloadLibraryAsset(rawSha256: string): Promise<Blob> {
   return response.blob();
 }
 
-export function listResearchCandidates(): Promise<{ items: ResearchCandidateDto[] }> {
-  return getJSON<{ items: ResearchCandidateDto[] }>("/workspace/api/research");
+export async function listResearchCandidates(): Promise<{ items: ResearchCandidateDto[] }> {
+  const record = itemsProjection<ResearchCandidateDto>(await getJSON<unknown>("/workspace/api/research"), "research candidates");
+  requireItemFields(record.items, ["source"], "research candidate");
+  return record;
 }
 
 export function approveResearchCandidate(source: string): Promise<Record<string, unknown>> {
@@ -351,16 +402,22 @@ export function approveResearchCandidate(source: string): Promise<Record<string,
   });
 }
 
-export function getActivityJobs(): Promise<ActivityJobsDto> {
-  return getJSON<ActivityJobsDto>("/workspace/api/jobs");
+export async function getActivityJobs(): Promise<ActivityJobsDto> {
+  const record = recordProjection(await getJSON<unknown>("/workspace/api/jobs"), "jobs");
+  if (!Array.isArray(record.jobs)) invalidProjection("jobs");
+  return record as unknown as ActivityJobsDto;
 }
 
-export function getMachineKnowledge(): Promise<MachineKnowledgeListDto> {
-  return getJSON<MachineKnowledgeListDto>("/workspace/api/runtime/knowledge");
+export async function getMachineKnowledge(): Promise<MachineKnowledgeListDto> {
+  const record = itemsProjection<MachineKnowledgeDto>(await getJSON<unknown>("/workspace/api/runtime/knowledge"), "machine knowledge");
+  requireItemFields(record.items, ["title", "content", "lifecycle"], "machine knowledge item");
+  return record as unknown as MachineKnowledgeListDto;
 }
 
-export function listMachineKnowledgeCandidates(): Promise<{ items: MachineKnowledgeCandidateDto[] }> {
-  return getJSON<{ items: MachineKnowledgeCandidateDto[] }>("/workspace/api/runtime/candidates");
+export async function listMachineKnowledgeCandidates(): Promise<{ items: MachineKnowledgeCandidateDto[] }> {
+  const record = itemsProjection<MachineKnowledgeCandidateDto>(await getJSON<unknown>("/workspace/api/runtime/candidates"), "machine knowledge candidates");
+  requireItemFields(record.items, ["title", "content", "lifecycle", "version", "evidence_source"], "machine knowledge candidate");
+  return record;
 }
 
 export function approveMachineKnowledge(title: string): Promise<Record<string, unknown>> {
@@ -375,12 +432,16 @@ export function deprecateMachineKnowledge(title: string): Promise<Record<string,
   });
 }
 
-export function getSetupStatus(): Promise<SetupStatusDto> {
-  return getJSON<SetupStatusDto>("/api/v1/setup/status");
+export async function getSetupStatus(): Promise<SetupStatusDto> {
+  return recordProjection(await getJSON<unknown>("/api/v1/setup/status"), "setup status") as SetupStatusDto;
 }
 
-export function preflightSetup(payload: SetupRequestDto): Promise<SetupPreflightDto> {
-  return postJSON<SetupPreflightDto>("/api/v1/setup/preflight", payload);
+export async function preflightSetup(payload: SetupRequestDto): Promise<SetupPreflightDto> {
+  const record = recordProjection(await postJSON<unknown>("/api/v1/setup/preflight", payload), "setup preflight");
+  if (typeof record.ready !== "boolean" || !["quick", "advanced"].includes(String(record.mode))) invalidProjection("setup preflight");
+  recordProjection(record.domains, "setup domains");
+  recordProjection(record.library_health, "setup library health");
+  return record as unknown as SetupPreflightDto;
 }
 
 export function initializeSetup(

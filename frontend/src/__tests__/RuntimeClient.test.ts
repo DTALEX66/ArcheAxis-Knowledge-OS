@@ -9,6 +9,8 @@ import {
   getActivity,
   getHome,
   initializeSetup,
+  listLibraryAssets,
+  listResearchCandidates,
   resetRuntimeClient,
   verifyBackup,
 } from "../api/workspace";
@@ -69,6 +71,38 @@ describe("runtime handshake client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("rejects malformed successful product projections instead of rendering partial truth", async () => {
+    window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only" }) } };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/v1/system/handshake")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            product_id: "archeaxis-workspace", product_name: "ArcheAxis Knowledge", api_contract: "1.x", backend_version: "0.6.0",
+            source_commit: "abc1234", schema_version: 15, runtime_mode: "desktop",
+            workspace_id: "workspace-001", capabilities: [], migration_state: "ready",
+          }),
+        } as Response;
+      }
+      if (url.endsWith("/workspace/api/library")) {
+        return { ok: true, status: 200, json: async () => ({ items: null }) } as Response;
+      }
+      if (url.includes("/workspace/api/v1/activity")) {
+        return { ok: true, status: 200, json: async () => ({ items: "not-an-array" }) } as Response;
+      }
+      if (url.endsWith("/workspace/api/research")) {
+        return { ok: true, status: 200, json: async () => ({ items: [{}] }) } as Response;
+      }
+      throw new Error(`unexpected URL ${url}`);
+    }));
+
+    await expect(listLibraryAssets()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getActivity()).rejects.toMatchObject({ code: "incompatible" });
+    await expect(listResearchCandidates()).rejects.toMatchObject({ code: "incompatible" });
+  });
+
   it("rejects a null workspace identity even when a caller claims first-run capability", async () => {
     window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ port: 4312, token: "memory-only" }) } };
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
@@ -111,6 +145,12 @@ describe("runtime handshake client", () => {
         expect(init?.headers).toMatchObject({ "X-ArcheAxis-Launch-Token": "memory-only" });
         expect(init?.headers).not.toHaveProperty("Authorization");
         return { ok: true, blob: async () => new Blob(["source"]) } as Response;
+      }
+      if (url.endsWith("/workspace/api/v1/home")) {
+        return { ok: true, json: async () => ({ release: {}, counts: {}, capabilities: {}, components: {}, recent_activity: [] }) } as Response;
+      }
+      if (url.includes("/workspace/api/v1/activity")) {
+        return { ok: true, json: async () => ({ items: [], next_cursor: null }) } as Response;
       }
       return { ok: true, json: async () => ({ status: "ok" }) } as Response;
     });

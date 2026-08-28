@@ -11,7 +11,9 @@ CONTRACT = ROOT / "config/product/UI_CONTRACT_V2.json"
 def test_ui_contract_v2_defines_the_complete_learning_golden_flow() -> None:
     payload = json.loads(CONTRACT.read_text(encoding="utf-8"))
     assert payload["schemaVersion"] == "archeaxis/ui-contract/v2"
-    assert payload["productShell"]["base"] == "DeepTutor"
+    assert payload["productShell"]["base"] == "ArcheAxis React/Tauri"
+    assert payload["productShell"]["mode"] == "canonical-native-shell"
+    assert payload["sidecars"]["deeptutor"]["role"] == "optional-learning-engine"
     assert payload["authority"] == "ArcheAxis"
     assert [step["id"] for step in payload["goldenFlow"]] == [
         "import",

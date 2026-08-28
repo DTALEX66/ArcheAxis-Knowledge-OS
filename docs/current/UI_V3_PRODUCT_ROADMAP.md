@@ -1,7 +1,7 @@
 # UI v3 产品路线图
 
-- 当前轨道：OSUI v3 本地生产迁移完成；GitHub exact-SHA / installer candidate 待验证
-- 生产入口：主 Tauri React WebView + `/workspace` loopback UI
+- 当前轨道：canonical React/Tauri 单壳收敛已实现，当前分支待原生 WebView / installer / exact-SHA 验证
+- 生产入口：主 Tauri React WebView；`/workspace` 保留兼容纵切并逐步迁移到同一 React 能力面
 - 设计底座：Archive Desk + Liquid Glass
 - 语言：中文优先
 
@@ -9,7 +9,7 @@
 
 | 底座/能力 | 生产状态 | 边界 |
 | --- | --- | --- |
-| DeepTutor v1.5.17 | 产品底座已验证 | 可替换投影；不写核心真值 |
+| DeepTutor v1.5.17 | 可选学习 sidecar | authority projection；不拥有产品导航，不写核心真值 |
 | Docling / MarkItDown / Office adapters | 已接入 | 通过窄转换适配器 |
 | OCR / ffmpeg / ASR | 部分到已接入 | 缺依赖时显式失败 |
 | sqlite-vec | 已接入 | 可重建索引 |
@@ -37,7 +37,7 @@
 
 ## 下一阶段
 
-### P0 — 本地生产迁移（已完成）
+### P0 — 本地生产迁移（历史完成，已被 P0R 单壳收敛取代）
 
 - [x] 所有 active 页面切换到 OSUI 壳层 token 和中文优先文案。
 - [x] 生产 Adapter 覆盖 OSUI 主要方法；不可用方法返回明确失败，不回退 Mock。
@@ -50,6 +50,19 @@
 - GitHub exact-SHA CI。
 - Windows NSIS/Green/Portable candidate lifecycle。
 - 后续版本 tag、公开资产 identity/checksum/readback；不得改写 v0.6.11。
+
+### P0R — 单壳收敛与前端真值（当前实现）
+
+- [x] canonical shell 锁定为 `frontend/src/app/App.tsx` + `src-tauri/`。
+- [x] 全局命令、当前空间二级导航、可折叠 Inspector/Activity Dock。
+- [x] 390×844 / 360×640 横向导航与布局流内底栏。
+- [x] 退役 `/kb` Dashboard 与根 legacy HERMES 面板。
+- [x] React Library 接入原件阅读与页级 EvidenceAnchor 投影。
+- [x] API 2xx DTO 运行时校验、Setup preflight 门禁、Intake 错误脱敏。
+- [x] Tauri Recovery WebView 先启动、Core 异步启动。
+- [ ] 当前分支 Windows Rust/原生 WebView/NSIS/exact-SHA/人工视觉复审。
+
+实施与对标来源：[`FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](FRONTEND_CONSOLIDATION_V1_2026-08-28.md)。
 
 ### P1 — 原件与证据工作台
 

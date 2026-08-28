@@ -340,8 +340,12 @@ def test_dashboards_are_not_public_when_auth_is_enabled(monkeypatch, admin_api_k
     assert core.get("/kb/").status_code == 401
     assert kb.get("/").status_code == 401
     headers = {"X-API-Key": admin_api_key}
-    assert core.get("/kb/", headers=headers).status_code == 200
-    assert kb.get("/", headers=headers).status_code == 200
+    for response in (
+        core.get("/kb/", headers=headers, follow_redirects=False),
+        kb.get("/", headers=headers, follow_redirects=False),
+    ):
+        assert response.status_code == 307
+        assert response.headers["location"] == "/workspace#knowledge"
 
 
 def test_inspiration_research_uses_shared_auth(monkeypatch):

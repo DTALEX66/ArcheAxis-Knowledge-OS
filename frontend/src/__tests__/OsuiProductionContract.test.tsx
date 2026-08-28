@@ -26,6 +26,27 @@ describe("OSUI v3 production contract", () => {
     expect(screen.getByRole("heading", { name: "原件、主张与证据，留在同一个可审查的工作面。" })).toBeInTheDocument();
   });
 
+  it("renders one complete product shell with global commands and contextual navigation", () => {
+    render(<App />);
+
+    expect(screen.getByRole("button", { name: "打开全局命令" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "当前空间导航" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "展开检查器" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "展开活动坞" })).toBeInTheDocument();
+  });
+
+  it("uses the global command palette to navigate without exposing planned modules", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "打开全局命令" }));
+    expect(screen.getByRole("dialog", { name: "全局命令" })).toBeInTheDocument();
+    await user.type(screen.getByRole("searchbox", { name: "搜索空间或命令" }), "资料");
+    await user.click(screen.getByRole("option", { name: /资料库/ }));
+    expect(screen.getByRole("heading", { name: "原件库" })).toBeInTheDocument();
+    expect(screen.queryByText("Agent")).not.toBeInTheDocument();
+  });
+
   it("makes every Workbench next action operable", async () => {
     const user = userEvent.setup();
     render(<App />);

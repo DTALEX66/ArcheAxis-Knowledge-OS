@@ -19,13 +19,18 @@ def test_root_tauri_config_has_restrictive_csp_and_no_legacy_product_name() -> N
     connect_source = csp.split("connect-src", 1)[1].split(";", 1)[0]
     assert "connect-src *" not in csp
     assert "https:" not in connect_source
+    frame_source = csp.split("frame-src", 1)[1].split(";", 1)[0]
+    assert "blob:" in frame_source
+    assert "http:" not in frame_source and "https:" not in frame_source
 
 
 def test_root_desktop_keeps_the_recovery_ui_alive_and_retries_core_locally() -> None:
     source = (ROOT / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
     assert "fn retry_backend" in source
-    assert "if let Ok(process) = BackendProcess::launch(&runtime)" in source
-    assert "failed Core start must leave the packaged UI running" in source
+    setup = source[source.index(".setup(move |app|"):source.index(".on_window_event")]
+    assert setup.index("WebviewWindowBuilder::new") < setup.index("std::thread::spawn")
+    assert setup.index("std::thread::spawn") < setup.index("BackendProcess::launch")
+    assert "Create the packaged Recovery WebView before migration/Core startup" in source
 
 
 def test_root_desktop_registers_the_complete_narrow_recovery_command_surface() -> None:
