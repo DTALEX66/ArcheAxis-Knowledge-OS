@@ -33,6 +33,21 @@ def test_root_desktop_keeps_the_recovery_ui_alive_and_retries_core_locally() -> 
     assert "Create the packaged Recovery WebView before migration/Core startup" in source
 
 
+def test_recovery_reads_never_wait_for_the_long_backend_launch_operation() -> None:
+    source = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
+    status = source[source.index("fn recovery_status("):source.index("fn recovery_log_tail(")]
+    log_tail = source[source.index("fn recovery_log_tail("):source.index("async fn enter_safe_mode(")]
+    backend_info = source[source.index("fn backend_info("):source.index("async fn retry_backend(")]
+    retry = source[source.index("fn retry_backend_blocking("):source.index("fn recovery_status(")]
+    safe_mode = source[source.index("fn enter_safe_mode_blocking("):source.index("fn restore_backup_blocking(")]
+
+    for read_only_command in (status, log_tail, backend_info):
+        assert ".operations" not in read_only_command
+    assert ".operations\n        .try_lock()" in retry
+    assert ".operations\n        .try_lock()" in safe_mode
+    assert "RECOVERY_OPERATION_IN_PROGRESS" in source
+
+
 def test_root_desktop_registers_the_complete_narrow_recovery_command_surface() -> None:
     source = (ROOT / "src-tauri" / "src" / "main.rs").read_text(encoding="utf-8")
     handler = re.search(

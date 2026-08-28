@@ -344,8 +344,7 @@ def test_dashboards_are_not_public_when_auth_is_enabled(monkeypatch, admin_api_k
         core.get("/kb/", headers=headers, follow_redirects=False),
         kb.get("/", headers=headers, follow_redirects=False),
     ):
-        assert response.status_code == 307
-        assert response.headers["location"] == "/workspace#knowledge"
+        assert response.status_code == 410
 
 
 def test_inspiration_research_uses_shared_auth(monkeypatch):

@@ -3,8 +3,8 @@
 - 分支：`feat/frontend-consolidation-v1`
 - 基线：`main@5ce0d3c`（分支建立时）
 - canonical 产品壳：`frontend/src/app/App.tsx` + `src-tauri/`
-- loopback `/workspace`：兼容/能力纵切；不再定义第二套产品身份
-- `/kb/`：旧 Dashboard 已退役，重定向到 `/workspace#knowledge`
+- loopback `/workspace`：产品页已退役（HTTP 410）；仅 `/workspace/api/*` 作为本地 API 兼容边界
+- `/kb/`：旧 Dashboard 已退役（HTTP 410），不再跳转到另一套界面
 - DeepTutor：可替换学习 sidecar，不拥有产品导航
 
 ## 1. 对标产品与已吸收模式
@@ -32,7 +32,7 @@
 ### 原件与证据
 
 - canonical React Library 增加原件阅读工作台。
-- PDF 通过认证后的 Blob URL 在同一产品壳内打开。
+- PDF 只通过后端 `%PDF-` 魔数、大小上限和内容身份校验端点读取，再以 sandboxed Blob frame 在同一产品壳内打开。
 - 全量分页读取 EvidenceAnchor，并按当前原件摘要过滤；界面只显示“证据锚点 N · 第 N 页”，不显示 anchor/hash。
 - 文本原件显示有界预览；其他格式保留原件并诚实交给系统关联应用。
 
@@ -40,21 +40,22 @@
 
 - Workspace API 2xx 响应增加对象/数组/关键字段运行时校验；部分或错类型 2xx 返回 `incompatible`，不再强制类型转换后渲染。
 - 首次设置必须 `preflight.ready === true` 才能创建工作区。
-- Loopback Intake 不再直接渲染后端 `detail`。
-- Tauri 先创建 Recovery WebView，再在线程中执行 migration/Core readiness；最长启动等待不再造成“无窗口”。
+- Tauri 先创建 Recovery WebView，再在线程中执行 migration/Core readiness；只读恢复状态不再等待长启动锁，重试/安全模式在启动占用时快速返回 busy。
 
 ### 遗留清退
 
 - 删除根目录旧 HERMES 就寝面板 `index.html`。
 - 删除旧紫色 Knowledge Dashboard 模板。
-- `/kb/` 与 `/kb/dashboard` 保留兼容地址，但只重定向至统一产品壳。
+- `/workspace`、`/kb/` 与 `/kb/dashboard` 的旧产品页面返回 410；API 路径继续保留。
+- 删除并停止打包 `app/workspace/ui/`，同步移除旧 PDF.js vendored 资产、旧 UI 测试和旧浏览器门。
+- 视觉课件、空间记忆及永久禁用的取消投递入口不再出现在普通用户导航。
 - `UI_CONTRACT_V2` 将 canonical shell 从 DeepTutor 改为 ArcheAxis React/Tauri；DeepTutor 降级为 optional learning sidecar。
 
 ## 3. 响应式与视觉证据
 
-项目内验收脚本：`.hermes/task-runtime/react-visual-acceptance.py`
+项目内验收脚本：`scripts/a0_browser_smoke.py`
 
-证据目录：`.hermes/task-artifacts/frontend-consolidation/`
+证据目录：`.hermes/task-artifacts/browser-smoke/`
 
 已验证：
 
@@ -68,7 +69,7 @@
 
 ## 4. 仍然诚实保留的边界
 
-- 视觉课件和空间记忆仍是规划面，不开放假播放/假生成。
-- React PDF 阅读目前使用 WebView2/浏览器内置 PDF 呈现；PDF.js 精确文本层批注仍保留在 loopback 纵切，后续迁移为 React PDF.js 组件。
+- 视觉课件和空间记忆只保留在设计/路线图资料，不进入普通用户导航。
+- React PDF 阅读使用后端强校验的 application/pdf + sandboxed WebView2/浏览器内置呈现；旧 PDF.js loopback 纵切已删除。
 - DeepTutor 只有 authority bridge/sidecar 资格，不是当前前端底座。
 - 发布前仍需 Windows 原生 WebView 当前树点击读回、Rust/NSIS、exact-SHA CI 和人工视觉复审。

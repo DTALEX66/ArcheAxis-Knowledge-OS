@@ -390,6 +390,16 @@ export async function downloadLibraryAsset(rawSha256: string): Promise<Blob> {
   return response.blob();
 }
 
+export async function downloadPdfAsset(rawSha256: string): Promise<Blob> {
+  if (!/^[0-9a-f]{64}$/i.test(rawSha256)) invalidProjection("PDF content identity");
+  const response = await (await runtimeClient()).requestRaw(
+    `/workspace/api/pdf/sha256:${rawSha256.toLowerCase()}`,
+  );
+  const blob = await response.blob();
+  if (blob.type !== "application/pdf") invalidProjection("PDF content");
+  return blob;
+}
+
 export async function listResearchCandidates(): Promise<{ items: ResearchCandidateDto[] }> {
   const record = itemsProjection<ResearchCandidateDto>(await getJSON<unknown>("/workspace/api/research"), "research candidates");
   requireItemFields(record.items, ["source"], "research candidate");

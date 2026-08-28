@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前处于 ArcheAxis Knowledge 的 OSUI v3 production-adoption 与本地资料工作台纵切阶段：GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner 只有 `read file:` 首条受限 tracer，统一 Runtime/Sleep Loop、Reviewed Feedback 和通用 Planner 属于 deferred 能力，不是当前产品入口。本地 Workspace 已具备真实导入、状态、Job/Delivery、证据、学习与机器知识投影；Archive Desk/Liquid Glass 壳层、中文优先词典、视觉课件/空间记忆规划面和产品设计史正在生产接入。Chromium 功能绿测不替代视觉比较，Tauri WebView 点击级验收仍属于后续产品证据。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台）。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前 canonical 用户壳只有 `frontend/` + 根 `src-tauri/`；旧 loopback Workspace 产品页、静态资产与 `/kb` Dashboard 已退役，`/workspace/api/*` 仅作为本地 API 边界。GitHub/普通网页/本地文件 Research，以及 Knowledge/Learning/Mastery/Machine Knowledge 的后端治理构件已有真实路径；Planner、视觉课件与空间记忆仍是 deferred/文档规划，不进入普通用户导航。Chromium 功能绿测不替代原生 Tauri WebView 点击级证据。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台）。
 
 ## 已验证能力
 
@@ -37,7 +37,7 @@
 - 主网关已接入分策略 Rate Limiter；所有受跟踪 Uvicorn 入口禁用隐式 proxy-header rewriting，未受信代理头、双凭据与无效认证的早期拒绝也必须消耗 pre-auth 限额并进入确定性 429 边界。
 - 外部 HTTP 调用已收敛到 Safe HTTP policy，覆盖私网/metadata/redirect/响应大小/类型/timeout；本地摄入与投影使用 approved roots 和 symlink/junction containment。
 - 持久化哈希已使用 versioned SHA-256；Core、TaskPack、Vector、FTS、Research、Knowledge Governance 与 Workspace 共九个 owner 已统一注册到 migration operator。
-- Workspace 可将普通网页、GitHub URL 与 approved-root 本地文件持久化为候选 ResearchPackage，并通过独立连接严格读回；浏览器写入仅允许 loopback，本地页面不收集 API key/JWT；本地 Chromium upload → dispatch → receipt → reload smoke 已验证。
+- Workspace API 可将普通网页、GitHub URL 与 approved-root 本地文件持久化为候选 ResearchPackage，并通过独立连接严格读回；写入仅允许认证 Tauri/loopback，canonical 本地页面不收集 API key/JWT。
 - Workspace 总览已移除静态运营数字和伪服务状态，只读取本地数据库聚合与 packaged unreleased Release Manifest；Job/Delivery 页面已提供真实 pending/delivered/receipt 聚合与按需操作，尚未接线的产品入口明确显示无真实数据。
 - Learning 审批与卡片投影使用同事务持久收据；Runtime 只读取 approved Machine Knowledge，Machine Knowledge 审批/弃用使用 append-only migration-owned 收据并拒绝冲突重放。
 - 媒体基础链已用真实 FFmpeg 验证 MP4 → 16 kHz mono PCM WAV、WAV 元数据读取和关键帧 PNG 尺寸核验；图像 OCR 基础适配器已用真实图片验证，ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。
@@ -80,7 +80,7 @@ CODEX 冻结的后续执行蓝图与增补包是后续 Horizon（H1-H10 与 Web/
 - 追加式状态日志：[`docs/truth/EXECUTION_STATUS_LOG.md`](truth/EXECUTION_STATUS_LOG.md)
 - 状态交接文档：[`docs/truth/H0_H1_STATUS_HANDOFF.md`](truth/H0_H1_STATUS_HANDOFF.md)
 
-当前进度：H0（v0.5.1）已完成并 merge main；H1 后端核心（PR #72）已 merge main；AXW-022A PDF.js 前端渲染（PR #74）已 merge main；MFX Batch 0 止损（#75/#76/#77）已 merge；AXW-022B 证据批注（#78）已 merge；AXW-023A DOCX Adapter（#79）已 merge；吸收总图谱分析（#80）已 merge；ADOPT 项吸收实现（#81）已 merge；H2 管线整合已 merge（#82 路由/质量门、#97/#99 bake-off 实跑、#105 Magika 检测、#124 Evidence 接入、#125 SM-2 学习调度、#126 bake-off CLI）。本页产品能力描述以 main 实际状态为准；任务/证据状态见上述权威文档。
+当前进度：H0/H1/H2 历史后端与管线批次已进入 main；AXW-022A/B 的旧 PDF.js loopback 前端随后因单壳收敛退役，当前 PDF 阅读改为后端魔数/大小强校验端点 + sandboxed Blob frame。历史 PR 只证明当时实现，不代表当前生产入口。本页产品能力描述以 main 实际状态为准；任务/证据状态见上述权威文档。
 
 ## 正式门禁
 

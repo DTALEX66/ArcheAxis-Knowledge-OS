@@ -29,7 +29,7 @@
 
 | 项目 | 当前落点 | 资格层 | 最新决策 |
 |---|---|---|---|
-| PDF.js 3.11.174 | `app/workspace/ui/assets/` | source + installed | 保留；规划 5.x 升级 spike |
+| PDF.js | — | reference only | 旧 loopback UI 已退役；当前 React/Tauri 通过后端 `%PDF-`/大小校验端点和 sandboxed Blob frame 阅读，不再随 wheel 分发 PDF.js |
 | MarkItDown[pdf] | `app/ingestion/multi_format.py` | source + installed | 轻量 baseline；默认禁用 LLM OCR |
 | Trafilatura >=1.8 | `app/ingestion/multi_format.py` / `shared/web_search.py` | source + installed | 锁定 Apache-2.0 版本；补来源快照 |
 | pytesseract + Tesseract | `app/ingestion/multi_format.py` (MFX-010) | source + installed | Baseline OCR；诚实不可用时降级 |

@@ -230,6 +230,8 @@ const RECOVERY_RUNTIME_UNAVAILABLE: &str = "RECOVERY_RUNTIME_UNAVAILABLE";
 #[cfg(windows)]
 const RECOVERY_RETRY_FAILED: &str = "RECOVERY_RETRY_FAILED";
 #[cfg(windows)]
+const RECOVERY_OPERATION_IN_PROGRESS: &str = "RECOVERY_OPERATION_IN_PROGRESS";
+#[cfg(windows)]
 const RECOVERY_BACKUP_INVALID: &str = "RECOVERY_BACKUP_INVALID";
 #[cfg(windows)]
 const RECOVERY_RESTORE_FAILED: &str = "RECOVERY_RESTORE_FAILED";
@@ -368,10 +370,6 @@ fn recovery_status_dto(
 #[cfg(windows)]
 #[tauri::command]
 fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>, String> {
-    let _operation = state
-        .operations
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
     refresh_backend_state(&state)?;
     let backend = state
         .process
@@ -397,8 +395,8 @@ async fn retry_backend(state: State<'_, DesktopBackend>) -> Result<BackendInfo, 
 fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> {
     let _operation = state
         .operations
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
+        .try_lock()
+        .map_err(|_| RECOVERY_OPERATION_IN_PROGRESS.to_owned())?;
     refresh_backend_state(&state)?;
     if let Some(existing) = state
         .process
@@ -474,10 +472,6 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
 #[cfg(windows)]
 #[tauri::command]
 fn recovery_status(state: State<'_, DesktopBackend>) -> Result<RecoveryStatusDto, String> {
-    let _operation = state
-        .operations
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
     refresh_backend_state(&state)?;
     let runtime = current_runtime(&state)?;
     recovery_status_dto(&state, runtime.as_ref())
@@ -486,10 +480,6 @@ fn recovery_status(state: State<'_, DesktopBackend>) -> Result<RecoveryStatusDto
 #[cfg(windows)]
 #[tauri::command]
 fn recovery_log_tail(state: State<'_, DesktopBackend>) -> Result<RecoveryLogTailDto, String> {
-    let _operation = state
-        .operations
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
     refresh_backend_state(&state)?;
     state
         .recovery
@@ -511,8 +501,8 @@ async fn enter_safe_mode(state: State<'_, DesktopBackend>) -> Result<RecoverySta
 fn enter_safe_mode_blocking(state: DesktopBackend) -> Result<RecoveryStatusDto, String> {
     let _operation = state
         .operations
-        .lock()
-        .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
+        .try_lock()
+        .map_err(|_| RECOVERY_OPERATION_IN_PROGRESS.to_owned())?;
     let process = state
         .process
         .lock()

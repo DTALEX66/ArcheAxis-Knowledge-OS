@@ -4,7 +4,7 @@
 - 日期：2026-08-27
 - 产品：ArcheAxis Knowledge｜星环知识平台
 - 设计基线：`OSUI/archeaxis-knowledge-ui-v2/`
-- 生产入口：`frontend/`（主 Tauri WebView）+ `app/workspace/ui/`（loopback Workspace）
+- 生产入口（被后续收敛取代）：仅 `frontend/` + 根 `src-tauri/`；旧 `app/workspace/ui/` 已删除且不再打包
 
 ## 1. 为什么需要本次纠偏
 
@@ -38,21 +38,7 @@ OSUI v3 的“证据档案室 / Archive Desk”设计于 2026-08-12 进入仓库
 - 空间记忆二维地图、文字等价路线和低动效替代规划面。
 - 路线图与设计史页面，区分已运行底座、已吸收能力、保留规划与历史交付。
 
-生产 CSS：
-
-```text
-app/workspace/ui/assets/osui-v3.css
-app/workspace/ui/assets/osui-production.css
-```
-
-生产交互与真实 Adapter：
-
-```text
-app/workspace/ui/assets/production-ui.js
-app/workspace/ui/assets/app.js
-```
-
-主 Tauri WebView 同步使用：
+当前唯一生产实现：
 
 ```text
 frontend/src/app/App.tsx
@@ -78,7 +64,7 @@ frontend/src/presentation/labels.ts
 | 知识画布 | `/kb/canvas` | 候选研究不自动进入画布 |
 | 系统诊断 | `GET /workspace/api/status` | 只显示聚合事实 |
 
-`production-ui.js` 不包含 Mock 数据；未具备调用上下文的方法返回明确的“不可用/请选择真实对象”，不会构造样例成功。
+旧 `production-ui.js` 与静态 Workspace 壳已随第二套产品界面一并退役；当前 React 客户端对部分/错类型 2xx fail-closed。
 
 ## 5. 中文优先词典
 

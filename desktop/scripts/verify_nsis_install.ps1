@@ -229,9 +229,16 @@ try {
         throw "desktop Python isolation arguments are invalid: $($normal.Child.CommandLine)"
     }
     $base = "http://127.0.0.1:$($normal.Listener.LocalPort)"
-    $workspaceStatus = (Invoke-WebRequest "$base/workspace" -UseBasicParsing).StatusCode
+    $workspaceStatus = 0
+    try {
+        $workspaceResponse = Invoke-WebRequest "$base/workspace" -UseBasicParsing
+        $workspaceStatus = [int]$workspaceResponse.StatusCode
+    }
+    catch {
+        $workspaceStatus = [int]$_.Exception.Response.StatusCode
+    }
     $status = Invoke-RestMethod "$base/workspace/api/status"
-    if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.11') {
+    if ($workspaceStatus -ne 410 -or $status.release.version -ne '0.6.11') {
         throw 'installed Workspace returned an invalid product response'
     }
     if ($RequireReleaseIdentity) {

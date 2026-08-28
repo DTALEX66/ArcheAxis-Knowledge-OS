@@ -342,54 +342,15 @@ def test_all_react_learning_write_routes_require_desktop_write_intent() -> None:
         )
 
 
-def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
+def test_retired_workspace_page_and_safe_diagnostics_are_available() -> None:
     from app.main import app
 
     client = TestClient(app)
-
     page = client.get("/workspace")
-    assert page.status_code == 200
-    assert page.headers["content-type"].startswith("text/html")
-    assert page.headers["content-security-policy"] == (
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "connect-src 'self'; img-src 'self' data:; font-src 'self' data:; "
-        "object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
-    )
-    assert page.headers["x-content-type-options"] == "nosniff"
-    assert page.headers["referrer-policy"] == "no-referrer"
-    assert page.headers["x-frame-options"] == "DENY"
-    assert "星环知识平台" in page.text
-    assert "ArcheAxis Knowledge" in page.text
-    assert "元枢·观心" not in page.text
-    assert "archeaxis-workspace" not in page.text
-    assert "API key" not in page.text
-    assert 'id="intake-url-form"' in page.text
-    assert 'id="intake-file-form"' in page.text
-    assert "command_id" not in page.text
-    assert "fonts.googleapis.com" not in page.text
-    assert "onclick=" not in page.text
-    for fabricated_claim in (
-        "536 tests passed",
-        "PostgreSQL 适配层",
-        "Qdrant 兼容层",
-        "本地服务全部可达",
-        "队列 5 / 并发 2",
-        "生成 ArcheAxis 原型",
-    ):
-        assert fabricated_claim not in page.text
-    assert "尚未接入真实数据" in page.text
-
-    stylesheet = client.get("/workspace/assets/styles.css")
-    assert stylesheet.status_code == 200
-    assert stylesheet.headers["content-type"].startswith("text/css")
-    assert stylesheet.headers["x-content-type-options"] == "nosniff"
-    assert "--accent:#C8A972" in stylesheet.text
-    assert "fonts.googleapis.com" not in stylesheet.text
-    application = client.get("/workspace/assets/app.js")
-    assert application.status_code == 200
-    assert "javascript" in application.headers["content-type"]
-    assert application.headers["x-content-type-options"] == "nosniff"
-    assert "Command Palette" not in application.text
+    assert page.status_code == 410
+    assert page.json()["canonical_surface"] == "desktop"
+    assert page.headers["cache-control"] == "no-store"
+    assert client.get("/workspace/assets/app.js").status_code == 404
 
     diagnostics = client.get("/workspace/api/diagnostics")
     assert diagnostics.status_code == 200
@@ -399,19 +360,11 @@ def test_local_workspace_page_and_safe_diagnostics_are_available() -> None:
     assert "backup_path" not in diagnostics.text
 
 
-def test_workspace_static_assets_are_allowlisted_and_local_only(monkeypatch) -> None:
+def test_workspace_browser_boundary_remains_local_only(monkeypatch) -> None:
     from app.main import app
     from shared.config import config
 
     client = TestClient(app)
-    for path in (
-        "/workspace/assets/README.md",
-        "/workspace/assets/generate.py",
-        "/workspace/assets/unknown.js",
-        "/workspace/assets/%2e%2e/%2e%2e/pyproject.toml",
-    ):
-        assert client.get(path).status_code in {404, 422}
-
     assert TestClient(app, base_url="http://192.168.1.10").get("/workspace").status_code == 403
     assert client.post(
         "/workspace/api/intake/url",
@@ -425,155 +378,7 @@ def test_workspace_static_assets_are_allowlisted_and_local_only(monkeypatch) -> 
     ).status_code == 403
 
     monkeypatch.setitem(config._data["auth"], "enabled", True)
-    assert client.get("/workspace").status_code == 200
-
-
-def test_workspace_runtime_assets_are_packaged() -> None:
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[1]
-    assert (root / "app/workspace/ui/index.html").is_file()
-    assert (root / "app/workspace/ui/assets/styles.css").is_file()
-    assert (root / "app/workspace/ui/assets/app.js").is_file()
-    assert (root / "app/workspace/ui/assets/pdf-loader.mjs").is_file()
-    assert (root / "app/workspace/ui/assets/pdf.mjs").is_file()
-    assert (root / "app/workspace/ui/assets/pdf.worker.mjs").is_file()
-    pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
-    assert '"app.workspace" = ["ui/*.html", "ui/assets/*.css", "ui/assets/*.js", "ui/assets/*.mjs", "ui/assets/licenses/*.txt"]' in pyproject
-
-
-def test_workspace_pdf_runtime_disables_eval_and_document_scripting() -> None:
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[1]
-    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
-    loader = (root / "app/workspace/ui/assets/pdf-loader.mjs").read_text(encoding="utf-8")
-    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
-    router_source = (root / "app/workspace/router.py").read_text(encoding="utf-8")
-
-    assert 'type="module"' in page
-    assert 'src="/workspace/assets/pdf-loader.mjs"' in page
-    assert 'pdf.mjs' in loader
-    assert 'await import("/workspace/assets/app.js")' in loader
-    assert 'pdf.worker.mjs' in application
-    assert "isEvalSupported: false" in application
-    assert "enableScripting: false" in application
-    assert '"pdf-loader.mjs"' in router_source
-    assert '"pdf.mjs"' in router_source
-    assert '"pdf.worker.mjs"' in router_source
-
-
-def test_workspace_page_router_reacts_to_browser_hash_changes() -> None:
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[1]
-    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
-
-    assert "addEventListener('hashchange'" in application
-    assert "openPage(location.hash.slice(1)||'overview')" in application
-    assert "const productRoutes=new Set" in application
-    assert "document.getElementById(`page-${page}`)" in application
-    assert "querySelector(`#page-${page}`)" not in application
-
-
-def test_workspace_frontend_status_and_intake_fail_closed() -> None:
-    from pathlib import Path
-
-    application = (
-        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
-    ).read_text(encoding="utf-8")
-
-    assert "function validateStatus(payload)" in application
-    assert "function renderStatusUnavailable()" in application
-    assert "capabilities.textContent=''" in application
-    assert "result.textContent='处理中…'" in application
-    assert "无法连接本地服务，请重试" in application
-    assert "payload.engine||'自动'" not in application
-    assert "payload.char_count||0" not in application
-    assert "payload.format||payload.source_type||'网页'" not in application
-
-
-def test_workspace_click_dispatch_does_not_treat_body_theme_as_a_button() -> None:
-    from pathlib import Path
-
-    application = (
-        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
-    ).read_text(encoding="utf-8")
-
-    assert "event.target.closest('button[data-theme]')" in application
-    assert "event.target.closest('[data-theme]')" not in application
-
-
-def test_workspace_diagnostics_ui_uses_the_safe_diagnostics_api() -> None:
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[1]
-    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
-    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
-
-    assert 'id="diagnostics-summary"' in page
-    assert "'/workspace/api/status'" in application
-    assert "'/workspace/api/diagnostics'" not in application
-    assert "本地状态读取失败" in application
-
-
-def test_workspace_job_center_does_not_render_fake_execution_progress() -> None:
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[1]
-    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
-    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
-
-    assert 'class="job collapsed"' not in page
-    assert "原型任务" not in page
-    assert "job-toggle" not in application
-    assert "当前阶段" in page
-
-
-def test_workspace_evidence_lifecycle_page_is_wired_in_ui() -> None:
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[1]
-    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
-    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
-
-    assert 'id="page-evidence"' in page
-    assert "'evidence'" in application
-    assert "lifecycle" in page.lower() or "证据" in page
-    assert "validateLifecycle" in application
-    assert "renderLifecycle" in application
-    assert "refreshLifecycle" in application
-    assert "renderLifecycleUnavailable" in application
-    assert "'/workspace/api/lifecycle'" in application
-    assert "permission" in application and "execution" in application
-    assert "evaluation" in application and "lesson" in application
-    assert "command_id" not in page
-    assert "package_id" not in page
-
-
-def test_workspace_lifecycle_frontend_fail_closed_and_schema_validation() -> None:
-    from pathlib import Path
-
-    application = (
-        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
-    ).read_text(encoding="utf-8")
-
-    assert "function validateLifecycle(payload)" in application
-    assert "function renderLifecycle(payload)" in application
-    assert "function renderLifecycleUnavailable()" in application
-    assert "lifecycle-refresh" in application
-    assert "本地生命周期读取失败" in application
-
-
-def test_workspace_lifecycle_ui_navigation_wires_evidence_page() -> None:
-    from pathlib import Path
-
-    application = (
-        Path(__file__).resolve().parents[1] / "app/workspace/ui/assets/app.js"
-    ).read_text(encoding="utf-8")
-
-    assert "page==='evidence'" in application or "'evidence'" in application
-    assert "lifecycle" in application
+    assert client.get("/workspace").status_code == 410
 
 
 def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_path) -> None:

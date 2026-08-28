@@ -227,7 +227,7 @@ Implemented and CI-verified (continuous green: CI runs 524-592; 585/588 were pre
 - Commits: `git add <specific files>` only; commit messages via `git commit -F <file>`.
 - E: drive is protected (exact per-request authorization required). `ceshi`/`Obsidian知识库` are read-only black boxes.
 - `.hermes/` holds runtime data only; never commit it. `docs/truth/` logs are tracked.
-- Browser-smoke gate triggers only on `app/workspace/ui/**`; script fixes can borrow an index.html comment change to force a real CI run.
+- Browser-smoke gate由 `frontend/src/**`、`app/workspace/router.py` 与 `scripts/a0_browser_smoke.py` 触发；验收对象是 canonical React 壳，不再借用旧 UI 文件强制运行。
 - Local chromium cache lives inside the project (ARCHEAXIS_DATA_DIR isolation for browser tests).
 - GitHub API unauthenticated rate limit 60/hr — use browser Actions page for CI verification when limited; CI diagnostics via `::error::` workflow annotations.
 

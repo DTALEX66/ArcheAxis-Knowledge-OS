@@ -11,8 +11,8 @@ Windows startup → four user-chosen libraries → RawAsset SHA-256 preservation
 ```
 
 The canonical desktop implementation is `frontend/` plus root `src-tauri/`.
-`desktop/`, `OSUI/`, `app/workspace/ui/`, and root static pages are migration or
-reference surfaces, never v0.6.8 release authority.
+`desktop/` and `OSUI/` are migration/reference surfaces, never release authority.
+The former `app/workspace/ui/` and root static product pages have been removed.
 
 WORK-LAB and DESIGN-LAB are external coordinators. They interact only through
 versioned APIs, commands, receipts, and events; they do not share the product's

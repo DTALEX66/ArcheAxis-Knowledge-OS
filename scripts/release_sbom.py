@@ -116,12 +116,9 @@ def collect_components(root: Path) -> list[dict]:
         if lock.is_file():
             components.extend(parser_fn(lock))
 
-    pdf_asset = root / "app/workspace/ui/assets/pdf.mjs"
-    pdf_worker = root / "app/workspace/ui/assets/pdf.worker.mjs"
-    pdf_license = root / "app/workspace/ui/assets/licenses/pdfjs-6.2.108-LICENSE.txt"
     magika_model = root / "shared/models/magika/model.onnx"
     magika_license = root / "shared/models/magika/LICENSE"
-    vendored_required = (pdf_asset, pdf_worker, pdf_license, magika_model, magika_license)
+    vendored_required = (magika_model, magika_license)
     missing_vendored = [
         path.relative_to(root).as_posix() for path in vendored_required if not path.is_file()
     ]
@@ -129,10 +126,6 @@ def collect_components(root: Path) -> list[dict]:
         raise MissingCoverageError("missing vendored SBOM sources: " + ", ".join(missing_vendored))
     components.extend(
         [
-            _vendored_component(
-                name="pdfjs", version="6.2.108", kind="vendored-javascript",
-                path=pdf_asset, license_id="Apache-2.0",
-            ),
             _vendored_component(
                 name="magika-model", version="0.6.3", kind="model",
                 path=magika_model, license_id="Apache-2.0",

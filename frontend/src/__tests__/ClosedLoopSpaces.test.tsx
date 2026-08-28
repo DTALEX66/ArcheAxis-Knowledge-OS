@@ -10,7 +10,7 @@ import { ActivityDock } from "../components/ActivityDock";
 import { Inspector } from "../components/Inspector";
 
 const runtime = vi.hoisted(() => ({
-  listLibraryAssets: vi.fn(), downloadLibraryAsset: vi.fn(),
+  listLibraryAssets: vi.fn(), downloadLibraryAsset: vi.fn(), downloadPdfAsset: vi.fn(),
   listEvidenceAnchors: vi.fn(), listEvidenceBundles: vi.fn(), getEvidenceBundleInspection: vi.fn(),
   listResearchCandidates: vi.fn(), approveResearchCandidate: vi.fn(),
   getMachineKnowledge: vi.fn(), listMachineKnowledgeCandidates: vi.fn(),
@@ -83,7 +83,7 @@ describe("six-space real command loops", () => {
   it("opens a retained PDF with its page anchors inside the canonical Library space", async () => {
     const rawSha256 = "c".repeat(64);
     runtime.listLibraryAssets.mockResolvedValue({ items: [{ source_name: "paper.pdf", raw_sha256: rawSha256, size_bytes: 1024, mime_type: "application/pdf", retention: "immutable", conversion_state: "retained" }] });
-    runtime.downloadLibraryAsset.mockResolvedValue(new Blob(["pdf"], { type: "application/pdf" }));
+    runtime.downloadPdfAsset.mockResolvedValue(new Blob(["%PDF-1.7"], { type: "application/pdf" }));
     runtime.listEvidenceAnchors.mockResolvedValue({ count: 1, items: [{ anchor_id: "opaque-anchor", raw_sha256: rawSha256, source_revision: `sha256:${rawSha256}`, locator: { page: 2 } }], next_cursor: null });
     Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn(() => "blob:pdf-reader") });
     Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
@@ -91,7 +91,11 @@ describe("six-space real command loops", () => {
     render(<LibrarySpace onInspect={vi.fn()} />);
     await userEvent.setup().click(await screen.findByRole("button", { name: "打开原件" }));
 
-    expect(await screen.findByTitle("PDF 原件阅读器")).toHaveAttribute("src", "blob:pdf-reader");
+    const reader = await screen.findByTitle("PDF 原件阅读器");
+    expect(runtime.downloadPdfAsset).toHaveBeenCalledWith(rawSha256);
+    expect(runtime.downloadLibraryAsset).not.toHaveBeenCalled();
+    expect(reader).toHaveAttribute("src", "blob:pdf-reader");
+    expect(reader).toHaveAttribute("sandbox", "");
     expect(screen.getByText("证据锚点 1 · 第 2 页")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("opaque-anchor");
   });
@@ -527,5 +531,6 @@ describe("six-space real command loops", () => {
     expect(runtime.dispatchDelivery).toHaveBeenCalledOnce();
     expect(runtime.retryFailedDelivery).toHaveBeenCalledOnce();
     expect(screen.getByText("投递状态：已重新入队")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /取消投递/ })).not.toBeInTheDocument();
   });
 });

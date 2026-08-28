@@ -69,18 +69,12 @@ describe("OSUI v3 production contract", () => {
     expect(document.body).not.toHaveTextContent("浏览器开发模式（Web development mode）");
   });
 
-  it("keeps visual lesson and spatial memory designs reachable as honest planning surfaces", async () => {
-    const user = userEvent.setup();
+  it("keeps unfinished visual lesson and spatial memory out of ordinary navigation", () => {
     render(<LearningSpace />);
 
-    await user.click(screen.getByRole("button", { name: "视觉课件" }));
-    expect(screen.getByRole("heading", { name: "视觉课件工作室" })).toBeInTheDocument();
-    expect(document.querySelector(".lesson-studio")).toBeInTheDocument();
-    expect(screen.getByText("播放未开放")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "空间记忆" }));
-    expect(screen.getByRole("heading", { name: "空间记忆" })).toBeInTheDocument();
-    expect(document.querySelector(".spatial-blueprint")).toBeInTheDocument();
-    expect(screen.getByText("文字等价路线")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "视觉课件" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "空间记忆" })).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("播放未开放");
+    expect(document.body).not.toHaveTextContent("规划中");
   });
 });

@@ -39,17 +39,3 @@ def test_workspace_job_center_exposes_only_user_readable_strictly_bound_jobs(mon
         "correlation_id",
         "causation_id",
     } & set(response.text.split('"'))
-
-
-def test_workspace_runtime_page_uses_the_real_job_center_projection() -> None:
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[1]
-    page = (root / "app/workspace/ui/index.html").read_text(encoding="utf-8")
-    application = (root / "app/workspace/ui/assets/app.js").read_text(encoding="utf-8")
-
-    assert 'id="page-runtime"' in page
-    assert 'id="job-center"' in page
-    assert "'/workspace/api/jobs'" in application
-    assert "function renderJobs" in application
-    assert "同步记录" in page
