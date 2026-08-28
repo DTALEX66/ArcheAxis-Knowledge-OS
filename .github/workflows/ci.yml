@@ -368,7 +368,7 @@ jobs:
               assert kb.get("/machine-knowledge").status_code == 200
           with TestClient(app) as client:
               assert client.get("/health").status_code == 200
-              assert client.get("/kb").status_code == 200
+              assert client.get("/kb").status_code == 410
               assert client.get("/workspace").status_code == 410
               assert client.get("/workspace/api/status").status_code == 200
           runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])

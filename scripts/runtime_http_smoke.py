@@ -1,4 +1,4 @@
-"""Start Core on a random loopback port and verify the packaged Workspace surface."""
+"""Start Core on loopback and verify APIs plus the retired UI boundary."""
 
 from __future__ import annotations
 
@@ -14,11 +14,10 @@ import urllib.request
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from urllib.error import HTTPError
 
 WORKSPACE_ROOT = "/" + "workspace"
 WORKSPACE_STATUS_PATH = f"{WORKSPACE_ROOT}/api/status"
-WORKSPACE_SCRIPT_PATH = f"{WORKSPACE_ROOT}/assets/app.js"
-WORKSPACE_STYLE_PATH = f"{WORKSPACE_ROOT}/assets/styles.css"
 
 
 def choose_loopback_port() -> int:
@@ -44,10 +43,15 @@ def wait_for_json(url: str, *, timeout: float = 20.0) -> dict[str, object]:
     raise RuntimeError(f"Core did not become ready at {url}: {last_error}")
 
 
-def read_text(url: str) -> str:
-    with _direct_opener().open(url, timeout=5.0) as response:
-        assert response.status == 200
-        return response.read().decode("utf-8")
+def assert_retired_ui(url: str) -> None:
+    try:
+        _direct_opener().open(url, timeout=5.0)
+    except HTTPError as error:
+        assert error.code == 410
+        payload = json.loads(error.read().decode("utf-8"))
+        assert payload["canonical_surface"] == "desktop"
+        return
+    raise AssertionError("retired Workspace UI unexpectedly returned success")
 
 
 def terminate_process_tree(process: subprocess.Popen[bytes]) -> None:
@@ -114,16 +118,11 @@ def main() -> int:
     with running_core() as base_url:
         version = wait_for_json(f"{base_url}/version")
         status = wait_for_json(f"{base_url}{WORKSPACE_STATUS_PATH}")
-        page = read_text(f"{base_url}{WORKSPACE_ROOT}")
-        javascript = read_text(f"{base_url}{WORKSPACE_SCRIPT_PATH}")
-        stylesheet = read_text(f"{base_url}{WORKSPACE_STYLE_PATH}")
+        assert_retired_ui(f"{base_url}{WORKSPACE_ROOT}")
 
         assert version["release"]["status"] == "unreleased"
         assert status["schema_version"] == "v1"
         assert status["components"]["api"] == "available"
-        assert "星环知识平台" in page
-        assert "validateStatus" in javascript
-        assert "--accent" in stylesheet
         print(f"runtime HTTP smoke passed at {base_url}")
     return 0
 
