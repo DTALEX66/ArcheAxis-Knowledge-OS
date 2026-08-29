@@ -238,9 +238,15 @@ function Invoke-DistributionLifecycle {
                 throw "desktop Python isolation arguments are invalid: $($ready.Child.CommandLine)"
             }
             $base = "http://127.0.0.1:$($ready.Listener.LocalPort)"
-            $workspaceStatus = (Invoke-WebRequest "$base/workspace" -UseBasicParsing).StatusCode
+            $workspaceStatus = 0
+            try {
+                $workspaceResponse = Invoke-WebRequest "$base/workspace" -UseBasicParsing -ErrorAction Stop
+                $workspaceStatus = [int]$workspaceResponse.StatusCode
+            } catch [System.Net.WebException] {
+                $workspaceStatus = [int]$_.Exception.Response.StatusCode
+            }
             $status = Invoke-RestMethod "$base/workspace/api/status"
-            if ($workspaceStatus -ne 200 -or $status.release.version -ne '0.6.12') {
+            if ($workspaceStatus -ne 410 -or $status.release.version -ne '0.6.12') {
                 throw 'distribution Workspace returned an invalid product response'
             }
             Assert-ReleaseIdentity -BaseUrl $base
