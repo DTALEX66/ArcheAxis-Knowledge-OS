@@ -1226,7 +1226,10 @@ def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dic
         from app.ingestion.structured_conversion import build_workspace_conversion_run
 
         source = source_root / rel_path
-        raw_store = RawAssetStore(root=service._source_archive_root(Path(DB_PATH)))
+        try:
+            raw_store = RawAssetStore(root=service._source_archive_root(Path(DB_PATH)))
+        except Exception as exc:  # noqa: BLE001 - store is unavailable; surface a safe reason
+            raise RuntimeError(service._sanitize_conversion_error(f"{rel_path}: {exc}")) from None
         try:
             blob = source.read_bytes()
         except OSError as exc:
