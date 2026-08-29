@@ -238,7 +238,7 @@ def test_desktop_shell_uses_the_product_version_everywhere() -> None:
 
 
 def test_v0_6_6_development_version_uses_one_version_everywhere() -> None:
-    expected_version = "0.6.12"
+    expected_version = "0.6.13"
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     manifest = json.loads(
         (ROOT / "app/release-manifest.json").read_text(encoding="utf-8")
@@ -282,7 +282,7 @@ def test_v0_6_6_development_version_uses_one_version_everywhere() -> None:
     assert "--frontend frontend/dist" in release_workflow
     assert f"--version {expected_version}" not in release_workflow
     assert (
-        'name = "archeaxis-workspace"\nversion = "0.6.12"\nsource = { editable = "." }'
+        'name = "archeaxis-workspace"\nversion = "0.6.13"\nsource = { editable = "." }'
         in (ROOT / "uv.lock").read_text(encoding="utf-8")
     )
     for path in ("config/defaults.yaml", "app/main.py", "desktop/scripts/verify_nsis_install.ps1"):
@@ -292,7 +292,7 @@ def test_v0_6_6_development_version_uses_one_version_everywhere() -> None:
     lifecycle = (ROOT / "desktop/scripts/verify_nsis_install.ps1").read_text(
         encoding="utf-8"
     )
-    assert "v0.6.12" in lifecycle
+    assert "v0.6.13" in lifecycle
     assert "function Wait-ArcheAxisWindow" in lifecycle
     assert "$Shell.Refresh()" in lifecycle
     assert "class ArcheAxisWindow" in lifecycle
