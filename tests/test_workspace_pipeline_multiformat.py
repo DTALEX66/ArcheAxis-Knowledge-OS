@@ -204,7 +204,7 @@ def test_conversion_error_sanitization_covers_drive_unc_and_keeps_urls() -> None
         "No engine could convert pdf file 'D:\\资料\\课程\\a.pdf': boom"
     )
     assert "D:\\资料" not in windows
-    assert "a.pdf" in windows
+    assert windows == "No engine could convert pdf file 'a.pdf': boom"
 
     unc = _sanitize_conversion_error(
         "No engine could convert md file '\\\\server\\share\\notes.md': boom"

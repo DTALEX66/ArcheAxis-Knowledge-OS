@@ -531,7 +531,10 @@ def _sanitize_conversion_error(error: str) -> str:
         token = match.group(0)
         if "://" in token:
             return token
-        return Path(token).name or "<file>"
+        # POSIX pathlib treats backslash as a literal character, so split on
+        # both separators to get a stable basename on every platform.
+        basename = token.rstrip("/\\").rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+        return basename or "<file>"
 
     cleaned = _PATH_RE.sub(_replace, error)
     return (cleaned or "conversion failed")[:300]
