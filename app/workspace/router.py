@@ -1133,6 +1133,42 @@ def workspace_exchange_verify(request: Request, name: str = "exchange") -> dict[
     return _command_error(lambda: verify_export(_exchange_root() / name))
 
 
+class ExchangeImportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(default="exchange", min_length=1, max_length=128)
+    workspace_name: str = Field(min_length=1, max_length=128)
+
+
+@router.post("/api/exchange/import", dependencies=[Depends(_require_desktop_write_request)])
+def workspace_exchange_import(payload: ExchangeImportRequest, request: Request) -> dict[str, Any]:
+    """Import a verified exchange package into a fresh isolated workspace.
+
+    This is a workspace-creation operation: it copies raw sources, evidence,
+    learning and AI assets into a new four-library directory.  The current
+    workspace is untouched.
+    """
+    _local_principal(request)
+    from app.exchange.export import import_knowledge_exchange
+
+    def run() -> dict[str, Any]:
+        data_root = resolve_runtime_path("data")
+        workspace_parent = data_root.parent
+        source = _exchange_root() / payload.name
+        result = import_knowledge_exchange(
+            source=source,
+            workspace_parent=workspace_parent,
+            workspace_name=payload.workspace_name,
+        )
+        return {
+            "workspace_path": str(workspace_parent / payload.workspace_name),
+            "item_count": result.get("item_count", 0),
+            "source": payload.name,
+        }
+
+    return _command_error(run)
+
+
 @router.post("/api/backup/create", dependencies=[Depends(_require_desktop_write_request)])
 def workspace_backup_create(payload: BackupRequest, request: Request) -> dict[str, Any]:
     """Snapshot the runtime data dir into a verifiable backup."""

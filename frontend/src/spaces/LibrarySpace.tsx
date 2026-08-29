@@ -212,6 +212,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
           <aside aria-label="原件证据锚点">
             <h4>证据锚点</h4>
             {opened.mime_type === "application/pdf" || /\.pdf$/i.test(opened.source_name) ? <div className="anchor-create">
+              <p className="muted">记录当前 PDF 的页级标注（需手动输入页码；文本层选区需专用阅读器，当前使用浏览器内置 PDF 呈现）</p>
               <label htmlFor="anchor-page">页码</label>
               <input id="anchor-page" type="number" min={1} value={anchorPage} onChange={(event) => setAnchorPage(event.target.value)} aria-label="锚点页码" />
               <button type="button" onClick={() => void recordAnchor(opened)} disabled={creatingAnchor}>{creatingAnchor ? "正在记录…" : "记录页锚点"}</button>

@@ -1029,6 +1029,24 @@ export async function verifyExchange(name = "exchange"): Promise<Record<string, 
   return record;
 }
 
+export interface ExchangeImportDto {
+  workspace_path: string;
+  item_count: number;
+  source: string;
+}
+
+export async function importExchange(name: string, workspaceName: string): Promise<ExchangeImportDto> {
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/exchange/import",
+    { name, workspace_name: workspaceName },
+    "exchange-import",
+  ), "exchange import");
+  stringField(record, "workspace_path", "exchange import");
+  numberField(record, "item_count", "exchange import");
+  stringField(record, "source", "exchange import");
+  return record as unknown as ExchangeImportDto;
+}
+
 // ── Evidence: page-level anchors from the reader ───────────────────────────
 
 export async function createEvidenceAnchor(rawSha256: string, page: number): Promise<{ locator: { page: number } }> {

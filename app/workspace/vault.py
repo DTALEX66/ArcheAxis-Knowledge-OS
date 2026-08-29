@@ -115,11 +115,15 @@ def write_file(
         raise VaultWorkbenchError("relative_path must stay inside the Vault root")
     if not target.is_file():
         raise VaultWorkbenchError("target file does not exist")
-    if target.read_bytes().startswith(b"PK\x03\x04"):
+    current_bytes = target.read_bytes()
+    if current_bytes.startswith(b"PK\x03\x04"):
         raise VaultWorkbenchError("binary attachments are metadata-only in the workbench")
 
-    current = target.read_bytes()
-    current_hash = hashlib.sha256(current).hexdigest()
+    # Hash the canonical text form (read_text normalises CRLF→LF) so the
+    # source_hash returned by read_file always matches what write_file
+    # compares.  The raw bytes are preserved separately for faithful backup.
+    current_text = target.read_text(encoding="utf-8")
+    current_hash = hashlib.sha256(current_text.encode("utf-8")).hexdigest()
     if expected_hash is not None and expected_hash != current_hash:
         raise VaultWorkbenchConflictError(
             "expected-hash mismatch; the Vault file changed on disk since it was read",
@@ -133,7 +137,7 @@ def write_file(
     backup_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     backup = backup_dir / f"{target.name}-{stamp}.bak"
-    backup.write_bytes(current)
+    backup.write_bytes(current_bytes)
 
     fd, tmp_name = tempfile.mkstemp(dir=str(target.parent), prefix=".awx-", suffix=".tmp")
     try:

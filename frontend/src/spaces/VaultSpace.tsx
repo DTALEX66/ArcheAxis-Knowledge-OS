@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { DataError, Section } from "../components/RealData";
+import { CanvasBoard } from "../components/CanvasBoard";
 import {
   inspectVault,
   listVaultBackups,
@@ -24,63 +25,6 @@ const KIND_LABELS: Record<string, string> = {
 
 function fileKindLabel(kind: string): string {
   return KIND_LABELS[kind] ?? kind;
-}
-
-function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; onChange: (next: Record<string, unknown>) => void }) {
-  const nodes = Array.isArray(doc.nodes) ? doc.nodes as Array<Record<string, unknown>> : [];
-  const edges = Array.isArray(doc.edges) ? doc.edges as Array<Record<string, unknown>> : [];
-
-  function addTextNode() {
-    const text = window.prompt("新文本节点内容");
-    if (text === null) return;
-    const id = `node-${Date.now().toString(36)}`;
-    onChange({
-      ...doc,
-      nodes: [
-        ...nodes,
-        { id, type: "text", x: 0, y: 0, width: 280, height: 60, text },
-      ],
-    });
-  }
-
-  function removeNode(id: string) {
-    onChange({
-      ...doc,
-      nodes: nodes.filter((node) => node.id !== id),
-      edges: edges.filter((edge) => edge.fromNode !== id && edge.toNode !== id),
-    });
-  }
-
-  function renameNode(id: string) {
-    const current = nodes.find((node) => node.id === id);
-    const next = window.prompt("节点文本", String(current?.text ?? ""));
-    if (next === null) return;
-    onChange({
-      ...doc,
-      nodes: nodes.map((node) => node.id === id ? { ...node, text: next } : node),
-    });
-  }
-
-  return (
-    <div className="canvas-board" aria-label="画布内容">
-      <div className="canvas-toolbar">
-        <button type="button" onClick={addTextNode}>添加文本节点</button>
-        <span className="muted">画布节点 {nodes.length} · 连线 {edges.length}</span>
-      </div>
-      {nodes.length === 0 ? <p className="muted">空画布。添加文本节点开始绘制。</p> : (
-        <ul className="canvas-nodes">
-          {nodes.map((node) => (
-            <li key={String(node.id)}>
-              <span className="canvas-node-type">{String(node.type ?? "text")}</span>
-              <span className="canvas-node-text">{String(node.text ?? node.file ?? node.url ?? "节点")}</span>
-              <button type="button" aria-label={`编辑节点 ${String(node.text ?? node.id ?? "")}`} onClick={() => renameNode(String(node.id))}>编辑</button>
-              <button type="button" aria-label={`删除节点 ${String(node.text ?? node.id ?? "")}`} onClick={() => removeNode(String(node.id))}>删除</button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 export function VaultSpace() {
