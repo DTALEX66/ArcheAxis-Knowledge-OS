@@ -1028,3 +1028,23 @@ export async function verifyExchange(name = "exchange"): Promise<Record<string, 
   booleanField(record, "valid", "exchange verify");
   return record;
 }
+
+// ── Evidence: page-level anchors from the reader ───────────────────────────
+
+export async function createEvidenceAnchor(rawSha256: string, page: number): Promise<{ locator: { page: number } }> {
+  if (!/^[0-9a-f]{64}$/i.test(rawSha256)) invalidProjection("evidence anchor identity");
+  if (!Number.isInteger(page) || page < 1) invalidProjection("evidence anchor page");
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/evidence/anchor",
+    {
+      raw_sha256: rawSha256,
+      source_revision: `original:${rawSha256.slice(0, 24)}`,
+      locator: { page },
+    },
+    "evidence-anchor",
+  ), "evidence anchor create");
+  const locator = recordProjection(record.locator, "evidence anchor locator");
+  if (typeof locator.page !== "number" || !Number.isInteger(locator.page) || locator.page < 1) invalidProjection("evidence anchor locator");
+  // Internal anchor_id never crosses the product boundary.
+  return { locator: { page: locator.page } };
+}

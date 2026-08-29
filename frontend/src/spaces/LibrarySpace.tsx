@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
 import {
+  createEvidenceAnchor,
   downloadLibraryAsset,
   downloadPdfAsset,
   getConvertedContent,
@@ -24,6 +25,8 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
   const [textPreview, setTextPreview] = useState<string | null>(null);
   const [converted, setConverted] = useState<ConvertedContentDto | null>(null);
   const [anchors, setAnchors] = useState<EvidenceAnchorDto[]>([]);
+  const [anchorPage, setAnchorPage] = useState("1");
+  const [creatingAnchor, setCreatingAnchor] = useState(false);
   const reader = useRef({ generation: 0, objectUrl: null as string | null, mounted: true });
 
   useEffect(() => {
@@ -54,6 +57,37 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     setAnchors([]);
     setTextPreview(null);
     setConverted(null);
+    setCreatingAnchor(false);
+  }
+
+  async function recordAnchor(asset: LibraryAssetDto) {
+    const page = Number(anchorPage);
+    if (!Number.isInteger(page) || page < 1) {
+      setMessage("锚点页码必须是正整数。");
+      return;
+    }
+    setCreatingAnchor(true);
+    setMessage(null);
+    try {
+      const receipt = await createEvidenceAnchor(asset.raw_sha256, page);
+      setMessage(`已记录证据锚点：第 ${receipt.locator.page} 页`);
+      setAnchorPage(String(receipt.locator.page + 1));
+      const matching: EvidenceAnchorDto[] = [];
+      let cursor: string | undefined;
+      const seen = new Set<string>();
+      do {
+        const pageResult = await listEvidenceAnchors(100, cursor);
+        matching.push(...pageResult.items.filter((anchor) => anchor.raw_sha256 === asset.raw_sha256));
+        cursor = pageResult.next_cursor ?? undefined;
+        if (cursor && seen.has(cursor)) break;
+        if (cursor) seen.add(cursor);
+      } while (cursor);
+      setAnchors(matching);
+    } catch (e) {
+      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+    } finally {
+      setCreatingAnchor(false);
+    }
   }
 
   async function openAsset(asset: LibraryAssetDto) {
@@ -177,6 +211,11 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
           </div>
           <aside aria-label="原件证据锚点">
             <h4>证据锚点</h4>
+            {opened.mime_type === "application/pdf" || /\.pdf$/i.test(opened.source_name) ? <div className="anchor-create">
+              <label htmlFor="anchor-page">页码</label>
+              <input id="anchor-page" type="number" min={1} value={anchorPage} onChange={(event) => setAnchorPage(event.target.value)} aria-label="锚点页码" />
+              <button type="button" onClick={() => void recordAnchor(opened)} disabled={creatingAnchor}>{creatingAnchor ? "正在记录…" : "记录页锚点"}</button>
+            </div> : null}
             {anchors.length === 0 ? <p className="muted">当前原件暂无页级锚点</p> : <ol>{anchors.map((anchor, index) => <li key={anchor.anchor_id}>证据锚点 {index + 1}{typeof anchor.locator.page === "number" ? ` · 第 ${anchor.locator.page} 页` : ""}</li>)}</ol>}
           </aside>
         </div>

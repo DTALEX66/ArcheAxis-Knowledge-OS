@@ -3,6 +3,7 @@ import {
   approveMachineKnowledge,
   approveResearchCandidate,
   createBackup,
+  createEvidenceAnchor,
   deprecateMachineKnowledge,
   dispatchDelivery,
   downloadLibraryAsset,
@@ -155,6 +156,9 @@ describe("runtime handshake client", () => {
       if (url.endsWith("/conversion-run")) {
         return { ok: true, status: 200, json: async () => ({ engine: "passthrough", loss_notes: "bad" }) } as Response;
       }
+      if (url.endsWith("/workspace/api/evidence/anchor")) {
+        return { ok: true, status: 200, json: async () => ({ anchor_id: "opaque", locator: { page: "bad" } }) } as Response;
+      }
       throw new Error(`unexpected URL ${url}`);
     }));
 
@@ -178,6 +182,7 @@ describe("runtime handshake client", () => {
     await expect(getBatchStatus("b")).rejects.toMatchObject({ code: "incompatible" });
     await expect(getConvertedContent("a".repeat(64))).rejects.toMatchObject({ code: "incompatible" });
     await expect(getConversionRun("a".repeat(64))).rejects.toMatchObject({ code: "incompatible" });
+    await expect(createEvidenceAnchor("a".repeat(64), 2)).rejects.toMatchObject({ code: "incompatible" });
   });
 
   it("rejects a null workspace identity even when a caller claims first-run capability", async () => {
