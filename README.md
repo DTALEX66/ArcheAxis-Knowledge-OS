@@ -88,7 +88,7 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
 - **桌面 Workspace UI v3**：采用权威 OSUI Archive Desk / Liquid Glass，默认冷白纸面、低饱和蓝青锚点与中文优先界面；一级空间栏、动态二级导航、研究台账、上下文与证据检查器、折叠活动坞、视觉课件/空间记忆规划面和路线图入口已进入生产候选。Chromium/Tauri/UI 视觉证据与公开发布资产属于不同证据层；`v0.6.11` 仍是当前公开稳定版，但不代表此次 UI 纠偏已发布。
-- **当前版本**：`0.6.11`；源码 Release Manifest 按合同保持 `unreleased / public=false`，公开 artifact identity 为 `stable / public=true`；历史标签均不可改写。
+- **当前版本**：`0.6.12`（管线与多格式控制台已并入 canonical shell；`v0.6.11` 仍是当前公开稳定版，UI 纠偏随后续版本发布）；源码 Release Manifest 按合同保持 `unreleased / public=false`，公开 artifact identity 为 `stable / public=true`；历史标签均不可改写。
 - **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.11` 的 tag/commit/tree、exact-SHA CI `33076417510`、Release run `33077810146`、三分发生命周期与 9 资产身份/摘要读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。

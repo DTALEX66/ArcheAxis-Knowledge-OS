@@ -18,7 +18,7 @@ def test_diagnostics_returns_safe_versioned_status() -> None:
     )
     assert payload["release"] == {
         "status": "unreleased",
-        "version": "0.6.11",
+        "version": "0.6.12",
         "channel": "development",
         "public": False,
         "source_commit": "unavailable",
@@ -65,7 +65,7 @@ def test_diagnostics_does_not_promote_unverified_release_override(monkeypatch) -
     assert response.status_code == 200
     assert response.json()["release"] == {
         "status": "unreleased",
-        "version": "0.6.11",
+        "version": "0.6.12",
         "channel": "development",
         "public": False,
         "source_commit": "unavailable",
@@ -83,7 +83,7 @@ def test_diagnostics_rejects_unsafe_release_version(monkeypatch) -> None:
     assert response.status_code == 200
     assert response.json()["release"] == {
         "status": "unreleased",
-        "version": "0.6.11",
+        "version": "0.6.12",
         "channel": "development",
         "public": False,
         "source_commit": "unavailable",
