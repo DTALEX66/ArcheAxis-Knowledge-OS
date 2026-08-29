@@ -10,7 +10,7 @@
 
 ## 发布真相
 
-- 当前源码版本为 `0.6.13`；packaged source manifest 按合同仍是 `unreleased / public=false`。公开 v0.6.11 artifact identity 为 `stable / public=true` 且保持不可变；v0.6.13 的发布工程与 UI 产品验收证据见下方记录与 `README.md`。
+- 当前源码版本为 `0.6.14`；packaged source manifest 按合同仍是 `unreleased / public=false`。公开 v0.6.11 artifact identity 为 `stable / public=true` 且保持不可变；v0.6.14 的发布工程与 UI 产品验收证据见下方记录与 `README.md`。
 - `v0.6.11` 是当前公开 stable：tag/commit/tree、exact-SHA CI、三种 Windows 分发生命周期、公开 9 资产、schema v3 identity、依赖锁和下载摘要均已读回；DeepTutor 本地 provider/runtime 证据留在项目忽略目录，不作为公共资产上传。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
 - `v0.6.10` 已满足 tag 精确绑定 `main`、exact-SHA Full Qualification、NSIS/Green/Portable 生命周期、公开资产集合、checksum allowlist、schema v3 identity 和依赖锁读回；当前没有 Authenticode 签名声明。本机独立层下载校验 3/9 个小型元数据资产，Release workflow 完成 9/9 下载读回。
