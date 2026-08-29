@@ -766,6 +766,32 @@ def workspace_library_content(raw_sha256: str, request: Request) -> Response:
     )
 
 
+@router.get("/api/library/{raw_sha256}/converted")
+def workspace_library_converted(raw_sha256: str, request: Request) -> dict[str, object]:
+    """Read one original's latest converted text (DB-backed, bounded, path-free)."""
+    _local_principal(request)
+    try:
+        return service.workspace_converted_content(raw_sha256=raw_sha256, db_path=DB_PATH)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.get("/api/library/{raw_sha256}/conversion-run")
+def workspace_library_conversion_run(raw_sha256: str, request: Request) -> dict[str, object]:
+    """Read one original's latest ConversionRun summary for the product UI."""
+    _local_principal(request)
+    try:
+        return service.workspace_conversion_run_detail(raw_sha256=raw_sha256, db_path=DB_PATH)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
 @router.get("/api/delivery")
 def workspace_delivery(request: Request) -> dict[str, object]:
     _local_principal(request)
@@ -1047,6 +1073,9 @@ def _batch_ledger(batch_id: str) -> Path:
 # Active background batch controllers (AXW-096C pause/resume/shutdown).
 _ACTIVE_BATCHES: dict[str, Any] = {}
 _BATCH_LOCK = threading.Lock()
+# Serialises SQLite schema + receipt writes across batch worker threads; the
+# ingestion receipts (conversion runs, evidence anchors) share one local DB.
+_BATCH_DB_LOCK = threading.Lock()
 
 
 @router.post("/api/exchange/export")
@@ -1141,7 +1170,6 @@ def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dic
     """
     _local_principal(request)
     from app.ingestion.batch_controller import BatchImportController
-    from app.ingestion.multi_format import convert_directory_resumable
 
     if payload.batch_id in _ACTIVE_BATCHES:
         raise HTTPException(status_code=409, detail=f"batch already active: {payload.batch_id}")
@@ -1159,18 +1187,75 @@ def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dic
         raise HTTPException(status_code=400, detail="no files matched the import pattern")
     controller.add_tasks(rel_tasks)
 
-    artifacts_root = resolve_runtime_path("data") / "batch-artifacts" / payload.batch_id
-    artifacts_root.mkdir(parents=True, exist_ok=True)
-
     def convert_worker(rel_path: str) -> dict[str, str]:
-        result = convert_directory_resumable(
-            directory=source_root,
-            manifest_path=artifacts_root / "manifest.json",
-            output_dir=artifacts_root,
-            pattern=f"**/{rel_path}",
-            max_files=1,
+        """Preserve one original in the Source Archive, convert it, and record
+        an immutable ConversionRun plus EvidenceAnchor.
+
+        A failed conversion still retains the original bytes with a durable,
+        readable failure reason — batch intake is a real pipeline stage, not a
+        dead-end artifacts directory.
+        """
+        from app.evidence.anchor import (
+            build_evidence_anchor,
+            ensure_evidence_anchor_schema,
+            store_evidence_anchor,
         )
-        return {"result_digest": f"converted:{result.get('processed', 0)}"}
+        from app.ingestion.conversion_run import (
+            ensure_conversion_run_schema,
+            store_conversion_run,
+        )
+        from app.ingestion.multi_format import convert_file, detect_format
+        from app.ingestion.raw_asset import RawAssetStore
+        from app.ingestion.structured_conversion import build_workspace_conversion_run
+
+        source = source_root / rel_path
+        raw_store = RawAssetStore(root=service._source_archive_root(Path(DB_PATH)))
+        try:
+            blob = source.read_bytes()
+        except OSError as exc:
+            raise RuntimeError(f"{rel_path}: {exc}") from None
+        if not blob:
+            raise RuntimeError(f"{rel_path}: empty file")
+        try:
+            raw = raw_store.store_original(blob, Path(rel_path).name)
+        except Exception as exc:  # noqa: BLE001 - preserve every failure reason
+            raise RuntimeError(f"{rel_path}: {exc}") from None
+        try:
+            markdown, engine = convert_file(source)
+            source_format = detect_format(source)
+        except Exception as exc:  # noqa: BLE001 - preserve every failure reason
+            reason = f"{rel_path}: {exc}"
+            raw_store._record_failure(raw.sha256, raw.source_name, reason)
+            raise RuntimeError(reason) from None
+        try:
+            conversion_run = build_workspace_conversion_run(
+                source_path=source,
+                raw_sha256=raw.sha256,
+                source_name=Path(rel_path).name,
+                source_format=source_format,
+                converted_content=markdown,
+                extractor_identity=engine,
+            )
+            anchor = build_evidence_anchor(
+                raw_sha256=raw.sha256,
+                source_revision=conversion_run.run_id,
+                locator={
+                    "conversion_run_id": conversion_run.run_id,
+                    "derived_document_id": conversion_run.document.document_id,
+                    "source_format": source_format,
+                    "block_ids": [block.block_id for block in conversion_run.blocks],
+                },
+            )
+            with _BATCH_DB_LOCK:
+                ensure_conversion_run_schema(DB_PATH)
+                ensure_evidence_anchor_schema(DB_PATH)
+                store_conversion_run(DB_PATH, conversion_run)
+                store_evidence_anchor(DB_PATH, anchor)
+        except Exception as exc:  # noqa: BLE001 - keep the original, record failure
+            reason = f"{rel_path}: {exc}"
+            raw_store._record_failure(raw.sha256, raw.source_name, reason)
+            raise RuntimeError(reason) from None
+        return {"result_digest": f"converted:{raw.sha256}", "engine": engine}
 
     def run_batch() -> None:
         try:

@@ -1,8 +1,9 @@
 import { SPACES, type SpaceId } from "../spaces/spaces";
 
 const RELATED: Record<SpaceId, SpaceId[]> = {
-  workspace: ["workspace", "library", "evidence"],
-  library: ["library", "evidence", "workspace"],
+  workspace: ["workspace", "library", "intake"],
+  library: ["library", "intake", "evidence"],
+  intake: ["intake", "library", "workspace"],
   evidence: ["evidence", "library", "ai-assets"],
   learning: ["learning", "evidence", "ai-assets"],
   "ai-assets": ["ai-assets", "evidence", "learning"],

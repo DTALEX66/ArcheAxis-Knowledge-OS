@@ -8,12 +8,16 @@ import {
   downloadLibraryAsset,
   downloadPdfAsset,
   getActivityJobs,
+  getBatchStatus,
+  getConversionRun,
+  getConvertedContent,
   getDelivery,
   getHome,
   getSetupStatus,
   getStatus,
   getActivity,
   initializeSetup,
+  intakeUrl,
   listLibraryAssets,
   listEvidenceBundles,
   listEvidenceAnchors,
@@ -21,6 +25,7 @@ import {
   preflightSetup,
   resetRuntimeClient,
   retryFailedDelivery,
+  startBatchImport,
   verifyBackup,
 } from "../api/workspace";
 import * as runtime from "../api/workspace";
@@ -137,6 +142,19 @@ describe("runtime handshake client", () => {
       if (url.endsWith("/workspace/api/runtime/approve") || url.endsWith("/workspace/api/runtime/deprecate")) {
         return { ok: true, status: 200, json: async () => ({}) } as Response;
       }
+      if (url.endsWith("/workspace/api/intake/url")) {
+        return { ok: true, status: 200, json: async () => ({}) } as Response;
+      }
+      if (url.includes("/workspace/api/batch/")) {
+        if (url.endsWith("/status")) return { ok: true, status: 200, json: async () => ({ state: "invented" }) } as Response;
+        return { ok: true, status: 200, json: async () => ({ batch_id: "x", state: "invented" }) } as Response;
+      }
+      if (url.endsWith("/converted")) {
+        return { ok: true, status: 200, json: async () => ({ engine: "passthrough" }) } as Response;
+      }
+      if (url.endsWith("/conversion-run")) {
+        return { ok: true, status: 200, json: async () => ({ engine: "passthrough", loss_notes: "bad" }) } as Response;
+      }
       throw new Error(`unexpected URL ${url}`);
     }));
 
@@ -155,6 +173,11 @@ describe("runtime handshake client", () => {
     await expect(retryFailedDelivery()).rejects.toMatchObject({ code: "incompatible" });
     await expect(approveMachineKnowledge("Candidate")).rejects.toMatchObject({ code: "incompatible" });
     await expect(deprecateMachineKnowledge("Approved")).rejects.toMatchObject({ code: "incompatible" });
+    await expect(intakeUrl("https://example.test/a")).rejects.toMatchObject({ code: "incompatible" });
+    await expect(startBatchImport({ batch_id: "b", source_dir: "D:/x" })).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getBatchStatus("b")).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getConvertedContent("a".repeat(64))).rejects.toMatchObject({ code: "incompatible" });
+    await expect(getConversionRun("a".repeat(64))).rejects.toMatchObject({ code: "incompatible" });
   });
 
   it("rejects a null workspace identity even when a caller claims first-run capability", async () => {

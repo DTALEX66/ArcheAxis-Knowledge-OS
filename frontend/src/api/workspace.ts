@@ -63,6 +63,10 @@ export interface LibraryAssetDto {
   size_bytes: number;
   mime_type?: string;
   retention: string;
+  format?: string;
+  engine?: string | null;
+  error_reason?: string | null;
+  converted_char_count?: number | null;
   conversion_state: "retained" | "requires_attention";
 }
 
@@ -489,6 +493,14 @@ export async function listLibraryAssets(): Promise<LibraryListDto> {
   const record = itemsProjection<LibraryAssetDto>(await getJSON<unknown>("/workspace/api/library"), "library");
   requireItemFields(record.items, ["source_name", "raw_sha256", "retention", "conversion_state"], "library item");
   if (record.items.some((item) => typeof item.size_bytes !== "number")) invalidProjection("library item");
+  for (const item of record.items) {
+    if (!/^[0-9a-f]{64}$/i.test(item.raw_sha256)) invalidProjection("library item");
+    if (item.format !== undefined && typeof item.format !== "string") invalidProjection("library item");
+    if (item.engine !== undefined && item.engine !== null && typeof item.engine !== "string") invalidProjection("library item");
+    if (item.error_reason !== undefined && item.error_reason !== null && typeof item.error_reason !== "string") invalidProjection("library item");
+    if (item.converted_char_count !== undefined && item.converted_char_count !== null && typeof item.converted_char_count !== "number") invalidProjection("library item");
+    if (item.converted_char_count !== undefined && item.converted_char_count !== null && item.converted_char_count < 0) invalidProjection("library item");
+  }
   return record as unknown as LibraryListDto;
 }
 
@@ -612,4 +624,180 @@ export async function verifyBackup(name: string): Promise<Record<string, unknown
   ), "backup verify");
   booleanField(record, "valid", "backup verify");
   return record;
+}
+
+// ── Pipeline: multi-format intake ──────────────────────────────────────────
+
+export interface IntakeResultDto {
+  source_type: "file" | "web" | "github_repository";
+  requires_human_review: boolean;
+  file_name?: string | null;
+  format?: string | null;
+  engine?: string | null;
+  content_preview?: string | null;
+  char_count?: number | null;
+  raw_sha256?: string | null;
+  source_count?: number | null;
+  claim_count?: number | null;
+  evidence_count?: number | null;
+}
+
+function validateIntakeResult(value: unknown): IntakeResultDto {
+  const record = recordProjection(value, "intake result");
+  if (!["file", "web", "github_repository"].includes(String(record.source_type))) invalidProjection("intake result");
+  booleanField(record, "requires_human_review", "intake result");
+  for (const field of ["file_name", "format", "engine", "content_preview", "raw_sha256"]) {
+    if (record[field] !== undefined && record[field] !== null && typeof record[field] !== "string") invalidProjection("intake result");
+  }
+  for (const field of ["char_count", "source_count", "claim_count", "evidence_count"]) {
+    if (record[field] !== undefined && record[field] !== null && (typeof record[field] !== "number" || !Number.isFinite(record[field] as number))) invalidProjection("intake result");
+  }
+  if (record.raw_sha256 !== undefined && record.raw_sha256 !== null && !/^[0-9a-f]{64}$/i.test(String(record.raw_sha256))) invalidProjection("intake result");
+  return record as unknown as IntakeResultDto;
+}
+
+export async function intakeUrl(url: string): Promise<IntakeResultDto> {
+  return validateIntakeResult(await postJSON<unknown>("/workspace/api/intake/url", { url }, "intake"));
+}
+
+export async function intakeUpload(file: File): Promise<IntakeResultDto> {
+  const form = new FormData();
+  form.append("file", file, file.name);
+  const response = await (await runtimeClient()).requestRaw("/workspace/api/intake/upload", {
+    method: "POST",
+    body: form,
+  });
+  return validateIntakeResult(await response.json());
+}
+
+// ── Pipeline: controllable batch import ────────────────────────────────────
+
+export interface BatchTaskResultDto {
+  status: "completed" | "failed";
+  result_digest?: string;
+  error?: string;
+}
+
+export interface BatchStatusDto {
+  schema_version: string;
+  batch_id: string;
+  state: "idle" | "running" | "paused" | "finished" | "shutdown";
+  total: number;
+  completed: number;
+  failed: number;
+  skipped: number;
+  created_at: string;
+  results?: Record<string, BatchTaskResultDto>;
+  attempts?: Record<string, number>;
+}
+
+function validateBatchStatus(value: unknown): BatchStatusDto {
+  const record = recordProjection(value, "batch status");
+  stringField(record, "batch_id", "batch status");
+  if (!["idle", "running", "paused", "finished", "shutdown"].includes(String(record.state))) invalidProjection("batch status");
+  for (const field of ["total", "completed", "failed", "skipped"]) numberField(record, field, "batch status");
+  if (record.results !== undefined) {
+    const results = recordProjection(record.results, "batch results");
+    for (const [task, entry] of Object.entries(results)) {
+      const item = recordProjection(entry, `batch result ${task}`);
+      stringField(item, "status", `batch result ${task}`);
+      if (!["completed", "failed"].includes(String(item.status))) invalidProjection(`batch result ${task}`);
+    }
+  }
+  if (record.attempts !== undefined) numericRecord(record.attempts, "batch attempts");
+  return record as unknown as BatchStatusDto;
+}
+
+export interface BatchStartRequest {
+  batch_id: string;
+  source_dir: string;
+  pattern?: string;
+  max_files?: number;
+  rate_per_second?: number | null;
+  max_retries?: number;
+}
+
+export async function startBatchImport(payload: BatchStartRequest): Promise<BatchStatusDto> {
+  const record = recordProjection(await postJSON<unknown>("/workspace/api/batch/import", { ...payload }, "batch"), "batch start");
+  stringField(record, "batch_id", "batch start");
+  if (!["idle", "running", "paused"].includes(String(record.state))) invalidProjection("batch start");
+  numberField(record, "total", "batch start");
+  return record as unknown as BatchStatusDto;
+}
+
+export async function getBatchStatus(batchId: string): Promise<BatchStatusDto> {
+  return validateBatchStatus(await getJSON<unknown>(`/workspace/api/batch/${encodeURIComponent(batchId)}/status`));
+}
+
+async function batchControl(batchId: string, action: string, prefix: string): Promise<BatchStatusDto> {
+  const record = recordProjection(await postJSON<unknown>(
+    `/workspace/api/batch/${encodeURIComponent(batchId)}/${action}`, {}, prefix,
+  ), `batch ${action}`);
+  if (stringField(record, "batch_id", `batch ${action}`) !== batchId) invalidProjection(`batch ${action}`);
+  if (!["idle", "running", "paused", "finished", "shutdown"].includes(String(record.state))) invalidProjection(`batch ${action}`);
+  return record as unknown as BatchStatusDto;
+}
+
+export function pauseBatch(batchId: string): Promise<BatchStatusDto> {
+  return batchControl(batchId, "pause", "batch-pause");
+}
+
+export function resumeBatch(batchId: string): Promise<BatchStatusDto> {
+  return batchControl(batchId, "resume", "batch-resume");
+}
+
+export function shutdownBatch(batchId: string): Promise<BatchStatusDto> {
+  return batchControl(batchId, "shutdown", "batch-shutdown");
+}
+
+// ── Pipeline: converted content and conversion runs ────────────────────────
+
+export interface ConvertedContentDto {
+  schema_version: string;
+  raw_sha256: string;
+  engine: string;
+  version: number;
+  block_count: number;
+  content: string;
+}
+
+export interface ConversionRunDto {
+  schema_version: string;
+  raw_sha256: string;
+  engine: string;
+  version: number;
+  block_count: number;
+  loss_notes: string[];
+  preview: string;
+}
+
+function validateRawSha256(rawSha256: string): void {
+  if (!/^[0-9a-f]{64}$/i.test(rawSha256)) invalidProjection("converted content identity");
+}
+
+export async function getConvertedContent(rawSha256: string): Promise<ConvertedContentDto> {
+  validateRawSha256(rawSha256);
+  const record = recordProjection(await getJSON<unknown>(
+    `/workspace/api/library/${rawSha256}/converted`,
+  ), "converted content");
+  stringField(record, "raw_sha256", "converted content");
+  stringField(record, "engine", "converted content");
+  numberField(record, "version", "converted content");
+  numberField(record, "block_count", "converted content");
+  stringField(record, "content", "converted content");
+  return record as unknown as ConvertedContentDto;
+}
+
+export async function getConversionRun(rawSha256: string): Promise<ConversionRunDto> {
+  validateRawSha256(rawSha256);
+  const record = recordProjection(await getJSON<unknown>(
+    `/workspace/api/library/${rawSha256}/conversion-run`,
+  ), "conversion run");
+  stringField(record, "raw_sha256", "conversion run");
+  stringField(record, "engine", "conversion run");
+  numberField(record, "version", "conversion run");
+  numberField(record, "block_count", "conversion run");
+  if (!Array.isArray(record.loss_notes) || record.loss_notes.some((note) => typeof note !== "string")) invalidProjection("conversion run");
+  stringField(record, "preview", "conversion run");
+  return record as unknown as ConversionRunDto;
 }

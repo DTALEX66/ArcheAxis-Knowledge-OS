@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { App } from "../app/App";
 import { SPACES } from "../spaces/spaces";
 import { LearningSpace } from "../spaces/LearningSpace";
@@ -10,6 +10,7 @@ describe("OSUI v3 production contract", () => {
     expect(SPACES.map((space) => space.label)).toEqual([
       "工作台",
       "资料库",
+      "导入",
       "证据",
       "学习",
       "机器知识",
@@ -43,7 +44,9 @@ describe("OSUI v3 production contract", () => {
     expect(screen.getByRole("dialog", { name: "全局命令" })).toBeInTheDocument();
     await user.type(screen.getByRole("searchbox", { name: "搜索空间或命令" }), "资料");
     await user.click(screen.getByRole("option", { name: /资料库/ }));
-    expect(screen.getByRole("heading", { name: "原件库" })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("main")).getByRole("heading", { name: "资料库" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Agent")).not.toBeInTheDocument();
   });
 
@@ -76,7 +79,9 @@ describe("OSUI v3 production contract", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "查看原件与锚点" }));
-    expect(screen.getByRole("heading", { name: "原件库" })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("main")).getByRole("heading", { name: "资料库" }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "工作台" }));
     await user.click(screen.getByRole("button", { name: "检查证据生命周期" }));
     expect(screen.getByRole("heading", { name: "证据账本" })).toBeInTheDocument();
