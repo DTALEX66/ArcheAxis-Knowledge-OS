@@ -275,7 +275,7 @@ def verify_export(destination: str | Path) -> dict[str, Any]:
             f"(manifest says {manifest.get('item_count')}, found {item_count})"
         )
 
-    return {"manifest": manifest, "verified_items": item_count}
+    return {"valid": True, "manifest": manifest, "verified_items": item_count}
 
 
 def import_knowledge_exchange(

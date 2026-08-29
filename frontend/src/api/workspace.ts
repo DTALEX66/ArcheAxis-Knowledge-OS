@@ -63,6 +63,10 @@ export interface LibraryAssetDto {
   size_bytes: number;
   mime_type?: string;
   retention: string;
+  format?: string;
+  engine?: string | null;
+  error_reason?: string | null;
+  converted_char_count?: number | null;
   conversion_state: "retained" | "requires_attention";
 }
 
@@ -489,6 +493,14 @@ export async function listLibraryAssets(): Promise<LibraryListDto> {
   const record = itemsProjection<LibraryAssetDto>(await getJSON<unknown>("/workspace/api/library"), "library");
   requireItemFields(record.items, ["source_name", "raw_sha256", "retention", "conversion_state"], "library item");
   if (record.items.some((item) => typeof item.size_bytes !== "number")) invalidProjection("library item");
+  for (const item of record.items) {
+    if (!/^[0-9a-f]{64}$/i.test(item.raw_sha256)) invalidProjection("library item");
+    if (item.format !== undefined && typeof item.format !== "string") invalidProjection("library item");
+    if (item.engine !== undefined && item.engine !== null && typeof item.engine !== "string") invalidProjection("library item");
+    if (item.error_reason !== undefined && item.error_reason !== null && typeof item.error_reason !== "string") invalidProjection("library item");
+    if (item.converted_char_count !== undefined && item.converted_char_count !== null && typeof item.converted_char_count !== "number") invalidProjection("library item");
+    if (item.converted_char_count !== undefined && item.converted_char_count !== null && item.converted_char_count < 0) invalidProjection("library item");
+  }
   return record as unknown as LibraryListDto;
 }
 
@@ -612,4 +624,427 @@ export async function verifyBackup(name: string): Promise<Record<string, unknown
   ), "backup verify");
   booleanField(record, "valid", "backup verify");
   return record;
+}
+
+// ── Pipeline: multi-format intake ──────────────────────────────────────────
+
+export interface IntakeResultDto {
+  source_type: "file" | "web" | "github_repository";
+  requires_human_review: boolean;
+  file_name?: string | null;
+  format?: string | null;
+  engine?: string | null;
+  content_preview?: string | null;
+  char_count?: number | null;
+  raw_sha256?: string | null;
+  source_count?: number | null;
+  claim_count?: number | null;
+  evidence_count?: number | null;
+}
+
+function validateIntakeResult(value: unknown): IntakeResultDto {
+  const record = recordProjection(value, "intake result");
+  if (!["file", "web", "github_repository"].includes(String(record.source_type))) invalidProjection("intake result");
+  booleanField(record, "requires_human_review", "intake result");
+  for (const field of ["file_name", "format", "engine", "content_preview", "raw_sha256"]) {
+    if (record[field] !== undefined && record[field] !== null && typeof record[field] !== "string") invalidProjection("intake result");
+  }
+  for (const field of ["char_count", "source_count", "claim_count", "evidence_count"]) {
+    if (record[field] !== undefined && record[field] !== null && (typeof record[field] !== "number" || !Number.isFinite(record[field] as number))) invalidProjection("intake result");
+  }
+  if (record.raw_sha256 !== undefined && record.raw_sha256 !== null && !/^[0-9a-f]{64}$/i.test(String(record.raw_sha256))) invalidProjection("intake result");
+  return record as unknown as IntakeResultDto;
+}
+
+export async function intakeUrl(url: string): Promise<IntakeResultDto> {
+  return validateIntakeResult(await postJSON<unknown>("/workspace/api/intake/url", { url }, "intake"));
+}
+
+export async function intakeUpload(file: File): Promise<IntakeResultDto> {
+  const form = new FormData();
+  form.append("file", file, file.name);
+  const response = await (await runtimeClient()).requestRaw("/workspace/api/intake/upload", {
+    method: "POST",
+    body: form,
+  });
+  return validateIntakeResult(await response.json());
+}
+
+// ── Pipeline: controllable batch import ────────────────────────────────────
+
+export interface BatchTaskResultDto {
+  status: "completed" | "failed";
+  result_digest?: string;
+  error?: string;
+}
+
+export interface BatchStatusDto {
+  schema_version: string;
+  batch_id: string;
+  state: "idle" | "running" | "paused" | "finished" | "shutdown";
+  total: number;
+  completed: number;
+  failed: number;
+  skipped: number;
+  created_at: string;
+  results?: Record<string, BatchTaskResultDto>;
+  attempts?: Record<string, number>;
+}
+
+function validateBatchStatus(value: unknown): BatchStatusDto {
+  const record = recordProjection(value, "batch status");
+  stringField(record, "batch_id", "batch status");
+  if (!["idle", "running", "paused", "finished", "shutdown"].includes(String(record.state))) invalidProjection("batch status");
+  for (const field of ["total", "completed", "failed", "skipped"]) numberField(record, field, "batch status");
+  if (record.results !== undefined) {
+    const results = recordProjection(record.results, "batch results");
+    for (const [task, entry] of Object.entries(results)) {
+      const item = recordProjection(entry, `batch result ${task}`);
+      stringField(item, "status", `batch result ${task}`);
+      if (!["completed", "failed"].includes(String(item.status))) invalidProjection(`batch result ${task}`);
+    }
+  }
+  if (record.attempts !== undefined) numericRecord(record.attempts, "batch attempts");
+  return record as unknown as BatchStatusDto;
+}
+
+export interface BatchStartRequest {
+  batch_id: string;
+  source_dir: string;
+  pattern?: string;
+  max_files?: number;
+  rate_per_second?: number | null;
+  max_retries?: number;
+}
+
+export async function startBatchImport(payload: BatchStartRequest): Promise<BatchStatusDto> {
+  const record = recordProjection(await postJSON<unknown>("/workspace/api/batch/import", { ...payload }, "batch"), "batch start");
+  stringField(record, "batch_id", "batch start");
+  if (!["idle", "running", "paused"].includes(String(record.state))) invalidProjection("batch start");
+  numberField(record, "total", "batch start");
+  return record as unknown as BatchStatusDto;
+}
+
+export async function getBatchStatus(batchId: string): Promise<BatchStatusDto> {
+  return validateBatchStatus(await getJSON<unknown>(`/workspace/api/batch/${encodeURIComponent(batchId)}/status`));
+}
+
+async function batchControl(batchId: string, action: string, prefix: string): Promise<BatchStatusDto> {
+  const record = recordProjection(await postJSON<unknown>(
+    `/workspace/api/batch/${encodeURIComponent(batchId)}/${action}`, {}, prefix,
+  ), `batch ${action}`);
+  if (stringField(record, "batch_id", `batch ${action}`) !== batchId) invalidProjection(`batch ${action}`);
+  if (!["idle", "running", "paused", "finished", "shutdown"].includes(String(record.state))) invalidProjection(`batch ${action}`);
+  return record as unknown as BatchStatusDto;
+}
+
+export function pauseBatch(batchId: string): Promise<BatchStatusDto> {
+  return batchControl(batchId, "pause", "batch-pause");
+}
+
+export function resumeBatch(batchId: string): Promise<BatchStatusDto> {
+  return batchControl(batchId, "resume", "batch-resume");
+}
+
+export function shutdownBatch(batchId: string): Promise<BatchStatusDto> {
+  return batchControl(batchId, "shutdown", "batch-shutdown");
+}
+
+// ── Pipeline: converted content and conversion runs ────────────────────────
+
+export interface ConvertedContentDto {
+  schema_version: string;
+  raw_sha256: string;
+  engine: string;
+  version: number;
+  block_count: number;
+  content: string;
+}
+
+export interface ConversionRunDto {
+  schema_version: string;
+  raw_sha256: string;
+  engine: string;
+  version: number;
+  block_count: number;
+  loss_notes: string[];
+  preview: string;
+}
+
+function validateRawSha256(rawSha256: string): void {
+  if (!/^[0-9a-f]{64}$/i.test(rawSha256)) invalidProjection("converted content identity");
+}
+
+export async function getConvertedContent(rawSha256: string): Promise<ConvertedContentDto> {
+  validateRawSha256(rawSha256);
+  const record = recordProjection(await getJSON<unknown>(
+    `/workspace/api/library/${rawSha256}/converted`,
+  ), "converted content");
+  stringField(record, "raw_sha256", "converted content");
+  stringField(record, "engine", "converted content");
+  numberField(record, "version", "converted content");
+  numberField(record, "block_count", "converted content");
+  stringField(record, "content", "converted content");
+  return record as unknown as ConvertedContentDto;
+}
+
+export async function getConversionRun(rawSha256: string): Promise<ConversionRunDto> {
+  validateRawSha256(rawSha256);
+  const record = recordProjection(await getJSON<unknown>(
+    `/workspace/api/library/${rawSha256}/conversion-run`,
+  ), "conversion run");
+  stringField(record, "raw_sha256", "conversion run");
+  stringField(record, "engine", "conversion run");
+  numberField(record, "version", "conversion run");
+  numberField(record, "block_count", "conversion run");
+  if (!Array.isArray(record.loss_notes) || record.loss_notes.some((note) => typeof note !== "string")) invalidProjection("conversion run");
+  stringField(record, "preview", "conversion run");
+  return record as unknown as ConversionRunDto;
+}
+
+// ── Vault: approved-root knowledge base workbench ──────────────────────────
+
+export interface VaultFileEntryDto {
+  relative_path: string;
+  kind: "markdown" | "canvas" | "attachment";
+  file_size: number;
+  source_hash: string;
+  mime_type: string;
+  frontmatter: Record<string, unknown>;
+}
+
+export interface VaultInspectDto {
+  schema_version: string;
+  root_name: string;
+  files: VaultFileEntryDto[];
+  loss_report: Record<string, unknown>;
+}
+
+export interface VaultFileDto {
+  schema_version: string;
+  relative_path: string;
+  raw_text: string;
+  frontmatter: Record<string, unknown>;
+  body: string;
+  is_canvas: boolean;
+  source_hash: string;
+  loss_report: Record<string, unknown>;
+  canvas?: Record<string, unknown>;
+}
+
+export interface VaultSearchResultDto {
+  relative_path: string;
+  snippet: string;
+  source_hash: string;
+}
+
+export interface VaultSearchDto {
+  schema_version: string;
+  query: string;
+  results: VaultSearchResultDto[];
+}
+
+export interface VaultWriteReceiptDto {
+  schema_version: string;
+  relative_path: string;
+  source_hash: string;
+  expected_hash_checked: boolean;
+}
+
+export interface VaultBackupEntryDto {
+  backup_name: string;
+  file_size: number;
+  modified: number;
+}
+
+export interface VaultBackupsDto {
+  schema_version: string;
+  relative_path: string;
+  backups: VaultBackupEntryDto[];
+}
+
+function validateVaultFileEntry(item: unknown, label: string): VaultFileEntryDto {
+  const record = recordProjection(item, label);
+  stringField(record, "relative_path", label);
+  if (!["markdown", "canvas", "attachment"].includes(String(record.kind))) invalidProjection(label);
+  numberField(record, "file_size", label);
+  stringField(record, "source_hash", label);
+  if (!/^[0-9a-f]{64}$/i.test(String(record.source_hash))) invalidProjection(label);
+  stringField(record, "mime_type", label);
+  return record as unknown as VaultFileEntryDto;
+}
+
+function validateVaultRoot(root: string): void {
+  if (!root.trim() || root.length > 4096) invalidProjection("vault root");
+}
+
+export async function inspectVault(root: string): Promise<VaultInspectDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>("/workspace/api/vault/inspect", { root }, "vault"), "vault inspect");
+  stringField(record, "schema_version", "vault inspect");
+  stringField(record, "root_name", "vault inspect");
+  if (!Array.isArray(record.files)) invalidProjection("vault inspect");
+  record.files.forEach((entry) => validateVaultFileEntry(entry, "vault file"));
+  recordProjection(record.loss_report, "vault loss report");
+  return record as unknown as VaultInspectDto;
+}
+
+export async function readVaultFile(root: string, relativePath: string): Promise<VaultFileDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/file", { root, relative_path: relativePath }, "vault",
+  ), "vault file");
+  stringField(record, "schema_version", "vault file");
+  stringField(record, "relative_path", "vault file");
+  stringField(record, "raw_text", "vault file");
+  stringField(record, "source_hash", "vault file");
+  booleanField(record, "is_canvas", "vault file");
+  recordProjection(record.frontmatter, "vault frontmatter");
+  stringField(record, "body", "vault file");
+  return record as unknown as VaultFileDto;
+}
+
+export async function searchVault(root: string, query: string): Promise<VaultSearchDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/search", { root, query }, "vault",
+  ), "vault search");
+  stringField(record, "schema_version", "vault search");
+  stringField(record, "query", "vault search");
+  if (!Array.isArray(record.results)) invalidProjection("vault search");
+  for (const item of record.results) {
+    const result = recordProjection(item, "vault search result");
+    stringField(result, "relative_path", "vault search result");
+    stringField(result, "snippet", "vault search result");
+    stringField(result, "source_hash", "vault search result");
+  }
+  return record as unknown as VaultSearchDto;
+}
+
+export async function writeVaultFile(
+  root: string,
+  relativePath: string,
+  content: string,
+  expectedHash?: string | null,
+): Promise<VaultWriteReceiptDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/write",
+    { root, relative_path: relativePath, content, expected_hash: expectedHash ?? null },
+    "vault-write",
+  ), "vault write");
+  stringField(record, "schema_version", "vault write");
+  stringField(record, "relative_path", "vault write");
+  stringField(record, "source_hash", "vault write");
+  booleanField(record, "expected_hash_checked", "vault write");
+  return record as unknown as VaultWriteReceiptDto;
+}
+
+export async function readVaultCanvas(root: string, relativePath: string): Promise<VaultFileDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/canvas/read", { root, relative_path: relativePath }, "vault",
+  ), "vault canvas");
+  stringField(record, "schema_version", "vault canvas");
+  stringField(record, "source_hash", "vault canvas");
+  booleanField(record, "is_canvas", "vault canvas");
+  recordProjection(record.canvas, "vault canvas document");
+  return record as unknown as VaultFileDto;
+}
+
+export async function writeVaultCanvas(
+  root: string,
+  relativePath: string,
+  canvas: Record<string, unknown>,
+  expectedHash?: string | null,
+): Promise<VaultWriteReceiptDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/canvas/write",
+    { root, relative_path: relativePath, canvas, expected_hash: expectedHash ?? null },
+    "vault-canvas-write",
+  ), "vault canvas write");
+  stringField(record, "schema_version", "vault canvas write");
+  stringField(record, "relative_path", "vault canvas write");
+  stringField(record, "source_hash", "vault canvas write");
+  booleanField(record, "expected_hash_checked", "vault canvas write");
+  return record as unknown as VaultWriteReceiptDto;
+}
+
+export async function listVaultBackups(root: string, relativePath: string): Promise<VaultBackupsDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/backups", { root, relative_path: relativePath }, "vault",
+  ), "vault backups");
+  stringField(record, "schema_version", "vault backups");
+  stringField(record, "relative_path", "vault backups");
+  if (!Array.isArray(record.backups)) invalidProjection("vault backups");
+  for (const item of record.backups) {
+    const backup = recordProjection(item, "vault backup");
+    stringField(backup, "backup_name", "vault backup");
+    numberField(backup, "file_size", "vault backup");
+    numberField(backup, "modified", "vault backup");
+  }
+  return record as unknown as VaultBackupsDto;
+}
+
+export async function restoreVaultBackup(
+  root: string,
+  relativePath: string,
+  backupName: string,
+): Promise<Record<string, unknown>> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/restore",
+    { root, relative_path: relativePath, backup_name: backupName },
+    "vault-restore",
+  ), "vault restore");
+  stringField(record, "relative_path", "vault restore");
+  return record;
+}
+
+// ── Exchange: verifiable open exchange export ──────────────────────────────
+
+export interface ExchangeExportDto {
+  destination: string;
+  item_count: number;
+  manifest_sha256: string;
+}
+
+export async function exportExchange(name: string, overwrite = false): Promise<ExchangeExportDto> {
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/exchange/export", { name, overwrite }, "exchange",
+  ), "exchange export");
+  stringField(record, "destination", "exchange export");
+  numberField(record, "item_count", "exchange export");
+  stringField(record, "manifest_sha256", "exchange export");
+  return record as unknown as ExchangeExportDto;
+}
+
+export async function verifyExchange(name = "exchange"): Promise<Record<string, unknown>> {
+  const record = recordProjection(await getJSON<unknown>(
+    `/workspace/api/exchange/verify?name=${encodeURIComponent(name)}`,
+  ), "exchange verify");
+  booleanField(record, "valid", "exchange verify");
+  return record;
+}
+
+// ── Evidence: page-level anchors from the reader ───────────────────────────
+
+export async function createEvidenceAnchor(rawSha256: string, page: number): Promise<{ locator: { page: number } }> {
+  if (!/^[0-9a-f]{64}$/i.test(rawSha256)) invalidProjection("evidence anchor identity");
+  if (!Number.isInteger(page) || page < 1) invalidProjection("evidence anchor page");
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/evidence/anchor",
+    {
+      raw_sha256: rawSha256,
+      source_revision: `original:${rawSha256.slice(0, 24)}`,
+      locator: { page },
+    },
+    "evidence-anchor",
+  ), "evidence anchor create");
+  const locator = recordProjection(record.locator, "evidence anchor locator");
+  if (typeof locator.page !== "number" || !Number.isInteger(locator.page) || locator.page < 1) invalidProjection("evidence anchor locator");
+  // Internal anchor_id never crosses the product boundary.
+  return { locator: { page: locator.page } };
 }

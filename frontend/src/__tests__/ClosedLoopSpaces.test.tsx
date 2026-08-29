@@ -18,6 +18,7 @@ const runtime = vi.hoisted(() => ({
   getSetupStatus: vi.fn(), preflightSetup: vi.fn(), initializeSetup: vi.fn(), createBackup: vi.fn(), verifyBackup: vi.fn(),
   getHome: vi.fn(), getActivity: vi.fn(), getActivityObject: vi.fn(), getDelivery: vi.fn(),
   dispatchDelivery: vi.fn(), retryFailedDelivery: vi.fn(), retryDesktopBackend: vi.fn(), resetRuntimeClient: vi.fn(),
+  createEvidenceAnchor: vi.fn(),
 }));
 vi.mock("../api/workspace", () => runtime);
 
@@ -98,6 +99,51 @@ describe("six-space real command loops", () => {
     expect(reader).toHaveAttribute("sandbox", "");
     expect(screen.getByText("证据锚点 1 · 第 2 页")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("opaque-anchor");
+  });
+
+  it("records a page-level evidence anchor from the PDF reader and refreshes the list", async () => {
+    const rawSha256 = "d".repeat(64);
+    runtime.listLibraryAssets.mockResolvedValue({ items: [{ source_name: "paper.pdf", raw_sha256: rawSha256, size_bytes: 1024, mime_type: "application/pdf", retention: "immutable", conversion_state: "retained" }] });
+    runtime.downloadPdfAsset.mockResolvedValue(new Blob(["%PDF-1.7"], { type: "application/pdf" }));
+    runtime.listEvidenceAnchors.mockResolvedValue({ count: 0, items: [], next_cursor: null });
+    runtime.createEvidenceAnchor.mockResolvedValue({ locator: { page: 3 } });
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn(() => "blob:pdf-anchor") });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
+
+    const user = userEvent.setup();
+    render(<LibrarySpace onInspect={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "打开原件" }));
+
+    const pageInput = await screen.findByRole("spinbutton", { name: "锚点页码" });
+    await user.clear(pageInput);
+    await user.type(pageInput, "3");
+    await user.click(screen.getByRole("button", { name: "记录页锚点" }));
+
+    expect(runtime.createEvidenceAnchor).toHaveBeenCalledWith(rawSha256, 3);
+    expect(await screen.findByText("已记录证据锚点：第 3 页")).toBeInTheDocument();
+    // The refreshed list is re-read after creation (listEvidenceAnchors called again).
+    expect(runtime.listEvidenceAnchors).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects an invalid anchor page without calling the API", async () => {
+    const rawSha256 = "e".repeat(64);
+    runtime.listLibraryAssets.mockResolvedValue({ items: [{ source_name: "paper.pdf", raw_sha256: rawSha256, size_bytes: 1024, mime_type: "application/pdf", retention: "immutable", conversion_state: "retained" }] });
+    runtime.downloadPdfAsset.mockResolvedValue(new Blob(["%PDF-1.7"], { type: "application/pdf" }));
+    runtime.listEvidenceAnchors.mockResolvedValue({ count: 0, items: [], next_cursor: null });
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn(() => "blob:pdf-anchor-invalid") });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
+
+    const user = userEvent.setup();
+    render(<LibrarySpace onInspect={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "打开原件" }));
+
+    const pageInput = await screen.findByRole("spinbutton", { name: "锚点页码" });
+    await user.clear(pageInput);
+    await user.type(pageInput, "0");
+    await user.click(screen.getByRole("button", { name: "记录页锚点" }));
+
+    expect(screen.getByText("锚点页码必须是正整数。")).toBeInTheDocument();
+    expect(runtime.createEvidenceAnchor).not.toHaveBeenCalled();
   });
 
   it("keeps the newest source open when an older download resolves later", async () => {

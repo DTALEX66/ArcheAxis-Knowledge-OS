@@ -51,7 +51,7 @@ describe("App shell", () => {
     await user.click(within(rail).getByRole("button", { name: /资料库/ }));
 
     expect(
-      within(main).getByRole("heading", { name: /原件库/ }),
+      within(main).getByRole("heading", { name: /资料库/ }),
     ).toBeInTheDocument();
     expect(within(rail).getByRole("button", { name: /资料库/ })).toHaveAttribute(
       "aria-current",

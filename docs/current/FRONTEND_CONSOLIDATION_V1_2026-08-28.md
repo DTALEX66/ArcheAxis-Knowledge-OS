@@ -78,3 +78,31 @@
 - 通用原件读取具有独立硬上限、内容摘要复核并拒绝 PDF；PDF 端点执行有界读取、摘要复核、魔数与 MIME 校验。
 - DeepTutor 只有 authority bridge/sidecar 资格，不是当前前端底座。
 - 发布前仍需 Windows 原生 WebView 当前树点击读回、Rust/NSIS、exact-SHA CI 和人工视觉复审。
+
+## 5. 管线落地补充（2026-08-29，`feat/pipeline-multiformat-console`）
+
+在单壳收敛基础上，把多格式摄取管线从前端只读投影落成真实产品闭环：
+
+### 后端管线闭环
+
+- 批量目录导入不再写死端 artifacts：每个文件先按内容寻址保留到 Source Archive（失败也保留原件），再转换、记录不可变 ConversionRun + EvidenceAnchor，失败原因可读且脱敏（无绝对路径、≤300 字符）。
+- 批量任务失败必须抛异常才会计入 failed 并触发有界重试（controller 语义：返回即完成）。
+- `workspace_library` 投影增加 format、engine、error_reason、converted_char_count；`conversion_state` 从 RawAsset 失败记录读取真实原因。
+- 新端点：`GET /api/library/{sha256}/converted`（有界返回最新转换文本）、`GET /api/library/{sha256}/conversion-run`（engine/version/block_count/loss_notes/preview）。
+- 交换验证成功显式返回 `valid: true`（与备份验证契约一致）。
+
+### 前端新增产品空间
+
+| 空间 | 内容 |
+|---|---|
+| 导入（intake） | 网页 URL 导入、单文件上传（多格式回执：格式/引擎/字符数/预览）、批量目录导入（进度、暂停/继续/安全停止、失败清单） |
+| 知识库（vault） | 打开本地目录只读扫描、文件树、全文搜索、Markdown 编辑（expected-hash 乐观锁、409 冲突提示重读）、可恢复备份列表 |
+| 知识库画布 | JSON Canvas 文档节点级读取/新增/编辑/删除，写回经校验端点 + 乐观锁 |
+| 交换（exchange） | 开放交换包导出（清单哈希回执）与验证（valid + verified_items） |
+| 资料库增强 | 格式/引擎/状态列、需关注原因、转换文本阅读器 |
+| 证据锚点 | PDF 阅读器内页级锚点创建（页码输入 + 内容寻址写入 + 列表刷新），非法页码前端拒绝 |
+
+### 多格式 DTO fail-closed
+
+- IntakeResult、BatchStatus、ConvertedContent、ConversionRun、Vault inspect/file/search/write/backups/canvas、Exchange export/verify、EvidenceAnchor create 均做运行时字段校验；畸形 2xx 返回 `incompatible`，不渲染部分真值。
+- 内部标识（conversion_run_id、anchor_id、backup 绝对路径）不跨产品边界。

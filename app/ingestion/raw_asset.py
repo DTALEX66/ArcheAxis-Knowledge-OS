@@ -181,6 +181,9 @@ class RawAssetStore:
 
         This is intentionally a resilient read projection: historical assets
         created before sidecars are still shown with a neutral display name.
+        A durable failure record surfaces its real, sanitised reason instead
+        of a generic marker so the product UI can explain why an original
+        needs attention.
         """
         records: list[RawAssetRecord] = []
         for asset in sorted(self.root.iterdir(), key=lambda item: item.name):
@@ -212,10 +215,24 @@ class RawAssetStore:
                         if isinstance(retention_policy, str) and retention_policy
                         else "retained"
                     ),
-                    error="conversion failed" if self.has_failure(digest) else None,
+                    error=self._read_failure_reason(digest),
                 )
             )
         return records
+
+    def _read_failure_reason(self, digest: str) -> str | None:
+        """Return the durable failure reason for one digest, if recorded."""
+        failure = self._failure_path(digest)
+        if not failure.exists():
+            return None
+        try:
+            payload = json.loads(failure.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return "conversion failed"
+        if not isinstance(payload, dict):
+            return "conversion failed"
+        reason = payload.get("error")
+        return reason if isinstance(reason, str) and reason.strip() else "conversion failed"
 
     def _record_failure(self, digest: str, source_name: str, error: str) -> None:
         payload = {

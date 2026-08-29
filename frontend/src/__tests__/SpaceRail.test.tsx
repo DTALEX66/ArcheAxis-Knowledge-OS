@@ -5,12 +5,12 @@ import { SpaceRail, SPACES } from "../components/SpaceRail";
 
 // AXW-UI-804: SpaceRail navigation accessibility & interaction tests.
 describe("SpaceRail", () => {
-  it("renders exactly six space buttons with accessible names", () => {
+  it("renders every product space button with accessible names", () => {
     render(
       <SpaceRail active="workspace" onNavigate={vi.fn()} spaces={SPACES} />,
     );
     const nav = screen.getByRole("navigation", { name: "主空间导航" });
-    expect(within(nav).getAllByRole("button")).toHaveLength(6);
+    expect(within(nav).getAllByRole("button")).toHaveLength(SPACES.length);
     for (const space of SPACES) {
       expect(
         within(nav).getByRole("button", { name: space.label }),
@@ -53,7 +53,7 @@ describe("SpaceRail", () => {
       <SpaceRail active="workspace" onNavigate={vi.fn()} spaces={SPACES} />,
     );
     const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(6);
+    expect(buttons).toHaveLength(SPACES.length);
 
     // Tab through the rail: each button must receive keyboard focus in order
     // and report focus-visible (keyboard-initiated focus).

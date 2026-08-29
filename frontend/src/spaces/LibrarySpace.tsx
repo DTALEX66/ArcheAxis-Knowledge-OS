@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { DataError, Loading, Section } from "../components/RealData";
-import { downloadLibraryAsset, downloadPdfAsset, listEvidenceAnchors, listLibraryAssets, type EvidenceAnchorDto, type LibraryAssetDto } from "../api/workspace";
+import {
+  createEvidenceAnchor,
+  downloadLibraryAsset,
+  downloadPdfAsset,
+  getConvertedContent,
+  listEvidenceAnchors,
+  listLibraryAssets,
+  type ConvertedContentDto,
+  type EvidenceAnchorDto,
+  type LibraryAssetDto,
+} from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
 import { stateLabel, userErrorMessage } from "../presentation/labels";
+import { formatLabel } from "./IntakeSpace";
 
 export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [assets, setAssets] = useState<LibraryAssetDto[]>([]);
@@ -12,7 +23,10 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
   const [opened, setOpened] = useState<LibraryAssetDto | null>(null);
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [textPreview, setTextPreview] = useState<string | null>(null);
+  const [converted, setConverted] = useState<ConvertedContentDto | null>(null);
   const [anchors, setAnchors] = useState<EvidenceAnchorDto[]>([]);
+  const [anchorPage, setAnchorPage] = useState("1");
+  const [creatingAnchor, setCreatingAnchor] = useState(false);
   const reader = useRef({ generation: 0, objectUrl: null as string | null, mounted: true });
 
   useEffect(() => {
@@ -42,6 +56,38 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     setOpened(null);
     setAnchors([]);
     setTextPreview(null);
+    setConverted(null);
+    setCreatingAnchor(false);
+  }
+
+  async function recordAnchor(asset: LibraryAssetDto) {
+    const page = Number(anchorPage);
+    if (!Number.isInteger(page) || page < 1) {
+      setMessage("锚点页码必须是正整数。");
+      return;
+    }
+    setCreatingAnchor(true);
+    setMessage(null);
+    try {
+      const receipt = await createEvidenceAnchor(asset.raw_sha256, page);
+      setMessage(`已记录证据锚点：第 ${receipt.locator.page} 页`);
+      setAnchorPage(String(receipt.locator.page + 1));
+      const matching: EvidenceAnchorDto[] = [];
+      let cursor: string | undefined;
+      const seen = new Set<string>();
+      do {
+        const pageResult = await listEvidenceAnchors(100, cursor);
+        matching.push(...pageResult.items.filter((anchor) => anchor.raw_sha256 === asset.raw_sha256));
+        cursor = pageResult.next_cursor ?? undefined;
+        if (cursor && seen.has(cursor)) break;
+        if (cursor) seen.add(cursor);
+      } while (cursor);
+      setAnchors(matching);
+    } catch (e) {
+      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+    } finally {
+      setCreatingAnchor(false);
+    }
   }
 
   async function openAsset(asset: LibraryAssetDto) {
@@ -50,6 +96,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     setMessage("正在读取原件…");
     setAnchors([]);
     setTextPreview(null);
+    setConverted(null);
     try {
       const pdf = asset.mime_type === "application/pdf" || /\.pdf$/i.test(asset.source_name);
       const blob = pdf
@@ -91,46 +138,84 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     }
   }
 
+  async function openConverted(asset: LibraryAssetDto) {
+    const generation = ++reader.current.generation;
+    const isCurrent = () => reader.current.mounted && reader.current.generation === generation;
+    setMessage("正在读取转换文本…");
+    setAnchors([]);
+    setTextPreview(null);
+    setConverted(null);
+    try {
+      const body = await getConvertedContent(asset.raw_sha256);
+      if (!isCurrent()) return;
+      setOpened(asset);
+      setConverted(body);
+      setMessage(`已加载转换文本：${body.engine} · ${body.block_count} 块`);
+    } catch (e) {
+      if (!isCurrent()) return;
+      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+    }
+  }
+
   return (
-    <Section title="原件库">
-      <p className="muted">内容寻址的保留原件；界面不暴露本机路径。</p>
+    <Section title="资料库">
+      <p className="muted">内容寻址的保留原件与多格式转换结果；界面不暴露本机路径。</p>
       {loading ? (
-        <Loading label="原件库" />
+        <Loading label="资料库" />
       ) : error ? (
-        <DataError label="原件库" message={error} />
+        <DataError label="资料库" message={error} />
       ) : assets.length === 0 ? (
-        <p className="muted">暂无保留原件。通过本地导入添加资料后会出现在这里。</p>
+        <p className="muted">暂无保留原件。通过「导入」空间的网页、文件或批量导入添加资料后会出现在这里。</p>
       ) : (
         <table className="data-table">
-          <thead><tr><th>原件</th><th>大小</th><th>转换</th><th>操作</th></tr></thead>
+          <thead><tr><th>原件</th><th>格式</th><th>转换</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
             {assets.map((asset) => (
               <tr key={asset.raw_sha256}>
-                <td>{asset.source_name}</td>
-                <td>{asset.size_bytes} B</td>
-                <td>{stateLabel(asset.conversion_state)}</td>
-                <td><button type="button" onClick={() => onInspect({
-                  title: asset.source_name,
-                  source: "原件档案",
-                  lifecycle: stateLabel(asset.conversion_state),
-                  rawSha256: asset.raw_sha256,
-                  detail: `保留策略：${asset.retention}`,
-                })}>查看</button>{" "}<button type="button" onClick={() => void openAsset(asset)}>打开原件</button></td>
+                <td>{asset.source_name}<small className="table-sub">{asset.size_bytes} B</small></td>
+                <td>{formatLabel(asset.format)}</td>
+                <td>{asset.engine ?? "—"}{asset.converted_char_count != null ? <small className="table-sub">{asset.converted_char_count} 字符</small> : null}</td>
+                <td>
+                  {asset.conversion_state === "requires_attention"
+                    ? <span title={asset.error_reason ?? undefined}>需关注</span>
+                    : "已保留"}
+                  {asset.error_reason ? <small className="table-sub error-reason">{asset.error_reason}</small> : null}
+                </td>
+                <td>
+                  <button type="button" onClick={() => onInspect({
+                    title: asset.source_name,
+                    source: "原件档案",
+                    lifecycle: stateLabel(asset.conversion_state),
+                    rawSha256: asset.raw_sha256,
+                    detail: `保留策略：${asset.retention}${asset.engine ? `；转换引擎：${asset.engine}` : ""}`,
+                  })}>查看</button>{" "}
+                  {asset.engine ? <button type="button" onClick={() => void openConverted(asset)}>转换文本</button> : null}{" "}
+                  <button type="button" onClick={() => void openAsset(asset)}>打开原件</button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-      {opened && objectUrl ? <section className="library-reader" aria-label="原件阅读器">
+      {opened && (objectUrl || converted) ? <section className="library-reader" aria-label="原件阅读器">
         <header><div><span className="archive-eyebrow">当前原件</span><h4>{opened.source_name}</h4></div><button type="button" onClick={closeReader}>关闭阅读器</button></header>
         <div className="library-reader-grid">
           <div className="library-document">
-            {opened.mime_type === "application/pdf" || /\.pdf$/i.test(opened.source_name)
-              ? <iframe title="PDF 原件阅读器" src={objectUrl} sandbox="" />
-              : textPreview !== null ? <pre>{textPreview}</pre> : <p>该格式已保留，可通过系统关联应用继续查看。</p>}
+            {converted ? <div className="converted-document">
+              <p className="muted">转换引擎：{converted.engine} · {converted.block_count} 块</p>
+              <pre>{converted.content}</pre>
+            </div>
+              : opened.mime_type === "application/pdf" || /\.pdf$/i.test(opened.source_name)
+                ? <iframe title="PDF 原件阅读器" src={objectUrl ?? undefined} sandbox="" />
+                : textPreview !== null ? <pre>{textPreview}</pre> : <p>该格式已保留，可通过系统关联应用继续查看。</p>}
           </div>
           <aside aria-label="原件证据锚点">
             <h4>证据锚点</h4>
+            {opened.mime_type === "application/pdf" || /\.pdf$/i.test(opened.source_name) ? <div className="anchor-create">
+              <label htmlFor="anchor-page">页码</label>
+              <input id="anchor-page" type="number" min={1} value={anchorPage} onChange={(event) => setAnchorPage(event.target.value)} aria-label="锚点页码" />
+              <button type="button" onClick={() => void recordAnchor(opened)} disabled={creatingAnchor}>{creatingAnchor ? "正在记录…" : "记录页锚点"}</button>
+            </div> : null}
             {anchors.length === 0 ? <p className="muted">当前原件暂无页级锚点</p> : <ol>{anchors.map((anchor, index) => <li key={anchor.anchor_id}>证据锚点 {index + 1}{typeof anchor.locator.page === "number" ? ` · 第 ${anchor.locator.page} 页` : ""}</li>)}</ol>}
           </aside>
         </div>

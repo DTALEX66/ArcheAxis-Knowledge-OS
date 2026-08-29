@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import tempfile
 import threading
@@ -10,7 +11,7 @@ from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from app.ingestion.raw_asset import RawAssetStore
+from app.ingestion.raw_asset import RawAssetRecord, RawAssetStore
 from app.workspace.job_outbox import command_request_fingerprint, record_completed_command
 
 # Heavy dependencies loaded lazily inside functions to avoid numpy/vector chain at import time.
@@ -453,20 +454,196 @@ def workspace_jobs(*, db_path: str | Path) -> dict[str, object]:
 
 
 def workspace_library(*, db_path: str | Path) -> dict[str, object]:
-    """Project the local source archive without exposing filesystem paths."""
+    """Project the local source archive without exposing filesystem paths.
+
+    Each retained original carries its multi-format pipeline facts: detected
+    format, the engine that produced the latest conversion, the conversion
+    state, and (when conversion failed) a readable, path-free reason. This is
+    what lets the product UI render the whole intake pipe instead of a
+    retained/attention flag.
+    """
     archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
-    items = [
-        {
-            "source_name": record.source_name,
-            "raw_sha256": record.sha256,
-            "size_bytes": record.size_bytes,
-            "mime_type": record.mime_type,
-            "retention": record.retention_policy,
-            "conversion_state": "requires_attention" if record.error else "retained",
-        }
-        for record in archive.list_records()
-    ]
+    try:
+        with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+            items = [_library_item(record, connection) for record in archive.list_records()]
+    except sqlite3.Error:
+        items = [_library_item(record, None) for record in archive.list_records()]
     return {"schema_version": "v1", "items": items}
+
+
+def _format_from_mime(mime_type: str, source_name: str) -> str:
+    """Map a stored MIME type (or file suffix) back to a format key."""
+    mime = mime_type.casefold()
+    if mime.startswith("image/"):
+        return "image"
+    if mime.startswith("video/"):
+        return "media_video"
+    if mime.startswith("audio/"):
+        return "media_audio"
+    mime_map = {
+        "application/pdf": "pdf",
+        "text/markdown": "md",
+        "text/plain": "txt",
+        "text/html": "html",
+        "application/rtf": "rtf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+    }
+    if mime in mime_map:
+        return mime_map[mime]
+    suffix_map = {
+        "pdf": "pdf", "docx": "docx", "pptx": "pptx", "xlsx": "xlsx",
+        "md": "md", "markdown": "md", "txt": "txt", "html": "html", "htm": "html",
+        "png": "image", "jpg": "image", "jpeg": "image", "gif": "image",
+        "bmp": "image", "webp": "image", "rtf": "rtf", "odt": "odt", "canvas": "canvas",
+    }
+    return suffix_map.get(Path(source_name).suffix.casefold().lstrip("."), "unknown")
+
+
+def _latest_conversion(connection: sqlite3.Connection, raw_sha256: str) -> tuple[str, int, str] | None:
+    """Return (run_id, engine, loss_report_json) for the newest run of an asset."""
+    row = connection.execute(
+        "SELECT run_id, engine, version, loss_report_json FROM conversion_runs "
+        "WHERE raw_sha256=? ORDER BY rowid DESC LIMIT 1",
+        (raw_sha256,),
+    ).fetchone()
+    if row is None:
+        return None
+    return str(row[0]), str(row[1]), int(row[2]), str(row[3])
+
+
+_PATH_RE = re.compile(r"(?:[A-Za-z]:[\\/]|\\\\[^\s'\"]+|~?/)[^\s'\"]*")
+
+
+def _sanitize_conversion_error(error: str) -> str:
+    """Strip absolute filesystem paths from a conversion error message.
+
+    The product UI must never receive a host path; every path-like token is
+    replaced by its file name and the result is bounded for display. Windows
+    drive and UNC paths are covered; http(s) URLs are sources, not local
+    paths, so they are preserved verbatim.
+    """
+    if not error:
+        return "conversion failed"
+
+    def _replace(match: re.Match[str]) -> str:
+        token = match.group(0)
+        if "://" in token:
+            return token
+        # POSIX pathlib treats backslash as a literal character, so split on
+        # both separators to get a stable basename on every platform.
+        basename = token.rstrip("/\\").rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+        return basename or "<file>"
+
+    cleaned = _PATH_RE.sub(_replace, error)
+    return (cleaned or "conversion failed")[:300]
+
+
+def _library_item(record: RawAssetRecord, connection: sqlite3.Connection | None) -> dict[str, object]:
+    item: dict[str, object] = {
+        "source_name": record.source_name,
+        "raw_sha256": record.sha256,
+        "size_bytes": record.size_bytes,
+        "mime_type": record.mime_type,
+        "retention": record.retention_policy,
+        "format": _format_from_mime(record.mime_type, record.source_name),
+        "conversion_state": "requires_attention" if record.error else "retained",
+        "error_reason": _sanitize_conversion_error(record.error) if record.error else None,
+        "engine": None,
+        "converted_char_count": None,
+    }
+    if connection is None:
+        return item
+    latest = _latest_conversion(connection, record.sha256)
+    if latest is None:
+        return item
+    run_id, engine, _version, _loss = latest
+    item["engine"] = engine
+    char_count = connection.execute(
+        "SELECT COALESCE(SUM(LENGTH(text)), 0) FROM derived_blocks WHERE run_id=?",
+        (run_id,),
+    ).fetchone()[0]
+    item["converted_char_count"] = int(char_count)
+    return item
+
+
+def workspace_converted_content(
+    *, raw_sha256: str, db_path: str | Path, max_chars: int = 1_000_000
+) -> dict[str, object]:
+    """Return the latest converted text of one retained original (DB-backed)."""
+    _validate_asset_identity(raw_sha256)
+    archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
+    if not archive.has(raw_sha256):
+        raise LookupError("source archive content was not found")
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        latest = _latest_conversion(connection, raw_sha256)
+        if latest is None:
+            raise LookupError("converted content was not found for this original")
+        run_id, engine, version, _loss = latest
+        blocks = connection.execute(
+            "SELECT kind, text FROM derived_blocks WHERE run_id=? ORDER BY block_id",
+            (run_id,),
+        ).fetchall()
+    content = "\n\n".join(str(block["text"]).strip() for block in blocks if str(block["text"]).strip())
+    if not content:
+        raise LookupError("converted content is empty")
+    if len(content) > max_chars:
+        raise ValueError("converted content exceeds the readable bound")
+    return {
+        "schema_version": "v1",
+        "raw_sha256": raw_sha256,
+        "engine": engine,
+        "version": version,
+        "block_count": len(blocks),
+        "content": content,
+    }
+
+
+def workspace_conversion_run_detail(
+    *, raw_sha256: str, db_path: str | Path
+) -> dict[str, object]:
+    """Return one original's latest ConversionRun summary for the product UI."""
+    _validate_asset_identity(raw_sha256)
+    archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
+    if not archive.has(raw_sha256):
+        raise LookupError("source archive content was not found")
+    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        connection.row_factory = sqlite3.Row
+        latest = _latest_conversion(connection, raw_sha256)
+        if latest is None:
+            raise LookupError("converted content was not found for this original")
+        run_id, engine, version, loss_json = latest
+        blocks = connection.execute(
+            "SELECT kind, text FROM derived_blocks WHERE run_id=? ORDER BY block_id",
+            (run_id,),
+        ).fetchall()
+    loss = {}
+    try:
+        parsed = json.loads(loss_json)
+        if isinstance(parsed, dict):
+            loss = parsed
+    except (ValueError, TypeError):
+        loss = {}
+    preview = "\n\n".join(str(block["text"]).strip() for block in blocks[:3] if str(block["text"]).strip())
+    return {
+        "schema_version": "v1",
+        "raw_sha256": raw_sha256,
+        "engine": engine,
+        "version": version,
+        "block_count": len(blocks),
+        "loss_notes": list(loss.get("loss_notes") or []),
+        "preview": preview[:400],
+    }
+
+
+def _validate_asset_identity(raw_sha256: str) -> None:
+    if (
+        len(raw_sha256) != 64
+        or any(char not in "0123456789abcdef" for char in raw_sha256)
+    ):
+        raise ValueError("raw_sha256 must be 64 lowercase hexadecimal characters")
 
 
 def source_archive_content(
