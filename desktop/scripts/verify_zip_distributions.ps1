@@ -242,8 +242,13 @@ function Invoke-DistributionLifecycle {
             try {
                 $workspaceResponse = Invoke-WebRequest "$base/workspace" -UseBasicParsing -ErrorAction Stop
                 $workspaceStatus = [int]$workspaceResponse.StatusCode
-            } catch [System.Net.WebException] {
-                $workspaceStatus = [int]$_.Exception.Response.StatusCode
+            } catch {
+                # PowerShell 7+ throws HttpResponseException (not WebException) for
+                # non-2xx responses from Invoke-WebRequest -ErrorAction Stop.
+                $resp = $_.Exception.Response
+                if ($resp -and $resp.StatusCode) {
+                    $workspaceStatus = [int]$resp.StatusCode
+                }
             }
             $status = Invoke-RestMethod "$base/workspace/api/status"
             if ($workspaceStatus -ne 410 -or $status.release.version -ne '0.6.13') {
