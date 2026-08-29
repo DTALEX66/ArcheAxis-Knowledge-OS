@@ -801,3 +801,230 @@ export async function getConversionRun(rawSha256: string): Promise<ConversionRun
   stringField(record, "preview", "conversion run");
   return record as unknown as ConversionRunDto;
 }
+
+// ── Vault: approved-root knowledge base workbench ──────────────────────────
+
+export interface VaultFileEntryDto {
+  relative_path: string;
+  kind: "markdown" | "canvas" | "attachment";
+  file_size: number;
+  source_hash: string;
+  mime_type: string;
+  frontmatter: Record<string, unknown>;
+}
+
+export interface VaultInspectDto {
+  schema_version: string;
+  root_name: string;
+  files: VaultFileEntryDto[];
+  loss_report: Record<string, unknown>;
+}
+
+export interface VaultFileDto {
+  schema_version: string;
+  relative_path: string;
+  raw_text: string;
+  frontmatter: Record<string, unknown>;
+  body: string;
+  is_canvas: boolean;
+  source_hash: string;
+  loss_report: Record<string, unknown>;
+  canvas?: Record<string, unknown>;
+}
+
+export interface VaultSearchResultDto {
+  relative_path: string;
+  snippet: string;
+  source_hash: string;
+}
+
+export interface VaultSearchDto {
+  schema_version: string;
+  query: string;
+  results: VaultSearchResultDto[];
+}
+
+export interface VaultWriteReceiptDto {
+  schema_version: string;
+  relative_path: string;
+  source_hash: string;
+  expected_hash_checked: boolean;
+}
+
+export interface VaultBackupEntryDto {
+  backup_name: string;
+  file_size: number;
+  modified: number;
+}
+
+export interface VaultBackupsDto {
+  schema_version: string;
+  relative_path: string;
+  backups: VaultBackupEntryDto[];
+}
+
+function validateVaultFileEntry(item: unknown, label: string): VaultFileEntryDto {
+  const record = recordProjection(item, label);
+  stringField(record, "relative_path", label);
+  if (!["markdown", "canvas", "attachment"].includes(String(record.kind))) invalidProjection(label);
+  numberField(record, "file_size", label);
+  stringField(record, "source_hash", label);
+  if (!/^[0-9a-f]{64}$/i.test(String(record.source_hash))) invalidProjection(label);
+  stringField(record, "mime_type", label);
+  return record as unknown as VaultFileEntryDto;
+}
+
+function validateVaultRoot(root: string): void {
+  if (!root.trim() || root.length > 4096) invalidProjection("vault root");
+}
+
+export async function inspectVault(root: string): Promise<VaultInspectDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>("/workspace/api/vault/inspect", { root }, "vault"), "vault inspect");
+  stringField(record, "schema_version", "vault inspect");
+  stringField(record, "root_name", "vault inspect");
+  if (!Array.isArray(record.files)) invalidProjection("vault inspect");
+  record.files.forEach((entry) => validateVaultFileEntry(entry, "vault file"));
+  recordProjection(record.loss_report, "vault loss report");
+  return record as unknown as VaultInspectDto;
+}
+
+export async function readVaultFile(root: string, relativePath: string): Promise<VaultFileDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/file", { root, relative_path: relativePath }, "vault",
+  ), "vault file");
+  stringField(record, "schema_version", "vault file");
+  stringField(record, "relative_path", "vault file");
+  stringField(record, "raw_text", "vault file");
+  stringField(record, "source_hash", "vault file");
+  booleanField(record, "is_canvas", "vault file");
+  recordProjection(record.frontmatter, "vault frontmatter");
+  stringField(record, "body", "vault file");
+  return record as unknown as VaultFileDto;
+}
+
+export async function searchVault(root: string, query: string): Promise<VaultSearchDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/search", { root, query }, "vault",
+  ), "vault search");
+  stringField(record, "schema_version", "vault search");
+  stringField(record, "query", "vault search");
+  if (!Array.isArray(record.results)) invalidProjection("vault search");
+  for (const item of record.results) {
+    const result = recordProjection(item, "vault search result");
+    stringField(result, "relative_path", "vault search result");
+    stringField(result, "snippet", "vault search result");
+    stringField(result, "source_hash", "vault search result");
+  }
+  return record as unknown as VaultSearchDto;
+}
+
+export async function writeVaultFile(
+  root: string,
+  relativePath: string,
+  content: string,
+  expectedHash?: string | null,
+): Promise<VaultWriteReceiptDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/write",
+    { root, relative_path: relativePath, content, expected_hash: expectedHash ?? null },
+    "vault-write",
+  ), "vault write");
+  stringField(record, "schema_version", "vault write");
+  stringField(record, "relative_path", "vault write");
+  stringField(record, "source_hash", "vault write");
+  booleanField(record, "expected_hash_checked", "vault write");
+  return record as unknown as VaultWriteReceiptDto;
+}
+
+export async function readVaultCanvas(root: string, relativePath: string): Promise<VaultFileDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/canvas/read", { root, relative_path: relativePath }, "vault",
+  ), "vault canvas");
+  stringField(record, "schema_version", "vault canvas");
+  stringField(record, "source_hash", "vault canvas");
+  booleanField(record, "is_canvas", "vault canvas");
+  recordProjection(record.canvas, "vault canvas document");
+  return record as unknown as VaultFileDto;
+}
+
+export async function writeVaultCanvas(
+  root: string,
+  relativePath: string,
+  canvas: Record<string, unknown>,
+  expectedHash?: string | null,
+): Promise<VaultWriteReceiptDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/canvas/write",
+    { root, relative_path: relativePath, canvas, expected_hash: expectedHash ?? null },
+    "vault-canvas-write",
+  ), "vault canvas write");
+  stringField(record, "schema_version", "vault canvas write");
+  stringField(record, "relative_path", "vault canvas write");
+  stringField(record, "source_hash", "vault canvas write");
+  booleanField(record, "expected_hash_checked", "vault canvas write");
+  return record as unknown as VaultWriteReceiptDto;
+}
+
+export async function listVaultBackups(root: string, relativePath: string): Promise<VaultBackupsDto> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/backups", { root, relative_path: relativePath }, "vault",
+  ), "vault backups");
+  stringField(record, "schema_version", "vault backups");
+  stringField(record, "relative_path", "vault backups");
+  if (!Array.isArray(record.backups)) invalidProjection("vault backups");
+  for (const item of record.backups) {
+    const backup = recordProjection(item, "vault backup");
+    stringField(backup, "backup_name", "vault backup");
+    numberField(backup, "file_size", "vault backup");
+    numberField(backup, "modified", "vault backup");
+  }
+  return record as unknown as VaultBackupsDto;
+}
+
+export async function restoreVaultBackup(
+  root: string,
+  relativePath: string,
+  backupName: string,
+): Promise<Record<string, unknown>> {
+  validateVaultRoot(root);
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/vault/restore",
+    { root, relative_path: relativePath, backup_name: backupName },
+    "vault-restore",
+  ), "vault restore");
+  stringField(record, "relative_path", "vault restore");
+  return record;
+}
+
+// ── Exchange: verifiable open exchange export ──────────────────────────────
+
+export interface ExchangeExportDto {
+  destination: string;
+  item_count: number;
+  manifest_sha256: string;
+}
+
+export async function exportExchange(name: string, overwrite = false): Promise<ExchangeExportDto> {
+  const record = recordProjection(await postJSON<unknown>(
+    "/workspace/api/exchange/export", { name, overwrite }, "exchange",
+  ), "exchange export");
+  stringField(record, "destination", "exchange export");
+  numberField(record, "item_count", "exchange export");
+  stringField(record, "manifest_sha256", "exchange export");
+  return record as unknown as ExchangeExportDto;
+}
+
+export async function verifyExchange(name = "exchange"): Promise<Record<string, unknown>> {
+  const record = recordProjection(await getJSON<unknown>(
+    `/workspace/api/exchange/verify?name=${encodeURIComponent(name)}`,
+  ), "exchange verify");
+  booleanField(record, "valid", "exchange verify");
+  return record;
+}

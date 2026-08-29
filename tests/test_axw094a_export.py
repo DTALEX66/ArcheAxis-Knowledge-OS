@@ -49,6 +49,7 @@ def test_export_roundtrip_verifies(tmp_path: Path) -> None:
     assert kinds == {"raw", "evidence", "learning", "ai_asset"}
 
     result = verify_export(dest)
+    assert result["valid"] is True
     assert result["verified_items"] == 5
     # Every file on disk re-hashes to the manifest's digest (verify_export
     # already proved this; double-check the raw item path mapping).

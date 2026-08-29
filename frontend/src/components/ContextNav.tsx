@@ -3,11 +3,13 @@ import { SPACES, type SpaceId } from "../spaces/spaces";
 const RELATED: Record<SpaceId, SpaceId[]> = {
   workspace: ["workspace", "library", "intake"],
   library: ["library", "intake", "evidence"],
-  intake: ["intake", "library", "workspace"],
+  intake: ["intake", "library", "vault"],
+  vault: ["vault", "intake", "library"],
   evidence: ["evidence", "library", "ai-assets"],
   learning: ["learning", "evidence", "ai-assets"],
   "ai-assets": ["ai-assets", "evidence", "learning"],
-  settings: ["settings", "workspace", "library"],
+  exchange: ["exchange", "library", "settings"],
+  settings: ["settings", "exchange", "library"],
 };
 
 export function ContextNav({ active, onNavigate }: { active: SpaceId; onNavigate: (id: SpaceId) => void }) {
