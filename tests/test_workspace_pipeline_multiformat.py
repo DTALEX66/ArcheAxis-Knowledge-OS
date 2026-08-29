@@ -112,6 +112,13 @@ def test_batch_import_persists_originals_and_conversions_into_library(tmp_path: 
         assert item["engine"] in ("passthrough",)
         assert item["format"] in ("md", "txt")
 
+    # Batch-created anchors must not leak internal run/block identities.
+    anchors = client.get("/workspace/api/evidence/anchors").json()["items"]
+    for anchor in anchors:
+        assert "conversion_run_id" not in anchor["locator"]
+        assert "derived_document_id" not in anchor["locator"]
+        assert "block_ids" not in anchor["locator"]
+
 
 def test_batch_import_failure_retains_original_and_readable_reason(tmp_path: Path, monkeypatch) -> None:
     source = tmp_path / "imports"
@@ -128,6 +135,12 @@ def test_batch_import_failure_retains_original_and_readable_reason(tmp_path: Pat
     status = _poll_until(client, started.json()["batch_id"])
     assert status["completed"] == 1
     assert status["failed"] == 1
+
+    # The batch failure list must never leak an absolute host path.
+    failed_entry = status["results"]["bad.canvas"]
+    assert failed_entry["status"] == "failed"
+    assert "bad.canvas" in failed_entry["error"]
+    assert str(source) not in failed_entry["error"]
 
     items = client.get("/workspace/api/library").json()["items"]
     by_name = {item["source_name"]: item for item in items}
@@ -182,3 +195,34 @@ def test_batch_import_pause_resume_shutdown(tmp_path: Path, monkeypatch) -> None
     assert shut.status_code == 200
     assert shut.json()["state"] == "shutdown"
     assert client.get(f"/workspace/api/batch/{second_id}/status").json()["state"] in ("shutdown", "finished")
+
+
+def test_conversion_error_sanitization_covers_drive_unc_and_keeps_urls() -> None:
+    from app.workspace.service import _sanitize_conversion_error
+
+    windows = _sanitize_conversion_error(
+        "No engine could convert pdf file 'D:\\资料\\课程\\a.pdf': boom"
+    )
+    assert "D:\\资料" not in windows
+    assert "a.pdf" in windows
+
+    unc = _sanitize_conversion_error(
+        "No engine could convert md file '\\\\server\\share\\notes.md': boom"
+    )
+    assert "\\\\server\\share" not in unc
+    assert "notes.md" in unc
+
+    posix = _sanitize_conversion_error(
+        "No engine could convert html file '/home/runner/work/a.html': boom"
+    )
+    assert "/home/runner" not in posix
+    assert "a.html" in posix
+
+    url = _sanitize_conversion_error(
+        "fetch failed for https://example.com/article?x=1: 404"
+    )
+    assert "https://example.com/article?x=1" in url
+
+    bounded = _sanitize_conversion_error("x" * 400)
+    assert len(bounded) == 300
+    assert _sanitize_conversion_error("") == "conversion failed"

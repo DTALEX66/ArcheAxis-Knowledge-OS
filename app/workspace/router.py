@@ -392,6 +392,23 @@ def workspace_get_anchor(anchor_id: str, request: Request) -> dict[str, object]:
     return _command_error(lambda: _do_get_anchor(anchor_id))
 
 
+def _product_anchor_locator(locator: dict[str, Any]) -> dict[str, object]:
+    """Project an anchor locator to the product surface.
+
+    Locators may carry internal conversion-run / derived-document / block
+    identities used for content pinning; those must never cross the product
+    boundary. Only fields the ordinary UI consumes are projected.
+    """
+    product: dict[str, object] = {}
+    page = locator.get("page")
+    if isinstance(page, int) and page >= 1:
+        product["page"] = page
+    source_format = locator.get("source_format")
+    if isinstance(source_format, str) and source_format:
+        product["source_format"] = source_format
+    return product
+
+
 def _do_get_anchor(anchor_id: str) -> dict[str, object]:
     anchor: EvidenceAnchor | None = resolve_evidence_anchor(DB_PATH, anchor_id)
     if anchor is None:
@@ -400,7 +417,7 @@ def _do_get_anchor(anchor_id: str) -> dict[str, object]:
         "anchor_id": anchor.anchor_id,
         "raw_sha256": anchor.raw_sha256,
         "source_revision": anchor.source_revision,
-        "locator": anchor.locator,
+        "locator": _product_anchor_locator(anchor.locator),
     }
 
 
@@ -439,7 +456,7 @@ def list_evidence_anchors_route(
             "anchor_id": a.anchor_id,
             "raw_sha256": a.raw_sha256,
             "source_revision": a.source_revision,
-            "locator": a.locator,
+            "locator": _product_anchor_locator(a.locator),
         }
         for a in anchors
     ]
@@ -1213,18 +1230,18 @@ def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dic
         try:
             blob = source.read_bytes()
         except OSError as exc:
-            raise RuntimeError(f"{rel_path}: {exc}") from None
+            raise RuntimeError(service._sanitize_conversion_error(f"{rel_path}: {exc}")) from None
         if not blob:
             raise RuntimeError(f"{rel_path}: empty file")
         try:
             raw = raw_store.store_original(blob, Path(rel_path).name)
         except Exception as exc:  # noqa: BLE001 - preserve every failure reason
-            raise RuntimeError(f"{rel_path}: {exc}") from None
+            raise RuntimeError(service._sanitize_conversion_error(f"{rel_path}: {exc}")) from None
         try:
             markdown, engine = convert_file(source)
             source_format = detect_format(source)
         except Exception as exc:  # noqa: BLE001 - preserve every failure reason
-            reason = f"{rel_path}: {exc}"
+            reason = service._sanitize_conversion_error(f"{rel_path}: {exc}")
             raw_store._record_failure(raw.sha256, raw.source_name, reason)
             raise RuntimeError(reason) from None
         try:
@@ -1252,7 +1269,7 @@ def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dic
                 store_conversion_run(DB_PATH, conversion_run)
                 store_evidence_anchor(DB_PATH, anchor)
         except Exception as exc:  # noqa: BLE001 - keep the original, record failure
-            reason = f"{rel_path}: {exc}"
+            reason = service._sanitize_conversion_error(f"{rel_path}: {exc}")
             raw_store._record_failure(raw.sha256, raw.source_name, reason)
             raise RuntimeError(reason) from None
         return {"result_digest": f"converted:{raw.sha256}", "engine": engine}

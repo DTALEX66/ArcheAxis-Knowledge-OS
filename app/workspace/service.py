@@ -513,18 +513,27 @@ def _latest_conversion(connection: sqlite3.Connection, raw_sha256: str) -> tuple
     return str(row[0]), str(row[1]), int(row[2]), str(row[3])
 
 
-_PATH_RE = re.compile(r"(?:[A-Za-z]:[\\/]|~/|/)[^\s'\"]+")
+_PATH_RE = re.compile(r"(?:[A-Za-z]:[\\/]|\\\\[^\s'\"]+|~?/)[^\s'\"]*")
 
 
 def _sanitize_conversion_error(error: str) -> str:
     """Strip absolute filesystem paths from a conversion error message.
 
     The product UI must never receive a host path; every path-like token is
-    replaced by its file name and the result is bounded for display.
+    replaced by its file name and the result is bounded for display. Windows
+    drive and UNC paths are covered; http(s) URLs are sources, not local
+    paths, so they are preserved verbatim.
     """
     if not error:
         return "conversion failed"
-    cleaned = _PATH_RE.sub(lambda match: Path(match.group(0)).name or "<file>", error)
+
+    def _replace(match: re.Match[str]) -> str:
+        token = match.group(0)
+        if "://" in token:
+            return token
+        return Path(token).name or "<file>"
+
+    cleaned = _PATH_RE.sub(_replace, error)
     return (cleaned or "conversion failed")[:300]
 
 
