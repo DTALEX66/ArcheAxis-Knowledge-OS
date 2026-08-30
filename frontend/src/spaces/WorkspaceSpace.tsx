@@ -101,6 +101,13 @@ function StatCard({ label: lbl, value }: { label: string; value: string }) {
   );
 }
 
+/** Follow-cursor radial highlight for the quick action cards. */
+function trackCursor(event: React.MouseEvent<HTMLElement>) {
+  const rect = event.currentTarget.getBoundingClientRect();
+  event.currentTarget.style.setProperty("--x", `${event.clientX - rect.left}px`);
+  event.currentTarget.style.setProperty("--y", `${event.clientY - rect.top}px`);
+}
+
 const ACTIONS: { id: SpaceId; icon: string; title: string; desc: string }[] = [
   { id: "intake", icon: "↓", title: "导入资料", desc: "网页、文件、批量目录" },
   { id: "library", icon: "▧", title: "资料库", desc: "查看原件与锚点" },
@@ -141,7 +148,7 @@ export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => vo
         <>
           <div className="ws-quick-actions">
             {ACTIONS.map((action) => (
-              <button key={action.id} className="ws-action-card" onClick={() => onNavigate(action.id)}>
+              <button key={action.id} className="ws-action-card" onMouseMove={trackCursor} onClick={() => onNavigate(action.id)}>
                 <span className="ws-action-icon">{action.icon}</span>
                 <strong>{action.title}</strong>
                 <small>{action.desc}</small>
