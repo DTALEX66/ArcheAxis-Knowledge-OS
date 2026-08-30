@@ -31,7 +31,7 @@ describe("App shell", () => {
     const main = screen.getByRole("main");
     const rail = screen.getByRole("navigation", { name: "主空间导航" });
     expect(
-      within(main).getByRole("heading", { name: /工作台总览/ }),
+      within(main).getByRole("heading", { name: /工作台/ }),
     ).toBeInTheDocument();
     expect(within(rail).getByRole("button", { name: /工作台/ })).toHaveAttribute(
       "aria-current",
@@ -45,7 +45,7 @@ describe("App shell", () => {
     const main = screen.getByRole("main");
     const rail = screen.getByRole("navigation", { name: "主空间导航" });
     expect(
-      within(main).getByRole("heading", { name: /工作台总览/ }),
+      within(main).getByRole("heading", { name: /工作台/ }),
     ).toBeInTheDocument();
 
     await user.click(within(rail).getByRole("button", { name: /资料库/ }));

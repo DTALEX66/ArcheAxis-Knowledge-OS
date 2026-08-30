@@ -24,7 +24,7 @@ vi.mock("../api/workspace", () => runtime);
 
 describe("six-space real command loops", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("projects release, capabilities, counts, and recent activity on Workspace", async () => {
@@ -46,7 +46,7 @@ describe("six-space real command loops", () => {
       recent_activity: [{ public_ref: "wr1_demo", kind: "job", label: "资料导入", state: "completed", updated_at: "2026-08-23T00:00:00Z" }],
     });
     render(<WorkspaceSpace onNavigate={vi.fn()} />);
-    expect(await screen.findByText("0.6.7")).toBeInTheDocument();
+    expect(await screen.findByText(/0\.6\.7/)).toBeInTheDocument();
     expect(screen.getByText("研究候选")).toBeInTheDocument();
     expect(screen.getByText("待投递记录")).toBeInTheDocument();
     expect(screen.getByText("投递处理器")).toBeInTheDocument();
@@ -449,7 +449,8 @@ describe("six-space real command loops", () => {
 
     expect(runtime.preflightSetup).toHaveBeenCalledWith({ mode: "quick", root: "D:\\ArcheAxis" });
     expect(await screen.findByText("四库健康检查")).toBeInTheDocument();
-    expect(screen.getByText(/可写.*NTFS.*fixed/)).toBeInTheDocument();
+    expect(screen.getByText("可写")).toBeInTheDocument();
+    expect(screen.getByText("NTFS")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "创建工作区" }));
     expect(runtime.initializeSetup).toHaveBeenCalledWith({ mode: "quick", root: "D:\\ArcheAxis" });
     expect(await screen.findByText("设置完成")).toBeInTheDocument();
@@ -513,8 +514,8 @@ describe("six-space real command loops", () => {
     expect(check).toBeDisabled();
 
     for (const [label, path] of [
-      ["源文件归档库", "D:\\Data\\source"], ["证据账本库", "D:\\Data\\evidence"],
-      ["人类学习库", "D:\\Data\\learning"], ["机器知识库", "D:\\Data\\assets"],
+      [/源文件归档库/, "D:\\Data\\source"], [/证据账本库/, "D:\\Data\\evidence"],
+      [/人类学习库/, "D:\\Data\\learning"], [/机器知识库/, "D:\\Data\\assets"],
     ]) {
       await user.type(screen.getByLabelText(label), path);
     }

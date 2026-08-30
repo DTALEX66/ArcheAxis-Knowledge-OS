@@ -92,12 +92,11 @@ function stateClass(value: string): string {
   return "";
 }
 
-function StatCard({ label: lbl, value, hint }: { label: string; value: string; hint?: string }) {
+function StatCard({ label: lbl, value }: { label: string; value: string }) {
   return (
     <div className="stat-card">
       <span className="stat-label">{lbl}</span>
       <span className={`stat-value ${stateClass(value)}`}>{value}</span>
-      {hint && <span className="stat-hint">{hint}</span>}
     </div>
   );
 }
@@ -116,81 +115,91 @@ export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => vo
     return () => { alive = false; };
   }, []);
 
-  if (loading) return <Loading label="工作台" />;
-  if (error) return <DataError label="工作台" message={error} />;
-
-  const release = home?.release ?? {};
   const counts = home?.counts ?? {};
   const components = home?.components ?? {};
+  const capabilities = home?.capabilities ?? {};
   const activity = home?.recent_activity ?? [];
 
   return (
     <section className="workspace-page" aria-labelledby="ws-title">
-      <header className="ws-header">
+      <div className="ws-header">
         <div>
           <h1 id="ws-title">工作台</h1>
-          <p className="ws-subtitle">可信知识工作台 · 版本 {valueOf(release.version, "version")}</p>
-        </div>
-      </header>
-
-      <div className="ws-quick-actions">
-        <button className="ws-action-card" onClick={() => onNavigate("intake")}>
-          <span className="ws-action-icon">📥</span>
-          <strong>导入资料</strong>
-          <small>网页、文件、批量目录</small>
-        </button>
-        <button className="ws-action-card" onClick={() => onNavigate("library")}>
-          <span className="ws-action-icon">📚</span>
-          <strong>资料库</strong>
-          <small>查看原件与锚点</small>
-        </button>
-        <button className="ws-action-card" onClick={() => onNavigate("vault")}>
-          <span className="ws-action-icon">🔐</span>
-          <strong>知识库</strong>
-          <small>搜索、编辑、备份</small>
-        </button>
-        <button className="ws-action-card" onClick={() => onNavigate("settings")}>
-          <span className="ws-action-icon">⚙️</span>
-          <strong>设置</strong>
-          <small>四库路径与工作区</small>
-        </button>
-      </div>
-
-      <div className="ws-grid">
-        <div className="ws-section">
-          <h2>系统状态</h2>
-          <div className="ws-stats">
-            {Object.entries(components).filter(([k]) => k in LABELS).map(([k, v]) => (
-              <StatCard key={k} label={label(k)} value={valueOf(v, k)} />
-            ))}
-          </div>
-        </div>
-
-        <div className="ws-section">
-          <h2>数据概览</h2>
-          <div className="ws-stats">
-            {Object.entries(counts).filter(([k]) => k in LABELS).map(([k, v]) => (
-              <StatCard key={k} label={label(k)} value={valueOf(v, k)} />
-            ))}
-          </div>
-        </div>
-
-        <div className="ws-section">
-          <h2>近期活动</h2>
-          {activity.length === 0 ? (
-            <p className="ws-empty">暂无活动记录</p>
-          ) : (
-            <ul className="ws-activity-list">
-              {activity.map((item) => (
-                <li key={item.public_ref}>
-                  <span className="ws-activity-label">{item.label}</span>
-                  <span className={`ws-activity-state ${stateClass(valueOf(item.state))}`}>{valueOf(item.state)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <p className="ws-subtitle">可信知识工作台{home?.release?.version ? ` · 版本 ${valueOf(home.release.version, "version")}` : ""}</p>
         </div>
       </div>
+
+      {loading ? <Loading label="工作台" /> : error ? <DataError label="工作台" message={error} /> : (
+        <>
+          <div className="ws-quick-actions">
+            <button className="ws-action-card" onClick={() => onNavigate("intake")}>
+              <span className="ws-action-icon">📥</span>
+              <strong>导入资料</strong>
+              <small>网页、文件、批量目录</small>
+            </button>
+            <button className="ws-action-card" onClick={() => onNavigate("library")}>
+              <span className="ws-action-icon">📚</span>
+              <strong>资料库</strong>
+              <small>查看原件与锚点</small>
+            </button>
+            <button className="ws-action-card" onClick={() => onNavigate("vault")}>
+              <span className="ws-action-icon">🔐</span>
+              <strong>知识库</strong>
+              <small>搜索、编辑、备份</small>
+            </button>
+            <button className="ws-action-card" onClick={() => onNavigate("settings")}>
+              <span className="ws-action-icon">⚙️</span>
+              <strong>设置</strong>
+              <small>四库路径与工作区</small>
+            </button>
+          </div>
+
+          <div className="ws-grid">
+            <div className="ws-section">
+              <h2>系统状态</h2>
+              <div className="ws-stats">
+                {Object.entries(components).filter(([k]) => k in LABELS).map(([k, v]) => (
+                  <StatCard key={k} label={label(k)} value={valueOf(v, k)} />
+                ))}
+              </div>
+            </div>
+
+            <div className="ws-section">
+              <h2>数据概览</h2>
+              <div className="ws-stats">
+                {Object.entries(counts).filter(([k]) => k in LABELS).map(([k, v]) => (
+                  <StatCard key={k} label={label(k)} value={valueOf(v, k)} />
+                ))}
+              </div>
+            </div>
+
+            <div className="ws-section">
+              <h2>可用能力</h2>
+              <div className="ws-stats">
+                {Object.entries(capabilities).filter(([k]) => k in LABELS).map(([k, v]) => (
+                  <StatCard key={k} label={label(k)} value={valueOf(v, k)} />
+                ))}
+              </div>
+            </div>
+
+            <div className="ws-section">
+              <h2>近期活动</h2>
+              {activity.length === 0 ? (
+                <p className="ws-empty">暂无活动记录</p>
+              ) : (
+                <ul className="ws-activity-list">
+                  {activity.map((item) => (
+                    <li key={item.public_ref}>
+                      <span className="ws-activity-label">{item.label}</span>
+                      <span className={`ws-activity-state ${stateClass(valueOf(item.state))}`}>{valueOf(item.state)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </section>
   );
 }

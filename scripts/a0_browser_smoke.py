@@ -165,7 +165,7 @@ def main() -> None:
 
                 page.route("**/*", route_api)
                 page.goto(URL, wait_until="networkidle")
-                page.get_by_role("heading", name="工作台总览").wait_for()
+                page.get_by_role("heading", name="工作台").wait_for()
                 geometry = page.evaluate("""() => {
                     const box = (selector) => {
                       const rect = document.querySelector(selector)?.getBoundingClientRect();

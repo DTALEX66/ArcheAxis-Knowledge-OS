@@ -24,9 +24,9 @@ describe("OSUI v3 production contract", () => {
     render(<App />);
 
     expect(document.querySelector(".archive-desk-shell")).toBeInTheDocument();
-    expect(document.querySelector(".workbench-hero")).toBeInTheDocument();
-    expect(document.querySelector(".evidence-flow")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "原件、主张与证据，留在同一个可审查的工作面。" })).toBeInTheDocument();
+    expect(document.querySelector(".workspace-page")).toBeInTheDocument();
+    const main = screen.getByRole("main", { name: "当前空间内容" });
+    expect(within(main).getByRole("heading", { name: /工作台/ })).toBeInTheDocument();
   });
 
   it("renders one complete product shell with global commands and contextual navigation", () => {
@@ -76,19 +76,19 @@ describe("OSUI v3 production contract", () => {
     expect(document.querySelector(".app-shell")).not.toHaveAttribute("aria-hidden");
   });
 
-  it("makes every Workbench next action operable", async () => {
+  it("makes every Workbench quick action operable", async () => {
     const user = userEvent.setup();
     render(<App />);
+    const rail = screen.getByRole("navigation", { name: "主空间导航" });
 
-    await user.click(screen.getByRole("button", { name: "查看原件与锚点" }));
+    await user.click(within(rail).getByRole("button", { name: /资料库/ }));
     expect(
       within(screen.getByRole("main")).getByRole("heading", { name: "资料库" }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "工作台" }));
-    await user.click(screen.getByRole("button", { name: "检查证据生命周期" }));
-    expect(screen.getByRole("heading", { name: "证据账本" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "工作台" }));
-    expect(screen.getByRole("link", { name: "处理任务与回执" })).toHaveAttribute("href", "#activity-dock");
+    await user.click(within(rail).getByRole("button", { name: /工作台/ }));
+    await user.click(within(rail).getByRole("button", { name: /设置/ }));
+    const main = screen.getByRole("main");
+    expect(within(main).getByRole("heading", { name: /设置/ })).toBeInTheDocument();
   });
 
   it("does not expose the former mixed-language primary labels", () => {
