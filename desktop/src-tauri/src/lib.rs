@@ -108,9 +108,11 @@ fn run_inner() -> Result<(), String> {
                     let bootstrap_dir = exe_dir.join("bootstrap");
                     if bootstrap_dir.join("index.html").is_file() {
                         let index_path = bootstrap_dir.join("index.html");
-                        WebviewUrl::Custom(tauri::url::Url::from_file_path(&index_path).unwrap_or_else(|_| {
-                            WebviewUrl::App("index.html".into()).into()
-                        }))
+                        let file_url = tauri::url::Url::from_file_path(&index_path)
+                            .unwrap_or_else(|_| {
+                                tauri::url::Url::parse("tauri://localhost/index.html").unwrap()
+                            });
+                        WebviewUrl::External(file_url)
                     } else {
                         WebviewUrl::App("index.html".into())
                     }
