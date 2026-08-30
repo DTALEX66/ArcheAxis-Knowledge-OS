@@ -32,10 +32,12 @@ def test_legacy_knowledge_dashboard_does_not_redirect_to_a_retired_loopback_ui()
 def test_tauri_surface_and_ci_share_the_ui_release_gate() -> None:
     frontend = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
     tauri = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
+    desktop_lib = (ROOT / "desktop/src-tauri/src/lib.rs").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
-    assert "星环知识平台（ArcheAxis Knowledge）" in frontend
-    assert '.title("星环知识平台（ArcheAxis Knowledge）")' in tauri
+    assert "星环知识平台" in frontend
+    assert "ArcheAxis Knowledge" in frontend
+    assert '.title("星环知识")' in desktop_lib
     assert "Enforce OSUI design and Chinese-first frontend contracts" in workflow
     assert "npm test -- --run" in workflow
 

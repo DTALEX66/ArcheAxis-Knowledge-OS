@@ -130,12 +130,12 @@ export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => vo
 
   return (
     <section className="workspace-page" aria-labelledby="ws-title">
-      <header className="ws-header">
+      <div className="ws-header">
         <h1 id="ws-title">工作台</h1>
         <p className="ws-subtitle">
           {version ? `星环知识 · 版本 ${version}` : "星环知识"}
         </p>
-      </header>
+      </div>
 
       {loading ? <Loading label="工作台" /> : error ? <DataError label="工作台" message={error} /> : (
         <>

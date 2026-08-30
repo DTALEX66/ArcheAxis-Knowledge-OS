@@ -195,7 +195,7 @@ def main() -> None:
                 page.get_by_role("button", name="打开全局命令").click()
                 page.get_by_role("dialog", name="全局命令").wait_for()
                 page.get_by_role("button", name="关闭全局命令").click()
-                page.locator('.space-rail-item[data-space-id="learning"]').click()
+                page.get_by_role("button", name="学习", exact=True).click()
                 page.get_by_role("main").get_by_role("heading", name="学习").wait_for()
                 assert page.get_by_role("button", name="视觉课件").count() == 0
                 assert page.get_by_role("button", name="空间记忆").count() == 0

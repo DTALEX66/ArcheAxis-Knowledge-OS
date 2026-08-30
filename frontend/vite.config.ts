@@ -23,6 +23,9 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: false,
+    // Relative asset URLs so the bundle also works when served from
+    // file:// (green distribution bootstrap/ directory beside the exe).
+    base: "./",
   },
   test: {
     environment: "jsdom",

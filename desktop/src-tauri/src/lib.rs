@@ -100,24 +100,20 @@ fn run_inner() -> Result<(), String> {
                 let port = process.port;
                 // AXW-RUN-201: load frontend from filesystem if bootstrap/ exists
                 // next to the exe (green distribution), otherwise use embedded resources.
-                let frontend_url = {
-                    let exe_dir = std::env::current_exe()
-                        .ok()
-                        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                        .unwrap_or_default();
-                    let bootstrap_dir = exe_dir.join("bootstrap");
-                    if std::env::var_os("ARCHEAXIS_FRONTEND_DIR").is_some()
-                        && bootstrap_dir.join("index.html").is_file()
-                    {
-                        let index_path = bootstrap_dir.join("index.html");
-                        let file_url = tauri::url::Url::from_file_path(&index_path)
-                            .unwrap_or_else(|_| {
-                                tauri::url::Url::parse("tauri://localhost/index.html").unwrap()
-                            });
-                        WebviewUrl::External(file_url)
-                    } else {
-                        WebviewUrl::App("index.html".into())
-                    }
+                let exe_dir = std::env::current_exe()
+                    .ok()
+                    .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                    .unwrap_or_default();
+                let bootstrap_dir = exe_dir.join("bootstrap");
+                let bootstrap_dir_for_nav = bootstrap_dir.clone();
+                let frontend_url = if bootstrap_dir.join("index.html").is_file() {
+                    let index_path = bootstrap_dir.join("index.html");
+                    let file_url = url::Url::from_file_path(&index_path).unwrap_or_else(|_| {
+                        url::Url::parse("tauri://localhost/index.html").unwrap()
+                    });
+                    WebviewUrl::External(file_url)
+                } else {
+                    WebviewUrl::App("index.html".into())
                 };
                 let shell =
                     WebviewWindowBuilder::new(app, "main", frontend_url)
@@ -128,7 +124,9 @@ fn run_inner() -> Result<(), String> {
                         .center()
                         .devtools(cfg!(debug_assertions))
                         .data_directory(runtime.data_dir.clone())
-                        .on_navigation(move |target| navigation_allowed(target, port))
+                        .on_navigation(move |target| {
+                            navigation_allowed(target, port, Some(&bootstrap_dir_for_nav))
+                        })
                         .on_new_window(|_, _| NewWindowResponse::Deny)
                         .on_download(|_, _| false)
                         .build()

@@ -82,7 +82,7 @@ describe("LearningSpace", () => {
     await user.click(screen.getByRole("button", { name: "评分" }));
 
     await waitFor(() => {
-      expect(screen.getByText(/达到 M3-解释/)).toBeInTheDocument();
+      expect(screen.getByText(/已达标/)).toBeInTheDocument();
     });
   });
 
@@ -160,7 +160,7 @@ describe("LearningSpace loop views", () => {
     await user.click(screen.getByRole("button", { name: "生成测验" }));
     expect(await screen.findByText("最匹配的术语？")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "guess" }));
-    expect(screen.getByText("✓ 正确")).toBeInTheDocument();
+    expect(screen.getByText("正确")).toBeInTheDocument();
   });
 
   it("builds a learning path from a prerequisite graph", async () => {

@@ -54,7 +54,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"(?:http://(?:127\.0\.0\.1|localhost):\d+|http://tauri\.localhost(?::\d+)?)",
-    allow_origins=[],
+    # Desktop green distribution loads the frontend from file:// (bootstrap
+    # directory beside the exe); such pages send Origin: null. Allow it so
+    # the loopback API works from the packaged shell.
+    allow_origins=["null"],
     allow_methods=config.get("cors.allow_methods", ["GET", "POST"]),
     allow_headers=config.get("cors.allow_headers", ["Authorization", "Content-Type"]),
 )
