@@ -22,6 +22,13 @@ const DOMAIN_LABELS: Record<string, string> = {
   ai_asset_vault: "机器知识库",
 };
 
+const DOMAIN_ICONS: Record<string, string> = {
+  source_archive: "📁",
+  evidence_ledger: "📋",
+  human_learning_vault: "📚",
+  ai_asset_vault: "🤖",
+};
+
 const READINESS_LABELS: Record<string, string> = {
   workspace_exists: "工作区",
   manifest_valid: "工作区清单",
@@ -45,6 +52,13 @@ function readinessMessage(state: string): string {
   if (state === "pending") return "等待完成设置";
   if (state === "blocked") return "需要处理；请重新检查设置或存储权限";
   return "状态不可用";
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
 export function SettingsSpace() {
@@ -128,83 +142,215 @@ export function SettingsSpace() {
   }
 
   return (
-    <Section title="设置与四库管理">
-      <p className="muted">设置工作区位置，并在写入前完成路径和空间检查。</p>
+    <Section title="设置">
+      <p className="muted">配置工作区与四库位置，系统会在创建前检查路径可写性与可用空间。</p>
       {loading ? <Loading label="设置" /> : error ? <DataError label="设置" message={error} /> : <>
-        {stage === "welcome" && <div>
-          <h4>欢迎使用星环知识平台</h4>
-          <p>先选择四库的位置，系统会在创建前检查路径可写性与可用空间。</p>
-          <button type="button" className="btn-primary" onClick={() => setStage("mode")}>开始设置</button>
-        </div>}
-
-        {stage === "mode" && <div>
-          <h4>选择路径模式</h4>
-          <label><input type="radio" checked={mode === "quick"} onChange={() => setMode("quick")} /> 快速设置：四库位于同一根目录</label>
-          <label><input type="radio" checked={mode === "advanced"} onChange={() => setMode("advanced")} /> 高级设置：分别选择四个库的位置</label>
-          <div className="command-row"><button type="button" onClick={() => setStage("paths")}>继续</button></div>
-        </div>}
-
-        {stage === "paths" && <div>
-          <h4>{mode === "quick" ? "选择四库根路径" : "选择四个库路径"}</h4>
-          {mode === "quick" ? <label htmlFor="setup-root">四库根路径
-            <input id="setup-root" value={quickRoot} onChange={(event) => setQuickRoot(event.target.value)} placeholder="例如 D:\\ArcheAxis" />
-          </label> : Object.entries(DOMAIN_LABELS).map(([domain, label]) => <label key={domain} htmlFor={`setup-${domain}`}>{label}
-            <input id={`setup-${domain}`} value={domains[domain] ?? ""} onChange={(event) => setDomains((current) => ({ ...current, [domain]: event.target.value }))} placeholder="绝对路径" />
-          </label>)}
-          <div className="command-row">
-            <button type="button" onClick={() => setStage("mode")}>返回</button>
-            <button type="button" className="btn-primary" disabled={wizardBusy || !canCheckHealth} onClick={checkHealth}>{wizardBusy ? "检查中…" : "检查四库健康"}</button>
+        {stage === "welcome" && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>欢迎使用星环知识平台</h4>
+            <p className="muted" style={{ marginBottom: 16 }}>先选择四库的位置，系统会在创建前检查路径可写性与可用空间。</p>
+            <button type="button" className="primary" onClick={() => setStage("mode")}>开始设置</button>
           </div>
-        </div>}
+        )}
 
-        {stage === "health" && <div>
-          <h4>四库健康检查</h4>
-          {preflight?.ready === false ? <p role="status" className="muted">健康检查未通过；修复不可写、空间不足或文件系统问题后才能创建工作区。</p> : null}
-          {Object.entries(DOMAIN_LABELS).map(([domain, label]) => {
-            const domainHealth = health[domain];
-            const healthDetails = [
-              typeof domainHealth?.free_bytes === "number" ? `${domainHealth.free_bytes} bytes 可用` : null,
-              domainHealth?.readonly === true ? "只读" : domainHealth?.readonly === false ? "可写" : null,
-              domainHealth?.filesystem,
-              domainHealth?.removable,
-            ].filter(Boolean).join(" · ");
-            return <div className="row" key={domain}>
-              <div className="row-main"><b>{label}</b><span>{selectedDomains[domain] ?? "—"}</span></div>
-              <span>{healthDetails || "未返回健康信息"}</span>
-            </div>;
-          })}
-          <div className="command-row">
-            <button type="button" onClick={() => setStage("paths")}>返回修改</button>
-            <button type="button" className="btn-primary" disabled={wizardBusy || preflight?.ready !== true} onClick={createWorkspace}>{wizardBusy ? "创建中…" : "创建工作区"}</button>
+        {stage === "mode" && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>选择路径模式</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, padding: 12, border: `1px solid var(--ax-border)`, borderRadius: 8, cursor: "pointer" }}>
+                <input type="radio" checked={mode === "quick"} onChange={() => setMode("quick")} />
+                <div>
+                  <div style={{ fontWeight: 600 }}>快速设置</div>
+                  <div className="muted">四库位于同一根目录</div>
+                </div>
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, padding: 12, border: `1px solid var(--ax-border)`, borderRadius: 8, cursor: "pointer" }}>
+                <input type="radio" checked={mode === "advanced"} onChange={() => setMode("advanced")} />
+                <div>
+                  <div style={{ fontWeight: 600 }}>高级设置</div>
+                  <div className="muted">分别选择四个库的位置</div>
+                </div>
+              </label>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" onClick={() => setStage("welcome")}>返回</button>
+              <button type="button" className="primary" onClick={() => setStage("paths")}>继续</button>
+            </div>
           </div>
-        </div>}
+        )}
 
-        {stage === "complete" && <div>
-          <h4>设置完成</h4>
-          <p>{wizardMessage ?? "工作区四库状态已可读回。"}</p>
-          {!data?.ready && <button type="button" onClick={() => setStage("welcome")}>重新检查设置</button>}
-        </div>}
+        {stage === "paths" && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
+              {mode === "quick" ? "选择四库根路径" : "选择四个库路径"}
+            </h4>
+            {mode === "quick" ? (
+              <div className="form-group">
+                <label className="form-label" htmlFor="setup-root">四库根路径</label>
+                <input
+                  id="setup-root"
+                  value={quickRoot}
+                  onChange={(event) => setQuickRoot(event.target.value)}
+                  placeholder="例如 D:/资料库"
+                />
+                <span className="form-hint">四个库将自动创建在此目录下</span>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {Object.entries(DOMAIN_LABELS).map(([domain, label]) => (
+                  <div className="form-group" key={domain}>
+                    <label className="form-label" htmlFor={`setup-${domain}`}>
+                      {label}
+                    </label>
+                    <input
+                      id={`setup-${domain}`}
+                      value={domains[domain] ?? ""}
+                      onChange={(event) => setDomains((current) => ({ ...current, [domain]: event.target.value }))}
+                      placeholder="绝对路径"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button type="button" onClick={() => setStage("mode")}>返回</button>
+              <button
+                type="button"
+                className="primary"
+                disabled={wizardBusy || !canCheckHealth}
+                onClick={checkHealth}
+              >
+                {wizardBusy ? "检查中…" : "检查四库健康"}
+              </button>
+            </div>
+          </div>
+        )}
 
-        {wizardMessage && stage !== "complete" ? <p className="muted">{wizardMessage}</p> : null}
-        <h4>当前就绪状态</h4>
-        {readinessSteps.map((step) => <div className="row" key={step.id}>
-          <div className="row-main"><b>{READINESS_LABELS[step.id] ?? "设置检查"}</b><span>{readinessMessage(step.state)}</span></div><span>{stateLabel(step.state)}</span>
-        </div>)}
-        <div className="command-row">
-          <label htmlFor="backup-name">备份名称</label>
-          <input id="backup-name" value={backupName} onChange={(event) => setBackupName(event.target.value)} placeholder="例如 release-check" />
-          <button type="button" disabled={backupBusy || !backupName.trim()} onClick={async () => {
-            setBackupBusy(true); setWizardMessage("正在创建备份…");
-            try { await createBackup(backupName.trim()); const result = await verifyBackup(backupName.trim()); if (result.valid !== true) throw new Error("backup verification projection is invalid"); setWizardMessage("备份验证通过"); }
-            catch (requestError) { setWizardMessage(`备份失败：${errorMessage(requestError)}`); }
-            finally { setBackupBusy(false); }
-          }}>创建并验证备份</button>
+        {stage === "health" && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>四库健康检查</h4>
+            {preflight?.ready === false && (
+              <div className="error-card" style={{ marginBottom: 12 }}>
+                健康检查未通过；修复不可写、空间不足或文件系统问题后才能创建工作区。
+              </div>
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {Object.entries(DOMAIN_LABELS).map(([domain, label]) => {
+                const domainHealth = health[domain];
+                const freeBytes = typeof domainHealth?.free_bytes === "number" ? domainHealth.free_bytes : null;
+                const readonly = domainHealth?.readonly;
+                return (
+                  <div key={domain} className="card" style={{ padding: 12 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>{DOMAIN_ICONS[domain]} {label}</div>
+                    <div className="muted" style={{ fontSize: 12, marginBottom: 4 }}>{selectedDomains[domain] ?? "—"}</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {freeBytes !== null && <span className="badge badge-info">{formatBytes(freeBytes)} 可用</span>}
+                      {readonly === true && <span className="badge badge-warning">只读</span>}
+                      {readonly === false && <span className="badge badge-success">可写</span>}
+                      {domainHealth?.filesystem && <span className="badge badge-info">{domainHealth.filesystem}</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button type="button" onClick={() => setStage("paths")}>返回修改</button>
+              <button
+                type="button"
+                className="primary"
+                disabled={wizardBusy || preflight?.ready !== true}
+                onClick={createWorkspace}
+              >
+                {wizardBusy ? "创建中…" : "创建工作区"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {stage === "complete" && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>✅ 设置完成</h4>
+            <p>{wizardMessage ?? "工作区四库状态已可读回。"}</p>
+            {!data?.ready && (
+              <button type="button" onClick={() => setStage("welcome")} style={{ marginTop: 12 }}>
+                重新检查设置
+              </button>
+            )}
+          </div>
+        )}
+
+        {wizardMessage && stage !== "complete" && <p className="muted" style={{ marginTop: 8 }}>{wizardMessage}</p>}
+
+        <h4 style={{ fontSize: 14, fontWeight: 600, marginTop: 24, marginBottom: 12 }}>当前就绪状态</h4>
+        <div style={{ display: "grid", gap: 8 }}>
+          {readinessSteps.map((step) => (
+            <div key={step.id} className="card" style={{ padding: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontWeight: 600 }}>{READINESS_LABELS[step.id] ?? "设置检查"}</div>
+                <div className="muted" style={{ fontSize: 12 }}>{readinessMessage(step.state)}</div>
+              </div>
+              <span className={`badge ${step.state === "ready" || step.state === "completed" ? "badge-success" : step.state === "pending" ? "badge-warning" : "badge-danger"}`}>
+                {stateLabel(step.state)}
+              </span>
+            </div>
+          ))}
         </div>
-        <div className="command-row"><button type="button" onClick={async () => {
-          setWizardMessage("正在重试桌面后端…");
-          try { await retryDesktopBackend(); resetRuntimeClient(); setData(await getSetupStatus()); setWizardMessage("桌面后端已重新握手"); }
-          catch (requestError) { setWizardMessage(`恢复失败：${errorMessage(requestError)}`); }
-        }}>重试桌面后端</button></div>
+
+        <h4 style={{ fontSize: 14, fontWeight: 600, marginTop: 24, marginBottom: 12 }}>备份管理</h4>
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <label className="form-label" htmlFor="backup-name">备份名称</label>
+              <input
+                id="backup-name"
+                value={backupName}
+                onChange={(event) => setBackupName(event.target.value)}
+                placeholder="例如 release-check"
+              />
+            </div>
+            <button
+              type="button"
+              className="primary"
+              disabled={backupBusy || !backupName.trim()}
+              onClick={async () => {
+                setBackupBusy(true);
+                setWizardMessage("正在创建备份…");
+                try {
+                  await createBackup(backupName.trim());
+                  const result = await verifyBackup(backupName.trim());
+                  if (result.valid !== true) throw new Error("backup verification projection is invalid");
+                  setWizardMessage("备份验证通过");
+                } catch (requestError) {
+                  setWizardMessage(`备份失败：${errorMessage(requestError)}`);
+                } finally {
+                  setBackupBusy(false);
+                }
+              }}
+            >
+              {backupBusy ? "创建中…" : "创建并验证备份"}
+            </button>
+          </div>
+        </div>
+
+        <h4 style={{ fontSize: 14, fontWeight: 600, marginTop: 24, marginBottom: 12 }}>桌面后端</h4>
+        <div className="card" style={{ padding: 16 }}>
+          <button
+            type="button"
+            onClick={async () => {
+              setWizardMessage("正在重试桌面后端…");
+              try {
+                await retryDesktopBackend();
+                resetRuntimeClient();
+                setData(await getSetupStatus());
+                setWizardMessage("桌面后端已重新握手");
+              } catch (requestError) {
+                setWizardMessage(`恢复失败：${errorMessage(requestError)}`);
+              }
+            }}
+          >
+            重试桌面后端
+          </button>
+        </div>
       </>}
     </Section>
   );
