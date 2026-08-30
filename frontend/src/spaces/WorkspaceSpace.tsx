@@ -85,85 +85,112 @@ function valueOf(value: unknown, key?: string): string {
   return "未知";
 }
 
-function Ledger({ title, rows }: { title: string; rows: Record<string, unknown> }) {
-  const entries = Object.entries(rows).filter(([key]) => key in LABELS);
+function stateClass(value: string): string {
+  if (["可用", "已完成", "已发布", "已批准", "是", "已记录"].includes(value)) return "state-ok";
+  if (["不可用", "失败", "未连接", "已弃用"].includes(value)) return "state-warn";
+  if (["待处理", "候选", "待复核", "需要依赖"].includes(value)) return "state-pending";
+  return "";
+}
+
+function StatCard({ label: lbl, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <article className="archive-ledger">
-      <header><span>真实读回</span><h3>{title}</h3></header>
-      {entries.length === 0 ? <p className="muted">暂无可验证数据</p> : (
-        <dl>{entries.slice(0, 6).map(([key, value]) => (
-          <div key={key}><dt>{label(key)}</dt><dd>{valueOf(value, key)}</dd></div>
-        ))}</dl>
-      )}
-    </article>
+    <div className="stat-card">
+      <span className="stat-label">{lbl}</span>
+      <span className={`stat-value ${stateClass(value)}`}>{value}</span>
+      {hint && <span className="stat-hint">{hint}</span>}
+    </div>
   );
 }
 
 export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => void }) {
-  const [status, setStatus] = useState<HomeDto | null>(null);
+  const [home, setHome] = useState<HomeDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
     getHome()
-      .then((result) => { if (alive) setStatus(result as HomeDto); })
+      .then((result) => { if (alive) setHome(result as HomeDto); })
       .catch((reason: Error) => { if (alive) setError(userErrorMessage(reason.message)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);
 
+  if (loading) return <Loading label="工作台" />;
+  if (error) return <DataError label="工作台" message={error} />;
+
+  const release = home?.release ?? {};
+  const counts = home?.counts ?? {};
+  const components = home?.components ?? {};
+  const activity = home?.recent_activity ?? [];
+
   return (
-    <section className="space-view workspace-overview" aria-labelledby="workspace-title">
-      <div className="archive-page-head" role="group" aria-label="工作台标题">
+    <section className="workspace-page" aria-labelledby="ws-title">
+      <header className="ws-header">
         <div>
-          <span className="archive-eyebrow">可信知识工作台</span>
-          <h1 id="workspace-title">工作台总览</h1>
-          <p>从同一个可审查工作面继续研究，查看原件、主张、证据、学习与回执。</p>
+          <h1 id="ws-title">工作台</h1>
+          <p className="ws-subtitle">可信知识工作台 · 版本 {valueOf(release.version, "version")}</p>
         </div>
-        <span className="truth-chip">真实本地读回</span>
+      </header>
+
+      <div className="ws-quick-actions">
+        <button className="ws-action-card" onClick={() => onNavigate("intake")}>
+          <span className="ws-action-icon">📥</span>
+          <strong>导入资料</strong>
+          <small>网页、文件、批量目录</small>
+        </button>
+        <button className="ws-action-card" onClick={() => onNavigate("library")}>
+          <span className="ws-action-icon">📚</span>
+          <strong>资料库</strong>
+          <small>查看原件与锚点</small>
+        </button>
+        <button className="ws-action-card" onClick={() => onNavigate("vault")}>
+          <span className="ws-action-icon">🔐</span>
+          <strong>知识库</strong>
+          <small>搜索、编辑、备份</small>
+        </button>
+        <button className="ws-action-card" onClick={() => onNavigate("settings")}>
+          <span className="ws-action-icon">⚙️</span>
+          <strong>设置</strong>
+          <small>四库路径与工作区</small>
+        </button>
       </div>
 
-      <section className="workbench-hero">
-        <div className="hero-ledger">
-          <span className="archive-eyebrow">研究台账 · 当前上下文</span>
-          <h2>原件、主张与证据，留在同一个可审查的工作面。</h2>
-          <p>每个对象都能回到来源、版本和操作回执；未知状态不会被替换成零或伪进度。</p>
-          <div className="evidence-flow" aria-label="证据关系">
-            <span>原件</span><i>→</i><span>转换块</span><i>→</i><span>主张</span><i>→</i><span>证据束</span>
+      <div className="ws-grid">
+        <div className="ws-section">
+          <h2>系统状态</h2>
+          <div className="ws-stats">
+            {Object.entries(components).filter(([k]) => k in LABELS).map(([k, v]) => (
+              <StatCard key={k} label={label(k)} value={valueOf(v, k)} />
+            ))}
           </div>
         </div>
-        <aside className="next-actions" aria-label="下一步">
-          <span className="archive-eyebrow">下一步</span>
-          <button className="next-action" type="button" aria-label="查看原件与锚点" onClick={() => onNavigate("library")}><span>01</span><div><strong>查看原件与锚点</strong><small>阅读、搜索和安全回写。</small></div></button>
-          <button className="next-action" type="button" aria-label="检查证据生命周期" onClick={() => onNavigate("evidence")}><span>02</span><div><strong>检查证据生命周期</strong><small>支持、反驳、背景与适用范围。</small></div></button>
-          <a className="next-action" href="#activity-dock" aria-label="处理任务与回执"><span>03</span><div><strong>处理任务与回执</strong><small>失败保留原件，可恢复重试。</small></div></a>
-        </aside>
-      </section>
 
-      {loading ? <Loading label="工作台" /> : error ? <DataError label="工作台" message={error} /> : (
-        <section className="archive-columns" aria-label="工作区真实状态">
-          <Ledger title="发布状态" rows={status?.release ?? {}} />
-          <Ledger title="真实计数" rows={status?.counts ?? {}} />
-          <Ledger title="组件状态" rows={status?.components ?? {}} />
-          <article className="archive-ledger">
-            <header><span>治理边界</span><h3>可用能力</h3></header>
-            {Object.keys(status?.capabilities ?? {}).length === 0 ? <p className="muted">暂无能力状态</p> : (
-              <ul>{Object.entries(status?.capabilities ?? {}).filter(([capability]) => capability in LABELS).map(([capability, state]) => (
-                <li key={capability}><span>{label(capability)}</span><strong>{valueOf(state, capability)}</strong></li>
-              ))}</ul>
-            )}
-          </article>
-          <article className="archive-ledger">
-            <header><span>操作回执</span><h3>近期活动</h3></header>
-            {(status?.recent_activity ?? []).length === 0 ? <p className="muted">暂无持久化活动</p> : (
-              <ul>{status?.recent_activity?.map((item) => (
-                <li key={item.public_ref}><span>{item.label}</span><strong>{valueOf(item.state)}</strong></li>
-              ))}</ul>
-            )}
-          </article>
-        </section>
-      )}
+        <div className="ws-section">
+          <h2>数据概览</h2>
+          <div className="ws-stats">
+            {Object.entries(counts).filter(([k]) => k in LABELS).map(([k, v]) => (
+              <StatCard key={k} label={label(k)} value={valueOf(v, k)} />
+            ))}
+          </div>
+        </div>
+
+        <div className="ws-section">
+          <h2>近期活动</h2>
+          {activity.length === 0 ? (
+            <p className="ws-empty">暂无活动记录</p>
+          ) : (
+            <ul className="ws-activity-list">
+              {activity.map((item) => (
+                <li key={item.public_ref}>
+                  <span className="ws-activity-label">{item.label}</span>
+                  <span className={`ws-activity-state ${stateClass(valueOf(item.state))}`}>{valueOf(item.state)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
