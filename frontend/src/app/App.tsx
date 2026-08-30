@@ -326,7 +326,7 @@ export function App() {
   }
 
   return (
-    <div className="app-shell archive-desk-shell">
+    <div className="app-shell">
       <StatusBar
         activeSpace={activeSpace}
         backendState={!desktop

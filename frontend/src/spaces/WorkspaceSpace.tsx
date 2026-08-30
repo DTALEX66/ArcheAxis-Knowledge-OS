@@ -101,6 +101,13 @@ function StatCard({ label: lbl, value }: { label: string; value: string }) {
   );
 }
 
+const ACTIONS: { id: SpaceId; icon: string; title: string; desc: string }[] = [
+  { id: "intake", icon: "↓", title: "导入资料", desc: "网页、文件、批量目录" },
+  { id: "library", icon: "▧", title: "资料库", desc: "查看原件与锚点" },
+  { id: "vault", icon: "▤", title: "知识库", desc: "搜索、编辑、备份" },
+  { id: "settings", icon: "⚙", title: "设置", desc: "四库路径与工作区" },
+];
+
 export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => void }) {
   const [home, setHome] = useState<HomeDto | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -119,39 +126,27 @@ export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => vo
   const components = home?.components ?? {};
   const capabilities = home?.capabilities ?? {};
   const activity = home?.recent_activity ?? [];
+  const version = home?.release?.version ? valueOf(home.release.version, "version") : null;
 
   return (
     <section className="workspace-page" aria-labelledby="ws-title">
-      <div className="ws-header">
-        <div>
-          <h1 id="ws-title">工作台</h1>
-          <p className="ws-subtitle">可信知识工作台{home?.release?.version ? ` · 版本 ${valueOf(home.release.version, "version")}` : ""}</p>
-        </div>
-      </div>
+      <header className="ws-header">
+        <h1 id="ws-title">工作台</h1>
+        <p className="ws-subtitle">
+          {version ? `星环知识 · 版本 ${version}` : "星环知识"}
+        </p>
+      </header>
 
       {loading ? <Loading label="工作台" /> : error ? <DataError label="工作台" message={error} /> : (
         <>
           <div className="ws-quick-actions">
-            <button className="ws-action-card" onClick={() => onNavigate("intake")}>
-              <span className="ws-action-icon">📥</span>
-              <strong>导入资料</strong>
-              <small>网页、文件、批量目录</small>
-            </button>
-            <button className="ws-action-card" onClick={() => onNavigate("library")}>
-              <span className="ws-action-icon">📚</span>
-              <strong>资料库</strong>
-              <small>查看原件与锚点</small>
-            </button>
-            <button className="ws-action-card" onClick={() => onNavigate("vault")}>
-              <span className="ws-action-icon">🔐</span>
-              <strong>知识库</strong>
-              <small>搜索、编辑、备份</small>
-            </button>
-            <button className="ws-action-card" onClick={() => onNavigate("settings")}>
-              <span className="ws-action-icon">⚙️</span>
-              <strong>设置</strong>
-              <small>四库路径与工作区</small>
-            </button>
+            {ACTIONS.map((action) => (
+              <button key={action.id} className="ws-action-card" onClick={() => onNavigate(action.id)}>
+                <span className="ws-action-icon">{action.icon}</span>
+                <strong>{action.title}</strong>
+                <small>{action.desc}</small>
+              </button>
+            ))}
           </div>
 
           <div className="ws-grid">

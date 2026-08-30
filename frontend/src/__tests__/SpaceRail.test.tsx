@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SpaceRail, SPACES } from "../components/SpaceRail";
+import { SpaceRail } from "../components/SpaceRail";
+import { SPACES } from "../spaces/spaces";
 
 // AXW-UI-804: SpaceRail navigation accessibility & interaction tests.
 describe("SpaceRail", () => {
@@ -40,7 +41,7 @@ describe("SpaceRail", () => {
       "aria-current",
       "page",
     );
-    for (const space of SPACES.filter((s) => s.id !== "evidence")) {
+    for (const space of SPACES.filter((s: (typeof SPACES)[number]) => s.id !== "evidence")) {
       expect(screen.getByRole("button", { name: space.label })).not.toHaveAttribute(
         "aria-current",
       );

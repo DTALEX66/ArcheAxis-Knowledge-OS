@@ -159,7 +159,7 @@ export function RecoveryShell({
   return (
     <div className="recovery-page">
       <header className="recovery-header">
-        <span className="recovery-brand">星环知识平台 <small>ArcheAxis Knowledge</small></span>
+        <span className="recovery-brand">星环知识</span>
         {status.external_dev ? <span className="dev-marker">开发</span> : null}
       </header>
       <main className="recovery-shell" role="main" aria-label="恢复工作台">
@@ -169,13 +169,15 @@ export function RecoveryShell({
               <p className="recovery-kicker">本地桌面恢复</p>
               <h1 id="recovery-title">恢复工作台</h1>
             </div>
-            <span className="recovery-state" data-state={status.state}>{stateLabel(status.state)}</span>
+            <span className={`badge ${status.state === "ready" ? "badge-success" : status.state === "failed" ? "badge-danger" : "badge-warning"}`}>
+              {stateLabel(status.state)}
+            </span>
           </div>
           <p className="recovery-message" aria-live="polite">{primaryMessage}</p>
           {diagnostic ? <p className="recovery-diagnostic">诊断：{diagnostic}</p> : null}
 
           <div className="recovery-actions" aria-label="恢复操作">
-            <button type="button" disabled={disabled} onClick={() => void perform("retry", onRetry, "本地核心已就绪。")}>重试</button>
+            <button type="button" className="primary" disabled={disabled} onClick={() => void perform("retry", onRetry, "本地核心已就绪。")}>重试</button>
             <button type="button" disabled={disabled} onClick={() => void showLogs()}>安全诊断</button>
             <button type="button" disabled={disabled || status.safe_mode} onClick={() => void enterSafeMode()}>安全模式</button>
             <button
@@ -216,15 +218,15 @@ export function RecoveryShell({
           {confirmRestore ? (
             <div className="recovery-confirm" role="group" aria-label="确认恢复备份">
               <p>在本地核心保持停止时恢复所选已验证备份？</p>
-              <button type="button" disabled={disabled || restoreLocked} onClick={() => void restore()}>确认恢复</button>
+              <button type="button" className="danger" disabled={disabled || restoreLocked} onClick={() => void restore()}>确认恢复</button>
               <button type="button" disabled={disabled} onClick={() => setConfirmRestore(false)}>取消</button>
             </div>
           ) : null}
 
           {busy ? <p className="recovery-progress" role="status" aria-live="polite">{PROGRESS[busy]}</p> : null}
           <div ref={feedbackRef} tabIndex={-1} className="recovery-feedback">
-            {error ? <p role="alert">{error}</p> : null}
-            {success ? <p role="status" aria-live="polite">{success}</p> : null}
+            {error ? <p role="alert" className="error-card">{error}</p> : null}
+            {success ? <p role="status" aria-live="polite" className="badge badge-success">{success}</p> : null}
           </div>
 
           {logs !== null ? (

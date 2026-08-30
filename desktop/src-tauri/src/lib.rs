@@ -106,7 +106,9 @@ fn run_inner() -> Result<(), String> {
                         .and_then(|p| p.parent().map(|p| p.to_path_buf()))
                         .unwrap_or_default();
                     let bootstrap_dir = exe_dir.join("bootstrap");
-                    if bootstrap_dir.join("index.html").is_file() {
+                    if std::env::var_os("ARCHEAXIS_FRONTEND_DIR").is_some()
+                        && bootstrap_dir.join("index.html").is_file()
+                    {
                         let index_path = bootstrap_dir.join("index.html");
                         let file_url = tauri::url::Url::from_file_path(&index_path)
                             .unwrap_or_else(|_| {
@@ -119,7 +121,7 @@ fn run_inner() -> Result<(), String> {
                 };
                 let shell =
                     WebviewWindowBuilder::new(app, "main", frontend_url)
-                        .title("ArcheAxis Knowledge")
+                        .title("星环知识")
                         .inner_size(1280.0, 800.0)
                         .min_inner_size(960.0, 640.0)
                         .resizable(true)

@@ -36,8 +36,8 @@ export function StatusBar({
   return (
     <header className="status-bar" role="banner">
       <div className="status-bar-brand">
-        <span>星环知识平台</span>
-        <small>ArcheAxis Knowledge</small>
+        <span style={{ fontSize: 15 }}>◈</span>
+        <span>星环知识</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
       <CommandPalette onNavigate={onNavigate} />

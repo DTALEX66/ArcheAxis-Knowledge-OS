@@ -7,7 +7,7 @@ describe("StatusBar", () => {
   it("renders the product name and the current space in a banner landmark", () => {
     render(<StatusBar activeSpace="library" backendState="available" />);
     const banner = screen.getByRole("banner");
-    expect(within(banner).getByText("ArcheAxis Knowledge")).toBeInTheDocument();
+    expect(within(banner).getByText("星环知识")).toBeInTheDocument();
     expect(screen.getByLabelText("当前空间")).toHaveTextContent("资料库");
   });
 

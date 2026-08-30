@@ -23,7 +23,7 @@ describe("OSUI v3 production contract", () => {
   it("renders the Archive Desk workbench instead of a generic status dashboard", () => {
     render(<App />);
 
-    expect(document.querySelector(".archive-desk-shell")).toBeInTheDocument();
+    expect(document.querySelector(".app-shell")).toBeInTheDocument();
     expect(document.querySelector(".workspace-page")).toBeInTheDocument();
     const main = screen.getByRole("main", { name: "当前空间内容" });
     expect(within(main).getByRole("heading", { name: /工作台/ })).toBeInTheDocument();
