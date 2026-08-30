@@ -254,7 +254,7 @@ function TeachBackView({ api }: { api: LearningApiExt }) {
       {error ? <p className="space-hint">提交失败：{error}</p> : null}
       {result ? (
         <dl className="teachback-result" aria-label="复述检验结果">
-          <div><dt>总体</dt><dd>{Math.round(result.evaluation.overall * 100)}% {result.evaluation.passes ? "✅ 达到 M3-解释" : "未达标"}</dd></div>
+          <div><dt>总体</dt><dd>{Math.round(result.evaluation.overall * 100)}% {result.evaluation.passes ? "已达标" : "未达标"}</dd></div>
           <div><dt>准确</dt><dd>{Math.round(result.evaluation.accuracy * 100)}%</dd></div>
           <div><dt>覆盖</dt><dd>{Math.round(result.evaluation.coverage * 100)}%</dd></div>
           <div><dt>换词</dt><dd>{Math.round(result.evaluation.paraphrase * 100)}%</dd></div>
@@ -301,7 +301,7 @@ function QuizPanel({ api }: { api: LearningApiExt }) {
     setSelected({ ...selected, [item.item_id]: value });
     setFeedback({
       ...feedback,
-      [item.item_id]: value === item.answer ? "✓ 正确" : `✗ 期望：${item.answer}`,
+      [item.item_id]: value === item.answer ? "正确" : `错误，期望：${item.answer}`,
     });
   }
 
@@ -403,9 +403,9 @@ export function LearningSpace() {
   const [api] = useState(() => learningApiExt());
 
   return (
-    <section className="space-view" aria-labelledby="space-learning">
-      <h2 id="space-learning" className="space-title">学习</h2>
-      <p className="space-description">
+    <section className="space-page" aria-labelledby="space-learning">
+      <h1 id="space-learning" className="space-page-title">学习</h1>
+      <p className="muted" style={{ marginBottom: 20 }}>
         人类学习库：FSRS 复习、三轴掌握度与复述理解检验。
       </p>
       <nav aria-label="学习功能" className="learning-tabs">
