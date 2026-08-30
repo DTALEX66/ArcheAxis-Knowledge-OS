@@ -78,7 +78,17 @@ fn run_inner() -> Result<(), String> {
                 // tested fallback for two stable releases.
                 let portable_root = std::env::var_os("ARCHEAXIS_PORTABLE_ROOT")
                     .or_else(|| std::env::var_os("COGNITIVE_PORTABLE_ROOT"))
-                    .map(PathBuf::from);
+                    .map(PathBuf::from)
+                    .or_else(|| {
+                        // Check for portable.flag beside the executable
+                        // (green distribution marker)
+                        let exe = std::env::current_exe().ok()?;
+                        let distribution_root = exe.parent()?;
+                        distribution_root
+                            .join("portable.flag")
+                            .is_file()
+                            .then(|| distribution_root.join("data"))
+                    });
                 let runtime = resolve_runtime_with_portable_root(
                     Path::new(env!("CARGO_MANIFEST_DIR")),
                     &resources,
@@ -88,12 +98,25 @@ fn run_inner() -> Result<(), String> {
                 )?;
                 let process = BackendProcess::launch(&runtime)?;
                 let port = process.port;
-                // AXW-RUN-201: the window opens the local Recovery Shell
-                // (frontendDist) which polls the backend handshake over
-                // loopback and only navigates to /workspace when ready —
-                // the shell stays usable while the backend is down.
+                // AXW-RUN-201: load frontend from filesystem if bootstrap/ exists
+                // next to the exe (green distribution), otherwise use embedded resources.
+                let frontend_url = {
+                    let exe_dir = std::env::current_exe()
+                        .ok()
+                        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                        .unwrap_or_default();
+                    let bootstrap_dir = exe_dir.join("bootstrap");
+                    if bootstrap_dir.join("index.html").is_file() {
+                        let index_path = bootstrap_dir.join("index.html");
+                        WebviewUrl::Custom(tauri::url::Url::from_file_path(&index_path).unwrap_or_else(|_| {
+                            WebviewUrl::App("index.html".into()).into()
+                        }))
+                    } else {
+                        WebviewUrl::App("index.html".into())
+                    }
+                };
                 let shell =
-                    WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+                    WebviewWindowBuilder::new(app, "main", frontend_url)
                         .title("ArcheAxis Knowledge")
                         .inner_size(1280.0, 800.0)
                         .min_inner_size(960.0, 640.0)
