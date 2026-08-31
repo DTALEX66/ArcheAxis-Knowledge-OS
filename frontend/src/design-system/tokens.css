@@ -1797,3 +1797,61 @@ tr:hover {
     display: none;
   }
 }
+
+/* Mobile: keep the workspace usable without horizontal scrolling. */
+@media (max-width: 600px) {
+  .status-bar {
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .status-bar-brand {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .status-bar-brand small,
+  .status-bar-center {
+    display: none;
+  }
+
+  .status-bar-space {
+    min-width: 0;
+    font-size: 12px;
+  }
+
+  .space-rail {
+    width: 56px;
+    padding: 10px 6px;
+  }
+
+  .space-rail-item {
+    justify-content: center;
+    gap: 0;
+    padding: 10px 6px;
+  }
+
+  .space-rail-item > span:last-child {
+    display: none;
+  }
+
+  .space-rail-icon {
+    width: auto;
+  }
+
+  .app-center,
+  .app-main,
+  .space-page,
+  .space-page-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ws-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .space-page {
+    padding: 18px 14px;
+  }
+}
