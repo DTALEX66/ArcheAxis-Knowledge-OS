@@ -63,6 +63,7 @@ fn run_inner() -> Result<(), String> {
     let backend: Arc<Mutex<Option<BackendProcess>>> = Arc::new(Mutex::new(None));
     let setup_backend = Arc::clone(&backend);
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![backend_info])
         .setup(move |app| {
             let result = (|| -> Result<(), String> {

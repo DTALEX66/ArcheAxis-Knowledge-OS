@@ -280,6 +280,13 @@ pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(
 
 fn runtime_command(runtime: &RuntimeSpec) -> Command {
     let mut command = Command::new(&runtime.python);
+    // Hide the console window on Windows so the Python backend
+    // runs silently without a visible CMD window.
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
     command.arg("-B");
     if runtime.isolated {
         command.arg("-I");

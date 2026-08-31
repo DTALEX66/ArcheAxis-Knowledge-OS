@@ -1253,6 +1253,172 @@ tr:hover {
   font-size: 13px;
 }
 
+/* Path input with browse button */
+.path-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--ax-space-4);
+}
+
+.path-input-group .form-label {
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--ax-fg-secondary);
+}
+
+.path-input-group .form-hint {
+  font-size: 12px;
+  color: var(--ax-fg-quaternary);
+  margin-bottom: 4px;
+}
+
+.path-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.path-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-browse {
+  padding: 8px 14px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid var(--ax-border-strong);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--ax-fg-secondary);
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.btn-browse:hover {
+  background: rgba(255, 255, 255, 0.075);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--ax-fg);
+}
+
+.btn-browse:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.path-input-drag-over {
+  outline: 2px dashed var(--ax-accent-bright);
+  outline-offset: 4px;
+  border-radius: var(--ax-radius);
+}
+
+.path-input-drag-over input {
+  border-color: var(--ax-accent-bright);
+  background: rgba(94, 106, 210, 0.08);
+}
+
+/* Domain paths grid (advanced mode) */
+.domain-paths-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ax-space-4);
+}
+
+/* Mode options */
+.mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.mode-option-title {
+  font-weight: 590;
+  color: var(--ax-fg);
+}
+
+.mode-option-desc {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+}
+
+/* Setup actions */
+.setup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Health grid */
+.health-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.health-card {
+  padding: 12px;
+}
+
+.health-card-title {
+  font-weight: 590;
+  margin-bottom: 4px;
+  color: var(--ax-fg);
+}
+
+.health-card-path {
+  font-size: 12px;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+.health-card-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Readiness list */
+.readiness-list {
+  display: grid;
+  gap: 8px;
+}
+
+.readiness-item {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.readiness-item-title {
+  font-weight: 590;
+  color: var(--ax-fg);
+}
+
+.readiness-item-desc {
+  font-size: 12px;
+}
+
+/* Backup row */
+.backup-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+/* Section titles */
+.settings-section-title {
+  margin-top: 32px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--ax-fg-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* Utility */
 .dev-marker {
   font-size: 10px;
