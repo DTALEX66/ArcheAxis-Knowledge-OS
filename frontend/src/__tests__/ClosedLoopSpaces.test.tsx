@@ -415,7 +415,7 @@ describe("six-space real command loops", () => {
     expect(runtime.initializeSetup).not.toHaveBeenCalled();
   });
 
-  it.skip("checks four-library health before creating a first workspace", async () => {
+  it("checks four-library health before creating a first workspace", async () => {
     runtime.getSetupStatus
       .mockResolvedValueOnce({
         ready: false,

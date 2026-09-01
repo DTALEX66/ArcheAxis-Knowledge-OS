@@ -226,6 +226,11 @@ def _via_image_ocr(file_path: str) -> AdapterResult:
     OCR yields no text is reported as a warning rather than content success.
     """
     import shared.adapter_fixtures as _af
+    from app.ingestion.ocr_adapter import configure_tesseract
+
+    # Re-evaluate per conversion: a portable Green launch can supply the
+    # external tool root after this module was first imported.
+    configure_tesseract()
 
     if not (_af._tesseract_available() and _af._pytesseract_importable()):
         return AdapterResult(
@@ -304,6 +309,9 @@ def _via_pdf_ocr(file_path: str) -> AdapterResult:
     evidence/cross-check work.
     """
     import shared.adapter_fixtures as _af
+    from app.ingestion.ocr_adapter import configure_tesseract
+
+    configure_tesseract()
 
     if not (_af._tesseract_available() and _af._pytesseract_importable()):
         return AdapterResult(
@@ -483,6 +491,13 @@ def _via_adapter_fixtures(fmt: str, adapters: list[str]) -> list[tuple[str, Any]
     return entries
 
 
+def _via_local_media_transcription(file_path: str) -> AdapterResult:
+    """Use the configured local ASR model before any metadata-only fallback."""
+    from app.ingestion.media_adapter import convert_media
+
+    return convert_media(file_path)
+
+
 # ── Engine chain map ──
 
 _ENGINES: dict[str, list[tuple[str, Any]]] = {
@@ -507,8 +522,8 @@ _ENGINES: dict[str, list[tuple[str, Any]]] = {
         ("pytesseract+tesseract", _via_image_ocr),
         ("markitdown", _via_markitdown),
     ],
-    "media_video": _via_adapter_fixtures("media_video", ["convert_ffmpeg"]),
-    "media_audio": _via_adapter_fixtures("media_audio", ["convert_ffmpeg"]),
+    "media_video": [("local-asr", _via_local_media_transcription), *_via_adapter_fixtures("media_video", ["convert_ffmpeg"])],
+    "media_audio": [("local-asr", _via_local_media_transcription), *_via_adapter_fixtures("media_audio", ["convert_ffmpeg"])],
     "article": _via_adapter_fixtures("article", ["convert_newspaper4k", "convert_readabilipy"]),
     "md": [("passthrough", _via_read)],
     "txt": [("passthrough", _via_read)],

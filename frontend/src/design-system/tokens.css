@@ -1820,15 +1820,34 @@ tr:hover {
     font-size: 12px;
   }
 
+  .app-body {
+    flex-direction: column;
+  }
+
   .space-rail {
-    width: 56px;
-    padding: 10px 6px;
+    width: 100%;
+    height: 56px;
+    padding: 6px;
+    border-right: 0;
+    border-bottom: 1px solid var(--ax-border);
+    overflow: hidden;
+  }
+
+  .space-rail-list {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .space-rail-list > li {
+    flex: 0 0 auto;
   }
 
   .space-rail-item {
+    width: auto;
     justify-content: center;
     gap: 0;
-    padding: 10px 6px;
+    padding: 10px 8px;
   }
 
   .space-rail-item > span:last-child {
@@ -1843,6 +1862,7 @@ tr:hover {
   .app-main,
   .space-page,
   .space-page-content {
+    min-height: 0;
     min-width: 0;
     max-width: 100%;
   }

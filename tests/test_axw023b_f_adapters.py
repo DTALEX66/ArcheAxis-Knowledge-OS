@@ -165,3 +165,55 @@ def test_media_without_engine_fails_closed(tmp_path) -> None:
     res = convert_media(str(fake))
     assert not res.success
     assert res.error
+
+
+def test_unified_media_conversion_prefers_local_time_anchored_transcript(tmp_path, monkeypatch) -> None:
+    """The general importer must prefer local ASR over metadata-only FFmpeg."""
+    from app.ingestion import media_adapter
+    from app.ingestion.multi_format import convert_file
+    from shared.adapter_contract import AdapterResult
+
+    clip = tmp_path / "lesson.mp3"
+    clip.write_bytes(b"not-a-real-media-file")
+
+    def local_transcript(*_args, **_kwargs) -> AdapterResult:
+        return AdapterResult(
+            success=True,
+            content="local transcript",
+            engine="faster-whisper/local-model",
+            metadata={
+                "blocks": [
+                    {"kind": "transcript", "text": "local transcript", "anchor": {"start_s": 0.0, "end_s": 1.0}}
+                ]
+            },
+        )
+
+    monkeypatch.setattr(media_adapter, "convert_media", local_transcript)
+
+    text, engine = convert_file(clip)
+
+    assert text == "local transcript"
+    assert engine == "faster-whisper/local-model"
+
+
+def test_unified_image_ocr_reconfigures_tesseract_for_each_conversion(tmp_path, monkeypatch) -> None:
+    """A stale environment must not survive into the general import path."""
+    from PIL import Image
+    import pytesseract
+    import shared.adapter_fixtures as fixtures
+    from app.ingestion import ocr_adapter
+    from app.ingestion.multi_format import _via_image_ocr
+
+    image = tmp_path / "page.png"
+    Image.new("RGB", (8, 8), "white").save(image)
+    configured: list[bool] = []
+    monkeypatch.setattr(ocr_adapter, "configure_tesseract", lambda: configured.append(True))
+    monkeypatch.setattr(fixtures, "_tesseract_available", lambda: True)
+    monkeypatch.setattr(fixtures, "_pytesseract_importable", lambda: True)
+    monkeypatch.setattr(pytesseract, "image_to_string", lambda _image: "configured OCR")
+
+    result = _via_image_ocr(str(image))
+
+    assert configured == [True]
+    assert result.success
+    assert result.content == "configured OCR"

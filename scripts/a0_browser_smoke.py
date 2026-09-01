@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import socket
 import subprocess
 import time
+from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import urlopen
@@ -15,7 +18,17 @@ from playwright.sync_api import Route, sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / ".hermes" / "task-runtime"
 ARTIFACTS = ROOT / ".hermes" / "task-artifacts" / "browser-smoke"
-PORT = 5187
+def browser_smoke_port() -> int:
+    """Allocate an ephemeral loopback port so parallel/retry runs cannot collide."""
+    configured = os.environ.get("ARCHEAXIS_BROWSER_SMOKE_PORT")
+    if configured:
+        return int(configured)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+PORT = browser_smoke_port()
 URL = f"http://127.0.0.1:{PORT}"
 API_PREFIX = "/" + "api"
 WORKSPACE_PREFIX = "/" + "workspace"
@@ -89,18 +102,25 @@ def api_payload(url: str) -> dict[str, object]:
 def start_vite(log_path: Path) -> tuple[subprocess.Popen[bytes], object]:
     log = log_path.open("wb")
     if os.name == "nt":
-        command = [
-            "cmd.exe", "/d", "/s", "/c",
-            f"npm --prefix frontend run dev -- --host 127.0.0.1 --port {PORT}",
-        ]
+        node = shutil.which("node")
+        vite = ROOT / "frontend" / "node_modules" / "vite" / "bin" / "vite.js"
+        if not node or not vite.is_file():
+            log.close()
+            raise RuntimeError("Vite requires Node and frontend/node_modules/vite/bin/vite.js")
+        # Running Vite through cmd/npm can orphan the actual Node server when
+        # cmd.exe exits. Start the server process itself so taskkill /T can
+        # deterministically reclaim the smoke-run process tree.
+        command = [node, str(vite), "--host", "127.0.0.1", "--port", str(PORT)]
+        cwd = ROOT / "frontend"
     else:
         command = [
             "npm", "--prefix", "frontend", "run", "dev", "--",
             "--host", "127.0.0.1", "--port", str(PORT),
         ]
+        cwd = ROOT
     process = subprocess.Popen(
         command,
-        cwd=ROOT,
+        cwd=cwd,
         stdout=log,
         stderr=subprocess.STDOUT,
     )
@@ -108,6 +128,7 @@ def start_vite(log_path: Path) -> tuple[subprocess.Popen[bytes], object]:
     while time.monotonic() < deadline:
         if process.poll() is not None:
             log.flush()
+            stop_vite(process, log)
             raise RuntimeError(f"Vite exited before readiness; inspect {log_path}")
         try:
             with urlopen(URL, timeout=1) as response:  # noqa: S310 - fixed loopback URL
@@ -115,17 +136,48 @@ def start_vite(log_path: Path) -> tuple[subprocess.Popen[bytes], object]:
                     return process, log
         except OSError:
             time.sleep(0.2)
+    stop_vite(process, log)
     raise RuntimeError(f"Vite readiness timed out; inspect {log_path}")
 
 
 def stop_vite(process: subprocess.Popen[bytes], log: object) -> None:
-    process.terminate()
-    try:
-        process.wait(timeout=10)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait(timeout=5)
+    if os.name == "nt":
+        # The smoke runner starts Vite's Node process directly.  Prefer its
+        # handle over taskkill, which can be blocked by an execution sandbox.
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            subprocess.run(
+                ["taskkill.exe", "/PID", str(process.pid), "/T", "/F"],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            process.wait(timeout=5)
+    else:
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=5)
     log.close()
+
+
+def source_revision() -> dict[str, object]:
+    """Identify the tested tree without writing the Git index."""
+    base_commit = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+    ).strip()
+    diff = subprocess.check_output(
+        ["git", "diff", "--no-ext-diff", "--binary"], cwd=ROOT
+    )
+    return {
+        "base_commit": base_commit,
+        "worktree_dirty": bool(diff),
+        "worktree_diff_sha256": sha256(diff).hexdigest() if diff else None,
+    }
 
 
 def main() -> None:
@@ -187,6 +239,7 @@ def main() -> None:
                 if width <= 840:
                     assert geometry["rail"]["width"] >= width - 1, geometry
                     assert geometry["rail"]["height"] < 80, geometry
+                    assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
                     assert not geometry["inspector"], geometry
                     assert not geometry["context"], geometry
                 else:
@@ -195,8 +248,8 @@ def main() -> None:
                 page.get_by_role("button", name="打开全局命令").click()
                 page.get_by_role("dialog", name="全局命令").wait_for()
                 page.get_by_role("button", name="关闭全局命令").click()
-                page.get_by_role("button", name="学习", exact=True).click()
-                page.get_by_role("main").get_by_role("heading", name="学习").wait_for()
+                page.locator('[data-space-id="learning"]').click()
+                page.locator("#space-learning").wait_for()
                 assert page.get_by_role("button", name="视觉课件").count() == 0
                 assert page.get_by_role("button", name="空间记忆").count() == 0
                 page.get_by_role("button", name="展开活动坞").click()
@@ -214,11 +267,11 @@ def main() -> None:
         stop_vite(process, log)
 
     assert not errors, errors
-    tree = subprocess.check_output(["git", "write-tree"], cwd=ROOT, text=True).strip()
+    revision = source_revision()
     report = {
         "schema": "archeaxis/canonical-browser-smoke/v2",
         "status": "PASS",
-        "candidate_tree": tree,
+        "source_revision": revision,
         "errors": errors,
         "viewports": viewports,
     }

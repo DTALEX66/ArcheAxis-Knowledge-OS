@@ -36,7 +36,7 @@ def prepare_audio(file_path: str | Path, work_dir: str | Path) -> Path:
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         raise RuntimeError("ffmpeg executable not found in PATH. See https://ffmpeg.org/download.html")
-    out = Path(work_dir) / "audio16k.wav"
+    out = Path(work_dir) / f"audio16k-{_sha256(file_path)[:16]}.wav"
     subprocess.run(
         [ffmpeg, "-y", "-i", str(file_path), "-ac", "1", "-ar", "16000", "-f", "wav", str(out)],
         check=True,
@@ -48,8 +48,15 @@ def prepare_audio(file_path: str | Path, work_dir: str | Path) -> Path:
 
 def _transcribe_faster_whisper(path: Path) -> tuple[list[dict[str, Any]], str]:
     from faster_whisper import WhisperModel
+    from app.ingestion.asr_adapter import DEFAULT_MODEL_NAME, resolve_model_dir
 
-    model = WhisperModel("tiny", device="cpu", compute_type="int8")
+    model_dir = resolve_model_dir() / DEFAULT_MODEL_NAME
+    if not (model_dir / "model.bin").is_file():
+        raise RuntimeError(
+            "local faster-whisper model missing; configure ARCHEAXIS_ASR_MODEL_DIR "
+            f"for {DEFAULT_MODEL_NAME}"
+        )
+    model = WhisperModel(str(model_dir), device="cpu", compute_type="int8")
     segments, info = model.transcribe(str(path), language=None)
     blocks: list[dict[str, Any]] = []
     for seg in segments:
@@ -64,7 +71,13 @@ def _transcribe_faster_whisper(path: Path) -> tuple[list[dict[str, Any]], str]:
             }
         )
     detected_lang = getattr(info, "language", None)
-    return blocks, f"faster-whisper({detected_lang or 'auto'})"
+    return blocks, f"faster-whisper/{model_dir.name}({detected_lang or 'auto'})"
+
+
+def _default_work_dir(file_path: str | Path) -> Path:
+    """Keep transient audio outside the source corpus by default."""
+    project_root = Path(__file__).resolve().parents[2]
+    return project_root / ".hermes" / "task-runtime" / "media" / _sha256(file_path)[:16]
 
 
 def convert_media(file_path: str | Path, work_dir: str | Path | None = None) -> AdapterResult:
@@ -96,8 +109,9 @@ def convert_media(file_path: str | Path, work_dir: str | Path | None = None) -> 
             error="ffmpeg executable not found in PATH. See https://ffmpeg.org/download.html",
         )
 
-    work = Path(work_dir) if work_dir else Path(path).parent
+    work = Path(work_dir) if work_dir else _default_work_dir(path)
     work.mkdir(parents=True, exist_ok=True)
+    wav: Path | None = None
 
     try:
         wav = prepare_audio(path, work)
@@ -110,8 +124,9 @@ def convert_media(file_path: str | Path, work_dir: str | Path | None = None) -> 
             error=f"media transcription failed: {exc}",
         )
     finally:
-        with contextlib.suppress(OSError):
-            (work / "audio16k.wav").unlink()
+        if wav is not None:
+            with contextlib.suppress(OSError):
+                wav.unlink()
 
     if not blocks:
         return AdapterResult(
