@@ -17,6 +17,15 @@ def _load_smoke_module():
     return module
 
 
+def _install_vite_entrypoint_fixture(smoke, monkeypatch, tmp_path):
+    """Provide the only local prerequisite that Windows start_vite validates."""
+    vite = tmp_path / "frontend" / "node_modules" / "vite" / "bin" / "vite.js"
+    vite.parent.mkdir(parents=True)
+    vite.write_text("// unit-test Vite entrypoint\n", encoding="utf-8")
+    monkeypatch.setattr(smoke, "ROOT", tmp_path)
+    return vite
+
+
 def test_windows_starts_vite_with_the_direct_node_entrypoint(monkeypatch, tmp_path):
     """The tracked Node process must be Vite itself, not a transient cmd/npm wrapper."""
     smoke = _load_smoke_module()
@@ -42,6 +51,7 @@ def test_windows_starts_vite_with_the_direct_node_entrypoint(monkeypatch, tmp_pa
         captured["kwargs"] = kwargs
         return _Process()
 
+    vite = _install_vite_entrypoint_fixture(smoke, monkeypatch, tmp_path)
     monkeypatch.setattr(smoke.os, "name", "nt")
     monkeypatch.setattr(smoke.shutil, "which", lambda name: "C:/node.exe")
     monkeypatch.setattr(smoke.subprocess, "Popen", fake_popen)
@@ -53,7 +63,7 @@ def test_windows_starts_vite_with_the_direct_node_entrypoint(monkeypatch, tmp_pa
     assert process.pid == 4242
     command = captured["command"]
     assert command[0] == "C:/node.exe"
-    assert str(smoke.ROOT / "frontend" / "node_modules" / "vite" / "bin" / "vite.js") in command
+    assert str(vite) in command
     assert "cmd.exe" not in command
     assert "npm" not in command
     assert captured["kwargs"]["cwd"] == smoke.ROOT / "frontend"
@@ -81,6 +91,7 @@ def test_windows_readiness_timeout_reclaims_the_started_vite_process(monkeypatch
     process = _Process()
     clocks = iter((0.0, 31.0))
 
+    _install_vite_entrypoint_fixture(smoke, monkeypatch, tmp_path)
     monkeypatch.setattr(smoke.os, "name", "nt")
     monkeypatch.setattr(smoke.shutil, "which", lambda name: "C:/node.exe")
     monkeypatch.setattr(smoke.subprocess, "Popen", lambda *_args, **_kwargs: process)
