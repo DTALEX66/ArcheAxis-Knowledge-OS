@@ -1,6 +1,6 @@
 schema_version: "2.0"
 graph_name: "ArcheAxis Knowledge — Task Graph"
-updated: "2026-08-12"
+updated: "2026-09-01"
 authority: "任务包 v1 2026-08-11"
 acyclic: true
 
@@ -61,7 +61,7 @@ tasks:
     state: "required_current (blueprint only)"
     capability_ids: ["CAP-0060", "CAP-0070", "CAP-0080", "CAP-0160"]
     requirement_ids: ["REQ-LER-001", "REQ-LER-002", "REQ-SPATIAL-001", "REQ-VISUAL-001"]
-    status: "pending"
+    status: "done"
     deliverable: "LER_VISUAL_SPATIAL_LEARNING_V1.md"
     depends_on: ["AXW-1204"]
 
@@ -71,7 +71,7 @@ tasks:
     state: "required_current"
     capability_ids: []
     requirement_ids: []
-    status: "pending"
+    status: "done"
     deliverable: "CURRENT_PRODUCT_PLAN_V2.md"
     depends_on: ["AXW-1204"]
 
@@ -81,7 +81,7 @@ tasks:
     state: "required_current"
     capability_ids: ["CAP-0100"]
     requirement_ids: ["REQ-INTEROP-001"]
-    status: "pending"
+    status: "done"
     deliverable: "OPEN_INTEROP_AND_ADAPTER_POLICY_V1.md"
     depends_on: ["AXW-1206"]
 
@@ -91,7 +91,7 @@ tasks:
     state: "required_current (plan)"
     capability_ids: []
     requirement_ids: ["REQ-IDENTITY-001"]
-    status: "pending"
+    status: "done"
     deliverable: "LEGACY_TO_ARCHEAXIS_NAMING_MIGRATION_V1.md"
     depends_on: ["AXW-1201"]
 
@@ -101,7 +101,7 @@ tasks:
     state: "required_current"
     capability_ids: []
     requirement_ids: []
-    status: "pending"
+    status: "done"
     deliverable: "文档投影校验 + lint"
     depends_on: ["AXW-1207", "AXW-1208"]
 
@@ -111,6 +111,6 @@ tasks:
     state: "required_current"
     capability_ids: []
     requirement_ids: []
-    status: "pending"
+    status: "done"
     deliverable: "CURRENT_PRODUCT_PLAN 更新"
     depends_on: ["AXW-1206"]

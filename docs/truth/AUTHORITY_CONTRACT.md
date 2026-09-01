@@ -2,7 +2,7 @@
 
 > 合同 ID：`AXW-AUTHORITY-v1-2026-08-09`
 >
-> 范围：`DTALEX66/Cognitive-Loop-OS` 的执行规则权威顺序。本文件固定“当来源冲突时谁优先”，防止历史蓝图或旧 handoff 覆盖当前用户指令与仓库规范。
+> 范围：`DTALEX66/ArcheAxis-Knowledge-OS` 的执行规则权威顺序。本文件固定“当来源冲突时谁优先”，防止历史蓝图或旧 handoff 覆盖当前用户指令与仓库规范。
 
 ## 1. 权威顺序（降序）
 
@@ -27,13 +27,13 @@
 
 ## 3. 单一事实入口
 
-当前能力、限制与证据等级的唯一阅读入口保持为：
+当前能力、限制与证据等级的现场入口保持为：
 
 ```text
-docs/PROJECT_STATUS.md
+docs/current/CURRENT_REALITY_2026-09-01.md
 ```
 
-该文件描述“已实现且已验证”的事实，并区分 `candidate` 与 `verified truth`。执行状态与任务进度由状态日志承载；二者互不覆盖。本合同与 `docs/truth/README.md` 的导航指向同一组文件。
+`docs/PROJECT_STATUS.md` 是该入口的面向项目导航页。两者描述“已实现且已验证”的事实，并区分 `candidate` 与 `verified truth`。执行状态与任务进度由状态日志承载；二者互不覆盖。本合同与 `docs/truth/README.md` 的导航指向同一组文件。
 
 ## 4. 冲突处理
 

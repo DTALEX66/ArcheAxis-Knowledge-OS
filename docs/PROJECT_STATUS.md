@@ -1,5 +1,15 @@
 # 项目当前状态
 
+> **现场真值（2026-09-01）**：当前唯一的实时状态入口为
+> [`current/CURRENT_REALITY_2026-09-01.md`](current/CURRENT_REALITY_2026-09-01.md)。
+> 它记录 `main`/`origin/main`、Green 运行目录、最新公开 Release 与精确 SHA CI
+> 的现场证据边界；历史 Release 收据和本页以下段落均不得替代 Git/GitHub 读回。
+
+> **最新公开 Release**：`v0.6.14 stable — RELEASED`（2026-08-29）。GitHub
+> Release 已读回 9 项公开资产；本机 Green `release-identity.json` 同样标识
+> `v0.6.14`。本轮 `0bb6e25` 是维护热修复，不创建版本、tag 或 Release；其
+> exact-SHA CI 必须以 Actions 的终态为准。
+
 > **v0.6.10 发布裁决（2026-08-24）**：`v0.6.10 stable — RELEASED`。标签精确绑定 `3428a65cf6445918365f76b114cc11630d9640bb`；main CI `32665051446`、Release `32665840172`、三种 Windows 分发包生命周期和 9 项公开资产工作流读回均通过。该裁决只证明发布层；产品逐项结论仍为 `PARTIAL`，见 [`current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md`](current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md)。
 
 > **v0.6.11 发布裁决（2026-08-27）**：`v0.6.11 stable — RELEASED`。不可变 annotated tag 精确解引用到 `86cecc7272152ef334869f61aae1f4d5ce82679b`；source tree `fe389f6a43d8295ffcc8109eaeced9436e361b03`；exact-SHA CI `33076417510` 和 Release workflow `33077810146` success；Setup/Green/Portable 生命周期、9 项公开资产 workflow readback 与本机独立 9/9 provider digest/checksum/schema v3 identity/dependency-lock 回读和 DeepTutor v1.5.17 + Ollama `qwen3:8b` 教学→反馈→无效答案恢复→reload 均通过。
@@ -10,8 +20,12 @@
 
 ## 发布真相
 
-- 当前源码版本为 `0.6.14`；packaged source manifest 按合同仍是 `unreleased / public=false`。公开 v0.6.11 artifact identity 为 `stable / public=true` 且保持不可变；v0.6.14 的发布工程与 UI 产品验收证据见下方记录与 `README.md`。
-- `v0.6.11` 是当前公开 stable：tag/commit/tree、exact-SHA CI、三种 Windows 分发生命周期、公开 9 资产、schema v3 identity、依赖锁和下载摘要均已读回；DeepTutor 本地 provider/runtime 证据留在项目忽略目录，不作为公共资产上传。
+- 当前源码版本为 `0.6.14`；`v0.6.14` 是当前公开 stable，9 项公开资产已由
+  GitHub Release 读回。其既有 Release 证据和 Green identity 是历史发布
+  证据，不替代当前 main 的精确 SHA CI。
+- `v0.6.11` 是保留的历史 stable：tag/commit/tree、exact-SHA CI、三种
+  Windows 分发生命周期、公开资产、schema v3 identity、依赖锁和下载摘要均
+  见其历史收据；不再表述为当前公开 stable。
 - `v0.4.0` 是保留的 historical release，但 readback 已证明 incomplete checksum payload coverage：公开 installer 名称与 manifest 名称不一致，且有一个额外公开 payload 未被 manifest 覆盖。历史 tag、Release 和资产不原地替换。
 - `v0.6.10` 已满足 tag 精确绑定 `main`、exact-SHA Full Qualification、NSIS/Green/Portable 生命周期、公开资产集合、checksum allowlist、schema v3 identity 和依赖锁读回；当前没有 Authenticode 签名声明。本机独立层下载校验 3/9 个小型元数据资产，Release workflow 完成 9/9 下载读回。
 
@@ -74,9 +88,9 @@
 CODEX 冻结的后续执行蓝图与增补包是后续 Horizon（H1-H10 与 Web/KLC 增补）的唯一定义源，位于仓库 `docs/`：
 
 - 冻结基线：[`docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`](truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md)
-- 执行任务包：[`docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](../taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)
-- Web 增补：[`docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](../taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
-- Capability-first 增补：[`docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](../taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
+- 执行任务包：[`docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)
+- Web 增补：[`docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
+- Capability-first 增补：[`docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
 - 追加式状态日志：[`docs/truth/EXECUTION_STATUS_LOG.md`](truth/EXECUTION_STATUS_LOG.md)
 - 状态交接文档：[`docs/truth/H0_H1_STATUS_HANDOFF.md`](truth/H0_H1_STATUS_HANDOFF.md)
 

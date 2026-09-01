@@ -1,6 +1,10 @@
 # Current Product Plan — 当前产品计划 V2（AXW-1206/1210）
 
-> v0.6.8 已发布基线（2026-08-23，承接 v0.6.0 任务包）：旧快照和笼统的“supported”表述已归档为历史规划输入。六空间真实 API 闭环、Tauri-origin token/CORS、原件读回与 AI 资产治理已推进并验证；精确 SHA CI、三包 Windows 生命周期和公开资产读回已通过，当前状态为 `v0.6.8 stable — RELEASED`。规范实现线为 `frontend/` + 根 `src-tauri/`，详见 `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
+> `v0.6.8` 是历史发布基线（2026-08-23），不是当前 Release。当前现场真值见
+> [`CURRENT_REALITY_2026-09-01.md`](CURRENT_REALITY_2026-09-01.md)：最新公开
+> stable 为 `v0.6.14`，当前维护提交必须按其自身 exact-SHA CI 和 Windows
+> 运行读回裁决。规范实现线为 `frontend/` + 根 `src-tauri/`，详见
+> `docs/architecture/ADR-060-001-IMPLEMENTATION-LINE.md`。
 
 > 权威：v0.6.0 最小可信闭环任务包（2026-08-20）+ 当前 exact-SHA 报告
 > 状态：阶段描述可随真实实现与 Receipt 更新；能力边界与命名不可漂移

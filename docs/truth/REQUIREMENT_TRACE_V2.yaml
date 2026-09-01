@@ -114,7 +114,7 @@ requirements:
     horizon: "H5-H9"
     capabilities: ["CAP-0140"]
     origin: "Owner 任务包 4.10"
-    status: "planned"
+    status: "in_progress"
 
   - requirement_id: "REQ-PROVIDER-001"
     title: "模型 Provider 治理"
