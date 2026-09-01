@@ -498,6 +498,28 @@ def _via_local_media_transcription(file_path: str) -> AdapterResult:
     return convert_media(file_path)
 
 
+def _via_media_metadata(file_path: str) -> AdapterResult:
+    """Expose container facts as a clear degraded state, never as a transcript.
+
+    FFmpeg can verify a media container and its streams, but it cannot turn
+    speech into learning content.  Keep that useful diagnostic in the error
+    while requiring a local ASR engine for a successful media conversion.
+    """
+    from shared.adapter_contract import AdapterInput
+    from shared.adapter_fixtures import convert_ffmpeg
+
+    result = convert_ffmpeg(AdapterInput(source=file_path))
+    if result.success:
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="ffmpeg-metadata",
+            error="metadata-only FFmpeg inspection completed; local ASR transcript is still required.",
+            metadata=result.metadata,
+        )
+    return result
+
+
 # ── Engine chain map ──
 
 _ENGINES: dict[str, list[tuple[str, Any]]] = {
@@ -522,8 +544,8 @@ _ENGINES: dict[str, list[tuple[str, Any]]] = {
         ("pytesseract+tesseract", _via_image_ocr),
         ("markitdown", _via_markitdown),
     ],
-    "media_video": [("local-asr", _via_local_media_transcription), *_via_adapter_fixtures("media_video", ["convert_ffmpeg"])],
-    "media_audio": [("local-asr", _via_local_media_transcription), *_via_adapter_fixtures("media_audio", ["convert_ffmpeg"])],
+    "media_video": [("local-asr", _via_local_media_transcription), ("ffmpeg-metadata", _via_media_metadata)],
+    "media_audio": [("local-asr", _via_local_media_transcription), ("ffmpeg-metadata", _via_media_metadata)],
     "article": _via_adapter_fixtures("article", ["convert_newspaper4k", "convert_readabilipy"]),
     "md": [("passthrough", _via_read)],
     "txt": [("passthrough", _via_read)],

@@ -15,12 +15,96 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
+import os
 import shutil
 import subprocess
+import wave
 from pathlib import Path
 from typing import Any
 
 from shared.adapter_contract import AdapterResult
+
+
+def _is_usable_ffmpeg(candidate: str | Path) -> bool:
+    """Return whether a candidate executable can actually start as FFmpeg.
+
+    Scoop shims can remain on PATH after their target directory has moved. A
+    file-level ``which`` hit is therefore insufficient on Windows: verify the
+    lightweight version command before selecting it for a conversion.
+    """
+    try:
+        completed = subprocess.run(
+            [str(candidate), "-version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return completed.returncode == 0 and "ffmpeg version" in completed.stdout.casefold()
+
+
+def resolve_ffmpeg() -> str | None:
+    """Find a usable FFmpeg binary, including the configured shared tool root.
+
+    The explicit environment value is preferred.  A PATH candidate is retained
+    only after it proves runnable; if a stale shim fails, probe the stable
+    Scoop install layout under ``OS_EXTERNAL_CONFIG``.  No download or install
+    happens here.
+    """
+    candidates: list[str] = []
+    configured = os.environ.get("FFMPEG_CMD", "").strip()
+    if configured:
+        candidates.append(configured)
+    path_candidate = shutil.which("ffmpeg")
+    if path_candidate:
+        candidates.append(path_candidate)
+    external_root = os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+    if external_root:
+        root = Path(external_root)
+        candidates.extend(
+            str(root / relative)
+            for relative in (
+                Path("10-toolchains") / "scoop" / "apps" / "ffmpeg" / "current" / "bin" / "ffmpeg.exe",
+                Path("toolchains") / "scoop" / "apps" / "ffmpeg" / "current" / "bin" / "ffmpeg.exe",
+            )
+        )
+    seen: set[str] = set()
+    for candidate in candidates:
+        normalized = os.path.normcase(os.path.abspath(candidate))
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        if Path(candidate).is_file() and _is_usable_ffmpeg(candidate):
+            return candidate
+    return None
+
+
+def _is_effectively_silent(wav_path: str | Path, *, min_rms: float = 20.0) -> bool:
+    """Reject a wholly silent prepared clip before ASR can hallucinate text.
+
+    This is deliberately a coarse whole-file guard, not voice activity
+    detection: normal audio with quiet spans still reaches ASR, while an all
+    zero/near-zero PCM clip becomes an explicit degraded outcome.
+    """
+    try:
+        with wave.open(str(wav_path), "rb") as stream:
+            if stream.getsampwidth() != 2 or stream.getnchannels() != 1:
+                return False
+            frames = stream.readframes(stream.getnframes())
+    except (OSError, wave.Error):
+        return False
+    if not frames:
+        return True
+    sample_count = len(frames) // 2
+    if sample_count == 0:
+        return True
+    total_square = 0
+    for offset in range(0, sample_count * 2, 2):
+        value = int.from_bytes(frames[offset:offset + 2], byteorder="little", signed=True)
+        total_square += value * value
+    return (total_square / sample_count) ** 0.5 < min_rms
 
 
 def _sha256(file_path: str | Path) -> str:
@@ -32,8 +116,8 @@ def _sha256(file_path: str | Path) -> str:
 
 
 def prepare_audio(file_path: str | Path, work_dir: str | Path) -> Path:
-    """Convert media to 16 kHz mono PCM WAV via ffmpeg (must be in PATH)."""
-    ffmpeg = shutil.which("ffmpeg")
+    """Convert media to 16 kHz mono PCM WAV via a resolved FFmpeg binary."""
+    ffmpeg = resolve_ffmpeg()
     if not ffmpeg:
         raise RuntimeError("ffmpeg executable not found in PATH. See https://ffmpeg.org/download.html")
     out = Path(work_dir) / f"audio16k-{_sha256(file_path)[:16]}.wav"
@@ -101,7 +185,7 @@ def convert_media(file_path: str | Path, work_dir: str | Path | None = None) -> 
             error="media transcription requires faster-whisper (heavy, optional); install explicitly or use another transcriber.",
         )
 
-    if not shutil.which("ffmpeg"):
+    if not resolve_ffmpeg():
         return AdapterResult(
             success=False,
             content="",
@@ -115,6 +199,13 @@ def convert_media(file_path: str | Path, work_dir: str | Path | None = None) -> 
 
     try:
         wav = prepare_audio(path, work)
+        if _is_effectively_silent(wav):
+            return AdapterResult(
+                success=False,
+                content="",
+                engine="media-adapter",
+                error="prepared audio contains no detectable signal; no transcript is claimed.",
+            )
         blocks, engine_label = _transcribe_faster_whisper(wav)
     except Exception as exc:  # pragma: no cover - heavy optional dependency
         return AdapterResult(

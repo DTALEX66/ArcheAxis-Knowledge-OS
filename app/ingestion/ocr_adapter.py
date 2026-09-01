@@ -13,6 +13,7 @@ import contextlib
 import os
 import hashlib
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,55 @@ _SCOOP_ROOT_CANDIDATES = tuple(
     for value in (os.environ.get("OS_EXTERNAL_CONFIG", "").strip(),)
     if value
 )
+
+
+def _is_usable_tesseract(candidate: str | Path) -> bool:
+    """Check that a Tesseract candidate is runnable, not merely present."""
+    try:
+        completed = subprocess.run(
+            [str(candidate), "--version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return completed.returncode == 0 and "tesseract" in completed.stdout.casefold()
+
+
+def _external_roots() -> tuple[Path, ...]:
+    """Read the configured shared-tool root at conversion time."""
+    configured = os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+    roots = [Path(configured)] if configured else []
+    roots.extend(root for root in _SCOOP_ROOT_CANDIDATES if root not in roots)
+    return tuple(roots)
+
+
+def _resolve_tesseract() -> str:
+    """Resolve a functioning binary, skipping stale PATH shims on Windows."""
+    import shutil
+
+    candidates = [os.environ.get("TESSERACT_CMD", "").strip(), shutil.which("tesseract") or ""]
+    for root in _external_roots():
+        candidates.extend(
+            str(root / relative)
+            for relative in (
+                Path("10-toolchains") / "scoop" / "apps" / "tesseract" / "current" / "tesseract.exe",
+                Path("toolchains") / "scoop" / "apps" / "tesseract" / "current" / "tesseract.exe",
+            )
+        )
+    seen: set[str] = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        normalized = os.path.normcase(os.path.abspath(candidate))
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        if Path(candidate).is_file() and _is_usable_tesseract(candidate):
+            return candidate
+    return ""
 
 
 def configure_tesseract() -> tuple[str, str]:
@@ -36,15 +86,7 @@ def configure_tesseract() -> tuple[str, str]:
          tesseract's own tessdata/,
       3. pins pytesseract.tesseract_cmd and os.environ["TESSDATA_PREFIX"].
     """
-    import shutil
-
-    binary = os.environ.get("TESSERACT_CMD", "") or shutil.which("tesseract") or ""
-    if not binary:
-        for root in _SCOOP_ROOT_CANDIDATES:
-            candidate = root / "10-toolchains" / "scoop" / "apps" / "tesseract" / "current" / "tesseract.exe"
-            if candidate.is_file():
-                binary = str(candidate)
-                break
+    binary = _resolve_tesseract()
 
     def valid_tessdata(candidate: Path) -> bool:
         return candidate.is_dir() and any(candidate.glob("*.traineddata"))
@@ -54,7 +96,7 @@ def configure_tesseract() -> tuple[str, str]:
     if env_prefix and valid_tessdata(Path(env_prefix)):
         tessdata = env_prefix
     if not tessdata:
-        for root in _SCOOP_ROOT_CANDIDATES:
+        for root in _external_roots():
             for prefix in ("10-toolchains", "toolchains"):
                 candidate = root / prefix / "scoop" / "apps" / "tesseract-languages" / "current"
                 if valid_tessdata(candidate):

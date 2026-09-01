@@ -98,11 +98,12 @@ def extract_video_keyframes(
     Returns:
         {video, frames_extracted, output_files: [...]}.
     """
-    import shutil
     import subprocess
+    from shared.adapter_fixtures import _resolve_ffmpeg_tool
 
-    if not shutil.which("ffmpeg"):
-        return {"error": "ffmpeg not found in PATH. Install ffmpeg first.", "video": video_path}
+    ffmpeg = _resolve_ffmpeg_tool("ffmpeg")
+    if not ffmpeg:
+        return {"error": "ffmpeg not found or not runnable. Install ffmpeg first.", "video": video_path}
 
     policy = approved_roots or _APPROVED_ROOTS
     try:
@@ -120,7 +121,7 @@ def extract_video_keyframes(
     try:
         subprocess.run(
             [
-                "ffmpeg",
+                ffmpeg,
                 "-i",
                 str(video_file),
                 "-vf",
@@ -173,12 +174,12 @@ def extract_audio_track(
     approved_roots: ApprovedRoots | None = None,
 ) -> dict[str, Any]:
     """Extract a mono 16 kHz PCM WAV suitable for a downstream ASR engine."""
-    import shutil
     import subprocess
+    from shared.adapter_fixtures import _resolve_ffmpeg_tool
 
-    ffmpeg = shutil.which("ffmpeg")
+    ffmpeg = _resolve_ffmpeg_tool("ffmpeg")
     if ffmpeg is None:
-        return {"error": "ffmpeg not found in PATH. Install ffmpeg first.", "video": video_path}
+        return {"error": "ffmpeg not found or not runnable. Install ffmpeg first.", "video": video_path}
 
     policy = approved_roots or _APPROVED_ROOTS
     try:
@@ -264,15 +265,11 @@ def extract_image_text(
     if not image_file.is_file():
         return {"error": "Image not found", "image": image_path}
 
-    import os
-    import shutil
+    from app.ingestion.ocr_adapter import configure_tesseract
 
-    executable = shutil.which("tesseract")
-    if executable is None:
-        windows_default = Path(os.environ.get("PROGRAMFILES", "")) / "Tesseract-OCR" / "tesseract.exe"
-        executable = str(windows_default) if windows_default.is_file() else None
-    if executable is None:
-        return {"error": "tesseract not found in PATH. Install Tesseract-OCR first.", "image": image_path}
+    executable, _tessdata = configure_tesseract()
+    if not executable:
+        return {"error": "tesseract not found or not runnable. Install Tesseract-OCR first.", "image": image_path}
     pytesseract.pytesseract.tesseract_cmd = executable
     try:
         text = pytesseract.image_to_string(Image.open(image_file), lang=language).strip()

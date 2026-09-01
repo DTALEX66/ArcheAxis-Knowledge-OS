@@ -11,6 +11,9 @@ installed, importable, fallback, or unavailable.
 
 from __future__ import annotations
 
+import os
+import shutil
+import subprocess
 from pathlib import Path
 
 from shared.adapter_contract import (
@@ -30,10 +33,49 @@ _APPROVED_ROOTS = ApprovedRoots(source_roots=[_PROJECT_ROOT], output_roots=[_PRO
 # ── Helper: detect installed tools ──
 
 
-def _ffmpeg_available() -> bool:
-    import shutil
+def _is_usable_ffmpeg_tool(candidate: str | Path, tool_name: str) -> bool:
+    """Verify a binary instead of trusting a possibly stale Windows shim."""
+    try:
+        completed = subprocess.run(
+            [str(candidate), "-version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return completed.returncode == 0 and tool_name in completed.stdout.casefold()
 
-    return shutil.which("ffmpeg") is not None
+
+def _resolve_ffmpeg_tool(tool_name: str) -> str | None:
+    """Resolve ffmpeg/ffprobe via PATH then the configured shared-tool root."""
+    candidates = [shutil.which(tool_name) or ""]
+    external_root = os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+    if external_root:
+        root = Path(external_root)
+        candidates.extend(
+            str(root / relative)
+            for relative in (
+                Path("10-toolchains") / "scoop" / "apps" / "ffmpeg" / "current" / "bin" / f"{tool_name}.exe",
+                Path("toolchains") / "scoop" / "apps" / "ffmpeg" / "current" / "bin" / f"{tool_name}.exe",
+            )
+        )
+    seen: set[str] = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        normalized = os.path.normcase(os.path.abspath(candidate))
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        if Path(candidate).is_file() and _is_usable_ffmpeg_tool(candidate, tool_name):
+            return candidate
+    return None
+
+
+def _ffmpeg_available() -> bool:
+    return _resolve_ffmpeg_tool("ffmpeg") is not None
 
 
 def _tesseract_available() -> bool:
@@ -744,8 +786,16 @@ def convert_ffmpeg(input_: AdapterInput) -> AdapterResult:
         import subprocess
 
         # Use ffprobe to extract stream and format metadata
+        ffprobe = _resolve_ffmpeg_tool("ffprobe")
+        if not ffprobe:
+            return AdapterResult(
+                success=False,
+                content="",
+                engine="ffmpeg",
+                error="ffprobe executable not found or not runnable; no metadata is claimed as content.",
+            )
         cmd = [
-            "ffprobe",
+            ffprobe,
             "-v", "quiet",
             "-print_format", "json",
             "-show_format",

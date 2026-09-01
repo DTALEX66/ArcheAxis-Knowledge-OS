@@ -8,7 +8,9 @@ Each adapter test verifies:
 """
 
 import contextlib
+import os
 import pathlib
+import wave
 
 from app.ingestion.html_adapter import convert_html
 from app.ingestion.media_adapter import convert_media
@@ -165,6 +167,61 @@ def test_media_without_engine_fails_closed(tmp_path) -> None:
     res = convert_media(str(fake))
     assert not res.success
     assert res.error
+
+
+def test_media_silence_guard_rejects_zero_signal_but_not_audible_pcm(tmp_path) -> None:
+    """Whisper may hallucinate short stock phrases on a truly silent clip."""
+    from app.ingestion.media_adapter import _is_effectively_silent
+
+    silent = tmp_path / "silent.wav"
+    audible = tmp_path / "audible.wav"
+    for path, frames in ((silent, b"\x00\x00" * 1600), (audible, b"\x10\x27" * 1600)):
+        with wave.open(str(path), "wb") as output:
+            output.setnchannels(1)
+            output.setsampwidth(2)
+            output.setframerate(16000)
+            output.writeframes(frames)
+
+    assert _is_effectively_silent(silent)
+    assert not _is_effectively_silent(audible)
+
+
+def test_media_ffmpeg_resolution_skips_broken_path_shim_and_uses_external_config(tmp_path, monkeypatch) -> None:
+    """A stale Scoop shim must not hide the verified external FFmpeg binary."""
+    from app.ingestion import media_adapter
+
+    external = tmp_path / "external"
+    fallback = external / "10-toolchains" / "scoop" / "apps" / "ffmpeg" / "current" / "bin" / "ffmpeg.exe"
+    fallback.parent.mkdir(parents=True)
+    fallback.write_bytes(b"fixture")
+    stale = tmp_path / "stale-ffmpeg.exe"
+    stale.write_bytes(b"fixture")
+    monkeypatch.setenv("OS_EXTERNAL_CONFIG", str(external))
+    monkeypatch.delenv("FFMPEG_CMD", raising=False)
+    monkeypatch.setattr(media_adapter.shutil, "which", lambda _name: str(stale))
+    monkeypatch.setattr(media_adapter, "_is_usable_ffmpeg", lambda candidate: os.fspath(candidate) == os.fspath(fallback))
+
+    assert media_adapter.resolve_ffmpeg() == str(fallback)
+
+
+def test_unified_media_metadata_fallback_never_claims_transcript(tmp_path, monkeypatch) -> None:
+    """Container metadata is useful evidence, but is not converted media content."""
+    from app.ingestion import multi_format
+    from shared import adapter_fixtures
+    from shared.adapter_contract import AdapterResult
+
+    clip = tmp_path / "lesson.mp3"
+    clip.write_bytes(b"not-a-real-media-file")
+    monkeypatch.setattr(
+        adapter_fixtures,
+        "convert_ffmpeg",
+        lambda _input: AdapterResult(True, "Duration: 3s", "ffmpeg", metadata={"duration_seconds": 3}),
+    )
+
+    result = multi_format._via_media_metadata(str(clip))
+
+    assert not result.success
+    assert "metadata-only" in (result.error or "")
 
 
 def test_unified_media_conversion_prefers_local_time_anchored_transcript(tmp_path, monkeypatch) -> None:
