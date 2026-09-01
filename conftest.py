@@ -23,8 +23,8 @@ for _name, _path in (
 ):
     os.environ[_name] = str(_path)
 
-_RUNTIME = TemporaryDirectory(prefix="cognitive-pytest-", dir=_TASK_TMP)
-os.environ["COGNITIVE_DATA_DIR"] = _RUNTIME.name
+_RUNTIME = TemporaryDirectory(prefix="archeaxis-pytest-", dir=_TASK_TMP)
+os.environ["ARCHEAXIS_DATA_DIR"] = _RUNTIME.name
 atexit.register(_RUNTIME.cleanup)
 
 
