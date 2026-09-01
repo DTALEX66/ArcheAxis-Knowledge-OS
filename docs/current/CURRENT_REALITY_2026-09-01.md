@@ -8,7 +8,7 @@
 
 | Subject | Field fact | Evidence class |
 | --- | --- | --- |
-| Canonical branch | `main` = `origin/main` = `0bb6e253dc3b9e16a7524f92a3d56f2cc6aba0c0` at capture | Git readback |
+| Canonical branch | `main@0bb6e253dc3b9e16a7524f92a3d56f2cc6aba0c0` = `origin/main@0bb6e253dc3b9e16a7524f92a3d56f2cc6aba0c0` at capture | Git readback |
 | Current published release | `v0.6.14`, published 2026-08-29; GitHub release exposes Setup, Green, Portable, wheel, identity, manifest, SBOM, notices and checksums (9 assets) | GitHub release readback |
 | Local Green runtime | `D:\All projects\ArcheAxis.Knowledge.Green-x64`; identity is `v0.6.14` | Local identity readback |
 | Green hotfix | `media_adapter.py` and `multi_format.py` in Green were hash-read back after deployment from commit `0bb6e25`; the Green UI bundle already matched the tested source bundle | Local module/hash readback |

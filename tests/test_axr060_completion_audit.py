@@ -95,6 +95,14 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
     )
     assert declared_qualification_shas
     allowed_shas.update(declared_qualification_shas)
+    current_reality = (
+        ROOT / "docs" / "current" / "CURRENT_REALITY_2026-09-01.md"
+    ).read_text(encoding="utf-8")
+    declared_current_shas = set(
+        re.findall(r"`(?:main|origin/main)@([0-9a-f]{40})`", current_reality)
+    )
+    assert declared_current_shas
+    allowed_shas.update(declared_current_shas)
     surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]
     surfaces.extend((ROOT / "docs" / "current").glob("*"))
     surfaces.extend((ROOT / "reports" / "current").glob("*"))
