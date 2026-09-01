@@ -1,12 +1,25 @@
 # Hermes handoff — archeaxis-workspace
 
-Generated: 2026-08-27 (v0.6.11 R2 release closure; older continuation notes retained below)
+Updated: 2026-09-01 (Green in-place repair and current-state correction; older notes retained below as history)
 
-> **Current authoritative continuation**: `v0.6.11 stable — RELEASED`. Annotated tag `394feaadfb289c0570f9b259faf4f3232d57567c` 解引用到 release commit `86cecc7272152ef334869f61aae1f4d5ce82679b` / tree `fe389f6a43d8295ffcc8109eaeced9436e361b03`；exact-SHA CI `33076417510` 和 Release run `33077810146` success。Setup/Green/Portable 生命周期、9 项公开资产 workflow readback 与本机独立 9/9 下载/provider digest/SHA256SUMS/schema v3 identity/dependency-lock 回读，以及 DeepTutor v1.5.17 + Ollama `qwen3:8b` 教学→反馈→无效答案恢复→reload 均已通过。
->
-> **UI correction continuation（2026-08-27）**：v0.6.11 的发布门遗漏 OSUI v3 设计采用、中文一致性与视觉比较，故只能证明发布工程 PASS，不能证明 UI 产品验收 PASS。当前 post-release working candidate 已把 Archive Desk/Liquid Glass 接入 loopback Workspace 与主 Tauri React WebView，完成中文六空间、恢复壳、真实 Adapter、多尺寸 Chromium、真实原生 Tauri 启动与“工作台→资料库”点击；本地 74 frontend tests、Python 全量、cargo check/release build 均已验证。GitHub exact-SHA CI、NSIS lifecycle 与后续版本 readback 尚待当前提交上传后执行。权威记录：`docs/current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`。v0.6.11 不重写。
->
-> GitHub Latest 已是 <https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11>。本 post-release receipt/docs 提交的 live HEAD 必须从 Git 读取；所有旧 SHA/test-count statements 仅为历史 context。
+## Current authoritative continuation
+
+Do not create a new version, tag, installer, or GitHub Release for this work. The fixed target is the existing Green distribution at `D:\All projects\ArcheAxis.Knowledge.Green-x64`; product data remains under its `data\` directory and is not inspected or copied.
+
+- **Implemented locally:** Green now resolves real `ffmpeg`/`ffprobe`/`tesseract` binaries from the shared external toolchain rather than stale shims; audio/video transcription fails closed for silent input; `faster-whisper` uses the local `large-v3-turbo` model where available. Frontend recovery now leaves `booting` after 30 seconds with a safe retry/diagnostics state.
+- **Tested locally:** Green format probe passed TXT/Markdown/Canvas/PDF/image/HTML/PPTX/XLSX/DOCX plus an official public audio→MP4 transcript; intentionally silent audio/video returns a degraded no-transcript result. Current source checks include App recovery `10/10`, learning UI/API `10/10`, and federation/DeepTutor/learning-loop/legacy-env regression `32/32`.
+- **Installed runtime verified:** the Green desktop shell reached the full six-space workspace and showed `后端状态：本地可用` after the in-place frontend update. This proves the observed local runtime path only; it is not a Windows installer or release qualification.
+- **Cloud evidence:** exact-SHA CI for `bed84a9` succeeded (GatePlan, lint, canonical browser regression, `a0-gates`; unrelated path-selected jobs were skipped). `673f9ee` publishes the canonical pytest-isolation repair and must be checked by its own exact-SHA CI before any CI-success claim.
+- **Local/cloud Git:** always re-read `HEAD`, `origin/main`, and the exact CI SHA before reporting. This handoff deliberately avoids embedding a live SHA as a durable claim.
+
+### Next safe actions
+
+1. Read the exact result for the CI run associated with `673f9ee`; distinguish selected/skipped gates from executed gates.
+2. Keep Green fixes in place; do not rebuild an installer or mint a release/version. Retain backups under `D:\All projects\ArcheAxis.Knowledge.Green-x64\backups\` until a later verified closure.
+3. Treat the remaining production gaps separately: installer lifecycle, broader real-corpus ingestion qualification, and human learning acceptance with user-owned material are not proven by the fixture-based checks above.
+4. Preserve the boundary: external tools are under `D:\All projects\OS External Configuration`, models under `D:\All projects\Model library`, while project runtime evidence stays under ignored `.hermes\`.
+
+All material below this line is retained historical context, not current status.
 
 ## NEXT-RUN QUICKSTART（2026-08-15 晚 · 共用库改造后 · 给 DEEPSEEK HARNESS）
 

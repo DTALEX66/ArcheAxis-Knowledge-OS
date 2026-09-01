@@ -1,21 +1,21 @@
-# System Boundary — ArcheAxis Knowledge v0.6.9
+# System Boundary — ArcheAxis Knowledge v0.6.14
 
-> 当前逐项状态以 `docs/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md`
-> 为准。实时 HEAD、tree、dirty、origin/main 与 CI 由
-> `scripts/generate_current_reports.py` 生成到忽略的 `.hermes/task-artifacts/`；
-> 本文不嵌入会因提交自身而过期的 SHA。
+> Updated 2026-09-01. This is a capability and verification-boundary snapshot,
+> not a release claim. Re-read Git `HEAD`, `origin/main`, and the selected
+> GitHub Actions run for any exact-SHA assertion; this document intentionally
+> does not embed a self-invalidating live SHA.
 
 ## 当前拓扑
 
 | 区域 | 当前角色 | 状态 |
 |---|---|---|
-| archeaxis-workspace | FastAPI + SQLite(WAL) 的规范后端线 | `TESTED_LOCAL`（定向）；当前变更 exact-SHA CI 待执行 |
-| 学习引擎（app/knowledge） | BKT/双轴掌握/Teach-Back/学习投影 | `TESTED_LOCAL`；完整安装版旅程待执行 |
-| 证据与治理（app/evidence + promotion + machine_knowledge） | Anchor/Bundle/显式审核状态机 | `TESTED_LOCAL`；全账本 append-only 白名单仍 PARTIAL |
-| 摄取链（app/ingestion） | raw-first、SHA-256、ConversionRun、锚点和 LossReport | Golden PDF `TESTED_LOCAL`；Tier A 完整矩阵未执行 |
-| 联邦知识 API（app/federation） | Candidate/Receipt/Review/Verified/hash readback | `TESTED_LOCAL` |
-| 前端（frontend/src/spaces） | 六空间读取真实 API；Learning 具备交互 | `PARTIAL`；六空间 browser E2E 未执行 |
-| Tauri 桌面壳（src-tauri） | Supervisor、失败保活、retry、限制型 CSP | 基础生命周期 `RELEASE_PUBLISHED`；完整 Recovery `PARTIAL` |
+| archeaxis-workspace | FastAPI + SQLite(WAL) 的规范后端线 | `TESTED_LOCAL`（定向）；最新提交的 exact-SHA CI 需单独读取 |
+| 学习引擎（app/learning） | BKT/FSRS、双轴掌握、Teach-Back、学习投影 | `TESTED_LOCAL`；完整用户材料旅程未执行 |
+| 证据与治理（app/evidence + promotion + machine_knowledge） | Anchor/Bundle/显式审核状态机 | `TESTED_LOCAL`；全账本 append-only 白名单仍 `PARTIAL` |
+| 摄取链（app/ingestion） | raw-first、SHA-256、ConversionRun、锚点和 LossReport | Green 定向多格式探针 `TESTED_LOCAL`；大语料/Tier A 全矩阵未执行 |
+| 联邦知识 API（app/federation） | Candidate/Receipt/Review/Verified/hash readback | `TESTED_LOCAL`（Candidate/Receipt、幂等、外置资产、DeepTutor/learning-loop 定向回归） |
+| 前端（frontend/src/spaces） | 六空间读取真实 API；Learning 具备交互 | `TESTED_LOCAL`；当前 Green 桌面运行时已观察到后端可用，广泛视觉验收仍 `PARTIAL` |
+| Tauri 桌面壳（src-tauri） | Supervisor、失败保活、retry、限制型 CSP | Green 原地运行 `INSTALLED_RUNTIME_VERIFIED`；NSIS/Portable 生命周期未因本次修复重跑 |
 | WORK-LAB / DESIGN-LAB | 独立仓库；仅通过本仓库稳定 API/契约协作，非运行时依赖 | 边界成立 |
 
 ## 当前 Core 边界
