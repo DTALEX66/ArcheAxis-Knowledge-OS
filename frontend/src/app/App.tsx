@@ -25,6 +25,7 @@ import {
 
 const DESKTOP_LIVENESS_INTERVAL_MS = 10_000;
 const RECOVERY_BOOT_POLL_MS = 250;
+const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
 
 // AXW-UI-802: six-space shell following task pack §15.3 fixed structure:
 // top status bar | left rail (six spaces) | context subnav | center view |
@@ -117,11 +118,26 @@ export function App() {
     void (async () => {
       try {
         let status = await getRecoveryStatus();
+        const bootDeadline = Date.now() + RECOVERY_BOOT_TIMEOUT_MS;
         if (!isCurrent(epoch)) return;
         while (status.state === "booting") {
+          if (Date.now() >= bootDeadline) {
+            setDesktopReady(false);
+            setRecoveryStatus({
+              ...status,
+              state: "failed",
+              backend_available: false,
+              message: "本地核心启动超时；可查看安全诊断或重试。",
+            });
+            return;
+          }
           setRecoveryStatus(status);
           setDesktopReady(false);
-          await new Promise((resolve) => globalThis.setTimeout(resolve, RECOVERY_BOOT_POLL_MS));
+          const remaining = bootDeadline - Date.now();
+          await new Promise((resolve) => globalThis.setTimeout(
+            resolve,
+            Math.min(RECOVERY_BOOT_POLL_MS, remaining),
+          ));
           if (!isCurrent(epoch)) return;
           status = await getRecoveryStatus();
           if (!isCurrent(epoch)) return;

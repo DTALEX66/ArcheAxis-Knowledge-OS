@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
 import { resetRuntimeClient } from "../api/workspace";
@@ -8,6 +8,7 @@ import { resetRuntimeClient } from "../api/workspace";
 // Rail buttons use the English product labels; space headings are Chinese.
 describe("App shell", () => {
   afterEach(() => {
+    vi.useRealTimers();
     resetRuntimeClient();
     delete window.__TAURI__;
     vi.unstubAllGlobals();
@@ -87,6 +88,32 @@ describe("App shell", () => {
     render(<App />);
     expect(await screen.findByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
     expect(await screen.findByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
+  });
+
+  it("leaves boot polling after the bounded desktop-core startup deadline", async () => {
+    vi.useFakeTimers();
+    window.__TAURI__ = { core: { invoke: vi.fn(async (command: string) => {
+      if (command === "recovery_status") {
+        return {
+          state: "booting",
+          safe_mode: false,
+          backend_available: false,
+          message: "正在启动",
+          backups: [],
+          external_dev: false,
+        };
+      }
+      throw new Error(`unexpected command ${command}`);
+    }) } };
+
+    render(<App />);
+    await act(async () => Promise.resolve());
+    await act(async () => vi.advanceTimersByTimeAsync(30_000));
+
+    expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
+    expect(screen.getByText(/本地核心启动超时；可查看安全诊断或重试/))
+      .toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "重试" })).toBeEnabled();
   });
 
   it("replaces the six-space workspace with the Recovery Shell after desktop bootstrap fails", async () => {
