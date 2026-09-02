@@ -118,6 +118,20 @@ def test_temporary_runtime_is_unique_cleaned_and_restores_environment(
     assert not second.exists()
 
 
+def test_temporary_runtime_suppresses_legacy_data_dir_and_restores_it(
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("ARCHEAXIS_DATA_DIR", raising=False)
+    monkeypatch.setenv("COGNITIVE_DATA_DIR", "legacy-runtime")
+
+    with _temporary_runtime() as runtime:
+        assert os.environ["ARCHEAXIS_DATA_DIR"] == str(runtime)
+        assert "COGNITIVE_DATA_DIR" not in os.environ
+
+    assert "ARCHEAXIS_DATA_DIR" not in os.environ
+    assert os.environ["COGNITIVE_DATA_DIR"] == "legacy-runtime"
+
+
 def test_inventory_can_hash_explicit_head_blob_instead_of_dirty_worktree(
     tmp_path: Path,
 ) -> None:

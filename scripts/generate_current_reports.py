@@ -1,4 +1,4 @@
-"""Generate machine-readable current-state reports from Git and v0.6.9 evidence.
+"""Generate machine-readable current-state reports from Git and explicit release evidence.
 
 These reports deliberately describe evidence available for the current tree;
 they do not promote structural inspection or historical receipts into release
@@ -18,9 +18,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TASKPACK_BASELINE = "051ee2d0d14398d9e812e657ad82ad1a44e7ed58"
 DEFAULT_OUTPUT_DIR = ROOT / ".hermes" / "task-artifacts" / "current-reports"
-DEFAULT_RELEASE_EVIDENCE = (
+HISTORICAL_RELEASE_EVIDENCE = (
     ROOT / "reports" / "release" / "v0.6.9" / "release-evidence.json"
 )
+DEFAULT_RELEASE_EVIDENCE: Path | None = None
 REQUIRED_DEPENDENCY_LOCKS = {
     "uv.lock",
     "frontend/package-lock.json",
@@ -164,8 +165,8 @@ def generate(
     )
     if release_receipt is None:
         release_summary: dict[str, object] = {
-            "version": "0.6.9",
-            "state": "development",
+            "version": None,
+            "state": "unknown",
             "evidence_level": "NOT_EXECUTED",
         }
         release_gate = "NOT_EXECUTED"
@@ -250,14 +251,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate current-state reports from Git")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--baseline", default=DEFAULT_TASKPACK_BASELINE)
-    parser.add_argument(
-        "--release-evidence", type=Path, default=DEFAULT_RELEASE_EVIDENCE
-    )
+    parser.add_argument("--release-evidence", type=Path, default=DEFAULT_RELEASE_EVIDENCE)
     args = parser.parse_args()
     generate(
         args.output_dir.resolve(),
         args.baseline,
-        release_evidence=args.release_evidence.resolve(),
+        release_evidence=(
+            args.release_evidence.resolve() if args.release_evidence is not None else None
+        ),
     )
 
 

@@ -6,9 +6,16 @@ Updated: 2026-09-01 (Green in-place repair and current-state correction; older n
 
 Do not create a new version, tag, installer, or GitHub Release for this work. The fixed target is the existing Green distribution at `D:\All projects\ArcheAxis.Knowledge.Green-x64`; product data remains under its `data\` directory and is not inspected or copied.
 
+> **2026-09-02 baseline correction:** the live Git baseline is now
+> `main@db13d0564ac2971d4b1eb3e3a5bff9c9256af313` = `origin/main`.
+> CI run `33521144084` passed only `gateplan`, `lint` and `a0-gates`; its
+> eleven path-selected qualification jobs were skipped. Read
+> `docs/current/CURRENT_REALITY_2026-09-01.md` and the project-local
+> migration-baseline receipt before making any current CI or runtime claim.
+
 - **Implemented locally:** Green now resolves real `ffmpeg`/`ffprobe`/`tesseract` binaries from the shared external toolchain rather than stale shims; audio/video transcription fails closed for silent input; `faster-whisper` uses the local `large-v3-turbo` model where available. Frontend recovery now leaves `booting` after 30 seconds with a safe retry/diagnostics state.
 - **Tested locally:** Green format probe passed TXT/Markdown/Canvas/PDF/image/HTML/PPTX/XLSX/DOCX plus an official public audio→MP4 transcript; intentionally silent audio/video returns a degraded no-transcript result. Current source checks include App recovery `10/10`, learning UI/API `10/10`, and federation/DeepTutor/learning-loop/legacy-env regression `32/32`.
-- **Installed runtime verified:** the Green desktop shell reached the full six-space workspace and showed `后端状态：本地可用` after the in-place frontend update. This proves the observed local runtime path only; it is not a Windows installer or release qualification.
+- **Green maintenance deployment:** the primary Green executable is hash-deployed in place. Its visible product-path verification remains pending a controlled silent-VBS launch; do not promote a static fallback page, a source browser result or an EXE hash into an installed-runtime claim.
 - **Cloud evidence:** exact-SHA CI for `bed84a9` succeeded (GatePlan, lint, canonical browser regression, `a0-gates`; unrelated path-selected jobs were skipped). `673f9ee` publishes the canonical pytest-isolation repair and must be checked by its own exact-SHA CI before any CI-success claim.
 - **Local/cloud Git:** always re-read `HEAD`, `origin/main`, and the exact CI SHA before reporting. This handoff deliberately avoids embedding a live SHA as a durable claim.
 

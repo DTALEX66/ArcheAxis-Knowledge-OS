@@ -11,8 +11,8 @@ mod recovery_contract_tests {
         RecoveryState, RecoveryStatusDto,
     };
     use super::{
-        try_operation_guard, try_refresh_if_idle, DesktopBackend,
-        RECOVERY_OPERATION_IN_PROGRESS, RECOVERY_STATE_UNAVAILABLE,
+        try_operation_guard, try_refresh_if_idle, DesktopBackend, RECOVERY_OPERATION_IN_PROGRESS,
+        RECOVERY_STATE_UNAVAILABLE,
     };
     use std::sync::{Arc, Mutex};
 

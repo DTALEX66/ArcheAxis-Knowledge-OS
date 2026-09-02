@@ -30,6 +30,10 @@ def test_windows_runtime_smoke_probes_only_the_api_and_retired_ui_boundary() -> 
     assert "WORKSPACE_STYLE_PATH" not in smoke
     assert "HTTPError" in smoke
     assert "error.code == 410" in smoke
+    assert "def runtime_log_path" in smoke
+    assert '".hermes" / "task-runtime"' in smoke
+    assert "tempfile.gettempdir" not in smoke
+    assert 'version["release"]["status"] == "unreleased"' not in smoke
 
 
 def test_ci_supports_explicit_full_qualification_for_a_selected_sha() -> None:
@@ -135,6 +139,13 @@ def test_ci_minimal_jobs_include_runtime_server_without_editable_install() -> No
     assert "--require-hashes -r locked-ci.txt" in test_job
     assert "uv pip install --system --no-deps -e ." not in test_job
     assert "fetch-depth: 0" in test_job
+
+
+def test_desktop_runtime_declares_local_asr_dependency() -> None:
+    """A released desktop runtime must include its advertised local ASR engine."""
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+    assert "faster-whisper>=1.1" in project["project"]["dependencies"]
 
 
 def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:

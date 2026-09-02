@@ -11,7 +11,7 @@ from pathlib import Path
 def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
     runtime_root = tmp_path / "runtime"
     env = os.environ.copy()
-    env["COGNITIVE_DATA_DIR"] = str(runtime_root)
+    env["ARCHEAXIS_DATA_DIR"] = str(runtime_root)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
 
     code = textwrap.dedent(
@@ -23,7 +23,7 @@ def test_knowledge_research_facades_real_isolated_round_trip(tmp_path: Path):
         import uuid
         from pathlib import Path
 
-        runtime_root = Path(os.environ["COGNITIVE_DATA_DIR"]).resolve()
+        runtime_root = Path(os.environ["ARCHEAXIS_DATA_DIR"]).resolve()
         from shared import storage
         from app.runtime_entrypoint import run_migration
         from argparse import Namespace

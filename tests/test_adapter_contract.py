@@ -260,28 +260,28 @@ class TestMultiFormatAdapter:
         assert detect_format("recording.wav") == "media_audio"
         assert detect_format("unknown.xyz") == "unknown"
 
-    def test_media_formats_reach_ffmpeg_product_chain(self, monkeypatch, tmp_path):
-        """Registered FFmpeg formats must be reachable through convert_file."""
+    def test_media_formats_require_local_asr_product_chain(self, monkeypatch, tmp_path):
+        """Media conversion succeeds only when the local ASR chain yields text."""
         from app.ingestion import multi_format
 
         media = tmp_path / "clip.mp4"
         media.write_bytes(b"controlled-media-fixture")
         seen = []
 
-        def fake_ffmpeg(adapter_input):
-            seen.append(adapter_input.source)
+        def fake_media_asr(source):
+            seen.append(source)
             return AdapterResult(
                 success=True,
-                content="media metadata",
-                engine="ffmpeg",
-                metadata={"stream_count": 1},
+                content="governed media transcript",
+                engine="local-asr",
+                metadata={"signal_present": True},
             )
 
-        monkeypatch.setattr("shared.adapter_fixtures.convert_ffmpeg", fake_ffmpeg)
+        monkeypatch.setattr("app.ingestion.media_adapter.convert_media", fake_media_asr)
         content, engine = multi_format.convert_file(media)
 
-        assert content == "media metadata"
-        assert engine == "ffmpeg"
+        assert content == "governed media transcript"
+        assert engine == "local-asr"
         assert seen == [str(media)]
 
     def test_youtube_url_reaches_transcript_product_chain(self, monkeypatch):

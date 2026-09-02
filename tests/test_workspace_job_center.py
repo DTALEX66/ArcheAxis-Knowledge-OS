@@ -8,13 +8,14 @@ def test_workspace_job_center_exposes_only_user_readable_strictly_bound_jobs(mon
     from app.workspace import router, service
     from shared.migration_runner import MigrationOperator
     from tests.test_phase5_mcs_closed_loop import _database
+    from tests.workspace_capture_stub import capture_web_stub
 
     database = _database(tmp_path)
     MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
         "workspace.sqlite"
     )
     monkeypatch.setattr(router, "DB_PATH", database)
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# Local candidate\nBody.", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# Local candidate\nBody."))
     service.intake_url(url="https://example.com/job-center", db_path=database)
 
     response = TestClient(app).get("/workspace/api/jobs")

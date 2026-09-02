@@ -19,6 +19,27 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5173,
     strictPort: true,
+    // Development-only loopback bridge for browser-based integration checks.
+    // Tauri/Green uses its desktop runtime client instead of this proxy.
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/workspace/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+        // The browser origin remains the Vite loopback port.  The Core
+        // correctly rejects cross-origin workspace writes, so make the
+        // development-only bridge present the target's loopback origin.
+        // Tauri/Green does not use this proxy or this header rewrite.
+        configure(proxy) {
+          proxy.on("proxyReq", (proxyReq) => {
+            proxyReq.setHeader("origin", "http://127.0.0.1:8000");
+          });
+        },
+      },
+    },
   },
   build: {
     outDir: "dist",

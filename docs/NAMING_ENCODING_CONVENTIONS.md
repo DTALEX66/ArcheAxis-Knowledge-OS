@@ -34,7 +34,7 @@ container consumers have migrated. Do not infer a service ID from a filesystem s
 | Service ID and API path segment | ASCII `kebab-case` | `knowledge-base` |
 | Python package/module/field | ASCII `lower_snake_case` | `knowledge_base` |
 | Python class | `PascalCase` | `KnowledgeBaseService` |
-| Environment variable | `UPPER_SNAKE_CASE` | `COGNITIVE_DATA_DIR` |
+| Environment variable | `UPPER_SNAKE_CASE` | `ARCHEAXIS_DATA_DIR` (`COGNITIVE_DATA_DIR` is legacy fallback only) |
 | Database table/column | ASCII `lower_snake_case` | `research_projects` |
 | User-facing label | locale catalog or registry display value | `知识库` |
 

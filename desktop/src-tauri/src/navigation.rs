@@ -46,7 +46,11 @@ mod tests {
     }
 
     fn allowed(value: &str, port: u16) -> bool {
-        navigation_allowed(&Url::parse(value).expect("valid test URL"), port, bootstrap())
+        navigation_allowed(
+            &Url::parse(value).expect("valid test URL"),
+            port,
+            bootstrap(),
+        )
     }
 
     #[test]
@@ -105,9 +109,7 @@ mod tests {
                 Some(&bootstrap),
             )
         };
-        let file_url = |path: &std::path::Path| {
-            Url::from_file_path(path).expect("valid file URL")
-        };
+        let file_url = |path: &std::path::Path| Url::from_file_path(path).expect("valid file URL");
 
         // file:// inside the bootstrap dir is allowed.
         assert!(allowed_in(file_url(&index).as_str()));

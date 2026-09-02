@@ -245,6 +245,7 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "defusedxml" },
     { name = "fastapi" },
+    { name = "faster-whisper" },
     { name = "fsrs" },
     { name = "jiwer" },
     { name = "litellm" },
@@ -329,7 +330,6 @@ ci = [
     { name = "uvicorn", extra = ["standard"] },
 ]
 ci-adapters = [
-    { name = "faster-whisper" },
     { name = "markitdown", extra = ["docx", "pdf", "pptx", "xlsx"] },
     { name = "newspaper4k" },
     { name = "pymupdf" },
@@ -347,6 +347,7 @@ requires-dist = [
     { name = "crawl4ai", marker = "extra == 'ingestion'", specifier = ">=0.1" },
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "fastapi", specifier = ">=0.133,<0.134" },
+    { name = "faster-whisper", specifier = ">=1.1" },
     { name = "fsrs", specifier = ">=5.0" },
     { name = "jiwer", specifier = ">=3.1" },
     { name = "langfuse", marker = "extra == 'ingestion'", specifier = ">=4.0" },
@@ -414,7 +415,6 @@ ci = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.22" },
 ]
 ci-adapters = [
-    { name = "faster-whisper", specifier = ">=1.1" },
     { name = "markitdown", extras = ["pdf", "docx", "pptx", "xlsx"], specifier = ">=0.1" },
     { name = "newspaper4k", specifier = ">=0.9" },
     { name = "pymupdf", specifier = ">=1.24" },

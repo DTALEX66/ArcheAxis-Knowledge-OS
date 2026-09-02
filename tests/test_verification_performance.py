@@ -22,9 +22,9 @@ def _init_repo(path: Path, file_count: int = 4) -> None:
 
 
 def test_pytest_session_uses_an_isolated_runtime_root() -> None:
-    runtime = Path(os.environ["COGNITIVE_DATA_DIR"]).resolve()
+    runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"]).resolve()
 
-    assert runtime.name.startswith("cognitive-pytest-")
+    assert runtime.name.startswith("archeaxis-pytest-")
     assert runtime.is_dir()
 
     from shared import storage

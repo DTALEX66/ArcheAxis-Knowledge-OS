@@ -5,8 +5,7 @@ were moved without deletion to
 `reports/history/pre-v0.6.7-current-snapshots/`; they must not be treated as
 the current Git, CI, Release, installed-runtime, or product-capability state.
 
-Live source/release/capability reports are generated from the checked-out Git
-state and the validated immutable Release receipt:
+Live source/capability reports are generated from the checked-out Git state:
 
 ```powershell
 python scripts/generate_current_reports.py
@@ -14,9 +13,16 @@ python scripts/generate_current_reports.py
 
 The default output is the ignored project-local directory
 `.hermes/task-artifacts/current-reports/`. This prevents a checked-in report
-from claiming that it contains its own commit SHA. The immutable v0.6.8 public
-release evidence is stored at
-`reports/release/v0.6.8/release-evidence.json`.
+from claiming that it contains its own commit SHA. It also intentionally makes
+no Release claim by default: pass a specific immutable receipt only when that
+receipt is the exact historical or current Release evidence being reported.
+
+```powershell
+python scripts/generate_current_reports.py --release-evidence <immutable-receipt.json>
+```
+
+Do not use a retained historical receipt as an implicit substitute for the
+current public Release.
 
 Evidence layers remain separate:
 

@@ -19,6 +19,7 @@ import pytest
 
 from shared.migration_runner import MigrationOperator
 from shared.research_store import load_research_package
+from tests.workspace_capture_stub import capture_web_stub
 
 
 def _now() -> str:
@@ -79,7 +80,7 @@ def _promote_to_knowledge(full_db: Path, package_id: str, decision: str = "appro
 
 def test_chain1_url_intake_persists_job_outbox_receipt(monkeypatch, workspace_db: Path) -> None:
     from app.workspace import service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# Article\nBody.", "trafilatura"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# Article\nBody.", "trafilatura"))
     r = service.intake_url(url="https://example.com/a", db_path=workspace_db)
     assert r["status"] == "candidate"
     job = service.intake_job(job_id=str(r["job_id"]), db_path=workspace_db)
@@ -89,7 +90,7 @@ def test_chain1_url_intake_persists_job_outbox_receipt(monkeypatch, workspace_db
 
 def test_chain1_second_url_intake_independent_package(monkeypatch, workspace_db: Path) -> None:
     from app.workspace import service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# B\nContent.", "trafilatura"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# B\nContent.", "trafilatura"))
     r1 = service.intake_url(url="https://a.com", db_path=workspace_db)
     r2 = service.intake_url(url="https://b.com", db_path=workspace_db)
     assert r1["package_id"] != r2["package_id"]
@@ -389,7 +390,7 @@ def test_chain6_permission_allowed_tools_match_request() -> None:
 
 def test_chain7_intake_dispatch_delivers_one(monkeypatch, full_db: Path) -> None:
     from app.workspace import outbox_dispatcher, research_consumer, service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# D", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# D"))
     service.intake_url(url="https://d.com", db_path=full_db)
     r = outbox_dispatcher.dispatch_once(
         db_path=full_db, worker_name="w",
@@ -401,7 +402,7 @@ def test_chain7_intake_dispatch_delivers_one(monkeypatch, full_db: Path) -> None
 
 def test_chain7_idle_after_all_delivered(monkeypatch, full_db: Path) -> None:
     from app.workspace import outbox_dispatcher, research_consumer, service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# D", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# D"))
     service.intake_url(url="https://d2.com", db_path=full_db)
     h = research_consumer.make_intake_research_handler(db_path=full_db, consumer_name="c")
     outbox_dispatcher.dispatch_once(db_path=full_db, worker_name="w", handler=h)
@@ -422,7 +423,7 @@ def test_chain7_empty_outbox_idle(tmp_path: Path) -> None:
 
 def test_chain7_invalid_handler_fails_closed(monkeypatch, workspace_db: Path) -> None:
     from app.workspace import outbox_dispatcher, service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# F", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# F"))
     service.intake_url(url="https://f.com", db_path=workspace_db)
     r = outbox_dispatcher.dispatch_once(db_path=workspace_db, worker_name="w", handler=lambda e: None)
     assert r["status"] == "failed"
@@ -430,7 +431,7 @@ def test_chain7_invalid_handler_fails_closed(monkeypatch, workspace_db: Path) ->
 
 def test_chain7_handler_wrong_event_id_fails(monkeypatch, workspace_db: Path) -> None:
     from app.workspace import outbox_dispatcher, service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# F2", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# F2"))
     service.intake_url(url="https://f2.com", db_path=workspace_db)
     r = outbox_dispatcher.dispatch_once(db_path=workspace_db, worker_name="w",
         handler=lambda e: {"event_id": "wrong", "lease_token": e["lease_token"], "proof": {"x": 1}})
@@ -439,7 +440,7 @@ def test_chain7_handler_wrong_event_id_fails(monkeypatch, workspace_db: Path) ->
 
 def test_chain7_receipt_persisted_after_delivery(monkeypatch, full_db: Path) -> None:
     from app.workspace import outbox_dispatcher, research_consumer, service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# R", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# R"))
     intake = service.intake_url(url="https://r.com", db_path=full_db)
     outbox_dispatcher.dispatch_once(
         db_path=full_db, worker_name="w",
@@ -457,7 +458,7 @@ def test_chain7_receipt_persisted_after_delivery(monkeypatch, full_db: Path) -> 
 
 def test_cross_product_dto_no_internal_ids(monkeypatch, workspace_db: Path) -> None:
     from app.workspace import router, service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# L", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# L"))
     internal = service.intake_url(url="https://l.com", db_path=workspace_db)
     product = router._product_intake_result(internal)
     pub = product.model_dump()
@@ -467,7 +468,7 @@ def test_cross_product_dto_no_internal_ids(monkeypatch, workspace_db: Path) -> N
 
 def test_cross_workspace_jobs_returns_projections(monkeypatch, full_db: Path) -> None:
     from app.workspace import outbox_dispatcher, research_consumer, service
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# J", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# J"))
     service.intake_url(url="https://j.com", db_path=full_db)
     outbox_dispatcher.dispatch_once(
         db_path=full_db, worker_name="w",

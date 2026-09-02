@@ -120,6 +120,31 @@ def test_batch_import_persists_originals_and_conversions_into_library(tmp_path: 
         assert "block_ids" not in anchor["locator"]
 
 
+def test_service_batch_ingest_preserves_and_records_one_local_file(tmp_path: Path) -> None:
+    """The router must not own the batch file write path."""
+    from app.workspace import service
+    from shared.migration_runner import MigrationOperator
+
+    database = tmp_path / "workspace.sqlite"
+    database.touch()
+    operator = MigrationOperator(
+        db_path=database, backup_dir=tmp_path / "workspace-backups"
+    )
+    operator.apply("research.sqlite")
+    operator.apply("workspace.sqlite")
+    source = tmp_path / "batch-source.md"
+    source.write_text("# Batch source\n\nSingle service command.", encoding="utf-8")
+
+    receipt = service.ingest_local_file(source_path=source, db_path=database)
+
+    assert receipt["result_digest"].startswith("converted:")
+    assert receipt["engine"] == "passthrough"
+    items = service.workspace_library(db_path=database)["items"]
+    assert len(items) == 1
+    assert items[0]["source_name"] == "batch-source.md"
+    assert items[0]["conversion_state"] == "retained"
+
+
 def test_batch_import_failure_retains_original_and_readable_reason(tmp_path: Path, monkeypatch) -> None:
     source = tmp_path / "imports"
     source.mkdir()

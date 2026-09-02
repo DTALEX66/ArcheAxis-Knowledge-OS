@@ -60,7 +60,10 @@ def resolve_ffmpeg() -> str | None:
     path_candidate = shutil.which("ffmpeg")
     if path_candidate:
         candidates.append(path_candidate)
-    external_root = os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+    external_root = (
+        os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+        or os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip()
+    )
     if external_root:
         root = Path(external_root)
         candidates.extend(

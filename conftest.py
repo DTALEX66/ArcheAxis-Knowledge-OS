@@ -25,6 +25,7 @@ for _name, _path in (
 
 _RUNTIME = TemporaryDirectory(prefix="archeaxis-pytest-", dir=_TASK_TMP)
 os.environ["ARCHEAXIS_DATA_DIR"] = _RUNTIME.name
+os.environ.pop("COGNITIVE_DATA_DIR", None)
 atexit.register(_RUNTIME.cleanup)
 
 

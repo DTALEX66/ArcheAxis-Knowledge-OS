@@ -1,14 +1,15 @@
 # 项目当前状态
 
-> **现场真值（2026-09-01）**：当前唯一的实时状态入口为
+> **现场真值（2026-09-02）**：当前唯一的实时状态入口为
 > [`current/CURRENT_REALITY_2026-09-01.md`](current/CURRENT_REALITY_2026-09-01.md)。
 > 它记录 `main`/`origin/main`、Green 运行目录、最新公开 Release 与精确 SHA CI
 > 的现场证据边界；历史 Release 收据和本页以下段落均不得替代 Git/GitHub 读回。
 
 > **最新公开 Release**：`v0.6.14 stable — RELEASED`（2026-08-29）。GitHub
 > Release 已读回 9 项公开资产；本机 Green `release-identity.json` 同样标识
-> `v0.6.14`。本轮 `0bb6e25` 是维护热修复，不创建版本、tag 或 Release；其
-> exact-SHA CI 必须以 Actions 的终态为准。
+> `v0.6.14`。当前维护主线为 `db13d056`，不创建版本、tag 或 Release；其
+> exact-SHA CI run `33521144084` 只通过路径选择的 `gateplan`、`lint` 与
+> `a0-gates`，不得表述为全量资格化成功。
 
 > **v0.6.10 发布裁决（2026-08-24）**：`v0.6.10 stable — RELEASED`。标签精确绑定 `3428a65cf6445918365f76b114cc11630d9640bb`；main CI `32665051446`、Release `32665840172`、三种 Windows 分发包生命周期和 9 项公开资产工作流读回均通过。该裁决只证明发布层；产品逐项结论仍为 `PARTIAL`，见 [`current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md`](current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md)。
 

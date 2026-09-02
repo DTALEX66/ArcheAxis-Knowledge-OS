@@ -11,12 +11,13 @@ def test_research_intake_consumer_writes_event_bound_receipt_before_delivery(mon
     from app.workspace.research_consumer import make_intake_research_handler
     from shared.migration_runner import MigrationOperator
     from tests.test_phase5_mcs_closed_loop import _database
+    from tests.workspace_capture_stub import capture_web_stub
 
     database = _database(tmp_path)
     MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
         "workspace.sqlite"
     )
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# Candidate\nEvidence body.", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# Candidate\nEvidence body."))
     intake = service.intake_url(url="https://example.com/consumer", db_path=database)
 
     result = dispatch_once(
@@ -44,12 +45,13 @@ def test_research_consumer_rejects_a_superseded_lease_before_writing_receipt(mon
     from app.workspace.research_consumer import make_intake_research_handler
     from shared.migration_runner import MigrationOperator
     from tests.test_phase5_mcs_closed_loop import _database
+    from tests.workspace_capture_stub import capture_web_stub
 
     database = _database(tmp_path)
     MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
         "workspace.sqlite"
     )
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# Candidate\nEvidence body.", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# Candidate\nEvidence body."))
     service.intake_url(url="https://example.com/superseded", db_path=database)
     with closing(sqlite3.connect(database)) as connection:
         event_id, payload_json = connection.execute(

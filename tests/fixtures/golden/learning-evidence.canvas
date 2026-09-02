@@ -1,0 +1,29 @@
+{
+  "nodes": [
+    {
+      "id": "source",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 120,
+      "text": "Synthetic learning source"
+    },
+    {
+      "id": "evidence",
+      "type": "text",
+      "x": 420,
+      "y": 0,
+      "width": 320,
+      "height": 120,
+      "text": "Synthetic evidence anchor"
+    }
+  ],
+  "edges": [
+    {
+      "id": "source-evidence",
+      "fromNode": "source",
+      "toNode": "evidence"
+    }
+  ]
+}

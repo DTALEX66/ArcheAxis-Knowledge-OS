@@ -162,7 +162,8 @@ def main() -> int:
     lifecycle_tmp.mkdir(parents=True, exist_ok=True)
 
     data_dir = lifecycle_tmp
-    os.environ["COGNITIVE_DATA_DIR"] = str(data_dir)
+    os.environ["ARCHEAXIS_DATA_DIR"] = str(data_dir)
+    os.environ.pop("COGNITIVE_DATA_DIR", None)
 
     db = data_dir / "cognitive_os.sqlite"
     # Remove any leftover from a previous run

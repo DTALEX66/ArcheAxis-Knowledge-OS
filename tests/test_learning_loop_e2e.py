@@ -6,7 +6,7 @@ One migrated runtime, one full chain:
     → distill (human expert) → rule + skill registered
     → trajectory (execution feedback) → reasoning principle
 
-Runs in a subprocess with COGNITIVE_DATA_DIR isolation (mirrors the existing
+Runs in a subprocess with ARCHEAXIS_DATA_DIR isolation (mirrors the existing
 research-facade E2E pattern). Failure anywhere fails the test.
 """
 from __future__ import annotations
@@ -20,7 +20,7 @@ from pathlib import Path
 def test_learning_loop_e2e(tmp_path: Path):
     runtime = tmp_path / "runtime"
     env = os.environ.copy()
-    env["COGNITIVE_DATA_DIR"] = str(runtime)
+    env["ARCHEAXIS_DATA_DIR"] = str(runtime)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
 
     code = textwrap.dedent(
@@ -29,10 +29,11 @@ def test_learning_loop_e2e(tmp_path: Path):
         from pathlib import Path
         from fastapi.testclient import TestClient
 
-        runtime = Path(os.environ["COGNITIVE_DATA_DIR"]).resolve()
+        runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"]).resolve()
         from shared import storage
         from app.runtime_entrypoint import run_migration
         from argparse import Namespace
+        assert storage.DB_PATH.resolve().is_relative_to(runtime)
         assert run_migration(Namespace()) == 0
 
         from app.main import app

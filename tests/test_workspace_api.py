@@ -5,6 +5,24 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 
+def _capture_web_stub(content: str, engine: str = "test"):
+    """Return a raw-first capture seam that writes the supplied test HTML."""
+    raw_html = f"<html><body>{content}</body></html>".encode("utf-8")
+
+    def capture(url, *, raw_store):
+        original = raw_store.store_original(raw_html, url, mime_type="text/html")
+        return {
+            "receipt": {
+                "final_url": url,
+                "raw_hash": original.sha256,
+                "engine": engine,
+            },
+            "text": content,
+        }
+
+    return capture
+
+
 def _loopback_write_request() -> object:
     from starlette.requests import Request
 
@@ -428,8 +446,9 @@ def test_workspace_status_returns_only_real_aggregate_state(monkeypatch, tmp_pat
     monkeypatch.setattr(router, "DB_PATH", database)
     monkeypatch.setattr(
         service,
-        "convert_url",
-        lambda _url: ("# Truthful workspace status\nVerified local content.", "test"),
+        "capture_web",
+        _capture_web_stub("# Truthful workspace status\nVerified local content."),
+        raising=False,
     )
     service.intake_url(url="https://example.com/truth", db_path=database)
 
@@ -565,13 +584,37 @@ def test_workspace_web_intake_persists_a_minimal_candidate_research_package(
     MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
         "workspace.sqlite"
     )
-    monkeypatch.setattr(service, "convert_url", lambda url: ("# Grounded article\nBody.", "safe-http-test"))
+
+    raw_html = b"<html><body>Grounded article raw snapshot.</body></html>"
+
+    def capture(url, *, raw_store):
+        original = raw_store.store_original(raw_html, url, mime_type="text/html")
+        return {
+            "receipt": {
+                "final_url": "https://example.com/final-article",
+                "raw_hash": original.sha256,
+                "engine": "safe-http+trafilatura",
+            },
+            "text": "# Grounded article\nBody.",
+        }
+
+    monkeypatch.setattr(service, "capture_web", capture, raising=False)
+    monkeypatch.setattr(
+        service,
+        "convert_url",
+        lambda _url: (_ for _ in ()).throw(AssertionError("web intake must use raw-first capture")),
+    )
 
     result = service.intake_url(url="https://example.com/article", db_path=database)
 
     assert result == {
         "source_type": "web",
-        "source": "https://example.com/article",
+        "source": "https://example.com/final-article",
+        "raw_sha256": result["raw_sha256"],
+        "format": "html",
+        "engine": "safe-http+trafilatura",
+        "content": "# Grounded article\nBody.",
+        "char_count": len("# Grounded article\nBody."),
         "package_id": result["package_id"],
         "job_id": result["job_id"],
         "status": "candidate",
@@ -581,9 +624,13 @@ def test_workspace_web_intake_persists_a_minimal_candidate_research_package(
         "evidence_count": 1,
     }
     package = get_research_package(result["package_id"], db_path=database)
-    assert package.canonical_url == "https://example.com/article"
-    assert package.sources[0].source_locator == "https://example.com/article"
+    assert package.canonical_url == "https://example.com/final-article"
+    assert package.sources[0].source_locator == f"local-asset://sha256/{result['raw_sha256']}"
     assert package.sources[0].content == "# Grounded article\nBody."
+    assert package.source_provenance[0].canonical_url == "https://example.com/final-article"
+    assert package.source_provenance[0].payload_role == "workspace_web_snapshot"
+    archive = tmp_path / "source_archive" / "raw-assets"
+    assert (archive / result["raw_sha256"]).read_bytes() == raw_html
 
     import sqlite3
     from contextlib import closing
@@ -623,7 +670,12 @@ def test_workspace_http_job_readback_reloads_package_and_rejects_tampering(
         "workspace.sqlite"
     )
     monkeypatch.setattr(router, "DB_PATH", database)
-    monkeypatch.setattr(service, "convert_url", lambda url: ("# Job readback\nBody.", "test"))
+    monkeypatch.setattr(
+        service,
+        "capture_web",
+        _capture_web_stub("# Job readback\nBody."),
+        raising=False,
+    )
 
     payload = service.intake_url(
         url="https://example.com/job-readback",
@@ -762,7 +814,12 @@ def test_workspace_intake_rolls_back_research_job_and_outbox_together(
     MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
         "workspace.sqlite"
     )
-    monkeypatch.setattr(service, "convert_url", lambda url: ("# Atomic article\nBody.", "test"))
+    monkeypatch.setattr(
+        service,
+        "capture_web",
+        _capture_web_stub("# Atomic article\nBody."),
+        raising=False,
+    )
     original = service.record_completed_command
 
     def fail_after_job_write(connection, **kwargs):
@@ -829,6 +886,40 @@ def test_workspace_upload_failure_removes_new_file_and_replay_reuses_content_pat
     assert replay["package_id"] == first["package_id"]
     assert first["raw_sha256"] == replay["raw_sha256"]
     assert len(list(upload_dir.iterdir())) == 1
+
+
+def test_workspace_upload_keeps_distinct_raw_assets_when_conversion_text_matches(
+    monkeypatch, tmp_path,
+) -> None:
+    """Different originals may share a transcript without collapsing into one intake graph."""
+    import sqlite3
+
+    from app.workspace import service
+    from shared.migration_runner import MigrationOperator
+    from tests.test_phase5_mcs_closed_loop import _database
+
+    database = _database(tmp_path)
+    MigrationOperator(db_path=database, backup_dir=tmp_path / "workspace-backups").apply(
+        "workspace.sqlite"
+    )
+    monkeypatch.setattr(
+        service,
+        "convert_file",
+        lambda _path: ("Learning evidence anchor", "faster-whisper/local-model"),
+    )
+
+    audio = service.intake_upload(
+        file_name="audio.wav", content=b"distinct-audio-source", db_path=database
+    )
+    video = service.intake_upload(
+        file_name="video.mp4", content=b"distinct-video-source", db_path=database
+    )
+
+    assert audio["raw_sha256"] != video["raw_sha256"]
+    assert audio["package_id"] != video["package_id"]
+    with sqlite3.connect(database) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM research_packages_v1").fetchone()[0] == 2
+        assert connection.execute("SELECT COUNT(*) FROM conversion_runs").fetchone()[0] == 2
 
 
 def test_concurrent_same_upload_keeps_successful_content_when_peer_fails(
@@ -1191,7 +1282,12 @@ def test_workspace_jobs_reads_live_wal_after_http_style_intake(monkeypatch, tmp_
     MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply(
         "workspace.sqlite"
     )
-    monkeypatch.setattr(service, "convert_url", lambda _: ("# live wal\nBody.", "test"))
+    monkeypatch.setattr(
+        service,
+        "capture_web",
+        _capture_web_stub("# live wal\nBody."),
+        raising=False,
+    )
 
     intake = service.intake_url(url="https://example.com/live-wal", db_path=database)
     writer = sqlite3.connect(database, timeout=30.0)

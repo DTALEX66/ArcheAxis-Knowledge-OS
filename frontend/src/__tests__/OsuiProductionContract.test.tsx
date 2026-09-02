@@ -20,7 +20,7 @@ describe("OSUI v3 production contract", () => {
     ]);
   });
 
-  it("renders the Archive Desk workbench instead of a generic status dashboard", () => {
+  it("renders the product workbench instead of a generic status dashboard", () => {
     render(<App />);
 
     expect(document.querySelector(".app-shell")).toBeInTheDocument();
@@ -107,5 +107,12 @@ describe("OSUI v3 production contract", () => {
     expect(screen.queryByRole("button", { name: "空间记忆" })).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("播放未开放");
     expect(document.body).not.toHaveTextContent("规划中");
+  });
+
+  it("keeps the product visual structure and accessible motion contract in production", () => {
+    render(<App />);
+
+    expect(document.querySelector(".status-bar-brand")).toBeInTheDocument();
+    expect(document.querySelector(".space-view[data-motion='enter']")).toBeInTheDocument();
   });
 });

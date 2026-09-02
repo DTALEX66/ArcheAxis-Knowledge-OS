@@ -75,10 +75,9 @@ def _failure_summary(output: str) -> str:
 
 
 def _project_runtime_root() -> Path:
-    common_dir = Path(
-        _git("rev-parse", "--path-format=absolute", "--git-common-dir")
-    )
-    return common_dir.parent / ".hermes" / "task-runtime"
+    """Keep pytest residue below this worktree, not the shared Git common dir."""
+
+    return ROOT / ".hermes" / "task-runtime"
 
 
 def _run_pytest(target: str) -> dict[str, object]:
@@ -236,7 +235,9 @@ def main() -> int:
     head = _git("rev-parse", "HEAD")
     output = args.output or ARTIFACT_ROOT / f"receipt-{head}.json"
     receipt = generate(output)
-    print(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True))
+    # Failure summaries may include replacement characters from child tools.
+    # ASCII JSON remains machine-readable on legacy Windows console encodings.
+    print(json.dumps(receipt, ensure_ascii=True, indent=2, sort_keys=True))
     return 0 if receipt["local_journey_status"] == "PASS" else 1
 
 

@@ -155,8 +155,8 @@ fn resolve_runtime_for_profile(
 #[cfg(test)]
 mod tests {
     use super::{
-        external_dev_enabled, portable_root_from_marker, resolve_runtime,
-        resolve_runtime_for_profile, resolve_runtime_with_portable_root, RuntimeSpec,
+        RuntimeSpec, external_dev_enabled, portable_root_from_marker, resolve_runtime,
+        resolve_runtime_for_profile, resolve_runtime_with_portable_root,
     };
     use std::ffi::OsStr;
     use std::fs;

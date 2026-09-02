@@ -10,6 +10,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,8 @@ _BROWSER_COMMANDS = (
     "chromium",
     "chromium-browser",
 )
+SCREENSHOT_READY_TIMEOUT_SECONDS = 8.0
+SCREENSHOT_READY_POLL_SECONDS = 0.1
 
 
 def find_browser() -> str:
@@ -79,6 +82,25 @@ def _browser_environment(out: Path) -> dict[str, str]:
     return environment
 
 
+def _has_nonempty_file(path: Path) -> bool:
+    try:
+        return path.is_file() and path.stat().st_size > 0
+    except OSError:
+        return False
+
+
+def _wait_for_screenshot(path: Path) -> bool:
+    """Allow Chromium launchers to hand capture to a child before cleanup."""
+
+    deadline = time.monotonic() + SCREENSHOT_READY_TIMEOUT_SECONDS
+    while True:
+        if _has_nonempty_file(path):
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(SCREENSHOT_READY_POLL_SECONDS)
+
+
 def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict[str, Any]:
     """Headless screenshot of a URL into a PNG file.
 
@@ -98,8 +120,12 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
             capture_output=True, timeout=60,
             env=_browser_environment(out),
         )
-        if not out.is_file() or out.stat().st_size == 0:
-            raise WebScreenshotError(f"screenshot failed: {proc.stderr.decode(errors='ignore')[:200]}")
+        if not _wait_for_screenshot(out):
+            stderr = proc.stderr.decode(errors="replace").strip()[:200]
+            detail = stderr or "browser exited without writing a PNG"
+            raise WebScreenshotError(
+                f"screenshot failed (exit_code={proc.returncode}): {detail}"
+            )
     finally:
         shutil.rmtree(profile, ignore_errors=True)
     return {

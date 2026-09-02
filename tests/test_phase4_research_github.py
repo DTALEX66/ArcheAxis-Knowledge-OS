@@ -830,6 +830,24 @@ def test_phase4_read_paths_fail_closed_without_mutating_live_sidecars(tmp_path: 
         assert {path: path.read_bytes() for path in sidecars} == snapshots
 
 
+def test_phase4_runtime_schema_guard_reads_live_wal_without_treating_it_as_readonly(
+    tmp_path: Path,
+) -> None:
+    """A live intake writer must not be blocked by its own active WAL sidecars."""
+    from shared import research_migration
+
+    database = tmp_path / "runtime.sqlite"
+    _prepare_research_schema(database)
+    writer = sqlite3.connect(database)
+    try:
+        writer.execute("PRAGMA journal_mode=WAL")
+        writer.execute("BEGIN IMMEDIATE")
+        research_migration.require_applied(db_path=database, live_wal=True)
+    finally:
+        writer.rollback()
+        writer.close()
+
+
 def test_phase4_research_schema_migration_status_backup_and_rollback(tmp_path: Path) -> None:
     from shared import research_migration
     from shared.migration_runner import MigrationOperator

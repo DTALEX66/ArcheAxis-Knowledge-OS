@@ -2,8 +2,17 @@
 
 - 当前轨道：canonical React/Tauri 单壳收敛已实现，当前分支待原生 WebView / installer / exact-SHA 验证
 - 生产入口：主 Tauri React WebView；`/workspace` 产品页返回 410，仅保留 `/workspace/api/*`
-- 设计底座：Archive Desk + Liquid Glass
+- 设计底座：黑白深色基线（黑底、白灰结构、低饱和状态色）
 - 语言：中文优先
+
+## 视觉权威与历史参考
+
+- 黑白深色基线是当前默认主题；不写入 `data-theme`，不得把白底、深绿、青绿或玻璃覆盖层
+  作为默认视觉重新引入。
+- Archive Desk / Liquid Glass 是历史参考，不是默认主题。任何未来吸收都必须先有独立设计
+  决策、可访问性/性能验收和用户明确确认；不得借“路线图”或旧截图直接替换生产界面。
+- `frontend/src/design-system/tokens.css` 与主 Tauri 的可见运行时回读优先于旧 UI 方案、历史
+  handoff 或原型文档；视觉证据必须区分源码浏览器、Tauri/Green WebView 和已安装产品路径。
 
 ## 已运行底座
 
@@ -60,6 +69,7 @@
 - [x] React Library 接入原件阅读与页级 EvidenceAnchor 投影。
 - [x] API 2xx DTO 运行时校验、Setup preflight 门禁、Intake 错误脱敏。
 - [x] Tauri Recovery WebView 先启动、Core 异步启动。
+- [x] 离线黑白深色 token：不加载网络字体、不保留紫色主强调色；命令面板仅在显式打开时成为模态遮罩，含 reduced-motion 降级。
 - [ ] 当前分支 Windows Rust/原生 WebView/NSIS/exact-SHA/人工视觉复审。
 
 实施与对标来源：[`FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](FRONTEND_CONSOLIDATION_V1_2026-08-28.md)。

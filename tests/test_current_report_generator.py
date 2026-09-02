@@ -10,6 +10,7 @@ from scripts.generate_current_reports import (
     DEFAULT_OUTPUT_DIR,
     DEFAULT_RELEASE_EVIDENCE,
     DEFAULT_TASKPACK_BASELINE,
+    HISTORICAL_RELEASE_EVIDENCE,
     ROOT,
     generate,
     load_release_evidence,
@@ -20,7 +21,7 @@ def test_current_report_generator_emits_exact_sha_bound_reports(tmp_path: Path) 
     generate(
         tmp_path,
         DEFAULT_TASKPACK_BASELINE,
-        release_evidence=DEFAULT_RELEASE_EVIDENCE,
+        release_evidence=HISTORICAL_RELEASE_EVIDENCE,
     )
 
     baseline = json.loads((tmp_path / "CLOUD_BASELINE.json").read_text(encoding="utf-8"))
@@ -52,7 +53,7 @@ def test_default_current_report_output_is_an_ignored_project_artifact() -> None:
 def test_release_evidence_loader_rejects_equal_ci_and_release_runs(
     tmp_path: Path,
 ) -> None:
-    payload = json.loads(DEFAULT_RELEASE_EVIDENCE.read_text(encoding="utf-8"))
+    payload = json.loads(HISTORICAL_RELEASE_EVIDENCE.read_text(encoding="utf-8"))
     payload["runs"]["release"]["id"] = payload["runs"]["verification_ci"]["id"]
     invalid = tmp_path / "invalid-release-evidence.json"
     invalid.write_text(json.dumps(payload), encoding="utf-8")
@@ -81,9 +82,27 @@ def test_current_reports_do_not_claim_exact_match_for_a_dirty_worktree(
     assert baseline["worktree_clean"] is False
     assert baseline["head_matches_origin_main"] is False
     assert baseline["release"] == {
-        "version": "0.6.9",
-        "state": "development",
+        "version": None,
+        "state": "unknown",
         "evidence_level": "NOT_EXECUTED",
     }
     assert exact["worktree_clean"] is False
     assert exact["match"] is False
+
+
+def test_default_report_does_not_promote_historical_release_evidence(
+    tmp_path: Path,
+) -> None:
+    generate(tmp_path, DEFAULT_TASKPACK_BASELINE, release_evidence=DEFAULT_RELEASE_EVIDENCE)
+
+    baseline = json.loads((tmp_path / "CLOUD_BASELINE.json").read_text(encoding="utf-8"))
+    matrix = json.loads((tmp_path / "CURRENT_CAPABILITY_MATRIX.json").read_text(encoding="utf-8"))
+
+    assert DEFAULT_RELEASE_EVIDENCE is None
+    assert baseline["release"] == {
+        "version": None,
+        "state": "unknown",
+        "evidence_level": "NOT_EXECUTED",
+    }
+    assert matrix["release_gate"] == "NOT_EXECUTED"
+    assert matrix["release_evidence"] is None

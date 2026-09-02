@@ -3,8 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from scripts.generate_current_reports import load_release_evidence
+
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT = ROOT / "reports" / "release" / "v0.6.7" / "release-evidence.json"
+V0614_RECEIPT = ROOT / "reports" / "release" / "v0.6.14" / "release-evidence.json"
 
 EXPECTED_ASSETS = {
     "ArcheAxis.Knowledge-v0.6.7-Windows-x64-Green.zip",
@@ -72,6 +75,31 @@ def test_v067_release_receipt_records_all_dependency_lock_hashes() -> None:
         "This receipt proves the v0.6.7 release and named lifecycle/readback gates only.",
         "It does not promote incomplete product capabilities or deferred roadmap items.",
     ]
+
+
+def test_v0614_release_receipt_binds_readback_to_its_exact_tag_and_runs() -> None:
+    receipt = load_release_evidence(V0614_RECEIPT)
+
+    assert receipt["release"]["tag"] == "v0.6.14"
+    assert receipt["source"] == {
+        "commit_sha": "c202c5b5a4789f0dc21accaa7ccbfed4676f0573",
+        "tree_sha": "8150692f81883f647806bdb234cedf7d20b31aa1",
+    }
+    assert receipt["runs"]["verification_ci"]["id"] == 33261549586
+    assert receipt["runs"]["release"]["id"] == 33262172637
+    assert receipt["runs"]["verification_ci"]["conclusion"] == "success"
+    assert receipt["runs"]["release"]["conclusion"] == "success"
+    assert {asset["name"] for asset in receipt["assets"]} == {
+        "ArcheAxis.Knowledge-v0.6.14-Windows-x64-Green.zip",
+        "ArcheAxis.Knowledge-v0.6.14-Windows-x64-Portable.zip",
+        "ArcheAxis.Knowledge-v0.6.14-Windows-x64-Setup.exe",
+        "archeaxis_workspace-0.6.14-py3-none-any.whl",
+        "release-identity.json",
+        "release-manifest.json",
+        "SBOM.cdx.json",
+        "SHA256SUMS.txt",
+        "THIRD_PARTY_NOTICES.txt",
+    }
 
 
 def test_v068_release_receipt_binds_exact_main_ci_release_and_assets() -> None:

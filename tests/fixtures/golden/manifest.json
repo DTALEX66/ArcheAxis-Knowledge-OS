@@ -1,0 +1,95 @@
+{
+  "schema_version": "g0-fixture-manifest-v1",
+  "fixtures": {
+    "golden-journey-evidence.pdf": {
+      "format": "pdf",
+      "sha256": "0f0ffc50c79d9d977efb925351ca1d64a063184e4bdd71507b9ac44992f7adcf",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {
+        "page_count": 1,
+        "text": "Golden Journey Evidence",
+        "anchor": "page_number=1"
+      }
+    },
+    "learning-evidence.canvas": {
+      "format": "json-canvas",
+      "sha256": "79f3decaf1398fada1cd2b4f6b85bcad5a37a62e4beac8cdd0c7b7ed098540f5",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {
+        "nodes": ["source", "evidence"],
+        "edges": ["source-evidence"]
+      }
+    },
+    "golden-screenshot-ocr.png": {
+      "format": "image/png",
+      "sha256": "050538c71fc63ee2d0e8327f2fbdffad6f8cab135d35069aa86dc371300f68c8",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {
+        "text": "OCR GOLDEN ANCHOR",
+        "anchor": "image_region=full",
+        "engine": "pytesseract+tesseract",
+        "language": "eng"
+      }
+    },
+    "golden-audio-anchor.wav": {
+      "format": "audio/wav",
+      "sha256": "9f0297fb94b378d742772caede9bf5302813775c80ebb1bcead0fee4ec30e9bd",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {
+        "text": "Learning evidence anchor",
+        "anchor": "time_range=start_s/end_s",
+        "engine": "local-asr"
+      }
+    },
+    "golden-video-anchor.mp4": {
+      "format": "video/mp4",
+      "sha256": "7ec5d082608cb4fc190b67ca245b8d1d9d1c8d036b9291bd16b89b55abcf2ddb",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {
+        "text": "Learning evidence anchor",
+        "anchor": "time_range=start_s/end_s",
+        "engine": "local-asr"
+      }
+    },
+    "golden-text-anchor.txt": {
+      "format": "text/plain",
+      "sha256": "36bfbbcdb2d4137343d41fa843cb561962aa411ae5cb5128eebce9620e0e118d",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {"text": "Plaintext evidence anchor", "anchor": "line_number=1"}
+    },
+    "golden-web-anchor.html": {
+      "format": "text/html",
+      "sha256": "e997211f4343167b93c9abba0e8f2a59c65972abdfb9639c0e5e7b81d51f4bb5",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {"text": "Web evidence anchor", "anchor": "source=main-content"}
+    },
+    "golden-docx-anchor.docx": {
+      "format": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "sha256": "6356fbba83f683723a3d202a443af2d10ad5957dc2b7be2d275be0247349855b",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {"text": "Document evidence anchor", "anchor": "source_md=# Document evidence anchor"}
+    },
+    "golden-pptx-anchor.pptx": {
+      "format": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "sha256": "461e7fac8132e74ae142e35b77acf434ca90e8892a71f97b27230e6f69325eeb",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {"text": "Slide evidence anchor", "anchor": "slide_number=1"}
+    },
+    "golden-xlsx-anchor.xlsx": {
+      "format": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "sha256": "c70fd35b6cb3d18a6a8779c1fab21c312ba03fc07893ccaff422a5ea9be0466a",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "expected": {"text": "Sheet evidence anchor", "anchor": "sheet=Evidence"}
+    }
+  }
+}

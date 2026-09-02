@@ -11,13 +11,12 @@ export function ContextNav({ active, onNavigate }: { active: SpaceId; onNavigate
         <p>{current.description}</p>
       </header>
       <ul>
-        {RELATED[active].map((id) => {
+        {RELATED[active].filter((id) => id !== active).map((id) => {
           const space = SPACES.find((item) => item.id === id)!;
           return (
             <li key={id}>
               <button
                 type="button"
-                aria-current={id === active ? "page" : undefined}
                 onClick={() => onNavigate(id)}
               >
                 <span aria-hidden="true" style={{ width: 18, opacity: 0.7 }}>{space.icon}</span>

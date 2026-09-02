@@ -1090,9 +1090,6 @@ def _batch_ledger(batch_id: str) -> Path:
 # Active background batch controllers (AXW-096C pause/resume/shutdown).
 _ACTIVE_BATCHES: dict[str, Any] = {}
 _BATCH_LOCK = threading.Lock()
-# Serialises SQLite schema + receipt writes across batch worker threads; the
-# ingestion receipts (conversion runs, evidence anchors) share one local DB.
-_BATCH_DB_LOCK = threading.Lock()
 
 
 @router.post("/api/exchange/export")
@@ -1241,77 +1238,12 @@ def workspace_batch_import(payload: BatchImportRequest, request: Request) -> dic
     controller.add_tasks(rel_tasks)
 
     def convert_worker(rel_path: str) -> dict[str, str]:
-        """Preserve one original in the Source Archive, convert it, and record
-        an immutable ConversionRun plus EvidenceAnchor.
-
-        A failed conversion still retains the original bytes with a durable,
-        readable failure reason — batch intake is a real pipeline stage, not a
-        dead-end artifacts directory.
-        """
-        from app.evidence.anchor import (
-            build_evidence_anchor,
-            ensure_evidence_anchor_schema,
-            store_evidence_anchor,
-        )
-        from app.ingestion.conversion_run import (
-            ensure_conversion_run_schema,
-            store_conversion_run,
-        )
-        from app.ingestion.multi_format import convert_file, detect_format
-        from app.ingestion.raw_asset import RawAssetStore
-        from app.ingestion.structured_conversion import build_workspace_conversion_run
-
+        """Delegate batch file writes to the service-owned product boundary."""
         source = source_root / rel_path
         try:
-            raw_store = RawAssetStore(root=service._source_archive_root(Path(DB_PATH)))
-        except Exception as exc:  # noqa: BLE001 - store is unavailable; surface a safe reason
-            raise RuntimeError(service._sanitize_conversion_error(f"{rel_path}: {exc}")) from None
-        try:
-            blob = source.read_bytes()
-        except OSError as exc:
-            raise RuntimeError(service._sanitize_conversion_error(f"{rel_path}: {exc}")) from None
-        if not blob:
-            raise RuntimeError(f"{rel_path}: empty file")
-        try:
-            raw = raw_store.store_original(blob, Path(rel_path).name)
-        except Exception as exc:  # noqa: BLE001 - preserve every failure reason
-            raise RuntimeError(service._sanitize_conversion_error(f"{rel_path}: {exc}")) from None
-        try:
-            markdown, engine = convert_file(source)
-            source_format = detect_format(source)
-        except Exception as exc:  # noqa: BLE001 - preserve every failure reason
-            reason = service._sanitize_conversion_error(f"{rel_path}: {exc}")
-            raw_store._record_failure(raw.sha256, raw.source_name, reason)
-            raise RuntimeError(reason) from None
-        try:
-            conversion_run = build_workspace_conversion_run(
-                source_path=source,
-                raw_sha256=raw.sha256,
-                source_name=Path(rel_path).name,
-                source_format=source_format,
-                converted_content=markdown,
-                extractor_identity=engine,
-            )
-            anchor = build_evidence_anchor(
-                raw_sha256=raw.sha256,
-                source_revision=conversion_run.run_id,
-                locator={
-                    "conversion_run_id": conversion_run.run_id,
-                    "derived_document_id": conversion_run.document.document_id,
-                    "source_format": source_format,
-                    "block_ids": [block.block_id for block in conversion_run.blocks],
-                },
-            )
-            with _BATCH_DB_LOCK:
-                ensure_conversion_run_schema(DB_PATH)
-                ensure_evidence_anchor_schema(DB_PATH)
-                store_conversion_run(DB_PATH, conversion_run)
-                store_evidence_anchor(DB_PATH, anchor)
+            return service.ingest_local_file(source_path=source, db_path=DB_PATH)
         except Exception as exc:  # noqa: BLE001 - keep the original, record failure
-            reason = service._sanitize_conversion_error(f"{rel_path}: {exc}")
-            raw_store._record_failure(raw.sha256, raw.source_name, reason)
-            raise RuntimeError(reason) from None
-        return {"result_digest": f"converted:{raw.sha256}", "engine": engine}
+            raise RuntimeError(service._sanitize_conversion_error(f"{rel_path}: {exc}")) from None
 
     def run_batch() -> None:
         try:

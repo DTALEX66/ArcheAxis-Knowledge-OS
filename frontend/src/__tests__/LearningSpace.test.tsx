@@ -20,6 +20,8 @@ describe("LearningSpace", () => {
   it("renders the three learning tabs", () => {
     render(<LearningSpace />);
     expect(screen.getByRole("heading", { name: "学习" })).toBeInTheDocument();
+    expect(screen.getByText("人类学习库：安排复习、记录理解与检验表达。")).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("FSRS");
     expect(screen.getByRole("button", { name: "复习队列" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "掌握度" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "复述检验" })).toBeInTheDocument();
@@ -78,7 +80,7 @@ describe("LearningSpace", () => {
 
     await user.type(screen.getByLabelText("概念"), "BKT");
     await user.type(screen.getByLabelText("你的复述"), "BKT 是隐马尔可夫模型，有猜和滑参数。");
-    await user.type(screen.getByLabelText("参考答案"), "BKT 是隐马尔可夫模型，掌握度是后验概率。");
+    await user.type(screen.getByLabelText("核对依据（已验证的资料要点）"), "BKT 是隐马尔可夫模型，掌握度是后验概率。");
     await user.click(screen.getByRole("button", { name: "评分" }));
 
     await waitFor(() => {

@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from scripts import generate_golden_journey_receipt as receipt_generator
+from scripts.generate_current_reports import HISTORICAL_RELEASE_EVIDENCE
 
 
 def test_golden_journey_runner_uses_project_local_short_basetemp(
@@ -28,6 +29,16 @@ def test_golden_journey_runner_uses_project_local_short_basetemp(
     basetemp = Path(command[command.index("--basetemp") + 1])
     assert basetemp.parent == tmp_path
     assert basetemp.name.startswith("g-")
+
+
+def test_golden_journey_runtime_root_belongs_to_the_current_worktree(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(receipt_generator, "ROOT", tmp_path)
+
+    assert receipt_generator._project_runtime_root() == (
+        tmp_path / ".hermes" / "task-runtime"
+    )
 
 
 def test_golden_journey_receipt_cli_can_be_invoked_as_a_script() -> None:
@@ -74,6 +85,7 @@ def test_golden_journey_receipt_is_sha_bound_and_remains_partial(
             "exit_code": 0,
             "duration_seconds": 0.1,
         },
+        release_evidence=HISTORICAL_RELEASE_EVIDENCE,
     )
 
     persisted = json.loads((tmp_path / "receipt.json").read_text(encoding="utf-8"))
@@ -95,6 +107,26 @@ def test_golden_journey_receipt_is_sha_bound_and_remains_partial(
         "tier_a_ingestion_matrix": "NOT_EXECUTED",
         "three_distribution_lifecycle": "PASS_EXTERNAL_EVIDENCE",
     }
+
+
+def test_golden_journey_default_does_not_promote_historical_release_evidence(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        receipt_generator,
+        "_git",
+        lambda *args: "" if args == ("status", "--porcelain") else "sha",
+    )
+
+    receipt = receipt_generator.generate(
+        tmp_path / "receipt.json",
+        test_targets=(),
+        artifact_root=tmp_path,
+    )
+
+    assert receipt["release_gate"] == "NOT_EXECUTED"
+    assert receipt["release_evidence"] is None
+    assert receipt["coverage"]["three_distribution_lifecycle"] == "NOT_EXECUTED"
 
 
 def test_golden_journey_receipt_rejects_output_outside_artifact_root(

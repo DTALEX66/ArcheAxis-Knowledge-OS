@@ -292,6 +292,7 @@ def _assert_stage_evidence_ledger(
     ws: AxwWorkspace, artifacts: dict[str, object], *, marker: str
 ) -> None:
     from app.evidence.anchor import list_evidence_anchors, resolve_evidence_anchor
+    from app.research.document import WORKSPACE_RAW_ASSET_ROLE
 
     graph = artifacts["graph"]
     source = artifacts["source"]
@@ -304,8 +305,9 @@ def _assert_stage_evidence_ledger(
     content_bytes = source.content.encode("utf-8")
     assert provenance.content_hash == f"sha256:{sha256(content_bytes).hexdigest()}"
     assert provenance.byte_length == len(content_bytes)
-    assert provenance.collector_identity == "workspace-local-intake-v1"
-    assert provenance.payload_role == "workspace_document"
+    assert provenance.collector_identity == "workspace-raw-asset-intake-v1"
+    assert provenance.payload_role == WORKSPACE_RAW_ASSET_ROLE
+    assert source.source_locator.startswith("local-asset://sha256/")
     assert claim.status == "candidate"
     assert claim.requires_human_review is True
     assert claim.source_record_ids == [source.source_id]

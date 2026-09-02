@@ -6,6 +6,7 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from app.adapters.research_package import build_candidate_research_package
 from app.contracts.v1 import CONTRACT_VERSION, ClaimV1, EvidenceV1, SourceRecordV1
@@ -19,7 +20,9 @@ from shared.research_store import (
 from shared.stable_hash import stable_hash_text
 
 WORKSPACE_DOCUMENT_ROLE = "workspace_document"
+WORKSPACE_RAW_ASSET_ROLE = "workspace_raw_asset_document"
 WORKSPACE_WEB_ROLE = "workspace_web_document"
+WORKSPACE_WEB_SNAPSHOT_ROLE = "workspace_web_snapshot"
 
 
 def _now_utc() -> str:
@@ -47,6 +50,7 @@ def build_workspace_document_graph(
     source_format: str,
     extractor_identity: str,
     source_locator: str | None = None,
+    raw_asset_sha256: str | None = None,
     created_at: str | None = None,
 ) -> ResearchPackageGraph:
     """Build one deterministic, review-required package from a local converted document."""
@@ -55,12 +59,40 @@ def build_workspace_document_graph(
     content_bytes = content.encode("utf-8")
     digest = hashlib.sha256(content_bytes).hexdigest()
     content_hash = f"sha256:{digest}"
-    locator = source_locator or f"local-content://sha256/{digest}"
-    payload_role = WORKSPACE_WEB_ROLE if source_locator else WORKSPACE_DOCUMENT_ROLE
-    collector_identity = "workspace-web-intake-v1" if source_locator else "workspace-local-intake-v1"
-    source_group_id = _id("source_group", locator)
-    source_id = _id("source", locator, content_hash)
-    package_id = _id("research_package", locator, content_hash)
+    if raw_asset_sha256:
+        if len(raw_asset_sha256) != 64 or any(char not in "0123456789abcdef" for char in raw_asset_sha256):
+            raise ValueError("workspace raw asset identity must be a lowercase SHA-256 digest")
+        raw_locator = f"local-asset://sha256/{raw_asset_sha256}"
+        if source_locator:
+            parsed = urlsplit(source_locator)
+            if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+                raise ValueError("workspace web snapshot requires an absolute http(s) canonical URL")
+            canonical_url = source_locator
+            locator = raw_locator
+            payload_role = WORKSPACE_WEB_SNAPSHOT_ROLE
+            collector_identity = "workspace-web-snapshot-intake-v1"
+        else:
+            canonical_url = raw_locator
+            locator = raw_locator
+            payload_role = WORKSPACE_RAW_ASSET_ROLE
+            collector_identity = "workspace-raw-asset-intake-v1"
+    elif source_locator:
+        canonical_url = source_locator
+        locator = source_locator
+        payload_role = WORKSPACE_WEB_ROLE
+        collector_identity = "workspace-web-intake-v1"
+    else:
+        canonical_url = f"local-content://sha256/{digest}"
+        locator = f"local-content://sha256/{digest}"
+        payload_role = WORKSPACE_DOCUMENT_ROLE
+        collector_identity = "workspace-local-intake-v1"
+    source_group_id = _id("source_group", canonical_url)
+    if payload_role == WORKSPACE_WEB_SNAPSHOT_ROLE:
+        source_id = _id("source", canonical_url, raw_asset_sha256, content_hash)
+        package_id = _id("research_package", canonical_url, raw_asset_sha256, content_hash)
+    else:
+        source_id = _id("source", locator, content_hash)
+        package_id = _id("research_package", locator, content_hash)
     statement, matched_term = _first_claim(content)
     claim_id = _id("claim", package_id, statement, [source_id])
     evidence_id = _id(
@@ -79,7 +111,7 @@ def build_workspace_document_graph(
     )
     provenance = SourceProvenanceRecord(
         source_id=source_id,
-        canonical_url=locator,
+        canonical_url=canonical_url,
         source_group_id=source_group_id,
         source_locator=locator,
         retrieved_at=timestamp,
@@ -138,8 +170,8 @@ def build_workspace_document_graph(
         created_at=timestamp,
     )
     return ResearchPackageGraph(
-        canonical_url=locator,
-        intake_id=_id("intake", locator),
+        canonical_url=canonical_url,
+        intake_id=_id("intake", canonical_url),
         package=package,
         sources=[source],
         source_provenance=[provenance],
@@ -156,29 +188,69 @@ def validate_workspace_document_graph(graph: ResearchPackageGraph) -> None:
         raise ValueError("workspace document graph must contain exactly one source")
     source = graph.sources[0]
     provenance = graph.source_provenance[0]
-    if provenance.payload_role not in {WORKSPACE_DOCUMENT_ROLE, WORKSPACE_WEB_ROLE}:
+    if provenance.payload_role not in {
+        WORKSPACE_DOCUMENT_ROLE,
+        WORKSPACE_RAW_ASSET_ROLE,
+        WORKSPACE_WEB_ROLE,
+        WORKSPACE_WEB_SNAPSHOT_ROLE,
+    }:
         raise ValueError("workspace document graph has an invalid payload role")
     content_bytes = source.content.encode("utf-8")
     digest = hashlib.sha256(content_bytes).hexdigest()
     content_hash = f"sha256:{digest}"
     if provenance.payload_role == WORKSPACE_WEB_ROLE:
+        canonical_url = graph.canonical_url
         locator = graph.canonical_url
         if provenance.collector_identity != "workspace-web-intake-v1":
             raise ValueError("workspace web collector identity is invalid")
+    elif provenance.payload_role == WORKSPACE_WEB_SNAPSHOT_ROLE:
+        canonical_url = graph.canonical_url
+        parsed = urlsplit(canonical_url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            raise ValueError("workspace web snapshot canonical URL is invalid")
+        locator = source.source_locator
+        raw_prefix = "local-asset://sha256/"
+        raw_sha256 = locator.removeprefix(raw_prefix)
+        if (
+            not locator.startswith(raw_prefix)
+            or len(raw_sha256) != 64
+            or any(char not in "0123456789abcdef" for char in raw_sha256)
+        ):
+            raise ValueError("workspace web snapshot raw asset locator is invalid")
+        if provenance.collector_identity != "workspace-web-snapshot-intake-v1":
+            raise ValueError("workspace web snapshot collector identity is invalid")
+    elif provenance.payload_role == WORKSPACE_RAW_ASSET_ROLE:
+        canonical_url = graph.canonical_url
+        locator = graph.canonical_url
+        raw_prefix = "local-asset://sha256/"
+        raw_sha256 = locator.removeprefix(raw_prefix)
+        if (
+            not locator.startswith(raw_prefix)
+            or len(raw_sha256) != 64
+            or any(char not in "0123456789abcdef" for char in raw_sha256)
+        ):
+            raise ValueError("workspace raw asset locator is invalid")
+        if provenance.collector_identity != "workspace-raw-asset-intake-v1":
+            raise ValueError("workspace raw asset collector identity is invalid")
     else:
+        canonical_url = f"local-content://sha256/{digest}"
         locator = f"local-content://sha256/{digest}"
         if provenance.collector_identity != "workspace-local-intake-v1":
             raise ValueError("workspace document collector identity is invalid")
-    if graph.canonical_url != locator or source.source_locator != locator:
+    if graph.canonical_url != canonical_url or source.source_locator != locator:
         raise ValueError("workspace document locator does not match content")
-    if provenance.canonical_url != locator or provenance.source_locator != locator:
+    if provenance.canonical_url != canonical_url or provenance.source_locator != locator:
         raise ValueError("workspace document provenance locator does not match content")
-    source_group_id = _id("source_group", locator)
-    source_id = _id("source", locator, content_hash)
-    package_id = _id("research_package", locator, content_hash)
+    source_group_id = _id("source_group", canonical_url)
+    if provenance.payload_role == WORKSPACE_WEB_SNAPSHOT_ROLE:
+        source_id = _id("source", canonical_url, raw_sha256, content_hash)
+        package_id = _id("research_package", canonical_url, raw_sha256, content_hash)
+    else:
+        source_id = _id("source", locator, content_hash)
+        package_id = _id("research_package", locator, content_hash)
     if provenance.source_group_id != source_group_id or source.source_id != source_id:
         raise ValueError("workspace document source identity does not match content")
-    if graph.package.package_id != package_id or graph.intake_id != _id("intake", locator):
+    if graph.package.package_id != package_id or graph.intake_id != _id("intake", canonical_url):
         raise ValueError("workspace document package identity does not match content")
     for claim in graph.claims:
         if claim.claim_id != _id("claim", package_id, claim.statement, claim.source_record_ids):
@@ -222,6 +294,7 @@ def persist_workspace_document(
     extractor_identity: str,
     db_path: str | Path,
     source_locator: str | None = None,
+    raw_asset_sha256: str | None = None,
     before_commit: ResearchBeforeCommit | None = None,
 ) -> ResearchPackageGraph:
     graph = build_workspace_document_graph(
@@ -230,5 +303,6 @@ def persist_workspace_document(
         source_format=source_format,
         extractor_identity=extractor_identity,
         source_locator=source_locator,
+        raw_asset_sha256=raw_asset_sha256,
     )
     return persist_research_graph(graph, db_path=db_path, before_commit=before_commit)

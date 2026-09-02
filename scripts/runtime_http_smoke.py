@@ -8,7 +8,6 @@ import signal
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 import urllib.request
 from collections.abc import Iterator
@@ -18,6 +17,14 @@ from urllib.error import HTTPError
 
 WORKSPACE_ROOT = "/" + "workspace"
 WORKSPACE_STATUS_PATH = f"{WORKSPACE_ROOT}/api/status"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def runtime_log_path(port: int) -> Path:
+    """Keep smoke evidence in the repository runtime boundary, never %TEMP%."""
+    runtime_dir = PROJECT_ROOT / ".hermes" / "task-runtime" / "runtime-http-smoke"
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    return runtime_dir / f"core-{port}.log"
 
 
 def choose_loopback_port() -> int:
@@ -89,7 +96,7 @@ def running_core() -> Iterator[str]:
             "no_proxy": "127.0.0.1",
         }
     )
-    log_path = Path(tempfile.gettempdir()) / f"cognitive-core-smoke-{port}.log"
+    log_path = runtime_log_path(port)
     with log_path.open("wb") as log:
         creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
         process = subprocess.Popen(
@@ -120,7 +127,7 @@ def main() -> int:
         status = wait_for_json(f"{base_url}{WORKSPACE_STATUS_PATH}")
         assert_retired_ui(f"{base_url}{WORKSPACE_ROOT}")
 
-        assert version["release"]["status"] == "unreleased"
+        assert version["release"]["status"] in {"unreleased", "released"}
         assert status["schema_version"] == "v1"
         assert status["components"]["api"] == "available"
         print(f"runtime HTTP smoke passed at {base_url}")

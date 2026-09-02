@@ -687,6 +687,9 @@ class TestValidateEvaluationSchema:
 
 class TestDefaultArtifactDir:
     def test_resolves_from_env(self, monkeypatch, tmp_path):
+        # The production resolver prefers the canonical ARCHEAXIS_* contract.
+        # Remove the session-level canonical root before covering legacy fallback.
+        monkeypatch.delenv("ARCHEAXIS_DATA_DIR", raising=False)
         monkeypatch.setenv("COGNITIVE_DATA_DIR", str(tmp_path / "cognitive-data"))
         result = default_artifact_dir()
         path_str = str(result)
@@ -694,10 +697,10 @@ class TestDefaultArtifactDir:
         assert result.exists()
 
     def test_resolves_from_cwd(self, tmp_path, monkeypatch):
-        # Simulate a subproject by overriding COGNITIVE_DATA_DIR
+        # Simulate a subproject through the canonical runtime contract.
         sub = tmp_path / "subproject"
         sub.mkdir(parents=True)
-        monkeypatch.setenv("COGNITIVE_DATA_DIR", str(sub))
+        monkeypatch.setenv("ARCHEAXIS_DATA_DIR", str(sub))
         result = default_artifact_dir()
         path_str = str(result)
         assert str(sub) in path_str

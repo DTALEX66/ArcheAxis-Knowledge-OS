@@ -368,8 +368,13 @@ def migrate(
     return run
 
 
-def status(*, db_path: str | Path) -> dict[str, object]:
-    """Return Phase 4 research schema migration state without changing the database."""
+def status(*, db_path: str | Path, live_wal: bool = False) -> dict[str, object]:
+    """Return Phase 4 research schema state without changing the database.
+
+    Offline consumers use an immutable checkpointed reader.  A live product
+    process may instead opt into a query-only reader so its own WAL sidecars
+    cannot turn an otherwise applied schema into a false read-only failure.
+    """
 
     database = Path(db_path)
     if not database.is_file():
@@ -382,7 +387,8 @@ def status(*, db_path: str | Path) -> dict[str, object]:
             ],
             "applied_list": [],
         }
-    with closing(_connect_readonly(database)) as connection:
+    connector = _connect_consumer_readonly if live_wal else _connect_readonly
+    with closing(connector(database)) as connection:
         _validate_readonly(connection, database)
         pending = _pending(connection)
         applied = not pending
@@ -401,11 +407,16 @@ def status(*, db_path: str | Path) -> dict[str, object]:
     }
 
 
-def require_applied(*, db_path: str | Path) -> None:
-    """Validate the research schema read-only; never create or migrate it."""
+def require_applied(*, db_path: str | Path, live_wal: bool = False) -> None:
+    """Validate the research schema without creating or migrating it.
+
+    ``live_wal`` is reserved for an in-process product writer that already
+    owns the database.  The default remains the immutable offline guard.
+    """
 
     database = Path(db_path)
     if not database.is_file():
         raise RuntimeError("phase4 research schema migration is pending")
-    with closing(_connect_readonly(database)) as connection:
+    connector = _connect_consumer_readonly if live_wal else _connect_readonly
+    with closing(connector(database)) as connection:
         _require_applied_connection(connection, database)

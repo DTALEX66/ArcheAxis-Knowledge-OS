@@ -87,8 +87,8 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 - **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **桌面 Workspace UI v3**：采用权威 OSUI Archive Desk / Liquid Glass，默认冷白纸面、低饱和蓝青锚点与中文优先界面；一级空间栏、动态二级导航、研究台账、上下文与证据检查器、折叠活动坞、视觉课件/空间记忆规划面和路线图入口已进入生产候选。Chromium/Tauri/UI 视觉证据与公开发布资产属于不同证据层；`v0.6.11` 仍是当前公开稳定版，但不代表此次 UI 纠偏已发布。
-- **当前版本**：`0.6.14`（管线与多格式控制台已并入 canonical shell；`v0.6.11` 仍是当前公开稳定版，UI 纠偏随后续版本发布）；源码 Release Manifest 按合同保持 `unreleased / public=false`，公开 artifact identity 为 `stable / public=true`；历史标签均不可改写。
+- **桌面 Workspace UI v3**：默认采用离线黑白深色基线；Archive Desk / Liquid Glass 仅作为历史设计参考。一级空间栏、动态二级导航、研究台账、上下文与证据检查器与活动坞均在 canonical shell 中。Chromium/Tauri/UI 视觉证据与公开发布资产属于不同证据层；当前本地维护不创建新版本或改写公开资产。
+- **当前版本**：`0.6.14`；`v0.6.14` 是当前公开稳定 Release。当前 `main` 是不发新版本的维护主线；其路径选择 CI、全量资格化和 Green 安装态分别记录，不能互相替代；历史标签均不可改写。
 - **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.11` 的 tag/commit/tree、exact-SHA CI `33076417510`、Release run `33077810146`、三分发生命周期与 9 资产身份/摘要读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
 
 Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。

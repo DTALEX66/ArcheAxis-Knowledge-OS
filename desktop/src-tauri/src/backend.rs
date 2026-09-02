@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -301,7 +301,10 @@ fn runtime_command(runtime: &RuntimeSpec) -> Command {
         .env("ARCHEAXIS_RUNTIME_PROFILE", runtime.profile)
         .env("ARCHEAXIS_LAUNCHER_DATA_DIR", &runtime.data_dir)
         .env("ARCHEAXIS_DB_PATH", "data/archeaxis.sqlite")
-        .env("ARCHEAXIS_CAPABILITY_ROOT", runtime.data_dir.join("capabilities"))
+        .env(
+            "ARCHEAXIS_CAPABILITY_ROOT",
+            runtime.data_dir.join("capabilities"),
+        )
         .env("HERMES_PROJECT_RUNTIME_ROOT", &runtime.data_dir)
         .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("PYTHONNOUSERSITE", "1")
@@ -671,11 +674,11 @@ mod tests {
         assert_eq!(installed_external_request, Some(None));
         assert_eq!(installed_external_active, Some(None));
         assert_eq!(development_external_request, Some(None));
+        assert_eq!(development_external_active, Some(Some(OsStr::new("1"))));
         assert_eq!(
-            development_external_active,
-            Some(Some(OsStr::new("1")))
+            installed_profile,
+            Some(Some(OsStr::new("installed-stable")))
         );
-        assert_eq!(installed_profile, Some(Some(OsStr::new("installed-stable"))));
         assert_eq!(development_profile, Some(Some(OsStr::new("external-dev"))));
         assert_eq!(installed_test_root, Some(None));
         assert_eq!(

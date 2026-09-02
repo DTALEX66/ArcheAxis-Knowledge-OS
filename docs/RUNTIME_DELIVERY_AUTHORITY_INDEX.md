@@ -11,7 +11,7 @@
 | Layer | Canonical location | Authority and verification boundary |
 | --- | --- | --- |
 | Product UI source | [`frontend/src/`](../frontend/src/) | React product surface; changes require its targeted tests and build. |
-| Product UI build | [`frontend/dist/`](../frontend/dist/) | Generated input to the primary Tauri build; it is embedded, not loaded from a Green `bootstrap/` directory. |
+| Product UI build | `frontend/dist/` | Generated input to the primary Tauri build; it is embedded, not loaded from a Green `bootstrap/` directory. The directory is intentionally absent from a clean source checkout. |
 | Primary desktop host | [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json) and [`src-tauri/src/main.rs`](../src-tauri/src/main.rs) | `com.archeaxis.workspace`, title `星环知识平台（ArcheAxis Knowledge）`, and `WebviewUrl::App`. This is the user-facing desktop host. |
 | Candidate executable | `src-tauri/target/release/ArcheAxis.exe` | Local build output only. Its SHA-256 must be read back before any Green replacement. |
 | Green deployment target | `D:/All projects/ArcheAxis.Knowledge.Green-x64/ArcheAxis.exe` | Existing `v0.6.14` maintenance target. Replace only while no `ArcheAxis.exe` process is running; save a hash-addressed backup and require candidate/target SHA-256 equality. |

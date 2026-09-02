@@ -20,6 +20,7 @@ _HEAVY_IMPORTED: dict[str, object] | None = None
 research_github_repository = None
 convert_file = None
 convert_url = None
+capture_web = None
 detect_format = None
 approve_learning_artifact = None
 audit_closed_loop = None
@@ -43,6 +44,7 @@ def _import_heavy() -> None:
         from app.ingestion.multi_format import (
             convert_url as _convert_url,
         )
+        from app.ingestion.web import capture_web as _capture_web
         from app.ingestion.multi_format import (
             detect_format as _detect_format,
         )
@@ -75,6 +77,7 @@ def _import_heavy() -> None:
             "research_github_repository": _research_github_repository,
             "convert_file": _convert_file,
             "convert_url": _convert_url,
+            "capture_web": _capture_web,
             "detect_format": _detect_format,
             "approve_learning_artifact": _approve_learning_artifact,
             "audit_closed_loop": _audit_closed_loop,
@@ -95,6 +98,7 @@ def _import_heavy() -> None:
 
 MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
 _COMMAND_LOCKS = tuple(threading.RLock() for _ in range(64))
+_BATCH_INGEST_LOCK = threading.RLock()
 
 
 def _command_lock(command_id: str) -> threading.RLock:
@@ -165,19 +169,36 @@ def intake_url(*, url: str, db_path: str | Path, fetcher=None) -> dict:
             "claim_count": len(graph.claims),
             "evidence_count": len(graph.evidence),
         }
-    content, engine = convert_url(url)
-    graph = persist_workspace_document(
-        title=url,
-        content=content,
-        source_format="html",
-        extractor_identity=engine,
-        source_locator=url,
-        db_path=db_path,
-        before_commit=_intake_before_commit,
-    )
+    database = Path(db_path)
+    raw_store = RawAssetStore(root=_source_archive_root(database))
+    captured = capture_web(url, raw_store=raw_store)
+    receipt = captured["receipt"]
+    final_url = str(receipt["final_url"])
+    raw_sha256 = str(receipt["raw_hash"])
+    content = str(captured["text"])
+    engine = str(receipt["engine"])
+    try:
+        graph = persist_workspace_document(
+            title=final_url,
+            content=content,
+            source_format="html",
+            extractor_identity=engine,
+            source_locator=final_url,
+            raw_asset_sha256=raw_sha256,
+            db_path=database,
+            before_commit=_intake_before_commit,
+        )
+    except Exception:
+        raw_store._record_failure(raw_sha256, final_url, "web snapshot graph persistence failed")
+        raise
     return {
         "source_type": "web",
-        "source": url,
+        "source": final_url,
+        "raw_sha256": raw_sha256,
+        "format": "html",
+        "engine": engine,
+        "content": content,
+        "char_count": len(content),
         "package_id": graph.package.package_id,
         "job_id": _intake_job_id(graph.package.package_id),
         "status": graph.package.status,
@@ -186,6 +207,79 @@ def intake_url(*, url: str, db_path: str | Path, fetcher=None) -> dict:
         "claim_count": len(graph.claims),
         "evidence_count": len(graph.evidence),
     }
+
+
+def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[str, str]:
+    """Persist one batch-selected local file through the workspace boundary.
+
+    The caller may own traversal, scheduling and pause/resume policy, but it
+    must not own raw retention, conversion receipt, anchor persistence or
+    failure recording.  This keeps batch intake aligned with the service-owned
+    product pipeline without changing the interactive upload transaction.
+    """
+    _import_heavy()
+    source = Path(source_path)
+    safe_name = source.name
+    if not safe_name or not source.is_file():
+        raise ValueError("batch source file was not found")
+    database = Path(db_path)
+    try:
+        blob = source.read_bytes()
+    except OSError as exc:
+        raise RuntimeError(_sanitize_conversion_error(f"{safe_name}: {exc}")) from None
+    if not blob:
+        raise RuntimeError(f"{safe_name}: empty file")
+    try:
+        raw_store = RawAssetStore(root=_source_archive_root(database))
+        raw = raw_store.store_original(blob, safe_name)
+    except Exception as exc:  # noqa: BLE001 - batch callers receive a safe reason
+        raise RuntimeError(_sanitize_conversion_error(f"{safe_name}: {exc}")) from None
+    try:
+        markdown, engine = convert_file(source)
+        source_format = detect_format(source)
+        from app.evidence.anchor import (
+            build_evidence_anchor,
+            ensure_evidence_anchor_schema,
+            store_evidence_anchor_on_connection,
+        )
+        from app.ingestion.conversion_run import (
+            ensure_conversion_run_schema,
+            store_conversion_run_on_connection,
+        )
+        from app.ingestion.structured_conversion import build_workspace_conversion_run
+
+        conversion_run = build_workspace_conversion_run(
+            source_path=source,
+            raw_sha256=raw.sha256,
+            source_name=safe_name,
+            source_format=source_format,
+            converted_content=markdown,
+            extractor_identity=engine,
+        )
+        anchor = build_evidence_anchor(
+            raw_sha256=raw.sha256,
+            source_revision=conversion_run.run_id,
+            locator={
+                "conversion_run_id": conversion_run.run_id,
+                "derived_document_id": conversion_run.document.document_id,
+                "source_format": source_format,
+                "block_ids": [block.block_id for block in conversion_run.blocks],
+            },
+        )
+        # Both schema helpers use executescript(), which implicitly commits.
+        # Prepare schemas before the atomic run-and-anchor write transaction.
+        with _BATCH_INGEST_LOCK:
+            ensure_conversion_run_schema(database)
+            ensure_evidence_anchor_schema(database)
+            with sqlite3.connect(database, timeout=30.0) as connection:
+                store_conversion_run_on_connection(connection, conversion_run)
+                store_evidence_anchor_on_connection(connection, anchor)
+                connection.commit()
+    except Exception as exc:  # noqa: BLE001 - preserve raw bytes with safe failure context
+        reason = _sanitize_conversion_error(f"{safe_name}: {exc}")
+        raw_store._record_failure(raw.sha256, raw.source_name, reason)
+        raise RuntimeError(reason) from None
+    return {"result_digest": f"converted:{raw.sha256}", "engine": engine}
 
 
 def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dict:
@@ -263,6 +357,7 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
             source_format=source_format,
             extractor_identity=engine,
             db_path=db_path,
+            raw_asset_sha256=original.sha256,
             before_commit=before_commit,
         )
         if stored_path.exists():

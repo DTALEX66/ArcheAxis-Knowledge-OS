@@ -17,6 +17,7 @@ def test_live_refresh_and_recovery_matrix_without_restart(
     from app.workspace.research_consumer import make_intake_research_handler
     from shared.migration_runner import MigrationOperator
     from tests.test_phase5_mcs_closed_loop import _database
+    from tests.workspace_capture_stub import capture_web_stub
 
     # ------------------------------------------------------------------ #
     # 1. Setup: database with workspace + core migrations                #
@@ -25,7 +26,7 @@ def test_live_refresh_and_recovery_matrix_without_restart(
     MigrationOperator(db_path=database, backup_dir=tmp_path / "backups").apply(
         "workspace.sqlite"
     )
-    monkeypatch.setattr(service, "convert_url", lambda url: ("# matrix\nLive.", "test"))
+    monkeypatch.setattr(service, "capture_web", capture_web_stub("# matrix\nLive."))
 
     # ------------------------------------------------------------------ #
     # 2. Intake → creates job(succeeded) + outbox(pending) + receipt     #

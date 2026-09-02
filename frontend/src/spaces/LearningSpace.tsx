@@ -69,9 +69,9 @@ function ReviewQueueView({ api }: { api: LearningApiExt }) {
 
   return (
     <section aria-label="复习队列" className="learning-panel">
-      <h3>FSRS 复习队列</h3>
+      <h3>今日复习</h3>
       <p className="space-description">
-        到期卡片按遗忘曲线排序（FSRS），掌握度来自复习快照而非模型置信度。
+        系统根据你的复习记录安排下一次回顾；理解状态来自已记录的学习事件。
       </p>
       {error ? <p className="space-hint">加载失败：{error}</p> : null}
       <p className="space-hint">
@@ -144,7 +144,7 @@ function MasteryView({ api }: { api: LearningApiExt }) {
 
   return (
     <section aria-label="掌握度" className="learning-panel">
-      <h3>人类、机器与证据三轴掌握度</h3>
+      <h3>理解与证据状态</h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -245,8 +245,9 @@ function TeachBackView({ api }: { api: LearningApiExt }) {
         <input id="tb-concept" value={form.concept} onChange={(e) => setForm({ ...form, concept: e.target.value })} />
         <label htmlFor="tb-restatement">你的复述</label>
         <textarea id="tb-restatement" rows={3} value={form.restatement} onChange={(e) => setForm({ ...form, restatement: e.target.value })} />
-        <label htmlFor="tb-reference">参考答案</label>
+        <label htmlFor="tb-reference">核对依据（已验证的资料要点）</label>
         <textarea id="tb-reference" rows={3} value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} />
+        <p className="space-hint">评分只会依据这里的已验证材料；自动提取资料库依据尚未接入。</p>
         <label htmlFor="tb-terms">关键术语（逗号分隔）</label>
         <input id="tb-terms" value={form.key_terms} onChange={(e) => setForm({ ...form, key_terms: e.target.value })} />
         <button type="submit" disabled={busy}>评分</button>
@@ -370,7 +371,7 @@ function PathView({ api }: { api: LearningApiExt }) {
 
   return (
     <section aria-label="学习路径" className="learning-panel">
-      <h3>个性化学习路径（先修图 → 拓扑顺序）</h3>
+      <h3>为目标安排学习顺序</h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -406,7 +407,7 @@ export function LearningSpace() {
     <section className="space-page" aria-labelledby="space-learning">
       <h1 id="space-learning" className="space-page-title">学习</h1>
       <p className="muted" style={{ marginBottom: 20 }}>
-        人类学习库：FSRS 复习、三轴掌握度与复述理解检验。
+        人类学习库：安排复习、记录理解与检验表达。
       </p>
       <nav aria-label="学习功能" className="learning-tabs">
         {TABS.map((t) => (

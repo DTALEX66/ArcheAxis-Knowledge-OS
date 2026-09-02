@@ -1451,3 +1451,845 @@ clone_test_workspace） #8 ✅ #9 ✅ #10 ✅ #11 ✅ #12 ✅ #13 ✅ #14 ✅ #1
 #15 ✅（长路径 \\?\ 验证 + migrate 修复；普通路径依赖 LongPathsEnabled 已文档化）
 #17 ✅（主链 e2e 真实跑绿） #16 ✅（release-manifest + notices 补齐 8 资产）
 其余沿用 LOG-178：14 条 ✅；剩余：UI 端到端接线（App Shell 接 Tauri）与 L4 三包发布。
+
+
+---
+
+## LOG-181 — 2026-09-02 — 当前 SHA 基线更正与跨平台测试入口
+
+### CURRENT-STATE CORRECTION
+
+- 现场 Git 读回：`main@db13d0564ac2971d4b1eb3e3a5bff9c9256af313` 与
+  `origin/main` 一致；这是本记录的 source baseline，不等于干净工作树交付。
+- GitHub Actions CI `33521144084` 绑定该 SHA 并成功结束，但实际执行的只有
+  `gateplan`、`lint`、`a0-gates`；`test`、`browser-smoke`、Windows runtime、desktop
+  build、wheel、installer lifecycle 及其余 targeted jobs 因 GatePlan 路径选择被跳过。
+  因此状态是 `EXACT_SHA_CI_PARTIAL`, 不是 full qualification。
+- 机器可读的受忽略基线凭据位于
+  `.hermes/task-artifacts/migration-baseline/db13d0564ac2971d4b1eb3e3a5bff9c9256af313.json`；
+  它绑定 source/tree/三份依赖锁哈希、CI job 列表、当前工作树非干净状态及 Green
+  受控重启待办。
+
+### CROSS-PLATFORM TEST LAUNCHER
+
+- 根因：`scripts/ci/run_tests.sh` 直接调用 Git-Bash 专用 `pwd -W`，使同一入口在
+  Linux/macOS 的路径解析阶段失败。
+- 修复：只保留 POSIX project root；Git Bash 继续负责其原生子进程路径转换。
+- 证据：新增 `test_project_test_launcher_does_not_require_windows_only_pwd_flag`；
+  `tests/test_test_launcher_contract.py` 与 `tests/test_naming_conventions.py` 共
+  `24 passed`。这只证明入口契约与编码回归，不替代完整测试集。
+
+
+---
+
+## LOG-182 — 2026-09-02 — 多格式批量导入服务边界收束（未发布）
+
+- 根因：`/workspace/api/batch/import` 的路由工作线程直接持有原件保留、格式转换、
+  `ConversionRun`、`EvidenceAnchor` 和 SQLite 写入编排，而交互上传已由
+  `app.workspace.service` 拥有；这使同一多格式产品管线出现两处写入编排。
+- 修复：新增 `service.ingest_local_file()`。路由仅负责文件枚举、批处理调度和
+  pause/resume/shutdown；服务层负责保留原件、转换、不可变 run/anchor 的同事务写入，
+  以及安全化失败留痕。没有迁移任何表、没有改变 Rust 权威写入者、没有创建版本或发布。
+- TDD 证据：新服务契约先在旧树以 `AttributeError` 失败；实现后
+  `tests/test_workspace_pipeline_multiformat.py` 为 `7 passed`，变更文件 Ruff 通过。
+  联合 `tests/test_axw094_096_api.py` 的回归为 `24 passed`，但该组合命令在 Python
+  退出阶段记录一次全局测试临时目录的 Windows 删除竞态；它不影响 24 项断言结果，且
+  不可提升为完全洁净的全量门禁结论。
+- 交付状态：`IMPLEMENTED_LOCAL`、`TESTED_LOCAL`；`CI_VERIFIED_EXACT_SHA`、
+  `MERGED_MAIN`、`INSTALLED_RUNTIME_VERIFIED` 均未执行。Green 正由用户进程运行，
+  未强制重启。
+
+
+---
+
+## LOG-183 — 2026-09-02 — 本地完整门禁的版本真相回归（未发布）
+
+- 可读的项目内原始证据：
+  `.hermes/task-artifacts/verification/full-local-gate-2026-09-02.log`。
+  修复前完整本地门禁的终态为 `2077 passed, 7 skipped, 1 failed`；唯一失败是
+  `tests/test_product_version_truth_contract.py` 要求 README 出现精确的
+  `**当前版本**：`0.6.14`` 标记。
+- 根因：当前维护事实写入 README 时保留了 `v0.6.14` 的 Release 标签，却移除了
+  无 `v` 的源码版本真相标记；项目的版本合同明确要求两者各自存在。
+- 修复：恢复 README 的 `0.6.14` 源码版本标记，同时保留公开 Release 标签
+  `v0.6.14` 和“不创建新版本”的维护约束。未修改任何版本文件、tag、资产或 Release。
+- 修复后 `tests/test_product_version_truth_contract.py` 为 `3 passed`。随后在同一
+  项目内证据目录取得修复后完整门禁终态：`2078 passed, 7 skipped, 3 warnings`，
+  `exit_code=0`（85.67 秒）。这是本地完整测试证据；不替代云端精确 SHA CI、
+  Green 安装态或公开 Release 资格。
+
+
+---
+
+## LOG-184 — 2026-09-02 — Green 原地批处理边界同步（未发布）
+
+- 按“不创建新版本、所有修复进入 Green”的维护约束，仅同步了
+  `app.workspace.service.ingest_local_file()` 与批量路由对该服务命令的委派；没有
+  整体覆盖 Green 文件、没有改动 `data/`、版本、tag、资产或公开 Release。
+- Green 原文件备份位于
+  `D:\All projects\ArcheAxis.Knowledge.Green-x64\backups\pipeline-boundary-20260902\`
+  （`service.py.pre-pipeline-boundary`、`router.py.pre-pipeline-boundary`）。
+- 结构证据：Green 自带 Python 以 `-B` 仅编译两个源文件，输出
+  `GREEN_PIPELINE_PATCH_SYNTAX_OK`；目标函数、服务委派存在，旧 `_BATCH_DB_LOCK`
+  不再存在于该路由。
+- 当前 Green Python 进程仍在运行且未被中止；因此状态是 `DEPLOYED_RESTART_PENDING`，
+  不是 `INSTALLED_RUNTIME_VERIFIED`。待用户正常退出后，必须经无控制台启动器启动并
+  完成真实产品路径批处理 smoke 才能升级。
+
+
+---
+
+## LOG-185 — 2026-09-02 — Green 隔离服务闭环 smoke（未发布）
+
+- 使用 Green 自带 `runtime/python/python.exe`，在项目内受忽略目录
+  `.hermes/task-artifacts/green-pipeline-service-smoke/` 建立临时数据库和 Markdown
+  输入；运行 `service.ingest_local_file()` 后读回 Library 投影。
+- 断言原件保留、`passthrough` 转换、结果摘要和 `retained` 状态均成立，输出
+  `GREEN_PIPELINE_SERVICE_SMOKE_OK`。该操作未启动 GUI、未使用 Green `data/`、未占用
+  当前用户进程端口。
+- 证据层级：`GREEN_RUNTIME_COMPONENT_SMOKE_PASS`。由于未经启动器重启并完成可见 UI
+  与真实产品端口读取，`INSTALLED_RUNTIME_VERIFIED` 仍为待办。
+
+
+---
+
+## LOG-186 — 2026-09-02 — G0 固化 JSON Canvas 金标 fixture（未发布）
+
+- 新增项目自有、无个人数据的
+  `tests/fixtures/golden/learning-evidence.canvas` 与同目录 manifest；manifest 记录
+  `rights_basis`、privacy、格式、预期节点/边和 SHA-256
+  `79f3decaf1398fada1cd2b4f6b85bcad5a37a62e4beac8cdd0c7b7ed098540f5`。
+- TDD：fixture/manifest 缺失时新契约先以 `FileNotFoundError` 失败；补齐后
+  `test_golden_canvas_fixture.py`、Canvas 写入与 C3 兼容回归共 `12 passed`。
+- 范围：仅完成 Canvas 结构评测原始样本。PDF 原始文件、OCR 图像真值、音频/视频
+  真值、Office/HTML/TXT/DOCX 权利记录和 fresh/existing workspace snapshots 仍未完成。
+
+
+---
+
+## LOG-187 — 2026-09-02 — 当前维护树前端构建与浏览器 smoke（未发布）
+
+- `npm --prefix frontend test -- --run`：15 个测试文件、119 项测试通过。
+- `npm --prefix frontend run build`：TypeScript `--noEmit` 与 Vite production build
+  通过；当前产物为 CSS 39.55 kB、主 JS 241.39 kB（gzip 77.78 kB）。
+- `scripts/a0_browser_smoke.py` 输出 `PASS`：1440×1000、1280×800、390×844、360×640
+  四视口均 `scrollWidth == clientWidth`，截图位于项目内
+  `.hermes/task-artifacts/browser-smoke/`。
+- 浏览器证据绑定 `main@db13d056` 的 dirty worktree（diff hash 在 smoke JSON 中），
+  属于 `TESTED_LOCAL`，不替代 Green GUI 启动器、Windows WebView 或 exact-SHA CI。
+
+
+---
+
+## LOG-188 — 2026-09-02 — 语言架构审计任务包纳入（未发布）
+
+- 已审阅 `ARCHEAXIS-CLEAN-SHEET-LANGUAGE-AUDIT-MIGRATION-TASKPACK-2026-09-01.md`，
+  并建立 `docs/current/AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md` 作为项目内
+  映射。源任务包是审计/规划输入，不会自行授权代码迁移、发布或跨平台交付。
+- 已采用其长期三层方向：Rust 最终负责权威真值，TypeScript/React 负责产品表面，
+  Python 保持可替换解析/AI 侧车；SQLite 与 Raw-first 归档不替换。此方向受现有 G0
+  单写者、可回滚、无双写冻结规则约束。
+- G0-001/002/004 分别为部分证据、部分去漂移和 ACTIVE；G0-003 仍缺 raw PDF、OCR
+  图像、音视频真值、若干 rights record 及 fresh/existing workspace receipt。G0 未
+  完成前禁止新增 Rust 生产写者。G1-004 的 `pwd -W` 本地修复已映射为 PARTIAL，尚需
+  三平台证明；G1-001/002/003 与 G2–G7 保持依赖有序的 PENDING；G8/G9/GF 明确延后。
+- 本次仅更新任务真相与当前事实导航：不创建版本/tag/Release，不移动 Tauri 壳，不改
+  数据库，不访问用户资料，也不把计划表述为已实现能力。
+
+
+---
+
+## LOG-189 — 2026-09-02 — 双 Tauri 壳 Rustfmt 冲突根因（未发布）
+
+- 只读复现：外置官方 MSVC 工具链 `cargo 1.97.1` / `rustfmt 1.9.0-stable` 对根壳
+  `src-tauri/Cargo.toml` 和桌面壳 `desktop/src-tauri/Cargo.toml` 分别执行
+  `cargo fmt --check`。桌面壳格式检查通过，而根壳读取其跨目录 `#[path]` 模块时要求
+  `backend.rs`、`job.rs`、`runtime.rs` 使用与桌面壳相反的 import 排序。
+- 根因：根壳为 Rust 2021 edition，桌面壳为 Rust 2024 edition；同一桌面源码被根壳
+  通过跨目录 `#[path]` 直接纳入并按根壳 edition 格式化。以 `style_edition=2024` 预检
+  后桌面壳仍通过，但根壳自身 `main.rs`、`recovery.rs` 又要求整体改为 2024 风格，证明
+  不是单一文件或 PATH 问题，而是共享源码边界冲突。
+- 裁决：不在当前 dirty worktree 上交替运行 formatter，也不以全局格式重排掩盖问题。
+  此项并入 `AXM-G1-001`：后续应以正规 shared crate 消除 `#[path]` 共享，且在 G0
+  证据门完成前不改写生产领域所有权。当前状态为 `DIAGNOSED`, 非 `FIXED`。
+
+
+---
+
+## LOG-190 — 2026-09-02 — G0 全量 CI 调度权限与 673f9ee 回归证据（未发布）
+
+- `ci.yml` 确认支持 `workflow_dispatch(force_full=true)`；对远端 `main@db13d056`
+  的调度尝试被 GitHub API 拒绝：`HTTP 403: Resource not accessible by personal access
+  token`。应用内浏览器可只读 Actions 页面，但未登录 GitHub；本机无可用 Chrome
+  浏览器连接。未推送、未发布、未创建 tag。G0-001 的 full exact-SHA CI 因账户权限
+  `BLOCKED_EXTERNAL_AUTH`，不能由已有的局部 green run 推断通过。
+- 已读回祖先 `673f9ee` 的 CI run `33520412435`：`test (3.12)` 发生 7 项失败，
+  原因是该提交把 pytest 的唯一临时根从 `COGNITIVE_DATA_DIR` 改为
+  `ARCHEAXIS_DATA_DIR`，而评测、学习和子进程测试仍显式覆写/读取 legacy 变量；
+  canonical 优先级使它们读到错误隔离根。媒体 fixture 同时不再满足已收紧的
+  local-ASR 合同。
+- 当前工作树保留兼容期 pytest 隔离（只设置 `COGNITIVE_DATA_DIR`）与 local-ASR
+  fixture 合同。对原失败点执行的 7 个精确测试为 `7 passed, 1 warning`；warning 是
+  测试兼容模式的 legacy-fallback 提示，不是通过的云端 CI。曾短暂试验同时设置两变量，
+  立即暴露子进程继承 canonical 根而破坏 5 个覆写 legacy 根的测试；该试验已完整撤回，
+  未保留代码/测试变更。
+
+
+---
+
+## LOG-191 — 2026-09-02 — AX-DIR-MIG-R1 目录迁移任务包纳入（未发布）
+
+- 已审阅 `ARCHEAXIS-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md`，建立
+  `docs/current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md`。它是目录收敛
+  规划输入，不会自行授权移动、删除、清理、发布或全局配置变更。
+- 已按 AX-DIR-000..090 映射为独立依赖链：配置权威裁决 → 只读 hash/owner/reference
+  inventory → 治理/研究目录 → G1-001 shared crate → UI/桌面壳 → 引用重写 → 数据
+  复制/readback/quarantine → 全量验证 → 显式删除。`desktop`/根 `src-tauri` 的双壳
+  整合依赖已诊断的 Rust edition/`#[path]` 冲突先由 G1-001 解决。
+- 硬阻断：任务包目标 `.project-local/` 与当前项目规则要求的 `.hermes/` 运行证据目录
+  互相冲突；在配置权威决定前不创建第二运行根、不迁移 `.hermes`。当前 tree 亦不干净，
+  不得把现有维护路径当作可删除重复项。Green 数据、用户资料、SQLite、未确认 WIP 和
+  旧 tracked 路径均保持未触碰。
+- 任务包中的 `E5 RELEASED` 已改映射为 `LAYOUT_ACCEPTED_UNPUBLISHED`：当前 v0.6.14
+  Green 维护不创建新版本、tag、installer 或 GitHub Release。任何最终删除仍须在
+  fresh-clone、多语言、Windows 产品路径、exact-SHA CI 和独立用户删除授权后执行。
+
+
+---
+
+## LOG-192 — 2026-09-02 — G0 固化项目自有 PDF 金标原件（未发布）
+
+- 现有确定性生成器 `tests/golden_pdf_fixture.py` 的输出已物化为
+  `tests/fixtures/golden/golden-journey-evidence.pdf`（1,120 bytes，SHA-256
+  `0f0ffc50c79d9d977efb925351ca1d64a063184e4bdd71507b9ac44992f7adcf`）。同目录
+  manifest 记录 `project-authored synthetic test fixture`、`no personal data`、预期
+  页面/文本/锚点；未使用用户资料或外部下载。
+- TDD：新增完整性契约先因缺少 manifest 条目失败，补元数据后因 raw PDF 缺失失败；仅在
+  使用既有生成器写入匹配字节后转绿。PDF 完整性、Tier-A PDF 转换和 Canvas 回归联合为
+  `4 passed, 1 warning`。warning 为现有 optional NLTK 提示，非 PDF 失败。
+- 证据状态仅为 `ACCEPTED_FOR_PDF_STRUCTURAL_EVALUATION`：它证明固定合成 PDF 的原件
+  hash 与页锚转换，不证明扫描 OCR、真实用户资料、音视频、安装态、模型准确率或完整
+  exact-SHA CI。G0-003 仍缺 OCR image、audio/video truth、其他候选 rights record 与
+  fresh/existing workspace snapshot receipts。
+
+
+---
+
+## LOG-193 — 2026-09-02 — 多格式当前机管线探针与共享本地模型发现（未发布）
+
+- 根因一：普通/Green 式启动会携带过时的 `TESSDATA_PREFIX`，且未设置
+  `OS_EXTERNAL_CONFIG`；原 OCR resolver 虽能从 PATH 找到 Tesseract，却不能从该已解析
+  二进制反推同级的共享语言包。图片、截图与扫描 PDF 因而会共同失败。根因二：本地
+  `Model library/whisper/faster-whisper-large-v3-turbo` 和 `faster-whisper` runtime
+  实际存在，但通用 ASR resolver 仅查项目内 `models/whisper`，故媒体入口会误报模型缺失。
+- 修复：OCR resolver 在显式环境根缺失时，从已验证 Tesseract 二进制所在的
+  `10-toolchains`/`toolchains` 根解析 `tesseract-languages/current`；ASR resolver 保持
+  config 与 `ARCHEAXIS_ASR_MODEL_DIR` 优先，并在无覆盖时发现标准同级
+  `Model library/whisper`（亦支持 `ARCHEAXIS_MODEL_LIBRARY_DIR`）。无下载、无硬编码到
+  Release 配置、无将媒体元数据伪装为文本。
+- TDD 证据：OCR shared-language 回归先以空 `tessdata` 失败，修复后通过；共享模型库
+  发现回归先返回 `models/whisper` 失败，修复后通过。截图 fixture 元数据契约两次先红后绿；
+  图片金标完整性与 OCR resolver 联合 `2 passed`，ASR model discovery 为 `1 passed`。
+- 当前机实际探针：公开 `https://example.com/` 经 `safe-http+trafilatura` 返回正文；
+  项目自有截图金标经 `pytesseract+tesseract` 输出 `OCR GOLDEN ANCHOR`；5.6 秒本地模型
+  测试音频由 `faster-whisper-large-v3-turbo` 转为 3 个时间锚；同源临时 MP4 也经通用
+  视频入口获得 3 个时间锚。音视频临时产物仅在 `.hermes/task-runtime/g0-media-probe/`。
+- 交付状态：代码为 `IMPLEMENTED_LOCAL`、针对性回归和当前机组件探针为
+  `TESTED_LOCAL`。这不是新版本/Release，也不构成 full exact-SHA CI、Green 可见 UI、
+  项目自有 audio/video golden truth 或 `INSTALLED_RUNTIME_VERIFIED` 的证明。
+
+
+---
+
+## LOG-194 — 2026-09-02 — 项目自有音视频金标与 Green 多格式组件复验（未发布）
+
+- 针对第一版本地语音金样本的实际对照发现专名 `ArcheAxis` 被模型转写为
+  `Archie Access`；链路成功不等于精度成功。因此未把该结果升级。经 TDD 将真值替换为
+  发音稳定的 `Learning evidence anchor` 后，使用 Windows 本地语音与既有 FFmpeg 生成
+  无个人数据的 WAV 与黑帧 MP4；原件 SHA-256 分别为
+  `9f0297fb94b378d742772caede9bf5302813775c80ebb1bcead0fee4ec30e9bd` 和
+  `7ec5d082608cb4fc190b67ca245b8d1d9d1c8d036b9291bd16b89b55abcf2ddb`。manifest 绑定
+  rights/privacy/text/time-range expectation，完整性契约为 `1 passed`。
+- 当前项目 Python 的 `faster-whisper-large-v3-turbo` 对 WAV 与 MP4 均精确输出真值，
+  每项均产生 1 个 `start_s/end_s` 锚点。Green 自带 Python 对同一原件也精确通过；这
+  补齐的是本机/Greeen 组件层 audio/video golden evidence，不是用户语料准确率结论。
+- Green 同步仅改动 runtime site-packages 中 `ocr_adapter.py` 与 `asr_adapter.py` 的
+  两个已验证路径解析规则；写前备份位于
+  `D:\All projects\ArcheAxis.Knowledge.Green-x64\backups\multiformat-model-discovery-20260902\`。
+  Green 以 `-B` 完成两文件语法检查、截图 OCR、共享模型发现、WAV 和 MP4 ASR 组件
+  smoke。正在运行的用户 Python 进程未被终止或重启，Green `data/` 未访问。
+- G0 仍未完成：TXT/HTML/PPTX/XLSX/DOCX 的 rights/provenance，fresh/existing workspace
+  receipts，full exact-SHA CI 和受控的 Green 可见产品路径仍为独立门禁。状态为
+  `IMPLEMENTED_LOCAL`、`TESTED_LOCAL`、`GREEN_RUNTIME_COMPONENT_SMOKE_PASS`；不是
+  `INSTALLED_RUNTIME_VERIFIED`、`CI_VERIFIED_EXACT_SHA` 或新版本发布。
+
+
+---
+
+## LOG-195 — 2026-09-02 — G0 自有文本、网页与 Office 替代金标（未发布）
+
+- 原有 TXT/HTML/PPTX/XLSX/DOCX 候选缺少独立 rights/provenance，不被追认。新增最小、
+  无个人数据、项目自有的替代原件：TXT、HTML、最小标准 OOXML DOCX、PPTX 与 XLSX，
+  每项均在 `tests/fixtures/golden/manifest.json` 绑定 SHA-256、rights/privacy、目标文本
+  和原生锚点。Office 生成优先使用 Green 已有 `python-pptx`/`openpyxl`，DOCX 使用标准
+  OOXML ZIP，不新增依赖或下载。
+- TDD：完整性契约先因 manifest 缺项失败；当前为 `1 passed`。Green bundled Python 实际
+  转换 DOCX、PPTX、XLSX、HTML，均读到目标文本与对应 heading/source-md、slide 1、
+  `Evidence` sheet、main-content 锚点。TXT 原件为直接保真读取。仓库 `.venv` 缺少
+  `python-docx` 仅影响生成工具，不能反推 Green 转换能力。
+- G0 现在有项目自有的 TXT/HTML/DOCX/PPTX/XLSX/PDF/image/audio/video/Canvas 原件与
+  hash/rights 基线；尚未完成的是 fresh/existing workspace receipts、full exact-SHA CI
+  和 Green 可见产品路径。旧候选 rights 状态保持 HOLD，未被删除或覆盖。
+
+
+---
+
+## LOG-196 — 2026-09-02 — 当前维护树完整门禁与工作区切片（未发布）
+
+- 项目内可审计日志
+  `.hermes/task-artifacts/verification/full-local-gate-multiformat-rerun-20260902.log`
+  的终态为 `2088 passed, 5 skipped, 3 warnings in 99.11s`。warnings 分别来自现有
+  FastAPI TestClient 弃用、optional NLTK 和第三方 BeautifulSoup API 弃用；无断言失败。
+  这是当前 dirty 维护树的 `TESTED_LOCAL`，不替代 exact-SHA CI。
+- G0 工作区 slice：PDF 页锚主链、four-library 初始化与 restart readback、verified
+  exchange 导入 fresh workspace，以及多格式 workspace 写入共 `10 passed, 2 warnings`
+  （18.19 秒）。它证明这些测试路径在当前树可运行。
+- 正式 `scripts/generate_golden_journey_receipt.py` 按设计要求 clean worktree 才生成
+  SHA-bound receipt；当前 tree 含有未提交的维护工作，因此未绕过该保护，也没有把局部
+  slice 标记为 fresh/existing 最终收据。待维护变更经过交付后在 clean commit 上运行。
+
+
+---
+
+## LOG-197 — 2026-09-02 — Green 启动路径与可视化失败截图（未发布）
+
+- 已核对 `D:\All projects\ArcheAxis.Knowledge.Green-x64\start.bat`：它只调用相邻
+  `启动星环知识.vbs`，VBS 设置 portable、共享工具与本地 ASR 模型目录后直接启动
+  `ArcheAxis.exe`，不会保留 `cmd.exe` 窗口。因此不能把当前出现的 Python 静态服务
+  误诊为 Green 正式启动入口的问题。
+- 受控浏览器实际访问当前正在监听的 `http://127.0.0.1:8015/`：导航壳显示工作台、资料库、
+  导入、知识库、证据、学习、机器知识、交换与设置，但内容区明确显示“工作台 加载失败”，
+  原因是该静态服务没有同源 Core API。可视化证据保存在项目本地
+  `.hermes/task-artifacts/ui/green-static-fallback-20260902.png`（33,276 bytes，SHA-256
+  `97889fe3754ff9e707f39e194f9fc368245820e97b3e7498799bc5bf9f09f22b`）；不含用户资料。
+- 此结果只证明“静态前端单独运行”不是可交付路径，不能外推为桌面 GUI 或 Green 安装态失败。
+  为避免中断正在运行的用户 Python 进程，未终止、未重启、未触碰 Green `data/`。待其自然
+  退出后，必须由 VBS 启动实际 `ArcheAxis.exe`，再采集工作台、导入、多格式完成/失败恢复等
+  截图与产品路径读回，才可评估 `INSTALLED_RUNTIME_VERIFIED`。
+- 自动化窗口枚举当次没有返回可附着的 `ArcheAxis` 窗口，但随后 OS 进程读回显示
+  `ArcheAxis.exe`（v0.6.14）具有响应中的主窗口句柄 `1574704`，标题为
+  `星环知识平台（ArcheAxis Knowledge）`。故枚举失败是截图采集通道限制，不能再表述为
+  “没有桌面 GUI”。未取得桌面内容截图之前，安装态 UI 仍为 `NOT VERIFIED`；既有进程和
+  Green `data/` 均未被改变。
+
+
+---
+
+## LOG-198 — 2026-09-02 — 当前报告历史 Release 漂移防护（未发布）
+
+- 发现 `scripts/generate_current_reports.py` 和 Golden Journey 收据过去默认引用仓库内
+  `v0.6.9` 历史收据；当当前公开稳定版已经是 v0.6.14、且其不可变收据尚未进入仓库时，
+  这会令新生成的“当前”报告错误提升历史 Release 证据。
+- 修复为默认 `release_evidence=None`：默认输出仅陈述当前 Git 结构事实，发布字段为
+  `unknown` / `NOT_EXECUTED`。仅调用方显式传入一个不可变 receipt 时，才会出现
+  `PASS_EXTERNAL_EVIDENCE` 与三分发生命周期投影。历史 v0.6.9 测试保留为显式
+  `HISTORICAL_RELEASE_EVIDENCE`，未删除或改写其历史事实。
+- TDD：新增默认不提升历史收据的 current-report 回归先因缺少历史常量失败；联合
+  Golden Journey 回归随后按预期显示默认 release gate 为 `NOT_EXECUTED`，更新为显式
+  historical receipt 后，`tests/test_current_report_generator.py` 与
+  `tests/test_golden_journey_receipt.py` 合计 `11 passed`。当前报告已重生成到
+  `.hermes/task-artifacts/current-reports/`，准确标识 dirty tree 不等于云端。
+- 该防护是 AXM-G0-002 的局部实现，不构成 current-document 对 live GitHub/CI/Release
+  的完整漂移扫描，亦不构成 v0.6.14 发布、exact-SHA CI、Green UI 或新版本的声明。
+
+
+---
+
+## LOG-199 — 2026-09-02 — 当前维护树完整 tests 门禁复验（未发布）
+
+- 通过项目规定的 `scripts/ci/run_tests.sh` 执行当前 `tests` 集；完整原始输出保存在
+  `.hermes/task-artifacts/verification/full-local-gate-after-truth-drift-20260902.log`。
+  终态为 `2052 passed, 5 skipped, 3 warnings in 85.79s`。
+- 三个 warning 均为既有第三方/可选依赖提示：FastAPI TestClient 弃用、optional NLTK
+  未安装、Readabilipy 使用 BeautifulSoup 已弃用 API；无断言失败。测试缓存、临时根与
+  uv cache 保持在项目 `.hermes/`。
+- 这是当前 dirty 维护树的 `TESTED_LOCAL`，验证了 LOG-198 的报告/收据默认值修正没有
+  回归；不是 clean-commit Golden Journey receipt、`CI_VERIFIED_EXACT_SHA`、发布或
+  `INSTALLED_RUNTIME_VERIFIED`。
+
+
+---
+
+## LOG-200 — 2026-09-02 — 项目定义的 --full 本地门禁（未发布）
+
+- 继续执行 `scripts/ci/run_tests.sh --full`，覆盖 `tests` 与
+  `knowledge_base/tests`；完整日志为
+  `.hermes/task-artifacts/verification/full-local-gate-plus-knowledge-20260902.log`。
+  终态：`2090 passed, 5 skipped, 3 warnings in 87.15s`。
+- warning 与 LOG-199 相同：FastAPI TestClient 弃用、可选 NLTK 缺失、Readabilipy 的
+  BeautifulSoup API 弃用；未发生断言失败。该 `--full` 集合是目前更完整的
+  `TESTED_LOCAL` 证据，仍不替代 GitHub 精确 SHA 全量 CI、clean-commit receipt 或
+  Green 交互安装态截图。
+
+
+---
+
+## LOG-201 — 2026-09-02 — v0.6.14 不可变发布收据补齐（历史读回，未新发版本）
+
+- 通过公开 GitHub API 读回 `v0.6.14`：2026-08-29 发布、非 draft/non-prerelease、9 项
+  资产；标签解引用为 `c202c5b5a4789f0dc21accaa7ccbfed4676f0573`。已下载小型公开
+  identity、manifest、checksums 与 SBOM 到 `.hermes/task-artifacts/release-v0.6.14-readback/`。
+- identity 将该发布绑定到 source tree `8150692f81883f647806bdb234cedf7d20b31aa1`、完整
+  Verification CI `33261549586` 与 Release workflow `33262172637`。两 run 均成功，前者
+  覆盖 test、browser、desktop、Windows runtime、installer lifecycle 等任务，后者完成
+  9 项资产 draft readback 后发布。
+- 新增 `reports/release/v0.6.14/release-evidence.json`，资产名称和大小与公开 API
+  逐项相等；本地下载的 identity 与 SBOM SHA-256 和 release manifest 相符。收据、当前
+  报告与 Golden Journey 相关回归共 `15 passed`。这补的是历史 stable 的可审计发布证据，
+  不创建版本、tag、资产或 Release，也不把当前 `main@db13d056` 提升为 exact-SHA CI。
+
+
+---
+
+## LOG-202 — 2026-09-02 — 当前前端回归与轻量静态构建（未发布）
+
+- 以项目指定的共享 Node 运行 `frontend` 的 `vitest run`，结果为 `15` 个测试文件、
+  `119 passed`。覆盖资料导入/多格式回执与失败呈现、资料库读写冲突、学习闭环、备份、
+  运行时状态、恢复壳、空间导航键盘可达性及六空间真实命令循环。
+- 随后执行 `tsc --noEmit && vite build --base ./`：61 个模块转换成功、4 个
+  `frontend/dist` 已忽略静态文件输出，耗时约 0.5 秒。该验证未生成 installer、Green、
+  Portable、wheel、版本、tag 或 Release；npm 缓存保留在项目 `.hermes/`。
+- 结果是当前 dirty 前端树的 `TESTED_LOCAL` / `BUILT_LOCAL`，不替代现有 Green 桌面
+  WebView 的可附着交互截图或当前 main 的 exact-SHA CI。
+
+
+---
+
+## LOG-203 — 2026-09-02 — 前端预览可视化导航截图（未发布）
+
+- 在 `127.0.0.1:4174` 临时启动一次已构建 `frontend/dist` 的 Vite preview，并以浏览器
+  实际访问和点击主空间导航。导入空间可见网页、文件与可暂停/恢复批量多格式入口；学习空间
+  可见复习、掌握度、复述检验、练习测验和学习路径入口。截图分别为
+  `.hermes/task-artifacts/ui/frontend-preview-intake-static-20260902.png`
+  （44,763 bytes，SHA-256 `74cb3bc1b5b882273480f72d8e45fe55dd5a1deded4b0b9662559c2f0fdff796`）和
+  `.hermes/task-artifacts/ui/frontend-preview-learning-static-20260902.png`
+  （42,452 bytes，SHA-256 `fe47ec756939b5bba7158628737ef0fa7295838f8f44f17a415f21ba631a9546`）。
+- 该 preview 未连接 Core API，因此握手与学习队列请求到 `127.0.0.1:8000` 均拒绝连接；
+  UI 明确显示本地数据不可用并禁用提交，未伪造导入/学习成功。此 fail-closed 行为与
+  浏览器开发模式合同一致。
+- 验证后浏览器页已关闭、临时 Vite 会话已中止并确认端口 4174 不再监听；运行日志与截图
+  均留在项目 `.hermes/`。这证明静态前端壳和导航路径，不替代 Tauri IPC/真实 Green 数据
+  产品路径或当前 main 的安装态验证。
+
+
+---
+
+## LOG-204 — 2026-09-02 — 隔离 Core 的真实浏览器导入/回读（未发布）
+
+- 浏览器真实联调首先发现：Vite 的 `/workspace/api` 代理虽已指向 `127.0.0.1:8000`，
+  但会转发浏览器 `Origin: 127.0.0.1:4175`。Core 正确将该写入拒绝为 `403`，并非
+  摄取服务不可用。新增仅开发桥接的 `proxyReq` Origin 对齐；Tauri/Green 不使用此代理。
+  该回归先失败再通过，`ViteDevProxy.test.mjs` 与 `tsc --noEmit && vite build` 均 PASS。
+- 使用新建的项目 `.hermes/task-runtime/browser-e2e-20260902/data` Core，在浏览器中实际
+  上传项目自有、无个人数据的 TXT 与 PDF fixture：两者均显示“文件已保留并转换”，资料库
+  回读显示内容寻址保留、转换器、状态和转换文本。TXT 回读为 `passthrough`；PDF 回读为
+  `pdfplumber-structured`，并展示页级证据锚点入口。所有运行数据、日志与截图均在 `.hermes`。
+- 可见截图与 SHA-256：工作台
+  `browser-e2e-workbench-20260902.png` (`743b73ddf3b09ac0f91fb54a760665bce9faafc466556f9d523ae220e1c8eced`)、
+  TXT 导入 `browser-e2e-successful-text-import-20260902.png`
+  (`df00873ed0350be210f305acd5aa53d5a9b8a7f7178dc9bb5ef76658235684fb`)、
+  TXT 回读 `browser-e2e-library-converted-readback-20260902.png`
+  (`e098340af46de38af2c42fdc99a025bf1d12145252d477a536ca497b059bd889`)、
+  PDF 导入 `browser-e2e-successful-pdf-import-20260902.png`
+  (`2bdcdcb8ae6979ac74e8be129dbf19f80225067f2421c632765fe0def93c1bd1`) 与 PDF 回读
+  `browser-e2e-pdf-converted-readback-20260902.png`
+  (`e16da1add4883ffda70f2fd1634edc8abee058968405352d7506d1496cea9329`)。
+- 这是当前 dirty 维护树的 `TESTED_LOCAL` 浏览器路径证据；仅覆盖隔离 Core 与开发桥接，
+  不替代 Green/Tauri IPC 的安装态交互、clean-commit receipt、当前 main exact-SHA CI 或发布。
+- 验证结束后，浏览器临时页、Vite `4175` 和隔离 Core `8000` 均已关闭并读回确认无监听；
+  没有停止或改写绿色版进程/数据。
+
+
+---
+
+## LOG-205 — 2026-09-02 — Green 启动器恢复与夜间运行时门禁补齐（未发布）
+
+- 用户截图中的 Windows Script Host `800A0408` 已定位为 Green 推荐入口
+  `启动星环知识.vbs` 的 UTF-8 无 BOM 编码与 WSH 不兼容；在 Green 的
+  `backups/vbs-encoding-20260902/` 留存原文件后，仅转为 UTF-16LE BOM。原 SHA-256 为
+  `355bf09ee6ecd308724999fbe8417b00f70078da5b2b6a8c48710d7bd0876e18`，转换后为
+  `e33c73cbf45eac7e5716376c5b8ae8a701ca53e391a07fefe1a32bf07a7314be`，逐字符文本一致。
+- 仅经 VBS 启动已读回桌面窗口标题 `星环知识平台（ArcheAxis Knowledge）`、进程响应态和
+  导入页面；没有用 `start.bat` 作为无控制台验收入口。Green 截图为
+  `.hermes/task-artifacts/ui/green-vbs-launched-import-20260902.jpg`，SHA-256
+  `521332ec09b9c8d7c7112511777d6af3a2db3c104a85eb4c706592e8ffe73705`。
+- 随后的 Sky 桌面自动化窗口重绑定成功，但窗口激活被运行环境拒绝（`failed to activate
+  captured window`）；因此未把 Green 原生文件选择、导入和回读宣称为完成，也没有绕过该
+  桌面边界或触碰 Green 的 `data` 内容。
+- 夜间 `browser-smoke` 先以失败回归测试确认缺少 Node/锁定 Vite 依赖，`windows-runtime`
+  确认误用 POSIX `env -u` 且缺少实际 Core HTTP smoke。补齐 Node 24、
+  `npm ci --prefix frontend --ignore-scripts --no-audit --no-fund`、PowerShell 安全清除
+  `PYTHONPATH`、fresh migration 和 `runtime_http_smoke.py`；本地工作流回归与 YAML 解析
+  `23 passed`。这是 `IMPLEMENTED_LOCAL`，尚未提交、推送、触发 nightly 或得到
+  `CI_VERIFIED_EXACT_SHA`。
+
+
+---
+
+## LOG-206 — 2026-09-02 — 网页快照/截图链路运行边界复核（未发布）
+
+- Green 推荐入口 `启动星环知识.vbs` 当前为 UTF-16LE BOM，内部对共享工具与模型库路径均以
+  完整字符串赋值。Windows 文件关联的 `Start-Process -FilePath <VBS>` 无窗口调用已返回；
+  用户截图中 `“D:\All” 没有文件扩展` 是调用方把含空格路径拆成首个参数的症状，不能归因于
+  已编码的 VBS 或 Green 数据目录。后续启动只允许文件关联/完整路径对象，不允许未加引号的
+  `wscript` 参数拼接。
+- 现有 SafeHTTP、raw-first 网页抓取和截图辅助模块的定向回归为 `31 passed`（保留
+  `newspaper4k` 缺少可选 NLTK 的非阻塞警告）。在项目自有、无网络的 HTML fixture 上，
+  原生 Edge 命令行截图三次均为退出码 `0` 但未生成 PNG；因此该实现不可作为本机或 Green
+  的截图资格证据。
+- 同一 fixture 通过已有 Python Playwright 浏览器实际生成
+  `.hermes/task-artifacts/web-chain/golden-web-anchor-playwright.png`
+  （11,369 bytes，SHA-256
+  `ff0f49845fd98296a8c96f149cd2854613b24475831a476c056802a1599edbb9`），随后由
+  `pytesseract+tesseract` 回读 `Web evidence anchor`。这是本地、离线的“快照→截图→OCR”
+  组件证据，不是公开网页、安装态 Green 或全链路资格。
+- `playwright` 当前属于项目 `browser`/`ci` 依赖组，Green bundled Python 尚未包含该模块；
+  同时 `app/ingestion/web_screenshot.py` 没有产品 API 或前端调用点。正确后续不是把测试
+  依赖复制进 Green，而是按 `AXW-WEB-002` 至 `AXW-WEB-016` 将 URL 安全抓取、原始
+  WebSnapshot、受限浏览器 worker、离线快照截图、OCR/证据锚点、任务状态及 UI 回读建成同一
+  可取消/可恢复的产品路径，并完成 Windows 安装态验证。
+- 作为当前可回滚的可靠性修复，`web_screenshot.py` 现会在浏览器未产出 PNG 时保留
+  `exit_code` 和非空失败原因；回归先以旧的空错误失败，修复后 `test_web_screenshot.py`
+  为 `4 passed`，与 SafeHTTP/raw-first 网页测试合计 `32 passed`。同一离线 fixture 的
+  原生 Edge 复验现在明确返回 `exit_code=0` 且 `browser exited without writing a PNG`，
+  没有把该零退出码误报为截图成功。
+
+
+---
+
+## LOG-207 — 2026-09-02 — Green 原始网页证据修复就地同步（未发布）
+
+- 当前用户 URL 导入已从旧的 `convert_url` 直通路径改为 `capture_web` 的 raw-first 路径：先将
+  原始 HTML 以内容哈希留在本地资产库，再将最终 URL 作为规范来源、以
+  `local-asset://sha256/<digest>` 作为可回读的原始来源定位符。图谱新增受验证的
+  `workspace_web_snapshot` 角色；图谱持久化失败会为已写入的原始资产登记失败，而不会把
+  其伪报为已治理成功。
+- 源码定向回归先确认旧路径仍调用 `convert_url`，修复后 `tests/test_workspace_api.py` 为
+  `31 passed`；相关网页/多格式/截图/安全 HTTP 组为 `52 passed`。另以项目 `.hermes/` 中的
+  临时数据库和受控 SafeHTTP 响应执行实际 `POST /workspace/api/intake/url` 后回读资料库：
+  返回 `html`、`safe-http+trafilatura`、64 字符正文和 SHA-256 原始资产；原始文件字节数为
+  164。该测试未使用个人数据，也没有写入 Green 的 `data`。
+- 在确认没有运行中的 Green `ArcheAxis.exe` 后，使用逐文件 SHA-256 门禁将四个已验证模块
+  就地替换到 `ArcheAxis.Knowledge.Green-x64/runtime/python/Lib/site-packages`：
+  `app/workspace/service.py`、`app/research/document.py`、`shared/research_store.py` 与
+  `app/ingestion/web_screenshot.py`。所有替换前版本均保存在 Green 的
+  `backups/inplace-web-raw-first-20260902/`；替换后目标和备份哈希均逐项复核，未触碰
+  Green `data`，未生成安装包、版本、tag 或 Release。
+- Green bundled Python 的不落盘内存契约已通过：网页快照角色为
+  `workspace_web_snapshot`、规范来源为 `https://example.test/final`、原始来源为
+  `local-asset://sha256/<digest>`，且 OCR 模块不存在旧的静态外置库根缓存。随后仅经既有
+  UTF-16LE VBS 启动器启动并读回 Green `ArcheAxis.exe`；回环 `GET /version` 和
+  `GET /workspace/api/status` 均返回 `200`，版本仍为既有 `0.6.14`。
+- 本次只证明模块装入、启动和只读状态端点可用。`/workspace/api/status` 仍报告
+  `migrations: {"unavailable": 1}`；因用户数据边界，本轮未读取或迁移 Green 的 `data`，
+  所以不能把该安装态数据迁移状况宣称为已合格。网页截图正式产品 worker/API/UI 路径亦仍待
+  `AXW-WEB-002` 至 `AXW-WEB-016` 完成后单独验收。
+
+
+---
+
+## LOG-208 — 2026-09-02 — 默认主题回归与桌面前端嵌入修复（未发布）
+
+- 用户确认的产品默认视觉为黑底、白灰结构。先前未提交的 Archive Desk 覆盖层被误设为默认，
+  造成白底/青绿主视觉；现已改为仅在用户主动选择浅色主题时启用。默认不再写入
+  `data-theme`，回到基础黑白基线；主题选择仍跨空间保持。前端定向测试 `11 passed`，无窗口
+  浏览器四个视口均 PASS，截图只显示黑白基线而非浅色工作台。
+- 同时定位并修复了 Tauri 增量构建的资源失效：`src-tauri/build.rs` 原先未递归声明
+  `frontend/dist` 为 Cargo 重构输入，导致前端构建成功但可复用旧的嵌入资源。新监听合同与
+  文档权威索引回归为 `2 passed`；无 bundle 构建后候选 EXE SHA-256 稳定为
+  `453147309147492d17dee8a997a2ea5f06ea9b40b112bf3e7dec494152969ddf`。
+- Green 仅替换既有 `ArcheAxis.exe`，旧 EXE 保存在
+  `backups/inplace-theme-blackwhite-20260902/ArcheAxis.exe`，其 SHA-256 为
+  `dcebde1596361ebbef22ae8d2a4c879bb09fe6879485580ce8267ede6bb72694`。替换后经既有
+  UTF-16LE VBS 启动器启动，回环 `/version` 返回 ArcheAxis Knowledge `0.6.14`；未读取或
+  修改 Green `data`，未生成 installer、版本、tag 或 Release。
+
+
+---
+
+## LOG-209 — 2026-09-02 — Green 实际静态前端边界纠正（未发布）
+
+- 随后的 Green 窗口截图证明，单独替换 EXE 没有改变实际 UI：该分发包从同级
+  `frontend/` 与 `bootstrap/` 目录加载静态入口，两者仍引用旧的 Archive Desk 资源。此前
+  “前端嵌入 EXE”的维护判断不适用于这份 Green 目录；该错误已记录，后续更新先检查实际
+  `index.html` 与资产引用，不再以 Tauri 编译成功替代运行时资源验证。
+- 已正常停止本轮 Green 进程，逐目录备份原有 `frontend/` 和 `bootstrap/` 到
+  `backups/inplace-frontend-blackwhite-20260902/`，再从当前 `frontend/dist` 复制两份
+  原始统一深色构建。两个目标均与源构建的 `index.html` SHA-256
+  `741efc3363ae612d47e2c878028f18b48e457ba2448080388e0bf21a141651fd` 和完整文件列表相等。
+- 经现有 VBS 启动器重启后，Green `ArcheAxis.exe` 进程存在、版本仍为 `0.6.14`；两个实际
+  静态入口哈希均与源构建相等。未读取/修改 Green `data`，未新增版本、安装包、tag 或 Release。
+
+
+---
+
+## LOG-210 — 2026-09-03 — 主桌面壳部署链纠正（未发布）
+
+- **对 LOG-208/209 的边界纠正：** 用户截图的窗口标题为
+  `星环知识平台（ArcheAxis Knowledge）`。源码证据表明它由主壳
+  `src-tauri/src/main.rs` 的 `WebviewUrl::App` 创建；`desktop/src-tauri` 与其
+  `bootstrap/` 仅是另一套 Recovery Shell。因而 LOG-209 关于该主窗口从 Green
+  `frontend/`/`bootstrap/` 加载的判断不成立，两个目录的复制不能作为主窗口修复证据。
+- 2026-09-03 重新读取后，Green `ArcheAxis.exe` 的 SHA-256 为
+  `453147309147492d17dee8a997a2ea5f06ea9b40b112bf3e7dec494152969ddf`，而已完成的主壳
+  候选 `src-tauri/target/release/ArcheAxis.exe` 为
+  `5791659091c829e20572afcc058928cda06a9869f6710f5914006285b8a16f38`。这证明此前并未将
+  正确的主壳候选部署到 Green。
+- 在确认没有运行中 `ArcheAxis.exe` 后，旧目标已备份到
+  `ArcheAxis.Knowledge.Green-x64/backups/inplace-main-shell-20260903/ArcheAxis.exe`，
+  随后以候选替换。替换后 Green 目标与候选 SHA-256 均为
+  `5791659091c829e20572afcc058928cda06a9869f6710f5914006285b8a16f38`；这是
+  `IMPLEMENTED_LOCAL` 的文件部署回读，不是视觉验收。
+- 既有 UTF-16LE VBS 启动器以无终端方式启动后，读回的实际进程路径为
+  `D:\All projects\ArcheAxis.Knowledge.Green-x64\ArcheAxis.exe`（PID 21688）。未读取、
+  清理或迁移 Green `data`，未创建版本、安装包、tag 或 Release。用户尚未确认该进程的
+  可见 UI 结果，因此主题/交互视觉状态保持 **NOT YET VISUALLY VERIFIED**。
+
+
+---
+
+## LOG-211 — 2026-09-03 — 源码前端黑白基线浏览器验收（未发布）
+
+- 通过内置浏览器在后台启动项目锁定 Vite 前端，未启动可见终端，也未使用桌面自动化。DOM
+  回读确认主导航、八个产品空间、空间上下文导航和活动坞均可呈现；旧的
+  `ARCHIVE DESK` 与 `切换为浅色工作台` 文本不存在。
+- CSS 只读回读：`documentElement[data-theme]` 为 `null`，根 `color-scheme` 为
+  `dark only`，正文与主内容背景均为 `rgb(5, 5, 5)`，主导航为 `rgb(12, 12, 13)`，
+  前景色为 `rgb(244, 244, 245)`。这证明当前源码默认是黑白深色基线，而不是白/深绿主题。
+- 因本次仅作前端视觉验收、未连接本地 Core，工作台诚实显示“本地数据暂时不可用”；这是
+  `DEGRADED` 可见状态，不得作为 Green 产品路径的功能通过证据。验收结束后精确停止了本次
+  启动的 Vite 监听进程并读回端口 `5173` 已释放；Green `ArcheAxis.exe` 未受影响。
+
+
+---
+
+## LOG-212 — 2026-09-03 — Green 本机管线只读状态回读（未发布）
+
+- 已运行的 Green 主壳进程下存在 bundled `runtime/python/python.exe` 子进程并监听
+  `127.0.0.1:53320`。只读 `/version` 返回 `ArcheAxis Knowledge 0.6.14`；
+  `/workspace/api/status` 返回 API 与数据库 `available`，聚合 Research/Jobs/Outbox/
+  Learning/Machine Knowledge 计数均为空。
+- 同一状态端点报告 worker、SSE 为 `not_connected`，outbox dispatcher 为 `lease_fenced`，
+  并将 migration summary 诚实标为 `{"unavailable": 1}`。源码显示该摘要在数据库缺失、
+  immutable-read/WAL 保护或迁移状态检查异常时均会 fail-closed；本轮不读取 Green `data`
+  来区分具体原因，故它是 **UNVERIFIED MIGRATION DETAIL**，不是“迁移已通过”或“迁移已失败”。
+- 这证明已部署 Core 服务面与数据库连接存在，但不证明异步投递、SSE、迁移详情或全格式
+  Green 产品路径已经资格完成。未读取任何用户记录、SQLite 内容或 Green `data` 文件。
+
+
+---
+
+## LOG-213 — 2026-09-03 — 测试运行时命名与 nightly 管线纠偏（未发布）
+
+- 项目全局 `conftest.py` 原先将 pytest 临时运行根写入废弃的 `COGNITIVE_DATA_DIR`，造成每轮
+  测试出现迁移警告，且现有 canonical 隔离契约取不到 `ARCHEAXIS_DATA_DIR`。现已改为项目内
+  `.hermes/task-runtime/tmp/archeaxis-pytest-*`，设置 `ARCHEAXIS_DATA_DIR` 并清除 inherited
+  legacy 变量。运行时隔离、legacy fallback 与主壳/文档/G0 门禁共 `13 passed`，警告消失。
+- 因该隔离改动影响所有 Python 测试启动边界，项目自有多格式 Golden/adapter 组随后在新根下
+  重跑；执行未报告失败。本记录不从截断的控制台进度推导具体通过总数。
+- nightly 工作流的 browser smoke 已补齐锁定 Node 24 和 `npm ci`，Windows runtime 已用
+  PowerShell 安全清除 `PYTHONPATH`，并加入 fresh migrate 与 Core/Workspace HTTP smoke。对应
+  `tests/test_nightly_runtime_gates.py`、`tests/test_ci_a0_gates.py` 共 `24 passed`，YAML 解析通过。
+  这是 `IMPLEMENTED_LOCAL/TESTED_LOCAL`；当前脏树未提交，故没有 exact-SHA cloud CI 结论。
+
+
+---
+
+## LOG-214 — 2026-09-03 — 目录/语言权威索引与隔离命名收束（未发布）
+
+- 新增 `docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md` 与
+  `docs/DIRECTORY_AUTHORITY_INDEX.md`，并从文档入口、配置权威表、当前文档导航交叉链接。
+  前者固定 React/主 Tauri、Python 当前 writer/sidecar、Rust read-only 迁移序列及 legacy
+  变量边界；后者固定源码、恢复兼容层、历史记录、`.hermes`、Green 用户数据和共用外置库的
+  路径分类。两者都明确：索引或目录名不能替代 writer cutover、删除或数据迁移授权。
+- `scripts/generate_phase0_baseline.py` 的隔离运行时现在只设置
+  `ARCHEAXIS_DATA_DIR`、显式清除 `COGNITIVE_DATA_DIR`，并在退出时逐一恢复调用方原始环境；
+  `scripts/lifecycle_browser_e2e.py` 与命名约定同步使用 canonical 变量。现有
+  `cognitive_os.sqlite` 仍是兼容数据文件名，本次没有重命名、读取或迁移数据库。
+- 本地验证：目录/语言文档链接、owner inventory 与运行时隔离定向回归 `19 passed`；追加索引
+  链接回归 `5 passed`；两项脚本 `py_compile` 通过。根 `src-tauri` 在共用 Rust/MSVC 工具链下
+  `cargo test --quiet` 为 `50 passed`。该工具链调用改为 `vcvars64.bat` 后延迟展开 `!PATH!`，
+  避免预展开覆盖 `link.exe`。
+- 根 `cargo fmt --all -- --check` 仍报告 `desktop/src-tauri` 三个既有格式差异；它不影响本轮
+  根 Tauri 测试结论，也未在脏工作树中擅自格式化。`git diff --check` 通过。所有证据是
+  `TESTED_LOCAL`；未提交、未推送、未运行 exact-SHA CI，未新建版本、安装包、tag 或 Release，
+  也未触碰 Green `data`。
+- 由于 `rustfmt` 默认沿模块递归，也会触及 Recovery Shell；以
+  `rustfmt --edition 2021 --config skip_children=true --check src-tauri/src/main.rs`
+  限定到主产品入口后通过。它证明入口文件格式合格，不消除 Recovery Shell 的独立格式债。
+
+
+---
+
+## LOG-215 — 2026-09-03 — 当前事实与权威索引同步纠偏（未发布）
+
+- `CURRENT_REALITY_2026-09-01.md` 现直接路由语言/侧车/运行时变量改动到
+  `LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md`，目录归类/归档/清理改动到
+  `DIRECTORY_AUTHORITY_INDEX.md`。这两个入口不提升 G0 状态，也不授权任何移动或删除。
+- 当前事实的 Green 表述改为：主壳候选与现有 Green EXE 的哈希部署已读回，VBS 启动后的
+  `/version` 与 `/workspace/api/status` 可达；用户可见的交互产品路径仍待独立证据。多格式
+  corpus 表述改为已记录的项目自有样本，缺口是 fresh/existing workspace journey receipts，
+  不是将已有样本再次声明为缺失。
+- 当前本地回归为 `27 passed`，并已执行 `git diff --check`。这是文档/隔离边界的
+  `TESTED_LOCAL`；未提交、未推送、未运行 exact-SHA CI，未创建版本或发布，也未触碰 Green
+  用户数据。
+
+
+---
+
+## LOG-216 — 2026-09-03 — 多格式 Golden 与 raw-first 主链回归（未发布）
+
+- 为补强 G0-003 的本地产品路径证据，当前 dirty tree 上的已登记 Golden 原件/结构校验为
+  `5 passed`，多格式服务管线与适配器成功/降级契约为 `110 passed`（3 项非失败警告：
+  `httpx`/Starlette 弃用、未安装可选 NLTK、BeautifulSoup 弃用）。覆盖 TXT、HTML、DOCX、
+  PPTX、XLSX、PDF、Canvas、截图 OCR、WAV、MP4 与服务编排边界。
+- Golden Journey 的 PDF 主链最初失败：测试断言了旧的
+  `workspace-local-intake-v1`/`workspace_document`，而产品 raw-first 路径已经且应当输出
+  `workspace-raw-asset-intake-v1`/`workspace_raw_asset_document` 和
+  `local-asset://sha256/...`。`app/research/document.py` 的验证规则与实际持久化均确认新对，
+  因此只更新了陈旧 E2E 断言，不改变产品行为。三条 selected Journey 随后 `3 passed`，完整
+  `integration-tests/test_axw_main_chain_e2e.py` 为 `6 passed`。
+- 正式 `generate_golden_journey_receipt.py` 仍拒绝当前脏树，因而本轮不生成或伪称 SHA-bound
+  fresh/existing receipt。所有原始控制台证据仅位于忽略的
+  `.hermes/task-runtime/verification-20260903/`；G0-003 保持 `PARTIAL`，full exact-SHA CI、
+  clean-tree journey receipts 和 Green 可见产品路径仍未完成。未发布、未改版本、未触碰 Green
+  `data`。
+
+
+---
+
+## LOG-217 — 2026-09-03 — G0-004 first-wave 消费者审计（未发布）
+
+- 新增 `scripts/ci/audit_first_wave_consumers.py`，仅扫描
+  `app/`、`shared/`、`knowledge_base/`、`inspiration_research/` 的生产 Python 文本，排除测试、
+  文档、缓存和每个候选 API 的定义模块；它不导入产品模块、不打开数据库。
+- 当前静态结果：58 个 direct `sqlite3.connect` owner 仍存在；只有
+  `app/integrations/deeptutor_bridge.py` 在定义模块外调用 `append_event()`；
+  `SourceStoreV2`、`store_bundle()`、`review_bundle()` 和 `record_machine_receipt()` 没有
+  non-definition production consumer。新审计及既有 owner 审计回归合计 `4 passed`。
+- 这消除了“模块存在即产品已接入”的错误推断，但不是 runtime trace、拒绝收据、clean-tree
+  readback 或 writer cutover。G0-004 仍为 `OPEN`，Rust production writer 仍禁止；未发布、
+  未改版本、未触碰 Green `data`。
+
+
+---
+
+## LOG-218 — 2026-09-03 — clean-tree Golden Journey 收据与 Windows 长路径修复（未发布）
+
+- 主工作树与既有 `ci-baseline-db13d056` worktree 均含未提交改动，不能生成 clean receipt。
+  新建 detached `db13d0564ac2971d4b1eb3e3a5bff9c9256af313` worktree 后，第一次运行揭示
+  `generate_golden_journey_receipt.py` 用 Git common-dir 推导 pytest `--basetemp`，不同 worktree
+  在主树 `.hermes` 复用 `g-*` 目录并触发 Windows lock/permission cleanup 错误。
+- 新增回归后，runner 改为从当前 worktree `ROOT/.hermes/task-runtime` 推导临时根；其 JSON
+  控制台输出采用 ASCII 转义，避免失败摘要内的 replacement character 在 legacy Windows terminal
+  上引发 `UnicodeEncodeError`。该脚本回归 `7 passed`。
+- 首个长路径 worktree 仍因最深备份/导入路径 262 字符而失败；路径量化后使用项目 `.hermes/g`
+  的短 detached worktree，最深路径估算 218 字符。以已测试 runner 对该 clean tree 执行，生成
+  `.hermes/g/.hermes/task-artifacts/golden-journey/receipt-db13d056-local-clean-runner.json`：
+  commit `db13d056...`、tree `53874a01030e69dd0d99edefa42b6bf0026e60b7`、文件 SHA-256
+  `8e794f14f6529eabaf5b6f2b6003ae4af566ad024213b1f965e736cd16faa221`。PDF raw/conversion/
+  anchor/review/learning、four-library restart 和 fresh workspace import 均 PASS。
+- 收据严格为 `LOCAL_RUNTIME/PARTIAL`：release gate `NOT_EXECUTED`，six-space browser、installed
+  desktop restart、Tier-A 全矩阵与 exact-SHA CI 均未执行。未发布、未改版本、未触碰 Green `data`。
+
+
+---
+
+## LOG-219 — 2026-09-03 — db13d056 nightly full-suite 失败修复（未发布）
+
+- GitHub 只读回读：`db13d056` 的 push CI `33521144084` success 但仅 path-selected
+  `gateplan`/`lint`/`a0-gates`，nightly `33605765393` 的 `full-suite` failed；
+  `py-compat` 3.11/3.13 通过，Windows runtime 与 browser smoke 被上游失败跳过。
+- Failed log 明确列出 8 项：legacy `COGNITIVE_DATA_DIR` 断言、隔离路径断言、媒体 FFmpeg
+  临时路径冲突、子进程 facade/learning setup 断言，以及 Chromium socket path 与网页 PNG
+  写入问题。当前树中前七个的等价回归已存在；网页截图仍复现为 Edge launcher `exit_code=0`
+  但子进程稍后才写 PNG。新增短时就绪等待后，`tests/test_web_screenshot.py` 与网页
+  capture→screenshot→OCR E2E 为 `8 passed`；八个 nightly failure surface 的当前等价组为
+  `8 passed`（仅可选 NLTK warning）。
+- 此次没有将 0 退出码伪报为截图成功：超过 8 秒仍无非空 PNG 仍 fail-closed。所有证据在
+  `.hermes/task-runtime/verification-20260903/`。当前修复未提交、未推送，故 run `33605765393`
+  仍是精确 SHA 的失败事实，G0-001 仍 `OPEN`；未发布、未改版本、未触碰 Green `data`。
+
+
+---
+
+## LOG-220 — 2026-09-03 — raw-first 测试接缝与全量本地门禁收敛（未发布）
+
+- 旧 workspace/real-case 测试只替换已退役的 `convert_url` 接缝；在网页路径改为“先保全原件、
+  再提取正文”后，它们会错误访问示例 URL。新增测试专用 `capture_web` 桩：它通过同一
+  `RawAssetStore.store_original()` 路径写入 HTML 原件并返回含 final URL 的正文来源，不放宽
+  `SafeHTTP`、不改生产抓取策略。定向回归为 `38 passed`（仅 FastAPI/可选 NLTK 警告）。
+- 更新 runtime delivery authority：nightly browser smoke 必须锁定安装 frontend 工具链，
+  Windows runtime 必须使用 PowerShell 语义清理 `PYTHONPATH` 并执行迁移/HTTP smoke。其结构
+  契约、目录/语言/文档 authority 合计 `14 passed`。该记录仅为本地工作树验证；未触发或回读
+  云端 nightly。
+- 与 nightly full-suite 同口径的当前本地矩阵为 `2163 passed, 5 skipped, 3 warnings in 99.82s`。
+  这替代了对旧失败 run 的推测，但不改变事实：`db13d056` 的 nightly `33605765393` 仍失败，
+  当前改动未提交、未推送，G0-001 仍 `OPEN`。未发布、未改版本、未触碰 Green `data`。
+
+
+---
+
+## LOG-221 — 2026-09-03 — 前端离线黑白主题与命令遮罩修复（未发布）
+
+- 根因不是用户主题选择：canonical `frontend/src/design-system/tokens.css` 仍保留旧
+  `Linear-style` 紫色 token、Google Fonts 网络导入，且 `CommandPalette` 已渲染
+  `.command-backdrop`/`.command-palette` 却没有对应模态样式。这与当前 UI 路线图锁定的黑白深色
+  默认基线冲突，也会使离线 Green 的字体与视觉表现不稳定。
+- 现将基础 token 收敛为黑、白、灰，移除网络字体和所有旧紫色常量；保留成功/警告/错误的低饱和
+  语义状态色。命令面板遮罩变为仅在显式打开时存在的 fixed 模态层，并加入
+  `prefers-reduced-motion` 降级。未改九个产品空间、API、数据流或模型/学习逻辑。
+- TDD 静态主题合同先失败后通过。最终 `npm --prefix frontend test` 为 `119 passed`，
+  `npm --prefix frontend run build` 成功。后台内置浏览器读回：body 为 `rgb(5, 5, 5)`、文字为
+  `rgb(245, 245, 245)`、`color-scheme=dark`；资料库导航与命令面板均可操作，关闭后遮罩计数为
+  零。临时 Vite 进程已停止。
+- 证据层级为 `TESTED_LOCAL/BUILT_LOCAL`：无后端浏览器中的资料库明确显示本地数据不可用，未伪造
+  内容。当前修复尚未嵌入或重新验证 Green 主壳，未创建新版本、tag、安装包或 Release，未触碰
+  Green `data`。
+
+
+---
+
+## LOG-222 — 2026-09-03 — 现有 Green 主壳黑白前端原地部署（未发布）
+
+- 初始 root Tauri 构建失败不是代码问题：共享 `cargo` 未加载 MSVC `cl.exe`；随后发现批处理
+  `%PATH%` 在 `VsDevCmd` 之前展开，覆盖了刚加载的 MSVC 路径。使用外置共用库既有的
+  VS 2022 开发环境、共享 Rust `rustc` 与一次性 explicit linker 后，`cargo build --release`
+  成功；只产生三项既有 dead-code 警告。
+- 部署前确认没有运行的 `ArcheAxis.exe`。新候选
+  `132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538` 与 Green 目标读回一致；
+  原目标 `5791659091c829e20572afcc058928cda06a9869f6710f5914006285b8a16f38` 已备份到
+  `backups/inplace-main-shell-20260903-monochrome/ArcheAxis.exe` 并完成备份哈希核验。
+- 仅替换 `ArcheAxis.exe`；未创建新版本、tag、安装包或 Release，未读取或修改 Green `data`。
+  为遵守项目临时数据边界，已删除构建时误落入 `src-tauri/.hermes/` 的单一日志目录，保留根
+  `.hermes/task-runtime/tauri-build-20260903/` 的审计日志。
+- 状态为 `DEPLOYED_HASH_VERIFIED`，不是 `INSTALLED_RUNTIME_VERIFIED`：遵循“静默/网页测试、
+  不拉起桌面自动化”的约束，未强制启动或操作 Green GUI；用户可见产品路径仍需在安静 VBS 启动后
+  独立读回。
+
+
+---
+
+## LOG-223 — 2026-09-03 — 仓库规范化权威链与已证实临时残留清理（未发布）
+
+- 新增 `docs/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md`，把文档查询、目录分类、
+  语言单写者边界、Windows 交付链与 CI 层级汇到一条当前队列；文档、目录与语言 authority index
+  已双向路由至该记录。它明确语言加速顺序为 G0 事实→Rust 只读差异报告→单 aggregate、可回滚切换，
+  不是编译/目录移动即迁移。
+- 已确认并删除根 `.playwright-cli/` 的两份旧浏览器运行残留（共 3,799 bytes），随后将该
+  `TRANSIENT_AUTOMATION` 路径加入 `.gitignore`。删除前验证目标存在且恰为两份文件，删除后
+  `Test-Path` 为 false；未递归清空 `.hermes/`，未删除 `src-tauri/target/` 缓存，未读取或修改
+  Green `data`。
+- 文档 authority、目录 authority、语言 authority 与 runtime delivery authority 回归为
+  `10 passed`。当前主树仍有 72 个已改与 48 个未跟踪路径的混合状态，故没有执行 `git add .`、
+  commit、push、版本、tag 或 Release；云端/本地一致性仍须按已拥有路径清单单独完成。

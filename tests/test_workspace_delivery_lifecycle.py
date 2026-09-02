@@ -39,7 +39,7 @@ def _reset_runtime():
         shutil.rmtree(TASK_RUNTIME, ignore_errors=True)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    os.environ["COGNITIVE_DATA_DIR"] = str(DATA_DIR)
+    os.environ["ARCHEAXIS_DATA_DIR"] = str(DATA_DIR)
     os.environ["COGNITIVE_HOST"] = "127.0.0.1"
     os.environ["COGNITIVE_PORT"] = "18723"
     os.environ["COGNITIVE_DATA_LOCKFILE"] = str(DATA_DIR / ".cognitive-volume-id")
@@ -51,7 +51,7 @@ def _ensure_schema():
     result = subprocess.run(
         [sys.executable, "-m", "app.runtime_entrypoint", "migrate"],
         capture_output=True, text=True, cwd=PROJECT_ROOT,
-        env={**os.environ, "COGNITIVE_DATA_DIR": str(DATA_DIR)},
+        env={**os.environ, "ARCHEAXIS_DATA_DIR": str(DATA_DIR)},
     )
     if result.returncode != 0:
         print(f"MIGRATION FAILED: {result.stderr}", file=sys.stderr)
@@ -68,7 +68,7 @@ def _start_server():
          "--log-level", "warning"],
         cwd=PROJECT_ROOT,
         env={**os.environ,
-             "COGNITIVE_DATA_DIR": str(DATA_DIR),
+             "ARCHEAXIS_DATA_DIR": str(DATA_DIR),
              "COGNITIVE_HOST": "127.0.0.1",
              "COGNITIVE_PORT": "18723"},
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

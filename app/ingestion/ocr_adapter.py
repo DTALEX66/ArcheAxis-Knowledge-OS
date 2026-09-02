@@ -19,13 +19,6 @@ from typing import Any
 
 from shared.adapter_contract import AdapterResult
 
-_SCOOP_ROOT_CANDIDATES = tuple(
-    Path(value)
-    for value in (os.environ.get("OS_EXTERNAL_CONFIG", "").strip(),)
-    if value
-)
-
-
 def _is_usable_tesseract(candidate: str | Path) -> bool:
     """Check that a Tesseract candidate is runnable, not merely present."""
     try:
@@ -43,10 +36,14 @@ def _is_usable_tesseract(candidate: str | Path) -> bool:
 
 def _external_roots() -> tuple[Path, ...]:
     """Read the configured shared-tool root at conversion time."""
-    configured = os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
-    roots = [Path(configured)] if configured else []
-    roots.extend(root for root in _SCOOP_ROOT_CANDIDATES if root not in roots)
-    return tuple(roots)
+    return tuple(
+        Path(value)
+        for value in (
+            os.environ.get("OS_EXTERNAL_CONFIG", "").strip(),
+            os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip(),
+        )
+        if value
+    )
 
 
 def _resolve_tesseract() -> str:
@@ -104,6 +101,16 @@ def configure_tesseract() -> tuple[str, str]:
                     break
             if tessdata:
                 break
+    if not tessdata and binary:
+        binary_path = Path(binary)
+        toolchain_root = next(
+            (parent for parent in binary_path.parents if parent.name in {"10-toolchains", "toolchains"}),
+            None,
+        )
+        if toolchain_root is not None:
+            candidate = toolchain_root / "scoop" / "apps" / "tesseract-languages" / "current"
+            if valid_tessdata(candidate):
+                tessdata = str(candidate)
     if not tessdata and binary:
         own = Path(binary).parent / "tessdata"
         if valid_tessdata(own):

@@ -13,13 +13,13 @@ def _migrated_db(tmp_path: Path) -> str:
     """Create a migrated runtime DB in tmp (governance tables present)."""
     runtime = tmp_path / "runtime"
     env = os.environ.copy()
-    env["COGNITIVE_DATA_DIR"] = str(runtime)
+    env["ARCHEAXIS_DATA_DIR"] = str(runtime)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     code = textwrap.dedent(
         r"""
         import os, sqlite3, sys
         from pathlib import Path
-        runtime = Path(os.environ["COGNITIVE_DATA_DIR"]).resolve()
+        runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"]).resolve()
         from shared import storage
         from app.runtime_entrypoint import run_migration
         from argparse import Namespace

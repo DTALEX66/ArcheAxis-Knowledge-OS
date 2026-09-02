@@ -11,14 +11,17 @@
 | 验证节奏 | `docs/VERIFICATION_POLICY.md` | 风险类型与验证节奏、审计/审查触发 |
 | path risk | `.worklab/project-validation.v1.yaml` | 变更路径 → 风险类 → Gate 映射 |
 | gate vocabulary | `.worklab/gate-registry.v1.yaml` | 本项目可被调用的稳定 Gate ID |
-| CI implementation | `.github/workflows/ci.yml` | 项目 CI 实现 |
-| release implementation | `.github/workflows/release.yml` | 项目 Release 实现 |
+| fast CI implementation | `.github/workflows/ci.yml` | push/PR 的路径风险选择与快速门禁；不是全量资格证据 |
+| full qualification implementation | `.github/workflows/nightly.yml` | schedule/manual 的兼容矩阵、全量 Python、浏览器与 Windows 运行时门禁；结果必须按精确 SHA 回读 |
+| release implementation | `.github/workflows/release.yml` | 精确 SHA 候选产物的发布流程；发布不替代资格门禁 |
 | runtime defaults | `config/defaults.yaml` | 产品运行时默认真值（唯一） |
 | runtime profiles | `config/profiles/*.yaml` | 按环境差异（不复制整树） |
 | runtime legacy shim | `config/settings.yaml` | 兼容入口（保持空映射） |
 | naming | `docs/truth/NAMING_CONTRACT_V2.md` | 命名体系 V2（binding） |
 | current capability | `docs/truth/CURRENT_STATE_TRUTH.md` | 当前能力/状态真值 |
 | future blueprint | `docs/truth/CAPABILITY_ATLAS_V2.yaml` | 未来蓝图（DEFERRED/PARKED 保留） |
+| language ownership and migration | `docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md` | 语言边界、兼容命名与迁移门禁 |
+| directory topology and cleanup | `docs/DIRECTORY_AUTHORITY_INDEX.md` | 路径分类、归档/移动/删除前置条件 |
 
 ## 优先级（项目独立执行时）
 

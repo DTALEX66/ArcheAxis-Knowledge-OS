@@ -58,19 +58,25 @@ def _task_runtime_tmp_root() -> Path:
 @contextmanager
 def _temporary_runtime() -> Iterator[Path]:
     """Provide a unique project-contained runtime root and restore the caller environment."""
-    previous_data_root = os.environ.get("ARCHEAXIS_DATA_DIR") or os.environ.get("COGNITIVE_DATA_DIR")
+    previous_archeaxis_data_root = os.environ.get("ARCHEAXIS_DATA_DIR")
+    previous_cognitive_data_root = os.environ.get("COGNITIVE_DATA_DIR")
     previous_bytecode = os.environ.get("PYTHONDONTWRITEBYTECODE")
-    with TemporaryDirectory(prefix="cognitive-phase0-", dir=_task_runtime_tmp_root()) as directory:
+    with TemporaryDirectory(prefix="archeaxis-phase0-", dir=_task_runtime_tmp_root()) as directory:
         runtime_root = Path(directory).resolve()
         os.environ["ARCHEAXIS_DATA_DIR"] = str(runtime_root)
+        os.environ.pop("COGNITIVE_DATA_DIR", None)
         os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
         try:
             yield runtime_root
         finally:
-            if previous_data_root is None:
+            if previous_archeaxis_data_root is None:
                 os.environ.pop("ARCHEAXIS_DATA_DIR", None)
             else:
-                os.environ["ARCHEAXIS_DATA_DIR"] = previous_data_root
+                os.environ["ARCHEAXIS_DATA_DIR"] = previous_archeaxis_data_root
+            if previous_cognitive_data_root is None:
+                os.environ.pop("COGNITIVE_DATA_DIR", None)
+            else:
+                os.environ["COGNITIVE_DATA_DIR"] = previous_cognitive_data_root
             if previous_bytecode is None:
                 os.environ.pop("PYTHONDONTWRITEBYTECODE", None)
             else:
@@ -344,7 +350,7 @@ def _test_baseline(git_head: str, gate_results: dict[str, dict[str, Any]]) -> st
 
 > Git 基线：`{git_head}`。结果由本次真实命令执行生成，不复用历史测试数字。
 >
-> 隔离：所有子进程在导入项目前设置每次运行唯一且自动删除的 `COGNITIVE_DATA_DIR`、`PYTHONDONTWRITEBYTECODE=1`，pytest 使用 `-p no:cacheprovider`。
+> 隔离：所有子进程在导入项目前设置每次运行唯一且自动删除的 `ARCHEAXIS_DATA_DIR`、清除兼容变量 `COGNITIVE_DATA_DIR` 并设置 `PYTHONDONTWRITEBYTECODE=1`，pytest 使用 `-p no:cacheprovider`。
 
 ## 门禁结果
 
@@ -819,7 +825,7 @@ def _security_findings() -> list[dict[str, str]]:
 
 def _collect_routes(repo_root: Path) -> list[dict[str, Any]]:
     if not os.environ.get("ARCHEAXIS_DATA_DIR", "").strip() or os.environ.get("COGNITIVE_DATA_DIR", "").strip():
-        raise RuntimeError("route collection requires an isolated COGNITIVE_DATA_DIR")
+        raise RuntimeError("route collection requires an isolated ARCHEAXIS_DATA_DIR without legacy override")
     from app.main import app
 
     main_routes = build_route_map(app)

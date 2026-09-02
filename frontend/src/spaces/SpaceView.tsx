@@ -20,6 +20,7 @@ export function SpaceView({
   onInspect: (target: InspectionTarget) => void;
   onNavigate: (id: SpaceId) => void;
 }) {
+  const content = (() => {
   switch (spaceId) {
     case "workspace":
       return <WorkspaceSpace onNavigate={onNavigate} />;
@@ -40,4 +41,7 @@ export function SpaceView({
     case "settings":
       return <SettingsSpace />;
   }
+  })();
+
+  return <div className="space-view" data-motion="enter">{content}</div>;
 }

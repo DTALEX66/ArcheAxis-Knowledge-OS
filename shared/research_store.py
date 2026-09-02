@@ -366,7 +366,12 @@ def _validate_candidate_graph(graph: ResearchPackageGraph) -> None:
 
     try:
         payload_roles = {record.payload_role for record in graph.source_provenance}
-        if payload_roles in ({"workspace_document"}, {"workspace_web_document"}):
+        if payload_roles in (
+            {"workspace_document"},
+            {"workspace_raw_asset_document"},
+            {"workspace_web_document"},
+            {"workspace_web_snapshot"},
+        ):
             from app.research.document import validate_workspace_document_graph
 
             validate_workspace_document_graph(graph)
@@ -388,7 +393,10 @@ def persist_research_graph(
 
     _validate_candidate_graph(graph)
     database = _database_path(db_path)
-    research_migration.require_applied(db_path=database)
+    # This is the live persistence path.  SQLite may legitimately retain WAL
+    # sidecars while the product process is running; use its query-only reader
+    # for the schema guard instead of the offline immutable-reader contract.
+    research_migration.require_applied(db_path=database, live_wal=True)
     provenance_by_id = {record.source_id: record for record in graph.source_provenance}
     if set(provenance_by_id) != {source.source_id for source in graph.sources}:
         raise ResearchPersistenceError("source provenance must match source records")

@@ -27,14 +27,34 @@ class AsrError(ValueError):
 
 
 def resolve_model_dir() -> Path:
-    """Model directory from config or env, else an optional project-local path."""
+    """Model directory from config/env, shared library, or project-local fallback."""
     try:
         from shared.config import config
         configured = str(config.get("asr.model_dir", "") or "").strip()
     except Exception:
         configured = ""
     env_value = os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip()
-    return Path(configured or env_value or DEFAULT_MODEL_DIR)
+    if configured or env_value:
+        return Path(configured or env_value)
+
+    model_library = os.environ.get("ARCHEAXIS_MODEL_LIBRARY_DIR", "").strip()
+    if model_library:
+        return Path(model_library) / "whisper"
+
+    external_root = (
+        os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+        or os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip()
+    )
+    if external_root:
+        sibling_library = Path(external_root).parent / "Model library" / "whisper"
+        if sibling_library.is_dir():
+            return sibling_library
+
+    for ancestor in Path(__file__).resolve().parents:
+        sibling_library = ancestor.parent / "Model library" / "whisper"
+        if sibling_library.is_dir():
+            return sibling_library
+    return DEFAULT_MODEL_DIR
 
 
 def transcribe(audio_path: str | Path) -> dict[str, Any]:

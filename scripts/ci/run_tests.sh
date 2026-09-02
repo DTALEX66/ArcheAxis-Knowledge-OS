@@ -10,14 +10,13 @@
 #   scripts/ci/run_tests.sh -- -k smoke     # 透传其余 pytest 参数
 set -euo pipefail
 
-# 项目根（本脚本位于 <repo>/scripts/ci/ 下两层）
-# pwd -W 返回 Windows 路径（D:/...），避免 MSYS /d/... 路径传给 Windows Python/uv 失效
+# 项目根（本脚本位于 <repo>/scripts/ci/ 下两层）。保持 POSIX 路径：
+# Git Bash 会为 Windows 原生子进程处理路径转换，Linux/macOS 则没有 pwd -W。
 ROOT_UNIX="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-ROOT_WIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -W | sed 's|\\\\|/|g')"
 
 # 断言项目根：必须含 pyproject.toml + .git，防止目录索引错误扩大范围
 if [ ! -f "$ROOT_UNIX/pyproject.toml" ] || [ ! -e "$ROOT_UNIX/.git" ]; then
-  echo "FATAL: 不是有效的项目根: $ROOT_WIN" >&2
+  echo "FATAL: 不是有效的项目根: $ROOT_UNIX" >&2
   exit 2
 fi
 
@@ -50,7 +49,7 @@ if [ "${1:-}" = "--full" ]; then
   shift
 fi
 
-echo "[run_tests] root=$ROOT_WIN"
+echo "[run_tests] root=$ROOT_UNIX"
 echo "[run_tests] basetemp=$BASETEMP (项目内, 防溢出)"
 echo "[run_tests] pytest targets: $TESTS"
 

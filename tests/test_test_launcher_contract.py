@@ -24,3 +24,10 @@ def test_project_test_launcher_keeps_uv_cache_in_the_project() -> None:
 
     assert 'UV_CACHE_DIR="$PROJECT_DATA_ROOT/.hermes/cache/uv"' in launcher
     assert "export UV_CACHE_DIR" in launcher
+
+
+def test_project_test_launcher_does_not_require_windows_only_pwd_flag() -> None:
+    """The documented Bash entrypoint must also start on Linux and macOS."""
+    launcher = (ROOT / "scripts" / "ci" / "run_tests.sh").read_text(encoding="utf-8")
+
+    assert "&& pwd -W" not in launcher

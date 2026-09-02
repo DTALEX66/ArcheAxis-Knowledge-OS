@@ -133,6 +133,41 @@ def test_ocr_quality_and_language_metrics() -> None:
 # ── AXW-023E HTML ────────────────────────────────────────────────────────
 
 
+def test_ocr_config_recovers_shared_languages_from_resolved_binary_when_env_root_is_absent(
+    tmp_path, monkeypatch
+) -> None:
+    """A portable launch must repair stale language paths for every OCR caller."""
+    from app.ingestion import ocr_adapter
+
+    external = tmp_path / "external"
+    binary = external / "10-toolchains" / "scoop" / "apps" / "tesseract" / "current" / "tesseract.exe"
+    languages = external / "10-toolchains" / "scoop" / "apps" / "tesseract-languages" / "current"
+    binary.parent.mkdir(parents=True)
+    languages.mkdir(parents=True)
+    binary.write_bytes(b"fixture")
+    (languages / "eng.traineddata").write_bytes(b"fixture")
+
+    monkeypatch.delenv("OS_EXTERNAL_CONFIG", raising=False)
+    monkeypatch.delenv("ARCHEAXIS_EXTERNAL_ROOT", raising=False)
+    monkeypatch.setenv("TESSDATA_PREFIX", str(tmp_path / "stale-language-directory"))
+    monkeypatch.setattr(ocr_adapter, "_resolve_tesseract", lambda: str(binary))
+
+    _, tessdata = ocr_adapter.configure_tesseract()
+
+    assert tessdata == str(languages)
+
+
+def test_ocr_external_root_accepts_standard_shared_tool_environment(tmp_path, monkeypatch) -> None:
+    """The common tool bootstrap variable must locate OCR tools without a second alias."""
+    from app.ingestion import ocr_adapter
+
+    external = tmp_path / "OS External Configuration"
+    monkeypatch.delenv("OS_EXTERNAL_CONFIG", raising=False)
+    monkeypatch.setenv("ARCHEAXIS_EXTERNAL_ROOT", str(external))
+
+    assert external in ocr_adapter._external_roots()
+
+
 def test_html_extracts_main_content_and_metadata() -> None:
     res = convert_html(_HTML_SAMPLE)
     assert res.success
@@ -200,6 +235,22 @@ def test_media_ffmpeg_resolution_skips_broken_path_shim_and_uses_external_config
     monkeypatch.delenv("FFMPEG_CMD", raising=False)
     monkeypatch.setattr(media_adapter.shutil, "which", lambda _name: str(stale))
     monkeypatch.setattr(media_adapter, "_is_usable_ffmpeg", lambda candidate: os.fspath(candidate) == os.fspath(fallback))
+
+    assert media_adapter.resolve_ffmpeg() == str(fallback)
+
+
+def test_media_ffmpeg_resolution_accepts_standard_shared_tool_environment(tmp_path, monkeypatch) -> None:
+    """The shared bootstrap's canonical external-root variable must resolve FFmpeg."""
+    from app.ingestion import media_adapter
+
+    external = tmp_path / "OS External Configuration"
+    fallback = external / "10-toolchains" / "scoop" / "apps" / "ffmpeg" / "current" / "bin" / "ffmpeg.exe"
+    fallback.parent.mkdir(parents=True)
+    fallback.write_bytes(b"fixture")
+    monkeypatch.delenv("OS_EXTERNAL_CONFIG", raising=False)
+    monkeypatch.setenv("ARCHEAXIS_EXTERNAL_ROOT", str(external))
+    monkeypatch.setattr(media_adapter.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(media_adapter, "_is_usable_ffmpeg", lambda candidate: candidate == str(fallback))
 
     assert media_adapter.resolve_ffmpeg() == str(fallback)
 
