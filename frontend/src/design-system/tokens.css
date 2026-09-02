@@ -1,26 +1,25 @@
-/* ArcheAxis Knowledge — Linear-style Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;510;590;600&family=JetBrains+Mono:wght@400;500&display=swap');
+/* ArcheAxis Knowledge — Monochrome Design System */
 
 :root {
-  color-scheme: dark only;
+  color-scheme: dark;
 
-  /* Linear-inspired dark palette (enforced, not system-dependent) */
+  /* Product baseline: offline, high-contrast black and white. */
   --ax-canvas: #050505;
-  --ax-panel: #0c0c0d;
-  --ax-raised: #111113;
-  --ax-elevated: #161619;
+  --ax-panel: #0b0b0b;
+  --ax-raised: #121212;
+  --ax-elevated: #1a1a1a;
   --ax-hover: rgba(255, 255, 255, 0.07);
   --ax-active: rgba(255, 255, 255, 0.11);
 
-  --ax-fg: #f4f4f5;
-  --ax-fg-secondary: #d4d4d8;
-  --ax-fg-tertiary: #a1a1aa;
-  --ax-fg-quaternary: #71717a;
+  --ax-fg: #f5f5f5;
+  --ax-fg-secondary: #d4d4d4;
+  --ax-fg-tertiary: #a3a3a3;
+  --ax-fg-quaternary: #737373;
 
-  --ax-accent: #6366f1;
-  --ax-accent-bright: #818cf8;
-  --ax-accent-hover: #a5b4fc;
-  --ax-accent-soft: rgba(99, 102, 241, 0.18);
+  --ax-accent: #f5f5f5;
+  --ax-accent-bright: #ffffff;
+  --ax-accent-hover: #ffffff;
+  --ax-accent-soft: rgba(255, 255, 255, 0.18);
 
   --ax-success: #22c55e;
   --ax-success-soft: rgba(34, 197, 94, 0.15);
@@ -47,8 +46,8 @@
   --ax-space-6: 24px;
   --ax-space-8: 32px;
 
-  --ax-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --ax-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --ax-font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --ax-mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
 
   --ax-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --ax-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -159,7 +158,7 @@ button:active:not(:disabled), .btn:active:not(:disabled) {
 }
 
 button:focus-visible, .btn:focus-visible {
-  box-shadow: 0 0 0 2px var(--ax-accent-soft), 0 0 0 4px rgba(94, 106, 210, 0.25);
+  box-shadow: 0 0 0 2px var(--ax-accent-soft), 0 0 0 4px rgba(255, 255, 255, 0.25);
   border-color: var(--ax-accent-bright);
 }
 
@@ -170,19 +169,19 @@ button:disabled, .btn:disabled {
 }
 
 button[type="submit"], button.primary, .btn-primary {
-  background: linear-gradient(180deg, #6b76d9, var(--ax-accent));
-  border-color: rgba(124, 135, 226, 0.5);
-  color: #fff;
+  background: #f5f5f5;
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #050505;
   font-weight: 560;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.3);
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
 }
 
 button[type="submit"]:hover:not(:disabled), button.primary:hover:not(:disabled), .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #7d88e6, #5e6ad2);
-  border-color: rgba(140, 150, 235, 0.65);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 12px rgba(94, 106, 210, 0.35);
-  color: #fff;
+  background: #ffffff;
+  border-color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 12px rgba(255, 255, 255, 0.22);
+  color: #050505;
 }
 
 button[type="submit"]:active:not(:disabled), button.primary:active:not(:disabled), .btn-primary:active:not(:disabled) {
@@ -254,7 +253,7 @@ input:hover, textarea:hover, select:hover {
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--ax-accent-bright);
-  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.25);
   background: rgba(255, 255, 255, 0.045);
 }
 
@@ -620,7 +619,7 @@ tr:hover {
   background: linear-gradient(90deg, var(--ax-accent), var(--ax-accent-bright));
   border-radius: 999px;
   transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 8px rgba(94, 106, 210, 0.4);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
 }
 
 /* Layout */
@@ -772,7 +771,7 @@ tr:hover {
 }
 
 .space-rail-item[aria-current="page"] {
-  background: linear-gradient(180deg, rgba(94, 106, 210, 0.22), rgba(94, 106, 210, 0.12));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
   color: var(--ax-accent-bright);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
@@ -870,7 +869,7 @@ tr:hover {
 }
 
 .context-subnav button[aria-current="page"] {
-  background: linear-gradient(180deg, rgba(94, 106, 210, 0.2), rgba(94, 106, 210, 0.1));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.07));
   color: var(--ax-fg);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -1032,7 +1031,7 @@ tr:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(240px circle at var(--x, 50%) var(--y, 0%), rgba(94, 106, 210, 0.14), transparent 60%);
+  background: radial-gradient(240px circle at var(--x, 50%) var(--y, 0%), rgba(255, 255, 255, 0.12), transparent 60%);
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
@@ -1040,7 +1039,7 @@ tr:hover {
 
 .ws-action-card:hover {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
-  border-color: rgba(124, 135, 226, 0.45);
+  border-color: rgba(255, 255, 255, 0.38);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
@@ -1061,7 +1060,7 @@ tr:hover {
   align-items: center;
   justify-content: center;
   border-radius: 9px;
-  background: linear-gradient(180deg, rgba(94, 106, 210, 0.3), rgba(94, 106, 210, 0.14));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
   color: var(--ax-accent-bright);
   font-size: 16px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -1070,7 +1069,7 @@ tr:hover {
 
 .ws-action-card:hover .ws-action-icon {
   transform: scale(1.06);
-  background: linear-gradient(180deg, rgba(94, 106, 210, 0.38), rgba(94, 106, 210, 0.18));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.12));
 }
 
 .ws-action-card strong {
@@ -1315,7 +1314,7 @@ tr:hover {
 
 .path-input-drag-over input {
   border-color: var(--ax-accent-bright);
-  background: rgba(94, 106, 210, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Domain paths grid (advanced mode) */
@@ -1506,7 +1505,7 @@ tr:hover {
 }
 
 .learning-tabs button[aria-current="page"] {
-  background: linear-gradient(180deg, rgba(94, 106, 210, 0.28), rgba(94, 106, 210, 0.14));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.09));
   color: var(--ax-accent-bright);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
@@ -1616,6 +1615,58 @@ tr:hover {
 
 .learning-path li {
   margin-bottom: var(--ax-space-2);
+}
+
+/* Command palette is a real modal layer, never an accidental dimmed page. */
+.command-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: start center;
+  padding: min(12vh, 96px) var(--ax-space-4) var(--ax-space-4);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.command-palette {
+  width: min(640px, 100%);
+  max-height: min(72vh, 620px);
+  overflow: auto;
+  border: 1px solid var(--ax-border-strong);
+  border-radius: var(--ax-radius-lg);
+  background: var(--ax-elevated);
+  box-shadow: var(--ax-shadow-lg);
+}
+
+.command-palette > header {
+  display: flex;
+  gap: var(--ax-space-2);
+  padding: var(--ax-space-3);
+  border-bottom: 1px solid var(--ax-border);
+}
+
+.command-palette > header input {
+  min-width: 0;
+}
+
+.command-palette [role="listbox"] {
+  display: grid;
+  gap: 2px;
+  padding: var(--ax-space-2);
+}
+
+.command-palette [role="option"] {
+  width: 100%;
+  justify-content: flex-start;
+  border-color: transparent;
+  background: transparent;
+}
+
+.command-palette [role="option"][aria-selected="true"],
+.command-palette [role="option"]:hover {
+  background: var(--ax-hover);
+  border-color: var(--ax-border);
 }
 
 /* Action list (EvidenceSpace etc) */
@@ -1873,5 +1924,14 @@ tr:hover {
 
   .space-page {
     padding: 18px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

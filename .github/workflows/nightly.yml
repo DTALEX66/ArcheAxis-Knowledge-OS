@@ -88,6 +88,11 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -104,6 +109,8 @@ jobs:
           uv sync --frozen --group ci --group ci-adapters --group browser
       - name: Install Chromium
         run: uv run --frozen --group browser python -m playwright install --with-deps chromium
+      - name: Install locked canonical frontend tooling
+        run: npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
       - name: Workspace API suite
         run: |
           env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_workspace_api.py -q --tb=short
@@ -132,5 +139,15 @@ jobs:
         run: |
           uv sync --frozen --group ci --group ci-adapters
       - name: Windows runtime tests
+        shell: pwsh
         run: |
-          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_desktop_runtime.py tests/test_migration_runner.py -q --tb=short
+          Remove-Item -LiteralPath Env:PYTHONPATH -ErrorAction SilentlyContinue
+          uv run --frozen --group ci --group ci-adapters pytest tests/test_desktop_runtime.py tests/test_migration_runner.py -q --tb=short
+      - name: Migrate fresh Windows runtime
+        env:
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+        run: uv run --frozen --group ci --group ci-adapters python -m app.runtime_entrypoint migrate
+      - name: Run Windows Core and Workspace HTTP smoke
+        env:
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+        run: uv run --frozen --group ci --group ci-adapters python scripts/runtime_http_smoke.py
