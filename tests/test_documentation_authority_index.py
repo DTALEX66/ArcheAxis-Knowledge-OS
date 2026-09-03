@@ -26,6 +26,15 @@ def test_documentation_authority_index_links_active_g0_and_directory_gates() -> 
     assert "AX_DIR_010_INVENTORY_SCHEMA.md" in content
 
 
+def test_documentation_authority_index_routes_to_the_operational_issue_archive() -> None:
+    """Recurring failures must have one current, discoverable resolution record."""
+    content = (ROOT / "docs" / "DOCUMENTATION_AUTHORITY_INDEX.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md" in content
+
+
 def test_documentation_authority_index_links_language_and_directory_authorities() -> None:
     content = (ROOT / "docs" / "DOCUMENTATION_AUTHORITY_INDEX.md").read_text(
         encoding="utf-8"

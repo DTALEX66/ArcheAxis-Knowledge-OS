@@ -1,4 +1,4 @@
-# Current Reality — 2026-09-01 Field Reconciliation (refreshed 2026-09-02)
+# Current Reality — 2026-09-01 Field Reconciliation (refreshed 2026-09-04)
 
 > Scope: current-state navigation and evidence reconciliation only. This record
 > does not alter frozen task packs, immutable releases, historical receipts, or
@@ -8,11 +8,11 @@
 
 | Subject | Field fact | Evidence class |
 | --- | --- | --- |
-| Canonical branch | `main@db13d0564ac2971d4b1eb3e3a5bff9c9256af313` = `origin/main@db13d0564ac2971d4b1eb3e3a5bff9c9256af313` at capture | Git readback |
+| Canonical branch | `main@9217c510b3b150fe9da72a437ad31df45db616c4` = `origin/main@9217c510b3b150fe9da72a437ad31df45db616c4` at the 2026-09-04 reconciliation capture | Git readback |
 | Current published release | `v0.6.14`, published 2026-08-29; GitHub release exposes Setup, Green, Portable, wheel, identity, manifest, SBOM, notices and checksums (9 assets). The immutable [v0.6.14 release receipt](../../reports/release/v0.6.14/release-evidence.json) binds its tag, source, CI, Release workflow and assets. | GitHub release/API/workflow readback |
 | Local Green runtime | `D:\All projects\ArcheAxis.Knowledge.Green-x64`; identity is `v0.6.14` | Local identity readback |
 | Green in-place maintenance | Earlier `0bb6e25` media-module repair remains present; Green also carries the shared OCR-language and ASR-model discovery fixes. On 2026-09-03, the rebuilt primary shell carrying the offline monochrome frontend was hash-deployed in place: candidate and Green `ArcheAxis.exe` are `132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538`; the prior EXE was backed up. A controlled visible product-path restart is still required before any installed-runtime claim. | Local module/hash readback; restart still pending |
-| Main CI baseline | GitHub Actions CI run `33521144084` is bound to `db13d056`; `gateplan`, `lint` and `a0-gates` passed. Eleven qualification jobs were skipped by the path-selected GatePlan | Exact-SHA CI passed, but partial qualification |
+| Main CI baseline | Exact SHA `9217c510` Actions run `33667525835` ran broad qualification but failed fail-closed: lint rejected a legacy-name placement and four generated schema final-newline violations; wheel smoke used a fake `tesseract` with no version identity, so the resolver returned an error object without `text`. The seven scoped repairs remain staged locally and are not a cloud result. | Exact-SHA CI failed; qualification remains open |
 
 ## What the evidence does and does not prove
 
@@ -21,10 +21,9 @@
   installed-runtime journey; that still requires a controlled Windows launch
   and product-path readback on the same tree.
 - The prior `0bb6e25` targeted backend, frontend build and Chromium smoke
-  evidence remains historical evidence for that tree. Current `db13d056` has
-  an exact-SHA CI result, but it selected only `gateplan`, `lint` and
-  `a0-gates`; it cannot prove the skipped Python, browser, Windows runtime,
-  desktop build, wheel or installer-lifecycle qualifications.
+  evidence remains historical evidence for that tree. `9217c510` has a newer
+  exact-SHA CI result, but its fail-closed lint and wheel-smoke outcomes mean
+  neither it nor the local staged repair proves a successful qualification.
 - `v0.6.14` is the latest published release. It stays immutable for this work:
   the hotfix is a maintenance commit on `main`, not a new version, tag, asset
   set or Release.
@@ -72,17 +71,24 @@
   [`repository normalization state`](REPOSITORY_NORMALIZATION_STATE_2026-09-03.md).
   It records evidence requirements and does not authorize a deletion, move,
   writer cutover, Release or cloud-success claim by itself.
+- The [`operational issue archive`](OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md)
+  is the fast lookup route for recurring CI, toolchain, launcher, frontend and
+  evidence failures. It classifies the evidence layer and links back to this
+  record instead of promoting a diagnosis into proof of a fixed runtime.
 
 ## Next evidence obligations
 
-1. Dispatch or otherwise obtain a full-qualification exact-SHA CI run for
-   `db13d056`; do not infer skipped gates from the successful selected gates.
+1. Commit and push only the reviewed seven-file CI repair batch, then obtain a
+   full-qualification exact-SHA CI result for the resulting SHA. Do not infer
+   a green result from the staged diff or from successful individual jobs in
+   the failed `9217c510` run.
 2. Obtain controlled, exclusive Green Windows product-path smoke access and
    retain the result under project-local `.hermes/task-artifacts/`. The primary
    main-shell candidate has been hash-read-back into the existing Green
-   `ArcheAxis.exe`, then launched through the silent VBS path; `/version` and
-   `/workspace/api/status` are available. This does not replace a user-visible
-   interaction/product-path result, and the active instance must not be
+   `ArcheAxis.exe`. The silent VBS path currently has an open argument/quoting
+   failure, so it must be repaired and verified before any launch-success
+   claim; `/version` and `/workspace/api/status` availability do not replace a
+   user-visible interaction/product-path result, and the active instance must not be
    interrupted merely to make an automation attachment easier. The browser-visible capture at
    `.hermes/task-artifacts/ui/green-static-fallback-20260902.png` is deliberately
    not that product-path result: it is the `http://127.0.0.1:8015/` static

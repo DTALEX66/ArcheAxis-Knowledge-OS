@@ -30,7 +30,11 @@
    archiving, moving or cleaning a repository path.
 8. [Repository normalization state](current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md)
    for the current, evidence-bound cleanup, index and language-boundary queue.
-9. [Truth spine](truth/README.md) for frozen baselines and append-only evidence.
+9. [Operational issue archive](current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md)
+   for recurring failure triage, confirmed root causes and the first safe
+   diagnostic command. It is a navigation aid, not a substitute for the
+   evidence records it links.
+10. [Truth spine](truth/README.md) for frozen baselines and append-only evidence.
 
 User instructions and the project `AGENTS.md` override every repository
 document. A current-state record does not prove an installed runtime, exact-SHA
@@ -52,6 +56,7 @@ CI, release, or user-data migration unless it names that evidence layer.
 | Directory migration and cleanup | [Directory-migration adoption](current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md) | Planned; delete gate blocked |
 | Directory topology and classification | [Directory authority](DIRECTORY_AUTHORITY_INDEX.md) | Binding path classification |
 | Current cleanup/index/language queue | [Repository normalization state](current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md) | Current, evidence-bound |
+| Recurring operational failures and first-response diagnostics | [Operational issue archive](current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md) | Current triage index; follow linked evidence for claims |
 | Evidence chronology | [Execution status log](truth/EXECUTION_STATUS_LOG.md) | Append-only evidence log |
 | Release facts | [Release ledger](RELEASE_LEDGER.md) | Historical/public receipt index |
 | Verification policy | [Verification policy](VERIFICATION_POLICY.md) | Binding policy |

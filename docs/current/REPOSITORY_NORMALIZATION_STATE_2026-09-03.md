@@ -20,6 +20,7 @@
 | Priority | Work item | Status on 2026-09-03 | Completion evidence required |
 | --- | --- | --- | --- |
 | P0 | Prevent transient browser residue from becoming repository noise | Done locally: `.playwright-cli/` is ignored; the verified two-file residue was removed. | `.gitignore` entry plus absence check for the exact directory. |
+| P0 | Keep checked-out text consistent with repository EOL policy | Done locally: 44 tracked `eol=lf` paths with stale CRLF/mixed checkout bytes were normalized after rejecting unstaged paths and lone CR; 8 declared Windows command paths retain CRLF. | `.gitattributes`, `git ls-files --eol`, and repository convention check. |
 | P0 | Keep generated/runtime data bounded | Active constraint | `.hermes/` only for generated task data; retain build cache/worktrees/runtime packages until an exact inventory authorizes cleanup. |
 | P0 | Preserve user runtime data | Binding constraint | Never inspect, alter, move or clean Green `data/`. |
 | P1 | Establish a single current index route | Done locally | This state record is linked from document, directory and language authority indexes. |

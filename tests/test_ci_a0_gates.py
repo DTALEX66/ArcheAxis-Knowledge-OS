@@ -329,6 +329,17 @@ def test_wheel_gate_requires_release_but_not_the_retired_workspace_ui() -> None:
     assert "SELECT job_id, aggregate_id FROM workspace_jobs_v1" in wheel_job
 
 
+def test_wheel_ocr_smoke_uses_a_tesseract_identity_accepted_by_the_resolver() -> None:
+    """A fake executable must satisfy the same product usability contract."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    wheel_job = _job_section(workflow, "wheel-smoke", "browser-smoke")
+
+    # The workflow embeds a Python string literal, so its shell newline must
+    # remain escaped in YAML source and become a real newline only at runtime.
+    assert r'printf \"tesseract 5.0.0\\n\"' in wheel_job
+    assert 'assert result["text"] == "installed wheel OCR"' in wheel_job
+
+
 def test_ci_exposes_one_stable_a0_required_check() -> None:
     workflow = WORKFLOW.read_text(encoding="utf-8")
 

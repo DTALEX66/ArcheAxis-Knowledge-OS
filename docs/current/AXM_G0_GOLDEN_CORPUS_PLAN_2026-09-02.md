@@ -1,5 +1,8 @@
 # AXM G0 Golden Corpus Plan
 
+> Legacy-source names in the inventory below are retained solely to identify
+> immutable imported files; they are not current product naming.
+
 > Status: INCOMPLETE. This is a rights- and hash-bound candidate inventory,
 > not a claim that Tier A or an installed Green runtime has qualified every
 > format. It contains no user learning material.
@@ -19,7 +22,7 @@ a test candidate, not an accepted corpus item.
 | HTML | `tests/fixtures/tier_a_article.html` | `8ee4b1fa807f81dc0a3a3e17c2723256e8fb47915bbc6a837c59ec04c603896d` | Repository test fixture; no standalone rights record | Main-content anchor persists | HOLD — add rights record |
 | PPTX | `tests/fixtures/sample.pptx` | `92354555af75b4c41e10edadbe29570fa0a3d58d05d8421e53c367bdace137e5` | Repository test fixture; no standalone rights record | Slide 1/2 anchors persist | HOLD — add rights record |
 | XLSX | `tests/fixtures/sample.xlsx` | `d2de79afde88872c2e69c73da3fbed4ae1eae53d25bab5c14209b1ee365ef683` | Repository test fixture; no standalone rights record | `Data`/`Notes` sheet and formula anchors persist | HOLD — add rights record |
-| DOCX | `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/ArcheAxis OS Overview.docx` | `b4437158ad8f08dbbfe79a08212666056ce0347169f3bd7d8c8a46b8a3efb8b5` | Imported design delivery; no current rights statement | Heading and source-Markdown anchors persist | HOLD — verify provenance/right-to-use |
+| DOCX | `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/ArcheAxis OS Overview.docx` | `b4437158ad8f08dbbfe79a08212666056ce0347169f3bd7d8c8a46b8a3efb8b5` | Imported legacy design delivery; no current rights statement | Heading and source-Markdown anchors persist | HOLD — verify provenance/right-to-use |
 | TXT replacement | `tests/fixtures/golden/golden-text-anchor.txt` | `36bfbbcdb2d4137343d41fa843cb561962aa411ae5cb5128eebce9620e0e118d` | Project-authored synthetic test fixture; no personal data | Line 1 `Plaintext evidence anchor` | ACCEPTED FOR TXT STRUCTURAL EVALUATION ONLY |
 | HTML replacement | `tests/fixtures/golden/golden-web-anchor.html` | `e997211f4343167b93c9abba0e8f2a59c65972abdfb9639c0e5e7b81d51f4bb5` | Project-authored synthetic test fixture; no personal data | Main-content `Web evidence anchor` | ACCEPTED FOR HTML STRUCTURAL EVALUATION ONLY |
 | DOCX replacement | `tests/fixtures/golden/golden-docx-anchor.docx` | `6356fbba83f683723a3d202a443af2d10ad5957dc2b7be2d275be0247349855b` | Project-authored synthetic test fixture; no personal data | Heading/source-Markdown `Document evidence anchor` | ACCEPTED FOR DOCX STRUCTURAL EVALUATION ONLY |

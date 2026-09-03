@@ -439,7 +439,7 @@ jobs:
           assert site_packages in str(Path(pytesseract.__file__).resolve())
           root = Path(tempfile.mkdtemp())
           fake = root / "tesseract"
-          fake.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+          fake.write_text("#!/bin/sh\nprintf \"tesseract 5.0.0\\n\"\n", encoding="utf-8")
           fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
           os.environ["PATH"] = str(root) + os.pathsep + os.environ["PATH"]
           image = root / "evidence.png"

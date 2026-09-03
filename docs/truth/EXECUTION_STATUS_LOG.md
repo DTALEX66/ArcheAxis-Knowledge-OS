@@ -2293,3 +2293,31 @@ clone_test_workspace） #8 ✅ #9 ✅ #10 ✅ #11 ✅ #12 ✅ #13 ✅ #14 ✅ #1
 - 文档 authority、目录 authority、语言 authority 与 runtime delivery authority 回归为
   `10 passed`。当前主树仍有 72 个已改与 48 个未跟踪路径的混合状态，故没有执行 `git add .`、
   commit、push、版本、tag 或 Release；云端/本地一致性仍须按已拥有路径清单单独完成。
+
+
+---
+
+## LOG-224 — 2026-09-04 — 当前问题归档与权威索引事实对齐（未发布）
+
+- 新增 `docs/current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md`，将当前可复发的 CI、
+  多格式证据、Windows 工具链/静默启动、前端资产加载、raw-first 测试接缝、清理边界和事实漂移
+  汇为一个只读分诊入口。它链接到 Current Reality、G0 register 与本追加日志，不把诊断提升为
+  已修复或安装态证据。
+- Current Reality 与 G0 register 现明确 `9217c510` 的 exact-SHA CI `33667525835` 已 fail-closed，
+  以及七项局部 CI 修复仅处于 staged 状态。没有将已暂存差异、成功子 job 或本地检查写成云端成功。
+- 使用项目共用 CI Python 在根 `.hermes/task-runtime/authority-index-audit-20260904/` 跑文档、
+  runtime delivery 与 Tauri-shell authority regression：`11 passed`。额外静态扫描 5 份
+  `*index*.md` 的 62 条本地链接，`0 unresolved`。初次受限沙箱无法 spawn 外置 CI venv；
+  在受控权限下复跑成功，该失败归类为执行环境边界，不是产品回归。
+- 仓库 convention check 随后发现本机全局 `core.autocrlf=true` 留下 44 个非 Windows 文件的
+  CRLF/mixed checkout bytes；Git index 为 LF，`.gitattributes` 亦要求 LF，故 Git status 没有
+  内容差异。逐路径确认无未暂存内容、无 lone CR 后，只将 `eol=lf` 的 CRLF 规范为 LF；8 个
+  `.bat`/`.cmd`/`.ps1` 保持声明的 CRLF。为避免全局配置再次污染本项目 checkout，仓库本地 Git
+  配置固定为 `core.autocrlf=false`、`core.eol=lf`；随后 `repository convention check passed (worktree)`。
+- OCR fake-executable static contract 的首个断言错误地匹配了运行时 shell newline，而不是 YAML 内
+  Python 字符串字面量中的转义 newline；将该回归断言改为匹配源文本的 `\\n` 后，CI contract、文档
+  authority、runtime delivery 和 Tauri shell 定向组为 `35 passed`。这只证明本地契约；新的 exact-SHA
+  CI 仍须在提交/推送后读回。
+- 未提交、未推送、未创建版本/tag/Release，未移动历史文档，未清理 Git 对象、`.hermes/`、
+  `src-tauri/target` 或 Green `data`。G0-001、G0-003、G0-004 和可见 Green 产品路径仍保持各自
+  的 `OPEN`/`PARTIAL` 状态。
