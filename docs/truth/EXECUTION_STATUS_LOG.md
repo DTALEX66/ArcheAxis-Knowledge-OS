@@ -2318,6 +2318,22 @@ clone_test_workspace） #8 ✅ #9 ✅ #10 ✅ #11 ✅ #12 ✅ #13 ✅ #14 ✅ #1
   Python 字符串字面量中的转义 newline；将该回归断言改为匹配源文本的 `\\n` 后，CI contract、文档
   authority、runtime delivery 和 Tauri shell 定向组为 `35 passed`。这只证明本地契约；新的 exact-SHA
   CI 仍须在提交/推送后读回。
+
+
+---
+
+## LOG-225 — 2026-09-04 — CI 修复精确 SHA 读回（未发布 Release）
+
+- `24e8177` 的 CI `33785016040` 中，lint 已通过，但 `test (3.12)` 的 OS-level suite 失败；
+  公开 job API 将失败定位到该步骤，完整 Actions log 下载需要仓库管理员权限，未读取本机 GitHub
+  凭据绕过。以项目共用 Python 3.12 的 `-x -vv` 复现首项：当前事实改为 `9217c510` 后，
+  历史 `db13d056` 尚未显式列入 SHA catalog，SHA-authority regression 正确失败。
+- 以 `historical-sha:` 明确声明旧 CI 基线，并将测试只限于 current-main、release/delta 与该显式
+  catalog；定向回归 `3 passed`。随后的完整 `tests/` 记录为 `2082 passed, 5 skipped, 3 warnings`
+  （92.61 秒），警告来自第三方弃用/可选 NLP，不是失败。
+- 推送 `af216e349b283f7c3a7ffbadc5f980b35bed8b87` 后，精确 Actions run `33786524094` 成功；
+  `gateplan`、`test (3.12)`、`lint`、`a0-gates` 通过。其余 job 由 path GatePlan 跳过，故 G0-001
+  仍为 `OPEN`，未发布版本/tag/Release，未把该快门禁写成全量资格或 Green 安装态。
 - 未提交、未推送、未创建版本/tag/Release，未移动历史文档，未清理 Git 对象、`.hermes/`、
   `src-tauri/target` 或 Green `data`。G0-001、G0-003、G0-004 和可见 Green 产品路径仍保持各自
   的 `OPEN`/`PARTIAL` 状态。
