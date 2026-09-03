@@ -101,6 +101,9 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
     declared_current_shas = set(
         re.findall(r"`(?:main|origin/main)@([0-9a-f]{40})`", current_reality)
     )
+    declared_current_shas.update(
+        re.findall(r"`historical-sha:([0-9a-f]{40})`", current_reality)
+    )
     assert declared_current_shas
     allowed_shas.update(declared_current_shas)
     surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]

@@ -14,6 +14,13 @@
 | Green in-place maintenance | Earlier `0bb6e25` media-module repair remains present; Green also carries the shared OCR-language and ASR-model discovery fixes. On 2026-09-03, the rebuilt primary shell carrying the offline monochrome frontend was hash-deployed in place: candidate and Green `ArcheAxis.exe` are `132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538`; the prior EXE was backed up. A controlled visible product-path restart is still required before any installed-runtime claim. | Local module/hash readback; restart still pending |
 | Main CI baseline | Exact SHA `9217c510` Actions run `33667525835` ran broad qualification but failed fail-closed: lint rejected a legacy-name placement and four generated schema final-newline violations; wheel smoke used a fake `tesseract` with no version identity, so the resolver returned an error object without `text`. The seven scoped repairs remain staged locally and are not a cloud result. | Exact-SHA CI failed; qualification remains open |
 
+## Historical source SHA catalog
+
+`historical-sha:db13d0564ac2971d4b1eb3e3a5bff9c9256af313` is the prior
+path-selected/failed-nightly baseline. It remains a citation target for
+historical G0 evidence only; it is not the current branch, a qualification
+success, or an installed-runtime claim.
+
 ## What the evidence does and does not prove
 
 - The Green deployment/import readback proves the two patched Python modules are
