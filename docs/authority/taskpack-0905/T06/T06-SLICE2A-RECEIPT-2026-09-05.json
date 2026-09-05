@@ -1,0 +1,28 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T06-slice2a",
+  "title": "媒体能力包 slice2a：F11 视频音轨/关键帧提取 worker（部分）",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/media/worker_video.py",
+    "extraction": "ffmpeg: 16kHz 单声道 WAV 音轨(供 ASR lane) + 等间隔关键帧 JPEG(ms 偏移) + 每产物 sha256",
+    "coverage": "帧时间戳表确定性: range(0,duration,interval)+尾帧, max_frames 封顶; 产物清单即采样覆盖",
+    "honesty": "音频成功≠画面理解; OCR/字幕/VL 对齐为独立 lane(未伪称)",
+    "probe": "--probe 报 ffmpeg capability/formats/version"
+  },
+  "local_verification": {
+    "probe": "capability true, ffmpeg 8.1.2",
+    "18s_synthetic_mp4": "audio wav sha256 576KB + 3 帧(0/7000/14000ms) 各带 sha256; 尾帧边界提取未出帧(如实, 计入 loss 说明能力)",
+    "missing_input": "error exit 1"
+  },
+  "ci_gate": "workers-vnext: 编译 + probe(capability 键存在, true/false 均可) + 缺文件错误契约; 真实提取不在 CI(ffmpeg/视频依赖运行器)",
+  "acceptance_status": {
+    "F11_partial": "音轨+关键帧+时间锚就绪; 字幕解析可复用 worker_subtitles; 画面事件/对齐需 VL lane(未完成, 如实)"
+  },
+  "remaining_risk": [
+    "长视频分块与采样间隔策略调优",
+    "F04 RapidOCR/视觉 worker 与 F11 画面理解 lane"
+  ],
+  "result": "PASS-slice2a"
+}

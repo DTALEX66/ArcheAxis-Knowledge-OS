@@ -220,6 +220,34 @@ def main() -> int:
             if "error" not in tail:
                 failures.append("media worker failure must carry an error payload")
 
+    # Media video worker (F11 partial): compile + probe + failure contracts.
+    # Real extraction is not run in CI (ffmpeg and video assets are runner-
+    # dependent); local verification is recorded in the T06 slice receipt.
+    video_worker = WORKERS / "media" / "worker_video.py"
+    try:
+        py_compile.compile(str(video_worker), doraise=True)
+    except py_compile.PyCompileError as exc:
+        failures.append(f"media/worker_video.py: compile failed: {exc}")
+    else:
+        video_probe = _run_matrix_worker("media/worker_video.py", ["--probe"])
+        if video_probe.returncode != 0:
+            failures.append(f"video probe exit {video_probe.returncode}: {video_probe.stderr.strip()[:200]}")
+        else:
+            try:
+                video_payload = json.loads(video_probe.stdout.strip().splitlines()[-1])
+            except (json.JSONDecodeError, IndexError) as exc:
+                failures.append(f"video probe invalid payload: {exc}")
+                video_payload = {}
+            if "capability" not in video_payload:
+                failures.append("video probe must report capability (true or false)")
+        video_bad = _run_matrix_worker("media/worker_video.py", ["/nonexistent.mp4", "--out-dir", "/tmp"])
+        if video_bad.returncode == 0:
+            failures.append("video worker succeeded on a missing input (must fail)")
+        else:
+            tail = (video_bad.stdout or video_bad.stderr).strip().splitlines()[-1] if (video_bad.stdout or video_bad.stderr).strip() else ""
+            if "error" not in tail:
+                failures.append("video worker failure must carry an error payload")
+
     # Evaluation worker (T07): recomputable CER/WER metrics (stdlib only).
     quality_worker = WORKERS / "evaluation" / "worker_quality.py"
     try:
