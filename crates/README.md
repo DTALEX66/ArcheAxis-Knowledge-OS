@@ -10,6 +10,8 @@
 - `crates/archeaxis-domain/`：业务逻辑（source/anchor/knowledge/learning/search/backup）
 - `crates/archeaxis-api/`：本地 HTTP API（axum，对齐 packages/contracts/v1/openapi-outline.yaml）
 - `crates/archeaxis-application/`：bootstrap（Supervisor 握手目标）+ worker job 编排（queued/running/completed/failed + loss receipt）
+- `crates/archeaxis-sidecar-protocol/`：Supervisor↔Core 消息信封（handshake/health/worker receipt，版本校验）
+- `crates/archeaxis-migration/`：legacy 只读导出（inventory + JSONL + sha256 manifest，可复现 dry-run 基础）
 - `packages/contracts/v1/`：契约（openapi-outline + errors.catalog + worker-protocol/coverage-receipt/assessment 等 schema）
 
 规划（后续 slice，占位未建代码）：
@@ -27,4 +29,6 @@ cmd /c "call \"D:/All projects/OS External Configuration/10-toolchains/msvc/VC/A
 ```
 `crates/archeaxis-domain/tests/v01_closed_loop.rs` 覆盖 v0.1 闭环数据层 12 步（含重启回读 + 备份恢复）；
 `crates/archeaxis-api/tests/api_closed_loop.rs` 覆盖 HTTP 薄投影；
-`crates/archeaxis-application/tests/application_flow.rs` 覆盖握手 + job 编排流（含失败显式回执）。
+`crates/archeaxis-application/tests/application_flow.rs` 覆盖握手 + job 编排流；
+`crates/archeaxis-migration/tests/migration_dry_run.rs` 覆盖只读导出/清单稳定/legacy 零改动；
+`crates/archeaxis-sidecar-protocol/tests/protocol_roundtrip.rs` 覆盖信封往返 + 版本拒绝。

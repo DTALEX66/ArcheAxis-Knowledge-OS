@@ -5,5 +5,7 @@ members = [
     "crates/archeaxis-store-sqlite",
     "crates/archeaxis-domain",
     "crates/archeaxis-application",
+    "crates/archeaxis-migration",
+    "crates/archeaxis-sidecar-protocol",
     "crates/archeaxis-api",
 ]

@@ -64,6 +64,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "archeaxis-migration"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
+name = "archeaxis-sidecar-protocol"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "archeaxis-store-sqlite"
 version = "0.1.0"
 dependencies = [
@@ -558,6 +578,7 @@ dependencies = [
  "fallible-streaming-iterator",
  "hashlink",
  "libsqlite3-sys",
+ "serde_json",
  "smallvec",
 ]
 

@@ -1,0 +1,15 @@
+[package]
+name = "archeaxis-migration"
+version = "0.1.0"
+edition = "2024"
+description = "ArcheAxis vNext legacy migration: read-only export, dry-run report, staged import (v0.6.14 -> vNext)"
+
+[dependencies]
+rusqlite = { version = "0.32", features = ["bundled", "backup", "serde_json"] }
+sha2 = "0.10"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+tempfile = "3"
