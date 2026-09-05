@@ -3,7 +3,7 @@
   "task": "T05-slice1",
   "title": "文档能力包 slice1：F01 文本族 + F12 Canvas/字幕 workers",
   "date": "2026-09-05",
-  "head_sha": "PENDING_COMMIT",
+  "head_sha": "55021e9",
   "status": "in-progress",
   "deliverables": {
     "workers": [

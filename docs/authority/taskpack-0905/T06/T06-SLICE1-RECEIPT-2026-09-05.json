@@ -3,7 +3,7 @@
   "task": "T06-slice1",
   "title": "媒体能力包 slice1：F10 本地 ASR worker（探针+转写+失败契约）",
   "date": "2026-09-05",
-  "head_sha": "PENDING_COMMIT",
+  "head_sha": "891118c",
   "status": "in-progress",
   "deliverables": {
     "worker": "services/python-workers/media/worker_transcribe.py",

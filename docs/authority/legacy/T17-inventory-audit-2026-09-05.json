@@ -1,10 +1,10 @@
 {
   "schema": "archeaxis.legacy-manifest/v1",
   "manifest_version": 1,
-  "audited_at": "2026-09-05T17:42:23.713063+00:00",
+  "audited_at": "2026-09-05T18:22:51.148781+00:00",
   "inventory_source": ".hermes\\task-runtime\\taskpack-0905\\ARCHEAXIS-FAST-FULL-LOOP\\10-LEGACY-INVENTORY.csv",
   "baseline_sha": "e9a7d2db854da157138111dc1c772cee95c16647",
-  "head_sha": "a1c7ccdb279c996d4c109cfc0b5e2e599caf5818",
+  "head_sha": "4f890947fa4ea441147b5c49d2b8b4a90b806c1d",
   "status_vocabulary": {
     "INVENTORIED_NOT_SEMANTICALLY_REVIEWED": "recorded with source object and proposed disposition; semantic absorption review owned by T13",
     "ABSORBED": "verified integrated into a vNext module with differential samples",
@@ -91,7 +91,7 @@
       {
         "path": ".github/workflows/ci.yml",
         "recorded": "4433a8a67c7d874f04a1b508512f9ac52efaa436",
-        "actual": "c104aa698043a7e9a482c2cf0c1c76ce8b3680dc"
+        "actual": "5fc7f8e21bc1a79e67d70db354a2231a9051e67a"
       },
       {
         "path": ".worklab/gate-registry.v1.yaml",

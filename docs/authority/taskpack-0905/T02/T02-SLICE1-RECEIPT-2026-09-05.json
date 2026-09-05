@@ -3,7 +3,7 @@
   "task": "T02-slice1",
   "title": "冻结最小跨语言协议 — 词表/DTO/锚/通道映射初稿 + 跨语言正反例 + 漂移防护",
   "date": "2026-09-05",
-  "head_sha": "PENDING_COMMIT",
+  "head_sha": "9b4a4ec",
   "status": "draft-for-CODEX-review",
   "deliverables": {
     "new_schemas": [
