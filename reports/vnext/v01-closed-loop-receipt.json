@@ -1,6 +1,6 @@
 {
   "date": "2026-09-04",
-  "manifest_sha256": "cc2249c601b61b44008fe496ed3b5af52800a5e56f4e485672aeffc0352d74e4",
+  "manifest_sha256": "6ef30390bee92777c75c002e1de8f9c484d54f22c3b04e2adae3b2d13b832db0",
   "schema": "archeaxis.vnext/v01-closed-loop-receipt",
   "schema_version": 1,
   "steps": {

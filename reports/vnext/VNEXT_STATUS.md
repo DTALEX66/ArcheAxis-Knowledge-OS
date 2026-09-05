@@ -12,6 +12,9 @@
 | 语言权威边界 | Rust 唯一 writer（store 唯一 DDL）；worker/agent/UI 无库句柄（代码结构约束 + 测试） | ✅ |
 | worker 契约 | api jobs 端点 + services/python-workers/worker_extract.py（隔离） | ✅ |
 | 迁移 dry-run 工具 | migration crate：只读 inventory/JSONL/sha256 manifest/legacy 零改动（合成库测试） | ✅ |
+| **真实 legacy dry-run** | 对真实工作区（快照+主库）只读 export 成功（17 迁移记录）；**两库用户知识表均为空**——管线就绪，内容迁移 N/A（如实） | ✅ reports/vnext/legacy-dryrun-2026-09-04.json |
+| Avalonia Supervisor 无头冒烟 | `--smoke`：C# spawn Rust core → 握手 → 清理；SMOKE OK | ✅ |
+| Green publish | `dotnet publish -r win-x64` 成功（框架依赖产物） | ✅ |
 | 归档 | archive crate：开放格式导出/恢复 + manifest | ✅ |
 | **v0.1 十二步闭环（Core 层）** | journey 测试全 PASS → `reports/vnext/v01-closed-loop-receipt.json`（11 PASS + manifest sha256） | ✅ |
 | 测试基线 | `cargo test --workspace`：14 集成测试全绿（本机 vcvars64+共用库工具链） | ✅ |

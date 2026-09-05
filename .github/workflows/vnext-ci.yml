@@ -46,3 +46,13 @@ jobs:
       - name: dotnet build ArcheAxis.Desktop
         shell: bash
         run: dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -v minimal
+      - name: cargo build core server (for supervisor smoke)
+        shell: bash
+        run: cargo build -p archeaxis-api
+      - name: Supervisor smoke (Avalonia spawns Rust core, handshake, cleanup)
+        shell: bash
+        env:
+          ARCHAXIS_CORE_BIN: target/debug/archeaxis-api.exe
+        run: |
+          dotnet run --project apps/ArcheAxis.Desktop -- --smoke \
+            && echo "supervisor smoke OK"

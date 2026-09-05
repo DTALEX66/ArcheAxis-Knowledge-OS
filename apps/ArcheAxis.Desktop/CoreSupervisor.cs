@@ -87,9 +87,8 @@ public sealed class CoreSupervisor : IDisposable
             Stop();
             return (false, "core did not become ready in time");
         }
-        // extract http://127.0.0.1:PORT
-        var url = line.Substring(line.IndexOf("http://", StringComparison.Ordinal));
-        url = url.Trim();
+        // extract http://127.0.0.1:PORT (first whitespace token)
+        var url = line.Substring(line.IndexOf("http://", StringComparison.Ordinal)).Split(' ')[0].Trim();
         return await HandshakeAsync(url, ct).ConfigureAwait(false);
     }
 

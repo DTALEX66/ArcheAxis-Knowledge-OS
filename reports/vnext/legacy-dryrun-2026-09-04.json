@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.vnext/legacy-migration-dry-run",
+  "schema_version": 1,
+  "date": "2026-09-04",
+  "head": "6eab165",
+  "sources": [
+    {
+      "role": "v0.6.14-era consistent snapshot",
+      "path": "C:/Users/ALEX/AppData/Local/com.archeaxis.workspace/backups/pre_migration_20260827T145930_144190Z_fa70c672.sqlite",
+      "schema_migrations": 14,
+      "user_knowledge_rows": "empty",
+      "export_manifest_sha256": "cecfbe6bdc782550fa862a865f56f47cb7dd7fabf55b4f445e3d0b453d174732"
+    },
+    {
+      "role": "current legacy main db",
+      "path": "C:/Users/ALEX/AppData/Local/com.archeaxis.workspace/archeaxis.sqlite",
+      "schema_migrations": 17,
+      "user_knowledge_rows": "empty",
+      "export_manifest_sha256": "7bd3ffa05ece0ecfb95e58c282f3c860c5e2a5ce508299d7dc395df81c0f163e"
+    }
+  ],
+  "findings": [
+    "Pipeline verified on real legacy databases: read-only inventory + JSONL export + sha256 manifest; legacy files untouched (read-only open).",
+    "Both real workspaces contain NO user knowledge rows (migration/ops traces only) - the legacy runtime workspace was never populated with personal knowledge.",
+    "Therefore the content migration itself is trivially empty; the migration pipeline is ready and reproducible for any future populated legacy workspace.",
+    "Export artifacts (not committed): .hermes/task-runtime/legacy-export/, legacy-main-export/"
+  ],
+  "status": "dry-run PASS (pipeline); content migration N/A (no user data in legacy workspace)"
+}
