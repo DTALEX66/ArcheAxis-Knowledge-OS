@@ -1,0 +1,41 @@
+name: vnext-ci
+
+# ArcheAxis vNext continuous integration (DIRECTORY_AUTHORITY:
+# .github/workflows/vnext-ci.yml). Runs the Rust workspace tests on Windows.
+# The v0.1 closed-loop receipt is produced by the journey test when
+# VNEXT_RECEIPT_OUT is set.
+
+on:
+  push:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "crates/**"
+      - "rust-toolchain.toml"
+      - ".github/workflows/vnext-ci.yml"
+  pull_request:
+    paths:
+      - "crates/**"
+
+jobs:
+  cargo-test:
+    runs-on: windows-latest
+    env:
+      CARGO_TERM_COLOR: always
+      VNEXT_RECEIPT_OUT: reports/vnext/v01-closed-loop-receipt.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust (stable, from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+      - name: cargo test (workspace)
+        shell: bash
+        run: cargo test --workspace
+      - name: Verify v0.1 receipt produced
+        shell: bash
+        run: |
+          test -s reports/vnext/v01-closed-loop-receipt.json \
+            && grep -q '"PASS"' reports/vnext/v01-closed-loop-receipt.json \
+            && echo "receipt OK"
