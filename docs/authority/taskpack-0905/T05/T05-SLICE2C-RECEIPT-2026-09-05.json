@@ -1,0 +1,25 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T05-slice2c",
+  "title": "网页能力包 slice2c：F02 有界抓取 worker（快照+失败记录+端到端链）",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/web/worker_webpage.py",
+    "bounds": "http(s) only; timeout 20s; 5MB 截断记录; 重定向最终 URL; UA 显式",
+    "receipt": "fetch-receipt.json(请求/最终 URL/http 状态/时间/快照 sha256/错误) 每次落盘",
+    "honesty": "网络失败不伪造快照: error 入 receipt 并返回结构化错误",
+    "chain": "fetch(snapshot.html) -> worker_html(标题/正文/链接) 已端到端验证"
+  },
+  "local_verification": {
+    "example.com": "HTTP 200, 快照 559B sha256 记录, 最终 URL 一致",
+    "bad_domain": "URLError 记录 + fetch-receipt.json 落盘 + exit 1",
+    "missing_out_dir": "usage exit 2",
+    "extraction_chain": "Example Domain 标题/正文/iana 链接提取成功"
+  },
+  "ci_gate": "workers-vnext: 编译 + probe(true) + usage exit2; 真实网络不在 CI(本地验证已记录)",
+  "acceptance_status": {
+    "F02_partial": "静态网页抓取+快照+正文链通过(真实 URL); trafilatura 级广告正文分离与 F03 动态渲染/截图为后续(未伪称)"
+  },
+  "result": "PASS-slice2c"
+}

@@ -302,6 +302,30 @@ def main() -> int:
             if "error" not in tail:
                 failures.append("caption worker failure must carry an error payload")
 
+    # Webpage fetch worker (F02 network part): compile + probe + usage error.
+    # Real network fetches are never run in CI; local verification with
+    # https://example.com is recorded in the T05 slice receipt.
+    webpage_worker = WORKERS / "web" / "worker_webpage.py"
+    try:
+        py_compile.compile(str(webpage_worker), doraise=True)
+    except py_compile.PyCompileError as exc:
+        failures.append(f"web/worker_webpage.py: compile failed: {exc}")
+    else:
+        webpage_probe = _run_matrix_worker("web/worker_webpage.py", ["--probe"])
+        if webpage_probe.returncode != 0:
+            failures.append(f"webpage probe exit {webpage_probe.returncode}: {webpage_probe.stderr.strip()[:200]}")
+        else:
+            try:
+                webpage_payload = json.loads(webpage_probe.stdout.strip().splitlines()[-1])
+            except (json.JSONDecodeError, IndexError) as exc:
+                failures.append(f"webpage probe invalid payload: {exc}")
+                webpage_payload = {}
+            if webpage_payload.get("capability") is not True:
+                failures.append("webpage probe must report capability true")
+        webpage_usage = _run_matrix_worker("web/worker_webpage.py", ["https://example.com/"])
+        if webpage_usage.returncode != 2:
+            failures.append("webpage worker must exit 2 when --out-dir is missing")
+
     # Evaluation worker (T07): recomputable CER/WER metrics (stdlib only).
     quality_worker = WORKERS / "evaluation" / "worker_quality.py"
     try:
