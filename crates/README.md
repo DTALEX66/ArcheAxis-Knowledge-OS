@@ -8,6 +8,8 @@
 - `crates/archeaxis-contracts/`：稳定词表（9 类知识 + 状态常量，零依赖）
 - `crates/archeaxis-store-sqlite/`：DDL + workspace init（**唯一可写数据库入口**）+ `migrations/`
 - `crates/archeaxis-domain/`：业务逻辑（source/anchor/knowledge/learning/search/backup）
+- `crates/archeaxis-api/`：本地 HTTP API（axum，对齐 packages/contracts/v1/openapi-outline.yaml）
+- `packages/contracts/v1/`：契约（openapi-outline + errors.catalog + worker-protocol/coverage-receipt/assessment 等 schema）
 
 规划（后续 slice，占位未建代码）：
 - `crates/archeaxis-application`（编排）、`archeaxis-api`（OpenAPI 3.1）、`archeaxis-sidecar-protocol`、`archeaxis-migration`、`archeaxis-archive`
@@ -22,4 +24,5 @@
 ```powershell
 cmd /c "call \"D:/All projects/OS External Configuration/10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat\" && cd /d D:/All projects/ArcheAxis-Knowledge-OS && cargo test"
 ```
-`crates/archeaxis-domain/tests/v01_closed_loop.rs` 覆盖 v0.1 闭环数据层 12 步（含重启回读 + 备份恢复）。
+`crates/archeaxis-domain/tests/v01_closed_loop.rs` 覆盖 v0.1 闭环数据层 12 步（含重启回读 + 备份恢复）；
+`crates/archeaxis-api/tests/api_closed_loop.rs` 覆盖 HTTP 薄投影（version/import/anchor/knowledge/review/search）。

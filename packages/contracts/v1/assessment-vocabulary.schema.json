@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/assessment-vocabulary.schema.json",
+  "title": "ArcheAxis Knowledge and Assessment Vocabulary",
+  "description": "Canonical closed enums for Contract v1. Documentation is a projection of this schema.",
+  "$defs": {
+    "knowledge_type": {
+      "enum": ["PERSONAL_DEFINITION", "NOTE", "OBSERVATION", "OPINION", "QUESTION", "HYPOTHESIS", "RUMOR_REPORT", "FORECAST", "FACTUAL_CLAIM"]
+    },
+    "review_status": {
+      "enum": ["DRAFT", "MACHINE_CANDIDATE", "NEEDS_REVIEW", "USER_ACCEPTED", "USER_REJECTED", "SUPERSEDED"]
+    },
+    "evidence_status": {
+      "enum": ["NOT_APPLICABLE", "UNASSESSED", "UNSOURCED", "SEARCHED_NO_DECISIVE_EVIDENCE", "PARTIALLY_SUPPORTED", "SUPPORTED", "CONFLICTED", "REFUTED", "INCONCLUSIVE", "STALE"]
+    },
+    "test_status": {
+      "enum": ["NOT_APPLICABLE", "NOT_TESTED", "TEST_PLAN_EXISTS", "IN_PROGRESS", "PASSED", "FAILED", "MIXED", "INCONCLUSIVE", "NON_REPRODUCIBLE", "OBSERVATIONAL_ONLY"]
+    },
+    "rumor_status": {
+      "enum": ["NOT_APPLICABLE", "REPORTED_UNVERIFIED", "SAME_ORIGIN_REPEATED", "INDEPENDENTLY_CORROBORATED", "OFFICIALLY_DENIED", "DISPUTED", "DEBUNKED", "EVENT_CONFIRMED", "UNRESOLVED"]
+    },
+    "forecast_status": {
+      "enum": ["NOT_APPLICABLE", "OPEN", "CONDITIONAL", "DUE_FOR_RESOLUTION", "RESOLVED_TRUE", "RESOLVED_FALSE", "PARTIALLY_RESOLVED", "VOIDED", "EXPIRED_UNRESOLVABLE"]
+    },
+    "use_status": {
+      "enum": ["INBOX", "DRAFT", "REVIEWED", "DECISION_GRADE", "PUBLISHED"]
+    },
+    "anchor_resolution": {
+      "enum": ["UNRESOLVED", "EXACT", "RELOCATED", "AMBIGUOUS", "ORPHANED"]
+    },
+    "anchor_resolution_method": {
+      "enum": ["NOT_ATTEMPTED", "EXACT_SELECTOR", "QUOTE_CONTEXT", "FUZZY_TEXT", "PDF_GEOMETRY", "MANUAL"]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["knowledge_type", "review_status", "evidence_status", "test_status", "rumor_status", "forecast_status", "use_status", "anchor_resolution"],
+  "properties": {
+    "knowledge_type": {"$ref": "#/$defs/knowledge_type"},
+    "review_status": {"$ref": "#/$defs/review_status"},
+    "evidence_status": {"$ref": "#/$defs/evidence_status"},
+    "test_status": {"$ref": "#/$defs/test_status"},
+    "rumor_status": {"$ref": "#/$defs/rumor_status"},
+    "forecast_status": {"$ref": "#/$defs/forecast_status"},
+    "use_status": {"$ref": "#/$defs/use_status"},
+    "anchor_resolution": {"$ref": "#/$defs/anchor_resolution"},
+    "anchor_resolution_method": {"$ref": "#/$defs/anchor_resolution_method"}
+  }
+}

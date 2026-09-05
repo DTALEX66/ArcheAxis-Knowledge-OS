@@ -26,7 +26,7 @@ pub fn reindex(conn: &Connection) -> rusqlite::Result<()> {
 
 /// Full-text search returns (knowledge_id, status, snippet-head).
 pub fn search(conn: &Connection, query: &str, limit: i64) -> rusqlite::Result<Vec<(String, String, String)>> {
-    ensure_fts(conn)?;
+    reindex(conn)?; // Day-0: rebuild before query (small data; triggers land in a later slice)
     let mut stmt = conn.prepare(
         "SELECT knowledge_id, status, substr(body,1,60) FROM knowledge_fts WHERE knowledge_fts MATCH ?1 ORDER BY rank LIMIT ?2")?;
     let rows = stmt.query_map(rusqlite::params![query, limit], |r| {

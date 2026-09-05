@@ -1,0 +1,27 @@
+schema: archeaxis.error-catalog/v1
+errors:
+  - {code: AAK-AUTH-001, http: 401, meaning: invalid-or-expired-launch-token}
+  - {code: AAK-AUTH-002, http: 403, meaning: insufficient-scope}
+  - {code: AAK-VAL-001, http: 422, meaning: invalid-request-field}
+  - {code: AAK-VAL-002, http: 415, meaning: unsupported-media-type}
+  - {code: AAK-VAL-003, http: 413, meaning: request-or-file-too-large}
+  - {code: AAK-CON-001, http: 409, meaning: stale-aggregate-version}
+  - {code: AAK-CON-002, http: 409, meaning: idempotency-key-payload-conflict}
+  - {code: AAK-CON-003, http: 409, meaning: invalid-state-transition}
+  - {code: AAK-PROTO-001, http: 426, meaning: incompatible-contract-major}
+  - {code: AAK-PROTO-002, http: 502, meaning: worker-handshake-failed}
+  - {code: AAK-PROTO-003, http: 502, meaning: invalid-worker-output-schema}
+  - {code: AAK-HASH-001, http: 422, meaning: input-output-or-manifest-hash-mismatch}
+  - {code: AAK-ANCHOR-001, http: 422, meaning: selector-does-not-match-text}
+  - {code: AAK-ANCHOR-002, http: 409, meaning: source-revision-mismatch}
+  - {code: AAK-REVIEW-001, http: 409, meaning: candidate-already-reviewed}
+  - {code: AAK-REVIEW-002, http: 422, meaning: missing-reason-or-replacement}
+  - {code: AAK-WORKER-001, http: 503, meaning: worker-unavailable}
+  - {code: AAK-WORKER-002, http: 504, meaning: worker-timeout}
+  - {code: AAK-WORKER-003, http: 502, meaning: worker-crash}
+  - {code: AAK-STORE-001, http: 423, meaning: workspace-locked-by-another-core}
+  - {code: AAK-STORE-002, http: 500, meaning: sqlite-integrity-check-failed}
+  - {code: AAK-STORE-003, http: 507, meaning: storage-or-disk-write-failed}
+  - {code: AAK-RESTORE-001, http: 422, meaning: invalid-restore-manifest}
+  - {code: AAK-RESTORE-002, http: 409, meaning: restore-target-already-exists}
+  - {code: AAK-RESTORE-003, http: 426, meaning: export-format-not-readable}

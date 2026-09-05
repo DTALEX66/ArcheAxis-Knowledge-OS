@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/worker-protocol.schema.json",
+  "title": "ArcheAxis Worker NDJSON Protocol",
+  "$defs": {
+    "hello": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "type", "protocol", "worker", "capabilities", "schemas"],
+      "properties": {
+        "schema": {"const": "archeaxis.worker-hello/v1"},
+        "type": {"const": "hello"},
+        "protocol": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["major", "min_minor", "max_minor"],
+          "properties": {
+            "major": {"const": 1},
+            "min_minor": {"type": "integer", "minimum": 0},
+            "max_minor": {"type": "integer", "minimum": 0}
+          }
+        },
+        "worker": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "version": {"type": "string", "minLength": 1}
+          }
+        },
+        "capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "schemas": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "assetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri", "sha256", "media_type"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "pattern": "^job://input/[0-9a-f]{64}$",
+          "description": "Opaque staging reference whose final component must equal sha256; never interpret it as an OS path."
+        },
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "media_type": {"type": "string"}
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "type",
+        "request_id",
+        "job_id",
+        "attempt",
+        "protocol_minor",
+        "capability",
+        "capability_version",
+        "deadline_ms",
+        "inputs",
+        "parameters"
+      ],
+      "properties": {
+        "schema": {"const": "archeaxis.worker-request/v1"},
+        "type": {"const": "job_request"},
+        "request_id": {"type": "string"},
+        "job_id": {"type": "string"},
+        "attempt": {"type": "integer", "minimum": 1},
+        "protocol_minor": {"type": "integer", "minimum": 0},
+        "capability": {"type": "string"},
+        "capability_version": {"type": "string"},
+        "deadline_ms": {"type": "integer", "minimum": 1},
+        "inputs": {"type": "array", "items": {"$ref": "#/$defs/assetRef"}},
+        "parameters": {"type": "object"}
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "type",
+        "request_id",
+        "job_id",
+        "attempt",
+        "protocol_minor",
+        "status",
+        "outputs",
+        "measurements",
+        "warnings",
+        "error"
+      ],
+      "properties": {
+        "schema": {"const": "archeaxis.worker-response/v1"},
+        "type": {"const": "job_result"},
+        "request_id": {"type": "string"},
+        "job_id": {"type": "string"},
+        "attempt": {"type": "integer", "minimum": 1},
+        "protocol_minor": {"type": "integer", "minimum": 0},
+        "status": {"enum": ["succeeded", "failed", "rejected"]},
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "uri", "sha256", "media_type", "byte_length", "schema", "authority_effect"],
+            "properties": {
+              "kind": {"enum": ["text", "document_structure", "ocr_text", "transcript", "image_annotation", "claim_candidates", "embeddings", "evaluation_measurements", "snapshot_metadata", "loss_report"]},
+              "uri": {
+                "type": "string",
+                "pattern": "^job://output/[0-9a-f]{64}$",
+                "description": "Opaque output reference whose final component must equal sha256; never interpret it as an OS path."
+              },
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "media_type": {"type": "string"},
+              "byte_length": {"type": "integer", "minimum": 0},
+              "schema": {"type": "string", "pattern": "^archeaxis\\.[a-z0-9._-]+/v[0-9]+$"},
+              "authority_effect": {"const": "candidate_or_measurement_only"}
+            }
+          }
+        },
+        "measurements": {"type": "object"},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "error": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["code", "message", "retryable"],
+          "properties": {
+            "code": {"type": "string"},
+            "message": {"type": "string"},
+            "retryable": {"type": "boolean"}
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "succeeded"}}, "required": ["status"]},
+          "then": {"properties": {"error": {"type": "null"}}},
+          "else": {
+            "properties": {"error": {"type": "object"}, "outputs": {"maxItems": 0}}
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "rejected"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "error": {
+                "type": "object",
+                "properties": {"retryable": {"const": false}}
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/hello"},
+    {"$ref": "#/$defs/request"},
+    {"$ref": "#/$defs/response"}
+  ]
+}

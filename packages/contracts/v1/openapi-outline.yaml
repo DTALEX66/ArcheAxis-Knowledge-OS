@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: ArcheAxis Local Service
+  version: 0.1.0-outline
+  description: Contract outline to be finalized in PR-04; not an implementation claim.
+servers:
+  - url: http://127.0.0.1:{port}
+    variables:
+      port:
+        default: "0"
+security:
+  - launchToken: []
+paths:
+  /api/v1/system/version:
+    get:
+      operationId: getVersion
+      responses:
+        "200":
+          description: Runtime and contract versions
+  /api/v1/workspaces:
+    post:
+      operationId: createWorkspace
+      responses:
+        "201":
+          description: Workspace created
+  /api/v1/imports:
+    post:
+      operationId: importSource
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, metadata]
+              properties:
+                file: {type: string, format: binary}
+                metadata: {type: object}
+      responses:
+        "202":
+          description: Import job accepted
+  /api/v1/sources/{source_id}/anchors:
+    post:
+      operationId: createAnchor
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Anchor created
+  /api/v1/knowledge-items:
+    post:
+      operationId: createKnowledge
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Personal knowledge created
+  /api/v1/candidate-extractions:
+    post:
+      operationId: requestCandidate
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Candidate job accepted
+  /api/v1/knowledge-items/{knowledge_item_id}/review-decisions:
+    post:
+      operationId: recordReview
+      parameters:
+        - name: knowledge_item_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "201":
+          description: Immutable review recorded
+  /api/v1/search:
+    post:
+      operationId: search
+      responses:
+        "200":
+          description: Search hits with anchor jump targets
+  /api/v1/learning-items/{learning_item_id}/events:
+    post:
+      operationId: recordLearningEvent
+      parameters:
+        - name: learning_item_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "201":
+          description: Learning event recorded
+  /api/v1/exports:
+    post:
+      operationId: createExport
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Export job accepted
+  /api/v1/restore-validations:
+    post:
+      operationId: validateRestore
+      responses:
+        "200":
+          description: Restore package validation receipt
+components:
+  securitySchemes:
+    launchToken:
+      type: http
+      scheme: bearer
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^"r[0-9]+"$'
