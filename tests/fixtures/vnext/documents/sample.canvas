@@ -1,0 +1,12 @@
+{
+  "nodes": [
+    {"id": "n1", "type": "text", "text": "核聚变研究方法", "x": 100, "y": 100, "width": 200, "height": 80},
+    {"id": "n2", "type": "text", "text": "目标设定与测量", "x": 400, "y": 100, "width": 200, "height": 80},
+    {"id": "n3", "type": "file", "file": "notes/evidence.pdf", "label": "原始证据 PDF"},
+    {"id": "n4", "type": "link", "url": "https://example.org/source", "label": "外部来源"}
+  ],
+  "edges": [
+    {"id": "e1", "fromNode": "n1", "fromSide": "right", "fromEnd": "none", "toNode": "n2", "toSide": "left", "toEnd": "none"},
+    {"id": "e2", "fromNode": "n2", "fromSide": "bottom", "fromEnd": "none", "toNode": "n3", "toSide": "top", "toEnd": "none"}
+  ]
+}

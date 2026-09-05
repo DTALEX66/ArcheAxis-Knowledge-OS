@@ -1,0 +1,34 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T05-slice1",
+  "title": "文档能力包 slice1：F01 文本族 + F12 Canvas/字幕 workers",
+  "date": "2026-09-05",
+  "head_sha": "PENDING_COMMIT",
+  "status": "in-progress",
+  "deliverables": {
+    "workers": [
+      "services/python-workers/document/worker_text.py (F01 TXT/MD/CSV/TSV/JSON/XML 原文解码+行锚, 无执行, 编码降级记录)",
+      "services/python-workers/document/worker_canvas.py (F12 JSON Canvas: text 投影+每节点锚+edges 原样保留+file/link 仅引用, 不执行不跟随)",
+      "services/python-workers/document/worker_subtitles.py (F12 SRT/VTT: cue 时序锚 offset/duration, VTT 标签剥离记录)"
+    ],
+    "fixtures": [
+      "tests/fixtures/vnext/documents/sample.md",
+      "tests/fixtures/vnext/documents/sample.canvas",
+      "tests/fixtures/vnext/documents/broken-edge.canvas (负例)",
+      "tests/fixtures/vnext/documents/sample.srt",
+      "tests/fixtures/vnext/documents/sample.vtt"
+    ],
+    "gate": "scripts/ci/check_vnext_workers.py 扩展为 worker 矩阵（编译+成功 envelope+正反例）"
+  },
+  "provenance": "纯解析行为自 legacy app/ingestion/multi_format.py (_via_read/_via_canvas) 与 shared/json_canvas 语义提炼, worker 不 import legacy 包(遵守 DIRECTORY_AUTHORITY)",
+  "acceptance_status": {
+    "F01": "正例通过(text 保真+行锚); JSON/XML 以原文解码(结构解析留待下一切片)",
+    "F12": "Canvas 正例通过(edges 完整保留, 引用外链不读取), 负例(ghost edge)拒绝; SRT/VTT 正例时序锚通过",
+    "F02/F03/F05-F09": "后续切片(web/trafilatura/pdf/office 引擎复用)"
+  },
+  "verification": {
+    "workers_vnext_gate": "passed (worker matrix incl. negative)",
+    "conventions": "passed"
+  },
+  "result": "PASS-slice1"
+}
