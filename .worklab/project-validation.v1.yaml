@@ -46,6 +46,68 @@ risk_classes:
       - "scripts/release_*.py"
     gates: [static, lint]
 
+  - id: vnext-rust-core
+    description: vNext Rust workspace (sole authoritative writer) or its lockfiles
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - "crates/**"
+    gates: [static, lint, rust-vnext]
+
+  - id: vnext-avalonia-desktop
+    description: vNext Avalonia/C# desktop shell, supervisor, SDK pinning
+    paths:
+      - "apps/ArcheAxis.Desktop/**"
+      - global.json
+      - Directory.Packages.props
+    gates: [static, lint, desktop-vnext]
+
+  - id: vnext-contracts
+    description: vNext cross-language contract package and its tests
+    paths:
+      - "packages/contracts/**"
+      - "tests/contract/**"
+      - "crates/archeaxis-contracts/**"
+      - "crates/archeaxis-sidecar-protocol/**"
+    gates: [static, lint, contracts-vnext]
+
+  - id: vnext-workers
+    description: vNext isolated Python capability workers
+    paths:
+      - "services/python-workers/**"
+    gates: [static, lint, workers-vnext]
+
+  - id: vnext-journey-integration
+    description: vNext journey / closed-loop integration test suites
+    paths:
+      - "tests/journey/**"
+      - "tests/integration/closed-loop/**"
+      - "tests/integration/research/**"
+      - "tests/integration/learning/**"
+      - "tests/integration/machine/**"
+    gates: [static, lint, rust-vnext, desktop-vnext, workers-vnext]
+
+  - id: vnext-ci-policy
+    description: vNext CI workflow or scope checker changes force every vNext lane
+    paths:
+      - ".github/workflows/vnext-ci.yml"
+      - "scripts/ci/check_vnext_scope.py"
+    gates: [static, lint, rust-vnext, desktop-vnext, contracts-vnext, workers-vnext]
+
+  - id: vnext-authority-docs
+    description: Contract/decision ledgers, receipts and vNext reference docs (no runtime semantics)
+    paths:
+      - PROJECT_CONTRACT.yaml
+      - DECISION_SUPERSESSION_LEDGER.yaml
+      - DIRECTORY_AUTHORITY.yaml
+      - LEGACY_MANIFEST.yaml
+      - AGENTS.md
+      - "docs/authority/**"
+      - "docs/design/**"
+      - "reports/vnext/**"
+    gates: [static]
+
   - id: security-permissions
     description: Permissions, secrets, SSRF, path/symlink boundaries
     paths:

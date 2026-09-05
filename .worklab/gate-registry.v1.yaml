@@ -58,6 +58,18 @@ gates:
   - id: stage-verdict
     description: Stage aggregation gate for a frozen phase tree
     required: conditional
+  - id: rust-vnext
+    description: Rust vNext workspace tests (crates/*, Cargo.toml/lock)
+    required: conditional
+  - id: desktop-vnext
+    description: Avalonia desktop build plus supervisor smoke against the Rust core
+    required: conditional
+  - id: contracts-vnext
+    description: Cross-language contract schemas/drift consistency checks
+    required: conditional
+  - id: workers-vnext
+    description: Python capability worker smoke (envelope protocol, failure contract)
+    required: conditional
   - id: release-verify
     description: tag / asset / installer / download readback
     required: conditional

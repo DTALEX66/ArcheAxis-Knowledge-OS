@@ -556,6 +556,95 @@ jobs:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
         run: python scripts/runtime_http_smoke.py
 
+  rust-vnext:
+    timeout-minutes: 30
+    runs-on: windows-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'rust-vnext') }}
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Install Rust (stable, from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+      - name: cargo test (vNext workspace)
+        shell: bash
+        run: cargo test --workspace
+
+  desktop-vnext:
+    timeout-minutes: 30
+    runs-on: windows-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Install Rust (stable, from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: dotnet build ArcheAxis.Desktop
+        shell: bash
+        run: dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -v minimal
+      - name: cargo build core server (for supervisor smoke)
+        shell: bash
+        run: cargo build -p archeaxis-api
+      - name: Supervisor smoke (Avalonia spawns Rust core, handshake, cleanup)
+        shell: bash
+        env:
+          ARCHAXIS_CORE_BIN: target/debug/archeaxis-api.exe
+        run: |
+          dotnet run --project apps/ArcheAxis.Desktop -- --smoke \
+            && echo "supervisor smoke OK"
+
+  contracts-vnext:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'contracts-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked contract check dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Run vNext contract structural gate
+        run: python scripts/ci/check_vnext_contracts.py
+
+  workers-vnext:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'workers-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - name: Run vNext worker smoke (envelope + failure contract)
+        run: python scripts/ci/check_vnext_workers.py
+
   desktop-fast:
     runs-on: windows-latest
     timeout-minutes: 15
@@ -782,7 +871,7 @@ jobs:
   a0-gates:
     timeout-minutes: 5
     if: ${{ always() }}
-    needs: [gateplan, test, format-targeted, migration-targeted, security-targeted, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle]
+    needs: [gateplan, test, format-targeted, migration-targeted, security-targeted, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle, rust-vnext, desktop-vnext, contracts-vnext, workers-vnext]
     runs-on: ubuntu-latest
     steps:
       - name: Validate required gates against GatePlan (ci-verdict)
@@ -800,6 +889,10 @@ jobs:
           DESKTOP_FAST_RESULT: ${{ needs.desktop-fast.result }}
           DESKTOP_BUILD_RESULT: ${{ needs.desktop-build.result }}
           INSTALLER_RESULT: ${{ needs.installer-lifecycle.result }}
+          RUST_VNEXT_RESULT: ${{ needs.rust-vnext.result }}
+          DESKTOP_VNEXT_RESULT: ${{ needs.desktop-vnext.result }}
+          CONTRACTS_VNEXT_RESULT: ${{ needs.contracts-vnext.result }}
+          WORKERS_VNEXT_RESULT: ${{ needs.workers-vnext.result }}
         run: |
           # GatePlan failed -> full qualification must run; fail closed.
           if [ "${{ needs.gateplan.result }}" != "success" ]; then
@@ -837,10 +930,14 @@ jobs:
           require desktop-fast "$DESKTOP_FAST_RESULT"
           require desktop-build "$DESKTOP_BUILD_RESULT"
           require installer-lifecycle "$INSTALLER_RESULT"
+          require rust-vnext "$RUST_VNEXT_RESULT"
+          require desktop-vnext "$DESKTOP_VNEXT_RESULT"
+          require contracts-vnext "$CONTRACTS_VNEXT_RESULT"
+          require workers-vnext "$WORKERS_VNEXT_RESULT"
           # A not-required job that RAN and failed is still a failure. Use the
           # job names (the only labels the `needs.*.result` are keyed by) but
           # check them against their real job results.
-          for spec in "test:$TEST_RESULT" "format-targeted:$FORMAT_RESULT" "migration-targeted:$MIGRATION_RESULT" "security-targeted:$SECURITY_RESULT" "py-compat:$COMPAT_RESULT" "lint:$LINT_RESULT" "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime-smoke:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT"; do
+          for spec in "test:$TEST_RESULT" "format-targeted:$FORMAT_RESULT" "migration-targeted:$MIGRATION_RESULT" "security-targeted:$SECURITY_RESULT" "py-compat:$COMPAT_RESULT" "lint:$LINT_RESULT" "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime-smoke:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT" "rust-vnext:$RUST_VNEXT_RESULT" "desktop-vnext:$DESKTOP_VNEXT_RESULT" "contracts-vnext:$CONTRACTS_VNEXT_RESULT" "workers-vnext:$WORKERS_VNEXT_RESULT"; do
             name="${spec%%:*}"; result="${spec##*:}"
             if [ "$result" = "failure" ]; then
               echo "job '$name' failed even though its gate was not required"
