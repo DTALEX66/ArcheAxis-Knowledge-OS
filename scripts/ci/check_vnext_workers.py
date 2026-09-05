@@ -283,6 +283,50 @@ def main() -> int:
     else:
         failures.append("missing negative canvas fixture: broken-edge.canvas")
 
+    # Office worker (T05 F05/F07/F08/F09): probe + real stdlib docx extraction
+    # on the tracked golden fixture; pptx/xlsx/pdf engines are probe-only in CI
+    # (their third-party engines are not installed on runners).
+    office_worker = WORKERS / "document" / "worker_office.py"
+    try:
+        py_compile.compile(str(office_worker), doraise=True)
+    except py_compile.PyCompileError as exc:
+        failures.append(f"document/worker_office.py: compile failed: {exc}")
+    else:
+        probe_run = _run_matrix_worker("document/worker_office.py", ["--probe"])
+        if probe_run.returncode != 0:
+            failures.append(f"office probe exit {probe_run.returncode}: {probe_run.stderr.strip()[:200]}")
+        else:
+            try:
+                probe_payload = json.loads(probe_run.stdout.strip().splitlines()[-1])
+            except (json.JSONDecodeError, IndexError) as exc:
+                failures.append(f"office probe invalid payload: {exc}")
+                probe_payload = {}
+            for engine in ("docx", "pptx", "xlsx", "pdf"):
+                if engine not in probe_payload.get("engines", {}):
+                    failures.append(f"office probe must report engine availability for {engine}")
+            if probe_payload.get("engines", {}).get("docx") is not True:
+                failures.append("office probe must always enable the stdlib docx engine")
+        golden_docx = ROOT / "tests" / "fixtures" / "golden" / "golden-docx-anchor.docx"
+        if golden_docx.is_file():
+            docx_run = _run_matrix_worker("document/worker_office.py", [str(golden_docx)])
+            if docx_run.returncode != 0:
+                failures.append(f"office docx exit {docx_run.returncode}: {docx_run.stderr.strip()[:300]}")
+            else:
+                try:
+                    docx_payload = json.loads(docx_run.stdout.strip().splitlines()[-1])
+                except (json.JSONDecodeError, IndexError) as exc:
+                    failures.append(f"office docx invalid envelope: {exc}")
+                    docx_payload = {}
+                if not docx_payload.get("text") or not isinstance(docx_payload.get("structure"), list) or not docx_payload["structure"]:
+                    failures.append("office docx must extract text with block anchors from the golden fixture")
+                if "evidence anchor" not in docx_payload.get("text", ""):
+                    failures.append("office docx golden text mismatch")
+        else:
+            failures.append("missing golden docx fixture: tests/fixtures/golden/golden-docx-anchor.docx")
+        bad_run = _run_matrix_worker("document/worker_office.py", ["/nonexistent.docx"])
+        if bad_run.returncode == 0:
+            failures.append("office worker succeeded on a missing file (must fail)")
+
     if failures:
         print("workers-vnext check failed:")
         for item in failures:

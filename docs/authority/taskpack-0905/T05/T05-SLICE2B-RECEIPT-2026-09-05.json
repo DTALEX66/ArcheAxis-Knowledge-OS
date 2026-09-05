@@ -1,0 +1,36 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T05-slice2b",
+  "title": "Office/PDF 引擎 worker（F05/F07/F08/F09 部分）",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/document/worker_office.py",
+    "engines": {
+      "docx": "纯 stdlib ZIP+XML：段落/表格按文档序 + 逐块字符锚; 页眉/脚注标记; 嵌入图清点不解码; 无执行",
+      "pptx": "python-pptx: 幻灯片序文本/备注/图与表清点(python-pptx 1.0.2)",
+      "xlsx": "openpyxl: 单元格含公式文本(data_only=False); 缓存值不作实时计算; 宏不执行; 合并范围入说明(3.1.5)",
+      "pdf": "PyMuPDF(pymupdf): 按页文本块阅读序 + 页锚; 扫描页无文本层如实报告 OCR 归独立通道(1.28.2)"
+    },
+    "probe": "--probe 按格式名回报可用性(docx 恒真)",
+    "fixtures_used": "tests/fixtures/golden/golden-docx-anchor.docx / golden-pptx-anchor.pptx / golden-xlsx-anchor.xlsx / golden-journey-evidence.pdf"
+  },
+  "local_verification": {
+    "docx": "2 段落提取+锚, 正文证据文本匹配",
+    "pptx": "幻灯片文本+锚, 结构完整",
+    "xlsx": "A1/A2 单元格提取+sheet 锚",
+    "pdf": "单页文本块 PASS 行提取, 0 扫描页",
+    "missing_file": "error exit 1"
+  },
+  "ci_gate": "workers-vnext: 编译 + probe(格式键齐全, docx 恒真) + 真实金标 docx 全提取断言(纯 stdlib 可在 CI 全跑) + 缺文件错误契约; pptx/xlsx/pdf 引擎 CI 仅探针(运行器无第三方引擎, 如实)",
+  "acceptance_status": {
+    "F07/F08/F09_partial": "结构文本层通过(金标真实提取); 嵌入图/幻灯片图像 OCR、页眉脚注文本、图表渲染为独立后续车道(未伪称)",
+    "F05_partial": "文本 PDF 通过; 多栏顺序与扫描页 OCR(F06)明确未完成"
+  },
+  "remaining_risk": [
+    "docx 页眉/脚注正文未提取(已记录 params)",
+    "xlsx 合并单元格明细与公式缓存值策略细化",
+    "F06 OCR 车道(RapidOCR 已探测可用)与 F04 视觉车道"
+  ],
+  "result": "PASS-slice2b"
+}
