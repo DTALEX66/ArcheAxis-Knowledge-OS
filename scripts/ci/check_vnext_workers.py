@@ -31,6 +31,7 @@ WORKER_MATRIX = {
     "document/worker_text.py": {"fixture": "sample.md", "keys": ("engine", "text", "structure", "loss_receipt")},
     "document/worker_canvas.py": {"fixture": "sample.canvas", "keys": ("engine", "text", "structure", "edges", "references", "loss_receipt")},
     "document/worker_subtitles.py": {"fixture": "sample.srt", "keys": ("engine", "text", "structure", "loss_receipt")},
+    "web/worker_html.py": {"fixture": "sample-page.html", "keys": ("engine", "text", "title", "links", "structure", "loss_receipt")},
 }
 
 
@@ -146,6 +147,20 @@ def main() -> int:
             edge_ids = {e.get("id") for e in edges}
             if not {"e1", "e2"} <= edge_ids:
                 failures.append(f"{relative} edge ids must survive verbatim")
+        if relative == "web/worker_html.py":
+            title = envelope.get("title")
+            if "托卡马克" not in str(title):
+                failures.append(f"{relative} must extract the document title")
+            text = envelope.get("text", "")
+            if "1e20" not in text or "script" in text.lower():
+                failures.append(f"{relative} must keep body numbers and drop scripts")
+            links = envelope.get("links")
+            if not isinstance(links, list) or len(links) != 2:
+                failures.append(f"{relative} must keep both href links")
+            structure = envelope.get("structure")
+            if not isinstance(structure, list) or len(structure) < 4:
+                failures.append(f"{relative} must emit paragraph/list block anchors")
+
         if relative == "document/worker_subtitles.py":
             structure = envelope.get("structure")
             if not isinstance(structure, list) or len(structure) != 3:

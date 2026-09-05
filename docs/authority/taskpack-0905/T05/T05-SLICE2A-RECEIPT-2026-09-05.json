@@ -1,0 +1,17 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T05-slice2a",
+  "title": "网页能力包 slice2a：F02 静态 HTML 快照 worker",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/web/worker_html.py (stdlib html.parser: title/正文块/链接/段落锚; script/style 不执行; 编码 utf-8-sig/降级记录)",
+    "fixture": "tests/fixtures/vnext/documents/sample-page.html (中文正文+数值+2 外链+脚本噪音)",
+    "gate": "check_vnext_workers.py WORKER_MATRIX 增 web/worker_html.py（标题/正文数值/链接数/块锚断言）"
+  },
+  "acceptance_status": {
+    "F02_partial": "静态快照正文提取通过; 网络抓取/最终 URL/抓取时间归 Core 侧下一 slice; trafilatura 级广告正文分离与 F03 动态渲染明确未完成(如实)"
+  },
+  "local_verification": "workers-vnext gate passed; conventions passed",
+  "result": "PASS-slice2a"
+}
