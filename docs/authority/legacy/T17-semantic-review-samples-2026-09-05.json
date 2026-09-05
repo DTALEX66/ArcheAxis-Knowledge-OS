@@ -1,0 +1,280 @@
+{
+  "schema": "archeaxis.legacy-manifest/v1",
+  "kind": "semantic-review-samples",
+  "audited_at": "2026-09-05T17:42:24.527925+00:00",
+  "stride": 12,
+  "count": 30,
+  "note": "snippets are metadata evidence only; absorption decisions belong to T13",
+  "samples": [
+    {
+      "asset_id": "LEG-00001",
+      "path": ".codex.example/README.md",
+      "category": "config-tooling",
+      "head_change": "unchanged",
+      "recommended_lane": "T01/T14 governance reference",
+      "head_snippet": "# .codex.example | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00003",
+      "path": ".editorconfig",
+      "category": "other-repo-assets",
+      "head_change": "unchanged",
+      "recommended_lane": "T17/T14 verify and keep",
+      "head_snippet": "root = true | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00020",
+      "path": "LICENSE",
+      "category": "other-repo-assets",
+      "head_change": "unchanged",
+      "recommended_lane": "T17/T14 verify and keep",
+      "head_snippet": "MIT License | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00021",
+      "path": "OSUI/HANDOFF-2026-08-12.md",
+      "category": "legacy-ui-shell",
+      "head_change": "unchanged",
+      "recommended_lane": "T18/T12 design/UX reference only",
+      "head_snippet": "# OSUI 云端交接记录 · 2026-08-12 | ## 交付状态 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00033",
+      "path": "OSUI/archeaxis-knowledge-ui-v2/component-manifest.json",
+      "category": "legacy-ui-shell",
+      "head_change": "unchanged",
+      "recommended_lane": "T18/T12 design/UX reference only",
+      "head_snippet": "{ | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00045",
+      "path": "OSUI/archeaxis-knowledge-ui-v2/knowledge-canvas.html",
+      "category": "legacy-ui-shell",
+      "head_change": "unchanged",
+      "recommended_lane": "T18/T12 design/UX reference only",
+      "head_snippet": "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>知识 Canvas · 星环知识平台</titl | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00057",
+      "path": "OSUI/archeaxis-knowledge-ui-v2/reference-audit.md",
+      "category": "legacy-ui-shell",
+      "head_change": "unchanged",
+      "recommended_lane": "T18/T12 design/UX reference only",
+      "head_snippet": "# 历史参考图审计 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00069",
+      "path": "OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio-v3-preview.png",
+      "category": "legacy-ui-shell",
+      "head_change": "unchanged",
+      "recommended_lane": "T18/T12 design/UX reference only",
+      "head_snippet": "�PNG | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00081",
+      "path": "app/__init__.py",
+      "category": "legacy-business-store",
+      "head_change": "unchanged",
+      "recommended_lane": "T03/T09/T13 migration/behavior oracle (never dual-write)",
+      "head_snippet": "",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00093",
+      "path": "app/adapters/machine_knowledge.py",
+      "category": "legacy-business-store",
+      "head_change": "unchanged",
+      "recommended_lane": "T03/T09/T13 migration/behavior oracle (never dual-write)",
+      "head_snippet": "\"\"\"Lossless adapter for decoded legacy machine-knowledge rows.\"\"\" | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00105",
+      "path": "app/answer/boundaries.py",
+      "category": "legacy-business-store",
+      "head_change": "unchanged",
+      "recommended_lane": "T03/T09/T13 migration/behavior oracle (never dual-write)",
+      "head_snippet": "\"\"\"AXW-050B: fail-safe boundaries for grounded AI answers. | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00117",
+      "path": "app/capability/builtin/converters_ocr.py",
+      "category": "legacy-business-store",
+      "head_change": "unchanged",
+      "recommended_lane": "T03/T09/T13 migration/behavior oracle (never dual-write)",
+      "head_snippet": "\"\"\"Builtin converter plugin registration: OCR (AXW-CAP-503). | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00129",
+      "path": "app/core/attention.py",
+      "category": "legacy-business-store",
+      "head_change": "unchanged",
+      "recommended_lane": "T03/T09/T13 migration/behavior oracle (never dual-write)",
+      "head_snippet": "\"\"\"Attention scoring — DEFERRED placeholder. | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00139",
+      "path": "app/evidence/anchor.py",
+      "category": "research-evidence",
+      "head_change": "unchanged",
+      "recommended_lane": "T08 behavior oracle for research lanes",
+      "head_snippet": "\"\"\"AXW-020C: EvidenceAnchor and IndexRevision. | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00148",
+      "path": "app/facades/__init__.py",
+      "category": "legacy-business-store",
+      "head_change": "unchanged",
+      "recommended_lane": "T03/T09/T13 migration/behavior oracle (never dual-write)",
+      "head_snippet": "\"\"\"Stable public facades for archeaxis-workspace domains.\"\"\" | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00159",
+      "path": "app/ingestion/__init__.py",
+      "category": "parsing-conversion",
+      "head_change": "unchanged",
+      "recommended_lane": "T05/T06 worker engine absorption (worker_office/worker_text/worker_ocr lanes)",
+      "head_snippet": "",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00171",
+      "path": "app/ingestion/ocr_gate.py",
+      "category": "parsing-conversion",
+      "head_change": "unchanged",
+      "recommended_lane": "T05/T06 worker engine absorption (worker_office/worker_text/worker_ocr lanes)",
+      "head_snippet": "\"\"\"OCR quality gate — H2 quality gate (loop gap: OCR/ASR/quality). | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00182",
+      "path": "app/knowledge/__init__.py",
+      "category": "knowledge-dual-learning",
+      "head_change": "unchanged",
+      "recommended_lane": "T09/T10/T11 domain semantics source-of-behavior",
+      "head_snippet": "\"\"\"Governed Knowledge candidate workflows.\"\"\" | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00194",
+      "path": "app/knowledge/learning_outcome.py",
+      "category": "knowledge-dual-learning",
+      "head_change": "unchanged",
+      "recommended_lane": "T09/T10/T11 domain semantics source-of-behavior",
+      "head_snippet": "\"\"\"Learning outcome persistence — closes the human-learning feedback arc. | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00206",
+      "path": "app/knowledge/vault_projection.py",
+      "category": "knowledge-dual-learning",
+      "head_change": "unchanged",
+      "recommended_lane": "T09/T10/T11 domain semantics source-of-behavior",
+      "head_snippet": "\"\"\"Governed projections from the learning ledger into workspace Vault domains.\"\"\" | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00265",
+      "path": "codex-taskpacks/B线_CODEX任务包.md",
+      "category": "history-docs",
+      "head_change": "unchanged",
+      "recommended_lane": "T14 history index (keep, no code absorption)",
+      "head_snippet": "# B线 CODEX 任务包 | ## 目标 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00273",
+      "path": "config/naming-registry.yaml",
+      "category": "config-tooling",
+      "head_change": "unchanged",
+      "recommended_lane": "T01/T14 governance reference",
+      "head_snippet": "version: 1 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00285",
+      "path": "config/schemas/capability-requirements.schema.json",
+      "category": "config-tooling",
+      "head_change": "unchanged",
+      "recommended_lane": "T01/T14 governance reference",
+      "head_snippet": "{ | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00296",
+      "path": "desktop/bootstrap/index.html",
+      "category": "legacy-ui-shell",
+      "head_change": "unchanged",
+      "recommended_lane": "T18/T12 design/UX reference only",
+      "head_snippet": "<!doctype html> | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00333",
+      "path": "docs/HANDOFF_2026-08-07_audit-cleanup.md",
+      "category": "history-docs",
+      "head_change": "unchanged",
+      "recommended_lane": "T14 history index (keep, no code absorption)",
+      "head_snippet": "# Handoff — 项目审计、清理与交接（2026-08-07） | ## 1. 项目状态 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00345",
+      "path": "docs/HANDOFF_DEEPSEEK_REAL_CASE_E2E_2026-07-23.md",
+      "category": "history-docs",
+      "head_change": "unchanged",
+      "recommended_lane": "T14 history index (keep, no code absorption)",
+      "head_snippet": "# DeepSeek 交接：真实案例全流程测试包（2026-07-23） | ## 文档性质与证据边界 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00357",
+      "path": "docs/README.md",
+      "category": "history-docs",
+      "head_change": "unchanged",
+      "recommended_lane": "T14 history index (keep, no code absorption)",
+      "head_snippet": "# 文档导航 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00369",
+      "path": "docs/architecture/imported-designs/a-line-design/01-Capture-from-CC-FileTools/01_捕获系统设计.md",
+      "category": "history-docs",
+      "head_change": "unchanged",
+      "recommended_lane": "T14 history index (keep, no code absorption)",
+      "head_snippet": "# 01 捕获系统设计 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00381",
+      "path": "docs/architecture/imported-designs/a-line-design/05-Feedback-Loop-from-CC-toolExecution/05_反馈闭环系统.md",
+      "category": "history-docs",
+      "head_change": "unchanged",
+      "recommended_lane": "T14 history index (keep, no code absorption)",
+      "head_snippet": "# 05 | 反馈闭环系统 — Feedback Loop System | ## 一、系统定位：反馈闭环在 OS 中的角色 | ### 1.1 从 CC toolExecution 到学习反馈 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    },
+    {
+      "asset_id": "LEG-00635",
+      "path": "integration-tests/B_C_联调测试清单.md",
+      "category": "tests-golden-fixtures",
+      "head_change": "unchanged",
+      "recommended_lane": "T07 goldens (reuse as evaluation goldens after audit)",
+      "head_snippet": "# B+C 线联调测试清单 | ## 1. Schema 测试 | ",
+      "review_status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+    }
+  ]
+}

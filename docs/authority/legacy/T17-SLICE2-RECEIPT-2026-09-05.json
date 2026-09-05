@@ -1,0 +1,18 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T17-slice2",
+  "title": "资产盘点深化：P0 类别语义抽样(30 项, 去向 lane 映射证据)",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "tool": "tests/legacy-differential/semantic_sample_review.py (确定性步长抽样+文件头证据+推荐 lane)",
+    "evidence": "docs/authority/legacy/T17-semantic-review-samples-2026-09-05.json (30 assets)",
+    "lane_map": "category -> T05/T06|T09/T10/T11|T03/T09/T13|T18/T12|T07 goldens|T08 oracle|T14 history"
+  },
+  "verification": {
+    "audit": "T17 slice1 audit exit 0 (1246 present)",
+    "samples": 30,
+    "note": "片段仅为元数据证据; 吸收决策归 T13(CODEX)"
+  },
+  "result": "PASS-slice2"
+}
