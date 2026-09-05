@@ -1,0 +1,10 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T01-fix1",
+  "title": "CI 分类器引号健壮性修复(非 ASCII/空格路径)",
+  "date": "2026-09-05",
+  "fix": "gateplan git diff 改 -c core.quotePath=false --name-only -z + UTF-8/surrogateescape 解析；此前中文/空格路径会被引号转义导致误入 unclassified 或漏触发对应门禁(如 docs 中文文件改动)",
+  "verification": { "yaml": "ci.yml 18 jobs parse ok", "conventions": "passed" },
+  "related": "classify.py 同步提供 git_diff_names(-z) 助手(T14s1)",
+  "result": "PASS"
+}
