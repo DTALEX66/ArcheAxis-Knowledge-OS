@@ -54,13 +54,23 @@ pub fn complete(
     conn.execute(
         "INSERT INTO transforms(source_id, engine, text, loss_note)
          SELECT ?1, ?2, ?3, json_extract(?4, '$.loss_note') FROM jobs WHERE job_id=?5",
-        rusqlite::params![input_source_ref(conn, job_id)?, engine, text, receipt, job_id],
+        rusqlite::params![
+            input_source_ref(conn, job_id)?,
+            engine,
+            text,
+            receipt,
+            job_id
+        ],
     )?;
     Ok(())
 }
 
 fn input_source_ref(conn: &Connection, job_id: &str) -> rusqlite::Result<String> {
-    conn.query_row("SELECT input_ref FROM jobs WHERE job_id=?1", [job_id], |r| r.get(0))
+    conn.query_row(
+        "SELECT input_ref FROM jobs WHERE job_id=?1",
+        [job_id],
+        |r| r.get(0),
+    )
 }
 
 /// Mark a job failed with an explicit error string (never fake success).
@@ -73,5 +83,8 @@ pub fn fail(conn: &mut Connection, job_id: &str, error: &str) -> rusqlite::Resul
 }
 
 pub fn job_state(conn: &Connection, job_id: &str) -> rusqlite::Result<Option<String>> {
-    conn.query_row("SELECT state FROM jobs WHERE job_id=?1", [job_id], |r| r.get(0)).optional()
+    conn.query_row("SELECT state FROM jobs WHERE job_id=?1", [job_id], |r| {
+        r.get(0)
+    })
+    .optional()
 }

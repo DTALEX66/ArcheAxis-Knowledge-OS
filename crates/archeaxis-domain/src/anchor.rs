@@ -25,8 +25,14 @@ pub fn add_anchor(
 }
 
 /// Fetch (source_id, source_revision, position) for an anchor.
-pub fn get_anchor(conn: &Connection, anchor_id: &str) -> rusqlite::Result<Option<(String, String, String)>> {
+pub fn get_anchor(
+    conn: &Connection,
+    anchor_id: &str,
+) -> rusqlite::Result<Option<(String, String, String)>> {
     conn.query_row(
         "SELECT source_id, source_revision, position FROM anchors WHERE anchor_id=?1",
-        [anchor_id], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?))).optional()
+        [anchor_id],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+    )
+    .optional()
 }

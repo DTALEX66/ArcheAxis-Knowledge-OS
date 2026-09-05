@@ -85,17 +85,27 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
 /// Compact workspace info string: schema_version + object counts.
 pub fn workspace_info_json(conn: &Connection) -> rusqlite::Result<String> {
     let ver: String = conn.query_row(
-        "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0))?;
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |r| r.get(0),
+    )?;
     let counts: (i64, i64, i64, i64, i64) = conn.query_row(
         "SELECT (SELECT count(*) FROM sources),(SELECT count(*) FROM transforms),
                 (SELECT count(*) FROM knowledge),(SELECT count(*) FROM anchors),
-                (SELECT count(*) FROM learning_events)", [], |r| {
-            Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?))
-        })?;
+                (SELECT count(*) FROM learning_events)",
+        [],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
+    )?;
     let mut s = String::from("{");
     let mut field = |k: &str, v: &str, last: bool| {
-        s.push('"'); s.push_str(k); s.push('"'); s.push(':'); s.push_str(v);
-        if !last { s.push(','); }
+        s.push('"');
+        s.push_str(k);
+        s.push('"');
+        s.push(':');
+        s.push_str(v);
+        if !last {
+            s.push(',');
+        }
     };
     field("schema_version", &ver, false);
     field("sources", &counts.0.to_string(), false);

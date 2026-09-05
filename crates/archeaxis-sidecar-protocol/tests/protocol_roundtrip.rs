@@ -1,5 +1,5 @@
 //! Sidecar protocol round-trip tests.
-use archeaxis_sidecar_protocol::{decode, encode, Message, PROTOCOL_VERSION};
+use archeaxis_sidecar_protocol::{Message, PROTOCOL_VERSION, decode, encode};
 
 #[test]
 fn handshake_roundtrip() {

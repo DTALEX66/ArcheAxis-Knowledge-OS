@@ -29,17 +29,27 @@ pub fn import_source(
 ) -> rusqlite::Result<ImportOutcome> {
     let digest = sha256_hex(bytes);
     let existing: Option<String> = conn
-        .query_row("SELECT source_id FROM sources WHERE sha256=?1", [&digest], |r| r.get(0))
+        .query_row(
+            "SELECT source_id FROM sources WHERE sha256=?1",
+            [&digest],
+            |r| r.get(0),
+        )
         .optional()?;
     if let Some(sid) = existing {
-        return Ok(ImportOutcome::Duplicate { source_id: sid, sha256: digest });
+        return Ok(ImportOutcome::Duplicate {
+            source_id: sid,
+            sha256: digest,
+        });
     }
     let source_id = stable_id("src", &digest);
     conn.execute(
         "INSERT INTO sources(source_id, sha256, original_name, raw_path) VALUES(?1,?2,?3,?4)",
         rusqlite::params![source_id, digest, original_name, raw_path],
     )?;
-    Ok(ImportOutcome::Imported { source_id, sha256: digest })
+    Ok(ImportOutcome::Imported {
+        source_id,
+        sha256: digest,
+    })
 }
 
 /// Store extracted text as a transform receipt (Python worker extracts;

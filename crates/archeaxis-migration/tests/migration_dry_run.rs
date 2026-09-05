@@ -10,9 +10,18 @@ fn make_legacy(dir: &std::path::Path) -> String {
          CREATE TABLE docs(id INTEGER PRIMARY KEY, title TEXT, sha256 TEXT);",
     )
     .unwrap();
-    conn.execute("INSERT INTO notes(body, created_at) VALUES('legacy note one', '2026-08-29')", []).unwrap();
-    conn.execute("INSERT INTO notes(body, created_at) VALUES('legacy note two', '2026-08-29')", []).unwrap();
-    conn.execute("INSERT INTO docs(title, sha256) VALUES('doc a', 'aaa')", []).unwrap();
+    conn.execute(
+        "INSERT INTO notes(body, created_at) VALUES('legacy note one', '2026-08-29')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO notes(body, created_at) VALUES('legacy note two', '2026-08-29')",
+        [],
+    )
+    .unwrap();
+    conn.execute("INSERT INTO docs(title, sha256) VALUES('doc a', 'aaa')", [])
+        .unwrap();
     drop(conn);
     db.to_str().unwrap().to_string()
 }

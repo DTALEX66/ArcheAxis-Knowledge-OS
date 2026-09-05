@@ -12,15 +12,22 @@ pub const PROTOCOL_VERSION: u32 = 1;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Message {
-    Ping { nonce: String },
+    Ping {
+        nonce: String,
+    },
     Handshake {
         runtime: String,
         contract: String,
         schema_version: i64,
         workspace_ready: bool,
     },
-    Health { ok: bool, detail: Option<String> },
-    Shutdown { reason: Option<String> },
+    Health {
+        ok: bool,
+        detail: Option<String>,
+    },
+    Shutdown {
+        reason: Option<String>,
+    },
     WorkerReceipt {
         job_id: String,
         state: String,
@@ -37,7 +44,10 @@ pub struct Envelope {
 }
 
 pub fn encode(message: Message) -> Result<String, serde_json::Error> {
-    let env = Envelope { version: PROTOCOL_VERSION, message };
+    let env = Envelope {
+        version: PROTOCOL_VERSION,
+        message,
+    };
     serde_json::to_string(&env)
 }
 
@@ -64,7 +74,10 @@ impl std::fmt::Display for ProtocolError {
         match self {
             ProtocolError::Malformed(e) => write!(f, "malformed envelope: {e}"),
             ProtocolError::VersionMismatch { expected, got } => {
-                write!(f, "protocol version mismatch: expected {expected}, got {got}")
+                write!(
+                    f,
+                    "protocol version mismatch: expected {expected}, got {got}"
+                )
             }
         }
     }

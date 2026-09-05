@@ -108,9 +108,13 @@ pub fn export_workspace(db_path: &str, out_dir: &str) -> Result<ArchiveManifest,
         h.update(&bytes);
         let digest = hex::encode(h.finalize());
         file_hashes.insert(table.to_string(), digest.clone());
-        manifest
-            .tables
-            .insert(table.to_string(), TableFile { rows: count, sha256: digest });
+        manifest.tables.insert(
+            table.to_string(),
+            TableFile {
+                rows: count,
+                sha256: digest,
+            },
+        );
     }
     let mut h = Sha256::new();
     for (t, tf) in &manifest.tables {
@@ -120,19 +124,26 @@ pub fn export_workspace(db_path: &str, out_dir: &str) -> Result<ArchiveManifest,
     }
     manifest.manifest_sha256 = hex::encode(h.finalize());
     let mp = Path::new(out_dir).join("manifest.json");
-    std::fs::write(&mp, serde_json::to_string_pretty(&manifest).unwrap()).map_err(ArchiveError::Io)?;
+    std::fs::write(&mp, serde_json::to_string_pretty(&manifest).unwrap())
+        .map_err(ArchiveError::Io)?;
     Ok(manifest)
 }
 
 /// Restore JSONL files from `archive_dir` into a fresh vNext workspace DB.
 /// Insert order follows EXPORT_TABLES so foreign keys hold.
-pub fn restore_workspace(archive_dir: &str, target_db: &str) -> Result<ArchiveManifest, ArchiveError> {
+pub fn restore_workspace(
+    archive_dir: &str,
+    target_db: &str,
+) -> Result<ArchiveManifest, ArchiveError> {
     let conn = archeaxis_store_sqlite::init_workspace(target_db)?;
     let mp = Path::new(archive_dir).join("manifest.json");
     let raw = std::fs::read_to_string(&mp).map_err(ArchiveError::Io)?;
     let manifest: ArchiveManifest = serde_json::from_str(&raw).map_err(ArchiveError::Json)?;
     for table in EXPORT_TABLES {
-        let tf = manifest.tables.get(*table).ok_or_else(|| ArchiveError::Table(table.to_string()))?;
+        let tf = manifest
+            .tables
+            .get(*table)
+            .ok_or_else(|| ArchiveError::Table(table.to_string()))?;
         if tf.rows == 0 {
             continue;
         }
@@ -140,14 +151,21 @@ pub fn restore_workspace(archive_dir: &str, target_db: &str) -> Result<ArchiveMa
         let content = std::fs::read_to_string(&path).map_err(ArchiveError::Io)?;
         let cols = column_names(&conn, table)?;
         let placeholders = vec!["?"; cols.len()].join(",");
-        let sql = format!("INSERT INTO \"{table}\" ({}) VALUES ({placeholders})", cols.join(","));
+        let sql = format!(
+            "INSERT INTO \"{table}\" ({}) VALUES ({placeholders})",
+            cols.join(",")
+        );
         let mut stmt = conn.prepare(&sql)?;
         for line in content.lines() {
             let v: serde_json::Value = serde_json::from_str(line).map_err(ArchiveError::Json)?;
-            let obj = v.as_object().ok_or_else(|| ArchiveError::Table("row not object".into()))?;
+            let obj = v
+                .as_object()
+                .ok_or_else(|| ArchiveError::Table("row not object".into()))?;
             let mut params: Vec<rusqlite::types::Value> = Vec::new();
             for c in &cols {
-                params.push(json_to_value(obj.get(c).cloned().unwrap_or(serde_json::Value::Null)));
+                params.push(json_to_value(
+                    obj.get(c).cloned().unwrap_or(serde_json::Value::Null),
+                ));
             }
             stmt.execute(rusqlite::params_from_iter(params.iter()))?;
         }

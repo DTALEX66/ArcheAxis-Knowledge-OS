@@ -10,8 +10,15 @@
 
 /// Canonical knowledge types (assessment-vocabulary `knowledge_type`).
 pub const KNOWLEDGE_TYPES: &[&str] = &[
-    "PERSONAL_DEFINITION", "NOTE", "OBSERVATION", "OPINION", "QUESTION",
-    "HYPOTHESIS", "RUMOR_REPORT", "FORECAST", "FACTUAL_CLAIM",
+    "PERSONAL_DEFINITION",
+    "NOTE",
+    "OBSERVATION",
+    "OPINION",
+    "QUESTION",
+    "HYPOTHESIS",
+    "RUMOR_REPORT",
+    "FORECAST",
+    "FACTUAL_CLAIM",
 ];
 
 /// Canonical review statuses (assessment-vocabulary `review_status`).
@@ -72,7 +79,12 @@ mod tests {
         );
         assert_all_present(
             &[
-                JOB_QUEUED, JOB_RUNNING, JOB_SUCCEEDED, JOB_FAILED, JOB_REJECTED, JOB_CANCELLED,
+                JOB_QUEUED,
+                JOB_RUNNING,
+                JOB_SUCCEEDED,
+                JOB_FAILED,
+                JOB_REJECTED,
+                JOB_CANCELLED,
             ],
             JOB_STATUS_SCHEMA,
             "job_status",

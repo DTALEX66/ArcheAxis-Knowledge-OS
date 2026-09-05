@@ -19,7 +19,11 @@ async fn api_closed_loop() {
     // version
     let resp = router
         .clone()
-        .oneshot(Request::get("/api/v1/system/version").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::get("/api/v1/system/version")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
@@ -92,7 +96,11 @@ async fn api_closed_loop() {
     // search (FTS5)
     let resp = router
         .clone()
-        .oneshot(Request::get("/api/v1/search?q=%E8%BF%9B%E6%AD%A5%E6%9C%AC").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::get("/api/v1/search?q=%E8%BF%9B%E6%AD%A5%E6%9C%AC")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
@@ -102,7 +110,11 @@ async fn api_closed_loop() {
 
     // workspace info
     let resp = router
-        .oneshot(Request::get("/api/v1/workspaces/info").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::get("/api/v1/workspaces/info")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
@@ -121,7 +133,9 @@ async fn worker_job_flow_via_api() {
         .oneshot(
             Request::post("/api/v1/imports")
                 .header("content-type", "application/json")
-                .body(Body::from(format!(r#"{{"name":"n.txt","content_base64":"{b64}"}}"#)))
+                .body(Body::from(format!(
+                    r#"{{"name":"n.txt","content_base64":"{b64}"}}"#
+                )))
                 .unwrap(),
         )
         .await
@@ -190,15 +204,23 @@ async fn worker_job_flow_via_api() {
     // verify persisted state + transform text through a fresh connection
     let conn = init_workspace(db.to_str().unwrap()).unwrap();
     let state: String = conn
-        .query_row("SELECT state FROM jobs WHERE job_id='job-9'", [], |r| r.get(0))
+        .query_row("SELECT state FROM jobs WHERE job_id='job-9'", [], |r| {
+            r.get(0)
+        })
         .unwrap();
     assert_eq!(state, "completed");
     let fstate: String = conn
-        .query_row("SELECT state FROM jobs WHERE job_id='job-10'", [], |r| r.get(0))
+        .query_row("SELECT state FROM jobs WHERE job_id='job-10'", [], |r| {
+            r.get(0)
+        })
         .unwrap();
     assert_eq!(fstate, "failed");
     let text: String = conn
-        .query_row("SELECT text FROM transforms WHERE source_id=?1", [&sid], |r| r.get(0))
+        .query_row(
+            "SELECT text FROM transforms WHERE source_id=?1",
+            [&sid],
+            |r| r.get(0),
+        )
         .unwrap();
     assert!(text.contains("clean"));
 }

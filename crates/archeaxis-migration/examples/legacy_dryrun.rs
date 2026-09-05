@@ -21,7 +21,12 @@ fn main() {
         Ok(tables) => {
             println!("inventory: {} user tables", tables.len());
             for t in &tables {
-                println!("  {}: {} rows, {} cols", t.name, t.row_count, t.columns.len());
+                println!(
+                    "  {}: {} rows, {} cols",
+                    t.name,
+                    t.row_count,
+                    t.columns.len()
+                );
             }
             match export_jsonl(db, out) {
                 Ok(manifest) => {

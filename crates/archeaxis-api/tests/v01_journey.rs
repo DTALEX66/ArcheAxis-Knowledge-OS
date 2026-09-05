@@ -28,11 +28,11 @@ fn json_body(router: &axum::Router, method: &str, path: &str, body: String) -> s
     } else {
         Request::get(path)
     };
-    let resp = futures_block_on(
-        router.clone().oneshot(req.body(Body::from(body)).unwrap()),
-    )
-    .unwrap();
-    let bytes = futures_block_on(resp.into_body().collect()).unwrap().to_bytes();
+    let resp =
+        futures_block_on(router.clone().oneshot(req.body(Body::from(body)).unwrap())).unwrap();
+    let bytes = futures_block_on(resp.into_body().collect())
+        .unwrap()
+        .to_bytes();
     if bytes.is_empty() {
         serde_json::json!({})
     } else {
@@ -55,7 +55,10 @@ fn v01_twelve_step_journey() {
     // step 0: receipt collector
     let mut steps: BTreeMap<String, String> = BTreeMap::new();
     let mut pass = |id: &str, ok: bool, note: &str| {
-        steps.insert(id.to_string(), format!("{}: {}", if ok { "PASS" } else { "FAIL" }, note));
+        steps.insert(
+            id.to_string(),
+            format!("{}: {}", if ok { "PASS" } else { "FAIL" }, note),
+        );
         assert!(ok, "{id} failed: {note}");
     };
 
@@ -71,52 +74,137 @@ fn v01_twelve_step_journey() {
     // 2) import two sources; sha256 readable; repeat import idempotent
     let a = base64::engine::general_purpose::STANDARD.encode(b"journey source one body");
     let b = base64::engine::general_purpose::STANDARD.encode(b"journey source two body");
-    let r1 = json_body(&router, "POST", "/api/v1/imports", format!(r#"{{"name":"s1.txt","content_base64":"{a}"}}"#));
+    let r1 = json_body(
+        &router,
+        "POST",
+        "/api/v1/imports",
+        format!(r#"{{"name":"s1.txt","content_base64":"{a}"}}"#),
+    );
     let sid1 = r1["source_id"].as_str().unwrap().to_string();
-    let r2 = json_body(&router, "POST", "/api/v1/imports", format!(r#"{{"name":"s2.txt","content_base64":"{b}"}}"#));
+    let r2 = json_body(
+        &router,
+        "POST",
+        "/api/v1/imports",
+        format!(r#"{{"name":"s2.txt","content_base64":"{b}"}}"#),
+    );
     let sid2 = r2["source_id"].as_str().unwrap().to_string();
-    let dup = json_body(&router, "POST", "/api/v1/imports", format!(r#"{{"name":"s1-again.txt","content_base64":"{a}"}}"#));
-    pass("02_import_hash_idempotent", dup["duplicate"] == true && r1["sha256"].as_str().is_some(), &format!("{r1} {dup}"));
+    let dup = json_body(
+        &router,
+        "POST",
+        "/api/v1/imports",
+        format!(r#"{{"name":"s1-again.txt","content_base64":"{a}"}}"#),
+    );
+    pass(
+        "02_import_hash_idempotent",
+        dup["duplicate"] == true && r1["sha256"].as_str().is_some(),
+        &format!("{r1} {dup}"),
+    );
 
     // 3) python worker returns text+loss receipt (no DB handle) via jobs API
-    let _ = json_body(&router, "POST", "/api/v1/jobs", format!(r#"{{"job_id":"j1","kind":"transform","input_ref":"{sid1}"}}"#));
-    let receipt = format!(r#"{{"state":"completed","engine":"python-worker-extract","text":"journey source one body (clean)","loss_receipt":{{"engine":"python-worker-extract","engine_version":"0.1.0","params":{{}},"loss_note":"bom stripped"}}}}"#);
+    let _ = json_body(
+        &router,
+        "POST",
+        "/api/v1/jobs",
+        format!(r#"{{"job_id":"j1","kind":"transform","input_ref":"{sid1}"}}"#),
+    );
+    let receipt = format!(
+        r#"{{"state":"completed","engine":"python-worker-extract","text":"journey source one body (clean)","loss_receipt":{{"engine":"python-worker-extract","engine_version":"0.1.0","params":{{}},"loss_note":"bom stripped"}}}}"#
+    );
     let rr = json_body(&router, "POST", "/api/v1/jobs/j1/receipts", receipt);
-    pass("03_worker_receipt", rr.get("state").and_then(|s| s.as_str()) == Some("completed"), &format!("{rr}"));
+    pass(
+        "03_worker_receipt",
+        rr.get("state").and_then(|s| s.as_str()) == Some("completed"),
+        &format!("{rr}"),
+    );
 
     // 4) anchor a sentence, read back
-    let ar = json_body(&router, "POST", &format!("/api/v1/sources/{sid1}/anchors"), r#"{"revision":"rev-1","position":"{\"start\":0,\"end\":10}"}"#.to_string());
+    let ar = json_body(
+        &router,
+        "POST",
+        &format!("/api/v1/sources/{sid1}/anchors"),
+        r#"{"revision":"rev-1","position":"{\"start\":0,\"end\":10}"}"#.to_string(),
+    );
     let aid = ar["anchor_id"].as_str().unwrap().to_string();
     let conn = Connection::open(db.to_str().unwrap()).unwrap();
     let got = archeaxis_domain::anchor::get_anchor(&conn, &aid).unwrap();
     drop(conn);
-    pass("04_anchor_readback", got.is_some() && got.unwrap().0 == sid1, "anchor roundtrip");
+    pass(
+        "04_anchor_readback",
+        got.is_some() && got.unwrap().0 == sid1,
+        "anchor roundtrip",
+    );
 
     // 5) personal definition (no external evidence) + machine candidate
     let p = json_body(&router, "POST", "/api/v1/knowledge-items", r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"个人定义：不需要外证","status":"accepted","created_by":"owner"}"#.to_string());
     let pid = p["knowledge_id"].as_str().unwrap().to_string();
     let mc = json_body(&router, "POST", "/api/v1/knowledge-items", r#"{"knowledge_type":"FACTUAL_CLAIM","body":"机器候选：未经复核不可自动升级","status":"candidate","created_by":"python-worker"}"#.to_string());
     let mc_id = mc["knowledge_id"].as_str().unwrap().to_string();
-    pass("05_personal_and_candidate", !pid.is_empty() && !mc_id.is_empty(), "created");
+    pass(
+        "05_personal_and_candidate",
+        !pid.is_empty() && !mc_id.is_empty(),
+        "created",
+    );
 
     // 6) accept/reject produce immutable receipts; candidate not auto-verified
-    let ok1 = json_body(&router, "POST", &format!("/api/v1/knowledge-items/{mc_id}/review-decisions"), r#"{"action":"accepted","reviewer":"owner","note":"核实"}"#.to_string());
+    let ok1 = json_body(
+        &router,
+        "POST",
+        &format!("/api/v1/knowledge-items/{mc_id}/review-decisions"),
+        r#"{"action":"accepted","reviewer":"owner","note":"核实"}"#.to_string(),
+    );
     let rej = json_body(&router, "POST", "/api/v1/knowledge-items", r#"{"knowledge_type":"OPINION","body":"待拒绝项","status":"candidate","created_by":"python-worker"}"#.to_string());
     let rej_id = rej["knowledge_id"].as_str().unwrap().to_string();
-    let _ = json_body(&router, "POST", &format!("/api/v1/knowledge-items/{rej_id}/review-decisions"), r#"{"action":"rejected","reviewer":"owner","note":"无关"}"#.to_string());
+    let _ = json_body(
+        &router,
+        "POST",
+        &format!("/api/v1/knowledge-items/{rej_id}/review-decisions"),
+        r#"{"action":"rejected","reviewer":"owner","note":"无关"}"#.to_string(),
+    );
     let conn = Connection::open(db.to_str().unwrap()).unwrap();
-    let status: String = conn.query_row("SELECT status FROM knowledge WHERE knowledge_id=?1", [&mc_id], |r| r.get(0)).unwrap();
-    let rej_status: String = conn.query_row("SELECT status FROM knowledge WHERE knowledge_id=?1", [&rej_id], |r| r.get(0)).unwrap();
+    let status: String = conn
+        .query_row(
+            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            [&mc_id],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let rej_status: String = conn
+        .query_row(
+            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            [&rej_id],
+            |r| r.get(0),
+        )
+        .unwrap();
     drop(conn);
-    pass("06_review_immutable", status == "accepted" && rej_status == "rejected", &format!("{status}/{rej_status}"));
+    pass(
+        "06_review_immutable",
+        status == "accepted" && rej_status == "rejected",
+        &format!("{status}/{rej_status}"),
+    );
 
     // 7) FTS5 retrieval over sources + knowledge
-    let s = json_body(&router, "GET", "/api/v1/search?q=%E4%B8%AA%E4%BA%BA%E5%AE%9A%E4%B9%89", String::new());
-    pass("07_fts5", s["count"].as_i64().unwrap_or(0) >= 1, &format!("{s}"));
+    let s = json_body(
+        &router,
+        "GET",
+        "/api/v1/search?q=%E4%B8%AA%E4%BA%BA%E5%AE%9A%E4%B9%89",
+        String::new(),
+    );
+    pass(
+        "07_fts5",
+        s["count"].as_i64().unwrap_or(0) >= 1,
+        &format!("{s}"),
+    );
 
     // 8) learning event + next review
     let mut lconn = Connection::open(db.to_str().unwrap()).unwrap();
-    let ev = archeaxis_domain::learning::record_learning_event(&mut lconn, &pid, "quiz", r#"{"correct":true}"#, 2).unwrap();
+    let ev = archeaxis_domain::learning::record_learning_event(
+        &mut lconn,
+        &pid,
+        "quiz",
+        r#"{"correct":true}"#,
+        2,
+    )
+    .unwrap();
     drop(lconn);
     pass("08_learning", ev > 0, &format!("event {ev}"));
 
@@ -126,7 +214,11 @@ fn v01_twelve_step_journey() {
         "SELECT (SELECT count(*) FROM sources),(SELECT count(*) FROM knowledge),(SELECT count(*) FROM transforms),(SELECT count(*) FROM anchors),(SELECT count(*) FROM learning_events)",
         [], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?))).unwrap();
     drop(conn);
-    pass("09_restart_readback", counts.0 == 2 && counts.1 == 3 && counts.2 >= 1 && counts.3 == 1 && counts.4 >= 1, &format!("{counts:?}"));
+    pass(
+        "09_restart_readback",
+        counts.0 == 2 && counts.1 == 3 && counts.2 >= 1 && counts.3 == 1 && counts.4 >= 1,
+        &format!("{counts:?}"),
+    );
 
     // 10) consistent snapshot (online backup)
     let snap = dir.path().join("snapshot.sqlite");
@@ -147,7 +239,11 @@ fn v01_twelve_step_journey() {
 
     // 12) open-format archive export + manifest
     let m = archeaxis_archive::export_workspace(db2.to_str().unwrap(), &archive_dir).unwrap();
-    pass("12_archive", m.manifest_sha256.len() == 64 && m.tables.contains_key("sources"), &format!("{}", m.tables["sources"].rows));
+    pass(
+        "12_archive",
+        m.manifest_sha256.len() == 64 && m.tables.contains_key("sources"),
+        &format!("{}", m.tables["sources"].rows),
+    );
 
     // receipt
     if let Some(out) = receipt_path() {

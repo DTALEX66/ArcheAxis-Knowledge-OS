@@ -1,7 +1,7 @@
 //! Knowledge state machine: candidate -> accepted|rejected|deprecated
 //! with immutable receipts. Candidates never auto-promote to verified.
-use rusqlite::{Connection, OptionalExtension};
 use archeaxis_contracts::KNOWLEDGE_TYPES;
+use rusqlite::{Connection, OptionalExtension};
 use sha2::{Digest, Sha256};
 
 fn receipt_hash(kind: &str, body: &str, status: &str, anchor_id: Option<&str>) -> String {
@@ -23,8 +23,9 @@ pub fn create_knowledge(
     created_by: &str,
 ) -> rusqlite::Result<String> {
     if !KNOWLEDGE_TYPES.contains(&knowledge_type) {
-        return Err(rusqlite::Error::InvalidParameterName(
-            format!("unknown knowledge_type: {knowledge_type}")));
+        return Err(rusqlite::Error::InvalidParameterName(format!(
+            "unknown knowledge_type: {knowledge_type}"
+        )));
     }
     let mut h = Sha256::new();
     h.update(format!("{knowledge_type}|{body}|{created_by}").as_bytes());
@@ -51,10 +52,17 @@ pub fn review(
     let row: Option<(String, String, String, Option<String>)> = conn
         .query_row(
             "SELECT knowledge_type, body, status, anchor_id FROM knowledge WHERE knowledge_id=?1",
-            [knowledge_id], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))).optional()?;
+            [knowledge_id],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+        )
+        .optional()?;
     let (kind, old_body, _status, anchor_id) = match row {
         Some(x) => x,
-        None => return Err(rusqlite::Error::InvalidParameterName("knowledge not found".into())),
+        None => {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "knowledge not found".into(),
+            ));
+        }
     };
     let final_body = new_body.unwrap_or(&old_body).to_string();
     let new_status = match action {
@@ -63,11 +71,22 @@ pub fn review(
         "deprecated" => "deprecated",
         "modified" => {
             // a modification creates a NEW candidate row; caller passes the id to accept after
-            let kid = create_knowledge(conn, &kind, &final_body, "candidate",
-                                       None, anchor_id.as_deref(), reviewer)?;
+            let kid = create_knowledge(
+                conn,
+                &kind,
+                &final_body,
+                "candidate",
+                None,
+                anchor_id.as_deref(),
+                reviewer,
+            )?;
             return Ok(kid);
         }
-        _ => return Err(rusqlite::Error::InvalidParameterName("unknown action".into())),
+        _ => {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "unknown action".into(),
+            ));
+        }
     };
     let r = receipt_hash(&kind, &final_body, new_status, anchor_id.as_deref());
     conn.execute(
@@ -88,11 +107,25 @@ pub fn status_counts(conn: &Connection) -> rusqlite::Result<String> {
            (SELECT count(*) FROM knowledge WHERE status='candidate'),
            (SELECT count(*) FROM knowledge WHERE status='accepted'),
            (SELECT count(*) FROM knowledge WHERE status='rejected'),
-           (SELECT count(*) FROM knowledge WHERE status='deprecated')", [],
-        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)))?;
+           (SELECT count(*) FROM knowledge WHERE status='deprecated')",
+        [],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+    )?;
     let mut s = String::from("{");
-    let mut add = |key: &str, val: i64, last: bool| { s.push('"'); s.push_str(key); s.push('"'); s.push(':'); s.push_str(&val.to_string()); if !last { s.push(','); } };
-    add("candidate", c, false); add("accepted", a, false); add("rejected", r, false); add("deprecated", d, true);
+    let mut add = |key: &str, val: i64, last: bool| {
+        s.push('"');
+        s.push_str(key);
+        s.push('"');
+        s.push(':');
+        s.push_str(&val.to_string());
+        if !last {
+            s.push(',');
+        }
+    };
+    add("candidate", c, false);
+    add("accepted", a, false);
+    add("rejected", r, false);
+    add("deprecated", d, true);
     s.push('}');
     Ok(s)
 }

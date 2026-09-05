@@ -1,6 +1,6 @@
 //! Application layer test: bootstrap handshake + job orchestration flow.
-use archeaxis_application::jobs::{self, LossReceipt, STATE_COMPLETED, STATE_FAILED, STATE_QUEUED};
 use archeaxis_application::bootstrap;
+use archeaxis_application::jobs::{self, LossReceipt, STATE_COMPLETED, STATE_FAILED, STATE_QUEUED};
 
 #[test]
 fn handshake_identity() {
@@ -30,7 +30,10 @@ fn job_orchestration_flow() {
 
     // enqueue a transform job for the worker
     jobs::enqueue(&mut conn, "job-1", "transform", &sid).unwrap();
-    assert_eq!(jobs::job_state(&conn, "job-1").unwrap().unwrap(), STATE_QUEUED);
+    assert_eq!(
+        jobs::job_state(&conn, "job-1").unwrap().unwrap(),
+        STATE_QUEUED
+    );
 
     // worker completes with receipt (idempotent re-run keeps single transform row)
     let loss = LossReceipt {
@@ -39,15 +42,30 @@ fn job_orchestration_flow() {
         params: serde_json::json!({"extractor": "legacy-behavior-oracle"}),
         loss_note: Some("header stripped".into()),
     };
-    jobs::complete(&mut conn, "job-1", "python-worker", "progress notebook text (clean)", Some(&loss)).unwrap();
-    assert_eq!(jobs::job_state(&conn, "job-1").unwrap().unwrap(), STATE_COMPLETED);
+    jobs::complete(
+        &mut conn,
+        "job-1",
+        "python-worker",
+        "progress notebook text (clean)",
+        Some(&loss),
+    )
+    .unwrap();
+    assert_eq!(
+        jobs::job_state(&conn, "job-1").unwrap().unwrap(),
+        STATE_COMPLETED
+    );
 
     // text is persisted as a transform receipt by the Rust core
-    let text = archeaxis_domain::source::source_text(&conn, &sid).unwrap().unwrap();
+    let text = archeaxis_domain::source::source_text(&conn, &sid)
+        .unwrap()
+        .unwrap();
     assert!(text.contains("clean"));
 
     // failed job records an explicit error, never fake success
     jobs::enqueue(&mut conn, "job-2", "ocr", &sid).unwrap();
     jobs::fail(&mut conn, "job-2", "engine unavailable").unwrap();
-    assert_eq!(jobs::job_state(&conn, "job-2").unwrap().unwrap(), STATE_FAILED);
+    assert_eq!(
+        jobs::job_state(&conn, "job-2").unwrap().unwrap(),
+        STATE_FAILED
+    );
 }
