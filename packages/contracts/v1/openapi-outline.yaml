@@ -1,8 +1,16 @@
 openapi: 3.1.0
 info:
   title: ArcheAxis Local Service
-  version: 0.1.0-outline
-  description: Contract outline to be finalized in PR-04; not an implementation claim.
+  version: 0.2.0-reference-slice2
+  description: >
+    Reference contract for the vNext loopback API (T02 slice2 freeze).
+    Path/verb inventory below is the agreed surface for the closed loop;
+    it remains a reference until each route actually carries it (route
+    conformance is tracked in the T03/T04/T12 lanes, not claimed here).
+    Error semantics: errors.catalog.yaml codes map to HTTP statuses; every
+    failure body is {code, message, retryable} (component Error).
+    Status vocabulary: job-status.schema.json; review/evidence states:
+    assessment-vocabulary.schema.json; anchors: anchor-coordinate.schema.json.
 servers:
   - url: http://127.0.0.1:{port}
     variables:
@@ -10,6 +18,11 @@ servers:
         default: "0"
 security:
   - launchToken: []
+x-freeze:
+  schema: archeaxis.openapi-reference/v1
+  slice: t02-slice2
+  date: 2026-09-05
+  status: reference-not-implementation
 paths:
   /api/v1/system/version:
     get:
@@ -120,14 +133,34 @@ components:
     launchToken:
       type: http
       scheme: bearer
+      description: Ephemeral desktop launch token injected by the launcher (header x-archeaxis-launch-token).
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message, retryable]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        retryable: {type: boolean}
+      description: Failure envelope on every channel (errors.catalog.yaml codes).
   parameters:
     IdempotencyKey:
-      name: Idempotency-Key
+      name: idempotency-key
       in: header
       required: true
       schema:
         type: string
-        maxLength: 128
+        minLength: 1
+        maxLength: 200
+      description: Bounded write idempotency key (protocol-mapping.md); replay-safe, payload conflicts rejected with AAK-CON-002.
+    ScopeHeader:
+      name: x-archeaxis-scopes
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Requested scopes (e.g. workspace:write) for gated writes.
     IfMatch:
       name: If-Match
       in: header

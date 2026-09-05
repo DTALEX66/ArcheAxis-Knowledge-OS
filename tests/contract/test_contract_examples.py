@@ -134,3 +134,44 @@ def test_worker_protocol_success_requires_null_error() -> None:
     assert not list(validator.iter_errors(payload)), "valid success envelope must pass"
     payload["error"] = {"code": "AAK-X", "message": "boom", "retryable": True}
     assert list(validator.iter_errors(payload)), "success with non-null error must fail"
+
+
+def test_openapi_reference_internal_consistency() -> None:
+    """T02 slice2: the OpenAPI reference's parameter $refs resolve, the
+    idempotency header matches protocol-mapping.md canonical casing, the
+    security scheme matches the launch-token contract, and every failure
+    path speaks the Error envelope vocabulary."""
+    import yaml
+
+    outline = yaml.safe_load((CONTRACTS / "openapi-outline.yaml").read_text(encoding="utf-8"))
+    assert outline["openapi"] == "3.1.0"
+    assert outline["info"]["version"].endswith("reference-slice2")
+    assert outline.get("x-freeze", {}).get("status") == "reference-not-implementation"
+
+    parameters = outline["components"]["parameters"]
+    security_schemes = outline["components"]["securitySchemes"]
+    assert "launchToken" in security_schemes
+    assert security_schemes["launchToken"]["type"] == "http"
+
+    idem = parameters["IdempotencyKey"]
+    assert idem["name"] == "idempotency-key", "canonical header casing must match protocol-mapping"
+    assert idem["schema"]["maxLength"] == 200
+
+    error_schema = outline["components"]["schemas"]["Error"]
+    assert set(error_schema["required"]) == {"code", "message", "retryable"}
+
+    referenced = set()
+    for _path, item in outline.get("paths", {}).items():
+        for _verb, operation in item.items():
+            if not isinstance(operation, dict):
+                continue
+            for parameter in operation.get("parameters", []) or []:
+                ref = parameter.get("$ref", "")
+                if ref.startswith("#/components/parameters/"):
+                    referenced.add(ref.rsplit("/", 1)[-1])
+    missing = referenced - set(parameters)
+    assert not missing, f"openapi references undefined parameters: {missing}"
+
+    mapping = (CONTRACTS / "protocol-mapping.md").read_text(encoding="utf-8")
+    assert "idempotency-key" in mapping
+    assert "PARTIAL" in mapping and "BLOCKED_CREDENTIALS" in mapping

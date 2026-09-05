@@ -1,0 +1,19 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T02-slice2",
+  "title": "OpenAPI 参考契约冻结切片：内部一致性+规范用例对齐",
+  "date": "2026-09-05",
+  "deliverables": {
+    "openapi": "packages/contracts/v1/openapi-outline.yaml -> 0.2.0-reference-slice2",
+    "freeze_note": "x-freeze reference-not-implementation; 路由落地一致性由 T03/T04/T12 lane 追踪(不冒充)",
+    "fixes": [
+      "IdempotencyKey 规范头名改为 idempotency-key(与 protocol-mapping/实现一致, 原 Idempotency-Key 与实现不一致)",
+      "新增 ScopeHeader 参数组件(x-archeaxis-scopes)",
+      "新增 Error schema {code,message,retryable} 对齐 errors.catalog",
+      "launchToken 描述补 x-archeaxis-launch-token 头"
+    ]
+  },
+  "test": "tests/contract openapi 内部一致性($ref 可解析/头名规范/Error 词表/映射文档关键词)",
+  "verification": { "pytest": "6 passed", "conventions": "passed", "workers_gate": "passed" },
+  "result": "PASS-slice2"
+}
