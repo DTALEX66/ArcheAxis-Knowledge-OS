@@ -56,8 +56,21 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+# Runtime artifacts that must never enter a snapshot: the single-runtime
+# lease file (`.runtime.lock`) is byte-range locked by the running core on
+# Windows (msvcrt.locking), so reading it from another handle raises
+# PermissionError and aborts an otherwise valid online backup; the
+# migration-operator `.lockdb` is a live lease ledger whose restored copy
+# would carry stale operator state into a recovered data dir.
+_TRANSIENT_RUNTIME_SUFFIXES = (".runtime.lock", ".lockdb")
+
+
 def _iter_files(root: Path) -> list[Path]:
-    return sorted(p for p in root.rglob("*") if p.is_file())
+    return sorted(
+        p
+        for p in root.rglob("*")
+        if p.is_file() and not p.name.endswith(_TRANSIENT_RUNTIME_SUFFIXES)
+    )
 
 
 def create_backup(*, source: str | Path, backup_dir: str | Path) -> dict[str, Any]:
