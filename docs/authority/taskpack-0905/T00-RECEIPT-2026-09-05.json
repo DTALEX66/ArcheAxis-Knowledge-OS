@@ -1,0 +1,50 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T00",
+  "title": "锁定本轮决策、现场与基线",
+  "date": "2026-09-05",
+  "taskpack": "ARCHEAXIS-FAST-FULL-LOOP-2026-09-05-r2",
+  "taskpack_base_sha": "e9a7d2db854da157138111dc1c772cee95c16647",
+  "head_sha": "e9a7d2db854da157138111dc1c772cee95c16647",
+  "head_equals_origin_main": true,
+  "worktree_clean": true,
+  "remote_unchanged_since_base": true,
+  "field": {
+    "rust": "1.97.1",
+    "dotnet_sdk": "10.0.400",
+    "ffmpeg": "8.1.2",
+    "tesseract": "5.5.0.20241111",
+    "gpu": "NVIDIA RTX 5060 8GiB",
+    "ollama_running": true,
+    "ollama_models": [
+      "qwen3:8b",
+      "qwen2.5vl:7b",
+      "qwen3-embedding:0.6b",
+      "qwen3-reranker",
+      "qwen3-coder:30b-a3b-q4_K_M"
+    ],
+    "model_library": [
+      "faster-whisper-large-v3-turbo",
+      "sherpa-onnx-sense-voice-zh-en-ja-ko-yue",
+      "sherpa-onnx-streaming-zipformer-zh-14M",
+      "comfyui-diffusion-assets"
+    ],
+    "external_config_root": true
+  },
+  "credentials": {
+    "cloud_llm_search_keys_configured": false,
+    "blocked_capabilities": ["T08 product-cloud-research-credentials"],
+    "note": "boolean availability only; no secret values recorded"
+  },
+  "data_roots_for_migration_dryrun": {
+    "green_data_mb": 40.7,
+    "repo_dev_data_mb": 96.7,
+    "mode": "read-only-copies"
+  },
+  "decisions_recorded": ["SUP-007", "SUP-008", "SUP-009", "SUP-010"],
+  "acceptance": {
+    "decision_supersession_unique_and_linked": true,
+    "capability_inventory_truthful": true
+  },
+  "result": "PASS"
+}

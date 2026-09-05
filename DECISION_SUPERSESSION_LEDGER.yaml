@@ -36,3 +36,25 @@ decisions:
     old_claim: Rust should shadow and then take over aggregate writers against the legacy database
     replacement: legacy Python remains the only legacy-database writer; Rust owns a separate vNext database from Day 1 and receives data only through consistent snapshot, read-only export, staging import and Owner activation
     reason: isolated authority removes shared-database cutover and dual-write risk while retaining migration proof requirements
+  - id: SUP-007
+    status: effective
+    supersedes: vnext-road-2026-09-04 "先交付旧 UI 过渡版"路线
+    old_claim: 首个正式交付可先走 React/Tauri 旧界面过渡，Avalonia 后置
+    replacement: 首个正式交付直接采用 Avalonia/C# 桌面 + Rust Core + 隔离 Python 能力 worker；旧 UI 仅作功能/文案/交互参照（按 12-UI-REDESIGN.md 与 T18），允许从零重规划
+    reason: ArcheAxis Fast Full Loop taskpack 2026-09-05-r2 决策 1；用户任务包基线 e9a7d2d
+  - id: SUP-008
+    status: effective
+    supersedes: PROJECT_CONTRACT.yaml v1.0.0-draft scope.excluded_until_v01_go/planned_after_v01 中的“有界联网核查后置”条目
+    old_claim: 有界全网页研究/云端逐命题交叉核查属 v01 后或预留接口
+    replacement: 本轮(2026-09-05-r2)完整闭环即包含真实搜索/抓取、来源归组、云端结构化逐命题对比与 PARTIAL 语义；原件与个人定义不因证据门槛受阻
+    reason: ArcheAxis Fast Full Loop taskpack 2026-09-05-r2 决策 2
+  - id: SUP-009
+    status: effective
+    old_claim: “全量语言迁移”意味着旧 Python 业务代码需机械翻译为 Rust
+    replacement: 交付范围内业务状态/学习调度/主库/任务/检索/研究编排/权限由 Rust 负责；Python 保留为解析/OCR/ASR/模型计算能力 worker，不机械翻译；旧产品其余能力列入吸收台账(LEGACY_MANIFEST.yaml)并明确已迁移/封装复用/历史保留/后续移植，不冒充已迁移
+    reason: ArcheAxis Fast Full Loop taskpack 2026-09-05-r2 决策与禁止虚报条款
+  - id: SUP-010
+    status: effective
+    old_claim: 旧目录可整片搬入新结构或在盘点完成前扩大改动
+    replacement: 旧目录只允许经 T17 逐文件核验后的定向维护切片；原件、历史与旧实现保持可恢复；正式吸收前 10-LEGACY-INVENTORY.csv 每项须有来源 Git 对象、拟定去向与核验状态
+    reason: ArcheAxis Fast Full Loop taskpack 2026-09-05-r2 T17 前置规则

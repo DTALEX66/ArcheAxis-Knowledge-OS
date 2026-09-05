@@ -3,18 +3,19 @@ schema_version: 1
 contract_version: 1.0.0-draft
 effective_at: "2026-09-04T00:00:00Z"
 project: ArcheAxis Knowledge
-stage: vnext-day0-plan
+stage: vnext-fast-full-loop-2026-09-05
 scope:
   included:
     - local Windows desktop knowledge workflow
     - trustworthy import, anchor, review, retrieval, learning, restart, export and restore
+    - bounded full-web research with cloud cross-check (advanced into this round per SUP-008)
   excluded_until_v01_go:
     - system-level platform
     - WORK-LAB or DESIGN-LAB runtime contracts
     - plugin marketplace
     - online collaboration and cross-device sync
     - graph database and full event sourcing
-    - automatic full-web verification
+    - unbounded autonomous web verification without budget
   planned_after_v01:
     - bounded full-web research and source-independence clustering
     - claim-level cross-comparison and original-source localization
