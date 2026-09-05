@@ -12,6 +12,7 @@
 - `crates/archeaxis-application/`：bootstrap（Supervisor 握手目标）+ worker job 编排（queued/running/completed/failed + loss receipt）
 - `crates/archeaxis-sidecar-protocol/`：Supervisor↔Core 消息信封（handshake/health/worker receipt，版本校验）
 - `crates/archeaxis-migration/`：legacy 只读导出（inventory + JSONL + sha256 manifest，可复现 dry-run 基础）
+- `crates/archeaxis-archive/`：vNext 开放格式归档（JSONL + manifest，FK 序恢复）
 - `packages/contracts/v1/`：契约（openapi-outline + errors.catalog + worker-protocol/coverage-receipt/assessment 等 schema）
 
 规划（后续 slice，占位未建代码）：
@@ -31,4 +32,6 @@ cmd /c "call \"D:/All projects/OS External Configuration/10-toolchains/msvc/VC/A
 `crates/archeaxis-api/tests/api_closed_loop.rs` 覆盖 HTTP 薄投影；
 `crates/archeaxis-application/tests/application_flow.rs` 覆盖握手 + job 编排流；
 `crates/archeaxis-migration/tests/migration_dry_run.rs` 覆盖只读导出/清单稳定/legacy 零改动；
-`crates/archeaxis-sidecar-protocol/tests/protocol_roundtrip.rs` 覆盖信封往返 + 版本拒绝。
+`crates/archeaxis-sidecar-protocol/tests/protocol_roundtrip.rs` 覆盖信封往返 + 版本拒绝；
+`crates/archeaxis-archive/tests/archive_roundtrip.rs` 覆盖导出→新库恢复（计数+内容一致）。
+v0.1 十二步 journey：`crates/archeaxis-api/tests/v01_journey.rs` → reports/vnext/v01-closed-loop-receipt.json（全 PASS）。

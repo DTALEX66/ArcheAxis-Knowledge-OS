@@ -8,4 +8,5 @@ members = [
     "crates/archeaxis-migration",
     "crates/archeaxis-sidecar-protocol",
     "crates/archeaxis-api",
+    "crates/archeaxis-archive",
 ]

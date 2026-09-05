@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-04",
+  "manifest_sha256": "cc2249c601b61b44008fe496ed3b5af52800a5e56f4e485672aeffc0352d74e4",
+  "schema": "archeaxis.vnext/v01-closed-loop-receipt",
+  "schema_version": 1,
+  "steps": {
+    "02_import_hash_idempotent": "PASS: {\"duplicate\":false,\"sha256\":\"8df7d62a3104d19c267318fefb5aec3c0020d475eb45499c15150f29da3f17fd\",\"source_id\":\"src_0b4134cb1da4a0290c95623f\"} {\"duplicate\":true,\"sha256\":\"8df7d62a3104d19c267318fefb5aec3c0020d475eb45499c15150f29da3f17fd\",\"source_id\":\"src_0b4134cb1da4a0290c95623f\"}",
+    "03_worker_receipt": "PASS: {\"job_id\":\"j1\",\"state\":\"completed\"}",
+    "04_anchor_readback": "PASS: anchor roundtrip",
+    "05_personal_and_candidate": "PASS: created",
+    "06_review_immutable": "PASS: accepted/rejected",
+    "07_fts5": "PASS: {\"count\":1,\"items\":[{\"head\":\"个人定义：不需要外证\",\"knowledge_id\":\"k_9337d428ea6abd07ae93e87f\",\"status\":\"accepted\"}]}",
+    "08_learning": "PASS: event 1",
+    "09_restart_readback": "PASS: (2, 3, 1, 1, 1)",
+    "10_snapshot": "PASS: snapshot written",
+    "11_restore": "PASS: counts identical",
+    "12_archive": "PASS: 2"
+  },
+  "total_steps": 11
+}
