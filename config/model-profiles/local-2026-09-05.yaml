@@ -1,0 +1,44 @@
+# vNext local capability profile (T07 slice3, locked 2026-09-05)
+# Only engines/models that passed real probes and local runs are listed.
+# Every row cites its measurement evidence; nothing is claimed from
+# documentation. Cloud-keyed lanes stay UNMEASURED until credentials exist.
+schema: archeaxis.model-profile/v1
+profile: local-2026-09-05
+machine: windows-x64-rtx5060-8g
+asr:
+  engine: faster-whisper-large-v3-turbo
+  device: cpu
+  compute_type: int8
+  measured: true
+  evidence:
+    - "T06 slice1 receipt: 6s tone truthful empty transcript"
+    - "T07 slice2 receipt: golden audio anchor 2665ms -> 'Learning Evidence Anchor' conf 0.9924, CER 0.0 vs family gold (human confirmation pending)"
+  languages_probed: [en]
+vision_caption:
+  engine: ollama qwen2.5vl:7b
+  endpoint: 127.0.0.1:11434
+  measured: true
+  evidence: "T06 slice2c receipt: golden OCR screenshot described accurately in 11.5s"
+ocr:
+  engine: tesseract 5.5.0
+  languages_probed: [eng, chi_sim]
+  measured: true
+  evidence: "T06 slice2b receipt: golden screenshot -> 'OCR GOLDEN ANCHOR ...' + 10 boxes conf 92-97"
+video_extract:
+  engine: ffmpeg 8.1.2
+  measured: true
+  evidence: "T06 slice2a receipt: 18s mp4 -> wav + 3 keyframes with sha256"
+llm_text:
+  engine: ollama qwen3:8b
+  measured: false
+  note: "probe pending (T07 goldens); not displayed as usable yet"
+document:
+  docx: "stdlib zip+xml (T05 slice2b)"
+  pptx: "python-pptx 1.0.2 (T05 slice2b)"
+  xlsx: "openpyxl 3.1.5 (T05 slice2b)"
+  pdf: "pymupdf 1.28.2 (T05 slice2b)"
+cloud_research:
+  status: BLOCKED_CREDENTIALS
+  note: "T00 field record; product lanes show UNMEASURED until credentials configured"
+quality:
+  cer_wer: "python-worker-quality v0.1.0, recomputable from prediction/gold sha256 (T07 slice1)"

@@ -1,0 +1,16 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T07-slice3",
+  "title": "模型 profile 锁定(local-2026-09-05)：仅登记实测能力",
+  "date": "2026-09-05",
+  "deliverables": "config/model-profiles/local-2026-09-05.yaml",
+  "entries": {
+    "asr": "faster-whisper-large-v3-turbo cpu/int8 (实测), 证据 T06s1/T07s2",
+    "vision_caption": "qwen2.5vl:7b ollama (实测), 证据 T06s2c",
+    "ocr": "tesseract 5.5 eng/chi_sim (实测), 证据 T06s2b",
+    "video_extract": "ffmpeg 8.1.2 (实测), 证据 T06s2a",
+    "llm_text": "qwen3:8b 未测 -> 不显示为可用(禁虚报)",
+    "cloud_research": "BLOCKED_CREDENTIALS -> UNMEASURED"
+  },
+  "result": "PASS-slice3"
+}
