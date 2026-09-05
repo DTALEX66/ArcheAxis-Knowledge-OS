@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T07-slice2",
+  "title": "质量评测 slice2：金标音频 ASR 实测样例 + CER/WER 测量链",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "samples": "docs/authority/taskpack-0905/T07/samples/ (prediction/gold/quality JSON)",
+    "pipeline": "worker_transcribe(真实模型) -> worker_quality(CER/WER, 带双端 sha256 refs)",
+    "measured_sample": {
+      "audio": "tests/fixtures/golden/golden-audio-anchor.wav (2665ms)",
+      "asr_output": "Learning Evidence Anchor (en, conf 0.9924, VAD 1 segment 0-1820ms)",
+      "cer": 0.0,
+      "wer": 0.0,
+      "gold_origin": "fixture-family 命名模式匹配, 待人工最终确认(不以模型输出自证)"
+    }
+  },
+  "verification": {
+    "transcribe": "真实 faster-whisper-large-v3-turbo cpu/int8 推理",
+    "quality": "recomputable refs + measured rows",
+    "gates": "workers-vnext/conventions 绿(此前切片)"
+  },
+  "remaining_risk": [
+    "gold 人工确认; 中英混合/数字/噪声留出集",
+    "锚点/结构/命题指标与模型 profile 锁定(后续 slice)",
+    "单文件误差不被总体均值掩盖的聚合层"
+  ],
+  "result": "PASS-slice2"
+}
