@@ -2,12 +2,12 @@
 
 副标题：从最新云端仓库到第一个可用全链路——终局语言、仓库规范、多 Agent 并行、旧代码吸收与交付门
 
-版本：2.1（深化落仓版）  
-决策日期：2026-09-04  
-云端审计基线：**main@ce3c2de551bcaac52c8a26d012e6482c1a73a540**  
-最新公开发行：**v0.6.14**（2026-08-29）  
-项目范围：只处理 ArcheAxis Knowledge；WORK-LAB、DESIGN-LAB 暂不作为运行依赖或合同前提  
-用途：个人研究、非商业使用；第一方 MIT 与第三方许可仍分别管理  
+版本：2.1（深化落仓版）
+决策日期：2026-09-04
+云端审计基线：**main@ce3c2de551bcaac52c8a26d012e6482c1a73a540**
+最新公开发行：**v0.6.14**（2026-08-29）
+项目范围：只处理 ArcheAxis Knowledge；WORK-LAB、DESIGN-LAB 暂不作为运行依赖或合同前提
+用途：个人研究、非商业使用；第一方 MIT 与第三方许可仍分别管理
 权威说明：本报告确认并收敛 Owner 的最新决定，取代此前审计中“C# 作为唯一领域写者”的语言结论；此前其他事实审计不因此作废
 
 > **执行协议已被后续总包替代：** 本文保留语言、产品、证据和迁移的
@@ -690,117 +690,117 @@ v0.6.14 一致性副本由旧侧 Online Backup 产生；exporter 使用 `mode=ro
 
 ### 仓库与历史事实
 
-[R01] 最新 main commit  
+[R01] 最新 main commit
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/commit/ce3c2de551bcaac52c8a26d012e6482c1a73a540
 
-[R02] 固定 SHA 目录树  
+[R02] 固定 SHA 目录树
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/tree/ce3c2de551bcaac52c8a26d012e6482c1a73a540
 
-[R03] Language Boundary Authority Index  
+[R03] Language Boundary Authority Index
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/ce3c2de551bcaac52c8a26d012e6482c1a73a540/docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md
 
-[R04] v0.6.14 release  
+[R04] v0.6.14 release
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.14
 
-[R05] G0 Evidence Gap Register  
+[R05] G0 Evidence Gap Register
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/ce3c2de551bcaac52c8a26d012e6482c1a73a540/docs/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md
 
-[R06] Current Reality  
+[R06] Current Reality
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/ce3c2de551bcaac52c8a26d012e6482c1a73a540/docs/current/CURRENT_REALITY_2026-09-01.md
 
-[R07] 当前 main ruleset API  
+[R07] 当前 main ruleset API
 https://api.github.com/repos/DTALEX66/ArcheAxis-Knowledge-OS/rulesets/20849492
 
-[R08] Phase-0 Reuse Decisions  
+[R08] Phase-0 Reuse Decisions
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/ce3c2de551bcaac52c8a26d012e6482c1a73a540/migrations/reports/phase-0/REUSE_DECISIONS.md
 
-[R09] ce3c2de push CI run（轻量门成功、11 jobs skipped）  
+[R09] ce3c2de push CI run（轻量门成功、11 jobs skipped）
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/33787077225
 
-[R10] 2026-09-04 scheduled nightly（full-suite failed）  
+[R10] 2026-09-04 scheduled nightly（full-suite failed）
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/33851057281
 
 ### 官方技术来源
 
-[S01] .NET introduction  
+[S01] .NET introduction
 https://learn.microsoft.com/en-us/dotnet/core/introduction
 
-[S02] Rust ownership  
+[S02] Rust ownership
 https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html
 
-[S03] .NET release and support policy  
+[S03] .NET release and support policy
 https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
 
-[S04] Avalonia supported platforms  
+[S04] Avalonia supported platforms
 https://docs.avaloniaui.net/docs/supported-platforms
 
-[S05] Avalonia 12.1.2 release  
+[S05] Avalonia 12.1.2 release
 https://github.com/AvaloniaUI/Avalonia/releases/tag/12.1.2
 
-[S06] OpenAPI authoritative specifications  
+[S06] OpenAPI authoritative specifications
 https://spec.openapis.org/
 
-[S07] JSON Schema 2020-12  
+[S07] JSON Schema 2020-12
 https://json-schema.org/draft/2020-12
 
-[S08] Rust external/ABI boundary  
+[S08] Rust external/ABI boundary
 https://doc.rust-lang.org/reference/items/external-blocks.html
 
-[S09] W3C Web Annotation Data Model  
+[S09] W3C Web Annotation Data Model
 https://www.w3.org/TR/annotation-model/
 
-[S10] W3C PROV-O  
+[S10] W3C PROV-O
 https://www.w3.org/TR/prov-o/
 
-[S11] NIST AI RMF  
+[S11] NIST AI RMF
 https://www.nist.gov/itl/ai-risk-management-framework
 
-[S12] scikit-learn precision/recall definitions  
+[S12] scikit-learn precision/recall definitions
 https://scikit-learn.org/stable/modules/model_evaluation.html
 
-[S13] SQLite WAL  
+[S13] SQLite WAL
 https://sqlite.org/wal.html
 
-[S14] SQLite Online Backup API  
+[S14] SQLite Online Backup API
 https://sqlite.org/backup.html
 
-[S15] SQLite FTS5  
+[S15] SQLite FTS5
 https://sqlite.org/fts5.html
 
-[S16] Git worktree  
+[S16] Git worktree
 https://git-scm.com/docs/git-worktree
 
-[S17] OpenAI Codex best practices / AGENTS.md  
+[S17] OpenAI Codex best practices / AGENTS.md
 https://developers.openai.com/codex/learn/best-practices
 
-[S18] GitHub CODEOWNERS  
+[S18] GitHub CODEOWNERS
 https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-[S19] GitHub protected branches  
+[S19] GitHub protected branches
 https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches
 
-[S20] GitHub Actions concurrency  
+[S20] GitHub Actions concurrency
 https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency
 
-[S21] W3C Data Quality Vocabulary  
+[S21] W3C Data Quality Vocabulary
 https://www.w3.org/TR/vocab-dqv/
 
-[S22] RFC 3986 URI Generic Syntax  
+[S22] RFC 3986 URI Generic Syntax
 https://www.rfc-editor.org/rfc/rfc3986.html
 
-[S23] RFC 8785 JSON Canonicalization Scheme  
+[S23] RFC 8785 JSON Canonicalization Scheme
 https://www.rfc-editor.org/rfc/rfc8785.html
 
-[S24] Library of Congress WARC format description  
+[S24] Library of Congress WARC format description
 https://www.loc.gov/preservation/digital/formats/fdd/fdd000236.shtml
 
-[S25] Stanford IR Book：Evaluation of ranked retrieval results  
+[S25] Stanford IR Book：Evaluation of ranked retrieval results
 https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-ranked-retrieval-results-1.html
 
-[S26] SQLite URI filenames / read-only mode  
+[S26] SQLite URI filenames / read-only mode
 https://www.sqlite.org/uri.html
 
-[S27] GitHub Rulesets  
+[S27] GitHub Rulesets
 https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets
 
 —— 完 ——

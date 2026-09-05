@@ -1,9 +1,9 @@
 # ArcheAxis Knowledge 历史、权威与来源总账
 
-> 版本：v1.2（项目用途与许可边界纠正）  
-> 基准日期：2026-09-04 UTC  
-> 云端仓库：`DTALEX66/ArcheAxis-Knowledge-OS`  
-> 已重新确认的默认分支基线：`main@ce3c2de551bcaac52c8a26d012e6482c1a73a540`（2026-09-03T17:51:49Z）  
+> 版本：v1.2（项目用途与许可边界纠正）
+> 基准日期：2026-09-04 UTC
+> 云端仓库：`DTALEX66/ArcheAxis-Knowledge-OS`
+> 已重新确认的默认分支基线：`main@ce3c2de551bcaac52c8a26d012e6482c1a73a540`（2026-09-03T17:51:49Z）
 > 用途：以后任何审计、交接、重构、语言迁移和 UI 迁移必须先读取本总账；不得再由单一 handoff 代替全部历史。
 
 ---

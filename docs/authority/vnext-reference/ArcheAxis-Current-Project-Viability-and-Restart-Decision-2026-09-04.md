@@ -2,10 +2,10 @@
 
 副标题：现有代码还能不能继续用，以及究竟要不要重新开始
 
-决策日期：2026-09-04  
-云端基线：**main@ce3c2de551bcaac52c8a26d012e6482c1a73a540**  
-稳定基线：**v0.6.14**（2026-08-29）  
-范围：只审计 ArcheAxis Knowledge；WORK-LAB、DESIGN-LAB 不纳入本次产品决策  
+决策日期：2026-09-04
+云端基线：**main@ce3c2de551bcaac52c8a26d012e6482c1a73a540**
+稳定基线：**v0.6.14**（2026-08-29）
+范围：只审计 ArcheAxis Knowledge；WORK-LAB、DESIGN-LAB 不纳入本次产品决策
 方法：历史记录 + 最新远端 Git/Actions/Release + 干净浅克隆静态扫描 + 同命令本地复验 + 官方迁移/SQLite资料
 
 > **执行勘误：** 本文中的 `maintenance-only` 只约束 legacy 产品路径，
@@ -265,60 +265,60 @@ Avalonia 启动 Rust Core；Rust 通过 stdio NDJSON 调一个 Python 文本/PDF
 
 ## 附录 A：一手仓库证据
 
-R01 — GitHub 最新 main 提交 `ce3c2de`：  
+R01 — GitHub 最新 main 提交 `ce3c2de`：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/commit/ce3c2de551bcaac52c8a26d012e6482c1a73a540
 
-R02 — v0.6.14 到最新 main 的变更比较：  
+R02 — v0.6.14 到最新 main 的变更比较：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/compare/c202c5b5a4789f0dc21accaa7ccbfed4676f0573...ce3c2de551bcaac52c8a26d012e6482c1a73a540
 
-R03 — 当前 main push CI `33787077225`：  
+R03 — 当前 main push CI `33787077225`：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/33787077225
 
-R04 — 同一 SHA 的 nightly `33851057281`：  
+R04 — 同一 SHA 的 nightly `33851057281`：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/33851057281
 
-R05 — nightly 工作流定义：  
+R05 — nightly 工作流定义：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/.github/workflows/nightly.yml
 
-R06 — v0.6.14 不可变发行收据：  
+R06 — v0.6.14 不可变发行收据：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/reports/release/v0.6.14/release-evidence.json
 
-R07 — v0.6.14 完整 Verification CI：  
+R07 — v0.6.14 完整 Verification CI：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/33261549586
 
-R08 — 当前语言权威边界：  
+R08 — 当前语言权威边界：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md
 
-R09 — 当前 G0 阻断登记：  
+R09 — 当前 G0 阻断登记：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/docs/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md
 
-R10 — README 当前 UI 与发行叙述：  
+R10 — README 当前 UI 与发行叙述：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/README.md
 
-R11 — 追加式执行状态日志：  
+R11 — 追加式执行状态日志：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/docs/truth/EXECUTION_STATUS_LOG.md
 
-R12 — 当前系统边界：  
+R12 — 当前系统边界：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/SYSTEM_BOUNDARY.md
 
-R13 — 项目 Python 依赖与运行时事实：  
+R13 — 项目 Python 依赖与运行时事实：
 https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/pyproject.toml
 
 ## 附录 B：外部官方资料
 
-S01 — SQLite Write-Ahead Logging：  
+S01 — SQLite Write-Ahead Logging：
 https://www.sqlite.org/wal.html
 
-S02 — SQLite Isolation：  
+S02 — SQLite Isolation：
 https://www.sqlite.org/isolation.html
 
-S03 — Microsoft Azure Architecture Center, Strangler Fig Pattern：  
+S03 — Microsoft Azure Architecture Center, Strangler Fig Pattern：
 https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig
 
-S04 — Microsoft Azure Architecture Center, Anti-Corruption Layer Pattern：  
+S04 — Microsoft Azure Architecture Center, Anti-Corruption Layer Pattern：
 https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer
 
-S05 — SQLite Online Backup API：  
+S05 — SQLite Online Backup API：
 https://www.sqlite.org/backup.html
 
 —— 完 ——

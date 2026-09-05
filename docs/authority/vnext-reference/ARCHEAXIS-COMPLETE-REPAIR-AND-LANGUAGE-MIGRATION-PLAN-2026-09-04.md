@@ -1,11 +1,11 @@
 # ArcheAxis Knowledge 完整修复、仓库规范与语言迁移总任务包
 
-> 版本：v2.2（项目用途与许可边界纠正版）  
-> 日期：2026-09-04  
-> 唯一仓库：`DTALEX66/ArcheAxis-Knowledge-OS`  
-> 当前云端基线：`main@ce3c2de551bcaac52c8a26d012e6482c1a73a540`  
-> 当前公开 Release：`v0.6.14`，源提交 `c202c5b5a4789f0dc21accaa7ccbfed4676f0573`  
-> 任务性质：修复与迁移规划；本文不授权修改、删除、提交、推送、合并或发布。  
+> 版本：v2.2（项目用途与许可边界纠正版）
+> 日期：2026-09-04
+> 唯一仓库：`DTALEX66/ArcheAxis-Knowledge-OS`
+> 当前云端基线：`main@ce3c2de551bcaac52c8a26d012e6482c1a73a540`
+> 当前公开 Release：`v0.6.14`，源提交 `c202c5b5a4789f0dc21accaa7ccbfed4676f0573`
+> 任务性质：修复与迁移规划；本文不授权修改、删除、提交、推送、合并或发布。
 > 当前裁决：`NO-GO`。在 P0 清零、精确 SHA 全资格化和 Windows 产品路径验收前，不得发布。
 > 历史来源权威：`ARCHEAXIS-HISTORY-AUTHORITY-AND-SOURCE-REGISTRY-2026-09-04.md`。本任务包不得脱离该总账被单独当作完整历史。
 > Owner 项目定位：ArcheAxis 是个人研究项目，当前按非商业目的开发和使用；这是项目用途说明，不是许可限制或重许可决定。仓库现行第一方许可继续为 MIT。
@@ -546,7 +546,7 @@ flowchart TD
 - 生成 `migration-baseline-receipt.json`，绑定 current SHA、tree、locks、schema、fixtures、CI/Windows 证据。
 - 关闭仓库 G0 gap register 的全部行：exact-SHA full qualification、current truth receipt、rights-bound corpus journey、sole-writer owner/consumer/rejection、Windows product path。
 
-**出口**：Rust/Python/C#/旧 UI 职责无冲突；资产分类 100%；无未分类 writer；G0 每行均有可回读 PASS 收据。  
+**出口**：Rust/Python/C#/旧 UI 职责无冲突；资产分类 100%；无未分类 writer；G0 每行均有可回读 PASS 收据。
 **回滚点**：纯文档、清单和收据，不改变运行时。
 
 ### LM1｜冻结契约，并在现行 Python 中止血
@@ -559,7 +559,7 @@ flowchart TD
 
 **入口约束**：P0 止血、fixture 准备和静态 inventory 属于 G0 允许动作；Rust workspace、Rust generated types、read shadow 或其他 G1 代码只有在 LM0 的 G0 全部关闭后才能进入仓库。若要改变该顺序，必须由 Owner 显式修订 `AXM_G0_MIGRATION_FREEZE_RULES`，不能由本任务包暗中放宽。
 
-**出口**：现产品 P0 止血；所有客户端/worker 使用同一合同；无 UI 私有业务 DTO。  
+**出口**：现产品 P0 止血；所有客户端/worker 使用同一合同；无 UI 私有业务 DTO。
 **回滚点**：只允许回退只读路径，不恢复匿名写和外部自报真值。
 
 ### LM2｜建立 Rust Core/BFF 骨架
@@ -570,7 +570,7 @@ flowchart TD
 - CLI：`archeaxis service start|migrate|doctor|backup|restore|integrity`；
 - 当前只连接复制的 fixture/测试库，不接生产写路径。
 
-**出口**：三平台 `cargo check/test/clippy/fmt`；合同兼容；无生产 writer。  
+**出口**：三平台 `cargo check/test/clippy/fmt`；合同兼容；无生产 writer。
 **回滚点**：删除/禁用未接线 Rust binary，不影响现产品。
 
 ### LM3｜Rust 只读影子与语义差分
@@ -580,7 +580,7 @@ flowchart TD
 - 用真实黄金集验证原件 hash、锚点重定位、状态机、权限拒绝、备份/恢复；
 - 禁止 Rust 在本阶段修改生产数据库。
 
-**出口**：目标聚合语义差分为零或有 Owner 批准的迁移映射；性能/内存不越预算。  
+**出口**：目标聚合语义差分为零或有 Owner 批准的迁移映射；性能/内存不越预算。
 **回滚点**：Rust 影子进程可直接关闭，Python 仍是唯一 writer。
 
 ### LM4｜按聚合切换 Rust 唯一写者
@@ -596,7 +596,7 @@ flowchart TD
 
 每个聚合执行：backup → lease → schema migration → writer switch → restart/readback → rollback drill。允许双读和差分，**禁止双写**。
 
-**出口**：Rust 是上述真值的唯一 writer；Python 写接口全部硬失败；旧库可回滚。  
+**出口**：Rust 是上述真值的唯一 writer；Python 写接口全部硬失败；旧库可回滚。
 **回滚点**：按聚合恢复备份与上一 writer lease，不回滚已关闭的安全漏洞。
 
 ### LM5｜把 Python 收缩为可替换侧车
@@ -607,7 +607,7 @@ flowchart TD
 - timeout、cancel、resource limit、network allowlist、quarantine、healthcheck、SBOM 全部入合同；
 - 删除 Python 权威 DB 写入、migration owner、权限决定、审核状态机和核心 BFF。
 
-**出口**：停用全部 Python worker 时，已有知识仍可浏览、验证、导出、恢复；仅相关计算能力显示 unavailable。  
+**出口**：停用全部 Python worker 时，已有知识仍可浏览、验证、导出、恢复；仅相关计算能力显示 unavailable。
 **回滚点**：可恢复上一版本 worker，但不能恢复其权威写权限。
 
 ### LM6｜Avalonia 最小壳与六空间纵切
@@ -618,7 +618,7 @@ flowchart TD
 - 每个空间运行 contract tests、Avalonia UI tests、Windows click/readback、与 React 同 fixture 差异报告；
 - 后端失败时窗口仍正常打开，Recovery 可备份/恢复/安全退出。
 
-**出口**：六空间黄金纵切全部由 Avalonia→Rust Core 通过；Windows DPI/键盘/读屏/离线/恢复达标。  
+**出口**：六空间黄金纵切全部由 Avalonia→Rust Core 通过；Windows DPI/键盘/读屏/离线/恢复达标。
 **回滚点**：Tauri 保持迁移期默认产品；可按空间切回旧读 UI，但不得切回旧 writer。
 
 ### LM7｜Windows 发布权威切换
