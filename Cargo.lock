@@ -18,6 +18,7 @@ dependencies = [
 name = "archeaxis-api"
 version = "0.1.0"
 dependencies = [
+ "archeaxis-application",
  "archeaxis-contracts",
  "archeaxis-domain",
  "archeaxis-store-sqlite",
