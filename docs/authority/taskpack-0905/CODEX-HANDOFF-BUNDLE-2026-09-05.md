@@ -33,7 +33,13 @@
 
 DeepSeek 线提交：2bf4d36→20add00→c19e1ae→9b4a4ec→55021e9→b2a9cfa→891118c→e512a2f→fa5f391→
 37447ef→1bd24dc→c1ca1ff→980e981→2b50d28→be6e788→9f74390→6ccfb53→a1c7ccd→312104c→80a48f8→
-180f4c7→9820f5b→188745d→1a48084→d38e8c5→(final)
+180f4c7→9820f5b→188745d→1a48084→d38e8c5→4f89094→d44d2f7→9d0e8be→(final)
+
+离线全量自审（DS-OFFLINE-SWEEP-RECEIPT-2026-09-05.json）：
+全仓 pytest 2092 passed、knowledge_base 38 passed、cargo test --workspace exit 0、
+cargo fmt 修复 20 文件后 --check 干净、dotnet build 0 错、architecture/conventions/ruff 全绿、
+1415/1415 tracked 全分类、无 PENDING 收据、manifest 头同步、工作树干净、本地==远端。
+clippy 因工具链未安装该组件（需联网安装，超离线范围）如实登记 NOT_RUN。
 
 ## 阻塞汇总（用户侧，不属 DeepSeek 可执行范围）
 

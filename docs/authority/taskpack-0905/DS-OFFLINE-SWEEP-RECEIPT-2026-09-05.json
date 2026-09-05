@@ -1,0 +1,37 @@
+{
+  "schema": "archeaxis.ds-offline-sweep/v1",
+  "date": "2026-09-05",
+  "scope": "仓库所有 DeepSeek 可离线执行且可验证项",
+  "baseline": "d44d2f7",
+  "head_sha": "9d0e8be",
+  "checks": {
+    "pytest_full": "2092 passed, 5 skipped",
+    "pytest_knowledge_base": "38 passed",
+    "cargo_test_workspace": "exit 0 (post-fmt)",
+    "cargo_fmt_check": "clean after fixing 20 unformatted files (commit 9d0e8be)",
+    "cargo_clippy": "NOT_RUN: cargo-clippy component not installed for toolchain (would require network install; recorded, not a code failure)",
+    "dotnet_build_avalonia": "0 errors",
+    "architecture_guard": "passed",
+    "conventions": "passed",
+    "ruff_e9_f63_f7_f82": "clean",
+    "gate_registry_profile_consistency": "profile gates subset of registry (33 classes / 22 gates)",
+    "path_classification_coverage": "1415/1415 tracked classified, 0 unknown",
+    "receipts_head_sha": "no PENDING_COMMIT placeholders",
+    "legacy_manifest_head": "matches HEAD, 1246 entries, 0 missing",
+    "worktree_clean": true,
+    "local_equals_origin": true
+  },
+  "fixes_landed_this_sweep": [
+    "cargo fmt --all (20 vNext Rust files) - 9d0e8be",
+    "receipt PENDING_COMMIT placeholders + manifest head refresh - d44d2f7"
+  ],
+  "recorded_not_run_or_blocked": {
+    "cargo_clippy": "toolchain component missing (network install out of offline scope)",
+    "integration_tests_local": "legacy integration suite verified by cloud CI (55021e9 success); local run requires the legacy adapter env",
+    "cloud_research_credentials": "BLOCKED_CREDENTIALS (user side)",
+    "f03_dynamic_rendering": "playwright+chromium runtime missing (recorded in profile/README)",
+    "human_gold_confirmation": "T07 goldens await human review",
+    "real_user_data_switch": "M3 requires separate authorization"
+  },
+  "result": "PASS"
+}
