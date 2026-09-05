@@ -1,0 +1,30 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T07-slice1",
+  "title": "质量评测 slice1：可复算 CER/WER 评测 worker",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/evaluation/worker_quality.py",
+    "metrics": "cer=码点 Levenshtein/金标长; wer=空白分词 Levenshtein/金标词数; 零依赖纯实现, 确定性",
+    "report": "quality-report.schema.json 兼容(rows 带 prediction_ref/gold_ref sha256 + interval + unit + note)",
+    "normalization": "--normalize none|lower 默认 none, 参数入 loss_receipt"
+  },
+  "local_verification": {
+    "zh_diff_24chars_3edits": "cer=0.125 (3/24), wer 单 token 语境如实 1.0",
+    "identical": "cer=0.0 wer=0.0",
+    "empty_gold": "unmeasured + value null (不伪造)",
+    "missing_file": "error payload exit 1"
+  },
+  "ci_gate": "workers-vnext: 编译 + 英文金标替换断言(cer in [0,1], wer>0) + sha256 refs + 空金标 unmeasured + 缺文件失败",
+  "acceptance": {
+    "metric_recomputable_from_prediction_and_gold": true,
+    "single_sample_not_masked_by_mean": "rows 逐样本带 refs, 通过",
+    "unqualified_routes_to_unmeasured": true
+  },
+  "remaining_risk": [
+    "真实语音/OCR 金标语料与格式矩阵(锚点/结构/命题指标) 为后续 slice",
+    "模型 profile 锁定(本地文本/视觉/OCR/ASR) 在能力包完成后执行"
+  ],
+  "result": "PASS-slice1"
+}

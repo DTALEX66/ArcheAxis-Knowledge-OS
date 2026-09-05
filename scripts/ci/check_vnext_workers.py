@@ -220,6 +220,56 @@ def main() -> int:
             if "error" not in tail:
                 failures.append("media worker failure must carry an error payload")
 
+    # Evaluation worker (T07): recomputable CER/WER metrics (stdlib only).
+    quality_worker = WORKERS / "evaluation" / "worker_quality.py"
+    try:
+        py_compile.compile(str(quality_worker), doraise=True)
+    except py_compile.PyCompileError as exc:
+        failures.append(f"evaluation/worker_quality.py: compile failed: {exc}")
+    else:
+        with tempfile.TemporaryDirectory() as qtmp:
+            gold_path = Path(qtmp) / "gold.txt"
+            pred_path = Path(qtmp) / "pred.txt"
+            gold_path.write_text("the quick brown fox jumps over the lazy dog", encoding="utf-8")
+            pred_path.write_text("the quick brown fox jumps over the lazy cat", encoding="utf-8")
+            run1 = _run_matrix_worker("evaluation/worker_quality.py", [str(pred_path), str(gold_path), "--sample-id", "en_001", "--run-id", "gate"])
+            if run1.returncode != 0:
+                failures.append(f"quality worker exit {run1.returncode}: {run1.stderr.strip()[:200]}")
+            else:
+                try:
+                    report = json.loads(run1.stdout.strip().splitlines()[-1])
+                except (json.JSONDecodeError, IndexError) as exc:
+                    failures.append(f"quality worker invalid report: {exc}")
+                    report = {}
+                rows = {row.get("metric"): row for row in report.get("rows", [])}
+                if "cer" not in rows or "wer" not in rows:
+                    failures.append("quality worker must emit cer and wer rows")
+                else:
+                    if rows["cer"].get("status") != "measured" or not isinstance(rows["cer"].get("value"), (int, float)):
+                        failures.append("quality worker cer must be measured with a value")
+                    if not (0.0 <= rows["cer"]["value"] <= 1.0):
+                        failures.append(f"quality worker cer out of range: {rows['cer']['value']}")
+                    if not (0.0 < rows["wer"]["value"] <= 1.0):
+                        failures.append(f"quality worker wer must reflect the single-token substitution: {rows['wer']['value']}")
+                    if not rows["cer"]["prediction_ref"]["sha256"] or not rows["cer"]["gold_ref"]["sha256"]:
+                        failures.append("quality worker must carry prediction/gold sha256 refs")
+            empty_gold = Path(qtmp) / "empty.txt"
+            empty_gold.write_text("", encoding="utf-8")
+            run2 = _run_matrix_worker("evaluation/worker_quality.py", [str(pred_path), str(empty_gold), "--sample-id", "en_002", "--run-id", "gate"])
+            if run2.returncode != 0:
+                failures.append(f"quality worker(empty gold) exit {run2.returncode}")
+            else:
+                try:
+                    report2 = json.loads(run2.stdout.strip().splitlines()[-1])
+                except (json.JSONDecodeError, IndexError):
+                    report2 = {}
+                cer_row = next((row for row in report2.get("rows", []) if row.get("metric") == "cer"), {})
+                if cer_row.get("status") != "unmeasured" or cer_row.get("value") is not None:
+                    failures.append("quality worker must report unmeasured with null value for empty gold")
+            run3 = _run_matrix_worker("evaluation/worker_quality.py", [str(Path(qtmp) / "missing.txt"), str(gold_path)])
+            if run3.returncode == 0:
+                failures.append("quality worker succeeded on a missing prediction file (must fail)")
+
     # Canvas negative: broken edge reference must be rejected with an error payload.
     broken = fixtures / "broken-edge.canvas"
     if broken.is_file():
