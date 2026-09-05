@@ -15,13 +15,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "archeaxis-vnext-core"
+name = "archeaxis-contracts"
+version = "0.1.0"
+
+[[package]]
+name = "archeaxis-domain"
 version = "0.1.0"
 dependencies = [
+ "archeaxis-contracts",
+ "archeaxis-store-sqlite",
  "hex",
  "rusqlite",
  "sha2",
  "tempfile",
+]
+
+[[package]]
+name = "archeaxis-store-sqlite"
+version = "0.1.0"
+dependencies = [
+ "rusqlite",
 ]
 
 [[package]]

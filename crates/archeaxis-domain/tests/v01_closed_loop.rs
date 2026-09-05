@@ -6,9 +6,8 @@
 //! restart read-back (fresh connection) -> online backup -> restore into a
 //! fresh workspace with identical counts.
 
-use archeaxis_vnext_core::{
-    anchor, backup, init_workspace, knowledge, learning, schema, search, source, ImportOutcome,
-};
+use archeaxis_domain::{anchor, backup, knowledge, learning, search, source, ImportOutcome};
+use archeaxis_store_sqlite::{init_workspace, workspace_info_json};
 use rusqlite::Connection;
 
 #[test]
@@ -81,7 +80,7 @@ fn v01_closed_loop_restart_and_restore() {
     // 9) restart read-back: fresh connection to the SAME file
     drop(conn);
     let conn = init_workspace(db_a.to_str().unwrap()).unwrap();
-    let info = schema::workspace_info_json(&conn).unwrap();
+    let info = workspace_info_json(&conn).unwrap();
     assert!(info.contains("\"sources\":2"));
     assert!(info.contains("\"knowledge\":3"), "personal + accepted-candidate + rejected-opinion rows: {info}");
     assert!(info.contains("\"learning_events\":1"));

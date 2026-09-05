@@ -18,7 +18,7 @@ venv/
 .tmp/
 /desktop/src-tauri/gen/
 /desktop/src-tauri/target/
-/vnext/target/
+
 
 # Runtime data
 data/
@@ -55,3 +55,4 @@ knowledge_base/data/
 /src-tauri/target/
 /src-tauri/gen/android/
 /src-tauri/gen/apple/
+/target/

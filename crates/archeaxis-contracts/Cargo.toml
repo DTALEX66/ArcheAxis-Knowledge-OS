@@ -1,0 +1,7 @@
+[package]
+name = "archeaxis-contracts"
+version = "0.1.0"
+edition = "2024"
+description = "ArcheAxis vNext stable vocabulary (knowledge types, review statuses)"
+
+[dependencies]

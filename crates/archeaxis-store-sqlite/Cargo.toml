@@ -1,0 +1,8 @@
+[package]
+name = "archeaxis-store-sqlite"
+version = "0.1.0"
+edition = "2024"
+description = "ArcheAxis vNext SQLite store (DDL, workspace init) — sole writer boundary"
+
+[dependencies]
+rusqlite = { version = "0.32", features = ["bundled", "backup"] }

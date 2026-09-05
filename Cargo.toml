@@ -1,0 +1,7 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/archeaxis-contracts",
+    "crates/archeaxis-store-sqlite",
+    "crates/archeaxis-domain",
+]

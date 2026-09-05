@@ -1,12 +1,8 @@
 //! Knowledge state machine: candidate -> accepted|rejected|deprecated
 //! with immutable receipts. Candidates never auto-promote to verified.
 use rusqlite::{Connection, OptionalExtension};
+use archeaxis_contracts::KNOWLEDGE_TYPES;
 use sha2::{Digest, Sha256};
-
-pub const KNOWLEDGE_TYPES: &[&str] = &[
-    "PERSONAL_DEFINITION", "NOTE", "OBSERVATION", "OPINION", "QUESTION",
-    "HYPOTHESIS", "RUMOR_REPORT", "FORECAST", "FACTUAL_CLAIM",
-];
 
 fn receipt_hash(kind: &str, body: &str, status: &str, anchor_id: Option<&str>) -> String {
     let mut h = Sha256::new();
