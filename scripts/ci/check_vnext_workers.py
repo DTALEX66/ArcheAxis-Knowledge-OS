@@ -177,6 +177,34 @@ def main() -> int:
     else:
         failures.append("missing VTT fixture: sample.vtt")
 
+    # Media worker (F10): compile + probe + failure contracts. Real inference
+    # is NOT run in CI (no model artifacts on runners); local verification is
+    # recorded in the T06 slice receipt with a truthful capability note.
+    media_worker = WORKERS / "media" / "worker_transcribe.py"
+    try:
+        py_compile.compile(str(media_worker), doraise=True)
+    except py_compile.PyCompileError as exc:
+        failures.append(f"media/worker_transcribe.py: compile failed: {exc}")
+    else:
+        probe_run = _run_matrix_worker("media/worker_transcribe.py", ["--probe", "--model-dir", "/nonexistent"])
+        if probe_run.returncode != 0:
+            failures.append(f"media probe exit {probe_run.returncode}: {probe_run.stderr.strip()[:200]}")
+        else:
+            try:
+                probe_payload = json.loads(probe_run.stdout.strip().splitlines()[-1])
+            except (json.JSONDecodeError, IndexError) as exc:
+                failures.append(f"media probe invalid payload: {exc}")
+                probe_payload = {}
+            if probe_payload.get("capability") is not False:
+                failures.append("media probe must report capability=false for a missing model dir")
+        bad_run = _run_matrix_worker("media/worker_transcribe.py", ["/nonexistent-input.wav"])
+        if bad_run.returncode == 0:
+            failures.append("media worker succeeded on a missing input file (must fail)")
+        else:
+            tail = (bad_run.stdout or bad_run.stderr).strip().splitlines()[-1] if (bad_run.stdout or bad_run.stderr).strip() else ""
+            if "error" not in tail:
+                failures.append("media worker failure must carry an error payload")
+
     # Canvas negative: broken edge reference must be rejected with an error payload.
     broken = fixtures / "broken-edge.canvas"
     if broken.is_file():

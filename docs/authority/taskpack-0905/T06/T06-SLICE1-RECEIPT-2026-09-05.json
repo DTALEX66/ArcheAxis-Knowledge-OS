@@ -1,0 +1,31 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T06-slice1",
+  "title": "媒体能力包 slice1：F10 本地 ASR worker（探针+转写+失败契约）",
+  "date": "2026-09-05",
+  "head_sha": "PENDING_COMMIT",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/media/worker_transcribe.py",
+    "capability_probe": "--probe 输出 capability/reason/model/formats，只把通过探针的模型显示为可用",
+    "envelope": "engine/engine_version/text/language/language_probability/duration_ms/cues[{start_ms,end_ms,text}]/loss_receipt",
+    "provenance": "行为自 legacy app/ingestion/asr_adapter.py 语义提炼，不 import legacy 包"
+  },
+  "local_verification": {
+    "probe": "capability:true, model faster-whisper-large-v3-turbo (cpu/int8)",
+    "real_inference_6s_tone": "text 空 + loss_note 明确‘no speech segments’（如实，不伪造成功）; duration_ms 6000",
+    "missing_model_dir": "error payload, exit 1",
+    "missing_input_file": "error payload, exit 1"
+  },
+  "ci_gate": "check_vnext_workers.py 增补 media worker：编译 + probe(missing model -> capability:false) + 缺文件错误契约；CI 无模型工件，推理不在 CI 运行（如实标注）",
+  "acceptance_status": {
+    "F10_partial": "worker 与真实本地推理链就绪；真实语音金标样例(CER/WER)归 T07/下一切片——不以 tone 无语音结果冒充识别质量",
+    "silence_honesty": "无语音输入=空转写+说明, 通过"
+  },
+  "remaining_risk": [
+    "真实中英文语音金标与 CER/WER 度量（T07 负责）",
+    "长音频分块/语种选择矩阵（下一 slice）",
+    "F04 截图 OCR/VL 与 F11 视频链尚未开始"
+  ],
+  "result": "PASS-slice1"
+}

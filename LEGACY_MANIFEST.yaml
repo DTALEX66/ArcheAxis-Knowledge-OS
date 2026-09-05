@@ -2,10 +2,10 @@
 
 schema: archeaxis.legacy-manifest/v1
 manifest_version: 1
-audited_at: '2026-09-05T17:22:36.970978+00:00'
+audited_at: '2026-09-05T17:24:51.629765+00:00'
 inventory_source: .hermes\task-runtime\taskpack-0905\ARCHEAXIS-FAST-FULL-LOOP\10-LEGACY-INVENTORY.csv
 baseline_sha: e9a7d2db854da157138111dc1c772cee95c16647
-head_sha: 55021e92c37a66e8361f1bd31560848cade8b086
+head_sha: b2a9cfab7b1c2a86cf0ba465c2c99913e2f3baf1
 status_vocabulary:
   INVENTORIED_NOT_SEMANTICALLY_REVIEWED: recorded with source object and proposed disposition; semantic absorption review owned by T13
   ABSORBED: verified integrated into a vNext module with differential samples
