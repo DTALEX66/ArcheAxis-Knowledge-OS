@@ -1,0 +1,50 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T17-slice1",
+  "title": "旧版资产盘点流水线：1246 项全量登记/HEAD 核对/分类台账",
+  "date": "2026-09-05",
+  "head_sha": "55021e9",
+  "status": "registration-complete-semantic-review-owned-by-T13",
+  "inventory_source": "taskpack 10-LEGACY-INVENTORY.csv (UTF-8, 1246 rows)",
+  "deliverables": {
+    "audit_script": "tests/legacy-differential/audit_legacy_inventory.py (deterministic: parse CSV, single git ls-tree -r with quotePath=false, per-row blob verification)",
+    "manifest": "LEGACY_MANIFEST.yaml (schema archeaxis.legacy-manifest/v1; full 1246 entries with asset_id/path/canonical category/source commit+blob/head_change/owner_tasks/proposed_target/review_status)",
+    "evidence": "docs/authority/legacy/T17-inventory-audit-2026-09-05.json"
+  },
+  "findings": {
+    "total_rows": 1246,
+    "verified_present_at_head": 1246,
+    "missing_at_head": 0,
+    "changed_since_baseline_e9a7d2d": 3,
+    "changed_paths": [
+      ".github/workflows/ci.yml",
+      ".worklab/gate-registry.v1.yaml",
+      ".worklab/project-validation.v1.yaml"
+    ],
+    "note": "the 3 changed paths are this taskpack's own T01 CI governance edits (commit c19e1ae) after the e9a7d2d baseline; informational drift for the next inventory refresh",
+    "category_counts": {
+      "history-docs": 318,
+      "tests-golden-fixtures": 303,
+      "legacy-business-store": 253,
+      "legacy-ui-shell": 154,
+      "other-repo-assets": 80,
+      "config-tooling": 65,
+      "knowledge-dual-learning": 34,
+      "parsing-conversion": 25,
+      "research-evidence": 14
+    },
+    "status_vocabulary": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED for all 1246 rows"
+  },
+  "acceptance": {
+    "every_asset_has_source_git_object": true,
+    "every_asset_has_proposed_disposition": true,
+    "every_asset_has_review_status": true,
+    "no_unexplained_deletion": true,
+    "semantic_absorption": "owned by T13 (CODEX handoff HANDOFF-T13.md); this slice registers disposition metadata only"
+  },
+  "verification": {
+    "audit_exit": 0,
+    "conventions": "passed"
+  },
+  "result": "PASS-slice1"
+}
