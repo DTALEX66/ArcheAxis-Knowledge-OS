@@ -1,0 +1,8 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T05-slice2d",
+  "title": "worker 能力矩阵文档化(README) + 边界登记",
+  "date": "2026-09-05",
+  "deliverables": "services/python-workers/README.md 能力矩阵(12 worker, 状态+收据引用) 与明确边界(F03 BLOCKED-RUNTIME/F06 编排未接/嵌入图 OCR/VL lane 未接/trafilatura 分离后续)",
+  "result": "PASS-slice2d"
+}
