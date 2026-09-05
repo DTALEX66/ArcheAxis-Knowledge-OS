@@ -49,6 +49,16 @@ CREATE TABLE IF NOT EXISTS review_events (
     note TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS jobs (
+    job_id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    state TEXT NOT NULL,            -- queued|running|completed|failed
+    input_ref TEXT,
+    engine TEXT,
+    loss_receipt TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    completed_at TEXT
+);
 CREATE TABLE IF NOT EXISTS learning_events (
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
     item_key TEXT NOT NULL,

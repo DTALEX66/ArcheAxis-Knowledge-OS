@@ -9,6 +9,7 @@
 - `crates/archeaxis-store-sqlite/`：DDL + workspace init（**唯一可写数据库入口**）+ `migrations/`
 - `crates/archeaxis-domain/`：业务逻辑（source/anchor/knowledge/learning/search/backup）
 - `crates/archeaxis-api/`：本地 HTTP API（axum，对齐 packages/contracts/v1/openapi-outline.yaml）
+- `crates/archeaxis-application/`：bootstrap（Supervisor 握手目标）+ worker job 编排（queued/running/completed/failed + loss receipt）
 - `packages/contracts/v1/`：契约（openapi-outline + errors.catalog + worker-protocol/coverage-receipt/assessment 等 schema）
 
 规划（后续 slice，占位未建代码）：
@@ -25,4 +26,5 @@
 cmd /c "call \"D:/All projects/OS External Configuration/10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat\" && cd /d D:/All projects/ArcheAxis-Knowledge-OS && cargo test"
 ```
 `crates/archeaxis-domain/tests/v01_closed_loop.rs` 覆盖 v0.1 闭环数据层 12 步（含重启回读 + 备份恢复）；
-`crates/archeaxis-api/tests/api_closed_loop.rs` 覆盖 HTTP 薄投影（version/import/anchor/knowledge/review/search）。
+`crates/archeaxis-api/tests/api_closed_loop.rs` 覆盖 HTTP 薄投影；
+`crates/archeaxis-application/tests/application_flow.rs` 覆盖握手 + job 编排流（含失败显式回执）。

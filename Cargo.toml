@@ -4,5 +4,6 @@ members = [
     "crates/archeaxis-contracts",
     "crates/archeaxis-store-sqlite",
     "crates/archeaxis-domain",
+    "crates/archeaxis-application",
     "crates/archeaxis-api",
 ]

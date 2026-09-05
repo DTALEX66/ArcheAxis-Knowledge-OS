@@ -33,6 +33,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "archeaxis-application"
+version = "0.1.0"
+dependencies = [
+ "archeaxis-contracts",
+ "archeaxis-domain",
+ "archeaxis-store-sqlite",
+ "hex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "archeaxis-contracts"
 version = "0.1.0"
 
