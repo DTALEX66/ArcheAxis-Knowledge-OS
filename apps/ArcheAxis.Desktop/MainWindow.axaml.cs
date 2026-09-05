@@ -9,31 +9,40 @@ namespace ArcheAxis.Desktop;
 public partial class MainWindow : Window
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(5) };
-    private const string CoreVersionUrl = "http://127.0.0.1:47831/api/v1/system/version";
+    private CoreSupervisor? _supervisor;
 
     public MainWindow()
     {
         InitializeComponent();
         Title = "ArcheAxis Learning Workspace (vNext) — core offline";
         Loaded += OnLoaded;
+        Closed += OnClosed;
     }
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // Supervisor handshake (minimal): ask the Rust Core for its identity.
-        // The full Supervisor will spawn the core process; for the skeleton the
-        // core is expected at the default local port (archeaxis-api server).
-        try
+        // Supervisor flow: if the core is not already answering on the default
+        // port and a binary is configured (ARCHAXIS_CORE_BIN), spawn it and
+        // handshake; otherwise probe the already-running core.
+        var dbPath = Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
+            ?? System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "ArcheAxis", "vnext", "workspace.sqlite");
+        _supervisor = new CoreSupervisor(dbPath);
+        var result = await _supervisor.StartAsync();
+        if (result.ok)
         {
-            var body = await Http.GetStringAsync(CoreVersionUrl);
-            using var doc = JsonDocument.Parse(body);
-            var runtime = doc.RootElement.GetProperty("runtime").GetString();
-            var contract = doc.RootElement.GetProperty("contract").GetString();
-            Title = $"ArcheAxis Learning Workspace (vNext) — {runtime} {contract}";
+            Title = $"ArcheAxis Learning Workspace (vNext) — {_supervisor.HandshakeRuntime} {_supervisor.HandshakeContract}";
         }
-        catch (Exception)
+        else
         {
-            Title = "ArcheAxis Learning Workspace (vNext) — core offline";
+            Title = $"ArcheAxis Learning Workspace (vNext) — core offline ({result.detail})";
         }
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        // Supervisor shutdown: never leave an orphaned core process behind.
+        _supervisor?.Dispose();
     }
 }

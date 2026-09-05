@@ -39,3 +39,10 @@ jobs:
           test -s reports/vnext/v01-closed-loop-receipt.json \
             && grep -q 'PASS:' reports/vnext/v01-closed-loop-receipt.json \
             && echo "receipt OK"
+      - name: Avalonia desktop build (Supervisor shell)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: dotnet build ArcheAxis.Desktop
+        shell: bash
+        run: dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -v minimal

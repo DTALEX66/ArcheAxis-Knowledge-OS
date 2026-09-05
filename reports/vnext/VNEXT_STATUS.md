@@ -15,12 +15,12 @@
 | 归档 | archive crate：开放格式导出/恢复 + manifest | ✅ |
 | **v0.1 十二步闭环（Core 层）** | journey 测试全 PASS → `reports/vnext/v01-closed-loop-receipt.json`（11 PASS + manifest sha256） | ✅ |
 | 测试基线 | `cargo test --workspace`：14 集成测试全绿（本机 vcvars64+共用库工具链） | ✅ |
-| vNext CI | `.github/workflows/vnext-ci.yml`（Windows cargo test + receipt 校验） | 已落（云端执行待 push 后 Actions 确认） |
+| vNext CI | `.github/workflows/vnext-ci.yml`（Windows cargo test + receipt 校验 + Avalonia dotnet build） | ✅ 云端绿（54f23ba success；首次 failure=收据 grep 模式已修） |
 
 ## 环境门禁（未完成，如实）
 | 项 | 门禁 | 处置 |
 | --- | --- | --- |
-| Avalonia apps/desktop（Green 桌面 + Supervisor） | 无 .NET SDK（本机 dotnet 不可用） | 安装 dotnet-10-lts → OS External Configuration/10-toolchains/dotnet（共用库）；装后建 Avalonia 解决方案 |
+| Avalonia apps/desktop（Green 桌面 + Supervisor） | ✅ 已解除并落地 | .NET SDK 10.0.400 → 共用库；apps/ArcheAxis.Desktop 骨架 + CoreSupervisor（spawn core/握手/清理）+ MainWindow 接线；dotnet build 0 错误 |
 | v0.1 Windows Green 端到端（无终端启动） | 依赖 Avalonia 门禁 | 同上 |
 | 真实 legacy（v0.6.14）库迁移 dry-run | 需真实旧 workspace 数据（不在仓库） | Owner 提供 legacy 数据文件后：migration export → reports/vnext/legacy-dryrun-*.json |
 
