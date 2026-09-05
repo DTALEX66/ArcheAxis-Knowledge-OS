@@ -26,6 +26,7 @@ import argparse
 import fnmatch
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -66,6 +67,18 @@ def resolve_diff_refs(
         trusted = bool(pull_base and pull_head)
         return base, head, trusted
     return "origin/main", "HEAD", False
+
+
+def git_diff_names(base: str, head: str) -> list[str]:
+    """Unquoted changed-path list (git -z) between two commits."""
+    out = subprocess.run(
+        ["git", "-c", "core.quotePath=false", "diff", "--name-only", "-z", base, head],
+        capture_output=True,
+    )
+    if out.returncode != 0:
+        raise RuntimeError(f"git diff --name-only failed: {out.stderr.decode('utf-8', 'replace')[:300]}")
+    text = out.stdout.decode("utf-8", errors="surrogateescape")
+    return [p for p in text.split("\0") if p]
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:

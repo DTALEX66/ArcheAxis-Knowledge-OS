@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T14-slice1",
+  "title": "全仓规范化 slice1：路径分类全覆盖（0 unknown/1415）",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "profile": ".worklab/project-validation.v1.yaml 增 8 类并后置于专类之后(防遮蔽)",
+    "classifier": "scripts/ci/classify.py 增 git_diff_names(-z, quotePath=false) 供审计",
+    "tests": "test_ci_classifier.py 增: every_tracked_path_is_classified(全覆盖守卫) + vnext_lane_paths_trigger_their_own_gates"
+  },
+  "verification": {
+    "full_coverage": "1415 tracked, unknown: 0",
+    "classifier_tests": "28 passed",
+    "class_shadowing": "专类(ui/installer/security 等)优先于兜底类, 测试断言通过",
+    "conventions": "passed",
+    "workers_gate": "passed"
+  },
+  "acceptance": {
+    "no_ownership_ambiguity": "全 tracked 路径有类; 越界新路径 -> unclassified-block 需人工加类",
+    "real_pr_validation": "本次即真实 push(CI 门禁实际运行)"
+  },
+  "remaining": [
+    "入口/目录规则文档一致性核对(下一切片)",
+    ".hermes 与产物规则、历史文档状态登记",
+    "旧目录退役条件核验(与 T17/T13 联动)"
+  ],
+  "result": "PASS-slice1"
+}

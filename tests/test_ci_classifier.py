@@ -273,3 +273,52 @@ def test_ci_emits_gateplan_artifact() -> None:
     assert "gateplan.json" in workflow
     assert "required_gates=" in workflow
     assert "GITHUB_OUTPUT" in workflow
+
+
+def test_every_tracked_path_is_classified() -> None:
+    """Full-coverage guard (T14): no tracked path may fall into
+    unclassified-block; a new directory therefore fails until the profile
+    gains a class, and an over-broad class cannot silently shadow specifics
+    because first-match order is asserted by the existing gate tests."""
+    from scripts.ci.classify import classify_paths
+
+    out = subprocess.run(
+        ["git", "-c", "core.quotePath=false", "ls-files", "-z"],
+        capture_output=True,
+        cwd=ROOT,
+    )
+    assert out.returncode == 0, "git ls-files failed"
+    tracked = [
+        p for p in out.stdout.decode("utf-8", errors="surrogateescape").split("\0") if p
+    ]
+    assert tracked, "expected tracked files in a git checkout"
+    plan = classify_paths(tracked)
+    unknown = plan["unknown_paths"]
+    assert not unknown, f"tracked paths without a risk class: {unknown[:20]}"
+
+    # The union of class paths must stay deterministic and complete: every
+    # matched class must be one of the profile's registered classes.
+    profile_classes = {
+        cls["id"]
+        for cls in classify_paths.__globals__["_load_yaml"](PROFILE)["risk_classes"]
+    }
+    assert set(plan["matched_classes"]) <= profile_classes
+
+
+def test_vnext_lane_paths_trigger_their_own_gates() -> None:
+    """T01 regression: C#/worker/contract changes each trigger their gate."""
+    from scripts.ci.classify import classify_paths
+
+    cases = {
+        "apps/ArcheAxis.Desktop/MainWindow.axaml.cs": "desktop-vnext",
+        "crates/archeaxis-domain/src/knowledge.rs": "rust-vnext",
+        "packages/contracts/v1/quality-report.schema.json": "contracts-vnext",
+        "services/python-workers/media/worker_transcribe.py": "workers-vnext",
+    }
+    for path, gate in cases.items():
+        plan = classify_paths([path])
+        assert gate in plan["required_gates"], f"{path} must require {gate}"
+
+    plan = classify_paths(["apps/ArcheAxis.Desktop/MainWindow.axaml.cs"])
+    assert "rust-vnext" not in plan["required_gates"], "C#-only change must not run rust-vnext"
+    assert "desktop-vnext" in plan["required_gates"]

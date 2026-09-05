@@ -42,6 +42,7 @@ risk_classes:
     paths:
       - ".github/**"
       - ".worklab/**"
+      - ".project/**"
       - "scripts/ci/**"
       - "scripts/release_*.py"
     gates: [static, lint]
@@ -106,6 +107,7 @@ risk_classes:
       - "docs/authority/**"
       - "docs/design/**"
       - "reports/vnext/**"
+      - "reports/**"
     gates: [static]
 
   - id: security-permissions
@@ -124,6 +126,7 @@ risk_classes:
       - shared/core_schema.py
       - shared/migration_runner.py
       - "**/migrations/**"
+      - "migrations/**"
     gates: [static, lint, migration-targeted, py-primary]
 
   - id: rust-tauri-shell
@@ -226,6 +229,71 @@ risk_classes:
       - "tests/**"
       - "scripts/check_*.py"
     gates: [static, lint, py-primary]
+
+  - id: scripts-other
+    description: Other repository tooling scripts (maintenance tools, pipeline drivers)
+    paths:
+      - "scripts/**"
+    gates: [static, lint]
+
+  - id: repo-meta
+    description: Root metadata, editor/ignore/license/example files
+    paths:
+      - ".codex.example/**"
+      - .editorconfig
+      - .gitattributes
+      - .gitignore
+      - .pre-commit-config.yaml
+      - LICENSE
+      - LEGACY_MANIFEST.example.yaml
+      - "apps/.gitignore"
+      - "archeaxis/**"
+    gates: [static]
+
+  - id: legacy-contracts
+    description: Legacy manifest/plugin/workspace contract schemas (maintenance-only)
+    paths:
+      - "contracts/**"
+    gates: [static, lint]
+
+  - id: legacy-python-embed
+    description: Legacy Inspiration-Research embedded pure Python (maintenance-only)
+    paths:
+      - "Inspiration-Research/**"
+    gates: [static, lint, py-primary]
+
+  - id: runtime-config
+    description: Product runtime defaults, profiles, models and tool config
+    paths:
+      - "config/**"
+    gates: [static, lint, py-primary]
+
+  - id: legacy-ui-other
+    description: Legacy UI shell assets outside the dedicated frontend/desktop/src paths (maintenance-only)
+    paths:
+      - "OSUI/**"
+      - "frontend/**"
+      - "desktop/**"
+      - "verified-knowledge/**"
+    gates: [static, lint]
+
+  - id: legacy-root-scripts
+    description: Repository root launcher scripts and CLI shims
+    paths:
+      - run_all.bat
+      - run_all.sh
+      - run_windows.bat
+      - run_windows.ps1
+      - ecosystem.config.cjs
+      - archeaxis
+      - conftest.py
+    gates: [static, lint]
+
+  - id: packaging
+    description: Packaging layout and release scripts (vNext/legacy)
+    paths:
+      - "packaging/**"
+    gates: [static, lint]
 
   - id: docs-mechanical
     description: Documentation, ledgers, no runtime semantics
