@@ -1,10 +1,10 @@
 {
   "schema": "archeaxis.legacy-manifest/v1",
   "manifest_version": 1,
-  "audited_at": "2026-09-05T17:24:51.629765+00:00",
+  "audited_at": "2026-09-05T17:42:23.713063+00:00",
   "inventory_source": ".hermes\\task-runtime\\taskpack-0905\\ARCHEAXIS-FAST-FULL-LOOP\\10-LEGACY-INVENTORY.csv",
   "baseline_sha": "e9a7d2db854da157138111dc1c772cee95c16647",
-  "head_sha": "b2a9cfab7b1c2a86cf0ba465c2c99913e2f3baf1",
+  "head_sha": "a1c7ccdb279c996d4c109cfc0b5e2e599caf5818",
   "status_vocabulary": {
     "INVENTORIED_NOT_SEMANTICALLY_REVIEWED": "recorded with source object and proposed disposition; semantic absorption review owned by T13",
     "ABSORBED": "verified integrated into a vNext module with differential samples",
@@ -86,7 +86,7 @@
       ".worklab": 2
     },
     "missing_at_head": 0,
-    "blob_mismatches_at_head": 3,
+    "blob_mismatches_at_head": 5,
     "sample_mismatch_paths": [
       {
         "path": ".github/workflows/ci.yml",
@@ -101,7 +101,17 @@
       {
         "path": ".worklab/project-validation.v1.yaml",
         "recorded": "a3ed99f06ae99fc2c199f1b7f92182b7ce7c124c",
-        "actual": "586af4d08e56b58ee1dfff00f9a4099c21377fb7"
+        "actual": "4780ccd2504c96bbe0aa67c36afa342db4318189"
+      },
+      {
+        "path": "scripts/ci/classify.py",
+        "recorded": "495c68c68b6e2a6aff0fa5f0c7d5834b3bd82a58",
+        "actual": "1be983ab1f457779d0e133db5929a051dd4f9739"
+      },
+      {
+        "path": "tests/test_ci_classifier.py",
+        "recorded": "52135e754c88ced412400a84f684a104403f8718",
+        "actual": "2fe316b3c28d88df39f89c2d762f029ee4e39067"
       }
     ],
     "sample_missing_paths": []
