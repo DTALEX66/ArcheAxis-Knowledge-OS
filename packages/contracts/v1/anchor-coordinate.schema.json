@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/anchor-coordinate.schema.json",
+  "title": "ArcheAxis Source Anchor Coordinates",
+  "description": "Cross-language anchor coordinates over original sources: character/page/block/media-time/selection forms with strict bounds. Every anchor binds to a source sha256; invalid coordinates are rejected (errors.catalog AAK-ANCHOR-001). Resolution state uses assessment-vocabulary anchor_resolution/anchor_resolution_method.",
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_sha256", "media_type"],
+      "properties": {
+        "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "media_type": {"type": "string"}
+      }
+    },
+    "charRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "start", "end", "text_excerpt"],
+      "properties": {
+        "kind": {"const": "char_range"},
+        "start": {"type": "integer", "minimum": 0},
+        "end": {"type": "integer", "minimum": 0},
+        "text_excerpt": {"type": "string", "minLength": 1}
+      },
+      "description": "Cross-field bound start <= end is enforced by every language binding (schema cannot express ordering); a reversed range is rejected at the API boundary."
+    },
+    "pageAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "page_index", "page_count_hint"],
+      "properties": {
+        "kind": {"const": "page"},
+        "page_index": {"type": "integer", "minimum": 0},
+        "page_count_hint": {"type": "integer", "minimum": 1}
+      }
+    },
+    "structureBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "block_path", "block_role"],
+      "properties": {
+        "kind": {"const": "structure_block"},
+        "block_path": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "description": "Breadcrumb of block identifiers from the document root, e.g. [\"sec-3\",\"para-12\"]."
+        },
+        "block_role": {"enum": ["section", "paragraph", "table", "list_item", "code_block", "figure_caption", "slide", "sheet_cell", "note"]}
+      }
+    },
+    "mediaTime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "offset_ms", "duration_ms", "track"],
+      "properties": {
+        "kind": {"const": "media_time"},
+        "offset_ms": {"type": "integer", "minimum": 0},
+        "duration_ms": {"type": "integer", "minimum": 1},
+        "track": {"enum": ["audio", "video", "subtitle", "ocr_overlay"]}
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "selector", "resolved_sha256"],
+      "properties": {
+        "kind": {"const": "selection"},
+        "selector": {"type": "string", "minLength": 1},
+        "resolved_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "anchor_id", "source", "coordinate", "resolution", "resolution_method"],
+  "properties": {
+    "schema": {"const": "archeaxis.anchor-coordinate/v1"},
+    "anchor_id": {"type": "string"},
+    "source": {"$ref": "#/$defs/sourceRef"},
+    "coordinate": {
+      "oneOf": [
+        {"$ref": "#/$defs/charRange"},
+        {"$ref": "#/$defs/pageAnchor"},
+        {"$ref": "#/$defs/structureBlock"},
+        {"$ref": "#/$defs/mediaTime"},
+        {"$ref": "#/$defs/selection"}
+      ]
+    },
+    "resolution": {"type": "string", "pattern": "^(UNRESOLVED|EXACT|RELOCATED|AMBIGUOUS|ORPHANED)$"},
+    "resolution_method": {"type": "string", "pattern": "^(NOT_ATTEMPTED|EXACT_SELECTOR|QUOTE_CONTEXT|FUZZY_TEXT|PDF_GEOMETRY|MANUAL)$"},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

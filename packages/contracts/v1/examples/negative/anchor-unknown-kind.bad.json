@@ -1,0 +1,8 @@
+{
+  "schema": "archeaxis.anchor-coordinate/v1",
+  "anchor_id": "anc_bad",
+  "source": {"source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "media_type": "text/plain"},
+  "coordinate": {"kind": "line_span", "start": 40, "end": 10, "text_excerpt": "unknown coordinate kind"},
+  "resolution": "EXACT",
+  "resolution_method": "QUOTE_CONTEXT"
+}

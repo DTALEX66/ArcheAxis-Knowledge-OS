@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/quality-report.schema.json",
+  "title": "ArcheAxis Quality Measurement Report",
+  "description": "Canonical per-sample quality rows. Every metric must be recomputable from the referenced prediction and gold artifacts (never a bare mean claim). Unsupported or unprobed rows carry status unmeasured and no fake value.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "report_id", "run_id", "engine", "rows", "generated_at"],
+  "properties": {
+    "schema": {"const": "archeaxis.quality-report/v1"},
+    "report_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"}
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric", "sample_id", "status",
+          "prediction_ref", "gold_ref"
+        ],
+        "properties": {
+          "metric": {
+            "enum": [
+              "cer", "wer", "anchor_match", "structure_fidelity",
+              "proposition_precision", "proposition_recall",
+              "citation_presence", "question_grade_agreement"
+            ]
+          },
+          "sample_id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["measured", "unmeasured", "failed", "unsupported"]},
+          "value": {
+            "type": ["number", "null"],
+            "description": "null unless status is measured."
+          },
+          "interval": {
+            "type": ["array", "null"],
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {"type": "number"},
+            "description": "Optional [low, high] confidence interval."
+          },
+          "unit": {"enum": ["rate", "error_rate", "count", "boolean", "agreement"]},
+          "prediction_ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sha256", "path"],
+            "properties": {
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "path": {"type": "string"}
+            }
+          },
+          "gold_ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sha256", "path"],
+            "properties": {
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "path": {"type": "string"}
+            }
+          },
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "generated_at": {"type": "string", "format": "date-time"}
+  }
+}

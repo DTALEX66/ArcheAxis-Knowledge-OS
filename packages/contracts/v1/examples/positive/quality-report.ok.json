@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.quality-report/v1",
+  "report_id": "qr_1",
+  "run_id": "run-2026-09-05-1",
+  "engine": {"name": "quality-eval", "version": "0.1.0"},
+  "rows": [
+    {
+      "metric": "cer",
+      "sample_id": "s_zh_001",
+      "status": "measured",
+      "value": 0.031,
+      "interval": [0.02, 0.042],
+      "unit": "error_rate",
+      "prediction_ref": {"sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "path": "predictions/s_zh_001.txt"},
+      "gold_ref": {"sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "path": "gold/s_zh_001.txt"}
+    },
+    {
+      "metric": "question_grade_agreement",
+      "sample_id": "s_open_001",
+      "status": "unmeasured",
+      "value": null,
+      "unit": "agreement",
+      "prediction_ref": {"sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "path": "predictions/s_open_001.json"},
+      "gold_ref": {"sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "path": "gold/s_open_001.json"},
+      "note": "no human gold yet"
+    }
+  ],
+  "generated_at": "2026-09-05T09:00:00Z"
+}

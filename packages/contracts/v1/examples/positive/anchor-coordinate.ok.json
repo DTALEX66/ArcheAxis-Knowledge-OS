@@ -1,0 +1,9 @@
+{
+  "schema": "archeaxis.anchor-coordinate/v1",
+  "anchor_id": "anc_1",
+  "source": {"source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "media_type": "text/plain"},
+  "coordinate": {"kind": "char_range", "start": 10, "end": 24, "text_excerpt": "exact quoted bytes"},
+  "resolution": "EXACT",
+  "resolution_method": "QUOTE_CONTEXT",
+  "created_at": "2026-09-05T00:00:00Z"
+}

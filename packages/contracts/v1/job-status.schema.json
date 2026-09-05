@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/job-status.schema.json",
+  "title": "ArcheAxis Job and Verdict Status Vocabulary",
+  "description": "Canonical job lifecycle states and research verdicts shared by HTTP, worker NDJSON and MCP surfaces. Closed enums: they gain values only through a new major version (see compatibility-policy.md).",
+  "$defs": {
+    "job_status": {
+      "enum": ["queued", "running", "succeeded", "failed", "rejected", "cancelled"],
+      "description": "queued/running are non-terminal; succeeded/failed/rejected/cancelled are terminal. 'rejected' means the worker refused the request as invalid (never retryable); 'failed' may be retryable per the error payload."
+    },
+    "worker_status": {
+      "enum": ["succeeded", "failed", "rejected"],
+      "description": "Status spoken by worker responses (worker-protocol.schema.json). Core maps succeeded->succeeded, rejected->rejected, failed->failed."
+    },
+    "research_verdict": {
+      "enum": ["PASS", "PARTIAL", "FAIL", "UNMEASURED", "BLOCKED_CREDENTIALS"],
+      "description": "Verdict of a bounded cross-check. PARTIAL covers search outage, network loss or budget exhaustion (never a fake PASS). UNMEASURED covers capabilities with no probe. BLOCKED_CREDENTIALS marks product lanes whose external credentials are unconfigured."
+    },
+    "machine_competence": {
+      "enum": ["MEASURED", "UNMEASURED", "NOT_TESTED"],
+      "description": "Competence display for machine lanes: only probed capabilities report MEASURED."
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["job_status", "worker_status", "research_verdict", "machine_competence"],
+  "properties": {
+    "job_status": {"$ref": "#/$defs/job_status"},
+    "worker_status": {"$ref": "#/$defs/worker_status"},
+    "research_verdict": {"$ref": "#/$defs/research_verdict"},
+    "machine_competence": {"$ref": "#/$defs/machine_competence"}
+  }
+}

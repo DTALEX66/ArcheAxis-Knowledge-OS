@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/machine-feedback.schema.json",
+  "title": "ArcheAxis Machine Usage and Feedback Event",
+  "description": "Canonical machine-side event DTO (T11): retrieval/usage/feedback/correction over knowledge revisions. Context carries budget and permission; corrections take effect only after human review; revoked revisions never leak to later calls.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "event_id", "client_id", "event", "item_ref",
+    "context_budget_chars", "occurred_at"
+  ],
+  "properties": {
+    "schema": {"const": "archeaxis.machine-feedback/v1"},
+    "event_id": {"type": "string", "minLength": 1},
+    "client_id": {"type": "string", "minLength": 1},
+    "capability": {"type": "string", "minLength": 1},
+    "competence": {
+      "enum": ["MEASURED", "UNMEASURED", "NOT_TESTED"],
+      "description": "Display state: only probed capabilities report MEASURED (job-status vocabulary)."
+    },
+    "event": {
+      "enum": [
+        "context_served",
+        "proposal_made",
+        "citation_used",
+        "answer_corrected",
+        "correction_reviewed",
+        "correction_applied",
+        "correction_reverted"
+      ]
+    },
+    "item_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {"enum": ["knowledge_revision", "candidate", "proposal", "skill_case"]},
+        "id": {"type": "string", "minLength": 1},
+        "revision_id": {"type": "string"},
+        "source_revision_id": {"type": "string"}
+      }
+    },
+    "context_budget_chars": {"type": "integer", "minimum": 0},
+    "permission_scope": {"type": "string"},
+    "feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "helpful": {"enum": ["yes", "no", "partial", "unmeasured"]},
+        "note": {"type": "string"},
+        "reviewed_by_human": {"type": "boolean"}
+      }
+    },
+    "supersedes_event_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"}
+  }
+}

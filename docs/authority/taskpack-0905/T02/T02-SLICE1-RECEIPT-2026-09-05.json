@@ -1,0 +1,43 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T02-slice1",
+  "title": "冻结最小跨语言协议 — 词表/DTO/锚/通道映射初稿 + 跨语言正反例 + 漂移防护",
+  "date": "2026-09-05",
+  "head_sha": "PENDING_COMMIT",
+  "status": "draft-for-CODEX-review",
+  "deliverables": {
+    "new_schemas": [
+      "packages/contracts/v1/job-status.schema.json",
+      "packages/contracts/v1/anchor-coordinate.schema.json",
+      "packages/contracts/v1/learning-feedback.schema.json",
+      "packages/contracts/v1/machine-feedback.schema.json",
+      "packages/contracts/v1/quality-report.schema.json"
+    ],
+    "channel_mapping": "packages/contracts/v1/protocol-mapping.md",
+    "examples": "packages/contracts/v1/examples/{positive,negative}/ (5 positive, 3 negative)",
+    "example_gate": "tests/contract/test_contract_examples.py (5 tests, jsonschema 4.26)",
+    "drift_guard": [
+      "crates/archeaxis-contracts/src/lib.rs canonical constants + include_str! schema drift unit test",
+      "scripts/ci/check_vnext_contracts.py structural gate"
+    ]
+  },
+  "fixes_landed": [
+    "crate STATUS_* constants drifted from canonical review_status vocabulary (candidate/accepted/rejected/deprecated -> DRAFT/MACHINE_CANDIDATE/NEEDS_REVIEW/USER_ACCEPTED/USER_REJECTED/SUPERSEDED); replaced with canonical values + unit test"
+  ],
+  "acceptance": {
+    "C#/Rust/Python样例一致解析": "python jsonschema gate 5/5; Rust include_str drift test green; C# binding pending CODEX review (no generated bindings yet)",
+    "错版本/未知状态/错hash/错误坐标被拒绝": "negative examples + closed-enum rejection tests cover unknown verdict/status, unknown coordinate kind, success-with-error envelope; wrong-hash pattern enforced via ^[0-9a-f]{64}$ in schemas"
+  },
+  "open_for_review": [
+    "char_range start<=end is a binding-level rule (JSON Schema cannot express cross-field ordering) - documented in schema description and protocol-mapping.md",
+    "state vocabulary mapping worker_status->job_status documented; awaiting CODEX review of minor-negotiation edge cases",
+    "generated C#/Rust bindings with single-source regeneration (drift check exists; generation tooling is a later slice)"
+  ],
+  "verification": {
+    "pytest": "tests/contract/test_contract_examples.py: 5 passed",
+    "cargo": "cargo test -p archeaxis-contracts: 1 passed; -p archeaxis-domain: passed",
+    "conventions": "repository convention check passed",
+    "contracts_vnext_gate": "scripts/ci/check_vnext_contracts.py passed"
+  },
+  "result": "PASS-draft"
+}

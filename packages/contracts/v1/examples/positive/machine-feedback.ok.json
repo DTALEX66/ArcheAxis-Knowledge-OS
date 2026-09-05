@@ -1,0 +1,13 @@
+{
+  "schema": "archeaxis.machine-feedback/v1",
+  "event_id": "evt_m1",
+  "client_id": "mcp-client-1",
+  "capability": "search_knowledge",
+  "competence": "MEASURED",
+  "event": "answer_corrected",
+  "item_ref": {"kind": "candidate", "id": "cand_2", "revision_id": "rev_9"},
+  "context_budget_chars": 12000,
+  "permission_scope": "workspace:read",
+  "feedback": {"helpful": "partial", "reviewed_by_human": true, "note": "citation was stale"},
+  "occurred_at": "2026-09-05T08:05:00Z"
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/learning-feedback.schema.json",
+  "title": "ArcheAxis Human Learning Feedback Event",
+  "description": "Canonical human-side learning event DTO (T10). Human mastery evidence is recorded independently; machines never write USER_ACCEPTED (assessment-vocabulary review_status).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "event_id", "learner_id", "event", "item_ref",
+    "occurred_at"
+  ],
+  "properties": {
+    "schema": {"const": "archeaxis.learning-feedback/v1"},
+    "event_id": {"type": "string", "minLength": 1},
+    "learner_id": {"type": "string", "minLength": 1},
+    "event": {
+      "enum": [
+        "session_started",
+        "material_read",
+        "question_answered",
+        "answer_corrected",
+        "teach_back_given",
+        "transfer_answer_given",
+        "error_identified",
+        "review_due",
+        "review_completed"
+      ]
+    },
+    "item_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {"enum": ["knowledge_revision", "question", "card", "source"]},
+        "id": {"type": "string", "minLength": 1},
+        "source_revision_id": {"type": "string"},
+        "title": {"type": "string"}
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rating": {"enum": ["correct", "incorrect", "partial", "not_scored"]},
+        "reported_answer": {"type": "string"},
+        "model_rating_explanation": {"type": "string"},
+        "learner_note": {"type": "string"}
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "due_at": {"type": "string", "format": "date-time"},
+        "interval_days": {"type": "number", "minimum": 0},
+        "algorithm": {"enum": ["fsrs", "manual", "unmeasured"]}
+      }
+    },
+    "correction": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "correct_answer": {"type": "string", "minLength": 1},
+        "explanation": {"type": "string"}
+      }
+    },
+    "occurred_at": {"type": "string", "format": "date-time"}
+  }
+}
