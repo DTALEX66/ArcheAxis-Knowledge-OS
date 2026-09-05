@@ -6,6 +6,7 @@
 
 use std::sync::{Arc, Mutex};
 
+use archeaxis_application::jobs::{self, LossReceipt};
 use archeaxis_domain::{anchor, knowledge, search, source, ImportOutcome};
 use archeaxis_store_sqlite::{init_workspace, workspace_info_json};
 use axum::{
@@ -26,6 +27,8 @@ pub fn router(conn: Connection) -> Router {
     Router::new()
         .route("/api/v1/system/version", get(system_version))
         .route("/api/v1/imports", post(import_source))
+        .route("/api/v1/jobs", post(enqueue_job))
+        .route("/api/v1/jobs/:job_id/receipts", post(job_receipt))
         .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
         .route("/api/v1/knowledge-items", post(create_knowledge))
         .route("/api/v1/knowledge-items/:id/review-decisions", post(review_decision))
@@ -178,4 +181,62 @@ async fn workspace_info(State(state): State<AppState>) -> impl IntoResponse {
 fn base64_decode(s: &str) -> Option<Vec<u8>> {
     use base64::Engine;
     base64::engine::general_purpose::STANDARD.decode(s).ok()
+}
+
+// ── worker job endpoints (worker-protocol slice) ─────────────────────────
+
+#[derive(Deserialize)]
+struct EnqueueBody {
+    job_id: String,
+    kind: String,
+    input_ref: String,
+}
+
+async fn enqueue_job(State(state): State<AppState>, Json(body): Json<EnqueueBody>) -> impl IntoResponse {
+    let mut conn = state.lock().unwrap();
+    match jobs::enqueue(&mut conn, &body.job_id, &body.kind, &body.input_ref) {
+        Ok(()) => (StatusCode::ACCEPTED, Json(serde_json::json!({"job_id": body.job_id, "state": "queued"}))).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
+}
+
+#[derive(Deserialize)]
+struct ReceiptBody {
+    #[serde(default = "default_state")]
+    state: String, // completed | failed
+    #[serde(default)]
+    engine: Option<String>,
+    #[serde(default)]
+    text: Option<String>,
+    #[serde(default)]
+    loss_receipt: Option<LossReceipt>,
+    #[serde(default)]
+    error: Option<String>,
+}
+
+fn default_state() -> String {
+    "completed".to_string()
+}
+
+async fn job_receipt(
+    State(state): State<AppState>,
+    Path(job_id): Path<String>,
+    Json(body): Json<ReceiptBody>,
+) -> impl IntoResponse {
+    let mut conn = state.lock().unwrap();
+    let out = if body.state == "failed" {
+        jobs::fail(&mut conn, &job_id, body.error.as_deref().unwrap_or("unspecified"))
+    } else {
+        jobs::complete(
+            &mut conn,
+            &job_id,
+            body.engine.as_deref().unwrap_or("worker"),
+            body.text.as_deref().unwrap_or(""),
+            body.loss_receipt.as_ref(),
+        )
+    };
+    match out {
+        Ok(()) => (StatusCode::OK, Json(serde_json::json!({"job_id": job_id, "state": body.state}))).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
