@@ -74,6 +74,44 @@ authorities:
     execution_lane: avalonia-ui
     language: csharp
     may_open_main_database: false
+  - path: apps/ArcheAxis.Desktop/**
+    owner: avalonia-ui
+    execution_lane: avalonia-ui
+    language: csharp
+    may_open_main_database: false
+  - path: OSUI/**
+    owner: legacy-react-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: Inspiration-Research/**
+    owner: legacy-python-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: inspiration_research/**
+    owner: legacy-python-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: migrations/**
+    owner: legacy-python-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: workspace/**
+    owner: legacy-intake-history
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: codex-taskpacks/**
+    owner: legacy-intake-history
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: verified-knowledge/**
+    owner: knowledge-history
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: reports/**
+    owner: documentation
+    execution_lanes: [owner, ci, release]
+    write_mode: maintenance-only-task-envelope
+    note: reports/vnext and reports/release keep their dedicated rules above; other report trees are attestation/history
   - path: crates/archeaxis-domain/**
     owner: rust-core
     execution_lane: rust-core

@@ -1,0 +1,19 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T14-slice2",
+  "title": "DIRECTORY_AUTHORITY 实际路径同步与历史目录归属",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "fixes": [
+    "apps/ArcheAxis.Desktop/** 真实 Avalonia 路径入册(owner avalonia-ui, 禁主库) — 原 apps/desktop/** 陈旧规则保留无害",
+    "OSUI/Inspiration-Research/inspiration_research/migrations/workspace/codex-taskpacks/verified-knowledge 历史目录逐一归属(legacy/*-history, maintenance-only)",
+    "reports/** 通用规则(维护收据/历史; reports/vnext 与 reports/release 专用规则优先)"
+  ],
+  "verification": {
+    "yaml_parse": true,
+    "authority_tests": "29 passed (naming + documentation authority index)",
+    "conventions": "passed"
+  },
+  "remaining": ["T17/T13 联动退役条件核验", "入口文档一致性微调"],
+  "result": "PASS-slice2"
+}
