@@ -1,0 +1,20 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T06-slice2c",
+  "title": "视觉能力包 slice2c：F04 图示/场景描述 lane（qwen2.5vl 本地）",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/vision/worker_caption.py",
+    "engine": "本地 ollama qwen2.5vl:7b (HTTP /api/generate, base64 图像)",
+    "prompt": "archeaxis.vnext/v1 2026-09-05(文本层简述/结构/实体/不确定性明示; ≤200 词; 语言随主文本)",
+    "layering": "描述=模型输出, 不冒充 OCR; 文本保真归 worker_ocr; 模型+提示版本入 envelope 可复现"
+  },
+  "local_verification": {
+    "probe": "capability true (qwen2.5vl:7b 在场)",
+    "golden_caption": "金标 OCR 图: 模型准确描述圆角框/深蓝大写文本/浅灰底/用途说明, elapsed 11.46s"
+  },
+  "ci_gate": "workers-vnext: 编译 + probe(capability 键) + 缺文件错误契约; 真实推理依赖本地 ollama(运行器无, 本地验证记录)",
+  "acceptance_status": { "F04_layer2": "图示推断 lane 可用(真实本地模型输出); 质量评测归 T07" },
+  "result": "PASS-slice2c"
+}

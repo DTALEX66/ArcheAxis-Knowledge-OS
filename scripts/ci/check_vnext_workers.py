@@ -276,6 +276,32 @@ def main() -> int:
             if "error" not in tail:
                 failures.append("ocr worker failure must carry an error payload")
 
+    # Vision caption worker (F04 layer 2): compile + probe + failure contracts.
+    caption_worker = WORKERS / "vision" / "worker_caption.py"
+    try:
+        py_compile.compile(str(caption_worker), doraise=True)
+    except py_compile.PyCompileError as exc:
+        failures.append(f"vision/worker_caption.py: compile failed: {exc}")
+    else:
+        caption_probe = _run_matrix_worker("vision/worker_caption.py", ["--probe"])
+        if caption_probe.returncode != 0:
+            failures.append(f"caption probe exit {caption_probe.returncode}: {caption_probe.stderr.strip()[:200]}")
+        else:
+            try:
+                caption_payload = json.loads(caption_probe.stdout.strip().splitlines()[-1])
+            except (json.JSONDecodeError, IndexError) as exc:
+                failures.append(f"caption probe invalid payload: {exc}")
+                caption_payload = {}
+            if "capability" not in caption_payload:
+                failures.append("caption probe must report capability")
+        caption_bad = _run_matrix_worker("vision/worker_caption.py", ["/nonexistent.png"])
+        if caption_bad.returncode == 0:
+            failures.append("caption worker succeeded on a missing image (must fail)")
+        else:
+            tail = (caption_bad.stdout or caption_bad.stderr).strip().splitlines()[-1] if (caption_bad.stdout or caption_bad.stderr).strip() else ""
+            if "error" not in tail:
+                failures.append("caption worker failure must carry an error payload")
+
     # Evaluation worker (T07): recomputable CER/WER metrics (stdlib only).
     quality_worker = WORKERS / "evaluation" / "worker_quality.py"
     try:
