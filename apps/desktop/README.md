@@ -20,5 +20,7 @@ dotnet new sln -n ArcheAxis.Desktop
 - Supervisor 职责：启动 Core 子进程 → handshake → 健康探针 → 退出/异常恢复
 - 未完成能力不做空壳"完成态"
 
-## 状态
-- 占位（目录权威已登记）；实现被 dotnet SDK 安装门禁阻塞（记录于 REMAINING_HUMAN_GATES 同等待办）
+## 状态（2026-09-04）
+- ✅ 骨架已建：`apps/ArcheAxis.Desktop/`（dotnet new avalonia.app，Avalonia 模板），
+  `dotnet build` 0 警告 0 错误（.NET SDK 10.0.400 已装 → OS External Configuration/10-toolchains/dotnet）
+- 后续：Supervisor 握手接线（sidecar-protocol + archeaxis-application::bootstrap）→ Green 无终端启动

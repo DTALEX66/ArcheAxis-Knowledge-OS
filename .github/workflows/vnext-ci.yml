@@ -37,5 +37,5 @@ jobs:
         shell: bash
         run: |
           test -s reports/vnext/v01-closed-loop-receipt.json \
-            && grep -q '"PASS"' reports/vnext/v01-closed-loop-receipt.json \
+            && grep -q 'PASS:' reports/vnext/v01-closed-loop-receipt.json \
             && echo "receipt OK"
