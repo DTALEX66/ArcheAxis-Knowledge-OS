@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/schemas/decision-supersession-ledger.schema.json",
+  "title": "ArcheAxis Decision Supersession Ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "effective_at", "rules", "decisions"],
+  "properties": {
+    "schema": { "const": "archeaxis.decision-supersession-ledger/v1" },
+    "schema_version": { "const": 1 },
+    "effective_at": { "type": "string", "format": "date-time" },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/decision" },
+      "description": "Decision IDs must also be unique; uniqueness by a property value is a repository semantic check beyond core JSON Schema."
+    }
+  },
+  "$defs": {
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "old_claim", "replacement", "reason"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^SUP-[0-9]{3}$" },
+        "status": { "enum": ["effective", "superseded"] },
+        "old_claim": { "type": "string", "minLength": 1 },
+        "replacement": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

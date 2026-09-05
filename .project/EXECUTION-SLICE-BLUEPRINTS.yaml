@@ -1,0 +1,236 @@
+schema: archeaxis.execution-slice-blueprints/v1
+schema_version: 1
+plan_id: AAK-VNEXT-2026-09-04
+program_graph_path: .project/TASK-GRAPH.yaml
+non_authorizing: true
+limits:
+  max_files: 25
+  max_effort_hours: 16
+  max_elapsed_hours: 48
+  max_execution_lanes: 1
+  max_serial_resource_families: 1
+materialization_rules:
+  - Blueprints suggest behavior boundaries only and never authorize a write.
+  - Materialize only the dependency-ready internal frontier and bind the current protected Program graph digest.
+  - Derive exact paths, operations, gates, grants, machine requirements, artifact inputs and atom coverage immediately before issuance.
+  - Split again whenever the forecast or actual diff crosses any limit; a slice cannot widen itself.
+  - Product defects found by qualification slices return to a new implementation slice in the owning lane.
+  - Every unlisted slice materializes as implementation; every qualification_no_diff slice materializes with an empty write scope and zero repository diff.
+default_execution_mode: implementation
+qualification_no_diff:
+  execution_mode: qualification-no-diff
+  repository_diff: zero-from-activation-to-subject-head
+  repository_access: read-only
+  outputs: job-scratch-or-external-attestation-only
+  defect_handling: fail-or-block-and-issue-new-owning-lane-implementation-slice
+  slice_refs:
+    - PR-04:three-language-conformance
+    - PR-05:fault-backup-proof
+    - PR-09:single
+    - PR-10:property-recovery
+    - PR-12:path-restart-a11y
+    - PR-14:single
+    - PR-15:state-machine-tests
+    - PR-16:source-jumpback-ui-tests
+    - PR-18:single
+    - PR-21:replay-receipt
+    - PR-23:single
+    - PR-24:windows-process-path
+    - PR-24:green-lifecycle
+    - PR-25:single
+    - PR-26:source-unchanged-proof
+    - PR-27:semantic-diff
+    - PR-28:coverage-receipt
+    - PR-29:extraction-metrics
+    - PR-29:retrieval-citation
+    - PR-30:green-portable
+    - PR-30:setup-lifecycle
+    - PR-30:download-readback
+    - PR-31:preflight-freeze
+    - PR-31:candidate-a
+    - PR-31:candidate-b
+    - PR-31:aggregate-decision
+    - PR-32:retirement-preflight
+    - PR-32:clean-clone-reachability
+    - PR-33A:metrics-fault-disable-recovery
+    - PR-33B:metrics-fault-disable-recovery
+    - PR-33C:metrics-fault-disable-recovery
+    - PR-33D:metrics-fault-disable-recovery
+    - PR-33E:metrics-fault-disable-recovery
+    - PR-33F:metrics-fault-disable-recovery
+task_trains:
+  PR-01:
+    - {slice_key: test-entry-isolation, execution_lane: journey, goal: "Fix collection entry points, environment isolation and deterministic local fixtures."}
+    - {slice_key: workflow-browser-nightly-proof, execution_lane: ci, goal: "Align workflows, install pinned browser dependencies and produce two exact-ref full-run proofs.", resource_hint: "CI runners"}
+  PR-02:
+    - {slice_key: qualification-receipt-contract, execution_lane: journey, goal: "Generate and validate exact-identity qualification receipts and hostile fixtures."}
+    - {slice_key: qualification-receipt-ci, execution_lane: ci, goal: "Wire exact-identity qualification receipt generation and frozen job conclusions into CI."}
+    - {slice_key: release-fail-closed, execution_lane: release, goal: "Reject absent, selective, stale, skipped or mismatched qualification at promotion."}
+  PR-03:
+    - {slice_key: authority-graph-schemas, execution_lane: owner, goal: "Install canonical Program graph, authority map and strict template versus issued schemas.", resource_hint: "governance-protocol"}
+    - {slice_key: grants-locks-adapters, execution_lane: owner, goal: "Implement remote grants, local coordination locks and vendor-neutral Agent adapters.", resource_hint: "governance-protocol"}
+    - {slice_key: scope-gate-ci-hostile-tests, execution_lane: ci, goal: "Enforce scope and dependency boundaries with fail-closed hostile CI tests.", resource_hint: "CI"}
+  PR-04:
+    - {slice_key: canonical-contract, execution_lane: contract, goal: "Freeze OpenAPI, JSON Schemas, errors, idempotency, Unicode and compatibility semantics.", resource_hint: "contracts"}
+    - {slice_key: rust-generation, execution_lane: contract, goal: "Generate and qualify Rust contract consumers from the protected source.", resource_hint: "generated-contracts"}
+    - {slice_key: csharp-generation, execution_lane: contract, goal: "Generate and qualify C sharp contract consumers from the protected source.", resource_hint: "generated-contracts"}
+    - {slice_key: python-generation, execution_lane: contract, goal: "Generate and qualify Python contract consumers from the protected source.", resource_hint: "generated-contracts"}
+    - {slice_key: three-language-conformance, execution_lane: journey, goal: "Prove canonical fixtures and rejection behavior across all three languages."}
+  PR-05:
+    - {slice_key: core-service-skeleton, execution_lane: rust-core, goal: "Build the local service, domain shell, health, shutdown and version handshake."}
+    - {slice_key: empty-schema-migration, execution_lane: migration, goal: "Install the empty vNext schema through one versioned migration.", resource_hint: "vnext-database-migrations"}
+    - {slice_key: store-writeractor, execution_lane: rust-store, goal: "Build the sole WriterActor, transaction boundary and online backup."}
+    - {slice_key: api-idempotency, execution_lane: rust-core, goal: "Enforce command idempotency, revisions and stable API error projection."}
+    - {slice_key: fault-backup-proof, execution_lane: journey, goal: "Prove crash, restart, duplicate command and backup invariants."}
+  PR-06:
+    - {slice_key: avalonia-shell-client, execution_lane: avalonia-ui, goal: "Build the desktop shell, generated client and truthful status surfaces."}
+    - {slice_key: supervisor-secret-lifecycle, execution_lane: avalonia-ui, goal: "Supervise child processes, launch-secret exchange, cleanup and visible failure states.", resource_hint: "Windows host"}
+  PR-07:
+    - {slice_key: ndjson-protocol, execution_lane: python-worker, goal: "Implement strict hello, minor negotiation, request, result and rejection framing."}
+    - {slice_key: scratch-artifact-no-db, execution_lane: python-worker, goal: "Enforce job-local artifacts, hashes, size limits and absence of database access."}
+    - {slice_key: retry-cancel-crash, execution_lane: python-worker, goal: "Make timeout, cancellation, malformed output and crashes deterministic and observable."}
+  PR-10:
+    - {slice_key: content-schema-migration, execution_lane: migration, goal: "Add versioned workspace, source, anchor, job and CAS reference tables.", resource_hint: "vnext-database-migrations"}
+    - {slice_key: workspace-cas, execution_lane: rust-store, goal: "Implement workspace state and atomic content-addressed original storage."}
+    - {slice_key: source-anchor, execution_lane: rust-core, goal: "Implement immutable source revisions and versioned exact or relocated anchors."}
+    - {slice_key: job-commands, execution_lane: rust-core, goal: "Implement jobs, command receipts and application policies."}
+    - {slice_key: property-recovery, execution_lane: journey, goal: "Prove traversal rejection, duplicate import, restart and backup properties."}
+  PR-11:
+    - {slice_key: txt-markdown, execution_lane: python-worker, goal: "Convert TXT and Markdown deterministically with loss reporting."}
+    - {slice_key: native-pdf, execution_lane: python-worker, goal: "Convert native-text PDF with stable page geometry and text anchors."}
+    - {slice_key: loss-lock-fault, execution_lane: python-worker, goal: "Qualify the independent lock, loss model and crash behavior."}
+  PR-12:
+    - {slice_key: library-import-reader, execution_lane: avalonia-ui, goal: "Build import and Reader flows through the generated Core client."}
+    - {slice_key: selection-anchor-jumpback, execution_lane: avalonia-ui, goal: "Save a selection anchor and jump back to the exact source revision."}
+    - {slice_key: path-restart-a11y, execution_lane: journey, goal: "Prove Chinese and space paths, restart behavior and accessibility smoke."}
+  PR-15:
+    - {slice_key: domain-contract, execution_lane: contract, goal: "Freeze knowledge, revision, evidence, review and assessment contracts.", resource_hint: "contracts"}
+    - {slice_key: knowledge-schema-migration, execution_lane: migration, goal: "Add versioned knowledge, revision, evidence, review and FTS tables.", resource_hint: "vnext-database-migrations"}
+    - {slice_key: claim-evidence-status, execution_lane: rust-core, goal: "Implement orthogonal claim, evidence, rumor, forecast and use state policies."}
+    - {slice_key: review-fts, execution_lane: rust-store, goal: "Persist review history and build a rebuildable FTS projection."}
+    - {slice_key: state-machine-tests, execution_lane: journey, goal: "Prove personal content admission and machine-candidate non-promotion invariants."}
+  PR-16:
+    - {slice_key: review-history, execution_lane: avalonia-ui, goal: "Build accept, modify, reject, reason and revision-history flows."}
+    - {slice_key: search-filter, execution_lane: avalonia-ui, goal: "Separate personal, reviewed, factual and exploratory search results."}
+    - {slice_key: source-jumpback-ui-tests, execution_lane: journey, goal: "Prove source jump-back and review flows through UI automation."}
+  PR-19:
+    - {slice_key: learning-schema-migration, execution_lane: migration, goal: "Add versioned learning, mastery, schedule, retry and export metadata tables.", resource_hint: "vnext-database-migrations"}
+    - {slice_key: learning-mastery, execution_lane: rust-core, goal: "Implement learning events and mastery without changing knowledge truth state."}
+    - {slice_key: review-schedule, execution_lane: rust-core, goal: "Implement versioned review scheduling and answer-error classification."}
+    - {slice_key: job-retry, execution_lane: rust-core, goal: "Implement idempotent retry and truthful job state transitions."}
+    - {slice_key: export-restore, execution_lane: rust-store, goal: "Export and restore vNext workspaces with manifest and hash equality."}
+  PR-20:
+    - {slice_key: learning-ui, execution_lane: avalonia-ui, goal: "Build teach-back, answer and review-schedule interactions."}
+    - {slice_key: job-ui, execution_lane: avalonia-ui, goal: "Display truthful job status, failure detail and retry controls."}
+    - {slice_key: backup-restore-ui, execution_lane: avalonia-ui, goal: "Expose backup, restore target and irreversible boundary warnings."}
+  PR-21:
+    - {slice_key: local-model-prompt-contract, execution_lane: python-worker, goal: "Qualify one local claim-extraction model and version every prompt and parameter."}
+    - {slice_key: cloud-optin-credential-egress, execution_lane: python-worker, goal: "Enforce workspace opt-in, credential isolation and auditable cloud egress.", resource_gate_refs: [explicit_network_and_credentials, rights_and_license_approval], resource_hint: "explicit network, credentials and approved provider terms"}
+    - {slice_key: replay-receipt, execution_lane: journey, goal: "Prove deterministic replay metadata, candidate-only output and safe no-credential degradation."}
+  PR-22:
+    - {slice_key: worker-protocol-faults, execution_lane: journey, goal: "Inject worker kill, hang, malformed output and hash mismatch."}
+    - {slice_key: disk-core-storage-faults, execution_lane: journey, goal: "Inject disk-full and Core or storage interruption while preserving invariants."}
+    - {slice_key: duplicate-restore, execution_lane: journey, goal: "Prove duplicate commands and restore rejection are idempotent and visible."}
+  PR-24:
+    - {slice_key: deterministic-build, execution_lane: release, goal: "Produce a deterministic candidate component set without rebuilding at promotion.", resource_hint: "release-build"}
+    - {slice_key: windows-process-path, execution_lane: journey, goal: "Prove Windows process cleanup and Chinese or space path behavior.", resource_hint: "clean Windows 11"}
+    - {slice_key: green-lifecycle, execution_lane: release, goal: "Qualify Green data-root, read-only program files and no-console lifecycle."}
+    - {slice_key: identity-sbom, execution_lane: release, goal: "Bind source, runtime tree, manifests, SBOM, NOTICE and hashes."}
+  PR-26:
+    - {slice_key: legacy-census, execution_lane: migration, goal: "Classify every legacy file and database owner exactly once."}
+    - {slice_key: consistent-snapshot-exporter, execution_lane: migration, goal: "Create a consistent legacy snapshot and read-only Python exporter.", resource_hint: "isolated legacy copy"}
+    - {slice_key: package-idmap, execution_lane: migration, goal: "Emit package schema, hashes, ID map and loss ledger."}
+    - {slice_key: rights-fixtures, execution_lane: journey, goal: "Freeze migration fixtures and their rights manifest without private user data."}
+    - {slice_key: source-unchanged-proof, execution_lane: journey, goal: "Prove the source database remains logically unchanged."}
+  PR-27:
+    - {slice_key: migration-contract, execution_lane: contract, goal: "Freeze migration package, rejection, ID-map and diff contracts.", resource_hint: "contracts"}
+    - {slice_key: validate-dryrun, execution_lane: migration, goal: "Validate packages and produce a no-write migration dry run."}
+    - {slice_key: rust-staging-import, execution_lane: migration, goal: "Implement the migration engine against a disposable staging workspace."}
+    - {slice_key: migration-application, execution_lane: rust-core, goal: "Orchestrate migration commands, activation policy and audit receipts."}
+    - {slice_key: migration-store-adapter, execution_lane: rust-store, goal: "Persist staging import and atomic profile activation through WriterActor."}
+    - {slice_key: semantic-diff, execution_lane: journey, goal: "Prove hashes, references, classified losses and second-run no-op."}
+    - {slice_key: real-copy-activation, execution_lane: migration, goal: "Activate one real copied workspace atomically after Owner confirmation.", resource_hint: "isolated legacy copy"}
+  PR-28:
+    - {slice_key: research-contract, execution_lane: contract, goal: "Freeze query, snapshot, evidence-link and CoverageReceipt contracts.", resource_hint: "contracts"}
+    - {slice_key: query-provider, execution_lane: python-worker, goal: "Implement bounded multilingual query plans and provider receipts.", resource_hint: "explicit network"}
+    - {slice_key: snapshot-anchor, execution_lane: python-worker, goal: "Save immutable source snapshots with exact anchors and retrieval failures."}
+    - {slice_key: dedup-independence, execution_lane: rust-core, goal: "Cluster canonical documents, assertion origins and independent evidence generations."}
+    - {slice_key: timeline-counterevidence, execution_lane: rust-core, goal: "Build versioned timelines, support, qualification, contradiction and gap views."}
+    - {slice_key: research-golden-fixtures, execution_lane: journey, goal: "Freeze lawful offline fixtures for provider, dedup, contradiction and anchor behavior."}
+    - {slice_key: coverage-receipt, execution_lane: journey, goal: "Qualify offline replay and opt-in live CoverageReceipt behavior."}
+  PR-29:
+    - {slice_key: evaluation-contract, execution_lane: contract, goal: "Freeze EvaluationRun and MachineCompetenceReceipt contracts.", resource_hint: "contracts"}
+    - {slice_key: evaluation-worker, execution_lane: python-worker, goal: "Run versioned local and cloud model evaluation without authority writes."}
+    - {slice_key: benchmark, execution_lane: journey, goal: "Freeze human-labeled benchmark cases, splits and correction policy."}
+    - {slice_key: extraction-metrics, execution_lane: journey, goal: "Measure extraction precision, recall, F1, sample size and intervals."}
+    - {slice_key: retrieval-citation, execution_lane: journey, goal: "Measure retrieval ranking, citation completeness and anchor correctness."}
+    - {slice_key: interval-calibration, execution_lane: rust-core, goal: "Project measured competence, uncertainty and unmeasured states without a truth score."}
+    - {slice_key: ui-receipt, execution_lane: avalonia-ui, goal: "Display task-specific local and cloud competence receipts with provenance."}
+  PR-30:
+    - {slice_key: candidate-freeze, execution_lane: release, goal: "Freeze the exact qualified component set before product-form assembly.", resource_hint: "release-build"}
+    - {slice_key: green-portable, execution_lane: release, goal: "Qualify Green and explicit Portable lifecycle and data boundaries.", resource_hint: "clean Windows 11"}
+    - {slice_key: setup-lifecycle, execution_lane: release, goal: "Qualify Setup install, upgrade, repair and uninstall without data loss.", resource_hint: "clean Windows 11"}
+    - {slice_key: sbom-sign, execution_lane: release, goal: "Bind SBOM, NOTICE, signatures, checksums and release manifests."}
+    - {slice_key: download-readback, execution_lane: journey, goal: "Re-download and verify exact published candidate bytes and installation state.", resource_hint: "clean Windows 11"}
+  PR-31:
+    - {slice_key: preflight-freeze, execution_lane: release, goal: "Freeze tests, migration inputs, machines and candidate identities before qualification."}
+    - {slice_key: candidate-a, execution_lane: migration, goal: "Run the complete migration, failure and Windows journey on exact candidate A.", resource_hint: "clean Windows 11 and isolated legacy copy"}
+    - {slice_key: candidate-b, execution_lane: journey, goal: "Repeat the complete independent qualification on exact candidate B.", resource_hint: "second clean Windows 11 run"}
+    - {slice_key: aggregate-decision, execution_lane: owner, goal: "Aggregate immutable receipts and issue READY or NOT READY without modifying candidates."}
+  PR-32:
+    - {slice_key: retirement-preflight, execution_lane: migration, goal: "Verify Owner approval, fourteen-day use, stable releases and exact deletion manifests."}
+    - slice_key: aggregate-retirement
+      execution_lane: migration
+      goal: Retire one digest-bound approved legacy manifest entry, partitioning its exact paths again when the 25-file limit requires it.
+      manifest_expansion:
+        mode: digest-bound-manifest-expansion
+        policy_id: PR-32-legacy-retirement-v1
+        manifest_path: LEGACY_MANIFEST.yaml
+        manifest_digest_profile: AAK-JCS-1
+        selector_field: asset_id
+        required_decision: retire
+        required_status: approved
+        source_paths_requirement: census-expanded-exact-paths-no-globs
+        expansion_base: issued-subject-base
+        issued_scope_paths: exact-expanded-paths-only
+        partition_order: normalized-path-byte-order
+        max_paths_per_slice: 25
+        pseudo_paths_forbidden: true
+    - {slice_key: clean-clone-reachability, execution_lane: journey, goal: "Prove clean-clone full qualification and preserved tags, rights, fixtures and receipts."}
+  PR-33A:
+    - {slice_key: entry-rights-goldset, execution_lane: contract, goal: "Approve OCR scope, rights, metrics, schemas and a versioned gold set."}
+    - {slice_key: implementation, execution_lane: python-worker, goal: "Implement isolated OCR without database or implicit network access."}
+    - {slice_key: metrics-fault-disable-recovery, execution_lane: journey, goal: "Measure CER and layout quality and prove failure, disable and recovery behavior."}
+  PR-33B:
+    - {slice_key: entry-rights-goldset, execution_lane: contract, goal: "Approve Office scope, rights, structure metrics, schemas and gold set."}
+    - {slice_key: implementation, execution_lane: python-worker, goal: "Implement isolated Office and table conversion with explicit loss reporting."}
+    - {slice_key: metrics-fault-disable-recovery, execution_lane: journey, goal: "Measure structure quality and prove failure, disable and recovery behavior."}
+  PR-33C:
+    - {slice_key: entry-rights-goldset, execution_lane: contract, goal: "Approve media scope, rights, WER, speaker and timestamp gold set."}
+    - {slice_key: implementation, execution_lane: python-worker, goal: "Implement isolated ASR and media conversion with timestamp anchors."}
+    - {slice_key: metrics-fault-disable-recovery, execution_lane: journey, goal: "Measure ASR quality and prove failure, disable and recovery behavior."}
+  PR-33D:
+    - {slice_key: entry-rights-goldset, execution_lane: contract, goal: "Approve network, robots, access, snapshot and web gold-set policies."}
+    - {slice_key: implementation, execution_lane: python-worker, goal: "Implement explicit web capture and immutable version snapshots."}
+    - {slice_key: metrics-fault-disable-recovery, execution_lane: journey, goal: "Prove offline replay, exact anchors, failure, disable and recovery behavior."}
+  PR-33E:
+    - {slice_key: entry-rights-goldset, execution_lane: contract, goal: "Approve vision tasks, rights, provenance, metrics and gold set."}
+    - {slice_key: implementation, execution_lane: python-worker, goal: "Implement isolated image and spatial analysis without authority writes."}
+    - {slice_key: metrics-fault-disable-recovery, execution_lane: journey, goal: "Measure task quality and prove failure, disable and recovery behavior."}
+  PR-33F:
+    - {slice_key: entry-measured-need, execution_lane: journey, goal: "Prove FTS insufficiency and freeze a versioned retrieval gold set."}
+    - {slice_key: projection-schema-migration, execution_lane: migration, goal: "Add only rebuildable vector-projection schema.", resource_hint: "vnext-database-migrations"}
+    - {slice_key: embedding-worker, execution_lane: python-worker, goal: "Produce versioned embeddings as replaceable measurements without database access."}
+    - {slice_key: vector-application, execution_lane: rust-core, goal: "Implement query orchestration and measured projection policy without changing primary state."}
+    - {slice_key: vector-store, execution_lane: rust-store, goal: "Build a removable and rebuildable vector projection in the store boundary."}
+    - {slice_key: metrics-fault-disable-recovery, execution_lane: journey, goal: "Measure retrieval gain and prove disable, rebuild and recovery without data loss."}
+single_slice_candidates:
+  PR-00: {execution_lane: owner, goal: "Record the Owner decision and immutable legacy freeze only.", promote_to_train_when: "More than one governance grant or either limit is exceeded."}
+  PR-08: {execution_lane: journey, goal: "Build synthetic process and contract harness fixtures only.", promote_to_train_when: "A real three-process runtime or another lane is required."}
+  PR-09: {execution_lane: journey, goal: "Qualify the already-built Hello Triangle without product fixes.", promote_to_train_when: "A defect requires implementation in an owning lane."}
+  PR-13: {execution_lane: journey, goal: "Add rights-cleared deterministic source and anchor oracle fixtures.", promote_to_train_when: "Fixture count or changed paths exceed the slice limits."}
+  PR-14: {execution_lane: journey, goal: "Qualify import, read and anchor behavior without product fixes.", promote_to_train_when: "A defect requires implementation in an owning lane."}
+  PR-17: {execution_lane: journey, goal: "Freeze semantic acceptance cases without weakening status meanings.", promote_to_train_when: "Fixture count or changed paths exceed the slice limits."}
+  PR-18: {execution_lane: journey, goal: "Qualify a disposable knowledge workspace without product fixes.", promote_to_train_when: "A defect requires implementation in an owning lane."}
+  PR-23: {execution_lane: journey, goal: "Qualify the complete local data-safety loop without product fixes.", promote_to_train_when: "A defect requires implementation in an owning lane."}
+  PR-25: {execution_lane: journey, goal: "Run the exact candidate on a clean Windows host and issue the Owner Preview receipt.", promote_to_train_when: "More than one machine window or either limit is exceeded."}

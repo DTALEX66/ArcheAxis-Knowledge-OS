@@ -1,0 +1,59 @@
+schema: archeaxis.task-template/v1
+schema_version: 1
+state: template
+template_role: program-blueprint
+plan_id: AAK-VNEXT-2026-09-04
+program_task_id: PR-00
+task_id: PR-00
+slice_key: single
+issuance_id: replace-with-issuance-id
+issuer: replace-with-owner-issuer
+assignee: owner-integrator
+not_before: replace-with-rfc3339-not-before
+issued_at: replace-with-rfc3339-issued-at
+expires_at: replace-with-rfc3339-expires-at
+subject_base_sha: ce3c2de551bcaac52c8a26d012e6482c1a73a540
+subject_base_tree: replace-with-subject-base-tree
+execution_mode: implementation
+execution_lane: owner
+task_kind: authority
+priority: P0
+risk: R0
+objective: Accept the vNext authority decision, freeze legacy identity and explicitly narrow the old G0 rule without changing business code.
+depends_on: []
+dependency_program_receipts: []
+program_graph_sha256: replace-with-program-graph-sha256
+program_acceptance_refs: [PR-00:A01, PR-00:A02, PR-00:A03]
+program_evidence_refs: [PR-00:E01, PR-00:E02]
+preconditions:
+  - remote main and legacy release identities have been re-read
+machine_requirements:
+  os: any
+  architecture: any
+  clean_host: false
+  network: denied
+  gpu: none
+  credentials: []
+  filesystem_isolation: job-local
+  external_waits_satisfied: replace-with-true-after-preflight
+artifact_inputs: []
+authority_manifest_sha256: replace-with-authority-manifest-sha256
+consumed_interfaces:
+  entries: []
+  digest_sha256: replace-with-empty-or-consumed-interface-manifest-sha256
+scope:
+  allowed_operations: [create, modify]
+  allowed_paths: [PROJECT_CONTRACT.yaml, LEGACY_MANIFEST.yaml, DECISION_SUPERSESSION_LEDGER.yaml, docs/authority/**, docs/decisions/**, docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md]
+  forbidden_paths: [app/**, shared/**, knowledge_base/**, frontend/**, src-tauri/**, "**/*.db"]
+  limits: {max_files: 25, max_added_lines: 1500, max_deleted_lines: 200, max_binary_bytes: 0, max_effort_hours: 16, max_duration_hours: 48}
+required_gate_ids: [history-supersession-check, authority-reference-check]
+gate_registry_sha256: replace-with-gate-registry-sha256
+authority_grant_ids: [replace-with-grant-id]
+acceptance:
+  - Rust is the authoritative vNext Core and sole business writer while Avalonia and Python remain non-writers.
+  - The legacy database remains legacy-Python-only and is never shared, live-synchronized or dual-written.
+  - The v0.6.14 tag, commit, tree, release assets and lock identities are frozen.
+evidence_required: [signed-owner-decision, day0-baseline-receipt]
+rollback: [Revert only this metadata PR and leave the legacy product tree unchanged.]
+work_base_policy: activation-commit-or-disjoint-descendant
+receipt_policy: external-exact-sha-ci-attestation

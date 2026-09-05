@@ -1,0 +1,127 @@
+schema: archeaxis.project-contract/v1
+schema_version: 1
+contract_version: 1.0.0-draft
+effective_at: "2026-09-04T00:00:00Z"
+project: ArcheAxis Knowledge
+stage: vnext-day0-plan
+scope:
+  included:
+    - local Windows desktop knowledge workflow
+    - trustworthy import, anchor, review, retrieval, learning, restart, export and restore
+  excluded_until_v01_go:
+    - system-level platform
+    - WORK-LAB or DESIGN-LAB runtime contracts
+    - plugin marketplace
+    - online collaboration and cross-device sync
+    - graph database and full event sourcing
+    - automatic full-web verification
+  planned_after_v01:
+    - bounded full-web research and source-independence clustering
+    - claim-level cross-comparison and original-source localization
+    - human gold sets for local-versus-cloud model evaluation
+    - CoverageReceipt and MachineCompetenceReceipt
+language_authority:
+  desktop:
+    language: csharp
+    runtime: dotnet-10-lts
+    framework: avalonia-12.1.x
+    may_authoritative_write: false
+  core:
+    language: rust
+    edition: "2024"
+    toolchain: pinned-stable
+    responsibilities:
+      - domain
+      - application
+      - local-api
+      - sqlite-store
+      - migration
+      - backup-restore
+      - job-orchestration
+    may_authoritative_write: true
+  capability_workers:
+    language: python
+    runtime_policy: isolated-per-pack
+    may_authoritative_write: false
+  contracts:
+    http: openapi-3.1
+    messages: json-schema-2020-12
+data_authority:
+  database: sqlite
+  writer: rust-writer-actor
+  readers: core-managed-readonly
+  raw_objects: sha256-content-addressed-storage
+  projections:
+    first: sqlite-fts5
+    later_when_measured: vector-index
+  prohibited:
+    - ui-direct-sql
+    - worker-direct-sql
+    - agent-direct-sql
+    - dual-write
+    - copy-live-sqlite-wal-shm
+legacy:
+  product_paths: maintenance-only
+  frozen_release: v0.6.14
+  frozen_commit: c202c5b5a4789f0dc21accaa7ccbfed4676f0573
+  role:
+    - recoverable-baseline
+    - behavior-oracle
+    - migration-source
+  migration: consistent-snapshot-to-read-only-export-to-rust-import
+  prohibited:
+    - rust-write-to-legacy-database
+    - shared-writable-database
+    - live-sync
+    - dual-write
+runtime:
+  ui_to_core: loopback-http-json
+  core_to_worker: stdio-ndjson
+  ffi_initially: false
+  local_auth:
+    bind: 127.0.0.1
+    port: random
+    token: per-launch
+delivery:
+  preview_day: 20
+  release_candidate_week: 6
+  supported_product_platform_initially:
+    - windows-11-x64
+  mandatory_journey: tests/journey/v01-owner-loop.yaml
+agent_protocol:
+  project_contract_schema: .project/schemas/project-contract.schema.json
+  directory_authority_schema: .project/schemas/directory-authority.schema.json
+  decision_supersession_ledger_schema: .project/schemas/decision-supersession-ledger.schema.json
+  legacy_manifest_schema: .project/schemas/legacy-manifest.schema.json
+  program_graph: .project/TASK-GRAPH.yaml
+  program_graph_schema: .project/schemas/task-graph.schema.json
+  execution_slice_blueprints: .project/EXECUTION-SLICE-BLUEPRINTS.yaml
+  execution_slice_blueprints_schema: .project/schemas/execution-slice-blueprints.schema.json
+  gate_registry: .project/GATE-REGISTRY.yaml
+  gate_registry_schema: .project/schemas/gate-registry.schema.json
+  gate_plan_schema: .project/schemas/gate-plan.schema.json
+  task_template: .project/schemas/task-template.schema.json
+  issued_task_envelope: .project/schemas/task-envelope.schema.json
+  receipt: .project/schemas/task-receipt.schema.json
+  program_completion_receipt: .project/schemas/program-completion-receipt.schema.json
+  authority_grant: .project/schemas/authority-grant.schema.json
+  authority_revocation: .project/schemas/authority-revocation.schema.json
+  digest_profile: docs/operations/digest-canonicalization.md
+  trusted_source: protected-metadata-only-activation-commit
+  one_task_one_branch_one_worktree_one_agent: true
+  authority_changes_require_remote_grant: true
+  same_machine_coordination_lock_backend: git-common-dir/archeaxis-agent/state.sqlite
+  per_worktree_scratch: .project-local
+  canonical_receipt: external-exact-sha-ci-attestation
+  issued_envelope_path: .project/tasks/issued/<plan-id>/<task-id>/<issuance-id>.json
+  issued_grant_path: .project/leases/issued/<plan-id>/<task-id>/<issuance-id>/<grant-id>.json
+  bootstrap: pr00-through-pr03-owner-only-then-replay-with-installed-validator
+  required_remote_checks:
+    - vnext-scope-gate
+    - vnext-required
+licensing:
+  first_party: MIT
+  intended_use: personal-research-noncommercial
+  intended_use_is_not_a_license_restriction: true
+  third_party_obligations_remain: true
+  optional_restricted_components: capability-packs

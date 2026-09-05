@@ -1,0 +1,108 @@
+schema: archeaxis.legacy-manifest/v1
+schema_version: 1
+manifest_id: legacy-main-ce3c2de5
+baseline:
+  repo: DTALEX66/ArcheAxis-Knowledge-OS
+  commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
+  release: v0.6.14
+  tree_sha: replace-with-api-tree-sha
+  captured_at: replace-with-rfc3339-utc
+target_adr: docs/decisions/ADR-0001-vnext-language-authority.md
+use_profile: personal-research-noncommercial
+policies:
+  no_shared_db: true
+  no_dual_write: true
+  default_decision: unclassified-read-only
+  exact_one_entry_per_baseline_file: true
+allowed_decisions: [reuse, wrap, port, oracle, retire]
+
+entries:
+  - asset_id: legacy-processing-manifest
+    source:
+      paths: [shared/processing_manifest.py]
+      commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
+      blob_sha256: replace-with-content-sha256
+    kind: python-module
+    capability: processing-receipt
+    authority_class: legacy-stateful
+    runtime_reachable: true
+    decision: wrap
+    decision_reason: Preserve deterministic transformation behavior, remove all authoritative storage effects.
+    destination: services/python-workers/processing-manifest
+    invariants_to_preserve: [deterministic-receipt]
+    allowed_effects: [read-job-input, write-job-scratch, emit-ndjson]
+    forbidden_effects: [open-vnext-database, open-legacy-database, write-cas]
+    database_access: forbidden
+    network_access: forbidden
+    external_processes: []
+    dependencies: []
+    license:
+      spdx_expression: MIT
+      evidence_path: LICENSE
+      notice_paths: []
+      redistribution_class: A
+      network_service_condition: none
+      model_or_dataset_terms: none
+    rights:
+      fixture_class: project-owned-synthetic
+    privacy:
+      contains_user_data: false
+    qualification:
+      fixtures: []
+      required_checks: [worker-schema, deterministic-output, no-db-boundary]
+    migration:
+      source_schema: null
+      target_aggregate: Job
+      loss_policy: explicit-receipt
+    owner: python-capability-lane
+    status: proposed
+    introduced_pr: null
+    retire_when: two-qualified-milestones
+    supersedes: null
+
+  - asset_id: legacy-frontend
+    source:
+      paths: [frontend/**]
+      commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
+      blob_sha256: per-file-required-after-glob-expansion
+    kind: ui-tree
+    capability: legacy-desktop-interaction
+    authority_class: behavior-oracle
+    runtime_reachable: true
+    decision: oracle
+    decision_reason: Preserve screenshots, labels and journey intent; React runtime is not a vNext dependency.
+    destination: apps/desktop
+    invariants_to_preserve: [owner-visible-journey-intent]
+    allowed_effects: [fixture-reference]
+    forbidden_effects: [runtime-import, new-product-feature]
+    database_access: forbidden
+    network_access: as-observed-only
+    external_processes: []
+    dependencies: [legacy-lockfile]
+    license:
+      spdx_expression: review-required
+      evidence_path: THIRD_PARTY_NOTICES.md
+      notice_paths: [THIRD_PARTY_NOTICES.md]
+      redistribution_class: D
+      network_service_condition: review-required
+      model_or_dataset_terms: none
+    rights:
+      fixture_class: screenshot-review-required
+    privacy:
+      contains_user_data: unknown
+    qualification:
+      fixtures: []
+      required_checks: [visual-oracle-review]
+    migration:
+      source_schema: null
+      target_aggregate: null
+      loss_policy: not-applicable
+    owner: avalonia-ui-lane
+    status: proposed
+    introduced_pr: null
+    retire_when: avalonia-journey-qualified
+    supersedes: null
+
+# The real manifest must expand every glob and prove that every file at the
+# baseline commit is covered exactly once. A broad fallback `**/*: oracle` is
+# forbidden because it hides unclassified assets.

@@ -1,0 +1,60 @@
+schema: archeaxis.task-template/v1
+schema_version: 1
+state: template
+template_role: program-blueprint
+plan_id: AAK-VNEXT-2026-09-04
+program_task_id: PR-04
+task_id: PR-04
+slice_key: derive-at-jit
+issuance_id: replace-with-issuance-id
+issuer: replace-with-owner-issuer
+assignee: replace-with-contract-agent
+not_before: replace-with-rfc3339-not-before
+issued_at: replace-with-rfc3339-issued-at
+expires_at: replace-with-rfc3339-expires-at
+subject_base_sha: replace-with-protected-parent-after-pr-03
+subject_base_tree: replace-with-subject-base-tree
+execution_mode: derive-from-slice-blueprint
+execution_lane: derive-from-slice-blueprint
+task_kind: contracts
+priority: P0
+risk: R2
+objective: Finalize language-neutral Contract v1, errors, idempotency, Unicode anchors and version negotiation before runtime implementation starts.
+depends_on: [PR-03]
+dependency_program_receipts:
+  - {program_task_id: PR-03, program_graph_sha256: replace-with-program-graph-sha256, aggregated_main_sha: replace-with-pr-03-aggregated-main-sha, aggregated_main_tree: replace-with-pr-03-aggregated-main-tree, receipt_payload_sha256: replace-with-pr-03-completion-receipt-payload-sha256, status: PASS}
+program_graph_sha256: replace-with-program-graph-sha256
+program_acceptance_refs: [PR-04:A01, PR-04:A02, PR-04:A03]
+program_evidence_refs: [PR-04:E01, PR-04:E02]
+preconditions:
+  - PR-03 Program completion and bootstrap replay attestations are valid
+machine_requirements:
+  os: any
+  architecture: x86_64
+  clean_host: false
+  network: denied
+  gpu: none
+  credentials: []
+  filesystem_isolation: job-local
+  external_waits_satisfied: replace-with-true-after-preflight
+artifact_inputs: []
+authority_manifest_sha256: replace-with-authority-manifest-sha256
+consumed_interfaces:
+  entries: []
+  digest_sha256: replace-with-empty-or-consumed-interface-manifest-sha256
+scope:
+  allowed_operations: [create, modify]
+  allowed_paths: [packages/contracts/v1/**, crates/archeaxis-contracts/**, apps/desktop/src/ArcheAxis.Desktop.Contracts.Generated/**, services/python-workers/**/generated/**, tests/contract/**, docs/architecture/v01-domain-contract.md]
+  forbidden_paths: [crates/archeaxis-domain/**, crates/archeaxis-application/**, crates/archeaxis-store-sqlite/**, services/local-service/**, .github/**]
+  limits: {max_files: 25, max_added_lines: 2500, max_deleted_lines: 500, max_binary_bytes: 0, max_effort_hours: 16, max_duration_hours: 48}
+required_gate_ids: [openapi-lint, json-schema-validation, csharp-generation-drift, rust-generation-drift, python-generation-drift, three-language-canonical-fixtures, backward-compatibility-check, rust-quality-suite, dotnet-desktop-quality, python-quality-suite]
+gate_registry_sha256: replace-with-gate-registry-sha256
+authority_grant_ids: [replace-with-contract-grant-id]
+acceptance:
+  - OpenAPI, JSON Schema, worker, migration, error, idempotency and version semantics are unified.
+  - Rust, C# and Python agree on canonical JSON, Unicode offsets, unknown fields and major/minor mismatch behavior.
+  - Generated outputs have zero drift from the protected contract source.
+evidence_required: [three-language-contract-matrix, fixture-hashes]
+rollback: [Revert the unadopted Contract v1 draft and generated consumers together.]
+work_base_policy: activation-commit-or-disjoint-descendant
+receipt_policy: external-exact-sha-ci-attestation

@@ -1,0 +1,38 @@
+schema: archeaxis.decision-supersession-ledger/v1
+schema_version: 1
+effective_at: "2026-09-04T00:00:00Z"
+rules:
+  - later rows do not silently erase earlier evidence
+  - a superseding row must name the old claim and the replacement
+  - status controls implementation authority, not whether a historical record is retained
+decisions:
+  - id: SUP-001
+    status: effective
+    old_claim: C# is the sole authoritative business and database writer
+    replacement: Rust Core and WriterActor are the sole authoritative vNext business and database writer; C#/Avalonia is desktop UI and Supervisor
+    reason: final zero-based language architecture decision
+  - id: SUP-002
+    status: effective
+    old_claim: retiring React/Tauri implies Python remains domain authority
+    replacement: React/Tauri UI retires; Python is isolated capability-worker only; Rust Core remains domain authority
+    reason: corrected over-expansion in the 2026-09-03 handoff
+  - id: SUP-003
+    status: effective
+    old_claim: G0 prohibits every additional database
+    replacement: a separate vNext database is allowed when Rust is its sole writer; Rust may not write the legacy database and dual-write/live-sync remain prohibited
+    reason: narrowed G0 to preserve data-authority safety while enabling vNext
+  - id: SUP-004
+    status: effective
+    old_claim: content without external evidence must not enter the product
+    replacement: valuable personal knowledge, definitions, experiences, hypotheses, rumors and forecasts may enter; evidence state governs labeling and use
+    reason: evidence is a use constraint, not an admission gate
+  - id: SUP-005
+    status: effective
+    old_claim: personal noncommercial purpose requires a noncommercial first-party license
+    replacement: first-party code remains MIT; personal research/noncommercial is intended use, while third-party obligations are governed separately
+    reason: project purpose and legal license are distinct
+  - id: SUP-006
+    status: effective
+    old_claim: Rust should shadow and then take over aggregate writers against the legacy database
+    replacement: legacy Python remains the only legacy-database writer; Rust owns a separate vNext database from Day 1 and receives data only through consistent snapshot, read-only export, staging import and Owner activation
+    reason: isolated authority removes shared-database cutover and dual-write risk while retaining migration proof requirements

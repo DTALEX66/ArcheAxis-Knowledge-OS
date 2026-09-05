@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/project/schemas/authority-revocation.schema.json",
+  "title": "ArcheAxis Authority Grant Revocation",
+  "description": "Immutable later record that revokes an immutable issued grant without editing its activation commit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "schema_version", "grant_id", "grant_sha256", "plan_id",
+    "task_id", "issuance_id", "revoked_at", "revoked_by", "reason"
+  ],
+  "properties": {
+    "schema": {"const": "archeaxis.authority-revocation/v1"},
+    "schema_version": {"const": 1},
+    "grant_id": {"type": "string", "pattern": "^GRANT-[A-Za-z0-9._-]{8,80}$"},
+    "grant_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "plan_id": {"type": "string", "minLength": 3},
+    "task_id": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?(?:-S[0-9]{2})?$"},
+    "issuance_id": {"type": "string", "pattern": "^ISS-[A-Za-z0-9._-]{8,80}$"},
+    "revoked_at": {"type": "string", "format": "date-time"},
+    "revoked_by": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+  }
+}

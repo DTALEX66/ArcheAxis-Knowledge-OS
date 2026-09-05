@@ -1,0 +1,61 @@
+schema: archeaxis.task-template/v1
+schema_version: 1
+state: template
+template_role: program-blueprint
+plan_id: AAK-VNEXT-2026-09-04
+program_task_id: PR-01
+task_id: PR-01
+slice_key: derive-at-jit
+issuance_id: replace-with-issuance-id
+issuer: replace-with-owner-issuer
+assignee: replace-with-ci-agent
+not_before: replace-with-rfc3339-not-before
+issued_at: replace-with-rfc3339-issued-at
+expires_at: replace-with-rfc3339-expires-at
+subject_base_sha: replace-with-protected-parent-after-pr-00
+subject_base_tree: replace-with-subject-base-tree
+execution_mode: derive-from-slice-blueprint
+execution_lane: derive-from-slice-blueprint
+task_kind: ci
+priority: P0
+risk: R2
+objective: Create one hermetic full-suite entry point and remove live-network, inherited-path, browser-order and shared-run-root nondeterminism.
+depends_on: [PR-00]
+dependency_program_receipts:
+  - {program_task_id: PR-00, program_graph_sha256: replace-with-program-graph-sha256, aggregated_main_sha: replace-with-pr-00-aggregated-main-sha, aggregated_main_tree: replace-with-pr-00-aggregated-main-tree, receipt_payload_sha256: replace-with-pr-00-completion-receipt-payload-sha256, status: PASS}
+program_graph_sha256: replace-with-program-graph-sha256
+program_acceptance_refs: [PR-01:A01, PR-01:A02, PR-01:A03, PR-01:A04]
+program_evidence_refs: [PR-01:E01, PR-01:E02, PR-01:E03]
+preconditions:
+  - PR-00 Program completion receipt is valid
+machine_requirements:
+  os: any
+  architecture: x86_64
+  clean_host: false
+  network: denied
+  gpu: none
+  credentials: []
+  filesystem_isolation: job-local
+  external_waits_satisfied: replace-with-true-after-preflight
+artifact_inputs: []
+authority_manifest_sha256: replace-with-authority-manifest-sha256
+consumed_interfaces:
+  entries: []
+  digest_sha256: replace-with-empty-or-consumed-interface-manifest-sha256
+scope:
+  allowed_operations: [create, modify]
+  allowed_paths: [scripts/ci/run_tests.sh, .github/workflows/ci.yml, .github/workflows/nightly.yml, conftest.py, tests/**, integration-tests/**, knowledge_base/tests/**]
+  forbidden_paths: [app/**, shared/**, frontend/**, src-tauri/**, "**/*.db"]
+  limits: {max_files: 25, max_added_lines: 2000, max_deleted_lines: 1000, max_binary_bytes: 0, max_effort_hours: 16, max_duration_hours: 48}
+required_gate_ids: [collection-manifest-check, two-offline-full-runs, exact-sha-nightly]
+gate_registry_sha256: replace-with-gate-registry-sha256
+authority_grant_ids: [replace-with-ci-grant-id]
+acceptance:
+  - Full mode collects tests, integration-tests and knowledge_base/tests from one declared command.
+  - Newspaper uses a local HTTP fixture and the browser job installs a pinned Chromium first.
+  - Inherited PYTHONPATH and legacy data roots are cleared and concurrent runs are isolated.
+  - Nightly passes its triggering ref to checkout without drift.
+evidence_required: [collection-manifest, two-offline-runs, exact-sha-nightly]
+rollback: [Revert the slice and remove only its exact isolated run root.]
+work_base_policy: activation-commit-or-disjoint-descendant
+receipt_policy: external-exact-sha-ci-attestation

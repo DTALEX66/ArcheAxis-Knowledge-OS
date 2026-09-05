@@ -1,0 +1,360 @@
+schema: archeaxis.directory-authority/v1
+schema_version: 1
+matching:
+  syntax: gitwildmatch
+  case_sensitive: true
+  path_separator: "/"
+  precedence:
+    - deny
+    - exact-path
+    - highest-literal-segment-count
+    - longest-literal-prefix
+  ambiguous_match: reject
+  execution_lane:
+    envelope_cardinality: exactly-one
+    rule_fields_mutually_exclusive: [execution_lane, execution_lanes]
+    singular_match: exact
+    plural_match: envelope-lane-must-be-a-member
+    inheritance: none
+    writable_rule_without_lane: reject
+    deny_rule_without_lane: allowed
+    mismatch: reject
+default:
+  read: allowed
+  write: denied
+  authorization: unique-directory-authority-match-and-issued-envelope
+  generated_files: source-controlled-and-drift-checked
+authorities:
+  - path: AGENTS.md
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+  - path: PROJECT_CONTRACT.yaml
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+  - path: DIRECTORY_AUTHORITY.yaml
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+  - path: LEGACY_MANIFEST.yaml
+    owner: migration
+    execution_lanes: [owner, migration]
+    write_mode: serial-grant
+    protected_resource: legacy-manifest
+  - path: DECISION_SUPERSESSION_LEDGER.yaml
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+  - path: .project/**
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance-protocol
+  - path: .project-local/**
+    owner: none
+    write_mode: deny-commit
+  - path: .codex/**
+    owner: none
+    write_mode: deny-commit
+  - path: .dsh/**
+    owner: none
+    write_mode: deny-commit
+  - path: .hermes/**
+    owner: legacy-tooling
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: existing tracked files must be inventoried; runtime state and new vendor authority remain forbidden
+  - path: apps/desktop/**
+    owner: avalonia-ui
+    execution_lane: avalonia-ui
+    language: csharp
+    may_open_main_database: false
+  - path: crates/archeaxis-domain/**
+    owner: rust-core
+    execution_lane: rust-core
+    language: rust
+    may_open_main_database: false
+  - path: crates/archeaxis-application/**
+    owner: rust-core
+    execution_lane: rust-core
+    language: rust
+    may_open_main_database: false
+  - path: crates/archeaxis-contracts/**
+    owner: contract-authority
+    execution_lane: contract
+    language: rust
+    write_mode: serial-grant
+    protected_resource: contracts
+    may_open_main_database: false
+  - path: crates/archeaxis-store-sqlite/migrations/**
+    owner: migration
+    execution_lane: migration
+    language: rust
+    write_mode: serial-grant
+    protected_resource: vnext-database-migrations
+    may_open_main_database: through-store-only
+  - path: crates/archeaxis-api/**
+    owner: rust-core
+    execution_lane: rust-core
+    language: rust
+    may_open_main_database: false
+  - path: crates/archeaxis-sidecar-protocol/**
+    owner: rust-core
+    execution_lane: rust-core
+    language: rust
+    may_open_main_database: false
+  - path: crates/archeaxis-migration/**
+    owner: migration
+    execution_lane: migration
+    language: rust
+    write_mode: serial-grant
+    protected_resource: vnext-migration
+    may_open_main_database: through-store-only
+  - path: crates/archeaxis-store-sqlite/**
+    owner: rust-store
+    execution_lane: rust-store
+    language: rust
+    may_open_main_database: true
+  - path: crates/archeaxis-archive/**
+    owner: rust-archive
+    execution_lane: rust-store
+    language: rust
+    may_open_main_database: through-store-only
+  - path: services/local-service/**
+    owner: rust-service
+    execution_lane: rust-core
+    language: rust
+    may_open_main_database: through-store-only
+  - path: services/python-workers/**
+    owner: python-capabilities
+    execution_lane: python-worker
+    language: python
+    may_open_main_database: false
+  - path: packages/contracts/**
+    owner: contract-authority
+    execution_lane: contract
+    write_mode: serial-grant
+    protected_resource: contracts
+  - path: apps/desktop/src/ArcheAxis.Desktop.Contracts.Generated/**
+    owner: contract-authority
+    execution_lane: contract
+    write_mode: serial-grant
+    protected_resource: generated-contracts
+  - path: services/python-workers/**/generated/**
+    owner: contract-authority
+    execution_lane: contract
+    write_mode: serial-grant
+    protected_resource: generated-contracts
+  - path: config/**
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance-config
+  - path: fixtures/**
+    owner: fixture-authority
+    execution_lane: journey
+  - path: scripts/**
+    owner: automation
+    execution_lanes: [owner, ci, release, journey, migration]
+  - path: tools/**
+    owner: developer-tooling
+    execution_lanes: [owner, ci, journey]
+  - path: tests/contract/**
+    owner: contract-tests
+    execution_lane: journey
+  - path: tests/**
+    owner: journey-authority
+    execution_lane: journey
+  - path: integration-tests/**
+    owner: legacy-integration-tests
+    execution_lane: ci
+    write_mode: maintenance-only-task-envelope
+  - path: knowledge_base/tests/**
+    owner: legacy-knowledge-tests
+    execution_lane: ci
+    write_mode: maintenance-only-task-envelope
+  - path: tests/integration/**
+    owner: integration-tests
+    execution_lane: journey
+  - path: tests/migration/**
+    owner: migration-tests
+    execution_lane: migration
+    write_mode: serial-grant
+    protected_resource: vnext-migration
+  - path: tests/journey/**
+    owner: journey-authority
+    execution_lane: journey
+  - path: integrations/legacy/**
+    owner: migration
+    execution_lane: migration
+    write_mode: serial-grant
+    protected_resource: legacy-export
+  - path: packaging/**
+    owner: release
+    execution_lane: release
+    write_mode: serial-grant
+    protected_resource: packaging
+  - path: .github/workflows/release.yml
+    owner: release
+    execution_lane: release
+    write_mode: serial-grant
+    protected_resource: release-workflows
+  - path: .github/workflows/vnext-release.yml
+    owner: release
+    execution_lane: release
+    write_mode: serial-grant
+    protected_resource: release-workflows
+  - path: .github/workflows/vnext-ci.yml
+    owner: ci-release-authority
+    execution_lanes: [ci, release]
+    write_mode: serial-grant
+    protected_resource: ci
+  - path: .github/**
+    owner: ci-authority
+    execution_lane: ci
+    write_mode: serial-grant
+    protected_resource: ci
+  - path: docs/authority/**
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+  - path: docs/**
+    owner: documentation
+    execution_lanes: [owner, contract, ci, release, rust-core, rust-store, avalonia-ui, python-worker, journey, migration]
+  - path: taskpacks/**
+    owner: repository-governance
+    execution_lane: owner
+  - path: reports/vnext/**
+    owner: ci-attestation-audit-copy
+    execution_lane: ci
+    write_mode: later-metadata-task-only-nonauthoritative
+  - path: reports/release/**
+    owner: release
+    execution_lane: release
+    write_mode: serial-grant
+    protected_resource: release-evidence
+  - path: Cargo.toml
+    owner: rust-workspace
+    execution_lanes: [owner, rust-core]
+    write_mode: serial-grant
+    protected_resource: dependency-locks-and-versions
+  - path: Cargo.lock
+    owner: rust-workspace
+    execution_lane: rust-core
+    write_mode: serial-grant
+    protected_resource: dependency-locks-and-versions
+  - path: rust-toolchain.toml
+    owner: rust-workspace
+    execution_lanes: [owner, rust-core]
+    write_mode: serial-grant
+    protected_resource: dependency-locks-and-versions
+  - path: global.json
+    owner: dotnet-workspace
+    execution_lanes: [owner, avalonia-ui]
+    write_mode: serial-grant
+    protected_resource: dependency-locks-and-versions
+  - path: Directory.Packages.props
+    owner: dotnet-workspace
+    execution_lanes: [owner, avalonia-ui]
+    write_mode: serial-grant
+    protected_resource: dependency-locks-and-versions
+  - path: "**/uv.lock"
+    owner: python-capabilities
+    execution_lane: python-worker
+    write_mode: serial-grant
+    protected_resource: dependency-locks-and-versions
+  - path: conftest.py
+    owner: ci-authority
+    execution_lane: ci
+  - path: .gitignore
+    owner: repository-governance
+    execution_lane: owner
+  - path: app/**
+    owner: legacy-python-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: shared/**
+    owner: legacy-python-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: knowledge_base/**
+    owner: legacy-python-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: frontend/**
+    owner: legacy-react-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: src-tauri/**
+    owner: legacy-tauri-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+  - path: desktop/**
+    owner: legacy-desktop-product
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+protected_resource_overrides:
+  semantics: independent-overlay-after-authority-selection
+  matching: gitwildmatch
+  ambiguity: reject
+  rules:
+    - path: "**/uv.lock"
+      protected_resource: dependency-locks-and-versions
+      write_mode: serial-grant
+      note: applies even when a more-specific directory authority rule owns the lock file
+protected_files:
+  - AGENTS.md
+  - PROJECT_CONTRACT.yaml
+  - DIRECTORY_AUTHORITY.yaml
+  - LEGACY_MANIFEST.yaml
+  - DECISION_SUPERSESSION_LEDGER.yaml
+  - Cargo.lock
+  - Directory.Packages.props
+  - "**/uv.lock"
+  - .project/**
+  - .github/**
+  - packages/contracts/**
+  - crates/archeaxis-contracts/**
+  - crates/archeaxis-store-sqlite/migrations/**
+  - crates/archeaxis-migration/**
+  - integrations/legacy/**
+  - config/**
+  - packaging/**
+  - reports/release/**
+  - Cargo.toml
+  - rust-toolchain.toml
+  - global.json
+protected_file_semantics: protected_files is an overlay; any matching path requires a remote grant even when its selected ownership rule is otherwise non-serial
+ignored_local_roots:
+  - .project-local/worktrees/
+  - .project-local/agents/
+  - .project-local/leases/
+  - .project-local/runs/
+  - .project-local/cache/
+  - .project-local/tmp/
+  - .project-local/logs/
+  - .project-local/artifacts/
+coordination_state:
+  same_machine_backend: git-common-dir/archeaxis-agent/state.sqlite
+  tracked: false
+  shared_across_worktrees: true
+  purpose:
+    - local-coordination-locks
+    - active-task-ownership
+    - worktree-heartbeats
+  rule: neither this database nor .project-local can grant remote merge authority; issued grants live on the protected branch
+legacy_roots:
+  mode: maintenance-only-and-read-only-until-file-classified
+  enforced_authority_rules:
+    - app/**
+    - shared/**
+    - knowledge_base/**
+    - frontend/**
+    - src-tauri/**
+    - desktop/**

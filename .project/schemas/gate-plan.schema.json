@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/project/schemas/gate-plan.schema.json",
+  "title": "ArcheAxis Frozen GatePlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "schema_version", "plan_id", "task_id", "issuance_id",
+    "subject_head_sha", "gate_registry_sha256", "sources", "selection_trace", "gates",
+    "gate_plan_payload_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "archeaxis.gate-plan/v1"},
+    "schema_version": {"const": 1},
+    "plan_id": {"type": "string", "minLength": 3},
+    "task_id": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?(?:-S[0-9]{2})?$"},
+    "issuance_id": {"type": "string", "pattern": "^ISS-[A-Za-z0-9._-]{8,80}$"},
+    "subject_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "gate_registry_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sources": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task", "path", "risk"],
+      "properties": {
+        "task": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "path": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "risk": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "selection_trace": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "description": "Auditable pre-execution decisions for candidate gates. NOT_APPLICABLE exists only here; it is never a result for an entry in gates.",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["gate_id", "source", "rule_ref", "decision", "reason", "evidence_refs"],
+        "properties": {
+          "gate_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,100}$"},
+          "source": {"enum": ["task", "path", "risk"]},
+          "rule_ref": {"type": "string", "minLength": 1, "maxLength": 300},
+          "decision": {"enum": ["SELECTED_REQUIRED", "NOT_APPLICABLE"]},
+          "reason": {"type": "string", "minLength": 1, "maxLength": 1000},
+          "evidence_refs": {
+            "type": "array", "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1, "maxLength": 2000}
+          }
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"decision": {"const": "NOT_APPLICABLE"}}, "required": ["decision"]},
+            "then": {"properties": {"evidence_refs": {"minItems": 1}}}
+          }
+        ]
+      }
+    },
+    "gates": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "description": "The de-duplicated set selected as required by selection_trace. Every listed gate must return PASS; non-applicable candidates are omitted.",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["gate_id", "job_name", "runner", "timeout_minutes", "required"],
+        "properties": {
+          "gate_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,100}$"},
+          "job_name": {"type": "string", "minLength": 1},
+          "runner": {"type": "string", "minLength": 1},
+          "timeout_minutes": {"type": "integer", "minimum": 1},
+          "required": {"const": true}
+        }
+      }
+    },
+    "gate_plan_payload_sha256": {
+      "type": "string", "pattern": "^[0-9a-f]{64}$",
+      "description": "AAK-JCS-1 digest after removing this field."
+    }
+  }
+}

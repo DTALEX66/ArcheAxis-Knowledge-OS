@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/project/schemas/task-envelope.schema.json",
+  "title": "ArcheAxis Issued Task Envelope",
+  "description": "Strict authorization document. Templates use a different schema and can never authorize work.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "schema_version", "state", "plan_id", "program_task_id",
+    "task_id", "slice_key", "issuance_id", "issuer", "assignee", "not_before", "issued_at", "expires_at",
+    "subject_base_sha", "subject_base_tree", "execution_mode", "execution_lane", "task_kind",
+    "priority", "risk", "objective", "depends_on", "dependency_program_receipts",
+    "program_graph_sha256", "program_acceptance_refs", "program_evidence_refs",
+    "preconditions", "machine_requirements", "artifact_inputs",
+    "authority_manifest_sha256", "consumed_interfaces", "scope",
+    "required_gate_ids", "gate_registry_sha256", "authority_grant_ids",
+    "acceptance", "evidence_required", "rollback", "work_base_policy",
+    "receipt_policy"
+  ],
+  "$defs": {
+    "taskId": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?(?:-S[0-9]{2})?$"},
+    "programTaskId": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?$"},
+    "sha40": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "exactRepoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*[?*\\[\\]{}]).+$"
+    }
+  },
+  "properties": {
+    "schema": {"const": "archeaxis.task/v1"},
+    "schema_version": {"const": 1},
+    "state": {"const": "issued"},
+    "plan_id": {"type": "string", "pattern": "^[A-Z0-9][A-Z0-9._-]{2,80}$"},
+    "program_task_id": {"$ref": "#/$defs/programTaskId"},
+    "task_id": {"$ref": "#/$defs/taskId"},
+    "slice_key": {"type": "string", "pattern": "^(?:single|[a-z0-9][a-z0-9-]{2,80})$"},
+    "issuance_id": {"type": "string", "pattern": "^ISS-[A-Za-z0-9._-]{8,80}$"},
+    "issuer": {"type": "string", "minLength": 1, "maxLength": 200},
+    "assignee": {"type": "string", "minLength": 1, "maxLength": 200},
+    "not_before": {"type": "string", "format": "date-time"},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "subject_base_sha": {"$ref": "#/$defs/sha40"},
+    "subject_base_tree": {"$ref": "#/$defs/sha40"},
+    "execution_mode": {"enum": ["implementation", "qualification-no-diff"]},
+    "execution_lane": {
+      "enum": ["owner", "contract", "rust-core", "rust-store", "avalonia-ui", "python-worker", "journey", "migration", "ci", "release"]
+    },
+    "task_kind": {
+      "enum": ["authority", "governance", "contracts", "ci", "ci-release", "rust", "rust-contract", "desktop", "python", "quality", "integration", "qualification", "packaging", "release", "legacy", "migration", "research", "evaluation", "retire", "capability", "search"]
+    },
+    "priority": {"enum": ["P0", "P1", "P2", "P3"]},
+    "risk": {"enum": ["R0", "R1", "R2", "R3", "R4"]},
+    "objective": {"type": "string", "minLength": 10, "maxLength": 1000},
+    "depends_on": {
+      "type": "array", "uniqueItems": true,
+      "items": {"$ref": "#/$defs/taskId"}
+    },
+    "dependency_program_receipts": {
+      "type": "array", "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["program_task_id", "program_graph_sha256", "aggregated_main_sha", "aggregated_main_tree", "receipt_payload_sha256", "status"],
+        "properties": {
+          "program_task_id": {"$ref": "#/$defs/programTaskId"},
+          "program_graph_sha256": {"$ref": "#/$defs/sha256"},
+          "aggregated_main_sha": {"$ref": "#/$defs/sha40"},
+          "aggregated_main_tree": {"$ref": "#/$defs/sha40"},
+          "receipt_payload_sha256": {"$ref": "#/$defs/sha256"},
+          "status": {"const": "PASS"}
+        }
+      }
+    },
+    "program_graph_sha256": {"$ref": "#/$defs/sha256"},
+    "program_acceptance_refs": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?:A[0-9]{2}$"}
+    },
+    "program_evidence_refs": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?:E[0-9]{2}$"}
+    },
+    "preconditions": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 500}
+    },
+    "machine_requirements": {
+      "type": "object", "additionalProperties": false,
+      "required": ["os", "architecture", "clean_host", "network", "gpu", "credentials", "filesystem_isolation", "external_waits_satisfied"],
+      "properties": {
+        "os": {"enum": ["any", "windows-11"]},
+        "architecture": {"enum": ["any", "x86_64", "aarch64"]},
+        "clean_host": {"type": "boolean"},
+        "network": {"enum": ["denied", "explicit-opt-in", "required"]},
+        "gpu": {"enum": ["none", "optional", "required"]},
+        "credentials": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "filesystem_isolation": {"enum": ["job-local", "disposable-workspace", "isolated-legacy-copy", "release-host"]},
+        "external_waits_satisfied": {"const": true}
+      }
+    },
+    "artifact_inputs": {
+      "type": "array", "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["input_id", "kind", "uri", "sha256", "required", "rights_record_id", "qualification_receipt_sha256"],
+        "properties": {
+          "input_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,100}$"},
+          "kind": {"enum": ["fixture", "candidate", "legacy-export", "legacy-copy", "model", "runtime", "rights-manifest", "external-attestation"]},
+          "uri": {"type": "string", "minLength": 1, "maxLength": 2000},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "required": {"type": "boolean"},
+          "rights_record_id": {"type": ["string", "null"]},
+          "qualification_receipt_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+        }
+      }
+    },
+    "authority_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "consumed_interfaces": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entries", "digest_sha256"],
+      "properties": {
+        "entries": {
+          "type": "array", "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["path", "mode", "blob_sha256"],
+            "properties": {
+              "path": {"$ref": "#/$defs/repoPath"},
+              "mode": {"enum": ["contract", "generated-input", "fixture", "runtime-interface", "legacy-oracle"]},
+              "blob_sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        },
+        "digest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "manifest_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id", "manifest_path", "manifest_sha256", "digest_profile",
+        "manifest_entry_id", "manifest_entry_sha256", "required_decision",
+        "required_status", "expansion_base_sha", "entry_exact_paths_sha256",
+        "part_index", "part_count", "expanded_paths", "expanded_paths_sha256",
+        "owner_approval_receipt_sha256"
+      ],
+      "properties": {
+        "policy_id": {"const": "PR-32-legacy-retirement-v1"},
+        "manifest_path": {"const": "LEGACY_MANIFEST.yaml"},
+        "manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "digest_profile": {"const": "AAK-JCS-1"},
+        "manifest_entry_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,100}$"},
+        "manifest_entry_sha256": {"$ref": "#/$defs/sha256"},
+        "required_decision": {"const": "retire"},
+        "required_status": {"const": "approved"},
+        "expansion_base_sha": {"$ref": "#/$defs/sha40"},
+        "entry_exact_paths_sha256": {"$ref": "#/$defs/sha256"},
+        "part_index": {"type": "integer", "minimum": 1},
+        "part_count": {"type": "integer", "minimum": 1},
+        "expanded_paths": {
+          "type": "array", "minItems": 1, "maxItems": 25, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/exactRepoPath"}
+        },
+        "expanded_paths_sha256": {"$ref": "#/$defs/sha256"},
+        "owner_approval_receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["allowed_operations", "allowed_paths", "forbidden_paths", "limits"],
+      "properties": {
+        "allowed_operations": {
+          "type": "array", "uniqueItems": true,
+          "items": {"enum": ["create", "modify", "delete", "rename", "chmod"]}
+        },
+        "allowed_paths": {
+          "type": "array", "uniqueItems": true,
+          "items": {"$ref": "#/$defs/repoPath"}
+        },
+        "forbidden_paths": {
+          "type": "array", "uniqueItems": true,
+          "items": {"$ref": "#/$defs/repoPath"}
+        },
+        "limits": {
+          "type": "object", "additionalProperties": false,
+          "required": ["max_files", "max_added_lines", "max_deleted_lines", "max_binary_bytes", "max_effort_hours", "max_duration_hours"],
+          "properties": {
+            "max_files": {"type": "integer", "minimum": 0, "maximum": 25},
+            "max_added_lines": {"type": "integer", "minimum": 0},
+            "max_deleted_lines": {"type": "integer", "minimum": 0},
+            "max_binary_bytes": {"type": "integer", "minimum": 0},
+            "max_effort_hours": {"type": "integer", "minimum": 1, "maximum": 16},
+            "max_duration_hours": {"type": "integer", "minimum": 1, "maximum": 48}
+          }
+        }
+      }
+    },
+    "required_gate_ids": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,100}$"},
+      "description": "Must equal the Gate Registry task_rules selection for program_task_id; path and risk gates are added to the frozen GatePlan."
+    },
+    "gate_registry_sha256": {"$ref": "#/$defs/sha256"},
+    "authority_grant_ids": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^GRANT-[A-Za-z0-9._-]{8,80}$"}
+    },
+    "acceptance": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "evidence_required": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "rollback": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "work_base_policy": {"const": "activation-commit-or-disjoint-descendant"},
+    "receipt_policy": {"const": "external-exact-sha-ci-attestation"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"execution_mode": {"const": "qualification-no-diff"}},
+        "required": ["execution_mode"]
+      },
+      "then": {
+        "properties": {
+          "authority_grant_ids": {"maxItems": 0},
+          "scope": {
+            "properties": {
+              "allowed_operations": {"maxItems": 0},
+              "allowed_paths": {"maxItems": 0},
+              "limits": {
+                "properties": {
+                  "max_files": {"const": 0},
+                  "max_added_lines": {"const": 0},
+                  "max_deleted_lines": {"const": 0},
+                  "max_binary_bytes": {"const": 0}
+                }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "scope": {
+            "properties": {
+              "allowed_operations": {"minItems": 1},
+              "allowed_paths": {"minItems": 1},
+              "limits": {"properties": {"max_files": {"minimum": 1}}}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "program_task_id": {"const": "PR-32"},
+          "execution_mode": {"const": "implementation"}
+        },
+        "required": ["program_task_id", "execution_mode"]
+      },
+      "then": {
+        "required": ["manifest_scope"],
+        "properties": {
+          "scope": {
+            "properties": {
+              "allowed_operations": {"contains": {"const": "delete"}}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"program_task_id": {"not": {"const": "PR-32"}}},
+        "required": ["program_task_id"]
+      },
+      "then": {"not": {"required": ["manifest_scope"]}}
+    }
+  ]
+}

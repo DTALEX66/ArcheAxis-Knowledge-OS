@@ -1,0 +1,60 @@
+schema: archeaxis.task-template/v1
+schema_version: 1
+state: template
+template_role: program-blueprint
+plan_id: AAK-VNEXT-2026-09-04
+program_task_id: PR-03
+task_id: PR-03
+slice_key: derive-at-jit
+issuance_id: replace-with-issuance-id
+issuer: replace-with-owner-issuer
+assignee: owner-integrator
+not_before: replace-with-rfc3339-not-before
+issued_at: replace-with-rfc3339-issued-at
+expires_at: replace-with-rfc3339-expires-at
+subject_base_sha: replace-with-protected-parent-after-pr-02
+subject_base_tree: replace-with-subject-base-tree
+execution_mode: derive-from-slice-blueprint
+execution_lane: derive-from-slice-blueprint
+task_kind: governance
+priority: P0
+risk: R2
+objective: Install permanent vNext directories, immutable issued-task and authority-grant protocols, scope enforcement and pull-request protection.
+depends_on: [PR-02]
+dependency_program_receipts:
+  - {program_task_id: PR-02, program_graph_sha256: replace-with-program-graph-sha256, aggregated_main_sha: replace-with-pr-02-aggregated-main-sha, aggregated_main_tree: replace-with-pr-02-aggregated-main-tree, receipt_payload_sha256: replace-with-pr-02-completion-receipt-payload-sha256, status: PASS}
+program_graph_sha256: replace-with-program-graph-sha256
+program_acceptance_refs: [PR-03:A01, PR-03:A02, PR-03:A03]
+program_evidence_refs: [PR-03:E01, PR-03:E02, PR-03:E03]
+preconditions:
+  - PR-02 Program completion receipt is valid
+machine_requirements:
+  os: any
+  architecture: x86_64
+  clean_host: false
+  network: denied
+  gpu: none
+  credentials: []
+  filesystem_isolation: job-local
+  external_waits_satisfied: replace-with-true-after-preflight
+artifact_inputs: []
+authority_manifest_sha256: replace-with-authority-manifest-sha256
+consumed_interfaces:
+  entries: []
+  digest_sha256: replace-with-empty-or-consumed-interface-manifest-sha256
+scope:
+  allowed_operations: [create, modify]
+  allowed_paths: [AGENTS.md, PROJECT_CONTRACT.yaml, DIRECTORY_AUTHORITY.yaml, LEGACY_MANIFEST.yaml, DECISION_SUPERSESSION_LEDGER.yaml, .project/**, .gitignore, scripts/agent/**, scripts/ci/vnext_**, tools/agent-adapters/**, .github/workflows/vnext-ci.yml, Cargo.toml, rust-toolchain.toml, global.json, Directory.Packages.props]
+  forbidden_paths: [app/**, shared/**, knowledge_base/**, frontend/**, src-tauri/**, "**/*.db"]
+  limits: {max_files: 25, max_added_lines: 2500, max_deleted_lines: 300, max_binary_bytes: 0, max_effort_hours: 16, max_duration_hours: 48}
+required_gate_ids: [authority-reference-check, schema-validation, scope-gate-self-test, stale-base-rejection, self-escalation-rejection, protected-path-without-grant-rejection]
+gate_registry_sha256: replace-with-gate-registry-sha256
+authority_grant_ids: [replace-with-governance-ci-and-version-grant-id]
+acceptance:
+  - Tool-neutral AGENTS, task, grant, receipt and scope-gate rules are installed and replayed after merge.
+  - Hostile scope, missing grant, unknown path and reverse dependency all fail closed.
+  - Legacy SQLite direct connections and DDL do not increase and no legacy product feature is added.
+evidence_required: [scope-gate-receipt, grant-conflict-receipt, dependency-boundary-receipt]
+rollback: [Revert newly installed governance without moving or rewriting the legacy tree.]
+work_base_policy: activation-commit-or-disjoint-descendant
+receipt_policy: external-exact-sha-ci-attestation

@@ -1,0 +1,18 @@
+schema: archeaxis.authority-grant-template/v1
+schema_version: 1
+state: template
+grant_id: replace-with-grant-id
+plan_id: AAK-VNEXT-2026-09-04
+program_task_id: PR-00
+task_id: PR-00
+issuance_id: replace-with-issuance-id
+envelope_sha256: replace-with-materialized-envelope-sha256
+subject_base_sha: replace-with-subject-base-sha
+holder: replace-with-assignee
+issuer: replace-with-owner-issuer
+protected_resources:
+  - replace-with-each-serial-resource-covered-by-this-grant
+issued_at: replace-with-rfc3339-issued-at
+expires_at: replace-with-rfc3339-expires-at
+revoked_at: null
+reason: Replace every placeholder, validate against the issued grant schema and commit beside the envelope in the metadata-only activation commit.

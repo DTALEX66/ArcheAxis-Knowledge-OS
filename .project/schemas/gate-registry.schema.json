@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/project/schemas/gate-registry.schema.json",
+  "title": "ArcheAxis Gate Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "required_status_policy", "gates", "task_rules", "path_rules", "risk_rules"],
+  "$defs": {
+    "gateId": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,100}$"},
+    "gateIdList": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/gateId"}},
+    "requiredGateIdList": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/gateId"}},
+    "programId": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?$"}
+  },
+  "properties": {
+    "schema": {"const": "archeaxis.gate-registry/v1"},
+    "schema_version": {"const": 1},
+    "required_status_policy": {"const": "only-pass-is-success"},
+    "gates": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["gate_id", "job_name", "runner", "timeout_minutes"],
+        "properties": {
+          "gate_id": {"$ref": "#/$defs/gateId"},
+          "job_name": {"type": "string", "minLength": 1},
+          "runner": {"enum": ["ubuntu", "windows-11", "owner-attestation"]},
+          "timeout_minutes": {"type": "integer", "minimum": 1, "maximum": 360},
+          "network": {"enum": ["denied", "explicit", "required"]}
+        }
+      }
+    },
+    "task_rules": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "Candidate gate IDs indexed by canonical Program ID. The semantic validator requires this key set to equal the Program graph key set and rejects unknown, missing or duplicate gate IDs.",
+      "propertyNames": {"$ref": "#/$defs/programId"},
+      "additionalProperties": {"$ref": "#/$defs/requiredGateIdList"}
+    },
+    "path_rules": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["paths", "gate_ids"],
+        "properties": {
+          "paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "gate_ids": {"$ref": "#/$defs/gateIdList"}
+        }
+      }
+    },
+    "risk_rules": {
+      "type": "object", "additionalProperties": false,
+      "required": ["R0", "R1", "R2", "R3", "R4"],
+      "properties": {
+        "R0": {"$ref": "#/$defs/gateIdList"},
+        "R1": {"$ref": "#/$defs/gateIdList"},
+        "R2": {"$ref": "#/$defs/gateIdList"},
+        "R3": {"$ref": "#/$defs/gateIdList"},
+        "R4": {"$ref": "#/$defs/gateIdList"}
+      }
+    }
+  }
+}

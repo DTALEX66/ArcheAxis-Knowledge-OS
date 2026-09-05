@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/schemas/directory-authority.schema.json",
+  "title": "ArcheAxis Directory Authority v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "matching",
+    "default",
+    "authorities",
+    "protected_resource_overrides",
+    "protected_files",
+    "protected_file_semantics",
+    "ignored_local_roots",
+    "coordination_state",
+    "legacy_roots"
+  ],
+  "properties": {
+    "schema": { "const": "archeaxis.directory-authority/v1" },
+    "schema_version": { "const": 1 },
+    "matching": { "$ref": "#/$defs/matching" },
+    "default": { "$ref": "#/$defs/defaultAuthority" },
+    "authorities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/authorityRule" },
+      "description": "Rules are matched using the declared precedence. Repository semantic validation must also reject duplicate path selectors and ties that remain ambiguous after all precedence steps."
+    },
+    "protected_resource_overrides": { "$ref": "#/$defs/protectedResourceOverrides" },
+    "protected_files": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/pathPattern" }
+    },
+    "protected_file_semantics": {
+      "const": "protected_files is an overlay; any matching path requires a remote grant even when its selected ownership rule is otherwise non-serial"
+    },
+    "ignored_local_roots": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+/$" }
+    },
+    "coordination_state": { "$ref": "#/$defs/coordinationState" },
+    "legacy_roots": { "$ref": "#/$defs/legacyRoots" }
+  },
+  "$defs": {
+    "pathPattern": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "executionLane": {
+      "enum": ["owner", "rust-core", "rust-store", "avalonia-ui", "python-worker", "contract", "migration", "journey", "ci", "release"]
+    },
+    "matching": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["syntax", "case_sensitive", "path_separator", "precedence", "ambiguous_match", "execution_lane"],
+      "properties": {
+        "syntax": { "const": "gitwildmatch" },
+        "case_sensitive": { "const": true },
+        "path_separator": { "const": "/" },
+        "precedence": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "deny" },
+            { "const": "exact-path" },
+            { "const": "highest-literal-segment-count" },
+            { "const": "longest-literal-prefix" }
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "Precedence is ordered and fail-closed: deny wins, then exact paths, then the most literal segments, then the longest literal prefix; unresolved ties are rejected."
+        },
+        "ambiguous_match": { "const": "reject" },
+        "execution_lane": { "$ref": "#/$defs/laneMatching" }
+      }
+    },
+    "laneMatching": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["envelope_cardinality", "rule_fields_mutually_exclusive", "singular_match", "plural_match", "inheritance", "writable_rule_without_lane", "deny_rule_without_lane", "mismatch"],
+      "properties": {
+        "envelope_cardinality": { "const": "exactly-one" },
+        "rule_fields_mutually_exclusive": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "execution_lane" },
+            { "const": "execution_lanes" }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "singular_match": { "const": "exact" },
+        "plural_match": { "const": "envelope-lane-must-be-a-member" },
+        "inheritance": { "const": "none" },
+        "writable_rule_without_lane": { "const": "reject" },
+        "deny_rule_without_lane": { "const": "allowed" },
+        "mismatch": { "const": "reject" }
+      }
+    },
+    "defaultAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["read", "write", "authorization", "generated_files"],
+      "properties": {
+        "read": { "const": "allowed" },
+        "write": { "const": "denied" },
+        "authorization": { "const": "unique-directory-authority-match-and-issued-envelope" },
+        "generated_files": { "const": "source-controlled-and-drift-checked" }
+      }
+    },
+    "authorityRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "owner"],
+      "properties": {
+        "path": { "$ref": "#/$defs/pathPattern" },
+        "owner": { "type": "string", "minLength": 1 },
+        "execution_lane": { "$ref": "#/$defs/executionLane" },
+        "execution_lanes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/executionLane" }
+        },
+        "write_mode": {
+          "enum": ["serial-grant", "deny-commit", "maintenance-only-task-envelope", "later-metadata-task-only-nonauthoritative"]
+        },
+        "protected_resource": { "type": "string", "minLength": 1 },
+        "language": { "enum": ["csharp", "rust", "python"] },
+        "may_open_main_database": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "const": "through-store-only" }
+          ]
+        },
+        "note": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "required": ["write_mode"],
+              "properties": { "write_mode": { "const": "deny-commit" } },
+              "not": { "anyOf": [{ "required": ["execution_lane"] }, { "required": ["execution_lanes"] }] }
+            },
+            {
+              "required": ["execution_lane"],
+              "not": {
+                "anyOf": [
+                  { "required": ["execution_lanes"] },
+                  {
+                    "required": ["write_mode"],
+                    "properties": { "write_mode": { "const": "deny-commit" } }
+                  }
+                ]
+              }
+            },
+            {
+              "required": ["execution_lanes"],
+              "not": {
+                "anyOf": [
+                  { "required": ["execution_lane"] },
+                  {
+                    "required": ["write_mode"],
+                    "properties": { "write_mode": { "const": "deny-commit" } }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "if": {
+            "required": ["write_mode"],
+            "properties": { "write_mode": { "const": "serial-grant" } }
+          },
+          "then": { "required": ["protected_resource"] }
+        },
+        {
+          "if": { "required": ["protected_resource"] },
+          "then": {
+            "required": ["write_mode"],
+            "properties": { "write_mode": { "const": "serial-grant" } }
+          }
+        },
+        {
+          "if": {
+            "required": ["write_mode"],
+            "properties": { "write_mode": { "const": "deny-commit" } }
+          },
+          "then": {
+            "properties": { "owner": { "const": "none" } },
+            "not": {
+              "anyOf": [
+                { "required": ["execution_lane"] },
+                { "required": ["execution_lanes"] },
+                { "required": ["protected_resource"] },
+                { "required": ["may_open_main_database"] }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["may_open_main_database"],
+            "properties": { "may_open_main_database": { "const": true } }
+          },
+          "then": {
+            "properties": {
+              "language": { "const": "rust" },
+              "execution_lane": { "const": "rust-store" }
+            },
+            "required": ["language", "execution_lane"]
+          }
+        },
+        {
+          "if": {
+            "required": ["may_open_main_database"],
+            "properties": { "may_open_main_database": { "const": "through-store-only" } }
+          },
+          "then": {
+            "anyOf": [
+              { "required": ["execution_lane"] },
+              { "required": ["execution_lanes"] }
+            ]
+          }
+        }
+      ]
+    },
+    "protectedResourceOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["semantics", "matching", "ambiguity", "rules"],
+      "properties": {
+        "semantics": { "const": "independent-overlay-after-authority-selection" },
+        "matching": { "const": "gitwildmatch" },
+        "ambiguity": { "const": "reject" },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/protectedResourceOverrideRule" }
+        }
+      }
+    },
+    "protectedResourceOverrideRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "protected_resource", "write_mode"],
+      "properties": {
+        "path": { "$ref": "#/$defs/pathPattern" },
+        "protected_resource": { "type": "string", "minLength": 1 },
+        "write_mode": { "const": "serial-grant" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "coordinationState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["same_machine_backend", "tracked", "shared_across_worktrees", "purpose", "rule"],
+      "properties": {
+        "same_machine_backend": { "$ref": "#/$defs/pathPattern" },
+        "tracked": { "const": false },
+        "shared_across_worktrees": { "const": true },
+        "purpose": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["local-coordination-locks", "active-task-ownership", "worktree-heartbeats"] }
+        },
+        "rule": {
+          "const": "neither this database nor .project-local can grant remote merge authority; issued grants live on the protected branch"
+        }
+      }
+    },
+    "legacyRoots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "enforced_authority_rules"],
+      "properties": {
+        "mode": { "const": "maintenance-only-and-read-only-until-file-classified" },
+        "enforced_authority_rules": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pathPattern" }
+        }
+      }
+    }
+  }
+}

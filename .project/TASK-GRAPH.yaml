@@ -1,0 +1,605 @@
+schema: archeaxis.task-graph/v1
+schema_version: 1
+document_kind: program-plan
+project: ArcheAxis-Knowledge-OS
+plan_id: AAK-VNEXT-2026-09-04
+audit_base_sha: ce3c2de551bcaac52c8a26d012e6482c1a73a540
+legacy_release_commit: c202c5b5a4789f0dc21accaa7ccbfed4676f0573
+global_rules:
+  max_files_per_issued_slice: 25
+  max_estimated_effort_hours_per_issued_slice: 16
+  max_duration_hours_per_issued_slice: 48
+  program_node_is_not_automatically_an_issued_envelope: true
+  split_task_id_pattern: <program-id>-S<nn>
+  atom_reference_pattern: <program-id>:A<nn> or <program-id>:E<nn>
+  atom_indexing: one-based declaration order, zero-padded to two digits; atom text is immutable within a signed graph revision
+  required_skip_is_failure: true
+  one_task_one_branch_worktree_agent: true
+  vnext_database_writer: rust_writer_actor_only
+  legacy_database_access: consistent_snapshot_then_read_only_export
+  direct_main_push: forbidden
+  public_release_requires_owner_confirmation: true
+  final_receipt_is_exact_sha_ci_attestation: true
+  repository_receipt_copy_requires_later_metadata_task: true
+  canonical_repository_path: .project/TASK-GRAPH.yaml
+  issued_envelope_path: .project/tasks/issued/<plan-id>/<task-id>/<issuance-id>.json
+  issued_authority_grant_path: .project/leases/issued/<plan-id>/<task-id>/<issuance-id>/<grant-id>.json
+  authority_revocation_path: .project/leases/revocations/<grant-id>.json
+  canonical_digest_policy: docs/operations/digest-canonicalization.md
+execution_slicing:
+  materialization: just-in-time-from-protected-program-graph
+  slice_blueprint_path: .project/EXECUTION-SLICE-BLUEPRINTS.yaml
+  every_program_node_requires_one_or_more_issued_slices: true
+  single_slice_candidates: [PR-00, PR-08, PR-09, PR-13, PR-14, PR-17, PR-18, PR-23, PR-25]
+  task_trains: [PR-01, PR-02, PR-03, PR-04, PR-05, PR-06, PR-07, PR-10, PR-11, PR-12, PR-15, PR-16, PR-19, PR-20, PR-21, PR-22, PR-24, PR-26, PR-27, PR-28, PR-29, PR-30, PR-31, PR-32, PR-33A, PR-33B, PR-33C, PR-33D, PR-33E, PR-33F]
+  closure_rule: every indexed acceptance and evidence atom must be covered by exact-SHA slice receipts
+  over_limit_rule: split_even_when_listed_as_single_slice_candidate
+  qualification_no_diff_policy:
+    repository_diff: zero-from-activation-to-subject-head
+    repository_access: read-only
+    outputs: job-scratch-or-external-attestation-only
+    defect_handling: fail-or-block-and-issue-new-owning-lane-implementation-slice
+  pr31_minimum_slices: [preflight-freeze, candidate-a, candidate-b, aggregate-decision]
+  pr32_strategy: digest-bound-approved-manifest-expansion-partitioned-to-25-exact-paths-plus-clean-clone-qualification
+resource_gates:
+  clean_windows_11: [PR-09, PR-24, PR-25, PR-30, PR-31]
+  isolated_legacy_copy: [PR-26, PR-27, PR-31]
+  explicit_network_and_credentials: [PR-21, PR-28, PR-29, PR-33D]
+  rights_and_license_approval: [PR-21, PR-26, PR-28, PR-29, PR-33A, PR-33B, PR-33C, PR-33D, PR-33E, PR-33F]
+  scheduling_rule: do_not_issue_or_hold_authority_grants_while_waiting_for_external_resources
+default_execution_lane_by_task_kind:
+  authority: owner
+  governance: owner
+  contracts: contract
+  ci: ci
+  ci-release: release
+  rust: rust-core
+  rust-contract: contract
+  desktop: avalonia-ui
+  python: python-worker
+  quality: journey
+  integration: journey
+  qualification: journey
+  packaging: release
+  release: release
+  legacy: migration
+  migration: migration
+  research: python-worker
+  evaluation: journey
+  retire: migration
+  capability: python-worker
+  search: rust-core
+serial_zones:
+  - AGENTS.md
+  - PROJECT_CONTRACT.yaml
+  - DIRECTORY_AUTHORITY.yaml
+  - LEGACY_MANIFEST.yaml
+  - DECISION_SUPERSESSION_LEDGER.yaml
+  - .project/**
+  - packages/contracts/**
+  - crates/archeaxis-store-sqlite/migrations/**
+  - Cargo.toml
+  - Cargo.lock
+  - rust-toolchain.toml
+  - global.json
+  - Directory.Packages.props
+  - "**/uv.lock"
+  - .github/workflows/**
+  - packaging/**/release-manifest*
+  - reports/release/**
+tasks:
+  - task_id: PR-00
+    priority: P0
+    title: Owner 决策、G0 缩窄与 legacy 冻结
+    task_kind: authority
+    risk: R0
+    depends_on: []
+    allowed_paths: [PROJECT_CONTRACT.yaml, LEGACY_MANIFEST.yaml, DECISION_SUPERSESSION_LEDGER.yaml, docs/authority/**, docs/decisions/**, docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md]
+    acceptance:
+      - 锁定同仓 vNext、Avalonia/Rust/Python 责任与独立新库例外
+      - 旧库仍由 legacy Python 独占，禁止共享库、实时同步和双写
+      - 冻结 v0.6.14 tag/commit/tree/发行资产/锁文件身份
+    evidence: [signed-owner-decision, day0-baseline-receipt]
+    rollback: revert_pr_only
+
+  - task_id: PR-01
+    priority: P0
+    title: 单一密闭 full-suite 入口
+    task_kind: ci
+    risk: R2
+    depends_on: [PR-00]
+    allowed_paths: [scripts/ci/run_tests.sh, .github/workflows/ci.yml, .github/workflows/nightly.yml, conftest.py, tests/**, integration-tests/**, knowledge_base/tests/**]
+    acceptance:
+      - full 固定收集 tests integration-tests knowledge_base/tests
+      - newspaper 使用本地 HTTP fixture；browser job 先装固定 Chromium
+      - 清除继承 PYTHONPATH/legacy data root；并发运行隔离
+      - nightly ref 真实传给 checkout
+    evidence: [collection-manifest, two-offline-runs, exact-sha-nightly]
+    rollback: revert_pr_and_remove_only_exact_run_root
+
+  - task_id: PR-02
+    priority: P0
+    title: Full Qualification 收据与 Release fail-closed
+    task_kind: ci-release
+    risk: R3
+    depends_on: [PR-01]
+    allowed_paths: [.github/workflows/ci.yml, .github/workflows/release.yml, scripts/ci/**, scripts/release_candidate_inject_identity.py, tests/**]
+    acceptance:
+      - full required job 全部显式 success；skipped/cancelled/failed 均失败
+      - 收据绑定 SHA/tree/锁/GatePlan/job conclusions
+      - Release 拒绝 selective run、错 SHA、错锁、错 run-id
+    evidence: [full-qualification-receipt, hostile-release-fixtures]
+    rollback: atomic_revert_workflows_and_receipt_schema
+
+  - task_id: PR-03
+    priority: P0
+    title: 仓库目录权威与多 Agent 写入治理
+    task_kind: governance
+    risk: R2
+    depends_on: [PR-02]
+    allowed_paths: [AGENTS.md, PROJECT_CONTRACT.yaml, DIRECTORY_AUTHORITY.yaml, LEGACY_MANIFEST.yaml, DECISION_SUPERSESSION_LEDGER.yaml, .project/**, .gitignore, scripts/agent/**, scripts/ci/vnext_**, tools/agent-adapters/**, .github/workflows/vnext-ci.yml, Cargo.toml, rust-toolchain.toml, global.json, Directory.Packages.props]
+    acceptance:
+      - 工具中立 AGENTS/Program/blueprint/envelope/grant/GatePlan/receipt/scope gate 生效
+      - hostile scope、无 grant、未知路径、反向依赖均 fail closed
+      - legacy SQLite 直连不高于 58、DDL 不高于 27、旧产品功能增量为零
+    evidence: [scope-gate-receipt, grant-conflict-receipt, dependency-boundary-receipt]
+    rollback: remove_new_governance_without_moving_legacy
+
+  - task_id: PR-04
+    priority: P0
+    title: 跨语言 Contract v1
+    task_kind: contracts
+    risk: R2
+    depends_on: [PR-03]
+    allowed_paths: [packages/contracts/v1/**, crates/archeaxis-contracts/**, apps/desktop/src/ArcheAxis.Desktop.Contracts.Generated/**, services/python-workers/**/generated/**, tests/contract/**, docs/architecture/v01-domain-contract.md]
+    acceptance:
+      - OpenAPI/JSON Schema/worker/migration/error/idempotency/version 统一
+      - Rust C# Python canonical JSON、Unicode offset、unknown-field、major mismatch 一致
+      - generated 输出零漂移
+    evidence: [three-language-contract-matrix, fixture-hashes]
+    rollback: revert_unadopted_contract_draft
+
+  - task_id: PR-05
+    priority: P0
+    title: Rust local-service、WriterActor 与空新库
+    task_kind: rust
+    risk: R3
+    depends_on: [PR-04]
+    parallel_with: [PR-06, PR-07, PR-08]
+    allowed_paths: [Cargo.toml, Cargo.lock, rust-toolchain.toml, crates/archeaxis-domain/**, crates/archeaxis-application/**, crates/archeaxis-store-sqlite/**, crates/archeaxis-api/**, crates/archeaxis-sidecar-protocol/**, crates/archeaxis-archive/**, services/local-service/**]
+    acceptance:
+      - 仅 store-sqlite 依赖主库驱动并持有 RW
+      - 重复 command 回原 receipt；非法状态无写入
+      - crash/restart/online-backup 不损坏空库
+    evidence: [rust-tests, dependency-graph, db-owner-audit, fault-receipt]
+    rollback: revert_and_delete_disposable_vnext_profile
+
+  - task_id: PR-06
+    priority: P0
+    title: Avalonia Shell 与 Supervisor
+    task_kind: desktop
+    risk: R2
+    depends_on: [PR-04]
+    parallel_with: [PR-05, PR-07, PR-08]
+    allowed_paths: [apps/desktop/**, global.json, Directory.Packages.props]
+    acceptance:
+      - UI 无 SQLite 依赖或主库路径
+      - 随机端口、启动凭证、版本错误、core crash/timeout 可见
+      - 关闭 UI 无孤儿进程、无命令行窗口
+    evidence: [dotnet-tests, windows-process-tree-receipt, ui-state-captures]
+    rollback: remove_new_shell_leave_legacy_unchanged
+
+  - task_id: PR-07
+    priority: P0
+    title: Python NDJSON Worker Runner
+    task_kind: python
+    risk: R2
+    depends_on: [PR-04]
+    parallel_with: [PR-05, PR-06, PR-08]
+    allowed_paths: [services/python-workers/**]
+    acceptance:
+      - 无 sqlite/主库路径，只写 job scratch
+      - timeout/cancel/crash/malformed/loss 可重试且有 receipt
+      - 输出 schema/hash/size/media-type 全校验
+    evidence: [worker-contract-tests, filesystem-access-trace]
+    rollback: disable_or_remove_capability_pack
+
+  - task_id: PR-08
+    priority: P0
+    title: 进程与契约 Journey Harness
+    task_kind: quality
+    risk: R1
+    depends_on: [PR-04]
+    parallel_with: [PR-05, PR-06, PR-07]
+    allowed_paths: [fixtures/golden/**, tests/contract/**, tests/integration/runtime/**, tests/journey/**]
+    acceptance:
+      - 可稳定制造 version mismatch/timeout/malformed/crash/duplicate/orphan
+      - harness 自测和 fixture manifest 通过
+    evidence: [fixture-manifest, harness-self-test]
+    rollback: remove_test_harness_only
+
+  - task_id: PR-09
+    priority: P0
+    title: Hello Triangle 集成门
+    task_kind: integration
+    risk: R3
+    depends_on: [PR-05, PR-06, PR-07, PR-08]
+    allowed_paths: [tests/integration/runtime/**, tests/journey/**]
+    acceptance:
+      - Avalonia→Rust→Python→Rust write→Avalonia read 连续运行两次
+      - success/version-error/timeout/malformed/crash/clean-exit 均可见
+      - 仅写一条幂等 receipt；重启和在线备份通过
+    evidence: [two-exact-sha-triangle-receipts]
+    rollback: disable_vnext_preview_and_delete_disposable_profile
+
+  - task_id: PR-10
+    priority: P1
+    title: Workspace/CAS/Source/Anchor/Job 内容底座
+    task_kind: rust
+    risk: R3
+    depends_on: [PR-09]
+    parallel_with: [PR-11, PR-12, PR-13]
+    allowed_paths: [crates/archeaxis-domain/**, crates/archeaxis-application/**, crates/archeaxis-store-sqlite/**, crates/archeaxis-archive/**]
+    acceptance: [content-addressed-originals, duplicate-import-noop, path-traversal-rejected, anchor-versioned, restart-and-backup-consistent]
+    evidence: [cas-db-property-tests, command-receipts]
+    rollback: restore_previous_vnext_snapshot
+
+  - task_id: PR-11
+    priority: P1
+    title: TXT Markdown 原生文本 PDF 能力包
+    task_kind: python
+    risk: R2
+    depends_on: [PR-07, PR-09]
+    parallel_with: [PR-10, PR-12, PR-13]
+    allowed_paths: [services/python-workers/packs/basic-document/**]
+    acceptance: [independent-lock, deterministic-fixtures, offline-default, no-db, stable-page-offset-loss, crash-retry]
+    evidence: [canonical-output-hashes, capability-receipt]
+    rollback: disable_pack
+
+  - task_id: PR-12
+    priority: P1
+    title: Avalonia Library Import Reader Jump-back
+    task_kind: desktop
+    risk: R2
+    depends_on: [PR-06, PR-09]
+    parallel_with: [PR-10, PR-11, PR-13]
+    allowed_paths: [apps/desktop/**]
+    acceptance: [api-only, no-db, chinese-space-paths, text-selection-anchor, restart-jump-back]
+    evidence: [ui-automation, accessibility-smoke, screenshots, journey-receipt]
+    rollback: disable_library_feature
+
+  - task_id: PR-13
+    priority: P1
+    title: 合法固定 Fixture 与 Anchor Oracle
+    task_kind: quality
+    risk: R1
+    depends_on: [PR-09]
+    parallel_with: [PR-10, PR-11, PR-12]
+    allowed_paths: [fixtures/sources/**, fixtures/golden/**, fixtures/rights-manifest.yaml, tests/contract/**]
+    acceptance: [source-license-hash-recorded, expected-page-offset-loss-recorded, no-private-user-data]
+    evidence: [fixture-ledger, hash-verification]
+    rollback: remove_fixture_and_references
+
+  - task_id: PR-14
+    priority: P1
+    title: Import Read Anchor 集成
+    task_kind: integration
+    risk: R3
+    depends_on: [PR-10, PR-11, PR-12, PR-13]
+    allowed_paths: [tests/integration/import/**, tests/journey/**]
+    acceptance: [three-formats-pass, duplicate-no-copy, worker-failure-no-half-state, restart-exact-jump]
+    evidence: [per-format-journey, db-cas-hashes]
+    rollback: delete_staging_or_disposable_workspace
+
+  - task_id: PR-15
+    priority: P1
+    title: 知识、主张、证据、审核与 FTS
+    task_kind: rust-contract
+    risk: R3
+    depends_on: [PR-14]
+    allowed_paths: [packages/contracts/v1/**, crates/archeaxis-domain/**, crates/archeaxis-application/**, crates/archeaxis-store-sqlite/**]
+    acceptance:
+      - personal content 无证据也可保存/审核/检索/学习
+      - factual claim 无证据保持 UNSOURCED；rumor/hypothesis/forecast/norm 分开
+      - machine candidate 不自动升级；无 truth score
+    evidence: [state-machine-tests, property-tests, schema-examples]
+    rollback: rebuild_disposable_vnext_database
+
+  - task_id: PR-16
+    priority: P1
+    title: Knowledge Review Search 状态 UI
+    task_kind: desktop
+    risk: R2
+    depends_on: [PR-14, PR-15]
+    parallel_with: [PR-17]
+    allowed_paths: [apps/desktop/**]
+    acceptance: [accept-modify-reject, reason-and-history, status-separated-results, source-jump-back, reviewed-personal-exploratory-filters]
+    evidence: [ui-journeys, screenshots]
+    rollback: disable_knowledge_feature
+
+  - task_id: PR-17
+    priority: P1
+    title: 知识语义验收集
+    task_kind: quality
+    risk: R1
+    depends_on: [PR-14, PR-15]
+    parallel_with: [PR-16]
+    allowed_paths: [fixtures/golden/knowledge/**, tests/contract/**, tests/journey/**]
+    acceptance: [personal-definition, personal-experience, pdf-claim, conflicting-sources, superseded-standard, rumor, forecast, offline-capture]
+    evidence: [semantic-separation-matrix]
+    rollback: correct_fixture_without_weakening_semantics
+
+  - task_id: PR-18
+    priority: P1
+    title: Disposable Workspace Alpha
+    task_kind: integration
+    risk: R3
+    depends_on: [PR-15, PR-16, PR-17]
+    allowed_paths: [tests/integration/knowledge/**, tests/journey/**]
+    acceptance: [three-independent-workspaces, no-half-review-state, full-restart-readback]
+    evidence: [alpha-journey-receipt]
+    rollback: delete_alpha_workspace
+
+  - task_id: PR-19
+    priority: P1
+    title: Human Learning、Job Retry、Export/Restore
+    task_kind: rust
+    risk: R3
+    depends_on: [PR-18]
+    parallel_with: [PR-21, PR-22]
+    allowed_paths: [crates/archeaxis-domain/**, crates/archeaxis-application/**, crates/archeaxis-store-sqlite/**, crates/archeaxis-archive/**]
+    acceptance: [teachback-and-answer-events, mastery-separate-from-truth, idempotent-retry, export-restore-hash-match]
+    evidence: [learning-state-machine, restore-receipt]
+    rollback: restore_previous_vnext_snapshot
+
+  - task_id: PR-20
+    priority: P1
+    title: Learning Recovery Job Status UI
+    task_kind: desktop
+    risk: R2
+    depends_on: [PR-18, PR-19]
+    parallel_with: [PR-21, PR-22]
+    allowed_paths: [apps/desktop/**]
+    acceptance: [teachback, review-schedule, truthful-job-status, retry, backup-restore, rollback-boundary-visible]
+    evidence: [ui-automation, recovery-captures]
+    rollback: disable_learning_recovery_feature
+
+  - task_id: PR-21
+    priority: P1
+    title: 首个真实 Claim Extraction 模型能力包
+    task_kind: python
+    risk: R2
+    depends_on: [PR-18]
+    parallel_with: [PR-19, PR-20, PR-22]
+    allowed_paths: [services/python-workers/packs/claim-extraction/**]
+    acceptance: [model-prompt-input-output-versioned, cloud-opt-in, safe-no-credential-degrade, candidate-only]
+    evidence: [replay-fixture, capability-receipt, egress-audit]
+    rollback: disable_provider_or_pack
+
+  - task_id: PR-22
+    priority: P1
+    title: 故障与数据安全矩阵
+    task_kind: quality
+    risk: R3
+    depends_on: [PR-18]
+    parallel_with: [PR-19, PR-20, PR-21]
+    allowed_paths: [tests/integration/failure/**, tests/journey/**, fixtures/golden/failure/**]
+    acceptance: [worker-kill, hang, malformed, hash-mismatch, disk-full, core-crash, duplicate-command, restore]
+    evidence: [failure-matrix-receipt]
+    rollback: fix_test_driver_never_weaken_invariant
+
+  - task_id: PR-23
+    priority: P1
+    title: 完整本地数据安全闭环
+    task_kind: integration
+    risk: R3
+    depends_on: [PR-19, PR-20, PR-21, PR-22]
+    allowed_paths: [tests/integration/closed-loop/**, tests/journey/v01-owner-loop.yaml]
+    acceptance: [import, anchor, personal-and-machine-knowledge, review, search, learning, restart, backup, restore, failure-safety]
+    evidence: [closed-loop-receipt, db-cas-hashes]
+    rollback: restore_pre_run_snapshot
+
+  - task_id: PR-24
+    priority: P1
+    title: Windows Green exact-byte Candidate
+    task_kind: packaging
+    risk: R3
+    depends_on: [PR-02, PR-23]
+    allowed_paths: [packaging/green/**, scripts/ci/vnext_package**, .github/workflows/vnext-ci.yml, tests/**]
+    acceptance: [windows11-x64, chinese-space-path, no-console, no-orphans, isolated-data-root, runtime-tree-manifest-and-hashes, release-no-rebuild]
+    evidence: [candidate-identity, sbom, tree-hash, process-data-trace]
+    rollback: withdraw_candidate_preserve_user_data
+
+  - task_id: PR-25
+    priority: P1
+    title: 干净机器 12 步 Owner Preview
+    task_kind: qualification
+    risk: R3
+    depends_on: [PR-24]
+    allowed_paths: [tests/journey/**]
+    acceptance: [exact-sha, zero-required-skip, full-owner-journey, worker-crash-safety]
+    evidence: [machine-profile, recording, logs, journey-receipt, candidate-hashes]
+    rollback: mark_preview_not_ready_keep_v0614
+
+  - task_id: PR-26
+    priority: P2
+    title: Legacy census、fixture harvest 与只读 exporter
+    task_kind: legacy
+    risk: R3
+    depends_on: [PR-25]
+    allowed_paths: [LEGACY_MANIFEST.yaml, integrations/legacy/exporter-python/**, fixtures/migration/**, fixtures/rights-manifest.yaml]
+    acceptance: [every-file-exactly-one-class, online-backup-snapshot, mode-ro-export, package-schema-hash-rights-idmap-loss, source-before-after-unchanged]
+    evidence: [census, source-before-after-receipt, package-hash]
+    rollback: discard_export_package
+
+  - task_id: PR-27
+    priority: P2
+    title: Rust Migration Validate Dry-run Import Diff
+    task_kind: migration
+    risk: R3
+    depends_on: [PR-26]
+    allowed_paths: [packages/contracts/v1/migration/**, crates/archeaxis-migration/**, crates/archeaxis-application/**, crates/archeaxis-store-sqlite/**, tests/migration/**]
+    acceptance: [two-fixtures-and-one-real-copy, unclassified-loss-zero, hash-mismatch-zero, dangling-reference-zero, second-import-noop, owner-confirmed-atomic-activation]
+    evidence: [dry-run, semantic-diff, rejection-ledger, ready-receipt]
+    rollback: discard_staging_or_restore_vnext_snapshot_never_auto_return_legacy_writer
+
+  - task_id: PR-28
+    priority: P2
+    title: 多源检索与交叉验证引擎
+    task_kind: research
+    risk: R2
+    depends_on: [PR-25]
+    allowed_paths: [services/python-workers/packs/web-research/**, crates/archeaxis-domain/**, crates/archeaxis-application/**, packages/contracts/v1/**, fixtures/golden/research/**]
+    acceptance: [bounded-query-receipt, primary-and-independent-and-counterevidence, repost-clustering, timelines, exact-anchors, offline-ci-live-optin]
+    evidence: [source-independence-matrix, coverage-receipt, anchor-audit]
+    rollback: disable_provider_keep_snapshots
+
+  - task_id: PR-29
+    priority: P2
+    title: 本地/云端模型评测与 MachineCompetenceReceipt
+    task_kind: evaluation
+    risk: R2
+    depends_on: [PR-21, PR-28]
+    allowed_paths: [services/python-workers/packs/evaluation/**, crates/archeaxis-domain/**, crates/archeaxis-application/**, fixtures/golden/evaluation/**, packages/contracts/v1/**, apps/desktop/**]
+    acceptance: [confidence-vs-measured-vs-evidence-separated, precision-recall-f1-and-intervals, retrieval-and-citation-metrics, unmeasured-visible, corrections-default-to-evaluation-not-training]
+    evidence: [versioned-benchmark, confusion-matrix, competence-receipt]
+    rollback: restore_previous_model_prompt_policy
+
+  - task_id: PR-30
+    priority: P2
+    title: Setup Portable Green 正式发行链
+    task_kind: release
+    risk: R4
+    depends_on: [PR-25, PR-27]
+    allowed_paths: [packaging/**, .github/workflows/vnext-release.yml, scripts/release/**, tests/**, reports/release/**]
+    acceptance: [promote-exact-qualified-bytes, three-lifecycles, no-data-deletion, sbom-notice-checksums-signature, download-readback]
+    evidence: [release-identity, sbom, sha256sums, download-and-install-receipts]
+    rollback: keep_draft_or_unpublished_never_replace_published_assets
+    owner_confirmation: required
+
+  - task_id: PR-31
+    priority: P2
+    title: Migration + Release Candidate 资格化
+    task_kind: qualification
+    risk: R3
+    depends_on: [PR-27, PR-30]
+    allowed_paths: [tests/migration/**, tests/journey/**]
+    acceptance: [all-migration-zero-loss-gates, two-exact-sha-green-candidates, no-required-skip, backup-restore-rejection-paths]
+    evidence: [rc-decision-receipt]
+    rollback: not_ready_no_cutover
+
+  - task_id: PR-32
+    priority: P2
+    title: Legacy writer 逐 aggregate 退役与仓库清理
+    task_kind: retire
+    risk: R4
+    depends_on: [PR-31]
+    preconditions: [owner-used-vnext-14-days-without-blocker, two-stable-vnext-releases, owner-explicit-delete-approval]
+    allowed_paths: []
+    dynamic_scope:
+      mode: digest-bound-manifest-expansion
+      policy_id: PR-32-legacy-retirement-v1
+      manifest_path: LEGACY_MANIFEST.yaml
+      manifest_digest_profile: AAK-JCS-1
+      selector_field: asset_id
+      required_decision: retire
+      required_status: approved
+      source_paths_requirement: census-expanded-exact-paths-no-globs
+      expansion_base: issued-subject-base
+      issued_scope_paths: exact-expanded-paths-only
+      partition_order: normalized-path-byte-order
+      max_paths_per_slice: 25
+      pseudo_paths_forbidden: true
+    acceptance: [no-runtime-ci-package-doc-reference, direct-connect-and-ddl-only-decrease-to-zero, clean-clone-full-qualification, history-and-receipts-preserved]
+    evidence: [reachability-audit, deletion-manifest, clean-clone-receipt]
+    rollback: restore_code_from_exact_tag_never_restore_writer_for_vnext_profile
+    owner_confirmation: required
+
+  - task_id: PR-33A
+    priority: P3
+    title: 扫描 PDF / OCR 能力包
+    task_kind: capability
+    risk: R2
+    depends_on: [PR-25]
+    entry_condition: Owner 明确需要扫描材料且 rights、黄金集和隔离依赖方案已批准
+    allowed_paths: [services/python-workers/packs/ocr/**, fixtures/golden/ocr/**, packages/contracts/v1/**]
+    acceptance: [independent-lock, rights, no-db, cer-layout-metrics, precise-anchor, crash-receipt]
+    evidence: [capability-manifest, golden-set-metrics, no-db-trace, crash-recovery-receipt]
+    rollback: disable_pack
+
+  - task_id: PR-33B
+    priority: P3
+    title: Office / 复杂表格能力包
+    task_kind: capability
+    risk: R2
+    depends_on: [PR-25]
+    entry_condition: Owner 明确需要 Office 或复杂表格且结构黄金集和许可已批准
+    allowed_paths: [services/python-workers/packs/office/**, fixtures/golden/office/**, packages/contracts/v1/**]
+    acceptance: [independent-lock, rights, no-db, structure-f1, loss-report, crash-receipt]
+    evidence: [capability-manifest, golden-set-metrics, loss-receipt, no-db-trace]
+    rollback: disable_pack
+
+  - task_id: PR-33C
+    priority: P3
+    title: 音视频 / ASR / 时间戳 Anchor 能力包
+    task_kind: capability
+    risk: R2
+    depends_on: [PR-25]
+    entry_condition: Owner 明确需要音视频且 ASR、说话人和时间戳黄金集已批准
+    allowed_paths: [services/python-workers/packs/media/**, fixtures/golden/media/**, packages/contracts/v1/**]
+    acceptance: [independent-lock, rights, no-db, wer-speaker-metrics, timestamp-anchor, crash-receipt]
+    evidence: [capability-manifest, golden-set-metrics, timestamp-anchor-receipt, no-db-trace]
+    rollback: disable_pack
+
+  - task_id: PR-33D
+    priority: P3
+    title: 网页抓取与版本快照能力包
+    task_kind: capability
+    risk: R3
+    depends_on: [PR-28]
+    entry_condition: 网络、robots、登录墙、内容许可与不可变快照政策已批准
+    allowed_paths: [services/python-workers/packs/web-capture/**, fixtures/golden/web/**, packages/contracts/v1/**]
+    acceptance: [explicit-network-policy, rights-and-robots, immutable-snapshot, exact-anchor, offline-replay]
+    evidence: [network-policy-receipt, rights-review, snapshot-hashes, offline-replay-receipt]
+    rollback: disable_pack_keep_snapshots
+
+  - task_id: PR-33E
+    priority: P3
+    title: 图像与空间材料能力包
+    task_kind: capability
+    risk: R2
+    depends_on: [PR-25]
+    entry_condition: Owner 明确需要图像或空间材料且任务级黄金集和来源规则已批准
+    allowed_paths: [services/python-workers/packs/vision/**, fixtures/golden/vision/**, packages/contracts/v1/**]
+    acceptance: [independent-lock, rights, no-db, task-specific-metrics, provenance]
+    evidence: [capability-manifest, golden-set-metrics, provenance-receipt, no-db-trace]
+    rollback: disable_pack
+
+  - task_id: PR-33F
+    priority: P3
+    title: 向量检索投影
+    task_kind: search
+    risk: R2
+    depends_on: [PR-29]
+    entry_condition: FTS5 在版本化黄金检索集上实测不足且向量方案显示显著增益
+    allowed_paths: [crates/archeaxis-application/**, crates/archeaxis-store-sqlite/**, services/python-workers/packs/embedding/**, tests/**]
+    acceptance: [projection-rebuildable, primary-state-unchanged, measured-retrieval-gain, disable-without-data-loss]
+    evidence: [golden-retrieval-comparison, rebuild-receipt, disable-and-reenable-receipt]
+    rollback: drop_rebuildable_projection
+
+milestone_gates:
+  hello_triangle:
+    requires: [PR-09]
+    blocks: [product_feature_expansion]
+  usable_v01:
+    requires: [PR-23, PR-24, PR-25]
+    blocks: [unique_real_user_data]
+  migration_ready:
+    requires: [PR-26, PR-27]
+    blocks: [cutover]
+  rc_ready:
+    requires: [PR-31]
+    blocks: [legacy_retirement]
+  research_v02_ready:
+    requires: [PR-28, PR-29]
+    blocks: [automatic_research_claims_and_model_accuracy_display]

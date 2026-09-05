@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/schemas/legacy-manifest.schema.json",
+  "title": "ArcheAxis Legacy Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "manifest_id", "baseline", "target_adr", "use_profile", "policies", "allowed_decisions", "entries"],
+  "properties": {
+    "schema": { "const": "archeaxis.legacy-manifest/v1" },
+    "schema_version": { "const": 1 },
+    "manifest_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+    "baseline": { "$ref": "#/$defs/baseline" },
+    "target_adr": { "$ref": "#/$defs/repoPath" },
+    "use_profile": { "const": "personal-research-noncommercial" },
+    "policies": { "$ref": "#/$defs/policies" },
+    "allowed_decisions": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "reuse" },
+        { "const": "wrap" },
+        { "const": "port" },
+        { "const": "oracle" },
+        { "const": "retire" }
+      ],
+      "items": false,
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" },
+      "description": "Each entry is structurally forced through exactly one decision branch (reuse, wrap, port, oracle, or retire). A repository census validator must additionally expand every source.paths selector against baseline.commit, reject fallback **/* classifications, reject overlaps, and prove that every baseline file is covered exactly once with no gaps. JSON Schema alone cannot perform that Git-tree census or enforce unique asset_id values."
+    }
+  },
+  "$defs": {
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "nullableString": { "type": ["string", "null"] },
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "sha40": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "sha256OrPlaceholder": {
+      "oneOf": [
+        { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        { "enum": ["replace-with-content-sha256", "per-file-required-after-glob-expansion"] }
+      ]
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo", "commit", "release", "tree_sha", "captured_at"],
+      "properties": {
+        "repo": { "type": "string", "pattern": "^[^/\\s]+/[^/\\s]+$" },
+        "commit": { "$ref": "#/$defs/sha40" },
+        "release": { "type": "string", "minLength": 1 },
+        "tree_sha": {
+          "oneOf": [
+            { "$ref": "#/$defs/sha40" },
+            { "const": "replace-with-api-tree-sha" }
+          ]
+        },
+        "captured_at": {
+          "anyOf": [
+            { "type": "string", "format": "date-time" },
+            { "const": "replace-with-rfc3339-utc" }
+          ],
+          "description": "Timestamps are strings. The placeholder is permitted only because this file is an example; a materialized manifest must use an RFC 3339 date-time string."
+        }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["no_shared_db", "no_dual_write", "default_decision", "exact_one_entry_per_baseline_file"],
+      "properties": {
+        "no_shared_db": { "const": true },
+        "no_dual_write": { "const": true },
+        "default_decision": { "const": "unclassified-read-only" },
+        "exact_one_entry_per_baseline_file": { "const": true }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paths", "commit", "blob_sha256"],
+      "properties": {
+        "paths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/repoPath" },
+          "not": { "contains": { "const": "**/*" } }
+        },
+        "commit": { "$ref": "#/$defs/sha40" },
+        "blob_sha256": { "$ref": "#/$defs/sha256OrPlaceholder" }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spdx_expression", "evidence_path", "notice_paths", "redistribution_class", "network_service_condition", "model_or_dataset_terms"],
+      "properties": {
+        "spdx_expression": { "type": "string", "minLength": 1 },
+        "evidence_path": { "$ref": "#/$defs/repoPath" },
+        "notice_paths": { "$ref": "#/$defs/stringList" },
+        "redistribution_class": { "type": "string", "pattern": "^[A-Z]$" },
+        "network_service_condition": { "type": "string", "minLength": 1 },
+        "model_or_dataset_terms": { "type": "string", "minLength": 1 }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture_class"],
+      "properties": {
+        "fixture_class": { "type": "string", "minLength": 1 }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contains_user_data"],
+      "properties": {
+        "contains_user_data": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "const": "unknown" }
+          ]
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixtures", "required_checks"],
+      "properties": {
+        "fixtures": { "$ref": "#/$defs/stringList" },
+        "required_checks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_schema", "target_aggregate", "loss_policy"],
+      "properties": {
+        "source_schema": { "$ref": "#/$defs/nullableString" },
+        "target_aggregate": { "$ref": "#/$defs/nullableString" },
+        "loss_policy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "source",
+        "kind",
+        "capability",
+        "authority_class",
+        "runtime_reachable",
+        "decision",
+        "decision_reason",
+        "destination",
+        "invariants_to_preserve",
+        "allowed_effects",
+        "forbidden_effects",
+        "database_access",
+        "network_access",
+        "external_processes",
+        "dependencies",
+        "license",
+        "rights",
+        "privacy",
+        "qualification",
+        "migration",
+        "owner",
+        "status",
+        "introduced_pr",
+        "retire_when",
+        "supersedes"
+      ],
+      "properties": {
+        "asset_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+        "source": { "$ref": "#/$defs/source" },
+        "kind": { "type": "string", "minLength": 1 },
+        "capability": { "type": "string", "minLength": 1 },
+        "authority_class": { "type": "string", "minLength": 1 },
+        "runtime_reachable": { "type": "boolean" },
+        "decision": { "enum": ["reuse", "wrap", "port", "oracle", "retire"] },
+        "decision_reason": { "type": "string", "minLength": 1 },
+        "destination": { "$ref": "#/$defs/nullableString" },
+        "invariants_to_preserve": { "$ref": "#/$defs/stringList" },
+        "allowed_effects": { "$ref": "#/$defs/stringList" },
+        "forbidden_effects": { "$ref": "#/$defs/stringList" },
+        "database_access": { "enum": ["forbidden", "read-only-legacy-snapshot", "through-rust-store-only"] },
+        "network_access": { "enum": ["forbidden", "as-observed-only", "explicitly-qualified"] },
+        "external_processes": { "$ref": "#/$defs/stringList" },
+        "dependencies": { "$ref": "#/$defs/stringList" },
+        "license": { "$ref": "#/$defs/license" },
+        "rights": { "$ref": "#/$defs/rights" },
+        "privacy": { "$ref": "#/$defs/privacy" },
+        "qualification": { "$ref": "#/$defs/qualification" },
+        "migration": { "$ref": "#/$defs/migration" },
+        "owner": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["proposed", "approved", "in-progress", "qualified", "retired", "blocked"] },
+        "introduced_pr": { "$ref": "#/$defs/nullableString" },
+        "retire_when": { "type": "string", "minLength": 1 },
+        "supersedes": { "$ref": "#/$defs/nullableString" }
+      },
+      "oneOf": [
+        { "properties": { "decision": { "const": "reuse" } }, "required": ["decision"] },
+        { "properties": { "decision": { "const": "wrap" } }, "required": ["decision"] },
+        { "properties": { "decision": { "const": "port" } }, "required": ["decision"] },
+        { "properties": { "decision": { "const": "oracle" } }, "required": ["decision"] },
+        { "properties": { "decision": { "const": "retire" } }, "required": ["decision"] }
+      ]
+    }
+  }
+}

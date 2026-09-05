@@ -1,0 +1,90 @@
+schema: archeaxis.gate-registry/v1
+schema_version: 1
+required_status_policy: only-pass-is-success
+gates:
+  - {gate_id: history-supersession-check, job_name: history-supersession, runner: ubuntu, timeout_minutes: 10, network: denied}
+  - {gate_id: authority-reference-check, job_name: authority-reference, runner: ubuntu, timeout_minutes: 10, network: denied}
+  - {gate_id: collection-manifest-check, job_name: collection-manifest, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: two-offline-full-runs, job_name: offline-full-repeat, runner: ubuntu, timeout_minutes: 180, network: denied}
+  - {gate_id: exact-sha-nightly, job_name: exact-sha-nightly, runner: ubuntu, timeout_minutes: 240, network: denied}
+  - {gate_id: full-qualification-receipt-tests, job_name: qualification-receipt, runner: ubuntu, timeout_minutes: 30, network: denied}
+  - {gate_id: hostile-release-fixtures, job_name: hostile-release, runner: ubuntu, timeout_minutes: 30, network: denied}
+  - {gate_id: exact-sha-promotion-rejection, job_name: exact-promotion-identity, runner: ubuntu, timeout_minutes: 30, network: denied}
+  - {gate_id: schema-validation, job_name: governance-schema, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: scope-gate-self-test, job_name: scope-gate-self-test, runner: ubuntu, timeout_minutes: 20, network: denied}
+  - {gate_id: stale-base-rejection, job_name: stale-base-hostile, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: self-escalation-rejection, job_name: self-escalation-hostile, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: protected-path-without-grant-rejection, job_name: missing-grant-hostile, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: openapi-lint, job_name: openapi-lint, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: json-schema-validation, job_name: json-schema, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: csharp-generation-drift, job_name: csharp-contract-drift, runner: windows-11, timeout_minutes: 30, network: denied}
+  - {gate_id: rust-generation-drift, job_name: rust-contract-drift, runner: windows-11, timeout_minutes: 30, network: denied}
+  - {gate_id: python-generation-drift, job_name: python-contract-drift, runner: windows-11, timeout_minutes: 30, network: denied}
+  - {gate_id: three-language-canonical-fixtures, job_name: contract-conformance, runner: windows-11, timeout_minutes: 45, network: denied}
+  - {gate_id: backward-compatibility-check, job_name: compatibility, runner: windows-11, timeout_minutes: 30, network: denied}
+  - {gate_id: db-writer-boundary, job_name: db-writer-boundary, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: secret-and-vendor-state-scan, job_name: secret-vendor-scan, runner: ubuntu, timeout_minutes: 15, network: denied}
+  - {gate_id: dependency-license-audit, job_name: dependency-license, runner: ubuntu, timeout_minutes: 30, network: explicit}
+  - {gate_id: backup-restore-rejection, job_name: backup-restore-rejection, runner: windows-11, timeout_minutes: 120, network: denied}
+  - {gate_id: owner-destructive-approval, job_name: owner-destructive-approval, runner: owner-attestation, timeout_minutes: 60, network: denied}
+  - {gate_id: rust-quality-suite, job_name: rust-quality, runner: windows-11, timeout_minutes: 90, network: denied}
+  - {gate_id: dotnet-desktop-quality, job_name: dotnet-desktop-quality, runner: windows-11, timeout_minutes: 90, network: denied}
+  - {gate_id: python-quality-suite, job_name: python-quality, runner: windows-11, timeout_minutes: 90, network: denied}
+  - {gate_id: runtime-protocol-lifecycle, job_name: runtime-protocol-lifecycle, runner: windows-11, timeout_minutes: 120, network: denied}
+  - {gate_id: persistence-integrity-migration, job_name: persistence-integrity-migration, runner: windows-11, timeout_minutes: 180, network: denied}
+  - {gate_id: exact-sha-system-journey, job_name: exact-sha-system-journey, runner: windows-11, timeout_minutes: 180, network: denied}
+  - {gate_id: capability-pack-conformance, job_name: capability-pack-conformance, runner: windows-11, timeout_minutes: 120, network: denied}
+  - {gate_id: semantic-measurement-conformance, job_name: semantic-measurement-conformance, runner: ubuntu, timeout_minutes: 90, network: denied}
+  - {gate_id: rights-egress-provenance, job_name: rights-egress-provenance, runner: ubuntu, timeout_minutes: 45, network: explicit}
+  - {gate_id: release-artifact-identity, job_name: release-artifact-identity, runner: windows-11, timeout_minutes: 180, network: denied}
+task_rules:
+  PR-00: [history-supersession-check, authority-reference-check]
+  PR-01: [collection-manifest-check, two-offline-full-runs, exact-sha-nightly]
+  PR-02: [full-qualification-receipt-tests, hostile-release-fixtures, exact-sha-promotion-rejection]
+  PR-03: [authority-reference-check, schema-validation, scope-gate-self-test, stale-base-rejection, self-escalation-rejection, protected-path-without-grant-rejection]
+  PR-04: [openapi-lint, json-schema-validation, csharp-generation-drift, rust-generation-drift, python-generation-drift, three-language-canonical-fixtures, backward-compatibility-check, rust-quality-suite, dotnet-desktop-quality, python-quality-suite]
+  PR-05: [rust-quality-suite, runtime-protocol-lifecycle, persistence-integrity-migration]
+  PR-06: [dotnet-desktop-quality, runtime-protocol-lifecycle]
+  PR-07: [python-quality-suite, runtime-protocol-lifecycle]
+  PR-08: [runtime-protocol-lifecycle]
+  PR-09: [runtime-protocol-lifecycle, persistence-integrity-migration, exact-sha-system-journey]
+  PR-10: [rust-quality-suite, persistence-integrity-migration]
+  PR-11: [python-quality-suite, capability-pack-conformance]
+  PR-12: [dotnet-desktop-quality, exact-sha-system-journey]
+  PR-13: [rights-egress-provenance]
+  PR-14: [persistence-integrity-migration, exact-sha-system-journey]
+  PR-15: [rust-quality-suite, persistence-integrity-migration, semantic-measurement-conformance]
+  PR-16: [dotnet-desktop-quality, semantic-measurement-conformance, exact-sha-system-journey]
+  PR-17: [semantic-measurement-conformance]
+  PR-18: [persistence-integrity-migration, semantic-measurement-conformance, exact-sha-system-journey]
+  PR-19: [rust-quality-suite, persistence-integrity-migration, semantic-measurement-conformance]
+  PR-20: [dotnet-desktop-quality, semantic-measurement-conformance, exact-sha-system-journey]
+  PR-21: [python-quality-suite, capability-pack-conformance, semantic-measurement-conformance, rights-egress-provenance]
+  PR-22: [runtime-protocol-lifecycle, persistence-integrity-migration, exact-sha-system-journey]
+  PR-23: [persistence-integrity-migration, semantic-measurement-conformance, exact-sha-system-journey]
+  PR-24: [runtime-protocol-lifecycle, exact-sha-system-journey, release-artifact-identity]
+  PR-25: [exact-sha-system-journey, release-artifact-identity]
+  PR-26: [python-quality-suite, persistence-integrity-migration, rights-egress-provenance]
+  PR-27: [rust-quality-suite, persistence-integrity-migration, exact-sha-system-journey]
+  PR-28: [rust-quality-suite, python-quality-suite, capability-pack-conformance, semantic-measurement-conformance, rights-egress-provenance]
+  PR-29: [rust-quality-suite, dotnet-desktop-quality, python-quality-suite, capability-pack-conformance, semantic-measurement-conformance, rights-egress-provenance, exact-sha-system-journey]
+  PR-30: [full-qualification-receipt-tests, exact-sha-promotion-rejection, persistence-integrity-migration, exact-sha-system-journey, release-artifact-identity]
+  PR-31: [full-qualification-receipt-tests, exact-sha-promotion-rejection, persistence-integrity-migration, exact-sha-system-journey, release-artifact-identity]
+  PR-32: [collection-manifest-check, two-offline-full-runs, full-qualification-receipt-tests, persistence-integrity-migration, exact-sha-system-journey, release-artifact-identity]
+  PR-33A: [python-quality-suite, capability-pack-conformance, semantic-measurement-conformance, rights-egress-provenance]
+  PR-33B: [python-quality-suite, capability-pack-conformance, semantic-measurement-conformance, rights-egress-provenance]
+  PR-33C: [python-quality-suite, capability-pack-conformance, semantic-measurement-conformance, rights-egress-provenance]
+  PR-33D: [python-quality-suite, capability-pack-conformance, rights-egress-provenance]
+  PR-33E: [python-quality-suite, capability-pack-conformance, semantic-measurement-conformance, rights-egress-provenance]
+  PR-33F: [rust-quality-suite, python-quality-suite, capability-pack-conformance, persistence-integrity-migration, semantic-measurement-conformance, rights-egress-provenance, exact-sha-system-journey]
+path_rules:
+  - {paths: [.project/**, AGENTS.md, PROJECT_CONTRACT.yaml, DIRECTORY_AUTHORITY.yaml], gate_ids: [schema-validation, scope-gate-self-test, secret-and-vendor-state-scan]}
+  - {paths: [packages/contracts/**, crates/archeaxis-contracts/**, "**/generated/**"], gate_ids: [openapi-lint, json-schema-validation, three-language-canonical-fixtures, backward-compatibility-check]}
+  - {paths: [crates/archeaxis-store-sqlite/**, apps/desktop/**, services/python-workers/**], gate_ids: [db-writer-boundary]}
+  - {paths: ["**/uv.lock", Cargo.lock, Directory.Packages.props, packaging/**], gate_ids: [dependency-license-audit]}
+risk_rules:
+  R0: [secret-and-vendor-state-scan]
+  R1: [secret-and-vendor-state-scan]
+  R2: [secret-and-vendor-state-scan]
+  R3: [secret-and-vendor-state-scan, backup-restore-rejection]
+  R4: [secret-and-vendor-state-scan, backup-restore-rejection, owner-destructive-approval]

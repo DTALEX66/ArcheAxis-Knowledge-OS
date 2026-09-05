@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/schemas/project-contract.schema.json",
+  "title": "ArcheAxis Project Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "contract_version",
+    "effective_at",
+    "project",
+    "stage",
+    "scope",
+    "language_authority",
+    "data_authority",
+    "legacy",
+    "runtime",
+    "delivery",
+    "agent_protocol",
+    "licensing"
+  ],
+  "properties": {
+    "schema": { "const": "archeaxis.project-contract/v1" },
+    "schema_version": { "const": 1 },
+    "contract_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
+    "effective_at": { "type": "string", "format": "date-time" },
+    "project": { "type": "string", "minLength": 1 },
+    "stage": { "type": "string", "minLength": 1 },
+    "scope": { "$ref": "#/$defs/scope" },
+    "language_authority": { "$ref": "#/$defs/languageAuthority" },
+    "data_authority": { "$ref": "#/$defs/dataAuthority" },
+    "legacy": { "$ref": "#/$defs/legacy" },
+    "runtime": { "$ref": "#/$defs/runtime" },
+    "delivery": { "$ref": "#/$defs/delivery" },
+    "agent_protocol": { "$ref": "#/$defs/agentProtocol" },
+    "licensing": { "$ref": "#/$defs/licensing" }
+  },
+  "$defs": {
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["included", "excluded_until_v01_go", "planned_after_v01"],
+      "properties": {
+        "included": { "$ref": "#/$defs/nonEmptyStrings" },
+        "excluded_until_v01_go": { "$ref": "#/$defs/nonEmptyStrings" },
+        "planned_after_v01": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "desktopAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "runtime", "framework", "may_authoritative_write"],
+      "properties": {
+        "language": { "const": "csharp" },
+        "runtime": { "type": "string", "minLength": 1 },
+        "framework": { "type": "string", "minLength": 1 },
+        "may_authoritative_write": { "const": false }
+      }
+    },
+    "coreAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "edition", "toolchain", "responsibilities", "may_authoritative_write"],
+      "properties": {
+        "language": { "const": "rust" },
+        "edition": { "type": "string", "pattern": "^[0-9]{4}$" },
+        "toolchain": { "type": "string", "minLength": 1 },
+        "responsibilities": { "$ref": "#/$defs/nonEmptyStrings" },
+        "may_authoritative_write": { "const": true }
+      }
+    },
+    "workerAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "runtime_policy", "may_authoritative_write"],
+      "properties": {
+        "language": { "const": "python" },
+        "runtime_policy": { "type": "string", "minLength": 1 },
+        "may_authoritative_write": { "const": false }
+      }
+    },
+    "contractAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["http", "messages"],
+      "properties": {
+        "http": { "const": "openapi-3.1" },
+        "messages": { "const": "json-schema-2020-12" }
+      }
+    },
+    "languageAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["desktop", "core", "capability_workers", "contracts"],
+      "properties": {
+        "desktop": { "$ref": "#/$defs/desktopAuthority" },
+        "core": { "$ref": "#/$defs/coreAuthority" },
+        "capability_workers": { "$ref": "#/$defs/workerAuthority" },
+        "contracts": { "$ref": "#/$defs/contractAuthority" }
+      }
+    },
+    "projections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["first", "later_when_measured"],
+      "properties": {
+        "first": { "type": "string", "minLength": 1 },
+        "later_when_measured": { "type": "string", "minLength": 1 }
+      }
+    },
+    "dataAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["database", "writer", "readers", "raw_objects", "projections", "prohibited"],
+      "properties": {
+        "database": { "const": "sqlite" },
+        "writer": { "const": "rust-writer-actor" },
+        "readers": { "const": "core-managed-readonly" },
+        "raw_objects": { "const": "sha256-content-addressed-storage" },
+        "projections": { "$ref": "#/$defs/projections" },
+        "prohibited": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "legacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product_paths", "frozen_release", "frozen_commit", "role", "migration", "prohibited"],
+      "properties": {
+        "product_paths": { "const": "maintenance-only" },
+        "frozen_release": { "type": "string", "minLength": 1 },
+        "frozen_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "role": { "$ref": "#/$defs/nonEmptyStrings" },
+        "migration": { "const": "consistent-snapshot-to-read-only-export-to-rust-import" },
+        "prohibited": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "localAuth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bind", "port", "token"],
+      "properties": {
+        "bind": { "const": "127.0.0.1" },
+        "port": { "const": "random" },
+        "token": { "const": "per-launch" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ui_to_core", "core_to_worker", "ffi_initially", "local_auth"],
+      "properties": {
+        "ui_to_core": { "const": "loopback-http-json" },
+        "core_to_worker": { "const": "stdio-ndjson" },
+        "ffi_initially": { "const": false },
+        "local_auth": { "$ref": "#/$defs/localAuth" }
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preview_day", "release_candidate_week", "supported_product_platform_initially", "mandatory_journey"],
+      "properties": {
+        "preview_day": { "type": "integer", "minimum": 1 },
+        "release_candidate_week": { "type": "integer", "minimum": 1 },
+        "supported_product_platform_initially": { "$ref": "#/$defs/nonEmptyStrings" },
+        "mandatory_journey": { "$ref": "#/$defs/repoPath" }
+      }
+    },
+    "agentProtocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_contract_schema",
+        "directory_authority_schema",
+        "decision_supersession_ledger_schema",
+        "legacy_manifest_schema",
+        "program_graph",
+        "program_graph_schema",
+        "execution_slice_blueprints",
+        "execution_slice_blueprints_schema",
+        "gate_registry",
+        "gate_registry_schema",
+        "gate_plan_schema",
+        "task_template",
+        "issued_task_envelope",
+        "receipt",
+        "program_completion_receipt",
+        "authority_grant",
+        "authority_revocation",
+        "digest_profile",
+        "trusted_source",
+        "one_task_one_branch_one_worktree_one_agent",
+        "authority_changes_require_remote_grant",
+        "same_machine_coordination_lock_backend",
+        "per_worktree_scratch",
+        "canonical_receipt",
+        "issued_envelope_path",
+        "issued_grant_path",
+        "bootstrap",
+        "required_remote_checks"
+      ],
+      "properties": {
+        "project_contract_schema": { "const": ".project/schemas/project-contract.schema.json" },
+        "directory_authority_schema": { "const": ".project/schemas/directory-authority.schema.json" },
+        "decision_supersession_ledger_schema": { "const": ".project/schemas/decision-supersession-ledger.schema.json" },
+        "legacy_manifest_schema": { "const": ".project/schemas/legacy-manifest.schema.json" },
+        "program_graph": { "$ref": "#/$defs/repoPath" },
+        "program_graph_schema": { "$ref": "#/$defs/repoPath" },
+        "execution_slice_blueprints": { "$ref": "#/$defs/repoPath" },
+        "execution_slice_blueprints_schema": { "$ref": "#/$defs/repoPath" },
+        "gate_registry": { "$ref": "#/$defs/repoPath" },
+        "gate_registry_schema": { "$ref": "#/$defs/repoPath" },
+        "gate_plan_schema": { "$ref": "#/$defs/repoPath" },
+        "task_template": { "$ref": "#/$defs/repoPath" },
+        "issued_task_envelope": { "$ref": "#/$defs/repoPath" },
+        "receipt": { "$ref": "#/$defs/repoPath" },
+        "program_completion_receipt": { "$ref": "#/$defs/repoPath" },
+        "authority_grant": { "$ref": "#/$defs/repoPath" },
+        "authority_revocation": { "$ref": "#/$defs/repoPath" },
+        "digest_profile": { "$ref": "#/$defs/repoPath" },
+        "trusted_source": { "const": "protected-metadata-only-activation-commit" },
+        "one_task_one_branch_one_worktree_one_agent": { "const": true },
+        "authority_changes_require_remote_grant": { "const": true },
+        "same_machine_coordination_lock_backend": { "$ref": "#/$defs/repoPath" },
+        "per_worktree_scratch": { "$ref": "#/$defs/repoPath" },
+        "canonical_receipt": { "const": "external-exact-sha-ci-attestation" },
+        "issued_envelope_path": { "$ref": "#/$defs/repoPath" },
+        "issued_grant_path": { "$ref": "#/$defs/repoPath" },
+        "bootstrap": { "const": "pr00-through-pr03-owner-only-then-replay-with-installed-validator" },
+        "required_remote_checks": { "$ref": "#/$defs/nonEmptyStrings" }
+      }
+    },
+    "licensing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["first_party", "intended_use", "intended_use_is_not_a_license_restriction", "third_party_obligations_remain", "optional_restricted_components"],
+      "properties": {
+        "first_party": { "const": "MIT" },
+        "intended_use": { "const": "personal-research-noncommercial" },
+        "intended_use_is_not_a_license_restriction": { "const": true },
+        "third_party_obligations_remain": { "const": true },
+        "optional_restricted_components": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

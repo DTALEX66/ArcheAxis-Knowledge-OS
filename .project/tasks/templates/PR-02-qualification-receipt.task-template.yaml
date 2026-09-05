@@ -1,0 +1,60 @@
+schema: archeaxis.task-template/v1
+schema_version: 1
+state: template
+template_role: program-blueprint
+plan_id: AAK-VNEXT-2026-09-04
+program_task_id: PR-02
+task_id: PR-02
+slice_key: derive-at-jit
+issuance_id: replace-with-issuance-id
+issuer: replace-with-owner-issuer
+assignee: replace-with-release-agent
+not_before: replace-with-rfc3339-not-before
+issued_at: replace-with-rfc3339-issued-at
+expires_at: replace-with-rfc3339-expires-at
+subject_base_sha: replace-with-protected-parent-after-pr-01
+subject_base_tree: replace-with-subject-base-tree
+execution_mode: derive-from-slice-blueprint
+execution_lane: derive-from-slice-blueprint
+task_kind: ci-release
+priority: P0
+risk: R3
+objective: Bind full qualification to exact source and runtime identities and make release promotion fail closed for skipped, selective or mismatched runs.
+depends_on: [PR-01]
+dependency_program_receipts:
+  - {program_task_id: PR-01, program_graph_sha256: replace-with-program-graph-sha256, aggregated_main_sha: replace-with-pr-01-aggregated-main-sha, aggregated_main_tree: replace-with-pr-01-aggregated-main-tree, receipt_payload_sha256: replace-with-pr-01-completion-receipt-payload-sha256, status: PASS}
+program_graph_sha256: replace-with-program-graph-sha256
+program_acceptance_refs: [PR-02:A01, PR-02:A02, PR-02:A03]
+program_evidence_refs: [PR-02:E01, PR-02:E02]
+preconditions:
+  - PR-01 Program completion receipt is valid
+machine_requirements:
+  os: any
+  architecture: x86_64
+  clean_host: false
+  network: denied
+  gpu: none
+  credentials: []
+  filesystem_isolation: job-local
+  external_waits_satisfied: replace-with-true-after-preflight
+artifact_inputs: []
+authority_manifest_sha256: replace-with-authority-manifest-sha256
+consumed_interfaces:
+  entries: []
+  digest_sha256: replace-with-empty-or-consumed-interface-manifest-sha256
+scope:
+  allowed_operations: [create, modify]
+  allowed_paths: [.github/workflows/ci.yml, .github/workflows/release.yml, scripts/ci/**, scripts/release_candidate_inject_identity.py, tests/**]
+  forbidden_paths: [app/**, shared/**, frontend/**, src-tauri/**, "**/*.db"]
+  limits: {max_files: 25, max_added_lines: 2000, max_deleted_lines: 800, max_binary_bytes: 0, max_effort_hours: 16, max_duration_hours: 48}
+required_gate_ids: [full-qualification-receipt-tests, hostile-release-fixtures, exact-sha-promotion-rejection]
+gate_registry_sha256: replace-with-gate-registry-sha256
+authority_grant_ids: [replace-with-ci-and-release-grant-id]
+acceptance:
+  - Every required job is explicitly successful; skipped, cancelled, failed and absent all fail.
+  - The receipt binds commit, tree, locks, GatePlan, conclusions and runtime-tree digest.
+  - Release promotes qualified bytes and rejects selective, stale or wrong-identity input.
+evidence_required: [full-qualification-receipt, hostile-release-fixtures]
+rollback: [Atomically revert workflow and receipt-contract changes before any promotion.]
+work_base_policy: activation-commit-or-disjoint-descendant
+receipt_policy: external-exact-sha-ci-attestation

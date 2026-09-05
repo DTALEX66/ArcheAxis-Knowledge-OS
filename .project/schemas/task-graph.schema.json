@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/project/schemas/task-graph.schema.json",
+  "title": "ArcheAxis Program Task Graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "schema_version", "document_kind", "project", "plan_id",
+    "audit_base_sha", "legacy_release_commit", "global_rules", "execution_slicing",
+    "resource_gates", "default_execution_lane_by_task_kind", "serial_zones",
+    "tasks", "milestone_gates"
+  ],
+  "$defs": {
+    "programTaskId": {"type": "string", "pattern": "^PR-[0-9]{2,3}[A-Z]?$"},
+    "programTaskList": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/programTaskId"}},
+    "sha40": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "stringList": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "dynamicScopePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode", "policy_id", "manifest_path", "manifest_digest_profile",
+        "selector_field", "required_decision", "required_status",
+        "source_paths_requirement", "expansion_base", "issued_scope_paths",
+        "partition_order", "max_paths_per_slice", "pseudo_paths_forbidden"
+      ],
+      "properties": {
+        "mode": {"const": "digest-bound-manifest-expansion"},
+        "policy_id": {"const": "PR-32-legacy-retirement-v1"},
+        "manifest_path": {"const": "LEGACY_MANIFEST.yaml"},
+        "manifest_digest_profile": {"const": "AAK-JCS-1"},
+        "selector_field": {"const": "asset_id"},
+        "required_decision": {"const": "retire"},
+        "required_status": {"const": "approved"},
+        "source_paths_requirement": {"const": "census-expanded-exact-paths-no-globs"},
+        "expansion_base": {"const": "issued-subject-base"},
+        "issued_scope_paths": {"const": "exact-expanded-paths-only"},
+        "partition_order": {"const": "normalized-path-byte-order"},
+        "max_paths_per_slice": {"const": 25},
+        "pseudo_paths_forbidden": {"const": true}
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "priority", "title", "task_kind", "risk", "depends_on", "allowed_paths", "acceptance", "evidence", "rollback"],
+      "properties": {
+        "task_id": {"$ref": "#/$defs/programTaskId"},
+        "priority": {"enum": ["P0", "P1", "P2", "P3"]},
+        "title": {"type": "string", "minLength": 1},
+        "task_kind": {"$ref": "task-envelope.schema.json#/properties/task_kind"},
+        "risk": {"enum": ["R0", "R1", "R2", "R3", "R4"]},
+        "depends_on": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/programTaskId"}},
+        "parallel_with": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/programTaskId"}},
+        "allowed_paths": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "dynamic_scope": {"$ref": "#/$defs/dynamicScopePolicy"},
+        "acceptance": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "rollback": {"type": "string", "minLength": 1},
+        "entry_condition": {"type": "string", "minLength": 1},
+        "preconditions": {"$ref": "#/$defs/stringList"},
+        "owner_confirmation": {"const": "required"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"task_id": {"const": "PR-32"}},
+            "required": ["task_id"]
+          },
+          "then": {
+            "required": ["dynamic_scope"],
+            "properties": {"allowed_paths": {"maxItems": 0}}
+          },
+          "else": {
+            "properties": {
+              "allowed_paths": {"minItems": 1},
+              "dynamic_scope": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "schema": {"const": "archeaxis.task-graph/v1"},
+    "schema_version": {"const": 1},
+    "document_kind": {"const": "program-plan"},
+    "project": {"type": "string", "minLength": 1},
+    "plan_id": {"type": "string", "minLength": 3},
+    "audit_base_sha": {"$ref": "#/$defs/sha40"},
+    "legacy_release_commit": {"$ref": "#/$defs/sha40"},
+    "global_rules": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "max_files_per_issued_slice", "max_estimated_effort_hours_per_issued_slice",
+        "max_duration_hours_per_issued_slice", "program_node_is_not_automatically_an_issued_envelope",
+        "split_task_id_pattern", "atom_reference_pattern", "atom_indexing",
+        "required_skip_is_failure", "one_task_one_branch_worktree_agent",
+        "vnext_database_writer", "legacy_database_access", "direct_main_push",
+        "public_release_requires_owner_confirmation", "final_receipt_is_exact_sha_ci_attestation",
+        "repository_receipt_copy_requires_later_metadata_task", "canonical_repository_path",
+        "issued_envelope_path", "issued_authority_grant_path", "authority_revocation_path",
+        "canonical_digest_policy"
+      ],
+      "properties": {
+        "max_files_per_issued_slice": {"const": 25},
+        "max_estimated_effort_hours_per_issued_slice": {"const": 16},
+        "max_duration_hours_per_issued_slice": {"const": 48},
+        "program_node_is_not_automatically_an_issued_envelope": {"const": true},
+        "split_task_id_pattern": {"const": "<program-id>-S<nn>"},
+        "atom_reference_pattern": {"type": "string", "minLength": 1},
+        "atom_indexing": {"type": "string", "minLength": 1},
+        "required_skip_is_failure": {"const": true},
+        "one_task_one_branch_worktree_agent": {"const": true},
+        "vnext_database_writer": {"const": "rust_writer_actor_only"},
+        "legacy_database_access": {"const": "consistent_snapshot_then_read_only_export"},
+        "direct_main_push": {"const": "forbidden"},
+        "public_release_requires_owner_confirmation": {"const": true},
+        "final_receipt_is_exact_sha_ci_attestation": {"const": true},
+        "repository_receipt_copy_requires_later_metadata_task": {"const": true},
+        "canonical_repository_path": {"const": ".project/TASK-GRAPH.yaml"},
+        "issued_envelope_path": {"const": ".project/tasks/issued/<plan-id>/<task-id>/<issuance-id>.json"},
+        "issued_authority_grant_path": {"const": ".project/leases/issued/<plan-id>/<task-id>/<issuance-id>/<grant-id>.json"},
+        "authority_revocation_path": {"const": ".project/leases/revocations/<grant-id>.json"},
+        "canonical_digest_policy": {"const": "docs/operations/digest-canonicalization.md"}
+      }
+    },
+    "execution_slicing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["materialization", "slice_blueprint_path", "every_program_node_requires_one_or_more_issued_slices", "single_slice_candidates", "task_trains", "closure_rule", "over_limit_rule", "qualification_no_diff_policy", "pr31_minimum_slices", "pr32_strategy"],
+      "properties": {
+        "materialization": {"const": "just-in-time-from-protected-program-graph"},
+        "slice_blueprint_path": {"const": ".project/EXECUTION-SLICE-BLUEPRINTS.yaml"},
+        "every_program_node_requires_one_or_more_issued_slices": {"const": true},
+        "single_slice_candidates": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/programTaskId"}},
+        "task_trains": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/programTaskId"}},
+        "closure_rule": {"type": "string", "minLength": 1},
+        "over_limit_rule": {"type": "string", "minLength": 1},
+        "qualification_no_diff_policy": {
+          "type": "object", "additionalProperties": false,
+          "required": ["repository_diff", "repository_access", "outputs", "defect_handling"],
+          "properties": {
+            "repository_diff": {"const": "zero-from-activation-to-subject-head"},
+            "repository_access": {"const": "read-only"},
+            "outputs": {"const": "job-scratch-or-external-attestation-only"},
+            "defect_handling": {"const": "fail-or-block-and-issue-new-owning-lane-implementation-slice"}
+          }
+        },
+        "pr31_minimum_slices": {"$ref": "#/$defs/stringList"},
+        "pr32_strategy": {"type": "string", "minLength": 1}
+      }
+    },
+    "resource_gates": {
+      "type": "object", "additionalProperties": false,
+      "required": ["clean_windows_11", "isolated_legacy_copy", "explicit_network_and_credentials", "rights_and_license_approval", "scheduling_rule"],
+      "properties": {
+        "clean_windows_11": {"$ref": "#/$defs/programTaskList"},
+        "isolated_legacy_copy": {"$ref": "#/$defs/programTaskList"},
+        "explicit_network_and_credentials": {
+          "allOf": [{"$ref": "#/$defs/programTaskList"}, {"contains": {"const": "PR-21"}}]
+        },
+        "rights_and_license_approval": {
+          "allOf": [{"$ref": "#/$defs/programTaskList"}, {"contains": {"const": "PR-21"}}]
+        },
+        "scheduling_rule": {"const": "do_not_issue_or_hold_authority_grants_while_waiting_for_external_resources"}
+      }
+    },
+    "default_execution_lane_by_task_kind": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {"enum": ["owner", "contract", "rust-core", "rust-store", "avalonia-ui", "python-worker", "journey", "migration", "ci", "release"]}
+    },
+    "serial_zones": {"$ref": "#/$defs/stringList"},
+    "tasks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/task"}},
+    "milestone_gates": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false,
+        "required": ["requires", "blocks"],
+        "properties": {
+          "requires": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/programTaskId"}},
+          "blocks": {"$ref": "#/$defs/stringList"}
+        }
+      }
+    }
+  }
+}
