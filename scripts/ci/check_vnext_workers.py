@@ -248,6 +248,34 @@ def main() -> int:
             if "error" not in tail:
                 failures.append("video worker failure must carry an error payload")
 
+    # Vision OCR worker (F04 partial): compile + probe + failure contracts.
+    # Real OCR needs tesseract+tessdata, present only in local verification
+    # (recorded in the T06 receipt), never assumed on runners.
+    ocr_worker = WORKERS / "vision" / "worker_ocr.py"
+    try:
+        py_compile.compile(str(ocr_worker), doraise=True)
+    except py_compile.PyCompileError as exc:
+        failures.append(f"vision/worker_ocr.py: compile failed: {exc}")
+    else:
+        ocr_probe = _run_matrix_worker("vision/worker_ocr.py", ["--probe"])
+        if ocr_probe.returncode != 0:
+            failures.append(f"ocr probe exit {ocr_probe.returncode}: {ocr_probe.stderr.strip()[:200]}")
+        else:
+            try:
+                ocr_payload = json.loads(ocr_probe.stdout.strip().splitlines()[-1])
+            except (json.JSONDecodeError, IndexError) as exc:
+                failures.append(f"ocr probe invalid payload: {exc}")
+                ocr_payload = {}
+            if "capability" not in ocr_payload:
+                failures.append("ocr probe must report capability")
+        ocr_bad = _run_matrix_worker("vision/worker_ocr.py", ["/nonexistent.png"])
+        if ocr_bad.returncode == 0:
+            failures.append("ocr worker succeeded on a missing image (must fail)")
+        else:
+            tail = (ocr_bad.stdout or ocr_bad.stderr).strip().splitlines()[-1] if (ocr_bad.stdout or ocr_bad.stderr).strip() else ""
+            if "error" not in tail:
+                failures.append("ocr worker failure must carry an error payload")
+
     # Evaluation worker (T07): recomputable CER/WER metrics (stdlib only).
     quality_worker = WORKERS / "evaluation" / "worker_quality.py"
     try:

@@ -1,0 +1,23 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T06-slice2b",
+  "title": "媒体/视觉能力包 slice2b：F04 OCR worker（文本+词框，部分）",
+  "date": "2026-09-05",
+  "status": "in-progress",
+  "deliverables": {
+    "worker": "services/python-workers/vision/worker_ocr.py",
+    "engines": "tesseract CLI (5.5.0) psm6, 尊重 TESSDATA_PREFIX",
+    "output": "text + words[{text,confidence,x,y,w,h}] + loss_receipt",
+    "honesty": "仅 OCR 文本与框; 图示语义描述/手写/低质区重试为独立视觉 lane(未伪称)"
+  },
+  "local_verification": {
+    "probe": "capability true, languages [chi_sim, eng] (TESSDATA_PREFIX 指向共享库 persist tessdata)",
+    "golden_ocr": "tests/fixtures/golden/golden-screenshot-ocr.png -> 'OCR GOLDEN ANCHOR / Synthetic screenshot fixture - no personal data' + 10 词框 置信 92-97",
+    "missing_image": "error exit 1"
+  },
+  "ci_gate": "workers-vnext: 编译 + probe(capability 键) + 缺文件错误契约; 真实 OCR 依赖 tesseract+tessdata(运行器不装, 本地验证已记录)",
+  "acceptance_status": {
+    "F04_partial": "OCR 文本/框通过; 截图未仅做元数据(真实文本层输出); 图示推断 lane 后续(qwen2.5vl 已可用)"
+  },
+  "result": "PASS-slice2b"
+}
