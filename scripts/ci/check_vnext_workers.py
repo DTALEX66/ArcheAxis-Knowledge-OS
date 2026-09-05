@@ -240,7 +240,7 @@ def main() -> int:
                 video_payload = {}
             if "capability" not in video_payload:
                 failures.append("video probe must report capability (true or false)")
-        video_bad = _run_matrix_worker("media/worker_video.py", ["/nonexistent.mp4", "--out-dir", "/tmp"])
+        video_bad = _run_matrix_worker("media/worker_video.py", ["/nonexistent-input.mp4", "--out-dir", "ignored"])
         if video_bad.returncode == 0:
             failures.append("video worker succeeded on a missing input (must fail)")
         else:

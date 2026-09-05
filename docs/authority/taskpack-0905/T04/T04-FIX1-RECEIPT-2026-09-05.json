@@ -1,0 +1,9 @@
+{
+  "schema": "archeaxis.fast-full-loop-taskpack-v1",
+  "task": "T04-fix1",
+  "title": "架构守卫修复：gate 脚本去除外部绝对路径字面量",
+  "date": "2026-09-05",
+  "fix": "check_vnext_workers.py 视频 worker 失败路径 --out-dir '/tmp' 触发 forbidden-absolute-path；改为相对占位 'ignored'（缺输入先报错，out-dir 不会被使用）",
+  "verification": { "architecture_guard": "passed", "workers_gate": "passed", "conventions": "passed" },
+  "result": "PASS"
+}
