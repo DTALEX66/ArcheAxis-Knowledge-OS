@@ -137,5 +137,34 @@ class WorkerQualityRegressions(unittest.TestCase):
         self.assertIn("zero-line coverage", receipt["loss_note"])
 
 
+    def test_measurement_boundary_rejects_nonfinite_and_reversed_intervals(self):
+        report = self.evaluate(b"a", b"a")
+        for value, interval in [(float("nan"), None), (float("inf"), None),
+                                (-float("inf"), None), (True, None),
+                                (0.5, [float("nan"), 1]), (0.5, [0, float("inf")]),
+                                (0.5, [1, 0]), (0.5, [0]), (0.5, [False, 1])]:
+            with self.subTest(value=value, interval=interval):
+                report["rows"][0].update(value=value, interval=interval)
+                with self.assertRaises(ValueError):
+                    quality.validate_report_metrics(report)
+
+    def test_generation_boundary_cannot_emit_nonfinite_metric(self):
+        with patch.object(quality, "levenshtein", return_value=float("nan")):
+            with self.assertRaises(ValueError):
+                self.evaluate(b"a", b"b")
+
+    def test_semantic_boundary_enforces_state_and_preserves_rates_above_one(self):
+        report = self.evaluate(b"a", b"a")
+        row = report["rows"][0]
+        for status, value, interval in [("measured", None, None), ("failed", 0, None),
+                                        ("unmeasured", None, [0, 1]), ("unsupported", 1, None)]:
+            with self.subTest(status=status):
+                row.update(status=status, value=value, interval=interval)
+                with self.assertRaises(ValueError):
+                    quality.validate_report_metrics(report)
+        row.update(status="measured", value=2.5, interval=[2, 3])
+        quality.validate_report_metrics(report)
+
+
 if __name__ == "__main__":
     unittest.main()

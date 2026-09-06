@@ -238,6 +238,7 @@ async fn enqueue_job(
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ReceiptBody {
     #[serde(default = "default_state")]
     state: String, // succeeded | failed (canonical job-status vocabulary)
@@ -256,6 +257,7 @@ fn job_error_response(error: jobs::JobError) -> axum::response::Response {
         jobs::JobError::NotFound => StatusCode::NOT_FOUND,
         jobs::JobError::Conflict | jobs::JobError::InvalidState => StatusCode::CONFLICT,
         jobs::JobError::Sql(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        jobs::JobError::InvalidReceipt(_) => StatusCode::BAD_REQUEST,
     };
     (status, error.to_string()).into_response()
 }
@@ -274,6 +276,12 @@ async fn job_receipt(
     }
     if body.state == jobs::STATE_COMPLETED && (body.engine.is_none() || body.text.is_none()) {
         return (StatusCode::BAD_REQUEST, "successful receipt requires engine and text").into_response();
+    }
+    if body.state == jobs::STATE_COMPLETED && body.error.is_some() {
+        return (StatusCode::BAD_REQUEST, "successful receipt cannot contain an error").into_response();
+    }
+    if body.state == jobs::STATE_FAILED && (body.text.is_some() || body.loss_receipt.is_some() || body.engine.is_some()) {
+        return (StatusCode::BAD_REQUEST, "failed receipt cannot publish output").into_response();
     }
     let mut conn = state.lock().unwrap();
     let out = if body.state == "failed" {

@@ -18,6 +18,8 @@ on:
       - "scripts/runtime/**"
       - "tests/runtime-paths/**"
       - "tests/workers/**"
+      - "tests/contract/**"
+      - "scripts/contracts/**"
       - "scripts/ci/check_vnext_*.py"
       - "Directory.Build.props"
       - ".github/workflows/vnext-ci.yml"
@@ -33,6 +35,8 @@ on:
       - "scripts/runtime/**"
       - "tests/runtime-paths/**"
       - "tests/workers/**"
+      - "tests/contract/**"
+      - "scripts/contracts/**"
       - "scripts/ci/check_vnext_*.py"
       - "Directory.Build.props"
       - ".github/workflows/vnext-ci.yml"
@@ -46,6 +50,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Initialize project development paths
         run: python -B scripts/runtime/dev.py --github-env
+      - name: Reject generated vocabulary drift
+        run: python -B scripts/contracts/generate_vocabulary.py --check
+      - name: Parse shared vocabulary wire cases with Python
+        run: python -B -m unittest discover -s tests/contract -p "test_vocabulary_generation.py"
 
       - name: Install Rust (stable, from rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
@@ -64,6 +72,8 @@ jobs:
       - name: dotnet build ArcheAxis.Desktop
         shell: bash
         run: dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -v minimal
+      - name: Parse shared vocabulary wire cases with the C# production binding
+        run: dotnet run --project tests/contract/Vocabulary.Tests -- tests/contract/fixtures/vocabulary-cases.json
       - name: cargo build core server (for supervisor smoke)
         shell: bash
         run: cargo build -p archeaxis-api

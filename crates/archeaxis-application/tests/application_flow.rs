@@ -41,6 +41,7 @@ fn job_orchestration_flow() {
         engine_version: "0.1.0".into(),
         params: serde_json::json!({"extractor": "legacy-behavior-oracle"}),
         loss_note: Some("header stripped".into()),
+        losses: None, covered: None, total: None, coverage: None,
     };
     jobs::complete(
         &mut conn,

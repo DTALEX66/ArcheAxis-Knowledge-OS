@@ -637,6 +637,8 @@ jobs:
       - name: dotnet build ArcheAxis.Desktop
         shell: bash
         run: dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -v minimal
+      - name: Parse shared vocabulary wire cases with the C# production binding
+        run: dotnet run --project tests/contract/Vocabulary.Tests -- tests/contract/fixtures/vocabulary-cases.json
       - name: cargo build core server (for supervisor smoke)
         shell: bash
         run: cargo build -p archeaxis-api
@@ -677,6 +679,10 @@ jobs:
           uv pip install --system --require-hashes -r locked-ci.txt
       - name: Run vNext contract structural gate
         run: python scripts/ci/check_vnext_contracts.py
+      - name: Reject generated vocabulary drift
+        run: python -B scripts/contracts/generate_vocabulary.py --check
+      - name: Run real Python contract and vocabulary regressions
+        run: python -B scripts/runtime/dev.py --pytest tests/contract --noconftest -q
 
   workers-vnext:
     timeout-minutes: 10

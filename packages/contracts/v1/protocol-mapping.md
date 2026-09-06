@@ -54,3 +54,20 @@ a future major version is refused with `AAK-PROTO-001` (compatibility-policy.md 
 Enums serialize as strings, never ordinals. Generated Rust/C#/Python bindings come from these
 schemas only; regeneration must leave the Git tree clean (drift check in `tests/contract` and
 `crates/archeaxis-contracts`).
+
+## Implemented slice and remaining protocol work (2026-09-06)
+
+`loss-receipt.schema.json` defines the actual shared worker loss receipt. Rust
+`archeaxis_contracts::loss_receipt::LossReceipt` checks count/ratio semantics at
+the application boundary and the HTTP receipt endpoint rejects unknown fields.
+Python document output is exercised through that real HTTP handler, database
+close/reopen and idempotent replay. The four-field legacy receipt remains readable;
+new cumulative losses and optional coverage are retained, not silently discarded.
+Coverage measures declared units, not extraction accuracy.
+
+This does **not** qualify the complete NDJSON/HTTP/MCP mapping above: the current
+HTTP receipt projection does not accept document structure, and unknown fields
+are rejected instead of pretending they were stored. Request attempts, launch
+authentication, role enforcement, real worker scheduling, structure persistence
+and C# full DTO consumption remain open. A hand-written HTTP projection in a test
+is not a production executor.

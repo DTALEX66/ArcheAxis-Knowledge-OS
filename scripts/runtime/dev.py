@@ -81,6 +81,7 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
         "ARCHEAXIS_RUN_ROOT": str(paths["run"]),
         "ARCHEAXIS_SOURCE_COMMIT": git(paths["root"], "rev-parse", "HEAD"),
         "ARCHEAXIS_RUN_ID": paths["run"].name,
+        "ARCHEAXIS_PYTHON": sys.executable,
         "VNEXT_RECEIPT_OUT": str(paths["artifacts"] / "vnext-journey.json"),
         "ARCHEAXIS_BUILD_ROOT": str(build),
         "TMP": str(paths["tmp"]), "TEMP": str(paths["tmp"]),

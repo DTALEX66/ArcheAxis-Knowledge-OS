@@ -56,6 +56,7 @@ fn archive_roundtrip() {
             engine_version: "0.1".into(),
             params: serde_json::json!({}),
             loss_note: None,
+            losses: None, covered: None, total: None, coverage: None,
         }),
     )
     .unwrap();

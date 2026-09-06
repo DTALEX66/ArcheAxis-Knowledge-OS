@@ -25,6 +25,22 @@ fallback:
 # then unioned across every matching risk class so mixed changes take the
 # broadest required set.
 risk_classes:
+  - id: vnext-shared-vocabulary
+    description: Single-source vocabulary and shared wire cases verify all three consumers
+    paths:
+      - "scripts/contracts/**"
+      - "crates/archeaxis-contracts/src/generated/**"
+      - "apps/ArcheAxis.Desktop/Contracts/Generated/**"
+      - "services/python-workers/contracts/generated/**"
+      - "tests/contract/fixtures/**"
+    gates: [static, lint, rust-vnext, desktop-vnext, contracts-vnext]
+
+  - id: vnext-desktop-contract-tests
+    description: Headless C# contract test harness
+    paths:
+      - "tests/contract/Vocabulary.Tests/**"
+    gates: [static, lint, desktop-vnext, contracts-vnext]
+
   - id: vnext-ci-policy
     description: vNext CI workflow, shared launcher or checker changes force every vNext lane
     paths:

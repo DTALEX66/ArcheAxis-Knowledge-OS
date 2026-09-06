@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """ArcheAxis vNext evaluation worker: recomputable CER/WER (T07).
 
 Compares a prediction text against a gold reference and emits quality-report
@@ -24,6 +25,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -65,6 +67,34 @@ def _read_text(path: Path) -> tuple[str, str]:
     """Decode and identify one byte snapshot without transforming its text."""
     raw = path.read_bytes()
     return raw.decode("utf-8", errors="strict"), hashlib.sha256(raw).hexdigest()
+
+
+def validate_report_metrics(report: dict) -> None:
+    """Enforce metric semantics before output, complementing the JSON Schema.
+
+    This is not envelope/schema validation. JSON Schema expresses state/value
+    coupling, but cannot compare interval bounds or reject non-JSON floats in
+    Python objects. Error rates may legitimately exceed one.
+    """
+    def finite_number(value):
+        return type(value) is int or (type(value) is float and math.isfinite(value))
+
+    for index, row in enumerate(report["rows"]):
+        status, value, interval = row["status"], row.get("value"), row.get("interval")
+        if status == "measured":
+            if not finite_number(value):
+                raise ValueError(f"row {index}: measured value must be a finite number")
+            if interval is not None:
+                if (not isinstance(interval, list) or len(interval) != 2
+                        or not all(finite_number(bound) for bound in interval)):
+                    raise ValueError(f"row {index}: interval must contain two finite numbers")
+                if interval[0] > interval[1]:
+                    raise ValueError(f"row {index}: interval lower bound exceeds upper bound")
+        elif status in {"unmeasured", "failed", "unsupported"}:
+            if value is not None or interval is not None:
+                raise ValueError(f"row {index}: non-measured rows cannot contain a value or interval")
+        else:
+            raise ValueError(f"row {index}: unknown measurement status {status!r}")
 
 
 def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, normalize: str) -> dict:
@@ -132,7 +162,7 @@ def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, norma
             }
         )
 
-    return {
+    report = {
         "schema": "archeaxis.quality-report/v1",
         "report_id": f"qr-{run_id}-{sample_id}",
         "run_id": run_id,
@@ -160,6 +190,8 @@ def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, norma
             ),
         },
     }
+    validate_report_metrics(report)
+    return report
 
 
 def main() -> int:
@@ -182,7 +214,7 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1
-    print(json.dumps(out, ensure_ascii=False))
+    print(json.dumps(out, ensure_ascii=False, allow_nan=False))
     return 0
 
 

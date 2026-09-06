@@ -40,6 +40,13 @@
           "metric", "sample_id", "status",
           "prediction_ref", "gold_ref"
         ],
+        "allOf": [
+          {
+            "if": {"properties": {"status": {"const": "measured"}}, "required": ["status"]},
+            "then": {"required": ["value"], "properties": {"value": {"type": "number"}}},
+            "else": {"properties": {"value": {"type": "null"}, "interval": {"type": "null"}}}
+          }
+        ],
         "properties": {
           "metric": {
             "enum": [
@@ -59,7 +66,7 @@
             "minItems": 2,
             "maxItems": 2,
             "items": {"type": "number"},
-            "description": "Optional [low, high] confidence interval."
+            "description": "Optional [low, high] confidence interval for measured rows only. Both bounds must be finite and low <= high; semantic validation enforces ordering."
           },
           "unit": {"enum": ["rate", "error_rate", "count", "boolean", "agreement"]},
           "prediction_ref": {

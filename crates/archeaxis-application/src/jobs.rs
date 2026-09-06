@@ -1,6 +1,5 @@
 //! Atomic worker completion and durable idempotency.
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 pub const STATE_QUEUED: &str = archeaxis_contracts::JOB_QUEUED;
@@ -9,13 +8,7 @@ pub const STATE_RUNNING: &str = archeaxis_contracts::JOB_RUNNING;
 pub const STATE_COMPLETED: &str = archeaxis_contracts::JOB_SUCCEEDED;
 pub const STATE_FAILED: &str = archeaxis_contracts::JOB_FAILED;
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-pub struct LossReceipt {
-    pub engine: String,
-    pub engine_version: String,
-    pub params: serde_json::Value,
-    pub loss_note: Option<String>,
-}
+pub use archeaxis_contracts::loss_receipt::LossReceipt;
 
 #[derive(Debug)]
 pub enum JobError {
@@ -23,6 +16,7 @@ pub enum JobError {
     NotFound,
     Conflict,
     InvalidState,
+    InvalidReceipt(&'static str),
 }
 impl From<rusqlite::Error> for JobError {
     fn from(error: rusqlite::Error) -> Self { Self::Sql(error) }
@@ -34,6 +28,7 @@ impl std::fmt::Display for JobError {
             Self::NotFound => write!(f, "job not found"),
             Self::Conflict => write!(f, "idempotency key has a different or unverifiable result"),
             Self::InvalidState => write!(f, "job state does not permit this transition"),
+            Self::InvalidReceipt(reason) => write!(f, "invalid receipt: {reason}"),
         }
     }
 }
@@ -66,6 +61,8 @@ pub fn complete(
     conn: &mut Connection, job_id: &str, engine: &str, text: &str,
     loss: Option<&LossReceipt>,
 ) -> Result<(), JobError> {
+    if engine.trim().is_empty() { return Err(JobError::InvalidReceipt("engine is empty")); }
+    if let Some(receipt) = loss { receipt.validate().map_err(JobError::InvalidReceipt)?; }
     if loss.is_some_and(|r| r.engine != engine) { return Err(JobError::Conflict); }
     let receipt = serde_json::to_string(&loss).map_err(|_| JobError::Conflict)?;
     let payload = serde_json::to_vec(&(engine, text, loss)).map_err(|_| JobError::Conflict)?;

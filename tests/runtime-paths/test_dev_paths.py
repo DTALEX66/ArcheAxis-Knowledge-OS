@@ -69,6 +69,13 @@ class DevelopmentPaths(unittest.TestCase):
         self.assertEqual(len(proofs), 2)
         self.assertNotEqual(proofs[0].parent, proofs[1].parent)
 
+    def test_launcher_pins_actual_python_for_cross_language_workers(self):
+        command = self.command()
+        command[-1] = ('import os,sys,pathlib; '
+                       'assert pathlib.Path(os.environ.get("ARCHEAXIS_PYTHON", "missing")) == pathlib.Path(sys.executable)')
+        result = subprocess.run(command, env=self.env, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_linked_worktree_uses_owner_root_with_separate_identity(self):
         linked = self.repo / '.project-local/worktrees/linked'
         self.run_git('worktree', 'add', '--detach', str(linked))

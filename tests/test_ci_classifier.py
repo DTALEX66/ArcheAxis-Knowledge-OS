@@ -332,3 +332,17 @@ def test_vnext_policy_and_worker_regressions_cannot_be_shadowed() -> None:
         gates = classify_paths([path])["required_gates"]
         assert {"rust-vnext", "desktop-vnext", "contracts-vnext", "workers-vnext"} <= set(gates)
     assert "workers-vnext" in classify_paths(["tests/workers/test_quality_regressions.py"])["required_gates"]
+
+
+def test_shared_vocabulary_changes_verify_all_three_consumers_without_full_qualification():
+    from scripts.ci.classify import classify_paths
+
+    for path in ("scripts/contracts/generate_vocabulary.py",
+                 "crates/archeaxis-contracts/src/generated/vocabulary.rs",
+                 "apps/ArcheAxis.Desktop/Contracts/Generated/Vocabulary.g.cs",
+                 "services/python-workers/contracts/generated/vocabulary.py",
+                 "tests/contract/fixtures/vocabulary-cases.json"):
+        gates = set(classify_paths([path])["required_gates"])
+        assert {"rust-vnext", "desktop-vnext", "contracts-vnext"} <= gates
+        assert "full-qualification" not in gates
+    assert "desktop-vnext" in classify_paths(["tests/contract/Vocabulary.Tests/Program.cs"])["required_gates"]

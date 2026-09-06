@@ -9,6 +9,7 @@ reference: Rust/C#/Python bindings must agree on them (protocol-mapping.md).
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -41,9 +42,9 @@ def _schemas() -> dict[str, dict]:
 
 def _validator(schema: dict, registry_schemas: dict[str, dict]) -> Draft202012Validator:
     schema_store = {
-        schema.get("$id", name): payload
+        payload.get("$id", name): payload
         for name, payload in registry_schemas.items()
-        if schema.get("$id")
+        if payload.get("$id")
     }
     resolver = RefResolver.from_schema(schema, store=schema_store)
     return Draft202012Validator(schema, resolver=resolver)
@@ -67,6 +68,62 @@ def test_all_negative_examples_fail() -> None:
         )
         errors = list(_validator(registry[schema_name], registry).iter_errors(payload))
         assert errors, f"{basename} must be rejected"
+
+
+def test_cross_file_refs_use_each_registered_schema_id(monkeypatch) -> None:
+    registry = _schemas()
+    schema = {
+        "$id": "https://archeaxis.local/contracts/v1/test-report-wrapper.schema.json",
+        "type": "object",
+        "properties": {"report": {"$ref": "quality-report.schema.json"}},
+        "required": ["report"],
+    }
+    payload = json.loads((CONTRACTS / "examples/positive/quality-report.ok.json").read_text(encoding="utf-8"))
+    validator = _validator(schema, registry)
+    # The ref points at the real on-disk schema; offline resolution must not fetch.
+    monkeypatch.setattr(validator.resolver, "resolve_remote", lambda uri: pytest.fail(f"unexpected remote ref: {uri}"))
+    assert not list(validator.iter_errors({"report": payload}))
+    payload["rows"][0]["metric"] = "invented_metric"
+    assert list(validator.iter_errors({"report": payload}))
+
+
+def test_existing_coverage_assessment_cross_file_refs_resolve_offline(monkeypatch):
+    registry = _schemas()
+    coverage = registry["coverage-receipt.schema.json"]
+    validator = _validator(coverage, registry)
+    monkeypatch.setattr(validator.resolver, "resolve_remote", lambda uri: pytest.fail(f"unexpected remote ref: {uri}"))
+    # Exercise the four relative $refs already present in the production schema.
+    assessment_validator = validator.evolve(schema=coverage["properties"]["assessment"])
+    assessment = {"evidence_status": "SUPPORTED", "test_status": "NOT_TESTED",
+                  "rumor_status": "NOT_APPLICABLE", "forecast_status": "NOT_APPLICABLE",
+                  "human_review_required": True, "rationale": "independent review pending"}
+    assert not list(assessment_validator.iter_errors(assessment))
+    for field in ("evidence_status", "test_status", "rumor_status", "forecast_status"):
+        invalid = {**assessment, field: "invented_status"}
+        assert list(assessment_validator.iter_errors(invalid)), field
+
+
+@pytest.mark.parametrize("status,value,interval", [
+    ("measured", None, None), ("measured", "0.1", None),
+    ("unmeasured", 0, None), ("failed", 1, None), ("unsupported", 0.5, None),
+    ("unmeasured", None, [0, 1]), ("failed", None, [0, 1]), ("unsupported", None, [0, 1]),
+])
+def test_quality_schema_rejects_inconsistent_state_and_measurement(status, value, interval):
+    registry = _schemas()
+    payload = json.loads((CONTRACTS / "examples/positive/quality-report.ok.json").read_text(encoding="utf-8"))
+    payload["rows"][0].update(status=status, value=value, interval=interval)
+    assert list(_validator(registry["quality-report.schema.json"], registry).iter_errors(payload))
+
+
+def test_measured_value_is_required_and_error_rates_above_one_are_valid():
+    registry = _schemas()
+    payload = json.loads((CONTRACTS / "examples/positive/quality-report.ok.json").read_text(encoding="utf-8"))
+    validator = _validator(registry["quality-report.schema.json"], registry)
+    missing = deepcopy(payload)
+    del missing["rows"][0]["value"]
+    assert list(validator.iter_errors(missing))
+    payload["rows"][0].update(value=2.5, interval=[2.0, 3.0])
+    assert not list(validator.iter_errors(payload))
 
 
 def test_job_status_closed_enum_rejects_unknown() -> None:
