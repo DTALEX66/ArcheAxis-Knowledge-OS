@@ -30,7 +30,7 @@ implementation claim. Early repairs below do not satisfy unmet task dependencies
 | T19 | TESTED_LOCAL / PARTIAL | Shared launcher and normal/linked/concurrent/failure path tests pass; remaining legacy fixed-path entrypoints need adoption |
 | T01/T02 | TESTED_LOCAL / PARTIAL | Actual loss receipt/replay and generated three-language vocabulary verified; full DTO/roles/anchors/protocol and CI deduplication still open |
 | T17 | PARTIAL | Eleven concrete legacy reuse gaps checked against source; nonempty migration and behavior qualification still open |
-| T03/T04 | TESTED_LOCAL / PARTIAL | Real text executor, durable attempts/full outputs and archive replay tested; multi-format dispatch/resource isolation, maintenance encapsulation and authenticated Supervisor remain open |
+| T03/T04 | TESTED_LOCAL / PARTIAL | Real text executor, durable outputs/archive replay and native launch auth tested; HTTP/UI dispatch, multi-format resources, maintenance encapsulation and restart policy remain open |
 | T05/T06/T07 | TESTED_LOCAL / PARTIAL | Byte-faithful CER/WER and loss/coverage regressions pass; real corpus, all format chains and worker/Core integration still open |
 | T08/T09/T10/T11 | PLANNED | Research, knowledge and both usage/feedback loops |
 | T18/T12 | PLANNED | Interactive Avalonia workbench with real Core integration |
@@ -345,6 +345,54 @@ Remaining safety/qualification gaps (do not conceal):
    trust/credential stores were not inspected or modified by commands. The launcher
    now disables ASP.NET certificate generation for subsequent runs. No certificate
    cleanup was attempted because ownership has not been established.
+
+## T02/T04 native launch authentication checkpoint (2026-09-06)
+
+Base `5df9a69865dd33768fb0129ac7a8ecd7fe1d2479`; the following runs exercised
+the changed local tree, not remote CI or an installed Green update.
+
+- Core now requires a bounded, closed stdin launch document before Store open
+  or HTTP bind. Per-process random credentials remain in process memory and the
+  inherited pipe. All production routes/fallbacks are authenticated. Wrong,
+  missing, duplicate and previous-launch tokens fail; a requested scope is not
+  a grant. Native browser-Origin requests are refused. No global config changed.
+- The Supervisor sends request-level headers, never follows redirects and binds
+  readiness to runtime/contract, fresh session and the actual Store database path.
+  Stops clear credentials. Lifecycle locking covers startup creation, successful
+  publication, Stop/Dispose and CTS cancellation/disposal; stale readiness cannot
+  be published after a concurrent Stop. Independent concurrent launches and
+  a real native Windows 8.3 workspace alias pass locally.
+- RED: unauthenticated version returned 200 and invalid bootstrap left Core
+  running, run `be268a2d33/2fc5ff6e1fdd`. Fake successful wrong-session response
+  was accepted, run `be268a2d33/227ce79e8c84`. A controlled 32 MiB handshake parse
+  exposed Stop republishing ready state, run `be268a2d33/1c270272f7db`.
+- GREEN: `cargo test -p archeaxis-api --test launch_auth --locked --offline -q`,
+  2 tests PASS, run `be268a2d33/350bdf97995a`. Includes real-process restart
+  invalidating the old credential; malformed/missing/oversized/unclosed launch
+  data never creates a workspace, with the unclosed pipe bounded to five seconds.
+- GREEN: actual Core + C# `dotnet run --project tests/runtime-paths/CoreSupervisor.Tests
+  -p:NuGetAudit=false`, run `be268a2d33/ab07692caf36`. Silent fixture/real children,
+  wrong session/workspace, redirect trap, authenticated request routing, no-auth
+  denial, restart/concurrent sessions, Stop during parse and 8.3 alias all PASS.
+  The timing-sensitive parse-race case explicitly reports SKIP if it misses the
+  observation window on another machine; it did not skip in this recorded run.
+- API aggregate run `be268a2d33/64da2316a37a` passed other API tests but failed
+  the old ownership process fixture because it lacked the newly required pipe.
+  Adapted that fixture; ownership/crashed-owner recovery 3 PASS in
+  `be268a2d33/ce21f4506c8a`. The old fixed-port, unbounded `curl.exe` smoke was
+  replaced by `launch_auth.rs`, not silently marked passing.
+- Architecture guard PASS, run `be268a2d33/93fd632d2feb`. Existing Rust unused
+  variable/function warnings remain unrelated to this slice.
+
+Remaining: role-scoped authority and complete DTO/version negotiation; HTTP
+executor dispatch, cancellation/status UI; bounded readiness/body buffering and
+process-tree resource controls; automatic crash restart. Token auth is not an
+OS sandbox against other processes owned by the same user. Bare library routers
+remain internal unauthenticated test projections, not public listener entrypoints.
+The Avalonia GUI remains starter content and must not be presented as usable.
+The earlier open launch-auth statement above is superseded only by this measured
+slice; the whole T02/T04 tasks remain PARTIAL. No push/Release/tag/version or
+Green replacement was performed at this checkpoint; E drive was not accessed.
 
 ## Execution rulings
 

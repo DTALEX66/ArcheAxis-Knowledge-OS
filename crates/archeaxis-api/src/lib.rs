@@ -2,7 +2,10 @@
 //!
 //! Aligns with `packages/contracts/v1/openapi-outline.yaml`. This is a Day-0
 //! outline-compatible slice, not the final PR-04 contract (no multipart,
-//! no job orchestration, no launch-token auth yet).
+//! no full job orchestration). The standalone process wraps these internal
+//! projections with launch authentication; `app` alone is for in-process use.
+
+pub mod launch;
 
 use archeaxis_application::jobs::{self, LossReceipt};
 use archeaxis_domain::{ImportOutcome, anchor, knowledge, search, source};

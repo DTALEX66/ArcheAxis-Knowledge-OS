@@ -1,4 +1,4 @@
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc;
 use std::time::Duration;
@@ -10,12 +10,15 @@ impl Drop for OwnedCore {
 
 fn launch(db: &std::path::Path) -> (OwnedCore, mpsc::Receiver<String>) {
     let mut command = Command::new(env!("CARGO_BIN_EXE_archeaxis-api"));
-    command.arg(db).arg("0").stdout(Stdio::piped()).stderr(Stdio::null());
+    command.arg(db).arg("0").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
     #[cfg(windows)] {
         use std::os::windows::process::CommandExt;
         command.creation_flags(0x08000000);
     }
     let mut child = OwnedCore(command.spawn().unwrap());
+    writeln!(child.0.stdin.take().unwrap(),"{}",serde_json::json!({
+        "launch_token":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "session_id":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"})).unwrap();
     let stdout = child.0.stdout.take().unwrap();
     let (tx, rx) = mpsc::channel();
     std::thread::spawn(move || {

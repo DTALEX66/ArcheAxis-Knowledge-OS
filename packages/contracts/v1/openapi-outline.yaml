@@ -131,9 +131,10 @@ paths:
 components:
   securitySchemes:
     launchToken:
-      type: http
-      scheme: bearer
-      description: Ephemeral desktop launch token injected by the launcher (header x-archeaxis-launch-token).
+      type: apiKey
+      in: header
+      name: x-archeaxis-launch-token
+      description: Ephemeral per-process desktop credential sent through the inherited stdin pipe at launch; never in argv or readiness output. Native desktop only; browser Origin requests are denied. Requested scopes cannot grant authority.
   schemas:
     Error:
       type: object
