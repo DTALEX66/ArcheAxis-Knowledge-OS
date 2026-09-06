@@ -41,6 +41,7 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    println!("archeaxis-api ready on http://{addr} db={db_path}");
+    let bound_addr = listener.local_addr().expect("bound listener address");
+    println!("archeaxis-api ready on http://{bound_addr} db={db_path}");
     axum::serve(listener, router).await.unwrap();
 }

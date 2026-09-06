@@ -20,6 +20,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -57,7 +60,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $candidateRoot = '.hermes/task-runtime/release-candidate'
+          $candidateRoot = '.project-local/task-runtime/release-candidate'
           New-Item -ItemType Directory -Force $candidateRoot | Out-Null
           gh run download ${{ steps.require_ci.outputs.verification_run_id }} --name release-candidate --dir $candidateRoot
           $candidate = Get-Content "$candidateRoot/release-candidate.json" -Raw | ConvertFrom-Json
@@ -108,7 +111,7 @@ jobs:
       - name: Prepare bundled runtime and inject exact release identity
         shell: pwsh
         run: |
-          python -m desktop.scripts.prepare_bundle --repository . --destination .hermes/rt
+          python -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt
           $tree = git rev-parse "$env:GITHUB_SHA^{tree}"
           $uvLockHash = (Get-FileHash uv.lock -Algorithm SHA256).Hash.ToLowerInvariant()
           $npmLockHash = (Get-FileHash frontend/package-lock.json -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -124,7 +127,7 @@ jobs:
             --verification-ci-url ${{ steps.require_ci.outputs.verification_run_url }} `
             --artifact-names "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip,ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip,archeaxis_workspace-${{ steps.resolve_version.outputs.release_version }}-py3-none-any.whl,release-identity.json,release-manifest.json,SBOM.cdx.json,THIRD_PARTY_NOTICES.txt,SHA256SUMS.txt" `
             --dependency-locks "uv.lock=$uvLockHash,frontend/package-lock.json=$npmLockHash,src-tauri/Cargo.lock=$cargoLockHash" `
-            --output .hermes/rt/runtime/release-identity.json
+            --output .project-local/rt/runtime/release-identity.json
       - name: Verify installed NSIS lifecycle
         shell: pwsh
         run: |
@@ -144,16 +147,16 @@ jobs:
             Remove-Item -Force
           $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
           Copy-Item $installers[0].FullName $installerAsset
-          $candidate = Get-Content '.hermes/task-runtime/release-candidate/release-candidate.json' -Raw | ConvertFrom-Json
+          $candidate = Get-Content '.project-local/task-runtime/release-candidate/release-candidate.json' -Raw | ConvertFrom-Json
           if ((Get-FileHash $installerAsset -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'promoted installer SHA-256 mismatch' }
-          Copy-Item .hermes/rt/runtime/release-identity.json release-assets/
+          Copy-Item .project-local/rt/runtime/release-identity.json release-assets/
           # AXW-PKG-602/603: Green and Portable ZIPs assembled from the SAME
           # verified runtime as the installer; AXW-SUP-703 SBOM from locks.
           python desktop/scripts/assemble_distributions.py `
             --exe src-tauri/target/release/ArcheAxis.exe `
-            --runtime .hermes/rt/runtime `
+            --runtime .project-local/rt/runtime `
             --frontend frontend/dist `
-            --identity .hermes/rt/runtime/release-identity.json `
+            --identity .project-local/rt/runtime/release-identity.json `
             --out release-assets `
             --version ${{ steps.resolve_version.outputs.release_version }}
       - name: Verify Green and Portable lifecycle
@@ -249,7 +252,7 @@ jobs:
           if (Compare-Object $expectedAssets $publicAssets) {
             throw "public asset set differs from expected release asset set"
           }
-          $downloadRoot = ".hermes/task-runtime/release-download-readback"
+          $downloadRoot = ".project-local/task-runtime/release-download-readback"
           New-Item -ItemType Directory -Force $downloadRoot | Out-Null
           gh release download $env:GITHUB_REF_NAME --dir $downloadRoot
           foreach ($asset in $release.assets) {

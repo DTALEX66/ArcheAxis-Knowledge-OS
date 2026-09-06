@@ -69,6 +69,7 @@ fn v01_twelve_step_journey() {
     // 1) workspace init (Green start: no terminal window concept at Core level)
     let conn0 = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
     drop(conn0);
+    pass("01_workspace_init", db.is_file(), "fresh vNext workspace initialized");
     let router = app(db.to_str().unwrap()).unwrap();
 
     // 2) import two sources; sha256 readable; repeat import idempotent
@@ -108,12 +109,12 @@ fn v01_twelve_step_journey() {
         format!(r#"{{"job_id":"j1","kind":"transform","input_ref":"{sid1}"}}"#),
     );
     let receipt = format!(
-        r#"{{"state":"completed","engine":"python-worker-extract","text":"journey source one body (clean)","loss_receipt":{{"engine":"python-worker-extract","engine_version":"0.1.0","params":{{}},"loss_note":"bom stripped"}}}}"#
+        r#"{{"state":"succeeded","engine":"python-worker-extract","text":"journey source one body (clean)","loss_receipt":{{"engine":"python-worker-extract","engine_version":"0.1.0","params":{{}},"loss_note":"bom stripped"}}}}"#
     );
     let rr = json_body(&router, "POST", "/api/v1/jobs/j1/receipts", receipt);
     pass(
         "03_worker_receipt",
-        rr.get("state").and_then(|s| s.as_str()) == Some("completed"),
+        rr.get("state").and_then(|s| s.as_str()) == Some("succeeded"),
         &format!("{rr}"),
     );
 
@@ -252,8 +253,11 @@ fn v01_twelve_step_journey() {
         }
         let receipt = serde_json::json!({
             "schema": "archeaxis.vnext/v01-closed-loop-receipt",
-            "schema_version": 1,
-            "date": "2026-09-04",
+            "schema_version": 2,
+            "source_commit": std::env::var("ARCHEAXIS_SOURCE_COMMIT").unwrap_or_default(),
+            "run_id": std::env::var("ARCHEAXIS_RUN_ID").unwrap_or_default(),
+            "scope": "in-process journey; worker receipt is simulated; not installed qualification",
+            "generated_at_unix": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
             "total_steps": steps.len(),
             "steps": steps,
             "manifest_sha256": m.manifest_sha256,

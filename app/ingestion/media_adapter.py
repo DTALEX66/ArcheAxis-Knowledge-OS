@@ -164,7 +164,7 @@ def _transcribe_faster_whisper(path: Path) -> tuple[list[dict[str, Any]], str]:
 def _default_work_dir(file_path: str | Path) -> Path:
     """Keep transient audio outside the source corpus by default."""
     project_root = Path(__file__).resolve().parents[2]
-    return project_root / ".hermes" / "task-runtime" / "media" / _sha256(file_path)[:16]
+    return project_root / ".project-local" / "task-runtime" / "media" / _sha256(file_path)[:16]
 
 
 def convert_media(file_path: str | Path, work_dir: str | Path | None = None) -> AdapterResult:

@@ -39,10 +39,10 @@ fn project_root_for_resource(resource_dir: &Path) -> Option<PathBuf> {
     resource_dir
         .ancestors()
         .find(|candidate| {
-            if !candidate.join("pyproject.toml").is_file() || !candidate.join(".hermes").is_dir() {
+            if !candidate.join("pyproject.toml").is_file() || !candidate.join(".project-local").is_dir() {
                 return false;
             }
-            let Ok(relative) = resource_dir.strip_prefix(candidate.join(".hermes")) else {
+            let Ok(relative) = resource_dir.strip_prefix(candidate.join(".project-local")) else {
                 return false;
             };
             !matches!(
@@ -109,7 +109,7 @@ fn resolve_runtime_for_profile(
         return Ok(RuntimeSpec {
             python,
             cwd: root.to_path_buf(),
-            data_dir: root.join(".hermes/task-runtime/desktop-dev"),
+            data_dir: root.join(".project-local/task-runtime/desktop-dev"),
             isolated: false,
             external_dev: true,
             profile: "external-dev",
@@ -140,7 +140,7 @@ fn resolve_runtime_for_profile(
         });
     }
     let data_dir = project_root_for_resource(resource_dir)
-        .map(|root| root.join(".hermes/task-runtime/desktop-installed"))
+        .map(|root| root.join(".project-local/task-runtime/desktop-installed"))
         .unwrap_or_else(|| local_data_dir.to_path_buf());
     Ok(RuntimeSpec {
         python,
@@ -196,7 +196,7 @@ mod tests {
             RuntimeSpec {
                 python,
                 cwd: root.clone(),
-                data_dir: root.join(".hermes/task-runtime/desktop-dev"),
+                data_dir: root.join(".project-local/task-runtime/desktop-dev"),
                 isolated: false,
                 external_dev: true,
                 profile: "external-dev",
@@ -253,10 +253,10 @@ mod tests {
         )
         .expect("development runtime");
 
-        let expected_prefix = root.join(".hermes/task-runtime/");
+        let expected_prefix = root.join(".project-local/task-runtime/");
         assert!(
             resolved.data_dir.starts_with(&expected_prefix),
-            "dev data root must be under .hermes/task-runtime/: {}",
+            "dev data root must be under .project-local/task-runtime/: {}",
             resolved.data_dir.display(),
         );
     }
@@ -296,11 +296,11 @@ mod tests {
     fn project_bundle_installed_mode_uses_project_task_runtime_boundary() {
         let temp = tempdir().expect("temporary directory");
         let repository = temp.path().join("repo");
-        let resources = repository.join(".hermes/portable-archeaxis/resources");
+        let resources = repository.join(".project-local/portable-archeaxis/resources");
         let local_data = temp.path().join("user-local-data");
         let python = resources.join("runtime/python/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
-        fs::create_dir_all(repository.join(".hermes")).expect("create project boundary");
+        fs::create_dir_all(repository.join(".project-local")).expect("create project boundary");
         fs::write(
             repository.join("pyproject.toml"),
             b"[project]\nname = 'fixture'\n",
@@ -313,7 +313,7 @@ mod tests {
 
         assert_eq!(
             resolved.data_dir,
-            repository.join(".hermes/task-runtime/desktop-installed")
+            repository.join(".project-local/task-runtime/desktop-installed")
         );
         assert_eq!(resolved.cwd, resolved.data_dir);
         assert_ne!(resolved.data_dir, local_data);

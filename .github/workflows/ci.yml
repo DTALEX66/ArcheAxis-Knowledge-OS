@@ -34,6 +34,9 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - name: Generate deterministic GatePlan
         id: gateplan
         env:
@@ -88,8 +91,8 @@ jobs:
           plan["base_sha"] = base
           plan["head_sha"] = head
           plan["mode"] = "standalone"
-          os.makedirs(".hermes/task-runtime", exist_ok=True)
-          with open(".hermes/task-runtime/gateplan.json", "w", encoding="utf-8") as f:
+          os.makedirs(".project-local/task-runtime", exist_ok=True)
+          with open(".project-local/task-runtime/gateplan.json", "w", encoding="utf-8") as f:
               json.dump(plan, f, indent=2)
           # Emit required gates to downstream selective jobs.
           required = ",".join(plan["required_gates"])
@@ -100,7 +103,7 @@ jobs:
               out.write(f"full_qualification={'true' if is_full else 'false'}\n")
           print(json.dumps(plan, indent=2))
           PY
-          test -f .hermes/task-runtime/gateplan.json && echo "GatePlan written"
+          test -f .project-local/task-runtime/gateplan.json && echo "GatePlan written"
 
   test:
     timeout-minutes: 20
@@ -116,6 +119,9 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -155,10 +161,10 @@ jobs:
         run: |
           set +e
           python -m pytest integration-tests/ -q --tb=short \
-            --junitxml=.hermes/task-runtime/integration-tests.junit.xml
+            --junitxml=.project-local/task-runtime/integration-tests.junit.xml
           test_status=$?
           python scripts/ci/emit_pytest_annotations.py \
-            .hermes/task-runtime/integration-tests.junit.xml
+            .project-local/task-runtime/integration-tests.junit.xml
           exit "$test_status"
 
   format-targeted:
@@ -169,6 +175,9 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with: { persist-credentials: false }
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with: { python-version: "3.12" }
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
@@ -184,6 +193,9 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with: { persist-credentials: false }
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with: { python-version: "3.12" }
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
@@ -199,6 +211,9 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with: { persist-credentials: false }
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with: { python-version: "3.12" }
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
@@ -218,6 +233,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: ${{ matrix.python-version }}
@@ -243,6 +261,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -278,6 +299,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -503,6 +527,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
         with:
           node-version: "24"
@@ -539,6 +566,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -570,6 +600,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - name: Install Rust (stable, from rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -578,6 +611,8 @@ jobs:
       - name: cargo test (vNext workspace)
         shell: bash
         run: cargo test --workspace
+      - name: Verify current-run journey receipt
+        run: python -B scripts/ci/check_vnext_receipt.py
 
   desktop-vnext:
     timeout-minutes: 30
@@ -588,6 +623,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - name: Install Rust (stable, from rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -602,10 +640,14 @@ jobs:
       - name: cargo build core server (for supervisor smoke)
         shell: bash
         run: cargo build -p archeaxis-api
+      - name: Supervisor isolation and bounded startup regressions
+        env:
+          ARCHAXIS_CORE_BIN: ${{ env.CARGO_TARGET_DIR }}/debug/archeaxis-api.exe
+        run: dotnet run --project tests/runtime-paths/CoreSupervisor.Tests
       - name: Supervisor smoke (Avalonia spawns Rust core, handshake, cleanup)
         shell: bash
         env:
-          ARCHAXIS_CORE_BIN: target/debug/archeaxis-api.exe
+          ARCHAXIS_CORE_BIN: ${{ env.CARGO_TARGET_DIR }}/debug/archeaxis-api.exe
         run: |
           dotnet run --project apps/ArcheAxis.Desktop -- --smoke \
             && echo "supervisor smoke OK"
@@ -619,6 +661,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -642,11 +687,24 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
       - name: Run vNext worker smoke (envelope + failure contract)
         run: python scripts/ci/check_vnext_workers.py
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked worker regression dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Run byte-faithful worker regressions and actual report schema
+        run: python -B -m unittest discover -s tests/workers -p "test_*.py"
 
   desktop-fast:
     runs-on: windows-latest
@@ -657,6 +715,13 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/runtime/dev.py --github-env
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "CARGO_TARGET_DIR=$env:GITHUB_WORKSPACE/.project-local/build/tauri" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -671,8 +736,8 @@ jobs:
             ~/.cargo/bin
             ~/.cargo/registry
             ~/.cargo/git
-            src-tauri/target
-            .hermes/cache/uv-desktop
+            .project-local/build/tauri
+            .project-local/cache/uv-desktop
           key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}-fast-naming-v6
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -682,7 +747,7 @@ jobs:
         run: >-
           python -m desktop.scripts.prepare_bundle
           --repository .
-          --destination .hermes/rt
+          --destination .project-local/rt
       - name: Test the canonical Windows desktop shell
         working-directory: src-tauri
         run: |
@@ -709,6 +774,13 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/runtime/dev.py --github-env
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "CARGO_TARGET_DIR=$env:GITHUB_WORKSPACE/.project-local/build/tauri" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Create short build path junction (NSIS MAX_PATH)
         shell: pwsh
         working-directory: ${{ github.workspace }}
@@ -734,8 +806,8 @@ jobs:
             ~/.cargo/bin
             ~/.cargo/registry
             ~/.cargo/git
-            src-tauri/target
-            .hermes/cache/uv-desktop
+            .project-local/build/tauri
+            .project-local/cache/uv-desktop
           key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}-build-naming-v6
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -751,7 +823,7 @@ jobs:
         run: >-
           python -m desktop.scripts.prepare_bundle
           --repository .
-          --destination .hermes/rt
+          --destination .project-local/rt
       - name: Inject CI candidate identity
         shell: pwsh
         run: |
@@ -764,7 +836,7 @@ jobs:
             --version $version `
             --verification-ci-run-id $env:GITHUB_RUN_ID `
             --verification-ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
-            --output .hermes/rt/runtime/release-identity.json
+            --output .project-local/rt/runtime/release-identity.json
       - name: Audit locked Rust dependencies
         working-directory: src-tauri
         run: |
@@ -777,8 +849,8 @@ jobs:
           cargo audit --file Cargo.lock
       - name: Build the Windows release and NSIS installer
         run: |
-          Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis" -Recurse -Force -ErrorAction SilentlyContinue
-          $buildLog = ".hermes/task-runtime/tauri-build.log"
+          Remove-Item -LiteralPath ".project-local/build/tauri/release/bundle/nsis" -Recurse -Force -ErrorAction SilentlyContinue
+          $buildLog = ".project-local/task-runtime/tauri-build.log"
           New-Item -ItemType Directory -Force (Split-Path -Parent $buildLog) | Out-Null
           # Invoke the .cmd file through cmd.exe so its exit code and both
           # streams are preserved rather than altered by a PowerShell pipeline.
@@ -799,11 +871,11 @@ jobs:
       - name: Require the Windows release artifacts
         shell: pwsh
         run: |
-          if (-not (Test-Path "src-tauri/target/release/ArcheAxis.exe")) {
+          if (-not (Test-Path ".project-local/build/tauri/release/ArcheAxis.exe")) {
             throw "release executable is missing"
           }
           $package = Get-Content "frontend/package.json" -Raw | ConvertFrom-Json
-          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
+          $installers = @(Get-ChildItem ".project-local/build/tauri/release/bundle/nsis" -Filter "*.exe" -File)
           $expected = "ArcheAxis Knowledge_$($package.version)_x64-setup.exe"
           Write-Host "NSIS installers found: $($installers.Name -join ', ')"
           if ($installers.Count -ne 1) {
@@ -815,12 +887,12 @@ jobs:
       - name: Stage lock-bound release candidate
         shell: pwsh
         run: |
-          $stage = '.hermes/task-runtime/release-candidate'
+          $stage = '.project-local/task-runtime/release-candidate'
           New-Item -ItemType Directory -Force $stage | Out-Null
-          $installer = @(Get-ChildItem 'src-tauri/target/release/bundle/nsis' -Filter '*.exe' -File)
+          $installer = @(Get-ChildItem '.project-local/build/tauri/release/bundle/nsis' -Filter '*.exe' -File)
           if ($installer.Count -ne 1) { throw 'expected exactly one candidate installer' }
           Copy-Item $installer[0].FullName "$stage/$($installer[0].Name)"
-          Copy-Item 'src-tauri/target/release/ArcheAxis.exe' "$stage/ArcheAxis.exe"
+          Copy-Item '.project-local/build/tauri/release/ArcheAxis.exe' "$stage/ArcheAxis.exe"
           $frontendArchive = "$stage/frontend-dist.zip"
           Compress-Archive -LiteralPath 'frontend/dist' -DestinationPath $frontendArchive -CompressionLevel Optimal
           [ordered]@{
@@ -839,7 +911,7 @@ jobs:
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
         with:
           name: release-candidate
-          path: .hermes/task-runtime/release-candidate/*
+          path: .project-local/task-runtime/release-candidate/*
           if-no-files-found: error
 
   installer-lifecycle:
@@ -851,11 +923,14 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
       - name: Download the exact release candidate
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e
         with:
           name: release-candidate
-          path: .hermes/task-runtime/release-candidate
+          path: .project-local/task-runtime/release-candidate
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         env:
@@ -864,7 +939,7 @@ jobs:
           ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
           ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
         run: |
-          $candidateRoot = '.hermes/task-runtime/release-candidate'
+          $candidateRoot = '.project-local/task-runtime/release-candidate'
           $candidate = Get-Content "$candidateRoot/release-candidate.json" -Raw | ConvertFrom-Json
           if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
           $installer = Join-Path $candidateRoot $candidate.installer.name

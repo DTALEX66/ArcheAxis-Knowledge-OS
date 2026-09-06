@@ -9,8 +9,10 @@ from contextlib import closing
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from scripts.runtime.dev import pytest_environment as _pytest_environment
+
 _PROJECT_ROOT = Path(__file__).resolve().parent
-_TASK_RUNTIME = _PROJECT_ROOT / ".hermes" / "task-runtime"
+_TASK_RUNTIME = _pytest_environment(_PROJECT_ROOT)
 _TASK_TMP = _TASK_RUNTIME / "tmp"
 _TASK_PYCACHE = _TASK_RUNTIME / "pycache"
 for _path in (_TASK_TMP, _TASK_PYCACHE):

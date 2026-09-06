@@ -24,7 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 INVENTORY_CSV = Path(sys.argv[1]) if len(sys.argv) > 1 else (
-    ROOT / ".hermes" / "task-runtime" / "taskpack-0905" / "ARCHEAXIS-FAST-FULL-LOOP" / "10-LEGACY-INVENTORY.csv"
+    ROOT / ".project-local" / "task-runtime" / "taskpack-0905" / "ARCHEAXIS-FAST-FULL-LOOP" / "10-LEGACY-INVENTORY.csv"
 )
 MANIFEST_OUT = ROOT / "LEGACY_MANIFEST.yaml"
 EVIDENCE_DIR = ROOT / "docs" / "authority" / "legacy"

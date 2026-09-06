@@ -60,7 +60,7 @@ def _short_temp_root(out: Path) -> Path:
     """Return the nearest project-owned short root for Chromium sockets."""
     resolved = out.resolve()
     for parent in resolved.parents:
-        if parent.name == ".hermes":
+        if parent.name == ".project-local":
             return parent
     return out.parent.resolve()
 
@@ -71,7 +71,7 @@ def _browser_environment(out: Path) -> dict[str, str]:
     GitHub-hosted runner workspaces are ~70 chars long; Chromium's
     process-singleton socket lives under the user-data dir / TMPDIR and
     FATALs once the path exceeds ~108 chars (Unix). Point TMP/TEMP/TMPDIR
-    at the project's short ``.hermes`` root and hand Chrome a short, unique
+    at the project's short ``.project-local`` root and hand Chrome a short, unique
     ``--user-data-dir`` there. This avoids both the Unix socket limit and any
     project-data spill to the host temp directory.
     """

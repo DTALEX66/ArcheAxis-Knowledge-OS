@@ -29,7 +29,7 @@
     "active": false,
     "targets": [],
     "resources": {
-      "../../.hermes/rt/runtime": "runtime"
+      "../../.project-local/rt/runtime": "runtime"
     },
     "icon": [
       "icons/32x32.png",

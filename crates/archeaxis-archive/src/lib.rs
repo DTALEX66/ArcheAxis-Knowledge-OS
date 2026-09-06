@@ -10,6 +10,7 @@ use std::path::Path;
 
 /// Tables exported in FK-safe order (parents first).
 pub const EXPORT_TABLES: &[&str] = &[
+    "workspace_meta",
     "sources",
     "transforms",
     "anchors",
@@ -21,6 +22,8 @@ pub const EXPORT_TABLES: &[&str] = &[
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct ArchiveManifest {
+    pub schema_version: i64,
+    pub raw_objects: BTreeMap<String, u64>,
     pub tables: BTreeMap<String, TableFile>,
     pub manifest_sha256: String,
 }
@@ -84,9 +87,20 @@ fn row_to_json(row: &rusqlite::Row, cols: &[String]) -> Result<serde_json::Value
 /// `manifest.json` captures per-table rows + sha256; `manifest_sha256` is the
 /// digest over the whole manifest map (stable order).
 pub fn export_workspace(db_path: &str, out_dir: &str) -> Result<ArchiveManifest, ArchiveError> {
+    archeaxis_store_sqlite::raw_objects::reject_links(Path::new(db_path))?;
+    archeaxis_store_sqlite::raw_objects::reject_links(Path::new(out_dir))?;
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
-    std::fs::create_dir_all(out_dir).map_err(ArchiveError::Io)?;
-    let mut manifest = ArchiveManifest::default();
+    conn.execute_batch("BEGIN DEFERRED;")?;
+    let schema_version: String = conn.query_row(
+        "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+    )?;
+    let schema_version = schema_version.parse::<i64>()
+        .map_err(|_| ArchiveError::Table("invalid schema version".into()))?;
+    if schema_version != archeaxis_store_sqlite::SCHEMA_VERSION {
+        return Err(ArchiveError::Table("unsupported archive schema version".into()));
+    }
+    std::fs::create_dir(out_dir).map_err(ArchiveError::Io)?;
+    let mut manifest = ArchiveManifest { schema_version, ..Default::default() };
     let mut file_hashes: BTreeMap<String, String> = BTreeMap::new();
     for table in EXPORT_TABLES {
         let cols = column_names(&conn, table)?;
@@ -95,7 +109,7 @@ pub fn export_workspace(db_path: &str, out_dir: &str) -> Result<ArchiveManifest,
         }
         let path = Path::new(out_dir).join(format!("{table}.jsonl"));
         let mut fh = std::fs::File::create(&path).map_err(ArchiveError::Io)?;
-        let mut stmt = conn.prepare(&format!("SELECT * FROM \"{table}\""))?;
+        let mut stmt = conn.prepare(&format!("SELECT * FROM \"{table}\" ORDER BY rowid"))?;
         let mut rows = stmt.query([])?;
         let mut count = 0u64;
         while let Some(row) = rows.next()? {
@@ -116,16 +130,23 @@ pub fn export_workspace(db_path: &str, out_dir: &str) -> Result<ArchiveManifest,
             },
         );
     }
-    let mut h = Sha256::new();
-    for (t, tf) in &manifest.tables {
-        h.update(t.as_bytes());
-        h.update(tf.rows.to_le_bytes());
-        h.update(tf.sha256.as_bytes());
+    let object_dir = Path::new(out_dir).join("objects");
+    std::fs::create_dir(&object_dir).map_err(ArchiveError::Io)?;
+    let mut sources = conn.prepare("SELECT sha256 FROM sources ORDER BY sha256")?;
+    for digest in sources.query_map([], |row| row.get::<_, String>(0))? {
+        let digest = digest?;
+        let bytes = archeaxis_store_sqlite::raw_objects::read(&conn, &digest)?;
+        let mut file = std::fs::OpenOptions::new().write(true).create_new(true)
+            .open(object_dir.join(&digest)).map_err(ArchiveError::Io)?;
+        file.write_all(&bytes).map_err(ArchiveError::Io)?;
+        file.sync_all().map_err(ArchiveError::Io)?;
+        manifest.raw_objects.insert(digest, bytes.len() as u64);
     }
-    manifest.manifest_sha256 = hex::encode(h.finalize());
+    manifest.manifest_sha256 = manifest_digest(&manifest);
     let mp = Path::new(out_dir).join("manifest.json");
-    std::fs::write(&mp, serde_json::to_string_pretty(&manifest).unwrap())
+    std::fs::write(&mp, serde_json::to_string_pretty(&manifest).map_err(ArchiveError::Json)?)
         .map_err(ArchiveError::Io)?;
+    conn.execute_batch("COMMIT;")?;
     Ok(manifest)
 }
 
@@ -135,32 +156,91 @@ pub fn restore_workspace(
     archive_dir: &str,
     target_db: &str,
 ) -> Result<ArchiveManifest, ArchiveError> {
-    let conn = archeaxis_store_sqlite::init_workspace(target_db)?;
+    let target = Path::new(target_db);
+    archeaxis_store_sqlite::raw_objects::reject_links(target)?;
+    archeaxis_store_sqlite::raw_objects::reject_links(Path::new(archive_dir))?;
+    if std::fs::symlink_metadata(target).is_ok() {
+        return Err(ArchiveError::Table("restore target already exists".into()));
+    }
     let mp = Path::new(archive_dir).join("manifest.json");
+    archeaxis_store_sqlite::raw_objects::reject_links(&mp)?;
     let raw = std::fs::read_to_string(&mp).map_err(ArchiveError::Io)?;
     let manifest: ArchiveManifest = serde_json::from_str(&raw).map_err(ArchiveError::Json)?;
+    if manifest.schema_version != archeaxis_store_sqlite::SCHEMA_VERSION
+        || manifest_digest(&manifest) != manifest.manifest_sha256
+        || manifest.tables.len() != EXPORT_TABLES.len()
+    {
+        return Err(ArchiveError::Table("archive version or manifest integrity mismatch".into()));
+    }
+    // Validate every table, including zero-row tables, before creating a database.
+    // Keep the validated bytes in memory so a changed archive cannot be reread
+    // between verification and insertion.
+    let mut validated = BTreeMap::new();
     for table in EXPORT_TABLES {
         let tf = manifest
             .tables
             .get(*table)
             .ok_or_else(|| ArchiveError::Table(table.to_string()))?;
-        if tf.rows == 0 {
-            continue;
-        }
         let path = Path::new(archive_dir).join(format!("{table}.jsonl"));
-        let content = std::fs::read_to_string(&path).map_err(ArchiveError::Io)?;
-        let cols = column_names(&conn, table)?;
+        archeaxis_store_sqlite::raw_objects::reject_links(&path)?;
+        let bytes = std::fs::read(&path).map_err(ArchiveError::Io)?;
+        if hex::encode(Sha256::digest(&bytes)) != tf.sha256 {
+            return Err(ArchiveError::Table(format!("table hash mismatch: {table}")));
+        }
+        let content = String::from_utf8(bytes)
+            .map_err(|_| ArchiveError::Table(format!("invalid UTF-8: {table}")))?;
+        let rows: Vec<serde_json::Value> = content.lines()
+            .map(serde_json::from_str).collect::<Result<_, _>>().map_err(ArchiveError::Json)?;
+        if rows.len() as u64 != tf.rows {
+            return Err(ArchiveError::Table(format!("table row-count mismatch: {table}")));
+        }
+        validated.insert(*table, rows);
+    }
+    let mut raw_bytes = BTreeMap::new();
+    for (digest, size) in &manifest.raw_objects {
+        if digest.len() != 64 || !digest.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()) {
+            return Err(ArchiveError::Table("invalid object digest".into()));
+        }
+        let path = Path::new(archive_dir).join("objects").join(digest);
+        archeaxis_store_sqlite::raw_objects::reject_links(&path)?;
+        let bytes = std::fs::read(&path).map_err(ArchiveError::Io)?;
+        if bytes.len() as u64 != *size || hex::encode(Sha256::digest(&bytes)) != *digest {
+            return Err(ArchiveError::Table("raw object integrity mismatch".into()));
+        }
+        raw_bytes.insert(digest.clone(), bytes);
+    }
+    if validated["sources"].len() != raw_bytes.len() || validated["sources"].iter().any(|row| {
+        let digest = row.get("sha256").and_then(|v| v.as_str()).unwrap_or("");
+        !raw_bytes.contains_key(digest) || row.get("raw_path").and_then(|v| v.as_str()) != Some(digest)
+    }) {
+        return Err(ArchiveError::Table("source/object reference mismatch".into()));
+    }
+    let parent = target.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+    let staging = tempfile::tempdir_in(parent).map_err(ArchiveError::Io)?;
+    let staged = staging.path().join("restored.sqlite");
+    let mut conn = archeaxis_store_sqlite::init_workspace(
+        staged.to_str().ok_or_else(|| ArchiveError::Table("invalid target path".into()))?,
+    )?;
+    let staged_objects = archeaxis_store_sqlite::raw_objects::root(&conn)?;
+    std::fs::create_dir_all(&staged_objects).map_err(ArchiveError::Io)?;
+    for bytes in raw_bytes.values() { archeaxis_store_sqlite::raw_objects::persist(&conn, bytes)?; }
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    tx.execute("DELETE FROM workspace_meta", [])?;
+    for table in EXPORT_TABLES {
+        let cols = column_names(&tx, table)?;
         let placeholders = vec!["?"; cols.len()].join(",");
         let sql = format!(
             "INSERT INTO \"{table}\" ({}) VALUES ({placeholders})",
             cols.join(",")
         );
-        let mut stmt = conn.prepare(&sql)?;
-        for line in content.lines() {
-            let v: serde_json::Value = serde_json::from_str(line).map_err(ArchiveError::Json)?;
+        let mut stmt = tx.prepare(&sql)?;
+        for v in &validated[table] {
             let obj = v
                 .as_object()
                 .ok_or_else(|| ArchiveError::Table("row not object".into()))?;
+            if obj.len() != cols.len() || cols.iter().any(|c| !obj.contains_key(c)) {
+                return Err(ArchiveError::Table(format!("row schema mismatch: {table}")));
+            }
             let mut params: Vec<rusqlite::types::Value> = Vec::new();
             for c in &cols {
                 params.push(json_to_value(
@@ -170,7 +250,64 @@ pub fn restore_workspace(
             stmt.execute(rusqlite::params_from_iter(params.iter()))?;
         }
     }
+    let restored_version: String = tx.query_row(
+        "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+    )?;
+    if restored_version != manifest.schema_version.to_string() {
+        return Err(ArchiveError::Table("workspace metadata version mismatch".into()));
+    }
+    let violation = tx.prepare("PRAGMA foreign_key_check")?.exists([])?;
+    if violation { return Err(ArchiveError::Table("restored foreign key mismatch".into())); }
+    tx.commit()?;
+    conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;")?;
+    drop(conn);
+    std::fs::OpenOptions::new().read(true).write(true).open(&staged)
+        .map_err(ArchiveError::Io)?.sync_all().map_err(ArchiveError::Io)?;
+    // Same-filesystem atomic publication with no overwrite even if another
+    // process creates target after preflight. Unsupported filesystems fail closed.
+    let final_objects = std::path::PathBuf::from(format!("{target_db}.objects"));
+    archeaxis_store_sqlite::raw_objects::reject_links(&final_objects)?;
+    std::fs::create_dir(&final_objects).map_err(ArchiveError::Io)?;
+    let mut publication = ObjectPublication { directory: final_objects.clone(), files: Vec::new(), committed: false };
+    for digest in raw_bytes.keys() {
+        let path = final_objects.join(digest);
+        std::fs::hard_link(staged_objects.join(digest), &path).map_err(ArchiveError::Io)?;
+        publication.files.push(path);
+    }
+    std::fs::hard_link(&staged, target).map_err(ArchiveError::Io)?;
+    publication.committed = true;
     Ok(manifest)
+}
+
+fn manifest_digest(manifest: &ArchiveManifest) -> String {
+    let mut h = Sha256::new();
+    h.update(manifest.schema_version.to_le_bytes());
+    for (table, file) in &manifest.tables {
+        h.update(table.as_bytes());
+        h.update(file.rows.to_le_bytes());
+        h.update(file.sha256.as_bytes());
+    }
+    for (digest, bytes) in &manifest.raw_objects {
+        h.update(digest.as_bytes());
+        h.update(bytes.to_le_bytes());
+    }
+    hex::encode(h.finalize())
+}
+
+/// Roll back only files created by this attempt if publication fails.
+/// Never recursively remove a destination or an existing user object tree.
+struct ObjectPublication {
+    directory: std::path::PathBuf,
+    files: Vec<std::path::PathBuf>,
+    committed: bool,
+}
+impl Drop for ObjectPublication {
+    fn drop(&mut self) {
+        if !self.committed {
+            for path in &self.files { let _ = std::fs::remove_file(path); }
+            let _ = std::fs::remove_dir(&self.directory);
+        }
+    }
 }
 
 fn json_to_value(v: serde_json::Value) -> rusqlite::types::Value {

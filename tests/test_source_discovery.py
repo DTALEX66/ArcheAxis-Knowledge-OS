@@ -1,7 +1,7 @@
 """Tests for shared.source_discovery (evidence source directory scanning).
 
 NOTE: tests/conftest.py redirects TMP/TEMP/TMPDIR into the hidden
-.hermes/... tree, and discover_sources skips any path part starting
+.project-local/... tree, and discover_sources skips any path part starting
 with '.', so real temp dirs can't be scanned. Tests monkeypatch
 Path.rglob with a fake file tree instead.
 """

@@ -45,7 +45,7 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 - Do not access `E:\` unless the user explicitly confirms the exact path, action, and impact range.
 - Do not upload or print secrets: `.env`, `.codex`, SSH private keys, API keys, tokens, cookies, credentials, or password files.
 - Do not commit runtime memory, local caches, virtual environments, logs, or generated databases.
-- Project-owned outputs must use the project-local ignored runtime/build locations (`<repo>/.hermes/task-runtime/`); never pass `--basetemp`/`--tmpdir`/`TMPDIR` outside the repository. Run test suites via `scripts/ci/run_tests.sh`.
+- Project-owned development outputs use the ignored `<repo>/.project-local/` root through `scripts/runtime/dev.py`. PowerShell 7: `scripts/ci/run_tests.ps1`; Bash: `scripts/ci/run_tests.sh`. Each worktree/run has separate temporary files and evidence. `.hermes/` is preserved legacy material: no new development writes and no blanket deletion. Agent-private state and product workspaces are separate ownership classes.
 - Do not claim ownership of Hermes, Codex, CC Switch, Workflow-assistance, GitHub delegation, session, cron, Kanban, or other workflow-infrastructure files merely because their names mention this project.
 - Files found in `%TEMP%`, a user home, or another project are ambiguous until content, Git worktree, process, and generation command establish ownership; preserve and mark unresolved rather than delete or move them.
 - Prefer small, auditable changes that can be reverted with one commit.
@@ -64,6 +64,14 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 - GitHub remote for this repository uses HTTPS: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git`.
 
 ## 6. Implementation Workflow
+
+The user-approved active plan is the 2026-09-06-r1 Full Loop TaskPack; progress and
+source provenance are in `docs/authority/taskpack-0906/EXECUTION.md`. The formal
+desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia), with the separate vNext Rust
+Core database and isolated Python workers. `frontend/`, `src-tauri/`, `desktop/`
+and the existing Green v0.6.14 remain recovery/behavior references. Do not dual-write
+legacy and vNext databases. The older G0/shadow-cutover route is superseded by
+`DECISION_SUPERSESSION_LEDGER.yaml`; historical receipts retain their tested SHA.
 
 1. Confirm repository status.
 2. Read the relevant files first.

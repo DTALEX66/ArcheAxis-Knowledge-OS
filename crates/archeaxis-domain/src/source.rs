@@ -25,10 +25,12 @@ pub fn import_source(
     conn: &mut Connection,
     bytes: &[u8],
     original_name: &str,
-    raw_path: Option<&str>,
+    _legacy_raw_path: Option<&str>,
 ) -> rusqlite::Result<ImportOutcome> {
     let digest = sha256_hex(bytes);
-    let existing: Option<String> = conn
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let raw_ref = archeaxis_store_sqlite::raw_objects::persist(&tx, bytes)?;
+    let existing: Option<String> = tx
         .query_row(
             "SELECT source_id FROM sources WHERE sha256=?1",
             [&digest],
@@ -36,16 +38,19 @@ pub fn import_source(
         )
         .optional()?;
     if let Some(sid) = existing {
+        tx.execute("UPDATE sources SET raw_path=?1 WHERE source_id=?2", [&raw_ref, &sid])?;
+        tx.commit()?;
         return Ok(ImportOutcome::Duplicate {
             source_id: sid,
             sha256: digest,
         });
     }
     let source_id = stable_id("src", &digest);
-    conn.execute(
+    tx.execute(
         "INSERT INTO sources(source_id, sha256, original_name, raw_path) VALUES(?1,?2,?3,?4)",
-        rusqlite::params![source_id, digest, original_name, raw_path],
+        rusqlite::params![source_id, digest, original_name, raw_ref],
     )?;
+    tx.commit()?;
     Ok(ImportOutcome::Imported {
         source_id,
         sha256: digest,

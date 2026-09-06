@@ -37,7 +37,7 @@ def test_golden_journey_runtime_root_belongs_to_the_current_worktree(
     monkeypatch.setattr(receipt_generator, "ROOT", tmp_path)
 
     assert receipt_generator._project_runtime_root() == (
-        tmp_path / ".hermes" / "task-runtime"
+        tmp_path / ".project-local" / "task-runtime"
     )
 
 

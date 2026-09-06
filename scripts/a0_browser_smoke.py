@@ -16,8 +16,8 @@ from urllib.request import urlopen
 from playwright.sync_api import Route, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNTIME = ROOT / ".hermes" / "task-runtime"
-ARTIFACTS = ROOT / ".hermes" / "task-artifacts" / "browser-smoke"
+RUNTIME = ROOT / ".project-local" / "task-runtime"
+ARTIFACTS = ROOT / ".project-local" / "task-artifacts" / "browser-smoke"
 def browser_smoke_port() -> int:
     """Allocate an ephemeral loopback port so parallel/retry runs cannot collide."""
     configured = os.environ.get("ARCHEAXIS_BROWSER_SMOKE_PORT")

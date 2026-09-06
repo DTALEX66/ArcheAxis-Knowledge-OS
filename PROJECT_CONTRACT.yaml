@@ -3,12 +3,14 @@ schema_version: 1
 contract_version: 1.0.0-draft
 effective_at: "2026-09-04T00:00:00Z"
 project: ArcheAxis Knowledge
-stage: vnext-fast-full-loop-2026-09-05
+stage: vnext-updated-full-loop-2026-09-06
 scope:
   included:
     - local Windows desktop knowledge workflow
     - trustworthy import, anchor, review, retrieval, learning, restart, export and restore
     - bounded full-web research with cloud cross-check (advanced into this round per SUP-008)
+    - source-independence clustering, claim-level comparison and source localization
+    - human gold sets, CoverageReceipt and MachineCompetenceReceipt
   excluded_until_v01_go:
     - system-level platform
     - WORK-LAB or DESIGN-LAB runtime contracts
@@ -17,10 +19,7 @@ scope:
     - graph database and full event sourcing
     - unbounded autonomous web verification without budget
   planned_after_v01:
-    - bounded full-web research and source-independence clustering
-    - claim-level cross-comparison and original-source localization
-    - human gold sets for local-versus-cloud model evaluation
-    - CoverageReceipt and MachineCompetenceReceipt
+    - additional formats without a qualified engine
 language_authority:
   desktop:
     language: csharp

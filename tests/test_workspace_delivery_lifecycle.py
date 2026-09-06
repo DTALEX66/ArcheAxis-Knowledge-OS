@@ -5,7 +5,7 @@ Exercises the full delivery lifecycle matrix:
   pending, failed, retry, replay, delivered, restart readback
 
 Uses real HTTP requests (not service-level calls) against a fresh isolated
-database. Keeps all runtime data under .hermes/task-runtime/.
+database. Keeps all runtime data under .project-local/task-runtime/.
 
 Run:
   .venv/Scripts/python tests/test_workspace_delivery_lifecycle.py
@@ -26,7 +26,7 @@ from pathlib import Path
 
 # --- resolve project root ---
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-TASK_RUNTIME = PROJECT_ROOT / ".hermes" / "task-runtime" / "m001-lifecycle-smoke"
+TASK_RUNTIME = PROJECT_ROOT / ".project-local" / "task-runtime" / "m001-lifecycle-smoke"
 DATA_DIR = TASK_RUNTIME / "data"
 UPLOAD_DIR = TASK_RUNTIME / "uploads"
 

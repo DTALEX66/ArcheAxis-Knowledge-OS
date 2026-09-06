@@ -11,7 +11,9 @@ import pytest
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-_TASK_RUNTIME = _PROJECT_ROOT / ".hermes" / "task-runtime"
+from scripts.runtime.dev import pytest_environment as _pytest_environment  # noqa: E402
+
+_TASK_RUNTIME = _pytest_environment(_PROJECT_ROOT)
 _TASK_TMP = _TASK_RUNTIME / "pytest-tmp"
 # resolve() guards against MSYS /d/... path forms leaking into child
 # processes: a /d/All projects/... prefix would otherwise resolve to

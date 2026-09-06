@@ -6,7 +6,20 @@
 > This is an authority map, not proof that a particular Green installation is
 > running or that an artifact has passed CI.
 
-## Primary Windows product chain
+## Formal vNext Windows product chain
+
+The approved 2026-09-06 plan targets `apps/ArcheAxis.Desktop/` (C#/Avalonia),
+the Rust service in `crates/archeaxis-api/`, and isolated Python workers in
+`services/python-workers/`. The existing implementation still needs the T15
+Windows/full-loop qualification; this map does not claim a usable vNext package.
+Build/test commands use `scripts/runtime/dev.py` with `.project-local` outputs.
+See [current execution](authority/taskpack-0906/EXECUTION.md) and
+[language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md).
+
+## Preserved Green v0.6.14 maintenance chain
+
+The following chain diagnoses the existing installed Green product only.
+It is not the formal vNext delivery route (SUP-007).
 
 | Layer | Canonical location | Authority and verification boundary |
 | --- | --- | --- |
@@ -17,8 +30,8 @@
 | Green deployment target | `D:/All projects/ArcheAxis.Knowledge.Green-x64/ArcheAxis.exe` | Existing `v0.6.14` maintenance target. Replace only while no `ArcheAxis.exe` process is running; save a hash-addressed backup and require candidate/target SHA-256 equality. |
 | Green GUI launcher | `D:/All projects/ArcheAxis.Knowledge.Green-x64/启动星环知识.vbs` | Silent GUI-only launch path. It starts the exact sibling `ArcheAxis.exe`; it must not invoke a console host. |
 
-**Diagnostic rule:** a window titled `星环知识平台（ArcheAxis Knowledge）`
-belongs to the primary chain above. Do not inspect or replace
+**Diagnostic rule:** the title alone is insufficient; verify the executable
+path before assigning a window to the Green chain above. Do not inspect or replace
 `bootstrap/` to repair that window unless the primary executable's own
 evidence establishes a separate dependency.
 

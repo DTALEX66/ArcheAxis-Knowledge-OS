@@ -31,7 +31,7 @@ def test_windows_runtime_smoke_probes_only_the_api_and_retired_ui_boundary() -> 
     assert "HTTPError" in smoke
     assert "error.code == 410" in smoke
     assert "def runtime_log_path" in smoke
-    assert '".hermes" / "task-runtime"' in smoke
+    assert '".project-local" / "task-runtime"' in smoke
     assert "tempfile.gettempdir" not in smoke
     assert 'version["release"]["status"] == "unreleased"' not in smoke
 
@@ -155,7 +155,7 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "desktop-fast:" in workflow
     assert "desktop-build:" in workflow
     assert "installer-lifecycle:" in workflow
-    assert '".hermes/task-runtime/tauri-build.log"' in desktop_job
+    assert '".project-local/task-runtime/tauri-build.log"' in desktop_job
     assert "Start-Process -FilePath 'cmd.exe'" in desktop_job
     assert "Tauri Windows build failed with exit code" in desktop_job
     assert "::error title=tauri-build::" in desktop_job
@@ -177,8 +177,8 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
         'Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe"'
         not in desktop_job
     )
-    assert 'Remove-Item -LiteralPath "src-tauri/target/release/bundle/nsis"' in desktop_job
-    assert 'Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
+    assert 'Remove-Item -LiteralPath ".project-local/build/tauri/release/bundle/nsis"' in desktop_job
+    assert 'Get-ChildItem ".project-local/build/tauri/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
     assert 'ArcheAxis Knowledge_$($package.version)_x64-setup.exe' in desktop_job
     assert 'Write-Host "NSIS installers found:' in desktop_job
 

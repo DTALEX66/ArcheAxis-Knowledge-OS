@@ -322,3 +322,13 @@ def test_vnext_lane_paths_trigger_their_own_gates() -> None:
     plan = classify_paths(["apps/ArcheAxis.Desktop/MainWindow.axaml.cs"])
     assert "rust-vnext" not in plan["required_gates"], "C#-only change must not run rust-vnext"
     assert "desktop-vnext" in plan["required_gates"]
+
+
+def test_vnext_policy_and_worker_regressions_cannot_be_shadowed() -> None:
+    from scripts.ci.classify import classify_paths
+
+    for path in (".github/workflows/vnext-ci.yml", "scripts/ci/check_vnext_scope.py",
+                 "scripts/ci/check_vnext_workers.py"):
+        gates = classify_paths([path])["required_gates"]
+        assert {"rust-vnext", "desktop-vnext", "contracts-vnext", "workers-vnext"} <= set(gates)
+    assert "workers-vnext" in classify_paths(["tests/workers/test_quality_regressions.py"])["required_gates"]

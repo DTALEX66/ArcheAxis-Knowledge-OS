@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <!-- Launcher supplies a per-worktree build root. Standalone builds remain
+         project-local; SDK/package state is configured by the shared launcher. -->
+    <ArcheAxisBuildRoot Condition="'$(ARCHEAXIS_BUILD_ROOT)' != ''">$(ARCHEAXIS_BUILD_ROOT)/dotnet</ArcheAxisBuildRoot>
+    <ArcheAxisBuildRoot Condition="'$(ArcheAxisBuildRoot)' == ''">$(MSBuildThisFileDirectory).project-local/build/dotnet</ArcheAxisBuildRoot>
+    <BaseIntermediateOutputPath>$(ArcheAxisBuildRoot)/$(MSBuildProjectName)/obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(ArcheAxisBuildRoot)/$(MSBuildProjectName)/bin/</BaseOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

@@ -68,12 +68,7 @@ authorities:
     owner: legacy-tooling
     execution_lane: migration
     write_mode: maintenance-only-task-envelope
-    note: existing tracked files must be inventoried; runtime state and new vendor authority remain forbidden
-  - path: apps/desktop/**
-    owner: avalonia-ui
-    execution_lane: avalonia-ui
-    language: csharp
-    may_open_main_database: false
+    note: preserved mixed legacy assets; no new development writes or blanket deletion
   - path: apps/ArcheAxis.Desktop/**
     owner: avalonia-ui
     execution_lane: avalonia-ui
@@ -178,7 +173,7 @@ authorities:
     execution_lane: contract
     write_mode: serial-grant
     protected_resource: contracts
-  - path: apps/desktop/src/ArcheAxis.Desktop.Contracts.Generated/**
+  - path: apps/ArcheAxis.Desktop/Contracts/Generated/**
     owner: contract-authority
     execution_lane: contract
     write_mode: serial-grant
@@ -302,6 +297,11 @@ authorities:
     execution_lanes: [owner, avalonia-ui]
     write_mode: serial-grant
     protected_resource: dependency-locks-and-versions
+  - path: Directory.Build.props
+    owner: dotnet-workspace
+    execution_lanes: [owner, avalonia-ui]
+    write_mode: serial-grant
+    protected_resource: build-path-policy
   - path: "**/uv.lock"
     owner: python-capabilities
     execution_lane: python-worker
@@ -354,6 +354,7 @@ protected_files:
   - DECISION_SUPERSESSION_LEDGER.yaml
   - Cargo.lock
   - Directory.Packages.props
+  - Directory.Build.props
   - "**/uv.lock"
   - .project/**
   - .github/**
@@ -375,6 +376,7 @@ ignored_local_roots:
   - .project-local/leases/
   - .project-local/runs/
   - .project-local/cache/
+  - .project-local/build/
   - .project-local/tmp/
   - .project-local/logs/
   - .project-local/artifacts/

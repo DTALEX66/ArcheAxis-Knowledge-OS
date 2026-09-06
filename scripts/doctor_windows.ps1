@@ -116,7 +116,7 @@ $result.encoding = [ordered]@{
 # --- Writable directories (project-local only) ---------------------------
 $candidates = @(
     @{ label = "project_root"; path = $project },
-    @{ label = "runtime_cache"; path = (Join-Path $project ".hermes/task-runtime") }
+    @{ label = "runtime_cache"; path = (Join-Path $project ".project-local/task-runtime") }
 )
 $result.writable = @()
 foreach ($c in $candidates) {

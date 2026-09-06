@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ArcheAxis vNext document worker: plain text family (F01).
 
 Formats: TXT / MD / CSV / TSV / JSON / XML (textual sources).
@@ -73,13 +72,26 @@ def extract(path: str) -> dict:
     raw = Path(path).read_bytes()
     text, decode_note = decode_bytes(raw, source=path)
     structure = line_anchors(text)
-    truncated = len(structure) >= 5000 and text.count("\n") >= 5000
+    # Use the same line semantics as anchors (CR/LF/CRLF and Unicode separators).
+    # A final separator terminates its line; it does not create an extra anchor.
+    total = len(text.splitlines(keepends=True))
+    covered = len(structure)
+    losses = [decode_note["loss_note"]] if decode_note["loss_note"] else []
+    if covered < total:
+        losses.append("line anchors capped at 5000")
     loss_receipt = {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
-        "params": {"decode": decode_note["encoding"], "cap_lines": 5000},
-        "loss_note": decode_note["loss_note"] or ("line anchors capped at 5000" if truncated else "no transform applied"),
+        "params": {"decode": decode_note["encoding"], "cap_lines": 5000,
+                   "coverage_unit": "line anchors", "line_splitting": "str.splitlines(keepends=True)"},
+        "losses": losses,
+        "covered": covered,
+        "total": total,
+        "coverage": covered / total if total else 1.0,
+        "loss_note": "; ".join(losses) if losses else "no transform applied",
     }
+    if total == 0:
+        loss_receipt["loss_note"] += "; no lines to anchor; zero-line coverage defined as 1.0"
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,

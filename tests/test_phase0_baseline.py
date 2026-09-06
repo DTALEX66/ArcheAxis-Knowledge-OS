@@ -100,7 +100,7 @@ def test_temporary_runtime_is_unique_cleaned_and_restores_environment(
     for name in ("TMP", "TEMP", "TMPDIR"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(tempfile, "tempdir", None)
-    runtime_parent = Path(__file__).resolve().parents[1] / ".hermes" / "task-runtime" / "tmp"
+    runtime_parent = Path(__file__).resolve().parents[1] / ".project-local" / "task-runtime" / "tmp"
 
     with _temporary_runtime() as first:
         assert first.is_dir()

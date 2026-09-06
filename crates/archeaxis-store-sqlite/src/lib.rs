@@ -1,7 +1,9 @@
 //! vNext database schema and workspace init (Rust sole writer).
 use rusqlite::Connection;
 
-pub const SCHEMA_VERSION: i64 = 1;
+pub mod raw_objects;
+
+pub const SCHEMA_VERSION: i64 = 2;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -52,7 +54,7 @@ CREATE TABLE IF NOT EXISTS review_events (
 CREATE TABLE IF NOT EXISTS jobs (
     job_id TEXT PRIMARY KEY,
     kind TEXT NOT NULL,
-    state TEXT NOT NULL,            -- queued|running|completed|failed
+    state TEXT NOT NULL,            -- canonical job-status vocabulary
     input_ref TEXT,
     engine TEXT,
     loss_receipt TEXT,
@@ -72,13 +74,61 @@ CREATE TABLE IF NOT EXISTS learning_events (
 /// Open (or create) the vNext database and apply the schema.
 /// Per contract this is the only place a writable handle is created.
 pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
-    let conn = Connection::open(db_path)?;
+    raw_objects::reject_links(std::path::Path::new(db_path))?;
+    let mut conn = Connection::open(db_path)?;
+    conn.busy_timeout(std::time::Duration::from_secs(5))?;
+    // Read the version before any schema or journal write. Never initialize an
+    // unrelated legacy database or downgrade a workspace from a future build.
+    let has_meta: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='workspace_meta')",
+        [], |r| r.get(0),
+    )?;
+    let version = if has_meta {
+        let value: String = conn.query_row(
+            "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+        )?;
+        value.parse::<i64>().map_err(|_| rusqlite::Error::InvalidQuery)?
+    } else {
+        let existing: i64 = conn.query_row(
+            "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+            [], |r| r.get(0),
+        )?;
+        if existing != 0 { return Err(rusqlite::Error::InvalidQuery); }
+        0
+    };
+    if !(0..=SCHEMA_VERSION).contains(&version) {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
     conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;")?;
-    conn.execute_batch(SCHEMA_SQL)?;
-    conn.execute(
-        "INSERT OR IGNORE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    // Another opener may have migrated between the read-only preflight and
+    // acquisition of the write transaction. Decide from the locked snapshot.
+    let has_meta: bool = tx.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='workspace_meta')",
+        [], |r| r.get(0),
+    )?;
+    let version = if has_meta {
+        let value: String = tx.query_row(
+            "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+        )?;
+        value.parse::<i64>().map_err(|_| rusqlite::Error::InvalidQuery)?
+    } else { 0 };
+    if !(0..=SCHEMA_VERSION).contains(&version) {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
+    tx.execute_batch(SCHEMA_SQL)?;
+    if version < 2 {
+        tx.execute_batch(
+            "ALTER TABLE jobs ADD COLUMN completion_digest TEXT;
+             ALTER TABLE jobs ADD COLUMN transform_id INTEGER REFERENCES transforms(transform_id);
+             UPDATE jobs SET state='succeeded' WHERE state='completed';",
+        )?;
+    }
+    tx.execute(
+        "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],
     )?;
+    tx.commit()?;
     Ok(conn)
 }
 

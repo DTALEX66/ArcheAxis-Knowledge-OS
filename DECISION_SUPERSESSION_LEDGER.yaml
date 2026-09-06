@@ -6,6 +6,11 @@ rules:
   - a superseding row must name the old claim and the replacement
   - status controls implementation authority, not whether a historical record is retained
 decisions:
+  - id: SUP-011
+    status: effective
+    old_claim: new development outputs must use .hermes/task-runtime
+    replacement: user-approved 2026-09-06-r1 uses .project-local through scripts/runtime/dev.py; .hermes is preserved legacy mixed material, not a deletion allowance
+    reason: current user authorization to execute the updated full-loop taskpack; T00/T19 unify actual entrypoints
   - id: SUP-001
     status: effective
     old_claim: C# is the sole authoritative business and database writer

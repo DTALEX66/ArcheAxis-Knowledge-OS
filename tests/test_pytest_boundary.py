@@ -18,7 +18,7 @@ def test_pytest_temp_roots_stay_inside_project_runtime(tmp_path: Path) -> None:
             text=True,
         ).stdout.strip()
     )
-    runtime_root = common_dir.parent / ".hermes" / "task-runtime"
+    runtime_root = common_dir.parent / ".project-local" / "runs"
 
     assert Path(tempfile.gettempdir()).resolve().is_relative_to(runtime_root.resolve())
     assert tmp_path.resolve().is_relative_to(runtime_root.resolve())

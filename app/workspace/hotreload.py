@@ -33,7 +33,7 @@ from shared.runtime_profile import RuntimeProfile
 
 # Directories that are never scanned for Python source changes.
 IGNORED_DIRS: frozenset[str] = frozenset(
-    {".git", ".venv", ".hermes", "__pycache__", "node_modules"}
+    {".git", ".venv", ".hermes", ".project-local", "__pycache__", "node_modules"}
 )
 
 DEFAULT_POLL_INTERVAL = 1.0

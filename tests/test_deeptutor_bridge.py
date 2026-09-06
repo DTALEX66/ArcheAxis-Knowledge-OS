@@ -17,7 +17,7 @@ from shared.migration_runner import MigrationOperator
 
 def _setup(tmp_path: Path) -> tuple[Path, Path]:
     project = tmp_path / "project"
-    runtime = project / ".hermes/task-runtime"
+    runtime = project / ".project-local/task-runtime"
     runtime.mkdir(parents=True)
     db = runtime / "workspace.sqlite"
     db.touch()

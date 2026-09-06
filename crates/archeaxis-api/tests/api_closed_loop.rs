@@ -161,7 +161,7 @@ async fn worker_job_flow_via_api() {
     assert_eq!(resp.status(), StatusCode::ACCEPTED);
 
     // worker posts a completed receipt with text + loss receipt
-    let receipt = r#"{"state":"completed","engine":"python-worker","text":"note body text here (clean)","loss_receipt":{"engine":"python-worker","engine_version":"0.1.0","params":{},"loss_note":"bom stripped"}}"#;
+    let receipt = r#"{"state":"succeeded","engine":"python-worker","text":"note body text here (clean)","loss_receipt":{"engine":"python-worker","engine_version":"0.1.0","params":{},"loss_note":"bom stripped"}}"#;
     let resp = router
         .clone()
         .oneshot(
@@ -208,7 +208,7 @@ async fn worker_job_flow_via_api() {
             r.get(0)
         })
         .unwrap();
-    assert_eq!(state, "completed");
+    assert_eq!(state, "succeeded");
     let fstate: String = conn
         .query_row("SELECT state FROM jobs WHERE job_id='job-10'", [], |r| {
             r.get(0)

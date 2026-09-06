@@ -228,19 +228,19 @@ async fn enqueue_job(
 ) -> impl IntoResponse {
     let mut conn = state.lock().unwrap();
     match jobs::enqueue(&mut conn, &body.job_id, &body.kind, &body.input_ref) {
-        Ok(()) => (
-            StatusCode::ACCEPTED,
-            Json(serde_json::json!({"job_id": body.job_id, "state": "queued"})),
-        )
-            .into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Ok(()) => match jobs::job_state(&conn, &body.job_id) {
+            Ok(Some(actual)) => (StatusCode::ACCEPTED,
+                Json(serde_json::json!({"job_id": body.job_id, "state": actual}))).into_response(),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, "job readback failed").into_response(),
+        },
+        Err(e) => job_error_response(e),
     }
 }
 
 #[derive(Deserialize)]
 struct ReceiptBody {
     #[serde(default = "default_state")]
-    state: String, // completed | failed
+    state: String, // succeeded | failed (canonical job-status vocabulary)
     #[serde(default)]
     engine: Option<String>,
     #[serde(default)]
@@ -251,8 +251,17 @@ struct ReceiptBody {
     error: Option<String>,
 }
 
+fn job_error_response(error: jobs::JobError) -> axum::response::Response {
+    let status = match &error {
+        jobs::JobError::NotFound => StatusCode::NOT_FOUND,
+        jobs::JobError::Conflict | jobs::JobError::InvalidState => StatusCode::CONFLICT,
+        jobs::JobError::Sql(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    };
+    (status, error.to_string()).into_response()
+}
+
 fn default_state() -> String {
-    "completed".to_string()
+    jobs::STATE_COMPLETED.to_string()
 }
 
 async fn job_receipt(
@@ -260,6 +269,12 @@ async fn job_receipt(
     Path(job_id): Path<String>,
     Json(body): Json<ReceiptBody>,
 ) -> impl IntoResponse {
+    if body.state != jobs::STATE_COMPLETED && body.state != jobs::STATE_FAILED {
+        return (StatusCode::BAD_REQUEST, "invalid terminal job state").into_response();
+    }
+    if body.state == jobs::STATE_COMPLETED && (body.engine.is_none() || body.text.is_none()) {
+        return (StatusCode::BAD_REQUEST, "successful receipt requires engine and text").into_response();
+    }
     let mut conn = state.lock().unwrap();
     let out = if body.state == "failed" {
         jobs::fail(
@@ -282,6 +297,6 @@ async fn job_receipt(
             Json(serde_json::json!({"job_id": job_id, "state": body.state})),
         )
             .into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => job_error_response(e),
     }
 }

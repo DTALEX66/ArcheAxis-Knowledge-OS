@@ -43,6 +43,7 @@ Thumbs.db
 # Codex/Hermes local state
 .codex/
 .hermes/
+.project-local/
 .playwright-cli/
 /tools/tesseract/tessdata/
 workspace/.loop-status.md

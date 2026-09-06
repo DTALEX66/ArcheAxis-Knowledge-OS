@@ -10,6 +10,17 @@
     "schema": {"const": "archeaxis.quality-report/v1"},
     "report_id": {"type": "string", "minLength": 1},
     "run_id": {"type": "string", "minLength": 1},
+    "loss_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine", "engine_version", "params", "loss_note"],
+      "properties": {
+        "engine": {"type": "string", "minLength": 1},
+        "engine_version": {"type": "string", "minLength": 1},
+        "params": {"type": "object"},
+        "loss_note": {"type": "string"}
+      }
+    },
     "engine": {
       "type": "object",
       "additionalProperties": false,

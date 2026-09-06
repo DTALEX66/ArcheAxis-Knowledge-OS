@@ -6,7 +6,7 @@
 
 引擎：SenseVoice int8（快，~26x）→ faster-whisper 兜底。
 输入：D:/All projects/ceshi 全部 mp3/m4a/wav/flac/mp4（mp4 先 ffmpeg 提音轨）。
-输出：.hermes/task-runtime/audio_full_receipt.json
+输出：.project-local/task-runtime/audio_full_receipt.json
 """
 import json, os, subprocess, sys
 from pathlib import Path
@@ -14,8 +14,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ROOT = os.environ.get("ARCHEAXIS_PIPELINE_SOURCE_ROOT", "")
-OUT = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "audio_full_receipt.json")
-WORK = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "audio-work")
+OUT = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "audio_full_receipt.json")
+WORK = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "audio-work")
 os.makedirs(WORK, exist_ok=True)
 
 from app.ingestion.asr_adapter import transcribe_sense_voice, transcribe as transcribe_fw

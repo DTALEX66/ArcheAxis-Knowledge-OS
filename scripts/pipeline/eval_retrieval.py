@@ -1,7 +1,7 @@
 """G9 完整评估集（可复现）：固定改写查询 → 检索命中率 + ASR/OCR 一致性。
 
 用法: env -u PYTHONPATH .venv\\Scripts\\python.exe scripts/pipeline/eval_retrieval.py
-输出: .hermes/task-artifacts/eval-retrieval/EVAL_SET_RECEIPT.json
+输出: .project-local/task-artifacts/eval-retrieval/EVAL_SET_RECEIPT.json
 """
 import argparse
 import json
@@ -62,7 +62,7 @@ def main():
         "--receipt",
         default=str(
             Path(__file__).resolve().parents[2]
-            / ".hermes"
+            / ".project-local"
             / "task-artifacts" / "eval-retrieval"
             / "EVAL_SET_RECEIPT.json"
         ),

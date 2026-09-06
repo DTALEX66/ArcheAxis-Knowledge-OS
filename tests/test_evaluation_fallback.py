@@ -693,7 +693,7 @@ class TestDefaultArtifactDir:
         monkeypatch.setenv("COGNITIVE_DATA_DIR", str(tmp_path / "cognitive-data"))
         result = default_artifact_dir()
         path_str = str(result)
-        assert path_str.endswith(".hermes\\task-runtime\\evaluation") or path_str.endswith(".hermes/task-runtime/evaluation")
+        assert path_str.endswith(".project-local\\task-runtime\\evaluation") or path_str.endswith(".project-local/task-runtime/evaluation")
         assert result.exists()
 
     def test_resolves_from_cwd(self, tmp_path, monkeypatch):
@@ -704,7 +704,7 @@ class TestDefaultArtifactDir:
         result = default_artifact_dir()
         path_str = str(result)
         assert str(sub) in path_str
-        assert ".hermes" in path_str
+        assert ".project-local" in path_str
         assert "evaluation" in path_str
 
 

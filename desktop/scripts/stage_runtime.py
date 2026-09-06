@@ -19,9 +19,9 @@ def _ignored(_: str, names: list[str]) -> set[str]:
 def stage_runtime(*, repository: Path, destination: Path) -> Path:
     repository = repository.resolve()
     destination = destination.resolve()
-    ignored_root = (repository / ".hermes").resolve()
+    ignored_root = (repository / ".project-local").resolve()
     if ignored_root not in destination.parents:
-        raise RuntimeError("desktop runtime destination must stay under repository .hermes")
+        raise RuntimeError("desktop runtime destination must stay under repository .project-local")
     if destination.exists():
         raise RuntimeError(f"desktop runtime destination already exists: {destination}")
 

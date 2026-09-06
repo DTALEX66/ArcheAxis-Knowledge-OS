@@ -59,7 +59,7 @@ def download_book(book_id: int, *, proxy: str | None) -> bytes:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", default=".hermes/task-runtime/corpus", help="corpus root")
+    parser.add_argument("--output", default=".project-local/task-runtime/corpus", help="corpus root")
     parser.add_argument("--proxy", default=None, help="HTTP(S) proxy, e.g. 127.0.0.1:7890")
     parser.add_argument("--limit", type=int, default=None, help="max books to download (for testing)")
     args = parser.parse_args()

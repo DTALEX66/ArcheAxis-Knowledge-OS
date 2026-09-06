@@ -31,7 +31,7 @@ apps/ArcheAxis.Desktop/Program.cs、services/python-workers/runtime/**。
 
 ## 环境事实
 - Windows；测试用真实 python worker（仓库 .venv python 或 Green 捆绑 python 均可，勿污染产品目录）；
-- 端口/进程实验在 127.0.0.1 高位端口 + .hermes/task-runtime/ 下执行；结束必须无残留进程；
+- 端口/进程实验在 127.0.0.1 高位端口 + scripts/runtime/dev.py 分配的 .project-local/runs/ 下执行；结束必须无残留进程（0906 覆盖旧 .hermes/task-runtime/ 指令）；
 - 本地模型探针：ollama(11434) qwen3:8b 等（HTTP），faster-whisper 目录在 D:\All projects\Model library；
 - 能力 profile 只登记探针通过的项。
 

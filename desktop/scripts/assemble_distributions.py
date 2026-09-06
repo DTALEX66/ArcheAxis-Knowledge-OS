@@ -7,9 +7,9 @@ the release workflow runs this on the exact tagged SHA.
 Usage:
   python desktop/scripts/assemble_distributions.py \
       --exe desktop/src-tauri/target/release/ArcheAxis.exe \
-      --runtime .hermes/rt/runtime \
+      --runtime .project-local/rt/runtime \
       --frontend desktop/bootstrap \
-      --identity .hermes/rt/runtime/release-identity.json \
+      --identity .project-local/rt/runtime/release-identity.json \
       --out release-assets \
       --version 0.5.0
 
