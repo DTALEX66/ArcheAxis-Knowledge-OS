@@ -1,0 +1,48 @@
+{
+  "schema": "archeaxis.repository-size-audit/v1",
+  "date": "2026-09-05",
+  "repo": "D:/All projects/ArcheAxis-Knowledge-OS",
+  "head_sha": "aab4f27",
+  "total_gb": 56.6,
+  "method": "PowerShell 逐目录递归字节求和(PS7) + git 状态",
+  "breakdown_gb": {
+    ".hermes": 42.86,
+    "src-tauri": 5.18,
+    "desktop": 4.91,
+    "target": 1.80,
+    ".venv": 0.86,
+    "apps": 0.68,
+    "frontend": 0.10,
+    "data": 0.09,
+    ".git": 0.05,
+    "tests": 0.01,
+    "verified-knowledge": 0.01,
+    "shared": 0.01,
+    "others_source": 0.04
+  },
+  "classification": {
+    "regenerable_build_runtime_cache_gb": 55.29,
+    "tracked_source_and_history_gb": 0.15,
+    "regenerable_items": [
+      {"path": ".hermes", "gb": 42.86, "kind": "agent-runtime-historical-cache", "rebuild": "n/a(缓存)", "risk": "含历史会话证据/收据，需先挑出审计物"},
+      {"path": "src-tauri/target + bundled runtime", "gb": 5.18, "kind": "legacy-tauri-build", "rebuild": "cargo build / prepare_bundle"},
+      {"path": "desktop/node_modules + src-tauri/target", "gb": 4.91, "kind": "legacy-desktop-build", "rebuild": "npm ci / cargo build"},
+      {"path": "target", "gb": 1.80, "kind": "vnext-cargo-build", "rebuild": "cargo build"},
+      {"path": ".venv", "gb": 0.86, "kind": "python-venv", "rebuild": "uv sync"},
+      {"path": "apps/ArcheAxis.Desktop/bin,obj", "gb": 0.68, "kind": "avalonia-build", "rebuild": "dotnet build"}
+    ],
+    "keep_always": [
+      ".git", "crates/**", "services/**", "packages/contracts/**", "app/**",
+      "shared/**", "tests/**", "knowledge_base/**", "scripts/**", "docs/**",
+      "config/**", "*.yaml", "Cargo.toml", "Cargo.lock", "uv.lock",
+      "LEGACY_MANIFEST.yaml", "DIRECTORY_AUTHORITY.yaml"
+    ]
+  },
+  "note": "所有大目录均 gitignored，不上传远端；远端仓库仅含源码+历史(很小)。",
+  "outside_repo_spill_cleaned": [
+    "D:\\a (junction -> .hermes/task-runtime/ci-release-optimization)",
+    "D:\\All\\Crashpad (empty crash store)",
+    "D:\\d (1.76GB stale 10-toolchains duplicate)",
+    "D:\\All projects\\.hermes (empty stray task-runtime)"
+  ]
+}
