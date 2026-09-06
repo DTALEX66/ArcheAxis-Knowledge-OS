@@ -99,6 +99,14 @@ risk_classes:
       - "crates/archeaxis-sidecar-protocol/**"
     gates: [static, lint, contracts-vnext]
 
+  - id: vnext-text-transport
+    description: Text transport and parser changes verify the actual Rust process consumer
+    paths:
+      - "services/python-workers/transport/**"
+      - "services/python-workers/document/worker_text.py"
+      - "tests/workers/test_text_ndjson.py"
+    gates: [static, lint, rust-vnext, workers-vnext]
+
   - id: vnext-workers
     description: vNext isolated Python capability workers
     paths:

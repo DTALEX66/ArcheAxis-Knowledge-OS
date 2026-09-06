@@ -347,3 +347,14 @@ def test_shared_vocabulary_changes_verify_all_three_consumers_without_full_quali
         assert {"rust-vnext", "desktop-vnext", "contracts-vnext"} <= gates
         assert "full-qualification" not in gates
     assert "desktop-vnext" in classify_paths(["tests/contract/Vocabulary.Tests/Program.cs"])["required_gates"]
+
+
+def test_text_transport_changes_run_the_real_rust_consumer_without_desktop_build():
+    from scripts.ci.classify import classify_paths
+
+    for path in ("services/python-workers/transport/text_ndjson.py",
+                 "services/python-workers/document/worker_text.py",
+                 "tests/workers/test_text_ndjson.py"):
+        gates = set(classify_paths([path])["required_gates"])
+        assert {"rust-vnext", "workers-vnext"} <= gates
+        assert "desktop-vnext" not in gates

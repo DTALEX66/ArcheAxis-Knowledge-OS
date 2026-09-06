@@ -71,3 +71,30 @@ are rejected instead of pretending they were stored. Request attempts, launch
 authentication, role enforcement, real worker scheduling, structure persistence
 and C# full DTO consumption remain open. A hand-written HTTP projection in a test
 is not a production executor.
+
+### Text transport adapter slice
+
+The text-only `text.extract` capability version `1` uses protocol minor `0`.
+`deadline_ms` is a relative execution budget; the Core must enforce the process
+deadline. Python checks around parsing are not preemptive cancellation.
+Staging is explicitly selected by Core: `input/<sha256>` and `output/<sha256>`.
+Opaque job URIs never supply OS paths, and each attempt needs its own staging
+directory. The request contains exactly one input and no arbitrary parameters.
+
+Successful text results require these three output kinds exactly once:
+
+| Kind | Schema marker | Bytes |
+| --- | --- | --- |
+| text | archeaxis.text/v1 | UTF-8 text, media type `text/plain; charset=utf-8` |
+| document_structure | archeaxis.document-structure/v1 | JSON line-anchor array from the text parser |
+| loss_report | archeaxis.loss-receipt/v1 | JSON conforming to loss-receipt.schema.json |
+
+The structure marker currently describes this text adapter's line records
+(`kind`, `path`, `char_start`, `char_end`), not qualification of Office/media
+structure. Bounds must be checked against decoded text before authoritative
+storage; output metadata alone does not prove content validity.
+
+Rust's bounded transport adapter is hand-written boundary validation of this
+slice, not a claim that full DTO generation or C# consumption is finished.
+Successful decoding does not qualify process identity, file hashes, resource
+limits, persistence, replay or restore. Those remain executor acceptance work.

@@ -46,6 +46,37 @@ by a size result.
 
 ## Saved checkpoint and follow-up
 
+### T04 text transport slice (2026-09-06)
+
+Base commit `28b70b32dd48d6b87be6e51a90fcce043c4d9c47` saved the runtime
+ownership/OCR slice above. The text transport is a separate follow-up, not an
+implemented persistent executor.
+
+- `transport/text_ndjson.py` wraps the existing text parser, without a DB handle
+  or third-party runtime packages. It preserves separate text, document structure
+  and full loss artifacts under the explicit attempt staging root.
+- The Rust worker adapter is separate from legacy Supervisor receipts. It checks
+  hello compatibility, request/job/attempt/minor identity, closed result fields,
+  the exact three output kinds, opaque SHA references and candidate-only effects.
+  Unknown or contradictory successful results fail closed. The adapter is not
+  full generated DTO coverage or evidence of authoritative persistence.
+- PASS: real Rust process consumer plus protocol regressions (9 Rust tests),
+  run `be268a2d33/ab4b8496b4ef`; Python transport **11 tests and 25 subtests**,
+  run `be268a2d33/803f6fdcbabd`; classifier/schema slice **48 tests**, run
+  `be268a2d33/630b1b7eb30e`. Python executes with `-S` (no site packages).
+  UTF-8 output works even with ASCII child stdio; mathematical JSON integers
+  are normalized and bounded. Both regressions were reproduced before repair.
+- The real transport test verifies all three file hashes/sizes and exact content;
+  it does not run a persistent production executor. Worker-only transport/parser
+  changes now select the Rust consumer gate without a desktop build. Error-code
+  taxonomy remains coarse; phase checks are not forced timeout/cancellation.
+- The remaining T04 slice must claim attempts durably, execute outside the Store
+  thread, independently verify output bytes and structure, then atomically bind
+  outputs/transform/terminal state. Timeout/cancel/retry must reject late results.
+  Adding durable attempt/output tables must also update archive tables and restore
+  tests. Existing `jobs::complete` owns a transaction and cannot simply be called
+  inside another transaction. No runtime executor completion is claimed here.
+
 ### T03 runtime ownership and T06 explicit OCR profile (2026-09-06)
 
 Base commit `437ac9159d5d0b00a2e0796761763d0098dc5e58`; evidence is local

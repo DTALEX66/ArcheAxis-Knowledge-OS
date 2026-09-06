@@ -2,10 +2,12 @@
 //!
 //! The desktop Supervisor (future Avalonia shell) launches the Rust Core and
 //! completes a handshake over this message envelope before any work starts.
-//! Python workers never speak this protocol directly to the database — they
-//! talk to the Core HTTP API and the Core relays receipts here.
+//! `worker` is the separate Python NDJSON adapter. The legacy WorkerReceipt
+//! message below is not the full worker protocol and grants no database access.
 
 use serde::{Deserialize, Serialize};
+
+pub mod worker;
 
 pub const PROTOCOL_VERSION: u32 = 1;
 
