@@ -36,16 +36,53 @@ implementation claim. Early repairs below do not satisfy unmet task dependencies
 | T18/T12 | PLANNED | Interactive Avalonia workbench with real Core integration |
 | T13/T14 | PLANNED | Nonempty migration, old capability absorption, index closure |
 | T15/T16 | PLANNED | Same-candidate Windows qualification and reversible delivery |
-| T20 | PLANNED | Byte-based non-following inventory; unknown assets retained |
+| T20 | TESTED_LOCAL / PARTIAL | Metadata-only dry-run measured permitted scope; private/mixed roots unknown, 4 path errors; no deletion |
 
 Current order: finish T19 entrypoint exceptions and T00/T17 baseline inventory,
 then T01/T02 real contracts, T03 writer ownership, T04 executor, format workers
-and the actual desktop/learning loops. T20 read-only inventory tooling is running
-in the separate worker worktree; no cleanup is authorized merely by a size result.
+and the actual desktop/learning loops. T20 read-only inventory tooling was
+integrated from the separate worker worktree; no cleanup is authorized merely
+by a size result.
+
+## Saved checkpoint and follow-up
+
+Foundation checkpoint: `09482433e5743ebc2e4956dc2667ff7b97ec521d`, tree
+`7671405bac6be57a0568dc918a132f9d89fecadc`, local branch `codex/full-loop-0906`.
+It has not been pushed. No exact-SHA CI, main merge or new release is claimed.
+
+After freezing that clean commit, `scripts/ci/run_tests.ps1 --full -q --tb=short`
+passed: **2147 passed, 7 skipped, 5 warnings, 10 subtests passed**, 142.13 seconds.
+Run `be268a2d33/41d434c4c732` records the above commit/tree and `dirty=false`.
+The source-head conventions check also passed (`be268a2d33/90ce5b07fc58`).
+The 7 skips are not passed qualifications. Subsequent T20 additions were verified
+separately; the full-suite result is not relabeled as a test of a later commit.
+
+T20 follow-up: `scripts/maintenance/inventory_project.py` plus 9 stdlib tests
+passed (`be268a2d33/998c4bbcc6fe`). Permission denial was a controlled injected
+error; links, metadata counts, excluded boundaries and CLI were real filesystem
+tests. No ACL was changed. Main-project read-only scan:
+
+- Command: `python -B scripts/runtime/dev.py -- python -B
+  scripts/maintenance/inventory_project.py .` using the project `.venv` interpreter.
+- Run: `be268a2d33/a75da5dd5b03`; raw local report:
+  `.project-local/runs/be268a2d33/a75da5dd5b03/artifacts/inventory.json`.
+- Successfully observed: **19,676,885,323 logical bytes**, 113,646 regular-file
+  paths; 30 exclusions, 2 reparse points and 4 errors. Group sums match the total.
+  Hard-linked paths count independently; this is not allocated disk space.
+- Exit 1 / PARTIAL: 4 WinError 3 observations on long-path test residue under
+  two prior run roots. These were recorded, not silently treated as absent.
+- `.hermes`, Git/agent-private boundaries and excluded subtrees remain unmeasured
+  (`null`), not zero. Therefore there is **no repository-wide total** and no claimed
+  correction of the historical full-size figure. No files were deleted or moved;
+  no allocated-space savings, complete preservation or rebuild proof is claimed.
+- Top-level `src-tauri`, `desktop`, `apps` contain mixed sources and outputs;
+  their measured size does not authorize deleting those directories. T20 exact
+  candidates, references, file identities, rebuild proof and preservation remain open.
 
 ## Foundation slice evidence and known limits
 
-Evidence below is local execution on a dirty worktree based on the baseline SHA,
+Except for the clean checkpoint explicitly recorded above, evidence below is
+local execution on a dirty worktree based on the baseline SHA,
 not exact-SHA CI or installed delivery. Run artifacts are ignored development
 data, not uploaded source; this ledger retains the compact result.
 
