@@ -1,5 +1,9 @@
 # Language Boundary Authority Index
 
+Machine-local tool/model/material roots are resolved from the
+[user-confirmed shared resource path index](SHARED_RESOURCE_PATH_INDEX.md),
+never guessed from old taskpacks or PATH.
+
 Current decisions: [project contract](../PROJECT_CONTRACT.yaml) and
 [supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml), SUP-001–010.
 Execution: [2026-09-06 ledger](authority/taskpack-0906/EXECUTION.md).

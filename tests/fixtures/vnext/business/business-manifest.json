@@ -1,0 +1,12 @@
+{
+  "schema": "archeaxis.p19-business-fixtures/v1",
+  "note": "Logical (non-database) fixture set for domain/business design: each file matches the named v1 JSON Schema and its content hash is pinned here. Reference strings (learner_id/client_id/item_ref ids, source_sha256) are intentionally synthetic; no real user data.",
+  "entries": {
+    "learning-feedback.json": {"schema": "learning-feedback.schema.json", "sha256": "5c8421a4ea68fbb7434c7bafa80bd27ef80a0b74b3ac8f9fea0e08060fbbeb02"},
+    "machine-feedback.json": {"schema": "machine-feedback.schema.json", "sha256": "797d408442774a7b35ed505d31865c8117515bd32ce1eeb840858e3577161940"},
+    "anchor-coordinate.json": {"schema": "anchor-coordinate.schema.json", "sha256": "7124eb1c1c2d0a84acff3e3eea72c486b7314d5235a411f5545c91ae0f69b0e4"},
+    "loss-receipt.json": {"schema": "loss-receipt.schema.json", "sha256": "e1360bdfdd1ffbc001807b946e9052d3b6bd090b810bdb91db6698be3e346984"},
+    "job-status.json": {"schema": "job-status.schema.json", "sha256": "98198423497157a26744448f523908a576c16696560bab0f8d2363040e73e248"},
+    "assessment-vocabulary.json": {"schema": "assessment-vocabulary.schema.json", "sha256": "cadaa1e4c69533ac8c00e6098f80cbbfb325f87be5f269fe513b4fa8c1e8bd65"}
+  }
+}

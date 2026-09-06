@@ -4,6 +4,13 @@
 `DECISION_SUPERSESSION_LEDGER.yaml` 的权威。**全量目标未完成。**
 不要因为有本地测试或已上传分支而声称新版界面、全格式管线已经交付。
 
+## 按执行者拆分的接续文档
+
+- 用户可直接交给 DeepSeek：[批量低风险任务包](DEEPSEEK-TASKS.md)，含 10 个可立即开始批次和 5 个须 GPT 前置的批次。
+- 留给 GPT：[高难度任务与最终集成](GPT-HARD-TASKS.md)，含 8 个责任域和原 T00—T20 全覆盖映射。
+- DeepSeek R2 已回交；用户要求其先穷尽可独立执行的低风险工程，当前入口为 [全量低风险工程执行包 BULK-0907](DEEPSEEK-BULK-EXECUTION-2026-09-07.md)，共 P00—P28，含实际索引更新与非破坏性历史归档。旧 [DP-R2](DEEPSEEK-REWORK-R2.md) 保留为返修来源，不从头重跑；GPT 随后接手高难度任务。
+- 拆分不代表高难度任务已完成，也不代表已实际调用 DeepSeek；冻结任务正文和历史证据不变。
+
 ## 范围与停止条件
 
 - 当前项目：`D:\All projects\ArcheAxis-Knowledge-OS`；不是 WORK-LAB。
@@ -23,6 +30,8 @@
 依次读根 `AGENTS.md`、`docs/CONFIGURATION_AUTHORITY_INDEX.md`、
 `docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md`、`docs/DIRECTORY_AUTHORITY_INDEX.md`、
 本目录 `EXECUTION.md` 和冻结 `TASKS.json`。旧摘要不覆盖 0906 决策。
+
+本机五类资源先查 [共享资源路径索引](../../SHARED_RESOURCE_PATH_INDEX.md)（用户 2026-09-07 确认）。特别注意绿色版真实资料库 `D:\All projects\资料库` 与项目测试资料副本 `D:\All projects\ceshi` 不是同一职责；不猜替代路径，不把真实资料库用于测试写入或清理。
 
 - 单 writer 分支：`codex/full-loop-0906`。先 `git status --short`，保留未知修改。
 - PowerShell 7：`C:\Program Files\PowerShell\7\pwsh.exe`。

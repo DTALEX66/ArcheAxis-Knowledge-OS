@@ -3,6 +3,8 @@
 > Canonical directory classification for maintenance and future normalization.
 > It names what a path is; it does not authorize a move, cleanup or deletion.
 
+本机具体资源根以 [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md) 为准：共用模型、外置工具、绿色软件、绿色版真实资料库、项目测试资料库分属不同职责。不得把真实资料库当测试目录或把共享库当本项目清理对象。
+
 ## Authoritative topology
 
 | Path / surface | Class | Canonical role | Normalization rule |

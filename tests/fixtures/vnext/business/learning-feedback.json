@@ -1,0 +1,8 @@
+{
+  "schema": "archeaxis.learning-feedback/v1",
+  "event_id": "ev-learn-0907-001",
+  "learner_id": "learner-synthetic-1",
+  "event": "question_answered",
+  "item_ref": {"kind": "question", "id": "q-synthetic-001"},
+  "occurred_at": "2026-09-07T08:00:00Z"
+}

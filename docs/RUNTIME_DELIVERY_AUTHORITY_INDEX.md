@@ -5,6 +5,9 @@
 > a stale executable and a Green deployment from being treated as one thing.
 > This is an authority map, not proof that a particular Green installation is
 > running or that an artifact has passed CI.
+>
+> Machine-local tool/model/Green/material roots follow the
+> [shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
 
 ## Formal vNext Windows product chain
 

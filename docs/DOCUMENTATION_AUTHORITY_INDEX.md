@@ -9,6 +9,8 @@
 1. [AGENTS](../AGENTS.md), [project contract](../PROJECT_CONTRACT.yaml) and
    [decision supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml).
 2. [Full Loop execution](authority/taskpack-0906/EXECUTION.md).
+   Before resolving machine-local tools/models or material paths, read the
+   [user-confirmed shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
 3. [Language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md),
    [directory authority](DIRECTORY_AUTHORITY_INDEX.md), and
    [runtime delivery](RUNTIME_DELIVERY_AUTHORITY_INDEX.md).

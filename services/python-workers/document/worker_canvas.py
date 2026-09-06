@@ -73,24 +73,23 @@ def extract(path: str) -> dict:
     edges = payload.get("edges", [])
     text_nodes = [n for n in nodes if n.get("type", "text") == "text"]
 
-    projection = ""
+    segments = [str(node.get("text", "")) for node in text_nodes]
+    projection = "\n".join(segments)
+
     char_anchors: list[dict] = []
-    for node in text_nodes:
-        node_text = str(node.get("text", ""))
-        start = len(projection)
-        projection += node_text + "\n"
-        end = len(projection)
+    offset = 0
+    for node, segment in zip(text_nodes, segments, strict=True):
         char_anchors.append(
             {
                 "kind": "text_node",
                 "path": [str(node.get("id", ""))],
-                "char_start": start,
-                "char_end": end,
+                "char_start": offset,
+                "char_end": offset + len(segment),
                 "node_id": str(node.get("id", "")),
             }
         )
-    if text_nodes and projection.endswith("\n"):
-        projection = projection[:-1]
+        # Each non-final text node is followed by exactly one separator newline.
+        offset += len(segment) + 1
 
     references = [
         {

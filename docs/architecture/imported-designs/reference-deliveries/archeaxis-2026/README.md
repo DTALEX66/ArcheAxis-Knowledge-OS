@@ -24,4 +24,4 @@
 
 ## 已吸收的稳定决策
 
-这些交付中可复用且已被收敛到仓库规划的原则，见 [`../../../FUTURE_EXECUTION_BLUEPRINT.md`](../../../FUTURE_EXECUTION_BLUEPRINT.md)：模块化单体、候选默认、审核门、追加式事实、版本/审计、命令幂等、事务 outbox、可恢复 worker、结构化可编辑教学资产，以及 2D 优先的空间记忆。
+这些交付中可复用且已被收敛到仓库规划的原则，见 [`../../../FUTURE_EXECUTION_BLUEPRINT.md`](../../../../FUTURE_EXECUTION_BLUEPRINT.md)：模块化单体、候选默认、审核门、追加式事实、版本/审计、命令幂等、事务 outbox、可恢复 worker、结构化可编辑教学资产，以及 2D 优先的空间记忆。

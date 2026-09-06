@@ -1,0 +1,10 @@
+{
+  "engine": "python-worker-text",
+  "engine_version": "0.1.0",
+  "params": {"decode": "utf-8", "cap_lines": 5000},
+  "losses": [],
+  "covered": 3,
+  "total": 3,
+  "coverage": 1.0,
+  "loss_note": "no transform applied"
+}

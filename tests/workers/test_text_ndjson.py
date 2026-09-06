@@ -251,5 +251,85 @@ class TextNdjsonTests(unittest.TestCase):
                     self.assertEqual(invalid["outputs"], [])
 
 
+    def test_decode_and_anchor_matrix_has_independent_expectations(self):
+        # DS04: table-driven decode/anchor cases with hand-written expectations
+        # (never copy output back as the expectation). Raw bytes -> expected
+        # decoded text (UTF-8), preserving line endings and combining/emoji.
+        # Expected anchor ranges are Unicode character offsets into the projected
+        # text, not UTF-8 byte offsets; they are written by hand, not derived from
+        # the production algorithm.
+        expected_ranges = {
+            "ascii": [(0, 5)],
+            "chinese": [(0, 2)],
+            "nfd_combining_preserved": [(0, 3)],
+            "astral_emoji": [(0, 1)],
+            "utf8_bom_stripped": [(0, 2)],
+            "utf16le_bom": [(0, 2)],
+            "crlf_and_lone_cr_preserved": [(0, 3), (3, 5), (5, 7)],
+            "empty_file": [],
+            "gbk_fallback": [(0, 2)],
+            "invalid_bytes_replaced": [(0, 3)],
+        }
+        # b"\x81\xff\x81" survives UTF-8/GBK/cp1252 and lands in UTF-8 replace:
+        # three U+FFFD replacement characters.
+        expected_invalid_text = b"\xef\xbf\xbd" * 3
+        cases = [
+            # (name, raw, expected_text_utf8, expected_decode, expect_empty_note)
+            ("ascii", b"plain", b"plain", "utf-8", False),
+            ("chinese", "\u4e2d\u6587".encode("utf-8"), "\u4e2d\u6587".encode("utf-8"), "utf-8", False),
+            ("nfd_combining_preserved", b"e\xcc\x81a", b"e\xcc\x81a", "utf-8", False),
+            ("astral_emoji", "\U0001f600".encode("utf-8"), "\U0001f600".encode("utf-8"), "utf-8", False),
+            ("utf8_bom_stripped", b"\xef\xbb\xbfhi", b"hi", "utf-8-sig", False),
+            ("utf16le_bom", b"\xff\xfe" + "AB".encode("utf-16-le"), b"AB", "utf-16", False),
+            ("crlf_and_lone_cr_preserved", b"a\r\nb\rc\n", b"a\r\nb\rc\n", "utf-8", False),
+            ("empty_file", b"", b"", "utf-8", True),
+            ("gbk_fallback", "\u4e2d\u6587".encode("gbk"), "\u4e2d\u6587".encode("utf-8"), "gbk", False),
+            ("invalid_bytes_replaced", b"\x81\xff\x81", expected_invalid_text, "utf-8-replace", False),
+        ]
+        for name, raw, expected_text, expected_decode, empty_note in cases:
+            with self.subTest(name=name):
+                request = self.request(raw)
+                process, response = self.invoke(request)
+                self.assertEqual(process.returncode, 0, process.stderr)
+                self.assertEqual(response["status"], "succeeded", response)
+                payloads = {}
+                for output in response["outputs"]:
+                    payloads[output["kind"]] = (self.staging / "output" / output["sha256"]).read_bytes()
+                # Precise text bytes: the replacement-decoding branch is asserted
+                # as exact bytes, not just "non-empty and differs from raw".
+                self.assertEqual(payloads["text"], expected_text, name)
+                loss = json.loads(payloads["loss_report"])
+                self.assertEqual(loss["params"]["decode"], expected_decode, name)
+                if empty_note:
+                    self.assertEqual(loss["total"], 0)
+                    self.assertIn("no lines to anchor", loss["loss_note"])
+                else:
+                    # anchor coverage equals splitlines count; no silent line loss
+                    self.assertEqual(loss["covered"], loss["total"])
+                    self.assertEqual(loss["coverage"], 1.0)
+                if name == "invalid_bytes_replaced":
+                    # The receipt must name U+FFFD replacement, not a silent fallback.
+                    self.assertEqual(loss["losses"], ["undecodable bytes replaced with U+FFFD"])
+                    self.assertIn("U+FFFD", loss["loss_note"])
+                # Independent anchor expectations: hand-written character ranges,
+                # generated in the same line order the worker projects.
+                expected_structure = [
+                    {"kind": "line", "path": [f"line-{i}"], "char_start": start, "char_end": end}
+                    for i, (start, end) in enumerate(expected_ranges[name], start=1)
+                ]
+                structure = json.loads(payloads["document_structure"])
+                self.assertEqual(structure, expected_structure, name)
+                for idx, (anchor, (start, end)) in enumerate(zip(structure, expected_ranges[name], strict=True), start=1):
+                    self.assertEqual(anchor["kind"], "line", name)
+                    self.assertEqual(anchor["path"], [f"line-{idx}"], name)
+                    self.assertEqual(anchor["char_start"], start, name)
+                    self.assertEqual(anchor["char_end"], end, name)
+                if expected_ranges[name]:
+                    # Negative control: shifting one char_end must fail, proving the
+                    # assertion does not merely mirror the production algorithm.
+                    corrupted = [dict(anchor, char_end=anchor["char_end"] + 1) for anchor in expected_structure]
+                    self.assertNotEqual(structure, corrupted, name)
+
+
 if __name__ == "__main__":
     unittest.main()

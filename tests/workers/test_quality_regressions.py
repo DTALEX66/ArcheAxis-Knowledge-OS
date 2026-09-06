@@ -166,5 +166,30 @@ class WorkerQualityRegressions(unittest.TestCase):
         quality.validate_report_metrics(report)
 
 
+    def test_hand_computed_cer_wer_matrix(self):
+        # DS07: independent, hand-calculated CER/WER. Error rate may exceed one
+        # and must never be clamped. numerator/denominator stated per case.
+        cases = [
+            # (prediction, gold, cer_numer/denom, wer_numer/denom)
+            (b"abc", b"abc", (0, 3), (0, 1)),           # identical
+            (b"abcx", b"abc", (1, 3), (1, 1)),          # insertion
+            (b"ac", b"abc", (1, 3), (1, 1)),            # deletion
+            (b"axc", b"abc", (1, 3), (1, 1)),           # substitution
+            (b"abcdefghij", b"a", (9, 1), (1, 1)),      # errors > reference length
+            ("正确123".encode(), "正确1234".encode(), (1, 6), (1, 1)),  # Chinese + digits
+            (b"a b 123", b"a b 124", (1, 7), (1, 3)),   # token substitution for WER
+        ]
+        for prediction, gold, (cer_n, cer_d), (wer_n, wer_d) in cases:
+            with self.subTest(prediction=prediction, gold=gold):
+                cer_row, wer_row = self.evaluate(prediction, gold)["rows"]
+                self.assertEqual(cer_row["status"], "measured")
+                self.assertEqual(cer_row["value"], round(cer_n / cer_d, 6))
+                if wer_d == 0:
+                    self.assertEqual((wer_row["status"], wer_row["value"]), ("unmeasured", None))
+                else:
+                    self.assertEqual((wer_row["status"], wer_row["value"]),
+                                     ("measured", round(wer_n / wer_d, 6)))
+
+
 if __name__ == "__main__":
     unittest.main()

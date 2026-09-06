@@ -1,0 +1,10 @@
+{"nodes": [
+  {"id": "n1", "type": "text", "text": "核聚变研究"},
+  {"id": "n2", "type": "group", "label": "分区"},
+  {"id": "n3", "type": "text", "text": "目标与测量"},
+  {"id": "n4", "type": "file", "file": "notes/证据.pdf", "label": "证据 PDF"},
+  {"id": "n5", "type": "link", "url": "https://example.org", "label": "外部来源"}
+], "edges": [
+  {"id": "e1", "fromNode": "n1", "toNode": "n3", "fromSide": "right", "toSide": "left"},
+  {"id": "e2", "fromNode": "n3", "toNode": "n4", "fromSide": "bottom", "toSide": "top"}
+]}
