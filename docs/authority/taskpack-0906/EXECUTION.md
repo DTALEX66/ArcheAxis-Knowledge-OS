@@ -30,7 +30,7 @@ implementation claim. Early repairs below do not satisfy unmet task dependencies
 | T19 | TESTED_LOCAL / PARTIAL | Shared launcher and normal/linked/concurrent/failure path tests pass; remaining legacy fixed-path entrypoints need adoption |
 | T01/T02 | TESTED_LOCAL / PARTIAL | Actual loss receipt/replay and generated three-language vocabulary verified; full DTO/roles/anchors/protocol and CI deduplication still open |
 | T17 | PARTIAL | Eleven concrete legacy reuse gaps checked against source; nonempty migration and behavior qualification still open |
-| T03/T04 | TESTED_LOCAL / PARTIAL | Real text executor, durable outputs/archive replay and native launch auth tested; HTTP/UI dispatch, multi-format resources, maintenance encapsulation and restart policy remain open |
+| T03/T04 | TESTED_LOCAL / PARTIAL | Real text HTTP execution, C# client, durable outputs/replay, cancellation/backpressure and launch auth tested; actual UI, multi-format resources, maintenance encapsulation and restart policy remain open |
 | T05/T06/T07 | TESTED_LOCAL / PARTIAL | Byte-faithful CER/WER and loss/coverage regressions pass; real corpus, all format chains and worker/Core integration still open |
 | T08/T09/T10/T11 | PLANNED | Research, knowledge and both usage/feedback loops |
 | T18/T12 | PLANNED | Interactive Avalonia workbench with real Core integration |
@@ -395,6 +395,54 @@ slice; the whole T02/T04 tasks remain PARTIAL. No push/Release/tag/version or
 Green replacement was performed at this checkpoint; E drive was not accessed.
 
 ## Execution rulings
+
+### T04 authenticated HTTP text execution checkpoint (2026-09-06)
+
+Base `f5bed35ec4b173b4778a50cc3b1b5cd054997794`; dirty-tree local evidence,
+not complete taskpack or installed qualification. Latest handoff: [HANDOFF.md](HANDOFF.md).
+
+- Added HTTP execution/status/output/attempt-cancellation projections under
+  `crates/archeaxis-api/src/runtime/`. 202 follows durable claim. Request keys
+  bind job/deadline, including restart replay. Two worker slots bound active
+  child count. HTTP disconnection does not abandon accepted work; stale
+  cancellation cannot target another attempt. No automatic retry policy.
+- Private launch `text_worker` carries explicit local Python/script/staging
+  configuration. Core validates it before launch; it is never accepted over
+  HTTP. The C# client forwards an explicit profile and runs the real text chain.
+  Production manual `/receipts` injection is removed; in-process compatibility
+  tests retain it. No profile is not a measured/available conversion capability.
+- Overload RED `a6b4a27ed467` reproduced loss of accepted ownership on full writer
+  queue. `submit_wait` now retains owned callbacks until admitted or Store closes.
+  The completion watcher confirms/repairs terminal state before releasing the
+  slot; unrecoverable terminal storage leaves a faulted slot/503 rather than
+  orphaned running replay. Admission and cancellation locks are separate.
+- Other RED evidence: missing endpoint `beee5ae0046d`; standalone profile absent
+  `d2c7a38f09ec`; manual receipt injection `d8bfe6943626`; invalid-request plain
+  text instead of Error `e9fb7a74c673`; faulted replay returning 202 `0ce8e42ca618`;
+  admission blocked cancellation `9fbfedcd2cb2`; C# runtime not enabled
+  `1ad54f76e54c`. C# local-name collision `7fd3b5332099` was a test compile error,
+  corrected before the behavioral RED; it was not a product regression.
+- `cargo test -p archeaxis-api -p archeaxis-application -p archeaxis-store-sqlite
+  -p archeaxis-archive --locked --offline -q`: PASS, run `1947625d8f22`.
+  Includes real-process launch auth/execution, attempts, 7 executor scenarios,
+  Store ownership and full-output archive restore. After the lock separation,
+  all 5 HTTP runtime tests PASS in `7664b552a9fc` (formatted final runtime module).
+- C# actual silent client -> authenticated Rust -> Python -> persisted text
+  PASS, run `30646350a2bb`; also restart, concurrent sessions, wrong workspace,
+  302 trap, Stop race and real 8.3 alias. This is a headless client harness,
+  not usable GUI evidence. Shared .NET 10.0.400 / project Python were used.
+- Contract tests: the old bearer expectation failed in `94214f4caa5a`; updated
+  to the actual custom-header API-key scheme and checked path-level references.
+  17 PASS, run `d9024ec5cfa9`; four existing jsonschema deprecation warnings.
+  Architecture PASS `93cc316ebf75`. All IDs above are under `be268a2d33/`.
+
+Remaining: full-format workers, fair global admission and complete memory/process
+budgets, actual Avalonia workbench, nonempty migration, human/machine learning,
+real corpus quality and installed acceptance. Worker timeout excludes admission
+and writer wait. A permanently stalled/closed writer requires fault repair and
+Core restart; no automatic recovery beyond existing startup recovery is claimed.
+No E-drive access, global configuration change, new Release/version or Green
+replacement. Current frozen TASKS.json is unchanged; all 21 tasks remain scoped.
 
 - Current user authorization adopts `.project-local` over older guidance naming
   `.hermes`. No global software configuration is changed.

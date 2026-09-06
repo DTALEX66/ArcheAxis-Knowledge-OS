@@ -26,6 +26,32 @@ async fn actual_executor_preserves_three_outputs_across_owned_store_restart() {
         assert_eq!(conn.query_row("SELECT content FROM job_outputs WHERE kind='text'",[],|r|r.get::<_,String>(0)).unwrap(),"中😀\r\n");
     }).await.unwrap();
 }
+
+#[tokio::test]
+async fn accepted_worker_keeps_ownership_when_terminal_writer_queue_is_full() {
+    use std::{future::Future,pin::Pin,sync::mpsc,task::{Context,Poll,Waker},time::Duration};
+    fn poll_once<T>(future:Pin<&mut impl Future<Output=T>>)->Poll<T>{future.poll(&mut Context::from_waker(Waker::noop()))}
+    let dir=tempfile::tempdir().unwrap();let release_worker=dir.path().join("release-worker");let worker_done=dir.path().join("worker-done");
+    let script=dir.path().join("gated.py");
+    std::fs::write(&script,format!("import pathlib,time,runpy\ngate=pathlib.Path({})\nwhile not gate.exists(): time.sleep(.005)\ntry: runpy.run_path({},run_name='__main__')\nfinally: pathlib.Path({}).touch()\n",
+        serde_json::to_string(&release_worker).unwrap(),serde_json::to_string(&worker()).unwrap(),serde_json::to_string(&worker_done).unwrap())).unwrap();
+    let executor=prepare(dir.path(),&script).await;
+    let task=executor.start("job","pressure",5000,&Cancellation::new()).await.unwrap();
+    // First ensure CAS read was queued before stopping the writer.
+    executor.store().submit(|_|()).await.unwrap();
+    let (started,ready)=mpsc::channel();let (release,wait)=mpsc::channel();
+    let mut blocker=Box::pin(executor.store().submit(move|_|{started.send(()).unwrap();wait.recv_timeout(Duration::from_secs(5)).unwrap();}));
+    assert!(poll_once(blocker.as_mut()).is_pending());ready.recv_timeout(Duration::from_secs(2)).unwrap();
+    let mut pending=Vec::new();
+    for _ in 0..64 {let mut request=Box::pin(executor.store().submit(|_|()));assert!(poll_once(request.as_mut()).is_pending());pending.push(request);}
+    assert!(matches!(executor.store().submit(|_|()).await,Err(archeaxis_store_sqlite::writer::StoreError::Busy)));
+    std::fs::write(&release_worker,[]).unwrap();
+    tokio::time::timeout(Duration::from_secs(3),async{while !worker_done.exists(){tokio::time::sleep(Duration::from_millis(5)).await;}}).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    release.send(()).unwrap();blocker.await.unwrap();for request in pending{request.await.unwrap();}
+    assert!(task.await.unwrap().is_ok(),"accepted attempt lost ownership on transient queue pressure");
+    assert_eq!(executor.store().submit(|conn|jobs::job_state(conn,"job").unwrap()).await.unwrap().as_deref(),Some("succeeded"));
+}
 #[tokio::test]
 async fn stalled_or_cancelled_process_does_not_block_the_writer_or_commit_success() {
     let dir=tempfile::tempdir().unwrap();

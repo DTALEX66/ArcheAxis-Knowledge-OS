@@ -32,14 +32,18 @@ async fn main() {
         Ok(launch)=>launch,
         Err(message)=>{eprintln!("{message}");std::process::exit(2);}
     };
-    let store = match archeaxis_store_sqlite::writer::Store::open(std::path::Path::new(db_path)) {
-        Ok(store) => store,
-        Err(e) => {
-            eprintln!("failed to open workspace {db_path}: {e}");
-            std::process::exit(1);
+    let (store,router)=if let Some(profile)=&launch.text_worker {
+        match archeaxis_application::executor::Executor::open(std::path::Path::new(db_path),&profile.staging,&profile.python,&profile.script).await {
+            Ok(executor)=>(executor.store().clone(),archeaxis_api::runtime::router(executor)),
+            Err(_)=>{eprintln!("failed to initialize execution workspace");std::process::exit(1);}
+        }
+    }else{
+        match archeaxis_store_sqlite::writer::Store::open(std::path::Path::new(db_path)) {
+            Ok(store)=>(store.clone(),archeaxis_api::projections(store,false)),
+            Err(_)=>{eprintln!("failed to open workspace");std::process::exit(1);}
         }
     };
-    let router=match archeaxis_api::launch::protect(archeaxis_api::router(store.clone()),&store,launch).await {
+    let router=match archeaxis_api::launch::protect(router,&store,launch).await {
         Ok(router)=>router,Err(_)=>{eprintln!("workspace identity unavailable");std::process::exit(1);}
     };
     let addr = SocketAddr::from((Ipv4Addr::LOCALHOST, port));

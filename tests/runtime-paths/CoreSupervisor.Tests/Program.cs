@@ -88,11 +88,39 @@ try {
     Console.WriteLine("PASS: wrong-session 200 and credential-redirect handshake rejected");
     var core = Environment.GetEnvironmentVariable("ARCHAXIS_CORE_BIN") ?? throw new Exception("real Core binary required");
     var db = Path.Combine(run, "tmp", "core with spaces.sqlite");
-    using var real = new CoreSupervisor(db, core);
+    var workerProfile = new CoreTextWorker(Environment.GetEnvironmentVariable("ARCHEAXIS_PYTHON") ?? throw new Exception("project Python required"),
+        Path.GetFullPath("services/python-workers/transport/text_ndjson.py"), Path.Combine(run, "tmp", "worker-staging"));
+    using var real = new CoreSupervisor(db, core, workerProfile);
     var started = await real.StartAsync();
     if (!started.ok || !File.Exists(db) || new Uri(real.CoreUrl).Port is 0 or 47831)
         throw new Exception($"real owned Core failed: {started.detail}");
     var ownedUrl = real.CoreUrl;
+    using (var imported = await real.SendAsync(HttpMethod.Post, "/api/v1/imports", new StringContent("{\"name\":\"desktop.txt\",\"content_base64\":\"aGVsbG8=\"}", Encoding.UTF8, "application/json"))) {
+        if (imported.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop import failed");
+        using var source = JsonDocument.Parse(await imported.Content.ReadAsStringAsync());
+        var enqueue = JsonSerializer.Serialize(new { job_id = "desktop-job", kind = "text", input_ref = source.RootElement.GetProperty("source_id").GetString() });
+        using var queued = await real.SendAsync(HttpMethod.Post, "/api/v1/jobs", new StringContent(enqueue, Encoding.UTF8, "application/json"));
+        if (queued.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop enqueue failed");
+    }
+    var executionBody = new StringContent("{\"deadline_ms\":5000}", Encoding.UTF8, "application/json");
+    executionBody.Headers.Add("idempotency-key", "desktop-attempt");
+    using (var execution = await real.SendAsync(HttpMethod.Post, "/api/v1/jobs/desktop-job/executions", executionBody)) {
+        if (execution.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop could not execute the actual worker");
+    }
+    using (var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(6))) {
+        while (true) {
+            using var read = await real.SendAsync(HttpMethod.Get, "/api/v1/jobs/desktop-job", ct: bounded.Token);
+            using var status = JsonDocument.Parse(await read.Content.ReadAsStringAsync(bounded.Token));
+            var state = status.RootElement.GetProperty("state").GetString();
+            if (state == "succeeded") break;
+            if (state != "running") throw new Exception("desktop execution did not succeed");
+            await Task.Delay(10, bounded.Token);
+        }
+        using var output = await real.SendAsync(HttpMethod.Get, "/api/v1/jobs/desktop-job/outputs/text", ct: bounded.Token);
+        using var converted = JsonDocument.Parse(await output.Content.ReadAsStringAsync(bounded.Token));
+        if (converted.RootElement.GetProperty("content").GetString() != "hello") throw new Exception("desktop worker output differs");
+    }
+    Console.WriteLine("PASS: silent C# -> authenticated Core -> actual Python -> persisted output");
     using (var readback = await real.SendAsync(HttpMethod.Get, "/api/v1/workspaces/info")) {
         if (!readback.IsSuccessStatusCode) throw new Exception("owned authenticated readback failed");
     }

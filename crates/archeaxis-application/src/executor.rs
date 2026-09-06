@@ -19,26 +19,35 @@ impl Executor {
         // Opening a new Store takes the workspace OS lock. Startup recovery
         // happens here exactly once, before this executor is returned to callers.
         let store=Store::open(db).map_err(|e|e.to_string())?;
-        store.submit(attempts::recover_interrupted).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
+        store.submit_wait(attempts::recover_interrupted).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
         Ok(Self{store,staging,python:python.to_owned(),worker:worker.to_owned()})
     }
     pub fn store(&self)->&Store{&self.store}
 
     pub async fn execute(&self,job_id:&str,request_id:&str,deadline_ms:u64,cancel:&Cancellation)->Result<(),String> {
+        self.start(job_id,request_id,deadline_ms,cancel).await?.await.map_err(|e|format!("execution task failed: {e}"))?
+    }
+    /// Returns only after durable claim; dropping the caller never abandons work.
+    pub async fn start(&self,job_id:&str,request_id:&str,deadline_ms:u64,cancel:&Cancellation)->Result<tokio::task::JoinHandle<Result<(),String>>,String> {
         // Accepted jobs outlive a disconnected HTTP/UI waiter. Explicit owner
         // cancellation still propagates through the shared cancellation handle.
         let owned=self.clone();let job=job_id.to_owned();let request=request_id.to_owned();let cancel=cancel.clone();
-        tokio::spawn(async move{owned.execute_owned(&job,&request,deadline_ms,&cancel).await})
-            .await.map_err(|e|format!("execution task failed: {e}"))?
+        let (ack,accepted)=tokio::sync::oneshot::channel();
+        let task=tokio::spawn(async move{owned.execute_owned(&job,&request,deadline_ms,&cancel,ack).await});
+        match accepted.await {
+            Ok(())=>Ok(task),
+            Err(_)=>Err(task.await.map_err(|e|format!("execution task failed: {e}"))?.err().unwrap_or_else(||"claim was not acknowledged".into())),
+        }
     }
-    async fn execute_owned(&self,job_id:&str,request_id:&str,deadline_ms:u64,cancel:&Cancellation)->Result<(),String> {
+    async fn execute_owned(&self,job_id:&str,request_id:&str,deadline_ms:u64,cancel:&Cancellation,ack:tokio::sync::oneshot::Sender<()>)->Result<(),String> {
         // Keep the one write to the child's pipe small enough to fit its initial
         // buffer. Configuration and IDs are Core-owned, not shell commands.
         if job_id.len()>200 || request_id.len()>200 || deadline_ms>300_000 {return Err("invalid task identity or execution budget".into());}
         let job=job_id.to_owned(); let id=request_id.to_owned();
-        let req=self.store.submit(move|conn|attempts::claim(conn,&job,&id,deadline_ms)).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
+        let req=self.store.submit_wait(move|conn|attempts::claim(conn,&job,&id,deadline_ms)).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
+        let _=ack.send(());
         let digest=req.inputs[0].sha256.clone();
-        let input=self.store.submit(move|conn|raw_objects::read(conn,&digest)).await.map_err(|e|e.to_string())?;
+        let input=self.store.submit_wait(move|conn|raw_objects::read(conn,&digest)).await.map_err(|e|e.to_string())?;
         let result=match input {
             Ok(input)=>{
                 let staging=self.staging.clone();let python=self.python.clone();let worker=self.worker.clone();
@@ -53,7 +62,7 @@ impl Executor {
         match result {
             Ok((response,bytes))=>{
                 let cancel=cancel.clone();
-                self.store.submit(move|conn|{
+                self.store.submit_wait(move|conn|{
                     // Cancellation competes with completion at the writer boundary;
                     // once completion is committed it cannot be rolled back by cancel.
                     if cancel.0.load(Ordering::Relaxed){
@@ -75,7 +84,7 @@ impl Executor {
             Err(error)=>{
                 let state=match error{Failure::Cancelled=>"cancelled",Failure::Rejected(_)=>"rejected",_=>"failed"};
                 let message=error.message();let stored=message.clone();
-                self.store.submit(move|conn|attempts::terminate(conn,&req,state,&stored)).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
+                self.store.submit_wait(move|conn|attempts::terminate(conn,&req,state,&stored)).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
                 Err(message)
             }
         }

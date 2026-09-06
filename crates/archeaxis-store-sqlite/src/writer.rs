@@ -93,16 +93,29 @@ impl Store {
     /// a callback. Trusted callbacks return owned data and must not replace the
     /// connection. This is an internal Core integration API, not a sandbox API.
     pub async fn submit<T: Send + 'static>(&self, work: impl FnOnce(&mut Connection) -> T + Send + 'static) -> Result<T, StoreError> {
+        self.submit_mode(work,false).await
+    }
+
+    /// Owned accepted operations retain their callback while the bounded queue
+    /// is full. Wait only while this Store is live; a closed actor fails closed.
+    /// Admission control belongs to the caller (executor runtime: two jobs).
+    pub async fn submit_wait<T: Send + 'static>(&self, work: impl FnOnce(&mut Connection) -> T + Send + 'static) -> Result<T, StoreError> {
+        self.submit_mode(work,true).await
+    }
+    async fn submit_mode<T: Send + 'static>(&self, work: impl FnOnce(&mut Connection) -> T + Send + 'static, wait:bool) -> Result<T,StoreError> {
         let (reply, result) = oneshot::channel();
-        let task = Box::new(move |conn: &mut Connection| {
+        let mut task:Work = Box::new(move |conn: &mut Connection| {
             let value = work(conn);
             assert!(conn.is_autocommit(), "writer operation left an unfinished transaction");
             let _ = reply.send(value);
         });
-        self.0.sender.as_ref().ok_or(StoreError::Closed)?.try_send(task).map_err(|e| match e {
-            TrySendError::Full(_) => StoreError::Busy,
-            TrySendError::Disconnected(_) => StoreError::Closed,
-        })?;
+        let sender=self.0.sender.as_ref().ok_or(StoreError::Closed)?;
+        loop {match sender.try_send(task){
+            Ok(())=>break,
+            Err(TrySendError::Full(pending)) if wait=>{task=pending;tokio::time::sleep(std::time::Duration::from_millis(5)).await;}
+            Err(TrySendError::Full(_))=>return Err(StoreError::Busy),
+            Err(TrySendError::Disconnected(_))=>return Err(StoreError::Closed),
+        }}
         result.await.map_err(|_| StoreError::Closed)
     }
 }

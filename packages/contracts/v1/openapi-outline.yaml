@@ -24,6 +24,69 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/jobs/{job_id}:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    get:
+      operationId: getJobExecutionStatus
+      responses:
+        "200": {description: "Persisted job_id, state, attempt, request_id, error"}
+        "404": {description: Unknown job}
+        "503": {description: Runtime or terminal storage unavailable}
+  /api/v1/jobs/{job_id}/executions:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: startTextExecution
+      description: Requires explicit text_worker launch profile. 202 follows durable claim, not completion. Same workspace-wide key/job/deadline replays; different payload conflicts. Two active worker slots; no automatic retry.
+      parameters:
+        - name: idempotency-key
+          in: header
+          required: true
+          schema: {type: string, pattern: '^[A-Za-z0-9_.-]{1,200}$'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [deadline_ms]
+              properties:
+                deadline_ms: {type: integer, minimum: 1, maximum: 300000}
+      responses:
+        "202": {description: "Accepted/replayed job_id, request_id, state, replayed"}
+        "409": {description: Identity conflict or disallowed state}
+        "422": {description: Invalid execution identity or request}
+        "503": {description: Capacity exhausted or runtime unavailable}
+  /api/v1/jobs/{job_id}/executions/{request_id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+      - name: request_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: cancelTextExecution
+      description: Signal only the named attempt. Poll status; a committed success cannot be undone.
+      responses:
+        "202": {description: Cancellation signal accepted}
+        "200": {description: Already terminal; no mutation}
+        "404": {description: Unknown attempt}
+        "409": {description: Stale attempt identity}
+        "503": {description: Runtime unavailable}
+  /api/v1/jobs/{job_id}/outputs/{kind}:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+      - name: kind
+        in: path
+        required: true
+        schema: {type: string, enum: [text, document_structure, loss_report]}
+    get:
+      operationId: getTextExecutionOutput
+      responses:
+        "200": {description: Persisted metadata and UTF-8 content from latest verified attempt}
+        "404": {description: No such verified output}
   /api/v1/system/version:
     get:
       operationId: getVersion
@@ -146,6 +209,11 @@ components:
         retryable: {type: boolean}
       description: Failure envelope on every channel (errors.catalog.yaml codes).
   parameters:
+    JobId:
+      name: job_id
+      in: path
+      required: true
+      schema: {type: string, pattern: '^[A-Za-z0-9_.-]{1,200}$'}
     IdempotencyKey:
       name: idempotency-key
       in: header

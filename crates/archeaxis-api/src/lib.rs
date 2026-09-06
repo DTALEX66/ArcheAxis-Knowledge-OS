@@ -6,6 +6,7 @@
 //! projections with launch authentication; `app` alone is for in-process use.
 
 pub mod launch;
+pub mod runtime;
 
 use archeaxis_application::jobs::{self, LossReceipt};
 use archeaxis_domain::{ImportOutcome, anchor, knowledge, search, source};
@@ -24,11 +25,15 @@ pub type AppState = Store;
 
 /// Build the router over the managed single-writer runtime.
 pub fn router(state: Store) -> Router {
-    Router::new()
+    projections(state,true)
+}
+
+/// Legacy manual receipts are only retained for in-process compatibility tests.
+pub fn projections(state: Store, manual_receipts: bool) -> Router {
+    let routes=Router::new()
         .route("/api/v1/system/version", get(system_version))
         .route("/api/v1/imports", post(import_source))
         .route("/api/v1/jobs", post(enqueue_job))
-        .route("/api/v1/jobs/:job_id/receipts", post(job_receipt))
         .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
         .route("/api/v1/knowledge-items", post(create_knowledge))
         .route(
@@ -36,8 +41,9 @@ pub fn router(state: Store) -> Router {
             post(review_decision),
         )
         .route("/api/v1/search", get(search_knowledge))
-        .route("/api/v1/workspaces/info", get(workspace_info))
-        .with_state(state)
+        .route("/api/v1/workspaces/info", get(workspace_info));
+    let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
+    routes.with_state(state)
 }
 
 /// Open an initialized workspace and return its router.

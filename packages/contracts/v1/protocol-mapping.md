@@ -37,11 +37,44 @@ HTTP caller. Supervisor verifies runtime/contract, session and workspace before
 publishing readiness. Stop and success publication share a lifecycle lock.
 
 This credential authorizes one local desktop owner, not arbitrary roles or
-multi-user delegation. Role-scoped commands, full DTO negotiation, job dispatch
+multi-user delegation. Role-scoped commands, full DTO negotiation, multi-format dispatch
 and installed UI qualification remain open. A client-supplied scopes header
 never grants authority. Bare `archeaxis_api::app/router` remain trusted internal
 in-process projections used by tests; the executable always wraps them with
 `launch::protect`. This is not a sandbox against same-user process-memory access.
+
+### Owned text HTTP execution slice (2026-09-06)
+
+The private launch document optionally carries `text_worker` with absolute local
+`python`, `script`, and `staging` paths. Its validated file paths are Core-owned
+configuration, never HTTP request fields. The C# `CoreTextWorker` constructor
+argument forwards that explicit profile; omitted configuration does not enable
+execution. No implicit global model/tool directory scan or capability claim occurs.
+
+`POST /api/v1/jobs/{job_id}/executions` takes exactly `{deadline_ms}` (1..300000)
+and one `idempotency-key` (ASCII letters/digits/underscore/dot/hyphen, 1..200).
+The key binds the workspace-wide persisted attempt, job and deadline. Core
+commits the claim before acknowledging 202. Replays read the original attempt;
+new keys are explicit new attempts, not an automatic retry policy. Worker timeout
+starts at worker execution, not admission/Store queue wait. HTTP disconnection
+does not cancel accepted work; two owned worker slots bound process concurrency.
+
+Read `GET /api/v1/jobs/{job_id}` for current status, and
+`GET /api/v1/jobs/{job_id}/outputs/{kind}` for persisted `text`,
+`document_structure` or `loss_report` metadata/content. Cancel via
+`POST /api/v1/jobs/{job_id}/executions/{request_id}/cancel`; cancellation is only a
+signal until the terminal state is stored. It never undoes committed success.
+Production listeners no longer expose legacy manual `/receipts` injection.
+
+Owned Store submissions retain their callback through temporary queue pressure;
+ordinary HTTP projections still fail fast on a full queue. Admission serialization
+does not hold the cancellation registry while awaiting the writer. Completion
+watchers confirm or repair terminal state before releasing the active slot.
+Irrecoverable Store/terminal-write errors leave a faulted slot and return 503
+instead of falsely reaccepting orphaned running work; repair the underlying Store
+fault and restart Core for existing startup recovery. Fair global admission,
+process-tree isolation, full memory budgets, automatic restart and other worker
+profiles remain unqualified. This slice does not qualify the starter Avalonia UI.
 
 ## Status vocabulary (single source)
 

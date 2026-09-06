@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 namespace ArcheAxis.Desktop;
 
+public sealed record CoreTextWorker(string Python, string Script, string Staging);
+
 /// <summary>Owns one silent Core child; never adopts an unrelated loopback service.</summary>
 public sealed class CoreSupervisor : IDisposable
 {
@@ -18,6 +20,7 @@ public sealed class CoreSupervisor : IDisposable
     private CancellationTokenSource? _startup;
     private readonly string _coreBin;
     private readonly string _dbPath;
+    private readonly CoreTextWorker? _textWorker;
     private bool _disposed;
     private int _starting;
     private string? _launchToken;
@@ -27,9 +30,10 @@ public sealed class CoreSupervisor : IDisposable
     public string? HandshakeRuntime { get; private set; }
     public string? HandshakeContract { get; private set; }
 
-    public CoreSupervisor(string dbPath, string? coreBin = null)
+    public CoreSupervisor(string dbPath, string? coreBin = null, CoreTextWorker? textWorker = null)
     {
         _dbPath = Path.GetFullPath(dbPath);
+        _textWorker = textWorker;
         _coreBin = coreBin ?? Environment.GetEnvironmentVariable("ARCHAXIS_CORE_BIN")
             ?? Path.Combine(AppContext.BaseDirectory, "archeaxis-api.exe");
     }
@@ -75,7 +79,8 @@ public sealed class CoreSupervisor : IDisposable
             }
             if (process is null) return (false, "failed to start core process");
             _ = DrainAsync(process.StandardError);
-            await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new { launch_token = launchToken, session_id = sessionId }).AsMemory(), token).ConfigureAwait(false);
+            var worker = _textWorker is null ? null : new { python = _textWorker.Python, script = _textWorker.Script, staging = _textWorker.Staging };
+            await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new { launch_token = launchToken, session_id = sessionId, text_worker = worker }).AsMemory(), token).ConfigureAwait(false);
             process.StandardInput.Close();
             while (await process.StandardOutput.ReadLineAsync(token).ConfigureAwait(false) is { } line)
             {

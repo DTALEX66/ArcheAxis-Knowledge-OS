@@ -208,7 +208,10 @@ def test_openapi_reference_internal_consistency() -> None:
     parameters = outline["components"]["parameters"]
     security_schemes = outline["components"]["securitySchemes"]
     assert "launchToken" in security_schemes
-    assert security_schemes["launchToken"]["type"] == "http"
+    launch = security_schemes["launchToken"]
+    assert launch["type"] == "apiKey"
+    assert launch["in"] == "header"
+    assert launch["name"] == "x-archeaxis-launch-token"
 
     idem = parameters["IdempotencyKey"]
     assert idem["name"] == "idempotency-key", "canonical header casing must match protocol-mapping"
@@ -219,6 +222,10 @@ def test_openapi_reference_internal_consistency() -> None:
 
     referenced = set()
     for _path, item in outline.get("paths", {}).items():
+        for parameter in item.get("parameters", []):
+            ref = parameter.get("$ref", "")
+            if ref.startswith("#/components/parameters/"):
+                referenced.add(ref.rsplit("/", 1)[-1])
         for _verb, operation in item.items():
             if not isinstance(operation, dict):
                 continue

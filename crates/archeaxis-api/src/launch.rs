@@ -7,7 +7,22 @@ use std::{io::Read,sync::mpsc,time::Duration};
 
 #[derive(Clone,Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Launch {launch_token:String,session_id:String}
+pub struct Launch {launch_token:String,session_id:String,pub text_worker:Option<TextWorker>}
+#[derive(Clone,Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TextWorker {pub python:std::path::PathBuf,pub script:std::path::PathBuf,pub staging:std::path::PathBuf}
+impl TextWorker {
+    pub fn validate(&self)->Result<(),&'static str>{
+        for path in [&self.python,&self.script,&self.staging] {
+            let text=path.to_string_lossy().replace('\\',"/").to_ascii_lowercase();
+            if !path.is_absolute()||text.starts_with("e:")||text.starts_with("//")||path.components().any(|p|matches!(p,std::path::Component::ParentDir)) {return Err("invalid worker profile path");}
+            let mut part=std::path::PathBuf::new();
+            for component in path.components(){part.push(component);archeaxis_store_sqlite::raw_objects::reject_links(&part).map_err(|_|"invalid worker profile path")?;}
+        }
+        if !self.python.is_file()||!self.script.is_file(){return Err("worker profile file missing");}
+        Ok(())
+    }
+}
 impl Launch {
     pub fn from_stdin()->Result<Self,&'static str> {
         // A std thread (not the async blocking pool) lets main exit on a parent
@@ -23,6 +38,7 @@ impl Launch {
         if bytes.len()>4096{return Err("launch input exceeds limit");}
         let launch:Self=serde_json::from_slice(&bytes).map_err(|_|"invalid launch input")?;
         if !hex(&launch.launch_token,64)||!hex(&launch.session_id,32){return Err("invalid launch identity");}
+        if let Some(profile)=&launch.text_worker{profile.validate()?;}
         Ok(launch)
     }
 }
