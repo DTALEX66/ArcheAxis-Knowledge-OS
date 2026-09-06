@@ -394,9 +394,7 @@ The earlier open launch-auth statement above is superseded only by this measured
 slice; the whole T02/T04 tasks remain PARTIAL. No push/Release/tag/version or
 Green replacement was performed at this checkpoint; E drive was not accessed.
 
-## Execution rulings
-
-### T04 authenticated HTTP text execution checkpoint (2026-09-06)
+## T04 authenticated HTTP text execution checkpoint (2026-09-06)
 
 Base `f5bed35ec4b173b4778a50cc3b1b5cd054997794`; dirty-tree local evidence,
 not complete taskpack or installed qualification. Latest handoff: [HANDOFF.md](HANDOFF.md).
@@ -443,6 +441,8 @@ and writer wait. A permanently stalled/closed writer requires fault repair and
 Core restart; no automatic recovery beyond existing startup recovery is claimed.
 No E-drive access, global configuration change, new Release/version or Green
 replacement. Current frozen TASKS.json is unchanged; all 21 tasks remain scoped.
+
+## Execution rulings
 
 - Current user authorization adopts `.project-local` over older guidance naming
   `.hermes`. No global software configuration is changed.

@@ -16,6 +16,7 @@
   新产品版本、标签或 Release，不替换绿色版，不访问 E 盘。
 - 用户要求：账户剩余额度到 20% 时停止开发，只做总结、交接、上传与读回。
   观察到的是账户用量窗口，不是精确上下文 token；没有兑换 usage reset。
+  收尾时工具实测 usedPercent=80（剩余 20%），已停止功能开发；下一次开发需用户明确恢复。
 
 ## 重载入口与工具边界
 
@@ -54,7 +55,7 @@
 |---|---|
 | `1947625d8f22` | API/application/Store/archive Rust 聚合 PASS；包含真实 worker 与导出恢复 |
 | `7664b552a9fc` | 最终 HTTP runtime 5 项测试 PASS，包括取消、过载、故障重放和断开客户端 |
-| `30646350a2bb` | C# 无 GUI 真实链路 PASS；非静态结构检查 |
+| `03d6b700515a` | 最终候选 C# 无 GUI 真实链路 PASS；停止竞态和 8.3 情况均未跳过 |
 | `d9024ec5cfa9` | 合同测试 17 PASS，4 个既有 jsonschema 弃用警告 |
 | `93cc316ebf75` | 架构门禁 PASS |
 | `d5c9d363e5aa` | 改动 Python 文件定向 Ruff PASS |
@@ -105,6 +106,16 @@ T18 既有设计证据推进实际 Avalonia 工作台。不要继续无限扩写
 本次没有修改 remote 或读取认证文件。收尾 fetch 读回 `origin/main`：
 `4ca46eaf94c486dadcf200aac6b41cd968b1ce6e`。
 
-本段在最终提交/上传前写入：发布和最终 HEAD 读回须在收尾后更新，不能把计划当成已上传。
-不自动合并 main、创建 PR、tag 或 Release。工作分支同步、main 合并、精确 SHA CI、
-安装态资格必须分别报告。
+实现 checkpoint：`b5a0840a926b826d249ef2a8c4e320ad6436fcca`，tree
+`c6a30d98c8f4f7ba6377d7ccc08a9cd50b01697e`。已推送后重新 fetch，确认当时
+本地 `codex/full-loop-0906` 与 `origin/codex/full-loop-0906` 均为该 SHA，差异 0/0。
+本地 `main` 与 `origin/main` 都仍是上述 `4ca46ea...`；**没有合并 main**。
+
+该源代码 SHA 触发了 [vnext-ci 34024333839](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/34024333839)，
+首次读回为 `in_progress`；最终读回为 `completed/success`，`cargo-test` 成功，
+`headSha` 精确匹配上述源代码 checkpoint。完整项目 CI、安装态/全格式资格均未由此证明。
+本交接的后续收尾提交仅更新文档；最终工作分支 HEAD 应再次按完整 SHA 读回。
+不要把文档提交的 SHA 与源代码 checkpoint 的 CI 结果混为同一 SHA。
+
+没有新 PR、tag、Release 或 Green 更新。源码和交接已纳入工作分支；ignored 原始日志、
+模型、学习资料、私人配置和旧混合目录没有上传。仓库工作树干净不等于 T20 全面瘦身完成。
