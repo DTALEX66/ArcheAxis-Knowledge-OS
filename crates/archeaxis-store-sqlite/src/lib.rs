@@ -2,6 +2,7 @@
 use rusqlite::Connection;
 
 pub mod raw_objects;
+pub mod writer;
 
 pub const SCHEMA_VERSION: i64 = 2;
 

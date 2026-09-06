@@ -30,7 +30,7 @@ implementation claim. Early repairs below do not satisfy unmet task dependencies
 | T19 | TESTED_LOCAL / PARTIAL | Shared launcher and normal/linked/concurrent/failure path tests pass; remaining legacy fixed-path entrypoints need adoption |
 | T01/T02 | TESTED_LOCAL / PARTIAL | Actual loss receipt/replay and generated three-language vocabulary verified; full DTO/roles/anchors/protocol and CI deduplication still open |
 | T17 | PARTIAL | Eleven concrete legacy reuse gaps checked against source; nonempty migration and behavior qualification still open |
-| T03/T04 | TESTED_LOCAL / PARTIAL | CAS originals, transaction/replay/migration and verified backup/archive implemented; writer actor, process lock, executor and Supervisor still open |
+| T03/T04 | TESTED_LOCAL / PARTIAL | Runtime writer actor and process-held workspace lock tested; maintenance encapsulation, real executor and authenticated Supervisor still open |
 | T05/T06/T07 | TESTED_LOCAL / PARTIAL | Byte-faithful CER/WER and loss/coverage regressions pass; real corpus, all format chains and worker/Core integration still open |
 | T08/T09/T10/T11 | PLANNED | Research, knowledge and both usage/feedback loops |
 | T18/T12 | PLANNED | Interactive Avalonia workbench with real Core integration |
@@ -45,6 +45,43 @@ integrated from the separate worker worktree; no cleanup is authorized merely
 by a size result.
 
 ## Saved checkpoint and follow-up
+
+### T03 runtime ownership and T06 explicit OCR profile (2026-09-06)
+
+Base commit `437ac9159d5d0b00a2e0796761763d0098dc5e58`; evidence is local
+execution of the changed tree, not exact-SHA CI or installed qualification.
+
+- The HTTP runtime now owns one SQLite connection on a bounded writer thread.
+  All eight database handlers submit operations through it. Full queues and
+  closed actors return HTTP 503. Accepted writes drain on ordinary shutdown;
+  dropping a waiting reply does not pretend to cancel an accepted write.
+- A process-held OS file lock rejects another runtime for the same database.
+  Existing DB identities are canonicalized; hard-link aliases are rejected.
+  Windows live identity handles deny deletion/replacement. Lock files are never
+  removed, truncated or trusted as PID records. Owned-process abrupt exit/reopen,
+  router clone ownership, queue saturation, panic rollback and abandoned replies
+  are tested. This is cooperative ownership, not a hostile-filesystem sandbox.
+- A panicking callback or unfinished transaction closes the actor before success
+  can be reported. Remaining callbacks fail closed. Low-level maintenance APIs
+  still expose connections; trusted callbacks and domain transaction coverage
+  require further T03 work. Automatic restart remains T04.
+- OCR explicitly selects the public project model profile and shared tessdata
+  directory without changing global environment. Actual Tesseract recognition
+  of a generated test image returned `OCR PROFILE ANCHOR 123` and four word boxes.
+  Its language probe returned 163 entries. Stale global-path warnings remain in
+  the loss receipt. This is synthetic engine qualification, not corpus accuracy.
+- Missing/invalid TSV, malformed confidence/bounds, failed probes and incomplete
+  text-without-boxes fail explicitly. Tesseract children use silent Windows
+  creation flags. Model-profile changes now select the worker gate; the missing
+  classification was reproduced before the policy fix.
+- PASS: Rust workspace `cargo test --workspace --locked --offline -q`, run
+  `be268a2d33/84ee06ad08d5`; Python classifier/worker slice **53 tests and 41
+  subtests**, run `be268a2d33/5860bcf2d219`; worker smoke, run
+  `be268a2d33/e50a1a191c3f`. The isolated real OCR test run was
+  `be268a2d33/c98b34d8fe57` (9 tests and 18 subtests).
+- No release, push, new version, Green replacement, user-data migration or E-drive
+  access. The real worker executor, canonical transport and persisted document
+  structure are still open; these tests do not make the full pipeline complete.
 
 ### T00 field refresh and T17 reuse intake (2026-09-06)
 
@@ -214,8 +251,8 @@ data, not uploaded source; this ledger retains the compact result.
 
 Remaining safety/qualification gaps (do not conceal):
 
-1. Store still exposes SQLite connections; the formal single writer actor and
-   cross-process workspace lock remain T03. Backup source validation is pinned
+1. The runtime writer actor and cross-process lock are tested above; low-level
+   maintenance APIs still expose SQLite connections. Backup source validation is pinned
    to one read transaction; destructive restore still needs full fault injection.
 2. CAS and archive restore preserve original bytes and reject bad hashes, FK,
    future/unrelated databases and existing destinations. Publication uses
@@ -232,8 +269,8 @@ Remaining safety/qualification gaps (do not conceal):
    authority and worker attempts are still not qualified. Local engine probes are
    not full multi-format accuracy or full-chain evidence.
 5. Supervisor fixed-port attach, readiness cancellation/drain and silent-child
-   startup are fixed in the tested slice. Launch authentication, process-level
-   workspace lock, crash-restart policy and the actual interactive UI remain open.
+   startup are fixed in the tested slice. Process-level ownership is tested above;
+   launch authentication, crash-restart policy and the actual interactive UI remain open.
    Do not launch the new GUI as the user's usable product.
 6. Initial .NET first-run output reported development-certificate installation;
    trust/credential stores were not inspected or modified by commands. The launcher

@@ -4,11 +4,9 @@
 //! outline-compatible slice, not the final PR-04 contract (no multipart,
 //! no job orchestration, no launch-token auth yet).
 
-use std::sync::{Arc, Mutex};
-
 use archeaxis_application::jobs::{self, LossReceipt};
 use archeaxis_domain::{ImportOutcome, anchor, knowledge, search, source};
-use archeaxis_store_sqlite::{init_workspace, workspace_info_json};
+use archeaxis_store_sqlite::{workspace_info_json, writer::{Store, StoreError}};
 use axum::{
     Json, Router,
     extract::{Path, Query, State},
@@ -19,11 +17,10 @@ use axum::{
 use rusqlite::Connection;
 use serde::Deserialize;
 
-pub type AppState = Arc<Mutex<Connection>>;
+pub type AppState = Store;
 
-/// Build the router over an existing (initialized) connection.
-pub fn router(conn: Connection) -> Router {
-    let state: AppState = Arc::new(Mutex::new(conn));
+/// Build the router over the managed single-writer runtime.
+pub fn router(state: Store) -> Router {
     Router::new()
         .route("/api/v1/system/version", get(system_version))
         .route("/api/v1/imports", post(import_source))
@@ -41,9 +38,15 @@ pub fn router(conn: Connection) -> Router {
 }
 
 /// Open an initialized workspace and return its router.
-pub fn app(db_path: &str) -> Result<Router, rusqlite::Error> {
-    let conn = init_workspace(db_path)?;
-    Ok(router(conn))
+pub fn app(db_path: &str) -> Result<Router, StoreError> {
+    Ok(router(Store::open(std::path::Path::new(db_path))?))
+}
+
+async fn with_store(state: Store, work: impl FnOnce(&mut Connection) -> axum::response::Response + Send + 'static) -> axum::response::Response {
+    match state.submit(work).await {
+        Ok(response) => response,
+        Err(error) => (StatusCode::SERVICE_UNAVAILABLE, error.to_string()).into_response(),
+    }
 }
 
 async fn system_version() -> Json<serde_json::Value> {
@@ -69,8 +72,8 @@ async fn import_source(
         Some(b) => b,
         None => return (StatusCode::BAD_REQUEST, "invalid content_base64").into_response(),
     };
-    let mut conn = state.lock().unwrap();
-    match source::import_source(&mut conn, &bytes, &body.name, None) {
+    with_store(state, move |conn| {
+    match source::import_source(conn, &bytes, &body.name, None) {
         Ok(ImportOutcome::Imported { source_id, sha256 }) => (
             StatusCode::ACCEPTED,
             Json(serde_json::json!({"source_id": source_id, "sha256": sha256, "duplicate": false})),
@@ -83,6 +86,7 @@ async fn import_source(
             .into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+    }).await
 }
 
 #[derive(Deserialize)]
@@ -96,8 +100,8 @@ async fn create_anchor(
     Path(source_id): Path<String>,
     Json(body): Json<AnchorBody>,
 ) -> impl IntoResponse {
-    let mut conn = state.lock().unwrap();
-    match anchor::add_anchor(&mut conn, &source_id, &body.revision, &body.position) {
+    with_store(state, move |conn| {
+    match anchor::add_anchor(conn, &source_id, &body.revision, &body.position) {
         Ok(id) => (
             StatusCode::CREATED,
             Json(serde_json::json!({"anchor_id": id})),
@@ -105,6 +109,7 @@ async fn create_anchor(
             .into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+    }).await
 }
 
 #[derive(Deserialize)]
@@ -125,9 +130,9 @@ async fn create_knowledge(
     State(state): State<AppState>,
     Json(body): Json<KnowledgeBody>,
 ) -> impl IntoResponse {
-    let mut conn = state.lock().unwrap();
+    with_store(state, move |conn| {
     match knowledge::create_knowledge(
-        &mut conn,
+        conn,
         &body.knowledge_type,
         &body.body,
         &body.status,
@@ -142,6 +147,7 @@ async fn create_knowledge(
             .into_response(),
         Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
+    }).await
 }
 
 #[derive(Deserialize)]
@@ -157,9 +163,9 @@ async fn review_decision(
     Path(id): Path<String>,
     Json(body): Json<ReviewBody>,
 ) -> impl IntoResponse {
-    let mut conn = state.lock().unwrap();
+    with_store(state, move |conn| {
     match knowledge::review(
-        &mut conn,
+        conn,
         &id,
         &body.action,
         &body.reviewer,
@@ -173,6 +179,7 @@ async fn review_decision(
             .into_response(),
         Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
+    }).await
 }
 
 #[derive(Deserialize)]
@@ -184,8 +191,8 @@ async fn search_knowledge(
     State(state): State<AppState>,
     Query(query): Query<SearchQuery>,
 ) -> impl IntoResponse {
-    let conn = state.lock().unwrap();
-    match search::search(&conn, &query.q, 20) {
+    with_store(state, move |conn| {
+    match search::search(conn, &query.q, 20) {
         Ok(rows) => {
             let items: Vec<serde_json::Value> = rows
                 .into_iter()
@@ -195,17 +202,19 @@ async fn search_knowledge(
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+    }).await
 }
 
 async fn workspace_info(State(state): State<AppState>) -> impl IntoResponse {
-    let conn = state.lock().unwrap();
-    match workspace_info_json(&conn) {
+    with_store(state, move |conn| {
+    match workspace_info_json(conn) {
         Ok(s) => {
             let v: serde_json::Value = serde_json::from_str(&s).unwrap_or(serde_json::json!({}));
             Json(v).into_response()
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+    }).await
 }
 
 fn base64_decode(s: &str) -> Option<Vec<u8>> {
@@ -226,15 +235,16 @@ async fn enqueue_job(
     State(state): State<AppState>,
     Json(body): Json<EnqueueBody>,
 ) -> impl IntoResponse {
-    let mut conn = state.lock().unwrap();
-    match jobs::enqueue(&mut conn, &body.job_id, &body.kind, &body.input_ref) {
-        Ok(()) => match jobs::job_state(&conn, &body.job_id) {
+    with_store(state, move |conn| {
+    match jobs::enqueue(conn, &body.job_id, &body.kind, &body.input_ref) {
+        Ok(()) => match jobs::job_state(conn, &body.job_id) {
             Ok(Some(actual)) => (StatusCode::ACCEPTED,
                 Json(serde_json::json!({"job_id": body.job_id, "state": actual}))).into_response(),
             _ => (StatusCode::INTERNAL_SERVER_ERROR, "job readback failed").into_response(),
         },
         Err(e) => job_error_response(e),
     }
+    }).await
 }
 
 #[derive(Deserialize)]
@@ -283,16 +293,16 @@ async fn job_receipt(
     if body.state == jobs::STATE_FAILED && (body.text.is_some() || body.loss_receipt.is_some() || body.engine.is_some()) {
         return (StatusCode::BAD_REQUEST, "failed receipt cannot publish output").into_response();
     }
-    let mut conn = state.lock().unwrap();
+    with_store(state, move |conn| {
     let out = if body.state == "failed" {
         jobs::fail(
-            &mut conn,
+            conn,
             &job_id,
             body.error.as_deref().unwrap_or("unspecified"),
         )
     } else {
         jobs::complete(
-            &mut conn,
+            conn,
             &job_id,
             body.engine.as_deref().unwrap_or("worker"),
             body.text.as_deref().unwrap_or(""),
@@ -307,4 +317,5 @@ async fn job_receipt(
             .into_response(),
         Err(e) => job_error_response(e),
     }
+    }).await
 }

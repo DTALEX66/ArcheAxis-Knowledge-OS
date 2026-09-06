@@ -104,6 +104,7 @@ risk_classes:
     paths:
       - "services/python-workers/**"
       - "tests/workers/**"
+      - "config/model-profiles/**"
     gates: [static, lint, workers-vnext]
 
   - id: vnext-journey-integration

@@ -126,7 +126,7 @@ fn v01_twelve_step_journey() {
         r#"{"revision":"rev-1","position":"{\"start\":0,\"end\":10}"}"#.to_string(),
     );
     let aid = ar["anchor_id"].as_str().unwrap().to_string();
-    let conn = Connection::open(db.to_str().unwrap()).unwrap();
+    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
     let got = archeaxis_domain::anchor::get_anchor(&conn, &aid).unwrap();
     drop(conn);
     pass(
@@ -161,7 +161,7 @@ fn v01_twelve_step_journey() {
         &format!("/api/v1/knowledge-items/{rej_id}/review-decisions"),
         r#"{"action":"rejected","reviewer":"owner","note":"无关"}"#.to_string(),
     );
-    let conn = Connection::open(db.to_str().unwrap()).unwrap();
+    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
     let status: String = conn
         .query_row(
             "SELECT status FROM knowledge WHERE knowledge_id=?1",
@@ -196,7 +196,9 @@ fn v01_twelve_step_journey() {
         &format!("{s}"),
     );
 
-    // 8) learning event + next review
+    // 8) Offline domain compatibility step: no learning HTTP route exists yet.
+    // Close the runtime owner before opening the maintenance writer.
+    drop(router);
     let mut lconn = Connection::open(db.to_str().unwrap()).unwrap();
     let ev = archeaxis_domain::learning::record_learning_event(
         &mut lconn,
@@ -209,8 +211,11 @@ fn v01_twelve_step_journey() {
     drop(lconn);
     pass("08_learning", ev > 0, &format!("event {ev}"));
 
-    // 9) restart read-back: fresh connections read everything back
-    let conn = Connection::open(db.to_str().unwrap()).unwrap();
+    // 9) Actually reopen the runtime owner, not just another SQL connection.
+    let restarted = app(db.to_str().unwrap()).unwrap();
+    let runtime_info = json_body(&restarted, "GET", "/api/v1/workspaces/info", String::new());
+    assert_eq!(runtime_info["sources"], 2);
+    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
     let counts: (i64, i64, i64, i64, i64) = conn.query_row(
         "SELECT (SELECT count(*) FROM sources),(SELECT count(*) FROM knowledge),(SELECT count(*) FROM transforms),(SELECT count(*) FROM anchors),(SELECT count(*) FROM learning_events)",
         [], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?))).unwrap();
@@ -220,10 +225,11 @@ fn v01_twelve_step_journey() {
         counts.0 == 2 && counts.1 == 3 && counts.2 >= 1 && counts.3 == 1 && counts.4 >= 1,
         &format!("{counts:?}"),
     );
+    drop(restarted);
 
-    // 10) consistent snapshot (online backup)
+    // 10) SQLite backup API on a read-only maintenance handle, runtime stopped.
     let snap = dir.path().join("snapshot.sqlite");
-    let conn = Connection::open(db.to_str().unwrap()).unwrap();
+    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
     archeaxis_domain::backup::backup(&conn, snap.to_str().unwrap()).unwrap();
     drop(conn);
     pass("10_snapshot", snap.exists(), "snapshot written");
@@ -232,7 +238,7 @@ fn v01_twelve_step_journey() {
     let db2 = dir.path().join("restored.sqlite");
     let mut conn2 = archeaxis_store_sqlite::init_workspace(db2.to_str().unwrap()).unwrap();
     archeaxis_domain::backup::restore(snap.to_str().unwrap(), &mut conn2).unwrap();
-    let snap_c = Connection::open(snap.to_str().unwrap()).unwrap();
+    let snap_c = Connection::open_with_flags(snap.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
     let same = archeaxis_domain::backup::verify_counts(&conn2, &snap_c).unwrap();
     drop(snap_c);
     drop(conn2);

@@ -112,6 +112,8 @@ dependencies = [
  "rusqlite",
  "sha2",
  "tempfile",
+ "tokio",
+ "windows-sys",
 ]
 
 [[package]]
