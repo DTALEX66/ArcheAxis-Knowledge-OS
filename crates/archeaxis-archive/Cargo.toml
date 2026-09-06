@@ -14,5 +14,6 @@ archeaxis-store-sqlite = { path = "../archeaxis-store-sqlite" }
 tempfile = "3"
 
 [dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
 archeaxis-domain = { path = "../archeaxis-domain" }
 archeaxis-application = { path = "../archeaxis-application" }

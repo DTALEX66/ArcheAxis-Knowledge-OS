@@ -4,7 +4,7 @@ use rusqlite::Connection;
 pub mod raw_objects;
 pub mod writer;
 
-pub const SCHEMA_VERSION: i64 = 2;
+pub const SCHEMA_VERSION: i64 = 3;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -69,6 +69,28 @@ CREATE TABLE IF NOT EXISTS learning_events (
     outcome TEXT NOT NULL,
     next_review TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS job_attempts (
+    job_id TEXT NOT NULL REFERENCES jobs(job_id),
+    attempt INTEGER NOT NULL CHECK(attempt > 0),
+    request_id TEXT NOT NULL UNIQUE,
+    request_json TEXT NOT NULL,
+    state TEXT NOT NULL CHECK(state IN ('running','succeeded','failed','rejected','cancelled')),
+    response_json TEXT,
+    result_digest TEXT,
+    error TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    completed_at TEXT,
+    PRIMARY KEY(job_id, attempt)
+);
+CREATE TABLE IF NOT EXISTS job_outputs (
+    job_id TEXT NOT NULL,
+    attempt INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    metadata_json TEXT NOT NULL,
+    content TEXT NOT NULL,
+    PRIMARY KEY(job_id, attempt, kind),
+    FOREIGN KEY(job_id, attempt) REFERENCES job_attempts(job_id, attempt)
 );
 "#;
 

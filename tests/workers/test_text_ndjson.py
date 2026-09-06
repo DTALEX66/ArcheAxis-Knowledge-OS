@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -150,6 +151,39 @@ class TextNdjsonTests(unittest.TestCase):
         self.assertEqual(response["status"], "failed")
         self.assertEqual(response["outputs"], [])
         self.assertIsNotNone(response["error"])
+        self.assertEqual(response["error"]["code"], "AAK-WORKER-003")
+        self.assertFalse(response["error"]["retryable"])
+
+    def test_error_catalog_classifies_validation_version_size_media_and_hash(self):
+        request = self.request()
+        asset = request["inputs"][0]
+        cases = [
+            ({**request, "attempt": 0}, "AAK-VAL-001"),
+            ({**request, "type": "wrong"}, "AAK-VAL-001"),
+            ({**request, "capability": "unknown"}, "AAK-VAL-001"),
+            ({**request, "inputs": [{**asset, "uri": "job://input/../private"}]}, "AAK-VAL-001"),
+            ({**request, "inputs": [{**asset, "media_type": "application/unknown"}]}, "AAK-VAL-002"),
+            ({**request, "schema": "archeaxis.worker-request/v2"}, "AAK-PROTO-001"),
+            ({**request, "capability_version": "2"}, "AAK-PROTO-001"),
+            ({**request, "protocol_minor": 1}, "AAK-PROTO-001"),
+            ("x" * (1024 * 1024 + 1), "AAK-VAL-003"),
+            ("not json", "AAK-VAL-001"),
+        ]
+        for invalid, code in cases:
+            with self.subTest(code=code, request=str(invalid)[:120]):
+                _, response = self.invoke(invalid)
+                self.assertEqual(response["error"]["code"], code)
+                self.assertFalse(response["error"]["retryable"])
+                self.assertEqual(response["outputs"], [])
+        source = self.staging / "input" / asset["sha256"]
+        for raw, code in ((b"changed", "AAK-HASH-001"),
+                          (b"x" * (16 * 1024 * 1024 + 1), "AAK-VAL-003")):
+            with self.subTest(file_error=code):
+                source.write_bytes(raw)
+                _, response = self.invoke(request)
+                self.assertEqual(response["error"]["code"], code)
+                self.assertFalse(response["error"]["retryable"])
+                self.assertEqual(response["outputs"], [])
 
     def test_existing_output_collision_and_hardlink_are_not_overwritten(self):
         raw = b"existing object must be immutable"
@@ -160,6 +194,7 @@ class TextNdjsonTests(unittest.TestCase):
         self.assertEqual(response["status"], "rejected")
         self.assertEqual(response["outputs"], [])
         self.assertEqual(path.read_bytes(), b"wrong bytes")
+        self.assertEqual(response["error"]["code"], "AAK-HASH-001")
         path.write_bytes(raw)
         os.link(path, self.staging / "output-alias")
         _, response = self.invoke(request)
@@ -177,6 +212,20 @@ class TextNdjsonTests(unittest.TestCase):
             with self.assertRaises(TimeoutError):
                 module.execute(request, self.staging)
         self.assertEqual(list((self.staging / "output").iterdir()), [])
+        # Exercise the real main boundary with a controlled monotonic clock.
+        stdin = io.TextIOWrapper(io.BytesIO((json.dumps(request) + "\n").encode("utf-8")))
+        stdout = io.TextIOWrapper(io.BytesIO(), encoding="utf-8")
+        with patch.object(module.time, "monotonic", side_effect=[0.0, 31.0]), \
+                patch.object(module.sys, "stdin", stdin), patch.object(module.sys, "stdout", stdout), \
+                patch.object(module.sys, "argv", [str(SCRIPT), "--staging-root", str(self.staging)]):
+            exit_code = module.main()
+            response = json.loads(stdout.buffer.getvalue().splitlines()[1])
+        self.validator.validate(response)
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(response["status"], "failed")
+        self.assertEqual(response["error"]["code"], "AAK-WORKER-002")
+        self.assertTrue(response["error"]["retryable"])
+        self.assertEqual(response["outputs"], [])
 
     def test_utf8_response_ids_work_with_ascii_child_stdio(self):
         request = self.request("中文原文 😀\r\n".encode("utf-8"))

@@ -61,13 +61,20 @@ pub fn complete(
     conn: &mut Connection, job_id: &str, engine: &str, text: &str,
     loss: Option<&LossReceipt>,
 ) -> Result<(), JobError> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    reject_managed_attempt(&tx,job_id)?;
+    complete_tx(&tx,job_id,engine,text,loss)?;
+    tx.commit()?;
+    Ok(())
+}
+
+pub(crate) fn complete_tx(tx: &rusqlite::Transaction<'_>, job_id: &str, engine: &str, text: &str, loss: Option<&LossReceipt>) -> Result<(), JobError> {
     if engine.trim().is_empty() { return Err(JobError::InvalidReceipt("engine is empty")); }
     if let Some(receipt) = loss { receipt.validate().map_err(JobError::InvalidReceipt)?; }
     if loss.is_some_and(|r| r.engine != engine) { return Err(JobError::Conflict); }
     let receipt = serde_json::to_string(&loss).map_err(|_| JobError::Conflict)?;
     let payload = serde_json::to_vec(&(engine, text, loss)).map_err(|_| JobError::Conflict)?;
     let digest = hex::encode(Sha256::digest(payload));
-    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let row: Option<(String, String, Option<String>)> = tx.query_row(
         "SELECT state,input_ref,completion_digest FROM jobs WHERE job_id=?1", [job_id],
         |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?)),
@@ -87,13 +94,19 @@ pub fn complete(
          transform_id=?5,completed_at=datetime('now') WHERE job_id=?6",
         rusqlite::params![STATE_COMPLETED, engine, receipt, digest, transform_id, job_id],
     )?;
-    tx.commit()?;
+    Ok(())
+}
+
+fn reject_managed_attempt(conn: &Connection, job_id: &str) -> Result<(),JobError> {
+    let managed:bool=conn.query_row("SELECT EXISTS(SELECT 1 FROM job_attempts WHERE job_id=?1)",[job_id],|r|r.get(0))?;
+    if managed { return Err(JobError::InvalidState); }
     Ok(())
 }
 
 pub fn fail(conn: &mut Connection, job_id: &str, error: &str) -> Result<(), JobError> {
     let receipt = serde_json::json!({"error": error}).to_string();
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    reject_managed_attempt(&tx,job_id)?;
     let old: Option<(String, Option<String>)> = tx.query_row(
         "SELECT state,loss_receipt FROM jobs WHERE job_id=?1", [job_id],
         |r| Ok((r.get(0)?,r.get(1)?)),

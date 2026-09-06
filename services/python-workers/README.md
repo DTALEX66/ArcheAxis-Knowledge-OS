@@ -39,7 +39,7 @@
 此入口发出 hello，读取一个 request，写入哈希寻址输出，再返回一个 result；
 不打开主库。Rust `archeaxis-sidecar-protocol::worker` 检查报文身份和输出元数据。
 路径、字节校验与进程正常退出还必须由 Core 执行器独立验证，不能信任 worker 自报。
-现有格式脚本和下表历史探测结果不等于全格式端到端资格。
+现有格式脚本和上表历史探测结果不等于全格式端到端资格。
 
 旧 worker 调用流（保留为解析能力入口，并非正式 NDJSON）：
 
@@ -48,5 +48,7 @@
 3. 输出：`text` + `loss_receipt`（engine/version/params/loss_note）→ POST 给 Core（Rust 持久化 transform）
 4. 失败：显式错误回执；绝不假装成功
 
-任务领取、attempt 持久化、超时/取消与重启恢复由 T04 执行器负责，尚未完整接入；
+文本切片已经由 `archeaxis-application::executor::Executor` 执行：领取 attempt、
+独立校验三份输出、原子落库、直接子进程超时/取消及重启恢复。尚未接入完整
+HTTP/UI 调度、多格式子进程树隔离和自动重试；不能据此声称全格式闭环完成。
 envelope 契约与通道映射见 `packages/contracts/v1/protocol-mapping.md`。

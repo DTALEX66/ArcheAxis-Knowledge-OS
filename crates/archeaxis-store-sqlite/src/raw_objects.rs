@@ -3,6 +3,26 @@ use rusqlite::Connection;
 use sha2::{Digest, Sha256};
 use std::{io::Write, path::{Path, PathBuf}};
 
+/// Bounded staging read; validate ancestors before traversing children and hold
+/// a regular single-link file identity. The caller independently binds the hash.
+pub fn read_staged(path:&Path, limit:usize) -> rusqlite::Result<Vec<u8>> {
+    use std::io::Read;
+    let text=path.to_string_lossy().replace('\\',"/").to_ascii_lowercase();
+    if text.starts_with("e:") || text.starts_with("//") || !path.is_absolute()
+        || path.components().any(|p|matches!(p,std::path::Component::ParentDir)) {
+        return Err(rusqlite::Error::InvalidPath(path.to_owned()));
+    }
+    let mut part=PathBuf::new();
+    for component in path.components() {part.push(component);reject_links(&part)?;}
+    let file=crate::writer::hold_identity(path).map_err(|e|rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?
+        .ok_or(rusqlite::Error::InvalidQuery)?;
+    let size=file.metadata().map_err(io_error)?.len();
+    if size>limit as u64 {return Err(rusqlite::Error::InvalidQuery);}
+    let mut bytes=Vec::new(); file.take(limit as u64+1).read_to_end(&mut bytes).map_err(io_error)?;
+    if bytes.len() as u64!=size {return Err(rusqlite::Error::InvalidQuery);}
+    Ok(bytes)
+}
+
 fn io_error(error: std::io::Error) -> rusqlite::Error {
     rusqlite::Error::ToSqlConversionFailure(Box::new(error))
 }

@@ -30,7 +30,9 @@ OUTPUT_SCHEMAS = ["archeaxis.text/v1", "archeaxis.document-structure/v1", "arche
 
 
 class Rejected(ValueError):
-    pass
+    def __init__(self, message, code="AAK-VAL-001"):
+        super().__init__(message)
+        self.code = code
 
 
 def safe_path(path: Path, *, missing=False) -> Path:
@@ -61,7 +63,7 @@ def read_regular(path: Path) -> tuple[bytes, tuple]:
     if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
         raise Rejected("staging asset must be a regular file with exactly one link")
     if before.st_size > MAX_INPUT_BYTES:
-        raise Rejected("staging asset exceeds byte limit")
+        raise Rejected("staging asset exceeds byte limit", "AAK-VAL-003")
     with path.open("rb") as handle:
         opened = os.fstat(handle.fileno())
         if (opened.st_dev, opened.st_ino, opened.st_nlink) != (before.st_dev, before.st_ino, 1):
@@ -125,13 +127,17 @@ def execute(request, staging: Path):
     for field in ("schema", "type", "request_id", "job_id", "capability", "capability_version"):
         if not isinstance(request[field], str):
             raise Rejected(f"{field} must be a string")
-    if request.get("schema") != "archeaxis.worker-request/v1" or request.get("type") != "job_request":
-        raise Rejected("worker-request/v1 is required")
+    if request["schema"] != "archeaxis.worker-request/v1":
+        raise Rejected("worker-request/v1 is required", "AAK-PROTO-001")
+    if request["type"] != "job_request":
+        raise Rejected("job_request type is required")
     request = dict(request)
     for field, minimum in (("attempt", 1), ("deadline_ms", 1), ("protocol_minor", 0)):
         request[field] = integer_value(request[field], minimum)
-    if request["capability"] != "text.extract" or request["capability_version"] != "1" or request["protocol_minor"] != 0:
-        raise Rejected("unsupported capability or protocol version")
+    if request["capability"] != "text.extract":
+        raise Rejected("unsupported capability")
+    if request["capability_version"] != "1" or request["protocol_minor"] != 0:
+        raise Rejected("unsupported capability or protocol version", "AAK-PROTO-001")
     if (not isinstance(request["parameters"], dict)
             or request["parameters"] or not isinstance(request["inputs"], list) or len(request["inputs"]) != 1):
         raise Rejected("text.extract v1 requires one input, integer minor and empty parameters")
@@ -153,11 +159,11 @@ def execute(request, staging: Path):
         raise Rejected("input URI must match its sha256")
     allowed_media = {"text/plain", "text/markdown", "text/csv", "text/tab-separated-values", "application/json", "application/xml", "text/xml"}
     if asset["media_type"].split(";", 1)[0].strip().lower() not in allowed_media:
-        raise Rejected("unsupported text media type")
+        raise Rejected("unsupported text media type", "AAK-VAL-002")
     source = staging / "input" / digest
     raw, identity = read_regular(source)
     if hashlib.sha256(raw).hexdigest() != digest:
-        raise Rejected("input content hash mismatch")
+        raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
     spec = importlib.util.spec_from_file_location("worker_text", ROOT / "services/python-workers/document/worker_text.py")
     worker = importlib.util.module_from_spec(spec)
@@ -165,7 +171,7 @@ def execute(request, staging: Path):
     result = worker.extract(str(source))
     reread, current_identity = read_regular(source)
     if current_identity != identity or reread != raw:
-        raise Rejected("input changed during extraction")
+        raise Rejected("input changed during extraction", "AAK-HASH-001")
     check_deadline()
     encode = lambda value: json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
     artifacts = [
@@ -183,7 +189,7 @@ def execute(request, staging: Path):
         if path.exists():
             previous, _ = read_regular(path)
             if previous != data:
-                raise Rejected("existing output hash path contains different bytes")
+                raise Rejected("existing output hash path contains different bytes", "AAK-HASH-001")
         prepared.append((kind, output_schema, media_type, data, digest, path))
     outputs = []
     for kind, output_schema, media_type, data, digest, path in prepared:
@@ -196,7 +202,7 @@ def execute(request, staging: Path):
                 os.fsync(handle.fileno())
         actual, _ = read_regular(path)
         if actual != data:
-            raise RuntimeError("output content changed during write")
+            raise Rejected("output content changed during write", "AAK-HASH-001")
         outputs.append({"kind": kind, "uri": f"job://output/{digest}", "sha256": hashlib.sha256(actual).hexdigest(),
                         "media_type": media_type, "byte_length": len(actual), "schema": output_schema,
                         "authority_effect": "candidate_or_measurement_only"})
@@ -221,8 +227,10 @@ def main():
     response = response_for(request)
     try:
         line = sys.stdin.buffer.readline(MAX_LINE_BYTES + 1)
-        if not line or len(line) > MAX_LINE_BYTES:
-            raise Rejected("request line is empty or exceeds 1 MiB")
+        if not line:
+            raise Rejected("request line is empty")
+        if len(line) > MAX_LINE_BYTES:
+            raise Rejected("request line exceeds 1 MiB", "AAK-VAL-003")
         try:
             request = strict_json(line)
         except (ValueError, UnicodeError, RecursionError) as exc:
@@ -231,9 +239,11 @@ def main():
         outputs, measurements, warnings = execute(request, args.staging_root)
         response.update(status="succeeded", outputs=outputs, measurements=measurements, warnings=warnings)
     except Rejected as exc:
-        response.update(status="rejected", outputs=[], error={"code": "AAK-PROTO-001", "message": str(exc), "retryable": False})
+        response.update(status="rejected", outputs=[], error={"code": exc.code, "message": str(exc), "retryable": False})
+    except TimeoutError as exc:
+        response.update(status="failed", outputs=[], error={"code": "AAK-WORKER-002", "message": str(exc), "retryable": True})
     except Exception as exc:
-        response.update(status="failed", outputs=[], error={"code": "AAK-WORKER-001", "message": str(exc), "retryable": False})
+        response.update(status="failed", outputs=[], error={"code": "AAK-WORKER-003", "message": str(exc), "retryable": False})
     emit(response)
     return 0 if response["status"] == "succeeded" else 1
 

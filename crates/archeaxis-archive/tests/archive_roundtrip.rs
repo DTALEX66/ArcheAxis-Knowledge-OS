@@ -60,6 +60,9 @@ fn archive_roundtrip() {
         }),
     )
     .unwrap();
+    conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('job-a',1,'archive-r','{}','succeeded')",[]).unwrap();
+    conn.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES('job-a',1,'document_structure','{}',?1)",
+        ["非空结构😀\r\n原始字节"]).unwrap();
     drop(conn);
 
     // export
@@ -82,6 +85,8 @@ fn archive_roundtrip() {
     assert_eq!(count(&conn2, "knowledge"), 1);
     assert_eq!(count(&conn2, "review_events"), 1);
     assert_eq!(count(&conn2, "jobs"), 1);
+    assert_eq!(count(&conn2, "job_attempts"), 1);
+    assert_eq!(conn2.query_row("SELECT content FROM job_outputs",[],|r|r.get::<_,String>(0)).unwrap(),"非空结构😀\r\n原始字节");
     // content survived
     let text: String = conn2
         .query_row(

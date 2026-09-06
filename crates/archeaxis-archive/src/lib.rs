@@ -18,6 +18,8 @@ pub const EXPORT_TABLES: &[&str] = &[
     "review_events",
     "learning_events",
     "jobs",
+    "job_attempts",
+    "job_outputs",
 ];
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
@@ -166,9 +168,15 @@ pub fn restore_workspace(
     archeaxis_store_sqlite::raw_objects::reject_links(&mp)?;
     let raw = std::fs::read_to_string(&mp).map_err(ArchiveError::Io)?;
     let manifest: ArchiveManifest = serde_json::from_str(&raw).map_err(ArchiveError::Json)?;
-    if manifest.schema_version != archeaxis_store_sqlite::SCHEMA_VERSION
-        || manifest_digest(&manifest) != manifest.manifest_sha256
-        || manifest.tables.len() != EXPORT_TABLES.len()
+    // V2's eight original tables keep identical columns in v3; new attempt
+    // tables start empty. Never accept a future or metadata-only old format.
+    let tables = match manifest.schema_version {
+        2 => &EXPORT_TABLES[..8],
+        version if version == archeaxis_store_sqlite::SCHEMA_VERSION => EXPORT_TABLES,
+        _ => return Err(ArchiveError::Table("unsupported archive version".into())),
+    };
+    if manifest_digest(&manifest) != manifest.manifest_sha256
+        || manifest.tables.len() != tables.len()
     {
         return Err(ArchiveError::Table("archive version or manifest integrity mismatch".into()));
     }
@@ -176,7 +184,7 @@ pub fn restore_workspace(
     // Keep the validated bytes in memory so a changed archive cannot be reread
     // between verification and insertion.
     let mut validated = BTreeMap::new();
-    for table in EXPORT_TABLES {
+    for table in tables {
         let tf = manifest
             .tables
             .get(*table)
@@ -226,7 +234,7 @@ pub fn restore_workspace(
     for bytes in raw_bytes.values() { archeaxis_store_sqlite::raw_objects::persist(&conn, bytes)?; }
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     tx.execute("DELETE FROM workspace_meta", [])?;
-    for table in EXPORT_TABLES {
+    for table in tables {
         let cols = column_names(&tx, table)?;
         let placeholders = vec!["?"; cols.len()].join(",");
         let sql = format!(
@@ -256,6 +264,8 @@ pub fn restore_workspace(
     if restored_version != manifest.schema_version.to_string() {
         return Err(ArchiveError::Table("workspace metadata version mismatch".into()));
     }
+    tx.execute("UPDATE workspace_meta SET value=?1 WHERE key='schema_version'",
+        [archeaxis_store_sqlite::SCHEMA_VERSION.to_string()])?;
     let violation = tx.prepare("PRAGMA foreign_key_check")?.exists([])?;
     if violation { return Err(ArchiveError::Table("restored foreign key mismatch".into())); }
     tx.commit()?;
@@ -325,5 +335,31 @@ fn json_to_value(v: serde_json::Value) -> rusqlite::types::Value {
         }
         serde_json::Value::String(s) => rusqlite::types::Value::Text(s),
         serde_json::Value::Array(_) | serde_json::Value::Object(_) => rusqlite::types::Value::Null,
+    }
+}
+
+#[cfg(test)]
+mod version_tests {
+    use super::*;
+    #[test]
+    fn v2_archive_remains_readable_after_attempt_schema_migration() {
+        let dir=tempfile::tempdir().unwrap();
+        let db=dir.path().join("v2.sqlite");
+        drop(archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap());
+        let archive=dir.path().join("archive");
+        let mut manifest=export_workspace(db.to_str().unwrap(),archive.to_str().unwrap()).unwrap();
+        // Reconstruct the previous public v2 wire shape (same old table columns).
+        manifest.schema_version=2;
+        manifest.tables.remove("job_attempts"); manifest.tables.remove("job_outputs");
+        let rows=serde_json::json!({"key":"schema_version","value":"2"}).to_string()+"\n";
+        std::fs::write(archive.join("workspace_meta.jsonl"),&rows).unwrap();
+        manifest.tables.get_mut("workspace_meta").unwrap().sha256=hex::encode(Sha256::digest(rows.as_bytes()));
+        manifest.manifest_sha256=manifest_digest(&manifest);
+        std::fs::write(archive.join("manifest.json"),serde_json::to_vec(&manifest).unwrap()).unwrap();
+        let target=dir.path().join("upgraded.sqlite");
+        restore_workspace(archive.to_str().unwrap(),target.to_str().unwrap()).unwrap();
+        let conn=Connection::open_with_flags(target,rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get::<_,String>(0)).unwrap(),"3");
+        assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts",[],|r|r.get::<_,i64>(0)).unwrap(),0);
     }
 }

@@ -127,7 +127,15 @@ fn checked_path(path: &Path) -> Result<PathBuf, StoreError> {
     Ok(absolute)
 }
 
-fn hold_identity(path: &Path) -> Result<Option<File>, StoreError> {
+pub(crate) fn hold_identity(path: &Path) -> Result<Option<File>, StoreError> {
+    // In particular, never block opening a Unix FIFO before discovering that
+    // it is not a regular file. Keep descriptor validation below as well.
+    match std::fs::symlink_metadata(path) {
+        Ok(metadata) if !metadata.is_file() => return Err(StoreError::InvalidPath),
+        Ok(_) => (),
+        Err(e) if e.kind()==io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(e.into()),
+    }
     let mut options = OpenOptions::new();
     options.read(true);
     #[cfg(windows)] {

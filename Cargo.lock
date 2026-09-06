@@ -40,6 +40,7 @@ version = "0.1.0"
 dependencies = [
  "archeaxis-contracts",
  "archeaxis-domain",
+ "archeaxis-sidecar-protocol",
  "archeaxis-store-sqlite",
  "hex",
  "rusqlite",
@@ -47,6 +48,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "tokio",
 ]
 
 [[package]]
@@ -62,6 +64,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "tokio",
 ]
 
 [[package]]

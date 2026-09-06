@@ -30,7 +30,7 @@ implementation claim. Early repairs below do not satisfy unmet task dependencies
 | T19 | TESTED_LOCAL / PARTIAL | Shared launcher and normal/linked/concurrent/failure path tests pass; remaining legacy fixed-path entrypoints need adoption |
 | T01/T02 | TESTED_LOCAL / PARTIAL | Actual loss receipt/replay and generated three-language vocabulary verified; full DTO/roles/anchors/protocol and CI deduplication still open |
 | T17 | PARTIAL | Eleven concrete legacy reuse gaps checked against source; nonempty migration and behavior qualification still open |
-| T03/T04 | TESTED_LOCAL / PARTIAL | Runtime writer actor and process-held workspace lock tested; maintenance encapsulation, real executor and authenticated Supervisor still open |
+| T03/T04 | TESTED_LOCAL / PARTIAL | Real text executor, durable attempts/full outputs and archive replay tested; multi-format dispatch/resource isolation, maintenance encapsulation and authenticated Supervisor remain open |
 | T05/T06/T07 | TESTED_LOCAL / PARTIAL | Byte-faithful CER/WER and loss/coverage regressions pass; real corpus, all format chains and worker/Core integration still open |
 | T08/T09/T10/T11 | PLANNED | Research, knowledge and both usage/feedback loops |
 | T18/T12 | PLANNED | Interactive Avalonia workbench with real Core integration |
@@ -45,6 +45,44 @@ integrated from the separate worker worktree; no cleanup is authorized merely
 by a size result.
 
 ## Saved checkpoint and follow-up
+
+### T03/T04 durable text execution (2026-09-06)
+
+Base commit `91f9d046dd35f0de60dbd1e0f8b433cc49035f46`; results below are local
+changed-tree evidence, not publication, installed qualification or exact-SHA CI.
+
+- The application now has a real `Executor`: exclusive Store startup/recovery,
+  durable attempt claim, stdlib Python execution outside the DB thread, bounded
+  NDJSON/stdout and stderr-tail handling, direct-child timeout/cancellation,
+  normal-exit validation, then independent output hash/size/UTF-8 checks.
+- Text, line structure and full loss contents persist atomically with transform
+  and job/attempt terminal state. Rust independently checks Unicode scalar line
+  bounds and declared coverage; line verification stores at most 5000 records.
+  Exact completion replay is idempotent, changed payloads/old attempts conflict,
+  and legacy HTTP receipts cannot bypass a managed attempt.
+- Dropping a calling future does not abandon an accepted job. Explicit cancel
+  competes with completion at the writer boundary; it cannot undo a committed
+  completion. Invalid output ends failed, while rejected remains non-retryable.
+  Identical terminal-command replay is harmless; a conflicting reason fails.
+- Database schema v3 adds `job_attempts`/`job_outputs`, without a product version
+  bump. Archive exports include both tables. Previous v2 archive shape remains
+  readable and upgrades into a fresh v3 DB. A real worker result survives
+  export/restore byte-for-byte and replays without another transform.
+- PASS: Rust workspace `cargo test --workspace --locked --offline -q`, run
+  `be268a2d33/42146065e1a0`. Includes six real executor cases, attempt atomicity,
+  archive/replay, storage identity/limit and existing API/domain regressions.
+  Python protocol/error taxonomy: **12 tests and 37 subtests**, run
+  `be268a2d33/2f164db97758`. Changed Python Ruff and architecture guards pass.
+- Open scope: this is the text application service, not yet the authenticated
+  HTTP/UI job scheduler or automatic retry dispatcher. OCR/media descendants,
+  process-tree shutdown, OS resource isolation and full-chain corpus accuracy
+  remain unqualified. CAS input is still loaded before the text-profile size
+  rejection; a full process memory budget is not claimed. Native reader joins
+  assume this direct stdlib text child owns its pipes; arbitrary descendant
+  inheritance is not enabled/qualified. Unix FIFO pre-open protection has a
+  platform-gated regression but was NOT EXECUTED on this Windows host.
+- No E-drive access, new Release/tag, Green overwrite, cloud push or CI dispatch.
+  The frozen 21-task DAG hash remains unchanged; all remaining tasks stay active.
 
 ### T04 text transport slice (2026-09-06)
 

@@ -67,10 +67,10 @@ Coverage measures declared units, not extraction accuracy.
 
 This does **not** qualify the complete NDJSON/HTTP/MCP mapping above: the current
 HTTP receipt projection does not accept document structure, and unknown fields
-are rejected instead of pretending they were stored. Request attempts, launch
-authentication, role enforcement, real worker scheduling, structure persistence
-and C# full DTO consumption remain open. A hand-written HTTP projection in a test
-is not a production executor.
+are rejected instead of pretending they were stored. The new text application
+executor separately persists attempts and all three output contents; it does not
+use that lossy HTTP projection. Launch authentication, role enforcement, HTTP/UI
+scheduling, non-text structure and C# full DTO consumption remain open.
 
 ### Text transport adapter slice
 
@@ -96,5 +96,13 @@ storage; output metadata alone does not prove content validity.
 
 Rust's bounded transport adapter is hand-written boundary validation of this
 slice, not a claim that full DTO generation or C# consumption is finished.
-Successful decoding does not qualify process identity, file hashes, resource
-limits, persistence, replay or restore. Those remain executor acceptance work.
+Successful decoding alone does not qualify process identity, file hashes, resource
+limits, persistence, replay or restore. Executor-level qualification is separate.
+
+The application `Executor` now qualifies direct-child text execution, complete
+output persistence, restart, archive roundtrip and durable attempt replay locally.
+It validates the selected hello identity and normal process exit before committing;
+bounded stderr tails are retained as response warnings. Text line ranges and loss
+coverage are checked against the decoded text, not only metadata. This remains
+distinct from multi-format dispatch, automatic retries, full resource isolation
+and authenticated user-facing endpoints; see the Full Loop execution ledger.
