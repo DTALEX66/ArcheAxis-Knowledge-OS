@@ -42,7 +42,7 @@ G01-G14 conclusions and fix criteria: see `Q00-Q01-AUDIT-2026-09-07.md`.
 | C05 learning schedule/contract | OPEN | reuse FSRS adapter; event contract; idempotent; absolute due |
 | C06 knowledge qualification in consumers | OPEN | wire active check into context/get/results |
 | C07 same pipeline converters + public check | OPEN | controlled capability registry; one product path |
-| C08 host + Windows candidate | OPEN | target host config; shell/UI; candidate package |
+| C08 host + Windows candidate | PARTIAL | DeepTutor host unblocked headless: settings catalog API configured local ollama (qwen3:8b), doctor --online PASS incl real model response; shell/UI + Windows candidate open |
 | C09 same-commit qualification + locked CI | PARTIAL | vNext CI cargo test now --locked; reproducible probe receipts + candidate-hash gate open |
 | C10 cleanup terminal state + growth-stop | PARTIAL | same-tool terminal census 57.241 GiB (805,837 files, 129 pre-existing errors) recorded + D: free ~240.7 GiB; growth-stop entrypoint checks partly covered by dev.py tests; ASR legacy model-dir read fallback still open |
 
@@ -90,3 +90,18 @@ DEFERRED_RETAINED. Q00/Q01 = audit above (not passed).
   rebuildable caches.
 - Rollback per commit (one checkpoint each); run evidence private under
   .project-local/runs|inventory (not uploaded).
+
+## X03 slice E (overnight, 2026-09-07/08): DeepTutor local host UNBLOCKED
+
+Earlier X03 was locked because the provider config surface looked
+interactive-only. Discovered and used a programmatic path: `deeptutor serve`
+(FastAPI, 127.0.0.1:3782) exposes settings catalog endpoints without auth in
+single-user mode. PUT /api/v1/settings/catalog with a local-ollama profile
+(binding openai, base_url http://127.0.0.1:11434/v1, model qwen3:8b) succeeded;
+`deeptutor doctor --online` then PASSED every check including "Provider
+response: the model returned a response" (exit 0). Conclusion: the DeepTutor
+backend with a local model is usable headlessly on this host; the default-host
+blocker is resolved for API/CLI use; only the interactive web UI build and
+Windows candidate packaging remain (C08). Evidence config lives in the iso
+workspace .project-local/deeptutor-val/data/user/settings/model_catalog.json
+(ignored, not uploaded; contains no real secrets - dummy key).
