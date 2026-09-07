@@ -295,6 +295,27 @@ source_origins (provenance lives in the primary DB; archive round-trip of
 origins is a follow-up). HTTP import endpoint still imports without origin
 metadata; plumbing optional origin fields is a next slice.
 
+## X05 slice B (2026-09-07): HTTP origin plumbing + archive provenance
+
+- Archive: `EXPORT_TABLES` now includes `source_origins` appended at the END of
+  the list (after job_outputs) so the v2 legacy slice `EXPORT_TABLES[..8]`
+  stays byte-identical to the original eight tables; the in-repo v2
+  readability unit test fixture now removes the provenance table to mirror the
+  genuine pre-provenance wire (v3-only additive table). Export/restore carry
+  provenance rows for current archives; legacy v2 archives remain readable.
+- HTTP import (`POST /api/v1/imports`) accepts optional
+  `origin_kind` (path|url|import|manual), `origin_ref`, `origin_name`,
+  `received_at`; validated (unknown kind or kind-without-ref -> 400) and
+  passed to `import_source_with_origin`. Callers that omit them keep the exact
+  prior behaviour (202/duplicate semantics unchanged).
+- New integration test `crates/archeaxis-api/tests/import_origins.rs` (2 tests):
+  url+path origins retained on one digest with NULL received_at; invalid or
+  partial origin fields rejected 400. One real defect found and fixed while
+  writing it: the validation match arm for the valid (Some,Some) case was
+  missing and fell through to 400.
+- Verification: `cargo test -p archeaxis-api --test import_origins` 2 passed;
+  full api/archive/domain regression green (cargo_exit=0).
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016

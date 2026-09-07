@@ -20,6 +20,7 @@ pub const EXPORT_TABLES: &[&str] = &[
     "jobs",
     "job_attempts",
     "job_outputs",
+    "source_origins",
 ];
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
@@ -351,6 +352,7 @@ mod version_tests {
         // Reconstruct the previous public v2 wire shape (same old table columns).
         manifest.schema_version=2;
         manifest.tables.remove("job_attempts"); manifest.tables.remove("job_outputs");
+        manifest.tables.remove("source_origins"); // v2 wire predates provenance table
         let rows=serde_json::json!({"key":"schema_version","value":"2"}).to_string()+"\n";
         std::fs::write(archive.join("workspace_meta.jsonl"),&rows).unwrap();
         manifest.tables.get_mut("workspace_meta").unwrap().sha256=hex::encode(Sha256::digest(rows.as_bytes()));

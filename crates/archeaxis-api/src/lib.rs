@@ -71,7 +71,17 @@ struct ImportBody {
     name: String,
     #[serde(default)]
     content_base64: String,
+    #[serde(default)]
+    origin_kind: Option<String>,
+    #[serde(default)]
+    origin_ref: Option<String>,
+    #[serde(default)]
+    origin_name: Option<String>,
+    #[serde(default)]
+    received_at: Option<String>,
 }
+
+const ALLOWED_ORIGIN_KINDS: &[&str] = &["path", "url", "import", "manual"];
 
 async fn import_source(
     State(state): State<AppState>,
@@ -81,8 +91,38 @@ async fn import_source(
         Some(b) => b,
         None => return (StatusCode::BAD_REQUEST, "invalid content_base64").into_response(),
     };
+    let origin_kind = body.origin_kind;
+    let origin_ref = body.origin_ref;
+    let origin_name = body.origin_name;
+    let received_at = body.received_at;
+    match (&origin_kind, &origin_ref) {
+        (Some(kind), Some(_)) if !ALLOWED_ORIGIN_KINDS.contains(&kind.as_str()) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                format!("unknown origin_kind '{kind}' (allowed: path|url|import|manual)"),
+            )
+                .into_response();
+        }
+        (Some(_), Some(_)) | (None, None) => {}
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                "origin_kind and origin_ref must be provided together".into_response(),
+            )
+                .into_response();
+        }
+    }
     with_store(state, move |conn| {
-    match source::import_source(conn, &bytes, &body.name, None) {
+    let origin = match (origin_kind.as_deref(), origin_ref.as_deref()) {
+        (Some(kind), Some(origin_ref)) => Some(source::OriginInfo {
+            kind,
+            origin_ref,
+            original_name: origin_name.as_deref(),
+            received_at: received_at.as_deref(),
+        }),
+        _ => None,
+    };
+    match source::import_source_with_origin(conn, &bytes, &body.name, None, origin) {
         Ok(ImportOutcome::Imported { source_id, sha256 }) => (
             StatusCode::ACCEPTED,
             Json(serde_json::json!({"source_id": source_id, "sha256": sha256, "duplicate": false})),
