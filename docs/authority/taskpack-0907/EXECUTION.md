@@ -490,6 +490,23 @@ judge can still be demonstrated but adds no external-verification value. X07
 remains PARTIAL/BLOCKED with this evidence; offline golden metrics (X07 base)
 are already covered by worker_quality.
 
+## X10 slice B (2026-09-07): demo semantic staging + loss ledger (synthetic)
+
+Implemented in `crates/archeaxis-migration` (Rust sole writer): 
+`stage_demo_semantic_import(export_dir, staging_db)` maps a DECLARED demo set
+(legacy `notes` -> vNext `knowledge` rows with kind `personal`, status
+`candidate`, no evidence, deterministic ids -> idempotent re-run) inside a
+fresh vNext staging DB; everything else goes to a loss ledger: metadata-only
+`docs` rows are recorded as losses (no bytes exported, cannot become a vNext
+source), empty-body notes become per-row errors, `notes.created_at` is a
+declared not-carried loss, and any unmapped table is listed. New dep
+`archeaxis-store-sqlite` added to the crate (Cargo.lock updated). Tests
+`crates/archeaxis-migration/tests/stage_demo.rs` (1 test) + existing
+dry-run/inventory tests: 4 passed total, exit 0.
+Honest boundary: this is a bounded demo mapping over a synthetic fixture, not
+full legacy coverage; real-DB qualification and the full semantic table map
+remain open (recorded X10 gaps).
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016

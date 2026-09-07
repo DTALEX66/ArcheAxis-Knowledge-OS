@@ -91,6 +91,7 @@ dependencies = [
 name = "archeaxis-migration"
 version = "0.1.0"
 dependencies = [
+ "archeaxis-store-sqlite",
  "hex",
  "rusqlite",
  "serde",

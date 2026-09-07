@@ -132,6 +132,7 @@ pub struct ExportManifest {
 pub enum MigrationError {
     Sql(rusqlite::Error),
     Io(std::io::Error),
+    Json(serde_json::Error),
 }
 
 impl std::fmt::Display for MigrationError {
@@ -139,6 +140,7 @@ impl std::fmt::Display for MigrationError {
         match self {
             MigrationError::Sql(e) => write!(f, "sql: {e}"),
             MigrationError::Io(e) => write!(f, "io: {e}"),
+            MigrationError::Json(e) => write!(f, "json: {e}"),
         }
     }
 }
@@ -147,4 +149,118 @@ impl From<rusqlite::Error> for MigrationError {
     fn from(e: rusqlite::Error) -> Self {
         MigrationError::Sql(e)
     }
+}
+
+impl From<serde_json::Error> for MigrationError {
+    fn from(e: serde_json::Error) -> Self {
+        MigrationError::Json(e)
+    }
+}
+
+// ---------- X10 bounded demo: semantic staging of a declared fixture set -----
+// This is a DEMO mapping slice, not a claim of full legacy coverage. It maps
+// only a declared demo set (table "notes" -> vNext knowledge personal
+// candidates) inside a fresh vNext staging database (Rust sole writer), keeps
+// a loss ledger for everything else, and is idempotent on re-run.
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct DemoStageResult {
+    pub notes_imported: u64,
+    pub notes_row_errors: u64,
+    pub docs_loss_rows: u64,
+    pub other_unmapped_tables: Vec<String>,
+    pub losses: Vec<String>,
+}
+
+fn hex_sha256(parts: &[&str]) -> String {
+    let mut h = Sha256::new();
+    for part in parts {
+        h.update(part.as_bytes());
+    }
+    hex::encode(h.finalize())
+}
+
+fn demo_knowledge_id(kind: &str, body: &str, created_by: &str) -> String {
+    format!("k_{}", &hex_sha256(&[kind, body, created_by])[..24])
+}
+
+fn demo_receipt(kind: &str, body: &str, status: &str) -> String {
+    hex_sha256(&[kind, body, status, ""])
+}
+
+/// Read an exported JSONL table and stage its rows into vNext `knowledge` as
+/// personal candidates (status candidate, no evidence, legacy-migration
+/// created_by marker). Rows whose `body` is not a non-empty string become row
+/// errors recorded in the ledger. Deterministic ids make re-runs idempotent.
+pub fn stage_demo_semantic_import(
+    export_dir: &str,
+    staging_db: &str,
+) -> Result<DemoStageResult, MigrationError> {
+    let manifest_path = Path::new(export_dir).join("export-manifest.json");
+    let manifest_raw = std::fs::read_to_string(&manifest_path).map_err(MigrationError::Io)?;
+    let manifest: ExportManifest =
+        serde_json::from_str(&manifest_raw).map_err(MigrationError::Json)?;
+    let conn = archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
+    let mut result = DemoStageResult::default();
+    let mut leftover: Vec<String> = manifest.tables.keys().cloned().collect();
+
+    if manifest.tables.contains_key("notes") {
+        leftover.retain(|t| t != "notes");
+        let path = Path::new(export_dir).join("notes.jsonl");
+        let raw = std::fs::read_to_string(&path).map_err(MigrationError::Io)?;
+        for (i, line) in raw.lines().enumerate() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let row: serde_json::Value =
+                serde_json::from_str(line).map_err(MigrationError::Json)?;
+            let body = row.get("body").and_then(serde_json::Value::as_str);
+            match body {
+                Some(text) if !text.trim().is_empty() => {
+                    let kind = "personal";
+                    let created_by = "legacy_migration_demo";
+                    let kid = demo_knowledge_id(kind, text, created_by);
+                    conn.execute(
+                        "INSERT OR IGNORE INTO knowledge
+                           (knowledge_id, knowledge_type, body, status, evidence_status,
+                            anchor_id, created_by, receipt_hash)
+                         VALUES(?1,?2,?3,'candidate',NULL,NULL,?4,?5)",
+                        rusqlite::params![kid, kind, text, created_by, demo_receipt(kind, text, "candidate")],
+                    )
+                    .map_err(MigrationError::Sql)?;
+                    result.notes_imported += 1;
+                }
+                _ => {
+                    result.notes_row_errors += 1;
+                    result
+                        .losses
+                        .push(format!("notes line {}: empty/non-string body, not staged", i + 1));
+                }
+            }
+        }
+        result.losses.push(
+            "notes.created_at (legacy) is not carried: vNext knowledge records its own import time"
+                .to_string(),
+        );
+    } else if manifest.tables.contains_key("notes") {
+        // table exported but zero rows: nothing to map
+        result.losses.push("notes: exported with 0 rows; nothing staged".to_string());
+    }
+
+    if let Some(docs) = manifest.tables.get("docs") {
+        leftover.retain(|t| t != "docs");
+        result.docs_loss_rows = docs.rows;
+        result
+            .losses
+            .push("docs: exported rows are metadata-only (title/sha256), no byte content to become a vNext source; mapped to loss ledger".to_string());
+    }
+
+    for table in &leftover {
+        result
+            .losses
+            .push(format!("{table}: unmapped demo table, preserved in export, not staged"));
+    }
+    result.other_unmapped_tables = leftover;
+    drop(conn);
+    Ok(result)
 }
