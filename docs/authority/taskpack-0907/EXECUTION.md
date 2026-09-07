@@ -182,6 +182,32 @@ upstream run (web start not yet attempted) and record provider-config slice;
 Chinese-content import gap feeds X12/Obsidian interop planning and the
 fallback evaluation criteria.
 
+## X04 slice A (2026-09-07): worker_quality schema alignment regression
+
+Task-card claims checked against current branch code + schemas:
+1. "top-level loss_receipt 与 schema 不一致": NOT a defect on this branch — the
+   embedded loss_receipt validates as a minimal instance of BOTH the inline
+   quality-report definition and the shared `loss-receipt.schema.json`
+   (required engine/engine_version/params/loss_note present, additional props
+   none). Verified empirically.
+2. "normalize=none 却 strip": NOT a defect on this branch — `_normalize` is
+   identity for none; CER counts a leading space as a real difference
+   (value 1.0 over gold "a"); params.normalize echoes the argument.
+3. Loss accumulation: each report's rows reference their own byte snapshots;
+   repeated samples never overwrite each other.
+
+Locks added: `tests/contract/test_quality_report_schema_alignment.py`
+(3 tests; run evidence `.project-local/runs/be268a2d33/ed048ba345ae`, 3 passed
+exit 0; combined contract/quality subset 37 passed before commit). Commit
+`76f59a6`. Deprecation warnings (RefResolver) are pre-existing.
+
+Remaining X04 sub-items (recorded, next slices): identity semantics — reject
+client-claimed human/verified and forged created_by (Rust domain + worker
+protocol authorization), content-type vs review-flow vs user-acceptance vs
+external-verification state dimensions, source/anchor bidirectional versioning
+and explicit invalidation (feeds X07/X05 work). No claim of completion for
+those.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
