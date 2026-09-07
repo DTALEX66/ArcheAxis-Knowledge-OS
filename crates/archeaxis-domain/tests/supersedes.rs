@@ -17,7 +17,8 @@ fn modified_creates_traceable_successor() {
     // accept the successor so the chain becomes usable
     knowledge::review(&mut conn, &kid2, "accepted", "owner", Some("ok"), None).unwrap();
     assert!(knowledge::is_knowledge_active(&conn, &kid2).unwrap());
-    // the old row is still active=false? old was candidate; keep as history with
-    // a successor; deprecation of superseded old row is a consumer decision.
+    // version strategy: the old row has a successor, so it is no longer active
+    // as current context even though its own status is still candidate.
+    assert!(!knowledge::is_knowledge_active(&conn, &kid).unwrap());
     assert_eq!(knowledge_successors(&conn, &kid2).unwrap().len(), 0);
 }

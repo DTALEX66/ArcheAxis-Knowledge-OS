@@ -54,8 +54,9 @@ fn modified_creates_candidate_and_records_event_on_original() {
     let events = events_for(&conn, &kid);
     assert_eq!(events.len(), 1);
     assert_eq!(events[0].0, "modified");
-    // original stays candidate (unchanged); new row is a fresh candidate
-    assert!(is_knowledge_active(&conn, &kid).unwrap());
+    // original stays candidate but now HAS a successor: no longer current;
+    // the new row is a fresh active candidate.
+    assert!(!is_knowledge_active(&conn, &kid).unwrap());
     assert!(is_knowledge_active(&conn, &new_kid).unwrap());
 }
 

@@ -161,14 +161,23 @@ pub fn status_counts(conn: &Connection) -> rusqlite::Result<String> {
 /// while its latest status is candidate or accepted; deprecated/rejected rows
 /// must not be served as current valid facts. Unknown ids report false.
 pub fn is_knowledge_active(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<bool> {
-    let status: Option<String> = conn
+    let row: Option<(String, bool)> = conn
         .query_row(
-            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            "SELECT status,
+                    EXISTS(SELECT 1 FROM knowledge_supersedes WHERE old_knowledge_id=?1)
+             FROM knowledge WHERE knowledge_id=?1",
             [knowledge_id],
-            |r| r.get(0),
+            |r| Ok((r.get(0)?, r.get(1)?)),
         )
         .optional()?;
-    Ok(matches!(status.as_deref(), Some("candidate" | "accepted")))
+    match row {
+        Some((status, superseded)) => {
+            // A row that has a newer successor is no longer "current" even if
+            // its own status is candidate/accepted (version strategy).
+            Ok(!superseded && matches!(status.as_str(), "candidate" | "accepted"))
+        }
+        None => Ok(false),
+    }
 }
 
 /// Reverse lookup: knowledge rows bound to a source anchor (bidirectional
