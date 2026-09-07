@@ -331,6 +331,16 @@ metadata; plumbing optional origin fields is a next slice.
 - Verification: `cargo test -p archeaxis-api --test import_origins` 2 passed;
   full api/archive/domain regression green (cargo_exit=0).
 
+## X05 slice C (2026-09-07): archive provenance round-trip proof
+
+New archive integration test `crates/archeaxis-archive/tests/origin_roundtrip.rs`:
+workspace with two distinct origins on one digest (url + path, one with NULL
+received_at) -> export_workspace -> restore_workspace into a fresh db ->
+`list_origins` returns both rows with original values, and the NULL
+received_at survives the round trip. `cargo test -p archeaxis-archive --test
+origin_roundtrip` 1 passed (exit 0). This closes the X05 provenance series
+(A: table+domain, B: HTTP+EXPORT_TABLES inclusion, C: export/restore proof).
+
 ## X06 slice A (2026-09-07): real chi_sim OCR recognition
 
 X06 acceptance "至少一个真实本地模型用于识别/转换" now covered for Chinese:
