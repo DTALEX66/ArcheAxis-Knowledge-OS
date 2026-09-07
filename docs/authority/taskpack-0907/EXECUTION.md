@@ -37,7 +37,7 @@ G01-G14 conclusions and fix criteria: see `Q00-Q01-AUDIT-2026-09-07.md`.
 | --- | --- | --- |
 | C01 entry/encoding | DONE | AGENTS/indexes point to R2 + live ledger + audit board; ledger/audit/X14 re-encoded strict UTF-8 |
 | C02 server-side identity | DONE | launch middleware binds session-claim actor; machine restricted on create/review/learning; real-process escalation + human personal-definition tests green (launch_auth 5 passed) |
-| C03 review txn + revisions + anchors | PARTIAL | knowledge::review is one transaction (status+event commit/rollback together; modified creates candidate AND records event); supersedes relations & bidirectional anchors open |
+| C03 review txn + revisions + anchors | PARTIAL | single-tx review + modified event + anchor reverse lookup + supersedes chain (archive-safe); superseded rows not current-active; UI wiring open |
 | C04 migration semantics/idempotency | PARTIAL | demo staging: legal PERSONAL_DEFINITION type, manifest hash+row verify before write, single atomic staging tx, inserted/reused counts, legacy-row id preserved; tamper rejected (tests); broader type map open |
 | C05 learning schedule/contract | PARTIAL | idempotent client_event_id (archive-safe) + history read + absolute due timestamps; FSRS adapter wiring & full trajectory open |
 | C06 knowledge qualification in consumers | OPEN | wire active check into context/get/results |
