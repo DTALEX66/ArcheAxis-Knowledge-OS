@@ -235,3 +235,7 @@ GET /api/v1/knowledge-items/:id/qualification returns exists/active using
 knowledge_status + is_knowledge_active (deprecated/rejected -> active false,
 missing -> 404). This is the consumer-side check surface for machines before
 reuse. Test qualification_api.rs green; api suite additions pass.
+
+## Baseline refresh after C05/C06 (overnight)
+
+Full cargo workspace --locked --offline at 1375fee: exit 0, zero failures.
