@@ -9,7 +9,7 @@ pub mod launch;
 pub mod runtime;
 
 use archeaxis_application::jobs::{self, LossReceipt};
-use archeaxis_domain::{ImportOutcome, anchor, knowledge, search, source};
+use archeaxis_domain::{ImportOutcome, anchor, knowledge, learning, search, source};
 use archeaxis_store_sqlite::{workspace_info_json, writer::{Store, StoreError}};
 use axum::{
     Json, Router,
@@ -40,6 +40,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
             "/api/v1/knowledge-items/:id/review-decisions",
             post(review_decision),
         )
+        .route("/api/v1/learning/events", post(record_learning_event))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
@@ -136,6 +137,45 @@ async fn import_source(
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
     }).await
+}
+
+#[derive(Deserialize)]
+struct LearningEventBody {
+    item_key: String,
+    #[serde(default = "default_learning_kind")]
+    kind: String,
+    correct: bool,
+}
+
+fn default_learning_kind() -> String {
+    "review".to_string()
+}
+
+async fn record_learning_event(
+    State(state): State<AppState>,
+    Json(body): Json<LearningEventBody>,
+) -> impl IntoResponse {
+    if body.item_key.trim().is_empty() {
+        return (StatusCode::BAD_REQUEST, "item_key must be non-empty").into_response();
+    }
+    with_store(state, move |conn| match learning::record_review(
+        conn,
+        &body.item_key,
+        &body.kind,
+        body.correct,
+    ) {
+        Ok((event_id, streak_after, next_review_days)) => (
+            StatusCode::CREATED,
+            Json(serde_json::json!({
+                "event_id": event_id,
+                "streak_after": streak_after,
+                "next_review_days": next_review_days,
+            })),
+        )
+            .into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+    .await
 }
 
 #[derive(Deserialize)]

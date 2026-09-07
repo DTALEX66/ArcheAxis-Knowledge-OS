@@ -36,3 +36,48 @@ pub fn suggest_next_interval(correct_in_a_row: u32) -> i64 {
 pub fn count_learning(conn: &Connection) -> rusqlite::Result<i64> {
     conn.query_row("SELECT count(*) FROM learning_events", [], |r| r.get(0))
 }
+
+/// Count trailing correct outcomes for an item (most recent events first).
+/// outcome JSON is expected to carry {"outcome": "correct" | "incorrect"}.
+pub fn correct_streak(conn: &Connection, item_key: &str) -> rusqlite::Result<u32> {
+    let mut stmt = conn.prepare(
+        "SELECT outcome FROM learning_events WHERE item_key=?1 ORDER BY event_id DESC",
+    )?;
+    let rows = stmt.query_map([item_key], |r| r.get::<_, String>(0))?;
+    let mut streak = 0u32;
+    for row in rows {
+        let outcome = row?;
+        let is_correct = outcome.contains("\"outcome\": \"correct\"")
+            || outcome.contains("\"correct\": true");
+        if is_correct {
+            streak += 1;
+        } else {
+            break;
+        }
+    }
+    Ok(streak)
+}
+
+/// Record one human review outcome and persist the next-review hint.
+/// correct -> interval grows with the streak; incorrect resets to 1 day.
+pub fn record_review(
+    conn: &mut Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+) -> rusqlite::Result<(i64, u32, i64)> {
+    let prior = correct_streak(conn, item_key)?;
+    let streak_after = if correct { prior + 1 } else { 0 };
+    let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
+    let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
+    let next_review = if next_review_days > 0 {
+        Some(format!("+{} day", next_review_days))
+    } else {
+        None
+    };
+    conn.execute(
+        "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
+        rusqlite::params![item_key, kind, outcome, next_review],
+    )?;
+    Ok((conn.last_insert_rowid(), streak_after, next_review_days))
+}

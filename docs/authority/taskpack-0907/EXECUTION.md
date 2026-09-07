@@ -535,6 +535,25 @@ green (exit 0). Remaining identity work (per-request actor derived from the
 role-scope launch grant instead of a body field) is recorded as an open
 follow-up for the authority slice.
 
+## X08 slice A (2026-09-07): minimal real human-review event side in Core
+
+Landed a real, replayable human-learning path in vNext Core without depending
+on the DeepTutor host decision:
+- domain `learning.rs`: `correct_streak(item_key)` (trailing correct-outcome
+  count) and `record_review(item_key, kind, correct)` -> persists a
+  learning_events row with outcome JSON and a deterministic next-review hint
+  (interval grows 1/2/4/7/14 on the streak, incorrect resets to 1 day) - one
+  scheduling authority until the FSRS adapter wiring (X08 full) lands.
+- API: `POST /api/v1/learning/events {item_key, kind, correct}` -> 201 with
+  event_id/streak_after/next_review_days; empty item_key rejected 400.
+- Tests: `crates/archeaxis-api/tests/learning_events_api.rs` (2 tests: streak
+  scale + reset + item isolation; empty key rejection). `archeaxis-api` +
+  `archeaxis-domain` suites green (exit 0, ARCHEAXIS_PYTHON env set).
+Honest boundary: this is the minimal replayable event side; the full X08
+trajectory (upstream UI import/read/teach-back/export) stays gated on X03
+default host; FSRS adapter wiring and learning-history export/restore remain
+open.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
