@@ -252,3 +252,9 @@ record_review and record_review_keyed now store an absolute SQLite UTC
 datetime (now + N days) instead of the relative "+N day" string, satisfying
 the audit's absolute due_at requirement for the new event API. api+domain
 green.
+
+## C03 part 3 (overnight): revision supersedes chain
+
+Additive table knowledge_supersedes + modified-review writes old->new; domain
+knowledge_successors returns the chain. Test supersedes.rs green; store/
+domain/archive suites green.

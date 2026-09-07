@@ -53,6 +53,12 @@ CREATE TABLE IF NOT EXISTS knowledge (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     receipt_hash TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS knowledge_supersedes (
+    old_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    new_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(old_knowledge_id, new_knowledge_id)
+);
 CREATE TABLE IF NOT EXISTS review_events (
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
     knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),

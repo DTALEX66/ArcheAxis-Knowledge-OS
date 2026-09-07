@@ -96,6 +96,10 @@ pub fn review(
                 note.map(|n| format!("{n} (new candidate {kid})"))
             ],
         )?;
+        tx.execute(
+            "INSERT INTO knowledge_supersedes(old_knowledge_id, new_knowledge_id) VALUES(?1,?2)",
+            rusqlite::params![knowledge_id, kid],
+        )?;
         tx.commit()?;
         return Ok(kid);
     }
@@ -189,4 +193,14 @@ pub fn knowledge_status(conn: &Connection, knowledge_id: &str) -> rusqlite::Resu
         |r| r.get(0),
     )
     .optional()
+}
+
+/// Successor ids produced by modified reviews (revision chain forward).
+pub fn knowledge_successors(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<Vec<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT new_knowledge_id FROM knowledge_supersedes
+         WHERE old_knowledge_id=?1 ORDER BY created_at, rowid",
+    )?;
+    let rows = stmt.query_map([knowledge_id], |r| r.get(0))?;
+    rows.collect()
 }
