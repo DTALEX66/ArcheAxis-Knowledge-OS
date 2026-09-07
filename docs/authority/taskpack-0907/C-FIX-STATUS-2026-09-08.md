@@ -1,4 +1,4 @@
-# C-fix status v5 (2026-09-08 overnight, HEAD c238bd8)
+# C-fix status v6 (2026-09-08, HEAD c3d06c5)
 
 Branch `codex/full-loop-0906` (pushed). `main` untouched (4ca46ea). Full cargo
 workspace green at b1e4c98; python 2394 at earlier refresh; DeepTutor local
@@ -16,7 +16,7 @@ host running (backend :8001, frontend :3782).
 | C07 | PARTIAL (X07 real retrieval probe) | f56b258 + probes (intermittent egress) |
 | C08 | PARTIAL (host solved) | 980d1f4/d2b7da9/eb98b43 (UI/chat/learning path) |
 | C09 | PARTIAL (locked CI + in-repo probes) | b80ec29, 2ab62b8 |
-| C10 | PARTIAL (terminal census + ASR clarification) | 7d1be96, 8c9c768 |
+| C10 | PARTIAL (census + ASR clarification + .hermes growth-stop evidence) | 7d1be96, 8c9c768, 49259ce |
 
 ## Remaining (each needs a dedicated multi-hour slice or external resource)
 - C03: full bidirectional navigation UI + invalidation semantics wiring.
