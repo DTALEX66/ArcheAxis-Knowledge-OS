@@ -65,8 +65,13 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 
 ## 6. Implementation Workflow
 
-The user-approved active plan is the 2026-09-06-r1 Full Loop TaskPack; progress and
-source provenance are in `docs/authority/taskpack-0906/EXECUTION.md`. The formal
+The user-approved active plan is ARCHEAXIS-REUSE-FIRST-FULL-TASKPACK-2026-09-07
+(AAK-REUSE-FIRST-20260907-R2); live execution state is
+`docs/authority/taskpack-0907/EXECUTION.md` and the independent GPT audit
+board is `docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`. The earlier
+2026-09-06-r1 Full Loop TaskPack is superseded in the parts recorded in
+DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016; its receipts keep their own
+SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The formal
 desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia), with the separate vNext Rust
 Core database and isolated Python workers. `frontend/`, `src-tauri/`, `desktop/`
 and the existing Green v0.6.14 remain recovery/behavior references. Do not dual-write
