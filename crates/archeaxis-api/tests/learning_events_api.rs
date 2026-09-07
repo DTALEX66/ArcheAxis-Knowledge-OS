@@ -107,3 +107,18 @@ async fn same_client_event_id_is_recorded_only_once() {
     let n: i64 = conn.query_row("SELECT count(*) FROM learning_events WHERE item_key='card-x'", [], |r| r.get(0)).unwrap();
     assert_eq!(n, 2);
 }
+
+#[tokio::test]
+async fn history_lists_recorded_events_for_item() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
+    let _ = post_event(&router, "card-h", true).await;
+    let _ = post_event(&router, "card-h", false).await;
+    let resp = router.clone().oneshot(
+        Request::get("/api/v1/learning/events/card-h").body(Body::empty()).unwrap(),
+    ).await.unwrap();
+    let bytes = resp.into_body().collect().await.unwrap().to_bytes();
+    let v: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(v["count"], 2);
+    assert_eq!(v["events"][1]["outcome"], r#"{"outcome": "incorrect"}"#);
+}

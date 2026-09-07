@@ -239,3 +239,9 @@ reuse. Test qualification_api.rs green; api suite additions pass.
 ## Baseline refresh after C05/C06 (overnight)
 
 Full cargo workspace --locked --offline at 1375fee: exit 0, zero failures.
+
+## C05 part 2 (overnight): learning history read
+
+GET /api/v1/learning/events/:item_key returns persisted event history
+(domain events_for_item) - restart-stable readback for due/history tooling.
+api+domain suites green.

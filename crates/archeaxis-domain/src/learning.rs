@@ -130,3 +130,18 @@ pub fn record_review_keyed(
         record_review(conn, item_key, kind, correct)
     }
 }
+
+/// Read the persisted history for one learning item (oldest first).
+pub fn events_for_item(
+    conn: &Connection,
+    item_key: &str,
+) -> rusqlite::Result<Vec<(i64, String, String, Option<String>)>> {
+    let mut stmt = conn.prepare(
+        "SELECT event_id, kind, outcome, next_review FROM learning_events
+         WHERE item_key=?1 ORDER BY event_id ASC",
+    )?;
+    let rows = stmt.query_map([item_key], |r| {
+        Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
+    })?;
+    rows.collect()
+}

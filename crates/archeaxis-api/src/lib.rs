@@ -54,6 +54,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
             post(review_decision),
         )
         .route("/api/v1/learning/events", post(record_learning_event))
+        .route("/api/v1/learning/events/:item_key", get(learning_history))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
@@ -152,7 +153,34 @@ async fn import_source(
     }).await
 }
 
-#[derive(Deserialize)]
+
+async fn learning_history(
+    State(state): State<AppState>,
+    Path(item_key): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| match learning::events_for_item(conn, &item_key) {
+        Ok(events) => {
+            let rows: Vec<serde_json::Value> = events
+                .into_iter()
+                .map(|(event_id, kind, outcome, next_review)| {
+                    serde_json::json!({
+                        "event_id": event_id,
+                        "kind": kind,
+                        "outcome": outcome,
+                        "next_review": next_review,
+                    })
+                })
+                .collect();
+            (
+                StatusCode::OK,
+                Json(serde_json::json!({"item_key": item_key, "events": rows, "count": rows.len()})),
+            )
+                .into_response()
+        }
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+    .await
+}#[derive(Deserialize)]
 struct LearningEventBody {
     item_key: String,
     #[serde(default = "default_learning_kind")]
@@ -389,7 +417,7 @@ fn base64_decode(s: &str) -> Option<Vec<u8>> {
     base64::engine::general_purpose::STANDARD.decode(s).ok()
 }
 
-// 闁冲厜鍋撻柍鍏夊亾 worker job endpoints (worker-protocol slice) 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?worker job endpoints (worker-protocol slice) 闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑?
 #[derive(Deserialize)]
 struct EnqueueBody {
     job_id: String,
