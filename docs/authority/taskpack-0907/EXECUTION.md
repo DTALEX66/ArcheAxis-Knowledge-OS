@@ -308,3 +308,7 @@ Demo migration counts legacy `links` rows as explicit losses with reason (no vNe
 ## C10 growth-stop evidence (overnight)
 
 .top-level .hermes newest write remains 2026-09-06 (task-runtime dir); the entire overnight session produced zero .hermes writes - growth-stop holds for this executor's entrypoints.
+
+## Final Python baseline (overnight, post probe-fix)
+
+Full Python suite 2394 passed / 7 skipped / 124 subtests exit 0 at the latest HEAD; architecture guard 22/22 (probe no longer mutates sys.path).

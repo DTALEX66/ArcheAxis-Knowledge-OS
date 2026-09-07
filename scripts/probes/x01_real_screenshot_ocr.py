@@ -10,6 +10,7 @@ host (shared toolchain) - see EXECUTION.md X01 slices.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import socket
 import subprocess
@@ -20,7 +21,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO))
+
+
+def _load_module(name: str, rel: str):
+    spec = importlib.util.spec_from_file_location(name, REPO / rel)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 HTML = (
     "<html><head><meta charset='utf-8'></head>"
@@ -49,7 +56,7 @@ def free_port() -> int:
 
 
 def main() -> int:
-    from app.ingestion.web_screenshot import screenshot_web
+    screenshot_web = _load_module("web_screenshot", "app/ingestion/web_screenshot.py").screenshot_web
 
     out_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.gettempdir())
     out_dir.mkdir(parents=True, exist_ok=True)
