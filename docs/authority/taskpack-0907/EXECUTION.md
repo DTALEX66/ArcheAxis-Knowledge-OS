@@ -131,3 +131,11 @@ exercised). Real local-model generation evidence on this host already: doctor
 --online provider response + two add_record auto-summaries (chat & question).
 CLI single-turn attempt was blocked by PowerShell quoting of the Chinese
 argument (shell issue, not product) - not pursued further.
+
+## Refreshed baselines at C-fix HEAD (overnight)
+
+After C01-C04/C09/C10 fixes and the C-fix commits: full `cargo test --workspace
+--locked --offline` exit 0 (zero failures); full Python suite 2394 passed /
+7 skipped / 124 subtests exit 0 - this time the real-URL network test PASSED
+(egress available intermittently), so no unexplained failure remains at this
+HEAD.
