@@ -98,3 +98,60 @@ fn invalid_or_unclosed_bootstrap_never_creates_workspace_and_exits_bounded() {
         assert!(!status.success());assert!(!db.exists());
     }
 }
+
+#[test]
+fn machine_launch_cannot_self_accept_even_with_forged_headers() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("actor-machine.sqlite");
+    let mut child = spawn(&db);
+    writeln!(
+        child.0.stdin.take().unwrap(),
+        "{}",
+        serde_json::json!({"launch_token": TOKEN, "session_id": SESSION, "actor": "machine"})
+    )
+    .unwrap();
+    let port = ready(&mut child);
+    let auth = format!("x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n");
+    let (code, _) = http_body(
+        port,
+        "POST",
+        "/api/v1/knowledge-items",
+        &auth,
+        r#"{"knowledge_type":"FACTUAL_CLAIM","body":"machine proposal","status":"candidate","created_by":"python-worker"}"#,
+    );
+    assert_eq!(code, 201);
+    let forged = format!(
+        "x-archeaxis-launch-token: {TOKEN}\r\nx-archeaxis-actor: human\r\nContent-Type: application/json\r\n"
+    );
+    let (code, _) = http_body(
+        port,
+        "POST",
+        "/api/v1/knowledge-items",
+        &forged,
+        r#"{"knowledge_type":"FACTUAL_CLAIM","body":"self-accept attempt","status":"accepted","actor":"human","created_by":"python-worker"}"#,
+    );
+    assert_eq!(code, 400, "machine launch must not self-accept via forged headers/body");
+}
+
+#[test]
+fn human_launch_may_save_personal_definition_accepted() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("actor-human.sqlite");
+    let mut child = spawn(&db);
+    writeln!(
+        child.0.stdin.take().unwrap(),
+        "{}",
+        serde_json::json!({"launch_token": TOKEN, "session_id": SESSION, "actor": "human"})
+    )
+    .unwrap();
+    let port = ready(&mut child);
+    let headers = format!("x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n");
+    let (code, _) = http_body(
+        port,
+        "POST",
+        "/api/v1/knowledge-items",
+        &headers,
+        r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"personal def","status":"accepted","created_by":"owner"}"#,
+    );
+    assert_eq!(code, 201);
+}
