@@ -174,6 +174,7 @@ pub struct DemoStageResult {
     pub notes_reused: u64,
     pub notes_row_errors: u64,
     pub docs_loss_rows: u64,
+    pub attachments_loss_rows: u64,
     pub other_unmapped_tables: Vec<String>,
     pub losses: Vec<String>,
 }
@@ -295,6 +296,14 @@ pub fn stage_demo_semantic_import(
         result.docs_loss_rows = docs.rows;
         result.losses.push(
             "docs: exported rows are metadata-only (title/sha256), no byte content to become a vNext source; mapped to loss ledger"
+                .to_string(),
+        );
+    }
+    if let Some(att) = manifest.tables.get("attachments") {
+        leftover.retain(|t| t != "attachments");
+        result.attachments_loss_rows = att.rows;
+        result.losses.push(
+            "attachments: vNext has no attachment table yet; all attachment rows are counted as losses (never silently dropped)"
                 .to_string(),
         );
     }

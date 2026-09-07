@@ -288,3 +288,7 @@ GET learning/progress/{book}/objectives/{kp} returns real objective state
 (status new, gate qualitative, threshold, mastery 0.0, attempts []) for the
 book generated from our notebook - confirms the learning host state machine is
 readable end-to-end.
+
+## C04 part 3 (overnight): attachment rows explicit loss accounting
+
+Demo migration now counts legacy `attachments` rows as explicit losses (no vNext attachment table yet) instead of a generic unmapped-table name; test covers a non-empty attachment row. migration suite green.
