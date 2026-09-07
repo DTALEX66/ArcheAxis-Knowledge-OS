@@ -30,3 +30,24 @@ Verification before any deletion wave:
 3. Rerun census for after-numbers; run the affected startup/parsing/build
    checks and the smallest affected regression (per LOCAL-CLEANUP.md step 5).
 4. `.hermes`, real user data, E-drive and shared libraries remain untouched.
+
+## Wave 1 EXECUTED (2026-09-07, user full authorization)
+
+Deleted with before/after measurement (before JSON
+`.project-local/inventory/x14-wave1/20260907T132003Z-before.json`, after JSON
+`...20260907T132020Z-after.json`; git status clean before/after):
+`src-tauri/target` (5,562,892,955 B / 47,923 files), `desktop/src-tauri/target`
+(5,255,954,941 B / 9,345), `desktop/node_modules` (15,621,404 B / 19),
+`apps/ArcheAxis.Desktop/bin` (726,217,582 B / 115), `.../obj` (733,964 B / 46),
+`.pytest_cache` (203,758 B / 5), `.ruff_cache` (30,794 B / 49).
+
+Freed: 11,561,655,398 logical bytes (~10.77 GiB). All 7 paths verified absent.
+Post-delete regression: 35 passed (dev.py pytest run, `-p no:cacheprovider` so
+the tool caches stay removed); repo source/Git untouched.
+
+Retained (HOLD, reason): root `target/` (active Rust test builds), 
+`.project-local/build` (dev-run build cache used by dev.py), `.project-local/
+cache` (playwright/browser cache), `.hermes/**` (preserved legacy; NEVER),
+model weights and the shared libraries/×ÊÁÏ¿â (out of repo scope). A later wave
+may revisit root target/.project-local caches only after the final Rust/build
+verifications are done.
