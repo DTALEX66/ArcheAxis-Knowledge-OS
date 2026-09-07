@@ -336,3 +336,7 @@ DeepTutor + ollama stable across the session (doctor all PASS, exit 0; backend/f
 ## X03 slice N (overnight): second real Chinese answer (memory palace)
 
 chat capability answered a second Chinese query to a terminal done event; final answer stored (chat-answer3.txt, ignored). Host answer quality stable across the night.
+
+## Round-100 snapshot (overnight)
+
+HEAD a1cb718 pushed; branch synced; all services 200; full cargo & full python 2394 green at their recorded heads; C02 done, C03/C04/C05/C06/C07/C09/C10 with landed parts (see C-FIX-STATUS); DeepTutor host stable with repeated real Chinese answers.
