@@ -189,3 +189,18 @@ Local model verdict empty: qwen3:8b returns thinking-only (response "") for
 these short judge prompts - recorded, not fabricated. X07 status: first real
 public retrieval + numeric grounding demonstrated; stable-network full check
 and a judge-model verdict still open.
+
+## X08 slice L (overnight): mastery_path capability ran to done
+
+DeepTutor capability mastery_path executed to a terminal "done" event (107
+thinking + 75 content events incl. tool planning on mastery_status) - real
+agentic learning-planning loop on the local host, beyond static summaries.
+
+## Night session state (final before morning)
+
+DeepTutor local host fully usable (API+UI+local model); real Chinese
+content/answer/learning-path evidence; X07 first real public retrieval;
+baselines green (cargo 0 failures; python 2394). Server processes left running
+for owner inspection: backend :8001, frontend :3782 (kill at will). Evidence
+files in .project-local/deeptutor-val/ and runs/. Next-day queue (recorded in
+OVERNIGHT-RESULTS-2026-09-08.md): finish C05-C09 wiring on this host.
