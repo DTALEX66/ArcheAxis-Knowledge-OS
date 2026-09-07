@@ -39,3 +39,5 @@ Finish C05-C09 wiring on top of the now-working local host: FSRS contract
 adapter (C05), machine reuse-qualification consumers (C06), single-pipeline
 worker + one real public check when egress allows (C07), Windows candidate
 shell/package (C08), reproducible probe receipts + candidate hash (C09).
+
+- FSRS donor (shared/learning_scheduler.py) verified healthy (6 tests) at HEAD `1c7f674`.
