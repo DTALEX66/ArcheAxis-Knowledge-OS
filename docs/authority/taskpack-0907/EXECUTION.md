@@ -316,6 +316,28 @@ metadata; plumbing optional origin fields is a next slice.
 - Verification: `cargo test -p archeaxis-api --test import_origins` 2 passed;
   full api/archive/domain regression green (cargo_exit=0).
 
+## X06 slice A (2026-09-07): real chi_sim OCR recognition
+
+X06 acceptance "至少一个真实本地模型用于识别/转换" now covered for Chinese:
+re-ran the product OCR worker with `--lang chi_sim --profile
+config/model-profiles/local-2026-09-05.yaml` over the X01 real screenshot PNG
+(`.project-local/runs/be268a2d33/26510ae2b9d6/tmp/page.png`, sha256
+4bf437c8…) — exit 0, text `ARCHEAXIS OCR PROBE 123\n星环 OCR 探针 2026`
+(ASCII and Chinese markers all recognized, per-word boxes + confidence 91-95).
+This closes the earlier "Chinese line not recognized under eng" observation
+(eng lane limitation only; chi_sim lane works with the explicit shared
+tessdata profile). loss_receipt still carries the stale TESSDATA_PREFIX
+warning (env points at a non-existent `toolchains\scoop\...` path) while the
+explicit profile `tessdata_dir` is what actually resolves - registered env
+gap (R08), not a functional block for explicit-profile runs.
+
+X06 remaining gaps recorded (not faked): vNext PDF/scanned-page worker lane is
+not yet present in `services/python-workers` (text/canvas/subtitles/office/
+html/ocr only); dynamic-webpage screenshot lane needs playwright+chromium
+under a project-owned browser root; media ASR execution group stays
+BLOCKED_RESOURCE pending an authorized model-profile run (P14). M0 samples for
+text/HTML/OCR(chi_sim)/screenshot chains now have real local evidence.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
