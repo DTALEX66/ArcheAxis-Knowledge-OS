@@ -41,7 +41,7 @@ G01-G14 conclusions and fix criteria: see `Q00-Q01-AUDIT-2026-09-07.md`.
 | C04 migration semantics/idempotency | PARTIAL | demo staging: legal PERSONAL_DEFINITION type, manifest hash+row verify before write, single atomic staging tx, inserted/reused counts, legacy-row id preserved; tamper rejected (tests); broader type map open |
 | C05 learning schedule/contract | PARTIAL | idempotent client_event_id (archive-safe) + history read + absolute due timestamps; FSRS adapter wiring & full trajectory open |
 | C06 knowledge qualification in consumers | OPEN | wire active check into context/get/results |
-| C07 same pipeline converters + public check | PARTIAL (X07 probe) | first real public retrieval recorded; egress intermittent; single-pipeline worker registry open |
+| C07 same pipeline converters + public check | PARTIAL | real retrieval + numeric + local-model verdict demonstrated (probe); single-pipeline worker registry & stable egress open |
 | C08 host + Windows candidate | PARTIAL (host solved) | DeepTutor full stack local (backend+Next UI) + local ollama; real chat/answer & learning path evidence; shell/package & adapter wiring open |
 | C09 same-commit qualification + locked CI | PARTIAL | vNext CI cargo test now --locked; reproducible probe receipts + candidate-hash gate open |
 | C10 cleanup terminal state + growth-stop | PARTIAL | same-tool terminal census 57.241 GiB (805,837 files, 129 pre-existing errors) recorded + D: free ~240.7 GiB; growth-stop entrypoint checks partly covered by dev.py tests; ASR legacy model-dir read fallback still open |
