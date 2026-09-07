@@ -569,6 +569,24 @@ deprecation/rejection. Remaining X09 items recorded: machine asset type
 registry (Memory/Rule/Skill/...), a real MCP/tool call with traces, feedback
 error-loop wiring, and retry-after-correction across versions.
 
+## X11 slice A (2026-09-07): real executable journey - supervisor harness green
+
+Re-ran the C# supervisor harness end-to-end on this host with the real Core
+binary (`target/debug/archeaxis-api.exe`, env `ARCHAXIS_CORE_BIN`) and the
+project Python: dotnet_exit 0. Lines verified:
+- PASS unrelated same-port service not adopted; PASS cancelled stderr-flooding
+  child bounded by deadline; PASS wrong-session/credential-redirect handshake
+  rejected;
+- **PASS silent C# -> authenticated Core -> actual Python worker -> persisted
+  output** (headless real journey: import -> job claim -> real text worker ->
+  persisted state);
+- PASS actual Windows 8.3 short-path workspace identity; PASS spaced DB path +
+  assigned port + handshake + shutdown. Only the intentionally
+  timing-sensitive stop-race case reports SKIP (by design, per 0906 records).
+Honest boundary: this is the headless executable journey (no GUI); the Windows
+installable candidate package and GUI-visible human journey remain open
+(Avalonia shell is starter content; no installed qualification claimed).
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
