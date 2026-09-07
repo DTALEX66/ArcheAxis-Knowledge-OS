@@ -1,10 +1,10 @@
-# Overnight results (2026-09-07 → 08) — full-autonomy run
+# Overnight results (2026-09-07 鈫?08) 鈥?full-autonomy run
 
 Branch `codex/full-loop-0906` (pushed to origin). Head SHAs progressed through
 `3daeb2d -> 0672147 -> e9f43df -> 9abe382 -> db20593 -> 980d1f4 -> d2b7da9 ->
 eb98b43`. `main` untouched. This file summarizes what ran while the owner slept.
 
-## DeepTutor (X03/C08) host — now fully usable locally
+## DeepTutor (X03/C08) host 鈥?now fully usable locally
 - Provider config solved programmatically: `deeptutor serve` FastAPI settings
   catalog (no auth in single-user mode) + PUT local-ollama profile
   (qwen3:8b, base_url http://127.0.0.1:11434/v1). `doctor --online` PASS incl.
@@ -15,7 +15,7 @@ eb98b43`. `main` untouched. This file summarizes what ran while the owner slept.
 - Chinese content: notebook API round-trip is EXACT (0 U+FFFD); corruption was
   CLI-only. Real local-model generations verified: doctor provider response,
   add_record auto-summaries (chat + question), a complete Chinese chat answer
-  ("间隔重复…学习技巧", via capabilities/chat/execute-stream to "done"), a
+  ("闂撮殧閲嶅鈥﹀涔犳妧宸?, via capabilities/chat/execute-stream to "done"), a
   Book draft with model-generated title/proposal (bk_e00b5ff13d), and a
   learning path generated from our Chinese notebook (module "Notebook
   Concepts" -> knowledge point; map -> next action probe).
@@ -25,7 +25,7 @@ eb98b43`. `main` untouched. This file summarizes what ran while the owner slept.
 
 ## Baselines refreshed at C-fix HEAD (after C01-C04/C09/C10)
 - Full cargo workspace `--locked --offline`: exit 0, zero failures.
-- Full Python suite: 2394 passed / 7 skipped / 124 subtests, exit 0 — the
+- Full Python suite: 2394 passed / 7 skipped / 124 subtests, exit 0 鈥?the
   real-URL network test PASSED this time (egress intermittent), so no
   unexplained failure remains at that HEAD.
 
