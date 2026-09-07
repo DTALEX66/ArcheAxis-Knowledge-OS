@@ -129,3 +129,18 @@ pub fn status_counts(conn: &Connection) -> rusqlite::Result<String> {
     s.push('}');
     Ok(s)
 }
+
+/// Qualification check used before a machine (or any consumer) reuses a
+/// knowledge unit as current context (X09). A knowledge row is active only
+/// while its latest status is candidate or accepted; deprecated/rejected rows
+/// must not be served as current valid facts. Unknown ids report false.
+pub fn is_knowledge_active(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<bool> {
+    let status: Option<String> = conn
+        .query_row(
+            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            [knowledge_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    Ok(matches!(status.as_deref(), Some("candidate" | "accepted")))
+}

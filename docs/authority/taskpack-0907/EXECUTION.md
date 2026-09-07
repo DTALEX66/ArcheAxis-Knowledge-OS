@@ -554,6 +554,21 @@ trajectory (upstream UI import/read/teach-back/export) stays gated on X03
 default host; FSRS adapter wiring and learning-history export/restore remain
 open.
 
+## X09 slice A (2026-09-07): machine reuse qualification check
+
+Added `knowledge::is_knowledge_active(conn, id)` in the domain: a knowledge row
+is usable as current context only while its latest status is candidate or
+accepted; deprecated/rejected/unknown return false. This is the qualification
+gate X09 requires before any machine consumer reuses a unit (revocation then
+disqualifies later reads). Test
+`crates/archeaxis-domain/tests/knowledge_active.rs` covers accepted/candidate
+active and deprecated/rejected/missing inactive; full `archeaxis-domain`
+suite green (exit 0). Combined with the X04 machine-candidate actor guard,
+machine proposals enter as candidates and lose qualification on
+deprecation/rejection. Remaining X09 items recorded: machine asset type
+registry (Memory/Rule/Skill/...), a real MCP/tool call with traces, feedback
+error-loop wiring, and retry-after-correction across versions.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
