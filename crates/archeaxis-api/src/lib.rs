@@ -169,16 +169,40 @@ struct KnowledgeBody {
     status: String,
     #[serde(default)]
     created_by: String,
+    #[serde(default = "default_actor")]
+    actor: String,
 }
 
 fn default_status() -> String {
     "candidate".to_string()
 }
 
+fn default_actor() -> String {
+    "human".to_string()
+}
+
 async fn create_knowledge(
     State(state): State<AppState>,
     Json(body): Json<KnowledgeBody>,
 ) -> impl IntoResponse {
+    // Actor guard at the product boundary (X04): machine/AI content may only
+    // enter as a candidate and may never self-accept or self-verify; human
+    // actors may create personal definitions directly as accepted when no
+    // external evidence applies. evidence_status is always None at creation.
+    let actor_ok = match body.actor.as_str() {
+        "human" => matches!(body.status.as_str(), "candidate" | "accepted"),
+        "machine" => {
+            body.status == "candidate" && !body.created_by.trim().is_empty()
+        }
+        _ => false,
+    };
+    if !actor_ok {
+        return (
+            StatusCode::BAD_REQUEST,
+            "invalid actor/status combination: machine content must start as candidate and cannot self-accept; use a review action for acceptance".to_string(),
+        )
+            .into_response();
+    }
     with_store(state, move |conn| {
     match knowledge::create_knowledge(
         conn,

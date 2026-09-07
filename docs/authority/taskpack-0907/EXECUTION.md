@@ -520,6 +520,21 @@ Honest boundary: this is a bounded demo mapping over a synthetic fixture, not
 full legacy coverage; real-DB qualification and the full semantic table map
 remain open (recorded X10 gaps).
 
+## X04 slice D (2026-09-07): actor guard landed at the API boundary
+
+Implemented per X04-IDENTITY-DESIGN.md without breaking the personal-definition
+semantics: `POST /api/v1/knowledge-items` now accepts an optional `actor`
+(default `human`). Rules enforced at the product boundary: `machine` actor may
+only create content with `status: candidate` and a non-empty `created_by`
+(self-accept/self-verify rejected 400); `human` may create `candidate` or
+`accepted` (personal definitions without external evidence); unknown actor
+rejected. `evidence_status` remains server-hard-coded None. New tests
+`crates/archeaxis-api/tests/knowledge_actor_guard.rs` (2 tests, incl. a
+human-accepted personal definition case) plus full `archeaxis-api` suite
+green (exit 0). Remaining identity work (per-request actor derived from the
+role-scope launch grant instead of a body field) is recorded as an open
+follow-up for the authority slice.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
