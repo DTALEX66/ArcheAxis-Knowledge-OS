@@ -64,7 +64,7 @@ jobs:
           workspaces: "."
       - name: cargo test (workspace)
         shell: bash
-        run: cargo test --workspace
+        run: cargo test --workspace --locked
       - name: Verify v0.1 receipt produced
         run: python -B scripts/ci/check_vnext_receipt.py
       - name: Avalonia desktop build (Supervisor shell)

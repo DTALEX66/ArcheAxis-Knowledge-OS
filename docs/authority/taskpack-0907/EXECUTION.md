@@ -43,7 +43,7 @@ G01-G14 conclusions and fix criteria: see `Q00-Q01-AUDIT-2026-09-07.md`.
 | C06 knowledge qualification in consumers | OPEN | wire active check into context/get/results |
 | C07 same pipeline converters + public check | OPEN | controlled capability registry; one product path |
 | C08 host + Windows candidate | OPEN | target host config; shell/UI; candidate package |
-| C09 same-commit qualification + locked CI | OPEN | --locked in vNext CI; reproducible probes; candidate hash |
+| C09 same-commit qualification + locked CI | PARTIAL | vNext CI cargo test now --locked; reproducible probe receipts + candidate-hash gate open |
 | C10 cleanup terminal state + growth-stop | OPEN | same-scope final census; .hermes no-new-write verification |
 
 ## Slices landed before this re-encode (commit -> evidence)
