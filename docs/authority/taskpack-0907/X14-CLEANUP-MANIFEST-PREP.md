@@ -45,7 +45,7 @@ Freed: 11,561,655,398 logical bytes (~10.77 GiB). All 7 paths verified absent.
 Post-delete regression: 35 passed (dev.py pytest run, `-p no:cacheprovider` so
 the tool caches stay removed); repo source/Git untouched.
 
-Retained (HOLD, reason): root `target/` (active Rust test builds), 
+Retained (HOLD, reason): root `target/` (active Rust test builds),
 `.project-local/build` (dev-run build cache used by dev.py), `.project-local/
 cache` (playwright/browser cache), `.hermes/**` (preserved legacy; NEVER),
 model weights and the shared libraries/资料库 (out of repo scope). A later wave
