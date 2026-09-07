@@ -328,3 +328,7 @@ Overnight (full autonomy): DeepTutor local host solved + default-host decision; 
 ## C05 donor verification (overnight): py-fsrs scheduler healthy
 
 tests/test_learning_scheduler.py 6 passed at HEAD - the FSRS donor (shared/learning_scheduler.py, X02 wave-2 #10) is operational, ready for C05 adapter wiring.
+
+## Host longevity (overnight round 70): doctor PASS after many hours
+
+DeepTutor + ollama stable across the session (doctor all PASS, exit 0; backend/frontend 200).
