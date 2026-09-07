@@ -71,3 +71,17 @@ fn tampered_jsonl_is_rejected_before_any_write() {
     assert!(err.is_err(), "hash mismatch must be rejected");
     assert!(!staging.exists(), "no staging db created on rejected import");
 }
+
+#[test]
+fn staging_never_modifies_the_legacy_database_bytes() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = make_legacy(dir.path());
+    let before = std::fs::read(&db).unwrap();
+    let out = dir.path().join("export").to_str().unwrap().to_string();
+    export_jsonl(&db, &out).unwrap();
+    let staging = dir.path().join("staging.sqlite");
+    stage_demo_semantic_import(&out, staging.to_str().unwrap()).unwrap();
+    let after = std::fs::read(&db).unwrap();
+    assert_eq!(before.len(), after.len(), "legacy bytes changed");
+    assert_eq!(before, after, "legacy bytes changed");
+}
