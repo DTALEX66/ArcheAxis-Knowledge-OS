@@ -139,3 +139,13 @@ After C01-C04/C09/C10 fixes and the C-fix commits: full `cargo test --workspace
 7 skipped / 124 subtests exit 0 - this time the real-URL network test PASSED
 (egress available intermittently), so no unexplained failure remains at this
 HEAD.
+
+## C08 / X03 slice I (overnight): DeepTutor full stack up + UI screenshot
+
+`deeptutor start` launched packaged backend (uvicorn 0.0.0.0:8001) + frontend
+(Next.js 16.2.3 at http://127.0.0.1:3782, "packaged runtime ready in 0ms").
+Headless screenshot captured (`.project-local/deeptutor-val/ui-home.png`,
+~50 KB, title "DeepTutor") - first real hosted UI evidence on this machine.
+The host is therefore usable end-to-end locally; default-host decision for
+ArcheAxis = DeepTutor local host (API + web) with local ollama, subject to
+adapter wiring (C08 remaining: candidate shell/package).
