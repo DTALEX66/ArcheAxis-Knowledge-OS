@@ -378,6 +378,27 @@ far on this branch (the 7 skips are not passed qualifications).
   user legacy database requires its own consistent-snapshot + readback
   evidence and authorization, so that qualification stays open.
 
+## X06 slice B (2026-09-07): PDF lane reconfirmed
+
+`tests/workers/test_bulk_pdf.py` + `test_bulk_office.py` re-run green: 10
+passed (dev.py run `.project-local/runs/be268a2d33/718c063f8a0e`).
+`worker_office._pdf_text` already yields per-page text/anchors, scanned-page
+reporting and corrupt-input failure (P11 coverage). X06 open item refined:
+only scanned/mixed-page OCR routing (image-only pages), media ASR
+(authorized profile) and dynamic webpage remain.
+
+## X14 slice B (2026-09-07): deletion manifest PREP (no deletion executed)
+
+Prepared [X14-CLEANUP-MANIFEST-PREP.md](X14-CLEANUP-MANIFEST-PREP.md):
+exact candidate rows with census refs, ownership, rebuild/lock, rollback and
+state (NEEDS_AUTHORIZATION / HOLD / APPROVED-READY / NEVER-AUTO-DELETE /
+NOT-IN-SCOPE). `.pytest_cache`+`.ruff_cache` marked APPROVED-READY (trivial,
+non-destructive); `src-tauri/target`, `desktop/src-tauri/target`,
+`desktop/node_modules`, C# bin/obj NEEDS_AUTHORIZATION; root `target/` and
+`.project-local/build` HOLD (in active use as build caches); `.hermes` never.
+No deletion executed this round; deletion requires row-level go-ahead and the
+before/after census + rebuild verification defined in the file.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
