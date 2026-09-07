@@ -48,7 +48,7 @@ the tool caches stay removed); repo source/Git untouched.
 Retained (HOLD, reason): root `target/` (active Rust test builds), 
 `.project-local/build` (dev-run build cache used by dev.py), `.project-local/
 cache` (playwright/browser cache), `.hermes/**` (preserved legacy; NEVER),
-model weights and the shared libraries/×ÊÁÏ¿â (out of repo scope). A later wave
+model weights and the shared libraries/èµ„æ–™åº“ (out of repo scope). A later wave
 may revisit root target/.project-local caches only after the final Rust/build
 verifications are done.
 
