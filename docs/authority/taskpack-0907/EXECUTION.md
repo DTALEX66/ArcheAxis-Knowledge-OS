@@ -89,6 +89,19 @@ identity, network/credentials, DeepTutor host decision, deletion row go-ahead,
 semantic migration mapping, packaging). Overall baselines: full Python suite
 2394 passed + full Rust workspace green at their recorded HEADs.
 
+## Final-HEAD baselines (2026-09-07, HEAD 989b41d + docs)
+
+Re-run after the X10/migration and doc commits at final HEAD:
+- Full Rust workspace `cargo test --workspace --locked --offline`: exit 0,
+  zero failures.
+- Full Python suite: 2393 passed, 7 skipped, 1 failed -
+  `test_adapter_contract.py::TestNewspaper4kAdapter::..._real_url_extracts_article`
+  fails ONLY because its real-URL fetch hits the sandbox child-egress
+  restriction (`SSL: UNEXPECTED_EOF_WHILE_READING` on https://example.com),
+  the same root cause already evidenced for X07. Not a code regression; on a
+  host with working outbound HTTPS this single test is expected to pass (it
+  passed in the earlier 2394-pass run before egress was restricted).
+
 ## X01 first slice (2026-09-07)
 
 - Audited all tracked `.hermes` references in code: most are boundary guards
