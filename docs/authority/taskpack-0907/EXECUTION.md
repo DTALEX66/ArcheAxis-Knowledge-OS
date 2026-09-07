@@ -70,11 +70,39 @@ DEFERRED_RETAINED. No task has been declared implemented by this record.
 | Task | State | Next evidence |
 | --- | --- | --- |
 | X00 | RECORDED (this file) | decision rows + intake verified above; commit on branch |
-| X01 | TODO | run-root/.hermes stop-growth audit, browser failure regression, CI wiring slice |
-| X02 | TODO | preserve + semantic reuse ledger for current-loop assets (first slice) |
+| X01 | PARTIAL (first slice done) | run-root doc aligned; dev-path/browser regressions 14 passed; browser screenshot→OCR real flow + CI wiring still open |
+| X02 | PARTIAL (first slice done) | 8 current-loop donors registered (see X02-REUSE-LEDGER.md); broader semantic wave open |
 | X03..X11 | TODO | per TASKS.json dependency order |
 | X14 | TODO (eligible after X01/X02) | LOCAL-CLEANUP.md read-only census |
 | X12/X13, Q00/Q01, F01-F06 | per TASKS.json | deferred / audit / retained |
+
+## X01 first slice (2026-09-07)
+
+- Audited all tracked `.hermes` references in code: most are boundary guards
+  (generate_vocabulary, text_ndjson, worker_ocr, hotreload, inventory); the
+  stale pipeline doc was the actionable item. `app/ingestion/asr_adapter.py`
+  `_sense_voice_dir` default still resolves under `.hermes/task-runtime/...`
+  and `scripts/pipeline/README.md` still told writers to emit receipts there.
+- Change: `scripts/pipeline/README.md` receipt-root sentence now points to
+  `.project-local/runs/` via dev.py and marks `.hermes` read-only legacy.
+  Commit `fd5182c`. ASR default pointer is registered as an X04/X06 model-profile
+  gap (needs config-bound shared-model path, not an ad-hoc constant).
+- Regression evidence: `tests/runtime-paths/test_dev_paths.py` +
+  `tests/test_web_screenshot.py` +
+  `tests/test_workspace_browser_failure_retry_replay.py` → 14 passed,
+  0 failed (dev.py launcher invariant: writes only `.project-local`, never
+  creates `.hermes`, concurrent tmp isolation; pytest exit 0 re-confirmed).
+- Open for X01 completion: real screenshot→OCR flow on this host (chromium
+  availability under shared toolchain), CI collection/gate wiring review.
+
+## X02 first slice (2026-09-07)
+
+- Registered 8 current-loop donor assets with tracked HEAD hashes, reuse mode,
+  behavior evidence and rollback in [X02-REUSE-LEDGER.md](X02-REUSE-LEDGER.md).
+  All are direct-reuse computation workers without DB handles; adapters remain
+  to wire in X06 under the same per-donor evidence rules.
+- Not a claim that all 1246 legacy items were semantically read; remainder stay
+  preserved in LEGACY_MANIFEST.yaml (R03 20-item review remains prior input).
 
 ## Boundaries
 
