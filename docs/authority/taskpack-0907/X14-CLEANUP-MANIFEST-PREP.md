@@ -61,3 +61,17 @@ Before/after JSONs: `.project-local/inventory/x14-wave2/before.json` and
 6,479,274,142 B (~6.03 GiB). Rebuild path: cargo/rustup env recorded in
 EXECUTION.md; deps cached in shared CARGO_HOME (offline rebuild possible).
 `src-tauri/target`, C# bin/obj etc. were already removed in wave-1.
+
+## Terminal census after wave-1/2 (2026-09-07, C10 part)
+
+Same audit tool (`audit_local_storage.py`) re-run after both deletion waves:
+report `.project-local/inventory/20260907T143045Z-524e5d85`, dev.py run
+`be268a2d33/69d7a4513423`: logical 57.241 GiB, 805,837 files, 129 errors
+(same pre-existing .hermes/long-path classes), 33 skipped, deleted_files 0.
+D: free space at the time: 258,483,224,576 B (~240.7 GiB). The earlier
+66.625 GiB census and this one differ by ~9.38 GiB logical while the summed
+deletion manifests were ~16.8 GiB; the census is incomplete-scope (errors) and
+two runs differ in error coverage, so no precise reconciliation is claimed -
+figures are reported as measured with the same tool, not as a precise
+delta ledger. No .hermes writes/deletion; root target/ and legacy build trees
+are gone; remaining big dirs unchanged per census.

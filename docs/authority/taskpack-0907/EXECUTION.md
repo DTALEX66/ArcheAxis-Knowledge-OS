@@ -44,7 +44,7 @@ G01-G14 conclusions and fix criteria: see `Q00-Q01-AUDIT-2026-09-07.md`.
 | C07 same pipeline converters + public check | OPEN | controlled capability registry; one product path |
 | C08 host + Windows candidate | OPEN | target host config; shell/UI; candidate package |
 | C09 same-commit qualification + locked CI | PARTIAL | vNext CI cargo test now --locked; reproducible probe receipts + candidate-hash gate open |
-| C10 cleanup terminal state + growth-stop | OPEN | same-scope final census; .hermes no-new-write verification |
+| C10 cleanup terminal state + growth-stop | PARTIAL | same-tool terminal census 57.241 GiB (805,837 files, 129 pre-existing errors) recorded + D: free ~240.7 GiB; growth-stop entrypoint checks partly covered by dev.py tests; ASR legacy model-dir read fallback still open |
 
 ## Slices landed before this re-encode (commit -> evidence)
 
