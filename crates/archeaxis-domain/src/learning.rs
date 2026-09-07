@@ -37,6 +37,16 @@ pub fn count_learning(conn: &Connection) -> rusqlite::Result<i64> {
     conn.query_row("SELECT count(*) FROM learning_events", [], |r| r.get(0))
 }
 
+
+/// Absolute next-review timestamp (UTC) computed by SQLite: 'now' + N days.
+pub fn next_review_iso(conn: &Connection, days: i64) -> rusqlite::Result<Option<String>> {
+    if days <= 0 {
+        return Ok(None);
+    }
+    let modifier = format!("+{days} day");
+    conn.query_row("SELECT datetime('now', ?1)", [&modifier], |r| r.get(0))
+        .map(Some)
+}
 /// Count trailing correct outcomes for an item (most recent events first).
 /// outcome JSON is expected to carry {"outcome": "correct" | "incorrect"}.
 pub fn correct_streak(conn: &Connection, item_key: &str) -> rusqlite::Result<u32> {
@@ -70,11 +80,7 @@ pub fn record_review(
     let streak_after = if correct { prior + 1 } else { 0 };
     let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
     let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
-    let next_review = if next_review_days > 0 {
-        Some(format!("+{} day", next_review_days))
-    } else {
-        None
-    };
+    let next_review = next_review_iso(conn, next_review_days)?;
     conn.execute(
         "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
         rusqlite::params![item_key, kind, outcome, next_review],
@@ -110,11 +116,7 @@ pub fn record_review_keyed(
         let streak_after = if correct { prior + 1 } else { 0 };
         let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
         let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
-        let next_review = if next_review_days > 0 {
-            Some(format!("+{} day", next_review_days))
-        } else {
-            None
-        };
+        let next_review = next_review_iso(&tx, next_review_days)?;
         tx.execute(
             "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
             rusqlite::params![item_key, kind, outcome, next_review],

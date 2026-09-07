@@ -245,3 +245,10 @@ Full cargo workspace --locked --offline at 1375fee: exit 0, zero failures.
 GET /api/v1/learning/events/:item_key returns persisted event history
 (domain events_for_item) - restart-stable readback for due/history tooling.
 api+domain suites green.
+
+## C05 part 3 (overnight): absolute next-review timestamps
+
+record_review and record_review_keyed now store an absolute SQLite UTC
+datetime (now + N days) instead of the relative "+N day" string, satisfying
+the audit's absolute due_at requirement for the new event API. api+domain
+green.
