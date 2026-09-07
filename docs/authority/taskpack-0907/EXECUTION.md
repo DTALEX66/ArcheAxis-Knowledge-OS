@@ -258,3 +258,10 @@ green.
 Additive table knowledge_supersedes + modified-review writes old->new; domain
 knowledge_successors returns the chain. Test supersedes.rs green; store/
 domain/archive suites green.
+
+## Baseline refresh (overnight, HEAD b1e4c98)
+
+Full cargo workspace --locked --offline after the C02-C06 series: exit 0,
+zero failures (includes launch_auth real-process actor, learning idempotency/
+history/absolute-due, qualification endpoint, supersedes chain, archive
+inclusions, migration legacy-untouched).
