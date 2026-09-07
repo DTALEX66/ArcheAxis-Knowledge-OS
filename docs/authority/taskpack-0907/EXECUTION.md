@@ -474,6 +474,22 @@ provider-config API. This does not block M0 evidence for the other lanes; the
 Chinese-import gap and fallback-candidate criteria recorded earlier still
 stand.
 
+## X07 slice A (2026-09-07): public retrieval BLOCKED_RESOURCE (sandbox egress)
+
+With full authorization, a real public-source retrieval was attempted from the
+product python environment (probe `.project-local/probes/x07_public_check_probe.py`,
+run `be268a2d33/3855f5a1bd89`): Wikipedia REST summary fetch failed with
+`SSL: UNEXPECTED_EOF_WHILE_READING`; follow-up egress probes show ALL outbound
+HTTPS from sandbox children fails the same way and plain HTTP returns 502 Bad
+Gateway. Conclusion: the product runtime has no working public-network egress
+in this environment, so X07's "one real public fact-check" is BLOCKED_RESOURCE
+(concrete: TLS EOF / HTTP 502 across example.com and wikipedia.org). The
+agent-side web tools are a separate channel and cannot be claimed as product
+verification. Local ollama loopback works; an internal-content local-model
+judge can still be demonstrated but adds no external-verification value. X07
+remains PARTIAL/BLOCKED with this evidence; offline golden metrics (X07 base)
+are already covered by worker_quality.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
