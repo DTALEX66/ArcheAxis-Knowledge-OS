@@ -409,6 +409,30 @@ non-destructive); `src-tauri/target`, `desktop/src-tauri/target`,
 No deletion executed this round; deletion requires row-level go-ahead and the
 before/after census + rebuild verification defined in the file.
 
+## X04 slice C (2026-09-07): identity-self-claim analysis - BLOCKED on role scope
+
+Analysed the residual X04 identity item on the real code path: create-knowledge
+already hard-codes `evidence_status=None` and defaults `status` to candidate,
+so clients cannot attach external-verification state at creation. Two residuals
+remain: (1) the create body may still set `status: accepted`, and (2)
+`created_by` is free text - both because per-request actor identity is not
+plumbed. A blanket "initial status must be candidate" guard would wrongly
+block legitimate human-authored personal definitions (X04: personal
+definitions may be saved and user-accepted without external proof), so the
+correct fix is a role-scoped authority identity layer, already a recorded open
+item of launch_auth/authority (X04 remaining list). Marked BLOCKED_RESOURCE
+with that concrete prerequisite; no half-guard landed to avoid corrupting the
+personal-definition semantics.
+
+## X06 slice C (2026-09-07): OCR engine tests executed (no skips)
+
+`tests/workers/test_bulk_ocr.py` re-run with the shared tessdata env
+(`TESSDATA_PREFIX=...10-toolchains\scoop\persist\tesseract\tessdata`): 4 passed
+(run `.project-local/runs/be268a2d33/ce16a8410c76`), no fake skips - the OCR
+engine regression lane executes for real (eng cases); the earlier 4-skip
+observation was purely the missing env in the default lane, matching P13
+notes. Explicit-profile chi_sim real run recorded in X06 slice A.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
