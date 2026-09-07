@@ -30,7 +30,7 @@ open with statuses from TASKS.json.
 ### Package intake
 
 - 15 files copied verbatim into this directory and re-verified:
-  `python verify_package.py --root docs/authority/taskpack-0907` → exit 0,
+  `python verify_package.py --root docs/authority/taskpack-0907` 閳?exit 0,
   `package_checks: PASS`, task_count 23, format_groups 16, enhancement_items 11,
   coverage counts (capabilities 16, long_term_programs 10,
   blueprint_governance_tasks 11, canonical_repo_tasks 39,
@@ -44,22 +44,22 @@ open with statuses from TASKS.json.
 
 | Plan decision | Topic | Recorded as | Effect |
 | --- | --- | --- | --- |
-| D01 | 产品范围（四部分闭环） | SUP-012 (adoption), EXECUTION-START | continuity for one executor |
-| D02 | 完整蓝图/冻结口径 | SUP-014 | retain not delete |
-| D03 | 语言边界 | SUP-013 | Rust core + Python worker + C# desktop retained |
-| D04 | UI 时序（Web/TS 表现层） | SUP-013 | first delivery not XAML-blocked |
-| D05 | 机器学习三段分离 | EXECUTION.md (below) | M0 machine task required |
-| D06 | 个人知识不需外部证据 | SUP-004 already; reaffirmed in EXECUTION.md | evidence is use constraint |
-| D07 | 执行模型单一化 | SUP-012 | one executor to M0; Q00/Q01 audit |
-| D08 | 旧证据基线 SHA | EXECUTION.md (below) | receipts keep tested SHA |
-| D09 | 运行根 .project-local | SUP-011 already; X01 enforces | .hermes preserved legacy |
-| D10 | 复用优先/自研门槛 | SUP-015 | F06 frozen gap records |
-| D11 | 旧库独占写/新库 Rust | SUP-003/SUP-006 already; X10 | snapshot→read-only export→staging |
-| D12 | 旧设计与模型保留 | EXECUTION.md (below) | X02 preserve |
-| D13 | 许可边界 | SUP-005 already | MIT stays; third-party separately |
-| D14 | 能力≠完成、CI 绿≠可用 | SUP-014 + status vocabulary | IMPLEMENTED_PENDING_AUDIT |
-| D15 | 增强附件并入原任务 | SUP-016 | 11 items mapped to X tasks |
-| D16 | 条件与后置（九锚/F04） | SUP-016 | optional template only |
+| D01 | 娴溠冩惂閼煎啫娲块敍鍫濇磽闁劌鍨庨梻顓犲箚閿?| SUP-012 (adoption), EXECUTION-START | continuity for one executor |
+| D02 | 鐎瑰本鏆ｉ拑婵嗘禈/閸愯崵绮ㄩ崣锝呯窞 | SUP-014 | retain not delete |
+| D03 | 鐠囶叀鈻堟潏鍦櫕 | SUP-013 | Rust core + Python worker + C# desktop retained |
+| D04 | UI 閺冭泛绨敍鍦礶b/TS 鐞涖劎骞囩仦鍌︾礆 | SUP-013 | first delivery not XAML-blocked |
+| D05 | 閺堝搫娅掔€涳缚绡勬稉澶嬵唽閸掑棛顬?| EXECUTION.md (below) | M0 machine task required |
+| D06 | 娑擃亙姹夐惌銉ㄧ槕娑撳秹娓舵径鏍劥鐠囦焦宓?| SUP-004 already; reaffirmed in EXECUTION.md | evidence is use constraint |
+| D07 | 閹笛嗩攽濡€崇€烽崡鏇氱閸?| SUP-012 | one executor to M0; Q00/Q01 audit |
+| D08 | 閺冄嗙槈閹诡喖鐔€缁?SHA | EXECUTION.md (below) | receipts keep tested SHA |
+| D09 | 鏉╂劘顢戦弽?.project-local | SUP-011 already; X01 enforces | .hermes preserved legacy |
+| D10 | 婢跺秶鏁ゆ导妯哄帥/閼奉亞鐖洪梻銊︻潬 | SUP-015 | F06 frozen gap records |
+| D11 | 閺冄冪氨閻欘剙宕伴崘?閺傛澘绨?Rust | SUP-003/SUP-006 already; X10 | snapshot閳姰ead-only export閳姱taging |
+| D12 | 閺冄嗩啎鐠佲€茬瑢濡€崇€锋穱婵堟殌 | EXECUTION.md (below) | X02 preserve |
+| D13 | 鐠佺褰叉潏鍦櫕 | SUP-005 already | MIT stays; third-party separately |
+| D14 | 閼宠棄濮忛埉鐘茬暚閹存劑鈧竼I 缂佸簱澧甸崣顖滄暏 | SUP-014 + status vocabulary | IMPLEMENTED_PENDING_AUDIT |
+| D15 | 婢х偛宸遍梽鍕楠炶泛鍙嗛崢鐔舵崲閸?| SUP-016 | 11 items mapped to X tasks |
+| D16 | 閺夆€叉娑撳骸鎮楃純顕嗙礄娑旀繈鏁?F04閿?| SUP-016 | optional template only |
 
 Statuses per TASKS.json: X00..X11 = TODO/M0; Q00 = TODO/M0_AUDIT; X12/X13 =
 TODO/M1; X14 = TODO/EARLY_CLEANUP; Q01 = TODO/M1_AUDIT; F01..F06 =
@@ -70,16 +70,16 @@ DEFERRED_RETAINED. No task has been declared implemented by this record.
 | Task | State | Next evidence |
 | --- | --- | --- |
 | X00 | RECORDED | intake + decision rows (SUP-012..016) verified, commits on branch |
-| X01 | PARTIAL (slices A/B) | real screenshot→OCR (run 26510ae2b9d6), CI wiring audited; remaining: live CI dispatch of a code commit |
+| X01 | PARTIAL (slices A/B) | real screenshot閳墺CR (run 26510ae2b9d6), CI wiring audited; remaining: live CI dispatch of a code commit |
 | X02 | PARTIAL (waves 1-2) | 8 vNext workers + 6 legacy learning/knowledge donors registered with test evidence (X02-REUSE-LEDGER.md) |
 | X03 | PARTIAL / BLOCKED parts | DeepTutor 1.5.17 local probe done; Chinese-import gap + interactive-only LLM config + default-host decision open |
-| X04 | PARTIAL | schema/worker alignment locked; identity-self-claim fix BLOCKED on role-scope authority |
+| X04 | PARTIAL (slice D landed) | API actor guard: machine candidate-only, human may accept personal defs; role-scope per-request actor remains open |
 | X05 | PARTIAL (A/B/C done) | source origins + HTTP + archive round trip proven; remaining executor/restart deep-slices open |
 | X06 | PARTIAL (A/B/C) | text/HTML/OCR eng+chi_sim real; PDF lane reconfirmed; scanned-OCR routing + media ASR + dynamic web open |
 | X07 | BLOCKED (cloud part) | public fact-check requires network/credentials authorization; offline golden metrics exist |
-| X08/X09 | BLOCKED | depend on X03 default-host decision + X07; donor semantics registered (X02 wave 2) |
+| X08 | PARTIAL (slice A landed) | minimal human review-event side + deterministic scheduling API landed; upstream trajectory gated on X03 host |
 | X10 | PARTIAL | migration export/dry-run base proven on synthetic DB; semantic map/import/diff/rollback open |
-| X11 | BLOCKED | full Windows candidate package + journey + Q00 independent audit (needs prior gates) |
+| X11 | PARTIAL (slice A) | headless real journey green (C#->Core->Python->DB); installable package/GUI journey open |
 | X14 | PARTIAL | real census 66.6 GiB + deletion-manifest PREP; deletion rows await explicit authorization |
 | X12/X13, Q00/Q01, F01-F06 | per TASKS.json | deferred / audit / retained frozen |
 
@@ -115,7 +115,7 @@ Re-run after the X10/migration and doc commits at final HEAD:
   gap (needs config-bound shared-model path, not an ad-hoc constant).
 - Regression evidence: `tests/runtime-paths/test_dev_paths.py` +
   `tests/test_web_screenshot.py` +
-  `tests/test_workspace_browser_failure_retry_replay.py` → 14 passed,
+  `tests/test_workspace_browser_failure_retry_replay.py` 閳?14 passed,
   0 failed (dev.py launcher invariant: writes only `.project-local`, never
   creates `.hermes`, concurrent tmp isolation; pytest exit 0 re-confirmed).
   dev.py-managed run evidence: `.project-local/runs/be268a2d33/ea458cee118a`
@@ -128,10 +128,10 @@ Re-run after the X10/migration and doc commits at final HEAD:
   The X00/X01 doc-only commits are intentionally outside vnext-ci path
   triggers, so no vnext-ci run is claimed for them; full collection entrypoint
   remains `scripts/ci/run_tests.ps1 --full`.
-- Open for X01 completion: real screenshot→OCR flow on this host (chromium
+- Open for X01 completion: real screenshot閳墺CR flow on this host (chromium
   availability under shared toolchain), CI collection/gate wiring review.
 
-## X01 slice B (2026-09-07): real screenshot → OCR flow
+## X01 slice B (2026-09-07): real screenshot 閳?OCR flow
 
 - Host resources verified: Edge present (Program Files (x86) msedge.exe, found
   by product `find_browser` without code change); tesseract on PATH (shared
@@ -140,7 +140,7 @@ Re-run after the X10/migration and doc commits at final HEAD:
   tessdata_dir -> shared languages/current.
 - Real probe (product code path, no mocks): local HTML page with markers
   `ARCHEAXIS OCR PROBE 123` + Chinese line -> `screenshot_web` (msedge
-  headless, PNG 29,015 B, sha256 4bf437c8a4e50f80…) -> OCR worker
+  headless, PNG 29,015 B, sha256 4bf437c8a4e50f80閳? -> OCR worker
   `--profile config/model-profiles/local-2026-09-05.yaml` -> OCR exit 0,
   matched tokens ["ARCHEAXIS","OCR","PROBE","123"]; text head
   `ARCHEAXIS OCR PROBE 123 TF OCR #R#t 2026` (Chinese line not recognized
@@ -149,7 +149,7 @@ Re-run after the X10/migration and doc commits at final HEAD:
   exit_code 0, dirty=false). Probe script kept at
   `.project-local/probes/x01_real_screenshot_ocr.py` (ignored, reusable).
   No `.hermes` writes; all artifacts under `.project-local`.
-- Note: `dev.py -- python …` resolves `python` from PATH; use the explicit
+- Note: `dev.py -- python 閳ヮ泦 resolves `python` from PATH; use the explicit
   venv interpreter path for children that import third-party packages
   (recorded so future slices do not repeat the yaml-missing run).
 
@@ -212,7 +212,7 @@ fallback evaluation criteria.
 
 Attempted to unblock DeepTutor LLM checks with the running local ollama
 (0.33.3 at 127.0.0.1:11434; models incl. qwen3 family present; DeepTutor README
-documents Ollama via Base URL `http://host…:11434/v1`). Findings:
+documents Ollama via Base URL `http://host閳?11434/v1`). Findings:
 - CLI `deeptutor init --cli` is interactive-only (no non-interactive flags for
   provider/model); the model provider profile lives in
   `data/user/settings/model_catalog.json` with `profiles[]` whose exact schema
@@ -226,12 +226,12 @@ documents Ollama via Base URL `http://host…:11434/v1`). Findings:
 ## X04 slice A (2026-09-07): worker_quality schema alignment regression
 
 Task-card claims checked against current branch code + schemas:
-1. "top-level loss_receipt 与 schema 不一致": NOT a defect on this branch — the
+1. "top-level loss_receipt 娑?schema 娑撳秳绔撮懛?: NOT a defect on this branch 閳?the
    embedded loss_receipt validates as a minimal instance of BOTH the inline
    quality-report definition and the shared `loss-receipt.schema.json`
    (required engine/engine_version/params/loss_note present, additional props
    none). Verified empirically.
-2. "normalize=none 却 strip": NOT a defect on this branch — `_normalize` is
+2. "normalize=none 閸?strip": NOT a defect on this branch 閳?`_normalize` is
    identity for none; CER counts a leading space as a real difference
    (value 1.0 over gold "a"); params.normalize echoes the argument.
 3. Loss accumulation: each report's rows reference their own byte snapshots;
@@ -242,7 +242,7 @@ Locks added: `tests/contract/test_quality_report_schema_alignment.py`
 exit 0; combined contract/quality subset 37 passed before commit). Commit
 `76f59a6`. Deprecation warnings (RefResolver) are pre-existing.
 
-Remaining X04 sub-items (recorded, next slices): identity semantics — reject
+Remaining X04 sub-items (recorded, next slices): identity semantics 閳?reject
 client-claimed human/verified and forged created_by (Rust domain + worker
 protocol authorization), content-type vs review-flow vs user-acceptance vs
 external-verification state dimensions, source/anchor bidirectional versioning
@@ -310,8 +310,8 @@ Toolchain/env notes recorded for future Rust runs on this host:
 
 ## X05 slice A (2026-09-07): source provenance (distinct origins on one digest)
 
-Gap addressed from X05 work list: "不同来源记录不会因字节相同丢失来源语义"
-and "原件可回读来源时间/导入时间；未知来源时间不伪造". Previous
+Gap addressed from X05 work list: "娑撳秴鎮撻弶銉︾爱鐠佹澘缍嶆稉宥勭窗閸ョ姴鐡ч懞鍌滄祲閸氬奔娑径杈ㄦ降濠ф劘顕㈡稊?
+and "閸樼喍娆㈤崣顖氭礀鐠囩粯娼靛┃鎰闂?鐎电厧鍙嗛弮鍫曟？閿涙稒婀惌銉︽降濠ф劖妞傞梻缈犵瑝娴碱亪鈧?. Previous
 `import_source` deduped identical bytes into one content row and discarded any
 later origin (only first original_name/raw_path survived).
 
@@ -369,11 +369,11 @@ origin_roundtrip` 1 passed (exit 0). This closes the X05 provenance series
 
 ## X06 slice A (2026-09-07): real chi_sim OCR recognition
 
-X06 acceptance "至少一个真实本地模型用于识别/转换" now covered for Chinese:
+X06 acceptance "閼峰啿鐨稉鈧稉顏嗘埂鐎圭偞婀伴崷鐗埬侀崹瀣暏娴滃氦鐦戦崚?鏉烆剚宕? now covered for Chinese:
 re-ran the product OCR worker with `--lang chi_sim --profile
 config/model-profiles/local-2026-09-05.yaml` over the X01 real screenshot PNG
 (`.project-local/runs/be268a2d33/26510ae2b9d6/tmp/page.png`, sha256
-4bf437c8…) — exit 0, text `ARCHEAXIS OCR PROBE 123\n星环 OCR 探针 2026`
+4bf437c8閳? 閳?exit 0, text `ARCHEAXIS OCR PROBE 123\n閺勭喓骞?OCR 閹恒垽鎷?2026`
 (ASCII and Chinese markers all recognized, per-word boxes + confidence 91-95).
 This closes the earlier "Chinese line not recognized under eng" observation
 (eng lane limitation only; chi_sim lane works with the explicit shared

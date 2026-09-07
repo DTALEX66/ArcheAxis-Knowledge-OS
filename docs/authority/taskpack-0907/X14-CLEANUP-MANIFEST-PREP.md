@@ -51,3 +51,13 @@ cache` (playwright/browser cache), `.hermes/**` (preserved legacy; NEVER),
 model weights and the shared libraries/×ÊÁÏ¿â (out of repo scope). A later wave
 may revisit root target/.project-local caches only after the final Rust/build
 verifications are done.
+
+## Wave 2 EXECUTED (2026-09-07): root target after final Rust build
+
+Root `target/` measured 6,479,274,142 logical bytes / 22,580 files and was
+removed after the final full-workspace cargo regression (which passed).
+Before/after JSONs: `.project-local/inventory/x14-wave2/before.json` and
+`after.json`. Cumulative freed: wave-1 11,561,655,398 B (~10.77 GiB) + wave-2
+6,479,274,142 B (~6.03 GiB). Rebuild path: cargo/rustup env recorded in
+EXECUTION.md; deps cached in shared CARGO_HOME (offline rebuild possible).
+`src-tauri/target`, C# bin/obj etc. were already removed in wave-1.
