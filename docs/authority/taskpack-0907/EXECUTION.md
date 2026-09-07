@@ -267,6 +267,34 @@ Toolchain/env notes recorded for future Rust runs on this host:
   spawn the real Python worker also require ARCHEAXIS_PYTHON (venv python).
   Canonical wrapper = dev.py inside a vcvars-initialized shell.
 
+## X05 slice A (2026-09-07): source provenance (distinct origins on one digest)
+
+Gap addressed from X05 work list: "不同来源记录不会因字节相同丢失来源语义"
+and "原件可回读来源时间/导入时间；未知来源时间不伪造". Previous
+`import_source` deduped identical bytes into one content row and discarded any
+later origin (only first original_name/raw_path survived).
+
+Change (additive schema, no version bump):
+- `crates/archeaxis-store-sqlite/src/lib.rs` SCHEMA_SQL adds table
+  `source_origins(source_id, origin_kind path|url|import|manual, origin_ref,
+  original_name, received_at NULL, imported_at, PK(source_id,kind,ref))`.
+- `crates/archeaxis-domain/src/source.rs`: `OriginInfo`, refactored
+  `import_source` -> `import_source_with_origin(...)` (old signature kept as a
+  delegating wrapper, so callers unchanged); every reported distinct origin is
+  recorded (INSERT OR IGNORE) on both insert and duplicate paths; `received_at`
+  None is stored NULL - never fabricated.
+- New integration tests `crates/archeaxis-domain/tests/source_origins.rs`:
+  2 tests (two origins on one digest retained incl. NULL received_at; repeated
+  same origin idempotent).
+
+Verification: `cargo test -p archeaxis-domain --test source_origins` 2 passed;
+affected suites `-p archeaxis-domain -p archeaxis-application -p
+archeaxis-archive -p archeaxis-api` all green (cargo_exit=0, no failures).
+Known limitation recorded: archive export table list does not yet include
+source_origins (provenance lives in the primary DB; archive round-trip of
+origins is a follow-up). HTTP import endpoint still imports without origin
+metadata; plumbing optional origin fields is a next slice.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016

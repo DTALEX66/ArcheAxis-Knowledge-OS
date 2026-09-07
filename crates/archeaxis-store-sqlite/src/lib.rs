@@ -18,6 +18,15 @@ CREATE TABLE IF NOT EXISTS sources (
     raw_path TEXT,
     imported_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS source_origins (
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    origin_kind TEXT NOT NULL CHECK(origin_kind IN ('path','url','import','manual')),
+    origin_ref TEXT NOT NULL,
+    original_name TEXT,
+    received_at TEXT,
+    imported_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(source_id, origin_kind, origin_ref)
+);
 CREATE TABLE IF NOT EXISTS transforms (
     transform_id INTEGER PRIMARY KEY AUTOINCREMENT,
     source_id TEXT NOT NULL REFERENCES sources(source_id),
