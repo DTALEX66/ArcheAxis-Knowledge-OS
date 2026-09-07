@@ -105,6 +105,28 @@ DEFERRED_RETAINED. No task has been declared implemented by this record.
 - Open for X01 completion: real screenshot→OCR flow on this host (chromium
   availability under shared toolchain), CI collection/gate wiring review.
 
+## X01 slice B (2026-09-07): real screenshot → OCR flow
+
+- Host resources verified: Edge present (Program Files (x86) msedge.exe, found
+  by product `find_browser` without code change); tesseract on PATH (shared
+  toolchain scoop current, 5.5.x); tessdata eng+chi_sim at shared
+  persist/languages dirs; `config/model-profiles/local-2026-09-05.yaml`
+  tessdata_dir -> shared languages/current.
+- Real probe (product code path, no mocks): local HTML page with markers
+  `ARCHEAXIS OCR PROBE 123` + Chinese line -> `screenshot_web` (msedge
+  headless, PNG 29,015 B, sha256 4bf437c8a4e50f80…) -> OCR worker
+  `--profile config/model-profiles/local-2026-09-05.yaml` -> OCR exit 0,
+  matched tokens ["ARCHEAXIS","OCR","PROBE","123"]; text head
+  `ARCHEAXIS OCR PROBE 123 TF OCR #R#t 2026` (Chinese line not recognized
+  under eng lang - chi_sim lane gap already registered in P13).
+- Evidence run: `.project-local/runs/be268a2d33/26510ae2b9d6` (dev.py,
+  exit_code 0, dirty=false). Probe script kept at
+  `.project-local/probes/x01_real_screenshot_ocr.py` (ignored, reusable).
+  No `.hermes` writes; all artifacts under `.project-local`.
+- Note: `dev.py -- python …` resolves `python` from PATH; use the explicit
+  venv interpreter path for children that import third-party packages
+  (recorded so future slices do not repeat the yaml-missing run).
+
 ## X02 first slice (2026-09-07)
 
 - Registered 8 current-loop donor assets with tracked HEAD hashes, reuse mode,
