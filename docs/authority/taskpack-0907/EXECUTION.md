@@ -457,6 +457,23 @@ X03's LLM-dependent checks requires either a real interactive console/UI
 session (web-start slice) or upstream support for non-interactive config. No
 change to the shared DeepTutor install.
 
+## X03 slice D (2026-09-07): final config attempts exhausted - locked decision
+
+With full user authorization, further unblock paths were investigated and each
+closed with evidence: (1) `deeptutor init --cli` is interactive-only; (2)
+piped-stdin drive hangs (slice C); (3) `deeptutor serve` exposes settings/model-
+catalog only behind the multi-user register/login auth dependency
+(`deeptutor/api/routers/settings.py`), so programmatic provider config needs
+the app's own account/UI flow; (4) hand-writing `model_catalog.json` profiles
+is unsafe without the upstream profile schema (provider core is layered under
+`services/llm/provider_core`). Conclusion: DeepTutor's default-host decision
+cannot be completed autonomously in this environment. Locked as BLOCKED for
+X03 with reason: requires an interactive console/UI session of the upstream
+host (its own register/login + Settings->Models) or an upstream non-interactive
+provider-config API. This does not block M0 evidence for the other lanes; the
+Chinese-import gap and fallback-candidate criteria recorded earlier still
+stand.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
