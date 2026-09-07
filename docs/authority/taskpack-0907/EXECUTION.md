@@ -179,3 +179,13 @@ the claim's literal 6371 (phrasing variant), and the local-model verdict
 returned empty, so numeric support is INCONCLUSIVE; no fabricated conclusion.
 This upgrades X07 from "no egress at all" to "egress intermittent - one real
 retrieval recorded; full check still needs a stable network run".
+
+## X07 slice C (overnight): tolerant probe - numeric support found, model verdict inconclusive
+
+X07 probe v2: real Wikipedia full-extract retrieval OK; extract contains
+"12,742" (diameter km) - consistent with the 6371 km radius claim (numeric
+support true, note records the diameter basis, no literal-radius overclaim).
+Local model verdict empty: qwen3:8b returns thinking-only (response "") for
+these short judge prompts - recorded, not fabricated. X07 status: first real
+public retrieval + numeric grounding demonstrated; stable-network full check
+and a judge-model verdict still open.
