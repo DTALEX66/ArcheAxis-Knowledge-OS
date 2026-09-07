@@ -320,3 +320,7 @@ qwen3:8b /api/chat returns an explicit SUPPORT verdict for the Earth-radius clai
 ## X03 default-host decision (overnight, locked)
 
 Default host for the learning entry = DeepTutor local full stack (backend API + packaged Next UI at :3782) with local ollama qwen3:8b. Evidence: doctor --online PASS, Chinese round-trip via API, real chat answer, book + learning path generation, UI screenshot (see X03 slices E-J). Adapter wiring and Windows candidate packaging remain C08.
+
+## Night milestone (round 60): summary
+
+Overnight (full autonomy): DeepTutor local host solved + default-host decision; real Chinese content/answers/learning-path; X07 real retrieval + model verdict; C02 done; C03/C04/C05/C06/C07-part/C09/C10 multiple landed parts; probes in-repo; architecture guard + full python 2394 + full cargo green; .hermes growth-stop proven. Remaining majors: C07 single-pipeline registry, C08 package/adapter, C05 FSRS trajectory, C09 CI-on-push + audit.
