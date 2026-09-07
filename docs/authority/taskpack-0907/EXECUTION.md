@@ -446,6 +446,17 @@ engine regression lane executes for real (eng cases); the earlier 4-skip
 observation was purely the missing env in the default lane, matching P13
 notes. Explicit-profile chi_sim real run recorded in X06 slice A.
 
+## X03 slice C (2026-09-07): piped-stdin init attempt fails - BLOCKED maintained
+
+Attempted to drive the interactive `deeptutor init --cli` non-interactively by
+piping empty lines into stdin from an isolated HOME. The CLI did not consume
+piped stdin and the run hung past the 120s cap (killed; no stray process left;
+iso workspace and repo untouched). Conclusion recorded: the provider config
+surface is genuinely interactive-terminal-bound in this environment; unblocking
+X03's LLM-dependent checks requires either a real interactive console/UI
+session (web-start slice) or upstream support for non-interactive config. No
+change to the shared DeepTutor install.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
