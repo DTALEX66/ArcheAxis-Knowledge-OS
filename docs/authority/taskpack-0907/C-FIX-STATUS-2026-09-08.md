@@ -1,8 +1,14 @@
-# C-fix status v6 (2026-09-08, HEAD c3d06c5)
+# C-fix status v7 (2026-09-08, branch head 978c99b)
 
-Branch `codex/full-loop-0906` (pushed). `main` untouched (4ca46ea). Full cargo
-workspace green at b1e4c98; python 2394 at earlier refresh; DeepTutor local
-host running (backend :8001, frontend :3782).
+Branch `codex/full-loop-0906` (pushed, synced). `main` untouched (4ca46ea).
+Code head unchanged since the C-fix commits (c3d06c5); later commits are
+docs-only. Final overnight re-verification at f1fd14c (round 239): full cargo
+workspace `--workspace --offline` exit 0, zero failures (rustc 1.97.1 MSVC);
+full Python suite 2394 passed / 7 skipped / 124 subtests (tests +
+knowledge_base/tests + integration-tests); architecture guard + conventions
+gate passed. DeepTutor local host running (backend :8001, frontend :3782),
+ollama :11434. C10 round-240 terminal-census + growth-stop evidence at
+bf6ab31; consolidated morning summary at 978c99b.
 
 ## C board
 | C | Status | Evidence (SHAs) |
@@ -16,7 +22,7 @@ host running (backend :8001, frontend :3782).
 | C07 | PARTIAL (X07 real retrieval probe) | f56b258 + probes (intermittent egress) |
 | C08 | PARTIAL (host solved) | 980d1f4/d2b7da9/eb98b43 (UI/chat/learning path) |
 | C09 | PARTIAL (locked CI + in-repo probes) | b80ec29, 2ab62b8 |
-| C10 | PARTIAL (census + ASR clarification + .hermes growth-stop evidence) | 7d1be96, 8c9c768, 49259ce |
+| C10 | PARTIAL (census + ASR clarification + growth-stop double-proven round 240) | 7d1be96, 8c9c768, 49259ce, bf6ab31 |
 
 ## Remaining (each needs a dedicated multi-hour slice or external resource)
 - C03: full bidirectional navigation UI + invalidation semantics wiring.
@@ -25,5 +31,6 @@ host running (backend :8001, frontend :3782).
 - C06: end-to-end machine loop (tool call -> feedback -> correction).
 - C07: single-pipeline worker registry (PDF/OCR/Office under one executor).
 - C08: Windows candidate package + Core<->host adapter wiring.
-- C10: growth-stop checks across CODEX/DSH/HERMES entrypoints.
+- C10: growth-stop checks across CODEX/DSH/HERMES entrypoints (startup-rule
+  audit of actual launch commands/environments).
 - C09: candidate package hash + CI on a code push; then independent GPT audit.
