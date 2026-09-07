@@ -71,6 +71,11 @@ CREATE TABLE IF NOT EXISTS jobs (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     completed_at TEXT
 );
+CREATE TABLE IF NOT EXISTS learning_event_keys (
+    event_key TEXT PRIMARY KEY,
+    item_key TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 CREATE TABLE IF NOT EXISTS learning_events (
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
     item_key TEXT NOT NULL,

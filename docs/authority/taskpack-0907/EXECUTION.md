@@ -220,3 +220,11 @@ x01_real_screenshot_ocr.py (real screenshot->OCR, rerun exit 0, tokens
 matched) and x07_public_check_probe.py (real retrieval + local judge). Both
 ruff-clean and use repo-relative paths; no secrets/local-absolute defaults.
 Summaries remain in EXECUTION; raw run artifacts stay in .project-local.
+
+## C05 part 1 (overnight): idempotent learning events via client_event_id
+
+Added additive table learning_event_keys + domain record_review_keyed (key+event
+in one transaction; duplicate key -> (0, streak, -1) sentinel, no new event)
+and API client_event_id (duplicate -> 200 duplicate:true, next null; fresh ->
+201). Test covers same-key replay counted once and streak continuity across
+keys. api+domain suites green.

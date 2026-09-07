@@ -81,3 +81,52 @@ pub fn record_review(
     )?;
     Ok((conn.last_insert_rowid(), streak_after, next_review_days))
 }
+
+/// Record one human review outcome with an optional caller-supplied idempotency
+/// key. When the key already exists the call is a duplicate: no new event is
+/// written and (0, streak, -1) is returned (handler maps -1 to a null
+/// next-review). Key + event are inserted in ONE transaction, so a duplicate
+/// can never double-insert.
+pub fn record_review_keyed(
+    conn: &mut Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+    client_event_key: Option<&str>,
+) -> rusqlite::Result<(i64, u32, i64)> {
+    if let Some(key) = client_event_key {
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+        let exists: bool = tx
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM learning_event_keys WHERE event_key=?1)",
+                [key],
+                |r| r.get(0),
+            )?;
+        if exists {
+            tx.commit()?;
+            return Ok((0, correct_streak(conn, item_key)?, -1));
+        }
+        let prior = correct_streak(&tx, item_key)?;
+        let streak_after = if correct { prior + 1 } else { 0 };
+        let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
+        let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
+        let next_review = if next_review_days > 0 {
+            Some(format!("+{} day", next_review_days))
+        } else {
+            None
+        };
+        tx.execute(
+            "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
+            rusqlite::params![item_key, kind, outcome, next_review],
+        )?;
+        let event_id = tx.last_insert_rowid();
+        tx.execute(
+            "INSERT INTO learning_event_keys(event_key, item_key) VALUES(?1,?2)",
+            rusqlite::params![key, item_key],
+        )?;
+        tx.commit()?;
+        Ok((event_id, streak_after, next_review_days))
+    } else {
+        record_review(conn, item_key, kind, correct)
+    }
+}

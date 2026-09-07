@@ -157,6 +157,8 @@ struct LearningEventBody {
     #[serde(default = "default_learning_kind")]
     kind: String,
     correct: bool,
+    #[serde(default)]
+    client_event_id: Option<String>,
 }
 
 fn default_learning_kind() -> String {
@@ -177,21 +179,27 @@ async fn record_learning_event(
         return (StatusCode::FORBIDDEN, "machine principal cannot record human learning outcomes")
             .into_response();
     }
-    with_store(state, move |conn| match learning::record_review(
+    with_store(state, move |conn| match learning::record_review_keyed(
         conn,
         &body.item_key,
         &body.kind,
         body.correct,
+        body.client_event_id.as_deref(),
     ) {
-        Ok((event_id, streak_after, next_review_days)) => (
-            StatusCode::CREATED,
-            Json(serde_json::json!({
-                "event_id": event_id,
-                "streak_after": streak_after,
-                "next_review_days": next_review_days,
-            })),
-        )
-            .into_response(),
+        Ok((event_id, streak_after, next_review_days)) => {
+            let duplicate = next_review_days == -1;
+            let status = if duplicate { StatusCode::OK } else { StatusCode::CREATED };
+            (
+                status,
+                Json(serde_json::json!({
+                    "event_id": event_id,
+                    "streak_after": streak_after,
+                    "next_review_days": if duplicate { serde_json::Value::Null } else { serde_json::json!(next_review_days) },
+                    "duplicate": duplicate,
+                })),
+            )
+                .into_response()
+        }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     })
     .await
@@ -360,7 +368,7 @@ fn base64_decode(s: &str) -> Option<Vec<u8>> {
     base64::engine::general_purpose::STANDARD.decode(s).ok()
 }
 
-// ── worker job endpoints (worker-protocol slice) ─────────────────────────
+// 鈹€鈹€ worker job endpoints (worker-protocol slice) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 #[derive(Deserialize)]
 struct EnqueueBody {
