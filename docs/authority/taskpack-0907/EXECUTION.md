@@ -316,3 +316,7 @@ Full Python suite 2394 passed / 7 skipped / 124 subtests exit 0 at the latest HE
 ## X07 slice D (overnight): local-model verdict obtained via chat API
 
 qwen3:8b /api/chat returns an explicit SUPPORT verdict for the Earth-radius claim (diameter 12742/2 = 6371 consistent). X07 real check sample now complete: real retrieval + numeric grounding + local-model verdict; product pipeline & stable-network scale remain open. Probe updated to chat API.
+
+## X03 default-host decision (overnight, locked)
+
+Default host for the learning entry = DeepTutor local full stack (backend API + packaged Next UI at :3782) with local ollama qwen3:8b. Evidence: doctor --online PASS, Chinese round-trip via API, real chat answer, book + learning path generation, UI screenshot (see X03 slices E-J). Adapter wiring and Windows candidate packaging remain C08.
