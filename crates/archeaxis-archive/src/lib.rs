@@ -22,6 +22,7 @@ pub const EXPORT_TABLES: &[&str] = &[
     "job_outputs",
     "source_origins",
     "learning_event_keys",
+    "knowledge_supersedes",
 ];
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
@@ -355,6 +356,7 @@ mod version_tests {
         manifest.tables.remove("job_attempts"); manifest.tables.remove("job_outputs");
         manifest.tables.remove("source_origins"); // v2 wire predates provenance table
         manifest.tables.remove("learning_event_keys"); // v2 wire predates dedup keys
+        manifest.tables.remove("knowledge_supersedes"); // v2 wire predates supersedes
         let rows=serde_json::json!({"key":"schema_version","value":"2"}).to_string()+"\n";
         std::fs::write(archive.join("workspace_meta.jsonl"),&rows).unwrap();
         manifest.tables.get_mut("workspace_meta").unwrap().sha256=hex::encode(Sha256::digest(rows.as_bytes()));
