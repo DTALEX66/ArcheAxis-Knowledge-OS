@@ -393,3 +393,12 @@ Fresh, fully reproducible verification at current HEAD f1fd14c (docs-only since 
 - .hermes growth-stop holds: newest .hermes write still 2026-09-06 (task-runtime) - zero overnight writes.
 - Services healthy: DeepTutor backend :8001 (root + catalog 200), frontend :3782 (200), ollama :11434 (200).
 - Local == origin at f1fd14c. Remaining majors unchanged (C07/C08/C05/C06/C10/C09 + C03 UI) - queued for fresh-context continuation.
+## C10 round-240 evidence (overnight): terminal-state census + growth-stop at 2655b91
+
+Same-tool census rerun (scripts/maintenance/inventory_project.py, read-only metadata, logical bytes, exit 1 = observed errors only):
+- Observed logical total 19.146 GiB / 112,675 regular files / 16 errors / 50 opaque excluded / 8 reparse skipped. Opaque private dirs (.hermes, .git, .codex, .dsh, ...) not measured and retained; census JSON: .project-local/runs/c10-census-round240.json.
+- Largest residual groups: .project-local 12.445 GiB (evidence/run/inventory roots), target 5.603 GiB, .venv 0.858 GiB, frontend 0.099 GiB, data 0.094 GiB.
+- Rebuild retest result: root target/ (deleted in X14 wave-2, -6.03 GiB logical) rebuilt by real cargo test --workspace --offline runs tonight -> 5.603 GiB / 19,640 files; explains the D: free drop (~240.7 GiB earlier -> 235.98 GiB now, remaining space explained).
+- .hermes growth-stop after real starts/failures/restarts/concurrent runs (DeepTutor host, cargo, python suites, workers): newest .hermes write still 2026-09-06 11:29:42; logical size 42.853 GiB / 718,077 files, unchanged vs the 42.855 GiB audit figure (metadata-only walk, 26.9 s). Zero overnight writes.
+- Git/source/real DB unchanged: worktree clean and synced at 2655b91.
+Method notes: logical bytes of successfully observed regular files; hard-linked paths counted independently; allocated/physical space not measured; no parent/child double counting (top-level groups only).
