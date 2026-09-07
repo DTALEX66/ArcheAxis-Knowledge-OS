@@ -384,3 +384,12 @@ Services healthy; branch synced at 0e31d64; state stable (maintenance); majors q
 ## Round-230 snapshot (overnight)
 
 Services healthy; branch synced at b826599; state stable (maintenance); majors queued for a fresh-context morning session.
+## Round-239 verification (overnight): full suites re-verified green at f1fd14c
+
+Fresh, fully reproducible verification at current HEAD f1fd14c (docs-only since the C-fix code head):
+- Full Rust workspace `cargo test --workspace --offline` exit 0, zero failures (rustc 1.97.1 stable-x86_64-pc-windows-msvc under the OS External Configuration MSVC 14.44 toolchain; reproducible wrapper .project-local/runs/cargo-full-workspace.bat).
+- Full Python suite = `tests` + `knowledge_base/tests` + `integration-tests`: 2394 passed / 7 skipped / 124 subtests, exit 0. Count reconciles exactly: tests/ collects 2316 + knowledge_base/tests 38 = 2354 (minus 7 skipped -> 2347 passed) + integration-tests 47 passed = 2394.
+- Architecture guard passed; repository conventions gate passed (worktree).
+- .hermes growth-stop holds: newest .hermes write still 2026-09-06 (task-runtime) - zero overnight writes.
+- Services healthy: DeepTutor backend :8001 (root + catalog 200), frontend :3782 (200), ollama :11434 (200).
+- Local == origin at f1fd14c. Remaining majors unchanged (C07/C08/C05/C06/C10/C09 + C03 UI) - queued for fresh-context continuation.
