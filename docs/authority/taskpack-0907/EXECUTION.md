@@ -360,3 +360,7 @@ Services healthy; branch synced; maintenance-only since ~110 with periodic evide
 ## Round-170 snapshot (overnight)
 
 Services healthy; branch synced at 16d82ac; state unchanged since 160 (maintenance); majors still queued.
+
+## Round-180 snapshot (overnight)
+
+Services healthy; branch synced at fc11f7b; state stable (maintenance); majors queued for morning fresh-context continuation.
