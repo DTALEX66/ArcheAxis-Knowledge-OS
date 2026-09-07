@@ -159,3 +159,13 @@ answer about spaced repetition (stored sample:
 .project-local/deeptutor-val/chat-answer2.txt, ignored). This is a real
 human-side tutoring answer on the configured local host (qwen3:8b via ollama),
 completing X03's runnable-answer evidence beyond summaries.
+
+## X03/X08 slice K (overnight): book + learning path generated from notebook
+
+- create book (bk_e00b5ff13d) with user_intent zh -> local model produced
+  title/proposal (draft); export placeholder exists.
+- generate-from-notebook with record OBJECTS -> 200, module "Notebook Concepts"
+  with knowledge point "Saving Personal Definitions and Hypotheses";
+  learning progress map returns next action "probe". This is a real
+  target->module->knowledge-point learning trajectory derived from our Chinese
+  notebook content by the local host - X08 human-side evidence.
