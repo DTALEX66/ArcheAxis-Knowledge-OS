@@ -402,3 +402,13 @@ Same-tool census rerun (scripts/maintenance/inventory_project.py, read-only meta
 - .hermes growth-stop after real starts/failures/restarts/concurrent runs (DeepTutor host, cargo, python suites, workers): newest .hermes write still 2026-09-06 11:29:42; logical size 42.853 GiB / 718,077 files, unchanged vs the 42.855 GiB audit figure (metadata-only walk, 26.9 s). Zero overnight writes.
 - Git/source/real DB unchanged: worktree clean and synced at 2655b91.
 Method notes: logical bytes of successfully observed regular files; hard-linked paths counted independently; allocated/physical space not measured; no parent/child double counting (top-level groups only).
+## C10 entrypoint write-rule audit (round 243)
+
+Actual launch/run write destinations over the last 26 h (real cargo build/test,
+full python suites, DeepTutor host activity, worker processes), measured:
+- target/ -> 19,639 files / 5.603 GiB written (cargo rebuild after X14 wave-2); git-ignored (/target/).
+- .project-local/ -> 20,627 files / 2.325 GiB written (dev.py run dirs, inventories, deeptutor-val evidence); git-ignored (.project-local/).
+- .venv/, data/, .pytest_cache/: zero writes in the window (.pytest_cache absent; suites run with no:cacheprovider).
+- .hermes/: newest write still 2026-09-06 11:29:42 - zero writes; git-ignored (.hermes/).
+- Git tracked tree: clean (0 dirty). .gitignore covers every destination: __pycache__/, .pytest_cache/, .venv/, .hermes/, .project-local/, /target/ (and nested tauri targets), build/, data trees.
+Conclusion: repository write rules hold for the executing entrypoints - build/run artifacts stay in ignored paths only; no tracked-tree or .hermes growth. Not a docs-only claim: path-level measurements above.
