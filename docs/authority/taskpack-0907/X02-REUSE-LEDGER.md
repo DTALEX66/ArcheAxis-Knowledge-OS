@@ -37,3 +37,25 @@ all are isolated computation consumed through Rust/Core contracts (X04/X06).
   authoritative prior input for the next review wave.
 - Rollback = revert the specific adapter/test/ledger commit, never delete the
   original asset or its run evidence.
+
+## Wave 2 (2026-09-07): legacy learning/knowledge donors for X08/X09
+
+Basis: function-body reading of each file (heads + key symbols above) plus
+existing test files that reference them. All listed tests ran green inside the
+2026-09-07 overall regression (run `be268a2d33/e31758dd7698`: 2394 passed).
+These are legacy-database writers (sqlite via app/shared); the vNext rule
+stands: legacy Python remains the only legacy-database writer, Rust never
+touches it; reuse here means the semantic/algorithm layer is the donor for
+adapter wiring in X08/X09, not a live dual-write.
+
+| # | Original asset (tracked HEAD sha) | Purpose / capability | Reuse mode | Target | Difference / limits | Behavior evidence (existing tests) | Rollback |
+|---|---|---|---|---|---|---|---|
+| 9 | `app/knowledge/co_learning_loop.py` (`21f885e5`) | bidirectional human-AI loop orchestrator; REVIEW_EVIDENCE outranks; teach_plan suggestions only, skill candidate until human review | adapter (X08 wires flow semantics; no legacy DB writes) | X08 human side | legacy sqlite + legacy DB schema; must be re-expressed over Rust Core events | `tests/test_co_learning_loop.py`, `test_learning_loop_e2e.py` | revert adapter; original preserved |
+| 10 | `shared/learning_scheduler.py` (`14ecab54`) | FSRS v6 wrapper (py-fsrs, MIT) requiring EvidenceAnchor on every card | adapter (one scheduling authority per collection) | X08 review scheduling | upstream py-fsrs pinned; events must be replayed via Core, not Anki dual-write | `tests/test_learning_scheduler.py` | revert pin/adapter |
+| 11 | `app/knowledge/learning_artifact.py` (`f20d0634`) | candidate-only LearningArtifact projection from reviewed Knowledge + approval gating | semantic donor | X08 artifact/approval state | legacy approval model; vNext knowledge/user-acceptance dims separate (X04) | `tests/test_knowledge_to_learning_artifact.py`, `test_learning_artifact_card_projection.py`, `test_learning_artifact_contract.py` | revert donor copy |
+| 12 | `shared/evidence_verification.py` (`9e4ef049`) | text-grounded evidence matching; never random page/frame fallback | direct semantic reuse | X07 evidence gates | candidates must carry text; OCR/transcript still separate lanes | `tests/test_evidence_contract.py` (+hardening/coverage-gap) | revert additions |
+| 13 | `app/learning/distillation.py` (`54943ab6`) | human-reviewed, evidence-gated, reversible distillation promotion (approval decisions approved/deprecated) | semantic donor | X09 machine side | legacy sqlite tables; re-express over Core candidate/proposal + revocation | `tests/test_distillation.py`, `test_distillation_review.py`, `test_machine_knowledge_candidates.py` | revert |
+| 14 | `app/knowledge/machine_knowledge.py` (`29ae9861`) | governed MachineKnowledge candidates from mastered signals; reviewer decides approved/deprecated | semantic donor | X09 machine knowledge/revocation | approval & scope semantics to map into Rust domain (X04/X09) | `tests/test_machine_knowledge_contract.py`, `test_knowledge_governance_migration.py` | revert |
+
+Rules in Wave 1 apply unchanged; adapter wiring in X08/X09 must keep original
+bytes and record per-donor diff + regression before activation.
