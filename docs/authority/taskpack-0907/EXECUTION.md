@@ -146,6 +146,42 @@ DEFERRED_RETAINED. No task has been declared implemented by this record.
 - Next slices must record tested source sha/tree, commands + exit codes,
   environment versions, hashes, failure paths and rollback.
 
+## X03 slice A (2026-09-07): DeepTutor 1.5.17 local capability probe
+
+Candidate per TASKPACK 4.1: DeepTutor (HKUDS, locked 1.5.17). Host copy:
+`D:\All projects\OS External Configuration\10-toolchains\deeptutor\1.5.17`
+(source-archive full upstream clone + ready Windows venv; `source` dir is
+git metadata with empty checkout and is not the run source). CLI venv entry
+`deeptutor.exe` runs on this host; storage root = `<cwd>\data\user`.
+
+Verified offline (no LLM required):
+- `deeptutor doctor`: PASS runtime storage writable; FAIL no LLM model +
+  no openai credentials (endpoint defaults to https://api.openai.com) -> the
+  LLM-dependent tutoring/session core is BLOCKED_RESOURCE offline (no
+  credentials, no authorization to register); local-ollama provider
+  alternative not yet configured (deferred slice).
+- Notebook local import round-trip (synthetic ASCII markdown): create
+  notebook -> numeric id `01b12823`; `add-md` by numeric id persisted record
+  `e629b16a`; `show` reads it back; content stored under
+  `<iso>\data\user\workspace\notebook\01b12823.json`.
+- Concrete upstream gaps on Windows (v1.5.17, evidence from runs above):
+  1. Chinese-content markdown import corrupts to U+FFFD regardless of file
+     encoding (UTF-8 no BOM, UTF-8 BOM) and of PYTHONUTF8=1; ASCII content
+     imports cleanly. This is concrete failure evidence for the Chinese-first
+     product: qualifies as the documented "evaluate fallback / adapter"
+     trigger for X03 (not a silent pass).
+  2. `add-md` by notebook *name* reports success but does not persist
+     (numeric id works); `notebook list` record counts can lag `show`.
+- Repo pollution created by the first probe run (`data\user` under repo root
+  from cwd) was removed; later probes ran from an isolated cwd
+  `.project-local/deeptutor-val/` (ignored). No `.hermes`/E-drive/real-library
+  touch.
+
+X03 status: PARTIAL. Next X03 steps: decide default host only after an actual
+upstream run (web start not yet attempted) and record provider-config slice;
+Chinese-content import gap feeds X12/Obsidian interop planning and the
+fallback evaluation criteria.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
