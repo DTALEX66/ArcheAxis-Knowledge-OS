@@ -292,3 +292,7 @@ readable end-to-end.
 ## C04 part 3 (overnight): attachment rows explicit loss accounting
 
 Demo migration now counts legacy `attachments` rows as explicit losses (no vNext attachment table yet) instead of a generic unmapped-table name; test covers a non-empty attachment row. migration suite green.
+
+## Final overnight baseline (HEAD 1ca9052)
+
+Full cargo workspace --locked --offline: exit 0, zero failures after all C-fix parts incl. superseded-not-current.
