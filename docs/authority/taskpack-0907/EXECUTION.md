@@ -361,6 +361,23 @@ f803bfe): **2394 passed, 7 skipped, 14 warnings (deprecation), 124 subtests,
 exit 0**, 156s. Confirms no regression from the X04/X05/X06 changes landed so
 far on this branch (the 7 skips are not passed qualifications).
 
+## X10 slice A (2026-09-07): migration crate recon + full-workspace green
+
+- Full Rust workspace regression at current HEAD (post X05 slices A/B):
+  `cargo test --workspace --locked --offline` exit 0, zero failures
+  (vcvars + CARGO_HOME/RUSTUP_HOME env as recorded above).
+- `crates/archeaxis-migration` recon: implements legacy read-only `inventory`
+  + `export_jsonl` + stable manifest; existing tests cover table inventory,
+  reproducible byte-stable re-export, and "legacy db file bytes unchanged"
+  (read-only open, no WAL). These satisfy X10's export/dry-run base for
+  synthetic fixtures.
+- X10 gaps recorded for next slices (not faked): semantic mapping legacy ->
+  vNext staging import, structural/content diff and loss ledger, rollback of
+  an unactivated staging, richer non-empty fixtures (attachments, personal
+  definitions, knowledge versions, learning events, machine feedback); a real
+  user legacy database requires its own consistent-snapshot + readback
+  evidence and authorization, so that qualification stays open.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
