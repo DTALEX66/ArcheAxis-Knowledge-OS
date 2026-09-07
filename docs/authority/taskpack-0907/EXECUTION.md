@@ -105,3 +105,14 @@ blocker is resolved for API/CLI use; only the interactive web UI build and
 Windows candidate packaging remain (C08). Evidence config lives in the iso
 workspace .project-local/deeptutor-val/data/user/settings/model_catalog.json
 (ignored, not uploaded; contains no real secrets - dummy key).
+
+## X03 slice F (overnight): Chinese round-trip OK via API + real model summary
+
+DeepTutor notebook API on the local host: create notebook (a50e1cfa) + add_record
+with Chinese title/output -> read back EXACT bytes (0 U+FFFD). The earlier
+Chinese corruption was confined to the CLI file-reading path; the JSON/API path
+preserves UTF-8. add_record also auto-generated an English summary - a REAL
+local-model call (qwen3:8b) that succeeded. Conclusion: upstream Chinese
+content round-trip is available through the API; X12/Obsidian interop should
+use API/JSON, not the CLI md reader. Default-host candidate: DeepTutor local
+backend (web UI still to build/run headless if needed).
