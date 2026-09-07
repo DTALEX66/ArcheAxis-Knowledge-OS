@@ -304,3 +304,7 @@ Demo migration counts legacy `links` rows as explicit losses with reason (no vNe
 ## C06 part 3 (overnight): active_only search filter
 
 /api/v1/search supports active_only=true (server-side retain on qualification) - consumers get only current facts. api suite green.
+
+## C10 growth-stop evidence (overnight)
+
+.top-level .hermes newest write remains 2026-09-06 (task-runtime dir); the entire overnight session produced zero .hermes writes - growth-stop holds for this executor's entrypoints.
