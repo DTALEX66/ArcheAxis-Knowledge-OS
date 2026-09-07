@@ -149,3 +149,13 @@ Headless screenshot captured (`.project-local/deeptutor-val/ui-home.png`,
 The host is therefore usable end-to-end locally; default-host decision for
 ArcheAxis = DeepTutor local host (API + web) with local ollama, subject to
 adapter wiring (C08 remaining: candidate shell/package).
+
+## X03 slice J (overnight): real local-model chat answer via DeepTutor API
+
+POST /api/v1/plugins/capabilities/chat/execute-stream with a Chinese query ran
+to a terminal "done" event (session -> stage_start -> 231 thinking -> 24
+content -> stage_end -> done) and produced a correct Chinese one-sentence
+answer about spaced repetition (stored sample:
+.project-local/deeptutor-val/chat-answer2.txt, ignored). This is a real
+human-side tutoring answer on the configured local host (qwen3:8b via ollama),
+completing X03's runnable-answer evidence beyond summaries.
