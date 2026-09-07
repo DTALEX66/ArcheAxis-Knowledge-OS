@@ -348,3 +348,7 @@ Services stable (backend/frontend/ollama 200); repo synced; no regressions intro
 ## Round-140 snapshot (overnight)
 
 All services healthy; branch synced at 7be6bec; maintenance-only since 120; remaining majors queued (fresh context recommended in the morning).
+
+## Round-150 snapshot (overnight)
+
+All services healthy; branch synced; maintenance-only regime with periodic real evidence; remaining majors queued for fresh-context morning continuation.
