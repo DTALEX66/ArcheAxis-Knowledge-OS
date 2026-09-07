@@ -72,3 +72,28 @@ async fn qualification_reflects_status_and_active_gate() {
     let (s3, _) = get_qual(&router, "k_missing").await;
     assert_eq!(s3, StatusCode::NOT_FOUND);
 }
+
+async fn get_search(router: &axum::Router, q: &str) -> Value {
+    let resp = router.clone().oneshot(
+        Request::get(format!("/api/v1/search?q={q}")).body(Body::empty()).unwrap(),
+    ).await.unwrap();
+    let bytes = resp.into_body().collect().await.unwrap().to_bytes();
+    serde_json::from_slice(&bytes).unwrap_or(Value::Null)
+}
+
+#[tokio::test]
+async fn search_results_carry_active_qualification() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
+    let a = post_knowledge(&router, "alpha active marker zxq1", "candidate").await;
+    review(&router, &a, "accepted").await;
+    let b = post_knowledge(&router, "beta deprecated marker zxq1", "candidate").await;
+    review(&router, &b, "deprecated").await;
+    let v = get_search(&router, "zxq1").await;
+    let items = v["items"].as_array().unwrap();
+    assert_eq!(items.len(), 2, "both rows returned with status");
+    let active = items.iter().filter(|it| it["active"] == true).count();
+    let inactive = items.iter().filter(|it| it["active"] == false).count();
+    assert_eq!(active, 1);
+    assert_eq!(inactive, 1);
+}

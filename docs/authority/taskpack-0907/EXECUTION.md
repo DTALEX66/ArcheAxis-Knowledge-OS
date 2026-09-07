@@ -265,3 +265,10 @@ Full cargo workspace --locked --offline after the C02-C06 series: exit 0,
 zero failures (includes launch_auth real-process actor, learning idempotency/
 history/absolute-due, qualification endpoint, supersedes chain, archive
 inclusions, migration legacy-untouched).
+
+## C06 part 2 (overnight): search results carry active qualification
+
+/api/v1/search items now include status AND active (is_knowledge_active per
+row), so consumers can filter retrieval by qualification at the source.
+Test in qualification_api.rs (deprecated inactive, accepted active). api
+green.
