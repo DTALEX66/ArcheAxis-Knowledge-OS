@@ -69,12 +69,25 @@ DEFERRED_RETAINED. No task has been declared implemented by this record.
 
 | Task | State | Next evidence |
 | --- | --- | --- |
-| X00 | RECORDED (this file) | decision rows + intake verified above; commit on branch |
-| X01 | PARTIAL (first slice done) | run-root doc aligned; dev-path/browser regressions 14 passed; browser screenshot→OCR real flow + CI wiring still open |
-| X02 | PARTIAL (first slice done) | 8 current-loop donors registered (see X02-REUSE-LEDGER.md); broader semantic wave open |
-| X03..X11 | TODO | per TASKS.json dependency order |
-| X14 | TODO (eligible after X01/X02) | LOCAL-CLEANUP.md read-only census |
-| X12/X13, Q00/Q01, F01-F06 | per TASKS.json | deferred / audit / retained |
+| X00 | RECORDED | intake + decision rows (SUP-012..016) verified, commits on branch |
+| X01 | PARTIAL (slices A/B) | real screenshot→OCR (run 26510ae2b9d6), CI wiring audited; remaining: live CI dispatch of a code commit |
+| X02 | PARTIAL (waves 1-2) | 8 vNext workers + 6 legacy learning/knowledge donors registered with test evidence (X02-REUSE-LEDGER.md) |
+| X03 | PARTIAL / BLOCKED parts | DeepTutor 1.5.17 local probe done; Chinese-import gap + interactive-only LLM config + default-host decision open |
+| X04 | PARTIAL | schema/worker alignment locked; identity-self-claim fix BLOCKED on role-scope authority |
+| X05 | PARTIAL (A/B/C done) | source origins + HTTP + archive round trip proven; remaining executor/restart deep-slices open |
+| X06 | PARTIAL (A/B/C) | text/HTML/OCR eng+chi_sim real; PDF lane reconfirmed; scanned-OCR routing + media ASR + dynamic web open |
+| X07 | BLOCKED (cloud part) | public fact-check requires network/credentials authorization; offline golden metrics exist |
+| X08/X09 | BLOCKED | depend on X03 default-host decision + X07; donor semantics registered (X02 wave 2) |
+| X10 | PARTIAL | migration export/dry-run base proven on synthetic DB; semantic map/import/diff/rollback open |
+| X11 | BLOCKED | full Windows candidate package + journey + Q00 independent audit (needs prior gates) |
+| X14 | PARTIAL | real census 66.6 GiB + deletion-manifest PREP; deletion rows await explicit authorization |
+| X12/X13, Q00/Q01, F01-F06 | per TASKS.json | deferred / audit / retained frozen |
+
+Round-13 snapshot: remaining ready work is exhausted without new authorization;
+every open item above carries a recorded concrete prerequisite (role-scope
+identity, network/credentials, DeepTutor host decision, deletion row go-ahead,
+semantic migration mapping, packaging). Overall baselines: full Python suite
+2394 passed + full Rust workspace green at their recorded HEADs.
 
 ## X01 first slice (2026-09-07)
 
