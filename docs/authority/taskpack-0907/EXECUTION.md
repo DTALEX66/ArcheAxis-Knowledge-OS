@@ -332,3 +332,7 @@ tests/test_learning_scheduler.py 6 passed at HEAD - the FSRS donor (shared/learn
 ## Host longevity (overnight round 70): doctor PASS after many hours
 
 DeepTutor + ollama stable across the session (doctor all PASS, exit 0; backend/frontend 200).
+
+## X03 slice N (overnight): second real Chinese answer (memory palace)
+
+chat capability answered a second Chinese query to a terminal done event; final answer stored (chat-answer3.txt, ignored). Host answer quality stable across the night.
