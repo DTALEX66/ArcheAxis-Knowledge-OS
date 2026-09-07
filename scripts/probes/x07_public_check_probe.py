@@ -33,12 +33,12 @@ def numeric_support(extract: str) -> tuple[bool, str]:
 def local_judge(extract: str) -> str:
     prompt = ("判断来源是否支持该主张。只答：支持/不支持/无法判断，加一句理由。\n"
               f"主张：{CLAIM}\n来源：{extract[:900]}\n")
-    body = json.dumps({"model": "qwen3:8b", "prompt": prompt, "stream": False,
-                       "options": {"num_predict": 60}}).encode("utf-8")
-    req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=body,
+    body = json.dumps({"model": "qwen3:8b", "stream": False, "messages": [
+        {"role": "user", "content": prompt}]}).encode("utf-8")
+    req = urllib.request.Request("http://127.0.0.1:11434/api/chat", data=body,
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=200) as resp:
-        return json.loads(resp.read().decode("utf-8")).get("response", "").strip()
+        return json.loads(resp.read().decode("utf-8")).get("message", {}).get("content", "").strip()
 
 
 def main() -> int:

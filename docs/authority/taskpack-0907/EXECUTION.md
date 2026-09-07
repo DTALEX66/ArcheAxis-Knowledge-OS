@@ -312,3 +312,7 @@ Demo migration counts legacy `links` rows as explicit losses with reason (no vNe
 ## Final Python baseline (overnight, post probe-fix)
 
 Full Python suite 2394 passed / 7 skipped / 124 subtests exit 0 at the latest HEAD; architecture guard 22/22 (probe no longer mutates sys.path).
+
+## X07 slice D (overnight): local-model verdict obtained via chat API
+
+qwen3:8b /api/chat returns an explicit SUPPORT verdict for the Earth-radius claim (diameter 12742/2 = 6371 consistent). X07 real check sample now complete: real retrieval + numeric grounding + local-model verdict; product pipeline & stable-network scale remain open. Probe updated to chat API.
