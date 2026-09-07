@@ -169,3 +169,13 @@ completing X03's runnable-answer evidence beyond summaries.
   learning progress map returns next action "probe". This is a real
   target->module->knowledge-point learning trajectory derived from our Chinese
   notebook content by the local host - X08 human-side evidence.
+
+## X07 slice B (overnight): first real public retrieval succeeded
+
+Probe re-run: Wikipedia REST summary for Earth fetched OK once (run
+da547d4a84a8) - first successful real public-source retrieval on this host;
+egress is INTERMITTENT (later requests failed). The extract did not contain
+the claim's literal 6371 (phrasing variant), and the local-model verdict
+returned empty, so numeric support is INCONCLUSIVE; no fabricated conclusion.
+This upgrades X07 from "no egress at all" to "egress intermittent - one real
+retrieval recorded; full check still needs a stable network run".
