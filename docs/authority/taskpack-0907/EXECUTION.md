@@ -36,7 +36,7 @@ G01-G14 conclusions and fix criteria: see `Q00-Q01-AUDIT-2026-09-07.md`.
 | Item | Fix status | Notes |
 | --- | --- | --- |
 | C01 entry/encoding | DONE | AGENTS/indexes point to R2 + live ledger + audit board; ledger/audit/X14 re-encoded strict UTF-8 |
-| C02 server-side identity | OPEN | replace body-actor with trusted principal/capability |
+| C02 server-side identity | PARTIAL | launch middleware overwrites actor header from session claim; machine restricted in create/review/learning (unit tests green); real-process escalation scenario pending |
 | C03 review txn + revisions + anchors | OPEN | single write transaction; supersedes relations; bidirectional anchors |
 | C04 migration semantics/idempotency | OPEN | legal types via domain; hash verify; atomic; honest counts |
 | C05 learning schedule/contract | OPEN | reuse FSRS adapter; event contract; idempotent; absolute due |

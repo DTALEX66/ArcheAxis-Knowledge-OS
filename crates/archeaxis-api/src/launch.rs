@@ -7,7 +7,8 @@ use std::{io::Read,sync::mpsc,time::Duration};
 
 #[derive(Clone,Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Launch {launch_token:String,session_id:String,pub text_worker:Option<TextWorker>}
+pub struct Launch {launch_token:String,session_id:String,#[serde(default="default_actor")]pub actor:String,pub text_worker:Option<TextWorker>}
+fn default_actor()->String{"human".to_string()}
 #[derive(Clone,Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TextWorker {pub python:std::path::PathBuf,pub script:std::path::PathBuf,pub staging:std::path::PathBuf}
@@ -69,5 +70,14 @@ async fn authenticate(State(session):State<Session>,request:Request,next:Next)->
             "schema_version":archeaxis_store_sqlite::SCHEMA_VERSION,
             "session_id":session.launch.session_id,"workspace_db":session.workspace_db})).into_response();
     }
-    next.run(request).await
+    // C02: overwrite the request actor with the launch-session claim chosen by
+    // the local launcher; any client-supplied value is replaced, so handlers
+    // reading x-archeaxis-actor always see the trusted claim.
+    let (mut parts, body) = request.into_parts();
+    let actor = if session.launch.actor == "machine" { "machine" } else { "human" };
+    parts.headers.insert(
+        "x-archeaxis-actor",
+        axum::http::header::HeaderValue::from_static(if actor == "machine" { "machine" } else { "human" }),
+    );
+    next.run(axum::http::Request::from_parts(parts, body)).await
 }

@@ -14,7 +14,7 @@ use archeaxis_store_sqlite::{workspace_info_json, writer::{Store, StoreError}};
 use axum::{
     Json, Router,
     extract::{Path, Query, State},
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
     response::IntoResponse,
     routing::{get, post},
 };
@@ -22,6 +22,18 @@ use rusqlite::Connection;
 use serde::Deserialize;
 
 pub type AppState = Store;
+
+/// Resolve the trusted actor for a request. Production requests go through
+/// the launch middleware which OVERWRITES this header with the launch-session
+/// claim (C02), so a client cannot escalate. In-process projections default to
+/// human when the header is absent.
+fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
+    match headers.get("x-archeaxis-actor").and_then(|v| v.to_str().ok()) {
+        Some("machine") => Ok("machine"),
+        Some("human") | None => Ok("human"),
+        Some(_) => Err(StatusCode::BAD_REQUEST),
+    }
+}
 
 /// Build the router over the managed single-writer runtime.
 pub fn router(state: Store) -> Router {
@@ -153,10 +165,17 @@ fn default_learning_kind() -> String {
 
 async fn record_learning_event(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(body): Json<LearningEventBody>,
 ) -> impl IntoResponse {
     if body.item_key.trim().is_empty() {
         return (StatusCode::BAD_REQUEST, "item_key must be non-empty").into_response();
+    }
+    // C02: learning outcomes are human review events; machine principals must
+    // not fabricate human learning history.
+    if request_actor(&headers).unwrap_or("human") == "machine" {
+        return (StatusCode::FORBIDDEN, "machine principal cannot record human learning outcomes")
+            .into_response();
     }
     with_store(state, move |conn| match learning::record_review(
         conn,
@@ -209,37 +228,31 @@ struct KnowledgeBody {
     status: String,
     #[serde(default)]
     created_by: String,
-    #[serde(default = "default_actor")]
-    actor: String,
 }
 
 fn default_status() -> String {
     "candidate".to_string()
 }
 
-fn default_actor() -> String {
-    "human".to_string()
-}
-
 async fn create_knowledge(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(body): Json<KnowledgeBody>,
 ) -> impl IntoResponse {
-    // Actor guard at the product boundary (X04): machine/AI content may only
-    // enter as a candidate and may never self-accept or self-verify; human
-    // actors may create personal definitions directly as accepted when no
-    // external evidence applies. evidence_status is always None at creation.
-    let actor_ok = match body.actor.as_str() {
+    // C02: actor comes from the trusted header (set by the launch middleware
+    // from the launch-session claim), never from the request body.
+    let actor = match request_actor(&headers) {
+        Ok(actor) => actor,
+        Err(status) => return (status, "unknown actor").into_response(),
+    };
+    let actor_ok = match actor {
         "human" => matches!(body.status.as_str(), "candidate" | "accepted"),
-        "machine" => {
-            body.status == "candidate" && !body.created_by.trim().is_empty()
-        }
-        _ => false,
+        _ => body.status == "candidate" && !body.created_by.trim().is_empty(),
     };
     if !actor_ok {
         return (
             StatusCode::BAD_REQUEST,
-            "invalid actor/status combination: machine content must start as candidate and cannot self-accept; use a review action for acceptance".to_string(),
+            "actor/status mismatch: machine content must start as candidate and cannot self-accept; use a review action for acceptance".to_string(),
         )
             .into_response();
     }
@@ -273,9 +286,21 @@ struct ReviewBody {
 
 async fn review_decision(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Path(id): Path<String>,
     Json(body): Json<ReviewBody>,
 ) -> impl IntoResponse {
+    // C02: acceptance/rejection/deprecation are human review actions; a
+    // machine actor must not self-review its own proposals.
+    if request_actor(&headers).unwrap_or("human") == "machine"
+        && matches!(body.action.as_str(), "accepted" | "rejected" | "deprecated")
+    {
+        return (
+            StatusCode::FORBIDDEN,
+            "machine principal cannot perform human review actions",
+        )
+            .into_response();
+    }
     with_store(state, move |conn| {
     match knowledge::review(
         conn,
