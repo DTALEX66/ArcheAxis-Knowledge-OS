@@ -352,3 +352,7 @@ All services healthy; branch synced at 7be6bec; maintenance-only since 120; rema
 ## Round-150 snapshot (overnight)
 
 All services healthy; branch synced; maintenance-only regime with periodic real evidence; remaining majors queued for fresh-context morning continuation.
+
+## Round-160 snapshot (overnight)
+
+Services healthy; branch synced; maintenance-only since ~110 with periodic evidence; morning continuation recommended in a fresh session for C07/C08/C05 majors.
