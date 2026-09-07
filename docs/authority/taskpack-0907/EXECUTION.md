@@ -208,6 +208,39 @@ external-verification state dimensions, source/anchor bidirectional versioning
 and explicit invalidation (feeds X07/X05 work). No claim of completion for
 those.
 
+## X14 slice A (2026-09-07): first real Windows read-only census
+
+Ran the package census tool on the live repo (real Windows host):
+`audit_local_storage.py --repo .` through dev.py; run evidence
+`.project-local/runs/be268a2d33/a1351353bc6f`; report
+`.project-local/inventory/20260907T124829Z-21123e40/summary.json`.
+
+Numbers (same-scope, GiB = /1024^3):
+- logical 66.625 GiB, 857,017 files, hardlinked 0 (unique == logical),
+  deleted_files 0, skipped links/special 31.
+- 125 errors recorded honestly (not treated as absent): WinError 5 access
+  denied inside legacy `.hermes/task-runtime/...` (and `.hermes/t2-*`), and
+  WinError 3 missing paths on known long-path pytest residue (segment-xxx
+  UNC tests). `complete_regular_file_scan: False` for those; figures are
+  therefore a measured floor, not a full snapshot.
+- Categories (GiB): REVIEW_HERMES_MIXED_NO_AUTO_DELETE 42.855;
+  REVIEW_REBUILDABLE_CANDIDATE 12.667; REVIEW_PROJECT_RUNTIME_MIXED 10.05;
+  REVIEW_ENVIRONMENT_REBUILD_REQUIRED 0.858; KEEP_DATA_OR_UNKNOWN 0.094;
+  KEEP_TRACKED_OR_GIT 0.077; KEEP_UNCLASSIFIED 0.023.
+- Top two-level (GiB): .hermes/task-runtime 40.223; .project-local/build
+  8.398; src-tauri/target 5.181; desktop/src-tauri 4.896; target/debug 1.802;
+  .hermes/cache 1.632; .project-local/cache 1.148; .venv/Lib 0.804;
+  apps/ArcheAxis.Desktop 0.677; .project-local/runs 0.480; .hermes/rt 0.462;
+  .hermes/task-artifacts 0.328.
+- Reading: the historical ~56.6GB figure is not today's total and no
+  allocation/reclaim claim is made (logical bytes only). The 42.9 GiB .hermes
+  category stays preserved (REVIEW, no auto-delete). Rebuildable candidates
+  (~12.7 GiB target/node_modules/bin/obj + .project-local/build caches) are
+  quantified but NOT deleted in this slice: deletion is destructive and needs
+  an explicit per-scope confirmation plus a recorded manifest/rebuild step.
+  X14 next: deletion wave only after that confirmation; rerun same census to
+  compare before/after.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
