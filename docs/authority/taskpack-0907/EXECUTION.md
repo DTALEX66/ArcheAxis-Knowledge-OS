@@ -272,3 +272,12 @@ inclusions, migration legacy-untouched).
 row), so consumers can filter retrieval by qualification at the source.
 Test in qualification_api.rs (deprecated inactive, accepted active). api
 green.
+
+## C10 note (overnight): ASR model-dir read compatibility clarified
+
+app/ingestion/asr_adapter.py _sense_voice_dir default fallback may READ the
+preserved legacy location (".hermes/task-runtime/models/sense-voice") and
+fails closed when files are absent; it never writes there. New-model profile
+canonical location stays config/model-profiles (shared tessdata), per
+EXECUTION X01/X06. No code change needed; read-only legacy compatibility is
+distinct from new-task writes (which only go to .project-local).
