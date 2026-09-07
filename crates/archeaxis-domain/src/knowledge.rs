@@ -179,3 +179,14 @@ pub fn knowledge_ids_for_anchor(
     let rows = stmt.query_map([anchor_id], |r| r.get(0))?;
     rows.collect()
 }
+
+/// Read the persisted status of a knowledge row (None when missing) so a
+/// consumer can check qualification before reuse.
+pub fn knowledge_status(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<Option<String>> {
+    conn.query_row(
+        "SELECT status FROM knowledge WHERE knowledge_id=?1",
+        [knowledge_id],
+        |r| r.get(0),
+    )
+    .optional()
+}

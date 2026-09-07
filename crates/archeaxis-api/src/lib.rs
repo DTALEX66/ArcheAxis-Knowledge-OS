@@ -48,6 +48,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/jobs", post(enqueue_job))
         .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
         .route("/api/v1/knowledge-items", post(create_knowledge))
+        .route("/api/v1/knowledge-items/:id/qualification", get(knowledge_qualification))
         .route(
             "/api/v1/knowledge-items/:id/review-decisions",
             post(review_decision),
@@ -228,6 +229,26 @@ async fn create_anchor(
     }).await
 }
 
+async fn knowledge_qualification(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| match knowledge::knowledge_status(conn, &id) {
+        Ok(Some(_)) => (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "knowledge_id": id,
+                "exists": true,
+                "active": knowledge::is_knowledge_active(conn, &id).unwrap_or(false),
+            })),
+        )
+            .into_response(),
+        Ok(None) => (StatusCode::NOT_FOUND, "knowledge not found").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+    .await
+}
+
 #[derive(Deserialize)]
 struct KnowledgeBody {
     knowledge_type: String,
@@ -368,8 +389,7 @@ fn base64_decode(s: &str) -> Option<Vec<u8>> {
     base64::engine::general_purpose::STANDARD.decode(s).ok()
 }
 
-// 鈹€鈹€ worker job endpoints (worker-protocol slice) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
-
+// 闁冲厜鍋撻柍鍏夊亾 worker job endpoints (worker-protocol slice) 闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋撻柍鍏夊亾闁冲厜鍋?
 #[derive(Deserialize)]
 struct EnqueueBody {
     job_id: String,

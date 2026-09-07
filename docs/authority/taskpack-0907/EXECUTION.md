@@ -228,3 +228,10 @@ in one transaction; duplicate key -> (0, streak, -1) sentinel, no new event)
 and API client_event_id (duplicate -> 200 duplicate:true, next null; fresh ->
 201). Test covers same-key replay counted once and streak continuity across
 keys. api+domain suites green.
+
+## C06 part 1 (overnight): qualification endpoint for consumers
+
+GET /api/v1/knowledge-items/:id/qualification returns exists/active using
+knowledge_status + is_knowledge_active (deprecated/rejected -> active false,
+missing -> 404). This is the consumer-side check surface for machines before
+reuse. Test qualification_api.rs green; api suite additions pass.
