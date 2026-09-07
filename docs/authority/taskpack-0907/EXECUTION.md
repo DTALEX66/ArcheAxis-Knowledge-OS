@@ -92,6 +92,16 @@ DEFERRED_RETAINED. No task has been declared implemented by this record.
   `tests/test_workspace_browser_failure_retry_replay.py` → 14 passed,
   0 failed (dev.py launcher invariant: writes only `.project-local`, never
   creates `.hermes`, concurrent tmp isolation; pytest exit 0 re-confirmed).
+  dev.py-managed run evidence: `.project-local/runs/be268a2d33/ea458cee118a`
+  (exit_code 0, dirty=false, source_commit 76a3680, python 3.13.14).
+- CI gate wiring audit (read-only): `.github/workflows/vnext-ci.yml` path
+  triggers cover crates/Cargo/contracts/services/python-workers/scripts/runtime/
+  tests/{runtime-paths,workers,contract}/model-profiles/desktop and run the
+  `scripts/ci/check_vnext_{contracts,receipt,workers}.py` structural gates plus
+  a Windows cargo-test; `a0_browser_smoke` is referenced by ci.yml/nightly.yml.
+  The X00/X01 doc-only commits are intentionally outside vnext-ci path
+  triggers, so no vnext-ci run is claimed for them; full collection entrypoint
+  remains `scripts/ci/run_tests.ps1 --full`.
 - Open for X01 completion: real screenshot→OCR flow on this host (chromium
   availability under shared toolchain), CI collection/gate wiring review.
 
