@@ -204,3 +204,11 @@ baselines green (cargo 0 failures; python 2394). Server processes left running
 for owner inspection: backend :8001, frontend :3782 (kill at will). Evidence
 files in .project-local/deeptutor-val/ and runs/. Next-day queue (recorded in
 OVERNIGHT-RESULTS-2026-09-08.md): finish C05-C09 wiring on this host.
+
+## C03 part 2 (overnight): anchor -> knowledge reverse lookup
+
+Added knowledge::knowledge_ids_for_anchor (domain) + test
+anchor_bidi.rs: knowledge created against a source anchor is findable from the
+anchor (source position -> derived content direction). domain suite green.
+Full bidirectional navigation (content -> source position/URL) already exists
+via anchor position; remaining: supersedes relations and UI wiring.

@@ -166,3 +166,16 @@ pub fn is_knowledge_active(conn: &Connection, knowledge_id: &str) -> rusqlite::R
         .optional()?;
     Ok(matches!(status.as_deref(), Some("candidate" | "accepted")))
 }
+
+/// Reverse lookup: knowledge rows bound to a source anchor (bidirectional
+/// navigation from an original-source position back to derived content).
+pub fn knowledge_ids_for_anchor(
+    conn: &Connection,
+    anchor_id: &str,
+) -> rusqlite::Result<Vec<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT knowledge_id FROM knowledge WHERE anchor_id=?1 ORDER BY knowledge_id",
+    )?;
+    let rows = stmt.query_map([anchor_id], |r| r.get(0))?;
+    rows.collect()
+}
