@@ -300,3 +300,7 @@ Full cargo workspace --locked --offline: exit 0, zero failures after all C-fix p
 ## C04 part 4 (overnight): link rows explicit loss accounting
 
 Demo migration counts legacy `links` rows as explicit losses with reason (no vNext relationship table yet). migration suite green.
+
+## C06 part 3 (overnight): active_only search filter
+
+/api/v1/search supports active_only=true (server-side retain on qualification) - consumers get only current facts. api suite green.

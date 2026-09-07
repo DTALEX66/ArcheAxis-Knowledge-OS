@@ -97,3 +97,21 @@ async fn search_results_carry_active_qualification() {
     assert_eq!(active, 1);
     assert_eq!(inactive, 1);
 }
+
+#[tokio::test]
+async fn search_active_only_filters_out_inactive() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
+    let a = post_knowledge(&router, "only alpha live zq", "candidate").await;
+    review(&router, &a, "accepted").await;
+    let b = post_knowledge(&router, "only beta dead zq", "candidate").await;
+    review(&router, &b, "deprecated").await;
+    let resp = router.clone().oneshot(
+        Request::get("/api/v1/search?q=zq&active_only=true").body(Body::empty()).unwrap(),
+    ).await.unwrap();
+    let bytes = resp.into_body().collect().await.unwrap().to_bytes();
+    let v: Value = serde_json::from_slice(&bytes).unwrap();
+    let items = v["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["active"], true);
+}
