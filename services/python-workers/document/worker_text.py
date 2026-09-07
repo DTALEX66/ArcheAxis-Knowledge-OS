@@ -20,6 +20,7 @@ Output: {"engine","engine_version","text","structure","loss_receipt"}
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -102,6 +103,8 @@ def extract(path: str) -> dict:
 
 
 def main() -> int:
+    with contextlib.suppress(AttributeError, OSError):
+        sys.stdout.reconfigure(encoding="utf-8")
     if len(sys.argv) != 2:
         print(json.dumps({"error": "usage: worker_text.py <input-file>"}))
         return 2

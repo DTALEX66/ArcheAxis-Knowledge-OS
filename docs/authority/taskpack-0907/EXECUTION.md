@@ -241,6 +241,32 @@ Numbers (same-scope, GiB = /1024^3):
   X14 next: deletion wave only after that confirmation; rerun same census to
   compare before/after.
 
+## X04/X05 slice B (2026-09-07): worker CLI UTF-8 stdout hardening
+
+Rust integration baseline exposed a Windows-specific defect class: worker CLI
+mains printed JSON with `ensure_ascii=False` while the spawned child's stdout
+defaulted to the locale codec (GBK), so any astral char (e.g. U+1F600 in the
+BOM/loss-receipt fixture) crashed with UnicodeEncodeError. dev.py runs were
+green only because dev.py exports PYTHONIOENCODING=utf-8.
+
+Fix: reconfigure stdout to UTF-8 at main start in
+`worker_text.py`, `worker_quality.py`, `worker_ocr.py`
+(`contextlib.suppress(AttributeError, OSError)`), so the CLI is
+environment-independent (product worker output contract is UTF-8).
+Also removed now-unneeded `# -*- coding: utf-8 -*-` headers (UP009).
+
+Verification: ruff clean; worker_text CLI repro exit 0; python subset
+39 passed + 4 OCR skips + 47 subtests (run `be268a2d33/5bce2ba6ff88`);
+`cargo test -p archeaxis-api --test job_rejections` 3 passed (was failing with
+"worker execution failed" before the fix). Full workspace re-run follows.
+
+Toolchain/env notes recorded for future Rust runs on this host:
+- cargo 1.97.1 at `10-toolchains\cargo\bin\cargo.exe` with CARGO_HOME/RUSTUP_
+  HOME pointing at `10-toolchains\{cargo,rustup}`; MSVC linker via
+  `10-toolchains\msvc\VC\Auxiliary\Build\vcvars64.bat`; integration tests that
+  spawn the real Python worker also require ARCHEAXIS_PYTHON (venv python).
+  Canonical wrapper = dev.py inside a vcvars-initialized shell.
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016

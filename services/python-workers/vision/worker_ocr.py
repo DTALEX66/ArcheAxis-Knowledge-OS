@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ArcheAxis vNext vision worker: OCR text + boxes (F04 partial).
 
 Runs the system Tesseract binary over a still image and returns:
@@ -20,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import math
 import os
@@ -209,6 +209,8 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
 
 
 def main() -> int:
+    with contextlib.suppress(AttributeError, OSError):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="ArcheAxis OCR worker")
     parser.add_argument("input", nargs="?", help="image file")
     parser.add_argument("--lang", default="eng")

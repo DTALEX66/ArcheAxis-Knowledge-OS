@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ArcheAxis vNext evaluation worker: recomputable CER/WER (T07).
 
 Compares a prediction text against a gold reference and emits quality-report
@@ -23,6 +22,7 @@ Output: quality-report.schema.json-compatible envelope
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
 import math
@@ -195,6 +195,8 @@ def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, norma
 
 
 def main() -> int:
+    with contextlib.suppress(AttributeError, OSError):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="ArcheAxis quality evaluation worker")
     parser.add_argument("prediction", help="prediction text file")
     parser.add_argument("gold", help="gold reference text file")
