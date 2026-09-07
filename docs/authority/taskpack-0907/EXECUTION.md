@@ -281,3 +281,10 @@ fails closed when files are absent; it never writes there. New-model profile
 canonical location stays config/model-profiles (shared tessdata), per
 EXECUTION X01/X06. No code change needed; read-only legacy compatibility is
 distinct from new-task writes (which only go to .project-local).
+
+## X08 slice M (overnight): learning objective readback
+
+GET learning/progress/{book}/objectives/{kp} returns real objective state
+(status new, gate qualitative, threshold, mastery 0.0, attempts []) for the
+book generated from our notebook - confirms the learning host state machine is
+readable end-to-end.
