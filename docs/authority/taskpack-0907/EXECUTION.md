@@ -182,6 +182,21 @@ upstream run (web start not yet attempted) and record provider-config slice;
 Chinese-content import gap feeds X12/Obsidian interop planning and the
 fallback evaluation criteria.
 
+## X03 slice B (2026-09-07): local LLM provider config attempt - BLOCKED at config surface
+
+Attempted to unblock DeepTutor LLM checks with the running local ollama
+(0.33.3 at 127.0.0.1:11434; models incl. qwen3 family present; DeepTutor README
+documents Ollama via Base URL `http://host…:11434/v1`). Findings:
+- CLI `deeptutor init --cli` is interactive-only (no non-interactive flags for
+  provider/model); the model provider profile lives in
+  `data/user/settings/model_catalog.json` with `profiles[]` whose exact schema
+  would have to be reverse-engineered from upstream code.
+- Recording this as BLOCKED_RESOURCE at the configuration surface, not a
+  product failure: enabling it needs either the upstream UI Settings->Models
+  path on a launched host (X03 web-start slice) or an upstream-supported
+  non-interactive provider config command. No code/config was modified in the
+  shared DeepTutor install; iso workspace unchanged.
+
 ## X04 slice A (2026-09-07): worker_quality schema alignment regression
 
 Task-card claims checked against current branch code + schemas:
