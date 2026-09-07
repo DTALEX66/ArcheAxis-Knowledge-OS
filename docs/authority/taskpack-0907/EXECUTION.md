@@ -412,3 +412,6 @@ full python suites, DeepTutor host activity, worker processes), measured:
 - .hermes/: newest write still 2026-09-06 11:29:42 - zero writes; git-ignored (.hermes/).
 - Git tracked tree: clean (0 dirty). .gitignore covers every destination: __pycache__/, .pytest_cache/, .venv/, .hermes/, .project-local/, /target/ (and nested tauri targets), build/, data trees.
 Conclusion: repository write rules hold for the executing entrypoints - build/run artifacts stay in ignored paths only; no tracked-tree or .hermes growth. Not a docs-only claim: path-level measurements above.
+## Host longevity re-check (round 244): doctor --online PASS after ~24h+ uptime
+
+deeptutor doctor --online run from the host root (.project-local/deeptutor-val) exits 0: active model qwen3:8b (ollama), local provider needs no API key, provider returned a response, storage writable under the host store. Note: running doctor from the repo root instead reads the empty repo data/user store and reports no active model - a config-store artifact, not a host regression (the running API keeps llm-profile-ollama01 / llm-model-qwen3-8b at base_url http://127.0.0.1:11434/v1, verified via GET /api/v1/settings/catalog). Host longevity confirmed.
