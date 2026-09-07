@@ -123,3 +123,11 @@ add_record(record_type=question, Chinese query) on notebook a50e1cfa returned 20
 and stored record c87158d0; stored bytes verified EXACT (0 U+FFFD, substring
 checks true). The record pipeline auto-generated a summary via the local model
 (qwen3:8b) - a second real model call succeeding on the product flow.
+
+## X03 slice H (overnight): chat API surface note
+
+openapi has no generic chat POST; chat flows are session/partner-based (not
+exercised). Real local-model generation evidence on this host already: doctor
+--online provider response + two add_record auto-summaries (chat & question).
+CLI single-turn attempt was blocked by PowerShell quoting of the Chinese
+argument (shell issue, not product) - not pursued further.
