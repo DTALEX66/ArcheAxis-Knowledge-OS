@@ -353,6 +353,14 @@ under a project-owned browser root; media ASR execution group stays
 BLOCKED_RESOURCE pending an authorized model-profile run (P14). M0 samples for
 text/HTML/OCR(chi_sim)/screenshot chains now have real local evidence.
 
+## Overall Python regression (2026-09-07)
+
+Full suite across tests + integration-tests + knowledge_base/tests via dev.py:
+run `.project-local/runs/be268a2d33/e31758dd7698` (dirty=false, source commit
+f803bfe): **2394 passed, 7 skipped, 14 warnings (deprecation), 124 subtests,
+exit 0**, 156s. Confirms no regression from the X04/X05/X06 changes landed so
+far on this branch (the 7 skips are not passed qualifications).
+
 ## Rollback
 
 - This record: revert the DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016
