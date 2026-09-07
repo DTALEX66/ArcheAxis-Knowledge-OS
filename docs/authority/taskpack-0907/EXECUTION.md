@@ -39,7 +39,7 @@ G01-G14 conclusions and fix criteria: see `Q00-Q01-AUDIT-2026-09-07.md`.
 | C02 server-side identity | PARTIAL | launch middleware overwrites actor header from session claim; machine restricted in create/review/learning (unit tests green); real-process escalation scenario pending |
 | C03 review txn + revisions + anchors | PARTIAL | knowledge::review is one transaction (status+event commit/rollback together; modified creates candidate AND records event); supersedes relations & bidirectional anchors open |
 | C04 migration semantics/idempotency | PARTIAL | demo staging: legal PERSONAL_DEFINITION type, manifest hash+row verify before write, single atomic staging tx, inserted/reused counts, legacy-row id preserved; tamper rejected (tests); broader type map open |
-| C05 learning schedule/contract | OPEN | reuse FSRS adapter; event contract; idempotent; absolute due |
+| C05 learning schedule/contract | PARTIAL | idempotent events via client_event_id (archive-safe); FSRS adapter + absolute due/order-insensitive + full route open |
 | C06 knowledge qualification in consumers | OPEN | wire active check into context/get/results |
 | C07 same pipeline converters + public check | PARTIAL (X07 probe) | first real public retrieval recorded; egress intermittent; single-pipeline worker registry open |
 | C08 host + Windows candidate | PARTIAL (host solved) | DeepTutor full stack local (backend+Next UI) + local ollama; real chat/answer & learning path evidence; shell/package & adapter wiring open |
