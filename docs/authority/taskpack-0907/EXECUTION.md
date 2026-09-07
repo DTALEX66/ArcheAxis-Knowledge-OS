@@ -116,3 +116,10 @@ local-model call (qwen3:8b) that succeeded. Conclusion: upstream Chinese
 content round-trip is available through the API; X12/Obsidian interop should
 use API/JSON, not the CLI md reader. Default-host candidate: DeepTutor local
 backend (web UI still to build/run headless if needed).
+
+## X03 slice G (overnight): question record + local-model summary persisted
+
+add_record(record_type=question, Chinese query) on notebook a50e1cfa returned 200
+and stored record c87158d0; stored bytes verified EXACT (0 U+FFFD, substring
+checks true). The record pipeline auto-generated a summary via the local model
+(qwen3:8b) - a second real model call succeeding on the product flow.
