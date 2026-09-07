@@ -175,6 +175,7 @@ pub struct DemoStageResult {
     pub notes_row_errors: u64,
     pub docs_loss_rows: u64,
     pub attachments_loss_rows: u64,
+    pub links_loss_rows: u64,
     pub other_unmapped_tables: Vec<String>,
     pub losses: Vec<String>,
 }
@@ -304,6 +305,14 @@ pub fn stage_demo_semantic_import(
         result.attachments_loss_rows = att.rows;
         result.losses.push(
             "attachments: vNext has no attachment table yet; all attachment rows are counted as losses (never silently dropped)"
+                .to_string(),
+        );
+    }
+    if let Some(links) = manifest.tables.get("links") {
+        leftover.retain(|t| t != "links");
+        result.links_loss_rows = links.rows;
+        result.losses.push(
+            "links: vNext has no note-relationship table yet; all link rows are counted as losses with reasons (never silently dropped)"
                 .to_string(),
         );
     }

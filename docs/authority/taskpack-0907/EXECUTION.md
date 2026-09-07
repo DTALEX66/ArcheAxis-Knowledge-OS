@@ -296,3 +296,7 @@ Demo migration now counts legacy `attachments` rows as explicit losses (no vNext
 ## Final overnight baseline (HEAD 1ca9052)
 
 Full cargo workspace --locked --offline: exit 0, zero failures after all C-fix parts incl. superseded-not-current.
+
+## C04 part 4 (overnight): link rows explicit loss accounting
+
+Demo migration counts legacy `links` rows as explicit losses with reason (no vNext relationship table yet). migration suite green.

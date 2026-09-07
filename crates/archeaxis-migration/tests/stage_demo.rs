@@ -13,7 +13,8 @@ fn make_legacy(dir: &std::path::Path) -> String {
         "CREATE TABLE notes(id INTEGER PRIMARY KEY, body TEXT, created_at TEXT);
          CREATE TABLE docs(id INTEGER PRIMARY KEY, title TEXT, sha256 TEXT);
          CREATE TABLE legacy_extra(id INTEGER PRIMARY KEY, blob_data BLOB);
-         CREATE TABLE attachments(id INTEGER PRIMARY KEY, name TEXT, bytes BLOB);",
+         CREATE TABLE attachments(id INTEGER PRIMARY KEY, name TEXT, bytes BLOB);
+         CREATE TABLE links(id INTEGER PRIMARY KEY, from_id INTEGER, to_id INTEGER);",
     )
     .unwrap();
     conn.execute("INSERT INTO notes(body, created_at) VALUES('星环 legacy note one', '2026-08-29')", []).unwrap();
@@ -23,6 +24,7 @@ fn make_legacy(dir: &std::path::Path) -> String {
     conn.execute("INSERT INTO docs(title, sha256) VALUES('doc a', 'aaa')", []).unwrap();
     conn.execute("INSERT INTO legacy_extra(blob_data) VALUES(x'0102')", []).unwrap();
     conn.execute("INSERT INTO attachments(name, bytes) VALUES('note.png', x'8950')", []).unwrap();
+    conn.execute("INSERT INTO links(from_id, to_id) VALUES(1,2)", []).unwrap();
     drop(conn);
     db.to_str().unwrap().to_string()
 }
@@ -48,6 +50,7 @@ fn demo_stage_is_legal_verified_atomic_idempotent_and_preserves_row_ids() {
     assert_eq!(first.notes_inserted + first.notes_reused, 3);
     assert_eq!(first.docs_loss_rows, 1);
     assert_eq!(first.attachments_loss_rows, 1);
+    assert_eq!(first.links_loss_rows, 1);
     assert!(first.losses.iter().any(|l| l.starts_with("legacy_extra")));
     assert_eq!(knowledge_count(staging.to_str().unwrap()), 3);
 
