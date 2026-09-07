@@ -212,3 +212,11 @@ anchor_bidi.rs: knowledge created against a source anchor is findable from the
 anchor (source position -> derived content direction). domain suite green.
 Full bidirectional navigation (content -> source position/URL) already exists
 via anchor position; remaining: supersedes relations and UI wiring.
+
+## C09 part 2 (overnight): reproducible probes in-repo
+
+Sanitized, runnable probe sources added under scripts/probes/:
+x01_real_screenshot_ocr.py (real screenshot->OCR, rerun exit 0, tokens
+matched) and x07_public_check_probe.py (real retrieval + local judge). Both
+ruff-clean and use repo-relative paths; no secrets/local-absolute defaults.
+Summaries remain in EXECUTION; raw run artifacts stay in .project-local.
