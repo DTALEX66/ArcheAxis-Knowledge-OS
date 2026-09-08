@@ -38,7 +38,7 @@ Waves are slice priority, not new dependencies.
 
 | Wave | Tasks | Status |
 | --- | --- | --- |
-| A | X00, X01, X02 (+X14 early) | X00 IN_PROGRESS (registration, this file); X01/X02 pending |
+| A | X00, X01, X02 (+X14 early) | X00 IMPLEMENTED_PENDING_AUDIT; X01/X02 pending |
 | B | X04, X05 (+X07/X08 defect slices) | pending |
 | C | X06, X07 (+X10) | pending |
 | D | X03, X08, X09 | pending |
@@ -87,4 +87,22 @@ Waves are slice priority, not new dependencies.
 
 ## Slices landed (commit -> evidence)
 
-(none yet in R3; registration performed in the X00 commit)
+- `1191a77` X00 registration (GOV01/LANG01 partial): package installed at
+  this directory, `verify_package.py` PASS (exit 0; 23 tasks / 29 features /
+  26 scenarios / 16 capabilities / 16 format groups / 11 enhancements /
+  14 gates / 12 governance slices), SUP-017 appended to
+  `DECISION_SUPERSESSION_LEDGER.yaml`, AGENTS.md §6 active-plan pointer
+  switched to this file, intake note
+  `workspace/intake/2026-09-08-followup-r3-taskpack.md`. Baseline check:
+  HEAD `cbe253b` == package `audit_base_sha`; branch `codex/full-loop-0906`
+  (ahead 1 of origin at registration time); `main` untouched at `4ca46ea`.
+  Rollback: revert the commit; package files are inert data.
+- `1f1b44c` X00 index alignment: `docs/DOCUMENTATION_AUTHORITY_INDEX.md`
+  current read order and `docs/CONFIGURATION_AUTHORITY_INDEX.md`
+  当前执行 row now resolve to this file as the single active plan entry
+  (AUTH-01 evidence: all entry points -> AAK-FOLLOWUP-20260908-R3;
+  23 tasks/16CAP/16 formats/11 enhancements/29 features retained via
+  TASKS.json byte-inheritance; DONE/implementation/audit states separated —
+  nothing in R3 is claimed DONE or VERIFIED yet).
+- X00 remains IMPLEMENTED_PENDING_AUDIT, not VERIFIED: independent GPT
+  audit (Q00) is the only qualification path.
