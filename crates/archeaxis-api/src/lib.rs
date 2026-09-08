@@ -339,6 +339,10 @@ struct ReviewBody {
     reviewer: String,
     #[serde(default)]
     note: Option<String>,
+    // C06: a modified review may carry the corrected content so the supersede
+    // successor is created with the new version, not a clone of the old body.
+    #[serde(default)]
+    new_body: Option<String>,
 }
 
 async fn review_decision(
@@ -347,10 +351,14 @@ async fn review_decision(
     Path(id): Path<String>,
     Json(body): Json<ReviewBody>,
 ) -> impl IntoResponse {
-    // C02: acceptance/rejection/deprecation are human review actions; a
-    // machine actor must not self-review its own proposals.
+    // C02/C06: acceptance/rejection/deprecation/modification are human review
+    // actions; a machine actor must not self-review its own proposals (it may
+    // only propose candidates and read qualification).
     if request_actor(&headers).unwrap_or("human") == "machine"
-        && matches!(body.action.as_str(), "accepted" | "rejected" | "deprecated")
+        && matches!(
+            body.action.as_str(),
+            "accepted" | "rejected" | "deprecated" | "modified"
+        )
     {
         return (
             StatusCode::FORBIDDEN,
@@ -365,7 +373,7 @@ async fn review_decision(
         &body.action,
         &body.reviewer,
         body.note.as_deref(),
-        None,
+        body.new_body.as_deref(),
     ) {
         Ok(kid) => (
             StatusCode::OK,
@@ -425,7 +433,7 @@ fn base64_decode(s: &str) -> Option<Vec<u8>> {
     base64::engine::general_purpose::STANDARD.decode(s).ok()
 }
 
-// 闂傚倷绀侀崯鍧楀储濠婂牆纾婚柟鍓х帛閻撳啴鏌涜箛鎿冩Ц濞?worker job endpoints (worker-protocol slice) 闂傚倷绀侀崯鍧楀储濠婂牆纾婚柟鍓х帛閻撳啴鏌涜箛鎿冩Ц濞存粓绠栧娲礃閹绘帒杈呴梺绋款儐閹瑰洭寮诲澶婄濠㈣泛锕ｆ竟鏇㈡⒒娴ｇ鏆遍柛妯荤矒瀹曟垿骞樼紒妯煎帗闂佺绻愰ˇ顖涚妤ｅ啯鈷戦柛鎰絻鐢劑鏌涚€ｎ偅宕岄柡灞界Ч瀹曟寰勬繝浣割棜闂傚倷绀侀崯鍧楀储濠婂牆纾婚柟鍓х帛閻撳啴鏌涜箛鎿冩Ц濞存粓绠栧娲礃閹绘帒杈呴梺绋款儐閹瑰洭寮诲澶婄濠㈣泛锕ｆ竟鏇㈡⒒娴ｇ鏆遍柛妯荤矒瀹曟垿骞樼紒妯煎帗闂佺绻愰ˇ顖涚妤ｅ啯鈷戦柛鎰絻鐢劑鏌涚€ｎ偅宕岄柡灞界Ч瀹曟寰勬繝浣割棜闂傚倷绀侀崯鍧楀储濠婂牆纾婚柟鍓х帛閻撳啴鏌涜箛鎿冩Ц濞存粓绠栧娲礃閹绘帒杈呴梺绋款儐閹瑰洭寮诲澶婄濠㈣泛锕ｆ竟鏇㈡⒒娴ｇ鏆遍柛妯荤矒瀹曟垿骞樼紒妯煎帗闂佺绻愰ˇ顖涚妤ｅ啯鈷戦柛鎰絻鐢劑鏌涚€ｎ偅宕岄柡灞界Ч瀹曟寰勬繝浣割棜闂傚倷绀侀崯鍧楀储濠婂牆纾?
+// worker job endpoints (worker-protocol slice): durable enqueue + terminal receipt.
 #[derive(Deserialize)]
 struct EnqueueBody {
     job_id: String,
