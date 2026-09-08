@@ -65,12 +65,17 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 
 ## 6. Implementation Workflow
 
-The user-approved active plan is ARCHEAXIS-REUSE-FIRST-FULL-TASKPACK-2026-09-07
-(AAK-REUSE-FIRST-20260907-R2); live execution state is
-`docs/authority/taskpack-0907/EXECUTION.md` and the independent GPT audit
-board is `docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`. The earlier
-2026-09-06-r1 Full Loop TaskPack is superseded in the parts recorded in
-DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-016; its receipts keep their own
+The user-approved active plan is ARCHEAXIS-FOLLOWUP-20260908-R3
+(AAK-FOLLOWUP-20260908-R3.1); live execution state is
+`docs/authority/taskpack-0908-r3/EXECUTION.md`; its 23 tasks inherit R2
+work/acceptance verbatim with R3 increments and 12 governance/language
+migration slices (GOV01-GOV05, LANG01-LANG07), baseline `cbe253b`. The
+preceding plan AAK-REUSE-FIRST-20260907-R2 remains the source of the inherited
+task text, its audit board is `docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`
+(Q00 fail / Q01 not eligible), and its receipts keep their own SHAs
+(`docs/authority/taskpack-0907/EXECUTION.md`). The earlier 2026-09-06-r1 Full
+Loop TaskPack is superseded in the parts recorded in
+DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-017; its receipts keep their own
 SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The formal
 desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia), with the separate vNext Rust
 Core database and isolated Python workers. `frontend/`, `src-tauri/`, `desktop/`

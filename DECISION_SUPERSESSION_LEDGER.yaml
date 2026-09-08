@@ -90,3 +90,9 @@ decisions:
     old_claim: 用户增强附件按独立 P0/P1 第二任务图推进；九锚认知被当作算法依据；Obsidian/Vault 往返未细化
     replacement: R2 将 11 项增强诉求映射进原 X 任务不另建第二活动任务图（双向锚点、撤销传播、状态维度补实，Obsidian/Vault 往返细化至 X12/M1 并如实报告损失）；九锚仅保留为待用户提供具体模板的可选内容，不编造效果；跨项目只读知识包仍属 F04 后置
     reason: taskpack D15/D16 决定；ENHANCEMENT-REVIEW.md 裁决
+  - id: SUP-017
+    status: effective
+    supersedes: 2026-09-07 active-plan status of AAK-REUSE-FIRST-20260907-R2 as the single live plan entry
+    old_claim: R2 (docs/authority/taskpack-0907) 是唯一活动计划入口；执行按 C01-C10 修复队列推进
+    replacement: 用户 2026-09-08 交付 AAK-FOLLOWUP-20260908-R3（plan_only，未签发授权本身），实现基线 cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed；23 个任务逐字节继承 R2 work/acceptance 并新增 r3_work/r3_acceptance 与 12 个治理/语言迁移切片（GOV01-05、LANG01-07）；活动入口唯一指向 docs/authority/taskpack-0908-r3/EXECUTION.md；R2 原任务文本与证据 SHA 保留为来源，Q00 失败/Q01 不具资格的审计结论继承为基线
+    reason: taskpack X00 r3_work item 1；EXECUTOR-START.md 入场动作；verify_package.py PASS（23 tasks/29 features/26 scenarios/12 governance slices）
