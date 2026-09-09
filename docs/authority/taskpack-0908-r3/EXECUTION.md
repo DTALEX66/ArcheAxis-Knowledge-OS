@@ -38,7 +38,7 @@ Waves are slice priority, not new dependencies.
 
 | Wave | Tasks | Status |
 | --- | --- | --- |
-| A | X00, X01, X02 (+X14 early) | X00 IMPLEMENTED_PENDING_AUDIT; X01 r3 increment IMPLEMENTED_PENDING_AUDIT; X02 donor table IMPLEMENTED_PENDING_AUDIT (full semantic review stays X13/M1) |
+| A | X00, X01, X02 (+X14 early) | X00, X01 r3 increment, X02 donor table, X14 early read-only census — all IMPLEMENTED_PENDING_AUDIT (X02 full review stays X13/M1; X14 deletions await per-path authorization) |
 | B | X04, X05 (+X07/X08 defect slices) | pending |
 | C | X06, X07 (+X10) | pending |
 | D | X03, X08, X09 | pending |
@@ -139,3 +139,27 @@ Waves are slice priority, not new dependencies.
   `run_tests.sh` (deeptutor 4, due_queue 6, longterm adapters 8, bulk
   workers 9). The 1,246-row legacy manifest stays preserved and outside
   this donor scope (X13/M1); no migration-completion claims (LANG07).
+- `next` (X14 early slice, GOV04/CLEAN-01 — read-only, no deletions):
+  same-tool census repeated 2026-09-09T11:40Z via
+  `scripts/maintenance/inventory_project.py` (receipt
+  `.project-local/runs/x14-early-inventory-20260909.json`): observed
+  21,784,820,233 bytes ≈ 20.29 GiB / 115,231 files / 16 observation errors /
+  8 skipped reparse / 50 excluded opaque entries — NOT a repository total
+  (`.hermes` stays opaque; fingerprint separately recorded at
+  46,508,545,377 bytes / 748,125 files, newest write 2026-09-06, zero
+  growth since). D: free space 234.0 GiB (logical bytes only; hard links
+  counted independently; allocated release not promised). Classification —
+  no deletion performed or authorized this slice:
+  - Regenerable caches (candidates only; per-path authorization required
+    before removal): root `target/` 5.729 GiB (19,949 files; growth stopped
+    by `.cargo/config.toml`), `.project-local/build` 9.413 GiB (32,233
+    files), `.project-local/cache` 1.148 GiB, `.venv` 0.858 GiB,
+    `.ruff_cache`/`__pycache__` negligible.
+  - Run evidence (preserve; ledger-referenced receipts live here, e.g.
+    `cargo-full-workspace.bat`, round-240 census): `.project-local/runs`
+    2.396 GiB / 27,641 files.
+  - Data/validation (real libraries, no touch): `data/` 0.094 GiB,
+    `.project-local/deeptutor-val` 0.077 GiB, `.project-local/inventory`
+    0.404 GiB.
+  - Unique history (preserve): docs, taskpacks, `.hermes`, all opaque
+    agent-private roots.
