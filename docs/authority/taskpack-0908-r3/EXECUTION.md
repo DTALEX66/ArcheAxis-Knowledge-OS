@@ -38,7 +38,7 @@ Waves are slice priority, not new dependencies.
 
 | Wave | Tasks | Status |
 | --- | --- | --- |
-| A | X00, X01, X02 (+X14 early) | X00 IMPLEMENTED_PENDING_AUDIT; X01 r3 increment IMPLEMENTED_PENDING_AUDIT; X02 pending |
+| A | X00, X01, X02 (+X14 early) | X00 IMPLEMENTED_PENDING_AUDIT; X01 r3 increment IMPLEMENTED_PENDING_AUDIT; X02 donor table IMPLEMENTED_PENDING_AUDIT (full semantic review stays X13/M1) |
 | B | X04, X05 (+X07/X08 defect slices) | pending |
 | C | X06, X07 (+X10) | pending |
 | D | X03, X08, X09 | pending |
@@ -132,3 +132,10 @@ Waves are slice priority, not new dependencies.
     exceptions unchanged from R2 state. Rollback: delete
     `.cargo/config.toml` (single file) — root `target/` reverts to prior
     behavior.
+- `next` (X02 donor table, GOV03/REUSE-01): `X02-DONOR-TABLE-2026-09-09.md`
+  records the five current-loop donor rows (deeptutor bridge/authority,
+  anki_zotero, due_queue, python-workers tree) with git blob SHAs @ `d7d392d`,
+  disposition, callers, and regression evidence: 27 passed / 0 failed via
+  `run_tests.sh` (deeptutor 4, due_queue 6, longterm adapters 8, bulk
+  workers 9). The 1,246-row legacy manifest stays preserved and outside
+  this donor scope (X13/M1); no migration-completion claims (LANG07).
