@@ -38,7 +38,7 @@ Waves are slice priority, not new dependencies.
 
 | Wave | Tasks | Status |
 | --- | --- | --- |
-| A | X00, X01, X02 (+X14 early) | X00 IMPLEMENTED_PENDING_AUDIT; X01/X02 pending |
+| A | X00, X01, X02 (+X14 early) | X00 IMPLEMENTED_PENDING_AUDIT; X01 r3 increment IMPLEMENTED_PENDING_AUDIT; X02 pending |
 | B | X04, X05 (+X07/X08 defect slices) | pending |
 | C | X06, X07 (+X10) | pending |
 | D | X03, X08, X09 | pending |
@@ -106,3 +106,29 @@ Waves are slice priority, not new dependencies.
   nothing in R3 is claimed DONE or VERIFIED yet).
 - X00 remains IMPLEMENTED_PENDING_AUDIT, not VERIFIED: independent GPT
   audit (Q00) is the only qualification path.
+- `next` (X01 r3 increment, GOV02/PATH-01): added `.cargo/config.toml`
+  `[build] target-dir = ".project-local/build/cargo"` so default bare cargo
+  entries stop growing the worktree-root `target/`. Real-write verification
+  (PATH-01 path diff, both runs under the repo path containing a space):
+  - Before/after fingerprints (bytes, files, newest mtime):
+    root `target/` 6,151,810,038 / 19,949 / 2026-09-08T08:03:23 — identical
+    before and after; `.hermes/` 46,508,545,377 / 748,125 / 2026-09-06
+    (zero new writes, consistent with the R2 growth-stop evidence).
+  - Bare `cargo build -p archeaxis-api` at repo root (default entry, no
+    dev.py env; MSVC toolchain per `.project-local/runs/cargo-full-workspace.bat`):
+    exit 0; artifact `.project-local/build/cargo/debug/archeaxis-api.exe`
+    (7,486,464 bytes); `.project-local/build/cargo` grew to 1,089,242,530
+    bytes / 2,167 files; root `target/` fingerprint unchanged.
+  - `scripts/ci/run_tests.sh tests/runtime-paths`: 10 passed in 2.83s,
+    run root `.project-local/runs/be268a2d33/e0f49b6f3ed0`; pytest cache and
+    basetemp inside the run root; root `target/` and `.hermes/` unchanged.
+  - Failure/cancel/concurrency path semantics remain covered by
+    `tests/runtime-paths/test_dev_paths.py` (9 tests, green this run).
+  - Limitations: local gnu toolchain (`~/.rustup` default) lacks gcc/dlltool
+    and cannot build `libsqlite3-sys`/`windows-sys`; working local builds
+    require the MSVC wrapper documented at
+    `.project-local/runs/cargo-full-workspace.bat`. Packaging-side path diff
+    remains a CI/nightly concern (RELEASE-01); browser/short-socket-path
+    exceptions unchanged from R2 state. Rollback: delete
+    `.cargo/config.toml` (single file) — root `target/` reverts to prior
+    behavior.

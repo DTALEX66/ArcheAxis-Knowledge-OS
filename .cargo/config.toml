@@ -1,0 +1,5 @@
+# Root worktree target/ must stop growing from default cargo entries (X01/GOV02).
+# Local bare cargo writes land in the Git-ignored development root instead;
+# CARGO_TARGET_DIR set by scripts/runtime/dev.py or CI jobs still overrides this.
+[build]
+target-dir = ".project-local/build/cargo"
