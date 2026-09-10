@@ -273,3 +273,86 @@ pub fn events_for_item(
     })?;
     rows.collect()
 }
+
+/// R09: the table that links a learning item (card/question) to the knowledge
+/// revision it was created from. Created on demand like the FTS indexes, so no
+/// schema-version bump and no archive-layout change is needed.
+///
+/// Note (recorded limitation): because it is created on demand it is not part of
+/// EXPORT_TABLES, so archives do not carry card references yet.
+fn ensure_card_references(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS card_references(
+             item_key TEXT NOT NULL,
+             knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+             created_event_id INTEGER,
+             referenced_at TEXT NOT NULL DEFAULT (datetime('now')),
+             PRIMARY KEY(item_key, knowledge_id)
+         );",
+    )?;
+    Ok(())
+}
+
+/// R09: record that a learning item was created from a knowledge revision.
+///
+/// Idempotent: recording the same (item, revision) twice keeps one row, so a
+/// retry cannot fabricate a second reference.
+pub fn record_card_reference(
+    conn: &mut Connection,
+    item_key: &str,
+    knowledge_id: &str,
+    created_event_id: Option<i64>,
+) -> rusqlite::Result<()> {
+    if item_key.trim().is_empty() || knowledge_id.trim().is_empty() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "card references need both an item_key and a knowledge_id".into(),
+        ));
+    }
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    ensure_card_references(&tx)?;
+    let exists: Option<i64> = tx
+        .query_row(
+            "SELECT 1 FROM knowledge WHERE knowledge_id=?1",
+            [knowledge_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    if exists.is_none() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "card reference must name an existing knowledge revision".into(),
+        ));
+    }
+    tx.execute(
+        "INSERT OR IGNORE INTO card_references(item_key, knowledge_id, created_event_id)
+         VALUES(?1,?2,?3)",
+        rusqlite::params![item_key, knowledge_id, created_event_id],
+    )?;
+    tx.commit()?;
+    Ok(())
+}
+
+/// R09: the revisions a learning item was created from, each annotated with
+/// whether it is still the current, active revision.
+///
+/// The reference itself is never rewritten: an item that was built on a later
+/// superseded revision stays visibly linked to it, and the annotation tells a
+/// consumer (question, cache, machine context, result write-back) that the
+/// revision it used is no longer current.
+pub fn references_for_card(
+    conn: &Connection,
+    item_key: &str,
+) -> rusqlite::Result<Vec<(String, bool)>> {
+    ensure_card_references(conn)?;
+    let mut stmt = conn.prepare(
+        "SELECT knowledge_id FROM card_references WHERE item_key=?1 ORDER BY knowledge_id",
+    )?;
+    let ids: Vec<String> = stmt
+        .query_map([item_key], |r| r.get(0))?
+        .collect::<Result<Vec<String>, _>>()?;
+    let mut out = Vec::new();
+    for id in ids {
+        let active = crate::knowledge::is_knowledge_active(conn, &id).unwrap_or(false);
+        out.push((id, active));
+    }
+    Ok(out)
+}
