@@ -6,6 +6,15 @@ use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
 use serde::Deserialize;
 use sha2::{Digest,Sha256};
 
+/// R08: engine identities a successful receipt may report, one per extraction
+/// route. The worker must name the engine it actually used; the Core no longer
+/// requires the text engine from every route.
+pub const ENGINE_PROFILES: &[(&str, &str)] = &[
+    ("python-worker-text", "0.1.0"),
+    ("pymupdf-native-pdf", "pymupdf"),
+    ("python-worker-ocr", "0.1.0"),
+];
+
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
 /// selects the route, which fixes both the capability the worker must advertise
 /// and the media type of the input asset - so a PDF or image job is a first-class
@@ -101,7 +110,9 @@ pub fn finish(conn:&mut Connection, req:&Request, response:&Response, payloads:&
     let structure=structure.ok_or(JobError::InvalidReceipt("missing structure"))?;
     let loss=loss.ok_or(JobError::InvalidReceipt("missing loss receipt"))?;
     loss.validate().map_err(JobError::InvalidReceipt)?;
-    if loss.engine!="python-worker-text" || loss.engine_version!="0.1.0"
+    if !ENGINE_PROFILES
+        .iter()
+        .any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
         || structure!=expected
         || loss.covered!=Some(structure.len() as u64) || loss.total!=Some(total as u64) {
         return Err(JobError::InvalidReceipt("structure or coverage does not match projected text"));
