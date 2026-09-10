@@ -13,6 +13,7 @@ use sha2::{Digest, Sha256};
 pub mod jobs;
 pub mod attempts;
 pub mod executor;
+pub mod scheduler;
 
 pub const RUNTIME_NAME: &str = "archeaxis-application";
 pub const CONTRACT_VERSION: &str = "0.1.0-outline";

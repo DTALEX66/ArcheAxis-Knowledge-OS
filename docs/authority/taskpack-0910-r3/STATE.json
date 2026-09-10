@@ -59,7 +59,9 @@
       "scheduler worker landed: services/python-workers/learning/worker_schedule.py reuses the existing donor LearningScheduler (not the ladder); stdin JSON -> stdout JSON; unusable requests fail closed with an explicit error object and never invent an interval",
       "finding: py-fsrs fuzzes intervals by default (Scheduler(enable_fuzzing=True)), so identical card+rating calls returned different due dates; the donor now takes an additive enable_fuzzing keyword (default True unchanged) and the worker requests False, giving reproducible intervals for replay/restart/audit",
       "tests: tests/test_worker_schedule.py 8 passed (mature-card interval exceeds the ladder's 14-day ceiling, rating sensitivity, determinism, correct->rating mapping, explicit errors incl. subprocess fail-closed) plus donor tests/test_learning_scheduler.py 6 passed - 14 passed / 0 failed",
-      "REMAINING (not claimed): Rust still defaults to learning::suggest_next_interval; the Core-side adapter that calls this worker (sidecar scheduler request kind or a dedicated subprocess contract) is the next step"
+      "Core-side adapter landed: crates/archeaxis-application/src/scheduler.rs exposes SchedulerClient (python from ARCHEAXIS_PYTHON + repository worker path), a subprocess JSON contract that validates authority == fsrs, and returns Unavailable/Rejected on failure - never a ladder interval",
+      "integration tests 5 passed (receipt .project-local/runs/r07-scheduler-adapter.log): real Rust->Python->FSRS donor, mature card interval > the ladder's 14-day ceiling, reproducible identical requests, missing rating rejected, missing interpreter and missing worker script both reported as Unavailable",
+      "REMAINING (not claimed): the learning-events API still does not call the adapter by default, so learning::suggest_next_interval remains the Rust-side default; wiring the API path and demoting the ladder to an explicit non-default placeholder is the next step"
     ]
   },
   "R06": {
