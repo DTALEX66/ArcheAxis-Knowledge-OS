@@ -54,6 +54,136 @@ def _tesseract() -> str:
     return binary
 
 
+# R15/F04: the reading-order model for recognised text.
+COLUMN_MIN_GUTTER = 0.04
+COLUMN_EDGE_MARGIN = 0.08
+READING_ORDER_MODEL = "one vertical gutter over word boxes, then column by column and top to bottom"
+
+
+def _line_key(word: dict) -> tuple:
+    return (round(float(word["y"]), 0), round(float(word["x"]), 0))
+
+
+def _words_of_a_line(words: list[dict]) -> str:
+    """The words of a row, left to right.
+
+    Ordered by x alone: sorting by (y, x) let a one-pixel baseline difference flip two words
+    of the same row, which is how "LEFT SECOND" came back as "SECOND LEFT" before this was
+    measured.
+    """
+    return " ".join(word["text"] for word in sorted(words, key=lambda word: float(word["x"])))
+
+
+def _two_column_gutter(words: list[dict]) -> tuple[float, float] | None:
+    """A vertical band no word crosses, with at least two words on each side.
+
+    Word boxes decide this, not line boxes: in single-block mode a line spans the whole row
+    and would cross every candidate gutter. The widest accepted band wins, because a real
+    gutter is wide and the incidental gap between two words on one line is not.
+    """
+    left_edges = [float(word["x"]) for word in words]
+    right_edges = [float(word["x"]) + float(word["w"]) for word in words]
+    edges = sorted({round(value, 1) for value in left_edges + right_edges})
+    width = max(right_edges) - min(left_edges)
+    best: tuple[float, float, float] | None = None
+    for left_edge, right_edge in zip(edges, edges[1:]):
+        band = right_edge - left_edge
+        if band < COLUMN_MIN_GUTTER * width:
+            continue
+        if left_edge < min(left_edges) + COLUMN_EDGE_MARGIN * width:
+            continue
+        if right_edge > min(left_edges) + (1 - COLUMN_EDGE_MARGIN) * width:
+            continue
+        left = [word for word in words if float(word["x"]) + float(word["w"]) <= left_edge + 0.5]
+        right = [word for word in words if float(word["x"]) >= right_edge - 0.5]
+        if len(left) < 2 or len(right) < 2 or len(left) + len(right) != len(words):
+            continue
+        if best is None or band > best[2]:
+            best = (left_edge, right_edge, band)
+    return None if best is None else (best[0], best[1])
+
+
+def _reading_order(words: list[dict], engine_text: str) -> tuple[str, dict, list[dict]]:
+    """The recognised text in a reading order the word boxes support.
+
+    The engine is run in single-block mode, so a visual row of two columns comes back as one
+    line ("LEFT FIRST RIGHT FIRST") and the projection interleaves the columns. When the word
+    boxes show one unambiguous gutter with words on both sides, each engine line is split along
+    that gutter and the segments are ordered column by column and then top to bottom.
+
+    **The invariant is the word multiset**, not the line set: this model is allowed to split a
+    line, because that is precisely what the engine's single-block layout gets wrong, but it may
+    never add or lose a word. When the reconstruction would not account for exactly the words
+    the engine's own text carries, the engine order is kept and the reason is recorded.
+    """
+    facts: dict = {
+        "model": READING_ORDER_MODEL,
+        "applied": False,
+        "columns": 1,
+        "gutter": None,
+        "blank_lines_dropped": 0,
+        "differs_from_engine_order": False,
+    }
+    engine_lines = [line for line in engine_text.splitlines() if line.strip()]
+    if len(words) < 4:
+        facts["reason"] = "fewer than four word boxes, so no layout is inferred"
+        return engine_text, facts, words
+    gutter = _two_column_gutter(words)
+    if gutter is None:
+        facts["reason"] = "no vertical band that no word box crosses with words on both sides"
+        return engine_text, facts, words
+
+    left = [word for word in words if float(word["x"]) + float(word["w"]) <= gutter[0] + 0.5]
+    right = [word for word in words if float(word["x"]) >= gutter[1] - 0.5]
+
+    def rows(column: list[dict]) -> list[list[dict]]:
+        """The column's words as visual rows, then left to right within each row.
+
+        Rows are grouped by overlapping vertical extent rather than by the engine's line ids:
+        measured on a two-column sample, words printed on the same visual row came back under
+        different line ids, so trusting them reordered "LEFT SECOND" into "SECOND LEFT".
+        """
+        grouped: list[list[dict]] = []
+        for word in sorted(column, key=lambda w: (float(w["y"]) + float(w["h"]) / 2, float(w["x"]))):
+            centre = float(word["y"]) + float(word["h"]) / 2
+            for row in grouped:
+                row_centre = sum(float(w["y"]) + float(w["h"]) / 2 for w in row) / len(row)
+                tallest = max([float(w["h"]) for w in row] + [float(word["h"])])
+                if abs(centre - row_centre) <= 0.6 * tallest:
+                    row.append(word)
+                    break
+            else:
+                grouped.append([word])
+        return [sorted(row, key=lambda w: float(w["x"])) for row in grouped]
+
+    columns = [rows(left), rows(right)]
+    lines = [_words_of_a_line(row) for column in columns for row in column]
+    candidate = "\n".join(lines)
+    if sorted(candidate.split()) != sorted(engine_text.split()):
+        facts["reason"] = (
+            "the reconstruction would not account for exactly the words the engine's own text "
+            "carries, so the engine order is kept"
+        )
+        facts["reconstruction_refused"] = True
+        return engine_text, facts, words
+
+    ordered = [word for column in columns for row in column for word in row]
+    facts.update(
+        {
+            "applied": True,
+            "columns": 2,
+            "gutter": [round(gutter[0], 1), round(gutter[1], 1)],
+            "lines": len(lines),
+            "engine_lines_seen": len({(word["block"], word["par"], word["line"]) for word in words}),
+            "rows_grouped_by": "overlapping vertical extent, not the engine's line ids",
+            "blank_lines_dropped": max(0, len(engine_text.splitlines()) - len(engine_lines)),
+            "differs_from_engine_order": lines != engine_lines,
+            "reason": "one unambiguous gutter with words on both sides, and the same words in both orders",
+        }
+    )
+    return candidate, facts, ordered
+
+
 def _public_path(value: str | Path) -> Path:
     text = str(value).replace("\\", "/")
     if text.lower().startswith(("e:", "//")):
@@ -186,6 +316,11 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
                             "y": bounds[1],
                             "w": bounds[2],
                             "h": bounds[3],
+                            # The engine's own segmentation, kept so a line of words can be
+                            # regrouped without inventing one: block/paragraph/line ids.
+                            "block": fields[2],
+                            "par": fields[3],
+                            "line": fields[4],
                         }
                     )
 
@@ -194,6 +329,14 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
         raise RuntimeError("tesseract returned text without word boxes; OCR output is incomplete")
     warnings = [{"stage": stage, "message": result.stderr.strip()}
                 for stage, result in (("text", plain), ("tsv", tsv)) if result.stderr.strip()]
+    # R15/F04: the reading order of the projected text is decided here from the word boxes
+    # and reported as a fact. The route runs the engine in single-block mode (`--psm 6`), so
+    # on a two-column page the engine's own line spans both columns and its text interleaves
+    # them; that can only be corrected by splitting the line along the gutter, which is why
+    # the invariant here is "not one word added or lost" rather than "the same lines".
+    text, reading_order, ordered_words = _reading_order(words, text)
+    if text and not ordered_words:
+        ordered_words = words
     # R08: the Core's projection contract is line-based for every route, so the
     # structure artifact carries the canonical line anchors of the recognised text
     # (identical shape to the text and PDF routes). OCR's own positions are word
@@ -215,7 +358,7 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
 
     regions: list[dict] = []
     cursor = 0
-    for index, word in enumerate(words, start=1):
+    for index, word in enumerate(ordered_words, start=1):
         needle = word["text"]
         found = text.find(needle, cursor)
         if found < 0:
@@ -281,12 +424,32 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
                        "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
                        "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings,
                        "coverage_unit": "line anchors",
+                       # R15/F04: the reading order is a decision with a reason, reported the
+                       # same way as every other fact, and the word regions below follow it.
+                       "reading_order": reading_order,
                        # Recogniser confidence is review metadata, never an accuracy claim.
                        "regions": regions,
                        "review": review},
             "losses": [
                 f"subprocess warning: {w['message'][:200]}" for w in warnings
             ]
+            + (
+                [
+                    "the reading order was rebuilt from word boxes: the engine's single-block "
+                    "order interleaved the columns, and the words were re-ordered column by "
+                    "column without adding or dropping any"
+                ]
+                if reading_order.get("applied") and reading_order.get("differs_from_engine_order")
+                else []
+            )
+            + (
+                [
+                    f"{reading_order['blank_lines_dropped']} blank separator line(s) in the "
+                    "engine's text are not carried by the rebuilt projection"
+                ]
+                if reading_order.get("applied") and reading_order.get("blank_lines_dropped")
+                else []
+            )
             + (
                 [
                     f"{len(low_confidence)} region(s) scored below the review threshold "
@@ -300,8 +463,10 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
             "coverage": (covered / total) if total else 1.0,
             "loss_note": (
                 "OCR text with per-word boxes/confidence kept as review metadata "
-                "(params.regions); reading order follows Tesseract layout; diagram "
-                "semantics, handwriting and low-quality region retries are separate "
+                "(params.regions); the reading order is decided from the word boxes and "
+                "reported in params.reading_order, and the engine's single-block layout is "
+                "kept whenever the model would not account for exactly the same words; "
+                "diagram semantics, handwriting and low-quality region retries are separate "
                 "lanes"
                 + ("; subprocess warnings retained in params.warnings" if warnings else "")
             ),

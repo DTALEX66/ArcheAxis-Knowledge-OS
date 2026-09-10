@@ -522,6 +522,16 @@
           "path": "tests/test_worker_pdf_reading_order.py",
           "kind": "tracked",
           "note": "two-column projection, single-column identity, the gutter stand-down, and the reorder-only guard"
+        },
+        {
+          "path": "services/python-workers/vision/worker_ocr.py",
+          "kind": "tracked",
+          "note": "image.ocr, and the word-box reading-order model it reports"
+        },
+        {
+          "path": "tests/test_worker_ocr_reading_order.py",
+          "kind": "tracked",
+          "note": "column-by-column projection, single-column identity, the word-set guard, the one-pixel row case"
         }
       ],
       "limitations": [
@@ -530,10 +540,11 @@
         "a model description is a candidate, not a fact about the image, and description quality is not measured here",
         "the path record is a measurement at its own commit: the live tree drifts from it, and that drift is reported rather than enforced",
         "zero groups are complete: fourteen are partial and two custody-only (legacy binary Office and professional formats)",
-        "the reading-order model handles one gutter, so F05 stays partial: two-column pages are read column by column and anything else keeps the engine order with the reason recorded"
+        "the reading-order model handles one gutter, so F05 stays partial: two-column pages are read column by column and anything else keeps the engine order with the reason recorded",
+        "the OCR reading-order model fixes column interleaving only: a misread phrase stays misread and within-line word order is left to the engine"
       ],
       "status": "IN_PROGRESS",
-      "evidence_items_in_state": 96
+      "evidence_items_in_state": 99
     },
     {
       "slice": "R16",
