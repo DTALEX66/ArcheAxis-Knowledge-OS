@@ -83,6 +83,12 @@ ci-adapters = [
     "trafilatura>=1.6",
     "youtube-transcript-api>=1.2",
 ]
+# The MCP surface: scripts/mcp/archeaxis_mcp_server.py serves ArcheAxis capabilities to an
+# external MCP client, and scripts/probes/r11_mcp_client_smoke.py drives it with the official
+# client. Declared as its own group so the product runtime does not depend on it.
+mcp = [
+    "mcp>=1.2,<2",
+]
 
 [project.optional-dependencies]
 dev = [

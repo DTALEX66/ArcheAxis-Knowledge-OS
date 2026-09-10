@@ -287,7 +287,7 @@
     },
     {
       "slice": "R11",
-      "command": "python -X utf8 scripts/probes/r11_machine_receipt_smoke.py || python -X utf8 scripts/probes/r11_unseen_evaluation.py",
+      "command": "python -X utf8 scripts/probes/r11_machine_receipt_smoke.py || python -X utf8 scripts/probes/r11_unseen_evaluation.py || python -X utf8 scripts/probes/r11_mcp_client_smoke.py",
       "evidence": [
         {
           "path": "crates/archeaxis-domain/src/machine.rs",
@@ -310,15 +310,37 @@
           "path": "tests/test_unseen_evaluation.py",
           "kind": "tracked",
           "note": "pins the measurement rules: head-prefix identity and token-level term matching"
+        },
+        {
+          "path": "scripts/mcp/archeaxis_mcp_server.py",
+          "kind": "tracked",
+          "note": "the project-side MCP surface over stdio; needs the mcp dependency group"
+        },
+        {
+          "path": "shared/mcp_surface.py",
+          "kind": "tracked",
+          "note": "the tools, their schemas and the refusals, with no SDK import"
+        },
+        {
+          "path": "scripts/probes/r11_mcp_client_smoke.py",
+          "kind": "tracked",
+          "note": "the official MCP client driving the server against a real Core"
+        },
+        {
+          "path": "tests/test_mcp_surface.py",
+          "kind": "tracked",
+          "note": "no review tool, refusals reachable, outcomes stay measurements"
         }
       ],
       "limitations": [
         "the external client is a controlled HTTP client, not a real MCP client",
         "a task receipt is a measurement fact and never a claim that weights were trained",
-        "the unseen evaluation signs no PASS for retrieval: it measures whether a document comes back, never where it ranks"
+        "the unseen evaluation signs no PASS for retrieval: it measures whether a document comes back, never where it ranks",
+        "the MCP server is a project-side optional surface: it holds no database handle and the Core remains the only writer",
+        "the MCP probe signs no PASS for capability quality, and nothing in this slice trains or claims a weight"
       ],
       "status": "IMPLEMENTED_PENDING_AUDIT",
-      "evidence_items_in_state": 18
+      "evidence_items_in_state": 22
     },
     {
       "slice": "R12",
