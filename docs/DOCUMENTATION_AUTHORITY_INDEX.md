@@ -4,13 +4,18 @@
 > a document; it never promotes a plan, handoff, test fixture, release tag, or
 > historical snapshot into live product evidence.
 
-## Current read order (2026-09-08)
+## Current read order (2026-09-10)
 
 1. [AGENTS](../AGENTS.md), [project contract](../PROJECT_CONTRACT.yaml) and
    [decision supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml).
-2. [FOLLOWUP-R3 live execution](authority/taskpack-0908-r3/EXECUTION.md) —
-   the single active plan (AAK-FOLLOWUP-20260908-R3, baseline `cbe253b`;
-   SUP-017). Its inherited R2 audit board stays at
+2. [NEXT-TASKPACK-0910 live execution](authority/taskpack-0910-r3/EXECUTION.md) —
+   the single active plan (ARCHEAXIS-NEXT-TASKPACK-2026-09-10, 17 slices
+   R00-R16; SUP-018), with slice progress in
+   [STATE.json](authority/taskpack-0910-r3/STATE.json) and its package snapshot
+   in `authority/taskpack-0910-r3/reference-r2/`. The preceding R3-0908 ledger
+   ([taskpack-0908-r3/EXECUTION](authority/taskpack-0908-r3/EXECUTION.md)) is
+   the source of the inherited task text and its own receipts. Its inherited R2
+   audit board stays at
    [Q00-Q01-AUDIT-2026-09-07](authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md);
    the R2 execution ledger
    ([taskpack-0907/EXECUTION](authority/taskpack-0907/EXECUTION.md)) is the

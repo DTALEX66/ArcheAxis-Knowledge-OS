@@ -96,3 +96,9 @@ decisions:
     old_claim: R2 (docs/authority/taskpack-0907) 是唯一活动计划入口；执行按 C01-C10 修复队列推进
     replacement: 用户 2026-09-08 交付 AAK-FOLLOWUP-20260908-R3（plan_only，未签发授权本身），实现基线 cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed；23 个任务逐字节继承 R2 work/acceptance 并新增 r3_work/r3_acceptance 与 12 个治理/语言迁移切片（GOV01-05、LANG01-07）；活动入口唯一指向 docs/authority/taskpack-0908-r3/EXECUTION.md；R2 原任务文本与证据 SHA 保留为来源，Q00 失败/Q01 不具资格的审计结论继承为基线
     reason: taskpack X00 r3_work item 1；EXECUTOR-START.md 入场动作；verify_package.py PASS（23 tasks/29 features/26 scenarios/12 governance slices）
+  - id: SUP-018
+    status: effective
+    supersedes: 2026-09-08 active-plan status of AAK-FOLLOWUP-20260908-R3 as the single live plan entry
+    old_claim: R3-0908 (docs/authority/taskpack-0908-r3) is the single live plan entry and execution follows its Wave A-F order
+    replacement: The owner delivered the AAK 2026-09-10 follow-up pack (docs/authority/taskpack-0910-r3, plan_only, revision R3.1) with 17 slices R00-R16 mapped back to the original 23 tasks and to C01-C10; the package was installed single-level with its reference-r2 snapshot and verify_package.py exits 0 (hashes, 17 task dependencies, all 23 original tasks retained); the single live execution entry becomes docs/authority/taskpack-0910-r3/EXECUTION.md, while R3-0908 remains the source of inherited task text and its own receipts, R2-0907 and 0906 remain historical (SUP-012..SUP-017), and the inherited audit baseline Q00 fail / Q01 not eligible carries over; existing implementations are never rolled back by this supersession
+    reason: taskpack-0910-r3 EXECUTOR-START.md entry action and R00 registration; verify_package.py exit 0 (run in Python UTF-8 mode because this Windows locale defaults to GBK); R00 baseline review at HEAD 985a219 recorded in docs/authority/taskpack-0910-r3/R00-BASELINE-REVIEW.md

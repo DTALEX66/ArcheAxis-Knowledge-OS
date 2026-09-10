@@ -1,52 +1,61 @@
-# Package status — AAK 2026-09-10 follow-up pack (taskpack-0910-r3)
+# Package status — ARCHEAXIS-NEXT-TASKPACK-2026-09-10
 
-## What is present in this directory
+Status: **INSTALLED AND VERIFIED** (2026-09-11).
 
-- `TASKPACK.md` — byte-identical copy (12,830 bytes, sha256 prefix `50ab667a85dddf61`)
-  of the owner-supplied definition `D:\All projects\ARCHEAXIS-NEXT-TASKPACK-2026-09-10.md`.
-  It defines 17 slices R00–R16, their original-task mapping, per-slice execution
-  and acceptance text, boundaries, and the required install layout.
+## Provenance
 
-## What is missing (the pack's own 使用方式 requires it)
+| Item | Value |
+| --- | --- |
+| Owner-supplied archive | `D:\All projects\ARCHEAXIS-NEXT-TASKPACK-2026-09-10.zip` (109,438 bytes) |
+| Definition copy | `D:\All projects\ARCHEAXIS-NEXT-TASKPACK-2026-09-10.md`, 12,830 bytes, sha256 prefix `50ab667a85dddf61` |
+| Installed at | `docs/authority/taskpack-0910-r3/` (single level, 24 files) |
+| Reference snapshot | `reference-r2/` — 15 inherited R2 files, read-only historical material, not a second active plan |
+| Package revision | R3.1, 17 slices R00–R16 |
 
-The definition states the ZIP-extracted folder must be placed here with
-`EXECUTOR-START.md`, `TASKS.json` and `verify_package.py` at the root plus a
-`reference-r2/` subdirectory (15 inherited R2 files). None of those artifacts
-exist on this machine:
+`TASKPACK.md` here is byte-identical to the owner-supplied definition
+(12,830 bytes, same sha256 prefix).
 
-- Searched: `D:\All projects` (recursive to depth 3), `D:\` (recursive to depth 3,
-  `*.zip` and `*0910*`), owner Downloads / Desktop / Documents.
-- Found: only the definition Markdown above. No `.zip`, no `archeaxis-*0910*`
-  folder, no second copy elsewhere.
-- Therefore `python docs/authority/taskpack-0910-r3/verify_package.py` — the
-  package-integrity gate that must pass before the pack becomes the single live
-  plan — **cannot be run**: `BLOCKED_RESOURCE`.
+## Verification
 
-## Consequence for plan registration
+```
+python -X utf8 docs/authority/taskpack-0910-r3/verify_package.py
+PASS: hashes, 17 task dependencies, all 23 original tasks retained
+exit 0
+```
 
-- The pack is **not** yet registered as the single live plan. The active plan
-  remains AAK-FOLLOWUP-20260908-R3 (`docs/authority/taskpack-0908-r3/EXECUTION.md`)
-  until the package is verified; AGENTS.md §6, the decision ledger (SUP-018) and
-  the authority indexes are intentionally left unchanged. Registering an
-  unverifiable package would violate the pack's own order
-  (place folder -> verify -> register) and the R3 boundary that a package is
-  inert data until verified.
-- No product code, no cleanup, and no `.hermes` interaction was performed for
-  this install step.
+UTF-8 mode is required on this machine: the verifier calls
+`Path.read_text()` without an explicit encoding and the Windows locale here
+defaults to GBK, which fails on the UTF-8 `TASKS.json`
+(`UnicodeDecodeError: 'gbk' codec can't decode byte 0x80`). The frozen package
+file was **not** modified; the encoding is supplied by the interpreter mode.
 
-## What is NOT blocked
+Verification scope and semantics: `MANIFEST.json` hashes 23 files, and that set
+**includes `EXECUTION.md` and `STATE.json`**, which the package itself designates
+as the progress files (`进度写 EXECUTION.md 及 STATE.json`). The integrity check
+therefore applies to the **as-shipped** package state: it passed at install time
+(exit 0, above). After progress is recorded, a re-run reports exactly those two
+progress files as changed - by design, not as tampering.
 
-- R00's substance: reading and locking the actual baseline and re-checking the
-  inherited defect list at the current HEAD. Recorded in
-  `R00-BASELINE-REVIEW.md` (read-only; no code or state mutated).
-- Any slice whose implementation does not depend on the frozen `TASKS.json`
-  counts/ids (for example the R03 v3-archive compatibility work already landed
-  as ARCHIVE-01 in `985a219`).
+Reproduction without the owner ZIP: the as-shipped bytes are preserved at
+`.project-local/runs/taskpack-0910-shipped/` (ignored), and their sha256 values
+match the manifest entries (`EXECUTION.md 67bc856eaf0a`, `STATE.json
+e4f5e42013d4`); the other 21 files still match in place.
 
-## Needed from the owner
+Package verification proves file integrity and dependency validity only. It is
+not a product audit or an implementation claim.
 
-The ZIP for this pack (or the extracted folder), so that:
-1. the packaged files can be placed here intact (including `reference-r2/`),
-2. `verify_package.py` can be run and its exit code recorded,
-3. R00 can register the pack as the single live entry and align AGENTS.md §6,
-   the decision ledger and the authority indexes.
+## Registration
+
+- Active entry: `docs/authority/taskpack-0910-r3/EXECUTION.md`; slice progress
+  in `STATE.json`; `TASKS.json` stays the frozen plan definition.
+- SUP-018 in `DECISION_SUPERSESSION_LEDGER.yaml` records the supersession of the
+  R3-0908 active-plan status (historical receipts unchanged).
+- `AGENTS.md` §6, `docs/DOCUMENTATION_AUTHORITY_INDEX.md` and
+  `docs/CONFIGURATION_AUTHORITY_INDEX.md` resolve to this entry.
+- Intake note: `workspace/intake/2026-09-10-next-taskpack-0910.md`.
+- Baseline review at registration: `R00-BASELINE-REVIEW.md`.
+
+## Boundaries honoured during install
+
+No product code changed, no Windows cleanup, no `.hermes` access, no E: access,
+no credentials used, no publishing.

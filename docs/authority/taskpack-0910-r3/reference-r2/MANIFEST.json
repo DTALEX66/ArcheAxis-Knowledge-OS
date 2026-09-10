@@ -1,0 +1,77 @@
+{
+  "schema": "archeaxis.package-manifest/v1",
+  "plan_id": "AAK-REUSE-FIRST-20260907-R2",
+  "files": [
+    {
+      "path": "BLUEPRINT-COVERAGE.json",
+      "bytes": 98525,
+      "sha256": "c2a902e6e9ff25228643de2580376441c10889cbdd93cb134377f5b09ec9607b"
+    },
+    {
+      "path": "ENHANCEMENT-COVERAGE.json",
+      "bytes": 4981,
+      "sha256": "6049746b57a48967a022ca127cb70709b78547db2aaeec513aeb182f03c84b2c"
+    },
+    {
+      "path": "ENHANCEMENT-REVIEW.md",
+      "bytes": 8874,
+      "sha256": "c9c24984e720f015e42eeca6fb826980145a092b3862c42a16f1c92af1f144f2"
+    },
+    {
+      "path": "EXECUTOR-START.md",
+      "bytes": 3476,
+      "sha256": "81a3666bacd12ce2ca3314e45ccbdbb68ec828721668ba3845065947d7037512"
+    },
+    {
+      "path": "FORMAT-COVERAGE.json",
+      "bytes": 9580,
+      "sha256": "11785d2d143aff3b955b1bca34236aa848aeed2d262c0b9dd06f89a844b2315a"
+    },
+    {
+      "path": "INDEPENDENT-AUDIT.md",
+      "bytes": 5562,
+      "sha256": "3a31702fbdea3a842bae4364d7fb0c1d7b9f5bdf5a377d8ff9872cf1e074d745"
+    },
+    {
+      "path": "LOCAL-CLEANUP.md",
+      "bytes": 5816,
+      "sha256": "5b52a088a897ee81b37922ded16d9eded8ff513e2e3ffe1e477b8fdb364f1c5f"
+    },
+    {
+      "path": "PACKAGE-VALIDATION.json",
+      "bytes": 3078,
+      "sha256": "83732c868d695bcf69e111d753a662e6ff6ad2a928cde694b66b511e5cddd180"
+    },
+    {
+      "path": "SOURCE-ENHANCEMENT.md",
+      "bytes": 1385,
+      "sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b"
+    },
+    {
+      "path": "SOURCES.json",
+      "bytes": 59868,
+      "sha256": "849e46d2ac81ddae2498a9d5645a0d320e7cdea930cef2d601d4e9c78c0bf4ea"
+    },
+    {
+      "path": "TASKPACK.md",
+      "bytes": 27933,
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e"
+    },
+    {
+      "path": "TASKS.json",
+      "bytes": 43781,
+      "sha256": "28ff4d552c813856243d6bab3fc550bdd7bf41f01f62326a71f7aa003ccc0f7e"
+    },
+    {
+      "path": "audit_local_storage.py",
+      "bytes": 8951,
+      "sha256": "4d7e7a3927fc3f28e2794f68e5b8933b4d5f6f6ec3feb2083fca36f9ab471a29"
+    },
+    {
+      "path": "verify_package.py",
+      "bytes": 7835,
+      "sha256": "5c2c8c3ab956024f2de8cac5935c68f17151f1f99b07b1a2fd49a27a9adbe45c"
+    }
+  ],
+  "scope": "Distribution integrity only; not a signature, authorization, or product completion receipt."
+}

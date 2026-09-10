@@ -65,17 +65,22 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 
 ## 6. Implementation Workflow
 
-The user-approved active plan is ARCHEAXIS-FOLLOWUP-20260908-R3
-(AAK-FOLLOWUP-20260908-R3.1); live execution state is
-`docs/authority/taskpack-0908-r3/EXECUTION.md`; its 23 tasks inherit R2
-work/acceptance verbatim with R3 increments and 12 governance/language
-migration slices (GOV01-GOV05, LANG01-LANG07), baseline `cbe253b`. The
-preceding plan AAK-REUSE-FIRST-20260907-R2 remains the source of the inherited
-task text, its audit board is `docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`
+The user-approved active plan is the AAK 2026-09-10 follow-up pack
+(ARCHEAXIS-NEXT-TASKPACK-2026-09-10, revision R3.1); live execution state is
+`docs/authority/taskpack-0910-r3/EXECUTION.md` with slice progress in
+`docs/authority/taskpack-0910-r3/STATE.json`; its 17 slices R00-R16 map back to
+the original 23 tasks and to C01-C10, inherit the R3 work/acceptance text, and
+run in the order R00 -> R16 (R12 may start once R01 is done). The package was
+installed single-level with its `reference-r2/` snapshot and
+`verify_package.py` exits 0. The preceding plan AAK-FOLLOWUP-20260908-R3
+(`docs/authority/taskpack-0908-r3/EXECUTION.md`) remains the source of the
+inherited task text and its own receipts; AAK-REUSE-FIRST-20260907-R2 stays the
+source of the inherited task text with its audit board
+`docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`
 (Q00 fail / Q01 not eligible), and its receipts keep their own SHAs
 (`docs/authority/taskpack-0907/EXECUTION.md`). The earlier 2026-09-06-r1 Full
 Loop TaskPack is superseded in the parts recorded in
-DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-017; its receipts keep their own
+DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-018; its receipts keep their own
 SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The formal
 desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia), with the separate vNext Rust
 Core database and isolated Python workers. `frontend/`, `src-tauri/`, `desktop/`

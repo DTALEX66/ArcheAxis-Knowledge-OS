@@ -8,7 +8,7 @@
 | Concern | Authority | 说明 |
 |---|---|---|
 | 项目 agent 边界 | `AGENTS.md` | 使命、目录边界、隐私/数据边界、工作规则 |
-| 当前执行与架构决策 | `PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml`、`docs/authority/taskpack-0908-r3/EXECUTION.md` | 已批准的 AAK-FOLLOWUP-20260908-R3 路线（基线 cbe253b，SUP-017）与实时台账；继承的 GPT 审计板 `docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`（Q00 fail/Q01 不具资格）；R2 台账 `docs/authority/taskpack-0907/EXECUTION.md` 为继承任务文本来源与历史收据；0906 仅历史（SUP-012..016），收据保留原 SHA |
+| 当前执行与架构决策 | `PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml`、`docs/authority/taskpack-0910-r3/EXECUTION.md` | 已交付的 ARCHEAXIS-NEXT-TASKPACK-2026-09-10（17 切片 R00–R16，`verify_package.py` exit 0，SUP-018）与其实时台账/`STATE.json`；上一活动计划 `docs/authority/taskpack-0908-r3/EXECUTION.md`（R3-0908，SUP-017，基线 cbe253b）保留为继承任务文本与自身收据来源；继承的 GPT 审计板 `docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`（Q00 fail/Q01 不具资格）；R2 台账 `docs/authority/taskpack-0907/EXECUTION.md` 亦为继承来源；0906 仅历史（SUP-012..016），收据保留原 SHA |
 | 本机共享库、绿色软件与资料根路径 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md) | 用户 2026-09-07 指定的五个资源根；每次定位工具/模型/测试资料先查此表，不猜目录；真实资料库与测试库严格分离，不等于修改产品设置 |
 | 开发运行根 | `scripts/runtime/dev.py` | `.project-local` 下 worktree/run 隔离；Bash/PowerShell 共用；不是产品 workspace |
 | 跨语言词汇与损失回执 | `packages/contracts/v1/`、`scripts/contracts/generate_vocabulary.py` | Schema 为单源；Rust/C#/Python 词汇生成后须 `--check`；loss receipt 另有跨字段运行时校验，完整 DTO/权限协议仍在推进 |

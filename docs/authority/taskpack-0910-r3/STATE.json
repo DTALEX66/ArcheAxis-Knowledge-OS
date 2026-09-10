@@ -1,0 +1,79 @@
+{
+  "R00": {
+    "status": "IMPLEMENTED_PENDING_AUDIT",
+    "evidence": [
+      "package installed single-level at docs/authority/taskpack-0910-r3 with reference-r2 snapshot (24 files)",
+      "verify_package.py exit 0 via 'python -X utf8' (hashes, 17 task dependencies, all 23 original tasks retained)",
+      "R00-BASELINE-REVIEW.md: baseline locked at HEAD 985a219, 17-slice map, inherited defects re-checked",
+      "inherited defects re-checked, not assumed: R02 fixed (288991a), R05 fixed (288991a), R03 fixed (985a219), R06 partial (288991a, live run environment-gated)",
+      "fresh baselines at 985a219: cargo workspace exit 0 / 52 groups; python run_tests.ps1 --full 2347 passed / 7 skipped / 0 failed",
+      "gates: check_repository_conventions worktree passed; check_architecture passed",
+      "entry registration: AGENTS.md section 6, DOCUMENTATION_AUTHORITY_INDEX, CONFIGURATION_AUTHORITY_INDEX, DECISION_SUPERSESSION_LEDGER SUP-018, workspace/intake/2026-09-10-next-taskpack-0910.md",
+      "mojibake scan over 451 active docs: no corruption in entry documents; single U+FFFD is a binary PNG header snippet in docs/authority/legacy (data, not document damage)"
+    ]
+  },
+  "R01": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R02": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R03": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R04": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R05": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R06": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R07": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R08": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R09": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R10": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R11": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R12": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R13": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R14": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R15": {
+    "status": "TODO",
+    "evidence": []
+  },
+  "R16": {
+    "status": "TODO",
+    "evidence": []
+  }
+}

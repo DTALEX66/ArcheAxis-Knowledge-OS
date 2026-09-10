@@ -1,0 +1,107 @@
+{
+  "schema": "archeaxis.package-validation/v1",
+  "checked_at_utc": "2026-09-07T10:03:45.721456+00:00",
+  "platform": "posix",
+  "product_tested": false,
+  "actual_user_drive_accessed": false,
+  "actual_cleanup_performed": false,
+  "checks": [
+    {
+      "check": "rejects inventory outputs not ignored by Git",
+      "result": "PASS"
+    },
+    {
+      "check": "regular census succeeds without deleting files",
+      "result": "PASS"
+    },
+    {
+      "check": "deleted count is explicitly zero",
+      "result": "PASS"
+    },
+    {
+      "check": "tracked file inside target is retained",
+      "result": "PASS"
+    },
+    {
+      "check": "untracked exact build path is review only",
+      "result": "PASS"
+    },
+    {
+      "check": "Hermes mixed evidence is never classified as auto-delete",
+      "result": "PASS"
+    },
+    {
+      "check": "knowledge data is retained",
+      "result": "PASS"
+    },
+    {
+      "check": "symlink target is not traversed",
+      "result": "PASS"
+    },
+    {
+      "check": "incomplete scope due to skipped links is visible",
+      "result": "PASS"
+    },
+    {
+      "check": "all category byte totals reconcile",
+      "result": "PASS"
+    },
+    {
+      "check": "hardlinked object is not counted twice in unique-object size",
+      "result": "PASS"
+    },
+    {
+      "check": "sample contents all unchanged",
+      "result": "PASS"
+    },
+    {
+      "check": "external file untouched",
+      "result": "PASS"
+    },
+    {
+      "check": "linked repository root rejected",
+      "result": "PASS"
+    },
+    {
+      "check": "subdirectory input rejected",
+      "result": "PASS"
+    },
+    {
+      "check": "non-repository input rejected",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "These checks use a disposable Linux Git fixture, not the user Windows repository.",
+    "Windows junction/reparse and real disk release still require X14 on the target machine.",
+    "Package integrity and graph validation are performed separately by verify_package.py.",
+    "R2 changes are requirements and handoff validation; no product code or repository runtime cleanup was executed."
+  ],
+  "prior_census_checks_provenance": "R1 Linux fixture checks retained; census script bytes unchanged in R2, no repeated Windows or user-drive test.",
+  "census_script_sha256": "4d7e7a3927fc3f28e2794f68e5b8933b4d5f6f6ec3feb2083fca36f9ab471a29",
+  "revision_id": "AAK-REUSE-FIRST-20260907-R2",
+  "enhancement_items": 11,
+  "r2_checked_at_utc": "2026-09-07T11:46:15.962853+00:00",
+  "r2_retention_checks": [
+    {
+      "check": "all original 55 user requirements preserved byte-equivalent as JSON values",
+      "result": "PASS"
+    },
+    {
+      "check": "all blueprint and historical task mappings preserved",
+      "result": "PASS"
+    },
+    {
+      "check": "same task IDs dependency graph and task statuses",
+      "result": "PASS"
+    },
+    {
+      "check": "early cleanup instructions and census code preserved",
+      "result": "PASS"
+    },
+    {
+      "check": "attachment original preserved",
+      "result": "PASS"
+    }
+  ]
+}
