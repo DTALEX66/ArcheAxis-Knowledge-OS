@@ -108,8 +108,12 @@ def test_both_toolchain_variables_are_required(monkeypatch):
     """Measured: with only the Rust variable the runner fails at the C linker (exit 101)."""
     monkeypatch.setenv("ARCHEAXIS_RUST_TOOLCHAINS", "somewhere")
     monkeypatch.delenv("ARCHEAXIS_MSVC_VCVARS", raising=False)
+    monkeypatch.delenv("ARCHEAXIS_PYTHON", raising=False)
     assert checker.toolchain_present() is False
     monkeypatch.setenv("ARCHEAXIS_MSVC_VCVARS", "somewhere/vcvars64.bat")
+    assert checker.toolchain_present() is False, "ARCHEAXIS_PYTHON is required too"
+    assert "ARCHEAXIS_PYTHON" in checker.missing_toolchain()
+    monkeypatch.setenv("ARCHEAXIS_PYTHON", "somewhere/python.exe")
     assert checker.toolchain_present() is True
 
 
@@ -153,6 +157,33 @@ def test_a_command_that_needs_a_clean_tree_says_so_instead_of_failing(monkeypatc
     )
     assert rows[0]["result"] == "NOT_RUN"
     assert "dirty tracked worktree by design" in rows[0]["reason"]
+
+
+def test_all_three_variables_are_required(monkeypatch):
+    """Measured: without ARCHEAXIS_PYTHON the worker-backed tests panic inside cargo."""
+    for name in ("ARCHEAXIS_RUST_TOOLCHAINS", "ARCHEAXIS_MSVC_VCVARS", "ARCHEAXIS_PYTHON"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(checker.shutil, "which", lambda _name: None)
+    assert set(checker.missing_toolchain()) == {"ARCHEAXIS_RUST_TOOLCHAINS (or cargo on PATH)", "ARCHEAXIS_MSVC_VCVARS", "ARCHEAXIS_PYTHON"}
+
+
+def test_the_install_snapshot_gate_is_a_prerequisite_in_a_fresh_checkout(monkeypatch):
+    """Measured in a clone: the pack integrity gate fails there for a documented reason."""
+    assert checker.needs_install_snapshot("python -X utf8 scripts/check_taskpack_integrity.py")
+    assert not checker.needs_install_snapshot("python -X utf8 scripts/check_evidence_index.py")
+    monkeypatch.setattr(checker, "install_snapshot_present", lambda: False)
+    rows = checker.run_plan(
+        [{"slice": "X", "command": "python -X utf8 scripts/check_taskpack_integrity.py", "class": checker.CHECKER_CLASS, "runnable": True, "argv": ["python", "-c", "print(1)"]}],
+        timeout=5,
+        execute_heavy=False,
+    )
+    assert rows[0]["result"] == "NOT_RUN"
+    assert "ignored receipt" in rows[0]["reason"]
+
+
+def test_the_launch_check_counts_as_needing_a_build():
+    """core_launch --check verifies the Core binary among its dependencies."""
+    assert checker.needs_build("python -X utf8 scripts/launch/core_launch.py --check")
 
 
 def test_both_streams_are_reported_so_a_named_refusal_is_visible():

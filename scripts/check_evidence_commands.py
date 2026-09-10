@@ -49,7 +49,21 @@ CHECKER_CLASS = "checker-or-test"
 # Commands that need a Core binary built in this checkout: the probes spawn one and the candidate
 # builder bundles one. Measured in a fresh clone (round 98): without knowing this, seven commands
 # were reported as FAILURES when the truth was that nothing had been built there yet.
-BUILD_REQUIRED_MARKERS = ("scripts/probes/", "scripts/release/")
+BUILD_REQUIRED_MARKERS = ("scripts/probes/", "scripts/release/", "scripts/launch/core_launch.py")
+
+# The pack integrity gate attributes the live progress files against the install snapshot, which
+# lives under an ignored receipt. A fresh checkout has none, and the gate refuses to attribute the
+# divergence rather than guessing - so in a clone this is a missing prerequisite, not a defect.
+INSTALL_SNAPSHOT_MARKER = "check_taskpack_integrity.py"
+INSTALL_SNAPSHOT_PATH = Path(".project-local") / "runs" / "taskpack-0910-shipped"
+
+
+def install_snapshot_present() -> bool:
+    return (ROOT / INSTALL_SNAPSHOT_PATH).is_dir()
+
+
+def needs_install_snapshot(command: str) -> bool:
+    return INSTALL_SNAPSHOT_MARKER in command
 
 
 def built_core() -> Path | None:
@@ -161,14 +175,16 @@ def plan(index_path: Path = INDEX, *, runner: str | None = None) -> list[dict]:
 def toolchain_present() -> bool:
     """Whether the environment the cargo commands need is here at all.
 
-    Both variables are required, and that was measured: with only ARCHEAXIS_RUST_TOOLCHAINS the
-    runner starts and then fails at the C toolchain (exit 101, "linker `link.exe` not found"),
-    because the bundled SQLite is compiled from source. Without the Rust variable it refuses by
-    name first. A checker cannot invent a toolchain, so it says what is missing instead.
+    All three variables are required, and each was measured: without ARCHEAXIS_RUST_TOOLCHAINS the
+    runner refuses by name (exit 2); with only that one it fails at the C toolchain (exit 101,
+    linker not found) because the bundled SQLite is compiled from source; and without
+    ARCHEAXIS_PYTHON the worker-backed tests panic with `expect("use project dev.py")`. A checker
+    cannot invent a toolchain, so it says what is missing instead.
     """
     rust = bool(os.environ.get("ARCHEAXIS_RUST_TOOLCHAINS", "").strip()) or shutil.which("cargo") is not None
     msvc = bool(os.environ.get("ARCHEAXIS_MSVC_VCVARS", "").strip())
-    return rust and msvc
+    python = bool(os.environ.get("ARCHEAXIS_PYTHON", "").strip())
+    return rust and msvc and python
 
 
 def missing_toolchain() -> list[str]:
@@ -177,6 +193,8 @@ def missing_toolchain() -> list[str]:
         missing.append("ARCHEAXIS_RUST_TOOLCHAINS (or cargo on PATH)")
     if not os.environ.get("ARCHEAXIS_MSVC_VCVARS", "").strip():
         missing.append("ARCHEAXIS_MSVC_VCVARS")
+    if not os.environ.get("ARCHEAXIS_PYTHON", "").strip():
+        missing.append("ARCHEAXIS_PYTHON")
     return missing
 
 
@@ -215,6 +233,14 @@ def run_plan(rows: list[dict], *, timeout: int, execute_heavy: bool) -> list[dic
             row["reason"] = (
                 "this command refuses a dirty tracked worktree by design (exit 5), because a bundle "
                 "may only be bound to a commit: commit first, or expect the refusal"
+            )
+            continue
+        if needs_install_snapshot(row["command"]) and not install_snapshot_present():
+            row["result"] = "NOT_RUN"
+            row["reason"] = (
+                "this gate attributes the live progress files against the install snapshot under "
+                f"{INSTALL_SNAPSHOT_PATH.as_posix()}, which is an ignored receipt: a fresh checkout "
+                "has none, and the gate refuses to attribute the divergence rather than guessing"
             )
             continue
         started = time.time()

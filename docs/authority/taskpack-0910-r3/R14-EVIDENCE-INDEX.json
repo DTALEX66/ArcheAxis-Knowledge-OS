@@ -463,10 +463,11 @@
       "limitations": [
         "this gate has NOT been run: the index only prepares the evidence an independent auditor needs",
         "an executor-written summary is not an audit, so this repository never records it as passed",
-        "round 97 executed all twenty recorded commands with the toolchain environment present and all twenty exited 0; on a machine without ARCHEAXIS_RUST_TOOLCHAINS and ARCHEAXIS_MSVC_VCVARS the six per-package cargo commands are reported as not run rather than failed"
+        "round 97 executed all twenty recorded commands with the toolchain environment present and all twenty exited 0; on a machine without ARCHEAXIS_RUST_TOOLCHAINS and ARCHEAXIS_MSVC_VCVARS the six per-package cargo commands are reported as not run rather than failed",
+        "from a fresh clone the six gates and the recorded commands reproduce (7 PASS / 13 NOT_RUN naming a prerequisite), but the full Python suite does not: 112 tests in 27 legacy-product files fail there for want of untracked local assets and runtime state"
       ],
       "status": "TODO",
-      "evidence_items_in_state": 10
+      "evidence_items_in_state": 12
     },
     {
       "slice": "R15",
