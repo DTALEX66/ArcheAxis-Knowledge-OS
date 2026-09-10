@@ -55,6 +55,30 @@ not a product audit or an implementation claim.
 - Intake note: `workspace/intake/2026-09-10-next-taskpack-0910.md`.
 - Baseline review at registration: `R00-BASELINE-REVIEW.md`.
 
+## Known package deviation (reported, not silently fixed)
+
+`scripts/check_repository_conventions.py --source worktree` reports exactly two
+issues, both inside this frozen package:
+
+```
+docs/authority/taskpack-0910-r3/MANIFEST.json: missing-final-newline
+docs/authority/taskpack-0910-r3/TASKS.json: missing-final-newline
+```
+
+The 0908 pack's `TASKS.json` conformed (ends with LF), so this is a small defect
+in the new package, not a repository regression. It is deliberately **not**
+patched here:
+
+- `TASKS.json` is hashed by `MANIFEST.json`; appending a newline would change its
+  sha256 and invalidate `verify_package.py` (the package's own identity check).
+- The pack requires `TASKS.json` to stay the frozen plan definition and its files
+  to remain unmodified.
+
+Resolution options for the owner: re-issue the package with a final LF on those
+two files, or explicitly authorize a repository-side exemption for frozen
+installed package snapshots. Until then every slice's gate run shows these two
+lines; all repository-owned files pass.
+
 ## Boundaries honoured during install
 
 No product code changed, no Windows cleanup, no `.hermes` access, no E: access,
