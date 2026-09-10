@@ -118,6 +118,15 @@ fn frame(receiver:&mpsc::Receiver<Result<String,String>>,deadline:Instant,cancel
         Err(mpsc::RecvTimeoutError::Timeout)=>(),
     }}
 }
+/// R08: the controlled set of worker identities the Core will drive. Each route
+/// keeps its own identity; the shared job loop, attempt bookkeeping and error
+/// vocabulary are the same for all of them.
+pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
+    "python-worker-text-ndjson",
+    "python-worker-pdf-ndjson",
+    "python-worker-ocr-ndjson",
+];
+
 fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],cancel:&Cancellation)->Result<(Response,Vec<Vec<u8>>),Failure>{
     let deadline=Instant::now()+Duration::from_millis(req.deadline_ms);
     check(deadline,cancel)?;
@@ -155,7 +164,14 @@ fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],c
     });
     let outcome=(||{
         let hello=decode_hello(&frame(&receive,deadline,cancel)?).map_err(|e|Failure::Failed(e.into()))?;
-        if hello.worker.name!="python-worker-text-ndjson" || hello.worker.version!="1"{return Err(Failure::Failed("unexpected worker identity".into()));}
+        // R08: every extraction route reaches the Core through this same loop, so
+        // the identity check accepts the controlled set of known worker
+        // identities instead of pinning the text worker. Which capability a
+        // worker may actually serve is enforced by the worker's own advertised
+        // list (defence in depth), not by this identity gate.
+        if !KNOWN_WORKER_IDENTITIES.contains(&hello.worker.name.as_str()) || hello.worker.version!="1" {
+            return Err(Failure::Failed("unexpected worker identity".into()));
+        }
         let mut stdin=child.0.stdin.take().unwrap();
         writeln!(stdin,"{}",serde_json::to_string(req).map_err(|e|Failure::Failed(e.to_string()))?)?;
         drop(stdin);
