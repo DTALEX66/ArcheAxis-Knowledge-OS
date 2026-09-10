@@ -191,6 +191,14 @@ struct LearningEventBody {
     // Option so the machine-actor guard (403) wins over the key check (400).
     #[serde(default)]
     client_event_id: Option<String>,
+    // R05: the persisted FSRS card state for this item, when the caller keeps it.
+    // Present -> the reusable scheduler decides the interval. Absent -> the
+    // caller is explicitly on the placeholder ladder path.
+    #[serde(default)]
+    schedule_state: Option<serde_json::Value>,
+    // Optional review instant, so a replayed submission stays reproducible.
+    #[serde(default)]
+    now: Option<String>,
 }
 
 fn default_learning_kind() -> String {
@@ -221,13 +229,53 @@ async fn record_learning_event(
         Some(k) if !k.is_empty() => {}
         _ => return (StatusCode::BAD_REQUEST, "client_event_id must be non-empty").into_response(),
     }
-    with_store(state, move |conn| match learning::record_review_keyed(
-        conn,
-        &body.item_key,
-        &body.kind,
-        body.correct,
-        body.client_event_id.as_deref().unwrap_or(""),
-    ) {
+    // R05: resolve the scheduling authority before touching the database.
+    // - caller supplied the persisted card state -> ask the reused FSRS worker
+    //   (authority "fsrs"), or record the review as explicitly unscheduled
+    //   (authority "unavailable") when that scheduler cannot answer;
+    // - no card state -> the placeholder ladder, reported as such so no caller
+    //   can mistake it for real FSRS scheduling.
+    let (scheduled_days, authority) = match body.schedule_state.clone() {
+        None => (None, "placeholder_ladder"),
+        Some(card_state) => {
+            let mut request = serde_json::json!({
+                "item_key": body.item_key,
+                "correct": body.correct,
+                "state": card_state,
+            });
+            if let Some(now) = body.now.as_deref() {
+                request["now"] = serde_json::json!(now);
+            }
+            let answer = archeaxis_application::scheduler::SchedulerClient::from_env()
+                .and_then(|client| client.review(&request.to_string()));
+            match answer {
+                Ok(schedule) => (Some(schedule.next_review_days), "fsrs"),
+                Err(_) => (None, "unavailable"),
+            }
+        }
+    };
+    let scheduled = authority != "placeholder_ladder";
+    let outcome = move |conn: &mut rusqlite::Connection| {
+        if scheduled {
+            learning::record_review_scheduled(
+                conn,
+                &body.item_key,
+                &body.kind,
+                body.correct,
+                body.client_event_id.as_deref().unwrap_or(""),
+                scheduled_days,
+            )
+        } else {
+            learning::record_review_keyed(
+                conn,
+                &body.item_key,
+                &body.kind,
+                body.correct,
+                body.client_event_id.as_deref().unwrap_or(""),
+            )
+        }
+    };
+    with_store(state, move |conn| match outcome(conn) {
         Ok((event_id, streak_after, next_review_days, duplicate)) => {
             let status = if duplicate { StatusCode::OK } else { StatusCode::CREATED };
             (
@@ -237,6 +285,7 @@ async fn record_learning_event(
                     "streak_after": streak_after,
                     "next_review_days": if duplicate { serde_json::json!(stored_retry_days(next_review_days)) } else { serde_json::json!(next_review_days) },
                     "duplicate": duplicate,
+                    "schedule_authority": authority,
                 })),
             )
                 .into_response()
