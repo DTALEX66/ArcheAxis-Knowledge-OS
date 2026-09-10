@@ -448,14 +448,25 @@
           "path": "scripts/check_taskpack_integrity.py",
           "kind": "tracked",
           "note": "frozen pack versus live ledger"
+        },
+        {
+          "path": "scripts/check_evidence_commands.py",
+          "kind": "tracked",
+          "note": "executes the recorded commands; lists only, unless --run"
+        },
+        {
+          "path": "tests/test_evidence_commands.py",
+          "kind": "tracked",
+          "note": "safe by default, placeholders never run, unknown runners refused, not-run never a pass"
         }
       ],
       "limitations": [
         "this gate has NOT been run: the index only prepares the evidence an independent auditor needs",
-        "an executor-written summary is not an audit, so this repository never records it as passed"
+        "an executor-written summary is not an audit, so this repository never records it as passed",
+        "round 97 executed all twenty recorded commands with the toolchain environment present and all twenty exited 0; on a machine without ARCHEAXIS_RUST_TOOLCHAINS and ARCHEAXIS_MSVC_VCVARS the six per-package cargo commands are reported as not run rather than failed"
       ],
       "status": "TODO",
-      "evidence_items_in_state": 4
+      "evidence_items_in_state": 10
     },
     {
       "slice": "R15",
