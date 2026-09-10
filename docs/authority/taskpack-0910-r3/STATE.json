@@ -232,8 +232,13 @@
     ]
   },
   "R13": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IN_PROGRESS",
+    "evidence": [
+      "FIRST STEP (R13, no deletions): scripts/launch/core_launch.py provides --check (dependency diagnostics for the core binary, the Python interpreter, the three workers, the pdf engine pymupdf, the tesseract executable, the repository eng.traineddata and the cargo wrapper, plus port diagnostics for 8001/3782/11434), --probe (spawn the Core with a fresh launch claim, read the readiness port, then stop it) and a foreground mode that prints the listening address.",
+      "observed this round: --check exit 0 with 9/9 dependencies ok and all three ports reported in use (the host is running); --probe exit 0 with requested_port 64436 and ready_port 64436, so a real process started and reported readiness.",
+      "behaviour on failure: a missing or unbuilt dependency is reported by name with an exit code, never as an empty success, and every path is resolved from the repository root rather than inferred from an installer directory.",
+      "NOT CLAIMED: the Windows candidate package itself, a same-source artifact hash bound to a tested SHA, and the one-click stop/restore/uninstall instructions (R13 follow-ups). R12 deletions remain unauthorized per path, so nothing was deleted this round."
+    ]
   },
   "R14": {
     "status": "TODO",
