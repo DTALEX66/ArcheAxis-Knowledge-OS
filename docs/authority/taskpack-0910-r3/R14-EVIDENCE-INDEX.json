@@ -197,12 +197,22 @@
         {
           "path": "services/python-workers/transport/text_ndjson.py",
           "kind": "tracked",
-          "note": "the shared request/response envelope and the three routes"
+          "note": "the shared envelope, the route table and the contract adapter"
         },
         {
           "path": "crates/archeaxis-application/src/attempts.rs",
           "kind": "tracked",
-          "note": "ROUTES, ENGINE_PROFILES and the receipt checks"
+          "note": "ROUTES, ROUTE_MEDIA_TYPES, ENGINE_PROFILES and the receipt checks"
+        },
+        {
+          "path": "services/python-workers/document/worker_archive.py",
+          "kind": "tracked",
+          "note": "the container route"
+        },
+        {
+          "path": "services/python-workers/document/worker_media.py",
+          "kind": "tracked",
+          "note": "the media probe route"
         },
         {
           "path": "tests/test_unified_job_contract.py",
@@ -273,7 +283,7 @@
         "mounting it is an owner-side decision, which is why R10 stays IN_PROGRESS"
       ],
       "status": "IN_PROGRESS",
-      "evidence_items_in_state": 25
+      "evidence_items_in_state": 26
     },
     {
       "slice": "R11",
@@ -360,11 +370,27 @@
         },
         {
           "path": "docs/authority/taskpack-0910-r3/EXECUTION.md",
-          "kind": "tracked"
+          "kind": "tracked",
+          "note": "the ledger, 72 rows"
         },
         {
           "path": "docs/authority/taskpack-0910-r3/STATE.json",
           "kind": "tracked"
+        },
+        {
+          "path": "scripts/ci/cargo_test.bat",
+          "kind": "tracked",
+          "note": "the tracked way to run the Rust suites"
+        },
+        {
+          "path": "scripts/check_evidence_index.py",
+          "kind": "tracked",
+          "note": "the check that this index cannot drift from the state"
+        },
+        {
+          "path": "scripts/check_taskpack_integrity.py",
+          "kind": "tracked",
+          "note": "frozen pack versus live ledger"
         }
       ],
       "limitations": [
@@ -372,7 +398,7 @@
         "an executor-written summary is not an audit, so this repository never records it as passed"
       ],
       "status": "TODO",
-      "evidence_items_in_state": 0
+      "evidence_items_in_state": 4
     },
     {
       "slice": "R15",
@@ -381,10 +407,19 @@
         {
           "path": "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json",
           "kind": "tracked",
-          "note": "sixteen groups with status and named gaps"
+          "note": "sixteen groups, status and named gaps"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json",
+          "kind": "tracked",
+          "note": "every capability worker routed or exempted with a reason"
         },
         {
           "path": "scripts/check_format_matrix.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/check_worker_reachability.py",
           "kind": "tracked"
         },
         {
@@ -396,17 +431,33 @@
           "kind": "tracked"
         },
         {
+          "path": "services/python-workers/document/worker_office.py",
+          "kind": "tracked",
+          "note": "DOCX/PPTX/XLSX, wired in round 81"
+        },
+        {
+          "path": "services/python-workers/web/worker_html.py",
+          "kind": "tracked",
+          "note": "saved HTML snapshots, wired in round 83"
+        },
+        {
+          "path": "services/python-workers/vision/worker_caption.py",
+          "kind": "tracked",
+          "note": "figure description as a labelled candidate, wired in round 84"
+        },
+        {
           "path": "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs",
           "kind": "tracked"
         }
       ],
       "limitations": [
-        "zero groups are complete: five are partial and eleven custody-only",
+        "zero groups are complete: fourteen are partial and two custody-only (legacy binary Office and professional formats)",
         "the 69 unowned tracked paths are recorded, not fixed, because the authority file is protected",
-        "all 1246 inventoried legacy assets are still INVENTORIED_NOT_SEMANTICALLY_REVIEWED"
+        "all 1246 inventoried legacy assets are still INVENTORIED_NOT_SEMANTICALLY_REVIEWED",
+        "a model description is a candidate, not a fact about the image, and description quality is not measured here"
       ],
       "status": "IN_PROGRESS",
-      "evidence_items_in_state": 52
+      "evidence_items_in_state": 89
     },
     {
       "slice": "R16",
@@ -428,7 +479,7 @@
         "capacity and old-asset disposition are recorded, not settled"
       ],
       "status": "TODO",
-      "evidence_items_in_state": 0
+      "evidence_items_in_state": 1
     }
   ],
   "not_claimed": [
