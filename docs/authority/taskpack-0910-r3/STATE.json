@@ -193,7 +193,11 @@
       "REMAINING for R10: a smoke run against a real running Core (spawn archeaxis-api with launch JSON and read its ready port), then the real host UI wiring, the separated display of user learning state versus AI capability state, and manual recording when activity results cannot flow back",
       "LIVE CORE SMOKE PASSED (R10d): scripts/probes/r10_core_journey_smoke.py spawns the REAL archeaxis-api with a launch JSON on stdin, reads its readiness port, and runs shared/core_client.run_journey over HTTP. Receipt (exit 0): reachability 200, import 202 (source_id src_3f83059f699322666aa2fd3d), search q=6371 active_only=true 200 with count 1, learning event 201, reference 201 citing revision k_8f390d95872e39a2e2bb110b; one accepted fact was created first (201). No token is printed.",
       "real protocol detail found and fixed: the Core reads its launch claim to EOF, so the caller must close stdin after writing it or the process waits and never reports readiness.",
-      "REMAINING for R10: connect the adapter to the real host UI, show user learning state separately from AI capability state, and surface plus manually record activity results that cannot flow back"
+      "REMAINING for R10: connect the adapter to the real host UI, show user learning state separately from AI capability state, and surface plus manually record activity results that cannot flow back",
+      "TWO-STATE VIEW LANDED (R10e, acceptance items 2 and 3): GET /api/v1/learning/items/:item_key/state reports the learner side (event_count, correct_streak, scheduled_events, unscheduled_events, references with active flags, plus a recording note) separately from the machine side, which returns status not_recorded with the note that machine capability receipts come from the machine loop and learner progress is never presented as machine competence.",
+      "the same tests cover both recording paths: no card state uses the placeholder ladder and counts as scheduled, while an unavailable scheduler is stored as unscheduled - which is exactly the manual-recording route for an activity result that could not flow back automatically.",
+      "tests: api suite 18 groups ok with item_state_api.rs; full workspace cargo test exit 0 / 65 groups (receipts .project-local/runs/r50-api.log and r50-full-workspace.log)",
+      "REMAINING for R10: connect the journey and this state view to the real DeepTutor host UI"
     ]
   },
   "R11": {

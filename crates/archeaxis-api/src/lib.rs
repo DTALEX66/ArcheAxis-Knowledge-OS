@@ -56,6 +56,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/learning/events", post(record_learning_event))
         .route("/api/v1/learning/events/:item_key", get(learning_history))
         .route("/api/v1/learning/items/:item_key/references", post(record_item_reference))
+        .route("/api/v1/learning/items/:item_key/state", get(item_state))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
         .route("/api/v1/workspaces/info", get(workspace_info));
@@ -197,6 +198,55 @@ async fn learning_history(
                 .into_response()
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+    .await
+}
+
+/// R10: the two sides of an item's state, kept separate.
+///
+/// The learner side is what this Core actually recorded for the human (events,
+/// streak, next review, and which revisions the item was built from). The machine
+/// side is *not* inferred from learner activity: machine capability receipts are
+/// written by the machine loop, so until such a receipt exists this view says so
+/// instead of presenting learner progress as machine competence.
+async fn item_state(State(state): State<AppState>, Path(item_key): Path<String>) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let events = match learning::events_for_item(conn, &item_key) {
+            Ok(rows) => rows,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        };
+        let streak = match learning::correct_streak(conn, &item_key) {
+            Ok(value) => value,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        };
+        let references = match learning::references_for_card(conn, &item_key) {
+            Ok(found) => found,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        };
+        let unscheduled = events.iter().filter(|(_, _, _, next)| next.is_none()).count();
+        let scheduled = events.len() - unscheduled;
+        (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "item_key": item_key,
+                "learner": {
+                    "event_count": events.len(),
+                    "correct_streak": streak,
+                    "scheduled_events": scheduled,
+                    "unscheduled_events": unscheduled,
+                    "references": references
+                        .into_iter()
+                        .map(|(knowledge_id, active)| serde_json::json!({"knowledge_id": knowledge_id, "active": active}))
+                        .collect::<Vec<_>>(),
+                    "recording": "a human records learning outcomes through the learning-events endpoint; an unavailable schedule is stored as unscheduled rather than invented",
+                },
+                "machine": {
+                    "status": "not_recorded",
+                    "note": "machine capability receipts are written by the machine loop; learner progress is never presented as machine competence",
+                },
+            })),
+        )
+            .into_response()
     })
     .await
 }
