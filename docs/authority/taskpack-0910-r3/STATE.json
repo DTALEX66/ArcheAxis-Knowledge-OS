@@ -201,8 +201,12 @@
     ]
   },
   "R11": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IN_PROGRESS",
+    "evidence": [
+      "scoping (read-only): what already exists on the machine side - the qualification endpoint (GET /knowledge-items/:id/qualification), is_knowledge_active and knowledge_status for consumer-side checks, search with active_only, the machine identity boundary (a machine may only propose candidates and can neither self-accept nor review), and the machine correction loop from cbe253b (candidate, human review, new version, re-call, restart-consistent).",
+      "what is missing: there is NO MCP or tool-call surface anywhere in the Rust crates (a search for mcp/tool_call matches nothing), so there is no path for a real external client or controlled tool call, and no place to record a machine task receipt (task conditions, knowledge/method/tool/model versions, call scope, outcome, failure, retest).",
+      "SMALLEST HONEST SLICE PROPOSED: (1) add a machine task receipt as an additive table created on demand (no schema-version bump, the same approach as card_references), writable by a machine principal only, with candidate-or-measurement semantics that never auto-accept; fields cover task conditions, knowledge/method/tool/model versions, scope, outcome, failure and retest; (2) connect one real external client (a controlled tool or MCP equivalent) using the R10 adapter pattern to run one observable task; (3) keep evaluation practice isolated from unseen tests, mark unmeasured as UNMEASURED, and never present a knowledge update, a fetched document or a single correct answer as weight training."
+    ]
   },
   "R12": {
     "status": "TODO",
