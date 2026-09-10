@@ -100,6 +100,49 @@ fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
     None
 }
 
+/// One member as the store knows it after expansion.
+#[derive(Debug, Clone)]
+pub struct MemberRow {
+    pub source_id: String,
+    pub member: String,
+    pub original_name: Option<String>,
+    pub sha256: String,
+    /// True when a transform exists, i.e. a route read the member's bytes.
+    pub readable: bool,
+    /// The job queued for this member, when its name resolved to a route.
+    pub job_id: Option<String>,
+}
+
+/// The members imported from one container, in the order they were recorded.
+///
+/// This answers "what is inside this container and which parts could be read" from the
+/// relation recorded at import time, without a second table of relations. The member
+/// name is recovered from the origin reference, and the readability of a member is the
+/// presence of a transform rather than a promise.
+pub fn members_of(conn: &Connection, container_source_id: &str) -> Result<Vec<MemberRow>, JobError> {
+    let prefix = format!("{container_source_id}#");
+    let mut statement = conn.prepare(
+        "SELECT o.source_id, o.origin_ref, s.original_name, s.sha256,
+                EXISTS(SELECT 1 FROM transforms t WHERE t.source_id=o.source_id),
+                (SELECT j.job_id FROM jobs j WHERE j.input_ref=o.source_id ORDER BY j.rowid LIMIT 1)
+         FROM source_origins o JOIN sources s ON s.source_id=o.source_id
+         WHERE o.origin_kind=?1 AND o.origin_ref LIKE ?2
+         ORDER BY o.imported_at, o.rowid",
+    )?;
+    let rows = statement.query_map(rusqlite::params![ORIGIN_KIND, format!("{prefix}%")], |row| {
+        let reference: String = row.get(1)?;
+        Ok(MemberRow {
+            source_id: row.get(0)?,
+            member: reference.strip_prefix(&prefix).unwrap_or(&reference).to_string(),
+            original_name: row.get(2)?,
+            sha256: row.get(3)?,
+            readable: row.get::<_, i64>(4)? == 1,
+            job_id: row.get(5)?,
+        })
+    })?;
+    rows.collect::<rusqlite::Result<Vec<_>>>().map_err(JobError::from)
+}
+
 /// Import every declared member as its own source and enqueue the readable ones.
 pub fn expand_members(
     conn: &mut Connection,

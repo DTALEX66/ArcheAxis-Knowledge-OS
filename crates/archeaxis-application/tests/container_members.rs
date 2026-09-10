@@ -184,13 +184,14 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         .map(|(job, _)| job.clone())
         .unwrap();
     executor.execute(&text_job, "run-member", 120_000, &Cancellation::new()).await.unwrap();
+    let text_query = text_job.clone();
     let text: String = executor
         .store()
         .submit(move |conn| {
             conn.query_row(
                 "SELECT text FROM transforms WHERE source_id=(
                    SELECT input_ref FROM jobs WHERE job_id=?1) ORDER BY transform_id DESC LIMIT 1",
-                [&text_job],
+                [&text_query],
                 |row| row.get(0),
             )
             .unwrap_or_default()
@@ -198,6 +199,29 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         .await
         .unwrap();
     assert!(text.contains("6371"), "the member's own content must be extracted: {text:?}");
+
+    // the relation is queryable: what is inside the container, and what could be read
+    let members = executor
+        .store()
+        .submit(move |conn| container::members_of(conn, &container_source).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(members.len(), 3, "{members:?}");
+    let by_name: std::collections::BTreeMap<String, container::MemberRow> =
+        members.into_iter().map(|row| (row.member.clone(), row)).collect();
+    assert_eq!(
+        by_name.keys().cloned().collect::<Vec<_>>(),
+        vec!["assets/shot.png".to_string(), "notes/index.md".to_string(), "opaque/blob.bin".to_string()]
+    );
+    // the markdown was read (its job ran), the image has a job that has not run, and
+    // the opaque member has no job at all because no name could be resolved for it
+    assert!(by_name["notes/index.md"].readable, "{:?}", by_name["notes/index.md"]);
+    assert_eq!(by_name["notes/index.md"].job_id.as_deref(), Some(text_job.as_str()));
+    assert!(!by_name["assets/shot.png"].readable);
+    assert!(by_name["assets/shot.png"].job_id.is_some());
+    assert!(!by_name["opaque/blob.bin"].readable);
+    assert_eq!(by_name["opaque/blob.bin"].job_id, None);
+    assert!(by_name["opaque/blob.bin"].sha256.len() == 64);
 }
 
 #[tokio::test]

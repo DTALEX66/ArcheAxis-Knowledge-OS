@@ -8,6 +8,7 @@
 pub mod launch;
 pub mod runtime;
 
+use archeaxis_application::container;
 use archeaxis_application::jobs::{self, LossReceipt};
 use archeaxis_domain::{ImportOutcome, anchor, knowledge, learning, machine, search, source};
 use archeaxis_store_sqlite::{workspace_info_json, writer::{Store, StoreError}};
@@ -61,6 +62,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/machine/tasks/:task_id", get(machine_task_readback))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
+        .route("/api/v1/sources/:source_id/members", get(source_members))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
     routes.with_state(state)
@@ -502,6 +504,62 @@ async fn create_anchor(
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
     }).await
+}
+
+/// R15/F15: what is inside a container, and which parts could be read.
+///
+/// The relation is the one recorded at import time (an `import` origin whose reference
+/// names the container), so this endpoint answers a question about provenance rather
+/// than inventing a second store of relations. A member whose name resolved to no route
+/// appears with `readable: false` and no job: it is kept, and it is visible.
+async fn source_members(
+    State(state): State<AppState>,
+    Path(source_id): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let exists: bool = conn
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM sources WHERE source_id=?1)",
+                [&source_id],
+                |row| row.get(0),
+            )
+            .unwrap_or(false);
+        if !exists {
+            return (StatusCode::NOT_FOUND, "source not found").into_response();
+        }
+        match container::members_of(conn, &source_id) {
+            Ok(members) => {
+                let readable = members.iter().filter(|member| member.readable).count();
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({
+                        "container_source_id": source_id,
+                        "member_count": members.len(),
+                        "readable_count": readable,
+                        "custody_only_count": members.len() - readable,
+                        "members": members
+                            .into_iter()
+                            .map(|member| serde_json::json!({
+                                "source_id": member.source_id,
+                                "member": member.member,
+                                "original_name": member.original_name,
+                                "sha256": member.sha256,
+                                "readable": member.readable,
+                                "job_id": member.job_id,
+                            }))
+                            .collect::<Vec<_>>(),
+                        "note": "these are the members imported from this container, not its whole inventory: \
+                                 members beyond the extraction caps, encrypted members and unreadable ones are \
+                                 reported by the archive job's own receipt, and readable means a transform exists \
+                                 rather than that the content was understood"
+                    })),
+                )
+                    .into_response()
+            }
+            Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        }
+    })
+    .await
 }
 
 async fn knowledge_qualification(
