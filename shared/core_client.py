@@ -114,3 +114,78 @@ def call(base_url: str, method: str, path: str, launch_token: str | None, body: 
         return status, json.loads(raw)
     except json.JSONDecodeError:
         return status, raw
+
+
+def run_journey(
+    call,
+    base_url: str,
+    launch_token: str | None,
+    sample_name: str,
+    sample_bytes: bytes,
+    query: str,
+    item_key: str,
+    client_event_id: str,
+) -> dict:
+    """Run the smallest real Core journey for the host adapter (R10).
+
+    Steps: reachability -> import the sample -> search it -> record a learning
+    outcome -> record the revision the item was built from -> (optionally) leave a
+    review to the human. The caller supplies `call`, so the sequence is testable
+    without a running Core and remains the single place the host learns the order.
+
+    Every step's status is returned; a failed step stops the journey and is
+    reported rather than silently skipped.
+    """
+    steps: list[dict] = []
+
+    def step(name: str, method: str, path: str, body=None) -> tuple[int, object]:
+        status, payload = call(base_url, method, path, launch_token, body)
+        steps.append({"step": name, "method": method, "path": path, "status": status})
+        return status, payload
+
+    status, version = step("reachability", "GET", f"{BASE}/system/version")
+    if status != 200:
+        return {"ok": False, "failed_step": "reachability", "steps": steps, "payload": version}
+
+    status, imported = step("import", "POST", f"{BASE}/imports", import_request(sample_name, sample_bytes))
+    if not 200 <= status < 300:
+        return {"ok": False, "failed_step": "import", "steps": steps, "payload": imported}
+    source_id = imported.get("source_id") if isinstance(imported, dict) else None
+
+    status, found = step("search", "GET", search_path(query, active_only=True))
+    if status != 200:
+        return {"ok": False, "failed_step": "search", "steps": steps, "payload": found}
+
+    status, event = step(
+        "learning_event",
+        "POST",
+        f"{BASE}/learning/events",
+        learning_event_request(item_key, True, client_event_id),
+    )
+    if not 200 <= status < 300:
+        return {"ok": False, "failed_step": "learning_event", "steps": steps, "payload": event}
+
+    hits = found.get("items") if isinstance(found, dict) else None
+    reference_id = None
+    if isinstance(hits, list) and hits:
+        candidate = hits[0].get("knowledge_id") if isinstance(hits[0], dict) else None
+        if candidate:
+            status, reference = step(
+                "reference",
+                "POST",
+                f"{BASE}/learning/items/{item_key}/references",
+                reference_request(item_key, candidate),
+            )
+            if 200 <= status < 300:
+                reference_id = candidate
+            else:
+                return {"ok": False, "failed_step": "reference", "steps": steps, "payload": reference}
+
+    return {
+        "ok": True,
+        "steps": steps,
+        "source_id": source_id,
+        "search_count": (found.get("count") if isinstance(found, dict) else None),
+        "referenced_revision": reference_id,
+        "note": "review stays a human action: the host must not accept or modify knowledge itself",
+    }

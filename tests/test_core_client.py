@@ -96,3 +96,71 @@ class TestRequestShapes:
         status, payload = core.call("http://127.0.0.1:9", "GET", "/api/v1/system/version", None, timeout=2)
         assert status != 200
         assert payload is not None
+
+
+class _FakeCore:
+    """Records the calls a journey makes and answers with canned payloads."""
+
+    def __init__(self, fail_step: str | None = None) -> None:
+        self.calls: list[tuple[str, str, object]] = []
+        self.fail_step = fail_step
+
+    def __call__(self, base_url, method, path, token, body=None, timeout=30.0):
+        self.calls.append((method, path, body))
+        if self.fail_step and self.fail_step in path:
+            return 503, {"error": "unavailable"}
+        if path.endswith("/system/version"):
+            return 200, {"runtime": "archeaxis-api"}
+        if path.endswith("/imports"):
+            return 202, {"source_id": "src-1"}
+        if path.startswith("/api/v1/search"):
+            return 200, {"count": 1, "items": [{"knowledge_id": "k_rev1", "active": True}]}
+        if path.endswith("/learning/events"):
+            return 201, {"event_id": 1, "duplicate": False}
+        if "/references" in path:
+            return 201, {"knowledge_id": "k_rev1"}
+        return 404, {"error": "unexpected path"}
+
+
+class TestJourney:
+    def _run(self, fake: _FakeCore) -> dict:
+        return core.run_journey(
+            fake,
+            "http://127.0.0.1:1",
+            "t" * 64,
+            "note.md",
+            b"radius 6371 km",
+            "6371",
+            "card-1",
+            "evt-1",
+        )
+
+    def test_the_journey_order_is_reachability_import_search_event_reference(self) -> None:
+        fake = _FakeCore()
+        result = self._run(fake)
+        assert result["ok"] is True, result
+        paths = [path for _method, path, _body in fake.calls]
+        assert paths[0].endswith("/system/version")
+        assert paths[1].endswith("/imports")
+        assert paths[2].startswith("/api/v1/search")
+        assert paths[3].endswith("/learning/events")
+        assert paths[4].endswith("/learning/items/card-1/references")
+        assert result["source_id"] == "src-1"
+        assert result["referenced_revision"] == "k_rev1"
+        # The journey never performs a human review by itself.
+        assert not any("/review-decisions" in path for path in paths), paths
+        assert "human action" in result["note"]
+
+    def test_a_failed_step_stops_the_journey_and_is_reported(self) -> None:
+        fake = _FakeCore(fail_step="/imports")
+        result = self._run(fake)
+        assert result["ok"] is False
+        assert result["failed_step"] == "import"
+        # Nothing after the failure was attempted.
+        assert all(not path.startswith("/api/v1/search") for _m, path, _b in fake.calls), fake.calls
+
+    def test_search_asks_for_current_revisions_only(self) -> None:
+        fake = _FakeCore()
+        self._run(fake)
+        _method, search_call, _body = next(c for c in fake.calls if c[1].startswith("/api/v1/search"))
+        assert "active_only=true" in search_call, search_call
