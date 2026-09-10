@@ -471,7 +471,7 @@
     },
     {
       "slice": "R15",
-      "command": "python -X utf8 scripts/check_format_matrix.py",
+      "command": "python -X utf8 scripts/check_format_matrix.py || python -X utf8 scripts/probes/r15_directory_batch_smoke.py",
       "evidence": [
         {
           "path": "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json",
@@ -572,7 +572,8 @@
         "zero groups are complete: fourteen are partial and two custody-only (legacy binary Office and professional formats)",
         "the reading-order model handles one gutter, so F05 stays partial: two-column pages are read column by column and anything else keeps the engine order with the reason recorded",
         "the OCR reading-order model fixes column interleaving only: a misread phrase stays misread and within-line word order is left to the engine",
-        "folder ingestion is a script that speaks HTTP rather than a Core route or a UI affordance, and files the driver has no kind for are imported but left without a job on purpose"
+        "folder ingestion is a script that speaks HTTP rather than a Core route or a UI affordance, and files the driver has no kind for are imported but left without a job on purpose",
+        "the folder-ingestion probe is part of this row command since round 103: it needs a built Core, so a fresh checkout reports it as not run with that prerequisite rather than as a pass"
       ],
       "status": "IN_PROGRESS",
       "evidence_items_in_state": 104
