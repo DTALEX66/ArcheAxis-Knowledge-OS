@@ -9,6 +9,7 @@ pub mod anchor;
 pub mod backup;
 pub mod knowledge;
 pub mod learning;
+pub mod machine;
 pub mod search;
 pub mod source;
 
