@@ -257,7 +257,12 @@
   },
   "R14": {
     "status": "TODO",
-    "evidence": []
+    "evidence": [
+      "R14 PREPARATION (round 74, commit 48a6f9e) - this is NOT an audit result and must never be read as one. The markdown evidence index had gone stale at R05 while the ledger reached sixty-one rows, so the authoritative index is now R14-EVIDENCE-INDEX.json, generated from STATE.json so statuses are copied rather than retyped.",
+      "scripts/check_evidence_index.py refuses the index when a slice is missing, when a status disagrees with STATE.json, when a claim cites only ignored local receipts (a fresh checkout could not re-check it), when a cited tracked path does not exist, when a slice records no limitation or no runnable command, when the command names a script that is not tracked, or when either independent gate is recorded as passed by this repository. Measured: 17 slices, 49 tracked evidence pointers, 3 receipts, no self-signed gate, every slice stating its limits; tests/test_evidence_index.py 14 passed, including eleven negatives.",
+      "A REAL REPRODUCIBILITY GAP FOUND WHILE INDEXING: there was no tracked way to run the Rust suites at all - only per-run wrappers under the ignored .project-local/runs/ tree, which means an independent auditor with a fresh checkout could not reproduce any Rust claim. scripts/ci/cargo_test.bat is now the tracked entry point: it reads ARCHEAXIS_MSVC_VCVARS, ARCHEAXIS_RUST_TOOLCHAINS, ARCHEAXIS_PYTHON and ARCHEAXIS_CARGO_TARGET_DIR, pins the target directory to .project-local/build/cargo so a worktree cannot mix artefacts with the main checkout, prepends 'test' when no cargo subcommand is given, and exits 2 with a named message when the toolchain cannot be found. Verified both ways: exit 0 with the environment set, named failure exit 2 without it.",
+      "WHAT R14 STILL OWES: the gate itself. It is decided by an independent GPT audit configured by the owner, outside this repository, and no executor-written summary can stand in for it. The index only prepares the pointers; the weight of the evidence is the auditor's judgement."
+    ]
   },
   "R15": {
     "status": "IN_PROGRESS",
@@ -318,6 +323,8 @@
   },
   "R16": {
     "status": "TODO",
-    "evidence": []
+    "evidence": [
+      "R16 DEPENDENCY NOTE (round 74): the evidence index R14-EVIDENCE-INDEX.json also carries the R16 rows, and scripts/check_evidence_index.py refuses to record either independent gate as passed from inside this repository. R16 remains TODO: it depends on R13/R15 outcomes and on the owner's independent audit, and the capacity and old-asset questions it reviews are recorded rather than settled."
+    ]
   }
 }
