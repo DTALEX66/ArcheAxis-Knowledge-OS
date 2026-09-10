@@ -63,8 +63,35 @@
 - 未跟踪路径只作为 `untracked_present` 记录，**不改变 tested sha**。
 - 清单自身声明限制：哈希把交付物**绑定**到被测提交，它不是签名，也不是安装包。
 
-## 5. 明确的未完成（不声称）
+## 5. 候选包（bundle）与自验证
 
-- **没有**提供 MSI/EXE 安装包、代码签名、卸载器；本节只是"候选包入口 + 同源哈希绑定"。
+```powershell
+# 1) 先构建 release 版 Core（target 目录与测试运行器一致，落在 .project-local/build/cargo）
+cargo build --release -p archeaxis-api --offline
+
+# 2) 打成候选包，并输出 zip 及其 sha256
+.venv\Scripts\python.exe -X utf8 scripts\release\build_candidate.py --zip
+
+# 3) 验证候选包；--run 还会真的启动它、读到端口后停掉
+.venv\Scripts\python.exe -X utf8 scripts\release\verify_candidate.py `
+  --candidate .project-local\dist\archeaxis-core-<sha>-release-build --run --json
+```
+
+- 候选包 = **二进制 + 生成的 README + `CANDIDATE.json`**；清单记录**源提交**、构建种类、
+  以及**每个文件的 bytes/sha256**。README 由清单生成，**清单又记录 README**，所以两者都不能被悄悄改动。
+- `verify_candidate.py` **拒绝**四类情形：清单未记录的**夹带文件**、清单记录了却**缺失**的文件、
+  **本仓库不存在**的源提交、以及**哈希/字节数不符**。退出码：0 通过、2 无候选、3 不一致、4 运行失败。
+- **跟踪工作树脏时拒绝打包**（exit 5）：清单只能描述一个**被测提交**；确需打包未提交状态时用
+  `--allow-dirty`，此时清单会把 `tree_clean_when_built: false` **如实记录**。
+- **只有 debug 二进制时拒绝**（exit 2），除非显式 `--allow-debug`——那样清单标为 `debug-build`，
+  **绝不**把 debug 当作 release 提供。
+
+## 6. 明确的未完成（不声称）
+
+- **没有**提供 MSI/EXE 安装包、代码签名、卸载器；本节是"候选包 + 同源哈希绑定 + 自验证"。
+  **哈希绑定不是签名**：它只能证明"这些字节与这份清单一致"，不能证明"谁产出的"。
+- 候选包**只含 Core 二进制**：没有 Python 运行时与 workers，因此**依赖 worker 的路由会具名失败**，
+  不会静默返回空结果。
 - 普通用户"导入—理解—练习—复习 + 机器调用—纠错—再调用"的界面旅程属 R10（宿主界面接线），本切片不含。
 - 干净环境（另一台无工具链机器）的启动与重启恢复**尚未在此环境外验证**。
+
