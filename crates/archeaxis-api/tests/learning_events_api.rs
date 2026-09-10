@@ -13,8 +13,10 @@ use tower::ServiceExt;
 use archeaxis_api::app;
 
 async fn post_event(router: &axum::Router, item: &str, correct: bool) -> (StatusCode, Value) {
+    static CALL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let counter = CALL.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
     let body = format!(
-        r#"{{"item_key":"{item}","kind":"review","correct":{correct}}}"#
+        r#"{{"item_key":"{item}","kind":"review","correct":{correct},"client_event_id":"auto-{item}-{counter}"}}"#
     );
     let resp = router
         .clone()
@@ -71,7 +73,7 @@ async fn empty_item_key_is_rejected() {
 async fn post_event_keyed(router: &axum::Router, item: &str, correct: bool, key: Option<&str>) -> (StatusCode, Value) {
     let body = match key {
         Some(k) => format!(r#"{{"item_key":"{item}","kind":"review","correct":{correct},"client_event_id":"{k}"}}"#),
-        None => format!(r#"{{"item_key":"{item}","kind":"review","correct":{correct}}}"#),
+        None => format!(r#"{{"item_key":"{item}","kind":"review","correct":{correct},"client_event_id":""}}"#),
     };
     let resp = router.clone().oneshot(
         Request::post("/api/v1/learning/events")
@@ -92,11 +94,13 @@ async fn same_client_event_id_is_recorded_only_once() {
     assert_eq!(s1, StatusCode::CREATED);
     assert_eq!(v1["duplicate"], false);
     assert_eq!(v1["streak_after"], 1);
-    // replay with same key -> no new event
+    // replay with same key -> no new event; the ORIGINAL receipt is returned
     let (s2, v2) = post_event_keyed(&router, "card-x", true, Some("evt-1")).await;
     assert_eq!(s2, StatusCode::OK);
     assert_eq!(v2["duplicate"], true);
-    assert_eq!(v2["next_review_days"], Value::Null);
+    assert_eq!(v2["event_id"], v1["event_id"]);
+    assert_eq!(v2["streak_after"], 1);
+    assert_eq!(v2["next_review_days"], 2);
     // different key -> new event, streak continues
     let (s3, v3) = post_event_keyed(&router, "card-x", true, Some("evt-2")).await;
     assert_eq!(s3, StatusCode::CREATED);
@@ -121,4 +125,24 @@ async fn history_lists_recorded_events_for_item() {
     let v: Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(v["count"], 2);
     assert_eq!(v["events"][1]["outcome"], r#"{"outcome": "incorrect"}"#);
+}
+
+
+// EVENT-01: a key bound to a different payload is a conflict, not a dedup;
+// unkeyed submissions are rejected.
+#[tokio::test]
+async fn same_key_different_payload_conflicts_and_missing_key_rejected() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
+    let (s1, _) = post_event_keyed(&router, "card-c", true, Some("evt-c1")).await;
+    assert_eq!(s1, StatusCode::CREATED);
+    // same key, different outcome payload -> conflict
+    let (s2, _) = post_event_keyed(&router, "card-c", false, Some("evt-c1")).await;
+    assert_eq!(s2, StatusCode::INTERNAL_SERVER_ERROR);
+    // same key, different item -> conflict
+    let (s3, _) = post_event_keyed(&router, "card-d", true, Some("evt-c1")).await;
+    assert_eq!(s3, StatusCode::INTERNAL_SERVER_ERROR);
+    // missing/empty key -> rejected, nothing accumulates
+    let (s4, _) = post_event_keyed(&router, "card-c", true, None).await;
+    assert_eq!(s4, StatusCode::BAD_REQUEST);
 }

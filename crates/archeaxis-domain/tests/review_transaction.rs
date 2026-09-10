@@ -76,3 +76,37 @@ fn failed_review_leaves_no_partial_state() {
     assert_eq!(status, "candidate", "no partial status change on failed review");
     assert_eq!(events_for(&conn, &kid).len(), 0, "no event on failed review");
 }
+
+// REVISION-01: accept/reject/deprecate never overwrite the reviewed body; a
+// corrected body must create a new revision via the modified action.
+#[test]
+fn accept_with_new_body_is_rejected_and_body_stays_immutable() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("k.sqlite").to_str().unwrap()).unwrap();
+    let kid = knowledge::create_knowledge(
+        &mut conn, "FACTUAL_CLAIM", "original bytes", "candidate", None, None, "owner",
+    )
+    .unwrap();
+    let err = knowledge::review(
+        &mut conn, &kid, "accepted", "owner", Some("try to sneak a body change"), Some("rewritten body"),
+    );
+    assert!(err.is_err(), "accept must not carry a body change");
+    let (status, body): (String, String) = conn
+        .query_row(
+            "SELECT status, body FROM knowledge WHERE knowledge_id=?1",
+            [&kid],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .unwrap();
+    assert_eq!(status, "candidate", "failed mixed review changes nothing");
+    assert_eq!(body, "original bytes", "reviewed bytes are immutable");
+    assert_eq!(events_for(&conn, &kid).len(), 0);
+
+    // The pure accept path still works and leaves body untouched.
+    let ret = knowledge::review(&mut conn, &kid, "accepted", "owner", Some("clean accept"), None).unwrap();
+    assert_eq!(ret, kid);
+    let body: String = conn
+        .query_row("SELECT body FROM knowledge WHERE knowledge_id=?1", [&kid], |r| r.get(0))
+        .unwrap();
+    assert_eq!(body, "original bytes");
+}

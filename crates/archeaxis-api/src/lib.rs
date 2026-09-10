@@ -186,12 +186,21 @@ struct LearningEventBody {
     #[serde(default = "default_learning_kind")]
     kind: String,
     correct: bool,
+    // EVENT-01: every submission must carry a persistent producer-side event
+    // key; retries reuse the key and receive the original receipt. Kept
+    // Option so the machine-actor guard (403) wins over the key check (400).
     #[serde(default)]
     client_event_id: Option<String>,
 }
 
 fn default_learning_kind() -> String {
     "review".to_string()
+}
+
+/// On a duplicate replay the response carries the ORIGINAL receipt's
+/// next-review days (persisted with the key), not the current streak state.
+fn stored_retry_days(days: i64) -> i64 {
+    if days < 0 { 0 } else { days }
 }
 
 async fn record_learning_event(
@@ -208,22 +217,25 @@ async fn record_learning_event(
         return (StatusCode::FORBIDDEN, "machine principal cannot record human learning outcomes")
             .into_response();
     }
+    match body.client_event_id.as_deref().map(str::trim) {
+        Some(k) if !k.is_empty() => {}
+        _ => return (StatusCode::BAD_REQUEST, "client_event_id must be non-empty").into_response(),
+    }
     with_store(state, move |conn| match learning::record_review_keyed(
         conn,
         &body.item_key,
         &body.kind,
         body.correct,
-        body.client_event_id.as_deref(),
+        body.client_event_id.as_deref().unwrap_or(""),
     ) {
-        Ok((event_id, streak_after, next_review_days)) => {
-            let duplicate = next_review_days == -1;
+        Ok((event_id, streak_after, next_review_days, duplicate)) => {
             let status = if duplicate { StatusCode::OK } else { StatusCode::CREATED };
             (
                 status,
                 Json(serde_json::json!({
                     "event_id": event_id,
                     "streak_after": streak_after,
-                    "next_review_days": if duplicate { serde_json::Value::Null } else { serde_json::json!(next_review_days) },
+                    "next_review_days": if duplicate { serde_json::json!(stored_retry_days(next_review_days)) } else { serde_json::json!(next_review_days) },
                     "duplicate": duplicate,
                 })),
             )

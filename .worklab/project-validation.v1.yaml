@@ -78,6 +78,7 @@ risk_classes:
       - Cargo.toml
       - Cargo.lock
       - rust-toolchain.toml
+      - .cargo/**
       - "crates/**"
     gates: [static, lint, rust-vnext]
 

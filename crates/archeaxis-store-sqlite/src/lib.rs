@@ -4,7 +4,7 @@ use rusqlite::Connection;
 pub mod raw_objects;
 pub mod writer;
 
-pub const SCHEMA_VERSION: i64 = 3;
+pub const SCHEMA_VERSION: i64 = 4;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -80,7 +80,11 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE TABLE IF NOT EXISTS learning_event_keys (
     event_key TEXT PRIMARY KEY,
     item_key TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    payload_hash TEXT,
+    event_id INTEGER,
+    streak_after INTEGER,
+    next_review_days INTEGER
 );
 CREATE TABLE IF NOT EXISTS learning_events (
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -166,6 +170,25 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
              ALTER TABLE jobs ADD COLUMN transform_id INTEGER REFERENCES transforms(transform_id);
              UPDATE jobs SET state='succeeded' WHERE state='completed';",
         )?;
+    }
+    if version < 4 {
+        // EVENT-01: persist the canonical payload identity and the original
+        // receipt alongside each dedup key so a replay can return exactly the
+        // first outcome and a conflicting payload is rejected, not deduped.
+        // A fresh database created by SCHEMA_SQL already has the columns, so
+        // guard each ALTER on the live table shape.
+        let has_payload: bool = tx.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('learning_event_keys') WHERE name='payload_hash')",
+            [], |r| r.get(0),
+        )?;
+        if !has_payload {
+            tx.execute_batch(
+                "ALTER TABLE learning_event_keys ADD COLUMN payload_hash TEXT;
+                 ALTER TABLE learning_event_keys ADD COLUMN event_id INTEGER;
+                 ALTER TABLE learning_event_keys ADD COLUMN streak_after INTEGER;
+                 ALTER TABLE learning_event_keys ADD COLUMN next_review_days INTEGER;",
+            )?;
+        }
     }
     tx.execute(
         "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",

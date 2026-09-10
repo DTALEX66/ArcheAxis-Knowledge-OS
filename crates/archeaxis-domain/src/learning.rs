@@ -1,5 +1,6 @@
 //! Learning events: one learning event + next-review scheduling.
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension};
+use sha2::{Digest, Sha256};
 
 /// Record a learning event (review/quiz/teach_back/mastery) with its outcome.
 /// `next_review` is an ISO date hint produced by the scheduler (kept simple: +N days).
@@ -88,49 +89,84 @@ pub fn record_review(
     Ok((conn.last_insert_rowid(), streak_after, next_review_days))
 }
 
-/// Record one human review outcome with an optional caller-supplied idempotency
-/// key. When the key already exists the call is a duplicate: no new event is
-/// written and (0, streak, -1) is returned (handler maps -1 to a null
-/// next-review). Key + event are inserted in ONE transaction, so a duplicate
-/// can never double-insert.
+/// Record one human review outcome with a caller-supplied persistent event
+/// key (EVENT-01). The key is bound to item_key and the canonical payload
+/// hash, and the original receipt (event_id, streak, next-review days) is
+/// stored with it, so:
+/// - the same retry (same key + same payload) returns the ORIGINAL receipt
+///   with `duplicate = true` and never accumulates a second event;
+/// - the same key with a different item or payload is a conflict (error);
+/// - a missing key is rejected: unkeyed submissions must not accumulate.
 pub fn record_review_keyed(
     conn: &mut Connection,
     item_key: &str,
     kind: &str,
     correct: bool,
-    client_event_key: Option<&str>,
-) -> rusqlite::Result<(i64, u32, i64)> {
-    if let Some(key) = client_event_key {
-        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-        let exists: bool = tx
-            .query_row(
-                "SELECT EXISTS(SELECT 1 FROM learning_event_keys WHERE event_key=?1)",
-                [key],
-                |r| r.get(0),
-            )?;
-        if exists {
-            tx.commit()?;
-            return Ok((0, correct_streak(conn, item_key)?, -1));
-        }
-        let prior = correct_streak(&tx, item_key)?;
-        let streak_after = if correct { prior + 1 } else { 0 };
-        let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
-        let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
-        let next_review = next_review_iso(&tx, next_review_days)?;
-        tx.execute(
-            "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
-            rusqlite::params![item_key, kind, outcome, next_review],
-        )?;
-        let event_id = tx.last_insert_rowid();
-        tx.execute(
-            "INSERT INTO learning_event_keys(event_key, item_key) VALUES(?1,?2)",
-            rusqlite::params![key, item_key],
-        )?;
-        tx.commit()?;
-        Ok((event_id, streak_after, next_review_days))
-    } else {
-        record_review(conn, item_key, kind, correct)
+    client_event_key: &str,
+) -> rusqlite::Result<(i64, u32, i64, bool)> {
+    if client_event_key.trim().is_empty() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "learning events require a persistent event_key; unkeyed submissions are rejected".into(),
+        ));
     }
+    let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
+    let mut h = Sha256::new();
+    h.update(format!("{kind}|{outcome}").as_bytes());
+    let payload_hash = hex::encode(h.finalize());
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let existing: Option<(Option<i64>, Option<String>, Option<i64>, Option<i64>, String)> = tx
+        .query_row(
+            "SELECT event_id, payload_hash, streak_after, next_review_days, item_key
+             FROM learning_event_keys WHERE event_key=?1",
+            [client_event_key],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                ))
+            },
+        )
+        .optional()?;
+    if let Some((event_id, stored_hash, stored_streak, stored_days, stored_item)) = existing {
+        if stored_item == item_key && stored_hash.as_deref() == Some(payload_hash.as_str()) {
+            // Same retry: replay the original receipt, write nothing.
+            return Ok((
+                event_id.unwrap_or(0),
+                stored_streak.unwrap_or(0) as u32,
+                stored_days.unwrap_or(-1),
+                true,
+            ));
+        }
+        return Err(rusqlite::Error::InvalidParameterName(
+            "event_key conflict: key is already bound to a different item or payload".into(),
+        ));
+    }
+    let prior = correct_streak(&tx, item_key)?;
+    let streak_after = if correct { prior + 1 } else { 0 };
+    let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
+    let next_review = next_review_iso(&tx, next_review_days)?;
+    tx.execute(
+        "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
+        rusqlite::params![item_key, kind, outcome, next_review],
+    )?;
+    let event_id = tx.last_insert_rowid();
+    tx.execute(
+        "INSERT INTO learning_event_keys(event_key, item_key, payload_hash, event_id, streak_after, next_review_days)
+         VALUES(?1,?2,?3,?4,?5,?6)",
+        rusqlite::params![
+            client_event_key,
+            item_key,
+            payload_hash,
+            event_id,
+            streak_after,
+            next_review_days
+        ],
+    )?;
+    tx.commit()?;
+    Ok((event_id, streak_after, next_review_days, false))
 }
 
 /// Read the persisted history for one learning item (oldest first).
