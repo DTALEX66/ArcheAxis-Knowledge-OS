@@ -55,7 +55,11 @@ def test_native_extraction_returns_text_anchors_and_receipt(tmp_path: Path) -> N
     assert 0 <= first["char_start"] < first["char_end"] <= len(result["text"])
     receipt = result["loss_receipt"]
     assert receipt["engine"] == worker.ENGINE
-    assert receipt["total"] == 2 and receipt["covered"] == 2
+    # Coverage is line-based (the same unit as the anchors) and supplied together
+    # with covered/total; every line of this sample is anchored.
+    assert receipt["params"]["pages"] == 2
+    assert receipt["covered"] == receipt["total"] > 0
+    assert receipt["coverage"] == 1.0
     assert "accuracy" not in json.dumps(receipt).lower(), "no accuracy claim may be fabricated"
 
 
@@ -73,8 +77,12 @@ def test_pdf_without_extractable_text_degrades_to_an_ocr_note(tmp_path: Path) ->
     result = worker.extract(str(pdf))
     assert result["text"].strip() == "", "no text may be invented"
     assert any("OCR" in loss for loss in result["loss_receipt"]["losses"]), result["loss_receipt"]
+    # No lines exist in the projected text, so there is nothing to anchor: the
+    # receipt says so instead of claiming partial coverage of a page.
     assert result["loss_receipt"]["covered"] == 0
-    assert result["loss_receipt"]["total"] == 1
+    assert result["loss_receipt"]["total"] == 0
+    assert result["loss_receipt"]["coverage"] == 1.0
+    assert result["loss_receipt"]["params"]["pages_without_text"] == [1]
 
 
 def test_corrupt_pdf_fails_explicitly(tmp_path: Path) -> None:

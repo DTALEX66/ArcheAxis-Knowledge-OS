@@ -75,37 +75,48 @@ def extract(path: str) -> dict:
         # a usable PDF, and reporting it as a successful empty extraction would be
         # exactly the silent success this worker must avoid.
         raise ValueError("PDF exposes no pages")
-    parts: list[str] = []
-    anchors: list[dict] = []
+    # Build the projected text as page blocks, then derive the anchors from the
+    # FINISHED text with the same line semantics as the text route. Deriving
+    # anchors while appending (the earlier version) drifts as soon as a page
+    # separator joins two page lines: offsets and line counts no longer match the
+    # projected text, which the Core correctly rejects as an inconsistent receipt.
+    blocks: list[tuple[int, str]] = []
     empty_pages: list[int] = []
-    offset = 0
     for page_index, page in enumerate(pages, start=1):
-        text = _page_text(page)
-        if not text.strip():
+        page_text = _page_text(page)
+        if not page_text.strip():
             empty_pages.append(page_index)
-        # Page separator keeps page boundaries visible in the projected text.
-        prefix = "" if page_index == 1 else "\n"
-        if prefix:
-            parts.append(prefix)
-            offset += len(prefix)
-        page_start = offset
-        for line_index, line in enumerate(text.splitlines(keepends=True), start=1):
-            if len(anchors) >= MAX_ANCHORS:
-                break
-            anchors.append(
-                {
-                    "kind": "line",
-                    "path": [f"page-{page_index}", f"line-{line_index}"],
-                    "char_start": offset,
-                    "char_end": offset + len(line),
-                }
-            )
-            offset += len(line)
-        parts.append(text)
-        # Recompute the offset from the final buffer so page/line offsets stay
-        # exact even when the anchor cap truncated this page.
-        offset = page_start + len(text)
-    text = "".join(parts)
+        blocks.append((page_index, page_text))
+    text = "\n".join(block for _, block in blocks)
+
+    page_ranges: list[tuple[int, int, int]] = []
+    cursor = 0
+    for page_index, block in blocks:
+        page_ranges.append((page_index, cursor, cursor + len(block)))
+        cursor += len(block) + 1  # the joining separator
+
+    anchors: list[dict] = []
+    lines = text.splitlines(keepends=True)
+    offset = 0
+    per_page_line: dict[int, int] = {}
+    for line in lines:
+        if len(anchors) >= MAX_ANCHORS:
+            break
+        page_index = next(
+            (page for page, start, end in page_ranges if start <= offset <= end),
+            page_ranges[0][0] if page_ranges else 1,
+        )
+        per_page_line[page_index] = per_page_line.get(page_index, 0) + 1
+        anchors.append(
+            {
+                "kind": "line",
+                "path": [f"page-{page_index}", f"line-{per_page_line[page_index]}"],
+                "char_start": offset,
+                "char_end": offset + len(line),
+            }
+        )
+        offset += len(line)
+
     losses: list[str] = []
     if empty_pages:
         losses.append(
@@ -115,18 +126,30 @@ def extract(path: str) -> dict:
         )
     if len(anchors) >= MAX_ANCHORS:
         losses.append(f"page/line anchors capped at {MAX_ANCHORS}")
-    covered = len(pages) - len(empty_pages)
-    total = len(pages)
+    # Coverage is measured in the same unit as the anchors (lines) and supplied
+    # together with covered/total, which the Core validates as a set.
+    covered = len(anchors)
+    total = len(lines)
     loss_receipt = {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
-        "params": {"pages": total, "cap_anchors": MAX_ANCHORS, "coverage_unit": "pages with text"},
+        "params": {
+            "pages": len(pages),
+            "cap_anchors": MAX_ANCHORS,
+            "coverage_unit": "line anchors",
+            "pages_without_text": empty_pages,
+        },
         "losses": losses,
         "covered": covered,
         "total": total,
+        "coverage": (covered / total) if total else 1.0,
         "loss_note": "; ".join(losses)
         if losses
-        else "no transform applied",
+        else (
+            "no transform applied"
+            if total
+            else "no lines to anchor; zero-line coverage defined as 1.0"
+        ),
     }
     if total == 0:
         loss_receipt["loss_note"] += "; zero-page PDF has no coverage to claim"
