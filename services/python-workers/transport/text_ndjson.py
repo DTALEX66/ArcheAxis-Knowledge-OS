@@ -136,6 +136,9 @@ ROUTES = {
             "text/xml",
         },
         "call": "path",
+        # R15/F01: this worker derives format facts from the declared media type, so
+        # the transport hands it over instead of letting the worker sniff the name.
+        "media_type_arg": True,
     },
     "pdf.extract": {
         "version": "1",
@@ -192,6 +195,8 @@ def _run_route(route, source: Path, media_type: str) -> dict:
             plain = str(tessdata_arg).replace("\\\\?\\", "")
             tessdata_arg = Path(plain)
         return module.extract(view, "eng", tessdata_arg)
+    if route.get("media_type_arg"):
+        return module.extract(str(source), media_type.split(";", 1)[0].strip().lower())
     return module.extract(str(source))
 
 

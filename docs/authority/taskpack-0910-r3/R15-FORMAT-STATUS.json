@@ -23,13 +23,13 @@
       "formats": "TXT/MD/CSV/TSV/JSON/XML/源代码",
       "required_output": "文本、结构、字符锚点",
       "status": "partial",
-      "implemented_now": "the text route extracts the text and reports canonical line anchors; the worker declares seven accepted media types (text/plain, text/markdown, text/csv, text/tab-separated-values, application/json, application/xml, text/xml)",
-      "gap": "the Core assigns one media type per job kind, so a markdown, CSV or JSON input is dispatched as text/plain; no format-specific structure is parsed (no CSV fields, no JSON tree, no code symbols) and no local-model annotation exists",
+      "implemented_now": "the text route extracts the text and reports canonical line anchors, and the media type is now derived from the source name, so markdown, CSV, TSV, JSON and XML are dispatched as what they are (the worker declares seven accepted media types). The route also reports the structure it can really derive in loss_receipt.params.format: markdown headings with line numbers, wiki-link, embed, markdown-link, code-fence and list counts; CSV/TSV delimiter, rows, columns, header and ragged rows; JSON parse result with top-level type, key count and nested depth; XML parse result with root, element count and depth. A document that does not parse is still projected as text and the fact says parsed false with the reason, and the reason is added to the loss list",
+      "gap": "there is no local-model annotation, no code-symbol or language-aware parsing for source files, and no table or formula structure; the format facts describe the document, they are not a second addressing scheme, so anchors remain line based",
       "evidence": {
         "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
         "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
-        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/transport/text_ndjson.py"],
-        "tests": ["tests/test_unified_job_contract.py"],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/transport/text_ndjson.py", "services/python-workers/document/worker_text.py"],
+        "tests": ["tests/test_unified_job_contract.py", "tests/test_text_format_facts.py"],
         "legacy_reference": []
       }
     },
