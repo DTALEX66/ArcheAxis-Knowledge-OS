@@ -160,8 +160,12 @@
     ]
   },
   "R09": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IN_PROGRESS",
+    "evidence": [
+      "scoping (read-only): the root gap is that learning records and knowledge revisions have no link at all. learning_events holds only (item_key, kind, outcome, next_review, event_id) and learning_event_keys only event_id - no knowledge_id or revision - and archeaxis-domain/src/learning.rs never mentions knowledge. R09 cannot express a card or learning record that references a revision, so the required version checks at consumption entries have no carrier yet.",
+      "ALREADY AVAILABLE from earlier slices: search active_only filtering, the qualification endpoint, superseded-not-current and the revision chain, and extracted text retrievable with source attribution.",
+      "DECISION PROPOSED (A, recommended, additive and history-preserving): add a card_references table (item_key, knowledge_id, created_event_id) - or a nullable knowledge_id on learning_events - recording the referenced revision when a card or learning item is created; read-side entries (history, questions, machine context, result write-back) annotate knowledge_active / superseded / revision_changed against current qualification; old learning history is always preserved and only annotated, never rewritten, and no claim is made that an already-issued external answer was recalled. This needs a schema bump (v4 to v5) using the guarded migration pattern from EVENT-01. Option (B), annotating only from the knowledge side, cannot answer which cards referenced a revoked revision and is not recommended."
+    ]
   },
   "R10": {
     "status": "TODO",
