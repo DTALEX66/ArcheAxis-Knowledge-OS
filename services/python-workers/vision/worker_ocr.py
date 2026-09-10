@@ -187,11 +187,39 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
         raise RuntimeError("tesseract returned text without word boxes; OCR output is incomplete")
     warnings = [{"stage": stage, "message": result.stderr.strip()}
                 for stage, result in (("text", plain), ("tsv", tsv)) if result.stderr.strip()]
+    # R08: expose the SAME anchor shape as the text and PDF routes so all three
+    # feed one ingestion path: kind/path plus character offsets into `text`.
+    # OCR positions are regions (word boxes), so each anchor keeps its bbox and
+    # per-word confidence for review - confidence is a recogniser output, never
+    # presented here as an accuracy measure.
+    structure: list[dict] = []
+    cursor = 0
+    for index, word in enumerate(words, start=1):
+        needle = word["text"]
+        found = text.find(needle, cursor)
+        if found < 0:
+            found = text.find(needle)
+        if found < 0:
+            continue
+        structure.append(
+            {
+                "kind": "region",
+                "path": [f"region-{index}"],
+                "char_start": found,
+                "char_end": found + len(needle),
+                "bbox": {"x": word["x"], "y": word["y"], "w": word["w"], "h": word["h"]},
+                "confidence": word["confidence"],
+            }
+        )
+        cursor = found + len(needle)
+    anchor_summary = {"covered": len(structure), "total": len(words)}
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "text": text,
         "words": words,
+        "structure": structure,
+        "anchor_summary": anchor_summary,
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,

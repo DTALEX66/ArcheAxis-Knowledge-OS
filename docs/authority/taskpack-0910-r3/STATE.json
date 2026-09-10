@@ -100,7 +100,10 @@
       "explicit degradation, no silent success: a corrupt PDF and bytes a lenient engine accepts as a zero-page document both raise; a page with no extractable text (scan/screenshot) returns its real empty text with a loss note stating that OCR is required",
       "the receipt records engine, version, page coverage and losses only - no accuracy figure and no model confidence is presented as recognition accuracy",
       "tests: tests/test_worker_pdf_native.py 5 passed (numbers and units survive extraction, every page is addressable, no-text page degrades to an OCR note, corrupt file fails explicitly, CLI exits 1 without publishing text)",
-      "REMAINING: scanned/screenshot OCR route through the same contract; the Rust-side unified job contract (the executor currently knows only the text worker); quality display; and the end-to-end import-to-retrievable-knowledge run for all three sample classes"
+      "REMAINING: scanned/screenshot OCR route through the same contract; the Rust-side unified job contract (the executor currently knows only the text worker); quality display; and the end-to-end import-to-retrievable-knowledge run for all three sample classes",
+      "OCR route conformed (R08b): worker_ocr now emits the same structure anchors as the text and PDF routes - kind=region, path [region-N], character offsets into text, plus bbox - with anchor_summary coverage; per-word confidence is kept only as a review field and the receipt still contains no accuracy claim",
+      "tests: tests/test_worker_ocr_route.py 2 passed against real Tesseract on a synthetic screenshot (text including 6371 recognised, region anchors carry bbox and offsets inside text, coverage reported, blank image does not claim recognition)",
+      "ENVIRONMENT FACT: this shell TESSDATA_PREFIX points at a directory that does not exist, while the repository ships tools/tesseract/tessdata/eng.traineddata - passing tessdata_dir explicitly works, and the pre-existing tests/workers/test_bulk_ocr.py skips for the same reason"
     ]
   },
   "R09": {
