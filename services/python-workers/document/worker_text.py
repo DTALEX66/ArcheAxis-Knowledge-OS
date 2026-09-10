@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import contextlib
 import csv
+import email
 import io
 import json
 import re
@@ -158,6 +159,94 @@ def _canvas_facts(payload) -> dict | None:
         "dangling_edges": dangling[:CANVAS_DANGLING_CAP],
         "dangling_edges_capped": len(dangling) > CANVAS_DANGLING_CAP,
         "note": "nodes and edges are counted as they appear; an edge naming a missing node is reported, not ignored",
+    }
+
+
+MAIL_HEADERS = ("from", "to", "cc", "subject", "date", "message-id")
+ATTACHMENT_CAP = 50
+
+
+def _looks_like_mail(text: str) -> bool:
+    """RFC 822 shape: a header block separated from the body by a blank line.
+
+    A file that merely starts with `From:` is not a message, so the rule needs the
+    blank-line separator AND either a structured header (an address, a message id) or
+    at least two recognised headers. Detection is only ever reported as a detection.
+    """
+    head, separator, _body = text.partition("\n\n")
+    if not separator:
+        return False
+    seen = 0
+    structured = False
+    for line in head.splitlines():
+        name, _, value = line.partition(":")
+        key = name.strip().lower()
+        if key not in MAIL_HEADERS:
+            continue
+        seen += 1
+        stripped = value.strip()
+        if key in ("from", "to", "cc") and "@" in stripped:
+            structured = True
+        if key == "message-id" and stripped.startswith("<") and stripped.endswith(">"):
+            structured = True
+        if key == "date" and any(char.isdigit() for char in stripped):
+            structured = True
+    return structured or seen >= 2
+
+
+def _mail_facts(text: str) -> dict | None:
+    """Structure of a saved mail message, when the text really looks like one.
+
+    Detection is by RFC 822 shape and is reported as such: the declared media type for
+    a .eml is text/plain, so a reader must be able to tell a detection from a
+    declaration. Attachments are listed by name and size - they are NOT extracted,
+    which is stated rather than implied.
+    """
+    if not _looks_like_mail(text):
+        return None
+    try:
+        message = email.message_from_string(text)
+        parts = list(message.walk())
+    except Exception as exc:  # noqa: BLE001 - a mail that cannot be parsed is a fact
+        return {
+            "format": "eml",
+            "parsed": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "note": "the text is still projected; an unparsable message is reported, not guessed at",
+        }
+    attachments = []
+    for part in parts:
+        if part.get_content_maintype() == "multipart":
+            continue
+        filename = part.get_filename()
+        payload = part.get_payload(decode=True) or b""
+        if filename or part.get_content_disposition() == "attachment":
+            if len(attachments) < ATTACHMENT_CAP:
+                attachments.append({"name": filename or "(unnamed)", "bytes": len(payload)})
+    bodies = {
+        "text_body": any(part.get_content_type() == "text/plain" for part in parts),
+        "html_body": any(part.get_content_type() == "text/html" for part in parts),
+    }
+    headers = {}
+    for name in MAIL_HEADERS:
+        value = message.get(name)
+        if value is not None:
+            headers[name] = " ".join(str(value).split())[:200]
+    return {
+        "format": "eml",
+        "parsed": True,
+        "detected_by": "RFC 822 header shape, not by media type",
+        "headers": headers,
+        "header_count": len(headers),
+        "part_count": len(parts),
+        "attachment_count": len(attachments),
+        "attachments": attachments,
+        "attachments_capped": len(attachments) >= ATTACHMENT_CAP,
+        **bodies,
+        "note": (
+            "attachments are listed by name and size and are NOT extracted here; the raw message "
+            "remains the source of record and its bytes are preserved"
+        ),
     }
 
 
@@ -297,6 +386,9 @@ def format_facts(text: str, media_type: str) -> dict:
         subtitle = _subtitle_facts(text)
         if subtitle is not None:
             return subtitle
+        mail = _mail_facts(text)
+        if mail is not None:
+            return mail
     return {"format": "plain", "parsed": True, "note": "no format-specific structure is claimed for plain text"}
 
 

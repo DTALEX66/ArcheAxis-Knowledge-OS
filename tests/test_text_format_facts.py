@@ -274,3 +274,72 @@ def test_plain_text_that_only_looks_numbered_is_not_a_subtitle(tmp_path):
     # numbered lines without a time arrow are not cues
     _, facts = _facts(tmp_path, "1\nfirst line\n\n2\nsecond line\n", "text/plain", ".txt")
     assert facts["format"] == "plain", facts
+
+
+EML = "\n".join(
+    [
+        "From: sender@example.invalid",
+        "To: owner@example.invalid",
+        "Subject: Round-trip measured 6371 km",
+        "Date: Mon, 14 Sep 2026 10:00:00 +0000",
+        "Message-ID: <abc123@example.invalid>",
+        "MIME-Version: 1.0",
+        'Content-Type: multipart/mixed; boundary="BOUND"',
+        "",
+        "--BOUND",
+        "Content-Type: text/plain; charset=utf-8",
+        "",
+        "The measured value is 6371 km.",
+        "--BOUND",
+        "Content-Type: text/html; charset=utf-8",
+        "",
+        "<p>The measured value is 6371 km.</p>",
+        "--BOUND",
+        'Content-Type: text/csv; name="data.csv"',
+        'Content-Disposition: attachment; filename="data.csv"',
+        "",
+        "name,qty",
+        "bolt,4",
+        "--BOUND--",
+        "",
+    ]
+)
+
+
+def test_a_saved_mail_reports_headers_parts_and_attachments(tmp_path):
+    result, facts = _facts(tmp_path, EML, "text/plain", ".eml")
+    assert facts["format"] == "eml" and facts["parsed"] is True
+    assert facts["detected_by"] == "RFC 822 header shape, not by media type"
+    assert facts["headers"]["subject"] == "Round-trip measured 6371 km"
+    assert facts["headers"]["message-id"] == "<abc123@example.invalid>"
+    assert facts["header_count"] == 5
+    assert facts["text_body"] is True and facts["html_body"] is True
+    assert facts["attachment_count"] == 1
+    assert facts["attachments"][0]["name"] == "data.csv"
+    assert facts["attachments"][0]["bytes"] > 0
+    assert "NOT extracted" in facts["note"]
+    # the message is projected verbatim: facts never become a second addressing scheme
+    assert result["text"] == EML
+    receipt = result["loss_receipt"]
+    assert receipt["covered"] == receipt["total"] == len(result["structure"])
+
+
+def test_a_file_that_merely_starts_with_from_is_not_a_message(tmp_path):
+    _, facts = _facts(tmp_path, "From: hi\n", "text/plain", ".eml")
+    assert facts["format"] == "plain", facts
+    # two header-shaped lines and a blank line are RFC 822 shaped, and the fact says
+    # it was detected rather than declared
+    _, two = _facts(tmp_path, "From: hi\nTo: there\n\nbody\n", "text/plain", ".txt")
+    assert two["format"] == "eml"
+    assert "not by media type" in two["detected_by"]
+
+
+def test_a_message_that_cannot_be_parsed_is_still_projected(tmp_path):
+    broken = "From: a@b.invalid\nSubject: x\n\nContent-Type: multipart/mixed\n" + "\x00" * 4
+    result, facts = _facts(tmp_path, broken, "text/plain", ".eml")
+    # whatever the parser decides, the text is projected and the receipt stays honest
+    assert result["text"] == broken
+    assert result["loss_receipt"]["covered"] == result["loss_receipt"]["total"]
+    assert facts["format"] in ("eml", "plain")
+    if facts["format"] == "eml" and facts["parsed"] is False:
+        assert "not guessed at" in facts["note"]

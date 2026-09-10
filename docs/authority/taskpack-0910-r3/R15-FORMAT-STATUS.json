@@ -13,8 +13,8 @@
   "coverage_summary": {
     "total": 16,
     "complete": 0,
-    "partial": 5,
-    "custody_only": 11
+    "partial": 6,
+    "custody_only": 10
   },
   "formats": [
     {
@@ -214,14 +214,14 @@
       "release_scope": "expansion",
       "formats": "RTF/ODT/ODS/ODP/EPUB/EML/MSG",
       "required_output": "章节/邮件头/附件引用及结构",
-      "status": "custody_only",
-      "implemented_now": "these files are imported and preserved as bytes with their sha256 and name",
-      "gap": "no engine is wired for any of these formats: no chapter structure, no mail headers and no attachment references",
+      "status": "partial",
+      "implemented_now": "a saved mail message (.eml) is resolved as the text it is and the route reports its RFC 822 structure as facts: the recognised headers (from, to, cc, subject, date, message-id), how many headers were found, the MIME part count, whether a text and an HTML body exist, and the attachments by name and size - listed, explicitly not extracted, with the message projected verbatim so the raw file stays the source of record. Detection is reported as a detection ('RFC 822 header shape, not by media type'), and a file that merely begins with 'From:' is not called a message. The other formats in this group are still custody-only, and a binary name no route can read (.msg, .zip, .epub, .ods) is refused rather than decoded into noise",
+      "gap": "no chapter, sheet or slide structure for RTF/ODT/ODS/ODP/EPUB, no attachment extraction for mail, and the binary .msg container stays out of reach until a reader for it exists",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
+        "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_text.py"],
+        "tests": ["tests/test_text_format_facts.py", "crates/archeaxis-application/tests/route_capabilities.rs"],
         "legacy_reference": []
       }
     },

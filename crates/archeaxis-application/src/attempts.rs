@@ -97,6 +97,10 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // and reports it as a fact rather than inventing a media type the route does
         // not accept
         "srt" | "vtt" => "text/plain",
+        // a saved mail message is text (RFC 822) with its own structure, which the
+        // worker reports as facts. A binary .msg container is deliberately NOT named:
+        // no route can read it, so it is refused instead of decoded into noise.
+        "eml" => "text/plain",
         "pdf" => "application/pdf",
         "png" => "image/png",
         "jpg" | "jpeg" | "jpe" => "image/jpeg",

@@ -99,9 +99,23 @@ fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
     // reports it as a fact, so the declared media type stays the one the route accepts
     assert_eq!(attempts::resolve_media_type("text", "talk.srt").unwrap(), "text/plain");
     assert_eq!(attempts::resolve_media_type("text", "talk.vtt").unwrap(), "text/plain");
+    // a saved mail message is text with its own structure
+    assert_eq!(attempts::resolve_media_type("text", "message.eml").unwrap(), "text/plain");
     // and they are refused by a route that cannot read them
     assert!(attempts::resolve_media_type("image", "vault.canvas").is_err());
     assert!(attempts::resolve_media_type("pdf", "talk.srt").is_err());
+    assert!(attempts::resolve_media_type("image", "message.eml").is_err());
+}
+
+#[test]
+fn a_binary_container_name_is_refused_because_no_route_can_read_it() {
+    // .msg is a binary OLE container and .zip/.epub are binary archives: decoding any
+    // of them as text would produce noise, so the Core refuses the name instead
+    for name in ["mail.msg", "bundle.zip", "book.epub", "sheet.ods"] {
+        let error = attempts::resolve_media_type("text", name).unwrap_err().to_string();
+        assert!(error.contains("cannot name a media type"), "{name}: {error}");
+        assert!(error.contains("text/plain"), "the accepted set must be listed: {name}: {error}");
+    }
 }
 
 #[test]
