@@ -6,17 +6,40 @@ use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
 use serde::Deserialize;
 use sha2::{Digest,Sha256};
 
+/// R08: the extraction routes the Core can dispatch, declared once. A job's kind
+/// selects the route, which fixes both the capability the worker must advertise
+/// and the media type of the input asset - so a PDF or image job is a first-class
+/// job instead of being refused by a text-only allow-list.
+pub const ROUTES: &[(&str, &str, &str)] = &[
+    ("text", "text.extract", "text/plain"),
+    ("text.extract", "text.extract", "text/plain"),
+    ("pdf", "pdf.extract", "application/pdf"),
+    ("image", "image.ocr", "image/png"),
+];
+
+/// Resolve a job kind to its route: (capability, input media type).
+pub fn route_for_kind(kind: &str) -> Option<(&'static str, &'static str)> {
+    ROUTES
+        .iter()
+        .find(|(name, _, _)| *name == kind)
+        .map(|(_, capability, media)| (*capability, *media))
+}
+
 pub fn claim(conn:&mut Connection, job_id:&str, request_id:&str, deadline_ms:u64) -> Result<Request,JobError> {
     let tx=conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let row:Option<(String,String,String)>=tx.query_row(
         "SELECT j.state,j.kind,s.sha256 FROM jobs j JOIN sources s ON s.source_id=j.input_ref WHERE j.job_id=?1",
         [job_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional()?;
     let (state,kind,sha)=row.ok_or(JobError::NotFound)?;
-    if !matches!(state.as_str(),"queued"|"failed"|"cancelled") || !matches!(kind.as_str(),"text"|"text.extract") {
+    if !matches!(state.as_str(),"queued"|"failed"|"cancelled") {
         return Err(JobError::InvalidState);
     }
+    let (capability,media_type)=match route_for_kind(&kind) {
+        Some(route)=>route,
+        None=>return Err(JobError::InvalidReceipt("undeclared job kind")),
+    };
     let next:i64=tx.query_row("SELECT COALESCE(MAX(attempt),0)+1 FROM job_attempts WHERE job_id=?1",[job_id],|r|r.get(0))?;
-    let request=Request::text(request_id,job_id,next as u64,&sha,"text/plain",deadline_ms).map_err(JobError::InvalidReceipt)?;
+    let request=Request::job(request_id,job_id,next as u64,capability,&sha,media_type,deadline_ms).map_err(JobError::InvalidReceipt)?;
     tx.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES(?1,?2,?3,?4,'running')",
         rusqlite::params![job_id,next,request_id,serde_json::to_string(&request).map_err(|_|JobError::Conflict)?])?;
     tx.execute("UPDATE jobs SET state='running',completed_at=NULL WHERE job_id=?1",[job_id])?;
