@@ -56,6 +56,17 @@ pub fn claim(conn:&mut Connection, job_id:&str, request_id:&str, deadline_ms:u64
     Ok(request)
 }
 
+/// R08: compare anchors by kind and character span, tolerating extra leading path
+/// components. A page-qualified anchor `["page-3","line-12"]` addresses the same
+/// projected line as the canonical `["line-12"]`, so the Core checks that the
+/// spans and the final path segment match - not that every route spells its path
+/// exactly like the text route.
+fn same_spans(found:&[Line], expected:&[Line]) -> bool {
+    found.len()==expected.len() && found.iter().zip(expected).all(|(a,b)|
+        a.kind==b.kind && a.char_start==b.char_start && a.char_end==b.char_end
+        && a.path.last()==b.path.last())
+}
+
 fn identity(conn:&Connection, req:&Request) -> Result<(String,Option<String>),JobError> {
     let row:Option<(String,Option<String>,String,i64)>=conn.query_row(
         "SELECT state,result_digest,request_json,(SELECT MAX(attempt) FROM job_attempts WHERE job_id=?1) FROM job_attempts WHERE job_id=?1 AND attempt=?2",
@@ -113,7 +124,7 @@ pub fn finish(conn:&mut Connection, req:&Request, response:&Response, payloads:&
     if !ENGINE_PROFILES
         .iter()
         .any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
-        || structure!=expected
+        || !same_spans(&structure,&expected)
         || loss.covered!=Some(structure.len() as u64) || loss.total!=Some(total as u64) {
         return Err(JobError::InvalidReceipt("structure or coverage does not match projected text"));
     }
