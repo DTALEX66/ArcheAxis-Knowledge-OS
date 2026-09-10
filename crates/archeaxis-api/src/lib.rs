@@ -9,7 +9,7 @@ pub mod launch;
 pub mod runtime;
 
 use archeaxis_application::jobs::{self, LossReceipt};
-use archeaxis_domain::{ImportOutcome, anchor, knowledge, learning, search, source};
+use archeaxis_domain::{ImportOutcome, anchor, knowledge, learning, machine, search, source};
 use archeaxis_store_sqlite::{workspace_info_json, writer::{Store, StoreError}};
 use axum::{
     Json, Router,
@@ -57,6 +57,8 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/learning/events/:item_key", get(learning_history))
         .route("/api/v1/learning/items/:item_key/references", post(record_item_reference))
         .route("/api/v1/learning/items/:item_key/state", get(item_state))
+        .route("/api/v1/machine/tasks", post(record_machine_task))
+        .route("/api/v1/machine/tasks/:task_id", get(machine_task_readback))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
         .route("/api/v1/workspaces/info", get(workspace_info));
@@ -247,6 +249,95 @@ async fn item_state(State(state): State<AppState>, Path(item_key): Path<String>)
             })),
         )
             .into_response()
+    })
+    .await
+}
+
+/// R11: the machine side of the loop records what it ran.
+///
+/// A machine principal may only *record* a task receipt here - it cannot accept
+/// knowledge, and a human principal must not write machine receipts either, so the
+/// two sides stay distinguishable. The receipt is a candidate/measurement fact and
+/// never a claim that weights were trained.
+#[derive(Deserialize)]
+struct MachineTaskBody {
+    task_id: String,
+    conditions: String,
+    model_version: String,
+    scope: String,
+    outcome: String,
+    #[serde(default)]
+    knowledge_version: Option<String>,
+    #[serde(default)]
+    method_version: Option<String>,
+    #[serde(default)]
+    tool_version: Option<String>,
+    #[serde(default)]
+    failure: Option<String>,
+    #[serde(default)]
+    retest_of: Option<String>,
+}
+
+async fn record_machine_task(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<MachineTaskBody>,
+) -> impl IntoResponse {
+    if request_actor(&headers).unwrap_or("human") != "machine" {
+        return (
+            StatusCode::FORBIDDEN,
+            "machine task receipts are written by a machine principal only",
+        )
+            .into_response();
+    }
+    with_store(state, move |conn| {
+        let task = machine::MachineTask {
+            task_id: &body.task_id,
+            principal: "machine",
+            conditions: &body.conditions,
+            knowledge_version: body.knowledge_version.as_deref(),
+            method_version: body.method_version.as_deref(),
+            tool_version: body.tool_version.as_deref(),
+            model_version: &body.model_version,
+            scope: &body.scope,
+            outcome: &body.outcome,
+            failure: body.failure.as_deref(),
+            retest_of: body.retest_of.as_deref(),
+        };
+        match machine::record_machine_task(conn, &task) {
+            Ok(()) => (
+                StatusCode::CREATED,
+                Json(serde_json::json!({"task_id": body.task_id, "outcome": body.outcome})),
+            )
+                .into_response(),
+            Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
+        }
+    })
+    .await
+}
+
+/// R11: read a machine receipt back. Available to any principal: a receipt is
+/// evidence about the machine side and never grants authority.
+async fn machine_task_readback(
+    State(state): State<AppState>,
+    Path(task_id): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| match machine::machine_task(conn, &task_id) {
+        Ok(Some((outcome, model_version, scope, failure, retest_of))) => (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "task_id": task_id,
+                "outcome": outcome,
+                "model_version": model_version,
+                "scope": scope,
+                "failure": failure,
+                "retest_of": retest_of,
+                "note": "a task receipt is a measurement fact, not a claim that weights were trained",
+            })),
+        )
+            .into_response(),
+        Ok(None) => (StatusCode::NOT_FOUND, "unknown machine task").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     })
     .await
 }
