@@ -72,8 +72,12 @@
     ]
   },
   "R06": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IN_PROGRESS",
+    "evidence": [
+      "offline deliverable covered by regression: tests/test_x07_public_check_probe.py 13 passed - a radius sentence with object+unit+number is support; a diameter hit is recorded as weaker diameter_only and never as support; an unrelated same number (e.g. a year) yields none; model verdicts 不支持 / 无法判断 / empty / error can never become support; an unreachable source raises instead of silently becoming no-evidence",
+      "cloud cross-check requires owner-configured and owner-approved endpoints and credentials (project default is zero paid budget): recorded as BLOCKED_EXTERNAL, no cloud verification is claimed",
+      "REMAINING: live run (public retrieval plus local-model verdict) needs working outbound HTTPS (previously intermittent) and ollama (currently reachable on :11434) - queued as the next work unit"
+    ]
   },
   "R07": {
     "status": "TODO",
