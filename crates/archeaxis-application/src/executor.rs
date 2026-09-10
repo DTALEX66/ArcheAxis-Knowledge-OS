@@ -90,6 +90,7 @@ impl Executor {
         match result {
             Ok((response,bytes))=>{
                 let cancel=cancel.clone();
+                let artifact_root=self.staging.clone();
                 self.store.submit_wait(move|conn|{
                     // Cancellation competes with completion at the writer boundary;
                     // once completion is committed it cannot be rolled back by cancel.
@@ -98,7 +99,33 @@ impl Executor {
                         return Err("owner cancelled before commit".into());
                     }
                     match attempts::finish(conn,&req,&response,&bytes){
-                        Ok(())=>Ok(()),
+                        Ok(())=>{
+                            // R15/F06: a route that declares follow-up work gets it in the
+                            // same commit, so a completed PDF job never leaves its declared
+                            // pages unqueued. A chaining failure is recorded as a machine
+                            // receipt with its reason instead of failing the job: the
+                            // extraction and the declaration really did happen.
+                            if attempts::CHAINED_AFTER_SUCCESS.contains(&req.capability.as_str()){
+                                if let Err(error)=crate::ocr::enqueue_pages(conn,&artifact_root,&req.job_id){
+                                    let reason=error.to_string();
+                                    let task=archeaxis_domain::machine::MachineTask{
+                                        task_id:&format!("{}-ocr-chain",req.job_id),
+                                        principal:"machine",
+                                        conditions:"automatic OCR chaining after a PDF job that declared text-less pages",
+                                        knowledge_version:None,
+                                        method_version:Some("ocr.enqueue_pages/v1"),
+                                        tool_version:Some("pymupdf"),
+                                        model_version:"not-a-model: deterministic core chaining",
+                                        scope:&req.job_id,
+                                        outcome:"failed",
+                                        failure:Some(&reason),
+                                        retest_of:None,
+                                    };
+                                    let _=archeaxis_domain::machine::record_machine_task(conn,&task);
+                                }
+                            }
+                            Ok(())
+                        }
                         Err(error)=>{
                             let detail=error.to_string();
                             if let Err(storage)=attempts::terminate(conn,&req,"failed",&detail){

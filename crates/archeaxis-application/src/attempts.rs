@@ -74,6 +74,11 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
 /// and an unexpected flag stays an error rather than being silently accepted.
 pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &["pdf.extract"];
 
+/// R15/F06: routes whose successful job is followed by Core-side work, done inside the
+/// same commit as the completion so there is no window in which the job says it
+/// succeeded while the pages it declared were never queued.
+pub const CHAINED_AFTER_SUCCESS: &[&str] = &["pdf.extract"];
+
 /// The media type a file name denotes, or `None` when the extension is not one we
 /// are willing to name. Guessing here is what the old pinned value effectively did.
 pub fn media_type_for_name(name: &str) -> Option<&'static str> {

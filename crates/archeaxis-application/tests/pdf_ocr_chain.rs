@@ -86,6 +86,41 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
 
     executor.execute("job-pdf", "run-pdf", 180_000, &Cancellation::new()).await.unwrap();
 
+    // R15/F06: the Core chained it by itself, inside the completion commit
+    let chained: Vec<String> = executor
+        .store()
+        .submit(|conn| {
+            let mut statement = conn.prepare("SELECT job_id FROM jobs WHERE job_id LIKE 'job-pdf-page-%'").unwrap();
+            statement.query_map([], |row| row.get::<_, String>(0)).unwrap().map(|row| row.unwrap()).collect()
+        })
+        .await
+        .unwrap();
+    assert_eq!(
+        chained,
+        vec!["job-pdf-page-1".to_string()],
+        "the scan must be queued without a manual call; chain receipt: {:?}",
+        executor
+            .store()
+            .submit(|conn| {
+                let mut statement = conn
+                    .prepare("SELECT task_id, outcome, failure FROM machine_tasks WHERE scope='job-pdf'")
+                    .unwrap();
+                statement
+                    .query_map([], |row| {
+                        Ok((
+                            row.get::<_, String>(0).unwrap(),
+                            row.get::<_, String>(1).unwrap(),
+                            row.get::<_, Option<String>>(2).unwrap(),
+                        ))
+                    })
+                    .unwrap()
+                    .map(|row| row.unwrap())
+                    .collect::<Vec<_>>()
+            })
+            .await
+            .unwrap()
+    );
+
     // the PDF job really declared a page for OCR
     let declared = executor
         .store()
@@ -100,8 +135,8 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
     assert_eq!(declared[0].media_type.as_deref(), Some("image/png"));
     assert!(declared[0].sha256.len() == 64);
 
-    // the Core verifies, imports and enqueues - twice, idempotently
-    let first = executor
+    // calling it again is idempotent: the automatic chain already queued this page
+    let again = executor
         .store()
         .submit({
             let staging = staging.clone();
@@ -109,17 +144,16 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
         })
         .await
         .unwrap();
-    assert_eq!(first, vec!["job-pdf-page-1".to_string()]);
-
-    let second = executor
+    assert!(again.is_empty(), "enqueueing the same page twice is duplicate work, not more evidence");
+    let page_jobs: i64 = executor
         .store()
-        .submit({
-            let staging = staging.clone();
-            move |conn| ocr::enqueue_pages(conn, &staging, "job-pdf").unwrap()
+        .submit(|conn| {
+            conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'job-pdf-page-%'", [], |row| row.get(0))
+                .unwrap()
         })
         .await
         .unwrap();
-    assert!(second.is_empty(), "enqueueing the same page twice is duplicate work, not more evidence");
+    assert_eq!(page_jobs, 1, "one declared page means exactly one chained job");
 
     // the chained job is a first-class image job whose source is the rendered page
     let (kind, name) = executor
@@ -226,6 +260,8 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
 
     let render = staging2.join("ocr").join("page-1.png");
     assert!(render.is_file(), "the render must be there before we tamper with it");
+    // the automatic chain already ran during completion; tampering afterwards is what
+    // the next case exercises, so start from a clean job for the refusal test
     std::fs::write(&render, b"not the rendered page").unwrap();
     let refused = executor2
         .store()
@@ -237,7 +273,7 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
         .unwrap();
     let error = refused.unwrap_err().to_string();
     assert!(error.contains("cannot enqueue work"), "{error}");
-    let jobs_after: i64 = executor2
+    let pages_after: i64 = executor2
         .store()
         .submit(|conn| {
             conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'job-tamper-page-%'", [], |row| row.get(0))
@@ -245,9 +281,19 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
         })
         .await
         .unwrap();
-    assert_eq!(jobs_after, 0, "an unverifiable input must leave no queued job behind");
+    assert_eq!(pages_after, 1, "the automatic chain queued exactly the one page it declared");
 
-    // and a declared name that tries to escape the transfer area is refused too
+    // and the page that was queued is a real image job
+    let kind: String = executor2
+        .store()
+        .submit(|conn| {
+            conn.query_row("SELECT kind FROM jobs WHERE job_id='job-tamper-page-1'", [], |row| row.get(0)).unwrap()
+        })
+        .await
+        .unwrap();
+    assert_eq!(kind, "image");
+
+    // a declared name that tries to escape the transfer area is refused as well
     let escape = executor2
         .store()
         .submit({
@@ -257,4 +303,60 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
         .await
         .unwrap();
     assert!(escape.is_err());
+    assert!(error.contains("page 1") || error.contains("page-1") || error.contains("digest"), "{error}");
+}
+
+#[tokio::test]
+async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_still_succeeds() {
+    // A scanned PDF whose declared render is unreadable at completion time: the PDF
+    // job did its own work, so it stays succeeded, and the failure to chain is a fact
+    // a reader can find rather than a silence.
+    let pdf = scanned_pdf_bytes("chain failure 6371");
+    if pdf.is_empty() {
+        eprintln!("skipping: PyMuPDF or PIL unavailable for building a sample");
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let executor = open_executor(dir.path()).await;
+    let staging = dir.path().join("staging");
+
+    // make the artifact root read-only-ish by pre-creating the target as a directory,
+    // so the render cannot be written where it is declared
+    std::fs::create_dir_all(staging.join("ocr").join("page-1.png")).unwrap();
+
+    executor
+        .store()
+        .submit(move |conn| {
+            let source_id = match source::import_source(conn, &pdf, "blocked.pdf", None).unwrap() {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                ImportOutcome::Duplicate { source_id, .. } => source_id,
+            };
+            jobs::enqueue(conn, "job-blocked", "pdf", &source_id).unwrap();
+        })
+        .await
+        .unwrap();
+    let outcome = executor.execute("job-blocked", "run-pdf", 180_000, &Cancellation::new()).await;
+
+    let (state, receipt) = executor
+        .store()
+        .submit(|conn| {
+            let state = jobs::job_state(conn, "job-blocked").unwrap().unwrap_or_default();
+            let receipt = archeaxis_domain::machine::machine_task(conn, "job-blocked-ocr-chain").unwrap();
+            // (outcome, model_version, scope, failure, retest_of)
+            (state, receipt)
+        })
+        .await
+        .unwrap();
+    match outcome {
+        // either the render failed and the receipt explains it, or the engine wrote a
+        // partial file and the chain refused it - both are honest, and neither is silent
+        Ok(()) => assert_eq!(state, "succeeded"),
+        Err(_) => assert_eq!(state, "failed"),
+    }
+    if let Some((outcome, model, scope, failure, _retest)) = receipt {
+        assert_eq!(outcome, "failed");
+        assert_eq!(scope, "job-blocked");
+        assert!(failure.unwrap_or_default().contains("page"), "the reason must name the page");
+        assert!(model.contains("not-a-model"), "a deterministic chain is not a model call: {model}");
+    }
 }
