@@ -163,3 +163,47 @@ Waves are slice priority, not new dependencies.
     0.404 GiB.
   - Unique history (preserve): docs, taskpacks, `.hermes`, all opaque
     agent-private roots.
+
+## Wave B slices landed (commit -> evidence)
+
+- `288991a` (REVISION-01, X04/X05/X07): `knowledge::review` —
+  accept/reject/deprecate with `new_body` is rejected
+  (`accept_with_new_body_is_rejected_and_body_stays_immutable`); status
+  changes UPDATE only status+receipt, body bytes immutable; `modified`
+  keeps new-revision + supersede semantics with the corrected body. Test
+  evidence: `crates/archeaxis-domain/tests/review_transaction.rs` green in
+  the full run below.
+- `288991a` (EVENT-01, X04/X08): `record_review_keyed` now requires a
+  non-empty persistent key (missing key -> 400/parameter error, never
+  accumulates); key bound to item_key + canonical payload hash
+  (sha256(kind|outcome)); same retry returns the ORIGINAL receipt
+  (event_id/streak/next-review-days persisted with the key, schema v4
+  migration guarded for fresh DBs); same key with different item or payload
+  is a conflict (rejected). Machine-actor 403 guard ordering preserved
+  (`machine_cannot_review_or_record_human_learning` green). Tests:
+  `learning_events_api.rs` incl. new
+  `same_key_different_payload_conflicts_and_missing_key_rejected`.
+- `288991a` (VERIFY-01, X07): `scripts/probes/x07_public_check_probe.py`
+  rewritten — bare numeric literal no longer counts as support; PASS
+  requires locatable evidence quote carrying object (radius/半径), unit
+  (km/公里) and number, plus explicit local-model 支持 verdict;
+  不支持/无法判断/unparseable/model-error are NOT support. Local unit
+  checks of `parse_verdict`/`evidence_quote` all pass (offline); live
+  retrieval run still needs outbound HTTPS + ollama (environment-dependent,
+  not claimed here).
+- ARCHIVE-01 partial: store schema bumped to v4 (learning_event_keys
+  receipt columns); v2 wire restore compatibility test updated and green.
+  Full restore-time discrimination of 11-table v3 / 13-table v3 / new
+  contract layouts with unknown-layout rejection remains open for X05/X10.
+- Full verification at `288991a`: `cargo test --workspace --offline`
+  exit 0 (52 test groups ok; receipt
+  `.project-local/runs/cargo-waveb-8.log`); Python full suite via
+  `run_tests.sh --full`: 2346 passed / 7 skipped / 1 failed —
+  `test_ci_classifier` unclassified `.cargo/config.toml`, fixed by
+  registering `.cargo/**` under `vnext-rust-core` in
+  `.worklab/project-validation.v1.yaml` (31/31 classifier tests green
+  after). Environment: MSVC 14.44 stable toolchain via
+  `.project-local/runs/x01-cargo-build-seal.bat`, ARCHEAXIS_PYTHON=.venv.
+- Wave B status: REVISION-01 IMPLEMENTED_PENDING_AUDIT; EVENT-01
+  IMPLEMENTED_PENDING_AUDIT; VERIFY-01 IMPLEMENTED_PENDING_AUDIT (offline
+  evidence; live-run evidence environment-gated); ARCHIVE-01 PARTIAL.
