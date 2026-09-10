@@ -93,7 +93,7 @@
     ]
   },
   "R08": {
-    "status": "IN_PROGRESS",
+    "status": "IMPLEMENTED_PENDING_AUDIT",
     "evidence": [
       "native PDF route landed: services/python-workers/document/worker_pdf.py returns the same contract as the text worker (engine/engine_version/text/structure/loss_receipt), so both routes feed one ingestion path",
       "anchors carry page AND line (path [page-N, line-M]) plus character offsets into the projected text, so knowledge can navigate back to the page/region it came from",
@@ -155,7 +155,8 @@
       "R08 REMAINING: the quality display (facts only - coverage, loss count, engine, region count; never an accuracy figure). Auto-creating knowledge candidates on completion stays deferred until after R09 per the earlier decision.",
       "QUALITY VIEW LANDED (R08t): GET /api/v1/jobs/:job_id/quality returns facts only - state, engine, engine_version, coverage, covered, total, loss_count, region_count, pages - plus a note stating that model or recogniser confidence is not accuracy. The response has no accuracy key at all, an unknown job is 404, and a queued job reports zero counts with null coverage instead of inventing a coverage figure.",
       "tests: api suite 16 groups ok with job_quality.rs (unknown job 404; queued job reports facts with no accuracy key and the confidence-is-not-accuracy note) and full workspace cargo test exit 0 / 62 groups (receipts .project-local/runs/r41-api.log and r41-full-workspace.log)",
-      "R08 SUMMARY: all three routes run end to end through one job contract, extracted text is retrievable with source and engine attribution, and the quality view is fact-only. The remaining idea (auto-creating knowledge candidates when a job completes) stays deferred until after R09 by the earlier decision."
+      "R08 SUMMARY: all three routes run end to end through one job contract, extracted text is retrievable with source and engine attribution, and the quality view is fact-only. The remaining idea (auto-creating knowledge candidates when a job completes) stays deferred until after R09 by the earlier decision.",
+      "STATUS CHANGE: R08 is now IMPLEMENTED_PENDING_AUDIT. Non-empty synthetic samples for all three routes (text, native PDF, image OCR) import and run end to end through one job contract, their text is retrievable with source and engine attribution, and the quality view is fact-only. The one element deliberately deferred is converting extracted text into knowledge candidates, which waits for the type/evidence/qualification semantics of R09 and later (recorded decision (a) in R08r)."
     ]
   },
   "R09": {
