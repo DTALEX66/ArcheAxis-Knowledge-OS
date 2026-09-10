@@ -117,6 +117,77 @@ def response_for(request):
     }
 
 
+# R08: one job contract for every extraction route. The request/response
+# envelope, the rejection semantics and the artifact triple (text +
+# document_structure + loss_report) are identical for all of them; a route only
+# declares its capability version, its worker module and the media types it
+# accepts. Adding a route here must not relax any existing check.
+ROUTES = {
+    "text.extract": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_text.py",
+        "media_types": {
+            "text/plain",
+            "text/markdown",
+            "text/csv",
+            "text/tab-separated-values",
+            "application/json",
+            "application/xml",
+            "text/xml",
+        },
+        "call": "path",
+    },
+    "pdf.extract": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_pdf.py",
+        "media_types": {"application/pdf"},
+        "call": "path",
+    },
+    "image.ocr": {
+        "version": "1",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "media_types": {"image/png", "image/jpeg", "image/tiff", "image/webp", "image/bmp"},
+        "call": "ocr",
+    },
+}
+
+
+_IMAGE_SUFFIX = {
+    "image/png": ".png",
+    "image/jpeg": ".jpg",
+    "image/tiff": ".tiff",
+    "image/webp": ".webp",
+    "image/bmp": ".bmp",
+}
+
+
+def _run_route(route, source: Path, media_type: str) -> dict:
+    """Load the route's worker and extract with its own entry-point shape."""
+    spec = importlib.util.spec_from_file_location("route_worker", ROOT / route["worker"])
+    if spec is None or spec.loader is None:
+        raise Rejected("route worker module is missing")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if route["call"] == "ocr":
+        # Staging stores inputs content-addressed (no extension), while the OCR
+        # worker validates the file type. Materialise a route-local view with the
+        # suffix the declared media type implies; the original input is untouched
+        # and its hash is still verified separately by the caller.
+        suffix = _IMAGE_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
+        if suffix is None:
+            raise Rejected("unsupported image media type", "AAK-VAL-002")
+        view = source.with_name(source.name + suffix)
+        if not view.exists():
+            with view.open("xb") as handle:
+                handle.write(source.read_bytes())
+        # OCR keeps its own explicit parameters: language plus the tessdata dir.
+        # The repository ships eng.traineddata; an ambient TESSDATA_PREFIX may
+        # point elsewhere, so the repository copy wins when it exists.
+        tessdata = ROOT / "tools" / "tesseract" / "tessdata"
+        return module.extract(view, "eng", tessdata if tessdata.is_dir() else None)
+    return module.extract(str(source))
+
+
 def execute(request, staging: Path):
     # Closed single-capability request validation keeps production stdlib-only.
     # Tests validate real messages against the independently owned JSON Schema.
@@ -134,13 +205,14 @@ def execute(request, staging: Path):
     request = dict(request)
     for field, minimum in (("attempt", 1), ("deadline_ms", 1), ("protocol_minor", 0)):
         request[field] = integer_value(request[field], minimum)
-    if request["capability"] != "text.extract":
+    route = ROUTES.get(request["capability"])
+    if route is None:
         raise Rejected("unsupported capability")
-    if request["capability_version"] != "1" or request["protocol_minor"] != 0:
+    if request["capability_version"] != route["version"] or request["protocol_minor"] != 0:
         raise Rejected("unsupported capability or protocol version", "AAK-PROTO-001")
     if (not isinstance(request["parameters"], dict)
             or request["parameters"] or not isinstance(request["inputs"], list) or len(request["inputs"]) != 1):
-        raise Rejected("text.extract v1 requires one input, integer minor and empty parameters")
+        raise Rejected(f"{request['capability']} v{route['version']} requires one input, integer minor and empty parameters")
     deadline = time.monotonic() + request["deadline_ms"] / 1000
 
     def check_deadline():
@@ -157,18 +229,15 @@ def execute(request, staging: Path):
     digest = asset["sha256"]
     if not re.fullmatch(r"[0-9a-f]{64}", digest) or asset["uri"] != f"job://input/{digest}":
         raise Rejected("input URI must match its sha256")
-    allowed_media = {"text/plain", "text/markdown", "text/csv", "text/tab-separated-values", "application/json", "application/xml", "text/xml"}
+    allowed_media = route["media_types"]
     if asset["media_type"].split(";", 1)[0].strip().lower() not in allowed_media:
-        raise Rejected("unsupported text media type", "AAK-VAL-002")
+        raise Rejected("unsupported media type for this capability", "AAK-VAL-002")
     source = staging / "input" / digest
     raw, identity = read_regular(source)
     if hashlib.sha256(raw).hexdigest() != digest:
         raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
-    spec = importlib.util.spec_from_file_location("worker_text", ROOT / "services/python-workers/document/worker_text.py")
-    worker = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(worker)
-    result = worker.extract(str(source))
+    result = _run_route(route, source, asset["media_type"])
     reread, current_identity = read_regular(source)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")
