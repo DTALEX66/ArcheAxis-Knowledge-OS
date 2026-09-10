@@ -55,6 +55,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         )
         .route("/api/v1/learning/events", post(record_learning_event))
         .route("/api/v1/learning/events/:item_key", get(learning_history))
+        .route("/api/v1/learning/items/:item_key/references", post(record_item_reference))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
         .route("/api/v1/workspaces/info", get(workspace_info));
@@ -172,13 +173,56 @@ async fn learning_history(
                     })
                 })
                 .collect();
+            // R09: report what this learning item was built from, annotated with
+            // whether that revision is still current. A consumer re-reading the
+            // item must not silently keep using a superseded revision.
+            let references: Vec<serde_json::Value> = match learning::references_for_card(conn, &item_key) {
+                Ok(found) => found
+                    .into_iter()
+                    .map(|(knowledge_id, active)| {
+                        serde_json::json!({"knowledge_id": knowledge_id, "active": active})
+                    })
+                    .collect(),
+                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+            };
             (
                 StatusCode::OK,
-                Json(serde_json::json!({"item_key": item_key, "events": rows, "count": rows.len()})),
+                Json(serde_json::json!({
+                    "item_key": item_key,
+                    "events": rows,
+                    "count": rows.len(),
+                    "references": references,
+                })),
             )
                 .into_response()
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+    .await
+}
+
+#[derive(Deserialize)]
+struct ItemReferenceBody {
+    knowledge_id: String,
+}
+
+/// R09: record the knowledge revision a learning item was created from. The
+/// reference is immutable once recorded, so a later revision only changes the
+/// annotation a consumer sees - never the history.
+async fn record_item_reference(
+    State(state): State<AppState>,
+    Path(item_key): Path<String>,
+    Json(body): Json<ItemReferenceBody>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        match learning::record_card_reference(conn, &item_key, &body.knowledge_id, None) {
+            Ok(()) => (
+                StatusCode::CREATED,
+                Json(serde_json::json!({"item_key": item_key, "knowledge_id": body.knowledge_id})),
+            )
+                .into_response(),
+            Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
+        }
     })
     .await
 }#[derive(Deserialize)]
