@@ -19,6 +19,7 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-canvas", "0.1.0"),
     ("python-worker-subtitles", "0.1.0"),
     ("python-worker-html", "0.1.0"),
+    ("python-worker-caption", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -52,6 +53,10 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // title, the body blocks and the links. Fetching a URL is not part of this route:
     // the snapshot is the input, so no network client exists here.
     ("html", "html.structure", "text/html"),
+    // R15/F04: a figure description is a model call, so it is its own route with its own
+    // engine profile. What it produces is a candidate description, never extracted text,
+    // and a missing model is a named failure rather than an empty success.
+    ("caption", "image.caption", "image/png"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -101,6 +106,10 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     ("canvas.structure", &["application/json"]),
     ("subtitles.structure", &["application/x-subrip", "text/vtt"]),
     ("html.structure", &["text/html", "application/xhtml+xml"]),
+    (
+        "image.caption",
+        &["image/png", "image/jpeg", "image/tiff", "image/webp", "image/bmp"],
+    ),
 ];
 
 /// The media types a capability's worker accepts (empty when the capability is unknown).

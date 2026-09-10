@@ -222,6 +222,22 @@ ROUTES = {
         "call": "path",
         "contract_adapter": True,
     },
+    # R15/F04: a figure description is model output; the route exists so the description
+    # is a labelled candidate, and a missing model fails the job by name.
+    "image.caption": {
+        "version": "1",
+        "worker": "services/python-workers/vision/worker_caption.py",
+        "media_types": {"image/png", "image/jpeg", "image/tiff", "image/webp", "image/bmp"},
+        "call": "path",
+        # the worker validates the image suffix and staging has no extension
+        "suffix_by_media": {
+            "image/png": ".png",
+            "image/jpeg": ".jpg",
+            "image/tiff": ".tiff",
+            "image/webp": ".webp",
+            "image/bmp": ".bmp",
+        },
+    },
 }
 
 

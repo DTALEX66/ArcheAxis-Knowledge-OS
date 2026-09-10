@@ -186,6 +186,7 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     "python-worker-canvas-ndjson",
     "python-worker-subtitles-ndjson",
     "python-worker-html-ndjson",
+    "python-worker-caption-ndjson",
 ];
 
 fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],cancel:&Cancellation,allow_site:bool)->Result<(Response,Vec<Vec<u8>>),Failure>{

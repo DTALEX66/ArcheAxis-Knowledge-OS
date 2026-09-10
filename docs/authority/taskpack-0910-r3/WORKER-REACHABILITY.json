@@ -23,12 +23,40 @@
       "note": "takes a URL and an output directory and fetches the page; it is a fetch client, not an extraction capability, and no route may reach the network. F03 (dynamic and long pages) therefore has no fetch path at all: only a saved snapshot can be read, and pagination or scroll coverage cannot be recorded without a browser."
     },
     {
-      "worker": "services/python-workers/vision/worker_caption.py",
-      "note": "asks a local model (default qwen3:8b on 127.0.0.1:11434) to describe an image; it is a model call rather than a deterministic extraction, so it would need a route that declares a model dependency. F04's figure-description gap is this worker's territory."
-    },
-    {
       "worker": "services/python-workers/worker_extract.py",
       "note": "a dispatcher with no engine identity of its own; it selects another worker rather than producing a receipt."
+    }
+  ],
+  "routed_since_this_record": [
+    {
+      "worker": "services/python-workers/vision/worker_caption.py",
+      "engine": "python-worker-caption",
+      "routed_as": "image.caption",
+      "note": "routed in round 84 after being listed here as unrouted. It is a model call (default qwen2.5vl:7b against a local ollama), so its description is recorded as a labelled candidate rather than extracted content, and a missing model fails the job by name. It stays listed here as history: the exemption was real until the contract could carry a model-backed route."
+    },
+    {
+      "worker": "services/python-workers/web/worker_html.py",
+      "engine": "python-worker-html",
+      "routed_as": "html.structure",
+      "note": "routed in round 83."
+    },
+    {
+      "worker": "services/python-workers/document/worker_office.py",
+      "engine": "python-worker-office",
+      "routed_as": "office.structure",
+      "note": "routed in round 81."
+    },
+    {
+      "worker": "services/python-workers/document/worker_canvas.py",
+      "engine": "python-worker-canvas",
+      "routed_as": "canvas.structure",
+      "note": "routed in round 82."
+    },
+    {
+      "worker": "services/python-workers/document/worker_subtitles.py",
+      "engine": "python-worker-subtitles",
+      "routed_as": "subtitles.structure",
+      "note": "routed in round 82."
     }
   ],
   "known_duplication": [
