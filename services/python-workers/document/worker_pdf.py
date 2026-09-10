@@ -26,6 +26,7 @@ Usage: ``python worker_pdf.py <input-file>``
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import importlib.util
 import io
 import json
@@ -44,6 +45,50 @@ MAX_ANCHORS = 5000
 # "capped" fact so a reader is never misled by a truncated list.
 PARAGRAPH_CAP = 300
 TABLE_CAP = 100
+# R15/F06: a page with no text is rendered so the OCR route has a real image to read.
+# Rendering is bounded and declared; the Core decides whether to enqueue anything.
+OCR_PAGE_CAP = 20
+OCR_DPI = 150
+
+
+def _render_ocr_candidates(
+    pages_without_text: list[int], document, out_dir: Path | None
+) -> tuple[list[dict], list[str]]:
+    """Render the pages that need OCR and declare them, or explain why not.
+
+    The worker cannot enqueue anything (it holds no database handle), so it does the
+    half it owns: it renders those pages to PNG in the transfer area and reports each
+    file with its digest and size. A render failure is reported per page rather than
+    skipped, and nothing is written when no output directory was supplied.
+    """
+    candidates: list[dict] = []
+    problems: list[str] = []
+    if out_dir is None or not pages_without_text:
+        return candidates, problems
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for page_index in pages_without_text[:OCR_PAGE_CAP]:
+        name = f"page-{page_index}.png"
+        target = out_dir / name
+        try:
+            pixmap = document[page_index - 1].get_pixmap(dpi=OCR_DPI)
+            target.write_bytes(pixmap.tobytes("png"))
+            raw = target.read_bytes()
+            candidates.append(
+                {
+                    "page": page_index,
+                    "file": name,
+                    "bytes": len(raw),
+                    "sha256": hashlib.sha256(raw).hexdigest(),
+                    "media_type": "image/png",
+                }
+            )
+        except Exception as exc:  # noqa: BLE001 - a page that cannot be rendered is a fact
+            problems.append(f"page {page_index}: {type(exc).__name__}: {exc}")
+    if len(pages_without_text) > OCR_PAGE_CAP:
+        problems.append(
+            f"only the first {OCR_PAGE_CAP} of {len(pages_without_text)} text-less pages were rendered"
+        )
+    return candidates, problems
 
 
 def _capture(callable_, sink: list[str]):
@@ -122,7 +167,7 @@ def _page_text(page) -> str:
     return getter() or ""
 
 
-def extract(path: str) -> dict:
+def extract(path: str, ocr_dir: Path | None = None) -> dict:
     raw = Path(path).read_bytes()
     document = _open_document(raw)
     pages = list(document)
@@ -231,6 +276,12 @@ def extract(path: str) -> dict:
         losses.append(
             f"{len(engine_messages)} engine message(s) diverted from stdout: {engine_messages[0][:120]}"
         )
+    # R15/F06: the half of the OCR chain this worker owns - a real image for every
+    # page that has no text, declared with its digest so the Core can verify it before
+    # anything is enqueued. The worker never enqueues: it has no database handle.
+    candidates, render_problems = _render_ocr_candidates(empty_pages, document, ocr_dir)
+    if render_problems:
+        losses.append("OCR page rendering: " + "; ".join(render_problems))
     # Coverage is measured in the same unit as the anchors (lines) and supplied
     # together with covered/total, which the Core validates as a set.
     covered = len(anchors)
@@ -267,6 +318,19 @@ def extract(path: str) -> dict:
                     "engine chatter is captured into this receipt instead of being printed, "
                     "because the stdio protocol is one JSON envelope per line"
                 ),
+                "ocr_candidates": candidates,
+                "ocr_candidate_count": len(candidates),
+                "ocr_render": {
+                    "dpi": OCR_DPI,
+                    "format": "image/png",
+                    "cap": OCR_PAGE_CAP,
+                    "rendered": bool(candidates),
+                    "note": (
+                        "these files are rendered pages offered to the OCR route; the Core "
+                        "verifies each digest and decides whether to enqueue a job, because a "
+                        "worker holds no database handle"
+                    ),
+                },
             },
         },
         "losses": losses,
@@ -310,8 +374,11 @@ def main() -> int:
         spec.loader.exec_module(transport)
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument("--staging-root", type=Path, required=True)
+        # R15/F06: where durable transfer files (rendered pages) may be written; the
+        # attempt directory itself is temporary, so renders must not live there.
+        parser.add_argument("--artifact-root", type=Path, default=None)
         args = parser.parse_args()
-        return transport.serve_stdio(WORKER_IDENTITY, ["pdf.extract"], args.staging_root)
+        return transport.serve_stdio(WORKER_IDENTITY, ["pdf.extract"], args.staging_root, args.artifact_root)
 
     with contextlib.suppress(AttributeError, OSError):
         sys.stdout.reconfigure(encoding="utf-8")

@@ -68,6 +68,12 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
         .unwrap_or(&[])
 }
 
+/// R15/F06: the capabilities whose worker may write durable transfer files (the PDF
+/// route renders text-less pages for the OCR route). The executor tells only these
+/// workers where the artifact root is, so every other route keeps its launch shape
+/// and an unexpected flag stays an error rather than being silently accepted.
+pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &["pdf.extract"];
+
 /// The media type a file name denotes, or `None` when the extension is not one we
 /// are willing to name. Guessing here is what the old pinned value effectively did.
 pub fn media_type_for_name(name: &str) -> Option<&'static str> {

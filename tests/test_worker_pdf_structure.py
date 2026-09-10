@@ -204,3 +204,67 @@ def test_engine_chatter_never_reaches_stdout(tmp_path: Path):
     # if this engine version printed a hint, it is recorded rather than lost
     if structure["engine_messages"]:
         assert any("diverted from stdout" in loss for loss in payload["loss_receipt"]["losses"])
+
+
+def _scan_page_pdf(path: Path, pages: int = 1) -> None:
+    """A PDF whose pages carry an image and no text at all."""
+    document = pymupdf.open()
+    for index in range(pages):
+        page = document.new_page()
+        pixmap = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 220, 90))
+        pixmap.set_rect(pixmap.irect, (255, 255, 255))
+        page.insert_image(pymupdf.Rect(60, 60, 60 + 220, 60 + 90), pixmap=pixmap)
+        page.insert_text((72, 100 + index * 0), "", fontsize=11)
+    document.save(str(path))
+    document.close()
+
+
+def test_text_less_pages_are_rendered_and_declared_for_ocr(tmp_path: Path):
+    """The worker owns the half it can do: a real image, declared by digest."""
+    import hashlib
+
+    sample = tmp_path / "scan.pdf"
+    _scan_page_pdf(sample)
+    out_dir = tmp_path / "ocr"
+    result = worker.extract(str(sample), ocr_dir=out_dir)
+    structure = _structure(result)
+
+    assert structure["ocr_candidate_count"] == 1
+    candidate = structure["ocr_candidates"][0]
+    assert candidate["page"] == 1
+    assert candidate["media_type"] == "image/png"
+    rendered = out_dir / candidate["file"]
+    assert rendered.is_file(), "the rendered page must really exist"
+    raw = rendered.read_bytes()
+    assert candidate["bytes"] == len(raw)
+    assert candidate["sha256"] == hashlib.sha256(raw).hexdigest()
+    assert raw.startswith(b"\x89PNG\r\n\x1a\n"), "the rendered page must be a PNG"
+    assert structure["ocr_render"]["dpi"] == worker.OCR_DPI
+    assert structure["ocr_render"]["rendered"] is True
+    assert "holds no database handle" in structure["ocr_render"]["note"]
+    # the projection is untouched by rendering
+    receipt = result["loss_receipt"]
+    assert receipt["covered"] == receipt["total"] == len(result["structure"])
+    assert any("OCR" in loss for loss in receipt["losses"])
+
+
+def test_a_pdf_with_text_declares_no_ocr_candidate(tmp_path: Path):
+    sample = tmp_path / "two.pdf"
+    _two_paragraph_pdf(sample)
+    result = worker.extract(str(sample), ocr_dir=tmp_path / "ocr")
+    structure = _structure(result)
+    assert structure["ocr_candidates"] == []
+    assert structure["ocr_candidate_count"] == 0
+    assert structure["ocr_render"]["rendered"] is False
+    assert not (tmp_path / "ocr").exists(), "nothing is written when no page needs OCR"
+
+
+def test_without_an_output_directory_nothing_is_rendered(tmp_path: Path):
+    """The CLI path has no transfer area, so it declares no candidates and writes nothing."""
+    sample = tmp_path / "scan.pdf"
+    _scan_page_pdf(sample)
+    result = worker.extract(str(sample))
+    structure = _structure(result)
+    assert structure["ocr_candidates"] == []
+    assert result["text"].strip() == ""
+    assert not list(tmp_path.glob("**/*.png")), "the worker must not scatter renders next to the input"

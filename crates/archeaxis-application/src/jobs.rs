@@ -26,6 +26,10 @@ pub enum JobError {
         derived: Option<&'static str>,
         accepted: &'static [&'static str],
     },
+    /// R15/F06: a declared OCR page could not be verified (missing, wrong digest,
+    /// wrong size, or a name that tries to leave the transfer area). Nothing is
+    /// enqueued from an input that cannot be checked.
+    UnverifiableInput { job: String, reason: String },
 }
 impl From<rusqlite::Error> for JobError {
     fn from(error: rusqlite::Error) -> Self { Self::Sql(error) }
@@ -48,6 +52,9 @@ impl std::fmt::Display for JobError {
                     "cannot name a media type for {name}: route {kind} accepts {accepted:?}, so the file needs a recognised extension"
                 ),
             },
+            Self::UnverifiableInput { job, reason } => {
+                write!(f, "cannot enqueue work for {job}: {reason}")
+            }
         }
     }
 }

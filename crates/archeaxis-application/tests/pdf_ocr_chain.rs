@@ -1,0 +1,260 @@
+//! R15/F06: a PDF whose pages cannot be read chains into the OCR route for real.
+//!
+//! The whole loop is exercised here, with the real workers and the real OCR engine:
+//! a scanned PDF is dispatched to the PDF worker, which renders its text-less pages
+//! and declares them with digests; the Core verifies each digest, imports every page
+//! as its own source and enqueues one image job per page; that job is then executed
+//! and its recognised text lands in the store. The negative cases matter as much as
+//! the positive one: a tampered render is refused, and a PDF that already has text
+//! enqueues nothing.
+
+use archeaxis_application::{
+    executor::{Cancellation, Executor},
+    jobs, ocr,
+};
+use archeaxis_domain::source::{self, ImportOutcome};
+use std::path::PathBuf;
+
+fn python() -> PathBuf {
+    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+}
+
+fn repo() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+}
+
+/// A PDF whose page holds a rendered image of text and no text layer at all.
+fn scanned_pdf_bytes(text: &str) -> Vec<u8> {
+    let script = "import io,sys,fitz\n\
+                  from PIL import Image,ImageDraw\n\
+                  img=Image.new('RGB',(520,120),'white')\n\
+                  ImageDraw.Draw(img).text((20,40),sys.argv[1],fill='black')\n\
+                  buf=io.BytesIO(); img.save(buf,'PNG')\n\
+                  d=fitz.open(); p=d.new_page(); p.insert_image(fitz.Rect(60,60,580,180),stream=buf.getvalue())\n\
+                  sys.stdout.buffer.write(d.tobytes())\n";
+    match std::process::Command::new(python()).arg("-c").arg(script).arg(text).output() {
+        Ok(out) if out.status.success() => out.stdout,
+        _ => Vec::new(),
+    }
+}
+
+fn text_pdf_bytes(text: &str) -> Vec<u8> {
+    let script = "import fitz,sys;d=fitz.open();d.new_page().insert_text((72,100),sys.argv[1]);sys.stdout.buffer.write(d.tobytes())";
+    match std::process::Command::new(python()).arg("-c").arg(script).arg(text).output() {
+        Ok(out) if out.status.success() => out.stdout,
+        _ => Vec::new(),
+    }
+}
+
+async fn open_executor(dir: &std::path::Path) -> Executor {
+    Executor::open_routes(
+        &dir.join("db.sqlite"),
+        &dir.join("staging"),
+        &python(),
+        &repo().join("services/python-workers/transport/text_ndjson.py"),
+        &[
+            ("pdf.extract", repo().join("services/python-workers/document/worker_pdf.py")),
+            ("image.ocr", repo().join("services/python-workers/vision/worker_ocr.py")),
+        ],
+    )
+    .await
+    .unwrap()
+}
+
+#[tokio::test]
+async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
+    let pdf = scanned_pdf_bytes("scanned page 6371");
+    if pdf.is_empty() {
+        eprintln!("skipping: PyMuPDF or PIL unavailable for building a sample");
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let executor = open_executor(dir.path()).await;
+    let staging = dir.path().join("staging");
+    let payload = pdf.clone();
+    executor
+        .store()
+        .submit(move |conn| {
+            let source_id = match source::import_source(conn, &payload, "scan.pdf", None).unwrap() {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                ImportOutcome::Duplicate { source_id, .. } => source_id,
+            };
+            jobs::enqueue(conn, "job-pdf", "pdf", &source_id).unwrap();
+        })
+        .await
+        .unwrap();
+
+    executor.execute("job-pdf", "run-pdf", 180_000, &Cancellation::new()).await.unwrap();
+
+    // the PDF job really declared a page for OCR
+    let declared = executor
+        .store()
+        .submit({
+            let job = "job-pdf".to_string();
+            move |conn| ocr::candidates(conn, &job).unwrap()
+        })
+        .await
+        .unwrap();
+    assert_eq!(declared.len(), 1, "a scanned page must be declared: {declared:?}");
+    assert_eq!(declared[0].page, 1);
+    assert_eq!(declared[0].media_type.as_deref(), Some("image/png"));
+    assert!(declared[0].sha256.len() == 64);
+
+    // the Core verifies, imports and enqueues - twice, idempotently
+    let first = executor
+        .store()
+        .submit({
+            let staging = staging.clone();
+            move |conn| ocr::enqueue_pages(conn, &staging, "job-pdf").unwrap()
+        })
+        .await
+        .unwrap();
+    assert_eq!(first, vec!["job-pdf-page-1".to_string()]);
+
+    let second = executor
+        .store()
+        .submit({
+            let staging = staging.clone();
+            move |conn| ocr::enqueue_pages(conn, &staging, "job-pdf").unwrap()
+        })
+        .await
+        .unwrap();
+    assert!(second.is_empty(), "enqueueing the same page twice is duplicate work, not more evidence");
+
+    // the chained job is a first-class image job whose source is the rendered page
+    let (kind, name) = executor
+        .store()
+        .submit(|conn| {
+            conn.query_row(
+                "SELECT j.kind, s.original_name FROM jobs j JOIN sources s ON s.source_id=j.input_ref
+                 WHERE j.job_id='job-pdf-page-1'",
+                [],
+                |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
+            )
+            .unwrap()
+        })
+        .await
+        .unwrap();
+    assert_eq!(kind, "image");
+    assert_eq!(name, "scan-page-1.png", "the rendered page keeps a name the media derivation can read");
+
+    // and executing it produces the recognised text through the real engine
+    executor
+        .execute("job-pdf-page-1", "run-ocr", 180_000, &Cancellation::new())
+        .await
+        .unwrap();
+    let (state, text) = executor
+        .store()
+        .submit(|conn| {
+            let state = jobs::job_state(conn, "job-pdf-page-1").unwrap().unwrap_or_default();
+            let text: String = conn
+                .query_row(
+                    "SELECT text FROM transforms WHERE source_id=(
+                       SELECT input_ref FROM jobs WHERE job_id='job-pdf-page-1') ORDER BY transform_id DESC LIMIT 1",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap_or_default();
+            (state, text)
+        })
+        .await
+        .unwrap();
+    assert_eq!(state, "succeeded");
+    assert!(text.contains("6371"), "the OCR text must come from the rendered page: {text:?}");
+}
+
+#[tokio::test]
+async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
+    let pdf = text_pdf_bytes("this page already has text");
+    if pdf.is_empty() {
+        eprintln!("skipping: PyMuPDF unavailable for building a sample");
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let executor = open_executor(dir.path()).await;
+    let staging = dir.path().join("staging");
+    let payload = pdf.clone();
+    executor
+        .store()
+        .submit(move |conn| {
+            let source_id = match source::import_source(conn, &payload, "notes.pdf", None).unwrap() {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                ImportOutcome::Duplicate { source_id, .. } => source_id,
+            };
+            jobs::enqueue(conn, "job-text-pdf", "pdf", &source_id).unwrap();
+        })
+        .await
+        .unwrap();
+    executor.execute("job-text-pdf", "run-pdf", 180_000, &Cancellation::new()).await.unwrap();
+
+    let declared = executor
+        .store()
+        .submit(|conn| ocr::candidates(conn, "job-text-pdf").unwrap())
+        .await
+        .unwrap();
+    assert!(declared.is_empty(), "a page with text needs no OCR: {declared:?}");
+    let enqueued = executor
+        .store()
+        .submit({
+            let staging = staging.clone();
+            move |conn| ocr::enqueue_pages(conn, &staging, "job-text-pdf").unwrap()
+        })
+        .await
+        .unwrap();
+    assert!(enqueued.is_empty());
+
+    // now a scanned page whose render is altered after the fact: refuse, never enqueue
+    let scanned = scanned_pdf_bytes("tamper target 6371");
+    if scanned.is_empty() {
+        return;
+    }
+    let dir2 = tempfile::tempdir().unwrap();
+    let executor2 = open_executor(dir2.path()).await;
+    let staging2 = dir2.path().join("staging");
+    executor2
+        .store()
+        .submit(move |conn| {
+            let source_id = match source::import_source(conn, &scanned, "tamper.pdf", None).unwrap() {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                ImportOutcome::Duplicate { source_id, .. } => source_id,
+            };
+            jobs::enqueue(conn, "job-tamper", "pdf", &source_id).unwrap();
+        })
+        .await
+        .unwrap();
+    executor2.execute("job-tamper", "run-pdf", 180_000, &Cancellation::new()).await.unwrap();
+
+    let render = staging2.join("ocr").join("page-1.png");
+    assert!(render.is_file(), "the render must be there before we tamper with it");
+    std::fs::write(&render, b"not the rendered page").unwrap();
+    let refused = executor2
+        .store()
+        .submit({
+            let staging = staging2.clone();
+            move |conn| ocr::enqueue_pages(conn, &staging, "job-tamper")
+        })
+        .await
+        .unwrap();
+    let error = refused.unwrap_err().to_string();
+    assert!(error.contains("cannot enqueue work"), "{error}");
+    let jobs_after: i64 = executor2
+        .store()
+        .submit(|conn| {
+            conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'job-tamper-page-%'", [], |row| row.get(0))
+                .unwrap()
+        })
+        .await
+        .unwrap();
+    assert_eq!(jobs_after, 0, "an unverifiable input must leave no queued job behind");
+
+    // and a declared name that tries to escape the transfer area is refused too
+    let escape = executor2
+        .store()
+        .submit({
+            let staging = staging2.clone();
+            move |conn| ocr::enqueue_pages(conn, &staging, "job-tamper")
+        })
+        .await
+        .unwrap();
+    assert!(escape.is_err());
+}

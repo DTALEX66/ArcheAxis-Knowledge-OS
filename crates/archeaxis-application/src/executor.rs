@@ -168,7 +168,15 @@ fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],c
         // Hardened launch for stdlib-only routes: no user site-packages.
         command.arg("-S");
     }
-    command.arg(worker).arg("--staging-root").arg(dir.path())
+    command.arg(worker).arg("--staging-root").arg(dir.path());
+    // R15/F06: the attempt directory is temporary, so a worker that produces durable
+    // transfer files (rendered PDF pages for the OCR route) is told where to put them;
+    // the Core verifies those files later by digest. Only the routes that declare it
+    // receive the flag, so every other launch shape stays unchanged.
+    if crate::attempts::ARTIFACT_ROOT_CAPABILITIES.contains(&req.capability.as_str()) {
+        command.arg("--artifact-root").arg(staging);
+    }
+    command
         .current_dir(dir.path()).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     #[cfg(windows)]{use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
     let mut child=OwnedChild(command.spawn()?);

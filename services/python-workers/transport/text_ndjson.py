@@ -145,6 +145,9 @@ ROUTES = {
         "worker": "services/python-workers/document/worker_pdf.py",
         "media_types": {"application/pdf"},
         "call": "path",
+        # R15/F06: the PDF worker renders text-less pages so the OCR route has a real
+        # image to read; it writes them into this directory inside the transfer area.
+        "ocr_dir_arg": True,
     },
     "image.ocr": {
         "version": "1",
@@ -164,7 +167,7 @@ _IMAGE_SUFFIX = {
 }
 
 
-def _run_route(route, source: Path, media_type: str) -> dict:
+def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
     spec = importlib.util.spec_from_file_location("route_worker", ROOT / route["worker"])
     if spec is None or spec.loader is None:
@@ -195,12 +198,20 @@ def _run_route(route, source: Path, media_type: str) -> dict:
             plain = str(tessdata_arg).replace("\\\\?\\", "")
             tessdata_arg = Path(plain)
         return module.extract(view, "eng", tessdata_arg)
+    if route.get("ocr_dir_arg"):
+        # R15/F06: the attempt directory is temporary, so durable renders go to the
+        # artifact root the Core owns and verifies later by digest. Without one, the
+        # worker declares no candidate and writes nothing.
+        if artifact_root is None:
+            return module.extract(str(source))
+        ocr_dir = safe_path(artifact_root / "ocr", missing=True)
+        return module.extract(str(source), ocr_dir=ocr_dir)
     if route.get("media_type_arg"):
         return module.extract(str(source), media_type.split(";", 1)[0].strip().lower())
     return module.extract(str(source))
 
 
-def execute(request, staging: Path):
+def execute(request, staging: Path, artifact_root: Path | None = None):
     # Closed single-capability request validation keeps production stdlib-only.
     # Tests validate real messages against the independently owned JSON Schema.
     required = {"schema", "type", "request_id", "job_id", "attempt", "protocol_minor",
@@ -249,7 +260,7 @@ def execute(request, staging: Path):
     if hashlib.sha256(raw).hexdigest() != digest:
         raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
-    result = _run_route(route, source, asset["media_type"])
+    result = _run_route(route, source, asset["media_type"], artifact_root)
     reread, current_identity = read_regular(source)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")
@@ -296,7 +307,7 @@ def emit(message):
     sys.stdout.buffer.flush()
 
 
-def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path) -> int:
+def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, artifact_root: Path | None = None) -> int:
     """R08: one stdio job loop for every route.
 
     The worker identity and the advertised capabilities are the only per-route
@@ -327,7 +338,7 @@ def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path) -
         advertised = request.get("capability") if isinstance(request, dict) else None
         if advertised not in capabilities:
             raise Rejected("unsupported capability")
-        outputs, measurements, warnings = execute(request, staging_root)
+        outputs, measurements, warnings = execute(request, staging_root, artifact_root)
         response.update(status="succeeded", outputs=outputs, measurements=measurements, warnings=warnings)
     except Rejected as exc:
         response.update(status="rejected", outputs=[], error={"code": exc.code, "message": str(exc), "retryable": False})
@@ -342,8 +353,11 @@ def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path) -
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staging-root", type=Path, required=True)
+    # accepted for every route so one launch shape works for all of them; only a
+    # route that declares ocr_dir_arg writes anything there
+    parser.add_argument("--artifact-root", type=Path, default=None)
     args = parser.parse_args()
-    return serve_stdio("python-worker-text-ndjson", ["text.extract"], args.staging_root)
+    return serve_stdio("python-worker-text-ndjson", ["text.extract"], args.staging_root, args.artifact_root)
 
 
 if __name__ == "__main__":
