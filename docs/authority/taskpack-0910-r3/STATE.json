@@ -201,7 +201,7 @@
     ]
   },
   "R11": {
-    "status": "IN_PROGRESS",
+    "status": "IMPLEMENTED_PENDING_AUDIT",
     "evidence": [
       "scoping (read-only): what already exists on the machine side - the qualification endpoint (GET /knowledge-items/:id/qualification), is_knowledge_active and knowledge_status for consumer-side checks, search with active_only, the machine identity boundary (a machine may only propose candidates and can neither self-accept nor review), and the machine correction loop from cbe253b (candidate, human review, new version, re-call, restart-consistent).",
       "what is missing: there is NO MCP or tool-call surface anywhere in the Rust crates (a search for mcp/tool_call matches nothing), so there is no path for a real external client or controlled tool call, and no place to record a machine task receipt (task conditions, knowledge/method/tool/model versions, call scope, outcome, failure, retest).",
@@ -213,7 +213,10 @@
       "MACHINE RECEIPTS EXPOSED OVER THE API (R11c): POST /api/v1/machine/tasks records a receipt and is writable by a machine principal only - a human principal gets 403 and nothing lands; GET /api/v1/machine/tasks/:task_id is readable by any principal because a receipt is evidence about the machine side and grants no authority, and its readback states that a task receipt is a measurement fact rather than a claim that weights were trained.",
       "refusals re-checked at the API level: a failure without a reason is 400, re-recording the same task id is 400 so a receipt cannot be rewritten, and an unmeasured outcome is preserved verbatim instead of being rolled up as success.",
       "tests: api suite 19 groups ok with machine_task_api.rs; full workspace cargo test exit 0 / 67 groups (receipts .project-local/runs/r55-api.log and r55-full-workspace.log). Also fixed this round: the api crate was missing the machine module import (compile error E0433).",
-      "REMAINING for R11: one real external client running an observable task through the R10 adapter pattern and recording its receipt here"
+      "REMAINING for R11: one real external client running an observable task through the R10 adapter pattern and recording its receipt here",
+      "LIVE MACHINE RECEIPT ROUND-TRIP (R11d): scripts/probes/r11_machine_receipt_smoke.py launches the REAL archeaxis-api with a machine launch claim (the claim is the identity; a client header cannot change it), writes a receipt (POST /machine/tasks -> 201) and reads it back (GET /machine/tasks/:id -> 200) with conditions, knowledge/method/tool/model versions, scope and outcome, plus the note that a task receipt is a measurement fact rather than a claim that weights were trained.",
+      "R11 acceptance mapping: a real process request with versions and result (this smoke), failure cases (a failed receipt must state its reason, refused at both domain and API level), a retest field, the machine being unable to self-grant human acceptance (403 guards plus tests), and knowledge/policy updates kept distinct from weight training.",
+      "STATUS: R11 is IMPLEMENTED_PENDING_AUDIT. NOT CLAIMED: evaluation of capability improvement on independent unseen examples, and a real MCP client (the current client is a controlled HTTP client through the R10 adapter); both are recorded as follow-up work."
     ]
   },
   "R12": {
