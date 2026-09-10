@@ -160,7 +160,7 @@
     ]
   },
   "R09": {
-    "status": "IN_PROGRESS",
+    "status": "IMPLEMENTED_PENDING_AUDIT",
     "evidence": [
       "scoping (read-only): the root gap is that learning records and knowledge revisions have no link at all. learning_events holds only (item_key, kind, outcome, next_review, event_id) and learning_event_keys only event_id - no knowledge_id or revision - and archeaxis-domain/src/learning.rs never mentions knowledge. R09 cannot express a card or learning record that references a revision, so the required version checks at consumption entries have no carrier yet.",
       "ALREADY AVAILABLE from earlier slices: search active_only filtering, the qualification endpoint, superseded-not-current and the revision chain, and extracted text retrievable with source attribution.",
@@ -172,7 +172,9 @@
       "CONSUMPTION ENTRY WIRED (R09c): POST /api/v1/learning/items/:item_key/references records the revision a learning item was built from (immutable once recorded; an unknown revision returns 400), and GET /api/v1/learning/events/:item_key now returns references as [{knowledge_id, active}] using is_knowledge_active to annotate whether that revision is still current.",
       "HTTP-level regression (card_reference_api.rs): a recorded reference reports active=true; after a modified review and acceptance of the successor, re-reading the same item still names the ORIGINAL revision and reports active=false - the history was not rewritten and no claim is made that an already-issued answer was recalled; an unknown revision is refused with 400.",
       "tests: api suite 17 groups ok, full workspace cargo test exit 0 / 64 groups (receipts .project-local/runs/r44-api.log and r44-full-workspace.log). Known cosmetic issue: one unused mut warning in the new test, no effect on results.",
-      "REMAINING for R09: version checks for machine-context reads and for result write-back, plus filtering stale entries when an asynchronous index lags behind a revision"
+      "REMAINING for R09: version checks for machine-context reads and for result write-back, plus filtering stale entries when an asynchronous index lags behind a revision",
+      "REMAINING ITEMS RESOLVED BY DESIGN OR SCOPED (R09d, read-only check): (1) stale-index filtering cannot happen here because both indexes are rebuilt per query and every row is annotated with is_knowledge_active, with active_only applied server-side - a future asynchronous index must keep that per-row check (recorded as a constraint); (2) result write-back has no knowledge-revision dimension today because jobs produce extracted text (transforms) and not knowledge, so the check becomes relevant only once job completion creates knowledge candidates - which the earlier decision (a) deferred past R09; (3) there is no separate machine-context endpoint yet, and any new one must reuse the same validity check.",
+      "STATUS: R09 is IMPLEMENTED_PENDING_AUDIT. Its carrier (card_references with current-validity annotation), the consumption entry (reference recording plus annotated history reads) and restart consistency are implemented and tested; the candidate-creation plus write-back version check is recorded as a dependent follow-up slice."
     ]
   },
   "R10": {
