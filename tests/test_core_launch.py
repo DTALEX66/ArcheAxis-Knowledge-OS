@@ -20,6 +20,8 @@ import os
 import sqlite3
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[1]
 MODULE = REPO / "scripts" / "launch" / "core_launch.py"
 
@@ -137,6 +139,51 @@ def test_backup_copies_content_and_proves_the_source_was_not_touched(tmp_path):
     assert _rows(backup) == ["alpha", "beta"]
     assert report["backup_sha256"] == _sha(backup)
     assert Path(report["sha256_sidecar"]).read_text(encoding="utf-8").startswith(report["backup_sha256"])
+    # the source is opened read-only and the journal facts are recorded, so a
+    # changed source file can be explained instead of glossed over
+    assert report["opened_read_only"] is True
+    assert set(report["wal_before"]) == {"wal_bytes", "shm_bytes"}
+    assert report["wal_after"] == report["wal_before"]
+    assert "source_change_note" not in report
+
+
+def test_the_source_is_opened_read_only_so_a_backup_can_never_write_rows(tmp_path):
+    db = tmp_path / "core.sqlite"
+    _make_db(db, ["alpha"])
+    uri = launcher._read_only_uri(db)
+    assert uri.startswith("file:///") and uri.endswith("?mode=ro")
+    connection = sqlite3.connect(uri, uri=True)
+    try:
+        assert connection.execute("SELECT count(*) FROM knowledge").fetchone()[0] == 1
+        with pytest.raises(sqlite3.OperationalError):
+            connection.execute("INSERT INTO knowledge(body) VALUES ('nope')")
+    finally:
+        connection.close()
+    assert _rows(db) == ["alpha"]
+
+
+def test_backup_explains_a_source_change_instead_of_claiming_it_was_untouched(tmp_path):
+    """If the source hash moves, the receipt says so rather than asserting safety."""
+    db = tmp_path / "core.sqlite"
+    _make_db(db, ["alpha"])
+    real_hash = launcher.sha256_file
+    seen = {"n": 0}
+
+    def counting_hash(path):
+        if Path(path) == db:
+            seen["n"] += 1
+            return "hash-before" if seen["n"] == 1 else "hash-after"
+        return real_hash(path)
+
+    launcher.sha256_file = counting_hash
+    try:
+        code, report = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
+    finally:
+        launcher.sha256_file = real_hash
+
+    assert code == 0 and report["backed_up"] is True
+    assert report["source_unchanged"] is False
+    assert "unproven" in report["source_change_note"]
 
 
 def test_backup_refuses_while_the_core_is_recorded_as_running(tmp_path):
@@ -181,6 +228,28 @@ def test_restore_puts_the_backup_back_and_preserves_what_it_replaced(tmp_path):
     assert preserved.is_file()
     assert _rows(preserved) == ["gamma"]
     assert report["preserved_previous_sha256"] == _sha(preserved)
+
+
+def test_restore_also_moves_the_replaced_databases_write_ahead_log_aside(tmp_path):
+    """The restored file must not inherit a journal written for the old database."""
+    db = tmp_path / "core.sqlite"
+    _make_db(db, ["alpha"])
+    _, backup = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
+    _replace_db(db, ["gamma"])
+    wal = Path(str(db) + "-wal")
+    shm = Path(str(db) + "-shm")
+    wal.write_bytes(b"journal of the database being replaced")
+    shm.write_bytes(b"shared memory of the database being replaced")
+
+    code, report = launcher.restore_database(db, Path(backup["backup"]), state_path=tmp_path / "none.json")
+    assert code == 0 and report["restored"] is True
+    assert _rows(db) == ["alpha"]
+    # moved aside, not deleted, and no stale journal is left pointing at the new file
+    assert not wal.exists() and not shm.exists()
+    assert len(report["preserved_journals"]) == 2
+    kept = Path(report["preserved_journals"][0])
+    assert kept.is_file()
+    assert kept.name.startswith(Path(report["preserved_previous"]).name)
 
 
 def test_restore_refuses_a_backup_whose_hash_disagrees_with_its_record(tmp_path):

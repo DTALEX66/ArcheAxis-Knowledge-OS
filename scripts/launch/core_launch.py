@@ -263,6 +263,20 @@ def _free_path(path: Path) -> Path:
     raise RuntimeError(f"cannot find a free name near {path}")
 
 
+def _read_only_uri(path: Path) -> str:
+    """A `file:` URI that forbids SQLite to write to `path`."""
+    return path.resolve().as_uri() + "?mode=ro"
+
+
+def _wal_facts(db: Path) -> dict:
+    """Side-car journal facts, so a change to the main file can be explained."""
+    facts = {}
+    for suffix in ("-wal", "-shm"):
+        side = Path(str(db) + suffix)
+        facts[f"{suffix.lstrip('-')}_bytes"] = side.stat().st_size if side.is_file() else None
+    return facts
+
+
 def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> tuple[int, dict]:
     """Copy the Core database with VACUUM INTO and prove the source was untouched."""
     report: dict = {"action": "backup", "db": str(db), "out_dir": str(out_dir)}
@@ -281,19 +295,30 @@ def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> t
         return 6, report
 
     before = sha256_file(db)
+    wal_before = _wal_facts(db)
     out_dir.mkdir(parents=True, exist_ok=True)
     target = _free_path(out_dir / f"core-backup-{utc_stamp()}.sqlite")
+    connection = None
+    opened_read_only = True
     try:
-        connection = sqlite3.connect(str(db))
         try:
-            connection.execute("VACUUM INTO ?", (str(target),))
-        finally:
-            connection.close()
+            connection = sqlite3.connect(_read_only_uri(db), uri=True)
+        except sqlite3.Error:
+            # a hot write-ahead log can refuse a read-only open; opening normally
+            # is then the only way to get a consistent copy, and the receipts
+            # below will show that the source file changed.
+            connection = sqlite3.connect(str(db))
+            opened_read_only = False
+        connection.execute("VACUUM INTO ?", (str(target),))
     except sqlite3.Error as error:
         report.update({"backed_up": False, "reason": f"sqlite refused the backup: {error}"})
         return 5, report
+    finally:
+        if connection is not None:
+            connection.close()
 
     after = sha256_file(db)
+    wal_after = _wal_facts(db)
     digest = sha256_file(target)
     sidecar = target.with_name(target.name + ".sha256")
     sidecar.write_text(f"{digest}  {target.name}\n", encoding="utf-8")
@@ -304,11 +329,25 @@ def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> t
             "backup_sha256": digest,
             "backup_bytes": target.stat().st_size,
             "sha256_sidecar": str(sidecar),
+            "opened_read_only": opened_read_only,
             "source_sha256_before": before,
             "source_sha256_after": after,
             "source_unchanged": before == after,
+            "wal_before": wal_before,
+            "wal_after": wal_after,
         }
     )
+    if before != after:
+        # do not claim the source was untouched: say what was observed instead
+        checkpointed = wal_before["wal_bytes"] and not wal_after["wal_bytes"]
+        report["source_change_note"] = (
+            "sqlite had a write-ahead log to replay/checkpoint when the database was opened "
+            "(wal_bytes "
+            f"{wal_before['wal_bytes']} -> {wal_after['wal_bytes']}); the backup reads the database "
+            "and writes no rows, but a checkpoint rewrites the main file"
+            if checkpointed
+            else "the source file changed while it was being read; treat this backup as unproven"
+        )
     return 0, report
 
 
@@ -330,7 +369,8 @@ def restore_database(db: Path, backup: Path, state_path: Path = STATE_PATH) -> t
         return 6, report
 
     try:
-        check = sqlite3.connect(str(backup))
+        # read-only: validating a backup must not modify the file being validated
+        check = sqlite3.connect(_read_only_uri(backup), uri=True)
         try:
             check.execute("PRAGMA schema_version").fetchone()
         finally:
@@ -353,9 +393,21 @@ def restore_database(db: Path, backup: Path, state_path: Path = STATE_PATH) -> t
         report["sidecar_matched"] = None
 
     preserved: Path | None = None
+    preserved_journals: list[str] = []
     if db.exists():
         preserved = _free_path(db.with_name(f"{db.name}.replaced-{utc_stamp()}"))
         db.replace(preserved)
+    # a write-ahead log belongs to the database it was written for: leaving it
+    # behind would make SQLite replay an old journal into the restored file
+    for suffix in ("-wal", "-shm"):
+        side = Path(str(db) + suffix)
+        if side.is_file():
+            if preserved is not None:
+                aside = _free_path(Path(str(preserved) + suffix))
+            else:
+                aside = _free_path(db.with_name(f"{db.name}.orphaned-{utc_stamp()}{suffix}"))
+            side.replace(aside)
+            preserved_journals.append(str(aside))
     db.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(backup, db)
     restored_digest = sha256_file(db)
@@ -364,6 +416,7 @@ def restore_database(db: Path, backup: Path, state_path: Path = STATE_PATH) -> t
             "restored": restored_digest == backup_digest,
             "preserved_previous": str(preserved) if preserved else None,
             "preserved_previous_sha256": sha256_file(preserved) if preserved else None,
+            "preserved_journals": preserved_journals,
             "backup_sha256": backup_digest,
             "restored_sha256": restored_digest,
             "bytes": db.stat().st_size,
