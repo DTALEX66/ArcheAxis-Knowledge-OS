@@ -44,8 +44,14 @@
     ]
   },
   "R04": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IMPLEMENTED_PENDING_AUDIT",
+    "evidence": [
+      "fail-open hole fixed: Launch::from_stdin accepted any actor string and the middleware mapped every non-machine value to human, so an unknown role silently received human authority; from_stdin now rejects anything outside {human, machine} before a session or workspace exists",
+      "real-process regression: unknown_launch_actor_is_rejected_and_never_grants_human_authority covers alien / Human / owner / empty / trailing-space values (none may start, none may create a workspace) and confirms actor=human still starts and serves /api/v1/system/version 200",
+      "client-supplied x-archeaxis-actor continues to be overwritten by the launch-session claim (existing C02 coverage), so it cannot escalate or downgrade",
+      "api suite exit 0 incl. launch_auth 6 tests (receipt .project-local/runs/r04-api.log)",
+      "REMAINING: real host-signed and host-held machine/human credential scope is still to be implemented; that part is not claimed"
+    ]
   },
   "R05": {
     "status": "TODO",

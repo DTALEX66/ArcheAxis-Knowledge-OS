@@ -85,6 +85,44 @@ fn process_requires_launch_auth_for_reads_writes_and_unknown_routes() {
     assert_eq!(http(next_port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {next_token}\r\n")).0,200);
 }
 #[test]
+fn unknown_launch_actor_is_rejected_and_never_grants_human_authority() {
+    // R04: an unrecognised launch actor must fail closed. Previously any value
+    // other than "machine" was mapped to "human", so a caller that named an
+    // unknown role silently received human authority.
+    for actor in ["alien", "Human", "owner", "", "machine " ] {
+        let dir=tempfile::tempdir().unwrap();
+        let db=dir.path().join("unknown-actor.sqlite");
+        let mut child=spawn(&db);
+        writeln!(
+            child.0.stdin.take().unwrap(),
+            "{}",
+            serde_json::json!({"launch_token":TOKEN,"session_id":SESSION,"actor":actor})
+        )
+        .unwrap();
+        let deadline=Instant::now()+Duration::from_secs(7);
+        let status=loop {
+            if let Some(status)=child.0.try_wait().unwrap(){break status;}
+            assert!(Instant::now()<deadline,"unknown launch actor left the process running");
+            std::thread::sleep(Duration::from_millis(10));
+        };
+        assert!(!status.success(),"unknown launch actor {actor:?} must not start a session");
+        assert!(!db.exists(),"unknown launch actor {actor:?} must not create a workspace");
+    }
+    // The two documented actors still start, so the rejection is specific.
+    let dir=tempfile::tempdir().unwrap();
+    let db=dir.path().join("human-actor.sqlite");
+    let mut child=spawn(&db);
+    writeln!(
+        child.0.stdin.take().unwrap(),
+        "{}",
+        serde_json::json!({"launch_token":TOKEN,"session_id":SESSION,"actor":"human"})
+    )
+    .unwrap();
+    let port=ready(&mut child);
+    assert_eq!(http(port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {TOKEN}\r\n")).0,200);
+}
+
+#[test]
 fn invalid_or_unclosed_bootstrap_never_creates_workspace_and_exits_bounded() {
     for bootstrap in [Some(""),Some("{}"),Some("not json"),Some("oversize"),None] {
         let dir=tempfile::tempdir().unwrap();let db=dir.path().join("not-created.sqlite");let mut child=spawn(&db);

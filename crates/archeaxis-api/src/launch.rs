@@ -39,6 +39,11 @@ impl Launch {
         if bytes.len()>4096{return Err("launch input exceeds limit");}
         let launch:Self=serde_json::from_slice(&bytes).map_err(|_|"invalid launch input")?;
         if !hex(&launch.launch_token,64)||!hex(&launch.session_id,32){return Err("invalid launch identity");}
+        // R04: the launch actor decides machine vs human authority for the whole
+        // session, so an unrecognised value must fail closed. Mapping it to the
+        // default would silently grant human authority to a caller that named
+        // something else (previously any non-"machine" string became "human").
+        if launch.actor!="human"&&launch.actor!="machine"{return Err("invalid launch actor");}
         if let Some(profile)=&launch.text_worker{profile.validate()?;}
         Ok(launch)
     }
@@ -70,9 +75,12 @@ async fn authenticate(State(session):State<Session>,request:Request,next:Next)->
             "schema_version":archeaxis_store_sqlite::SCHEMA_VERSION,
             "session_id":session.launch.session_id,"workspace_db":session.workspace_db})).into_response();
     }
-    // C02: overwrite the request actor with the launch-session claim chosen by
-    // the local launcher; any client-supplied value is replaced, so handlers
-    // reading x-archeaxis-actor always see the trusted claim.
+    // C02/R04: overwrite the request actor with the launch-session claim chosen
+    // by the trusted bootstrap; any client-supplied value is replaced, so
+    // handlers reading x-archeaxis-actor always see the trusted claim.
+    // Launch::from_stdin has already rejected any actor outside
+    // {human, machine}, so this mapping is exhaustive and a client cannot
+    // escalate or downgrade it.
     let (mut parts, body) = request.into_parts();
     let actor = if session.launch.actor == "machine" { "machine" } else { "human" };
     parts.headers.insert(
