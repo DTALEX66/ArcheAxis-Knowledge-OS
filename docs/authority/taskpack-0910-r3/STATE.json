@@ -54,7 +54,7 @@
     ]
   },
   "R05": {
-    "status": "IN_PROGRESS",
+    "status": "IMPLEMENTED_PENDING_AUDIT",
     "evidence": [
       "scheduler worker landed: services/python-workers/learning/worker_schedule.py reuses the existing donor LearningScheduler (not the ladder); stdin JSON -> stdout JSON; unusable requests fail closed with an explicit error object and never invent an interval",
       "finding: py-fsrs fuzzes intervals by default (Scheduler(enable_fuzzing=True)), so identical card+rating calls returned different due dates; the donor now takes an additive enable_fuzzing keyword (default True unchanged) and the worker requests False, giving reproducible intervals for replay/restart/audit",
@@ -66,7 +66,9 @@
       "tests: crates/archeaxis-domain/tests/learning_schedule_authority.rs (4 tests) - domain suite 10 groups ok (receipt .project-local/runs/r13-r05-domain.log); api suite 14 groups ok incl. learning_events_api and machine_correction_loop, no regression (receipt .project-local/runs/r13-r05-api.log)",
       "API wiring landed (R05c): LearningEventBody accepts optional schedule_state + now; the handler resolves the authority before writing - card state present -> SchedulerClient (reused FSRS worker), scheduler unusable -> record_review_scheduled(None) as an unscheduled review, no card state -> the placeholder ladder explicitly; every response now carries schedule_authority (fsrs / unavailable / placeholder_ladder) so a caller cannot mistake the ladder for real scheduling",
       "wire-level tests: crates/archeaxis-api/tests/learning_schedule_api.rs (3 tests) - card state yields fsrs with >14 days, no card state reports placeholder_ladder, unusable state yields unavailable with the -2 sentinel and a history row whose next_review is null; api suite 15 groups ok (receipt .project-local/runs/r15-r05-api.log)",
-      "REMAINING (not claimed): product callers must always submit card state (belongs to the R10 host wiring); restart consistency for scheduled events is not separately asserted yet; a full-workspace re-run is queued for the next work unit"
+      "restart consistency asserted (R05d): schedule_survives_a_workspace_reopen - a scheduled review keeps its due date after reopening the workspace, an unscheduled review stays unscheduled, and a post-restart retry is still recognised as a replay with the same receipt",
+      "full workspace re-run: cargo test --workspace --offline exit 0 / 55 groups ok (receipt .project-local/runs/r16-full-workspace.log), covering the new domain/api/application test files",
+      "REMAINING (not claimed): product callers must always submit schedule_state; that caller-side integration belongs to the R10 host wiring, after which no product path reaches the placeholder ladder"
     ]
   },
   "R06": {

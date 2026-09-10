@@ -72,6 +72,34 @@ fn ladder_path_is_unchanged_and_still_separate_from_the_scheduler_path() {
 }
 
 #[test]
+fn schedule_survives_a_workspace_reopen() {
+    // R05 acceptance: restart must not change what was recorded - a scheduled
+    // review keeps its due date and an unscheduled one stays unscheduled.
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("reopen.sqlite");
+    {
+        let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+        learning::record_review_scheduled(&mut conn, "card-r1", "review", true, "key-r1", Some(21))
+            .unwrap();
+        learning::record_review_scheduled(&mut conn, "card-r2", "review", true, "key-r2", None)
+            .unwrap();
+    }
+    let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let scheduled = learning::events_for_item(&conn, "card-r1").unwrap();
+    assert_eq!(scheduled.len(), 1);
+    assert!(scheduled[0].3.is_some(), "the scheduled due date must survive a reopen");
+    let unscheduled = learning::events_for_item(&conn, "card-r2").unwrap();
+    assert_eq!(unscheduled.len(), 1);
+    assert_eq!(unscheduled[0].3, None, "an unscheduled review stays unscheduled after reopen");
+    // The keyed receipt also survives, so a post-restart retry still replays it.
+    let (_id, _streak, days, duplicate) =
+        learning::record_review_scheduled(&mut conn, "card-r1", "review", true, "key-r1", Some(21))
+            .unwrap();
+    assert!(duplicate, "post-restart retry must be recognised as a replay");
+    assert_eq!(days, 21);
+}
+
+#[test]
 fn event_key_contract_still_holds_for_scheduled_reviews() {
     let (_dir, mut conn) = workspace();
     learning::record_review_scheduled(&mut conn, "card-4", "review", true, "key-a", Some(5)).unwrap();
