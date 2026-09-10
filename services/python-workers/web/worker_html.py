@@ -29,9 +29,10 @@ ENGINE_VERSION = "0.1.0"
 WORKER_IDENTITY = "python-worker-html-ndjson"
 
 _SKIP_TAGS = {"script", "style", "noscript", "template", "svg"}
-# R15/F02: the markers that make a file an HTML document rather than bytes with a .html
-# name. Used only to refuse a file that carries no markup at all.
-_TAG_MARKER = re.compile(r"<\s*(!doctype|html|head|body|p|div|span|h[1-6]|a|ul|ol|li|table|article|section)\b", re.I)
+# R15/F02: a marker that makes a file an HTML document rather than bytes with a .html name.
+# Deliberately any tag, not a list of block tags: `<b>hi</b>` is a marked-up document, and an
+# allow-list refused it as "not an HTML document" (found by the bulk HTML worker test).
+_TAG_MARKER = re.compile(r"<\s*(?:!doctype\b|/?\s*[a-zA-Z][a-zA-Z0-9:_-]*)", re.I)
 _BLOCK_TAGS = {
     "p", "div", "section", "article", "li", "h1", "h2", "h3", "h4", "h5",
     "h6", "blockquote", "pre", "table", "tr", "br", "ul", "ol",
@@ -77,6 +78,13 @@ class _Extractor(HTMLParser):
         if self.links and not self.links[-1]["text"]:
             self.links[-1]["text"] = data.strip()[:200]
 
+    def close(self) -> None:
+        # A fragment made only of inline tags (`<b>hi</b>`) never crosses a block boundary, so
+        # its text would otherwise be dropped and the document would project as empty.
+        super().close()
+        if self._skip_depth == 0:
+            self._flush_block()
+
     def _flush_block(self) -> None:
         raw = "".join(self._text_parts)
         text = re.sub(r"[ \t]+", " ", raw).strip()
@@ -100,8 +108,10 @@ def extract(path: str) -> dict:
     blocks = parser.blocks
     # R15/F02: a file that carries no HTML at all must fail rather than succeed with an
     # empty body. A page that is genuinely blank is different: it is marked up, so it is
-    # reported as carrying no text instead of being refused.
-    if not blocks and not _TAG_MARKER.search(html_text):
+    # reported as carrying no text instead of being refused. The test is markup presence
+    # alone, not "no blocks": text is now flushed at close, so any text file would
+    # otherwise be accepted as a page.
+    if not _TAG_MARKER.search(html_text):
         raise ValueError("not an HTML document: no tags found in the snapshot")
     projection = "\n\n".join(blocks)
     anchors: list[dict] = []

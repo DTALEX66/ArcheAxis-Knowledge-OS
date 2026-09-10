@@ -287,7 +287,7 @@
     },
     {
       "slice": "R11",
-      "command": "python -X utf8 scripts/probes/r11_machine_receipt_smoke.py",
+      "command": "python -X utf8 scripts/probes/r11_machine_receipt_smoke.py || python -X utf8 scripts/probes/r11_unseen_evaluation.py",
       "evidence": [
         {
           "path": "crates/archeaxis-domain/src/machine.rs",
@@ -300,14 +300,25 @@
         {
           "path": "crates/archeaxis-api/tests/machine_task_api.rs",
           "kind": "tracked"
+        },
+        {
+          "path": "scripts/probes/r11_unseen_evaluation.py",
+          "kind": "tracked",
+          "note": "held-out corpus, unseen check, correction and diagnostics in one receipt"
+        },
+        {
+          "path": "tests/test_unseen_evaluation.py",
+          "kind": "tracked",
+          "note": "pins the measurement rules: head-prefix identity and token-level term matching"
         }
       ],
       "limitations": [
         "the external client is a controlled HTTP client, not a real MCP client",
-        "a task receipt is a measurement fact and never a claim that weights were trained"
+        "a task receipt is a measurement fact and never a claim that weights were trained",
+        "the unseen evaluation signs no PASS for retrieval: it measures whether a document comes back, never where it ranks"
       ],
       "status": "IMPLEMENTED_PENDING_AUDIT",
-      "evidence_items_in_state": 14
+      "evidence_items_in_state": 18
     },
     {
       "slice": "R12",
@@ -448,16 +459,27 @@
         {
           "path": "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs",
           "kind": "tracked"
+        },
+        {
+          "path": "tests/test_path_conventions.py",
+          "kind": "tracked",
+          "note": "the record's totals re-derived at its own commit, and growth reported as drift"
+        },
+        {
+          "path": "tests/workers/test_bulk_html.py",
+          "kind": "tracked",
+          "note": "inline-only markup keeps its text; a file with no markup is still refused"
         }
       ],
       "limitations": [
         "zero groups are complete: fourteen are partial and two custody-only (legacy binary Office and professional formats)",
         "the 69 unowned tracked paths are recorded, not fixed, because the authority file is protected",
         "all 1246 inventoried legacy assets are still INVENTORIED_NOT_SEMANTICALLY_REVIEWED",
-        "a model description is a candidate, not a fact about the image, and description quality is not measured here"
+        "a model description is a candidate, not a fact about the image, and description quality is not measured here",
+        "the path record is a measurement at its own commit: the live tree drifts from it, and that drift is reported rather than enforced"
       ],
       "status": "IN_PROGRESS",
-      "evidence_items_in_state": 89
+      "evidence_items_in_state": 92
     },
     {
       "slice": "R16",

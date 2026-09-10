@@ -126,6 +126,19 @@ def tracked_paths(root: Path = ROOT) -> list[str]:
     return [item for item in result.stdout.decode("utf-8", "replace").split("\x00") if item]
 
 
+def tracked_paths_at(root: Path, commit: str) -> list[str]:
+    """The paths tracked at a commit, so a record's totals can be re-derived later.
+
+    A record measures the tree at the commit it names. The tree keeps growing, so comparing
+    its totals to the working tree would mark every added owned file as a stale record; the
+    totals are therefore re-derived at that commit and verified there.
+    """
+    result = subprocess.run(["git", "ls-tree", "-r", "--name-only", "-z", commit], cwd=str(root), capture_output=True)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.decode("utf-8", "replace") or "git ls-tree failed")
+    return [item for item in result.stdout.decode("utf-8", "replace").split("\x00") if item]
+
+
 def select_owner(path: str, rules: list[dict]) -> tuple[str, dict | None, list[dict]]:
     """Apply the declared precedence. Returns (verdict, rule, ties)."""
     matches = [rule for rule in rules if rule["regex"].match(path)]
@@ -221,10 +234,9 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
         )
 
     stated = record.get("measured") or {}
-    # The totals are re-derived on every run, so they are recorded for the reader
-    # rather than frozen: a commit that adds owned files must not turn this gate
-    # red. What is enforced is the part that carries meaning - the unowned set may
-    # not change unrecorded, and the record must be internally consistent.
+    # The record is a measurement at the commit it names, and its totals are verified *there*
+    # (see at_commit below). The unowned set, by contrast, is enforced against the working
+    # tree: those paths have no write lane, so a change to them must not happen unrecorded.
     if not stated.get("measured_at_commit"):
         failures.append("record measured.measured_at_commit is missing: a measurement must name the commit it was taken at")
     elif not _commit_exists(root, str(stated["measured_at_commit"])):
@@ -234,6 +246,27 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
             failures.append(
                 f"record is internally inconsistent: owned {stated['owned']} + unowned {stated['unowned_count']} "
                 f"!= tracked_paths {stated['tracked_paths']}"
+            )
+
+    # Re-derive the published totals at the recorded commit, so the numbers in the record's
+    # own finding are claims a later reader can check rather than numbers nobody re-measures.
+    at_commit = None
+    if stated.get("measured_at_commit") and _commit_exists(root, str(stated["measured_at_commit"])):
+        at_commit = measure(root, paths=tracked_paths_at(root, str(stated["measured_at_commit"])))
+        for key in ("tracked_paths", "owned"):
+            if stated.get(key) != at_commit[key]:
+                failures.append(
+                    f"record {key} is {stated.get(key)} but the tree at {str(stated['measured_at_commit'])[:7]} holds {at_commit[key]}"
+                )
+        if len(at_commit["unowned"]) != stated.get("unowned_count"):
+            failures.append(
+                f"record unowned_count is {stated.get('unowned_count')} but "
+                f"{len(at_commit['unowned'])} paths were unowned at {str(stated['measured_at_commit'])[:7]}"
+            )
+        if stated.get("coverage_percent") is not None and abs(float(stated["coverage_percent"]) - at_commit["coverage_percent"]) > 0.01:
+            failures.append(
+                f"record coverage_percent is {stated['coverage_percent']} but the tree at "
+                f"{str(stated['measured_at_commit'])[:7]} gives {at_commit['coverage_percent']}"
             )
 
     stated_unowned = sorted(record.get("unowned_paths") or [])
@@ -318,6 +351,14 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
         "legacy_manifest_entries": total_assets,
         "legacy_roots_recorded": len(recorded_legacy),
     }
+    if at_commit is not None:
+        detail["measured_at_commit"] = stated.get("measured_at_commit")
+        detail["drift_since_measurement"] = {
+            "tracked_paths": measured["tracked_paths"] - at_commit["tracked_paths"],
+            "owned": measured["owned"] - at_commit["owned"],
+            "unowned": len(measured["unowned"]) - len(at_commit["unowned"]),
+            "note": "the record is a measurement at its own commit; this is how the working tree has moved since",
+        }
     return failures, detail
 
 

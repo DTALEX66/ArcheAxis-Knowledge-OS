@@ -99,6 +99,16 @@ class HtmlBulkTests(unittest.TestCase):
         out = self.worker.extract(self._bytes(b"\xff\xfe<b>hi</b>"))
         self.assertEqual(out["loss_receipt"]["params"]["encoding"], "utf-8-replace")
 
+    def test_inline_only_fragment_keeps_its_text(self):
+        """R15 regression: an inline-only fragment crosses no block boundary to flush at."""
+        out = self.worker.extract(self._write("<b>hi</b>"))
+        self.assertEqual(out["text"], "hi")
+
+    def test_a_file_with_no_markup_at_all_is_still_refused(self):
+        """The refusal is for bytes with a .html name, not for a tag outside an allow-list."""
+        with self.assertRaises(ValueError):
+            self.worker.extract(self._write("just plain text, no tags here"))
+
 
 if __name__ == "__main__":
     unittest.main()

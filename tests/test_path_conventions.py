@@ -5,9 +5,12 @@ precedence, so the unit tests here pin that precedence rather than a re-invented
 one: deny first, then an exact path, then the highest literal segment count, then
 the longest literal prefix, with a tie refused as ambiguous.
 
-The repository tests then hold the real numbers still: the tracked tree really is
-96.04% owned, the 69 unowned paths are recorded exactly, and the record cannot
-quietly lose a path, restate a count or stop matching the legacy inventory.
+The repository tests then hold the real record to what it claims: it is a measurement
+at the commit it names and its totals are re-derived there, the unowned paths are
+recorded exactly, and the record cannot quietly lose a path, restate a count or stop
+matching the legacy inventory. The tree keeps growing, so the live counts are read from
+the record and the measurement rather than pinned here - pinning them made this file
+stale the moment an ordinary commit added a file.
 """
 
 from __future__ import annotations
@@ -107,24 +110,38 @@ def test_measure_counts_each_verdict_separately():
 # -------------------------------------------------------------- the real tree
 
 
-def test_the_record_matches_the_real_tracked_tree():
+def test_the_record_is_a_measurement_at_the_commit_it_names():
+    """The record's own totals are re-derived at its commit, not compared with the live tree."""
     failures, detail = paths.check(REPO, RECORD)
     assert failures == []
-    assert detail["tracked_paths"] == 1741
-    assert detail["owned"] == 1672
-    assert detail["coverage_percent"] == 96.04
-    assert detail["unowned"] == 69
+    stated = json.loads(RECORD.read_text(encoding="utf-8"))["measured"]
+    assert stated["owned"] + stated["unowned_count"] == stated["tracked_paths"]
+    assert detail["tracked_paths"] > 1000, "the record must describe the real tree, not a stub"
+    assert detail["owned"] + detail["unowned"] == detail["tracked_paths"]
     assert detail["denied_but_tracked"] == 0
     assert detail["ambiguous"] == 0
+    assert detail["measured_at_commit"] == stated["measured_at_commit"]
+
+
+def test_growth_since_the_measurement_is_reported_as_drift_not_refused():
+    """An ordinary commit that adds owned files must not falsify a dated record."""
+    failures, detail = paths.check(REPO, RECORD)
+    assert failures == []
+    stated = json.loads(RECORD.read_text(encoding="utf-8"))["measured"]
+    drift = detail["drift_since_measurement"]
+    assert drift["tracked_paths"] == detail["tracked_paths"] - stated["tracked_paths"]
+    assert drift["owned"] == detail["owned"] - stated["owned"]
+    assert drift["unowned"] == 0, "the unowned set is enforced against the working tree, so it cannot drift"
 
 
 def test_the_repository_is_not_claimed_as_fully_classified():
-    """96.04% owned means 69 paths have no authority rule; say so, do not round up."""
+    """The record must state its unowned paths and its real coverage, not round up."""
     record = json.loads(RECORD.read_text(encoding="utf-8"))
-    assert record["measured"]["unowned_count"] == 69
-    assert record["measured"]["coverage_percent"] < 100
+    measured = record["measured"]
+    assert measured["unowned_count"] > 0
+    assert measured["coverage_percent"] < 100
     assert "is not fully classified" in record["finding"]
-    assert len(record["unowned_paths"]) == 69
+    assert len(record["unowned_paths"]) == measured["unowned_count"]
     roots = {path.split("/")[0] for path in record["unowned_paths"]}
     assert "shared-contracts" in roots, "the whole shared-contracts tree is unowned and must be recorded"
     assert "README.md" in roots and ".worklab" in roots
@@ -143,7 +160,7 @@ def test_dropping_an_unowned_path_from_the_record_is_refused(tmp_path):
 def test_a_stale_measured_count_is_refused(tmp_path):
     """The record is not frozen, but it must stay internally consistent."""
     record = json.loads(RECORD.read_text(encoding="utf-8"))
-    record["measured"]["owned"] = 1741  # 1741 + 69 != 1741
+    record["measured"]["owned"] = 1  # 1 + unowned_count != tracked_paths
     target = tmp_path / "record.json"
     target.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
     failures, _ = paths.check(REPO, target)
@@ -159,17 +176,16 @@ def test_a_measurement_must_name_a_real_commit(tmp_path):
     assert any("is not a commit in this repository" in line for line in failures)
 
 
-def test_adding_owned_files_does_not_turn_the_gate_red(tmp_path):
-    """The totals are a snapshot: an ordinary commit must not falsify the record."""
+def test_a_record_whose_totals_do_not_match_its_own_commit_is_refused(tmp_path):
+    """A published total is a claim about the named commit, so it is re-derived there."""
     record = json.loads(RECORD.read_text(encoding="utf-8"))
-    record["measured"]["tracked_paths"] = 69  # snapshot totals, deliberately different
+    record["measured"]["tracked_paths"] = 69
     record["measured"]["owned"] = 0
     record["measured"]["coverage_percent"] = 0.0
     target = tmp_path / "record.json"
     target.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
     failures, _ = paths.check(REPO, target)
-    # nothing that carries meaning changed, so nothing is refused
-    assert failures == []
+    assert any("the tree at" in line for line in failures)
 
 
 def test_a_top_level_entry_with_two_rules_is_refused(tmp_path):
