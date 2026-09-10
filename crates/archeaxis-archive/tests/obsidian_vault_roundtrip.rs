@@ -288,7 +288,15 @@ fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
     );
     assert_eq!(
         attempts::route_for_kind("canvas").map(|route| route.0),
+        Some("canvas.structure"),
+        "R15/F12: a canvas now has its own structure route, so it is no longer custody only"
+    );
+    // what the round-trip still does NOT show is a stored graph: the node and cue
+    // structure lives in a job receipt as a fact, not in a table of relations, and the
+    // assertions above about link and embed tables still hold for that reason
+    assert_eq!(
+        attempts::route_for_kind("canvas.structure").map(|route| route.0),
         None,
-        "a canvas has no ingest route: its bytes are custody only"
+        "the route table is keyed by job kind, not by capability"
     );
 }

@@ -21,6 +21,8 @@ from pathlib import Path
 
 ENGINE = "python-worker-subtitles"
 ENGINE_VERSION = "0.1.0"
+# R15/F12: the identity advertised in the sidecar handshake for this route.
+WORKER_IDENTITY = "python-worker-subtitles-ndjson"
 
 _TIMECODE = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})")
 
@@ -154,6 +156,28 @@ def extract(path: str) -> dict:
 
 
 def main() -> int:
+    # R15/F12: the same wiring as the canvas worker - this worker existed without a route.
+    if "--staging-root" in sys.argv:
+        import argparse
+        import importlib.util
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "subtitles_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        sidecar = argparse.ArgumentParser(description=__doc__)
+        sidecar.add_argument("--staging-root", type=Path, required=True)
+        sidecar.add_argument("--artifact-root", type=Path, default=None)
+        args = sidecar.parse_args()
+        return transport.serve_stdio(
+            WORKER_IDENTITY, ["subtitles.structure"], args.staging_root, args.artifact_root
+        )
+
     if len(sys.argv) != 2:
         print(json.dumps({"error": "usage: worker_subtitles.py <input.srt|vtt>"}))
         return 2

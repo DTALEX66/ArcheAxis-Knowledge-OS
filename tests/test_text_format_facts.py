@@ -247,7 +247,10 @@ def test_a_canvas_that_is_not_json_is_reported_as_unparsable(tmp_path):
 
 
 def test_srt_cues_are_counted_and_time_bounded(tmp_path):
-    _, facts = _facts(tmp_path, SRT, "text/plain", ".srt")
+    # R15/F12 note: a .srt NAME now resolves to the subtitles capability and its own
+    # worker. This test exercises the text worker directly with a text/plain declaration,
+    # which is the case a document with cues reaches when it is declared as plain text.
+    _, facts = _facts(tmp_path, SRT, "text/plain", ".txt")
     assert facts["format"] == "srt" and facts["parsed"] is True
     assert facts["cue_count"] == 2
     assert facts["first_cue_start"] == "00:00:01,000"
@@ -257,14 +260,14 @@ def test_srt_cues_are_counted_and_time_bounded(tmp_path):
 
 
 def test_webvtt_is_recognised_by_its_header(tmp_path):
-    _, facts = _facts(tmp_path, VTT, "text/plain", ".vtt")
+    _, facts = _facts(tmp_path, VTT, "text/plain", ".txt")
     assert facts["format"] == "webvtt"
     assert facts["cue_count"] == 1
     assert facts["first_cue_start"] == "00:00:01.000"
 
 
 def test_an_empty_webvtt_document_says_so(tmp_path):
-    _, facts = _facts(tmp_path, "WEBVTT\n\n", "text/plain", ".vtt")
+    _, facts = _facts(tmp_path, "WEBVTT\n\n", "text/plain", ".txt")
     assert facts["format"] == "webvtt" and facts["cue_count"] == 0
     assert facts["first_cue_start"] is None
     assert "no cues" in facts["note"]

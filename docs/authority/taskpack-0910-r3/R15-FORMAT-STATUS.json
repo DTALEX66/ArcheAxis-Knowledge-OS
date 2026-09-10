@@ -199,13 +199,13 @@
       "formats": "SRT/VTT/JSON Canvas",
       "required_output": "时间锚/节点及关系",
       "status": "partial",
-      "implemented_now": "a .canvas is resolved as the JSON document it is and the text route reports its nodes and edges as facts: node and edge counts, node types, duplicate node ids, and edges naming a node that does not exist (dangling) - an integrity measurement rather than a graph. SRT and VTT are resolved as the textual documents they are and the route reports their cue structure: cue count, first and last cue times, and whether the document is SRT or WebVTT, all explicitly detected by pattern rather than declared by media type. Bytes remain custody-preserved in every case",
-      "gap": "no time anchor and no canvas node or edge is stored as a structure or a relation: the reported times and the graph are receipt facts, so nothing yet links a cue or a node to knowledge, and navigation stays on line anchors",
+      "implemented_now": "a .canvas reaches its own route (`canvas.structure`) and the worker behind it existed in this repository since the 2026-09-05 slice with no route pointing at it. It validates the canvas (an edge naming an unknown node is refused), projects the text nodes and returns node anchors that carry the node ids, plus the edges and the file/link references; the transport keeps that structure and those edges as facts under `params.worker_structure` and `params.worker_output` while the route contract carries canonical line anchors. SRT and VTT likewise have their own route (`subtitles.structure`) and their own media types (application/x-subrip, text/vtt), so a subtitle is no longer declared as plain text: the worker parses the cues and returns cue anchors that carry `offset_ms` and `duration_ms`. A subtitle file the worker cannot parse fails the job",
+      "gap": "the node and cue anchors are kept as facts rather than as an addressing level in the projection, the canvas geometry is not projected (the worker says so), and the text route's JSON reading of a canvas remains available without being the structure path",
       "evidence": {
-        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
-        "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
-        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_text.py"],
-        "tests": ["tests/test_text_format_facts.py", "tests/test_worker_ocr_route.py", "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs", "crates/archeaxis-application/tests/route_capabilities.rs"],
+        "core_routes": [{"kind": "canvas", "capability": "canvas.structure", "media_type": "application/json"}, {"kind": "subtitles", "capability": "subtitles.structure", "media_type": "application/x-subrip"}],
+        "worker_routes": [{"capability": "canvas.structure", "worker": "services/python-workers/document/worker_canvas.py"}, {"capability": "subtitles.structure", "worker": "services/python-workers/document/worker_subtitles.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_canvas.py", "services/python-workers/document/worker_subtitles.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["crates/archeaxis-application/tests/canvas_subtitles_job_end_to_end.rs", "tests/test_text_format_facts.py", "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs"],
         "legacy_reference": []
       }
     },

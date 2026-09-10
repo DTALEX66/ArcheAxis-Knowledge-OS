@@ -93,12 +93,15 @@ fn a_name_the_route_cannot_accept_is_refused_with_a_reason() {
 
 #[test]
 fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
-    // a .canvas is a JSON document, so the JSON-capable text route takes it
+    // a .canvas is a JSON document, and the canvas route reads its node structure
+    assert_eq!(attempts::resolve_media_type("canvas", "vault.canvas").unwrap(), "application/json");
     assert_eq!(attempts::resolve_media_type("text", "vault.canvas").unwrap(), "application/json");
-    // subtitles are textual documents; the worker recognises their cue structure and
-    // reports it as a fact, so the declared media type stays the one the route accepts
-    assert_eq!(attempts::resolve_media_type("text", "talk.srt").unwrap(), "text/plain");
-    assert_eq!(attempts::resolve_media_type("text", "talk.vtt").unwrap(), "text/plain");
+    // R15/F12: subtitles now have their own media types and their own route, so a .srt
+    // is no longer declared as plain text (the dedicated worker is the one answer)
+    assert_eq!(attempts::resolve_media_type("subtitles", "talk.srt").unwrap(), "application/x-subrip");
+    assert_eq!(attempts::resolve_media_type("subtitles", "talk.vtt").unwrap(), "text/vtt");
+    assert!(attempts::resolve_media_type("text", "talk.srt").is_err());
+    assert!(attempts::resolve_media_type("text", "talk.vtt").is_err());
     // a saved mail message is text with its own structure
     assert_eq!(attempts::resolve_media_type("text", "message.eml").unwrap(), "text/plain");
     // and they are refused by a route that cannot read them

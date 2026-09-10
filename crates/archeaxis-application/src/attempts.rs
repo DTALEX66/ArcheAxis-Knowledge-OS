@@ -16,6 +16,8 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-archive", "0.1.0"),
     ("python-worker-media", "0.1.0"),
     ("python-worker-office", "0.1.0"),
+    ("python-worker-canvas", "0.1.0"),
+    ("python-worker-subtitles", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -40,6 +42,11 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
         "office.structure",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ),
+    // R15/F12: a canvas and a subtitle file each have their own worker that produces
+    // real structure (node anchors with ids; cue anchors with timings). Their media
+    // types are their own, so a .srt is no longer read as plain text by the text route.
+    ("canvas", "canvas.structure", "application/json"),
+    ("subtitles", "subtitles.structure", "application/x-subrip"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -86,6 +93,8 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ],
     ),
+    ("canvas.structure", &["application/json"]),
+    ("subtitles.structure", &["application/x-subrip", "text/vtt"]),
 ];
 
 /// The media types a capability's worker accepts (empty when the capability is unknown).
@@ -136,10 +145,10 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        // subtitles are textual documents; the worker recognises their cue structure
-        // and reports it as a fact rather than inventing a media type the route does
-        // not accept
-        "srt" | "vtt" => "text/plain",
+        // subtitles have their own media types, so a .srt is no longer declared as
+        // plain text and cannot reach the text route by accident
+        "srt" => "application/x-subrip",
+        "vtt" => "text/vtt",
         // a saved mail message is text (RFC 822) with its own structure, which the
         // worker reports as facts. A binary .msg container is deliberately NOT named:
         // no route can read it, so it is refused instead of decoded into noise.

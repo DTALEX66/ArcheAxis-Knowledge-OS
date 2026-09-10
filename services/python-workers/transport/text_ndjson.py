@@ -187,7 +187,31 @@ ROUTES = {
         },
         "call": "path",
         # this worker dispatches on the file suffix, so it needs a suffixed view
-        "office_document": True,
+        "suffix_by_media": {
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+        },
+    },
+    # R15/F12: the canvas and subtitle workers existed unreachable too; each produces
+    # real structure, so each gets its own capability and media type.
+    "canvas.structure": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_canvas.py",
+        "media_types": {"application/json"},
+        "call": "path",
+        # this worker predates the unified contract: it returns its own node anchors and
+        # a receipt without coverage, so the transport adapts its output (and keeps the
+        # worker's own structure as a fact under params.worker_structure)
+        "contract_adapter": True,
+    },
+    "subtitles.structure": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_subtitles.py",
+        "media_types": {"application/x-subrip", "text/vtt"},
+        "call": "path",
+        # the worker picks its parser by suffix, and staging has no extension
+        "suffix_by_media": {"application/x-subrip": ".srt", "text/vtt": ".vtt"},
     },
 }
 
@@ -200,14 +224,9 @@ _IMAGE_SUFFIX = {
     "image/bmp": ".bmp",
 }
 
-# R15/F07-F09: the Office worker dispatches on the file suffix, and staging stores
-# inputs content-addressed (no extension), so the route declares the suffix its media
-# type implies; the transport materialises a route-local view for the worker.
-_OFFICE_SUFFIX = {
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
-}
+# R15/F07-F09 + F12: a worker that dispatches on the file suffix cannot read staging's
+# content-addressed names (no extension), so each such route declares the suffix its
+# media type implies and the transport materialises a route-local view for it.
 
 
 def _materialise_view(source: Path, suffix: str) -> Path:
@@ -252,6 +271,16 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
         params["worker_structure_note"] = (
             "the worker's own structure is kept here as a fact; the structure the route contract carries is "
             "derived from the projected text"
+        )
+    # Any other top-level key the worker returned is kept too: the canvas worker reports
+    # edges and references beside its structure, and dropping them here would be a
+    # silent loss introduced by the adapter rather than by the engine.
+    contract_keys = {"engine", "engine_version", "text", "structure", "loss_receipt"}
+    extra = {key: value for key, value in result.items() if key not in contract_keys}
+    if extra:
+        params.setdefault("worker_output", {}).update(extra)
+        params["worker_output_note"] = (
+            "additional fields the worker returned are preserved verbatim here instead of being dropped"
         )
     params.setdefault("coverage_unit", "line anchors")
     losses = list(receipt.get("losses") or [])
@@ -301,11 +330,15 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
             plain = str(tessdata_arg).replace("\\\\?\\", "")
             tessdata_arg = Path(plain)
         return module.extract(view, "eng", tessdata_arg)
-    if route.get("office_document"):
-        suffix = _OFFICE_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
+    if route.get("suffix_by_media"):
+        suffix = route["suffix_by_media"].get(media_type.split(";", 1)[0].strip().lower())
         if suffix is None:
-            raise Rejected("unsupported office media type", "AAK-VAL-002")
-        return _as_route_contract(module.extract(str(_materialise_view(source, suffix))), "office.structure")
+            raise Rejected("unsupported media type for this capability", "AAK-VAL-002")
+        # the worker's own structure is kept as a fact while the route contract carries
+        # canonical line anchors, so both the worker's view and the contract hold
+        return _as_route_contract(
+            module.extract(str(_materialise_view(source, suffix))), route.get("capability", "route")
+        )
     if route.get("artifact_dir"):
         # R15/F06+F15: the attempt directory is temporary, so durable transfer files
         # (rendered PDF pages, extracted container members) go to the artifact root the
@@ -317,6 +350,8 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         return module.extract(str(source), **{route.get("artifact_kwarg", "artifact_dir"): target})
     if route.get("media_type_arg"):
         return module.extract(str(source), media_type.split(";", 1)[0].strip().lower())
+    if route.get("contract_adapter"):
+        return _as_route_contract(module.extract(str(source)), route.get("capability", "route"))
     return module.extract(str(source))
 
 
