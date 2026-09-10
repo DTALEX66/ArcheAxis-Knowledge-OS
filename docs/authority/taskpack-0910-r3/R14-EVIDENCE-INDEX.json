@@ -28,10 +28,12 @@
       ],
       "limitations": [
         "the shipped verify_package.py fails on EXECUTION.md and STATE.json by design, because they are the pack's live progress files; use the integrity checker instead",
-        "package integrity is not a product audit"
+        "package integrity is not a product audit",
+        "scripts/check_taskpack_integrity.py needs the install snapshot under .project-local/runs/taskpack-0910-shipped, which is an ignored receipt: from a fresh checkout it exits 1 by design rather than attributing the live progress files, and that was measured in round 93 (its template is not in git history either)",
+        "the fresh-checkout run of round 93 measured six of seven gates exiting 0 inside a clone, plus 86 contract tests passing from the clone's own run root"
       ],
       "status": "IMPLEMENTED_PENDING_AUDIT",
-      "evidence_items_in_state": 12
+      "evidence_items_in_state": 13
     },
     {
       "slice": "R01",
