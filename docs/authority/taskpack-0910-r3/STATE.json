@@ -24,12 +24,20 @@
     ]
   },
   "R02": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IMPLEMENTED_PENDING_AUDIT",
+    "evidence": [
+      "288991a REVISION-01: accept/reject/deprecate carrying new_body is rejected and body bytes stay immutable; only modified creates a new superseding revision",
+      "cbe253b: API review-decisions forwards new_body so corrected content reaches the domain revision path (accept + new_body still rejected)",
+      "domain suite exit 0 / 9 groups ok incl. accept_with_new_body_is_rejected_and_body_stays_immutable, accept_commits_status_and_one_event_atomically, failed_review_leaves_no_partial_state, modified_creates_traceable_successor (receipt .project-local/runs/r02-domain.log)"
+    ]
   },
   "R03": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IMPLEMENTED_PENDING_AUDIT",
+    "evidence": [
+      "985a219 ARCHIVE-01: layout resolved from the manifest table set (v2 8-table, v3 11-table, v3 13-table, current 13-table); unknown v3 layout and current archive missing a table rejected; additive nullable columns filled NULL; unknown column rejected",
+      "archive suite exit 0 / 7 groups ok (receipt .project-local/runs/r03-archive.log)",
+      "OPEN GAP: pack acceptance asks for a non-empty v3 sample exported by the OLD implementation; current evidence reconstructs the historical shapes from schema history"
+    ]
   },
   "R04": {
     "status": "TODO",
