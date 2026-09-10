@@ -14,8 +14,23 @@ fn repo() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
 }
 
+/// Whether the OCR engine can actually run here.
+///
+/// `tools/tesseract/tessdata/` is **gitignored by design** (`.gitignore:48`), so a fresh checkout
+/// has no traineddata and an OCR job cannot succeed there. The Python OCR tests skip in exactly
+/// that situation; this one does the same rather than failing the suite for a missing local asset.
+fn tessdata_available() -> bool {
+    repo().join("tools/tesseract/tessdata/eng.traineddata").is_file()
+}
+
 #[tokio::test]
 async fn ocr_job_is_dispatched_to_the_ocr_worker_and_its_text_is_stored() {
+    if !tessdata_available() {
+        eprintln!(
+            "skipping: tools/tesseract/tessdata/eng.traineddata is absent (the directory is gitignored by design)"
+        );
+        return;
+    }
     // The sample is rendered by the same interpreter the worker uses.
     let sample_dir = tempfile::tempdir().unwrap();
     let sample = sample_dir.path().join("shot.png");

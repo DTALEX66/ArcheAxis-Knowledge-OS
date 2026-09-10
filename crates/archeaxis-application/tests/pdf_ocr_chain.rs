@@ -61,8 +61,23 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
     .unwrap()
 }
 
+/// Whether the OCR engine can actually run here.
+///
+/// `tools/tesseract/tessdata/` is **gitignored by design** (`.gitignore:48`), so a fresh checkout
+/// has no traineddata and a chained OCR job cannot succeed there. The Python OCR tests skip in
+/// exactly that situation; these do the same instead of failing the suite for a missing local asset.
+fn tessdata_available() -> bool {
+    repo().join("tools/tesseract/tessdata/eng.traineddata").is_file()
+}
+
 #[tokio::test]
 async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
+    if !tessdata_available() {
+        eprintln!(
+            "skipping: tools/tesseract/tessdata/eng.traineddata is absent (the directory is gitignored by design)"
+        );
+        return;
+    }
     let pdf = scanned_pdf_bytes("scanned page 6371");
     if pdf.is_empty() {
         eprintln!("skipping: PyMuPDF or PIL unavailable for building a sample");
@@ -308,6 +323,12 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
 
 #[tokio::test]
 async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_still_succeeds() {
+    if !tessdata_available() {
+        eprintln!(
+            "skipping: tools/tesseract/tessdata/eng.traineddata is absent (the directory is gitignored by design)"
+        );
+        return;
+    }
     // A scanned PDF whose declared render is unreadable at completion time: the PDF
     // job did its own work, so it stays succeeded, and the failure to chain is a fact
     // a reader can find rather than a silence.
