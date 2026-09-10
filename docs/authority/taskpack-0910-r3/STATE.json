@@ -93,8 +93,15 @@
     ]
   },
   "R08": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IN_PROGRESS",
+    "evidence": [
+      "native PDF route landed: services/python-workers/document/worker_pdf.py returns the same contract as the text worker (engine/engine_version/text/structure/loss_receipt), so both routes feed one ingestion path",
+      "anchors carry page AND line (path [page-N, line-M]) plus character offsets into the projected text, so knowledge can navigate back to the page/region it came from",
+      "explicit degradation, no silent success: a corrupt PDF and bytes a lenient engine accepts as a zero-page document both raise; a page with no extractable text (scan/screenshot) returns its real empty text with a loss note stating that OCR is required",
+      "the receipt records engine, version, page coverage and losses only - no accuracy figure and no model confidence is presented as recognition accuracy",
+      "tests: tests/test_worker_pdf_native.py 5 passed (numbers and units survive extraction, every page is addressable, no-text page degrades to an OCR note, corrupt file fails explicitly, CLI exits 1 without publishing text)",
+      "REMAINING: scanned/screenshot OCR route through the same contract; the Rust-side unified job contract (the executor currently knows only the text worker); quality display; and the end-to-end import-to-retrievable-knowledge run for all three sample classes"
+    ]
   },
   "R09": {
     "status": "TODO",
