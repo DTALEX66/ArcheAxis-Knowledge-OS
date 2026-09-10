@@ -168,6 +168,13 @@ ROUTES = {
         "artifact_dir": "members",
         "artifact_kwarg": "member_dir",
     },
+    # R15/F10-F11: audio and video are binary; the probe reads header structure only.
+    "media.probe": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_media.py",
+        "media_types": {"video/mp4", "audio/wav"},
+        "call": "path",
+    },
 }
 
 

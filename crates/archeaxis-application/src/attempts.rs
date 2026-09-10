@@ -14,6 +14,7 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("pymupdf-native-pdf", "pymupdf"),
     ("python-worker-ocr", "0.1.0"),
     ("python-worker-archive", "0.1.0"),
+    ("python-worker-media", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -28,6 +29,9 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // R15/F15: a container is binary, so it gets its own route instead of being
     // decoded as text. The projection is an inventory listing, never the members.
     ("archive", "archive.inventory", "application/zip"),
+    // R15/F10-F11: audio and video are binary too. The probe reads the container's own
+    // header structure and never decodes a sample, so the projection is a fact listing.
+    ("media", "media.probe", "video/mp4"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -62,6 +66,10 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
         &["image/png", "image/jpeg", "image/tiff", "image/webp", "image/bmp"],
     ),
     ("archive.inventory", &["application/zip"]),
+    (
+        "media.probe",
+        &["video/mp4", "audio/wav"],
+    ),
 ];
 
 /// The media types a capability's worker accepts (empty when the capability is unknown).
@@ -101,6 +109,11 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "xml" => "application/xml",
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
+        // R15/F10-F11: the formats this repository can probe without decoding samples.
+        // mp3, m4a, flac, mkv and webm are deliberately NOT named: no reader here can
+        // read them, so a name that claims otherwise would be dispatched as noise.
+        "wav" => "audio/wav",
+        "mp4" | "m4v" | "mov" => "video/mp4",
         // subtitles are textual documents; the worker recognises their cue structure
         // and reports it as a fact rather than inventing a media type the route does
         // not accept

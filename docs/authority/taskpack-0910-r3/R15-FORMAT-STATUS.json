@@ -13,8 +13,8 @@
   "coverage_summary": {
     "total": 16,
     "complete": 0,
-    "partial": 7,
-    "custody_only": 9
+    "partial": 9,
+    "custody_only": 7
   },
   "formats": [
     {
@@ -166,14 +166,14 @@
       "release_scope": "core",
       "formats": "WAV/MP3/M4A/FLAC",
       "required_output": "转写、片段/词时间、音轨、质量标记",
-      "status": "custody_only",
-      "implemented_now": "an audio file is imported and preserved as bytes with its sha256 and name",
-      "gap": "there is no ASR route at all: no transcript, no segment or word times, no track inventory and no quality marks",
+      "status": "partial",
+      "implemented_now": "a WAV reaches its own route (`media.probe`), because audio is binary. The worker reads the WAV header and reports it as facts: channels, sample rate, sample width, compression, frame count and the duration that follows from them, with `declared_by` naming the header as the source of the claim. The projection is a fact listing with line anchors, and the receipt states that no sample was decoded and therefore that there is no waveform, transcript, timestamp or coverage fact",
+      "gap": "there is no transcription and no segment or word timing; MP3, M4A and FLAC are refused by name because no reader here can read them, so those three formats remain custody-only inside a partially covered group",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "core_routes": [{"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
+        "worker_routes": [{"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_media.py"],
+        "tests": ["tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
         "legacy_reference": []
       }
     },
@@ -182,14 +182,14 @@
       "release_scope": "core",
       "formats": "MP4/MOV/MKV/WebM",
       "required_output": "对齐的音轨、字幕、画面事件、采样覆盖",
-      "status": "custody_only",
-      "implemented_now": "a video file is imported and preserved as bytes with its sha256 and name",
-      "gap": "no media route exists: no aligned audio track, no subtitles, no frame events and no sampling coverage record",
+      "status": "partial",
+      "implemented_now": "an MP4 or MOV reaches the media route, because video is binary too. The worker walks the ISO base media file boxes without interpreting payloads and reports the major brand, compatible brands, the box types present, the movie timescale and declared duration with the seconds that follow from them, and each track's handler (video, audio), timescale and duration. A truncated box stops the walk and is reported rather than guessed, and the receipt states that nothing was decoded: no frame event, no aligned audio track, no sampling coverage",
+      "gap": "no subtitle extraction, no frame events and no sampling coverage; MKV and WebM are refused by name because no reader here can read them, so those two formats remain custody-only inside a partially covered group",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "core_routes": [{"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
+        "worker_routes": [{"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_media.py"],
+        "tests": ["tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
         "legacy_reference": []
       }
     },
