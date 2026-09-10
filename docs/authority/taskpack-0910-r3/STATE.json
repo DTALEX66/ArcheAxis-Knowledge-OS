@@ -178,8 +178,13 @@
     ]
   },
   "R10": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IN_PROGRESS",
+    "evidence": [
+      "DeepTutor local host restarted as a managed background job (deeptutor start with HOME/XDG_ pointing at .project-local/deeptutor-val): backend :8001, frontend :3782 and ollama :11434 all HTTP 200; the frontend log reports Next.js 16.2.3 and Ready in 0ms (log .project-local/deeptutor-val/start-round46.log)",
+      "the Core-side real journey already exists as crates/archeaxis-api/tests/v01_journey.rs::v01_twelve_step_journey, which keeps passing in the full workspace run",
+      "R10 GAPS, not claimed: (a) a host-to-Core adapter so the DeepTutor surface and capabilities read/write the Core through a controlled interface instead of separate stores; (b) a human journey over the real UI (import, reading position, explanation, practice or teach-back, correction, review, resume); (c) user learning state and AI capability state displayed separately; (d) when activity results cannot flow back, show that explicitly and allow manual recording",
+      "next unit: build the adapter as the smallest slice (a controlled process or interface mapping host-side input to Core API calls: import, search, learning events, correction), then the UI journey and the two-state separation"
+    ]
   },
   "R11": {
     "status": "TODO",
