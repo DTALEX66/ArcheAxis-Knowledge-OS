@@ -544,7 +544,7 @@
         "the OCR reading-order model fixes column interleaving only: a misread phrase stays misread and within-line word order is left to the engine"
       ],
       "status": "IN_PROGRESS",
-      "evidence_items_in_state": 99
+      "evidence_items_in_state": 100
     },
     {
       "slice": "R16",
