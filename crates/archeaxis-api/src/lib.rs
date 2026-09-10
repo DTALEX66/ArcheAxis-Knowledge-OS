@@ -56,6 +56,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/learning/events", post(record_learning_event))
         .route("/api/v1/learning/events/:item_key", get(learning_history))
         .route("/api/v1/search", get(search_knowledge))
+        .route("/api/v1/jobs/:job_id/quality", get(job_quality))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
     routes.with_state(state)
@@ -498,6 +499,63 @@ async fn search_knowledge(
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
     }).await
+}
+
+/// R08: quality facts for one job - engine, coverage, loss and region counts.
+///
+/// Facts only: no accuracy figure is produced, and a recogniser's confidence is
+/// never presented as accuracy.
+async fn job_quality(State(state): State<AppState>, Path(job_id): Path<String>) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let row = conn.query_row(
+            "SELECT state, engine, loss_receipt FROM jobs WHERE job_id=?1",
+            [&job_id],
+            |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, Option<String>>(1)?,
+                    r.get::<_, Option<String>>(2)?,
+                ))
+            },
+        );
+        let (job_state, engine, receipt) = match row {
+            Ok(values) => values,
+            Err(rusqlite::Error::QueryReturnedNoRows) => {
+                return (StatusCode::NOT_FOUND, "unknown job").into_response();
+            }
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        };
+        let receipt: serde_json::Value = receipt
+            .as_deref()
+            .and_then(|raw| serde_json::from_str(raw).ok())
+            .unwrap_or(serde_json::Value::Null);
+        let params = receipt.get("params").cloned().unwrap_or(serde_json::Value::Null);
+        let region_count = params
+            .get("regions")
+            .and_then(|value| value.as_array())
+            .map(|regions| regions.len())
+            .unwrap_or(0);
+        let loss_count = receipt
+            .get("losses")
+            .and_then(|value| value.as_array())
+            .map(|losses| losses.len())
+            .unwrap_or(0);
+        Json(serde_json::json!({
+            "job_id": job_id,
+            "state": job_state,
+            "engine": engine,
+            "engine_version": receipt.get("engine_version").cloned().unwrap_or(serde_json::Value::Null),
+            "coverage": receipt.get("coverage").cloned().unwrap_or(serde_json::Value::Null),
+            "covered": receipt.get("covered").cloned().unwrap_or(serde_json::Value::Null),
+            "total": receipt.get("total").cloned().unwrap_or(serde_json::Value::Null),
+            "loss_count": loss_count,
+            "region_count": region_count,
+            "pages": params.get("pages").cloned().unwrap_or(serde_json::Value::Null),
+            "note": "facts only; model or recogniser confidence is not accuracy",
+        }))
+        .into_response()
+    })
+    .await
 }
 
 async fn workspace_info(State(state): State<AppState>) -> impl IntoResponse {
