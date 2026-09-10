@@ -470,7 +470,30 @@ async fn search_knowledge(
             if query.active_only {
                 items.retain(|item| item["active"] == true);
             }
-            Json(serde_json::json!({"count": items.len(), "items": items})).into_response()
+            // R08: extracted text is retrievable too, attributed to the original
+            // file and the engine that produced it - without claiming the text is
+            // knowledge (see domain::search::search_transforms).
+            let transforms: Vec<serde_json::Value> = match search::search_transforms(conn, &query.q, 20) {
+                Ok(rows) => rows
+                    .into_iter()
+                    .map(|(transform_id, source_id, engine, head)| {
+                        serde_json::json!({
+                            "transform_id": transform_id,
+                            "source_id": source_id,
+                            "engine": engine,
+                            "head": head,
+                        })
+                    })
+                    .collect(),
+                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+            };
+            Json(serde_json::json!({
+                "count": items.len(),
+                "items": items,
+                "transform_count": transforms.len(),
+                "transforms": transforms,
+            }))
+            .into_response()
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
