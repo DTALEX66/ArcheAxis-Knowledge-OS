@@ -62,6 +62,10 @@ PANEL_NOTE = (
     "the machine panel shows machine capability receipts; learner progress is never "
     "presented as machine competence"
 )
+MEMBER_NOTE = (
+    "the members imported from this container, not its whole inventory; readable means a "
+    "transform exists, not that the content was understood"
+)
 
 
 def build_state(base_url: str, item_key: str, launch_token: str | None, call=None) -> tuple[int, dict]:
@@ -100,6 +104,51 @@ def build_health(base_url: str, launch_token: str | None, call=None) -> tuple[in
     if not reachable:
         payload["reason"] = body.get("error") if isinstance(body, dict) else str(body)[:200]
     return (200 if reachable else 503), payload
+
+
+def build_members(base_url: str, source_id: str, launch_token: str | None, call=None) -> tuple[int, dict]:
+    """What is inside one container, and which parts were read (R15/F15).
+
+    The same rule as the state endpoint applies: a Core that cannot be reached returns
+    503 with no member list at all, and a container the Core does not know is reported
+    as such, because an empty table would look like "this container holds nothing".
+    """
+    call = call or core_client.call
+    # safe="": a slash in a source id must not be allowed to add a path segment
+    quoted = urllib.parse.quote(source_id, safe="")
+    status, body = call(base_url, "GET", f"{CORE_BASE}/sources/{quoted}/members", launch_token)
+    payload: dict = {"container_source_id": source_id, "note": MEMBER_NOTE}
+    if status == 404:
+        payload.update(
+            {
+                "core": {"reachable": True, "status": status},
+                "reason": "the Core does not know this source",
+                "member_count": None,
+                "members": None,
+            }
+        )
+        return 404, payload
+    if status != 200 or not isinstance(body, dict):
+        payload.update(
+            {
+                "core": {
+                    "reachable": False,
+                    "status": status,
+                    "reason": body.get("error") if isinstance(body, dict) else str(body)[:200],
+                },
+                "member_count": None,
+                "members": None,
+                "rendering": "no member list is shown while the Core cannot answer",
+            }
+        )
+        return 503, payload
+    payload["core"] = {"reachable": True, "status": status}
+    payload["member_count"] = body.get("member_count")
+    payload["readable_count"] = body.get("readable_count")
+    payload["custody_only_count"] = body.get("custody_only_count")
+    payload["members"] = body.get("members")
+    payload["core_note"] = body.get("note")
+    return 200, payload
 
 
 PAGE = """<!doctype html>
@@ -150,6 +199,20 @@ PAGE = """<!doctype html>
   </section>
 </main>
 <div class="note">{note}</div>
+<section class="container-members">
+  <h2>容器成员（容器 → 文件）</h2>
+  <form onsubmit="loadMembers(event)">
+    <label for="source">容器 source_id</label>
+    <input id="source" size="34" placeholder="src_...">
+    <button type="submit">查看成员</button>
+  </form>
+  <div id="members-banner" class="sub"></div>
+  <table id="members">
+    <thead><tr><th>成员</th><th>已读取</th><th>作业</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="note" id="members-note">{member_note}</div>
+</section>
 <script>
 function rows(target, pairs) {{
   const el = document.getElementById(target);
@@ -195,6 +258,41 @@ async function health() {{
   document.getElementById("health").textContent = data.reachable
     ? "Core 在线（" + data.core_url + "）" : "Core 离线：" + (data.reason || "");
 }}
+async function loadMembers(event) {{
+  if (event) event.preventDefault();
+  const source = document.getElementById("source").value.trim();
+  const banner = document.getElementById("members-banner");
+  const body = document.querySelector("#members tbody");
+  body.innerHTML = "";
+  if (!source) {{
+    banner.className = "sub"; banner.textContent = "请填写容器 source_id";
+    return;
+  }}
+  const response = await fetch("/api/members?source_id=" + encodeURIComponent(source));
+  const data = await response.json();
+  if (response.status === 404) {{
+    banner.className = "sub"; banner.textContent = "Core 不认识这个源：" + source;
+    return;
+  }}
+  if (!data.core || !data.core.reachable) {{
+    banner.className = "sub";
+    banner.textContent = "Core 无法回答（状态 " + (data.core ? data.core.status : "?") + "）："
+      + ((data.core && data.core.reason) || "") + " — " + (data.rendering || "");
+    return;
+  }}
+  banner.className = "sub";
+  banner.textContent = "成员 " + data.member_count + " 个：已读取 " + data.readable_count
+    + "，仅保管 " + data.custody_only_count;
+  for (const member of (data.members || [])) {{
+    const row = document.createElement("tr");
+    const name = document.createElement("td"); name.textContent = member.member;
+    const readable = document.createElement("td"); readable.textContent = member.readable ? "是" : "否";
+    const job = document.createElement("td"); job.textContent = member.job_id || "—";
+    row.append(name, readable, job);
+    body.append(row);
+  }}
+  if (data.core_note) document.getElementById("members-note").textContent = data.core_note;
+}}
 load(); health();
 </script>
 </body>
@@ -203,7 +301,7 @@ load(); health();
 
 
 def render_page(item_key: str) -> str:
-    return PAGE.format(item_key=item_key, note=PANEL_NOTE)
+    return PAGE.format(item_key=item_key, note=PANEL_NOTE, member_note=MEMBER_NOTE)
 
 
 class PanelHandler(BaseHTTPRequestHandler):
@@ -224,6 +322,19 @@ class PanelHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/health":
             status, payload = build_health(self.server.core_url, token)  # type: ignore[attr-defined]
+            self._send(status, json.dumps(payload, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
+            return
+        if parsed.path == "/api/members":
+            query = urllib.parse.parse_qs(parsed.query)
+            source_id = (query.get("source_id") or [""])[0]
+            if not source_id:
+                self._send(
+                    400,
+                    json.dumps({"error": "source_id is required"}, ensure_ascii=False).encode("utf-8"),
+                    "application/json; charset=utf-8",
+                )
+                return
+            status, payload = build_members(self.server.core_url, source_id, token)  # type: ignore[attr-defined]
             self._send(status, json.dumps(payload, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
             return
         if parsed.path == "/api/state":

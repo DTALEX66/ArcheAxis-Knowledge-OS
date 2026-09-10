@@ -99,6 +99,57 @@ def test_health_reports_reachability_and_never_a_fake_ok():
     assert status == 503 and payload["reachable"] is False
 
 
+# ------------------------------------------------------- container members (F15)
+
+
+def test_members_are_read_from_the_core_and_keep_their_readability():
+    body = {
+        "container_source_id": "src_1",
+        "member_count": 2,
+        "readable_count": 1,
+        "custody_only_count": 1,
+        "members": [
+            {"source_id": "src_a", "member": "notes/index.md", "readable": True, "job_id": "job-1"},
+            {"source_id": "src_b", "member": "opaque/blob.bin", "readable": False, "job_id": None},
+        ],
+        "note": "the members imported from this container, not its whole inventory",
+    }
+    call, calls = _call_returning(200, body)
+    status, payload = panel.build_members("http://core", "src_1", "tok", call=call)
+    assert status == 200
+    assert calls == [("http://core", "GET", f"{panel.CORE_BASE}/sources/src_1/members", "tok")]
+    assert payload["member_count"] == 2 and payload["readable_count"] == 1
+    assert payload["members"][1]["readable"] is False
+    assert payload["members"][1]["job_id"] is None
+    # the Core's own note is carried through, so the page cannot drop the limit
+    assert "not its whole inventory" in payload["core_note"]
+    assert "not its whole inventory" in payload["note"]
+
+
+def test_an_unknown_container_is_not_rendered_as_an_empty_one():
+    call, _ = _call_returning(404, {})
+    status, payload = panel.build_members("http://core", "src_missing", "tok", call=call)
+    assert status == 404
+    assert payload["core"]["reachable"] is True
+    assert "does not know this source" in payload["reason"]
+    assert payload["members"] is None, "an unknown container must not look like an empty one"
+
+
+def test_an_unreachable_core_shows_no_member_list():
+    call, _ = _call_returning(0, {"error": "core unreachable: connection refused"})
+    status, payload = panel.build_members("http://core", "src_1", "tok", call=call)
+    assert status == 503
+    assert payload["members"] is None and payload["member_count"] is None
+    assert "no member list is shown" in payload["rendering"]
+    assert "connection refused" in payload["core"]["reason"]
+
+
+def test_source_ids_are_quoted_into_the_path():
+    call, calls = _call_returning(200, {"members": []})
+    panel.build_members("http://core", "src/with space", None, call=call)
+    assert calls[0][2] == f"{panel.CORE_BASE}/sources/src%2Fwith%20space/members"
+
+
 # ---------------------------------------------------------------------- page
 
 
@@ -109,6 +160,15 @@ def test_the_page_shows_both_panels_and_the_unreachable_banner():
     assert "Core 不可达" in page
     assert 'id="item" value="card-1"' in page
     assert "project-side" in page
+
+
+def test_the_page_has_a_container_member_section_that_states_what_readable_means():
+    page = panel.render_page("card-1")
+    assert "容器成员（容器 → 文件）" in page
+    assert 'id="members"' in page
+    assert "readable means a transform exists" in page
+    # and the unknown-container case is distinguished from "no members"
+    assert "Core 不认识这个源" in page
 
 
 def test_the_page_never_contains_the_token_or_a_token_parameter():

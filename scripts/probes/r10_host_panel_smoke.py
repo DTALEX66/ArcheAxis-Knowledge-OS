@@ -145,6 +145,20 @@ def main() -> int:
         receipt["machine"] = state.get("machine")
         receipt["note"] = state.get("note")
 
+        # R15/F15 through the panel: the Core answers about a container it does not know
+        # with a named 404 and no member list, which is different from an empty container
+        members_status, members_raw = get(panel_url + "/api/members?source_id=src_not_a_container")
+        members = json.loads(members_raw)
+        receipt["members_status"] = members_status
+        receipt["members_unknown_source"] = {
+            "reason": members.get("reason"),
+            "members": members.get("members"),
+            "core_reachable": (members.get("core") or {}).get("reachable"),
+        }
+        # and an omitted identifier is a named 400 rather than a silent empty table
+        missing_status, _ = get(panel_url + "/api/members")
+        receipt["members_missing_id_status"] = missing_status
+
         # the honest negative: an unreachable Core must not render zeros
         off_status, off_raw = panel.build_state(f"http://127.0.0.1:{free_port()}", item_key, token)
         off = off_raw
@@ -166,6 +180,10 @@ def main() -> int:
             and receipt["machine"].get("status") == "not_recorded"
             and off_status == 503
             and receipt["unreachable"]["learner"] is None
+            and members_status == 404
+            and receipt["members_unknown_source"]["members"] is None
+            and receipt["members_unknown_source"]["core_reachable"] is True
+            and missing_status == 400
         )
         receipt["ok"] = bool(ok)
         print(json.dumps(receipt, ensure_ascii=False, indent=2))
