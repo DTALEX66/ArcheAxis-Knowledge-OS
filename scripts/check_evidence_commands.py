@@ -46,6 +46,53 @@ HEAVY_CLASS = "workspace-suite"
 PROBE_CLASS = "probe"
 CHECKER_CLASS = "checker-or-test"
 
+# Commands that need a Core binary built in this checkout: the probes spawn one and the candidate
+# builder bundles one. Measured in a fresh clone (round 98): without knowing this, seven commands
+# were reported as FAILURES when the truth was that nothing had been built there yet.
+BUILD_REQUIRED_MARKERS = ("scripts/probes/", "scripts/release/")
+
+
+def built_core() -> Path | None:
+    """The built Core binary in this checkout, if there is one.
+
+    The tracked Rust runner pins ``CARGO_TARGET_DIR`` under ``.project-local/build/cargo``; the
+    environment variable is honoured first, so a run against a different target directory is not
+    misreported as unbuilt.
+    """
+    bases: list[Path] = []
+    configured = os.environ.get("ARCHEAXIS_CARGO_TARGET_DIR", "").strip()
+    if configured:
+        bases.append(Path(configured))
+    bases.append(ROOT / ".project-local" / "build" / "cargo")
+    for base in bases:
+        for profile in ("release", "debug"):
+            for name in ("archeaxis-api.exe", "archeaxis-api"):
+                binary = base / profile / name
+                if binary.is_file():
+                    return binary
+    return None
+
+
+def needs_build(command: str) -> bool:
+    """Whether this recorded command needs a Core binary that has been built in this checkout."""
+    return any(marker in command for marker in BUILD_REQUIRED_MARKERS)
+
+
+def needs_clean_tree(command: str) -> bool:
+    """Whether this recorded command refuses to run on a dirty tracked worktree.
+
+    The candidate builder does, by design (exit 5): a bundle may only be bound to a commit. A
+    checker running mid-edit must say that, not report the refusal as a failure.
+    """
+    return "build_candidate.py" in command
+
+
+def tracked_tree_is_dirty() -> bool:
+    done = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"], cwd=str(ROOT), capture_output=True, text=True)
+    if done.returncode != 0:
+        return False
+    return bool(done.stdout.strip())
+
 
 def python_for_commands() -> str:
     configured = os.environ.get("ARCHEAXIS_PYTHON", "").strip()
@@ -143,7 +190,6 @@ def run_plan(rows: list[dict], *, timeout: int, execute_heavy: bool) -> list[dic
             row.setdefault("reason", f"not runnable: {row['class']}")
             continue
         if row["class"] == HEAVY_CLASS and not heavy_ok:
-            row["result"] = "NOT_RUN"
             missing = missing_toolchain()
             row["reason"] = (
                 "a per-package cargo run; not executed. Missing: "
@@ -152,6 +198,23 @@ def run_plan(rows: list[dict], *, timeout: int, execute_heavy: bool) -> list[dic
                 "toolchain without the MSVC one, so this is an environment gap rather than a failure."
                 if missing and execute_heavy
                 else "a per-package cargo run; pass --execute-heavy to run it (needs ARCHEAXIS_RUST_TOOLCHAINS and ARCHEAXIS_MSVC_VCVARS)"
+            )
+            row["result"] = "NOT_RUN"
+            continue
+        if needs_build(row["command"]) and built_core() is None:
+            # Nothing has been built in this checkout, so a probe or the bundle builder cannot run.
+            # Reporting that as a failure would be wrong: it is a prerequisite, not a defect.
+            row["result"] = "NOT_RUN"
+            row["reason"] = (
+                "needs a Core binary built in this checkout: run scripts/ci/cargo_test.bat once "
+                "(or cargo build) before expecting this command to run here"
+            )
+            continue
+        if needs_clean_tree(row["command"]) and tracked_tree_is_dirty():
+            row["result"] = "NOT_RUN"
+            row["reason"] = (
+                "this command refuses a dirty tracked worktree by design (exit 5), because a bundle "
+                "may only be bound to a commit: commit first, or expect the refusal"
             )
             continue
         started = time.time()

@@ -113,6 +113,48 @@ def test_both_toolchain_variables_are_required(monkeypatch):
     assert checker.toolchain_present() is True
 
 
+def test_a_command_that_needs_a_built_core_is_not_a_failure_without_one(monkeypatch):
+    """Measured in a fresh clone (round 98): seven commands read as failures when nothing was built."""
+    assert checker.needs_build("python -X utf8 scripts/probes/r10_host_panel_smoke.py")
+    assert checker.needs_build("python -X utf8 scripts/release/build_candidate.py --zip")
+    assert not checker.needs_build("python -X utf8 scripts/check_path_conventions.py")
+    monkeypatch.setattr(checker, "built_core", lambda: None)
+    rows = checker.run_plan(
+        [{"slice": "X", "command": "python -X utf8 scripts/probes/r10_host_panel_smoke.py", "class": checker.PROBE_CLASS, "runnable": True, "argv": ["python", "-c", "print(1)"]}],
+        timeout=5,
+        execute_heavy=False,
+    )
+    assert rows[0]["result"] == "NOT_RUN"
+    assert "needs a Core binary built in this checkout" in rows[0]["reason"]
+
+
+def test_a_built_core_is_found_in_the_pinned_target_directory(tmp_path, monkeypatch):
+    monkeypatch.delenv("ARCHEAXIS_CARGO_TARGET_DIR", raising=False)
+    monkeypatch.setattr(checker, "ROOT", tmp_path)
+    assert checker.built_core() is None
+    binary = tmp_path / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe"
+    binary.parent.mkdir(parents=True)
+    binary.write_bytes(b"MZ")
+    assert checker.built_core() == binary
+
+
+def test_a_command_that_needs_a_clean_tree_says_so_instead_of_failing(monkeypatch):
+    """Measured: mid-edit, the builder's designed refusal (exit 5) read as a failure."""
+    assert checker.needs_clean_tree("python -X utf8 scripts/release/build_candidate.py --zip")
+    # The verifier does not care about the tree: it only re-hashes a bundle someone else built.
+    assert not checker.needs_clean_tree("python -X utf8 scripts/release/verify_candidate.py --candidate x")
+    assert not checker.needs_clean_tree("python -X utf8 scripts/check_path_conventions.py")
+    monkeypatch.setattr(checker, "built_core", lambda: __import__("pathlib").Path(__file__))
+    monkeypatch.setattr(checker, "tracked_tree_is_dirty", lambda: True)
+    rows = checker.run_plan(
+        [{"slice": "X", "command": "python -X utf8 scripts/release/build_candidate.py --zip", "class": checker.PROBE_CLASS, "runnable": True, "argv": ["python", "-c", "print(1)"]}],
+        timeout=5,
+        execute_heavy=False,
+    )
+    assert rows[0]["result"] == "NOT_RUN"
+    assert "dirty tracked worktree by design" in rows[0]["reason"]
+
+
 def test_both_streams_are_reported_so_a_named_refusal_is_visible():
     class Fake:
         stdout = "noise\n"
