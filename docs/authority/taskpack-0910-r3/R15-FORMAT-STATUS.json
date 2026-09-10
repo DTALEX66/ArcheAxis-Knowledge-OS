@@ -87,13 +87,13 @@
       "formats": "文本 PDF",
       "required_output": "页、段、表、图片引用、锚点",
       "status": "partial",
-      "implemented_now": "the pdf.extract route runs PyMuPDF, returns the text with canonical page/line anchors and coverage over lines, and reports what the engine really exposed in loss_receipt.params.structure: per-page character and engine-block counts, image references, engine text blocks with their bounding boxes and first lines, and tables the engine's own finder detects with their row and column counts. Engine chatter is captured into the receipt instead of being printed, because the stdio protocol is one JSON envelope per line",
-      "gap": "blocks are engine blocks rather than linguistic paragraphs and a table detection is a detection, not a guarantee; pages are reported as facts rather than as an addressing level in the structure, and there is no reading-order or column-layout model",
+      "implemented_now": "the pdf.extract route runs PyMuPDF, returns the text with canonical page/line anchors and coverage over lines, and reports what the engine really exposed in loss_receipt.params.structure: per-page character and engine-block counts, image references, engine text blocks with their bounding boxes and first lines, and tables the engine's own finder detects with their row and column counts. Engine chatter is captured into the receipt instead of being printed, because the stdio protocol is one JSON envelope per line. The reading order of the projected text is decided by the worker and reported as a fact with its reason: the model is one vertical gutter with text on both sides, then column by column and top to bottom, applied to the page only when that holds, and it may only REORDER - it is refused whenever its reconstruction would change which lines the page holds, and it stands down entirely when the engine text carries blank separator lines, because a line-level reconstruction would not carry them; a single-column page is returned exactly as the engine gave it, and every page records whether the model applied, how many columns it saw and why it stood down",
+      "gap": "the model handles one gutter, so it reads two-column pages rather than an arbitrary layout, and it stands down when a line crosses the gutter or the engine text carries blank lines; blocks are engine blocks rather than linguistic paragraphs and a table detection is a detection, not a guarantee; pages are reported as facts rather than as an addressing level in the structure",
       "evidence": {
         "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
         "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_pdf.py"],
-        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs"],
+        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs", "tests/test_worker_pdf_reading_order.py"],
         "legacy_reference": []
       }
     },

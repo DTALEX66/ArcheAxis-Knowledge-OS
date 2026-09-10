@@ -50,6 +50,14 @@ TABLE_CAP = 100
 OCR_PAGE_CAP = 20
 OCR_DPI = 150
 
+# R15/F05: the reading-order model. A page is read as one vertical gutter with text on
+# both sides, then column by column and top to bottom - and only when that model changes
+# nothing about which lines the page holds. These bound what counts as a gutter.
+COLUMN_MIN_GUTTER = 6.0
+COLUMN_GUTTER_FRACTION = 0.02
+COLUMN_EDGE_MARGIN = 0.15
+READING_ORDER_MODEL = "one vertical gutter, then column by column, top to bottom"
+
 
 def _render_ocr_candidates(
     pages_without_text: list[int], document, out_dir: Path | None
@@ -167,6 +175,116 @@ def _page_text(page) -> str:
     return getter() or ""
 
 
+def _text_lines(page, engine_messages: list[str]) -> list[tuple[float, float, float, float, str]]:
+    """The engine's text lines with their boxes, in the order the engine returns them.
+
+    Lines rather than blocks, because the engine merges vertically adjacent runs into one
+    block: measured on an 800x600 page with six runs inserted as left, right, left, right, the
+    engine returns **three** blocks, each spanning both columns, while the lines inside them
+    carry the real per-column boxes. Ordering by block therefore cannot see the columns at all.
+    """
+    getter = getattr(page, "get_text", None)
+    if getter is None:
+        return []
+    lines: list[tuple[float, float, float, float, str]] = []
+    with contextlib.suppress(Exception):
+        payload = _capture(lambda: getter("dict"), engine_messages) or {}
+        for block in payload.get("blocks", []):
+            if block.get("type") != 0:
+                continue
+            for line in block.get("lines", []):
+                body = "".join(span.get("text", "") for span in line.get("spans", []))
+                bbox = line.get("bbox") or ()
+                if len(bbox) < 4 or not body.strip():
+                    continue
+                lines.append((float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3]), body))
+    return lines
+
+
+def _two_column_gutter(lines: list[tuple[float, float, float, float, str]]) -> tuple[float, float] | None:
+    """A vertical band that no text line crosses and that has text on both sides.
+
+    Candidate bands are the gaps between line edges, so a line that spans a candidate (a
+    full-width heading) cannot be assigned to either side and that candidate is rejected. The
+    widest accepted band wins, because a real column gutter is wide and an incidental gap
+    between indented lines is not.
+    """
+    edges = sorted({round(line[0], 2) for line in lines} | {round(line[2], 2) for line in lines})
+    width = max(line[2] for line in lines)
+    best: tuple[float, float, float] | None = None
+    for left_edge, right_edge in zip(edges, edges[1:]):
+        band = right_edge - left_edge
+        if band < max(COLUMN_MIN_GUTTER, COLUMN_GUTTER_FRACTION * width):
+            continue
+        if left_edge < COLUMN_EDGE_MARGIN * width or right_edge > (1 - COLUMN_EDGE_MARGIN) * width:
+            continue
+        left = [line for line in lines if line[2] <= left_edge + 0.01]
+        right = [line for line in lines if line[0] >= right_edge - 0.01]
+        if len(left) < 2 or len(right) < 2 or len(left) + len(right) != len(lines):
+            continue
+        if best is None or band > best[2]:
+            best = (left_edge, right_edge, band)
+    return None if best is None else (best[0], best[1])
+
+
+def _line_key(line: tuple[float, float, float, float, str]) -> tuple[float, float]:
+    return (round(line[1], 1), round(line[0], 1))
+
+
+def _line_text(line: tuple[float, float, float, float, str]) -> str:
+    body = line[4]
+    return body if body.endswith("\n") else body + "\n"
+
+
+def _lines_of(text: str) -> list[str]:
+    return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def _ordered_page_text(page, engine_text: str, engine_messages: list[str]) -> tuple[str, dict]:
+    """The page text in a reading order the page's own geometry supports.
+
+    The engine returns lines in its own order, which on a two-column page interleaves the
+    columns. When the geometry shows one unambiguous gutter with text on both sides, the lines
+    are ordered column by column and then top to bottom. **The model may only reorder**: it is
+    refused whenever the result would change which lines the page holds, and it is not applied
+    at all when the engine text carries blank separator lines, because a line-level
+    reconstruction would not carry those. A single-column page is returned untouched, so this
+    costs nothing where there is no layout to model.
+    """
+    facts: dict = {"model": READING_ORDER_MODEL, "applied": False, "columns": 1, "gutter": None}
+    lines = _text_lines(page, engine_messages)
+    if len(lines) < 4:
+        facts["reason"] = "fewer than four text lines, so no layout is inferred"
+        return engine_text, facts
+    if any(not line.strip() for line in engine_text.splitlines()):
+        facts["reason"] = "the engine text carries blank separator lines, which a line-level reconstruction would not preserve"
+        return engine_text, facts
+    gutter = _two_column_gutter(lines)
+    if gutter is None:
+        facts["reason"] = "no vertical band that no text line crosses with text on both sides"
+        return engine_text, facts
+    left = [line for line in lines if line[2] <= gutter[0] + 0.01]
+    right = [line for line in lines if line[0] >= gutter[1] - 0.01]
+    ordered = sorted(left, key=_line_key) + sorted(right, key=_line_key)
+    candidate = "".join(_line_text(line) for line in ordered)
+    # The comparison is over the lines as a set, not in order: reordering is the whole point of
+    # the model, so what it may never do is change which lines the page holds.
+    if sorted(_lines_of(candidate)) != sorted(_lines_of(engine_text)):
+        facts["reason"] = "the reconstruction would change the lines the page holds, so the engine order is kept"
+        facts["reconstruction_refused"] = True
+        return engine_text, facts
+    facts.update(
+        {
+            "applied": True,
+            "columns": 2,
+            "gutter": [round(gutter[0], 2), round(gutter[1], 2)],
+            "lines_carried": len(ordered),
+            "reason": "one unambiguous gutter with text on both sides, and the same lines in both orders",
+        }
+    )
+    return candidate, facts
+
+
 def extract(path: str, ocr_dir: Path | None = None) -> dict:
     raw = Path(path).read_bytes()
     document = _open_document(raw)
@@ -183,6 +301,8 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
     # projected text, which the Core correctly rejects as an inconsistent receipt.
     blocks: list[tuple[int, str]] = []
     empty_pages: list[int] = []
+    ordered_pages: list[int] = []
+    refused_order_pages: list[int] = []
     per_page: list[dict] = []
     paragraphs: list[dict] = []
     tables: list[dict] = []
@@ -190,14 +310,25 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
     table_errors: list[str] = []
     engine_messages: list[str] = []
     for page_index, page in enumerate(pages, start=1):
-        page_text = _page_text(page)
+        engine_text = _page_text(page)
+        # R15/F05: the projected text is what the anchors are derived from, so the reading
+        # order is decided here, once, and reported below with its reason.
+        page_text, reading_order = _ordered_page_text(page, engine_text, engine_messages)
+        if reading_order.get("applied"):
+            ordered_pages.append(page_index)
+        elif reading_order.get("reconstruction_refused"):
+            refused_order_pages.append(page_index)
         if not page_text.strip():
             empty_pages.append(page_index)
         blocks.append((page_index, page_text))
         facts = _page_facts(page, engine_messages)
         facts["chars"] = len(page_text)
         per_page.append(
-            {"page": page_index, **{key: value for key, value in facts.items() if key != "tables"}}
+            {
+                "page": page_index,
+                **{key: value for key, value in facts.items() if key != "tables"},
+                "reading_order": reading_order,
+            }
         )
         image_references += facts["image_references"]
         if facts.get("table_detection_error"):
@@ -272,6 +403,14 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
         losses.append(f"detected tables listed only for the first {TABLE_CAP} tables")
     if table_errors:
         losses.append("table detection failed on: " + "; ".join(table_errors))
+    if refused_order_pages:
+        # Worth a loss line of its own: the page did look like two columns, and the model
+        # refused its own reconstruction because it would have changed the lines held.
+        losses.append(
+            "reading order kept as the engine order on pages "
+            + ", ".join(str(p) for p in refused_order_pages)
+            + " (the reconstruction would have changed the lines held)"
+        )
     if engine_messages:
         losses.append(
             f"{len(engine_messages)} engine message(s) diverted from stdout: {engine_messages[0][:120]}"
@@ -311,6 +450,19 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
                     "detected by the engine's own table finder; a detection is a measurement, "
                     "not a guarantee that the region is a table"
                 ),
+                # R15/F05: the reading order is a decision with a reason, recorded the same
+                # way as every other fact here. It never adds or drops a line: when the
+                # reconstruction would, the engine order is kept and the page says so.
+                "reading_order": {
+                    "model": READING_ORDER_MODEL,
+                    "applied_to_pages": ordered_pages,
+                    "refused_on_pages": refused_order_pages,
+                    "note": (
+                        "the model may only reorder lines; it is applied when the page shows one "
+                        "unambiguous vertical gutter with text on both sides, and the engine order "
+                        "is kept otherwise, with the per-page reason recorded above"
+                    ),
+                },
                 "block_meaning": "a text block is an engine block, not a linguistic paragraph",
                 "engine_messages": engine_messages[:10],
                 "engine_messages_capped": len(engine_messages) > 10,

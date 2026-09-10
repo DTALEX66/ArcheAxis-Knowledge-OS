@@ -491,17 +491,28 @@
           "path": "tests/workers/test_bulk_html.py",
           "kind": "tracked",
           "note": "inline-only markup keeps its text; a file with no markup is still refused"
+        },
+        {
+          "path": "services/python-workers/document/worker_pdf.py",
+          "kind": "tracked",
+          "note": "pdf.extract, and the reading-order model it reports per page"
+        },
+        {
+          "path": "tests/test_worker_pdf_reading_order.py",
+          "kind": "tracked",
+          "note": "two-column projection, single-column identity, the gutter stand-down, and the reorder-only guard"
         }
       ],
       "limitations": [
-        "zero groups are complete: fourteen are partial and two custody-only (legacy binary Office and professional formats)",
         "the 69 unowned tracked paths are recorded, not fixed, because the authority file is protected",
         "all 1246 inventoried legacy assets are still INVENTORIED_NOT_SEMANTICALLY_REVIEWED",
         "a model description is a candidate, not a fact about the image, and description quality is not measured here",
-        "the path record is a measurement at its own commit: the live tree drifts from it, and that drift is reported rather than enforced"
+        "the path record is a measurement at its own commit: the live tree drifts from it, and that drift is reported rather than enforced",
+        "zero groups are complete: fourteen are partial and two custody-only (legacy binary Office and professional formats)",
+        "the reading-order model handles one gutter, so F05 stays partial: two-column pages are read column by column and anything else keeps the engine order with the reason recorded"
       ],
       "status": "IN_PROGRESS",
-      "evidence_items_in_state": 93
+      "evidence_items_in_state": 96
     },
     {
       "slice": "R16",
