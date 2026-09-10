@@ -367,7 +367,7 @@
     },
     {
       "slice": "R13",
-      "command": "python -X utf8 scripts/launch/core_launch.py --check || python -X utf8 scripts/release/verify_candidate.py --candidate <bundle>",
+      "command": "python -X utf8 scripts/launch/core_launch.py --check || python -X utf8 scripts/release/build_candidate.py --zip",
       "evidence": [
         {
           "path": "scripts/launch/core_launch.py",
@@ -410,7 +410,8 @@
       "limitations": [
         "there is no MSI/EXE installer, no code signing and no uninstaller; the candidate is a directory and a zip whose files are bound to a commit by digest, which is not a signature",
         "start-up on a clean machine without this toolchain has not been exercised",
-        "the bundle carries the Core binary only: worker-backed routes fail by name until an interpreter and services/python-workers are present"
+        "the bundle carries the Core binary only: worker-backed routes fail by name until an interpreter and services/python-workers are present",
+        "the bundle verifier needs the directory the builder prints, because that name carries the commit; the recorded builder refuses to run on a dirty tracked worktree by design (exit 5), so run it on a committed tree or pass --allow-dirty to record the label (round 96 command audit)"
       ],
       "status": "IN_PROGRESS",
       "evidence_items_in_state": 12

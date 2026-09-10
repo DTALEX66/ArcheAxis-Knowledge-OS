@@ -30,7 +30,9 @@ def _load():
 probe = _load()
 
 GLACIER = probe.DOCUMENTS["holdout/glacier.md"]
-CORRECTED = GLACIER.replace("640 metres", "705 metres")
+# The revised value is taken from the probe, never quoted here: a held-out value written into a
+# tracked test is no longer held out, which is what round 96's audit caught.
+CORRECTED = GLACIER.replace(probe.QUERIES[3][1], probe.CORRECTION_QUERY[1])
 
 
 def test_query_terms_are_compared_as_tokens_not_substrings():
@@ -53,8 +55,10 @@ def test_the_correction_diagnostic_can_tell_the_two_revisions_apart():
     If it did not, the same query would return the same head before and after a human
     correction and the probe could not observe the correction reaching the index.
     """
-    assert "640 metres" in GLACIER[:60]
-    assert "705 metres" in CORRECTED[:60]
+    before = probe.QUERIES[3][1]
+    after = probe.CORRECTION_QUERY[1]
+    assert before in GLACIER[:60] and before not in CORRECTED[:60]
+    assert after in CORRECTED[:60] and after not in GLACIER[:60]
 
 
 def test_the_head_contract_the_probe_depends_on_is_still_in_the_source():
@@ -108,3 +112,32 @@ def test_the_probe_signs_no_pass_for_retrieval():
     """A measurement records numbers; only an audit turns them into a verdict."""
     source = PROBE.read_text(encoding="utf-8")
     assert "signs no PASS for retrieval" in source
+
+
+def test_the_corpus_is_still_unseen():
+    """The property the corpus exists for, enforced by the suite and not only by the probe.
+
+    Round 96 found that a ledger row and a handoff section quoting two held-out values had
+    destroyed it. Reading every tracked file (the probe's own source excluded, since that is
+    where the corpus is authored) is what makes this a real check.
+    """
+    assert probe.unseen_problems(probe.tracked_text()) == []
+
+
+def test_every_held_out_value_is_actually_in_its_document():
+    """A rotation that misses one document would turn a query into a guaranteed miss.
+
+    Only the five evaluation queries: the correction token is the *revised* value, so it must
+    NOT be in the original document - that is what
+    `test_the_correction_really_replaces_the_value_it_corrects` asserts.
+    """
+    for query, token, name in probe.QUERIES:
+        assert token in probe.DOCUMENTS[name], f"{query!r} expects {token!r} in {name}"
+
+
+def test_the_correction_really_replaces_the_value_it_corrects():
+    """The round-96 no-op: hard-coded copies survived a rotation, so the correction changed nothing."""
+    superseded, revised = probe.QUERIES[3][1], probe.CORRECTION_QUERY[1]
+    assert superseded != revised
+    assert revised not in probe.DOCUMENTS["holdout/glacier.md"]
+    assert superseded in probe.DOCUMENTS["holdout/glacier.md"]

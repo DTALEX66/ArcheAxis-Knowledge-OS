@@ -39,40 +39,43 @@ _TOKENS = re.compile(r"[a-z0-9]+")
 TOKEN = "e" * 64
 SESSION = "f" * 32
 
-# Held-out corpus: authored here, never used by a test or a fixture elsewhere.
+# Held-out corpus: authored here, never used by a test or a fixture elsewhere, and - the lesson
+# from round 96 - never quoted in documentation either, because doing so destroys the property.
+# The values below are the second rotation: the first set was quoted in a ledger row and a
+# handoff section explaining the correction, which the unseen check then (correctly) refused.
 DOCUMENTS = {
     "holdout/aurora.md": (
         "The auroral oval widens during a substorm. The observed expansion was "
-        "3.5 degrees within eleven minutes. "
+        "6.25 degrees within eleven minutes. "
     ),
     "holdout/basalt.md": (
-        "The basalt sample from the drill core was dated to 12.4 million years. "
+        "The basalt sample from the drill core was dated to 31.7 million years. "
         "The potassium argon method was used. "
     ),
     "holdout/reef.md": (
-        "Coral cover on the transect fell to 18 percent after the bleaching event. "
+        "Coral cover on the transect fell to 23 percent after the bleaching event. "
         "The survey was repeated four times. "
     ),
     "holdout/glacier.md": (
-        "The glacier terminus retreated 640 metres in a single melt season. "
+        "The glacier terminus retreated 815 metres in a single melt season. "
         "The stakes were measured weekly. "
     ),
     "holdout/soil.md": (
-        "Soil moisture at the ridge site measured 0.27 cubic metres per cubic metre. "
+        "Soil moisture at the ridge site measured 0.31 cubic metres per cubic metre. "
         "The probes were installed at three depths. "
     ),
 }
 
 # One closed-form query per held-out document, plus the token that must be unique to it.
 QUERIES = [
-    ("auroral oval expansion degrees", "3.5 degrees", "holdout/aurora.md"),
-    ("basalt drill core dating", "12.4 million years", "holdout/basalt.md"),
-    ("coral cover bleaching transect", "18 percent", "holdout/reef.md"),
-    ("glacier terminus retreat distance", "640 metres", "holdout/glacier.md"),
-    ("ridge site soil moisture", "0.27 cubic metres", "holdout/soil.md"),
+    ("auroral oval expansion degrees", "6.25 degrees", "holdout/aurora.md"),
+    ("basalt drill core dating", "31.7 million years", "holdout/basalt.md"),
+    ("coral cover bleaching transect", "23 percent", "holdout/reef.md"),
+    ("glacier terminus retreat distance", "815 metres", "holdout/glacier.md"),
+    ("ridge site soil moisture", "0.31 cubic metres", "holdout/soil.md"),
 ]
 
-CORRECTION_QUERY = ("glacier terminus revised retreat", "705 metres", "holdout/glacier.md")
+CORRECTION_QUERY = ("glacier terminus revised retreat", "930 metres", "holdout/glacier.md")
 
 
 def _load(name: str, path: Path):
@@ -87,11 +90,21 @@ core = _load("core_client_unseen", REPO / "shared" / "core_client.py")
 
 
 def tracked_text() -> str:
-    """Every tracked file's text, so an example can be proven unseen."""
+    """Every tracked file's text except this probe's own, so an example can be proven unseen.
+
+    This file *authors* the corpus, so counting it would make the check fail by construction -
+    which is exactly what happened the first time it ran after being committed (it passed before
+    that only because the file was still untracked). Every other tracked file counts, including
+    documentation: quoting a held-out value in a ledger row or a handoff destroys the property
+    the value exists for.
+    """
     listing = subprocess.run(["git", "ls-files", "-z"], cwd=str(REPO), capture_output=True)
     paths = [item for item in listing.stdout.decode("utf-8", "replace").split("\x00") if item]
+    own = Path(__file__).resolve().relative_to(REPO).as_posix()
     chunks: list[str] = []
     for relative in paths:
+        if relative == own:
+            continue
         target = REPO / relative
         with contextlib.suppress(OSError, UnicodeDecodeError):
             chunks.append(target.read_text(encoding="utf-8", errors="strict"))
@@ -103,7 +116,11 @@ def unseen_problems(corpus: str) -> list[str]:
     problems: list[str] = []
     for _, token, _ in QUERIES + [CORRECTION_QUERY]:
         if token in corpus:
-            problems.append(f"the held-out token {token!r} already appears in a tracked file")
+            problems.append(
+                f"a tracked file other than this probe quotes the held-out token {token!r}, so the "
+                "example is no longer unseen: rotate the corpus and keep the values out of the "
+                "documentation"
+            )
     for name, body in DOCUMENTS.items():
         distinctive = body.split(".")[0]
         if distinctive in corpus:
@@ -280,8 +297,11 @@ def main() -> int:
             "note": "not part of the frozen evaluation set; it attributes a cause",
         }
 
-        # a human corrects one item; the successor must appear and the old one must go
-        corrected_body = DOCUMENTS["holdout/glacier.md"].replace("640 metres", "705 metres")
+        # a human corrects one item; the successor must appear and the old one must go.
+        # The two values are read from the corpus rather than written here: hard-coded copies
+        # survived the round-96 rotation and quietly turned the correction into a no-op.
+        superseded_token, revised_token = QUERIES[3][1], CORRECTION_QUERY[1]
+        corrected_body = DOCUMENTS["holdout/glacier.md"].replace(superseded_token, revised_token)
         status, corrected = core.call(
             base,
             "POST",
@@ -303,7 +323,6 @@ def main() -> int:
         receipt["after_correction"] = score(after)
 
         new_query, new_token, expected = CORRECTION_QUERY
-        superseded_token = "640 metres"
         new_heads = search_heads(base, new_query, TOKEN)
         diagnostic_heads = search_heads(base, diagnostic_query, TOKEN)
         receipt["new_query_after_correction"] = {
