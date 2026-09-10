@@ -4,16 +4,16 @@
   "legacy_inventory_source": "LEGACY_MANIFEST.yaml",
   "measured_note": "the totals below are a measurement taken at measured_at_commit, and every check re-derives them at that same commit with git ls-tree, so the numbers quoted in the finding are claims a later reader can re-check; growth since that commit is reported as drift_since_measurement rather than treated as a falsified record; the enforced parts are the unowned set (reconciled against the working tree, because those paths have no write lane), the invariants and the legacy counts",
   "measured": {
-    "measured_at_commit": "807bbb8541cd19f7b3e256f9b76b8a009ef6dd2c",
-    "tracked_paths": 1787,
-    "owned": 1718,
+    "measured_at_commit": "dc7f3f8aabbe170a3a4df6553dc82c94ff9be38d",
+    "tracked_paths": 1790,
+    "owned": 1721,
     "unowned_count": 69,
-    "coverage_percent": 96.14,
+    "coverage_percent": 96.15,
     "denied_but_tracked": 0,
     "ambiguous": 0
   },
   "matching_note": "ownership is decided by DIRECTORY_AUTHORITY.yaml's own semantics: deny first, then exact path, then highest literal segment count, then longest literal prefix; a tie is ambiguous and rejected",
-  "finding": "the tracked tree is not fully classified: 69 of 1787 tracked paths (3.86%) match no authority rule. Because the file's default is write-denied, those paths currently have no write lane at all. The check refuses to let this set grow or shrink unrecorded, but closing it is an owner decision on a protected governance file.",
+  "finding": "the tracked tree is not fully classified: 69 of 1790 tracked paths (3.85%) match no authority rule. Because the file's default is write-denied, those paths currently have no write lane at all. The check refuses to let this set grow or shrink unrecorded, but closing it is an owner decision on a protected governance file.",
   "unowned_by_root": {
     "(root)": 20,
     ".cargo": 1,
