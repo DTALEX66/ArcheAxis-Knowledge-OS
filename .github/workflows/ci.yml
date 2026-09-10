@@ -293,6 +293,9 @@ jobs:
       - name: Validate the format status matrix against the real route tables
         run: python scripts/check_format_matrix.py
 
+      - name: Validate the tracked tree against the directory authority
+        run: python scripts/check_path_conventions.py
+
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82
 

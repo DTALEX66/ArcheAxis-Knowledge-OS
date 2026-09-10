@@ -1,0 +1,523 @@
+{
+  "schema": "archeaxis.path-disposition/v1",
+  "authority_source": "DIRECTORY_AUTHORITY.yaml",
+  "legacy_inventory_source": "LEGACY_MANIFEST.yaml",
+  "measured_note": "the totals below are a snapshot taken at measured_at_commit and are re-derived on every check, so an ordinary commit that adds owned files does not falsify them; the enforced parts are the unowned set, the invariants and the legacy counts",
+  "measured": {
+    "measured_at_commit": "3362af9f543eec7c9dcf503dc5d696b6cf3dd066",
+    "tracked_paths": 1741,
+    "owned": 1672,
+    "unowned_count": 69,
+    "coverage_percent": 96.04,
+    "denied_but_tracked": 0,
+    "ambiguous": 0
+  },
+  "matching_note": "ownership is decided by DIRECTORY_AUTHORITY.yaml's own semantics: deny first, then exact path, then highest literal segment count, then longest literal prefix; a tie is ambiguous and rejected",
+  "finding": "the tracked tree is not fully classified: 69 of 1741 tracked paths (3.96%) match no authority rule. Because the file's default is write-denied, those paths currently have no write lane at all. The check refuses to let this set grow or shrink unrecorded, but closing it is an owner decision on a protected governance file.",
+  "unowned_by_root": {
+    "(root)": 20,
+    ".cargo": 1,
+    ".codex.example": 2,
+    ".worklab": 2,
+    "apps": 2,
+    "archeaxis": 1,
+    "contracts": 2,
+    "crates": 1,
+    "shared-contracts": 38
+  },
+  "unowned_paths": [
+    ".cargo/config.toml",
+    ".codex.example/README.md",
+    ".codex.example/config.example.toml",
+    ".editorconfig",
+    ".gitattributes",
+    ".pre-commit-config.yaml",
+    ".worklab/gate-registry.v1.yaml",
+    ".worklab/project-validation.v1.yaml",
+    "CHANGELOG.md",
+    "GITHUB_DELIVERY.md",
+    "HERMES_HANDOFF.md",
+    "LEGACY_MANIFEST.example.yaml",
+    "LESSONS_LEARNED.md",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "SYSTEM_BOUNDARY.md",
+    "THIRD_PARTY_NOTICES.md",
+    "apps/.gitignore",
+    "apps/desktop/README.md",
+    "archeaxis/__init__.py",
+    "contracts/plugin/plugin-manifest.schema.json",
+    "contracts/workspace/workspace-manifest.schema.json",
+    "crates/README.md",
+    "ecosystem.config.cjs",
+    "pyproject.toml",
+    "requirements.txt",
+    "run_all.bat",
+    "run_all.sh",
+    "run_windows.bat",
+    "run_windows.ps1",
+    "shared-contracts/adapters/converters/__init__.py",
+    "shared-contracts/adapters/converters/markitdown_adapter.py",
+    "shared-contracts/adapters/crawlers/__init__.py",
+    "shared-contracts/adapters/crawlers/crawl4ai_adapter.py",
+    "shared-contracts/adapters/graph/__init__.py",
+    "shared-contracts/adapters/llm/__init__.py",
+    "shared-contracts/adapters/llm/litellm_adapter.py",
+    "shared-contracts/adapters/memory/__init__.py",
+    "shared-contracts/adapters/observability/__init__.py",
+    "shared-contracts/adapters/observability/langfuse_adapter.py",
+    "shared-contracts/adapters/security/__init__.py",
+    "shared-contracts/adapters/trace/__init__.py",
+    "shared-contracts/adapters/trace/local_trace_adapter.py",
+    "shared-contracts/adapters/vector/__init__.py",
+    "shared-contracts/fixtures/sample_context_pack.json",
+    "shared-contracts/fixtures/sample_course_pack.json",
+    "shared-contracts/fixtures/sample_daily_brief.json",
+    "shared-contracts/fixtures/sample_engineering_contract.json",
+    "shared-contracts/fixtures/sample_execution_trace.json",
+    "shared-contracts/fixtures/sample_github_project_candidates.json",
+    "shared-contracts/fixtures/sample_intake_card.json",
+    "shared-contracts/fixtures/sample_machine_lesson.json",
+    "shared-contracts/fixtures/sample_obsidian_projection.json",
+    "shared-contracts/fixtures/sample_open_source_project_profile.json",
+    "shared-contracts/fixtures/sample_taskpack.json",
+    "shared-contracts/schemas/context_pack.schema.json",
+    "shared-contracts/schemas/course_pack.schema.json",
+    "shared-contracts/schemas/daily_brief.schema.json",
+    "shared-contracts/schemas/engineering_contract.schema.json",
+    "shared-contracts/schemas/execution_trace.schema.json",
+    "shared-contracts/schemas/github_project_candidate.schema.json",
+    "shared-contracts/schemas/intake_card.schema.json",
+    "shared-contracts/schemas/machine_lesson.schema.json",
+    "shared-contracts/schemas/obsidian_projection.schema.json",
+    "shared-contracts/schemas/open_source_project_profile.schema.json",
+    "shared-contracts/schemas/taskpack.schema.json",
+    "shared-contracts/validators/validate_fixtures.py",
+    "shared-contracts/validators/validate_project_candidates.py"
+  ],
+  "top_level_disposition": [
+    {
+      "paths": [
+        "crates"
+      ],
+      "class": "vnext-core-rust",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "the Rust Core: the only database writer, one engine profile per extraction route"
+    },
+    {
+      "paths": [
+        "services"
+      ],
+      "class": "vnext-capability-workers",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "Python capability workers plus the local service; workers hold no database handle"
+    },
+    {
+      "paths": [
+        "apps"
+      ],
+      "class": "vnext-desktop-shell",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "the C#/Avalonia shell (UI and supervisor only); apps/desktop/ and apps/.gitignore are legacy leftovers and are recorded as unowned paths"
+    },
+    {
+      "paths": [
+        "packages"
+      ],
+      "class": "vnext-contracts",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "the versioned contract schemas shared by Rust, Python and C#"
+    },
+    {
+      "paths": [
+        "config"
+      ],
+      "class": "governance-config",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "runtime defaults, profiles and the tool registry; governance config lane"
+    },
+    {
+      "paths": [
+        "docs"
+      ],
+      "class": "documentation",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "documentation and the authority indexes"
+    },
+    {
+      "paths": [
+        "scripts"
+      ],
+      "class": "automation",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "automation: CI, gates, probes, launch entry points"
+    },
+    {
+      "paths": [
+        "tests"
+      ],
+      "class": "tests",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "the Python test suite, including the contract suite"
+    },
+    {
+      "paths": [
+        "reports"
+      ],
+      "class": "attestation-history",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "attestation and delivery history"
+    },
+    {
+      "paths": [
+        "packaging"
+      ],
+      "class": "release-packaging",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "release packaging inputs"
+    },
+    {
+      "paths": [
+        "taskpacks"
+      ],
+      "class": "taskpack-history",
+      "disposition": "legacy_reference",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "historical task packs; kept as reference, not as an authority"
+    },
+    {
+      "paths": [
+        ".github"
+      ],
+      "class": "ci-governance",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "CI workflows"
+    },
+    {
+      "paths": [
+        ".worklab"
+      ],
+      "class": "ci-governance",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "gate registry and path-risk profile"
+    },
+    {
+      "paths": [
+        ".project"
+      ],
+      "class": "governance-protocol",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "governance protocol state"
+    },
+    {
+      "paths": [
+        ".cargo"
+      ],
+      "class": "rust-workspace-config",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "cargo configuration for the workspace"
+    },
+    {
+      "paths": [
+        ".codex.example"
+      ],
+      "class": "example-only",
+      "disposition": "legacy_reference",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "a minimal example pointer only; real .codex state stays private and untracked"
+    },
+    {
+      "paths": [
+        "contracts"
+      ],
+      "class": "contract-schemas-unowned",
+      "disposition": "migration_pending",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "plugin and workspace manifest schemas that DIRECTORY_AUTHORITY.yaml does not own yet: they are recorded as unowned and need an owner decision"
+    },
+    {
+      "paths": [
+        "shared-contracts"
+      ],
+      "class": "legacy-contract-fixtures",
+      "disposition": "legacy_reference",
+      "owner_doc": "LEGACY_MANIFEST.yaml",
+      "note": "legacy contract fixtures and adapters, inventoried in LEGACY_MANIFEST.yaml, unowned by DIRECTORY_AUTHORITY.yaml even though the manifest lists them",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "archeaxis"
+      ],
+      "class": "stray-legacy-module-unowned",
+      "disposition": "migration_pending",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "a single stray legacy module outside any declared root; recorded as unowned"
+    },
+    {
+      "paths": [
+        "app"
+      ],
+      "class": "legacy-python-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "the legacy Green Python product: recovery and behaviour reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "shared"
+      ],
+      "class": "legacy-python-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy shared Python modules: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "knowledge_base"
+      ],
+      "class": "legacy-python-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy knowledge store: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "frontend"
+      ],
+      "class": "legacy-react-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy React front end: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "src-tauri"
+      ],
+      "class": "legacy-tauri-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy Tauri shell: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "desktop"
+      ],
+      "class": "legacy-desktop-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy desktop product: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "OSUI"
+      ],
+      "class": "legacy-react-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy React UI shell: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "Inspiration-Research"
+      ],
+      "class": "legacy-python-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy research product: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "inspiration_research"
+      ],
+      "class": "legacy-python-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy research package: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "migrations"
+      ],
+      "class": "legacy-python-product",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy migrations: recovery reference, maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "verified-knowledge"
+      ],
+      "class": "knowledge-history",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "knowledge history: kept, not rewritten",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "workspace"
+      ],
+      "class": "legacy-intake-history",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy intake history: kept as history",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "codex-taskpacks"
+      ],
+      "class": "legacy-intake-history",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy intake history: kept as history",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "integration-tests"
+      ],
+      "class": "legacy-integration-tests",
+      "disposition": "maintenance_only",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "legacy integration tests: maintenance-only lane",
+      "migration_status": "inventoried_not_semantically_reviewed"
+    },
+    {
+      "paths": [
+        "AGENTS.md",
+        "PROJECT_CONTRACT.yaml",
+        "DIRECTORY_AUTHORITY.yaml",
+        "DECISION_SUPERSESSION_LEDGER.yaml",
+        "LEGACY_MANIFEST.yaml",
+        "LEGACY_MANIFEST.example.yaml",
+        "SYSTEM_BOUNDARY.md",
+        "SECURITY.md",
+        "THIRD_PARTY_NOTICES.md",
+        "LICENSE"
+      ],
+      "class": "governance",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "root governance and legal documents; several are protected files and need a grant to change"
+    },
+    {
+      "paths": [
+        "README.md",
+        "CHANGELOG.md",
+        "LESSONS_LEARNED.md",
+        "GITHUB_DELIVERY.md",
+        "HERMES_HANDOFF.md"
+      ],
+      "class": "documentation",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "entry documentation and handoff notes; HERMES_HANDOFF.md documents the preserved legacy tooling"
+    },
+    {
+      "paths": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
+        "Directory.Build.props",
+        "uv.lock",
+        "pyproject.toml",
+        "requirements.txt",
+        ".editorconfig",
+        ".gitattributes",
+        ".gitignore",
+        ".pre-commit-config.yaml"
+      ],
+      "class": "build-configuration",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "dependency locks and build configuration; the locks are protected resources"
+    },
+    {
+      "paths": [
+        "run_all.bat",
+        "run_all.sh",
+        "run_windows.bat",
+        "run_windows.ps1",
+        "conftest.py",
+        "ecosystem.config.cjs"
+      ],
+      "class": "automation",
+      "disposition": "active",
+      "owner_doc": "DIRECTORY_AUTHORITY.yaml",
+      "note": "developer entry scripts and the pytest conftest"
+    }
+  ],
+  "legacy_roots": [
+    {
+      "root": "app",
+      "migration_status": "inventoried_not_semantically_reviewed",
+      "manifest_entries": 183,
+      "not_semantically_reviewed": 183,
+      "note": "the legacy Green Python product: inventoried with a proposed target in LEGACY_MANIFEST.yaml; no asset in this root has had a semantic absorption review yet"
+    },
+    {
+      "root": "shared",
+      "migration_status": "inventoried_not_semantically_reviewed",
+      "manifest_entries": 91,
+      "not_semantically_reviewed": 91,
+      "note": "legacy shared Python modules: inventoried with a proposed target in LEGACY_MANIFEST.yaml; no asset in this root has had a semantic absorption review yet"
+    },
+    {
+      "root": "knowledge_base",
+      "migration_status": "inventoried_not_semantically_reviewed",
+      "manifest_entries": 38,
+      "not_semantically_reviewed": 38,
+      "note": "the legacy knowledge store: inventoried with a proposed target in LEGACY_MANIFEST.yaml; no asset in this root has had a semantic absorption review yet"
+    },
+    {
+      "root": "frontend",
+      "migration_status": "inventoried_not_semantically_reviewed",
+      "manifest_entries": 53,
+      "not_semantically_reviewed": 53,
+      "note": "the legacy React front end: inventoried with a proposed target in LEGACY_MANIFEST.yaml; no asset in this root has had a semantic absorption review yet"
+    },
+    {
+      "root": "src-tauri",
+      "migration_status": "inventoried_not_semantically_reviewed",
+      "manifest_entries": 13,
+      "not_semantically_reviewed": 13,
+      "note": "the legacy Tauri shell: inventoried with a proposed target in LEGACY_MANIFEST.yaml; no asset in this root has had a semantic absorption review yet"
+    },
+    {
+      "root": "desktop",
+      "migration_status": "inventoried_not_semantically_reviewed",
+      "manifest_entries": 32,
+      "not_semantically_reviewed": 32,
+      "note": "the legacy desktop product: inventoried with a proposed target in LEGACY_MANIFEST.yaml; no asset in this root has had a semantic absorption review yet"
+    }
+  ],
+  "legacy_manifest_total_entries": 1246,
+  "legacy_manifest_note": "LEGACY_MANIFEST.yaml holds 1246 inventoried assets and every one of them is still INVENTORIED_NOT_SEMANTICALLY_REVIEWED, so nothing in it may be read as absorbed capability. Bulk cleanup or moving directories is not semantic absorption."
+}
