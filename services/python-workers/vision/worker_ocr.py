@@ -31,6 +31,8 @@ from pathlib import Path
 
 ENGINE = "python-worker-ocr"
 ENGINE_VERSION = "0.1.0"
+# R08: identity advertised in the sidecar handshake for this route.
+WORKER_IDENTITY = "python-worker-ocr-ndjson"
 
 SUPPORTED = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"}
 
@@ -237,6 +239,26 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
 
 
 def main() -> int:
+    # R08: the same sidecar stdio job loop the text and PDF routes use, with this
+    # route's own identity and capability, so image input reaches the Core through
+    # the shared job/attempt/error machinery instead of a private CLI path.
+    if "--staging-root" in sys.argv:
+        import importlib.util
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "ocr_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        parser = argparse.ArgumentParser(description="ArcheAxis OCR worker")
+        parser.add_argument("--staging-root", type=Path, required=True)
+        args = parser.parse_args()
+        return transport.serve_stdio(WORKER_IDENTITY, ["image.ocr"], args.staging_root)
+
     with contextlib.suppress(AttributeError, OSError):
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="ArcheAxis OCR worker")
