@@ -220,8 +220,13 @@
     ]
   },
   "R12": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IN_PROGRESS",
+    "evidence": [
+      "read-only terminal capacity proof (no deletions this round): the same tool and scope report 27.469 GiB observed logical across 152,230 files (26 observation errors, 76 opaque exclusions). Largest residual groups: .project-local 20.641 GiB / 101,176 files, target 5.729 GiB / 19,949, .venv 0.858 GiB, frontend 0.099 GiB, data 0.094 GiB.",
+      ".hermes fingerprinted separately: 42.853 GiB / 718,077 files with the newest write still 2026-09-06 11:29, i.e. zero growth. Volume state: D: free 227.29 GiB.",
+      "same-tool comparison with the R01 census: total 23.423 -> 27.469 GiB and files 130,120 -> 152,230, with .project-local 16.595 -> 20.641 GiB (+4.05 GiB). The whole increase is this session real build, test and evidence output, all inside the governed location (cargo output sealed under .project-local/build/cargo, receipts under .project-local/runs); the root target/ stays 5.729 GiB, so the growth stop still holds; D: free moved 231.15 -> 227.29 GiB, consistent with that increase.",
+      "receipt: .project-local/runs/r12-census.json (the same tool output). CLASSIFICATION WITHOUT DELETION: regenerable candidates are .project-local/build (cargo output), the legacy root target at 5.729 GiB, .venv at 0.858 GiB and .project-local/cache; preserved are .project-local/runs receipts, docs, the taskpacks and .hermes (opaque - unknown stays unknown). Removing a regenerable cache still requires per-path authorization, and .hermes content was neither read nor deleted."
+    ]
   },
   "R13": {
     "status": "TODO",
