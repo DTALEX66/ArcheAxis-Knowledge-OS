@@ -172,6 +172,15 @@ fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],c
         if !KNOWN_WORKER_IDENTITIES.contains(&hello.worker.name.as_str()) || hello.worker.version!="1" {
             return Err(Failure::Failed("unexpected worker identity".into()));
         }
+        // R08: the handshake no longer pins one capability, so the job's own
+        // capability must be advertised by this worker. A route worker handed a
+        // foreign capability fails here with an explicit reason.
+        if !hello.capabilities.iter().any(|c| c==&req.capability) {
+            return Err(Failure::Failed(format!(
+                "worker does not advertise the requested capability {}",
+                req.capability
+            )));
+        }
         let mut stdin=child.0.stdin.take().unwrap();
         writeln!(stdin,"{}",serde_json::to_string(req).map_err(|e|Failure::Failed(e.to_string()))?)?;
         drop(stdin);

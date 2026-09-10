@@ -14,23 +14,23 @@ async fn prepare(dir:&Path,script:&Path) -> Executor {
     executor
 }
 #[tokio::test]
-async fn non_text_worker_identity_is_accepted_by_the_core() {
-    // R08 (c): the Core's identity gate now accepts every known route identity
-    // instead of pinning the text worker. A PDF worker handed the text route is
-    // therefore rejected by the handshake/compatibility layer, not by
-    // "unexpected worker identity".
-    //
-    // Known remaining pin (next unit): archeaxis-sidecar-protocol/src/worker.rs
-    // still hardcodes `text.extract` in the request constructor (line ~86) and in
-    // the hello compatibility check (line ~97), so a capability-agnostic
-    // handshake is still required before the PDF/OCR routes can complete a job.
+async fn non_text_worker_is_accepted_and_a_foreign_capability_is_refused_with_a_reason() {
+    // R08 (c): the Core's identity gate accepts every known route identity, the
+    // handshake is capability-agnostic, and the job's own capability must be
+    // advertised by the worker it is sent to. A PDF worker handed the text route
+    // therefore fails with that explicit reason - not with a pinned identity and
+    // not with a generic hello mismatch.
     let dir=tempfile::tempdir().unwrap();
     let pdf_worker=PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
         .join("services/python-workers/document/worker_pdf.py");
     let executor=prepare(dir.path(),&pdf_worker).await;
     let error=executor.execute("job","run-pdf",5000,&Cancellation::new()).await.unwrap_err();
     assert!(!error.contains("unexpected worker identity"),"route identity must be accepted: {error}");
-    assert!(error.contains("incompatible worker hello"),"the protocol compatibility check is the current gate: {error}");
+    assert!(!error.contains("incompatible worker hello"),"the handshake must be capability-agnostic: {error}");
+    assert!(
+        error.contains("does not advertise the requested capability"),
+        "the job capability must be matched against the worker's advertised set: {error}"
+    );
 }
 
 #[tokio::test]

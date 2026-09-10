@@ -76,25 +76,40 @@ fn parse<T: serde::de::DeserializeOwned>(line: &str) -> Result<T> {
     serde_json::from_str(line).map_err(|_| "malformed worker frame")
 }
 impl Request {
-    pub fn text(request_id: &str, job_id: &str, attempt: u64, sha256: &str, media_type: &str, deadline_ms: u64) -> Result<Self> {
+    /// R08: build a job request for any extraction route. The capability is the
+    /// route's own (`text.extract`, `pdf.extract`, `image.ocr`), so one job
+    /// envelope serves every worker instead of one capability being hardcoded.
+    pub fn job(request_id: &str, job_id: &str, attempt: u64, capability: &str, sha256: &str, media_type: &str, deadline_ms: u64) -> Result<Self> {
         if request_id.trim().is_empty() || job_id.trim().is_empty() || attempt==0
-            || attempt>9_007_199_254_740_991 || deadline_ms==0 || deadline_ms>9_007_199_254_740_991 || !hash(sha256) {
-            return Err("invalid text task identity or budget");
+            || attempt>9_007_199_254_740_991 || deadline_ms==0 || deadline_ms>9_007_199_254_740_991 || !hash(sha256)
+            || capability.trim().is_empty() || capability.len()>64
+            || !capability.bytes().all(|b| b.is_ascii_alphanumeric() || b==b'.' || b==b'_' || b==b'-') {
+            return Err("invalid task identity, capability or budget");
         }
         Ok(Self {schema:"archeaxis.worker-request/v1".into(), message_type:"job_request".into(),
             request_id:request_id.into(), job_id:job_id.into(), attempt, protocol_minor:0,
-            capability:"text.extract".into(), capability_version:"1".into(), deadline_ms,
+            capability:capability.into(), capability_version:"1".into(), deadline_ms,
             inputs:vec![Asset {uri:format!("job://input/{sha256}"),sha256:sha256.into(),media_type:media_type.into()}],
             parameters:Map::new()})
+    }
+
+    pub fn text(request_id: &str, job_id: &str, attempt: u64, sha256: &str, media_type: &str, deadline_ms: u64) -> Result<Self> {
+        Self::job(request_id, job_id, attempt, "text.extract", sha256, media_type, deadline_ms)
+            .map_err(|_| "invalid text task identity or budget")
     }
 }
 pub fn decode_hello(line: &str) -> Result<Hello> {
     let hello: Hello = parse(line)?;
+    // R08: the handshake is capability-agnostic. It validates the protocol shape,
+    // the worker identity and a unique, non-empty capability/schema set; whether
+    // the worker advertises the capability a *particular job* needs is checked
+    // where that request is known (the executor), never by pinning one capability
+    // here.
     if hello.schema!="archeaxis.worker-hello/v1" || hello.message_type!="hello"
         || hello.protocol.major!=1 || hello.protocol.min_minor!=0
         || hello.protocol.max_minor<hello.protocol.min_minor
         || hello.worker.name.trim().is_empty() || hello.worker.version.trim().is_empty()
-        || !hello.capabilities.iter().any(|c| c=="text.extract")
+        || hello.capabilities.is_empty()
         || !TEXT_SCHEMAS.iter().all(|schema| hello.schemas.iter().any(|s| s==schema))
         || !unique(&hello.capabilities) || !unique(&hello.schemas) {
         return Err("incompatible worker hello");
