@@ -1,93 +1,86 @@
-# R14 audit evidence index (0910 pack) — 2026-09-12
+# R14 audit evidence index (0910 pack) — pointer file
 
-Purpose: give an independent auditor every pointer needed to re-check the
-current claims, and state plainly what is **not** claimed. This file adds no
-authority of its own; `EXECUTION.md` + `STATE.json` remain the live record.
-Nothing here is a self-signed audit: Q00/Q01 remain for independent GPT only.
+**The authoritative index is [`R14-EVIDENCE-INDEX.json`](R14-EVIDENCE-INDEX.json)**,
+checked by `scripts/check_evidence_index.py` (14 tests). This markdown file keeps the
+environment notes and the reproduction recipe; the per-slice tables it used to carry
+stopped at R05 and would now contradict the live record, so they were removed rather
+than left to rot. `EXECUTION.md` and `STATE.json` remain the live record and this pair
+adds no authority of its own.
+
+## What the JSON index promises, and what the checker enforces
+
+| Rule | Why it exists |
+| --- | --- |
+| All 17 slices present, each status equal to `STATE.json` | two files may not contradict each other about what is done |
+| Every slice cites at least one **tracked** artifact | a claim that rests only on an ignored local receipt cannot be re-checked from a fresh checkout |
+| Every cited tracked path exists; receipts are marked and live under `.project-local/` | a pointer that does not resolve is not evidence |
+| Every slice names a runnable command, and the script it names exists | an auditor must be able to re-run the check, not just read about it |
+| Every slice records at least one limitation | a slice whose boundary nobody wrote down is a slice nobody bounded |
+| R14 and R16 may only be `TODO` or `BLOCKED_EXTERNAL`, and must name an independent auditor | the repository never signs its own audit gate |
+
+Current result: 17 slices, 49 tracked evidence pointers, 3 local receipts, all statuses
+agreeing with `STATE.json`, no self-signed gate, every slice stating its limits.
 
 ## 0. Baseline and package
 
 | Item | Value |
 | --- | --- |
-| Branch | `codex/full-loop-0906` (local == origin at the time of writing) |
+| Branch | `codex/full-loop-0906` (local == origin) |
 | `main` | `4ca46ea` (untouched) |
 | Live plan entry | `docs/authority/taskpack-0910-r3/EXECUTION.md`, progress in `STATE.json` |
 | Supersession | SUP-018 in `DECISION_SUPERSESSION_LEDGER.yaml` |
-| Package install | 13 root files + `reference-r2/` (15 files), single level |
-| Package verification | `python -X utf8 docs/authority/taskpack-0910-r3/verify_package.py` → `PASS: hashes, 17 task dependencies, all 23 original tasks retained`, exit 0 |
+| Package install | single level, with `reference-r2/` |
+| Package verification | `python -X utf8 scripts/check_taskpack_integrity.py` — 21 frozen pack files match their recorded hashes, the two live progress files match the install snapshot and grew as expected, plan intact |
 
-Package verification proves file integrity and dependency validity only — not a
-product audit. It must run in UTF-8 mode on this machine (GBK locale); the frozen
-files were not modified.
+The shipped `verify_package.py` **cannot** pass once work is recorded: two of its 23
+manifest entries are `EXECUTION.md` and `STATE.json`, which the pack itself designates
+as the files progress is written into. That is why the integrity checker splits the
+question in two, and why its failure on those two files is not corruption. It must run
+in UTF-8 mode on this machine (GBK locale).
 
-## 1. Slice evidence (R00–R05)
+## 1. Reproduce
 
-| Slice | Status | Evidence to re-run | What is NOT claimed |
-| --- | --- | --- | --- |
-| R00 | IMPLEMENTED_PENDING_AUDIT | `R00-BASELINE-REVIEW.md` (17-slice map, inherited defects re-checked at `985a219`); entry pointers in `AGENTS.md` §6 + both authority indexes; `workspace/intake/2026-09-10-next-taskpack-0910.md` | Entry registration is not an audit pass |
-| R01 | IMPLEMENTED_PENDING_AUDIT | `R01-CAPACITY-BASELINE.md`; census receipt `.project-local/runs/r01-census.json`; build proof `.project-local/runs/cargo-build-api.bat` | Logical bytes only (allocated space not measured); packaging-side path diff and `__pycache__` redirect are open |
-| R02 | IMPLEMENTED_PENDING_AUDIT | `cargo test -p archeaxis-domain` → 9 groups ok (`r02-domain.log`), incl. `accept_with_new_body_is_rejected_and_body_stays_immutable`, `accept_commits_status_and_one_event_atomically`, `failed_review_leaves_no_partial_state`, `modified_creates_traceable_successor`; code `288991a` + `cbe253b` | — |
-| R03 | IMPLEMENTED_PENDING_AUDIT | `cargo test -p archeaxis-archive` → 7 groups ok (`r03-archive-v2.log`); four genuine v3 fixtures exported by the historical implementation at `968c479`/`a2dbef5`/`60b355a`/`3d65609` under `crates/archeaxis-archive/tests/fixtures/v3-{ten,eleven,twelve,thirteen}-tables` (each with `PROVENANCE.txt`); layout logic in `crates/archeaxis-archive/src/lib.rs` (`V3_LAYOUTS`) | v1 (7 tables, no `workspace_meta`) is explicitly unsupported; fixtures had one added final LF (documented normalisation) |
-| R04 | IMPLEMENTED_PENDING_AUDIT | `cargo test -p archeaxis-api` exit 0; real-process test `unknown_launch_actor_is_rejected_and_never_grants_human_authority` in `crates/archeaxis-api/tests/launch_auth.rs`; fix in `crates/archeaxis-api/src/launch.rs` (`launch_auth` 6 tests, `r04-api.log`) | Real host-signed/host-held machine & human credential scope is **not** implemented |
-| R05 | **IN_PROGRESS** | Worker `services/python-workers/learning/worker_schedule.py` (`78656a1`) + adapter `crates/archeaxis-application/src/scheduler.rs` (`40391f6`); `tests/test_worker_schedule.py` 8 passed; `cargo test -p archeaxis-application` → adapter tests 5 ok (`r07-scheduler-adapter.log`) | **The learning-events API still does not call the adapter**, so `learning::suggest_next_interval` (the 1/2/4/7/14 ladder) remains the Rust-side default. R05 is not done |
+| Suites | Command |
+| --- | --- |
+| Rust workspace and per-crate suites | `scripts/ci/cargo_test.bat` (no arguments: `test --workspace --offline`); per crate: `scripts/ci/cargo_test.bat -p archeaxis-application --offline` |
+| Python suite | `python -B scripts/runtime/dev.py --pytest <paths>` or `pwsh -File scripts/ci/run_tests.ps1 --full` |
+| Repository gates | `python -X utf8 scripts/check_repository_conventions.py --source worktree`, `python -X utf8 scripts/check_architecture.py` |
+| This pack's own gates | `python -X utf8 scripts/check_taskpack_integrity.py`, `scripts/check_language_boundaries.py`, `scripts/check_format_matrix.py`, `scripts/check_path_conventions.py`, `scripts/check_evidence_index.py` |
 
-Baseline suites at the same head: `cargo test --workspace --offline` exit 0 /
-52 groups (`r03-full-workspace.log`, `r04-full-workspace.log`); Python
-`run_tests.ps1 --full` **2355 passed / 7 skipped / 0 failed**
-(`r07-python-full.log`); architecture guard passed; conventions gate reports only
-the two frozen-package issues below.
+`scripts/ci/cargo_test.bat` is the tracked Rust entry point: the per-run wrappers under
+`.project-local/runs/` are generated and ignored, so before it existed a fresh checkout
+had no way to run the Rust suites. It reads `ARCHEAXIS_MSVC_VCVARS`,
+`ARCHEAXIS_RUST_TOOLCHAINS`, `ARCHEAXIS_PYTHON` and `ARCHEAXIS_CARGO_TARGET_DIR`, pins
+the target directory to `.project-local/build/cargo`, and fails with a named message
+(exit 2) when the toolchain cannot be found instead of proceeding quietly.
 
-## 2. Outstanding slices and the next concrete step
+## 2. Known deviations and environment notes (do not re-diagnose)
 
-- **R05 (finish)**: parametrize the keyed review path with `Option<i64>`
-  (`None` = scheduler unavailable) so the adapter's value is used; record an
-  unavailable scheduler as an *unscheduled* review (`next_review` NULL + explicit
-  marker) and assert it in tests. Design guidance in `HANDOFF-2026-09-11.md`.
-- **R06**: separate run status from support/refutation/undetermined; cloud
-  cross-check needs approved credentials, otherwise `BLOCKED_EXTERNAL` (offline
-  use stays deliverable).
-- **R07**: non-empty legacy migration from a consistent read-only snapshot;
-  per-asset hash/relationship/learning-history differentials.
-- **R08**: one job contract over native PDF / scanned PDF or screenshot /
-  Markdown-text with anchors, retry and quality display.
-- **R09**: consumption-entry version checks (questions, caches, machine context,
-  result write-back) after revision/revocation.
-- **R10**: DeepTutor ↔ Core entry; note the host processes are currently **down**
-  (:8001/:3782); ollama :11434 was reachable.
-- **R11**: real MCP/equivalent client, observable task, independent
-  unseen-example verification.
-- **R12**: per-path authorized cache removal with same-scope before/after.
-- **R13**: Windows candidate package bound to a tested SHA.
-- **R14/R16**: independent GPT gates only; R15 M1 formats/interop/language.
+1. Tesseract cannot open a `\\?\`-prefixed path; the transport strips the prefix.
+2. The Core reads its launch claim to EOF: a caller that keeps stdin open waits forever.
+3. A worktree under the repo inherits the main `.cargo/config.toml` target directory;
+   `scripts/ci/cargo_test.bat` pins `CARGO_TARGET_DIR` for this reason.
+4. py-fsrs fuzzes intervals by default; the worker requests `enable_fuzzing=False`.
+5. The two frozen package files lack a final LF, so the convention gate always reports
+   exactly those two lines; patching them would break the package's own manifest hashes.
+6. `STATE.json` must stay ASCII-escaped: locale-default readers (GBK here) fail otherwise.
+7. A pytest run started directly (not through `dev.py`) misses `ARCHEAXIS_RUN_ROOT`, and
+   the vocabulary tests then fail with `KeyError` — that is the environment, not a defect.
+8. Reading a cargo exit code through a PowerShell pipeline that merges stderr reports a
+   failure that is not there; redirect to a log and read the file.
+9. PowerShell `-match` is case-insensitive, so a "failed" pattern also matches "0 failed".
+10. Multi-line text edits belong to the edit tool: PowerShell string literals mangle
+    backticks and line endings (this has already cost one corrupted file).
 
-## 3. Known deviations and environment notes (do not re-diagnose)
+## 3. What this index does not claim
 
-1. **Frozen pack files** `TASKS.json` and `MANIFEST.json` lack a final LF, so the
-   conventions gate always reports those two lines. Not patched: `TASKS.json` is
-   hashed by `MANIFEST.json`, so adding a byte would invalidate
-   `verify_package.py`. Owner options: re-issue the pack, or authorize an
-   exemption for frozen snapshots. See `PACKAGE-STATUS.md`.
-2. **Scratch worktree trap**: a git worktree placed under the repo inherits the
-   main `.cargo/config.toml` `target-dir`; mixing v3/v4 artifacts caused 6 *false*
-   test failures. Wrappers under `.project-local/runs/` now pin
-   `CARGO_TARGET_DIR`.
-3. **py-fsrs fuzzing**: intervals are fuzzed by default; the donor now takes an
-   additive `enable_fuzzing` (default unchanged) and the product worker requests
-   `False` so replay/restart comparisons are stable.
-4. **Toolchain**: builds need the MSVC wrapper
-   (`.project-local/runs/cargo-full-workspace.bat`); the default GNU toolchain
-   lacks gcc/dlltool and fails on `libsqlite3-sys` — that is not a code defect.
-5. **Evidence location**: receipts live under `.project-local/runs/` (ignored, not
-   uploaded); only sanitized summaries and hashes belong in the repository.
-
-## 4. Reproduce
-
-```
-python -X utf8 docs/authority/taskpack-0910-r3/verify_package.py
-cmd /c call .project-local\runs\cargo-full-workspace.bat
-cmd /c call .project-local\runs\cargo-test-pkg.bat archeaxis-archive
-cmd /c call .project-local\runs\cargo-test-pkg.bat archeaxis-application
-pwsh -NoProfile -File scripts/ci/run_tests.ps1 --full
-python scripts/check_repository_conventions.py --source worktree
-python scripts/check_architecture.py
-```
+- No slice has been independently audited: R14 and R16 are decided outside this
+  repository, by an auditor the owner configures.
+- Nothing here is a product certificate. The index points at evidence; it does not weigh
+  it, and a passing gate proves only the mechanical rules above.
+- The format matrix records **zero** complete groups: five partial and eleven custody-only.
+- 69 tracked paths have no directory-authority rule and are recorded, not fixed, because
+  the authority file is protected.
+- All 1246 inventoried legacy assets are still `INVENTORIED_NOT_SEMANTICALLY_REVIEWED`.
+- No capacity has been reclaimed: the cleanup manifest lists candidates and deletes
+  nothing.
