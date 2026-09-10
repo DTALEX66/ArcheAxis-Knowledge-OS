@@ -284,14 +284,18 @@ def emit(message):
     sys.stdout.buffer.flush()
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--staging-root", type=Path, required=True)
-    args = parser.parse_args()
+def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path) -> int:
+    """R08: one stdio job loop for every route.
+
+    The worker identity and the advertised capabilities are the only per-route
+    inputs; the handshake shape, the request validation, the response envelope and
+    the error vocabulary are identical, so a PDF or OCR worker reaches the Core
+    through exactly the same job/attempt/error machinery as the text worker.
+    """
     emit({"schema": "archeaxis.worker-hello/v1", "type": "hello",
           "protocol": {"major": 1, "min_minor": 0, "max_minor": 0},
-          "worker": {"name": "python-worker-text-ndjson", "version": "1"},
-          "capabilities": ["text.extract"], "schemas": OUTPUT_SCHEMAS})
+          "worker": {"name": worker_name, "version": "1"},
+          "capabilities": list(capabilities), "schemas": OUTPUT_SCHEMAS})
     request = None
     response = response_for(request)
     try:
@@ -305,7 +309,13 @@ def main():
         except (ValueError, UnicodeError, RecursionError) as exc:
             raise Rejected("invalid strict JSON request") from exc
         response = response_for(request)
-        outputs, measurements, warnings = execute(request, args.staging_root)
+        # The route table is shared by every worker, so the worker's own declared
+        # capability list is what decides: a process may only serve what its
+        # handshake advertised, even if another route is registered.
+        advertised = request.get("capability") if isinstance(request, dict) else None
+        if advertised not in capabilities:
+            raise Rejected("unsupported capability")
+        outputs, measurements, warnings = execute(request, staging_root)
         response.update(status="succeeded", outputs=outputs, measurements=measurements, warnings=warnings)
     except Rejected as exc:
         response.update(status="rejected", outputs=[], error={"code": exc.code, "message": str(exc), "retryable": False})
@@ -315,6 +325,13 @@ def main():
         response.update(status="failed", outputs=[], error={"code": "AAK-WORKER-003", "message": str(exc), "retryable": False})
     emit(response)
     return 0 if response["status"] == "succeeded" else 1
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--staging-root", type=Path, required=True)
+    args = parser.parse_args()
+    return serve_stdio("python-worker-text-ndjson", ["text.extract"], args.staging_root)
 
 
 if __name__ == "__main__":

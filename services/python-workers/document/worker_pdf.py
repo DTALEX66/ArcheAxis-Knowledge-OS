@@ -26,12 +26,15 @@ Usage: ``python worker_pdf.py <input-file>``
 from __future__ import annotations
 
 import contextlib
+import importlib.util
 import json
 import sys
 from pathlib import Path
 
 ENGINE = "pymupdf-native-pdf"
 ENGINE_VERSION = "pymupdf"
+# R08: identity advertised in the sidecar handshake for this route.
+WORKER_IDENTITY = "python-worker-pdf-ndjson"
 
 # Cap the number of page-separated lines converted into anchors, mirroring the
 # text worker's 5000-line cap so both routes bound work identically.
@@ -137,10 +140,30 @@ def extract(path: str) -> dict:
 
 
 def main() -> int:
+    # R08: the same sidecar stdio loop the text worker uses, with this route's
+    # own identity and capability, so PDF input reaches the Core through the same
+    # job/attempt/error machinery instead of a private CLI path.
+    if "--staging-root" in sys.argv:
+        import argparse
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "pdf_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--staging-root", type=Path, required=True)
+        args = parser.parse_args()
+        return transport.serve_stdio(WORKER_IDENTITY, ["pdf.extract"], args.staging_root)
+
     with contextlib.suppress(AttributeError, OSError):
         sys.stdout.reconfigure(encoding="utf-8")
     if len(sys.argv) != 2:
-        print(json.dumps({"error": "usage: worker_pdf.py <input-file>"}))
+        print(json.dumps({"error": "usage: worker_pdf.py <input-file> | --staging-root <dir>"}))
         return 2
     try:
         print(json.dumps(extract(sys.argv[1]), ensure_ascii=False))
