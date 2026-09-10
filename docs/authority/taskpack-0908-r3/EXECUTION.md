@@ -191,10 +191,23 @@ Waves are slice priority, not new dependencies.
   checks of `parse_verdict`/`evidence_quote` all pass (offline); live
   retrieval run still needs outbound HTTPS + ollama (environment-dependent,
   not claimed here).
-- ARCHIVE-01 partial: store schema bumped to v4 (learning_event_keys
-  receipt columns); v2 wire restore compatibility test updated and green.
-  Full restore-time discrimination of 11-table v3 / 13-table v3 / new
-  contract layouts with unknown-layout rejection remains open for X05/X10.
+- ARCHIVE-01 landed (X05/X10): restore now discriminates historical layouts by
+  the manifest table set, not by version alone - v2 (8 tables), v3
+  eleven-table shape, v3 thirteen-table shape, and the current 13-table
+  contract; any other v3 set is rejected as an unknown layout with no database
+  published. Rows from older archives may omit additive nullable columns
+  (v4 added four receipt columns to `learning_event_keys`); those are filled
+  NULL, while an unknown extra column is rejected instead of guessed.
+  Evidence: 5 new unit tests in the archive crate `version_tests` module
+  (11-table restore+upgrade, 13-table legacy event-key rows upgraded with NULL
+  receipts, unknown v3 set rejected, current archive missing a table rejected,
+  unknown row column rejected), archive crate 7/7 groups ok
+  (`.project-local/runs/archive-245.log`), full workspace
+  `cargo test --workspace --offline` exit 0 / 52 groups
+  (`.project-local/runs/cargo-archive-01-full.log`). Fixtures reconstruct the
+  two historical v3 shapes from the schema history; no real archived v3 file
+  was available on this machine (stated, not substituted). Status:
+  IMPLEMENTED_PENDING_AUDIT; rollback: revert this commit (single file).
 - Full verification at `288991a`: `cargo test --workspace --offline`
   exit 0 (52 test groups ok; receipt
   `.project-local/runs/cargo-waveb-8.log`); Python full suite via

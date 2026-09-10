@@ -25,7 +25,7 @@ AAK-REUSE-FIRST-20260907-R2: **AAK-FOLLOWUP-20260908-R3** (仓库规范化与语
 ## Files/paths touched
 
 - New: `docs/authority/taskpack-0908-r3/` (29 package files + this ledger set).
-- Modified: `AGENTS.md` §6 (active-plan pointer), 
+- Modified: `AGENTS.md` §6 (active-plan pointer),
   `DECISION_SUPERSESSION_LEDGER.yaml` (SUP-017).
 
 ## Verification

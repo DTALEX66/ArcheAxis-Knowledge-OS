@@ -25,6 +25,65 @@ pub const EXPORT_TABLES: &[&str] = &[
     "knowledge_supersedes",
 ];
 
+/// ARCHIVE-01: the older v3 wire layout. Schema version 3 shipped twice: first
+/// with these eleven tables, then with the thirteen-table set now exported
+/// (`knowledge_supersedes` and `learning_event_keys` were added while the
+/// reported version stayed 3). Both are real historical layouts and must be
+/// restorable; anything else at version 3 is an unknown layout and is rejected
+/// rather than guessed.
+pub const V3_TABLES_ELEVEN: &[&str] = &[
+    "workspace_meta",
+    "sources",
+    "transforms",
+    "anchors",
+    "knowledge",
+    "review_events",
+    "learning_events",
+    "jobs",
+    "job_attempts",
+    "job_outputs",
+    "source_origins",
+];
+
+/// ARCHIVE-01: resolve the exact table set an archive claims to contain. The
+/// layout is identified by the manifest's table set, never by version alone.
+fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str], ArchiveError> {
+    let names: Vec<&str> = manifest.tables.keys().map(String::as_str).collect();
+    let same_set = |expected: &[&str]| {
+        expected.len() == names.len() && expected.iter().all(|t| names.contains(t))
+    };
+    match manifest.schema_version {
+        2 => {
+            if same_set(&EXPORT_TABLES[..8]) {
+                Ok(&EXPORT_TABLES[..8])
+            } else {
+                Err(ArchiveError::Table(
+                    "archive layout does not match the v2 table set".into(),
+                ))
+            }
+        }
+        3 => {
+            if same_set(V3_TABLES_ELEVEN) {
+                Ok(V3_TABLES_ELEVEN)
+            } else if same_set(EXPORT_TABLES) {
+                Ok(EXPORT_TABLES)
+            } else {
+                Err(ArchiveError::Table("unknown v3 archive layout".into()))
+            }
+        }
+        version if version == archeaxis_store_sqlite::SCHEMA_VERSION => {
+            if same_set(EXPORT_TABLES) {
+                Ok(EXPORT_TABLES)
+            } else {
+                Err(ArchiveError::Table(
+                    "archive layout does not match the current table set".into(),
+                ))
+            }
+        }
+        _ => Err(ArchiveError::Table("unsupported archive version".into())),
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct ArchiveManifest {
     pub schema_version: i64,
@@ -171,17 +230,14 @@ pub fn restore_workspace(
     archeaxis_store_sqlite::raw_objects::reject_links(&mp)?;
     let raw = std::fs::read_to_string(&mp).map_err(ArchiveError::Io)?;
     let manifest: ArchiveManifest = serde_json::from_str(&raw).map_err(ArchiveError::Json)?;
-    // V2's eight original tables keep identical columns in v3; new attempt
-    // tables start empty. Never accept a future or metadata-only old format.
-    let tables = match manifest.schema_version {
-        2 => &EXPORT_TABLES[..8],
-        version if version == archeaxis_store_sqlite::SCHEMA_VERSION => EXPORT_TABLES,
-        _ => return Err(ArchiveError::Table("unsupported archive version".into())),
-    };
-    if manifest_digest(&manifest) != manifest.manifest_sha256
-        || manifest.tables.len() != tables.len()
-    {
-        return Err(ArchiveError::Table("archive version or manifest integrity mismatch".into()));
+    // ARCHIVE-01: the archive's own table set selects the layout; v3 covers the
+    // eleven-table and thirteen-table historical shapes, and any other v3 set is
+    // rejected instead of being completed by guesswork.
+    let tables = archive_tables(&manifest)?;
+    if manifest_digest(&manifest) != manifest.manifest_sha256 {
+        return Err(ArchiveError::Table(
+            "archive manifest integrity mismatch".into(),
+        ));
     }
     // Validate every table, including zero-row tables, before creating a database.
     // Keep the validated bytes in memory so a changed archive cannot be reread
@@ -249,8 +305,15 @@ pub fn restore_workspace(
             let obj = v
                 .as_object()
                 .ok_or_else(|| ArchiveError::Table("row not object".into()))?;
-            if obj.len() != cols.len() || cols.iter().any(|c| !obj.contains_key(c)) {
-                return Err(ArchiveError::Table(format!("row schema mismatch: {table}")));
+            // ARCHIVE-01 upgrade path: columns added after an older archive was
+            // written are absent from its rows and are filled with NULL here
+            // (they are additive and nullable). An unknown extra column means the
+            // row does not belong to a layout we understand, so reject it rather
+            // than silently dropping or guessing data.
+            if obj.keys().any(|c| !cols.contains(c)) {
+                return Err(ArchiveError::Table(format!(
+                    "unknown column in archive row: {table}"
+                )));
             }
             let mut params: Vec<rusqlite::types::Value> = Vec::new();
             for c in &cols {
@@ -367,5 +430,149 @@ mod version_tests {
         let conn=Connection::open_with_flags(target,rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
         assert_eq!(conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get::<_,String>(0)).unwrap(),"4");
         assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+    }
+
+    /// Rewrite one table file and keep the manifest entry (rows + hash) honest.
+    fn rewrite_table(manifest: &mut ArchiveManifest, archive: &Path, table: &str, content: &str) {
+        std::fs::write(archive.join(format!("{table}.jsonl")), content.as_bytes()).unwrap();
+        let tf = manifest.tables.get_mut(table).unwrap();
+        tf.rows = content.lines().count() as u64;
+        tf.sha256 = hex::encode(Sha256::digest(content.as_bytes()));
+    }
+
+    fn seal(manifest: &mut ArchiveManifest, archive: &Path) {
+        manifest.manifest_sha256 = manifest_digest(manifest);
+        std::fs::write(archive.join("manifest.json"), serde_json::to_vec(manifest).unwrap()).unwrap();
+    }
+
+    fn exported_fixture(dir: &tempfile::TempDir) -> (String, ArchiveManifest) {
+        let db = dir.path().join("seed.sqlite");
+        drop(archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap());
+        let archive = dir.path().join("archive");
+        let manifest = export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
+        (archive.to_str().unwrap().to_string(), manifest)
+    }
+
+    /// ARCHIVE-01: the older v3 wire shape carried eleven tables (no supersedes
+    /// and no learning-event key table) and must still restore and upgrade.
+    #[test]
+    fn v3_eleven_table_archive_restores_and_upgrades() {
+        let dir = tempfile::tempdir().unwrap();
+        let (archive, mut manifest) = exported_fixture(&dir);
+        let archive_path = Path::new(archive.as_str());
+        manifest.schema_version = 3;
+        for gone in ["learning_event_keys", "knowledge_supersedes"] {
+            manifest.tables.remove(gone);
+            let _ = std::fs::remove_file(archive_path.join(format!("{gone}.jsonl")));
+        }
+        let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
+        rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
+        assert_eq!(manifest.tables.len(), V3_TABLES_ELEVEN.len());
+        seal(&mut manifest, archive_path);
+
+        let target = dir.path().join("eleven.sqlite");
+        let restored = restore_workspace(&archive, target.to_str().unwrap()).unwrap();
+        assert_eq!(restored.schema_version, 3);
+        let conn = Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(
+            conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get::<_,String>(0)).unwrap(),
+            "4"
+        );
+        assert_eq!(conn.query_row("SELECT count(*) FROM learning_event_keys",[],|r|r.get::<_,i64>(0)).unwrap(), 0);
+    }
+
+    /// ARCHIVE-01: the later v3 shape already had thirteen tables, but its
+    /// learning-event key rows predate the v4 receipt columns. Additive columns
+    /// are filled with NULL instead of rejecting the archive.
+    #[test]
+    fn v3_thirteen_table_archive_upgrades_legacy_event_key_rows() {
+        let dir = tempfile::tempdir().unwrap();
+        let (archive, mut manifest) = exported_fixture(&dir);
+        let archive_path = Path::new(archive.as_str());
+        manifest.schema_version = 3;
+        let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
+        rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
+        let legacy = serde_json::json!({
+            "event_key":"legacy-key-1","item_key":"card-1","created_at":"2026-09-01 00:00:00"
+        }).to_string() + "\n";
+        rewrite_table(&mut manifest, archive_path, "learning_event_keys", &legacy);
+        seal(&mut manifest, archive_path);
+
+        let target = dir.path().join("thirteen.sqlite");
+        restore_workspace(&archive, target.to_str().unwrap()).unwrap();
+        let conn = Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(
+            conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get::<_,String>(0)).unwrap(),
+            "4"
+        );
+        let (key, payload, event_id): (String, Option<String>, Option<i64>) = conn
+            .query_row("SELECT event_key, payload_hash, event_id FROM learning_event_keys", [], |r| {
+                Ok((r.get(0)?, r.get(1)?, r.get(2)?))
+            })
+            .unwrap();
+        assert_eq!(key, "legacy-key-1");
+        assert_eq!(payload, None, "added columns stay NULL, never invented");
+        assert_eq!(event_id, None);
+    }
+
+    /// ARCHIVE-01: a v3 table set that is neither historical layout is refused.
+    #[test]
+    fn v3_unknown_table_set_is_rejected() {
+        let dir = tempfile::tempdir().unwrap();
+        let (archive, mut manifest) = exported_fixture(&dir);
+        let archive_path = Path::new(archive.as_str());
+        manifest.schema_version = 3;
+        manifest.tables.remove("knowledge_supersedes");
+        let _ = std::fs::remove_file(archive_path.join("knowledge_supersedes.jsonl"));
+        let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
+        rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
+        seal(&mut manifest, archive_path);
+
+        let target = dir.path().join("unknown.sqlite");
+        let err = restore_workspace(&archive, target.to_str().unwrap()).unwrap_err();
+        assert!(
+            format!("{err}").contains("unknown v3 archive layout"),
+            "unexpected error: {err}"
+        );
+        assert!(!target.exists(), "no database is published for an unknown layout");
+    }
+
+    /// ARCHIVE-01: a current-version archive missing an exported table is refused
+    /// rather than restored as a silently partial workspace.
+    #[test]
+    fn current_archive_with_missing_table_is_rejected() {
+        let dir = tempfile::tempdir().unwrap();
+        let (archive, mut manifest) = exported_fixture(&dir);
+        let archive_path = Path::new(archive.as_str());
+        manifest.tables.remove("review_events");
+        let _ = std::fs::remove_file(archive_path.join("review_events.jsonl"));
+        seal(&mut manifest, archive_path);
+
+        let target = dir.path().join("partial.sqlite");
+        let err = restore_workspace(&archive, target.to_str().unwrap()).unwrap_err();
+        assert!(
+            format!("{err}").contains("current table set"),
+            "unexpected error: {err}"
+        );
+    }
+
+    /// ARCHIVE-01: a row carrying a column the target schema does not know is
+    /// refused; the restore never drops or guesses unknown fields.
+    #[test]
+    fn archive_row_with_unknown_column_is_rejected() {
+        let dir = tempfile::tempdir().unwrap();
+        let (archive, mut manifest) = exported_fixture(&dir);
+        let archive_path = Path::new(archive.as_str());
+        let rogue = serde_json::json!({"key":"schema_version","value":"4","rogue_field":"x"}).to_string() + "\n";
+        rewrite_table(&mut manifest, archive_path, "workspace_meta", &rogue);
+        seal(&mut manifest, archive_path);
+
+        let target = dir.path().join("rogue.sqlite");
+        let err = restore_workspace(&archive, target.to_str().unwrap()).unwrap_err();
+        assert!(
+            format!("{err}").contains("unknown column in archive row"),
+            "unexpected error: {err}"
+        );
+        assert!(!target.exists(), "no database is published for an unknown column");
     }
 }
