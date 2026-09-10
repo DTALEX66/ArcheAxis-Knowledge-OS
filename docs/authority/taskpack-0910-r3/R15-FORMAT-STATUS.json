@@ -1,0 +1,277 @@
+{
+  "schema": "archeaxis.format-status/v1",
+  "carried_from": "docs/authority/taskpack-0907/FORMAT-COVERAGE.json",
+  "source_schema": "archeaxis.format-retention/v1",
+  "status_vocabulary": ["complete", "partial", "custody_only"],
+  "status_meaning": {
+    "complete": "the group's required_output is produced by a tested path, with no known gap",
+    "partial": "some extraction exists and is tested, but the group's required_output is not fully produced",
+    "custody_only": "the original bytes are preserved and retrievable byte-identically, and nothing parses or converts them"
+  },
+  "custody_note": "custody is universal in vNext: any bytes can be imported as a content-addressed source and survive an archive export/restore byte-identically (crates/archeaxis-archive/tests/raw_recovery.rs, and for a whole vault crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs). A custody_only row therefore states that preservation works and that parsing does not exist yet - it never claims conversion.",
+  "requirement_note": "release_scope, formats and required_output are carried verbatim from the 2026-09-07 record and are re-checked against it, so the requirement cannot be quietly redefined to match what was built.",
+  "coverage_summary": {
+    "total": 16,
+    "complete": 0,
+    "partial": 4,
+    "custody_only": 12
+  },
+  "formats": [
+    {
+      "format_id": "F01",
+      "release_scope": "core",
+      "formats": "TXT/MD/CSV/TSV/JSON/XML/源代码",
+      "required_output": "文本、结构、字符锚点",
+      "status": "partial",
+      "implemented_now": "the text route extracts the text and reports canonical line anchors; the worker declares seven accepted media types (text/plain, text/markdown, text/csv, text/tab-separated-values, application/json, application/xml, text/xml)",
+      "gap": "the Core assigns one media type per job kind, so a markdown, CSV or JSON input is dispatched as text/plain; no format-specific structure is parsed (no CSV fields, no JSON tree, no code symbols) and no local-model annotation exists",
+      "evidence": {
+        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
+        "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["tests/test_unified_job_contract.py"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F02",
+      "release_scope": "core",
+      "formats": "静态网页/HTML/URL",
+      "required_output": "快照、正文、链接、抓取时间、段落锚点",
+      "status": "custody_only",
+      "implemented_now": "an HTML file or a saved page is imported as a content-addressed source and survives export/restore byte-identically",
+      "gap": "nothing fetches a URL, and nothing extracts a snapshot, body text, links, a capture time or paragraph anchors",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs", "crates/archeaxis-store-sqlite/src/raw_objects.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F03",
+      "release_scope": "core",
+      "formats": "动态网页/长网页",
+      "required_output": "页面快照、正文、分页/滚动覆盖记录",
+      "status": "custody_only",
+      "implemented_now": "a saved dynamic page is imported and preserved as bytes like any other source",
+      "gap": "there is no browser or fetch client at all, so there is no snapshot, no pagination or scroll coverage record and no way to state what was not reached",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F04",
+      "release_scope": "core",
+      "formats": "剪贴板截图/PNG/JPG/JPEG/WebP/BMP/TIFF",
+      "required_output": "原图、OCR框、阅读顺序、图示描述",
+      "status": "partial",
+      "implemented_now": "the image.ocr route runs real Tesseract and returns recognised text with canonical line anchors; OCR regions are reported as facts in the loss receipt params, and a blank image produces no invented text",
+      "gap": "the Core still assigns image/png for every image job although the worker accepts png, jpeg, tiff, webp and bmp, so the other image media types cannot be named to the worker; reading order exists only as line order and there is no figure description",
+      "evidence": {
+        "core_routes": [{"kind": "image", "capability": "image.ocr", "media_type": "image/png"}],
+        "worker_routes": [{"capability": "image.ocr", "worker": "services/python-workers/vision/worker_ocr.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["tests/test_worker_ocr_route.py", "tests/test_ocr_sidecar_job.py", "crates/archeaxis-application/tests/ocr_job_end_to_end.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F05",
+      "release_scope": "core",
+      "formats": "文本 PDF",
+      "required_output": "页、段、表、图片引用、锚点",
+      "status": "partial",
+      "implemented_now": "the pdf.extract route runs PyMuPDF, returns the text with canonical line anchors and coverage over lines, reports page facts and reports an explicit loss receipt; a text PDF reaches the store end to end",
+      "gap": "paragraphs and tables are not parsed, image references are not collected, and pages exist as reported facts rather than as an addressing level in the structure",
+      "evidence": {
+        "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
+        "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_pdf.py"],
+        "tests": ["tests/test_worker_pdf_native.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F06",
+      "release_scope": "core",
+      "formats": "扫描/混合 PDF",
+      "required_output": "页图、OCR、区域、低置信区",
+      "status": "partial",
+      "implemented_now": "a page with no extractable text returns genuinely empty text plus an explicit loss entry naming OCR as the next route, and a corrupt PDF fails loudly instead of producing a silent empty success",
+      "gap": "the PDF job does not chain into the OCR route by itself - a caller must enqueue the image job - and low-confidence regions are not marked, because per-word confidence is kept for review and never presented as accuracy",
+      "evidence": {
+        "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
+        "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
+        "code": ["services/python-workers/document/worker_pdf.py", "services/python-workers/vision/worker_ocr.py"],
+        "tests": ["tests/test_worker_pdf_native.py"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F07",
+      "release_scope": "core",
+      "formats": "DOCX",
+      "required_output": "标题、段落、表、图片、来源位置",
+      "status": "custody_only",
+      "implemented_now": "a DOCX is imported and preserved as bytes with its sha256 and name",
+      "gap": "no DOCX parsing: headings, paragraphs, tables, images and source positions are all absent",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F08",
+      "release_scope": "core",
+      "formats": "PPTX",
+      "required_output": "幻灯片、文本、备注、图表引用",
+      "status": "custody_only",
+      "implemented_now": "a PPTX is imported and preserved as bytes with its sha256 and name",
+      "gap": "no slide, text, notes or chart-reference extraction",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F09",
+      "release_scope": "core",
+      "formats": "XLSX",
+      "required_output": "sheet/cell、公式文本与缓存值、表",
+      "status": "custody_only",
+      "implemented_now": "an XLSX is imported and preserved as bytes with its sha256 and name",
+      "gap": "no sheet or cell extraction, and no formula text with its cached value",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F10",
+      "release_scope": "core",
+      "formats": "WAV/MP3/M4A/FLAC",
+      "required_output": "转写、片段/词时间、音轨、质量标记",
+      "status": "custody_only",
+      "implemented_now": "an audio file is imported and preserved as bytes with its sha256 and name",
+      "gap": "there is no ASR route at all: no transcript, no segment or word times, no track inventory and no quality marks",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F11",
+      "release_scope": "core",
+      "formats": "MP4/MOV/MKV/WebM",
+      "required_output": "对齐的音轨、字幕、画面事件、采样覆盖",
+      "status": "custody_only",
+      "implemented_now": "a video file is imported and preserved as bytes with its sha256 and name",
+      "gap": "no media route exists: no aligned audio track, no subtitles, no frame events and no sampling coverage record",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F12",
+      "release_scope": "core",
+      "formats": "SRT/VTT/JSON Canvas",
+      "required_output": "时间锚/节点及关系",
+      "status": "custody_only",
+      "implemented_now": "a subtitle file or a JSON Canvas document is imported and preserved byte-identically; a five-file vault round-trip asserts that the canvas is still a parseable four-node, two-edge document afterwards",
+      "gap": "no time anchors are parsed and no canvas graph is built: route_for_kind('canvas') is None, and no table in the schema stores a node or edge",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-application/src/attempts.rs"],
+        "tests": ["crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F13",
+      "release_scope": "expansion",
+      "formats": "RTF/ODT/ODS/ODP/EPUB/EML/MSG",
+      "required_output": "章节/邮件头/附件引用及结构",
+      "status": "custody_only",
+      "implemented_now": "these files are imported and preserved as bytes with their sha256 and name",
+      "gap": "no engine is wired for any of these formats: no chapter structure, no mail headers and no attachment references",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F14",
+      "release_scope": "expansion",
+      "formats": "DOC/PPT/XLS等旧Office",
+      "required_output": "原件、转换件、损失报告",
+      "status": "custody_only",
+      "implemented_now": "the original file is preserved as bytes, which is the part of the requirement that must never be lost",
+      "gap": "no converter is wired, so there is no converted counterpart and no loss report - a loss report is only honest when a conversion was actually attempted",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F15",
+      "release_scope": "expansion",
+      "formats": "ZIP/目录批量",
+      "required_output": "容器到文件到知识的来源关系",
+      "status": "custody_only",
+      "implemented_now": "an archive file is imported and preserved as bytes like any other source",
+      "gap": "vNext does not traverse a container and has no container-to-file-to-knowledge relation; the legacy batch controller in app/ingestion/batch_controller.py belongs to the Green application and is a recovery reference only, not an implementation of this row",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": ["app/ingestion/batch_controller.py"]
+      }
+    },
+    {
+      "format_id": "F16",
+      "release_scope": "explicit_boundary",
+      "formats": "PSD/AI/CDR/CAD/3D等专业格式",
+      "required_output": "原生文件与派生预览、转换覆盖说明",
+      "status": "custody_only",
+      "implemented_now": "the native file is imported and preserved byte-identically; the boundary is deliberate rather than accidental",
+      "gap": "no derived preview and no conversion is attempted, so conversion coverage is stated as zero rather than implied - the requirement is that the original must not be lost to an impossible conversion, and that part holds",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs", "crates/archeaxis-store-sqlite/src/raw_objects.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    }
+  ]
+}

@@ -287,6 +287,12 @@ jobs:
       - name: Validate architecture boundaries
         run: python scripts/check_architecture.py
 
+      - name: Validate the language boundary contract
+        run: python scripts/check_language_boundaries.py
+
+      - name: Validate the format status matrix against the real route tables
+        run: python scripts/check_format_matrix.py
+
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82
 
