@@ -87,13 +87,13 @@
       "formats": "文本 PDF",
       "required_output": "页、段、表、图片引用、锚点",
       "status": "partial",
-      "implemented_now": "the pdf.extract route runs PyMuPDF, returns the text with canonical line anchors and coverage over lines, reports page facts and reports an explicit loss receipt; a text PDF reaches the store end to end",
-      "gap": "paragraphs and tables are not parsed, image references are not collected, and pages exist as reported facts rather than as an addressing level in the structure",
+      "implemented_now": "the pdf.extract route runs PyMuPDF, returns the text with canonical page/line anchors and coverage over lines, and reports what the engine really exposed in loss_receipt.params.structure: per-page character and engine-block counts, image references, engine text blocks with their bounding boxes and first lines, and tables the engine's own finder detects with their row and column counts. Engine chatter is captured into the receipt instead of being printed, because the stdio protocol is one JSON envelope per line",
+      "gap": "blocks are engine blocks rather than linguistic paragraphs and a table detection is a detection, not a guarantee; pages are reported as facts rather than as an addressing level in the structure, and there is no reading-order or column-layout model",
       "evidence": {
         "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
         "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_pdf.py"],
-        "tests": ["tests/test_worker_pdf_native.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs"],
+        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs"],
         "legacy_reference": []
       }
     },
@@ -103,13 +103,13 @@
       "formats": "扫描/混合 PDF",
       "required_output": "页图、OCR、区域、低置信区",
       "status": "partial",
-      "implemented_now": "a page with no extractable text returns genuinely empty text plus an explicit loss entry naming OCR as the next route, and a corrupt PDF fails loudly instead of producing a silent empty success",
+      "implemented_now": "a page with no extractable text returns genuinely empty text plus an explicit loss entry naming OCR as the next route, the pages that need OCR are named in pages_without_text and their per-page character counts are reported, and a corrupt PDF fails loudly instead of producing a silent empty success",
       "gap": "the PDF job does not chain into the OCR route by itself - a caller must enqueue the image job - and low-confidence regions are not marked, because per-word confidence is kept for review and never presented as accuracy",
       "evidence": {
         "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
         "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
         "code": ["services/python-workers/document/worker_pdf.py", "services/python-workers/vision/worker_ocr.py"],
-        "tests": ["tests/test_worker_pdf_native.py"],
+        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py"],
         "legacy_reference": []
       }
     },

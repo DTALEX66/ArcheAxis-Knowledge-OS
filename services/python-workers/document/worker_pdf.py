@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import contextlib
 import importlib.util
+import io
 import json
 import sys
 from pathlib import Path
@@ -39,6 +40,61 @@ WORKER_IDENTITY = "python-worker-pdf-ndjson"
 # Cap the number of page-separated lines converted into anchors, mirroring the
 # text worker's 5000-line cap so both routes bound work identically.
 MAX_ANCHORS = 5000
+# R15/F05: structural facts are reported, not unlimited. Each cap carries its own
+# "capped" fact so a reader is never misled by a truncated list.
+PARAGRAPH_CAP = 300
+TABLE_CAP = 100
+
+
+def _capture(callable_, sink: list[str]):
+    """Run an engine call with stdout diverted.
+
+    The sidecar protocol is one JSON envelope per stdout line, so ANY stray output
+    from the engine corrupts the stream (PyMuPDF's table finder prints a layout hint
+    on first use). The text is captured rather than discarded and reported as a fact,
+    so the protocol stays clean and nothing is silently dropped.
+    """
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = callable_()
+    text = buffer.getvalue().strip()
+    if text:
+        sink.append(text)
+    return result
+
+
+def _page_facts(page, engine_messages: list[str]) -> dict:
+    """Structure one page really exposes: text blocks, image references, tables.
+
+    A block-level fact is a measurement by the engine, not a claim about meaning:
+    blocks are not paragraphs in a linguistic sense and a detected table is a
+    detection. Detection failures are reported as facts instead of being swallowed.
+    """
+    facts: dict = {"chars": 0, "text_blocks": 0, "image_references": 0, "tables": []}
+    blocks: list = []
+    getter = getattr(page, "get_text", None)
+    if getter is not None:
+        with contextlib.suppress(Exception):
+            blocks = [
+                block
+                for block in _capture(lambda: getter("blocks"), engine_messages)
+                if isinstance(block, (list, tuple)) and len(block) >= 7
+            ]
+    facts["text_blocks"] = sum(1 for block in blocks if block[6] == 0)
+    facts["image_blocks"] = sum(1 for block in blocks if block[6] == 1)
+    with contextlib.suppress(Exception):
+        facts["image_references"] = len(_capture(lambda: page.get_images(full=True), engine_messages) or [])
+    finder = getattr(page, "find_tables", None)
+    if callable(finder):
+        try:
+            found = _capture(finder, engine_messages)
+            facts["tables"] = [
+                {"rows": int(getattr(table, "row_count", 0)), "cols": int(getattr(table, "col_count", 0))}
+                for table in (getattr(found, "tables", []) or [])
+            ]
+        except Exception as exc:  # noqa: BLE001 - a detector failure is a fact, not a crash
+            facts["table_detection_error"] = f"{type(exc).__name__}: {exc}"
+    return facts
 
 
 def _open_document(raw: bytes):
@@ -82,11 +138,50 @@ def extract(path: str) -> dict:
     # projected text, which the Core correctly rejects as an inconsistent receipt.
     blocks: list[tuple[int, str]] = []
     empty_pages: list[int] = []
+    per_page: list[dict] = []
+    paragraphs: list[dict] = []
+    tables: list[dict] = []
+    image_references = 0
+    table_errors: list[str] = []
+    engine_messages: list[str] = []
     for page_index, page in enumerate(pages, start=1):
         page_text = _page_text(page)
         if not page_text.strip():
             empty_pages.append(page_index)
         blocks.append((page_index, page_text))
+        facts = _page_facts(page, engine_messages)
+        facts["chars"] = len(page_text)
+        per_page.append(
+            {"page": page_index, **{key: value for key, value in facts.items() if key != "tables"}}
+        )
+        image_references += facts["image_references"]
+        if facts.get("table_detection_error"):
+            table_errors.append(f"page {page_index}: {facts['table_detection_error']}")
+        for table in facts["tables"]:
+            if len(tables) < TABLE_CAP:
+                tables.append({"page": page_index, **table})
+        page_blocks: list = []
+        getter = getattr(page, "get_text", None)
+        if getter is not None:
+            with contextlib.suppress(Exception):
+                page_blocks = [
+                    block
+                    for block in _capture(lambda: getter("blocks"), engine_messages)
+                    if isinstance(block, (list, tuple)) and len(block) >= 7 and block[6] == 0
+                ]
+        for block_no, block in enumerate(page_blocks, start=1):
+            if len(paragraphs) >= PARAGRAPH_CAP:
+                break
+            body = str(block[4]).strip()
+            paragraphs.append(
+                {
+                    "page": page_index,
+                    "block": block_no,
+                    "bbox": [round(float(value), 2) for value in block[:4]],
+                    "chars": len(body),
+                    "first_line": body.splitlines()[0] if body else "",
+                }
+            )
     text = "\n".join(block for _, block in blocks)
 
     page_ranges: list[tuple[int, int, int]] = []
@@ -126,10 +221,21 @@ def extract(path: str) -> dict:
         )
     if len(anchors) >= MAX_ANCHORS:
         losses.append(f"page/line anchors capped at {MAX_ANCHORS}")
+    if len(paragraphs) >= PARAGRAPH_CAP:
+        losses.append(f"page text blocks listed only for the first {PARAGRAPH_CAP} blocks")
+    if len(tables) >= TABLE_CAP:
+        losses.append(f"detected tables listed only for the first {TABLE_CAP} tables")
+    if table_errors:
+        losses.append("table detection failed on: " + "; ".join(table_errors))
+    if engine_messages:
+        losses.append(
+            f"{len(engine_messages)} engine message(s) diverted from stdout: {engine_messages[0][:120]}"
+        )
     # Coverage is measured in the same unit as the anchors (lines) and supplied
     # together with covered/total, which the Core validates as a set.
     covered = len(anchors)
     total = len(lines)
+    table_finder = any(callable(getattr(page, "find_tables", None)) for page in pages)
     loss_receipt = {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -138,6 +244,30 @@ def extract(path: str) -> dict:
             "cap_anchors": MAX_ANCHORS,
             "coverage_unit": "line anchors",
             "pages_without_text": empty_pages,
+            # R15/F05: what the engine exposed beyond the text itself. These are
+            # measurements, not an accuracy claim and not a second anchor scheme -
+            # navigation stays on the page/line anchors above.
+            "structure": {
+                "page_facts": per_page,
+                "text_block_count": len(paragraphs),
+                "text_blocks": paragraphs,
+                "text_blocks_capped": len(paragraphs) >= PARAGRAPH_CAP,
+                "table_support": table_finder,
+                "table_count": len(tables),
+                "tables": tables,
+                "image_reference_count": image_references,
+                "table_detection": (
+                    "detected by the engine's own table finder; a detection is a measurement, "
+                    "not a guarantee that the region is a table"
+                ),
+                "block_meaning": "a text block is an engine block, not a linguistic paragraph",
+                "engine_messages": engine_messages[:10],
+                "engine_messages_capped": len(engine_messages) > 10,
+                "engine_message_policy": (
+                    "engine chatter is captured into this receipt instead of being printed, "
+                    "because the stdio protocol is one JSON envelope per line"
+                ),
+            },
         },
         "losses": losses,
         "covered": covered,
