@@ -30,11 +30,22 @@ pub struct OriginInfo<'a> {
     pub received_at: Option<&'a str>,
 }
 
+/// The origin kinds the store's CHECK constraint accepts. Validated here because the
+/// insert uses `INSERT OR IGNORE`: an out-of-vocabulary kind would be dropped in
+/// silence, which looks like "the provenance was recorded" when it was not.
+pub const ORIGIN_KINDS: &[&str] = &["path", "url", "import", "manual"];
+
 fn record_origin(
     tx: &rusqlite::Transaction<'_>,
     source_id: &str,
     origin: OriginInfo<'_>,
 ) -> rusqlite::Result<()> {
+    if !ORIGIN_KINDS.contains(&origin.kind) {
+        return Err(rusqlite::Error::InvalidParameterName(format!(
+            "origin kind {:?} is not one of {ORIGIN_KINDS:?}; the store would ignore the row in silence",
+            origin.kind
+        )));
+    }
     tx.execute(
         "INSERT OR IGNORE INTO source_origins
             (source_id, origin_kind, origin_ref, original_name, received_at)

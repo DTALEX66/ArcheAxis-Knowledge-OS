@@ -147,7 +147,8 @@ ROUTES = {
         "call": "path",
         # R15/F06: the PDF worker renders text-less pages so the OCR route has a real
         # image to read; it writes them into this directory inside the transfer area.
-        "ocr_dir_arg": True,
+        "artifact_dir": "ocr",
+        "artifact_kwarg": "ocr_dir",
     },
     "image.ocr": {
         "version": "1",
@@ -162,6 +163,10 @@ ROUTES = {
         "worker": "services/python-workers/document/worker_archive.py",
         "media_types": {"application/zip"},
         "call": "path",
+        # R15/F15: the archive worker can offer its members to the Core as sources, so
+        # it is told where durable transfer files may be written.
+        "artifact_dir": "members",
+        "artifact_kwarg": "member_dir",
     },
 }
 
@@ -206,14 +211,15 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
             plain = str(tessdata_arg).replace("\\\\?\\", "")
             tessdata_arg = Path(plain)
         return module.extract(view, "eng", tessdata_arg)
-    if route.get("ocr_dir_arg"):
-        # R15/F06: the attempt directory is temporary, so durable renders go to the
-        # artifact root the Core owns and verifies later by digest. Without one, the
-        # worker declares no candidate and writes nothing.
+    if route.get("artifact_dir"):
+        # R15/F06+F15: the attempt directory is temporary, so durable transfer files
+        # (rendered PDF pages, extracted container members) go to the artifact root the
+        # Core owns and verifies later by digest. Without one, the worker declares
+        # nothing and writes nothing.
         if artifact_root is None:
             return module.extract(str(source))
-        ocr_dir = safe_path(artifact_root / "ocr", missing=True)
-        return module.extract(str(source), ocr_dir=ocr_dir)
+        target = safe_path(artifact_root / route["artifact_dir"], missing=True)
+        return module.extract(str(source), **{route.get("artifact_kwarg", "artifact_dir"): target})
     if route.get("media_type_arg"):
         return module.extract(str(source), media_type.split(";", 1)[0].strip().lower())
     return module.extract(str(source))
@@ -362,7 +368,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staging-root", type=Path, required=True)
     # accepted for every route so one launch shape works for all of them; only a
-    # route that declares ocr_dir_arg writes anything there
+    # route that declares an artifact directory writes anything there
     parser.add_argument("--artifact-root", type=Path, default=None)
     args = parser.parse_args()
     return serve_stdio("python-worker-text-ndjson", ["text.extract"], args.staging_root, args.artifact_root)

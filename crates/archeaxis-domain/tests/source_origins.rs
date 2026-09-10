@@ -6,6 +6,38 @@ use archeaxis_domain::source::{self, OriginInfo};
 use archeaxis_store_sqlite::init_workspace;
 
 #[test]
+fn an_origin_kind_outside_the_vocabulary_is_refused_instead_of_ignored() {
+    // The store's CHECK constraint would reject the row, and the insert uses
+    // INSERT OR IGNORE, so without this validation the provenance would vanish in
+    // silence - a caller would believe it had recorded where the bytes came from.
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("o.sqlite").to_str().unwrap()).unwrap();
+    let error = match source::import_source_with_origin(
+        &mut conn,
+        b"member bytes",
+        "member.md",
+        None,
+        Some(OriginInfo {
+            kind: "archive-member",
+            origin_ref: "src_container#member.md",
+            original_name: Some("member.md"),
+            received_at: None,
+        }),
+    ) {
+        Ok(_) => panic!("an out-of-vocabulary origin kind must be refused, not ignored"),
+        Err(error) => error.to_string(),
+    };
+    assert!(error.contains("is not one of"), "{error}");
+    // and nothing was half-written: the source is not in the store
+    let count: i64 = conn
+        .query_row("SELECT count(*) FROM sources", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(count, 0, "a refused origin must not leave a source behind");
+    // the vocabulary itself is the store's, and it is exported so callers can check
+    assert_eq!(source::ORIGIN_KINDS, ["path", "url", "import", "manual"]);
+}
+
+#[test]
 fn identical_bytes_from_two_origins_keep_both_origins_on_one_source() {
     let dir = tempfile::tempdir().unwrap();
     let mut conn = init_workspace(dir.path().join("s.sqlite").to_str().unwrap()).unwrap();

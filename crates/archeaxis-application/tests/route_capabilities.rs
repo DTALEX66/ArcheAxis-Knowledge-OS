@@ -86,7 +86,7 @@ fn a_name_the_route_cannot_accept_is_refused_with_a_reason() {
     assert_eq!(state, "queued", "a refused claim must leave the job queued");
 
     // a text job whose file is an image is refused too
-    let (_dir2, mut conn2) = seed("text", b"pretend text", "shot.jpg");
+    let (_dir2, _conn2) = seed("text", b"pretend text", "shot.jpg");
     let error = attempts::resolve_media_type("text", "shot.jpg").unwrap_err();
     assert!(error.to_string().contains("image/jpeg"), "{error}");
 }

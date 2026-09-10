@@ -73,11 +73,12 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
         .unwrap_or(&[])
 }
 
-/// R15/F06: the capabilities whose worker may write durable transfer files (the PDF
-/// route renders text-less pages for the OCR route). The executor tells only these
-/// workers where the artifact root is, so every other route keeps its launch shape
-/// and an unexpected flag stays an error rather than being silently accepted.
-pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &["pdf.extract"];
+/// R15/F06+F15: the capabilities whose worker may write durable transfer files (the PDF
+/// route renders text-less pages for the OCR route; the archive route extracts the
+/// members the Core may import). The executor tells only these workers where the
+/// artifact root is, so every other route keeps its launch shape and an unexpected flag
+/// stays an error rather than being silently accepted.
+pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &["pdf.extract", "archive.inventory"];
 
 /// R15/F06: routes whose successful job is followed by Core-side work, done inside the
 /// same commit as the completion so there is no window in which the job says it

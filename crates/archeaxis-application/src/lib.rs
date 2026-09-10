@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 pub mod jobs;
+pub mod container;
 pub mod ocr;
 pub mod attempts;
 pub mod executor;

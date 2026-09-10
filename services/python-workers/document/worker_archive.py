@@ -23,6 +23,7 @@ Output: {"engine","engine_version","text","structure","loss_receipt"}
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import importlib.util
 import json
 import sys
@@ -37,6 +38,66 @@ MEMBER_CAP = 5000
 LISTED_CAP = 2000
 NESTED_SUFFIXES = (".zip", ".jar", ".war", ".odt", ".ods", ".odp", ".epub", ".docx", ".xlsx", ".pptx")
 COMPRESSION_NAMES = {0: "stored", 8: "deflate", 12: "bzip2", 14: "lzma"}
+# R15/F15 second half: members can be offered to the Core as sources of their own.
+# Extraction is bounded by count and by total bytes, and every bound is declared.
+MEMBER_JOB_CAP = 50
+MEMBER_BYTES_CAP = 64 * 1024 * 1024
+UNSAFE_NAME = ("..", "/", "\\", ":")
+
+
+def _safe_member_name(index: int, name: str) -> str:
+    """A flat, collision-free file name for one extracted member.
+
+    The member's own name may contain separators, be absolute or try to escape, so the
+    extracted file is named by its index with a sanitised suffix; the true member name
+    travels in the declaration, never in the path.
+    """
+    base = name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+    safe = "".join(char if char.isalnum() or char in "._-" else "_" for char in base)[-64:]
+    return f"{index:04d}-{safe or 'member'}"
+
+
+def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dict], list[str]]:
+    """Write the members the Core may import, and declare each one by digest.
+
+    The worker cannot enqueue anything (it holds no database handle), so it does the
+    half it owns. Directories are skipped, encrypted or unreadable members are reported
+    as problems rather than silently dropped, and nothing is written when no output
+    directory was supplied.
+    """
+    extracted: list[dict] = []
+    problems: list[str] = []
+    if out_dir is None:
+        return extracted, problems
+    out_dir.mkdir(parents=True, exist_ok=True)
+    total = 0
+    files = [info for info in members if not info.is_dir()]
+    for index, info in enumerate(files, start=1):
+        if len(extracted) >= MEMBER_JOB_CAP:
+            problems.append(f"only the first {MEMBER_JOB_CAP} of {len(files)} members were extracted")
+            break
+        if total + info.file_size > MEMBER_BYTES_CAP:
+            problems.append(f"member byte budget of {MEMBER_BYTES_CAP} reached; later members were not extracted")
+            break
+        if info.flag_bits & 0x1:
+            problems.append(f"member {info.filename!r} is encrypted and was not extracted")
+            continue
+        target = out_dir / _safe_member_name(index, info.filename)
+        try:
+            payload = container.read(info)
+            target.write_bytes(payload)
+            total += len(payload)
+            extracted.append(
+                {
+                    "name": info.filename,
+                    "file": target.name,
+                    "bytes": len(payload),
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                }
+            )
+        except Exception as exc:  # noqa: BLE001 - an unreadable member is a fact
+            problems.append(f"member {info.filename!r} could not be extracted: {type(exc).__name__}: {exc}")
+    return extracted, problems
 
 
 def _line_anchors(text: str, cap: int = 5000) -> list[dict]:
@@ -52,7 +113,7 @@ def _line_anchors(text: str, cap: int = 5000) -> list[dict]:
     return anchors
 
 
-def extract(path: str) -> dict:
+def extract(path: str, member_dir: Path | None = None) -> dict:
     raw = Path(path).read_bytes()
     try:
         with zipfile.ZipFile(path) as container:
@@ -61,6 +122,7 @@ def extract(path: str) -> dict:
                        for info in members]
             encrypted = [info.filename for info in members if info.flag_bits & 0x1]
             methods = sorted({info.compress_type for info in members})
+            extracted, extraction_problems = _extract_members(members, container, member_dir)
     except zipfile.BadZipFile as error:
         # a corrupt container must fail loudly; an empty success would be a lie
         raise ValueError(f"unreadable archive: {error}") from error
@@ -83,6 +145,8 @@ def extract(path: str) -> dict:
         losses.append(
             f"{len(nested)} member(s) are themselves containers and are listed, not opened: {', '.join(nested[:5])}"
         )
+    if extraction_problems:
+        losses.append("member extraction: " + "; ".join(extraction_problems))
     loss_receipt = {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -113,6 +177,19 @@ def extract(path: str) -> dict:
                     for name, size, compressed, code, is_dir in listing[:MEMBER_CAP]
                 ],
                 "members_capped": len(listing) > MEMBER_CAP,
+                # R15/F15 second half: what the Core may import as sources of their
+                # own, each verified by digest before anything is enqueued.
+                "extractable_members": extracted,
+                "extractable_member_count": len(extracted),
+                "member_extraction": {
+                    "cap": MEMBER_JOB_CAP,
+                    "bytes_cap": MEMBER_BYTES_CAP,
+                    "note": (
+                        "members are written into the transfer area and declared with their digests; "
+                        "the Core verifies each one, imports it as a source recording that it came from "
+                        "this container, and decides whether its name resolves to a route"
+                    ),
+                },
             },
         },
         "losses": losses,
