@@ -31,6 +31,11 @@ from pathlib import Path
 
 ENGINE = "python-worker-ocr"
 ENGINE_VERSION = "0.1.0"
+# A review threshold on Tesseract's per-word score: regions below it are listed so a
+# human can look at them first. It is deliberately a threshold with a name, not an
+# accuracy claim - the score is reported beside every region it applies to.
+REVIEW_THRESHOLD = 60.0
+LOW_CONFIDENCE_CAP = 200
 # R08: identity advertised in the sidecar handshake for this route.
 WORKER_IDENTITY = "python-worker-ocr-ndjson"
 
@@ -231,6 +236,37 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
     anchor_summary = {"covered": len(structure), "total": len(structure)}
     covered = len(structure)
     total = len(structure)
+    # R15/F04-F06: which regions a human should look at first. The threshold is a
+    # REVIEW threshold on the engine's own per-word score - it is not an accuracy
+    # measure and it is not a verdict about the text, so it is named as such and the
+    # score is reported next to it rather than being summarised into one number.
+    low_confidence = [
+        {
+            "region": region["region"],
+            "text": region["text"],
+            "char_start": region["char_start"],
+            "char_end": region["char_end"],
+            "bbox": region["bbox"],
+            "confidence": region["confidence"],
+        }
+        for region in regions
+        if isinstance(region.get("confidence"), (int, float)) and region["confidence"] < REVIEW_THRESHOLD
+    ]
+    scored = [region["confidence"] for region in regions if isinstance(region.get("confidence"), (int, float))]
+    review = {
+        "threshold": REVIEW_THRESHOLD,
+        "threshold_meaning": (
+            "a review threshold on the engine's per-word score: below it a region is listed for a "
+            "human to check first; it is not a correctness measure and not a statement about the text"
+        ),
+        "region_count": len(regions),
+        "scored_region_count": len(scored),
+        "unscored_region_count": len(regions) - len(scored),
+        "low_confidence_count": len(low_confidence),
+        "low_confidence_regions": low_confidence[:LOW_CONFIDENCE_CAP],
+        "low_confidence_capped": len(low_confidence) > LOW_CONFIDENCE_CAP,
+        "lowest_score": min(scored) if scored else None,
+    }
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -246,8 +282,19 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
                        "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings,
                        "coverage_unit": "line anchors",
                        # Recogniser confidence is review metadata, never an accuracy claim.
-                       "regions": regions},
-            "losses": [f"subprocess warning: {w['message'][:200]}" for w in warnings],
+                       "regions": regions,
+                       "review": review},
+            "losses": [
+                f"subprocess warning: {w['message'][:200]}" for w in warnings
+            ]
+            + (
+                [
+                    f"{len(low_confidence)} region(s) scored below the review threshold "
+                    f"{REVIEW_THRESHOLD}; they are listed in params.review for a human to check"
+                ]
+                if low_confidence
+                else []
+            ),
             "covered": covered,
             "total": total,
             "coverage": (covered / total) if total else 1.0,
