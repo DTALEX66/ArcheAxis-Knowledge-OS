@@ -464,10 +464,10 @@
         "this gate has NOT been run: the index only prepares the evidence an independent auditor needs",
         "an executor-written summary is not an audit, so this repository never records it as passed",
         "round 97 executed all twenty recorded commands with the toolchain environment present and all twenty exited 0; on a machine without ARCHEAXIS_RUST_TOOLCHAINS and ARCHEAXIS_MSVC_VCVARS the six per-package cargo commands are reported as not run rather than failed",
-        "from a fresh clone the six gates and the recorded commands reproduce (7 PASS / 13 NOT_RUN naming a prerequisite), but the full Python suite does not: 112 tests in 27 legacy-product files fail there for want of untracked local assets and runtime state"
+        "from a fresh clone OUTSIDE the runtime tree the six gates and the recorded commands reproduce (7 PASS / 13 NOT_RUN naming a prerequisite) and the Python suite gives 2599 passed / 1 failed / 30 skipped, the failure being the pack-integrity test that needs the ignored install snapshot; a clone placed inside .project-local fails 112 legacy tests, which round 98 mis-attributed to untracked assets (round 99 measured the difference)"
       ],
       "status": "TODO",
-      "evidence_items_in_state": 12
+      "evidence_items_in_state": 14
     },
     {
       "slice": "R15",
