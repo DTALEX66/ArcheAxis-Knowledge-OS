@@ -56,11 +56,10 @@
   "R05": {
     "status": "IN_PROGRESS",
     "evidence": [
-      "scoping only this round; no code changed for R05 yet",
-      "current default scheduling is still the temporary ladder learning::suggest_next_interval (1/2/4/7/14), which the pack explicitly forbids as the default",
-      "reused FSRS donor located: shared/learning_scheduler.py exposing LearningScheduler.review(card, rating) and next_due(card); donor tests tests/test_learning_scheduler.py 6 passed",
-      "integration blocker identified: the existing python worker contract is a text-extraction executor (request -> text + loss receipt), so FSRS cannot be dropped into it; two options recorded - add a scheduler request kind to the sidecar protocol (preferred, keeps Rust the only DB writer) or run a dedicated scheduler sidecar",
-      "next step: implement the chosen adapter with a regression proving review intervals come from the reused scheduler, and that the ladder is no longer the silent default"
+      "scheduler worker landed: services/python-workers/learning/worker_schedule.py reuses the existing donor LearningScheduler (not the ladder); stdin JSON -> stdout JSON; unusable requests fail closed with an explicit error object and never invent an interval",
+      "finding: py-fsrs fuzzes intervals by default (Scheduler(enable_fuzzing=True)), so identical card+rating calls returned different due dates; the donor now takes an additive enable_fuzzing keyword (default True unchanged) and the worker requests False, giving reproducible intervals for replay/restart/audit",
+      "tests: tests/test_worker_schedule.py 8 passed (mature-card interval exceeds the ladder's 14-day ceiling, rating sensitivity, determinism, correct->rating mapping, explicit errors incl. subprocess fail-closed) plus donor tests/test_learning_scheduler.py 6 passed - 14 passed / 0 failed",
+      "REMAINING (not claimed): Rust still defaults to learning::suggest_next_interval; the Core-side adapter that calls this worker (sidecar scheduler request kind or a dedicated subprocess contract) is the next step"
     ]
   },
   "R06": {
