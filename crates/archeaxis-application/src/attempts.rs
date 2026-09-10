@@ -15,6 +15,7 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-ocr", "0.1.0"),
     ("python-worker-archive", "0.1.0"),
     ("python-worker-media", "0.1.0"),
+    ("python-worker-office", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -32,6 +33,13 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // R15/F10-F11: audio and video are binary too. The probe reads the container's own
     // header structure and never decodes a sample, so the projection is a fact listing.
     ("media", "media.probe", "video/mp4"),
+    // R15/F07-F09: an Office document is a ZIP of XML parts. The structure route reads
+    // the parts and reports what the package declares, without rendering anything.
+    (
+        "office",
+        "office.structure",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -69,6 +77,14 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     (
         "media.probe",
         &["video/mp4", "audio/wav"],
+    ),
+    (
+        "office.structure",
+        &[
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
     ),
 ];
 
@@ -114,6 +130,12 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // read them, so a name that claims otherwise would be dispatched as noise.
         "wav" => "audio/wav",
         "mp4" | "m4v" | "mov" => "video/mp4",
+        // R15/F07-F09: the OOXML families this repository can read; the legacy binary
+        // formats (doc, ppt, xls) are deliberately NOT named, so they stay custody-only
+        // instead of being handed to a reader that cannot open them.
+        "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         // subtitles are textual documents; the worker recognises their cue structure
         // and reports it as a fact rather than inventing a media type the route does
         // not accept

@@ -31,6 +31,9 @@ from xml.etree import ElementTree as ET
 
 ENGINE = "python-worker-office"
 ENGINE_VERSION = "0.1.0"
+# R15/F07-F09: the identity advertised in the sidecar handshake, so an Office job is
+# dispatched to this worker through the same route table as every other capability.
+WORKER_IDENTITY = "python-worker-office-ndjson"
 
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 W = lambda tag: f"{{{W_NS}}}{tag}"  # noqa: E731
@@ -281,6 +284,30 @@ def extract(path: str) -> dict:
 
 
 def main() -> int:
+    # R15/F07-F09: this worker existed since the 2026-09-05 slice but was unreachable
+    # through the job contract - no route pointed at it. The sidecar mode below is that
+    # wiring: the same stdio loop every route uses, with this worker's own identity and
+    # capability, so an Office job travels the normal job/attempt/error machinery.
+    if "--staging-root" in sys.argv:
+        import importlib.util
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "office_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        sidecar = argparse.ArgumentParser(description=__doc__)
+        sidecar.add_argument("--staging-root", type=Path, required=True)
+        sidecar.add_argument("--artifact-root", type=Path, default=None)
+        sidecar_args = sidecar.parse_args()
+        return transport.serve_stdio(
+            WORKER_IDENTITY, ["office.structure"], sidecar_args.staging_root, sidecar_args.artifact_root
+        )
+
     parser = argparse.ArgumentParser(description="ArcheAxis office/document engine worker")
     parser.add_argument("input", nargs="?", help="input file (.docx/.pptx/.xlsx/.pdf)")
     parser.add_argument("--probe", action="store_true", help="engine capability probe")

@@ -45,7 +45,7 @@ TRANSPORT_ROUTES = ROOT / "services/python-workers/transport/text_ndjson.py"
 
 STATUSES = ("complete", "partial", "custody_only")
 EXPECTED_IDS = [f"F{index:02d}" for index in range(1, 17)]
-CORE_TRIPLE_RE = re.compile(r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)')
+CORE_TRIPLE_RE = re.compile(r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,?\s*\)')
 
 
 def _read(path: Path) -> str:
@@ -60,6 +60,37 @@ def core_route_triples() -> set[tuple[str, str, str]]:
         return set()
     end = source.find("];", start)
     return {(kind, capability, media) for kind, capability, media in CORE_TRIPLE_RE.findall(source[start:end])}
+
+
+def accepted_media_by_capability() -> dict[str, set[str]]:
+    """Parse ROUTE_MEDIA_TYPES: the media types each capability's worker accepts.
+
+    A kind maps to one capability and one default media type, while the capability
+    accepts several (a .docx and a .xlsx both travel the office route). A matrix row
+    therefore claims a (kind, capability, media type) triple, and that claim holds when
+    the kind routes to that capability AND the capability accepts that media type.
+    """
+    source = _read(CORE_ROUTES)
+    start = source.find("pub const ROUTE_MEDIA_TYPES")
+    if start < 0:
+        return {}
+    end = source.find("\n];", start)
+    block = source[start:end]
+    accepted: dict[str, set[str]] = {}
+    # each entry is ("capability", &[ "media/type", ... ]); the arrays span several
+    # lines, so the body is taken by bracket counting rather than by a lazy regex
+    for match in re.finditer(r'"([a-z][a-z.]*\.[a-z]+)"\s*,\s*&\[', block):
+        body_start = match.end()
+        depth = 1
+        cursor = body_start
+        while cursor < len(block) and depth:
+            if block[cursor] == "[":
+                depth += 1
+            elif block[cursor] == "]":
+                depth -= 1
+            cursor += 1
+        accepted[match.group(1)] = set(re.findall(r'"([^"]+)"', block[body_start : cursor - 1]))
+    return accepted
 
 
 def worker_route_map() -> dict[str, str]:
@@ -97,9 +128,13 @@ def check(matrix_path: Path = MATRIX, root: Path = ROOT) -> tuple[list[str], dic
         failures.append(f"status vocabulary is {vocabulary}; expected {STATUSES}")
 
     routes = core_route_triples()
+    accepted = accepted_media_by_capability()
+    kind_to_capability = {kind: capability for kind, capability, _ in routes}
     workers = worker_route_map()
     if not routes:
         failures.append(f"{CORE_ROUTES}: could not parse the Core ROUTES table")
+    if not accepted:
+        failures.append(f"{CORE_ROUTES}: could not parse the ROUTE_MEDIA_TYPES table")
     if not workers:
         failures.append(f"{TRANSPORT_ROUTES}: could not parse the transport ROUTES table")
 
@@ -126,8 +161,14 @@ def check(matrix_path: Path = MATRIX, root: Path = ROOT) -> tuple[list[str], dic
         evidence = row.get("evidence") or {}
         for claimed in evidence.get("core_routes", []):
             triple = (claimed.get("kind"), claimed.get("capability"), claimed.get("media_type"))
-            if triple not in routes:
-                failures.append(f"{row_id}: claims Core route {triple} which is not in the ROUTES table")
+            kind, capability, media = triple
+            if triple in routes:
+                continue
+            # a row may claim a media type the route accepts even when it is not the
+            # route's default: one kind, one capability, several accepted media types
+            if kind_to_capability.get(kind) == capability and media in accepted.get(capability, set()):
+                continue
+            failures.append(f"{row_id}: claims Core route {triple} which is not in the ROUTES table")
         for claimed in evidence.get("worker_routes", []):
             capability, worker = claimed.get("capability"), claimed.get("worker")
             if workers.get(capability) != worker:

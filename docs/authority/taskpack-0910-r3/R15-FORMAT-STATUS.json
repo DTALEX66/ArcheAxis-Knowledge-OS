@@ -13,8 +13,8 @@
   "coverage_summary": {
     "total": 16,
     "complete": 0,
-    "partial": 9,
-    "custody_only": 7
+    "partial": 12,
+    "custody_only": 4
   },
   "formats": [
     {
@@ -118,15 +118,15 @@
       "release_scope": "core",
       "formats": "DOCX",
       "required_output": "标题、段落、表、图片、来源位置",
-      "status": "custody_only",
-      "implemented_now": "a DOCX is imported and preserved as bytes with its sha256 and name",
-      "gap": "no DOCX parsing: headings, paragraphs, tables, images and source positions are all absent",
+      "status": "partial",
+      "implemented_now": "a DOCX reaches its own route (`office.structure`). The worker that reads it has existed since the 2026-09-05 slice but had no route pointing at it, so the capability was unreachable through the job contract; it is now wired (its own worker identity, media type and engine profile). It extracts the paragraph text (verified end to end: the paragraph text reaches the store) and returns its own structure - paragraphs, tables, a media inventory and header/footer notes - which the transport keeps as a fact under `params.worker_structure` while the route contract carries canonical line anchors over the projected text. A package the worker cannot read fails the job with no text artifact",
+      "gap": "the worker's own paragraph and table structure is reported as a fact rather than as an addressing level, so navigation stays on line anchors; heading styles are not separated from body paragraphs in the receipt, and nothing is rendered",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
-        "legacy_reference": []
+        "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}],
+        "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "legacy_reference": ["app/capability/builtin/converters_docx.py"]
       }
     },
     {
@@ -134,15 +134,15 @@
       "release_scope": "core",
       "formats": "PPTX",
       "required_output": "幻灯片、文本、备注、图表引用",
-      "status": "custody_only",
-      "implemented_now": "a PPTX is imported and preserved as bytes with its sha256 and name",
-      "gap": "no slide, text, notes or chart-reference extraction",
+      "status": "partial",
+      "implemented_now": "a PPTX reaches the `office.structure` route through the same worker (python-pptx 1.0.2 is available here and the worker's own probe reports it). It reads slide order, shape text, speaker notes and an image count, and its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors over the projected text. A package whose engine is missing or unreadable fails the job rather than succeeding empty",
+      "gap": "slide and shape structure is a reported fact rather than an addressing level, chart data is not read, and nothing is rendered",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
-        "legacy_reference": []
+        "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation"}],
+        "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "legacy_reference": ["app/capability/builtin/converters_pptx.py"]
       }
     },
     {
@@ -150,15 +150,15 @@
       "release_scope": "core",
       "formats": "XLSX",
       "required_output": "sheet/cell、公式文本与缓存值、表",
-      "status": "custody_only",
-      "implemented_now": "an XLSX is imported and preserved as bytes with its sha256 and name",
-      "gap": "no sheet or cell extraction, and no formula text with its cached value",
+      "status": "partial",
+      "implemented_now": "an XLSX reaches the `office.structure` route through the same worker (openpyxl 3.1.5 is available here and the worker's own probe reports it). It reads sheets and cells, the formula text with the cached-value policy it states, and merged ranges, with macros never executed; its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors. A workbook the engine cannot read fails the job rather than succeeding empty",
+      "gap": "sheet and cell structure is a reported fact rather than an addressing level, formula results are not calculated (only the cached value the file carries), and nothing is rendered",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
-        "legacy_reference": []
+        "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],
+        "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "legacy_reference": ["app/capability/builtin/converters_xlsx.py"]
       }
     },
     {

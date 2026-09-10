@@ -182,6 +182,7 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     "python-worker-ocr-ndjson",
     "python-worker-archive-ndjson",
     "python-worker-media-ndjson",
+    "python-worker-office-ndjson",
 ];
 
 fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],cancel:&Cancellation,allow_site:bool)->Result<(Response,Vec<Vec<u8>>),Failure>{

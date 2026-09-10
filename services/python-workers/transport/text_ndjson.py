@@ -175,6 +175,20 @@ ROUTES = {
         "media_types": {"video/mp4", "audio/wav"},
         "call": "path",
     },
+    # R15/F07-F09: an Office package is a ZIP of XML parts; this route reaches the
+    # worker that already read them since the 2026-09-05 slice but had no route.
+    "office.structure": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_office.py",
+        "media_types": {
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+        "call": "path",
+        # this worker dispatches on the file suffix, so it needs a suffixed view
+        "office_document": True,
+    },
 }
 
 
@@ -185,6 +199,75 @@ _IMAGE_SUFFIX = {
     "image/webp": ".webp",
     "image/bmp": ".bmp",
 }
+
+# R15/F07-F09: the Office worker dispatches on the file suffix, and staging stores
+# inputs content-addressed (no extension), so the route declares the suffix its media
+# type implies; the transport materialises a route-local view for the worker.
+_OFFICE_SUFFIX = {
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+}
+
+
+def _materialise_view(source: Path, suffix: str) -> Path:
+    """A route-local copy carrying the suffix the route's worker expects.
+
+    The original staged input is untouched and its hash is still verified separately by
+    the caller; this only gives a suffix-dispatching worker the name it needs.
+    """
+    view = source.with_name(source.name + suffix)
+    if not view.exists():
+        with view.open("xb") as handle:
+            handle.write(source.read_bytes())
+    return view
+
+
+def _as_route_contract(result: dict, route_capability: str) -> dict:
+    """Give a worker's own output the shape the route contract requires.
+
+    The Office worker predates the unified job contract: it returns its engine's own
+    structure (paragraph or page anchors) and a receipt without coverage. The Core
+    requires canonical line anchors over the projected text plus covered/total/coverage,
+    so the transport derives them here and keeps the worker's own structure in
+    `params.worker_structure` as a fact. The loss list says who derived what, because a
+    reader must be able to tell the worker's measurement from the transport's.
+    """
+    text = result.get("text")
+    if not isinstance(text, str):
+        raise Rejected(f"{route_capability} produced no projected text", "AAK-WORK-002")
+    lines = text.splitlines(keepends=True)
+    anchors: list[dict] = []
+    offset = 0
+    for index, line in enumerate(lines, start=1):
+        anchors.append(
+            {"kind": "line", "path": [f"line-{index}"], "char_start": offset, "char_end": offset + len(line)}
+        )
+        offset += len(line)
+    receipt = dict(result.get("loss_receipt") or {})
+    params = dict(receipt.get("params") or {})
+    worker_structure = result.get("structure")
+    if worker_structure is not None and "worker_structure" not in params:
+        params["worker_structure"] = worker_structure
+        params["worker_structure_note"] = (
+            "the worker's own structure is kept here as a fact; the structure the route contract carries is "
+            "derived from the projected text"
+        )
+    params.setdefault("coverage_unit", "line anchors")
+    losses = list(receipt.get("losses") or [])
+    losses.append(
+        "line anchors and coverage were derived by the transport from the worker's projected text; "
+        "the worker's own structure is kept under params.worker_structure"
+    )
+    receipt.update(
+        params=params,
+        losses=losses,
+        covered=len(anchors),
+        total=len(lines),
+        coverage=1.0,
+    )
+    receipt.setdefault("loss_note", "; ".join(losses))
+    return {**result, "structure": anchors, "loss_receipt": receipt}
 
 
 def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None) -> dict:
@@ -218,6 +301,11 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
             plain = str(tessdata_arg).replace("\\\\?\\", "")
             tessdata_arg = Path(plain)
         return module.extract(view, "eng", tessdata_arg)
+    if route.get("office_document"):
+        suffix = _OFFICE_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
+        if suffix is None:
+            raise Rejected("unsupported office media type", "AAK-VAL-002")
+        return _as_route_contract(module.extract(str(_materialise_view(source, suffix))), "office.structure")
     if route.get("artifact_dir"):
         # R15/F06+F15: the attempt directory is temporary, so durable transfer files
         # (rendered PDF pages, extracted container members) go to the artifact root the
