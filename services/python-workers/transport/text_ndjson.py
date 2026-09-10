@@ -155,6 +155,14 @@ ROUTES = {
         "media_types": {"image/png", "image/jpeg", "image/tiff", "image/webp", "image/bmp"},
         "call": "ocr",
     },
+    # R15/F15: a container is binary, so it has its own route and its own worker; the
+    # projection is an inventory listing rather than a decode of the bytes.
+    "archive.inventory": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_archive.py",
+        "media_types": {"application/zip"},
+        "call": "path",
+    },
 }
 
 

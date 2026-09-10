@@ -13,8 +13,8 @@
   "coverage_summary": {
     "total": 16,
     "complete": 0,
-    "partial": 6,
-    "custody_only": 10
+    "partial": 7,
+    "custody_only": 9
   },
   "formats": [
     {
@@ -246,14 +246,14 @@
       "release_scope": "expansion",
       "formats": "ZIP/目录批量",
       "required_output": "容器到文件到知识的来源关系",
-      "status": "custody_only",
-      "implemented_now": "an archive file is imported and preserved as bytes like any other source",
-      "gap": "vNext does not traverse a container and has no container-to-file-to-knowledge relation; the legacy batch controller in app/ingestion/batch_controller.py belongs to the Green application and is a recovery reference only, not an implementation of this row",
+      "status": "partial",
+      "implemented_now": "a container has its own route (`archive.inventory`), because a ZIP is binary and decoding it as text would produce noise. The worker reads the container's own directory and projects an inventory listing - one member per line, name and size - with canonical line anchors, and reports the member, file and directory counts, the uncompressed and compressed totals, the compression methods present, nested containers and encrypted members. The receipt states that the projection is an inventory of the container and NOT the members' contents, that no member was extracted, executed or decoded, and that the container's bytes remain the source of record. A corrupt container and an empty container are both refused rather than reported as an empty success",
+      "gap": "the container-to-knowledge relation does not exist yet: the inventory is a receipt fact, each member is not itself a source, and directory-batch ingestion (a folder rather than one container) is still unimplemented",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "core_routes": [{"kind": "archive", "capability": "archive.inventory", "media_type": "application/zip"}],
+        "worker_routes": [{"capability": "archive.inventory", "worker": "services/python-workers/document/worker_archive.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_archive.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["tests/test_worker_archive_route.py", "crates/archeaxis-application/tests/archive_job_end_to_end.rs"],
         "legacy_reference": ["app/ingestion/batch_controller.py"]
       }
     },

@@ -109,13 +109,19 @@ fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
 
 #[test]
 fn a_binary_container_name_is_refused_because_no_route_can_read_it() {
-    // .msg is a binary OLE container and .zip/.epub are binary archives: decoding any
-    // of them as text would produce noise, so the Core refuses the name instead
-    for name in ["mail.msg", "bundle.zip", "book.epub", "sheet.ods"] {
+    // .msg is a binary OLE container with no reader here, and .epub/.ods are binary
+    // archives no engine in this repository opens: decoding them as text would produce
+    // noise, so the Core refuses the name instead
+    for name in ["mail.msg", "book.epub", "sheet.ods"] {
         let error = attempts::resolve_media_type("text", name).unwrap_err().to_string();
         assert!(error.contains("cannot name a media type"), "{name}: {error}");
         assert!(error.contains("text/plain"), "the accepted set must be listed: {name}: {error}");
     }
+    // a .zip is still refused by the text route, but it now has a route of its own, so
+    // the refusal is "wrong route" rather than "nothing can read this"
+    let error = attempts::resolve_media_type("text", "bundle.zip").unwrap_err().to_string();
+    assert!(error.contains("cannot accept media type application/zip"), "{error}");
+    assert_eq!(attempts::resolve_media_type("archive", "bundle.zip").unwrap(), "application/zip");
 }
 
 #[test]

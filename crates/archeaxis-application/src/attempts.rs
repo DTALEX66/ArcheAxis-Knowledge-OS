@@ -13,6 +13,7 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-text", "0.1.0"),
     ("pymupdf-native-pdf", "pymupdf"),
     ("python-worker-ocr", "0.1.0"),
+    ("python-worker-archive", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -24,6 +25,9 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     ("text.extract", "text.extract", "text/plain"),
     ("pdf", "pdf.extract", "application/pdf"),
     ("image", "image.ocr", "image/png"),
+    // R15/F15: a container is binary, so it gets its own route instead of being
+    // decoded as text. The projection is an inventory listing, never the members.
+    ("archive", "archive.inventory", "application/zip"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -57,6 +61,7 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
         "image.ocr",
         &["image/png", "image/jpeg", "image/tiff", "image/webp", "image/bmp"],
     ),
+    ("archive.inventory", &["application/zip"]),
 ];
 
 /// The media types a capability's worker accepts (empty when the capability is unknown).
@@ -93,6 +98,8 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "tsv" => "text/tab-separated-values",
         "json" | "canvas" => "application/json",
         "xml" => "application/xml",
+        // R15/F15: a container gets the archive route, not a text decode
+        "zip" => "application/zip",
         // subtitles are textual documents; the worker recognises their cue structure
         // and reports it as a fact rather than inventing a media type the route does
         // not accept
