@@ -17,6 +17,15 @@ pub enum JobError {
     Conflict,
     InvalidState,
     InvalidReceipt(&'static str),
+    /// R15/F04: the media type derived from the source name is not one the route's
+    /// worker accepts, or the name carries no extension we are willing to name. The
+    /// job is refused instead of being dispatched under a media type that is wrong.
+    MediaTypeNotAccepted {
+        kind: String,
+        name: String,
+        derived: Option<&'static str>,
+        accepted: &'static [&'static str],
+    },
 }
 impl From<rusqlite::Error> for JobError {
     fn from(error: rusqlite::Error) -> Self { Self::Sql(error) }
@@ -29,6 +38,16 @@ impl std::fmt::Display for JobError {
             Self::Conflict => write!(f, "idempotency key has a different or unverifiable result"),
             Self::InvalidState => write!(f, "job state does not permit this transition"),
             Self::InvalidReceipt(reason) => write!(f, "invalid receipt: {reason}"),
+            Self::MediaTypeNotAccepted { kind, name, derived, accepted } => match derived {
+                Some(media) => write!(
+                    f,
+                    "route {kind} cannot accept media type {media} derived from {name}; it accepts {accepted:?}"
+                ),
+                None => write!(
+                    f,
+                    "cannot name a media type for {name}: route {kind} accepts {accepted:?}, so the file needs a recognised extension"
+                ),
+            },
         }
     }
 }

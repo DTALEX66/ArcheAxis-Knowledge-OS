@@ -71,13 +71,13 @@
       "formats": "剪贴板截图/PNG/JPG/JPEG/WebP/BMP/TIFF",
       "required_output": "原图、OCR框、阅读顺序、图示描述",
       "status": "partial",
-      "implemented_now": "the image.ocr route runs real Tesseract and returns recognised text with canonical line anchors; OCR regions are reported as facts in the loss receipt params, and a blank image produces no invented text",
-      "gap": "the Core still assigns image/png for every image job although the worker accepts png, jpeg, tiff, webp and bmp, so the other image media types cannot be named to the worker; reading order exists only as line order and there is no figure description",
+      "implemented_now": "the image.ocr route runs real Tesseract and returns recognised text with canonical line anchors; the media type is derived from the source name and must be one the route accepts, so png, jpeg, tiff, webp and bmp are all dispatched as what they are (each verified end to end through the transport to the engine); OCR regions are reported as facts in the loss receipt params, and a blank image produces no invented text",
+      "gap": "reading order exists only as line order and there is no figure description; a file whose extension the Core cannot name (for example a clipboard capture with no extension) is refused rather than guessed at, so the caller must supply a name that says what the file is",
       "evidence": {
         "core_routes": [{"kind": "image", "capability": "image.ocr", "media_type": "image/png"}],
         "worker_routes": [{"capability": "image.ocr", "worker": "services/python-workers/vision/worker_ocr.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/transport/text_ndjson.py"],
-        "tests": ["tests/test_worker_ocr_route.py", "tests/test_ocr_sidecar_job.py", "crates/archeaxis-application/tests/ocr_job_end_to_end.rs"],
+        "tests": ["tests/test_worker_ocr_route.py", "tests/test_image_media_types.py", "tests/test_ocr_sidecar_job.py", "crates/archeaxis-application/tests/route_capabilities.rs", "crates/archeaxis-application/tests/ocr_job_end_to_end.rs"],
         "legacy_reference": []
       }
     },

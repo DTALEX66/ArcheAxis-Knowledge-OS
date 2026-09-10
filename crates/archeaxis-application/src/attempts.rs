@@ -34,19 +34,97 @@ pub fn route_for_kind(kind: &str) -> Option<(&'static str, &'static str)> {
         .map(|(_, capability, media)| (*capability, *media))
 }
 
+/// R15/F04: the media types each route's worker actually accepts, mirroring the
+/// transport's own route table (`services/python-workers/transport/text_ndjson.py`).
+/// The Core used to pin one media type per job kind, which meant a JPEG was
+/// announced to the OCR worker as `image/png`; a job's media type is now derived
+/// from the source name and must be one of these.
+pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
+    (
+        "text.extract",
+        &[
+            "text/plain",
+            "text/markdown",
+            "text/csv",
+            "text/tab-separated-values",
+            "application/json",
+            "application/xml",
+            "text/xml",
+        ],
+    ),
+    ("pdf.extract", &["application/pdf"]),
+    (
+        "image.ocr",
+        &["image/png", "image/jpeg", "image/tiff", "image/webp", "image/bmp"],
+    ),
+];
+
+/// The media types a capability's worker accepts (empty when the capability is unknown).
+pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
+    ROUTE_MEDIA_TYPES
+        .iter()
+        .find(|(name, _)| *name == capability)
+        .map(|(_, types)| *types)
+        .unwrap_or(&[])
+}
+
+/// The media type a file name denotes, or `None` when the extension is not one we
+/// are willing to name. Guessing here is what the old pinned value effectively did.
+pub fn media_type_for_name(name: &str) -> Option<&'static str> {
+    let file = name.rsplit(['/', '\\']).next().unwrap_or(name).to_ascii_lowercase();
+    let extension = file.rsplit_once('.')?.1;
+    Some(match extension {
+        "txt" | "log" | "text" | "rs" | "py" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp" | "hpp"
+        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "toml" | "yaml" | "yml" | "ini" | "cfg"
+        | "sql" => "text/plain",
+        "md" | "markdown" => "text/markdown",
+        "csv" => "text/csv",
+        "tsv" => "text/tab-separated-values",
+        "json" => "application/json",
+        "xml" => "application/xml",
+        "pdf" => "application/pdf",
+        "png" => "image/png",
+        "jpg" | "jpeg" | "jpe" => "image/jpeg",
+        "tif" | "tiff" => "image/tiff",
+        "webp" => "image/webp",
+        "bmp" => "image/bmp",
+        _ => return None,
+    })
+}
+
+/// The media type to announce for one claimed job: derived from the source name and
+/// required to be accepted by the route's worker.
+pub fn resolve_media_type(kind: &str, original_name: &str) -> Result<&'static str, JobError> {
+    let (capability, _default) =
+        route_for_kind(kind).ok_or(JobError::InvalidReceipt("undeclared job kind"))?;
+    let accepted = accepted_media_types(capability);
+    let derived = media_type_for_name(original_name);
+    match derived {
+        Some(media) if accepted.contains(&media) => Ok(media),
+        _ => Err(JobError::MediaTypeNotAccepted {
+            kind: kind.to_string(),
+            name: original_name.to_string(),
+            derived,
+            accepted,
+        }),
+    }
+}
+
 pub fn claim(conn:&mut Connection, job_id:&str, request_id:&str, deadline_ms:u64) -> Result<Request,JobError> {
     let tx=conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
-    let row:Option<(String,String,String)>=tx.query_row(
-        "SELECT j.state,j.kind,s.sha256 FROM jobs j JOIN sources s ON s.source_id=j.input_ref WHERE j.job_id=?1",
-        [job_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional()?;
-    let (state,kind,sha)=row.ok_or(JobError::NotFound)?;
+    let row:Option<(String,String,String,String)>=tx.query_row(
+        "SELECT j.state,j.kind,s.sha256,COALESCE(s.original_name,'') FROM jobs j JOIN sources s ON s.source_id=j.input_ref WHERE j.job_id=?1",
+        [job_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
+    let (state,kind,sha,name)=row.ok_or(JobError::NotFound)?;
     if !matches!(state.as_str(),"queued"|"failed"|"cancelled") {
         return Err(JobError::InvalidState);
     }
-    let (capability,media_type)=match route_for_kind(&kind) {
-        Some(route)=>route,
+    let capability=match route_for_kind(&kind) {
+        Some((capability,_))=>capability,
         None=>return Err(JobError::InvalidReceipt("undeclared job kind")),
     };
+    // the media type comes from what the file is, not from a value pinned to the kind
+    let media_type=resolve_media_type(&kind,&name)?;
     let next:i64=tx.query_row("SELECT COALESCE(MAX(attempt),0)+1 FROM job_attempts WHERE job_id=?1",[job_id],|r|r.get(0))?;
     let request=Request::job(request_id,job_id,next as u64,capability,&sha,media_type,deadline_ms).map_err(JobError::InvalidReceipt)?;
     tx.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES(?1,?2,?3,?4,'running')",

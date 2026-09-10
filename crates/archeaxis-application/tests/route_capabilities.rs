@@ -2,6 +2,10 @@
 //! capability the worker must advertise and the media type of the input asset, so
 //! PDF and image jobs are first-class instead of being refused by a text-only
 //! allow-list.
+//!
+//! R15/F04 adds the second half: the media type is **derived from the source name**
+//! and must be one the route's worker accepts, so a JPEG is no longer announced to
+//! the OCR worker as a PNG, and a mismatch is refused rather than mislabelled.
 
 use archeaxis_application::{attempts, jobs};
 use archeaxis_domain::source::{self, ImportOutcome};
@@ -21,21 +25,84 @@ fn seed(kind: &str, payload: &[u8], name: &str) -> (tempfile::TempDir, rusqlite:
 #[test]
 fn every_declared_route_selects_its_capability_and_media_type() {
     let cases = [
-        ("text", "text.extract", "text/plain"),
-        ("pdf", "pdf.extract", "application/pdf"),
-        ("image", "image.ocr", "image/png"),
+        ("text", "text.extract", "text/plain", "notes.txt"),
+        ("text", "text.extract", "text/markdown", "notes.md"),
+        ("text", "text.extract", "text/csv", "table.csv"),
+        ("text", "text.extract", "application/json", "payload.json"),
+        ("pdf", "pdf.extract", "application/pdf", "sample.pdf"),
+        ("image", "image.ocr", "image/png", "shot.png"),
+        ("image", "image.ocr", "image/jpeg", "shot.jpg"),
+        ("image", "image.ocr", "image/tiff", "shot.tif"),
+        ("image", "image.ocr", "image/webp", "shot.webp"),
+        ("image", "image.ocr", "image/bmp", "shot.bmp"),
     ];
-    for (kind, capability, media) in cases {
-        let (_dir, mut conn) = seed(kind, b"%PDF-1.4 payload", "input.bin");
+    for (kind, capability, media, name) in cases {
+        let (_dir, mut conn) = seed(kind, b"%PDF-1.4 payload", name);
         let request = attempts::claim(&mut conn, "job", "req-1", 5000).unwrap();
-        assert_eq!(request.capability, capability, "kind {kind}");
+        assert_eq!(request.capability, capability, "kind {kind} name {name}");
         assert_eq!(request.capability_version, "1");
-        assert_eq!(request.inputs[0].media_type, media, "kind {kind}");
+        assert_eq!(request.inputs[0].media_type, media, "kind {kind} name {name}");
         assert_eq!(request.inputs[0].uri, format!("job://input/{}", request.inputs[0].sha256));
     }
     // The legacy alias keeps working: text.extract is still a text job.
     let aliased = attempts::route_for_kind("text.extract").unwrap();
     assert_eq!(aliased, ("text.extract", "text/plain"));
+}
+
+#[test]
+fn the_media_type_comes_from_the_file_name_not_from_the_kind() {
+    // the same image kind announces five different media types by name
+    for (name, expected) in [
+        ("scan.png", "image/png"),
+        ("scan.JPG", "image/jpeg"),
+        ("scan.jpeg", "image/jpeg"),
+        ("a/b/scan.tiff", "image/tiff"),
+        ("scan.webp", "image/webp"),
+        ("scan.bmp", "image/bmp"),
+    ] {
+        assert_eq!(
+            attempts::resolve_media_type("image", name).unwrap(),
+            expected,
+            "name {name}"
+        );
+    }
+    // and the derivation is not fooled by a directory that looks like an extension
+    assert_eq!(attempts::media_type_for_name("a.pdf/notes.txt"), Some("text/plain"));
+    assert_eq!(attempts::media_type_for_name("REPORT.MD"), Some("text/markdown"));
+    assert_eq!(attempts::media_type_for_name("archive.bin"), None);
+}
+
+#[test]
+fn a_name_the_route_cannot_accept_is_refused_with_a_reason() {
+    // a PDF payload named like an image must not be dispatched as a PDF job
+    let (_dir, mut conn) = seed("pdf", b"%PDF-1.4 payload", "shot.png");
+    let error = attempts::claim(&mut conn, "job", "req-3", 5000).unwrap_err();
+    let text = error.to_string();
+    assert!(text.contains("cannot accept media type image/png"), "{text}");
+    assert!(text.contains("application/pdf"), "the accepted set must be named: {text}");
+    let state: String = conn
+        .query_row("SELECT state FROM jobs WHERE job_id='job'", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(state, "queued", "a refused claim must leave the job queued");
+
+    // a text job whose file is an image is refused too
+    let (_dir2, mut conn2) = seed("text", b"pretend text", "shot.jpg");
+    let error = attempts::resolve_media_type("text", "shot.jpg").unwrap_err();
+    assert!(error.to_string().contains("image/jpeg"), "{error}");
+}
+
+#[test]
+fn an_unnamed_extension_is_refused_rather_than_guessed() {
+    let error = attempts::resolve_media_type("image", "clipboard").unwrap_err();
+    let text = error.to_string();
+    assert!(text.contains("cannot name a media type for clipboard"), "{text}");
+    assert!(text.contains("image/jpeg"), "the accepted set must be listed: {text}");
+    assert!(attempts::resolve_media_type("image", "scan.dat").is_err());
+    // the declared sets are the transport's own, and every route has one
+    assert_eq!(attempts::accepted_media_types("image.ocr").len(), 5);
+    assert_eq!(attempts::accepted_media_types("pdf.extract"), ["application/pdf"]);
+    assert_eq!(attempts::accepted_media_types("text.extract").len(), 7);
+    assert!(attempts::accepted_media_types("nothing.extract").is_empty());
 }
 
 #[test]

@@ -805,6 +805,7 @@ fn job_error_response(error: jobs::JobError) -> axum::response::Response {
         jobs::JobError::Conflict | jobs::JobError::InvalidState => StatusCode::CONFLICT,
         jobs::JobError::Sql(_) => StatusCode::INTERNAL_SERVER_ERROR,
         jobs::JobError::InvalidReceipt(_) => StatusCode::BAD_REQUEST,
+        jobs::JobError::MediaTypeNotAccepted { .. } => StatusCode::BAD_REQUEST,
     };
     (status, error.to_string()).into_response()
 }
