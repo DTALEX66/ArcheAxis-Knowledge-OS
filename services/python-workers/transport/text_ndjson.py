@@ -182,9 +182,16 @@ def _run_route(route, source: Path, media_type: str) -> dict:
                 handle.write(source.read_bytes())
         # OCR keeps its own explicit parameters: language plus the tessdata dir.
         # The repository ships eng.traineddata; an ambient TESSDATA_PREFIX may
-        # point elsewhere, so the repository copy wins when it exists.
+        # point elsewhere, so the repository copy wins when it exists. The path is
+        # passed in plain form because tesseract cannot open a Windows extended
+        # (\\?\) path - canonicalised callers such as the Rust executor would
+        # otherwise hand one over and OCR would fail to load its language data.
         tessdata = ROOT / "tools" / "tesseract" / "tessdata"
-        return module.extract(view, "eng", tessdata if tessdata.is_dir() else None)
+        tessdata_arg = tessdata if tessdata.is_dir() else None
+        if tessdata_arg is not None:
+            plain = str(tessdata_arg).replace("\\\\?\\", "")
+            tessdata_arg = Path(plain)
+        return module.extract(view, "eng", tessdata_arg)
     return module.extract(str(source))
 
 

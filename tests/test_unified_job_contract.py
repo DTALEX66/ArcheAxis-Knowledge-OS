@@ -112,7 +112,7 @@ def test_ocr_route_uses_the_same_contract(tmp_path: Path) -> None:
     )
     assert _kinds(outputs) == ["text", "document_structure", "loss_report"]
     structure = json.loads(_artifact(staging, outputs, "document_structure"))
-    assert structure and structure[0]["kind"] == "region"
+    assert structure and structure[0]["kind"] == "line"
 
 
 def test_unknown_capability_is_rejected(tmp_path: Path) -> None:

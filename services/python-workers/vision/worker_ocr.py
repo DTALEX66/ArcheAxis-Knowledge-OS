@@ -189,12 +189,26 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
         raise RuntimeError("tesseract returned text without word boxes; OCR output is incomplete")
     warnings = [{"stage": stage, "message": result.stderr.strip()}
                 for stage, result in (("text", plain), ("tsv", tsv)) if result.stderr.strip()]
-    # R08: expose the SAME anchor shape as the text and PDF routes so all three
-    # feed one ingestion path: kind/path plus character offsets into `text`.
-    # OCR positions are regions (word boxes), so each anchor keeps its bbox and
-    # per-word confidence for review - confidence is a recogniser output, never
-    # presented here as an accuracy measure.
+    # R08: the Core's projection contract is line-based for every route, so the
+    # structure artifact carries the canonical line anchors of the recognised text
+    # (identical shape to the text and PDF routes). OCR's own positions are word
+    # regions: they travel as review metadata inside the loss receipt, because the
+    # Core accepts exactly three artifacts and a region can never equal a
+    # projected line.
     structure: list[dict] = []
+    offset = 0
+    for index, line in enumerate(text.splitlines(keepends=True), start=1):
+        structure.append(
+            {
+                "kind": "line",
+                "path": [f"line-{index}"],
+                "char_start": offset,
+                "char_end": offset + len(line),
+            }
+        )
+        offset += len(line)
+
+    regions: list[dict] = []
     cursor = 0
     for index, word in enumerate(words, start=1):
         needle = word["text"]
@@ -203,10 +217,10 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
             found = text.find(needle)
         if found < 0:
             continue
-        structure.append(
+        regions.append(
             {
-                "kind": "region",
-                "path": [f"region-{index}"],
+                "region": index,
+                "text": needle,
                 "char_start": found,
                 "char_end": found + len(needle),
                 "bbox": {"x": word["x"], "y": word["y"], "w": word["w"], "h": word["h"]},
@@ -214,7 +228,9 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
             }
         )
         cursor = found + len(needle)
-    anchor_summary = {"covered": len(structure), "total": len(words)}
+    anchor_summary = {"covered": len(structure), "total": len(structure)}
+    covered = len(structure)
+    total = len(structure)
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -227,11 +243,19 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
             "engine_version": ENGINE_VERSION,
             "params": {"lang": lang, "psm": 6, "engine": "tesseract",
                        "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
-                       "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings},
+                       "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings,
+                       "coverage_unit": "line anchors",
+                       # Recogniser confidence is review metadata, never an accuracy claim.
+                       "regions": regions},
+            "losses": [f"subprocess warning: {w['message'][:200]}" for w in warnings],
+            "covered": covered,
+            "total": total,
+            "coverage": (covered / total) if total else 1.0,
             "loss_note": (
-                "OCR text with per-word boxes/confidence; reading order follows "
-                "Tesseract layout; diagram semantics, handwriting and low-quality "
-                "region retries are separate lanes"
+                "OCR text with per-word boxes/confidence kept as review metadata "
+                "(params.regions); reading order follows Tesseract layout; diagram "
+                "semantics, handwriting and low-quality region retries are separate "
+                "lanes"
                 + ("; subprocess warnings retained in params.warnings" if warnings else "")
             ),
         },

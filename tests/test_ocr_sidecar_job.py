@@ -96,7 +96,7 @@ def test_ocr_worker_speaks_the_sidecar_job_loop(tmp_path: Path) -> None:
     structure_entry = next(o for o in response["outputs"] if o["kind"] == "document_structure")
     structure_digest = structure_entry["uri"].rsplit("/", 1)[-1]
     structure = json.loads((staging / "output" / structure_digest).read_bytes())
-    assert structure and structure[0]["kind"] == "region"
+    assert structure and structure[0]["kind"] == "line"
 
 
 def test_ocr_worker_refuses_a_capability_it_did_not_advertise(tmp_path: Path) -> None:

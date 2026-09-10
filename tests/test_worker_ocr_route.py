@@ -56,7 +56,7 @@ def _render(path: Path, line: str) -> None:
     image.save(path)
 
 
-def test_ocr_route_returns_shared_contract_with_region_anchors(tmp_path: Path) -> None:
+def test_ocr_route_returns_the_shared_contract_with_line_anchors(tmp_path: Path) -> None:
     sample = tmp_path / "screenshot.png"
     _render(sample, "ArcheAxis 6371 km")
     result = worker.extract(sample, lang="eng", tessdata_dir=TESSDATA)
@@ -65,18 +65,27 @@ def test_ocr_route_returns_shared_contract_with_region_anchors(tmp_path: Path) -
     assert result["text"].strip(), "a non-empty synthetic sample must produce text"
     assert "6371" in result["text"] or "637" in result["text"], result["text"]
 
+    # R08: the Core's projection contract is line-based for every route, so the
+    # structure artifact is canonical line anchors in the recognised text.
     structure = result["structure"]
-    assert structure, "OCR words must be exposed as anchors like the other routes"
+    assert structure, "recognised text must be anchored"
     anchor = structure[0]
-    assert anchor["kind"] == "region"
-    assert anchor["path"][0].startswith("region-")
+    assert anchor["kind"] == "line"
+    assert anchor["path"][0].startswith("line-")
     assert 0 <= anchor["char_start"] < anchor["char_end"] <= len(result["text"])
-    assert set(anchor["bbox"]) == {"x", "y", "w", "h"}, anchor["bbox"]
-    # Coverage is reported, not hidden.
-    assert result["anchor_summary"]["total"] >= result["anchor_summary"]["covered"] >= 1
+    # The recognised text is fully covered line by line.
+    assert structure[-1]["char_end"] == len(result["text"])
 
     receipt = result["loss_receipt"]
     assert receipt["engine"] == worker.ENGINE
+    # OCR's own word regions are review metadata, not the projection contract.
+    regions = receipt["params"]["regions"]
+    assert regions, "word boxes must still be retained for review"
+    assert set(regions[0]["bbox"]) == {"x", "y", "w", "h"}, regions[0]["bbox"]
+    assert isinstance(regions[0]["confidence"], (int, float))
+    # Coverage is supplied with the anchors, in the same unit.
+    assert receipt["covered"] == receipt["total"] == len(structure)
+    assert receipt["coverage"] == 1.0
     assert "accuracy" not in str(receipt).lower(), "confidence must not be presented as accuracy"
 
 
