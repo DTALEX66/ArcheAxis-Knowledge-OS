@@ -88,6 +88,79 @@ def line_anchors(text: str, *, cap_lines: int = 5000) -> list[dict]:
     return anchors
 
 
+CUE_TIME = re.compile(r"(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3})")
+SRT_INDEX = re.compile(r"^\s*\d+\s*$", re.MULTILINE)
+CUE_CAP = 5000
+CANVAS_DANGLING_CAP = 50
+
+
+def _subtitle_facts(text: str) -> dict | None:
+    """Subtitle cues, when the text really looks like SRT or WebVTT.
+
+    Detection is by pattern and is reported as such: the declared media type for
+    these files is text/plain, so a reader must be able to tell a detection from a
+    declaration.
+    """
+    is_vtt = text.lstrip().startswith("WEBVTT")
+    cues = CUE_TIME.findall(text)
+    if not is_vtt and not cues:
+        return None
+    if not is_vtt and not SRT_INDEX.search(text):
+        return None
+    return {
+        "format": "webvtt" if is_vtt else "srt",
+        "parsed": True,
+        "detected_by": "pattern (WEBVTT header or numbered cues with a time arrow), not by media type",
+        "cue_count": len(cues[:CUE_CAP]),
+        "cues_capped": len(cues) > CUE_CAP,
+        "first_cue_start": cues[0][0] if cues else None,
+        "last_cue_end": cues[-1][1] if cues else None,
+        "note": "cue times are reported as facts; they are not anchors, so navigation stays on line anchors"
+        if cues
+        else "a WEBVTT document with no cues was found",
+    }
+
+
+def _canvas_facts(payload) -> dict | None:
+    """JSON Canvas nodes and edges, when the document has both arrays.
+
+    This is an integrity measurement, not a graph: an edge that names a node which
+    does not exist is reported as dangling rather than quietly ignored, and repeated
+    node ids are named.
+    """
+    if not isinstance(payload, dict):
+        return None
+    nodes, edges = payload.get("nodes"), payload.get("edges")
+    if not isinstance(nodes, list) or not isinstance(edges, list):
+        return None
+    ids = [node.get("id") for node in nodes if isinstance(node, dict)]
+    duplicates = sorted({node_id for node_id in ids if node_id is not None and ids.count(node_id) > 1})
+    known = {node_id for node_id in ids if node_id is not None}
+    dangling = [
+        {"edge": edge.get("id"), "missing": side}
+        for edge in edges
+        if isinstance(edge, dict)
+        for side in (edge.get("fromNode"), edge.get("toNode"))
+        if side is not None and side not in known
+    ]
+    kinds: dict[str, int] = {}
+    for node in nodes:
+        if isinstance(node, dict):
+            kind = str(node.get("type", "untyped"))
+            kinds[kind] = kinds.get(kind, 0) + 1
+    return {
+        "format": "json-canvas",
+        "parsed": True,
+        "node_count": len(nodes),
+        "edge_count": len(edges),
+        "node_types": dict(sorted(kinds.items())),
+        "duplicate_node_ids": duplicates,
+        "dangling_edges": dangling[:CANVAS_DANGLING_CAP],
+        "dangling_edges_capped": len(dangling) > CANVAS_DANGLING_CAP,
+        "note": "nodes and edges are counted as they appear; an edge naming a missing node is reported, not ignored",
+    }
+
+
 def _depth(value) -> int:
     """Nested container depth: the outermost container counts as 1, a scalar as 0."""
     if isinstance(value, dict):
@@ -168,7 +241,7 @@ def _json_facts(text: str) -> dict:
             "error": f"{error.msg} at line {error.lineno} column {error.colno}",
             "note": "the text is still projected; an unparsable document is reported, not guessed at",
         }
-    return {
+    facts = {
         "format": "json",
         "parsed": True,
         "top_level": type(payload).__name__,
@@ -177,6 +250,10 @@ def _json_facts(text: str) -> dict:
         "depth_unit": DEPTH_UNIT,
         "item_count": len(payload) if isinstance(payload, (list, dict)) else 0,
     }
+    canvas = _canvas_facts(payload)
+    if canvas is not None:
+        facts["canvas"] = canvas
+    return facts
 
 
 def _xml_depth(element) -> int:
@@ -216,6 +293,10 @@ def format_facts(text: str, media_type: str) -> dict:
         return _json_facts(text)
     if media in ("application/xml", "text/xml"):
         return _xml_facts(text)
+    if media == "text/plain":
+        subtitle = _subtitle_facts(text)
+        if subtitle is not None:
+            return subtitle
     return {"format": "plain", "parsed": True, "note": "no format-specific structure is claimed for plain text"}
 
 

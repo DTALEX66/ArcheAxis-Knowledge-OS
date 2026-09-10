@@ -80,8 +80,12 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "md" | "markdown" => "text/markdown",
         "csv" => "text/csv",
         "tsv" => "text/tab-separated-values",
-        "json" => "application/json",
+        "json" | "canvas" => "application/json",
         "xml" => "application/xml",
+        // subtitles are textual documents; the worker recognises their cue structure
+        // and reports it as a fact rather than inventing a media type the route does
+        // not accept
+        "srt" | "vtt" => "text/plain",
         "pdf" => "application/pdf",
         "png" => "image/png",
         "jpg" | "jpeg" | "jpe" => "image/jpeg",

@@ -190,3 +190,87 @@ def test_the_transport_hands_the_declared_media_type_to_the_text_worker(tmp_path
 
     # and a route that does not declare the argument is not passed one
     assert "media_type_arg" not in transport.ROUTES["pdf.extract"]
+
+
+CANVAS = """{
+  "nodes": [
+    {"id": "n-index", "type": "file", "file": "notes/index.md"},
+    {"id": "n-atomic", "type": "file", "file": "notes/atomic.md"},
+    {"id": "n-note", "type": "text", "text": "custody only"},
+    {"id": "n-atomic", "type": "file", "file": "duplicate id"}
+  ],
+  "edges": [
+    {"id": "e-1", "fromNode": "n-index", "toNode": "n-atomic"},
+    {"id": "e-2", "fromNode": "n-atomic", "toNode": "n-missing"}
+  ]
+}
+"""
+
+SRT = """1
+00:00:01,000 --> 00:00:04,000
+The measured value is 6371 km.
+
+2
+00:00:05,500 --> 00:00:07,000
+Second cue.
+"""
+
+VTT = """WEBVTT
+
+00:00:01.000 --> 00:00:03.000
+Aligned subtitle line.
+"""
+
+
+def test_a_json_canvas_reports_nodes_edges_and_their_integrity(tmp_path):
+    _, facts = _facts(tmp_path, CANVAS, "application/json", ".canvas")
+    assert facts["format"] == "json" and facts["parsed"] is True
+    canvas = facts["canvas"]
+    assert canvas["format"] == "json-canvas"
+    assert canvas["node_count"] == 4
+    assert canvas["edge_count"] == 2
+    assert canvas["node_types"] == {"file": 3, "text": 1}
+    # the duplicate id and the edge pointing at a missing node are reported facts
+    assert canvas["duplicate_node_ids"] == ["n-atomic"]
+    assert canvas["dangling_edges"] == [{"edge": "e-2", "missing": "n-missing"}]
+    assert "not ignored" in canvas["note"]
+
+
+def test_plain_json_without_nodes_and_edges_is_not_called_a_canvas(tmp_path):
+    _, facts = _facts(tmp_path, JSON_DOC, "application/json", ".json")
+    assert "canvas" not in facts, facts
+
+
+def test_a_canvas_that_is_not_json_is_reported_as_unparsable(tmp_path):
+    _, facts = _facts(tmp_path, '{"nodes": [', "application/json", ".canvas")
+    assert facts["parsed"] is False and "canvas" not in facts
+
+
+def test_srt_cues_are_counted_and_time_bounded(tmp_path):
+    _, facts = _facts(tmp_path, SRT, "text/plain", ".srt")
+    assert facts["format"] == "srt" and facts["parsed"] is True
+    assert facts["cue_count"] == 2
+    assert facts["first_cue_start"] == "00:00:01,000"
+    assert facts["last_cue_end"] == "00:00:07,000"
+    assert "not by media type" in facts["detected_by"]
+    assert "not anchors" in facts["note"]
+
+
+def test_webvtt_is_recognised_by_its_header(tmp_path):
+    _, facts = _facts(tmp_path, VTT, "text/plain", ".vtt")
+    assert facts["format"] == "webvtt"
+    assert facts["cue_count"] == 1
+    assert facts["first_cue_start"] == "00:00:01.000"
+
+
+def test_an_empty_webvtt_document_says_so(tmp_path):
+    _, facts = _facts(tmp_path, "WEBVTT\n\n", "text/plain", ".vtt")
+    assert facts["format"] == "webvtt" and facts["cue_count"] == 0
+    assert facts["first_cue_start"] is None
+    assert "no cues" in facts["note"]
+
+
+def test_plain_text_that_only_looks_numbered_is_not_a_subtitle(tmp_path):
+    # numbered lines without a time arrow are not cues
+    _, facts = _facts(tmp_path, "1\nfirst line\n\n2\nsecond line\n", "text/plain", ".txt")
+    assert facts["format"] == "plain", facts

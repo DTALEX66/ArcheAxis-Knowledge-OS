@@ -92,6 +92,19 @@ fn a_name_the_route_cannot_accept_is_refused_with_a_reason() {
 }
 
 #[test]
+fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
+    // a .canvas is a JSON document, so the JSON-capable text route takes it
+    assert_eq!(attempts::resolve_media_type("text", "vault.canvas").unwrap(), "application/json");
+    // subtitles are textual documents; the worker recognises their cue structure and
+    // reports it as a fact, so the declared media type stays the one the route accepts
+    assert_eq!(attempts::resolve_media_type("text", "talk.srt").unwrap(), "text/plain");
+    assert_eq!(attempts::resolve_media_type("text", "talk.vtt").unwrap(), "text/plain");
+    // and they are refused by a route that cannot read them
+    assert!(attempts::resolve_media_type("image", "vault.canvas").is_err());
+    assert!(attempts::resolve_media_type("pdf", "talk.srt").is_err());
+}
+
+#[test]
 fn an_unnamed_extension_is_refused_rather_than_guessed() {
     let error = attempts::resolve_media_type("image", "clipboard").unwrap_err();
     let text = error.to_string();

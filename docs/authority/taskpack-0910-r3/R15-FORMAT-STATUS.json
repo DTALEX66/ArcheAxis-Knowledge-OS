@@ -13,8 +13,8 @@
   "coverage_summary": {
     "total": 16,
     "complete": 0,
-    "partial": 4,
-    "custody_only": 12
+    "partial": 5,
+    "custody_only": 11
   },
   "formats": [
     {
@@ -198,14 +198,14 @@
       "release_scope": "core",
       "formats": "SRT/VTT/JSON Canvas",
       "required_output": "时间锚/节点及关系",
-      "status": "custody_only",
-      "implemented_now": "a subtitle file or a JSON Canvas document is imported and preserved byte-identically; a five-file vault round-trip asserts that the canvas is still a parseable four-node, two-edge document afterwards",
-      "gap": "no time anchors are parsed and no canvas graph is built: route_for_kind('canvas') is None, and no table in the schema stores a node or edge",
+      "status": "partial",
+      "implemented_now": "a .canvas is resolved as the JSON document it is and the text route reports its nodes and edges as facts: node and edge counts, node types, duplicate node ids, and edges naming a node that does not exist (dangling) - an integrity measurement rather than a graph. SRT and VTT are resolved as the textual documents they are and the route reports their cue structure: cue count, first and last cue times, and whether the document is SRT or WebVTT, all explicitly detected by pattern rather than declared by media type. Bytes remain custody-preserved in every case",
+      "gap": "no time anchor and no canvas node or edge is stored as a structure or a relation: the reported times and the graph are receipt facts, so nothing yet links a cue or a node to knowledge, and navigation stays on line anchors",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-application/src/attempts.rs"],
-        "tests": ["crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs"],
+        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
+        "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_text.py"],
+        "tests": ["tests/test_text_format_facts.py", "tests/test_worker_ocr_route.py", "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs", "crates/archeaxis-application/tests/route_capabilities.rs"],
         "legacy_reference": []
       }
     },
