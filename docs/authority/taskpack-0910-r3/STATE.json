@@ -72,11 +72,13 @@
     ]
   },
   "R06": {
-    "status": "IN_PROGRESS",
+    "status": "IMPLEMENTED_PENDING_AUDIT",
     "evidence": [
       "offline deliverable covered by regression: tests/test_x07_public_check_probe.py 13 passed - a radius sentence with object+unit+number is support; a diameter hit is recorded as weaker diameter_only and never as support; an unrelated same number (e.g. a year) yields none; model verdicts 不支持 / 无法判断 / empty / error can never become support; an unreachable source raises instead of silently becoming no-evidence",
       "cloud cross-check requires owner-configured and owner-approved endpoints and credentials (project default is zero paid budget): recorded as BLOCKED_EXTERNAL, no cloud verification is claimed",
-      "REMAINING: live run (public retrieval plus local-model verdict) needs working outbound HTTPS (previously intermittent) and ollama (currently reachable on :11434) - queued as the next work unit"
+      "REMAINING: live run (public retrieval plus local-model verdict) needs working outbound HTTPS (previously intermittent) and ollama (currently reachable on :11434) - queued as the next work unit",
+      "LIVE RUN SUCCEEDED (round 18): real public retrieval of the Wikipedia Earth extract produced a locatable quote; classification was diameter_only (the 12,742 km mention is the diameter, not the radius) and the local qwen3:8b answered 无法判断 (source does not state the mean radius) which parsed to undeterminable with supported=false - the 6371 claim was correctly NOT marked supported. Receipt: .project-local/runs/r18-x07-live.log",
+      "CLOUD SUB-ITEM: BLOCKED_EXTERNAL - cross-checking against a cloud endpoint needs owner-configured and owner-approved credentials; not performed and not claimed"
     ]
   },
   "R07": {
