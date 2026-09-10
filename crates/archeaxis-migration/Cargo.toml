@@ -11,6 +11,7 @@ hex = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 archeaxis-store-sqlite = { path = "../archeaxis-store-sqlite" }
+archeaxis-domain = { path = "../archeaxis-domain" }
 
 [dev-dependencies]
 tempfile = "3"

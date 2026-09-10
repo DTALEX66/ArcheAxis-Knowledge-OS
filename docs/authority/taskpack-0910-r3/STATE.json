@@ -82,8 +82,15 @@
     ]
   },
   "R07": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IMPLEMENTED_PENDING_AUDIT",
+    "evidence": [
+      "non-empty migration path proven on a synthetic legacy library (notes 3 rows, docs, attachments, links, learning_history 3 rows): existing stage_demo_semantic_import plus a new stage_legacy_learning_history that routes learning writes through archeaxis_domain so the Core stays the only learning-event authority",
+      "fidelity rules: a POSITIVE legacy interval is preserved; a missing interval and a legacy 0 (due immediately, which vNext history cannot represent) are both recorded as unscheduled, and the counters match what is actually stored",
+      "idempotency: deterministic persistent keys (legacy-table-rowid) mean a re-run replays receipts (3 replayed, 0 new) instead of accumulating history",
+      "no dual-write: the legacy database is byte-identical after the migration (sha256 before/after)",
+      "receipts: .project-local/runs/r19-r07-migration.log (5 groups ok), .project-local/runs/r19-full-workspace.log (56 groups ok after the new archeaxis-domain dependency)",
+      "REMAINING (not claimed): the owner real private library was not provided, so real-library migration qualification is still open; attachments/links remain explicit loss rows rather than transported assets; legacy timestamps are not preserved (the persistent key stores the legacy table and row id only)"
+    ]
   },
   "R08": {
     "status": "TODO",

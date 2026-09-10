@@ -335,3 +335,122 @@ fn demo_knowledge_id(kind: &str, body: &str, created_by: &str) -> String {
 fn demo_receipt(kind: &str, body: &str, status: &str) -> String {
     hex_sha256_bytes(format!("{kind}|{body}|{status}|").as_bytes())
 }
+
+/// R07: outcome of staging legacy learning history.
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct LegacyLearningResult {
+    pub rows_seen: u64,
+    /// Events staged with the legacy schedule preserved.
+    pub staged_scheduled: u64,
+    /// Events staged with no schedule (the legacy row carried none) - recorded
+    /// as unscheduled, never given an invented interval.
+    pub staged_unscheduled: u64,
+    /// Re-runs replay the original receipt instead of accumulating history.
+    pub replayed: u64,
+    pub row_errors: u64,
+    pub unmapped_tables: Vec<String>,
+}
+
+/// R07: stage legacy learning history as historical events.
+///
+/// Fidelity rules:
+/// - a row that carries its own `next_review_days` keeps that value (an existing
+///   schedule is preserved, not recomputed by a different algorithm);
+/// - a row without one is recorded as *unscheduled* (`next_review` NULL), never
+///   given an invented interval;
+/// - the persistent event key is derived from the legacy table + row id, so
+///   re-running the migration replays the original receipt (idempotent) instead
+///   of duplicating history.
+///
+/// Learning writes go through `archeaxis_domain::learning`, so the Rust Core
+/// stays the only authority for learning events.
+pub fn stage_legacy_learning_history(
+    export_dir: &str,
+    staging_db: &str,
+    table: &str,
+) -> Result<LegacyLearningResult, MigrationError> {
+    let manifest_path = Path::new(export_dir).join("export-manifest.json");
+    let manifest_raw = std::fs::read_to_string(&manifest_path).map_err(MigrationError::Io)?;
+    let manifest: ExportManifest =
+        serde_json::from_str(&manifest_raw).map_err(MigrationError::Json)?;
+    verify_export(export_dir, &manifest)?;
+
+    let mut result = LegacyLearningResult {
+        unmapped_tables: manifest
+            .tables
+            .keys()
+            .filter(|name| name.as_str() != table)
+            .cloned()
+            .collect(),
+        ..Default::default()
+    };
+    let Some(entry) = manifest.tables.get(table) else {
+        return Ok(result);
+    };
+    result.rows_seen = entry.rows;
+    let raw = std::fs::read_to_string(Path::new(export_dir).join(format!("{table}.jsonl")))
+        .map_err(MigrationError::Io)?;
+    let mut conn =
+        archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
+
+    for line in raw.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let row: serde_json::Value = serde_json::from_str(line).map_err(MigrationError::Json)?;
+        let Some(legacy_id) = row.get("id").and_then(serde_json::Value::as_i64) else {
+            result.row_errors += 1;
+            continue;
+        };
+        let item = row
+            .get("item")
+            .or_else(|| row.get("item_key"))
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("");
+        if item.is_empty() {
+            result.row_errors += 1;
+            continue;
+        }
+        let kind = row
+            .get("kind")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("legacy_review");
+        let outcome = row
+            .get("outcome")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("reviewed");
+        let correct = outcome.eq_ignore_ascii_case("correct")
+            || outcome.eq_ignore_ascii_case("true")
+            || outcome == "1";
+        // Only a POSITIVE legacy interval is a schedule we can preserve. vNext
+        // stores next_review as an absolute date and has no due-today
+        // representation for past history (next_review_iso returns None for
+        // days <= 0), so a legacy 0 or negative value is recorded as unscheduled
+        // and counted exactly as it will be stored - never as a schedule.
+        let legacy_days = row
+            .get("next_review_days")
+            .and_then(serde_json::Value::as_i64)
+            .filter(|days| *days > 0);
+        let key = format!("legacy-{table}-{legacy_id}");
+        match archeaxis_domain::learning::record_review_scheduled(
+            &mut conn,
+            item,
+            kind,
+            correct,
+            &key,
+            legacy_days,
+        ) {
+            Ok((_event_id, _streak, _days, duplicate)) => {
+                if duplicate {
+                    result.replayed += 1;
+                } else if legacy_days.is_some() {
+                    result.staged_scheduled += 1;
+                } else {
+                    result.staged_unscheduled += 1;
+                }
+            }
+            Err(_) => result.row_errors += 1,
+        }
+    }
+    Ok(result)
+}
