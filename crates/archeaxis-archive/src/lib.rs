@@ -25,24 +25,72 @@ pub const EXPORT_TABLES: &[&str] = &[
     "knowledge_supersedes",
 ];
 
-/// ARCHIVE-01: the older v3 wire layout. Schema version 3 shipped twice: first
-/// with these eleven tables, then with the thirteen-table set now exported
-/// (`knowledge_supersedes` and `learning_event_keys` were added while the
-/// reported version stayed 3). Both are real historical layouts and must be
-/// restorable; anything else at version 3 is an unknown layout and is rejected
-/// rather than guessed.
-pub const V3_TABLES_ELEVEN: &[&str] = &[
-    "workspace_meta",
-    "sources",
-    "transforms",
-    "anchors",
-    "knowledge",
-    "review_events",
-    "learning_events",
-    "jobs",
-    "job_attempts",
-    "job_outputs",
-    "source_origins",
+/// ARCHIVE-01: every export layout that schema version 3 actually shipped,
+/// identified by the manifest table set. Version 3 was released four times as
+/// tables were added, so a genuine v3 archive may carry 10, 11, 12 or 13 tables;
+/// all four are real historical layouts and must stay restorable. Anything else
+/// at version 3 is an unknown layout and is rejected rather than guessed.
+/// (Version 1 shipped seven tables without `workspace_meta`, so it cannot supply
+/// the metadata row this restore validates; it stays explicitly unsupported.)
+pub const V3_LAYOUTS: &[&[&str]] = &[
+    // 10 tables: before source origins were exported.
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+    ],
+    // 11 tables: per-digest source origins added.
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+        "source_origins",
+    ],
+    // 12 tables: learning-event dedup keys added (pre-v4 key columns).
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+        "source_origins",
+        "learning_event_keys",
+    ],
+    // 13 tables: the full v3 set, identical to the current table set.
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+        "source_origins",
+        "learning_event_keys",
+        "knowledge_supersedes",
+    ],
 ];
 
 /// ARCHIVE-01: resolve the exact table set an archive claims to contain. The
@@ -62,15 +110,11 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
                 ))
             }
         }
-        3 => {
-            if same_set(V3_TABLES_ELEVEN) {
-                Ok(V3_TABLES_ELEVEN)
-            } else if same_set(EXPORT_TABLES) {
-                Ok(EXPORT_TABLES)
-            } else {
-                Err(ArchiveError::Table("unknown v3 archive layout".into()))
-            }
-        }
+        3 => V3_LAYOUTS
+            .iter()
+            .find(|layout| same_set(layout))
+            .copied()
+            .ok_or_else(|| ArchiveError::Table("unknown v3 archive layout".into())),
         version if version == archeaxis_store_sqlite::SCHEMA_VERSION => {
             if same_set(EXPORT_TABLES) {
                 Ok(EXPORT_TABLES)
@@ -467,7 +511,7 @@ mod version_tests {
         }
         let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
         rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
-        assert_eq!(manifest.tables.len(), V3_TABLES_ELEVEN.len());
+        assert_eq!(manifest.tables.len(), V3_LAYOUTS[1].len());
         seal(&mut manifest, archive_path);
 
         let target = dir.path().join("eleven.sqlite");
@@ -521,9 +565,12 @@ mod version_tests {
         let dir = tempfile::tempdir().unwrap();
         let (archive, mut manifest) = exported_fixture(&dir);
         let archive_path = Path::new(archive.as_str());
+        // A 12-table set is now a genuine historical layout, so the unknown case
+        // must break the table set itself (drop a member every real layout has)
+        // rather than merely changing the table count.
         manifest.schema_version = 3;
-        manifest.tables.remove("knowledge_supersedes");
-        let _ = std::fs::remove_file(archive_path.join("knowledge_supersedes.jsonl"));
+        manifest.tables.remove("transforms");
+        let _ = std::fs::remove_file(archive_path.join("transforms.jsonl"));
         let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
         rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
         seal(&mut manifest, archive_path);
@@ -574,5 +621,47 @@ mod version_tests {
             "unexpected error: {err}"
         );
         assert!(!target.exists(), "no database is published for an unknown column");
+    }
+
+    /// ARCHIVE-01 acceptance: archives exported by the OLD implementation at the
+    /// four real v3 layouts (10/11/12/13 tables) must restore into the current
+    /// v4 store with their non-empty content intact. The fixtures were produced
+    /// by the historical code in a throwaway worktree (see PROVENANCE.txt in
+    /// each fixture directory), not hand-built.
+    #[test]
+    fn genuine_v3_era_archives_restore_with_content() {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
+        for name in ["v3-ten-tables", "v3-eleven-tables", "v3-twelve-tables", "v3-thirteen-tables"] {
+            let archive = base.join(name);
+            let dir = tempfile::tempdir().unwrap();
+            let target = dir.path().join("restored.sqlite");
+            restore_workspace(
+                archive.to_str().unwrap(),
+                target.to_str().unwrap(),
+            )
+            .unwrap_or_else(|e| panic!("restore failed for {name}: {e}"));
+            let conn =
+                Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+            assert_eq!(
+                conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r
+                    .get::<_, String>(0))
+                    .unwrap(),
+                "4",
+                "{name}: restored workspace must be upgraded to the current schema version"
+            );
+            let knowledge_rows: i64 =
+                conn.query_row("SELECT count(*) FROM knowledge", [], |r| r.get(0)).unwrap();
+            assert_eq!(knowledge_rows, 2, "{name}: legacy knowledge rows must survive");
+            let claim: String = conn
+                .query_row(
+                    "SELECT body FROM knowledge WHERE knowledge_type='FACTUAL_CLAIM'",
+                    [],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            assert_eq!(claim, "v3-fixture claim alpha", "{name}: body bytes must be preserved");
+            let sources: i64 = conn.query_row("SELECT count(*) FROM sources", [], |r| r.get(0)).unwrap();
+            assert_eq!(sources, 1, "{name}: legacy source row must survive");
+        }
     }
 }

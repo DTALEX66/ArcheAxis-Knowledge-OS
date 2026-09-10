@@ -1,0 +1,53 @@
+{
+  "schema_version": 3,
+  "raw_objects": {
+    "d433e5f1bcba98cfec24bbd4606218bade86b8220f05958e0d74c9364300eda4": 35
+  },
+  "tables": {
+    "anchors": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "job_attempts": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "job_outputs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "jobs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "knowledge": {
+      "rows": 2,
+      "sha256": "2f0c80f1a06a074e44db54f913f5e0685a6ce5063ca585b6ea3d82d01e91ded3"
+    },
+    "learning_events": {
+      "rows": 1,
+      "sha256": "fae0fa1910ba67aad9fd84be60da6a71d839afe81112f39ca6d32a36e4aab534"
+    },
+    "review_events": {
+      "rows": 1,
+      "sha256": "576b95ce39feb645ea72245a5cfd689d75298ed586e84391f0f98e151850ab14"
+    },
+    "source_origins": {
+      "rows": 1,
+      "sha256": "23dc36de362abcd35d3038e47e526829b846ab07e8bae2fd88075aa0ac3f3d56"
+    },
+    "sources": {
+      "rows": 1,
+      "sha256": "d226df117aba9e9315ac3bbc8ec92daf03b405f2719aad428da462393089a722"
+    },
+    "transforms": {
+      "rows": 1,
+      "sha256": "f6f445088f76c64ca1fc2f49157c9a55c0ae0bfae845592e8a5201a3647d0bbc"
+    },
+    "workspace_meta": {
+      "rows": 1,
+      "sha256": "9fb71cc8c08eb8bc5a3e17118dcd9b05fffdca962fc5316c612449ba7870de18"
+    }
+  },
+  "manifest_sha256": "ac6772547b24d110ee14b0fd35d720f72586a6cf8fba70b3f576951b182213be"
+}

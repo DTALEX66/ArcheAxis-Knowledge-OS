@@ -36,7 +36,11 @@
     "evidence": [
       "985a219 ARCHIVE-01: layout resolved from the manifest table set (v2 8-table, v3 11-table, v3 13-table, current 13-table); unknown v3 layout and current archive missing a table rejected; additive nullable columns filled NULL; unknown column rejected",
       "archive suite exit 0 / 7 groups ok (receipt .project-local/runs/r03-archive.log)",
-      "OPEN GAP: pack acceptance asks for a non-empty v3 sample exported by the OLD implementation; current evidence reconstructs the historical shapes from schema history"
+      "GAP CLOSED: four NON-EMPTY v3 archives were exported by the OLD implementation in a scratch worktree (store+archive from 968c479, a2dbef5, 60b355a, 3d65609) and committed as fixtures crates/archeaxis-archive/tests/fixtures/v3-{ten,eleven,twelve,thirteen}-tables (each with PROVENANCE.txt); sources=1, knowledge=2, objects=1 per fixture",
+      "v3 layout history verified from git: version 3 shipped 10, 11, 12 and 13-table export layouts; all four are now accepted by exact table set, v1 (7 tables, no workspace_meta) stays unsupported, and any other v3 set is rejected",
+      "new test genuine_v3_era_archives_restore_with_content restores each fixture, asserts schema upgrade to 4, 2 knowledge rows with body bytes preserved and 1 source row",
+      "archive suite exit 0 / 7 groups ok (receipt .project-local/runs/r03-archive-v2.log); full workspace cargo test exit 0 / 52 groups (receipt .project-local/runs/r03-full-workspace.log)",
+      "environment pitfall recorded: a scratch worktree under the repo inherits the main .cargo/config.toml target-dir, which mixed v3/v4 artifacts in one build directory; the worktree wrapper now pins its own CARGO_TARGET_DIR"
     ]
   },
   "R04": {
