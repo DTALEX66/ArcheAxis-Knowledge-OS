@@ -13,8 +13,15 @@
     ]
   },
   "R01": {
-    "status": "TODO",
-    "evidence": []
+    "status": "IMPLEMENTED_PENDING_AUDIT",
+    "evidence": [
+      "R01-CAPACITY-BASELINE.md: method, scope, inclusion/exclusion/unknown, volume trend with causes",
+      "same-tool census 23.423 GiB / 130,120 files / 20 errors / 60 excluded opaque / 10 reparse (receipt .project-local/runs/r01-census.json)",
+      "hermes fingerprinted separately: 42.853 GiB / 718,077 files, newest write 2026-09-06 (zero growth)",
+      "D: free 231.15 GiB / used 234.61 GiB recorded independently of logical bytes",
+      "growth-stop proof: bare cargo build -p archeaxis-api exit 0 via .project-local/runs/cargo-build-api.bat; root target/ byte-identical 6,151,810,038 / 19,949 before and after; +52.6 MiB into .project-local/build/cargo; artifact 7,492,608 bytes",
+      "remaining scope recorded: packaging-side path diff, __pycache__/ruff cache redirect decision, physical allocation measurement"
+    ]
   },
   "R02": {
     "status": "TODO",

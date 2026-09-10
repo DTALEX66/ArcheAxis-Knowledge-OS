@@ -11,6 +11,7 @@
 |切片|实际SHA|run id|命令/环境|结果|证据路径/hash|限制/回滚|
 |---|---|---|---|---|---|---|
 |R00|985a219（登记前基线）|—|`python -X utf8 docs/authority/taskpack-0910-r3/verify_package.py` exit 0；`cargo test --workspace --offline` 52 组 exit 0；`pwsh -File scripts/ci/run_tests.ps1 --full` 2347 passed/7 skipped exit 0；conventions 门与架构守卫通过|IMPLEMENTED_PENDING_AUDIT|`R00-BASELINE-REVIEW.md`、`PACKAGE-STATUS.md`、`.project-local/runs/r00-python-full-0910.log`、`.project-local/runs/cargo-archive-01-full.log`|仅文档与治理指针；回滚＝revert 本切片提交；未改产品实现|
+|R01|2dd7d6d（起始）|—|`inventory_project.py`（只读元数据）→ 23.423 GiB/130,120 文件/20 观测错误/60 排除/10 reparse；`.hermes` 单列 42.853 GiB/718,077 文件 newest 2026-09-06；D: free 231.15 GiB；`cargo build -p archeaxis-api` 经 `.project-local/runs/cargo-build-api.bat` exit 0，根 `target/` 6,151,810,038 B/19,949 文件前后一致，`.project-local/build/cargo` +52.6 MiB|IMPLEMENTED_PENDING_AUDIT（部分范围见 §6）|`R01-CAPACITY-BASELINE.md`、`.project-local/runs/r01-census.json`|未删任何缓存；打包侧路径差分与 `__pycache__` 重定向未做；回滚＝revert 本切片文档提交|
 
 ## R00 记录（2026-09-11）
 
