@@ -11,16 +11,39 @@ pub struct Cancellation(Arc<AtomicBool>);
 impl Cancellation {pub fn new()->Self{Self::default()} pub fn cancel(&self){self.0.store(true,Ordering::Relaxed);}}
 
 #[derive(Clone)]
-pub struct Executor {store:Store,staging:PathBuf,python:PathBuf,worker:PathBuf}
+pub struct Executor {store:Store,staging:PathBuf,python:PathBuf,worker:PathBuf,
+    /// R08: capability -> worker path and whether that route may import the
+    /// interpreter's installed packages. The stdlib-only text route keeps the
+    /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
+    /// from the configured interpreter, so `-S` must not strip it.
+    routes:Arc<Vec<(String,PathBuf,bool)>>}
 impl Executor {
     pub async fn open(db:&Path,staging:&Path,python:&Path,worker:&Path)->Result<Self,String> {
+        Self::open_routes(db,staging,python,worker,&[]).await
+    }
+
+    /// Open with additional capability routes. `default_worker` serves
+    /// `text.extract`; each extra `(capability, worker)` entry serves one more
+    /// route. A job whose capability has no registered worker fails explicitly
+    /// instead of being sent to the wrong process.
+    pub async fn open_routes(db:&Path,staging:&Path,python:&Path,default_worker:&Path,extra:&[(&str,PathBuf)])->Result<Self,String> {
         let staging=staging_path(staging)?;
         std::fs::create_dir_all(&staging).map_err(|e|e.to_string())?;
         // Opening a new Store takes the workspace OS lock. Startup recovery
         // happens here exactly once, before this executor is returned to callers.
         let store=Store::open(db).map_err(|e|e.to_string())?;
         store.submit_wait(attempts::recover_interrupted).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
-        Ok(Self{store,staging,python:python.to_owned(),worker:worker.to_owned()})
+        let mut routes:Vec<(String,PathBuf,bool)>=vec![("text.extract".to_string(),default_worker.to_owned(),false)];
+        for (capability,path) in extra {
+            if capability.trim().is_empty() {return Err("route capability must not be empty".into());}
+            routes.push(((*capability).to_string(),path.clone(),true));
+        }
+        Ok(Self{store,staging,python:python.to_owned(),worker:default_worker.to_owned(),routes:Arc::new(routes)})
+    }
+
+    /// The worker registered for a capability, with its launch policy.
+    fn worker_for(&self,capability:&str)->Option<(PathBuf,bool)>{
+        self.routes.iter().find(|(name,_,_)|name==capability).map(|(_,path,allow_site)|(path.clone(),*allow_site))
     }
     pub fn store(&self)->&Store{&self.store}
 
@@ -50,11 +73,16 @@ impl Executor {
         let input=self.store.submit_wait(move|conn|raw_objects::read(conn,&digest)).await.map_err(|e|e.to_string())?;
         let result=match input {
             Ok(input)=>{
-                let staging=self.staging.clone();let python=self.python.clone();let worker=self.worker.clone();
+                // R08: dispatch by the capability the claimed request carries.
+                let (worker,allow_site)=match self.worker_for(&req.capability) {
+                    Some(route)=>route,
+                    None=>return Err(format!("no worker registered for capability {}",req.capability)),
+                };
+                let staging=self.staging.clone();let python=self.python.clone();
                 let request=serde_json::to_string(&req).map_err(|e|e.to_string())?;
                 let req_copy:Request=serde_json::from_str(&request).map_err(|e|e.to_string())?;
                 let cancel=cancel.clone();
-                tokio::task::spawn_blocking(move||run_worker(&staging,&python,&worker,&req_copy,&input,&cancel)).await
+                tokio::task::spawn_blocking(move||run_worker(&staging,&python,&worker,&req_copy,&input,&cancel,allow_site)).await
                     .unwrap_or_else(|_|Err(Failure::Failed("worker execution thread failed".into())))
             }
             Err(e)=>Err(Failure::Failed(format!("source validation: {e}"))),
@@ -127,7 +155,7 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     "python-worker-ocr-ndjson",
 ];
 
-fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],cancel:&Cancellation)->Result<(Response,Vec<Vec<u8>>),Failure>{
+fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],cancel:&Cancellation,allow_site:bool)->Result<(Response,Vec<Vec<u8>>),Failure>{
     let deadline=Instant::now()+Duration::from_millis(req.deadline_ms);
     check(deadline,cancel)?;
     if input.len()>16*1024*1024 {return Err(Failure::Failed("text input exceeds 16 MiB".into()));}
@@ -135,7 +163,12 @@ fn run_worker(staging:&Path,python:&Path,worker:&Path,req:&Request,input:&[u8],c
     std::fs::create_dir(dir.path().join("input"))?;
     std::fs::write(dir.path().join("input").join(&req.inputs[0].sha256),input)?;
     let mut command=Command::new(python);
-    command.arg("-B").arg("-S").arg(worker).arg("--staging-root").arg(dir.path())
+    command.arg("-B");
+    if !allow_site {
+        // Hardened launch for stdlib-only routes: no user site-packages.
+        command.arg("-S");
+    }
+    command.arg(worker).arg("--staging-root").arg(dir.path())
         .current_dir(dir.path()).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     #[cfg(windows)]{use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
     let mut child=OwnedChild(command.spawn()?);
