@@ -213,6 +213,15 @@ ROUTES = {
         # the worker picks its parser by suffix, and staging has no extension
         "suffix_by_media": {"application/x-subrip": ".srt", "text/vtt": ".vtt"},
     },
+    # R15/F02: a saved HTML snapshot gets its own route through the worker that has read
+    # HTML since an earlier slice but had no route pointing at it.
+    "html.structure": {
+        "version": "1",
+        "worker": "services/python-workers/web/worker_html.py",
+        "media_types": {"text/html", "application/xhtml+xml"},
+        "call": "path",
+        "contract_adapter": True,
+    },
 }
 
 

@@ -13,8 +13,8 @@
   "coverage_summary": {
     "total": 16,
     "complete": 0,
-    "partial": 12,
-    "custody_only": 4
+    "partial": 14,
+    "custody_only": 2
   },
   "formats": [
     {
@@ -38,15 +38,15 @@
       "release_scope": "core",
       "formats": "静态网页/HTML/URL",
       "required_output": "快照、正文、链接、抓取时间、段落锚点",
-      "status": "custody_only",
-      "implemented_now": "an HTML file or a saved page is imported as a content-addressed source and survives export/restore byte-identically",
-      "gap": "nothing fetches a URL, and nothing extracts a snapshot, body text, links, a capture time or paragraph anchors",
+      "status": "partial",
+      "implemented_now": "a saved HTML snapshot reaches its own route (`html.structure`) through a worker that existed since an earlier slice with no route pointing at it. It reports the page title, the body blocks as the projection and as block anchors, and the link list with href and visible text; scripts and styles are never executed and never projected (a test asserts a script body does not appear in the stored text). The transport keeps the worker's block anchors and link list as facts under `params.worker_structure` and `params.worker_output` while the route contract carries canonical line anchors. A file with no markup at all is refused rather than reported as an empty success",
+      "gap": "nothing fetches a URL: only a saved snapshot can be read, and a capture time cannot be known from the file itself (the import origin's received_at is the place for it). A marked-up but genuinely empty page reports that it carries no text",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs", "crates/archeaxis-store-sqlite/src/raw_objects.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
-        "legacy_reference": []
+        "core_routes": [{"kind": "html", "capability": "html.structure", "media_type": "text/html"}],
+        "worker_routes": [{"capability": "html.structure", "worker": "services/python-workers/web/worker_html.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/web/worker_html.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["crates/archeaxis-application/tests/html_job_end_to_end.rs", "scripts/check_worker_reachability.py"],
+        "legacy_reference": ["app/capability/builtin/converters_html.py"]
       }
     },
     {
@@ -54,14 +54,14 @@
       "release_scope": "core",
       "formats": "动态网页/长网页",
       "required_output": "页面快照、正文、分页/滚动覆盖记录",
-      "status": "custody_only",
-      "implemented_now": "a saved dynamic page is imported and preserved as bytes like any other source",
-      "gap": "there is no browser or fetch client at all, so there is no snapshot, no pagination or scroll coverage record and no way to state what was not reached",
+      "status": "partial",
+      "implemented_now": "a saved dynamic page is read by the same HTML route, so its snapshot body and links are extracted like any other page: the page's own rendered markup is what the snapshot contains, and that is what is reported",
+      "gap": "there is no browser and no fetch client, so a page that was never saved cannot be reached at all, and pagination or scroll coverage cannot be recorded because nothing scrolled. A worker that would fetch (services/python-workers/web/worker_webpage.py) exists but is deliberately unrouted: it takes a URL and a network, which this route does not have",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "core_routes": [{"kind": "html", "capability": "html.structure", "media_type": "text/html"}],
+        "worker_routes": [{"capability": "html.structure", "worker": "services/python-workers/web/worker_html.py"}],
+        "code": ["services/python-workers/web/worker_html.py", "services/python-workers/web/worker_webpage.py"],
+        "tests": ["crates/archeaxis-application/tests/html_job_end_to_end.rs", "tests/test_worker_reachability.py"],
         "legacy_reference": []
       }
     },

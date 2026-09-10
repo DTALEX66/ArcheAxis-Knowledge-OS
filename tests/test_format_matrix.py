@@ -57,11 +57,17 @@ def _failures(target: Path) -> list[str]:
 def test_the_committed_matrix_passes_against_the_real_tables():
     failures, detail = check_module.check(MATRIX)
     assert failures == []
-    assert detail["rows"] == 16
-    assert detail["counts"] == {"complete": 0, "partial": 12, "custody_only": 4}
+    payload = json.loads(MATRIX.read_text(encoding="utf-8"))
+    # the counts are read from the matrix rather than hard-coded: this suite exists to
+    # test the checker's rules, not to pin the current coverage numbers
+    counted = {"complete": 0, "partial": 0, "custody_only": 0}
+    for row in payload["formats"]:
+        counted[row["status"]] += 1
+    assert detail["rows"] == len(payload["formats"]) == 16
+    assert detail["counts"] == counted
     # the checker really parsed the code, not an empty set
-    assert detail["core_routes_parsed"] == 7
-    assert detail["worker_routes_parsed"] == 6
+    assert detail["core_routes_parsed"] >= 10
+    assert detail["worker_routes_parsed"] >= 9
 
 
 def test_every_group_carries_a_gap_or_a_clean_status(tmp_path):
@@ -117,13 +123,16 @@ def test_a_route_paired_with_the_wrong_worker_is_refused(tmp_path):
 
 def test_a_custody_only_row_that_claims_extraction_is_refused(tmp_path):
     target, payload = _matrix_copy(tmp_path)
-    # F02 (static web/HTML) is still custody-only, so a route claim there is a lie
-    assert _row(payload, "F02")["status"] == "custody_only"
-    _row(payload, "F02")["evidence"]["core_routes"] = [
-        {"kind": "text", "capability": "text.extract", "media_type": "text/plain"}
-    ]
+    # take a row that is still custody-only rather than naming one, so this test does
+    # not go stale every time a group gains a route
+    row = next(candidate for candidate in payload["formats"] if candidate["status"] == "custody_only")
+    assert row["evidence"]["core_routes"] == [], "a custody-only row must not already claim a route"
+    row["evidence"]["core_routes"] = [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}]
     failures = _failures(_write(target, payload))
-    assert any("F02: status is custody_only but it claims an extraction route" in line for line in failures)
+    assert any(
+        f"{row['format_id']}: status is custody_only but it claims an extraction route" in line
+        for line in failures
+    )
 
 
 def test_a_status_without_evidence_is_refused(tmp_path):
@@ -155,9 +164,10 @@ def test_a_missing_evidence_path_is_refused(tmp_path):
 
 def test_a_mismatched_summary_is_refused(tmp_path):
     target, payload = _matrix_copy(tmp_path)
-    payload["coverage_summary"]["partial"] = 9
+    real = sum(1 for row in payload["formats"] if row["status"] == "partial")
+    payload["coverage_summary"]["partial"] = real + 3
     failures = _failures(_write(target, payload))
-    assert any("coverage_summary.partial is 9 but the rows count 12" in line for line in failures)
+    assert any(f"coverage_summary.partial is {real + 3} but the rows count {real}" in line for line in failures)
 
 
 def test_a_bad_status_word_is_refused(tmp_path):

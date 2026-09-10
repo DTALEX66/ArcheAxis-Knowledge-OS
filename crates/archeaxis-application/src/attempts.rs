@@ -18,6 +18,7 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-office", "0.1.0"),
     ("python-worker-canvas", "0.1.0"),
     ("python-worker-subtitles", "0.1.0"),
+    ("python-worker-html", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -47,6 +48,10 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // types are their own, so a .srt is no longer read as plain text by the text route.
     ("canvas", "canvas.structure", "application/json"),
     ("subtitles", "subtitles.structure", "application/x-subrip"),
+    // R15/F02-F03: a saved HTML snapshot is read by its own worker, which reports the
+    // title, the body blocks and the links. Fetching a URL is not part of this route:
+    // the snapshot is the input, so no network client exists here.
+    ("html", "html.structure", "text/html"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -95,6 +100,7 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     ),
     ("canvas.structure", &["application/json"]),
     ("subtitles.structure", &["application/x-subrip", "text/vtt"]),
+    ("html.structure", &["text/html", "application/xhtml+xml"]),
 ];
 
 /// The media types a capability's worker accepts (empty when the capability is unknown).
@@ -149,6 +155,9 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // plain text and cannot reach the text route by accident
         "srt" => "application/x-subrip",
         "vtt" => "text/vtt",
+        // R15/F02: a saved page is HTML; the route reads the snapshot, it never fetches
+        "html" | "htm" => "text/html",
+        "xhtml" => "application/xhtml+xml",
         // a saved mail message is text (RFC 822) with its own structure, which the
         // worker reports as facts. A binary .msg container is deliberately NOT named:
         // no route can read it, so it is refused instead of decoded into noise.
