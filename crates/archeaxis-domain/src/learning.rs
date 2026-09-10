@@ -97,19 +97,49 @@ pub fn record_review(
 ///   with `duplicate = true` and never accumulates a second event;
 /// - the same key with a different item or payload is a conflict (error);
 /// - a missing key is rejected: unkeyed submissions must not accumulate.
-pub fn record_review_keyed(
+/// R05: interval sentinel - the reusable scheduler was unavailable, so the
+/// review is recorded as explicitly *unscheduled* (no due date) instead of
+/// falling back to the placeholder ladder.
+pub const SCHEDULE_UNAVAILABLE: i64 = -2;
+/// R2 EVENT-01: interval sentinel - the receipt replayed an earlier identical
+/// submission.
+pub const SCHEDULE_DUPLICATE: i64 = -1;
+
+/// Where a keyed review's next interval comes from.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScheduleSource {
+    /// Temporary placeholder ladder (1/2/4/7/14). Kept only for callers that
+    /// have no scheduler yet; it is no longer the intended product default.
+    Ladder,
+    /// Interval computed by the reusable FSRS scheduler. `None` means that
+    /// scheduler was unavailable: the review is recorded as unscheduled and the
+    /// reported interval is [`SCHEDULE_UNAVAILABLE`] - never a ladder value.
+    Explicit(Option<i64>),
+}
+
+fn record_review_keyed_impl(
     conn: &mut Connection,
     item_key: &str,
     kind: &str,
     correct: bool,
     client_event_key: &str,
+    schedule: ScheduleSource,
 ) -> rusqlite::Result<(i64, u32, i64, bool)> {
     if client_event_key.trim().is_empty() {
         return Err(rusqlite::Error::InvalidParameterName(
             "learning events require a persistent event_key; unkeyed submissions are rejected".into(),
         ));
     }
-    let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
+    // The marker is part of the keyed payload: an unscheduled review is not
+    // interchangeable with a scheduled one for the same event key.
+    let outcome = if schedule == ScheduleSource::Explicit(None) {
+        format!(
+            r#"{{"outcome": "{}", "schedule": "unavailable"}}"#,
+            if correct { "correct" } else { "incorrect" }
+        )
+    } else {
+        format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" })
+    };
     let mut h = Sha256::new();
     h.update(format!("{kind}|{outcome}").as_bytes());
     let payload_hash = hex::encode(h.finalize());
@@ -146,8 +176,17 @@ pub fn record_review_keyed(
     }
     let prior = correct_streak(&tx, item_key)?;
     let streak_after = if correct { prior + 1 } else { 0 };
-    let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
-    let next_review = next_review_iso(&tx, next_review_days)?;
+    let next_review_days = match schedule {
+        ScheduleSource::Ladder => {
+            if correct { suggest_next_interval(streak_after) } else { 1 }
+        }
+        ScheduleSource::Explicit(days) => days.unwrap_or(SCHEDULE_UNAVAILABLE),
+    };
+    let next_review = if next_review_days == SCHEDULE_UNAVAILABLE {
+        None
+    } else {
+        next_review_iso(&tx, next_review_days)?
+    };
     tx.execute(
         "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
         rusqlite::params![item_key, kind, outcome, next_review],
@@ -162,11 +201,62 @@ pub fn record_review_keyed(
             payload_hash,
             event_id,
             streak_after,
-            next_review_days
+            if next_review_days == SCHEDULE_UNAVAILABLE {
+                None
+            } else {
+                Some(next_review_days)
+            }
         ],
     )?;
     tx.commit()?;
     Ok((event_id, streak_after, next_review_days, false))
+}
+
+/// Record a keyed review whose next interval comes from the reusable scheduler.
+///
+/// `next_review_days` is the value the Core's scheduler adapter obtained from the
+/// reused FSRS worker. `None` means that scheduler was unavailable: the event is
+/// still recorded with its persistent key (so a retry stays idempotent), but with
+/// no due date, an explicit `schedule: unavailable` marker in the payload, and
+/// the reported interval [`SCHEDULE_UNAVAILABLE`]. The review is never silently
+/// scheduled by the placeholder ladder.
+pub fn record_review_scheduled(
+    conn: &mut Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+    client_event_key: &str,
+    next_review_days: Option<i64>,
+) -> rusqlite::Result<(i64, u32, i64, bool)> {
+    record_review_keyed_impl(
+        conn,
+        item_key,
+        kind,
+        correct,
+        client_event_key,
+        ScheduleSource::Explicit(next_review_days),
+    )
+}
+
+/// Record a keyed review using the placeholder ladder.
+///
+/// Kept for callers that have no scheduler yet; behaviour is unchanged from
+/// before R05. New callers use [`record_review_scheduled`].
+pub fn record_review_keyed(
+    conn: &mut Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+    client_event_key: &str,
+) -> rusqlite::Result<(i64, u32, i64, bool)> {
+    record_review_keyed_impl(
+        conn,
+        item_key,
+        kind,
+        correct,
+        client_event_key,
+        ScheduleSource::Ladder,
+    )
 }
 
 /// Read the persisted history for one learning item (oldest first).
