@@ -458,6 +458,11 @@
           "path": "tests/test_evidence_commands.py",
           "kind": "tracked",
           "note": "safe by default, placeholders never run, unknown runners refused, not-run never a pass"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/AUDIT-PACKET.md",
+          "kind": "tracked",
+          "note": "the single online-audit entry point: what is provable from the repository alone, the commands with expected results, the recorded limitations and the overturned claims"
         }
       ],
       "limitations": [
@@ -467,7 +472,7 @@
         "from a fresh clone OUTSIDE the runtime tree the six gates and the recorded commands reproduce (7 PASS / 13 NOT_RUN naming a prerequisite) and the Python suite gives 2599 passed / 1 failed / 30 skipped, the failure being the pack-integrity test that needs the ignored install snapshot; a clone placed inside .project-local fails 112 legacy tests, which round 98 mis-attributed to untracked assets (round 99 measured the difference)"
       ],
       "status": "TODO",
-      "evidence_items_in_state": 14
+      "evidence_items_in_state": 15
     },
     {
       "slice": "R15",

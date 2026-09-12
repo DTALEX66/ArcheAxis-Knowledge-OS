@@ -12,7 +12,11 @@
    the single active plan (ARCHEAXIS-NEXT-TASKPACK-2026-09-10, 17 slices
    R00-R16; SUP-018), with slice progress in
    [STATE.json](authority/taskpack-0910-r3/STATE.json) and its package snapshot
-   in `authority/taskpack-0910-r3/reference-r2/`. The preceding R3-0908 ledger
+   in `authority/taskpack-0910-r3/reference-r2/`. Auditing this repository from
+   outside it starts at
+   [AUDIT-PACKET.md](authority/taskpack-0910-r3/AUDIT-PACKET.md): what is
+   provable from tracked files alone, the verification commands with their
+   expected results, and the limitations already recorded. The preceding R3-0908 ledger
    ([taskpack-0908-r3/EXECUTION](authority/taskpack-0908-r3/EXECUTION.md)) is
    the source of the inherited task text and its own receipts. Its inherited R2
    audit board stays at
