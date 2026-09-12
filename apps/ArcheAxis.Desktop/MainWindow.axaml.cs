@@ -1,6 +1,4 @@
 using System;
-using System.Net.Http;
-using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
@@ -8,7 +6,6 @@ namespace ArcheAxis.Desktop;
 
 public partial class MainWindow : Window
 {
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(5) };
     private CoreSupervisor? _supervisor;
 
     public MainWindow()
@@ -21,18 +18,28 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // Supervisor flow: if the core is not already answering on the default
-        // port and a binary is configured (ARCHAXIS_CORE_BIN), spawn it and
-        // handshake; otherwise probe the already-running core.
+        // Only start and authenticate our own Core; never adopt a shared service.
         var dbPath = Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
             ?? System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "ArcheAxis", "vnext", "workspace.sqlite");
-        _supervisor = new CoreSupervisor(dbPath);
+        CoreTextWorker? worker;
+        try
+        {
+            worker = WorkerProfile.Load(AppContext.BaseDirectory,
+                Environment.GetEnvironmentVariable("ARCHAXIS_WORKER_PROFILE"));
+        }
+        catch (Exception)
+        {
+            Title = "星环知识平台 — 工作组件配置无效，请检查运行配置";
+            return;
+        }
+        _supervisor = new CoreSupervisor(dbPath, textWorker: worker);
         var result = await _supervisor.StartAsync();
         if (result.ok)
         {
-            Title = $"ArcheAxis Learning Workspace (vNext) — {_supervisor.HandshakeRuntime} {_supervisor.HandshakeContract}";
+            Title = worker is null ? "星环知识平台 — 文本处理组件未配置"
+                : "星环知识平台 — 已连接";
         }
         else
         {

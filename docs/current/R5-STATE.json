@@ -1,0 +1,313 @@
+{
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "package_revision": "R5",
+  "active_tasks": "docs/authority/taskpack-0912-r5/TASKS.json",
+  "baseline_sha": "c06b234ca335b9cbb2c1fde270851e2390c36b89",
+  "priority": "X01/X02 normalization and early X14 cleanup before product expansion",
+  "tasks": [
+    {
+      "id": "X00",
+      "title": "基线、冲突裁决与唯一任务入口",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [],
+      "r31_slices": [
+        "R00"
+      ],
+      "gap": "R5包安装和当前入口已登记；HL01来源/资格导入行为仍未测，X00父任务保持PARTIAL。"
+    },
+    {
+      "id": "X01",
+      "title": "运行路径止增、浏览器失败与关键 CI",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X00"
+      ],
+      "r31_slices": [
+        "R01"
+      ],
+      "gap": "开发路径、CI路由、预算诊断、6个旧探针、启动probe隔离及真实截图OCR已验证；浏览器失败/取消清理补回归。dev.py捕获取消时清理自有进程树，真实Windows父/孙进程及无关进程保留已测；强杀运行器、孤儿进程与实际构建/打包取消仍未闭合。批量导入清单按来源/Core地址区分。正常启动持久数据库不自动迁移；全入口差分、保留轮转未闭合，Core地址复用仍需工作空间身份。 NuGet实际locals回读已修正HTTP/plugins缓存和scratch全部进入项目；不代表旧用户缓存已清理。 主checkout的dev.py与bare Cargo已复用build/cargo；linked worktree保留独立目录。40项定向测试及真实离线metadata回读通过；未删除历史构建。 显式容量预算UNKNOWN现exit3，已知超限exit2；20项CLI/边界测试通过。分类阈值和轮转仍未定稿。"
+    },
+    {
+      "id": "X02",
+      "title": "旧资产保全与当前能力的语义复用",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X00"
+      ],
+      "r31_slices": [
+        "R07"
+      ],
+      "gap": "1793 tracked路径归属已补齐；可见范围盘点0错误。M0已登记12组/19源版本及215个V15候选定位，逐行标明审查范围；调度供体拒绝行为已修复验证。其余M0全文语义核查、1246项M1吸收和真实默认Windows调用仍未闭合。"
+    },
+    {
+      "id": "X03",
+      "title": "现成学习工作台资格与默认入口",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X01",
+        "X02"
+      ],
+      "r31_slices": [
+        "R10"
+      ],
+      "gap": "CoreSupervisor双身份和MainWindow的严格worker profile接线已实现，正式Avalonia工程构建及同加载器C#→Core→Python实跑通过；开发入口自动准备隔离配置，未运行可见窗口。窗口主体仍占位；DeepTutor默认入口挂载/产物回收未闭合，不修改外置上游。"
+    },
+    {
+      "id": "X04",
+      "title": "跨语言真实契约及身份语义",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X01"
+      ],
+      "r31_slices": [
+        "R04"
+      ],
+      "gap": "Core/C#已实现显式v2 stdin双令牌/单写者，Rust14项与C#真实Core/Python链路通过；独立静态审查建议已处理，非Q00/Q01。DeepTutor跨进程机器adapter仍未接线。learning-feedback/v1 additionalProperties=false不能承载新增曝光/原回答版本语义；学习与结构寻址契约尚待定稿。"
+    },
+    {
+      "id": "X05",
+      "title": "Rust原件、事务、作业与恢复底座",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X04"
+      ],
+      "r31_slices": [
+        "R02",
+        "R03"
+      ],
+      "gap": "已有CAS/作业/恢复；新增完整FSRS状态使用现有追加事件表，与事件键原子提交、失败回滚及重开已测，未新增schema。其余R5学习字段、来源命名空间、修正追加与归档仍未闭合。"
+    },
+    {
+      "id": "X06",
+      "title": "复用workers贯通首批真实格式",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X02",
+        "X05"
+      ],
+      "r31_slices": [
+        "R08"
+      ],
+      "gap": "已有Core-worker路由和PDF/OCR/HTML接线；动态网页实时抓取、结构定位、复杂样本质量与真实模型资格未闭合。"
+    },
+    {
+      "id": "X07",
+      "title": "质量、公开核查、知识修订和搜索",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X06"
+      ],
+      "r31_slices": [
+        "R02",
+        "R06",
+        "R08",
+        "R09"
+      ],
+      "gap": "修订/撤销及公开检查probe已有；云端逐主张核查需配置及预算；HL02关系/阅读深度和HL10研究更正影响未测。"
+    },
+    {
+      "id": "X08",
+      "title": "人类学习侧复用与事件回收",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X03",
+        "X07"
+      ],
+      "r31_slices": [
+        "R05",
+        "R09",
+        "R10"
+      ],
+      "gap": "新/learning/reviews已将完整FSRS状态与幂等收据原子追加，真实认证Core/Python及同DB进程重启继续复习通过；无效worker结果保留未调度收据。旧/events保留旧阶梯，默认GUI尚未切换；曝光/题目修正/样例/交错/讲回/负担/互动未完成。 本轮补齐FSRS默认20秒deadline和有界IO，8适配测试、2失败事务测试、13真实Core/API回归通过；直接Windows子进程退出已测，任意后代和默认GUI仍未闭合。"
+    },
+    {
+      "id": "X09",
+      "title": "机器知识、真实调用、评测与反馈",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X07"
+      ],
+      "r31_slices": [
+        "R09",
+        "R11"
+      ],
+      "gap": "真实MCP SDK客户端和未见例评测已实现，不能回退成完全没有；原任务全部方法类型/纠错后真实客户端资格及R5研究更正链未测。"
+    },
+    {
+      "id": "X10",
+      "title": "旧库非空迁移与无损差分",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X02",
+        "X05"
+      ],
+      "r31_slices": [
+        "R03",
+        "R07"
+      ],
+      "gap": "非空合成迁移已有；附件/关系为损失记录、时间未保留。新学习字段需补兼容，真实用户库资格需精确授权。"
+    },
+    {
+      "id": "X11",
+      "title": "Windows人机闭环候选与可用包",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X08",
+        "X09",
+        "X10"
+      ],
+      "r31_slices": [
+        "R10",
+        "R11",
+        "R13"
+      ],
+      "gap": "Core候选hash绑定/验证已有；完整worker/宿主依赖、Windows非开发机GUI闭环、重启恢复、安装签名卸载未闭合。"
+    },
+    {
+      "id": "Q00",
+      "title": "独立GPT审计M0",
+      "status": "BLOCKED",
+      "depends_on": [
+        "X11"
+      ],
+      "r31_slices": [
+        "R14"
+      ],
+      "gap": "独立M0审计尚未执行；需要同候选完整G01-G14原始证据，执行者不得自签。"
+    },
+    {
+      "id": "X12",
+      "title": "多格式完整覆盖与学科活动",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X11"
+      ],
+      "r31_slices": [
+        "R15"
+      ],
+      "gap": "当前格式记录0 complete/14 partial/2 custody-only；目录续跑驱动已有但非UI入口。全格式链、真实Vault客户端往返、三个主题未验收。"
+    },
+    {
+      "id": "X13",
+      "title": "全仓规范化与必要交付体验收口",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X11"
+      ],
+      "r31_slices": [
+        "R00",
+        "R15"
+      ],
+      "gap": "历史69归属缺口已关闭并保留旧SHA测量；全仓语义吸收、默认入口、完整依赖安装体验仍未闭合。"
+    },
+    {
+      "id": "X14",
+      "title": "本地50多GB保全清理与容量止增",
+      "status": "PARTIAL_NEEDS_WORK",
+      "depends_on": [
+        "X01",
+        "X02"
+      ],
+      "r31_slices": [
+        "R01",
+        "R12"
+      ],
+      "gap": "旧target仍待精确路径批准，历史逻辑5.73GiB不是可释放量；worktree build已含本轮验证产物，移出当前候选并保留。已加.zcode Git忽略，未读或删除私有内容。尚无删除和空间回收证据；逐路径批准后重新核对占用、链接、大小并测删除后卷空闲。"
+    },
+    {
+      "id": "Q01",
+      "title": "独立GPT审计M1及清理结果",
+      "status": "BLOCKED",
+      "depends_on": [
+        "Q00",
+        "X12",
+        "X13",
+        "X14"
+      ],
+      "r31_slices": [
+        "R16"
+      ],
+      "gap": "受Q00、X12、X13、X14前置约束；当前不具备独立M1资格。"
+    },
+    {
+      "id": "F01",
+      "title": "视觉教学、动画与交互仿真",
+      "status": "DEFERRED_RETAINED",
+      "depends_on": [
+        "X12"
+      ],
+      "r31_slices": [],
+      "gap": "原文与依赖保留，未激活。"
+    },
+    {
+      "id": "F02",
+      "title": "大型知识宫殿与2D/2.5D/3D/VR/AR",
+      "status": "DEFERRED_RETAINED",
+      "depends_on": [
+        "F01"
+      ],
+      "r31_slices": [],
+      "gap": "原文与依赖保留，未激活。"
+    },
+    {
+      "id": "F03",
+      "title": "完整人机学习、经验迁移和可选微调",
+      "status": "DEFERRED_RETAINED",
+      "depends_on": [
+        "X12"
+      ],
+      "r31_slices": [],
+      "gap": "原文与依赖保留，未激活。"
+    },
+    {
+      "id": "F04",
+      "title": "多端同步、SDK、扩展和可选协作",
+      "status": "DEFERRED_RETAINED",
+      "depends_on": [
+        "X12",
+        "X13"
+      ],
+      "r31_slices": [],
+      "gap": "原文与依赖保留，未激活。"
+    },
+    {
+      "id": "F05",
+      "title": "研究课程项目工作空间与图谱纵深",
+      "status": "DEFERRED_RETAINED",
+      "depends_on": [
+        "X12"
+      ],
+      "r31_slices": [],
+      "gap": "原文与依赖保留，未激活。"
+    },
+    {
+      "id": "F06",
+      "title": "吸收失败后的必要独立实现",
+      "status": "DEFERRED_RETAINED",
+      "depends_on": [
+        "X12",
+        "X13"
+      ],
+      "r31_slices": [],
+      "gap": "原文与依赖保留，未激活。"
+    }
+  ],
+  "cards": {
+    "X00-01": "READ_ONLY_DELTA_COMPLETE",
+    "X00-02": "PACKAGE_INSTALLED_POINTERS_VERIFIED",
+    "X01-01": "PARTIAL_TARGETED_TESTS_PASS",
+    "X02-01": "PARTIAL_METADATA_INVENTORY_ZERO_ERRORS",
+    "X14-01": "PARTIAL_EXACT_CANDIDATES_READY",
+    "X14-02": "AWAITING_EXACT_PATH_AUTHORIZATION",
+    "X01-02": "PARTIAL_CI_ROUTING_AND_CAPACITY_DIAGNOSTICS_VERIFIED",
+    "X13-01": "PARTIAL_TRACKED_OWNERSHIP_CLOSED",
+    "X02-02": "PARTIAL_M0_VERSION_BINDINGS_AND_V15_PROVENANCE_REGISTERED"
+  },
+  "specialty_delta": "../../.project-local/runs/be268a2d33/r5-x00-baseline-20260913/artifacts/X00-01-DELTA.json",
+  "independent_audit": {
+    "Q00": "NOT_RUN",
+    "Q01": "NOT_READY"
+  },
+  "baseline_local_main_sha": "1e9813ea2bd49f47d334ba6717c78d3e9feda6ce",
+  "baseline_local_main_note": "Local ref read on 2026-09-13; not a live remote or CI claim."
+}

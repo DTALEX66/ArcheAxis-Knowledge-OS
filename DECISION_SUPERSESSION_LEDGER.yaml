@@ -6,6 +6,12 @@ rules:
   - a superseding row must name the old claim and the replacement
   - status controls implementation authority, not whether a historical record is retained
 decisions:
+  - id: SUP-019
+    status: effective
+    supersedes: SUP-018 active-plan pointer only
+    old_claim: taskpack-0910-r3 is the single active execution plan
+    replacement: R5 at docs/authority/taskpack-0912-r5 is the single active immutable package (plan_id AAK-FOLLOWUP-20260908-R3, package_revision R5); live progress is docs/current/R5-EXECUTION.md and docs/current/R5-STATE.json. Preserve 0910 and earlier task text and original evidence SHAs; never inherit old REOPENED or DONE as current proof. Prioritize X01/X02 normalization and early X14 cleanup before product expansion; F01-F06 remain frozen and Q00/Q01 independent.
+    reason: Owner 2026-09-13 requested this executor to continue R5, prioritize normalization and cleanup, and prepare handoff/upload at 60 percent remaining account allowance. Exact source-active bytes match the supplied ZIP; shipped verifier exits 0 for 173 files, 23 tasks, 38 scenarios and 42 specialty slices. This changes the active plan, not product acceptance or private-data boundaries.
   - id: SUP-011
     status: effective
     old_claim: new development outputs must use .hermes/task-runtime

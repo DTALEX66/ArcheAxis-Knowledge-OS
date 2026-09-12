@@ -13,7 +13,7 @@
 ## Local installation boundary
 
 - Immutable source/venv body: shared external dependency library under `10-toolchains/deeptutor/1.5.17/`.
-- Project-owned settings, databases, logs, browser evidence and generated output: `.hermes/task-runtime/deeptutor-home/` and `.hermes/task-runtime/deeptutor-browser/`.
+- Current project-owned development output: `.project-local/` through `scripts/runtime/dev.py` (SUP-011). Product data uses its separately selected workspace. The former `.hermes/task-runtime/deeptutor-home/` and `.hermes/task-runtime/deeptutor-browser/` are preserved historical locations, not current write targets; this correction does not migrate or delete their contents.
 - External library is local only and is not committed or uploaded.
 - A failed shallow clone left a locked partial `source/.git/objects/pack/tmp_pack_*` entry. Normal deletion returned `WinError 5`; it is preserved as blocked residue rather than changing ACLs or force deleting it. The verified `source-archive/` and wheel venv are independent of that residue.
 

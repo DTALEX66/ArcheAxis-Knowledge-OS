@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -61,6 +62,32 @@ _RESERVED_WINDOWS_NAMES = {
 }
 _ZERO_WIDTH = {"\u200b", "\u200c", "\u200d", "\u2060"}
 _WINDOWS_EOL_SUFFIXES = {".bat", ".cmd", ".ps1"}
+# Original R3.1 bytes at c06b234 and R5 bytes verified against the source ZIP;
+# preserve history instead of editing
+# manifest-bound JSON to satisfy a later formatting convention. No directory
+# exemption: only these exact originals may omit their final newline.
+_FROZEN_ORIGINALS = {
+    "docs/authority/taskpack-0910-r3/MANIFEST.json":
+        "a4b91455ce3b626939118897f18eab7800b76fc644c4345d440368f0f62f6a55",
+    "docs/authority/taskpack-0910-r3/TASKS.json":
+        "954d02f655bdf1d5fe7b339629534bee55051a67fa26139adef5340c555dcb37",
+    "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/学科数据.json":
+        "f675fe774dc4cb75b290edf3b82cd1cc938d97a67023bb37e415753a3ce344b1",
+    "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/方法数据.json":
+        "084e013a6e8dca1da9db3569430d0f999bec81a81e7ea4c08fd24bfbf0d23911",
+    "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/研究数据.json":
+        "05b28103ac82dd531c8a669d0240b59efadd06679bba609aa50b7f26642df347",
+    "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/资源数据.json":
+        "4e95adebb9a275be790aa2b05f161a127faef27a661f4bf1dc41987031a8f9ef",
+    "docs/authority/taskpack-0912-r5/research-v15/学科数据.json":
+        "f675fe774dc4cb75b290edf3b82cd1cc938d97a67023bb37e415753a3ce344b1",
+    "docs/authority/taskpack-0912-r5/research-v15/方法数据.json":
+        "084e013a6e8dca1da9db3569430d0f999bec81a81e7ea4c08fd24bfbf0d23911",
+    "docs/authority/taskpack-0912-r5/research-v15/研究数据.json":
+        "05b28103ac82dd531c8a669d0240b59efadd06679bba609aa50b7f26642df347",
+    "docs/authority/taskpack-0912-r5/research-v15/资源数据.json":
+        "4e95adebb9a275be790aa2b05f161a127faef27a661f4bf1dc41987031a8f9ef",
+}
 
 
 @dataclass(frozen=True, order=True)
@@ -90,6 +117,10 @@ def normalize_text_bytes(path: str, content: bytes) -> bytes:
 
 def scan_text_bytes(path: str, content: bytes) -> list[ConventionIssue]:
     """Return deterministic text-contract violations for one repository path."""
+    frozen_hash = _FROZEN_ORIGINALS.get(path)
+    if frozen_hash and hashlib.sha256(content).hexdigest() != frozen_hash:
+        return [ConventionIssue("frozen-original-mismatch", path,
+                                "preserved package bytes differ from the pinned original")]
     if _is_declared_binary(path, content):
         return []
     try:
@@ -123,7 +154,7 @@ def scan_text_bytes(path: str, content: bytes) -> list[ConventionIssue]:
                 "prohibited invisible Unicode character",
             )
         )
-    if content and not content.endswith(b"\n"):
+    if content and not content.endswith(b"\n") and not frozen_hash:
         issues.append(
             ConventionIssue("missing-final-newline", path, "text must end with LF")
         )

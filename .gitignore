@@ -42,6 +42,7 @@ Thumbs.db
 
 # Codex/Hermes local state
 .codex/
+.zcode/
 .hermes/
 .project-local/
 .playwright-cli/

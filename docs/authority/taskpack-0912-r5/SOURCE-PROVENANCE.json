@@ -1,0 +1,168 @@
+{
+  "schema": "archeaxis.package-provenance/v1",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "date": "2026-09-09",
+  "audited_sha": "cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed",
+  "branch": "codex/full-loop-0906",
+  "main_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e",
+  "baseline_verification": "继承R3.1的2026-09-08起点；R4未重查远端。",
+  "package_revision": "R4",
+  "audit_conclusion_source": "User-provided visible conversation: 2026-09-08 independent re-audit.",
+  "new_full_product_audit_performed": false,
+  "product_tests_run_this_turn": false,
+  "private_windows_files_accessed": false,
+  "product_code_modified_or_pushed": false,
+  "limits": [
+    "Original source snapshots are historical; their self-reported completion is not independent qualification.",
+    "No claim to have re-read all unavailable historical chats or private evidence.",
+    "Third-party integration compatibility remains subject to pinned-version real tests.",
+    "Manifest hashes detect accidental changes relative to this package, not malicious re-signing."
+  ],
+  "packaged_sources": [
+    {
+      "path": "frozen-r2/TASKS.json",
+      "git_blob_sha": "efdb6ceaf9e3c52289f822c040040f76acb7245a",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/TASKS.json",
+      "sha256": "28ff4d552c813856243d6bab3fc550bdd7bf41f01f62326a71f7aa003ccc0f7e",
+      "bytes": 43781,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/TASKPACK.md",
+      "git_blob_sha": "a5f82d722d68b7f6a75567c01ad914185b66091c",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/TASKPACK.md",
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e",
+      "bytes": 27933,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/FORMAT-COVERAGE.json",
+      "git_blob_sha": "c264282c7f7396c8cf066e7e7232af9be42ee1dd",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/FORMAT-COVERAGE.json",
+      "sha256": "11785d2d143aff3b955b1bca34236aa848aeed2d262c0b9dd06f89a844b2315a",
+      "bytes": 9580,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/BLUEPRINT-COVERAGE.json",
+      "git_blob_sha": "c53a5092ca413d4f79a109e12279a6cdae2f49a0",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/BLUEPRINT-COVERAGE.json",
+      "sha256": "c2a902e6e9ff25228643de2580376441c10889cbdd93cb134377f5b09ec9607b",
+      "bytes": 98525,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/ENHANCEMENT-COVERAGE.json",
+      "git_blob_sha": "51b4eff667c961d6d0940c6434b60a162dd35956",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/ENHANCEMENT-COVERAGE.json",
+      "sha256": "6049746b57a48967a022ca127cb70709b78547db2aaeec513aeb182f03c84b2c",
+      "bytes": 4981,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/INDEPENDENT-AUDIT.md",
+      "git_blob_sha": "ffb504ce9b44e6876090b67b6cbb012a05acbdd4",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/INDEPENDENT-AUDIT.md",
+      "sha256": "3a31702fbdea3a842bae4364d7fb0c1d7b9f5bdf5a377d8ff9872cf1e074d745",
+      "bytes": 5562,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/LOCAL-CLEANUP.md",
+      "git_blob_sha": "a1f76558c3e9e0b0b9041829312db68484d18b13",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/LOCAL-CLEANUP.md",
+      "sha256": "5b52a088a897ee81b37922ded16d9eded8ff513e2e3ffe1e477b8fdb364f1c5f",
+      "bytes": 5816,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/C-FIX-STATUS-2026-09-08.md",
+      "git_blob_sha": "a71f9e3d98da834f6b1410e54600832e9e5a01f9",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/C-FIX-STATUS-2026-09-08.md",
+      "sha256": "bfae2d4a552fe3add9ff356e8df430a0d3b63df51a76693436010721f2ea0c98",
+      "bytes": 2395,
+      "acquisition": "GitHub plugin fetch_file, pinned audited commit"
+    },
+    {
+      "path": "frozen-r2/SOURCE-ENHANCEMENT.md",
+      "sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b",
+      "bytes": 1385,
+      "acquisition": "pinned GitHub source",
+      "source_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed/docs/authority/taskpack-0907/SOURCE-ENHANCEMENT.md"
+    },
+    {
+      "path": "LIBRARY-INTEGRATION-REFERENCE.md",
+      "sha256": "0aa75faf049b9fea89ec90a6a5fdaa13fad376d04633c6de07afb94096c1de9a",
+      "bytes": 51196,
+      "acquisition": "previously delivered 2026-09-08 research, materialized unchanged",
+      "source_url": null
+    }
+  ],
+  "r4_sources": [
+    {
+      "path": "research-v15/README.md",
+      "sha256": "a66fad0d1747f1133a256ac6d993b5a1df4058e46fd46b349aa668f9a6eac908"
+    },
+    {
+      "path": "research-v15/00_研究总报告.md",
+      "sha256": "c765cbe0cec8c17251f4347731329e3d8e82094dab2a2b1a5d8792bbb43a068e"
+    },
+    {
+      "path": "research-v15/01_旧版审计与修订.md",
+      "sha256": "d5d68d536b388a235e6618d59744aa4e1c92310776d6076b7130f1b129a32c9b"
+    },
+    {
+      "path": "research-v15/07_训练与评价模板.md",
+      "sha256": "87f243b551d35ba9595880bca61e22f045139052c29b62af8c1f05f0cb2288b8"
+    },
+    {
+      "path": "research-v15/08_检索与证据更新方案.md",
+      "sha256": "ecde4ef2505c13f98785a0b5d09bab018393a13d01e715f896a99b8a8e9ac5b9"
+    },
+    {
+      "path": "research-v15/09_阅读范围与未完成项.md",
+      "sha256": "59f3cca206b50442e732a0ba98d34bdf711a56c57d7bed25cb6bca7f22366e91"
+    },
+    {
+      "path": "research-v15/方法数据.json",
+      "sha256": "084e013a6e8dca1da9db3569430d0f999bec81a81e7ea4c08fd24bfbf0d23911"
+    },
+    {
+      "path": "research-v15/学科数据.json",
+      "sha256": "f675fe774dc4cb75b290edf3b82cd1cc938d97a67023bb37e415753a3ce344b1"
+    },
+    {
+      "path": "research-v15/研究数据.json",
+      "sha256": "05b28103ac82dd531c8a669d0240b59efadd06679bba609aa50b7f26642df347"
+    },
+    {
+      "path": "research-v15/资源数据.json",
+      "sha256": "4e95adebb9a275be790aa2b05f161a127faef27a661f4bf1dc41987031a8f9ef"
+    }
+  ],
+  "history_source": {
+    "name": "ArcheAxis完整项目对话与时间线汇报.md",
+    "bytes": 20219699,
+    "sha256": "fe4d647bb91be8df5f292ed0824b4195e34cca58cd9c19c2e64e159b3211dd1d",
+    "session_count": 24,
+    "platform_completeness_verified": false,
+    "source_location": "交付外层private-history/PROJECT-HISTORY-ORIGINAL.md，不进入活动代码目录"
+  },
+  "r4_source_archives": [
+    {
+      "path": "reference-archives/LEARNING-V14-ORIGINAL.zip",
+      "sha256": "8d3b84a4f9c483a7efa4eb3c8c1962a878a4a5061b5ff68d2fa272c25bcaf0b6",
+      "bytes": 50126
+    },
+    {
+      "path": "reference-archives/LEARNING-V15-ORIGINAL.zip",
+      "sha256": "5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c",
+      "bytes": 407406
+    },
+    {
+      "path": "reference-archives/TASKPACK-R3.1-ORIGINAL.zip",
+      "sha256": "8e21fef3a68d39958612827aee29ea30d4f4a313a4c356ca58bb7315ad944e4e",
+      "bytes": 191517
+    }
+  ]
+}

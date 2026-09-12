@@ -74,8 +74,8 @@ def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         with contextlib.suppress(Exception):
             stream.reconfigure(encoding="utf-8")
-    workdir = REPO / ".project-local" / "runs" / "host-panel-smoke"
-    workdir.mkdir(parents=True, exist_ok=True)
+    runtime = load("runtime_host_panel", REPO / "scripts/runtime/dev.py")
+    workdir = runtime.artifact_directory(REPO, "host-panel-smoke")
     db = workdir / "core.sqlite"
     core_port = free_port()
     panel_port = free_port()
@@ -116,7 +116,7 @@ def main() -> int:
             base,
             token,
             "host-panel-sample.md",
-            "Panels in a host UI read the Core; nothing is written anywhere else.\n".encode("utf-8"),
+            b"Panels in a host UI read the Core; nothing is written anywhere else.\n",
             "host UI",
             item_key,
             "host-panel-event-1",

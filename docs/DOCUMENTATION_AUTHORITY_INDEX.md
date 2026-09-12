@@ -4,29 +4,19 @@
 > a document; it never promotes a plan, handoff, test fixture, release tag, or
 > historical snapshot into live product evidence.
 
-## Current read order (2026-09-10)
+## Current read order (2026-09-13)
 
 1. [AGENTS](../AGENTS.md), [project contract](../PROJECT_CONTRACT.yaml) and
    [decision supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml).
-2. [NEXT-TASKPACK-0910 live execution](authority/taskpack-0910-r3/EXECUTION.md) —
-   the single active plan (ARCHEAXIS-NEXT-TASKPACK-2026-09-10, 17 slices
-   R00-R16; SUP-018), with slice progress in
-   [STATE.json](authority/taskpack-0910-r3/STATE.json) and its package snapshot
-   in `authority/taskpack-0910-r3/reference-r2/`. Auditing this repository from
-   outside it starts at
-   [AUDIT-PACKET.md](authority/taskpack-0910-r3/AUDIT-PACKET.md): what is
-   provable from tracked files alone, the verification commands with their
-   expected results, and the limitations already recorded. The preceding R3-0908 ledger
-   ([taskpack-0908-r3/EXECUTION](authority/taskpack-0908-r3/EXECUTION.md)) is
-   the source of the inherited task text and its own receipts. Its inherited R2
-   audit board stays at
-   [Q00-Q01-AUDIT-2026-09-07](authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md);
-   the R2 execution ledger
-   ([taskpack-0907/EXECUTION](authority/taskpack-0907/EXECUTION.md)) is the
-   source of inherited task text and historical receipts; the 2026-09-06
-   full-loop execution is historical - SUP-012..016.
-   Before resolving machine-local tools/models or material paths, read the
-   [user-confirmed shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
+2. [R5 executor](authority/taskpack-0912-r5/EXECUTOR-START.md) and
+   [immutable TASKS](authority/taskpack-0912-r5/TASKS.json) — the single active
+   package, AAK-FOLLOWUP-20260908-R3 / R5 (SUP-019). Live progress is
+   [R5-EXECUTION](current/R5-EXECUTION.md) and [R5-STATE](current/R5-STATE.json).
+   The [0910 ledger](authority/taskpack-0910-r3/EXECUTION.md),
+   [0910 audit packet](authority/taskpack-0910-r3/AUDIT-PACKET.md), and older
+   0908/0907/0906 evidence keep their original SHAs and historical scope.
+   Before using local resources, read the
+   [shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
 3. [Language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md),
    [directory authority](DIRECTORY_AUTHORITY_INDEX.md), and
    [runtime delivery](RUNTIME_DELIVERY_AUTHORITY_INDEX.md).

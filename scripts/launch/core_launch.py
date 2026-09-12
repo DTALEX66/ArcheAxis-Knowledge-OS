@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import hashlib
+import importlib.util
 import json
 import os
 import secrets
@@ -534,9 +535,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--from", dest="source", type=Path, help="backup file to restore from")
     parser.add_argument("--artifact", type=Path, action="append", default=[], help="deliverable to hash (repeatable)")
     parser.add_argument("--out", type=Path, help="output file or directory for backup/manifest")
-    parser.add_argument("--db", type=Path, default=RUNDIR / "core.sqlite")
+    parser.add_argument("--db", type=Path,
+                        help="Core database; --probe defaults to an isolated development artifact")
     parser.add_argument("--port", type=int, default=0)
     args = parser.parse_args(argv)
+    explicit_database = args.db is not None
+    args.db = args.db or (RUNDIR / "core.sqlite")
 
     if args.stop:
         code, report = stop_session()
@@ -580,6 +584,17 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, ensure_ascii=False))
         return 2
 
+    session_state = STATE_PATH
+    if args.probe:
+        spec = importlib.util.spec_from_file_location("runtime_core_probe", REPO / "scripts/runtime/dev.py")
+        assert spec and spec.loader
+        runtime = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runtime)
+        probe_root = runtime.artifact_directory(REPO, "core-launch-probe")
+        session_state = probe_root / "core-launch.json"
+        if not explicit_database:
+            args.db = probe_root / "core.sqlite"
+
     args.db.parent.mkdir(parents=True, exist_ok=True)
     port = args.port or free_port()
     report["requested_port"] = port
@@ -592,7 +607,8 @@ def main(argv: list[str] | None = None) -> int:
             report["error"] = "the Core did not report readiness"
             return 3
         report["ok"] = True
-        report["session_state"] = str(record_session(STATE_PATH, child.pid, int(ready), args.db))
+        record_session(session_state, child.pid, int(ready), args.db)
+        report["session_state"] = str(session_state)
         print(json.dumps(report, ensure_ascii=False))
         if args.probe:
             return 0
@@ -604,7 +620,7 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         child.kill()
         child.wait()
-        clear_session(STATE_PATH)
+        clear_session(session_state)
 
 
 if __name__ == "__main__":

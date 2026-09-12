@@ -216,9 +216,8 @@ def main() -> int:
         print(json.dumps(receipt, ensure_ascii=False, indent=2))
         return 4
 
-    run_root = REPO / ".project-local" / "runs" / "r11-unseen"
-    run_root.mkdir(parents=True, exist_ok=True)
-    db = run_root / f"evaluation-{int(time.time())}.sqlite"
+    runtime = _load("runtime_r11_unseen", REPO / "scripts/runtime/dev.py")
+    db = runtime.artifact_directory(REPO, "r11-unseen") / "core.sqlite"
     child = subprocess.Popen(
         [str(binary), str(db), "0"],
         stdin=subprocess.PIPE,

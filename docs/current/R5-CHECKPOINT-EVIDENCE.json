@@ -1,0 +1,987 @@
+{
+  "schema": "archeaxis.r5-checkpoint-evidence/v1",
+  "tested_base_sha": "c06b234ca335b9cbb2c1fde270851e2390c36b89",
+  "tested_modified_worktree": true,
+  "sources": [
+    {
+      "path": ".gitignore",
+      "sha256": "f6ece3ccd446f66d00879e8dea0b1fcc2d24813fcdf78f779def892d5462063e"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "a6992e733aca191523aa8bbd718c76270ee1a284e6c604cf1f82b7f60d19306d"
+    },
+    {
+      "path": "DECISION_SUPERSESSION_LEDGER.yaml",
+      "sha256": "657b7fa8486444fb6d9ffd267006409fae6e3141fe98598f69067bba6e95f878"
+    },
+    {
+      "path": "DIRECTORY_AUTHORITY.yaml",
+      "sha256": "310096407363c3cbfbc8d60a6cc0aea2736696446021d341a8d96d5dd60d493e"
+    },
+    {
+      "path": "app/ingestion/web_screenshot.py",
+      "sha256": "b81e3b9eacec490aa6648027613e2abc62550fddfad9be74c9cd424cfd78c1e8"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+      "sha256": "082a8f6b0cb6a5976b55a19cee0e69a022070c9e96086d6de4b13a21f905f965"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+      "sha256": "ddadd24efc344d0898cba52bc7be1222ed599e116b9c019bccc689b02b03bc4b"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/WorkerProfile.cs",
+      "sha256": "a01b5c7de2b4036460cd0c20fa75cee1379dc06bf49623e9b81493ca6fdbbb56"
+    },
+    {
+      "path": "crates/archeaxis-api/src/launch.rs",
+      "sha256": "faa9d75f4a1d498301848574104b351ebf1e8eb91096324a3796bbe9140f3c33"
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "ffeb3ed89d0e86324a16e327a1b6486cd98947f16ef512a688dfa0d861451030"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/launch_auth.rs",
+      "sha256": "2f46ce3a98107f9cc9d36ebbef7f407336dc551fe5de506e09cac77bed063ad5"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/learning_state_api.rs",
+      "sha256": "bd1899492c73b25da29fe2751aa278fbc4b00a879bab50ee5c42309447b84d14"
+    },
+    {
+      "path": "crates/archeaxis-application/src/scheduler.rs",
+      "sha256": "91229bba050ce855e7d972be3420c75f8fefde1f6c7c7705ba4d02f23d936c20"
+    },
+    {
+      "path": "crates/archeaxis-application/tests/scheduler_adapter.rs",
+      "sha256": "02bce4222aa61950ca0a85fcd95e166dff78ead1425dfcc3a2c8f0d57334c882"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/learning.rs",
+      "sha256": "66c8faba0e715778ab90426daa1378a145e043cd466fcb8cb925e638baa468fd"
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/learning_state_persistence.rs",
+      "sha256": "2de5bfac074eaae1631df852b2f2fb7dca76ef52d62ba59900f39bcee1f0f54f"
+    },
+    {
+      "path": "docs/CONFIGURATION_AUTHORITY_INDEX.md",
+      "sha256": "7d479c63593454a53cb9cc0ebe9a9cf22152f9948de0708c217602007ff7568f"
+    },
+    {
+      "path": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "sha256": "2dfdd870ba4b7980f9979b6aac5c1efefa6ddd7f3cfd7a10018d14d665528330"
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "sha256": "6c278058fba2d689b35ef4431a605ed7644a131295db8f749cab4ac2ebcf8185"
+    },
+    {
+      "path": "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md",
+      "sha256": "a846d58c286d3c0497ce952ad321c7913dab9448efc62a503318fe04ee362e41"
+    },
+    {
+      "path": "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md",
+      "sha256": "4a5e64021fe2f04429d41d908449e93727f8f373d6694ecd78344975d13be71a"
+    },
+    {
+      "path": "docs/VERIFICATION_POLICY.md",
+      "sha256": "71a82a96396cab8f761549ffe6e402ad1136300e7426ad8673feaf2af4891fc4"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/ACCEPTANCE.json",
+      "sha256": "26312ebe38ca94753153b60a44f69ab60cc708fc9f4096678f67401c7d902d5e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/ACCEPTANCE.md",
+      "sha256": "b93dc28c50a47daa0701bdaff4aec81d129a406bb780ebd1dd25680d73d072c3"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/ACTIVITY-TEMPLATES.json",
+      "sha256": "4b79c44c848565fdda45e7902ba1a86aeb3875c0e6a61557537b78fed4564bc4"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/AUDIT-DELTA.md",
+      "sha256": "a2426f7f5c367cbe99c1acdbd5e5543d8ab7889add1907078fa6338294154fc3"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/AUDITOR-GPT.md",
+      "sha256": "a2a27beb175965dc577bab8a2363cd730901c62152af13c20c567345ffc01a66"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/BLUEPRINT-COVERAGE.json",
+      "sha256": "849cfe48f2e5b7089a42e85930fb635bd0b056d69eb9c69b29116f2d0565c8eb"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/CLEANUP-AND-SPILL.md",
+      "sha256": "d50654d088f0bfe569384d5205e5e3104fa8640dcc21e879266c9eb54eea5624"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/CONTEXT-DECISIONS.json",
+      "sha256": "9052792cd8c8aa7eb40c448e907385fc5447ad9a148b7902e66c8c02e5a1709e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/CONTEXT-HANDOFF.md",
+      "sha256": "2ad8d0b948a0703e539fde4d2c341db9784fb6b65345bbc84e7986a59c86e1d9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/CONTRIBUTION-MATRIX.md",
+      "sha256": "d01b2e45e1201332948b2ccdd7c67e6f093d412865175ebeee0c189f7fae65c5"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/CORE-FUNCTIONS.md",
+      "sha256": "4c5cd3e94eb243ee12089245c9306777009c4cff9dfc0bac75f75c4f0b9fd9b2"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/ENHANCEMENT-COVERAGE.json",
+      "sha256": "ec601031ec7a6b1960e8df356f6c83b2923bc929436b713e52467a447160452c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/EXECUTION-TEMPLATE.md",
+      "sha256": "e7fa42f2e9c170c73d000a99c9f27ac62f0d8ec96c482eea70e7f9d727c9026c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/EXECUTOR-CODEX.md",
+      "sha256": "c9dc53d0e61e74d1e415b3b274b2e195adf25d03662c196b98d53f7bd0f72683"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/EXECUTOR-DSH.md",
+      "sha256": "c9dc53d0e61e74d1e415b3b274b2e195adf25d03662c196b98d53f7bd0f72683"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/EXECUTOR-START.md",
+      "sha256": "2af8cbd0f48b88c2e4f2cd8a2e2938ca8b8fcb949f10f4c42880a39a64d11576"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/FASTEST-LOOP.md",
+      "sha256": "74ca9e0a3f2d93e58a2123910cac4fab0ba1b916e4ba5e8aed8274303a3042f6"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/FORMAT-COVERAGE.json",
+      "sha256": "dcb7f40047962dabacaf27731f25de1c8b9f0e23623fd00c40301d60ed6bf910"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/FUNCTIONS.json",
+      "sha256": "60f209b27ff3dac3038a363886b9e862f05a25d457cb99562c3f3458bf400e89"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/GOVERNANCE-MIGRATION.json",
+      "sha256": "0d66c88172acac63150a21c6c6fd137681605db7b64fb50ef780770b4e13ce9a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/GOVERNANCE-MIGRATION.md",
+      "sha256": "20926b1ee553d4175eca7f4acc07d4c922c5d2d700714c8e8d313d033b75c566"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/HUMAN-LEARNING.json",
+      "sha256": "4cc7ce7c85f10002d797969f4ec508f92716e61e8cbe5cf3e5e00cb52db8c618"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/HUMAN-LEARNING.md",
+      "sha256": "3acb824350d746e5e4cdd64354c015217fffa94c97d8efa249a7e0e51c775f3f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/LANGUAGE-MIGRATION-EXECUTION.md",
+      "sha256": "3549a2e56ee606f2828eb488a4926e34785fc343a7acadb0762354459054907d"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/LEARNING-CONTRACT.json",
+      "sha256": "fcd20a0eb7e583e8f23e334cadf87fce9a181338e8daa7fcfc801af508165f41"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/LIBRARY-ADOPTION.md",
+      "sha256": "02889f698f23f36f0f1c9946651bea9ab387e2ff51cd37986f1bdb152d264cab"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/LIBRARY-INTEGRATION-REFERENCE.md",
+      "sha256": "0aa75faf049b9fea89ec90a6a5fdaa13fad376d04633c6de07afb94096c1de9a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/MANIFEST.json",
+      "sha256": "e4b16d00651af4af840a979face69b917b7a16e141536ddb6e040fa10a068e4e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/R5-ACCEPTANCE.md",
+      "sha256": "22746414f771ea6612cf7ea0f163a4c0323a72634e4f5227c13af6ab6b180800"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/R5-CONTINUITY.md",
+      "sha256": "8b274704a132fd366b8b34b05b28b3fdcdc895d4534a5e7358f972d137642af3"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/REMAINING-WORK.json",
+      "sha256": "2b9a2b301c69a8a8cec4a647ca9400badfbfdb952c5c547498f662d6e2525d6a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/REPOSITORY-NORMALIZATION.md",
+      "sha256": "2e465817a206ac363d41ed7b13e53927e03c968b5f926707fdd065d14e07f87a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/RESEARCH-ADOPTION.json",
+      "sha256": "7633617a19aca327e1232c001ee93894b1425bfe33dd6de606ba2cd130676c5e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/SESSION-DECISIONS.md",
+      "sha256": "035727042692efdf1bd1fe94890e28fb26b187f14612aa0a03d02da2213a0c1a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/SOURCE-PROVENANCE.json",
+      "sha256": "bfb5ea87a5d0765dddc9bbb2da48ab99ad945d5afd16f0fb930a2d039f7eee5d"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/TASKPACK.md",
+      "sha256": "978c8af78a943c62c3a9248ea6e5ebe5e485314380d62f94cd75f64bc71a1f12"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/TASKS.json",
+      "sha256": "0c352487ebe99a57c8639909f998fd3dfd6b43cdb88b4e46ef158a4c45eec0be"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/VALIDATION.md",
+      "sha256": "3dd4a2751013c8da80118c371e4fecfad338353fa62fc7dafad8987bece1a3eb"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/BLUEPRINT-COVERAGE.json",
+      "sha256": "c2a902e6e9ff25228643de2580376441c10889cbdd93cb134377f5b09ec9607b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/C-FIX-STATUS-2026-09-08.md",
+      "sha256": "bfae2d4a552fe3add9ff356e8df430a0d3b63df51a76693436010721f2ea0c98"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/ENHANCEMENT-COVERAGE.json",
+      "sha256": "6049746b57a48967a022ca127cb70709b78547db2aaeec513aeb182f03c84b2c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/FORMAT-COVERAGE.json",
+      "sha256": "11785d2d143aff3b955b1bca34236aa848aeed2d262c0b9dd06f89a844b2315a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/INDEPENDENT-AUDIT.md",
+      "sha256": "3a31702fbdea3a842bae4364d7fb0c1d7b9f5bdf5a377d8ff9872cf1e074d745"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/LOCAL-CLEANUP.md",
+      "sha256": "5b52a088a897ee81b37922ded16d9eded8ff513e2e3ffe1e477b8fdb364f1c5f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/SOURCE-ENHANCEMENT.md",
+      "sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/TASKPACK.md",
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r2/TASKS.json",
+      "sha256": "28ff4d552c813856243d6bab3fc550bdd7bf41f01f62326a71f7aa003ccc0f7e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/ACCEPTANCE.json",
+      "sha256": "2a4acc606d4b931f96f7d60454d4452ba1564307dc6424dd26b09ec6053fdd1b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/ACCEPTANCE.md",
+      "sha256": "378571b7334ffa0df384eaa992551a732da8eb13f63e441defaf47955db0c1a2"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/AUDIT-DELTA.md",
+      "sha256": "86b592c117041a032ea2c0d6146926a41dc509863c2d565be558b6ce3294b26d"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/BLUEPRINT-COVERAGE.json",
+      "sha256": "849cfe48f2e5b7089a42e85930fb635bd0b056d69eb9c69b29116f2d0565c8eb"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/CORE-FUNCTIONS.md",
+      "sha256": "86324966d82b8d7d0f7166640ee9b4dc7818ab710c2f5643c99fd08dec8577f9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/ENHANCEMENT-COVERAGE.json",
+      "sha256": "ec601031ec7a6b1960e8df356f6c83b2923bc929436b713e52467a447160452c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/EXECUTION-TEMPLATE.md",
+      "sha256": "3e6599c17415a8042609caff3965a8d2fd1a5d8fa05b651e18dc80feb2ee8043"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/EXECUTOR-START.md",
+      "sha256": "337a6898b7a82334f69bff264d2c32592ee38ceebb07902beea20d36e35cb07f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/FORMAT-COVERAGE.json",
+      "sha256": "dcb7f40047962dabacaf27731f25de1c8b9f0e23623fd00c40301d60ed6bf910"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/FUNCTIONS.json",
+      "sha256": "60f209b27ff3dac3038a363886b9e862f05a25d457cb99562c3f3458bf400e89"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/GOVERNANCE-MIGRATION.json",
+      "sha256": "0cb38ffb6857218d10d3a18afbc54604d834545f5a607d6b602c0635062d74b9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/GOVERNANCE-MIGRATION.md",
+      "sha256": "fb1ffae346d901f926b9747b42f55a9e2fdd43c77c15439bf1d18e2fdd131338"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/LIBRARY-ADOPTION.md",
+      "sha256": "70dde90ab9128929bca4dad0f2324a00e36d6f6d402c861b4e7d52ba8326ea2a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/LIBRARY-INTEGRATION-REFERENCE.md",
+      "sha256": "0aa75faf049b9fea89ec90a6a5fdaa13fad376d04633c6de07afb94096c1de9a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/MANIFEST.json",
+      "sha256": "e4956b9d78b3c77f9f439c0195ecaba63e42b4d3b6cebf45f10fd589886d17e9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/SOURCE-PROVENANCE.json",
+      "sha256": "3b37e2976472a85312c9988b76d196f3cef977210216d5dc1c8834b8b69e1883"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/TASKPACK.md",
+      "sha256": "5c7dc0bd2677fedc74cb49aafa2246ee147cf4d11ea7b7c2564f421df95a89d3"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/TASKS.json",
+      "sha256": "54892e6cca3cdc80e58a0affcfae8ad1ebdb62774475d57b7579562d0a3e56ad"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/VALIDATION.md",
+      "sha256": "8cdbbe41e51030bc2e9efd96bf7d801de838f51266e3260da2074b4918dd349f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/BLUEPRINT-COVERAGE.json",
+      "sha256": "c2a902e6e9ff25228643de2580376441c10889cbdd93cb134377f5b09ec9607b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/C-FIX-STATUS-2026-09-08.md",
+      "sha256": "bfae2d4a552fe3add9ff356e8df430a0d3b63df51a76693436010721f2ea0c98"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/ENHANCEMENT-COVERAGE.json",
+      "sha256": "6049746b57a48967a022ca127cb70709b78547db2aaeec513aeb182f03c84b2c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/FORMAT-COVERAGE.json",
+      "sha256": "11785d2d143aff3b955b1bca34236aa848aeed2d262c0b9dd06f89a844b2315a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/INDEPENDENT-AUDIT.md",
+      "sha256": "3a31702fbdea3a842bae4364d7fb0c1d7b9f5bdf5a377d8ff9872cf1e074d745"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/LOCAL-CLEANUP.md",
+      "sha256": "5b52a088a897ee81b37922ded16d9eded8ff513e2e3ffe1e477b8fdb364f1c5f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/SOURCE-ENHANCEMENT.md",
+      "sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/TASKPACK.md",
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/frozen-r2/TASKS.json",
+      "sha256": "28ff4d552c813856243d6bab3fc550bdd7bf41f01f62326a71f7aa003ccc0f7e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r3.1/verify_package.py",
+      "sha256": "dd528a8f0e4ce0fbef5d285af0287aab3c2d16bd7af9076f18326ac6658e7dad"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/ACCEPTANCE.json",
+      "sha256": "26312ebe38ca94753153b60a44f69ab60cc708fc9f4096678f67401c7d902d5e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/ACCEPTANCE.md",
+      "sha256": "b93dc28c50a47daa0701bdaff4aec81d129a406bb780ebd1dd25680d73d072c3"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/ACTIVITY-TEMPLATES.json",
+      "sha256": "4b79c44c848565fdda45e7902ba1a86aeb3875c0e6a61557537b78fed4564bc4"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/AUDIT-DELTA.md",
+      "sha256": "a2426f7f5c367cbe99c1acdbd5e5543d8ab7889add1907078fa6338294154fc3"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/AUDITOR-GPT.md",
+      "sha256": "a2a27beb175965dc577bab8a2363cd730901c62152af13c20c567345ffc01a66"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/BLUEPRINT-COVERAGE.json",
+      "sha256": "849cfe48f2e5b7089a42e85930fb635bd0b056d69eb9c69b29116f2d0565c8eb"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/CONTEXT-DECISIONS.json",
+      "sha256": "9052792cd8c8aa7eb40c448e907385fc5447ad9a148b7902e66c8c02e5a1709e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/CONTEXT-HANDOFF.md",
+      "sha256": "2ad8d0b948a0703e539fde4d2c341db9784fb6b65345bbc84e7986a59c86e1d9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/CONTRIBUTION-MATRIX.md",
+      "sha256": "d01b2e45e1201332948b2ccdd7c67e6f093d412865175ebeee0c189f7fae65c5"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/CORE-FUNCTIONS.md",
+      "sha256": "4c5cd3e94eb243ee12089245c9306777009c4cff9dfc0bac75f75c4f0b9fd9b2"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/ENHANCEMENT-COVERAGE.json",
+      "sha256": "ec601031ec7a6b1960e8df356f6c83b2923bc929436b713e52467a447160452c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/EXECUTION-TEMPLATE.md",
+      "sha256": "e7fa42f2e9c170c73d000a99c9f27ac62f0d8ec96c482eea70e7f9d727c9026c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/EXECUTOR-CODEX.md",
+      "sha256": "92a8ed85d5c322512f88542696cefb19bcf0906308e0bb248ab62b7e9547cbf9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/EXECUTOR-DSH.md",
+      "sha256": "efa4549cab8141f81df605504dfc2de8d477204f0fda2e1996391433c6fd603d"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/EXECUTOR-START.md",
+      "sha256": "ff3c64bd81089aa76593df499f9e71c6ddd36bf5965d50450150ed8acd602b07"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/FORMAT-COVERAGE.json",
+      "sha256": "dcb7f40047962dabacaf27731f25de1c8b9f0e23623fd00c40301d60ed6bf910"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/FUNCTIONS.json",
+      "sha256": "60f209b27ff3dac3038a363886b9e862f05a25d457cb99562c3f3458bf400e89"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/GOVERNANCE-MIGRATION.json",
+      "sha256": "0d66c88172acac63150a21c6c6fd137681605db7b64fb50ef780770b4e13ce9a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/GOVERNANCE-MIGRATION.md",
+      "sha256": "20926b1ee553d4175eca7f4acc07d4c922c5d2d700714c8e8d313d033b75c566"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/HUMAN-LEARNING.json",
+      "sha256": "4cc7ce7c85f10002d797969f4ec508f92716e61e8cbe5cf3e5e00cb52db8c618"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/HUMAN-LEARNING.md",
+      "sha256": "3acb824350d746e5e4cdd64354c015217fffa94c97d8efa249a7e0e51c775f3f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/LEARNING-CONTRACT.json",
+      "sha256": "fcd20a0eb7e583e8f23e334cadf87fce9a181338e8daa7fcfc801af508165f41"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/LIBRARY-ADOPTION.md",
+      "sha256": "02889f698f23f36f0f1c9946651bea9ab387e2ff51cd37986f1bdb152d264cab"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/LIBRARY-INTEGRATION-REFERENCE.md",
+      "sha256": "0aa75faf049b9fea89ec90a6a5fdaa13fad376d04633c6de07afb94096c1de9a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/MANIFEST.json",
+      "sha256": "dc4d60383f1d4745ff9f5f3520337262f4312c97cea9fdbfb17e726df8cc2db6"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/RESEARCH-ADOPTION.json",
+      "sha256": "7633617a19aca327e1232c001ee93894b1425bfe33dd6de606ba2cd130676c5e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/SESSION-DECISIONS.md",
+      "sha256": "035727042692efdf1bd1fe94890e28fb26b187f14612aa0a03d02da2213a0c1a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/SOURCE-PROVENANCE.json",
+      "sha256": "bfb5ea87a5d0765dddc9bbb2da48ab99ad945d5afd16f0fb930a2d039f7eee5d"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/TASKPACK.md",
+      "sha256": "54cbe24eb75c22926d052a82ed5492eab6e6eee8109a9877ad0609b54d7484f1"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/TASKS.json",
+      "sha256": "a686e98f54fe0570f863d7923904f5f0ce65b4946c8ed8df5e10b2e60f4af9c7"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/VALIDATION.md",
+      "sha256": "3dd4a2751013c8da80118c371e4fecfad338353fa62fc7dafad8987bece1a3eb"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/BLUEPRINT-COVERAGE.json",
+      "sha256": "c2a902e6e9ff25228643de2580376441c10889cbdd93cb134377f5b09ec9607b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/C-FIX-STATUS-2026-09-08.md",
+      "sha256": "bfae2d4a552fe3add9ff356e8df430a0d3b63df51a76693436010721f2ea0c98"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/ENHANCEMENT-COVERAGE.json",
+      "sha256": "6049746b57a48967a022ca127cb70709b78547db2aaeec513aeb182f03c84b2c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/FORMAT-COVERAGE.json",
+      "sha256": "11785d2d143aff3b955b1bca34236aa848aeed2d262c0b9dd06f89a844b2315a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/INDEPENDENT-AUDIT.md",
+      "sha256": "3a31702fbdea3a842bae4364d7fb0c1d7b9f5bdf5a377d8ff9872cf1e074d745"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/LOCAL-CLEANUP.md",
+      "sha256": "5b52a088a897ee81b37922ded16d9eded8ff513e2e3ffe1e477b8fdb364f1c5f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/SOURCE-ENHANCEMENT.md",
+      "sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/TASKPACK.md",
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r2/TASKS.json",
+      "sha256": "28ff4d552c813856243d6bab3fc550bdd7bf41f01f62326a71f7aa003ccc0f7e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/ACCEPTANCE.json",
+      "sha256": "2a4acc606d4b931f96f7d60454d4452ba1564307dc6424dd26b09ec6053fdd1b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/ACCEPTANCE.md",
+      "sha256": "378571b7334ffa0df384eaa992551a732da8eb13f63e441defaf47955db0c1a2"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/AUDIT-DELTA.md",
+      "sha256": "86b592c117041a032ea2c0d6146926a41dc509863c2d565be558b6ce3294b26d"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/BLUEPRINT-COVERAGE.json",
+      "sha256": "849cfe48f2e5b7089a42e85930fb635bd0b056d69eb9c69b29116f2d0565c8eb"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/CORE-FUNCTIONS.md",
+      "sha256": "86324966d82b8d7d0f7166640ee9b4dc7818ab710c2f5643c99fd08dec8577f9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/ENHANCEMENT-COVERAGE.json",
+      "sha256": "ec601031ec7a6b1960e8df356f6c83b2923bc929436b713e52467a447160452c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/EXECUTION-TEMPLATE.md",
+      "sha256": "3e6599c17415a8042609caff3965a8d2fd1a5d8fa05b651e18dc80feb2ee8043"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/EXECUTOR-START.md",
+      "sha256": "337a6898b7a82334f69bff264d2c32592ee38ceebb07902beea20d36e35cb07f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/FORMAT-COVERAGE.json",
+      "sha256": "dcb7f40047962dabacaf27731f25de1c8b9f0e23623fd00c40301d60ed6bf910"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/FUNCTIONS.json",
+      "sha256": "60f209b27ff3dac3038a363886b9e862f05a25d457cb99562c3f3458bf400e89"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/GOVERNANCE-MIGRATION.json",
+      "sha256": "0cb38ffb6857218d10d3a18afbc54604d834545f5a607d6b602c0635062d74b9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/GOVERNANCE-MIGRATION.md",
+      "sha256": "fb1ffae346d901f926b9747b42f55a9e2fdd43c77c15439bf1d18e2fdd131338"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/LIBRARY-ADOPTION.md",
+      "sha256": "70dde90ab9128929bca4dad0f2324a00e36d6f6d402c861b4e7d52ba8326ea2a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/LIBRARY-INTEGRATION-REFERENCE.md",
+      "sha256": "0aa75faf049b9fea89ec90a6a5fdaa13fad376d04633c6de07afb94096c1de9a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/MANIFEST.json",
+      "sha256": "e4956b9d78b3c77f9f439c0195ecaba63e42b4d3b6cebf45f10fd589886d17e9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/SOURCE-PROVENANCE.json",
+      "sha256": "3b37e2976472a85312c9988b76d196f3cef977210216d5dc1c8834b8b69e1883"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/TASKPACK.md",
+      "sha256": "5c7dc0bd2677fedc74cb49aafa2246ee147cf4d11ea7b7c2564f421df95a89d3"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/TASKS.json",
+      "sha256": "54892e6cca3cdc80e58a0affcfae8ad1ebdb62774475d57b7579562d0a3e56ad"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/VALIDATION.md",
+      "sha256": "8cdbbe41e51030bc2e9efd96bf7d801de838f51266e3260da2074b4918dd349f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/BLUEPRINT-COVERAGE.json",
+      "sha256": "c2a902e6e9ff25228643de2580376441c10889cbdd93cb134377f5b09ec9607b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/C-FIX-STATUS-2026-09-08.md",
+      "sha256": "bfae2d4a552fe3add9ff356e8df430a0d3b63df51a76693436010721f2ea0c98"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/ENHANCEMENT-COVERAGE.json",
+      "sha256": "6049746b57a48967a022ca127cb70709b78547db2aaeec513aeb182f03c84b2c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/FORMAT-COVERAGE.json",
+      "sha256": "11785d2d143aff3b955b1bca34236aa848aeed2d262c0b9dd06f89a844b2315a"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/INDEPENDENT-AUDIT.md",
+      "sha256": "3a31702fbdea3a842bae4364d7fb0c1d7b9f5bdf5a377d8ff9872cf1e074d745"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/LOCAL-CLEANUP.md",
+      "sha256": "5b52a088a897ee81b37922ded16d9eded8ff513e2e3ffe1e477b8fdb364f1c5f"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/SOURCE-ENHANCEMENT.md",
+      "sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/TASKPACK.md",
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/frozen-r2/TASKS.json",
+      "sha256": "28ff4d552c813856243d6bab3fc550bdd7bf41f01f62326a71f7aa003ccc0f7e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/frozen-r3.1/verify_package.py",
+      "sha256": "dd528a8f0e4ce0fbef5d285af0287aab3c2d16bd7af9076f18326ac6658e7dad"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/00_研究总报告.md",
+      "sha256": "c765cbe0cec8c17251f4347731329e3d8e82094dab2a2b1a5d8792bbb43a068e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/01_旧版审计与修订.md",
+      "sha256": "d5d68d536b388a235e6618d59744aa4e1c92310776d6076b7130f1b129a32c9b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/07_训练与评价模板.md",
+      "sha256": "87f243b551d35ba9595880bca61e22f045139052c29b62af8c1f05f0cb2288b8"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/08_检索与证据更新方案.md",
+      "sha256": "ecde4ef2505c13f98785a0b5d09bab018393a13d01e715f896a99b8a8e9ac5b9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/09_阅读范围与未完成项.md",
+      "sha256": "59f3cca206b50442e732a0ba98d34bdf711a56c57d7bed25cb6bca7f22366e91"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/README.md",
+      "sha256": "a66fad0d1747f1133a256ac6d993b5a1df4058e46fd46b349aa668f9a6eac908"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/学科数据.json",
+      "sha256": "f675fe774dc4cb75b290edf3b82cd1cc938d97a67023bb37e415753a3ce344b1"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/方法数据.json",
+      "sha256": "084e013a6e8dca1da9db3569430d0f999bec81a81e7ea4c08fd24bfbf0d23911"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/研究数据.json",
+      "sha256": "05b28103ac82dd531c8a669d0240b59efadd06679bba609aa50b7f26642df347"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/research-v15/资源数据.json",
+      "sha256": "4e95adebb9a275be790aa2b05f161a127faef27a661f4bf1dc41987031a8f9ef"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/frozen-r4/verify_package.py",
+      "sha256": "33163c2e6855ca044e353d8ee2e1bbe9a40b3dcb921004a9c236368a40f5f3a0"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/00_研究总报告.md",
+      "sha256": "c765cbe0cec8c17251f4347731329e3d8e82094dab2a2b1a5d8792bbb43a068e"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/01_旧版审计与修订.md",
+      "sha256": "d5d68d536b388a235e6618d59744aa4e1c92310776d6076b7130f1b129a32c9b"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/07_训练与评价模板.md",
+      "sha256": "87f243b551d35ba9595880bca61e22f045139052c29b62af8c1f05f0cb2288b8"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/08_检索与证据更新方案.md",
+      "sha256": "ecde4ef2505c13f98785a0b5d09bab018393a13d01e715f896a99b8a8e9ac5b9"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/09_阅读范围与未完成项.md",
+      "sha256": "59f3cca206b50442e732a0ba98d34bdf711a56c57d7bed25cb6bca7f22366e91"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/README.md",
+      "sha256": "a66fad0d1747f1133a256ac6d993b5a1df4058e46fd46b349aa668f9a6eac908"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/学科数据.json",
+      "sha256": "f675fe774dc4cb75b290edf3b82cd1cc938d97a67023bb37e415753a3ce344b1"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/方法数据.json",
+      "sha256": "084e013a6e8dca1da9db3569430d0f999bec81a81e7ea4c08fd24bfbf0d23911"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/研究数据.json",
+      "sha256": "05b28103ac82dd531c8a669d0240b59efadd06679bba609aa50b7f26642df347"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/research-v15/资源数据.json",
+      "sha256": "4e95adebb9a275be790aa2b05f161a127faef27a661f4bf1dc41987031a8f9ef"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/templates/CAPACITY-RESULTS.csv",
+      "sha256": "20139c6bc3d860f75801d97ff788865ec0c24c1ab510a7ec31bc4d08e6b58b43"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/templates/CLEANUP-ACTIONS.csv",
+      "sha256": "1f229cd123786a89b7760af156a50c4d33b0d5175de133dbacb24fd45eaf2866"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/templates/CURRENT-STATUS.csv",
+      "sha256": "aebc41e28a80dcd9809b9618f296a45498f0d06eb357ff161cc40e3f9e74222c"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/templates/INVENTORY.csv",
+      "sha256": "ad6a406fcd15c8ad3fd3160dae327f3cf4be01ae0a6642f8a4a46254c6fa47a7"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/templates/MIGRATION-MODULES.csv",
+      "sha256": "b24c4e0b5301f572405fa66ecf0df12a5b185eebf9b11ff06f88a197a75d7813"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/templates/SPILL-TRACE.csv",
+      "sha256": "891c9199296bce6228042186b079511f7b4a10d32852cd7db413dfd8eba04b1d"
+    },
+    {
+      "path": "docs/authority/taskpack-0912-r5/verify_package.py",
+      "sha256": "5e2ff8ded7d87aecaf3bbb1e2550bfdfb21375f07cc99b656a39461dee2788d7"
+    },
+    {
+      "path": "docs/integrations/DEEPTUTOR_PRODUCT_BASE.md",
+      "sha256": "4b7fffb2e04c1f8db53bf72392b2c072303216afeb7aa0f6204539b516ec6a81"
+    },
+    {
+      "path": "packages/contracts/bootstrap/v2/launch.schema.json",
+      "sha256": "05eb7d828a629278c848b12accf7f9a16e8b367d18cff86beafe1ec4677003fd"
+    },
+    {
+      "path": "packages/contracts/learning/v1/review.schema.json",
+      "sha256": "6c421c25a2de546fc652b9b58d5e2479a56984ae98706c26eca68b08358a244a"
+    },
+    {
+      "path": "scripts/check_architecture.py",
+      "sha256": "2895927b78d80fd929475281f9153cfb74f399e3e8d88480fe2b2bc1f7da1e67"
+    },
+    {
+      "path": "scripts/check_path_conventions.py",
+      "sha256": "9859c7f4e9940a86360ee66e52dffb5154be25a9e2ad3b0b6c292338685ee475"
+    },
+    {
+      "path": "scripts/check_repository_conventions.py",
+      "sha256": "14f1fc84fe1f9193045860f2dad58f688c3f101c84bf016b0de75d4fbc35385e"
+    },
+    {
+      "path": "scripts/ingest/directory_batch.py",
+      "sha256": "8022149cfd86ac86a4f012ae41cb73851dfab845366de61fbd12db174d3d9592"
+    },
+    {
+      "path": "scripts/launch/core_launch.py",
+      "sha256": "99445f1e42b26544c84f1126a82aff8c3cbda6b4328ffc3649d941a1b0cdf326"
+    },
+    {
+      "path": "scripts/launch/desktop_launch.py",
+      "sha256": "3fa81139103e906d224fb2339527025155ab0f296818d075148c3ebf9e3837a9"
+    },
+    {
+      "path": "scripts/maintenance/inventory_project.py",
+      "sha256": "41d566a2a0256e9fbf1d9e85a1bcd0dd763f16de13d501db73906401973652c4"
+    },
+    {
+      "path": "scripts/probes/r10_core_journey_smoke.py",
+      "sha256": "c80870163736b4c53d9a92218856316e68b4f1dc7fd5d59a04b8f24be340aeba"
+    },
+    {
+      "path": "scripts/probes/r10_host_panel_smoke.py",
+      "sha256": "1111dc89030497bfd637c1cba79109b01075f99ff7b908c6154ef58baa0f4a02"
+    },
+    {
+      "path": "scripts/probes/r11_machine_receipt_smoke.py",
+      "sha256": "fdd1a301e805e63994ef341f2ea427a6fca02a7a4dbdb9ca20afe8b6ed3e6217"
+    },
+    {
+      "path": "scripts/probes/r11_mcp_client_smoke.py",
+      "sha256": "2cb138da0693e63c1a7e6dc27bdfb2faf8cb211fea8c0b9dffe51e7899138a6f"
+    },
+    {
+      "path": "scripts/probes/r11_unseen_evaluation.py",
+      "sha256": "6f8e841e093b6d1d1fd24a65c83277128d29a16fb7e33e890c27d1d7c1aa4f86"
+    },
+    {
+      "path": "scripts/probes/r15_directory_batch_smoke.py",
+      "sha256": "6f21cd015924e8658a58e66249a5d2238db10b4b45e84efa4b3948628d2e8e21"
+    },
+    {
+      "path": "scripts/probes/x01_real_screenshot_ocr.py",
+      "sha256": "6df08a972eed1aa27e5d528b289dbecdf4ba4e032158edcbc60dd331d74d3ba1"
+    },
+    {
+      "path": "scripts/release/build_candidate.py",
+      "sha256": "83eb4bfb843a6b9625b6091cd39c6952cc38d4e66b7c4df358b7464115ff77e0"
+    },
+    {
+      "path": "scripts/release/candidate.py",
+      "sha256": "c2ecc4bcd03b974ae552878ace182995c4aa41861cbaa528d8c9cf84c3f89913"
+    },
+    {
+      "path": "scripts/release/verify_candidate.py",
+      "sha256": "ba8e0c1da9ab6f32cc0c6d17a848af54343d8eaee27dff52a6e3ccc026360867"
+    },
+    {
+      "path": "scripts/runtime/dev.py",
+      "sha256": "eebc742af1421a2eaac7136d644898f7366bc4acab930c6b421315a5f8c2682a"
+    },
+    {
+      "path": "services/python-workers/learning/worker_schedule.py",
+      "sha256": "51fcc1ea1730296607598bf6d4c09ce419dfd8cf7bb68b766416126b6261c3b6"
+    },
+    {
+      "path": "tests/maintenance/test_inventory_project.py",
+      "sha256": "4e5b30950e9dc2b05ffe535ac1a89e5469b74d8ababadd4a8c72a75532d905c8"
+    },
+    {
+      "path": "tests/runtime-paths/CoreSupervisor.Tests/CoreSupervisor.Tests.csproj",
+      "sha256": "73c0c5cb3e04244bc0d6971ee72344e038f5d8dd80f14b815a429472a9272783"
+    },
+    {
+      "path": "tests/runtime-paths/CoreSupervisor.Tests/Program.cs",
+      "sha256": "52892b24544844f47cf73383331353c13fda09de83092af9782f42f63151503c"
+    },
+    {
+      "path": "tests/runtime-paths/test_dev_paths.py",
+      "sha256": "fab83b22433174d7539d8d71e87cc8320c588839367ced57c55c36acd76cf3da"
+    },
+    {
+      "path": "tests/test_axr060_completion_audit.py",
+      "sha256": "b041ca70055462154a68c751bea096e3f8f66c52ddf0b5af488201c98156c3f0"
+    },
+    {
+      "path": "tests/test_candidate_manifest.py",
+      "sha256": "0f2105d10576cd37a22a40bb48a91dab583360233e5a6200aca8fae88e11f397"
+    },
+    {
+      "path": "tests/test_core_launch.py",
+      "sha256": "10d0e4c0a8d545572e4f5676af6fa332b340bf5622afb75a191106a33648496a"
+    },
+    {
+      "path": "tests/test_desktop_launch.py",
+      "sha256": "f466488c0a58d0113b1352d7352f45e118ceb7ed4417a5068df7a278d64c236f"
+    },
+    {
+      "path": "tests/test_directory_batch.py",
+      "sha256": "0361920ae9a3f8b6dd7fd3e1f6f6b38db0f4c9febefb1fab6c381446a2129be7"
+    },
+    {
+      "path": "tests/test_mcp_probe_paths.py",
+      "sha256": "55f8a1dd0c4d1ab1d6f69d4709e8aea4d30f82a8e6393a18f11d075f4e63b0c6"
+    },
+    {
+      "path": "tests/test_naming_conventions.py",
+      "sha256": "89efb4f1ad578b692fb3918145945f3b2c74b1e3403cc671767e3ddce4b88621"
+    },
+    {
+      "path": "tests/test_path_conventions.py",
+      "sha256": "df51645e53bbaeb363af92137fd1e6d8f0e29f2f65d0c5603e90b77239163406"
+    },
+    {
+      "path": "tests/test_web_screenshot.py",
+      "sha256": "743994fbd9472262fb78365597ed2bdba9376b2e3478d48b0a6ddaeb10159cc8"
+    },
+    {
+      "path": "tests/test_worker_schedule.py",
+      "sha256": "bc8d761d50f155727e3f8d71c496ac2dc44082accc62566bd73dad1c7a246a30"
+    },
+    {
+      "path": "tests/test_x01_screenshot_ocr_probe.py",
+      "sha256": "3fb5fc52e23e69f5178192b9e35b175dd1886a80b33ae71aec0d3939a01106b2"
+    }
+  ],
+  "results": {
+    "python_affected": {
+      "passed": 204,
+      "subtests_passed": 11,
+      "exit_code": 0
+    },
+    "rust_workspace": {
+      "exit_code": 0
+    },
+    "ocr_observed": {
+      "passed": 4,
+      "skip_messages": [],
+      "exit_code": 0
+    },
+    "desktop_supervisor": {
+      "pass_checks": 9,
+      "exit_code": 0
+    },
+    "desktop_build": {
+      "warnings": 0,
+      "errors": 0,
+      "exit_code": 0
+    },
+    "desktop_vocabulary": {
+      "cases": 29,
+      "exit_code": 0
+    },
+    "desktop_headless_smoke": {
+      "exit_code": 0
+    },
+    "python_primary_initial": {
+      "passed": 2744,
+      "failed": 2,
+      "skipped": 7,
+      "subtests_passed": 135,
+      "exit_code": 1
+    },
+    "primary_failure_repairs_targeted": {
+      "passed": 55,
+      "exit_code": 0
+    }
+  },
+  "not_verified": [
+    "python primary whole-suite rerun after repairs",
+    "wheel-smoke",
+    "exact-SHA CI",
+    "visible default learning UI",
+    "installed runtime",
+    "independent Q00/Q01"
+  ],
+  "cleanup_performed": false,
+  "upload_status_at_write": "NOT_YET_PUSHED"
+}

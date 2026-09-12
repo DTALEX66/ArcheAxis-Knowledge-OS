@@ -10,7 +10,15 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import subprocess
+import sys
+import time
+import zipfile
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 MODULE = REPO / "scripts" / "release" / "candidate.py"
@@ -211,3 +219,178 @@ def test_the_builder_refuses_a_commit_that_is_not_in_the_repository(tmp_path, mo
     code = builder.main(["--binary", str(binary), "--out", str(tmp_path / "out"), "--commit", "0" * 40])
     assert code == 3
     assert not (tmp_path / "out" / candidate.MANIFEST_NAME).exists()
+
+
+def test_existing_output_is_preserved(tmp_path, monkeypatch):
+    monkeypatch.setattr(builder, '_tree_state', lambda: (True, False))
+    binary = tmp_path / 'archeaxis-api.exe'
+    binary.write_bytes(b'fake')
+    out = tmp_path / 'existing'
+    out.mkdir()
+    valuable = out / 'keep.txt'
+    valuable.write_bytes(b'preserve')
+    assert builder.main(['--binary', str(binary), '--out', str(out)]) != 0
+    assert valuable.read_bytes() == b'preserve'
+
+
+def test_dirty_refusal_creates_no_output(tmp_path, monkeypatch):
+    monkeypatch.setattr(builder, '_tree_state', lambda: (False, False))
+    binary = tmp_path / 'archeaxis-api.exe'
+    binary.write_bytes(b'fake')
+    out = tmp_path / 'refused'
+    assert builder.main(['--binary', str(binary), '--out', str(out)]) == 5
+    assert not out.exists()
+
+
+def test_existing_archive_is_preserved_before_bundle_creation(tmp_path, monkeypatch):
+    monkeypatch.setattr(builder, '_tree_state', lambda: (True, False))
+    binary = tmp_path / 'archeaxis-api.exe'
+    binary.write_bytes(b'fake')
+    out = tmp_path / 'candidate'
+    archive = out.with_suffix('.zip')
+    archive.write_bytes(b'keep archive')
+    assert builder.main(['--binary', str(binary), '--out', str(out), '--zip']) != 0
+    assert archive.read_bytes() == b'keep archive'
+    assert not out.exists()
+
+
+def test_output_outside_governed_root_is_refused_without_creating_it(tmp_path, monkeypatch):
+    monkeypatch.setattr(builder, '_tree_state', lambda: (True, False))
+    monkeypatch.setattr(builder.dev, 'layout', lambda root: {'dev': tmp_path / 'governed'})
+    binary = tmp_path / 'archeaxis-api.exe'
+    binary.write_bytes(b'fake')
+    out = tmp_path / 'outside'
+    assert builder.main(['--binary', str(binary), '--out', str(out)]) == 6
+    assert not out.exists()
+
+
+def test_zip_uses_recorded_whitelist_not_directory_walk(tmp_path, monkeypatch):
+    monkeypatch.setattr(builder, '_tree_state', lambda: (True, False))
+    binary = tmp_path / 'archeaxis-api.exe'
+    binary.write_bytes(b'fake')
+    out = tmp_path / 'candidate'
+    original = builder.candidate.verify_manifest
+
+    def verify_then_create_unrecorded_file(root, manifest, **kwargs):
+        result = original(root, manifest, **kwargs)
+        (root / 'unrecorded-cache.bin').write_bytes(b'do not ship')
+        return result
+
+    monkeypatch.setattr(builder.candidate, 'verify_manifest', verify_then_create_unrecorded_file)
+    assert builder.main(['--binary', str(binary), '--out', str(out), '--zip']) == 0
+    with zipfile.ZipFile(out.with_suffix('.zip')) as archive:
+        assert set(archive.namelist()) == {'archeaxis-api.exe', 'README.md', 'CANDIDATE.json'}
+        assert archive.read('archeaxis-api.exe') == b'fake'
+
+
+@pytest.mark.parametrize('name', ['../outside.bin', '/outside.bin', 'E:/forbidden',
+                                  'C:\\outside.bin', 'file:stream', './README.md'])
+def test_manifest_unsafe_paths_rejected_before_hashing(tmp_path, monkeypatch, name):
+    root, manifest = _bundle(tmp_path)
+    manifest['files'] = [{'path': name, 'bytes': 0, 'sha256': 'a' * 64}]
+    monkeypatch.setattr(candidate, 'sha256_of', lambda path: pytest.fail('unsafe entry must not be hashed'))
+    original = Path.is_file
+    def guarded_is_file(path):
+        if str(path).casefold().startswith('e:'):
+            pytest.fail('protected drive metadata query')
+        return original(path)
+    with patch.object(Path, 'is_file', guarded_is_file):
+        assert any('unsafe' in problem for problem in candidate.verify_manifest(root, manifest))
+
+
+def test_duplicate_manifest_paths_and_unrecorded_digest_files_are_refused(tmp_path):
+    root, manifest = _bundle(tmp_path)
+    manifest['files'].append(dict(manifest['files'][0]))
+    (root / 'unrecorded.sha256').write_text('not an allowed sidecar')
+    problems = candidate.verify_manifest(root, manifest)
+    assert any('duplicate' in problem for problem in problems)
+    assert any('unrecorded.sha256' in problem for problem in problems)
+
+
+def test_non_object_manifest_entry_is_a_named_failure(tmp_path):
+    root, manifest = _bundle(tmp_path)
+    manifest['files'] = [None]
+    assert any('object' in problem for problem in candidate.verify_manifest(root, manifest))
+
+
+def test_protected_root_rejected_before_any_metadata_or_content_read(monkeypatch):
+    verifier = _load('candidate_verifier_boundary', REPO / 'scripts/release/verify_candidate.py')
+    def forbidden(*args, **kwargs):
+        pytest.fail('filesystem must not be accessed')
+    monkeypatch.setattr(Path, 'lstat', forbidden)
+    monkeypatch.setattr(Path, 'is_dir', forbidden)
+    monkeypatch.setattr(Path, 'read_text', forbidden)
+    assert candidate.verify_manifest(Path('E:/not-authorized'), {}) == ['unsafe bundle root']
+    assert verifier.main(['--candidate', 'E:/not-authorized']) == 2
+
+
+def test_linked_directory_is_never_enumerated_or_hashed(tmp_path, monkeypatch):
+    root, manifest = _bundle(tmp_path)
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (outside / 'payload').write_bytes(b'external fixture')
+    link = root / 'redirect'
+    if os.name == 'nt':
+        result = subprocess.run(['cmd', '/c', 'mklink', '/J', str(link), str(outside)],
+                                capture_output=True)
+        assert result.returncode == 0
+    else:
+        link.symlink_to(outside, target_is_directory=True)
+    manifest['files'].append({'path': 'redirect/payload', 'bytes': 16, 'sha256': 'a' * 64})
+    original_scan = os.scandir
+    original_hash = candidate.sha256_of
+    def guarded_scan(path):
+        assert Path(path) != link
+        return original_scan(path)
+    def guarded_hash(path):
+        assert 'redirect' not in path.parts
+        return original_hash(path)
+    try:
+        monkeypatch.setattr(os, 'scandir', guarded_scan)
+        monkeypatch.setattr(candidate, 'sha256_of', guarded_hash)
+        problems = candidate.verify_manifest(root, manifest)
+        assert 'unsafe manifest file path' in problems
+        assert 'unsafe directory in bundle' in problems
+        assert (outside / 'payload').read_bytes() == b'external fixture'
+    finally:
+        if os.name == 'nt':
+            link.rmdir()
+        else:
+            link.unlink()
+
+
+@pytest.mark.parametrize('mode,expected', [('silent', 4), ('ready', 0), ('exit', 4), ('port_only', 4)])
+def test_candidate_wait_is_bounded_and_reaped_in_project_run(tmp_path, monkeypatch, mode, expected):
+    verifier = _load('candidate_verifier_timeout', REPO / 'scripts/release/verify_candidate.py')
+    root, manifest = _bundle(tmp_path)
+    real_popen = subprocess.Popen
+    children = []
+    captured = []
+    run_dir = verifier.dev.artifact_directory(REPO, 'candidate-timeout-test')
+    monkeypatch.setattr(verifier.dev, 'artifact_directory', lambda *args: run_dir)
+
+    def start_silent(command, **kwargs):
+        if command[0] == 'taskkill.exe':
+            return real_popen(command, **kwargs)
+        captured.append((command, kwargs))
+        payloads = {
+            'silent': 'import sys,time; sys.stdin.read(); time.sleep(30)',
+            'exit': 'import sys; sys.stdin.read()',
+            'ready': 'import sys,time,pathlib; sys.stdin.read(); pathlib.Path(sys.argv[1]).touch(); print("127.0.0.1:12345",flush=True); time.sleep(30)',
+            'port_only': 'import sys,time; sys.stdin.read(); print("127.0.0.1:12345",flush=True); time.sleep(30)',
+        }
+        child = real_popen([sys.executable, '-B', '-c', payloads[mode], command[1]], **kwargs)
+        children.append(child)
+        return child
+
+    monkeypatch.setattr(verifier.subprocess, 'Popen', start_silent)
+    receipt = {}
+    started = time.monotonic()
+    assert verifier.run_binary(root, manifest, receipt, timeout=0.5) == expected
+    assert time.monotonic() - started < 5
+    assert children[0].poll() is not None
+    assert receipt['run']['stopped'] is True
+    database = Path(captured[0][0][1])
+    assert database.is_relative_to(Path(os.environ['ARCHEAXIS_RUN_ROOT']) / 'artifacts')
+    if os.name == 'nt':
+        assert captured[0][1]['creationflags'] & subprocess.CREATE_NO_WINDOW

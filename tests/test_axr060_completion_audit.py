@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,7 +61,53 @@ def test_axr060_audit_keeps_release_and_product_completion_separate() -> None:
     assert "NOT_EXECUTED" in text
 
 
-def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas() -> None:
+def _declared_r5_source_objects() -> set[str]:
+    """Source blob identity is not a claim that its commit was released."""
+    reuse = json.loads((ROOT / 'docs/current/R5-M0-REUSE.json').read_text(encoding='utf-8'))
+    base = reuse['baseline_sha']
+
+    def git(*args: str) -> str:
+        return subprocess.check_output(['git', '-C', str(ROOT), *args], text=True).strip()
+
+    assert re.fullmatch('[0-9a-f]{40}', base)
+    assert git('cat-file', '-t', base) == 'commit'
+    declared = {base, git('rev-parse', f'{base}^{{tree}}')}
+    state = json.loads((ROOT / 'docs/current/R5-STATE.json').read_text(encoding='utf-8'))
+    main_snapshot = state['baseline_local_main_sha']
+    assert re.fullmatch('[0-9a-f]{40}', main_snapshot)
+    assert git('cat-file', '-t', main_snapshot) == 'commit'
+    declared.add(main_snapshot)
+
+    def visit(value):
+        if isinstance(value, dict):
+            if value.get('head_blob'):
+                path, sha = value['path'], value['head_blob']
+                assert re.fullmatch('[0-9a-f]{40}', sha)
+                assert git('cat-file', '-t', sha) == 'blob'
+                assert git('rev-parse', f'{base}:{path}') == sha
+                declared.add(sha)
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(reuse)
+    disposition = json.loads((ROOT / 'docs/current/R5-PATH-DISPOSITION.json').read_text(encoding='utf-8'))
+    measured = disposition['measured']['measured_at_commit']
+    assert re.fullmatch('[0-9a-f]{40}', measured)
+    assert git('cat-file', '-t', measured) == 'commit'
+    declared.add(measured)
+    # Historical upstream pin has its own repository and qualification limits.
+    # Do not pretend it is a local Git object or a published ArcheAxis commit.
+    upstream = (ROOT / 'docs/integrations/DEEPTUTOR_PRODUCT_BASE.md').read_text(encoding='utf-8')
+    pins = re.findall(r'^- Commit: `([0-9a-f]{40})`$', upstream, re.MULTILINE)
+    assert len(pins) == 1
+    declared.update(pins)
+    return declared
+
+
+def test_tracked_current_surfaces_only_reference_declared_release_delta_or_source_objects() -> None:
     releases = [
         json.loads(
             (ROOT / "reports" / "release" / version / "release-evidence.json").read_text(
@@ -106,6 +153,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_or_delta_shas(
     )
     assert declared_current_shas
     allowed_shas.update(declared_current_shas)
+    allowed_shas.update(_declared_r5_source_objects())
     surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]
     surfaces.extend((ROOT / "docs" / "current").glob("*"))
     surfaces.extend((ROOT / "reports" / "current").glob("*"))

@@ -8,7 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 LAUNCHER = Path(__file__).resolve().parents[2] / 'scripts/runtime/dev.py'
 SPEC = importlib.util.spec_from_file_location('dev_paths', LAUNCHER)
@@ -76,6 +76,52 @@ class DevelopmentPaths(unittest.TestCase):
         result = subprocess.run(command, env=self.env, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_cargo_mutable_cache_is_routed_to_project_root(self):
+        values = dev.environment(dev.layout(self.repo, 'cargo-cache'))
+        self.assertEqual(values.get('CARGO_HOME'), str(self.repo / '.project-local/cache/cargo'))
+
+    def test_main_cargo_target_matches_bare_cargo_without_worktree_collision(self):
+        import tomllib
+
+        config = tomllib.loads((LAUNCHER.parents[2] / '.cargo/config.toml').read_text())
+        main = dev.environment(dev.layout(self.repo, 'main-cargo'))
+        self.assertEqual(Path(main['CARGO_TARGET_DIR']),
+                         self.repo / config['build']['target-dir'])
+        linked = self.repo / '.project-local/worktrees/cargo-linked'
+        self.run_git('worktree', 'add', '--detach', str(linked))
+        other = dev.environment(dev.layout(linked, 'linked-cargo'))
+        self.assertNotEqual(main['CARGO_TARGET_DIR'], other['CARGO_TARGET_DIR'])
+        self.assertTrue(Path(other['CARGO_TARGET_DIR']).is_relative_to(
+            self.repo / '.project-local/build'))
+        self.assertFalse((linked / '.project-local').exists())
+
+    def test_nuget_child_overrides_foreign_caches_and_reuses_only_cache(self):
+        names = ('NUGET_PACKAGES', 'NUGET_HTTP_CACHE_PATH',
+                 'NUGET_PLUGINS_CACHE_PATH', 'NUGET_SCRATCH')
+        child_env = dict(self.env)
+        child_env.update({name: str(self.repo / 'foreign-cache') for name in names})
+        command = self.command()
+        command[-1] = (
+            'import json,os,pathlib; '
+            f'names={names!r}; '
+            'root=pathlib.Path(os.environ["ARCHEAXIS_DEV_ROOT"]); '
+            'run=pathlib.Path(os.environ["ARCHEAXIS_RUN_ROOT"]); '
+            'values={name:os.environ[name] for name in names}; '
+            'assert all(pathlib.Path(value).is_relative_to(root) for value in values.values()); '
+            'assert pathlib.Path(values["NUGET_SCRATCH"]).is_relative_to(run/"tmp"); '
+            '(run/"artifacts"/"nuget-paths.json").write_text(json.dumps(values))'
+        )
+        for _ in range(2):
+            result = subprocess.run(command, env=child_env, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        receipts = list(self.repo.glob('.project-local/runs/*/*/artifacts/nuget-paths.json'))
+        self.assertEqual(len(receipts), 2)
+        first, second = [json.loads(path.read_text()) for path in receipts]
+        for name in names[:-1]:
+            self.assertEqual(first[name], second[name])
+        self.assertNotEqual(first['NUGET_SCRATCH'], second['NUGET_SCRATCH'])
+        self.assertFalse((self.repo / 'foreign-cache').exists())
+
     def test_linked_worktree_uses_owner_root_with_separate_identity(self):
         linked = self.repo / '.project-local/worktrees/linked'
         self.run_git('worktree', 'add', '--detach', str(linked))
@@ -124,6 +170,110 @@ class DevelopmentPaths(unittest.TestCase):
         child.mkdir()
         with self.assertRaisesRegex(ValueError, 'exact Git worktree'):
             dev.layout(child)
+
+    def test_artifact_directory_allocates_distinct_children_in_owned_run(self):
+        first = dev.artifact_directory(self.repo, 'probe')
+        second = dev.artifact_directory(self.repo, 'probe')
+        run = Path(os.environ['ARCHEAXIS_RUN_ROOT'])
+        self.assertNotEqual(first, second)
+        self.assertEqual(first.parent, run / 'artifacts' / 'probe')
+        self.assertEqual(second.parent, first.parent)
+        self.assertTrue(first.is_dir() and second.is_dir())
+
+    def test_artifact_directory_rejects_traversal_before_allocating_run(self):
+        for name in ('../escape', '/absolute', 'two/parts', '.zcode', ''):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                dev.artifact_directory(self.repo, name)
+        self.assertFalse((self.repo / '.project-local').exists())
+
+    def test_artifact_directory_rejects_foreign_run(self):
+        foreign = self.repo / 'foreign-run'
+        foreign.mkdir()
+        with patch.dict(os.environ, {'ARCHEAXIS_RUN_ROOT': str(foreign)}), self.assertRaises(ValueError):
+            dev.artifact_directory(self.repo, 'probe')
+        self.assertEqual(list(foreign.iterdir()), [])
+
+    def test_state_path_is_stable_without_creating_files(self):
+        first = dev.state_path(self.repo, 'batch', 'source.jsonl')
+        second = dev.state_path(self.repo, 'batch', 'source.jsonl')
+        self.assertEqual(first, second)
+        self.assertTrue(first.is_relative_to(self.repo / '.project-local' / 'state'))
+        self.assertFalse((self.repo / '.project-local').exists())
+        for name in ('../escape', '/absolute', 'two/parts', '..'):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                dev.state_path(self.repo, 'batch', name)
+
+    def test_interrupted_output_stops_owned_child_and_records_cancelled(self):
+        child = Mock()
+        child.stdout.__iter__ = Mock(side_effect=KeyboardInterrupt)
+        with patch.object(sys, 'argv', self.command()[3:]), \
+             patch.object(dev.subprocess, 'Popen', return_value=child), \
+             patch.object(dev, 'stop_owned_process') as stop, \
+             patch.object(dev, 'git', return_value='a' * 40), \
+             patch.object(dev, 'layout', return_value={
+                 'root': self.repo, 'run': self.repo / 'run',
+                 'artifacts': self.repo / 'artifacts'}), \
+             patch.object(dev, 'prepare', return_value={}):
+            (self.repo / 'artifacts').mkdir()
+            self.assertEqual(dev.main(), 130)
+        stop.assert_called_once_with(child)
+        receipt = json.loads((self.repo / 'artifacts/execution.json').read_text())
+        self.assertEqual(receipt['exit_code'], 130)
+        self.assertTrue(receipt['cancelled'])
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows process-tree verification')
+    def test_windows_cleanup_reaps_grandchild_and_preserves_unrelated_process(self):
+        import ctypes
+        from ctypes import wintypes
+
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        kernel.OpenProcess.restype = wintypes.HANDLE
+        kernel.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+        kernel.WaitForSingleObject.restype = wintypes.DWORD
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        sleeper = [sys.executable, '-B', '-c', 'import time; time.sleep(120)']
+        outsider = subprocess.Popen(sleeper, creationflags=subprocess.CREATE_NO_WINDOW)
+        parent = subprocess.Popen(
+            [sys.executable, '-B', '-c',
+             'import subprocess,sys,time; '
+             'p=subprocess.Popen([sys.executable,"-B","-c","import time; time.sleep(120)"]); '
+             'print(p.pid,flush=True); time.sleep(120)'],
+            stdout=subprocess.PIPE, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+        handle = None
+        try:
+            grandchild_pid = int(parent.stdout.readline())
+            handle = kernel.OpenProcess(0x100000, False, grandchild_pid)
+            self.assertTrue(handle)
+            self.assertEqual(kernel.WaitForSingleObject(handle, 0), 258)
+            dev.stop_owned_process(parent)
+            self.assertIsNotNone(parent.poll())
+            self.assertEqual(kernel.WaitForSingleObject(handle, 5000), 0)
+            self.assertIsNone(outsider.poll())
+        finally:
+            dev.stop_owned_process(parent)
+            dev.stop_owned_process(outsider)
+            parent.stdout.close()
+            if handle:
+                kernel.CloseHandle(handle)
+
+    def test_cleanup_failure_is_not_recorded_as_successful_cancellation(self):
+        child = Mock()
+        child.stdout.__iter__ = Mock(side_effect=KeyboardInterrupt)
+        with patch.object(sys, 'argv', self.command()[3:]), \
+             patch.object(dev.subprocess, 'Popen', return_value=child), \
+             patch.object(dev, 'stop_owned_process', side_effect=RuntimeError('denied')), \
+             patch.object(dev, 'git', return_value='a' * 40), \
+             patch.object(dev, 'layout', return_value={
+                 'root': self.repo, 'run': self.repo / 'run',
+                 'artifacts': self.repo / 'artifacts'}), \
+             patch.object(dev, 'prepare', return_value={}):
+            (self.repo / 'artifacts').mkdir()
+            with self.assertRaisesRegex(RuntimeError, 'cleanup failed'):
+                dev.main()
+        receipt = json.loads((self.repo / 'artifacts/execution.json').read_text())
+        self.assertEqual(receipt['exit_code'], 1)
+        self.assertEqual(receipt['owned_process_cleanup'], 'failed')
 
 
 if __name__ == '__main__':

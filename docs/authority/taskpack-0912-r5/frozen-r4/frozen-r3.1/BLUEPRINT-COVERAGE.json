@@ -1,0 +1,3066 @@
+{
+  "schema": "archeaxis.retained-coverage/v1",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "completeness_claim": "仅登记来源集合、稳定ID及本对话要求的映射完整，不代表所有历史逐句读完或产品全部完成。",
+  "capabilities": [
+    {
+      "id": "CAP-0010",
+      "name": "原件资产与来源接入",
+      "preserved": true,
+      "authority_status": "binding_core",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X05",
+        "X06",
+        "X10"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0010",
+        "canonical_name": "原件资产与来源接入",
+        "pillar": "P0",
+        "product_layer": "Workspace",
+        "authority_status": "binding_core",
+        "roadmap_state": "critical_now",
+        "activation_horizon": "H0-H1",
+        "technical_state": "supported",
+        "objects": [
+          "RawAsset",
+          "SourceRecord",
+          "ImportBatch",
+          "Hash",
+          "Version",
+          "Snapshot"
+        ],
+        "views": [
+          "导入",
+          "原件",
+          "版本"
+        ],
+        "dependencies": [],
+        "entry_gate": [
+          "approved root",
+          "hash before write"
+        ],
+        "exit_evidence": [
+          "真实 PDF 导入闭环",
+          "hash 读回"
+        ],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-022A",
+          "REQ-SOURCE-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0020",
+      "name": "多格式转换",
+      "preserved": true,
+      "authority_status": "binding_core",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0020",
+        "canonical_name": "多格式转换",
+        "pillar": "P0",
+        "product_layer": "Workspace",
+        "authority_status": "binding_core",
+        "roadmap_state": "core_next",
+        "activation_horizon": "H1-H2",
+        "technical_state": "in_progress",
+        "objects": [
+          "ConversionRun",
+          "DerivedDocument",
+          "Block",
+          "Page",
+          "Region",
+          "Table",
+          "TranscriptSegment",
+          "Anchor"
+        ],
+        "views": [
+          "转换",
+          "质量",
+          "损失报告"
+        ],
+        "dependencies": [
+          "MarkItDown",
+          "Tesseract",
+          "FFmpeg",
+          "Magika"
+        ],
+        "entry_gate": [
+          "fixture",
+          "质量指标",
+          "安装验证"
+        ],
+        "exit_evidence": [
+          "CER/WER gate",
+          "fixture 通过"
+        ],
+        "fallbacks": [
+          "extension fallback",
+          "honest unavailable"
+        ],
+        "origin_requirement_ids": [
+          "AXW-023A",
+          "MFX-010",
+          "REQ-CONVERT-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0030",
+      "name": "证据锚定与交叉核验",
+      "preserved": true,
+      "authority_status": "binding_core",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X07"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0030",
+        "canonical_name": "证据锚定与交叉核验",
+        "pillar": "P1",
+        "product_layer": "Evidence",
+        "authority_status": "binding_core",
+        "roadmap_state": "critical_now",
+        "activation_horizon": "H1",
+        "technical_state": "supported",
+        "objects": [
+          "EvidenceAnchor",
+          "ClaimCandidate",
+          "AnchoredClaim",
+          "CrossValidationRecord",
+          "VerifiedClaim",
+          "EvidenceBundle"
+        ],
+        "views": [
+          "证据",
+          "交叉验证",
+          "冲突"
+        ],
+        "dependencies": [
+          "Crossref",
+          "DataCite",
+          "OpenAlex",
+          "Wikidata"
+        ],
+        "entry_gate": [
+          "truth/prediction pairs",
+          "公开可核验"
+        ],
+        "exit_evidence": [
+          "anchor 回跳",
+          "交叉验证记录"
+        ],
+        "fallbacks": [
+          "无法公开核验标注"
+        ],
+        "origin_requirement_ids": [
+          "AXW-022B",
+          "REQ-EVIDENCE-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0040",
+      "name": "人类深度学习系统",
+      "preserved": true,
+      "authority_status": "binding_core",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X08",
+        "F03"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0040",
+        "canonical_name": "人类深度学习系统",
+        "pillar": "P2",
+        "product_layer": "Learning",
+        "authority_status": "binding_core",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H4",
+        "technical_state": "in_progress",
+        "objects": [
+          "LearningObjective",
+          "RetrievalPractice",
+          "FSRS卡片",
+          "TeachBack",
+          "学习画像"
+        ],
+        "views": [
+          "学习",
+          "复习",
+          "掌握度"
+        ],
+        "dependencies": [
+          "py-fsrs"
+        ],
+        "entry_gate": [
+          "EvidenceAnchor 绑定",
+          "人工确认"
+        ],
+        "exit_evidence": [
+          "FSRS 调度",
+          "练习记录"
+        ],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-025A",
+          "REQ-LEARNING-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0050",
+      "name": "AI 学习资产与受控调用",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X09",
+        "F03"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0050",
+        "canonical_name": "AI 学习资产与受控调用",
+        "pillar": "P3",
+        "product_layer": "AI Assets",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H4-H8",
+        "technical_state": "planned",
+        "objects": [
+          "Memory",
+          "Rule",
+          "Skill",
+          "Standard",
+          "Context",
+          "Evaluation",
+          "GovernedAIAsset"
+        ],
+        "views": [
+          "AI 资产",
+          "调用审计",
+          "评测"
+        ],
+        "dependencies": [
+          "LiteLLM",
+          "本地模型"
+        ],
+        "entry_gate": [
+          "人工批准",
+          "证据绑定",
+          "风险等级"
+        ],
+        "exit_evidence": [
+          "调用审计",
+          "评测集"
+        ],
+        "fallbacks": [
+          "experimental 受限"
+        ],
+        "origin_requirement_ids": [
+          "REQ-AI-ASSET-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0060",
+      "name": "LER 视觉教学与课件",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X08",
+        "F01"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0060",
+        "canonical_name": "LER 视觉教学与课件",
+        "pillar": "P4",
+        "product_layer": "Learning",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H6-H7",
+        "technical_state": "planned",
+        "objects": [
+          "VisualTeaching",
+          "CoursewarePackage",
+          "VisualPackage",
+          "讲义",
+          "课件"
+        ],
+        "views": [
+          "视觉教学",
+          "课件"
+        ],
+        "dependencies": [],
+        "entry_gate": [
+          "来源/证据锚点",
+          "资产许可",
+          "fallback"
+        ],
+        "exit_evidence": [
+          "统一 manifest",
+          "静态降级"
+        ],
+        "fallbacks": [
+          "静态帧/文本降级"
+        ],
+        "origin_requirement_ids": [
+          "AXW-090",
+          "REQ-LER-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0070",
+      "name": "动态解释与仿真",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "F01"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0070",
+        "canonical_name": "动态解释与仿真",
+        "pillar": "P4",
+        "product_layer": "Learning",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H7",
+        "technical_state": "planned",
+        "objects": [
+          "AnimationScript",
+          "Scene",
+          "Step",
+          "SimulationPackage",
+          "实验记录"
+        ],
+        "views": [
+          "动画",
+          "仿真"
+        ],
+        "dependencies": [],
+        "entry_gate": [
+          "输入输出",
+          "可复现",
+          "fallback"
+        ],
+        "exit_evidence": [
+          "操作事件",
+          "反馈"
+        ],
+        "fallbacks": [
+          "静态帧/文本"
+        ],
+        "origin_requirement_ids": [
+          "AXW-090",
+          "REQ-LER-002"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0080",
+      "name": "空间记忆与沉浸学习",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "F02"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0080",
+        "canonical_name": "空间记忆与沉浸学习",
+        "pillar": "P5",
+        "product_layer": "Learning",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "experimental_later",
+        "activation_horizon": "H7-H8",
+        "technical_state": "planned",
+        "objects": [
+          "SpatialMemoryPackage",
+          "World",
+          "Palace",
+          "Room",
+          "Locus",
+          "Object",
+          "Route",
+          "MoveMap",
+          "ReviewEvent"
+        ],
+        "views": [
+          "空间记忆",
+          "2D/2.5D/3D/VR/AR"
+        ],
+        "dependencies": [],
+        "entry_gate": [
+          "engine-agnostic 数据合同",
+          "资产许可账本",
+          "2D/text fallback"
+        ],
+        "exit_evidence": [
+          "学习效果评估",
+          "fallback"
+        ],
+        "fallbacks": [
+          "文本路线",
+          "2D Map",
+          "CSS/Canvas 2.5D"
+        ],
+        "origin_requirement_ids": [
+          "AXW-090",
+          "REQ-SPATIAL-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0090",
+      "name": "研究、课程与项目工作空间",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X08",
+        "F05"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0090",
+        "canonical_name": "研究、课程与项目工作空间",
+        "pillar": "P6",
+        "product_layer": "Workspace",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H6-H7",
+        "technical_state": "planned",
+        "objects": [
+          "ResearchProject",
+          "ResearchPackage",
+          "Course",
+          "Project",
+          "Portfolio",
+          "Rubric",
+          "OutputProof"
+        ],
+        "views": [
+          "研究",
+          "课程",
+          "项目"
+        ],
+        "dependencies": [],
+        "entry_gate": [],
+        "exit_evidence": [],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-091",
+          "AXW-092",
+          "AXW-093",
+          "REQ-RESEARCH-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0100",
+      "name": "开放互操作与生态适配器",
+      "preserved": true,
+      "authority_status": "binding_core",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X10",
+        "X12",
+        "F04"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0100",
+        "canonical_name": "开放互操作与生态适配器",
+        "pillar": "P7",
+        "product_layer": "Workspace",
+        "authority_status": "binding_core",
+        "roadmap_state": "core_next",
+        "activation_horizon": "H3",
+        "technical_state": "in_progress",
+        "objects": [
+          "Vault往返",
+          "JSON Canvas",
+          "Markdown",
+          "Links",
+          "Attachments",
+          "Adapter"
+        ],
+        "views": [
+          "互操作",
+          "适配器"
+        ],
+        "dependencies": [
+          "JSON Canvas",
+          "MarkItDown"
+        ],
+        "entry_gate": [
+          "expected-hash",
+          "原子写",
+          "冲突检测"
+        ],
+        "exit_evidence": [
+          "C4 安全往返"
+        ],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-090",
+          "REQ-INTEROP-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0110",
+      "name": "搜索、图谱与索引",
+      "preserved": true,
+      "authority_status": "binding_core",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X07",
+        "F05"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0110",
+        "canonical_name": "搜索、图谱与索引",
+        "pillar": "P8",
+        "product_layer": "Library",
+        "authority_status": "binding_core",
+        "roadmap_state": "core_next",
+        "activation_horizon": "H3-H4",
+        "technical_state": "in_progress",
+        "objects": [
+          "FTS",
+          "向量索引",
+          "图谱",
+          "引用路径"
+        ],
+        "views": [
+          "搜索",
+          "图谱"
+        ],
+        "dependencies": [
+          "sqlite-vec",
+          "NetworkX"
+        ],
+        "entry_gate": [],
+        "exit_evidence": [
+          "索引可重建"
+        ],
+        "fallbacks": [
+          "FTS5 独立可用"
+        ],
+        "origin_requirement_ids": [
+          "REQ-SEARCH-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0120",
+      "name": "桌面、平台与可选协作",
+      "preserved": true,
+      "authority_status": "binding_core",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X03",
+        "X11",
+        "X13",
+        "F04"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0120",
+        "canonical_name": "桌面、平台与可选协作",
+        "pillar": "P9",
+        "product_layer": "Desktop",
+        "authority_status": "binding_core",
+        "roadmap_state": "critical_now",
+        "activation_horizon": "H0-H5",
+        "technical_state": "in_progress",
+        "objects": [
+          "Windows",
+          "Tauri",
+          "安装器",
+          "更新"
+        ],
+        "views": [
+          "桌面"
+        ],
+        "dependencies": [
+          "Tauri",
+          "NSIS"
+        ],
+        "entry_gate": [],
+        "exit_evidence": [
+          "安装态验证",
+          "restart readback"
+        ],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-096",
+          "REQ-DESKTOP-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0130",
+      "name": "受限受控执行探索",
+      "preserved": true,
+      "authority_status": "exploration",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X09",
+        "F04"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0130",
+        "canonical_name": "受限受控执行探索",
+        "pillar": "P10",
+        "product_layer": "Exploration",
+        "authority_status": "exploration",
+        "roadmap_state": "deferred_retained",
+        "activation_horizon": "H8-H10",
+        "technical_state": "planned",
+        "objects": [
+          "受控执行 Adapter",
+          "sandbox",
+          "checkpoint",
+          "trace",
+          "rollback"
+        ],
+        "views": [],
+        "dependencies": [],
+        "entry_gate": [
+          "权限",
+          "dry-run",
+          "sandbox",
+          "checkpoint",
+          "trace",
+          "cancel",
+          "rollback"
+        ],
+        "exit_evidence": [],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-098",
+          "AXW-099",
+          "REQ-EXPLORATION-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0140",
+      "name": "备份、同步与发布",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X05",
+        "X10",
+        "X11",
+        "F04"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0140",
+        "canonical_name": "备份、同步与发布",
+        "pillar": "P8/P9",
+        "product_layer": "Settings",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H5-H9",
+        "technical_state": "in_progress",
+        "objects": [
+          "备份",
+          "恢复",
+          "同步",
+          "发布",
+          "导出"
+        ],
+        "views": [
+          "备份",
+          "同步"
+        ],
+        "dependencies": [],
+        "entry_gate": [],
+        "exit_evidence": [
+          "完整导出",
+          "恢复读回"
+        ],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-094",
+          "REQ-BACKUP-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0150",
+      "name": "模型、Provider 与数据出境治理",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X07",
+        "X09",
+        "F03"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0150",
+        "canonical_name": "模型、Provider 与数据出境治理",
+        "pillar": "P8",
+        "product_layer": "AI Assets",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H4-H8",
+        "technical_state": "planned",
+        "objects": [
+          "本地模型",
+          "Provider",
+          "成本",
+          "Token",
+          "延迟",
+          "数据出境授权"
+        ],
+        "views": [
+          "模型",
+          "Provider"
+        ],
+        "dependencies": [
+          "LiteLLM"
+        ],
+        "entry_gate": [
+          "授权",
+          "manifest"
+        ],
+        "exit_evidence": [
+          "能力探针"
+        ],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "AXW-095",
+          "REQ-PROVIDER-001"
+        ]
+      },
+      "historical_state_not_current": true
+    },
+    {
+      "id": "CAP-0160",
+      "name": "可视化与空间学习表征",
+      "preserved": true,
+      "authority_status": "binding_long_term",
+      "implementation_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X08",
+        "F01",
+        "F02"
+      ],
+      "original_atlas_entry": {
+        "capability_id": "CAP-0160",
+        "canonical_name": "可视化与空间学习表征",
+        "pillar": "P4",
+        "product_layer": "Learning",
+        "authority_status": "binding_long_term",
+        "roadmap_state": "formal_later",
+        "activation_horizon": "H6-H8",
+        "technical_state": "planned",
+        "objects": [
+          "图解",
+          "概念图",
+          "数据图表",
+          "Learning Map",
+          "Canvas",
+          "Graph"
+        ],
+        "views": [
+          "可视化"
+        ],
+        "dependencies": [
+          "JSON Canvas"
+        ],
+        "entry_gate": [
+          "来源/证据锚点"
+        ],
+        "exit_evidence": [],
+        "fallbacks": [],
+        "origin_requirement_ids": [
+          "REQ-VISUAL-001"
+        ]
+      },
+      "historical_state_not_current": true
+    }
+  ],
+  "long_term_programs": [
+    {
+      "id": "AXW-090",
+      "mapped_tasks": [
+        "F01",
+        "F02"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-091",
+      "mapped_tasks": [
+        "F05"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-092",
+      "mapped_tasks": [
+        "X08",
+        "F03"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-093",
+      "mapped_tasks": [
+        "F05"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-094",
+      "mapped_tasks": [
+        "X05",
+        "X10",
+        "F04"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-095",
+      "mapped_tasks": [
+        "X07",
+        "X09",
+        "F03"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-096",
+      "mapped_tasks": [
+        "F04"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-097",
+      "mapped_tasks": [
+        "F04"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-098",
+      "mapped_tasks": [
+        "F04"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-099",
+      "mapped_tasks": [
+        "F03",
+        "F05"
+      ],
+      "preserved": true
+    }
+  ],
+  "blueprint_governance_tasks": [
+    {
+      "id": "AXW-1200",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1201",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1202",
+      "mapped_tasks": [
+        "X00",
+        "X13"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1203",
+      "mapped_tasks": [
+        "X00",
+        "F01",
+        "F02"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1204",
+      "mapped_tasks": [
+        "X00",
+        "X13"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1205",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1206",
+      "mapped_tasks": [
+        "X00",
+        "X13"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1207",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1208",
+      "mapped_tasks": [
+        "X13"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1209",
+      "mapped_tasks": [
+        "X00",
+        "X13"
+      ],
+      "preserved": true
+    },
+    {
+      "id": "AXW-1210",
+      "mapped_tasks": [
+        "X11"
+      ],
+      "preserved": true
+    }
+  ],
+  "canonical_repo_tasks": [
+    {
+      "id": "PR-00",
+      "title": "Owner 决策、G0 缩窄与 legacy 冻结",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "original_acceptance": [
+        "锁定同仓 vNext、Avalonia/Rust/Python 责任与独立新库例外",
+        "旧库仍由 legacy Python 独占，禁止共享库、实时同步和双写",
+        "冻结 v0.6.14 tag/commit/tree/发行资产/锁文件身份"
+      ],
+      "original_evidence": [
+        "signed-owner-decision",
+        "day0-baseline-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-01",
+      "title": "单一密闭 full-suite 入口",
+      "mapped_tasks": [
+        "X01"
+      ],
+      "original_acceptance": [
+        "full 固定收集 tests integration-tests knowledge_base/tests",
+        "newspaper 使用本地 HTTP fixture；browser job 先装固定 Chromium",
+        "清除继承 PYTHONPATH/legacy data root；并发运行隔离",
+        "nightly ref 真实传给 checkout"
+      ],
+      "original_evidence": [
+        "collection-manifest",
+        "two-offline-runs",
+        "exact-sha-nightly"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-02",
+      "title": "Full Qualification 收据与 Release fail-closed",
+      "mapped_tasks": [
+        "X01",
+        "X11",
+        "Q00",
+        "Q01"
+      ],
+      "original_acceptance": [
+        "full required job 全部显式 success；skipped/cancelled/failed 均失败",
+        "收据绑定 SHA/tree/锁/GatePlan/job conclusions",
+        "Release 拒绝 selective run、错 SHA、错锁、错 run-id"
+      ],
+      "original_evidence": [
+        "full-qualification-receipt",
+        "hostile-release-fixtures"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-03",
+      "title": "仓库目录权威与多 Agent 写入治理",
+      "mapped_tasks": [
+        "X00",
+        "X01",
+        "X13"
+      ],
+      "original_acceptance": [
+        "工具中立 AGENTS/Program/blueprint/envelope/grant/GatePlan/receipt/scope gate 生效",
+        "hostile scope、无 grant、未知路径、反向依赖均 fail closed",
+        "legacy SQLite 直连不高于 58、DDL 不高于 27、旧产品功能增量为零"
+      ],
+      "original_evidence": [
+        "scope-gate-receipt",
+        "grant-conflict-receipt",
+        "dependency-boundary-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-04",
+      "title": "跨语言 Contract v1",
+      "mapped_tasks": [
+        "X04"
+      ],
+      "original_acceptance": [
+        "OpenAPI/JSON Schema/worker/migration/error/idempotency/version 统一",
+        "Rust C# Python canonical JSON、Unicode offset、unknown-field、major mismatch 一致",
+        "generated 输出零漂移"
+      ],
+      "original_evidence": [
+        "three-language-contract-matrix",
+        "fixture-hashes"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-05",
+      "title": "Rust local-service、WriterActor 与空新库",
+      "mapped_tasks": [
+        "X05"
+      ],
+      "original_acceptance": [
+        "仅 store-sqlite 依赖主库驱动并持有 RW",
+        "重复 command 回原 receipt；非法状态无写入",
+        "crash/restart/online-backup 不损坏空库"
+      ],
+      "original_evidence": [
+        "rust-tests",
+        "dependency-graph",
+        "db-owner-audit",
+        "fault-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-06",
+      "title": "Avalonia Shell 与 Supervisor",
+      "mapped_tasks": [
+        "X03",
+        "X11"
+      ],
+      "original_acceptance": [
+        "UI 无 SQLite 依赖或主库路径",
+        "随机端口、启动凭证、版本错误、core crash/timeout 可见",
+        "关闭 UI 无孤儿进程、无命令行窗口"
+      ],
+      "original_evidence": [
+        "dotnet-tests",
+        "windows-process-tree-receipt",
+        "ui-state-captures"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-07",
+      "title": "Python NDJSON Worker Runner",
+      "mapped_tasks": [
+        "X05",
+        "X06"
+      ],
+      "original_acceptance": [
+        "无 sqlite/主库路径，只写 job scratch",
+        "timeout/cancel/crash/malformed/loss 可重试且有 receipt",
+        "输出 schema/hash/size/media-type 全校验"
+      ],
+      "original_evidence": [
+        "worker-contract-tests",
+        "filesystem-access-trace"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-08",
+      "title": "进程与契约 Journey Harness",
+      "mapped_tasks": [
+        "X04",
+        "X11"
+      ],
+      "original_acceptance": [
+        "可稳定制造 version mismatch/timeout/malformed/crash/duplicate/orphan",
+        "harness 自测和 fixture manifest 通过"
+      ],
+      "original_evidence": [
+        "fixture-manifest",
+        "harness-self-test"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-09",
+      "title": "Hello Triangle 集成门",
+      "mapped_tasks": [
+        "X11"
+      ],
+      "original_acceptance": [
+        "Avalonia→Rust→Python→Rust write→Avalonia read 连续运行两次",
+        "success/version-error/timeout/malformed/crash/clean-exit 均可见",
+        "仅写一条幂等 receipt；重启和在线备份通过"
+      ],
+      "original_evidence": [
+        "two-exact-sha-triangle-receipts"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-10",
+      "title": "Workspace/CAS/Source/Anchor/Job 内容底座",
+      "mapped_tasks": [
+        "X05",
+        "X06"
+      ],
+      "original_acceptance": [
+        "content-addressed-originals",
+        "duplicate-import-noop",
+        "path-traversal-rejected",
+        "anchor-versioned",
+        "restart-and-backup-consistent"
+      ],
+      "original_evidence": [
+        "cas-db-property-tests",
+        "command-receipts"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-11",
+      "title": "TXT Markdown 原生文本 PDF 能力包",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "original_acceptance": [
+        "independent-lock",
+        "deterministic-fixtures",
+        "offline-default",
+        "no-db",
+        "stable-page-offset-loss",
+        "crash-retry"
+      ],
+      "original_evidence": [
+        "canonical-output-hashes",
+        "capability-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-12",
+      "title": "Avalonia Library Import Reader Jump-back",
+      "mapped_tasks": [
+        "X03",
+        "X06",
+        "X08"
+      ],
+      "original_acceptance": [
+        "api-only",
+        "no-db",
+        "chinese-space-paths",
+        "text-selection-anchor",
+        "restart-jump-back"
+      ],
+      "original_evidence": [
+        "ui-automation",
+        "accessibility-smoke",
+        "screenshots",
+        "journey-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-13",
+      "title": "合法固定 Fixture 与 Anchor Oracle",
+      "mapped_tasks": [
+        "X06",
+        "X07"
+      ],
+      "original_acceptance": [
+        "source-license-hash-recorded",
+        "expected-page-offset-loss-recorded",
+        "no-private-user-data"
+      ],
+      "original_evidence": [
+        "fixture-ledger",
+        "hash-verification"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-14",
+      "title": "Import Read Anchor 集成",
+      "mapped_tasks": [
+        "X06",
+        "X11"
+      ],
+      "original_acceptance": [
+        "three-formats-pass",
+        "duplicate-no-copy",
+        "worker-failure-no-half-state",
+        "restart-exact-jump"
+      ],
+      "original_evidence": [
+        "per-format-journey",
+        "db-cas-hashes"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-15",
+      "title": "知识、主张、证据、审核与 FTS",
+      "mapped_tasks": [
+        "X07"
+      ],
+      "original_acceptance": [
+        "personal content 无证据也可保存/审核/检索/学习",
+        "factual claim 无证据保持 UNSOURCED；rumor/hypothesis/forecast/norm 分开",
+        "machine candidate 不自动升级；无 truth score"
+      ],
+      "original_evidence": [
+        "state-machine-tests",
+        "property-tests",
+        "schema-examples"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-16",
+      "title": "Knowledge Review Search 状态 UI",
+      "mapped_tasks": [
+        "X03",
+        "X07",
+        "X08"
+      ],
+      "original_acceptance": [
+        "accept-modify-reject",
+        "reason-and-history",
+        "status-separated-results",
+        "source-jump-back",
+        "reviewed-personal-exploratory-filters"
+      ],
+      "original_evidence": [
+        "ui-journeys",
+        "screenshots"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-17",
+      "title": "知识语义验收集",
+      "mapped_tasks": [
+        "X07",
+        "X11"
+      ],
+      "original_acceptance": [
+        "personal-definition",
+        "personal-experience",
+        "pdf-claim",
+        "conflicting-sources",
+        "superseded-standard",
+        "rumor",
+        "forecast",
+        "offline-capture"
+      ],
+      "original_evidence": [
+        "semantic-separation-matrix"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-18",
+      "title": "Disposable Workspace Alpha",
+      "mapped_tasks": [
+        "X11"
+      ],
+      "original_acceptance": [
+        "three-independent-workspaces",
+        "no-half-review-state",
+        "full-restart-readback"
+      ],
+      "original_evidence": [
+        "alpha-journey-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-19",
+      "title": "Human Learning、Job Retry、Export/Restore",
+      "mapped_tasks": [
+        "X05",
+        "X08"
+      ],
+      "original_acceptance": [
+        "teachback-and-answer-events",
+        "mastery-separate-from-truth",
+        "idempotent-retry",
+        "export-restore-hash-match"
+      ],
+      "original_evidence": [
+        "learning-state-machine",
+        "restore-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-20",
+      "title": "Learning Recovery Job Status UI",
+      "mapped_tasks": [
+        "X03",
+        "X08"
+      ],
+      "original_acceptance": [
+        "teachback",
+        "review-schedule",
+        "truthful-job-status",
+        "retry",
+        "backup-restore",
+        "rollback-boundary-visible"
+      ],
+      "original_evidence": [
+        "ui-automation",
+        "recovery-captures"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-21",
+      "title": "首个真实 Claim Extraction 模型能力包",
+      "mapped_tasks": [
+        "X07"
+      ],
+      "original_acceptance": [
+        "model-prompt-input-output-versioned",
+        "cloud-opt-in",
+        "safe-no-credential-degrade",
+        "candidate-only"
+      ],
+      "original_evidence": [
+        "replay-fixture",
+        "capability-receipt",
+        "egress-audit"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-22",
+      "title": "故障与数据安全矩阵",
+      "mapped_tasks": [
+        "X05",
+        "X11"
+      ],
+      "original_acceptance": [
+        "worker-kill",
+        "hang",
+        "malformed",
+        "hash-mismatch",
+        "disk-full",
+        "core-crash",
+        "duplicate-command",
+        "restore"
+      ],
+      "original_evidence": [
+        "failure-matrix-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-23",
+      "title": "完整本地数据安全闭环",
+      "mapped_tasks": [
+        "X11"
+      ],
+      "original_acceptance": [
+        "import",
+        "anchor",
+        "personal-and-machine-knowledge",
+        "review",
+        "search",
+        "learning",
+        "restart",
+        "backup",
+        "restore",
+        "failure-safety"
+      ],
+      "original_evidence": [
+        "closed-loop-receipt",
+        "db-cas-hashes"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-24",
+      "title": "Windows Green exact-byte Candidate",
+      "mapped_tasks": [
+        "X11"
+      ],
+      "original_acceptance": [
+        "windows11-x64",
+        "chinese-space-path",
+        "no-console",
+        "no-orphans",
+        "isolated-data-root",
+        "runtime-tree-manifest-and-hashes",
+        "release-no-rebuild"
+      ],
+      "original_evidence": [
+        "candidate-identity",
+        "sbom",
+        "tree-hash",
+        "process-data-trace"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-25",
+      "title": "干净机器 12 步 Owner Preview",
+      "mapped_tasks": [
+        "X11",
+        "Q00"
+      ],
+      "original_acceptance": [
+        "exact-sha",
+        "zero-required-skip",
+        "full-owner-journey",
+        "worker-crash-safety"
+      ],
+      "original_evidence": [
+        "machine-profile",
+        "recording",
+        "logs",
+        "journey-receipt",
+        "candidate-hashes"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-26",
+      "title": "Legacy census、fixture harvest 与只读 exporter",
+      "mapped_tasks": [
+        "X02",
+        "X10"
+      ],
+      "original_acceptance": [
+        "every-file-exactly-one-class",
+        "online-backup-snapshot",
+        "mode-ro-export",
+        "package-schema-hash-rights-idmap-loss",
+        "source-before-after-unchanged"
+      ],
+      "original_evidence": [
+        "census",
+        "source-before-after-receipt",
+        "package-hash"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-27",
+      "title": "Rust Migration Validate Dry-run Import Diff",
+      "mapped_tasks": [
+        "X10"
+      ],
+      "original_acceptance": [
+        "two-fixtures-and-one-real-copy",
+        "unclassified-loss-zero",
+        "hash-mismatch-zero",
+        "dangling-reference-zero",
+        "second-import-noop",
+        "owner-confirmed-atomic-activation"
+      ],
+      "original_evidence": [
+        "dry-run",
+        "semantic-diff",
+        "rejection-ledger",
+        "ready-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-28",
+      "title": "多源检索与交叉验证引擎",
+      "mapped_tasks": [
+        "X07"
+      ],
+      "original_acceptance": [
+        "bounded-query-receipt",
+        "primary-and-independent-and-counterevidence",
+        "repost-clustering",
+        "timelines",
+        "exact-anchors",
+        "offline-ci-live-optin"
+      ],
+      "original_evidence": [
+        "source-independence-matrix",
+        "coverage-receipt",
+        "anchor-audit"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-29",
+      "title": "本地/云端模型评测与 MachineCompetenceReceipt",
+      "mapped_tasks": [
+        "X07",
+        "X09"
+      ],
+      "original_acceptance": [
+        "confidence-vs-measured-vs-evidence-separated",
+        "precision-recall-f1-and-intervals",
+        "retrieval-and-citation-metrics",
+        "unmeasured-visible",
+        "corrections-default-to-evaluation-not-training"
+      ],
+      "original_evidence": [
+        "versioned-benchmark",
+        "confusion-matrix",
+        "competence-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-30",
+      "title": "Setup Portable Green 正式发行链",
+      "mapped_tasks": [
+        "X11",
+        "X13",
+        "Q01"
+      ],
+      "original_acceptance": [
+        "promote-exact-qualified-bytes",
+        "three-lifecycles",
+        "no-data-deletion",
+        "sbom-notice-checksums-signature",
+        "download-readback"
+      ],
+      "original_evidence": [
+        "release-identity",
+        "sbom",
+        "sha256sums",
+        "download-and-install-receipts"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-31",
+      "title": "Migration + Release Candidate 资格化",
+      "mapped_tasks": [
+        "X10",
+        "X11",
+        "Q00",
+        "Q01"
+      ],
+      "original_acceptance": [
+        "all-migration-zero-loss-gates",
+        "two-exact-sha-green-candidates",
+        "no-required-skip",
+        "backup-restore-rejection-paths"
+      ],
+      "original_evidence": [
+        "rc-decision-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-32",
+      "title": "Legacy writer 逐 aggregate 退役与仓库清理",
+      "mapped_tasks": [
+        "X02",
+        "X10",
+        "X13",
+        "X14"
+      ],
+      "original_acceptance": [
+        "no-runtime-ci-package-doc-reference",
+        "direct-connect-and-ddl-only-decrease-to-zero",
+        "clean-clone-full-qualification",
+        "history-and-receipts-preserved"
+      ],
+      "original_evidence": [
+        "reachability-audit",
+        "deletion-manifest",
+        "clean-clone-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-33A",
+      "title": "扫描 PDF / OCR 能力包",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "original_acceptance": [
+        "independent-lock",
+        "rights",
+        "no-db",
+        "cer-layout-metrics",
+        "precise-anchor",
+        "crash-receipt"
+      ],
+      "original_evidence": [
+        "capability-manifest",
+        "golden-set-metrics",
+        "no-db-trace",
+        "crash-recovery-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-33B",
+      "title": "Office / 复杂表格能力包",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "original_acceptance": [
+        "independent-lock",
+        "rights",
+        "no-db",
+        "structure-f1",
+        "loss-report",
+        "crash-receipt"
+      ],
+      "original_evidence": [
+        "capability-manifest",
+        "golden-set-metrics",
+        "loss-receipt",
+        "no-db-trace"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-33C",
+      "title": "音视频 / ASR / 时间戳 Anchor 能力包",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "original_acceptance": [
+        "independent-lock",
+        "rights",
+        "no-db",
+        "wer-speaker-metrics",
+        "timestamp-anchor",
+        "crash-receipt"
+      ],
+      "original_evidence": [
+        "capability-manifest",
+        "golden-set-metrics",
+        "timestamp-anchor-receipt",
+        "no-db-trace"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-33D",
+      "title": "网页抓取与版本快照能力包",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "original_acceptance": [
+        "explicit-network-policy",
+        "rights-and-robots",
+        "immutable-snapshot",
+        "exact-anchor",
+        "offline-replay"
+      ],
+      "original_evidence": [
+        "network-policy-receipt",
+        "rights-review",
+        "snapshot-hashes",
+        "offline-replay-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-33E",
+      "title": "图像与空间材料能力包",
+      "mapped_tasks": [
+        "X06",
+        "X12",
+        "F01",
+        "F02"
+      ],
+      "original_acceptance": [
+        "independent-lock",
+        "rights",
+        "no-db",
+        "task-specific-metrics",
+        "provenance"
+      ],
+      "original_evidence": [
+        "capability-manifest",
+        "golden-set-metrics",
+        "provenance-receipt",
+        "no-db-trace"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    },
+    {
+      "id": "PR-33F",
+      "title": "向量检索投影",
+      "mapped_tasks": [
+        "X07",
+        "F05"
+      ],
+      "original_acceptance": [
+        "projection-rebuildable",
+        "primary-state-unchanged",
+        "measured-retrieval-gain",
+        "disable-without-data-loss"
+      ],
+      "original_evidence": [
+        "golden-retrieval-comparison",
+        "rebuild-receipt",
+        "disable-and-reenable-receipt"
+      ],
+      "supersession_rule": "保留功能/数据/质量要求；旧具体语言、UI重写、时序或授权品牌条款按本包D01-D14显式裁决；不是原全部细节自动仍生效。"
+    }
+  ],
+  "previous_followup_tasks": [
+    {
+      "id": "T00",
+      "title": "锁定本轮决策、现场与基线",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "original_work": [
+        "核对4ca46ea以后差异；登记本包覆盖r2/r3执行路线，保留原收据基线",
+        "确认本机真实路径和可用能力；不得套用误发的DSH安装路径，不把WORK-LAB/DESIGN-LAB作为前置",
+        "确认远端SHA及本机工作区/硬件/现有模型/搜索与云端凭据可用性；只记录能力不输出密钥",
+        "正式记录Avalonia首发、云端核查提前、双侧闭环、Python保留能力层；统一真实C#目录",
+        "未取得的外部条件标为阻塞具体能力，其余任务继续"
+      ],
+      "original_acceptance": [
+        "决策覆盖关系唯一且链接可解析",
+        "模型/运行时可用性清单，绝不虚报安装状态"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T01",
+      "title": "可复现构建与最小必需CI",
+      "mapped_tasks": [
+        "X01",
+        "X11"
+      ],
+      "original_work": [
+        "复用现有四gate和分类器，补真实worker输出schema验证、运行路径检查与当前1448路径覆盖测量",
+        "修锁定/安装复现；输出候选包而不是仅dotnet build；证明代码改动会触发所需gate",
+        "锁定经过验证的Rust/.NET与依赖；worker依赖由能力lane提议、此lane合入锁；提供可重复构建Windows候选包的脚本供T15调用",
+        "CI覆盖apps/crates/workers/contracts/治理变更；始终运行汇总检查并接入main ruleset；测试与构建产物统一.project-local，禁止新写.hermes",
+        "新增规则需要真实可执行程序，不能以schema文件替代"
+      ],
+      "original_acceptance": [
+        "只改C#或worker或契约也触发应跑检查",
+        "当前SHA构建通过；旧回执不能过门禁"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T02",
+      "title": "冻结最小跨语言协议",
+      "mapped_tasks": [
+        "X04"
+      ],
+      "original_work": [
+        "修R04/R06：最终统一枚举和真实DTO边界；quality loss_receipt纳入正式schema或标准封装",
+        "状态与value联动、坐标起止/实际修订范围、角色、幂等key同载荷/异载荷规则用真实通道正反例验收；不只查字符串包含",
+        "统一HTTP/NDJSON/MCP映射、命令幂等、版本和状态词汇",
+        "定义结构块、字符/页/时间锚、质量与覆盖报告、学习/机器反馈DTO",
+        "准备跨语言正反例；生成代码有单一来源与漂移检查"
+      ],
+      "original_acceptance": [
+        "C#/Rust/Python对样例一致解析",
+        "错版本/未知状态/错hash/错误坐标被拒绝"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T17",
+      "title": "旧版资产全量盘点与复用缺陷前置",
+      "mapped_tasks": [
+        "X02"
+      ],
+      "original_work": [
+        "复用已存在清单，按10与19补当前新增资产和外部待盘点域；修正语义抽样名称",
+        "只做足以分派任务的来源/风险盘点即可解锁开发；逐项语义吸收在T13收口，禁止凭文件头标已审",
+        "把外部会话/用户数据/未提交补丁列待现场核验；不可假称全部历史已经保全",
+        "以10-LEGACY-INVENTORY.csv为起点逐文件核验：代码、测试、样例、配置、文档、历史决策、静态资源；逐项登记去向与吸收任务",
+        "区分保全风险/共用缺陷/旧壳缺陷/新版修复；真正复用的P0/P1先修并留下失败回归，避免在新旧两边重复修同一业务",
+        "旧目录只允许核实后的定向维护切片，禁止整片搬入或扩大改动；原件、历史和旧实现保持可恢复"
+      ],
+      "original_acceptance": [
+        "每项旧资产有来源Git对象、拟定去向和待核验状态；没有未说明的删除",
+        "每项已判定可吸收的能力有任务、目标边界、差异样例与验收；缺陷未清不能进入默认新链"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T03",
+      "title": "Rust存储、原件与可恢复事务",
+      "mapped_tasks": [
+        "X05"
+      ],
+      "original_work": [
+        "修A01/A04/A09与R03/R05：CAS原子落盘+Store封装+事务+未来版本拒绝+跨进程锁",
+        "备份包括所有原件及关系/学习/研究/机器反馈；恢复先校验，再staging，无部分成功",
+        "单写者和跨进程工作区锁；CAS原子写入；关闭裸Connection外泄",
+        "版本迁移与未来版本拒绝；统一快照、全表及对象哈希恢复验证",
+        "修复原件丢失、部分写入、恢复不校验；新增任务/研究/学习表按契约迁移"
+      ],
+      "original_acceptance": [
+        "移走外部原件并重启后仍逐字节一致",
+        "故障注入回滚；篡改包拒绝；不同版本库保护有效"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T04",
+      "title": "任务执行器、模型能力与Supervisor",
+      "mapped_tasks": [
+        "X05",
+        "X06"
+      ],
+      "original_work": [
+        "修重复transform/先completed后失败；实际启动worker，校验attempt/output/hash再提交事务",
+        "修启动父目录、限时读stdout、stderr消费、workspace/token/版本身份；禁止连接任意2xx服务",
+        "为现有12个worker配置真实适配器与协议包装，进程取消与退出完整回收",
+        "真实启动worker并验证输入/输出、attempt、哈希、超时、取消和幂等",
+        "能力发现/模型profile/队列资源预算；启动目录、token、workspace身份与日志清理",
+        "只把通过能力探针的模型与格式显示为可用"
+      ],
+      "original_acceptance": [
+        "重复回写一份结果；错误结果不会留下completed",
+        "占端口、无输出、worker崩溃可恢复；窗口关闭无遗留子进程"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T05",
+      "title": "网页与文档转换能力包",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "original_work": [
+        "直接复用现有入口；修R08/R09以及正文清洗、重定向链/总deadline/字节上限/编码",
+        "F03补浏览器安装与实际DOM/截图/滚动覆盖编排，不称只是缺运行器",
+        "F06逐页类型判定/混合OCR、Office内嵌图片/表/复杂阅读顺序接T06；CSV等结构按语义保存",
+        "提取旧纯解析适配器；接TXT/Office/PDF/Canvas/结构文件",
+        "安全网页正文、动态渲染与截图、HTML快照；嵌入图片递交视觉能力",
+        "每页/幻灯片/sheet/附件覆盖回执与可解析锚点"
+      ],
+      "original_acceptance": [
+        "F01/F02/F03/F05/F06/F07/F08/F09/F12正反例真实通过",
+        "模拟缺依赖和破损文件，保留原件与明确失败"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T06",
+      "title": "截图、视觉与音视频能力包",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "original_work": [
+        "复用组件与本地模型；新增困难中文/数字/多栏/图表样例，区分OCR与视觉推断",
+        "补视频字幕与音轨/关键帧对齐、遗漏画面覆盖；静音与纯图文不可假成功",
+        "复用模型目录而不是每Agent下载权重；每模型记录版本/配置/能力探针与资源预算",
+        "复用OCR/ASR；本地视觉模型提取图示语义，OCR文字和推断分层",
+        "视频音轨/字幕/关键帧并行获取后按时间对齐，记录采样覆盖",
+        "重试仅处理低质量区域/片段，报告BOM/换行等所有有损归一"
+      ],
+      "original_acceptance": [
+        "F04/F10/F11真实转换通过，不能只返回元数据",
+        "静音、专名、数字、低清/旋转、多帧遗漏有可见处置"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T07",
+      "title": "质量评测、差异复核与模型定型",
+      "mapped_tasks": [
+        "X04",
+        "X07"
+      ],
+      "original_work": [
+        "修R06/R07/R13：原始/归一化指标分开，记录BOM/空白/解码策略；误差率不可强行截断到1",
+        "把probe、跑过样例、准确率测量、资格通过分开；音频人工确认前不作总体精度证据",
+        "加入结构/锚点/数字/命题与引用指标、独立留出集、失败样本与分层统计；实际结果校验schema",
+        "保留旧金标并补中英文/数字/结构/噪声样例与独立留出集",
+        "测CER/WER/锚点/结构/命题与引用；按03规则显示区间和UNMEASURED",
+        "锁定现场可运行且达标的本地文本/视觉/OCR/ASR profile；不删除失败样例"
+      ],
+      "original_acceptance": [
+        "每项指标可从原预测与金标复算",
+        "单文件误差不可被总体均值掩盖；未达标转人工或备用引擎"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T08",
+      "title": "云端模型联网交叉核查",
+      "mapped_tasks": [
+        "X07"
+      ],
+      "original_work": [
+        "缺密钥不阻塞适配器/配置/引用验证/成本与恢复代码；真实云端验收单独BLOCKED",
+        "本地识别疑点先定位原图原句；云端搜索比较只评估事实支持，不能悄悄改写原文",
+        "逐命题收集原始来源、来源独立性/反证/版本/预测期限；无证据个人定义正常保存",
+        "真实搜索/抓取、查询规划、原始来源锚点、来源归组与反证",
+        "云端结构化逐命题评估；Core检查引用存在与修订绑定",
+        "coverage/成本/时限/失败恢复；原件和个人定义不受证据门槛阻止保存"
+      ],
+      "original_acceptance": [
+        "真实网页核查可重现，重复转载不算独立证据",
+        "搜索失效/断网/预算耗尽给PARTIAL；无原文不得假引用"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T09",
+      "title": "知识版本、复核、检索与调用政策",
+      "mapped_tasks": [
+        "X07"
+      ],
+      "original_work": [
+        "服务端确定actor，不接受客户端伪造人审权限；迁移旧词并记录来源，拒绝未知状态",
+        "知识不可变修订、复核事务、原件精确回链与中文检索；撤销影响上下文/题目/派生资产",
+        "用户接受不等于事实证实；观察/意见/定义/假说/谣传/预测独立存储",
+        "不可变修订/复核事件；个人定义和候选区别；版本冲突与状态机",
+        "源文和知识双索引、中文检索、锚点回链、撤销与失效传播",
+        "查询模式/权限/时效过滤，事实与假设的用途保持显式"
+      ],
+      "original_acceptance": [
+        "来源可点回，旧修订不冒充当前",
+        "机器不能赋USER_ACCEPTED；无证据个人笔记可正常保存"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T10",
+      "title": "人类侧学习全流程",
+      "mapped_tasks": [
+        "X08",
+        "F03"
+      ],
+      "original_work": [
+        "吸收旧学习/讲回/共学习语义，权威调度和状态迁Rust；日期必须真实时间运算",
+        "完成目标路径到延迟复测；开放题评分可纠正，记忆概率与掌握证据分开",
+        "目标→路径→解释→笔记/卡片→测验→Teach-Back→迁移题→错因→FSRS→延迟复测",
+        "复用旧领域样例，权威状态迁Rust；模型开放题评分可纠正",
+        "来源修订使相关题目失效/待复核，人类掌握证据独立保存"
+      ],
+      "original_acceptance": [
+        "真实完成学习会话及到期复习，重启继续",
+        "模型答错和用户纠正能改变后续练习，不自动宣告掌握"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T11",
+      "title": "机器侧HTTP/MCP调用与反馈学习",
+      "mapped_tasks": [
+        "X09",
+        "F03"
+      ],
+      "original_work": [
+        "真实MCP客户端与本地/云端模型消费、预算/权限过滤、提案审核/撤销/再调用",
+        "版本化案例与技能知识并用留出任务评测，不把RAG或提示更新叫参数微调",
+        "同领域实现提供搜索/上下文/来源/提案/反馈；上下文带权限和预算",
+        "本地模型与云端模型真实消费；案例/技能资产版本化，留出任务评测",
+        "纠正候选审核后生效，导出训练候选但不伪称已微调"
+      ],
+      "original_acceptance": [
+        "真实MCP客户端完成读取和反馈",
+        "错误修订撤销后再调用不泄漏；未测能力显示UNMEASURED"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T12",
+      "title": "Avalonia完整工作台",
+      "mapped_tasks": [
+        "X03",
+        "X08",
+        "X11"
+      ],
+      "original_work": [
+        "依据T18从壳升级，实做多格式导入/任务/原文/核查/知识/学习/机器/设置恢复",
+        "先完成M1真实路径再补M2；不能自动mock回退成功；所有状态与键盘/DPI/减少动效均可操作",
+        "依据T18设计从现有壳增量或从零重建Avalonia界面，接真实API，最终验收禁止mock成功",
+        "网页/文件拖放/截图；阅读/转换/核查比较；学习/机器反馈及设置恢复全流程；覆盖加载/空态/失败/冲突",
+        "实现设计tokens、排版、多栏、动效、键盘和可访问性；旧版仅参考，必要时彻底更换布局"
+      ],
+      "original_acceptance": [
+        "无开发终端实际操作核心链",
+        "无入口是占位欢迎页；错状态响应不显示成功；不直接SQL"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T13",
+      "title": "旧能力全面吸收与非空数据迁移验证",
+      "mapped_tasks": [
+        "X10"
+      ],
+      "original_work": [
+        "逐项审语义、差异/目标/验证证据；优先复用已有worker，不机械翻译Python",
+        "非空旧schema映射原件/知识/关系/学习/机器记录到新staging；实际用户切换独立验收",
+        "T17的30项不得充当完成数；全部可吸收能力需真实新流程调用再算完成",
+        "将T17判定可吸收的全部能力接入对应T03—T12目标模块，逐项核验，不因已复制代码就标完成",
+        "实现非空旧schema→staging新库语义映射、差异和回滚；真实用户数据切换单独验收",
+        "已有可复用扩展格式随能力吸收一起验收；真正缺少引擎的新格式保留明确边界，不伪称已支持"
+      ],
+      "original_acceptance": [
+        "原库哈希不变；知识/关系/附件/学习记录映射可审阅",
+        "不以空库导出证明迁移；未知格式保留原件并明确能力缺失",
+        "可吸收资产无无主项；每项目标代码/接口/样例/验收齐全；未吸收项不能计为全面合并完成"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T14",
+      "title": "全仓规范化收尾",
+      "mapped_tasks": [
+        "X01",
+        "X13"
+      ],
+      "original_work": [
+        "与T19分工：T19先修运行入口，本任务完成全tracked归属/语言/链接/当前历史索引与退休规则",
+        "新旧收据以各自tested source SHA保留；不为追HEAD改旧证明；补R11缺字段",
+        "以实际执行检查替代只增加模板；未完成项不能通过归档改名变完成",
+        "覆盖所有tracked路径的用途/归属/运行时/历史分类；正式台账区分已吸收和待迁移",
+        "统一当前入口、真实目录、生成物/缓存/私有配置规则和历史文档状态",
+        "一任务一worktree，多Agent路径检查；旧运行时退役条件可核验；不等待旧数据迁移才规范目录"
+      ],
+      "original_acceptance": [
+        "引用可解析，无归属歧义；越界PR会失败",
+        "规范验收经过真实PR与文件系统读回：启动/测试/构建后.hermes无新增写入，ignored文件也纳入检查"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T15",
+      "title": "Windows集成、全格式与双侧资格验收",
+      "mapped_tasks": [
+        "X11",
+        "Q00",
+        "Q01"
+      ],
+      "original_work": [
+        "运行G01-G20候选验收：真实UI/多格式/本地与云端/双侧使用/原件恢复/非空迁移/目录边界",
+        "读取当前构建产物SHA/tree/hash，重用可证明未受影响的组件证据；集成资格必须当前候选包实际运行",
+        "收据必须注明skipped与blocked；手写PASS、单英语样例和模拟客户端不能补齐门槛",
+        "按07在干净Windows包执行真实UI/进程/本地模型/云端与MCP链",
+        "每核心格式贯通到知识及使用；批量、断网、错回执、崩溃恢复",
+        "出当前SHA/tree、fixture/模型版本、产物哈希及逐项结果，问题退回所属任务"
+      ],
+      "original_acceptance": [
+        "G01-G16、G17A、G18候选资格与G19吸收完整性逐项记录，required项不能skip算通过",
+        "核心格式功能通过，精度分层实测；不得用手写PASS代替用户操作"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T16",
+      "title": "可交付打包与可回滚使用版",
+      "mapped_tasks": [
+        "X11",
+        "X13",
+        "Q01"
+      ],
+      "original_work": [
+        "发布或交付T15验证过的同一字节，附支持/精度/限制/模型与配置/恢复说明",
+        "发布、安装或真实库切换依据当时已有授权，不重复请求已授予权限；本包不自行扩权",
+        "归集T15验证通过的同一字节Avalonia+Rust+worker候选包，模型能力安装/发现明确；不在交付时重建未经验证的包",
+        "依据T15证据读回空环境安装/启动/退出/升级/回滚结果；若包装内容变化，返回T15重验，旧库迁移独立开关",
+        "发布实际支持矩阵与质量报告；授权范围内交付产物，不自动公开发布"
+      ],
+      "original_acceptance": [
+        "用户无需开发SDK/终端即可完成闭环",
+        "重启/备份恢复/更新回滚成功；版本与文件哈希可追踪"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T18",
+      "title": "GPT与图像模型驱动的前端全面升级",
+      "mapped_tasks": [
+        "X03",
+        "X13",
+        "F01"
+      ],
+      "original_work": [
+        "用执行通道实际可用推理/视觉/图像模型开展设计，核实版本；产品API缺密钥不自动阻塞设计",
+        "先用户旅程/可编码tokens/关键状态；图像模型用于探索和素材，实际Avalonia组件是交付",
+        "保留旧有效交互和功能；允许重新布局/视觉/动效，避免为了还原旧框架重复开发",
+        "旧界面作为功能/文案/交互参照，重新规划用户旅程、信息架构、布局、阅读器和组件状态",
+        "核验执行时最新可用GPT/视觉/图像模型：推理做设计规格，图像模型做风格探索与素材，视觉审查做截图对照；记录模型与提示版本",
+        "产出可编码设计token、关键页状态图、动效/键盘/高对比/缩放规范；有效原素材复用，不强制沿用旧布局"
+      ],
+      "original_acceptance": [
+        "12-UI-REDESIGN.md全部核心场景都有设计与实际UI映射",
+        "模型输出落实为Avalonia组件；效果图不能代替真实可操作界面"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T19",
+      "title": "统一运行根、Agent入口与实际目录边界",
+      "mapped_tasks": [
+        "X01"
+      ],
+      "original_work": [
+        "先解析现有路径/所有入口和环境继承，统一采用<repo>/.project-local，不挪用Agent自身会话目录",
+        "同步根规范、脚本、交接与.gitignore；旧.hermes保留可读历史，不再承接新开发产物",
+        "解析器按项目/worktree/run隔离，包含TMP/uv/Python/Cargo/.NET/Node/浏览器缓存；清单化官方工具必需例外",
+        "记录实际解析路径，防链接跳转与路径逃逸，找不到配置时明确失败；可选外部根仅在用户明确配置后使用",
+        "真实文件系统差分检查ignored产物；普通/linked worktree/并发/失败退出验证，治理扫描不冒充OS沙箱"
+      ],
+      "original_acceptance": [
+        "不同执行软件调用同一测试入口，不再新写.hermes且仅写已声明范围",
+        "项目源码/私有Agent状态/用户知识库三类不混写；新旧规则及入口无矛盾",
+        "G20原始前后路径清单、命令、run ID和异常结果齐备；不能仅用git status证明"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    },
+    {
+      "id": "T20",
+      "title": "体积重计、历史资产保全和分批瘦身",
+      "mapped_tasks": [
+        "X14"
+      ],
+      "original_work": [
+        "只读扫描实际本机，不沿junction/symlink跨域；记录bytes、单位、时间、原始命令、错误、文件身份与分配空间策略",
+        "拆分缓存/唯一资产/未知，不将src-tauri/desktop/apps父目录整类当缓存；生成精确子路径清理候选",
+        "保存历史会话/交接/设计/未合入补丁/证据及被引用原文件，复制后哈希与可读取验证；私密大证据不灌入Git",
+        "可再生性必须有依赖锁、版本、可用工具链/包与代表性重建证明；同名不能证明重复",
+        "默认只产盘点与dry-run；删除/搬移用户现场资产另按已明确授权与逐项清单执行，未知项保留",
+        "清理后复测实际释放量和新增写入，补旧外溢轨迹证据；可执行范围只限已登记本机位置"
+      ],
+      "original_acceptance": [
+        "自动算术一致；已知缓存、已保全唯一资产、待核验分别计量",
+        "每项候选有精确path/type/hash/bytes/owner/reference/rebuild/evidence/rollback；未审.hermes不得全删",
+        "保全或清理状态如实；无本地访问则LOCAL_ACCESS_REQUIRED，不伪造释放体积；无需为等删除拖住产品开发"
+      ],
+      "prior_state": "planned",
+      "supersession_rule": "保留功能要求；执行顺序和全原生UI强制条款按D03/D04/D07/D08更新。"
+    }
+  ],
+  "previous_model_tasks": [
+    {
+      "id": "DP-00",
+      "title": "1. DP-00｜昨天交付的候选切片盘点（只读）",
+      "source": "ARCHEAXIS-DP-EXECUTION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X02"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "DP-01",
+      "title": "2. DP-01｜质量测量 worker 的原始比较修复",
+      "source": "ARCHEAXIS-DP-EXECUTION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X04",
+        "X07"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "DP-02",
+      "title": "3. DP-02｜网页采集 worker 的有界网络行为修复",
+      "source": "ARCHEAXIS-DP-EXECUTION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X06"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "DP-03",
+      "title": "4. DP-03｜Python 能力包契约一致性与负例测试",
+      "source": "ARCHEAXIS-DP-EXECUTION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X04",
+        "X06"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "DP-04",
+      "title": "5. DP-04｜全链路样本与准确率基准准备",
+      "source": "ARCHEAXIS-DP-EXECUTION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X07",
+        "X12"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "DP-05",
+      "title": "6. DP-05｜旧资产可吸收性复核，不做删除",
+      "source": "ARCHEAXIS-DP-EXECUTION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X02"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-00",
+      "title": "1. GPT-00｜建立唯一项目治理面并登记 DRIFT-001",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-01",
+      "title": "2. GPT-01｜统一运行目录解析并修复 web nightly 路径失败",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X01"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-02",
+      "title": "3. GPT-02｜把“完成”改为可验证状态，并收紧 CI/远端保护",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X01",
+        "X11"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-03",
+      "title": "4. GPT-03｜统一人机语义契约与三语言生成边界",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X04"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-04",
+      "title": "5. GPT-04｜Rust 原始对象、来源与恢复完整性",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X05"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-05",
+      "title": "6. GPT-05｜Rust job 原子性和唯一写入者修复",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X05"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-06",
+      "title": "7. GPT-06｜最快真实可用闭环（v0.1）",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X06",
+        "X07",
+        "X09",
+        "X11"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-07",
+      "title": "8. GPT-07｜Avalonia 真实桌面 MVP 与恢复界面",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X03",
+        "X08",
+        "X11"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "GPT-08",
+      "title": "9. GPT-08｜旧项目吸收映射与 GPT 包完成",
+      "source": "ARCHEAXIS-GPT-INTEGRATION-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X02",
+        "X10"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "A-01",
+      "title": "A-01｜来源、范围与状态复核",
+      "source": "ARCHEAXIS-GPT-INDEPENDENT-AUDIT-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "Q00",
+        "Q01"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "A-02",
+      "title": "A-02｜契约兼容性与三语言复现",
+      "source": "ARCHEAXIS-GPT-INDEPENDENT-AUDIT-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X04",
+        "Q00",
+        "Q01"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "A-03",
+      "title": "A-03｜受控合并与全链路复跑",
+      "source": "ARCHEAXIS-GPT-INDEPENDENT-AUDIT-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "X11",
+        "Q00",
+        "Q01"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "A-04",
+      "title": "A-04｜真实最小闭环资格",
+      "source": "ARCHEAXIS-GPT-INDEPENDENT-AUDIT-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "Q00",
+        "Q01"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    },
+    {
+      "id": "A-05",
+      "title": "A-05｜资格结论与 Owner Preview",
+      "source": "ARCHEAXIS-GPT-INDEPENDENT-AUDIT-TASKPACK-2026-09-07.md",
+      "mapped_tasks": [
+        "Q00",
+        "Q01"
+      ],
+      "supersession_rule": "实现任务合并到单执行者队列；不再保留互相等待的品牌分工。真实授权机制仍有效。"
+    }
+  ],
+  "user_requirements": [
+    {
+      "id": "U001",
+      "requirement": "项目ArcheAxis唯一身份，DSH仅执行工具",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00"
+      ]
+    },
+    {
+      "id": "U002",
+      "requirement": "共同管线、人类学习、机器学习、双向反馈均为正式产品",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X06",
+        "X08",
+        "X09",
+        "X11"
+      ]
+    },
+    {
+      "id": "U003",
+      "requirement": "WORK-LAB/DESIGN-LAB先不联动，单仓独立可用",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "F04"
+      ]
+    },
+    {
+      "id": "U004",
+      "requirement": "个人研究非商业用途，保留MIT与第三方原许可",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X03",
+        "X13"
+      ]
+    },
+    {
+      "id": "U005",
+      "requirement": "历史完整性限定可验证集合，缺失/未读明确，保留原件与哈希",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X02"
+      ]
+    },
+    {
+      "id": "U006",
+      "requirement": "原件多格式保全、来源/版本/锚点与损失报告",
+      "preserved": true,
+      "mapped_tasks": [
+        "X05",
+        "X06",
+        "X12"
+      ]
+    },
+    {
+      "id": "U007",
+      "requirement": "本地识别转化，困难区域模型增强，实际模型验证",
+      "preserved": true,
+      "mapped_tasks": [
+        "X06",
+        "X07"
+      ]
+    },
+    {
+      "id": "U008",
+      "requirement": "云端全网检索交叉对比、原始出处、转载独立性和反证",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07"
+      ]
+    },
+    {
+      "id": "U009",
+      "requirement": "识别忠实度与事实正确性分开，金标/预测/分层指标，不假准确率",
+      "preserved": true,
+      "mapped_tasks": [
+        "X04",
+        "X07"
+      ]
+    },
+    {
+      "id": "U010",
+      "requirement": "个人定义/笔记无网上证据仍可保存、学习、受限调用",
+      "preserved": true,
+      "mapped_tasks": [
+        "X04",
+        "X07",
+        "X08",
+        "X09"
+      ]
+    },
+    {
+      "id": "U011",
+      "requirement": "假说/预测/传闻/未经测试/争议保留，未找到不直接判假",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07"
+      ]
+    },
+    {
+      "id": "U012",
+      "requirement": "学习侧目标/诊断/路线/理解/编码/回忆/复习/练习/纠错/讲回/应用/迁移/反思",
+      "preserved": true,
+      "mapped_tasks": [
+        "X08",
+        "F03"
+      ]
+    },
+    {
+      "id": "U013",
+      "requirement": "完整机器侧吸收/理解关联/方法应用/能力测试/经验纠错/长期迁移",
+      "preserved": true,
+      "mapped_tasks": [
+        "X09",
+        "F03"
+      ]
+    },
+    {
+      "id": "U014",
+      "requirement": "机器Memory/Rule/Skill/Standard/Context/Evaluation六类资产及撤销",
+      "preserved": true,
+      "mapped_tasks": [
+        "X09",
+        "F03"
+      ]
+    },
+    {
+      "id": "U015",
+      "requirement": "人教AI与AI教人、双方纠错回流，不共享伪掌握率",
+      "preserved": true,
+      "mapped_tasks": [
+        "X08",
+        "X09",
+        "X11"
+      ]
+    },
+    {
+      "id": "U016",
+      "requirement": "知识更新/策略更新/权重训练分开，训练候选和微调路线保留",
+      "preserved": true,
+      "mapped_tasks": [
+        "X09",
+        "F03"
+      ]
+    },
+    {
+      "id": "U017",
+      "requirement": "保留全部CAP蓝图，不以当前未实现删除未来需求",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X13"
+      ]
+    },
+    {
+      "id": "U018",
+      "requirement": "LER事实/记忆/视觉/教学四层、可编辑多模态资产与开放导出",
+      "preserved": true,
+      "mapped_tasks": [
+        "F01"
+      ]
+    },
+    {
+      "id": "U019",
+      "requirement": "动态图表/图片/动画/仿真/交互实验，复用现成活动",
+      "preserved": true,
+      "mapped_tasks": [
+        "X08",
+        "F01"
+      ]
+    },
+    {
+      "id": "U020",
+      "requirement": "数理精确图形由计算和可检查渲染器，图片模型不造科学数据",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07",
+        "F01"
+      ]
+    },
+    {
+      "id": "U021",
+      "requirement": "大型知识宫殿World/Palace/Room/Locus/Object/Route与稳定ID",
+      "preserved": true,
+      "mapped_tasks": [
+        "F02"
+      ]
+    },
+    {
+      "id": "U022",
+      "requirement": "2D/2.5D/3D/VR/AR、空间线索、路线、移动映射和复习",
+      "preserved": true,
+      "mapped_tasks": [
+        "F02"
+      ]
+    },
+    {
+      "id": "U023",
+      "requirement": "大规模场景分区/按需加载/LOD/实例化与2D文本fallback",
+      "preserved": true,
+      "mapped_tasks": [
+        "F02"
+      ]
+    },
+    {
+      "id": "U024",
+      "requirement": "冻结大量自研，已成熟3D/动画能力可按需早接，不整类冻结",
+      "preserved": true,
+      "mapped_tasks": [
+        "X03",
+        "X08",
+        "F01",
+        "F02"
+      ]
+    },
+    {
+      "id": "U025",
+      "requirement": "学科匹配成熟方案，文学语境/记忆宫殿不替代理解，覆盖非英语",
+      "preserved": true,
+      "mapped_tasks": [
+        "X08",
+        "X12",
+        "F03"
+      ]
+    },
+    {
+      "id": "U026",
+      "requirement": "研究/课程/项目/作品集/Rubric/OutputProof与不同用户场景",
+      "preserved": true,
+      "mapped_tasks": [
+        "X08",
+        "F05"
+      ]
+    },
+    {
+      "id": "U027",
+      "requirement": "RSS/雷达/学术/网页来源和持续知识更新路线保留",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07",
+        "F05"
+      ]
+    },
+    {
+      "id": "U028",
+      "requirement": "开放Vault/Markdown/Canvas/附件/双链/文献/Anki往返与冲突",
+      "preserved": true,
+      "mapped_tasks": [
+        "X10",
+        "X12"
+      ]
+    },
+    {
+      "id": "U029",
+      "requirement": "图谱/向量/全文索引/引用路径可重建且保留长期能力",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07",
+        "F05"
+      ]
+    },
+    {
+      "id": "U030",
+      "requirement": "旧项目源码、数据、测试、设计、历史和资产全部登记承接",
+      "preserved": true,
+      "mapped_tasks": [
+        "X02",
+        "X10",
+        "X13"
+      ]
+    },
+    {
+      "id": "U031",
+      "requirement": "当前用到的旧能力先实测复用，其余冻结，不等待全量重写",
+      "preserved": true,
+      "mapped_tasks": [
+        "X02",
+        "X06",
+        "X08",
+        "X09"
+      ]
+    },
+    {
+      "id": "U032",
+      "requirement": "非空迁移、原库不变、关系/附件/学习记录和差分回滚",
+      "preserved": true,
+      "mapped_tasks": [
+        "X10"
+      ]
+    },
+    {
+      "id": "U033",
+      "requirement": "现成界面优先，新GPT/图像模型UI升级保留后置",
+      "preserved": true,
+      "mapped_tasks": [
+        "X03",
+        "X13",
+        "F01"
+      ]
+    },
+    {
+      "id": "U034",
+      "requirement": "Rust权威核心、Python能力、C#桌面、Web/TS交互语言分工",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X03",
+        "X04",
+        "X05"
+      ]
+    },
+    {
+      "id": "U035",
+      "requirement": "不为语言纯度重写成熟依赖，不恢复双默认产品/双writer",
+      "preserved": true,
+      "mapped_tasks": [
+        "X03",
+        "X04",
+        "X05"
+      ]
+    },
+    {
+      "id": "U036",
+      "requirement": "仓库目录、当前权威、ignore、执行入口、CI实际一致",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X01",
+        "X13"
+      ]
+    },
+    {
+      "id": "U037",
+      "requirement": "项目.project-local和产品永久workspace、工具安装/会话分离",
+      "preserved": true,
+      "mapped_tasks": [
+        "X01",
+        "X13",
+        "X14"
+      ]
+    },
+    {
+      "id": "U038",
+      "requirement": "E盘禁访、C盘不静默外写、路径链接安全和声明短根例外",
+      "preserved": true,
+      "mapped_tasks": [
+        "X01",
+        "X14"
+      ]
+    },
+    {
+      "id": "U039",
+      "requirement": "不篡改HOME/CODEX_HOME等工具全局目录，不把DSH安装路径套给项目",
+      "preserved": true,
+      "mapped_tasks": [
+        "X01",
+        "X13",
+        "X14"
+      ]
+    },
+    {
+      "id": "U040",
+      "requirement": "多写并行按task/worktree/run隔离，共享契约锁迁移CI串行",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X01",
+        "X13"
+      ]
+    },
+    {
+      "id": "U041",
+      "requirement": "任一选定模型连续完成实现队列，不来回切换且不自签权限",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00"
+      ]
+    },
+    {
+      "id": "U042",
+      "requirement": "最后独立GPT审计，真实候选，不通过摘要冒充完成",
+      "preserved": true,
+      "mapped_tasks": [
+        "Q00",
+        "Q01"
+      ]
+    },
+    {
+      "id": "U043",
+      "requirement": "tested SHA/tree/实际命令/退出码/样本/产物/依赖，必需跳过不成功",
+      "preserved": true,
+      "mapped_tasks": [
+        "X01",
+        "X11",
+        "Q00",
+        "Q01"
+      ]
+    },
+    {
+      "id": "U044",
+      "requirement": "旧文档/索引保留有supersession，历史证据不倒填新SHA",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X13"
+      ]
+    },
+    {
+      "id": "U045",
+      "requirement": "先交M0人机双侧可用，再M1格式与体验，不等所有蓝图完成",
+      "preserved": true,
+      "mapped_tasks": [
+        "X11",
+        "Q00",
+        "X12",
+        "Q01"
+      ]
+    },
+    {
+      "id": "U046",
+      "requirement": "只围绕实际缺口限时研究，锁版/许可/失败证据/回退",
+      "preserved": true,
+      "mapped_tasks": [
+        "X03",
+        "F06"
+      ]
+    },
+    {
+      "id": "U047",
+      "requirement": "复用→接口→fork/vendor→必要独立实现，不因收费越过许可和控制",
+      "preserved": true,
+      "mapped_tasks": [
+        "X03",
+        "F06"
+      ]
+    },
+    {
+      "id": "U048",
+      "requirement": "备份恢复、更新、便携Windows先资格化，跨平台/同步/扩展/协作保留",
+      "preserved": true,
+      "mapped_tasks": [
+        "X05",
+        "X11",
+        "F04"
+      ]
+    },
+    {
+      "id": "U049",
+      "requirement": "隐私范围、本地/云模型预算/取消/恢复，真实数据出境范围可控",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07",
+        "X09"
+      ]
+    },
+    {
+      "id": "U050",
+      "requirement": "界面键盘/缩放/减少动效、真实失败/缺模型/部分完成状态",
+      "preserved": true,
+      "mapped_tasks": [
+        "X03",
+        "X08",
+        "X11",
+        "X13"
+      ]
+    },
+    {
+      "id": "U051",
+      "requirement": "两天清理任务并入，本地50多GB先止增/盘点/保全/精确清理/复测",
+      "preserved": true,
+      "mapped_tasks": [
+        "X01",
+        "X02",
+        "X14"
+      ]
+    },
+    {
+      "id": "U052",
+      "requirement": "不能把.hermes42.86GB都当缓存，旧总计矛盾要重新计量",
+      "preserved": true,
+      "mapped_tasks": [
+        "X14"
+      ]
+    },
+    {
+      "id": "U053",
+      "requirement": "不删唯一会话/补丁/收据/用户库，模型/虚拟环境有重建边界",
+      "preserved": true,
+      "mapped_tasks": [
+        "X02",
+        "X14"
+      ]
+    },
+    {
+      "id": "U054",
+      "requirement": "清理给实测释放量和剩余大目录，不把云端脚本当本地完成",
+      "preserved": true,
+      "mapped_tasks": [
+        "X14",
+        "Q01"
+      ]
+    },
+    {
+      "id": "U055",
+      "requirement": "未支持专业格式保管原件，合法导出桥，禁止谎称全格式语义支持",
+      "preserved": true,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "id": "U056",
+      "requirement": "定位：双向学习与经验，非通用Runtime；保留产品定位与必要管线调度，不扩为通用工作流平台。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X00",
+        "X05",
+        "X09"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E01"
+    },
+    {
+      "id": "U057",
+      "requirement": "多格式与原件、来源、时间、哈希、解析版本；已有能力强化验收；音视频仍按M1，不以附件P0覆盖当前M0顺序。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X05",
+        "X06",
+        "X12"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E02"
+    },
+    {
+      "id": "U058",
+      "requirement": "原件定位与笔记、摘录、引用双向关联；增加双向导航、版本锚点和错位/失效检查。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X04",
+        "X07",
+        "X08"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E03"
+    },
+    {
+      "id": "U059",
+      "requirement": "candidate-review-verified状态与AI候选；审核流程、用户接受、事实核查及使用资格独立，个人定义无需外部证明。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X04",
+        "X07"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E04"
+    },
+    {
+      "id": "U060",
+      "requirement": "学习卡、复习、回忆、错因、掌握和机器训练材料；保留人类完整路径及机器真实调用/方法/评测/反馈，训练导出不是机器侧全部。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X08",
+        "X09"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E05"
+    },
+    {
+      "id": "U061",
+      "requirement": "受控本地/离线模型实验与禁止绕过权威写入；模型经Core提交候选，不自授接受或事实状态；离线保存和学习不受阻。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X04",
+        "X07",
+        "X09"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E06"
+    },
+    {
+      "id": "U062",
+      "requirement": "证据冲突、版本变更与不确定性；版本/资格变化传播到受控使用入口，保留旧记录和未知状态。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07",
+        "X09"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E07"
+    },
+    {
+      "id": "U063",
+      "requirement": "Obsidian兼容往返、编辑、搜索、引用和回滚；复用Vault/Canvas与开放格式；明确语法子集、冲突和实际客户端资格。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X12"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E08"
+    },
+    {
+      "id": "U064",
+      "requirement": "向其他项目提供只读可追溯知识包；不恢复当前跨项目联动；未来区分快照时间、版本和离线撤销限制。",
+      "preserved": true,
+      "mapped_tasks": [
+        "F04"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E09"
+    },
+    {
+      "id": "U065",
+      "requirement": "九锚认知仅作可选反思/学习卡；缺定义和出处时保留名称，不编造九项；提供内容后按普通模板使用，不判事实或伪称效果。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X08",
+        "F03"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E10"
+    },
+    {
+      "id": "U066",
+      "requirement": "真材料全旅程与撤销后下游停止当作真值；回到对应原件或用户输入；两侧再次读取、索引延迟和重启验证，历史不抹除。",
+      "preserved": true,
+      "mapped_tasks": [
+        "X07",
+        "X08",
+        "X09",
+        "Q00"
+      ],
+      "source": "SOURCE-ENHANCEMENT.md",
+      "enhancement_id": "E11"
+    }
+  ],
+  "enhancement_coverage_file": "ENHANCEMENT-COVERAGE.json",
+  "source_plan_id": "AAK-REUSE-FIRST-20260907-R2",
+  "r3_note": "原映射保留；旧实现状态不是本轮新测。"
+}

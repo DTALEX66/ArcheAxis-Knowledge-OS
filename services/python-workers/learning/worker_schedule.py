@@ -23,7 +23,12 @@ Response::
 
     {"item_key": "card-1", "authority": "fsrs", "next_review_days": 34,
      "due": "2026-10-06T00:00:00+00:00", "scheduled_days": 34,
-     "state": "review", "stability": 34.2, "difficulty": 5.1}
+     "state": "review", "stability": 34.2, "difficulty": 5.1,
+     "step": null, "last_review": "2026-09-02T00:00:00+00:00"}
+
+The response's state/step/stability/difficulty/due/last_review fields are the
+lossless next request state. Display rounding belongs in the UI, never in the
+persisted scheduler parameters. Learning and relearning steps survive restarts.
 
 Failure is explicit and fail-closed::
 
@@ -37,6 +42,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import math
 import sys
 from datetime import datetime, timezone
 
@@ -52,6 +58,8 @@ def rating_for(request: dict) -> int:
         return rating
     if isinstance(rating, str) and rating.strip().lower() in _RATING_NAMES:
         return _RATING_NAMES[rating.strip().lower()]
+    if "rating" in request:
+        raise ValueError("rating must be 1..4 or again/hard/good/easy")
     correct = request.get("correct")
     if correct is True:
         return 3
@@ -74,7 +82,9 @@ def _parse_time(value: object, field: str) -> datetime | None:
 
 def parse_state(request: dict) -> dict:
     """Validate the persisted card fields carried by the request."""
-    state = request.get("state") or {}
+    state = request.get("state")
+    if state is None:
+        state = {}
     if not isinstance(state, dict):
         raise ValueError("state must be an object")
     out: dict = {}
@@ -83,12 +93,16 @@ def parse_state(request: dict) -> dict:
         if value is not None:
             if not isinstance(value, (int, float)) or isinstance(value, bool):
                 raise ValueError(f"state.{field} must be a number")
+            if not math.isfinite(value):
+                raise ValueError(f"state.{field} must be finite")
             out[field] = float(value)
     step = state.get("step")
     if step is not None:
         if not isinstance(step, int) or isinstance(step, bool) or step < 0:
             raise ValueError("state.step must be a non-negative integer")
         out["step"] = step
+    elif "step" in state:
+        out["step"] = None
     name = state.get("state")
     if name is not None:
         if not isinstance(name, str):
@@ -107,7 +121,7 @@ def _build_card(fields: dict):
         card.stability = fields["stability"]
     if fields.get("difficulty") is not None:
         card.difficulty = fields["difficulty"]
-    if fields.get("step") is not None:
+    if "step" in fields:
         card.step = fields["step"]
     if fields.get("due") is not None:
         card.due = fields["due"]
@@ -155,8 +169,10 @@ def schedule(request: dict) -> dict:
         "scheduled_days": scheduled_days,
         "due": due,
         "state": summary.get("state") or card_state_name(updated),
-        "stability": summary.get("stability"),
-        "difficulty": summary.get("difficulty"),
+        "stability": updated.stability,
+        "difficulty": updated.difficulty,
+        "step": updated.step,
+        "last_review": updated.last_review.isoformat() if updated.last_review else None,
         "rating": rating_value,
         "reviewed_at": now.isoformat(),
     }

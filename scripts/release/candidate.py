@@ -13,10 +13,33 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import stat
 from pathlib import Path
 
 SCHEMA = "archeaxis.candidate/v1"
 MANIFEST_NAME = "CANDIDATE.json"
+
+
+def safe_bundle_path(root: Path, relative: str = "") -> Path:
+    if os.fspath(root).replace('\\', '/').casefold().startswith(('e:', '//')):
+        raise ValueError("unsafe bundle root")
+    root = Path(os.path.abspath(root))
+    if root.drive.upper() == "E:" or str(root).startswith("\\\\"):
+        raise ValueError("unsafe bundle root")
+    if relative and (not isinstance(relative, str) or any(c in relative for c in "\\:")
+                     or any(not part or part.startswith('.') or part.endswith((' ', '.'))
+                            for part in relative.split('/'))):
+        raise ValueError("unsafe bundle path")
+    target = root / relative
+    for path in (*reversed(target.parents), target):
+        try:
+            info = path.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400:
+            raise ValueError("unsafe linked bundle path")
+    return target
 
 # Stated in the manifest and the README of every bundle, whatever it contains.
 NOT_INCLUDED = [
@@ -90,6 +113,12 @@ def build_manifest(
 def verify_manifest(root: Path, manifest: dict, *, known_commits: set[str] | None = None) -> list[str]:
     """Every reason this bundle does not match its own manifest. An empty list is a pass."""
     problems: list[str] = []
+    try:
+        root = safe_bundle_path(root)
+    except (ValueError, OSError):
+        return ["unsafe bundle root"]
+    if not isinstance(manifest, dict):
+        return ["manifest must be an object"]
     if manifest.get("schema") != SCHEMA:
         problems.append(f"manifest schema is {manifest.get('schema')!r}, expected {SCHEMA!r}")
     commit = str(manifest.get("source_commit") or "").strip()
@@ -109,9 +138,22 @@ def verify_manifest(root: Path, manifest: dict, *, known_commits: set[str] | Non
 
     seen: set[str] = set()
     for entry in recorded:
-        relative = str(entry.get("path") or "")
-        target = root / relative
-        seen.add(relative)
+        if not isinstance(entry, dict):
+            problems.append("manifest file entry must be an object")
+            continue
+        relative = entry.get("path")
+        try:
+            if not isinstance(relative, str) or not relative:
+                raise ValueError("unsafe empty path")
+            target = safe_bundle_path(root, relative)
+        except (ValueError, OSError):
+            problems.append("unsafe manifest file path")
+            continue
+        identity = relative.casefold()
+        if identity in seen:
+            problems.append(f"duplicate manifest file path: {relative}")
+            continue
+        seen.add(identity)
         if not target.is_file():
             problems.append(f"{relative} is recorded but missing from the bundle")
             continue
@@ -123,11 +165,23 @@ def verify_manifest(root: Path, manifest: dict, *, known_commits: set[str] | Non
         if digest != entry.get("sha256"):
             problems.append(f"{relative} hashes to {digest[:16]}..., the manifest records {str(entry.get('sha256'))[:16]}...")
 
-    for extra in sorted(path for path in root.rglob("*") if path.is_file()):
-        relative = extra.relative_to(root).as_posix()
-        if relative in seen or relative == MANIFEST_NAME or relative.endswith(".sha256"):
-            continue
-        problems.append(f"{relative} is in the bundle but not recorded in the manifest")
+    for directory, dirs, files in os.walk(root, followlinks=False):
+        for name in list(dirs):
+            relative = (Path(directory) / name).relative_to(root).as_posix()
+            try:
+                safe_bundle_path(root, relative)
+            except (ValueError, OSError):
+                dirs.remove(name)
+                problems.append("unsafe directory in bundle")
+        for name in files:
+            relative = (Path(directory) / name).relative_to(root).as_posix()
+            try:
+                safe_bundle_path(root, relative)
+            except (ValueError, OSError):
+                problems.append("unsafe file in bundle")
+                continue
+            if relative.casefold() not in seen and relative != MANIFEST_NAME:
+                problems.append(f"{relative} is in the bundle but not recorded in the manifest")
     return problems
 
 

@@ -8,9 +8,12 @@
 | Concern | Authority | 说明 |
 |---|---|---|
 | 项目 agent 边界 | `AGENTS.md` | 使命、目录边界、隐私/数据边界、工作规则 |
-| 当前执行与架构决策 | `PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml`、`docs/authority/taskpack-0910-r3/EXECUTION.md` | 已交付的 ARCHEAXIS-NEXT-TASKPACK-2026-09-10（17 切片 R00–R16，`verify_package.py` exit 0，SUP-018）与其实时台账/`STATE.json`；上一活动计划 `docs/authority/taskpack-0908-r3/EXECUTION.md`（R3-0908，SUP-017，基线 cbe253b）保留为继承任务文本与自身收据来源；继承的 GPT 审计板 `docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`（Q00 fail/Q01 不具资格）；R2 台账 `docs/authority/taskpack-0907/EXECUTION.md` 亦为继承来源；0906 仅历史（SUP-012..016），收据保留原 SHA |
+| 当前执行与架构决策 | `PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml`、`docs/current/R5-EXECUTION.md` | 唯一活动包 `docs/authority/taskpack-0912-r5/`（AAK-FOLLOWUP-20260908-R3 / R5，SUP-019）；进度侧车 `docs/current/R5-STATE.json`。0910 R3.1及0908/0907/0906保留原任务正文与各自SHA收据，历史基线不是当前完成状态；独立Q00/Q01不由执行者自签 |
 | 本机共享库、绿色软件与资料根路径 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md) | 用户 2026-09-07 指定的五个资源根；每次定位工具/模型/测试资料先查此表，不猜目录；真实资料库与测试库严格分离，不等于修改产品设置 |
 | 开发运行根 | `scripts/runtime/dev.py` | `.project-local` 下 worktree/run 隔离；Bash/PowerShell 共用；不是产品 workspace |
+| 正式桌面worker路径载荷 | `apps/ArcheAxis.Desktop/WorkerProfile.cs` | `archeaxis.worker-profile/v1`：应用旁worker-profile.json，显式ARCHAXIS_WORKER_PROFILE覆盖；只含schema/python/script/staging，严格拒绝未知/重复字段及受保护/链接路径。开发由scripts/launch/desktop_launch.py经dev.py生成隔离配置；不改变legacy defaults数据库或读取私有代理配置 |
+| 桌面启动身份 | `packages/contracts/bootstrap/v2/launch.schema.json`、`docs/current/R5-DESKTOP-IDENTITY-V2.md` | 显式v2 stdin双令牌、单Core写者；Core作跨字段及路径语义校验，不能把Schema验证当作权限验收 |
+| Core持久复习状态 | `packages/contracts/learning/v1/review.schema.json`、`docs/current/R5-LEARNING-STATE.md` | `/api/v1/learning/reviews`从Core事件恢复完整FSRS状态，独立于旧/events收据契约；只有human可写，状态由Core与worker产生，默认UI接线仍需验收 |
 | 跨语言词汇与损失回执 | `packages/contracts/v1/`、`scripts/contracts/generate_vocabulary.py` | Schema 为单源；Rust/C#/Python 词汇生成后须 `--check`；loss receipt 另有跨字段运行时校验，完整 DTO/权限协议仍在推进 |
 | 验证节奏 | `docs/VERIFICATION_POLICY.md` | 风险类型与验证节奏、审计/审查触发 |
 | path risk | `.worklab/project-validation.v1.yaml` | 变更路径 → 风险类 → Gate 映射 |

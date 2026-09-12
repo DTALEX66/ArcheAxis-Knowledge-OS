@@ -7,8 +7,17 @@ use std::{io::Read,sync::mpsc,time::Duration};
 
 #[derive(Clone,Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Launch {launch_token:String,session_id:String,#[serde(default="default_actor")]pub actor:String,pub text_worker:Option<TextWorker>}
-fn default_actor()->String{"human".to_string()}
+pub struct Launch {
+    launch_token:String,session_id:String,
+    #[serde(default,deserialize_with="present_string")]
+    pub actor:Option<String>,
+    pub text_worker:Option<TextWorker>,
+    #[serde(default,deserialize_with="present_string")]
+    protocol:Option<String>,
+    #[serde(default,deserialize_with="present_string")]
+    machine_token:Option<String>,
+}
+fn present_string<'de,D:serde::Deserializer<'de>>(value:D)->Result<Option<String>,D::Error>{String::deserialize(value).map(Some)}
 #[derive(Clone,Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TextWorker {pub python:std::path::PathBuf,pub script:std::path::PathBuf,pub staging:std::path::PathBuf}
@@ -39,11 +48,20 @@ impl Launch {
         if bytes.len()>4096{return Err("launch input exceeds limit");}
         let launch:Self=serde_json::from_slice(&bytes).map_err(|_|"invalid launch input")?;
         if !hex(&launch.launch_token,64)||!hex(&launch.session_id,32){return Err("invalid launch identity");}
-        // R04: the launch actor decides machine vs human authority for the whole
-        // session, so an unrecognised value must fail closed. Mapping it to the
-        // default would silently grant human authority to a caller that named
-        // something else (previously any non-"machine" string became "human").
-        if launch.actor!="human"&&launch.actor!="machine"{return Err("invalid launch actor");}
+        // Legacy preserves its single actor; v2 gives one owned session two
+        // distinct credentials. Unknown/null/partial v2 claims never downgrade.
+        match launch.protocol.as_deref() {
+            None => {
+                if launch.machine_token.is_some(){return Err("machine token requires v2");}
+                if !matches!(launch.actor.as_deref(),None|Some("human")|Some("machine")){return Err("invalid launch actor");}
+            },
+            Some("archeaxis.desktop-launch/v2") => {
+                if launch.actor.as_deref()!=Some("human"){return Err("invalid v2 launch actor");}
+                let machine=launch.machine_token.as_deref().ok_or("missing machine identity")?;
+                if !hex(machine,64)||machine.eq_ignore_ascii_case(&launch.launch_token){return Err("invalid machine identity");}
+            },
+            Some(_) => return Err("unsupported launch protocol"),
+        }
         if let Some(profile)=&launch.text_worker{profile.validate()?;}
         Ok(launch)
     }
@@ -65,24 +83,24 @@ async fn authenticate(State(session):State<Session>,request:Request,next:Next)->
     let mut values=values.iter();
     let value=values.next().map(|v|v.as_bytes()).unwrap_or_default();
     let expected=session.launch.launch_token.as_bytes();
-    let valid=value.len()==expected.len()&&value.iter().zip(expected).fold(0u8,|diff,(a,b)|diff|(a^b))==0;
-    if !valid||values.next().is_some(){return error(StatusCode::UNAUTHORIZED,"AAK-AUTH-001","invalid launch credentials");}
+    let matches=|expected:&[u8]| value.len()==expected.len()&&value.iter().zip(expected).fold(0u8,|diff,(a,b)|diff|(a^b))==0;
+    let primary=matches(expected);
+    let machine=session.launch.machine_token.as_ref().map(|token|matches(token.as_bytes())).unwrap_or(false);
+    if !(primary||machine)||values.next().is_some(){return error(StatusCode::UNAUTHORIZED,"AAK-AUTH-001","invalid launch credentials");}
+    let actor=if machine||session.launch.actor.as_deref()==Some("machine"){"machine"}else{"human"};
     // Formal desktop is a native client. Do not allow browser origins to turn
     // this localhost API into a credentialed cross-origin write surface.
     if request.headers().contains_key("origin") {return error(StatusCode::FORBIDDEN,"AAK-AUTH-002","browser origin not allowed");}
     if request.method()==Method::GET&&request.uri().path()=="/api/v1/system/version" {
-        return Json(serde_json::json!({"runtime":"archeaxis-api","contract":"0.1.0-outline",
+        let mut version=serde_json::json!({"runtime":"archeaxis-api","contract":"0.1.0-outline",
             "schema_version":archeaxis_store_sqlite::SCHEMA_VERSION,
-            "session_id":session.launch.session_id,"workspace_db":session.workspace_db})).into_response();
+            "session_id":session.launch.session_id,"workspace_db":session.workspace_db});
+        if let Some(protocol)=&session.launch.protocol {version["launch_protocol"]=serde_json::json!(protocol);version["actor"]=serde_json::json!(actor);}
+        return Json(version).into_response();
     }
-    // C02/R04: overwrite the request actor with the launch-session claim chosen
-    // by the trusted bootstrap; any client-supplied value is replaced, so
-    // handlers reading x-archeaxis-actor always see the trusted claim.
-    // Launch::from_stdin has already rejected any actor outside
-    // {human, machine}, so this mapping is exhaustive and a client cannot
-    // escalate or downgrade it.
+    // Overwrite self-reported identity with the role of the matched bootstrap
+    // credential, including for machine requests to the same human-owned Core.
     let (mut parts, body) = request.into_parts();
-    let actor = if session.launch.actor == "machine" { "machine" } else { "human" };
     parts.headers.insert(
         "x-archeaxis-actor",
         axum::http::header::HeaderValue::from_static(if actor == "machine" { "machine" } else { "human" }),

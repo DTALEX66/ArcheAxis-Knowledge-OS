@@ -29,6 +29,25 @@ from shared.naming import (
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize('path', [
+    'docs/authority/taskpack-0910-r3/MANIFEST.json',
+    'docs/authority/taskpack-0910-r3/TASKS.json',
+    *[f'docs/authority/taskpack-0912-r5/{prefix}research-v15/{name}.json'
+      for prefix in ('', 'frozen-r4/')
+      for name in ('学科数据', '方法数据', '研究数据', '资源数据')],
+])
+def test_frozen_original_bytes_are_preserved_and_mutations_rejected(path):
+    original = (ROOT / path).read_bytes()
+    assert scan_text_bytes(path, original) == []
+    assert 'missing-final-newline' in {
+        issue.code for issue in scan_text_bytes(f'docs/copied/{Path(path).name}', original)
+    }
+    for changed in (original + b'\n', original.replace(b'{', b'{ ', 1)):
+        assert 'frozen-original-mismatch' in {
+            issue.code for issue in scan_text_bytes(path, changed)
+        }
+
+
 def test_registry_resolves_canonical_ids_and_deprecated_aliases() -> None:
     registry = load_naming_registry(ROOT / "config" / "naming-registry.yaml")
 

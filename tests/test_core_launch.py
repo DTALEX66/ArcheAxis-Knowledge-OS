@@ -37,6 +37,46 @@ def _load():
 launcher = _load()
 
 
+def test_probe_does_not_use_persistent_database_or_session(tmp_path, monkeypatch, capsys):
+    legacy = tmp_path / 'legacy-launch'
+    legacy.mkdir()
+    database = legacy / 'core.sqlite'
+    database.write_bytes(b'preserved synthetic database')
+    state = legacy / 'core-launch.json'
+    state.write_text('{"pid": 1, "fixture": true}', encoding='utf-8')
+    before = state.read_bytes()
+    binary = tmp_path / 'core.exe'
+    binary.write_bytes(b'fixture')
+    seen = []
+
+    class Child:
+        pid = 123456
+
+        def kill(self):
+            pass
+
+        def wait(self):
+            return 0
+
+    def spawn(db, port):
+        seen.append(db)
+        return Child(), {}
+
+    monkeypatch.setattr(launcher, 'RUNDIR', legacy)
+    monkeypatch.setattr(launcher, 'STATE_PATH', state)
+    monkeypatch.setattr(launcher, 'CORE_BINARY', binary)
+    monkeypatch.setattr(launcher, 'dependencies', lambda: [])
+    monkeypatch.setattr(launcher, 'port_in_use', lambda port: False)
+    monkeypatch.setattr(launcher, 'spawn_core', spawn)
+    monkeypatch.setattr(launcher, 'wait_ready', lambda child: '12345')
+    assert launcher.main(['--probe']) == 0
+    assert seen[0] != database
+    assert seen[0].is_relative_to(Path(os.environ['ARCHEAXIS_RUN_ROOT']) / 'artifacts')
+    assert state.read_bytes() == before
+    assert database.read_bytes() == b'preserved synthetic database'
+    assert json.loads(capsys.readouterr().out)['ok'] is True
+
+
 def _make_db(path: Path, rows: list[str]) -> None:
     connection = sqlite3.connect(str(path))
     try:

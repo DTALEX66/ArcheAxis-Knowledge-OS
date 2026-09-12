@@ -42,6 +42,49 @@ MATURE = {
 
 
 class TestFsrsAuthority:
+    def test_serialized_reviews_match_uninterrupted_fsrs_across_worker_restarts(self) -> None:
+        import json
+        import subprocess
+        import sys
+
+        from fsrs import Card, Rating, Scheduler
+
+        scheduler = Scheduler(enable_fuzzing=False)
+        expected = Card(due=NOW)
+        persisted = {'due': NOW.isoformat()}
+        instant = NOW
+        for rating in (Rating.Good, Rating.Good, Rating.Again, Rating.Good):
+            expected, _ = scheduler.review_card(expected, rating, review_datetime=instant)
+            process = subprocess.run(
+                [sys.executable, '-B', str(WORKER)],
+                input=json.dumps({'item_key': 'restart-card', 'rating': int(rating),
+                                  'state': persisted, 'now': instant.isoformat()}),
+                capture_output=True, text=True, encoding='utf-8', timeout=30,
+            )
+            assert process.returncode == 0, process.stderr
+            persisted = json.loads(process.stdout)
+            assert persisted['due'] == expected.due.isoformat()
+            assert persisted['state'] == expected.state.name.lower()
+            instant = expected.due
+        assert persisted['step'] == expected.step
+        assert persisted['last_review'] == expected.last_review.isoformat()
+        assert persisted['stability'] == expected.stability
+        assert persisted['difficulty'] == expected.difficulty
+
+    def test_persisted_parameters_are_not_rounded_for_display(self) -> None:
+        from fsrs import Card, Rating, Scheduler, State
+
+        card = Card(state=State.Review, stability=MATURE['stability'],
+                    difficulty=MATURE['difficulty'],
+                    due=datetime.fromisoformat(MATURE['due']),
+                    last_review=datetime.fromisoformat(MATURE['last_review']))
+        expected, _ = Scheduler(enable_fuzzing=False).review_card(
+            card, Rating.Good, review_datetime=NOW)
+        result = worker.schedule({'item_key': 'c', 'rating': 3,
+                                  'state': MATURE, 'now': NOW.isoformat()})
+        assert result['stability'] == expected.stability
+        assert result['difficulty'] == expected.difficulty
+
     def test_mature_card_interval_exceeds_the_placeholder_ladder(self) -> None:
         result = worker.schedule({"item_key": "card-1", "rating": 3, "state": MATURE, "now": NOW.isoformat()})
         assert result["authority"] == "fsrs"
@@ -66,6 +109,21 @@ class TestFsrsAuthority:
 
 
 class TestFailClosed:
+    @pytest.mark.parametrize('rating', [0, 5, True, None, 'typo'])
+    def test_invalid_explicit_rating_cannot_fall_back_to_correct(self, rating):
+        with pytest.raises(ValueError, match='rating'):
+            worker.schedule({'item_key': 'c', 'rating': rating, 'correct': True, 'state': MATURE})
+
+    @pytest.mark.parametrize('state', [[], False, 0, ''])
+    def test_falsey_non_object_state_is_not_a_new_card(self, state):
+        with pytest.raises(ValueError, match='state'):
+            worker.parse_state({'state': state})
+
+    @pytest.mark.parametrize('value', [float('nan'), float('inf'), -float('inf')])
+    def test_non_finite_state_is_rejected(self, value):
+        with pytest.raises(ValueError, match='finite'):
+            worker.parse_state({'state': {'stability': value}})
+
     def test_missing_rating_and_correct_is_an_explicit_error(self) -> None:
         with pytest.raises(ValueError):
             worker.schedule({"item_key": "c", "state": MATURE, "now": NOW.isoformat()})

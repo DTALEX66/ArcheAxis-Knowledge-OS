@@ -3,11 +3,13 @@
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -46,8 +48,111 @@ class InventoryProjectTests(unittest.TestCase):
             self.assertEqual(group["cleanup"]["status"], "pending")
             self.assertFalse(group["cleanup"]["deletion_authorized"])
 
+    def test_capacity_comparison_reports_growth_and_explicit_budget_without_deletion(self):
+        (self.project / "target").mkdir()
+        sample = self.project / "target" / "sample.bin"
+        sample.write_bytes(b"abc")
+        baseline = self.scan()
+        sample.write_bytes(b"abcdef")
+        current = self.scan()
+        diagnosis = self.inventory.capacity_diagnostics(current, baseline, {"target": 5})
+        self.assertEqual(diagnosis["comparison_status"], "COMPARABLE_OBSERVED_SCOPE")
+        row = next(r for r in diagnosis["groups"] if r["path"] == "target")
+        self.assertEqual(row["delta_bytes"], 3)
+        self.assertEqual(row["budget_status"], "EXCEEDED")
+        self.assertIn("cargo", row["producer"])
+        self.assertEqual(sample.read_bytes(), b"abcdef")
+
+    def test_volume_free_change_is_measured_without_claiming_reclaimed_space(self):
+        observations = [SimpleNamespace(total=1000, used=600, free=400),
+                        SimpleNamespace(total=1000, used=620, free=380)]
+        with patch.object(shutil, 'disk_usage', side_effect=observations) as usage:
+            report = self.scan()
+        self.assertEqual(usage.call_count, 2)
+        self.assertTrue(all(call.args == (self.project,) for call in usage.call_args_list))
+        volume = report['volume_space']
+        self.assertEqual(volume['before']['free_bytes'], 400)
+        self.assertEqual(volume['after']['free_bytes'], 380)
+        self.assertEqual(volume['observed_free_delta_bytes'], -20)
+        self.assertIsNone(volume['attributed_reclaimed_bytes'])
+
+    def test_volume_failure_retains_logical_inventory_and_explicit_unknown(self):
+        (self.project / 'sample').write_bytes(b'abc')
+        with patch.object(shutil, 'disk_usage', side_effect=OSError('volume unavailable')):
+            report = self.scan()
+        self.assertEqual(report['totals']['bytes'], 3)
+        self.assertEqual(report['volume_space']['before']['status'], 'unavailable')
+        self.assertIsNone(report['volume_space']['observed_free_delta_bytes'])
+
+    def test_invalid_root_does_not_query_volume(self):
+        with patch.object(shutil, 'disk_usage', side_effect=AssertionError('must not query')):
+            report = self.scan('E:/not-authorized')
+        self.assertEqual(report['status'], 'error')
+
+    def test_capacity_never_calls_an_opaque_or_missing_group_under_budget(self):
+        (self.project / ".hermes").mkdir()
+        current = self.scan()
+        diagnosis = self.inventory.capacity_diagnostics(current, budgets={".hermes": 100, "missing": 100})
+        states = {r["path"]: r["budget_status"] for r in diagnosis["groups"]}
+        self.assertEqual(states[".hermes"], "UNKNOWN")
+        self.assertEqual(states["missing"], "UNKNOWN")
+
+    def test_capacity_rejects_different_scope_and_marks_changed_completeness(self):
+        current = self.scan()
+        baseline = json.loads(json.dumps(current))
+        baseline["root"] = str(self.project / "another")
+        with self.assertRaisesRegex(ValueError, "scope"):
+            self.inventory.capacity_diagnostics(current, baseline)
+        baseline["root"] = current["root"]
+        baseline["totals"]["errors"] = 1
+        diagnosis = self.inventory.capacity_diagnostics(current, baseline)
+        self.assertEqual(diagnosis["comparison_status"], "INCOMPLETE_OR_CHANGED_OBSERVATIONS")
+
+    def test_capacity_cli_budget_is_an_alarm_not_a_cleanup_command(self):
+        (self.project / "target").mkdir()
+        sample = self.project / "target" / "sample.bin"
+        sample.write_bytes(b"abc")
+        result = subprocess.run([sys.executable, "-B", str(SCRIPT), str(self.project),
+                                 "--budget", "target=2"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["capacity"]["exceeded_groups"], ["target"])
+        self.assertEqual(sample.read_bytes(), b"abc")
+
+    def test_capacity_baseline_refuses_private_and_external_paths_before_reading(self):
+        for path in [self.project / ".project-local/.zcode/snapshot.json",
+                     self.project / ".project-local/agents/snapshot.json",
+                     self.project / "outside.json"]:
+            with (
+                patch.object(Path, "read_text", side_effect=AssertionError("must not read")),
+                self.assertRaises(ValueError),
+            ):
+                self.inventory.load_baseline(path, self.project)
+
+    def test_capacity_cli_unknown_budget_cannot_pass(self):
+        (self.project / '.zcode').mkdir()
+        for group in ('.zcode', 'missing'):
+            with self.subTest(group=group):
+                result = subprocess.run(
+                    [sys.executable, '-B', str(SCRIPT), str(self.project),
+                     '--budget', f'{group}=100'], capture_output=True, text=True)
+                self.assertEqual(result.returncode, 3, result.stderr)
+                capacity = json.loads(result.stdout)['capacity']
+                self.assertEqual(capacity['unknown_budget_groups'], [group])
+
+    def test_capacity_cli_exceeded_takes_precedence_over_unknown(self):
+        (self.project / 'target').mkdir()
+        (self.project / 'target/sample.bin').write_bytes(b'abc')
+        result = subprocess.run(
+            [sys.executable, '-B', str(SCRIPT), str(self.project),
+             '--budget', 'target=2', '--budget', 'missing=100'],
+            capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        capacity = json.loads(result.stdout)['capacity']
+        self.assertEqual(capacity['unknown_budget_groups'], ['missing'])
+        self.assertEqual(capacity['exceeded_groups'], ['target'])
+
     def test_private_directories_and_mixed_hermes_are_opaque_unknown_size(self):
-        for name in (".codex", ".dsh", ".openhuman", ".hermes"):
+        for name in (".codex", ".dsh", ".openhuman", ".hermes", ".zcode"):
             (self.project / name).mkdir()
             (self.project / name / "private.dat").write_bytes(b"do not read")
         (self.project / "src").mkdir()
@@ -56,7 +161,7 @@ class InventoryProjectTests(unittest.TestCase):
         real_scandir = os.scandir
 
         def reject_private_scan(path):
-            self.assertNotIn(Path(path).name, {".git", ".codex", ".dsh", ".openhuman", ".hermes", ".claude"})
+            self.assertNotIn(Path(path).name, {".git", ".codex", ".dsh", ".openhuman", ".hermes", ".claude", ".zcode"})
             return real_scandir(path)
 
         with patch.object(os, "scandir", reject_private_scan):
@@ -84,6 +189,17 @@ class InventoryProjectTests(unittest.TestCase):
         self.assertEqual(report["totals"]["files"], 0)
         self.assertEqual(report["totals"]["skipped_reparse"], 1)
         self.assertEqual(report["reparse_points"][0]["path"], "redirect")
+
+    @unittest.skipUnless(os.name == "nt", "Windows long-path metadata regression")
+    def test_long_project_paths_are_counted_without_following_links(self):
+        long_dir = self.project / ("a" * 80) / ("b" * 80) / ("c" * 80)
+        native = Path("\\\\?\\" + str(long_dir))
+        native.mkdir(parents=True)
+        self.addCleanup(shutil.rmtree, Path("\\\\?\\" + str(self.project / ("a" * 80))))
+        (native / "sample.txt").write_bytes(b"long-path-sample")
+        report = self.scan()
+        self.assertEqual(report["errors"], [])
+        self.assertEqual(report["totals"]["bytes"], len(b"long-path-sample"))
 
     def test_missing_root_and_non_root_are_explicit_errors(self):
         missing = self.scan(self.project / "missing")

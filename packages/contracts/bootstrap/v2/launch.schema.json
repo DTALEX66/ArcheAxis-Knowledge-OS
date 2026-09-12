@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:archeaxis:desktop-launch:v2",
+  "title": "Desktop identity bootstrap v2",
+  "$comment": "Core/C# v2 implemented and locally tested; not a desktop release claim. Core additionally rejects equal tokens, duplicate JSON keys and linked/protected worker paths before opening the database. JSON Schema alone is insufficient.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "actor", "launch_token", "machine_token", "session_id"],
+  "properties": {
+    "protocol": {"const": "archeaxis.desktop-launch/v2"},
+    "actor": {"const": "human"},
+    "launch_token": {"type": "string", "minLength": 64, "maxLength": 64, "pattern": "^[0-9a-fA-F]{64}$"},
+    "machine_token": {"type": "string", "minLength": 64, "maxLength": 64, "pattern": "^[0-9a-fA-F]{64}$"},
+    "session_id": {"type": "string", "minLength": 32, "maxLength": 32, "pattern": "^[0-9a-fA-F]{32}$"},
+    "text_worker": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["python", "script", "staging"],
+          "properties": {
+            "python": {"type": "string", "minLength": 1},
+            "script": {"type": "string", "minLength": 1},
+            "staging": {"type": "string", "minLength": 1}
+          }
+        }
+      ]
+    }
+  }
+}

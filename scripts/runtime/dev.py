@@ -11,10 +11,12 @@ import hashlib
 import json
 import os
 import re
+import signal
 import stat
 import subprocess
 import sys
 import uuid
+from contextlib import suppress
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -69,6 +71,10 @@ def layout(root: Path, run_id: str | None = None) -> dict[str, Path]:
              "tmp": run / "tmp", "logs": run / "logs",
              "artifacts": run / "artifacts", "cache": dev / "cache",
              "build": dev / "build" / identity}
+    # Main checkout shares the checked-in bare Cargo target; linked worktrees
+    # retain independent outputs. Do not move or remove any historical cache.
+    paths["cargo_build"] = (dev / "build" / "cargo" if root == owner
+                            else paths["build"] / "cargo")
     for path in paths.values():
         safe_path(path)
     return paths
@@ -94,8 +100,12 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
         "PIP_CACHE_DIR": str(cache / "pip"),
         "npm_config_cache": str(cache / "npm"),
         "PLAYWRIGHT_BROWSERS_PATH": str(cache / "playwright"),
-        "CARGO_TARGET_DIR": str(build / "cargo"),
+        "CARGO_TARGET_DIR": str(paths["cargo_build"]),
+        "CARGO_HOME": str(cache / "cargo"),
         "NUGET_PACKAGES": str(cache / "nuget"),
+        "NUGET_HTTP_CACHE_PATH": str(cache / "nuget-http"),
+        "NUGET_PLUGINS_CACHE_PATH": str(cache / "nuget-plugins"),
+        "NUGET_SCRATCH": str(paths["tmp"] / "nuget-scratch"),
         "DOTNET_CLI_HOME": str(paths["run"] / "dotnet"),
         "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
         "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
@@ -107,6 +117,7 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
         if name.endswith(("_DIR", "_ROOT", "_PATH", "_HOME", "_PACKAGES")) or name in (
             "TMP", "TEMP", "TMPDIR", "PYTHONPYCACHEPREFIX", "npm_config_cache",
             "UV_PROJECT_ENVIRONMENT",
+            "NUGET_SCRATCH",
         ):
             safe_path(Path(value))
     return result
@@ -132,6 +143,45 @@ def pytest_environment(root: Path) -> Path:
     paths = layout(root)
     os.environ.update(prepare(paths))
     return paths["run"]
+
+
+def artifact_directory(root: Path, namespace: str) -> Path:
+    """Allocate one unique artifact directory inside the validated current run."""
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", namespace):
+        raise ValueError("invalid artifact namespace")
+    run = pytest_environment(root)
+    directory = safe_path(run / "artifacts" / namespace / uuid.uuid4().hex)
+    directory.mkdir(parents=True, exist_ok=False)
+    return directory
+
+
+def state_path(root: Path, namespace: str, filename: str) -> Path:
+    """Route persistent development metadata without allocating or writing a run."""
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", namespace):
+        raise ValueError("invalid state namespace")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", filename):
+        raise ValueError("invalid state filename")
+    paths = layout(root)
+    identity = paths["run"].parent.name
+    return safe_path(paths["dev"] / "state" / identity / namespace / filename)
+
+
+def stop_owned_process(child: subprocess.Popen) -> None:
+    """Stop only the live process tree created by this launcher, then reap it."""
+    if child.poll() is not None:
+        return
+    if os.name == "nt":
+        result = subprocess.run(
+            ["taskkill.exe", "/PID", str(child.pid), "/T", "/F"],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW, timeout=15, check=False,
+        )
+        if result.returncode and child.poll() is None:
+            raise RuntimeError("owned process tree cleanup failed")
+    else:
+        with suppress(ProcessLookupError):
+            os.killpg(child.pid, signal.SIGKILL)
+    child.wait(timeout=15)
 
 
 def main() -> int:
@@ -185,6 +235,7 @@ def main() -> int:
                   "python": sys.version, "boundary": "environment-routing-not-sandbox"}
         print(f"[dev] run={paths['run']}", flush=True)
         code = 1
+        child = None
         try:
             # No shell expansion or visible console for helper processes on Windows.
             child = subprocess.Popen(
@@ -192,12 +243,29 @@ def main() -> int:
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 text=True, encoding="utf-8", errors="replace",
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+                start_new_session=os.name != "nt",
             )
             assert child.stdout is not None
             for line in child.stdout:
                 print(line, end="", flush=True)
             code = child.wait()
+        except BaseException as exc:
+            if isinstance(exc, KeyboardInterrupt):
+                code = 130
+                record["cancelled"] = True
+            if child is not None:
+                try:
+                    stop_owned_process(child)
+                    record["owned_process_cleanup"] = "completed"
+                except (OSError, RuntimeError, subprocess.TimeoutExpired) as cleanup_error:
+                    record["owned_process_cleanup"] = "failed"
+                    code = 1
+                    raise RuntimeError("owned process cleanup failed; inspect the run") from cleanup_error
+            if not isinstance(exc, KeyboardInterrupt):
+                raise
         finally:
+            if child is not None and child.stdout is not None:
+                child.stdout.close()
             record.update(exit_code=code, ended_at=datetime.now(timezone.utc).isoformat())
             (paths["artifacts"] / "execution.json").write_text(
                 json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

@@ -65,12 +65,23 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 
 ## 6. Implementation Workflow
 
-The user-approved active plan is the AAK 2026-09-10 follow-up pack
+The user-approved active plan is the R5 follow-up pack installed at
+`docs/authority/taskpack-0912-r5/` (plan_id `AAK-FOLLOWUP-20260908-R3`,
+package_revision `R5`). Read its `EXECUTOR-START.md`, `TASKS.json` and
+`REMAINING-WORK.json`. Live progress is maintained outside the immutable package
+in `docs/current/R5-EXECUTION.md` and `docs/current/R5-STATE.json` (SUP-019).
+The owner prioritized repository normalization and safe cleanup on 2026-09-13:
+X00 -> X01/X02 -> early X14, then the product dependency graph. Preserve unknown
+private state and user assets; destructive cleanup needs an exact reviewed path
+list. At 60% remaining account-wide Codex allowance, prepare the handoff and
+publish only verified, task-owned changes under the owner's current authorization.
+
+The preceding plan is the AAK 2026-09-10 follow-up pack
 (ARCHEAXIS-NEXT-TASKPACK-2026-09-10, revision R3.1); live execution state is
 `docs/authority/taskpack-0910-r3/EXECUTION.md` with slice progress in
 `docs/authority/taskpack-0910-r3/STATE.json`; its 17 slices R00-R16 map back to
 the original 23 tasks and to C01-C10, inherit the R3 work/acceptance text, and
-run in the order R00 -> R16 (R12 may start once R01 is done). The package was
+historically ran in the order R00 -> R16 (R12 could start once R01 was done). The package was
 installed single-level with its `reference-r2/` snapshot and
 `verify_package.py` exits 0. The preceding plan AAK-FOLLOWUP-20260908-R3
 (`docs/authority/taskpack-0908-r3/EXECUTION.md`) remains the source of the

@@ -2,7 +2,8 @@
 
 > 适用范围：仅限 `archeaxis-workspace`。本文件是本仓库验证频率、审计触发和证据保留的唯一流程记录。
 
-2026-09-06 执行入口：[Full Loop 台账](authority/taskpack-0906/EXECUTION.md)。
+当前执行入口：[R5 台账](current/R5-EXECUTION.md)，
+[冻结任务正文](authority/taskpack-0912-r5/TASKS.json)（SUP-019）。
 下述旧 RC/Release 流程仅在相应交付获授权时适用，不自动构建或发布新的 Green 版本。
 
 ## 目标

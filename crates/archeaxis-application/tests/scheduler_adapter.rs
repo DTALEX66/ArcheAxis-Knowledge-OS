@@ -3,6 +3,7 @@
 
 use archeaxis_application::scheduler::{SchedulerClient, SchedulerError};
 use std::path::PathBuf;
+use std::time::{Duration, Instant};
 
 fn python() -> PathBuf {
     std::env::var_os("ARCHEAXIS_PYTHON")
@@ -71,4 +72,68 @@ fn missing_worker_script_reports_unavailable() {
     let client = SchedulerClient::new(python(), PathBuf::from("Z:/definitely/missing/worker.py"));
     let err = client.review(MATURE_REQUEST).unwrap_err();
     assert!(matches!(err, SchedulerError::Unavailable(_)), "unexpected {err:?}");
+}
+
+#[test]
+fn stalled_or_flooding_workers_fail_bounded_and_next_review_still_works() {
+    let dir = tempfile::tempdir().unwrap();
+    for (name, script, request, expected) in [
+        ("silent", "import time; time.sleep(10)", MATURE_REQUEST.to_owned(), "deadline"),
+        ("partial", "import sys,time; sys.stdout.write('{'); sys.stdout.flush(); time.sleep(10)", MATURE_REQUEST.to_owned(), "deadline"),
+        ("stderr", "import sys,time; sys.stderr.write('x'*100000); sys.stderr.flush(); time.sleep(10)", MATURE_REQUEST.to_owned(), "stderr"),
+        ("stdout", "import sys,time; sys.stdout.write('x'*100000); sys.stdout.flush(); time.sleep(10)", MATURE_REQUEST.to_owned(), "stdout"),
+        ("stdin", "import time; time.sleep(10)", "x".repeat(16_000), "deadline"),
+        ("exit", "import os,sys,time; sys.stdin.read(); print('{}',flush=True); os.close(1); os.close(2); time.sleep(10)", MATURE_REQUEST.to_owned(), "deadline"),
+    ] {
+        let path = dir.path().join(format!("{name}.py"));
+        std::fs::write(&path, script).unwrap();
+        let started = Instant::now();
+        let error = SchedulerClient::new(python(), path)
+            .review_with_timeout(&request, Duration::from_millis(700)).unwrap_err();
+        assert!(started.elapsed() < Duration::from_secs(3), "{name} exceeded deadline: {error}");
+        assert!(error.to_string().contains(expected), "{name}: {error}");
+    }
+    assert_eq!(SchedulerClient::new(python(), worker()).review(MATURE_REQUEST).unwrap().authority, "fsrs");
+}
+
+#[test]
+fn oversized_input_is_rejected_before_starting_worker() {
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("not-started.py");
+    let marker = script.with_extension("started");
+    std::fs::write(&script, "from pathlib import Path; Path(__file__).with_suffix('.started').touch()").unwrap();
+    let error = SchedulerClient::new(python(), script).review(&"x".repeat(65_537)).unwrap_err();
+    assert!(error.to_string().contains("request exceeds"));
+    assert!(!marker.exists());
+}
+
+#[cfg(windows)]
+#[test]
+fn timeout_reaps_the_owned_windows_process() {
+    use std::os::windows::io::{AsRawHandle, FromRawHandle, OwnedHandle, RawHandle};
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        fn OpenProcess(access: u32, inherit: i32, pid: u32) -> RawHandle;
+        fn WaitForSingleObject(handle: RawHandle, milliseconds: u32) -> u32;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("owned.py");
+    let pid_path = script.with_extension("pid");
+    std::fs::write(&script, "import os,time\nfrom pathlib import Path\nPath(__file__).with_suffix('.pid').write_text(str(os.getpid()))\ntime.sleep(10)\n").unwrap();
+    let client = SchedulerClient::new(python(), script);
+    let task = std::thread::spawn(move || client.review_with_timeout(MATURE_REQUEST, Duration::from_millis(1500)));
+    let observe_until = Instant::now() + Duration::from_secs(1);
+    let pid = loop {
+        if let Ok(text) = std::fs::read_to_string(&pid_path) {
+            if let Ok(pid) = text.parse::<u32>() { break pid; }
+        }
+        assert!(Instant::now() < observe_until, "owned worker did not announce its PID");
+        std::thread::sleep(Duration::from_millis(5));
+    };
+    let raw = unsafe { OpenProcess(0x00100000, 0, pid) }; // SYNCHRONIZE only
+    assert!(!raw.is_null());
+    let handle = unsafe { OwnedHandle::from_raw_handle(raw) };
+    assert_eq!(unsafe { WaitForSingleObject(handle.as_raw_handle(), 0) }, 258);
+    assert!(task.join().unwrap().unwrap_err().to_string().contains("deadline"));
+    assert_eq!(unsafe { WaitForSingleObject(handle.as_raw_handle(), 0) }, 0);
 }

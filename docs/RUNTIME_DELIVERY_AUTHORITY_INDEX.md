@@ -16,7 +16,13 @@ the Rust service in `crates/archeaxis-api/`, and isolated Python workers in
 `services/python-workers/`. The existing implementation still needs the T15
 Windows/full-loop qualification; this map does not claim a usable vNext package.
 Build/test commands use `scripts/runtime/dev.py` with `.project-local` outputs.
-See [current execution](authority/taskpack-0906/EXECUTION.md) and
+For the main checkout, Cargo uses `.project-local/build/cargo`, matching
+the checked-in `.cargo/config.toml`; the launcher no longer creates a second
+main-checkout Cargo cache. Linked worktrees launched through `dev.py` use
+`.project-local/build/<worktree-id>/cargo` under the owning repository.
+Other build outputs retain their worktree-specific paths. Historical outputs
+are preserved; this routing change does not migrate or delete them.
+See [current R5 execution](current/R5-EXECUTION.md) and
 [language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md).
 
 ## Preserved Green v0.6.14 maintenance chain

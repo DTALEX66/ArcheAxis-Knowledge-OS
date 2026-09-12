@@ -1,0 +1,1625 @@
+{
+  "schema": "archeaxis.r5-m0-reuse-registration/v1",
+  "baseline_sha": "c06b234ca335b9cbb2c1fde270851e2390c36b89",
+  "authority": "Sidecar of R5 X02; does not amend TASKS, old receipts or LEGACY_MANIFEST.",
+  "status": "PARTIAL_REGISTRATION_NOT_SEMANTIC_COMPLETION",
+  "entries": [
+    {
+      "id": "M0-FSRS",
+      "source_files": [
+        {
+          "path": "shared/learning_scheduler.py",
+          "sha256": "96545bc3d550814e1fa8d24d33618c434c43eb0480fc33e05b012fe5edf9ce8f",
+          "head_blob": "d594ff49ee0451cade58838f3ae229bef6253780"
+        },
+        {
+          "path": "services/python-workers/learning/worker_schedule.py",
+          "sha256": "51fcc1ea1730296607598bf6d4c09ce419dfd8cf7bb68b766416126b6261c3b6",
+          "head_blob": "04b7f4188553c8e8559b2ca8289f56ca07f7c367"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "crates/archeaxis-application/src/scheduler.rs",
+          "sha256": "91229bba050ce855e7d972be3420c75f8fefde1f6c7c7705ba4d02f23d936c20",
+          "head_blob": "df2adcf9519f2961ba820351d1a1499e8c9b3c86"
+        },
+        {
+          "path": "crates/archeaxis-api/src/lib.rs",
+          "sha256": "ffeb3ed89d0e86324a16e327a1b6486cd98947f16ef512a688dfa0d861451030",
+          "head_blob": "1df365936f5bafee0f1e61bb5e84ea66245f2d34"
+        }
+      ],
+      "original_behavior": "FSRS v6 card review with due, stability, difficulty and explicit error; Python computes, Rust persists.",
+      "target": "Controlled Python algorithm through Rust SchedulerClient.",
+      "observed_difference_or_gap": "Core persists full FSRS state across authenticated process restart. Scheduler has a 20-second default deadline and bounded stdin/stdout/stderr; Windows direct process exit and unavailable receipt persistence tested. Arbitrary descendants, external pipe holders, default GUI and installed runtime remain incomplete.",
+      "evidence_runs": [
+        "r5-m0-reuse-tests",
+        "r5-fsrs-validation-green",
+        "r5-fsrs-restart-green",
+        "r5-fsrs-api-regression-fixed",
+        "r5-learning-domain-final",
+        "r5-learning-api-final",
+        "r5-scheduler-deadline-process",
+        "r5-scheduler-deadline-transaction",
+        "r5-scheduler-deadline-live"
+      ],
+      "retirement_condition": "Equivalent reviewed state replay plus caller switch; no retirement based on line counts.",
+      "review_status": "FULL_SCHEDULER_SOURCE_AND_TARGETED_BEHAVIOR_REVIEW",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data.",
+      "source_version_history": [
+        {
+          "source_file": {
+            "path": "services/python-workers/learning/worker_schedule.py",
+            "sha256": "59310908e1dc50c338bb7f76155fe7e094010131d186188d42f204bfff0f5922",
+            "head_blob": "04b7f4188553c8e8559b2ca8289f56ca07f7c367"
+          },
+          "evidence_runs": [
+            "r5-m0-reuse-tests",
+            "r5-fsrs-validation-green"
+          ],
+          "note": "Before lossless FSRS state replay fix; historical hash is retained."
+        },
+        {
+          "caller_file": {
+            "path": "crates/archeaxis-application/src/scheduler.rs",
+            "sha256": "47407bcd1aec4c555b87db67a3f7afb575bbfb572ea1431adfdfff9d11c3e4bd",
+            "head_blob": "df2adcf9519f2961ba820351d1a1499e8c9b3c86"
+          },
+          "evidence_runs": [
+            "r5-m0-reuse-tests",
+            "r5-fsrs-validation-green",
+            "r5-fsrs-restart-green",
+            "r5-fsrs-api-regression-fixed"
+          ]
+        },
+        {
+          "caller_file": {
+            "path": "crates/archeaxis-api/src/lib.rs",
+            "sha256": "459511e96cd7d7954d48505df84a83de66aa10c2e37574581396b56d7525f706",
+            "head_blob": "1df365936f5bafee0f1e61bb5e84ea66245f2d34"
+          },
+          "evidence_runs": [
+            "r5-m0-reuse-tests",
+            "r5-fsrs-validation-green",
+            "r5-fsrs-restart-green",
+            "r5-fsrs-api-regression-fixed"
+          ]
+        },
+        {
+          "caller_file": {
+            "path": "crates/archeaxis-application/src/scheduler.rs",
+            "sha256": "dc6d3b8d7139d3396d1f91f8c93746e744514da726e3a9f90f23ca74b92b7123",
+            "head_blob": "df2adcf9519f2961ba820351d1a1499e8c9b3c86"
+          },
+          "evidence_runs": [
+            "r5-m0-reuse-tests",
+            "r5-fsrs-validation-green",
+            "r5-fsrs-restart-green",
+            "r5-fsrs-api-regression-fixed",
+            "r5-learning-domain-final",
+            "r5-learning-api-final"
+          ],
+          "note": "Before bounded scheduler process I/O; historical hash retained."
+        },
+        {
+          "caller_file": {
+            "path": "crates/archeaxis-api/src/lib.rs",
+            "sha256": "59630876ad55341d481cfd5ac475580ec09c8d020574cc1244a4a9250ca99a49",
+            "head_blob": "1df365936f5bafee0f1e61bb5e84ea66245f2d34"
+          },
+          "evidence_runs": [
+            "r5-m0-reuse-tests",
+            "r5-fsrs-validation-green",
+            "r5-fsrs-restart-green",
+            "r5-fsrs-api-regression-fixed",
+            "r5-learning-domain-final",
+            "r5-learning-api-final"
+          ],
+          "note": "Before bounded scheduler process I/O; historical hash retained."
+        }
+      ]
+    },
+    {
+      "id": "M0-TEXT",
+      "source_files": [
+        {
+          "path": "services/python-workers/document/worker_text.py",
+          "sha256": "d3855ce3371a20edd4a1b7d82206883700f625ef46a8f9fb9741ea88ffde8cfa",
+          "head_blob": "0de393b96a3afbf45c6527b1bedde8bb6512a1d2"
+        },
+        {
+          "path": "services/python-workers/transport/text_ndjson.py",
+          "sha256": "33ea766d4192db305435f4504ae4a9478eaff6fa55f4734bd853cc2e59682356",
+          "head_blob": "92ec8407dde3881e78440b45710c93ac921bf532"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "crates/archeaxis-application/src/attempts.rs",
+          "sha256": "8c45444126d494fc1aa920795138fb357a62ace99332b61c1b0a92590252c41e",
+          "head_blob": "53b4dc2f9046ff28ea780f6a5a416f3f703f8bae"
+        },
+        {
+          "path": "crates/archeaxis-api/src/main.rs",
+          "sha256": "e358194e8b6c219923a832fe2a86c3425e87f2aae97e1b21b404b5571eedb4ec",
+          "head_blob": "c31dbb9a65fff2e23f6ee5d2dbc6db21315a5f38"
+        }
+      ],
+      "original_behavior": "Decode bytes, retain/report encoding and line endings, derive line anchors and format facts; emit hashed job outputs.",
+      "target": "Existing text.extract worker protocol and single Core writer.",
+      "observed_difference_or_gap": "Core execution requires an explicit launch worker profile; default Desktop does not supply one. Ancillary routes share transport but are not all M0-qualified.",
+      "evidence_runs": [
+        "r5-m0-reuse-tests"
+      ],
+      "retirement_condition": "Native replacement would require byte/anchor/loss and rejection equivalence plus real Core transaction tests.",
+      "review_status": "PARTIAL_SOURCE_AND_BEHAVIOR_REVIEW",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "M0-PDF",
+      "source_files": [
+        {
+          "path": "services/python-workers/document/worker_pdf.py",
+          "sha256": "04751ea39d6b78099ce9b1f6f4a3edc4db5912fa73f0971cd023ddf00fbdf1ce",
+          "head_blob": "c5a0bbffdae3c0fe4c96357865348947366f85d4"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "services/python-workers/transport/text_ndjson.py",
+          "sha256": "33ea766d4192db305435f4504ae4a9478eaff6fa55f4734bd853cc2e59682356",
+          "head_blob": "92ec8407dde3881e78440b45710c93ac921bf532"
+        },
+        {
+          "path": "crates/archeaxis-application/src/attempts.rs",
+          "sha256": "8c45444126d494fc1aa920795138fb357a62ace99332b61c1b0a92590252c41e",
+          "head_blob": "53b4dc2f9046ff28ea780f6a5a416f3f703f8bae"
+        }
+      ],
+      "original_behavior": "PyMuPDF native text, page/line/region anchors, reading-order and structural/loss facts; empty scan requires OCR.",
+      "target": "pdf.extract through existing job staging.",
+      "observed_difference_or_gap": "Standalone and sidecar outputs verified; this batch did not rebuild Rust or establish default Windows import execution. PyMuPDF distribution terms require packaging qualification.",
+      "evidence_runs": [
+        "r5-m0-pdf-ocr-reuse"
+      ],
+      "retirement_condition": "Preserve page/region/reading-order fixtures, OCR degradation and real Core commit/restart parity.",
+      "review_status": "PARTIAL_SOURCE_AND_BEHAVIOR_REVIEW",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "M0-OCR",
+      "source_files": [
+        {
+          "path": "services/python-workers/vision/worker_ocr.py",
+          "sha256": "e36b188d00c9e21d6afaa55193d7cc7857cd1df1d58544510132d774c068fe1d",
+          "head_blob": "3ac04e23defb03564e870fd46e4fe4357995d0d3"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "services/python-workers/transport/text_ndjson.py",
+          "sha256": "33ea766d4192db305435f4504ae4a9478eaff6fa55f4734bd853cc2e59682356",
+          "head_blob": "92ec8407dde3881e78440b45710c93ac921bf532"
+        },
+        {
+          "path": "crates/archeaxis-application/src/attempts.rs",
+          "sha256": "8c45444126d494fc1aa920795138fb357a62ace99332b61c1b0a92590252c41e",
+          "head_blob": "53b4dc2f9046ff28ea780f6a5a416f3f703f8bae"
+        }
+      ],
+      "original_behavior": "Tesseract stdout text/TSV, boxes, reading-order adjustment and low-confidence review measurements.",
+      "target": "image.ocr capability; separate from semantic captioning.",
+      "observed_difference_or_gap": "One browser screenshot recognized in eng and eng+chi_sim; no corpus-wide accuracy or full Desktop execution qualification.",
+      "evidence_runs": [
+        "r5-ocr-real-regression",
+        "r5-m0-pdf-ocr-reuse",
+        "r5-screenshot-cjk-measurement"
+      ],
+      "retirement_condition": "Measured text/box/reading-order equivalence and all failure/deadline/cancel cases before any donor retirement.",
+      "review_status": "PARTIAL_SOURCE_AND_BEHAVIOR_REVIEW",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "M0-CORE-CLIENT",
+      "source_files": [
+        {
+          "path": "shared/core_client.py",
+          "sha256": "1b50c3fb8c4c1828f69561cb277bfa8933f58614f7a8b3b26c082055f5f8554c",
+          "head_blob": "7f4cbe63d9344347c48dfd93a3d3d9bd0b6258fe"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "scripts/host/journey_panel.py",
+          "sha256": "15905d135a6e3322a03cf4f264637e456045f652555357d54e8390ceec7be40e",
+          "head_blob": "842e4442aee24cf2d313fe0df223d90b16ee9fbb"
+        },
+        {
+          "path": "scripts/mcp/archeaxis_mcp_server.py",
+          "sha256": "c59c281fa337c83e2d92280c7f54dcdfe9e4f5f89949589132f87f07cca6e469",
+          "head_blob": "9b0c6fd055270b34e6dc6d19535bba7c06f534f0"
+        }
+      ],
+      "original_behavior": "HTTP adapter for Core import/search/review event/reference and machine receipts; no direct database handle.",
+      "target": "Project host and MCP clients of Core.",
+      "observed_difference_or_gap": "Current host projection/probes are real HTTP consumers, not proof of default Avalonia journey.",
+      "evidence_runs": [
+        "r5-r10-journey-isolated",
+        "r5-r10-panel-isolated",
+        "r5-mcp-live-final"
+      ],
+      "retirement_condition": "Freeze equivalent HTTP semantics and switch all live consumers before retiring.",
+      "review_status": "PARTIAL_SOURCE_AND_BEHAVIOR_REVIEW",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "M0-MCP",
+      "source_files": [
+        {
+          "path": "shared/mcp_surface.py",
+          "sha256": "03315179ab9a6f980d14bc0695bad406d0a55e652ec48cb43ba1b5c80e314aa2",
+          "head_blob": "0eed863cbebd4c997af3b42a9f8cb63f90c2a9da"
+        },
+        {
+          "path": "scripts/mcp/archeaxis_mcp_server.py",
+          "sha256": "c59c281fa337c83e2d92280c7f54dcdfe9e4f5f89949589132f87f07cca6e469",
+          "head_blob": "9b0c6fd055270b34e6dc6d19535bba7c06f534f0"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "scripts/probes/r11_mcp_client_smoke.py",
+          "sha256": "2cb138da0693e63c1a7e6dc27bdfb2faf8cb211fea8c0b9dffe51e7899138a6f",
+          "head_blob": "35754fd2cf41b843d10aa7c364cd049d8975fa9d"
+        }
+      ],
+      "original_behavior": "Four machine tools with strict dispatch and no human acceptance capability, transported through official MCP SDK.",
+      "target": "Machine-side capability adapter over Core HTTP.",
+      "observed_difference_or_gap": "Live SDK round-trip measured against existing binary; capability quality and trusted identity issuance remain separate.",
+      "evidence_runs": [
+        "r5-mcp-live-final"
+      ],
+      "retirement_condition": "Protocol, refusal and official client round-trip parity; never introduce a second authority.",
+      "review_status": "PARTIAL_SOURCE_AND_BEHAVIOR_REVIEW",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "M0-HOST-PANEL",
+      "source_files": [
+        {
+          "path": "scripts/host/journey_panel.py",
+          "sha256": "15905d135a6e3322a03cf4f264637e456045f652555357d54e8390ceec7be40e",
+          "head_blob": "842e4442aee24cf2d313fe0df223d90b16ee9fbb"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "scripts/probes/r10_host_panel_smoke.py",
+          "sha256": "1111dc89030497bfd637c1cba79109b01075f99ff7b908c6154ef58baa0f4a02",
+          "head_blob": "3e4d58ef22d4b29aed5c61e8c3c3b1562f170483"
+        }
+      ],
+      "original_behavior": "Read-only learner/machine/container projections with explicit unavailable states.",
+      "target": "Replaceable project-side host panel.",
+      "observed_difference_or_gap": "Real HTTP passes; DeepTutor internal mount and default Desktop presentation remain unfinished.",
+      "evidence_runs": [
+        "r5-r10-panel-isolated"
+      ],
+      "retirement_condition": "New host must expose same human/machine separation and offline/missing semantics before replacement.",
+      "review_status": "PARTIAL_SOURCE_AND_BEHAVIOR_REVIEW",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "M0-DESKTOP-ENTRY",
+      "source_files": [
+        {
+          "path": "apps/ArcheAxis.Desktop/MainWindow.axaml",
+          "sha256": "1ab950acdb5d08c4b0b9f38decfca7c6ac1eab856f8f8f8d75e24f1f2d22417a",
+          "head_blob": "445251e2851d60bc98db943943527fa63cb49673"
+        },
+        {
+          "path": "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+          "sha256": "ddadd24efc344d0898cba52bc7be1222ed599e116b9c019bccc689b02b03bc4b",
+          "head_blob": "3e853f7c5ac2fb5d90c371f5d667ce6fd9bdaf8f"
+        },
+        {
+          "path": "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+          "sha256": "082a8f6b0cb6a5976b55a19cee0e69a022070c9e96086d6de4b13a21f905f965",
+          "head_blob": "edd469bb459d8bc2e4aeabf9dddfdad39b7da7ee"
+        },
+        {
+          "path": "apps/ArcheAxis.Desktop/WorkerProfile.cs",
+          "sha256": "a01b5c7de2b4036460cd0c20fa75cee1379dc06bf49623e9b81493ca6fdbbb56",
+          "head_blob": null
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "apps/ArcheAxis.Desktop/App.axaml.cs",
+          "sha256": "3117a1935bf2aeccac9169fb2e11fabc63145a94c1eda38385a0bc6b1d2b6180",
+          "head_blob": "ae25327f4fd0e601e277e5c049dc206737ad35bf"
+        }
+      ],
+      "original_behavior": "Avalonia default window starts owned Core, validates launch handshake and shuts down owned process.",
+      "target": "Formal Windows C#/Avalonia host.",
+      "observed_difference_or_gap": "MainWindow passes strict worker profile into v2 CoreSupervisor; same loader and real Core/Python path tested, formal Avalonia build passes. Window body remains placeholder and DeepTutor/product journey is incomplete; no visible GUI run.",
+      "evidence_runs": [
+        "r5-desktop-reviewed-regression",
+        "r5-worker-profile-final",
+        "r5-desktop-profile-build",
+        "r5-desktop-launch-prepare",
+        "r5-worker-profile-reviewed",
+        "r5-desktop-profile-build-final",
+        "r5-desktop-prepare-reviewed"
+      ],
+      "retirement_condition": "Full default Windows workflow and packaging acceptance required; do not replace with a probe receipt.",
+      "review_status": "ENTRY_PROFILE_AND_SUPERVISOR_RUNTIME_TESTED_NO_GUI_RUN",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data.",
+      "source_version_history": [
+        {
+          "path": "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+          "sha256": "5bfd92fbd19b224b7ddd2ae3ea0f5e7cb7ebac4ed21045c0c3e9b56c34b7ddbd",
+          "evidence_runs": []
+        },
+        {
+          "path": "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+          "sha256": "bfcbd804291cd9617daf39b57a2d035f14e7aa976a09e1f38a6692eb53873f69",
+          "evidence_runs": [
+            "r5-desktop-reviewed-regression"
+          ]
+        },
+        {
+          "path": "apps/ArcheAxis.Desktop/WorkerProfile.cs",
+          "sha256": "5fb9ab7da2d5aaa7ed37887ec30224dd12a05a9a8b0cac29d316291745f3182a",
+          "evidence_runs": [
+            "r5-desktop-reviewed-regression",
+            "r5-worker-profile-final",
+            "r5-desktop-profile-build",
+            "r5-desktop-launch-prepare"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LEGACY-DEEPTUTOR",
+      "source_files": [
+        {
+          "path": "app/integrations/deeptutor_bridge.py",
+          "sha256": "673dfa36645233afa5245bad198fffb0ccf157921f9658fa540daa4a7787df6e",
+          "head_blob": "38ec40e13e50cf5f7318a3856d14deca6bf8e473"
+        },
+        {
+          "path": "app/adapters/deeptutor/authority.py",
+          "sha256": "bbb6e2e88e822d7453055153710d31ff0c9fdafa69ca5a936ee96c4d6c21dfff",
+          "head_blob": "76f4f31ca02084d24252cddc5b0cddb288afa45d"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "app/integrations/__init__.py",
+          "sha256": "198d80f0bf7aeec229ce20f39109f7469e04f4eff78d24a215259cf56e756c7e",
+          "head_blob": "0889c6b5fdfa97c3f0b92744dfd65723c0bb7fb5"
+        },
+        {
+          "path": "tests/test_deeptutor_bridge.py",
+          "sha256": "ef18322ffa7dcb8b0961d851994c3a71453b3320ffa20c3b35fe2975f309521c",
+          "head_blob": "38c6233fa05882641d634014e64fdffebbd22f99"
+        }
+      ],
+      "original_behavior": "Legacy read-only SQLite projection plus accepted candidate append through app.learning.event_store; it is not a read-only module as a whole.",
+      "target": "Compatibility/oracle, retained for M1 semantic migration.",
+      "observed_difference_or_gap": "Current callers found are the integration export and legacy tests, not app/api/learning.py. Candidate events append to the legacy store; never connect this writer to the vNext database. Historical d7d392d table remains separate.",
+      "evidence_runs": [],
+      "retirement_condition": "Per-behavior target parity, live caller switch and explicit exact deletion authorization.",
+      "review_status": "CALLER_AND_STORAGE_BOUNDARY_REVIEW_ONLY",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "LEGACY-DUE-QUEUE",
+      "source_files": [
+        {
+          "path": "app/knowledge/due_queue.py",
+          "sha256": "64e3646f41cb8be0dc04abafa7d328335596f27484d1f65f567d53fbfd589168",
+          "head_blob": "f9a1361644c3b5c00e678599fae97abb2bb837b1"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "app/api/learning.py",
+          "sha256": "7fb48b625c5ab68ca020aa7c5ab73811ea90a6ac84e27d2dcaa7af459fe2d8d8",
+          "head_blob": "1c5af3912dd21ab094d816c8bb445367d675c844"
+        }
+      ],
+      "original_behavior": "Legacy due queue and SQLite access; not the new Rust scheduler authority.",
+      "target": "Compatibility/oracle, retained for M1 semantic migration.",
+      "observed_difference_or_gap": "2026-09-09 donor table preserved at its own d7d392d baseline; do not promote legacy API callers to active Avalonia callers.",
+      "evidence_runs": [],
+      "retirement_condition": "Per-behavior target parity, live caller switch and explicit exact deletion authorization.",
+      "review_status": "CALLER_AND_STORAGE_BOUNDARY_REVIEW_ONLY",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "LEGACY-INTEROP",
+      "source_files": [
+        {
+          "path": "app/adapters/anki_zotero.py",
+          "sha256": "27c77b9773e09b9d6c3605785a2d9905eb581720f3d75d966e165dfc0863ec5b",
+          "head_blob": "799de71dc4ec2ab8f01e917f278eaad309c01aea"
+        }
+      ],
+      "caller_files": [
+        {
+          "path": "tests/test_adapters_longterm.py",
+          "sha256": "b2b9a22dfd47b4cb07eb5be341a8b97e8b45a81cf8483e4951a796e370e8d23c",
+          "head_blob": "b471677415f0d73d93955c4d10de2ba85ad68286"
+        }
+      ],
+      "original_behavior": "Retained Anki/Zotero compatibility adapter; no default M0 GUI caller established.",
+      "target": "Compatibility/oracle, retained for M1 semantic migration.",
+      "observed_difference_or_gap": "2026-09-09 donor table preserved at its own d7d392d baseline; do not promote legacy API callers to active Avalonia callers.",
+      "evidence_runs": [],
+      "retirement_condition": "Per-behavior target parity, live caller switch and explicit exact deletion authorization.",
+      "review_status": "CALLER_AND_STORAGE_BOUNDARY_REVIEW_ONLY",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    },
+    {
+      "id": "UPSTREAM-DEEPTUTOR",
+      "source_files": [
+        {
+          "path": "docs/integrations/DEEPTUTOR_PRODUCT_BASE.md",
+          "sha256": "4b7fffb2e04c1f8db53bf72392b2c072303216afeb7aa0f6204539b516ec6a81",
+          "head_blob": "98bad3ea7a6fa24ca400b189b7840a3b008ed553"
+        }
+      ],
+      "caller_files": [],
+      "original_behavior": "Recorded immutable product-base upstream v1.5.17 at bd80a4d28a2093347ef080f98ae7cf8e3eee488e.",
+      "target": "Project-owned adapter/mount only; do not rewrite external upstream.",
+      "observed_difference_or_gap": "Apache-2.0 and archive hash are historical project records, not a new external source inspection. Host mount/provider loop remains pending.",
+      "evidence_runs": [],
+      "retirement_condition": "No external deletion or modification authorized.",
+      "review_status": "HISTORICAL_PUBLIC_PROVENANCE_ONLY",
+      "project_source_license": "MIT; repository LICENSE; third-party engines retain their own terms",
+      "disposition": "RETAIN_IN_PLACE_NO_DELETION",
+      "rollback": "Restore only this task-owned source diff if changed; preserve source, old receipts and original data."
+    }
+  ],
+  "third_party_metadata": {
+    "fsrs": "6.3.2, MIT, installed metadata",
+    "mcp": "1.30.0, MIT, installed metadata",
+    "pymupdf": "1.28.2, AGPL-3.0 or Artifex commercial terms per installed metadata; packaging qualification pending",
+    "Pillow": "12.3.0, MIT-CMU, installed metadata",
+    "tesseract": "Existing executable used; full package license not re-audited in this batch"
+  },
+  "research_sources": {
+    "file": {
+      "path": "docs/authority/taskpack-0912-r5/RESEARCH-ADOPTION.json",
+      "sha256": "7633617a19aca327e1232c001ee93894b1425bfe33dd6de606ba2cd130676c5e",
+      "head_blob": null
+    },
+    "namespace": "learning-v15",
+    "source_package_sha256": "5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c",
+    "source_package_hash_basis": "Frozen R5 metadata assertion; original V15 package not reread.",
+    "counts": {
+      "methods": 40,
+      "research": 35,
+      "domains": 36,
+      "resources": 104
+    },
+    "auto_verified": false,
+    "records": [
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M01",
+        "json_pointer": "/methods/0",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M02",
+        "json_pointer": "/methods/1",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M03",
+        "json_pointer": "/methods/2",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M04",
+        "json_pointer": "/methods/3",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M05",
+        "json_pointer": "/methods/4",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M06",
+        "json_pointer": "/methods/5",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M07",
+        "json_pointer": "/methods/6",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M08",
+        "json_pointer": "/methods/7",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M09",
+        "json_pointer": "/methods/8",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M10",
+        "json_pointer": "/methods/9",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M11",
+        "json_pointer": "/methods/10",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M12",
+        "json_pointer": "/methods/11",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M13",
+        "json_pointer": "/methods/12",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M14",
+        "json_pointer": "/methods/13",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M15",
+        "json_pointer": "/methods/14",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M16",
+        "json_pointer": "/methods/15",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M17",
+        "json_pointer": "/methods/16",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M18",
+        "json_pointer": "/methods/17",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M19",
+        "json_pointer": "/methods/18",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M20",
+        "json_pointer": "/methods/19",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M21",
+        "json_pointer": "/methods/20",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M22",
+        "json_pointer": "/methods/21",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M23",
+        "json_pointer": "/methods/22",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M24",
+        "json_pointer": "/methods/23",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M25",
+        "json_pointer": "/methods/24",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M26",
+        "json_pointer": "/methods/25",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M27",
+        "json_pointer": "/methods/26",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M28",
+        "json_pointer": "/methods/27",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M29",
+        "json_pointer": "/methods/28",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M30",
+        "json_pointer": "/methods/29",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M31",
+        "json_pointer": "/methods/30",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M32",
+        "json_pointer": "/methods/31",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M33",
+        "json_pointer": "/methods/32",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M34",
+        "json_pointer": "/methods/33",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M35",
+        "json_pointer": "/methods/34",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M36",
+        "json_pointer": "/methods/35",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M37",
+        "json_pointer": "/methods/36",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M38",
+        "json_pointer": "/methods/37",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M39",
+        "json_pointer": "/methods/38",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/methods/M40",
+        "json_pointer": "/methods/39",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R01",
+        "json_pointer": "/research/0",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R02",
+        "json_pointer": "/research/1",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R03",
+        "json_pointer": "/research/2",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R04",
+        "json_pointer": "/research/3",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R05",
+        "json_pointer": "/research/4",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R06",
+        "json_pointer": "/research/5",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R07",
+        "json_pointer": "/research/6",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R08",
+        "json_pointer": "/research/7",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R09",
+        "json_pointer": "/research/8",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R10",
+        "json_pointer": "/research/9",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R11",
+        "json_pointer": "/research/10",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R12",
+        "json_pointer": "/research/11",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R13",
+        "json_pointer": "/research/12",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R14",
+        "json_pointer": "/research/13",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R15",
+        "json_pointer": "/research/14",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R16",
+        "json_pointer": "/research/15",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R17",
+        "json_pointer": "/research/16",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R18",
+        "json_pointer": "/research/17",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R19",
+        "json_pointer": "/research/18",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R20",
+        "json_pointer": "/research/19",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R21",
+        "json_pointer": "/research/20",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R22",
+        "json_pointer": "/research/21",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R23",
+        "json_pointer": "/research/22",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R24",
+        "json_pointer": "/research/23",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R25",
+        "json_pointer": "/research/24",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R26",
+        "json_pointer": "/research/25",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R27",
+        "json_pointer": "/research/26",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R28",
+        "json_pointer": "/research/27",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R29",
+        "json_pointer": "/research/28",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R30",
+        "json_pointer": "/research/29",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R31",
+        "json_pointer": "/research/30",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R32",
+        "json_pointer": "/research/31",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R33",
+        "json_pointer": "/research/32",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R34",
+        "json_pointer": "/research/33",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/research/R35",
+        "json_pointer": "/research/34",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D01",
+        "json_pointer": "/domains/0",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D02",
+        "json_pointer": "/domains/1",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D03",
+        "json_pointer": "/domains/2",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D04",
+        "json_pointer": "/domains/3",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D05",
+        "json_pointer": "/domains/4",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D06",
+        "json_pointer": "/domains/5",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D07",
+        "json_pointer": "/domains/6",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D08",
+        "json_pointer": "/domains/7",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D09",
+        "json_pointer": "/domains/8",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D10",
+        "json_pointer": "/domains/9",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D11",
+        "json_pointer": "/domains/10",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D12",
+        "json_pointer": "/domains/11",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D13",
+        "json_pointer": "/domains/12",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D14",
+        "json_pointer": "/domains/13",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D15",
+        "json_pointer": "/domains/14",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D16",
+        "json_pointer": "/domains/15",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D17",
+        "json_pointer": "/domains/16",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D18",
+        "json_pointer": "/domains/17",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D19",
+        "json_pointer": "/domains/18",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D20",
+        "json_pointer": "/domains/19",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D21",
+        "json_pointer": "/domains/20",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D22",
+        "json_pointer": "/domains/21",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D23",
+        "json_pointer": "/domains/22",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D24",
+        "json_pointer": "/domains/23",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D25",
+        "json_pointer": "/domains/24",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D26",
+        "json_pointer": "/domains/25",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D27",
+        "json_pointer": "/domains/26",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D28",
+        "json_pointer": "/domains/27",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D29",
+        "json_pointer": "/domains/28",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D30",
+        "json_pointer": "/domains/29",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D31",
+        "json_pointer": "/domains/30",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D32",
+        "json_pointer": "/domains/31",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D33",
+        "json_pointer": "/domains/32",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D34",
+        "json_pointer": "/domains/33",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D35",
+        "json_pointer": "/domains/34",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/domains/D36",
+        "json_pointer": "/domains/35",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U001",
+        "json_pointer": "/resources/0",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U002",
+        "json_pointer": "/resources/1",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U003",
+        "json_pointer": "/resources/2",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U004",
+        "json_pointer": "/resources/3",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U005",
+        "json_pointer": "/resources/4",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U006",
+        "json_pointer": "/resources/5",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U007",
+        "json_pointer": "/resources/6",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U008",
+        "json_pointer": "/resources/7",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U009",
+        "json_pointer": "/resources/8",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U010",
+        "json_pointer": "/resources/9",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U011",
+        "json_pointer": "/resources/10",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U012",
+        "json_pointer": "/resources/11",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U013",
+        "json_pointer": "/resources/12",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U014",
+        "json_pointer": "/resources/13",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U015",
+        "json_pointer": "/resources/14",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U016",
+        "json_pointer": "/resources/15",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U017",
+        "json_pointer": "/resources/16",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U018",
+        "json_pointer": "/resources/17",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U019",
+        "json_pointer": "/resources/18",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U020",
+        "json_pointer": "/resources/19",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U021",
+        "json_pointer": "/resources/20",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U022",
+        "json_pointer": "/resources/21",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U023",
+        "json_pointer": "/resources/22",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U024",
+        "json_pointer": "/resources/23",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U025",
+        "json_pointer": "/resources/24",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U026",
+        "json_pointer": "/resources/25",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U027",
+        "json_pointer": "/resources/26",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U028",
+        "json_pointer": "/resources/27",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U029",
+        "json_pointer": "/resources/28",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U030",
+        "json_pointer": "/resources/29",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U031",
+        "json_pointer": "/resources/30",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U032",
+        "json_pointer": "/resources/31",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U033",
+        "json_pointer": "/resources/32",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U034",
+        "json_pointer": "/resources/33",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U035",
+        "json_pointer": "/resources/34",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U036",
+        "json_pointer": "/resources/35",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U037",
+        "json_pointer": "/resources/36",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U038",
+        "json_pointer": "/resources/37",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U039",
+        "json_pointer": "/resources/38",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U040",
+        "json_pointer": "/resources/39",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U041",
+        "json_pointer": "/resources/40",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U042",
+        "json_pointer": "/resources/41",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U043",
+        "json_pointer": "/resources/42",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U044",
+        "json_pointer": "/resources/43",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U045",
+        "json_pointer": "/resources/44",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U046",
+        "json_pointer": "/resources/45",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U047",
+        "json_pointer": "/resources/46",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U048",
+        "json_pointer": "/resources/47",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U049",
+        "json_pointer": "/resources/48",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U050",
+        "json_pointer": "/resources/49",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U051",
+        "json_pointer": "/resources/50",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U052",
+        "json_pointer": "/resources/51",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U053",
+        "json_pointer": "/resources/52",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U054",
+        "json_pointer": "/resources/53",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U055",
+        "json_pointer": "/resources/54",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U056",
+        "json_pointer": "/resources/55",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U057",
+        "json_pointer": "/resources/56",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U058",
+        "json_pointer": "/resources/57",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U059",
+        "json_pointer": "/resources/58",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U060",
+        "json_pointer": "/resources/59",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U061",
+        "json_pointer": "/resources/60",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U062",
+        "json_pointer": "/resources/61",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U063",
+        "json_pointer": "/resources/62",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U064",
+        "json_pointer": "/resources/63",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U065",
+        "json_pointer": "/resources/64",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U066",
+        "json_pointer": "/resources/65",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U067",
+        "json_pointer": "/resources/66",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U068",
+        "json_pointer": "/resources/67",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U069",
+        "json_pointer": "/resources/68",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U070",
+        "json_pointer": "/resources/69",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U071",
+        "json_pointer": "/resources/70",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U072",
+        "json_pointer": "/resources/71",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U073",
+        "json_pointer": "/resources/72",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U074",
+        "json_pointer": "/resources/73",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U075",
+        "json_pointer": "/resources/74",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U076",
+        "json_pointer": "/resources/75",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U077",
+        "json_pointer": "/resources/76",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U078",
+        "json_pointer": "/resources/77",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U079",
+        "json_pointer": "/resources/78",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U080",
+        "json_pointer": "/resources/79",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U081",
+        "json_pointer": "/resources/80",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U082",
+        "json_pointer": "/resources/81",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U083",
+        "json_pointer": "/resources/82",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U084",
+        "json_pointer": "/resources/83",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U085",
+        "json_pointer": "/resources/84",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U086",
+        "json_pointer": "/resources/85",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U087",
+        "json_pointer": "/resources/86",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U088",
+        "json_pointer": "/resources/87",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U089",
+        "json_pointer": "/resources/88",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U090",
+        "json_pointer": "/resources/89",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U091",
+        "json_pointer": "/resources/90",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U092",
+        "json_pointer": "/resources/91",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U093",
+        "json_pointer": "/resources/92",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U094",
+        "json_pointer": "/resources/93",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U095",
+        "json_pointer": "/resources/94",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U096",
+        "json_pointer": "/resources/95",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U097",
+        "json_pointer": "/resources/96",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U098",
+        "json_pointer": "/resources/97",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U099",
+        "json_pointer": "/resources/98",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U100",
+        "json_pointer": "/resources/99",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U101",
+        "json_pointer": "/resources/100",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U102",
+        "json_pointer": "/resources/101",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U103",
+        "json_pointer": "/resources/102",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      },
+      {
+        "qualified_id": "learning-v15@5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c/resources/U104",
+        "json_pointer": "/resources/103",
+        "status": "CANDIDATE_REGISTERED_NOT_ACTIVATED"
+      }
+    ]
+  },
+  "retained_inventory": {
+    "file": {
+      "path": "LEGACY_MANIFEST.yaml",
+      "sha256": "58e27d69598035da2632293dd5503f66731c5aa7ad105c752430435c8e6116b6",
+      "head_blob": "43919e529798981d55aa89718750fe227afae2f4"
+    },
+    "rows": 1246,
+    "status": "INVENTORIED_NOT_SEMANTICALLY_REVIEWED; remaining work retained for M1; no blanket absorption/deletion"
+  },
+  "remaining_work": [
+    "Complete source/behavior review for rows explicitly marked partial.",
+    "Configure real default Windows M0 caller and complete required Core-worker-Core transactions.",
+    "Preserve V15 candidates until X04/X05 provenance/import contracts implement idempotence and version separation.",
+    "Independent Q00/Q01 acceptance remains unrun/not-ready."
+  ]
+}

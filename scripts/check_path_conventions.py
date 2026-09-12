@@ -44,7 +44,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 AUTHORITY = ROOT / "DIRECTORY_AUTHORITY.yaml"
 LEGACY_MANIFEST = ROOT / "LEGACY_MANIFEST.yaml"
-RECORD = ROOT / "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json"
+RECORD = ROOT / "docs/current/R5-PATH-DISPOSITION.json"
 
 DISPOSITIONS = (
     "active",
@@ -98,8 +98,17 @@ def _literal_prefix(pattern: str) -> int:
     return len(prefix)
 
 
-def load_rules(root: Path = ROOT) -> list[dict]:
-    authority = yaml.safe_load((root / "DIRECTORY_AUTHORITY.yaml").read_text(encoding="utf-8"))
+def load_rules(root: Path = ROOT, *, commit: str | None = None) -> list[dict]:
+    if commit is None:
+        source = (root / "DIRECTORY_AUTHORITY.yaml").read_text(encoding="utf-8")
+    else:
+        if not re.fullmatch(r"[0-9a-fA-F]{7,40}", commit):
+            raise ValueError("historical authority requires a commit SHA")
+        source = subprocess.check_output(
+            ["git", "show", f"{commit}:DIRECTORY_AUTHORITY.yaml"],
+            cwd=str(root), text=True, encoding="utf-8",
+        )
+    authority = yaml.safe_load(source)
     rules = []
     for rule in authority.get("authorities", []):
         pattern = rule["path"]
@@ -205,6 +214,8 @@ def legacy_manifest_counts(root: Path = ROOT) -> tuple[dict[str, int], dict[str,
 
 
 def _commit_exists(root: Path, sha: str) -> bool:
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", sha):
+        return False
     result = subprocess.run(
         ["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=str(root), capture_output=True
     )
@@ -240,19 +251,22 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
     if not stated.get("measured_at_commit"):
         failures.append("record measured.measured_at_commit is missing: a measurement must name the commit it was taken at")
     elif not _commit_exists(root, str(stated["measured_at_commit"])):
-        failures.append(f"record measured_at_commit {stated['measured_at_commit']!r} is not a commit in this repository")
-    if stated.get("owned") is not None and stated.get("unowned_count") is not None and stated.get("tracked_paths") is not None:
-        if stated["owned"] + stated["unowned_count"] != stated["tracked_paths"]:
-            failures.append(
-                f"record is internally inconsistent: owned {stated['owned']} + unowned {stated['unowned_count']} "
-                f"!= tracked_paths {stated['tracked_paths']}"
-            )
+        failures.append(f"record measured_at_commit {stated['measured_at_commit']!r} is not a commit in this repository (a SHA is required)")
+    if (
+        all(stated.get(key) is not None for key in ("owned", "unowned_count", "tracked_paths"))
+        and stated["owned"] + stated["unowned_count"] != stated["tracked_paths"]
+    ):
+        failures.append(
+            f"record is internally inconsistent: owned {stated['owned']} + unowned {stated['unowned_count']} "
+            f"!= tracked_paths {stated['tracked_paths']}"
+        )
 
     # Re-derive the published totals at the recorded commit, so the numbers in the record's
     # own finding are claims a later reader can check rather than numbers nobody re-measures.
     at_commit = None
     if stated.get("measured_at_commit") and _commit_exists(root, str(stated["measured_at_commit"])):
-        at_commit = measure(root, paths=tracked_paths_at(root, str(stated["measured_at_commit"])))
+        commit = str(stated["measured_at_commit"])
+        at_commit = measure(root, paths=tracked_paths_at(root, commit), rules=load_rules(root, commit=commit))
         for key in ("tracked_paths", "owned"):
             if stated.get(key) != at_commit[key]:
                 failures.append(
@@ -269,7 +283,10 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
                 f"{str(stated['measured_at_commit'])[:7]} gives {at_commit['coverage_percent']}"
             )
 
-    stated_unowned = sorted(record.get("unowned_paths") or [])
+    # A live reconciliation may close old gaps without rewriting the historical
+    # measurement. Old records without this section retain their original rules.
+    current = record.get("current_ownership", record)
+    stated_unowned = sorted(current.get("unowned_paths") or [])
     if stated_unowned != measured["unowned"]:
         added = sorted(set(measured["unowned"]) - set(stated_unowned))
         removed = sorted(set(stated_unowned) - set(measured["unowned"]))
@@ -277,16 +294,17 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
             failures.append(f"{len(added)} path(s) are unowned but not recorded, e.g. {', '.join(added[:5])}")
         if removed:
             failures.append(f"{len(removed)} recorded path(s) are no longer unowned, e.g. {', '.join(removed[:5])}")
-    if stated.get("unowned_count") != len(measured["unowned"]):
+    current_count = current.get("unowned_count") if "current_ownership" in record else stated.get("unowned_count")
+    if current_count != len(measured["unowned"]):
         failures.append(
-            f"record unowned_count is {stated.get('unowned_count')} but {len(measured['unowned'])} paths are unowned"
+            f"record unowned_count is {current_count} but {len(measured['unowned'])} paths are unowned"
         )
     by_root = {}
     for path in measured["unowned"]:
         top = path.split("/")[0] if "/" in path else "(root)"
         by_root[top] = by_root.get(top, 0) + 1
-    if record.get("unowned_by_root") != dict(sorted(by_root.items())):
-        failures.append(f"record unowned_by_root is {record.get('unowned_by_root')} but the tree shows {dict(sorted(by_root.items()))}")
+    if current.get("unowned_by_root") != dict(sorted(by_root.items())):
+        failures.append(f"record unowned_by_root is {current.get('unowned_by_root')} but the tree shows {dict(sorted(by_root.items()))}")
 
     # disposition coverage: every top-level entry classified exactly once
     rules = record.get("top_level_disposition") or []
