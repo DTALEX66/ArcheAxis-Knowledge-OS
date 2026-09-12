@@ -983,5 +983,7 @@
     "independent Q00/Q01"
   ],
   "cleanup_performed": false,
-  "upload_status_at_write": "NOT_YET_PUSHED"
+  "upload_status_at_write": "BLOCKED_POLICY_BEFORE_PUSH",
+  "source_checkpoint_short_commit": "5b45304",
+  "upload_blocker": "approval required by policy, but AskForApproval is set to Never"
 }
