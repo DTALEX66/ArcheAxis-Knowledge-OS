@@ -45,7 +45,7 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 - Do not access `E:\` unless the user explicitly confirms the exact path, action, and impact range.
 - Do not upload or print secrets: `.env`, `.codex`, SSH private keys, API keys, tokens, cookies, credentials, or password files.
 - Do not commit runtime memory, local caches, virtual environments, logs, or generated databases.
-- Project-owned outputs must use the project-local ignored runtime/build locations (`<repo>/.hermes/task-runtime/`); never pass `--basetemp`/`--tmpdir`/`TMPDIR` outside the repository. Run test suites via `scripts/ci/run_tests.sh`.
+- Project-owned development outputs use the ignored `<repo>/.project-local/` root through `scripts/runtime/dev.py`. PowerShell 7: `scripts/ci/run_tests.ps1`; Bash: `scripts/ci/run_tests.sh`. Each worktree/run has separate temporary files and evidence. `.hermes/` is preserved legacy material: no new development writes and no blanket deletion. Agent-private state and product workspaces are separate ownership classes.
 - Do not claim ownership of Hermes, Codex, CC Switch, Workflow-assistance, GitHub delegation, session, cron, Kanban, or other workflow-infrastructure files merely because their names mention this project.
 - Files found in `%TEMP%`, a user home, or another project are ambiguous until content, Git worktree, process, and generation command establish ownership; preserve and mark unresolved rather than delete or move them.
 - Prefer small, auditable changes that can be reverted with one commit.
@@ -64,6 +64,29 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 - GitHub remote for this repository uses HTTPS: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git`.
 
 ## 6. Implementation Workflow
+
+The user-approved active plan is the AAK 2026-09-10 follow-up pack
+(ARCHEAXIS-NEXT-TASKPACK-2026-09-10, revision R3.1); live execution state is
+`docs/authority/taskpack-0910-r3/EXECUTION.md` with slice progress in
+`docs/authority/taskpack-0910-r3/STATE.json`; its 17 slices R00-R16 map back to
+the original 23 tasks and to C01-C10, inherit the R3 work/acceptance text, and
+run in the order R00 -> R16 (R12 may start once R01 is done). The package was
+installed single-level with its `reference-r2/` snapshot and
+`verify_package.py` exits 0. The preceding plan AAK-FOLLOWUP-20260908-R3
+(`docs/authority/taskpack-0908-r3/EXECUTION.md`) remains the source of the
+inherited task text and its own receipts; AAK-REUSE-FIRST-20260907-R2 stays the
+source of the inherited task text with its audit board
+`docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`
+(Q00 fail / Q01 not eligible), and its receipts keep their own SHAs
+(`docs/authority/taskpack-0907/EXECUTION.md`). The earlier 2026-09-06-r1 Full
+Loop TaskPack is superseded in the parts recorded in
+DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-018; its receipts keep their own
+SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The formal
+desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia), with the separate vNext Rust
+Core database and isolated Python workers. `frontend/`, `src-tauri/`, `desktop/`
+and the existing Green v0.6.14 remain recovery/behavior references. Do not dual-write
+legacy and vNext databases. The older G0/shadow-cutover route is superseded by
+`DECISION_SUPERSESSION_LEDGER.yaml`; historical receipts retain their tested SHA.
 
 1. Confirm repository status.
 2. Read the relevant files first.

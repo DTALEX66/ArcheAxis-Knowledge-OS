@@ -1,0 +1,65 @@
+{
+  "schema": "archeaxis.worker-reachability/v1",
+  "purpose": "Every capability worker is either named by a transport route or listed here with a reason. Twice in this session a worker existed with no route pointing at it, which made a present capability look missing; this record is how that stays visible instead of recurring.",
+  "checked_by": "scripts/check_worker_reachability.py",
+  "routing_source": "services/python-workers/transport/text_ndjson.py",
+  "unrouted": [
+    {
+      "worker": "services/python-workers/media/worker_transcribe.py",
+      "engine": "python-worker-transcribe",
+      "reason": "speech recognition needs a model path, a language and a device, and no model is configured in this repository or on this machine's defaults. Routing it now would create a capability that always fails for want of a model, so it stays unrouted and this reason is the record of why. Wiring it is a later slice that must also decide where the model path comes from.",
+      "what_it_would_serve": "F10 (WAV/MP3/M4A/FLAC): transcript and segment or word timing"
+    },
+    {
+      "worker": "services/python-workers/media/worker_video.py",
+      "engine": "python-worker-video",
+      "reason": "it takes an output directory plus frame interval and frame cap options, and the route contract has no place for either yet: the artifact-root mechanism exists, but parameters are currently required to be empty, so routing it would need a deliberate contract change rather than a flag. Unrouted on purpose and recorded here.",
+      "what_it_would_serve": "F11 (MP4/MOV/MKV/WebM): frame events and sampling coverage"
+    }
+  ],
+  "also_present_but_not_capability_workers": [
+    {
+      "worker": "services/python-workers/web/worker_webpage.py",
+      "note": "takes a URL and an output directory and fetches the page; it is a fetch client, not an extraction capability, and no route may reach the network. F03 (dynamic and long pages) therefore has no fetch path at all: only a saved snapshot can be read, and pagination or scroll coverage cannot be recorded without a browser."
+    },
+    {
+      "worker": "services/python-workers/worker_extract.py",
+      "note": "a dispatcher with no engine identity of its own; it selects another worker rather than producing a receipt."
+    }
+  ],
+  "routed_since_this_record": [
+    {
+      "worker": "services/python-workers/vision/worker_caption.py",
+      "engine": "python-worker-caption",
+      "routed_as": "image.caption",
+      "note": "routed in round 84 after being listed here as unrouted. It is a model call (default qwen2.5vl:7b against a local ollama), so its description is recorded as a labelled candidate rather than extracted content, and a missing model fails the job by name. It stays listed here as history: the exemption was real until the contract could carry a model-backed route."
+    },
+    {
+      "worker": "services/python-workers/web/worker_html.py",
+      "engine": "python-worker-html",
+      "routed_as": "html.structure",
+      "note": "routed in round 83."
+    },
+    {
+      "worker": "services/python-workers/document/worker_office.py",
+      "engine": "python-worker-office",
+      "routed_as": "office.structure",
+      "note": "routed in round 81."
+    },
+    {
+      "worker": "services/python-workers/document/worker_canvas.py",
+      "engine": "python-worker-canvas",
+      "routed_as": "canvas.structure",
+      "note": "routed in round 82."
+    },
+    {
+      "worker": "services/python-workers/document/worker_subtitles.py",
+      "engine": "python-worker-subtitles",
+      "routed_as": "subtitles.structure",
+      "note": "routed in round 82."
+    }
+  ],
+  "known_duplication": [
+    "services/python-workers/document/worker_media.py (routed) probes media headers only, while services/python-workers/media/worker_video.py extracts frames and media/worker_transcribe.py transcribes. They are complementary rather than duplicates, but a reader comparing the two pairs should know that the routed one is the probe and the unrouted two are the heavier engines awaiting a contract that can carry their parameters."
+  ]
+}

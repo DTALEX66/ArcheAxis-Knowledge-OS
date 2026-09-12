@@ -5,6 +5,7 @@ errors:
   - {code: AAK-VAL-001, http: 422, meaning: invalid-request-field}
   - {code: AAK-VAL-002, http: 415, meaning: unsupported-media-type}
   - {code: AAK-VAL-003, http: 413, meaning: request-or-file-too-large}
+  - {code: AAK-VAL-004, http: 404, meaning: resource-not-found}
   - {code: AAK-CON-001, http: 409, meaning: stale-aggregate-version}
   - {code: AAK-CON-002, http: 409, meaning: idempotency-key-payload-conflict}
   - {code: AAK-CON-003, http: 409, meaning: invalid-state-transition}

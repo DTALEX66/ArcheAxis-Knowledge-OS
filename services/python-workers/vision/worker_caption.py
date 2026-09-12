@@ -27,6 +27,8 @@ from pathlib import Path
 
 ENGINE = "python-worker-caption"
 ENGINE_VERSION = "0.1.0"
+# R15/F04: the identity advertised in the sidecar handshake for this route.
+WORKER_IDENTITY = "python-worker-caption-ndjson"
 DEFAULT_MODEL = "qwen2.5vl:7b"
 OLLAMA_ENDPOINT = "http://127.0.0.1:11434/api/generate"
 
@@ -119,7 +121,73 @@ def describe(image: Path, model: str, timeout_s: int = 300) -> dict:
     }
 
 
+def extract(path: str, model: str = DEFAULT_MODEL) -> dict:
+    """R15/F04: the route-contract entry point for a figure description.
+
+    A description is model output, so this is explicit about three things: the model is
+    probed first and a missing model is a named failure rather than a raw HTTP error; the
+    projection is the description itself, which the receipt labels as model output; and
+    nothing here measures quality, because description quality needs a human truth pair
+    rather than a second model call.
+    """
+    availability = probe(model)
+    if not availability.get("capability"):
+        raise ValueError(
+            f"vision model {model} is not available: {availability.get('reason')}"
+            + (
+                f" (installed: {', '.join(availability.get('available', [])[:8])})"
+                if availability.get("available")
+                else ""
+            )
+        )
+    result = describe(Path(path), model)
+    description = result["description"]
+    receipt = dict(result["loss_receipt"])
+    receipt["params"] = {
+        **receipt.get("params", {}),
+        "model": result["model"],
+        "prompt_version": result["prompt_version"],
+        "elapsed_s": result["elapsed_s"],
+        "authority": "this text is a model description, not extracted content: it is a candidate",
+    }
+    receipt["loss_note"] = (
+        receipt.get("loss_note", "")
+        + "; the projection is model output and is labelled as such, so it is a candidate and not a fact about the image"
+    ).strip("; ")
+    return {
+        "engine": ENGINE,
+        "engine_version": ENGINE_VERSION,
+        "text": description,
+        "description": description,
+        "model": result["model"],
+        "prompt_version": result["prompt_version"],
+        "loss_receipt": receipt,
+    }
+
+
 def main() -> int:
+    # R15/F04: this worker existed since an earlier slice with no route pointing at it.
+    # The sidecar mode is that wiring, with this worker's own identity and capability.
+    if "--staging-root" in sys.argv:
+        import importlib.util
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "caption_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        sidecar = argparse.ArgumentParser(description=__doc__)
+        sidecar.add_argument("--staging-root", type=Path, required=True)
+        sidecar.add_argument("--artifact-root", type=Path, default=None)
+        args = sidecar.parse_args()
+        return transport.serve_stdio(
+            WORKER_IDENTITY, ["image.caption"], args.staging_root, args.artifact_root
+        )
+
     parser = argparse.ArgumentParser(description="ArcheAxis vision description worker")
     parser.add_argument("input", nargs="?", help="image file")
     parser.add_argument("--model", default=DEFAULT_MODEL)

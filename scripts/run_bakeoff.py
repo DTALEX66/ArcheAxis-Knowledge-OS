@@ -6,7 +6,7 @@ Usage:
 Runs every *available* engine (Tesseract eng/chi-sim, RapidOCR, faster-whisper,
 ...) against the fixture files in --fixtures (default: tests/fixtures/bakeoff/),
 computes CER/WER against the matching .txt ground truth when present, and writes
-CSV + JSON reports to --out (default: .hermes/task-runtime/bakeoff-results/).
+CSV + JSON reports to --out (default: .project-local/task-runtime/bakeoff-results/).
 
 Unavailable engines are listed as skipped — the bake-off never pretends.
 """
@@ -51,7 +51,7 @@ def main() -> int:
 
     fixtures = _fixture_dir(args.fixtures)
     out_dir = Path(args.out) if args.out else (
-        Path(__file__).resolve().parents[1] / ".hermes" / "task-runtime" / "bakeoff-results"
+        Path(__file__).resolve().parents[1] / ".project-local" / "task-runtime" / "bakeoff-results"
     )
     out_dir.mkdir(parents=True, exist_ok=True)
 

@@ -16,13 +16,13 @@ def test_find_browser_uses_chrome_when_edge_is_not_available(monkeypatch) -> Non
 
 
 def test_browser_environment_uses_short_project_hermes_root(tmp_path) -> None:
-    output = tmp_path / ".hermes" / "task-runtime" / "pytest-tmp" / "deep" / "page.png"
+    output = tmp_path / ".project-local" / "task-runtime" / "pytest-tmp" / "deep" / "page.png"
 
     environment = web_screenshot._browser_environment(output)
 
-    assert environment["TMP"] == str(tmp_path / ".hermes")
-    assert environment["TEMP"] == str(tmp_path / ".hermes")
-    assert environment["TMPDIR"] == str(tmp_path / ".hermes")
+    assert environment["TMP"] == str(tmp_path / ".project-local")
+    assert environment["TEMP"] == str(tmp_path / ".project-local")
+    assert environment["TMPDIR"] == str(tmp_path / ".project-local")
 
 
 def test_browser_environment_uses_output_parent_outside_project_runtime(monkeypatch) -> None:

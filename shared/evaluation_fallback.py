@@ -8,7 +8,7 @@ Coverage:
     - success / failure / retry / replay evaluation
     - trace redaction (strip known secret patterns)
     - schema / contract failure detection
-    - project-local artifact writing under .hermes/task-runtime/evaluation/
+    - project-local artifact writing under .project-local/task-runtime/evaluation/
 
 Usage:
     from shared.evaluation_fallback import (
@@ -738,7 +738,7 @@ def default_artifact_dir() -> Path:
     """Return the default project-local evaluation artifact directory.
 
     Resolves relative to ARCHEAXIS_DATA_DIR (fallback COGNITIVE_DATA_DIR), then project root, then
-    .hermes/task-runtime/evaluation/. Creates if needed.
+    .project-local/task-runtime/evaluation/. Creates if needed.
     """
     env_dir = os.environ.get("ARCHEAXIS_DATA_DIR", "") or os.environ.get("COGNITIVE_DATA_DIR", "")
     if env_dir:
@@ -748,6 +748,6 @@ def default_artifact_dir() -> Path:
         cwd = Path.cwd()
         base = cwd
 
-    artifact_dir = base / ".hermes" / "task-runtime" / "evaluation"
+    artifact_dir = base / ".project-local" / "task-runtime" / "evaluation"
     artifact_dir.mkdir(parents=True, exist_ok=True)
     return artifact_dir

@@ -25,6 +25,31 @@ fallback:
 # then unioned across every matching risk class so mixed changes take the
 # broadest required set.
 risk_classes:
+  - id: vnext-shared-vocabulary
+    description: Single-source vocabulary and shared wire cases verify all three consumers
+    paths:
+      - "scripts/contracts/**"
+      - "crates/archeaxis-contracts/src/generated/**"
+      - "apps/ArcheAxis.Desktop/Contracts/Generated/**"
+      - "services/python-workers/contracts/generated/**"
+      - "tests/contract/fixtures/**"
+    gates: [static, lint, rust-vnext, desktop-vnext, contracts-vnext]
+
+  - id: vnext-desktop-contract-tests
+    description: Headless C# contract test harness
+    paths:
+      - "tests/contract/Vocabulary.Tests/**"
+    gates: [static, lint, desktop-vnext, contracts-vnext]
+
+  - id: vnext-ci-policy
+    description: vNext CI workflow, shared launcher or checker changes force every vNext lane
+    paths:
+      - ".github/workflows/vnext-ci.yml"
+      - "scripts/ci/check_vnext_*.py"
+      - "scripts/runtime/**"
+      - "tests/runtime-paths/**"
+    gates: [static, lint, rust-vnext, desktop-vnext, contracts-vnext, workers-vnext]
+
   - id: ci-desktop-build-policy
     description: Windows desktop build or installer lifecycle workflow changes
     paths:
@@ -53,6 +78,7 @@ risk_classes:
       - Cargo.toml
       - Cargo.lock
       - rust-toolchain.toml
+      - .cargo/**
       - "crates/**"
     gates: [static, lint, rust-vnext]
 
@@ -62,6 +88,7 @@ risk_classes:
       - "apps/ArcheAxis.Desktop/**"
       - global.json
       - Directory.Packages.props
+      - Directory.Build.props
     gates: [static, lint, desktop-vnext]
 
   - id: vnext-contracts
@@ -73,10 +100,20 @@ risk_classes:
       - "crates/archeaxis-sidecar-protocol/**"
     gates: [static, lint, contracts-vnext]
 
+  - id: vnext-text-transport
+    description: Text transport and parser changes verify the actual Rust process consumer
+    paths:
+      - "services/python-workers/transport/**"
+      - "services/python-workers/document/worker_text.py"
+      - "tests/workers/test_text_ndjson.py"
+    gates: [static, lint, rust-vnext, workers-vnext]
+
   - id: vnext-workers
     description: vNext isolated Python capability workers
     paths:
       - "services/python-workers/**"
+      - "tests/workers/**"
+      - "config/model-profiles/**"
     gates: [static, lint, workers-vnext]
 
   - id: vnext-journey-integration
@@ -88,13 +125,6 @@ risk_classes:
       - "tests/integration/learning/**"
       - "tests/integration/machine/**"
     gates: [static, lint, rust-vnext, desktop-vnext, workers-vnext]
-
-  - id: vnext-ci-policy
-    description: vNext CI workflow or scope checker changes force every vNext lane
-    paths:
-      - ".github/workflows/vnext-ci.yml"
-      - "scripts/ci/check_vnext_scope.py"
-    gates: [static, lint, rust-vnext, desktop-vnext, contracts-vnext, workers-vnext]
 
   - id: vnext-authority-docs
     description: Contract/decision ledgers, receipts and vNext reference docs (no runtime semantics)
@@ -326,5 +356,5 @@ external_contract:
   privacy_approved_roots:
     - "<repo>/"
   evidence_locations:
-    - ".hermes/task-runtime/"
+    - ".project-local/runs/"
     - "data/backups/"

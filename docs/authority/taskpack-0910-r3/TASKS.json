@@ -1,0 +1,475 @@
+{
+  "plan_id": "ARCHEAXIS-20260910-R3",
+  "plan_only": true,
+  "baseline": "cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed",
+  "baseline_source": "用户提供的上一轮复审；本轮未重新审计远端",
+  "tasks": [
+    {
+      "id": "R00",
+      "title": "锁定实际基线与唯一执行入口",
+      "previous_repair": "C01",
+      "original_tasks": [
+        "X00",
+        "X13"
+      ],
+      "depends_on": [],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "读取当前分支、HEAD、工作区差异及交接文件；若晚于 cbe253b，先复核下列问题，已修复者附证据后跳过，不回退旧实现。保留旧 TASKS.json plan_only，在现有决策台账追加本包生效关系；AGENTS、当前索引、语言索引、状态板指向同一入口，修复中文乱码。",
+      "acceptance": "记录完整 SHA、run id、当前任务映射；旧23项全部仍有去向；不得把本包当成新授权凭据或更改平台限制。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R01",
+      "title": "目录止增与全范围容量基线",
+      "previous_repair": "C10",
+      "original_tasks": [
+        "X01",
+        "X14"
+      ],
+      "depends_on": [
+        "R00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "检查启动、构建、测试、打包入口的实际输出；统一项目缓存到 .project-local 下已约定位置，修复根 target 重生；用最小实际构建验证。只统计获准范围，不读取 E 盘或 .hermes 私密内容。",
+      "acceptance": "报告纳入/排除项、逻辑大小与物理占用口径、卷空闲变化；无法统计的私密目录请用户本机提供聚合值，不能将19.146 GiB称为全仓。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R02",
+      "title": "知识正文不可变与修订",
+      "previous_repair": "C03",
+      "original_tasks": [
+        "X05",
+        "X07"
+      ],
+      "depends_on": [
+        "R00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "普通接受、拒绝、撤销请求禁止正文变更；修改必须创建新版本和 supersedes 关系。状态、修订与事件同一事务提交，旧 ID 正文不可覆盖。",
+      "acceptance": "接受携 new_body 被明确拒绝且无写入；修订前后旧正文/引用稳定；失败注入无半写；新版本可追溯到旧版。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R03",
+      "title": "旧v3归档向后兼容",
+      "previous_repair": "C04",
+      "original_tasks": [
+        "X05",
+        "X10"
+      ],
+      "depends_on": [
+        "R00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "明确新增归档版本和兼容规则；支持上次11表v3导出包迁入当前13表结构；为新增表提供明确默认迁移，不直接放松所有校验。",
+      "acceptance": "用旧实现生成非空v3固定样本，在新实现恢复；新版往返、未知版本拒绝、损坏哈希/缺必需表/非法路径拒绝；失败不破坏现有库。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R04",
+      "title": "宿主身份与凭据隔离",
+      "previous_repair": "C02",
+      "original_tasks": [
+        "X04"
+      ],
+      "depends_on": [
+        "R00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "未知启动 actor 明确拒绝；客户端请求 actor 不参与可信身份判定；验证真实宿主签发和保管的机器/人类凭据范围。",
+      "acceptance": "真实独立机器进程自报 human 仍不能接受知识；合法用户动作成功；非法启动参数失败；日志不含凭据。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R05",
+      "title": "学习事件幂等与FSRS接线",
+      "previous_repair": "C05",
+      "original_tasks": [
+        "X08"
+      ],
+      "depends_on": [
+        "R00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "事件身份绑定学习者、对象、事件类型和规范化内容摘要；相同重试返回原结果，键冲突明确拒绝；客户端生成持久事件键，缺键请求按契约拒绝或采用可重试身份机制。复用已有FSRS或Anki桥接，只有一个排程权威。",
+      "acceptance": "跨对象同键冲突、并发重复、超时重试、缺键、重启恢复均有非空回归；复习计划来自实际复用排程器，不保留临时简单间隔作为默认。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R06",
+      "title": "公开核查结果与云端交叉核查",
+      "previous_repair": "C07",
+      "original_tasks": [
+        "X07"
+      ],
+      "depends_on": [
+        "R00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "将运行状态与支持/反证/无法判断分开；引用对象、单位、上下文和证据段；禁止数字命中或回复不含error即认定支持。使用用户已配置且获准的云端接口进行公开样本交叉核查。",
+      "acceptance": "模型答不支持时结果不得为支持；反证/无关同数字/抓取失败/无法判断均被区分；保存脱敏请求、引用与结构化结果。无凭据时标BLOCKED_EXTERNAL，离线使用可交付，但不得宣称云端核查完成。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R07",
+      "title": "旧资产非空迁移收口",
+      "previous_repair": "C04",
+      "original_tasks": [
+        "X02",
+        "X10"
+      ],
+      "depends_on": [
+        "R03"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "复用一致只读快照；限制新staging目标；校验输入哈希、真实计数和关系；首版迁移选定非空资料及其附件、引用和学习历史；旧库不双写。",
+      "acceptance": "迁移前后原件/附件哈希、关系与学习记录差分一致；失败清理仅新staging；原库保持可用；未支持资产留存并逐项列出。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R08",
+      "title": "统一转换管线与质量展示",
+      "previous_repair": "C07",
+      "original_tasks": [
+        "X06",
+        "X07"
+      ],
+      "depends_on": [
+        "R02",
+        "R06"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "以统一作业契约调既有workers，先跑原生PDF、扫描PDF或截图、Markdown/文本三类；原件、页/区域锚点、错误和重试统一；原生提取优先，低质量局部再OCR/云端对比。",
+      "acceptance": "每类公开或合成非空样本从导入到可检索知识；数字、单位、页码和引用可核对；失败可恢复；不拿模型置信度当识别准确率。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R09",
+      "title": "原文双向导航与下游失效",
+      "previous_repair": "C03",
+      "original_tasks": [
+        "X07",
+        "X08",
+        "X09"
+      ],
+      "depends_on": [
+        "R02"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "原件位置反查笔记/知识，笔记回原件准确版本；撤销或修订后，两侧消费入口检查有效版本；异步索引未更新时也过滤失效条目。",
+      "acceptance": "题目、缓存、机器上下文再次读取及结果写回均检测版本；旧学习历史保留并标注；重启后有效性一致，不声称收回外部旧回答。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R10",
+      "title": "DeepTutor—Core与人类学习可用入口",
+      "previous_repair": "C08",
+      "original_tasks": [
+        "X03",
+        "X08",
+        "X11"
+      ],
+      "depends_on": [
+        "R04",
+        "R05",
+        "R08",
+        "R09"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "优先接已运行DeepTutor界面到Core，完成导入、阅读定位、解释、练习/讲回、纠错、复习、保存继续；先本地Web或薄壳，不重写完整XAML。",
+      "acceptance": "Windows真实界面走完整非空案例，重启后继续；用户学习状态与AI能力状态分开；活动成绩不可回流时明确显示并支持人工记录。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R11",
+      "title": "真实机器学习与双向反馈闭环",
+      "previous_repair": "C06",
+      "original_tasks": [
+        "X09",
+        "X11"
+      ],
+      "depends_on": [
+        "R04",
+        "R08",
+        "R09"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "用真实MCP或等效外部客户端获取合格知识，完成可观察实际任务；用户纠错产生候选/修订，经有权接受后再执行；独立未见例验证改善。",
+      "acceptance": "保存真实进程请求及版本、执行结果、失败例和重测；AI不能自授人工接受；区分知识更新、策略更新、权重训练，首版不要求微调。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R12",
+      "title": "安全清理与终态容量证明",
+      "previous_repair": "C10",
+      "original_tasks": [
+        "X14"
+      ],
+      "depends_on": [
+        "R01"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "先列清单再清获准可重建缓存，记录路径/类别/大小/恢复命令；不删除唯一历史、补丁、模型、真实资料或私密内容，不批量删除.hermes；本机受保护内容仅在已有合法授权范围处理。",
+      "acceptance": "清理前后同范围同口径复测；删除逻辑量与卷实际回收分别报告；完成一次构建和启动后复测增长；无法计量部分明确保留为未知，不声称已解决全部50多GB。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R13",
+      "title": "Windows可用包与同源证据",
+      "previous_repair": "C09",
+      "original_tasks": [
+        "X11"
+      ],
+      "depends_on": [
+        "R07",
+        "R10",
+        "R11",
+        "R12"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "work": "提供一键启动、依赖检查、端口诊断、停止、保存恢复和简短使用说明；从同一被测提交构建交付物；沿用必要Rust/.NET/Python契约和Windows CI。",
+      "acceptance": "中文空格路径运行；普通用户可完成导入—理解—练习—复习及机器调用—纠错—再调用；干净环境启动及重启恢复通过；安装包hash与tested SHA对应。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R14",
+      "title": "Q00独立复审",
+      "previous_repair": "C09",
+      "original_tasks": [
+        "Q00"
+      ],
+      "depends_on": [
+        "R13"
+      ],
+      "phase": "GATE",
+      "status": "TODO",
+      "work": "独立GPT按原G01–G14逐条引用当前证据与本包新增回归；重读实际代码和CI，不凭执行者DONE判通过。",
+      "acceptance": "给出PASS/FAIL/BLOCKED及理由；云端核查缺凭据或原始证据未提供不得算通过；只审计不倒改执行事实。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R15",
+      "title": "M1全格式、互操作与仓库语言治理",
+      "previous_repair": "C01/C07/C08",
+      "original_tasks": [
+        "X12",
+        "X13"
+      ],
+      "depends_on": [
+        "R14"
+      ],
+      "phase": "M1",
+      "status": "TODO",
+      "work": "承接原16组格式，各项标完整/部分/仅保管及具体缺口；Obsidian Markdown/Vault/Canvas往返；按内容复用学科活动。完成全仓路径规范、旧资产去向和必要语言边界迁移。",
+      "acceptance": "格式矩阵无删项；Obsidian附件/链接/锚点往返有样本；语言边界有真实契约检查；不以文件改后缀或文档完成冒充迁移完成。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    },
+    {
+      "id": "R16",
+      "title": "Q01完整性与容量复审",
+      "previous_repair": "C09/C10",
+      "original_tasks": [
+        "Q01"
+      ],
+      "depends_on": [
+        "R15"
+      ],
+      "phase": "GATE",
+      "status": "TODO",
+      "work": "复核M1、清理终态、旧资产去向、全部保留蓝图和同源交付；核对持续运行后容量。",
+      "acceptance": "原23任务、16能力域、16格式组及增强要求有去向；未实施远期功能仍冻结且可追溯；给出可用范围和剩余缺口。",
+      "rollback": "回退本切片代码/配置；数据库变更先用已验证备份与事务/staging恢复；不覆盖旧资料及原证据。",
+      "evidence_required": [
+        "tested_source_sha",
+        "run_id",
+        "environment",
+        "command",
+        "exit_code",
+        "input_output_hashes",
+        "negative_cases",
+        "limitations"
+      ]
+    }
+  ],
+  "retained_reference": "reference-r2/TASKS.json",
+  "execution": "single_selected_executor",
+  "independent_audit": [
+    "R14",
+    "R16"
+  ]
+}

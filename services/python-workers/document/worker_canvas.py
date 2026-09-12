@@ -23,6 +23,8 @@ from pathlib import Path
 
 ENGINE = "python-worker-canvas"
 ENGINE_VERSION = "0.1.0"
+# R15/F12: the identity advertised in the sidecar handshake for this route.
+WORKER_IDENTITY = "python-worker-canvas-ndjson"
 
 ALLOWED_NODE_TYPES = {"text", "file", "link", "group"}
 
@@ -73,24 +75,23 @@ def extract(path: str) -> dict:
     edges = payload.get("edges", [])
     text_nodes = [n for n in nodes if n.get("type", "text") == "text"]
 
-    projection = ""
+    segments = [str(node.get("text", "")) for node in text_nodes]
+    projection = "\n".join(segments)
+
     char_anchors: list[dict] = []
-    for node in text_nodes:
-        node_text = str(node.get("text", ""))
-        start = len(projection)
-        projection += node_text + "\n"
-        end = len(projection)
+    offset = 0
+    for node, segment in zip(text_nodes, segments, strict=True):
         char_anchors.append(
             {
                 "kind": "text_node",
                 "path": [str(node.get("id", ""))],
-                "char_start": start,
-                "char_end": end,
+                "char_start": offset,
+                "char_end": offset + len(segment),
                 "node_id": str(node.get("id", "")),
             }
         )
-    if text_nodes and projection.endswith("\n"):
-        projection = projection[:-1]
+        # Each non-final text node is followed by exactly one separator newline.
+        offset += len(segment) + 1
 
     references = [
         {
@@ -123,6 +124,30 @@ def extract(path: str) -> dict:
 
 
 def main() -> int:
+    # R15/F12: this worker existed since the 2026-09-05 slice with no route pointing at
+    # it. The sidecar mode is that wiring: the same stdio loop every route uses, with
+    # this worker's own identity and capability.
+    if "--staging-root" in sys.argv:
+        import argparse
+        import importlib.util
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "canvas_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        sidecar = argparse.ArgumentParser(description=__doc__)
+        sidecar.add_argument("--staging-root", type=Path, required=True)
+        sidecar.add_argument("--artifact-root", type=Path, default=None)
+        args = sidecar.parse_args()
+        return transport.serve_stdio(
+            WORKER_IDENTITY, ["canvas.structure"], args.staging_root, args.artifact_root
+        )
+
     if len(sys.argv) != 2:
         print(json.dumps({"error": "usage: worker_canvas.py <input.canvas>"}))
         return 2

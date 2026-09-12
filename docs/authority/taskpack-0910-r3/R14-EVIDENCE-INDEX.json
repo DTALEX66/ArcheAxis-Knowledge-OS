@@ -1,0 +1,615 @@
+{
+  "schema": "archeaxis.evidence-index/v1",
+  "generated_note": "statuses are copied from STATE.json at generation time and re-checked against it on every run",
+  "authority": "EXECUTION.md and STATE.json remain the live record; this index adds no authority",
+  "slices": [
+    {
+      "slice": "R00",
+      "command": "python -X utf8 scripts/check_taskpack_integrity.py",
+      "evidence": [
+        {
+          "path": "docs/authority/taskpack-0910-r3/R00-BASELINE-REVIEW.md",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/PACKAGE-STATUS.md",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/check_taskpack_integrity.py",
+          "kind": "tracked",
+          "note": "frozen-pack hashes versus the live ledger"
+        },
+        {
+          "path": ".project-local/runs/taskpack-0910-shipped/EXECUTION.md",
+          "kind": "receipt",
+          "note": "the installed snapshot the two live files are compared against"
+        }
+      ],
+      "limitations": [
+        "the shipped verify_package.py fails on EXECUTION.md and STATE.json by design, because they are the pack's live progress files; use the integrity checker instead",
+        "package integrity is not a product audit",
+        "scripts/check_taskpack_integrity.py needs the install snapshot under .project-local/runs/taskpack-0910-shipped, which is an ignored receipt: from a fresh checkout it exits 1 by design rather than attributing the live progress files, and that was measured in round 93 (its template is not in git history either)",
+        "the fresh-checkout run of round 93 measured six of seven gates exiting 0 inside a clone, plus 86 contract tests passing from the clone's own run root"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 13
+    },
+    {
+      "slice": "R01",
+      "command": "python -X utf8 scripts/check_path_conventions.py",
+      "evidence": [
+        {
+          "path": "docs/authority/taskpack-0910-r3/R01-CAPACITY-BASELINE.md",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json",
+          "kind": "tracked",
+          "note": "per-path disposition and the unowned set"
+        },
+        {
+          "path": ".project-local/runs/r12-census.json",
+          "kind": "receipt",
+          "note": "same-tool census"
+        }
+      ],
+      "limitations": [
+        "logical bytes are measured, allocated space is not",
+        "the census is a snapshot of this machine, not a guarantee about another"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 6
+    },
+    {
+      "slice": "R02",
+      "command": "scripts/ci/cargo_test.bat -p archeaxis-domain --offline",
+      "evidence": [
+        {
+          "path": "crates/archeaxis-domain/tests/review_transaction.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-domain/src/knowledge.rs",
+          "kind": "tracked"
+        }
+      ],
+      "limitations": [
+        "covers review transaction semantics only; it does not test the API surface"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 3
+    },
+    {
+      "slice": "R03",
+      "command": "scripts/ci/cargo_test.bat -p archeaxis-archive --offline",
+      "evidence": [
+        {
+          "path": "crates/archeaxis-archive/tests/fixtures/v3-ten-tables/PROVENANCE.txt",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-archive/tests/archive_roundtrip.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-archive/src/lib.rs",
+          "kind": "tracked",
+          "note": "V3_LAYOUTS and the export/restore path"
+        }
+      ],
+      "limitations": [
+        "v1 archives (seven tables, no workspace_meta) are explicitly unsupported",
+        "the four v3 fixtures were normalised to a final LF, recorded in their PROVENANCE"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 7
+    },
+    {
+      "slice": "R04",
+      "command": "scripts/ci/cargo_test.bat -p archeaxis-api --offline",
+      "evidence": [
+        {
+          "path": "crates/archeaxis-api/tests/launch_auth.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-api/src/lib.rs",
+          "kind": "tracked"
+        }
+      ],
+      "limitations": [
+        "the set of identities a host may declare is enforced, but who issues a machine credential remains an owner decision"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 5
+    },
+    {
+      "slice": "R05",
+      "command": "scripts/ci/cargo_test.bat -p archeaxis-application --offline",
+      "evidence": [
+        {
+          "path": "crates/archeaxis-application/src/scheduler.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "tests/test_worker_schedule.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-application/tests/scheduler_adapter.rs",
+          "kind": "tracked"
+        }
+      ],
+      "limitations": [
+        "a scheduler that is unavailable records an event with no due date rather than falling back to the placeholder ladder; the ladder is still reachable when no card state is submitted"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 13
+    },
+    {
+      "slice": "R06",
+      "command": "python -B scripts/runtime/dev.py --pytest tests/test_x07_public_check_probe.py",
+      "evidence": [
+        {
+          "path": "tests/test_x07_public_check_probe.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/probes/x07_public_check_probe.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/EXECUTION.md",
+          "kind": "tracked",
+          "note": "the live row recording the live run and the cloud limitation"
+        }
+      ],
+      "limitations": [
+        "cloud cross-checking needs provider credentials the owner has not configured, so that half is BLOCKED_EXTERNAL",
+        "one live sample is not a scaled conclusion"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 5
+    },
+    {
+      "slice": "R07",
+      "command": "scripts/ci/cargo_test.bat -p archeaxis-migration --offline",
+      "evidence": [
+        {
+          "path": "crates/archeaxis-migration/src/lib.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-migration/tests/legacy_nonempty_migration.rs",
+          "kind": "tracked"
+        }
+      ],
+      "limitations": [
+        "the user's real private library was never provided, so real-library qualification is open",
+        "attachments and links are explicit loss rows rather than carried content, and old timestamps are not preserved"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 6
+    },
+    {
+      "slice": "R08",
+      "command": "python -B scripts/runtime/dev.py --pytest tests/test_unified_job_contract.py",
+      "evidence": [
+        {
+          "path": "services/python-workers/transport/text_ndjson.py",
+          "kind": "tracked",
+          "note": "the shared envelope, the route table and the contract adapter"
+        },
+        {
+          "path": "crates/archeaxis-application/src/attempts.rs",
+          "kind": "tracked",
+          "note": "ROUTES, ROUTE_MEDIA_TYPES, ENGINE_PROFILES and the receipt checks"
+        },
+        {
+          "path": "services/python-workers/document/worker_archive.py",
+          "kind": "tracked",
+          "note": "the container route"
+        },
+        {
+          "path": "services/python-workers/document/worker_media.py",
+          "kind": "tracked",
+          "note": "the media probe route"
+        },
+        {
+          "path": "tests/test_unified_job_contract.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json",
+          "kind": "tracked",
+          "note": "per-format status with the gaps"
+        }
+      ],
+      "limitations": [
+        "no knowledge candidate is created automatically from a finished job; the extracted text is searchable and attributed, not promoted",
+        "quality facts are facts only: no accuracy figure exists anywhere in the receipts"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 62
+    },
+    {
+      "slice": "R09",
+      "command": "scripts/ci/cargo_test.bat -p archeaxis-domain --offline",
+      "evidence": [
+        {
+          "path": "crates/archeaxis-domain/src/learning.rs",
+          "kind": "tracked",
+          "note": "card_references and the scheduled-review path"
+        },
+        {
+          "path": "crates/archeaxis-domain/tests/card_references.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-api/tests/card_reference_api.rs",
+          "kind": "tracked"
+        }
+      ],
+      "limitations": [
+        "a reference is never rewritten: after a revision supersedes it, the history keeps pointing at the old revision and is marked inactive rather than corrected",
+        "card references are created on demand and are not part of the archive export"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 13
+    },
+    {
+      "slice": "R10",
+      "command": "python -X utf8 scripts/probes/r10_host_panel_smoke.py",
+      "evidence": [
+        {
+          "path": "shared/core_client.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/host/journey_panel.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/probes/r10_host_panel_smoke.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/integrations/DEEPTUTOR_PRODUCT_BASE.md",
+          "kind": "tracked",
+          "note": "the immutable upstream boundary"
+        }
+      ],
+      "limitations": [
+        "the DeepTutor body is an immutable external dependency with no upstream patch, so the panel is mountable project-side and the host's own navigation is unchanged",
+        "mounting it is an owner-side decision, which is why R10 stays IN_PROGRESS"
+      ],
+      "status": "IN_PROGRESS",
+      "evidence_items_in_state": 26
+    },
+    {
+      "slice": "R11",
+      "command": "python -X utf8 scripts/probes/r11_machine_receipt_smoke.py || python -X utf8 scripts/probes/r11_unseen_evaluation.py || python -X utf8 scripts/probes/r11_mcp_client_smoke.py",
+      "evidence": [
+        {
+          "path": "crates/archeaxis-domain/src/machine.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-domain/tests/machine_tasks.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "crates/archeaxis-api/tests/machine_task_api.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/probes/r11_unseen_evaluation.py",
+          "kind": "tracked",
+          "note": "held-out corpus, unseen check, correction and diagnostics in one receipt"
+        },
+        {
+          "path": "tests/test_unseen_evaluation.py",
+          "kind": "tracked",
+          "note": "pins the measurement rules: head-prefix identity and token-level term matching"
+        },
+        {
+          "path": "scripts/mcp/archeaxis_mcp_server.py",
+          "kind": "tracked",
+          "note": "the project-side MCP surface over stdio; needs the mcp dependency group"
+        },
+        {
+          "path": "shared/mcp_surface.py",
+          "kind": "tracked",
+          "note": "the tools, their schemas and the refusals, with no SDK import"
+        },
+        {
+          "path": "scripts/probes/r11_mcp_client_smoke.py",
+          "kind": "tracked",
+          "note": "the official MCP client driving the server against a real Core"
+        },
+        {
+          "path": "tests/test_mcp_surface.py",
+          "kind": "tracked",
+          "note": "no review tool, refusals reachable, outcomes stay measurements"
+        }
+      ],
+      "limitations": [
+        "the external client is a controlled HTTP client, not a real MCP client",
+        "a task receipt is a measurement fact and never a claim that weights were trained",
+        "the unseen evaluation signs no PASS for retrieval: it measures whether a document comes back, never where it ranks",
+        "the MCP server is a project-side optional surface: it holds no database handle and the Core remains the only writer",
+        "the MCP probe signs no PASS for capability quality, and nothing in this slice trains or claims a weight"
+      ],
+      "status": "IMPLEMENTED_PENDING_AUDIT",
+      "evidence_items_in_state": 22
+    },
+    {
+      "slice": "R12",
+      "command": "python -X utf8 scripts/check_path_conventions.py",
+      "evidence": [
+        {
+          "path": "docs/authority/taskpack-0910-r3/R12-CLEANUP-MANIFEST.md",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json",
+          "kind": "tracked",
+          "note": "what is kept, and why"
+        }
+      ],
+      "limitations": [
+        "nothing has been deleted: every removal needs its own per-path authorization",
+        "the reclaimable figures are measurements of this machine at one moment"
+      ],
+      "status": "IN_PROGRESS",
+      "evidence_items_in_state": 7
+    },
+    {
+      "slice": "R13",
+      "command": "python -X utf8 scripts/launch/core_launch.py --check || python -X utf8 scripts/release/build_candidate.py --zip",
+      "evidence": [
+        {
+          "path": "scripts/launch/core_launch.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/R13-USAGE.md",
+          "kind": "tracked"
+        },
+        {
+          "path": "tests/test_core_launch.py",
+          "kind": "tracked"
+        },
+        {
+          "path": ".project-local/runs/r13-package-manifest.json",
+          "kind": "receipt",
+          "note": "artifact hashes bound to a tested commit"
+        },
+        {
+          "path": "scripts/release/candidate.py",
+          "kind": "tracked",
+          "note": "what a bundle is, and the manifest rules"
+        },
+        {
+          "path": "scripts/release/build_candidate.py",
+          "kind": "tracked",
+          "note": "assembles a bundle from a real build and binds it to a commit"
+        },
+        {
+          "path": "scripts/release/verify_candidate.py",
+          "kind": "tracked",
+          "note": "re-hashes a bundle, refuses stowaways, and can run the binary"
+        },
+        {
+          "path": "tests/test_candidate_manifest.py",
+          "kind": "tracked",
+          "note": "tamper, missing file, stowaway, unknown commit, debug labelled, dirty tree refused"
+        }
+      ],
+      "limitations": [
+        "there is no MSI/EXE installer, no code signing and no uninstaller; the candidate is a directory and a zip whose files are bound to a commit by digest, which is not a signature",
+        "start-up on a clean machine without this toolchain has not been exercised",
+        "the bundle carries the Core binary only: worker-backed routes fail by name until an interpreter and services/python-workers are present",
+        "the bundle verifier needs the directory the builder prints, because that name carries the commit; the recorded builder refuses to run on a dirty tracked worktree by design (exit 5), so run it on a committed tree or pass --allow-dirty to record the label (round 96 command audit)"
+      ],
+      "status": "IN_PROGRESS",
+      "evidence_items_in_state": 12
+    },
+    {
+      "slice": "R14",
+      "command": "python -X utf8 scripts/check_evidence_index.py",
+      "independent_auditor": "independent GPT audit (owner-configured, outside this repository)",
+      "evidence": [
+        {
+          "path": "docs/authority/taskpack-0910-r3/R14-EVIDENCE-INDEX.json",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/EXECUTION.md",
+          "kind": "tracked",
+          "note": "the ledger, 72 rows"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/STATE.json",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/ci/cargo_test.bat",
+          "kind": "tracked",
+          "note": "the tracked way to run the Rust suites"
+        },
+        {
+          "path": "scripts/check_evidence_index.py",
+          "kind": "tracked",
+          "note": "the check that this index cannot drift from the state"
+        },
+        {
+          "path": "scripts/check_taskpack_integrity.py",
+          "kind": "tracked",
+          "note": "frozen pack versus live ledger"
+        },
+        {
+          "path": "scripts/check_evidence_commands.py",
+          "kind": "tracked",
+          "note": "executes the recorded commands; lists only, unless --run"
+        },
+        {
+          "path": "tests/test_evidence_commands.py",
+          "kind": "tracked",
+          "note": "safe by default, placeholders never run, unknown runners refused, not-run never a pass"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/AUDIT-PACKET.md",
+          "kind": "tracked",
+          "note": "the single online-audit entry point: what is provable from the repository alone, the commands with expected results, the recorded limitations and the overturned claims"
+        }
+      ],
+      "limitations": [
+        "this gate has NOT been run: the index only prepares the evidence an independent auditor needs",
+        "an executor-written summary is not an audit, so this repository never records it as passed",
+        "round 97 executed all twenty recorded commands with the toolchain environment present and all twenty exited 0; on a machine without ARCHEAXIS_RUST_TOOLCHAINS and ARCHEAXIS_MSVC_VCVARS the six per-package cargo commands are reported as not run rather than failed",
+        "from a fresh clone OUTSIDE the runtime tree the six gates and the recorded commands reproduce (7 PASS / 13 NOT_RUN naming a prerequisite) and the Python suite gives 2599 passed / 1 failed / 30 skipped, the failure being the pack-integrity test that needs the ignored install snapshot; a clone placed inside .project-local fails 112 legacy tests, which round 98 mis-attributed to untracked assets (round 99 measured the difference)"
+      ],
+      "status": "TODO",
+      "evidence_items_in_state": 15
+    },
+    {
+      "slice": "R15",
+      "command": "python -X utf8 scripts/check_format_matrix.py || python -X utf8 scripts/probes/r15_directory_batch_smoke.py",
+      "evidence": [
+        {
+          "path": "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json",
+          "kind": "tracked",
+          "note": "sixteen groups, status and named gaps"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json",
+          "kind": "tracked",
+          "note": "every capability worker routed or exempted with a reason"
+        },
+        {
+          "path": "scripts/check_format_matrix.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/check_worker_reachability.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/check_path_conventions.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "scripts/check_language_boundaries.py",
+          "kind": "tracked"
+        },
+        {
+          "path": "services/python-workers/document/worker_office.py",
+          "kind": "tracked",
+          "note": "DOCX/PPTX/XLSX, wired in round 81"
+        },
+        {
+          "path": "services/python-workers/web/worker_html.py",
+          "kind": "tracked",
+          "note": "saved HTML snapshots, wired in round 83"
+        },
+        {
+          "path": "services/python-workers/vision/worker_caption.py",
+          "kind": "tracked",
+          "note": "figure description as a labelled candidate, wired in round 84"
+        },
+        {
+          "path": "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs",
+          "kind": "tracked"
+        },
+        {
+          "path": "tests/test_path_conventions.py",
+          "kind": "tracked",
+          "note": "the record's totals re-derived at its own commit, and growth reported as drift"
+        },
+        {
+          "path": "tests/workers/test_bulk_html.py",
+          "kind": "tracked",
+          "note": "inline-only markup keeps its text; a file with no markup is still refused"
+        },
+        {
+          "path": "services/python-workers/document/worker_pdf.py",
+          "kind": "tracked",
+          "note": "pdf.extract, and the reading-order model it reports per page"
+        },
+        {
+          "path": "tests/test_worker_pdf_reading_order.py",
+          "kind": "tracked",
+          "note": "two-column projection, single-column identity, the gutter stand-down, and the reorder-only guard"
+        },
+        {
+          "path": "services/python-workers/vision/worker_ocr.py",
+          "kind": "tracked",
+          "note": "image.ocr, and the word-box reading-order model it reports"
+        },
+        {
+          "path": "tests/test_worker_ocr_reading_order.py",
+          "kind": "tracked",
+          "note": "column-by-column projection, single-column identity, the word-set guard, the one-pixel row case"
+        },
+        {
+          "path": "scripts/ingest/directory_batch.py",
+          "kind": "tracked",
+          "note": "folder ingestion: import, enqueue, resume, JSONL manifest"
+        },
+        {
+          "path": "tests/test_directory_batch.py",
+          "kind": "tracked",
+          "note": "resume rules, manifest shape, and the extension table checked against the Core"
+        },
+        {
+          "path": "scripts/probes/r15_directory_batch_smoke.py",
+          "kind": "tracked",
+          "note": "the same folder walked into a real Core, three runs, zero calls on the second"
+        }
+      ],
+      "limitations": [
+        "the 69 unowned tracked paths are recorded, not fixed, because the authority file is protected",
+        "all 1246 inventoried legacy assets are still INVENTORIED_NOT_SEMANTICALLY_REVIEWED",
+        "a model description is a candidate, not a fact about the image, and description quality is not measured here",
+        "the path record is a measurement at its own commit: the live tree drifts from it, and that drift is reported rather than enforced",
+        "zero groups are complete: fourteen are partial and two custody-only (legacy binary Office and professional formats)",
+        "the reading-order model handles one gutter, so F05 stays partial: two-column pages are read column by column and anything else keeps the engine order with the reason recorded",
+        "the OCR reading-order model fixes column interleaving only: a misread phrase stays misread and within-line word order is left to the engine",
+        "folder ingestion is a script that speaks HTTP rather than a Core route or a UI affordance, and files the driver has no kind for are imported but left without a job on purpose",
+        "the folder-ingestion probe is part of this row command since round 103: it needs a built Core, so a fresh checkout reports it as not run with that prerequisite rather than as a pass"
+      ],
+      "status": "IN_PROGRESS",
+      "evidence_items_in_state": 104
+    },
+    {
+      "slice": "R16",
+      "command": "python -X utf8 scripts/check_evidence_index.py",
+      "independent_auditor": "independent GPT audit (owner-configured, outside this repository)",
+      "evidence": [
+        {
+          "path": "docs/authority/taskpack-0910-r3/R14-EVIDENCE-INDEX.json",
+          "kind": "tracked"
+        },
+        {
+          "path": "docs/authority/taskpack-0910-r3/reference-r2/TASKS.json",
+          "kind": "tracked",
+          "note": "the retained 23-task predecessor plan"
+        }
+      ],
+      "limitations": [
+        "this gate has NOT been run: it depends on R13/R15 outcomes and on the owner's independent audit",
+        "capacity and old-asset disposition are recorded, not settled"
+      ],
+      "status": "TODO",
+      "evidence_items_in_state": 1
+    }
+  ],
+  "not_claimed": [
+    "no slice in this pack has been independently audited: R14 and R16 are decided outside this repository",
+    "nothing here is a product certificate: the index points at evidence, it does not weigh it",
+    "the legacy assets are inventoried, not absorbed",
+    "no capacity has been reclaimed: the cleanup manifest lists candidates and deletes nothing"
+  ]
+}

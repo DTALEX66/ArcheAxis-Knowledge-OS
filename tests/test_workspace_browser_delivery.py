@@ -1,6 +1,6 @@
 """Real Chromium Workspace delivery slice: upload -> dispatch -> reload readback.
 
-Run with the project-data wrapper so the isolated runtime stays under .hermes/.
+Run with the project-data wrapper so the isolated runtime stays under .project-local/.
 """
 from __future__ import annotations
 

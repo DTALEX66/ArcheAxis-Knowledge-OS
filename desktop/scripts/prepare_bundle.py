@@ -25,7 +25,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
     staged_python = stage_runtime(repository=repository, destination=destination)
     requirements = destination / "requirements.locked.txt"
     wheels = destination / "wheels"
-    cache = repository / ".hermes/cache/uv-desktop"
+    cache = repository / ".project-local/cache/uv-desktop"
     env = os.environ.copy()
     env["UV_CACHE_DIR"] = str(cache)
     # Keep wheel build discovery out of a developer-owned root .venv. The

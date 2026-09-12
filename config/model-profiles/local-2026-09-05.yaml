@@ -21,6 +21,7 @@ vision_caption:
   evidence: "T06 slice2c receipt: golden OCR screenshot described accurately in 11.5s"
 ocr:
   engine: tesseract 5.5.0
+  tessdata_dir: "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/tesseract-languages/current"
   languages_probed: [eng, chi_sim]
   measured: true
   evidence: "T06 slice2b receipt: golden screenshot -> 'OCR GOLDEN ANCHOR ...' + 10 boxes conf 92-97"

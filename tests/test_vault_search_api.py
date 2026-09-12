@@ -1,7 +1,7 @@
 """Tests for app.workspace.vault.search_vault (H3 text search).
 
 Uses real temp vault dirs + ImportSession (sqlite store). NOTE:
-conftest redirects TMPDIR into the hidden .hermes/ tree; ImportSession
+conftest redirects TMPDIR into the hidden .project-local/ tree; ImportSession
 walks the vault root directly (no hidden-path skip), so real temp dirs
 work here.
 """

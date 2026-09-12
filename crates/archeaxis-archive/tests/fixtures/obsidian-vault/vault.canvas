@@ -1,0 +1,56 @@
+{
+  "nodes": [
+    {
+      "id": "n-index",
+      "type": "file",
+      "file": "notes/index.md",
+      "x": -240,
+      "y": -120,
+      "width": 320,
+      "height": 200
+    },
+    {
+      "id": "n-atomic",
+      "type": "file",
+      "file": "notes/atomic.md",
+      "x": 160,
+      "y": -120,
+      "width": 320,
+      "height": 200
+    },
+    {
+      "id": "n-diagram",
+      "type": "file",
+      "file": "attachments/diagram.png",
+      "x": 160,
+      "y": 160,
+      "width": 240,
+      "height": 240
+    },
+    {
+      "id": "n-text",
+      "type": "text",
+      "text": "Custody only: no ingest route claims .canvas yet.",
+      "x": -240,
+      "y": 160,
+      "width": 320,
+      "height": 120
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-index-atomic",
+      "fromNode": "n-index",
+      "fromSide": "right",
+      "toNode": "n-atomic",
+      "toSide": "left"
+    },
+    {
+      "id": "e-atomic-diagram",
+      "fromNode": "n-atomic",
+      "fromSide": "bottom",
+      "toNode": "n-diagram",
+      "toSide": "top"
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 //! archeaxis-api standalone server (the process a Supervisor starts).
 //!
 //! Usage: archeaxis-api <workspace-db-path> [port]
+//! Requires a <=4096-byte launch JSON on stdin, closed by the parent within 5s.
+//! See packages/contracts/v1/protocol-mapping.md (native launch slice).
 //! Port defaults to 47831 (override with ARCHAXIS_VNEXT_PORT).
 //! Serves the vNext local HTTP API on 127.0.0.1 — the handshake target for the
 //! Avalonia Supervisor (sidecar-protocol versioned envelope is the message
@@ -26,12 +28,23 @@ async fn main() {
         })
         .unwrap_or(47831);
 
-    let router = match archeaxis_api::app(db_path) {
-        Ok(r) => r,
-        Err(e) => {
-            eprintln!("failed to open workspace {db_path}: {e}");
-            std::process::exit(1);
+    let launch=match archeaxis_api::launch::Launch::from_stdin(){
+        Ok(launch)=>launch,
+        Err(message)=>{eprintln!("{message}");std::process::exit(2);}
+    };
+    let (store,router)=if let Some(profile)=&launch.text_worker {
+        match archeaxis_application::executor::Executor::open(std::path::Path::new(db_path),&profile.staging,&profile.python,&profile.script).await {
+            Ok(executor)=>(executor.store().clone(),archeaxis_api::runtime::router(executor)),
+            Err(_)=>{eprintln!("failed to initialize execution workspace");std::process::exit(1);}
         }
+    }else{
+        match archeaxis_store_sqlite::writer::Store::open(std::path::Path::new(db_path)) {
+            Ok(store)=>(store.clone(),archeaxis_api::projections(store,false)),
+            Err(_)=>{eprintln!("failed to open workspace");std::process::exit(1);}
+        }
+    };
+    let router=match archeaxis_api::launch::protect(router,&store,launch).await {
+        Ok(router)=>router,Err(_)=>{eprintln!("workspace identity unavailable");std::process::exit(1);}
     };
     let addr = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
     let listener = match tokio::net::TcpListener::bind(addr).await {
@@ -41,6 +54,7 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    println!("archeaxis-api ready on http://{addr} db={db_path}");
+    let bound_addr = listener.local_addr().expect("bound listener address");
+    println!("archeaxis-api ready on http://{bound_addr}");
     axum::serve(listener, router).await.unwrap();
 }

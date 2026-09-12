@@ -1,0 +1,8 @@
+{
+  "schema": "archeaxis.anchor-coordinate/v1",
+  "anchor_id": "anchor-synthetic-001",
+  "source": {"source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "media_type": "text/plain"},
+  "coordinate": {"kind": "char_range", "start": 0, "end": 5, "text_excerpt": "核聚变"},
+  "resolution": "EXACT",
+  "resolution_method": "QUOTE_CONTEXT"
+}

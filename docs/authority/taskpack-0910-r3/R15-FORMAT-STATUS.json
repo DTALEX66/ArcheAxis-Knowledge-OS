@@ -1,0 +1,277 @@
+{
+  "schema": "archeaxis.format-status/v1",
+  "carried_from": "docs/authority/taskpack-0907/FORMAT-COVERAGE.json",
+  "source_schema": "archeaxis.format-retention/v1",
+  "status_vocabulary": ["complete", "partial", "custody_only"],
+  "status_meaning": {
+    "complete": "the group's required_output is produced by a tested path, with no known gap",
+    "partial": "some extraction exists and is tested, but the group's required_output is not fully produced",
+    "custody_only": "the original bytes are preserved and retrievable byte-identically, and nothing parses or converts them"
+  },
+  "custody_note": "custody is universal in vNext: any bytes can be imported as a content-addressed source and survive an archive export/restore byte-identically (crates/archeaxis-archive/tests/raw_recovery.rs, and for a whole vault crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs). A custody_only row therefore states that preservation works and that parsing does not exist yet - it never claims conversion.",
+  "requirement_note": "release_scope, formats and required_output are carried verbatim from the 2026-09-07 record and are re-checked against it, so the requirement cannot be quietly redefined to match what was built.",
+  "coverage_summary": {
+    "total": 16,
+    "complete": 0,
+    "partial": 14,
+    "custody_only": 2
+  },
+  "formats": [
+    {
+      "format_id": "F01",
+      "release_scope": "core",
+      "formats": "TXT/MD/CSV/TSV/JSON/XML/源代码",
+      "required_output": "文本、结构、字符锚点",
+      "status": "partial",
+      "implemented_now": "the text route extracts the text and reports canonical line anchors, and the media type is now derived from the source name, so markdown, CSV, TSV, JSON and XML are dispatched as what they are (the worker declares seven accepted media types). The route also reports the structure it can really derive in loss_receipt.params.format: markdown headings with line numbers, wiki-link, embed, markdown-link, code-fence and list counts; CSV/TSV delimiter, rows, columns, header and ragged rows; JSON parse result with top-level type, key count and nested depth; XML parse result with root, element count and depth. A document that does not parse is still projected as text and the fact says parsed false with the reason, and the reason is added to the loss list",
+      "gap": "there is no local-model annotation, no code-symbol or language-aware parsing for source files, and no table or formula structure; the format facts describe the document, they are not a second addressing scheme, so anchors remain line based",
+      "evidence": {
+        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
+        "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/transport/text_ndjson.py", "services/python-workers/document/worker_text.py"],
+        "tests": ["tests/test_unified_job_contract.py", "tests/test_text_format_facts.py"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F02",
+      "release_scope": "core",
+      "formats": "静态网页/HTML/URL",
+      "required_output": "快照、正文、链接、抓取时间、段落锚点",
+      "status": "partial",
+      "implemented_now": "a saved HTML snapshot reaches its own route (`html.structure`) through a worker that existed since an earlier slice with no route pointing at it. It reports the page title, the body blocks as the projection and as block anchors, and the link list with href and visible text; scripts and styles are never executed and never projected (a test asserts a script body does not appear in the stored text). The transport keeps the worker's block anchors and link list as facts under `params.worker_structure` and `params.worker_output` while the route contract carries canonical line anchors. A file with no markup at all is refused rather than reported as an empty success",
+      "gap": "nothing fetches a URL: only a saved snapshot can be read, and a capture time cannot be known from the file itself (the import origin's received_at is the place for it). A marked-up but genuinely empty page reports that it carries no text",
+      "evidence": {
+        "core_routes": [{"kind": "html", "capability": "html.structure", "media_type": "text/html"}],
+        "worker_routes": [{"capability": "html.structure", "worker": "services/python-workers/web/worker_html.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/web/worker_html.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["crates/archeaxis-application/tests/html_job_end_to_end.rs", "scripts/check_worker_reachability.py"],
+        "legacy_reference": ["app/capability/builtin/converters_html.py"]
+      }
+    },
+    {
+      "format_id": "F03",
+      "release_scope": "core",
+      "formats": "动态网页/长网页",
+      "required_output": "页面快照、正文、分页/滚动覆盖记录",
+      "status": "partial",
+      "implemented_now": "a saved dynamic page is read by the same HTML route, so its snapshot body and links are extracted like any other page: the page's own rendered markup is what the snapshot contains, and that is what is reported",
+      "gap": "there is no browser and no fetch client, so a page that was never saved cannot be reached at all, and pagination or scroll coverage cannot be recorded because nothing scrolled. A worker that would fetch (services/python-workers/web/worker_webpage.py) exists but is deliberately unrouted: it takes a URL and a network, which this route does not have",
+      "evidence": {
+        "core_routes": [{"kind": "html", "capability": "html.structure", "media_type": "text/html"}],
+        "worker_routes": [{"capability": "html.structure", "worker": "services/python-workers/web/worker_html.py"}],
+        "code": ["services/python-workers/web/worker_html.py", "services/python-workers/web/worker_webpage.py"],
+        "tests": ["crates/archeaxis-application/tests/html_job_end_to_end.rs", "tests/test_worker_reachability.py"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F04",
+      "release_scope": "core",
+      "formats": "剪贴板截图/PNG/JPG/JPEG/WebP/BMP/TIFF",
+      "required_output": "原图、OCR框、阅读顺序、图示描述",
+      "status": "partial",
+      "implemented_now": "the image.ocr route runs real Tesseract and returns recognised text with canonical line anchors; the media type is derived from the source name and must be one the route accepts, so png, jpeg, tiff, webp and bmp are all dispatched as what they are (each verified end to end through the transport to the engine); OCR regions are reported as facts in the loss receipt params, each carrying the engine's own per-word score, and the regions scoring below a named review threshold are listed separately with their boxes and scores so a human knows where to look first (the threshold is described as a review aid, never a correctness measure, and the word that would turn a score into a claim never appears in the receipt); a blank image produces no invented text. A figure description is available as its own route (`image.caption`) through a local vision model: it is probed first, a missing model is a named failure, and the description is stored as a labelled candidate with its model id and prompt version rather than as extracted content. The reading order is decided from the word boxes and reported as a fact with its reason: the route runs the engine in single-block mode, so a visual row of two columns comes back as one line and the projection interleaved the columns (measured through the engine, not assumed), and the model splits each engine line along a vertical gutter that no word box crosses, orders the columns one after the other, and moves the review regions with it. The invariant is the word multiset, because splitting a line is exactly what the engine's single-block layout got wrong, and the engine order is kept whenever the reconstruction would not account for exactly the same words.",
+      "gap": "the model fixes column interleaving and nothing else: a phrase the engine misread stays misread, and its within-line word order is left alone; a description is model output whose quality needs a human truth pair rather than another model call; a file whose extension the Core cannot name is refused rather than guessed at; and a wrong reading can score above the review threshold",
+      "evidence": {
+        "core_routes": [{"kind": "image", "capability": "image.ocr", "media_type": "image/png"}, {"kind": "caption", "capability": "image.caption", "media_type": "image/png"}],
+        "worker_routes": [{"capability": "image.ocr", "worker": "services/python-workers/vision/worker_ocr.py"}, {"capability": "image.caption", "worker": "services/python-workers/vision/worker_caption.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/vision/worker_ocr.py", "services/python-workers/vision/worker_caption.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["tests/test_worker_ocr_route.py", "tests/test_image_media_types.py", "tests/test_worker_caption_route.py", "crates/archeaxis-application/tests/route_capabilities.rs", "crates/archeaxis-application/tests/caption_job_end_to_end.rs", "crates/archeaxis-application/tests/ocr_job_end_to_end.rs", "tests/test_worker_ocr_reading_order.py"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F05",
+      "release_scope": "core",
+      "formats": "文本 PDF",
+      "required_output": "页、段、表、图片引用、锚点",
+      "status": "partial",
+      "implemented_now": "the pdf.extract route runs PyMuPDF, returns the text with canonical page/line anchors and coverage over lines, and reports what the engine really exposed in loss_receipt.params.structure: per-page character and engine-block counts, image references, engine text blocks with their bounding boxes and first lines, and tables the engine's own finder detects with their row and column counts. Engine chatter is captured into the receipt instead of being printed, because the stdio protocol is one JSON envelope per line. The reading order of the projected text is decided by the worker and reported as a fact with its reason: the model is one vertical gutter with text on both sides, then column by column and top to bottom, applied to the page only when that holds, and it may only REORDER - it is refused whenever its reconstruction would change which lines the page holds, and it stands down entirely when the engine text carries blank separator lines, because a line-level reconstruction would not carry them; a single-column page is returned exactly as the engine gave it, and every page records whether the model applied, how many columns it saw and why it stood down",
+      "gap": "the model handles one gutter, so it reads two-column pages rather than an arbitrary layout, and it stands down when a line crosses the gutter or the engine text carries blank lines; blocks are engine blocks rather than linguistic paragraphs and a table detection is a detection, not a guarantee; pages are reported as facts rather than as an addressing level in the structure",
+      "evidence": {
+        "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
+        "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_pdf.py"],
+        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs", "tests/test_worker_pdf_reading_order.py"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F06",
+      "release_scope": "core",
+      "formats": "扫描/混合 PDF",
+      "required_output": "页图、OCR、区域、低置信区",
+      "status": "partial",
+      "implemented_now": "a page with no extractable text returns genuinely empty text plus an explicit loss entry naming OCR as the next route, the pages that need OCR are named in pages_without_text with their per-page character counts, the PDF route renders those pages to PNG and declares each one with its digest and size, and the Core verifies every digest, imports each page as its own source (named so the media derivation reads it as a PNG) and enqueues one image job per page - automatically, inside the same commit that completes the PDF job, so a scanned PDF chains into a real OCR job with no manual call and its recognised text lands in the store. Enqueueing is idempotent; a tampered render, a size mismatch and a name that tries to leave the transfer area are refused with a reason and leave no queued job behind, and a chaining failure is recorded as a machine receipt naming the reason while the PDF job keeps the success it earned",
+      "gap": "the chain is one step: the OCR result does not feed back into the page it came from. Low-scoring regions are now listed for review with their boxes and scores (see the image row), and that list is the honest form of the requirement: the route reports where to look, and a wrong reading can still score above the threshold, so the score orders review work and never stands in for a verdict",
+      "evidence": {
+        "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
+        "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
+        "code": ["crates/archeaxis-application/src/ocr.rs", "crates/archeaxis-application/src/executor.rs", "services/python-workers/document/worker_pdf.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py", "crates/archeaxis-application/tests/pdf_ocr_chain.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F07",
+      "release_scope": "core",
+      "formats": "DOCX",
+      "required_output": "标题、段落、表、图片、来源位置",
+      "status": "partial",
+      "implemented_now": "a DOCX reaches its own route (`office.structure`). The worker that reads it has existed since the 2026-09-05 slice but had no route pointing at it, so the capability was unreachable through the job contract; it is now wired (its own worker identity, media type and engine profile). It extracts the paragraph text (verified end to end: the paragraph text reaches the store) and returns its own structure - paragraphs, tables, a media inventory and header/footer notes - which the transport keeps as a fact under `params.worker_structure` while the route contract carries canonical line anchors over the projected text. A package the worker cannot read fails the job with no text artifact",
+      "gap": "the worker's own paragraph and table structure is reported as a fact rather than as an addressing level, so navigation stays on line anchors; heading styles are not separated from body paragraphs in the receipt, and nothing is rendered",
+      "evidence": {
+        "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}],
+        "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "legacy_reference": ["app/capability/builtin/converters_docx.py"]
+      }
+    },
+    {
+      "format_id": "F08",
+      "release_scope": "core",
+      "formats": "PPTX",
+      "required_output": "幻灯片、文本、备注、图表引用",
+      "status": "partial",
+      "implemented_now": "a PPTX reaches the `office.structure` route through the same worker (python-pptx 1.0.2 is available here and the worker's own probe reports it). It reads slide order, shape text, speaker notes and an image count, and its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors over the projected text. A package whose engine is missing or unreadable fails the job rather than succeeding empty",
+      "gap": "slide and shape structure is a reported fact rather than an addressing level, chart data is not read, and nothing is rendered",
+      "evidence": {
+        "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation"}],
+        "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "legacy_reference": ["app/capability/builtin/converters_pptx.py"]
+      }
+    },
+    {
+      "format_id": "F09",
+      "release_scope": "core",
+      "formats": "XLSX",
+      "required_output": "sheet/cell、公式文本与缓存值、表",
+      "status": "partial",
+      "implemented_now": "an XLSX reaches the `office.structure` route through the same worker (openpyxl 3.1.5 is available here and the worker's own probe reports it). It reads sheets and cells, the formula text with the cached-value policy it states, and merged ranges, with macros never executed; its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors. A workbook the engine cannot read fails the job rather than succeeding empty",
+      "gap": "sheet and cell structure is a reported fact rather than an addressing level, formula results are not calculated (only the cached value the file carries), and nothing is rendered",
+      "evidence": {
+        "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],
+        "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "legacy_reference": ["app/capability/builtin/converters_xlsx.py"]
+      }
+    },
+    {
+      "format_id": "F10",
+      "release_scope": "core",
+      "formats": "WAV/MP3/M4A/FLAC",
+      "required_output": "转写、片段/词时间、音轨、质量标记",
+      "status": "partial",
+      "implemented_now": "a WAV reaches its own route (`media.probe`), because audio is binary. The worker reads the WAV header and reports it as facts: channels, sample rate, sample width, compression, frame count and the duration that follows from them, with `declared_by` naming the header as the source of the claim. The projection is a fact listing with line anchors, and the receipt states that no sample was decoded and therefore that there is no waveform, transcript, timestamp or coverage fact",
+      "gap": "there is no transcription and no segment or word timing; MP3, M4A and FLAC are refused by name because no reader here can read them, so those three formats remain custody-only inside a partially covered group",
+      "evidence": {
+        "core_routes": [{"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
+        "worker_routes": [{"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_media.py"],
+        "tests": ["tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F11",
+      "release_scope": "core",
+      "formats": "MP4/MOV/MKV/WebM",
+      "required_output": "对齐的音轨、字幕、画面事件、采样覆盖",
+      "status": "partial",
+      "implemented_now": "an MP4 or MOV reaches the media route, because video is binary too. The worker walks the ISO base media file boxes without interpreting payloads and reports the major brand, compatible brands, the box types present, the movie timescale and declared duration with the seconds that follow from them, and each track's handler (video, audio), timescale and duration. A truncated box stops the walk and is reported rather than guessed, and the receipt states that nothing was decoded: no frame event, no aligned audio track, no sampling coverage",
+      "gap": "no subtitle extraction, no frame events and no sampling coverage; MKV and WebM are refused by name because no reader here can read them, so those two formats remain custody-only inside a partially covered group",
+      "evidence": {
+        "core_routes": [{"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
+        "worker_routes": [{"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_media.py"],
+        "tests": ["tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F12",
+      "release_scope": "core",
+      "formats": "SRT/VTT/JSON Canvas",
+      "required_output": "时间锚/节点及关系",
+      "status": "partial",
+      "implemented_now": "a .canvas reaches its own route (`canvas.structure`) and the worker behind it existed in this repository since the 2026-09-05 slice with no route pointing at it. It validates the canvas (an edge naming an unknown node is refused), projects the text nodes and returns node anchors that carry the node ids, plus the edges and the file/link references; the transport keeps that structure and those edges as facts under `params.worker_structure` and `params.worker_output` while the route contract carries canonical line anchors. SRT and VTT likewise have their own route (`subtitles.structure`) and their own media types (application/x-subrip, text/vtt), so a subtitle is no longer declared as plain text: the worker parses the cues and returns cue anchors that carry `offset_ms` and `duration_ms`. A subtitle file the worker cannot parse fails the job",
+      "gap": "the node and cue anchors are kept as facts rather than as an addressing level in the projection, the canvas geometry is not projected (the worker says so), and the text route's JSON reading of a canvas remains available without being the structure path",
+      "evidence": {
+        "core_routes": [{"kind": "canvas", "capability": "canvas.structure", "media_type": "application/json"}, {"kind": "subtitles", "capability": "subtitles.structure", "media_type": "application/x-subrip"}],
+        "worker_routes": [{"capability": "canvas.structure", "worker": "services/python-workers/document/worker_canvas.py"}, {"capability": "subtitles.structure", "worker": "services/python-workers/document/worker_subtitles.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_canvas.py", "services/python-workers/document/worker_subtitles.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["crates/archeaxis-application/tests/canvas_subtitles_job_end_to_end.rs", "tests/test_text_format_facts.py", "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F13",
+      "release_scope": "expansion",
+      "formats": "RTF/ODT/ODS/ODP/EPUB/EML/MSG",
+      "required_output": "章节/邮件头/附件引用及结构",
+      "status": "partial",
+      "implemented_now": "a saved mail message (.eml) is resolved as the text it is and the route reports its RFC 822 structure as facts: the recognised headers (from, to, cc, subject, date, message-id), how many headers were found, the MIME part count, whether a text and an HTML body exist, and the attachments by name and size - listed, explicitly not extracted, with the message projected verbatim so the raw file stays the source of record. Detection is reported as a detection ('RFC 822 header shape, not by media type'), and a file that merely begins with 'From:' is not called a message. The other formats in this group are still custody-only, and a binary name no route can read (.msg, .zip, .epub, .ods) is refused rather than decoded into noise",
+      "gap": "no chapter, sheet or slide structure for RTF/ODT/ODS/ODP/EPUB, no attachment extraction for mail, and the binary .msg container stays out of reach until a reader for it exists",
+      "evidence": {
+        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
+        "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_text.py"],
+        "tests": ["tests/test_text_format_facts.py", "crates/archeaxis-application/tests/route_capabilities.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F14",
+      "release_scope": "expansion",
+      "formats": "DOC/PPT/XLS等旧Office",
+      "required_output": "原件、转换件、损失报告",
+      "status": "custody_only",
+      "implemented_now": "the original file is preserved as bytes, which is the part of the requirement that must never be lost",
+      "gap": "no converter is wired, so there is no converted counterpart and no loss report - a loss report is only honest when a conversion was actually attempted",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    },
+    {
+      "format_id": "F15",
+      "release_scope": "expansion",
+      "formats": "ZIP/目录批量",
+      "required_output": "容器到文件到知识的来源关系",
+      "status": "partial",
+      "implemented_now": "a container has its own route (`archive.inventory`), because a ZIP is binary and decoding it as text would produce noise. The worker reads the container's own directory, projects an inventory listing - one member per line, name and size - with canonical line anchors, and reports the member, file and directory counts, the uncompressed and compressed totals, the compression methods present, nested containers and encrypted members. It also extracts the readable members into the transfer area and declares each one with its digest; the Core verifies every digest and size, imports each member as its own source, records where it came from as an origin (`import` with `<container source_id>#<member path>`, and verifies the relation really landed), and enqueues a job for each member whose name resolves to a route. A member no route can read is kept as a source and reported as custody-only. `GET /api/v1/sources/:id/members` then answers what is inside a container and which parts were read, with `readable` meaning a transform exists rather than that the content was understood, and a note saying the list is what was imported rather than the container's whole inventory. The host panel shows that list too, marking the members that were kept but not read, and it distinguishes an unknown container (the Core's 404) from an empty one instead of drawing an empty table. The receipt states that the projection is an inventory of the container and NOT the members' contents; a corrupt container, an empty container and a member that does not match its declaration are all refused A FOLDER now has an ingestion path too: scripts/ingest/directory_batch.py walks a directory, imports each file as its own source through the Core's HTTP API, enqueues the job the file's kind calls for, and appends one JSONL line per attempt. It resumes on the latest attempt that actually did something (a skip record can never be the last word, or a third run would redo the whole folder), and it reports every exclusion rather than dropping a path silently. A file whose extension the driver maps to no kind is still imported and recorded as carrying no job, with the reason: measured against a real Core, the Core ACCEPTS the import of a file whose extension it cannot name, so the refusal that matters happens at route resolution, and the driver names the missing job instead of guessing one.",
+      "gap": "the folder driver is a script that speaks HTTP, not a Core route or a UI affordance, so a folder is ingested by running it rather than by asking the product; the member relation is recorded as an origin reference rather than as a first-class container-to-file edge, so a container's parts cannot be addressed; members beyond the extraction caps are not expanded; a member that has been read is still not promoted to knowledge; and files the driver has no kind for are imported but left without a job",
+      "evidence": {
+        "core_routes": [{"kind": "archive", "capability": "archive.inventory", "media_type": "application/zip"}],
+        "worker_routes": [{"capability": "archive.inventory", "worker": "services/python-workers/document/worker_archive.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "crates/archeaxis-application/src/container.rs", "services/python-workers/document/worker_archive.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["tests/test_worker_archive_route.py", "crates/archeaxis-application/tests/archive_job_end_to_end.rs", "crates/archeaxis-application/tests/container_members.rs", "crates/archeaxis-api/tests/source_members_api.rs", "tests/test_directory_batch.py", "scripts/ingest/directory_batch.py"],
+        "legacy_reference": ["app/ingestion/batch_controller.py"]
+      }
+    },
+    {
+      "format_id": "F16",
+      "release_scope": "explicit_boundary",
+      "formats": "PSD/AI/CDR/CAD/3D等专业格式",
+      "required_output": "原生文件与派生预览、转换覆盖说明",
+      "status": "custody_only",
+      "implemented_now": "the native file is imported and preserved byte-identically; the boundary is deliberate rather than accidental",
+      "gap": "no derived preview and no conversion is attempted, so conversion coverage is stated as zero rather than implied - the requirement is that the original must not be lost to an impossible conversion, and that part holds",
+      "evidence": {
+        "core_routes": [],
+        "worker_routes": [],
+        "code": ["crates/archeaxis-domain/src/source.rs", "crates/archeaxis-store-sqlite/src/raw_objects.rs"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
+        "legacy_reference": []
+      }
+    }
+  ]
+}

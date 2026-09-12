@@ -6,15 +6,16 @@ Deterministic checks that run on every change touching packages/contracts/**:
 - every *.schema.json parses and declares $schema/$id;
 - YAML contract files (OpenAPI outline, error catalog) parse;
 - compatibility policy exists;
-- schema vocabulary files referenced by the worker-protocol are present.
-
-This is a structural gate only; semantic cross-language consistency and
-positive/negative examples are owned by the T02 contract freeze and the
-tests/contract suite that lands with it.
+- schema vocabulary files referenced by the worker-protocol are present;
+- the semantic cross-language part: `scripts/check_language_boundaries.py` checks
+  the language boundary against the real tree (who may hold the database) and
+  requires Rust, Python and the JSON schemas to name the same protocol major.
+  It used to be deferred to a later freeze; it is enforced here now.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -34,6 +35,22 @@ EXPECTED_FILES = {
 WORKER_PROTOCOL_REFERENCES = (
     # $ref targets inside worker-protocol.schema.json must resolve locally.
 )
+
+
+def language_boundary_result() -> tuple[list[str], dict]:
+    """Run the language boundary check that lives in its own module.
+
+    The module is loaded from this script's own location (where the code is) while
+    the tree under test is passed in, so the two can never be confused. Loaded by
+    path because `scripts/` is not an importable package.
+    """
+    module_path = Path(__file__).resolve().parents[2] / "scripts" / "check_language_boundaries.py"
+    spec = importlib.util.spec_from_file_location("check_language_boundaries", module_path)
+    if spec is None or spec.loader is None:  # pragma: no cover - broken checkout
+        return [f"cannot load {module_path}"], {}
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.run(ROOT)
 
 
 def main() -> int:
@@ -85,12 +102,19 @@ def main() -> int:
         except json.JSONDecodeError as exc:
             failures.append(f"worker-protocol: invalid JSON: {exc}")
 
+    boundary_failures, boundary_detail = language_boundary_result()
+    failures += [f"language boundary: {item}" for item in boundary_failures]
+
     if failures:
         print("contracts-vnext check failed:")
         for item in failures:
             print(f"  - {item}")
         return 1
-    print("contracts-vnext check passed")
+    major = boundary_detail.get("protocol_version")
+    print(
+        "contracts-vnext check passed: "
+        f"structure ok and the language boundary agrees on protocol major {major}"
+    )
     return 0
 
 

@@ -27,7 +27,7 @@ LEGACY_MANIFEST.yaml、tests/migration/**。
 
 ## 环境事实
 - 真实用户数据切换需用户另行授权，不在自动执行范围；本任务用只读副本 + dry-run + staging 库验证；
-- 迁移测试在 .hermes/task-runtime/ 副本上执行，绝不触碰 Green 真实 data 的写路径。
+- 迁移测试在 scripts/runtime/dev.py 分配的 .project-local/runs/ 副本上执行，绝不触碰 Green 真实 data 的写路径（0906 覆盖旧 .hermes/task-runtime/ 指令）。
 
 ## 切片建议
 1. 差异清单→映射矩阵（知识/关系/附件/学习/任务/研究）；2. staging 导入+差异报告+回滚；

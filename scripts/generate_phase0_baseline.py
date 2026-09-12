@@ -50,7 +50,7 @@ _SECRET_PATTERNS = {
 
 
 def _task_runtime_tmp_root() -> Path:
-    root = Path(__file__).resolve().parents[1] / ".hermes" / "task-runtime" / "tmp"
+    root = Path(__file__).resolve().parents[1] / ".project-local" / "task-runtime" / "tmp"
     root.mkdir(parents=True, exist_ok=True)
     return root.resolve()
 

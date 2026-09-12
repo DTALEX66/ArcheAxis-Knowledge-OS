@@ -314,6 +314,7 @@ def test_vnext_lane_paths_trigger_their_own_gates() -> None:
         "crates/archeaxis-domain/src/knowledge.rs": "rust-vnext",
         "packages/contracts/v1/quality-report.schema.json": "contracts-vnext",
         "services/python-workers/media/worker_transcribe.py": "workers-vnext",
+        "config/model-profiles/local-2026-09-05.yaml": "workers-vnext",
     }
     for path, gate in cases.items():
         plan = classify_paths([path])
@@ -322,3 +323,38 @@ def test_vnext_lane_paths_trigger_their_own_gates() -> None:
     plan = classify_paths(["apps/ArcheAxis.Desktop/MainWindow.axaml.cs"])
     assert "rust-vnext" not in plan["required_gates"], "C#-only change must not run rust-vnext"
     assert "desktop-vnext" in plan["required_gates"]
+
+
+def test_vnext_policy_and_worker_regressions_cannot_be_shadowed() -> None:
+    from scripts.ci.classify import classify_paths
+
+    for path in (".github/workflows/vnext-ci.yml", "scripts/ci/check_vnext_scope.py",
+                 "scripts/ci/check_vnext_workers.py"):
+        gates = classify_paths([path])["required_gates"]
+        assert {"rust-vnext", "desktop-vnext", "contracts-vnext", "workers-vnext"} <= set(gates)
+    assert "workers-vnext" in classify_paths(["tests/workers/test_quality_regressions.py"])["required_gates"]
+
+
+def test_shared_vocabulary_changes_verify_all_three_consumers_without_full_qualification():
+    from scripts.ci.classify import classify_paths
+
+    for path in ("scripts/contracts/generate_vocabulary.py",
+                 "crates/archeaxis-contracts/src/generated/vocabulary.rs",
+                 "apps/ArcheAxis.Desktop/Contracts/Generated/Vocabulary.g.cs",
+                 "services/python-workers/contracts/generated/vocabulary.py",
+                 "tests/contract/fixtures/vocabulary-cases.json"):
+        gates = set(classify_paths([path])["required_gates"])
+        assert {"rust-vnext", "desktop-vnext", "contracts-vnext"} <= gates
+        assert "full-qualification" not in gates
+    assert "desktop-vnext" in classify_paths(["tests/contract/Vocabulary.Tests/Program.cs"])["required_gates"]
+
+
+def test_text_transport_changes_run_the_real_rust_consumer_without_desktop_build():
+    from scripts.ci.classify import classify_paths
+
+    for path in ("services/python-workers/transport/text_ndjson.py",
+                 "services/python-workers/document/worker_text.py",
+                 "tests/workers/test_text_ndjson.py"):
+        gates = set(classify_paths([path])["required_gates"])
+        assert {"rust-vnext", "workers-vnext"} <= gates
+        assert "desktop-vnext" not in gates

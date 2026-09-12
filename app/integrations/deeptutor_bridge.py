@@ -24,7 +24,7 @@ class DeepTutorBridge:
         projection_root: str | Path | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
-        self.runtime_root = (self.project_root / ".hermes/task-runtime").resolve()
+        self.runtime_root = (self.project_root / ".project-local/task-runtime").resolve()
         self.db_path = Path(db_path).resolve()
         requested = Path(projection_root) if projection_root is not None else (
             self.runtime_root / "deeptutor-home/projections/current"

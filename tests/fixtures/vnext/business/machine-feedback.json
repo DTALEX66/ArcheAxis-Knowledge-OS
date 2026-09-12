@@ -1,0 +1,9 @@
+{
+  "schema": "archeaxis.machine-feedback/v1",
+  "event_id": "ev-mach-0907-001",
+  "client_id": "client-synthetic-1",
+  "event": "context_served",
+  "item_ref": {"kind": "candidate", "id": "c-synthetic-001"},
+  "context_budget_chars": 2048,
+  "occurred_at": "2026-09-07T08:05:00Z"
+}

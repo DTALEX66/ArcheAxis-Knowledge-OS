@@ -23,7 +23,7 @@ def _fake_python(monkeypatch, root: Path) -> None:
 def test_stage_runtime_copies_base_python_without_local_packages(monkeypatch, tmp_path) -> None:
     repository = tmp_path / "repo"
     source = tmp_path / "base-python"
-    destination = repository / ".hermes/rt"
+    destination = repository / ".project-local/rt"
     _fake_python(monkeypatch, source)
 
     staged_python = stage_runtime(repository=repository, destination=destination)
@@ -38,7 +38,7 @@ def test_stage_runtime_refuses_paths_outside_project_ignored_root(monkeypatch, t
     source = tmp_path / "base-python"
     _fake_python(monkeypatch, source)
 
-    with pytest.raises(RuntimeError, match="repository .hermes"):
+    with pytest.raises(RuntimeError, match="repository .project-local"):
         stage_runtime(
             repository=tmp_path / "repo",
             destination=tmp_path / "outside-runtime",
@@ -48,7 +48,7 @@ def test_stage_runtime_refuses_paths_outside_project_ignored_root(monkeypatch, t
 def test_stage_runtime_refuses_to_overwrite_existing_destination(monkeypatch, tmp_path) -> None:
     repository = tmp_path / "repo"
     source = tmp_path / "base-python"
-    destination = repository / ".hermes/rt"
+    destination = repository / ".project-local/rt"
     _fake_python(monkeypatch, source)
     destination.mkdir(parents=True)
 
@@ -63,7 +63,7 @@ def test_tauri_maps_the_staged_runtime_to_the_installed_runtime_root() -> None:
     )
 
     assert config["bundle"]["resources"] == {
-        "../../.hermes/rt/runtime": "runtime"
+        "../../.project-local/rt/runtime": "runtime"
     }
 
 

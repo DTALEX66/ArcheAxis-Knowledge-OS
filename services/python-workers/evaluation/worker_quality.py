@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ArcheAxis vNext evaluation worker: recomputable CER/WER (T07).
 
 Compares a prediction text against a gold reference and emits quality-report
@@ -23,8 +22,10 @@ Output: quality-report.schema.json-compatible envelope
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
+import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -62,30 +63,46 @@ def _normalize(text: str, mode: str) -> str:
     return text
 
 
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def _read_text(path: Path) -> str:
+def _read_text(path: Path) -> tuple[str, str]:
+    """Decode and identify one byte snapshot without transforming its text."""
     raw = path.read_bytes()
-    try:
-        return raw.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        return raw.decode("utf-8", errors="replace")
+    return raw.decode("utf-8", errors="strict"), hashlib.sha256(raw).hexdigest()
+
+
+def validate_report_metrics(report: dict) -> None:
+    """Enforce metric semantics before output, complementing the JSON Schema.
+
+    This is not envelope/schema validation. JSON Schema expresses state/value
+    coupling, but cannot compare interval bounds or reject non-JSON floats in
+    Python objects. Error rates may legitimately exceed one.
+    """
+    def finite_number(value):
+        return type(value) is int or (type(value) is float and math.isfinite(value))
+
+    for index, row in enumerate(report["rows"]):
+        status, value, interval = row["status"], row.get("value"), row.get("interval")
+        if status == "measured":
+            if not finite_number(value):
+                raise ValueError(f"row {index}: measured value must be a finite number")
+            if interval is not None:
+                if (not isinstance(interval, list) or len(interval) != 2
+                        or not all(finite_number(bound) for bound in interval)):
+                    raise ValueError(f"row {index}: interval must contain two finite numbers")
+                if interval[0] > interval[1]:
+                    raise ValueError(f"row {index}: interval lower bound exceeds upper bound")
+        elif status in {"unmeasured", "failed", "unsupported"}:
+            if value is not None or interval is not None:
+                raise ValueError(f"row {index}: non-measured rows cannot contain a value or interval")
+        else:
+            raise ValueError(f"row {index}: unknown measurement status {status!r}")
 
 
 def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, normalize: str) -> dict:
-    gold_raw = _read_text(gold)
-    prediction_raw = _read_text(prediction)
-    gold_ref = _sha256_file(gold)
-    prediction_ref = _sha256_file(prediction)
+    gold_raw, gold_ref = _read_text(gold)
+    prediction_raw, prediction_ref = _read_text(prediction)
 
     rows: list[dict] = []
-    if gold_raw.strip() == "":
+    if gold_raw == "":
         rows.append(
             {
                 "metric": "cer",
@@ -111,14 +128,14 @@ def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, norma
             }
         )
     else:
-        gold_text = _normalize(gold_raw.strip(), normalize)
-        prediction_text = _normalize(prediction_raw.strip(), normalize)
+        gold_text = _normalize(gold_raw, normalize)
+        prediction_text = _normalize(prediction_raw, normalize)
         gold_chars = list(gold_text)
         prediction_chars = list(prediction_text)
         cer = levenshtein(prediction_chars, gold_chars) / max(1, len(gold_chars))
         gold_tokens = gold_text.split()
         prediction_tokens = prediction_text.split()
-        wer = levenshtein(prediction_tokens, gold_tokens) / max(1, len(gold_tokens))
+        wer = levenshtein(prediction_tokens, gold_tokens) / len(gold_tokens) if gold_tokens else None
         rows.append(
             {
                 "metric": "cer",
@@ -135,16 +152,17 @@ def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, norma
             {
                 "metric": "wer",
                 "sample_id": sample_id,
-                "status": "measured",
-                "value": round(wer, 6),
+                "status": "measured" if wer is not None else "unmeasured",
+                "value": round(wer, 6) if wer is not None else None,
                 "unit": "error_rate",
                 "prediction_ref": {"sha256": prediction_ref, "path": str(prediction)},
                 "gold_ref": {"sha256": gold_ref, "path": str(gold)},
-                "note": f"token Levenshtein / gold length ({len(gold_tokens)} tokens)",
+                "note": (f"token Levenshtein / gold length ({len(gold_tokens)} tokens)" if gold_tokens
+                         else "gold reference contains no whitespace-separated tokens; WER not measured"),
             }
         )
 
-    return {
+    report = {
         "schema": "archeaxis.quality-report/v1",
         "report_id": f"qr-{run_id}-{sample_id}",
         "run_id": run_id,
@@ -154,13 +172,31 @@ def evaluate(prediction: Path, gold: Path, *, sample_id: str, run_id: str, norma
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"normalize": normalize, "algorithms": {"cer": "levenshtein-codepoints", "wer": "levenshtein-tokens"}},
-            "loss_note": "raw comparison unless --normalize lower; all metrics recomputable from refs",
+            "params": {
+                "normalize": normalize,
+                "normalization": "unicode-casefold" if normalize == "lower" else "identity",
+                "encoding": "utf-8",
+                "decode_errors": "strict",
+                "bom": "preserve",
+                "line_endings": "preserve",
+                "whitespace": "preserve",
+                "tokenization": "str.split",
+                "algorithms": {"cer": "levenshtein-codepoints", "wer": "levenshtein-tokens"},
+            },
+            "loss_note": (
+                "strict UTF-8; BOM, whitespace and line endings preserved; "
+                + ("Unicode casefold applied; " if normalize == "lower" else "no text normalization; ")
+                + "WER uses whitespace-separated tokens; hashes identify the bytes used for metrics"
+            ),
         },
     }
+    validate_report_metrics(report)
+    return report
 
 
 def main() -> int:
+    with contextlib.suppress(AttributeError, OSError):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="ArcheAxis quality evaluation worker")
     parser.add_argument("prediction", help="prediction text file")
     parser.add_argument("gold", help="gold reference text file")
@@ -180,7 +216,7 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1
-    print(json.dumps(out, ensure_ascii=False))
+    print(json.dumps(out, ensure_ascii=False, allow_nan=False))
     return 0
 
 

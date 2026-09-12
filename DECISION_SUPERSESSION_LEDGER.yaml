@@ -6,6 +6,11 @@ rules:
   - a superseding row must name the old claim and the replacement
   - status controls implementation authority, not whether a historical record is retained
 decisions:
+  - id: SUP-011
+    status: effective
+    old_claim: new development outputs must use .hermes/task-runtime
+    replacement: user-approved 2026-09-06-r1 uses .project-local through scripts/runtime/dev.py; .hermes is preserved legacy mixed material, not a deletion allowance
+    reason: current user authorization to execute the updated full-loop taskpack; T00/T19 unify actual entrypoints
   - id: SUP-001
     status: effective
     old_claim: C# is the sole authoritative business and database writer
@@ -58,3 +63,42 @@ decisions:
     old_claim: 旧目录可整片搬入新结构或在盘点完成前扩大改动
     replacement: 旧目录只允许经 T17 逐文件核验后的定向维护切片；原件、历史与旧实现保持可恢复；正式吸收前 10-LEGACY-INVENTORY.csv 每项须有来源 Git 对象、拟定去向与核验状态
     reason: ArcheAxis Fast Full Loop taskpack 2026-09-05-r2 T17 前置规则
+  - id: SUP-012
+    status: effective
+    supersedes: 2026-09-06-r1 full-loop handoff "DeepSeek 只做低风险批次且等 GPT 发话 / GPT 接高难度"与 20% 配额停止功能开发的状态
+    old_claim: 执行被按模型品牌拆成两段，DeepSeek 侧停在高难度门前，需另一品牌下发任务才继续
+    replacement: 用户 2026-09-07 批准 AAK-REUSE-FIRST-20260907-R2（ARCHEAXIS-REUSE-FIRST-FULL-TASKPACK-2026-09-07，plan_only，未签发授权本身）：单一获授权执行者按同一依赖图连续推进就绪 X 任务至 X11/M0 候选，模型品牌不是权限；最终资格门为独立 GPT 审计 Q00/Q01；F01-F06 保留冻结
+    reason: taskpack X00 work item 1/2；EXECUTOR-START.md 第 4、10 条；完整 D01-D16 映射见 docs/authority/taskpack-0907/EXECUTION.md
+  - id: SUP-013
+    status: effective
+    supersedes: SUP-002 (React/Tauri UI retires) 与 SUP-007 (首交付仅 Avalonia) 中禁止 Web 表现层的部分
+    old_claim: Web/TS 不作为交付表现层，首个正式交付直接全 Avalonia/C# 桌面
+    replacement: 接纳 TypeScript/JavaScript 作为复用上游学习/可视化/3D 交互的薄适配表现层；第一版优先本地 Web 学习入口或可承载它的薄桌面壳，全原生 Avalonia 页面重写不阻塞首版；旧 React/Tauri 仅作维护、恢复与资产供体，不另建第二默认产品
+    reason: taskpack D03/D04 决定；TASKPACK.md 第 5 节语言分层与第 6 节 M0
+  - id: SUP-014
+    status: effective
+    old_claim: 能力冻结与保留有时被当作删除或当作已完成
+    replacement: 冻结对象是需大量自研的实现而非能力类别；现有 3D/查看/互动等现成能力可安全提前接入；能力 ID/来源/旧资产与数据语义全保留；DEFERRED_RETAINED 不等于 DONE，未测记 UNMEASURED/BLOCKED_RESOURCE，实现完成先记 IMPLEMENTED_PENDING_AUDIT
+    reason: taskpack D02/D14 决定与 EXECUTOR-START.md 第 10 条
+  - id: SUP-015
+    status: effective
+    old_claim: 紧耦合处倾向自行实现
+    replacement: 首选合法现成产品/依赖/SDK/API/CLI/适配器与合规 fork/vendor；先证明接不进、替代不了或成本不适配才评估必要独立实现；自研须有小型缺口记录，大规模自研冻结于 F06
+    reason: taskpack D10 决定与 TASKPACK.md 第 4/4.1 节
+  - id: SUP-016
+    status: effective
+    old_claim: 用户增强附件按独立 P0/P1 第二任务图推进；九锚认知被当作算法依据；Obsidian/Vault 往返未细化
+    replacement: R2 将 11 项增强诉求映射进原 X 任务不另建第二活动任务图（双向锚点、撤销传播、状态维度补实，Obsidian/Vault 往返细化至 X12/M1 并如实报告损失）；九锚仅保留为待用户提供具体模板的可选内容，不编造效果；跨项目只读知识包仍属 F04 后置
+    reason: taskpack D15/D16 决定；ENHANCEMENT-REVIEW.md 裁决
+  - id: SUP-017
+    status: effective
+    supersedes: 2026-09-07 active-plan status of AAK-REUSE-FIRST-20260907-R2 as the single live plan entry
+    old_claim: R2 (docs/authority/taskpack-0907) 是唯一活动计划入口；执行按 C01-C10 修复队列推进
+    replacement: 用户 2026-09-08 交付 AAK-FOLLOWUP-20260908-R3（plan_only，未签发授权本身），实现基线 cbe253b107da0e8b6d55505bd9c3c2d8de59b7ed；23 个任务逐字节继承 R2 work/acceptance 并新增 r3_work/r3_acceptance 与 12 个治理/语言迁移切片（GOV01-05、LANG01-07）；活动入口唯一指向 docs/authority/taskpack-0908-r3/EXECUTION.md；R2 原任务文本与证据 SHA 保留为来源，Q00 失败/Q01 不具资格的审计结论继承为基线
+    reason: taskpack X00 r3_work item 1；EXECUTOR-START.md 入场动作；verify_package.py PASS（23 tasks/29 features/26 scenarios/12 governance slices）
+  - id: SUP-018
+    status: effective
+    supersedes: 2026-09-08 active-plan status of AAK-FOLLOWUP-20260908-R3 as the single live plan entry
+    old_claim: R3-0908 (docs/authority/taskpack-0908-r3) is the single live plan entry and execution follows its Wave A-F order
+    replacement: The owner delivered the AAK 2026-09-10 follow-up pack (docs/authority/taskpack-0910-r3, plan_only, revision R3.1) with 17 slices R00-R16 mapped back to the original 23 tasks and to C01-C10; the package was installed single-level with its reference-r2 snapshot and verify_package.py exits 0 (hashes, 17 task dependencies, all 23 original tasks retained); the single live execution entry becomes docs/authority/taskpack-0910-r3/EXECUTION.md, while R3-0908 remains the source of inherited task text and its own receipts, R2-0907 and 0906 remain historical (SUP-012..SUP-017), and the inherited audit baseline Q00 fail / Q01 not eligible carries over; existing implementations are never rolled back by this supersession
+    reason: taskpack-0910-r3 EXECUTOR-START.md entry action and R00 registration; verify_package.py exit 0 (run in Python UTF-8 mode because this Windows locale defaults to GBK); R00 baseline review at HEAD 985a219 recorded in docs/authority/taskpack-0910-r3/R00-BASELINE-REVIEW.md

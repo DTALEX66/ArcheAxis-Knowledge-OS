@@ -19,7 +19,7 @@ fn handshake_roundtrip() {
 fn worker_receipt_roundtrip() {
     let msg = Message::WorkerReceipt {
         job_id: "job-1".into(),
-        state: "completed".into(),
+        state: "succeeded".into(),
         engine: Some("python-worker".into()),
         loss_receipt: Some(serde_json::json!({"loss_note": null})),
     };

@@ -2,7 +2,7 @@
 """Generate a SHA-256 checksum manifest for a release artifact.
 
 Usage:
-    python scripts/release_checksum.py --wheel dist/*.whl --installer *.exe --output .hermes/task-runtime/artifacts/release-checksums.txt
+    python scripts/release_checksum.py --wheel dist/*.whl --installer *.exe --output .project-local/task-runtime/artifacts/release-checksums.txt
 
 Output format (same as sha256sum):
     <sha256>  <basename>

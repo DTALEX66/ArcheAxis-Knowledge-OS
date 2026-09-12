@@ -113,8 +113,8 @@ def test_store_defaults_to_project_ignored_runtime_root() -> None:
     # Default root must live under the project's ignored runtime directory,
     # never under the user home or a repo-tracked path.
     root = str(store.root).replace("\\", "/")
-    assert "/.hermes/" in root
-    assert root.endswith("/task-runtime/raw-assets")
+    assert "/.project-local/" in root
+    assert root.endswith("/raw-assets")
 
 
 def test_store_captures_full_asset_contract(tmp_path) -> None:

@@ -1,0 +1,331 @@
+{
+  "schema": "archeaxis.acceptance-scenarios/v1",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "scenarios": [
+    {
+      "id": "AUTH-01",
+      "gates": [
+        "G01",
+        "G12",
+        "G13",
+        "G14"
+      ],
+      "fixture": "当前入口、原任务和HEAD",
+      "procedure": "比较有效计划、历史、授权、状态与UTF-8",
+      "expected": "唯一有效入口；历史不改写；状态与证据SHA对应。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "PATH-01",
+      "gates": [
+        "G08",
+        "G12",
+        "G14"
+      ],
+      "fixture": "批准根与开发输出",
+      "procedure": "正常/失败启动、测试、浏览器、取消、打包后比较路径差分",
+      "expected": "默认产物到约定根，根target不新增，.hermes无新开发写入，E及越界链接拒绝。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "REUSE-01",
+      "gates": [
+        "G10",
+        "G13",
+        "G14"
+      ],
+      "fixture": "供体与原行为fixture",
+      "procedure": "登记原路径/hash/许可/目标调用链，用同输入做差分",
+      "expected": "真实接入不是只有import；Python不直连主库；未用资产保留。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "IDENTITY-01",
+      "gates": [
+        "G04",
+        "G08"
+      ],
+      "fixture": "真实宿主人类/机器会话、未知actor、恶意资料",
+      "procedure": "机器伪造actor、调用接受、索取人类凭据；文档注入要求外传/越界；测试过期令牌与重启",
+      "expected": "未知actor启动失败；服务端拒绝越权且无写入；真实人工操作可用；localhost不自动可信。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "REVISION-01",
+      "gates": [
+        "G04",
+        "G07",
+        "G08",
+        "G09"
+      ],
+      "fixture": "已有笔记/题目/方法引用的非空知识",
+      "procedure": "accepted/rejected/revoked带new_body；合法修改新建修订；并发和事务故障注入",
+      "expected": "非法组合拒绝；新版本有supersedes；旧字节不变；冲突明确；审校及事件原子一致。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "ARCHIVE-01",
+      "gates": [
+        "G01",
+        "G09",
+        "G10"
+      ],
+      "fixture": "74720bf实际归档实现导出的非空11表v3、cbe13表v3、新格式",
+      "procedure": "隔离恢复三种合法包；核对所有表/关系；再试hash错、缺表、混合schema、穿越/重名路径、中途失败",
+      "expected": "旧记录等价，新增表按迁移初始化；未知/损坏布局拒绝；原库不污染。不能手写‘旧包’只骗表数测试。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "EVENT-01",
+      "gates": [
+        "G05",
+        "G07",
+        "G08",
+        "G09"
+      ],
+      "fixture": "两学习对象、同异payload、同异key、无key、并发",
+      "procedure": "重试、同key异对象/异payload、无key、断线重发与重启重放",
+      "expected": "同事件只记一次且回原收据；冲突拒绝；无key写入拒绝或明确旧客户端适配产生持久key，不能每次随机key；到期/次数一致。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "JOB-01",
+      "gates": [
+        "G02",
+        "G08",
+        "G09"
+      ],
+      "fixture": "真实worker及超时/崩溃/部分结果样本",
+      "procedure": "统一executor处理、终止worker/取消进程树/恢复/相同输入重试",
+      "expected": "Core独占入库，部分结果不报完成；无越权残留进程，原件保留，重试不重复入库。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "IMPORT-01",
+      "gates": [
+        "G02",
+        "G03",
+        "G04"
+      ],
+      "fixture": "中文/英文文本、扫描/混合PDF、截图、静态/动态网页、个人定义公开/合成样本",
+      "procedure": "生产入口导入→质量→定位→保存检索，按金标量测CER/WER适用项及数字/单位/表格/锚点",
+      "expected": "hash/来源/页框/损失完整；多来源保留；阈值按原契约或先登记样本目标，不事后改阈值掩盖失败。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "VERIFY-01",
+      "gates": [
+        "G03",
+        "G04",
+        "G07"
+      ],
+      "fixture": "金标含中文否定、同数异对象、错单位/条件、转载、失效、未知；另备真实公开/云端检索run",
+      "procedure": "探针和生产链分别断言运行状态、supported/refuted/inconclusive/conflicting与原文条件",
+      "expected": "‘不支持’不判supported；反证可完成核查run；来源独立性有依据。离线fixture不替代联网门；缺资源标BLOCKED_RESOURCE。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "SEARCH-01",
+      "gates": [
+        "G03",
+        "G06",
+        "G07"
+      ],
+      "fixture": "中文短词/专名/同义、多来源、撤销/替代知识",
+      "procedure": "实际search/context查询；更改权威状态但延迟索引，再重启查询",
+      "expected": "失效知识不作现行事实；历史查询显式标注。中文短查询有测试，不默认空格分词足够。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "IMPACT-01",
+      "gates": [
+        "G05",
+        "G06",
+        "G07",
+        "G09"
+      ],
+      "fixture": "知识被笔记/题/卡/方法/输出引用且有执行中任务",
+      "procedure": "修订/撤销后读两侧，延迟索引、提交结果、重启、双向导航",
+      "expected": "出口及提交检查当前资格，受影响对象过期/待复核；旧历史保留，不声称收回外部已导出文字。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "UI-01",
+      "gates": [
+        "G05",
+        "G11"
+      ],
+      "fixture": "同源Windows候选、用户workspace、依赖模型",
+      "procedure": "由ArcheAxis进入DeepTutor实际资料；启停/端口冲突/缺模型",
+      "expected": "不是Welcome或独立演示；Core投影/回流可读回；运行不依赖开发环境。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "HUMAN-01",
+      "gates": [
+        "G05",
+        "G07",
+        "G11"
+      ],
+      "fixture": "一主题先修/正文/练习/独立应用案例",
+      "procedure": "目标→先修→解释→主动回忆→讲回→错因/人工改评分→未见应用→复习→重启",
+      "expected": "每步有可见成果和Core事件；引用版本稳定；回忆/理解/迁移/提示分开；无外部事件时诚实手动记录。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "FSRS-01",
+      "gates": [
+        "G05",
+        "G09"
+      ],
+      "fixture": "锁定FSRS或Anki参数/版本、非空历史、固定时钟",
+      "procedure": "重放、重试、暂停恢复、内容修订、跨日和重启",
+      "expected": "单集合单排程权威且可复算；修订卡待复核；不以自创简单间隔替代FSRS。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "MACHINE-01",
+      "gates": [
+        "G06",
+        "G07",
+        "G08",
+        "G11"
+      ],
+      "fixture": "真实MCP客户端/本地模型/受控工具、自定义方法、隔离训练和测试样例",
+      "procedure": "教方法→复述→试做→真实任务→独立测试→反馈→授权新版本→原失败及未见例复测→重启",
+      "expected": "方法/工具/模型/知识版本和中间结果有收据；不止list_tools/search；能力范围有证据；两侧状态分开，没训练标weights_unchanged。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "MIGRATION-01",
+      "gates": [
+        "G09",
+        "G10"
+      ],
+      "fixture": "非空旧库含附件/关系/定义/学习/机器反馈，一致只读快照",
+      "procedure": "新staging迁移、hash/行数/内容/外键核验；篡改/缺件/已有staging/中断/重跑",
+      "expected": "旧库不变，计数准确，损失逐项；fixture通过不声称实际用户库已迁移。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "OFFLINE-01",
+      "gates": [
+        "G02",
+        "G05",
+        "G06",
+        "G09",
+        "G11"
+      ],
+      "fixture": "锁定并下载核心依赖/模型/资料，无付费key",
+      "procedure": "关闭外网，在非开发候选环境导入/检索/人学/机用/备份恢复/重启，监测外呼并模拟缺组件",
+      "expected": "本地核心可用；缺失准确诊断；不暗切付费云；在线核查待完成，不丢个人资料。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "RELEASE-01",
+      "gates": [
+        "G01",
+        "G11",
+        "G14"
+      ],
+      "fixture": "源码树/锁文件/CI必需job/Windows包/依赖清单",
+      "procedure": "核对包hash和tree；非开发环境跑旅程、安装/启停/恢复，核对功能状态",
+      "expected": "必需job无skip/cancel冒充通过；候选实际可用；日志脱敏；软件/模型/内容许可分开。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "FORMAT-01",
+      "gates": [
+        "G02",
+        "G03",
+        "G13"
+      ],
+      "fixture": "16格式组样本和预先确定支持等级",
+      "procedure": "逐组生产导入，核对结构/文字/锚点/附件/损失",
+      "expected": "F01—F12按原core承诺；F13—F15按真实引擎；F16诚实保管/预览/部分，不冒充全解析。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "CONTENT-01",
+      "gates": [
+        "G02",
+        "G03",
+        "G08",
+        "G14"
+      ],
+      "fixture": "锁定免费本地包、可选在线免费源",
+      "procedure": "登记许可/hash/大小，原生查询→选条目→证据保存；断网/限额/无Key/无全文权测试",
+      "expected": "不全量灌库嵌入；元数据非全文权；不暗切付费，缺包/过期可见。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "INTEROP-01",
+      "gates": [
+        "G02",
+        "G07",
+        "G09"
+      ],
+      "fixture": "非空Obsidian/Vault/Canvas含附件/双链/未知字段/冲突",
+      "procedure": "导出→外部编辑→再导入→重复导入及冲突处理",
+      "expected": "支持子集语义往返；未知字段保留或显式损失，不静默覆盖；原件/ID不丢。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "REPLACE-01",
+      "gates": [
+        "G08",
+        "G09",
+        "G11",
+        "G14"
+      ],
+      "fixture": "启用组件和完整Core资产备份",
+      "procedure": "停用、健康失败、升级回滚、重建派生索引、重启读回",
+      "expected": "原件/笔记/学习/方法不丢；未知版本未验证；密钥不入日志；不同schema不盲拷。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "CLEAN-01",
+      "gates": [
+        "G12",
+        "G14"
+      ],
+      "fixture": "精确获授权根/删除目标、唯一材料保全收据、同口径盘点工具",
+      "procedure": "清前分类→保全验证→授权缓存清理→同范围复测→启动测试打包→增长复测",
+      "expected": "总量/排除/逻辑字节/实际分配或卷空间分开；唯一数据不删，E/越界不碰，无实测不宣称释放。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "AUDIT-01",
+      "gates": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12",
+        "G13",
+        "G14"
+      ],
+      "fixture": "独立会话、候选字节、证据与限制",
+      "procedure": "逐门复核原G01—G14；M1加格式/互操作/保留/清理/体验，抽查run和实际入口",
+      "expected": "FAIL/BLOCKED/NOT_TESTED非PASS；旧证据明确适用；Q00未过不称Q01通过。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    },
+    {
+      "id": "FUTURE-01",
+      "gates": [
+        "G13"
+      ],
+      "fixture": "解冻时能力样本、复用记录、稳定知识/空间ID",
+      "procedure": "评估现成内容/引擎及最小适配，检验确定性、版本绑定、换renderer、无障碍和规模性能",
+      "expected": "当前只验保留映射不冒称实现；解冻须具体许可及缺口；大型3D/宫殿不成M0前置。",
+      "result": "NOT_RUN_IN_THIS_PACKAGE"
+    }
+  ]
+}

@@ -5,8 +5,8 @@ SHA-256) BEFORE any conversion runs; a failed conversion must still retain the
 original plus a durable failure record. Failure injection must never lose the
 original.
 
-The default storage root lives under the project's ignored `.hermes/`
-runtime boundary; it never touches the source vault or a tracked path.
+The default storage root belongs to the explicitly selected product workspace,
+or to the isolated development run. Existing stores are never moved implicitly.
 """
 from __future__ import annotations
 
@@ -39,14 +39,10 @@ def _sha256(b: bytes) -> str:
 
 
 def _default_root() -> Path:
-    # Prefer HERMES_PROJECT_RUNTIME_ROOT if provided by the project data
-    # wrapper; otherwise fall back to the repository .hermes/task-runtime.
-    env_root = os.environ.get("HERMES_PROJECT_RUNTIME_ROOT")
+    env_root = os.environ.get("ARCHEAXIS_DATA_DIR") or os.environ.get("ARCHEAXIS_RUN_ROOT")
     if env_root:
         return Path(env_root) / "raw-assets"
-    # Repository root = <repo>/app/ingestion/raw_asset.py -> parents[2]
-    repo_root = Path(__file__).resolve().parents[2]
-    return repo_root / ".hermes" / "task-runtime" / "raw-assets"
+    raise RawAssetStoreError("select an explicit product workspace or use the development launcher")
 
 
 @dataclass(frozen=True)

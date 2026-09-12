@@ -3,7 +3,7 @@
 Covers:
 
 * ``app/workspace/hotreload.py`` — mtime polling detects *.py changes and
-  invokes the callback; ignore rules (``.git/.venv/.hermes/__pycache__/
+  invokes the callback; ignore rules (``.git/.venv/.project-local/__pycache__/
   node_modules``) never fire; bounded ``last_events`` ring buffer;
   fail-closed start (only external-dev + reload:true + source_root dir).
 * ``BackendSupervisor`` reload semantics — request_reload()/reload() are
@@ -115,7 +115,7 @@ def test_watcher_detects_py_changes_and_invokes_callback(tmp_path: Path) -> None
 
 
 @pytest.mark.parametrize(
-    "ignored_dir", [".git", ".venv", ".hermes", "__pycache__", "node_modules"]
+    "ignored_dir", [".git", ".venv", ".project-local", "__pycache__", "node_modules"]
 )
 def test_watcher_ignores_standard_dirs(tmp_path: Path, ignored_dir: str) -> None:
     changed: list[list[Path]] = []

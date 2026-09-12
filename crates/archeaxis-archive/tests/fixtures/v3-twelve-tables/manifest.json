@@ -1,0 +1,57 @@
+{
+  "schema_version": 3,
+  "raw_objects": {
+    "d433e5f1bcba98cfec24bbd4606218bade86b8220f05958e0d74c9364300eda4": 35
+  },
+  "tables": {
+    "anchors": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "job_attempts": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "job_outputs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "jobs": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "knowledge": {
+      "rows": 2,
+      "sha256": "b080d28b9e98f9e73eb23a68499991eda60b51c401e0759a0473ad678d21927b"
+    },
+    "learning_event_keys": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "learning_events": {
+      "rows": 1,
+      "sha256": "b70f2ed7d30490c6ebba9a0ef233ab58fd297eebaf5ee95cfcbbd5b9a286c2e3"
+    },
+    "review_events": {
+      "rows": 1,
+      "sha256": "392f213024562e2762ffb26d2ad461bc0a6f0f7d03a1c2d4f5d27cf95ce0840f"
+    },
+    "source_origins": {
+      "rows": 1,
+      "sha256": "571a2fab197ac2a299df5e8f77e2a1b90632d11c94f6807aa0cdcced6eb87b35"
+    },
+    "sources": {
+      "rows": 1,
+      "sha256": "7eab65a33c7736d90a6d8eccac3730b7e8d224791aca6b403863ed2260f6d372"
+    },
+    "transforms": {
+      "rows": 1,
+      "sha256": "8d0a174926a6573a1554e53578b57b9560fe10c4eab8a1c10869a033e1505c6b"
+    },
+    "workspace_meta": {
+      "rows": 1,
+      "sha256": "9fb71cc8c08eb8bc5a3e17118dcd9b05fffdca962fc5316c612449ba7870de18"
+    }
+  },
+  "manifest_sha256": "7ebe44fa681d021900beaa563951c0f04d606c57eb7b9ecd91491807c576aa68"
+}

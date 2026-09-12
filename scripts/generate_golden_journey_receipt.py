@@ -31,7 +31,7 @@ else:  # Direct execution: python scripts/<name>.py
     )
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACT_ROOT = ROOT / ".hermes" / "task-artifacts" / "golden-journey"
+ARTIFACT_ROOT = ROOT / ".project-local" / "task-artifacts" / "golden-journey"
 DEFAULT_TEST_TARGETS = (
     "integration-tests/test_axw_main_chain_e2e.py::test_axw_main_chain_pdf_records_page_anchored_conversion",
     "integration-tests/test_r1_four_library_e2e.py::test_r1_four_library_initialize_and_restart_readback",
@@ -77,7 +77,7 @@ def _failure_summary(output: str) -> str:
 def _project_runtime_root() -> Path:
     """Keep pytest residue below this worktree, not the shared Git common dir."""
 
-    return ROOT / ".hermes" / "task-runtime"
+    return ROOT / ".project-local" / "task-runtime"
 
 
 def _run_pytest(target: str) -> dict[str, object]:

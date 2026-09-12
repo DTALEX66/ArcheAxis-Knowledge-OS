@@ -1,7 +1,10 @@
 //! vNext database schema and workspace init (Rust sole writer).
 use rusqlite::Connection;
 
-pub const SCHEMA_VERSION: i64 = 1;
+pub mod raw_objects;
+pub mod writer;
+
+pub const SCHEMA_VERSION: i64 = 4;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -14,6 +17,15 @@ CREATE TABLE IF NOT EXISTS sources (
     original_name TEXT NOT NULL,
     raw_path TEXT,
     imported_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS source_origins (
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    origin_kind TEXT NOT NULL CHECK(origin_kind IN ('path','url','import','manual')),
+    origin_ref TEXT NOT NULL,
+    original_name TEXT,
+    received_at TEXT,
+    imported_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(source_id, origin_kind, origin_ref)
 );
 CREATE TABLE IF NOT EXISTS transforms (
     transform_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,6 +53,12 @@ CREATE TABLE IF NOT EXISTS knowledge (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     receipt_hash TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS knowledge_supersedes (
+    old_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    new_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(old_knowledge_id, new_knowledge_id)
+);
 CREATE TABLE IF NOT EXISTS review_events (
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
     knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
@@ -52,12 +70,21 @@ CREATE TABLE IF NOT EXISTS review_events (
 CREATE TABLE IF NOT EXISTS jobs (
     job_id TEXT PRIMARY KEY,
     kind TEXT NOT NULL,
-    state TEXT NOT NULL,            -- queued|running|completed|failed
+    state TEXT NOT NULL,            -- canonical job-status vocabulary
     input_ref TEXT,
     engine TEXT,
     loss_receipt TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     completed_at TEXT
+);
+CREATE TABLE IF NOT EXISTS learning_event_keys (
+    event_key TEXT PRIMARY KEY,
+    item_key TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    payload_hash TEXT,
+    event_id INTEGER,
+    streak_after INTEGER,
+    next_review_days INTEGER
 );
 CREATE TABLE IF NOT EXISTS learning_events (
     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,18 +94,107 @@ CREATE TABLE IF NOT EXISTS learning_events (
     next_review TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS job_attempts (
+    job_id TEXT NOT NULL REFERENCES jobs(job_id),
+    attempt INTEGER NOT NULL CHECK(attempt > 0),
+    request_id TEXT NOT NULL UNIQUE,
+    request_json TEXT NOT NULL,
+    state TEXT NOT NULL CHECK(state IN ('running','succeeded','failed','rejected','cancelled')),
+    response_json TEXT,
+    result_digest TEXT,
+    error TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    completed_at TEXT,
+    PRIMARY KEY(job_id, attempt)
+);
+CREATE TABLE IF NOT EXISTS job_outputs (
+    job_id TEXT NOT NULL,
+    attempt INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    metadata_json TEXT NOT NULL,
+    content TEXT NOT NULL,
+    PRIMARY KEY(job_id, attempt, kind),
+    FOREIGN KEY(job_id, attempt) REFERENCES job_attempts(job_id, attempt)
+);
 "#;
 
 /// Open (or create) the vNext database and apply the schema.
 /// Per contract this is the only place a writable handle is created.
 pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
-    let conn = Connection::open(db_path)?;
+    raw_objects::reject_links(std::path::Path::new(db_path))?;
+    let mut conn = Connection::open(db_path)?;
+    conn.busy_timeout(std::time::Duration::from_secs(5))?;
+    // Read the version before any schema or journal write. Never initialize an
+    // unrelated legacy database or downgrade a workspace from a future build.
+    let has_meta: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='workspace_meta')",
+        [], |r| r.get(0),
+    )?;
+    let version = if has_meta {
+        let value: String = conn.query_row(
+            "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+        )?;
+        value.parse::<i64>().map_err(|_| rusqlite::Error::InvalidQuery)?
+    } else {
+        let existing: i64 = conn.query_row(
+            "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+            [], |r| r.get(0),
+        )?;
+        if existing != 0 { return Err(rusqlite::Error::InvalidQuery); }
+        0
+    };
+    if !(0..=SCHEMA_VERSION).contains(&version) {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
     conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;")?;
-    conn.execute_batch(SCHEMA_SQL)?;
-    conn.execute(
-        "INSERT OR IGNORE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    // Another opener may have migrated between the read-only preflight and
+    // acquisition of the write transaction. Decide from the locked snapshot.
+    let has_meta: bool = tx.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='workspace_meta')",
+        [], |r| r.get(0),
+    )?;
+    let version = if has_meta {
+        let value: String = tx.query_row(
+            "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+        )?;
+        value.parse::<i64>().map_err(|_| rusqlite::Error::InvalidQuery)?
+    } else { 0 };
+    if !(0..=SCHEMA_VERSION).contains(&version) {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
+    tx.execute_batch(SCHEMA_SQL)?;
+    if version < 2 {
+        tx.execute_batch(
+            "ALTER TABLE jobs ADD COLUMN completion_digest TEXT;
+             ALTER TABLE jobs ADD COLUMN transform_id INTEGER REFERENCES transforms(transform_id);
+             UPDATE jobs SET state='succeeded' WHERE state='completed';",
+        )?;
+    }
+    if version < 4 {
+        // EVENT-01: persist the canonical payload identity and the original
+        // receipt alongside each dedup key so a replay can return exactly the
+        // first outcome and a conflicting payload is rejected, not deduped.
+        // A fresh database created by SCHEMA_SQL already has the columns, so
+        // guard each ALTER on the live table shape.
+        let has_payload: bool = tx.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('learning_event_keys') WHERE name='payload_hash')",
+            [], |r| r.get(0),
+        )?;
+        if !has_payload {
+            tx.execute_batch(
+                "ALTER TABLE learning_event_keys ADD COLUMN payload_hash TEXT;
+                 ALTER TABLE learning_event_keys ADD COLUMN event_id INTEGER;
+                 ALTER TABLE learning_event_keys ADD COLUMN streak_after INTEGER;
+                 ALTER TABLE learning_event_keys ADD COLUMN next_review_days INTEGER;",
+            )?;
+        }
+    }
+    tx.execute(
+        "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],
     )?;
+    tx.commit()?;
     Ok(conn)
 }
 

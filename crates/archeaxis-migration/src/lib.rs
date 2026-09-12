@@ -132,6 +132,7 @@ pub struct ExportManifest {
 pub enum MigrationError {
     Sql(rusqlite::Error),
     Io(std::io::Error),
+    Json(serde_json::Error),
 }
 
 impl std::fmt::Display for MigrationError {
@@ -139,6 +140,7 @@ impl std::fmt::Display for MigrationError {
         match self {
             MigrationError::Sql(e) => write!(f, "sql: {e}"),
             MigrationError::Io(e) => write!(f, "io: {e}"),
+            MigrationError::Json(e) => write!(f, "json: {e}"),
         }
     }
 }
@@ -147,4 +149,308 @@ impl From<rusqlite::Error> for MigrationError {
     fn from(e: rusqlite::Error) -> Self {
         MigrationError::Sql(e)
     }
+}
+
+impl From<serde_json::Error> for MigrationError {
+    fn from(e: serde_json::Error) -> Self {
+        MigrationError::Json(e)
+    }
+}
+
+
+// ---------- X10 bounded demo: semantic staging of a declared fixture set -----
+// This is a DEMO mapping slice, not a claim of full legacy coverage. C04
+// fixes: legal knowledge_type PERSONAL_DEFINITION (contract vocabulary),
+// exported-file hash/row-count verification before any write, one staging
+// transaction (atomic; late errors roll back), honest inserted/reused counts,
+// and a stable legacy-row mapping embedded in created_by so equal bodies from
+// different legacy rows are not collapsed.
+
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct DemoStageResult {
+    pub notes_seen: u64,
+    pub notes_inserted: u64,
+    pub notes_reused: u64,
+    pub notes_row_errors: u64,
+    pub docs_loss_rows: u64,
+    pub attachments_loss_rows: u64,
+    pub links_loss_rows: u64,
+    pub other_unmapped_tables: Vec<String>,
+    pub losses: Vec<String>,
+}
+
+fn hex_sha256_bytes(data: &[u8]) -> String {
+    let mut h = Sha256::new();
+    h.update(data);
+    hex::encode(h.finalize())
+}
+
+/// Verify every exported table file against the manifest (hash + row count).
+fn verify_export(export_dir: &str, manifest: &ExportManifest) -> Result<(), MigrationError> {
+    for (name, table) in &manifest.tables {
+        let path = Path::new(export_dir).join(format!("{name}.jsonl"));
+        let bytes = std::fs::read(&path).map_err(MigrationError::Io)?;
+        if hex_sha256_bytes(&bytes) != table.sha256 {
+            return Err(MigrationError::Io(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("{name}.jsonl hash mismatch"),
+            )));
+        }
+        let lines = bytes.iter().filter(|b| **b == b'\n').count() as u64;
+        if lines != table.rows {
+            return Err(MigrationError::Io(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("{name}.jsonl row count mismatch"),
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Read an exported JSONL table and stage its rows into vNext `knowledge` as
+/// PERSONAL_DEFINITION candidates inside one staging transaction. Every row is
+/// keyed by its legacy id (embedded in created_by), so identical bodies from
+/// different legacy rows are distinct and re-runs are idempotent
+/// (INSERT OR IGNORE; ignored rows count as reused, never as new inserts).
+pub fn stage_demo_semantic_import(
+    export_dir: &str,
+    staging_db: &str,
+) -> Result<DemoStageResult, MigrationError> {
+    let manifest_path = Path::new(export_dir).join("export-manifest.json");
+    let manifest_raw = std::fs::read_to_string(&manifest_path).map_err(MigrationError::Io)?;
+    let manifest: ExportManifest =
+        serde_json::from_str(&manifest_raw).map_err(MigrationError::Json)?;
+    verify_export(export_dir, &manifest)?;
+
+    let mut conn = archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
+    let tx = conn
+        .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+        .map_err(MigrationError::Sql)?;
+    let mut result = DemoStageResult::default();
+    let mut leftover: Vec<String> = manifest.tables.keys().cloned().collect();
+
+    if let Some(note_table) = manifest.tables.get("notes") {
+        leftover.retain(|t| t != "notes");
+        result.notes_seen = note_table.rows;
+        let path = Path::new(export_dir).join("notes.jsonl");
+        let raw = std::fs::read_to_string(&path).map_err(MigrationError::Io)?;
+        for (i, line) in raw.lines().enumerate() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let row: serde_json::Value =
+                serde_json::from_str(line).map_err(MigrationError::Json)?;
+            let body = row.get("body").and_then(serde_json::Value::as_str);
+            let legacy_id = row
+                .get("id")
+                .and_then(serde_json::Value::as_i64)
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| format!("line{}", i + 1));
+            match body {
+                Some(text) if !text.trim().is_empty() => {
+                    let kind = "PERSONAL_DEFINITION";
+                    let created_by = format!("legacy_migration_demo:notes:{legacy_id}");
+                    let kid = demo_knowledge_id(kind, text, &created_by);
+                    let changed = tx
+                        .execute(
+                            "INSERT OR IGNORE INTO knowledge
+                               (knowledge_id, knowledge_type, body, status, evidence_status,
+                                anchor_id, created_by, receipt_hash)
+                             VALUES(?1,?2,?3,'candidate',NULL,NULL,?4,?5)",
+                            rusqlite::params![
+                                kid,
+                                kind,
+                                text,
+                                created_by,
+                                demo_receipt(kind, text, "candidate")
+                            ],
+                        )
+                        .map_err(MigrationError::Sql)?;
+                    if changed > 0 {
+                        result.notes_inserted += 1;
+                    } else {
+                        result.notes_reused += 1;
+                    }
+                }
+                _ => {
+                    result.notes_row_errors += 1;
+                    result.losses.push(format!(
+                        "notes line {}: empty/non-string body, not staged",
+                        i + 1
+                    ));
+                }
+            }
+        }
+        result.losses.push(
+            "notes.created_at (legacy) is not carried: vNext knowledge records its own import time"
+                .to_string(),
+        );
+    } else if manifest.tables.contains_key("notes") {
+        result
+            .losses
+            .push("notes: exported with 0 rows; nothing staged".to_string());
+    }
+
+    if let Some(docs) = manifest.tables.get("docs") {
+        leftover.retain(|t| t != "docs");
+        result.docs_loss_rows = docs.rows;
+        result.losses.push(
+            "docs: exported rows are metadata-only (title/sha256), no byte content to become a vNext source; mapped to loss ledger"
+                .to_string(),
+        );
+    }
+    if let Some(att) = manifest.tables.get("attachments") {
+        leftover.retain(|t| t != "attachments");
+        result.attachments_loss_rows = att.rows;
+        result.losses.push(
+            "attachments: vNext has no attachment table yet; all attachment rows are counted as losses (never silently dropped)"
+                .to_string(),
+        );
+    }
+    if let Some(links) = manifest.tables.get("links") {
+        leftover.retain(|t| t != "links");
+        result.links_loss_rows = links.rows;
+        result.losses.push(
+            "links: vNext has no note-relationship table yet; all link rows are counted as losses with reasons (never silently dropped)"
+                .to_string(),
+        );
+    }
+
+    for table in &leftover {
+        result.losses.push(format!(
+            "{table}: unmapped demo table, preserved in export, not staged"
+        ));
+    }
+    result.other_unmapped_tables = leftover;
+    tx.commit().map_err(MigrationError::Sql)?;
+    drop(conn);
+    Ok(result)
+}
+
+fn demo_knowledge_id(kind: &str, body: &str, created_by: &str) -> String {
+    format!("k_{}", &hex_sha256_bytes(format!("{kind}|{body}|{created_by}").as_bytes())[..24])
+}
+
+fn demo_receipt(kind: &str, body: &str, status: &str) -> String {
+    hex_sha256_bytes(format!("{kind}|{body}|{status}|").as_bytes())
+}
+
+/// R07: outcome of staging legacy learning history.
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct LegacyLearningResult {
+    pub rows_seen: u64,
+    /// Events staged with the legacy schedule preserved.
+    pub staged_scheduled: u64,
+    /// Events staged with no schedule (the legacy row carried none) - recorded
+    /// as unscheduled, never given an invented interval.
+    pub staged_unscheduled: u64,
+    /// Re-runs replay the original receipt instead of accumulating history.
+    pub replayed: u64,
+    pub row_errors: u64,
+    pub unmapped_tables: Vec<String>,
+}
+
+/// R07: stage legacy learning history as historical events.
+///
+/// Fidelity rules:
+/// - a row that carries its own `next_review_days` keeps that value (an existing
+///   schedule is preserved, not recomputed by a different algorithm);
+/// - a row without one is recorded as *unscheduled* (`next_review` NULL), never
+///   given an invented interval;
+/// - the persistent event key is derived from the legacy table + row id, so
+///   re-running the migration replays the original receipt (idempotent) instead
+///   of duplicating history.
+///
+/// Learning writes go through `archeaxis_domain::learning`, so the Rust Core
+/// stays the only authority for learning events.
+pub fn stage_legacy_learning_history(
+    export_dir: &str,
+    staging_db: &str,
+    table: &str,
+) -> Result<LegacyLearningResult, MigrationError> {
+    let manifest_path = Path::new(export_dir).join("export-manifest.json");
+    let manifest_raw = std::fs::read_to_string(&manifest_path).map_err(MigrationError::Io)?;
+    let manifest: ExportManifest =
+        serde_json::from_str(&manifest_raw).map_err(MigrationError::Json)?;
+    verify_export(export_dir, &manifest)?;
+
+    let mut result = LegacyLearningResult {
+        unmapped_tables: manifest
+            .tables
+            .keys()
+            .filter(|name| name.as_str() != table)
+            .cloned()
+            .collect(),
+        ..Default::default()
+    };
+    let Some(entry) = manifest.tables.get(table) else {
+        return Ok(result);
+    };
+    result.rows_seen = entry.rows;
+    let raw = std::fs::read_to_string(Path::new(export_dir).join(format!("{table}.jsonl")))
+        .map_err(MigrationError::Io)?;
+    let mut conn =
+        archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
+
+    for line in raw.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let row: serde_json::Value = serde_json::from_str(line).map_err(MigrationError::Json)?;
+        let Some(legacy_id) = row.get("id").and_then(serde_json::Value::as_i64) else {
+            result.row_errors += 1;
+            continue;
+        };
+        let item = row
+            .get("item")
+            .or_else(|| row.get("item_key"))
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("");
+        if item.is_empty() {
+            result.row_errors += 1;
+            continue;
+        }
+        let kind = row
+            .get("kind")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("legacy_review");
+        let outcome = row
+            .get("outcome")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("reviewed");
+        let correct = outcome.eq_ignore_ascii_case("correct")
+            || outcome.eq_ignore_ascii_case("true")
+            || outcome == "1";
+        // Only a POSITIVE legacy interval is a schedule we can preserve. vNext
+        // stores next_review as an absolute date and has no due-today
+        // representation for past history (next_review_iso returns None for
+        // days <= 0), so a legacy 0 or negative value is recorded as unscheduled
+        // and counted exactly as it will be stored - never as a schedule.
+        let legacy_days = row
+            .get("next_review_days")
+            .and_then(serde_json::Value::as_i64)
+            .filter(|days| *days > 0);
+        let key = format!("legacy-{table}-{legacy_id}");
+        match archeaxis_domain::learning::record_review_scheduled(
+            &mut conn,
+            item,
+            kind,
+            correct,
+            &key,
+            legacy_days,
+        ) {
+            Ok((_event_id, _streak, _days, duplicate)) => {
+                if duplicate {
+                    result.replayed += 1;
+                } else if legacy_days.is_some() {
+                    result.staged_scheduled += 1;
+                } else {
+                    result.staged_unscheduled += 1;
+                }
+            }
+            Err(_) => result.row_errors += 1,
+        }
+    }
+    Ok(result)
 }

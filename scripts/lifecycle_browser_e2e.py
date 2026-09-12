@@ -154,10 +154,10 @@ def _verify_lifecycle_page(page: Page, base_url: str) -> None:
 
 
 def main() -> int:
-    # Use project-local .hermes/task-runtime/tmp/ for the lifecycle test data dir
+    # Use project-local .project-local/task-runtime/tmp/ for the lifecycle test data dir
     # so cleanup doesn't fight with subprocess DB locks.
     project_root = Path(__file__).resolve().parent.parent
-    runtime_root = project_root / ".hermes" / "task-runtime"
+    runtime_root = project_root / ".project-local" / "task-runtime"
     lifecycle_tmp = runtime_root / "tmp" / "lifecycle-e2e"
     lifecycle_tmp.mkdir(parents=True, exist_ok=True)
 

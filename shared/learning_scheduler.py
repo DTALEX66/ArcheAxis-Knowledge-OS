@@ -39,8 +39,12 @@ class LearningScheduler:
     (which is stateless — state lives in Card objects).
     """
 
-    def __init__(self) -> None:
-        self._scheduler = Scheduler()
+    def __init__(self, *, enable_fuzzing: bool = True) -> None:
+        # py-fsrs fuzzes intervals by default (Scheduler(enable_fuzzing=True)).
+        # Product scheduling asks for enable_fuzzing=False so an interval is
+        # reproducible for a given card state and rating: replay, restart and
+        # audit comparisons must not drift. The default stays as before.
+        self._scheduler = Scheduler(enable_fuzzing=enable_fuzzing)
 
     def review(
         self,

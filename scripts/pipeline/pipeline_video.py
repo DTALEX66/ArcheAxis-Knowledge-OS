@@ -6,8 +6,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ROOT = os.environ.get("ARCHEAXIS_PIPELINE_SOURCE_ROOT", "")
-OUT = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "video_ocr_receipt.json")
-WORK = str(PROJECT_ROOT / ".hermes" / "task-runtime" / "video-work")
+OUT = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "video_ocr_receipt.json")
+WORK = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "video-work")
 os.makedirs(WORK, exist_ok=True)
 from app.ingestion.rapid_ocr_adapter import convert_image_rapid
 from app.ingestion.content_cleaner import clean_text as strip_noise

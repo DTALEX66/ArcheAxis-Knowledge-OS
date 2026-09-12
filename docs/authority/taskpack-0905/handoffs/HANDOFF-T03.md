@@ -28,7 +28,7 @@ crates/archeaxis-domain/src/backup.rs、crates/archeaxis-domain/src/source.rs。
 - cargo/rustc 1.97.1；需 vcvars64.bat（见总摘要）后 `cargo test --workspace`；
   RUSTUP_HOME=D:\All projects\OS External Configuration\10-toolchains\rustup；
   CARGO_HOME=D:\All projects\OS External Configuration\10-toolchains\cargo；
-- Windows 现场：RTX5060 8G；测试临时文件只放 .hermes/task-runtime/；
+- Windows 现场：RTX5060 8G；新测试通过 scripts/runtime/dev.py 分配 .project-local/runs/（0906 覆盖旧 .hermes/task-runtime/ 指令；历史证据不改写）；
 - 提交前跑 scripts/check_repository_conventions.py（CRLF/BOM/行尾规则）并保持绿。
 
 ## 建议切片

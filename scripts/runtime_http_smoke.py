@@ -22,7 +22,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 def runtime_log_path(port: int) -> Path:
     """Keep smoke evidence in the repository runtime boundary, never %TEMP%."""
-    runtime_dir = PROJECT_ROOT / ".hermes" / "task-runtime" / "runtime-http-smoke"
+    runtime_dir = PROJECT_ROOT / ".project-local" / "task-runtime" / "runtime-http-smoke"
     runtime_dir.mkdir(parents=True, exist_ok=True)
     return runtime_dir / f"core-{port}.log"
 

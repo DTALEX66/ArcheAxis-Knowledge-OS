@@ -1,0 +1,790 @@
+{
+  "schema": "archeaxis.fast-full-loop-plan/v1",
+  "base_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e",
+  "plan_only": true,
+  "issued_authorization": false,
+  "tasks": [
+    {
+      "id": "T00",
+      "title": "锁定本轮决策、现场与基线",
+      "lane": "integrator",
+      "depends_on": [],
+      "allowed_paths": [
+        "PROJECT_CONTRACT.yaml",
+        "DIRECTORY_AUTHORITY.yaml",
+        "DECISION_SUPERSESSION_LEDGER.yaml",
+        "AGENTS.md",
+        "docs/authority/**",
+        "docs/authority/taskpack-0906/**"
+      ],
+      "work": [
+        "核对4ca46ea以后差异；登记本包覆盖r2/r3执行路线，保留原收据基线",
+        "确认本机真实路径和可用能力；不得套用误发的DSH安装路径，不把WORK-LAB/DESIGN-LAB作为前置",
+        "确认远端SHA及本机工作区/硬件/现有模型/搜索与云端凭据可用性；只记录能力不输出密钥",
+        "正式记录Avalonia首发、云端核查提前、双侧闭环、Python保留能力层；统一真实C#目录",
+        "未取得的外部条件标为阻塞具体能力，其余任务继续"
+      ],
+      "acceptance": [
+        "决策覆盖关系唯一且链接可解析",
+        "模型/运行时可用性清单，绝不虚报安装状态"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "决策与现场记录已有，需按新SHA纠偏；不是重做调研",
+      "reuse_existing": [
+        "PROJECT_CONTRACT.yaml",
+        "docs/authority/taskpack-0905/T00-FIELD-AND-BASELINE-2026-09-05.md"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T01",
+      "title": "可复现构建与最小必需CI",
+      "lane": "ci",
+      "depends_on": [
+        "T00",
+        "T19"
+      ],
+      "allowed_paths": [
+        ".github/**",
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
+        "global.json",
+        "Directory.Packages.props",
+        "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+        "scripts/ci/**",
+        "packaging/vnext/**",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "work": [
+        "复用现有四gate和分类器，补真实worker输出schema验证、运行路径检查与当前1448路径覆盖测量",
+        "修锁定/安装复现；输出候选包而不是仅dotnet build；证明代码改动会触发所需gate",
+        "锁定经过验证的Rust/.NET与依赖；worker依赖由能力lane提议、此lane合入锁；提供可重复构建Windows候选包的脚本供T15调用",
+        "CI覆盖apps/crates/workers/contracts/治理变更；始终运行汇总检查并接入main ruleset；测试与构建产物统一.project-local，禁止新写.hermes",
+        "新增规则需要真实可执行程序，不能以schema文件替代"
+      ],
+      "acceptance": [
+        "只改C#或worker或契约也触发应跑检查",
+        "当前SHA构建通过；旧回执不能过门禁"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "四个vNext gate已经接入主CI；当前文档提交仅3个job成功15个跳过",
+      "reuse_existing": [
+        ".github/workflows/ci.yml",
+        "scripts/ci/classify.py"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T02",
+      "title": "冻结最小跨语言协议",
+      "lane": "contract",
+      "depends_on": [
+        "T00"
+      ],
+      "allowed_paths": [
+        "packages/contracts/**",
+        "crates/archeaxis-contracts/**",
+        "crates/archeaxis-sidecar-protocol/**",
+        "tests/contract/**"
+      ],
+      "work": [
+        "修R04/R06：最终统一枚举和真实DTO边界；quality loss_receipt纳入正式schema或标准封装",
+        "状态与value联动、坐标起止/实际修订范围、角色、幂等key同载荷/异载荷规则用真实通道正反例验收；不只查字符串包含",
+        "统一HTTP/NDJSON/MCP映射、命令幂等、版本和状态词汇",
+        "定义结构块、字符/页/时间锚、质量与覆盖报告、学习/机器反馈DTO",
+        "准备跨语言正反例；生成代码有单一来源与漂移检查"
+      ],
+      "acceptance": [
+        "C#/Rust/Python对样例一致解析",
+        "错版本/未知状态/错hash/错误坐标被拒绝"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "schema/常量与正反例已有，但业务仍使用旧词，且quality输出不符合schema",
+      "reuse_existing": [
+        "packages/contracts/v1/",
+        "crates/archeaxis-contracts/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T17",
+      "title": "旧版资产全量盘点与复用缺陷前置",
+      "lane": "legacy-audit",
+      "depends_on": [
+        "T00"
+      ],
+      "allowed_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs/authority/legacy/**",
+        "tests/legacy-differential/**",
+        "app/**",
+        "shared/**",
+        "knowledge_base/**"
+      ],
+      "work": [
+        "复用已存在清单，按10与19补当前新增资产和外部待盘点域；修正语义抽样名称",
+        "只做足以分派任务的来源/风险盘点即可解锁开发；逐项语义吸收在T13收口，禁止凭文件头标已审",
+        "把外部会话/用户数据/未提交补丁列待现场核验；不可假称全部历史已经保全",
+        "以10-LEGACY-INVENTORY.csv为起点逐文件核验：代码、测试、样例、配置、文档、历史决策、静态资源；逐项登记去向与吸收任务",
+        "区分保全风险/共用缺陷/旧壳缺陷/新版修复；真正复用的P0/P1先修并留下失败回归，避免在新旧两边重复修同一业务",
+        "旧目录只允许核实后的定向维护切片，禁止整片搬入或扩大改动；原件、历史和旧实现保持可恢复"
+      ],
+      "acceptance": [
+        "每项旧资产有来源Git对象、拟定去向和待核验状态；没有未说明的删除",
+        "每项已判定可吸收的能力有任务、目标边界、差异样例与验收；缺陷未清不能进入默认新链"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "已有1246项登记；30项只读文件头，不是语义审查",
+      "reuse_existing": [
+        "LEGACY_MANIFEST.yaml",
+        "docs/authority/legacy/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T03",
+      "title": "Rust存储、原件与可恢复事务",
+      "lane": "rust-store",
+      "depends_on": [
+        "T01",
+        "T02",
+        "T17"
+      ],
+      "allowed_paths": [
+        "crates/archeaxis-store-sqlite/**",
+        "crates/archeaxis-archive/**",
+        "crates/archeaxis-domain/src/backup.rs",
+        "crates/archeaxis-domain/src/source.rs"
+      ],
+      "work": [
+        "修A01/A04/A09与R03/R05：CAS原子落盘+Store封装+事务+未来版本拒绝+跨进程锁",
+        "备份包括所有原件及关系/学习/研究/机器反馈；恢复先校验，再staging，无部分成功",
+        "单写者和跨进程工作区锁；CAS原子写入；关闭裸Connection外泄",
+        "版本迁移与未来版本拒绝；统一快照、全表及对象哈希恢复验证",
+        "修复原件丢失、部分写入、恢复不校验；新增任务/研究/学习表按契约迁移"
+      ],
+      "acceptance": [
+        "移走外部原件并重启后仍逐字节一致",
+        "故障注入回滚；篡改包拒绝；不同版本库保护有效"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "骨架与单测已有；原件落盘/恢复校验/跨进程保护仍缺",
+      "reuse_existing": [
+        "crates/archeaxis-store-sqlite/",
+        "crates/archeaxis-domain/src/source.rs",
+        "crates/archeaxis-archive/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T04",
+      "title": "任务执行器、模型能力与Supervisor",
+      "lane": "runtime",
+      "depends_on": [
+        "T02",
+        "T03"
+      ],
+      "allowed_paths": [
+        "crates/archeaxis-application/src/jobs.rs",
+        "crates/archeaxis-application/src/runtime/**",
+        "crates/archeaxis-api/src/runtime/**",
+        "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+        "apps/ArcheAxis.Desktop/Program.cs",
+        "services/python-workers/runtime/**"
+      ],
+      "work": [
+        "修重复transform/先completed后失败；实际启动worker，校验attempt/output/hash再提交事务",
+        "修启动父目录、限时读stdout、stderr消费、workspace/token/版本身份；禁止连接任意2xx服务",
+        "为现有12个worker配置真实适配器与协议包装，进程取消与退出完整回收",
+        "真实启动worker并验证输入/输出、attempt、哈希、超时、取消和幂等",
+        "能力发现/模型profile/队列资源预算；启动目录、token、workspace身份与日志清理",
+        "只把通过能力探针的模型与格式显示为可用"
+      ],
+      "acceptance": [
+        "重复回写一份结果；错误结果不会留下completed",
+        "占端口、无输出、worker崩溃可恢复；窗口关闭无遗留子进程"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "Supervisor和jobs骨架已有；T04-FIX1只改门禁路径，没有完成执行器",
+      "reuse_existing": [
+        "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+        "crates/archeaxis-application/src/jobs.rs"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T05",
+      "title": "网页与文档转换能力包",
+      "lane": "python-docs",
+      "depends_on": [
+        "T02",
+        "T17"
+      ],
+      "allowed_paths": [
+        "services/python-workers/document/**",
+        "services/python-workers/web/**",
+        "tests/fixtures/vnext/documents/**"
+      ],
+      "work": [
+        "直接复用现有入口；修R08/R09以及正文清洗、重定向链/总deadline/字节上限/编码",
+        "F03补浏览器安装与实际DOM/截图/滚动覆盖编排，不称只是缺运行器",
+        "F06逐页类型判定/混合OCR、Office内嵌图片/表/复杂阅读顺序接T06；CSV等结构按语义保存",
+        "提取旧纯解析适配器；接TXT/Office/PDF/Canvas/结构文件",
+        "安全网页正文、动态渲染与截图、HTML快照；嵌入图片递交视觉能力",
+        "每页/幻灯片/sheet/附件覆盖回执与可解析锚点"
+      ],
+      "acceptance": [
+        "F01/F02/F03/F05/F06/F07/F08/F09/F12正反例真实通过",
+        "模拟缺依赖和破损文件，保留原件与明确失败"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "文本/canvas/字幕/HTML/Office/URL组件已存在，复杂格式和编排未完整",
+      "reuse_existing": [
+        "services/python-workers/document/",
+        "services/python-workers/web/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T06",
+      "title": "截图、视觉与音视频能力包",
+      "lane": "python-media",
+      "depends_on": [
+        "T02",
+        "T17"
+      ],
+      "allowed_paths": [
+        "services/python-workers/vision/**",
+        "services/python-workers/media/**",
+        "tests/fixtures/vnext/media/**"
+      ],
+      "work": [
+        "复用组件与本地模型；新增困难中文/数字/多栏/图表样例，区分OCR与视觉推断",
+        "补视频字幕与音轨/关键帧对齐、遗漏画面覆盖；静音与纯图文不可假成功",
+        "复用模型目录而不是每Agent下载权重；每模型记录版本/配置/能力探针与资源预算",
+        "复用OCR/ASR；本地视觉模型提取图示语义，OCR文字和推断分层",
+        "视频音轨/字幕/关键帧并行获取后按时间对齐，记录采样覆盖",
+        "重试仅处理低质量区域/片段，报告BOM/换行等所有有损归一"
+      ],
+      "acceptance": [
+        "F04/F10/F11真实转换通过，不能只返回元数据",
+        "静音、专名、数字、低清/旋转、多帧遗漏有可见处置"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "ASR/video/OCR/caption组件和本地切片证据已有，未等于完整媒体理解",
+      "reuse_existing": [
+        "services/python-workers/media/",
+        "services/python-workers/vision/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T07",
+      "title": "质量评测、差异复核与模型定型",
+      "lane": "quality",
+      "depends_on": [
+        "T02",
+        "T05",
+        "T06"
+      ],
+      "allowed_paths": [
+        "tests/evaluation/**",
+        "services/python-workers/evaluation/**",
+        "fixtures/quality/**",
+        "config/model-profiles/**",
+        "config/model-profiles/**"
+      ],
+      "work": [
+        "修R06/R07/R13：原始/归一化指标分开，记录BOM/空白/解码策略；误差率不可强行截断到1",
+        "把probe、跑过样例、准确率测量、资格通过分开；音频人工确认前不作总体精度证据",
+        "加入结构/锚点/数字/命题与引用指标、独立留出集、失败样本与分层统计；实际结果校验schema",
+        "保留旧金标并补中英文/数字/结构/噪声样例与独立留出集",
+        "测CER/WER/锚点/结构/命题与引用；按03规则显示区间和UNMEASURED",
+        "锁定现场可运行且达标的本地文本/视觉/OCR/ASR profile；不删除失败样例"
+      ],
+      "acceptance": [
+        "每项指标可从原预测与金标复算",
+        "单文件误差不可被总体均值掩盖；未达标转人工或备用引擎"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "CER/WER worker已实现；schema/归一化有实测缺陷，金标仍待确认",
+      "reuse_existing": [
+        "services/python-workers/evaluation/",
+        "docs/authority/taskpack-0905/T07/",
+        "config/model-profiles/local-2026-09-05.yaml"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T08",
+      "title": "云端模型联网交叉核查",
+      "lane": "rust-research",
+      "depends_on": [
+        "T02",
+        "T03",
+        "T04"
+      ],
+      "allowed_paths": [
+        "crates/archeaxis-application/src/research/**",
+        "crates/archeaxis-api/src/research/**",
+        "services/python-workers/research/**",
+        "tests/integration/research/**"
+      ],
+      "work": [
+        "缺密钥不阻塞适配器/配置/引用验证/成本与恢复代码；真实云端验收单独BLOCKED",
+        "本地识别疑点先定位原图原句；云端搜索比较只评估事实支持，不能悄悄改写原文",
+        "逐命题收集原始来源、来源独立性/反证/版本/预测期限；无证据个人定义正常保存",
+        "真实搜索/抓取、查询规划、原始来源锚点、来源归组与反证",
+        "云端结构化逐命题评估；Core检查引用存在与修订绑定",
+        "coverage/成本/时限/失败恢复；原件和个人定义不受证据门槛阻止保存"
+      ],
+      "acceptance": [
+        "真实网页核查可重现，重复转载不算独立证据",
+        "搜索失效/断网/预算耗尽给PARTIAL；无原文不得假引用"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "契约和静态抓取组件已有，产品云端研究仍需实现且凭据缺失",
+      "reuse_existing": [
+        "packages/contracts/v1/coverage-receipt.schema.json",
+        "services/python-workers/web/worker_webpage.py"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T09",
+      "title": "知识版本、复核、检索与调用政策",
+      "lane": "rust-knowledge",
+      "depends_on": [
+        "T02",
+        "T03",
+        "T04",
+        "T17"
+      ],
+      "allowed_paths": [
+        "crates/archeaxis-domain/src/knowledge.rs",
+        "crates/archeaxis-domain/src/anchor.rs",
+        "crates/archeaxis-domain/src/search.rs",
+        "crates/archeaxis-application/src/knowledge/**",
+        "crates/archeaxis-api/src/knowledge/**"
+      ],
+      "work": [
+        "服务端确定actor，不接受客户端伪造人审权限；迁移旧词并记录来源，拒绝未知状态",
+        "知识不可变修订、复核事务、原件精确回链与中文检索；撤销影响上下文/题目/派生资产",
+        "用户接受不等于事实证实；观察/意见/定义/假说/谣传/预测独立存储",
+        "不可变修订/复核事件；个人定义和候选区别；版本冲突与状态机",
+        "源文和知识双索引、中文检索、锚点回链、撤销与失效传播",
+        "查询模式/权限/时效过滤，事实与假设的用途保持显式"
+      ],
+      "acceptance": [
+        "来源可点回，旧修订不冒充当前",
+        "机器不能赋USER_ACCEPTED；无证据个人笔记可正常保存"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "领域和搜索骨架已有，但旧词状态/权限/修订/中文检索缺口仍在",
+      "reuse_existing": [
+        "crates/archeaxis-domain/src/knowledge.rs",
+        "crates/archeaxis-domain/src/search.rs",
+        "crates/archeaxis-domain/src/anchor.rs"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T10",
+      "title": "人类侧学习全流程",
+      "lane": "rust-learning",
+      "depends_on": [
+        "T02",
+        "T03",
+        "T09"
+      ],
+      "allowed_paths": [
+        "crates/archeaxis-domain/src/learning.rs",
+        "crates/archeaxis-application/src/learning/**",
+        "crates/archeaxis-api/src/learning/**",
+        "services/python-workers/tutoring/**",
+        "tests/integration/learning/**"
+      ],
+      "work": [
+        "吸收旧学习/讲回/共学习语义，权威调度和状态迁Rust；日期必须真实时间运算",
+        "完成目标路径到延迟复测；开放题评分可纠正，记忆概率与掌握证据分开",
+        "目标→路径→解释→笔记/卡片→测验→Teach-Back→迁移题→错因→FSRS→延迟复测",
+        "复用旧领域样例，权威状态迁Rust；模型开放题评分可纠正",
+        "来源修订使相关题目失效/待复核，人类掌握证据独立保存"
+      ],
+      "acceptance": [
+        "真实完成学习会话及到期复习，重启继续",
+        "模型答错和用户纠正能改变后续练习，不自动宣告掌握"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "学习骨架/旧行为供体存在，不能以单事件视为全链",
+      "reuse_existing": [
+        "crates/archeaxis-domain/src/learning.rs",
+        "app/learning/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T11",
+      "title": "机器侧HTTP/MCP调用与反馈学习",
+      "lane": "rust-machine",
+      "depends_on": [
+        "T02",
+        "T03",
+        "T09"
+      ],
+      "allowed_paths": [
+        "crates/archeaxis-api/src/mcp/**",
+        "crates/archeaxis-application/src/machine/**",
+        "services/python-workers/machine-evaluation/**",
+        "tests/integration/machine/**"
+      ],
+      "work": [
+        "真实MCP客户端与本地/云端模型消费、预算/权限过滤、提案审核/撤销/再调用",
+        "版本化案例与技能知识并用留出任务评测，不把RAG或提示更新叫参数微调",
+        "同领域实现提供搜索/上下文/来源/提案/反馈；上下文带权限和预算",
+        "本地模型与云端模型真实消费；案例/技能资产版本化，留出任务评测",
+        "纠正候选审核后生效，导出训练候选但不伪称已微调"
+      ],
+      "acceptance": [
+        "真实MCP客户端完成读取和反馈",
+        "错误修订撤销后再调用不泄漏；未测能力显示UNMEASURED"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "机器反馈契约已有，实际MCP消费/纠错评测链待完成",
+      "reuse_existing": [
+        "packages/contracts/v1/machine-feedback.schema.json"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T12",
+      "title": "Avalonia完整工作台",
+      "lane": "avalonia-ui",
+      "depends_on": [
+        "T02",
+        "T04",
+        "T18"
+      ],
+      "allowed_paths": [
+        "apps/ArcheAxis.Desktop/Views/**",
+        "apps/ArcheAxis.Desktop/ViewModels/**",
+        "apps/ArcheAxis.Desktop/Services/**",
+        "apps/ArcheAxis.Desktop/MainWindow.axaml",
+        "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+        "apps/ArcheAxis.Desktop/App.axaml",
+        "apps/ArcheAxis.Desktop/App.axaml.cs",
+        "tests/journey/desktop/**"
+      ],
+      "work": [
+        "依据T18从壳升级，实做多格式导入/任务/原文/核查/知识/学习/机器/设置恢复",
+        "先完成M1真实路径再补M2；不能自动mock回退成功；所有状态与键盘/DPI/减少动效均可操作",
+        "依据T18设计从现有壳增量或从零重建Avalonia界面，接真实API，最终验收禁止mock成功",
+        "网页/文件拖放/截图；阅读/转换/核查比较；学习/机器反馈及设置恢复全流程；覆盖加载/空态/失败/冲突",
+        "实现设计tokens、排版、多栏、动效、键盘和可访问性；旧版仅参考，必要时彻底更换布局"
+      ],
+      "acceptance": [
+        "无开发终端实际操作核心链",
+        "无入口是占位欢迎页；错状态响应不显示成功；不直接SQL"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "Avalonia仍是Welcome欢迎页，Supervisor不是业务界面",
+      "reuse_existing": [
+        "apps/ArcheAxis.Desktop/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T13",
+      "title": "旧能力全面吸收与非空数据迁移验证",
+      "lane": "migration",
+      "depends_on": [
+        "T03",
+        "T05",
+        "T06",
+        "T09",
+        "T14"
+      ],
+      "allowed_paths": [
+        "crates/archeaxis-migration/**",
+        "integrations/legacy/**",
+        "services/python-workers/compat/**",
+        "LEGACY_MANIFEST.yaml",
+        "tests/migration/**"
+      ],
+      "work": [
+        "逐项审语义、差异/目标/验证证据；优先复用已有worker，不机械翻译Python",
+        "非空旧schema映射原件/知识/关系/学习/机器记录到新staging；实际用户切换独立验收",
+        "T17的30项不得充当完成数；全部可吸收能力需真实新流程调用再算完成",
+        "将T17判定可吸收的全部能力接入对应T03—T12目标模块，逐项核验，不因已复制代码就标完成",
+        "实现非空旧schema→staging新库语义映射、差异和回滚；真实用户数据切换单独验收",
+        "已有可复用扩展格式随能力吸收一起验收；真正缺少引擎的新格式保留明确边界，不伪称已支持"
+      ],
+      "acceptance": [
+        "原库哈希不变；知识/关系/附件/学习记录映射可审阅",
+        "不以空库导出证明迁移；未知格式保留原件并明确能力缺失",
+        "可吸收资产无无主项；每项目标代码/接口/样例/验收齐全；未吸收项不能计为全面合并完成"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "legacy导出骨架和台账已有，全面吸收/非空语义导入尚未完成",
+      "reuse_existing": [
+        "crates/archeaxis-migration/",
+        "LEGACY_MANIFEST.yaml"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T14",
+      "title": "全仓规范化收尾",
+      "lane": "repository",
+      "depends_on": [
+        "T00",
+        "T01",
+        "T02",
+        "T17"
+      ],
+      "allowed_paths": [
+        "DIRECTORY_AUTHORITY.yaml",
+        "LEGACY_MANIFEST.yaml",
+        "AGENTS.md",
+        "docs/authority/**",
+        "docs/current/**",
+        "scripts/check_repository_conventions.py",
+        "scripts/ci/check_vnext_scope.py",
+        ".gitignore",
+        "docs/authority/taskpack-0905/**"
+      ],
+      "work": [
+        "与T19分工：T19先修运行入口，本任务完成全tracked归属/语言/链接/当前历史索引与退休规则",
+        "新旧收据以各自tested source SHA保留；不为追HEAD改旧证明；补R11缺字段",
+        "以实际执行检查替代只增加模板；未完成项不能通过归档改名变完成",
+        "覆盖所有tracked路径的用途/归属/运行时/历史分类；正式台账区分已吸收和待迁移",
+        "统一当前入口、真实目录、生成物/缓存/私有配置规则和历史文档状态",
+        "一任务一worktree，多Agent路径检查；旧运行时退役条件可核验；不等待旧数据迁移才规范目录"
+      ],
+      "acceptance": [
+        "引用可解析，无归属歧义；越界PR会失败",
+        "规范验收经过真实PR与文件系统读回：启动/测试/构建后.hermes无新增写入，ignored文件也纳入检查"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "目录分类与引用改动有进展；根AGENTS/入口冲突仍在",
+      "reuse_existing": [
+        "DIRECTORY_AUTHORITY.yaml",
+        ".worklab/project-validation.v1.yaml"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T15",
+      "title": "Windows集成、全格式与双侧资格验收",
+      "lane": "integration",
+      "depends_on": [
+        "T01",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T07",
+        "T08",
+        "T09",
+        "T10",
+        "T11",
+        "T12",
+        "T14",
+        "T13",
+        "T19"
+      ],
+      "allowed_paths": [
+        "tests/journey/**",
+        "tests/integration/closed-loop/**",
+        "scripts/ci/qualify_vnext.py",
+        "reports/vnext/**"
+      ],
+      "work": [
+        "运行G01-G20候选验收：真实UI/多格式/本地与云端/双侧使用/原件恢复/非空迁移/目录边界",
+        "读取当前构建产物SHA/tree/hash，重用可证明未受影响的组件证据；集成资格必须当前候选包实际运行",
+        "收据必须注明skipped与blocked；手写PASS、单英语样例和模拟客户端不能补齐门槛",
+        "按07在干净Windows包执行真实UI/进程/本地模型/云端与MCP链",
+        "每核心格式贯通到知识及使用；批量、断网、错回执、崩溃恢复",
+        "出当前SHA/tree、fixture/模型版本、产物哈希及逐项结果，问题退回所属任务"
+      ],
+      "acceptance": [
+        "G01-G16、G17A、G18候选资格与G19吸收完整性逐项记录，required项不能skip算通过",
+        "核心格式功能通过，精度分层实测；不得用手写PASS代替用户操作"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "存在组件证据，尚无本轮全链候选包资格",
+      "reuse_existing": [
+        "docs/authority/taskpack-0905/",
+        "reports/vnext/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T16",
+      "title": "可交付打包与可回滚使用版",
+      "lane": "release",
+      "depends_on": [
+        "T14",
+        "T15"
+      ],
+      "allowed_paths": [
+        "packaging/vnext/**",
+        ".github/workflows/vnext-release.yml",
+        "scripts/release/**",
+        "reports/release/**"
+      ],
+      "work": [
+        "发布或交付T15验证过的同一字节，附支持/精度/限制/模型与配置/恢复说明",
+        "发布、安装或真实库切换依据当时已有授权，不重复请求已授予权限；本包不自行扩权",
+        "归集T15验证通过的同一字节Avalonia+Rust+worker候选包，模型能力安装/发现明确；不在交付时重建未经验证的包",
+        "依据T15证据读回空环境安装/启动/退出/升级/回滚结果；若包装内容变化，返回T15重验，旧库迁移独立开关",
+        "发布实际支持矩阵与质量报告；授权范围内交付产物，不自动公开发布"
+      ],
+      "acceptance": [
+        "用户无需开发SDK/终端即可完成闭环",
+        "重启/备份恢复/更新回滚成功；版本与文件哈希可追踪"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "新版正式可用交付尚未完成",
+      "reuse_existing": [
+        "packaging/vnext/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T18",
+      "title": "GPT与图像模型驱动的前端全面升级",
+      "lane": "product-design",
+      "depends_on": [
+        "T00",
+        "T02"
+      ],
+      "allowed_paths": [
+        "docs/design/vnext/**",
+        "apps/ArcheAxis.Desktop/Design/**",
+        "apps/ArcheAxis.Desktop/Assets/**",
+        "tests/journey/visual/**"
+      ],
+      "work": [
+        "用执行通道实际可用推理/视觉/图像模型开展设计，核实版本；产品API缺密钥不自动阻塞设计",
+        "先用户旅程/可编码tokens/关键状态；图像模型用于探索和素材，实际Avalonia组件是交付",
+        "保留旧有效交互和功能；允许重新布局/视觉/动效，避免为了还原旧框架重复开发",
+        "旧界面作为功能/文案/交互参照，重新规划用户旅程、信息架构、布局、阅读器和组件状态",
+        "核验执行时最新可用GPT/视觉/图像模型：推理做设计规格，图像模型做风格探索与素材，视觉审查做截图对照；记录模型与提示版本",
+        "产出可编码设计token、关键页状态图、动效/键盘/高对比/缩放规范；有效原素材复用，不强制沿用旧布局"
+      ],
+      "acceptance": [
+        "12-UI-REDESIGN.md全部核心场景都有设计与实际UI映射",
+        "模型输出落实为Avalonia组件；效果图不能代替真实可操作界面"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_state": "旧视觉可参考，实际新UI设计需落实",
+      "reuse_existing": [
+        "OSUI/",
+        "frontend/",
+        "apps/ArcheAxis.Desktop/"
+      ],
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T19",
+      "title": "统一运行根、Agent入口与实际目录边界",
+      "lane": "runtime-governance",
+      "depends_on": [
+        "T00"
+      ],
+      "allowed_paths": [
+        "AGENTS.md",
+        "PROJECT_CONTRACT.yaml",
+        "DIRECTORY_AUTHORITY.yaml",
+        "DECISION_SUPERSESSION_LEDGER.yaml",
+        ".gitignore",
+        "scripts/ci/run_tests.sh",
+        "scripts/runtime/**",
+        "scripts/ci/check_runtime_paths.py",
+        "tests/runtime-paths/**",
+        "docs/authority/taskpack-0905/handoffs/**",
+        "docs/authority/taskpack-0906/**"
+      ],
+      "baseline_state": "根规则/脚本/新handoff仍强制.hermes；.project-local忽略缺失",
+      "reuse_existing": [
+        "scripts/ci/run_tests.sh",
+        "DIRECTORY_AUTHORITY.yaml"
+      ],
+      "work": [
+        "先解析现有路径/所有入口和环境继承，统一采用<repo>/.project-local，不挪用Agent自身会话目录",
+        "同步根规范、脚本、交接与.gitignore；旧.hermes保留可读历史，不再承接新开发产物",
+        "解析器按项目/worktree/run隔离，包含TMP/uv/Python/Cargo/.NET/Node/浏览器缓存；清单化官方工具必需例外",
+        "记录实际解析路径，防链接跳转与路径逃逸，找不到配置时明确失败；可选外部根仅在用户明确配置后使用",
+        "真实文件系统差分检查ignored产物；普通/linked worktree/并发/失败退出验证，治理扫描不冒充OS沙箱"
+      ],
+      "acceptance": [
+        "不同执行软件调用同一测试入口，不再新写.hermes且仅写已声明范围",
+        "项目源码/私有Agent状态/用户知识库三类不混写；新旧规则及入口无矛盾",
+        "G20原始前后路径清单、命令、run ID和异常结果齐备；不能仅用git status证明"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    },
+    {
+      "id": "T20",
+      "title": "体积重计、历史资产保全和分批瘦身",
+      "lane": "asset-preservation",
+      "depends_on": [
+        "T00",
+        "T19"
+      ],
+      "allowed_paths": [
+        "scripts/maintenance/**",
+        "tests/maintenance/**",
+        "docs/authority/taskpack-0906/**"
+      ],
+      "baseline_state": "56.6一级合计自洽；可再生项合计56.29与声明55.29冲突；42.86GB混含证据",
+      "reuse_existing": [
+        "docs/authority/taskpack-0905/REPOSITORY-SIZE-AUDIT-2026-09-05.json",
+        "docs/authority/taskpack-0905/CLEANUP-AND-OUTDATED-INDEX-2026-09-05.md"
+      ],
+      "work": [
+        "只读扫描实际本机，不沿junction/symlink跨域；记录bytes、单位、时间、原始命令、错误、文件身份与分配空间策略",
+        "拆分缓存/唯一资产/未知，不将src-tauri/desktop/apps父目录整类当缓存；生成精确子路径清理候选",
+        "保存历史会话/交接/设计/未合入补丁/证据及被引用原文件，复制后哈希与可读取验证；私密大证据不灌入Git",
+        "可再生性必须有依赖锁、版本、可用工具链/包与代表性重建证明；同名不能证明重复",
+        "默认只产盘点与dry-run；删除/搬移用户现场资产另按已明确授权与逐项清单执行，未知项保留",
+        "清理后复测实际释放量和新增写入，补旧外溢轨迹证据；可执行范围只限已登记本机位置"
+      ],
+      "acceptance": [
+        "自动算术一致；已知缓存、已保全唯一资产、待核验分别计量",
+        "每项候选有精确path/type/hash/bytes/owner/reference/rebuild/evidence/rollback；未审.hermes不得全删",
+        "保全或清理状态如实；无本地访问则LOCAL_ACCESS_REQUIRED，不伪造释放体积；无需为等删除拖住产品开发"
+      ],
+      "status": "planned",
+      "completion_evidence_required": true,
+      "baseline_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e"
+    }
+  ],
+  "version": "2026-09-06-r1",
+  "supersedes_plan": "2026-09-05-r2/r3",
+  "scope_note": "Incremental remaining work; reuse reviewed DSH slices; planned is NOT a claim that no implementation exists."
+}

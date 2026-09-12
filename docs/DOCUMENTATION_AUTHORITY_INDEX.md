@@ -4,7 +4,39 @@
 > a document; it never promotes a plan, handoff, test fixture, release tag, or
 > historical snapshot into live product evidence.
 
-## Read order
+## Current read order (2026-09-10)
+
+1. [AGENTS](../AGENTS.md), [project contract](../PROJECT_CONTRACT.yaml) and
+   [decision supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml).
+2. [NEXT-TASKPACK-0910 live execution](authority/taskpack-0910-r3/EXECUTION.md) —
+   the single active plan (ARCHEAXIS-NEXT-TASKPACK-2026-09-10, 17 slices
+   R00-R16; SUP-018), with slice progress in
+   [STATE.json](authority/taskpack-0910-r3/STATE.json) and its package snapshot
+   in `authority/taskpack-0910-r3/reference-r2/`. Auditing this repository from
+   outside it starts at
+   [AUDIT-PACKET.md](authority/taskpack-0910-r3/AUDIT-PACKET.md): what is
+   provable from tracked files alone, the verification commands with their
+   expected results, and the limitations already recorded. The preceding R3-0908 ledger
+   ([taskpack-0908-r3/EXECUTION](authority/taskpack-0908-r3/EXECUTION.md)) is
+   the source of the inherited task text and its own receipts. Its inherited R2
+   audit board stays at
+   [Q00-Q01-AUDIT-2026-09-07](authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md);
+   the R2 execution ledger
+   ([taskpack-0907/EXECUTION](authority/taskpack-0907/EXECUTION.md)) is the
+   source of inherited task text and historical receipts; the 2026-09-06
+   full-loop execution is historical - SUP-012..016.
+   Before resolving machine-local tools/models or material paths, read the
+   [user-confirmed shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
+3. [Language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md),
+   [directory authority](DIRECTORY_AUTHORITY_INDEX.md), and
+   [runtime delivery](RUNTIME_DELIVERY_AUTHORITY_INDEX.md).
+4. Historical evidence below, bound to its original date and tested SHA.
+
+The old G0 shadow-cutover and React default are superseded by SUP-003/006/007.
+The 2026-09-04 Current Reality record and R2 plan below are historical, not the
+current vNext task queue. Keep their evidence intact.
+
+## Historical read order and evidence map
 
 1. [Project operating boundary](../AGENTS.md) and the
    [configuration authority index](CONFIGURATION_AUTHORITY_INDEX.md).
@@ -77,12 +109,13 @@ CI, release, or user-data migration unless it names that evidence layer.
 - Tracked historical documents may be moved only after a path/hash/reference
   manifest, compatibility-link update and regression check. They are not
   disposable merely because their date is old.
-- The language route keeps Rust as the eventual domain-truth core, React as the
-  product surface and Python as a replaceable parsing/AI sidecar. Until a named
-  aggregate passes its cutover gate, its present writer remains authoritative.
+- The formal route is Avalonia/C#, a separate Rust-owned vNext database, and
+  isolated Python workers. Legacy data retains its existing writer until
+  validated migration; no shared database or dual write.
 - No Green `data`, runtime database, ignored evidence, compatibility shim,
   frontend tree or desktop tree may be deleted under documentation cleanup.
-- Generated runtime files belong under ignored `.hermes/`; Git-object cleanup
+- New development files belong under ignored `.project-local/`; `.hermes` is
+  preserved mixed legacy material. Git-object cleanup
   waits for all Git writers to stop and for reachable/unreachable object review.
 
 ## Operational links

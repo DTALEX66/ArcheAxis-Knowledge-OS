@@ -35,7 +35,7 @@
       "icons/icon.png"
     ],
     "resources": {
-      "../.hermes/rt/runtime": "runtime"
+      "../.project-local/rt/runtime": "runtime"
     }
   }
 }

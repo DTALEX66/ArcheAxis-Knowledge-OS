@@ -40,6 +40,7 @@ version = "0.1.0"
 dependencies = [
  "archeaxis-contracts",
  "archeaxis-domain",
+ "archeaxis-sidecar-protocol",
  "archeaxis-store-sqlite",
  "hex",
  "rusqlite",
@@ -47,6 +48,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "tokio",
 ]
 
 [[package]]
@@ -62,11 +64,16 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "tokio",
 ]
 
 [[package]]
 name = "archeaxis-contracts"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "archeaxis-domain"
@@ -84,6 +91,8 @@ dependencies = [
 name = "archeaxis-migration"
 version = "0.1.0"
 dependencies = [
+ "archeaxis-domain",
+ "archeaxis-store-sqlite",
  "hex",
  "rusqlite",
  "serde",
@@ -96,15 +105,23 @@ dependencies = [
 name = "archeaxis-sidecar-protocol"
 version = "0.1.0"
 dependencies = [
+ "hex",
  "serde",
  "serde_json",
+ "sha2",
+ "tempfile",
 ]
 
 [[package]]
 name = "archeaxis-store-sqlite"
 version = "0.1.0"
 dependencies = [
+ "hex",
  "rusqlite",
+ "sha2",
+ "tempfile",
+ "tokio",
+ "windows-sys",
 ]
 
 [[package]]

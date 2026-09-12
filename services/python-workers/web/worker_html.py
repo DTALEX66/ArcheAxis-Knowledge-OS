@@ -24,8 +24,15 @@ from pathlib import Path
 
 ENGINE = "python-worker-html"
 ENGINE_VERSION = "0.1.0"
+# R15/F02: the identity advertised in the sidecar handshake. This worker existed since an
+# earlier slice with no route pointing at it; the sidecar mode below is that wiring.
+WORKER_IDENTITY = "python-worker-html-ndjson"
 
 _SKIP_TAGS = {"script", "style", "noscript", "template", "svg"}
+# R15/F02: a marker that makes a file an HTML document rather than bytes with a .html name.
+# Deliberately any tag, not a list of block tags: `<b>hi</b>` is a marked-up document, and an
+# allow-list refused it as "not an HTML document" (found by the bulk HTML worker test).
+_TAG_MARKER = re.compile(r"<\s*(?:!doctype\b|/?\s*[a-zA-Z][a-zA-Z0-9:_-]*)", re.I)
 _BLOCK_TAGS = {
     "p", "div", "section", "article", "li", "h1", "h2", "h3", "h4", "h5",
     "h6", "blockquote", "pre", "table", "tr", "br", "ul", "ol",
@@ -71,6 +78,13 @@ class _Extractor(HTMLParser):
         if self.links and not self.links[-1]["text"]:
             self.links[-1]["text"] = data.strip()[:200]
 
+    def close(self) -> None:
+        # A fragment made only of inline tags (`<b>hi</b>`) never crosses a block boundary, so
+        # its text would otherwise be dropped and the document would project as empty.
+        super().close()
+        if self._skip_depth == 0:
+            self._flush_block()
+
     def _flush_block(self) -> None:
         raw = "".join(self._text_parts)
         text = re.sub(r"[ \t]+", " ", raw).strip()
@@ -92,6 +106,13 @@ def extract(path: str) -> dict:
     parser.close()
 
     blocks = parser.blocks
+    # R15/F02: a file that carries no HTML at all must fail rather than succeed with an
+    # empty body. A page that is genuinely blank is different: it is marked up, so it is
+    # reported as carrying no text instead of being refused. The test is markup presence
+    # alone, not "no blocks": text is now flushed at close, so any text file would
+    # otherwise be accepted as a page.
+    if not _TAG_MARKER.search(html_text):
+        raise ValueError("not an HTML document: no tags found in the snapshot")
     projection = "\n\n".join(blocks)
     anchors: list[dict] = []
     offset = 0
@@ -119,12 +140,37 @@ def extract(path: str) -> dict:
                 "scripts/styles never executed; layout/ads separation and "
                 "trafilatura-grade extraction are later slices; link list "
                 "kept with href and visible text"
+                + ("; the marked-up page carries no text blocks at all" if not blocks else "")
             ),
         },
     }
 
 
 def main() -> int:
+    # R15/F02: the same stdio job loop every route uses, with this worker's own identity
+    # and capability, so a saved HTML snapshot reaches the Core through the normal
+    # job/attempt/error machinery instead of a private CLI path.
+    if "--staging-root" in sys.argv:
+        import argparse
+        import importlib.util
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "html_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        sidecar = argparse.ArgumentParser(description=__doc__)
+        sidecar.add_argument("--staging-root", type=Path, required=True)
+        sidecar.add_argument("--artifact-root", type=Path, default=None)
+        args = sidecar.parse_args()
+        return transport.serve_stdio(
+            WORKER_IDENTITY, ["html.structure"], args.staging_root, args.artifact_root
+        )
+
     if len(sys.argv) != 2:
         print(json.dumps({"error": "usage: worker_html.py <snapshot.html>"}))
         return 2

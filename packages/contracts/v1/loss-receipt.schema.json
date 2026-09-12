@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/loss-receipt.schema.json",
+  "title": "Worker loss and coverage receipt",
+  "description": "Coverage is declared output-unit accounting, not measured accuracy. Runtime validation additionally requires covered <= total and coverage = covered/total within absolute 1e-12, or 1 when total is zero. The legacy four-field shape has unmeasured coverage. Unknown fields must never be silently dropped.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["engine", "engine_version", "params", "loss_note"],
+  "properties": {
+    "engine": {"type": "string", "pattern": "\\S"},
+    "engine_version": {"type": "string", "pattern": "\\S"},
+    "params": {"type": "object"},
+    "loss_note": {"type": ["string", "null"]},
+    "losses": {"type": "array", "items": {"type": "string", "pattern": "\\S"}},
+    "covered": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+    "total": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+    "coverage": {"type": "number", "minimum": 0, "maximum": 1}
+  },
+  "dependentRequired": {
+    "covered": ["total", "coverage"],
+    "total": ["covered", "coverage"],
+    "coverage": ["covered", "total"]
+  }
+}

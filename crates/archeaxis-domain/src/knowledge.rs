@@ -41,6 +41,8 @@ pub fn create_knowledge(
 
 /// Review action produces an immutable event and (for accept/reject/modify)
 /// updates the knowledge status. `action` must be one of accepted|rejected|modified|deprecated.
+/// C03: the status change and the review event are committed in ONE write
+/// transaction - a failure rolls back both (no accepted-without-event).
 pub fn review(
     conn: &mut Connection,
     knowledge_id: &str,
@@ -49,7 +51,8 @@ pub fn review(
     note: Option<&str>,
     new_body: Option<&str>,
 ) -> rusqlite::Result<String> {
-    let row: Option<(String, String, String, Option<String>)> = conn
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let row: Option<(String, String, String, Option<String>)> = tx
         .query_row(
             "SELECT knowledge_type, body, status, anchor_id FROM knowledge WHERE knowledge_id=?1",
             [knowledge_id],
@@ -64,39 +67,72 @@ pub fn review(
             ));
         }
     };
-    let final_body = new_body.unwrap_or(&old_body).to_string();
+    // REVISION-01: accepting, rejecting or deprecating never rewrites the
+    // reviewed body; a corrected body must go through "modified", which
+    // creates a new revision and a supersede relation instead.
+    if action != "modified" && new_body.is_some() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "new_body requires the modified action; accept/reject/deprecate never overwrite the reviewed body".into(),
+        ));
+    }
+    if action == "modified" {
+        // A modification creates a NEW candidate row carrying the corrected
+        // body inside the same transaction and records the event on the old
+        // row; nothing is committed unless both succeed.
+        let revised_body = new_body.unwrap_or(&old_body).to_string();
+        let mut h = Sha256::new();
+        h.update(format!("{kind}|{revised_body}|{reviewer}").as_bytes());
+        let kid = format!("k_{}", &hex::encode(h.finalize())[..24]);
+        tx.execute(
+            "INSERT INTO knowledge(knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, receipt_hash)
+             VALUES(?1,?2,?3,'candidate',NULL,?4,?5,?6)",
+            rusqlite::params![
+                kid,
+                kind,
+                revised_body,
+                anchor_id,
+                reviewer,
+                receipt_hash(&kind, &revised_body, "candidate", anchor_id.as_deref()),
+            ],
+        )?;
+        tx.execute(
+            "INSERT INTO review_events(knowledge_id, action, reviewer, note) VALUES(?1,?2,?3,?4)",
+            rusqlite::params![
+                knowledge_id,
+                "modified",
+                reviewer,
+                note.map(|n| format!("{n} (new candidate {kid})"))
+            ],
+        )?;
+        tx.execute(
+            "INSERT INTO knowledge_supersedes(old_knowledge_id, new_knowledge_id) VALUES(?1,?2)",
+            rusqlite::params![knowledge_id, kid],
+        )?;
+        tx.commit()?;
+        return Ok(kid);
+    }
     let new_status = match action {
         "accepted" => "accepted",
         "rejected" => "rejected",
         "deprecated" => "deprecated",
-        "modified" => {
-            // a modification creates a NEW candidate row; caller passes the id to accept after
-            let kid = create_knowledge(
-                conn,
-                &kind,
-                &final_body,
-                "candidate",
-                None,
-                anchor_id.as_deref(),
-                reviewer,
-            )?;
-            return Ok(kid);
-        }
         _ => {
             return Err(rusqlite::Error::InvalidParameterName(
                 "unknown action".into(),
             ));
         }
     };
-    let r = receipt_hash(&kind, &final_body, new_status, anchor_id.as_deref());
-    conn.execute(
-        "UPDATE knowledge SET body=?1, status=?2, receipt_hash=?3 WHERE knowledge_id=?4",
-        rusqlite::params![final_body, new_status, r, knowledge_id],
+    let r = receipt_hash(&kind, &old_body, new_status, anchor_id.as_deref());
+    // REVISION-01: status changes touch only status and receipt; the reviewed
+    // body bytes stay exactly as first stored.
+    tx.execute(
+        "UPDATE knowledge SET status=?1, receipt_hash=?2 WHERE knowledge_id=?3",
+        rusqlite::params![new_status, r, knowledge_id],
     )?;
-    conn.execute(
+    tx.execute(
         "INSERT INTO review_events(knowledge_id, action, reviewer, note) VALUES(?1,?2,?3,?4)",
         rusqlite::params![knowledge_id, action, reviewer, note],
     )?;
+    tx.commit()?;
     Ok(knowledge_id.to_string())
 }
 
@@ -128,4 +164,62 @@ pub fn status_counts(conn: &Connection) -> rusqlite::Result<String> {
     add("deprecated", d, true);
     s.push('}');
     Ok(s)
+}
+
+/// Qualification check used before a machine (or any consumer) reuses a
+/// knowledge unit as current context (X09). A knowledge row is active only
+/// while its latest status is candidate or accepted; deprecated/rejected rows
+/// must not be served as current valid facts. Unknown ids report false.
+pub fn is_knowledge_active(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<bool> {
+    let row: Option<(String, bool)> = conn
+        .query_row(
+            "SELECT status,
+                    EXISTS(SELECT 1 FROM knowledge_supersedes WHERE old_knowledge_id=?1)
+             FROM knowledge WHERE knowledge_id=?1",
+            [knowledge_id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .optional()?;
+    match row {
+        Some((status, superseded)) => {
+            // A row that has a newer successor is no longer "current" even if
+            // its own status is candidate/accepted (version strategy).
+            Ok(!superseded && matches!(status.as_str(), "candidate" | "accepted"))
+        }
+        None => Ok(false),
+    }
+}
+
+/// Reverse lookup: knowledge rows bound to a source anchor (bidirectional
+/// navigation from an original-source position back to derived content).
+pub fn knowledge_ids_for_anchor(
+    conn: &Connection,
+    anchor_id: &str,
+) -> rusqlite::Result<Vec<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT knowledge_id FROM knowledge WHERE anchor_id=?1 ORDER BY knowledge_id",
+    )?;
+    let rows = stmt.query_map([anchor_id], |r| r.get(0))?;
+    rows.collect()
+}
+
+/// Read the persisted status of a knowledge row (None when missing) so a
+/// consumer can check qualification before reuse.
+pub fn knowledge_status(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<Option<String>> {
+    conn.query_row(
+        "SELECT status FROM knowledge WHERE knowledge_id=?1",
+        [knowledge_id],
+        |r| r.get(0),
+    )
+    .optional()
+}
+
+/// Successor ids produced by modified reviews (revision chain forward).
+pub fn knowledge_successors(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<Vec<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT new_knowledge_id FROM knowledge_supersedes
+         WHERE old_knowledge_id=?1 ORDER BY created_at, rowid",
+    )?;
+    let rows = stmt.query_map([knowledge_id], |r| r.get(0))?;
+    rows.collect()
 }

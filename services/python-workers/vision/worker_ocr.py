@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ArcheAxis vNext vision worker: OCR text + boxes (F04 partial).
 
 Runs the system Tesseract binary over a still image and returns:
@@ -14,13 +13,17 @@ vision-model lane. Screenshots are never reduced to metadata only.
 
 Usage:
     python worker_ocr.py <image.png|jpg|jpeg|webp|bmp|tiff> [--lang eng]
-    python worker_ocr.py --probe
+    python worker_ocr.py --probe [--profile public-profile.yaml] [--lang eng]
 """
 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
+import math
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -28,8 +31,20 @@ from pathlib import Path
 
 ENGINE = "python-worker-ocr"
 ENGINE_VERSION = "0.1.0"
+# A review threshold on Tesseract's per-word score: regions below it are listed so a
+# human can look at them first. It is deliberately a threshold with a name, not an
+# accuracy claim - the score is reported beside every region it applies to.
+REVIEW_THRESHOLD = 60.0
+LOW_CONFIDENCE_CAP = 200
+# R08: identity advertised in the sidecar handshake for this route.
+WORKER_IDENTITY = "python-worker-ocr-ndjson"
 
 SUPPORTED = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"}
+
+
+def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
+    # No visible Tesseract console when invoked from the desktop worker lane.
+    return subprocess.run(command, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, **kwargs)
 
 
 def _tesseract() -> str:
@@ -39,54 +54,241 @@ def _tesseract() -> str:
     return binary
 
 
-def probe() -> dict:
-    binary = shutil.which("tesseract")
-    if not binary:
-        return {"capability": False, "reason": "tesseract not found", "engine": ENGINE}
-    version_out = subprocess.run(
-        [binary, "--version"], capture_output=True, text=True, errors="replace", timeout=20
-    ).stdout.splitlines()[0] if subprocess.run(
-        [binary, "--version"], capture_output=True, text=True, errors="replace", timeout=20
-    ).stdout else "unknown"
-    langs_out = subprocess.run(
-        [binary, "--list-langs"], capture_output=True, text=True, errors="replace", timeout=30
-    ).stdout.splitlines()
-    langs = [line.strip() for line in langs_out if line.strip() and not line.startswith("List")]
-    return {
-        "capability": True,
-        "engine": ENGINE,
-        "tesseract": binary,
-        "version": version_out,
-        "languages": langs,
-        "formats": sorted(SUPPORTED),
-        "note": "text+boxes only; diagram description is the local vision-model lane",
+# R15/F04: the reading-order model for recognised text.
+COLUMN_MIN_GUTTER = 0.04
+COLUMN_EDGE_MARGIN = 0.08
+READING_ORDER_MODEL = "one vertical gutter over word boxes, then column by column and top to bottom"
+
+
+def _line_key(word: dict) -> tuple:
+    return (round(float(word["y"]), 0), round(float(word["x"]), 0))
+
+
+def _words_of_a_line(words: list[dict]) -> str:
+    """The words of a row, left to right.
+
+    Ordered by x alone: sorting by (y, x) let a one-pixel baseline difference flip two words
+    of the same row, which is how "LEFT SECOND" came back as "SECOND LEFT" before this was
+    measured.
+    """
+    return " ".join(word["text"] for word in sorted(words, key=lambda word: float(word["x"])))
+
+
+def _two_column_gutter(words: list[dict]) -> tuple[float, float] | None:
+    """A vertical band no word crosses, with at least two words on each side.
+
+    Word boxes decide this, not line boxes: in single-block mode a line spans the whole row
+    and would cross every candidate gutter. The widest accepted band wins, because a real
+    gutter is wide and the incidental gap between two words on one line is not.
+    """
+    left_edges = [float(word["x"]) for word in words]
+    right_edges = [float(word["x"]) + float(word["w"]) for word in words]
+    edges = sorted({round(value, 1) for value in left_edges + right_edges})
+    width = max(right_edges) - min(left_edges)
+    best: tuple[float, float, float] | None = None
+    for left_edge, right_edge in zip(edges, edges[1:]):
+        band = right_edge - left_edge
+        if band < COLUMN_MIN_GUTTER * width:
+            continue
+        if left_edge < min(left_edges) + COLUMN_EDGE_MARGIN * width:
+            continue
+        if right_edge > min(left_edges) + (1 - COLUMN_EDGE_MARGIN) * width:
+            continue
+        left = [word for word in words if float(word["x"]) + float(word["w"]) <= left_edge + 0.5]
+        right = [word for word in words if float(word["x"]) >= right_edge - 0.5]
+        if len(left) < 2 or len(right) < 2 or len(left) + len(right) != len(words):
+            continue
+        if best is None or band > best[2]:
+            best = (left_edge, right_edge, band)
+    return None if best is None else (best[0], best[1])
+
+
+def _reading_order(words: list[dict], engine_text: str) -> tuple[str, dict, list[dict]]:
+    """The recognised text in a reading order the word boxes support.
+
+    The engine is run in single-block mode, so a visual row of two columns comes back as one
+    line ("LEFT FIRST RIGHT FIRST") and the projection interleaves the columns. When the word
+    boxes show one unambiguous gutter with words on both sides, each engine line is split along
+    that gutter and the segments are ordered column by column and then top to bottom.
+
+    **The invariant is the word multiset**, not the line set: this model is allowed to split a
+    line, because that is precisely what the engine's single-block layout gets wrong, but it may
+    never add or lose a word. When the reconstruction would not account for exactly the words
+    the engine's own text carries, the engine order is kept and the reason is recorded.
+    """
+    facts: dict = {
+        "model": READING_ORDER_MODEL,
+        "applied": False,
+        "columns": 1,
+        "gutter": None,
+        "blank_lines_dropped": 0,
+        "differs_from_engine_order": False,
     }
+    engine_lines = [line for line in engine_text.splitlines() if line.strip()]
+    if len(words) < 4:
+        facts["reason"] = "fewer than four word boxes, so no layout is inferred"
+        return engine_text, facts, words
+    gutter = _two_column_gutter(words)
+    if gutter is None:
+        facts["reason"] = "no vertical band that no word box crosses with words on both sides"
+        return engine_text, facts, words
+
+    left = [word for word in words if float(word["x"]) + float(word["w"]) <= gutter[0] + 0.5]
+    right = [word for word in words if float(word["x"]) >= gutter[1] - 0.5]
+
+    def rows(column: list[dict]) -> list[list[dict]]:
+        """The column's words as visual rows, then left to right within each row.
+
+        Rows are grouped by overlapping vertical extent rather than by the engine's line ids:
+        measured on a two-column sample, words printed on the same visual row came back under
+        different line ids, so trusting them reordered "LEFT SECOND" into "SECOND LEFT".
+        """
+        grouped: list[list[dict]] = []
+        for word in sorted(column, key=lambda w: (float(w["y"]) + float(w["h"]) / 2, float(w["x"]))):
+            centre = float(word["y"]) + float(word["h"]) / 2
+            for row in grouped:
+                row_centre = sum(float(w["y"]) + float(w["h"]) / 2 for w in row) / len(row)
+                tallest = max([float(w["h"]) for w in row] + [float(word["h"])])
+                if abs(centre - row_centre) <= 0.6 * tallest:
+                    row.append(word)
+                    break
+            else:
+                grouped.append([word])
+        return [sorted(row, key=lambda w: float(w["x"])) for row in grouped]
+
+    columns = [rows(left), rows(right)]
+    lines = [_words_of_a_line(row) for column in columns for row in column]
+    candidate = "\n".join(lines)
+    if sorted(candidate.split()) != sorted(engine_text.split()):
+        facts["reason"] = (
+            "the reconstruction would not account for exactly the words the engine's own text "
+            "carries, so the engine order is kept"
+        )
+        facts["reconstruction_refused"] = True
+        return engine_text, facts, words
+
+    ordered = [word for column in columns for row in column for word in row]
+    facts.update(
+        {
+            "applied": True,
+            "columns": 2,
+            "gutter": [round(gutter[0], 1), round(gutter[1], 1)],
+            "lines": len(lines),
+            "engine_lines_seen": len({(word["block"], word["par"], word["line"]) for word in words}),
+            "rows_grouped_by": "overlapping vertical extent, not the engine's line ids",
+            "blank_lines_dropped": max(0, len(engine_text.splitlines()) - len(engine_lines)),
+            "differs_from_engine_order": lines != engine_lines,
+            "reason": "one unambiguous gutter with words on both sides, and the same words in both orders",
+        }
+    )
+    return candidate, facts, ordered
 
 
-def extract(path: Path, lang: str) -> dict:
+def _public_path(value: str | Path) -> Path:
+    text = str(value).replace("\\", "/")
+    if text.lower().startswith(("e:", "//")):
+        raise ValueError("protected drive or UNC path is not permitted")
+    path = Path(value).absolute()
+    if any(part.casefold() in {".env", ".codex", ".dsh", ".hermes", ".openhuman", ".claude", ".agents"}
+           for part in path.parts):
+        raise ValueError("private agent configuration is not a public OCR profile")
+    return path
+
+
+def load_tessdata_dir(profile: Path) -> Path:
+    """Read only the explicitly selected public YAML; never infer a profile."""
+    import yaml
+
+    profile = _public_path(profile)
+    if profile.suffix.lower() not in {".yaml", ".yml"}:
+        raise ValueError("OCR profile must be a public YAML file")
+    payload = yaml.safe_load(profile.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or payload.get("schema") != "archeaxis.model-profile/v1":
+        raise ValueError("invalid OCR model profile schema")
+    config = payload.get("ocr")
+    value = config.get("tessdata_dir") if isinstance(config, dict) else None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("explicit OCR profile requires ocr.tessdata_dir")
+    path = _public_path(value)
+    if not Path(value).is_absolute():
+        path = _public_path(profile.parent / value)
+    if not path.is_dir():
+        raise ValueError(f"OCR tessdata_dir does not exist: {path}")
+    return path
+
+
+def _tessdata_args(tessdata_dir: Path | None) -> list[str]:
+    return ["--tessdata-dir", str(tessdata_dir)] if tessdata_dir is not None else []
+
+
+def probe(lang: str = "eng", tessdata_dir: Path | None = None) -> dict:
+    try:
+        binary = _tesseract()
+        version = _run(
+            [binary, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20
+        )
+        if version.returncode != 0 or not version.stdout.strip():
+            raise RuntimeError(f"tesseract version probe failed (exit {version.returncode})")
+        listed = _run(
+            [binary, "--list-langs", *_tessdata_args(tessdata_dir)],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30
+        )
+        if listed.returncode != 0:
+            raise RuntimeError(f"tesseract language probe failed (exit {listed.returncode}): {listed.stderr[-400:]}")
+        langs = [line.strip() for line in listed.stdout.splitlines()
+                 if re.fullmatch(r"[A-Za-z0-9_./\\-]+", line.strip())]
+        required = lang.split("+")
+        if not langs or any(not token or token not in langs for token in required):
+            raise RuntimeError(f"required OCR languages unavailable: {lang}")
+        return {
+            "capability": True,
+            "engine": ENGINE,
+            "tesseract": binary,
+            "version": version.stdout.splitlines()[0],
+            "languages": langs,
+            "requested_languages": required,
+            "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
+            "warnings": [message.strip() for message in (version.stderr, listed.stderr) if message.strip()],
+            "formats": sorted(SUPPORTED),
+            "note": "text+boxes only; diagram description is the local vision-model lane",
+        }
+    except Exception as exc:  # noqa: BLE001 - capability failures must remain JSON
+        return {"capability": False, "reason": f"{type(exc).__name__}: {exc}", "engine": ENGINE}
+
+
+def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
     binary = _tesseract()
     if not path.is_file():
         raise ValueError(f"input image not found: {path}")
     if path.suffix.lower() not in SUPPORTED:
         raise ValueError(f"unsupported image extension: {path.suffix}")
 
-    plain = subprocess.run(
-        [binary, str(path), "stdout", "-l", lang, "--psm", "6"],
+    plain = _run(
+        [binary, str(path), "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir)],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         errors="replace",
         timeout=300,
     )
     if plain.returncode != 0:
         raise RuntimeError(f"tesseract failed: {plain.stderr[-400:]}")
 
-    tsv = subprocess.run(
-        [binary, str(path), "stdout", "-l", lang, "--psm", "6", "tsv"],
+    tsv = _run(
+        # Language-only tessdata packages may omit configs/tsv. Tesseract's
+        # documented -c parameter selects the same renderer without that file.
+        [binary, str(path), "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir),
+         "-c", "tessedit_create_tsv=1"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         errors="replace",
         timeout=300,
     )
+    if tsv.returncode != 0:
+        raise RuntimeError(f"tesseract TSV failed: {tsv.stderr[-400:]}")
+    if not tsv.stdout.startswith("level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext"):
+        raise RuntimeError("tesseract TSV output is missing or invalid")
     words: list[dict] = []
     if tsv.returncode == 0:
         lines = tsv.stdout.splitlines()
@@ -94,57 +296,219 @@ def extract(path: Path, lang: str) -> dict:
             for line in lines[1:]:
                 fields = line.split("\t")
                 if len(fields) < 12:
-                    continue
+                    raise RuntimeError("truncated Tesseract TSV row")
                 try:
                     word_text = fields[11]
                     conf = float(fields[10])
-                except (ValueError, IndexError):
-                    continue
+                except (ValueError, IndexError) as exc:
+                    raise RuntimeError("invalid Tesseract TSV confidence") from exc
+                if not math.isfinite(conf):
+                    raise RuntimeError("non-finite Tesseract TSV confidence")
                 if word_text.strip() and conf >= 0:
+                    bounds = [int(fields[index]) for index in (6, 7, 8, 9)]
+                    if any(value < 0 for value in bounds) or bounds[2] == 0 or bounds[3] == 0 or conf > 100:
+                        raise RuntimeError("invalid Tesseract word bounds/confidence")
                     words.append(
                         {
                             "text": word_text,
                             "confidence": round(conf, 1),
-                            "x": int(fields[6]),
-                            "y": int(fields[7]),
-                            "w": int(fields[8]),
-                            "h": int(fields[9]),
+                            "x": bounds[0],
+                            "y": bounds[1],
+                            "w": bounds[2],
+                            "h": bounds[3],
+                            # The engine's own segmentation, kept so a line of words can be
+                            # regrouped without inventing one: block/paragraph/line ids.
+                            "block": fields[2],
+                            "par": fields[3],
+                            "line": fields[4],
                         }
                     )
 
     text = plain.stdout.strip()
+    if text and not words:
+        raise RuntimeError("tesseract returned text without word boxes; OCR output is incomplete")
+    warnings = [{"stage": stage, "message": result.stderr.strip()}
+                for stage, result in (("text", plain), ("tsv", tsv)) if result.stderr.strip()]
+    # R15/F04: the reading order of the projected text is decided here from the word boxes
+    # and reported as a fact. The route runs the engine in single-block mode (`--psm 6`), so
+    # on a two-column page the engine's own line spans both columns and its text interleaves
+    # them; that can only be corrected by splitting the line along the gutter, which is why
+    # the invariant here is "not one word added or lost" rather than "the same lines".
+    text, reading_order, ordered_words = _reading_order(words, text)
+    if text and not ordered_words:
+        ordered_words = words
+    # R08: the Core's projection contract is line-based for every route, so the
+    # structure artifact carries the canonical line anchors of the recognised text
+    # (identical shape to the text and PDF routes). OCR's own positions are word
+    # regions: they travel as review metadata inside the loss receipt, because the
+    # Core accepts exactly three artifacts and a region can never equal a
+    # projected line.
+    structure: list[dict] = []
+    offset = 0
+    for index, line in enumerate(text.splitlines(keepends=True), start=1):
+        structure.append(
+            {
+                "kind": "line",
+                "path": [f"line-{index}"],
+                "char_start": offset,
+                "char_end": offset + len(line),
+            }
+        )
+        offset += len(line)
+
+    regions: list[dict] = []
+    cursor = 0
+    for index, word in enumerate(ordered_words, start=1):
+        needle = word["text"]
+        found = text.find(needle, cursor)
+        if found < 0:
+            found = text.find(needle)
+        if found < 0:
+            continue
+        regions.append(
+            {
+                "region": index,
+                "text": needle,
+                "char_start": found,
+                "char_end": found + len(needle),
+                "bbox": {"x": word["x"], "y": word["y"], "w": word["w"], "h": word["h"]},
+                "confidence": word["confidence"],
+            }
+        )
+        cursor = found + len(needle)
+    anchor_summary = {"covered": len(structure), "total": len(structure)}
+    covered = len(structure)
+    total = len(structure)
+    # R15/F04-F06: which regions a human should look at first. The threshold is a
+    # REVIEW threshold on the engine's own per-word score - it is not an accuracy
+    # measure and it is not a verdict about the text, so it is named as such and the
+    # score is reported next to it rather than being summarised into one number.
+    low_confidence = [
+        {
+            "region": region["region"],
+            "text": region["text"],
+            "char_start": region["char_start"],
+            "char_end": region["char_end"],
+            "bbox": region["bbox"],
+            "confidence": region["confidence"],
+        }
+        for region in regions
+        if isinstance(region.get("confidence"), (int, float)) and region["confidence"] < REVIEW_THRESHOLD
+    ]
+    scored = [region["confidence"] for region in regions if isinstance(region.get("confidence"), (int, float))]
+    review = {
+        "threshold": REVIEW_THRESHOLD,
+        "threshold_meaning": (
+            "a review threshold on the engine's per-word score: below it a region is listed for a "
+            "human to check first; it is not a correctness measure and not a statement about the text"
+        ),
+        "region_count": len(regions),
+        "scored_region_count": len(scored),
+        "unscored_region_count": len(regions) - len(scored),
+        "low_confidence_count": len(low_confidence),
+        "low_confidence_regions": low_confidence[:LOW_CONFIDENCE_CAP],
+        "low_confidence_capped": len(low_confidence) > LOW_CONFIDENCE_CAP,
+        "lowest_score": min(scored) if scored else None,
+    }
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "text": text,
         "words": words,
+        "structure": structure,
+        "anchor_summary": anchor_summary,
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"lang": lang, "psm": 6, "engine": "tesseract"},
+            "params": {"lang": lang, "psm": 6, "engine": "tesseract",
+                       "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
+                       "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings,
+                       "coverage_unit": "line anchors",
+                       # R15/F04: the reading order is a decision with a reason, reported the
+                       # same way as every other fact, and the word regions below follow it.
+                       "reading_order": reading_order,
+                       # Recogniser confidence is review metadata, never an accuracy claim.
+                       "regions": regions,
+                       "review": review},
+            "losses": [
+                f"subprocess warning: {w['message'][:200]}" for w in warnings
+            ]
+            + (
+                [
+                    "the reading order was rebuilt from word boxes: the engine's single-block "
+                    "order interleaved the columns, and the words were re-ordered column by "
+                    "column without adding or dropping any"
+                ]
+                if reading_order.get("applied") and reading_order.get("differs_from_engine_order")
+                else []
+            )
+            + (
+                [
+                    f"{reading_order['blank_lines_dropped']} blank separator line(s) in the "
+                    "engine's text are not carried by the rebuilt projection"
+                ]
+                if reading_order.get("applied") and reading_order.get("blank_lines_dropped")
+                else []
+            )
+            + (
+                [
+                    f"{len(low_confidence)} region(s) scored below the review threshold "
+                    f"{REVIEW_THRESHOLD}; they are listed in params.review for a human to check"
+                ]
+                if low_confidence
+                else []
+            ),
+            "covered": covered,
+            "total": total,
+            "coverage": (covered / total) if total else 1.0,
             "loss_note": (
-                "OCR text with per-word boxes/confidence; reading order follows "
-                "Tesseract layout; diagram semantics, handwriting and low-quality "
-                "region retries are separate lanes"
+                "OCR text with per-word boxes/confidence kept as review metadata "
+                "(params.regions); the reading order is decided from the word boxes and "
+                "reported in params.reading_order, and the engine's single-block layout is "
+                "kept whenever the model would not account for exactly the same words; "
+                "diagram semantics, handwriting and low-quality region retries are separate "
+                "lanes"
+                + ("; subprocess warnings retained in params.warnings" if warnings else "")
             ),
         },
     }
 
 
 def main() -> int:
+    # R08: the same sidecar stdio job loop the text and PDF routes use, with this
+    # route's own identity and capability, so image input reaches the Core through
+    # the shared job/attempt/error machinery instead of a private CLI path.
+    if "--staging-root" in sys.argv:
+        import importlib.util
+
+        repo_root = Path(__file__).resolve().parents[3]
+        spec = importlib.util.spec_from_file_location(
+            "ocr_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        )
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        parser = argparse.ArgumentParser(description="ArcheAxis OCR worker")
+        parser.add_argument("--staging-root", type=Path, required=True)
+        args = parser.parse_args()
+        return transport.serve_stdio(WORKER_IDENTITY, ["image.ocr"], args.staging_root)
+
+    with contextlib.suppress(AttributeError, OSError):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="ArcheAxis OCR worker")
     parser.add_argument("input", nargs="?", help="image file")
     parser.add_argument("--lang", default="eng")
     parser.add_argument("--probe", action="store_true")
+    parser.add_argument("--profile", type=Path, help="explicit public OCR model-profile YAML")
     args = parser.parse_args()
-    if args.probe:
-        print(json.dumps(probe(), ensure_ascii=False))
-        return 0
-    if not args.input:
+    if not args.probe and not args.input:
         print(json.dumps({"error": "usage: worker_ocr.py <image-file> [--lang eng]"}))
         return 2
     try:
-        out = extract(Path(args.input), args.lang)
+        tessdata_dir = load_tessdata_dir(args.profile) if args.profile is not None else None
+        out = probe(args.lang, tessdata_dir) if args.probe else extract(Path(args.input), args.lang, tessdata_dir)
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1

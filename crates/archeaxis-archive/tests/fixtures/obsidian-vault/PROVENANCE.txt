@@ -1,0 +1,42 @@
+Provenance of this fixture
+==========================
+
+Authored inside this repository for the R15 round-trip test. It contains no
+private vault material, no personal notes and no credentials: every sentence is
+written for the test, and the three note/canvas files are small on purpose.
+
+Contents
+--------
+
+  notes/index.md          hub note: wiki-links, aliases, a heading anchor, a block
+                          reference, an embed, a markdown link to the canvas, an
+                          external link, a callout and a task list
+  notes/atomic.md         target note: the heading and the block id that index.md
+                          points at (including the reverse reference)
+  attachments/diagram.png a 1x1 PNG, generated for this fixture; its bytes are not
+                          valid UTF-8, so a byte-level round-trip is meaningful
+  vault.canvas            JSON Canvas 1.0 document (nodes and edges) with no ingest
+                          route in vNext: it is custody-only material
+  PROVENANCE.txt          this file
+
+What the test proves
+--------------------
+
+`crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs` imports every file
+above into a real vNext workspace, exports an archive, restores it into a fresh
+workspace, and then asserts:
+
+  * every file is byte-identical afterwards (read back through the raw object
+    store by digest, not from this directory);
+  * the links resolve inside the fixture itself - a wiki-link, an aliased
+    wiki-link, a heading anchor, a block reference, an embed and a relative
+    markdown link all point at files, headings and blocks that exist, while an
+    http link is treated as external and is not required to resolve;
+  * what vNext does *not* model yet is stated as an assertion rather than a
+    silence: no anchor rows are written for these sources, no table stores a
+    link or embed relationship, and `.canvas` has no ingest route, so it is
+    preserved as bytes only.
+
+The last group is the honest half: a passing round-trip here is a statement about
+bytes, names and text, not a claim that the link graph or the canvas semantics
+have been absorbed.
