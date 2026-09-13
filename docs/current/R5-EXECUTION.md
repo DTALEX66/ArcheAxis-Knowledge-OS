@@ -860,3 +860,8 @@ doctor 回归 `14 passed`，`git diff --check` 通过；未启动 Core，Rust �
 按精确路径清理项目根已确认可再生的 `.ruff_cache` 与 `__pycache__`，删除命令退出 0，两个路径
 的 `Test-Path` 后置条件均为 False。未触碰 `.project-local/build/cargo`、`.project-local/cache`、
 运行收据、产品数据或受保护私有目录。
+
+复核 `.project-local/cache` 后，确认 `nuget` 包缓存最后写入时间为 2026-09-06，大小
+`1,232,333,595` bytes，清理时无 `dotnet` 进程；按精确路径删除并验证 `Test-Path=False`。
+NuGet restore 可重建该缓存。仍保留 2026-09-13 有写入的 `uv`、`cargo` 与 `nuget-http` 缓存，
+避免删除当前活跃依赖状态。
