@@ -813,3 +813,8 @@ Windows doctor 随后增强为检查公开顶层目录 ACL，并对枚举可能�
 遵守同一项目边界。输出路由与 doctor 回归 `12 passed`，Ruff、`git diff --check` 通过；显式
 入口检查确认迁移与 Core 两阶段命令均保留。该改动不改变 `run_windows.ps1` 的引导安装行为，
 完整跨平台安装仍需单独验收。
+
+`run_windows.ps1` 也已收口：保留首次 `.venv` 引导和 requirements 安装，但将 TEMP/TMP/TMPDIR、
+pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\dev.py`。输出路由契约
+测试 `6 passed`，Ruff 与 `git diff --check` 通过；本轮未实际安装依赖或拉起 Core，避免把网络/安装
+副作用伪装成验证结果。

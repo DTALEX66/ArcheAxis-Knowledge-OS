@@ -61,3 +61,13 @@ def test_primary_launchers_use_the_project_runtime_router() -> None:
     assert "dev.py -- python -m app.runtime_entrypoint core" in shell
     assert "dev.py -- python -m app.runtime_entrypoint migrate" in batch
     assert "dev.py -- python -m app.runtime_entrypoint core" in batch
+
+
+def test_windows_launcher_routes_bootstrap_and_core_to_project_runtime() -> None:
+    source = _read("run_windows.ps1")
+
+    assert '.project-local\\task-runtime' in source
+    assert '$env:TEMP' in source
+    assert '$env:PIP_CACHE_DIR' in source
+    assert 'scripts\\runtime\\dev.py' in source
+    assert 'app.runtime_entrypoint core' in source
