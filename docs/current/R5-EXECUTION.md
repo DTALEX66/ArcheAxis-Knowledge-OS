@@ -798,3 +798,8 @@ PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路�
 `.hermes/.zcode/.codex`，但其 ACL/重解析状态无法在当前权限下确认，因此未删除、未改 ACL、
 未提权绕过。该项标为权限阻塞；需管理员在确认目录归属后按组织策略修复或删除，才能把公开
 项目目录的访问门禁闭合。
+
+为避免该根部 ACL 残留继续被生产，`pyproject.toml` 的 pytest 配置已将 `cache_dir` 固定为
+`.project-local/task-runtime/pytest-cache`。定向输出路由测试 `4 passed`，Ruff 与
+`git diff --check` 通过；实测新缓存目录存在，根 `.pytest_cache` 仅保留原有条目且未作为新
+写入目标。该修复止住新增外溢，但旧目录的 ACL 修复/删除仍需管理员处理。

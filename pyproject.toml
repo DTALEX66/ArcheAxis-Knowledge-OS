@@ -191,3 +191,4 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests", "knowledge_base/tests"]
 pythonpath = ["."]
+cache_dir = ".project-local/task-runtime/pytest-cache"
