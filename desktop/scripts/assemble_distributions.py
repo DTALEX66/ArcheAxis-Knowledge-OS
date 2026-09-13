@@ -49,7 +49,8 @@ def _write_zip(directory: Path, zip_path: Path) -> None:
 
 
 def _assembly_output(output_dir: Path | None) -> Path:
-    directory = Path(output_dir) if output_dir is not None else Path(".project-local/task-runtime/release-assembly")
+    default = Path(__file__).resolve().parents[2] / ".project-local/task-runtime/release-assembly"
+    directory = Path(output_dir) if output_dir is not None else default
     directory.mkdir(parents=True, exist_ok=True)
     return directory
 

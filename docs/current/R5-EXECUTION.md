@@ -814,6 +814,10 @@ Windows doctor 随后增强为检查公开顶层目录 ACL，并对枚举可能�
 入口检查确认迁移与 Core 两阶段命令均保留。该改动不改变 `run_windows.ps1` 的引导安装行为，
 完整跨平台安装仍需单独验收。
 
+桌面分发器的默认 staging 路径也已从 cwd 相对路径改为以 `desktop/scripts/assemble_distributions.py`
+所在仓库根为锚点，避免从其它工作目录调用时生成 `desktop/.project-local` 等错误树；显式 `--out`
+仍由调用方控制。桌面 staging 与输出路由回归 `18 passed`，Ruff、`git diff --check` 通过。
+
 补齐 `run_windows.bat`：与 PowerShell 入口一致，显式设置项目内 TEMP/TMP/TMPDIR、pip/uv cache，
 使用项目 `.venv` 解释器，并经 `scripts\\runtime\\dev.py` 启动 Core。输出路由契约测试 `7 passed`，
 Ruff 与 `git diff --check` 通过；未实际安装依赖或启动服务。

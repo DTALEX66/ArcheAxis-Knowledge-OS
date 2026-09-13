@@ -6,7 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from desktop.scripts.assemble_distributions import assemble_green, assemble_portable
+from desktop.scripts.assemble_distributions import (
+    _assembly_output,
+    assemble_green,
+    assemble_portable,
+)
 from desktop.scripts.stage_runtime import stage_runtime
 
 
@@ -169,3 +173,8 @@ def test_green_and_portable_archives_keep_the_shell_runtime_contract(
     assert not (tmp_path / "ArcheAxis.Knowledge.Green-x64").exists()
     assert not (tmp_path / "ArcheAxis.Knowledge.Portable-x64").exists()
     assert green.parent == output
+
+
+def test_distribution_default_output_is_anchored_to_repository_root() -> None:
+    expected = Path(__file__).resolve().parents[1] / ".project-local/task-runtime/release-assembly"
+    assert _assembly_output(None) == expected
