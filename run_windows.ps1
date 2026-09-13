@@ -12,6 +12,6 @@ $python = Join-Path $repo ".venv\Scripts\python.exe"
 if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
     python -m venv (Join-Path $repo ".venv")
 }
-& $python -m pip install -r (Join-Path $repo "requirements.txt")
+uv pip install --python $python -r (Join-Path $repo "requirements.txt")
 & $python (Join-Path $repo "scripts\runtime\dev.py") -- $python -m app.runtime_entrypoint core
 exit $LASTEXITCODE

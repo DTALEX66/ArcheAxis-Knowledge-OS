@@ -69,6 +69,7 @@ def test_windows_launcher_routes_bootstrap_and_core_to_project_runtime() -> None
     assert '.project-local\\task-runtime' in source
     assert '$env:TEMP' in source
     assert '$env:PIP_CACHE_DIR' in source
+    assert 'uv pip install --python $python' in source
     assert 'scripts\\runtime\\dev.py' in source
     assert 'app.runtime_entrypoint core' in source
 
@@ -79,5 +80,6 @@ def test_windows_batch_launcher_routes_cache_and_core_to_project_runtime() -> No
     assert ".project-local\\task-runtime" in source
     assert "set \"TEMP=%RUNTIME%\\tmp\"" in source
     assert "set \"PIP_CACHE_DIR=%CACHE%\\pip\"" in source
+    assert "uv pip install --python \"%PYTHON%\"" in source
     assert "scripts\\runtime\\dev.py" in source
     assert "app.runtime_entrypoint core" in source

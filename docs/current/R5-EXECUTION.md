@@ -820,6 +820,11 @@ Windows doctor 随后增强为检查公开顶层目录 ACL，并对枚举可能�
 入口检查确认迁移与 Core 两阶段命令均保留。该改动不改变 `run_windows.ps1` 的引导安装行为，
 完整跨平台安装仍需单独验收。
 
+Windows 引导安装实测发现项目 `.venv` 为 uv 管理环境且无 `pip` 模块；两个入口原先的 `python -m pip`
+会错误失败。现改为 `uv pip install --python <project .venv> -r requirements.txt`，显式绑定项目解释器，
+不回退系统 Python 或用户级缓存。真实 `uv pip install --dry-run` 检查 26 个包、`Would make no changes`；
+输出路由契约测试 `7 passed`，Ruff 与 `git diff --check` 通过。未执行实际安装或启动 Core。
+
 桌面分发器的默认 staging 路径也已从 cwd 相对路径改为以 `desktop/scripts/assemble_distributions.py`
 所在仓库根为锚点，避免从其它工作目录调用时生成 `desktop/.project-local` 等错误树；显式 `--out`
 仍由调用方控制。桌面 staging 与输出路由回归 `18 passed`，Ruff、`git diff --check` 通过。

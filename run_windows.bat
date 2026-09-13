@@ -15,7 +15,7 @@ set "UV_CACHE_DIR=%CACHE%\uv"
 if not exist ".venv\Scripts\python.exe" python -m venv ".venv"
 if errorlevel 1 exit /b 1
 set "PYTHON=%REPO%\.venv\Scripts\python.exe"
-"%PYTHON%" -m pip install -r "%REPO%\requirements.txt"
+uv pip install --python "%PYTHON%" -r "%REPO%\requirements.txt"
 if errorlevel 1 exit /b 1
 "%PYTHON%" "%REPO%\scripts\runtime\dev.py" -- "%PYTHON%" -m app.runtime_entrypoint core
 set "STATUS=%ERRORLEVEL%"
