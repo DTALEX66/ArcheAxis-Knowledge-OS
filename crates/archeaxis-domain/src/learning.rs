@@ -432,6 +432,23 @@ pub fn events_for_item(
     rows.collect()
 }
 
+/// Return each learning item once with the latest persisted review deadline.
+///
+/// This is a read-only projection for desktop queues; it never infers mastery
+/// or creates a review event.
+pub fn item_keys_with_latest_review(
+    conn: &Connection,
+) -> rusqlite::Result<Vec<(String, Option<String>)>> {
+    let mut stmt = conn.prepare(
+        "SELECT item_key, next_review FROM learning_events e
+         WHERE event_id = (SELECT MAX(event_id) FROM learning_events latest
+                           WHERE latest.item_key=e.item_key)
+         ORDER BY item_key ASC",
+    )?;
+    let rows = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?;
+    rows.collect()
+}
+
 /// R09: the table that links a learning item (card/question) to the knowledge
 /// revision it was created from. Created on demand like the FTS indexes, so no
 /// schema-version bump and no archive-layout change is needed.

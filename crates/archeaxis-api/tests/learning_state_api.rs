@@ -13,6 +13,14 @@ async fn post(router: &axum::Router, value: Value, actor: &str) -> (StatusCode, 
     (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
 }
 
+async fn get_items(router: &axum::Router) -> (StatusCode, Value) {
+    let response = router.clone().oneshot(Request::get("/api/v1/learning/items")
+        .body(Body::empty()).unwrap()).await.unwrap();
+    let status = response.status();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
 fn request(key: &str, instant: &str) -> Value {
     json!({"item_key":"restart-card", "client_event_id":key, "correct":true,
            "rating":3, "now":instant})
@@ -66,4 +74,19 @@ async fn machine_and_client_supplied_schedule_cannot_write_human_state() {
     let conn = rusqlite::Connection::open(&db).unwrap();
     let count: i64 = conn.query_row("SELECT count(*) FROM learning_events", [], |r| r.get(0)).unwrap();
     assert_eq!(count, 0);
+}
+
+#[tokio::test]
+async fn learning_items_returns_one_latest_deadline_per_item() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("learning.sqlite");
+    let router = app(db.to_str().unwrap()).unwrap();
+    assert_eq!(get_items(&router).await.0, StatusCode::OK);
+    assert_eq!(post(&router, request("first", "2026-09-02T00:00:00+00:00"), "human").await.0,
+               StatusCode::CREATED);
+    let (status, value) = get_items(&router).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(value["count"], 1);
+    assert_eq!(value["items"][0]["item_key"], "restart-card");
+    assert_eq!(value["items"][0]["next_review"], "2026-09-02T00:10:00+00:00");
 }

@@ -164,6 +164,13 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     assert declared_current_shas
     allowed_shas.update(declared_current_shas)
     allowed_shas.update(_declared_r5_source_objects())
+    # Current R5 evidence may bind to the checkout HEAD before a delivery
+    # commit exists.  Accept that exact local ref; arbitrary undocumented SHAs
+    # remain rejected by the surface scan below.
+    current_head = subprocess.check_output(
+        ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True, encoding="utf-8"
+    ).strip()
+    allowed_shas.add(current_head)
     surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]
     surfaces.extend((ROOT / "docs" / "current").glob("*"))
     surfaces.extend((ROOT / "reports" / "current").glob("*"))

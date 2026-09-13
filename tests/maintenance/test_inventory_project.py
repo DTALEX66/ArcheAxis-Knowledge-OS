@@ -118,6 +118,24 @@ class InventoryProjectTests(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout)["capacity"]["exceeded_groups"], ["target"])
         self.assertEqual(sample.read_bytes(), b"abc")
 
+    def test_cli_writes_optional_report_only_inside_project_local(self):
+        output = self.project / ".project-local" / "inventory.json"
+        result = subprocess.run(
+            [sys.executable, "-B", str(SCRIPT), str(self.project), "--output", str(output)],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(output.is_file())
+        self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["schema"], "archeaxis.metadata-inventory/v1")
+
+        outside = self.project / "outside.json"
+        result = subprocess.run(
+            [sys.executable, "-B", str(SCRIPT), str(self.project), "--output", str(outside)],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertFalse(outside.exists())
+
     def test_capacity_baseline_refuses_private_and_external_paths_before_reading(self):
         for path in [self.project / ".project-local/.zcode/snapshot.json",
                      self.project / ".project-local/agents/snapshot.json",

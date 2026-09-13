@@ -157,7 +157,8 @@ def main() -> int:
     # Use project-local .project-local/task-runtime/tmp/ for the lifecycle test data dir
     # so cleanup doesn't fight with subprocess DB locks.
     project_root = Path(__file__).resolve().parent.parent
-    runtime_root = project_root / ".project-local" / "task-runtime"
+    managed_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "").strip()
+    runtime_root = Path(managed_root) if managed_root else project_root / ".project-local" / "task-runtime"
     lifecycle_tmp = runtime_root / "tmp" / "lifecycle-e2e"
     lifecycle_tmp.mkdir(parents=True, exist_ok=True)
 

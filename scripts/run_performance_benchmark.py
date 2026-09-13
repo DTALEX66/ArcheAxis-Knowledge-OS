@@ -17,6 +17,7 @@ Usage: python scripts/run_performance_benchmark.py --corpus DIR --report PATH
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -59,8 +60,9 @@ def measure_cold_start_ms() -> dict[str, object]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--corpus", default=".project-local/task-runtime/corpus")
-    parser.add_argument("--report", default=".project-local/task-runtime/benchmark/benchmark.json")
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "")
+    parser.add_argument("--corpus", default=(str(Path(run_root) / "artifacts" / "benchmark" / "corpus") if run_root else ".project-local/task-runtime/corpus"))
+    parser.add_argument("--report", default=(str(Path(run_root) / "artifacts" / "benchmark" / "benchmark.json") if run_root else ".project-local/task-runtime/benchmark/benchmark.json"))
     parser.add_argument("--threshold-import-ms", type=float, default=5000.0)
     parser.add_argument("--threshold-memory-mib", type=float, default=2048.0)
     args = parser.parse_args()

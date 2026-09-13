@@ -1,5 +1,8 @@
 """Run the commands the evidence index records, and say what could not be run.
 
+This is a historical-pack checker; evidence must be selected explicitly with
+``--index``. R5 uses its own package validator.
+
 `check_evidence_index.py` verifies that each slice cites a tracked script and that every named
 path exists. It does not verify that the recorded command still **runs** - which is the first
 thing an independent auditor will try. Round 96 did that by hand and found two real defects.
@@ -15,9 +18,9 @@ It never executes anything it did not read out of the tracked index, it never ru
 the ``placeholder`` class (a command carrying ``<...>`` is not runnable and is reported as such),
 and it never treats "not run" as a pass.
 
-``python`` in a recorded command resolves to, in order: ``$ARCHEAXIS_PYTHON``, the repository's
-own ``.venv`` interpreter when it exists, or the interpreter running this file - so the checker
-works both in this working tree and in a fresh checkout.
+``python`` in a recorded command resolves to, in order: ``$ARCHEAXIS_PYTHON``, the managed
+``.project-local/build/venv`` interpreter, the repository's legacy ``.venv`` interpreter,
+or the interpreter running this file - so the checker works in a managed tree and a fresh checkout.
 
 Exit codes: 0 nothing failed, 2 the index cannot be read, 3 at least one executed command failed.
 """
@@ -34,6 +37,10 @@ import sys
 import time
 from pathlib import Path
 
+try:
+    from scripts.taskpack_paths import default_pack_root
+except ModuleNotFoundError:
+    from taskpack_paths import default_pack_root
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "docs/authority/taskpack-0910-r3" / "R14-EVIDENCE-INDEX.json"
 
@@ -112,6 +119,12 @@ def python_for_commands() -> str:
     configured = os.environ.get("ARCHEAXIS_PYTHON", "").strip()
     if configured and Path(configured).is_file():
         return configured
+    managed = ROOT / ".project-local" / "build" / "venv" / "Scripts" / "python.exe"
+    if managed.is_file():
+        return str(managed)
+    managed_posix = ROOT / ".project-local" / "build" / "venv" / "bin" / "python"
+    if managed_posix.is_file():
+        return str(managed_posix)
     venv = ROOT / ".venv" / "Scripts" / "python.exe"
     if venv.is_file():
         return str(venv)
@@ -292,12 +305,16 @@ def summarise(rows: list[dict]) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="run the commands the evidence index records")
-    parser.add_argument("--index", type=Path, default=INDEX)
+    parser.add_argument("--index", type=Path, help="historical evidence index (required)")
     parser.add_argument("--run", action="store_true", help="execute the commands; without it nothing is run")
     parser.add_argument("--execute-heavy", action="store_true", help="also run the per-package cargo commands")
     parser.add_argument("--timeout", type=int, default=900)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
+
+    if args.index is None:
+        print(f"no R5 evidence-index format exists under {default_pack_root(ROOT)}; run its validation entrypoint, or pass --index for a historical pack", file=sys.stderr)
+        return 2
 
     try:
         rows = plan(args.index)

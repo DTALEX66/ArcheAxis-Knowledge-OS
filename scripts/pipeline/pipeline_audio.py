@@ -1,25 +1,32 @@
-# -*- coding: utf-8 -*-
 """pipeline_audio.py — 音频全量转写（F1）。
 
 用法（在项目根）:
-    env -u PYTHONPATH .venv/Scripts/python.exe scripts/pipeline/pipeline_audio.py
+    .project-local/build/venv/Scripts/python.exe scripts/runtime/dev.py -- .project-local/build/venv/Scripts/python.exe scripts/pipeline/pipeline_audio.py
 
 引擎：SenseVoice int8（快，~26x）→ faster-whisper 兜底。
-输入：D:/All projects/ceshi 全部 mp3/m4a/wav/flac/mp4（mp4 先 ffmpeg 提音轨）。
-输出：.project-local/task-runtime/audio_full_receipt.json
+输入：由 `ARCHEAXIS_PIPELINE_SOURCE_ROOT` 指定且获批准的测试资料目录；不读取真实资料库。
+输出：通过 `ARCHEAXIS_RUN_ROOT` 路由到当前运行的 `artifacts/pipeline/audio/`。
 """
-import json, os, subprocess, sys
+import json
+import os
+import subprocess
+import sys
 from pathlib import Path
+
 sys.stdout.reconfigure(encoding='utf-8')
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ROOT = os.environ.get("ARCHEAXIS_PIPELINE_SOURCE_ROOT", "")
-OUT = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "audio_full_receipt.json")
-WORK = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "audio-work")
+RUN_ROOT = Path(os.environ.get("ARCHEAXIS_RUN_ROOT", PROJECT_ROOT / ".project-local" / "task-runtime"))
+ARTIFACT_ROOT = (RUN_ROOT / "artifacts" / "pipeline" / "audio") if os.environ.get("ARCHEAXIS_RUN_ROOT") else (RUN_ROOT / "audio")
+OUT = str(ARTIFACT_ROOT / "audio_full_receipt.json")
+WORK = str(ARTIFACT_ROOT / "work")
 os.makedirs(WORK, exist_ok=True)
+Path(OUT).parent.mkdir(parents=True, exist_ok=True)
 
-from app.ingestion.asr_adapter import transcribe_sense_voice, transcribe as transcribe_fw
+from app.ingestion.asr_adapter import transcribe_sense_voice
 from app.ingestion.content_cleaner import clean_text as strip_noise
+
 
 def main() -> None:
     import argparse
@@ -59,8 +66,8 @@ def main() -> None:
                            capture_output=True, check=False)
             if not os.path.exists(wav) or os.path.getsize(wav) == 0:
                 fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'ffmpeg failed'}); continue
-            import subprocess as _sp
             import math as _math
+            import subprocess as _sp
             _pd = _sp.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1', wav],
                           capture_output=True, text=True)
             try: _dur = float((_pd.stdout or '0').strip() or 0)

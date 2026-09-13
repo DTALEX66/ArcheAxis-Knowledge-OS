@@ -15,6 +15,7 @@ packages/contracts/v1/worker-protocol.schema.json.
 from __future__ import annotations
 
 import json
+import os
 import py_compile
 import subprocess
 import sys
@@ -33,6 +34,19 @@ WORKER_MATRIX = {
     "document/worker_subtitles.py": {"fixture": "sample.srt", "keys": ("engine", "text", "structure", "loss_receipt")},
     "web/worker_html.py": {"fixture": "sample-page.html", "keys": ("engine", "text", "title", "links", "structure", "loss_receipt")},
 }
+
+
+def _managed_tempdir(prefix: str) -> tempfile.TemporaryDirectory[str]:
+    """Allocate checker fixtures under the current project-local run root."""
+    configured = Path(os.environ.get("ARCHEAXIS_RUN_ROOT", ROOT / ".project-local" / "task-runtime"))
+    configured = configured.absolute()
+    try:
+        configured.relative_to(ROOT / ".project-local")
+    except ValueError as exc:
+        raise RuntimeError("ARCHEAXIS_RUN_ROOT must stay inside .project-local") from exc
+    base = configured / "worker-check"
+    base.mkdir(parents=True, exist_ok=True)
+    return tempfile.TemporaryDirectory(prefix=prefix, dir=str(base))
 
 
 def _run(entrypoint: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
@@ -73,7 +87,7 @@ def main() -> int:
         except py_compile.PyCompileError as exc:
             failures.append(f"{module.name}: compile failed: {exc}")
 
-    with tempfile.TemporaryDirectory() as tmp:
+    with _managed_tempdir("worker-") as tmp:
         sample = Path(tmp) / "sample.txt"
         sample.write_bytes("\ufeffBOM-marked 原件内容 hello\n".encode("utf-8"))
         ok = _run_worker([str(sample)])
@@ -333,7 +347,7 @@ def main() -> int:
     except py_compile.PyCompileError as exc:
         failures.append(f"evaluation/worker_quality.py: compile failed: {exc}")
     else:
-        with tempfile.TemporaryDirectory() as qtmp:
+        with _managed_tempdir("quality-") as qtmp:
             gold_path = Path(qtmp) / "gold.txt"
             pred_path = Path(qtmp) / "pred.txt"
             gold_path.write_text("the quick brown fox jumps over the lazy dog", encoding="utf-8")

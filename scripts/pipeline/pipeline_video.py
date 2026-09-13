@@ -1,17 +1,24 @@
-# -*- coding: utf-8 -*-
 """视频画面转化：全部 mp4 抽帧 + RapidOCR（画面文字知识提取，非音轨）。"""
-import json, os, subprocess, sys, time
+import json
+import os
+import subprocess
+import sys
+import time
 from pathlib import Path
+
 sys.stdout.reconfigure(encoding='utf-8')
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ROOT = os.environ.get("ARCHEAXIS_PIPELINE_SOURCE_ROOT", "")
-OUT = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "video_ocr_receipt.json")
-WORK = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "video-work")
+RUN_ROOT = Path(os.environ.get("ARCHEAXIS_RUN_ROOT", PROJECT_ROOT / ".project-local" / "task-runtime"))
+ARTIFACT_ROOT = (RUN_ROOT / "artifacts" / "pipeline" / "video") if os.environ.get("ARCHEAXIS_RUN_ROOT") else (RUN_ROOT / "video")
+OUT = str(ARTIFACT_ROOT / "video_ocr_receipt.json")
+WORK = str(ARTIFACT_ROOT / "work")
 os.makedirs(WORK, exist_ok=True)
-from app.ingestion.rapid_ocr_adapter import convert_image_rapid
+Path(OUT).parent.mkdir(parents=True, exist_ok=True)
 from app.ingestion.content_cleaner import clean_text as strip_noise
 from app.ingestion.ocr_gate import assess as ocr_gate
+from app.ingestion.rapid_ocr_adapter import convert_image_rapid
 
 if not ROOT:
     raise SystemExit("set ARCHEAXIS_PIPELINE_SOURCE_ROOT to an approved source directory")

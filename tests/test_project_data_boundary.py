@@ -21,5 +21,5 @@ def test_retrieval_evaluation_defaults_to_ignored_task_artifacts() -> None:
         encoding="utf-8"
     )
 
-    assert '"task-artifacts" / "eval-retrieval"' in script
+    assert '"artifacts" / "pipeline" / "eval-retrieval"' in script
     assert '"reports" / "current"' not in script

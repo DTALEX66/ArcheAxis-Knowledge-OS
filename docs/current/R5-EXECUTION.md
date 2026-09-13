@@ -830,11 +830,13 @@ Windows 引导安装实测发现项目 `.venv` 为 uv 管理环境且无 `pip` �
 仍由调用方控制。桌面 staging 与输出路由回归 `18 passed`，Ruff、`git diff --check` 通过。
 
 补齐 `run_windows.bat`：与 PowerShell 入口一致，显式设置项目内 TEMP/TMP/TMPDIR、pip/uv cache，
-使用项目 `.venv` 解释器，并经 `scripts\\runtime\\dev.py` 启动 Core。输出路由契约测试 `7 passed`，
+使用项目 `.venv` 解释器，并经 `scripts\
+untime\\dev.py` 启动 Core。输出路由契约测试 `7 passed`，
 Ruff 与 `git diff --check` 通过；未实际安装依赖或启动服务。
 
 `run_windows.ps1` 也已收口：保留首次 `.venv` 引导和 requirements 安装，但将 TEMP/TMP/TMPDIR、
-pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\dev.py`。输出路由契约
+pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\
+untime\\dev.py`。输出路由契约
 测试 `6 passed`，Ruff 与 `git diff --check` 通过；本轮未实际安装依赖或拉起 Core，避免把网络/安装
 副作用伪装成验证结果。
 安装前复核项目 `.venv`（Python `3.13.14`）时，`uv pip check --python .venv\\Scripts\\python.exe`
@@ -896,3 +898,648 @@ Rust workspace 经 `dev.py` 首次运行时发现 OCR 测试继承了失效的 T
 继续复核发现 `.project-local/build/be268a2d33/dotnet`（`592,700,364` bytes，最后写入
 2026-09-13 04:18）没有当前脚本/CI入口引用，清理时无 dotnet 进程；按精确路径删除并验证
 `Test-Path=False`。该目录可由外置 .NET 工具链重新构建；当前 Cargo debug、运行收据和产品数据保留。
+
+本轮 X00 入口收口：历史 R3.1 审计器不再隐式选择任务包；`check_evidence_index.py`、
+`check_evidence_commands.py`、`check_worker_reachability.py`、`check_format_matrix.py`、
+`check_taskpack_integrity.py` 均要求显式历史路径，未提供时以 exit 2 提示使用 R5 专用
+`docs/authority/taskpack-0912-r5/verify_package.py`。新增 `tests/test_taskpack_paths.py`，
+并运行相关测试共 `64 passed`（新增测试 4 项、既有相关测试 60 项）；命令使用项目内
+`.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe`，仅写入项目 `.project-local`。
+pytest 的缓存目录因现有 ACL 返回 `WinError 5` 警告，但不影响测试结果；未读取或修改
+`.hermes`、`.zcode`、`.codex`，未处理既有未跟踪历史归档。
+
+随后使用同一项目内解释器运行 R5 `verify_package.py`：exit `0`，报告 `result: PASS`、
+`tasks: 23`、`active_files: 173`；该校验明确报告 `product_tests_run: false`、
+`windows_cleanup_performed: false`、`current_head_checked: false`，因此仅作为包完整性
+证据。`check_path_conventions.py --json` exit `0`：`1994/1994` tracked paths owned、
+`0` unowned、`0` ambiguous、`0` denied-but-tracked；记录测量提交为
+`b81c789d8d6363f53ddfadf5e9da9e7735bb9338`，与当前 HEAD 的差异按工具原样保留。
+
+X01 定向回归使用项目内 Python 3.13.15 环境：运行路径/doctor/启动器/约定相关测试共
+`49 passed, 1 failed`；唯一失败为 Windows 进程树测试中 `taskkill.exe /T /F` 返回失败，
+随后排除该 OS 进程树用例重跑为 `18 passed, 1 deselected`。该失败归因于当前受限解释器/进程
+权限环境（`ENVIRONMENT_FAIL`），不是将其标成产品通过；入口代码未因该结果修改。项目内
+解释器和 pytest 环境均位于 `.project-local`。
+
+X01 继续核对发现 `.github/workflows/ci.yml` 与 `release.yml` 的工作树换行不符合
+`.gitattributes`（CRLF）。仅将这两个 YAML 归一化为 LF；`check_repository_conventions.py
+--format json` exit `0`（`issue_count: 0`），随后 `tests/test_path_conventions.py`、
+`tests/test_nightly_runtime_gates.py`、`tests/test_runtime_delivery_authority.py` 共
+`25 passed`。pytest 缓存仍有既存 `WinError 5` 警告。
+
+发布门复核发现 `app/release-manifest.json` 的 `dependency_lock.digest` 与当前 `uv.lock`
+不一致；已更新为当前 SHA-256 `1db913253b5d018fa4af9314939dfda5635e195f77de6bbc48fe7f3cca575859`。
+补齐项目内测试环境的 `fastapi`、`python-multipart`、`numpy` 后，发布清单、身份契约、SBOM
+覆盖和证据收据测试共 `44 passed`；Starlette 弃用提示与 pytest 缓存 ACL 警告保留记录，未将
+警告当作失败或通过依据。
+
+X02/X03 路径审计发现 `scripts/launch/deeptutor_web.py` 曾硬编码外置共享库绝对路径，
+触发架构守卫。已改为仅接受显式参数或 `ARCHEAXIS_DEEPTUTOR_ROOT`、
+`ARCHEAXIS_NODE_PATH` 环境变量，不再内嵌机器路径；`tests/test_architecture_guard.py`
+与 `tests/test_deeptutor_web_launch.py` 共 `26 passed`。
+
+本轮证据引用的提交均为已存在且可回溯的测试源：
+`tested-source-sha:3d0fbcd190680c3dd5299015bd98dd11e292929b`、
+`tested-source-sha:4844010a7631bb8cde8ed275007afcda98b656b6`、
+`tested-source-sha:3dee1278c170573c0d45e307635cafd8e1a68425`；这些标签用于让现实性审计
+区分历史收据来源，不表示发布或独立审计通过。
+
+X02/X05 依赖环境补齐项目内 `sqlite-vec==0.1.9` 后，向量迁移、架构守卫与 AXR-060
+现实性审计共 `62 passed`；此前 10 个 `ModuleNotFoundError: sqlite_vec` 均为测试环境
+缺包，现已消除。现有 pytest 缓存 ACL 警告仍保留，不影响测试退出码。
+
+- 2026-09-13 inventory CLI encoding fix: `tests/maintenance/test_inventory_project.py::InventoryProjectTests::test_cli_outputs_json_and_reports_missing_root_with_nonzero_exit` passed (1 passed). Full suite under explicit `--basetemp .project-local/runs/fulltest-final-20260913` reached 2762 passed, 7 skipped, 9 failed; five `bulk_fixture_factory` failures are invocation-root mismatches caused by overriding the pytest basetemp outside the helper's validated run root (the same 7 tests pass under the project-managed default run root), while four Windows process-tree cleanup cases fail because this managed environment returns `taskkill.exe` access denied. These are not promoted to product PASS; rerun in a normal Windows process-control environment is required.
+
+- 2026-09-13 current path measurement: `scripts/check_path_conventions.py --json --measure` reports 1,994 tracked paths, 1,994 owned, 0 unowned, 0 ambiguous, 0 denied, 100% coverage. The historical `R5-PATH-DISPOSITION.json` remains a dated record and reports drift by design; it was not rewritten.
+
+- 2026-09-13 runtime footprint audit: `.project-local/build` 9.54 GiB (current cargo build), `runs` 1.84 GiB (evidence/test runs), `cache` 1.19 GiB (managed dependencies), root `.venv` 0.88 GiB (legacy scripts still reference it), and `.hermes` 0.46 GiB (retained historical material). All are ignored/reproducible or protected runtime classes; no deletion was performed.
+
+- 2026-09-13 CI route correction: after historical checker CLIs were made explicit-path-only, `.github/workflows/ci.yml` now passes `--matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` to the format gate. `tests/test_ci_a0_gates.py tests/test_format_matrix.py` passed (35 passed); no R5 artifact was substituted for the historical matrix.
+
+- 2026-09-13 explicit historical gates rerun: `check_format_matrix.py --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` PASS (16 rows, 0/14/2); `check_worker_reachability.py --record .../WORKER-REACHABILITY.json` PASS (12 workers, 10 routed, 2 exempted); `check_evidence_index.py --index .../R14-EVIDENCE-INDEX.json --state .../STATE.json` PASS (17 slices, 81 tracked pointers, 3 receipts); `check_taskpack_integrity.py --pack .../taskpack-0910-r3 --shipped .../taskpack-0910-shipped` PASS (21 frozen files intact, plan graph valid, 93 ledger rows).
+
+- 2026-09-13 output-routing regression set: `tests/test_project_output_routing_contract.py tests/test_runtime_delivery_authority.py tests/runtime-paths` yielded 30 passed and 1 environment failure. The single failure is the known managed-Windows `taskkill.exe` access-denied process-tree case; routing and delivery contract tests passed.
+
+- 2026-09-13 architecture/language gates rerun at current worktree: `scripts/check_architecture.py` and `scripts/check_language_boundaries.py` both exit 0 (Rust database owner, Python workers/C# shell boundary, protocol major 1).
+
+- 2026-09-13 CLEAN02 inventory: `scripts/maintenance/inventory_project.py` produced `.project-local/runs/inventory-current-20260913.json` with status `partial`, 147,102 observed files and 15,371,011,574 logical bytes; 186 permission errors and 4 skipped reparse points were preserved as limitations. The volume measurement reported 291,391,827,968 bytes free before and after (no cleanup attribution). Private `.hermes/.zcode/.codex` and other sensitive names remained opaque.
+
+- 2026-09-13 checker regression suite rerun: taskpack path resolver plus evidence index/commands, worker reachability, format matrix and taskpack integrity tests passed (64 passed; only existing pytest cache ACL warning).
+
+- 2026-09-13 R13 Core preflight: `scripts/launch/core_launch.py --check` reports `dependencies_ok: true`; Core binary, project Python, text/PDF/OCR workers, PyMuPDF, Tesseract data, and Cargo wrapper resolve under the project or declared tool paths. DeepTutor ports 8001/3782 are not running; Ollama port 11434 was observed active. This is a preflight only, not GUI/install acceptance.
+
+- 2026-09-13 Avalonia desktop build: `dotnet restore apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj` succeeded with NU1900 vulnerability-feed warning (NuGet index unavailable); then `AVALONIA_TELEMETRY_OPTOUT=1 dotnet build ... --no-restore --nologo` succeeded with 1 warning, output routed to `.project-local/build/dotnet`. The opt-out prevented user-profile telemetry writes. This verifies compilation only, not installer/signing/GUI acceptance.
+
+- 2026-09-13 desktop contract regression: `tests/test_desktop_staging.py tests/test_desktop_runtime.py tests/test_desktop_launch.py tests/test_axw_run204_supervisor.py` passed (32 passed; dependency deprecation warnings only).
+
+- 2026-09-13 R13 candidate bundle: `scripts/release/build_candidate.py --out .project-local/runs/candidate-r5-20260913-c --binary .project-local/build/cargo/debug/archeaxis-api.exe --allow-debug --allow-dirty --zip` succeeded at source commit `3d560253c0d61dc0baa0728eb3fc0a74c5b67e26`; 2 files, 8,238,283 bytes, archive SHA-256 `f102149e5eef4291137d7e40a6000e0b67ae991aa0abd8682984396fdb979355`. `verify_candidate.py --candidate ... --json` returned `ok: true`, with `debug-build` and dirty-tree labels retained. This is a verified candidate, not a release or install artifact.
+
+- 2026-09-13 managed-entry routing check: `scripts/runtime/dev.py --pytest tests/test_project_output_routing_contract.py` allocated run `be268a2d33/933eb6403438` under `.project-local/runs` and passed 9 tests; pytest cache was also inside that run root.
+
+- 2026-09-13 managed desktop/Cargo follow-up: the Avalonia build remains successful with telemetry opt-out; direct `dev.py` invocation of the tracked `.bat` Cargo wrapper was not recorded as a product failure because Windows `cmd.exe /c` argument quoting in this shell rejected the batch path before Cargo ran. Existing managed-entry Python and prior Rust contract evidence remain authoritative.
+
+- 2026-09-13 Windows batch launcher normalization: `dev.py` now wraps `.bat/.cmd` children with `cmd.exe /d /c` and converts slash separators, preserving project environment routing. Regression `tests/runtime-paths/test_dev_paths.py -k batch_entrypoint or normal_run` passed (2 passed). A real `dev.py scripts/ci/cargo_test.bat -p archeaxis-api --offline` reached the wrapper but exited 255 with no Cargo receipt output; direct Cargo probing confirms the declared toolchain lacks an available `link.exe`, so Rust execution remains environment-blocked.
+
+- 2026-09-13 batch-wrapper smoke: a temporary project-local `.bat` wrote `dev-bat-proof.txt` inside run `be268a2d33/fd73854db95b/tmp` through `dev.py`; execution receipt exit 0 and postcondition file exists. The temporary batch file was removed after verification. This isolates wrapper correctness from the MSVC/Cargo toolchain blocker.
+
+- 2026-09-13 batch wrapper follow-up: `dev.py` batch normalization regression passed (`tests/runtime-paths/test_dev_paths.py -k batch_entrypoint`, 1 passed). The declared MSVC `link.exe` files exist, but `vcvars64.bat` initialization returns 255 in this portable environment; no external toolchain files were changed.
+
+- 2026-09-13 Rust toolchain probe: with explicit MSVC 14.44.35207 and Windows SDK 10.0.26100.0 `PATH/INCLUDE/LIB`, direct `cargo test -p archeaxis-api --offline` compiled the workspace but one scheduler test panicked because direct invocation lacked `ARCHEAXIS_PYTHON` (the project requires `dev.py`). A subsequent `dev.py` cargo attempt preserved the run root but the child still could not resolve `link.exe`; the toolchain initialization/environment handoff remains blocked and no external files were changed.
+
+- 2026-09-13 managed batch-wrapper regression: `scripts/runtime/dev.py --pytest tests/runtime-paths/test_dev_paths.py -k batch_entrypoint` used run `be268a2d33/f4701f2ed273` and passed 1 selected test; cache stayed under that run root.
+
+- 2026-09-13 managed desktop regression: `scripts/runtime/dev.py --pytest tests/test_desktop_staging.py tests/test_desktop_runtime.py tests/test_desktop_launch.py tests/test_axw_run204_supervisor.py` used run `be268a2d33/086092f6a056` and passed 32 tests; all pytest cache/output remained inside `.project-local/runs`.
+
+- 2026-09-13 managed Core entry regression: `dev.py --pytest tests/test_core_launch.py tests/test_core_client.py tests/test_test_launcher_contract.py` used run `be268a2d33/4d0e877573b2` and passed 33 tests; cache/output stayed inside `.project-local/runs`.
+
+- 2026-09-13 release/ candidate contract regression: release manifest, SBOM coverage, release identity/evidence receipt and candidate manifest tests passed (75 passed, 4 process-reap cases deselected due the known Windows taskkill restriction; warnings only from unavailable NuGet/NLP/deprecations).
+
+- 2026-09-13 Rust linker recheck: using the declared external MSVC 14.44.35207 cl.exe/link.exe and project-local ARCHEAXIS_PYTHON, direct cargo test -p archeaxis-api --offline reached linking but exited 101 because the declared Windows SDK tree has no kernel32.lib (LNK1181). This is an external toolchain completeness blocker; no project or external files were modified.
+
+- 2026-09-13 test-corpus path normalization: removed the pipeline documentation claim that audio input is hardwired to `D:/All projects/ceshi`; it now states that `ARCHEAXIS_PIPELINE_SOURCE_ROOT` must name an approved test source and explicitly excludes the real资料库. No external corpus or shared library was accessed or modified.
+
+- 2026-09-13 current path-authority measurement: `scripts/check_path_conventions.py --measure` observed 1,994 tracked paths, all 1,994 owned, with 0 unowned, 0 ambiguous, and 0 denied-but-tracked; the JSON gate also passed. This classifies repository paths only and does not authorize changes to external libraries, Green, real资料库, or test corpus.
+
+- 2026-09-13 cache-path documentation normalization: capability requirements now state that Whisper/HF cache is routed by `scripts/runtime/dev.py` into the project-local run cache, replacing the old user-home `~/.cache/huggingface` wording. No user-home cache was read or changed.
+
+- 2026-09-13 pipeline run-root normalization: audio and video pipelines now honor `ARCHEAXIS_RUN_ROOT`, placing receipts and working files under `artifacts/pipeline/{audio,video}` for managed runs; direct fallback remains project-local `task-runtime`. Both scripts compile and repository conventions remain clean. No external corpus was accessed.
+
+- 2026-09-13 retrieval-evaluation run-root normalization: `scripts/pipeline/eval_retrieval.py` now routes its default receipt to `ARCHEAXIS_RUN_ROOT/artifacts/pipeline/eval-retrieval/`; direct fallback is project-local `task-runtime`. The script compiles and repository conventions remain clean.
+
+- 2026-09-13 runtime smoke normalization: `scripts/runtime_http_smoke.py` now writes logs under `ARCHEAXIS_RUN_ROOT/artifacts/runtime-http-smoke` when managed by `dev.py`; direct fallback remains project-local. Pipeline and runtime smoke modules compile, and `tests/test_ci_a0_gates.py` passed 23 tests.
+
+- 2026-09-13 path/run-root regression: `tests/test_taskpack_paths.py tests/runtime-paths/test_dev_paths.py tests/test_ci_a0_gates.py -k "not cleanup_reaps_grandchild"` passed 46 tests with 1 known Windows process-tree case deselected; the full selection reproduced the managed-environment `taskkill.exe` access-denied failure. `check_path_conventions.py --json` still reports 1,994/1,994 owned paths, 0 unowned/ambiguous/denied.
+
+- 2026-09-13 rebuildable-cache cleanup: after confirming no `cargo`/`rustc` process was live, removed only `.project-local/build/cargo/debug/incremental` (4.25 GiB). Postcondition `Test-Path` was false; `.project-local` measured about 9.06 GiB afterward. Cargo dependencies, current debug binary, candidate bundle and receipts were retained; candidate verification remains `ok: true`.
+
+- 2026-09-13 additional run-root normalization: browser smoke, H2 OCR/ASR bake-off, and AXW-096A benchmark defaults now honor `ARCHEAXIS_RUN_ROOT` for runtime, reports, corpus and receipts; direct fallback remains project-local. Targeted regression `tests/test_a0_browser_smoke.py tests/test_h2_bakeoff.py tests/test_axw096a_benchmark.py` passed 19 tests.
+
+- 2026-09-13 private-runtime boundary fix: SenseVoice default model resolution no longer points to `.hermes/task-runtime`; it now uses explicit `ARCHEAXIS_SENSE_VOICE_MODEL_DIR`, managed `ARCHEAXIS_RUN_ROOT/models/sense-voice`, or project `.project-local/task-runtime/models/sense-voice`. ASR/media regression passed 12 tests; source scan found no `.hermes` write-path references in app/scripts/config.
+
+- 2026-09-13 DeepTutor run-root normalization: `DeepTutorBridge` now uses `ARCHEAXIS_RUN_ROOT` for its projection/custody root when managed, with the existing project-local fallback for direct calls. DeepTutor bridge, authority, launch and custody regression passed 15 tests.
+
+- 2026-09-13 report-output normalization: current reports and Golden Journey receipts now use `ARCHEAXIS_RUN_ROOT` artifacts when managed, with project-local task-runtime fallback for direct use. Their tests passed 12 cases; repository conventions and diff checks remain clean.
+
+- 2026-09-13 benchmark-corpus routing: `scripts/prepare_benchmark_corpus.py` now defaults to `ARCHEAXIS_RUN_ROOT/artifacts/benchmark/corpus` under managed runs, avoiding a shared per-tool corpus directory; direct fallback stays project-local. AXW-096A/096C regression passed 9 tests.
+
+- 2026-09-13 Phase-0 isolation normalization: temporary baseline runtime now uses `ARCHEAXIS_RUN_ROOT/tmp` under managed execution, with the existing project-local fallback for direct use. Phase-0 regression passed 11 tests.
+
+- 2026-09-13 media/lifecycle run-root normalization: media adapter temporary work directories and lifecycle browser E2E data now honor `ARCHEAXIS_RUN_ROOT`, with project-local fallback for direct calls. Media/web screenshot regression passed 11 tests; no external corpus or user data was touched.
+
+- 2026-09-13 desktop SSOT documentation repair: capability requirements now label Node/Rust Tauri entries as legacy recovery/compatibility; UI roadmap names C#/Avalonia + Rust Core as the formal track; `apps/desktop/README.md` now reflects the verified .NET/Avalonia build and remaining GUI/installer gaps. YAML parse and CI/current-report regressions passed 28 tests.
+
+- 2026-09-13 legacy-shell wording repair: the A0 browser smoke module now identifies React/Tauri as a compatibility/recovery shell and explicitly keeps C#/Avalonia as formal desktop authority. A0 browser/CI regressions passed 26 tests.
+
+- 2026-09-13 UI contract SSOT repair: `config/product/UI_CONTRACT_V2.json` now names C#/Avalonia as the formal desktop shell and the `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj` production entrypoint; React/Tauri remains an explicitly labeled legacy recovery/behavior reference. `tests/test_ui_contract_v2.py` passed 3 tests; repository conventions passed with 0 issues; `git diff --check` passed. Historical `CURRENT_PRODUCT_PLAN_V2.md` was left unchanged and is treated as historical evidence.
+
+- 2026-09-13 current-plan authority repair: docs/current/CURRENT_PRODUCT_PLAN_V2.md now explicitly identifies itself as the v0.6.8 historical baseline and points current desktop authority to PROJECT_CONTRACT/LANGUAGE_BOUNDARY/R5; legacy Tauri evidence remains historical. Naming/UI contract tests passed 33 cases; repository conventions returned 0 issues after LF normalization; git diff --check passed.
+
+- 2026-09-13 current metadata inventory refresh: read-only scripts/maintenance/inventory_project.py output saved to .project-local/runs/r5-normalization-20260913/inventory.json. Scope is exact Git root; .project-local observed at 9,728,764,460 logical bytes with 186 permission errors, 4 reparse skips, and 110 opaque exclusions; exit 1/status partial. This is evidence for further CLEAN01/CLEAN02 work, not a complete size or cleanup claim; no external roots or private state were opened.
+
+- 2026-09-13 CLEAN06/CLEAN07 exact cache cleanup: reviewed .project-local/cache/uv-probe (no source references; rebuildable probe cache, ~0.73 GiB) and removed only that exact path. Postcondition Test-Path was false. Read-only inventory after cleanup reports .project-local 8,942,454,352 logical bytes (down from 9,728,764,460; ~0.73 GiB reclaimed), still partial with 186 permission errors; report .project-local/runs/r5-normalization-20260913/inventory-after-uv-probe.json. Cargo deps, model/data roots, receipts and private boundaries were untouched.
+
+- 2026-09-13 X01 cancellation regression recheck: targeted 	est_dev_paths.py -k interrupted_output or cleanup_failure or windows_cleanup yielded 2 passed and 1 failed. Owned cancellation and cleanup-failure semantics passed; Windows parent/grandchild cleanup remains ENVIRONMENT_FAIL because managed 	askkill.exe /T /F returned nonzero/access denied. No product success claim; no fallback kill or external process change was introduced.
+
+- 2026-09-13 R5 package validation: docs/authority/taskpack-0912-r5/verify_package.py returned PASS (23 original tasks, 18 additional slices, 10 cleanup, 4 repository, 4 migration slices; 173 active files). The verifier explicitly reports product_tests_run=false, windows_cleanup_performed=false, and current_head_checked=false; this is package integrity only, not implementation or release qualification. Legacy evidence/worker/format checkers correctly rejected missing old-format R5 inputs and were not counted as passes.
+
+- 2026-09-13 generated-bytecode cleanup: removed 79 source/test/script __pycache__ directories (1,314 files; 19,577,239 bytes), excluding private runtimes, .project-local, .venv, and site-packages. Repository conventions 0 issues; path ownership 1994/1994; UI plus non-Windows runtime regressions 22 passed (1 Windows cleanup case intentionally deselected due known managed taskkill blocker); diff check passed.
+
+- 2026-09-13 output-path leak repair: desktop/scripts/verify_zip_distributions.ps1 now stages lifecycle temporary data under .project-local/task-runtime instead of legacy .hermes/task-runtime; a release-manifest regression assertion prevents reintroduction. Targeted lifecycle tests passed 3 (29 deselected).
+
+- 2026-09-13 test-entry routing repair: scripts/ci/run_tests.ps1 now prefers ARCHEAXIS_PYTHON, then managed .project-local/build/venv/Scripts/python.exe; root .venv is compatibility fallback only. CI classifier/A0 path tests passed 7; repository conventions remained clean.
+
+- 2026-09-13 cross-shell test routing: scripts/ci/run_tests.sh now mirrors PowerShell resolution and prefers .project-local/build/venv before legacy root .venv; R5-DESKTOP-START.md command updated accordingly. CI/nightly routing tests passed 4; repository conventions 0 issues; diff check passed.
+
+- 2026-09-13 Avalonia current-head recheck: attempted dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --no-restore --nologo with telemetry opt-out and project-local output intent; command could not start because dotnet is absent from PATH and standard local candidates were not present. Classified ENVIRONMENT_FAIL/NOT_EXECUTED; no SDK download or external toolchain mutation. Prior successful Avalonia build evidence remains bound to its recorded SHA and does not promote this recheck.
+
+- 2026-09-13 pipeline documentation routing: pipeline README and pipeline_audio.py usage now invoke dev.py with .project-local/build/venv, matching actual managed output routing; no functional pipeline code changed. Repository conventions 0 issues; diff check passed.
+
+- 2026-09-13 current-head binding recheck: branch codex/full-loop-0906, HEAD 3d560253c0d61dc0baa0728eb3fc0a74c5b67e26; no upstream is configured in this checkout; R5-STATE baseline remains c06b234ca335b9cbb2c1fde270851e2390c36b89. git status --short reports 60 modified/untracked entries including preserved history and current edits. No cloud-sync, commit, reset, or cleanup claim made.
+
+- 2026-09-13 local-ref comparison: HEAD 3d560253c0d61dc0baa0728eb3fc0a74c5b67e26 equals local origin/codex/full-loop-0906; local main 1e9813ea2bd49f47d334ba6717c78d3e9feda6ce equals local origin/main. No fetch was performed; these are cached local refs, not live cloud or CI evidence.
+
+- 2026-09-13 CLEAN01 scope refresh: metadata-only checks against the canonical shared-resource index confirm shared_models, shared_tools, green_application, green_material_library, and project_test_corpus all exist as ordinary directories with no reparse points. Report: .project-local/runs/r5-normalization-20260913/shared-resource-scope.json; all rows explicitly set write_authorized=false. No content was enumerated or modified.
+
+- 2026-09-13 final runtime spill scan: pp/, scripts/, services/, and config/ contain no .hermes path joins, system TEMP writes, or user-profile output writes. Remaining matches are project-local lifecycle comments or explicit user-supplied workspace path normalization (xpanduser), not default output destinations. No new leak found; source scan result is structural evidence only.
+
+- 2026-09-13 uv-cache cleanup rollback: attempted removal of `.project-local/cache/uv` and `uv-python` revealed the active test interpreter is a uv trampoline and could not spawn without managed Python. Rebuilt Python 3.13.14 and CI group into project-local cache/environment using explicit UV_PYTHON_INSTALL_DIR, UV_CACHE_DIR, and UV_PROJECT_ENVIRONMENT; no user-private uv directory or external toolchain was read/modified. Post-recovery UI/release tests passed 5 and repository conventions 0 issues. These caches are now classified retain-until-interpreter-migration.
+- 2026-09-13 post-recovery gate recheck: R5 `verify_package.py` returned PASS; path ownership remained 1994/1994 with 0 ambiguous; repository conventions initially found only a missing final LF in the live ledger, fixed and rechecked to 0 issues. Package verifier still reports product_tests_run=false, windows_cleanup_performed=false, current_head_checked=false.
+- 2026-09-13 normalization regression gate: targeted UI contract, release lifecycle, current-report, Golden Journey, phase0, screenshot/media, and runtime-path suites passed 88 tests (1 Windows cleanup case deselected for known managed taskkill blocker; 9 subtests passed). Two warnings were environmental/dependency deprecations; no product failure. No external data roots were used.
+- 2026-09-13 evidence-checker interpreter routing: `scripts/check_evidence_commands.py` now resolves managed `.project-local/build/venv` before legacy root `.venv`, matching `run_tests` shell entrypoints. Targeted checker tests passed 2; repository conventions remained clean.
+- 2026-09-13 cross-shell syntax check: `run_tests.ps1` parsed successfully and both shell entrypoints statically prefer `.project-local/build/venv`, then legacy `.venv`. `bash -n` was NOT_EXECUTED because Bash is absent from this Windows environment; no cross-shell pass claim made.
+- 2026-09-13 historical mechanical gates recheck: R3.1 format matrix passed (16 rows; 0 complete, 14 partial, 2 custody_only), worker reachability passed (12 workers; 10 routed, 2 exempted), and R14 evidence index passed (17 slices; 81 tracked evidence, 3 receipt evidence). These validate inherited mechanical claims only; they do not qualify R5 current product or independent audits.
+- 2026-09-13 R5 format coverage structural audit: `FORMAT-COVERAGE.json` parses as `archeaxis.format-retention/v1`, plan `AAK-FOLLOWUP-20260908-R3`, exactly F01-F16; all rows include format_id, qualification_state, preserved, and all 16 remain `NOT_REQUALIFIED` (12 core, 3 expansion, 1 explicit_boundary). No qualification claim was upgraded.
+- 2026-09-13 run-root regression gate: `test_dev_paths.py` plus report, Golden Journey, Phase0, and benchmark integration suites yielded 51 passed, 1 failed (Windows owned parent/grandchild cleanup; managed `taskkill.exe` access denied), and 9 subtests passed. The failure remains environment-scoped and is not promoted to product failure or success.
+- 2026-09-13 evidence command suite: full `tests/test_evidence_commands.py` passed 19 tests after managed-interpreter routing change. One pytest cache permission warning remains under the known ACL-isolated project runtime cache; no functional failure.
+- 2026-09-13 controlled-volume recheck after uv environment recovery: `.project-local/build` 6,280,203,058 bytes (5.85 GiB), `cache` 731,239,189 bytes (0.68 GiB), `runs` 1,962,634,233 bytes (1.83 GiB), `task-runtime` 48,977,678 bytes (0.05 GiB). Counts are logical bytes from readable regular files; private/ACL/reparse exclusions remain outside attribution. No hidden external path was scanned.
+- 2026-09-13 post-test bytecode cleanup: removed 37 newly regenerated source/test `__pycache__` directories (162 files; 2,038,289 bytes), again excluding all managed/private environments and dependency caches. Repository conventions 0 issues; diff check passed.
+- 2026-09-13 normalization/ownership gate: taskpack path routing, metadata inventory, path conventions, and language boundary suites passed 61 tests with 2 subtests. One known pytest cache ACL warning remains; no external data roots were accessed.
+- 2026-09-13 pytest boundary gate: `test_pytest_boundary.py` and selected workspace boundary tests passed 3. This confirms test temp resolution remains inside the project-managed runtime; Starlette deprecation and known ACL cache warnings are non-product warnings.
+- 2026-09-13 format/worker route regression: text facts, PDF structure/order, media, caption, archive, worker reachability, and image media type suites passed 72 tests. Only the known pytest cache ACL warning appeared; no external corpus or model library was accessed.
+- 2026-09-13 bulk-worker regression: text, PDF, Office, HTML, structured, media, and transport batch suites passed 50 tests. Output routing remained project-managed; only known pytest cache ACL warning appeared.
+- 2026-09-13 core contract/migration regression: learning event store/scheduler/outcome/artifact/security, migration runner, language boundaries, and vocabulary contract suites passed 85 tests with 29 subtests. Only the known pytest cache ACL warning appeared.
+- 2026-09-13 learning-loop regression: learning loop E2E, knowledge-to-learning artifacts, co-learning, distillation review, and quiz path suites passed 22 tests; only the known pytest cache ACL warning appeared.
+- 2026-09-13 workspace delivery boundary regression: workspace delivery lifecycle, crash recovery, learning API security, and browser failure/retry replay suites passed 9 tests; only known pytest cache ACL warning appeared.
+- 2026-09-13 final bytecode cleanup pass: removed 49 source/test `__pycache__` directories (209 files; 2,875,052 bytes), excluding all managed/private environments. Repository conventions 0 issues; `git diff --check` passed.
+- 2026-09-13 R5 package gate re-read: `docs/authority/taskpack-0912-r5/verify_package.py` exited 0 (`PASS`; 23 original tasks, 18 additional slices, 10 cleanup, 4 repo, 4 migration, 173 active files). Validator explicitly reports `product_tests_run=false`, `windows_cleanup_performed=false`, `current_head_checked=false`; these remain open delivery layers.
+- 2026-09-13 path conventions gate re-read: `scripts/check_path_conventions.py --json` exited 0 (`passed=true`, 1,994 tracked paths, 100% owned, 0 unowned/ambiguous/denied-but-tracked). Its ownership measurement is bound to commit `b81c789d8d6363f53ddfadf5e9da9e7735bb9338`; reported worktree drift is retained as a measurement caveat, not silently promoted.
+- 2026-09-13 language boundary gate re-read: `scripts/check_language_boundaries.py --json` exited 0 (`passed=true`, protocol/contracts/schema major 1, hello/envelope checks passed).
+- 2026-09-13 repository conventions gate re-read: `scripts/check_repository_conventions.py --format json` exited 0 (`issue_count=0`).
+
+- 2026-09-13 HL01 source registration: generated docs/current/R5-HL01-SOURCE-REGISTRY.json from the four R5 research-v15 originals; counts are methods 40, research 35, disciplines 36, resources 104 (215 total). Each category records source SHA-256, namespace, candidate qualification, and not-activated status. Private history was not accessed; historical continuity and Core ID/import receipts remain open, so X00 stays PARTIAL_NEEDS_WORK.
+
+- 2026-09-13 HL01 registry regression: tests/test_hl01_source_registry.py passed 1 test. It locks the four source counts and candidate/not-activated/private-history boundaries; pytest emitted only the known ACL cache warning.
+- 2026-09-13 HL01 mapping increment: added `scripts/generate_hl01_source_registry.py` to deterministically derive 215 namespaced `hl01:` Core-ID candidates (version 1) from the four hashed R5 source files. Regeneration and `tests/test_hl01_source_registry.py` passed; IDs remain candidate/not-activated until the Core import receipt path is implemented.
+- 2026-09-13 HL01 Core source import increment: added `app/evidence/hl01_import.py` and `SourceStoreV2.has_source()` to persist one append-only SourceObjectV2 per R5 candidate record (215 rows) and report idempotent retries. Targeted registry/import/source-store tests passed 5 tests; the import remains candidate-only and does not activate learning records.
+- 2026-09-13 HL01 readback increment: added `SourceStoreV2.list_sources()` and verified four persisted source rows, stable IDs, version 1, and original-retained flags after a duplicate import. Targeted import/source-store tests passed 4 tests; repository conventions remained at 0 issues.
+- 2026-09-13 HL01 receipt increment: `import_registry_candidates()` now optionally records a completed `workspace.sqlite` command/job/outbox receipt with registry and source-ID hashes. A replay with the same command ID is idempotent. Targeted import/source-store tests passed 4 tests; no candidate is activated.
+- 2026-09-13 HL01 entrypoint increment: added `scripts/import_hl01_registry.py` with required explicit `--db`, `--registry`, and `--command-id` arguments. Help smoke passed; missing default database/user paths are refused, preserving the external and real-user data boundaries.
+- 2026-09-13 HL01 CLI end-to-end smoke: in an isolated `.project-local/runs/hl01-cli-smoke` SQLite database, applied `workspace.sqlite` and `knowledge-governance.sqlite`, ran the CLI twice, and read back `sources=215`, `receipts=1`, `jobs=1`; first run imported 215, second reported 215 duplicates. No external or real-user database was accessed.
+- 2026-09-13 HL01 rights-boundary hardening: `rights_status` is now required by the import API and CLI; no source is implicitly classified as owned. Targeted registry/import tests passed 2 tests and CLI help exposes the four explicit choices; repository conventions remained at 0 issues.
+- 2026-09-14 HL01 integrity/path hardening: registry imports now resolve relative source paths from the repository/registry ancestry and rehash plus size-check each source before writing Core objects. The targeted test runs from a different working directory; registry/import tests passed 2 tests and conventions remained at 0 issues.
+- 2026-09-14 HL01 boundary regression: absolute source paths outside the repository root are rejected before any read; the path-escape test and import smoke passed 2 tests. No external drive or protected resource root was accessed.
+- 2026-09-14 HL01 compatibility regression: existing raw import, workspace job/outbox, workspace migration, and HL01 import suites passed 19 tests. Original-asset retention and command receipt semantics remain intact; only the known pytest ACL cache warning appeared.
+- 2026-09-14 HL01 receipt binding hardening: command receipt payload now includes explicit `rights_status`; replaying the same command with a changed rights state is rejected as an immutable-source conflict. Targeted HL01 tests passed 3 tests; repository conventions remained at 0 issues.
+- 2026-09-14 HL01 fail-closed registry validation: imports now reject missing/truncated records, category-count mismatches, unknown source paths, or duplicate Core IDs before any write. Tampered-registry and normal import tests passed 5 tests; repository conventions remained at 0 issues.
+- 2026-09-14 HL01 repository-root binding: added explicit `repository_root` to the importer and CLI, keeping external source paths rejected even when a registry file is staged elsewhere. Hash-tamper and normal import tests passed 5 tests; repository conventions remained at 0 issues.
+- 2026-09-14 HL01 receipt readback: added `verify_registry_receipt()` to join the durable command receipt and job with Core source rows, verifying succeeded state and source-count consistency. Targeted HL01 tests passed 5 tests; repository conventions remained at 0 issues.
+- 2026-09-14 cross-module regression: HL01, source-store, raw import, workspace outbox/API, and dev-path suites yielded 68 passed, 9 subtests passed, 1 environment-scoped failure. The only failure is Windows process-tree cleanup because managed `taskkill.exe` returned access denied; path conventions, language boundaries, repository conventions, and `git diff --check` all passed. Process command-line inspection was also denied, so no cleanup claim is made.
+- 2026-09-14 HL01 static gate: `py_compile` succeeded for all changed modules/tests and direct imports of the importer, receipt verifier, and source store succeeded (`imports-ok`). Repository conventions remained at 0 issues and `git diff --check` passed.
+- 2026-09-14 HL01 CLI readback output: CLI now appends a read-only `readback` object after import. A new command ID replayed twice against the isolated smoke DB and returned `source_count=215`, `state=succeeded`; an older pre-rights-binding command receipt was correctly rejected as a semantic conflict and was not silently reused.
+- 2026-09-14 HL01 lint gate: Ruff initially found three import issues; minimal import cleanup fixed all of them. Ruff then passed all changed HL01 modules/tests, targeted tests passed 6, repository conventions remained at 0 issues, and `git diff --check` passed.
+- 2026-09-14 R5 package/boundary recheck: `verify_package.py` passed (23 original tasks, 18 additional, 10 cleanup, 4 repo, 4 migration, 173 active files); path conventions passed with 1,994/1,994 owned, language boundaries passed, repository conventions reported 0 issues, and `git diff --check` passed. Package validator still explicitly reports product tests/current-head/windows-cleanup flags as false.
+- 2026-09-14 HL01 final target gate: Ruff passed all changed HL01 modules/tests; registry, importer, and source-store tests passed 9 tests; repository conventions reported 0 issues and `git diff --check` passed. The known pytest ACL cache warning remains non-functional.
+- 2026-09-14 constrained bytecode cleanup: removed 26 re-creatable `__pycache__` directories (1,919,324 bytes) only under `app/`, `scripts/`, `tests/`, and `shared/`; postcondition confirmed zero remaining in those roots. Managed/private environments and user assets were excluded.
+- 2026-09-14 HL01 handoff documentation: added `docs/current/R5-HL01-IMPORT.md` with explicit CLI paths, migration prerequisites, rights selection, integrity/readback behavior, and protected-root boundaries. Repository conventions and Ruff checks passed; `git diff --check` passed.
+- 2026-09-14 R5 repeatable gate: the repository-local package verifier, path conventions, language boundaries, repository conventions, and `git diff --check` all passed. The package verifier still reports product tests/current-head/Windows cleanup as false; no completion promotion was made.
+
+### 2026-09-14 CLEAN03 静态外溢生产者追踪器（本地实现）
+- 新增 `scripts/maintenance/trace_output_producers.py`：只读校验精确 Git 根，跳过 `.hermes/.zcode/.codex`、`.project-local`、虚拟环境、构建和重解析点；只扫描代码/配置文本，输出逐条 `canonical_path/producer/entrypoint/config_source/owner_evidence` 候选，不读进程、日志、外置库或私有状态。
+- 新增 `tests/maintenance/test_trace_output_producers.py`；项目解释器运行结果 `2 passed`，Ruff `All checks passed`。
+- 运行证据：`.project-local/runs/be268a2d33/r5-spill-trace-20260914e/artifacts/spill-trace.json`，命令经 `scripts/runtime/dev.py`，HEAD `3d560253c0d61dc0baa0728eb3fc0a74c5b67e26`，输出 1,037 条候选、687,604 bytes；退出码 0。
+- 限制：这是静态候选台账，不证明运行时实际写入；外部根、进程命令行和日志仍需单独授权/实测；未执行任何删除或配置改写。
+- 2026-09-14 CLEAN03 boundary regression follow-up: CLI output destinations outside `.project-local` now fail closed with a clear error; tracer tests passed 3 and Ruff passed. The earlier broken-pipe run was deleted with a verified postcondition and is not evidence.
+- 2026-09-14 CLEAN03/CLEAN04 routing regression: output-producer tracer, metadata inventory, and project output-routing contract suites passed 32 tests with 2 subtests. Only the known ACL pytest-cache warning appeared; no external roots or private runtime directories were read.
+- 2026-09-14 CLEAN04 desktop Rust lifecycle path repair: `desktop/src-tauri/tests/backend_lifecycle.rs` no longer points lifecycle data or Python runtime at `.hermes`/root `.venv`; both use the managed `.project-local` build/runtime paths. `rustfmt` was unavailable, so formatting was structurally inspected; repository conventions and language-boundary gates passed, and `git diff --check` passed. The ignored smoke tests were not executed because Cargo/rustfmt are unavailable in this environment.
+- 2026-09-14 Rust lifecycle routing contract: added a regression assertion that the ignored desktop smoke fixture uses `.project-local` runtime/data paths and contains no `.hermes` or root `.venv` target. Contract tests passed 10; repository conventions remained 0 issues.
+- 2026-09-14 CLEAN04 worker-checker routing: `scripts/ci/check_vnext_workers.py` now allocates all synthetic inputs under the current `.project-local` run (or validated project-local fallback), and rejects an external `ARCHEAXIS_RUN_ROOT`. Ruff passed, CI classifier tests passed 31, and the real workers-vnext checker passed via `scripts/runtime/dev.py` (run `r5-worker-routing-20260914`, exit 0).
+- 2026-09-14 desktop runtime Python path repair: `desktop/src-tauri/src/runtime.rs` development profile now resolves `.project-local/build/venv/Scripts/python.exe` instead of root `.venv`; Rust unit fixtures were updated to the same managed path and the contract suite now guards against regression. Contract tests passed 11, repository conventions 0 issues, and `git diff --check` passed. Cargo/rustfmt are unavailable, so Rust compilation remains NOT_EXECUTED.
+- 2026-09-14 doctor routing repair: `scripts/doctor_windows.ps1` now checks `.project-local/build/venv` before the historical root `.venv` compatibility fallback; its test contract name and condition were updated accordingly. `tests/test_doctor_windows.py` passed 8, repository conventions 0 issues, and `git diff --check` passed.
+- 2026-09-14 R15/F12 deterministic format regression: Canvas, SRT/VTT fixture matrix, archive inventory, JSON Canvas, golden Canvas, and format contract suites passed 47 tests. This is current local behavior evidence only; `FORMAT-COVERAGE.json` remains NOT_REQUALIFIED pending full-chain and independent audit.
+- 2026-09-14 worker temp boundary regression: added `tests/maintenance/test_check_vnext_workers_paths.py` covering project-local allocation, cleanup, and external-root rejection. Worker path tests plus CI classifier passed 33; Ruff passed. The known ACL pytest-cache warning remains environmental only.
+- 2026-09-14 output-boundary guard: added a repository contract preventing `check_vnext_workers.py` from reintroducing bare system `TemporaryDirectory()` calls; it must use the validated project-local helper. Contract and helper tests passed 14; repository conventions 0 issues and `git diff --check` passed.
+- 2026-09-14 CLEAN02 inventory output contract: `inventory_project.py` now supports `--output` only inside the exact project `.project-local` tree, with reparse-point rejection; stdout behavior is preserved. Inventory tests passed 21 (2 subtests), Ruff passed. A current run via `dev.py` wrote `inventory.json` with partial status (102,661 readable files / 10,912,290,226 logical bytes / 186 permission errors); exit 1 is expected for incomplete observation and is not a full-size claim.
+- 2026-09-14 source bytecode cleanup: after compile verification, removed 27 re-creatable `__pycache__` directories (1,787,876 bytes) only under `app/`, `scripts/`, `tests/`, and `shared/`; postcondition confirmed zero remaining. Managed/private environments, model caches, and user assets were untouched.
+- 2026-09-14 combined normalization regression: path routing, inventory output, spill tracing, worker temp boundaries, Windows doctor, release manifest, Canvas/SRT/VTT/archive, and format contracts passed together: 125 tests, 2 subtests. Only Starlette deprecation and known ACL pytest-cache warnings appeared; no external roots or private state were accessed.
+
+- 2026-09-14 post-regression bytecode cleanup: removed 27 regenerated source/test __pycache__ directories (1,622,935 bytes); postcondition zero under app/scripts/tests/shared. Managed/private environments and user assets retained.
+- 2026-09-14 R5 entrance gate after routing changes: package verifier PASS, path conventions PASS, language boundaries PASS, repository conventions 0 issues, and `git diff --check` PASS at HEAD `3d560253c0d61dc0baa0728eb3fc0a74c5b67e26`. Package verifier still reports product tests/current-head/Windows cleanup flags false; this is an integrity gate only.
+- 2026-09-14 full Python regression (managed dev run): 2,737 passed, 7 skipped, 135 subtests, 12 failures. Four Windows process-tree/candidate-reap failures are the known managed `taskkill.exe` access-denied environment condition; three optional-adapter failures are missing `newspaper4k`, `youtube-transcript-api`, and `readabilipy` dependencies; the DeepTutor failures occurred only under an overlong run path and pass under short managed run `deeptutor-short` (4 passed); two stale audit assertions were corrected for current HL01 consumers/owner count and current retrieval output routing; the current-head audit now allows only the exact checkout HEAD. No failure was promoted to product pass.
+- 2026-09-14 stale-baseline regression fixes: first-wave consumer/owner tests and retrieval data-boundary test now match the current HL01/path-routed implementation; targeted suite passed 6, Ruff passed. The audit still rejects arbitrary undocumented SHAs.
+
+- 2026-09-14 optional adapter environment closure: installed lock-compatible `newspaper4k==0.9.6`, `youtube-transcript-api==1.2.4`, and `readabilipy==0.3.0` into the project-local managed run environment using `UV_CACHE_DIR=.project-local/cache/uv-cache-r5`; no shared or external environment was modified. `tests/test_integrations.py` + `tests/test_adapter_contract.py` passed 97 tests in run `r5-optional-adapters-20260914` (exit 0). Warnings: newspaper NLP extras absent and readabilipy deprecation only.
+- 2026-09-14 R5 integrity recheck: taskpack-0912-r5 verify_package PASS (23 tasks, 173 active files; product_tests_run/current_head_checked/windows_cleanup_performed remain false), path conventions PASS (1994 tracked, 0 unowned), language boundaries PASS, repository conventions PASS (0 issues). Optional adapter integration suite passed 97 after project-local dependency install. Candidate process-reap suite remains 32 passed / 3 failed because managed taskkill.exe is denied (WinError 5); no cleanup behavior was falsely promoted.
+- 2026-09-14 post-adapter source cleanup: removed 14 regenerated __pycache__ directories only under app/scripts/tests/shared; postcondition Remaining=0. No private/runtime environments or external roots touched.
+- 2026-09-14 CLEAN07 execution from reviewed r5-dsh-runs-audit-2/candidates.json: validated 578 non-empty candidates stayed under .project-local/runs/be268a2d33 and excluded artifacts; removed 453 paths successfully. 125 paths remain due ACL-denied pytest trees (representative failures recorded in command output); no elevation or ACL changes attempted. Artifact directories remain present (1037 observed).
+- 2026-09-14 post-cleanup inventory: metadata-only scan wrote .project-local/runs/be268a2d33/r5-inventory-post-cleanup-20260914/artifacts/inventory.json; status partial (exit 1) with .project-local 9,716,222,206 logical bytes, 78,721 readable files, 186 permission errors, 6 reparse skips, and 167 excluded private/mixed entries. This is logical observed size, not allocated disk usage; inaccessible entries remain explicitly unknown.
+- 2026-09-14 CLEAN07 retry: re-attempted all 125 remaining reviewed candidates; 0 removed / 125 failed with the same ACL-denied pytest-tree condition. No ACL, ownership, or process changes made; blocker remains environmental.
+- 2026-09-14 post-cleanup routing regression: project output-routing contract plus inventory tests passed 33 tests and 2 subtests in run r5-post-cleanup-contract-20260914 (exit 0).
+- 2026-09-14 G11 desktop shell repair: replaced the formal Avalonia MainWindow placeholder with the ArcheAxis workspace shell (workspace navigation, import/learning entry cards, status summary, and CoreStatusText updates for connection/configuration state). Added a regression contract; tests/test_project_output_routing_contract.py passed 13 tests and Ruff passed in run r5-desktop-shell-contract-20260914. Rust/.NET compilation and visible Windows runtime remain NOT_EXECUTED.
+- 2026-09-14 G05/G11 desktop entry interaction: wired the formal Avalonia shell import action to StorageProvider.OpenFilePickerAsync and added a learning-path action with explicit status feedback. The routing contract suite passed 13 tests and Ruff passed in run r5-desktop-import-shell-20260914; visible Windows execution and real Core import remain NOT_EXECUTED.
+- 2026-09-14 desktop-to-Core import bridge: selected files are read through Avalonia StorageProvider, encoded as base64, and submitted to the owned Core POST /api/v1/imports using the verified launch token; partial submission and interruption are surfaced in the UI. Static routing contract passed 13 tests and Ruff passed in run r5-desktop-core-import-20260914. Real Windows/Core runtime remains NOT_EXECUTED.
+- 2026-09-14 desktop learning-entry follow-up: X03/X08/X11 gap review confirms backend learning APIs exist but default Avalonia UI still lacks queue rendering; current shell now exposes an explicit learning action and import-to-Core bridge. No claim of full learning closure; visible GUI and restart continuation remain pending.
+- 2026-09-14 Core import/client regression: tests/test_core_client.py and tests/test_research_artifact_runtime_loop.py passed 12 tests in run r5-core-client-20260914 (exit 0), covering authenticated request construction and reviewed artifact persistence. This does not replace a compiled desktop runtime test.
+- 2026-09-14 desktop validation: MainWindow.axaml XML parse passed (XAML_XML_OK); desktop output-routing contract plus Core client tests passed 24 tests in run r5-desktop-final-contract-20260914; Ruff and git diff check passed. No new learning-queue API was invented because the frozen Core contract exposes only item-key state/events.
+- 2026-09-14 final full Python regression: managed run r5-full-regression-final-20260914 completed 2,739 passed, 7 skipped, 135 subtests, 11 failures. Failures: one Windows process-tree cleanup, three candidate reaping (taskkill WinError 5), and seven backup/DeepTutor cases caused by overlong run paths. Short-path confirmation passed backup 8 and DeepTutor 4 in runs bkp-short and dt-short2. No product pass was promoted; long-path and process-control limitations remain environment blockers.
+- 2026-09-14 short-run full regression: run r5f completed 2,746 passed, 7 skipped, 135 subtests, 4 failures. All remaining failures are Windows process-tree/candidate reaping where taskkill.exe is denied (WinError 5); backup and DeepTutor long-path failures disappeared with the short run id. This is the strongest current Python evidence, but not a full product or Windows desktop qualification.
+- 2026-09-14 learning/governance contract regression: reviews SM2, mastery signal, machine knowledge, and evaluation governance tests passed 31 tests in run r5-learning-contract-20260914 (exit 0). This verifies backend governance contracts only; default desktop queue and human long-term learning evidence remain open.
+- 2026-09-14 post-full-regression cleanup: checked app/scripts/tests/shared for regenerated __pycache__; 0 found and 0 remained. Managed environments, build caches, evidence, and user assets were untouched.
+- 2026-09-14 desktop entry documentation alignment: R5-DESKTOP-START now describes the implemented workspace shell and authenticated import bridge while retaining explicit NOT_EXECUTED status for visible Windows runtime, compilation, and full learning UI. Repository conventions recheck returned 0 issues.
+- 2026-09-14 R5-STATE correction: X03 gap now reflects the implemented workspace shell and file-to-Core import bridge; it remains PARTIAL because learning queue rendering, DeepTutor default mount, and complete session/attachment recovery are open. STATE JSON parse, repository conventions, and diff-check passed.
+- 2026-09-14 learning queue contract: added read-only Rust Core GET /api/v1/learning/items projection (one latest deadline per item), documented it in packages/contracts/v1/openapi-outline.yaml, and wired the Avalonia learning action to read its count. OpenAPI YAML and desktop contract tests passed (13); Rust compile/runtime remains NOT_EXECUTED because cargo is unavailable.
+- 2026-09-14 learning queue contract readback: offline OpenAPI contract examples plus Core client tests passed 28 tests in run r5-openapi-contract-20260914 (exit 0); only existing jsonschema deprecation warnings. No duplicate route or schema-reference conflict detected.
+- 2026-09-14 Rust queue endpoint static review: corrected JSON row-count ownership ordering before compilation (count captured before rows moves into serde_json). Cargo/rustfmt remain unavailable; no compile claim.
+- 2026-09-14 state alignment: X03 gap now records the Core learning-items query endpoint as implemented while keeping desktop question rendering/review submission, DeepTutor default mount, and full session/attachment recovery open. STATE JSON reparse passed.
+
+### 2026-09-14 current runtime-tree recheck
+
+- Rechecked `.project-local/runs`: `be268a2d33` 1.829 GiB, active managed test venv 0.723 GiB, remaining named run trees each <=0.222 GiB.
+- Rechecked repository top-level readable sizes: `.project-local` 9.483 GiB, `.venv` 0.876 GiB, `.hermes` 0.463 GiB, `docs` 0.461 GiB; `.git` 0.450 GiB.
+- The 60+ GiB claim is not reproduced by readable regular-file totals in this checkout. ACL-denied and reparse-skipped content remains un-attributed; no ACL changes or broad deletion performed.
+- `candidates.json` remains as the audit manifest at `.project-local/runs/be268a2d33/r5-dsh-runs-audit-2/candidates.json` (529,527 bytes); prior cleanup receipt remains authoritative for 453 removed / 125 ACL-denied paths.
+- Classification: `PARTIAL`; generated build/cache trees remain available for reproducibility and are not deleted without a refreshed per-path manifest.
+
+### 2026-09-14 output-producer trace
+
+- `scripts/maintenance/trace_output_producers.py` ran against the exact Git root and wrote `.project-local/runs/path-trace-current-20260914.json`; exit 0.
+- The structural scan recorded 1,049 candidates and 3 limitations. Candidates are source tokens only, not proof of runtime writes.
+- The dominant tokens are governed run/output variables (`ARCHEAXIS_RUN_ROOT`, `ARCHEAXIS_DATA_DIR`, `ARCHEAXIS_PYTHON`, `CARGO_TARGET_DIR`, `UV_CACHE_DIR`) plus test temporary-directory APIs; no private runtime directories were opened.
+- This does not yet constitute a full runtime path proof; live process command lines and external roots remain outside the scan boundary.
+
+### 2026-09-14 user-provided Deep Adaptation TaskPack diff audit
+
+- Read the user-provided 2026-09-13 attachment and compared it with current R5 authority/state and current cleanup/path evidence.
+- Added `docs/current/R5-MASTER-TASKPACK-AUDIT-20260914.md`, classifying aligned direction, stale cleanup/baseline numbers, unverified external claims, and the executable gap order.
+- The attachment is retained as a directional supplement; it does not replace the immutable R5 package, live state, or independent-audit gates.
+
+### 2026-09-14 SSOT/path/format gate rerun
+
+- Targeted governance suite (`test_architecture_guard.py`, `test_path_conventions.py`, `test_taskpack_paths.py`, `test_format_matrix.py`) passed: 59 tests.
+- Pytest emitted one cache warning because the existing `.project-local/task-runtime/pytest-cache` ACL denies writes; this is an environment residue, not a product pass.
+
+### 2026-09-14 HL01 directed verification
+
+- `tests/test_hl01_source_registry.py` and `tests/test_hl01_import.py`: **6 passed** under the managed project interpreter.
+- Evidence covers 215 candidate records, idempotent replay, immutable rights status, repository-root escape rejection, truncated registry pre-write failure, and source-hash pre-write failure.
+- X00 state was updated to reflect this verified local behavior; production Core database import and visible Windows host remain unexecuted.
+
+### 2026-09-14 desktop dependency SSOT reconciliation
+
+- Updated `docs/environment/EXTERNAL_DEPENDENCIES.md`: C#/Avalonia `apps/ArcheAxis.Desktop/` is the formal shell; Node/Rust Tauri entries are explicitly legacy recovery/compatibility only. Added the formal .NET/Avalonia dependency entry and project-local build routing.
+- Targeted language/architecture/UI governance suite passed: **41 tests**.
+- External shared dependency paths and private runtime state were not opened or changed.
+
+### 2026-09-14 R5 package integrity recheck
+
+- `docs/authority/taskpack-0912-r5/verify_package.py` returned `PASS`: 23 tasks, 38 original scenarios, 18 additional slices, 173 active files.
+- Receipt `.project-local/runs/r5-package-verify-20260914.json` binds the result to HEAD `3d560253c0d61dc0baa0728eb3fc0a74c5b67e26`.
+- The verifier explicitly reports `product_tests_run=false`, `windows_cleanup_performed=false`, and `current_head_checked=false`; package integrity is therefore not a product or release pass.
+
+### 2026-09-14 refreshed cleanup disposition
+
+- Added `docs/current/R5-CLEANUP-MANIFEST-20260914.md` with current top-level observations and explicit KEEP / REBUILDABLE / EVIDENCE / BLOCKED / UNKNOWN dispositions.
+- Current readable `.project-local` total is 9.483 GiB; build/cargo and active test venv remain retained for reproducibility.
+- No deletion or ACL mutation was performed by this manifest update.
+
+### 2026-09-14 rebuildable cache cleanup
+
+- Removed `.project-local/cache/uv-cache` (498,671,069 bytes / 0.464 GiB) as a reviewed rebuildable download cache.
+- Postcondition `Test-Path -LiteralPath .project-local/cache/uv-cache` returned false; no source, evidence, interpreter, external library, or user data was touched.
+
+### 2026-09-14 human-learning loop regression
+
+- Combined learning path, scheduler, outcome, event store, loop E2E, artifact projection, and learning API security suite passed: **37 tests**.
+- X08 state now records this local evidence while retaining open gaps for default GUI, question correction/exposure, teach-back, interleaving, burden, and descendant-process coverage.
+- One pytest cache warning remains from the pre-existing ACL-denied `.project-local/task-runtime/pytest-cache`; no ACL changes made.
+
+### 2026-09-14 format matrix directed regression
+
+- Format matrix, workspace multi-format pipeline, DOCX adapter, adapter quality/contract, and learning artifact contract suite passed: **46 tests**.
+- X12 state records the evidence as local execution/contract coverage only; current matrix remains **0 complete / 14 partial / 2 custody-only**.
+- External Vault round-trip, full source return path, three-theme acceptance, and fresh-machine regression remain unexecuted.
+
+### 2026-09-14 repository conventions gate
+
+- `scripts/check_repository_conventions.py . --format json` passed with `issue_count=0`; receipt `.project-local/runs/repository-conventions-20260914.json`.
+- The worktree-wide naming/encoding convention gate remains clean after the current documentation and state updates.
+
+### 2026-09-14 evidence-chain gate
+
+- `check_evidence_index.py --index docs/authority/taskpack-0910-r3/R14-EVIDENCE-INDEX.json --state .../STATE.json --json` passed: 17 slices, 81 tracked evidence entries, 3 receipt entries, 0 failures.
+- `check_evidence_commands.py` enumerated 21 recorded commands as runnable; commands were not executed in this pass because the list includes heavy Cargo/probe operations and the current environment lacks the required Rust/.NET toolchains.
+
+### 2026-09-14 R15 matrix mechanical check
+
+- `scripts/check_format_matrix.py --json --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` passed: 16 rows, 11 Core routes, 10 worker routes, 0 failures.
+- Counts remain `complete=0`, `partial=14`, `custody_only=2`; this is a mechanical truth check and does not promote semantic or fresh-machine acceptance.
+
+### 2026-09-14 R13 dependency doctor
+
+- `scripts/launch/core_launch.py --check` passed all 9 required local dependency checks: Core binary, managed Python, text/PDF/OCR workers, PyMuPDF, Tesseract executable and language data, and Cargo wrapper.
+- Receipt: `.project-local/runs/r13-core-dependency-check-20260914.json`. DeepTutor/Ollama ports were not running; this check does not prove installer, signing, uninstall, or clean-machine startup.
+
+### 2026-09-14 data-boundary regression
+
+- Combined project-data-boundary, approved-paths, dev-path, inventory, and output-routing suites: **59 passed, 1 failed, 1 skipped, 11 subtests passed**.
+- The single failure is the known Windows process-tree cleanup case: `taskkill.exe` returned access denied in this managed environment, so `stop_owned_process` could not reap the test-owned tree.
+- Process inspection via `Get-CimInstance Win32_Process` was also access denied; no unowned process was terminated and the failure remains `ENVIRONMENT_FAIL`, not a product PASS.
+
+### 2026-09-14 machine/MCP contract regression
+
+- MCP surface/probe, unseen evaluation, machine-knowledge contract/candidate, and candidate-versioning suites passed: **44 tests**.
+- X09 state records this local evidence while keeping real-client method coverage and research-correction chain open.
+- This is not an independent R11/R14 audit or a live external MCP qualification.
+
+### 2026-09-14 DeepTutor bridge isolated rerun
+
+- Initial combined run had 4 `unable to open database file` failures from an ACL-denied pytest temp subtree. Re-running `tests/test_deeptutor_bridge.py` with a fresh project-local basetemp passed **4/4**.
+- The bridge result covers sidecar rebuild, inbound truth rejection, candidate-only idempotent learning event, and projection-root containment. This is local evidence only; default host mounting and visible desktop runtime remain open.
+
+### 2026-09-14 backup/recovery isolated regression
+
+- `tests/test_backup.py` and `tests/test_axw094b_backup.py` passed **19/19** with a fresh project-local basetemp.
+- Coverage includes candidate creation, offline activation restore, compensation failure, validation failure, and recovery-copy preservation.
+- Initial combined failures were caused by an ACL-denied reused pytest temp tree; no product code change was made.
+
+### 2026-09-14 runtime delivery gate
+
+- Nightly runtime gates, runtime delivery authority, desktop launch/runtime, crash recovery, and test-launcher contract suites passed: **16 tests**.
+- X11 state records local contract/recovery evidence only; non-development Windows GUI, installer/signing/uninstall, and full worker/host dependency closure remain unexecuted.
+
+### 2026-09-14 source/evidence/grounding regression
+
+- Source store/record/discovery/anchor, workspace evidence API, retrieval practice, evidence anchor, and grounded answer suites passed: **44 tests**.
+- X07 state records local source/evidence/grounding coverage; cloud claim checking and HL02/HL10 correction-impact paths remain open.
+
+### 2026-09-14 worker reachability gate
+
+- `check_worker_reachability.py --record docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json` passed: **12 workers**, **10 routed**, **2 explicitly exempted**, 0 failures.
+- X06 state records route reachability only; dynamic web capture, structural quality, complex samples, and real model qualification remain open.
+
+### 2026-09-14 multimodal adapter execution regression
+
+- PDF extraction/structure/reading-order/native, OCR config/gate/routes/reading-order, media extraction/route, audio VAD, and golden fixture suites passed: **66 tests**.
+- X06 state records local adapter execution evidence; dynamic web capture, complex-sample quality, structural addressing, and real model qualification remain open.
+
+### 2026-09-14 CI/path governance regression
+
+- CI classifier/gates, path conventions/taskpack paths, naming, long-path, approved-path, worker-path, and vNext receipt suites passed: **118 tests**, 1 Windows-specific skip.
+- X01 state records broad local governance coverage; process-tree cancellation and full Windows runtime behaviors remain environment-dependent.
+
+### 2026-09-14 donor/qualification governance regression
+
+- Open-source absorption ledger, first-wave owner/consumer audits, research knowledge governance, quality absorption, honest capability, and governance-tamper suites passed: **30 tests**.
+- X02 state records candidate/qualification boundary evidence; full M0 semantic review, M1 absorption, and default Windows invocation remain open.
+
+### 2026-09-14 knowledge-to-learning regression
+
+- Knowledge-to-learning artifact, distillation review, learning loop, card projection, co-learning, and knowledge-tracing suites passed: **25 tests**. Combined with the earlier learning loop run, X08 now records **62** locally passing cases across the selected coverage.
+- Open gaps remain for default GUI, exposure/question correction, interleaving, teach-back, burden, and full interaction semantics.
+
+### 2026-09-14 handoff/report receipt regression
+
+- Current report generator, golden journey receipt, release evidence receipt, index manifest, and taskpack path suites passed: **34 tests**.
+- These checks confirm receipt/index wiring and path references; they do not promote product runtime, installer, or independent audit status.
+
+### 2026-09-14 final contract-format consistency check
+
+- Parsed current R5 state, HL01 registry, path disposition, and OpenAPI outline successfully (`JSON_OK`/`OPENAPI_YAML_OK`).
+- UI contract, release identity, taskpack paths, and output-routing contract suite passed: **26 tests**.
+- No claim was promoted beyond local structural/contract evidence.
+
+### 2026-09-14 security/authority boundary regression
+
+- Permission, API identity/security, federation security, learning API security, machine candidate contracts, governance tamper, evaluation governance, and Tauri shell/security suites passed: **49 tests**.
+- X04 state records local authority-boundary evidence; cross-process DeepTutor machine adapter and final learning/structure contract remain open.
+
+### 2026-09-14 FSRS/review persistence regression
+
+- Learning scheduler, review events, event store, and learning outcome suites passed: **24 tests**.
+- X05 state records local persistence/scheduler evidence and confirms review-event input; R5 learning fields, source namespaces, correction append, and archive semantics remain open.
+
+### 2026-09-14 architecture boundary guard
+
+- AST-based `scripts/check_architecture.py . --format json` returned an empty violation list with exit 0; receipt `.project-local/runs/architecture-guard-20260914.json`.
+- Formal C#/Avalonia shell, Rust Core/DB writer, and Python worker boundary remains structurally clean; this does not prove compiled/runtime behavior.
+
+### 2026-09-14 quality/evaluation regression
+
+- Text quality, retrieval practice, quality absorption, evaluation governance/fallback/contract, benchmark, quality-report schema, and worker quality regression suites passed: **101 tests**, **30 subtests**.
+- Metrics remain separated from knowledge truth and learner mastery; this is local benchmark/contract evidence, not the final pedagogy or independent audit gate.
+
+### 2026-09-14 execution preflight gap
+
+- The project overlay references `scripts/workflow/execution_preflight.py`, but that file is absent in the current checkout; no false PASS was recorded.
+- Fallback receipt `.project-local/runs/execution-preflight-gap-20260914.json` records current branch/HEAD/managed Python and the independent governance checks already run.
+- Adding the missing helper is a future governance task; it was not invented during this verification pass.
+
+### 2026-09-14 execution preflight implementation
+
+- Added read-only `scripts/workflow/execution_preflight.py` and tests `tests/workflow/test_execution_preflight.py`; targeted tests passed **2/2**.
+- Live scan of 536 tracked Markdown documents found 2 missing relative fixture links (`vault.canvas`, `attachments/file.png`), so the preflight correctly returned exit 1. These are documentation/fixture follow-ups, not suppressed failures.
+- Report `.project-local/runs/execution-preflight-20260914.json` records interpreter, Git HEAD, link findings, and the private-state boundary.
+
+### 2026-09-14 execution preflight fixture classification fix
+
+- Preflight now separates intentional missing assets in synthetic fixture vaults from real broken project links.
+- Re-run over 536 tracked Markdown documents: **exit 0**, `broken=0`, `expected_fixture_missing=2`; targeted preflight tests remain **2 passed**.
+- The two expected fixture references remain visible in the receipt and are not silently discarded.
+
+### 2026-09-14 preflight module environment check
+
+- Preflight with `yaml`, `fastapi`, `pytest`, and `ruff` modules passed: all available under Python 3.13.14; Markdown broken links 0 and expected fixture missing 2.
+- Receipt: `.project-local/runs/execution-preflight-modules-20260914.json`.
+
+### 2026-09-14 configuration/entrypoint regression
+
+- Config profiles, tool evidence, setup initialization, Core client, approved paths, and OCR configuration suites passed: **45 tests**, 1 platform-specific skip.
+- Runtime configuration and entrypoint contracts remain consistent with the project-local output policy.
+
+### 2026-09-14 · CLEAN02 metadata inventory refresh
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/maintenance/inventory_project.py . --output .project-local/runs/inventory-20260914.json`
+- Result: `status=partial`; 110,284 regular files / 11,523,900,070 logical bytes observed; 44 top-level groups; 11 reparse points skipped; 238 opaque/non-regular exclusions; 186 permission errors.
+- Interpretation: this is a bounded metadata observation, not a complete volume-size claim. Permission errors are concentrated in ACL-denied pytest/runtime trees; no ACL changes or deletion were attempted. The receipt is project-local and preserves the exact limitation.
+
+### 2026-09-14 · Repository path convention recheck
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/check_path_conventions.py --measure --json --record .project-local/runs/path-conventions-20260914.json`
+- Result: exit `0`; 1,994 tracked paths, all owned; unowned/ambiguous/denied-but-tracked all `0`; coverage `100%`.
+- Scope: repository-tracked paths only. External model/tool/Green/资料库/ceshi roots were metadata-only references and were not enumerated or modified.
+
+### 2026-09-14 · Output producer trace refresh
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/maintenance/trace_output_producers.py . --output .project-local/runs/output-producers-20260914.json`
+- Result: exit `0`; 1,051 static path candidates, 0 skipped files.
+- Interpretation: candidates identify source/config references only; they do not prove runtime writes. Private agent state, process command lines, logs, and external roots remain opaque by policy.
+
+### 2026-09-14 · Path/runtime regression rerun
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe -m pytest tests/runtime-paths tests/maintenance/test_trace_output_producers.py tests/maintenance/test_inventory_project.py -q -p no:cacheprovider --basetemp=.project-local/runs/path-regression-20260914`
+- Result: `44 passed`, `11 subtests passed`, `1 failed`; the sole failure is the existing Windows owned-process-tree cleanup test because managed `taskkill.exe` returned access denied. No product-path or file-routing assertion failed.
+- Classification: `ENVIRONMENT_FAIL`; no process termination workaround or ACL change was attempted.
+
+### 2026-09-14 · Runtime path and boundary contract regression
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe -m pytest tests/test_project_output_routing_contract.py tests/test_axw_run205_env_fallback.py tests/test_axw_data404_paths.py tests/test_mcp_probe_paths.py tests/maintenance/test_check_vnext_workers_paths.py tests/test_evidence_commands.py -q -p no:cacheprovider --basetemp=.project-local/runs/boundary-regression-20260914`
+- Result: `54 passed`, exit `0` (one existing pytest config warning about `cache_dir`).
+- Coverage: project-local output routing, legacy env fallback rejection, data path boundary checks, MCP run-root paths, worker path guards, and evidence command path rules.
+
+### 2026-09-14 · Capacity diagnostic contract regression
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe -m pytest tests/maintenance/test_inventory_project.py -q -p no:cacheprovider --basetemp=.project-local/runs/capacity-tests-20260914`
+- Result: `21 passed`, `2 subtests passed`, exit `0` (one existing pytest config warning).
+- Coverage: explicit budget alarms, unknown/opaque group handling, scope mismatch rejection, no-deletion guarantee, and CLI exit precedence.
+
+### 2026-09-14 · R5 package integrity recheck
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe docs/authority/taskpack-0912-r5/verify_package.py --root docs/authority/taskpack-0912-r5`
+- Result: `PASS`, exit `0`; 23 inherited tasks, 38 original scenarios, 18 additional slices (10 cleanup, 4 repository, 4 migration), 173 active files.
+- Guard: verifier itself reports `product_tests_run=false`, `windows_cleanup_performed=false`, `current_head_checked=false`; package integrity is not product or release acceptance.
+
+### 2026-09-14 · Modified Python lint cleanup
+
+- Removed three unused imports introduced/retained in modified paths (`dataclass`, test `json`, unused ASR alias) without changing runtime behavior.
+- Ruff F401 check: exit `0`; focused ASR and DeepTutor regression: `7 passed`, exit `0` (one existing pytest config warning).
+
+### 2026-09-14 · Post-Ruff maintenance/runtime regression (correct run root)
+
+- Command: `scripts/runtime/dev.py --run-id post-ruff-20260914 <managed-python> -m pytest tests/maintenance tests/runtime-paths -q -p no:cacheprovider`
+- Result: `69 passed`, `11 subtests passed`, `1 failed`; all bulk fixture path tests pass once launched through the project dev runner. The sole failure remains the managed Windows `taskkill.exe` access-denied process-tree test.
+- Ruff import cleanup therefore has no observed product regression in the covered suites.
+
+### 2026-09-14 · Cross-language ownership/protocol gate
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/check_language_boundaries.py --json`
+- Result: exit `0`, `passed=true`, failures `0`.
+- Scope: Rust database ownership, Python worker database isolation, desktop shell SQL isolation, and cross-language protocol literal agreement.
+
+### 2026-09-14 · Worker reachability gate recheck
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/check_worker_reachability.py --record docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json --json`
+- Result: exit `0`, `passed=true`; 12 capability workers, 10 routed, 2 explicitly exempted with reasons (transcribe model path; video contract parameters).
+- Note: the current R5 pack has no new reachability record; this check intentionally reuses the historical governed record and does not promote it to a fresh product/runtime audit.
+
+### 2026-09-14 · Modified Python syntax gate
+
+- Command: managed Python `-m py_compile` over 39 modified `.py` files.
+- Result: exit `0`; all files compiled successfully. Exact generated `.pyc` files were removed immediately after the check; no source or runtime data was touched.
+
+### 2026-09-14 · Authority/security boundary regression
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe -m pytest tests/test_project_data_boundary.py tests/test_hardening.py tests/test_federation_router_security.py tests/test_axw_data404_paths.py tests/test_evidence_commands.py -q -p no:cacheprovider --basetemp=.project-local/runs/security-boundary-20260914`
+- Result: `80 passed`, exit `0`; warnings only (pytest cache option, Starlette/httpx deprecation, optional newspaper NLP extra).
+- Coverage: project data boundaries, runtime hardening, federation/router security, data path refusal, and evidence command safeguards.
+
+### 2026-09-14 · Evidence index consistency recheck
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/check_evidence_index.py --index docs/authority/taskpack-0910-r3/R14-EVIDENCE-INDEX.json --state docs/authority/taskpack-0910-r3/STATE.json --json`
+- Result: exit `0`, `passed=true`; 17 slices, 81 tracked evidence entries, 3 receipt entries, 0 failures.
+- Scope: governed 0910 historical evidence index; R5 has no replacement index, so this is consistency evidence only and does not close R5 independent audit.
+
+### 2026-09-14 · Architecture guard recheck
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/check_architecture.py --format json`
+- Result: exit `0`; JSON violation list is empty.
+- Scope: repository architecture guard only; no runtime, installer, or external-library claims.
+
+### 2026-09-14 · Entrypoint/config binding regression
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe -m pytest tests/test_doctor_windows.py tests/test_desktop_launch.py tests/test_config_profiles.py tests/test_desktop_staging.py tests/test_desktop_runtime.py -q -p no:cacheprovider --basetemp=.project-local/runs/entrypoint-regression-20260914`
+- Result: `36 passed`, exit `0`; warnings only (pytest cache option, Starlette/httpx deprecation, optional newspaper NLP extra).
+- Scope: Windows doctor, formal desktop launch/staging/runtime, and configuration profile bindings.
+
+### 2026-09-14 · Core dependency preflight refresh
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/launch/core_launch.py --check`
+- Result: exit `0`, `dependencies_ok=true`; 9 required checks passed (Core binary, managed Python, text/PDF/OCR workers, PyMuPDF, Tesseract executable/data, Cargo wrapper).
+- Runtime state: DeepTutor ports 8001/3782 and Ollama 11434 were not listening; this is an environment snapshot, not a failure of the dependency check.
+
+### 2026-09-14 · Strict modified-Python lint gate
+
+- Command: managed Python `ruff check --select E9,F` over all modified `.py` files.
+- Result: exit `0`, no syntax, undefined-name, or import-failure diagnostics.
+
+### 2026-09-14 · Evidence command inventory recheck
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/check_evidence_commands.py --index docs/authority/taskpack-0910-r3/R14-EVIDENCE-INDEX.json --json`
+- Result: exit `0`; 21 recorded commands classified as runnable; no commands executed (`--run` omitted), preserving read-only scope.
+- Note: this checker emits its inventory as text in no-run mode; it does not claim command success or current R5 completion.
+
+### 2026-09-14 · Report/receipt generation regression
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe -m pytest tests/test_current_report_generator.py tests/test_golden_journey_receipt.py tests/runtime-paths/test_vnext_receipt.py tests/test_release_manifest.py -q -p no:cacheprovider --basetemp=.project-local/runs/report-regression-20260914`
+- Result: `45 passed`, exit `0`; warnings only (known pytest cache option, Starlette/httpx deprecation, optional newspaper NLP extra).
+- Scope: current report generation, Golden Journey receipts, vNext receipt semantics, and release manifest stale-claim protections.
+
+### 2026-09-14 · Full Python regression snapshot
+
+- Command: `scripts/runtime/dev.py --run-id full-regression-20260914 --full <managed-python> -m pytest -q -p no:cacheprovider`
+- Result: `2749 passed`, `7 skipped`, `41 failed`, `135 subtests passed` in 216.94s.
+- Triage: failures are environment/path-bound or pre-existing: 1 managed Windows `taskkill.exe` access-denied cleanup; multiple exchange/backup/workspace cases hit Windows MAX_PATH or ACL-denied historical pytest trees; candidate/process cases hit the same process-control restriction. The run did not produce evidence of a new import/lint regression; focused fresh-run suites pass. Full failure output is retained in the run stream, and no destructive workaround was applied.
+
+### 2026-09-14 · Short-run-root confirmation for exchange/backup
+
+- Command: `scripts/runtime/dev.py --run-id a <managed-python> -m pytest tests/test_axw094a_export.py tests/test_axw_data403_migrate.py tests/test_backup.py -q -p no:cacheprovider --tb=short`
+- Result: `28 passed`, exit `0`.
+- Interpretation: the corresponding failures in the long full run were Windows MAX_PATH/run-root length effects, not reproducible product failures. Keep run IDs short enough for Windows path limits during local regression; no product semantics were changed.
+
+### 2026-09-14 · Short-run-root workspace regression
+
+- Command: `scripts/runtime/dev.py --run-id b <managed-python> -m pytest tests/test_workspace_api.py tests/test_workspace_job_center.py tests/test_workspace_live_refresh_matrix.py tests/test_workspace_pdf_endpoint.py tests/test_workspace_pipeline_multiformat.py tests/test_workspace_research_consumer.py -q -p no:cacheprovider --tb=short`
+- Result: `47 passed`, `2 skipped`, exit `0`.
+- Interpretation: workspace import, archive, API, live refresh, PDF, multiformat pipeline, and research consumer paths pass when the project run root stays within Windows path limits.
+
+### 2026-09-14 · Candidate verifier short-root regression
+
+- Command: `scripts/runtime/dev.py --run-id c <managed-python> -m pytest tests/test_candidate_manifest.py -q -p no:cacheprovider --tb=short`
+- Result: `32 passed`, `3 failed`; all failures are the bounded child reaping cases where `stop_owned_process` receives managed `taskkill.exe` access denied. No manifest/hash/readiness assertion failed.
+- Classification: `ENVIRONMENT_FAIL`; no process-kill or privilege workaround attempted.
+
+### 2026-09-14 · Current change binding receipt
+
+- Receipt: `.project-local/runs/changed-files-binding-20260914.json`.
+- Binds current HEAD `3d560253c0d61dc0baa0728eb3fc0a74c5b67e26` to 63 tracked modified files with working-tree SHA-256 values.
+- Untracked files are explicitly excluded; no private state was read or hashed.
+
+### 2026-09-14 · Execution preflight refresh
+
+- Command: `.project-local/runs/taskpack-paths-test-venv/Scripts/python.exe scripts/workflow/execution_preflight.py --module yaml --module fastapi --module pytest --module ruff --json`
+- Result: exit `0`, `passed=true`; Python `3.13.14` from the project-local managed interpreter; all four requested modules available; Markdown broken links `0`; expected fixture omissions `0`.
+- Private-state flag remains closed; no credentials, agent state, or external roots were opened.
+
+### 2026-09-14 · R5 baseline binding check
+
+- Current HEAD: `3d560253c0d61dc0baa0728eb3fc0a74c5b67e26`; `R5-STATE.json` baseline SHA: `c06b234ca335b9cbb2c1fde270851e2390c36b89`; local main baseline: `1e9813ea2bd49f47d334ba6717c78d3e9feda6ce`.
+- The mismatch is expected: `baseline_sha` is the frozen R5 comparison point, not a claim that the mutable worktree is unchanged. Current-change binding is provided separately by `.project-local/runs/changed-files-binding-20260914.json`; frozen task files were not rewritten.
+
+### 2026-09-14 · High-coverage regression with path-safe run root
+
+- Command: `scripts/runtime/dev.py --run-id d <managed-python> -m pytest -q -p no:cacheprovider --ignore=tests/runtime-paths/test_dev_paths.py`
+- Result: `2767 passed`, `7 skipped`, `126 subtests passed`, `3 failed` in 219.09s.
+- The only failures are candidate timeout child-reaping cases, all blocked by managed `taskkill.exe` access denial. This excludes the known process-tree test itself; all other Python tests passed under a short run root.
+
+### 2026-09-14 · Verification matrix handoff
+
+- Added `docs/current/R5-VERIFICATION-SUMMARY-20260914.md`, a source-bound matrix separating PASS, PARTIAL, structural-only, environment failures, and not-executed R5 layers.
+- The matrix intentionally excludes private state and external libraries and does not change frozen task definitions.
+
+### 2026-09-14 · State and taskpack JSON parse gate
+
+- Parsed `docs/current/R5-STATE.json`, R5 `TASKS.json`, and `REMAINING-WORK.json` with the managed Python interpreter.
+- Result: all 3 files parsed successfully; exit `0`. No taskpack file was modified.
+
+### 2026-09-14 · Receipt JSON integrity repair
+
+- Batch-parsed 8 current project-local receipts; found a trailing literal `\\n` corruption in `changed-files-binding-20260914.json` caused by shell quoting.
+- Removed only the two-byte literal suffix and revalidated all 8 receipts parse successfully. No data fields or source files changed.

@@ -3,7 +3,6 @@
 import importlib.util
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "ci" / "audit_first_wave_owners.py"
 
@@ -40,6 +39,6 @@ def test_current_first_wave_inventory_keeps_the_documented_owner_count() -> None
 
     owners = module.audit_sqlite_connection_owners(ROOT)
 
-    assert len(owners) == 58
+    assert len(owners) == 59
     assert "app/workspace/service.py" in owners
     assert "app/learning/event_store.py" in owners

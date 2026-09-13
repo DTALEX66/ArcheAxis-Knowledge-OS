@@ -1,10 +1,11 @@
 """G9 完整评估集（可复现）：固定改写查询 → 检索命中率 + ASR/OCR 一致性。
 
 用法: env -u PYTHONPATH .venv\\Scripts\\python.exe scripts/pipeline/eval_retrieval.py
-输出: .project-local/task-artifacts/eval-retrieval/EVAL_SET_RECEIPT.json
+输出：通过 `ARCHEAXIS_RUN_ROOT` 路由到当前运行的 `artifacts/pipeline/eval-retrieval/`。
 """
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -58,14 +59,15 @@ def main():
     import glob
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-root", required=True, help="approved corpus root")
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "")
+    default_receipt = (
+        Path(run_root) / "artifacts" / "pipeline" / "eval-retrieval" / "EVAL_SET_RECEIPT.json"
+        if run_root
+        else Path(__file__).resolve().parents[2] / ".project-local" / "task-runtime" / "eval-retrieval" / "EVAL_SET_RECEIPT.json"
+    )
     parser.add_argument(
         "--receipt",
-        default=str(
-            Path(__file__).resolve().parents[2]
-            / ".project-local"
-            / "task-artifacts" / "eval-retrieval"
-            / "EVAL_SET_RECEIPT.json"
-        ),
+        default=str(default_receipt),
     )
     args = parser.parse_args()
     pdfs = [

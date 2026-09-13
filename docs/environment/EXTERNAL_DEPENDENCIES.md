@@ -72,22 +72,28 @@
 - **下载**：https://git-scm.com/download/win
 - **验证**：`git --version`
 
-### 1.6 Node.js（可选，仅桌面构建）
+### 1.6a .NET SDK / Avalonia（正式桌面壳）
 
-- **用途**：Tauri 桌面壳构建
+- **用途**：正式 C#/Avalonia 桌面壳 `apps/ArcheAxis.Desktop/`；连接 Rust Core，不直接写 Core 数据库。
+- **版本**：`.NET 10`、Avalonia `12.1.x`（以 `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj` 为准）
+- **验证**：`dotnet --version`；构建输出必须路由到项目 `.project-local/build/dotnet`。
+
+### 1.6 Node.js（可选，仅 legacy 桌面恢复构建）
+
+- **用途**：legacy Tauri/React 恢复与行为对照；不是正式桌面壳
 - **版本**：LTS（当前 24.18.0）
 - **下载**：https://nodejs.org/
 - **验证**：`node --version`
 
-### 1.7 Rust toolchain（可选，仅桌面构建）
+### 1.7 Rust toolchain（可选，仅 legacy 桌面恢复构建）
 
-- **用途**：Tauri 桌面应用编译（`desktop/src-tauri`）
+- **用途**：legacy Tauri 桌面应用恢复/兼容编译（`desktop/src-tauri`、`src-tauri`）；正式桌面壳为 `apps/ArcheAxis.Desktop/`
 - **版本**：>=1.80（当前本机 1.88.0）
 - **下载**：https://rustup.rs
 - **安装**：`rustup toolchain install stable-msvc`（需先装 1.8 的 VS Build Tools）
 - **验证**：`rustc --version`、`cargo --version`
 
-### 1.8 VS Build Tools（MSVC，可选，仅桌面构建）
+### 1.8 VS Build Tools（MSVC，可选，legacy Tauri 或 Rust Core 构建）
 
 - **用途**：Rust/桌面二进制链接所需的 MSVC 编译链（kernel32.lib 等 Windows SDK 库）
 - **下载**：https://visualstudio.microsoft.com/visual-cpp-build-tools/

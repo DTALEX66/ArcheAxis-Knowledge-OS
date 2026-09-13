@@ -99,3 +99,42 @@ def test_windows_launcher_handles_uv_command_and_file_fallbacks() -> None:
     source = _read("run_windows.ps1")
     assert "$uvCommand.Source" in source
     assert "$uvCommand.FullName" in source
+
+
+def test_rust_lifecycle_smoke_uses_managed_runtime_paths() -> None:
+    source = _read("desktop/src-tauri/tests/backend_lifecycle.rs")
+    assert ".project-local/task-runtime" in source
+    assert ".project-local/build/venv/Scripts/python.exe" in source
+    assert ".hermes/" not in source
+    assert ".venv/" not in source
+
+
+def test_rust_runtime_resolves_managed_development_python() -> None:
+    source = _read("desktop/src-tauri/src/runtime.rs")
+    assert 'root.join(".project-local/build/venv/Scripts/python.exe")' in source
+    assert 'root.join(".venv/Scripts/python.exe")' not in source
+
+
+def test_worker_checker_has_no_unmanaged_system_temp_directory() -> None:
+    source = _read("scripts/ci/check_vnext_workers.py")
+    assert "def _managed_tempdir" in source
+    assert "with tempfile.TemporaryDirectory()" not in source
+    assert "ARCHEAXIS_RUN_ROOT" in source
+
+
+def test_formal_desktop_window_is_the_archeaxis_workspace_shell() -> None:
+    xaml = _read("apps/ArcheAxis.Desktop/MainWindow.axaml")
+    code = _read("apps/ArcheAxis.Desktop/MainWindow.axaml.cs")
+
+    assert "Welcome to Avalonia!" not in xaml
+    assert "星环知识平台" in xaml
+    assert "选择资料并导入" in xaml
+    assert "打开学习路径" in xaml
+    assert 'Click="OnImportClick"' in xaml
+    assert 'Click="OnLearningClick"' in xaml
+    assert "CoreStatusText.Text" in code
+    assert "OpenFilePickerAsync" in code
+    assert 'HttpMethod.Post' in code
+    assert '"/api/v1/imports"' in code
+    assert '"/api/v1/learning/items"' in code
+    assert "content_base64" in code

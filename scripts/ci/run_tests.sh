@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 if [ -n "${ARCHEAXIS_PYTHON:-}" ]; then
   PYTHON="$ARCHEAXIS_PYTHON"
+elif [ -x "$ROOT/.project-local/build/venv/Scripts/python.exe" ]; then
+  PYTHON="$ROOT/.project-local/build/venv/Scripts/python.exe"
+elif [ -x "$ROOT/.project-local/build/venv/bin/python" ]; then
+  PYTHON="$ROOT/.project-local/build/venv/bin/python"
 elif [ -x "$ROOT/.venv/Scripts/python.exe" ]; then
   PYTHON="$ROOT/.venv/Scripts/python.exe"
 elif [ -x "$ROOT/.venv/bin/python" ]; then

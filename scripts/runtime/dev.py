@@ -184,6 +184,17 @@ def stop_owned_process(child: subprocess.Popen) -> None:
     child.wait(timeout=15)
 
 
+def _prepare_child_command(command: list[str]) -> list[str]:
+    """Make Windows batch entry points executable without enabling a shell."""
+    if os.name == "nt" and command and Path(command[0]).suffix.lower() in {".bat", ".cmd"}:
+        # Passing the executable and arguments as separate items lets the
+        # Windows process builder quote the /c command correctly, including
+        # paths with spaces, without enabling shell expansion globally.
+        batch_command = [command[0].replace('/', '\\'), *command[1:]]
+        return ["cmd.exe", "/d", "/c", *batch_command]
+    return command
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
@@ -239,7 +250,7 @@ def main() -> int:
         try:
             # No shell expansion or visible console for helper processes on Windows.
             child = subprocess.Popen(
-                command, cwd=paths["root"], env=env,
+                _prepare_child_command(command), cwd=paths["root"], env=env,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 text=True, encoding="utf-8", errors="replace",
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),

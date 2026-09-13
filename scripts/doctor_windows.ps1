@@ -78,7 +78,11 @@ $python = [ordered]@{ present = $false }
 if (Test-CommandAvailable "python") { $python.present = $true; $python.version = Get-Version "python" }
 if (Test-CommandAvailable "py")    { $python.launcher_present = $true }
 if (-not $python.present) {
-    $projectPython = Join-Path $project ".venv\Scripts\python.exe"
+    $projectPython = Join-Path $project ".project-local\build\venv\Scripts\python.exe"
+    if (-not (Test-Path -LiteralPath $projectPython -PathType Leaf)) {
+        # Historical root .venv is a compatibility fallback only.
+        $projectPython = Join-Path $project ".venv\Scripts\python.exe"
+    }
     if (Test-Path -LiteralPath $projectPython -PathType Leaf) {
         try {
             $python.present = $true

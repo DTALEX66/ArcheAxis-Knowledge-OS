@@ -291,7 +291,9 @@ jobs:
         run: python scripts/check_language_boundaries.py
 
       - name: Validate the format status matrix against the real route tables
-        run: python scripts/check_format_matrix.py
+        run: >-
+          python scripts/check_format_matrix.py
+          --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json
 
       - name: Validate the tracked tree against the directory authority
         run: python scripts/check_path_conventions.py

@@ -78,8 +78,9 @@ def test_doctor_detects_python_presence() -> None:
     assert isinstance(payload["healthy"], bool)
 
 
-def test_doctor_can_use_the_project_virtualenv_when_python_is_not_on_path() -> None:
-    if not _pwsh_available() or not (ROOT / ".venv" / "Scripts" / "python.exe").is_file():
+def test_doctor_can_use_the_managed_project_virtualenv_when_python_is_not_on_path() -> None:
+    managed = ROOT / ".project-local" / "build" / "venv" / "Scripts" / "python.exe"
+    if not _pwsh_available() or not (managed.is_file() or (ROOT / ".venv" / "Scripts" / "python.exe").is_file()):
         return
     result = _run_doctor()
     payload = json.loads(result.stdout)

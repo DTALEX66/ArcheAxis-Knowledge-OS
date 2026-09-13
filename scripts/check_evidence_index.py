@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """R14/R16 evidence index: what an independent auditor can re-check, per slice.
 
+This is a historical-pack checker. The command line requires ``--index`` (and
+optionally ``--state``); R5 uses its own package validator. Legacy function
+defaults remain for callers that pass historical paths in tests and receipts.
+
 `EXECUTION.md` and `STATE.json` remain the live record; this index adds no authority.
 Its job is to be *checkable*, so `scripts/check_evidence_index.py` refuses it when:
 
@@ -28,6 +32,10 @@ import json
 import sys
 from pathlib import Path
 
+try:
+    from scripts.taskpack_paths import default_pack_root
+except ModuleNotFoundError:
+    from taskpack_paths import default_pack_root
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "docs/authority/taskpack-0910-r3/R14-EVIDENCE-INDEX.json"
 STATE = ROOT / "docs/authority/taskpack-0910-r3/STATE.json"
@@ -128,10 +136,16 @@ def check(index_path: Path = INDEX, state_path: Path = STATE, root: Path = ROOT)
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
-    parser.add_argument("--index", type=Path, default=INDEX)
+    parser.add_argument("--index", type=Path, help="historical evidence index (required)")
+    parser.add_argument("--state", type=Path, help="matching historical STATE.json (defaults beside --index)")
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
 
-    failures, detail = check(args.index)
+    if args.index is None:
+        print(f"no R5 evidence-index format exists under {default_pack_root(ROOT)}; run its verify_package.py, or pass --index for a historical pack", file=sys.stderr)
+        return 2
+    state = args.state or args.index.parent / "STATE.json"
+
+    failures, detail = check(args.index, state)
     if args.json:
         print(json.dumps({"passed": not failures, "failures": failures, **detail}, ensure_ascii=False, indent=2))
     elif failures:

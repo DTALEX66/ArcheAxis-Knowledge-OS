@@ -59,6 +59,16 @@ class DevelopmentPaths(unittest.TestCase):
         self.assertTrue(all(p.parts[0] == '.project-local' for p in after - before))
         self.assertFalse((self.repo / '.hermes').exists())
 
+    def test_batch_entrypoint_is_wrapped_for_windows(self):
+        command = ['scripts/ci/cargo_test.bat', '-p', 'archeaxis-api', '--offline']
+        prepared = dev._prepare_child_command(command)
+        if os.name == 'nt':
+            self.assertEqual(prepared[:2], ['cmd.exe', '/d'])
+            self.assertEqual(prepared[2], '/c')
+            self.assertIn('cargo_test.bat', prepared[3])
+        else:
+            self.assertEqual(prepared, command)
+
     def test_concurrent_runs_do_not_share_tmp(self):
         children = [subprocess.Popen(self.command(), env=self.env, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE) for _ in range(2)]

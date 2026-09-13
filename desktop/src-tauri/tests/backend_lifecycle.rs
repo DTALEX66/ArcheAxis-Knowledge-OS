@@ -17,9 +17,9 @@ fn repository_root() -> PathBuf {
 fn launches_token_bound_core_and_shuts_down_cleanly() {
     let root = repository_root();
     let runtime = RuntimeSpec {
-        python: root.join(".venv/Scripts/python.exe"),
+        python: root.join(".project-local/build/venv/Scripts/python.exe"),
         cwd: root.clone(),
-        data_dir: root.join(".hermes/task-runtime/desktop-rust-lifecycle-smoke"),
+        data_dir: root.join(".project-local/task-runtime/desktop-rust-lifecycle-smoke"),
         isolated: false,
         external_dev: true,
         profile: "external-dev",
@@ -36,10 +36,10 @@ fn launches_token_bound_core_and_shuts_down_cleanly() {
 #[ignore = "explicit installed-runtime lifecycle smoke"]
 fn installed_core_launches_in_isolated_mode_and_shuts_down_cleanly() {
     let root = repository_root();
-    let data_dir = root.join(".hermes/task-runtime/desktop-installed-lifecycle-smoke");
+    let data_dir = root.join(".project-local/task-runtime/desktop-installed-lifecycle-smoke");
     std::fs::create_dir_all(&data_dir).expect("installed-runtime data directory must exist");
     let runtime = RuntimeSpec {
-        python: root.join(".hermes/rt/runtime/python/python.exe"),
+        python: root.join(".project-local/build/venv/Scripts/python.exe"),
         cwd: data_dir.clone(),
         data_dir,
         isolated: true,

@@ -11,7 +11,6 @@ or runtime → AdapterResult-like error, never a silent empty transcript.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -101,12 +100,17 @@ def _sense_voice_dir() -> Path:
     configured = os.environ.get("ARCHEAXIS_SENSE_VOICE_MODEL_DIR", "").strip()
     if configured:
         return Path(configured)
-    return Path(".hermes") / "task-runtime" / "models" / "sense-voice"
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "").strip()
+    if run_root:
+        return Path(run_root) / "models" / "sense-voice"
+    project_root = Path(__file__).resolve().parents[2]
+    return project_root / ".project-local" / "task-runtime" / "models" / "sense-voice"
 
 
 def _read_wav(path: Path):
     """Read a 16-bit PCM wav as float32 mono (no soundfile dependency)."""
     import wave
+
     import numpy as np
     with wave.open(str(path), "rb") as w:
         sr = w.getframerate()

@@ -6,7 +6,7 @@
 在仓库根的PowerShell执行：
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/runtime/dev.py -- .\.venv\Scripts\python.exe scripts/launch/desktop_launch.py
+.\.project-local\build\venv\Scripts\python.exe scripts/runtime/dev.py -- .\.project-local\build\venv\Scripts\python.exe scripts/launch/desktop_launch.py
 ```
 
 输出 `desktop-launch.json` 和 `worker-profile.json` 位于本次run的artifacts/desktop-launch唯一子目录。
@@ -44,5 +44,7 @@ Core仍独立检查传入路径，不能以桌面验证代替Core边界。
 `r5-desktop-profile-build`：正式Avalonia工程无网络构建成功，0 warning/0 error。
 `r5-desktop-launch-prepare`：真实既有二进制准备成功，状态PREPARED_NOT_LAUNCHED；未打开可见窗口。
 
-当前窗口主体仍为占位内容；DeepTutor Web宿主、真实学习交互、跨进程机器adapter、安装签名与独立
-完整审计仍未完成。上述构建/配置/链路结果不能升级为完整Windows前端验收通过。
+当前窗口主体已替换为星环工作台壳层：包含工作区导航、资料选择、Core导入提交和学习入口状态反馈；
+资料导入通过已认证的`POST /api/v1/imports`提交，仍不代表转换质量或学习队列已完成。DeepTutor Web宿主、
+完整学习交互、跨进程机器adapter、安装签名与独立完整审计仍未完成。当前环境尚未重新编译或打开可见
+Windows窗口，上述构建/配置/链路结果不能升级为完整Windows前端验收通过。

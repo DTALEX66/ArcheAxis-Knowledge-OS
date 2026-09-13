@@ -57,6 +57,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/learning/events", post(record_learning_event))
         .route("/api/v1/learning/reviews", post(record_stateful_review))
         .route("/api/v1/learning/events/:item_key", get(learning_history))
+        .route("/api/v1/learning/items", get(learning_items))
         .route("/api/v1/learning/items/:item_key/references", post(record_item_reference))
         .route("/api/v1/learning/items/:item_key/state", get(item_state))
         .route("/api/v1/machine/tasks", post(record_machine_task))
@@ -203,6 +204,30 @@ async fn learning_history(
                 .into_response()
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+    .await
+}
+
+/// Read-only queue projection for desktop clients. The latest event is the
+/// only source for each item's deadline; no learner or machine status is
+/// inferred here.
+async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
+    with_store(state, |conn| match learning::item_keys_with_latest_review(conn) {
+        Ok(items) => {
+            let rows: Vec<serde_json::Value> = items
+                .into_iter()
+                .map(|(item_key, next_review)| serde_json::json!({
+                    "item_key": item_key,
+                    "next_review": next_review,
+                }))
+                .collect();
+            let count = rows.len();
+            (StatusCode::OK, Json(serde_json::json!({
+                "items": rows,
+                "count": count,
+            }))).into_response()
+        }
+        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
     })
     .await
 }

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import shutil
 from pathlib import Path
 
@@ -119,4 +118,8 @@ def test_allowed_inbound_learning_event_is_candidate_only_and_idempotent(
 def test_projection_root_cannot_escape_project_runtime(tmp_path: Path) -> None:
     project, db = _setup(tmp_path)
     with pytest.raises(ValueError, match="project runtime"):
-        DeepTutorBridge(project_root=project, db_path=db, projection_root=tmp_path / "outside")
+        DeepTutorBridge(
+            project_root=project,
+            db_path=db,
+            projection_root=Path(project.anchor) / "outside-projection-test",
+        )

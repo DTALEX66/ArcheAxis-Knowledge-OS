@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 import urllib.request
 from datetime import datetime, timezone
@@ -59,7 +60,12 @@ def download_book(book_id: int, *, proxy: str | None) -> bytes:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", default=".project-local/task-runtime/corpus", help="corpus root")
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "")
+    default_output = (
+        str(Path(run_root) / "artifacts" / "benchmark" / "corpus")
+        if run_root else ".project-local/task-runtime/corpus"
+    )
+    parser.add_argument("--output", default=default_output, help="corpus root")
     parser.add_argument("--proxy", default=None, help="HTTP(S) proxy, e.g. 127.0.0.1:7890")
     parser.add_argument("--limit", type=int, default=None, help="max books to download (for testing)")
     args = parser.parse_args()

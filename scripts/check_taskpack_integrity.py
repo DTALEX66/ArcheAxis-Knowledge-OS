@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Installed taskpack integrity versus its live ledger.
 
+This is a historical live-ledger checker. Historical packs and snapshots must
+be selected explicitly; R5 uses its own package validator.
+
 `docs/authority/taskpack-0910-r3/verify_package.py` hashes every entry of
 `MANIFEST.json` against the files in the pack. Two of those entries -
 `EXECUTION.md` and `STATE.json` - are the pack's own designated *live progress*
@@ -41,6 +44,10 @@ import json
 import sys
 from pathlib import Path
 
+try:
+    from scripts.taskpack_paths import default_pack_root
+except ModuleNotFoundError:
+    from taskpack_paths import default_pack_root
 ROOT = Path(__file__).resolve().parents[1]
 PACK = ROOT / "docs/authority/taskpack-0910-r3"
 SHIPPED = ROOT / ".project-local/runs/taskpack-0910-shipped"
@@ -156,9 +163,13 @@ def check(pack: Path = PACK, shipped: Path = SHIPPED) -> tuple[list[str], dict]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
-    parser.add_argument("--pack", type=Path, default=PACK)
-    parser.add_argument("--shipped", type=Path, default=SHIPPED)
+    parser.add_argument("--pack", type=Path, help="historical installed pack (required)")
+    parser.add_argument("--shipped", type=Path, help="matching historical install snapshot (required)")
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+
+    if args.pack is None or args.shipped is None:
+        print(f"this checker audits the historical live-ledger snapshot format; run {default_pack_root(ROOT) / 'verify_package.py'} for R5, or pass both --pack and --shipped", file=sys.stderr)
+        return 2
 
     failures, detail = check(args.pack, args.shipped)
     if args.json:

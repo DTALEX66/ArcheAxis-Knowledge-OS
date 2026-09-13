@@ -264,11 +264,19 @@ def load_baseline(path, root):
 
 
 def main():
+    # JSON reports contain project paths and ownership notes; keep the CLI
+    # stable on Windows hosts whose console locale is not UTF-8.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", type=Path, help="exact Git project root")
     parser.add_argument("--exclude-name", action="append", default=[],
                         help="additional opaque private directory name (case-insensitive)")
     parser.add_argument("--baseline", type=Path, help="existing inventory JSON inside project .project-local")
+    parser.add_argument("--output", type=Path,
+                        help="optional JSON destination inside this project's .project-local")
     parser.add_argument("--budget", action="append", default=[], metavar="GROUP=BYTES",
                         help="explicit top-level logical-byte budget; exit 2 if exceeded, "
                              "3 if unmeasurable; no default limit or automatic deletion")
@@ -291,9 +299,24 @@ def main():
             baseline = load_baseline(args.baseline, args.root) if args.baseline else None
             report["capacity"] = capacity_diagnostics(report, baseline, budgets)
         except (OSError, ValueError, KeyError, TypeError) as exc:
-            print(json.dumps({"status": "error", "error": str(exc)}, ensure_ascii=False))
+            # Keep CLI output ASCII-safe for Windows callers that decode using
+            # the active code page rather than UTF-8.
+            print(json.dumps({"status": "error", "error": str(exc)}, ensure_ascii=True))
             return 1
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    print(json.dumps(report, ensure_ascii=True, indent=2))
+    if args.output:
+        output = Path(os.path.abspath(args.output))
+        try:
+            output.relative_to(Path(os.path.abspath(args.root)) / ".project-local")
+        except ValueError:
+            print(json.dumps({"status": "error", "error": "output must be inside .project-local"}, ensure_ascii=True), file=sys.stderr)
+            return 1
+        for parent in (*reversed(output.parents), output):
+            if parent.exists() and is_reparse(parent.lstat()):
+                print(json.dumps({"status": "error", "error": "output path must not contain reparse points"}, ensure_ascii=True), file=sys.stderr)
+                return 1
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if report["errors"]:
         return 1
     if report["capacity"]["exceeded_groups"]:

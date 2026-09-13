@@ -69,7 +69,7 @@ capabilities:
       local_only: false
 
     - name: nodejs-lts
-      purpose: "Tauri 桌面壳前端构建（仅桌面构建）"
+      purpose: "legacy Tauri/React recovery 与兼容构建（非正式桌面壳）"
       version_range: ">=22,<25"
       platform: windows-x64
       license: "MIT"
@@ -80,7 +80,7 @@ capabilities:
       local_only: false
 
     - name: rust
-      purpose: "Tauri 桌面应用编译（desktop/src-tauri）"
+      purpose: "legacy Tauri recovery/行为参考构建（非正式桌面壳）"
       version_range: ">=1.80"
       platform: windows-x64
       license: "MIT OR Apache-2.0"
@@ -215,7 +215,7 @@ capabilities:
       local_only: true
 
     - name: faster-whisper-base
-      purpose: "Whisper base 模型（~150MB，HF 缓存 ~/.cache/huggingface）"
+      purpose: "Whisper base 模型（~150MB；运行时由 dev.py 将 HF 缓存路由到项目 `.project-local/runs/<run-id>/cache`）"
       version_range: "base"
       platform: windows-x64
       license: "MIT"

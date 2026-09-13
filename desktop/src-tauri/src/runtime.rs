@@ -99,7 +99,7 @@ fn resolve_runtime_for_profile(
         let root = desktop_dir
             .parent()
             .ok_or_else(|| "desktop directory has no repository parent".to_owned())?;
-        let python = root.join(".venv/Scripts/python.exe");
+        let python = root.join(".project-local/build/venv/Scripts/python.exe");
         if !python.is_file() {
             return Err(format!(
                 "development Python runtime is missing: {}",
@@ -173,11 +173,11 @@ mod tests {
     }
 
     #[test]
-    fn development_uses_only_the_repository_virtual_environment() {
+    fn development_uses_only_the_managed_project_virtual_environment() {
         let temp = tempdir().expect("temporary directory");
         let root = temp.path().join("repo");
         let manifest = root.join("desktop/src-tauri");
-        let python = root.join(".venv/Scripts/python.exe");
+        let python = root.join(".project-local/build/venv/Scripts/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create venv");
         fs::create_dir_all(&manifest).expect("create manifest directory");
         fs::write(&python, b"test").expect("create python marker");
@@ -239,7 +239,7 @@ mod tests {
         let temp = tempdir().expect("temporary directory");
         let root = temp.path().join("repo");
         let manifest = root.join("desktop/src-tauri");
-        let python = root.join(".venv/Scripts/python.exe");
+        let python = root.join(".project-local/build/venv/Scripts/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create venv");
         fs::create_dir_all(&manifest).expect("create manifest directory");
         fs::write(&python, b"test").expect("create python marker");

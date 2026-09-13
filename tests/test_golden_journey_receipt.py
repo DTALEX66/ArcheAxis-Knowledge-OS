@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -36,9 +37,9 @@ def test_golden_journey_runtime_root_belongs_to_the_current_worktree(
 ) -> None:
     monkeypatch.setattr(receipt_generator, "ROOT", tmp_path)
 
-    assert receipt_generator._project_runtime_root() == (
-        tmp_path / ".project-local" / "task-runtime"
-    )
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT")
+    expected = Path(run_root) if run_root else tmp_path / ".project-local" / "task-runtime"
+    assert receipt_generator._project_runtime_root() == expected
 
 
 def test_golden_journey_receipt_cli_can_be_invoked_as_a_script() -> None:
