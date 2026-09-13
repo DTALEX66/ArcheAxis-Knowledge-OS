@@ -25,6 +25,12 @@ def test_doctor_script_present() -> None:
     assert DOCTOR.read_text(encoding="utf-8").startswith("#requires -Version 7.0")
 
 
+def test_doctor_supports_declared_external_rust_toolchain() -> None:
+    source = DOCTOR.read_text(encoding="utf-8")
+    assert "ARCHEAXIS_RUST_TOOLCHAINS" in source
+    assert "external_toolchain" in source
+
+
 def test_doctor_output_is_structured_json() -> None:
     if not _pwsh_available():
         return

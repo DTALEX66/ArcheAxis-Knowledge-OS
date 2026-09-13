@@ -88,13 +88,29 @@ if (-not $python.present) {
     }
 }
 
+function Get-ExternalRustTool([string]$Name) {
+    $root = $env:ARCHEAXIS_RUST_TOOLCHAINS
+    if (-not $root) { return $null }
+    $candidate = Join-Path $root ("cargo\bin\$Name.exe")
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+    return $null
+}
+
 $node = [ordered]@{ present = $false }
 if (Test-CommandAvailable "node") { $node.present = $true; $node.version = Get-Version "node" }
 if (Test-CommandAvailable "npm")  { $node.npm_present = $true }
 
 $rust = [ordered]@{ present = $false }
-if (Test-CommandAvailable "cargo") { $rust.present = $true; $rust.version = Get-Version "cargo" }
-if (Test-CommandAvailable "rustc") { $rust.rustc_present = $true }
+$cargoCommand = Get-Command cargo -ErrorAction SilentlyContinue
+if (-not $cargoCommand) { $cargoCommand = Get-ExternalRustTool "cargo" }
+if ($cargoCommand) {
+    $rust.present = $true
+    $rust.source = if ($cargoCommand -is [string]) { "external_toolchain" } else { "path" }
+    $rust.version = Get-Version ([string]$cargoCommand)
+}
+$rustcCommand = Get-Command rustc -ErrorAction SilentlyContinue
+if (-not $rustcCommand) { $rustcCommand = Get-ExternalRustTool "rustc" }
+if ($rustcCommand) { $rust.rustc_present = $true }
 
 $ps = [ordered]@{ present = $true; version = $PSVersionTable.PSVersion.ToString() }
 

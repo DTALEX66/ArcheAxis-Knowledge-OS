@@ -865,3 +865,7 @@ doctor 回归 `14 passed`，`git diff --check` 通过；未启动 Core，Rust �
 `1,232,333,595` bytes，清理时无 `dotnet` 进程；按精确路径删除并验证 `Test-Path=False`。
 NuGet restore 可重建该缓存。仍保留 2026-09-13 有写入的 `uv`、`cargo` 与 `nuget-http` 缓存，
 避免删除当前活跃依赖状态。
+
+Windows doctor 现支持读取调用方显式声明的 `ARCHEAXIS_RUST_TOOLCHAINS`，从其 `cargo\bin`
+定位 Rust 工具链，不修改全局 PATH、不打印绝对路径。使用项目共用工具链实测 cargo metadata
+exit 0；doctor 输出 `rust.source=external_toolchain`、`healthy=true`，新增回归后共 `15 passed`。
