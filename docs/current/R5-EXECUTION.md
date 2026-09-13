@@ -851,3 +851,8 @@ pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\d
 当前提交 `3d0fbcd190680c3dd5299015bd98dd11e292929b` 上用项目指定 PowerShell 7.6.3 重跑
 `scripts/doctor_windows.ps1`：Python 来自项目 `.venv`（3.13.14），项目根与运行缓存可写，
 `access_blockers=[]`、`healthy=true`；Rust 工具链当前不可用，故不能据此宣称桌面构建或运行验收完成。
+
+补齐 Windows 两个默认启动器的工具链解析：优先使用 PATH 中的 `uv`，否则只回退到已批准的本机
+Hermes 工具链路径；缺失时明确失败，不再调用 PATH 中不确定的 `python -m venv`。环境创建统一走
+`uv venv`，依赖安装继续绑定项目 `.venv`，缓存和临时目录仍固定在 `.project-local`。输出路由与
+doctor 回归 `14 passed`，`git diff --check` 通过；未启动 Core，Rust 工具链仍缺失。
