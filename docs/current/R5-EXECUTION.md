@@ -747,3 +747,18 @@ D: **240.55 GiB**（观测值，非归因，与既有 `attributed_reclaimed_byte
 **一次运行 + 每路径一条收据行**，"逐路径量／删／验"的实质未变。**未删**：今天的暂存、`artifacts/**` 收据、
 以及清单里"无日期"档的空目录（约 1,302 条 / 0 字节，仍在）；如需一并清掉请单独授权。回滚：全部为
 pytest/工具会话残留，重跑对应工具即重建；不涉及产品源码、用户数据、共享工具链或历史收据。
+
+### X13/X14：跨软件构建与发布输出统一（2026-09-13）
+
+提交 `4844010a7631bb8cde8ed275007afcda98b656b6` 将前端 Vite、Tauri shell、桌面 Green/Portable
+分发、CI wheel smoke 与 Release 工作流的生成输出统一路由到项目忽略目录
+`.project-local/build` 或 `.project-local/task-runtime`。桌面分发脚本不再先在仓库根目录创建临时
+Green/Portable 目录或 ZIP；测试夹具同时验证根目录无泄漏。根部明确的被忽略生成目录
+`build/`、`__pycache__/`、`.pytest_cache/`、`.ruff_cache/`、`archeaxis_workspace.egg-info/`
+已逐路径删除并以 `Test-Path` 后置条件确认不存在；`data/`、历史资产及私有状态未触碰。
+
+验证：`.venv\\Scripts\\python.exe -m pytest -q tests/test_ci_a0_gates.py tests/test_desktop_staging.py tests/test_release_manifest.py`
+exit 0，`65 passed`；`scripts/check_path_conventions.py` exit 0，`1993/1993 tracked paths owned`；
+`git diff --check` exit 0。上传后 `git fetch origin codex/full-loop-0906` 复核本地 HEAD 与远端同为上述 SHA。
+该项覆盖已登记的项目内构建/发布入口；历史文档中的 legacy `dist/target` 文本、真实 `data/`
+及受保护 `.hermes/.zcode/.codex` 未作为可删除对象，跨入口启动/取消和完整安装态仍由各自切片验收。
