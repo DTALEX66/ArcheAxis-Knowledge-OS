@@ -856,3 +856,7 @@ pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\d
 Hermes 工具链路径；缺失时明确失败，不再调用 PATH 中不确定的 `python -m venv`。环境创建统一走
 `uv venv`，依赖安装继续绑定项目 `.venv`，缓存和临时目录仍固定在 `.project-local`。输出路由与
 doctor 回归 `14 passed`，`git diff --check` 通过；未启动 Core，Rust 工具链仍缺失。
+
+按精确路径清理项目根已确认可再生的 `.ruff_cache` 与 `__pycache__`，删除命令退出 0，两个路径
+的 `Test-Path` 后置条件均为 False。未触碰 `.project-local/build/cargo`、`.project-local/cache`、
+运行收据、产品数据或受保护私有目录。
