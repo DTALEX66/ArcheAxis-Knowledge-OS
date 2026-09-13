@@ -669,3 +669,47 @@ worktree build；本轮既有Core在较早使用的build/cargo，所以明确传
 changed-file Ruff初次仅导入顺序失败，r5-desktop-launch-lint-pass已通过。
 M0新增WorkerProfile为第19源版本并保留旧hash；当前窗口主体仍是占位，没有可见GUI交互验收。
 回滚限WorkerProfile、MainWindow配置接线、desktop_launch及对应测试/配置索引；不得把开发隔离DB当真实资料库。
+
+### X14 DSH 授权清理：四条候选、八条路径（2026-09-13，DSH/DeepSeek）
+
+依据 `docs/current/HANDOFF-DSH-DEEPSEEK-CLEANUP-2026-09-13.md`，owner 就"批准四条候选（约 5.36 GiB，
+零重建代价）"给出精确路径授权后逐条执行。前置复核：分支 `codex/full-loop-0906` @ `c643ecd`（与
+origin 0/0）、`main` @ `1e9813e`；唯一未跟踪项 `docs/current/SESSION-RESTART-2026-09-12.md`（保留）；
+无 cargo/rustc/archeaxis-api/dotnet/msbuild 进程；前一轮已授权删除的根 `target` 与
+`.project-local/build/be268a2d33/cargo` 复核为不存在。
+
+| # | 路径 | 归属证据 | 删除前 | 删除后 | 结果 |
+|---|---|---|---|---|---|
+| 1 | `%TEMP%\archeaxis-clone-99b` | 我方克隆：`.git` origin=`D:/All projects/ArcheAxis-Knowledge-OS/.`，HEAD `8f63d9f` | 4,425.9 MiB / 18,127 files | 不存在 | **PASS** |
+| 2–6 | `.project-local/runs/fresh-checkout{,-98,-98b,-98c,-99}`（各含 `archeaxis` 克隆） | 同来源；HEAD `dc03f66`/`fc2372b`/`ab8570f`/`ab8570f`/`8f63d9f` | 552.4 MB / 12,481 files | 不存在 | **PASS** |
+| 7 | `.project-local/inventory` | 旧全量清单体（2026-09-07），已被 R5 自身 inventory run 取代 | 433,604,988 B / 8 files | 不存在 | **PASS** |
+| 8 | `.project-local/dist` | 早期候选包（2026-09-11），`build_candidate.py` 可重建 | 25,968,375 B / 12 files | 不存在 | **PASS** |
+
+合计删除约 **5.27 GiB**（原估 5.36 GiB，实测略低），**零重建代价**。保留并在删后复核仍存在的：
+`build/cargo/debug|release/archeaxis-api.exe`、`build/be268a2d33`（.NET 产物）、`runs` 收据、`.venv`、
+`data`、`frontend`。
+
+**三点方法教训（逐次修正，均留在脚本注释里）**：
+1. 首版以子进程 `Remove-Item` 并**捕获输出**：PowerShell 的本地码页错误信息打死了管道读取线程，
+   子进程被留在写满的管道上，删除**半途而废**（4,425.9 → 357.9 MiB）。改为**本进程内**
+   `shutil.rmtree`，不再有管道死锁面。
+2. `shutil.rmtree(onexc=...)` 的第三个参数是**异常实例**（旧 `onerror` 才给 exc_info 元组）；
+   按元组读会在**树已被部分删除之后**抛 `TypeError`。改为直接读 `type(exc).__name__`。
+3. pytest 的深路径夹具（`test_*_on_unc*`／`segment-xxxxxxxx…`）普通枚举报 `WinError 145 目录不是空的`；
+   追加一次 **`\\?\` 长路径前缀**重试后清空（两个 PARTIAL 由此转为 PASS）。
+
+**收据**：每条路径一次 `dev.py --run-id r5-dsh-cleanup-*` 调用，各自落在
+`.project-local/runs/be268a2d33/<run-id>/artifacts/execution.json`；`dev.py` 拒绝复用已存在的 run-id
+（首轮失败必须换新 id，这是正确行为，已如实记录多次尝试）。
+
+**后置条件**：八条路径 `Test-Path` 全为 False，`.project-local/runs` 下无 `fresh-checkout*` 残留。
+卷空闲观测 C: 211.36 GiB / D: 234.2 GiB——**观测值不等于归因**：卷上有其他项目与并发写入，
+与本台账既有 `attributed_reclaimed_bytes=null` 口径一致。
+
+**保留与未做**：`.project-local/cache`（今日 09:27 仍有写入，`dev.py` 把 NuGet HTTP/plugins 缓存路由于此）
+与 `build/cargo/debug/{deps,incremental}`（今日 09:30 写入，属**当前**构建状态；删掉换来的是全量重编译，
+比省下的磁盘更贵）**均未删除**；`.hermes`/`.zcode`/`.codex` 未读取、未触碰；未访问 `E:`；未改远端 URL
+（实际为 SSH，与更新后 AGENTS.md 所称 HTTPS 存在漂移，留待 owner 决定）。
+
+**回滚**：删除对象均为可再生克隆、旧清单体与早期候选包；重建方式为重新克隆或重跑构建，
+不从外部复制二进制；不涉及产品源码、用户数据、共享工具链或历史收据。
