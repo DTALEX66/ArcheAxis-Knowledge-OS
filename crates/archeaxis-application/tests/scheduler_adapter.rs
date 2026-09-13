@@ -135,5 +135,12 @@ fn timeout_reaps_the_owned_windows_process() {
     let handle = unsafe { OwnedHandle::from_raw_handle(raw) };
     assert_eq!(unsafe { WaitForSingleObject(handle.as_raw_handle(), 0) }, 258);
     assert!(task.join().unwrap().unwrap_err().to_string().contains("deadline"));
-    assert_eq!(unsafe { WaitForSingleObject(handle.as_raw_handle(), 0) }, 0);
+    // CPython's Windows venv redirector owns a separate interpreter in a
+    // kill-on-close job. Waiting for the redirector does not synchronously
+    // signal that interpreter's handle. Observe the real worker's exit with
+    // a bounded wait, well before its 10-second natural sleep would end.
+    // A leaked worker still fails; neither PID disappearance nor a successful
+    // launcher exit is accepted as evidence of interpreter termination.
+    assert_eq!(unsafe { WaitForSingleObject(handle.as_raw_handle(), 1000) }, 0,
+        "owned interpreter remained alive after bounded cleanup");
 }
