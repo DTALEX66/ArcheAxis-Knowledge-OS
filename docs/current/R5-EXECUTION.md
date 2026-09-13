@@ -847,3 +847,7 @@ pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\d
 `uv.lock`；锁文件同时补齐项目已有 `mcp` extra 的解析记录。定向输出路由与 Windows doctor
 测试 `14 passed`，`git diff --check` 通过。现有 `.venv` 中已安装的不兼容 RapidOCR 未被移除，
 需在后续环境重建或依赖安装任务中按新锁文件处理。
+
+当前提交 `3d0fbcd190680c3dd5299015bd98dd11e292929b` 上用项目指定 PowerShell 7.6.3 重跑
+`scripts/doctor_windows.ps1`：Python 来自项目 `.venv`（3.13.14），项目根与运行缓存可写，
+`access_blockers=[]`、`healthy=true`；Rust 工具链当前不可用，故不能据此宣称桌面构建或运行验收完成。
