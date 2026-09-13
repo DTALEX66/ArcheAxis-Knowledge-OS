@@ -1,5 +1,20 @@
 # R5 执行台账
 
+### X03/X08：去除默认启动与调度的开发环境依赖（2026-09-13）
+
+`tested-source-sha:824aa3fef8fc72927575f8bca652df4603166aba` 的 CI run 34730069924
+已成功安装锁定 Python 环境，但同一调度测试仍失败。用干净解释器、Python -I 与非仓库 cwd
+复现 `ModuleNotFoundError: No module named 'shared'`；旧本机 editable 安装与 PYTHONPATH 掩盖了它。
+worker 现按自身位置加载既有 shared/learning_scheduler.py，不改调度算法、不复制供体；
+CI 增加隔离 worker 的跨重启回归，供体与测试变更触发相同工作流。
+`r5-fsrs-clean-isolated-green`：32 passed，exit0；`r5-fsrs-clean-core-no-pythonpath`：
+显式移除 PYTHONPATH 的真实 Core 测试 8 passed，exit0。均用上述干净 Python 环境经 dev.py 执行。
+
+同时修正 desktop_launch.py 默认 Core 路径：直接读取 dev.layout 的 cargo_build，
+主仓库复用 build/cargo，独立 worktree 保留隔离路径。原回归主仓库分支失败；修正后4项通过。
+`r5-desktop-default-prepare` 用现有真实构建、不传 --core 即成功准备配置，exit0；没有打开窗口。
+回滚限 worker 加载、启动器路径和对应 CI/回归修改。默认 DeepTutor GUI 集成仍未完成。
+
 ### X01：修复真实 FSRS 测试的 CI 环境前置（2026-09-13）
 
 已上传的 `tested-source-sha:3e38b59f65b88dad24e6767bfef0c2bad0bb4db3` 在 vnext-ci

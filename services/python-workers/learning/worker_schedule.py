@@ -41,14 +41,30 @@ caller must record the missing schedule instead of inventing one.
 from __future__ import annotations
 
 import contextlib
+import importlib.util
 import json
 import math
 import sys
 from datetime import datetime, timezone
+from functools import lru_cache
+from pathlib import Path
 
 __all__ = ["schedule", "parse_state", "rating_for"]
 
 _RATING_NAMES = {"again": 1, "hard": 2, "good": 3, "easy": 4}
+
+
+@lru_cache(maxsize=1)
+def _scheduler_donor():
+    # Core launches this file from its own working directory. Load the exact
+    # bundled donor without relying on editable installs or caller PYTHONPATH.
+    path = Path(__file__).resolve().parents[3] / 'shared/learning_scheduler.py'
+    spec = importlib.util.spec_from_file_location('archeaxis_fsrs_donor', path)
+    if spec is None or spec.loader is None:
+        raise ImportError('FSRS donor is unavailable')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def rating_for(request: dict) -> int:
@@ -151,12 +167,12 @@ def schedule(request: dict) -> dict:
 
     from fsrs import Rating
 
-    from shared.learning_scheduler import LearningScheduler, card_state_name
+    donor = _scheduler_donor()
 
     card = _build_card(fields)
     # Deterministic scheduling: py-fsrs fuzzes intervals by default, which would
     # make the same card+rating return different due dates on replay/restart.
-    scheduler = LearningScheduler(enable_fuzzing=False)
+    scheduler = donor.LearningScheduler(enable_fuzzing=False)
     updated, summary = scheduler.review(card, Rating(rating_value), now)
     scheduled_days = int(summary.get("scheduled_days") or 0)
     due = summary.get("due") or (updated.due.isoformat() if updated.due else None)
@@ -168,7 +184,7 @@ def schedule(request: dict) -> dict:
         "next_review_days": scheduled_days,
         "scheduled_days": scheduled_days,
         "due": due,
-        "state": summary.get("state") or card_state_name(updated),
+        "state": summary.get("state") or donor.card_state_name(updated),
         "stability": updated.stability,
         "difficulty": updated.difficulty,
         "step": updated.step,

@@ -16,6 +16,8 @@ on:
       - "rust-toolchain.toml"
       - "apps/ArcheAxis.Desktop/**"
       - "services/python-workers/**"
+      - "shared/learning_scheduler.py"
+      - "tests/test_worker_schedule.py"
       - "config/model-profiles/**"
       - "packages/contracts/**"
       - "scripts/runtime/**"
@@ -36,6 +38,8 @@ on:
       - "rust-toolchain.toml"
       - "apps/ArcheAxis.Desktop/**"
       - "services/python-workers/**"
+      - "shared/learning_scheduler.py"
+      - "tests/test_worker_schedule.py"
       - "config/model-profiles/**"
       - "packages/contracts/**"
       - "scripts/runtime/**"
@@ -75,6 +79,9 @@ jobs:
           & $workerPython -B -c 'import sys, fsrs; from importlib.metadata import version; print(sys.executable); print("fsrs=" + version("fsrs"))'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "ARCHEAXIS_PYTHON=$workerPython" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Verify isolated scheduling worker and restart state
+        shell: pwsh
+        run: '& $env:ARCHEAXIS_PYTHON -B -m pytest tests/test_worker_schedule.py -q'
       - name: Reject generated vocabulary drift
         run: python -B scripts/contracts/generate_vocabulary.py --check
       - name: Parse shared vocabulary wire cases with Python

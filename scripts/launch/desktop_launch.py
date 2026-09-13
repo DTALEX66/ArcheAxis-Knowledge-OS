@@ -23,7 +23,7 @@ _spec.loader.exec_module(dev)
 def prepare_launch(*, desktop: Path | None = None, core: Path | None = None) -> dict:
     paths = dev.layout(REPO)
     desktop = dev.safe_path(desktop or paths['build'] / 'dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe')
-    core = dev.safe_path(core or paths['build'] / 'cargo/debug/archeaxis-api.exe')
+    core = dev.safe_path(core or paths['cargo_build'] / 'debug/archeaxis-api.exe')
     for path in (desktop, core):
         if not path.is_relative_to(paths['dev']):
             raise ValueError('development executable must be inside project .project-local')

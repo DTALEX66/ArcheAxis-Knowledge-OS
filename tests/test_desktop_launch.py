@@ -2,6 +2,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -43,18 +45,22 @@ def test_missing_binary_is_rejected_before_artifact_allocation(tmp_path, monkeyp
         raise AssertionError('missing binaries were accepted')
 
 
-def test_default_core_uses_worktree_build_directory(tmp_path, monkeypatch):
+@pytest.mark.parametrize('main_checkout', [True, False])
+def test_default_core_uses_authoritative_cargo_directory(tmp_path, monkeypatch, main_checkout):
     launcher = load_launcher()
     development = tmp_path / 'development'
     build = development / 'build/worktree'
     desktop = build / 'dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe'
-    core = build / 'cargo/debug/archeaxis-api.exe'
+    cargo = development / 'build/cargo' if main_checkout else build / 'cargo'
+    core = cargo / 'debug/archeaxis-api.exe'
     for path in (desktop, core):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(b'fixture')
     artifacts = tmp_path / 'artifacts'
     artifacts.mkdir()
-    monkeypatch.setattr(launcher.dev, 'layout', lambda root: {'dev': development, 'build': build})
+    monkeypatch.setattr(launcher.dev, 'layout', lambda root: {
+        'dev': development, 'build': build, 'cargo_build': cargo,
+    })
     monkeypatch.setattr(launcher.dev, 'artifact_directory', lambda *args: artifacts)
     prepared = launcher.prepare_launch()
     assert prepared['environment']['ARCHAXIS_CORE_BIN'] == str(core)

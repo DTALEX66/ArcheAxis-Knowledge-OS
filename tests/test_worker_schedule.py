@@ -42,7 +42,7 @@ MATURE = {
 
 
 class TestFsrsAuthority:
-    def test_serialized_reviews_match_uninterrupted_fsrs_across_worker_restarts(self) -> None:
+    def test_serialized_reviews_match_uninterrupted_fsrs_across_worker_restarts(self, tmp_path) -> None:
         import json
         import subprocess
         import sys
@@ -56,12 +56,12 @@ class TestFsrsAuthority:
         for rating in (Rating.Good, Rating.Good, Rating.Again, Rating.Good):
             expected, _ = scheduler.review_card(expected, rating, review_datetime=instant)
             process = subprocess.run(
-                [sys.executable, '-B', str(WORKER)],
+                [sys.executable, '-I', '-B', str(WORKER)],
                 input=json.dumps({'item_key': 'restart-card', 'rating': int(rating),
                                   'state': persisted, 'now': instant.isoformat()}),
-                capture_output=True, text=True, encoding='utf-8', timeout=30,
+                capture_output=True, text=True, encoding='utf-8', timeout=30, cwd=tmp_path,
             )
-            assert process.returncode == 0, process.stderr
+            assert process.returncode == 0, process.stdout + process.stderr
             persisted = json.loads(process.stdout)
             assert persisted['due'] == expected.due.isoformat()
             assert persisted['state'] == expected.state.name.lower()
