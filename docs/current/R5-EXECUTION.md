@@ -762,3 +762,10 @@ exit 0，`65 passed`；`scripts/check_path_conventions.py` exit 0，`1993/1993 t
 `git diff --check` exit 0。上传后 `git fetch origin codex/full-loop-0906` 复核本地 HEAD 与远端同为上述 SHA。
 该项覆盖已登记的项目内构建/发布入口；历史文档中的 legacy `dist/target` 文本、真实 `data/`
 及受保护 `.hermes/.zcode/.codex` 未作为可删除对象，跨入口启动/取消和完整安装态仍由各自切片验收。
+### X14：根部路径外溢空树清理（2026-09-13）
+
+对项目根目录非标准 `c/`、`d/` 做元数据盘点：两者均未被 Git 跟踪，文件数为 0；`d/` 仅含
+历史测试生成的模拟路径目录树，未发现可恢复文件或项目源码。按逐路径清单删除 `c/`、`d/`，
+PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路径均为 false。未读取或
+处理真实项目外部路径、`.hermes/.zcode/.codex`、`data/` 或历史资产。该证据仅证明本次两条
+空树残留已清除，不代表卷级未知占用已归因。
