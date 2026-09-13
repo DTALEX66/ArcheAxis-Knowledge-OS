@@ -789,3 +789,12 @@ PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路�
 不健康。现增加仅针对 `<project>/.venv/Scripts/python.exe` 的安全回退，保持不修改 PATH、HOME 或全局
 配置；自定义项目根仍不会被写入。`tests/test_doctor_windows.py` `7 passed`，Ruff 与 `git diff --check`
 通过。该改动只改善项目自检，不代表缺失 Rust 工具链或完整安装态已解决。
+
+### CLEAN01/CLEAN07：公开忽略目录 ACL 阻塞（2026-09-13）
+
+对项目根下 37 个公开目录执行只读 ACL/可达性检查，36 个可读取且未发现显式 Deny；根部
+忽略目录 `.pytest_cache/` 为空，但 `Get-Acl -LiteralPath .pytest_cache`、`icacls .pytest_cache`
+及 `fsutil reparsepoint query .pytest_cache` 均返回 `Access is denied`。该目录不是受保护的
+`.hermes/.zcode/.codex`，但其 ACL/重解析状态无法在当前权限下确认，因此未删除、未改 ACL、
+未提权绕过。该项标为权限阻塞；需管理员在确认目录归属后按组织策略修复或删除，才能把公开
+项目目录的访问门禁闭合。
