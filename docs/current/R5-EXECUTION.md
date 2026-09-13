@@ -892,3 +892,7 @@ Rust workspace 经 `dev.py` 首次运行时发现 OCR 测试继承了失效的 T
 复核当前脚本、CI、桌面与测试入口未引用 `.project-local/build/cargo/release`，其最后写入为
 2026-09-11，大小 `321,212,494` bytes，清理时无 cargo/rustc 进程；按精确路径删除并验证
 `Test-Path=False`。release 构建可由 `cargo build --release` 重建，当前 debug 构建和运行证据保留。
+
+继续复核发现 `.project-local/build/be268a2d33/dotnet`（`592,700,364` bytes，最后写入
+2026-09-13 04:18）没有当前脚本/CI入口引用，清理时无 dotnet 进程；按精确路径删除并验证
+`Test-Path=False`。该目录可由外置 .NET 工具链重新构建；当前 Cargo debug、运行收据和产品数据保留。
