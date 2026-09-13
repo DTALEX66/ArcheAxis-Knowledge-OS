@@ -879,3 +879,8 @@ Rust workspace 经 `dev.py` 首次运行时发现 OCR 测试继承了失效的 T
 随后以同样的项目 `dev.py` 入口、外置 Rust/MSVC、显式 Tesseract 和 `.project-local/build/cargo`
 重跑 `cargo test --workspace --offline`（run `rust-full-20260913c`）：编译完成，所有 workspace
 单元测试、集成测试、文档测试均通过，未见失败；保留既有 dead-code/unused 警告，不将警告升级为失败。
+
+最终 Python 路由复核在显式共用 Tesseract 配置下运行 `tests/test_worker_ocr_route.py`、
+`tests/workers/test_bulk_ocr.py` 及规范化/doctor 套件：`24 passed`；路径归属检查为
+`1994/1994`，PowerShell 7 doctor 报告 `access_blockers=[]`、`healthy=true`。本轮未读取或触碰
+`.hermes`、`.zcode`、`.codex`，未改变未跟踪历史归档。
