@@ -87,3 +87,9 @@ def test_windows_batch_launcher_routes_cache_and_core_to_project_runtime() -> No
     assert 'python -m venv' not in source
     assert "scripts\\runtime\\dev.py" in source
     assert "app.runtime_entrypoint core" in source
+
+
+def test_ocr_worker_accepts_explicit_tesseract_path() -> None:
+    source = _read("services/python-workers/vision/worker_ocr.py")
+    assert 'os.environ.get("TESSERACT_CMD"' in source
+    assert "configured TESSERACT_CMD does not exist" in source

@@ -869,3 +869,9 @@ NuGet restore 可重建该缓存。仍保留 2026-09-13 有写入的 `uv`、`car
 Windows doctor 现支持读取调用方显式声明的 `ARCHEAXIS_RUST_TOOLCHAINS`，从其 `cargo\bin`
 定位 Rust 工具链，不修改全局 PATH、不打印绝对路径。使用项目共用工具链实测 cargo metadata
 exit 0；doctor 输出 `rust.source=external_toolchain`、`healthy=true`，新增回归后共 `15 passed`。
+
+Rust workspace 经 `dev.py` 首次运行时发现 OCR 测试继承了失效的 Tesseract shim 路径；worker
+现支持显式 `TESSERACT_CMD`，调用方可绑定实际可执行文件而不依赖 PATH shim。使用共用
+`tesseract\current\tesseract.exe` 与 `tesseract-languages\current` 实测
+`cargo test -p archeaxis-application --test ocr_job_end_to_end --offline`：`1 passed`，输出仍位于
+`.project-local/build/cargo` 和对应 run 目录。旧 shim/外置路径未改写。

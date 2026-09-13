@@ -48,6 +48,12 @@ def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
 
 
 def _tesseract() -> str:
+    configured = os.environ.get("TESSERACT_CMD", "").strip()
+    if configured:
+        candidate = Path(configured)
+        if candidate.is_file():
+            return str(candidate)
+        raise RuntimeError(f"configured TESSERACT_CMD does not exist: {candidate}")
     binary = shutil.which("tesseract")
     if not binary:
         raise RuntimeError("tesseract binary not found on PATH (OCR engine unavailable)")
