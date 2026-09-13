@@ -1,5 +1,23 @@
 # R5 执行台账
 
+### X01/X03：CI收口与DeepTutor笔记产物保全（2026-09-13）
+
+`tested-source-sha:23fe970d9fbb7f43da1878cc553ddd726bb4c0a5` 的
+[vnext-ci run 34730748251](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/34730748251)
+已实查 completed/success。此前575eb57通过调度功能后，在Windows解释器回收的瞬时观察断言失败；
+按CPython 3.12 redirector的kill-on-close job行为，将真实解释器句柄退出观察限定为最多1秒，
+仍早于合成worker的10秒自然退出；没有跳过回收检查或改动产品超时。定向8项通过后云端通过。
+这是vnext工作流通过，不代表主Python全门禁、安装态或GUI验收通过。
+
+固定DeepTutor 1.5.17 / Python 3.11.15笔记服务实跑发现：原Markdown导出省略user_query与metadata。
+新增项目侧custody适配器，完整JSON与上游Markdown分别带SHA-256，保留未知字段，不改变Core资格。
+`r5-deeptutor-notebook-custody-bound` 经dev.py运行check_deeptutor_notebook.py，seed与独立进程
+restart-and-rebuild均exit0；恢复包含原问题/回答/时间/元数据，并验证合成索引损坏重建不改原笔记哈希。
+收据位于该run的artifacts/deeptutor-notebook/cf7c391b912546e2b01c74849435d4df/receipt.json，
+绑定实际脚本/适配器与产物哈希。上游Markdown缺字段的初次断言失败保留，不作全格式导出通过解释。
+试验禁网、不转发provider变量、只写新建合成home；未改共享上游、真实资料或既有Green。
+尚未接入默认GUI，附件/会话全量回收、Core桥接、模型学习活动仍待实现。回滚限新增适配器及资格脚本，保留产物。
+
 ### X03/X08：去除默认启动与调度的开发环境依赖（2026-09-13）
 
 `tested-source-sha:824aa3fef8fc72927575f8bca652df4603166aba` 的 CI run 34730069924

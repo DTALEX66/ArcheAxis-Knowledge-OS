@@ -50,7 +50,7 @@
       "r31_slices": [
         "R10"
       ],
-      "gap": "CoreSupervisor双身份和MainWindow的严格worker profile接线已实现，正式Avalonia工程构建及同加载器C#→Core→Python实跑通过；开发入口自动准备隔离配置，未运行可见窗口。窗口主体仍占位；DeepTutor默认入口挂载/产物回收未闭合，不修改外置上游。"
+      "gap": "CoreSupervisor双身份和MainWindow的严格worker profile接线已实现，正式Avalonia工程构建及同加载器C#→Core→Python实跑通过；开发入口已修复默认Cargo路径，未运行可见窗口。DeepTutor真实笔记服务的合成保存、独立进程重启、索引损坏恢复及项目custody完整读回已通过；上游Markdown省略问题和元数据，不是完整备份。窗口主体仍占位；DeepTutor默认入口挂载、Core桥接、附件/会话全量回收未闭合，不修改外置上游。"
     },
     {
       "id": "X04",
