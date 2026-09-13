@@ -10,6 +10,8 @@ on:
     paths:
       - "Cargo.toml"
       - "Cargo.lock"
+      - "pyproject.toml"
+      - "uv.lock"
       - "crates/**"
       - "rust-toolchain.toml"
       - "apps/ArcheAxis.Desktop/**"
@@ -29,6 +31,8 @@ on:
       - "crates/**"
       - "Cargo.toml"
       - "Cargo.lock"
+      - "pyproject.toml"
+      - "uv.lock"
       - "rust-toolchain.toml"
       - "apps/ArcheAxis.Desktop/**"
       - "services/python-workers/**"
@@ -52,6 +56,25 @@ jobs:
       - uses: actions/checkout@v4
       - name: Initialize project development paths
         run: python -B scripts/runtime/dev.py --github-env
+      - name: Set up locked Python dependency tooling
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: false
+      - name: Prepare isolated Python workers from the lockfile
+        shell: pwsh
+        run: |
+          $workerEnv = Join-Path $env:ARCHEAXIS_RUN_ROOT 'worker-env'
+          $workerPython = Join-Path $workerEnv 'Scripts/python.exe'
+          $requirements = Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/locked-ci.txt'
+          uv venv --python $env:ARCHEAXIS_PYTHON $workerEnv
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file $requirements
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv pip install --python $workerPython --require-hashes -r $requirements
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $workerPython -B -c 'import sys, fsrs; from importlib.metadata import version; print(sys.executable); print("fsrs=" + version("fsrs"))'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "ARCHEAXIS_PYTHON=$workerPython" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Reject generated vocabulary drift
         run: python -B scripts/contracts/generate_vocabulary.py --check
       - name: Parse shared vocabulary wire cases with Python

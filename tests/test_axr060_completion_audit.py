@@ -77,6 +77,16 @@ def _declared_r5_source_objects() -> set[str]:
     assert re.fullmatch('[0-9a-f]{40}', main_snapshot)
     assert git('cat-file', '-t', main_snapshot) == 'commit'
     declared.add(main_snapshot)
+    # Execution receipts identify tested source, not a release. Require an
+    # explicit label and a real commit in this checkout's history.
+    execution = (ROOT / 'docs/current/R5-EXECUTION.md').read_text(encoding='utf-8')
+    for sha in re.findall(r'`tested-source-sha:([0-9a-f]{40})`', execution):
+        assert git('cat-file', '-t', sha) == 'commit'
+        subprocess.run(
+            ['git', '-C', str(ROOT), 'merge-base', '--is-ancestor', sha, 'HEAD'],
+            check=True,
+        )
+        declared.add(sha)
 
     def visit(value):
         if isinstance(value, dict):

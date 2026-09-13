@@ -1,5 +1,21 @@
 # R5 执行台账
 
+### X01：修复真实 FSRS 测试的 CI 环境前置（2026-09-13）
+
+已上传的 `tested-source-sha:3e38b59f65b88dad24e6767bfef0c2bad0bb4db3` 在 vnext-ci
+run 34729363429 的 launch_auth 测试失败：调度返回 unavailable，预期 fsrs；后续桌面步骤跳过。
+工作流原先只绑定 runner Python，未安装调度依赖。现沿 uv.lock/ci 组按哈希安装到
+dev.py 分配的 run/worker-env，先验证 fsrs 导入，再将实际解释器传给 Core。
+pyproject.toml 和 uv.lock 变更同时触发该工作流；真实 FSRS 断言未削弱。
+
+工作树基于上述 SHA。工作流原样环境准备经项目 dev.py 实跑：离线首次因缺缓存
+annotated-doc 失败；公开包源按锁文件准备后 exit0，Python 3.13.14 / fsrs 6.3.2。
+用新隔离解释器执行 `cargo test --frozen --offline -p archeaxis-api --test launch_auth`，
+exit0，8 passed / 0 failed，含双身份权限及真实 FSRS 跨重启状态。
+运行目录为 `.project-local/runs/be268a2d33/r5-ci-worker-bootstrap-network/`
+和 `r5-ci-clean-worker-launch-auth/`。这证明本地环境修复；新 SHA 的云端 CI 待上传后核验。
+回滚仅撤销本次工作流修改；不改产品调度、共享工具、真实资料或既有 Green。
+
 ### checkpoint Python主集及两项门禁修正（2026-09-13）
 
 r5-checkpoint-python-primary通过dev.py --pytest --full -- -q --maxfail=3执行到底，exit1：
