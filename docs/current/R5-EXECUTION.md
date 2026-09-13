@@ -875,3 +875,7 @@ Rust workspace 经 `dev.py` 首次运行时发现 OCR 测试继承了失效的 T
 `tesseract\current\tesseract.exe` 与 `tesseract-languages\current` 实测
 `cargo test -p archeaxis-application --test ocr_job_end_to_end --offline`：`1 passed`，输出仍位于
 `.project-local/build/cargo` 和对应 run 目录。旧 shim/外置路径未改写。
+
+随后以同样的项目 `dev.py` 入口、外置 Rust/MSVC、显式 Tesseract 和 `.project-local/build/cargo`
+重跑 `cargo test --workspace --offline`（run `rust-full-20260913c`）：编译完成，所有 workspace
+单元测试、集成测试、文档测试均通过，未见失败；保留既有 dead-code/unused 警告，不将警告升级为失败。
