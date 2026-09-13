@@ -814,6 +814,10 @@ Windows doctor 随后增强为检查公开顶层目录 ACL，并对枚举可能�
 入口检查确认迁移与 Core 两阶段命令均保留。该改动不改变 `run_windows.ps1` 的引导安装行为，
 完整跨平台安装仍需单独验收。
 
+补齐 `run_windows.bat`：与 PowerShell 入口一致，显式设置项目内 TEMP/TMP/TMPDIR、pip/uv cache，
+使用项目 `.venv` 解释器，并经 `scripts\\runtime\\dev.py` 启动 Core。输出路由契约测试 `7 passed`，
+Ruff 与 `git diff --check` 通过；未实际安装依赖或启动服务。
+
 `run_windows.ps1` 也已收口：保留首次 `.venv` 引导和 requirements 安装，但将 TEMP/TMP/TMPDIR、
 pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\dev.py`。输出路由契约
 测试 `6 passed`，Ruff 与 `git diff --check` 通过；本轮未实际安装依赖或拉起 Core，避免把网络/安装

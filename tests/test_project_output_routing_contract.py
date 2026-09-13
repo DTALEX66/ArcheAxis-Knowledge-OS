@@ -71,3 +71,13 @@ def test_windows_launcher_routes_bootstrap_and_core_to_project_runtime() -> None
     assert '$env:PIP_CACHE_DIR' in source
     assert 'scripts\\runtime\\dev.py' in source
     assert 'app.runtime_entrypoint core' in source
+
+
+def test_windows_batch_launcher_routes_cache_and_core_to_project_runtime() -> None:
+    source = _read("run_windows.bat")
+
+    assert ".project-local\\task-runtime" in source
+    assert "set \"TEMP=%RUNTIME%\\tmp\"" in source
+    assert "set \"PIP_CACHE_DIR=%CACHE%\\pip\"" in source
+    assert "scripts\\runtime\\dev.py" in source
+    assert "app.runtime_entrypoint core" in source
