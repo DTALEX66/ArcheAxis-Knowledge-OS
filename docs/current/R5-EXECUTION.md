@@ -774,3 +774,7 @@ exit 0，`65 passed`；`scripts/check_path_conventions.py` exit 0，`1993/1993 t
 PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路径均为 false。未读取或
 处理真实项目外部路径、`.hermes/.zcode/.codex`、`data/` 或历史资产。该证据仅证明本次两条
 空树残留已清除，不代表卷级未知占用已归因。
+
+后续审计发现 CI wheel smoke 的构建输出已迁移，但校验脚本仍读取根 `dist/`；已改为读取
+`.project-local/task-runtime/wheel-smoke/dist`，并在输出路由契约中加入根 `Path("dist")` 回退断言。
+定向 CI 契约测试 `26 passed`，Ruff 与 `git diff --check` 通过；提交 `8064449d` 已上传。
