@@ -837,3 +837,7 @@ Ruff 与 `git diff --check` 通过；未实际安装依赖或启动服务。
 pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\dev.py`。输出路由契约
 测试 `6 passed`，Ruff 与 `git diff --check` 通过；本轮未实际安装依赖或拉起 Core，避免把网络/安装
 副作用伪装成验证结果。
+安装前复核项目 `.venv`（Python `3.13.14`）时，`uv pip check --python .venv\\Scripts\\python.exe`
+报告 `rapidocr-onnxruntime` 的约束为 `Python >=3.6, <3.13`；uv 命令退出码虽为 0，但该不兼容
+按环境失败处理。未强行降级 Python、替换依赖或覆盖现有环境；Windows 引导入口的真实安装仍需
+在满足依赖约束的 CPython 版本上单独验收。此项标为 REPO03 环境阻塞，不影响已完成的输出路径止增。
