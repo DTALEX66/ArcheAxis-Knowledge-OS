@@ -762,6 +762,11 @@ exit 0，`65 passed`；`scripts/check_path_conventions.py` exit 0，`1993/1993 t
 `git diff --check` exit 0。上传后 `git fetch origin codex/full-loop-0906` 复核本地 HEAD 与远端同为上述 SHA。
 该项覆盖已登记的项目内构建/发布入口；历史文档中的 legacy `dist/target` 文本、真实 `data/`
 及受保护 `.hermes/.zcode/.codex` 未作为可删除对象，跨入口启动/取消和完整安装态仍由各自切片验收。
+
+随后新增 `tests/test_project_output_routing_contract.py` 作为持续回归守卫，检查 Vite/Tauri 共用
+前端输出根、CI/Release 仅使用项目内 staging 根，以及桌面分发器不在仓库根创建临时目录或 ZIP。
+受影响契约与桌面门禁共 `37 passed`，Ruff 与 `git diff --check` 均 exit 0；提交
+`e515ea32` 已上传到同一工作分支。该守卫覆盖当前已登记入口，不替代真实跨平台运行、安装和取消场景。
 ### X14：根部路径外溢空树清理（2026-09-13）
 
 对项目根目录非标准 `c/`、`d/` 做元数据盘点：两者均未被 Git 跟踪，文件数为 0；`d/` 仅含
