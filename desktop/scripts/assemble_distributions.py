@@ -10,7 +10,7 @@ Usage:
       --runtime .project-local/rt/runtime \
       --frontend desktop/bootstrap \
       --identity .project-local/rt/runtime/release-identity.json \
-      --out release-assets \
+      --out .project-local/build/release-assets \
       --version 0.5.0
 
 Outputs (in --out):
