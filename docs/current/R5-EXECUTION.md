@@ -888,3 +888,7 @@ Rust workspace 经 `dev.py` 首次运行时发现 OCR 测试继承了失效的 T
 修正 `run_windows.ps1` 的 `uv` 回退解析：PATH 命令对象使用 `Source`，显式回退文件使用
 `FullName`，避免 FileInfo 没有 `Source` 时传入空路径。启动器契约、doctor 测试与 PowerShell
 语法解析共 `17 passed`，`git diff --check` 通过。
+
+复核当前脚本、CI、桌面与测试入口未引用 `.project-local/build/cargo/release`，其最后写入为
+2026-09-11，大小 `321,212,494` bytes，清理时无 cargo/rustc 进程；按精确路径删除并验证
+`Test-Path=False`。release 构建可由 `cargo build --release` 重建，当前 debug 构建和运行证据保留。
