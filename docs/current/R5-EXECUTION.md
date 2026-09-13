@@ -807,3 +807,9 @@ Windows doctor 随后增强为检查公开顶层目录 ACL，并对枚举可能�
 `.project-local/task-runtime/pytest-cache`。定向输出路由测试 `4 passed`，Ruff 与
 `git diff --check` 通过；实测新缓存目录存在，根 `.pytest_cache` 仅保留原有条目且未作为新
 写入目标。该修复止住新增外溢，但旧目录的 ACL 修复/删除仍需管理员处理。
+
+主启动入口 `run_all.sh`、`run_all.bat` 原先直接调用 `app.runtime_entrypoint`，绕过统一环境路由；
+现改为两步均经 `scripts/runtime/dev.py` 启动，使 TMP/TEMP、依赖缓存、Cargo/NuGet 与运行收据
+遵守同一项目边界。输出路由与 doctor 回归 `12 passed`，Ruff、`git diff --check` 通过；显式
+入口检查确认迁移与 Core 两阶段命令均保留。该改动不改变 `run_windows.ps1` 的引导安装行为，
+完整跨平台安装仍需单独验收。

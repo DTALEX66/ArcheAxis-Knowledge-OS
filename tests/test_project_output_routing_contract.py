@@ -49,3 +49,15 @@ def test_release_checksum_example_uses_project_local_inputs() -> None:
 
     assert "--wheel dist/" not in source
     assert ".project-local/build/release-assets/" in source
+
+
+def test_primary_launchers_use_the_project_runtime_router() -> None:
+    shell = _read("run_all.sh")
+    batch = _read("run_all.bat")
+
+    assert shell.count("scripts/runtime/dev.py") == 2
+    assert batch.count("scripts\\runtime\\dev.py") == 2
+    assert "dev.py -- python -m app.runtime_entrypoint migrate" in shell
+    assert "dev.py -- python -m app.runtime_entrypoint core" in shell
+    assert "dev.py -- python -m app.runtime_entrypoint migrate" in batch
+    assert "dev.py -- python -m app.runtime_entrypoint core" in batch
