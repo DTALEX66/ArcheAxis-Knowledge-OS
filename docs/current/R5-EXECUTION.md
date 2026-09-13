@@ -1,5 +1,25 @@
 # R5 执行台账
 
+### X14：旧构建缓存精确回收（2026-09-13）
+
+用户授权“审计有用的留下、无用的删除”后，先核对 `.cargo/config.toml`、CI 路由、当前进程
+与现有启动收据，再删除两条可重建且已被替代的路径：根 `target/` 与
+`.project-local/build/be268a2d33/cargo/`。PowerShell `Remove-Item -LiteralPath ... -Recurse -Force`
+退出0，逐路径 `Test-Path` 后置条件均为不存在；未触碰同目录 `.NET` 产物、当前
+`.project-local/build/cargo`、runs/收据、缓存、`.hermes` 或 `.zcode`。可读目录从约28.6GiB降至
+约15.0GiB，释放量约13.6GiB（D盘剩余空间需以卷级快照为准）。删除对象均可由项目构建重新生成，
+不等于产品功能验收；回滚方式是重新执行受控构建，不从外部复制产物。
+
+### X03：固定版 DeepTutor Web 项目侧启动器（2026-09-13）
+
+新增 `scripts/launch/deeptutor_web.py`，仅接受 DeepTutor 1.5.17 的真实解释器、Node.js
+与 `deeptutor_web/server.js`，启动时将 `DEEPTUTOR_HOME`、前后端端口和 Web API 地址固定到
+回环地址，并从子进程环境剔除常见 provider 凭据变量。子进程由启动器持有，运行目录由调用方
+放在 `.project-local`；不复制或修改外部 Web 包。`tests/test_deeptutor_web_launch.py` 4项通过，
+规范检查通过；受控只读实查确认共享安装版本与三个路径均存在。该切片尚未宣称默认 Avalonia
+窗口已挂载、Core API 已连通或附件/会话全量回收，真实服务启动留待 X03 的可见入口验收。
+回滚限新增启动器与定向测试，不改共享工具链和用户资料。
+
 ### X01/X03：CI收口与DeepTutor笔记产物保全（2026-09-13）
 
 `tested-source-sha:23fe970d9fbb7f43da1878cc553ddd726bb4c0a5` 的

@@ -212,7 +212,7 @@
         "R01",
         "R12"
       ],
-      "gap": "旧target仍待精确路径批准，历史逻辑5.73GiB不是可释放量；worktree build已含本轮验证产物，移出当前候选并保留。已加.zcode Git忽略，未读或删除私有内容。尚无删除和空间回收证据；逐路径批准后重新核对占用、链接、大小并测删除后卷空闲。"
+      "gap": "用户已授权逐路径审计后，根target与.project-local/build/be268a2d33/cargo均已确认被当前路径替代并删除，删除后Test-Path均为false；同目录dotnet、当前build/cargo、runs收据和缓存保留。可读目录约减少13.6GiB。已加.zcode Git忽略但未读或删除，.hermes仍为保留材料；隐藏/受保护内容的卷级总量仍不能归因。"
     },
     {
       "id": "Q01",
