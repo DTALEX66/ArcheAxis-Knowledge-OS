@@ -24,12 +24,14 @@ def test_frontend_and_tauri_share_the_canonical_frontend_output() -> None:
 def test_ci_and_release_stage_generated_files_project_locally() -> None:
     ci = _read(".github/workflows/ci.yml")
     release = _read(".github/workflows/release.yml")
+    gitignore = _read(".gitignore")
 
     assert ".project-local/task-runtime/wheel-smoke/dist" in ci
     assert ".project-local/build/release-assets" in release
     assert "uv build --wheel --out-dir release-assets" not in release
     assert "--out-dir dist" not in ci
     assert 'Path("dist").glob' not in ci
+    assert "release-assets/" in gitignore
 
 
 def test_distribution_assembler_does_not_stage_in_repository_root() -> None:

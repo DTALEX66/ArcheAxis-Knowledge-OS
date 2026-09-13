@@ -33,6 +33,7 @@ node_modules/
 .next/
 dist/
 build/
+release-assets/
 
 # OS/editor
 .DS_Store
