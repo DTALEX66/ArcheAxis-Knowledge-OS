@@ -68,6 +68,8 @@ function Test-PortAvailable([int]$Port) {
 
 $result = [ordered]@{}
 
+$project = [System.IO.Path]::GetFullPath((Resolve-Path $ProjectRoot).Path)
+
 # --- Toolchain -----------------------------------------------------------
 $result.schema_version = "axw.007a.v1"
 $result.generated_at = (Get-Date -Format o)
@@ -75,6 +77,16 @@ $result.generated_at = (Get-Date -Format o)
 $python = [ordered]@{ present = $false }
 if (Test-CommandAvailable "python") { $python.present = $true; $python.version = Get-Version "python" }
 if (Test-CommandAvailable "py")    { $python.launcher_present = $true }
+if (-not $python.present) {
+    $projectPython = Join-Path $project ".venv\Scripts\python.exe"
+    if (Test-Path -LiteralPath $projectPython -PathType Leaf) {
+        try {
+            $python.present = $true
+            $python.source = "project_venv"
+            $python.version = (& $projectPython --version 2>$null | Select-Object -First 1)
+        } catch { $python.present = $false }
+    }
+}
 
 $node = [ordered]@{ present = $false }
 if (Test-CommandAvailable "node") { $node.present = $true; $node.version = Get-Version "node" }
@@ -94,7 +106,6 @@ $result.toolchain = [ordered]@{
 }
 
 # --- Path layout facts ---------------------------------------------------
-$project = [System.IO.Path]::GetFullPath((Resolve-Path $ProjectRoot).Path)
 $result.paths = [ordered]@{
     space_in_path    = $project.Contains(" ")
     non_ascii_in_path = ($project.ToCharArray() | Where-Object { [int]$_ -gt 127 } | Measure-Object).Count -gt 0

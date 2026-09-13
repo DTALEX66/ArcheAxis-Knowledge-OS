@@ -784,3 +784,8 @@ PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路�
 
 审计 `scripts/release_checksum.py` 时发现仅示例仍指向根 `dist/`，已改为 `.project-local/build/release-assets/`
 输入，并加入输出路由契约测试。该测试 `4 passed`，Ruff 与 `git diff --check` 通过。
+
+权限与环境实测发现 Windows doctor 在 PATH 没有 `python` 时会忽略仓库自有 `.venv`，将可用项目误报为
+不健康。现增加仅针对 `<project>/.venv/Scripts/python.exe` 的安全回退，保持不修改 PATH、HOME 或全局
+配置；自定义项目根仍不会被写入。`tests/test_doctor_windows.py` `7 passed`，Ruff 与 `git diff --check`
+通过。该改动只改善项目自检，不代表缺失 Rust 工具链或完整安装态已解决。

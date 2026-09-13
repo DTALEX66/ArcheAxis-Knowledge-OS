@@ -71,6 +71,14 @@ def test_doctor_detects_python_presence() -> None:
     assert isinstance(payload["healthy"], bool)
 
 
+def test_doctor_can_use_the_project_virtualenv_when_python_is_not_on_path() -> None:
+    if not _pwsh_available() or not (ROOT / ".venv" / "Scripts" / "python.exe").is_file():
+        return
+    result = _run_doctor()
+    payload = json.loads(result.stdout)
+    assert payload["toolchain"]["python"]["present"] is True
+
+
 def test_doctor_sanitizes_writable_probe() -> None:
     """The doctor must not leave probe files behind in the project root."""
     if not _pwsh_available():
