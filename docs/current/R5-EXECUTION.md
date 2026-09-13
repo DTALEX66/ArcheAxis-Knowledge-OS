@@ -778,3 +778,6 @@ PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路�
 后续审计发现 CI wheel smoke 的构建输出已迁移，但校验脚本仍读取根 `dist/`；已改为读取
 `.project-local/task-runtime/wheel-smoke/dist`，并在输出路由契约中加入根 `Path("dist")` 回退断言。
 定向 CI 契约测试 `26 passed`，Ruff 与 `git diff --check` 通过；提交 `8064449d` 已上传。
+
+同时补充 `.gitignore` 的通用 `release-assets/` 规则，覆盖误用旧发布入口时的根部或子目录 staging
+残留；输出路由契约新增对应断言。该变更与 CI 路径修复联合测试 `26 passed`，提交 `dd163ee0` 已上传。
