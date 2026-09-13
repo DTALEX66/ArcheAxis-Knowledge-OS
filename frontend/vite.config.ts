@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // AXW-UI-801: App Shell built with Vite; dev server binds loopback only.
-// Tauri integration: build output goes to ../desktop/frontend-dist (later batch).
+// Tauri integration: build output goes to the project-owned build root.
 // AXW-UI-804: Vitest (jsdom) runs component tests; setup file registers
 // @testing-library/jest-dom matchers.
 // Resolve this from the configuration module rather than process.cwd(). Tauri
@@ -42,7 +42,10 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "dist",
+    outDir: fileURLToPath(new URL("../.project-local/build/frontend-dist", import.meta.url)),
+    // The canonical output is outside the frontend source root; clear only
+    // that project-owned generated directory before each production build.
+    emptyOutDir: true,
     sourcemap: false,
     // Relative asset URLs so the bundle also works when served from
     // file:// (green distribution bootstrap/ directory beside the exe).

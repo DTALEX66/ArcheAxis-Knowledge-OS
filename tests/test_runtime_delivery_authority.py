@@ -14,8 +14,8 @@ def test_runtime_delivery_authority_index_names_the_primary_shell_chain() -> Non
 
     for required in (
         "src-tauri/tauri.conf.json",
-        "frontend/dist",
-        "src-tauri/target/release/ArcheAxis.exe",
+        ".project-local/build/frontend-dist",
+        ".project-local/build/tauri/release/ArcheAxis.exe",
         "ArcheAxis.Knowledge.Green-x64/ArcheAxis.exe",
         "启动星环知识.vbs",
     ):

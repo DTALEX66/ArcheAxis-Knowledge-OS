@@ -74,11 +74,12 @@ jobs:
           if (-not (Test-Path -LiteralPath $executable) -or (Get-FileHash $executable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.executable.sha256) { throw 'candidate executable SHA-256 mismatch' }
           $frontend = Join-Path $candidateRoot $candidate.frontend.name
           if (-not (Test-Path -LiteralPath $frontend) -or (Get-FileHash $frontend -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.frontend.sha256) { throw 'candidate frontend SHA-256 mismatch' }
-          New-Item -ItemType Directory -Force 'src-tauri/target/release/bundle/nsis' | Out-Null
-          Copy-Item $installer 'src-tauri/target/release/bundle/nsis/'
-          Copy-Item $executable 'src-tauri/target/release/ArcheAxis.exe'
-          Expand-Archive -LiteralPath $frontend -DestinationPath 'frontend' -Force
-          if (-not (Test-Path -LiteralPath 'frontend/dist/index.html' -PathType Leaf)) { throw 'candidate frontend archive is missing frontend/dist/index.html' }
+          New-Item -ItemType Directory -Force '.project-local/build/tauri/release/bundle/nsis' | Out-Null
+          Copy-Item $installer '.project-local/build/tauri/release/bundle/nsis/'
+          Copy-Item $executable '.project-local/build/tauri/release/ArcheAxis.exe'
+          New-Item -ItemType Directory -Force '.project-local/build' | Out-Null
+          Expand-Archive -LiteralPath $frontend -DestinationPath '.project-local/build' -Force
+          if (-not (Test-Path -LiteralPath '.project-local/build/frontend-dist/index.html' -PathType Leaf)) { throw 'candidate frontend archive is missing .project-local/build/frontend-dist/index.html' }
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
@@ -131,7 +132,7 @@ jobs:
       - name: Verify installed NSIS lifecycle
         shell: pwsh
         run: |
-          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe")
+          $installers = @(Get-ChildItem ".project-local/build/tauri/release/bundle/nsis/*.exe")
           if ($installers.Count -ne 1) { throw "expected exactly one NSIS installer, found $($installers.Count)" }
           ./desktop/scripts/verify_nsis_install.ps1 -Installer $installers[0].FullName -RequireCandidateIdentity
       - name: Build release wheel, installer, and distribution archives
@@ -140,7 +141,7 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           uv build --wheel --out-dir release-assets
           $wheel = @(Get-ChildItem "release-assets/*.whl")
-          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe")
+          $installers = @(Get-ChildItem ".project-local/build/tauri/release/bundle/nsis/*.exe")
           if ($wheel.Count -ne 1 -or $installers.Count -ne 1) { throw "expected one wheel and one NSIS installer" }
           Get-ChildItem release-assets -Force -File |
             Where-Object Name -eq '.gitignore' |
@@ -153,9 +154,9 @@ jobs:
           # AXW-PKG-602/603: Green and Portable ZIPs assembled from the SAME
           # verified runtime as the installer; AXW-SUP-703 SBOM from locks.
           python desktop/scripts/assemble_distributions.py `
-            --exe src-tauri/target/release/ArcheAxis.exe `
+            --exe .project-local/build/tauri/release/ArcheAxis.exe `
             --runtime .project-local/rt/runtime `
-            --frontend frontend/dist `
+            --frontend .project-local/build/frontend-dist `
             --identity .project-local/rt/runtime/release-identity.json `
             --out release-assets `
             --version ${{ steps.resolve_version.outputs.release_version }}

@@ -6,7 +6,7 @@ the release workflow runs this on the exact tagged SHA.
 
 Usage:
   python desktop/scripts/assemble_distributions.py \
-      --exe desktop/src-tauri/target/release/ArcheAxis.exe \
+      --exe .project-local/build/tauri/release/ArcheAxis.exe \
       --runtime .project-local/rt/runtime \
       --frontend desktop/bootstrap \
       --identity .project-local/rt/runtime/release-identity.json \

@@ -27,7 +27,7 @@ node "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-
   "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/current/node_modules/npm/bin/npm-cli.js" \
   install --registry=https://registry.npmmirror.com
 npm run dev        # 127.0.0.1:5173（loopback only）
-npm run build      # tsc --noEmit && vite build → dist/
+npm run build      # tsc --noEmit && vite build → ../.project-local/build/frontend-dist/
 ```
 
 ## 迁移路径（渐进）

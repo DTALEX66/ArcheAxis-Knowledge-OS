@@ -18,6 +18,6 @@ fn watch_tree(path: &Path) {
 fn main() {
     // Tauri's frontend is embedded in the Windows executable. Cargo otherwise
     // sees only Rust source changes and may reuse stale embedded assets.
-    watch_tree(Path::new("../frontend/dist"));
+    watch_tree(Path::new("../.project-local/build/frontend-dist"));
     tauri_build::build()
 }
