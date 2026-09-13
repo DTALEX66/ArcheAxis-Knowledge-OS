@@ -29,6 +29,7 @@ def test_ci_and_release_stage_generated_files_project_locally() -> None:
     assert ".project-local/build/release-assets" in release
     assert "uv build --wheel --out-dir release-assets" not in release
     assert "--out-dir dist" not in ci
+    assert 'Path("dist").glob' not in ci
 
 
 def test_distribution_assembler_does_not_stage_in_repository_root() -> None:

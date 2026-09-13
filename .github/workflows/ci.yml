@@ -325,7 +325,7 @@ jobs:
           from pathlib import Path
           import zipfile
 
-          wheel = next(Path("dist").glob("*.whl"))
+          wheel = next(Path(".project-local/task-runtime/wheel-smoke/dist").glob("*.whl"))
           with zipfile.ZipFile(wheel) as archive:
               names = set(archive.namelist())
           required = {
