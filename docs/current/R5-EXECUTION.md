@@ -841,3 +841,9 @@ pip/uv cache 固定到 `.project-local`，Core 启动改经 `scripts\\runtime\\d
 报告 `rapidocr-onnxruntime` 的约束为 `Python >=3.6, <3.13`；uv 命令退出码虽为 0，但该不兼容
 按环境失败处理。未强行降级 Python、替换依赖或覆盖现有环境；Windows 引导入口的真实安装仍需
 在满足依赖约束的 CPython 版本上单独验收。此项标为 REPO03 环境阻塞，不影响已完成的输出路径止增。
+
+为使可选 `ci-adapters` 在 Python 3.13 环境下可解析，`pyproject.toml` 已将
+`rapidocr-onnxruntime>=1.4` 限定为 `python_version < '3.13'`，并以联网 `uv lock` 重算
+`uv.lock`；锁文件同时补齐项目已有 `mcp` extra 的解析记录。定向输出路由与 Windows doctor
+测试 `14 passed`，`git diff --check` 通过。现有 `.venv` 中已安装的不兼容 RapidOCR 未被移除，
+需在后续环境重建或依赖安装任务中按新锁文件处理。
