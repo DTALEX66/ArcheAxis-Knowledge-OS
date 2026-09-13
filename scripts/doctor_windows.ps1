@@ -149,9 +149,28 @@ foreach ($c in $candidates) {
     }
 }
 
+# --- Public directory access ---------------------------------------------
+# Keep private agent state out of this probe; report only sanitized leaf names.
+$private = @('.git', '.hermes', '.zcode', '.codex', '.venv', '.project-local', 'data')
+$accessBlockers = @()
+foreach ($entry in (Get-ChildItem -LiteralPath $project -Directory -Force -ErrorAction SilentlyContinue)) {
+    if ($private -contains $entry.Name) { continue }
+    try { Get-Acl -LiteralPath $entry.FullName -ErrorAction Stop | Out-Null }
+    catch { $accessBlockers += (Split-Path $entry.FullName -Leaf) }
+}
+# Some deny-only directories are omitted by enumeration; probe known generated
+# roots explicitly so an inaccessible residue cannot hide from the report.
+foreach ($name in @('.pytest_cache')) {
+    $candidate = Join-Path $project $name
+    if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { continue }
+    try { Get-Acl -LiteralPath $candidate -ErrorAction Stop | Out-Null }
+    catch { $accessBlockers += $name }
+}
+$result.access_blockers = @($accessBlockers | Sort-Object -Unique)
+
 # --- Overall health ------------------------------------------------------
 $required = @("python")
 $missing = @($required | Where-Object { -not $result.toolchain.$_.present })
-$result.healthy = ($missing.Count -eq 0)
+$result.healthy = ($missing.Count -eq 0 -and $result.access_blockers.Count -eq 0)
 
 $result | ConvertTo-Json -Depth 6

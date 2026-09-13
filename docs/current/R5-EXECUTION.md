@@ -799,6 +799,10 @@ PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路�
 未提权绕过。该项标为权限阻塞；需管理员在确认目录归属后按组织策略修复或删除，才能把公开
 项目目录的访问门禁闭合。
 
+Windows doctor 随后增强为检查公开顶层目录 ACL，并对枚举可能隐藏的已知 `.pytest_cache` 残留做显式
+探针。项目绝对路径实测输出 `access_blockers=[".pytest_cache"]`、`healthy=false`，准确暴露当前
+权限阻塞；`tests/test_doctor_windows.py` `7 passed`，Ruff 与 `git diff --check` 通过。未提权、未改 ACL。
+
 为避免该根部 ACL 残留继续被生产，`pyproject.toml` 的 pytest 配置已将 `cache_dir` 固定为
 `.project-local/task-runtime/pytest-cache`。定向输出路由测试 `4 passed`，Ruff 与
 `git diff --check` 通过；实测新缓存目录存在，根 `.pytest_cache` 仅保留原有条目且未作为新
