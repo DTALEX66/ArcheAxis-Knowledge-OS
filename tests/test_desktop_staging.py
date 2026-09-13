@@ -152,8 +152,9 @@ def test_green_and_portable_archives_keep_the_shell_runtime_contract(
     identity.write_text('{"release": {}}', encoding="utf-8")
     monkeypatch.chdir(tmp_path)
 
-    green = assemble_green(exe, runtime, frontend, identity, "0.6.0")
-    portable = assemble_portable(exe, runtime, frontend, identity, "0.6.0")
+    output = tmp_path / "out"
+    green = assemble_green(exe, runtime, frontend, identity, "0.6.0", output)
+    portable = assemble_portable(exe, runtime, frontend, identity, "0.6.0", output)
 
     with zipfile.ZipFile(green) as archive:
         green_members = set(archive.namelist())
@@ -165,3 +166,6 @@ def test_green_and_portable_archives_keep_the_shell_runtime_contract(
     assert "ArcheAxis.Knowledge.Portable-x64/portable.flag" in portable_members
     assert "ArcheAxis.Knowledge.Portable-x64/data/" in portable_members
     assert not any("/app/runtime/" in name for name in portable_members)
+    assert not (tmp_path / "ArcheAxis.Knowledge.Green-x64").exists()
+    assert not (tmp_path / "ArcheAxis.Knowledge.Portable-x64").exists()
+    assert green.parent == output

@@ -320,7 +320,7 @@ jobs:
         run: |
           uv export --frozen --only-group build --no-emit-project --format requirements-txt --output-file locked-build.txt
           python -m pip install --require-hashes -r locked-build.txt
-          uv build --python "$(command -v python)" --wheel --no-build-isolation --out-dir dist
+          uv build --python "$(command -v python)" --wheel --no-build-isolation --out-dir .project-local/task-runtime/wheel-smoke/dist
           python - <<'PY'
           from pathlib import Path
           import zipfile
@@ -368,7 +368,7 @@ jobs:
         run: |
           uv export --frozen --no-dev --no-emit-project --format requirements-txt --output-file locked-runtime.txt
           python -m pip install --require-hashes -r locked-runtime.txt
-          python -m pip install --no-deps dist/*.whl
+          python -m pip install --no-deps .project-local/task-runtime/wheel-smoke/dist/*.whl
           python -m pip check
           python -m pip uninstall --yes setuptools wheel jaraco.context
           python -m pip uninstall --yes pip

@@ -138,19 +138,19 @@ jobs:
       - name: Build release wheel, installer, and distribution archives
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force release-assets | Out-Null
-          uv build --wheel --out-dir release-assets
-          $wheel = @(Get-ChildItem "release-assets/*.whl")
+          New-Item -ItemType Directory -Force .project-local/build/release-assets | Out-Null
+          uv build --wheel --out-dir .project-local/build/release-assets
+          $wheel = @(Get-ChildItem ".project-local/build/release-assets/*.whl")
           $installers = @(Get-ChildItem ".project-local/build/tauri/release/bundle/nsis/*.exe")
           if ($wheel.Count -ne 1 -or $installers.Count -ne 1) { throw "expected one wheel and one NSIS installer" }
-          Get-ChildItem release-assets -Force -File |
+          Get-ChildItem .project-local/build/release-assets -Force -File |
             Where-Object Name -eq '.gitignore' |
             Remove-Item -Force
-          $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
+          $installerAsset = Join-Path .project-local/build/release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
           Copy-Item $installers[0].FullName $installerAsset
           $candidate = Get-Content '.project-local/task-runtime/release-candidate/release-candidate.json' -Raw | ConvertFrom-Json
           if ((Get-FileHash $installerAsset -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'promoted installer SHA-256 mismatch' }
-          Copy-Item .project-local/rt/runtime/release-identity.json release-assets/
+          Copy-Item .project-local/rt/runtime/release-identity.json .project-local/build/release-assets/
           # AXW-PKG-602/603: Green and Portable ZIPs assembled from the SAME
           # verified runtime as the installer; AXW-SUP-703 SBOM from locks.
           python desktop/scripts/assemble_distributions.py `
@@ -158,47 +158,47 @@ jobs:
             --runtime .project-local/rt/runtime `
             --frontend .project-local/build/frontend-dist `
             --identity .project-local/rt/runtime/release-identity.json `
-            --out release-assets `
+            --out .project-local/build/release-assets `
             --version ${{ steps.resolve_version.outputs.release_version }}
       - name: Verify Green and Portable lifecycle
         shell: pwsh
         run: |
           ./desktop/scripts/verify_zip_distributions.ps1 `
-            -GreenArchive (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip") `
-            -PortableArchive (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip") `
+            -GreenArchive (Join-Path .project-local/build/release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip") `
+            -PortableArchive (Join-Path .project-local/build/release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip") `
             -RequireReleaseIdentity
       - name: Build release metadata and checksums
         shell: pwsh
         run: |
-          $wheel = @(Get-ChildItem "release-assets/*.whl")
-          $installerAsset = Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
+          $wheel = @(Get-ChildItem ".project-local/build/release-assets/*.whl")
+          $installerAsset = Join-Path .project-local/build/release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe"
           if ($wheel.Count -ne 1 -or -not (Test-Path -LiteralPath $installerAsset -PathType Leaf)) {
             throw "release payloads are missing after distribution lifecycle verification"
           }
           python scripts/release_sbom.py `
             --version ${{ steps.resolve_version.outputs.release_version }} `
-            --out release-assets/SBOM.cdx.json `
-            --notices-out release-assets/THIRD_PARTY_NOTICES.txt
+            --out .project-local/build/release-assets/SBOM.cdx.json `
+            --notices-out .project-local/build/release-assets/THIRD_PARTY_NOTICES.txt
           python scripts/release_manifest.py `
             --version ${{ steps.resolve_version.outputs.release_version }} `
-            --assets release-assets `
-            --out release-assets/release-manifest.json
+            --assets .project-local/build/release-assets `
+            --out .project-local/build/release-assets/release-manifest.json
           python scripts/release_checksum.py --wheel $wheel[0].FullName --installer $installerAsset `
-            --artifact release-assets/release-identity.json `
-            --artifact (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip") `
-            --artifact (Join-Path release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip") `
-            --artifact release-assets/SBOM.cdx.json `
-            --artifact release-assets/release-manifest.json `
-            --artifact release-assets/THIRD_PARTY_NOTICES.txt `
-            --output release-assets/SHA256SUMS.txt
+            --artifact .project-local/build/release-assets/release-identity.json `
+            --artifact (Join-Path .project-local/build/release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip") `
+            --artifact (Join-Path .project-local/build/release-assets "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip") `
+            --artifact .project-local/build/release-assets/SBOM.cdx.json `
+            --artifact .project-local/build/release-assets/release-manifest.json `
+            --artifact .project-local/build/release-assets/THIRD_PARTY_NOTICES.txt `
+            --output .project-local/build/release-assets/SHA256SUMS.txt
       - name: Verify checksum manifest payload equality
         shell: pwsh
         run: |
-          $manifestNames = @(Get-Content release-assets/SHA256SUMS.txt | ForEach-Object {
+          $manifestNames = @(Get-Content .project-local/build/release-assets/SHA256SUMS.txt | ForEach-Object {
             if ($_ -notmatch '^[0-9a-fA-F]{64}  (.+)$') { throw "invalid SHA256SUMS line: $_" }
             $Matches[1]
           })
-          $payloadNames = @(Get-ChildItem release-assets -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-Object Name)
+          $payloadNames = @(Get-ChildItem .project-local/build/release-assets -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-Object Name)
           $manifestComparison = Compare-Object ($manifestNames | Sort-Object) ($payloadNames | Sort-Object)
           if ($manifestComparison) { throw "SHA256SUMS payload set differs from staged payload set: $($manifestComparison | Out-String)" }
           if ($manifestNames.Count -ne 8 -or ($manifestNames | Select-Object -Unique).Count -ne 8) {
@@ -209,18 +209,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $wheel = @(Get-ChildItem "release-assets/*.whl")
+          $wheel = @(Get-ChildItem ".project-local/build/release-assets/*.whl")
           if ($wheel.Count -ne 1) { throw "expected exactly one release wheel" }
           $releaseAssets = @(
             $wheel[0].FullName,
-            (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe").Path,
-            (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip").Path,
-            (Resolve-Path "release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip").Path,
-            (Resolve-Path "release-assets/release-identity.json").Path,
-            (Resolve-Path "release-assets/release-manifest.json").Path,
-            (Resolve-Path "release-assets/SBOM.cdx.json").Path,
-            (Resolve-Path "release-assets/THIRD_PARTY_NOTICES.txt").Path,
-            (Resolve-Path "release-assets/SHA256SUMS.txt").Path
+            (Resolve-Path ".project-local/build/release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe").Path,
+            (Resolve-Path ".project-local/build/release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Green.zip").Path,
+            (Resolve-Path ".project-local/build/release-assets/ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Portable.zip").Path,
+            (Resolve-Path ".project-local/build/release-assets/release-identity.json").Path,
+            (Resolve-Path ".project-local/build/release-assets/release-manifest.json").Path,
+            (Resolve-Path ".project-local/build/release-assets/SBOM.cdx.json").Path,
+            (Resolve-Path ".project-local/build/release-assets/THIRD_PARTY_NOTICES.txt").Path,
+            (Resolve-Path ".project-local/build/release-assets/SHA256SUMS.txt").Path
           )
           gh release create $env:GITHUB_REF_NAME $releaseAssets --draft --verify-tag --title "ArcheAxis Knowledge $env:GITHUB_REF_NAME" --generate-notes
       - name: Read back and verify draft release assets

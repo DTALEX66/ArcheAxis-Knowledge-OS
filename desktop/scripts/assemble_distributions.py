@@ -48,8 +48,16 @@ def _write_zip(directory: Path, zip_path: Path) -> None:
                 zf.write(file, file.relative_to(directory.parent))
 
 
-def assemble_green(exe: Path, runtime: Path, frontend: Path, identity: Path, version: str) -> Path:
-    root = Path(GREEN_DIR)
+def _assembly_output(output_dir: Path | None) -> Path:
+    directory = Path(output_dir) if output_dir is not None else Path(".project-local/task-runtime/release-assembly")
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+def assemble_green(exe: Path, runtime: Path, frontend: Path, identity: Path, version: str,
+                   output_dir: Path | None = None) -> Path:
+    output = _assembly_output(output_dir)
+    root = output / GREEN_DIR
     if root.exists():
         shutil.rmtree(root)
     # program files (immutable bundle content)
@@ -70,13 +78,15 @@ def assemble_green(exe: Path, runtime: Path, frontend: Path, identity: Path, ver
         "解压后运行 ArcheAxis.exe 即可。\n",
         encoding="utf-8",
     )
-    zip_path = Path(f"ArcheAxis.Knowledge-v{version}-Windows-x64-Green.zip")
+    zip_path = output / f"ArcheAxis.Knowledge-v{version}-Windows-x64-Green.zip"
     _write_zip(root, zip_path)
     return zip_path
 
 
-def assemble_portable(exe: Path, runtime: Path, frontend: Path, identity: Path, version: str) -> Path:
-    root = Path(PORTABLE_DIR)
+def assemble_portable(exe: Path, runtime: Path, frontend: Path, identity: Path, version: str,
+                      output_dir: Path | None = None) -> Path:
+    output = _assembly_output(output_dir)
+    root = output / PORTABLE_DIR
     if root.exists():
         shutil.rmtree(root)
     # The Tauri shell resolves its resource root beside ArcheAxis.exe.  Keep
@@ -105,7 +115,7 @@ def assemble_portable(exe: Path, runtime: Path, frontend: Path, identity: Path, 
         "整体复制目录即可迁移；复制/备份前请先完全关闭应用。\n",
         encoding="utf-8",
     )
-    zip_path = Path(f"ArcheAxis.Knowledge-v{version}-Windows-x64-Portable.zip")
+    zip_path = output / f"ArcheAxis.Knowledge-v{version}-Windows-x64-Portable.zip"
     _write_zip(root, zip_path)
     return zip_path
 
@@ -125,10 +135,8 @@ def main() -> None:
             raise SystemExit(f"missing input: {required}")
 
     args.out.mkdir(parents=True, exist_ok=True)
-    green = assemble_green(args.exe, args.runtime, args.frontend, args.identity, args.version)
-    portable = assemble_portable(args.exe, args.runtime, args.frontend, args.identity, args.version)
-    for z in (green, portable):
-        shutil.move(str(z), args.out / z.name)
+    green = assemble_green(args.exe, args.runtime, args.frontend, args.identity, args.version, args.out)
+    portable = assemble_portable(args.exe, args.runtime, args.frontend, args.identity, args.version, args.out)
     print(json.dumps({
         "green": str(args.out / green.name),
         "portable": str(args.out / portable.name),
