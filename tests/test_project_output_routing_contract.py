@@ -42,3 +42,10 @@ def test_distribution_assembler_does_not_stage_in_repository_root() -> None:
     assert "Path(PORTABLE_DIR)" not in source
     assert 'Path(f"ArcheAxis.Knowledge-v{version}-Windows-x64-Green.zip")' not in source
     assert 'Path(f"ArcheAxis.Knowledge-v{version}-Windows-x64-Portable.zip")' not in source
+
+
+def test_release_checksum_example_uses_project_local_inputs() -> None:
+    source = _read("scripts/release_checksum.py")
+
+    assert "--wheel dist/" not in source
+    assert ".project-local/build/release-assets/" in source

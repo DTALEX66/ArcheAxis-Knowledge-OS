@@ -781,3 +781,6 @@ PowerShell `Remove-Item -LiteralPath` exit 0，随后 `Test-Path` 对两条路�
 
 同时补充 `.gitignore` 的通用 `release-assets/` 规则，覆盖误用旧发布入口时的根部或子目录 staging
 残留；输出路由契约新增对应断言。该变更与 CI 路径修复联合测试 `26 passed`，提交 `dd163ee0` 已上传。
+
+审计 `scripts/release_checksum.py` 时发现仅示例仍指向根 `dist/`，已改为 `.project-local/build/release-assets/`
+输入，并加入输出路由契约测试。该测试 `4 passed`，Ruff 与 `git diff --check` 通过。
