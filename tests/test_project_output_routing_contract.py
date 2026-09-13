@@ -93,3 +93,9 @@ def test_ocr_worker_accepts_explicit_tesseract_path() -> None:
     source = _read("services/python-workers/vision/worker_ocr.py")
     assert 'os.environ.get("TESSERACT_CMD"' in source
     assert "configured TESSERACT_CMD does not exist" in source
+
+
+def test_windows_launcher_handles_uv_command_and_file_fallbacks() -> None:
+    source = _read("run_windows.ps1")
+    assert "$uvCommand.Source" in source
+    assert "$uvCommand.FullName" in source

@@ -14,7 +14,9 @@ if (-not $uvCommand) {
     if (Test-Path -LiteralPath $uvCandidate -PathType Leaf) { $uvCommand = Get-Item -LiteralPath $uvCandidate }
 }
 if (-not $uvCommand) { throw "uv executable is required; add uv to PATH or install the approved project toolchain" }
-$uv = $uvCommand.Source
+$uv = if ($uvCommand -is [string]) { $uvCommand }
+      elseif ($uvCommand.Source) { $uvCommand.Source }
+      else { $uvCommand.FullName }
 $python = Join-Path $repo ".venv\Scripts\python.exe"
 if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
     & $uv venv (Join-Path $repo ".venv")

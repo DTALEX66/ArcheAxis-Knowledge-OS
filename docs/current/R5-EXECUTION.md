@@ -884,3 +884,7 @@ Rust workspace 经 `dev.py` 首次运行时发现 OCR 测试继承了失效的 T
 `tests/workers/test_bulk_ocr.py` 及规范化/doctor 套件：`24 passed`；路径归属检查为
 `1994/1994`，PowerShell 7 doctor 报告 `access_blockers=[]`、`healthy=true`。本轮未读取或触碰
 `.hermes`、`.zcode`、`.codex`，未改变未跟踪历史归档。
+
+修正 `run_windows.ps1` 的 `uv` 回退解析：PATH 命令对象使用 `Source`，显式回退文件使用
+`FullName`，避免 FileInfo 没有 `Source` 时传入空路径。启动器契约、doctor 测试与 PowerShell
+语法解析共 `17 passed`，`git diff --check` 通过。
