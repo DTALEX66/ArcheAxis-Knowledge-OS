@@ -37,6 +37,7 @@ def test_doctor_output_is_structured_json() -> None:
     assert "ports" in payload
     assert "encoding" in payload
     assert "writable" in payload
+    assert "access_blockers" in payload
     assert "healthy" in payload
 
 
