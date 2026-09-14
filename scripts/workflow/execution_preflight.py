@@ -33,6 +33,9 @@ def _markdown_files(root: Path) -> list[Path]:
 
 def run(root: Path, modules: list[str]) -> dict:
     root = root.resolve()
+    # A preflight must never pass for an arbitrary directory.  The marker may
+    # be a directory or the file used by a linked Git worktree.
+    is_git_repo = (root / ".git").is_dir() or (root / ".git").is_file()
     links: list[dict] = []
     expected_missing: list[dict] = []
     for document in _markdown_files(root):
@@ -62,7 +65,8 @@ def run(root: Path, modules: list[str]) -> dict:
         "root": str(root),
         "interpreter": sys.executable,
         "python_version": sys.version.split()[0],
-        "git": {"branch": _git(root, "branch", "--show-current"),
+        "git": {"is_repository": is_git_repo,
+                "branch": _git(root, "branch", "--show-current"),
                 "head": _git(root, "rev-parse", "HEAD"),
                 "user_name": _git(root, "config", "user.name"),
                 "user_email": _git(root, "config", "user.email")},
@@ -72,7 +76,8 @@ def run(root: Path, modules: list[str]) -> dict:
                            "expected_missing": expected_missing,
                            "expected_missing_count": len(expected_missing)},
         "private_state_opened": False,
-        "passed": not links and all(item["available"] for item in imports),
+        "passed": is_git_repo and bool(_git(root, "rev-parse", "HEAD"))
+        and not links and all(item["available"] for item in imports),
     }
 
 
