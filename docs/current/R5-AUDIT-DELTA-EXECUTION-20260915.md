@@ -19,5 +19,6 @@
 - 当前工作分支与 `origin/codex/full-loop-0906` 已逐次推送到相同 SHA。
 - 2026-09-15 `git ls-remote origin refs/heads/codex/full-loop-0906 refs/heads/main` 回读：工作分支为 `1eb0f8fe96cbca7766b73822c6aa96b958d5c8ee`，`main` 为 `1e9813ea2bd49f47d334ba6717c78d3e9feda6ce`。
 - GitHub Actions 的当前头精确 CI 结果未能从本机 CLI 读取（GitHub CLI 配置权限拒绝）；公开页面无法绑定该 SHA，故 A07 仍为 `NOT_VERIFIED`。
+- 2026-09-15 公开 Actions API 查询 `head_sha=f6d6a3ba156fcdba7f5f5d340fb6a436a2090742` 返回 `total_count=0`；当前 CI 仅对 `main` push、PR 或手动 dispatch 触发，工作分支推送不会自动产生该记录。未使用凭据触发 dispatch。
 - 未执行 C# 编译、Windows 可见 GUI、安装/签名/卸载/干净机、真实 Green/四库、外置模型/工具库或真实资料库。
 - Q00/Q01 仍须独立审计，执行者不得自签。
