@@ -26,3 +26,20 @@ capabilities:
     assert report["capabilities"][0]["id"] == "toolchains/demo"
     assert report["install_performed"] is False
     assert report["private_state_opened"] is False
+
+
+def test_registry_records_version_from_resolved_executable(tmp_path: Path, monkeypatch):
+    manifest = tmp_path / "capabilities.yaml"
+    manifest.write_text(
+        "capabilities:\n  toolchains:\n    - name: demo\n      healthcheck_command: 'demo --version'\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("scripts.workflow.environment_registry.shutil.which", lambda name: "C:/demo.exe")
+    monkeypatch.setattr(
+        "scripts.workflow.environment_registry.subprocess.run",
+        lambda *args, **kwargs: type("R", (), {"returncode": 0, "stdout": "demo 1.2\n", "stderr": ""})(),
+    )
+    item = resolve(manifest)["capabilities"][0]
+    assert item["available"] is True
+    assert item["version_observed"] == "demo 1.2"
+    assert item["probe"] == "probed"

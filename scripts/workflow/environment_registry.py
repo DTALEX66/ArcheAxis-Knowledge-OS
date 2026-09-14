@@ -27,6 +27,20 @@ def _command_name(command: str | None) -> str | None:
     return match.group(1) if match else None
 
 
+def _probe_version(executable: str | None, path: str | None) -> tuple[str | None, str]:
+    if not path:
+        return None, "missing"
+    try:
+        result = subprocess.run([path, "--version"], capture_output=True, text=True,
+                                encoding="utf-8", errors="replace", timeout=5, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None, "probe_failed"
+    if result.returncode != 0:
+        return None, "probe_failed"
+    line = (result.stdout or result.stderr).splitlines()
+    return (line[0].strip()[:200] if line and line[0].strip() else None), "probed"
+
+
 def resolve(manifest: Path) -> dict:
     if yaml is None:
         raise RuntimeError("PyYAML is required to resolve the environment registry")
@@ -38,6 +52,7 @@ def resolve(manifest: Path) -> dict:
             command = entry.get("healthcheck_command")
             executable = _command_name(command)
             path = shutil.which(executable) if executable else None
+            version, probe_status = _probe_version(executable, path)
             resolved.append({
                 "id": f"{category}/{entry.get('name', '')}",
                 "category": category,
@@ -50,7 +65,8 @@ def resolve(manifest: Path) -> dict:
                 "executable": executable,
                 "available": bool(path),
                 "resolved_path": path,
-                "probe": "command_presence_only",
+                "version_observed": version,
+                "probe": probe_status,
             })
     return {
         "schema": "archeaxis.environment-registry/v1",
