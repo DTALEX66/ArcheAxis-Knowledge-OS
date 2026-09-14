@@ -1,6 +1,8 @@
 name: CI
 
 on:
+  # R5 audit branches run the same qualification gates as main/PR so their
+  # exact SHA results can be read back without treating branch push as release.
   workflow_dispatch:
     inputs:
       force_full:
