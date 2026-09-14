@@ -15,8 +15,9 @@
 
 ## 当前头与边界
 
-- 当前测试/实现头：`4903c4daa21d964b68cb82dab2d2c1dd52b59d25`。
+- 当前测试/实现头：`1eb0f8fe96cbca7766b73822c6aa96b958d5c8ee`（本收据提交前的实现头为 `4903c4da`）。
 - 当前工作分支与 `origin/codex/full-loop-0906` 已逐次推送到相同 SHA。
+- 2026-09-15 `git ls-remote origin refs/heads/codex/full-loop-0906 refs/heads/main` 回读：工作分支为 `1eb0f8fe96cbca7766b73822c6aa96b958d5c8ee`，`main` 为 `1e9813ea2bd49f47d334ba6717c78d3e9feda6ce`。
 - GitHub Actions 的当前头精确 CI 结果未能从本机 CLI 读取（GitHub CLI 配置权限拒绝）；公开页面无法绑定该 SHA，故 A07 仍为 `NOT_VERIFIED`。
 - 未执行 C# 编译、Windows 可见 GUI、安装/签名/卸载/干净机、真实 Green/四库、外置模型/工具库或真实资料库。
 - Q00/Q01 仍须独立审计，执行者不得自签。
