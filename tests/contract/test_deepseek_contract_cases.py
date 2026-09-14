@@ -32,6 +32,18 @@ def _validator(schema_name: str) -> Draft202012Validator:
     return Draft202012Validator(schema, resolver=resolver)
 
 
+def test_learning_review_v2_preserves_evidence_dimensions_and_rejects_unknown_fields():
+    payload = {
+        "item_key": "card-1", "client_event_id": "evt-1", "correct": True,
+        "rating": 3, "answer": "answer", "question_version": "q-2",
+        "knowledge_version": "k-7", "exposure_id": "exp-1",
+        "assist_strategy": "hint", "rating_version": "fsrs-v1",
+        "correction_id": None,
+    }
+    assert not list(_validator("../learning/v2/review.schema.json").iter_errors(payload))
+    assert list(_validator("../learning/v2/review.schema.json").iter_errors({**payload, "future": 1}))
+
+
 def _errors(schema_name: str, payload: dict) -> list:
     return list(_validator(schema_name).iter_errors(payload))
 

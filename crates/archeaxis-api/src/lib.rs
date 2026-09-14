@@ -429,6 +429,15 @@ struct StatefulReviewBody {
     correct: bool,
     rating: Option<u8>,
     now: Option<String>,
+    /// Optional v2 learning evidence. Legacy clients remain valid; newer
+    /// clients can bind an answer to the exact question/knowledge exposure.
+    answer: Option<String>,
+    question_version: Option<String>,
+    knowledge_version: Option<String>,
+    exposure_id: Option<String>,
+    assist_strategy: Option<String>,
+    rating_version: Option<String>,
+    correction_id: Option<String>,
 }
 
 fn checked_review_schedule(
@@ -524,7 +533,10 @@ async fn record_stateful_review(
         return (StatusCode::BAD_REQUEST, "item, event key and consistent rating/outcome are required").into_response();
     }
     let canonical = serde_json::json!({"item_key":body.item_key,"correct":body.correct,
-        "rating":rating,"now":body.now}).to_string();
+        "rating":rating,"now":body.now,"answer":body.answer,
+        "question_version":body.question_version,"knowledge_version":body.knowledge_version,
+        "exposure_id":body.exposure_id,"assist_strategy":body.assist_strategy,
+        "rating_version":body.rating_version,"correction_id":body.correction_id}).to_string();
     with_store(state, move |conn| {
         if let Some(now) = body.now.as_deref() {
             match learning::valid_review_timestamp(conn, now) {

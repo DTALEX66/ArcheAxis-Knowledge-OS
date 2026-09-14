@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.learning-review/v2",
+  "title": "Core-owned FSRS review request v2",
+  "description": "Versioned review evidence. The Core remains authoritative for schedule state; v1 callers may omit the optional evidence fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["item_key", "client_event_id", "correct"],
+  "properties": {
+    "item_key": {"type": "string", "pattern": "\\S"},
+    "client_event_id": {"type": "string", "pattern": "\\S"},
+    "correct": {"type": "boolean"},
+    "rating": {"type": ["integer", "null"], "minimum": 1, "maximum": 4},
+    "now": {"type": ["string", "null"], "format": "date-time"},
+    "answer": {"type": ["string", "null"]},
+    "question_version": {"type": ["string", "null"], "pattern": "\\S"},
+    "knowledge_version": {"type": ["string", "null"], "pattern": "\\S"},
+    "exposure_id": {"type": ["string", "null"], "pattern": "\\S"},
+    "assist_strategy": {"type": ["string", "null"], "pattern": "\\S"},
+    "rating_version": {"type": ["string", "null"], "pattern": "\\S"},
+    "correction_id": {"type": ["string", "null"], "pattern": "\\S"}
+  },
+  "if": {"properties": {"correct": {"const": true}}},
+  "then": {"properties": {"rating": {"enum": [2, 3, 4, null]}}},
+  "else": {"properties": {"rating": {"enum": [1, null]}}}
+}
