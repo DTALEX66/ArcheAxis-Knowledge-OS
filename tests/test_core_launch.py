@@ -17,6 +17,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import shutil
 import sqlite3
 from pathlib import Path
 
@@ -315,6 +316,17 @@ def test_restore_refuses_a_file_that_is_not_a_database(tmp_path):
     assert code == 7
     assert report["restored"] is False
     assert "not a readable SQLite database" in report["reason"]
+
+
+def test_restore_refuses_a_valid_sqlite_without_archeaxis_metadata(tmp_path):
+    db = tmp_path / "core.sqlite"
+    _make_db(db, ["alpha"])
+    backup = tmp_path / "unidentified.sqlite"
+    shutil.copy2(db, backup)
+    code, report = launcher.restore_database(db, backup, state_path=tmp_path / "none.json")
+    assert code == 7
+    assert report["restored"] is False
+    assert "metadata sidecar" in report["reason"]
 
 
 def test_restore_refuses_while_the_core_is_recorded_as_running(tmp_path):
