@@ -12,6 +12,7 @@ namespace ArcheAxis.Desktop;
 public partial class MainWindow : Window
 {
     private CoreSupervisor? _supervisor;
+    private string? _activeLearningItem;
 
     public MainWindow()
     {
@@ -133,6 +134,23 @@ public partial class MainWindow : Window
             }
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var count = document.RootElement.GetProperty("count").GetInt32();
+            if (count > 0)
+            {
+                var first = document.RootElement.GetProperty("items")[0];
+                _activeLearningItem = first.GetProperty("item_key").GetString();
+                LearningItemText.Text = $"待复习项目：{_activeLearningItem}";
+                LearningAnswerBox.IsEnabled = true;
+                ReviewOutcomeBox.IsEnabled = true;
+                SubmitReviewButton.IsEnabled = true;
+            }
+            else
+            {
+                _activeLearningItem = null;
+                LearningItemText.Text = "当前没有待复习项目";
+                LearningAnswerBox.IsEnabled = false;
+                ReviewOutcomeBox.IsEnabled = false;
+                SubmitReviewButton.IsEnabled = false;
+            }
             CoreStatusText.Text = count == 0
                 ? "学习路径：当前没有待复习项目"
                 : $"学习路径：{count} 个项目可复习";
@@ -140,6 +158,52 @@ public partial class MainWindow : Window
         catch (Exception)
         {
             CoreStatusText.Text = "学习路径：队列读取中断";
+        }
+    }
+
+    private async void OnSubmitReviewClick(object? sender, RoutedEventArgs e)
+    {
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0 || string.IsNullOrWhiteSpace(_activeLearningItem))
+        {
+            CoreStatusText.Text = "学习路径：请先载入复习项目";
+            return;
+        }
+        var answer = LearningAnswerBox.Text?.Trim() ?? string.Empty;
+        if (ReviewOutcomeBox.SelectedIndex is not (1 or 2))
+        {
+            CoreStatusText.Text = "学习路径：请选择回答结果";
+            return;
+        }
+        var correct = ReviewOutcomeBox.SelectedIndex == 1;
+        var payload = JsonSerializer.Serialize(new
+        {
+            item_key = _activeLearningItem,
+            client_event_id = $"desktop-{Guid.NewGuid():N}",
+            correct,
+            rating = correct ? 3 : 1,
+            answer,
+            rating_version = "desktop-v1",
+            exposure_id = $"desktop-exposure-{Guid.NewGuid():N}",
+        });
+        try
+        {
+            using var response = await _supervisor.SendAsync(
+                HttpMethod.Post,
+                "/api/v1/learning/reviews",
+                new StringContent(payload, Encoding.UTF8, "application/json"));
+            CoreStatusText.Text = response.IsSuccessStatusCode
+                ? "学习路径：复习已记录"
+                : "学习路径：复习提交被拒绝";
+            if (response.IsSuccessStatusCode)
+            {
+                LearningAnswerBox.Text = string.Empty;
+                ReviewOutcomeBox.SelectedIndex = 0;
+                SubmitReviewButton.IsEnabled = false;
+            }
+        }
+        catch (Exception)
+        {
+            CoreStatusText.Text = "学习路径：复习提交中断";
         }
     }
 }

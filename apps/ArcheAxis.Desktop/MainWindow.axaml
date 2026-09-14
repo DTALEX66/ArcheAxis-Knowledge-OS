@@ -55,6 +55,19 @@
                 </Grid>
 
                 <TextBlock Text="工作区状态" FontSize="19" FontWeight="SemiBold" Foreground="#F4F7FA" />
+                <Border Padding="20" CornerRadius="10" Background="#20242D" BorderBrush="#354457" BorderThickness="1">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="当前复习" FontSize="19" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                        <TextBlock x:Name="LearningItemText" Text="点击‘打开学习路径’载入待复习项目" TextWrapping="Wrap" Foreground="#B8C6D6" />
+                        <TextBox x:Name="LearningAnswerBox" Watermark="输入你的回答" IsEnabled="False" />
+                        <ComboBox x:Name="ReviewOutcomeBox" IsEnabled="False" SelectedIndex="0">
+                            <ComboBoxItem Content="选择结果" />
+                            <ComboBoxItem Content="回答正确" />
+                            <ComboBoxItem Content="回答错误" />
+                        </ComboBox>
+                        <Button x:Name="SubmitReviewButton" Content="提交复习结果" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnSubmitReviewClick" />
+                    </StackPanel>
+                </Border>
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
                     <Border Padding="16" CornerRadius="8" Background="#191E26">
                         <StackPanel Spacing="5"><TextBlock Text="资料对象" Foreground="#8996A6" /><TextBlock Text="0" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="等待导入" Foreground="#AAB5C3" /></StackPanel>
