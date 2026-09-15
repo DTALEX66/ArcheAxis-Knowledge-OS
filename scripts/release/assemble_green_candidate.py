@@ -59,6 +59,8 @@ def assemble(
     *,
     runtime: Path | None = None,
     project_root: Path | None = None,
+    source_commit: str | None = None,
+    source_tree: str | None = None,
 ) -> AssemblyResult:
     desktop = desktop.resolve()
     core = core.resolve()
@@ -136,7 +138,15 @@ shell.Run Chr(34) & executable & Chr(34), 1, False
     for path in sorted(copied_files):
         relative = path.relative_to(root).as_posix()
         files[relative] = {"bytes": os.stat(_native_path(path)).st_size, "sha256": _sha256(path)}
-    manifest = {"schema": "archeaxis.green-candidate/v1", "version": version, "files": files}
+    manifest = {
+        "schema": "archeaxis.green-candidate/v1",
+        "version": version,
+        "provenance": {
+            "source_commit": source_commit,
+            "source_tree": source_tree,
+        },
+        "files": files,
+    }
     manifest_path = root / "candidate-manifest.json"
     with open(_native_path(manifest_path), "w", encoding="utf-8", newline="\n") as stream:
         stream.write(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
@@ -154,8 +164,18 @@ def main() -> int:
     parser.add_argument("--runtime", type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--version", required=True)
+    parser.add_argument("--source-commit")
+    parser.add_argument("--source-tree")
     args = parser.parse_args()
-    result = assemble(args.desktop, args.core, args.out, args.version, runtime=args.runtime)
+    result = assemble(
+        args.desktop,
+        args.core,
+        args.out,
+        args.version,
+        runtime=args.runtime,
+        source_commit=args.source_commit,
+        source_tree=args.source_tree,
+    )
     print(json.dumps({"root": str(result.root), "zip": str(result.zip_path)}))
     return 0
 

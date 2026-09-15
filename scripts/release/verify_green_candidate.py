@@ -25,7 +25,13 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def verify(candidate: Path, *, require_runtime: bool = False) -> dict:
+def verify(
+    candidate: Path,
+    *,
+    require_runtime: bool = False,
+    expected_commit: str | None = None,
+    expected_tree: str | None = None,
+) -> dict:
     candidate = candidate.resolve()
     manifest_path = candidate / "candidate-manifest.json"
     problems: list[str] = []
@@ -39,6 +45,15 @@ def verify(candidate: Path, *, require_runtime: bool = False) -> dict:
         return {"ok": False, "problems": [f"manifest unreadable: {exc}"]}
     if manifest.get("schema") != "archeaxis.green-candidate/v1":
         problems.append("unexpected candidate schema")
+    provenance = manifest.get("provenance")
+    if expected_commit is not None or expected_tree is not None:
+        if not isinstance(provenance, dict):
+            problems.append("candidate provenance is missing")
+        else:
+            if expected_commit is not None and provenance.get("source_commit") != expected_commit:
+                problems.append("candidate source commit mismatch")
+            if expected_tree is not None and provenance.get("source_tree") != expected_tree:
+                problems.append("candidate source tree mismatch")
     files = manifest.get("files", {})
     for relative in REQUIRED:
         path = candidate / relative
@@ -65,8 +80,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--require-runtime", action="store_true")
+    parser.add_argument("--expected-commit")
+    parser.add_argument("--expected-tree")
     args = parser.parse_args()
-    result = verify(args.candidate, require_runtime=args.require_runtime)
+    result = verify(
+        args.candidate,
+        require_runtime=args.require_runtime,
+        expected_commit=args.expected_commit,
+        expected_tree=args.expected_tree,
+    )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1
 

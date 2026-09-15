@@ -712,16 +712,20 @@ jobs:
           $python = (Get-Command python).Source
           $cargoTarget = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'target' }
           $core = Join-Path $cargoTarget 'debug/archeaxis-api.exe'
+          $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
           if (-not (Test-Path -LiteralPath $core -PathType Leaf)) { throw "Rust Core binary is missing: $core" }
           & $python -B scripts/release/assemble_green_candidate.py `
             --desktop .project-local/build/dotnet/green-desktop `
             --core $core `
             --out .project-local/build/green-candidates `
             --runtime .project-local/rt/runtime/python `
+            --source-commit $env:GITHUB_SHA `
+            --source-tree $tree `
             --version ci
           if ($LASTEXITCODE -ne 0) { throw "Green candidate assembly failed" }
           & $python -B scripts/release/verify_green_candidate.py `
-            .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64 --require-runtime
+            .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64 --require-runtime `
+            --expected-commit $env:GITHUB_SHA --expected-tree $tree
           if ($LASTEXITCODE -ne 0) { throw "Green candidate verification failed" }
       - name: Upload self-contained Green candidate
         uses: actions/upload-artifact@v4

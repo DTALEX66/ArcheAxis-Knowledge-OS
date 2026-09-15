@@ -104,7 +104,9 @@ jobs:
           Expand-Archive -LiteralPath $greenZip[0].FullName -DestinationPath $greenExtract -Force
           $greenCandidate = @(Get-ChildItem -LiteralPath $greenExtract -Directory)
           if ($greenCandidate.Count -ne 1) { throw "expected one expanded Green candidate directory" }
-          python -B scripts/release/verify_green_candidate.py $greenCandidate[0].FullName --require-runtime
+          $greenTree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
+          python -B scripts/release/verify_green_candidate.py $greenCandidate[0].FullName --require-runtime `
+            --expected-commit $env:GITHUB_SHA --expected-tree $greenTree
           if ($LASTEXITCODE -ne 0) { throw 'exact-SHA Avalonia Green candidate verification failed' }
       - name: Resolve and verify release version
         id: resolve_version
