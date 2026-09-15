@@ -1631,4 +1631,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 resource-to-pipeline regression: source preflight, audio fallback, media route and worker reachability suites passed `20 passed`; the only warning was the existing pytest cache-dir option. Test entries continue to reject real Green material roots and use project-local outputs.
 
 - 2026-09-16 Rust workspace probe: shared MSVC environment was successfully initialized and `cargo test --workspace --offline` compiled the workspace, but one API test panicked because the direct wrapper lacked the required `dev.py` run-root contract (`run through dev.py`). Exit 1 is recorded as an environment/entrypoint failure, not a product-pass claim; no source change.
-
+- 2026-09-16 定向宿主/桌面回归：.venv\Scripts\python.exe -m pytest tests/test_deeptutor_web_launch.py tests/test_host_journey_panel.py tests/test_desktop_runtime.py tests/test_desktop_launch.py tests/test_workspace_crash_recovery.py -q，30 passed，2 warnings，exit 0。该证据覆盖启动合同、宿主面板、桌面运行时与崩溃恢复的结构/模拟回归；未证明 Green 真实目录集成、干净机安装或签名验收，R10/R13 状态不提升。
