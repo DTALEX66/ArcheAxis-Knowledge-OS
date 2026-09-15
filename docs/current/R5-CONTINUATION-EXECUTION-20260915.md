@@ -135,3 +135,4 @@
 - `MON-AX-04` 复用证据/主张分离回归：grounded answer、证据边界、关系冲突与覆盖率测试合计 `26 passed`，退出码 0；证明局部合同可用，真实资料和模型精度仍未验收。
 - `MON-AX-02` 审计报告现额外列出 17 个含除法公式的位置，统一标为未求值且需要边界回归；真实报告已刷新到 `.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。这只是风险定位，尚未声称公式缺陷已修复。
 - `MON-AX-03` 只读元数据复核确认五个指定外置根均存在：`ceshi`、`资料库`、Green、Model library、OS External Configuration；未递归读取内容或私有配置，故仍不能证明 profile、资源绑定或真实导入闭环。
+- `MON-AX-03` 在批准测试副本 `ceshi\Obsidian知识库` 上完成 source preflight：22,224 文件、835 目录，退出码 0；未打开/修改源文件，报告位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。这只是输入前置门禁，不是导入或学习闭环。

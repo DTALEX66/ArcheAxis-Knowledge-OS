@@ -58,6 +58,7 @@
 
 - 只读 `Test-Path/Get-Item` 复核确认 `D:\All projects\ceshi`、`D:\All projects\资料库`、`D:\All projects\ArcheAxis.Knowledge.Green-x64`、`D:\All projects\Model library`、`D:\All projects\OS External Configuration` 五个根均存在且为目录。
 - 未递归读取资料、模型、Green 数据或私有配置；该结果只证明路径存在，不能证明 profile 绑定、真实导入授权、模型服务连通或 Green 闭环，因此 `MON-AX-03` 继续保持 `BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION`。
+- 在批准的测试副本 `D:\All projects\ceshi\Obsidian知识库` 上运行 `scripts/pipeline/source_preflight.py`：退出码 0，发现 22,224 个文件、835 个目录；脚本未打开任何源文件、未修改源文件，明确排除真实资料库和 Green 数据。证据写入 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。
 
 ### MON-AX-02 除法公式风险清单
 
