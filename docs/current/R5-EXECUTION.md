@@ -1624,3 +1624,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 shared-resource index recheck: `docs/SHARED_RESOURCE_PATH_INDEX.md` remains the sole path authority for five resources; metadata preflight confirms all five roots are directories with no reparse points. No library contents, Green data, test corpus contents, or E: drive were accessed.
 
+- 2026-09-16 low-quota upload scope: threshold reports now include the exact Git commit range (`origin/codex/full-loop-0906..HEAD`) and ahead count, so the future upload can be reconciled against both refs. Targeted tests `4 passed`.
+

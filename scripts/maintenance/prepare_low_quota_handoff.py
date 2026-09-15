@@ -51,8 +51,10 @@ def build_report(root: Path, remaining_percent: float, threshold: float = DEFAUL
     head = _git(root, "rev-parse", "HEAD")
     upstream = _git(root, "for-each-ref", "--format=%(upstream:short)", f"refs/heads/{branch}")
     ahead = None
+    commit_range = None
     if upstream:
         ahead = int(_git(root, "rev-list", "--count", f"{upstream}..HEAD"))
+        commit_range = f"{upstream}..HEAD"
     # Never enumerate untracked names into a report that may be uploaded. The
     # handoff only needs tracked modifications; private/history paths remain
     # excluded by construction.
@@ -64,7 +66,8 @@ def build_report(root: Path, remaining_percent: float, threshold: float = DEFAUL
         "remaining_percent": remaining_percent,
         "threshold_percent": threshold,
         "state": state,
-        "git": {"branch": branch, "head": head, "upstream": upstream or None, "ahead_of_upstream": ahead},
+        "git": {"branch": branch, "head": head, "upstream": upstream or None,
+                "ahead_of_upstream": ahead, "upload_commit_range": commit_range},
         "working_tree_status": status.splitlines() if status else [],
         "safe_tracked_handoff_paths": tracked_handoff,
         "private_or_untracked_excluded": [".codex/", ".zcode/", ".hermes/", "untracked user/history assets"],
