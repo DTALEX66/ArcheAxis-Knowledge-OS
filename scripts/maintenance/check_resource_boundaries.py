@@ -21,6 +21,7 @@ RESOURCE_NAMES = {
     "project_test_corpus": "ceshi",
 }
 PURPOSE_TARGET = {"integration": "green_application", "test": "project_test_corpus"}
+INDEX_PATH = "docs/SHARED_RESOURCE_PATH_INDEX.md"
 
 
 def _is_reparse(path: Path) -> bool:
@@ -31,6 +32,14 @@ def check_resource_boundaries(project_root: Path, *, purpose: str | None = None)
     root = Path(os.path.abspath(project_root))
     if root.drive.upper() == "E:" or not (root / ".git").exists():
         raise ValueError("project root must be a Git checkout outside E:")
+    index = root / INDEX_PATH
+    if index.is_file():
+        index_text = index.read_text(encoding="utf-8")
+        for resource_id, name in RESOURCE_NAMES.items():
+            if f"`{resource_id}`" not in index_text or f"`D:\\All projects\\{name}`" not in index_text:
+                raise ValueError(f"resource index drift or missing entry: {resource_id}")
+    elif root == Path(__file__).resolve().parents[2]:
+        raise ValueError(f"resource index is missing: {index}")
     shared_root = root.parent
     rows = []
     for resource_id, name in RESOURCE_NAMES.items():
