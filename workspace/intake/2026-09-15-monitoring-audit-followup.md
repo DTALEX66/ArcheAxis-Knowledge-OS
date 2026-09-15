@@ -16,7 +16,7 @@
 
 | ID | 任务 | 来源 | 前置与边界 | 当前状态 |
 |---|---|---|---|---|
-| MON-AX-01 | 研究/models 双命名空间与 43 条原任务去重映射 | 01/05/06 | 只建立候选映射；不改冻结任务文本 | `PLANNED` |
+| MON-AX-01 | 研究/models 双命名空间与 43 条原任务去重映射 | 01/05/06 | 只建立候选映射；不改冻结任务文本 | `IMPLEMENTED_LOCAL` |
 | MON-AX-02 | 工作簿边界回归 | 05 | 在项目 `.project-local` 生成副本和测试；验证小数次数、除零、负时长、有效期；不改原 XLSX | `STRUCTURAL_AUDIT_ONLY` |
 | MON-AX-03 | Green TEST 首次导入闭环 | 06 | 真实资料库只读；使用 `D:\All projects\ceshi` 或项目隔离副本；先核 profile 和路径，再做导入、引用、学习、机器回读、重启 | `BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION` |
 | MON-AX-04 | 引用证据与个人主张分离回归 | 01/06 | 复用现有 Core/SourceObject/knowledge 结构；不得把局部检索或模型 F1 升级为事实准确率 | `TESTED_LOCAL` |
