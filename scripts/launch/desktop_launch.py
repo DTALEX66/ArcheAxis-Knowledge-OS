@@ -18,10 +18,19 @@ _spec = importlib.util.spec_from_file_location('desktop_dev', REPO / 'scripts/ru
 assert _spec and _spec.loader
 dev = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(dev)
+_resource_spec = importlib.util.spec_from_file_location(
+    'resource_boundaries', REPO / 'scripts/maintenance/check_resource_boundaries.py')
+assert _resource_spec and _resource_spec.loader
+resource_boundaries = importlib.util.module_from_spec(_resource_spec)
+_resource_spec.loader.exec_module(resource_boundaries)
 
 
 def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
                    fresh_workspace: bool = False) -> dict:
+    # The default desktop launcher is a TEST entry; bind it to the indexed
+    # ceshi corpus before allocating any project-local run artifacts.
+    if desktop is None and core is None:
+        resource_boundaries.check_resource_boundaries(REPO, purpose='test')
     paths = dev.layout(REPO)
     desktop = dev.safe_path(desktop or paths['build'] / 'dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe')
     core = dev.safe_path(core or paths['cargo_build'] / 'debug/archeaxis-api.exe')
