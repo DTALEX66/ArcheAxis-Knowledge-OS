@@ -25,6 +25,10 @@ def verify(root: Path, workflow: Path) -> list[str]:
         errors.append("release workflow does not identify the Rust Core")
     if "services/python-workers" not in text and "python worker" not in text.lower():
         errors.append("release workflow does not identify the Python workers")
+    if "green-candidate-vnext" not in text:
+        errors.append("release workflow does not consume the exact-SHA Green candidate")
+    if "verify_green_candidate.py" not in text or "--require-runtime" not in text:
+        errors.append("release workflow does not require a complete Green runtime candidate")
     if "Tauri" in text and "recovery" not in text.lower():
         errors.append("legacy Tauri references are not labelled recovery")
     return errors

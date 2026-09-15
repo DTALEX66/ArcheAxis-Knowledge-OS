@@ -1669,3 +1669,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 Green 完整候选 ZIP 交付校验：`ArcheAxis.Knowledge.Green-vr5full-x64.zip` 大小 `312,085,713` bytes，SHA-256 `c49adb90e9b979742f7314a4ee013a19b3b1f0bca087fe34a6152ec40c1e1a21`；ZIP 内启动器、Avalonia 桌面、Rust Core 均存在，runtime 条目 21,136 个。该哈希绑定项目内候选工件，未上传或安装。
 - 2026-09-16 额度交接预演：以账户实测剩余约 10% 调用 `prepare_low_quota_handoff.py --remaining-percent 10`，exit 0，状态 `MONITORING`；绑定 HEAD `291a9859`、upstream `origin/codex/full-loop-0906`、ahead `126` 与精确上传范围，自动上传保持 false。输出位于 `.project-local/runs/quota-monitor-20260916`，私有目录和未知历史资产被排除。
 - 2026-09-16 CI Green job 本地模拟：`prepare_bundle` 已复制项目内 Python 解释器并开始依赖 staging，但在 30 秒观察窗口内未完成，随后重入被正确拒绝为 destination 已存在；该未完成 run 根已按精确路径删除并验证不存在。未将此模拟计为通过，也未重复下载或触碰外置库。
+- 2026-09-16 发布架构防漂移门：`verify_release_architecture.py` 现在要求 release workflow 同时消费 `green-candidate-vnext` 并使用 `verify_green_candidate.py --require-runtime`；测试 fixture 已同步更新。发布架构/身份/清单回归 `39 passed`、2 既有警告，实际 workflow 门禁 PASS。
