@@ -1596,3 +1596,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 full boundary recheck at HEAD `a5f856d9`: path convention coverage `2034/2034`, unowned `0`, ambiguous `0`; integration target resolves only Green, test target only `D:\All projects\ceshi`, all five indexed roots are ordinary non-reparse directories. Execution preflight passed (`547` Markdown links checked, `0` broken, `private_state_opened=false`).
 
+- 2026-09-16 regression gate: CI classifier, resource-boundary, and low-quota handoff suites passed (`39 passed`).
+
