@@ -45,6 +45,15 @@ INVARIANT_TABLES = (
 )
 
 
+def _native_path(path: Path) -> str | Path:
+    """Use the Windows extended-length prefix for deep project-local paths."""
+    if os.name == "nt" and len(str(path)) >= 240:
+        value = str(path)
+        if not value.startswith("\\\\?\\"):
+            return "\\\\?\\" + value
+    return path
+
+
 def _sqlite_uri(path: Path) -> tuple[str, bool]:
     """Return a read-only connection target, preserving Windows long paths."""
     resolved = path.resolve()
@@ -261,15 +270,17 @@ def _validate_sqlite_database(path: Path) -> dict[str, object]:
 
 def _write_manifest(path: Path, payload: dict[str, object]) -> Path:
     manifest = _manifest_path(path)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
     temporary = manifest.with_suffix(f"{manifest.suffix}.{uuid4().hex}.tmp")
     try:
-        temporary.write_text(
-            json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True),
-            encoding="utf-8",
-        )
-        temporary.replace(manifest)
+        with open(_native_path(temporary), "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True))
+        os.replace(_native_path(temporary), _native_path(manifest))
     except Exception:
-        temporary.unlink(missing_ok=True)
+        try:
+            os.unlink(_native_path(temporary))
+        except FileNotFoundError:
+            pass
         raise
     return manifest
 
