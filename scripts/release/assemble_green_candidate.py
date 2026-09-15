@@ -121,6 +121,7 @@ Set files = CreateObject("Scripting.FileSystemObject")
 root = files.GetParentFolderName(WScript.ScriptFullName)
 executable = root & "\\desktop\\ArcheAxis.Desktop.exe"
 dataRoot = root & "\\data"
+shell.CurrentDirectory = root
 If Not files.FileExists(executable) Then
   MsgBox "未找到自包含桌面程序。请先运行候选包验证。", vbCritical, "星环知识"
   WScript.Quit 1
