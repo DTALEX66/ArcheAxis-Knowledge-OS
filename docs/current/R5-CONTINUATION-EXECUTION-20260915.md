@@ -37,3 +37,20 @@
 本收据先记录裁决和基线；后续应用补丁必须逐文件检查 diff，运行 Task 1–3 的定向测试。若测试显示候选与当前正式架构冲突，使用单文件回退或 `git revert`，不覆盖用户数据、不删除 TEST 库。
 
 包内 68c81a39 的测试只对其原环境和 SHA 有效；本次会重新绑定当前提交和实际命令。远端 CI、Windows GUI、Green、真实资料和 Q00/Q01 仍未通过。
+
+## Task 1–2 本地复核
+
+- `tests/test_core_client.py`、`tests/test_desktop_launch.py`、`tests/maintenance/test_bulk_fixture_factory.py`：26 passed、2 skipped。
+- CI/发布/预检相关测试：104 passed。
+- Core/桌面运行时/fixture 组合：50 passed、2 skipped。
+- `scripts/check_repository_conventions.py --source worktree`：PASS。
+- `scripts/check_path_conventions.py`：2019/2019 tracked paths owned，0 unowned，0 ambiguous。
+- 本机未发现 `cargo`、`dotnet`、`rustc`；Rust/C# 构建和 Windows GUI 验证为 NOT RUN，需 Windows/CI runner。
+- 当前实现提交：`f5847b9d28ae65c784b5b923d0cfb503a191eb60`；远端同名分支已回读同 SHA。
+
+## Task 8 模型外置接线
+
+- `shared/file_detection.py` 现优先读取 `ARCHEAXIS_MAGIKA_MODEL_DIR` 中同时存在的 `model.onnx` 与 `config.min.json`；外置目录不可用时回退仓库副本，保留离线能力。
+- `config/environment/capability-requirements.yaml` 与 `docs/environment/EXTERNAL_DEPENDENCIES.md` 已同步声明该优先级。
+- `tests/test_file_detection.py`、`tests/test_capabilities.py`、`tests/test_mfx010_honest_capability.py` 与环境注册测试：21 passed（1 个既有警告）。
+- 本次未读取或修改 `D:\\All projects\\Model library`；外置消费者和实际 Windows profile 仍需在 Task 7/8 的 Windows 验收中核实，故未删除仓库副本。

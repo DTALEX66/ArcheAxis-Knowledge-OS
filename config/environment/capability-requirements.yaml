@@ -226,12 +226,12 @@ capabilities:
       local_only: true
 
     - name: magika-standard-v3
-      purpose: "文件类型检测 ONNX 模型（vendored 3.1MB，shared/models/magika）"
+      purpose: "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）"
       version_range: "standard_v3_0"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "vendored"
       install_method: 内置
-      healthcheck_command: "Test-Path shared/models/magika/model.onnx"
+      healthcheck_command: "Test-Path $env:ARCHEAXIS_MAGIKA_MODEL_DIR\\model.onnx"
       required_by: [file-detection]
       local_only: true

@@ -205,7 +205,8 @@
 - **来源**：https://github.com/google/magika
 - **模型**：standard_v3_0（3.1 MB ONNX）
 - **许可**：Apache-2.0
-- **位置**：`shared/models/magika/model.onnx` + `config.min.json`
+- **首选位置**：由 `ARCHEAXIS_MAGIKA_MODEL_DIR` 指向共享 `Model library` 中的 Magika 目录；运行时要求其中同时存在 `model.onnx` 和 `config.min.json`。
+- **离线回退**：`shared/models/magika/model.onnx` + `config.min.json`（仅在外置目录不可用时使用，便于无外部库环境运行）。
 - **许可文件**：`shared/models/magika/LICENSE`
 - **推理代码**：`shared/file_detection.py`（纯 Python，无 magika pip 依赖）
 
