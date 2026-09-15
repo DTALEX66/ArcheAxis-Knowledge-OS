@@ -1616,3 +1616,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 low-quota threshold simulation: with supplied remaining `2%`, report correctly returned `UPLOAD_REQUIRED`, listed 9 safe tracked handoff sources and excluded `.codex/`, `.zcode/`, `.hermes/` plus untracked user/history assets. Current branch divergence is 80 commits; no upload was performed by simulation.
 
+- 2026-09-16 fresh path measurement at current HEAD: `check_path_conventions.py --measure` recorded `.project-local/runs/path-conventions-current-20260916.json`; 2,036 tracked paths, 2,036 owned, 0 unowned/ambiguous/denied, coverage 100%.
+
