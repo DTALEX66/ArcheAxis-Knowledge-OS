@@ -219,6 +219,17 @@ capabilities:
       required_by: [asr-pipeline, bakeoff]
       local_only: false
 
+    - name: sherpa-onnx
+      purpose: "SenseVoice 本地 ASR 运行时（优先使用项目隔离环境，模型从共享 Model library 读取）"
+      version_range: ">=1.13,<1.14"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "https://github.com/k2-fsa/sherpa-onnx"
+      install_method: uv
+      healthcheck_command: "uv run --extra asr-sensevoice python -c \"import sherpa_onnx\""
+      required_by: [asr-pipeline]
+      local_only: false
+
   models:
     - name: rapidocr-ppocr-onnx
       purpose: "PP-OCR ONNX 模型（RapidOCR 首次运行自动下载 ~15MB）"
@@ -240,6 +251,18 @@ capabilities:
       install_method: 自动下载
       healthcheck_command: "首次运行验证"
       required_by: [asr-pipeline, bakeoff]
+      local_only: true
+
+    - name: sense-voice-zh-en-ja-ko-yue
+      purpose: "SenseVoice int8 模型（从共享 Model library 读取，不复制进 Git）"
+      version_range: "2024-07-17"
+      platform: windows-x64
+      license: "Apache-2.0"
+      source_url: "https://github.com/k2-fsa/sherpa-onnx"
+      install_method: shared-model-library
+      healthcheck_command: "Test-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR\\sherpa-onnx\\*\\model.int8.onnx"
+      external_paths: ["../Model library/sherpa-onnx"]
+      required_by: [asr-pipeline]
       local_only: true
 
     - name: magika-standard-v3
