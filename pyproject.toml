@@ -103,6 +103,9 @@ ingestion = [
     "langfuse>=4.0",
     "promptfoo>=0.1",
 ]
+asr-sensevoice = [
+    "sherpa-onnx>=1.13,<1.14",
+]
 full = [
     "archeaxis-workspace[dev,ingestion]",
 ]
