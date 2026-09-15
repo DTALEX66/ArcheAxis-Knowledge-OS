@@ -136,3 +136,4 @@
 - `MON-AX-02` 审计报告现额外列出 17 个含除法公式的位置，统一标为未求值且需要边界回归；真实报告已刷新到 `.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。这只是风险定位，尚未声称公式缺陷已修复。
 - `MON-AX-03` 只读元数据复核确认五个指定外置根均存在：`ceshi`、`资料库`、Green、Model library、OS External Configuration；未递归读取内容或私有配置，故仍不能证明 profile、资源绑定或真实导入闭环。
 - `MON-AX-03` 在批准测试副本 `ceshi\Obsidian知识库` 上完成 source preflight：22,224 文件、835 目录，退出码 0；未打开/修改源文件，报告位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。这只是输入前置门禁，不是导入或学习闭环。
+- `MON-AX-03` 进一步以隔离输出根转换 3 个 Markdown 样本：3 条记录均 `converted`，每条源/输出 SHA-256 一致，退出码 0；manifest 位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`。仍不等于 Green 真实资料库、全量导入或学习重启验收。
