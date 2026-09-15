@@ -1598,3 +1598,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 regression gate: CI classifier, resource-boundary, and low-quota handoff suites passed (`39 passed`).
 
+- 2026-09-16 low-quota privacy hardening: handoff reports now capture tracked status only; untracked history/user paths are not enumerated into a report that may be uploaded. Threshold simulation at 2% returns `UPLOAD_REQUIRED` with automatic push disabled; targeted tests `4 passed`.
+

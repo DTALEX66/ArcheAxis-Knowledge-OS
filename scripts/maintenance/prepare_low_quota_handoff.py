@@ -49,7 +49,10 @@ def build_report(root: Path, remaining_percent: float, threshold: float = DEFAUL
     ahead = None
     if upstream:
         ahead = int(_git(root, "rev-list", "--count", f"{upstream}..HEAD"))
-    status = _git(root, "status", "--short", "--untracked-files=all")
+    # Never enumerate untracked names into a report that may be uploaded. The
+    # handoff only needs tracked modifications; private/history paths remain
+    # excluded by construction.
+    status = _git(root, "status", "--short", "--untracked-files=no")
     tracked_handoff = [path for path in HANDOFF_PATHS if (root / path).is_file()]
     report = {
         "schema": "archeaxis.low-quota-handoff/v1",
