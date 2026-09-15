@@ -144,3 +144,4 @@
 - `MON-AX-05` 资源核验未发现 NeoMME 实现、权重或许可；当前 RAG 默认仍是本地简单嵌入，候选 POC 保持阻塞，不新增依赖或付费调用。
 - 整合后 `execution_preflight.py . --json` 通过：546 条 Markdown 链接无断链，2 条预期 fixture 缺失已分类，`private_state_opened=false`。
 - 路径、输出路由与 profile 配置回归 `63 passed, 1 skipped`，退出码 0；跳过项为平台条件，未提升为全平台验收。
+- 当前树路径测量为 2027 个 tracked paths、全部 owned、100% coverage，unowned/ambiguous/denied 均为 0；旧路径处置文档的历史测量不与当前数字拼接。
