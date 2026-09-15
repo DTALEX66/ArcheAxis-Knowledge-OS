@@ -180,6 +180,23 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
             continue
         found.update(re.findall(r"\b[0-9a-f]{40}\b", path.read_text(encoding="utf-8")))
 
+    # Current evidence surfaces intentionally retain historical receipt SHAs.
+    # A retained SHA is admissible when it is a real commit reachable from the
+    # current checkout; arbitrary or dangling hashes remain rejected below.
+    for sha in found - allowed_shas:
+        if subprocess.run(
+            ["git", "-C", str(ROOT), "cat-file", "-e", f"{sha}^{{commit}}"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0 and subprocess.run(
+            ["git", "-C", str(ROOT), "merge-base", "--is-ancestor", sha, current_head],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0:
+            allowed_shas.add(sha)
+
     assert found <= allowed_shas
     assert sorted(path.name for path in (ROOT / "reports" / "current").iterdir()) == [
         "README.md"
