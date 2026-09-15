@@ -5,7 +5,10 @@ sys.stdout.reconfigure(encoding='utf-8')
 import numpy as np
 
 ROOT = r"D:/All projects/ceshi"
-OUT = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/qa_local_verify_receipt.json"
+# Legacy verification script: keep the approved test corpus external and route
+# generated receipts into this project's ignored runtime root.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+OUT = os.path.join(PROJECT_ROOT, ".project-local", "runs", "legacy-ceshi", "qa_local_verify_receipt.json")
 EMBED = "http://127.0.0.1:11434/api/embed"
 CHAT = "http://127.0.0.1:11434/api/chat"
 
@@ -104,6 +107,7 @@ if qv is not None:
             qa.append({'query': query, 'error': str(e)[:100]})
 
 receipt = {'docs': len(docs), 'chunks': len(chunks), 'local_embed_sec': local_time, 'qwen_embed_sec': qv_time, 'queries': results, 'llm_qa': qa}
+os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(receipt, f, ensure_ascii=False, indent=2)
 print(json.dumps({'chunks': len(chunks), 'queries': results, 'llm_qa': qa}, ensure_ascii=False))
