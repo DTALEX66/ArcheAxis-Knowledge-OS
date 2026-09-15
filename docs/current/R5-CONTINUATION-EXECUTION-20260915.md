@@ -89,3 +89,4 @@
 
 - `git fetch origin` 后，当前分支 `codex/full-loop-0906` HEAD 与远端分支均为 `ae7796020aaa2d0f24de329e0932a17c36fa4781`；`origin/main` 仍为 `1e9813ea2bd49f47d334ba6717c78d3e9feda6ce`，两者不混称。
 - GitHub Actions CI run `34970004760`（head SHA `ae779602...`）为 `completed/success`。该提交仅含文档变更，实际执行 gateplan、lint、a0-gates；产品构建、Rust、Windows、格式、安装器等 job 按路径分类为 skipped，因此不能把该 run 解释为产品全门禁通过。
+- 后续收据提交 `f6762ef5...` 的 CI run `34970160009` 同样为 `completed/success`；执行 gateplan、lint、a0-gates，其余产品 job 因文档路径变更 skipped。该状态已绑定到精确 head SHA，不能替代产品门禁。
