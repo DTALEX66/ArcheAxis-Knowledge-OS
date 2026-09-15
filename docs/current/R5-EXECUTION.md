@@ -1642,3 +1642,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 Green 候选组装器：新增 `scripts/release/assemble_green_candidate.py`，仅允许输出到项目 `.project-local`，将自包含桌面目录与 Core 放入同一候选并生成逐文件 SHA-256 清单与 ZIP；`tests/test_green_candidate_assembly.py` 通过 `2 passed`，包含深路径 Windows 兼容和越界输出拒绝。该候选组装器不触碰既有 Green、不含签名或卸载器。
 - 2026-09-16 R13 候选实际组装：使用 Release 自包含桌面目录与当前 Core 生成 `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vr5-x64.zip`，组装命令 exit 0；清单 229 个文件、ZIP 230 个成员（含清单），Core/桌面入口均存在，逐文件 SHA-256 复核 `hash_mismatches=0`。这仍是项目内审计候选，不是已发布或已覆盖的 Green 软件。
 - 2026-09-16 Green 组装器扩展：支持显式传入项目内 `runtime` 目录并纳入同一候选清单；未提供时保持 Core+桌面最小包，不自动读取共享模型库、外置工具链或真实资料库。测试 `2 passed`，Ruff 通过。
+- 2026-09-16 R13 runtime 前置复核：项目 `.project-local/build` 当前没有可复用的 `venv` 或 `rt/runtime`（仅有现有构建、候选和测试目录），因此未强行把开发环境伪装成 Green runtime；完整 workers/runtime 仍列为待准备资源。
