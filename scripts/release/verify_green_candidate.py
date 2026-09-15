@@ -47,7 +47,15 @@ def verify(candidate: Path) -> dict:
             continue
         if _sha256(path) != entry.get("sha256"):
             problems.append(f"hash mismatch: {relative}")
-    return {"ok": not problems, "version": manifest.get("version"), "files": len(files), "problems": problems}
+    runtime_included = any(name.startswith("runtime/") for name in files)
+    return {
+        "ok": not problems,
+        "scope": "desktop-core-runtime" if runtime_included else "desktop-core-only",
+        "runtime_included": runtime_included,
+        "version": manifest.get("version"),
+        "files": len(files),
+        "problems": problems,
+    }
 
 
 def main() -> int:

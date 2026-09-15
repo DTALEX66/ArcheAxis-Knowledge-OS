@@ -20,6 +20,8 @@ def _candidate(tmp_path: Path) -> Path:
 def test_verifier_accepts_complete_candidate(tmp_path: Path) -> None:
     result = verify(_candidate(tmp_path))
     assert result["ok"] is True
+    assert result["scope"] == "desktop-core-only"
+    assert result["runtime_included"] is False
     assert result["files"] == 5
 
 
