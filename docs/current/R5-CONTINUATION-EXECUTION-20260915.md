@@ -147,6 +147,7 @@
 - 已加入 SenseVoice→faster-whisper 兜底并通过 4 个回归测试；同一长音频 CPU 兜底超过 5 分钟无回执后中止，标记 `PERFORMANCE_BLOCKED`，不提升媒体质量等级。
 - 在项目隔离 venv 安装 `sherpa-onnx==1.13.8` 后，同一 MP3 真实 SenseVoice 成功：6,273 字符、252.9 秒、退出码 0；可选依赖组已写入 `pyproject.toml`，共享环境未修改。
 - 能力需求清单已登记 sherpa-onnx 与 SenseVoice 模型的共享路径/许可/健康检查；相关配置回归 `11 passed`。
+- `uv lock` 已在线解析并锁定 sherpa-onnx 1.13.8，`uv lock --check` 通过；离线缓存不足的失败已单独记录。
 - `MON-AX-05` 资源核验未发现 NeoMME 实现、权重或许可；当前 RAG 默认仍是本地简单嵌入，候选 POC 保持阻塞，不新增依赖或付费调用。
 - 整合后 `execution_preflight.py . --json` 通过：546 条 Markdown 链接无断链，2 条预期 fixture 缺失已分类，`private_state_opened=false`。
 - 路径、输出路由与 profile 配置回归 `63 passed, 1 skipped`，退出码 0；跳过项为平台条件，未提升为全平台验收。
