@@ -130,3 +130,5 @@
 - `MON-AX-01` 已结构化为 [monitoring-task-map.json](../../workspace/intake/2026-09-15-monitoring-task-map.json)：保留研究候选 11、模型记录 17、原始任务行 43 的来源计数，并收敛为 7 条执行轨道；映射文件仅是当前任务侧车，不改变冻结包。
 
 - `MON-AX-02` 原始工作簿只读核对：46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3` 与审计 JSON 一致；读取到 10 个工作表，计价相关表无数据验证且未保护。该结构证据不等于公式边界回归通过，除零、负时长、非整数次数仍保持待修。
+
+- `MON-AX-02` 新增可重复脚本 `scripts/maintenance/audit_monitoring_workbook.py` 与 3 个定向测试；项目外部 CI Python 下测试 `3 passed`、Ruff 通过。真实桌面原件实跑退出码 0，报告写入 `.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`；状态仍为 `STRUCTURAL_AUDIT_ONLY`，不提升为公式回归完成。

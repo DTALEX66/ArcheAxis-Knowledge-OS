@@ -42,3 +42,9 @@
 - 原始工作簿 `C:\Users\ALEX\Desktop\03_价格与额度工作簿.xlsx`：46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3`，与审计 JSON 一致。
 - 读取到 10 个工作表；计价相关工作表没有数据验证规则，工作簿和工作表保护均未启用。模型台账存在 1 个验证规则，不能代表计算输入已受保护。
 - 本次只读检查未改写、保存或重新计算原件；`MON-AX-02` 仍未完成边界回归，审计 JSON 中的除零、负时长和非整数次数仍是待修复项。
+
+### MON-AX-02 可重复审计脚本
+
+- 新增 `scripts/maintenance/audit_monitoring_workbook.py` 及其定向测试；脚本只读 XLSX，拒绝 E: / UNC 输入，并将可选 JSON 输出限制在项目 `.project-local`。
+- 使用项目外部 CI Python 实跑桌面原件：退出码 0；`STRUCTURAL_AUDIT_ONLY`，46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3`，10 个工作表，98 个公式单元格，其中 17 个公式文本含除法；输入审计期间大小和 mtime 未变。
+- 证据输出：`.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。公式未求值，故仍不能证明除零、负时长或非整数次数已修复；下一步是隔离副本上的边界回归设计与实现。
