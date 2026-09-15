@@ -139,3 +139,4 @@
 - `MON-AX-03` 进一步以隔离输出根转换 3 个 Markdown 样本：3 条记录均 `converted`，每条源/输出 SHA-256 一致，退出码 0；manifest 位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`。仍不等于 Green 真实资料库、全量导入或学习重启验收。
 - 同一 manifest 第二次运行读回前 3 条为 `resumed`，再处理下一批 3 条，累计 converted=6；续跑未重复覆盖已完成输出。此为小样本可恢复性证据，不提升 Green/全量/学习验收等级。
 - 目录续跑、管线集成与运行 profile 回归 `29 passed, 1 warning`，退出码 0；可选 NLTK 警告来自外部依赖，未改变本次结果。
+- 学习/工作区定向闭环回归 `13 passed, 2 warnings`，退出码 0；覆盖隔离库导入、学习回读、来源绑定、多格式入口、崩溃恢复与研究消费，仍不等于 Green 真实资料库验收。
