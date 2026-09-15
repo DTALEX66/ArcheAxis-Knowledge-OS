@@ -31,7 +31,7 @@
 | Ollama / 本地模型 | `Model library/ollama`（当前复核为模型 blob 存储，未发现 `ollama.exe`） | 模型资产目录存在；本机 Ollama 服务连通性尚未证明 |
 | Sherpa-ONNX / SenseVoice | `Model library/sherpa-onnx` | 已存在；音频管线实链需单独验收 |
 | Whisper 模型 | `Model library/whisper` | 已存在；ASR 运行时尚未据此宣称全链路完成 |
-| Magika 模型 | 共享目录由 `ARCHEAXIS_MAGIKA_MODEL_DIR` 指向；仓库副本作离线回退 | 接线已实现；共享目录实体需 profile 验收 |
+| Magika 模型 | 共享目录需同时提供 `model.onnx` 与 `config.min.json`；当前 Model library 未发现该成对文件 | 接线已实现；当前实际依赖仓库离线副本，不能把 Sherpa 的 `model.onnx` 当作 Magika |
 
 上述路径均位于 `D:\All projects`，不涉及 E 盘。Windows 环境注册器仍有按 PATH
 探测的能力，因此“missing”可能表示会话未注入外置路径，而不是软件不存在。

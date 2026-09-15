@@ -83,3 +83,4 @@
 - 通过 PowerShell 7.6.3、项目 Python 3.13.14，并显式绑定共享 Rust 工具链运行 `scripts/doctor_windows.ps1`：`healthy=true`，Python/Node/Rust/PowerShell 均可见，5 个探测端口可用，项目根与 `.project-local/task-runtime` 可写，访问阻塞项为空。
 - 该 Doctor 证明当前开发机的基础工具链和路径布局可用；它不替代安装器、签名、卸载、干净机器或 GUI 验收。
 - 对 `Model library/ollama` 进一步检查只发现模型 blob 存储，未发现可执行的 `ollama.exe`，因此 Ollama 服务连通性保持 `NOT RUN`；不能把模型文件存在等同于本地推理服务可用。
+- `Model library` 中发现的 `model.onnx` 属于 Sherpa‑ONNX 目录；未发现同时具备 `model.onnx` 与 `config.min.json` 的共享 Magika 目录。Magika 当前实际使用仓库离线副本，避免错误复用音频模型。
