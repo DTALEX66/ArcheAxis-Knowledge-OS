@@ -1618,3 +1618,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 fresh path measurement at current HEAD: `check_path_conventions.py --measure` recorded `.project-local/runs/path-conventions-current-20260916.json`; 2,036 tracked paths, 2,036 owned, 0 unowned/ambiguous/denied, coverage 100%.
 
+- 2026-09-16 release-layer recheck: `verify_release_architecture.py` passed for Avalonia → Rust Core → Python workers; candidate verification returned `ok=true`, 2 files, 0 problems, retaining `debug-build` and source SHA labels. This is candidate/structure evidence only, not installed-release proof.
+
