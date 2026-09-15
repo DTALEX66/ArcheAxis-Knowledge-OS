@@ -70,3 +70,10 @@
 - 使用外置 MSVC、Rust、Tesseract 路径并通过 `scripts/runtime/dev.py` 路由运行目录，`cargo test --workspace` 全部测试组及 doc-tests 通过。首次失败原因为会话 PATH 未注入 Tesseract/MSVC，补齐外置路径后重跑通过；该事实已单独记录，未将环境缺失误报为产品回归。
 - 使用外置 .NET 构建 `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --no-restore`：0 errors，2 warnings（NuGet vulnerability feed unavailable、Avalonia `TextBox.Watermark` obsolete）。
 - 本节只记录仓库内文档与本地验证；未修改共享外置库、模型库、Green 目录或真实资料库。DeepTutor 宿主挂载、Ollama/Sherpa/Whisper 实链、安装器/签名/干净机和 Q00/Q01 仍未闭环。
+
+## DeepTutor 外置宿主复核
+
+- 使用共享库 `10-toolchains/deeptutor/1.5.17/venv/Scripts/python.exe` 执行
+  `scripts/ci/check_deeptutor_notebook.py`；结果为 `UPSTREAM_SERVICE_CUSTODY_PASS`。
+- 合成数据覆盖创建笔记、记录写入、导出、进程重启后读取、custody 打包/解包，以及损坏派生索引后的重建；所有写入均路由到项目 `.project-local/runs/.../artifacts/deeptutor-notebook/`。
+- 该证据只证明 DeepTutor 外置服务的离线 custody 能力，不能提升为 GUI 可用、Core 权威桥接、模型调用或真实资料学习闭环；R10/R13 仍保持未闭合。
