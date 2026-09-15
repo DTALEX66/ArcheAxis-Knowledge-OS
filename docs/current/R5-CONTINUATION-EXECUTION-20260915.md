@@ -152,3 +152,10 @@
 - 整合后 `execution_preflight.py . --json` 通过：546 条 Markdown 链接无断链，2 条预期 fixture 缺失已分类，`private_state_opened=false`。
 - 路径、输出路由与 profile 配置回归 `63 passed, 1 skipped`，退出码 0；跳过项为平台条件，未提升为全平台验收。
 - 当前树路径测量为 2027 个 tracked paths、全部 owned、100% coverage，unowned/ambiguous/denied 均为 0；旧路径处置文档的历史测量不与当前数字拼接。
+
+## R13 候选发行层审计增量
+
+- `scripts/release/candidate.py` 与 `build_candidate.py` 的结构规则明确：候选仅包含 Rust Core 二进制、生成的 README 与 `CANDIDATE.json`（可选 ZIP）；清单主动声明不含 MSI/EXE 安装器、卸载器、代码签名、Python runtime、workers、研究宿主和源资料。
+- 正式 `.github/workflows/release.yml` 另有独立链路：下载 exact-SHA CI 候选安装器/前端/可执行文件，执行 NSIS 生命周期、构建 wheel/Green/Portable、生成 SBOM/manifest/checksum，并上传草稿 Release。结构检查 `scripts/release/verify_release_architecture.py` PASS。
+- R13 定向合同测试在当前提交运行 `85 passed, 2 warnings`，退出码 0；覆盖 candidate manifest、桌面 staging、release architecture、release manifest、identity。首次发现 `uv.lock` 更新后 `app/release-manifest.json` 摘要漂移，已修正为当前锁文件 SHA-256 `0f73ea804b0eca61a251013d199f75d88f35e6322bb155eb2581b8d10f69ce52` 后复跑通过。
+- 该结果只证明发行脚本与清单合同一致；本地没有生成新的完整 Windows 安装包，也没有进行代码签名、干净机器安装/升级/卸载或 exact-SHA 云端 release 回读，因此 R13 仍为 `IMPLEMENTED_LOCAL / INSTALLED_RUNTIME_VERIFIED NOT RUN`，不能提升为闭环。
