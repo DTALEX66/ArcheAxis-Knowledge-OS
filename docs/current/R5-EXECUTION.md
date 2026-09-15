@@ -1550,3 +1550,9 @@ X02/X05 依赖环境补齐项目内 `sqlite-vec==0.1.9` 后，向量迁移、架
 基线 `0dd8ff37b670ae98fac4be35720194434e82191e`。沿 X00/X01/X03/X13 完成探针误报/虚构学习事件移除、持久TEST启动准备、Linux样本路径及最终写入越界修复；修正lint历史checkout、legacy workspace归属和过期规则入口。详见 [本次修复记录](R5-FIRST-USE-REPAIR-20260915.md)。
 
 Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI分类/真实文本和批量worker79项及47个子测试通过。路径变更已定向只读复核。架构、语言边界、目录与命名检查通过，R5冻结包校验通过。未执行Rust/C#构建、WindowsGUI、远端CI、发布、Green或真实四库迁移，用户闭环与Q00/Q01保持未完成。回滚使用本次commit的revert，不删除TEST库。
+
+## 2026-09-15 增量执行记录
+
+- R13 候选层：从当前 Debug Core 生成 `archeaxis-core-42ea8237c929-debug-build` 目录/ZIP；候选清单重哈希通过，`verify_candidate.py --run` 在端口 60651 启动并停止成功。该候选明确不含安装器、卸载器、签名、Python runtime、workers 或源资料。
+- R15 格式层：格式矩阵合同、文本/图像、媒体、OCR、工作区多格式及 worker 路由定向测试 `75 passed, 1 skipped, 2 warnings`。这不是 16 格式全链路或真实 Vault/Green 验收。
+- 规范层：`check_repository_conventions.py --source worktree`、路径归属检查和 `execution_preflight.py . --json` 均通过；当前 HEAD 以 Git 实际读数为准。DeepTutor 桥接的 4 个 SQLite 测试失败仍归类 `ENVIRONMENT_FAIL`，源于 pytest 临时目录 ACL，未修改权限或绕过门禁。
