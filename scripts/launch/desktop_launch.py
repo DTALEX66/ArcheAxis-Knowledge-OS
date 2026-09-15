@@ -32,7 +32,10 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
             raise ValueError('development executable must be a build, run or dist artifact')
         if not path.is_file():
             raise ValueError('required development executable is missing')
-    python = dev.safe_path(Path(sys.executable))
+    # Resolve the interpreter link before applying the no-reparse-path policy.
+    # CI images may expose Python through a symlink; the resolved executable is
+    # still validated and remains bound to the current interpreter.
+    python = dev.safe_path(Path(sys.executable).resolve())
     script = dev.safe_path(REPO / 'services/python-workers/transport/text_ndjson.py')
     if not python.is_file() or not script.is_file():
         raise ValueError('worker interpreter or script is missing')

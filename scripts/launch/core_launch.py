@@ -182,6 +182,11 @@ def pid_alive(pid: int | None) -> bool:
 
 def process_image(pid: int) -> str | None:
     """Image name for a pid, or None when the pid cannot be inspected."""
+    if os.name != "nt":
+        # ``tasklist`` is a Windows API surface.  On other platforms the
+        # conservative result is unknown, which makes stop_session refuse the
+        # operation rather than risk terminating a recycled PID.
+        return None
     result = subprocess.run(
         ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
         capture_output=True,

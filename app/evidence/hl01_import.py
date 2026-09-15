@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -63,6 +64,11 @@ def _resolve_source_path(
     registry_path = registry_path.resolve()
     repo_root = (repository_root or registry_path.parents[2]).resolve()
     candidate = Path(source_path)
+    # pathlib on POSIX does not treat a Windows drive path as absolute. Reject
+    # it explicitly so a foreign absolute path cannot degrade into a relative
+    # lookup and produce the wrong error class.
+    if (re.match(r"^[A-Za-z]:[\\/]", source_path) and not candidate.is_absolute()) or source_path.startswith(("\\\\", "//")):
+        raise ValueError(f"source path escapes repository root: {source_path}")
     if candidate.is_absolute():
         resolved = candidate.resolve()
         if not resolved.is_relative_to(repo_root):
