@@ -102,3 +102,8 @@
 - 能力清单新增 `external_paths` 相对路径字段，并登记正式 .NET、Rust、MSVC、Tesseract、Tesseract 语言目录与 FFmpeg 的共享位置。
 - 注册器在显式 `ARCHEAXIS_EXTERNAL_ROOT`/`OS_EXTERNAL_CONFIG` 下探测这些路径；支持文件和模型目录，报告仅输出脱敏标签。回归与能力测试 `10 passed`，ruff 通过；实机注册器从原 18 项扩展为 19 项，其中 12 项可见。
 - 该修复解决“共享工具已存在但 PATH 探测误报 missing”问题；模型服务、浏览器运行时、真实模型文件和 GUI 仍按各自验收项独立判断。
+
+## 安装/桌面合同定向复核
+
+- 运行桌面 staging、桌面启动、release SBOM/manifest/identity/evidence/architecture 及生命周期合同测试：`61 passed, 2 warnings`，退出码 0。
+- 这些测试验证项目内 staging、发布身份和生命周期逻辑；当前仓库的 `scripts/release/candidate.py` 明确生成候选目录/ZIP，不包含安装器、运行时、worker 或卸载器。因此 R13 的真实 NSIS 安装、签名、升级、卸载和干净机验收仍保持未完成。
