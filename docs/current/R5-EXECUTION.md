@@ -1626,3 +1626,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 low-quota upload scope: threshold reports now include the exact Git commit range (`origin/codex/full-loop-0906..HEAD`) and ahead count, so the future upload can be reconciled against both refs. Targeted tests `4 passed`.
 
+- 2026-09-16 shared-model compatibility regression: ASR model resolution, legacy ASR adapter, media extraction and worker model-path suites passed `10 passed`; only existing cache-dir and optional NLTK warnings remained.
+
