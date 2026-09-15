@@ -38,6 +38,17 @@ def _reject_reparse(path: Path) -> None:
         raise ValueError(f"reparse point is not allowed in candidate input: {path}")
 
 
+def _remove_tree(path: Path) -> None:
+    """Remove a generated candidate without losing deep Windows paths."""
+    native = str(_native_path(path))
+    for current, directories, files in os.walk(native, topdown=False):
+        for name in files:
+            os.unlink(os.path.join(current, name))
+        for name in directories:
+            os.rmdir(os.path.join(current, name))
+    os.rmdir(native)
+
+
 def assemble(
     desktop: Path,
     core: Path,
@@ -70,7 +81,7 @@ def assemble(
     output.mkdir(parents=True, exist_ok=True)
     root = output / f"ArcheAxis.Knowledge.Green-v{version}-x64"
     if root.exists():
-        shutil.rmtree(root)
+        _remove_tree(root)
     (root / "desktop").mkdir(parents=True)
     (root / "core").mkdir()
     if runtime is not None:
@@ -94,6 +105,30 @@ def assemble(
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(_native_path(source), _native_path(target))
                 copied_files.append(target)
+
+    # Keep the portable candidate launchable without requiring users to know
+    # the Core environment variable or accidentally opening a framework-only
+    # executable from a build directory.
+    launcher = root / "启动绿色候选.vbs"
+    launcher_text = '''Option Explicit
+Dim shell, files, root, executable, dataRoot
+Set shell = CreateObject("WScript.Shell")
+Set files = CreateObject("Scripting.FileSystemObject")
+root = files.GetParentFolderName(WScript.ScriptFullName)
+executable = root & "\\desktop\\ArcheAxis.Desktop.exe"
+dataRoot = root & "\\data"
+If Not files.FileExists(executable) Then
+  MsgBox "未找到自包含桌面程序。请先运行候选包验证。", vbCritical, "星环知识"
+  WScript.Quit 1
+End If
+If Not files.FolderExists(dataRoot) Then files.CreateFolder dataRoot
+shell.Environment("PROCESS")("ARCHAXIS_CORE_BIN") = root & "\\core\\archeaxis-api.exe"
+shell.Environment("PROCESS")("ARCHAXIS_DATA_DIR") = dataRoot
+shell.Environment("PROCESS")("ARCHAXIS_LAUNCHER_DATA_DIR") = dataRoot
+shell.Run Chr(34) & executable & Chr(34), 1, False
+'''
+    launcher.write_text(launcher_text, encoding="utf-8", newline="\r\n")
+    copied_files.append(launcher)
 
     files: dict[str, dict[str, int | str]] = {}
     for path in sorted(copied_files):

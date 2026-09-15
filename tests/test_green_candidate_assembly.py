@@ -40,6 +40,11 @@ def test_assembly_bundles_desktop_and_core_with_hash_manifest(tmp_path: Path) ->
     assert manifest["schema"] == "archeaxis.green-candidate/v1"
     assert manifest["files"]["core/archeaxis-api.exe"]["sha256"]
     assert manifest["files"]["runtime/python.exe"]["sha256"]
+    launcher = result.root / "启动绿色候选.vbs"
+    assert launcher.is_file()
+    launcher_text = launcher.read_text(encoding="utf-8")
+    assert '"ARCHAXIS_CORE_BIN"' in launcher_text
+    assert "desktop\\ArcheAxis.Desktop.exe" in launcher_text
 
 
 def test_assembly_rejects_output_outside_project_local(tmp_path: Path) -> None:
