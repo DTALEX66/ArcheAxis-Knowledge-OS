@@ -33,6 +33,11 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _reject_reparse(path: Path) -> None:
+    if path.is_symlink() or bool(getattr(path.stat(follow_symlinks=False), "st_file_attributes", 0) & 0x400):
+        raise ValueError(f"reparse point is not allowed in candidate input: {path}")
+
+
 def assemble(
     desktop: Path,
     core: Path,
@@ -57,6 +62,10 @@ def assemble(
         raise ValueError("Core executable is missing")
     if runtime is not None and not runtime.is_dir():
         raise ValueError("runtime directory is missing")
+    _reject_reparse(desktop)
+    _reject_reparse(core)
+    if runtime is not None:
+        _reject_reparse(runtime)
 
     output.mkdir(parents=True, exist_ok=True)
     root = output / f"ArcheAxis.Knowledge.Green-v{version}-x64"
@@ -68,6 +77,7 @@ def assemble(
         (root / "runtime").mkdir()
     copied_files: list[Path] = []
     for source in desktop.rglob("*"):
+        _reject_reparse(source)
         if source.is_file():
             target = root / "desktop" / source.relative_to(desktop)
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -78,6 +88,7 @@ def assemble(
     copied_files.append(core_target)
     if runtime is not None:
         for source in runtime.rglob("*"):
+            _reject_reparse(source)
             if source.is_file():
                 target = root / "runtime" / source.relative_to(runtime)
                 target.parent.mkdir(parents=True, exist_ok=True)

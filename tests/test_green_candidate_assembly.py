@@ -51,3 +51,19 @@ def test_assembly_rejects_output_outside_project_local(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="project-local"):
         assemble(desktop, core, tmp_path / "outside", "0.0.0-test", project_root=tmp_path / "project")
+
+
+def test_assembly_rejects_reparse_inputs(tmp_path: Path) -> None:
+    desktop = tmp_path / "desktop"
+    desktop.mkdir()
+    (desktop / "ArcheAxis.Desktop.exe").write_bytes(b"desktop")
+    core = tmp_path / "core.exe"
+    core.write_bytes(b"core")
+    link = desktop / "external-link"
+    try:
+        link.symlink_to(core)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlink creation is unavailable")
+
+    with pytest.raises(ValueError, match="reparse"):
+        assemble(desktop, core, tmp_path / "project" / ".project-local/out", "test", project_root=tmp_path / "project")
