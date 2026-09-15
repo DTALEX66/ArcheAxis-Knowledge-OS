@@ -165,3 +165,9 @@
 - 直接运行四个 DeepTutor bridge/custody/web 合同文件时得到 `11 passed, 4 failed`；4 个失败均发生在 `MigrationOperator._owner_guard()` 的 SQLite `BEGIN IMMEDIATE`，错误为 `unable to open database file`，没有进入桥接断言。
 - 失败 `tmp_path` 位于项目 `.project-local`，其 Windows ACL 仅含 `OWNER RIGHTS`、SYSTEM 和 Administrators，当前用户没有显式写权限；该目录属于历史/运行时 ACL 边界，不是产品数据库内容或 DeepTutor 逻辑证据。
 - 未修改 ACL、未删除目录、未绕过权限；该回归标为 `ENVIRONMENT_FAIL`，待清理门禁或经批准的可写测试根修复后重跑，不能把 11 项通过提升为 R10/R13 完成。
+
+## R15 格式链路定向回归
+
+- 当前 R5 `FORMAT-COVERAGE.json` 的 16 个格式组仍为 `NOT_REQUALIFIED`；包校验器 PASS 只证明任务包完整性，不证明产品格式质量。
+- 在项目外部 CI Python 下运行格式矩阵合同、文本/图像、媒体、OCR、工作区多格式及 worker 路由测试：`75 passed, 1 skipped, 2 warnings`，退出码 0。
+- 该结果证明项目内适配器和路由的局部合同可执行；跳过项与警告已保留，真实 Vault 往返、全 16 格式端到端、长媒体质量、Green/安装态与学习回流仍未完成，R15 继续保持部分状态。
