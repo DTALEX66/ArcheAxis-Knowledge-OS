@@ -671,6 +671,49 @@ jobs:
             "$GITHUB_WORKSPACE/.project-local/task-runtime/desktop-vnext/smoke.sqlite" \
             && echo "supervisor smoke OK"
 
+  green-candidate-vnext:
+    timeout-minutes: 35
+    runs-on: windows-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish self-contained Avalonia desktop
+        shell: pwsh
+        run: |
+          dotnet restore apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --runtime win-x64 --ignore-failed-sources
+          dotnet publish apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output .project-local/build/dotnet/green-desktop
+      - name: Build Rust Core
+        shell: bash
+        run: cargo build -p archeaxis-api
+      - name: Assemble and verify Green candidate
+        shell: pwsh
+        run: |
+          $python = (Get-Command python).Source
+          & $python -B scripts/release/assemble_green_candidate.py `
+            --desktop .project-local/build/dotnet/green-desktop `
+            --core target/debug/archeaxis-api.exe `
+            --out .project-local/build/green-candidates `
+            --version ci
+          if ($LASTEXITCODE -ne 0) { throw "Green candidate assembly failed" }
+          & $python -B scripts/release/verify_green_candidate.py `
+            .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64
+          if ($LASTEXITCODE -ne 0) { throw "Green candidate verification failed" }
+      - name: Upload self-contained Green candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: green-candidate-vnext
+          path: .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64.zip
+          if-no-files-found: error
+
   contracts-vnext:
     timeout-minutes: 10
     runs-on: ubuntu-latest
