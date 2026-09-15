@@ -46,7 +46,7 @@
 - `scripts/check_repository_conventions.py --source worktree`：PASS。
 - `scripts/check_path_conventions.py`：2019/2019 tracked paths owned，0 unowned，0 ambiguous。
 - 本机未发现 `cargo`、`dotnet`、`rustc`；Rust/C# 构建和 Windows GUI 验证为 NOT RUN，需 Windows/CI runner。
-- 当前实现提交：`f5847b9d28ae65c784b5b923d0cfb503a191eb60`；远端同名分支已回读同 SHA。
+- 当前实现提交：`19f9ac1a28917fd670ada214ca6260013f2ecf98`；远端同名分支已回读同 SHA。
 
 ## Task 8 模型外置接线
 
