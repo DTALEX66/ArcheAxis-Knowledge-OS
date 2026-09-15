@@ -84,3 +84,8 @@
 - 该 Doctor 证明当前开发机的基础工具链和路径布局可用；它不替代安装器、签名、卸载、干净机器或 GUI 验收。
 - 对 `Model library/ollama` 进一步检查只发现模型 blob 存储，未发现可执行的 `ollama.exe`，因此 Ollama 服务连通性保持 `NOT RUN`；不能把模型文件存在等同于本地推理服务可用。
 - `Model library` 中发现的 `model.onnx` 属于 Sherpa‑ONNX 目录；未发现同时具备 `model.onnx` 与 `config.min.json` 的共享 Magika 目录。Magika 当前实际使用仓库离线副本，避免错误复用音频模型。
+
+## 云端精确 SHA 回读
+
+- `git fetch origin` 后，当前分支 `codex/full-loop-0906` HEAD 与远端分支均为 `ae7796020aaa2d0f24de329e0932a17c36fa4781`；`origin/main` 仍为 `1e9813ea2bd49f47d334ba6717c78d3e9feda6ce`，两者不混称。
+- GitHub Actions CI run `34970004760`（head SHA `ae779602...`）为 `completed/success`。该提交仅含文档变更，实际执行 gateplan、lint、a0-gates；产品构建、Rust、Windows、格式、安装器等 job 按路径分类为 skipped，因此不能把该 run 解释为产品全门禁通过。
