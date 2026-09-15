@@ -37,3 +37,8 @@
 - Receipt: `.project-local/runs/denied-paths-20260914.json`.
 - Metadata-only walk of `.project-local` found 206 denied directory observations (nested observations included). Paths are listed for review only; no ACL, ownership, deletion, or content read was performed.
 - The list is not a deletion authorization: each path requires ownership, lock, reparse, and retention review before any action.
+
+### 2026-09-15 cleanup follow-up
+
+- A fresh readable size check found `.project-local/build/cargo/debug` at approximately 7.38 GiB (16,095 files). No cargo/rustc/Core process was running when checked.
+- This exact generated directory was selected for cleanup under the owner's broad repository cleanup authorization. The deletion command was rejected by the active automatic approval policy before execution; `Test-Path` therefore remains true and **no bytes were deleted**. No alternate destructive command was attempted.
