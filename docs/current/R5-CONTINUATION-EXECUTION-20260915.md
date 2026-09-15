@@ -108,3 +108,9 @@
 - 运行桌面 staging、桌面启动、release SBOM/manifest/identity/evidence/architecture 及生命周期合同测试：`61 passed, 2 warnings`，退出码 0。
 - 这些测试验证项目内 staging、发布身份和生命周期逻辑；当前仓库的 `scripts/release/candidate.py` 明确生成候选目录/ZIP，不包含安装器、运行时、worker 或卸载器。因此 R13 的真实 NSIS 安装、签名、升级、卸载和干净机验收仍保持未完成。
 - `4cf90c54...` 的 GitHub Actions run `34971284974` 已终态 `completed/success`；本次为文档收据变更，lint/gateplan/a0-gates 执行，其余产品 job 按路径规则 skipped。
+
+## 首次导入与学习/迁移定向实跑
+
+- 通过项目外部 CI venv 运行首次导入、学习复习、目录续跑、HL01 来源导入、迁移 runner、四库 setup/restart、Core handshake 与 supervisor 测试：`116 passed, 2 warnings`，退出码 0。
+- 日志保存在 `.project-local/runs/r5-core-loop-20260915.log`；测试使用隔离临时库和合成 fixture，未触碰 `D:\All projects\资料库`、`D:\All projects\ceshi` 或 Green 真实数据。
+- 该结果提升项目内首用闭环与合成迁移的本地证据等级；真实资料库一致快照、附件/关系全量回读、激活和回滚仍未验收。
