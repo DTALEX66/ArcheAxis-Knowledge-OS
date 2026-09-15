@@ -43,9 +43,11 @@ def _remove_tree(path: Path) -> None:
     native = str(_native_path(path))
     for current, directories, files in os.walk(native, topdown=False):
         for name in files:
-            os.unlink(os.path.join(current, name))
+            child = Path(current) / name
+            os.unlink(_native_path(child))
         for name in directories:
-            os.rmdir(os.path.join(current, name))
+            child = Path(current) / name
+            os.rmdir(_native_path(child))
     os.rmdir(native)
 
 

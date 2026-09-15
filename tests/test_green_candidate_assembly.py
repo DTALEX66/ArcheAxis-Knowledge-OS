@@ -46,6 +46,19 @@ def test_assembly_bundles_desktop_and_core_with_hash_manifest(tmp_path: Path) ->
     assert '"ARCHAXIS_CORE_BIN"' in launcher_text
     assert "desktop\\ArcheAxis.Desktop.exe" in launcher_text
 
+    # Reassembly exercises the generated-tree cleanup path, which must work
+    # even when runtime files make the candidate tree deeply nested on Windows.
+    second = assemble(
+        desktop,
+        core,
+        local / "build" / "green-candidates",
+        "0.0.0-test",
+        runtime=runtime,
+        project_root=project,
+    )
+    assert second.root == result.root
+    assert (second.root / "启动绿色候选.vbs").is_file()
+
 
 def test_assembly_rejects_output_outside_project_local(tmp_path: Path) -> None:
     desktop = tmp_path / "desktop"
