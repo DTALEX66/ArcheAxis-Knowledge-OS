@@ -45,3 +45,11 @@ def test_unapproved_root_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(MODULE, "ROOT", tmp_path / "repo")
     with pytest.raises(ValueError, match="under approved"):
         MODULE.validate_source(tmp_path)
+
+
+def test_shared_roots_are_derived_without_machine_absolute_literals() -> None:
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert "D:/All projects" not in source
+    assert MODULE.CESHI == MODULE.ROOT.parent / "ceshi"
+    assert MODULE.REAL_LIBRARY == MODULE.ROOT.parent / "资料库"
+    assert MODULE.GREEN_DATA == MODULE.ROOT.parent / "ArcheAxis.Knowledge.Green-x64" / "data"
