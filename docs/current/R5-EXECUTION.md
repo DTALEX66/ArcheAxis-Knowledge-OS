@@ -1588,3 +1588,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-15 E-drive boundary regression: added an explicit test that a project root on `E:` is rejected before any resource inspection; resource-boundary suite now passes `4`, Ruff remains `PASS`.
 - 2026-09-15 low-quota monitoring: added `scripts/maintenance/prepare_low_quota_handoff.py` and policy `docs/current/LOW-QUOTA-HANDOFF-POLICY.md`. With live account input 11%, report state is `MONITORING`; it records branch/HEAD/upstream gap and excludes private/untracked state. Targeted tests: `4 passed`. It does not stage, commit, push, or claim double-end consistency.
 
+- 2026-09-16 path normalization: legacy `verified-knowledge/ceshi-2026-08-18/scripts` receipts previously targeted `.hermes/task-runtime`; both scripts now derive the repository root and write only `.project-local/runs/legacy-ceshi/`. The approved `D:\All projects\ceshi` corpus remains read-only input. Python compile and repository convention checks passed.
+
