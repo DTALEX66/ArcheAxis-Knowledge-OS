@@ -35,8 +35,10 @@ def check_resource_boundaries(project_root: Path, *, purpose: str | None = None)
     index = root / INDEX_PATH
     if index.is_file():
         index_text = index.read_text(encoding="utf-8")
+        indexed_root = root.parent
         for resource_id, name in RESOURCE_NAMES.items():
-            if f"`{resource_id}`" not in index_text or f"`D:\\All projects\\{name}`" not in index_text:
+            canonical_text = str(indexed_root / name).replace("/", "\\")
+            if f"`{resource_id}`" not in index_text or f"`{canonical_text}`" not in index_text:
                 raise ValueError(f"resource index drift or missing entry: {resource_id}")
     elif root == Path(__file__).resolve().parents[2]:
         raise ValueError(f"resource index is missing: {index}")

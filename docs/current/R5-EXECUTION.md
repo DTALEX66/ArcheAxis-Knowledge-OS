@@ -1590,3 +1590,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 path normalization: legacy `verified-knowledge/ceshi-2026-08-18/scripts` receipts previously targeted `.hermes/task-runtime`; both scripts now derive the repository root and write only `.project-local/runs/legacy-ceshi/`. The approved `D:\All projects\ceshi` corpus remains read-only input. Python compile and repository convention checks passed.
 
+- 2026-09-16 architecture gate repair: `check_architecture.py` flagged the resource-boundary guard for embedding an absolute D: path in runtime code. The guard now derives the canonical index path from the checkout parent and still fails closed on index drift. Resource-boundary tests `4 passed`; architecture and repository convention gates passed.
+
