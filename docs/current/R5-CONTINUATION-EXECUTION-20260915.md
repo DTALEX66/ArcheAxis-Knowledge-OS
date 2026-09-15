@@ -54,3 +54,11 @@
 - `config/environment/capability-requirements.yaml` 与 `docs/environment/EXTERNAL_DEPENDENCIES.md` 已同步声明该优先级。
 - `tests/test_file_detection.py`、`tests/test_capabilities.py`、`tests/test_mfx010_honest_capability.py` 与环境注册测试：21 passed（1 个既有警告）。
 - 本次未读取或修改 `D:\\All projects\\Model library`；外置消费者和实际 Windows profile 仍需在 Task 7/8 的 Windows 验收中核实，故未删除仓库副本。
+
+## 外置工具链与 Rust/桌面实测
+
+- `D:\\All projects\\Model library` 顶层存在 `ComfyUI`、`ollama`、`sherpa-onnx`、`whisper` 四类模型/软件目录；未递归读取内容。
+- `OS External Configuration\\10-toolchains` 实体版本探测：Cargo/Rust `1.97.1`、.NET `10.0.400`、Tesseract `5.5.0` + Leptonica `1.85.0`、FFmpeg `8.1.2`；MSVC linker 与 `vcvars64.bat` 存在。
+- 使用外置 .NET 构建 `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj`：0 errors，2 warnings（NuGet vulnerability feed unavailable、Avalonia Watermark obsolete）。
+- 通过 `scripts/runtime/dev.py` 注入项目 run root、Python、Rust 与 MSVC 环境后，`cargo test -p archeaxis-api --tests` 全部通过；包含 API、学习状态、机器纠错、运行时作业和 v0.1 journey 用例。编译警告保留，未修改为静默。
+- 当前 registry 的 PATH 探测仍会把未加入 PATH 的 Rust/.NET/MSVC 记为 missing；这是探测器局限，不代表外置实体不存在。正式 Windows profile 仍需把绝对路径绑定并做安装包验收。
