@@ -24,8 +24,13 @@ class Program
 
     private static int RunSupervisorSmoke(string? dbPath)
     {
-        dbPath ??= System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(), "archeaxis-vnext-smoke.sqlite");
+        // Smoke is an explicit project-run operation.  Never fall back to the
+        // process/user TEMP directory, which creates an unmanaged second store.
+        if (string.IsNullOrWhiteSpace(dbPath))
+        {
+            Console.Error.WriteLine("SMOKE ERROR: provide an explicit project-local database path");
+            return 2;
+        }
         try
         {
             using var supervisor = new CoreSupervisor(dbPath);

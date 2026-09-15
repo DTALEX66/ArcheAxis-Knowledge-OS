@@ -138,3 +138,10 @@ def test_formal_desktop_window_is_the_archeaxis_workspace_shell() -> None:
     assert '"/api/v1/imports"' in code
     assert '"/api/v1/learning/items"' in code
     assert "content_base64" in code
+
+
+def test_desktop_smoke_requires_an_explicit_managed_database_path() -> None:
+    source = _read("apps/ArcheAxis.Desktop/Program.cs")
+
+    assert "provide an explicit project-local database path" in source
+    assert "Path.GetTempPath()" not in source
