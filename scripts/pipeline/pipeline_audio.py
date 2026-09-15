@@ -26,6 +26,7 @@ Path(OUT).parent.mkdir(parents=True, exist_ok=True)
 
 from app.ingestion.asr_adapter import transcribe_sense_voice
 from app.ingestion.content_cleaner import clean_text as strip_noise
+from source_preflight import validate_source  # noqa: E402
 
 
 def main() -> None:
@@ -37,6 +38,10 @@ def main() -> None:
     args = ap.parse_args()
     if not ROOT:
         raise SystemExit("set ARCHEAXIS_PIPELINE_SOURCE_ROOT to an approved source directory")
+    try:
+        source_root = validate_source(Path(ROOT))
+    except ValueError as exc:
+        raise SystemExit(f"source root rejected: {exc}") from exc
     if args.audio_only:
         _AUDIO_EXTS = ('.mp3', '.m4a', '.wav', '.flac')
     else:
@@ -48,7 +53,7 @@ def main() -> None:
     else:
         OUT_PART = OUT
     files = []
-    for dirpath, dirnames, filenames in os.walk(ROOT):
+    for dirpath, dirnames, filenames in os.walk(source_root):
         for f in filenames:
             if f.lower().endswith(_AUDIO_EXTS):
                 p = os.path.join(dirpath, f)
@@ -58,7 +63,7 @@ def main() -> None:
     print(f'audio files (part {args.part}/{args.parts}):', len(files), flush=True)
     receipts, ok, fail = [], 0, 0
     for idx, p in enumerate(files):
-        rel = p.replace(ROOT + '/', '')
+        rel = str(Path(p).relative_to(source_root)).replace('\\', '/')
         t0 = __import__('time').monotonic()
         try:
             wav = os.path.join(WORK, f'a{idx}.wav')

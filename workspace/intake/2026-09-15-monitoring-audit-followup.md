@@ -63,6 +63,7 @@
 - 对同一 manifest 第二次运行验证续跑：前 3 条正确标为 `resumed`，随后按 `max_files=3` 处理下一批 3 条，累计 `summary.converted=6`；未重复覆盖已完成输出。该结果证明小样本续跑语义可用，仍不等于全量质量或学习闭环。
 - 项目回归 `tests/test_directory_batch.py tests/test_axw096c_pipeline_integration.py tests/test_axw_run202_profiles.py`：`29 passed, 1 warning`，退出码 0；验证目录最新尝试语义、管线集成和四种运行 profile 仍通过。警告来自外部 `newspaper` 可选 NLTK，不影响本次 Markdown passthrough。
 - 项目闭环定向回归 `tests/test_learning_loop_e2e.py tests/test_workspace_public_closed_loop.py tests/test_workspace_pipeline_multiformat.py tests/test_workspace_crash_recovery.py tests/test_workspace_research_consumer.py`：`13 passed, 2 warnings`，退出码 0；覆盖隔离数据库中的导入、学习、来源绑定、多格式入口、崩溃恢复和研究消费。该证据仍不替代真实 Green 资料库验收。
+- `source_preflight` 已接入 `scripts/pipeline/pipeline_audio.py` 与 `pipeline_video.py`：以 `D:\All projects\资料库` 作为输入时立即拒绝且不扫描；项目 `.project-local` 空源的音频、视频入口均退出码 0。执行入口现在与独立门禁使用同一批准路径策略。
 
 ### MON-AX-02 除法公式风险清单
 

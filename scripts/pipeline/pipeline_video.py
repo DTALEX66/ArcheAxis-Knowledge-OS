@@ -19,9 +19,14 @@ Path(OUT).parent.mkdir(parents=True, exist_ok=True)
 from app.ingestion.content_cleaner import clean_text as strip_noise
 from app.ingestion.ocr_gate import assess as ocr_gate
 from app.ingestion.rapid_ocr_adapter import convert_image_rapid
+from source_preflight import validate_source  # noqa: E402
 
 if not ROOT:
     raise SystemExit("set ARCHEAXIS_PIPELINE_SOURCE_ROOT to an approved source directory")
+try:
+    ROOT = str(validate_source(Path(ROOT)))
+except ValueError as exc:
+    raise SystemExit(f"source root rejected: {exc}") from exc
 
 videos = []
 for dirpath, dirnames, filenames in os.walk(ROOT):
@@ -35,7 +40,7 @@ print('videos:', len(videos), flush=True)
 receipts = []
 ok = fail = 0
 for idx, p in enumerate(sorted(videos)):
-    rel = p.replace(ROOT + '/', '')
+    rel = str(Path(p).relative_to(Path(ROOT))).replace('\\', '/')
     t0 = time.monotonic()
     try:
         dur = subprocess.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1', p],
