@@ -94,12 +94,32 @@ def transcribe(audio_path: str | Path) -> dict[str, Any]:
 def _sense_voice_dir() -> Path:
     """Return an explicitly configured SenseVoice model location.
 
-    An absent configuration deliberately resolves inside project runtime data,
+    Prefer an explicit model directory, then the shared model library.  An
+    absent configuration deliberately resolves inside project runtime data,
     where the subsequent model-file check fails closed.
     """
     configured = os.environ.get("ARCHEAXIS_SENSE_VOICE_MODEL_DIR", "").strip()
     if configured:
         return Path(configured)
+    roots: list[Path] = []
+    model_library = os.environ.get("ARCHEAXIS_MODEL_LIBRARY_DIR", "").strip()
+    if model_library:
+        roots.append(Path(model_library) / "sherpa-onnx")
+    external_root = (
+        os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+        or os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip()
+    )
+    if external_root:
+        roots.append(Path(external_root).parent / "Model library" / "sherpa-onnx")
+    for ancestor in Path(__file__).resolve().parents:
+        roots.append(ancestor.parent / "Model library" / "sherpa-onnx")
+    for root in roots:
+        if not root.is_dir():
+            continue
+        candidates = [root, *sorted(root.iterdir())]
+        for candidate in candidates:
+            if (candidate / "model.int8.onnx").is_file() and (candidate / "tokens.txt").is_file():
+                return candidate
     run_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "").strip()
     if run_root:
         return Path(run_root) / "models" / "sense-voice"
