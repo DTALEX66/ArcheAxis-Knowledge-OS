@@ -66,6 +66,7 @@
 - `source_preflight` 已接入 `scripts/pipeline/pipeline_audio.py` 与 `pipeline_video.py`：以 `D:\All projects\资料库` 作为输入时立即拒绝且不扫描；项目 `.project-local` 空源的音频、视频入口均退出码 0。执行入口现在与独立门禁使用同一批准路径策略。
 - `MON-AX-05` 资源核验：项目代码与两个共享库顶层目录均未发现 NeoMME/Neo MME 实现、权重或许可记录；当前 `app/rag/embedder.py` 的配置提供方仍为 `local` 简单嵌入，LLM 分支也仅是可选 LiteLLM 路径。结论为 `BLOCKED_NEEDS_RESOURCE_VERIFICATION`，不新增依赖、不把候选名称当成可用提供方。
 - 整合后标准前置检查：`scripts/workflow/execution_preflight.py . --json` 通过，退出码 0；当前 HEAD `b0f1d3d9...`，Markdown 链接 546 条全部无断链，2 条为已登记的预期 fixture 缺失，未打开私有状态。
+- 路径/输出/配置整合回归：`tests/test_path_conventions.py tests/test_approved_paths.py tests/test_project_output_routing_contract.py tests/test_config_profiles.py tests/test_axw_data404_paths.py tests/test_ocr_adapter_config.py` 为 `63 passed, 1 skipped`，退出码 0；跳过项为平台条件，不构成通过声明。
 
 ### MON-AX-02 除法公式风险清单
 
