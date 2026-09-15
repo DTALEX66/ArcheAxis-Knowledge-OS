@@ -1594,3 +1594,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 model-library path normalization: vNext media transcription worker no longer embeds a machine-specific absolute model path. It derives the shared `Model library` root from the checkout parent and honors `ARCHEAXIS_ASR_MODEL_DIR`; worker routing/media tests `16 passed`, architecture and repository convention gates passed.
 
+- 2026-09-16 full boundary recheck at HEAD `a5f856d9`: path convention coverage `2034/2034`, unowned `0`, ambiguous `0`; integration target resolves only Green, test target only `D:\All projects\ceshi`, all five indexed roots are ordinary non-reparse directories. Execution preflight passed (`547` Markdown links checked, `0` broken, `private_state_opened=false`).
+
