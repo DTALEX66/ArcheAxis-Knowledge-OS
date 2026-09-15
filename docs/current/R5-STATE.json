@@ -50,7 +50,7 @@
       "r31_slices": [
         "R10"
       ],
-      "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；桌面题目渲染/复习提交、DeepTutor默认入口挂载、完整会话/附件回收、可见窗口仍未闭合。"
+      "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；桌面题目渲染与复习提交代码及首用契约回归已有证据，DeepTutor默认入口挂载、完整会话/附件回收、可见窗口交互与重启读回仍未闭合。"
     },
     {
       "id": "X04",
@@ -325,3 +325,4 @@
     "windows_tested": false
   }
 }
+
