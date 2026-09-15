@@ -136,6 +136,7 @@ risk_classes:
       - AGENTS.md
       - "docs/authority/**"
       - "docs/design/**"
+      - "workspace/intake/**"
       - "reports/vnext/**"
       - "reports/**"
     gates: [static]
