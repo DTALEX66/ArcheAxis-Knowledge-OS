@@ -124,6 +124,9 @@ def launch(*, python: Path | None = DEFAULT_PYTHON, node: Path | None = DEFAULT_
            open_browser: bool = False) -> int:
     python, node, server = _resolve_defaults(python, node, server)
     installation = resolve_installation(python=python, node=node, server=server)
+    # The child runs with ``cwd=runtime_home``; pass an absolute path so the
+    # upstream launcher cannot resolve a relative home a second time.
+    runtime_home = runtime_home.resolve()
     runtime_home.mkdir(parents=True, exist_ok=True)
     env = build_environment(os.environ.copy(), runtime_home=runtime_home,
                             backend_port=backend_port, frontend_port=frontend_port,

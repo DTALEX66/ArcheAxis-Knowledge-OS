@@ -68,3 +68,29 @@ def test_command_uses_external_interpreters_without_shell(tmp_path: Path):
     )
     assert command[:3] == [str(tmp_path / "python.exe"), "-c", web.START_SNIPPET]
     assert command[3] == str(tmp_path / "home")
+
+
+def test_launch_resolves_runtime_home_before_changing_directory(tmp_path: Path, monkeypatch):
+    class Child:
+        pid = 123
+        returncode = None
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            return 0
+
+    seen = {}
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(web, "resolve_installation", lambda **kwargs: kwargs)
+    monkeypatch.setattr(web.subprocess, "Popen", lambda command, **kwargs: (seen.update(command=command, **kwargs) or Child()))
+    monkeypatch.setattr(web, "_ready", lambda url: True)
+
+    assert web.launch(
+        python=tmp_path / "python.exe", node=tmp_path / "node.exe",
+        server=tmp_path / "server.js", runtime_home=Path("relative-home"),
+        backend_port=18001, frontend_port=13782,
+    ) == 0
+    assert seen["cwd"] == str((tmp_path / "relative-home").resolve())
+    assert seen["command"][3] == str((tmp_path / "relative-home").resolve())
