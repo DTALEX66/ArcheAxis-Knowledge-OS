@@ -1,9 +1,10 @@
-"""R13: what a candidate bundle is, and what it takes to verify one.
+"""R13: the legacy Core-only candidate manifest and its verification rules.
 
 A candidate is a small directory plus a manifest that binds every file in it to a source
 commit by sha256. The manifest is deliberately explicit about what is **not** in the bundle -
-no installer, no code signing, no Python runtime, no workers - because a bundle that lets a
-reader assume those exist is worse than no bundle.
+no installer, no code signing, no Python runtime, no workers.  This module describes the
+legacy Core-only candidate schema; the newer Green candidate is assembled and verified by
+``assemble_green_candidate.py``/``verify_green_candidate.py`` and has an explicit runtime scope.
 
 This module holds the rules and imports nothing that needs a toolchain, so it can be tested
 without building anything.
