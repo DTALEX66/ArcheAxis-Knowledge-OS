@@ -1,0 +1,103 @@
+"""Assemble a project-local, self-contained Green candidate for review."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import shutil
+import zipfile
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class AssemblyResult:
+    root: Path
+    zip_path: Path
+
+
+def _native_path(path: Path) -> str | Path:
+    """Use the Windows extended-length prefix for deep managed run paths."""
+    if path.drive and path.drive.upper() != "E:" and len(str(path)) >= 240:
+        return "\\\\?\\" + str(path)
+    return path
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with open(_native_path(path), "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def assemble(
+    desktop: Path,
+    core: Path,
+    output: Path,
+    version: str,
+    *,
+    project_root: Path | None = None,
+) -> AssemblyResult:
+    desktop = desktop.resolve()
+    core = core.resolve()
+    output = output.resolve()
+    project_root = (project_root or Path(__file__).resolve().parents[2]).resolve()
+    project_local = (project_root / ".project-local").resolve()
+    try:
+        output.relative_to(project_local)
+    except ValueError as exc:
+        raise ValueError("output must stay inside project-local") from exc
+    if not desktop.is_dir() or not (desktop / "ArcheAxis.Desktop.exe").is_file():
+        raise ValueError("desktop publish directory or executable is missing")
+    if not core.is_file():
+        raise ValueError("Core executable is missing")
+
+    output.mkdir(parents=True, exist_ok=True)
+    root = output / f"ArcheAxis.Knowledge.Green-v{version}-x64"
+    if root.exists():
+        shutil.rmtree(root)
+    (root / "desktop").mkdir(parents=True)
+    (root / "core").mkdir()
+    copied_files: list[Path] = []
+    for source in desktop.rglob("*"):
+        if source.is_file():
+            target = root / "desktop" / source.relative_to(desktop)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(_native_path(source), _native_path(target))
+            copied_files.append(target)
+    core_target = root / "core" / "archeaxis-api.exe"
+    shutil.copy2(_native_path(core), _native_path(core_target))
+    copied_files.append(core_target)
+
+    files: dict[str, dict[str, int | str]] = {}
+    for path in sorted(copied_files):
+        relative = path.relative_to(root).as_posix()
+        files[relative] = {"bytes": os.stat(_native_path(path)).st_size, "sha256": _sha256(path)}
+    manifest = {"schema": "archeaxis.green-candidate/v1", "version": version, "files": files}
+    manifest_path = root / "candidate-manifest.json"
+    with open(_native_path(manifest_path), "w", encoding="utf-8", newline="\n") as stream:
+        stream.write(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+    zip_path = output / f"ArcheAxis.Knowledge.Green-v{version}-x64.zip"
+    with zipfile.ZipFile(_native_path(zip_path), "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(p for p in root.rglob("*") if p.is_file()):
+            archive.write(path, path.relative_to(output).as_posix())
+    return AssemblyResult(root=root, zip_path=zip_path)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--desktop", required=True, type=Path)
+    parser.add_argument("--core", required=True, type=Path)
+    parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--version", required=True)
+    args = parser.parse_args()
+    result = assemble(args.desktop, args.core, args.out, args.version)
+    print(json.dumps({"root": str(result.root), "zip": str(result.zip_path)}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
