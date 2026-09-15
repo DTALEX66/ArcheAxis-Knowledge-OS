@@ -698,9 +698,12 @@ jobs:
         shell: pwsh
         run: |
           $python = (Get-Command python).Source
+          $cargoTarget = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'target' }
+          $core = Join-Path $cargoTarget 'debug/archeaxis-api.exe'
+          if (-not (Test-Path -LiteralPath $core -PathType Leaf)) { throw "Rust Core binary is missing: $core" }
           & $python -B scripts/release/assemble_green_candidate.py `
             --desktop .project-local/build/dotnet/green-desktop `
-            --core target/debug/archeaxis-api.exe `
+            --core $core `
             --out .project-local/build/green-candidates `
             --version ci
           if ($LASTEXITCODE -ne 0) { throw "Green candidate assembly failed" }
