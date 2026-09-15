@@ -32,6 +32,8 @@ def test_audit_reports_structure_without_formula_evaluation(tmp_path: Path) -> N
     assert report["formula_evaluation"] == "NOT_PERFORMED"
     assert report["formula_cells"] == 2
     assert report["formula_cells_containing_division"] == 1
+    assert report["division_formulas"][0]["cell"] == "A1"
+    assert report["division_formulas"][0]["boundary_regression"] == "REQUIRED"
     assert report["sheet_count"] == 1
 
 

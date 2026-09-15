@@ -53,6 +53,7 @@ def audit(input_path: Path) -> dict:
     sheets = []
     formula_count = 0
     formula_division_count = 0
+    division_formulas = []
     try:
         for worksheet in workbook.worksheets:
             validations = getattr(worksheet, "data_validations", None)
@@ -66,6 +67,13 @@ def audit(input_path: Path) -> dict:
                         sheet_formula_count += 1
                         if "/" in value:
                             sheet_division_count += 1
+                            division_formulas.append({
+                                "sheet": worksheet.title,
+                                "cell": cell.coordinate,
+                                "formula": value,
+                                "evaluation": "NOT_PERFORMED",
+                                "boundary_regression": "REQUIRED",
+                            })
             formula_count += sheet_formula_count
             formula_division_count += sheet_division_count
             sheets.append({
@@ -93,6 +101,7 @@ def audit(input_path: Path) -> dict:
         "defined_names": 0,
         "formula_cells": formula_count,
         "formula_cells_containing_division": formula_division_count,
+        "division_formulas": division_formulas,
         "sheets": sheets,
         "formula_evaluation": "NOT_PERFORMED",
         "interpretation": "Structural metadata only; formula correctness and scenario outcomes require a separate evaluated regression.",

@@ -133,3 +133,4 @@
 
 - `MON-AX-02` 新增可重复脚本 `scripts/maintenance/audit_monitoring_workbook.py` 与 3 个定向测试；项目外部 CI Python 下测试 `3 passed`、Ruff 通过。真实桌面原件实跑退出码 0，报告写入 `.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`；状态仍为 `STRUCTURAL_AUDIT_ONLY`，不提升为公式回归完成。
 - `MON-AX-04` 复用证据/主张分离回归：grounded answer、证据边界、关系冲突与覆盖率测试合计 `26 passed`，退出码 0；证明局部合同可用，真实资料和模型精度仍未验收。
+- `MON-AX-02` 审计报告现额外列出 17 个含除法公式的位置，统一标为未求值且需要边界回归；真实报告已刷新到 `.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。这只是风险定位，尚未声称公式缺陷已修复。
