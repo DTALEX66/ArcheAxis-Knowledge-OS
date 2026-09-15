@@ -178,3 +178,9 @@
 - 候选清单记录 2 个文件（`archeaxis-api.exe`、`README.md`），总计 8,294,609 bytes；ZIP SHA-256 为 `1dea2a71ad23e6543742826e9a709bfe604c23425798121bce1906b8becf1f7d`。
 - `verify_candidate.py --candidate` 重哈希通过；`--run` 通过，在端口 60651 启动并停止。候选明确标记 `debug-build`，且清单声明无安装器/卸载器/签名/runtime/workers/源资料。
 - 该证据闭合 Core 候选层，不提升为 Windows 完整发行版；R13 的 NSIS 安装、代码签名、升级/卸载、干净机器和正式发布仍未执行。
+
+## 路径规范回归修复
+
+- 当前架构检查一度发现 `scripts/pipeline/source_preflight.py` 硬编码共享目录绝对路径，触发 `forbidden-absolute-path` 5 项失败。
+- 已改为从项目 Git 根父目录派生 `ceshi`、真实资料库、Green、Model library 和 OS External Configuration 路径；拒绝边界保持不变，未修改任何外置目录。
+- 修复后 `scripts/check_architecture.py --format json` 输出空问题列表，`scripts/check_language_boundaries.py` PASS，source preflight 定向测试 `3 passed`；批准测试库重新预检仍为 22,224 文件、835 目录、源文件未打开/未修改。

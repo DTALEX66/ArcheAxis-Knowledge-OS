@@ -15,11 +15,15 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CESHI = Path("D:/All projects/ceshi")
-REAL_LIBRARY = Path("D:/All projects/资料库")
-GREEN_DATA = Path("D:/All projects/ArcheAxis.Knowledge.Green-x64/data")
-FORBIDDEN_ROOTS = (Path("D:/All projects/Model library"),
-                   Path("D:/All projects/OS External Configuration"))
+# Shared resources live beside the checkout.  Deriving these paths avoids
+# embedding a machine-specific absolute root while preserving the exact
+# boundary on this workstation.
+SHARED_ROOT = ROOT.parent
+CESHI = SHARED_ROOT / "ceshi"
+REAL_LIBRARY = SHARED_ROOT / "资料库"
+GREEN_DATA = SHARED_ROOT / "ArcheAxis.Knowledge.Green-x64" / "data"
+FORBIDDEN_ROOTS = (SHARED_ROOT / "Model library",
+                   SHARED_ROOT / "OS External Configuration")
 
 
 def _absolute(path: Path) -> Path:
