@@ -1614,3 +1614,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 active-source boundary gate: added `tests/maintenance/test_active_output_boundaries.py` to reject machine-specific D: roots and `.hermes/task-runtime` output strings in active code. Gate passed `1`, Ruff passed.
 
+- 2026-09-16 low-quota threshold simulation: with supplied remaining `2%`, report correctly returned `UPLOAD_REQUIRED`, listed 9 safe tracked handoff sources and excluded `.codex/`, `.zcode/`, `.hermes/` plus untracked user/history assets. Current branch divergence is 80 commits; no upload was performed by simulation.
+
