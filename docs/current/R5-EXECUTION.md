@@ -1681,3 +1681,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 云端只读回读：GitHub 最新可见 CI 仍对应旧远端 SHA `38d60509`（run `34974871286`），结论 failure；`test (3.12)` 的 OS-level tests 失败，`a0-gates` 的 ci-verdict 失败，其余 vNext jobs 多数 skipped。当前本地新提交尚未推送，故该 run 不能归因于本地最新改动；未触发云端操作。
 
 - 2026-09-16 Windows deep-path repair: shared/backup.py, shared/migration.py and shared/migration_runner.py now use extended-length paths for manifests, migration backups, owner locks and SQLite connections; backup/DeepTutor bridge regression 12 passed, migration/governance/backup regression 50 passed. Commit c84414e8; this closes a real MAX_PATH failure but does not promote R10/R13 or independent audit status.
+
+- 2026-09-16 adapter boundary repair: convert_youtube_transcript now validates empty source before importing the optional dependency, preserving the correct user error when the engine is unavailable; YouTube adapter regression 6 passed, commit 467482b2.
