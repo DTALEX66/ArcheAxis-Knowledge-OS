@@ -661,6 +661,15 @@ def convert_youtube_transcript(input_: AdapterInput) -> AdapterResult:
     timestamps per snippet.  Supports language override via the
     ``language`` option (ISO 639‑1 code, default ``en``).
     """
+    source = input_.source.strip()
+    if not source:
+        return AdapterResult(
+            success=False,
+            content="",
+            engine="youtube-transcript-api",
+            error="Empty source — provide a YouTube video ID or URL",
+        )
+
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
     except ImportError:
@@ -670,15 +679,6 @@ def convert_youtube_transcript(input_: AdapterInput) -> AdapterResult:
             engine="youtube-transcript-api",
             error="youtube-transcript-api is not installed. "
             "Run: pip install youtube-transcript-api",
-        )
-
-    source = input_.source.strip()
-    if not source:
-        return AdapterResult(
-            success=False,
-            content="",
-            engine="youtube-transcript-api",
-            error="Empty source — provide a YouTube video ID or URL",
         )
 
     # Extract video ID from various URL formats
