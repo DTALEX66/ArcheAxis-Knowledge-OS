@@ -17,7 +17,7 @@
 | ID | 任务 | 来源 | 前置与边界 | 当前状态 |
 |---|---|---|---|---|
 | MON-AX-01 | 研究/models 双命名空间与 43 条原任务去重映射 | 01/05/06 | 只建立候选映射；不改冻结任务文本 | `PLANNED` |
-| MON-AX-02 | 工作簿边界回归 | 05 | 在项目 `.project-local` 生成副本和测试；验证小数次数、除零、负时长、有效期；不改原 XLSX | `PLANNED` |
+| MON-AX-02 | 工作簿边界回归 | 05 | 在项目 `.project-local` 生成副本和测试；验证小数次数、除零、负时长、有效期；不改原 XLSX | `STRUCTURAL_AUDIT_ONLY` |
 | MON-AX-03 | Green TEST 首次导入闭环 | 06 | 真实资料库只读；使用 `D:\All projects\ceshi` 或项目隔离副本；先核 profile 和路径，再做导入、引用、学习、机器回读、重启 | `BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION` |
 | MON-AX-04 | 引用证据与个人主张分离回归 | 01/06 | 复用现有 Core/SourceObject/knowledge 结构；不得把局部检索或模型 F1 升级为事实准确率 | `PLANNED` |
 | MON-AX-05 | NeoMME 可选检索 POC | 01/06 | 先确认外置权重、许可、provider 和真实输入；收益不足可淘汰；不替换现有摄取链 | `BLOCKED_NEEDS_RESOURCE_VERIFICATION` |
@@ -36,3 +36,9 @@
 `MON-AX-01` → `MON-AX-02` → `MON-AX-04` → `MON-AX-03` → `MON-AX-05` → `MON-AX-06` → `MON-AX-07`。
 
 每项分别记录 `PLANNED`、`IMPLEMENTED_LOCAL`、`TESTED_LOCAL`、`CI_VERIFIED_EXACT_SHA` 和 `INSTALLED_RUNTIME_VERIFIED`；缺证据保持 `NOT RUN` 或 `BLOCKED`。
+
+## MON-AX-02 当前只读证据
+
+- 原始工作簿 `C:\Users\ALEX\Desktop\03_价格与额度工作簿.xlsx`：46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3`，与审计 JSON 一致。
+- 读取到 10 个工作表；计价相关工作表没有数据验证规则，工作簿和工作表保护均未启用。模型台账存在 1 个验证规则，不能代表计算输入已受保护。
+- 本次只读检查未改写、保存或重新计算原件；`MON-AX-02` 仍未完成边界回归，审计 JSON 中的除零、负时长和非整数次数仍是待修复项。

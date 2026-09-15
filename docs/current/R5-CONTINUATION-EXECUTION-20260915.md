@@ -128,3 +128,5 @@
 - ArcheAxis 后续顺序固定为：命名空间/去重 → 工作簿边界回归 → 引用证据回归 → Green TEST 闭环 → 可选 NeoMME POC → DeepTutor/机器纠错回读 → 独立 Q00/Q01。缺真实资源、宿主或独立证据的项保持 BLOCKED/NOT RUN。
 - 本次仅新增任务入口和执行记录；未复制桌面原件、未访问 E: 盘、未读取凭据或私有代理状态，也未改变冻结 TaskPack、R5-STATE 或原始工作簿。
 - `MON-AX-01` 已结构化为 [monitoring-task-map.json](../../workspace/intake/2026-09-15-monitoring-task-map.json)：保留研究候选 11、模型记录 17、原始任务行 43 的来源计数，并收敛为 7 条执行轨道；映射文件仅是当前任务侧车，不改变冻结包。
+
+- `MON-AX-02` 原始工作簿只读核对：46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3` 与审计 JSON 一致；读取到 10 个工作表，计价相关表无数据验证且未保护。该结构证据不等于公式边界回归通过，除零、负时长、非整数次数仍保持待修。
