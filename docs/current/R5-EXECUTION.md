@@ -1556,3 +1556,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - R13 候选层：从当前 Debug Core 生成 `archeaxis-core-42ea8237c929-debug-build` 目录/ZIP；候选清单重哈希通过，`verify_candidate.py --run` 在端口 60651 启动并停止成功。该候选明确不含安装器、卸载器、签名、Python runtime、workers 或源资料。
 - R15 格式层：格式矩阵合同、文本/图像、媒体、OCR、工作区多格式及 worker 路由定向测试 `75 passed, 1 skipped, 2 warnings`。这不是 16 格式全链路或真实 Vault/Green 验收。
 - 规范层：`check_repository_conventions.py --source worktree`、路径归属检查和 `execution_preflight.py . --json` 均通过；当前 HEAD 以 Git 实际读数为准。DeepTutor 桥接的 4 个 SQLite 测试失败仍归类 `ENVIRONMENT_FAIL`，源于 pytest 临时目录 ACL，未修改权限或绕过门禁。
+- R13 签名审计：当前 `.github/workflows/release.yml` 未发现 `signtool`、Authenticode 或其他代码签名步骤；NSIS/资产哈希校验不能替代签名。签名状态明确为 `NOT_CONFIGURED`，不将候选包或 Release workflow 视为已签名交付。
