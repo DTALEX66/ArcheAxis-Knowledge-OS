@@ -171,3 +171,10 @@
 - 当前 R5 `FORMAT-COVERAGE.json` 的 16 个格式组仍为 `NOT_REQUALIFIED`；包校验器 PASS 只证明任务包完整性，不证明产品格式质量。
 - 在项目外部 CI Python 下运行格式矩阵合同、文本/图像、媒体、OCR、工作区多格式及 worker 路由测试：`75 passed, 1 skipped, 2 warnings`，退出码 0。
 - 该结果证明项目内适配器和路由的局部合同可执行；跳过项与警告已保留，真实 Vault 往返、全 16 格式端到端、长媒体质量、Green/安装态与学习回流仍未完成，R15 继续保持部分状态。
+
+## R13 Core 候选包实测
+
+- 使用当前提交 `42ea8237c929` 的现有 Debug Core 生成候选目录与 ZIP：`.project-local/dist/archeaxis-core-42ea8237c929-debug-build`。
+- 候选清单记录 2 个文件（`archeaxis-api.exe`、`README.md`），总计 8,294,609 bytes；ZIP SHA-256 为 `1dea2a71ad23e6543742826e9a709bfe604c23425798121bce1906b8becf1f7d`。
+- `verify_candidate.py --candidate` 重哈希通过；`--run` 通过，在端口 60651 启动并停止。候选明确标记 `debug-build`，且清单声明无安装器/卸载器/签名/runtime/workers/源资料。
+- 该证据闭合 Core 候选层，不提升为 Windows 完整发行版；R13 的 NSIS 安装、代码签名、升级/卸载、干净机器和正式发布仍未执行。
