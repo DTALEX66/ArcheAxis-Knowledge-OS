@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -41,6 +42,38 @@ def _probe_version(executable: str | None, path: str | None) -> tuple[str | None
     return (line[0].strip()[:200] if line and line[0].strip() else None), "probed"
 
 
+def _external_path(entry: dict) -> str | None:
+    """Resolve a declared shared-tool path without guessing or installing.
+
+    The root is supplied explicitly by the caller so a missing PATH entry does
+    not hide an already-installed shared tool.  Relative candidates are kept
+    relative to that root and absolute candidates are ignored for safety.
+    """
+    root_value = os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip() or os.environ.get("OS_EXTERNAL_CONFIG", "").strip()
+    if not root_value:
+        return None
+    root = Path(root_value).expanduser()
+    if not root.is_absolute():
+        return None
+    for candidate in entry.get("external_paths", []) or []:
+        if not isinstance(candidate, str) or not candidate.strip():
+            continue
+        relative = Path(candidate)
+        if relative.is_absolute() or ".." in relative.parts:
+            continue
+        path = (root / relative).resolve()
+        if path.is_file() and path.is_relative_to(root.resolve()):
+            return str(path)
+    return None
+
+
+def _display_path(path: str | None, *, external: bool) -> str | None:
+    """Return a sanitized path label for reports, never a private absolute path."""
+    if not path:
+        return None
+    return f"external:{Path(path).name}" if external else f"path:{Path(path).name}"
+
+
 def resolve(manifest: Path) -> dict:
     if yaml is None:
         raise RuntimeError("PyYAML is required to resolve the environment registry")
@@ -52,6 +85,10 @@ def resolve(manifest: Path) -> dict:
             command = entry.get("healthcheck_command")
             executable = _command_name(command)
             path = shutil.which(executable) if executable else None
+            external = False
+            if not path:
+                path = _external_path(entry)
+                external = bool(path)
             version, probe_status = _probe_version(executable, path)
             resolved.append({
                 "id": f"{category}/{entry.get('name', '')}",
@@ -64,7 +101,7 @@ def resolve(manifest: Path) -> dict:
                 "healthcheck_command": command,
                 "executable": executable,
                 "available": bool(path),
-                "resolved_path": path,
+                "resolved_path": _display_path(path, external=external),
                 "version_observed": version,
                 "probe": probe_status,
             })

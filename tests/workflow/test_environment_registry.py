@@ -43,3 +43,35 @@ def test_registry_records_version_from_resolved_executable(tmp_path: Path, monke
     assert item["available"] is True
     assert item["version_observed"] == "demo 1.2"
     assert item["probe"] == "probed"
+
+
+def test_registry_uses_declared_external_path_when_command_is_not_on_path(tmp_path: Path, monkeypatch):
+    manifest = tmp_path / "capabilities.yaml"
+    external = tmp_path / "external"
+    binary = external / "10-toolchains" / "demo" / "demo.exe"
+    binary.parent.mkdir(parents=True)
+    binary.write_bytes(b"demo")
+    manifest.write_text(
+        """
+capabilities:
+  toolchains:
+    - name: demo
+      purpose: 'demo external tool'
+      version_range: '>=1'
+      platform: windows-x64
+      license: MIT
+      source_url: vendored
+      install_method: system
+      healthcheck_command: 'demo --version'
+      external_paths: ['10-toolchains/demo/demo.exe']
+      required_by: [tests]
+      local_only: true
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("scripts.workflow.environment_registry.shutil.which", lambda name: None)
+    monkeypatch.setenv("ARCHEAXIS_EXTERNAL_ROOT", str(external))
+    item = resolve(manifest)["capabilities"][0]
+    assert item["available"] is True
+    assert item["resolved_path"] == "external:demo.exe"
+    assert item["probe"] == "probe_failed"

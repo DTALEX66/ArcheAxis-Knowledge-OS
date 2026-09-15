@@ -87,6 +87,7 @@ capabilities:
       source_url: "https://rustup.rs"
       install_method: rustup
       healthcheck_command: "rustc --version"
+      external_paths: ["10-toolchains/cargo/bin/rustc.exe"]
       required_by: [desktop-build]
       local_only: true
 
@@ -98,6 +99,7 @@ capabilities:
       source_url: "https://visualstudio.microsoft.com/visual-cpp-build-tools/"
       install_method: 下载安装器
       healthcheck_command: "vswhere.exe"
+      external_paths: ["10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat"]
       required_by: [desktop-build]
       local_only: true
 
@@ -155,6 +157,7 @@ capabilities:
       source_url: "https://github.com/UB-Mannheim/tesseract/wiki"
       install_method: scoop
       healthcheck_command: "tesseract --version"
+      external_paths: ["10-toolchains/scoop/apps/tesseract/current/tesseract.exe"]
       required_by: [ocr-pipeline, conversion]
       local_only: false
 
@@ -177,6 +180,7 @@ capabilities:
       source_url: "https://ffmpeg.org/download.html"
       install_method: scoop
       healthcheck_command: "ffmpeg -version"
+      external_paths: ["10-toolchains/scoop/apps/ffmpeg/current/bin/ffmpeg.exe"]
       required_by: [conversion, media-pipeline]
       local_only: false
 

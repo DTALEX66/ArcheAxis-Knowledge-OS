@@ -127,6 +127,16 @@
           "minLength": 1,
           "description": "健康检查命令；缺失时 inventory 记为 missing"
         },
+        "external_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\)(?!.*\\.\\.).+$"
+          },
+          "description": "共享外置库根目录下的相对候选路径；仅在显式外置根环境变量下探测"
+        },
         "required_by": {
           "type": "array",
           "minItems": 1,
