@@ -138,3 +138,4 @@
 - `MON-AX-03` 在批准测试副本 `ceshi\Obsidian知识库` 上完成 source preflight：22,224 文件、835 目录，退出码 0；未打开/修改源文件，报告位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。这只是输入前置门禁，不是导入或学习闭环。
 - `MON-AX-03` 进一步以隔离输出根转换 3 个 Markdown 样本：3 条记录均 `converted`，每条源/输出 SHA-256 一致，退出码 0；manifest 位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`。仍不等于 Green 真实资料库、全量导入或学习重启验收。
 - 同一 manifest 第二次运行读回前 3 条为 `resumed`，再处理下一批 3 条，累计 converted=6；续跑未重复覆盖已完成输出。此为小样本可恢复性证据，不提升 Green/全量/学习验收等级。
+- 目录续跑、管线集成与运行 profile 回归 `29 passed, 1 warning`，退出码 0；可选 NLTK 警告来自外部依赖，未改变本次结果。

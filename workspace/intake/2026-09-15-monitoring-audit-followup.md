@@ -61,6 +61,7 @@
 - 在批准的测试副本 `D:\All projects\ceshi\Obsidian知识库` 上运行 `scripts/pipeline/source_preflight.py`：退出码 0，发现 22,224 个文件、835 个目录；脚本未打开任何源文件、未修改源文件，明确排除真实资料库和 Green 数据。证据写入 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。
 - 使用隔离输出根执行 `convert_directory_resumable` 的 3 个 Markdown 小样本：`processed=3`，3 条 manifest 记录均为 `converted`，源/输出 SHA-256 一致，退出码 0。回执位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`；该结果只证明项目转换器的小样本路径可用，不提升为 Green 首次导入、全量质量或学习重启闭环。
 - 对同一 manifest 第二次运行验证续跑：前 3 条正确标为 `resumed`，随后按 `max_files=3` 处理下一批 3 条，累计 `summary.converted=6`；未重复覆盖已完成输出。该结果证明小样本续跑语义可用，仍不等于全量质量或学习闭环。
+- 项目回归 `tests/test_directory_batch.py tests/test_axw096c_pipeline_integration.py tests/test_axw_run202_profiles.py`：`29 passed, 1 warning`，退出码 0；验证目录最新尝试语义、管线集成和四种运行 profile 仍通过。警告来自外部 `newspaper` 可选 NLTK，不影响本次 Markdown passthrough。
 
 ### MON-AX-02 除法公式风险清单
 
