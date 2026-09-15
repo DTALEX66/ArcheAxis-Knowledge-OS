@@ -1630,3 +1630,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 resource-to-pipeline regression: source preflight, audio fallback, media route and worker reachability suites passed `20 passed`; the only warning was the existing pytest cache-dir option. Test entries continue to reject real Green material roots and use project-local outputs.
 
+- 2026-09-16 Rust workspace probe: shared MSVC environment was successfully initialized and `cargo test --workspace --offline` compiled the workspace, but one API test panicked because the direct wrapper lacked the required `dev.py` run-root contract (`run through dev.py`). Exit 1 is recorded as an environment/entrypoint failure, not a product-pass claim; no source change.
+
