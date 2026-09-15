@@ -1557,3 +1557,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - R15 格式层：格式矩阵合同、文本/图像、媒体、OCR、工作区多格式及 worker 路由定向测试 `75 passed, 1 skipped, 2 warnings`。这不是 16 格式全链路或真实 Vault/Green 验收。
 - 规范层：`check_repository_conventions.py --source worktree`、路径归属检查和 `execution_preflight.py . --json` 均通过；当前 HEAD 以 Git 实际读数为准。DeepTutor 桥接的 4 个 SQLite 测试失败仍归类 `ENVIRONMENT_FAIL`，源于 pytest 临时目录 ACL，未修改权限或绕过门禁。
 - R13 签名审计：当前 `.github/workflows/release.yml` 未发现 `signtool`、Authenticode 或其他代码签名步骤；NSIS/资产哈希校验不能替代签名。签名状态明确为 `NOT_CONFIGURED`，不将候选包或 Release workflow 视为已签名交付。
+- 2026-09-15 签名资源复核：在共享 `OS External Configuration/10-toolchains` 与其上层目录未发现 `signtool.exe`，仓库配置也未发现证书、thumbprint 或签名命令；未读取任何私钥/凭据。R13 签名状态保持 `BLOCKED_RESOURCE`。
+- 发行与源根合同定向回归扩大为 `89 passed, 2 warnings`，退出码 0；仓库规范检查 PASS。warnings 为外部依赖弃用/NLP 可选包提示，不改变结果。
