@@ -62,3 +62,11 @@
 - 使用外置 .NET 构建 `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj`：0 errors，2 warnings（NuGet vulnerability feed unavailable、Avalonia Watermark obsolete）。
 - 通过 `scripts/runtime/dev.py` 注入项目 run root、Python、Rust 与 MSVC 环境后，`cargo test -p archeaxis-api --tests` 全部通过；包含 API、学习状态、机器纠错、运行时作业和 v0.1 journey 用例。编译警告保留，未修改为静默。
 - 当前 registry 的 PATH 探测仍会把未加入 PATH 的 Rust/.NET/MSVC 记为 missing；这是探测器局限，不代表外置实体不存在。正式 Windows profile 仍需把绝对路径绑定并做安装包验收。
+
+## 增量复核：外置库对应关系与完整 Rust 验证
+
+- 只读复核确认 `D:\All projects\Model library` 存在 `ollama`、`sherpa-onnx`、`whisper`、`ComfyUI`；`D:\All projects\OS External Configuration\10-toolchains` 存在 DeepTutor 1.5.17、.NET 10.0.400、Cargo/Rust 1.97.1、MSVC、Tesseract 5.5.0、FFmpeg 8.1.2 及其共享工具目录。五个外置根均为普通目录且未发现 reparse point。
+- 已核对的旧 `project-tool-index.yaml` 可用，但仍漏登正式 .NET、DeepTutor、Ollama、Sherpa-ONNX、Whisper 与共享 Magika 模型；项目文档已补充当前对应关系。该索引差异是规范化待办，不代表外置软件缺失。
+- 使用外置 MSVC、Rust、Tesseract 路径并通过 `scripts/runtime/dev.py` 路由运行目录，`cargo test --workspace` 全部测试组及 doc-tests 通过。首次失败原因为会话 PATH 未注入 Tesseract/MSVC，补齐外置路径后重跑通过；该事实已单独记录，未将环境缺失误报为产品回归。
+- 使用外置 .NET 构建 `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --no-restore`：0 errors，2 warnings（NuGet vulnerability feed unavailable、Avalonia `TextBox.Watermark` obsolete）。
+- 本节只记录仓库内文档与本地验证；未修改共享外置库、模型库、Green 目录或真实资料库。DeepTutor 宿主挂载、Ollama/Sherpa/Whisper 实链、安装器/签名/干净机和 Q00/Q01 仍未闭环。

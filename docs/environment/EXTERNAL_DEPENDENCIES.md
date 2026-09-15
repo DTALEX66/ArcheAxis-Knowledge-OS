@@ -16,6 +16,26 @@
 
 ---
 
+## 0.1 2026-09-15 实机目录复核
+
+本次只读复核确认共享库中已有可供本项目消费的实体。工具索引仍需后续补齐正式
+桌面与本地模型服务条目；以下是当前已确认的对应关系，不代表每项已经完成运行时验收。
+
+| 能力/软件 | 外置实体 | 当前结论 |
+| --- | --- | --- |
+| .NET / Avalonia 构建 | `OS External Configuration/10-toolchains/dotnet/dotnet.exe` | 已存在；本地 Avalonia 构建通过 |
+| Rust + MSVC | `10-toolchains/cargo/bin`、`10-toolchains/msvc` | 已存在；MSVC 环境注入后 Rust workspace 测试通过 |
+| Tesseract OCR | `10-toolchains/scoop/apps/tesseract/current` 及语言包 | 已存在；需在运行会话显式绑定 PATH/TESSDATA_PREFIX |
+| FFmpeg | `10-toolchains/scoop/apps/ffmpeg/current/bin` | 已存在；媒体适配器可按共享工具根解析 |
+| DeepTutor | `10-toolchains/deeptutor/1.5.17` | 已存在；宿主内挂载与启动验收仍属 R10/R13 未闭合项 |
+| Ollama / 本地模型 | `Model library/ollama` | 已存在；模型服务连通性与模型名映射仍需单独验收 |
+| Sherpa-ONNX / SenseVoice | `Model library/sherpa-onnx` | 已存在；音频管线实链需单独验收 |
+| Whisper 模型 | `Model library/whisper` | 已存在；ASR 运行时尚未据此宣称全链路完成 |
+| Magika 模型 | 共享目录由 `ARCHEAXIS_MAGIKA_MODEL_DIR` 指向；仓库副本作离线回退 | 接线已实现；共享目录实体需 profile 验收 |
+
+上述路径均位于 `D:\All projects`，不涉及 E 盘。Windows 环境注册器仍有按 PATH
+探测的能力，因此“missing”可能表示会话未注入外置路径，而不是软件不存在。
+
 ## 0. 环境变量（会话级，不写注册表）
 
 | 变量 | 值 | 用途 |
