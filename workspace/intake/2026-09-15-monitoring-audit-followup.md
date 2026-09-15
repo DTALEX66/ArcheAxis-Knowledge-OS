@@ -65,6 +65,7 @@
 - 项目闭环定向回归 `tests/test_learning_loop_e2e.py tests/test_workspace_public_closed_loop.py tests/test_workspace_pipeline_multiformat.py tests/test_workspace_crash_recovery.py tests/test_workspace_research_consumer.py`：`13 passed, 2 warnings`，退出码 0；覆盖隔离数据库中的导入、学习、来源绑定、多格式入口、崩溃恢复和研究消费。该证据仍不替代真实 Green 资料库验收。
 - `source_preflight` 已接入 `scripts/pipeline/pipeline_audio.py` 与 `pipeline_video.py`：以 `D:\All projects\资料库` 作为输入时立即拒绝且不扫描；项目 `.project-local` 空源的音频、视频入口均退出码 0。执行入口现在与独立门禁使用同一批准路径策略。
 - `MON-AX-05` 资源核验：项目代码与两个共享库顶层目录均未发现 NeoMME/Neo MME 实现、权重或许可记录；当前 `app/rag/embedder.py` 的配置提供方仍为 `local` 简单嵌入，LLM 分支也仅是可选 LiteLLM 路径。结论为 `BLOCKED_NEEDS_RESOURCE_VERIFICATION`，不新增依赖、不把候选名称当成可用提供方。
+- 整合后标准前置检查：`scripts/workflow/execution_preflight.py . --json` 通过，退出码 0；当前 HEAD `b0f1d3d9...`，Markdown 链接 546 条全部无断链，2 条为已登记的预期 fixture 缺失，未打开私有状态。
 
 ### MON-AX-02 除法公式风险清单
 
