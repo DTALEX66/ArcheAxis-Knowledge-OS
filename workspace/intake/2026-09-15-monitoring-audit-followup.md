@@ -67,6 +67,7 @@
 - 媒体入口新增 `--max-files` 小样本参数并完成真实音频尝试：`ceshi\升级你的学习力...\音频课` 选取 1 个 MP3，管线退出码 0 但回执为 `ok=0/fail=1/sensevoice empty`。该结果是模型/音频质量未通过的真实证据，不能按进程退出码冒充成功；回执在 `.project-local/runs/monitoring-audit-20260915/artifacts/pipeline/audio/audio_full_receipt.json`。
 - ASR 调试已定位为环境缺口：FFmpeg 能将该 MP3 解码为 16kHz/mono PCM（约 26:28），共享 SenseVoice 模型文件存在，但项目 CI Python 导入 `sherpa_onnx` 返回 `ModuleNotFoundError`。已修正 `asr_adapter._sense_voice_dir()` 以发现共享模型目录并加 2 个回归测试；运行时依赖仍未安装，故媒体任务保持 `ENVIRONMENT_FAIL/NOT RUN`，不修改共享 venv。
 - ASR/媒体适配器回归 `tests/test_asr_adapter.py tests/test_media_extractor.py tests/test_axw023b_f_adapters.py`：`25 passed, 1 warning`，退出码 0；验证解码器与适配器合同，不能替代缺失的 `sherpa_onnx` 实链。
+- SenseVoice 缺失后的 faster-whisper 兜底已加入并有 2 个回归测试（模型解析/兜底共 `4 passed`）；对同一 26:28 MP3 的 CPU 兜底实跑超过 5 分钟仍无回执，已中止自有进程，保持 `NOT RUN/PERFORMANCE_BLOCKED`。下一步需明确的 ASR 运行时与时限策略，不能把长音频无限等待当作通过。
 - `MON-AX-05` 资源核验：项目代码与两个共享库顶层目录均未发现 NeoMME/Neo MME 实现、权重或许可记录；当前 `app/rag/embedder.py` 的配置提供方仍为 `local` 简单嵌入，LLM 分支也仅是可选 LiteLLM 路径。结论为 `BLOCKED_NEEDS_RESOURCE_VERIFICATION`，不新增依赖、不把候选名称当成可用提供方。
 - 整合后标准前置检查：`scripts/workflow/execution_preflight.py . --json` 通过，退出码 0；当前 HEAD `b0f1d3d9...`，Markdown 链接 546 条全部无断链，2 条为已登记的预期 fixture 缺失，未打开私有状态。
 - 路径/输出/配置整合回归：`tests/test_path_conventions.py tests/test_approved_paths.py tests/test_project_output_routing_contract.py tests/test_config_profiles.py tests/test_axw_data404_paths.py tests/test_ocr_adapter_config.py` 为 `63 passed, 1 skipped`，退出码 0；跳过项为平台条件，不构成通过声明。

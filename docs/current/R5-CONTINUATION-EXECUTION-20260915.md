@@ -144,6 +144,7 @@
 - 媒体入口新增 `--max-files` 小样本参数；对 ceshi 单个 MP3 的真实 SenseVoice 尝试回执为 `ok=0/fail=1/sensevoice empty`。进程退出码 0 仅表示管线完成写回，音频内容未通过，保持 R5 媒体质量未闭合。
 - ASR 根因复核：FFmpeg 解码正常，模型文件存在，但项目 CI Python 缺少 `sherpa_onnx`（`ModuleNotFoundError`）；共享模型解析已修正并有 2 个测试通过，运行时依赖未安装，媒体质量保持 `ENVIRONMENT_FAIL/NOT RUN`。
 - ASR/媒体适配器回归 `25 passed, 1 warning`，退出码 0；适配器合同通过，真实 SenseVoice 运行时仍缺依赖。
+- 已加入 SenseVoice→faster-whisper 兜底并通过 4 个回归测试；同一长音频 CPU 兜底超过 5 分钟无回执后中止，标记 `PERFORMANCE_BLOCKED`，不提升媒体质量等级。
 - `MON-AX-05` 资源核验未发现 NeoMME 实现、权重或许可；当前 RAG 默认仍是本地简单嵌入，候选 POC 保持阻塞，不新增依赖或付费调用。
 - 整合后 `execution_preflight.py . --json` 通过：546 条 Markdown 链接无断链，2 条预期 fixture 缺失已分类，`private_state_opened=false`。
 - 路径、输出路由与 profile 配置回归 `63 passed, 1 skipped`，退出码 0；跳过项为平台条件，未提升为全平台验收。

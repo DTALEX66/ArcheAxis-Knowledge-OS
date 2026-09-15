@@ -24,9 +24,24 @@ WORK = str(ARTIFACT_ROOT / "work")
 os.makedirs(WORK, exist_ok=True)
 Path(OUT).parent.mkdir(parents=True, exist_ok=True)
 
-from app.ingestion.asr_adapter import transcribe_sense_voice
+from app.ingestion.asr_adapter import AsrError, transcribe, transcribe_sense_voice
 from app.ingestion.content_cleaner import clean_text as strip_noise
-from source_preflight import validate_source  # noqa: E402
+try:
+    from source_preflight import validate_source  # noqa: E402
+except ModuleNotFoundError:
+    from scripts.pipeline.source_preflight import validate_source  # noqa: E402
+
+
+def _transcribe_with_fallback(audio_path: str | Path) -> dict:
+    """Prefer SenseVoice, then use the configured faster-whisper model."""
+    result = transcribe_sense_voice(audio_path)
+    if result and result.get("text", "").strip():
+        return result
+    try:
+        fallback = transcribe(audio_path)
+    except AsrError:
+        return {}
+    return fallback if fallback.get("text", "").strip() else {}
 
 
 def main() -> None:
@@ -90,7 +105,7 @@ def main() -> None:
                 _sp.run(['ffmpeg','-y','-ss',str(_s*seg),'-t',str(seg),'-i',wav,'-ac','1','-ar','16000',_seg_wav],
                         capture_output=True, check=False)
                 if not os.path.exists(_seg_wav): continue
-                _r = transcribe_sense_voice(_seg_wav)
+                _r = _transcribe_with_fallback(_seg_wav)
                 if _r:
                     parts.append(_r['text'])
                 try: os.remove(_seg_wav)
