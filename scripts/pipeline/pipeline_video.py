@@ -20,7 +20,10 @@ Path(OUT).parent.mkdir(parents=True, exist_ok=True)
 from app.ingestion.content_cleaner import clean_text as strip_noise
 from app.ingestion.ocr_gate import assess as ocr_gate
 from app.ingestion.rapid_ocr_adapter import convert_image_rapid
-from source_preflight import validate_source  # noqa: E402
+try:
+    from source_preflight import validate_source  # noqa: E402
+except ModuleNotFoundError:
+    from scripts.pipeline.source_preflight import validate_source  # noqa: E402
 
 if not ROOT:
     raise SystemExit("set ARCHEAXIS_PIPELINE_SOURCE_ROOT to an approved source directory")
