@@ -145,3 +145,10 @@ def test_desktop_smoke_requires_an_explicit_managed_database_path() -> None:
 
     assert "provide an explicit project-local database path" in source
     assert "Path.GetTempPath()" not in source
+
+
+def test_desktop_release_is_self_contained_for_clean_green_machines() -> None:
+    project = _read("apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj")
+
+    assert "<RuntimeIdentifier>win-x64</RuntimeIdentifier>" in project
+    assert "<SelfContained>true</SelfContained>" in project
