@@ -54,6 +54,11 @@
 - 复用现有 grounded answer、证据边界、关系冲突和覆盖率测试：`tests/test_axw050a_grounded_answer.py tests/test_axw050b_boundaries.py tests/test_axw024c_relations.py tests/test_axw054b_metrics.py`，项目外部 CI Python 下 `26 passed`，退出码 0。
 - 该结果证明项目已有“无锚点拒绝、过期/撤销证据降级、冲突需裁决、覆盖率按有锚点主张统计”的局部合同；不等于真实资料库或模型质量准确率验收完成。
 
+### MON-AX-03 资源根前置元数据复核
+
+- 只读 `Test-Path/Get-Item` 复核确认 `D:\All projects\ceshi`、`D:\All projects\资料库`、`D:\All projects\ArcheAxis.Knowledge.Green-x64`、`D:\All projects\Model library`、`D:\All projects\OS External Configuration` 五个根均存在且为目录。
+- 未递归读取资料、模型、Green 数据或私有配置；该结果只证明路径存在，不能证明 profile 绑定、真实导入授权、模型服务连通或 Green 闭环，因此 `MON-AX-03` 继续保持 `BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION`。
+
 ### MON-AX-02 除法公式风险清单
 
 - 审计脚本现记录每个含除法的公式位置；真实工作簿共 17 个。报告保留公式原文但统一标记 `evaluation=NOT_PERFORMED`、`boundary_regression=REQUIRED`，不把文本模式当作 Excel 求值结果。
