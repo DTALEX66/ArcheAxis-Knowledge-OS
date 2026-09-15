@@ -14,7 +14,15 @@ def _candidate(tmp_path: Path) -> Path:
     core = tmp_path / "core.exe"
     core.write_bytes(b"core")
     project = tmp_path / "project"
-    return assemble(desktop, core, project / ".project-local/out", "test", project_root=project).root
+    return assemble(
+        desktop,
+        core,
+        project / ".project-local/out",
+        "test",
+        project_root=project,
+        source_commit="commit",
+        source_tree="tree",
+    ).root
 
 
 def test_verifier_accepts_complete_candidate(tmp_path: Path) -> None:
@@ -36,3 +44,11 @@ def test_verifier_can_require_runtime_for_full_green_audit(tmp_path: Path) -> No
     result = verify(candidate, require_runtime=True)
     assert result["ok"] is False
     assert any("runtime directory is required" in problem for problem in result["problems"])
+
+
+def test_verifier_rejects_source_provenance_mismatch(tmp_path: Path) -> None:
+    candidate = _candidate(tmp_path)
+    result = verify(candidate, expected_commit="different", expected_tree="different")
+    assert result["ok"] is False
+    assert "candidate source commit mismatch" in result["problems"]
+    assert "candidate source tree mismatch" in result["problems"]
