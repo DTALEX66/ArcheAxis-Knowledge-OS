@@ -77,3 +77,8 @@
   `scripts/ci/check_deeptutor_notebook.py`；结果为 `UPSTREAM_SERVICE_CUSTODY_PASS`。
 - 合成数据覆盖创建笔记、记录写入、导出、进程重启后读取、custody 打包/解包，以及损坏派生索引后的重建；所有写入均路由到项目 `.project-local/runs/.../artifacts/deeptutor-notebook/`。
 - 该证据只证明 DeepTutor 外置服务的离线 custody 能力，不能提升为 GUI 可用、Core 权威桥接、模型调用或真实资料学习闭环；R10/R13 仍保持未闭合。
+
+## Windows 外置工具链 Doctor
+
+- 通过 PowerShell 7.6.3、项目 Python 3.13.14，并显式绑定共享 Rust 工具链运行 `scripts/doctor_windows.ps1`：`healthy=true`，Python/Node/Rust/PowerShell 均可见，5 个探测端口可用，项目根与 `.project-local/task-runtime` 可写，访问阻塞项为空。
+- 该 Doctor 证明当前开发机的基础工具链和路径布局可用；它不替代安装器、签名、卸载、干净机器或 GUI 验收。
