@@ -1683,3 +1683,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 Windows deep-path repair: shared/backup.py, shared/migration.py and shared/migration_runner.py now use extended-length paths for manifests, migration backups, owner locks and SQLite connections; backup/DeepTutor bridge regression 12 passed, migration/governance/backup regression 50 passed. Commit c84414e8; this closes a real MAX_PATH failure but does not promote R10/R13 or independent audit status.
 
 - 2026-09-16 adapter boundary repair: convert_youtube_transcript now validates empty source before importing the optional dependency, preserving the correct user error when the engine is unavailable; YouTube adapter regression 6 passed, commit 467482b2.
+
+- 2026-09-16 full Python gate in project .venv: pytest -q completed 2834 passed, 10 skipped, 135 subtests passed in 185.17s with 13 dependency/deprecation warnings; no test failures or collection errors. This is local verification only; it does not prove remote CI, installer, signing or independent audit.`r`n
