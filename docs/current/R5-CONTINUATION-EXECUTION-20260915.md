@@ -159,3 +159,9 @@
 - 正式 `.github/workflows/release.yml` 另有独立链路：下载 exact-SHA CI 候选安装器/前端/可执行文件，执行 NSIS 生命周期、构建 wheel/Green/Portable、生成 SBOM/manifest/checksum，并上传草稿 Release。结构检查 `scripts/release/verify_release_architecture.py` PASS。
 - R13 定向合同测试在当前提交运行 `85 passed, 2 warnings`，退出码 0；覆盖 candidate manifest、桌面 staging、release architecture、release manifest、identity。首次发现 `uv.lock` 更新后 `app/release-manifest.json` 摘要漂移，已修正为当前锁文件 SHA-256 `0f73ea804b0eca61a251013d199f75d88f35e6322bb155eb2581b8d10f69ce52` 后复跑通过。
 - 该结果只证明发行脚本与清单合同一致；本地没有生成新的完整 Windows 安装包，也没有进行代码签名、干净机器安装/升级/卸载或 exact-SHA 云端 release 回读，因此 R13 仍为 `IMPLEMENTED_LOCAL / INSTALLED_RUNTIME_VERIFIED NOT RUN`，不能提升为闭环。
+
+## DeepTutor 桥接回归环境门禁
+
+- 直接运行四个 DeepTutor bridge/custody/web 合同文件时得到 `11 passed, 4 failed`；4 个失败均发生在 `MigrationOperator._owner_guard()` 的 SQLite `BEGIN IMMEDIATE`，错误为 `unable to open database file`，没有进入桥接断言。
+- 失败 `tmp_path` 位于项目 `.project-local`，其 Windows ACL 仅含 `OWNER RIGHTS`、SYSTEM 和 Administrators，当前用户没有显式写权限；该目录属于历史/运行时 ACL 边界，不是产品数据库内容或 DeepTutor 逻辑证据。
+- 未修改 ACL、未删除目录、未绕过权限；该回归标为 `ENVIRONMENT_FAIL`，待清理门禁或经批准的可写测试根修复后重跑，不能把 11 项通过提升为 R10/R13 完成。
