@@ -1586,3 +1586,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-15 index lock hardening: the resource preflight now also verifies that `docs/SHARED_RESOURCE_PATH_INDEX.md` contains all five registered IDs and canonical D: paths; missing or drifted index entries fail closed. Real `test` preflight, unit tests (`2 passed`) and Ruff passed.
 - 2026-09-15 index-lock regression: simulated a rewritten resource index and confirmed the preflight rejects it; resource-boundary tests now pass `3`, Ruff remains `PASS`.
 - 2026-09-15 E-drive boundary regression: added an explicit test that a project root on `E:` is rejected before any resource inspection; resource-boundary suite now passes `4`, Ruff remains `PASS`.
+- 2026-09-15 low-quota monitoring: added `scripts/maintenance/prepare_low_quota_handoff.py` and policy `docs/current/LOW-QUOTA-HANDOFF-POLICY.md`. With live account input 11%, report state is `MONITORING`; it records branch/HEAD/upstream gap and excludes private/untracked state. Targeted tests: `4 passed`. It does not stage, commit, push, or claim double-end consistency.
+
