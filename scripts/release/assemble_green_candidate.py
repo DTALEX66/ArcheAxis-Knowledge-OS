@@ -39,6 +39,7 @@ def assemble(
     output: Path,
     version: str,
     *,
+    runtime: Path | None = None,
     project_root: Path | None = None,
 ) -> AssemblyResult:
     desktop = desktop.resolve()
@@ -54,6 +55,8 @@ def assemble(
         raise ValueError("desktop publish directory or executable is missing")
     if not core.is_file():
         raise ValueError("Core executable is missing")
+    if runtime is not None and not runtime.is_dir():
+        raise ValueError("runtime directory is missing")
 
     output.mkdir(parents=True, exist_ok=True)
     root = output / f"ArcheAxis.Knowledge.Green-v{version}-x64"
@@ -61,6 +64,8 @@ def assemble(
         shutil.rmtree(root)
     (root / "desktop").mkdir(parents=True)
     (root / "core").mkdir()
+    if runtime is not None:
+        (root / "runtime").mkdir()
     copied_files: list[Path] = []
     for source in desktop.rglob("*"):
         if source.is_file():
@@ -71,6 +76,13 @@ def assemble(
     core_target = root / "core" / "archeaxis-api.exe"
     shutil.copy2(_native_path(core), _native_path(core_target))
     copied_files.append(core_target)
+    if runtime is not None:
+        for source in runtime.rglob("*"):
+            if source.is_file():
+                target = root / "runtime" / source.relative_to(runtime)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(_native_path(source), _native_path(target))
+                copied_files.append(target)
 
     files: dict[str, dict[str, int | str]] = {}
     for path in sorted(copied_files):
@@ -91,10 +103,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--desktop", required=True, type=Path)
     parser.add_argument("--core", required=True, type=Path)
+    parser.add_argument("--runtime", type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--version", required=True)
     args = parser.parse_args()
-    result = assemble(args.desktop, args.core, args.out, args.version)
+    result = assemble(args.desktop, args.core, args.out, args.version, runtime=args.runtime)
     print(json.dumps({"root": str(result.root), "zip": str(result.zip_path)}))
     return 0
 

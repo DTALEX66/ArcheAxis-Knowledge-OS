@@ -17,12 +17,16 @@ def test_assembly_bundles_desktop_and_core_with_hash_manifest(tmp_path: Path) ->
     (desktop / "hostfxr.dll").write_bytes(b"runtime")
     core = tmp_path / "archeaxis-api.exe"
     core.write_bytes(b"core")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / "python.exe").write_bytes(b"python")
 
     result = assemble(
         desktop,
         core,
         local / "build" / "green-candidates",
         "0.0.0-test",
+        runtime=runtime,
         project_root=project,
     )
 
@@ -35,6 +39,7 @@ def test_assembly_bundles_desktop_and_core_with_hash_manifest(tmp_path: Path) ->
         manifest = json.load(stream)
     assert manifest["schema"] == "archeaxis.green-candidate/v1"
     assert manifest["files"]["core/archeaxis-api.exe"]["sha256"]
+    assert manifest["files"]["runtime/python.exe"]["sha256"]
 
 
 def test_assembly_rejects_output_outside_project_local(tmp_path: Path) -> None:
