@@ -28,7 +28,7 @@
 | Tesseract OCR | `10-toolchains/scoop/apps/tesseract/current` 及语言包 | 已存在；需在运行会话显式绑定 PATH/TESSDATA_PREFIX |
 | FFmpeg | `10-toolchains/scoop/apps/ffmpeg/current/bin` | 已存在；媒体适配器可按共享工具根解析 |
 | DeepTutor | `10-toolchains/deeptutor/1.5.17` | 已存在；宿主内挂载与启动验收仍属 R10/R13 未闭合项 |
-| Ollama / 本地模型 | `Model library/ollama` | 已存在；模型服务连通性与模型名映射仍需单独验收 |
+| Ollama / 本地模型 | `Model library/ollama`（当前复核为模型 blob 存储，未发现 `ollama.exe`） | 模型资产目录存在；本机 Ollama 服务连通性尚未证明 |
 | Sherpa-ONNX / SenseVoice | `Model library/sherpa-onnx` | 已存在；音频管线实链需单独验收 |
 | Whisper 模型 | `Model library/whisper` | 已存在；ASR 运行时尚未据此宣称全链路完成 |
 | Magika 模型 | 共享目录由 `ARCHEAXIS_MAGIKA_MODEL_DIR` 指向；仓库副本作离线回退 | 接线已实现；共享目录实体需 profile 验收 |
