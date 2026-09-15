@@ -34,6 +34,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('--part', type=int, default=0)
     ap.add_argument('--parts', type=int, default=1)
+    ap.add_argument('--max-files', type=int, default=0, help='process at most this many sorted inputs (0 = all)')
     ap.add_argument('--audio-only', action='store_true', help='skip .mp4 (video tracks deferred)')
     args = ap.parse_args()
     if not ROOT:
@@ -60,6 +61,10 @@ def main() -> None:
                 if os.path.getsize(p) > 0:
                     files.append(p)
     files = [p for i, p in enumerate(sorted(files)) if i % args.parts == args.part]
+    if args.max_files < 0:
+        raise SystemExit("--max-files must be non-negative")
+    if args.max_files:
+        files = files[:args.max_files]
     print(f'audio files (part {args.part}/{args.parts}):', len(files), flush=True)
     receipts, ok, fail = [], 0, 0
     for idx, p in enumerate(files):

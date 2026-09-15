@@ -141,6 +141,7 @@
 - 目录续跑、管线集成与运行 profile 回归 `29 passed, 1 warning`，退出码 0；可选 NLTK 警告来自外部依赖，未改变本次结果。
 - 学习/工作区定向闭环回归 `13 passed, 2 warnings`，退出码 0；覆盖隔离库导入、学习回读、来源绑定、多格式入口、崩溃恢复与研究消费，仍不等于 Green 真实资料库验收。
 - `source_preflight` 已接入音频/视频管线入口；真实资料库路径立即拒绝，项目 `.project-local` 空源的两条管线均退出码 0，确保执行链不会绕过批准源根门禁。
+- 媒体入口新增 `--max-files` 小样本参数；对 ceshi 单个 MP3 的真实 SenseVoice 尝试回执为 `ok=0/fail=1/sensevoice empty`。进程退出码 0 仅表示管线完成写回，音频内容未通过，保持 R5 媒体质量未闭合。
 - `MON-AX-05` 资源核验未发现 NeoMME 实现、权重或许可；当前 RAG 默认仍是本地简单嵌入，候选 POC 保持阻塞，不新增依赖或付费调用。
 - 整合后 `execution_preflight.py . --json` 通过：546 条 Markdown 链接无断链，2 条预期 fixture 缺失已分类，`private_state_opened=false`。
 - 路径、输出路由与 profile 配置回归 `63 passed, 1 skipped`，退出码 0；跳过项为平台条件，未提升为全平台验收。

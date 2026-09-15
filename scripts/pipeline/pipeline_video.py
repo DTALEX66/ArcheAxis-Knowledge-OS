@@ -1,6 +1,7 @@
 """视频画面转化：全部 mp4 抽帧 + RapidOCR（画面文字知识提取，非音轨）。"""
 import json
 import os
+import argparse
 import subprocess
 import sys
 import time
@@ -28,6 +29,12 @@ try:
 except ValueError as exc:
     raise SystemExit(f"source root rejected: {exc}") from exc
 
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--max-files', type=int, default=0, help='process at most this many sorted inputs (0 = all)')
+args = parser.parse_args()
+if args.max_files < 0:
+    raise SystemExit("--max-files must be non-negative")
+
 videos = []
 for dirpath, dirnames, filenames in os.walk(ROOT):
     for f in filenames:
@@ -36,6 +43,8 @@ for dirpath, dirnames, filenames in os.walk(ROOT):
             if os.path.getsize(p) > 100 * 1024:
                 videos.append(p)
 print('videos:', len(videos), flush=True)
+if args.max_files:
+    videos = sorted(videos)[:args.max_files]
 
 receipts = []
 ok = fail = 0
