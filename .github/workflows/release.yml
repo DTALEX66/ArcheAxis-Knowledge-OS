@@ -90,6 +90,22 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install locked build tooling
         run: uv sync --frozen
+      - name: Download and verify exact-SHA Avalonia Green candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $greenStage = '.project-local/task-runtime/green-candidate-vnext'
+          New-Item -ItemType Directory -Force $greenStage | Out-Null
+          gh run download ${{ steps.require_ci.outputs.verification_run_id }} --name green-candidate-vnext --dir $greenStage
+          $greenZip = @(Get-ChildItem -LiteralPath $greenStage -Filter '*.zip' -File)
+          if ($greenZip.Count -ne 1) { throw "expected one Avalonia Green candidate ZIP, found $($greenZip.Count)" }
+          $greenExtract = Join-Path $greenStage 'expanded'
+          Expand-Archive -LiteralPath $greenZip[0].FullName -DestinationPath $greenExtract -Force
+          $greenCandidate = @(Get-ChildItem -LiteralPath $greenExtract -Directory)
+          if ($greenCandidate.Count -ne 1) { throw "expected one expanded Green candidate directory" }
+          python -B scripts/release/verify_green_candidate.py $greenCandidate[0].FullName --require-runtime
+          if ($LASTEXITCODE -ne 0) { throw 'exact-SHA Avalonia Green candidate verification failed' }
       - name: Resolve and verify release version
         id: resolve_version
         shell: pwsh
