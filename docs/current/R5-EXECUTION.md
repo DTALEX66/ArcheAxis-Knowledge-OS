@@ -1559,3 +1559,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - R13 签名审计：当前 `.github/workflows/release.yml` 未发现 `signtool`、Authenticode 或其他代码签名步骤；NSIS/资产哈希校验不能替代签名。签名状态明确为 `NOT_CONFIGURED`，不将候选包或 Release workflow 视为已签名交付。
 - 2026-09-15 签名资源复核：在共享 `OS External Configuration/10-toolchains` 与其上层目录未发现 `signtool.exe`，仓库配置也未发现证书、thumbprint 或签名命令；未读取任何私钥/凭据。R13 签名状态保持 `BLOCKED_RESOURCE`。
 - 发行与源根合同定向回归扩大为 `89 passed, 2 warnings`，退出码 0；仓库规范检查 PASS。warnings 为外部依赖弃用/NLP 可选包提示，不改变结果。
+- R10 DeepTutor Web 实测：固定 `1.5.17` 解释器、Node 和 `server.js` 文件均存在；项目启动器在 45 秒等待内收到子进程退出码 1，未形成 READY 回执。直接调用上游 launcher 在 20 秒观察窗口内持续运行但未证明前端就绪。该运行在项目隔离 runtime home 生成约 870 个 `.next`/Web 文件，显示上游会复制 Web 产物；与启动器注释中的“不复制 Web bundle”不一致，已标为 `PARTIAL / INTEGRATION_GAP`，未提升 R10。

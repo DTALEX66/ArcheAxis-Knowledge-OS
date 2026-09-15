@@ -1,8 +1,9 @@
 """Run the pinned DeepTutor Web sidecar from a project-owned runtime home.
 
-The upstream package stays read-only.  This wrapper owns only its child process
-and project-local runtime directory; it never copies the Web bundle or forwards
-provider credentials into the sidecar.
+The upstream package stays read-only. This wrapper owns only its child process
+and project-local runtime directory; it does not copy the Web bundle itself and
+never forwards provider credentials into the sidecar. The pinned upstream
+launcher may materialize a derived Web runtime inside ``DEEPTUTOR_HOME``.
 """
 
 from __future__ import annotations
