@@ -1612,3 +1612,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 R5 gate recheck: evidence index passed (17 slices, 81 tracked evidence, 3 receipts); format matrix parsed 16 rows with 0 complete / 14 partial / 2 custody-only; worker reachability passed (12 workers, 10 routed, 2 exempted); architecture check passed.
 
+- 2026-09-16 active-source boundary gate: added `tests/maintenance/test_active_output_boundaries.py` to reject machine-specific D: roots and `.hermes/task-runtime` output strings in active code. Gate passed `1`, Ruff passed.
+
