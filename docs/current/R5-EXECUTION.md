@@ -1602,3 +1602,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 model path regression: added `tests/workers/test_transcribe_model_path.py` covering checkout-parent derivation and explicit `ARCHEAXIS_ASR_MODEL_DIR` override. Worker/reachability tests `9 passed`; repository convention gate passed.
 
+- 2026-09-16 delivery attempt: `git push origin codex/full-loop-0906` was rejected before process execution by the active automatic approval policy (`AskForApproval=Never`, approval required). No alternate push route or policy bypass was attempted; remote SHA remains unverified.
+
