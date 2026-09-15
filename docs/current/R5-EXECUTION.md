@@ -1608,3 +1608,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 low-quota handoff completeness: threshold report now includes tracked verification summary, R5 handoff, cleanup manifest and low-quota policy alongside execution/state/index files. At simulated 2% all available sources were listed; targeted tests `4 passed`.
 
+- 2026-09-16 lint cleanup: removed an obsolete UTF-8 coding header from the media worker and corrected a Ruff SIM300 assertion style in its model-path regression test. Ruff, Python compile, targeted tests (`6 passed`) and `git diff --check` passed.
+

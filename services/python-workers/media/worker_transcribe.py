@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ArcheAxis vNext media worker: local ASR transcription (F10).
 
 Formats: WAV / MP3 / M4A / FLAC (decoded through ffmpeg by faster-whisper).

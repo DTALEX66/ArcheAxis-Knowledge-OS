@@ -18,7 +18,7 @@ def _load():
 def test_default_model_root_is_derived_from_checkout_parent():
     module = _load()
     expected = ROOT.parent / "Model library" / "whisper" / "faster-whisper-large-v3-turbo"
-    assert module.DEFAULT_MODEL_DIR == expected
+    assert expected == module.DEFAULT_MODEL_DIR
     assert "D:/All projects" not in str(module.DEFAULT_MODEL_DIR)
 
 
