@@ -1645,3 +1645,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 R13 runtime 前置复核：项目 `.project-local/build` 当前没有可复用的 `venv` 或 `rt/runtime`（仅有现有构建、候选和测试目录），因此未强行把开发环境伪装成 Green runtime；完整 workers/runtime 仍列为待准备资源。
 - 2026-09-16 Green 候选验证器：新增 `scripts/release/verify_green_candidate.py`，只读核对候选清单、桌面自包含运行时文件、Core 入口和逐文件 SHA-256；完整候选与篡改文件测试 `4 passed`，对实际 `ArcheAxis.Knowledge.Green-vr5-x64` 候选返回 `ok=true`、229 文件、0 问题。
 - 2026-09-16 Green 组装输入边界加固：组装器现在拒绝输入目录、文件及递归内容中的符号链接/Windows 重解析点，避免通过 junction 引入外置库或用户目录；回归 `4 passed, 1 skipped`（跳过项为当前环境不支持创建 symlink），Ruff 通过。
+- 2026-09-16 加固后真实候选复核：重新组装 Release 桌面 + Core 为 `ArcheAxis.Knowledge.Green-vr5guarded-x64`，组装 exit 0；`verify_green_candidate.py` 返回 `ok=true`、229 文件、0 问题。输出保持项目 `.project-local`，未触碰既有 Green。
