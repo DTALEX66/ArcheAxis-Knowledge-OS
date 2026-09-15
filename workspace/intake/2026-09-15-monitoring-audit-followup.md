@@ -1,0 +1,38 @@
+# 2026-09-15 监控审计材料接入任务
+
+状态：`PLANNED`。本文件把用户提供的三份桌面审计材料纳入 ArcheAxis R5 后续任务侧车；不替换冻结 TaskPack、TASKS、R5-STATE 或验收正文。
+
+## 来源与完整性
+
+| 来源 | 角色 | SHA-256 | 处理 |
+|---|---|---|---|
+| `C:\Users\ALEX\Desktop\01_审计报告与三项目融入建议.md` | 总体审计与三项目分流 | `d8249b7a4c90b549c3a5f79da7f46dcb2d9d0bbb464036ac1716cdceb41c4da3` | 保留为研究底稿；不作为执行授权 |
+| `C:\Users\ALEX\Desktop\05_附件完整性与工作簿审计.json` | 附件哈希、缺口、工作簿边界证据 | `67dfe3fb9f5f1ecfd78bbb0d41aba784da1bbd32b547463b8fed186d8d46accd` | 保留为证据索引；原工作簿不修改 |
+| `C:\Users\ALEX\Desktop\06_ArcheAxis_工作区接入交接.md` | ArcheAxis 任务映射与接入顺序 | `45605b9b758444612aea193f046fece67f77e9a03f7cbddaa68d4d09d77d5283` | 作为本项目后续任务入口 |
+
+桌面原件不复制进仓库，不读取 E: 盘，不读取凭据、私有会话或代理状态。
+
+## 后续任务映射
+
+| ID | 任务 | 来源 | 前置与边界 | 当前状态 |
+|---|---|---|---|---|
+| MON-AX-01 | 研究/models 双命名空间与 43 条原任务去重映射 | 01/05/06 | 只建立候选映射；不改冻结任务文本 | `PLANNED` |
+| MON-AX-02 | 工作簿边界回归 | 05 | 在项目 `.project-local` 生成副本和测试；验证小数次数、除零、负时长、有效期；不改原 XLSX | `PLANNED` |
+| MON-AX-03 | Green TEST 首次导入闭环 | 06 | 真实资料库只读；使用 `D:\All projects\ceshi` 或项目隔离副本；先核 profile 和路径，再做导入、引用、学习、机器回读、重启 | `BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION` |
+| MON-AX-04 | 引用证据与个人主张分离回归 | 01/06 | 复用现有 Core/SourceObject/knowledge 结构；不得把局部检索或模型 F1 升级为事实准确率 | `PLANNED` |
+| MON-AX-05 | NeoMME 可选检索 POC | 01/06 | 先确认外置权重、许可、provider 和真实输入；收益不足可淘汰；不替换现有摄取链 | `BLOCKED_NEEDS_RESOURCE_VERIFICATION` |
+| MON-AX-06 | DeepTutor/机器调用与纠错版本回读 | 01/06 | 依赖 Core 权威、固定 DeepTutor 版本和真实非空任务；不把宿主启动当融合通过 | `BLOCKED_R10_OPEN` |
+| MON-AX-07 | 独立 Q00/Q01 审计增量包 | 01/06 | 由独立审计者消费同 SHA 证据；实施者不得自签；前置证据不足则 `BLOCKED` | `BLOCKED_AUDIT_PREREQUISITES` |
+
+## 与当前权威的关系
+
+- 当前权威仍是 `docs/authority/taskpack-0912-r5/`、`docs/current/R5-STATE.json` 和 `docs/current/R5-EXECUTION.md`。
+- 本材料确认了方向和缺口，但没有证明 Green、真实四库、NeoMME、完整格式、安装发行版或 Q00/Q01 已完成。
+- 工作簿中发现的 `#DIV/0!`、负时长和非整数次数是待修复/待回归项，不是当前产品失败结论。
+- 仓库当前跨平台修复提交为本地 `449fcfde`；其远端同步与 CI 仍需单独记录，不在本任务入口中伪造通过。
+
+## 推荐执行顺序
+
+`MON-AX-01` → `MON-AX-02` → `MON-AX-04` → `MON-AX-03` → `MON-AX-05` → `MON-AX-06` → `MON-AX-07`。
+
+每项分别记录 `PLANNED`、`IMPLEMENTED_LOCAL`、`TESTED_LOCAL`、`CI_VERIFIED_EXACT_SHA` 和 `INSTALLED_RUNTIME_VERIFIED`；缺证据保持 `NOT RUN` 或 `BLOCKED`。

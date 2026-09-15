@@ -120,3 +120,10 @@
 - 通过项目外部 CI venv 运行首次导入、学习复习、目录续跑、HL01 来源导入、迁移 runner、四库 setup/restart、Core handshake 与 supervisor 测试：`116 passed, 2 warnings`，退出码 0。
 - 日志保存在 `.project-local/runs/r5-core-loop-20260915.log`；测试使用隔离临时库和合成 fixture，未触碰 `D:\All projects\资料库`、`D:\All projects\ceshi` 或 Green 真实数据。
 - 该结果提升项目内首用闭环与合成迁移的本地证据等级；真实资料库一致快照、附件/关系全量回读、激活和回滚仍未验收。
+
+## 2026-09-15 监控审计材料纳入后续任务
+
+- 用户提供的 `01_审计报告与三项目融入建议.md`、`05_附件完整性与工作簿审计.json`、`06_ArcheAxis_工作区接入交接.md` 已只读核对并按 SHA 登记到 [监控审计任务入口](../../workspace/intake/2026-09-15-monitoring-audit-followup.md)。三份材料均标明自身不是新的权威 TaskPack，也不授予安装、付费、生产替换或仓库修改权限。
+- 新入口将研究与模型记录分开，保留 43 条原始任务行作为待去重来源；工作簿边界缺陷（非整数次数、除零、负时长）仅转为待回归任务，不修改原始 XLSX。
+- ArcheAxis 后续顺序固定为：命名空间/去重 → 工作簿边界回归 → 引用证据回归 → Green TEST 闭环 → 可选 NeoMME POC → DeepTutor/机器纠错回读 → 独立 Q00/Q01。缺真实资源、宿主或独立证据的项保持 BLOCKED/NOT RUN。
+- 本次仅新增任务入口和执行记录；未复制桌面原件、未访问 E: 盘、未读取凭据或私有代理状态，也未改变冻结 TaskPack、R5-STATE 或原始工作簿。
