@@ -42,3 +42,8 @@ def test_index_drift_fails_closed(tmp_path: Path):
     index.write_text("`project_test_corpus` D:/All projects/wrong-root\n", encoding="utf-8")
     with pytest.raises(ValueError, match="resource index drift"):
         module.check_resource_boundaries(root, purpose="test")
+
+
+def test_e_drive_project_root_is_rejected():
+    with pytest.raises(ValueError, match="outside E:"):
+        module.check_resource_boundaries(Path("E:/ArcheAxis-Knowledge-OS"), purpose="test")
