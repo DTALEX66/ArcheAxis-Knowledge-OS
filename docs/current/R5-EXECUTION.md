@@ -1604,3 +1604,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 delivery attempt: `git push origin codex/full-loop-0906` was rejected before process execution by the active automatic approval policy (`AskForApproval=Never`, approval required). No alternate push route or policy bypass was attempted; remote SHA remains unverified.
 
+- 2026-09-16 path/worker regression: runtime-paths, resource-boundary, low-quota, transcription model-path, worker reachability and media-route suites passed `45 passed`, `9 subtests`; one existing pytest `cache_dir` option warning remains environment/config-only.
+
