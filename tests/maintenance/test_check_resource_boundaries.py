@@ -33,3 +33,12 @@ def test_missing_root_fails_closed(tmp_path: Path):
     (tmp_path / "ceshi").rmdir()
     with pytest.raises(ValueError, match="project_test_corpus"):
         module.check_resource_boundaries(root, purpose="test")
+
+
+def test_index_drift_fails_closed(tmp_path: Path):
+    root = _checkout(tmp_path)
+    index = root / module.INDEX_PATH
+    index.parent.mkdir(parents=True)
+    index.write_text("`project_test_corpus` D:/All projects/wrong-root\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="resource index drift"):
+        module.check_resource_boundaries(root, purpose="test")
