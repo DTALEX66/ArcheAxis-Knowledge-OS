@@ -1,4 +1,4 @@
-"""Prepare an isolated desktop development launch; --launch explicitly opens it.
+"""Prepare a persistent TEST desktop development launch; --launch explicitly opens it.
 
 Uses existing builds and the calling project interpreter, never installs or builds.
 This is a development entry, not a portable installer or a user-library migration.
@@ -20,7 +20,8 @@ dev = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(dev)
 
 
-def prepare_launch(*, desktop: Path | None = None, core: Path | None = None) -> dict:
+def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
+                   fresh_workspace: bool = False) -> dict:
     paths = dev.layout(REPO)
     desktop = dev.safe_path(desktop or paths['build'] / 'dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe')
     core = dev.safe_path(core or paths['cargo_build'] / 'debug/archeaxis-api.exe')
@@ -36,15 +37,18 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None) -> 
     if not python.is_file() or not script.is_file():
         raise ValueError('worker interpreter or script is missing')
     directory = dev.artifact_directory(REPO, 'desktop-launch')
+    database = (directory / 'workspace.sqlite' if fresh_workspace else
+                dev.state_path(REPO, 'desktop-test', 'workspace.sqlite'))
     profile = directory / 'worker-profile.json'
     profile.write_text(json.dumps({
         'schema': 'archeaxis.worker-profile/v1', 'python': str(python),
         'script': str(script), 'staging': str(directory / 'worker-staging'),
     }, indent=2) + '\n', encoding='utf-8')
     receipt = {
-        'status': 'PREPARED_NOT_LAUNCHED', 'command': [str(desktop)], 'cwd': str(REPO),
+        'status': 'PREPARED_NOT_LAUNCHED',
+        'workspace_mode': 'ISOLATED_TEST' if fresh_workspace else 'PERSISTENT_TEST', 'command': [str(desktop)], 'cwd': str(REPO),
         'environment': {'ARCHAXIS_CORE_BIN': str(core),
-                        'ARCHAXIS_VNEXT_DB': str(directory / 'workspace.sqlite'),
+                        'ARCHAXIS_VNEXT_DB': str(database),
                         'ARCHAXIS_WORKER_PROFILE': str(profile)},
         'receipt_path': str(directory / 'desktop-launch.json'),
     }
@@ -56,10 +60,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--desktop', type=Path)
     parser.add_argument('--core', type=Path)
+    parser.add_argument('--fresh-workspace', action='store_true',
+                        help='use a new isolated TEST database instead of resuming the worktree TEST workspace')
     parser.add_argument('--launch', action='store_true', help='open the prepared desktop and wait for it to close')
     args = parser.parse_args(argv)
     try:
-        receipt = prepare_launch(desktop=args.desktop, core=args.core)
+        receipt = prepare_launch(desktop=args.desktop, core=args.core, fresh_workspace=args.fresh_workspace)
     except (OSError, ValueError) as exc:
         print(f'desktop preparation failed: {exc}', file=sys.stderr)
         return 2

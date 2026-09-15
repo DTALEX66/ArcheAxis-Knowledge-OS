@@ -1,5 +1,7 @@
 [workspace]
 resolver = "3"
+# Legacy Tauri keeps its own lockfile and build boundary.
+exclude = ["src-tauri", "desktop/src-tauri"]
 members = [
     "crates/archeaxis-contracts",
     "crates/archeaxis-store-sqlite",

@@ -309,5 +309,19 @@
     "Q01": "NOT_READY"
   },
   "baseline_local_main_sha": "1e9813ea2bd49f47d334ba6717c78d3e9feda6ce",
-  "baseline_local_main_note": "Local ref read on 2026-09-13; not a live remote or CI claim."
+  "baseline_local_main_note": "Local ref read on 2026-09-13; not a live remote or CI claim.",
+  "first_use_repair_20260915": {
+    "base_sha": "0dd8ff37b670ae98fac4be35720194434e82191e",
+    "status": "PARTIAL_LOCAL_VERIFIED",
+    "report": "docs/current/R5-FIRST-USE-REPAIR-20260915.md",
+    "scope": [
+      "X00",
+      "X01",
+      "X03",
+      "X13"
+    ],
+    "user_closed_loop_verified": false,
+    "remote_ci_rerun": false,
+    "windows_tested": false
+  }
 }

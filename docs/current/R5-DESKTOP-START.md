@@ -12,7 +12,10 @@
 输出 `desktop-launch.json` 和 `worker-profile.json` 位于本次run的artifacts/desktop-launch唯一子目录。
 前者记录所用桌面/Core路径、工作目录及三个启动环境变量，不含身份秘密。
 需要交互式打开时，在同一命令末尾加 `--launch`；关闭窗口后启动命令结束。
-每次调用默认使用新的开发数据库，不能用这个入口冒充用户持久资料库的迁移/恢复流程。
+默认复用当前 worktree 的 `.project-local/state/<worktree-id>/desktop-test/workspace.sqlite`，
+退出后再次启动沿用同一 TEST 库；显式加 `--fresh-workspace` 才使用新的隔离测试库。
+运行收据及 worker staging 仍每次隔离。准备操作不创建数据库；该入口不绑定 GREEN/STABLE 或真实四库，
+也不代表已完成用户库的迁移、升级和恢复验收。
 
 需要的既有文件：dev.py解析的worktree build下
 `dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe`、

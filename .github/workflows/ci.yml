@@ -263,6 +263,8 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+          # Directory authority validates its recorded historical commit.
+          fetch-depth: 0
 
       - name: Initialize project development paths
         run: python -B scripts/runtime/dev.py --github-env
