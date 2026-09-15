@@ -75,3 +75,33 @@ capabilities:
     assert item["available"] is True
     assert item["resolved_path"] == "external:demo.exe"
     assert item["probe"] == "probe_failed"
+
+
+def test_registry_accepts_external_directory_assets(tmp_path: Path, monkeypatch):
+    manifest = tmp_path / "capabilities.yaml"
+    external = tmp_path / "external"
+    asset_dir = external / "models" / "demo"
+    asset_dir.mkdir(parents=True)
+    manifest.write_text(
+        """
+capabilities:
+  models:
+    - name: demo-model
+      purpose: 'demo model asset'
+      version_range: latest
+      platform: any
+      license: MIT
+      source_url: vendored
+      install_method: 内置
+      healthcheck_command: 'demo-model --version'
+      external_paths: ['models/demo']
+      required_by: [file-detection]
+      local_only: true
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("scripts.workflow.environment_registry.shutil.which", lambda name: None)
+    monkeypatch.setenv("ARCHEAXIS_EXTERNAL_ROOT", str(external))
+    item = resolve(manifest)["capabilities"][0]
+    assert item["available"] is True
+    assert item["resolved_path"] == "external:demo"

@@ -62,7 +62,7 @@ def _external_path(entry: dict) -> str | None:
         if relative.is_absolute() or ".." in relative.parts:
             continue
         path = (root / relative).resolve()
-        if path.is_file() and path.is_relative_to(root.resolve()):
+        if (path.is_file() or path.is_dir()) and path.is_relative_to(root.resolve()):
             return str(path)
     return None
 

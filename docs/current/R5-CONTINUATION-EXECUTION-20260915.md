@@ -96,3 +96,9 @@
 - 通过共享 Tesseract 5.5.0、语言包、FFmpeg 8.1.2 和项目外部 CI venv，运行 OCR/PDF/Office/DOCX/HTML/媒体/ASR/VAD 及 worker 路由测试：`164 passed, 2 warnings`，退出码 0。
 - 运行命令和日志保存在 `.project-local/runs/format-targeted-20260915.log`；未下载或安装依赖，未修改外置库、模型库、Green 或真实资料。
 - 该结果证明适配器与 worker 的局部真实执行；不等于完整格式矩阵、真实 Vault 往返、长音频质量、全链路学习或新机器验收完成。
+
+## 外置能力注册器路径修复
+
+- 能力清单新增 `external_paths` 相对路径字段，并登记正式 .NET、Rust、MSVC、Tesseract、Tesseract 语言目录与 FFmpeg 的共享位置。
+- 注册器在显式 `ARCHEAXIS_EXTERNAL_ROOT`/`OS_EXTERNAL_CONFIG` 下探测这些路径；支持文件和模型目录，报告仅输出脱敏标签。回归与能力测试 `10 passed`，ruff 通过；实机注册器从原 18 项扩展为 19 项，其中 12 项可见。
+- 该修复解决“共享工具已存在但 PATH 探测误报 missing”问题；模型服务、浏览器运行时、真实模型文件和 GUI 仍按各自验收项独立判断。
