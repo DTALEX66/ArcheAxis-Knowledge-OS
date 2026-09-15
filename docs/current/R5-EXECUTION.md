@@ -1600,3 +1600,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 low-quota privacy hardening: handoff reports now capture tracked status only; untracked history/user paths are not enumerated into a report that may be uploaded. Threshold simulation at 2% returns `UPLOAD_REQUIRED` with automatic push disabled; targeted tests `4 passed`.
 
+- 2026-09-16 model path regression: added `tests/workers/test_transcribe_model_path.py` covering checkout-parent derivation and explicit `ARCHEAXIS_ASR_MODEL_DIR` override. Worker/reachability tests `9 passed`; repository convention gate passed.
+
