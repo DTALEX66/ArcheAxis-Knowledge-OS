@@ -21,7 +21,11 @@ DEFAULT_THRESHOLD = 2.0
 HANDOFF_PATHS = (
     "docs/current/R5-EXECUTION.md",
     "docs/current/R5-STATE.json",
+    "docs/current/R5-VERIFICATION-SUMMARY-20260914.md",
+    "docs/current/R5-HANDOFF-2026-09-13.md",
+    "docs/current/R5-CLEANUP-MANIFEST-20260914.md",
     "docs/current/R5-CONTINUATION-EXECUTION-20260915.md",
+    "docs/current/LOW-QUOTA-HANDOFF-POLICY.md",
     "docs/CONFIGURATION_AUTHORITY_INDEX.md",
     "docs/SHARED_RESOURCE_PATH_INDEX.md",
 )

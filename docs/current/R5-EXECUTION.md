@@ -1606,3 +1606,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 path/worker regression: runtime-paths, resource-boundary, low-quota, transcription model-path, worker reachability and media-route suites passed `45 passed`, `9 subtests`; one existing pytest `cache_dir` option warning remains environment/config-only.
 
+- 2026-09-16 low-quota handoff completeness: threshold report now includes tracked verification summary, R5 handoff, cleanup manifest and low-quota policy alongside execution/state/index files. At simulated 2% all available sources were listed; targeted tests `4 passed`.
+
