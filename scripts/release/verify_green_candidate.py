@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 REQUIRED = (
+    "启动绿色候选.vbs",
     "desktop/ArcheAxis.Desktop.exe",
     "desktop/hostfxr.dll",
     "desktop/hostpolicy.dll",

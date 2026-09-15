@@ -1657,3 +1657,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 项目内候选瘦身：盘点 `.project-local/build/green-candidates` 后仅保留可重建且已验证的 `ArcheAxis.Knowledge.Green-vr5full-x64`；删除本轮生成的旧 `vr5`/`vr5guarded` 候选目录及 ZIP，未触碰外置 Green、真实资料库、测试资料库或历史证据。删除后候选目录逻辑占用约 1,193,915,673 bytes；工作树未知历史未跟踪项仍全部保留。
 - 2026-09-16 规范化门禁复核：项目 `.venv\\Scripts\\python.exe -m pytest tests/test_project_output_routing_contract.py tests/maintenance/test_check_resource_boundaries.py tests/maintenance/test_active_output_boundaries.py tests/test_desktop_launch.py -q`，`25 passed`，exit 0。覆盖活动输出路由、五个外置资源边界、旧 `.hermes` 输出拒绝及桌面启动器合同；未读取 E: 或外置库内容，未提升安装/云端验收状态。
 - 2026-09-16 项目运行缓存瘦身：删除旧测试虚拟环境 `.project-local/runs/taskpack-paths-test-venv`（盘点约 778 MB、可由锁定依赖重建），删除后精确路径不存在；当前 Green 候选、构建产物和审计证据均保留。
+- 2026-09-16 完整 Green 验证门收紧：`verify_green_candidate.py` 将候选根无终端启动器 `启动绿色候选.vbs` 列为必需且纳入哈希校验；回归 `5 passed, 1 skipped`。现有 `ArcheAxis.Knowledge.Green-vr5full-x64` 重新验证 `ok=true`、`desktop-core-runtime`、21,388 文件、0 问题。

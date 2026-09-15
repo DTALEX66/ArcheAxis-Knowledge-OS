@@ -22,7 +22,7 @@ def test_verifier_accepts_complete_candidate(tmp_path: Path) -> None:
     assert result["ok"] is True
     assert result["scope"] == "desktop-core-only"
     assert result["runtime_included"] is False
-    assert result["files"] == 5
+    assert result["files"] == 6
 
 
 def test_verifier_rejects_tampered_file(tmp_path: Path) -> None:
