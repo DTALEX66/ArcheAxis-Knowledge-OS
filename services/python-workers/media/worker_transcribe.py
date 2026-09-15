@@ -28,17 +28,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 ENGINE = "python-worker-transcribe"
 ENGINE_VERSION = "0.1.0"
 
-DEFAULT_MODEL_DIR = "D:/All projects/Model library/whisper/faster-whisper-large-v3-turbo"
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_MODEL_DIR = PROJECT_ROOT.parent / "Model library" / "whisper" / "faster-whisper-large-v3-turbo"
 
 
 def _model_dir(path: str | None) -> Path:
-    candidate = Path(path or DEFAULT_MODEL_DIR)
+    candidate = Path(path or os.environ.get("ARCHEAXIS_ASR_MODEL_DIR") or DEFAULT_MODEL_DIR)
     if not candidate.is_dir():
         raise ValueError(f"ASR model directory not found: {candidate} (set --model-dir)")
     marker = candidate / "model.bin"

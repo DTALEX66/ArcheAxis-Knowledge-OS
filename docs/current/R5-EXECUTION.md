@@ -1592,3 +1592,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 architecture gate repair: `check_architecture.py` flagged the resource-boundary guard for embedding an absolute D: path in runtime code. The guard now derives the canonical index path from the checkout parent and still fails closed on index drift. Resource-boundary tests `4 passed`; architecture and repository convention gates passed.
 
+- 2026-09-16 model-library path normalization: vNext media transcription worker no longer embeds a machine-specific absolute model path. It derives the shared `Model library` root from the checkout parent and honors `ARCHEAXIS_ASR_MODEL_DIR`; worker routing/media tests `16 passed`, architecture and repository convention gates passed.
+
