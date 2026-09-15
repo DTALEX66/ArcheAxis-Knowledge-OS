@@ -109,6 +109,12 @@
 - 这些测试验证项目内 staging、发布身份和生命周期逻辑；当前仓库的 `scripts/release/candidate.py` 明确生成候选目录/ZIP，不包含安装器、运行时、worker 或卸载器。因此 R13 的真实 NSIS 安装、签名、升级、卸载和干净机验收仍保持未完成。
 - `4cf90c54...` 的 GitHub Actions run `34971284974` 已终态 `completed/success`；本次为文档收据变更，lint/gateplan/a0-gates 执行，其余产品 job 按路径规则 skipped。
 
+## 桌面复习来源投影修复
+
+- `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` 的复习队列加载现在同时显示 `next_review` 与 Core `/state` 返回的权威 `knowledge_id` 引用；来源缺失时明确显示“未记录”，不伪造题目正文。
+- `tests/test_project_output_routing_contract.py tests/test_desktop_launch.py`：`18 passed`；外置 .NET 10 Avalonia 构建：0 errors、2 warnings（NuGet feed、Watermark 弃用）。
+- 该修复补足来源可见性，但题目正文、先修路线、讲回和完整 DeepTutor 默认入口仍未完成，不能提升 G05 为 PASS。
+
 ## 首次导入与学习/迁移定向实跑
 
 - 通过项目外部 CI venv 运行首次导入、学习复习、目录续跑、HL01 来源导入、迁移 runner、四库 setup/restart、Core handshake 与 supervisor 测试：`116 passed, 2 warnings`，退出码 0。

@@ -138,7 +138,30 @@ public partial class MainWindow : Window
             {
                 var first = document.RootElement.GetProperty("items")[0];
                 _activeLearningItem = first.GetProperty("item_key").GetString();
-                LearningItemText.Text = $"待复习项目：{_activeLearningItem}";
+                var nextReview = first.TryGetProperty("next_review", out var due)
+                    && due.ValueKind != JsonValueKind.Null ? due.GetString() : "未排程";
+                var referenceText = "来源版本：未记录";
+                using (var stateResponse = await _supervisor.SendAsync(
+                    HttpMethod.Get, $"/api/v1/learning/items/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}/state"))
+                {
+                    if (stateResponse.IsSuccessStatusCode)
+                    {
+                        using var state = JsonDocument.Parse(await stateResponse.Content.ReadAsStringAsync());
+                        if (state.RootElement.TryGetProperty("references", out var references)
+                            && references.ValueKind == JsonValueKind.Array)
+                        {
+                            var ids = new System.Collections.Generic.List<string>();
+                            foreach (var reference in references.EnumerateArray())
+                            {
+                                if (reference.TryGetProperty("knowledge_id", out var id))
+                                    ids.Add(id.GetString() ?? string.Empty);
+                            }
+                            ids.RemoveAll(string.IsNullOrWhiteSpace);
+                            if (ids.Count > 0) referenceText = $"来源版本：{string.Join(", ", ids)}";
+                        }
+                    }
+                }
+                LearningItemText.Text = $"待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{referenceText}";
                 LearningAnswerBox.IsEnabled = true;
                 ReviewOutcomeBox.IsEnabled = true;
                 SubmitReviewButton.IsEnabled = true;
