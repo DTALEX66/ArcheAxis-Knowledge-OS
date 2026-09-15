@@ -1628,3 +1628,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 shared-model compatibility regression: ASR model resolution, legacy ASR adapter, media extraction and worker model-path suites passed `10 passed`; only existing cache-dir and optional NLTK warnings remained.
 
+- 2026-09-16 resource-to-pipeline regression: source preflight, audio fallback, media route and worker reachability suites passed `20 passed`; the only warning was the existing pytest cache-dir option. Test entries continue to reject real Green material roots and use project-local outputs.
+
