@@ -24,7 +24,7 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def verify(candidate: Path) -> dict:
+def verify(candidate: Path, *, require_runtime: bool = False) -> dict:
     candidate = candidate.resolve()
     manifest_path = candidate / "candidate-manifest.json"
     problems: list[str] = []
@@ -48,6 +48,8 @@ def verify(candidate: Path) -> dict:
         if _sha256(path) != entry.get("sha256"):
             problems.append(f"hash mismatch: {relative}")
     runtime_included = any(name.startswith("runtime/") for name in files)
+    if require_runtime and not runtime_included:
+        problems.append("runtime directory is required for a complete Green candidate")
     return {
         "ok": not problems,
         "scope": "desktop-core-runtime" if runtime_included else "desktop-core-only",
@@ -61,8 +63,9 @@ def verify(candidate: Path) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("candidate", type=Path)
+    parser.add_argument("--require-runtime", action="store_true")
     args = parser.parse_args()
-    result = verify(args.candidate)
+    result = verify(args.candidate, require_runtime=args.require_runtime)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1
 

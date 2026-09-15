@@ -1648,3 +1648,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 加固后真实候选复核：重新组装 Release 桌面 + Core 为 `ArcheAxis.Knowledge.Green-vr5guarded-x64`，组装 exit 0；`verify_green_candidate.py` 返回 `ok=true`、229 文件、0 问题。输出保持项目 `.project-local`，未触碰既有 Green。
 - 2026-09-16 交付复核：按用户既有上传授权执行 `git push` 尝试，但进程在启动前被当前策略拒绝：`approval required by policy, but AskForApproval is set to Never`。未绕过审批；本地与远端 SHA 仍分别报告。
 - 2026-09-16 Green 验证范围标识：验证器现在返回 `scope=desktop-core-only` 或 `desktop-core-runtime` 及 `runtime_included`，避免把未含 workers/runtime 的最小候选误读为完整 Green；验证器回归 `2 passed`，Ruff 通过。
+- 2026-09-16 完整 Green 审计门：`verify_green_candidate.py` 新增 `--require-runtime`/`require_runtime=True`，没有 runtime 时明确失败；验证器回归 `3 passed`，Ruff 通过。

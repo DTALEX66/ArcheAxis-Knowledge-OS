@@ -29,3 +29,10 @@ def test_verifier_rejects_tampered_file(tmp_path: Path) -> None:
     candidate = _candidate(tmp_path)
     (candidate / "core/archeaxis-api.exe").write_bytes(b"tampered")
     assert verify(candidate)["ok"] is False
+
+
+def test_verifier_can_require_runtime_for_full_green_audit(tmp_path: Path) -> None:
+    candidate = _candidate(tmp_path)
+    result = verify(candidate, require_runtime=True)
+    assert result["ok"] is False
+    assert any("runtime directory is required" in problem for problem in result["problems"])
