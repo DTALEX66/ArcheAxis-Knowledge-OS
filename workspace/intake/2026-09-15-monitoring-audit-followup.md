@@ -19,7 +19,7 @@
 | MON-AX-01 | 研究/models 双命名空间与 43 条原任务去重映射 | 01/05/06 | 只建立候选映射；不改冻结任务文本 | `PLANNED` |
 | MON-AX-02 | 工作簿边界回归 | 05 | 在项目 `.project-local` 生成副本和测试；验证小数次数、除零、负时长、有效期；不改原 XLSX | `STRUCTURAL_AUDIT_ONLY` |
 | MON-AX-03 | Green TEST 首次导入闭环 | 06 | 真实资料库只读；使用 `D:\All projects\ceshi` 或项目隔离副本；先核 profile 和路径，再做导入、引用、学习、机器回读、重启 | `BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION` |
-| MON-AX-04 | 引用证据与个人主张分离回归 | 01/06 | 复用现有 Core/SourceObject/knowledge 结构；不得把局部检索或模型 F1 升级为事实准确率 | `PLANNED` |
+| MON-AX-04 | 引用证据与个人主张分离回归 | 01/06 | 复用现有 Core/SourceObject/knowledge 结构；不得把局部检索或模型 F1 升级为事实准确率 | `TESTED_LOCAL` |
 | MON-AX-05 | NeoMME 可选检索 POC | 01/06 | 先确认外置权重、许可、provider 和真实输入；收益不足可淘汰；不替换现有摄取链 | `BLOCKED_NEEDS_RESOURCE_VERIFICATION` |
 | MON-AX-06 | DeepTutor/机器调用与纠错版本回读 | 01/06 | 依赖 Core 权威、固定 DeepTutor 版本和真实非空任务；不把宿主启动当融合通过 | `BLOCKED_R10_OPEN` |
 | MON-AX-07 | 独立 Q00/Q01 审计增量包 | 01/06 | 由独立审计者消费同 SHA 证据；实施者不得自签；前置证据不足则 `BLOCKED` | `BLOCKED_AUDIT_PREREQUISITES` |
@@ -48,3 +48,8 @@
 - 新增 `scripts/maintenance/audit_monitoring_workbook.py` 及其定向测试；脚本只读 XLSX，拒绝 E: / UNC 输入，并将可选 JSON 输出限制在项目 `.project-local`。
 - 使用项目外部 CI Python 实跑桌面原件：退出码 0；`STRUCTURAL_AUDIT_ONLY`，46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3`，10 个工作表，98 个公式单元格，其中 17 个公式文本含除法；输入审计期间大小和 mtime 未变。
 - 证据输出：`.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。公式未求值，故仍不能证明除零、负时长或非整数次数已修复；下一步是隔离副本上的边界回归设计与实现。
+
+### MON-AX-04 现有分离合同回归
+
+- 复用现有 grounded answer、证据边界、关系冲突和覆盖率测试：`tests/test_axw050a_grounded_answer.py tests/test_axw050b_boundaries.py tests/test_axw024c_relations.py tests/test_axw054b_metrics.py`，项目外部 CI Python 下 `26 passed`，退出码 0。
+- 该结果证明项目已有“无锚点拒绝、过期/撤销证据降级、冲突需裁决、覆盖率按有锚点主张统计”的局部合同；不等于真实资料库或模型质量准确率验收完成。
