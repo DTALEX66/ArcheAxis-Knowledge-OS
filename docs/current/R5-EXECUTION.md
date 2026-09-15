@@ -1672,3 +1672,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-16 发布架构防漂移门：`verify_release_architecture.py` 现在要求 release workflow 同时消费 `green-candidate-vnext` 并使用 `verify_green_candidate.py --require-runtime`；测试 fixture 已同步更新。发布架构/身份/清单回归 `39 passed`、2 既有警告，实际 workflow 门禁 PASS。
 - 2026-09-16 远端引用刷新：`git fetch origin` exit 0；当前 HEAD `2817983cf86aef1af424afce987a4a813bf71d97`，`origin/codex/full-loop-0906` `38d605090e88940cd2c57217ec1be6319e565901`，`origin/main` `1e9813ea2bd49f47d334ba6717c78d3e9feda6ce`，本地领先分支 `129` 个提交。未执行 push；未知未跟踪历史目录仍保留。
 - 2026-09-16 Green 组装器长路径回归修复：二次组装测试首次复现递归文件超过 Windows 路径限制时 `FileNotFoundError`；现对每个递归文件/目录逐项应用 extended-length 路径。`tests/test_green_candidate_assembly.py` `2 passed, 1 skipped`；现有完整候选 `--require-runtime` 仍为 `ok=true`、21,388 文件、0 问题。
+- 2026-09-16 额度交接预览刷新：以实测剩余约 10% 重新生成 `handoff-latest.json`，exit 0；绑定最新 HEAD `22eef3ae`、ahead `131`、精确上传范围，状态仍 `MONITORING`、`upload.required=false`。
