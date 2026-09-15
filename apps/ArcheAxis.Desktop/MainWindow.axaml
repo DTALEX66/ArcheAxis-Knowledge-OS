@@ -59,7 +59,7 @@
                     <StackPanel Spacing="10">
                         <TextBlock Text="当前复习" FontSize="19" FontWeight="SemiBold" Foreground="#FFFFFF" />
                         <TextBlock x:Name="LearningItemText" Text="点击‘打开学习路径’载入待复习项目" TextWrapping="Wrap" Foreground="#B8C6D6" />
-                        <TextBox x:Name="LearningAnswerBox" Watermark="输入你的回答" IsEnabled="False" />
+                        <TextBox x:Name="LearningAnswerBox" PlaceholderText="输入你的回答" IsEnabled="False" />
                         <ComboBox x:Name="ReviewOutcomeBox" IsEnabled="False" SelectedIndex="0">
                             <ComboBoxItem Content="选择结果" />
                             <ComboBoxItem Content="回答正确" />
