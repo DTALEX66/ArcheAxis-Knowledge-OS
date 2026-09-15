@@ -44,11 +44,20 @@ def _remove_tree(path: Path) -> None:
     for current, directories, files in os.walk(native, topdown=False):
         for name in files:
             child = Path(current) / name
-            os.unlink(_native_path(child))
+            try:
+                os.unlink(_native_path(child))
+            except FileNotFoundError:
+                pass
         for name in directories:
             child = Path(current) / name
-            os.rmdir(_native_path(child))
-    os.rmdir(native)
+            try:
+                os.rmdir(_native_path(child))
+            except FileNotFoundError:
+                pass
+    try:
+        os.rmdir(native)
+    except FileNotFoundError:
+        pass
 
 
 def assemble(
