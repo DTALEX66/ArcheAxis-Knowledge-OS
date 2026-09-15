@@ -1620,3 +1620,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 2026-09-16 release-layer recheck: `verify_release_architecture.py` passed for Avalonia → Rust Core → Python workers; candidate verification returned `ok=true`, 2 files, 0 problems, retaining `debug-build` and source SHA labels. This is candidate/structure evidence only, not installed-release proof.
 
+- 2026-09-16 fresh read-only inventory: `.project-local/runs/inventory-current-20260916.json` reports 13,123,287,548 logical bytes observed in `.project-local` (92,910 files), 229 permission errors, 7 reparse points, 348 exclusions; status `partial`. Volume free-space delta was 0 and project-attributed physical usage remains unknown. No cleanup or ACL change was performed.
+
