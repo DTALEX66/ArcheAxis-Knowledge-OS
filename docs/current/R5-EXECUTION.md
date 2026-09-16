@@ -1714,3 +1714,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-17 C/D 根目录外溢复核：C:\ 根未发现疑似临时目录；D:\ 根仅发现 `D:\tmp` 与 `D:\iFontsClientFileCache` 命中筛选。`D:\tmp` 的直接条目为 `oh/`、`blog.txt`、`mm-*.html`，时间集中在 2026-08-21/09-03，符合外部 OpenHuman/设计工具临时资料特征；未发现 ArcheAxis 归属证据，未删除。E/F 未访问。
 
 - 2026-09-17 CI exact-SHA readback: run `35119288643` on commit `a1a2e3c6d15edd2fd5ef12b2f3cdedaac6c80d41` completed `success`; `gateplan`, `lint`, and `a0-gates` passed. Specialist jobs were skipped by the workflow classifier; this does not prove full R5 specialist coverage.
+
+- 2026-09-17 CI dispatch fallback contract: `.venv\Scripts\python.exe -m pytest tests/test_ci_classifier.py tests/test_ci_a0_gates.py -q` completed `55 passed`, exit 0. This verifies the `force_full` routing contract locally; GitHub `workflow_dispatch` remains unavailable to the active token (HTTP 403), so it is not a remote full-specialist run.
