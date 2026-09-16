@@ -34,7 +34,14 @@ def _sha256(path: Path) -> str:
 
 
 def _reject_reparse(path: Path) -> None:
-    if path.is_symlink() or bool(getattr(path.stat(follow_symlinks=False), "st_file_attributes", 0) & 0x400):
+    # ``Path.stat`` can still hit MAX_PATH for a generated candidate tree even
+    # when the caller already resolved the path.  Use the same native
+    # extended-length representation as the copy/hash operations so a deep
+    # runtime file is checked rather than reported as missing.
+    if path.is_symlink() or bool(
+        getattr(os.stat(_native_path(path), follow_symlinks=False), "st_file_attributes", 0)
+        & 0x400
+    ):
         raise ValueError(f"reparse point is not allowed in candidate input: {path}")
 
 
