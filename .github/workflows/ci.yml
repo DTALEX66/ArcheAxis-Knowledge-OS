@@ -789,6 +789,10 @@ jobs:
         run: |
           uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
           uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Install locked adapter dependencies for worker regressions
+        run: |
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
       - name: Run byte-faithful worker regressions and actual report schema
         run: python -B -m unittest discover -s tests/workers -p "test_*.py"
 
