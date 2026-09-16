@@ -47,7 +47,7 @@ fn project_root_for_resource(resource_dir: &Path) -> Option<PathBuf> {
             };
             !matches!(
                 relative.components().next(),
-                Some(Component::Normal(name)) if name == "task-runtime"
+                Some(Component::Normal(name)) if name == "task-runtime" || name == "runs"
             )
         })
         .map(Path::to_path_buf)
