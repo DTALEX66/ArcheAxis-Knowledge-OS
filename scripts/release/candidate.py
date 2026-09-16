@@ -23,10 +23,10 @@ MANIFEST_NAME = "CANDIDATE.json"
 
 
 def safe_bundle_path(root: Path, relative: str = "") -> Path:
-    if os.fspath(root).replace('\\', '/').casefold().startswith(('e:', '//')):
+    if os.fspath(root).replace('\\', '/').casefold().startswith(('e:', 'f:', '//')):
         raise ValueError("unsafe bundle root")
     root = Path(os.path.abspath(root))
-    if root.drive.upper() == "E:" or str(root).startswith("\\\\"):
+    if root.drive.upper() in {"E:", "F:"} or str(root).startswith("\\\\"):
         raise ValueError("unsafe bundle root")
     if relative and (not isinstance(relative, str) or any(c in relative for c in "\\:")
                      or any(not part or part.startswith('.') or part.endswith((' ', '.'))

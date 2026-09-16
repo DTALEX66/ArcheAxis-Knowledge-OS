@@ -30,8 +30,8 @@ def _is_reparse(path: Path) -> bool:
 
 def check_resource_boundaries(project_root: Path, *, purpose: str | None = None) -> dict:
     root = Path(os.path.abspath(project_root))
-    if root.drive.upper() == "E:" or not (root / ".git").exists():
-        raise ValueError("project root must be a Git checkout outside E:")
+    if root.drive.upper() in {"E:", "F:"} or not (root / ".git").exists():
+        raise ValueError("project root must be a Git checkout outside E:/F:")
     index = root / INDEX_PATH
     if index.is_file():
         index_text = index.read_text(encoding="utf-8")

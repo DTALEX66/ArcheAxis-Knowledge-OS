@@ -17,6 +17,11 @@ SPEC.loader.exec_module(dev)
 
 
 class DevelopmentPaths(unittest.TestCase):
+    def test_protected_drives_are_rejected_before_filesystem_access(self):
+        for drive in ('E:', 'F:'):
+            with self.assertRaisesRegex(ValueError, 'protected drive'):
+                dev.safe_path(Path(f'{drive}/not-authorized'))
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='runtime-paths-')
         self.addCleanup(self.temp.cleanup)

@@ -40,7 +40,7 @@ def _under(candidate: Path, parent: Path) -> bool:
 
 def validate_source(path: Path) -> Path:
     candidate = _absolute(path)
-    if candidate.drive.upper() == "E:" or str(candidate).startswith("\\\\"):
+    if candidate.drive.upper() in {"E:", "F:"} or str(candidate).startswith("\\\\"):
         raise ValueError("protected drive or UNC source root")
     if not candidate.is_dir():
         raise ValueError(f"source root is not a directory: {candidate}")

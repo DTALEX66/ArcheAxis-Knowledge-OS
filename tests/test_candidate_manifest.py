@@ -283,7 +283,7 @@ def test_zip_uses_recorded_whitelist_not_directory_walk(tmp_path, monkeypatch):
         assert archive.read('archeaxis-api.exe') == b'fake'
 
 
-@pytest.mark.parametrize('name', ['../outside.bin', '/outside.bin', 'E:/forbidden',
+@pytest.mark.parametrize('name', ['../outside.bin', '/outside.bin', 'E:/forbidden', 'F:/forbidden',
                                   'C:\\outside.bin', 'file:stream', './README.md'])
 def test_manifest_unsafe_paths_rejected_before_hashing(tmp_path, monkeypatch, name):
     root, manifest = _bundle(tmp_path)

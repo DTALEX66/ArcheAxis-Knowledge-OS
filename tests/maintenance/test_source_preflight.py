@@ -47,9 +47,15 @@ def test_unapproved_root_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyP
         MODULE.validate_source(tmp_path)
 
 
+@pytest.mark.parametrize("drive", ["E:", "F:"])
+def test_protected_drives_are_rejected_before_source_access(drive: str) -> None:
+    with pytest.raises(ValueError, match="protected drive"):
+        MODULE.validate_source(Path(f"{drive}/not-authorized"))
+
+
 def test_shared_roots_are_derived_without_machine_absolute_literals() -> None:
     source = SCRIPT.read_text(encoding="utf-8")
     assert "D:/All projects" not in source
-    assert MODULE.CESHI == MODULE.ROOT.parent / "ceshi"
-    assert MODULE.REAL_LIBRARY == MODULE.ROOT.parent / "资料库"
-    assert MODULE.GREEN_DATA == MODULE.ROOT.parent / "ArcheAxis.Knowledge.Green-x64" / "data"
+    assert MODULE.ROOT.parent / "ceshi" == MODULE.CESHI
+    assert MODULE.ROOT.parent / "资料库" == MODULE.REAL_LIBRARY
+    assert MODULE.ROOT.parent / "ArcheAxis.Knowledge.Green-x64" / "data" == MODULE.GREEN_DATA

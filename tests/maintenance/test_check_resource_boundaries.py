@@ -47,3 +47,8 @@ def test_index_drift_fails_closed(tmp_path: Path):
 def test_e_drive_project_root_is_rejected():
     with pytest.raises(ValueError, match="outside E:"):
         module.check_resource_boundaries(Path("E:/ArcheAxis-Knowledge-OS"), purpose="test")
+
+
+def test_f_drive_is_rejected_without_metadata_access():
+    with pytest.raises(ValueError, match="outside E:/F:"):
+        module.check_resource_boundaries(Path("F:/ArcheAxis-Knowledge-OS"), purpose="test")

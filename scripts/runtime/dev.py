@@ -30,7 +30,7 @@ def git(root: Path, *args: str) -> str:
 def safe_path(path: Path) -> Path:
     """Reject links/junctions before resolving; never follow a redirected ancestor."""
     path = Path(os.path.abspath(path))
-    if path.drive.upper() == "E:" or str(path).startswith("\\\\"):
+    if path.drive.upper() in {"E:", "F:"} or str(path).startswith("\\\\"):
         raise ValueError("protected drive or UNC development root")
     for part in (*reversed(path.parents), path):
         try:

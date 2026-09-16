@@ -42,7 +42,7 @@ def audit(event, args):
         raise PermissionError('network and child processes are disabled in notebook qualification')
     if event == 'open' and isinstance(args[0], (str, bytes, os.PathLike)):
         path = Path(os.fsdecode(args[0])).absolute()
-        if path.drive.upper() == 'E:' or any(
+        if path.drive.upper() in {'E:', 'F:'} or any(
             p.casefold() in {'.codex', '.zcode', '.hermes', '.claude', '.ssh', '.env', '.openhuman'}
             for p in path.parts
         ):
