@@ -207,7 +207,11 @@ mod tests {
     #[test]
     fn installed_mode_uses_only_bundled_python_and_writable_app_data() {
         let temp = tempdir().expect("temporary directory");
-        let resources = temp.path().join("resources");
+        // The CI launcher places tempdirs below the checkout's .project-local
+        // boundary.  Keep this fixture explicitly inside task-runtime so it
+        // exercises the ordinary installed-user-data branch rather than the
+        // project-bundle branch tested below.
+        let resources = temp.path().join(".project-local/task-runtime/resources");
         let local_data = temp.path().join("local-data");
         let python = resources.join("runtime/python/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
