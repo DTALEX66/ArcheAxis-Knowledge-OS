@@ -1718,3 +1718,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-17 CI dispatch fallback contract: `.venv\Scripts\python.exe -m pytest tests/test_ci_classifier.py tests/test_ci_a0_gates.py -q` completed `55 passed`, exit 0. This verifies the `force_full` routing contract locally; GitHub `workflow_dispatch` remains unavailable to the active token (HTTP 403), so it is not a remote full-specialist run.
 
 - 2026-09-17 full Python qualification gate at current HEAD: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full` completed `2840 passed, 10 skipped, 13 warnings` in 189.17s, exit 0. This is local Python evidence only; it does not prove Rust, installer, clean-machine, remote specialist CI or independent audit completion.
+
+- 2026-09-17 Rust workspace qualification gate at current HEAD: `scripts/runtime/dev.py --run-id rust-current-20260917 -- <registered shared cargo> test --workspace --offline -q` completed with all workspace tests and doc-tests `ok`, exit 0. Existing unused-code warnings remain; no external toolchain files were modified. This is local Rust evidence only and does not prove installer, clean-machine or independent-audit completion.
