@@ -118,5 +118,7 @@ jobs:
         env:
           ARCHAXIS_CORE_BIN: ${{ env.CARGO_TARGET_DIR }}/debug/archeaxis-api.exe
         run: |
+          mkdir -p .project-local/task-runtime/vnext-ci
           dotnet run --project apps/ArcheAxis.Desktop -- --smoke \
+            "$GITHUB_WORKSPACE/.project-local/task-runtime/vnext-ci/smoke.sqlite" \
             && echo "supervisor smoke OK"
