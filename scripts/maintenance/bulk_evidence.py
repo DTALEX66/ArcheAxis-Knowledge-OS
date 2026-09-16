@@ -46,10 +46,10 @@ def _require_inside(path: Path, base: Path, label: str) -> Path:
     linked ancestors are rejected because resolution through them is not trustworthy.
     """
     raw = str(path)
-    if re.match(r"^[A-Za-z]:", raw):
+    if re.match(r"^[A-Za-z]:[\\/]", raw):
         if raw[:2].upper() == "E:":
             raise ValueError(f"{label} uses a protected E: drive")
-    elif raw.replace("\\", "/").startswith("//"):
+    elif raw.startswith(("\\\\", "//")):
         raise ValueError(f"{label} uses a UNC or absolute root path")
     absolute = Path(os.path.abspath(raw))
     base_abs = Path(os.path.abspath(base))

@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -19,9 +20,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def _reject_path(path: Path, *, output: bool = False) -> Path:
-    absolute = Path(os.path.abspath(path))
-    if absolute.drive.upper() == "E:" or str(absolute).startswith("\\\\"):
+    raw = os.fspath(path)
+    # Windows drive/UNC syntax must be rejected even when this validator runs
+    # on Linux CI, where pathlib would otherwise treat ``E:/...`` as relative.
+    if re.match(r"^[Ee]:[\\/]", raw) or raw.startswith(("\\\\", "//")):
         raise ValueError("protected drive or UNC path")
+    absolute = Path(os.path.abspath(path))
     if output:
         project_local = (ROOT / ".project-local").resolve()
         try:

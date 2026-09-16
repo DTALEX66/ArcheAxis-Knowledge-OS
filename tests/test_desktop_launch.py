@@ -48,6 +48,9 @@ def test_missing_binary_is_rejected_before_artifact_allocation(tmp_path, monkeyp
 @pytest.mark.parametrize('main_checkout', [True, False])
 def test_default_core_uses_authoritative_cargo_directory(tmp_path, monkeypatch, main_checkout):
     launcher = load_launcher()
+    # This unit test supplies synthetic build paths; the real shared-resource
+    # boundary is covered by its dedicated tests and is unavailable on CI.
+    monkeypatch.setattr(launcher.resource_boundaries, "check_resource_boundaries", lambda *args, **kwargs: {})
     development = tmp_path / 'development'
     build = development / 'build/worktree'
     desktop = build / 'dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.exe'
