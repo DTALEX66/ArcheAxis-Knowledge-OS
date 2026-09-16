@@ -1716,3 +1716,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-17 CI exact-SHA readback: run `35119288643` on commit `a1a2e3c6d15edd2fd5ef12b2f3cdedaac6c80d41` completed `success`; `gateplan`, `lint`, and `a0-gates` passed. Specialist jobs were skipped by the workflow classifier; this does not prove full R5 specialist coverage.
 
 - 2026-09-17 CI dispatch fallback contract: `.venv\Scripts\python.exe -m pytest tests/test_ci_classifier.py tests/test_ci_a0_gates.py -q` completed `55 passed`, exit 0. This verifies the `force_full` routing contract locally; GitHub `workflow_dispatch` remains unavailable to the active token (HTTP 403), so it is not a remote full-specialist run.
+
+- 2026-09-17 full Python qualification gate at current HEAD: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full` completed `2840 passed, 10 skipped, 13 warnings` in 189.17s, exit 0. This is local Python evidence only; it does not prove Rust, installer, clean-machine, remote specialist CI or independent audit completion.
