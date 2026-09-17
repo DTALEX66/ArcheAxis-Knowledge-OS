@@ -29,6 +29,12 @@ def git(root: Path, *args: str) -> str:
 
 def safe_path(path: Path) -> Path:
     """Reject links/junctions before resolving; never follow a redirected ancestor."""
+    raw = os.fspath(path)
+    # On POSIX runners, ``Path('F:/x')`` is treated as a relative path and
+    # loses its Windows drive in ``Path.drive``.  Check the lexical form
+    # before normalizing so the E:/F: boundary is enforced consistently.
+    if re.match(r"^[A-Za-z]:[\\/]", raw) and raw[:1].upper() in {"E", "F"}:
+        raise ValueError("protected drive or UNC development root")
     path = Path(os.path.abspath(path))
     if path.drive.upper() in {"E:", "F:"} or str(path).startswith("\\\\"):
         raise ValueError("protected drive or UNC development root")

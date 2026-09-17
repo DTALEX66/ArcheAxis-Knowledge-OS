@@ -164,6 +164,25 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     assert declared_current_shas
     allowed_shas.update(declared_current_shas)
     allowed_shas.update(_declared_r5_source_objects())
+    # The branch convergence receipt intentionally records tips from remote
+    # branches that are not ancestors of this checkout.  Those are audit
+    # evidence, not current release claims; validate them as real commit
+    # objects before allowing them in the current-surface scan.
+    convergence = ROOT / "docs" / "current" / "BRANCH-CONVERGENCE.json"
+    if convergence.is_file():
+        payload = json.loads(convergence.read_text(encoding="utf-8"))
+        for branch in payload.get("branches", []):
+            tip = branch.get("tip_sha")
+            merge_base = branch.get("merge_base")
+            for sha in (tip, merge_base):
+                if isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{40}", sha):
+                    assert subprocess.run(
+                        ["git", "-C", str(ROOT), "cat-file", "-e", f"{sha}^{{commit}}"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        check=False,
+                    ).returncode == 0
+                    allowed_shas.add(sha)
     # Current R5 evidence may bind to the checkout HEAD before a delivery
     # commit exists.  Accept that exact local ref; arbitrary undocumented SHAs
     # remain rejected by the surface scan below.

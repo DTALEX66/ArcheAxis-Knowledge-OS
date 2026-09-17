@@ -39,6 +39,12 @@ def _under(candidate: Path, parent: Path) -> bool:
 
 
 def validate_source(path: Path) -> Path:
+    raw = os.fspath(path)
+    # ``pathlib`` does not preserve a Windows drive prefix on Linux CI.  Do
+    # the lexical check before ``abspath`` so E:/ and F:/ are never probed.
+    if (len(raw) >= 3 and raw[1] == ":" and raw[0].upper() in {"E", "F"
+    } and raw[2] in {"/", "\\"}):
+        raise ValueError("protected drive or UNC source root")
     candidate = _absolute(path)
     if candidate.drive.upper() in {"E:", "F:"} or str(candidate).startswith("\\\\"):
         raise ValueError("protected drive or UNC source root")
