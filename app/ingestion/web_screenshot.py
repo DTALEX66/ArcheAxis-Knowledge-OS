@@ -76,7 +76,12 @@ def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
     # can exceed it even after trimming to .project-local.  Keep the screenshot
     # and receipts in the project, while placing only the disposable browser
     # profile/socket in a short OS temp directory when required.
-    if os.name != "nt" and len(str(project_root)) > 55:
+    # Chromium's singleton socket limit is independent of the project output
+    # path.  Hosted POSIX runners can still resolve TMPDIR/profile paths
+    # through their long workspace, so always isolate the disposable browser
+    # profile in a short ephemeral root there.  The project-owned ``c`` anchor
+    # remains for cleanup/evidence; screenshots and receipts stay in-project.
+    if os.name != "nt":
         short_root = Path(tempfile.mkdtemp(prefix="aa-browser-"))
         return short_root, short_root
     return project_root, None
