@@ -2146,3 +2146,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Current checkout is `main`; only `codex/worker-quality-0906` is an ancestor of `main`, but it is still attached to `.project-local/worktrees/worker-quality-0906`, so it was retained.
 - Reviewed legacy refs `codex/local-main-old`, `codex/post-release-v0.6.9`, `codex/release-v0.6.9`, `codex/v0.6.8-release-closure`, and `release/v0.4.0-contract`; none is an ancestor of `main`, and each retains unique history, so no deletion was justified.
 - No branch ref or worktree was deleted.
+
+## 2026-09-18 R15 real directory batch smoke rerun
+
+- Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/probes/r15_directory_batch_smoke.py`; exit `0`.
+- A real project-local corpus reached the real Core: first run enqueued `4` jobs and recorded one unmapped extension without guessing a route; second run skipped `5` unchanged files with `0` Core calls; after one file change, third run reprocessed exactly `1` file and skipped `4`.
+- Receipt and manifest were written under `.project-local/runs/be268a2d33/...`; this strengthens directory resumability and no-route evidence but does not promote full-format or GUI acceptance.
