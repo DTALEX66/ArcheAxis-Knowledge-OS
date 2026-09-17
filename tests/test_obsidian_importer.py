@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tempfile
+import sqlite3
 from pathlib import Path
 
 from shared.backlinks import index_document_links, parse_links
@@ -272,6 +273,33 @@ def test_import_file_reports_vault_bound_attachment_hash_without_writing_it(monk
             "is_embed": True,
         }
     ]
+
+
+def test_import_file_persists_attachment_facts_as_metadata(monkeypatch, tmp_path: Path) -> None:
+    from shared import storage
+
+    database = tmp_path / "attachments.sqlite"
+    monkeypatch.setattr(storage, "DB_PATH", database)
+    storage.init()
+    note = tmp_path / "note.md"
+    attachment = tmp_path / "assets" / "image.bin"
+    attachment.parent.mkdir()
+    attachment.write_bytes(b"persisted attachment")
+    note.write_text("![[assets/image.bin]]", encoding="utf-8")
+
+    result = import_file(str(tmp_path), "note.md", dry_run=False)
+    with sqlite3.connect(database) as conn:
+        row = conn.execute(
+            "SELECT source_id, path, sha256, size_bytes, is_embed "
+            "FROM kb_attachment_facts"
+        ).fetchone()
+
+    assert row is not None
+    assert row[0] == result["kb_id"]
+    assert row[1] == "assets/image.bin"
+    assert row[2] == result["attachment_facts"][0]["sha256"]
+    assert row[3] == len(b"persisted attachment")
+    assert row[4] == 1
 
 
 def test_import_file_indexes_frontmatter_wikilinks(monkeypatch) -> None:

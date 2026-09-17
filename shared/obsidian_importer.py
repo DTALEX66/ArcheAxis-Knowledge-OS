@@ -340,6 +340,9 @@ def import_file(
     links_text = f"{frontmatter_text}\n{body}" if frontmatter_text else body
     links = parse_links(links_text)
     result["attachment_facts"] = _attachment_facts(vault_root, links)
+    from shared.storage import replace_attachment_facts_for_source
+
+    replace_attachment_facts_for_source(kb_id, result["attachment_facts"])
     target_index = _build_target_index(vault_root) if links else {}
     result["links_indexed"] = (
         index_document_links(

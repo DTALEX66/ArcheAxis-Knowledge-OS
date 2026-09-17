@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from hashlib import sha256
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -256,6 +257,21 @@ CREATE TABLE IF NOT EXISTS kb_links (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Vault attachment facts are metadata only; bytes remain in the source Vault.
+CREATE TABLE IF NOT EXISTS kb_attachment_facts (
+    id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    path TEXT NOT NULL,
+    sha256 TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    link_type TEXT NOT NULL DEFAULT 'wikilink',
+    is_embed INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_kb_attachment_facts_source_path
+ON kb_attachment_facts(source_id, path);
+
 CREATE TABLE IF NOT EXISTS daily_notes (
     id TEXT PRIMARY KEY,
     date TEXT NOT NULL,
@@ -327,6 +343,7 @@ REQUIRED_SCHEMA_TABLES = frozenset(
         "graph_entities",
         "graph_relations",
         "kb_links",
+        "kb_attachment_facts",
         "daily_notes",
         "canvases",
         "canvas_nodes",
@@ -742,6 +759,42 @@ def replace_links_for_source(source_id: str) -> None:
     try:
         table = _validated_table(c, "kb_links")
         c.execute(f'DELETE FROM "{table}" WHERE "source_id"=?', (source_id,))
+        c.commit()
+    finally:
+        c.close()
+
+
+def replace_attachment_facts_for_source(source_id: str, facts: list[dict]) -> None:
+    """Replace metadata facts for one imported Vault note.
+
+    Only path, hash and size metadata are stored. Attachment bytes stay owned by
+    the caller's Vault and are never copied into the product database.
+    """
+    c = _conn()
+    try:
+        table = _validated_table(c, "kb_attachment_facts")
+        c.execute(f'DELETE FROM "{table}" WHERE "source_id"=?', (source_id,))
+        for fact in facts:
+            path = str(fact.get("path", ""))
+            digest = str(fact.get("sha256", ""))
+            if not path or not digest:
+                continue
+            identity = "\x1f".join((source_id, path, digest))
+            fact_id = f"attachment_{sha256(identity.encode('utf-8')).hexdigest()[:24]}"
+            c.execute(
+                f'INSERT OR REPLACE INTO "{table}" '
+                '(id, source_id, path, sha256, size_bytes, link_type, is_embed) '
+                'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (
+                    fact_id,
+                    source_id,
+                    path,
+                    digest,
+                    int(fact.get("size_bytes", 0)),
+                    str(fact.get("link_type", "wikilink")),
+                    1 if fact.get("is_embed") else 0,
+                ),
+            )
         c.commit()
     finally:
         c.close()
