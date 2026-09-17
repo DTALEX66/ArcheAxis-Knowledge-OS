@@ -70,13 +70,13 @@
                 </Border>
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
                     <Border Padding="16" CornerRadius="8" Background="#191E26">
-                        <StackPanel Spacing="5"><TextBlock Text="资料对象" Foreground="#8996A6" /><TextBlock Text="0" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="等待导入" Foreground="#AAB5C3" /></StackPanel>
+                        <StackPanel Spacing="5"><TextBlock Text="资料对象" Foreground="#8996A6" /><TextBlock x:Name="SourcesCountText" Text="—" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="Core 实际来源数" Foreground="#AAB5C3" /></StackPanel>
                     </Border>
                     <Border Grid.Column="1" Padding="16" CornerRadius="8" Background="#191E26">
-                        <StackPanel Spacing="5"><TextBlock Text="待复习" Foreground="#8996A6" /><TextBlock Text="0" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="今日学习队列" Foreground="#AAB5C3" /></StackPanel>
+                        <StackPanel Spacing="5"><TextBlock Text="待复习" Foreground="#8996A6" /><TextBlock x:Name="LearningCountText" Text="—" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="Core 学习队列项目" Foreground="#AAB5C3" /></StackPanel>
                     </Border>
                     <Border Grid.Column="2" Padding="16" CornerRadius="8" Background="#191E26">
-                        <StackPanel Spacing="5"><TextBlock Text="待核查" Foreground="#8996A6" /><TextBlock Text="0" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="需要证据确认" Foreground="#AAB5C3" /></StackPanel>
+                        <StackPanel Spacing="5"><TextBlock Text="来源锚点" Foreground="#8996A6" /><TextBlock x:Name="AnchorsCountText" Text="—" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="Core 已登记锚点" Foreground="#AAB5C3" /></StackPanel>
                     </Border>
                 </Grid>
             </StackPanel>
