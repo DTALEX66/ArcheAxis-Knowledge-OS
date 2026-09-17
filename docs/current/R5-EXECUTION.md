@@ -2052,3 +2052,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Commit: `a6ff9a09` adds `select_attachment_facts_for_source(source_id)` for deterministic metadata readback from a fresh SQLite connection.
 - Verification: Ruff passed; Obsidian importer/projection/Vault suite passed `99` tests. The regression explicitly reopens the database connection and matches source ID, Vault-relative path, SHA-256, size and embed flag.
+
+## 2026-09-18 full Python gate
+
+- Command: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full`.
+- Exit code: `0`; result: `2860 passed, 10 skipped, 13 warnings` in `208.67s` under Python `3.13.14`.
+- This validates the current local source tree after attachment metadata persistence/readback changes. Warnings are dependency deprecations/optional NLP availability and do not change the pass result.
