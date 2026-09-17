@@ -2237,3 +2237,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `scripts/webview2_detect.py --json` via project `dev.py` exited `0`.
 - No evergreen/fixed WebView2 runtime was detected and no offline bootstrap installer was present. Recommendation is to include/document an explicit WebView2 installation path before Green/portable GUI acceptance.
 - This is a dependency diagnostic only; no download or system installation was performed.
+
+## 2026-09-18 remote-upload preparation bundle
+
+- Prepared a local binary-safe patch bundle at `.project-local/runs/be268a2d33/main-upload-bundle-20260918.patch` for the exact range `origin/main..HEAD`.
+- Scope: 24 tracked files, 1,521 insertions and 77 deletions; base `6bc26c213637c4b9423f2c02063e3cd3e692c0e6`, tip `2ca4e09ab15e1035ac6f118562c93368e34f3509`.
+- Bundle size `138,144` bytes, SHA-256 `356ECC57F568AD64F0AF9D00D135355505FBD0E5E4D577E7291D429A61F100A5`. This is a local recovery/upload aid; no remote write was attempted.
