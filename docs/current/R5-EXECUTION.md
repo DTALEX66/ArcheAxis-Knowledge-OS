@@ -2249,3 +2249,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - With explicit user authorization, attempted a content-equivalent remote synchronization: create blobs for the 24-file `origin/main..HEAD` diff, create a tree/commit, then update `main`.
 - GitHub connector rejected the first blob creation (`app/cli.py`) with HTTP 403 `Resource not accessible by integration`; no blob, tree, commit or ref update was created.
 - Local history and the prepared patch bundle remain intact; remote `main` is unchanged.
+
+## 2026-09-18 GitHub repository permission readback
+
+- GitHub repository metadata reports `permissions.push=false`, `maintain=false`, `admin=false`, `pull=true`; remote `main` is therefore read-only for this connection.
+- This confirms the prior 403 blob/ref failures are permission-bound, not a local Git or object-format error. No remote mutation was attempted in this readback.
