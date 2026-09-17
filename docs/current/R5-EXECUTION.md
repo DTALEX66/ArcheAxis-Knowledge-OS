@@ -1720,3 +1720,21 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 2026-09-17 full Python qualification gate at current HEAD: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full` completed `2840 passed, 10 skipped, 13 warnings` in 189.17s, exit 0. This is local Python evidence only; it does not prove Rust, installer, clean-machine, remote specialist CI or independent audit completion.
 
 - 2026-09-17 Rust workspace qualification gate at current HEAD: `scripts/runtime/dev.py --run-id rust-current-20260917 -- <registered shared cargo> test --workspace --offline -q` completed with all workspace tests and doc-tests `ok`, exit 0. Existing unused-code warnings remain; no external toolchain files were modified. This is local Rust evidence only and does not prove installer, clean-machine or independent-audit completion.
+
+## Continuation receipt — 2026-09-18
+
+- `task_id`: R5 continuation / current-truth and qualification repair
+- `source_sha`: `d3fd4dbcd154e6027755ff753023904faff34c6e`
+- `tree_sha`: `main` read back at the same source commit after the API documentation updates
+- `branch`: `main`
+- `user_surface`: current truth, branch disposition evidence, R15/R10 targeted validation
+- `backend_path`: Rust/Core and repository gates were not changed by this receipt
+- `worker_path`: existing isolated worker paths retained; no new worker authority claimed
+- `candidate`: no new Green candidate in this receipt
+- `test_run`: CI run `35249501539` (documentation-only selective run)
+- `actual_result`: PASS; `gateplan`, `lint`, and `a0-gates` succeeded. Earlier full qualification for the merged convergence head was run `35246039796`, including `desktop-build` and `installer-lifecycle`, all successful before main merge.
+- `frontend_evidence`: local R10 targeted suite `30 passed`; this does not prove default Avalonia DeepTutor mounting.
+- `green_evidence`: no new Green runtime evidence in this receipt; existing CI evidence remains bound to its own SHA/run.
+- `restart_evidence`: not executed for the formal Avalonia owner loop.
+- `limitations`: R10, R12, R13, R14/Q00, R15 and R16/Q01 remain partial or blocked per `R5-STATE.json`; current cargo executable is unavailable for the Rust Obsidian round-trip test.
+- `rollback`: revert this receipt only; no product or authority behavior is changed.
