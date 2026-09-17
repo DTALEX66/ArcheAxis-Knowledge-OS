@@ -2181,3 +2181,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Deleted local branch `codex/local-main-old` (tip `e0c41b00`) after review: it contained only a stale branch-disposition note whose claims were superseded by the current mainline audit records; it had no worktree and no product source unique to the active plan.
 - Historical release, feature, audit and recovery branches with unique commits remain retained for rollback or evidence until a separate absorption review proves them obsolete.
+
+## 2026-09-18 absorbed branch cleanup
+
+- `git cherry main <branch>` found 17 local branches with zero `+` commits (all tips patch-equivalent to `main`) and no attached worktree: `codex/bundle-inspector-closure`, `codex/tier-a-a11y`, `docs/archeaxis-repo-description`, `docs/naming-full-sweep`, `docs/naming-handoff`, `docs/sync-authority-blueprints`, `feat/absorption-atlas-update`, `feat/archeaxis-desktop-a1-migration`, `feat/axw023a-docx-adapter`, `feat/h3-vault-write`, `feat/k2-compatibility-kernel`, `feat/mfx-001-sbom`, `feat/mfx-010-stop-fake-success`, `feat/mfx-012-credibility`, `feat/naming-package-identity`, `feat/naming-v2-contract`, `fix/osui-final-newline`.
+- Deleted those 17 redundant local refs. Branches with unique commits, historical rollback value, or worktree ownership remain retained.
