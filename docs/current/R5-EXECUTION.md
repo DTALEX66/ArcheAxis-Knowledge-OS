@@ -1738,3 +1738,31 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `restart_evidence`: not executed for the formal Avalonia owner loop.
 - `limitations`: R10, R12, R13, R14/Q00, R15 and R16/Q01 remain partial or blocked per `R5-STATE.json`; current cargo executable is unavailable for the Rust Obsidian round-trip test.
 - `rollback`: revert this receipt only; no product or authority behavior is changed.
+
+## Continuation receipt — 2026-09-18 formal Avalonia counter projection
+
+- `task_id`: R5 unified closeout / P0 product vertical slice
+- `source_sha`: `cdc07cd0027de525dc909c7b0df8a7dce1cba16e`
+- `tree_sha`: `cdc07cd0027de525dc909c7b0df8a7dce1cba16e`
+- `branch`: `main`
+- `user_surface`: Avalonia homepage now reads live Core workspace counts after startup, import, and review; static zero counters removed.
+- `backend_path`: reused `GET /api/v1/workspaces/info`; no second business router added.
+- `worker_path`: unchanged isolated worker authority; canonical `ARCHEAXIS_*` variables now precede `ARCHAXIS_*` compatibility aliases in the desktop launcher.
+- `candidate`: formal Green/NSIS candidate built by full qualification run `35250755890`.
+- `test_run`: `35250755890` workflow_dispatch with `force_full=true`
+- `actual_result`: PASS; all full qualification jobs succeeded, including `desktop-build`, `green-candidate-vnext`, `desktop-fast`, `desktop-vnext`, `windows-runtime-smoke`, and `installer-lifecycle`; `a0-gates` succeeded.
+- `frontend_evidence`: C# and Avalonia XAML changed at `MainWindow.axaml.cs` and `MainWindow.axaml`; counters are populated from Core readback.
+- `green_evidence`: Green candidate and NSIS lifecycle were built and verified by the same exact SHA/run; this does not yet prove Owner's complete import-to-restart journey.
+- `restart_evidence`: formal owner-loop restart/readback not executed in this receipt.
+- `limitations`: R10 remains partial because DeepTutor sidecar/default browser lifecycle is not mounted; R12 has 229 permission errors and 10 reparse points in current inventory; R13 signing/clean-machine user loop remains incomplete; Q00 failed/blocked; R15 and R16 remain partial/blocked.
+- `rollback`: revert the two Avalonia files and this receipt; Core API and database schema are unchanged.
+
+## Continuation receipt — 2026-09-18 R12 inventory
+
+- `task_id`: X14/R12 inventory refresh
+- `source_sha`: `cdc07cd0027de525dc909c7b0df8a7dce1cba16e`
+- `branch`: `main`
+- `test_run`: `.project-local/runs/r12-inventory-20260918/artifacts/inventory.json`
+- `actual_result`: PARTIAL; `.project-local` observed 19,147,355,586 logical bytes, 177,224 files, 229 permission errors, 10 reparse points; volume free space was measured but cleanup attribution remains unknown.
+- `limitations`: opaque/private boundaries and ACL-denied paths were retained; no deletion was performed from this inventory.
+- `rollback`: inventory is ignored evidence and has no product side effect.
