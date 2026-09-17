@@ -116,6 +116,35 @@ async fn a_canvas_job_stores_its_node_structure_and_its_edges() {
     assert!(receipt.contains("text_node"), "{receipt}");
     // and the edges the worker preserved are in the receipt too
     assert!(receipt.contains("e-1"), "{receipt}");
+    let projection = executor
+        .store()
+        .submit(|conn| {
+            let nodes: i64 = conn
+                .query_row(
+                    "SELECT count(*) FROM canvas_projection_nodes WHERE canvas_id='job-canvas'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            let edges: i64 = conn
+                .query_row(
+                    "SELECT count(*) FROM canvas_projection_edges WHERE canvas_id='job-canvas'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            let node_type: String = conn
+                .query_row(
+                    "SELECT node_type FROM canvas_projection_nodes WHERE canvas_id='job-canvas' AND node_id='n-2'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            (nodes, edges, node_type)
+        })
+        .await
+        .unwrap();
+    assert_eq!(projection, (2, 1, "file".to_string()));
 }
 
 #[tokio::test]

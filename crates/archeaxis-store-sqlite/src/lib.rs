@@ -4,7 +4,7 @@ use rusqlite::Connection;
 pub mod raw_objects;
 pub mod writer;
 
-pub const SCHEMA_VERSION: i64 = 4;
+pub const SCHEMA_VERSION: i64 = 5;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -115,6 +115,30 @@ CREATE TABLE IF NOT EXISTS job_outputs (
     content TEXT NOT NULL,
     PRIMARY KEY(job_id, attempt, kind),
     FOREIGN KEY(job_id, attempt) REFERENCES job_attempts(job_id, attempt)
+);
+CREATE TABLE IF NOT EXISTS canvas_projections (
+    canvas_id TEXT PRIMARY KEY,
+    source_job_id TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS canvas_projection_nodes (
+    canvas_id TEXT NOT NULL REFERENCES canvas_projections(canvas_id),
+    node_id TEXT NOT NULL,
+    node_type TEXT NOT NULL,
+    x REAL NOT NULL DEFAULT 0,
+    y REAL NOT NULL DEFAULT 0,
+    width REAL NOT NULL DEFAULT 300,
+    height REAL NOT NULL DEFAULT 200,
+    PRIMARY KEY(canvas_id, node_id)
+);
+CREATE TABLE IF NOT EXISTS canvas_projection_edges (
+    canvas_id TEXT NOT NULL REFERENCES canvas_projections(canvas_id),
+    edge_id TEXT NOT NULL,
+    from_node TEXT NOT NULL,
+    to_node TEXT NOT NULL,
+    label TEXT NOT NULL DEFAULT '',
+    color TEXT NOT NULL DEFAULT '#888',
+    PRIMARY KEY(canvas_id, edge_id)
 );
 "#;
 

@@ -1930,6 +1930,13 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
 - `limitations`: the Python projection adapter is not wired into the Rust Core import commit; signing, uninstall, clean-machine GUI, real Green install, and remote upload remain open.
 
+## Continuation receipt — 2026-09-18 Rust Core Canvas projection wiring
+
+- `task_id`: X12/R15 Canvas Core single-writer integration
+- `implementation`: Rust schema version 5 now owns `canvas_projections`, `canvas_projection_nodes`, and `canvas_projection_edges`; successful `canvas.structure` completion projects validated worker geometry and edges inside the same Core transaction. Archive export/restore includes the new tables.
+- `verification`: source-level inspection and Rust formatter parsing reached the modified functions; full `cargo check/test` was not executable because the configured MSVC environment lacks `link.exe` resolution/Windows SDK import libraries, and `cargo-fmt` is not installed for the cargo wrapper.
+- `limitations`: no PASS claim until the Rust build/test environment is repaired; the last Green candidate predates this Rust schema change and must not be used as evidence for this integration.
+
 ## Continuation receipt — 2026-09-18 target-resolution Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 target resolution

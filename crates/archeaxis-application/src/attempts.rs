@@ -4,6 +4,7 @@ use crate::jobs::{self, JobError, LossReceipt};
 use archeaxis_sidecar_protocol::worker::{Request, Response, decode_response};
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
 use serde::Deserialize;
+use serde_json::Value;
 use sha2::{Digest,Sha256};
 
 /// R08: engine identities a successful receipt may report, one per extraction
@@ -301,6 +302,9 @@ pub fn finish(conn:&mut Connection, req:&Request, response:&Response, payloads:&
     if state=="succeeded" { return if old.as_deref()==Some(&digest) {Ok(())} else {Err(JobError::Conflict)}; }
     if state!="running" {return Err(JobError::InvalidState);}
     jobs::complete_tx(&tx,&req.job_id,&loss.engine,text,Some(&loss))?;
+    if req.capability == "canvas.structure" {
+        persist_canvas_projection(&tx, &req.job_id, &loss.params)?;
+    }
     for (output,content) in response.outputs.iter().zip(strings) {
         tx.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES(?1,?2,?3,?4,?5)",
             rusqlite::params![req.job_id,req.attempt,output.kind,serde_json::to_string(output).map_err(|_|JobError::Conflict)?,content])?;
@@ -308,6 +312,53 @@ pub fn finish(conn:&mut Connection, req:&Request, response:&Response, payloads:&
     tx.execute("UPDATE job_attempts SET state='succeeded',response_json=?1,result_digest=?2,completed_at=datetime('now') WHERE job_id=?3 AND attempt=?4",
         rusqlite::params![wire,digest,req.job_id,req.attempt])?;
     tx.commit()?; Ok(())
+}
+
+fn persist_canvas_projection(
+    tx: &rusqlite::Transaction<'_>,
+    canvas_id: &str,
+    params: &Value,
+) -> Result<(), JobError> {
+    let output = params.get("worker_output").unwrap_or(params);
+    let nodes = output
+        .get("node_geometry")
+        .and_then(Value::as_array)
+        .ok_or(JobError::InvalidReceipt("canvas worker output missing node_geometry"))?;
+    let edges = output
+        .get("edges")
+        .and_then(Value::as_array)
+        .ok_or(JobError::InvalidReceipt("canvas worker output missing edges"))?;
+    tx.execute("DELETE FROM canvas_projection_edges WHERE canvas_id=?1", [canvas_id])?;
+    tx.execute("DELETE FROM canvas_projection_nodes WHERE canvas_id=?1", [canvas_id])?;
+    tx.execute("DELETE FROM canvas_projections WHERE canvas_id=?1", [canvas_id])?;
+    tx.execute(
+        "INSERT INTO canvas_projections(canvas_id,source_job_id) VALUES(?1,?1)",
+        [canvas_id],
+    )?;
+    for node in nodes {
+        let node_id = node.get("node_id").and_then(Value::as_str)
+            .ok_or(JobError::InvalidReceipt("canvas node missing node_id"))?;
+        let node_type = node.get("type").and_then(Value::as_str).unwrap_or("text");
+        let geometry = node.get("geometry").and_then(Value::as_object);
+        let number = |key: &str, default: f64| geometry.and_then(|g| g.get(key)).and_then(Value::as_f64).unwrap_or(default);
+        tx.execute(
+            "INSERT INTO canvas_projection_nodes(canvas_id,node_id,node_type,x,y,width,height) VALUES(?1,?2,?3,?4,?5,?6,?7)",
+            rusqlite::params![canvas_id,node_id,node_type,number("x",0.0),number("y",0.0),number("width",300.0),number("height",200.0)],
+        )?;
+    }
+    for edge in edges {
+        let edge_id = edge.get("id").and_then(Value::as_str)
+            .ok_or(JobError::InvalidReceipt("canvas edge missing id"))?;
+        tx.execute(
+            "INSERT INTO canvas_projection_edges(canvas_id,edge_id,from_node,to_node,label,color) VALUES(?1,?2,?3,?4,?5,?6)",
+            rusqlite::params![canvas_id,edge_id,
+                edge.get("fromNode").and_then(Value::as_str).unwrap_or(""),
+                edge.get("toNode").and_then(Value::as_str).unwrap_or(""),
+                edge.get("label").and_then(Value::as_str).unwrap_or(""),
+                edge.get("color").and_then(Value::as_str).unwrap_or("#888")],
+        )?;
+    }
+    Ok(())
 }
 
 pub fn terminate(conn:&mut Connection,req:&Request,status:&str,error:&str) -> Result<(),JobError> {
