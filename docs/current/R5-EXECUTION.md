@@ -2214,3 +2214,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - `check_resource_boundaries.py . --purpose test` via project `dev.py` exited `0`.
 - Test target resolves to `D:\\All projects\\ceshi`; shared models, external tools, Green application and material library remain registered read-only resources; all are non-reparse directories.
+
+## 2026-09-18 R10 real conversion journey rerun
+
+- Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/probes/r10_core_journey_smoke.py`; exit `0`.
+- Real Core completed reachability (200), source import (202), job enqueue (202), execution (202), status polling (200), output readback (200), and source-bound transform search (200).
+- Receipt reports `knowledge_count=0`, `transform_count=1`, `closed_loop_verified=false`; no accepted knowledge was fabricated. Evidence is stored under `.project-local/runs/.../r10-core-conversion.json`.
