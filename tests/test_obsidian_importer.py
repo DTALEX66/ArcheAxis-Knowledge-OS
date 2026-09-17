@@ -85,9 +85,14 @@ def test_parse_links_preserves_alias_and_heading_anchor() -> None:
 
 def test_index_document_links_persists_relationship_facts(monkeypatch) -> None:
     rows = []
+    replaced = []
     monkeypatch.setattr(
         "shared.storage.insert",
         lambda table, row: rows.append((table, row)),
+    )
+    monkeypatch.setattr(
+        "shared.storage.replace_links_for_source",
+        lambda source_id: replaced.append(source_id),
     )
 
     count = index_document_links(
@@ -102,6 +107,7 @@ def test_index_document_links_persists_relationship_facts(monkeypatch) -> None:
         "md_link",
     ]
     assert rows[1][1]["is_embed"] == 1
+    assert replaced == ["doc-1"]
 
 
 def test_parse_frontmatter_no_frontmatter() -> None:

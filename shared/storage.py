@@ -731,6 +731,22 @@ def insert(table: str, data: dict) -> None:
         c.close()
 
 
+def replace_links_for_source(source_id: str) -> None:
+    """Remove the previous outgoing relation set for one imported asset.
+
+    Link replacement is intentionally scoped to ``kb_links`` and one source
+    ID.  The caller can then insert the current parsed set using the normal
+    single-writer storage path.
+    """
+    c = _conn()
+    try:
+        table = _validated_table(c, "kb_links")
+        c.execute(f'DELETE FROM "{table}" WHERE "source_id"=?', (source_id,))
+        c.commit()
+    finally:
+        c.close()
+
+
 def select_all(table: str, limit: int = 100, order: str = "created_at DESC") -> list[dict]:
     c = _conn()
     try:

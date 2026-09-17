@@ -95,9 +95,10 @@ def index_document_links(doc_id: str, content: str) -> int:
     Returns:
         Number of links indexed.
     """
-    from shared.storage import insert
+    from shared.storage import insert, replace_links_for_source
 
     links = parse_links(content)
+    replace_links_for_source(doc_id)
     count = 0
     for link in links:
         # A stable identity makes repeated imports idempotent.  ``insert``

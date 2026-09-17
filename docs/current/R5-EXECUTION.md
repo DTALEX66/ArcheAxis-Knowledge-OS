@@ -1897,8 +1897,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `task_id`: X12/R15 stable Obsidian asset and relation identities
 - `implementation`: Obsidian document/card/machine-knowledge IDs now derive from the vault-relative path; link IDs derive from source, target, type, alias, and embed state.
 - `verification`: `pytest tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `33 passed`; Ruff passed.
-- `actual_result`: repeated import of the same note now refreshes the same logical asset and exact relation edges through existing `INSERT OR REPLACE` storage semantics.
-- `limitations`: changed-note reconciliation still needs removal of stale outgoing edges, target-to-imported-ID resolution, attachment hashing, and full Vault round-trip evidence; R15 remains partial.
+- `actual_result`: repeated import of the same note now refreshes the same logical asset; relation indexing replaces the prior outgoing set before writing the current stable edges.
+- `limitations`: target-to-imported-ID resolution, attachment hashing, Canvas semantic storage, and full Vault round-trip evidence remain open; R15 remains partial.
 
 ## Continuation receipt — 2026-09-18 post-R15 clean Green rebuild
 
