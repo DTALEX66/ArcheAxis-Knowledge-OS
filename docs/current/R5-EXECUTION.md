@@ -2134,3 +2134,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Reviewed exact path `.project-local/build/be268a2d33` (approximately 0.75 GiB, last written 2026-09-15). It is a rebuildable Debug checkpoint; current Green candidates, release publish output, Cargo target and receipts are separate.
 - Deletion was authorized by the user and guarded by reparse/process/postcondition checks, but the host execution policy rejected the recursive removal command before execution. No files were changed and the target remains present.
 - This is a cleanup blocker; do not classify the path as deleted until a permitted command returns `Test-Path=false`.
+
+## 2026-09-18 X14 cleanup review manifest refresh
+
+- Generated `.project-local/runs/be268a2d33/x14-cleanup-review-20260918.json` with exact current byte counts and classifications for the largest governed outputs.
+- Reviewed totals: old Debug checkpoint `build/be268a2d33` 809,123,547 bytes is the only deletion candidate; current Cargo/Rust-MSVC/publish/Green candidates/runs are retained for reproducibility or audit evidence. NuGet/uv caches are rebuildable but retained to avoid disrupting the active toolchain.
+- The candidate remains `DELETE_CANDIDATE_BLOCKED` because the host rejected the guarded recursive deletion command before execution. No deletion or ACL change was performed.
