@@ -2203,3 +2203,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `scripts/release/verify_release_architecture.py --root .` exit `0`: formal Avalonia → Rust Core → Python workers chain identified.
 - `scripts/release/verify_green_candidate.py .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-archive70226a42-x64 --require-runtime --require-workers` exit `0`; 479 files, runtime/workers included, no manifest problems.
 - Evidence remains a local candidate/readiness check; it does not prove signing, installer lifecycle, clean-machine GUI, or remote publication.
+
+## 2026-09-18 external resource boundary recheck
+
+- Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/maintenance/check_resource_boundaries.py . --purpose integration`; exit `0`.
+- Canonical integration resources resolve to the registered D: paths for shared models, external tools, Green application, material library and test corpus; all were reported as non-reparse directories.
+- No resource contents were read or modified; E:/F: were not accessed.
