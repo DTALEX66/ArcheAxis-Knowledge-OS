@@ -14,12 +14,23 @@ if (args.Length > 0 && Path.GetFileName(args[0]).StartsWith("fixture-identity-")
         await client.GetStream().WriteAsync(Encoding.ASCII.GetBytes("HTTP/1.1 302 Found\r\nLocation: http://127.0.0.1:47831/stolen\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"));
     } else {
         using var bootstrap = JsonDocument.Parse(await Console.In.ReadToEndAsync());
-        var session = Path.GetFileName(args[0]).Contains("workspace") || Path.GetFileName(args[0]).Contains("stop-race") ? bootstrap.RootElement.GetProperty("session_id").GetString() : "wrong-session";
+        var session = Path.GetFileName(args[0]).Contains("-session.") ? "wrong-session" : bootstrap.RootElement.GetProperty("session_id").GetString();
         var workspace = Path.GetFileName(args[0]).Contains("workspace") ? args[0] + ".wrong" : args[0];
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(new { padding = Path.GetFileName(args[0]).Contains("stop-race") ? new string('x', 32 * 1024 * 1024) : "", runtime = "archeaxis-api", contract = "0.1.0-outline", session_id = session, workspace_db = workspace });
+        var protocol = Path.GetFileName(args[0]).Contains("-protocol.") ? "unsupported" : "archeaxis.desktop-launch/v2";
+        var actor = Path.GetFileName(args[0]).Contains("-actor.") ? "machine" : "human";
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(new { padding = Path.GetFileName(args[0]).Contains("stop-race") ? new string('x', 32 * 1024 * 1024) : "", runtime = "archeaxis-api", contract = "0.1.0-outline", launch_protocol = protocol, actor, session_id = session, workspace_db = workspace });
         await client.GetStream().WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 200 OK\r\nContent-Length: {bytes.Length}\r\nConnection: close\r\n\r\n"));
         await client.GetStream().WriteAsync(bytes);
         if (Path.GetFileName(args[0]).Contains("stop-race")) File.WriteAllText(args[0] + ".response-sent", "ready");
+        if (Path.GetFileName(args[0]).Contains("-machine.")) {
+            client.Close();
+            using var machineClient = await fake.AcceptTcpClientAsync();
+            using var machineReader = new StreamReader(machineClient.GetStream(), leaveOpen: true);
+            while (await machineReader.ReadLineAsync() is { Length: > 0 }) { }
+            // Same session/workspace, but wrongly maps the machine credential to human.
+            await machineClient.GetStream().WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 200 OK\r\nContent-Length: {bytes.Length}\r\nConnection: close\r\n\r\n"));
+            await machineClient.GetStream().WriteAsync(bytes);
+        }
     }
     client.Close();
     await Task.Delay(Timeout.InfiniteTimeSpan);
@@ -79,22 +90,81 @@ try {
             Console.WriteLine("PASS: Stop during handshake parsing cannot republish readiness");
         }
     }
-    foreach (var scenario in new[] { "session", "workspace", "redirect" }) {
+    foreach (var scenario in new[] { "session", "workspace", "redirect", "protocol", "actor", "machine" }) {
         using var fake = new CoreSupervisor(Path.Combine(run, "tmp", $"fixture-identity-{scenario}.sqlite"), Environment.ProcessPath);
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(4));
-        if ((await fake.StartAsync(bounded.Token)).ok) throw new Exception($"accepted false Core identity: {scenario}");
+        var rejected = await fake.StartAsync(bounded.Token);
+        if (rejected.ok) throw new Exception($"accepted false Core identity: {scenario}");
+        if (scenario != "redirect" && !rejected.detail.Contains("InvalidDataException"))
+            throw new Exception($"identity scenario {scenario} failed for an unrelated reason: {rejected.detail}");
         if (unrelatedRequests != 0) throw new Exception("redirect reached an unrelated credential recipient");
     }
     Console.WriteLine("PASS: wrong-session 200 and credential-redirect handshake rejected");
     var core = Environment.GetEnvironmentVariable("ARCHAXIS_CORE_BIN") ?? throw new Exception("real Core binary required");
     var db = Path.Combine(run, "tmp", "core with spaces.sqlite");
-    var workerProfile = new CoreTextWorker(Environment.GetEnvironmentVariable("ARCHEAXIS_PYTHON") ?? throw new Exception("project Python required"),
-        Path.GetFullPath("services/python-workers/transport/text_ndjson.py"), Path.Combine(run, "tmp", "worker-staging"));
+    var profileDirectory = Path.Combine(run, "tmp", "desktop-profile");
+    Directory.CreateDirectory(profileDirectory);
+    var profilePath = Path.Combine(profileDirectory, "worker-profile.json");
+    var profileJson = JsonSerializer.Serialize(new { schema = "archeaxis.worker-profile/v1",
+        python = Environment.GetEnvironmentVariable("ARCHEAXIS_PYTHON") ?? throw new Exception("project Python required"),
+        script = Path.GetFullPath("services/python-workers/transport/text_ndjson.py"), staging = "staging" });
+    File.WriteAllText(profilePath, profileJson);
+    var workerProfile = WorkerProfile.Load(profileDirectory) ?? throw new Exception("default worker profile not loaded");
+    if (workerProfile.Staging != Path.Combine(profileDirectory, "staging")) throw new Exception("relative worker path resolved from wrong directory");
+    foreach (var invalid in new[] { profileJson.Replace("archeaxis.worker-profile/v1", "unknown"),
+        profileJson.Replace("\"staging\":\"staging\"", "\"staging\":\"../escape\""),
+        profileJson.Replace("\"staging\":\"staging\"", "\"staging\":\"E:/forbidden\""),
+        profileJson.Replace("\"staging\":\"staging\"", "\"staging\":\"staging\",\"unknown\":true"),
+        profileJson.Replace("\"staging\":\"staging\"", "\"staging\":\"staging\",\"staging\":\"duplicate\"") }) {
+        File.WriteAllText(profilePath, invalid);
+        try { WorkerProfile.Load(profileDirectory); throw new Exception("invalid worker profile accepted"); }
+        catch (InvalidDataException) { }
+    }
+    File.WriteAllText(profilePath, profileJson);
+    if (WorkerProfile.Load(Path.Combine(profileDirectory, "absent")) is not null)
+        throw new Exception("absent optional profile did not remain unconfigured");
+    try { WorkerProfile.Load(profileDirectory, "absent.json"); throw new Exception("explicit missing profile accepted"); }
+    catch (InvalidDataException) { }
+    foreach (var privateName in new[] { ".ssh", ".aws", ".azure", ".gnupg", ".claude", "credentials", "browser-data", "memories" }) {
+        // No private directory or file is created/read; rejection must be lexical.
+        try { WorkerProfile.Load(profileDirectory, Path.Combine(profileDirectory, privateName, "worker-profile.json")); throw new Exception("private profile path accepted"); }
+        catch (InvalidDataException error) when (error.Message.Contains("protected")) { }
+    }
+    if (OperatingSystem.IsWindows()) {
+        var linkedDirectory = Path.Combine(run, "tmp", "linked-worker-profile");
+        var command = new System.Diagnostics.ProcessStartInfo("cmd.exe") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        foreach (var argument in new[] { "/c", "mklink", "/J", linkedDirectory, profileDirectory }) command.ArgumentList.Add(argument);
+        using var linkProcess = System.Diagnostics.Process.Start(command)!;
+        linkProcess.WaitForExit();
+        if (linkProcess.ExitCode != 0) throw new Exception("cannot create project-owned junction fixture");
+        try {
+            try { WorkerProfile.Load(linkedDirectory); throw new Exception("linked worker profile accepted"); }
+            catch (InvalidDataException error) when (error.Message.Contains("linked")) { }
+        } finally { Directory.Delete(linkedDirectory); }
+        if (Directory.Exists(linkedDirectory)) throw new Exception("junction fixture not removed");
+    }
+    Console.WriteLine("PASS: application worker profile resolved; invalid protocol/path/fields rejected");
     using var real = new CoreSupervisor(db, core, workerProfile);
     var started = await real.StartAsync();
     if (!started.ok || !File.Exists(db) || new Uri(real.CoreUrl).Port is 0 or 47831)
         throw new Exception($"real owned Core failed: {started.detail}");
     var ownedUrl = real.CoreUrl;
+    using (var machineIdentity = await real.SendMachineAsync(HttpMethod.Get, "/api/v1/system/version")) {
+        if (machineIdentity.RequestMessage?.Headers.Contains("x-archeaxis-launch-token") == true)
+            throw new Exception("response diagnostics expose the machine credential");
+        using var machineBody = JsonDocument.Parse(await machineIdentity.Content.ReadAsStringAsync());
+        if (machineBody.RootElement.GetProperty("actor").GetString() != "machine"
+            || machineBody.RootElement.GetProperty("launch_protocol").GetString() != "archeaxis.desktop-launch/v2")
+            throw new Exception("desktop machine path did not bind machine authority");
+    }
+    var proposal = "{\"knowledge_type\":\"PERSONAL_DEFINITION\",\"body\":\"machine proposal\",\"status\":\"candidate\",\"created_by\":\"desktop-machine\"}";
+    using (var proposed = await real.SendMachineAsync(HttpMethod.Post, "/api/v1/knowledge-items", new StringContent(proposal, Encoding.UTF8, "application/json"))) {
+        if (proposed.StatusCode != HttpStatusCode.Created) throw new Exception("desktop machine proposal failed");
+    }
+    using (var forged = await real.SendMachineAsync(HttpMethod.Post, "/api/v1/knowledge-items", new StringContent(proposal.Replace("candidate", "accepted"), Encoding.UTF8, "application/json"))) {
+        if (forged.StatusCode != HttpStatusCode.BadRequest) throw new Exception("desktop machine escalated to accepted");
+    }
+    Console.WriteLine("PASS: one C# supervisor uses distinct human/machine authority on one Core");
     using (var imported = await real.SendAsync(HttpMethod.Post, "/api/v1/imports", new StringContent("{\"name\":\"desktop.txt\",\"content_base64\":\"aGVsbG8=\"}", Encoding.UTF8, "application/json"))) {
         if (imported.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop import failed");
         using var source = JsonDocument.Parse(await imported.Content.ReadAsStringAsync());

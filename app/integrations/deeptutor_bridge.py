@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -24,7 +25,12 @@ class DeepTutorBridge:
         projection_root: str | Path | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
-        self.runtime_root = (self.project_root / ".project-local/task-runtime").resolve()
+        managed_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "").strip()
+        self.runtime_root = (
+            Path(managed_root).resolve()
+            if managed_root
+            else (self.project_root / ".project-local/task-runtime").resolve()
+        )
         self.db_path = Path(db_path).resolve()
         requested = Path(projection_root) if projection_root is not None else (
             self.runtime_root / "deeptutor-home/projections/current"

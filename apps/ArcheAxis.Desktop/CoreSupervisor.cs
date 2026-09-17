@@ -24,6 +24,7 @@ public sealed class CoreSupervisor : IDisposable
     private bool _disposed;
     private int _starting;
     private string? _launchToken;
+    private string? _machineToken;
     private readonly object _lifecycle = new();
 
     public string CoreUrl { get; private set; } = "";
@@ -47,7 +48,7 @@ public sealed class CoreSupervisor : IDisposable
             if (_starting != 0) return (false, "startup already in progress");
             if (_core is { HasExited: false }) return (false, "owned core is already running");
             _core?.Dispose(); _core = null;
-            _launchToken = null; CoreUrl = ""; HandshakeRuntime = null; HandshakeContract = null;
+            _launchToken = null; _machineToken = null; CoreUrl = ""; HandshakeRuntime = null; HandshakeContract = null;
             _starting = 1;
             _startup = CancellationTokenSource.CreateLinkedTokenSource(ct);
             _startup.CancelAfter(TimeSpan.FromSeconds(20));
@@ -57,6 +58,9 @@ public sealed class CoreSupervisor : IDisposable
         {
             if (!File.Exists(_coreBin)) return (false, "core binary not found (set ARCHAXIS_CORE_BIN)");
             var launchToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            string machineToken;
+            do { machineToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)); }
+            while (machineToken == launchToken);
             var sessionId = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
             var psi = new ProcessStartInfo
             {
@@ -80,7 +84,7 @@ public sealed class CoreSupervisor : IDisposable
             if (process is null) return (false, "failed to start core process");
             _ = DrainAsync(process.StandardError);
             var worker = _textWorker is null ? null : new { python = _textWorker.Python, script = _textWorker.Script, staging = _textWorker.Staging };
-            await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new { launch_token = launchToken, session_id = sessionId, text_worker = worker }).AsMemory(), token).ConfigureAwait(false);
+            await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new { protocol = "archeaxis.desktop-launch/v2", actor = "human", launch_token = launchToken, machine_token = machineToken, session_id = sessionId, text_worker = worker }).AsMemory(), token).ConfigureAwait(false);
             process.StandardInput.Close();
             while (await process.StandardOutput.ReadLineAsync(token).ConfigureAwait(false) is { } line)
             {
@@ -102,17 +106,35 @@ public sealed class CoreSupervisor : IDisposable
                 var contract = doc.RootElement.GetProperty("contract").GetString();
                 if (runtime != "archeaxis-api" || contract != "0.1.0-outline")
                     throw new InvalidDataException("unsupported Core handshake");
+                if (doc.RootElement.GetProperty("launch_protocol").GetString() != "archeaxis.desktop-launch/v2"
+                    || doc.RootElement.GetProperty("actor").GetString() != "human")
+                    throw new InvalidDataException("wrong Core human authority");
                 if (doc.RootElement.GetProperty("session_id").GetString() != sessionId)
                     throw new InvalidDataException("wrong Core session");
                 var actualDb = doc.RootElement.GetProperty("workspace_db").GetString();
                 if (actualDb is null || !SameWorkspace(actualDb, _dbPath))
                     throw new InvalidDataException("wrong Core workspace");
+                using var machineRequest = new HttpRequestMessage(HttpMethod.Get, new Uri(uri, "/api/v1/system/version"));
+                machineRequest.Headers.Add("x-archeaxis-launch-token", machineToken);
+                using var machineResponse = await Http.SendAsync(machineRequest, token).ConfigureAwait(false);
+                machineResponse.EnsureSuccessStatusCode();
+                using var machineDoc = JsonDocument.Parse(await machineResponse.Content.ReadAsStringAsync(token).ConfigureAwait(false));
+                var machine = machineDoc.RootElement;
+                if (machine.GetProperty("runtime").GetString() != runtime
+                    || machine.GetProperty("contract").GetString() != contract
+                    || machine.GetProperty("launch_protocol").GetString() != "archeaxis.desktop-launch/v2"
+                    || machine.GetProperty("actor").GetString() != "machine"
+                    || machine.GetProperty("session_id").GetString() != sessionId
+                    || machine.GetProperty("workspace_db").GetString() is not { } machineDb
+                    || !SameWorkspace(machineDb, _dbPath))
+                    throw new InvalidDataException("wrong Core machine authority");
                 lock (_lifecycle)
                 {
                     token.ThrowIfCancellationRequested();
                     if (_disposed || !ReferenceEquals(_core, process) || process.HasExited)
                         throw new OperationCanceledException();
                     _launchToken = launchToken;
+                    _machineToken = machineToken;
                     CoreUrl = uri.GetLeftPart(UriPartial.Authority);
                     HandshakeRuntime = runtime;
                     HandshakeContract = contract;
@@ -152,13 +174,21 @@ public sealed class CoreSupervisor : IDisposable
     }
 
     /// <summary>Authenticated requests stay on the verified owned Core origin.</summary>
-    public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null, CancellationToken ct = default)
+    public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null, CancellationToken ct = default)
+        => SendAsAsync(false, method, path, content, ct);
+
+    /// <summary>Project adapter requests use only machine authority; no credential is exposed.</summary>
+    public Task<HttpResponseMessage> SendMachineAsync(HttpMethod method, string path, HttpContent? content = null, CancellationToken ct = default)
+        => SendAsAsync(true, method, path, content, ct);
+
+    private async Task<HttpResponseMessage> SendAsAsync(bool machine, HttpMethod method, string path, HttpContent? content, CancellationToken ct)
     {
         string launchToken, coreUrl;
         lock (_lifecycle)
         {
-            if (_disposed || _launchToken is null || CoreUrl.Length == 0) throw new InvalidOperationException("Core is not ready");
-            launchToken = _launchToken; coreUrl = CoreUrl;
+            var credential = machine ? _machineToken : _launchToken;
+            if (_disposed || credential is null || CoreUrl.Length == 0) throw new InvalidOperationException("Core is not ready");
+            launchToken = credential; coreUrl = CoreUrl;
         }
         if (!path.StartsWith("/api/v1/", StringComparison.Ordinal) || path.Contains('\\') || path.Contains('#'))
             throw new ArgumentException("Core API path required", nameof(path));
@@ -166,7 +196,11 @@ public sealed class CoreSupervisor : IDisposable
         if (uri.GetLeftPart(UriPartial.Authority) != coreUrl) throw new ArgumentException("Core origin mismatch", nameof(path));
         using var request = new HttpRequestMessage(method, uri) { Content = content };
         request.Headers.Add("x-archeaxis-launch-token", launchToken);
-        return await Http.SendAsync(request, ct).ConfigureAwait(false);
+        var response = await Http.SendAsync(request, ct).ConfigureAwait(false);
+        // Response diagnostics retain RequestMessage; strip the sent credential
+        // before returning the response to either caller.
+        response.RequestMessage?.Headers.Remove("x-archeaxis-launch-token");
+        return response;
     }
 
     private static async Task DrainAsync(StreamReader reader)
@@ -187,6 +221,7 @@ public sealed class CoreSupervisor : IDisposable
             _core = null;
             CoreUrl = "";
             _launchToken = null;
+            _machineToken = null;
             HandshakeRuntime = null;
             HandshakeContract = null;
         }

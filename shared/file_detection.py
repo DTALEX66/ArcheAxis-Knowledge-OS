@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -31,12 +32,31 @@ _thresholds: dict[str, float] = {}
 _overwrites: dict[str, str] = {}
 
 
+def _model_paths() -> tuple[Path, Path]:
+    """Return the configured Magika model/config paths.
+
+    An explicit ``ARCHEAXIS_MAGIKA_MODEL_DIR`` directory is preferred when it
+    contains both required files.  The repository copy remains an offline
+    fallback so file detection stays usable when the shared model library is
+    unavailable.
+    """
+    configured = os.environ.get("ARCHEAXIS_MAGIKA_MODEL_DIR", "").strip()
+    if configured:
+        external_dir = Path(configured).expanduser()
+        external_model = external_dir / "model.onnx"
+        external_config = external_dir / "config.min.json"
+        if external_model.is_file() and external_config.is_file():
+            return external_model, external_config
+    return _MODEL_PATH, _CONFIG_PATH
+
+
 def _load_model() -> None:
     global _sess, _config, _labels, _thresholds, _overwrites
     if _sess is not None:
         return
-    _config = json.loads(_CONFIG_PATH.read_text(encoding="utf-8"))
-    _sess = rt.InferenceSession(str(_MODEL_PATH), providers=["CPUExecutionProvider"])
+    model_path, config_path = _model_paths()
+    _config = json.loads(config_path.read_text(encoding="utf-8"))
+    _sess = rt.InferenceSession(str(model_path), providers=["CPUExecutionProvider"])
     _labels = [str(label) for label in _config["target_labels_space"]]
     _thresholds = _config.get("thresholds", {})
     _overwrites = _config.get("overwrite_map", {})
@@ -162,4 +182,5 @@ def _classify_group(label: str) -> str:
 
 def is_available() -> bool:
     """Check if the model is present and usable."""
-    return _MODEL_PATH.is_file() and _CONFIG_PATH.is_file()
+    model_path, config_path = _model_paths()
+    return model_path.is_file() and config_path.is_file()

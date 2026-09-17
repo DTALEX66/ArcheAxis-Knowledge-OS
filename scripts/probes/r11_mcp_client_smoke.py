@@ -53,6 +53,13 @@ def _load(name: str, path: Path):
 core = _load("core_client_mcp_probe", REPO / "shared" / "core_client.py")
 
 
+def allocate_database() -> Path:
+    """Use dev.py's worktree/run boundary and never reuse a probe database."""
+    runtime = _load("runtime_mcp_probe", REPO / "scripts/runtime/dev.py")
+    directory = runtime.artifact_directory(REPO, "r11-mcp")
+    return directory / "mcp.sqlite"
+
+
 def launch_core(binary: Path, db: Path, actor: str, session: str):
     """Start a real Core and read its readiness line. The launch claim is the identity."""
     child = subprocess.Popen(
@@ -123,70 +130,72 @@ async def drive(base: str, receipt: dict) -> int:
         cwd=str(REPO),
     )
 
-    async with stdio_client(parameters) as (read_stream, write_stream):
-        async with ClientSession(read_stream, write_stream) as session:
-            await session.initialize()
-            listing = await session.list_tools()
-            names = [tool.name for tool in listing.tools]
-            receipt["tools_exposed"] = names
-            receipt["exposes_a_human_review_tool"] = any(
-                hint in name.lower() for name in names for hint in ("accept", "reject", "review", "modify", "deprecat")
-            )
+    async with (
+        stdio_client(parameters) as (read_stream, write_stream),
+        ClientSession(read_stream, write_stream) as session,
+    ):
+        await session.initialize()
+        listing = await session.list_tools()
+        names = [tool.name for tool in listing.tools]
+        receipt["tools_exposed"] = names
+        receipt["exposes_a_human_review_tool"] = any(
+            hint in name.lower() for name in names for hint in ("accept", "reject", "review", "modify", "deprecat")
+        )
 
-            found = await session.call_tool("archeaxis_search", {"query": QUERY})
-            body = _text_of(found)
-            receipt["search"] = {
-                "is_error": bool(getattr(found, "isError", False)),
-                "core_status": _json_field(body, "status"),
-                "document_returned": DOCUMENT_BODY.startswith(_first_head(body)),
-            }
+        found = await session.call_tool("archeaxis_search", {"query": QUERY})
+        body = _text_of(found)
+        receipt["search"] = {
+            "is_error": bool(getattr(found, "isError", False)),
+            "core_status": _json_field(body, "status"),
+            "document_returned": DOCUMENT_BODY.startswith(_first_head(body)),
+        }
 
-            written = await session.call_tool(
-                "archeaxis_record_task",
-                {
-                    "task_id": TASK_ID,
-                    "conditions": "answer one closed-form question from the workspace corpus",
-                    "model_version": "deepseek-flash (harness session)",
-                    "tool_version": "archeaxis.mcp/v1",
-                    "method_version": "one retrieval then one recorded outcome",
-                    "scope": f"read-only search plus one receipt write, query {QUERY!r}",
-                    "outcome": "succeeded",
-                },
-            )
-            receipt["record_task"] = {
-                "is_error": bool(getattr(written, "isError", False)),
-                "core_status": _json_field(_text_of(written), "status"),
-            }
+        written = await session.call_tool(
+            "archeaxis_record_task",
+            {
+                "task_id": TASK_ID,
+                "conditions": "answer one closed-form question from the workspace corpus",
+                "model_version": "deepseek-flash (harness session)",
+                "tool_version": "archeaxis.mcp/v1",
+                "method_version": "one retrieval then one recorded outcome",
+                "scope": f"read-only search plus one receipt write, query {QUERY!r}",
+                "outcome": "succeeded",
+            },
+        )
+        receipt["record_task"] = {
+            "is_error": bool(getattr(written, "isError", False)),
+            "core_status": _json_field(_text_of(written), "status"),
+        }
 
-            read_back = await session.call_tool("archeaxis_task_receipt", {"task_id": TASK_ID})
-            text = _text_of(read_back)
-            receipt["read_receipt"] = {
-                "is_error": bool(getattr(read_back, "isError", False)),
-                "outcome": _json_field(text, "outcome", nested=True),
-                "note": _json_field(text, "note", nested=True),
-            }
+        read_back = await session.call_tool("archeaxis_task_receipt", {"task_id": TASK_ID})
+        text = _text_of(read_back)
+        receipt["read_receipt"] = {
+            "is_error": bool(getattr(read_back, "isError", False)),
+            "outcome": _json_field(text, "outcome", nested=True),
+            "note": _json_field(text, "note", nested=True),
+        }
 
-            refused = await session.call_tool("archeaxis_accept", {"knowledge_id": "k_probe"})
-            receipt["human_action_through_mcp"] = {
-                "is_error": bool(getattr(refused, "isError", False)),
-                "reason": _text_of(refused)[:160],
-            }
+        refused = await session.call_tool("archeaxis_accept", {"knowledge_id": "k_probe"})
+        receipt["human_action_through_mcp"] = {
+            "is_error": bool(getattr(refused, "isError", False)),
+            "reason": _text_of(refused)[:160],
+        }
 
-            unmeasured = await session.call_tool(
-                "archeaxis_record_task",
-                {
-                    "task_id": f"{TASK_ID}-unmeasured",
-                    "conditions": "retest on an unseen example",
-                    "model_version": "deepseek-flash (harness session)",
-                    "scope": "not run in this probe",
-                    "outcome": "unmeasured",
-                    "retest_of": TASK_ID,
-                },
-            )
-            receipt["unmeasured_receipt"] = {
-                "is_error": bool(getattr(unmeasured, "isError", False)),
-                "core_status": _json_field(_text_of(unmeasured), "status"),
-            }
+        unmeasured = await session.call_tool(
+            "archeaxis_record_task",
+            {
+                "task_id": f"{TASK_ID}-unmeasured",
+                "conditions": "retest on an unseen example",
+                "model_version": "deepseek-flash (harness session)",
+                "scope": "not run in this probe",
+                "outcome": "unmeasured",
+                "retest_of": TASK_ID,
+            },
+        )
+        receipt["unmeasured_receipt"] = {
+            "is_error": bool(getattr(unmeasured, "isError", False)),
+            "core_status": _json_field(_text_of(unmeasured), "status"),
+        }
 
     return 0
 
@@ -231,9 +240,7 @@ def main() -> int:
         print(json.dumps(receipt, ensure_ascii=False, indent=2))
         return 2
 
-    run_root = REPO / ".project-local" / "runs" / "r11-mcp"
-    run_root.mkdir(parents=True, exist_ok=True)
-    db = run_root / f"mcp-{int(time.time())}.sqlite"
+    db = allocate_database()
 
     human_core, base = launch_core(binary, db, "human", HUMAN_SESSION)
     if human_core is None:

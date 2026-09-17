@@ -25,6 +25,192 @@ default:
   authorization: unique-directory-authority-match-and-issued-envelope
   generated_files: source-controlled-and-drift-checked
 authorities:
+  - path: .cargo/config.toml
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: .codex.example/README.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: .codex.example/config.example.toml
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: .editorconfig
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: .gitattributes
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: .pre-commit-config.yaml
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: .worklab/gate-registry.v1.yaml
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: .worklab/project-validation.v1.yaml
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: CHANGELOG.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: GITHUB_DELIVERY.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: HERMES_HANDOFF.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: LEGACY_MANIFEST.example.yaml
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: LESSONS_LEARNED.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: LICENSE
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: README.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: SECURITY.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: SYSTEM_BOUNDARY.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: THIRD_PARTY_NOTICES.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: apps/.gitignore
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: apps/desktop/README.md
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: archeaxis/__init__.py
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: contracts/plugin/plugin-manifest.schema.json
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: contracts/workspace/workspace-manifest.schema.json
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: crates/README.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: ecosystem.config.cjs
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: pyproject.toml
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: requirements.txt
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: R5 exact-path ownership; changes still require the applicable owner scope.
+    protected_resource: repository-metadata
+  - path: run_all.bat
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: run_all.sh
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: run_windows.bat
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: run_windows.ps1
+    owner: legacy-compatibility
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: R5 ownership registration only; legacy behavior is preserved, not declared migrated.
+  - path: shared-contracts/**
+    owner: legacy-shared-contracts
+    execution_lane: migration
+    write_mode: maintenance-only-task-envelope
+    note: Preserved adapters, schemas and fixtures; vNext production contracts remain packages/contracts. No semantic absorption
+      or activation claimed.
+  - path: .zcode/**
+    owner: none
+    write_mode: deny-commit
   - path: AGENTS.md
     owner: owner-integrator
     execution_lane: owner

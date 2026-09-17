@@ -46,7 +46,7 @@ def _validate_out(base: Path, out_dir: Path) -> Path:
     raw = str(out_dir)
     if re.match(r"^[A-Za-z]:", raw) and raw[:2].upper() == "E:":
         raise ValueError("E: drive is not allowed")
-    if raw.replace("\\", "/").startswith(("//", "/")):
+    if raw.replace("\\", "/").startswith("//") or (os.name == "nt" and raw.startswith(("/", "\\"))):
         raise ValueError("UNC or absolute-root output is not allowed")
     resolved = Path(os.path.abspath(out_dir))
     base_abs = Path(os.path.abspath(base))
@@ -182,6 +182,7 @@ def main() -> int:
         base = _run_root()
         out = _validate_out(base, args.out_dir)
         out.mkdir(parents=True, exist_ok=True)
+        manifest_path = _validate_out(out, out / f"{args.format}-manifest.json")
         rng = random.Random(args.seed)
         if args.format == "corrupt":
             if not args.input or not args.output:
@@ -189,10 +190,11 @@ def main() -> int:
             source = _validate_out(out, out / args.input)
             if not source.is_file():
                 return _usage_error(f"input file not found: {args.input}")
+            destination = _validate_out(out, out / args.output)
             original = source.read_bytes()
             original_sha = hashlib.sha256(original).hexdigest()
             mutated, note = corrupt_bytes(original, rng)
-            (out / args.output).write_bytes(mutated)
+            destination.write_bytes(mutated)
             result = {"name": args.output, "format": "corrupt", "seed": args.seed,
                       "original_file": args.input, "original_sha256": original_sha,
                       "corrupt_sha256": hashlib.sha256(mutated).hexdigest(),
@@ -200,13 +202,12 @@ def main() -> int:
         else:
             entry = {"text": generate_text, "json": generate_json, "canvas": generate_canvas,
                      "srt": generate_srt, "vtt": generate_vtt, "html": generate_html}[args.format](rng)
-            (out / entry["name"]).write_bytes(entry["data"])
+            _validate_out(out, out / entry["name"]).write_bytes(entry["data"])
             result = {"name": entry["name"], "format": args.format, "seed": args.seed,
                       "sha256": hashlib.sha256(entry["data"]).hexdigest(),
                       "bytes": len(entry["data"]), "expectations": entry["expectations"]}
         manifest = {"schema": "archeaxis.bulk-fixture-factory/v1", "out_dir": str(out),
                     "entries": [result]}
-        manifest_path = out / f"{args.format}-manifest.json"
         manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(json.dumps(result, ensure_ascii=False))
         return 0

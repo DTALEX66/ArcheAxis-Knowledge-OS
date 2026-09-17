@@ -14,6 +14,7 @@ Unavailable engines are listed as skipped — the bake-off never pretends.
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 from shared.bakeoff import (
@@ -50,8 +51,10 @@ def main() -> int:
     args = parser.parse_args()
 
     fixtures = _fixture_dir(args.fixtures)
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "")
     out_dir = Path(args.out) if args.out else (
-        Path(__file__).resolve().parents[1] / ".project-local" / "task-runtime" / "bakeoff-results"
+        Path(run_root) / "artifacts" / "pipeline" / "bakeoff"
+        if run_root else Path(__file__).resolve().parents[1] / ".project-local" / "task-runtime" / "bakeoff-results"
     )
     out_dir.mkdir(parents=True, exist_ok=True)
 

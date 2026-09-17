@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Format status matrix check (R15 / X12).
 
+This is a historical-pack checker; matrices must be selected explicitly with
+``--matrix``. R5 uses its own FORMAT-COVERAGE artifact and validator.
+
 `docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` claims what each of the
 sixteen carried-over format groups can actually do today. A claim like that is
 worth nothing unless something refuses it when it drifts, so this checker verifies
@@ -37,6 +40,10 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from scripts.taskpack_paths import default_pack_root
+except ModuleNotFoundError:
+    from taskpack_paths import default_pack_root
 ROOT = Path(__file__).resolve().parents[1]
 MATRIX = ROOT / "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json"
 CARRIED_FROM = ROOT / "docs/authority/taskpack-0907/FORMAT-COVERAGE.json"
@@ -213,8 +220,12 @@ def check(matrix_path: Path = MATRIX, root: Path = ROOT) -> tuple[list[str], dic
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
-    parser.add_argument("--matrix", type=Path, default=MATRIX)
+    parser.add_argument("--matrix", type=Path, help="historical R15 matrix (required)")
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+
+    if args.matrix is None:
+        print(f"no R5 R15-format matrix exists under {default_pack_root(ROOT)}; use its FORMAT-COVERAGE artifact and validator, or pass --matrix for a historical pack", file=sys.stderr)
+        return 2
 
     failures, detail = check(args.matrix)
     if args.json:

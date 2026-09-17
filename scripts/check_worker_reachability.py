@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Worker reachability: every capability worker is routed, or exempted with a reason.
 
+This is a historical-pack checker; reachability records must be selected
+explicitly with ``--record``. R5 uses its own package artifacts.
+
 Twice in this session a worker turned out to exist in the repository with **no route
 pointing at it** - an Office worker and, separately, a canvas/subtitle/HTML family - so
 a capability the format matrix recorded as missing was in fact present but unreachable
@@ -30,6 +33,10 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from scripts.taskpack_paths import default_pack_root
+except ModuleNotFoundError:
+    from taskpack_paths import default_pack_root
 ROOT = Path(__file__).resolve().parents[1]
 WORKERS_ROOT = ROOT / "services/python-workers"
 TRANSPORT = WORKERS_ROOT / "transport/text_ndjson.py"
@@ -102,8 +109,12 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
-    parser.add_argument("--record", type=Path, default=RECORD)
+    parser.add_argument("--record", type=Path, help="historical reachability record (required)")
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+
+    if args.record is None:
+        print(f"no R5 reachability record exists under {default_pack_root(ROOT)}; pass --record for a historical pack", file=sys.stderr)
+        return 2
 
     failures, detail = check(ROOT, args.record)
     if args.json:

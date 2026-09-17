@@ -4,7 +4,10 @@ import collections, json, os, sys, time
 sys.stdout.reconfigure(encoding='utf-8')
 
 ROOT = r"D:/All projects/ceshi"
-OUT = r"D:/All projects/ArcheAxis-Knowledge-OS/.hermes/task-runtime/ceshi_sweep_receipt.json"
+# Legacy verification script: generated receipts belong to ignored project
+# runtime state; the external test corpus remains read-only input.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+OUT = os.path.join(PROJECT_ROOT, ".project-local", "runs", "legacy-ceshi", "ceshi_sweep_receipt.json")
 CAP_IMAGES = 20
 CAP_AUDIO = 0
 PER_FILE_BUDGET = 10
@@ -126,6 +129,7 @@ for dirpath, dirnames, filenames in os.walk(ROOT):
 converted = sum(v for k, v in stats.items() if k.startswith("."))
 summary = {"total": stats["total"], "converted": converted, "by_ext": dict(stats), "gates": dict(gates), "failures": dict(failures), "total_chars": total_chars, "image_capped": stats.get("image_capped", 0), "audio_capped": stats.get("audio_capped", 0), "skipped": stats.get("skipped", 0)}
 payload = {"summary": summary, "receipts": receipts}
+os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w", encoding="utf-8") as f:
     json.dump(payload, f, ensure_ascii=False)
 print(json.dumps(summary, ensure_ascii=False))

@@ -78,7 +78,7 @@ ci-adapters = [
     "markitdown[pdf,docx,pptx,xlsx]>=0.1",
     "pymupdf>=1.24",
     "newspaper4k>=0.9",
-    "rapidocr-onnxruntime>=1.4",
+    "rapidocr-onnxruntime>=1.4; python_version < '3.13'",
     "readabilipy>=0.3",
     "trafilatura>=1.6",
     "youtube-transcript-api>=1.2",
@@ -102,6 +102,9 @@ ingestion = [
     "crawl4ai>=0.1",
     "langfuse>=4.0",
     "promptfoo>=0.1",
+]
+asr-sensevoice = [
+    "sherpa-onnx>=1.13,<1.14",
 ]
 full = [
     "archeaxis-workspace[dev,ingestion]",
@@ -191,3 +194,4 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests", "knowledge_base/tests"]
 pythonpath = ["."]
+cache_dir = ".project-local/task-runtime/pytest-cache"

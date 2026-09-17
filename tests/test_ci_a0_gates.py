@@ -289,8 +289,8 @@ def test_v0_6_6_development_version_uses_one_version_everywhere() -> None:
     assert "ArcheAxis.Knowledge-v${{ steps.resolve_version.outputs.release_version }}-Windows-x64-Setup.exe" in release_workflow
     assert "frontend/package-lock.json" in release_workflow
     assert "src-tauri/Cargo.lock" in release_workflow
-    assert "--exe src-tauri/target/release/ArcheAxis.exe" in release_workflow
-    assert "--frontend frontend/dist" in release_workflow
+    assert "--exe .project-local/build/tauri/release/ArcheAxis.exe" in release_workflow
+    assert "--frontend .project-local/build/frontend-dist" in release_workflow
     assert f"--version {expected_version}" not in release_workflow
     assert (
         'name = "archeaxis-workspace"\nversion = "0.6.14"\nsource = { editable = "." }'

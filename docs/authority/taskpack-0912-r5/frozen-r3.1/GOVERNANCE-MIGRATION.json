@@ -1,0 +1,210 @@
+{
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "package_revision": "R3.1",
+  "note": "12项切片挂回原任务，不新增独立任务权威；依赖仍按TASKS。",
+  "slices": [
+    {
+      "id": "GOV01",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "phase": "M0",
+      "title": "唯一规范与活动入口",
+      "work": "核对AGENTS、项目契约、语言索引、决策账本、任务板、各执行器短指针；消除冲突和乱码，旧证据保留。",
+      "deliverable": "实际入口路径、有效版本、冲突→裁决映射、待更新调用方。",
+      "acceptance": "所有入口指同一有效规则；同一受限操作各入口结果一致，改文档不等于守卫生效。",
+      "acceptance_case_ids": [
+        "AUTH-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "GOV02",
+      "mapped_tasks": [
+        "X01"
+      ],
+      "phase": "M0先止增",
+      "title": "开发运行目录执行治理",
+      "work": "逐项检查cargo、Python测试、浏览器、下载、打包、CI/nightly真实输出；沿现有dev入口约束路径，覆盖失败与取消。",
+      "deliverable": "生产者→允许输出根→配置/脚本→例外依据清单及前后差分。",
+      "acceptance": "默认入口不再生成根target或.hermes开发产物；路径含中文/空格、并发worktree、越界链接都有实测。",
+      "acceptance_case_ids": [
+        "PATH-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "GOV03",
+      "mapped_tasks": [
+        "X02",
+        "X13"
+      ],
+      "phase": "M0当前链；M1全仓收口",
+      "title": "源码与资产归属盘点",
+      "work": "盘点tracked与ignored，区分运行入口、供体、兼容层、冻结资产、缓存和唯一数据；为实际文件登记去向，不先全仓搬家。",
+      "deliverable": "原路径/hash→保留/适配/迁移/退役候选→目标路径→调用者→父任务。",
+      "acceptance": "M0实际调用链无归属空白；M1登记剩余全仓资产，未知项不可标迁移完成或删除。",
+      "acceptance_case_ids": [
+        "REUSE-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "GOV04",
+      "mapped_tasks": [
+        "X14"
+      ],
+      "phase": "X01/X02后提前；M1实测收口",
+      "title": "清理、容量和防止再增长",
+      "work": "同工具同范围盘点；核验保全后按精确授权删除可重建缓存；运行开发/打包后再次计量。",
+      "deliverable": "删除逐项收据、完整范围/排除表、逻辑字节/卷空间、后续增长结果。",
+      "acceptance": "不把19.146GiB当全仓；不整删.hermes，不碰E；唯一资料无误删；无实测不报释放量。",
+      "acceptance_case_ids": [
+        "CLEAN-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "GOV05",
+      "mapped_tasks": [
+        "X11",
+        "X13"
+      ],
+      "phase": "M0候选；M1规范收口",
+      "title": "依赖、构建与发布一致性",
+      "work": "锁定直接/间接依赖和模型/内容许可；从现有正式入口构建、测试和打包，收敛重复脚本及工作区硬编码。",
+      "deliverable": "源码树/锁文件/组件版本→CI/run→候选hash链、启动/停止/诊断/卸载数据说明。",
+      "acceptance": "Windows非开发环境可运行；失败/跳过job不能冒充通过；依赖、路径规则在实际打包生效。",
+      "acceptance_case_ids": [
+        "RELEASE-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "LANG01",
+      "mapped_tasks": [
+        "X00",
+        "X02",
+        "X04"
+      ],
+      "phase": "M0",
+      "title": "语言边界和迁移范围冻结",
+      "work": "逐模块判定领域权威、计算引擎、宿主、表现层；核实原决策冲突后登记，沿Rust/Python/C#/Web职责迁移。",
+      "deliverable": "实际模块/入口/依赖清单与迁移台账；文件数作盘点，不作完成率。",
+      "acceptance": "每项有源路径/hash、目标、调用方、处置类别、测试、退出和回滚；未核实不填迁移已完。",
+      "acceptance_case_ids": [
+        "AUTH-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "LANG02",
+      "mapped_tasks": [
+        "X04",
+        "X05",
+        "X07"
+      ],
+      "phase": "M0",
+      "title": "把领域权威从旧实现迁入Rust",
+      "work": "旧Python中的审校/版本/资格、权威作业与入库规则按行为迁入Core；事务边界唯一；同义旧实现退出生产写入。",
+      "deliverable": "旧→新API/领域规则对应、差分fixture、唯一写入调用链。",
+      "acceptance": "实际主路径只经Rust权威服务；Python等第三方不能直接读写主库；旧修订、权限、事务负例通过。",
+      "acceptance_case_ids": [
+        "REVISION-01",
+        "IDENTITY-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "LANG03",
+      "mapped_tasks": [
+        "X02",
+        "X05",
+        "X06",
+        "X12"
+      ],
+      "phase": "M0代表格式；M1其余格式",
+      "title": "Python保留为受控能力层",
+      "work": "拆开旧业务数据库访问与算法；复用OCR/解析/ASR/模型SDK，经既有worker协议交给Core，不把成熟引擎重写成Rust。",
+      "deliverable": "纯计算输入输出、版本锁、进程边界、超时/取消/错误契约及损失报告。",
+      "acceptance": "真实Core→worker→Core入库闭合；worker重启/取消不重复入库；M1各格式按原矩阵验收。",
+      "acceptance_case_ids": [
+        "JOB-01",
+        "IMPORT-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "LANG04",
+      "mapped_tasks": [
+        "X03",
+        "X08",
+        "X11"
+      ],
+      "phase": "M0",
+      "title": "C#宿主和Web学习界面承接",
+      "work": "C#/Avalonia承担生命周期/窗口/诊断；DeepTutor/Web承担学习体验；旧bridge改Core API投影和事件，不保留平行主库。",
+      "deliverable": "启动入口→Core/服务→实际学习页面→事件回收链，旧UI入口去向。",
+      "acceptance": "Welcome不算迁移完成；实际用户学习和FSRS回流可重启读回；不强制全量Web转XAML。",
+      "acceptance_case_ids": [
+        "UI-01",
+        "HUMAN-01",
+        "FSRS-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "LANG05",
+      "mapped_tasks": [
+        "X04",
+        "X08",
+        "X09"
+      ],
+      "phase": "M0",
+      "title": "跨语言契约与语义迁移",
+      "work": "以现有契约定义身份、版本、锚点、作业、学习/机器事件；统一序列化/错误/时间/幂等；兼容改变显式升级。",
+      "deliverable": "Rust/Python/C#/Web字段映射与真实进程契约测试，保留旧行为差异及适配策略。",
+      "acceptance": "不止各语言单测；真实宿主/worker/MCP同事件无丢失、身份无扩大、资格出口一致。",
+      "acceptance_case_ids": [
+        "EVENT-01",
+        "MACHINE-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "LANG06",
+      "mapped_tasks": [
+        "X05",
+        "X10"
+      ],
+      "phase": "M0",
+      "title": "数据与旧备份迁移",
+      "work": "旧语言运行数据通过一致快照和新staging迁移；原件/附件/关系/修订/两侧记录全覆盖，兼容历史归档。",
+      "deliverable": "旧库只读身份/hash、导出校验、逐项差分、恢复与回滚收据。",
+      "acceptance": "真实旧11表v3恢复；旧库不变；实际用户库未切换明确未执行，合成fixture不能替代现场完成。",
+      "acceptance_case_ids": [
+        "ARCHIVE-01",
+        "MIGRATION-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "LANG07",
+      "mapped_tasks": [
+        "X02",
+        "X11",
+        "X13"
+      ],
+      "phase": "M0关键路径退出旧权威；M1剩余生产模块收口",
+      "title": "旧入口退役和迁移终验",
+      "work": "先切默认入口并验证调用者，再移除确认无引用的重复权威分支；供体/冻结资产登记保留；删除按现有授权逐项处理。",
+      "deliverable": "生产入口反查、动态调用收据、回退开关、旧模块状态、遗留缺口与下一任务。",
+      "acceptance": "迁移完成须行为等价/有批准差异、单一权威、实际新入口、兼容恢复和回滚成立；Rust占比提高或旧文件减少不算完成。",
+      "acceptance_case_ids": [
+        "REUSE-01",
+        "RELEASE-01"
+      ],
+      "status": "PLANNED_NOT_IMPLEMENTED"
+    }
+  ]
+}

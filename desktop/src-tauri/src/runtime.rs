@@ -47,7 +47,7 @@ fn project_root_for_resource(resource_dir: &Path) -> Option<PathBuf> {
             };
             !matches!(
                 relative.components().next(),
-                Some(Component::Normal(name)) if name == "task-runtime"
+                Some(Component::Normal(name)) if name == "task-runtime" || name == "runs"
             )
         })
         .map(Path::to_path_buf)
@@ -99,7 +99,7 @@ fn resolve_runtime_for_profile(
         let root = desktop_dir
             .parent()
             .ok_or_else(|| "desktop directory has no repository parent".to_owned())?;
-        let python = root.join(".venv/Scripts/python.exe");
+        let python = root.join(".project-local/build/venv/Scripts/python.exe");
         if !python.is_file() {
             return Err(format!(
                 "development Python runtime is missing: {}",
@@ -173,11 +173,11 @@ mod tests {
     }
 
     #[test]
-    fn development_uses_only_the_repository_virtual_environment() {
+    fn development_uses_only_the_managed_project_virtual_environment() {
         let temp = tempdir().expect("temporary directory");
         let root = temp.path().join("repo");
         let manifest = root.join("desktop/src-tauri");
-        let python = root.join(".venv/Scripts/python.exe");
+        let python = root.join(".project-local/build/venv/Scripts/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create venv");
         fs::create_dir_all(&manifest).expect("create manifest directory");
         fs::write(&python, b"test").expect("create python marker");
@@ -207,7 +207,11 @@ mod tests {
     #[test]
     fn installed_mode_uses_only_bundled_python_and_writable_app_data() {
         let temp = tempdir().expect("temporary directory");
-        let resources = temp.path().join("resources");
+        // The CI launcher places tempdirs below the checkout's .project-local
+        // boundary.  Keep this fixture explicitly inside task-runtime so it
+        // exercises the ordinary installed-user-data branch rather than the
+        // project-bundle branch tested below.
+        let resources = temp.path().join(".project-local/task-runtime/resources");
         let local_data = temp.path().join("local-data");
         let python = resources.join("runtime/python/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create runtime");
@@ -239,7 +243,7 @@ mod tests {
         let temp = tempdir().expect("temporary directory");
         let root = temp.path().join("repo");
         let manifest = root.join("desktop/src-tauri");
-        let python = root.join(".venv/Scripts/python.exe");
+        let python = root.join(".project-local/build/venv/Scripts/python.exe");
         fs::create_dir_all(python.parent().expect("python parent")).expect("create venv");
         fs::create_dir_all(&manifest).expect("create manifest directory");
         fs::write(&python, b"test").expect("create python marker");

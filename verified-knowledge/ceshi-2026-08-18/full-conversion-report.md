@@ -1,6 +1,6 @@
 # ceshi 测试库全量转化 + 本地模型验证对比报告（2026-08-18）
 
-> 规则落地：转化/检索/问答全部用**共用模型库本地模型**（pymupdf / markitdown / pytesseract / ollama qwen3-embedding·qwen2.5vl·qwen3:8b / faster-whisper）；**全网交叉对比用 DeepSeek**（web_search + 推理）。回执：.hermes/task-runtime/ceshi_sweep_receipt.json、qa_local_verify_receipt.json。
+> 规则落地：转化/检索/问答全部用**共用模型库本地模型**（pymupdf / markitdown / pytesseract / ollama qwen3-embedding·qwen2.5vl·qwen3:8b / faster-whisper）；**全网交叉对比用 DeepSeek**（web_search + 推理）。回执：`.project-local/runs/legacy-ceshi/ceshi_sweep_receipt.json`、`qa_local_verify_receipt.json`。
 
 ## 1. 测试库规模
 - 共 **22,422 个文件**：md 5602 / ajson 15071 / png 1214 / pdf 66 / mp4 64 / mp3 14 / docx 24 / pptx 4 / json 81 / canvas 22 等

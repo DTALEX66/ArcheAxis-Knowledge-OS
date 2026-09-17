@@ -45,9 +45,8 @@ def main() -> int:
         print(json.dumps({"ok": False, "blocked": "core binary not built", "path": str(binary)}))
         return 2
 
-    run_root = REPO / ".project-local" / "runs" / "r11-smoke"
-    run_root.mkdir(parents=True, exist_ok=True)
-    db = run_root / f"smoke-{int(time.time())}.sqlite"
+    runtime = _load("runtime_r11_smoke", REPO / "scripts/runtime/dev.py")
+    db = runtime.artifact_directory(REPO, "r11-smoke") / "core.sqlite"
     child = subprocess.Popen(
         [str(binary), str(db), "0"],
         stdin=subprocess.PIPE,

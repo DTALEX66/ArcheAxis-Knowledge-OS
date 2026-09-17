@@ -2,12 +2,12 @@
 
 Differs from release-identity.json (provenance: commit/tree/run/locks) in
 that this is the user-facing inventory of published artifacts with sizes
-and hashes. Read from a staged release-assets directory; the source of
+and hashes. Read from a staged .project-local/build/release-assets directory; the source of
 truth for hashes is SHA256SUMS.txt when present, else computed on the fly.
 
 Usage:
-  python scripts/release_manifest.py --version 0.5.0 --assets release-assets \
-      --out release-assets/release-manifest.json
+  python scripts/release_manifest.py --version 0.5.0 --assets .project-local/build/release-assets \
+      --out .project-local/build/release-assets/release-manifest.json
 """
 from __future__ import annotations
 

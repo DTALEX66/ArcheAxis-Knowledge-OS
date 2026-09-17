@@ -90,15 +90,12 @@ def main() -> int:
         print(json.dumps({"ok": False, "blocked": "core binary not built", "path": str(binary)}, ensure_ascii=False, indent=2))
         return 2
 
-    run_root = REPO / ".project-local" / "runs" / "r15-directory-batch"
-    run_root.mkdir(parents=True, exist_ok=True)
+    runtime = _load("runtime_r15_batch", REPO / "scripts/runtime/dev.py")
+    run_root = runtime.artifact_directory(REPO, "r15-directory-batch")
     corpus = run_root / "corpus"
     build_corpus(corpus)
     manifest = run_root / "manifest.jsonl"
-    with contextlib.suppress(FileNotFoundError):
-        manifest.unlink()
-
-    child, base = launch_core(binary, run_root / f"batch-{int(time.time())}.sqlite")
+    child, base = launch_core(binary, run_root / "core.sqlite")
     if child is None:
         print(json.dumps({"ok": False, "reason": "the Core never reported readiness"}, ensure_ascii=False, indent=2))
         return 3

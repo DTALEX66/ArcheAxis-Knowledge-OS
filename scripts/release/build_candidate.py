@@ -36,6 +36,10 @@ def _load_candidate_module():
 
 
 candidate = _load_candidate_module()
+_dev_spec = importlib.util.spec_from_file_location("candidate_dev", REPO / "scripts/runtime/dev.py")
+assert _dev_spec and _dev_spec.loader
+dev = importlib.util.module_from_spec(_dev_spec)
+_dev_spec.loader.exec_module(dev)
 
 
 def _git(*args: str) -> str:
@@ -98,15 +102,6 @@ def main(argv: list[str] | None = None) -> int:
         kind = "debug-build"
         print("the given binary is not under a release target directory, so it is labelled a debug build")
 
-    name = f"archeaxis-core-{commit[:12]}-{kind}"
-    out = args.out or (REPO / ".project-local" / "dist" / name)
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir(parents=True)
-
-    target_binary = out / binary.name
-    shutil.copy2(binary, target_binary)
-
     clean, untracked = _tree_state()
     # The same rule scripts/launch/core_launch.py --manifest already applies to artifacts: a
     # manifest may only describe a tested commit, so a modified tracked file stops the bundle
@@ -118,6 +113,24 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 5
+    name = f"archeaxis-core-{commit[:12]}-{kind}"
+    try:
+        paths = dev.layout(REPO)
+        out = dev.safe_path(args.out or (paths["dev"] / "dist" / name))
+        relative = out.relative_to(paths["dev"])
+        if not relative.parts or relative.parts[0] not in {"dist", "runs"}:
+            raise ValueError("candidate output must be in project .project-local/dist or runs")
+        archive = dev.safe_path(out.with_suffix(".zip"))
+        sidecar = dev.safe_path(archive.with_suffix(".zip.sha256"))
+        destinations = [out, archive, sidecar] if args.zip else [out]
+        if any(path.exists() for path in destinations):
+            raise ValueError("candidate output or archive already exists; preserve it and choose a new output")
+        out.mkdir(parents=True, exist_ok=False)
+    except (OSError, ValueError) as error:
+        print(f"candidate output refused: {error}", file=sys.stderr)
+        return 6
+    target_binary = out / binary.name
+    shutil.copy2(binary, target_binary)
     built_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     manifest = candidate.write_bundle(
         out,
@@ -147,13 +160,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {item['path']:20s} {item['bytes']:>12,d} bytes  sha256 {item['sha256'][:16]}...")
 
     if args.zip:
-        archive = out.with_suffix(".zip")
-        with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
-            for path in sorted(p for p in out.rglob("*") if p.is_file()):
-                bundle.write(path, path.relative_to(out).as_posix())
+        with zipfile.ZipFile(archive, "x", zipfile.ZIP_DEFLATED) as bundle:
+            for relative in sorted([item["path"] for item in manifest["files"]] + [candidate.MANIFEST_NAME]):
+                bundle.write(out / relative, relative)
         digest = candidate.sha256_of(archive)
-        sidecar = archive.with_suffix(".zip.sha256")
-        sidecar.write_text(f"{digest}  {archive.name}\n", encoding="utf-8", newline="\n")
+        with sidecar.open("x", encoding="utf-8", newline="\n") as handle:
+            handle.write(f"{digest}  {archive.name}\n")
         print(f"archive         {archive}")
         print(f"  sha256        {digest}")
     return 0

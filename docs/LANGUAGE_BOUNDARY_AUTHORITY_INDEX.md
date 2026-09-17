@@ -6,7 +6,9 @@ never guessed from old taskpacks or PATH.
 
 Current decisions: [project contract](../PROJECT_CONTRACT.yaml) and
 [supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml), SUP-001–010.
-Execution: [2026-09-06 ledger](authority/taskpack-0906/EXECUTION.md).
+Execution: [R5 live ledger](current/R5-EXECUTION.md),
+[R5 task package](authority/taskpack-0912-r5/EXECUTOR-START.md), SUP-019.
+The 0906/0908/0910 ledgers retain their original historical evidence.
 Historical baseline: [2026-09-03 normalization record](current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md).
 Its old G0 cutover instructions are superseded; its recorded evidence is retained.
 

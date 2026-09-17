@@ -1,0 +1,93 @@
+{
+  "schema": "archeaxis.learning-contract-requirements/v1",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "status": "SPECIFICATION_NOT_RUNTIME_SCHEMA",
+  "implementation_rule": "映射到当前仓库契约，不创建第二主库/事件总线；版本升级走现有迁移机制。",
+  "activity_required": [
+    "activity_id",
+    "activity_version",
+    "template_id",
+    "template_version",
+    "knowledge_revision_ids",
+    "item_id",
+    "item_version",
+    "learning_objective",
+    "permitted_assistance",
+    "rubric_version",
+    "source_anchors"
+  ],
+  "event_required": [
+    "event_id",
+    "idempotency_key",
+    "schema_version",
+    "actor_from_server",
+    "attempt_id",
+    "raw_response",
+    "answer_exposure",
+    "hint_level",
+    "assistance_policy",
+    "event_origin",
+    "occurred_at",
+    "received_at",
+    "evaluation_status",
+    "evaluator_version",
+    "correction_of_event_id"
+  ],
+  "hint_levels": [
+    "none",
+    "direction",
+    "key_step",
+    "full_solution"
+  ],
+  "evaluation_dimensions": [
+    "recall",
+    "understanding",
+    "strategy_selection",
+    "execution",
+    "transfer",
+    "calibration"
+  ],
+  "not_combinable_as_mastery": [
+    "viewed",
+    "assisted_success",
+    "unaided_success",
+    "delayed_retention",
+    "transfer_success"
+  ],
+  "claim_link_required": [
+    "claim_id",
+    "claim_version",
+    "research_source_id",
+    "source_version",
+    "anchor",
+    "relation",
+    "population",
+    "task",
+    "outcome",
+    "reading_depth",
+    "applicability_note",
+    "inference_by"
+  ],
+  "claim_relations": [
+    "supports",
+    "limits",
+    "refutes",
+    "unresolved",
+    "design_inference"
+  ],
+  "runtime_rules": [
+    "披露完整解答后同次作答不可标无提示独立成功",
+    "服务器或受信UI记录曝光；缺证据标未知，不默认为无辅助",
+    "客户端自报身份不扩大权限；插件无权直接标mastered或verified",
+    "同幂等键同规范payload返回原收据；不同payload或对象明确冲突",
+    "参考答案错误先复核评估，不处罚学习者",
+    "辅助工具按测量目标配置，合理无障碍支持不移除",
+    "测验与练习/答案曝光隔离；留出题不可曾被提供",
+    "原始事件不可静默改写，评分修正追加关联事件",
+    "时间带时区并保留服务端接收时间；离线到达顺序不直接决定发生顺序",
+    "缺失可选字段保留未知；关键曝光/身份缺失按兼容策略限制评估资格",
+    "FSRS仅安排复习；不由回忆状态推算理解或迁移",
+    "公开事实、个人定义、假说、经验分别保留；研究不足不阻止个人内容保存"
+  ],
+  "rollout": "先合成fixture验证契约与迁移，再接真实UI与允许的本地数据；不得把本规格当已实现接口。"
+}

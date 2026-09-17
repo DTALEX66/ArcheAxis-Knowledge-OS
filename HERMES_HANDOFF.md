@@ -24,7 +24,7 @@ Do not create a new version, tag, installer, or GitHub Release for this work. Th
 1. Read the exact result for the CI run associated with `673f9ee`; distinguish selected/skipped gates from executed gates.
 2. Keep Green fixes in place; do not rebuild an installer or mint a release/version. Retain backups under `D:\All projects\ArcheAxis.Knowledge.Green-x64\backups\` until a later verified closure.
 3. Treat the remaining production gaps separately: installer lifecycle, broader real-corpus ingestion qualification, and human learning acceptance with user-owned material are not proven by the fixture-based checks above.
-4. Preserve the boundary: external tools are under `D:\All projects\OS External Configuration`, models under `D:\All projects\Model library`, while project runtime evidence stays under ignored `.hermes\`.
+4. Preserve the boundary: external tools are under `D:\All projects\OS External Configuration`, models under `D:\All projects\Model library`, while new project runtime evidence stays under ignored `.project-local\` via `scripts/runtime/dev.py`. `.hermes\` is retained legacy material and receives no new development output.
 
 All material below this line is retained historical context, not current status.
 

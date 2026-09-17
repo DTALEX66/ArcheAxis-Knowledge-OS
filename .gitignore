@@ -33,6 +33,7 @@ node_modules/
 .next/
 dist/
 build/
+release-assets/
 
 # OS/editor
 .DS_Store
@@ -42,6 +43,7 @@ Thumbs.db
 
 # Codex/Hermes local state
 .codex/
+.zcode/
 .hermes/
 .project-local/
 .playwright-cli/

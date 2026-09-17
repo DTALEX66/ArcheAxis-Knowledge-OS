@@ -1,35 +1,63 @@
-# -*- coding: utf-8 -*-
 """pipeline_audio.py — 音频全量转写（F1）。
 
 用法（在项目根）:
-    env -u PYTHONPATH .venv/Scripts/python.exe scripts/pipeline/pipeline_audio.py
+    .project-local/build/venv/Scripts/python.exe scripts/runtime/dev.py -- .project-local/build/venv/Scripts/python.exe scripts/pipeline/pipeline_audio.py
 
 引擎：SenseVoice int8（快，~26x）→ faster-whisper 兜底。
-输入：D:/All projects/ceshi 全部 mp3/m4a/wav/flac/mp4（mp4 先 ffmpeg 提音轨）。
-输出：.project-local/task-runtime/audio_full_receipt.json
+输入：由 `ARCHEAXIS_PIPELINE_SOURCE_ROOT` 指定且获批准的测试资料目录；不读取真实资料库。
+输出：通过 `ARCHEAXIS_RUN_ROOT` 路由到当前运行的 `artifacts/pipeline/audio/`。
 """
-import json, os, subprocess, sys
+import json
+import os
+import subprocess
+import sys
 from pathlib import Path
+
 sys.stdout.reconfigure(encoding='utf-8')
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ROOT = os.environ.get("ARCHEAXIS_PIPELINE_SOURCE_ROOT", "")
-OUT = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "audio_full_receipt.json")
-WORK = str(PROJECT_ROOT / ".project-local" / "task-runtime" / "audio-work")
+RUN_ROOT = Path(os.environ.get("ARCHEAXIS_RUN_ROOT", PROJECT_ROOT / ".project-local" / "task-runtime"))
+ARTIFACT_ROOT = (RUN_ROOT / "artifacts" / "pipeline" / "audio") if os.environ.get("ARCHEAXIS_RUN_ROOT") else (RUN_ROOT / "audio")
+OUT = str(ARTIFACT_ROOT / "audio_full_receipt.json")
+WORK = str(ARTIFACT_ROOT / "work")
 os.makedirs(WORK, exist_ok=True)
+Path(OUT).parent.mkdir(parents=True, exist_ok=True)
 
-from app.ingestion.asr_adapter import transcribe_sense_voice, transcribe as transcribe_fw
+from app.ingestion.asr_adapter import AsrError, transcribe, transcribe_sense_voice
 from app.ingestion.content_cleaner import clean_text as strip_noise
+try:
+    from source_preflight import validate_source  # noqa: E402
+except ModuleNotFoundError:
+    from scripts.pipeline.source_preflight import validate_source  # noqa: E402
+
+
+def _transcribe_with_fallback(audio_path: str | Path) -> dict:
+    """Prefer SenseVoice, then use the configured faster-whisper model."""
+    result = transcribe_sense_voice(audio_path)
+    if result and result.get("text", "").strip():
+        return result
+    try:
+        fallback = transcribe(audio_path)
+    except AsrError:
+        return {}
+    return fallback if fallback.get("text", "").strip() else {}
+
 
 def main() -> None:
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument('--part', type=int, default=0)
     ap.add_argument('--parts', type=int, default=1)
+    ap.add_argument('--max-files', type=int, default=0, help='process at most this many sorted inputs (0 = all)')
     ap.add_argument('--audio-only', action='store_true', help='skip .mp4 (video tracks deferred)')
     args = ap.parse_args()
     if not ROOT:
         raise SystemExit("set ARCHEAXIS_PIPELINE_SOURCE_ROOT to an approved source directory")
+    try:
+        source_root = validate_source(Path(ROOT))
+    except ValueError as exc:
+        raise SystemExit(f"source root rejected: {exc}") from exc
     if args.audio_only:
         _AUDIO_EXTS = ('.mp3', '.m4a', '.wav', '.flac')
     else:
@@ -41,17 +69,21 @@ def main() -> None:
     else:
         OUT_PART = OUT
     files = []
-    for dirpath, dirnames, filenames in os.walk(ROOT):
+    for dirpath, dirnames, filenames in os.walk(source_root):
         for f in filenames:
             if f.lower().endswith(_AUDIO_EXTS):
                 p = os.path.join(dirpath, f)
                 if os.path.getsize(p) > 0:
                     files.append(p)
     files = [p for i, p in enumerate(sorted(files)) if i % args.parts == args.part]
+    if args.max_files < 0:
+        raise SystemExit("--max-files must be non-negative")
+    if args.max_files:
+        files = files[:args.max_files]
     print(f'audio files (part {args.part}/{args.parts}):', len(files), flush=True)
     receipts, ok, fail = [], 0, 0
     for idx, p in enumerate(files):
-        rel = p.replace(ROOT + '/', '')
+        rel = str(Path(p).relative_to(source_root)).replace('\\', '/')
         t0 = __import__('time').monotonic()
         try:
             wav = os.path.join(WORK, f'a{idx}.wav')
@@ -59,8 +91,8 @@ def main() -> None:
                            capture_output=True, check=False)
             if not os.path.exists(wav) or os.path.getsize(wav) == 0:
                 fail += 1; receipts.append({'file': rel, 'ok': False, 'error': 'ffmpeg failed'}); continue
-            import subprocess as _sp
             import math as _math
+            import subprocess as _sp
             _pd = _sp.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1', wav],
                           capture_output=True, text=True)
             try: _dur = float((_pd.stdout or '0').strip() or 0)
@@ -73,7 +105,7 @@ def main() -> None:
                 _sp.run(['ffmpeg','-y','-ss',str(_s*seg),'-t',str(seg),'-i',wav,'-ac','1','-ar','16000',_seg_wav],
                         capture_output=True, check=False)
                 if not os.path.exists(_seg_wav): continue
-                _r = transcribe_sense_voice(_seg_wav)
+                _r = _transcribe_with_fallback(_seg_wav)
                 if _r:
                     parts.append(_r['text'])
                 try: os.remove(_seg_wav)

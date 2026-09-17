@@ -2,8 +2,84 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
         x:Class="ArcheAxis.Desktop.MainWindow"
-        Title="ArcheAxis.Desktop">
-    Welcome to Avalonia!
+        Title="ArcheAxis Knowledge">
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="220,*" Background="#101318">
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="24,18" Background="#171B22">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="星环知识平台" FontSize="24" FontWeight="SemiBold" Foreground="#F4F7FA" />
+                    <TextBlock Text="ArcheAxis Knowledge · 本地优先工作台" FontSize="13" Foreground="#AAB5C3" />
+                </StackPanel>
+                <Border Grid.Column="1" Padding="12,7" CornerRadius="6" Background="#222A35">
+                    <TextBlock x:Name="CoreStatusText" Text="核心状态：正在连接…" Foreground="#D6E4F0" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="0" Padding="16" Background="#14181F">
+            <StackPanel Spacing="8">
+                <TextBlock Text="工作区" Margin="8,8,8,12" FontSize="12" Foreground="#8996A6" />
+                <Button Content="总览" HorizontalContentAlignment="Left" Padding="14,10" Background="#263447" Foreground="#FFFFFF" />
+                <Button Content="资料库" HorizontalContentAlignment="Left" Padding="14,10" />
+                <Button Content="学习路径" HorizontalContentAlignment="Left" Padding="14,10" />
+                <Button Content="机器知识" HorizontalContentAlignment="Left" Padding="14,10" />
+                <Separator Margin="8,12" />
+                <TextBlock Text="当前版本：vNext" Margin="8,4" FontSize="12" Foreground="#8996A6" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" Grid.Column="1" Padding="32,28">
+            <StackPanel Spacing="22" MaxWidth="860">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="今天从哪里开始？" FontSize="30" FontWeight="SemiBold" Foreground="#F4F7FA" />
+                    <TextBlock Text="导入可信资料，建立可追溯的知识与学习闭环。" FontSize="15" Foreground="#AAB5C3" />
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                    <Border Padding="20" CornerRadius="10" Background="#1B2735" BorderBrush="#2B4057" BorderThickness="1">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="导入资料" FontSize="19" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                            <TextBlock Text="从 Markdown、PDF、Office、网页或 Canvas 开始。" TextWrapping="Wrap" Foreground="#B8C6D6" />
+                            <Button Content="选择资料并导入" HorizontalAlignment="Left" Padding="16,9" Click="OnImportClick" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Padding="20" CornerRadius="10" Background="#202A24" BorderBrush="#355342" BorderThickness="1">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="继续学习" FontSize="19" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                            <TextBlock Text="复习待处理卡片，查看掌握度与待验证结论。" TextWrapping="Wrap" Foreground="#B8C6D6" />
+                            <Button Content="打开学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <TextBlock Text="工作区状态" FontSize="19" FontWeight="SemiBold" Foreground="#F4F7FA" />
+                <Border Padding="20" CornerRadius="10" Background="#20242D" BorderBrush="#354457" BorderThickness="1">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="当前复习" FontSize="19" FontWeight="SemiBold" Foreground="#FFFFFF" />
+                        <TextBlock x:Name="LearningItemText" Text="点击‘打开学习路径’载入待复习项目" TextWrapping="Wrap" Foreground="#B8C6D6" />
+                        <TextBox x:Name="LearningAnswerBox" PlaceholderText="输入你的回答" IsEnabled="False" />
+                        <ComboBox x:Name="ReviewOutcomeBox" IsEnabled="False" SelectedIndex="0">
+                            <ComboBoxItem Content="选择结果" />
+                            <ComboBoxItem Content="回答正确" />
+                            <ComboBoxItem Content="回答错误" />
+                        </ComboBox>
+                        <Button x:Name="SubmitReviewButton" Content="提交复习结果" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnSubmitReviewClick" />
+                    </StackPanel>
+                </Border>
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                    <Border Padding="16" CornerRadius="8" Background="#191E26">
+                        <StackPanel Spacing="5"><TextBlock Text="资料对象" Foreground="#8996A6" /><TextBlock Text="0" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="等待导入" Foreground="#AAB5C3" /></StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Padding="16" CornerRadius="8" Background="#191E26">
+                        <StackPanel Spacing="5"><TextBlock Text="待复习" Foreground="#8996A6" /><TextBlock Text="0" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="今日学习队列" Foreground="#AAB5C3" /></StackPanel>
+                    </Border>
+                    <Border Grid.Column="2" Padding="16" CornerRadius="8" Background="#191E26">
+                        <StackPanel Spacing="5"><TextBlock Text="待核查" Foreground="#8996A6" /><TextBlock Text="0" FontSize="26" Foreground="#FFFFFF" /><TextBlock Text="需要证据确认" Foreground="#AAB5C3" /></StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </Window>

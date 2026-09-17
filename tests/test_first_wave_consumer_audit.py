@@ -3,7 +3,6 @@
 import importlib.util
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "ci" / "audit_first_wave_consumers.py"
 
@@ -54,5 +53,5 @@ def test_current_consumer_map_matches_the_documented_first_wave_baseline() -> No
         "evidence_bundle_store": [],
         "human_learning_event": ["app/integrations/deeptutor_bridge.py"],
         "machine_competence_receipt": [],
-        "source_anchor_provenance_v2": [],
+        "source_anchor_provenance_v2": ["app/evidence/hl01_import.py"],
     }

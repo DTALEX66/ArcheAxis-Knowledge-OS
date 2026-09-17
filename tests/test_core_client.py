@@ -135,21 +135,26 @@ class TestJourney:
             "evt-1",
         )
 
-    def test_the_journey_order_is_reachability_import_search_event_reference(self) -> None:
+    def test_probe_does_not_fabricate_a_learning_event(self) -> None:
         fake = _FakeCore()
         result = self._run(fake)
-        assert result["ok"] is True, result
-        paths = [path for _method, path, _body in fake.calls]
-        assert paths[0].endswith("/system/version")
-        assert paths[1].endswith("/imports")
-        assert paths[2].startswith("/api/v1/search")
-        assert paths[3].endswith("/learning/events")
-        assert paths[4].endswith("/learning/items/card-1/references")
-        assert result["source_id"] == "src-1"
-        assert result["referenced_revision"] == "k_rev1"
-        # The journey never performs a human review by itself.
-        assert not any("/review-decisions" in path for path in paths), paths
-        assert "human action" in result["note"]
+        assert result['ok'] is True
+        assert result['scope'] == 'adapter_probe'
+        assert result['closed_loop_verified'] is False
+        assert len(fake.calls) == 3
+        assert not any('/learning/' in path for _, path, _ in fake.calls)
+
+    def test_empty_search_is_not_success_and_never_writes_learning(self) -> None:
+        fake = _FakeCore()
+        def empty(*args, **kwargs):
+            status, body = fake(*args, **kwargs)
+            if args[2].startswith('/api/v1/search'):
+                return 200, {'count': 0, 'items': []}
+            return status, body
+        result = self._run(empty)
+        assert result['ok'] is False
+        assert result['failed_step'] == 'search_results'
+        assert not any('/learning/' in path for _, path, _ in fake.calls)
 
     def test_a_failed_step_stops_the_journey_and_is_reported(self) -> None:
         fake = _FakeCore(fail_step="/imports")

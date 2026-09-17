@@ -4,6 +4,7 @@ use std::{io::{BufRead, BufReader, Read, Write}, net::TcpStream,
 
 const TOKEN: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SESSION: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const MACHINE_TOKEN: &str = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
 struct Owned(Child);
 impl Drop for Owned { fn drop(&mut self) { let _=self.0.kill(); let _=self.0.wait(); } }
 fn spawn(db:&std::path::Path)->Owned {
@@ -192,4 +193,92 @@ fn human_launch_may_save_personal_definition_accepted() {
         r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"personal def","status":"accepted","created_by":"owner"}"#,
     );
     assert_eq!(code, 201);
+}
+
+#[test]
+fn v2_one_core_binds_distinct_tokens_to_fixed_roles() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("dual-role.sqlite");
+    let mut child = spawn(&db);
+    writeln!(child.0.stdin.take().unwrap(), "{}", serde_json::json!({
+        "protocol":"archeaxis.desktop-launch/v2", "actor":"human",
+        "launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION
+    })).unwrap();
+    let port = ready(&mut child);
+    for (token, actor) in [(TOKEN,"human"),(MACHINE_TOKEN,"machine")] {
+        let headers = format!("x-archeaxis-launch-token: {token}\r\nx-archeaxis-actor: human\r\nContent-Type: application/json\r\n");
+        let (code, body) = http(port,"GET","/api/v1/system/version",&headers);
+        assert_eq!(code,200);
+        assert!(!body.contains(MACHINE_TOKEN));
+        let version:serde_json::Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(version["launch_protocol"],"archeaxis.desktop-launch/v2");
+        assert_eq!(version["actor"],actor);
+        assert_eq!(version["session_id"],SESSION);
+        assert_eq!(std::path::PathBuf::from(version["workspace_db"].as_str().unwrap()).canonicalize().unwrap(),db.canonicalize().unwrap());
+        let status = if actor=="human" {"accepted"} else {"candidate"};
+        let payload = serde_json::json!({"knowledge_type":"PERSONAL_DEFINITION","body":actor,"status":status,"created_by":"bootstrap-test"});
+        let (created, body)=http_body(port,"POST","/api/v1/knowledge-items",&headers,&payload.to_string());
+        assert_eq!(created,201);
+        if actor=="human" {
+            let (review_status,review_body)=http_body(port,"POST","/api/v1/learning/reviews",&headers,r#"{"item_key":"live-fsrs","correct":true,"client_event_id":"live-fsrs-first","now":"2026-09-02T00:00:00+00:00"}"#);
+            assert_eq!(review_status,201,"{review_body}");
+            let review:serde_json::Value=serde_json::from_str(&review_body).unwrap();
+            assert_eq!(review["schedule_authority"],"fsrs");
+            assert_eq!(review["schedule_state"]["step"],1);
+        }
+        if actor=="machine" {
+            let item:serde_json::Value=serde_json::from_str(&body).unwrap();
+            let id=item["knowledge_id"].as_str().unwrap();
+            assert_eq!(http_body(port,"POST",&format!("/api/v1/knowledge-items/{id}/review-decisions"),&headers,r#"{"action":"accepted","reviewer":"machine"}"#).0,403);
+            assert_eq!(http_body(port,"POST","/api/v1/learning/events",&headers,r#"{"item_key":"card-a","kind":"review","correct":true,"client_event_id":"forged-human-event"}"#).0,403);
+            assert_eq!(http_body(port,"POST","/api/v1/learning/reviews",&headers,r#"{"item_key":"card-a","correct":true,"client_event_id":"forged-stateful-event"}"#).0,403);
+            let forged = serde_json::json!({"knowledge_type":"PERSONAL_DEFINITION","body":"forged","status":"accepted","actor":"human","created_by":"bootstrap-test"});
+            assert_eq!(http_body(port,"POST","/api/v1/knowledge-items",&headers,&forged.to_string()).0,400);
+            assert_eq!(http(port,"GET","/api/v1/system/version",&format!("{headers}Origin: http://localhost\r\n")).0,403);
+        }
+    }
+    assert_eq!(http(port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {TOKEN}\r\nx-archeaxis-launch-token: {MACHINE_TOKEN}\r\n")).0,401);
+    child.0.kill().unwrap();child.0.wait().unwrap();
+    let mut restarted=spawn(&db);
+    writeln!(restarted.0.stdin.take().unwrap(),"{}",serde_json::json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":"e".repeat(64),"machine_token":"f".repeat(64),"session_id":"d".repeat(32)})).unwrap();
+    let next_port=ready(&mut restarted);
+    let review_headers=format!("x-archeaxis-launch-token: {}\r\nContent-Type: application/json\r\n","e".repeat(64));
+    let (review_status,review_body)=http_body(next_port,"POST","/api/v1/learning/reviews",&review_headers,r#"{"item_key":"live-fsrs","correct":true,"client_event_id":"live-fsrs-second","now":"2026-09-02T00:10:00+00:00"}"#);
+    assert_eq!(review_status,201,"{review_body}");
+    let review:serde_json::Value=serde_json::from_str(&review_body).unwrap();
+    assert_eq!(review["next_review"],"2026-09-04T00:10:00+00:00");
+    for stale in [TOKEN,MACHINE_TOKEN] {
+        assert_eq!(http(next_port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {stale}\r\n")).0,401);
+    }
+    for (token, actor) in [("e".repeat(64),"human"),("f".repeat(64),"machine")] {
+        let (code,body)=http(next_port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {token}\r\n"));
+        assert_eq!(code,200);
+        let identity:serde_json::Value=serde_json::from_str(&body).unwrap();
+        assert_eq!(identity["actor"],actor);assert_eq!(identity["session_id"],"d".repeat(32));
+    }
+}
+
+#[test]
+fn invalid_v2_claims_are_rejected_before_database_creation() {
+    let base=serde_json::json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION});
+    let mut claims=Vec::new();
+    for field in ["actor","machine_token","launch_token","session_id"] {
+        let mut value=base.clone(); value.as_object_mut().unwrap().remove(field); claims.push(value.to_string());
+    }
+    for (field,value) in [("actor","machine"),("protocol","unknown"),("machine_token",TOKEN),("machine_token","short")] {
+        let mut claim=base.clone();claim[field]=serde_json::json!(value);claims.push(claim.to_string());
+    }
+    claims.push(base.to_string().replacen('{',"{\"machine_token\":\"duplicate\",",1));
+    let mut legacy=base.clone();legacy.as_object_mut().unwrap().remove("protocol");claims.push(legacy.to_string());
+    for field in ["protocol","actor","machine_token"] {
+        let mut value=base.clone();value[field]=serde_json::Value::Null;claims.push(value.to_string());
+    }
+    for claim in claims {
+        let dir=tempfile::tempdir().unwrap();let db=dir.path().join("invalid.sqlite");
+        let mut child=spawn(&db);writeln!(child.0.stdin.take().unwrap(),"{claim}").unwrap();
+        let deadline=Instant::now()+Duration::from_secs(7);
+        let status=loop {if let Some(status)=child.0.try_wait().unwrap(){break status;}
+            assert!(Instant::now()<deadline,"invalid claim did not terminate");std::thread::sleep(Duration::from_millis(10));};
+        assert!(!status.success());assert!(!db.exists());
+    }
 }

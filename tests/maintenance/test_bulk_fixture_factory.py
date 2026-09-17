@@ -105,3 +105,54 @@ def test_output_escape_is_rejected(tmp_path):
     result = _run(["--out-dir", "../escape", "--seed", "3", "--format", "text"])
     assert result.returncode == 2
     assert "escape" in (result.stderr or "").lower()
+
+
+def test_absolute_output_outside_run_root_is_rejected(tmp_path):
+    allowed = tmp_path / 'allowed'
+    target = tmp_path / 'outside'
+    result = _run(['--out-dir', str(target), '--seed', '1', '--format', 'text'],
+                  env={**os.environ, 'ARCHEAXIS_RUN_ROOT': str(allowed)})
+    assert result.returncode == 2
+    assert not target.exists()
+
+
+def test_linked_output_inside_run_root_is_rejected(tmp_path):
+    import pytest
+    target = tmp_path / 'target'
+    target.mkdir()
+    link = tmp_path / 'link'
+    try:
+        link.symlink_to(target, target_is_directory=True)
+    except OSError:
+        pytest.skip('host cannot create a directory symlink')
+    result = _run(['--out-dir', str(link / 'generated'), '--seed', '1', '--format', 'text'])
+    assert result.returncode == 2
+    assert not (target / 'generated').exists()
+
+
+def test_corrupt_output_cannot_escape_its_directory(tmp_path):
+    out = tmp_path / 'fixtures'
+    out.mkdir()
+    (out / 'input.txt').write_text('original')
+    escaped = tmp_path / 'escaped.txt'
+    for name in ('../escaped.txt', str(escaped)):
+        result = _run(['--out-dir', str(out), '--seed', '1', '--format', 'corrupt',
+                       '--input', 'input.txt', '--output', name])
+        assert result.returncode == 2
+        assert not escaped.exists()
+
+
+def test_final_file_and_manifest_links_are_not_followed(tmp_path):
+    import pytest
+    for name in ('text-00.txt', 'text-manifest.json'):
+        out = tmp_path / name.replace('.', '-')
+        out.mkdir()
+        target = tmp_path / ('protected-' + name)
+        target.write_bytes(b'preserve')
+        try:
+            (out / name).symlink_to(target)
+        except OSError:
+            pytest.skip('host cannot create symlinks')
+        result = _run(['--out-dir', str(out), '--seed', '1', '--format', 'text'])
+        assert result.returncode == 2
+        assert target.read_bytes() == b'preserve'

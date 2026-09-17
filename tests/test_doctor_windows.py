@@ -25,6 +25,12 @@ def test_doctor_script_present() -> None:
     assert DOCTOR.read_text(encoding="utf-8").startswith("#requires -Version 7.0")
 
 
+def test_doctor_supports_declared_external_rust_toolchain() -> None:
+    source = DOCTOR.read_text(encoding="utf-8")
+    assert "ARCHEAXIS_RUST_TOOLCHAINS" in source
+    assert "external_toolchain" in source
+
+
 def test_doctor_output_is_structured_json() -> None:
     if not _pwsh_available():
         return
@@ -37,6 +43,7 @@ def test_doctor_output_is_structured_json() -> None:
     assert "ports" in payload
     assert "encoding" in payload
     assert "writable" in payload
+    assert "access_blockers" in payload
     assert "healthy" in payload
 
 
@@ -69,6 +76,15 @@ def test_doctor_detects_python_presence() -> None:
     # and is a boolean, regardless of the actual value.
     assert isinstance(payload["toolchain"]["python"]["present"], bool)
     assert isinstance(payload["healthy"], bool)
+
+
+def test_doctor_can_use_the_managed_project_virtualenv_when_python_is_not_on_path() -> None:
+    managed = ROOT / ".project-local" / "build" / "venv" / "Scripts" / "python.exe"
+    if not _pwsh_available() or not (managed.is_file() or (ROOT / ".venv" / "Scripts" / "python.exe").is_file()):
+        return
+    result = _run_doctor()
+    payload = json.loads(result.stdout)
+    assert payload["toolchain"]["python"]["present"] is True
 
 
 def test_doctor_sanitizes_writable_probe() -> None:

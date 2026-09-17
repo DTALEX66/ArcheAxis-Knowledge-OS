@@ -1,0 +1,240 @@
+{
+  "schema": "archeaxis.format-retention/v1",
+  "formats": [
+    {
+      "format_id": "F01",
+      "release_scope": "core",
+      "formats": "TXT/MD/CSV/TSV/JSON/XML/源代码",
+      "preferred_route": "原样解码/结构解析 + 本地模型标注",
+      "required_output": "文本、结构、字符锚点",
+      "limits_and_acceptance": "不得执行文件；编码、换行、数值保持；推断另列",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "m0_note": "M0只要求该组已明确的代表性子集；不是该行每个后缀均已完成。",
+      "r2_interop_acceptance": "Obsidian/Vault subset roundtrip and explicit unsupported syntax losses; see X12 and ENHANCEMENT-REVIEW.md."
+    },
+    {
+      "format_id": "F02",
+      "release_scope": "core",
+      "formats": "静态网页/HTML/URL",
+      "preferred_route": "现有安全抓取 + trafilatura + 本地模型",
+      "required_output": "快照、正文、链接、抓取时间、段落锚点",
+      "limits_and_acceptance": "保存最终 URL；广告与正文分离；网络失败保留记录",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "m0_note": "M0只要求该组已明确的代表性子集；不是该行每个后缀均已完成。"
+    },
+    {
+      "format_id": "F03",
+      "release_scope": "core",
+      "formats": "动态网页/长网页",
+      "preferred_route": "隔离浏览器渲染 + DOM/截图双采集",
+      "required_output": "页面快照、正文、分页/滚动覆盖记录",
+      "limits_and_acceptance": "登录使用用户明确提供的会话；不绕过访问控制；未加载区标缺失",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "m0_note": "M0只要求该组已明确的代表性子集；不是该行每个后缀均已完成。"
+    },
+    {
+      "format_id": "F04",
+      "release_scope": "core",
+      "formats": "剪贴板截图/PNG/JPG/JPEG/WebP/BMP/TIFF",
+      "preferred_route": "RapidOCR 优先、现有 Tesseract 备选 + 本地视觉模型",
+      "required_output": "原图、OCR框、阅读顺序、图示描述",
+      "limits_and_acceptance": "文字识别与图示推断分层；截图不可仅做元数据提取",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "m0_note": "M0只要求该组已明确的代表性子集；不是该行每个后缀均已完成。"
+    },
+    {
+      "format_id": "F05",
+      "release_scope": "core",
+      "formats": "文本 PDF",
+      "preferred_route": "现有解析器/MarkItDown + Docling 复杂页回退",
+      "required_output": "页、段、表、图片引用、锚点",
+      "limits_and_acceptance": "读取顺序、多栏、数字、公式/表格有专项检查",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "m0_note": "M0只要求该组已明确的代表性子集；不是该行每个后缀均已完成。"
+    },
+    {
+      "format_id": "F06",
+      "release_scope": "core",
+      "formats": "扫描/混合 PDF",
+      "preferred_route": "逐页类型判定 + OCR + 布局模型",
+      "required_output": "页图、OCR、区域、低置信区",
+      "limits_and_acceptance": "不能用少量文本层跳过其余扫描页；全部页有处理状态",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X06",
+        "X12"
+      ],
+      "m0_note": "M0只要求该组已明确的代表性子集；不是该行每个后缀均已完成。"
+    },
+    {
+      "format_id": "F07",
+      "release_scope": "core",
+      "formats": "DOCX",
+      "preferred_route": "旧 DOCX adapter/MarkItDown + 嵌入图独立OCR",
+      "required_output": "标题、段落、表、图片、来源位置",
+      "limits_and_acceptance": "嵌入图文字、页眉脚注明确覆盖；不假定通用解析器已处理",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F08",
+      "release_scope": "core",
+      "formats": "PPTX",
+      "preferred_route": "旧 PPTX adapter/MarkItDown + 幻灯片图像理解",
+      "required_output": "幻灯片、文本、备注、图表引用",
+      "limits_and_acceptance": "幻灯片顺序、备注、嵌入图分开验收",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F09",
+      "release_scope": "core",
+      "formats": "XLSX",
+      "preferred_route": "旧 XLSX adapter + 结构化单元格读取",
+      "required_output": "sheet/cell、公式文本与缓存值、表",
+      "limits_and_acceptance": "不执行宏；不得将过期缓存值当实时计算值；合并单元格明确",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F10",
+      "release_scope": "core",
+      "formats": "WAV/MP3/M4A/FLAC",
+      "preferred_route": "现有 faster-whisper ASR；按语种选择已验证模型",
+      "required_output": "转写、片段/词时间、音轨、质量标记",
+      "limits_and_acceptance": "静音幻觉、专名、数字、噪声分别测试；不得仅返回媒体信息",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F11",
+      "release_scope": "core",
+      "formats": "MP4/MOV/MKV/WebM",
+      "preferred_route": "FFmpeg + ASR + 字幕解析 + 关键帧OCR/本地视觉模型",
+      "required_output": "对齐的音轨、字幕、画面事件、采样覆盖",
+      "limits_and_acceptance": "时间范围与采样间隔可见；音频处理成功不等于视频画面理解成功",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F12",
+      "release_scope": "core",
+      "formats": "SRT/VTT/JSON Canvas",
+      "preferred_route": "字幕/Canvas确定性解析",
+      "required_output": "时间锚/节点及关系",
+      "limits_and_acceptance": "字幕保留时序；Canvas不能扁平化丢边关系",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。",
+      "r2_interop_acceptance": "Obsidian/Vault subset roundtrip and explicit unsupported syntax losses; see X12 and ENHANCEMENT-REVIEW.md."
+    },
+    {
+      "format_id": "F13",
+      "release_scope": "expansion",
+      "formats": "RTF/ODT/ODS/ODP/EPUB/EML/MSG",
+      "preferred_route": "现有纯解析器 + 按需 MarkItDown/Docling 能力包",
+      "required_output": "章节/邮件头/附件引用及结构",
+      "limits_and_acceptance": "逐扩展名实测后公开为支持；不因库宣称支持直接标通过",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F14",
+      "release_scope": "expansion",
+      "formats": "DOC/PPT/XLS等旧Office",
+      "preferred_route": "隔离的已安装转换器输出OOXML/PDF后进标准链",
+      "required_output": "原件、转换件、损失报告",
+      "limits_and_acceptance": "能力不存在则明确提示安装；保留原件；禁止启动宏",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F15",
+      "release_scope": "expansion",
+      "formats": "ZIP/目录批量",
+      "preferred_route": "有界展开 + 每项路由回标准链",
+      "required_output": "容器到文件到知识的来源关系",
+      "limits_and_acceptance": "限制嵌套、文件数和展开体积，拒绝路径穿越；不能执行内容",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    },
+    {
+      "format_id": "F16",
+      "release_scope": "explicit_boundary",
+      "formats": "PSD/AI/CDR/CAD/3D等专业格式",
+      "preferred_route": "保留原件；有授权的原生导出器生成PDF/图像/文本后入标准链",
+      "required_output": "原生文件与派生预览、转换覆盖说明",
+      "limits_and_acceptance": "无转换器时仅原件保管，不能宣称语义转换完成；不依赖DESIGN-LAB联动",
+      "preserved": true,
+      "qualification_state": "NOT_REQUALIFIED",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "m0_note": "按M1核心/扩展/专业边界逐项启用。"
+    }
+  ],
+  "source_plan_id": "AAK-REUSE-FIRST-20260907-R2",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "r3_note": "原映射保留；旧实现状态不是本轮新测。"
+}

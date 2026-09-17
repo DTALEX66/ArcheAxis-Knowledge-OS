@@ -48,6 +48,8 @@ risk_classes:
       - "scripts/ci/check_vnext_*.py"
       - "scripts/runtime/**"
       - "tests/runtime-paths/**"
+      - "scripts/release/assemble_green_candidate.py"
+      - "scripts/release/verify_green_candidate.py"
     gates: [static, lint, rust-vnext, desktop-vnext, contracts-vnext, workers-vnext]
 
   - id: ci-desktop-build-policy
@@ -136,6 +138,7 @@ risk_classes:
       - AGENTS.md
       - "docs/authority/**"
       - "docs/design/**"
+      - "workspace/intake/**"
       - "reports/vnext/**"
       - "reports/**"
     gates: [static]

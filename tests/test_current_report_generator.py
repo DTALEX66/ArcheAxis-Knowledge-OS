@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -47,7 +48,13 @@ def test_current_report_generator_emits_exact_sha_bound_reports(tmp_path: Path) 
 
 
 def test_default_current_report_output_is_an_ignored_project_artifact() -> None:
-    assert DEFAULT_OUTPUT_DIR == ROOT / ".project-local" / "task-artifacts" / "current-reports"
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT")
+    expected = (
+        Path(run_root) / "artifacts" / "current-reports"
+        if run_root
+        else ROOT / ".project-local" / "task-runtime" / "current-reports"
+    )
+    assert DEFAULT_OUTPUT_DIR == expected
 
 
 def test_release_evidence_loader_rejects_equal_ci_and_release_runs(

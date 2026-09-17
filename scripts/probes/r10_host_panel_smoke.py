@@ -1,8 +1,8 @@
 """R10 host panel smoke: a real Core, a real panel server, real HTTP reads.
 
 Launches the real `archeaxis-api` (see `scripts/probes/r10_core_journey_smoke.py` for
-the launch-claim details), drives one real journey through `shared/core_client.py` so
-the item has genuine learner history, then serves `scripts/host/journey_panel.py` and
+the launch-claim details), runs an adapter probe through `shared/core_client.py`
+without fabricating learner history, then serves `scripts/host/journey_panel.py` and
 fetches the page and both JSON endpoints over HTTP.
 
 The receipt proves the host-facing surface, not the DeepTutor screen: DeepTutor is an
@@ -74,8 +74,8 @@ def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         with contextlib.suppress(Exception):
             stream.reconfigure(encoding="utf-8")
-    workdir = REPO / ".project-local" / "runs" / "host-panel-smoke"
-    workdir.mkdir(parents=True, exist_ok=True)
+    runtime = load("runtime_host_panel", REPO / "scripts/runtime/dev.py")
+    workdir = runtime.artifact_directory(REPO, "host-panel-smoke")
     db = workdir / "core.sqlite"
     core_port = free_port()
     panel_port = free_port()
@@ -109,14 +109,14 @@ def main() -> int:
         base = f"http://127.0.0.1:{ready}"
         token = claim["launch_token"]
 
-        # a real journey so the item has genuine learner history to project
+        # Adapter probe only; an empty workspace must retain zero learner events.
         item_key = "card-host-panel"
         journey = core_client.run_journey(
             core_client.call,
             base,
             token,
             "host-panel-sample.md",
-            "Panels in a host UI read the Core; nothing is written anywhere else.\n".encode("utf-8"),
+            b"Panels in a host UI read the Core; nothing is written anywhere else.\n",
             "host UI",
             item_key,
             "host-panel-event-1",
@@ -176,7 +176,7 @@ def main() -> int:
             and receipt["health"].get("reachable") is True
             and state_status == 200
             and isinstance(receipt["learner"], dict)
-            and receipt["learner"].get("event_count", 0) >= 1
+            and receipt["learner"].get("event_count") == 0
             and receipt["machine"].get("status") == "not_recorded"
             and off_status == 503
             and receipt["unreachable"]["learner"] is None
@@ -185,6 +185,8 @@ def main() -> int:
             and receipt["members_unknown_source"]["core_reachable"] is True
             and missing_status == 400
         )
+        receipt["scope"] = "read_only_panel_probe"
+        receipt["closed_loop_verified"] = False
         receipt["ok"] = bool(ok)
         print(json.dumps(receipt, ensure_ascii=False, indent=2))
         return 0 if ok else 4

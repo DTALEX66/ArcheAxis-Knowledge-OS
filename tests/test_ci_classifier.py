@@ -358,3 +358,10 @@ def test_text_transport_changes_run_the_real_rust_consumer_without_desktop_build
         gates = set(classify_paths([path])["required_gates"])
         assert {"rust-vnext", "workers-vnext"} <= gates
         assert "desktop-vnext" not in gates
+
+
+def test_green_candidate_assembly_changes_run_vnext_candidate_gate():
+    from scripts.ci.classify import classify_paths
+
+    gates = set(classify_paths(["scripts/release/assemble_green_candidate.py"])["required_gates"])
+    assert "desktop-vnext" in gates

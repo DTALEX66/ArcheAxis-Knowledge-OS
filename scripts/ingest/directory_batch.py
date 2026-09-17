@@ -25,10 +25,11 @@ import base64
 import hashlib
 import json
 import os
+import stat
 import sys
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
 
 SCHEMA = "archeaxis.directory-batch/v1"
 MANIFEST_SCHEMA = "archeaxis.directory-batch-entry/v1"
@@ -78,30 +79,51 @@ def sha256_of(path: Path) -> str:
 
 def iter_files(root: Path, *, limit: int | None = None) -> tuple[list[Path], list[str]]:
     """The files of a folder, and the paths that were left out, both explicit."""
+    checked = _runtime().safe_path(root)
+    if any(part.casefold() in {".zcode", ".codex", ".hermes", ".openhuman", ".git"} for part in checked.parts):
+        raise ValueError("private state cannot be a source folder")
     if not root.is_dir():
         raise ValueError(f"not a folder: {root}")
     files: list[Path] = []
     skipped: list[str] = []
-    for path in sorted(root.rglob("*")):
-        relative = path.relative_to(root).as_posix()
-        parts = path.relative_to(root).parts
-        if any(part in EXCLUDED_DIRS or (part.startswith(".") and part not in {".", ".."}) for part in parts[:-1]):
-            skipped.append(f"{relative} (excluded directory)")
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        if _is_reparse(directory.lstat()):
+            skipped.append(f"{directory.relative_to(root).as_posix()} (link or reparse point)")
             continue
-        if path.is_dir():
-            continue
-        if path.name.startswith("."):
-            skipped.append(f"{relative} (hidden file)")
-            continue
-        if not path.is_file():
-            skipped.append(f"{relative} (not a regular file)")
-            continue
-        files.append(path)
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                path = Path(entry.path)
+                relative = path.relative_to(root).as_posix()
+                if entry.name.startswith("."):
+                    skipped.append(f"{relative} (excluded hidden path)")
+                    continue
+                info = entry.stat(follow_symlinks=False)
+                if _is_reparse(info):
+                    skipped.append(f"{relative} (link or reparse point)")
+                elif stat.S_ISDIR(info.st_mode):
+                    if entry.name.casefold() in EXCLUDED_DIRS:
+                        skipped.append(f"{relative} (excluded directory)")
+                    else:
+                        pending.append(path)
+                elif stat.S_ISREG(info.st_mode):
+                    files.append(path)
+                else:
+                    skipped.append(f"{relative} (not a regular file)")
+    files.sort()
+    skipped.sort()
     if limit is not None:
         for path in files[limit:]:
             skipped.append(f"{path.relative_to(root).as_posix()} (over the limit of {limit})")
         files = files[:limit]
     return files, skipped
+
+
+def _is_reparse(info: os.stat_result) -> bool:
+    return stat.S_ISLNK(info.st_mode) or bool(
+        getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    )
 
 
 def latest_by_path(records: list[dict]) -> dict[str, dict]:
@@ -153,6 +175,27 @@ def append_records(path: Path, records: list[dict]) -> None:
     with path.open("a", encoding="utf-8", newline="\n") as handle:
         for record in records:
             handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+
+
+def _runtime():
+    import importlib.util
+
+    repo = Path(__file__).resolve().parents[2]
+    spec = importlib.util.spec_from_file_location("runtime_for_batch", repo / "scripts/runtime/dev.py")
+    assert spec and spec.loader
+    runtime = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runtime)
+    return runtime
+
+
+def default_manifest(root: Path, core_base: str) -> Path:
+    """Persist resume state by full source root and Core endpoint, never basename."""
+    repo = Path(__file__).resolve().parents[2]
+    runtime = _runtime()
+    source = os.path.normcase(str(runtime.safe_path(root)))
+    identity = json.dumps([source, core_base.rstrip("/")], ensure_ascii=False)
+    key = hashlib.sha256(identity.encode("utf-8")).hexdigest()
+    return runtime.state_path(repo, "directory-batch", f"{key}.jsonl")
 
 
 def run_batch(
@@ -259,7 +302,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path, required=True, help="the folder to walk")
     parser.add_argument("--core", default=None, help="Core base URL (default ARCHEAXIS_CORE_BASE)")
     parser.add_argument("--token-env", default="ARCHEAXIS_CORE_TOKEN", help="environment variable holding the launch token")
-    parser.add_argument("--manifest", type=Path, default=None, help="JSONL manifest (default under .project-local/runs)")
+    parser.add_argument("--manifest", type=Path, default=None,
+                        help="JSONL resume manifest; default is dev.py-managed state keyed by source root and Core URL")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no-resume", action="store_true", help="ignore earlier attempts")
     parser.add_argument("--dry-run", action="store_true", help="report what would happen, write nothing")
@@ -284,7 +328,11 @@ def main(argv: list[str] | None = None) -> int:
     core = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(core)
     token = os.environ.get(args.token_env) or None
-    manifest = args.manifest or (repo / ".project-local" / "runs" / "directory-batch" / f"{args.root.name}.jsonl")
+    manifest = args.manifest or default_manifest(args.root, base)
+    legacy = repo / ".project-local" / "runs" / "directory-batch" / f"{args.root.name}.jsonl"
+    if args.manifest is None and legacy.is_file():
+        print("A legacy basename-only manifest exists; it is preserved. Pass --manifest explicitly "
+              "only after checking its source and Core destination.", file=sys.stderr)
 
     receipt = run_batch(
         args.root,

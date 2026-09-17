@@ -1,6 +1,8 @@
 name: CI
 
 on:
+  # R5 audit branches run the same qualification gates as main/PR so their
+  # exact SHA results can be read back without treating branch push as release.
   workflow_dispatch:
     inputs:
       force_full:
@@ -9,7 +11,7 @@ on:
         default: true
         type: boolean
   push:
-    branches: [main]
+    branches: [main, "codex/**"]
   pull_request:
     branches: [main]
 
@@ -261,6 +263,8 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+          # Directory authority validates its recorded historical commit.
+          fetch-depth: 0
 
       - name: Initialize project development paths
         run: python -B scripts/runtime/dev.py --github-env
@@ -291,7 +295,9 @@ jobs:
         run: python scripts/check_language_boundaries.py
 
       - name: Validate the format status matrix against the real route tables
-        run: python scripts/check_format_matrix.py
+        run: >-
+          python scripts/check_format_matrix.py
+          --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json
 
       - name: Validate the tracked tree against the directory authority
         run: python scripts/check_path_conventions.py
@@ -320,12 +326,12 @@ jobs:
         run: |
           uv export --frozen --only-group build --no-emit-project --format requirements-txt --output-file locked-build.txt
           python -m pip install --require-hashes -r locked-build.txt
-          uv build --python "$(command -v python)" --wheel --no-build-isolation --out-dir dist
+          uv build --python "$(command -v python)" --wheel --no-build-isolation --out-dir .project-local/task-runtime/wheel-smoke/dist
           python - <<'PY'
           from pathlib import Path
           import zipfile
 
-          wheel = next(Path("dist").glob("*.whl"))
+          wheel = next(Path(".project-local/task-runtime/wheel-smoke/dist").glob("*.whl"))
           with zipfile.ZipFile(wheel) as archive:
               names = set(archive.namelist())
           required = {
@@ -368,7 +374,7 @@ jobs:
         run: |
           uv export --frozen --no-dev --no-emit-project --format requirements-txt --output-file locked-runtime.txt
           python -m pip install --require-hashes -r locked-runtime.txt
-          python -m pip install --no-deps dist/*.whl
+          python -m pip install --no-deps .project-local/task-runtime/wheel-smoke/dist/*.whl
           python -m pip check
           python -m pip uninstall --yes setuptools wheel jaraco.context
           python -m pip uninstall --yes pip
@@ -614,6 +620,18 @@ jobs:
 
       - name: Install Rust (stable, from rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked scheduler runtime
+        shell: bash
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
@@ -660,8 +678,73 @@ jobs:
         env:
           ARCHAXIS_CORE_BIN: ${{ env.CARGO_TARGET_DIR }}/debug/archeaxis-api.exe
         run: |
+          mkdir -p .project-local/task-runtime/desktop-vnext
           dotnet run --project apps/ArcheAxis.Desktop -- --smoke \
+            "$GITHUB_WORKSPACE/.project-local/task-runtime/desktop-vnext/smoke.sqlite" \
             && echo "supervisor smoke OK"
+
+  green-candidate-vnext:
+    timeout-minutes: 35
+    runs-on: windows-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish self-contained Avalonia desktop
+        shell: pwsh
+        run: |
+          dotnet restore apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --runtime win-x64 --ignore-failed-sources
+          dotnet publish apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output .project-local/build/dotnet/green-desktop
+      - name: Build Rust Core
+        shell: bash
+        run: cargo build -p archeaxis-api
+      - name: Stage locked Python runtime
+        shell: pwsh
+        run: |
+          uv sync --frozen
+          python -B -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt
+      - name: Assemble and verify Green candidate
+        shell: pwsh
+        run: |
+          $python = (Get-Command python).Source
+          $cargoTarget = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'target' }
+          $core = Join-Path $cargoTarget 'debug/archeaxis-api.exe'
+          $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
+          if (-not (Test-Path -LiteralPath $core -PathType Leaf)) { throw "Rust Core binary is missing: $core" }
+          & $python -B scripts/release/assemble_green_candidate.py `
+            --desktop .project-local/build/dotnet/green-desktop `
+            --core $core `
+            --out .project-local/build/green-candidates `
+            --runtime .project-local/rt/runtime/python `
+            --source-commit $env:GITHUB_SHA `
+            --source-tree $tree `
+            --version ci
+          if ($LASTEXITCODE -ne 0) { throw "Green candidate assembly failed" }
+          & $python -B scripts/release/verify_green_candidate.py `
+            .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64 --require-runtime `
+            --expected-commit $env:GITHUB_SHA --expected-tree $tree
+          if ($LASTEXITCODE -ne 0) { throw "Green candidate verification failed" }
+      - name: Upload self-contained Green candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: green-candidate-vnext
+          path: .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64.zip
+          if-no-files-found: error
 
   contracts-vnext:
     timeout-minutes: 10
@@ -718,6 +801,10 @@ jobs:
         run: |
           uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
           uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Install locked adapter dependencies for worker regressions
+        run: |
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
       - name: Run byte-faithful worker regressions and actual report schema
         run: python -B -m unittest discover -s tests/workers -p "test_*.py"
 
@@ -909,7 +996,7 @@ jobs:
           Copy-Item $installer[0].FullName "$stage/$($installer[0].Name)"
           Copy-Item '.project-local/build/tauri/release/ArcheAxis.exe' "$stage/ArcheAxis.exe"
           $frontendArchive = "$stage/frontend-dist.zip"
-          Compress-Archive -LiteralPath 'frontend/dist' -DestinationPath $frontendArchive -CompressionLevel Optimal
+          Compress-Archive -LiteralPath '.project-local/build/frontend-dist' -DestinationPath $frontendArchive -CompressionLevel Optimal
           [ordered]@{
             schema='archeaxis/release-candidate/v1'
             commit=$env:GITHUB_SHA

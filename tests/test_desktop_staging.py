@@ -6,7 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from desktop.scripts.assemble_distributions import assemble_green, assemble_portable
+from desktop.scripts.assemble_distributions import (
+    _assembly_output,
+    assemble_green,
+    assemble_portable,
+)
 from desktop.scripts.stage_runtime import stage_runtime
 
 
@@ -152,8 +156,9 @@ def test_green_and_portable_archives_keep_the_shell_runtime_contract(
     identity.write_text('{"release": {}}', encoding="utf-8")
     monkeypatch.chdir(tmp_path)
 
-    green = assemble_green(exe, runtime, frontend, identity, "0.6.0")
-    portable = assemble_portable(exe, runtime, frontend, identity, "0.6.0")
+    output = tmp_path / "out"
+    green = assemble_green(exe, runtime, frontend, identity, "0.6.0", output)
+    portable = assemble_portable(exe, runtime, frontend, identity, "0.6.0", output)
 
     with zipfile.ZipFile(green) as archive:
         green_members = set(archive.namelist())
@@ -165,3 +170,11 @@ def test_green_and_portable_archives_keep_the_shell_runtime_contract(
     assert "ArcheAxis.Knowledge.Portable-x64/portable.flag" in portable_members
     assert "ArcheAxis.Knowledge.Portable-x64/data/" in portable_members
     assert not any("/app/runtime/" in name for name in portable_members)
+    assert not (tmp_path / "ArcheAxis.Knowledge.Green-x64").exists()
+    assert not (tmp_path / "ArcheAxis.Knowledge.Portable-x64").exists()
+    assert green.parent == output
+
+
+def test_distribution_default_output_is_anchored_to_repository_root() -> None:
+    expected = Path(__file__).resolve().parents[1] / ".project-local/task-runtime/release-assembly"
+    assert _assembly_output(None) == expected

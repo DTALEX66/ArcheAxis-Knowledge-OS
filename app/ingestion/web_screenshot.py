@@ -18,9 +18,7 @@ from typing import Any
 def _edge_candidates() -> tuple[Path, ...]:
     roots = (os.environ.get("PROGRAMFILES(X86)", ""), os.environ.get("PROGRAMFILES", ""))
     return tuple(
-        Path(root) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
-        for root in roots
-        if root
+        Path(root) / "Microsoft" / "Edge" / "Application" / "msedge.exe" for root in roots if root
     )
 
 
@@ -65,7 +63,34 @@ def _short_temp_root(out: Path) -> Path:
     return out.parent.resolve()
 
 
-def _browser_environment(out: Path) -> dict[str, str]:
+def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
+    """Choose a socket-safe root and return an optional ephemeral cleanup root."""
+    project_root = _short_temp_root(out)
+    # Keep the project-owned profile anchor present even when the actual
+    # Chromium socket must use a shorter ephemeral root; cleanup tests and
+    # operators can then verify the project anchor is empty after failure.
+    (project_root / "c").mkdir(parents=True, exist_ok=True)
+    # Chromium's Unix singleton socket has a hard path limit.  Hosted runners
+    # can exceed it even after trimming to .project-local.  Keep the screenshot
+    # and receipts in the project, while placing only the disposable browser
+    # profile/socket in a short OS temp directory when required.
+    # Chromium's singleton socket limit is independent of the project output
+    # path.  Hosted POSIX runners can still resolve TMPDIR/profile paths
+    # through their long workspace, so always isolate the disposable browser
+    # profile in a short ephemeral root there.  The project-owned ``c`` anchor
+    # remains for cleanup/evidence; screenshots and receipts stay in-project.
+    if os.name != "nt":
+        # ``tempfile`` otherwise inherits the CI TMPDIR, which this project
+        # intentionally routes under the long `.project-local/runs/...` path.
+        # Pin the disposable browser root to POSIX /tmp so the socket path is
+        # actually short.
+        posix_tmp = Path(os.sep) / "tmp"
+        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-", dir=str(posix_tmp)))
+        return short_root, short_root
+    return project_root, None
+
+
+def _browser_environment(out: Path, temp_root: Path | None = None) -> dict[str, str]:
     """Keep Chromium's singleton socket + temp below its path-length limit.
 
     GitHub-hosted runner workspaces are ~70 chars long; Chromium's
@@ -76,9 +101,20 @@ def _browser_environment(out: Path) -> dict[str, str]:
     project-data spill to the host temp directory.
     """
     environment = os.environ.copy()
-    sys_temp = str(_short_temp_root(out))
+    sys_temp = str(temp_root or _short_temp_root(out))
     for name in ("TMP", "TEMP", "TMPDIR"):
         environment[name] = sys_temp
+    # Chromium may place its process-singleton socket under the runtime
+    # directory instead of TMPDIR.  In CI that variable points at the long
+    # project run root, so keep the browser-only runtime namespace short too.
+    if os.name != "nt":
+        environment["XDG_RUNTIME_DIR"] = sys_temp
+        # Keep fallback profile/config resolution short for Chromium builds
+        # that consult HOME/XDG config before honoring user-data-dir.
+        environment["HOME"] = sys_temp
+        environment["XDG_CONFIG_HOME"] = sys_temp
+        environment["XDG_CACHE_HOME"] = sys_temp
+        environment["XDG_STATE_HOME"] = sys_temp
     return environment
 
 
@@ -109,25 +145,48 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
     browser = find_browser()
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    profile_root = _short_temp_root(out) / "c"
+    browser_root, ephemeral_root = _browser_temp_root(out)
+    profile_root = browser_root / "c"
     profile_root.mkdir(parents=True, exist_ok=True)
     profile = tempfile.mkdtemp(prefix="p-", dir=profile_root)
     try:
         proc = subprocess.run(
-            [browser, "--headless", "--disable-gpu", "--no-sandbox",
-             f"--user-data-dir={profile}",
-             f"--window-size={width},800", f"--screenshot={out}", url],
-            capture_output=True, timeout=60,
-            env=_browser_environment(out),
+            [
+                browser,
+                "--headless",
+                "--disable-gpu",
+                "--no-sandbox",
+                f"--user-data-dir={profile}",
+                f"--window-size={width},800",
+                f"--screenshot={out}",
+                url,
+            ],
+            capture_output=True,
+            timeout=60,
+            env=_browser_environment(out, browser_root),
         )
         if not _wait_for_screenshot(out):
             stderr = proc.stderr.decode(errors="replace").strip()[:200]
             detail = stderr or "browser exited without writing a PNG"
-            raise WebScreenshotError(
-                f"screenshot failed (exit_code={proc.returncode}): {detail}"
-            )
+            raise WebScreenshotError(f"screenshot failed (exit_code={proc.returncode}): {detail}")
     finally:
-        shutil.rmtree(profile, ignore_errors=True)
+        try:
+            shutil.rmtree(profile)
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            raise WebScreenshotError(
+                f"browser profile cleanup failed: {profile}: {error}"
+            ) from error
+        if Path(profile).exists():
+            raise WebScreenshotError(f"browser profile cleanup incomplete: {profile}")
+        if ephemeral_root is not None:
+            try:
+                shutil.rmtree(ephemeral_root)
+            except OSError as error:
+                raise WebScreenshotError(
+                    f"browser temp cleanup failed: {ephemeral_root}: {error}"
+                ) from error
     return {
         "ok": True,
         "path": str(out),

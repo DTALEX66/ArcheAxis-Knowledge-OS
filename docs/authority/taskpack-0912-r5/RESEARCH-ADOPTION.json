@@ -1,0 +1,3081 @@
+{
+  "schema": "archeaxis.research-adoption/v1",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "source_namespace": "learning-v15",
+  "source_package_sha256": "5881a40f255356e978d43cd2af61e78a5e6dcd1736c67e5b29ca36761d8ac27c",
+  "auto_verified": false,
+  "research": [
+    {
+      "source_id": "R01",
+      "source_doi": "10.1177/1529100612453266",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R02",
+      "source_doi": "10.1037/bul0000309",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R03",
+      "source_doi": "10.1037/0033-2909.132.3.354",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R04",
+      "source_doi": "10.1037/bul0000209",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R05",
+      "source_doi": "10.1037/bul0000151",
+      "reading_level": "R0",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "REFERENCE_ONLY",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R06",
+      "source_doi": "10.1111/bjop.12799",
+      "reading_level": "R2",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R07",
+      "source_doi": "10.1007/s10648-018-9434-x",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R08",
+      "source_doi": "10.1007/s10648-023-09745-1",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R09",
+      "source_doi": "10.3102/00346543211019105",
+      "reading_level": "R2",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R10",
+      "source_doi": "10.3389/fpsyg.2019.03087",
+      "reading_level": "R2",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R11",
+      "source_doi": "10.1007/s10648-017-9403-9",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R12",
+      "source_doi": "10.1016/j.cedpsych.2021.101976",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R13",
+      "source_doi": "10.1073/pnas.1319030111",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R14",
+      "source_doi": "10.1097/ACM.0b013e318217e119",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R15",
+      "source_doi": null,
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R16",
+      "source_doi": "10.1111/lang.12479",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R17",
+      "source_doi": "10.1037/bul0000335",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R18",
+      "source_doi": "10.1080/17470218.2015.1094494",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R19",
+      "source_doi": "10.1177/02762374241303266",
+      "reading_level": "R0",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "REFERENCE_ONLY",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R20",
+      "source_doi": "10.1073/pnas.2422633122",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02",
+        "HL10"
+      ]
+    },
+    {
+      "source_id": "R21",
+      "source_doi": "10.1038/s41598-025-97652-6",
+      "reading_level": "R2",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R22",
+      "source_doi": "10.1007/s10648-026-10133-8",
+      "reading_level": "R2",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R23",
+      "source_doi": "10.1111/tct.70353",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R24",
+      "source_doi": "10.1007/s40670-026-02643-5",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R25",
+      "source_doi": "10.3724/SP.J.1042.2023.02263",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R26",
+      "source_doi": "10.3724/SP.J.1041.2025.0363",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R27",
+      "source_doi": "10.1177/1745691616635612",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R28",
+      "source_doi": "10.1111/j.1539-6053.2009.01038.x",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R29",
+      "source_doi": "10.1177/1529100615623267",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R30",
+      "source_doi": "10.1038/nrn2762",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R31",
+      "source_doi": "10.1136/bjsports-2024-108589",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    },
+    {
+      "source_id": "R32",
+      "source_doi": "10.1038/s41562-023-01554-4",
+      "reading_level": "R1",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02",
+        "HL10"
+      ]
+    },
+    {
+      "source_id": "R33",
+      "source_doi": "10.1038/s41562-026-02532-2",
+      "reading_level": "R0",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "correction",
+      "allowed_use": "REFERENCE_ONLY",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02",
+        "HL10"
+      ]
+    },
+    {
+      "source_id": "R34",
+      "source_doi": "10.1073/pnas.2518204122",
+      "reading_level": "R0",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "correction",
+      "allowed_use": "REFERENCE_ONLY",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02",
+        "HL10"
+      ]
+    },
+    {
+      "source_id": "R35",
+      "source_doi": "10.1007/s10648-019-09465-5",
+      "reading_level": "R2",
+      "reading_level_provenance": "V15作者自报；非R4逐篇复核",
+      "record_role": "study_or_review",
+      "allowed_use": "CONTEXT_BOUND_CANDIDATE",
+      "auto_verified": false,
+      "anchor_status": "REQUIRES_CLAIM_LEVEL_ANCHOR",
+      "mapped_slices": [
+        "HL02"
+      ]
+    }
+  ],
+  "methods": [
+    {
+      "source_id": "M01",
+      "name": "提取练习",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R01",
+        "R02"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL04"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M02",
+      "name": "间隔学习",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R03",
+        "R16",
+        "R23"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL08"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M03",
+      "name": "反馈闭环",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R10"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL04"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M04",
+      "name": "样例与逐步撤除指导",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R08",
+        "R35"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL05"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M05",
+      "name": "交错练习",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R04"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL06"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M06",
+      "name": "自我解释",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R07",
+        "R08"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL07"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M07",
+      "name": "元认知与自我调节",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R12",
+        "R22"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL07"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M08",
+      "name": "记忆宫殿",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R06"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M09",
+      "name": "PAO人物动作物品",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M10",
+      "name": "挂钩法",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M11",
+      "name": "联想链与故事法",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M12",
+      "name": "数字与语音编码",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M13",
+      "name": "分块",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R35"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL05"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M14",
+      "name": "图文整合与双编码",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R25",
+        "R28",
+        "R35"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M15",
+      "name": "学习者画图",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R18",
+        "R19",
+        "R25"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M16",
+      "name": "概念图",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R11"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M17",
+      "name": "精细提问",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R01",
+        "R07"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL04"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M18",
+      "name": "类比与对比",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [
+        "R07",
+        "R35"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M19",
+      "name": "生成性尝试/生产性失败",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R09"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL05"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M20",
+      "name": "变式练习",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R04",
+        "R08"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL06"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M21",
+      "name": "刻意练习式训练",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R10",
+        "R14",
+        "R15"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M22",
+      "name": "模拟与掌握学习",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R14"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M23",
+      "name": "主动学习与同伴讨论",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R13"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M24",
+      "name": "教别人/Teach-back",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R02",
+        "R07"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL07"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M25",
+      "name": "项目化学习",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R10",
+        "R13",
+        "R20"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M26",
+      "name": "SQ3R/PQRST主动阅读",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [
+        "R02",
+        "R29"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M27",
+      "name": "主题阅读与证据对照",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R29"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M28",
+      "name": "笔记系统",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R01",
+        "R02",
+        "R11"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL08"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M29",
+      "name": "番茄钟与时间块",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M30",
+      "name": "单任务与环境整理",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M31",
+      "name": "睡眠支持",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R30"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M32",
+      "name": "运动支持",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R31",
+        "R32",
+        "R33"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M33",
+      "name": "压力与情绪支持",
+      "disposition": "OPTIONAL_UNVERIFIED_METHOD",
+      "research_refs": [],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M34",
+      "name": "AI导师与陪练",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R20",
+        "R21",
+        "R22"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL07"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M35",
+      "name": "Anki等间隔工具",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R03",
+        "R23",
+        "R24"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL08"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M36",
+      "name": "技能的外部注意焦点",
+      "disposition": "CONDITIONAL_ACTIVITY_CANDIDATE",
+      "research_refs": [
+        "R17"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02",
+        "HL09"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M37",
+      "name": "学习风格匹配",
+      "disposition": "EXCLUDED_EFFECTIVENESS_CLAIM",
+      "research_refs": [
+        "R28"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M38",
+      "name": "高速无损速读",
+      "disposition": "EXCLUDED_EFFECTIVENESS_CLAIM",
+      "research_refs": [
+        "R29"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M39",
+      "name": "脑力游戏提高一般智力",
+      "disposition": "EXCLUDED_EFFECTIVENESS_CLAIM",
+      "research_refs": [
+        "R27"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    },
+    {
+      "source_id": "M40",
+      "name": "右脑开发/全脑激活/睡眠灌输",
+      "disposition": "EXCLUDED_EFFECTIVENESS_CLAIM",
+      "research_refs": [
+        "R27",
+        "R28",
+        "R29",
+        "R30"
+      ],
+      "mapped_slices": [
+        "HL01",
+        "HL02"
+      ],
+      "runtime_enabled": false,
+      "note": "来源中的正负判断不自动写为Core事实；需按主张、范围和实际活动验收。"
+    }
+  ],
+  "domains": [
+    {
+      "source_id": "D01",
+      "name": "语文、阅读与写作",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R02",
+        "R07",
+        "R10"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D02",
+      "name": "历史、考古与档案",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R02",
+        "R06",
+        "R07"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D03",
+      "name": "外语词汇与语法",
+      "evidence_directness": "有二语间隔学习直接综述；具体制卡流程为应用设计",
+      "research_refs": [
+        "R03",
+        "R16"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D04",
+      "name": "外语听力、口语与翻译",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R10",
+        "R16",
+        "R20"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D05",
+      "name": "基础数学与计算",
+      "evidence_directness": "数学样例与交错有较直接证据；具体题单为应用设计",
+      "research_refs": [
+        "R04",
+        "R08",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D06",
+      "name": "高等数学、证明与抽象理论",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R07",
+        "R08",
+        "R09",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D07",
+      "name": "统计、数据科学与研究方法",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R07",
+        "R10",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D08",
+      "name": "物理与工程物理",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R08",
+        "R13",
+        "R21",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D09",
+      "name": "化学、材料基础与化工学习",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R02",
+        "R07",
+        "R13",
+        "R25"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D10",
+      "name": "生物、遗传与生态",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R02",
+        "R11",
+        "R13",
+        "R25"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D11",
+      "name": "地理、地质与环境科学",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R07",
+        "R11",
+        "R25"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D12",
+      "name": "天文与空间科学",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R07",
+        "R08",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D13",
+      "name": "哲学、政治学与社会科学",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R07",
+        "R11",
+        "R29"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D14",
+      "name": "教育、心理学与教师培训",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R02",
+        "R10",
+        "R12",
+        "R13"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D15",
+      "name": "法律、合规与法学教育",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R02",
+        "R07",
+        "R10"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D16",
+      "name": "经济、商业分析与管理",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R07",
+        "R10",
+        "R12"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D17",
+      "name": "财务、会计与投资研究学习",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R08",
+        "R10",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D18",
+      "name": "编程与软件工程",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R08",
+        "R10",
+        "R20",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D19",
+      "name": "AI、模型应用与研究复现",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R10",
+        "R20",
+        "R21",
+        "R22"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D20",
+      "name": "网络安全与运维学习",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R08",
+        "R10",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D21",
+      "name": "平面、品牌与视觉设计",
+      "evidence_directness": "设计流程为证据启发的训练方案，非本包验证的设计教育专属最佳法",
+      "research_refs": [
+        "R10",
+        "R11",
+        "R20"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D22",
+      "name": "建筑、展陈与空间设计",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R08",
+        "R10",
+        "R11"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D23",
+      "name": "摄影、视频、音频与内容制作",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R10",
+        "R15",
+        "R20"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D24",
+      "name": "音乐、演奏与听觉训练",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R10",
+        "R15"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D25",
+      "name": "体育与运动技能",
+      "evidence_directness": "运动技能注意焦点有直接综述；具体项目需教练设计",
+      "research_refs": [
+        "R10",
+        "R17"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D26",
+      "name": "医学基础与药学教育",
+      "evidence_directness": "医学间隔学习有直接研究；病例流程为应用设计",
+      "research_refs": [
+        "R02",
+        "R23",
+        "R24"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D27",
+      "name": "临床、护理与康复技能",
+      "evidence_directness": "医学模拟有直接比较研究；不可免去监督与认证",
+      "research_refs": [
+        "R10",
+        "R14"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D28",
+      "name": "机械、制造、能源与质量管理",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R08",
+        "R10",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D29",
+      "name": "土木、施工与工程管理",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R10",
+        "R11",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D30",
+      "name": "农业、食品与环境职业",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R07",
+        "R10",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D31",
+      "name": "销售、客服与运营",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R04",
+        "R10",
+        "R12"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D32",
+      "name": "公共事务、公文与组织培训",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R02",
+        "R07",
+        "R10"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D33",
+      "name": "科研、文献检索与知识管理",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R29",
+        "R33",
+        "R34"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D34",
+      "name": "职业技能、航空与交通安全培训",
+      "evidence_directness": "跨领域类比；本次未完成航空、交通等专门实证综述",
+      "research_refs": [
+        "R10",
+        "R14"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D35",
+      "name": "无障碍、特殊学习需求与教育支持",
+      "evidence_directness": "主要为边界与包容性设计；本次未评审具体障碍的治疗或教育干预",
+      "research_refs": [
+        "R28",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    },
+    {
+      "source_id": "D36",
+      "name": "成人转岗、终身学习与老年学习",
+      "evidence_directness": "证据启发的应用方案；本包未完成该行业专项系统综述",
+      "research_refs": [
+        "R03",
+        "R10",
+        "R12",
+        "R35"
+      ],
+      "mapped_tasks": [
+        "X12"
+      ],
+      "mapped_slices": [
+        "HL09"
+      ],
+      "phase": "M1_CANDIDATE",
+      "runtime_enabled": false
+    }
+  ],
+  "resources": [
+    {
+      "source_id": "U001",
+      "name": "Google Scholar",
+      "url": "https://scholar.google.com",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U002",
+      "name": "ERIC",
+      "url": "https://eric.ed.gov/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U003",
+      "name": "PubMed",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U004",
+      "name": "PubMed Central",
+      "url": "https://pmc.ncbi.nlm.nih.gov/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U005",
+      "name": "OpenAlex",
+      "url": "https://openalex.org/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U006",
+      "name": "Semantic Scholar",
+      "url": "https://www.semanticscholar.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U007",
+      "name": "Crossref",
+      "url": "https://search.crossref.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U008",
+      "name": "DOAJ",
+      "url": "https://doaj.org/",
+      "source_check_level": "V1",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U009",
+      "name": "arXiv",
+      "url": "https://arxiv.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U010",
+      "name": "PsyArXiv",
+      "url": "https://osf.io/preprints/psyarxiv",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U011",
+      "name": "SSRN",
+      "url": "https://www.ssrn.com",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U012",
+      "name": "CNKI 中国知网",
+      "url": "https://www.cnki.net",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U013",
+      "name": "万方数据",
+      "url": "https://www.wanfangdata.com.cn",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U014",
+      "name": "维普",
+      "url": "https://www.cqvip.com",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U015",
+      "name": "国家哲学社会科学文献中心",
+      "url": "https://www.ncpssd.org/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U016",
+      "name": "Learning and Instruction",
+      "url": "https://www.sciencedirect.com/journal/learning-and-instruction",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U017",
+      "name": "Journal of the Learning Sciences",
+      "url": "https://www.tandfonline.com/journals/hlns20",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U018",
+      "name": "Educational Psychology Review",
+      "url": "https://link.springer.com/journal/10648",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U019",
+      "name": "Journal of Experimental Psychology: Learning, Memory, and Cognition",
+      "url": "https://www.apa.org/pubs/journals/xlm",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U020",
+      "name": "npj Science of Learning",
+      "url": "https://www.nature.com/npjscilearn",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U021",
+      "name": "Art of Memory Forum",
+      "url": "https://forum.artofmemory.com/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U022",
+      "name": "Anki Forums",
+      "url": "https://forums.ankiweb.net/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U023",
+      "name": "Reddit r/Anki",
+      "url": "https://www.reddit.com/r/Anki/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U024",
+      "name": "Reddit r/languagelearning",
+      "url": "https://www.reddit.com/r/languagelearning/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U025",
+      "name": "Reddit r/learnprogramming",
+      "url": "https://www.reddit.com/r/learnprogramming/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U026",
+      "name": "MIT OpenCourseWare",
+      "url": "https://ocw.mit.edu",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U027",
+      "name": "Khan Academy",
+      "url": "https://www.khanacademy.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U028",
+      "name": "Learning How to Learn",
+      "url": "https://www.coursera.org/learn/learning-how-to-learn",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U029",
+      "name": "OER Commons",
+      "url": "https://www.oercommons.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U030",
+      "name": "MERLOT",
+      "url": "https://www.merlot.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U031",
+      "name": "WorldCat",
+      "url": "https://www.worldcat.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U032",
+      "name": "Internet Archive",
+      "url": "https://archive.org",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U033",
+      "name": "Behance",
+      "url": "https://www.behance.net",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U034",
+      "name": "ArchDaily",
+      "url": "https://www.archdaily.com",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U035",
+      "name": "Dezeen",
+      "url": "https://www.dezeen.com",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U036",
+      "name": "APA PsycInfo",
+      "url": "https://www.apa.org/pubs/databases/psycinfo",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U037",
+      "name": "Scopus",
+      "url": "https://www.scopus.com",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U038",
+      "name": "Web of Science",
+      "url": "https://www.webofscience.com",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U039",
+      "name": "Review of Educational Research",
+      "url": "https://journals.sagepub.com/home/rer",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U040",
+      "name": "Journal of Educational Psychology",
+      "url": "https://www.apa.org/pubs/journals/edu",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U041",
+      "name": "Contemporary Educational Psychology",
+      "url": "https://www.sciencedirect.com/journal/contemporary-educational-psychology",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U042",
+      "name": "Metacognition and Learning",
+      "url": "https://link.springer.com/journal/11409",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U043",
+      "name": "Memory & Cognition",
+      "url": "https://link.springer.com/journal/13421",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U044",
+      "name": "Applied Cognitive Psychology",
+      "url": "https://onlinelibrary.wiley.com/journal/10990720",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U045",
+      "name": "Cognitive Science",
+      "url": "https://onlinelibrary.wiley.com/journal/15516709",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U046",
+      "name": "Trends in Cognitive Sciences",
+      "url": "https://www.cell.com/trends/cognitive-sciences/home",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U047",
+      "name": "Medical Education",
+      "url": "https://asmepublications.onlinelibrary.wiley.com/journal/13652923",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U048",
+      "name": "Academic Medicine",
+      "url": "https://academic.oup.com/academicmedicine",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U049",
+      "name": "Computers & Education",
+      "url": "https://www.sciencedirect.com/journal/computers-and-education",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U050",
+      "name": "Design Studies",
+      "url": "https://www.sciencedirect.com/journal/design-studies",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U051",
+      "name": "Design Issues",
+      "url": "https://direct.mit.edu/desi",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U052",
+      "name": "SciELO",
+      "url": "https://www.scielo.org/en/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U053",
+      "name": "J-STAGE",
+      "url": "https://www.jstage.jst.go.jp/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U054",
+      "name": "African Journals Online (AJOL)",
+      "url": "https://www.ajol.info/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U055",
+      "name": "Redalyc",
+      "url": "https://www.redalyc.org/",
+      "source_check_level": "V1",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U056",
+      "name": "LA Referencia",
+      "url": "https://www.lareferencia.info/",
+      "source_check_level": "V1",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U057",
+      "name": "BASE",
+      "url": "https://www.base-search.net/",
+      "source_check_level": "V1",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U058",
+      "name": "NPTEL",
+      "url": "https://nptel.ac.in/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U059",
+      "name": "OpenStax",
+      "url": "https://openstax.org/",
+      "source_check_level": "V1",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U060",
+      "name": "Anki Manual",
+      "url": "https://docs.ankiweb.net/deck-options",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U061",
+      "name": "SuperMemo 20 rules",
+      "url": "https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U062",
+      "name": "Andy Matuschak — prompts",
+      "url": "https://andymatuschak.org/prompts/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U063",
+      "name": "Michael Nielsen — long-term memory",
+      "url": "https://augmentingcognition.com/ltm.html",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U064",
+      "name": "PapersWithCode 2026 revival",
+      "url": "https://paperswithcode.co/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U065",
+      "name": "Hugging Face Papers",
+      "url": "https://huggingface.co/papers",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U066",
+      "name": "British Journal of Psychology",
+      "url": "https://bpspsychub.onlinelibrary.wiley.com/journal/20448295",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U067",
+      "name": "Psychological Bulletin",
+      "url": "https://www.apa.org/pubs/journals/bul",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U068",
+      "name": "Psychological Science in the Public Interest",
+      "url": "https://journals.sagepub.com/home/psi",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U069",
+      "name": "Scientific Reports",
+      "url": "https://www.nature.com/srep/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U070",
+      "name": "The Clinical Teacher",
+      "url": "https://asmepublications.onlinelibrary.wiley.com/journal/1743498x",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U071",
+      "name": "Medical Science Educator",
+      "url": "https://link.springer.com/journal/40670",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U072",
+      "name": "Language Learning",
+      "url": "https://onlinelibrary.wiley.com/journal/14679922",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U073",
+      "name": "心理学报",
+      "url": "https://journal.psych.ac.cn/xlxb/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U074",
+      "name": "心理科学进展",
+      "url": "https://journal.psych.ac.cn/xlkxjz/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U075",
+      "name": "Frontiers in Psychology",
+      "url": "https://www.frontiersin.org/journals/psychology",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U076",
+      "name": "Nature Human Behaviour",
+      "url": "https://www.nature.com/nathumbehav/",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U077",
+      "name": "Physical Review Physics Education Research",
+      "url": "https://journals.aps.org/prper/",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U078",
+      "name": "CBE—Life Sciences Education",
+      "url": "https://www.lifescied.org/loi/lse",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U079",
+      "name": "Chemistry Education Research and Practice",
+      "url": "https://pubs.rsc.org/rp",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U080",
+      "name": "ACM Transactions on Computing Education",
+      "url": "https://dl.acm.org/journal/TOCE",
+      "source_check_level": "V2",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U081",
+      "name": "Journal of Learning Analytics",
+      "url": "https://learning-analytics.info/index.php/JLA",
+      "source_check_level": "V3",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U082",
+      "name": "CORE",
+      "url": "https://core.ac.uk/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U083",
+      "name": "JSTOR",
+      "url": "https://www.jstor.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U084",
+      "name": "HathiTrust",
+      "url": "https://www.hathitrust.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U085",
+      "name": "Europeana",
+      "url": "https://www.europeana.eu/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U086",
+      "name": "DPLA",
+      "url": "https://dp.la/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U087",
+      "name": "IEEE Xplore",
+      "url": "https://ieeexplore.ieee.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U088",
+      "name": "ACM Digital Library",
+      "url": "https://dl.acm.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U089",
+      "name": "Cochrane Library",
+      "url": "https://www.cochranelibrary.com/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U090",
+      "name": "NBER",
+      "url": "https://www.nber.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U091",
+      "name": "RePEc",
+      "url": "https://repec.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U092",
+      "name": "FRED",
+      "url": "https://fred.stlouisfed.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U093",
+      "name": "What Works Clearinghouse",
+      "url": "https://ies.ed.gov/ncee/wwc/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U094",
+      "name": "Education Endowment Foundation",
+      "url": "https://educationendowmentfoundation.org.uk/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U095",
+      "name": "The Learning Scientists",
+      "url": "https://www.learningscientists.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U096",
+      "name": "Student Doctor Network",
+      "url": "https://forums.studentdoctor.net/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U097",
+      "name": "Stack Exchange Academia",
+      "url": "https://academia.stackexchange.com/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U098",
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U099",
+      "name": "LessWrong",
+      "url": "https://www.lesswrong.com/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U100",
+      "name": "百度学术",
+      "url": "https://xueshu.baidu.com/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U101",
+      "name": "国家图书馆",
+      "url": "https://www.nlc.cn/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U102",
+      "name": "Zotero",
+      "url": "https://www.zotero.org/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U103",
+      "name": "Obsidian",
+      "url": "https://obsidian.md/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    },
+    {
+      "source_id": "U104",
+      "name": "Notion",
+      "url": "https://www.notion.so/",
+      "source_check_level": "V0",
+      "check_level_provenance": "V15自报；R4不重新验证全部网站",
+      "action": "REGISTER_ONLY",
+      "installed": false,
+      "network_permission_granted": false,
+      "mapped_tasks": [
+        "X12"
+      ]
+    }
+  ]
+}

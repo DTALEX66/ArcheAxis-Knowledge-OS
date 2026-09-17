@@ -54,3 +54,36 @@ def test_screenshot_reports_browser_exit_code_when_no_png_is_written(monkeypatch
 
     with pytest.raises(web_screenshot.WebScreenshotError, match=r"exit_code=0"):
         web_screenshot.screenshot_web("file:///fixture.html", tmp_path / "missing.png")
+
+
+@pytest.mark.parametrize('error', [subprocess.TimeoutExpired('fixture', 1), KeyboardInterrupt()])
+def test_browser_failure_or_cancel_removes_its_profile(monkeypatch, tmp_path, error):
+    monkeypatch.setattr(web_screenshot, 'find_browser', lambda: 'browser-under-test')
+    monkeypatch.setattr(web_screenshot, '_short_temp_root', lambda out: tmp_path)
+
+    def fail(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr(web_screenshot.subprocess, 'run', fail)
+    with pytest.raises(type(error)):
+        web_screenshot.screenshot_web('http://127.0.0.1/fixture', tmp_path / 'page.png')
+    assert list((tmp_path / 'c').iterdir()) == []
+
+
+def test_profile_cleanup_failure_cannot_be_reported_as_success(monkeypatch, tmp_path):
+    monkeypatch.setattr(web_screenshot, 'find_browser', lambda: 'browser-under-test')
+    monkeypatch.setattr(web_screenshot, '_short_temp_root', lambda out: tmp_path)
+    output = tmp_path / 'page.png'
+
+    def capture(*args, **kwargs):
+        output.write_bytes(b'fixture screenshot')
+        return subprocess.CompletedProcess(args=args[0], returncode=0, stdout=b'', stderr=b'')
+
+    def locked(path, ignore_errors=False):
+        if not ignore_errors:
+            raise PermissionError('synthetic locked profile')
+
+    monkeypatch.setattr(web_screenshot.subprocess, 'run', capture)
+    monkeypatch.setattr(web_screenshot.shutil, 'rmtree', locked)
+    with pytest.raises(web_screenshot.WebScreenshotError, match='profile cleanup'):
+        web_screenshot.screenshot_web('http://127.0.0.1/fixture', output)

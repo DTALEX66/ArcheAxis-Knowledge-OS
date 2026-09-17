@@ -6,9 +6,11 @@
   },
   "authority": "ArcheAxis",
   "productShell": {
-    "base": "ArcheAxis React/Tauri",
-    "mode": "canonical-native-shell",
-    "productionEntrypoint": "frontend/src/app/App.tsx"
+    "base": "ArcheAxis C#/Avalonia",
+    "mode": "formal-desktop-shell",
+    "productionEntrypoint": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+    "webCompatibilityEntrypoint": "frontend/src/app/App.tsx",
+    "webCompatibilityRole": "legacy-recovery-and-behavior-reference"
   },
   "sidecars": {
     "deeptutor": {

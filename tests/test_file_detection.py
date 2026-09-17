@@ -19,6 +19,20 @@ from shared.file_detection import (
 )
 
 
+def test_external_model_directory_is_preferred(monkeypatch, tmp_path) -> None:
+    model_dir = tmp_path / "magika"
+    model_dir.mkdir()
+    (model_dir / "model.onnx").write_bytes(b"external")
+    (model_dir / "config.min.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setenv("ARCHEAXIS_MAGIKA_MODEL_DIR", str(model_dir))
+
+    from shared.file_detection import _model_paths
+
+    model_path, config_path = _model_paths()
+    assert model_path == model_dir / "model.onnx"
+    assert config_path == model_dir / "config.min.json"
+
+
 def test_is_available_true_with_vendored_model() -> None:
     assert is_available() is True
 

@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../../apps/ArcheAxis.Desktop/CoreSupervisor.cs" Link="CoreSupervisor.cs" />
+    <Compile Include="../../../apps/ArcheAxis.Desktop/WorkerProfile.cs" Link="WorkerProfile.cs" />
   </ItemGroup>
 </Project>
