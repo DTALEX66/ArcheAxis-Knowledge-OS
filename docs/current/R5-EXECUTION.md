@@ -2072,3 +2072,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Publish: `dotnet publish apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -c Release -r win-x64 --self-contained true --no-restore -o .project-local/build/desktop-publish/win-x64`; exit `0`.
 - Candidate inventory: `224` files, `215280284` bytes; `ArcheAxis.Desktop.exe` present (`162816` bytes). All output is project-local and ignored.
 - This is a local publish candidate only. No installer, signature, Green overwrite, clean-machine launch, or release publication was performed.
+
+## 2026-09-18 release architecture check
+
+- Command: `python scripts/release/verify_release_architecture.py --root .`; exit `0`.
+- Result: formal Avalonia -> Rust Core -> Python workers release chain is identified. This is a structural architecture check; it does not substitute for installer, signature, clean-machine or Green runtime acceptance.
