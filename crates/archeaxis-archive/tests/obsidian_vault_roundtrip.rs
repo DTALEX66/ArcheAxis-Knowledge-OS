@@ -13,7 +13,8 @@
 //!   3. the links survive *as text* in the extracted text of the note;
 //!   4. nothing in this test shows that vNext absorbed the link graph: importing a
 //!      vault writes no anchors, no table stores a link or embed relationship, and
-//!      `.canvas` has no ingest route at all. Those are asserted as facts rather
+//!      `.canvas` is routed to `canvas.structure` but its semantic graph is not
+//!      stored. Those are asserted as facts rather
 //!      than left as silences, so the gap cannot be mistaken for coverage.
 
 use archeaxis_application::attempts;
