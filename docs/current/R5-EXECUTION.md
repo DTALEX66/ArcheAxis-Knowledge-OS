@@ -2191,3 +2191,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - `git count-objects -vH` found five stale `.git/objects/pack/tmp_pack_*` files (total approximately 8.95 MiB), all dated 2026-08-12; Git reports them as garbage and no refs depend on them.
 - Exact-file removal was attempted with a postcondition check but the host policy rejected the deletion command before execution. No object-store file was changed; `git gc`/prune was intentionally not run because unreachable historical objects remain relevant to branch recovery.
+
+## 2026-09-18 taskpack and execution preflight recheck
+
+- `docs/authority/taskpack-0912-r5/verify_package.py` exit `0`: 23 tasks, 38 original scenarios, 18 active slices, 10 cleanup slices, 4 repository slices, 4 migration slices, 173 active files.
+- `scripts/workflow/execution_preflight.py . --json` exit `0` under project `.venv` Python `3.13.14`; 551 Markdown links checked with 0 real broken links, 2 explicitly expected fixture omissions, and `private_state_opened=false`.
+- Package flags still correctly report product tests and Windows cleanup as not performed; no completion claim is made from package integrity alone.
