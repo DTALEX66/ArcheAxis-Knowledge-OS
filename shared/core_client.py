@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import base64
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -149,17 +150,32 @@ def run_journey(
         return {"ok": False, "failed_step": "import", "steps": steps, "payload": imported}
     source_id = imported.get("source_id") if isinstance(imported, dict) else None
 
-    status, found = step("search", "GET", search_path(query, active_only=True))
-    if status != 200:
-        return {"ok": False, "failed_step": "search", "steps": steps, "payload": found}
-
-    hits = found.get("items") if isinstance(found, dict) else None
+    search_url = search_path(query, active_only=True)
+    found: object = None
+    hits: list | None = None
+    search_attempts = 0
+    # Imports are accepted asynchronously (202).  Give the Core's indexer a
+    # short bounded window to publish a real hit; never turn an empty result
+    # into success and never wait forever on a broken indexer.
+    for search_attempts in range(1, 11):
+        status, found = step("search", "GET", search_url)
+        if status != 200:
+            return {"ok": False, "failed_step": "search", "steps": steps, "payload": found,
+                    "search_attempts": search_attempts}
+        hits = found.get("items") if isinstance(found, dict) else None
+        if isinstance(hits, list) and any(
+            isinstance(hit, dict) and hit.get("knowledge_id") for hit in hits
+        ):
+            break
+        if search_attempts < 10:
+            time.sleep(0.2)
     if not isinstance(hits, list) or not any(
         isinstance(hit, dict) and hit.get("knowledge_id") for hit in hits
     ):
         return {"ok": False, "failed_step": "search_results", "steps": steps,
                 "source_id": source_id, "scope": "adapter_probe",
-                "closed_loop_verified": False, "payload": found}
+                "closed_loop_verified": False, "payload": found,
+                "search_attempts": search_attempts}
     return {
         "ok": True,
         "scope": "adapter_probe",
@@ -167,6 +183,7 @@ def run_journey(
         "steps": steps,
         "source_id": source_id,
         "search_count": len(hits),
+        "search_attempts": search_attempts,
         "referenced_revision": None,
         "note": "adapter probe only; source-to-knowledge conversion is unverified; learning and review require a human action",
     }

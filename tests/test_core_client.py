@@ -169,3 +169,21 @@ class TestJourney:
         self._run(fake)
         _method, search_call, _body = next(c for c in fake.calls if c[1].startswith("/api/v1/search"))
         assert "active_only=true" in search_call, search_call
+
+    def test_probe_retries_async_index_until_a_real_hit_exists(self) -> None:
+        fake = _FakeCore()
+        attempts = 0
+
+        def delayed(*args, **kwargs):
+            nonlocal attempts
+            status, body = fake(*args, **kwargs)
+            if args[2].startswith('/api/v1/search'):
+                attempts += 1
+                if attempts < 3:
+                    return 200, {'count': 0, 'items': []}
+            return status, body
+
+        result = self._run(delayed)
+
+        assert result['ok'] is True
+        assert result['search_attempts'] == 3
