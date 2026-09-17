@@ -297,7 +297,12 @@ def run_conversion_journey(
     status, found = step("search", "GET", search_path(query, active_only=False))
     transforms = found.get("transforms", []) if isinstance(found, dict) else []
     knowledge = found.get("items", []) if isinstance(found, dict) else []
-    valid_transforms = [item for item in transforms if isinstance(item, dict) and item.get("transform_id") and item.get("source_id")]
+    valid_transforms = [
+        item for item in transforms
+        if isinstance(item, dict)
+        and item.get("transform_id")
+        and item.get("source_id") == source_id
+    ]
     valid_knowledge = [item for item in knowledge if isinstance(item, dict) and item.get("knowledge_id")]
     return {
         "ok": status == 200 and bool(valid_transforms or valid_knowledge),

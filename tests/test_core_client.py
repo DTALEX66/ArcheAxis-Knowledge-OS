@@ -235,3 +235,27 @@ class TestJourney:
         assert result["transform_count"] == 1
         execute = next(call for call in calls if call[1].endswith("/executions"))
         assert execute[3]["idempotency-key"] == result["job_id"]
+
+    def test_real_conversion_probe_rejects_transform_from_another_source(self) -> None:
+        def unrelated(*args, **kwargs):
+            _base, method, path, _token, _body = args[:5]
+            if path.endswith("/system/version"):
+                return 200, {"runtime": "archeaxis-api"}
+            if path.endswith("/imports"):
+                return 202, {"source_id": "src-real"}
+            if path.endswith("/jobs"):
+                return 202, {"state": "queued"}
+            if path.endswith("/executions"):
+                return 202, {"state": "running"}
+            if "/jobs/" in path and path.endswith("/outputs/text"):
+                return 200, {"content": "hello"}
+            if "/jobs/" in path:
+                return 200, {"state": "succeeded"}
+            if path.startswith("/api/v1/search"):
+                return 200, {"items": [], "transforms": [{"transform_id": "old", "source_id": "other"}]}
+            raise AssertionError(path)
+
+        result = core.run_conversion_journey(unrelated, "http://127.0.0.1:1", "t" * 64, "note.md", b"hello", "hello", poll_attempts=1)
+        assert result["ok"] is False
+        assert result["failed_step"] == "search_results"
+        assert result["transform_count"] == 0
