@@ -1117,5 +1117,24 @@
     "ci_head_sha": "7e89f4642ae619d80bad2f6da339c2a769e02b20",
     "conclusion": "success",
     "required_jobs": "all completed success"
+  },
+  "post_merge": {
+    "recorded_at": "2026-09-18T00:50:00+08:00",
+    "main_sha": "3907d0ba190c1c6124832969f813629b99e8d0d1",
+    "remote_branch_count": 22,
+    "deleted_branches": [
+      "codex/append-only-audit",
+      "codex/client-write-boundary",
+      "codex/evidence-bundle-version",
+      "codex/first-run-setup",
+      "codex/inspector-activity-closure",
+      "codex/pipeline-green-hotfix",
+      "codex/raw-first-web",
+      "codex/release-candidate-promotion",
+      "codex/v0.6.0-integration",
+      "codex/full-loop-0906"
+    ],
+    "retained_convergence_branch": "codex/main-convergence-20260917",
+    "note": "Historical baseline entries remain for auditability; post_merge is the authoritative current remote disposition."
   }
 }
