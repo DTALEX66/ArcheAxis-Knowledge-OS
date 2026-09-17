@@ -2065,3 +2065,10 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Restore command: `python scripts/runtime/dev.py --root . -- dotnet.exe restore apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj`; exit `0`.
 - Build command: `python scripts/runtime/dev.py --root . -- dotnet.exe build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --no-restore`; exit `0`; `0 Warning(s), 0 Error(s)`.
 - Output is isolated under `.project-local/build`; this proves a local desktop compile only. Installer/signing, clean-machine startup and Green installation remain separate acceptance items.
+
+## 2026-09-18 Windows x64 self-contained publish candidate
+
+- Restore: `dotnet restore ... -r win-x64`; exit `0`.
+- Publish: `dotnet publish apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -c Release -r win-x64 --self-contained true --no-restore -o .project-local/build/desktop-publish/win-x64`; exit `0`.
+- Candidate inventory: `224` files, `215280284` bytes; `ArcheAxis.Desktop.exe` present (`162816` bytes). All output is project-local and ignored.
+- This is a local publish candidate only. No installer, signature, Green overwrite, clean-machine launch, or release publication was performed.
