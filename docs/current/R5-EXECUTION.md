@@ -2058,3 +2058,10 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full`.
 - Exit code: `0`; result: `2860 passed, 10 skipped, 13 warnings` in `208.67s` under Python `3.13.14`.
 - This validates the current local source tree after attachment metadata persistence/readback changes. Warnings are dependency deprecations/optional NLP availability and do not change the pass result.
+
+## 2026-09-18 Avalonia desktop build verification
+
+- Toolchain: `D:\All projects\OS External Configuration\10-toolchains\dotnet\dotnet.exe`, SDK `10.0.400`.
+- Restore command: `python scripts/runtime/dev.py --root . -- dotnet.exe restore apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj`; exit `0`.
+- Build command: `python scripts/runtime/dev.py --root . -- dotnet.exe build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --no-restore`; exit `0`; `0 Warning(s), 0 Error(s)`.
+- Output is isolated under `.project-local/build`; this proves a local desktop compile only. Installer/signing, clean-machine startup and Green installation remain separate acceptance items.
