@@ -2176,3 +2176,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/probes/r10_host_panel_smoke.py`; harness exit `0`, probe `ok=true`.
 - Real Core and host panel returned HTTP `200` for the page/health/state surfaces, `404` for an unknown source, `400` for a missing source ID, and `503` with a null projection when Core was unreachable.
 - The imported sample still produced no accepted knowledge search hit (`failed_step=search_results`, `closed_loop_verified=false`); this is retained as an honest boundary result and does not promote R10.
+
+## 2026-09-18 obsolete local branch removal
+
+- Deleted local branch `codex/local-main-old` (tip `e0c41b00`) after review: it contained only a stale branch-disposition note whose claims were superseded by the current mainline audit records; it had no worktree and no product source unique to the active plan.
+- Historical release, feature, audit and recovery branches with unique commits remain retained for rollback or evidence until a separate absorption review proves them obsolete.
