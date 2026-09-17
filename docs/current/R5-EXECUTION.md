@@ -2243,3 +2243,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Prepared a local binary-safe patch bundle at `.project-local/runs/be268a2d33/main-upload-bundle-20260918.patch` for the exact range `origin/main..HEAD`.
 - Scope: 24 tracked files, 1,521 insertions and 77 deletions; base `6bc26c213637c4b9423f2c02063e3cd3e692c0e6`, tip `2ca4e09ab15e1035ac6f118562c93368e34f3509`.
 - Bundle size `138,144` bytes, SHA-256 `356ECC57F568AD64F0AF9D00D135355505FBD0E5E4D577E7291D429A61F100A5`. This is a local recovery/upload aid; no remote write was attempted.
+
+## 2026-09-18 remote Git-data upload attempt
+
+- With explicit user authorization, attempted a content-equivalent remote synchronization: create blobs for the 24-file `origin/main..HEAD` diff, create a tree/commit, then update `main`.
+- GitHub connector rejected the first blob creation (`app/cli.py`) with HTTP 403 `Resource not accessible by integration`; no blob, tree, commit or ref update was created.
+- Local history and the prepared patch bundle remain intact; remote `main` is unchanged.
