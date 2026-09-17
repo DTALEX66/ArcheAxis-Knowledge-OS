@@ -2042,3 +2042,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Commit: `6c79a29b` adds the persisted attachment-facts table to the CLI statistics surface and keeps the import/storage code Ruff-clean.
 - Verification: Ruff on changed Python files passed; Obsidian/Vault/Canvas/imported-module suite passed `121` tests.
+
+## 2026-09-18 R5 package integrity recheck
+
+- Command: `.venv\Scripts\python.exe docs/authority/taskpack-0912-r5/verify_package.py`; exit `0`; result `PASS` (23 tasks, 38 original scenarios, 18 additional slices, 10 cleanup slices, 4 repository slices, 4 migration slices, 173 active files).
+- The verifier still correctly reports `product_tests_run=false`, `windows_cleanup_performed=false`, and `current_head_checked=false` as package flags; those are not promoted to completion claims by this receipt.
