@@ -1821,3 +1821,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `meaning`: current-main candidate qualification is refreshed on the same SHA as the published execution receipt and Green/installer gates.
 - `limitations`: this is a qualification prerequisite, not an independent Q00 decision. G02–G12 still require same-candidate real evidence and independent GPT review; Q00 remains blocked until that audit is rerun.
 - `rollback`: remove this receipt only; no product or external-library data changed.
+
+## Continuation receipt — 2026-09-18 second independent Q00 review
+
+- `task_id`: Q00 independent GPT re-audit after current-main qualification
+- `candidate_sha`: `dbafb341e619669c9b60ad69e2474f92f364908f`
+- `qualification_run`: `35263005356`, 20/20 jobs success
+- `review_scope`: read-only G01–G14 review using current qualification, live MCP/unseen receipts, and repository evidence; later `main` docs commits do not change product code.
+- `gate_result`: G01 PASS (candidate-scoped); G06 PASS only for the exercised MCP/unseen capability; G13 PASS static scope; G14 PASS qualification scope. G02–G05 and G07–G12 remain BLOCKED.
+- `actual_result`: Q00 remains `FAIL/BLOCKED`; Q01 remains blocked by Q00/X12/X13/X14 prerequisites.
+- `limitations`: full real multi-format import/conversion, human learning journey, bidirectional correction, old non-empty database migration, clean Windows first-use/restart, and run-directory differential evidence are still missing on one candidate. CI green is not a substitute for those journeys.
+- `rollback`: remove this receipt only; no product or external-library data changed.
