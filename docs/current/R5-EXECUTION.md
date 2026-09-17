@@ -2186,3 +2186,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - `git cherry main <branch>` found 17 local branches with zero `+` commits (all tips patch-equivalent to `main`) and no attached worktree: `codex/bundle-inspector-closure`, `codex/tier-a-a11y`, `docs/archeaxis-repo-description`, `docs/naming-full-sweep`, `docs/naming-handoff`, `docs/sync-authority-blueprints`, `feat/absorption-atlas-update`, `feat/archeaxis-desktop-a1-migration`, `feat/axw023a-docx-adapter`, `feat/h3-vault-write`, `feat/k2-compatibility-kernel`, `feat/mfx-001-sbom`, `feat/mfx-010-stop-fake-success`, `feat/mfx-012-credibility`, `feat/naming-package-identity`, `feat/naming-v2-contract`, `fix/osui-final-newline`.
 - Deleted those 17 redundant local refs. Branches with unique commits, historical rollback value, or worktree ownership remain retained.
+
+## 2026-09-18 Git object-store garbage audit
+
+- `git count-objects -vH` found five stale `.git/objects/pack/tmp_pack_*` files (total approximately 8.95 MiB), all dated 2026-08-12; Git reports them as garbage and no refs depend on them.
+- Exact-file removal was attempted with a postcondition check but the host policy rejected the deletion command before execution. No object-store file was changed; `git gc`/prune was intentionally not run because unreachable historical objects remain relevant to branch recovery.
