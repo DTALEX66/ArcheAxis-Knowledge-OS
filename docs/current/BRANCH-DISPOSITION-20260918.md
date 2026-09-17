@@ -46,3 +46,10 @@ After the post-merge audit, these explicitly `SUPERSEDED` branches were deleted 
 - `fix/osui-final-newline`
 
 Remote branch count after deletion: 18.
+
+## Local stale-reference cleanup — 2026-09-18
+
+- Audited local branches with no upstream and checked each tip against `main` plus `git worktree list`.
+- Deleted `codex/client-write-boundary-task1-scope` (`61448f01`) because its tip is an ancestor of `main`, its remote ref is gone, and it is unused by any worktree.
+- Retained `codex/worker-quality-0906` despite the absorbed tip because `.project-local/worktrees/worker-quality-0906` still uses it.
+- Retained all other no-upstream branches because they contain non-ancestor history or donor capability that has not been re-audited for absorption.
