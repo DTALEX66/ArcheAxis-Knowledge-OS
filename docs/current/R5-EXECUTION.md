@@ -1832,3 +1832,13 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `actual_result`: Q00 remains `FAIL/BLOCKED`; Q01 remains blocked by Q00/X12/X13/X14 prerequisites.
 - `limitations`: full real multi-format import/conversion, human learning journey, bidirectional correction, old non-empty database migration, clean Windows first-use/restart, and run-directory differential evidence are still missing on one candidate. CI green is not a substitute for those journeys.
 - `rollback`: remove this receipt only; no product or external-library data changed.
+
+## Continuation receipt — 2026-09-18 R11 rerun hashes
+
+- `command_mcp`: `.venv\Scripts\python.exe scripts/probes/r11_mcp_client_smoke.py`
+- `command_unseen`: `.venv\Scripts\python.exe scripts/probes/r11_unseen_evaluation.py`
+- `mcp_exit`: `0`; `mcp_sdk`: `1.30.0`; output SHA-256 `DACFE775D19EA4276BE6834F6DC2E11301184A1989339DC062A28A6C2FADF630`
+- `unseen_exit`: `0`; output SHA-256 `DAB2CA56B00527E3DF4789DD59D76B3FAACB027FBAD601B65CC85521EB564241`
+- `mcp_observed`: real Core/MCP search, task receipt, readback, and refusal of machine human-review action.
+- `unseen_observed`: unseen check passed; baseline 3/5; correction diagnostic changed 815 to 930 and removed the superseded value.
+- `evidence_scope`: probe execution is reproducible local evidence for G06's exercised capability only; it does not close the remaining Q00 gates.
