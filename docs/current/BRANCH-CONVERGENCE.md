@@ -2,6 +2,13 @@
 
 本文件是 R5 分支收敛附包的刷新证据，不是新的产品 authority，也不改变冻结任务正文。它记录当前远端分支与收敛提交；任何合并、归档、删除和主线资格结论都必须绑定后续逐分支证据。
 
+## Post-merge disposition — 2026-09-18
+
+- `origin/main`: `3907d0ba190c1c6124832969f813629b99e8d0d1` (PR #149 merge plus branch-disposition evidence).
+- Remote branch count after prune: 22.
+- Deleted after individual absorption review: `codex/append-only-audit`, `codex/client-write-boundary`, `codex/evidence-bundle-version`, `codex/first-run-setup`, `codex/inspector-activity-closure`, `codex/pipeline-green-hotfix`, `codex/raw-first-web`, `codex/release-candidate-promotion`, `codex/v0.6.0-integration`, `codex/full-loop-0906`.
+- Historical baseline entries below are retained for traceability; this section and the JSON `post_merge` object describe current disposition.
+
 ## 当前基线
 
 - 远端仓库：`DTALEX66/ArcheAxis-Knowledge-OS`
@@ -42,3 +49,4 @@ JSON 对每条远端分支记录当前 tip SHA、merge base、ahead/behind、相
 5. 只有 main exact SHA qualification 通过、PR 合并且证据落盘后，才逐条删除已批准的远端历史分支。
 
 本阶段未合并、未删除远端分支、未修改 main 保护、未修改 tag/Release。工作区现有未知历史/会话未跟踪路径保持原样。
+
