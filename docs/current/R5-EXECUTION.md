@@ -1914,6 +1914,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: `pytest tests/test_canvas_projection.py tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `35 passed`; Ruff passed.
 - `limitations`: this adapter is not yet wired into the full Core import journey, attachment hashing and real Vault round-trip remain open; R15 stays partial.
 
+## Continuation receipt — 2026-09-18 Canvas projection Green rebuild
+
+- `task_id`: X13/R13 provenance refresh after Canvas projection increment
+- `source_commit`: `59f6419beca7f4ffb9b407c5940bbbd8f39f6cf2`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-59f6419b-x64`
+- `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
+- `limitations`: local candidate only; full Core wiring, signing, uninstall, clean-machine GUI, real Green install, and remote upload remain open.
+
 ## Continuation receipt — 2026-09-18 target-resolution Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 target resolution
