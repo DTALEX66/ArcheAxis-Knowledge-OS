@@ -2164,3 +2164,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Candidate: `.project-local/build/desktop-publish/win-x64/ArcheAxis.Desktop.exe`.
 - Started with `--smoke-test` and hidden window; process remained alive after 4 seconds, then was closed/terminated as an owned smoke process. Launch command exit `0`; no framework-missing dialog occurred in this candidate directory.
 - This is a process-start smoke only. It does not prove Green installation, visible GUI interaction, installer/signature/uninstaller, or clean-machine acceptance.
+
+## 2026-09-18 desktop smoke rerun with project-local database
+
+- Repeated the self-contained candidate process smoke with `ARCHEAXIS_VNEXT_DB` explicitly set to `.project-local/smoke-desktop.sqlite`.
+- The process remained alive after 4 seconds and was terminated as an owned smoke process; exit `0` for the harness. Runtime state stayed under `.project-local`.
+- This is the boundary-correct smoke evidence; it remains separate from Green installation and visible clean-machine acceptance.
