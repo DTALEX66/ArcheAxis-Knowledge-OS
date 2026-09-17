@@ -2094,3 +2094,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Direct registered `rustfmt.exe --edition 2021 --check` inspected `92` Rust files and reported `87` formatting failures (existing formatting debt, primarily compressed legacy code).
 - No mass reformat was applied because it would create an unrelated large diff. Workspace compile/tests remain a separate PASS; formatting gate is `FAIL` until a scoped cleanup is explicitly scheduled.
+
+## 2026-09-18 Rust test rerun outcome
+
+- Corrected environment rerun completed with exit `0`; every workspace unit/integration executable reported `test result: ok`, including the previously blocked OCR end-to-end case.
+- The initial failures were execution setup issues (missing `ARCHEAXIS_PYTHON`, then stale Tesseract shim); the final run used direct registered binaries and explicit language data.
