@@ -2209,3 +2209,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/maintenance/check_resource_boundaries.py . --purpose integration`; exit `0`.
 - Canonical integration resources resolve to the registered D: paths for shared models, external tools, Green application, material library and test corpus; all were reported as non-reparse directories.
 - No resource contents were read or modified; E:/F: were not accessed.
+
+## 2026-09-18 test resource boundary recheck
+
+- `check_resource_boundaries.py . --purpose test` via project `dev.py` exited `0`.
+- Test target resolves to `D:\\All projects\\ceshi`; shared models, external tools, Green application and material library remain registered read-only resources; all are non-reparse directories.
