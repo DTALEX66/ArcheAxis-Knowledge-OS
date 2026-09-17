@@ -2225,3 +2225,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Targeted suite `tests/test_evidence_index.py tests/test_taskpack_paths.py tests/test_project_data_boundary.py` via project `dev.py`: `20 passed`, exit `0`.
 - This confirms evidence-index self-signing guards, taskpack path resolution and project data-boundary contracts remain intact after branch/ref cleanup.
+
+## 2026-09-18 R13 packaging toolchain availability
+
+- Read-only command lookup found no `makensis.exe`, `signtool.exe`, `candle.exe` or `light.exe`; only the system `msiexec.exe` is present.
+- This is a concrete local resource gap for installer, code-signing and uninstaller acceptance. No tool installation, external-library mutation or system configuration change was attempted.
+- Self-contained directory publish and candidate verification remain available; R13 is not promoted until the missing packaging/signing resources and clean-machine test path exist.
