@@ -1993,3 +1993,7 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-52fb1d41-x64`
 - `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
 - `limitations`: this remains a local candidate; installer signing, uninstall, clean-machine GUI, real Green install, and remote upload are not evidenced.
+### 2026-09-18 R10/R13 targeted host regression
+
+- `.venv\\Scripts\\python.exe -m pytest tests/test_deeptutor_web_launch.py tests/test_host_journey_panel.py tests/test_desktop_runtime.py tests/test_desktop_launch.py tests/test_workspace_crash_recovery.py -q` returned `30 passed, 2 warnings`, exit 0.
+- This confirms the project-side DeepTutor bridge/web launch contract, host panel fail-closed rendering, desktop launch/readiness contracts, and crash-recovery regression suite. It does not prove the immutable external DeepTutor host's real visible mount, clean-machine GUI, or installer/uninstaller acceptance.
