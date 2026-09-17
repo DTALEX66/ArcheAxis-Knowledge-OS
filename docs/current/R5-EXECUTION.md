@@ -1934,8 +1934,17 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - `task_id`: X12/R15 Canvas Core single-writer integration
 - `implementation`: Rust schema version 5 now owns `canvas_projections`, `canvas_projection_nodes`, and `canvas_projection_edges`; successful `canvas.structure` completion projects validated worker geometry and edges inside the same Core transaction. Archive export/restore includes the new tables.
-- `verification`: source-level inspection and Rust formatter parsing reached the modified functions; full `cargo check/test` was not executable because the configured MSVC environment lacks `link.exe` resolution/Windows SDK import libraries, and `cargo-fmt` is not installed for the cargo wrapper.
-- `limitations`: no PASS claim until the Rust build/test environment is repaired; the last Green candidate predates this Rust schema change and must not be used as evidence for this integration.
+- `verification`: with the project MSVC toolchain plus C:\Program Files (x86)\Windows Kits\10\Lib\10.0.28000.0, `cargo check -p archeaxis-application -p archeaxis-store-sqlite -p archeaxis-archive` passed; `canvas_subtitles_job_end_to_end` passed 4/4, including Core table assertions. The cargo wrapper lacks cargo-fmt, but rustfmt parsing with edition 2021 reached the modified code.
+- `actual_result`: PASS for the local Rust Core Canvas projection path and migration schema; broader R15 acceptance remains partial.
+- `limitations`: clean-machine GUI, installer signing/uninstall, real Green installation, attachment hashing, and full multi-format/Vault acceptance remain open.
+
+## Continuation receipt — 2026-09-18 Core-verified Green rebuild
+
+- `task_id`: X13/R13 candidate refresh after Rust Core Canvas wiring
+- `source_commit`: `bd0e91a57ca8150b30c9352e244b10cca85cb157`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-core59f6419b-x64`
+- `verification`: candidate expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; rebuilt Core binary and desktop supervisor smoke returned exit 0.
+- `limitations`: local candidate only; installer signing, uninstall, clean-machine GUI, real Green installation, and remote upload remain open.
 
 ## Continuation receipt — 2026-09-18 target-resolution Green rebuild
 
