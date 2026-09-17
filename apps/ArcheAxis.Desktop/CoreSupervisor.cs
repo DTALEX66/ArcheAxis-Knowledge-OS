@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
@@ -175,13 +176,18 @@ public sealed class CoreSupervisor : IDisposable
 
     /// <summary>Authenticated requests stay on the verified owned Core origin.</summary>
     public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content = null, CancellationToken ct = default)
-        => SendAsAsync(false, method, path, content, ct);
+        => SendAsAsync(false, method, path, content, null, ct);
+
+    public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content,
+        IReadOnlyDictionary<string, string>? headers, CancellationToken ct = default)
+        => SendAsAsync(false, method, path, content, headers, ct);
 
     /// <summary>Project adapter requests use only machine authority; no credential is exposed.</summary>
     public Task<HttpResponseMessage> SendMachineAsync(HttpMethod method, string path, HttpContent? content = null, CancellationToken ct = default)
-        => SendAsAsync(true, method, path, content, ct);
+        => SendAsAsync(true, method, path, content, null, ct);
 
-    private async Task<HttpResponseMessage> SendAsAsync(bool machine, HttpMethod method, string path, HttpContent? content, CancellationToken ct)
+    private async Task<HttpResponseMessage> SendAsAsync(bool machine, HttpMethod method, string path, HttpContent? content,
+        IReadOnlyDictionary<string, string>? headers, CancellationToken ct)
     {
         string launchToken, coreUrl;
         lock (_lifecycle)
@@ -195,6 +201,9 @@ public sealed class CoreSupervisor : IDisposable
         var uri = new Uri(new Uri(coreUrl), path);
         if (uri.GetLeftPart(UriPartial.Authority) != coreUrl) throw new ArgumentException("Core origin mismatch", nameof(path));
         using var request = new HttpRequestMessage(method, uri) { Content = content };
+        if (headers is not null)
+            foreach (var header in headers)
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
         request.Headers.Add("x-archeaxis-launch-token", launchToken);
         var response = await Http.SendAsync(request, ct).ConfigureAwait(false);
         // Response diagnostics retain RequestMessage; strip the sent credential

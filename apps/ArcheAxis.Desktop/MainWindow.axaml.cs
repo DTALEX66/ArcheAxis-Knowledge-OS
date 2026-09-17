@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -150,6 +151,7 @@ public partial class MainWindow : Window
         }
 
         var imported = 0;
+        var executions = 0;
         try
         {
             foreach (var file in files)
@@ -166,7 +168,25 @@ public partial class MainWindow : Window
                     HttpMethod.Post,
                     "/api/v1/imports",
                     new StringContent(payload, Encoding.UTF8, "application/json"));
-                if (response.IsSuccessStatusCode) imported++;
+                if (!response.IsSuccessStatusCode) continue;
+                imported++;
+                using var source = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var sourceId = source.RootElement.GetProperty("source_id").GetString();
+                if (string.IsNullOrWhiteSpace(sourceId)) continue;
+                var jobId = $"desktop-import-{Guid.NewGuid():N}";
+                var enqueue = JsonSerializer.Serialize(new { job_id = jobId, kind = "text", input_ref = sourceId });
+                using var queued = await _supervisor.SendAsync(
+                    HttpMethod.Post,
+                    "/api/v1/jobs",
+                    new StringContent(enqueue, Encoding.UTF8, "application/json"));
+                if (!queued.IsSuccessStatusCode) continue;
+                var execution = new StringContent("{\"deadline_ms\":300000}", Encoding.UTF8, "application/json");
+                using var started = await _supervisor.SendAsync(
+                    HttpMethod.Post,
+                    $"/api/v1/jobs/{Uri.EscapeDataString(jobId)}/executions",
+                    execution,
+                    new Dictionary<string, string> { ["idempotency-key"] = jobId });
+                if (started.IsSuccessStatusCode) executions++;
             }
         }
         catch (Exception)
@@ -174,7 +194,7 @@ public partial class MainWindow : Window
             CoreStatusText.Text = $"核心状态：导入中断，已提交 {imported}/{files.Count} 个资料";
             return;
         }
-        CoreStatusText.Text = $"核心状态：已提交 {imported}/{files.Count} 个资料导入任务";
+        CoreStatusText.Text = $"核心状态：已导入 {imported}/{files.Count}，已启动 {executions} 个处理任务";
         await RefreshWorkspaceSummaryAsync();
     }
 
