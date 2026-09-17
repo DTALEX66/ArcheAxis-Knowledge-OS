@@ -1784,3 +1784,18 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `restart_evidence`: not yet executed as a full owner import→learning→restart journey; the supervisor cleanup path is implemented and tested by compilation/gates only.
 - `limitations`: R10 remains `PARTIAL_NEEDS_WORK` until a configured DeepTutor runtime is exercised through the visible Windows shell and the same learning state is read back after restart.
 - `rollback`: revert the sidecar supervisor, button, and project resource entry; Core schema and existing API contracts are unchanged.
+
+## Continuation receipt — 2026-09-18 Green worker bundle normalization
+
+- `task_id`: X13/R13 Green candidate worker and data-root closure
+- `source_sha`: `91c8611f1c631470673e043992a15ccb127b60ef`
+- `tree_sha`: bound by the candidate manifest and the forced qualification run below
+- `branch`: `main`
+- `user_surface`: Green launcher now sets canonical `ARCHEAXIS_*` paths, preserves historical aliases, and uses one portable `data` root for the database, launcher state, and worker staging.
+- `backend_path`: Rust Core remains the only database writer; candidate copies the self-contained Core binary.
+- `worker_path`: candidate copies `services/python-workers`, stages the locked Python runtime, and emits a root `worker-profile.json` using safe portable relative paths.
+- `candidate`: Green assembly and verifier now require runtime plus worker profile/transport for the full candidate gate.
+- `test_run`: local targeted suite `41 passed, 1 skipped`; forced full qualification dispatched as CI `35257750772`.
+- `actual_result`: implementation uploaded; final CI is pending at handoff time and must be read back before promotion to PASS.
+- `limitations`: this closes static bundle composition only; clean-machine launch, real import, learning, and restart/readback remain separate R13 evidence.
+- `rollback`: revert the five Green assembly/workflow/test files; no external library, Green install, or user data was modified.
