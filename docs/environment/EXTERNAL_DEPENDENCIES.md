@@ -2,7 +2,7 @@
 
 > 文档位置：`D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`
 > 仓库同步：`docs/environment/EXTERNAL_DEPENDENCIES.md`
-> 更新：2026-08-15
+> 更新：2026-09-18
 > 生产主机：Windows 10/11 x64
 >
 > **本文是 ArcheAxis-Knowledge-OS 项目外置依赖的唯一权威文档。任何新增系统工具、模型文件、外部服务
@@ -32,6 +32,7 @@
 | Sherpa-ONNX / SenseVoice | `Model library/sherpa-onnx` | 已存在；音频管线实链需单独验收 |
 | Whisper 模型 | `Model library/whisper` | 已存在；ASR 运行时尚未据此宣称全链路完成 |
 | Magika 模型 | 共享目录需同时提供 `model.onnx` 与 `config.min.json`；当前 Model library 未发现该成对文件 | 接线已实现；当前实际依赖仓库离线副本，不能把 Sherpa 的 `model.onnx` 当作 Magika |
+| Windows SDK SignTool | `C:\Program Files (x86)\Windows Kits\10\bin\10.0.28000.0\x64\signtool.exe`（另有 10.0.26100.0） | 工具存在；当前候选签名验证 exit 1，证书/指纹/签名策略尚未配置，不能据此宣称正式签名 |
 
 上述路径均位于 `D:\All projects`，不涉及 E 盘。Windows 环境注册器仍有按 PATH
 探测的能力，因此“missing”可能表示会话未注入外置路径，而不是软件不存在。
@@ -126,6 +127,13 @@
 - **下载**：https://playwright.dev/python/docs/browsers
 - **安装**：`playwright install chromium`
 - **缓存**：`PLAYWRIGHT_BROWSERS_PATH` 指向外部 `toolchains/playwright`
+
+### 1.10 Windows SDK SignTool（可选，发布签名门禁）
+
+- **用途**：验证或执行 Windows Authenticode 签名；仅发布流水线使用，不能替代证书材料和组织签名策略。
+- **版本/路径**：Windows SDK 10.0.28000.0 x64；本机另有 10.0.26100.0 x64。
+- **验证**：`signtool verify /pa /all /q <artifact>`；未签名候选应返回非零退出码。
+- **当前状态**：工具已实测可执行；仓库没有证书、thumbprint 或私钥引用，R13 继续保持签名资源阻塞。
 
 ---
 
