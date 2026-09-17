@@ -2107,3 +2107,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Verification: focused OCR/profile/probe tests `17 passed, 18 subtests passed`; Ruff F/I checks passed (pre-existing line-length/B905 findings remain outside this change).
 
 - Additional OCR bulk/profile/route regression: `13 passed, 4 skipped, 18 subtests passed` after the path-drift hardening.
+
+## 2026-09-18 existing clean Green candidate readback
+
+- Command: `python scripts/release/verify_green_candidate.py .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-fc05b0ad-x64 --require-runtime --require-workers`; exit `0`.
+- Result: `ok=true`, scope `desktop-core-runtime-workers`, `479` manifest files, no hash or required-file problems.
+- Provenance boundary: candidate version is `clean-fc05b0ad`; this is historical candidate evidence and is not promoted to the current `HEAD` or a formal release.
