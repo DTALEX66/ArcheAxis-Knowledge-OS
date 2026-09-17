@@ -1953,6 +1953,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: `cargo test -p archeaxis-archive --lib -- --nocapture` — `7 passed`; v2/v3 restoration and current-table rejection tests all passed.
 - `limitations`: archive compatibility is verified locally; real user-library migration and full Canvas/Vault acceptance remain open.
 
+## Continuation receipt — 2026-09-18 archive-compatible Green rebuild
+
+- `task_id`: X13/R13 candidate provenance refresh after schema/archive fix
+- `source_commit`: `70226a42b5e6422c1f52deb9519d07debfbc0c97`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-archive70226a42-x64`
+- `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
+- `limitations`: local candidate only; installer signing, uninstall, clean-machine GUI, real Green installation, and remote upload remain open.
+
 ## Continuation receipt — 2026-09-18 target-resolution Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 target resolution
