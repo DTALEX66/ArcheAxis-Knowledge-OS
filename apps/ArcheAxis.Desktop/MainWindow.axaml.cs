@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -25,7 +26,8 @@ public partial class MainWindow : Window
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
         // Only start and authenticate our own Core; never adopt a shared service.
-        var dbPath = Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
+        var dbPath = Environment.GetEnvironmentVariable("ARCHEAXIS_VNEXT_DB")
+            ?? Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
             ?? System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "ArcheAxis", "vnext", "workspace.sqlite");
@@ -33,7 +35,8 @@ public partial class MainWindow : Window
         try
         {
             worker = WorkerProfile.Load(AppContext.BaseDirectory,
-                Environment.GetEnvironmentVariable("ARCHAXIS_WORKER_PROFILE"));
+                Environment.GetEnvironmentVariable("ARCHEAXIS_WORKER_PROFILE")
+                    ?? Environment.GetEnvironmentVariable("ARCHAXIS_WORKER_PROFILE"));
         }
         catch (Exception)
         {
@@ -50,12 +53,49 @@ public partial class MainWindow : Window
             Title = connectedTitle;
             CoreStatusText.Text = worker is null ? "核心状态：已连接 · 未配置文本组件"
                 : "核心状态：已连接";
+            await RefreshWorkspaceSummaryAsync();
         }
         else
         {
             Title = $"ArcheAxis Learning Workspace (vNext) — core offline ({result.detail})";
             CoreStatusText.Text = "核心状态：离线";
         }
+    }
+
+    private async Task RefreshWorkspaceSummaryAsync()
+    {
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+            return;
+        try
+        {
+            using var response = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/workspaces/info");
+            if (!response.IsSuccessStatusCode)
+                return;
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var sources = ReadInt(document.RootElement, "sources");
+            var anchors = ReadInt(document.RootElement, "anchors");
+            using var learningResponse = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/learning/items");
+            var learning = 0;
+            if (learningResponse.IsSuccessStatusCode)
+            {
+                using var learningDocument = JsonDocument.Parse(await learningResponse.Content.ReadAsStringAsync());
+                learning = ReadInt(learningDocument.RootElement, "count");
+            }
+            SourcesCountText.Text = sources.ToString();
+            LearningCountText.Text = learning.ToString();
+            AnchorsCountText.Text = anchors.ToString();
+        }
+        catch (Exception)
+        {
+            CoreStatusText.Text = "核心状态：已连接 · 状态读取失败";
+        }
+    }
+
+    private static int ReadInt(JsonElement root, string name)
+    {
+        return root.TryGetProperty(name, out var value) && value.TryGetInt32(out var count)
+            ? count
+            : 0;
     }
 
     private void OnClosed(object? sender, EventArgs e)
@@ -115,6 +155,7 @@ public partial class MainWindow : Window
             return;
         }
         CoreStatusText.Text = $"核心状态：已提交 {imported}/{files.Count} 个资料导入任务";
+        await RefreshWorkspaceSummaryAsync();
     }
 
     private async void OnLearningClick(object? sender, RoutedEventArgs e)
@@ -173,6 +214,7 @@ public partial class MainWindow : Window
                 LearningAnswerBox.IsEnabled = false;
                 ReviewOutcomeBox.IsEnabled = false;
                 SubmitReviewButton.IsEnabled = false;
+                await RefreshWorkspaceSummaryAsync();
             }
             CoreStatusText.Text = count == 0
                 ? "学习路径：当前没有待复习项目"
