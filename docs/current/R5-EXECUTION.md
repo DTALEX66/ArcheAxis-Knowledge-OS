@@ -1922,6 +1922,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
 - `limitations`: local candidate only; full Core wiring, signing, uninstall, clean-machine GUI, real Green install, and remote upload remain open.
 
+## Continuation receipt — 2026-09-18 Canvas projection candidate refresh
+
+- `task_id`: X13/R13 provenance refresh after Canvas projection adapter
+- `source_commit`: `59f6419beca7f4ffb9b407c5940bbbd8f39f6cf2`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-59f6419b-x64`
+- `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
+- `limitations`: the Python projection adapter is not wired into the Rust Core import commit; signing, uninstall, clean-machine GUI, real Green install, and remote upload remain open.
+
 ## Continuation receipt — 2026-09-18 target-resolution Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 target resolution
