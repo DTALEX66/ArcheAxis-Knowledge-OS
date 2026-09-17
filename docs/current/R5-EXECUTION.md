@@ -2047,3 +2047,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Command: `.venv\Scripts\python.exe docs/authority/taskpack-0912-r5/verify_package.py`; exit `0`; result `PASS` (23 tasks, 38 original scenarios, 18 additional slices, 10 cleanup slices, 4 repository slices, 4 migration slices, 173 active files).
 - The verifier still correctly reports `product_tests_run=false`, `windows_cleanup_performed=false`, and `current_head_checked=false` as package flags; those are not promoted to completion claims by this receipt.
+
+## 2026-09-18 attachment metadata readback
+
+- Commit: `a6ff9a09` adds `select_attachment_facts_for_source(source_id)` for deterministic metadata readback from a fresh SQLite connection.
+- Verification: Ruff passed; Obsidian importer/projection/Vault suite passed `99` tests. The regression explicitly reopens the database connection and matches source ID, Vault-relative path, SHA-256, size and embed flag.
