@@ -1946,6 +1946,13 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: candidate expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; rebuilt Core binary and desktop supervisor smoke returned exit 0.
 - `limitations`: local candidate only; installer signing, uninstall, clean-machine GUI, real Green installation, and remote upload remain open.
 
+## Continuation receipt — 2026-09-18 schema v5 archive compatibility
+
+- `task_id`: X05/X12 Canvas schema migration and archive custody
+- `implementation`: historical v2/v3 archive fixtures now explicitly exclude the newer Canvas tables when reconstructing their old wire shapes; current exports include the Canvas projection tables.
+- `verification`: `cargo test -p archeaxis-archive --lib -- --nocapture` — `7 passed`; v2/v3 restoration and current-table rejection tests all passed.
+- `limitations`: archive compatibility is verified locally; real user-library migration and full Canvas/Vault acceptance remain open.
+
 ## Continuation receipt — 2026-09-18 target-resolution Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 target resolution

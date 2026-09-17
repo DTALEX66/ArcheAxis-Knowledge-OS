@@ -463,10 +463,14 @@ mod version_tests {
         let mut manifest=export_workspace(db.to_str().unwrap(),archive.to_str().unwrap()).unwrap();
         // Reconstruct the previous public v2 wire shape (same old table columns).
         manifest.schema_version=2;
-        manifest.tables.remove("job_attempts"); manifest.tables.remove("job_outputs");
-        manifest.tables.remove("source_origins"); // v2 wire predates provenance table
-        manifest.tables.remove("learning_event_keys"); // v2 wire predates dedup keys
-        manifest.tables.remove("knowledge_supersedes"); // v2 wire predates supersedes
+        for gone in [
+            "job_attempts", "job_outputs", "source_origins", "learning_event_keys",
+            "knowledge_supersedes", "canvas_projections", "canvas_projection_nodes",
+            "canvas_projection_edges",
+        ] {
+            manifest.tables.remove(gone);
+            let _ = std::fs::remove_file(archive.join(format!("{gone}.jsonl")));
+        }
         let rows=serde_json::json!({"key":"schema_version","value":"2"}).to_string()+"\n";
         std::fs::write(archive.join("workspace_meta.jsonl"),&rows).unwrap();
         manifest.tables.get_mut("workspace_meta").unwrap().sha256=hex::encode(Sha256::digest(rows.as_bytes()));
@@ -508,7 +512,10 @@ mod version_tests {
         let (archive, mut manifest) = exported_fixture(&dir);
         let archive_path = Path::new(archive.as_str());
         manifest.schema_version = 3;
-        for gone in ["learning_event_keys", "knowledge_supersedes"] {
+        for gone in [
+            "learning_event_keys", "knowledge_supersedes", "canvas_projections",
+            "canvas_projection_nodes", "canvas_projection_edges",
+        ] {
             manifest.tables.remove(gone);
             let _ = std::fs::remove_file(archive_path.join(format!("{gone}.jsonl")));
         }
@@ -537,6 +544,10 @@ mod version_tests {
         let (archive, mut manifest) = exported_fixture(&dir);
         let archive_path = Path::new(archive.as_str());
         manifest.schema_version = 3;
+        for gone in ["canvas_projections", "canvas_projection_nodes", "canvas_projection_edges"] {
+            manifest.tables.remove(gone);
+            let _ = std::fs::remove_file(archive_path.join(format!("{gone}.jsonl")));
+        }
         let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
         rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
         let legacy = serde_json::json!({
