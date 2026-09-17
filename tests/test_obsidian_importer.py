@@ -13,6 +13,7 @@ from shared.obsidian_importer import (
     import_vault,
     scan_vault,
 )
+from shared.backlinks import parse_links
 
 
 class _FakeFile:

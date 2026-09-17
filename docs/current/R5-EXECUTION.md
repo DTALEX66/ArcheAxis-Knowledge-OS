@@ -1848,3 +1848,46 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: `verify_green_candidate.py --require-runtime --require-workers` returned `ok=true`, 479 files, no problems; manifest provenance matches the clean commit/tree.
 - `runtime_smoke`: candidate desktop `--smoke` with explicit `ARCHAXIS_CORE_BIN` and `ARCHEAXIS_CORE_BIN` returned exit 0.
 - `limitations`: this is a local clean-source candidate only; signed installer, uninstall lifecycle, clean-machine GUI acceptance, real Green install coverage, and remote upload remain open.
+
+## Continuation receipt — 2026-09-18 live R11 MCP and unseen evidence
+
+- `task_id`: X09/R11 real MCP client and unseen evaluation
+- `source_sha`: `389766b2992c310269b3fe2dbe6971ac79764f16`
+- `branch`: `main`
+- `mcp_probe`: `.project-local/runs/r11-mcp-live-20260918.json`; exit `0`; MCP SDK `1.30.0`; real Core/MCP path; search, qualification, task receipt, and task readback succeeded; unsupported `archeaxis_accept` was refused as expected because no human-review tool is exposed.
+- `unseen_probe`: `.project-local/runs/r11-unseen-live-20260918.json`; exit `0`; unseen evaluation completed; baseline retrieval was `3/5` with literal-token misses recorded; correction changed glacier `815` to `930`, and old/new values were read back.
+- `actual_result`: PASS for probe execution and restart/readback behavior exercised by the probes; this is not an accuracy or full first-use quality claim.
+- `limitations`: Q00 remains `AUDITED_FAIL_BLOCKED`; G02–G12 still require same-candidate evidence across real multi-format import, learning, MCP, migration, and Windows runtime. R11 remains partial until that independent audit closes.
+- `rollback`: remove this receipt only; ignored probe artifacts remain local and were not staged.
+
+## Continuation receipt — 2026-09-18 current-main full qualification
+
+- `task_id`: Q00 prerequisite refresh for R5 current main
+- `source_sha`: `dbafb341e619669c9b60ad69e2474f92f364908f`
+- `branch`: `main`
+- `test_run`: GitHub Actions workflow dispatch `35263005356` with `force_full=true`
+- `actual_result`: PASS; all 20 qualification jobs succeeded, including `test (3.12)`, `rust-vnext`, `desktop-vnext`, `desktop-build`, `green-candidate-vnext`, `installer-lifecycle`, `windows-runtime-smoke`, and `a0-gates`.
+- `meaning`: current-main candidate qualification is refreshed on the same SHA as the published execution receipt and Green/installer gates.
+- `limitations`: this is a qualification prerequisite, not an independent Q00 decision. G02–G12 still require same-candidate real evidence and independent GPT review; Q00 remains blocked until that audit is rerun.
+- `rollback`: remove this receipt only; no product or external-library data changed.
+
+## Continuation receipt — 2026-09-18 second independent Q00 review
+
+- `task_id`: Q00 independent GPT re-audit after current-main qualification
+- `candidate_sha`: `dbafb341e619669c9b60ad69e2474f92f364908f`
+- `qualification_run`: `35263005356`, 20/20 jobs success
+- `review_scope`: read-only G01–G14 review using current qualification, live MCP/unseen receipts, and repository evidence; later `main` docs commits do not change product code.
+- `gate_result`: G01 PASS (candidate-scoped); G06 PASS only for the exercised MCP/unseen capability; G13 PASS static scope; G14 PASS qualification scope. G02–G05 and G07–G12 remain BLOCKED.
+- `actual_result`: Q00 remains `FAIL/BLOCKED`; Q01 remains blocked by Q00/X12/X13/X14 prerequisites.
+- `limitations`: full real multi-format import/conversion, human learning journey, bidirectional correction, old non-empty database migration, clean Windows first-use/restart, and run-directory differential evidence are still missing on one candidate. CI green is not a substitute for those journeys.
+- `rollback`: remove this receipt only; no product or external-library data changed.
+
+## Continuation receipt — 2026-09-18 R11 rerun hashes
+
+- `command_mcp`: `.venv\Scripts\python.exe scripts/probes/r11_mcp_client_smoke.py`
+- `command_unseen`: `.venv\Scripts\python.exe scripts/probes/r11_unseen_evaluation.py`
+- `mcp_exit`: `0`; `mcp_sdk`: `1.30.0`; output SHA-256 `DACFE775D19EA4276BE6834F6DC2E11301184A1989339DC062A28A6C2FADF630`
+- `unseen_exit`: `0`; output SHA-256 `DAB2CA56B00527E3DF4789DD59D76B3FAACB027FBAD601B65CC85521EB564241`
+- `mcp_observed`: real Core/MCP search, task receipt, readback, and refusal of machine human-review action.
+- `unseen_observed`: unseen check passed; baseline 3/5; correction diagnostic changed 815 to 930 and removed the superseded value.
+- `evidence_scope`: probe execution is reproducible local evidence for G06's exercised capability only; it does not close the remaining Q00 gates.

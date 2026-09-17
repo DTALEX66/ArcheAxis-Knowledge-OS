@@ -173,7 +173,7 @@
       "r31_slices": [
         "R14"
       ],
-      "gap": "独立GPT审计已于2026-09-18执行并绑定全量CI 35258053232/f72c6101；G01、G13、G14在限定范围通过，G02-G12关键门仍为BLOCKED，Q00结论FAIL/BLOCKED。需当前main重新生成候选并完成真实多格式、学习、MCP、迁移、Windows首用和运行目录证据后复审。"
+      "gap": "独立GPT复审与当前候选证据均表明：clean candidate `fc05b0ad15fcff05404ad1703aee773dc4c84645` 上 G01 可在限定范围通过，G13/G14为静态资格范围通过；旧候选 dbafb341 的 G06 仅覆盖此前真实 MCP/unseen 能力，不能替代当前候选复核。G02-G05、G07-G12仍BLOCKED，Q00结论FAIL/BLOCKED。需在同一 clean candidate 上完成真实多格式、人类学习、双向反馈、旧库迁移、Windows首用/重启及运行目录差分证据后再复审。"
     },
     {
       "id": "X12",
