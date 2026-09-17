@@ -18,9 +18,7 @@ from typing import Any
 def _edge_candidates() -> tuple[Path, ...]:
     roots = (os.environ.get("PROGRAMFILES(X86)", ""), os.environ.get("PROGRAMFILES", ""))
     return tuple(
-        Path(root) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
-        for root in roots
-        if root
+        Path(root) / "Microsoft" / "Edge" / "Application" / "msedge.exe" for root in roots if root
     )
 
 
@@ -152,25 +150,33 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
     profile = tempfile.mkdtemp(prefix="p-", dir=profile_root)
     try:
         proc = subprocess.run(
-            [browser, "--headless", "--disable-gpu", "--no-sandbox",
-             f"--user-data-dir={profile}",
-             f"--window-size={width},800", f"--screenshot={out}", url],
-            capture_output=True, timeout=60,
+            [
+                browser,
+                "--headless",
+                "--disable-gpu",
+                "--no-sandbox",
+                f"--user-data-dir={profile}",
+                f"--window-size={width},800",
+                f"--screenshot={out}",
+                url,
+            ],
+            capture_output=True,
+            timeout=60,
             env=_browser_environment(out, browser_root),
         )
         if not _wait_for_screenshot(out):
             stderr = proc.stderr.decode(errors="replace").strip()[:200]
             detail = stderr or "browser exited without writing a PNG"
-            raise WebScreenshotError(
-                f"screenshot failed (exit_code={proc.returncode}): {detail}"
-            )
+            raise WebScreenshotError(f"screenshot failed (exit_code={proc.returncode}): {detail}")
     finally:
         try:
             shutil.rmtree(profile)
         except FileNotFoundError:
             pass
         except OSError as error:
-            raise WebScreenshotError(f"browser profile cleanup failed: {profile}: {error}") from error
+            raise WebScreenshotError(
+                f"browser profile cleanup failed: {profile}: {error}"
+            ) from error
         if Path(profile).exists():
             raise WebScreenshotError(f"browser profile cleanup incomplete: {profile}")
         if ephemeral_root is not None:
