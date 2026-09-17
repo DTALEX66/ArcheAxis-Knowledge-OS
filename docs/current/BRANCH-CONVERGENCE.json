@@ -1,11 +1,11 @@
 {
   "schema": "archeaxis.branch-convergence/v1",
-  "generated_at": "2026-09-17T13:10:03.6220519Z",
+  "generated_at": "2026-09-17T15:00:36.381205Z",
   "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
-  "start_remote_branch_count": 31,
+  "start_remote_branch_count": 32,
   "start_main_sha": "1e9813ea2bd49f47d334ba6717c78d3e9feda6ce",
-  "full_loop_sha": "82378461f40052c9346726fd43ea45a9cef8326c",
-  "current_head": "82378461f40052c9346726fd43ea45a9cef8326c",
+  "full_loop_sha": "252e7fdf58c0595e814f1751e77d9ef41c8c59cf",
+  "current_head": "7e89f4642ae619d80bad2f6da339c2a769e02b20",
   "branches": [
     {
       "branch": "chore/naming-repo-refs",
@@ -125,8 +125,7 @@
         "docs/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md",
         "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
         "docs/history/pre-v0.6.7-current-snapshots/ABSORPTION_BATCH3_2026-08-18.md",
-        "docs/history/pre-v0.6.7-current-snapshots/CESHI_FULL_CONVERSION_2026-08-18.md",
-        "docs/history/pre-v0.6.7-current-snapshots/PIPELINE_FOLLOWUP_2026-08-19.md"
+        "docs/history/pre-v0.6.7-current-snapshots/CESHI_FULL_CONVERSION_2026-08-18.md"
       ],
       "current_equivalent": [],
       "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
@@ -280,8 +279,7 @@
         "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/pack-extracts/apple-desktop-ui-v1.0/12_RISK_AND_ROLLBACK.md",
         "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/pack-extracts/apple-desktop-ui-v1.0/docs/pages/01_GUANXIN_DASHBOARD.md",
         "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/pack-extracts/apple-desktop-ui-v1.0/docs/pages/02_AGENT_CENTER.md",
-        "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/pack-extracts/apple-desktop-ui-v1.0/docs/pages/03_TASK_MISSION_CONTROL.md",
-        "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/pack-extracts/apple-desktop-ui-v1.0/docs/pages/04_RESEARCH_DASHBOARD.md"
+        "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/historical-sources-2026-07-14-to-2026-08-08/pack-extracts/apple-desktop-ui-v1.0/docs/pages/03_TASK_MISSION_CONTROL.md"
       ],
       "current_equivalent": [],
       "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
@@ -300,12 +298,12 @@
     },
     {
       "branch": "codex/full-loop-0906",
-      "tip_sha": "82378461f40052c9346726fd43ea45a9cef8326c",
+      "tip_sha": "252e7fdf58c0595e814f1751e77d9ef41c8c59cf",
       "merge_base": "c06b234ca335b9cbb2c1fde270851e2390c36b89",
-      "ahead": 264,
+      "ahead": 265,
       "behind": 1,
-      "unique_commits": 264,
-      "unique_paths": 394,
+      "unique_commits": 265,
+      "unique_paths": 396,
       "unique_path_samples": [
         ".codex.example/config.example.toml",
         ".github/workflows/ci.yml",
@@ -330,8 +328,7 @@
         "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
         "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
         "apps/ArcheAxis.Desktop/MainWindow.axaml",
-        "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
-        "apps/ArcheAxis.Desktop/Program.cs"
+        "apps/ArcheAxis.Desktop/MainWindow.axaml.cs"
       ],
       "current_equivalent": [],
       "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
@@ -342,7 +339,7 @@
       "merged_into": "",
       "deleted": false,
       "deletion_evidence": "",
-      "last_commit_date": "2026-09-17T08:02:52+08:00",
+      "last_commit_date": "2026-09-17T21:10:36+08:00",
       "open_pr": "NONE",
       "limitations": [
         "Manifest is read-only baseline; semantic equivalence and historical asset uniqueness require per-branch review."
@@ -371,6 +368,55 @@
       "limitations": [
         "Manifest is read-only baseline; semantic equivalence and historical asset uniqueness require per-branch review."
       ]
+    },
+    {
+      "branch": "codex/main-convergence-20260917",
+      "current_equivalent": [],
+      "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
+      "classification": "CURRENT_INTEGRATION_LINE",
+      "unique_assets_preserved": [],
+      "archive_tag": null,
+      "action": "QUALIFY_BEFORE_MERGE",
+      "merged_into": "",
+      "deleted": false,
+      "deletion_evidence": "",
+      "open_pr": "NONE",
+      "limitations": [
+        "Manifest refreshed; semantic equivalence and historical asset uniqueness still require per-branch review."
+      ],
+      "tip_sha": "7e89f4642ae619d80bad2f6da339c2a769e02b20",
+      "merge_base": "1e9813ea2bd49f47d334ba6717c78d3e9feda6ce",
+      "ahead": 275,
+      "behind": 0,
+      "unique_commits": 275,
+      "unique_paths": 396,
+      "unique_path_samples": [
+        ".codex.example/config.example.toml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/vnext-ci.yml",
+        ".gitignore",
+        ".worklab/project-validation.v1.yaml",
+        "AGENTS.md",
+        "Cargo.toml",
+        "DECISION_SUPERSESSION_LEDGER.yaml",
+        "DIRECTORY_AUTHORITY.yaml",
+        "HERMES_HANDOFF.md",
+        "LESSONS_LEARNED.md",
+        "app/adapters/deeptutor/custody.py",
+        "app/evidence/hl01_import.py",
+        "app/evidence/source_store_v2.py",
+        "app/ingestion/asr_adapter.py",
+        "app/ingestion/media_adapter.py",
+        "app/ingestion/web_screenshot.py",
+        "app/integrations/deeptutor_bridge.py",
+        "app/release-manifest.json",
+        "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+        "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+        "apps/ArcheAxis.Desktop/MainWindow.axaml",
+        "apps/ArcheAxis.Desktop/MainWindow.axaml.cs"
+      ],
+      "last_commit_date": "2026-09-17T22:40:45+08:00"
     },
     {
       "branch": "codex/pipeline-green-hotfix",
@@ -559,8 +605,7 @@
         "src-tauri/Cargo.toml",
         "src-tauri/tauri.conf.json",
         "tests/test_archeaxis_root_package.py",
-        "tests/test_ci_a0_gates.py",
-        "tests/test_current_report_generator.py"
+        "tests/test_ci_a0_gates.py"
       ],
       "current_equivalent": [],
       "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
@@ -700,8 +745,7 @@
         "docs/NAMING_CONTRACT_V2.md",
         "docs/PROJECT_AUDIT_2026-07-07.md",
         "docs/RELEASE_LEDGER.md",
-        "docs/VERIFICATION_POLICY.md",
-        "docs/architecture/imported-designs/README.md"
+        "docs/VERIFICATION_POLICY.md"
       ],
       "current_equivalent": [],
       "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
@@ -923,8 +967,7 @@
         "docs/FUTURE_EXECUTION_BLUEPRINT.md",
         "docs/HANDOFF_2026-07-21.md",
         "docs/HANDOFF_2026-08-07_stage-summary.md",
-        "docs/HANDOFF_2026-08-12_naming-migration.md",
-        "docs/HERMES_SLEEP_LOOP_ENGINE.md"
+        "docs/HANDOFF_2026-08-12_naming-migration.md"
       ],
       "current_equivalent": [],
       "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
@@ -1000,8 +1043,7 @@
         "OSUI/archeaxis-knowledge-ui/evidence-workbench.html.artifact.json",
         "OSUI/archeaxis-knowledge-ui/focus-review-session.html.artifact.json",
         "OSUI/archeaxis-knowledge-ui/index.html.artifact.json",
-        "OSUI/archeaxis-knowledge-ui/jobs-receipts.html.artifact.json",
-        "OSUI/archeaxis-knowledge-ui/knowledge-canvas.html.artifact.json"
+        "OSUI/archeaxis-knowledge-ui/jobs-receipts.html.artifact.json"
       ],
       "current_equivalent": [],
       "latest_intent_verdict": "PENDING_DETAILED_AUDIT",
@@ -1069,5 +1111,11 @@
         "Manifest is read-only baseline; semantic equivalence and historical asset uniqueness require per-branch review."
       ]
     }
-  ]
+  ],
+  "qualification": {
+    "ci_run_id": "35235195807",
+    "ci_head_sha": "7e89f4642ae619d80bad2f6da339c2a769e02b20",
+    "conclusion": "success",
+    "required_jobs": "all completed success"
+  }
 }
