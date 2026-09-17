@@ -2264,3 +2264,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Regenerated `.project-local/runs/be268a2d33/main-upload-bundle-20260918.patch` after the canvas test correction.
 - New bundle size `140,565` bytes; SHA-256 `2C9EAADF3B1DF588B945C5A4666BEBFFF3C70547CED0D57CF63D79E8718AB1F4`; base remains `6bc26c213637c4b9423f2c02063e3cd3e692c0e6`, tip is `ba1083ab`.
+
+## 2026-09-18 final focused contract regression
+
+- Project `dev.py` targeted suite for OCR/output routing, Canvas projection and host panel: `32 passed` in `0.21s`, exit `0`.
+- This confirms the upload diff whitespace correction did not regress the recently changed OCR, Canvas or R10 host contracts.
