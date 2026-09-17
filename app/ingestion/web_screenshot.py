@@ -68,6 +68,10 @@ def _short_temp_root(out: Path) -> Path:
 def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
     """Choose a socket-safe root and return an optional ephemeral cleanup root."""
     project_root = _short_temp_root(out)
+    # Keep the project-owned profile anchor present even when the actual
+    # Chromium socket must use a shorter ephemeral root; cleanup tests and
+    # operators can then verify the project anchor is empty after failure.
+    (project_root / "c").mkdir(parents=True, exist_ok=True)
     # Chromium's Unix singleton socket has a hard path limit.  Hosted runners
     # can exceed it even after trimming to .project-local.  Keep the screenshot
     # and receipts in the project, while placing only the disposable browser
