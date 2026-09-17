@@ -2254,3 +2254,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - GitHub repository metadata reports `permissions.push=false`, `maintain=false`, `admin=false`, `pull=true`; remote `main` is therefore read-only for this connection.
 - This confirms the prior 403 blob/ref failures are permission-bound, not a local Git or object-format error. No remote mutation was attempted in this readback.
+
+## 2026-09-18 upload diff whitespace correction
+
+- `git diff --check origin/main..HEAD` found one added blank line at EOF in `tests/test_canvas_projection.py` (exit `2`).
+- Removed only that extra blank line; targeted projection test passed (`1 passed`, exit `0`), and staged diff check is clean.

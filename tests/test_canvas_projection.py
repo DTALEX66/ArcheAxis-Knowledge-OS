@@ -27,4 +27,3 @@ def test_persist_worker_projection_replaces_snapshot_rows(monkeypatch) -> None:
     assert node_rows[0]["x"] == 12
     assert node_rows[0]["object_type"] == "text"
     assert edge_rows[0]["source_node_id"] == "n1"
-
