@@ -31,3 +31,8 @@ The following remote branches were deleted individually after the read-only disp
 ## Not claimed
 
 This evidence covers branch disposition only. It does not mark R5 R10/R12/R13/R14/R15/R16 complete; those remain in the live R5 state as partial or blocked until their independent acceptance evidence exists.
+
+
+## Later update
+
+The convergence branch was deleted after full qualification run 35253371026; remote branch count is now 21.
