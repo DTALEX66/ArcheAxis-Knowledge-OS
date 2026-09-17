@@ -2030,3 +2030,10 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Path ownership command: `.venv\Scripts\python.exe scripts/check_path_conventions.py --json`; exit `0`; `2047/2047` tracked paths owned, `0` unowned, `0` ambiguous, `0` denied-but-tracked. The record's historical measurement commit remains separately identified by the checker.
 - Link/interpreter preflight: `.venv\Scripts\python.exe scripts/workflow/execution_preflight.py . --json`; exit `0`; Python `3.13.14`, `551` links checked, `0` real broken links, `private_state_opened=false`.
 - Delivery boundary: local `main` is ahead of local `origin/main` (`6bc26c213637c4b9423f2c02063e3cd3e692c0e6`); remote write is still unavailable in this session, so this receipt proves local verification only.
+
+## 2026-09-18 Obsidian attachment metadata persistence
+
+- Commit: `421736c8`.
+- Scope: add `kb_attachment_facts` metadata table and idempotent per-source replacement; Obsidian import now persists vault-relative path, SHA-256, byte size, link type and embed flag while retaining source-byte ownership in the Vault.
+- Verification: `.venv\Scripts\python.exe scripts/runtime/dev.py --root . --pytest tests/test_obsidian_importer.py tests/test_obsidian_projection.py tests/test_obsidian_vault.py tests/test_canvas_projection.py tests/test_json_canvas.py -q`; exit `0`; `114 passed in 0.39s`.
+- Limitation: this closes metadata persistence only; full real-vault import/export and restart readback remain separate R15 acceptance work.
