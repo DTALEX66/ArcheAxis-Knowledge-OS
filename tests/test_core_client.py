@@ -187,3 +187,22 @@ class TestJourney:
 
         assert result['ok'] is True
         assert result['search_attempts'] == 3
+
+    def test_probe_accepts_real_transform_output_without_promoting_it_to_knowledge(self) -> None:
+        fake = _FakeCore()
+
+        def transformed(*args, **kwargs):
+            status, body = fake(*args, **kwargs)
+            if args[2].startswith('/api/v1/search'):
+                return 200, {
+                    'count': 0,
+                    'items': [],
+                    'transforms': [{'transform_id': 'job-1', 'source_id': 'src-1', 'head': 'radius 6371 km'}],
+                }
+            return status, body
+
+        result = self._run(transformed)
+        assert result['ok'] is True
+        assert result['knowledge_count'] == 0
+        assert result['transform_count'] == 1
+        assert result['closed_loop_verified'] is False

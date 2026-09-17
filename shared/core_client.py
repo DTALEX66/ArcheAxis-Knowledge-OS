@@ -153,6 +153,7 @@ def run_journey(
     search_url = search_path(query, active_only=True)
     found: object = None
     hits: list | None = None
+    transforms: list | None = None
     search_attempts = 0
     # Imports are accepted asynchronously (202).  Give the Core's indexer a
     # short bounded window to publish a real hit; never turn an empty result
@@ -163,15 +164,27 @@ def run_journey(
             return {"ok": False, "failed_step": "search", "steps": steps, "payload": found,
                     "search_attempts": search_attempts}
         hits = found.get("items") if isinstance(found, dict) else None
-        if isinstance(hits, list) and any(
+        transforms = found.get("transforms") if isinstance(found, dict) else None
+        has_knowledge = isinstance(hits, list) and any(
             isinstance(hit, dict) and hit.get("knowledge_id") for hit in hits
-        ):
+        )
+        has_transform = isinstance(transforms, list) and any(
+            isinstance(item, dict) and item.get("transform_id") and item.get("source_id")
+            for item in transforms
+        )
+        if has_knowledge or has_transform:
             break
         if search_attempts < 10:
             time.sleep(0.2)
-    if not isinstance(hits, list) or not any(
-        isinstance(hit, dict) and hit.get("knowledge_id") for hit in hits
-    ):
+    knowledge_count = sum(
+        1 for hit in (hits if isinstance(hits, list) else [])
+        if isinstance(hit, dict) and hit.get("knowledge_id")
+    )
+    transform_count = sum(
+        1 for item in (transforms if isinstance(transforms, list) else [])
+        if isinstance(item, dict) and item.get("transform_id") and item.get("source_id")
+    )
+    if knowledge_count == 0 and transform_count == 0:
         return {"ok": False, "failed_step": "search_results", "steps": steps,
                 "source_id": source_id, "scope": "adapter_probe",
                 "closed_loop_verified": False, "payload": found,
@@ -182,7 +195,9 @@ def run_journey(
         "closed_loop_verified": False,
         "steps": steps,
         "source_id": source_id,
-        "search_count": len(hits),
+        "search_count": knowledge_count,
+        "knowledge_count": knowledge_count,
+        "transform_count": transform_count,
         "search_attempts": search_attempts,
         "referenced_revision": None,
         "note": "adapter probe only; source-to-knowledge conversion is unverified; learning and review require a human action",
