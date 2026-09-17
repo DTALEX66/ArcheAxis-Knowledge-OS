@@ -2170,3 +2170,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Repeated the self-contained candidate process smoke with `ARCHEAXIS_VNEXT_DB` explicitly set to `.project-local/smoke-desktop.sqlite`.
 - The process remained alive after 4 seconds and was terminated as an owned smoke process; exit `0` for the harness. Runtime state stayed under `.project-local`.
 - This is the boundary-correct smoke evidence; it remains separate from Green installation and visible clean-machine acceptance.
+
+## 2026-09-18 R10 host panel real probe rerun
+
+- Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/probes/r10_host_panel_smoke.py`; harness exit `0`, probe `ok=true`.
+- Real Core and host panel returned HTTP `200` for the page/health/state surfaces, `404` for an unknown source, `400` for a missing source ID, and `503` with a null projection when Core was unreachable.
+- The imported sample still produced no accepted knowledge search hit (`failed_step=search_results`, `closed_loop_verified=false`); this is retained as an honest boundary result and does not promote R10.
