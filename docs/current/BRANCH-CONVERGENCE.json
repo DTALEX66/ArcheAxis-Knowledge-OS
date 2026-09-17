@@ -5,7 +5,7 @@
   "start_remote_branch_count": 32,
   "start_main_sha": "1e9813ea2bd49f47d334ba6717c78d3e9feda6ce",
   "full_loop_sha": "252e7fdf58c0595e814f1751e77d9ef41c8c59cf",
-  "current_head": "7e89f4642ae619d80bad2f6da339c2a769e02b20",
+  "current_head": "f72c6101c6320fcb8f8200e13976c4e85a12b225",
   "branches": [
     {
       "branch": "chore/naming-repo-refs",
@@ -1119,8 +1119,8 @@
     "required_jobs": "all completed success"
   },
   "post_merge": {
-    "recorded_at": "2026-09-18T00:50:00+08:00",
-    "main_sha": "3907d0ba190c1c6124832969f813629b99e8d0d1",
+    "recorded_at": "2026-09-18T00:00:00+08:00",
+    "main_sha": "f72c6101c6320fcb8f8200e13976c4e85a12b225",
     "remote_branch_count": 21,
     "deleted_branches": [
       "codex/append-only-audit",
@@ -1135,6 +1135,6 @@
       "codex/full-loop-0906"
     ],
     "retained_convergence_branch": null,
-    "note": "Historical baseline entries remain for auditability; post_merge is authoritative after deleting the convergence branch."
+    "note": "Historical baseline entries remain for auditability; post_merge is authoritative after deleting the convergence branch. Main SHA refreshed after Green worker bundle upload."
   }
 }
