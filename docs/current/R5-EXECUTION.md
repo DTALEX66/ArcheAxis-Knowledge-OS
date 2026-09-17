@@ -2152,3 +2152,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/probes/r15_directory_batch_smoke.py`; exit `0`.
 - A real project-local corpus reached the real Core: first run enqueued `4` jobs and recorded one unmapped extension without guessing a route; second run skipped `5` unchanged files with `0` Core calls; after one file change, third run reprocessed exactly `1` file and skipped `4`.
 - Receipt and manifest were written under `.project-local/runs/be268a2d33/...`; this strengthens directory resumability and no-route evidence but does not promote full-format or GUI acceptance.
+
+## 2026-09-18 R15 format matrix integrity check
+
+- Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/check_format_matrix.py --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json --json`; exit `0`.
+- Result: all 16 carried format groups are mechanically consistent with the Core and worker route tables; summary remains `0 complete / 14 partial / 2 custody_only`.
+- This validates matrix integrity only; it does not upgrade any format qualification or claim full end-to-end coverage.
