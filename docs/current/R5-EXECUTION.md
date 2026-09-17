@@ -2231,3 +2231,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Read-only command lookup found no `makensis.exe`, `signtool.exe`, `candle.exe` or `light.exe`; only the system `msiexec.exe` is present.
 - This is a concrete local resource gap for installer, code-signing and uninstaller acceptance. No tool installation, external-library mutation or system configuration change was attempted.
 - Self-contained directory publish and candidate verification remain available; R13 is not promoted until the missing packaging/signing resources and clean-machine test path exist.
+
+## 2026-09-18 WebView2 dependency probe
+
+- `scripts/webview2_detect.py --json` via project `dev.py` exited `0`.
+- No evergreen/fixed WebView2 runtime was detected and no offline bootstrap installer was present. Recommendation is to include/document an explicit WebView2 installation path before Green/portable GUI acceptance.
+- This is a dependency diagnostic only; no download or system installation was performed.
