@@ -1119,9 +1119,9 @@
     "required_jobs": "all completed success"
   },
   "post_merge": {
-    "recorded_at": "2026-09-18T00:00:00+08:00",
+    "recorded_at": "2026-09-18T00:30:00+08:00",
     "main_sha": "f72c6101c6320fcb8f8200e13976c4e85a12b225",
-    "remote_branch_count": 21,
+    "remote_branch_count": 18,
     "deleted_branches": [
       "codex/append-only-audit",
       "codex/client-write-boundary",
@@ -1132,9 +1132,12 @@
       "codex/raw-first-web",
       "codex/release-candidate-promotion",
       "codex/v0.6.0-integration",
-      "codex/full-loop-0906"
+      "codex/full-loop-0906",
+      "docs/naming-full-sweep",
+      "feat/naming-v2-full-sweep",
+      "fix/osui-final-newline"
     ],
     "retained_convergence_branch": null,
-    "note": "Historical baseline entries remain for auditability; post_merge is authoritative after deleting the convergence branch. Main SHA refreshed after Green worker bundle upload."
+    "note": "Historical baseline entries remain for auditability; post_merge is authoritative after deleting superseded branches and the convergence branch."
   }
 }
