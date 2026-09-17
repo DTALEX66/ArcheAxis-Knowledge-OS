@@ -101,6 +101,11 @@ def _browser_environment(out: Path, temp_root: Path | None = None) -> dict[str, 
     sys_temp = str(temp_root or _short_temp_root(out))
     for name in ("TMP", "TEMP", "TMPDIR"):
         environment[name] = sys_temp
+    # Chromium may place its process-singleton socket under the runtime
+    # directory instead of TMPDIR.  In CI that variable points at the long
+    # project run root, so keep the browser-only runtime namespace short too.
+    if os.name != "nt":
+        environment["XDG_RUNTIME_DIR"] = sys_temp
     return environment
 
 
