@@ -43,7 +43,13 @@ def main() -> int:
         return 2
 
     runtime = _load("runtime_r10_smoke", REPO / "scripts/runtime/dev.py")
-    db = runtime.artifact_directory(REPO, "r10-smoke") / "core.sqlite"
+    workdir = runtime.artifact_directory(REPO, "r10-smoke")
+    db = workdir / "core.sqlite"
+    worker = {
+        "python": str(Path(sys.executable).resolve()),
+        "script": str((REPO / "services/python-workers/transport/text_ndjson.py").resolve()),
+        "staging": str((workdir / "worker-staging").resolve()),
+    }
     child = subprocess.Popen(
         [str(binary), str(db), "0"],
         stdin=subprocess.PIPE,
@@ -53,7 +59,7 @@ def main() -> int:
         encoding="utf-8",
     )
     try:
-        child.stdin.write(json.dumps({"launch_token": TOKEN, "session_id": SESSION}) + "\n")
+        child.stdin.write(json.dumps({"launch_token": TOKEN, "session_id": SESSION, "text_worker": worker}) + "\n")
         child.stdin.flush()
         # The Core reads its launch claim to EOF, so stdin must be closed here or
         # it waits forever and never reports readiness.
@@ -70,29 +76,15 @@ def main() -> int:
         port = line.split("127.0.0.1:", 1)[1].split()[0].strip()
         base = f"http://127.0.0.1:{port}"
 
-        # One accepted fact so the journey's search has a current revision to cite.
-        status, created = core.call(
-            base,
-            "POST",
-            "/api/v1/knowledge-items",
-            TOKEN,
-            {"knowledge_type": "FACTUAL_CLAIM", "body": "smoke radius 6371 km", "status": "accepted", "created_by": "owner"},
-        )
-        knowledge_id = created.get("knowledge_id") if isinstance(created, dict) else None
-
-        result = core.run_journey(
+        result = core.run_conversion_journey(
             core.call,
             base,
             TOKEN,
             "smoke.md",
             b"radius 6371 km",
             "6371",
-            "card-smoke",
-            "evt-smoke",
         )
         result["core_port"] = port
-        result["knowledge_created_status"] = status
-        result["knowledge_id"] = knowledge_id
         print(json.dumps(result, ensure_ascii=False))
         return 0 if result.get("ok") else 1
     finally:

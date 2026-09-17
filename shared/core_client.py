@@ -13,6 +13,7 @@ the Core's stdin is presented as `x-archeaxis-launch-token`. The caller's identi
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import time
 import urllib.error
@@ -92,13 +93,24 @@ def review_request(action: str, reviewer: str, new_body: str | None = None, note
     return body
 
 
-def call(base_url: str, method: str, path: str, launch_token: str | None, body: dict | str | None = None, timeout: float = 30.0):
+def call(
+    base_url: str,
+    method: str,
+    path: str,
+    launch_token: str | None,
+    body: dict | str | None = None,
+    timeout: float = 30.0,
+    extra_headers: dict[str, str] | None = None,
+):
     """Issue one Core call and return (status, decoded_json_or_text)."""
     data = None
     if body is not None:
         data = (body if isinstance(body, str) else json.dumps(body)).encode("utf-8")
     request = urllib.request.Request(
-        base_url.rstrip("/") + path, data=data, method=method.upper(), headers=headers(launch_token)
+        base_url.rstrip("/") + path,
+        data=data,
+        method=method.upper(),
+        headers={**headers(launch_token), **(extra_headers or {})},
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -201,4 +213,101 @@ def run_journey(
         "search_attempts": search_attempts,
         "referenced_revision": None,
         "note": "adapter probe only; source-to-knowledge conversion is unverified; learning and review require a human action",
+    }
+
+
+def job_kind_for_name(name: str) -> str:
+    """Map a source filename to the Core's declared route kind."""
+    suffix = name.rsplit(".", 1)[-1].casefold() if "." in name else ""
+    return {
+        "pdf": "pdf",
+        "png": "image", "jpg": "image", "jpeg": "image", "tif": "image",
+        "tiff": "image", "webp": "image", "bmp": "image",
+        "zip": "archive", "mp4": "media", "wav": "media",
+        "docx": "office", "pptx": "office", "xlsx": "office",
+        "canvas": "canvas", "srt": "subtitles", "vtt": "subtitles",
+        "html": "html", "htm": "html",
+    }.get(suffix, "text")
+
+
+def run_conversion_journey(
+    call,
+    base_url: str,
+    launch_token: str | None,
+    sample_name: str,
+    sample_bytes: bytes,
+    query: str,
+    *,
+    poll_attempts: int = 30,
+) -> dict:
+    """Run a real import, worker execution, transform readback and search.
+
+    This is an execution probe, not a knowledge promotion path: extracted text
+    remains a transform and still requires human review before becoming knowledge.
+    """
+    steps: list[dict] = []
+
+    def step(name: str, method: str, path: str, body=None, extra_headers=None):
+        status, payload = call(base_url, method, path, launch_token, body, extra_headers=extra_headers)
+        steps.append({"step": name, "method": method, "path": path, "status": status})
+        return status, payload
+
+    status, version = step("reachability", "GET", f"{BASE}/system/version")
+    if status != 200:
+        return {"ok": False, "failed_step": "reachability", "steps": steps, "payload": version}
+    status, imported = step("import", "POST", f"{BASE}/imports", import_request(sample_name, sample_bytes))
+    source_id = imported.get("source_id") if isinstance(imported, dict) else None
+    if not 200 <= status < 300 or not source_id:
+        return {"ok": False, "failed_step": "import", "steps": steps, "payload": imported}
+
+    digest = hashlib.sha256(f"{sample_name}\0{source_id}".encode()).hexdigest()[:24]
+    job_id = f"host-probe-{digest}"
+    status, queued = step(
+        "enqueue", "POST", f"{BASE}/jobs",
+        {"job_id": job_id, "kind": job_kind_for_name(sample_name), "input_ref": source_id},
+    )
+    if not 200 <= status < 300:
+        return {"ok": False, "failed_step": "enqueue", "steps": steps, "source_id": source_id, "payload": queued}
+    status, started = step(
+        "execute", "POST", f"{BASE}/jobs/{urllib.parse.quote(job_id, safe='')}/executions",
+        {"deadline_ms": 300000}, {"idempotency-key": job_id},
+    )
+    if not 200 <= status < 300:
+        return {"ok": False, "failed_step": "execute", "steps": steps, "source_id": source_id, "job_id": job_id, "payload": started}
+
+    final: object = None
+    for attempt in range(1, poll_attempts + 1):
+        status, final = step("job_status", "GET", f"{BASE}/jobs/{urllib.parse.quote(job_id, safe='')}")
+        state = final.get("state") if isinstance(final, dict) else None
+        if state == "succeeded":
+            break
+        if state in {"failed", "cancelled"} or status != 200:
+            return {"ok": False, "failed_step": "job_status", "steps": steps, "source_id": source_id,
+                    "job_id": job_id, "job_state": state, "payload": final, "poll_attempts": attempt}
+        time.sleep(0.2)
+    else:
+        return {"ok": False, "failed_step": "job_timeout", "steps": steps, "source_id": source_id,
+                "job_id": job_id, "job_state": final.get("state") if isinstance(final, dict) else None,
+                "poll_attempts": poll_attempts}
+
+    status, output = step("output", "GET", f"{BASE}/jobs/{urllib.parse.quote(job_id, safe='')}/outputs/text")
+    if status != 200:
+        return {"ok": False, "failed_step": "output", "steps": steps, "source_id": source_id,
+                "job_id": job_id, "payload": output}
+    status, found = step("search", "GET", search_path(query, active_only=False))
+    transforms = found.get("transforms", []) if isinstance(found, dict) else []
+    knowledge = found.get("items", []) if isinstance(found, dict) else []
+    valid_transforms = [item for item in transforms if isinstance(item, dict) and item.get("transform_id") and item.get("source_id")]
+    valid_knowledge = [item for item in knowledge if isinstance(item, dict) and item.get("knowledge_id")]
+    return {
+        "ok": status == 200 and bool(valid_transforms or valid_knowledge),
+        "failed_step": None if status == 200 and (valid_transforms or valid_knowledge) else "search_results",
+        "scope": "real_conversion_probe",
+        "closed_loop_verified": False,
+        "steps": steps,
+        "source_id": source_id,
+        "job_id": job_id,
+        "output_status": "readable" if isinstance(output, dict) else "returned",
+        "knowledge_count": len(valid_knowledge),
+        "transform_count": len(valid_transforms),
     }

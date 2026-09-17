@@ -206,3 +206,32 @@ class TestJourney:
         assert result['knowledge_count'] == 0
         assert result['transform_count'] == 1
         assert result['closed_loop_verified'] is False
+
+    def test_real_conversion_probe_requires_worker_output_and_search_projection(self) -> None:
+        calls = []
+        states = iter(["running", "succeeded"])
+
+        def real(*args, **kwargs):
+            _base, method, path, _token, body = args[:5]
+            calls.append((method, path, body, kwargs.get("extra_headers")))
+            if path.endswith("/system/version"):
+                return 200, {"runtime": "archeaxis-api"}
+            if path.endswith("/imports"):
+                return 202, {"source_id": "src-real"}
+            if path.endswith("/jobs"):
+                return 202, {"job_id": "host-probe", "state": "queued"}
+            if path.endswith("/executions"):
+                return 202, {"state": "running"}
+            if path.endswith("/outputs/text"):
+                return 200, {"content": "hello"}
+            if path.endswith("/search?q=hello"):
+                return 200, {"items": [], "transforms": [{"transform_id": "t1", "source_id": "src-real"}]}
+            if "/jobs/" in path:
+                return 200, {"state": next(states)}
+            raise AssertionError(path)
+
+        result = core.run_conversion_journey(real, "http://127.0.0.1:1", "t" * 64, "note.md", b"hello", "hello")
+        assert result["ok"] is True
+        assert result["transform_count"] == 1
+        execute = next(call for call in calls if call[1].endswith("/executions"))
+        assert execute[3]["idempotency-key"] == result["job_id"]
