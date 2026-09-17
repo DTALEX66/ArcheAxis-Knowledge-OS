@@ -173,6 +173,8 @@ def test_the_page_shows_both_panels_and_the_unreachable_banner():
     assert "学习者记录（人类）" in page
     assert "机器能力收据（AI）" in page
     assert "Core 不可达" in page
+    assert 'id="search-query"' in page
+    assert "searchCore" in page
     assert 'id="item" value="card-1"' in page
     assert "project-side" in page
 

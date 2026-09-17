@@ -210,6 +210,17 @@ PAGE = """<!doctype html>
   <span id="health" class="sub"></span>
 </form>
 <div id="banner"></div>
+<section class="search-panel">
+  <h2>知识检索（Core 投影）</h2>
+  <form onsubmit="searchCore(event)">
+    <label for="search-query">查询</label>
+    <input id="search-query" size="28" placeholder="输入检索词">
+    <label><input id="search-active" type="checkbox"> 仅当前版本</label>
+    <button type="submit">检索</button>
+  </form>
+  <div id="search-note" class="sub"></div>
+  <ul id="search-results"></ul>
+</section>
 <main>
   <section class="learner">
     <h2>学习者记录（人类）</h2>
@@ -314,6 +325,27 @@ async function loadMembers(event) {{
     body.append(row);
   }}
   if (data.core_note) document.getElementById("members-note").textContent = data.core_note;
+}}
+async function searchCore(event) {{
+  if (event) event.preventDefault();
+  const query = document.getElementById("search-query").value.trim();
+  const note = document.getElementById("search-note");
+  const list = document.getElementById("search-results");
+  list.innerHTML = "";
+  if (!query) {{ note.textContent = "请输入查询词"; return; }}
+  const active = document.getElementById("search-active").checked;
+  const response = await fetch("/api/search?q=" + encodeURIComponent(query) + (active ? "&active_only=true" : ""));
+  const data = await response.json();
+  if (!data.core || !data.core.reachable) {{
+    note.textContent = "Core 不可达，未显示检索结果。";
+    return;
+  }}
+  note.textContent = data.note || "";
+  for (const item of (data.items || [])) {{
+    const row = document.createElement("li");
+    row.textContent = (item.knowledge_id || "") + "：" + (item.head || "");
+    list.append(row);
+  }}
 }}
 load(); health();
 </script>
