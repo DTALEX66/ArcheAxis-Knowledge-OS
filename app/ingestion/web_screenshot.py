@@ -84,7 +84,8 @@ def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
         # intentionally routes under the long `.project-local/runs/...` path.
         # Pin the disposable browser root to POSIX /tmp so the socket path is
         # actually short.
-        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-", dir="/tmp"))
+        posix_tmp = Path(os.sep) / "tmp"
+        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-", dir=str(posix_tmp)))
         return short_root, short_root
     return project_root, None
 
