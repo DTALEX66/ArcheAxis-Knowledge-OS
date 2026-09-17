@@ -1900,6 +1900,13 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `actual_result`: repeated import of the same note now refreshes the same logical asset; relation indexing replaces the prior outgoing set before writing the current stable edges.
 - `limitations`: target-to-imported-ID resolution, attachment hashing, Canvas semantic storage, and full Vault round-trip evidence remain open; R15 remains partial.
 
+## Continuation receipt — 2026-09-18 Vault target resolution increment
+
+- `task_id`: X12/R15 stable Obsidian target resolution
+- `implementation`: unique same-Vault Markdown targets now resolve to their deterministic KB ID while preserving `#heading` anchors; unresolved or ambiguous targets remain verbatim.
+- `verification`: `pytest tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `34 passed`; Ruff passed.
+- `limitations`: attachment hashing, Canvas semantic storage, real Vault client round-trip, and full multi-format acceptance remain open.
+
 ## Continuation receipt — 2026-09-18 post-R15 clean Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 increment

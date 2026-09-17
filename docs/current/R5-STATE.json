@@ -185,7 +185,7 @@
       "r31_slices": [
         "R15"
       ],
-      "gap": "当前格式记录仍为0 complete/14 partial/2 custody-only；目录续跑驱动已有但非UI入口。目录批处理真实探针证明未改文件零Core调用、单文件变更重跑和未知扩展安全不路由；Obsidian导入器现已索引正文及YAML frontmatter wikilink并保留别名/标题锚点、embed去重，资产与精确关系 ID 已改为基于 vault-relative path/关系事实的稳定值，重建关系前会按 source 删除旧边，定向组合33 passed、Ruff passed。格式矩阵、工作区多格式管线、DOCX及适配器合同本轮46项通过，证明的是局部执行/合同，不提升为全格式链。稳定目标解析、附件哈希绑定、Canvas语义存储、真实Vault客户端往返、完整source回跳、三个主题和新机器回归仍未验收。"
+      "gap": "当前格式记录仍为0 complete/14 partial/2 custody-only；目录续跑驱动已有但非UI入口。目录批处理真实探针证明未改文件零Core调用、单文件变更重跑和未知扩展安全不路由；Obsidian导入器现已索引正文及YAML frontmatter wikilink并保留别名/标题锚点、embed去重，资产与精确关系 ID 已改为基于 vault-relative path/关系事实的稳定值，重建关系前会按 source 删除旧边，唯一同 Vault Markdown 目标会解析到稳定 KB ID 并保留 heading anchor，定向组合34 passed、Ruff passed。格式矩阵、工作区多格式管线、DOCX及适配器合同本轮46项通过，证明的是局部执行/合同，不提升为全格式链。附件哈希绑定、Canvas语义存储、真实Vault客户端往返、完整source回跳、三个主题和新机器回归仍未验收。"
     },
     {
       "id": "X13",

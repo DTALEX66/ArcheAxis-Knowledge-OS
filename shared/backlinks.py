@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Callable
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
@@ -85,7 +86,11 @@ def parse_links(content: str) -> list[dict[str, Any]]:
     return results
 
 
-def index_document_links(doc_id: str, content: str) -> int:
+def index_document_links(
+    doc_id: str,
+    content: str,
+    target_resolver: Callable[[str], str] | None = None,
+) -> int:
     """Parse and store all outgoing links from a document.
 
     Args:
@@ -104,10 +109,11 @@ def index_document_links(doc_id: str, content: str) -> int:
         # A stable identity makes repeated imports idempotent.  ``insert``
         # uses INSERT OR REPLACE, so the same source/target relation is
         # refreshed instead of creating an unbounded duplicate edge.
+        target_id = target_resolver(link["target"]) if target_resolver else link["target"]
         identity = "\x1f".join(
             (
                 doc_id,
-                link["target"],
+                target_id,
                 link["link_type"],
                 link["alias"],
                 "1" if link["is_embed"] else "0",
@@ -119,7 +125,7 @@ def index_document_links(doc_id: str, content: str) -> int:
             {
                 "id": lid,
                 "source_id": doc_id,
-                "target_id": link["target"],
+                "target_id": target_id,
                 "link_type": link["link_type"],
                 "alias": link["alias"],
                 "is_embed": 1 if link["is_embed"] else 0,

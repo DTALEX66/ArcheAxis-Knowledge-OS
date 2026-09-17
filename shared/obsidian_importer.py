@@ -149,6 +149,46 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     return fm, body
 
 
+def _stable_asset_id(rel_path: str) -> str:
+    """Return the deterministic KB identity used for one Vault-relative note."""
+    normalized = str(rel_path).replace("\\", "/")
+    suffix = sha256(normalized.encode("utf-8")).hexdigest()[:20]
+    folder = Path(normalized).parts[0] if Path(normalized).parts else ""
+    prefix = {
+        "03_知识卡片": "card",
+        "04_复习卡片": "card",
+        "50_领域知识": "mku",
+    }.get(folder, "doc")
+    return f"{prefix}_obsidian_{suffix}"
+
+
+def _build_target_index(vault_root: str) -> dict[str, str | None]:
+    """Map unique Vault note names/paths to stable IDs; retain ambiguity."""
+    index: dict[str, str | None] = {}
+    root = Path(vault_root)
+    for note in root.rglob("*.md"):
+        if any(part.startswith(".") for part in note.relative_to(root).parts):
+            continue
+        rel = note.relative_to(root).as_posix()
+        stable_id = _stable_asset_id(rel)
+        keys = {rel.casefold(), rel[:-3].casefold(), note.stem.casefold()}
+        for key in keys:
+            if key in index and index[key] != stable_id:
+                index[key] = None
+            else:
+                index[key] = stable_id
+    return index
+
+
+def _resolve_target(target: str, target_index: dict[str, str | None]) -> str:
+    """Resolve a wikilink target while preserving anchors and unresolved names."""
+    path_part, _, anchor = target.partition("#")
+    resolved = target_index.get(path_part.casefold())
+    if resolved:
+        return resolved + (f"#{anchor}" if anchor else "")
+    return target
+
+
 # ── Importer ────────────────────────────────────────────
 
 
@@ -198,14 +238,14 @@ def import_file(
     # Use the vault-relative path as the stable identity.  Re-importing the
     # same note therefore refreshes the existing asset instead of generating
     # a second logical document/card.
-    stable_suffix = sha256(str(rel_path).replace("\\", "/").encode("utf-8")).hexdigest()[:20]
+    stable_asset_id = _stable_asset_id(rel_path)
 
     from shared.storage import fts5_sync, insert
 
     now = datetime.now(timezone.utc).isoformat()
 
     if asset_type == "card":
-        kb_id = f"card_obsidian_{stable_suffix}"
+        kb_id = stable_asset_id
         card = {
             "id": kb_id,
             "title": title,
@@ -221,7 +261,7 @@ def import_file(
         result["kb_id"] = kb_id
 
     elif asset_type == "machine_knowledge":
-        kb_id = f"mku_obsidian_{stable_suffix}"
+        kb_id = stable_asset_id
         unit = {
             "id": kb_id,
             "title": title,
@@ -240,7 +280,7 @@ def import_file(
 
     else:
         # Default: import as document
-        kb_id = f"doc_obsidian_{stable_suffix}"
+        kb_id = stable_asset_id
         doc = {
             "id": kb_id,
             "title": title,
@@ -263,7 +303,16 @@ def import_file(
     frontmatter_text = text[: text.find(body)] if body and body != text else ""
     links_text = f"{frontmatter_text}\n{body}" if frontmatter_text else body
     links = parse_links(links_text)
-    result["links_indexed"] = index_document_links(kb_id, links_text) if links else 0
+    target_index = _build_target_index(vault_root) if links else {}
+    result["links_indexed"] = (
+        index_document_links(
+            kb_id,
+            links_text,
+            target_resolver=lambda target: _resolve_target(target, target_index),
+        )
+        if links
+        else 0
+    )
     result["status"] = "imported"
     return result
 

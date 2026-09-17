@@ -10,6 +10,7 @@ from shared.obsidian_importer import (
     FRONTMATTER_MAP,
     VAULT_FOLDER_MAP,
     _parse_frontmatter,
+    _stable_asset_id,
     import_file,
     import_vault,
     scan_vault,
@@ -223,7 +224,7 @@ def test_import_file_indexes_wikilinks_embeds_and_relative_links(monkeypatch) ->
     def fake_insert(table, row):
         inserted[table] = row
 
-    def fake_index(doc_id, content):
+    def fake_index(doc_id, content, **_kwargs):
         indexed["doc_id"] = doc_id
         indexed["content"] = content
         return 3
@@ -278,6 +279,22 @@ def test_import_file_uses_stable_id_for_repeat_imports(monkeypatch) -> None:
     assert first["kb_id"] == second["kb_id"]
     link_rows = [row for table, row in inserted if table == "kb_links"]
     assert len(link_rows) == 0
+
+
+def test_import_file_resolves_vault_target_to_stable_id(monkeypatch) -> None:
+    rows = []
+    monkeypatch.setattr("shared.storage.insert", lambda table, row: rows.append((table, row)))
+    monkeypatch.setattr("shared.storage.fts5_sync", lambda *a, **k: None)
+    monkeypatch.setattr("shared.storage.replace_links_for_source", lambda _source_id: None)
+
+    with tempfile.TemporaryDirectory() as d:
+        Path(d, "note.md").write_text("See [[Other note#Heading]].", encoding="utf-8")
+        Path(d, "Other note.md").write_text("Target.", encoding="utf-8")
+        result = import_file(d, "note.md", dry_run=False)
+
+    links = [row for table, row in rows if table == "kb_links"]
+    assert result["links_indexed"] == 1
+    assert links[0]["target_id"] == _stable_asset_id("Other note.md") + "#Heading"
 
 
 def test_import_vault_dry_run(monkeypatch) -> None:
