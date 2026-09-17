@@ -302,6 +302,31 @@ def test_import_file_persists_attachment_facts_as_metadata(monkeypatch, tmp_path
     assert row[4] == 1
 
 
+def test_persisted_attachment_facts_read_back_after_connection_reopen(monkeypatch, tmp_path: Path) -> None:
+    from shared import storage
+
+    database = tmp_path / "attachments-reopen.sqlite"
+    monkeypatch.setattr(storage, "DB_PATH", database)
+    storage.init()
+    source_id = "doc_obsidian_readback"
+    fact = {
+        "path": "assets/readme.bin",
+        "sha256": "a" * 64,
+        "size_bytes": 7,
+        "link_type": "embed",
+        "is_embed": True,
+    }
+    storage.replace_attachment_facts_for_source(source_id, [fact])
+
+    # The helper opens a fresh connection, proving the metadata is not in-memory only.
+    rows = storage.select_attachment_facts_for_source(source_id)
+    assert rows[0]["source_id"] == source_id
+    assert rows[0]["path"] == fact["path"]
+    assert rows[0]["sha256"] == fact["sha256"]
+    assert rows[0]["size_bytes"] == fact["size_bytes"]
+    assert rows[0]["is_embed"] == 1
+
+
 def test_import_file_indexes_frontmatter_wikilinks(monkeypatch) -> None:
     import tempfile
 

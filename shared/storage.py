@@ -800,6 +800,21 @@ def replace_attachment_facts_for_source(source_id: str, facts: list[dict]) -> No
         c.close()
 
 
+def select_attachment_facts_for_source(source_id: str) -> list[dict[str, Any]]:
+    """Read persisted attachment metadata for one imported source."""
+    c = _conn()
+    try:
+        table = _validated_table(c, "kb_attachment_facts")
+        rows = c.execute(
+            f'SELECT source_id, path, sha256, size_bytes, link_type, is_embed, created_at '
+            f'FROM "{table}" WHERE source_id=? ORDER BY path',
+            (source_id,),
+        ).fetchall()
+        return [_row_dict(row) for row in rows]
+    finally:
+        c.close()
+
+
 def select_all(table: str, limit: int = 100, order: str = "created_at DESC") -> list[dict]:
     c = _conn()
     try:
