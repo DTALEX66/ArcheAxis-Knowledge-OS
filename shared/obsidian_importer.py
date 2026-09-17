@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.backlinks import index_document_links, parse_links
+
 # ── Vault folder → KB asset type mapping ────────────────
 
 VAULT_FOLDER_MAP: dict[str, dict[str, str]] = {
@@ -248,6 +250,11 @@ def import_file(
             fts5_sync("kb_documents", {"id": kb_id, "title": title, "content": body[:10000]})
         result["kb_id"] = kb_id
 
+    # Preserve Obsidian's outgoing relationship facts alongside the imported
+    # asset.  Unresolved targets remain explicit in ``kb_links`` so a later
+    # import can resolve them without silently dropping the original edge.
+    links = parse_links(body)
+    result["links_indexed"] = index_document_links(kb_id, body) if links else 0
     result["status"] = "imported"
     return result
 

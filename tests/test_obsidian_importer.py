@@ -12,6 +12,7 @@ from shared.obsidian_importer import (
     import_vault,
     scan_vault,
 )
+from shared.backlinks import parse_links
 
 
 class _FakeFile:
@@ -57,6 +58,15 @@ def test_vault_folder_map_shape() -> None:
 def test_frontmatter_map_shape() -> None:
     assert FRONTMATTER_MAP["title"] == "title"
     assert FRONTMATTER_MAP["course"] == "source_topic"
+
+
+def test_parse_links_classifies_embed_once_without_duplicate_wikilink() -> None:
+    links = parse_links("See [[目标笔记|目标]] and ![[附件.png]].")
+
+    assert [(item["target"], item["link_type"], item["is_embed"]) for item in links] == [
+        ("目标笔记", "wikilink", False),
+        ("附件.png", "embed", True),
+    ]
 
 
 def test_parse_frontmatter_no_frontmatter() -> None:
@@ -161,6 +171,39 @@ def test_import_file_card_import(monkeypatch) -> None:
         assert result["kb_id"].startswith("card_")
         assert inserted["kb_cards"]["title"] == "My Card"
         assert "obsidian-card" in inserted["kb_cards"]["tags"]
+
+
+def test_import_file_indexes_wikilinks_embeds_and_relative_links(monkeypatch) -> None:
+    import tempfile
+
+    inserted = {}
+    indexed = {}
+
+    def fake_insert(table, row):
+        inserted[table] = row
+
+    def fake_index(doc_id, content):
+        indexed["doc_id"] = doc_id
+        indexed["content"] = content
+        return 3
+
+    monkeypatch.setattr("shared.storage.insert", fake_insert)
+    monkeypatch.setattr("shared.storage.fts5_sync", lambda *a, **k: None)
+    monkeypatch.setattr("shared.obsidian_importer.index_document_links", fake_index)
+
+    with tempfile.TemporaryDirectory() as d:
+        note = Path(d) / "02_课程库" / "数学" / "linked.md"
+        note.parent.mkdir(parents=True)
+        body = "See [[目标笔记|目标]] and ![[附件.png]]. Also [源](同目录.md)."
+        note.write_text(body, encoding="utf-8")
+
+        result = import_file(d, "02_课程库/数学/linked.md", dry_run=False)
+
+    assert result["status"] == "imported"
+    assert result["links_indexed"] == 3
+    assert indexed["doc_id"] == result["kb_id"]
+    assert indexed["content"] == body
+    assert inserted["kb_documents"]["content"] == body
 
 
 def test_import_vault_dry_run(monkeypatch) -> None:

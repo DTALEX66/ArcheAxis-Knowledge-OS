@@ -23,7 +23,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 # ── Wikilink patterns ───────────────────────────────────
 
 # [[target]] or [[target|alias]]
-_WIKILINK_RE = re.compile(r"\[\[([^\]|#]+?)(?:\|[^\]]+?)?(?:#[^\]]+?)?\]\]")
+_WIKILINK_RE = re.compile(r"(?<!!)\[\[([^\]|#]+?)(?:\|[^\]]+?)?(?:#[^\]]+?)?\]\]")
 
 # ![[embed]]
 _EMBED_RE = re.compile(r"!\[\[([^\]]+?)\]\]")
