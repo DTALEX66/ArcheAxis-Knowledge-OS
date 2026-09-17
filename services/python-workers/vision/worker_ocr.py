@@ -48,16 +48,42 @@ def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
 
 
 def _tesseract() -> str:
+    def usable(candidate: Path) -> bool:
+        command = str(candidate)
+        # Bare command names are resolved by the process environment (and are
+        # intentionally supported by unit-test fakes); absolute configured
+        # paths must be regular files before they are probed.
+        if not candidate.is_absolute():
+            return True
+        if candidate.is_absolute() and not candidate.is_file():
+            return False
+        try:
+            probe = _run([command, "--version"], capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+        return probe.returncode == 0 and "tesseract" in (probe.stdout + probe.stderr).casefold()
+
     configured = os.environ.get("TESSERACT_CMD", "").strip()
     if configured:
         candidate = Path(configured)
-        if candidate.is_file():
+        if usable(candidate):
             return str(candidate)
-        raise RuntimeError(f"configured TESSERACT_CMD does not exist: {candidate}")
+        # A stale shim can still exist as a file after its package moves. When
+        # language data is explicitly pinned, derive the sibling binary from
+        # that same toolchain before falling back to PATH.
+        tessdata = os.environ.get("TESSDATA_PREFIX", "").strip()
+        if tessdata:
+            derived = Path(tessdata).parent / "tesseract" / "current" / "tesseract.exe"
+            if usable(derived):
+                return str(derived)
     binary = shutil.which("tesseract")
+    if binary and usable(Path(binary)):
+        return binary
+    if configured:
+        raise RuntimeError(f"configured TESSERACT_CMD is unusable: {candidate}")
     if not binary:
         raise RuntimeError("tesseract binary not found on PATH (OCR engine unavailable)")
-    return binary
+    raise RuntimeError(f"tesseract binary is unusable: {binary}")
 
 
 # R15/F04: the reading-order model for recognised text.
