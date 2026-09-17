@@ -2140,3 +2140,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Generated `.project-local/runs/be268a2d33/x14-cleanup-review-20260918.json` with exact current byte counts and classifications for the largest governed outputs.
 - Reviewed totals: old Debug checkpoint `build/be268a2d33` 809,123,547 bytes is the only deletion candidate; current Cargo/Rust-MSVC/publish/Green candidates/runs are retained for reproducibility or audit evidence. NuGet/uv caches are rebuildable but retained to avoid disrupting the active toolchain.
 - The candidate remains `DELETE_CANDIDATE_BLOCKED` because the host rejected the guarded recursive deletion command before execution. No deletion or ACL change was performed.
+
+## 2026-09-18 branch disposition audit
+
+- Current checkout is `main`; only `codex/worker-quality-0906` is an ancestor of `main`, but it is still attached to `.project-local/worktrees/worker-quality-0906`, so it was retained.
+- Reviewed legacy refs `codex/local-main-old`, `codex/post-release-v0.6.9`, `codex/release-v0.6.9`, `codex/v0.6.8-release-closure`, and `release/v0.4.0-contract`; none is an ancestor of `main`, and each retains unique history, so no deletion was justified.
+- No branch ref or worktree was deleted.
