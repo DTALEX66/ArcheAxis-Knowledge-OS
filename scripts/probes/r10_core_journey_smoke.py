@@ -85,6 +85,9 @@ def main() -> int:
             "6371",
         )
         result["core_port"] = port
+        receipt_path = workdir / "r10-core-conversion.json"
+        receipt_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        result["receipt_path"] = str(receipt_path)
         print(json.dumps(result, ensure_ascii=False))
         return 0 if result.get("ok") else 1
     finally:
