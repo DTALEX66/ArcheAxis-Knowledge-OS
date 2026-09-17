@@ -106,6 +106,12 @@ def _browser_environment(out: Path, temp_root: Path | None = None) -> dict[str, 
     # project run root, so keep the browser-only runtime namespace short too.
     if os.name != "nt":
         environment["XDG_RUNTIME_DIR"] = sys_temp
+        # Keep fallback profile/config resolution short for Chromium builds
+        # that consult HOME/XDG config before honoring user-data-dir.
+        environment["HOME"] = sys_temp
+        environment["XDG_CONFIG_HOME"] = sys_temp
+        environment["XDG_CACHE_HOME"] = sys_temp
+        environment["XDG_STATE_HOME"] = sys_temp
     return environment
 
 
