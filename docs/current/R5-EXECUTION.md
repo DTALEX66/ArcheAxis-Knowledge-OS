@@ -2105,3 +2105,5 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Commit: `96d449ce`.
 - Worker OCR now probes configured absolute binaries with `--version`; stale shims are rejected, and a binary is derived from the explicitly pinned `TESSDATA_PREFIX` toolchain before PATH fallback.
 - Verification: focused OCR/profile/probe tests `17 passed, 18 subtests passed`; Ruff F/I checks passed (pre-existing line-length/B905 findings remain outside this change).
+
+- Additional OCR bulk/profile/route regression: `13 passed, 4 skipped, 18 subtests passed` after the path-drift hardening.
