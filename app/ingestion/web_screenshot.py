@@ -65,7 +65,20 @@ def _short_temp_root(out: Path) -> Path:
     return out.parent.resolve()
 
 
-def _browser_environment(out: Path) -> dict[str, str]:
+def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
+    """Choose a socket-safe root and return an optional ephemeral cleanup root."""
+    project_root = _short_temp_root(out)
+    # Chromium's Unix singleton socket has a hard path limit.  Hosted runners
+    # can exceed it even after trimming to .project-local.  Keep the screenshot
+    # and receipts in the project, while placing only the disposable browser
+    # profile/socket in a short OS temp directory when required.
+    if os.name != "nt" and len(str(project_root)) > 55:
+        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-"))
+        return short_root, short_root
+    return project_root, None
+
+
+def _browser_environment(out: Path, temp_root: Path | None = None) -> dict[str, str]:
     """Keep Chromium's singleton socket + temp below its path-length limit.
 
     GitHub-hosted runner workspaces are ~70 chars long; Chromium's
@@ -76,7 +89,7 @@ def _browser_environment(out: Path) -> dict[str, str]:
     project-data spill to the host temp directory.
     """
     environment = os.environ.copy()
-    sys_temp = str(_short_temp_root(out))
+    sys_temp = str(temp_root or _short_temp_root(out))
     for name in ("TMP", "TEMP", "TMPDIR"):
         environment[name] = sys_temp
     return environment
@@ -109,7 +122,8 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
     browser = find_browser()
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    profile_root = _short_temp_root(out) / "c"
+    browser_root, ephemeral_root = _browser_temp_root(out)
+    profile_root = browser_root / "c"
     profile_root.mkdir(parents=True, exist_ok=True)
     profile = tempfile.mkdtemp(prefix="p-", dir=profile_root)
     try:
@@ -118,7 +132,7 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
              f"--user-data-dir={profile}",
              f"--window-size={width},800", f"--screenshot={out}", url],
             capture_output=True, timeout=60,
-            env=_browser_environment(out),
+            env=_browser_environment(out, browser_root),
         )
         if not _wait_for_screenshot(out):
             stderr = proc.stderr.decode(errors="replace").strip()[:200]
@@ -135,6 +149,13 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
             raise WebScreenshotError(f"browser profile cleanup failed: {profile}: {error}") from error
         if Path(profile).exists():
             raise WebScreenshotError(f"browser profile cleanup incomplete: {profile}")
+        if ephemeral_root is not None:
+            try:
+                shutil.rmtree(ephemeral_root)
+            except OSError as error:
+                raise WebScreenshotError(
+                    f"browser temp cleanup failed: {ephemeral_root}: {error}"
+                ) from error
     return {
         "ok": True,
         "path": str(out),

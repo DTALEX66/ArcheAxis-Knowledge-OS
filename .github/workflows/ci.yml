@@ -620,6 +620,18 @@ jobs:
 
       - name: Install Rust (stable, from rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked scheduler runtime
+        shell: bash
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
