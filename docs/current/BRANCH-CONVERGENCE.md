@@ -5,9 +5,9 @@
 ## Post-merge disposition — 2026-09-18
 
 - `origin/main`: `3907d0ba190c1c6124832969f813629b99e8d0d1` (PR #149 merge plus branch-disposition evidence).
-- Remote branch count after prune: 22.
+- Remote branch count after prune: 21.
 - Deleted after individual absorption review: `codex/append-only-audit`, `codex/client-write-boundary`, `codex/evidence-bundle-version`, `codex/first-run-setup`, `codex/inspector-activity-closure`, `codex/pipeline-green-hotfix`, `codex/raw-first-web`, `codex/release-candidate-promotion`, `codex/v0.6.0-integration`, `codex/full-loop-0906`.
-- Historical baseline entries below are retained for traceability; this section and the JSON `post_merge` object describe current disposition.
+- The convergence branch was deleted after full qualification; historical baseline entries below are retained for traceability, and this section plus the JSON `post_merge` object describe current disposition.
 
 ## 当前基线
 
