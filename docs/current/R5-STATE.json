@@ -198,7 +198,7 @@
         "R00",
         "R15"
       ],
-    "gap": "历史69归属缺口已关闭并保留旧SHA测量；本轮Core启动依赖检查通过（core binary、managed Python、text/pdf/OCR workers、PyMuPDF、Tesseract语言数据、Cargo wrapper均可见）。当前脏工作树重新组装的 Green 候选已显式绑定 HEAD+完整 tracked diff SHA，通过 runtime/workers 门禁（479 files）并以 ARCHAXIS_CORE_BIN 完成桌面 supervisor smoke exit 0；它不是干净主线候选。签名/卸载、干净机 GUI 首用、真实 Green 安装覆盖和全仓语义吸收仍未闭合。"
+    "gap": "历史69归属缺口已关闭并保留旧SHA测量；本轮Core启动依赖检查通过（core binary、managed Python、text/pdf/OCR workers、PyMuPDF、Tesseract语言数据、Cargo wrapper均可见）。已在干净提交 fc05b0ad15fcff05404ad1703aee773dc4c84645（tree 143f328eea834ebb6395970cd7e1a94cf14130de）上重新组装 Green 候选；manifest provenance 与提交/tree 一致，通过 runtime/workers 门禁（479 files），并以 ARCHAXIS_CORE_BIN/ARCHEAXIS_CORE_BIN 完成桌面 supervisor smoke exit 0。签名/卸载、干净机 GUI 首用、真实 Green 安装覆盖和全仓语义吸收仍未闭合。"
     },
     {
       "id": "X14",

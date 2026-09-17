@@ -1838,3 +1838,13 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: runtime/workers verifier `ok=true`, 479 files; desktop supervisor smoke exit 0 with explicit `ARCHAXIS_CORE_BIN`.
 - `zip_sha256`: `5B25B61A830FD1E8A9D2FA9EC0BD5E5B3301B1909820582682E90393875CBC48`
 - `limitations`: no signed installer, clean-machine GUI acceptance, or remote upload; Q00 remains blocked because the dirty candidate is not a clean-source acceptance candidate.
+
+## Continuation receipt — 2026-09-18 clean-commit Green candidate provenance
+
+- `task_id`: X13/R13 candidate provenance and runtime smoke
+- `source_commit`: `fc05b0ad15fcff05404ad1703aee773dc4c84645`
+- `source_tree`: `143f328eea834ebb6395970cd7e1a94cf14130de`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-fc05b0ad-x64`
+- `verification`: `verify_green_candidate.py --require-runtime --require-workers` returned `ok=true`, 479 files, no problems; manifest provenance matches the clean commit/tree.
+- `runtime_smoke`: candidate desktop `--smoke` with explicit `ARCHAXIS_CORE_BIN` and `ARCHEAXIS_CORE_BIN` returned exit 0.
+- `limitations`: this is a local clean-source candidate only; signed installer, uninstall lifecycle, clean-machine GUI acceptance, real Green install coverage, and remote upload remain open.
