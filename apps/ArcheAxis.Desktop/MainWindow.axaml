@@ -50,6 +50,7 @@
                             <TextBlock Text="继续学习" FontSize="19" FontWeight="SemiBold" Foreground="#FFFFFF" />
                             <TextBlock Text="复习待处理卡片，查看掌握度与待验证结论。" TextWrapping="Wrap" Foreground="#B8C6D6" />
                             <Button Content="打开学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" />
+                            <Button Content="打开学习工作台" HorizontalAlignment="Left" Padding="16,9" Click="OnOpenLearningWorkbenchClick" />
                         </StackPanel>
                     </Border>
                 </Grid>
