@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import tempfile
 import sqlite3
+import tempfile
 from pathlib import Path
 
 from shared.backlinks import index_document_links, parse_links

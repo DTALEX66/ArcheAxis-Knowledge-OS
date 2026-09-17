@@ -110,6 +110,7 @@ def cmd_stats() -> None:
         "canvas_nodes",
         "kb_evidence",
         "kb_links",
+        "kb_attachment_facts",
     ]
     for table in tables:
         try:
