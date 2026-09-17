@@ -1766,3 +1766,21 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `actual_result`: PARTIAL; `.project-local` observed 19,147,355,586 logical bytes, 177,224 files, 229 permission errors, 10 reparse points; volume free space was measured but cleanup attribution remains unknown.
 - `limitations`: opaque/private boundaries and ACL-denied paths were retained; no deletion was performed from this inventory.
 - `rollback`: inventory is ignored evidence and has no product side effect.
+
+## Continuation receipt — 2026-09-18 R10 formal sidecar entry
+
+- `task_id`: X03/R10 DeepTutor formal Avalonia entry
+- `source_sha`: `bdc239fa566d0cc3d9bf40a546fa834d24a2debb`
+- `tree_sha`: `bdc239fa566d0cc3d9bf40a546fa834d24a2debb`
+- `branch`: `main`
+- `user_surface`: added an explicit Avalonia “打开学习工作台” action; the shell owns startup, READY receipt validation, loopback browser opening, and reverse-order process-tree cleanup.
+- `backend_path`: existing `scripts/launch/deeptutor_web.py` wrapper only; Core authority and database remain Rust-owned.
+- `worker_path`: no new authority; DeepTutor paths are explicit `ARCHEAXIS_DEEPTUTOR_*` configuration and never discover private state.
+- `candidate`: formal Avalonia/Green/NSIS build from the same SHA.
+- `test_run`: full qualification CI `35255332613` (`workflow_dispatch`, `force_full=true`)
+- `actual_result`: PASS; `desktop-vnext`, `desktop-build`, `green-candidate-vnext`, `windows-runtime-smoke`, `installer-lifecycle`, and `a0-gates` all succeeded.
+- `frontend_evidence`: `DeepTutorSupervisor.cs`, `MainWindow.axaml.cs`, `MainWindow.axaml`, and the copied wrapper resource in `ArcheAxis.Desktop.csproj`.
+- `green_evidence`: the exact-SHA Green and NSIS jobs succeeded; external DeepTutor dependencies remain explicit optional configuration.
+- `restart_evidence`: not yet executed as a full owner import→learning→restart journey; the supervisor cleanup path is implemented and tested by compilation/gates only.
+- `limitations`: R10 remains `PARTIAL_NEEDS_WORK` until a configured DeepTutor runtime is exercised through the visible Windows shell and the same learning state is read back after restart.
+- `rollback`: revert the sidecar supervisor, button, and project resource entry; Core schema and existing API contracts are unchanged.
