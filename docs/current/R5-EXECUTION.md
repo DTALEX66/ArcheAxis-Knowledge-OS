@@ -2089,3 +2089,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Command: `cargo fmt --all -- --check`; result `NOT EXECUTED` because the registered Cargo toolchain does not include `cargo-fmt.exe` (`rustfmt.exe` exists, but the Cargo wrapper/component is absent).
 - No component installation or external-toolchain mutation was performed. Rust compile and workspace tests remain independently verified as passing.
+
+## 2026-09-18 Rust formatting audit
+
+- Direct registered `rustfmt.exe --edition 2021 --check` inspected `92` Rust files and reported `87` formatting failures (existing formatting debt, primarily compressed legacy code).
+- No mass reformat was applied because it would create an unrelated large diff. Workspace compile/tests remain a separate PASS; formatting gate is `FAIL` until a scoped cleanup is explicitly scheduled.
