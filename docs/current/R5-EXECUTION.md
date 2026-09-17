@@ -1907,6 +1907,13 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: `pytest tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `34 passed`; Ruff passed.
 - `limitations`: attachment hashing, Canvas semantic storage, real Vault client round-trip, and full multi-format acceptance remain open.
 
+## Continuation receipt — 2026-09-18 Canvas semantic projection increment
+
+- `task_id`: X12/R15 Canvas node/edge persistence
+- `implementation`: accepted `canvas.structure` worker output can now replace one canvas snapshot in the existing `canvases`, `canvas_nodes`, and `canvas_edges` tables; node geometry is stored in the existing spatial columns and edge endpoints remain explicit.
+- `verification`: `pytest tests/test_canvas_projection.py tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `35 passed`; Ruff passed.
+- `limitations`: this adapter is not yet wired into the full Core import journey, attachment hashing and real Vault round-trip remain open; R15 stays partial.
+
 ## Continuation receipt — 2026-09-18 target-resolution Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 target resolution

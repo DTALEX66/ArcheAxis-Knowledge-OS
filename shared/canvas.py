@@ -128,6 +128,65 @@ def add_connection(
     return edge
 
 
+def persist_worker_projection(
+    canvas_id: str,
+    projection: dict[str, Any],
+    name: str = "Imported Canvas",
+) -> dict[str, int | str]:
+    """Persist a validated ``canvas.structure`` worker result.
+
+    The Rust Core remains the database writer; this helper is the Python-side
+    projection adapter used after the worker result has been accepted. Existing
+    rows for the canvas are replaced as one logical snapshot, while node
+    geometry is stored in the existing canvas node columns.
+    """
+    if not isinstance(projection, dict):
+        raise ValueError("canvas projection must be an object")
+    node_geometry = projection.get("node_geometry", [])
+    edges = projection.get("edges", [])
+    if not isinstance(node_geometry, list) or not isinstance(edges, list):
+        raise ValueError("canvas projection nodes and edges must be arrays")
+
+    delete_canvas(canvas_id)
+    now = datetime.now(timezone.utc).isoformat()
+    insert(
+        "canvases",
+        {"id": canvas_id, "name": name, "description": "", "created_at": now, "updated_at": now},
+    )
+    for item in node_geometry:
+        if not isinstance(item, dict) or not item.get("node_id"):
+            raise ValueError("canvas projection node requires node_id")
+        geometry = item.get("geometry") or {}
+        insert(
+            "canvas_nodes",
+            {
+                "id": f"{canvas_id}::{item['node_id']}",
+                "canvas_id": canvas_id,
+                "object_id": str(item["node_id"]),
+                "object_type": str(item.get("type", "text")),
+                "x": geometry.get("x", 0),
+                "y": geometry.get("y", 0),
+                "width": geometry.get("width", 300),
+                "height": geometry.get("height", 200),
+            },
+        )
+    for edge in edges:
+        if not isinstance(edge, dict) or not edge.get("id"):
+            raise ValueError("canvas projection edge requires id")
+        insert(
+            "canvas_edges",
+            {
+                "id": f"{canvas_id}::{edge['id']}",
+                "canvas_id": canvas_id,
+                "source_node_id": str(edge.get("fromNode", "")),
+                "target_node_id": str(edge.get("toNode", "")),
+                "label": str(edge.get("label", "")),
+                "color": str(edge.get("color", "#888")),
+            },
+        )
+    return {"canvas_id": canvas_id, "nodes": len(node_geometry), "edges": len(edges)}
+
+
 def get_canvas(canvas_id: str) -> dict[str, Any] | None:
     """Get a canvas with all its cards and connections."""
     canvas = select_one("canvases", canvas_id)
