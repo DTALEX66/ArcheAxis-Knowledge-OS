@@ -23,7 +23,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 # ── Wikilink patterns ───────────────────────────────────
 
 # [[target]] or [[target|alias]]
-_WIKILINK_RE = re.compile(r"\[\[([^\]|#]+?)(?:\|[^\]]+?)?(?:#[^\]]+?)?\]\]")
+_WIKILINK_RE = re.compile(r"(?<!!)\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]")
 
 # ![[embed]]
 _EMBED_RE = re.compile(r"!\[\[([^\]]+?)\]\]")
@@ -45,10 +45,11 @@ def parse_links(content: str) -> list[dict[str, Any]]:
         target = match.group(1).strip()
         # Fix spaces (Obsidian uses %20 in filenames)
         target = target.replace("%20", " ")
+        alias = (match.group(2) or target).strip()
         results.append(
             {
                 "target": target,
-                "alias": target,
+                "alias": alias,
                 "is_embed": False,
                 "link_type": "wikilink",
             }

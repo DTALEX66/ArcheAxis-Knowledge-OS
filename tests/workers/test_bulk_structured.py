@@ -77,7 +77,7 @@ class CanvasBulkTests(unittest.TestCase):
         self.assertEqual([r["kind"] for r in out["references"]], ["file", "link"])
         self.assertEqual(out["references"][0]["url"], "x/evidence.pdf")
 
-    def test_edges_preserved_verbatim_and_geometry_not_projected(self):
+    def test_edges_preserved_verbatim_and_geometry_facts_preserved(self):
         payload = {
             "nodes": [
                 {"id": "a", "type": "text", "text": "A", "x": 1, "y": 2},
@@ -88,9 +88,27 @@ class CanvasBulkTests(unittest.TestCase):
         out = self.canvas.extract(self._write(payload))
         self.assertEqual(out["edges"], payload["edges"])
         self.assertEqual(out["text"], "A\nB")
-        # geometry/colors are not projected into text or anchors
+        self.assertEqual(out["node_geometry"], [
+            {"node_id": "a", "type": "text", "geometry": {"x": 1, "y": 2}},
+            {"node_id": "b", "type": "text", "geometry": {}},
+        ])
+        # geometry does not alter the text projection or line anchors
         self.assertEqual([a["char_end"] for a in out["structure"]], [1, 3])
         self.assertLessEqual(out["structure"][-1]["char_end"], len(out["text"]))
+
+    def test_geometry_is_preserved_for_non_text_nodes_without_inventing_fields(self):
+        payload = {
+            "nodes": [
+                {"id": "f", "type": "file", "file": "x.png", "x": 10, "width": 20},
+                {"id": "g", "type": "group", "label": "G", "y": -3},
+            ],
+            "edges": [],
+        }
+        out = self.canvas.extract(self._write(payload))
+        self.assertEqual(out["node_geometry"], [
+            {"node_id": "f", "type": "file", "geometry": {"x": 10, "width": 20}},
+            {"node_id": "g", "type": "group", "geometry": {"y": -3}},
+        ])
 
     def test_missing_nodes_array_is_rejected(self):
         with self.assertRaises(self.canvas.CanvasError):

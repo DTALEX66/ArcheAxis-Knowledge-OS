@@ -36,3 +36,13 @@ This evidence covers branch disposition only. It does not mark R5 R10/R12/R13/R1
 ## Later update
 
 The convergence branch was deleted after full qualification run 35253371026; remote branch count is now 21.
+
+## Superseded branches removed — 2026-09-18
+
+After the post-merge audit, these explicitly `SUPERSEDED` branches were deleted because their contents are represented by current mainline or retained historical records:
+
+- `docs/naming-full-sweep`
+- `feat/naming-v2-full-sweep`
+- `fix/osui-final-newline`
+
+Remote branch count after deletion: 18.

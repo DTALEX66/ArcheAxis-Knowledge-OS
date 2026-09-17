@@ -18,6 +18,7 @@ Output: {"engine","engine_version","text","structure","edges","references","loss
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -104,6 +105,20 @@ def extract(path: str) -> dict:
         if node.get("type") in {"file", "link"}
     ]
 
+    # Geometry is a source fact, separate from text-anchor coordinates.
+    node_geometry = []
+    for node in nodes:
+        geometry = {}
+        for field in ("x", "y", "width", "height"):
+            value = node.get(field)
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
+                geometry[field] = value
+        node_geometry.append({
+            "node_id": str(node.get("id", "")),
+            "type": node.get("type", "text"),
+            "geometry": geometry,
+        })
+
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -111,12 +126,13 @@ def extract(path: str) -> dict:
         "structure": char_anchors,
         "edges": edges,
         "references": references,
+        "node_geometry": node_geometry,
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "params": {"projection": "text-node order, per-node anchors"},
             "loss_note": (
-                "geometry/colors/ports not projected; file/link content never read; "
+                "geometry is preserved as numeric node facts; colors/ports are not projected; "
                 "all edges preserved verbatim"
             ),
         },

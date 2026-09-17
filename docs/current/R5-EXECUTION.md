@@ -1784,3 +1784,57 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `restart_evidence`: not yet executed as a full owner import→learning→restart journey; the supervisor cleanup path is implemented and tested by compilation/gates only.
 - `limitations`: R10 remains `PARTIAL_NEEDS_WORK` until a configured DeepTutor runtime is exercised through the visible Windows shell and the same learning state is read back after restart.
 - `rollback`: revert the sidecar supervisor, button, and project resource entry; Core schema and existing API contracts are unchanged.
+
+## Continuation receipt — 2026-09-18 Green worker bundle normalization
+
+- `task_id`: X13/R13 Green candidate worker and data-root closure
+- `source_sha`: `f72c6101c6320fcb8f8200e13976c4e85a12b225`
+- `tree_sha`: bound by the candidate manifest and the forced qualification run below
+- `branch`: `main`
+- `user_surface`: Green launcher now sets canonical `ARCHEAXIS_*` paths, preserves historical aliases, and uses one portable `data` root for the database, launcher state, and worker staging.
+- `backend_path`: Rust Core remains the only database writer; candidate copies the self-contained Core binary.
+- `worker_path`: candidate copies `services/python-workers`, stages the locked Python runtime, and emits a root `worker-profile.json` using safe portable relative paths.
+- `candidate`: Green assembly and verifier now require runtime plus worker profile/transport for the full candidate gate.
+- `test_run`: local targeted suite `41 passed, 1 skipped`; forced full qualification CI `35258053232` completed successfully.
+- `actual_result`: PASS for static Green candidate composition and full qualification jobs; Green candidate, desktop build, installer lifecycle, Rust, workers, runtime, browser, contracts, security, migration, and A0 gates all succeeded.
+- `limitations`: this closes static bundle composition and CI qualification only; clean-machine launch, real import, learning, and restart/readback remain separate R13 evidence.
+- `rollback`: revert the five Green assembly/workflow/test files; no external library, Green install, or user data was modified.
+
+## Continuation receipt — 2026-09-18 local R10/R15 probe refresh
+
+- `task_id`: X03/R10 and X12/R15
+- `source_sha`: local worktree; remote `main` currently reads `6bc26c213637c4b9423f2c02063e3cd3e692c0e6`
+- `R10_core_probe`: `scripts/probes/r10_core_journey_smoke.py` exit 0; Core reachability/import/search/knowledge creation returned successfully, but `closed_loop_verified=false`.
+- `R10_panel_probe`: `scripts/probes/r10_host_panel_smoke.py` exit 0; panel/health HTTP 200, unknown source 404, missing ID 400, unreachable Core 503; adapter journey failed at search-results assertion, so this is boundary evidence only.
+- `R15_batch_probe`: `scripts/probes/r15_directory_batch_smoke.py` exit 0; unchanged rerun skipped five files with zero Core calls, one changed file reprocessed, unmapped `.qzx` was not routed to a refusing adapter.
+- `R15_importer_increment`: local Obsidian importer now indexes body and YAML frontmatter wikilinks, preserves aliases/heading anchors, and deduplicates embeds; focused combination `110 passed`, Ruff passed.
+- `actual_result`: local evidence strengthened; R10/R15 remain `PARTIAL_NEEDS_WORK`.
+- `delivery_limitation`: GitHub write API continues returning HTTP 403 secondary rate limit; these local increments are not claimed as uploaded.
+
+## Continuation receipt — 2026-09-18 repository runtime normalization and size audit
+
+- `R12`: metadata-only inventory and post-prune inventory were run under `.project-local`; private names and reparse points remained opaque.
+- Generated cleanup removed Cargo incremental data, two old Green candidates, old Debug/duplicate desktop outputs, and old supervisor test output; no source, user library, Green installation, or private state was touched.
+- The observable `.project-local` logical size fell from approximately 19.15GB to 13.28GB. A remaining old candidate and repeated regression trees contain ACL-denied nested `.git` objects; no ACL change or elevation was used.
+- `execution_preflight.py` passed (550 Markdown links checked, no actual broken links, private state unopened); repository convention check passed with zero issues after LF normalization.
+- `delivery_limitation`: local receipts remain pending remote upload while GitHub write API returns HTTP 403 secondary rate limit.
+
+## Continuation receipt — 2026-09-18 local Green candidate rebuild
+
+- `task_id`: X13/R13 Green candidate composition
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vlocal-20260918-x64`
+- `assembly`: rebuilt from current Release desktop output, Core binary, self-contained runtime, and `services/python-workers`.
+- `verification`: `verify_green_candidate.py --require-runtime --require-workers` returned `ok=true`, 479 files, no problems.
+- `runtime_smoke`: candidate desktop `--smoke` with explicit `ARCHAXIS_CORE_BIN` returned exit 0.
+- `limitations`: no signing, installer/uninstaller, clean-machine GUI acceptance, or remote upload; existing Green installation was not modified.
+
+## Continuation receipt — 2026-09-18 dirty-worktree provenance-bound Green candidate
+
+- `task_id`: X13/R13 candidate provenance correction
+- `worktree_head`: `79d581406b8128470048f9f266ca936a684e78d5`
+- `worktree_patch_sha256`: `916f42f44745c73a2f67e2c231398b45a6fcfbc979c78d1e340a1ab67e8bdad2`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vlocal-dirty-20260918-x64`
+- `provenance`: manifest explicitly binds the HEAD plus the complete current tracked diff SHA; this is a dirty-worktree candidate and is not represented as a clean mainline build.
+- `verification`: runtime/workers verifier `ok=true`, 479 files; desktop supervisor smoke exit 0 with explicit `ARCHAXIS_CORE_BIN`.
+- `zip_sha256`: `5B25B61A830FD1E8A9D2FA9EC0BD5E5B3301B1909820582682E90393875CBC48`
+- `limitations`: no signed installer, clean-machine GUI acceptance, or remote upload; Q00 remains blocked because the dirty candidate is not a clean-source acceptance candidate.

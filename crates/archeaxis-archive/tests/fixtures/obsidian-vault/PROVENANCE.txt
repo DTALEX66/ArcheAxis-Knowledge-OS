@@ -15,8 +15,8 @@ Contents
                           points at (including the reverse reference)
   attachments/diagram.png a 1x1 PNG, generated for this fixture; its bytes are not
                           valid UTF-8, so a byte-level round-trip is meaningful
-  vault.canvas            JSON Canvas 1.0 document (nodes and edges) with no ingest
-                          route in vNext: it is custody-only material
+  vault.canvas            JSON Canvas 1.0 document (nodes and edges) with a
+                          `canvas.structure` route; its semantic graph is not stored
   PROVENANCE.txt          this file
 
 What the test proves
@@ -34,8 +34,8 @@ workspace, and then asserts:
     http link is treated as external and is not required to resolve;
   * what vNext does *not* model yet is stated as an assertion rather than a
     silence: no anchor rows are written for these sources, no table stores a
-    link or embed relationship, and `.canvas` has no ingest route, so it is
-    preserved as bytes only.
+    link or embed relationship, and the Canvas route does not persist its
+    semantic graph, so the original is still preserved as bytes.
 
 The last group is the honest half: a passing round-trip here is a statement about
 bytes, names and text, not a claim that the link graph or the canvas semantics

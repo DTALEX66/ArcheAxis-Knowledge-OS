@@ -50,7 +50,7 @@
       "r31_slices": [
         "R10"
       ],
-      "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；桌面题目渲染与复习提交代码及首用契约回归已有证据，DeepTutor默认入口挂载、完整会话/附件回收、可见窗口交互与重启读回仍未闭合。"
+    "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；R10 Core/宿主面板探针已复跑，但adapter journey搜索断言仍未闭合；DeepTutor默认入口挂载、完整会话/附件回收、可见窗口交互与重启读回仍未闭合。"
     },
     {
       "id": "X04",
@@ -173,7 +173,7 @@
       "r31_slices": [
         "R14"
       ],
-      "gap": "独立M0审计尚未执行；需要同候选完整G01-G14原始证据，执行者不得自签。"
+      "gap": "独立GPT审计已于2026-09-18执行并绑定全量CI 35258053232/f72c6101；G01、G13、G14在限定范围通过，G02-G12关键门仍为BLOCKED，Q00结论FAIL/BLOCKED。需当前main重新生成候选并完成真实多格式、学习、MCP、迁移、Windows首用和运行目录证据后复审。"
     },
     {
       "id": "X12",
@@ -185,7 +185,7 @@
       "r31_slices": [
         "R15"
       ],
-      "gap": "当前格式记录仍为0 complete/14 partial/2 custody-only；目录续跑驱动已有但非UI入口。格式矩阵、工作区多格式管线、DOCX及适配器合同本轮46项通过，证明的是局部执行/合同，不提升为全格式链。真实Vault客户端往返、完整source回跳、三个主题和新机器回归仍未验收。"
+    "gap": "当前格式记录仍为0 complete/14 partial/2 custody-only；目录续跑驱动已有但非UI入口。目录批处理真实探针证明未改文件零Core调用、单文件变更重跑和未知扩展安全不路由；Obsidian导入器现已索引正文及YAML frontmatter wikilink并保留别名/标题锚点、embed去重，定向组合110 passed。格式矩阵、工作区多格式管线、DOCX及适配器合同本轮46项通过，证明的是局部执行/合同，不提升为全格式链。稳定目标解析、附件哈希绑定、幂等重导入、Canvas语义存储、真实Vault客户端往返、完整source回跳、三个主题和新机器回归仍未验收。"
     },
     {
       "id": "X13",
@@ -198,7 +198,7 @@
         "R00",
         "R15"
       ],
-      "gap": "历史69归属缺口已关闭并保留旧SHA测量；本轮Core启动依赖检查通过（core binary、managed Python、text/pdf/OCR workers、PyMuPDF、Tesseract语言数据、Cargo wrapper均可见）。候选包、完整依赖安装体验、签名/卸载、干净机启动和全仓语义吸收仍未闭合。"
+    "gap": "历史69归属缺口已关闭并保留旧SHA测量；本轮Core启动依赖检查通过（core binary、managed Python、text/pdf/OCR workers、PyMuPDF、Tesseract语言数据、Cargo wrapper均可见）。当前脏工作树重新组装的 Green 候选已显式绑定 HEAD+完整 tracked diff SHA，通过 runtime/workers 门禁（479 files）并以 ARCHAXIS_CORE_BIN 完成桌面 supervisor smoke exit 0；它不是干净主线候选。签名/卸载、干净机 GUI 首用、真实 Green 安装覆盖和全仓语义吸收仍未闭合。"
     },
     {
       "id": "X14",
