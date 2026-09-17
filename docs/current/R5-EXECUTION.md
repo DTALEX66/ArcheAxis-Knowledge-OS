@@ -1810,3 +1810,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `actual_result`: PASS for probe execution and restart/readback behavior exercised by the probes; this is not an accuracy or full first-use quality claim.
 - `limitations`: Q00 remains `AUDITED_FAIL_BLOCKED`; G02–G12 still require same-candidate evidence across real multi-format import, learning, MCP, migration, and Windows runtime. R11 remains partial until that independent audit closes.
 - `rollback`: remove this receipt only; ignored probe artifacts remain local and were not staged.
+
+## Continuation receipt — 2026-09-18 current-main full qualification
+
+- `task_id`: Q00 prerequisite refresh for R5 current main
+- `source_sha`: `dbafb341e619669c9b60ad69e2474f92f364908f`
+- `branch`: `main`
+- `test_run`: GitHub Actions workflow dispatch `35263005356` with `force_full=true`
+- `actual_result`: PASS; all 20 qualification jobs succeeded, including `test (3.12)`, `rust-vnext`, `desktop-vnext`, `desktop-build`, `green-candidate-vnext`, `installer-lifecycle`, `windows-runtime-smoke`, and `a0-gates`.
+- `meaning`: current-main candidate qualification is refreshed on the same SHA as the published execution receipt and Green/installer gates.
+- `limitations`: this is a qualification prerequisite, not an independent Q00 decision. G02–G12 still require same-candidate real evidence and independent GPT review; Q00 remains blocked until that audit is rerun.
+- `rollback`: remove this receipt only; no product or external-library data changed.
