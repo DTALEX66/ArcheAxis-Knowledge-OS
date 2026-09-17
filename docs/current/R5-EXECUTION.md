@@ -2197,3 +2197,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `docs/authority/taskpack-0912-r5/verify_package.py` exit `0`: 23 tasks, 38 original scenarios, 18 active slices, 10 cleanup slices, 4 repository slices, 4 migration slices, 173 active files.
 - `scripts/workflow/execution_preflight.py . --json` exit `0` under project `.venv` Python `3.13.14`; 551 Markdown links checked with 0 real broken links, 2 explicitly expected fixture omissions, and `private_state_opened=false`.
 - Package flags still correctly report product tests and Windows cleanup as not performed; no completion claim is made from package integrity alone.
+
+## 2026-09-18 release chain and Green candidate recheck
+
+- `scripts/release/verify_release_architecture.py --root .` exit `0`: formal Avalonia → Rust Core → Python workers chain identified.
+- `scripts/release/verify_green_candidate.py .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-archive70226a42-x64 --require-runtime --require-workers` exit `0`; 479 files, runtime/workers included, no manifest problems.
+- Evidence remains a local candidate/readiness check; it does not prove signing, installer lifecycle, clean-machine GUI, or remote publication.
