@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -31,7 +32,11 @@ else:  # Direct execution: python scripts/<name>.py
     )
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACT_ROOT = ROOT / ".project-local" / "task-artifacts" / "golden-journey"
+_RUN_ROOT = os.environ.get("ARCHEAXIS_RUN_ROOT", "")
+ARTIFACT_ROOT = (
+    Path(_RUN_ROOT) / "artifacts" / "golden-journey"
+    if _RUN_ROOT else ROOT / ".project-local" / "task-runtime" / "golden-journey"
+)
 DEFAULT_TEST_TARGETS = (
     "integration-tests/test_axw_main_chain_e2e.py::test_axw_main_chain_pdf_records_page_anchored_conversion",
     "integration-tests/test_r1_four_library_e2e.py::test_r1_four_library_initialize_and_restart_readback",
@@ -77,7 +82,7 @@ def _failure_summary(output: str) -> str:
 def _project_runtime_root() -> Path:
     """Keep pytest residue below this worktree, not the shared Git common dir."""
 
-    return ROOT / ".project-local" / "task-runtime"
+    return Path(_RUN_ROOT) if _RUN_ROOT else ROOT / ".project-local" / "task-runtime"
 
 
 def _run_pytest(target: str) -> dict[str, object]:

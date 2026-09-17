@@ -5,7 +5,7 @@ sources: uv.lock (Python), package-lock.json (frontend), Cargo.lock (Rust)
 Local-only generator — run at release time on the exact tagged SHA.
 
 Usage:
-  python scripts/release_sbom.py --version 0.5.0 --out release-assets/SBOM.cdx.json
+  python scripts/release_sbom.py --version 0.5.0 --out .project-local/build/release-assets/SBOM.cdx.json
 """
 from __future__ import annotations
 

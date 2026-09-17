@@ -127,7 +127,14 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
                 f"screenshot failed (exit_code={proc.returncode}): {detail}"
             )
     finally:
-        shutil.rmtree(profile, ignore_errors=True)
+        try:
+            shutil.rmtree(profile)
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            raise WebScreenshotError(f"browser profile cleanup failed: {profile}: {error}") from error
+        if Path(profile).exists():
+            raise WebScreenshotError(f"browser profile cleanup incomplete: {profile}")
     return {
         "ok": True,
         "path": str(out),

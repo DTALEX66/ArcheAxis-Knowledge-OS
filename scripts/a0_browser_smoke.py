@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Real-browser smoke for the canonical React/Tauri product shell."""
+"""Real-browser smoke for the legacy React/Tauri compatibility shell.
+
+The formal desktop authority is C#/Avalonia; this probe remains a behavior and
+recovery reference and must not be presented as the production desktop gate.
+"""
 from __future__ import annotations
 
 import json
@@ -16,8 +20,9 @@ from urllib.request import urlopen
 from playwright.sync_api import Route, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNTIME = ROOT / ".project-local" / "task-runtime"
-ARTIFACTS = ROOT / ".project-local" / "task-artifacts" / "browser-smoke"
+RUN_ROOT = Path(os.environ.get("ARCHEAXIS_RUN_ROOT", ROOT / ".project-local" / "task-runtime"))
+RUNTIME = RUN_ROOT / ("runtime" if os.environ.get("ARCHEAXIS_RUN_ROOT") else "")
+ARTIFACTS = (RUN_ROOT / "artifacts" / "browser-smoke") if os.environ.get("ARCHEAXIS_RUN_ROOT") else (RUN_ROOT / "browser-smoke")
 def browser_smoke_port() -> int:
     """Allocate an ephemeral loopback port so parallel/retry runs cannot collide."""
     configured = os.environ.get("ARCHEAXIS_BROWSER_SMOKE_PORT")

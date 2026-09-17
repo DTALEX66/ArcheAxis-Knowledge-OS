@@ -1,0 +1,34 @@
+{
+  "schema": "archeaxis.monitoring-task-map/v1",
+  "audit_date": "2026-09-15",
+  "source_sha256": {
+    "audit_report": "d8249b7a4c90b549c3a5f79da7f46dcb2d9d0bbb464036ac1716cdceb41c4da3",
+    "workbook_audit": "67dfe3fb9f5f1ecfd78bbb0d41aba784da1bbd32b547463b8fed186d8d46accd",
+    "archeaxis_handoff": "45605b9b758444612aea193f046fece67f77e9a03f7cbddaa68d4d09d77d5283"
+  },
+  "source_counts": {
+    "research_candidates": 11,
+    "model_registry_records": 17,
+    "raw_research_task_rows": 20,
+    "raw_model_task_rows": 23,
+    "raw_task_rows_total": 43,
+    "deduplicated_execution_tracks": 7
+  },
+  "execution_tracks": [
+    {"id":"MON-AX-01","title":"研究与模型命名空间及原任务去重映射","source_ids":["research:AX-R00","research:AX-R01","research:AX-R02","research:AX-R03","research:AX-R04","research:AX-R05","models:A01","models:A02","models:A03","models:A04","models:A05","models:A06"],"disposition":"IMPLEMENTED_LOCAL","authority":"current R5 sidecar only","write_scope":"project-local task records; no frozen TaskPack edits","evidence":"workspace/intake/2026-09-15-monitoring-task-map.json; source counts 11/17/43 and 7 execution tracks"},
+    {"id":"MON-AX-02","title":"价格工作簿边界回归","source_ids":["workbook:formula-tests"],"disposition":"STRUCTURAL_AUDIT_ONLY","authority":"current R5 sidecar only","write_scope":"tests and project-local copy; preserve original workbook","evidence":"482252f8; .project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json","next":"isolated evaluated regression for zero denominator, negative duration, and fractional attempts"},
+    {"id":"MON-AX-03","title":"Green TEST 首次导入与人机闭环","source_ids":["research:AX-R00","research:AX-R05","models:A01","models:A04","models:A05","models:A06"],"disposition":"BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION","authority":"R5 X00/X03/X05/X06 gates","write_scope":"isolated test profile only; real library read-only","preflight":"22,224 files / 835 directories on approved ceshi\u005c\u005cObsidian knowledge copy; source unopened and unchanged","sample_import":"3 Markdown files converted with source/output SHA equality; isolated manifest in .project-local","next":"validate isolated profile and local provider service before any import"},
+    {"id":"MON-AX-04","title":"引用证据与个人主张分离回归","source_ids":["research:AX-R03","models:A02","models:A03"],"disposition":"TESTED_LOCAL","authority":"R5 source/knowledge contracts","write_scope":"existing Core and evidence structures; no accuracy inflation","evidence":"26 targeted tests passed on 2026-09-15","next":"bind to real-library read-only evidence only after owner/resource gates"},
+    {"id":"MON-AX-05","title":"NeoMME 可选检索提供方 POC","source_ids":["research:AX-R01","research:AX-R02","models:A04"],"disposition":"BLOCKED_NEEDS_RESOURCE_VERIFICATION","authority":"candidate provider only","write_scope":"optional adapter/isolated comparison; no ingestion replacement","evidence":"No NeoMME implementation, weights, or license found in project or shared-library top-level audit; current RAG provider remains local simple embedder","next":"obtain owner-approved resource and license details before POC"},
+    {"id":"MON-AX-06","title":"DeepTutor 与机器纠错版本回读","source_ids":["research:AX-R05","models:A04","models:A06"],"disposition":"BLOCKED_R10_OPEN","authority":"R5 X04/X05/X06 gates","write_scope":"Core remains sole business writer; fixed host only"},
+    {"id":"MON-AX-07","title":"独立 Q00/Q01 审计增量包","source_ids":["research:audit-recommendation","models:audit-recommendation"],"disposition":"BLOCKED_AUDIT_PREREQUISITES","authority":"R5 acceptance and independent audit rules","write_scope":"independent auditor evidence only; no self-signing"}
+  ],
+  "non_authorizations": [
+    "does_not_replace_frozen_taskpack",
+    "does_not_authorize_installation_or_paid_api_calls",
+    "does_not_authorize_production_green_update_or_real_library_migration",
+    "does_not_authorize_modifying_original_workbook",
+    "does_not_authorize_private_agent_state_access"
+  ]
+}
+

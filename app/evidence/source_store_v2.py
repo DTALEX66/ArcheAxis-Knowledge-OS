@@ -35,6 +35,22 @@ class SourceStoreV2:
             raise RuntimeError("AXR source truth migration is pending")
         return connection
 
+    def has_source(self, source_id: str, version: int) -> bool:
+        """Return whether an immutable source version is already recorded."""
+        with self._connect() as connection:
+            return connection.execute(
+                "SELECT 1 FROM source_objects_v2 WHERE source_id=? AND version=?",
+                (source_id, version),
+            ).fetchone() is not None
+
+    def list_sources(self) -> list[SourceObjectV2]:
+        """Read the append-only source projection in stable identity order."""
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM source_objects_v2 ORDER BY source_id, version"
+            ).fetchall()
+        return [self._source_from_row(row) for row in rows]
+
     @staticmethod
     def _source_from_row(row: sqlite3.Row) -> SourceObjectV2:
         return SourceObjectV2(

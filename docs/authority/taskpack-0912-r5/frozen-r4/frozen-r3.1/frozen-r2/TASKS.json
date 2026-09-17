@@ -1,0 +1,1068 @@
+{
+  "schema": "archeaxis.reuse-first-plan/v1",
+  "plan_id": "AAK-REUSE-FIRST-20260907-R2",
+  "audit_base_sha": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e",
+  "plan_only": true,
+  "issued_authorization": false,
+  "product_implemented_in_this_turn": false,
+  "decisions": [
+    {
+      "id": "D01",
+      "topic": "产品范围",
+      "decision": "共同管线+人类学习+机器学习+双向反馈，不缩减为Tutor或通用Agent平台。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D02",
+      "topic": "完整蓝图",
+      "decision": "16 CAP及原长期Program永久保留；冻结自研实现，不删除能力。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D03",
+      "topic": "语言边界",
+      "decision": "Rust权威+Python worker+C#桌面；Web/TS是允许的交互复用层。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D04",
+      "topic": "UI时序",
+      "decision": "不要求第三方Web学习/3D界面全量重写XAML；本地浏览器可先交付。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D05",
+      "topic": "机器学习",
+      "decision": "知识更新/策略更新/权重训练分开，机器最小真实任务/反馈是M0必需。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D06",
+      "topic": "个人知识",
+      "decision": "外部证据不是所有资料保存/学习的准入条件；个人接受与事实核查不同。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D07",
+      "topic": "执行模型",
+      "decision": "单一获授权执行者连续X队列；模型品牌不是权限，最终独立GPT审计。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D08",
+      "topic": "旧证据基线",
+      "decision": "历史tested SHA保持不变；自身提交后的新切片正常记录新SHA，不倒填或全部作废。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D09",
+      "topic": "运行与清理",
+      "decision": "新项目输出统一.project-local；.hermes先保全与分类，清理实际测量。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D10",
+      "topic": "复用与自研",
+      "decision": "实证失败/不适配/费用障碍后才评估必要独立实现，不跨许可或付费控制。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D11",
+      "topic": "历史迁移",
+      "decision": "legacy旧库独占写，新库Rust独占写；只读快照导出/staging导入，无双写。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D12",
+      "topic": "旧设计与模型",
+      "decision": "已有界面/图像/布局和否决意见保留；新模型重设计后置，不阻塞首次使用。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D13",
+      "topic": "用途和许可证",
+      "decision": "个人研究非商业用途，不自动更改MIT或第三方许可证。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D14",
+      "topic": "能力与完成",
+      "decision": "未来保留≠实现，库已登记≠集成，CI局部绿≠Windows可用。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D15",
+      "topic": "增强附件合并",
+      "decision": "11项增强复用原任务；状态维度、双向锚点与撤销传播补实，Obsidian细化至M1。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    },
+    {
+      "id": "D16",
+      "topic": "条件与后置",
+      "decision": "跨项目只读包仍F04；九锚缺定义仅保留可选内容，未验证效果不作算法依据。",
+      "status": "TO_BE_RECORDED_VIA_X00"
+    }
+  ],
+  "default_execution": "one_selected_executor_continues_ready_X_tasks_then_independent_GPT_audits",
+  "automatic_future_activation": false,
+  "tasks": [
+    {
+      "id": "X00",
+      "title": "基线、冲突裁决与唯一任务入口",
+      "depends_on": [],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "AGENTS.md",
+        "PROJECT_CONTRACT.yaml",
+        "DECISION_SUPERSESSION_LEDGER.yaml",
+        ".project/**",
+        "docs/authority/**",
+        "docs/current/**",
+        "docs/truth/**",
+        "docs/decisions/**",
+        "docs/*AUTHORITY_INDEX.md"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "比较当前 main 与本包起点；读取实际工作区改动，保护已有成果。",
+        "将本轮用户决定与语言/界面复用边界写入现有决策机制；历史事实不改写。",
+        "将本包映射至现有任务图；沿用实际授权入口，模型品牌不作为身份。",
+        "将本包定义的全部 retained 需求与旧任务映射纳入当前索引。",
+        "将R2增强附件11项裁决映射到原任务，不另建一套活动任务图；原文仅作来源保留。"
+      ],
+      "acceptance": [
+        "需求无无故删除，旧权威条款有具体 supersession 去向。",
+        "单一选定执行模型可生成并运行其获授权的连续切片，不需要另一品牌发话。",
+        "保留旧证据的 SHA；初始所有功能任务没有伪造 DONE。"
+      ],
+      "rollback": "回退本次规则/索引提交，保留完整旧文件和决策记录。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X01",
+      "title": "运行路径止增、浏览器失败与关键 CI",
+      "depends_on": [
+        "X00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "AGENTS.md",
+        ".gitignore",
+        "conftest.py",
+        "scripts/ci/**",
+        "scripts/agent/**",
+        ".github/workflows/**",
+        "app/ingestion/web_screenshot.py",
+        "tests/**",
+        "config/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "统一项目运行根，添加 .project-local ignore，同批修启动、测试、浏览器和发布入口。",
+        "处理 Chromium 短路径约束，例外必须声明且受控，不静默落 C/E/其他项目。",
+        "按旧 nightly 失败建立回归；修复关键测试收集和必需门禁接线。"
+      ],
+      "acceptance": [
+        "真实截图→OCR 流通过且 .hermes 无新增。",
+        "并发/失败退出/中文空格路径通过文件系统前后差分。",
+        "有效路径触发 Rust/worker/contracts/桌面相关检查；无法修改远端保护时明确记录阻塞，不声称已强制。"
+      ],
+      "rollback": "回退入口和配置；只清本次已确认可再生 run 输出，不删除旧 .hermes。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X02",
+      "title": "旧资产保全与当前能力的语义复用",
+      "depends_on": [
+        "X00"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "LEGACY_MANIFEST.yaml",
+        "docs/authority/**",
+        "tests/fixtures/**",
+        "fixtures/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "以原1246项台账为起点核对跟踪资产和当前要用的 workers/learning/adapters。",
+        "找回原始蓝图、界面素材、否决意见和历史补丁；个人档案不进Git。",
+        "对当前闭环必需资产阅读全文/行为样例，记录直接复用、适配、领域迁移、供体或冻结。"
+      ],
+      "acceptance": [
+        "没有把文件头抽样等同语义审查。",
+        "当前要用的每个供体有原路径/hash、目标、差异、行为样例和回滚。",
+        "其余资产全部保留且有去向，不让审完所有旧代码阻塞M0。"
+      ],
+      "rollback": "撤回新索引或导入的候选副本；原始资产保持不变。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X03",
+      "title": "现成学习工作台资格与默认入口",
+      "depends_on": [
+        "X01",
+        "X02"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "apps/learning-web/**",
+        "apps/ArcheAxis.Desktop/**",
+        "config/**",
+        "scripts/**",
+        "tests/**",
+        "docs/authority/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "优先固定 DeepTutor 版本，用合法合成样本在目标Windows验证导入、引用、学习、复习或外部复习桥、重启和导出。",
+        "第一次验证建议限4有效工程小时；记录具体阻碍再评一个备选，不无限调研。",
+        "保留上游Web UI；Avalonia仅做低成本生命周期，承载困难则使用本地浏览器。",
+        "查明上游所有用户产物的保存/回收方式；重建索引不应删除笔记会话。"
+      ],
+      "acceptance": [
+        "有实际操作证据与默认宿主决定，不以README或欢迎页通过。",
+        "上游只读材料试验与ArcheAxis集成资格分开。",
+        "不固定永久3D引擎，不复制新的Tutor后端；上游升级可回退。"
+      ],
+      "rollback": "恢复原默认入口和锁版；保留试用期间生成的用户产物再退出供体。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X04",
+      "title": "跨语言真实契约及身份语义",
+      "depends_on": [
+        "X01"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "packages/contracts/**",
+        "crates/archeaxis-contracts/**",
+        "crates/archeaxis-domain/**",
+        "crates/archeaxis-application/**",
+        "services/python-workers/**",
+        "apps/**",
+        "tests/contract/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "统一源/锚点、Job、知识类型/核查/用户接受、学习和机器反馈语义。",
+        "修 worker_quality 顶层 loss_receipt 与schema不一致及normalize=none却strip的问题；损失信息累积而不互相覆盖。",
+        "身份由实际调用身份决定，拒绝客户端自报接受/verified与越权created_by。",
+        "区分内容类型、审核流程、用户接受、外部核查与使用资格；candidate-review-verified不能成为唯一状态维度。",
+        "定义原件版本/位置与笔记、摘录、引用双向关联，定位失效显式表达。"
+      ],
+      "acceptance": [
+        "真实Rust/Python/C#以及使用中的Web adapter输出可互相读回。",
+        "非法状态/未知版本/机器冒充用户/重复命令被拒绝。",
+        "无需外部证据的用户定义能保存；未来空间语义有兼容记录和最小往返样例，不造空表。",
+        "AI可以受控提交候选，但不能自授human/verified；人工接受个人定义后仍不改变外部核查状态。"
+      ],
+      "rollback": "版本化兼容回退，保留旧payload映射，不能静默改历史状态。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X05",
+      "title": "Rust原件、事务、作业与恢复底座",
+      "depends_on": [
+        "X04"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "crates/**",
+        "tests/**",
+        "packages/contracts/**",
+        "config/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "从现有source.rs补真实字节CAS和来源引用；临时落盘、hash校验与元数据提交可恢复。",
+        "修jobs.complete先completed后写transform及重复插入；使用事务、attempt/幂等与合法状态迁移。",
+        "实现所需worker进程调度/超时/取消/重试和错误JSON序列化；不要建通用Agent runtime。",
+        "备份恢复验证manifest哈希、对象集合及计数，使用staging而非覆盖活动库。",
+        "原件与转换记录可回读来源时间、导入时间、hash及解析器/模型版本；未知来源时间不伪造。"
+      ],
+      "acceptance": [
+        "同原件去重且可恢复；不同来源记录不会因字节相同丢失来源语义。",
+        "重复/并发/失败写入不产生假成功；cancel和重启状态一致。",
+        "篡改包被拒绝；Python/UI/Agent不能直接打开vNext主库。"
+      ],
+      "rollback": "停止候选进程，恢复已验证备份候选和旧服务版本；不改legacy库。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X06",
+      "title": "复用workers贯通首批真实格式",
+      "depends_on": [
+        "X02",
+        "X05"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "services/python-workers/**",
+        "crates/archeaxis-application/**",
+        "crates/archeaxis-api/**",
+        "app/ingestion/**",
+        "tests/**",
+        "fixtures/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "接现有text/html/web/OCR/document workers，优先原生提取再对困难区域本地模型处理。",
+        "补动态网页DOM/截图与覆盖、逐页扫描/混合PDF、截图坐标和原文回跳。",
+        "网页重定向、总deadline、字节限制、编码及不完整快照记录真实可测。",
+        "任务输出进入Rust持久化，再进入同一知识流程，不给各格式单独建主库。",
+        "各已启用格式均回收原件/来源时间、转换版本及真实位置锚点，不能只返回无出处文本。"
+      ],
+      "acceptance": [
+        "M0个人定义/MD、PDF、图片、静态/动态网页、扫描/混合PDF的代表性样本真正可读。",
+        "未识别页/区域、依赖缺失和转换损失显示；不以元数据提取或空文本成功冒充转换。",
+        "至少一个真实本地模型用于识别/转换；mock只能用于协议测试。"
+      ],
+      "rollback": "按引擎锁版回退，保留原件和已有可读派生，禁改原件。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X07",
+      "title": "质量、公开核查、知识修订和搜索",
+      "depends_on": [
+        "X06"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "services/python-workers/**",
+        "crates/**",
+        "packages/contracts/**",
+        "config/**",
+        "tests/**",
+        "fixtures/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "建立可复算的分层金标与转换指标；模型自评不当准确率。",
+        "复用现有检索/抓取能力对公开主张找原始出处、分组转载、支持与反证、日期范围。",
+        "本地/云端模型有预算、取消重试、使用范围，结果保留引用与不确定性。",
+        "个人定义/假说/预测/传闻与事实核查独立，知识版本、撤销和搜索索引联动。",
+        "把知识ID/修订、来源锚点、审核/核查版本关联到派生对象；撤销后Core返回前检查当前资格，索引异步刷新不能绕过。",
+        "个人内容引用定位到用户原始输入；推导定位到资料、方法与版本，不伪造外部引用。"
+      ],
+      "acceptance": [
+        "真实云端检索核查成功一次，未测/无凭据明确阻塞，不作虚假完成。",
+        "缺少外部证据不拒绝个人笔记；未检索到不直接判假。",
+        "中文查询和来源定位、版本冲突、撤销后的索引更新可回读。",
+        "真材料的摘录/笔记/引用双向跳转正确，源版本变化或锚点失效可见。",
+        "撤销已被使用的知识后，再检索/取上下文不再以有效事实返回；含索引延迟及重启路径，旧历史保留且标注。"
+      ],
+      "rollback": "回退候选版本/索引并保留核查记录；已存原件和个人知识不丢失。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X08",
+      "title": "人类学习侧复用与事件回收",
+      "depends_on": [
+        "X03",
+        "X07"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "apps/**",
+        "services/python-workers/**",
+        "crates/archeaxis-domain/**",
+        "crates/archeaxis-api/**",
+        "config/**",
+        "tests/**",
+        "packages/contracts/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "用上游已有目标/路线/阅读讲解/练习功能，复用旧TeachBack、错因、迁移与笔记资产。",
+        "接Anki/成熟FSRS；一个复习集合只有一个排程权威，回收事件而非双写Anki数据库。",
+        "至少一个现成可视化/互动活动用于理解；不能回收成绩的外部活动明确标注。",
+        "按个人定义出题；开放题评分给rubric/不确定，允许纠正。",
+        "原件位置能列出关联笔记/摘录/引用；修订/撤销后相关题目待复核，旧学习记录保留。",
+        "九锚名称先保留为内容候选；获得用户提供的具体模板后可用现有卡片承载，不自编内容、事实评分或效果承诺。"
+      ],
+      "acceptance": [
+        "目标/先修→路线→理解→练习/讲回→应用→复习→重启继续的真实轨迹。",
+        "源修订后旧题进入复核；学习数据可导出与恢复。",
+        "记忆/理解/迁移不同指标，未用模型自评直接赋mastered。",
+        "撤销一个已用于题目的版本后，继续学习时可见失效/复核状态，不把旧答案静默当现行真值。"
+      ],
+      "rollback": "切回已验证宿主/活动，保全未同步学习事件并重放，不删除上游用户产物。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X09",
+      "title": "机器知识、真实调用、评测与反馈",
+      "depends_on": [
+        "X07"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "crates/**",
+        "services/python-workers/**",
+        "packages/contracts/**",
+        "config/**",
+        "tests/**",
+        "fixtures/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "用官方MCP SDK和既有API暴露范围内的search/get/source/context/feedback/proposal。",
+        "机器资产至少保留Memory/Rule/Skill/Standard/Context/Evaluation的类型、版本和范围。",
+        "真实客户端完成一个带来源的任务和一个可复用方法的应用，留出例/反例评测。",
+        "收集错误→候选纠正→复核版本→再次调用；导出训练候选但不默认训练权重。",
+        "受控本地/离线模型调用通过已有Core候选接口，保存与学习不以云端可用为前提。",
+        "机器上下文依赖具体知识版本；撤销后再次读取和结果入库检查资格，已有生成文字保留历史标注。"
+      ],
+      "acceptance": [
+        "有真实工具调用、输入/输出和独立验收，不止工具列表或检索命中。",
+        "越权/过期/撤销/引用缺失被处理；模型版本与知识版本明确。",
+        "知识更新、策略更新、参数微调分开，不伪造机器能力等级。",
+        "本地模型不能靠响应字段绕过实际身份；撤销后真实客户端再次调用不沿用旧有效资格。"
+      ],
+      "rollback": "撤销新资产/客户端权限，回退方法版本与索引；保留trace和失败样本。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X10",
+      "title": "旧库非空迁移与无损差分",
+      "depends_on": [
+        "X02",
+        "X05"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "crates/archeaxis-migration/**",
+        "crates/archeaxis-archive/**",
+        "scripts/**",
+        "tests/**",
+        "fixtures/**",
+        "LEGACY_MANIFEST.yaml"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "一致快照→只读export→Rust dry-run/staging import→结构/内容/关系diff。",
+        "覆盖附件、原件引用、个人定义、知识版本、学习事件、机器反馈和可读旧格式。",
+        "先用合法非空fixture；有真实授权旧库时再做实际数据资格，不能扫描E盘寻找数据。"
+      ],
+      "acceptance": [
+        "旧库hash不变，重跑不重复，所有未迁移项有损失账。",
+        "恢复候选可回滚，不能用空库迁移证明旧项目已吸收。",
+        "用户真实库未提供时明确其资格未完成；不影响合成fixture证明的软件实现测试。"
+      ],
+      "rollback": "丢弃未激活staging或切回原库；旧库始终不被vNext写。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X11",
+      "title": "Windows人机闭环候选与可用包",
+      "depends_on": [
+        "X08",
+        "X09",
+        "X10"
+      ],
+      "phase": "M0",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "apps/**",
+        "packaging/**",
+        "scripts/**",
+        ".github/workflows/**",
+        "tests/**",
+        "docs/authority/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "生成本地可启动的同字节Windows候选，包含已验证入口/依赖诊断/工作区选择和恢复。",
+        "执行原文→核查→人学→机用→纠错→新版本→重启与备份恢复的综合场景。",
+        "检查权限、部分失败、必要键盘/缩放/减少动效和没有隐藏开发环境依赖。"
+      ],
+      "acceptance": [
+        "INDEPENDENT-AUDIT.md的G01–G14具备原始证据；缺资源真实标注。",
+        "生成候选包hash和源码对应关系；可用格式与未完成项分开。",
+        "第一版即有机器任务和人类学习，两者不是未来占位页。"
+      ],
+      "rollback": "保留上一可用候选与数据备份，停止新进程，用户数据不因卸载/回退被删。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "Q00",
+      "title": "独立GPT审计M0",
+      "depends_on": [
+        "X11"
+      ],
+      "phase": "M0_AUDIT",
+      "status": "TODO",
+      "execution_role": "independent_gpt_auditor",
+      "scope_templates": [
+        "只读候选与证据",
+        "独立审计报告输出"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "独立会话核对源码/包字节与G01–G14，复现关键产品流。",
+        "失败回原任务修复；不给实现者自评盖最终章。"
+      ],
+      "acceptance": [
+        "逐门有PASS/FAIL/NOT_VERIFIED，不把缺测试写成通过。",
+        "给出M0使用资格、真实格式支持、数据风险和修复清单。",
+        "R2按G02/G04/G05/G07/G08核对双向锚点、状态隔离和撤销传播，不以附加总结代替真实操作。"
+      ],
+      "rollback": "撤回资格结论并保留原审计历史，不自行覆盖被审代码。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X12",
+      "title": "多格式完整覆盖与学科活动",
+      "depends_on": [
+        "X11"
+      ],
+      "phase": "M1",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "services/python-workers/**",
+        "apps/**",
+        "crates/**",
+        "tests/**",
+        "fixtures/**",
+        "config/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "按F01–F16完成对应层级：核心F01–F12，扩展F13–F15逐引擎，专业F16保管/预览明确边界。",
+        "补Office内嵌图OCR、表格数值/公式、媒体字幕/关键帧/时间戳、EPUB与开放Vault/Canvas往返。",
+        "按学科匹配既有课程/仿真/语言阅读等活动，不部署全部候选。",
+        "复用旧Vault/Canvas适配器实现Obsidian兼容子集：Markdown、属性、Wikilink/标题/块引用、附件、Canvas节点/边；未知内容保留并报损失。",
+        "显式导入/导出以基线hash检测外部编辑冲突，不实时双写，不导入伪造审核状态，不执行Vault插件/模板脚本。",
+        "Vault和附件属于产品数据，不因接入外部应用而纳入缓存清理；运行客户端前核对其实际配置写入与X01例外。"
+      ],
+      "acceptance": [
+        "核心格式每组真实样本到人机使用；复杂样本的损失分项。",
+        "扩展不可用可定位且不伪称支持；专业原件不因无法转换丢失。",
+        "中文/英文/新情境有真实验证，资源许可与可用性可查。",
+        "两篇非空中文笔记、属性、相互链接、块/标题引用、附件及Canvas完成导入/编辑/导出/再导入，检查搜索、内容/关系、冲突和回滚。",
+        "按实际测试声明格式/客户端资格；缺客户端不能声称应用往返通过，未支持字段不得静默丢失。"
+      ],
+      "rollback": "单个能力包可禁用/降版，保留原件、派生和转换历史，M0继续工作。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X13",
+      "title": "全仓规范化与必要交付体验收口",
+      "depends_on": [
+        "X11"
+      ],
+      "phase": "M1",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "AGENTS.md",
+        "DIRECTORY_AUTHORITY.yaml",
+        "LEGACY_MANIFEST.yaml",
+        ".project/**",
+        "docs/**",
+        "config/**",
+        "scripts/**",
+        ".github/workflows/**",
+        "apps/**",
+        "packaging/**"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "跟踪文件100%分类，当前入口/任务/配置一致；历史条款不做无差别替换。",
+        "剩余旧资产逐能力登记，批量清理与搬家不替代语义吸收。",
+        "统一必要品牌/设置/错误状态，保留完整UI重设计为后期复用/优化任务。",
+        "固定安装/更新回滚、依赖锁/SBOM/NOTICE和当前实际必需CI。"
+      ],
+      "acceptance": [
+        "不能再通过不同Agent入口恢复.hermes旧写法。",
+        "没有另一套有效任务权威或重复业务writer。",
+        "同一候选的相关功能及安装操作通过，不用截图代替操作。"
+      ],
+      "rollback": "按单批规范/界面/打包提交回退，原资产仍保留。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "X14",
+      "title": "本地50多GB保全清理与容量止增",
+      "depends_on": [
+        "X01",
+        "X02"
+      ],
+      "phase": "EARLY_CLEANUP",
+      "status": "TODO",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        ".project-local/inventory/**",
+        "scripts/**",
+        "精确核对并获授权的可再生缓存路径"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "执行LOCAL-CLEANUP.md和只读盘点器，统一bytes/GiB、不跟随链接、不重算父子目录。",
+        "保全.hermes唯一会话/补丁/收据/用户产物，排除模型与真实库误删。",
+        "清理已确认归属、无占用且可重建的精确构建/临时目录，保留重建记录。",
+        "复测实际释放与剩余大目录，并运行受影响启动/解析/构建。"
+      ],
+      "acceptance": [
+        "清理前后计量、删除/移动manifest、保全hash和实际释放数。",
+        "Git/源码/用户数据不丢失；.hermes新任务不增长。",
+        "未知项保留解释；无实际Windows操作只能BLOCKED_RESOURCE。"
+      ],
+      "rollback": "缓存按锁重建；保全项从核验副本/移动日志恢复。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "Q01",
+      "title": "独立GPT审计M1及清理结果",
+      "depends_on": [
+        "Q00",
+        "X12",
+        "X13",
+        "X14"
+      ],
+      "phase": "M1_AUDIT",
+      "status": "TODO",
+      "execution_role": "independent_gpt_auditor",
+      "scope_templates": [
+        "只读候选与证据",
+        "独立审计报告输出"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "审计同一集成候选的M1追加门和清理前后数据。",
+        "对旧Q00之后变动重新做受影响和发布必需验证。"
+      ],
+      "acceptance": [
+        "不把全部蓝图完成率与当前发布资格混淆。",
+        "没有将云端清理计划当成本地已释放空间。",
+        "R2附件11项有裁决、Obsidian资格可复核；跨项目仍后置且清理X14未被遗漏。"
+      ],
+      "rollback": "保留M0/上一候选资格和原报告，撤销不符合证据的M1声明。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "F01",
+      "title": "视觉教学、动画与交互仿真",
+      "depends_on": [
+        "X12"
+      ],
+      "phase": "FUTURE_RETAINED",
+      "status": "DEFERRED_RETAINED",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "按具体解冻切片确定"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "LER Fact/Memory/Visual/Teaching、动态课件、图表、可执行练习、仿真、2D/3D物件均保留。",
+        "优先H5P/PhET/GeoGebra/model-viewer/Manim等现成能力，按输入计算精确图形。"
+      ],
+      "acceptance": [
+        "复用后有来源、版本、事件/学习效果、静态/无障碍fallback与许可。"
+      ],
+      "rollback": "关闭能力flag并保留语义资产，回到已有renderer/版本。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "F02",
+      "title": "大型知识宫殿与2D/2.5D/3D/VR/AR",
+      "depends_on": [
+        "F01"
+      ],
+      "phase": "FUTURE_RETAINED",
+      "status": "DEFERRED_RETAINED",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "按具体解冻切片确定"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "World/Palace/Room/Locus/Object/Route及稳定位置、线索、知识绑定、移动映射、复习事件保留。",
+        "引擎无关包、小场景试验后按分区/LOD/实例化扩展；不固定永久引擎、不自研通用渲染器。"
+      ],
+      "acceptance": [
+        "不同renderer语义往返一致，布局修改保留稳定ID，性能与学习效果可复测。"
+      ],
+      "rollback": "关闭能力flag并保留语义资产，回到已有renderer/版本。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "F03",
+      "title": "完整人机学习、经验迁移和可选微调",
+      "depends_on": [
+        "X12"
+      ],
+      "phase": "FUTURE_RETAINED",
+      "status": "DEFERRED_RETAINED",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "按具体解冻切片确定"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "完整学习方法、画像、元认知/认知负荷、个性化方法、长期保持/迁移评估保留。",
+        "机器知识/技能组合、反模式、迁移、数据候选和必要时微调训练保留，优先成熟算法/框架。",
+        "九锚认知等个人方法可作为可选模板保留；具体内容/来源未取得不编造体系，称效果需独立评测。"
+      ],
+      "acceptance": [
+        "训练/验证/测试隔离、无测试污染、模型/知识版本回滚，不能以模型自评证明提升。"
+      ],
+      "rollback": "关闭能力flag并保留语义资产，回到已有renderer/版本。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "F04",
+      "title": "多端同步、SDK、扩展和可选协作",
+      "depends_on": [
+        "X12",
+        "X13"
+      ],
+      "phase": "FUTURE_RETAINED",
+      "status": "DEFERRED_RETAINED",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "按具体解冻切片确定"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "macOS/Linux/PWA/mobile companion、剪藏、加密同步/冲突、签名adapter/renderer SDK、静态发布、师生/小团队共享保留。",
+        "WORK-LAB/DESIGN-LAB联动与通用自治/Marketplace仅保留后期/探索，不作为本仓运行前置。",
+        "未来跨项目只读知识包保留包/知识版本、hash、来源、审核/核查/用户定义范围、导出时间与重新校验策略，不成为当前闭环依赖。"
+      ],
+      "acceptance": [
+        "跨端真实资格、权限与恢复；H10通用自治等需新的具体范围决定。",
+        "消费者按策略校验撤销/过期；离线包明确快照和未校验状态，不承诺服务端能即时撤回离线副本。"
+      ],
+      "rollback": "关闭能力flag并保留语义资产，回到已有renderer/版本。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "F05",
+      "title": "研究课程项目工作空间与图谱纵深",
+      "depends_on": [
+        "X12"
+      ],
+      "phase": "FUTURE_RETAINED",
+      "status": "DEFERRED_RETAINED",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "按具体解冻切片确定"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "研究雷达/RSS/学术连接器、问题发现、ResearchPackage、课程生成、Rubric/Portfolio/OutputProof和不同Solution Profiles保留。",
+        "图谱/索引/引用路径可重建；已有检索满足需求时不强上第二图数据库。"
+      ],
+      "acceptance": [
+        "真实用户项目闭环、出处与导出、学习/机器反馈回流，而非纯目录和演示。"
+      ],
+      "rollback": "关闭能力flag并保留语义资产，回到已有renderer/版本。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    },
+    {
+      "id": "F06",
+      "title": "吸收失败后的必要独立实现",
+      "depends_on": [
+        "X12",
+        "X13"
+      ],
+      "phase": "FUTURE_RETAINED",
+      "status": "DEFERRED_RETAINED",
+      "execution_role": "selected_executor",
+      "scope_templates": [
+        "按具体解冻切片确定"
+      ],
+      "scope_note": "执行切片使用实际精确路径与现有合法授权，不直接把 glob 当授权。",
+      "work": [
+        "只接收有实际候选失败、接口/许可/费用障碍和本项目适配价值的缺口记录。",
+        "先合法替代和最小接口；大规模自研被冻结，不借付费障碍复制未授权实现或绕过服务控制。"
+      ],
+      "acceptance": [
+        "具体用户价值、最小范围、维护成本、测试/回滚，既有授权不足的动作按真实权限处理。"
+      ],
+      "rollback": "关闭能力flag并保留语义资产，回到已有renderer/版本。",
+      "evidence_required": [
+        "tested_source_sha",
+        "source_tree",
+        "operation_or_command",
+        "exit_code",
+        "environment_and_dependency_versions",
+        "input_output_hashes",
+        "failure_paths",
+        "limitations",
+        "rollback"
+      ],
+      "product_completion_claimed": false
+    }
+  ],
+  "previous_plan_id": "AAK-REUSE-FIRST-20260907-R1",
+  "revision_reason": "Merge reviewed enhancement attachment into existing tasks without expanding the task graph."
+}

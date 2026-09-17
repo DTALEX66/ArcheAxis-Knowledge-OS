@@ -1,0 +1,146 @@
+{
+  "schema": "archeaxis.enhancement-retention/v1",
+  "plan_id": "AAK-REUSE-FIRST-20260907-R2",
+  "source_file": "SOURCE-ENHANCEMENT.md",
+  "source_sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b",
+  "new_task_ids": [],
+  "items": [
+    {
+      "id": "E01",
+      "source_requirement": "定位：双向学习与经验，非通用Runtime",
+      "decision": "MERGED",
+      "mapped_tasks": [
+        "X00",
+        "X05",
+        "X09"
+      ],
+      "resolution": "保留产品定位与必要管线调度，不扩为通用工作流平台。",
+      "user_requirement_id": "U056",
+      "product_implemented": false
+    },
+    {
+      "id": "E02",
+      "source_requirement": "多格式与原件、来源、时间、哈希、解析版本",
+      "decision": "MERGED_WITH_EXISTING_RELEASE_SCOPE",
+      "mapped_tasks": [
+        "X05",
+        "X06",
+        "X12"
+      ],
+      "resolution": "已有能力强化验收；音视频仍按M1，不以附件P0覆盖当前M0顺序。",
+      "user_requirement_id": "U057",
+      "product_implemented": false
+    },
+    {
+      "id": "E03",
+      "source_requirement": "原件定位与笔记、摘录、引用双向关联",
+      "decision": "MERGED_AND_STRENGTHENED",
+      "mapped_tasks": [
+        "X04",
+        "X07",
+        "X08"
+      ],
+      "resolution": "增加双向导航、版本锚点和错位/失效检查。",
+      "user_requirement_id": "U058",
+      "product_implemented": false
+    },
+    {
+      "id": "E04",
+      "source_requirement": "candidate-review-verified状态与AI候选",
+      "decision": "CORRECTED_AND_MERGED",
+      "mapped_tasks": [
+        "X04",
+        "X07"
+      ],
+      "resolution": "审核流程、用户接受、事实核查及使用资格独立，个人定义无需外部证明。",
+      "user_requirement_id": "U059",
+      "product_implemented": false
+    },
+    {
+      "id": "E05",
+      "source_requirement": "学习卡、复习、回忆、错因、掌握和机器训练材料",
+      "decision": "MERGED_WITH_MACHINE_SCOPE_PRESERVED",
+      "mapped_tasks": [
+        "X08",
+        "X09"
+      ],
+      "resolution": "保留人类完整路径及机器真实调用/方法/评测/反馈，训练导出不是机器侧全部。",
+      "user_requirement_id": "U060",
+      "product_implemented": false
+    },
+    {
+      "id": "E06",
+      "source_requirement": "受控本地/离线模型实验与禁止绕过权威写入",
+      "decision": "MERGED",
+      "mapped_tasks": [
+        "X04",
+        "X07",
+        "X09"
+      ],
+      "resolution": "模型经Core提交候选，不自授接受或事实状态；离线保存和学习不受阻。",
+      "user_requirement_id": "U061",
+      "product_implemented": false
+    },
+    {
+      "id": "E07",
+      "source_requirement": "证据冲突、版本变更与不确定性",
+      "decision": "MERGED_AND_STRENGTHENED",
+      "mapped_tasks": [
+        "X07",
+        "X09"
+      ],
+      "resolution": "版本/资格变化传播到受控使用入口，保留旧记录和未知状态。",
+      "user_requirement_id": "U062",
+      "product_implemented": false
+    },
+    {
+      "id": "E08",
+      "source_requirement": "Obsidian兼容往返、编辑、搜索、引用和回滚",
+      "decision": "MERGED_M1",
+      "mapped_tasks": [
+        "X12"
+      ],
+      "resolution": "复用Vault/Canvas与开放格式；明确语法子集、冲突和实际客户端资格。",
+      "user_requirement_id": "U063",
+      "product_implemented": false
+    },
+    {
+      "id": "E09",
+      "source_requirement": "向其他项目提供只读可追溯知识包",
+      "decision": "DEFERRED_RETAINED",
+      "mapped_tasks": [
+        "F04"
+      ],
+      "resolution": "不恢复当前跨项目联动；未来区分快照时间、版本和离线撤销限制。",
+      "user_requirement_id": "U064",
+      "product_implemented": false
+    },
+    {
+      "id": "E10",
+      "source_requirement": "九锚认知仅作可选反思/学习卡",
+      "decision": "CONDITIONAL_CONTENT_RETAINED",
+      "mapped_tasks": [
+        "X08",
+        "F03"
+      ],
+      "resolution": "缺定义和出处时保留名称，不编造九项；提供内容后按普通模板使用，不判事实或伪称效果。",
+      "user_requirement_id": "U065",
+      "product_implemented": false
+    },
+    {
+      "id": "E11",
+      "source_requirement": "真材料全旅程与撤销后下游停止当作真值",
+      "decision": "MERGED_AND_STRENGTHENED",
+      "mapped_tasks": [
+        "X07",
+        "X08",
+        "X09",
+        "Q00"
+      ],
+      "resolution": "回到对应原件或用户输入；两侧再次读取、索引延迟和重启验证，历史不抹除。",
+      "user_requirement_id": "U066",
+      "product_implemented": false
+    }
+  ],
+  "research_scope": "Attachment read in full; targeted official Obsidian/JSON Canvas review; nine-anchor name search inconclusive; no cloud repo requery or product runtime test."
+}

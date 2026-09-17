@@ -12,10 +12,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import os
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 
@@ -44,9 +42,8 @@ def main() -> int:
         print(json.dumps({"ok": False, "blocked": "core binary not built", "path": str(binary)}))
         return 2
 
-    run_root = REPO / ".project-local" / "runs" / "r10-smoke"
-    run_root.mkdir(parents=True, exist_ok=True)
-    db = run_root / f"smoke-{int(time.time())}.sqlite"
+    runtime = _load("runtime_r10_smoke", REPO / "scripts/runtime/dev.py")
+    db = runtime.artifact_directory(REPO, "r10-smoke") / "core.sqlite"
     child = subprocess.Popen(
         [str(binary), str(db), "0"],
         stdin=subprocess.PIPE,

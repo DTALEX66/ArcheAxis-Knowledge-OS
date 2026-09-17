@@ -7,7 +7,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$projectRuntime = Join-Path $PSScriptRoot '..\..\.hermes\task-runtime'
+$projectRuntime = Join-Path $PSScriptRoot '..\..\.project-local\task-runtime'
 $workRoot = Join-Path $projectRuntime ("distribution-lifecycle-" + [guid]::NewGuid().ToString('N'))
 $appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'
 $appDataExisted = Test-Path -LiteralPath $appData

@@ -1,0 +1,148 @@
+{
+  "schema": "archeaxis.package-manifest/v1",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "hash_algorithm": "sha256",
+  "not_a_digital_signature": true,
+  "files": [
+    {
+      "path": "ACCEPTANCE.json",
+      "bytes": 12717,
+      "sha256": "2a4acc606d4b931f96f7d60454d4452ba1564307dc6424dd26b09ec6053fdd1b"
+    },
+    {
+      "path": "ACCEPTANCE.md",
+      "bytes": 9654,
+      "sha256": "378571b7334ffa0df384eaa992551a732da8eb13f63e441defaf47955db0c1a2"
+    },
+    {
+      "path": "AUDIT-DELTA.md",
+      "bytes": 4022,
+      "sha256": "86b592c117041a032ea2c0d6146926a41dc509863c2d565be558b6ce3294b26d"
+    },
+    {
+      "path": "BLUEPRINT-COVERAGE.json",
+      "bytes": 98644,
+      "sha256": "849cfe48f2e5b7089a42e85930fb635bd0b056d69eb9c69b29116f2d0565c8eb"
+    },
+    {
+      "path": "CORE-FUNCTIONS.md",
+      "bytes": 17368,
+      "sha256": "86324966d82b8d7d0f7166640ee9b4dc7818ab710c2f5643c99fd08dec8577f9"
+    },
+    {
+      "path": "ENHANCEMENT-COVERAGE.json",
+      "bytes": 5110,
+      "sha256": "ec601031ec7a6b1960e8df356f6c83b2923bc929436b713e52467a447160452c"
+    },
+    {
+      "path": "EXECUTION-TEMPLATE.md",
+      "bytes": 1966,
+      "sha256": "3e6599c17415a8042609caff3965a8d2fd1a5d8fa05b651e18dc80feb2ee8043"
+    },
+    {
+      "path": "EXECUTOR-START.md",
+      "bytes": 3778,
+      "sha256": "337a6898b7a82334f69bff264d2c32592ee38ceebb07902beea20d36e35cb07f"
+    },
+    {
+      "path": "FORMAT-COVERAGE.json",
+      "bytes": 9743,
+      "sha256": "dcb7f40047962dabacaf27731f25de1c8b9f0e23623fd00c40301d60ed6bf910"
+    },
+    {
+      "path": "FUNCTIONS.json",
+      "bytes": 22011,
+      "sha256": "60f209b27ff3dac3038a363886b9e862f05a25d457cb99562c3f3458bf400e89"
+    },
+    {
+      "path": "GOVERNANCE-MIGRATION.json",
+      "bytes": 8785,
+      "sha256": "0cb38ffb6857218d10d3a18afbc54604d834545f5a607d6b602c0635062d74b9"
+    },
+    {
+      "path": "GOVERNANCE-MIGRATION.md",
+      "bytes": 10169,
+      "sha256": "fb1ffae346d901f926b9747b42f55a9e2fdd43c77c15439bf1d18e2fdd131338"
+    },
+    {
+      "path": "LIBRARY-ADOPTION.md",
+      "bytes": 3290,
+      "sha256": "70dde90ab9128929bca4dad0f2324a00e36d6f6d402c861b4e7d52ba8326ea2a"
+    },
+    {
+      "path": "LIBRARY-INTEGRATION-REFERENCE.md",
+      "bytes": 51196,
+      "sha256": "0aa75faf049b9fea89ec90a6a5fdaa13fad376d04633c6de07afb94096c1de9a"
+    },
+    {
+      "path": "SOURCE-PROVENANCE.json",
+      "bytes": 5567,
+      "sha256": "3b37e2976472a85312c9988b76d196f3cef977210216d5dc1c8834b8b69e1883"
+    },
+    {
+      "path": "TASKPACK.md",
+      "bytes": 13277,
+      "sha256": "5c7dc0bd2677fedc74cb49aafa2246ee147cf4d11ea7b7c2564f421df95a89d3"
+    },
+    {
+      "path": "TASKS.json",
+      "bytes": 66245,
+      "sha256": "54892e6cca3cdc80e58a0affcfae8ad1ebdb62774475d57b7579562d0a3e56ad"
+    },
+    {
+      "path": "VALIDATION.md",
+      "bytes": 1587,
+      "sha256": "8cdbbe41e51030bc2e9efd96bf7d801de838f51266e3260da2074b4918dd349f"
+    },
+    {
+      "path": "frozen-r2/BLUEPRINT-COVERAGE.json",
+      "bytes": 98525,
+      "sha256": "c2a902e6e9ff25228643de2580376441c10889cbdd93cb134377f5b09ec9607b"
+    },
+    {
+      "path": "frozen-r2/C-FIX-STATUS-2026-09-08.md",
+      "bytes": 2395,
+      "sha256": "bfae2d4a552fe3add9ff356e8df430a0d3b63df51a76693436010721f2ea0c98"
+    },
+    {
+      "path": "frozen-r2/ENHANCEMENT-COVERAGE.json",
+      "bytes": 4981,
+      "sha256": "6049746b57a48967a022ca127cb70709b78547db2aaeec513aeb182f03c84b2c"
+    },
+    {
+      "path": "frozen-r2/FORMAT-COVERAGE.json",
+      "bytes": 9580,
+      "sha256": "11785d2d143aff3b955b1bca34236aa848aeed2d262c0b9dd06f89a844b2315a"
+    },
+    {
+      "path": "frozen-r2/INDEPENDENT-AUDIT.md",
+      "bytes": 5562,
+      "sha256": "3a31702fbdea3a842bae4364d7fb0c1d7b9f5bdf5a377d8ff9872cf1e074d745"
+    },
+    {
+      "path": "frozen-r2/LOCAL-CLEANUP.md",
+      "bytes": 5816,
+      "sha256": "5b52a088a897ee81b37922ded16d9eded8ff513e2e3ffe1e477b8fdb364f1c5f"
+    },
+    {
+      "path": "frozen-r2/SOURCE-ENHANCEMENT.md",
+      "bytes": 1385,
+      "sha256": "f84b51b550de2b93a725422e1329f909aec3805c1d4caa40ca07144a1466b93b"
+    },
+    {
+      "path": "frozen-r2/TASKPACK.md",
+      "bytes": 27933,
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e"
+    },
+    {
+      "path": "frozen-r2/TASKS.json",
+      "bytes": 43781,
+      "sha256": "28ff4d552c813856243d6bab3fc550bdd7bf41f01f62326a71f7aa003ccc0f7e"
+    },
+    {
+      "path": "verify_package.py",
+      "bytes": 9944,
+      "sha256": "dd528a8f0e4ce0fbef5d285af0287aab3c2d16bd7af9076f18326ac6658e7dad"
+    }
+  ]
+}

@@ -46,10 +46,10 @@ def _require_inside(path: Path, base: Path, label: str) -> Path:
     linked ancestors are rejected because resolution through them is not trustworthy.
     """
     raw = str(path)
-    if re.match(r"^[A-Za-z]:", raw):
+    if re.match(r"^[A-Za-z]:[\\/]", raw):
         if raw[:2].upper() == "E:":
             raise ValueError(f"{label} uses a protected E: drive")
-    elif raw.replace("\\", "/").startswith(("//", "/")):
+    elif raw.startswith(("\\\\", "//")):
         raise ValueError(f"{label} uses a UNC or absolute root path")
     absolute = Path(os.path.abspath(raw))
     base_abs = Path(os.path.abspath(base))
@@ -91,6 +91,15 @@ def _check_hashes(refs: dict, base: Path, label: str) -> list[str]:
         if not isinstance(rel, str) or not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected.lower()):
             problems.append(f"{label} entry has an invalid reference or expected hash: {rel!r}")
             continue
+        # Validate the user-supplied reference before joining it to ``base``.
+        # On POSIX, Windows drive/UNC syntax is otherwise treated as an ordinary
+        # filename (``base / 'E:/...'``), defeating the cross-platform boundary.
+        if re.match(r"^[A-Za-z]:[\\/]", rel):
+            if rel[:2].upper() == "E:":
+                raise ValueError(f"{label} uses a protected E: drive")
+            raise ValueError(f"{label} uses an absolute drive path")
+        if rel.startswith(("\\\\", "//")):
+            raise ValueError(f"{label} uses a UNC or absolute root path")
         resolved = _require_inside(base / rel, base, label)
         if not resolved.is_file():
             problems.append(f"{label} is missing: {rel}")

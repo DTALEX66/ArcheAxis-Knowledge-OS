@@ -59,7 +59,7 @@ _GRANDFATHERED_SYS_PATH_CALLS = {
 
     (
         "scripts/check_repository_conventions.py",
-        19,
+        20,
         "sys.path.insert(0, str(_REPOSITORY_ROOT))",
     ),
 

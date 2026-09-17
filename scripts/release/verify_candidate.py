@@ -19,10 +19,12 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import queue
+import re
+import secrets
 import subprocess
 import sys
-import tempfile
-import time
+import threading
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -38,9 +40,10 @@ def _load_candidate_module():
 
 
 candidate = _load_candidate_module()
-
-TOKEN = "9" * 64
-SESSION = "8" * 32
+_dev_spec = importlib.util.spec_from_file_location("verify_dev", REPO / "scripts/runtime/dev.py")
+assert _dev_spec and _dev_spec.loader
+dev = importlib.util.module_from_spec(_dev_spec)
+_dev_spec.loader.exec_module(dev)
 
 
 def known_commits() -> set[str]:
@@ -50,7 +53,7 @@ def known_commits() -> set[str]:
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def run_binary(root: Path, manifest: dict, receipt: dict) -> int:
+def run_binary(root: Path, manifest: dict, receipt: dict, *, timeout: float = 20) -> int:
     """Start the bundled binary, wait for its port, then stop that exact process.
 
     The database goes to a temporary directory, never into the bundle: a verification that
@@ -61,9 +64,11 @@ def run_binary(root: Path, manifest: dict, receipt: dict) -> int:
     if not binary_name:
         receipt["run"] = {"ok": False, "reason": "the manifest records no executable"}
         return 4
-    binary = root / binary_name
-    run_dir = Path(tempfile.mkdtemp(prefix="archeaxis-verify-"))
+    binary = candidate.safe_bundle_path(root, binary_name)
+    run_dir = dev.artifact_directory(REPO, "candidate-verify")
     database = run_dir / "verify.sqlite"
+    receipt['run'] = {'binary': binary_name, 'database': str(database),
+                      'ready_port': None, 'stopped': False, 'token_printed': False}
     child = subprocess.Popen(
         [str(binary), str(database), "0"],
         stdin=subprocess.PIPE,
@@ -72,33 +77,49 @@ def run_binary(root: Path, manifest: dict, receipt: dict) -> int:
         text=True,
         encoding="utf-8",
         cwd=str(root),
+        creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+        start_new_session=sys.platform != 'win32',
     )
+    ready = queue.Queue(maxsize=1)
+
+    def read_ready():
+        try:
+            while line := child.stdout.readline(4096):
+                match = re.search(r'127\.0\.0\.1:(\d{1,5})(?:\s|$)', line)
+                if match and 0 < int(match[1]) <= 65535:
+                    ready.put(match[1])
+                    return
+        finally:
+            if ready.empty():
+                ready.put(None)
+
+    reader = threading.Thread(target=read_ready, daemon=True)
+    reader.start()
     try:
-        child.stdin.write(json.dumps({"launch_token": TOKEN, "session_id": SESSION}) + "\n")
+        child.stdin.write(json.dumps({"launch_token": secrets.token_hex(32), "session_id": secrets.token_hex(16)}) + "\n")
         child.stdin.flush()
         child.stdin.close()  # the Core reads its claim to EOF, then reports readiness
-        deadline = time.time() + 20
-        port = ""
-        while time.time() < deadline:
-            line = child.stdout.readline()
-            if "127.0.0.1:" in line:
-                port = line.split("127.0.0.1:", 1)[1].split()[0].strip()
-                break
-        receipt["run"] = {
-            "binary": binary_name,
-            "cwd": "the candidate directory",
-            "database": "a temporary directory, so the bundle is left exactly as it was",
-            "ready_port": port or None,
-            "database_created": database.is_file(),
-            "token_printed": False,
-        }
-        if not port:
-            receipt["run"]["reason"] = "the binary never reported a port"
+        try:
+            port = ready.get(timeout=timeout)
+        except queue.Empty:
+            port = None
+        receipt['run'].update(ready_port=port, database_created=database.is_file())
+        if not port or not database.is_file():
+            receipt["run"]["reason"] = "candidate did not report readiness and create its database"
             return 4
         return 0
+    except OSError:
+        receipt['run']['reason'] = 'candidate launch communication failed'
+        return 4
     finally:
-        child.kill()
-        child.wait()
+        dev.stop_owned_process(child)
+        reader.join(timeout=2)
+        if reader.is_alive():
+            receipt['run']['reason'] = 'candidate stdout remains open after process cleanup'
+            raise RuntimeError('candidate stdout reader did not stop')
+        child.stdout.close()
+        if not child.stdin.closed:
+            child.stdin.close()
         receipt["run"]["stopped"] = True
 
 
@@ -109,15 +130,26 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
-    root = args.candidate
+    try:
+        root = candidate.safe_bundle_path(args.candidate)
+        manifest_path = candidate.safe_bundle_path(root, candidate.MANIFEST_NAME)
+    except (OSError, ValueError):
+        print("unsafe candidate path", file=sys.stderr)
+        return 2
     if not root.is_dir():
         print(f"no candidate directory at {root}", file=sys.stderr)
         return 2
-    manifest_path = root / candidate.MANIFEST_NAME
     if not manifest_path.is_file():
         print(f"{manifest_path} is missing: a bundle without a manifest cannot be verified", file=sys.stderr)
         return 2
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        print("candidate manifest cannot be read as JSON", file=sys.stderr)
+        return 3
+    if not isinstance(manifest, dict):
+        print("candidate manifest must be an object", file=sys.stderr)
+        return 3
 
     problems = candidate.verify_manifest(root, manifest, known_commits=known_commits())
     receipt: dict = {

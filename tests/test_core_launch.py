@@ -17,6 +17,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import shutil
 import sqlite3
 from pathlib import Path
 
@@ -35,6 +36,46 @@ def _load():
 
 
 launcher = _load()
+
+
+def test_probe_does_not_use_persistent_database_or_session(tmp_path, monkeypatch, capsys):
+    legacy = tmp_path / 'legacy-launch'
+    legacy.mkdir()
+    database = legacy / 'core.sqlite'
+    database.write_bytes(b'preserved synthetic database')
+    state = legacy / 'core-launch.json'
+    state.write_text('{"pid": 1, "fixture": true}', encoding='utf-8')
+    before = state.read_bytes()
+    binary = tmp_path / 'core.exe'
+    binary.write_bytes(b'fixture')
+    seen = []
+
+    class Child:
+        pid = 123456
+
+        def kill(self):
+            pass
+
+        def wait(self):
+            return 0
+
+    def spawn(db, port):
+        seen.append(db)
+        return Child(), {}
+
+    monkeypatch.setattr(launcher, 'RUNDIR', legacy)
+    monkeypatch.setattr(launcher, 'STATE_PATH', state)
+    monkeypatch.setattr(launcher, 'CORE_BINARY', binary)
+    monkeypatch.setattr(launcher, 'dependencies', lambda: [])
+    monkeypatch.setattr(launcher, 'port_in_use', lambda port: False)
+    monkeypatch.setattr(launcher, 'spawn_core', spawn)
+    monkeypatch.setattr(launcher, 'wait_ready', lambda child: '12345')
+    assert launcher.main(['--probe']) == 0
+    assert seen[0] != database
+    assert seen[0].is_relative_to(Path(os.environ['ARCHEAXIS_RUN_ROOT']) / 'artifacts')
+    assert state.read_bytes() == before
+    assert database.read_bytes() == b'preserved synthetic database'
+    assert json.loads(capsys.readouterr().out)['ok'] is True
 
 
 def _make_db(path: Path, rows: list[str]) -> None:
@@ -275,6 +316,17 @@ def test_restore_refuses_a_file_that_is_not_a_database(tmp_path):
     assert code == 7
     assert report["restored"] is False
     assert "not a readable SQLite database" in report["reason"]
+
+
+def test_restore_refuses_a_valid_sqlite_without_archeaxis_metadata(tmp_path):
+    db = tmp_path / "core.sqlite"
+    _make_db(db, ["alpha"])
+    backup = tmp_path / "unidentified.sqlite"
+    shutil.copy2(db, backup)
+    code, report = launcher.restore_database(db, backup, state_path=tmp_path / "none.json")
+    assert code == 7
+    assert report["restored"] is False
+    assert "metadata sidecar" in report["reason"]
 
 
 def test_restore_refuses_while_the_core_is_recorded_as_running(tmp_path):

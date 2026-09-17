@@ -1,7 +1,7 @@
 # UI v3 产品路线图
 
-- 当前轨道：canonical React/Tauri 单壳收敛已实现，当前分支待原生 WebView / installer / exact-SHA 验证
-- 生产入口：主 Tauri React WebView；`/workspace` 产品页返回 410，仅保留 `/workspace/api/*`
+- 当前正式轨道：C#/Avalonia 桌面壳 + Rust Core；React/Tauri 只作 legacy 行为参考与恢复验证
+- 正式桌面入口：`apps/ArcheAxis.Desktop/`；legacy `/workspace` 产品页返回 410，仅保留兼容 API
 - 设计底座：黑白深色基线（黑底、白灰结构、低饱和状态色）
 - 语言：中文优先
 
@@ -11,7 +11,8 @@
   作为默认视觉重新引入。
 - Archive Desk / Liquid Glass 是历史参考，不是默认主题。任何未来吸收都必须先有独立设计
   决策、可访问性/性能验收和用户明确确认；不得借“路线图”或旧截图直接替换生产界面。
-- `frontend/src/design-system/tokens.css` 与主 Tauri 的可见运行时回读优先于旧 UI 方案、历史
+- `frontend/src/design-system/tokens.css` 与 legacy Tauri 的可见运行时回读只用于行为/视觉对照，正式
+  Avalonia 运行时的回读优先于旧 UI 方案、历史
   handoff 或原型文档；视觉证据必须区分源码浏览器、Tauri/Green WebView 和已安装产品路径。
 
 ## 已运行底座

@@ -17,11 +17,12 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 MODULE = REPO / "scripts/check_path_conventions.py"
-RECORD = REPO / "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json"
+RECORD = REPO / "docs/current/R5-PATH-DISPOSITION.json"
 
 
 def _load():
@@ -33,6 +34,32 @@ def _load():
 
 
 paths = _load()
+
+
+def test_historical_rules_are_loaded_from_the_recorded_commit(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    authority = tmp_path / "DIRECTORY_AUTHORITY.yaml"
+    authority.write_text("authorities:\n  - path: before/**\n    owner: historical\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "DIRECTORY_AUTHORITY.yaml"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=Fixture", "-c",
+                    "user.email=fixture@example.invalid", "commit", "-qm", "baseline"], check=True)
+    sha = subprocess.check_output(["git", "-C", str(tmp_path), "rev-parse", "HEAD"], text=True).strip()
+    authority.write_text("authorities:\n  - path: after/**\n    owner: current\n", encoding="utf-8")
+    assert paths.select_owner("before/file", paths.load_rules(tmp_path, commit=sha))[0] == "owned"
+    assert paths.select_owner("before/file", paths.load_rules(tmp_path))[0] == "unowned"
+
+
+def test_r5_closes_historical_gaps_without_promoting_legacy_or_private_state():
+    historical = json.loads((REPO / "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json").read_text(encoding="utf-8"))
+    rules = paths.load_rules(REPO)
+    assert all(paths.select_owner(name, rules)[0] == "owned" for name in historical["unowned_paths"])
+    assert paths.select_owner(".zcode/private-state", rules)[0] == "denied"
+    import yaml
+
+    authority = yaml.safe_load((REPO / "DIRECTORY_AUTHORITY.yaml").read_text(encoding="utf-8"))
+    legacy = next(r for r in authority["authorities"] if r["path"] == "shared-contracts/**")
+    assert legacy["execution_lane"] == "migration"
+    assert legacy["write_mode"] == "maintenance-only-task-envelope"
 
 
 def _rule(pattern: str, owner: str = "x", deny: bool = False) -> dict:
@@ -131,7 +158,16 @@ def test_growth_since_the_measurement_is_reported_as_drift_not_refused():
     drift = detail["drift_since_measurement"]
     assert drift["tracked_paths"] == detail["tracked_paths"] - stated["tracked_paths"]
     assert drift["owned"] == detail["owned"] - stated["owned"]
-    assert drift["unowned"] == 0, "the unowned set is enforced against the working tree, so it cannot drift"
+    assert drift["unowned"] == detail["unowned"] - stated["unowned_count"]
+
+
+def test_symbolic_measurement_ref_is_reported_as_invalid_not_a_crash(tmp_path):
+    record = json.loads(RECORD.read_text(encoding="utf-8"))
+    record["measured"]["measured_at_commit"] = "HEAD"
+    source = tmp_path / "symbolic-record.json"
+    source.write_text(json.dumps(record), encoding="utf-8")
+    failures, _ = paths.check(REPO, source)
+    assert any("measured_at_commit" in item for item in failures)
 
 
 def test_the_repository_is_not_claimed_as_fully_classified():
@@ -147,10 +183,17 @@ def test_the_repository_is_not_claimed_as_fully_classified():
     assert "README.md" in roots and ".worklab" in roots
 
 
-def test_dropping_an_unowned_path_from_the_record_is_refused(tmp_path):
+def test_dropping_an_unowned_path_from_the_record_is_refused(tmp_path, monkeypatch):
     record = json.loads(RECORD.read_text(encoding="utf-8"))
-    record["unowned_paths"] = record["unowned_paths"][:-1]
-    record["measured"]["unowned_count"] = len(record["unowned_paths"])
+    original_measure = paths.measure
+
+    def with_new_unowned(root, **kwargs):
+        result = original_measure(root, **kwargs)
+        if not kwargs:  # live tree only; historical counts stay at their SHA
+            result["unowned"] = [*result["unowned"], "new-unregistered-file"]
+        return result
+
+    monkeypatch.setattr(paths, "measure", with_new_unowned)
     target = tmp_path / "record.json"
     target.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
     failures, _ = paths.check(REPO, target)

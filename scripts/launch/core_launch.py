@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import hashlib
+import importlib.util
 import json
 import os
 import secrets
@@ -181,6 +182,11 @@ def pid_alive(pid: int | None) -> bool:
 
 def process_image(pid: int) -> str | None:
     """Image name for a pid, or None when the pid cannot be inspected."""
+    if os.name != "nt":
+        # ``tasklist`` is a Windows API surface.  On other platforms the
+        # conservative result is unknown, which makes stop_session refuse the
+        # operation rather than risk terminating a recycled PID.
+        return None
     result = subprocess.run(
         ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
         capture_output=True,
@@ -277,6 +283,10 @@ def _wal_facts(db: Path) -> dict:
     return facts
 
 
+BACKUP_META_SUFFIX = ".meta.json"
+BACKUP_APP_ID = "archeaxis.core"
+
+
 def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> tuple[int, dict]:
     """Copy the Core database with VACUUM INTO and prove the source was untouched."""
     report: dict = {"action": "backup", "db": str(db), "out_dir": str(out_dir)}
@@ -300,6 +310,7 @@ def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> t
     target = _free_path(out_dir / f"core-backup-{utc_stamp()}.sqlite")
     connection = None
     opened_read_only = True
+    schema_version = None
     try:
         try:
             connection = sqlite3.connect(_read_only_uri(db), uri=True)
@@ -309,6 +320,7 @@ def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> t
             # below will show that the source file changed.
             connection = sqlite3.connect(str(db))
             opened_read_only = False
+        schema_version = connection.execute("PRAGMA schema_version").fetchone()[0]
         connection.execute("VACUUM INTO ?", (str(target),))
     except sqlite3.Error as error:
         report.update({"backed_up": False, "reason": f"sqlite refused the backup: {error}"})
@@ -322,6 +334,22 @@ def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> t
     digest = sha256_file(target)
     sidecar = target.with_name(target.name + ".sha256")
     sidecar.write_text(f"{digest}  {target.name}\n", encoding="utf-8")
+    metadata = target.with_name(target.name + BACKUP_META_SUFFIX)
+    metadata.write_text(
+        json.dumps(
+            {
+                "schema": "archeaxis.core-backup/v1",
+                "app_id": BACKUP_APP_ID,
+                "backup_sha256": digest,
+                "schema_version": schema_version,
+                "attachments": [],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     report.update(
         {
             "backed_up": True,
@@ -329,6 +357,7 @@ def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> t
             "backup_sha256": digest,
             "backup_bytes": target.stat().st_size,
             "sha256_sidecar": str(sidecar),
+            "metadata_sidecar": str(metadata),
             "opened_read_only": opened_read_only,
             "source_sha256_before": before,
             "source_sha256_after": after,
@@ -391,6 +420,23 @@ def restore_database(db: Path, backup: Path, state_path: Path = STATE_PATH) -> t
     else:
         report["sidecar_sha256"] = None
         report["sidecar_matched"] = None
+
+    metadata_path = backup.with_name(backup.name + BACKUP_META_SUFFIX)
+    if not metadata_path.is_file():
+        report.update({"restored": False, "reason": "the backup metadata sidecar is missing"})
+        return 7, report
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        report.update({"restored": False, "reason": f"the backup metadata is invalid: {error}"})
+        return 7, report
+    report["metadata_sidecar"] = str(metadata_path)
+    if metadata.get("schema") != "archeaxis.core-backup/v1" or metadata.get("app_id") != BACKUP_APP_ID:
+        report.update({"restored": False, "reason": "the backup application identity is not ArcheAxis Core"})
+        return 7, report
+    if metadata.get("backup_sha256") != backup_digest:
+        report.update({"restored": False, "reason": "the backup metadata hash does not match the backup"})
+        return 7, report
 
     preserved: Path | None = None
     preserved_journals: list[str] = []
@@ -534,9 +580,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--from", dest="source", type=Path, help="backup file to restore from")
     parser.add_argument("--artifact", type=Path, action="append", default=[], help="deliverable to hash (repeatable)")
     parser.add_argument("--out", type=Path, help="output file or directory for backup/manifest")
-    parser.add_argument("--db", type=Path, default=RUNDIR / "core.sqlite")
+    parser.add_argument("--db", type=Path,
+                        help="Core database; --probe defaults to an isolated development artifact")
     parser.add_argument("--port", type=int, default=0)
     args = parser.parse_args(argv)
+    explicit_database = args.db is not None
+    args.db = args.db or (RUNDIR / "core.sqlite")
 
     if args.stop:
         code, report = stop_session()
@@ -580,6 +629,17 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, ensure_ascii=False))
         return 2
 
+    session_state = STATE_PATH
+    if args.probe:
+        spec = importlib.util.spec_from_file_location("runtime_core_probe", REPO / "scripts/runtime/dev.py")
+        assert spec and spec.loader
+        runtime = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runtime)
+        probe_root = runtime.artifact_directory(REPO, "core-launch-probe")
+        session_state = probe_root / "core-launch.json"
+        if not explicit_database:
+            args.db = probe_root / "core.sqlite"
+
     args.db.parent.mkdir(parents=True, exist_ok=True)
     port = args.port or free_port()
     report["requested_port"] = port
@@ -592,7 +652,8 @@ def main(argv: list[str] | None = None) -> int:
             report["error"] = "the Core did not report readiness"
             return 3
         report["ok"] = True
-        report["session_state"] = str(record_session(STATE_PATH, child.pid, int(ready), args.db))
+        record_session(session_state, child.pid, int(ready), args.db)
+        report["session_state"] = str(session_state)
         print(json.dumps(report, ensure_ascii=False))
         if args.probe:
             return 0
@@ -604,7 +665,7 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         child.kill()
         child.wait()
-        clear_session(STATE_PATH)
+        clear_session(session_state)
 
 
 if __name__ == "__main__":

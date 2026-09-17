@@ -173,6 +173,15 @@ def _backup_manifest_path(backup: Path) -> Path:
     return backup.with_suffix(f"{backup.suffix}.manifest.json")
 
 
+def _native_path(path: Path) -> str | Path:
+    """Use the Windows extended-length prefix for deep project-local paths."""
+    if os.name == "nt" and len(str(path)) >= 240:
+        value = str(path)
+        if not value.startswith("\\\\?\\"):
+            return "\\\\?\\" + value
+    return path
+
+
 def _create_backup(
     database: Path,
     backup_dir: Path,
@@ -196,14 +205,15 @@ def _create_backup(
             "backup_sha256": _sha256(destination),
             "operator_run_id": operator_run_id,
         }
-        temporary_manifest.write_text(
-            json.dumps(payload, ensure_ascii=True, sort_keys=True), encoding="utf-8"
-        )
-        temporary_manifest.replace(manifest)
+        with open(_native_path(temporary_manifest), "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(json.dumps(payload, ensure_ascii=True, sort_keys=True))
+        os.replace(_native_path(temporary_manifest), _native_path(manifest))
     except Exception:
-        temporary_manifest.unlink(missing_ok=True)
-        manifest.unlink(missing_ok=True)
-        destination.unlink(missing_ok=True)
+        for path in (temporary_manifest, manifest, destination):
+            try:
+                os.unlink(_native_path(path))
+            except FileNotFoundError:
+                pass
         raise
     return destination
 

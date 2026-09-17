@@ -1,0 +1,192 @@
+"""Run the pinned DeepTutor Web sidecar from a project-owned runtime home.
+
+The upstream package stays read-only. This wrapper owns only its child process
+and project-local runtime directory; it does not copy the Web bundle itself and
+never forwards provider credentials into the sidecar. The pinned upstream
+launcher may materialize a derived Web runtime inside ``DEEPTUTOR_HOME``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.request
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+DEFAULT_PYTHON = None
+DEFAULT_NODE = None
+DEFAULT_SERVER = None
+PINNED_VERSION = "1.5.17"
+START_SNIPPET = (
+    "import sys; from deeptutor.runtime.launcher import start; "
+    "start(home=sys.argv[1], dev=False)"
+)
+
+
+class LaunchError(RuntimeError):
+    """A named preflight or launch contract failure."""
+
+
+def _resolve_defaults(python: Path | None, node: Path | None, server: Path | None) -> tuple[Path, Path, Path]:
+    """Resolve externally owned tools only from explicit args or environment.
+
+    The project must not embed a machine-specific shared-library path. Callers
+    provide ``ARCHEAXIS_DEEPTUTOR_ROOT`` and ``ARCHEAXIS_NODE_PATH`` when using
+    the optional external sidecar.
+    """
+    tutor_root = os.environ.get("ARCHEAXIS_DEEPTUTOR_ROOT", "").strip()
+    node_path = os.environ.get("ARCHEAXIS_NODE_PATH", "").strip()
+    resolved_python = python or (Path(tutor_root) / "venv/Scripts/python.exe" if tutor_root else None)
+    resolved_node = node or (Path(node_path) if node_path else None)
+    resolved_server = server or (Path(tutor_root) / "venv/Lib/site-packages/deeptutor_web/server.js" if tutor_root else None)
+    missing = [name for name, value in (("--python/ARCHEAXIS_DEEPTUTOR_ROOT", resolved_python),
+                                        ("--node/ARCHEAXIS_NODE_PATH", resolved_node),
+                                        ("--server/ARCHEAXIS_DEEPTUTOR_ROOT", resolved_server)) if value is None]
+    if missing:
+        raise LaunchError("external DeepTutor tools require explicit " + ", ".join(missing))
+    return resolved_python, resolved_node, resolved_server
+
+
+def _version_from_interpreter(python: Path) -> str:
+    probe = subprocess.run(
+        [str(python), "-c", "from importlib.metadata import version; print(version('deeptutor'))"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0), check=False,
+    )
+    if probe.returncode != 0:
+        raise LaunchError(f"cannot inspect DeepTutor version: {probe.stderr.strip()[:240]}")
+    return probe.stdout.strip()
+
+
+def resolve_installation(*, python: Path, node: Path, server: Path,
+                         version_reader=_version_from_interpreter) -> dict[str, Path]:
+    for label, path in (("DeepTutor Python", python), ("Node.js", node), ("DeepTutor Web server", server)):
+        if not path.is_file():
+            raise LaunchError(f"{label} is missing: {path}")
+    version = version_reader(python)
+    if version != PINNED_VERSION:
+        raise LaunchError(f"requires DeepTutor {PINNED_VERSION}, found {version or 'unknown'}")
+    return {"python": python, "node": node, "server": server}
+
+
+def _provider_key(name: str) -> bool:
+    upper = name.upper()
+    return any(token in upper for token in (
+        "API_KEY", "ACCESS_TOKEN", "AUTH_TOKEN", "SECRET", "PASSWORD",
+        "CREDENTIAL", "OAUTH", "CLAUDE", "OPENAI", "ANTHROPIC", "GEMINI",
+        "DEEPSEEK", "CODEBUDDY",
+    ))
+
+
+def build_environment(base: dict[str, str], *, runtime_home: Path,
+                      backend_port: int = 8001, frontend_port: int = 3782,
+                      node: Path | None = None) -> dict[str, str]:
+    env = {key: value for key, value in base.items() if not _provider_key(key)}
+    env.update({
+        "DEEPTUTOR_HOME": str(runtime_home),
+        "BACKEND_PORT": str(backend_port),
+        "FRONTEND_PORT": str(frontend_port),
+        "PORT": str(frontend_port),
+        "HOSTNAME": "127.0.0.1",
+        "DEEPTUTOR_API_BASE_URL": f"http://127.0.0.1:{backend_port}",
+        "NEXT_PUBLIC_API_BASE": f"http://127.0.0.1:{backend_port}",
+        "NEXT_PUBLIC_AUTH_ENABLED": "false",
+        "DEEPTUTOR_AUTH_ENABLED": "false",
+        "PYTHONUNBUFFERED": "1",
+    })
+    if node is not None:
+        env["PATH"] = str(node.parent) + os.pathsep + env.get("PATH", "")
+    return env
+
+
+def build_command(*, python: Path, node: Path, server: Path, runtime_home: Path) -> list[str]:
+    # The fixed interpreter selects the fixed installed package and server.js;
+    # node is pinned in PATH by build_environment, so no shell is involved.
+    return [str(python), "-c", START_SNIPPET, str(runtime_home)]
+
+
+def _ready(url: str, timeout: float = 1.0) -> bool:
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            return 200 <= response.status < 500
+    except (OSError, ValueError):
+        return False
+
+
+def launch(*, python: Path | None = DEFAULT_PYTHON, node: Path | None = DEFAULT_NODE,
+           server: Path | None = DEFAULT_SERVER, runtime_home: Path,
+           backend_port: int = 8001, frontend_port: int = 3782,
+           open_browser: bool = False) -> int:
+    python, node, server = _resolve_defaults(python, node, server)
+    installation = resolve_installation(python=python, node=node, server=server)
+    # The child runs with ``cwd=runtime_home``; pass an absolute path so the
+    # upstream launcher cannot resolve a relative home a second time.
+    runtime_home = runtime_home.resolve()
+    runtime_home.mkdir(parents=True, exist_ok=True)
+    env = build_environment(os.environ.copy(), runtime_home=runtime_home,
+                            backend_port=backend_port, frontend_port=frontend_port,
+                            node=installation["node"])
+    command = build_command(**installation, runtime_home=runtime_home)
+    receipt = runtime_home / "deeptutor-web-launch.json"
+    child = subprocess.Popen(
+        command, cwd=str(runtime_home), env=env,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        start_new_session=os.name != "nt",
+    )
+    payload = {"status": "STARTED", "pid": child.pid,
+               "url": f"http://127.0.0.1:{frontend_port}",
+               "backend_url": f"http://127.0.0.1:{backend_port}",
+               "python": str(python), "node": str(node), "server": str(server),
+               "version": PINNED_VERSION, "runtime_home": str(runtime_home)}
+    receipt.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    try:
+        deadline = time.monotonic() + 45
+        while time.monotonic() < deadline:
+            if child.poll() is not None:
+                raise LaunchError(f"DeepTutor exited before Web was ready: {child.returncode}")
+            if _ready(payload["url"]):
+                payload["status"] = "READY"
+                receipt.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                if open_browser:
+                    import webbrowser
+                    webbrowser.open(payload["url"])
+                return child.wait()
+            time.sleep(0.5)
+        raise LaunchError(f"DeepTutor Web did not become ready: {payload['url']}")
+    except BaseException:
+        if child.poll() is None:
+            if os.name == "nt":
+                subprocess.run(["taskkill.exe", "/PID", str(child.pid), "/T", "/F"],
+                               check=False, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            else:
+                child.terminate()
+        child.wait(timeout=15)
+        raise
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--runtime-home", type=Path, required=True)
+    parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
+    parser.add_argument("--node", type=Path, default=DEFAULT_NODE)
+    parser.add_argument("--server", type=Path, default=DEFAULT_SERVER)
+    parser.add_argument("--backend-port", type=int, default=8001)
+    parser.add_argument("--frontend-port", type=int, default=3782)
+    parser.add_argument("--open-browser", action="store_true")
+    args = parser.parse_args(argv)
+    try:
+        return launch(python=args.python, node=args.node, server=args.server,
+                      runtime_home=args.runtime_home, backend_port=args.backend_port,
+                      frontend_port=args.frontend_port, open_browser=args.open_browser)
+    except (LaunchError, OSError, ValueError) as exc:
+        print(f"deeptutor Web launch failed: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

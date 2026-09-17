@@ -126,15 +126,12 @@ def run_journey(
     item_key: str,
     client_event_id: str,
 ) -> dict:
-    """Run the smallest real Core journey for the host adapter (R10).
+    """Probe reachability, source storage and existing search results only.
 
-    Steps: reachability -> import the sample -> search it -> record a learning
-    outcome -> record the revision the item was built from -> (optionally) leave a
-    review to the human. The caller supplies `call`, so the sequence is testable
-    without a running Core and remains the single place the host learns the order.
-
-    Every step's status is returned; a failed step stops the journey and is
-    reported rather than silently skipped.
+    Kept under its historical name for callers. This is not a cold-start learning
+    journey: it neither parses the imported source nor proves that search hits
+    derive from it. Never invent an answer or write learner progress. The legacy
+    item/event arguments remain accepted for compatibility, but are unused.
     """
     steps: list[dict] = []
 
@@ -156,36 +153,20 @@ def run_journey(
     if status != 200:
         return {"ok": False, "failed_step": "search", "steps": steps, "payload": found}
 
-    status, event = step(
-        "learning_event",
-        "POST",
-        f"{BASE}/learning/events",
-        learning_event_request(item_key, True, client_event_id),
-    )
-    if not 200 <= status < 300:
-        return {"ok": False, "failed_step": "learning_event", "steps": steps, "payload": event}
-
     hits = found.get("items") if isinstance(found, dict) else None
-    reference_id = None
-    if isinstance(hits, list) and hits:
-        candidate = hits[0].get("knowledge_id") if isinstance(hits[0], dict) else None
-        if candidate:
-            status, reference = step(
-                "reference",
-                "POST",
-                f"{BASE}/learning/items/{item_key}/references",
-                reference_request(item_key, candidate),
-            )
-            if 200 <= status < 300:
-                reference_id = candidate
-            else:
-                return {"ok": False, "failed_step": "reference", "steps": steps, "payload": reference}
-
+    if not isinstance(hits, list) or not any(
+        isinstance(hit, dict) and hit.get("knowledge_id") for hit in hits
+    ):
+        return {"ok": False, "failed_step": "search_results", "steps": steps,
+                "source_id": source_id, "scope": "adapter_probe",
+                "closed_loop_verified": False, "payload": found}
     return {
         "ok": True,
+        "scope": "adapter_probe",
+        "closed_loop_verified": False,
         "steps": steps,
         "source_id": source_id,
-        "search_count": (found.get("count") if isinstance(found, dict) else None),
-        "referenced_revision": reference_id,
-        "note": "review stays a human action: the host must not accept or modify knowledge itself",
+        "search_count": len(hits),
+        "referenced_revision": None,
+        "note": "adapter probe only; source-to-knowledge conversion is unverified; learning and review require a human action",
     }

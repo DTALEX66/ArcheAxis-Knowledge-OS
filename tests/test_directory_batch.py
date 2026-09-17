@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
+import subprocess
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -29,6 +31,38 @@ def _load():
 
 
 batch = _load()
+
+
+def test_default_manifest_separates_source_roots_and_core_endpoints(tmp_path):
+    left = tmp_path / 'left' / 'notes'
+    right = tmp_path / 'right' / 'notes'
+    left.mkdir(parents=True)
+    right.mkdir(parents=True)
+    first = batch.default_manifest(left, 'http://127.0.0.1:9000')
+    assert first != batch.default_manifest(right, 'http://127.0.0.1:9000')
+    assert first != batch.default_manifest(left, 'http://127.0.0.1:9001')
+    assert first == batch.default_manifest(left, 'http://127.0.0.1:9000/')
+    assert first.is_relative_to(REPO / '.project-local' / 'state')
+    assert not first.exists()
+
+
+def test_default_manifest_is_independent_of_ephemeral_run_id(tmp_path, monkeypatch):
+    first = batch.default_manifest(tmp_path, 'http://127.0.0.1:9000')
+    monkeypatch.setenv('ARCHEAXIS_RUN_ROOT', str(tmp_path / 'another-run'))
+    assert first == batch.default_manifest(tmp_path, 'http://127.0.0.1:9000')
+
+
+def test_cli_dry_run_uses_managed_state_without_writing_it(tmp_path, capsys):
+    root = _folder(tmp_path)
+    base = 'http://127.0.0.1:9000'
+    manifest = batch.default_manifest(root, base)
+    before = manifest.parent.exists()
+    assert batch.main(['--root', str(root), '--core', base, '--dry-run', '--json']) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt['manifest'] == str(manifest)
+    assert receipt['dry_run'] is True
+    assert not manifest.exists()
+    assert manifest.parent.exists() == before
 
 
 class FakeCore:
@@ -77,6 +111,45 @@ def test_a_folder_is_walked_with_its_exclusions_reported(tmp_path):
     }
     assert any(".git" in item for item in skipped)
     assert any(".hidden.md" in item for item in skipped)
+
+
+def test_excluded_directories_are_not_enumerated(tmp_path, monkeypatch):
+    root = _folder(tmp_path)
+    hidden = root / '.zcode'
+    hidden.mkdir()
+    (hidden / 'synthetic.txt').write_text('fixture only', encoding='utf-8')
+    original = os.scandir
+
+    def guarded(path):
+        assert Path(path) != hidden, 'excluded private directory was entered'
+        return original(path)
+
+    monkeypatch.setattr(os, 'scandir', guarded)
+    files, skipped = batch.iter_files(root)
+    assert all('.zcode' not in path.parts for path in files)
+    assert any('.zcode' in item for item in skipped)
+
+
+def test_linked_directory_is_not_imported(tmp_path):
+    root = _folder(tmp_path)
+    target = tmp_path / 'outside'
+    target.mkdir()
+    (target / 'not-a-source.txt').write_text('fixture only', encoding='utf-8')
+    link = root / 'linked'
+    if os.name == 'nt':
+        result = subprocess.run(['cmd', '/c', 'mklink', '/J', str(link), str(target)], capture_output=True)
+        assert result.returncode == 0, result.stderr
+    else:
+        link.symlink_to(target, target_is_directory=True)
+    try:
+        files, skipped = batch.iter_files(root)
+        assert all('linked' not in path.parts for path in files)
+        assert any('linked' in item and 'link' in item for item in skipped)
+    finally:
+        if os.name == 'nt':
+            link.rmdir()
+        else:
+            link.unlink()
 
 
 def test_the_limit_is_reported_rather_than_silently_dropping_files(tmp_path):

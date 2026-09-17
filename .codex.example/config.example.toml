@@ -10,7 +10,7 @@ profile = 'development'
 [workspace]
 root = '<project-root>'
 default_scope = 'current_repository'
-protected_drives = ['E:/']
+protected_drives = ['E:/', 'F:/']
 
 [repository]
 remote = 'https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git'

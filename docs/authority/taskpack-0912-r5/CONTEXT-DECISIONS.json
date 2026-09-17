@@ -1,0 +1,218 @@
+{
+  "schema": "archeaxis.context-continuity/v1",
+  "plan_id": "AAK-FOLLOWUP-20260908-R3",
+  "platform_memory_modified": false,
+  "all_platform_chats_available": false,
+  "source_priority": [
+    "当前用户明确指令",
+    "原始用户要求与后续明确修订",
+    "R3.1现行任务/验收与已有仓库合法授权",
+    "本轮V15承接设计",
+    "历史助手建议/个人上下文检索摘要"
+  ],
+  "decisions": [
+    {
+      "id": "CTX01",
+      "topic": "项目身份与定位",
+      "basis_type": "USER_CONFIRMED_IN_HISTORY_AND_CURRENT",
+      "decision": "ArcheAxis Knowledge／星环知识平台，人机双向学习；ArcheAxis Learning Workspace为内部学习界面。历史AAOS/Cognitive-Loop-OS/元枢等作为别名，不能批量替换历史原文。",
+      "mapped_tasks": [
+        "X00"
+      ],
+      "references": "U001 U002 U056"
+    },
+    {
+      "id": "CTX02",
+      "topic": "完整资产与历史",
+      "basis_type": "USER_REQUEST_CURRENT",
+      "decision": "保留可取得的原文件、任务、需求与来源；摘要不冒充原始平台导出；缺失历史明确；不得把记忆完整理解为修改平台全局记忆已成功。",
+      "mapped_tasks": [
+        "X00",
+        "X02"
+      ],
+      "references": "U005 U030 U044"
+    },
+    {
+      "id": "CTX03",
+      "topic": "原任务与蓝图",
+      "basis_type": "BASELINE_RETAINED",
+      "decision": "23任务、29功能、16能力域、16格式、11增强、66需求及旧program/task映射全部保留。",
+      "mapped_tasks": [
+        "X00",
+        "X13"
+      ],
+      "references": "U017 U045"
+    },
+    {
+      "id": "CTX04",
+      "topic": "语言迁移",
+      "basis_type": "BASELINE_AND_VISIBLE_USER_CORRECTION",
+      "decision": "保留5项GOV与7项LANG；Rust领域权威，Python成熟worker，C#/Avalonia宿主，Web/TS交互；M0关键链必须迁移及退役旧权威，M1剩余模块收口。",
+      "mapped_tasks": [
+        "X00",
+        "X04",
+        "X05",
+        "X13"
+      ],
+      "references": "U034 U035 U036"
+    },
+    {
+      "id": "CTX05",
+      "topic": "运行与清理",
+      "basis_type": "HISTORY_USER_CONSTRAINT_AND_BASELINE",
+      "decision": "先止增/盘点/保全，再逐项清理可再生缓存；.hermes会话/补丁/证据及唯一数据不删，不新增开发产物；不访问E和未授权路径，不改HOME/CODEX_HOME。",
+      "mapped_tasks": [
+        "X01",
+        "X02",
+        "X14"
+      ],
+      "references": "U037 U038 U039 U051 U052 U053 U054"
+    },
+    {
+      "id": "CTX06",
+      "topic": "人机双侧",
+      "basis_type": "USER_CONFIRMED_IN_HISTORY_AND_CURRENT",
+      "decision": "人类学习与真实机器方法应用、留出评测、纠错回流同属M0；不共享掌握分，不把知识更新称权重训练。",
+      "mapped_tasks": [
+        "X08",
+        "X09",
+        "X11"
+      ],
+      "references": "U012 U013 U014 U015 U016"
+    },
+    {
+      "id": "CTX07",
+      "topic": "复用与独立运行",
+      "basis_type": "BASELINE_RETAINED",
+      "decision": "沿已有DeepTutor入口，成熟FSRS/Anki一集合一排程权威；现有API/CLI足够不强包MCP；WORK-LAB/DESIGN-LAB联动仍后置。",
+      "mapped_tasks": [
+        "X03",
+        "X08",
+        "F04"
+      ],
+      "references": "U003 U031 U035 U046 U047"
+    },
+    {
+      "id": "CTX08",
+      "topic": "个人内容与研究",
+      "basis_type": "BASELINE_RETAINED",
+      "decision": "外部核查不是所有保存和学习的准入；个人定义可保存，研究只是方法选择的依据之一。",
+      "mapped_tasks": [
+        "X04",
+        "X07",
+        "X08"
+      ],
+      "references": "U010 U011 U059"
+    },
+    {
+      "id": "CTX09",
+      "topic": "V15吸收",
+      "basis_type": "CURRENT_PACKAGE_DESIGN_FROM_USER_REQUEST",
+      "decision": "V15作为首批候选研究/方法/活动来源；35/40/36/104登记，12模板承接；不自动安装104入口、不自动verified、不全科同时开发。",
+      "mapped_tasks": [
+        "X05",
+        "X07",
+        "X08",
+        "X12"
+      ],
+      "references": "HL01 HL02 HL09"
+    },
+    {
+      "id": "CTX10",
+      "topic": "学习状态与提示",
+      "basis_type": "CURRENT_PACKAGE_DESIGN_FROM_VISIBLE_REVIEW",
+      "decision": "提示暴露、原回答、无辅助新题、延迟结果、信心和实际表现分开；保留合理访问支持；开放评分可修正。",
+      "mapped_tasks": [
+        "X04",
+        "X08"
+      ],
+      "references": "HL03 HL05 HL06 HL07"
+    },
+    {
+      "id": "CTX11",
+      "topic": "版本与更正",
+      "basis_type": "BASELINE_PLUS_CURRENT_REVIEW",
+      "decision": "原件/修订不变；勘误关系进入主张与派生依赖，确认影响后分别处理人和AI；未读更正不猜改动。",
+      "mapped_tasks": [
+        "X05",
+        "X07",
+        "X08",
+        "X09"
+      ],
+      "references": "HL10"
+    },
+    {
+      "id": "CTX12",
+      "topic": "未来表征能力",
+      "basis_type": "BASELINE_RETAINED",
+      "decision": "3D、动画、知识宫殿、VR/AR完整保留；现成小活动可接，大规模自研仍F01-F06后置，不因V15改成删除或自动解冻。",
+      "mapped_tasks": [
+        "X08",
+        "X12",
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06"
+      ],
+      "references": "U018 U019 U020 U021 U022 U023 U024"
+    },
+    {
+      "id": "CTX13",
+      "topic": "执行与审计",
+      "basis_type": "BASELINE_RETAINED",
+      "decision": "CODEX或DSH选一个连续执行同一就绪队列，GPT独立审计；模型品牌不是权限；原许可与具体范围适用。",
+      "mapped_tasks": [
+        "X00",
+        "Q00",
+        "Q01"
+      ],
+      "references": "U040 U041 U042 U043"
+    },
+    {
+      "id": "CTX14",
+      "topic": "证据与当下状态",
+      "basis_type": "CURRENT_SCOPE_STATEMENT",
+      "decision": "R4未重查远端HEAD、未产品测试、未操作Windows私有数据；cbe253b仅9月8日继承基线，X00必须核新HEAD和已完成工作。",
+      "mapped_tasks": [
+        "X00",
+        "Q00",
+        "Q01"
+      ],
+      "references": "U043"
+    },
+    {
+      "id": "CTX15",
+      "topic": "九锚与旧设计",
+      "basis_type": "BASELINE_RETAINED",
+      "decision": "九锚缺定义保留名称不编造；旧UI、命名否决和设计成果保留；不重启Tauri或全量XAML重写。",
+      "mapped_tasks": [
+        "X00",
+        "X08",
+        "X13",
+        "F03"
+      ],
+      "references": "U033 U065"
+    },
+    {
+      "id": "CTX16",
+      "topic": "输出与资源位置",
+      "basis_type": "HISTORICAL_REQUIREMENT_MAPPED_TO_EXISTING_SCOPE",
+      "decision": "历史提出原件/证据/人类/机器资产位置可选择，落在现有workspace选择和数据分区语义中核对；不因此创建四个独立真值库或重做宿主。",
+      "mapped_tasks": [
+        "X03",
+        "X11",
+        "X13"
+      ],
+      "references": "U037 U048"
+    }
+  ],
+  "unknowns": [
+    "8月25日至9月初完整平台原始会话未取得，仅有任务快照/可见片段/摘要",
+    "Windows真实库、.hermes原始runs/inventory/probes不在本次访问范围",
+    "本轮未查询当前远端HEAD，不能宣布产品状态更新",
+    "九锚完整定义仍未核实",
+    "V15未读完的真实勘误正文与部分研究继续待核"
+  ]
+}

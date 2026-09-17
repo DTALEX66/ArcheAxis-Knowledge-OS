@@ -5,14 +5,14 @@
 > （`crates/archeaxis-sidecar-protocol` 信封 + `archeaxis-application::bootstrap` 身份）。
 
 ## 构建前置（环境门禁）
-本机暂无 .NET SDK（`dotnet` 不可用）。按共用库规则，Avalonia 工具链应落位：
+构建使用共用库中的 .NET SDK：
 `D:\All projects\OS External Configuration\10-toolchains\dotnet\`（scoop `dotnet`/手动 SDK 安装）。
 装好后执行：
 
 ```powershell
-# 预期：dotnet --version 可用后在此目录创建解决方案
-dotnet new sln -n ArcheAxis.Desktop
-# 参照 PROJECT_CONTRACT: csharp + dotnet-10-lts + avalonia-12.1.x
+dotnet --version
+dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --no-restore --nologo
+# PROJECT_CONTRACT: csharp + dotnet-10-lts + avalonia-12.1.x
 ```
 
 ## 边界
@@ -21,6 +21,5 @@ dotnet new sln -n ArcheAxis.Desktop
 - 未完成能力不做空壳"完成态"
 
 ## 状态（2026-09-04）
-- ✅ 骨架已建：`apps/ArcheAxis.Desktop/`（dotnet new avalonia.app，Avalonia 模板），
-  `dotnet build` 0 警告 0 错误（.NET SDK 10.0.400 已装 → OS External Configuration/10-toolchains/dotnet）
-- 后续：Supervisor 握手接线（sidecar-protocol + archeaxis-application::bootstrap）→ Green 无终端启动
+- ✅ 正式工程：`apps/ArcheAxis.Desktop/`，Avalonia build 已通过（.NET SDK 10.0.400；输出写入项目本地 build 根）
+- 当前缺口：可见窗口完整工作台、安装器/签名/卸载和干净机验收仍未闭合

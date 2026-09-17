@@ -135,6 +135,7 @@ def prepare_audio(file_path: str | Path, work_dir: str | Path) -> Path:
 
 def _transcribe_faster_whisper(path: Path) -> tuple[list[dict[str, Any]], str]:
     from faster_whisper import WhisperModel
+
     from app.ingestion.asr_adapter import DEFAULT_MODEL_NAME, resolve_model_dir
 
     model_dir = resolve_model_dir() / DEFAULT_MODEL_NAME
@@ -164,7 +165,9 @@ def _transcribe_faster_whisper(path: Path) -> tuple[list[dict[str, Any]], str]:
 def _default_work_dir(file_path: str | Path) -> Path:
     """Keep transient audio outside the source corpus by default."""
     project_root = Path(__file__).resolve().parents[2]
-    return project_root / ".project-local" / "task-runtime" / "media" / _sha256(file_path)[:16]
+    run_root = os.environ.get("ARCHEAXIS_RUN_ROOT", "").strip()
+    root = Path(run_root) if run_root else project_root / ".project-local" / "task-runtime"
+    return root / "media" / _sha256(file_path)[:16]
 
 
 def convert_media(file_path: str | Path, work_dir: str | Path | None = None) -> AdapterResult:

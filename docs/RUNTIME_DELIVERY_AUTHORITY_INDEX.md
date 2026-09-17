@@ -16,7 +16,13 @@ the Rust service in `crates/archeaxis-api/`, and isolated Python workers in
 `services/python-workers/`. The existing implementation still needs the T15
 Windows/full-loop qualification; this map does not claim a usable vNext package.
 Build/test commands use `scripts/runtime/dev.py` with `.project-local` outputs.
-See [current execution](authority/taskpack-0906/EXECUTION.md) and
+For the main checkout, Cargo uses `.project-local/build/cargo`, matching
+the checked-in `.cargo/config.toml`; the launcher no longer creates a second
+main-checkout Cargo cache. Linked worktrees launched through `dev.py` use
+`.project-local/build/<worktree-id>/cargo` under the owning repository.
+Other build outputs retain their worktree-specific paths. Historical outputs
+are preserved; this routing change does not migrate or delete them.
+See [current R5 execution](current/R5-EXECUTION.md) and
 [language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md).
 
 ## Preserved Green v0.6.14 maintenance chain
@@ -27,9 +33,9 @@ It is not the formal vNext delivery route (SUP-007).
 | Layer | Canonical location | Authority and verification boundary |
 | --- | --- | --- |
 | Product UI source | [`frontend/src/`](../frontend/src/) | React product surface; changes require its targeted tests and build. |
-| Product UI build | `frontend/dist/` | Generated input to the primary Tauri build; it is embedded, not loaded from a Green `bootstrap/` directory. The directory is intentionally absent from a clean source checkout. |
+| Product UI build | `.project-local/build/frontend-dist/` | Generated input to the primary Tauri build; it is embedded, not loaded from a Green `bootstrap/` directory. The directory is intentionally absent from a clean source checkout. |
 | Primary desktop host | [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json) and [`src-tauri/src/main.rs`](../src-tauri/src/main.rs) | `com.archeaxis.workspace`, title `星环知识平台（ArcheAxis Knowledge）`, and `WebviewUrl::App`. This is the user-facing desktop host. |
-| Candidate executable | `src-tauri/target/release/ArcheAxis.exe` | Local build output only. Its SHA-256 must be read back before any Green replacement. |
+| Candidate executable | `.project-local/build/tauri/release/ArcheAxis.exe` | Local build output only. Its SHA-256 must be read back before any Green replacement. |
 | Green deployment target | `D:/All projects/ArcheAxis.Knowledge.Green-x64/ArcheAxis.exe` | Existing `v0.6.14` maintenance target. Replace only while no `ArcheAxis.exe` process is running; save a hash-addressed backup and require candidate/target SHA-256 equality. |
 | Green GUI launcher | `D:/All projects/ArcheAxis.Knowledge.Green-x64/启动星环知识.vbs` | Silent GUI-only launch path. It starts the exact sibling `ArcheAxis.exe`; it must not invoke a console host. |
 

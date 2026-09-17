@@ -68,6 +68,8 @@ function Test-PortAvailable([int]$Port) {
 
 $result = [ordered]@{}
 
+$project = [System.IO.Path]::GetFullPath((Resolve-Path $ProjectRoot).Path)
+
 # --- Toolchain -----------------------------------------------------------
 $result.schema_version = "axw.007a.v1"
 $result.generated_at = (Get-Date -Format o)
@@ -75,14 +77,44 @@ $result.generated_at = (Get-Date -Format o)
 $python = [ordered]@{ present = $false }
 if (Test-CommandAvailable "python") { $python.present = $true; $python.version = Get-Version "python" }
 if (Test-CommandAvailable "py")    { $python.launcher_present = $true }
+if (-not $python.present) {
+    $projectPython = Join-Path $project ".project-local\build\venv\Scripts\python.exe"
+    if (-not (Test-Path -LiteralPath $projectPython -PathType Leaf)) {
+        # Historical root .venv is a compatibility fallback only.
+        $projectPython = Join-Path $project ".venv\Scripts\python.exe"
+    }
+    if (Test-Path -LiteralPath $projectPython -PathType Leaf) {
+        try {
+            $python.present = $true
+            $python.source = "project_venv"
+            $python.version = (& $projectPython --version 2>$null | Select-Object -First 1)
+        } catch { $python.present = $false }
+    }
+}
+
+function Get-ExternalRustTool([string]$Name) {
+    $root = $env:ARCHEAXIS_RUST_TOOLCHAINS
+    if (-not $root) { return $null }
+    $candidate = Join-Path $root ("cargo\bin\$Name.exe")
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+    return $null
+}
 
 $node = [ordered]@{ present = $false }
 if (Test-CommandAvailable "node") { $node.present = $true; $node.version = Get-Version "node" }
 if (Test-CommandAvailable "npm")  { $node.npm_present = $true }
 
 $rust = [ordered]@{ present = $false }
-if (Test-CommandAvailable "cargo") { $rust.present = $true; $rust.version = Get-Version "cargo" }
-if (Test-CommandAvailable "rustc") { $rust.rustc_present = $true }
+$cargoCommand = Get-Command cargo -ErrorAction SilentlyContinue
+if (-not $cargoCommand) { $cargoCommand = Get-ExternalRustTool "cargo" }
+if ($cargoCommand) {
+    $rust.present = $true
+    $rust.source = if ($cargoCommand -is [string]) { "external_toolchain" } else { "path" }
+    $rust.version = Get-Version ([string]$cargoCommand)
+}
+$rustcCommand = Get-Command rustc -ErrorAction SilentlyContinue
+if (-not $rustcCommand) { $rustcCommand = Get-ExternalRustTool "rustc" }
+if ($rustcCommand) { $rust.rustc_present = $true }
 
 $ps = [ordered]@{ present = $true; version = $PSVersionTable.PSVersion.ToString() }
 
@@ -94,7 +126,6 @@ $result.toolchain = [ordered]@{
 }
 
 # --- Path layout facts ---------------------------------------------------
-$project = [System.IO.Path]::GetFullPath((Resolve-Path $ProjectRoot).Path)
 $result.paths = [ordered]@{
     space_in_path    = $project.Contains(" ")
     non_ascii_in_path = ($project.ToCharArray() | Where-Object { [int]$_ -gt 127 } | Measure-Object).Count -gt 0
@@ -138,9 +169,28 @@ foreach ($c in $candidates) {
     }
 }
 
+# --- Public directory access ---------------------------------------------
+# Keep private agent state out of this probe; report only sanitized leaf names.
+$private = @('.git', '.hermes', '.zcode', '.codex', '.venv', '.project-local', 'data')
+$accessBlockers = @()
+foreach ($entry in (Get-ChildItem -LiteralPath $project -Directory -Force -ErrorAction SilentlyContinue)) {
+    if ($private -contains $entry.Name) { continue }
+    try { Get-Acl -LiteralPath $entry.FullName -ErrorAction Stop | Out-Null }
+    catch { $accessBlockers += (Split-Path $entry.FullName -Leaf) }
+}
+# Some deny-only directories are omitted by enumeration; probe known generated
+# roots explicitly so an inaccessible residue cannot hide from the report.
+foreach ($name in @('.pytest_cache')) {
+    $candidate = Join-Path $project $name
+    if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { continue }
+    try { Get-Acl -LiteralPath $candidate -ErrorAction Stop | Out-Null }
+    catch { $accessBlockers += $name }
+}
+$result.access_blockers = @($accessBlockers | Sort-Object -Unique)
+
 # --- Overall health ------------------------------------------------------
 $required = @("python")
 $missing = @($required | Where-Object { -not $result.toolchain.$_.present })
-$result.healthy = ($missing.Count -eq 0)
+$result.healthy = ($missing.Count -eq 0 -and $result.access_blockers.Count -eq 0)
 
 $result | ConvertTo-Json -Depth 6

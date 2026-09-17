@@ -494,6 +494,8 @@ def test_release_workflow_verifies_green_and_portable_lifecycle_before_metadata(
         "Build release metadata and checksums"
     )
     assert "runtime\\python\\python.exe" in lifecycle
+    assert "..\\..\\.project-local\\task-runtime" in lifecycle
+    assert "..\\..\\.hermes\\task-runtime" not in lifecycle
     assert "portable.flag" in lifecycle
     # ``ARCHEAXIS_DATA_DIR`` is already ``<portable-root>/data`` and the
     # canonical resolver strips the leading ``data`` component from the

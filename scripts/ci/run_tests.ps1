@@ -3,9 +3,14 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $interpreter = $env:ARCHEAXIS_PYTHON
 if (-not $interpreter) {
-    $interpreter = Join-Path $projectRoot '.venv/Scripts/python.exe'
+    $interpreter = Join-Path $projectRoot '.project-local/build/venv/Scripts/python.exe'
     if (-not (Test-Path -LiteralPath $interpreter)) {
-        $interpreter = (Get-Command python -ErrorAction Stop).Source
+        # Keep the historical root .venv as a compatibility fallback only;
+        # dev.py creates the managed environment under .project-local/build.
+        $interpreter = Join-Path $projectRoot '.venv/Scripts/python.exe'
+        if (-not (Test-Path -LiteralPath $interpreter)) {
+            $interpreter = (Get-Command python -ErrorAction Stop).Source
+        }
     }
 }
 $testArgs = @($args)

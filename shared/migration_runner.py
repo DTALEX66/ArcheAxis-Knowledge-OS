@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
+import os
 import re
 import sqlite3
 from contextlib import closing, contextmanager, suppress
@@ -39,6 +40,15 @@ CREATE TABLE IF NOT EXISTS {_LOCK_TABLE} (
     acquired_at TEXT NOT NULL
 )
 """
+
+
+def _native_path(path: Path) -> str | Path:
+    """Use the Windows extended-length prefix for deep project-local paths."""
+    if os.name == "nt" and len(str(path)) >= 240:
+        value = str(path)
+        if not value.startswith("\\\\?\\"):
+            return "\\\\?\\" + value
+    return path
 
 _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _SHADOW_SUFFIX_RE = re.compile(r"^[0-9a-f]{32}$")
@@ -222,7 +232,7 @@ class MigrationOperator:
                 raise RuntimeError(f"SQLite integrity check failed for {self.db_path}: {result}")
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(str(self.db_path), timeout=30.0)
+        connection = sqlite3.connect(_native_path(self.db_path), timeout=30.0)
         connection.execute("PRAGMA busy_timeout=30000")
         connection.row_factory = sqlite3.Row
         return connection
@@ -251,7 +261,7 @@ class MigrationOperator:
 
     def _lock_connect(self) -> sqlite3.Connection:
         self._lock_database.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(str(self._lock_database), timeout=30.0)
+        connection = sqlite3.connect(_native_path(self._lock_database), timeout=30.0)
         connection.execute("PRAGMA busy_timeout=30000")
         return connection
 
