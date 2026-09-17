@@ -174,7 +174,7 @@ public partial class MainWindow : Window
                 var sourceId = source.RootElement.GetProperty("source_id").GetString();
                 if (string.IsNullOrWhiteSpace(sourceId)) continue;
                 var jobId = $"desktop-import-{Guid.NewGuid():N}";
-                var enqueue = JsonSerializer.Serialize(new { job_id = jobId, kind = "text", input_ref = sourceId });
+                var enqueue = JsonSerializer.Serialize(new { job_id = jobId, kind = JobKindFor(file.Name), input_ref = sourceId });
                 using var queued = await _supervisor.SendAsync(
                     HttpMethod.Post,
                     "/api/v1/jobs",
@@ -196,6 +196,23 @@ public partial class MainWindow : Window
         }
         CoreStatusText.Text = $"核心状态：已导入 {imported}/{files.Count}，已启动 {executions} 个处理任务";
         await RefreshWorkspaceSummaryAsync();
+    }
+
+    private static string JobKindFor(string name)
+    {
+        var extension = Path.GetExtension(name).ToLowerInvariant();
+        return extension switch
+        {
+            ".pdf" => "pdf",
+            ".png" or ".jpg" or ".jpeg" or ".tif" or ".tiff" or ".webp" or ".bmp" => "image",
+            ".zip" => "archive",
+            ".mp4" or ".wav" => "media",
+            ".docx" or ".pptx" or ".xlsx" => "office",
+            ".canvas" => "canvas",
+            ".srt" or ".vtt" => "subtitles",
+            ".html" or ".htm" => "html",
+            _ => "text",
+        };
     }
 
     private async void OnLearningClick(object? sender, RoutedEventArgs e)
