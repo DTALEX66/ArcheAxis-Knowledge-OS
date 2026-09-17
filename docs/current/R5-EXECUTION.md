@@ -1899,3 +1899,12 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: `pytest tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `33 passed`; Ruff passed.
 - `actual_result`: repeated import of the same note now refreshes the same logical asset and exact relation edges through existing `INSERT OR REPLACE` storage semantics.
 - `limitations`: changed-note reconciliation still needs removal of stale outgoing edges, target-to-imported-ID resolution, attachment hashing, and full Vault round-trip evidence; R15 remains partial.
+
+## Continuation receipt — 2026-09-18 post-R15 clean Green rebuild
+
+- `task_id`: X13/R13 provenance refresh after R15 increment
+- `source_commit`: `d88c06b4d190f092ce784f5c58715f596f8ea63e`
+- `source_tree`: bound by the candidate manifest for the same commit
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-d88c06b4-x64`
+- `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0 with explicit Core paths.
+- `limitations`: local candidate only; signed installer, clean-machine GUI, real Green install, and remote upload remain open.
