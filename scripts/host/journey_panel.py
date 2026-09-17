@@ -106,6 +106,28 @@ def build_health(base_url: str, launch_token: str | None, call=None) -> tuple[in
     return (200 if reachable else 503), payload
 
 
+def build_search(
+    base_url: str, query: str, launch_token: str | None, *, active_only: bool = False, call=None
+) -> tuple[int, dict]:
+    """Project Core search results without treating them as verified learning."""
+    call = call or core_client.call
+    path = core_client.search_path(query, active_only=active_only)
+    status, body = call(base_url, "GET", path, launch_token)
+    if status != 200 or not isinstance(body, dict):
+        return 503, {
+            "core": {"reachable": False, "status": status, "reason": body.get("error") if isinstance(body, dict) else str(body)[:200]},
+            "items": None,
+            "rendering": "no search results are shown while the Core is unreachable",
+        }
+    return 200, {
+        "core": {"reachable": True, "status": status},
+        "query": query,
+        "items": body.get("items", []),
+        "transforms": body.get("transforms", []),
+        "note": "search results are candidates for inspection; they are not verified knowledge or learning outcomes",
+    }
+
+
 def build_members(base_url: str, source_id: str, launch_token: str | None, call=None) -> tuple[int, dict]:
     """What is inside one container, and which parts were read (R15/F15).
 
@@ -324,6 +346,16 @@ class PanelHandler(BaseHTTPRequestHandler):
             status, payload = build_health(self.server.core_url, token)  # type: ignore[attr-defined]
             self._send(status, json.dumps(payload, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
             return
+        if parsed.path == "/api/search":
+            query = urllib.parse.parse_qs(parsed.query)
+            text = (query.get("q") or [""])[0].strip()
+            if not text:
+                self._send(400, b'{"error":"q is required"}', "application/json; charset=utf-8")
+                return
+            active_only = (query.get("active_only") or ["false"])[0].casefold() == "true"
+            status, payload = build_search(self.server.core_url, text, token, active_only=active_only)  # type: ignore[attr-defined]
+            self._send(status, json.dumps(payload, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
+            return
         if parsed.path == "/api/members":
             query = urllib.parse.parse_qs(parsed.query)
             source_id = (query.get("source_id") or [""])[0]
@@ -348,7 +380,8 @@ class PanelHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:  # noqa: A002 - base signature
         # never log the request line blindly: a token must not be able to land in a log
         with contextlib.suppress(Exception):
-            sys.stderr.write("panel: %s\n" % (format % args).split("?")[0])
+            safe_line = (format % args).split("?")[0]
+            sys.stderr.write(f"panel: {safe_line}\n")
 
 
 def serve(core_url: str, item_key: str, port: int, token_env: str) -> ThreadingHTTPServer:

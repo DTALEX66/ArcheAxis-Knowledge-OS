@@ -10,8 +10,6 @@ page, a query string or a log line.
 from __future__ import annotations
 
 import importlib.util
-import json
-import os
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -97,6 +95,23 @@ def test_health_reports_reachability_and_never_a_fake_ok():
     call, _ = _call_returning(0, {"error": "core unreachable"})
     status, payload = panel.build_health("http://core", "tok", call=call)
     assert status == 503 and payload["reachable"] is False
+
+
+def test_search_projects_core_results_and_preserves_candidate_boundary():
+    call, calls = _call_returning(200, {"items": [{"knowledge_id": "k1", "active": True}], "transforms": []})
+    status, payload = panel.build_search("http://core", "atomic", "tok", active_only=True, call=call)
+    assert status == 200
+    assert payload["items"][0]["knowledge_id"] == "k1"
+    assert "not verified knowledge" in payload["note"]
+    assert calls == [("http://core", "GET", f"{panel.CORE_BASE}/search?q=atomic&active_only=true", "tok")]
+
+
+def test_search_does_not_render_results_when_core_is_unreachable():
+    call, _ = _call_returning(0, {"error": "core unreachable"})
+    status, payload = panel.build_search("http://core", "atomic", None, call=call)
+    assert status == 503
+    assert payload["items"] is None
+    assert "no search results" in payload["rendering"]
 
 
 # ------------------------------------------------------- container members (F15)

@@ -50,7 +50,7 @@
       "r31_slices": [
         "R10"
       ],
-      "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；R10 Core/宿主面板探针已复跑，但adapter journey搜索断言仍未闭合；DeepTutor默认入口挂载、完整会话/附件回收、可见窗口交互与重启读回仍未闭合。"
+      "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；R10 Core/宿主面板探针已复跑，但adapter journey搜索断言仍未闭合；DeepTutor默认入口挂载、完整会话/附件回收、可见窗口交互与重启读回仍未闭合。 Host journey panel now has a Core-backed search projection with fail-closed semantics; visible external-host mount and restart readback remain pending."
     },
     {
       "id": "X04",
