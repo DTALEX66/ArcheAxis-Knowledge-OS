@@ -2099,3 +2099,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Corrected environment rerun completed with exit `0`; every workspace unit/integration executable reported `test result: ok`, including the previously blocked OCR end-to-end case.
 - The initial failures were execution setup issues (missing `ARCHEAXIS_PYTHON`, then stale Tesseract shim); the final run used direct registered binaries and explicit language data.
+
+## 2026-09-18 OCR executable path drift hardening
+
+- Commit: `96d449ce`.
+- Worker OCR now probes configured absolute binaries with `--version`; stale shims are rejected, and a binary is derived from the explicitly pinned `TESSDATA_PREFIX` toolchain before PATH fallback.
+- Verification: focused OCR/profile/probe tests `17 passed, 18 subtests passed`; Ruff F/I checks passed (pre-existing line-length/B905 findings remain outside this change).
