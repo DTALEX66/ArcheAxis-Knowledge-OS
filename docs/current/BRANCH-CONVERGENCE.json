@@ -1121,7 +1121,7 @@
   "post_merge": {
     "recorded_at": "2026-09-18T00:50:00+08:00",
     "main_sha": "3907d0ba190c1c6124832969f813629b99e8d0d1",
-    "remote_branch_count": 22,
+    "remote_branch_count": 21,
     "deleted_branches": [
       "codex/append-only-audit",
       "codex/client-write-boundary",
@@ -1134,7 +1134,7 @@
       "codex/v0.6.0-integration",
       "codex/full-loop-0906"
     ],
-    "retained_convergence_branch": "codex/main-convergence-20260917",
-    "note": "Historical baseline entries remain for auditability; post_merge is the authoritative current remote disposition."
+    "retained_convergence_branch": null,
+    "note": "Historical baseline entries remain for auditability; post_merge is authoritative after deleting the convergence branch."
   }
 }
