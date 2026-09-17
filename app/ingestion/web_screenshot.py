@@ -82,7 +82,11 @@ def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
     # profile in a short ephemeral root there.  The project-owned ``c`` anchor
     # remains for cleanup/evidence; screenshots and receipts stay in-project.
     if os.name != "nt":
-        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-"))
+        # ``tempfile`` otherwise inherits the CI TMPDIR, which this project
+        # intentionally routes under the long `.project-local/runs/...` path.
+        # Pin the disposable browser root to POSIX /tmp so the socket path is
+        # actually short.
+        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-", dir="/tmp"))
         return short_root, short_root
     return project_root, None
 
