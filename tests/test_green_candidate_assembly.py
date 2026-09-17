@@ -88,3 +88,24 @@ def test_assembly_rejects_reparse_inputs(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="reparse"):
         assemble(desktop, core, tmp_path / "project" / ".project-local/out", "test", project_root=tmp_path / "project")
+
+
+def test_assembly_bundles_workers_and_portable_profile(tmp_path: Path) -> None:
+    desktop = tmp_path / "desktop"
+    desktop.mkdir()
+    for name in ("ArcheAxis.Desktop.exe", "hostfxr.dll", "hostpolicy.dll", "ArcheAxis.Desktop.runtimeconfig.json"):
+        (desktop / name).write_bytes(name.encode())
+    core = tmp_path / "core.exe"
+    core.write_bytes(b"core")
+    runtime = tmp_path / "runtime"
+    (runtime / "python").mkdir(parents=True)
+    (runtime / "python" / "python.exe").write_bytes(b"python")
+    workers = tmp_path / "workers"
+    (workers / "transport").mkdir(parents=True)
+    (workers / "transport" / "text_ndjson.py").write_text("print('ok')\n", encoding="utf-8")
+    result = assemble(desktop, core, tmp_path / "project" / ".project-local/out", "test",
+                      runtime=runtime, workers=workers, project_root=tmp_path / "project")
+    profile = json.loads((result.root / "worker-profile.json").read_text(encoding="utf-8"))
+    assert profile["python"] == "runtime/python.exe"
+    assert (result.root / "workers/transport/text_ndjson.py").is_file()
+    assert '"ARCHEAXIS_WORKER_PROFILE"' in (result.root / "启动绿色候选.vbs").read_text(encoding="utf-8")

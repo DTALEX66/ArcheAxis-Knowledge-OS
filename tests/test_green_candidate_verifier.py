@@ -52,3 +52,10 @@ def test_verifier_rejects_source_provenance_mismatch(tmp_path: Path) -> None:
     assert result["ok"] is False
     assert "candidate source commit mismatch" in result["problems"]
     assert "candidate source tree mismatch" in result["problems"]
+
+
+def test_verifier_requires_workers_when_requested(tmp_path: Path) -> None:
+    candidate = _candidate(tmp_path)
+    result = verify(candidate, require_workers=True)
+    assert result["ok"] is False
+    assert any("worker file missing" in problem for problem in result["problems"])

@@ -15,6 +15,7 @@ REQUIRED = (
     "desktop/ArcheAxis.Desktop.runtimeconfig.json",
     "core/archeaxis-api.exe",
 )
+WORKER_REQUIRED = ("worker-profile.json", "workers/transport/text_ndjson.py")
 
 
 def _sha256(path: Path) -> str:
@@ -29,6 +30,7 @@ def verify(
     candidate: Path,
     *,
     require_runtime: bool = False,
+    require_workers: bool = False,
     expected_commit: str | None = None,
     expected_tree: str | None = None,
 ) -> dict:
@@ -66,10 +68,21 @@ def verify(
     runtime_included = any(name.startswith("runtime/") for name in files)
     if require_runtime and not runtime_included:
         problems.append("runtime directory is required for a complete Green candidate")
+    workers_included = any(name.startswith("workers/") for name in files)
+    if require_workers:
+        for relative in WORKER_REQUIRED:
+            path = candidate / relative
+            entry = files.get(relative)
+            if not path.is_file() or not isinstance(entry, dict):
+                problems.append(f"required worker file missing from candidate: {relative}")
+                continue
+            if _sha256(path) != entry.get("sha256"):
+                problems.append(f"hash mismatch: {relative}")
     return {
         "ok": not problems,
-        "scope": "desktop-core-runtime" if runtime_included else "desktop-core-only",
+        "scope": "desktop-core-runtime-workers" if workers_included else ("desktop-core-runtime" if runtime_included else "desktop-core-only"),
         "runtime_included": runtime_included,
+        "workers_included": workers_included,
         "version": manifest.get("version"),
         "files": len(files),
         "problems": problems,
@@ -80,12 +93,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--require-runtime", action="store_true")
+    parser.add_argument("--require-workers", action="store_true")
     parser.add_argument("--expected-commit")
     parser.add_argument("--expected-tree")
     args = parser.parse_args()
     result = verify(
         args.candidate,
         require_runtime=args.require_runtime,
+        require_workers=args.require_workers,
         expected_commit=args.expected_commit,
         expected_tree=args.expected_tree,
     )

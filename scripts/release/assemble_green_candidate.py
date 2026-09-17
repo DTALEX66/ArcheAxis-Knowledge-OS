@@ -74,6 +74,7 @@ def assemble(
     version: str,
     *,
     runtime: Path | None = None,
+    workers: Path | None = None,
     project_root: Path | None = None,
     source_commit: str | None = None,
     source_tree: str | None = None,
@@ -93,10 +94,16 @@ def assemble(
         raise ValueError("Core executable is missing")
     if runtime is not None and not runtime.is_dir():
         raise ValueError("runtime directory is missing")
+    if workers is not None and not workers.is_dir():
+        raise ValueError("workers directory is missing")
+    if workers is not None and runtime is None:
+        raise ValueError("workers require a staged runtime")
     _reject_reparse(desktop)
     _reject_reparse(core)
     if runtime is not None:
         _reject_reparse(runtime)
+    if workers is not None:
+        _reject_reparse(workers)
 
     output.mkdir(parents=True, exist_ok=True)
     root = output / f"ArcheAxis.Knowledge.Green-v{version}-x64"
@@ -106,6 +113,8 @@ def assemble(
     (root / "core").mkdir()
     if runtime is not None:
         (root / "runtime").mkdir()
+    if workers is not None:
+        (root / "workers").mkdir()
     copied_files: list[Path] = []
     for source in desktop.rglob("*"):
         _reject_reparse(source)
@@ -125,6 +134,22 @@ def assemble(
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(_native_path(source), _native_path(target))
                 copied_files.append(target)
+    if workers is not None:
+        for source in workers.rglob("*"):
+            _reject_reparse(source)
+            if source.is_file() and not source.name.endswith((".pyc", ".pyo")):
+                target = root / "workers" / source.relative_to(workers)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(_native_path(source), _native_path(target))
+                copied_files.append(target)
+        profile = root / "worker-profile.json"
+        profile.write_text(json.dumps({
+            "schema": "archeaxis.worker-profile/v1",
+            "python": "runtime/python.exe",
+            "script": "workers/transport/text_ndjson.py",
+            "staging": "data/worker-staging",
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        copied_files.append(profile)
 
     # Keep the portable candidate launchable without requiring users to know
     # the Core environment variable or accidentally opening a framework-only
@@ -143,9 +168,17 @@ If Not files.FileExists(executable) Then
   WScript.Quit 1
 End If
 If Not files.FolderExists(dataRoot) Then files.CreateFolder dataRoot
+shell.Environment("PROCESS")("ARCHEAXIS_CORE_BIN") = root & "\\core\\archeaxis-api.exe"
+shell.Environment("PROCESS")("ARCHEAXIS_DATA_DIR") = dataRoot
+shell.Environment("PROCESS")("ARCHEAXIS_LAUNCHER_DATA_DIR") = dataRoot
+shell.Environment("PROCESS")("ARCHEAXIS_VNEXT_DB") = dataRoot & "\\workspace.sqlite"
+shell.Environment("PROCESS")("ARCHEAXIS_WORKER_PROFILE") = root & "\\worker-profile.json"
+' Keep historical spellings for older launch helpers.
 shell.Environment("PROCESS")("ARCHAXIS_CORE_BIN") = root & "\\core\\archeaxis-api.exe"
 shell.Environment("PROCESS")("ARCHAXIS_DATA_DIR") = dataRoot
 shell.Environment("PROCESS")("ARCHAXIS_LAUNCHER_DATA_DIR") = dataRoot
+shell.Environment("PROCESS")("ARCHAXIS_VNEXT_DB") = dataRoot & "\\workspace.sqlite"
+shell.Environment("PROCESS")("ARCHAXIS_WORKER_PROFILE") = root & "\\worker-profile.json"
 shell.Run Chr(34) & executable & Chr(34), 1, False
 '''
     launcher.write_text(launcher_text, encoding="utf-8", newline="\r\n")
@@ -179,6 +212,7 @@ def main() -> int:
     parser.add_argument("--desktop", required=True, type=Path)
     parser.add_argument("--core", required=True, type=Path)
     parser.add_argument("--runtime", type=Path)
+    parser.add_argument("--workers", type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--version", required=True)
     parser.add_argument("--source-commit")
@@ -190,6 +224,7 @@ def main() -> int:
         args.out,
         args.version,
         runtime=args.runtime,
+        workers=args.workers,
         source_commit=args.source_commit,
         source_tree=args.source_tree,
     )

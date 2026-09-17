@@ -731,12 +731,13 @@ jobs:
             --core $core `
             --out .project-local/build/green-candidates `
             --runtime .project-local/rt/runtime/python `
+            --workers services/python-workers `
             --source-commit $env:GITHUB_SHA `
             --source-tree $tree `
             --version ci
           if ($LASTEXITCODE -ne 0) { throw "Green candidate assembly failed" }
           & $python -B scripts/release/verify_green_candidate.py `
-            .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64 --require-runtime `
+            .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64 --require-runtime --require-workers `
             --expected-commit $env:GITHUB_SHA --expected-tree $tree
           if ($LASTEXITCODE -ne 0) { throw "Green candidate verification failed" }
       - name: Upload self-contained Green candidate
