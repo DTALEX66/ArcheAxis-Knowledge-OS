@@ -50,7 +50,7 @@
       "r31_slices": [
         "R10"
       ],
-    "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；R10 Core/宿主面板探针已复跑，但adapter journey搜索断言仍未闭合；DeepTutor默认入口挂载、完整会话/附件回收、可见窗口交互与重启读回仍未闭合。"
+      "gap": "CoreSupervisor双身份和MainWindow严格worker profile接线已实现；正式Avalonia工程构建及同加载器C#→Core→Python实跑已有证据。DeepTutor bridge/custody/authority/web launch与路径握手定向回归本轮在新项目basetemp下通过（4 bridge用例，相关组合共120通过）；上游Markdown省略元数据，不是完整备份。窗口主体已替换为工作台壳层并接入文件选择/Core导入，Core只读学习队列查询端点已补齐；R10 Core/宿主面板探针已复跑，但adapter journey搜索断言仍未闭合；DeepTutor默认入口挂载、完整会话/附件回收、可见窗口交互与重启读回仍未闭合。"
     },
     {
       "id": "X04",
@@ -185,7 +185,7 @@
       "r31_slices": [
         "R15"
       ],
-      "gap": "当前格式记录仍为0 complete/14 partial/2 custody-only；目录续跑驱动已有但非UI入口。目录批处理真实探针证明未改文件零Core调用、单文件变更重跑和未知扩展安全不路由；Obsidian导入器现已索引正文及YAML frontmatter wikilink并保留别名/标题锚点、embed去重，资产与精确关系 ID 已改为基于 vault-relative path/关系事实的稳定值，重建关系前会按 source 删除旧边，唯一同 Vault Markdown 目标会解析到稳定 KB ID 并保留 heading anchor；Canvas worker 结果已有替换式节点/边/几何投影适配器，Rust Core schema v5 已加入同事务投影表与归档表集合，cargo check 通过，canvas_subtitles_job_end_to_end 4/4 通过并断言 Core 表，定向组合35 passed、Ruff passed。格式矩阵、工作区多格式管线、DOCX及适配器合同本轮46项通过，证明的是局部执行/合同，不提升为全格式链。附件哈希绑定、真实Vault客户端往返、完整source回跳、三个主题和新机器回归仍未验收。"
+      "gap": "当前格式记录仍为0 complete/14 partial/2 custody-only；目录续跑驱动已有但非UI入口。目录批处理真实探针证明未改文件零Core调用、单文件变更重跑和未知扩展安全不路由；Obsidian导入器现已索引正文及YAML frontmatter wikilink并保留别名/标题锚点、embed去重，资产与精确关系 ID 已改为基于 vault-relative path/关系事实的稳定值，重建关系前会按 source 删除旧边，唯一同 Vault Markdown 目标会解析到稳定 KB ID 并保留 heading anchor；Canvas worker 结果已有替换式节点/边/几何投影适配器，Rust Core schema v5 已加入同事务投影表与归档表集合，cargo check 通过，canvas_subtitles_job_end_to_end 4/4 通过并断言 Core 表，定向组合35 passed、Ruff passed。格式矩阵、工作区多格式管线、DOCX及适配器合同本轮46项通过，证明的是局部执行/合同，不提升为全格式链。附件哈希绑定、真实Vault客户端往返、完整source回跳、三个主题和新机器回归仍未验收。 Attachment facts now include Vault-relative path, SHA-256 and size for local embed targets; persistence/export remains pending."
     },
     {
       "id": "X13",

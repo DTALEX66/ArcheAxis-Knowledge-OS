@@ -248,6 +248,32 @@ def test_import_file_indexes_wikilinks_embeds_and_relative_links(monkeypatch) ->
     assert inserted["kb_documents"]["content"] == body
 
 
+def test_import_file_reports_vault_bound_attachment_hash_without_writing_it(monkeypatch) -> None:
+    import hashlib
+
+    monkeypatch.setattr("shared.storage.insert", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("shared.storage.fts5_sync", lambda *_args, **_kwargs: None)
+
+    with tempfile.TemporaryDirectory() as d:
+        note = Path(d) / "note.md"
+        attachment = Path(d) / "assets" / "image.bin"
+        attachment.parent.mkdir(parents=True)
+        blob = b"attachment bytes"
+        attachment.write_bytes(blob)
+        note.write_text("![[assets/image.bin]] and ![[../outside.bin]]", encoding="utf-8")
+        result = import_file(d, "note.md", dry_run=False)
+
+    assert result["attachment_facts"] == [
+        {
+            "path": "assets/image.bin",
+            "sha256": hashlib.sha256(blob).hexdigest(),
+            "size_bytes": len(blob),
+            "link_type": "embed",
+            "is_embed": True,
+        }
+    ]
+
+
 def test_import_file_indexes_frontmatter_wikilinks(monkeypatch) -> None:
     import tempfile
 

@@ -189,6 +189,42 @@ def _resolve_target(target: str, target_index: dict[str, str | None]) -> str:
     return target
 
 
+def _attachment_facts(vault_root: str, links: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Hash local attachment targets without following paths outside the Vault.
+
+    Attachment bytes remain owned by the selected Vault.  The importer only
+    returns verifiable facts here; persistence into the product raw-asset store
+    remains an explicit ingestion operation.
+    """
+    root = Path(vault_root).resolve()
+    facts: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for link in links:
+        target = str(link.get("target", ""))
+        path_part = target.split("#", 1)[0].strip()
+        if not path_part or path_part.casefold().endswith(".md"):
+            continue
+        candidate = (root / path_part).resolve()
+        try:
+            relative = candidate.relative_to(root).as_posix()
+        except ValueError:
+            continue
+        if relative in seen or not candidate.is_file():
+            continue
+        blob = candidate.read_bytes()
+        facts.append(
+            {
+                "path": relative,
+                "sha256": sha256(blob).hexdigest(),
+                "size_bytes": len(blob),
+                "link_type": link.get("link_type", "wikilink"),
+                "is_embed": bool(link.get("is_embed")),
+            }
+        )
+        seen.add(relative)
+    return facts
+
+
 # ── Importer ────────────────────────────────────────────
 
 
@@ -303,6 +339,7 @@ def import_file(
     frontmatter_text = text[: text.find(body)] if body and body != text else ""
     links_text = f"{frontmatter_text}\n{body}" if frontmatter_text else body
     links = parse_links(links_text)
+    result["attachment_facts"] = _attachment_facts(vault_root, links)
     target_index = _build_target_index(vault_root) if links else {}
     result["links_indexed"] = (
         index_document_links(
