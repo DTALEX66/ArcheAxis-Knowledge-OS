@@ -152,6 +152,8 @@ public partial class MainWindow : Window
 
         var imported = 0;
         var executions = 0;
+        var completed = 0;
+        var failed = 0;
         try
         {
             foreach (var file in files)
@@ -186,7 +188,11 @@ public partial class MainWindow : Window
                     $"/api/v1/jobs/{Uri.EscapeDataString(jobId)}/executions",
                     execution,
                     new Dictionary<string, string> { ["idempotency-key"] = jobId });
-                if (started.IsSuccessStatusCode) executions++;
+                if (!started.IsSuccessStatusCode) continue;
+                executions++;
+                var state = await WaitForJobAsync(jobId);
+                if (state == "succeeded") completed++;
+                else if (state is "failed" or "cancelled") failed++;
             }
         }
         catch (Exception)
@@ -194,8 +200,28 @@ public partial class MainWindow : Window
             CoreStatusText.Text = $"核心状态：导入中断，已提交 {imported}/{files.Count} 个资料";
             return;
         }
-        CoreStatusText.Text = $"核心状态：已导入 {imported}/{files.Count}，已启动 {executions} 个处理任务";
+        CoreStatusText.Text = $"核心状态：已导入 {imported}/{files.Count}，处理完成 {completed}/{executions}，失败 {failed}";
         await RefreshWorkspaceSummaryAsync();
+    }
+
+    private async Task<string?> WaitForJobAsync(string jobId)
+    {
+        if (_supervisor is null) return null;
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            using var response = await _supervisor.SendAsync(
+                HttpMethod.Get,
+                $"/api/v1/jobs/{Uri.EscapeDataString(jobId)}");
+            if (!response.IsSuccessStatusCode) return null;
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            if (document.RootElement.TryGetProperty("state", out var state))
+            {
+                var value = state.GetString();
+                if (value is "succeeded" or "failed" or "cancelled") return value;
+            }
+            await Task.Delay(200);
+        }
+        return null;
     }
 
     private static string JobKindFor(string name)
