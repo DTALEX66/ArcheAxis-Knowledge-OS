@@ -19,6 +19,7 @@ from __future__ import annotations
 import re
 from contextlib import suppress
 from datetime import datetime, timezone
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -194,14 +195,17 @@ def import_file(
         return result
 
     # ── Actually import ──
-    import uuid
+    # Use the vault-relative path as the stable identity.  Re-importing the
+    # same note therefore refreshes the existing asset instead of generating
+    # a second logical document/card.
+    stable_suffix = sha256(str(rel_path).replace("\\", "/").encode("utf-8")).hexdigest()[:20]
 
     from shared.storage import fts5_sync, insert
 
     now = datetime.now(timezone.utc).isoformat()
 
     if asset_type == "card":
-        kb_id = f"card_{uuid.uuid4().hex[:12]}"
+        kb_id = f"card_obsidian_{stable_suffix}"
         card = {
             "id": kb_id,
             "title": title,
@@ -217,7 +221,7 @@ def import_file(
         result["kb_id"] = kb_id
 
     elif asset_type == "machine_knowledge":
-        kb_id = f"mku_{uuid.uuid4().hex[:12]}"
+        kb_id = f"mku_obsidian_{stable_suffix}"
         unit = {
             "id": kb_id,
             "title": title,
@@ -236,7 +240,7 @@ def import_file(
 
     else:
         # Default: import as document
-        kb_id = f"doc_{uuid.uuid4().hex[:12]}"
+        kb_id = f"doc_obsidian_{stable_suffix}"
         doc = {
             "id": kb_id,
             "title": title,

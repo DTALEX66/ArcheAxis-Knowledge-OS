@@ -1891,3 +1891,11 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `mcp_observed`: real Core/MCP search, task receipt, readback, and refusal of machine human-review action.
 - `unseen_observed`: unseen check passed; baseline 3/5; correction diagnostic changed 815 to 930 and removed the superseded value.
 - `evidence_scope`: probe execution is reproducible local evidence for G06's exercised capability only; it does not close the remaining Q00 gates.
+
+## Continuation receipt — 2026-09-18 Obsidian repeat-import identity increment
+
+- `task_id`: X12/R15 stable Obsidian asset and relation identities
+- `implementation`: Obsidian document/card/machine-knowledge IDs now derive from the vault-relative path; link IDs derive from source, target, type, alias, and embed state.
+- `verification`: `pytest tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `33 passed`; Ruff passed.
+- `actual_result`: repeated import of the same note now refreshes the same logical asset and exact relation edges through existing `INSERT OR REPLACE` storage semantics.
+- `limitations`: changed-note reconciliation still needs removal of stale outgoing edges, target-to-imported-ID resolution, attachment hashing, and full Vault round-trip evidence; R15 remains partial.

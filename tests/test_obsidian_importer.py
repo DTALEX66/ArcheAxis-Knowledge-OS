@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 
 from shared.backlinks import index_document_links, parse_links
@@ -13,7 +14,6 @@ from shared.obsidian_importer import (
     import_vault,
     scan_vault,
 )
-from shared.backlinks import parse_links
 
 
 class _FakeFile:
@@ -256,6 +256,22 @@ def test_import_file_indexes_frontmatter_wikilinks(monkeypatch) -> None:
     links = [row for table, row in rows if table == "kb_links"]
     assert result["links_indexed"] == 1
     assert links[0]["target_id"] == "Other note"
+
+
+def test_import_file_uses_stable_id_for_repeat_imports(monkeypatch) -> None:
+    inserted = []
+    monkeypatch.setattr("shared.storage.insert", lambda table, row: inserted.append((table, row)))
+    monkeypatch.setattr("shared.storage.fts5_sync", lambda *a, **k: None)
+
+    with tempfile.TemporaryDirectory() as d:
+        note = Path(d) / "note.md"
+        note.write_text("# Stable\n", encoding="utf-8")
+        first = import_file(d, "note.md", dry_run=False)
+        second = import_file(d, "note.md", dry_run=False)
+
+    assert first["kb_id"] == second["kb_id"]
+    link_rows = [row for table, row in inserted if table == "kb_links"]
+    assert len(link_rows) == 0
 
 
 def test_import_vault_dry_run(monkeypatch) -> None:

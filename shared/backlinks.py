@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import re
 import sys
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -99,9 +100,19 @@ def index_document_links(doc_id: str, content: str) -> int:
     links = parse_links(content)
     count = 0
     for link in links:
-        import uuid
-
-        lid = f"link_{uuid.uuid4().hex[:12]}"
+        # A stable identity makes repeated imports idempotent.  ``insert``
+        # uses INSERT OR REPLACE, so the same source/target relation is
+        # refreshed instead of creating an unbounded duplicate edge.
+        identity = "\x1f".join(
+            (
+                doc_id,
+                link["target"],
+                link["link_type"],
+                link["alias"],
+                "1" if link["is_embed"] else "0",
+            )
+        )
+        lid = f"link_{sha256(identity.encode('utf-8')).hexdigest()[:20]}"
         insert(
             "kb_links",
             {
