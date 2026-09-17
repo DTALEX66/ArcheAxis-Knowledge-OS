@@ -1799,3 +1799,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `actual_result`: PASS for static Green candidate composition and full qualification jobs; Green candidate, desktop build, installer lifecycle, Rust, workers, runtime, browser, contracts, security, migration, and A0 gates all succeeded.
 - `limitations`: this closes static bundle composition and CI qualification only; clean-machine launch, real import, learning, and restart/readback remain separate R13 evidence.
 - `rollback`: revert the five Green assembly/workflow/test files; no external library, Green install, or user data was modified.
+
+## Continuation receipt — 2026-09-18 live R11 MCP and unseen evidence
+
+- `task_id`: X09/R11 real MCP client and unseen evaluation
+- `source_sha`: `389766b2992c310269b3fe2dbe6971ac79764f16`
+- `branch`: `main`
+- `mcp_probe`: `.project-local/runs/r11-mcp-live-20260918.json`; exit `0`; MCP SDK `1.30.0`; real Core/MCP path; search, qualification, task receipt, and task readback succeeded; unsupported `archeaxis_accept` was refused as expected because no human-review tool is exposed.
+- `unseen_probe`: `.project-local/runs/r11-unseen-live-20260918.json`; exit `0`; unseen evaluation completed; baseline retrieval was `3/5` with literal-token misses recorded; correction changed glacier `815` to `930`, and old/new values were read back.
+- `actual_result`: PASS for probe execution and restart/readback behavior exercised by the probes; this is not an accuracy or full first-use quality claim.
+- `limitations`: Q00 remains `AUDITED_FAIL_BLOCKED`; G02–G12 still require same-candidate evidence across real multi-format import, learning, MCP, migration, and Windows runtime. R11 remains partial until that independent audit closes.
+- `rollback`: remove this receipt only; ignored probe artifacts remain local and were not staged.
