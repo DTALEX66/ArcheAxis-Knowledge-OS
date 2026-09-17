@@ -1907,6 +1907,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: `pytest tests/test_obsidian_importer.py tests/workers/test_bulk_structured.py -q` — `34 passed`; Ruff passed.
 - `limitations`: attachment hashing, Canvas semantic storage, real Vault client round-trip, and full multi-format acceptance remain open.
 
+## Continuation receipt — 2026-09-18 target-resolution Green rebuild
+
+- `task_id`: X13/R13 provenance refresh after R15 target resolution
+- `source_commit`: `8e2c59be1cb3d08dbe5294e8cb93ac2a6f8f5d63`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-8e2c59be-x64`
+- `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
+- `limitations`: local candidate only; signing, uninstall, clean-machine GUI, real Green install, and remote upload remain open.
+
 ## Continuation receipt — 2026-09-18 post-R15 clean Green rebuild
 
 - `task_id`: X13/R13 provenance refresh after R15 increment

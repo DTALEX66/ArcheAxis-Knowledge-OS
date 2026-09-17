@@ -198,7 +198,7 @@
         "R00",
         "R15"
       ],
-      "gap": "历史69归属缺口已关闭并保留旧SHA测量；本轮Core启动依赖检查通过（core binary、managed Python、text/pdf/OCR workers、PyMuPDF、Tesseract语言数据、Cargo wrapper均可见）。在干净提交 52fb1d419d212c8ddf8f91e05f5be91fb1c21aec（tree 由候选 manifest 绑定）上重新组装 Green 候选；expected commit/tree verifier 返回 ok=true，通过 runtime/workers 门禁（479 files），并以 ARCHAXIS_CORE_BIN/ARCHEAXIS_CORE_BIN 完成桌面 supervisor smoke exit 0。签名/卸载、干净机 GUI 首用、真实 Green 安装覆盖和全仓语义吸收仍未闭合。"
+      "gap": "历史69归属缺口已关闭并保留旧SHA测量；本轮Core启动依赖检查通过（core binary、managed Python、text/pdf/OCR workers、PyMuPDF、Tesseract语言数据、Cargo wrapper均可见）。在干净提交 8e2c59be1cb3d08dbe5294e8cb93ac2a6f8f5d63（tree 由候选 manifest 绑定）上重新组装 Green 候选；expected commit/tree verifier 返回 ok=true，通过 runtime/workers 门禁（479 files），并以 ARCHAXIS_CORE_BIN/ARCHEAXIS_CORE_BIN 完成桌面 supervisor smoke exit 0。签名/卸载、干净机 GUI 首用、真实 Green 安装覆盖和全仓语义吸收仍未闭合。"
     },
     {
       "id": "X14",
