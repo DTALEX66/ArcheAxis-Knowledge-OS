@@ -305,8 +305,8 @@
   },
   "specialty_delta": "../../.project-local/runs/be268a2d33/r5-x00-baseline-20260913/artifacts/X00-01-DELTA.json",
   "independent_audit": {
-    "Q00": "NOT_RUN",
-    "Q01": "NOT_READY"
+    "Q00": "AUDITED_FAIL_BLOCKED_20260918",
+    "Q01": "BLOCKED_DEPENDENCY_Q00"
   },
   "baseline_local_main_sha": "1e9813ea2bd49f47d334ba6717c78d3e9feda6ce",
   "baseline_local_main_note": "Local ref read on 2026-09-13; not a live remote or CI claim.",
@@ -325,4 +325,3 @@
     "windows_tested": false
   }
 }
-
