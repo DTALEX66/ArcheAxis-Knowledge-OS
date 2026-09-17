@@ -2220,3 +2220,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/probes/r10_core_journey_smoke.py`; exit `0`.
 - Real Core completed reachability (200), source import (202), job enqueue (202), execution (202), status polling (200), output readback (200), and source-bound transform search (200).
 - Receipt reports `knowledge_count=0`, `transform_count=1`, `closed_loop_verified=false`; no accepted knowledge was fabricated. Evidence is stored under `.project-local/runs/.../r10-core-conversion.json`.
+
+## 2026-09-18 governance/path regression after branch cleanup
+
+- Targeted suite `tests/test_evidence_index.py tests/test_taskpack_paths.py tests/test_project_data_boundary.py` via project `dev.py`: `20 passed`, exit `0`.
+- This confirms evidence-index self-signing guards, taskpack path resolution and project data-boundary contracts remain intact after branch/ref cleanup.
