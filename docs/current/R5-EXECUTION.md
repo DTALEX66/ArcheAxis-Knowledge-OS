@@ -2158,3 +2158,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `.venv\\Scripts\\python.exe scripts/runtime/dev.py --root . -- .venv\\Scripts\\python.exe scripts/check_format_matrix.py --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json --json`; exit `0`.
 - Result: all 16 carried format groups are mechanically consistent with the Core and worker route tables; summary remains `0 complete / 14 partial / 2 custody_only`.
 - This validates matrix integrity only; it does not upgrade any format qualification or claim full end-to-end coverage.
+
+## 2026-09-18 self-contained desktop candidate process smoke
+
+- Candidate: `.project-local/build/desktop-publish/win-x64/ArcheAxis.Desktop.exe`.
+- Started with `--smoke-test` and hidden window; process remained alive after 4 seconds, then was closed/terminated as an owned smoke process. Launch command exit `0`; no framework-missing dialog occurred in this candidate directory.
+- This is a process-start smoke only. It does not prove Green installation, visible GUI interaction, installer/signature/uninstaller, or clean-machine acceptance.
