@@ -2037,3 +2037,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Scope: add `kb_attachment_facts` metadata table and idempotent per-source replacement; Obsidian import now persists vault-relative path, SHA-256, byte size, link type and embed flag while retaining source-byte ownership in the Vault.
 - Verification: `.venv\Scripts\python.exe scripts/runtime/dev.py --root . --pytest tests/test_obsidian_importer.py tests/test_obsidian_projection.py tests/test_obsidian_vault.py tests/test_canvas_projection.py tests/test_json_canvas.py -q`; exit `0`; `114 passed in 0.39s`.
 - Limitation: this closes metadata persistence only; full real-vault import/export and restart readback remain separate R15 acceptance work.
+
+## 2026-09-18 attachment metadata follow-through
+
+- Commit: `6c79a29b` adds the persisted attachment-facts table to the CLI statistics surface and keeps the import/storage code Ruff-clean.
+- Verification: Ruff on changed Python files passed; Obsidian/Vault/Canvas/imported-module suite passed `121` tests.
