@@ -2128,3 +2128,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full`; exit `0`.
 - Result: `2860 passed, 10 skipped, 13 warnings` in `208.49s`.
 - This is a local verification result; it is not CI or remote publication evidence.
+
+## 2026-09-18 stale checkpoint cleanup attempt
+
+- Reviewed exact path `.project-local/build/be268a2d33` (approximately 0.75 GiB, last written 2026-09-15). It is a rebuildable Debug checkpoint; current Green candidates, release publish output, Cargo target and receipts are separate.
+- Deletion was authorized by the user and guarded by reparse/process/postcondition checks, but the host execution policy rejected the recursive removal command before execution. No files were changed and the target remains present.
+- This is a cleanup blocker; do not classify the path as deleted until a permitted command returns `Test-Path=false`.
