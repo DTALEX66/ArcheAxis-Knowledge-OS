@@ -1843,7 +1843,6 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - `task_id`: X13/R13 candidate provenance and runtime smoke
 - `source_commit`: `fc05b0ad15fcff05404ad1703aee773dc4c84645`
-- `source_tree`: `143f328eea834ebb6395970cd7e1a94cf14130de`
 - `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-fc05b0ad-x64`
 - `verification`: `verify_green_candidate.py --require-runtime --require-workers` returned `ok=true`, 479 files, no problems; manifest provenance matches the clean commit/tree.
 - `runtime_smoke`: candidate desktop `--smoke` with explicit `ARCHAXIS_CORE_BIN` and `ARCHEAXIS_CORE_BIN` returned exit 0.

@@ -13,14 +13,9 @@ Usage:
 from __future__ import annotations
 
 import re
-import sys
 from collections.abc import Callable
 from hashlib import sha256
-from pathlib import Path
 from typing import Any
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_PROJECT_ROOT))
 
 # ── Wikilink patterns ───────────────────────────────────
 
