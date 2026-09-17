@@ -1908,3 +1908,11 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-d88c06b4-x64`
 - `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0 with explicit Core paths.
 - `limitations`: local candidate only; signed installer, clean-machine GUI, real Green install, and remote upload remain open.
+
+## Continuation receipt — 2026-09-18 relation-replacement Green rebuild
+
+- `task_id`: X13/R13 provenance refresh after R15 relation replacement
+- `source_commit`: `52fb1d419d212c8ddf8f91e05f5be91fb1c21aec`
+- `candidate`: `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-52fb1d41-x64`
+- `verification`: expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; desktop supervisor smoke returned exit 0.
+- `limitations`: this remains a local candidate; installer signing, uninstall, clean-machine GUI, real Green install, and remote upload are not evidenced.
