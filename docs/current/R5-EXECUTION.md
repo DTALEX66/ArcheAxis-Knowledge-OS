@@ -1946,6 +1946,14 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - `verification`: candidate expected commit/tree verifier returned `ok=true`, 479 files, runtime/workers included; rebuilt Core binary and desktop supervisor smoke returned exit 0.
 - `limitations`: local candidate only; installer signing, uninstall, clean-machine GUI, real Green installation, and remote upload remain open.
 
+## Continuation receipt — 2026-09-18 full Rust workspace gate
+
+- `task_id`: X05/X11/X12 workspace regression gate
+- `command`: project cargo wrapper with C:\Program Files (x86)\Windows Kits\10\Lib\10.0.28000.0, project MSVC 14.44.35207, and `ARCHEAXIS_PYTHON=.venv\\Scripts\\python.exe`; `cargo test --workspace --all-targets --quiet`.
+- `actual_result`: exit `0`; all workspace unit, integration, migration, archive, API, writer, worker, and restart tests passed.
+- `evidence`: `.project-local/runs/cargo-workspace-test-20260918.log`.
+- `limitations`: warnings remain in pre-existing tests/dead code; no product failure was observed in this gate.
+
 ## Continuation receipt — 2026-09-18 schema v5 archive compatibility
 
 - `task_id`: X05/X12 Canvas schema migration and archive custody
