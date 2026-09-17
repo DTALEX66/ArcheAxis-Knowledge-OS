@@ -13,6 +13,7 @@ namespace ArcheAxis.Desktop;
 public partial class MainWindow : Window
 {
     private CoreSupervisor? _supervisor;
+    private readonly DeepTutorSupervisor _deepTutor = DeepTutorSupervisor.CreateFromEnvironment();
     private string? _activeLearningItem;
 
     public MainWindow()
@@ -101,7 +102,26 @@ public partial class MainWindow : Window
     private void OnClosed(object? sender, EventArgs e)
     {
         // Supervisor shutdown: never leave an orphaned core process behind.
+        _deepTutor.Dispose();
         _supervisor?.Dispose();
+    }
+
+    private async void OnOpenLearningWorkbenchClick(object? sender, RoutedEventArgs e)
+    {
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+        {
+            CoreStatusText.Text = "学习工作台：核心未就绪";
+            return;
+        }
+        var result = await _deepTutor.StartAsync();
+        if (!result.ok)
+        {
+            CoreStatusText.Text = $"学习工作台：{result.detail}";
+            return;
+        }
+        CoreStatusText.Text = _deepTutor.OpenBrowser()
+            ? "学习工作台：已打开本地窗口"
+            : $"学习工作台：已就绪（{_deepTutor.Url}）";
     }
 
     private async void OnImportClick(object? sender, RoutedEventArgs e)
