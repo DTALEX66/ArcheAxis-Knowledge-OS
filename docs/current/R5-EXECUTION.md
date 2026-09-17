@@ -2077,3 +2077,10 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Command: `python scripts/release/verify_release_architecture.py --root .`; exit `0`.
 - Result: formal Avalonia -> Rust Core -> Python workers release chain is identified. This is a structural architecture check; it does not substitute for installer, signature, clean-machine or Green runtime acceptance.
+
+## 2026-09-18 Rust workspace verification with registered toolchains
+
+- Initial direct invocation failed at the environment contract (`ARCHEAXIS_PYTHON` absent); no product assertion was made from that run.
+- Correct invocation used the registered MSVC `vcvars64.bat`, direct Git/Cargo paths, registered Tesseract executable/language directory, and project `scripts/runtime/dev.py`.
+- `cargo test --workspace --all-targets --quiet` completed with exit `0`; all listed Rust unit/integration suites passed, including OCR, scanned-PDF OCR chaining, media/office/archive/Canvas routes, restart readback, transaction atomicity, migration and worker protocol checks.
+- Build/test outputs remained under `.project-local`; the external toolchain was read-only.
