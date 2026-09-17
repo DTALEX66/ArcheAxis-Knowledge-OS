@@ -80,6 +80,8 @@ def _tesseract() -> str:
     if binary and usable(Path(binary)):
         return binary
     if configured:
+        if candidate.is_absolute() and not candidate.is_file():
+            raise RuntimeError(f"configured TESSERACT_CMD does not exist: {candidate}")
         raise RuntimeError(f"configured TESSERACT_CMD is unusable: {candidate}")
     if not binary:
         raise RuntimeError("tesseract binary not found on PATH (OCR engine unavailable)")

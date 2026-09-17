@@ -2113,3 +2113,18 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Command: `python scripts/release/verify_green_candidate.py .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-fc05b0ad-x64 --require-runtime --require-workers`; exit `0`.
 - Result: `ok=true`, scope `desktop-core-runtime-workers`, `479` manifest files, no hash or required-file problems.
 - Provenance boundary: candidate version is `clean-fc05b0ad`; this is historical candidate evidence and is not promoted to the current `HEAD` or a formal release.
+
+## 2026-09-18 Python full gate rerun after OCR path hardening
+
+- Source SHA: `e23e3812f28ba285afc5c9bad164300e4b21b8e6` (before this receipt commit).
+- Command: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full`; initial run exposed one stale source-contract assertion for the explicit missing `TESSERACT_CMD` message.
+- Minimal fix restored the explicit `configured TESSERACT_CMD does not exist` branch while retaining executable probing and fallback behavior.
+- Targeted regression via `scripts/runtime/dev.py --pytest`: `31 passed` (exit `0`).
+- The pre-fix full gate result was `2859 passed, 10 skipped, 1 failed`; a full rerun after the fix is still required before promoting this receipt to a full-gate PASS.
+
+## 2026-09-18 Python full gate final result
+
+- Source SHA: `e23e3812f28ba285afc5c9bad164300e4b21b8e6` plus the explicit missing-command message fix in this working tree.
+- Command: `pwsh -NoLogo -NoProfile -File scripts/ci/run_tests.ps1 -- --full`; exit `0`.
+- Result: `2860 passed, 10 skipped, 13 warnings` in `208.49s`.
+- This is a local verification result; it is not CI or remote publication evidence.
