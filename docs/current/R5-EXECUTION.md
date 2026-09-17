@@ -2084,3 +2084,8 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Correct invocation used the registered MSVC `vcvars64.bat`, direct Git/Cargo paths, registered Tesseract executable/language directory, and project `scripts/runtime/dev.py`.
 - `cargo test --workspace --all-targets --quiet` completed with exit `0`; all listed Rust unit/integration suites passed, including OCR, scanned-PDF OCR chaining, media/office/archive/Canvas routes, restart readback, transaction atomicity, migration and worker protocol checks.
 - Build/test outputs remained under `.project-local`; the external toolchain was read-only.
+
+## 2026-09-18 Rust formatting gate
+
+- Command: `cargo fmt --all -- --check`; result `NOT EXECUTED` because the registered Cargo toolchain does not include `cargo-fmt.exe` (`rustfmt.exe` exists, but the Cargo wrapper/component is absent).
+- No component installation or external-toolchain mutation was performed. Rust compile and workspace tests remain independently verified as passing.
