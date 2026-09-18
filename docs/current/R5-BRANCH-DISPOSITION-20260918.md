@@ -18,6 +18,20 @@
   them are contradicted by the evidence below** (`ci-release-optimization`, `recovery-shell-closed-loop`,
   `execution-reliability-standards`).
 
+## 中文摘要（2026-09-18）
+
+- 结论：17 个非 main 分支全部分类并给出处置；**未删除 / 未修改 / 未重命名任何分支、标签、发布或 PR**，远端分支数仍为 18。
+- 分类计数：语义已吸收 **11**、仅历史归档 **1**、仅发布历史 **4**、供体能力 **1**、有效缺失工作 **0**。
+- 处置计数：**删除候选 9 / 保留 4 / 上报 4**（合计 17）。
+- 删除候选（9，**实际删除 0**）：`chore/naming-repo-refs`、`chore/placeholder-hygiene`、`docs/intake-h2`、`docs/naming-handoff`、`docs/verification-summary-2026-08-09`、`feat/naming-package-identity`、`feat/naming-step3`、`feat/naming-v2-contract`、`fix/mfx001-marker-block`。
+- 保留（4）：`codex/execution-reliability-standards`（供体能力：无 PR，8 个文件在主线一个都没有）、`codex/post-release-v0.6.9`、`codex/release-v0.6.9`、`codex/v0.6.8-release-closure`。
+- 上报（4）：`codex/frozen-roadmap-deepseek-v1`、`codex/recovery-shell-closed-loop`、`codex/ci-release-optimization`、`release/v0.4.0-contract`。四个受保护分支**无一**落入删除候选。
+- 结构性发现：17 个分支全部 `diverged` 且无 tip 为主线祖先，因为其中 15 个是**压缩合并**；吸收与否必须按文件内容对压缩提交比对，**不能**用祖先关系判定。
+- 与仓库内既有基线的分歧：`docs/current/BRANCH-CONVERGENCE.json` 把 `ci-release-optimization`、`recovery-shell-closed-loop` 标为 `DONOR_CAPABILITY_TO_REIMPLEMENT`，把 `execution-reliability-standards` 标为 `HISTORICAL_ARCHIVE_ONLY`；本报告证据与之相反（见下方逐分支说明）。该基线自身仍为 `PENDING_DETAILED_AUDIT`，**未被改写**。
+- 更正记录：本文件自报合计行原写 `DELETE_CANDIDATE 8, RETAIN 4, ESCALATE 5`，与上方逐分支汇总表（9/4/4）自相矛盾；已按表中逐条证据更正（提交 `57dccc1e`），并注明错误原因。
+- 环境说明：采集时 `git fetch`（SSH）在执行环境被拒，远端状态只经 GitHub REST 读回；该限制随后解除，本报告关键结论已独立抽验复核（分支数 18；PR#140/#142 合并提交为主线祖先且其 head 等于所称 tip；供体分支确无 PR 且其关键文件在主线不存在）。
+- 明细与逐分支证据见下方正文（作为证据附录保留）。
+
 ## Summary
 
 | branch | tip_sha | ahead | behind | category | disposition | evidence |

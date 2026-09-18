@@ -12,6 +12,13 @@
    [immutable TASKS](authority/taskpack-0912-r5/TASKS.json) — the single active
    package, AAK-FOLLOWUP-20260908-R3 / R5 (SUP-019). Live progress is
    [R5-EXECUTION](current/R5-EXECUTION.md) and [R5-STATE](current/R5-STATE.json).
+   The 2026-09-18 DSH session handoff — summary, task table, verification
+   receipts, external-library readback, branch dispositions, error and blocker
+   summaries — is [DSH completion report](current/DSH-COMPLETION-REPORT-20260918.md),
+   with its branch detail in
+   [branch disposition report](current/R5-BRANCH-DISPOSITION-20260918.md). Both are
+   session receipts: neither is an independent audit, and neither promotes a slice
+   status.
    The [0910 ledger](authority/taskpack-0910-r3/EXECUTION.md),
    [0910 audit packet](authority/taskpack-0910-r3/AUDIT-PACKET.md), and older
    0908/0907/0906 evidence keep their original SHAs and historical scope.

@@ -2286,3 +2286,9 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Binding rules taken from the registry: use the `external_paths` application directories, and do **not** prepend `10-toolchains/scoop/shims`, whose `git.exe` shim points at a `toolchains\...` path without the `10-` prefix and breaks `dev.py`. Without the Tesseract binding the OCR worker correctly fails closed with `AAK-WORKER-003 tesseract binary not found on PATH`.
 - Fixed a deterministic defect in the tracked Rust entry point: `scripts/ci/cargo_test.bat` referenced `%CARGO_HOME%` inside the same parenthesised block that sets it, so PATH became `\bin;<old PATH>` and the documented `ARCHEAXIS_RUST_TOOLCHAINS` usage could never find cargo. It now uses delayed expansion (`!CARGO_HOME!`), with a regression test in `tests/runtime-paths/test_dev_paths.py`. No toolchain path, version or architecture was changed.
 - Left unchanged: `docs/environment/EXTERNAL_DEPENDENCIES.md`. No new external tool, model or service was added, so its §9 registration rule requires nothing; and its two declared copies are out of sync (external `OS External Configuration/EXTERNAL_DEPENDENCIES.md` 322 lines vs repository copy 347 lines), which is an owner decision rather than a DSH edit.
+
+## 2026-09-18 DSH completion report
+
+- 本轮 DSH 会话的汇总交接记录（摘要、任务总表、验收收据、外置库与路径索引核查、分支分类汇总、**错误总结**、**阻塞总结**、状态不变量、复现命令）已落在 `docs/current/DSH-COMPLETION-REPORT-20260918.md`。
+- 该报告记录的是本次执行会话的事实与教训，**不**提升任何切片状态、**不**构成独立审计结论。
+- 最终坐标：`BASE_SHA = 44bd821da82d9beeacf4e3c6f581c0fd90521ba4`，`FINAL_SHA = c4cd01ad6e0a263f2c74517382baa399e9617a01`（本地 / 远端 / GitHub API 三方一致）；分支只读分类明细见 `docs/current/R5-BRANCH-DISPOSITION-20260918.md`。
