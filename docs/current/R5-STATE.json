@@ -337,6 +337,6 @@
     "branch_deletion": "none performed; dispositions are read-only candidates in docs/current/R5-BRANCH-DISPOSITION-20260918.md",
     "dsh_completion_report": "docs/current/DSH-COMPLETION-REPORT-20260918.md",
     "local_branch_disposition_report": "docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md",
-    "local_branch_dispositions": "read-only candidates only: 2 delete / 12 retain / 5 escalate; no local or remote branch was deleted"
+    "local_branch_dispositions": "read-only classification then one authorised local deletion: 1 deleted (fix/ci-playwright-collection, backup bundle verified), 13 retained, 5 escalated; codex/worker-quality-0906 was reclassified from delete-candidate to retain because its worktree holds 56 lines main lacks; no remote branch and no worktree was removed"
   }
 }

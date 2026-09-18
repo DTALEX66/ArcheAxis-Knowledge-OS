@@ -30,7 +30,7 @@
 | 本地 C# 与桌面运行时 | 构建 **0 警告 0 错误**；词汇契约 **29 通过**；supervisor **9 通过**；Avalonia 冒烟 **OK** |
 | 路径归属 | **2053 / 2053 = 100%** |
 | 远端分支处置 | 删除候选 **9** / 保留 **4** / 上报 **4**；**实际删除 0** |
-| 本地仅存分支处置（非本轮产生） | 删除候选 **2** / 保留 **12** / 上报 **5**；**实际删除 0**；详见 `docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md` |
+| 本地仅存分支处置（非本轮产生） | 详审后：**已删除 1** / 保留 **13** / 上报 **5**；详见 `docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md` |
 
 ---
 
@@ -283,16 +283,24 @@
 
 ### 8.4 本地残留（非本轮产生，但影响"双端仓库一致"）
 
-16. **本地有 19 个仅本地分支（80 个未推送提交）与 2 个 stash。** 核验"双端一致"时发现：
-    main 双端逐字节一致（tree 与全部 18 个远端分支引用一致），但这 19 个分支从未推送，
-    远端不存在。已按 Owner 选择出**只读分类报告**
-    `docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md`：删除候选 2（`codex/worker-quality-0906`
-    的 tip 是 main 祖先、`fix/ci-playwright-collection` 唯一改动文件属主线刻意删除的退役面）、
-    保留 12（内容均被主线越过，无缺失文件）、上报 5（含主线从未有过的文件，如
-    `app/adapters/research_knowledge.py`、`scripts/project_env.*`、`tests/test_format_capabilities.py`）。
-    **未删除任何一个**：删除是破坏性动作，需 Owner 单独授权（报告第六章给了先备份再删的安全路径）。
-    另 2 个 stash（2026-09-18 / 2026-08-05）同样只登记、未丢弃。
-17. **本地对象库保留改写前的不可达提交**（任何历史改写都会如此），不影响已跟踪内容的一致性。
+16. **本地有 19 个仅本地分支（80 个未推送提交）、2 个 stash 与 3 个 worktree。** 已按 Owner 选择
+    出只读分类报告 `docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md`，并按"详细审计、
+    有用留下、无用去掉"执行：
+    - **已删除 1 个**：`fix/ci-playwright-collection`（唯一改动是在已被主线删除的
+      `requirements-ci.txt` 里加一行 playwright，而该意图已被 `pyproject.toml` 的 ci/浏览器组
+      与 `ci.yml` 的 Chromium 安装覆盖）；删除前已 `git bundle` 备份并 `verify`。
+    - **详审改判保留 1 个**：`codex/worker-quality-0906` 的提交确实全在 main，但它被
+      **worktree** 占用，而该 worktree 工作区持有 **56 行 main 没有的内容**（9 个文件）。
+      把这些行抽取归档到 `docs/history/worktree-preserved-diffs/worker-quality-0906-unique-20260918.md`。
+      **教训**：判断"分支可删"必须同时检查 `git worktree list` 与 worktree 的未提交内容，
+      只看提交祖先关系会误删。
+    - **保留 12 / 上报 5**；另 2 个 stash 只登记未丢弃。
+17. **另有两个 worktree 属禁止 DSH 处理的区域**：`v3-era`（detached）持有对
+    `crates/archeaxis-archive/src/lib.rs`、`crates/archeaxis-store-sqlite/src/lib.rs` 的已暂存修改
+    以及未跟踪的 `crates/archeaxis-archive/tests/gen_v3_fixture.rs`（主线无此路径）——
+    `archeaxis-archive` 与 Rust v3 schema 属 §15/§16 明令 DSH 不得处理的区域，**上报**；
+    `verify-0c9c` worktree 干净，无动作。
+18. **本地对象库保留改写前的不可达提交**（任何历史改写都会如此），不影响已跟踪内容的一致性。
 
 ## 九、状态不变量（本轮未改变）
 
