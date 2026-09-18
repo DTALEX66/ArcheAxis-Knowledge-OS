@@ -26,7 +26,9 @@
    branch residuals under
    [remote branch assets](history/remote-branch-assets/README.md).
    These are session receipts and preserved historical material: none is an
-   independent audit, and none promotes a slice status.
+   independent audit, and none promotes a slice status. The standalone handoff prompt
+   for an independent full audit of this state is
+   [HERMES full audit prompt](current/HERMES-FULL-AUDIT-PROMPT-20260918.md).
    The [0910 ledger](authority/taskpack-0910-r3/EXECUTION.md),
    [0910 audit packet](authority/taskpack-0910-r3/AUDIT-PACKET.md), and older
    0908/0907/0906 evidence keep their original SHAs and historical scope.
