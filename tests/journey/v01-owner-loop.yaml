@@ -1,0 +1,141 @@
+# R5 mandatory owner loop — declared capability, not a pass claim.
+#
+# `PROJECT_CONTRACT.yaml` -> `delivery.mandatory_journey` has pointed at this path
+# since 2026-09-04 while the file did not exist, so the contract named a journey
+# that no reader could open. This file registers what actually exists at that
+# date. Each step is IMPLEMENTED / PARTIAL / BLOCKED with the tracked evidence
+# that supports it and an explicit statement of what is NOT claimed. No step is
+# IMPLEMENTED until its acceptance evidence is an exact-SHA receipt, and this
+# file is never the place where acceptance is granted.
+journey: v01-owner-loop
+revision: 1
+declared_at: "2026-09-18"
+declared_by: dsh-execution-pack
+golden_flow_source: config/product/UI_CONTRACT_V2.json
+acceptance_status: BLOCKED
+acceptance_reason: >-
+  Q00/R14 is FAIL/BLOCKED and Q01/R16 is BLOCKED, and an executor cannot sign the
+  audit of its own work. Owner acceptance therefore has no admissible evidence yet.
+evidence_index:
+  - docs/current/R5-STATE.json
+  - docs/current/R5-HANDOFF-20260918.md
+  - docs/truth/CURRENT_STATE_TRUTH.md
+  - config/product/UI_CONTRACT_V2.json
+steps:
+  - id: import
+    surface: knowledge-center
+    status: PARTIAL
+    implemented: >-
+      Raw-first web capture plus text extraction, multi-format adapters behind
+      optional engines, and resumable directory conversion with a JSONL manifest.
+    not_verified: >-
+      Real Core production-library import and a visible Windows host import were
+      not executed (X00 gap). Installed-build full-format support stays
+      UNVERIFIED/BLOCKED beyond the verified format set.
+    evidence:
+      - integration-tests/test_web_full_chain_e2e.py
+      - docs/current/R5-STATE.json
+      - docs/truth/CURRENT_STATE_TRUTH.md
+  - id: read
+    surface: source-viewer
+    status: PARTIAL
+    implemented: >-
+      Page-level EvidenceAnchor projection over stored sources, plus incremental
+      Obsidian/Markdown body relation and target-resolution indexing.
+    not_verified: >-
+      Formal Avalonia runtime reading readback and a real Vault round-trip were
+      not executed.
+    evidence:
+      - docs/current/UI_V3_PRODUCT_ROADMAP.md
+      - tests/test_workspace_evidence_anchor_api.py
+      - tests/test_obsidian_importer.py
+  - id: anchor
+    surface: source-viewer
+    status: PARTIAL
+    implemented: >-
+      Anchor v2 contracts with CURRENT/STALE/ORPHANED states, and a workspace
+      evidence-anchor API.
+    not_verified: >-
+      Anchor states are not yet promoted into the inspector workbench; that
+      promotion is still open in the product roadmap.
+    evidence:
+      - tests/test_evidence_anchor.py
+      - tests/test_source_anchor_v2.py
+      - tests/test_workspace_evidence_anchor_api.py
+  - id: claim
+    surface: source-viewer
+    status: PARTIAL
+    implemented: >-
+      Knowledge/claim projection with candidate governance and supersession
+      states.
+    not_verified: >-
+      The Claim/Evidence/Bundle relationship workbench is open (roadmap P1) and
+      X07 remains PARTIAL_NEEDS_WORK.
+    evidence:
+      - docs/current/UI_V3_PRODUCT_ROADMAP.md
+      - docs/current/R5-STATE.json
+  - id: learn
+    surface: learning-space
+    status: PARTIAL
+    implemented: >-
+      Learning item queue and review recording over the Core API, append-only
+      events with a persistent client_event_id, and a desktop shell that reads
+      the queue plus its provenance.
+    not_verified: >-
+      A real in-host DeepTutor mount and the first-use restart readback are not
+      closed (R10).
+    evidence:
+      - docs/current/R5-LEARNING-STATE.md
+      - docs/current/R5-HANDOFF-20260918.md
+      - tests/test_desktop_learning_review_contract.py
+  - id: practice
+    surface: learning-space
+    status: PARTIAL
+    implemented: >-
+      Review scheduling with an explicit rating version, driven by the reused
+      FSRS worker rather than an invented schedule.
+    not_verified: >-
+      Adapter journey search assertions remain unclosed (X03 gap).
+    evidence:
+      - docs/current/R5-STATE.json
+      - tests/test_core_client.py
+  - id: review
+    surface: learning-space
+    status: PARTIAL
+    implemented: >-
+      Review submission validated against the v2 review contract; one exposure
+      now keeps one id pair so a failed retry cannot be recorded twice.
+    not_verified: >-
+      An owner-visible full review trajectory and its restart readback were not
+      executed.
+    evidence:
+      - packages/contracts/learning/v2/review.schema.json
+      - docs/current/R5-LEARNING-STATE.md
+      - tests/test_desktop_learning_review_contract.py
+  - id: distill
+    surface: learning-space
+    status: PARTIAL
+    implemented: >-
+      Machine task receipts record conditions, knowledge/method/tool/model
+      versions, scope, outcome, failure and retest_of, and are readable back over
+      the Core API and the MCP surface.
+    not_verified: >-
+      No independent unseen-example evaluation exists. A receipt is a
+      measurement fact and never a training or competence claim.
+    evidence:
+      - crates/archeaxis-api/tests/machine_task_api.rs
+      - crates/archeaxis-domain/tests/machine_tasks.rs
+      - scripts/probes/r11_machine_receipt_smoke.py
+  - id: recover
+    surface: recovery
+    status: BLOCKED
+    implemented: >-
+      Workspace restore/recovery regressions and Green candidate verification
+      exist.
+    not_verified: >-
+      Code signing, installer/uninstaller lifecycle, clean-Windows-machine first
+      use and real Green install acceptance need controlled Windows packaging
+      resources; this step stays BLOCKED until they are available.
+    evidence:
+      - docs/current/R5-HANDOFF-20260918.md
+      - docs/current/R5-STATE.json

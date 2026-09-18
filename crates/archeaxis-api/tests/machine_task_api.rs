@@ -28,9 +28,13 @@ fn receipt(task_id: &str, outcome: &str) -> String {
     serde_json::json!({
         "task_id": task_id,
         "conditions": "offline; fixed sample",
+        "knowledge_version": "k_abc@1",
+        "method_version": "method-1",
+        "tool_version": "tool-1",
         "model_version": "qwen3:8b",
         "scope": "one observable extraction task",
-        "outcome": outcome
+        "outcome": outcome,
+        "retest_of": "task-0"
     })
     .to_string()
 }
@@ -45,9 +49,17 @@ async fn a_machine_records_a_receipt_and_anyone_can_read_it_back() {
 
     let (status, readback) = call(&router, "GET", "/api/v1/machine/tasks/task-1", None, "").await;
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(readback["outcome"], "succeeded");
+    // Every field the write accepted must come back: a readback that drops the
+    // conditions or the knowledge/method/tool versions cannot re-check the claim.
+    assert_eq!(readback["task_id"], "task-1");
+    assert_eq!(readback["conditions"], "offline; fixed sample");
+    assert_eq!(readback["knowledge_version"], "k_abc@1");
+    assert_eq!(readback["method_version"], "method-1");
+    assert_eq!(readback["tool_version"], "tool-1");
     assert_eq!(readback["model_version"], "qwen3:8b");
     assert_eq!(readback["scope"], "one observable extraction task");
+    assert_eq!(readback["outcome"], "succeeded");
+    assert_eq!(readback["retest_of"], "task-0");
     assert!(readback["failure"].is_null());
     assert!(
         readback["note"].as_str().unwrap_or("").contains("weights were trained"),

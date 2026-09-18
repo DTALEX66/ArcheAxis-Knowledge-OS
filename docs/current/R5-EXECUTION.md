@@ -2269,3 +2269,12 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - Project `dev.py` targeted suite for OCR/output routing, Canvas projection and host panel: `32 passed` in `0.21s`, exit `0`.
 - This confirms the upload diff whitespace correction did not regress the recently changed OCR, Canvas or R10 host contracts.
+
+## 2026-09-18 DSH safety execution pack (base 44bd821)
+
+- Base: `origin/main` = `44bd821da82d9beeacf4e3c6f581c0fd90521ba4`, read back through the GitHub REST API. The only configured remote is SSH and its fetch is refused in this execution environment (`couldn't create signal pipe`), so this entry is not corroborated by a local `git fetch`.
+- Nightly run `35323175367` on that exact SHA failed `full-suite` (`2877 passed, 35 skipped, 5 failed`); `py-compat` 3.11 and 3.13 passed, and `browser-smoke`/`windows-runtime` were skipped through `needs: full-suite`.
+- Both failure classes were repaired at their cause rather than by weakening an assertion: the whole-suite job checked out depth 1 while its tests re-derive recorded history, and its OS package line had drifted from `ci.yml` (`fonts-noto-cjk` missing, so the CJK browser-OCR crosscheck had no glyphs to read while the screenshot still succeeded).
+- No `tested-source-sha:` label is claimed here: local verification ran on a working tree whose changes were not committed, so there is no tested source commit to name.
+- Code/test changes: DSH-03/DSH-04 (desktop learning provenance and review retry identity), DSH-05 (machine receipt readback completeness), DSH-09 (OCR fail-closed on empty/whitespace results), DSH-02 (mandatory owner-loop journey declaration plus contract reference integrity). Truth-correction changes only: DSH-01, DSH-07, DSH-11.
+- Status effect: none. X00-X14 remain `PARTIAL_NEEDS_WORK`; Q00 remains `FAIL/BLOCKED` and Q01 remains `BLOCKED`. No remote branch was deleted or modified.

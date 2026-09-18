@@ -351,15 +351,19 @@ async fn machine_task_readback(
     Path(task_id): Path<String>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| match machine::machine_task(conn, &task_id) {
-        Ok(Some((outcome, model_version, scope, failure, retest_of))) => (
+        Ok(Some(receipt)) => (
             StatusCode::OK,
             Json(serde_json::json!({
                 "task_id": task_id,
-                "outcome": outcome,
-                "model_version": model_version,
-                "scope": scope,
-                "failure": failure,
-                "retest_of": retest_of,
+                "conditions": receipt.conditions,
+                "knowledge_version": receipt.knowledge_version,
+                "method_version": receipt.method_version,
+                "tool_version": receipt.tool_version,
+                "model_version": receipt.model_version,
+                "scope": receipt.scope,
+                "outcome": receipt.outcome,
+                "failure": receipt.failure,
+                "retest_of": receipt.retest_of,
                 "note": "a task receipt is a measurement fact, not a claim that weights were trained",
             })),
         )

@@ -16,6 +16,12 @@ public partial class MainWindow : Window
     private CoreSupervisor? _supervisor;
     private readonly DeepTutorSupervisor _deepTutor = DeepTutorSupervisor.CreateFromEnvironment();
     private string? _activeLearningItem;
+    // One exposure keeps one id pair: a failed submit is retried with the same
+    // client_event_id (the Core's idempotency key) and the same exposure_id, so a
+    // retry cannot be recorded as a second review. A successful review clears the
+    // pair and the next exposure generates fresh ids.
+    private string? _activeReviewEventId;
+    private string? _activeExposureId;
 
     public MainWindow()
     {
@@ -262,6 +268,8 @@ public partial class MainWindow : Window
             {
                 var first = document.RootElement.GetProperty("items")[0];
                 _activeLearningItem = first.GetProperty("item_key").GetString();
+                _activeReviewEventId = null;
+                _activeExposureId = null;
                 var nextReview = first.TryGetProperty("next_review", out var due)
                     && due.ValueKind != JsonValueKind.Null ? due.GetString() : "未排程";
                 var referenceText = "来源版本：未记录";
@@ -271,17 +279,32 @@ public partial class MainWindow : Window
                     if (stateResponse.IsSuccessStatusCode)
                     {
                         using var state = JsonDocument.Parse(await stateResponse.Content.ReadAsStringAsync());
-                        if (state.RootElement.TryGetProperty("references", out var references)
+                        // Provenance lives on the learner side of the Core projection
+                        // (learner.references). Reading it from the document root
+                        // reported "未记录" for every item even when references existed.
+                        if (state.RootElement.TryGetProperty("learner", out var learner)
+                            && learner.ValueKind == JsonValueKind.Object
+                            && learner.TryGetProperty("references", out var references)
                             && references.ValueKind == JsonValueKind.Array)
                         {
-                            var ids = new System.Collections.Generic.List<string>();
+                            var current = new List<string>();
+                            var superseded = new List<string>();
                             foreach (var reference in references.EnumerateArray())
                             {
-                                if (reference.TryGetProperty("knowledge_id", out var id))
-                                    ids.Add(id.GetString() ?? string.Empty);
+                                if (!reference.TryGetProperty("knowledge_id", out var id)) continue;
+                                var knowledgeId = id.GetString();
+                                if (string.IsNullOrWhiteSpace(knowledgeId)) continue;
+                                // Only an explicit active=true is a current source version.
+                                // Anything else is shown as superseded rather than silently
+                                // promoted to current.
+                                var isActive = reference.TryGetProperty("active", out var active)
+                                    && active.ValueKind == JsonValueKind.True;
+                                (isActive ? current : superseded).Add(knowledgeId);
                             }
-                            ids.RemoveAll(string.IsNullOrWhiteSpace);
-                            if (ids.Count > 0) referenceText = $"来源版本：{string.Join(", ", ids)}";
+                            var lines = new List<string>();
+                            if (current.Count > 0) lines.Add($"当前来源版本：{string.Join(", ", current)}");
+                            if (superseded.Count > 0) lines.Add($"已被替代版本：{string.Join(", ", superseded)}");
+                            if (lines.Count > 0) referenceText = string.Join("\n", lines);
                         }
                     }
                 }
@@ -293,6 +316,8 @@ public partial class MainWindow : Window
             else
             {
                 _activeLearningItem = null;
+                _activeReviewEventId = null;
+                _activeExposureId = null;
                 LearningItemText.Text = "当前没有待复习项目";
                 LearningAnswerBox.IsEnabled = false;
                 ReviewOutcomeBox.IsEnabled = false;
@@ -323,15 +348,19 @@ public partial class MainWindow : Window
             return;
         }
         var correct = ReviewOutcomeBox.SelectedIndex == 1;
+        // Retry stability: the ids are allocated once per exposure and reused until
+        // the review is accepted, so a failed submit is not recorded twice.
+        _activeReviewEventId ??= $"desktop-{Guid.NewGuid():N}";
+        _activeExposureId ??= $"desktop-exposure-{Guid.NewGuid():N}";
         var payload = JsonSerializer.Serialize(new
         {
             item_key = _activeLearningItem,
-            client_event_id = $"desktop-{Guid.NewGuid():N}",
+            client_event_id = _activeReviewEventId,
             correct,
             rating = correct ? 3 : 1,
             answer,
             rating_version = "desktop-v1",
-            exposure_id = $"desktop-exposure-{Guid.NewGuid():N}",
+            exposure_id = _activeExposureId,
         });
         try
         {
@@ -344,6 +373,9 @@ public partial class MainWindow : Window
                 : "学习路径：复习提交被拒绝";
             if (response.IsSuccessStatusCode)
             {
+                // The exposure is closed: the next one must carry fresh ids.
+                _activeReviewEventId = null;
+                _activeExposureId = null;
                 LearningAnswerBox.Text = string.Empty;
                 ReviewOutcomeBox.SelectedIndex = 0;
                 SubmitReviewButton.IsEnabled = false;

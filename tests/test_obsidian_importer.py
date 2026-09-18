@@ -275,6 +275,41 @@ def test_import_file_reports_vault_bound_attachment_hash_without_writing_it(monk
     ]
 
 
+def test_repeated_attachment_references_produce_one_fact(monkeypatch) -> None:
+    """The same attachment referenced twice is one fact, not two rows.
+
+    ``parse_links`` emits every wikilink before every embed, so the recorded link
+    type is the first *parsed* reference rather than the first one in the source
+    text: a plain ``[[link]]`` wins over an ``![[embed]]`` that appears earlier.
+    ``is_embed`` therefore means "the first parsed reference was an embed", not
+    "this file is embedded somewhere", and a heading/fragment anchor on a repeat
+    reference must not duplicate or re-hash the fact.
+    """
+    import hashlib
+
+    monkeypatch.setattr("shared.storage.insert", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("shared.storage.fts5_sync", lambda *_args, **_kwargs: None)
+
+    with tempfile.TemporaryDirectory() as d:
+        note = Path(d) / "note.md"
+        attachment = Path(d) / "assets" / "image.bin"
+        attachment.parent.mkdir(parents=True)
+        blob = b"attachment bytes"
+        attachment.write_bytes(blob)
+        note.write_text(
+            "![[assets/image.bin]] then [[assets/image.bin]] and ![[assets/image.bin#frag]]",
+            encoding="utf-8",
+        )
+        result = import_file(d, "note.md", dry_run=False)
+
+    assert len(result["attachment_facts"]) == 1
+    fact = result["attachment_facts"][0]
+    assert fact["path"] == "assets/image.bin"
+    assert fact["sha256"] == hashlib.sha256(blob).hexdigest()
+    assert fact["size_bytes"] == len(blob)
+    assert (fact["link_type"], fact["is_embed"]) == ("wikilink", False)
+
+
 def test_import_file_persists_attachment_facts_as_metadata(monkeypatch, tmp_path: Path) -> None:
     from shared import storage
 

@@ -122,16 +122,49 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
     Ok(())
 }
 
-/// Read one receipt back: (outcome, model_version, scope, failure, retest_of).
+/// One receipt read back.
+///
+/// Every field `record_machine_task` writes is returned. A readback that dropped
+/// the recorded conditions or the knowledge/method/tool versions could not be
+/// used to re-check what the measurement claimed, so the projection is the same
+/// set of fields as the write.
+pub struct MachineTaskReceipt {
+    pub conditions: String,
+    pub knowledge_version: Option<String>,
+    pub method_version: Option<String>,
+    pub tool_version: Option<String>,
+    pub model_version: String,
+    pub scope: String,
+    pub outcome: String,
+    pub failure: Option<String>,
+    pub retest_of: Option<String>,
+}
+
+/// Read one receipt back, complete: conditions, knowledge/method/tool/model
+/// versions, scope, outcome, failure and retest_of.
 pub fn machine_task(
     conn: &Connection,
     task_id: &str,
-) -> rusqlite::Result<Option<(String, String, String, Option<String>, Option<String>)>> {
+) -> rusqlite::Result<Option<MachineTaskReceipt>> {
     ensure_machine_tasks(conn)?;
     conn.query_row(
-        "SELECT outcome, model_version, scope, failure, retest_of FROM machine_tasks WHERE task_id=?1",
+        "SELECT conditions, knowledge_version, method_version, tool_version, model_version,
+                scope, outcome, failure, retest_of
+         FROM machine_tasks WHERE task_id=?1",
         [task_id],
-        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
+        |r| {
+            Ok(MachineTaskReceipt {
+                conditions: r.get(0)?,
+                knowledge_version: r.get(1)?,
+                method_version: r.get(2)?,
+                tool_version: r.get(3)?,
+                model_version: r.get(4)?,
+                scope: r.get(5)?,
+                outcome: r.get(6)?,
+                failure: r.get(7)?,
+                retest_of: r.get(8)?,
+            })
+        },
     )
     .optional()
 }

@@ -32,7 +32,7 @@
 
 ## 当前阶段
 
-历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前 canonical 用户壳只有 `frontend/` + 根 `src-tauri/`；旧 loopback Workspace 产品页、静态资产与 `/kb` Dashboard 已退役，`/workspace/api/*` 仅作为本地 API 边界。React 已覆盖工作台、原件列表/安全阅读、证据列表、学习、机器知识、设置与任务回执；旧页面中的 Intake、完整 Vault、Canvas、Exchange、PDF 文本层批注仍是 API-only/未迁移前端能力，不得写成已完成。Planner、视觉课件与空间记忆仍是 deferred/文档规划，不进入普通用户导航。Chromium 功能绿测不替代原生 Tauri WebView 点击级证据。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台）。
+历史 **Phase 9：Contract & Tracer Alpha** 已完成，但不代表完整产品 Alpha。当前正式桌面壳是 `apps/ArcheAxis.Desktop/`（C#/Avalonia）+ Rust Core；`frontend/` + 根 `src-tauri/` 自 2026-09 起只作 legacy 行为参考与恢复验证（`config/product/UI_CONTRACT_V2.json`），不得再称为 canonical 产品壳。旧 loopback Workspace 产品页、静态资产与 `/kb` Dashboard 已退役，`/workspace/api/*` 仅作为本地 API 边界。legacy React 壳当时已覆盖工作台、原件列表/安全阅读、证据列表、学习、机器知识、设置与任务回执；旧页面中的 Intake、完整 Vault、Canvas、Exchange、PDF 文本层批注仍是 API-only/未迁移前端能力，不得写成已完成。Planner、视觉课件与空间记忆仍是 deferred/文档规划，不进入普通用户导航。Chromium 功能绿测不替代原生 Tauri WebView 点击级证据。外部来源仍只形成可追溯、持久化且必须复核的 candidate，不能自动提升为 verified truth。产品命名契约见 `docs/truth/NAMING_CONTRACT_V2.md`（ArcheAxis Knowledge / 星环知识平台）。
 
 ## 已验证能力
 
@@ -74,7 +74,7 @@
 
 ## 仍保留的债务
 
-1. v0.6.11 没有 UI 设计采用与语言一致性 release gate；当前分支已完成 canonical React/Tauri 单壳、legacy Dashboard 清退、DTO/Setup/Recovery 修复与真实 Chromium 多尺寸门，仍须完成 Windows WebView、Tauri/installer、exact-SHA CI 和新版本资产读回。
+1. v0.6.11 没有 UI 设计采用与语言一致性 release gate；当时分支已完成 legacy React/Tauri 单壳、legacy Dashboard 清退、DTO/Setup/Recovery 修复与真实 Chromium 多尺寸门（该 React/Tauri 线其后被 Avalonia 正式壳取代，只作行为回归），仍须完成 Windows WebView、Tauri/installer、exact-SHA CI 和新版本资产读回。
 2. `knowledge_base/api.py` 仍包含遗留领域路由；复合、质量、投影路由已经拆出，后续继续按领域迁移。
 3. `knowledge_base` 与 `inspiration_research` 均可安装；`Inspiration-Research` 只保留 launcher 兼容，不再保存第二份业务实现。
 4. 旧细粒度 API 仍公开，路由面尚未真正缩减。

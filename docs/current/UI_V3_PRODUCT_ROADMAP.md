@@ -25,7 +25,7 @@
 | sqlite-vec | 已接入 | 可重建索引 |
 | FSRS / BKT | 已接入 | 只影响人类学习证据 |
 | PDF 阅读 | 已接入 | 后端魔数/大小校验；sandboxed Blob frame；不再分发 PDF.js |
-| Tauri / NSIS / Green / Portable | 已发布 | 项目数据边界独立 |
+| Tauri / NSIS / Green / Portable | 已发布（legacy 发布线） | 非当前正式壳；项目数据边界独立，保留为恢复与行为参考 |
 
 ## 当前生产页面
 
@@ -61,9 +61,11 @@
 - Windows NSIS/Green/Portable candidate lifecycle。
 - 后续版本 tag、公开资产 identity/checksum/readback；不得改写 v0.6.11。
 
-### P0R — 单壳收敛与前端真值（当前实现）
+### P0R — 单壳收敛与前端真值（HISTORICAL SNAPSHOT：当时为 React/Tauri 单壳）
 
-- [x] canonical shell 锁定为 `frontend/src/app/App.tsx` + `src-tauri/`。
+> 下方 `[x]` 记录的是当时（React/Tauri 阶段）的收敛结果，**不是当前正式壳**。当前正式轨道是 C#/Avalonia（`apps/ArcheAxis.Desktop/`）；`frontend/` 与 `src-tauri/` 自 2026-09 起只作 legacy 行为参考与恢复验证，见 `config/product/UI_CONTRACT_V2.json` 的 `productShell.webCompatibilityRole`。
+
+- [x] （历史）canonical shell 当时锁定为 `frontend/src/app/App.tsx` + `src-tauri/`；该“canonical”称谓已作废，现为 legacy behavior reference。
 - [x] 全局命令、当前空间二级导航、可折叠 Inspector/Activity Dock。
 - [x] 390×844 / 360×640 横向导航与布局流内底栏。
 - [x] 退役 `/kb` Dashboard 与根 legacy HERMES 面板。

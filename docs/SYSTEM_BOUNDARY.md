@@ -10,7 +10,10 @@ Windows startup → four user-chosen libraries → RawAsset SHA-256 preservation
 → independently governed Human Learning and AI assets → display/export/restart readback
 ```
 
-The canonical desktop implementation is `frontend/` plus root `src-tauri/`.
+The formal desktop implementation is `apps/ArcheAxis.Desktop/` (C#/Avalonia) over the
+Rust Core; `config/product/UI_CONTRACT_V2.json` fixes that entrypoint and the legacy
+role below. `frontend/` plus root `src-tauri/` are the legacy React/Tauri behavior
+reference and recovery surface, not the current product shell.
 `desktop/` and `OSUI/` are migration/reference surfaces, never release authority.
 The former `app/workspace/ui/` and root static product pages have been removed.
 

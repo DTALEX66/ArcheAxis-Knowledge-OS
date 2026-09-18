@@ -363,7 +363,6 @@ async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_sti
         .submit(|conn| {
             let state = jobs::job_state(conn, "job-blocked").unwrap().unwrap_or_default();
             let receipt = archeaxis_domain::machine::machine_task(conn, "job-blocked-ocr-chain").unwrap();
-            // (outcome, model_version, scope, failure, retest_of)
             (state, receipt)
         })
         .await
@@ -374,10 +373,17 @@ async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_sti
         Ok(()) => assert_eq!(state, "succeeded"),
         Err(_) => assert_eq!(state, "failed"),
     }
-    if let Some((outcome, model, scope, failure, _retest)) = receipt {
-        assert_eq!(outcome, "failed");
-        assert_eq!(scope, "job-blocked");
-        assert!(failure.unwrap_or_default().contains("page"), "the reason must name the page");
-        assert!(model.contains("not-a-model"), "a deterministic chain is not a model call: {model}");
+    if let Some(receipt) = receipt {
+        assert_eq!(receipt.outcome, "failed");
+        assert_eq!(receipt.scope, "job-blocked");
+        assert!(
+            receipt.failure.unwrap_or_default().contains("page"),
+            "the reason must name the page"
+        );
+        assert!(
+            receipt.model_version.contains("not-a-model"),
+            "a deterministic chain is not a model call: {}",
+            receipt.model_version
+        );
     }
 }

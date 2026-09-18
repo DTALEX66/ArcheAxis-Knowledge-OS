@@ -190,6 +190,10 @@ def _extract_pages(path: Path, lang: str) -> tuple[list[dict[str, Any]], list[st
             finally:
                 with contextlib.suppress(OSError):
                     tmp.unlink()
+            # An engine can return whitespace for a page it could not read. That is
+            # empty content, so it is recorded as a loss instead of becoming a
+            # successful block with blank text.
+            text = text.strip()
             if not text:
                 loss.append(f"page {page_idx + 1}: OCR returned no text")
                 continue

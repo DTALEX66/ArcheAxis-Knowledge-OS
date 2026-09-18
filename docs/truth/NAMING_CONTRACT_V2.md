@@ -3,7 +3,21 @@
 > 权威来源：`ArcheAxis_Knowledge_Naming_Audit_and_HERMES_TaskPack_v1_2026-08-12`（只读审计交付）
 > 状态：**binding（定死，不可漂移）**。更新需 Owner 明确决策 + 本契约修订记录。
 > 关联：`NAMING_CONTRACT_V1.md`（已 SUPERSEDED，仅历史）、`AXW-NAMING-2026-08-12-v1` 任务图
-> 审计基线：`DTALEX66/archeaxis-workspace` @ `2694d86`
+> 审计基线（**HISTORICAL SNAPSHOT**，2026-08-12 记录，不随当前状态改写）：`DTALEX66/archeaxis-workspace` @ `2694d86`。旧值与旧 SHA 一律保留；当前事实见下方「CURRENT REMOTE SNAPSHOT」。
+
+## 0a. CURRENT REMOTE SNAPSHOT（2026-09-18 读回）
+
+> 与上方历史快照分开登记；只写读回当时的事实，不当作永久真值。
+
+| 项 | 值 |
+|---|---|
+| GitHub 仓库 | `DTALEX66/ArcheAxis-Knowledge-OS`（public，默认分支 `main`） |
+| `origin/main` | `44bd821da82d9beeacf4e3c6f581c0fd90521ba4` |
+| 远端分支 | 18 个（其中 17 个非 `main`） |
+| 打开的 PR | 0 |
+| 读回方式 | GitHub REST/`gh` API 读回。本机 `git fetch` 只配置了 SSH 远端，而该 SSH 在当前执行环境被拒（`couldn't create signal pipe`），因此本轮快照**未经本地 fetch 复核**，只声明 API 可见事实 |
+
+历史快照里的 `DTALEX66/archeaxis-workspace` 是 2026-08-12 的仓库名记录。仓库其后恢复为 `ArcheAxis-Knowledge-OS`，`docs/truth/CURRENT_STATE_TRUTH.md` §3 已固定该正式云端仓库名不再改名。`archeaxis-workspace` **仍然有效**，但只作为 Machine/distribution ID 与 Python distribution 名，不再是 GitHub 仓库名。
 
 ## 0. 变更摘要（V1 → V2）
 
@@ -34,8 +48,8 @@ V1 由 Owner 决策（2026-08-12）降级为历史记录；历史文档保留旧
 
 | 技术对象 | 标准值 | 当前事实 | 处理方式 |
 |---|---|---|---|
-| GitHub 仓库 | `DTALEX66/archeaxis-workspace` | ✅ 已完成 | 更新所有活跃旧链接；历史链接不改 |
-| Machine / distribution ID | `archeaxis-workspace` | ✅ 已完成 | 保持 |
+| GitHub 仓库 | `DTALEX66/ArcheAxis-Knowledge-OS` | ✅ 当前事实（2026-09-18 API 读回） | 2026-08-12 曾改名为 `archeaxis-workspace`，其后恢复本名；历史链接不改，活跃文档需写 `DTALEX66/ArcheAxis-Knowledge-OS` |
+| Machine / distribution ID | `archeaxis-workspace` | ✅ 已完成 | 保持（与仓库名无关） |
 | Python distribution | `archeaxis-workspace` | ✅ 已完成（#131） | 保持 |
 | CLI | `archeaxis` | ✅ 已完成（#131） | banner 改为对外产品名 |
 | Python 根导入包 | `archeaxis` | ⏳ 未实现（app/shared/knowledge_base） | 兼容壳→逐域迁移（AXW-1313/1314）；禁止一次性移动全部模块 |
@@ -70,7 +84,8 @@ V1 由 Owner 决策（2026-08-12）降级为历史记录；历史文档保留旧
 
 | 旧名称 | 现状 | 允许语境 |
 |---|---|---|
-| ArcheAxis-Knowledge-OS | 原仓库技术身份（已改名 archeaxis-workspace） | Git/CI/包名历史兼容 |
+| ArcheAxis-Knowledge-OS | **当前 GitHub 仓库名**（2026-08-12 曾改名为 `archeaxis-workspace`，其后恢复） | Git/CI 仓库身份；不得再当作旧名 |
+| archeaxis-workspace | 仍有效的 Machine/Python distribution 名（不再是 GitHub 仓库名） | 包元数据、CLI 发布、任务 ID 语境 |
 | 星轨学习工作台 / ArcheAxis Learning Workspace | V1 产品名（已降级为内部视图） | 内部视图、历史、迁移、兼容说明 |
 | 元枢 / 元枢工作台 | 已弃用 | 历史、迁移、兼容说明 |
 | ArcheAxis OS | 旧产品名（曾用于 GitHub 描述/安装器） | 历史记录、测试用例（拒绝场景） |
@@ -82,3 +97,4 @@ V1 由 Owner 决策（2026-08-12）降级为历史记录；历史文档保留旧
 | V1 | 2026-08-12 | 首次冻结（任务包 AXW-1201） | Owner 任务包裁决 |
 | V1.1 | 2026-08-12 | §4 迁移状态更新（#131 Step 1） | Owner 授权 |
 | V2 | 2026-08-12 | 新体系：对外 ArcheAxis Knowledge/星环知识平台；Learning Workspace 降为内部视图（AXW-1302） | Owner 明确决策（2026-08-12） |
+| V2.1 | 2026-09-18 | 真值修正：§0a 增加 CURRENT REMOTE SNAPSHOT；§2 GitHub 仓库行与 §5 映射改为 `DTALEX66/ArcheAxis-Knowledge-OS`（`archeaxis-workspace` 仅保留为 Machine/Python distribution 名）；旧审计基线标注 HISTORICAL SNAPSHOT。未新增权威、未删旧 SHA | DSH 安全执行包（仅真值修正） |
