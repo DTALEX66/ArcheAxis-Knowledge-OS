@@ -37,7 +37,11 @@ if defined ARCHEAXIS_MSVC_VCVARS (
 if defined ARCHEAXIS_RUST_TOOLCHAINS (
   set "CARGO_HOME=%ARCHEAXIS_RUST_TOOLCHAINS%\cargo"
   set "RUSTUP_HOME=%ARCHEAXIS_RUST_TOOLCHAINS%\rustup"
-  set "PATH=%CARGO_HOME%\bin;%PATH%"
+  rem Delayed expansion is required here: a %CARGO_HOME% reference inside this
+  rem parenthesised block is expanded when the block is parsed, before the line
+  rem above has run, so PATH became "\bin;<old PATH>" and the "where cargo" check
+  rem below could never pass from ARCHEAXIS_RUST_TOOLCHAINS alone.
+  set "PATH=!CARGO_HOME!\bin;%PATH%"
 )
 
 if not defined ARCHEAXIS_CARGO_TARGET_DIR set "ARCHEAXIS_CARGO_TARGET_DIR=%REPO%\.project-local\build\cargo"

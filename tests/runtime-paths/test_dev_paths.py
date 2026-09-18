@@ -74,6 +74,23 @@ class DevelopmentPaths(unittest.TestCase):
         else:
             self.assertEqual(prepared, command)
 
+    def test_batch_entrypoint_resolves_cargo_home_with_delayed_expansion(self):
+        """The Rust entry point must find cargo from ARCHEAXIS_RUST_TOOLCHAINS alone.
+
+        A %CARGO_HOME% reference inside the same parenthesised block is expanded
+        when the block is parsed, before the line that sets it has run, so PATH
+        became "\\bin;<old PATH>" and the script's own `where cargo` check could
+        never pass for its documented primary usage.
+        """
+        script = (
+            Path(__file__).resolve().parents[2] / 'scripts/ci/cargo_test.bat'
+        ).read_text(encoding='utf-8')
+        start = script.index('if defined ARCHEAXIS_RUST_TOOLCHAINS')
+        block = script[start : script.index('\n)\n', start)]
+
+        self.assertIn('set "PATH=!CARGO_HOME!\\bin;%PATH%"', block)
+        self.assertNotIn('set "PATH=%CARGO_HOME%', block)
+
     def test_concurrent_runs_do_not_share_tmp(self):
         children = [subprocess.Popen(self.command(), env=self.env, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE) for _ in range(2)]
