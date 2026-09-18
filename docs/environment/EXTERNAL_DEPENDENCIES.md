@@ -37,6 +37,27 @@
 上述路径均位于 `D:\All projects`，不涉及 E 盘。Windows 环境注册器仍有按 PATH
 探测的能力，因此“missing”可能表示会话未注入外置路径，而不是软件不存在。
 
+## 0.2 2026-09-18 复核补充
+
+- **`10-toolchains\scoop\shims` 整个目录均已失效，不得使用**：每个替身内嵌的目标都指向
+  `...\OS External Configuration\toolchains\...`（缺少 `10-` 前缀），该路径不存在。
+  实测 `shims\git.exe`、`shims\tesseract.exe`、`shims\ffmpeg.exe` 全部以 exit 1 结束并报
+  `Shim: Could not create process with command '"...\toolchains\scoop\apps\...'`；
+  而正确目标（如 `10-toolchains\scoop\apps\git\current\bin\git.exe`）确实存在。
+  正确做法是按 `config/environment/capability-requirements.yaml` 的 `external_paths`
+  绑定**应用目录**（例如 `10-toolchains\scoop\apps\tesseract\current`）。把 `shims` 加入
+  PATH 会让 `scripts/runtime/dev.py` 直接失败。该目录的重建或清理属共享外置库 Owner 动作。
+- **本仓库副本领先于外置副本**：外置 `OS External Configuration\EXTERNAL_DEPENDENCIES.md`
+  为 `更新：2026-08-15`，本仓库副本为 `更新：2026-09-18`。逐行差异 65 行 / 8 个差异块，
+  全部是本仓库副本的新增或更正（§0.1 实机复核、§1.6a .NET/Avalonia 正式壳、§1.6/1.7/1.8 的
+  legacy 定性、§1.10 SignTool、§3.1）。因此同步方向是**本仓库 → 外置副本**；写入共享库
+  需 Owner 执行，本仓库不代改。
+- **能力清单与门禁**：`config/environment/capability-requirements.yaml` 目前有 3 处不符合
+  自身 schema（缺 `plugins` 类目、`models/sense-voice-zh-en-ja-ko-yue` 的 `external_paths`
+  越出外置根、该条目 `install_method: shared-model-library` 不在枚举内）。这 3 处已由
+  `tests/workflow/test_capability_requirements_manifest.py` 精确钉死并逐条说明；修清单或修
+  schema 均属治理决策，不在此处单方面处理。
+
 ## 0. 环境变量（会话级，不写注册表）
 
 | 变量 | 值 | 用途 |
@@ -72,7 +93,7 @@
 - **版本**：5.5.0（tesseract）+ 1.85.0（leptonica）
 - **下载**：https://github.com/UB-Mannheim/tesseract/wiki
 - **语言包**：额外安装 `chi_sim`（中文简体）和 `eng`（英文）
-- **路径**：`D:\All projects\OS External Configuration\10-toolchains\scoop\shims\tesseract`
+- **路径**：`D:\All projects\OS External Configuration\10-toolchains\scoop\apps\tesseract\current`（**不要**用 `scoop\shims`：该目录已整体失效，见 §0.2）
 - **验证**：`tesseract --version`
 - **TESSDATA_PREFIX**：`D:\All projects\OS External Configuration\10-toolchains\scoop\apps\tesseract-languages\current`（scoop 无 `tesseract-languages/current`；不设此变量则 OCR 测试 skipped：`TESSDATA_PREFIX /c/Users/ALEX/scoop/apps/tesseract-languages/current does not exist`）
 - **Python 绑定**：`pytesseract>=0.3.13`（pyproject.toml 中已声明）
@@ -82,7 +103,7 @@
 - **用途**：音视频解码、格式转换、关键帧提取
 - **版本**：>=6.0
 - **下载**：https://ffmpeg.org/download.html
-- **路径**：`D:\All projects\OS External Configuration\10-toolchains\scoop\shims\ffmpeg`
+- **路径**：`D:\All projects\OS External Configuration\10-toolchains\scoop\apps\ffmpeg\current\bin`（**不要**用 `scoop\shims`：该目录已整体失效，见 §0.2）
 - **验证**：`ffmpeg -version`
 - **许可注意**：构建选项决定 LGPL/GPL；项目只用 LGPL 子集
 

@@ -38,9 +38,10 @@
 | 项 | 值 |
 |---|---|
 | BASE_SHA | `44bd821da82d9beeacf4e3c6f581c0fd90521ba4` |
-| FINAL_SHA | `c4cd01ad6e0a263f2c74517382baa399e9617a01` |
-| 本地 = 远端 = API | 三方一致（`git fetch` 与 GitHub REST 双向回读） |
-| 规模 | 25 个文件；+1012 / −49 |
+| FINAL_SHA（本报告写作时的 head） | `c4cd01ad6e0a263f2c74517382baa399e9617a01` |
+| 说明 | 这是写报告那一刻的 head：**其后任何一次提交都会使它成为历史值**（本报告本身随后即被一次文档提交推到新 head）。判断当前主线的唯一方式是 `git rev-parse origin/main`，不要引用本行为当前值 |
+| 本地 = 远端 = API | 写作时三方一致（`git fetch` 与 GitHub REST 双向回读） |
+| 规模 | 写作时相对起点 25 个文件；+1012 / −49 |
 | 推送方式 | 普通推送，**从未**强制推送、**从未**改写历史 |
 
 本轮四次提交：
@@ -197,6 +198,8 @@
 | 6 | 首次本地 Rust 尝试直接调 cargo，未过 `dev.py` | 触发仓库守卫 `run through dev.py`，误判为仓库问题 | 改用受管入口，全绿 | 仓库入口优先，读守卫信息 |
 | 7 | 把 `scoop\shims` 放进 PATH | 过期 `git.exe` 替身导致 `dev.py` 失败 | 改用登记的应用目录 | 只用 `external_paths` 精确路径 |
 | 8 | 统计命令写错，把"开放 PR"误报为 1 | 一句话里给出错误数字 | 直接列表纠正为 0 | 统计结果与原始列表交叉核对 |
+| 9 | 三条提交信息用中文，偏离仓库 98% 的英文标准 | 与仓库提交语言不一致 | 本次判定标准为英文；后续一律英文；是否规范这三条待授权改写历史 | 交付语言按 Owner，提交语言按仓库标准 |
+| 10 | 先称"外置依赖登记一致性无门禁""两份副本以哪份为准待决" | 把可判定的事写成"待决"，且漏看已存在的消费者与 schema | 已判定并落地：消费者存在、schema 门禁已补、仓库副本为准；共享库替身与副本同步列为 Owner 动作 | 说"没有/待决"前，先搜索现有消费者、schema 与实机证据 |
 
 ---
 
@@ -212,13 +215,33 @@
 3. **`PROJECT_CONTRACT.yaml` 的 `digest_profile` 悬空**：目标值被
    `.project/schemas/task-graph.schema.json` 的 `const` 钉死并在 `TASK-GRAPH.yaml` 重复，
    改指属治理变更；等价文档存在于 `docs/vnext-seed/operations/digest-canonicalization.md`。
-4. **`EXTERNAL_DEPENDENCIES.md` 两份副本不同步**：外置 322 行 vs 仓库 347 行，SHA-256 不同。
-   该文档自定"两处同步"，但外置副本属跨项目共享库，以哪份为准需 Owner 决策。
-5. **共享库存在过期 scoop 替身**（至少 `git.exe` 指向缺 `10-` 前缀的不存在路径）；
-   属外置库，DSH 不清理。
-6. **外置依赖登记一致性目前无门禁**：`scripts/generate_external_dependencies_doc.py`
-   产出的机器清单与那份人工文档不是同一产物，且无 CI/测试强制二者一致。
-7. **英文提交信息若要改中文需改写已推历史**（强制推送）；DSH 不自作主张。
+4. **`EXTERNAL_DEPENDENCIES.md` 两份副本不同步 —— 已判定：以仓库副本为准。**
+   外置副本 `更新：2026-08-15`（322 行），仓库副本 `更新：2026-09-18`（347 行）；
+   逐行差异 65 行 / 8 个差异块，**全部**是仓库副本的新增或更正（§0.1 实机复核、
+   §1.6a .NET/Avalonia 正式壳、§1.6/1.7/1.8 的 legacy 定性、§1.10 SignTool、§3.1）。
+   因此同步方向是 **仓库 → 外置副本**；写入共享库需 Owner 执行，本仓库不代改。
+5. **共享库的过期 scoop 替身 —— 已判定：应清理，且范围是整个 `shims` 目录。**
+   `10-toolchains\scoop\shims` 下每个替身都指向缺 `10-` 前缀的
+   `...\OS External Configuration\toolchains\...`；实测 `git` / `tesseract` / `ffmpeg`
+   三个替身全部 exit 1 并报 `Shim: Could not create process with command ...`，而正确目标
+   （如 `10-toolchains\scoop\apps\git\current\bin\git.exe`）确实存在。
+   项目侧已修：仓库文档 §1.3/§1.4 不再指向 `shims`，并新增 §0.2 说明。
+   目录本身的重建或清理属共享外置库 Owner 动作（DSH 不改共享库）。
+6. **外置依赖登记一致性 —— 已判定：消费者早已存在，缺的是 schema 门禁，现已补上。**
+   `scripts/workflow/environment_registry.py`（只读解析，`install_performed=false`、
+   `private_state_opened=false`）及其测试早已存在；真正缺的是"清单是否符合自身 schema"
+   的校验。新增 `tests/workflow/test_capability_requirements_manifest.py` 后，**首次校验即
+   抓到 3 处既有漂移**：缺 `plugins` 类目（schema 要求 `minItems: 1`，不能补空数组）、
+   `models/sense-voice-zh-en-ja-ko-yue` 的 `external_paths` 越出外置根（该 Model library
+   根本不在外置根内，`environment_registry` 也会跳过它）、该条目
+   `install_method: shared-model-library` 不在枚举内。
+   这 3 处**不由 DSH 单方面修**：修清单要么凭空新增 plugins 条目、要么改变语义，
+   修 schema 属治理变更 → 转 CODEX/HERMES；已在测试中逐条钉死并写明原因。
+7. **提交信息的语言标准是英文 —— 已判定，原"阻塞项"撤回。**
+   全历史 1761 条提交中 1725 条（**98.0%**）不含中文，故 `d5ea5907` 的英文提交信息
+   **是正确的标准写法**；我随后的三条中文提交信息（`57dccc1e`、`c4cd01ad`、`5d6b044a`）
+   **偏离了标准**。是否把这三条规范为英文，需改写已推历史 + 强制推送，属 Owner 决策；
+   后续提交一律英文。
 8. **`docs/current/BRANCH-CONVERGENCE.json` 三处旧分类与本次证据矛盾**
    （两个分支应为语义已吸收、一个应为供体能力）；未改写该基线，分歧记录在分类报告中。
 
