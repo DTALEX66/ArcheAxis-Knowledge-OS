@@ -15,7 +15,7 @@ unique lines: 10 (main has 449 lines)
 ```text
   ctx| #!/usr/bin/env python3
   NEW| # -*- coding: utf-8 -*-
-  ctx| 
+  ctx|
   NEW| Provenance: pure-parser behaviour distilled from the legacy ingestion
   ctx| Provenance: pure-parser behaviour distilled from the legacy ingestion
   NEW| adapters (app/ingestion/multi_format.py `_via_read`/`_decode_text_bytes`
@@ -23,7 +23,7 @@ unique lines: 10 (main has 449 lines)
   NEW| semantics) without importing the legacy package.
   ctx| Usage:
   NEW|     python worker_text.py <input-file>
-  ctx| 
+  ctx|
   NEW| def extract(path: str) -> dict:
   ctx|         "params": {"decode": decode_note["encoding"], "cap_lines": 5000,
   NEW|                    "coverage_unit": "line anchors", "line_splitting": "str.splitlines(keepends=True)"},
@@ -57,9 +57,9 @@ unique lines: 17 (main has 554 lines)
   NEW|         version = subprocess.run(
   ctx|             raise RuntimeError(f"tesseract version probe failed (exit {version.returncode})")
   NEW|         listed = subprocess.run(
-  ctx| 
+  ctx|
   NEW|     plain = subprocess.run(
-  ctx| 
+  ctx|
   NEW|     tsv = subprocess.run(
   ctx|                 if len(fields) < 12:
   NEW|                     continue
@@ -90,7 +90,7 @@ unique lines: 17 (main has 554 lines)
 unique lines: 13 (main has 533 lines)
 
 ```text
-  ctx| 
+  ctx|
   NEW| def execute(request, staging: Path):
   ctx|         request[field] = integer_value(request[field], minimum)
   NEW|     if request["capability"] != "text.extract":
@@ -182,4 +182,3 @@ unique lines: 2 (main has 286 lines)
   ctx|         def reject_private_scan(path):
   NEW|             self.assertNotIn(Path(path).name, {".git", ".codex", ".dsh", ".openhuman", ".hermes", ".claude"})
 ```
-
