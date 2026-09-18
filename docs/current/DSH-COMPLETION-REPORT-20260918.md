@@ -198,7 +198,7 @@
 | 6 | 首次本地 Rust 尝试直接调 cargo，未过 `dev.py` | 触发仓库守卫 `run through dev.py`，误判为仓库问题 | 改用受管入口，全绿 | 仓库入口优先，读守卫信息 |
 | 7 | 把 `scoop\shims` 放进 PATH | 过期 `git.exe` 替身导致 `dev.py` 失败 | 改用登记的应用目录 | 只用 `external_paths` 精确路径 |
 | 8 | 统计命令写错，把"开放 PR"误报为 1 | 一句话里给出错误数字 | 直接列表纠正为 0 | 统计结果与原始列表交叉核对 |
-| 9 | 三条提交信息用中文，偏离仓库 98% 的英文标准 | 与仓库提交语言不一致 | 本次判定标准为英文；后续一律英文；是否规范这三条待授权改写历史 | 交付语言按 Owner，提交语言按仓库标准 |
+| 9 | 三条提交信息用中文，偏离仓库 98% 的英文标准 | 与仓库提交语言不一致 | Owner 2026-09-18 明确规则：**对话交互用中文，其余按仓库工程标准**（提交信息/代码/测试/契约声明用英文）。`99474c7e` 起已按英文；是否把 `57dccc1e`/`c4cd01ad`/`5d6b044a` 三条规范为英文，需授权改写历史 + 强制推送 | 生成任何非对话产物前，先确认该产物在仓库中的标准语言 |
 | 10 | 先称"外置依赖登记一致性无门禁""两份副本以哪份为准待决" | 把可判定的事写成"待决"，且漏看已存在的消费者与 schema | 已判定并落地：消费者存在、schema 门禁已补、仓库副本为准；共享库替身与副本同步列为 Owner 动作 | 说"没有/待决"前，先搜索现有消费者、schema 与实机证据 |
 
 ---
@@ -318,3 +318,17 @@ $env:ARCHAXIS_CORE_BIN = "$PWD\.project-local\build\cargo\debug\archeaxis-api.ex
 - 外置依赖权威登记：`docs/environment/EXTERNAL_DEPENDENCIES.md`、
   `config/environment/capability-requirements.yaml`
 - 共享资源路径：`docs/SHARED_RESOURCE_PATH_INDEX.md`
+
+---
+
+## 十二、语言规则（Owner 2026-09-18 明确）
+
+| 产物 | 语言 | 依据 |
+|---|---|---|
+| 与 Owner 的**对话交互** | **中文** | Owner 直接要求 |
+| Git **提交信息** | **英文** | 仓库标准：全历史 1761 条提交中 1725 条（98.0%）不含中文 |
+| **代码、测试、脚本**的注释与文档字符串 | **英文** | 仓库现行工程标准（`tests/**`、`crates/**`、`apps/**`、`scripts/**` 一致如此） |
+| **契约/配置声明**（`PROJECT_CONTRACT.yaml`、`.project/*.yaml`、`config/product/UI_CONTRACT_V2.json`、`config/environment/*.yaml`、`tests/journey/*.yaml`） | **英文** | 同类文件全为英文；本轮 `tests/journey/v01-owner-loop.yaml` 已据此改为英文 |
+| `docs/current/**`、`docs/truth/**`、`docs/environment/**` 等**文档** | 与该目录既有语言一致（这些目录以中文为主） | 以目录内既有文档为准 |
+
+本轮据此执行：提交 `99474c7e` 及其后为英文；旅程声明改为英文；`docs/current/**` 内的会话回执保持中文（与同目录既有记录一致）。

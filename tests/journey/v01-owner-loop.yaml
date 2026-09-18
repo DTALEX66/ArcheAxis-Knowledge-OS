@@ -1,6 +1,6 @@
-# R5 mandatory owner loop — declared capability, not a pass claim.
+# R5 mandatory owner loop - declared capability, not a pass claim.
 #
-# `PROJECT_CONTRACT.yaml` -> `delivery.mandatory_journey` has pointed at this path
+# `PROJECT_CONTRACT.yaml` -> `delivery.mandatory_journey` pointed at this path
 # since 2026-09-04 while the file did not exist, so the contract named a journey
 # that no reader could open. This file registers what actually exists at that
 # date. Each step is IMPLEMENTED / PARTIAL / BLOCKED with the tracked evidence
