@@ -1,7 +1,22 @@
 # 本地仅存分支分类报告（只读，2026-09-18）
 
-> 性质：**只读分类 + 一次经 Owner 授权的定向删除**。除第八章"执行记录"里明确列出的
+> 性质：**只读分类 + 一次经 Owner 授权的定向删除**。除第七章"执行记录"里明确列出的
 > 1 个分支外，**未删除、未推送、未重命名、未修改**任何本地分支、标签、worktree 或引用。
+>
+> **与既有收敛记录的关系（重要）**：R5 分支收敛附包早已存在并已处理过本地分支，本报告是
+> 对它的**细化复审**，不是首次审计，也不是新权威：
+> - `docs/current/BRANCH-CONVERGENCE.md`：收敛附包方法与顺序（分类不等于删除批准；先合并
+>   资格、再逐条删除；第 2 步要求把 donor 分支的唯一资产复制到既有 history/reference 层并记录来源 SHA）。
+> - `docs/current/BRANCH-DISPOSITION-20260918.md`：处置证据；其 "Local stale-reference cleanup —
+>   2026-09-18" 一节**已用 `git worktree list` 检查**，已删除 `codex/client-write-boundary-task1-scope`，
+>   并已记录"**保留 `codex/worker-quality-0906`，因为 `.project-local/worktrees/worker-quality-0906`
+>   仍在使用它**"。
+> - `migrations/reports/current-reconciliation/LOCAL_BRANCHES.txt`：更早（2026-07-17）的本地分支
+>   清单，其中多数分支现已不存在，仅作历史对照。
+>
+> 本报告**新增**的是：当前基线（`44bd821`）下 19 个仅本地分支的**逐文件 blob 级判定**，以及
+> 此前记录未写明的关键事实——`codex/worker-quality-0906` 的 worktree 里有 **56 行主线没有的内容**
+> （旧记录只说"worktree 在用"）。
 >
 > 与 `docs/current/R5-BRANCH-DISPOSITION-20260918.md` 的区别：那份处理**远端**分支
 > （有 PR / 压缩合并证据）；本份处理**从未推送的本地分支**，因此**没有** PR、合并提交或
@@ -113,11 +128,13 @@
    破坏性动作，需单独授权。
 5. 判定脚本未纳入"分支是否含二进制/大文件"的额外成本考量。
 
-## 六、删除时的安全路径（更新：必须先用 `git worktree list` 检查占用）
+## 六、删除时的安全路径（沿用既有收敛记录的判据）
 
-1. **前置检查（本轮血的教训）**：`git worktree list`。被 worktree 检出的分支**不能**直接
-   `git branch -D`（会报 `cannot delete branch ... used by worktree`），而移除 worktree 可能
-   丢掉其中的未提交内容——必须先逐文件确认工作区内容是否已在主线。
+1. **前置检查**：`git worktree list`——**这不是本轮的新发现**：既有记录
+   `docs/current/BRANCH-DISPOSITION-20260918.md` 的本地清理一节已把 `git worktree list`
+   写进判据，并据此保留了 `codex/worker-quality-0906`。本轮只是补上"该 worktree 里到底
+   有没有主线没有的内容"这一层证据（结论：有，56 行）。被 worktree 检出的分支不能直接
+   `git branch -D`（会报 `cannot delete branch ... used by worktree`）；
 2. 先做本地备份，再删：`git bundle create <file> ^main <branches>`，并用 `git bundle verify <file>` 校验；
 3. 只删已确认无独有内容的分支：`git branch -D <branch>`；
 4. 删除后核对：`git for-each-ref refs/heads | wc -l`、`git log --branches --not --remotes --oneline | wc -l`；
@@ -135,6 +152,21 @@
 | 删除 | `git branch -D fix/ci-playwright-collection` → 成功（`was 0a12fc11`）；`codex/worker-quality-0906` **未删除**（worktree 占用 + 持有独有内容） |
 | 计数变化 | 本地分支 31 → **30**；未推送提交 80 → 80（不变：被删提交仍被其它本地分支引用）；main HEAD 未变；远端分支 18 未变 |
 | 未执行 | 未移除任何 worktree、未推送、未改远端、未丢弃 stash |
+
+### 7.1 按收敛附包第 2 步保全 donor 残留（执行）
+
+`docs/current/BRANCH-CONVERGENCE.md` 第 2 步要求：对 donor/frozen/release/naming 分支完成
+唯一资产矩阵，**必要时把历史资料复制到既有 history/reference 层并记录来源 SHA**。据此执行：
+
+- 把 5 个上报分支中**主线从未有过**的 **13 个文件**按原路径逐字节复制到
+  `docs/history/donor-branch-assets/<branch>/<原路径>`，并生成
+  `docs/history/donor-branch-assets/README.md` 记录分支名、tip 短 SHA、原路径、原字节 SHA-256 与大小；
+- **排除** 8 个"主线刻意删除的退役面"（`app/workspace/ui/**`、`requirements-ci.txt`、`docs/NEXT_TASKS.md`）
+  并写明排除原因——它们是退役，不是缺失；
+- 这是**保全**，不是吸收：没有把任何代码并入产品，没有改动任何分支、worktree 或远端引用；
+- 这些版本比主线旧，主线同名文件已领先数百行，**不可整文件覆盖**；语义吸收属 Owner 或 CODEX/HERMES。
+- 备注：仓库 `.gitattributes` 规定 `* text=auto eol=lf` 与 `*.bat/*.cmd/*.ps1 eol=crlf`，
+  因此仓库内存储的行尾可能被规范化；README 记录的是**原始字节**的 SHA-256，保真性可核。
 
 ### 8.1 详审附带发现的其他本地状态（只读报告，未处置）
 

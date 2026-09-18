@@ -1,5 +1,16 @@
 # R5 Remote Branch Disposition Report (read-only, base 44bd821)
 
+> **与既有收敛记录的关系**：R5 分支收敛附包已存在，本报告是对**当前基线**的补充复审，
+> 不是首次远端分支审计，也不替代既有记录：
+> - `docs/current/BRANCH-CONVERGENCE.md`（收敛附包方法与顺序：分类不等于删除批准；先完成
+>   合并资格与证据落盘，再逐条删除已批准分支）；
+> - `docs/current/BRANCH-DISPOSITION-20260918.md`（2026-09-18 处置证据：PR #149 合并、
+>   10 个远端分支按逐条吸收审查删除、收敛分支随后删除、再删 3 个 `SUPERSEDED` 分支后远端计数 18）；
+> - `docs/current/BRANCH-CONVERGENCE.json`（逐分支分类基线，18 行）。
+>
+> 本报告新增的是：在 `44bd821` 这一基线上，对**现存 17 个非 main 分支**重新做 blob 级判定，
+> 并给出删除候选/保留/上报的现行处置。
+
 - Repository: `DTALEX66/ArcheAxis-Knowledge-OS`
 - Base: `main` @ `44bd821da82d9beeacf4e3c6f581c0fd90521ba4` (matches local checkout HEAD on branch `main`)
 - Remote read path: `gh` CLI (account DTALEX66), GET only. `git fetch` is broken in this environment, so all remote state came from

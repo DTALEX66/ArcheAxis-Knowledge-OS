@@ -220,6 +220,7 @@
 | 10 | 先称"外置依赖登记一致性无门禁""两份副本以哪份为准待决" | 把可判定的事写成"待决"，且漏看已存在的消费者与 schema | 已判定并落地：消费者存在、schema 门禁已补、仓库副本为准；共享库替身与副本同步列为 Owner 动作 | 说"没有/待决"前，先搜索现有消费者、schema 与实机证据 |
 | 11 | 把"跑测试 + 提交 + 推送"串成一条命令，测试为红也未中止 | 在 `test_axr060` 失败的情况下仍提交并推送（根因＝报告 FINAL_SHA 仍写规范化前的完整 SHA，而它已不是 HEAD 祖先） | 修正 SHA 引用后复测为绿；此后推送前必须以测试退出码为门槛，不把测试与推送串联 | 关键验证的退出码必须能中止流程，不能用管道吞掉 |
 | 12 | **同一类错误复发**：又把 `git diff --check`（空白校验）与提交、推送串在一条命令里，校验返回 2 仍推送 | 归档文件带行尾空白与 EOF 空行进入远端（`docs/history/worktree-preserved-diffs/worker-quality-0906-unique-20260918.md`） | 已规范化为 LF、去行尾空白、单一结尾换行；复检 `git diff --check` = 0，编码/换行门禁通过 | 提交前把"空白检查 + 守卫测试 + 门禁"当成**独立的、退出码可中止**的一步；**任何情况下都不与 commit/push 串联**（这条在 #11 已记过一次，复发说明串联正是根因） |
+| 13 | 开展分支审计前**未读仓库已存在的分支收敛附包记录**——只读了其中的 `BRANCH-CONVERGENCE.json`，漏读 `docs/current/BRANCH-CONVERGENCE.md`、`docs/current/BRANCH-DISPOSITION-20260918.md`、`migrations/reports/current-reconciliation/LOCAL_BRANCHES.txt` | ① 产生近似同名的重复记录（我的两份报告 vs 既有的 `BRANCH-DISPOSITION-20260918.md`）；② **错误归因**：把"删除前必须查 `git worktree list`"写成"本轮血的教训"，而既有记录早已把该判据写入，并已据此保留了同一个分支；③ 报告一度呈现为"首次审计" | 已按 Owner 指正：两份报告顶部加"与既有收敛记录的关系"，明确本报告是**细化复审**、不是新权威；修正 worktree 判据的归因；并在报告中列明既有记录已删除/保留过哪些本地分支 | 做任何审计前先 `git ls-files \| grep -i <主题>` 并读**同目录既有记录**，不能只读其中一份 JSON 就开工 |
 
 ---
 
@@ -284,18 +285,23 @@
 
 ### 8.4 本地残留（非本轮产生，但影响"双端仓库一致"）
 
-16. **本地有 19 个仅本地分支（80 个未推送提交）、2 个 stash 与 3 个 worktree。** 已按 Owner 选择
-    出只读分类报告 `docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md`，并按"详细审计、
-    有用留下、无用去掉"执行：
+16. **本地有 19 个仅本地分支（80 个未推送提交）、2 个 stash 与 3 个 worktree。**
+    **先说明既有安排**：R5 分支收敛附包早已存在（`docs/current/BRANCH-CONVERGENCE.md` 定义方法
+    与顺序，`docs/current/BRANCH-DISPOSITION-20260918.md` 记录处置），其中
+    "Local stale-reference cleanup — 2026-09-18" 一节**已用 `git worktree list` 判据**、已删除
+    `codex/client-write-boundary-task1-scope`、并已保留 `codex/worker-quality-0906`。
+    本轮的细化复审（`docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md`）在其基础上给出
+    blob 级判定，并按"详细审计、有用留下、无用去掉"执行：
     - **已删除 1 个**：`fix/ci-playwright-collection`（唯一改动是在已被主线删除的
       `requirements-ci.txt` 里加一行 playwright，而该意图已被 `pyproject.toml` 的 ci/浏览器组
       与 `ci.yml` 的 Chromium 安装覆盖）；删除前已 `git bundle` 备份并 `verify`。
-    - **详审改判保留 1 个**：`codex/worker-quality-0906` 的提交确实全在 main，但它被
-      **worktree** 占用，而该 worktree 工作区持有 **56 行 main 没有的内容**（9 个文件）。
-      把这些行抽取归档到 `docs/history/worktree-preserved-diffs/worker-quality-0906-unique-20260918.md`。
-      **教训**：判断"分支可删"必须同时检查 `git worktree list` 与 worktree 的未提交内容，
-      只看提交祖先关系会误删。
+    - **保留 1 个（此前已由既有记录保留）**：`codex/worker-quality-0906`；本轮补上了既有记录
+      没写明的事实——其 worktree 工作区持有 **56 行 main 没有的内容**，已抽取归档到
+      `docs/history/worktree-preserved-diffs/worker-quality-0906-unique-20260918.md`。
     - **保留 12 / 上报 5**；另 2 个 stash 只登记未丢弃。
+    - **按收敛附包第 2 步保全 donor 残留**：把 5 个上报分支中主线从未有过的 **13 个文件**逐字节
+      复制到 `docs/history/donor-branch-assets/`（含 README 记录分支、tip、原路径与原始字节 SHA-256），
+      并排除 8 个"主线刻意删除的退役面"。这是保全而非吸收：未把任何代码并入产品。
 17. **另有两个 worktree 属禁止 DSH 处理的区域**：`v3-era`（detached）持有对
     `crates/archeaxis-archive/src/lib.rs`、`crates/archeaxis-store-sqlite/src/lib.rs` 的已暂存修改
     以及未跟踪的 `crates/archeaxis-archive/tests/gen_v3_fixture.rs`（主线无此路径）——
