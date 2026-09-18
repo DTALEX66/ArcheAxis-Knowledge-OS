@@ -2291,4 +2291,4 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 
 - 本轮 DSH 会话的汇总交接记录（摘要、任务总表、验收收据、外置库与路径索引核查、分支分类汇总、**错误总结**、**阻塞总结**、状态不变量、复现命令）已落在 `docs/current/DSH-COMPLETION-REPORT-20260918.md`。
 - 该报告记录的是本次执行会话的事实与教训，**不**提升任何切片状态、**不**构成独立审计结论。
-- 最终坐标：`BASE_SHA = 44bd821da82d9beeacf4e3c6f581c0fd90521ba4`，`FINAL_SHA = c4cd01ad6e0a263f2c74517382baa399e9617a01`（本地 / 远端 / GitHub API 三方一致）；分支只读分类明细见 `docs/current/R5-BRANCH-DISPOSITION-20260918.md`。
+- 最终坐标：`BASE_SHA = 44bd821da82d9beeacf4e3c6f581c0fd90521ba4`；`FINAL_SHA` 以 8 位短 SHA 记录，因为提交 `c4cd01ad` 随后在提交信息规范化中被替换、已不是任何当前 main 的祖先（引用完整 SHA 会让"当前面 SHA 必须可达"的守卫测试失败）。规范化完成时的 head 为 `a5384490ba82f172b30869ba6a2550c4b312e093`；判断当前主线请用 `git rev-parse origin/main`。分支只读分类明细见 `docs/current/R5-BRANCH-DISPOSITION-20260918.md`。
