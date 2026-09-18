@@ -41,7 +41,8 @@
 | release/v0.4.0-contract | 75cb72ef4642b5dab4fdae5c81807b94757e6a69 | 4 | 1281 | RELEASE_HISTORY_ONLY | ESCALATE | PRs #21 (`5369ae6c`, ancestor) and #22 (`34936f13`, ancestor) both merged from this branch and preserve the released v0.4.0 artifact contract. |
 
 Totals: SEMANTICALLY_ABSORBED 11, HISTORICAL_ARCHIVE_ONLY 1, RELEASE_HISTORY_ONLY 4, DONOR_CAPABILITY 1,
-VALID_MISSING_WORK 0. Dispositions: DELETE_CANDIDATE 8, RETAIN 4, ESCALATE 5.
+VALID_MISSING_WORK 0. Dispositions: DELETE_CANDIDATE 9, RETAIN 4, ESCALATE 4.
+（合计 17 = 9 + 4 + 4；此前本行误写为 8/4/5，与上方逐分支汇总表矛盾，已按表中逐条证据更正。四个受保护分支 codex/frozen-roadmap-deepseek-v1、codex/recovery-shell-closed-loop、codex/ci-release-optimization、release/v0.4.0-contract 全部为 ESCALATE，无一落入删除候选。）
 
 ## Per-branch justification
 
