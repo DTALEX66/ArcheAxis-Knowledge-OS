@@ -163,3 +163,67 @@ Ahead=4, behind=1281, merge-base is `5369ae6c` itself. Two PRs merged from this 
   97/100 and 22/22 blobs identical); the third is contradicted by the absence of all 8 of its blobs from main. That file itself
   labels every row `latest_intent_verdict=PENDING_DETAILED_AUDIT` and its `limitations` field says semantic equivalence requires
   per-branch review — which is what this report supplies.
+
+## 逐分支吸收详审（判据：与**自身 squash 提交**比对，2026-09-18）
+
+### 方法更正
+
+第一版详审把分支 tip 与**当前 main** 逐行比对，得出"多数分支有几百行独有内容、需保全"——**这是错的**：
+压缩合并之后主线必然继续重构，把"主线已改名/重写的旧文本"算成"分支独有内容"。正确判据是
+**把分支 tip 与它自己 PR 的 squash 提交（`merge_commit_sha`）比对**，那才是该分支内容真正落到主线时
+产生的树；只有对没有合并 PR 的分支才退回与 main 比对。
+
+### 结论一：13 个分支与自身吸收提交**零文件差异**
+
+| 分支 | PR | squash |
+|---|---|---|
+| `chore/naming-repo-refs` | #132 | `04273c93` |
+| `chore/placeholder-hygiene` | #129 | `98f7546b` |
+| `codex/ci-release-optimization` | #140 | `93e58a3b` |
+| `codex/post-release-v0.6.9` | #144 | `b3367958` |
+| `codex/recovery-shell-closed-loop` | #142 | `52f4c7ff` |
+| `codex/release-v0.6.9` | #143 | `de5b5ba6` |
+| `codex/v0.6.8-release-closure` | #141 | `2d1186d9` |
+| `docs/intake-h2` | #130 | `996462f5` |
+| `docs/naming-handoff` | #134 | `66c6aac2` |
+| `feat/naming-package-identity` | #131 | `2694d861` |
+| `feat/naming-v2-contract` | #137 | `b44fabbb` |
+| `fix/mfx001-marker-block` | #128 | `a2056d04` |
+| `release/v0.4.0-contract` | #21 / **#22** | `5369ae6c` / `34936f13` |
+
+`release/v0.4.0-contract` 的判法：它有两个合并 PR；其 tip 的 2 个差异文件与 **#22 的 squash
+`34936f13` 逐字节相同**，故同样属"吸收完全"。→ 这 13 个分支删除不会丢任何内容。
+
+### 结论二：另 4 个分支含主线没有的残留 → 已按收敛附包第 2 步入历史层
+
+| 分支 | 情况 | 保全 |
+|---|---|---|
+| `codex/frozen-roadmap-deepseek-v1` | 无 PR；103 个路径主线从未有过（历史归档：imported-designs 抽取、planning 文档、source-documents） | **100 个文本文件**已保全；3 个二进制（2×docx、1×zip，约 264 KB）因文本编码规范**未复制**，仅在索引登记 SHA-256 |
+| `feat/naming-step3` | PR#136 关闭未合并；13 个文件与 main 不同（命名迁移意图已由 #137/#138 落地） | **13 个文件**已保全 |
+| `codex/execution-reliability-standards` | 无 PR；8 个文件，其中 3 个主线从未有过 | **8 个文件**已保全 |
+| `docs/verification-summary-2026-08-09` | PR#70 关闭未合并；文档已由 #137 以新路径再落地，但版本不同（主线加了归档头） | **1 个文件**已保全 |
+
+保全位置：`docs/history/remote-branch-assets/`（扁平化文件名 + `README.md` 索引，记录分支、tip 短 SHA、
+原路径、**原始字节 SHA-256**、大小；并说明归档为逐字节保真、可能保留原行尾空白与 CRLF）。
+共 **122 个文本文件**。
+
+### 删除前置条件（**未执行**）
+
+- **删除候选 = 结论一的 13 个分支**（逐条有"与自身 squash 零差异"证据）。
+- **本执行器不得删除远端分支**（任务包 §13/§15 明令转 CODEX/HERMES），故此处只给清单与前置条件：
+  1. 备份必须包含**全部对象**（尤其 4 个残留分支里那 3 个未入仓的二进制 blob）：
+     `git bundle create <file> --all`，随后 `git bundle verify <file>`；
+  2. 逐条删除并回读：`git push origin --delete <branch>`，再 `git ls-remote --heads origin` 核对计数（18 → 5）；
+  3. 删除后重跑 exact-SHA CI 与 nightly，证据绑定新 SHA。
+- 结论二的 4 个分支在人工确认残留无价值前**不得删除**。
+
+### 复核命令
+
+```powershell
+# 某分支是否与自身吸收提交零差异（0 即完全吸收）
+git diff --name-only 52f4c7ff "origin/codex/recovery-shell-closed-loop" | Measure-Object
+
+# 某分支是否有主线从未有过的文件
+git diff --name-only (git merge-base main "origin/codex/frozen-roadmap-deepseek-v1") "origin/codex/frozen-roadmap-deepseek-v1" |
+  Where-Object { git cat-file -e "main:$_" 2>$null; $LASTEXITCODE -ne 0 }
+```

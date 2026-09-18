@@ -22,7 +22,9 @@
    [remote branch disposition report](current/R5-BRANCH-DISPOSITION-20260918.md) and
    [local branch disposition report](current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md),
    with preserved donor material under
-   [donor branch assets](history/donor-branch-assets/README.md).
+   [donor branch assets](history/donor-branch-assets/README.md) and preserved remote
+   branch residuals under
+   [remote branch assets](history/remote-branch-assets/README.md).
    These are session receipts and preserved historical material: none is an
    independent audit, and none promotes a slice status.
    The [0910 ledger](authority/taskpack-0910-r3/EXECUTION.md),
