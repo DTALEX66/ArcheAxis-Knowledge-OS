@@ -15,10 +15,12 @@
    The 2026-09-18 DSH session handoff — summary, task table, verification
    receipts, external-library readback, branch dispositions, error and blocker
    summaries — is [DSH completion report](current/DSH-COMPLETION-REPORT-20260918.md),
-   with its branch detail in
-   [branch disposition report](current/R5-BRANCH-DISPOSITION-20260918.md). Both are
-   session receipts: neither is an independent audit, and neither promotes a slice
-   status.
+   with remote branch detail in
+   [branch disposition report](current/R5-BRANCH-DISPOSITION-20260918.md) and
+   local-only branch detail in
+   [local branch disposition report](current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md).
+   These are session receipts: none is an independent audit, and none promotes a
+   slice status.
    The [0910 ledger](authority/taskpack-0910-r3/EXECUTION.md),
    [0910 audit packet](authority/taskpack-0910-r3/AUDIT-PACKET.md), and older
    0908/0907/0906 evidence keep their original SHAs and historical scope.

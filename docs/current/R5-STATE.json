@@ -335,6 +335,8 @@
     "readback": "GitHub REST/gh API. Only an SSH remote is configured and its fetch is refused in this execution environment (couldn't create signal pipe), so this snapshot is not corroborated by a local git fetch.",
     "status_effect": "none. X00-X14 remain PARTIAL_NEEDS_WORK and Q00/Q01 are unchanged; this is a dated readback, not an audit result.",
     "branch_deletion": "none performed; dispositions are read-only candidates in docs/current/R5-BRANCH-DISPOSITION-20260918.md",
-    "dsh_completion_report": "docs/current/DSH-COMPLETION-REPORT-20260918.md"
+    "dsh_completion_report": "docs/current/DSH-COMPLETION-REPORT-20260918.md",
+    "local_branch_disposition_report": "docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md",
+    "local_branch_dispositions": "read-only candidates only: 2 delete / 12 retain / 5 escalate; no local or remote branch was deleted"
   }
 }
