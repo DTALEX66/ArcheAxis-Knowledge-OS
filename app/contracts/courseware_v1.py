@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class CoursewareArtifactV1(BaseModel):
@@ -28,3 +28,14 @@ class CoursewareArtifactV1(BaseModel):
     interactive: bool
     derived_only: Literal[True] = True
     human_review_required: bool = True
+
+    @model_validator(mode="after")
+    def validate_provenance_ids(self) -> "CoursewareArtifactV1":
+        """Keep source and knowledge bindings deterministic and unambiguous."""
+        for field_name in ("source_ids", "knowledge_ids"):
+            values = getattr(self, field_name)
+            if any(not value.strip() for value in values):
+                raise ValueError(f"{field_name} must contain non-empty ids")
+            if len(values) != len(set(values)):
+                raise ValueError(f"{field_name} must contain unique ids")
+        return self

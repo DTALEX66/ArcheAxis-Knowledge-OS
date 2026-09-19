@@ -38,6 +38,15 @@ def test_missing_goal_rejected():
         events_to_trajectory([LifecycleEvent.ended("success", "t1")])
 
 
+def test_unknown_lifecycle_event_rejected_instead_of_being_dropped():
+    with pytest.raises(HarvestError, match="unknown lifecycle event"):
+        events_to_trajectory([
+            LifecycleEvent.started("导出 PDF", "t1"),
+            LifecycleEvent(kind="provider_result", ts="t2"),
+            LifecycleEvent.ended("success", "t3"),
+        ])
+
+
 def test_capture_success_harvests_principle(tmp_path):
     db = tmp_path / "eh.sqlite"
     principles = capture(db, [

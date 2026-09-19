@@ -40,17 +40,21 @@
     },
     "source_ids": {
       "items": {
+        "minLength": 1,
         "type": "string"
       },
       "minItems": 1,
+      "uniqueItems": true,
       "title": "Source Ids",
       "type": "array"
     },
     "knowledge_ids": {
       "items": {
+        "minLength": 1,
         "type": "string"
       },
       "minItems": 1,
+      "uniqueItems": true,
       "title": "Knowledge Ids",
       "type": "array"
     },

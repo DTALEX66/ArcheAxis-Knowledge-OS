@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from app.contracts.courseware_v1 import CoursewareArtifactV1
 
 
@@ -41,3 +43,22 @@ def test_versioned_schema_is_present_and_requires_sources():
     schema = json.loads((root / "packages/contracts/v1/courseware-artifact.schema.json").read_text(encoding="utf-8"))
     assert schema["properties"]["schema"]["const"] == "archeaxis.courseware-artifact/v1"
     assert "source_ids" in schema["required"]
+    for field in ("source_ids", "knowledge_ids"):
+        assert schema["properties"][field]["uniqueItems"] is True
+        assert schema["properties"][field]["items"]["minLength"] == 1
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("source_ids", ["src-1", "src-1"], "source_ids must contain unique ids"),
+        ("knowledge_ids", ["k-1", "k-1"], "knowledge_ids must contain unique ids"),
+        ("source_ids", ["   "], "source_ids must contain non-empty ids"),
+        ("knowledge_ids", [""], "knowledge_ids must contain non-empty ids"),
+    ],
+)
+def test_courseware_artifact_rejects_ambiguous_provenance_bindings(
+    field: str, value: list[str], message: str
+):
+    with pytest.raises(ValueError, match=message):
+        CoursewareArtifactV1.model_validate(_artifact(**{field: value}))

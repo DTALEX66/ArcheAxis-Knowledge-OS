@@ -30,6 +30,7 @@ _TASK_START = "task_started"
 _TASK_END = "task_ended"
 _TOOL_CALL = "tool_called"
 _OBSERVATION = "observation"
+_LIFECYCLE_KINDS = {_TASK_START, _TASK_END, _TOOL_CALL, _OBSERVATION}
 
 
 class HarvestError(ValueError):
@@ -72,6 +73,8 @@ def events_to_trajectory(events: list[LifecycleEvent]) -> TrajectoryDraft:
     outcome = "success"
     error: str | None = None
     for event in events:
+        if event.kind not in _LIFECYCLE_KINDS:
+            raise HarvestError(f"unknown lifecycle event: {event.kind}")
         if event.kind == _TASK_START:
             goal = str(event.payload.get("goal", "")).strip()
         elif event.kind == _TOOL_CALL:
