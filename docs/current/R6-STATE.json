@@ -89,7 +89,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "fresh shallow shared Model library inventory is recorded; executable/runtime readback and bounded role benchmarks remain open",
-      "subject_sha": "PENDING_DOC_COMMIT"
+      "subject_sha": "47246eea813bb2d2d012ca531057dd80be0813c2"
     },
     {
       "id": "A12",

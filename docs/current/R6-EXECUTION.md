@@ -188,7 +188,7 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `PENDING_DOC_COMMIT`
+- subject_sha: `47246eea813bb2d2d012ca531057dd80be0813c2`
 - changed_paths: `docs/current/R6-MODEL-LIBRARY-INVENTORY-20260919.json`
 - contract: role → model → quantization → runtime → memory → fallback is explicit, with measured/unmeasured status and evidence references
 - source: repository `config/model-profiles/local-2026-09-05.yaml` historical profile plus a fresh shallow read-only inventory of the registered shared model root
@@ -197,7 +197,7 @@
 - data_touched: one path-free metadata receipt in the repository; no model weights or shared files were copied
 - external_paths_touched: `D:\\All projects\\Model library` read-only metadata only
 - limitations: executable availability, model integrity, VRAM/RAM/latency measurements, licensing, current runtime health and role benchmarks remain unverified; entries are not a release selection
-- rollback: revert the inventory receipt commit; existing model profile and resolver remain intact
+- rollback: revert commit `47246eea813bb2d2d012ca531057dd80be0813c2`; existing model profile and resolver remain intact
 - remaining_gap: run bounded role benchmarks with exact receipts using only the registered shared models and project-local outputs
 
 ## A12 — Avalonia Product Shell
