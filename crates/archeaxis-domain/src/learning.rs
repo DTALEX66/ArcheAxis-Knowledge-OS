@@ -665,7 +665,7 @@ pub fn create_assessment(
     }
     let source_id = match anchor_id.as_deref() {
         Some(anchor) => tx.query_row(
-            "SELECT source_id FROM anchors WHERE anchor_id=?1", [anchor], |row| row.get(0),
+            "SELECT source_id FROM anchors WHERE anchor_id=?1", [anchor], |row| row.get::<_, String>(0),
         ).optional()?,
         None => None,
     };

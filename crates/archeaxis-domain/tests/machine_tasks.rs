@@ -53,6 +53,11 @@ fn a_receipt_reads_back_every_recorded_field() {
     // The write records nine fields; a readback that returns only some of them
     // cannot be used to re-check what the measurement claimed.
     let (_dir, mut conn) = workspace();
+    machine::record_machine_task(
+        &mut conn,
+        &task("t-7", "failed", Some("initial measurement failed")),
+    )
+    .unwrap();
     let mut recorded = task("t-8", "succeeded", None);
     recorded.retest_of = Some("t-7");
     machine::record_machine_task(&mut conn, &recorded).unwrap();
