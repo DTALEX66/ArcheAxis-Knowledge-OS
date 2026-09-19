@@ -5,7 +5,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from pathlib import Path
+import re
+from pathlib import Path, PurePosixPath
 
 REQUIRED = (
     "启动绿色候选.vbs",
@@ -16,6 +17,7 @@ REQUIRED = (
     "core/archeaxis-api.exe",
 )
 WORKER_REQUIRED = ("worker-profile.json", "workers/transport/text_ndjson.py")
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def _sha256(path: Path) -> str:
@@ -24,6 +26,45 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _manifest_path(candidate: Path, relative: object) -> Path | None:
+    """Resolve a manifest path only when it is a normalized relative path."""
+    if not isinstance(relative, str) or not relative or "\\" in relative:
+        return None
+    parsed = PurePosixPath(relative)
+    if parsed.is_absolute() or any(part in {"", ".", ".."} for part in parsed.parts):
+        return None
+    return candidate.joinpath(*parsed.parts)
+
+
+def _validate_manifest_files(candidate: Path, files: object, problems: list[str]) -> dict:
+    """Validate every manifest entry without assuming required files are present."""
+    if not isinstance(files, dict):
+        problems.append("candidate files manifest is missing or invalid")
+        return {}
+    for relative, entry in files.items():
+        path = _manifest_path(candidate, relative)
+        if path is None:
+            problems.append(f"unsafe candidate manifest path: {relative!r}")
+            continue
+        if not isinstance(entry, dict):
+            problems.append(f"invalid candidate manifest entry: {relative}")
+            continue
+        if path.is_symlink() or not path.is_file():
+            problems.append(f"manifest file missing from candidate: {relative}")
+            continue
+        expected_bytes = entry.get("bytes")
+        if isinstance(expected_bytes, bool) or not isinstance(expected_bytes, int) or expected_bytes < 0:
+            problems.append(f"invalid byte count in candidate manifest: {relative}")
+        elif path.stat().st_size != expected_bytes:
+            problems.append(f"byte count mismatch: {relative}")
+        expected_hash = entry.get("sha256")
+        if not isinstance(expected_hash, str) or not _SHA256_RE.fullmatch(expected_hash):
+            problems.append(f"invalid sha256 in candidate manifest: {relative}")
+        elif _sha256(path) != expected_hash:
+            problems.append(f"hash mismatch: {relative}")
+    return files
 
 
 def verify(
@@ -56,7 +97,7 @@ def verify(
                 problems.append("candidate source commit mismatch")
             if expected_tree is not None and provenance.get("source_tree") != expected_tree:
                 problems.append("candidate source tree mismatch")
-    files = manifest.get("files", {})
+    files = _validate_manifest_files(candidate, manifest.get("files"), problems)
     for relative in REQUIRED:
         path = candidate / relative
         entry = files.get(relative)

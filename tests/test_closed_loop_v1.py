@@ -37,7 +37,7 @@ def test_complete_requires_real_evidence_for_every_stage():
 
 
 def test_complete_requires_correction_and_retest_evidence_refs():
-    for stage_name in ("correction", "retest"):
+    for stage_name in STAGES:
         stages = _stages(evidence_level="real")
         next(stage for stage in stages if stage["stage"] == stage_name)["evidence_refs"] = []
         with pytest.raises(ValidationError, match=f"{stage_name} evidence refs"):
@@ -48,6 +48,19 @@ def test_complete_requires_correction_and_retest_evidence_refs():
                 overall_status="complete",
                 synthetic=False,
             )
+
+
+def test_complete_rejects_whitespace_only_evidence_refs():
+    stages = _stages(evidence_level="real")
+    next(stage for stage in stages if stage["stage"] == "source")["evidence_refs"] = ["  "]
+    with pytest.raises(ValidationError, match="source evidence refs"):
+        ClosedLoopReceiptV1(
+            journey_id="journey-blank-source-evidence",
+            canonical_writer="archeaxis-core-rust-sqlite",
+            stages=stages,
+            overall_status="complete",
+            synthetic=False,
+        )
 
 
 def test_stage_order_cannot_drift():
