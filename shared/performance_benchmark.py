@@ -159,11 +159,83 @@ def evaluate_thresholds(
     return verdicts
 
 
+def evaluate_required_layers(
+    measurements: dict[str, Any],
+    required_layers: list[str] | tuple[str, ...],
+) -> dict[str, Any]:
+    """Report whether every required corpus layer actually ran.
+
+    Threshold verdicts answer whether observed measurements stayed within their
+    limits.  They cannot answer whether a required measurement was absent.  A
+    layered benchmark therefore needs this separate fail-closed completeness
+    check so a cold-start-only run is never reported as a passing baseline.
+    """
+    required = list(dict.fromkeys(required_layers))
+    layers = measurements.get("layers")
+    layer_measurements = layers if isinstance(layers, dict) else {}
+    statuses: dict[str, dict[str, Any]] = {}
+    executed: list[str] = []
+    missing: list[str] = []
+    incomplete: list[str] = []
+
+    for layer in required:
+        entry = layer_measurements.get(layer)
+        if not isinstance(entry, dict):
+            statuses[layer] = {
+                "status": "NOT_EXECUTED",
+                "reason": "required layer has no measurement entry",
+            }
+            missing.append(layer)
+            continue
+
+        declared = entry.get("status")
+        if declared == "NOT_EXECUTED":
+            statuses[layer] = {
+                "status": "NOT_EXECUTED",
+                "reason": entry.get("reason", "required layer was not executed"),
+            }
+            missing.append(layer)
+            continue
+
+        conversion = entry.get("conversion_latency_ms")
+        memory = entry.get("memory_peak_mib")
+        conversion_count = conversion.get("count") if isinstance(conversion, dict) else 0
+        if not conversion_count or memory is None:
+            statuses[layer] = {
+                "status": "INCOMPLETE",
+                "reason": "conversion latency and memory measurements are both required",
+            }
+            incomplete.append(layer)
+            continue
+
+        statuses[layer] = {"status": "EXECUTED"}
+        executed.append(layer)
+
+    if not required:
+        status = "NOT_APPLICABLE"
+    elif missing and not executed and not incomplete:
+        status = "NOT_EXECUTED"
+    elif missing or incomplete:
+        status = "INCOMPLETE"
+    else:
+        status = "COMPLETE"
+
+    return {
+        "status": status,
+        "required_layers": required,
+        "executed_layers": executed,
+        "missing_layers": missing,
+        "incomplete_layers": incomplete,
+        "layers": statuses,
+    }
+
+
 def build_report(
     *,
     corpus_dir: str | Path,
     measurements: dict[str, Any],
     thresholds: list[DegradationThreshold] | None = None,
+    required_layers: list[str] | tuple[str, ...] | None = None,
     notes: str = "",
 ) -> dict[str, Any]:
     """Assemble the full benchmark report (JSON-serializable)."""
@@ -174,6 +246,13 @@ def build_report(
         cold_hot_ratio=measurements.get("cold_hot_ratio"),
         thresholds=thresholds,
     )
+    completeness = (
+        evaluate_required_layers(measurements, required_layers)
+        if required_layers is not None
+        else {"status": "NOT_APPLICABLE"}
+    )
+    thresholds_passed = all(v["passed"] for v in verdicts)
+    complete = completeness["status"] in {"COMPLETE", "NOT_APPLICABLE"}
     report: dict[str, Any] = {
         "schema_version": BENCHMARK_SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -182,7 +261,9 @@ def build_report(
         "measurements": measurements,
         "thresholds": [{"name": t.name, "limit_ms": t.limit_ms, "limit_mib": t.limit_mib, "limit_ratio": t.limit_ratio} for t in thresholds],
         "verdicts": verdicts,
-        "overall": "passed" if all(v["passed"] for v in verdicts) else "degraded",
+        "completion_status": completeness["status"],
+        "completeness": completeness,
+        "overall": "passed" if thresholds_passed and complete else ("incomplete" if not complete else "degraded"),
         "notes": notes,
     }
     return report

@@ -98,6 +98,12 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
         "ARCHEAXIS_BUILD_ROOT": str(build),
         "TMP": str(paths["tmp"]), "TEMP": str(paths["tmp"]),
         "TMPDIR": str(paths["tmp"]),
+        # An absolute Python script gets its own directory as ``sys.path[0]``;
+        # expose the exact checkout root so imports such as ``shared`` and
+        # ``app`` do not depend on an editable install or the caller's cwd.
+        # Replace, rather than append to, an inherited PYTHONPATH so stale
+        # checkouts and foreign modules cannot mask the current source tree.
+        "PYTHONPATH": str(paths["root"]),
         "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUTF8": "1",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONPYCACHEPREFIX": str(paths["run"] / "pycache"),

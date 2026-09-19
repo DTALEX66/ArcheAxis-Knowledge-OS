@@ -108,6 +108,38 @@ class DevelopmentPaths(unittest.TestCase):
         result = subprocess.run(command, env=self.env, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_absolute_script_imports_project_modules_without_inherited_pythonpath(self):
+        """Absolute script entry points resolve only the current checkout modules."""
+        for package in ('app', 'scripts', 'shared'):
+            package_dir = self.repo / package
+            package_dir.mkdir()
+            (package_dir / '__init__.py').write_text('', encoding='utf-8')
+        foreign = self.repo / 'foreign-pythonpath'
+        foreign.mkdir()
+        (foreign / 'shared.py').write_text('raise AssertionError("foreign module used")\n', encoding='utf-8')
+        script = self.repo / 'absolute-entrypoint.py'
+        script.write_text(
+            'import app, os, pathlib, scripts, shared\n'
+            'root = pathlib.Path.cwd().resolve()\n'
+            'assert pathlib.Path(app.__file__).resolve().is_relative_to(root)\n'
+            'assert pathlib.Path(scripts.__file__).resolve().is_relative_to(root)\n'
+            'assert pathlib.Path(shared.__file__).resolve().is_relative_to(root)\n'
+            '(pathlib.Path(os.environ["TMP"]) / "imports-proof.txt").write_text("ok")\n',
+            encoding='utf-8',
+        )
+        child_env = dict(self.env)
+        child_env['PYTHONPATH'] = str(foreign)
+        result = subprocess.run(
+            [sys.executable, '-B', str(LAUNCHER), '--root', str(self.repo), '--',
+             sys.executable, '-B', str(script)],
+            env=child_env, capture_output=True,
+        )
+        self.assertEqual(
+            result.returncode, 0,
+            result.stderr.decode(errors='replace') + result.stdout.decode(errors='replace'),
+        )
+        self.assertTrue(list(self.repo.glob('.project-local/runs/*/*/tmp/imports-proof.txt')))
+
     def test_cargo_mutable_cache_is_routed_to_project_root(self):
         values = dev.environment(dev.layout(self.repo, 'cargo-cache'))
         self.assertEqual(values.get('CARGO_HOME'), str(self.repo / '.project-local/cache/cargo'))

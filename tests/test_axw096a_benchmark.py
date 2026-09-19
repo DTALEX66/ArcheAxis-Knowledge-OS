@@ -22,6 +22,7 @@ from shared.performance_benchmark import (
     build_report,
     corpus_metrics,
     evaluate_thresholds,
+    evaluate_required_layers,
     measure_latency_ms,
     measure_memory_peak_mib,
     write_report,
@@ -116,3 +117,44 @@ def test_build_report_and_write(tmp_path: Path) -> None:
     report_path = write_report(report, tmp_path / "out" / "benchmark.json")
     loaded = json.loads(report_path.read_text(encoding="utf-8"))
     assert loaded["overall"] == "passed"
+
+
+def test_required_layers_fail_closed_when_missing(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "x.md").write_text("y", encoding="utf-8")
+
+    measurements = {
+        "layers": {
+            "small": {
+                "conversion_latency_ms": {"count": 1, "median_ms": 1},
+                "memory_peak_mib": 1.0,
+            },
+        },
+        "cold_start_ms": {"count": 3, "median_ms": 10},
+    }
+    completeness = evaluate_required_layers(measurements, ("small", "medium", "large"))
+    assert completeness["status"] == "INCOMPLETE"
+    assert completeness["missing_layers"] == ["medium", "large"]
+
+    report = build_report(
+        corpus_dir=corpus,
+        measurements=measurements,
+        thresholds=[DegradationThreshold(name="cold-start", limit_ms=100)],
+        required_layers=("small", "medium", "large"),
+    )
+    assert report["completion_status"] == "INCOMPLETE"
+    assert report["overall"] == "incomplete"
+    assert report["completeness"]["layers"]["medium"]["status"] == "NOT_EXECUTED"
+
+
+def test_required_layers_all_missing_are_not_executed(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    report = build_report(
+        corpus_dir=corpus,
+        measurements={"layers": {}, "cold_start_ms": {"count": 3, "median_ms": 10}},
+        required_layers=("small", "medium", "large"),
+    )
+    assert report["completion_status"] == "NOT_EXECUTED"
+    assert report["overall"] == "incomplete"

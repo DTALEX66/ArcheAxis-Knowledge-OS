@@ -77,6 +77,10 @@ def main() -> int:
         layer_dir = corpus_root / layer
         if not layer_dir.is_dir():
             print(f"SKIP {layer}: missing {layer_dir}")
+            layer_results[layer] = {
+                "status": "NOT_EXECUTED",
+                "reason": f"required corpus layer is missing: {layer_dir}",
+            }
             continue
         artifacts = artifacts_root / layer
         artifacts.mkdir(parents=True, exist_ok=True)
@@ -84,8 +88,16 @@ def main() -> int:
         def convert_this_layer(_layer_dir: Path = layer_dir, _artifacts: Path = artifacts) -> None:
             _convert_once(_layer_dir, _artifacts)
 
-        conversion = measure_latency_ms(convert_this_layer, repeats=3, warmup=1)
-        memory = measure_memory_peak_mib(convert_this_layer)
+        try:
+            conversion = measure_latency_ms(convert_this_layer, repeats=3, warmup=1)
+            memory = measure_memory_peak_mib(convert_this_layer)
+        except Exception as exc:  # keep the report explicit when a layer fails
+            layer_results[layer] = {
+                "status": "INCOMPLETE",
+                "reason": f"layer execution failed: {type(exc).__name__}: {exc}",
+            }
+            print(f"INCOMPLETE {layer}: {type(exc).__name__}: {exc}")
+            continue
         print(f"{layer}: conversion {conversion['median_ms']}ms median, peak {memory} MiB")
 
         layer_results[layer] = {
@@ -108,10 +120,12 @@ def main() -> int:
             "notes": "layered public-domain Gutenberg corpus; CPU-only",
         },
         thresholds=thresholds,
+        required_layers=layers,
         notes="AXW-096A baseline run; conversion = convert_directory_resumable",
     )
     write_report(report, report_path)
     print(f"report: {report_path}")
+    print(f"completion: {report['completion_status']}")
     print(f"overall: {report['overall']}")
     return 0 if report["overall"] == "passed" else 1
 
