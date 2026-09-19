@@ -102,7 +102,7 @@
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; Python backup manifest path and completeness validation is added, while Rust schema/FK/source-object validation, workspace identity, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
+      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup/migration/schema/FK/source-object gates now pass, while workspace identity, real Legacy semantic diff, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
       "subject_sha": "fc0df3a182abed4feded8eeb0ab25b88bb4bcadb"
     },
     {

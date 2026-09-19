@@ -445,6 +445,21 @@
 - `scope`: source-contract and build evidence only; no Green runtime, real user data, external library, E/F, credentials or private agent state was accessed.
 - `remaining_gap`: real Avalonia first-use interaction, authoritative mastery/FSRS full-state readback, process-level machine correction/retest, workspace identity decision and Owner-gated Green migration remain open.
 
+## Continuation receipt — 2026-09-20 P3 headless desktop runtime gate
+
+- `subject_sha`: `5e4b95d1abfe7d456b0a5bdaf837e306f63a18dc`
+- `verification`: Desktop apphost `--smoke` completed the owned Desktop → CoreSupervisor → Core handshake/shutdown with exit `0`; the combined desktop routes/runtime/output/learning contract gate reported `33 passed, 3 warnings`, exit `0`.
+- `evidence_boundary`: the smoke creates no learning event and does not exercise real Avalonia controls; window first-use, click-submit and cold restart UI readback remain `NOT_EXECUTED / BLOCKED`.
+- `scope`: all outputs stayed under `.project-local`; no Green runtime, external library, real data, E/F, credentials or private agent state was accessed.
+
+## Continuation receipt — 2026-09-20 P4 machine-loop and P5 persistence gates
+
+- `subject_sha`: `5e4b95d1abfe7d456b0a5bdaf837e306f63a18dc`
+- `P4_verification`: exact shared Rust/MSVC/Windows SDK environment ran API `machine_task_api` (`4 passed`), `machine_correction_loop` (`1 passed`) and domain `machine_tasks` (`7 passed`), total `12 passed`, exit `0`; the real Core receipt probe returned HTTP `201` write and `200` readback. A full human → machine failed task → human correction → retest → cold restart runner exited `8` before the first human Core readiness step because stderr was suppressed; this is a blocker, not a pass.
+- `P5_verification`: domain backup/restart (`6 passed`), migration (`7 passed`) and store-sqlite (`5 passed`) exact Cargo suites, total `18 passed`, exit `0`; workspace identity generation/restore matching remains an Owner decision.
+- `A15_preparation`: independent-gate preparation ran `31 passed, 1 warning`, the R11 unseen probe and MCP client smoke both exited `0`, and authority SHA readback exited `0`; this is preparation evidence only and does not self-sign A15.
+- `scope`: no external shared library, Green runtime, real data, E/F, credentials or private agent state was accessed; generated evidence stayed under `.project-local`.
+
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed

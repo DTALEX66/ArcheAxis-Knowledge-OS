@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`428de718a808acebb025ca01f3c1e62c60c30916`（本记录提交的 first parent）
+- 当前本地与远端 `main`：`5e4b95d1abfe7d456b0a5bdaf837e306f63a18dc`（本记录提交的 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
@@ -69,10 +69,10 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 - P1：`TESTED_LOCAL`。格式执行保留 attempted engines、fallback 状态和无路径泄露的原因，并在 conversion run 重启回读和 format receipt 中保持一致；真实常用格式质量、外部引擎和 Knowledge V3 写入仍未闭合。
 - P2：`TESTED_LOCAL`。新增 general-only CourseManifest、Knowledge Component、Learning Objective 契约，覆盖 Concept/Fact/Procedure/Method/Case、引用闭合、lesson 要求和跨域拒绝；Search 的 embedding/reranker、真实课程内容和 renderer 仍未闭合。
 - P3：`PARTIAL`。Core review receipt 现在保存用户提交的 answer，空白回答在 API/UI 被拒绝，Assessment 绑定与 FSRS/restart API 回归已通过，桌面重启打开学习项会恢复已保存答案文本；真人 UI 首次学习、authoritative Mastery/FSRS 全量恢复和完整重启读回仍缺。
-- P5：`PARTIAL`。备份校验现在同时验证 `sources.sha256` 对应的 `.objects` 内容，篡改对象会被拒绝；Rust 测试因当前环境没有 `cargo` 未执行，SQLite workspace identity 仍需冻结。
-- P4.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。machine task 现在要求 `knowledge_version` 绑定 active accepted/personal Knowledge，`retest_of` 绑定已存在 failed task，并有重启读回测试；真实模型任务运行和 Rust 测试仍未执行。
-- P5.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。backup/verify 现在拒绝 schema 漂移、外键损坏和源对象 hash 篡改；SQLite `workspace_id` 仍需 Owner/Authority 决策。
-- P3.1：`IMPLEMENTED_LOCAL / PARTIAL`。Core-owned Assessment 已按 active accepted/personal Knowledge 生成并持久化，review 可绑定 assessment_id，Avalonia 显示 question/content；Mastery projection、真实 UI/runtime 和 Rust/Dotnet 验证仍未闭合。
+- P5：`PARTIAL`。备份校验现在同时验证 `sources.sha256` 对应的 `.objects` 内容，篡改对象会被拒绝；backup/migration/store SQLite Rust 定向测试合计 `18 passed`，SQLite workspace identity 仍需冻结。
+- P4.1：`TESTED_LOCAL / PARTIAL`。machine task 要求 `knowledge_version` 绑定 active accepted/personal Knowledge，`retest_of` 绑定已存在 failed task，并有重启读回测试；API machine task/correction 与 domain machine task 定向 Rust 测试合计 `12 passed`，真实模型任务和进程级闭环仍未完成。
+- P5.1：`TESTED_LOCAL / PARTIAL`。backup/verify 拒绝 schema 漂移、外键损坏和源对象 hash 篡改；对应 backup/migration/store SQLite 测试已通过，SQLite `workspace_id` 仍需 Owner/Authority 决策。
+- P3.1：`IMPLEMENTED_LOCAL / TESTED_LOCAL_PARTIAL`。Core-owned Assessment 已按 active accepted/personal Knowledge 生成并持久化，review 可绑定 assessment_id，Avalonia 显示并恢复 answer 文本；Mastery projection、真实 UI/runtime 和全状态重启读回仍未闭合。
 
 本轮增量（当前 subject：`97300cc6c8e6389edc33f5dc32adaec8761e6c58`）：P1 补齐合成 fallback 的 intake → SQLite conversion run → public receipt readback；P2.1 为 General CourseManifest 增加 prerequisite 引用闭合、自环和多节点环校验。两项均为 `TESTED_LOCAL` 契约/回归证据，不升级为真实外部引擎、真实课程渲染或全链路闭环。
 
@@ -84,7 +84,7 @@ A14 增量（当前 subject：`274de700c4dc4c02ede5d15fb3938fef5498677f`）：cl
 
 工具链增量（当前 subject：`428de718a808acebb025ca01f3c1e62c60c30916`）：项目声明的共享 Rust/MSVC exact path 与 Windows SDK 变量已验证；domain `cargo check` 通过，Assessment/learning persistence/machine tasks 合计 16 passed；API learning-state、machine-task、machine-correction 合计 10 passed，包含真实 FSRS worker、Assessment 绑定、answer 读回与重启；桌面契约 `11 passed, 1 warning`，外部 .NET SDK 10.0.400 构建 `0 warnings, 0 errors`，CoreSupervisor apphost 与 Vocabulary wire cases 运行通过。完整 Avalonia 首次使用、authoritative mastery 与 adaptive journey 未闭合。
 
-验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `7 passed`，本轮 API Rust 定向回归 `10 passed`，退出码均为 `0`；完整 workspace Rust gate、rustfmt、完整 .NET 产品门禁仍未执行。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
+验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `11 passed, 1 warning`，本轮 API Rust 定向回归 `10 passed`，P5 Rust 定向回归 `18 passed`，退出码均为 `0`；完整 workspace Rust gate、rustfmt、完整 .NET 产品门禁仍未执行。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 
 ## P0–P6 执行队列
 
@@ -148,7 +148,7 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 
 ## 下一项可执行工作
 
-当前先不新增外部 Provider 或大功能。下一项应从 P3 人类学习的真实首用路径开始，接入已有 Core Assessment/review/FSRS 和 restart readback；随后再补 P4 真实 machine correction/retest 与 P5 backup/restore 校验。模型库/Domain Pack 只读审计已确认结构 `PARTIAL`，不得把浅层目录收据或 `contract_only` manifest 当作 executable/runtime 证据。A02 的共享资源根语义仍需 Owner 决策，A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate，A15 仍必须独立审计。
+当前先不新增外部 Provider 或大功能。下一项是保留 Core stderr 后重跑 P4 human → machine failed task → human correction → retest → cold restart；P3 真实 Avalonia 控件首用仍缺无 UI 入口，P5 workspace identity 仍需 Owner 决策。模型库/Domain Pack 只读审计已确认结构 `PARTIAL`，不得把浅层目录收据或 `contract_only` manifest 当作 executable/runtime 证据。A02 的共享资源根语义、A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate，A15 仍必须独立审计。
 
 ## 本记录限制
 
