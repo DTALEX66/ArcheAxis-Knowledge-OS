@@ -121,6 +121,26 @@
 - remaining_gap: semantic conversion quality, external engines, real fixtures and complete-format promotion remain open
 - rollback: revert commit `029fb76f200acd1b58d95d2a310bb61980835c7c`
 
+### A05 回归收口 — fallback readback
+
+- status: `TESTED_LOCAL`
+- subject_sha: `97300cc6c0a4fd843d6ecf255e3c39324a9f22b0`
+- changed_paths: `tests/test_workspace_pipeline_multiformat.py`
+- behavior: a synthetic `primary → passthrough` fallback now travels through `intake_upload`, SQLite `loss_report_json`, and the public `conversion-run` receipt with attempted engines, selected engine, and fallback reason intact
+- tests: `tests/test_workspace_pipeline_multiformat.py tests/test_format_execution_v1.py tests/test_conversion_run.py` — `19 passed, 3 warnings`, exit `0`; `git diff --check` exit `0`
+- limitations: synthetic receipt evidence only; real external engines, semantic quality and real fixtures remain unverified
+- rollback: revert commit `97300cc6c0a4fd843d6ecf255e3c39324a9f22b0`
+
+### A09/A10 contract increment — General prerequisite graph
+
+- status: `TESTED_LOCAL`
+- subject_sha: `d581be95`
+- changed_paths: `app/contracts/general_learning_v1.py`, `tests/test_general_learning_contract.py`
+- behavior: General CourseManifest now requires prerequisite IDs to resolve within the manifest and rejects self-reference and multi-node cycles while retaining valid prerequisite chains
+- tests: `tests/test_general_learning_contract.py tests/test_domain_pack_v1.py tests/test_courseware_v1.py tests/test_rag_pipeline.py tests/test_derived_projection_v1.py` — `22 passed, 1 warning`, exit `0`; Ruff on both changed files exit `0`
+- limitations: this is a contract gate; it does not prove real curriculum content, renderer execution, embedding/reranker quality or runtime learning
+- rollback: revert commit `d581be95`
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
