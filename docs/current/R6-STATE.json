@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-20T20:05:00Z",
-  "subject_sha": "d5776f6b3efb0d804396b1d4258aed43e032ffcd",
+  "updated_at": "2026-09-20T21:05:00Z",
+  "subject_sha": "8bbdd491066b78d2474db0d03edce3ba0c38e295",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -67,8 +67,8 @@
       "id": "A08",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "Core Assessment is generated/bound to active accepted or personal Knowledge; domain cargo check and Assessment/learning/machine Rust tests now pass with the shared toolchain, while API linkage, full UI/runtime, authoritative mastery projection and adaptive journey remain open",
-      "subject_sha": "d5776f6b3efb0d804396b1d4258aed43e032ffcd"
+      "remaining_gap": "Core Assessment is generated/bound to active accepted or personal Knowledge; domain and API learning/machine Rust tests now pass with the shared toolchain, while full UI/runtime, authoritative mastery projection and adaptive journey remain open",
+      "subject_sha": "8bbdd491066b78d2474db0d03edce3ba0c38e295"
     },
     {
       "id": "A09",

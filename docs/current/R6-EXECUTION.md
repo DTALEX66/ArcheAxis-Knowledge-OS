@@ -425,6 +425,17 @@
 - `scope`: project-local staging and headless identity evidence only; no real Green DB, user material library, external model library or Green installation was touched.
 - `limitations`: the fixture is synthetic, and owner activation, GUI first-use, signed installer lifecycle, in-place replacement, failure recovery and rollback remain open.
 
+## Continuation receipt — 2026-09-20 P3 API FSRS and Assessment readback
+
+- `subject_sha`: `8bbdd491066b78d2474db0d03edce3ba0c38e295`
+- `changed_paths`: `crates/archeaxis-api/tests/learning_state_api.rs`
+- `behavior`: the submitted-answer restart fixture now creates accepted Knowledge, binds a learning item reference, creates a Core-owned Assessment, and submits `assessment_id` plus `knowledge_version`; this matches the API contract that answers must be bound to an Assessment.
+- `verification`: with the declared shared Rust/MSVC/Windows SDK environment and the existing project `.venv` FSRS interpreter, `learning_state_api` `5 passed`, `machine_correction_loop` `1 passed`, and `machine_task_api` `4 passed`; exit code `0`. The run covered real FSRS scheduling, due-date projection, answer persistence/readback, idempotent replay, and restart.
+- `prior_failure`: the first direct run used the managed Python without the installed `fsrs` package and reported `schedule_authority=unavailable`; after switching to the existing project `.venv`, the same tests passed. This was an environment-selection failure, not a product fallback result.
+- `warnings`: existing Rust warnings for unused `stable_id` and `Executor.worker`; no rustfmt run because the shared toolchain does not provide `cargo-fmt/rustfmt`.
+- `scope`: no external library, Green runtime, real data, E/F, credentials or private agent state was accessed; build outputs stayed under `.project-local`.
+- `remaining_gap`: Avalonia first-use UI, authoritative mastery semantics, full restart/readback across Course/Artifact/Mastery/FSRS, P4 real machine correction/retest, P5 full backup/restore, A15 independent audit and A16 Owner Gate remain open.
+
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed
