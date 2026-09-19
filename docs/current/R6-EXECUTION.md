@@ -499,6 +499,16 @@
 - `verification`: static file/contract inspection passed; the focused pytest command was `NOT_EXECUTED` (project `.venv` uv trampoline failed with permission denied), so this is `STRUCTURAL` evidence only. No H5P/OpenMAIC/provider/model or real curriculum was introduced.
 - `remaining_gap`: interactive renderer execution, Core courseware receipt, reviewed curriculum and domain acceptance remain open; P2 stays `TESTED_LOCAL_PARTIAL`.
 
+## Continuation receipt — 2026-09-21 restored Python verification gates
+
+- `subject_sha`: `cbffa9c6bc12ec8b306b678ce1507ad86b257bb8`
+- `environment`: project `.venv\Scripts\python.exe` started successfully under the approved local execution boundary; no dependency installation was performed.
+- `P2`: `tests/test_general_courseware_renderer.py` — `5 passed, 1 warning`, exit `0`.
+- `P3`: `tests/test_desktop_learning_review_contract.py` — `12 passed, 1 warning`, exit `0`.
+- `P0`: `tests/test_axw_cap503_activator.py tests/test_axw_cap503_builtin.py tests/test_worker_reachability.py` — `32 passed, 1 warning`, exit `0`; `scripts/ci/check_vnext_workers.py` printed `workers-vnext check passed`, exit `0`.
+- `authority`: `scripts/maintenance/check_authority_sha_consistency.py` printed `PASS`, exit `0`.
+- `boundary`: these are project-local contract/compile/reachability gates; they do not prove real Python worker lifecycle, interactive Avalonia use, real model execution or Green installation.
+
 ## Continuation receipt — 2026-09-21 P0 worker evidence boundary
 
 - `subject_sha`: `45f42ab1d6d3a4da1e5ef397b0f8674b502cda1e`
