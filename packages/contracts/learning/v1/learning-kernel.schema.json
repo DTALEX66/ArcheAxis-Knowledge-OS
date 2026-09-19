@@ -1,0 +1,138 @@
+{
+  "additionalProperties": false,
+  "description": "One human exposure with source provenance and deterministic FSRS output.",
+  "properties": {
+    "schema": {
+      "const": "archeaxis.learning-kernel/v1",
+      "default": "archeaxis.learning-kernel/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "item_key": {
+      "minLength": 1,
+      "title": "Item Key",
+      "type": "string"
+    },
+    "question_version": {
+      "minLength": 1,
+      "title": "Question Version",
+      "type": "string"
+    },
+    "knowledge_version": {
+      "minLength": 1,
+      "title": "Knowledge Version",
+      "type": "string"
+    },
+    "source_anchor_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Anchor Ids",
+      "type": "array"
+    },
+    "exposure_id": {
+      "minLength": 1,
+      "title": "Exposure Id",
+      "type": "string"
+    },
+    "client_event_id": {
+      "minLength": 1,
+      "title": "Client Event Id",
+      "type": "string"
+    },
+    "correct": {
+      "title": "Correct",
+      "type": "boolean"
+    },
+    "rating": {
+      "maximum": 4,
+      "minimum": 1,
+      "title": "Rating",
+      "type": "integer"
+    },
+    "state_before": {
+      "enum": [
+        "new",
+        "learning",
+        "review",
+        "relearning"
+      ],
+      "title": "State Before",
+      "type": "string"
+    },
+    "state_after": {
+      "enum": [
+        "new",
+        "learning",
+        "review",
+        "relearning"
+      ],
+      "title": "State After",
+      "type": "string"
+    },
+    "due_before": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Due Before"
+    },
+    "due_after": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Due After"
+    },
+    "scheduled_days": {
+      "minimum": 0,
+      "title": "Scheduled Days",
+      "type": "integer"
+    },
+    "scheduler": {
+      "const": "fsrs",
+      "title": "Scheduler",
+      "type": "string"
+    },
+    "scheduler_version": {
+      "minLength": 1,
+      "title": "Scheduler Version",
+      "type": "string"
+    },
+    "restart_key": {
+      "minLength": 1,
+      "title": "Restart Key",
+      "type": "string"
+    }
+  },
+  "required": [
+    "item_key",
+    "question_version",
+    "knowledge_version",
+    "source_anchor_ids",
+    "exposure_id",
+    "client_event_id",
+    "correct",
+    "rating",
+    "state_before",
+    "state_after",
+    "scheduled_days",
+    "scheduler",
+    "scheduler_version",
+    "restart_key"
+  ],
+  "title": "ArcheAxis Human Learning Kernel Receipt",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/learning/v1/learning-kernel.schema.json"
+}
