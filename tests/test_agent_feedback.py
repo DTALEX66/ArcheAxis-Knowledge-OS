@@ -25,6 +25,13 @@ def test_success_trace_harvests_principle(tmp_path):
     out = record_execution_feedback(db, _trace(success=True))
     assert out["principle_id"]
     assert "preflight" in out["principle"]
+    receipt = out["machine_growth_receipt"]
+    assert receipt["schema"] == "archeaxis.machine-growth/v1"
+    assert receipt["machine_verified"] is False
+    assert [step["stage"] for step in receipt["steps"]] == [
+        "experience", "lesson", "skill_candidate", "review", "reuse"
+    ]
+    assert receipt["steps"][3]["state"] == "skipped"
     found = retrieve_principles(db, "preflight", top_k=5)
     assert found and found[0]["principle_id"] == out["principle_id"]
 

@@ -14,7 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from app.agent.experience_harvest import LifecycleEvent, capture
+from app.agent.experience_harvest import LifecycleEvent, capture_with_receipt
 from app.knowledge.skill_evolution import record_usage
 
 
@@ -61,7 +61,7 @@ def record_execution_feedback(
     ))
 
     try:
-        principles = capture(db, events, llm_reflection=None)
+        principles, growth_receipt = capture_with_receipt(db, events, llm_reflection=None)
     except Exception as exc:  # noqa: BLE001 — fail closed, never break the caller
         raise FeedbackError(f"harvest failed: {exc}") from exc
 
@@ -75,4 +75,5 @@ def record_execution_feedback(
                                 failure_analysis=error or "execution failed")
     return {"principle_id": principles[0].principle_id,
             "principle": principles[0].statement,
-            "usage_id": usage_id}
+            "usage_id": usage_id,
+            "machine_growth_receipt": growth_receipt.model_dump(by_alias=True)}

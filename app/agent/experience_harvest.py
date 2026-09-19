@@ -14,10 +14,12 @@ Deterministic; LLM reflection is optional and never required.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from app.contracts.machine_growth_v1 import GrowthStepV1, MachineGrowthReceiptV1
 from app.memory.reasoning_memory import (
     ReasoningPrinciple,
     reflect,
@@ -92,6 +94,24 @@ def capture(
     llm_reflection: str | None = None,
 ) -> list[ReasoningPrinciple]:
     """Harvest one session: save trajectory + reflect into a principle."""
+    principles, _receipt = capture_with_receipt(
+        db, events, llm_reflection=llm_reflection
+    )
+    return principles
+
+
+def capture_with_receipt(
+    db: str | Path,
+    events: list[LifecycleEvent],
+    *,
+    llm_reflection: str | None = None,
+) -> tuple[list[ReasoningPrinciple], MachineGrowthReceiptV1]:
+    """Harvest one session and return its explicit machine-growth trace.
+
+    The trace records what this local harvester actually did.  Candidate
+    promotion, human review, and reuse remain ``skipped`` until their own
+    governed storage paths execute; they are never inferred from reflection.
+    """
     draft = events_to_trajectory(events)
     if draft.outcome == "failure" and not draft.error_pattern:
         raise HarvestError("failed trajectories require a task_ended error payload")
@@ -100,4 +120,20 @@ def capture(
         error_pattern=draft.error_pattern, importance=0.6,
     )
     principle = reflect(db, trajectory.trajectory_id, llm_reflection=llm_reflection)
-    return [principle]
+    source_event_ids = [event.ts.strip() or f"event-{index}" for index, event in enumerate(events)]
+    receipt_seed = "\0".join([trajectory.trajectory_id, *source_event_ids])
+    outcome = draft.outcome if draft.outcome in {"success", "failure", "partial"} else "unknown"
+    receipt = MachineGrowthReceiptV1(
+        receipt_id="growth_" + hashlib.sha256(receipt_seed.encode("utf-8")).hexdigest()[:24],
+        source_event_ids=source_event_ids,
+        goal=draft.goal,
+        outcome=outcome,
+        steps=[
+            GrowthStepV1(stage="experience", state="observed", actor="system", evidence_refs=source_event_ids),
+            GrowthStepV1(stage="lesson", state="created", actor="system", evidence_refs=[principle.principle_id]),
+            GrowthStepV1(stage="skill_candidate", state="skipped", actor="system"),
+            GrowthStepV1(stage="review", state="skipped", actor="system"),
+            GrowthStepV1(stage="reuse", state="skipped", actor="system"),
+        ],
+    )
+    return [principle], receipt
