@@ -309,6 +309,14 @@
 - `P2.1`: `.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_courseware_v1.py tests/test_machine_knowledge_contract.py -q` — `10 passed, 1 warning`, exit `0`; `TESTED_LOCAL / STRUCTURAL` only.
 - `limitations`: these gates do not prove Rust/.NET runtime, real external workers, real models, interactive renderer, Green, or external data journeys.
 
+## Continuation receipt — 2026-09-20 P3 desktop learning history readback
+
+- `subject_sha`: `30ff2658de4a210d74131493265771f2884e5d45`
+- `changed_paths`: `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`, `tests/test_desktop_learning_review_contract.py`
+- `behavior`: opening a learning item now calls the existing learning-events route, reads the latest persisted outcome, and shows saved-answer/open-projection status conservatively; malformed or failed history remains `学习记录：未读回` and never becomes a mastery claim.
+- `tests`: `.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_desktop_learning_review_contract.py -q` — `10 passed, 1 warning`, exit `0`.
+- `runtime`: Avalonia/.NET build and real restart/readback remain `NOT_EXECUTED` because `dotnet` is unavailable; this is source-contract evidence only.
+
 ## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
 
 - `task_id`: A13 Green candidate composition and portable worker route closure
