@@ -125,6 +125,9 @@ class FormatExecutionReceiptV1(BaseModel):
         engine = str(getattr(run, "engine"))
         version = str(getattr(run, "version"))
         loss_notes = list(getattr(loss_report, "loss_notes", []))
+        attempted_engines = list(getattr(loss_report, "attempted_engines", []))
+        fallback_reason = getattr(loss_report, "fallback_reason", None)
+        fallback_used = len(attempted_engines) > 1
         return cls(
             receipt_id=str(getattr(run, "run_id")),
             status=status,
@@ -152,5 +155,10 @@ class FormatExecutionReceiptV1(BaseModel):
                 for block in blocks
             ],
             quality_facts=quality_facts,
-            fallback=fallback or FallbackInfoV1(used=False),
+            fallback=fallback or FallbackInfoV1(
+                used=fallback_used,
+                attempted_engines=attempted_engines,
+                selected_engine=engine if attempted_engines else None,
+                reason=fallback_reason,
+            ),
         )

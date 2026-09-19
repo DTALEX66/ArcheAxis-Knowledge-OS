@@ -1,16 +1,21 @@
 """Versioned canonical contracts."""
 
-from app.contracts.knowledge_v3 import KnowledgeObjectV3, KnowledgeSourceV3
-from app.contracts.format_execution_v1 import FormatExecutionReceiptV1
-from app.contracts.derived_projection_v1 import DerivedProjectionReceiptV1, ProjectionItemV1
-from app.contracts.machine_growth_v1 import GrowthStepV1, MachineGrowthReceiptV1
-from app.contracts.learning_kernel_v1 import LearningKernelReceiptV1
-from app.contracts.domain_pack_v1 import DomainPackV1
-from app.contracts.courseware_v1 import CoursewareArtifactV1
-from app.contracts.model_pool_v1 import ModelCapabilityPoolV1, ModelRoleEntryV1
-from app.contracts.desktop_routes_v1 import DesktopRouteManifestV1, DesktopRouteV1
-from app.contracts.local_green_v1 import LocalGreenIdentityV1
 from app.contracts.closed_loop_v1 import ClosedLoopReceiptV1, ClosedLoopStageV1
+from app.contracts.courseware_v1 import CoursewareArtifactV1
+from app.contracts.derived_projection_v1 import DerivedProjectionReceiptV1, ProjectionItemV1
+from app.contracts.desktop_routes_v1 import DesktopRouteManifestV1, DesktopRouteV1
+from app.contracts.domain_pack_v1 import DomainPackV1
+from app.contracts.format_execution_v1 import FormatExecutionReceiptV1
+from app.contracts.general_learning_v1 import (
+    CourseManifestV1,
+    KnowledgeComponentV1,
+    LearningObjectiveV1,
+)
+from app.contracts.knowledge_v3 import KnowledgeObjectV3, KnowledgeSourceV3
+from app.contracts.learning_kernel_v1 import LearningKernelReceiptV1
+from app.contracts.local_green_v1 import LocalGreenIdentityV1
+from app.contracts.machine_growth_v1 import GrowthStepV1, MachineGrowthReceiptV1
+from app.contracts.model_pool_v1 import ModelCapabilityPoolV1, ModelRoleEntryV1
 from app.contracts.v1 import (
     CONTRACT_VERSION,
     EvaluationV1,
@@ -41,6 +46,9 @@ __all__ = [
     "LearningKernelReceiptV1",
     "DomainPackV1",
     "CoursewareArtifactV1",
+    "CourseManifestV1",
+    "KnowledgeComponentV1",
+    "LearningObjectiveV1",
     "ModelCapabilityPoolV1",
     "ModelRoleEntryV1",
     "DesktopRouteManifestV1",

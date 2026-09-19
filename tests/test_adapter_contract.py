@@ -371,6 +371,32 @@ class TestMultiFormatAdapter:
         assert content == "some content"
         assert engine == "markitdown"
 
+    def test_convert_file_with_trace_records_fallback_attempts(self, tmp_path, monkeypatch):
+        from app.ingestion import multi_format
+        from shared.adapter_contract import AdapterResult
+
+        source = tmp_path / "notes.txt"
+        source.write_text("hello", encoding="utf-8")
+
+        def unavailable(_path):
+            return AdapterResult(False, "", "first-engine", error="engine unavailable")
+
+        def selected(_path):
+            return AdapterResult(True, "hello", "second-engine")
+
+        monkeypatch.setitem(
+            multi_format._ENGINES,
+            "txt",
+            [("first-engine", unavailable), ("second-engine", selected)],
+        )
+        content, engine, trace = multi_format.convert_file_with_trace(source, "txt")
+
+        assert content == "hello"
+        assert engine == "second-engine"
+        assert trace.attempted_engines == ("first-engine", "second-engine")
+        assert trace.fallback_used is True
+        assert trace.fallback_reason == "fallback used after: first-engine"
+
     def test_convert_url_graceful_failure(self):
         """convert_url gracefully fails on unreachable URL (no DNS)."""
         from app.ingestion.multi_format import convert_url

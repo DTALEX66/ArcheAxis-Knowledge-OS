@@ -24,6 +24,7 @@ clear error. A conversion never claims success from metadata alone
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -36,6 +37,15 @@ from shared.safe_http import SafeHTTPPolicy, fetch
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 _APPROVED_ROOTS = ApprovedRoots(source_roots=[_PROJECT_ROOT], output_roots=[_PROJECT_ROOT])
+
+
+@dataclass(frozen=True)
+class ConversionTrace:
+    """Path-free record of the engines considered for one conversion."""
+
+    attempted_engines: tuple[str, ...]
+    fallback_used: bool
+    fallback_reason: str | None = None
 
 # ── Format detection ──
 
@@ -575,23 +585,41 @@ def convert_file(
     Raises:
         RuntimeError: If all engines fail for this format.
     """
+    content, engine, trace = convert_file_with_trace(file_path, fmt)
+    if quality:
+        from shared.text_quality import assess_conversion
+
+        report = assess_conversion(source_path=str(file_path), output_text=content)
+        report.update(
+            attempted_engines=list(trace.attempted_engines),
+            fallback_used=trace.fallback_used,
+            fallback_reason=trace.fallback_reason,
+        )
+        return content, engine, report
+    return content, engine
+
+
+def convert_file_with_trace(
+    file_path: str | Path,
+    fmt: str | None = None,
+) -> tuple[str, str, ConversionTrace]:
+    """Convert a file and retain the selected route's fallback decision.
+
+    The existing two-tuple ``convert_file`` API remains unchanged.  Callers that
+    persist a format receipt use this variant so a successful fallback cannot be
+    mistaken for a first-choice conversion.
+    """
     fmt = fmt or detect_format_from_content(file_path)
     engines = _ENGINES.get(fmt)
-
-    def _return(text: str, engine: str) -> tuple[str, str] | tuple[str, str, dict[str, object]]:
-        if quality:
-            from shared.text_quality import assess_conversion
-
-            q = assess_conversion(source_path=str(file_path), output_text=text)
-            return text, engine, q
-        return text, engine
 
     if not engines:
         # Unknown format — try markitdown as universal fallback
         engines = [("markitdown", _via_markitdown)]
 
-    errors = []
+    errors: list[str] = []
+    attempted: list[str] = []
     for engine_name, engine_fn in engines:
+        attempted.append(engine_name)
         try:
             result: AdapterResult = engine_fn(str(file_path))
             # Content post-condition: a conversion only "succeeds" when it
@@ -599,7 +627,16 @@ def convert_file(
             # metadata-only or placeholder result) must not be claimed as
             # content success (MFX-010 honest-capability guard).
             if result.success and result.content.strip():
-                return _return(result.content, result.engine)
+                trace = ConversionTrace(
+                    attempted_engines=tuple(attempted),
+                    fallback_used=len(attempted) > 1,
+                    fallback_reason=(
+                        "fallback used after: " + ", ".join(attempted[:-1])
+                        if len(attempted) > 1
+                        else None
+                    ),
+                )
+                return result.content, result.engine, trace
             reason = result.error or "returned empty content"
             errors.append(f"{engine_name}: {reason}")
         except ImportError as e:

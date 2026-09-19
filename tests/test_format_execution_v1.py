@@ -97,3 +97,21 @@ def test_product_boundary_can_override_source_name_to_avoid_path_leak() -> None:
         quality_facts=_quality(),
     )
     assert receipt.original.name == "notes.md"
+
+
+def test_receipt_preserves_fallback_attempts_from_conversion_run() -> None:
+    run = create_conversion_run(
+        "e" * 64,
+        "notes.txt",
+        [{"kind": "paragraph", "text": "hello", "anchor": {"ordinal": 1}}],
+        engine="passthrough",
+        attempted_engines=["markitdown", "passthrough"],
+        fallback_reason="markitdown unavailable",
+    )
+    receipt = FormatExecutionReceiptV1.from_conversion_run(
+        run, source_format="txt", quality_facts=_quality()
+    )
+    assert receipt.fallback.used is True
+    assert receipt.fallback.attempted_engines == ["markitdown", "passthrough"]
+    assert receipt.fallback.selected_engine == "passthrough"
+    assert receipt.fallback.reason == "markitdown unavailable"

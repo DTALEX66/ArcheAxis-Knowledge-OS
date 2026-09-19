@@ -42,6 +42,7 @@ from app.capability.builtin import (
 from app.capability.conversion import (
     ConversionDispatcher,
     ConverterError,
+    FileConverter,
     get_active_converter,
     get_converter,
     list_active,
@@ -421,3 +422,61 @@ def test_wrapper_wraps_adapter_exceptions_fail_closed(monkeypatch: pytest.Monkey
 def test_register_active_converter_validates_input() -> None:
     with pytest.raises(ConverterError, match="plugin_id"):
         register_active_converter("", None)  # type: ignore[arg-type]
+
+
+def test_provider_lifecycle_health_execute_failure_disable_and_replace(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """One local provider has a complete, fail-closed lifecycle.
+
+    This deliberately stays at the capability boundary: the provider receives
+    a staged input path and returns an ``AdapterResult``; no canonical database
+    handle or writer is available to the plugin.
+    """
+    import app.ingestion.html_adapter as html_adapter
+
+    plugin_id = converters_html.MANIFEST["plugin_id"]
+    source = tmp_path / "input.html"
+    source.write_text("<html><body>lifecycle</body></html>", encoding="utf-8")
+    outcomes = {"ok": True}
+
+    def fake_convert_html(file_path: str) -> AdapterResult:
+        assert file_path == str(source)
+        if outcomes["ok"]:
+            return AdapterResult(success=True, content="provider-v1", engine="test-provider")
+        return AdapterResult(success=False, content="", engine="test-provider", error="provider down")
+
+    monkeypatch.setattr(html_adapter, "convert_html_file", fake_convert_html)
+    store = CapabilityStore(tmp_path / "capstore")
+    manifest = load_manifest_from_mapping(converters_html.MANIFEST)
+    dispatcher = ConversionDispatcher(store)
+
+    assert converters_html.healthcheck()["ok"] is True
+    store.install_builtin(manifest, converters_html.get_activator())
+    provider = dispatcher.get_converter(plugin_id)
+    assert provider is not None
+    assert provider.convert(source).content == "provider-v1"
+
+    outcomes["ok"] = False
+    with pytest.raises(ConverterError, match="provider down"):
+        provider.convert(source)
+
+    disabled = store.disable(plugin_id)
+    assert disabled.status == "disabled"
+    assert dispatcher.get_converter(plugin_id) is None
+
+    enabled = store.enable(plugin_id)
+    assert enabled.status == "installed"
+    assert dispatcher.get_converter(plugin_id) is provider
+
+    replacement = FileConverter(
+        plugin_id=plugin_id,
+        name="HTML Converter (replacement)",
+        convert=lambda path, options=None: AdapterResult(
+            success=True, content="provider-v2", engine="replacement-provider"
+        ),
+    )
+    register_active_converter(plugin_id, replacement)
+    assert dispatcher.get_converter(plugin_id) is replacement
+    assert replacement.convert(source).content == "provider-v2"
+    assert not (tmp_path / "canonical.db").exists()

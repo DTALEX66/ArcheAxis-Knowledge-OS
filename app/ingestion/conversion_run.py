@@ -43,6 +43,8 @@ class DerivedDocument:
 class LossReport:
     block_count: int
     loss_notes: list[str] = field(default_factory=list)
+    attempted_engines: list[str] = field(default_factory=list)
+    fallback_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -67,6 +69,8 @@ def create_conversion_run(
     engine: str,
     version: int = 1,
     loss_notes: list[str] | None = None,
+    attempted_engines: list[str] | None = None,
+    fallback_reason: str | None = None,
 ) -> ConversionRun:
     """Build a ConversionRun with stable IDs derived from content identity.
 
@@ -75,7 +79,11 @@ def create_conversion_run(
     """
     if not blocks:
         raise ValueError("conversion produced no blocks")
-    run_id = _stable_id("run", raw_sha256, source_name, engine, version)
+    attempted = list(attempted_engines or [])
+    identity = (raw_sha256, source_name, engine, version)
+    if attempted or fallback_reason is not None:
+        identity += (attempted, fallback_reason)
+    run_id = _stable_id("run", *identity)
     document_id = _stable_id("derived", raw_sha256, engine, version)
     derived_blocks: list[DerivedBlock] = []
     for i, b in enumerate(blocks):
@@ -100,7 +108,12 @@ def create_conversion_run(
         engine=engine,
         version=version,
         document=document,
-        loss_report=LossReport(block_count=len(derived_blocks), loss_notes=list(loss_notes or [])),
+        loss_report=LossReport(
+            block_count=len(derived_blocks),
+            loss_notes=list(loss_notes or []),
+            attempted_engines=attempted,
+            fallback_reason=fallback_reason,
+        ),
     )
 
 
@@ -151,6 +164,8 @@ def _loss_payload(run: ConversionRun) -> str:
         {
             "block_count": run.loss_report.block_count,
             "loss_notes": run.loss_report.loss_notes,
+            "attempted_engines": run.loss_report.attempted_engines,
+            "fallback_reason": run.loss_report.fallback_reason,
         },
         sort_keys=True,
     )
@@ -288,5 +303,7 @@ def resolve_conversion_run(db: str | Path, run_id: str) -> ConversionRun | None:
             loss_report=LossReport(
                 block_count=loss.get("block_count", len(blocks)),
                 loss_notes=list(loss.get("loss_notes") or []),
+                attempted_engines=list(loss.get("attempted_engines") or []),
+                fallback_reason=loss.get("fallback_reason"),
             ),
         )

@@ -19,6 +19,7 @@ from app.workspace.job_outbox import command_request_fingerprint, record_complet
 _HEAVY_IMPORTED: dict[str, object] | None = None
 research_github_repository = None
 convert_file = None
+convert_file_with_trace = None
 convert_url = None
 capture_web = None
 detect_format = None
@@ -42,12 +43,15 @@ def _import_heavy() -> None:
             convert_file as _convert_file,
         )
         from app.ingestion.multi_format import (
+            convert_file_with_trace as _convert_file_with_trace,
+        )
+        from app.ingestion.multi_format import (
             convert_url as _convert_url,
         )
-        from app.ingestion.web import capture_web as _capture_web
         from app.ingestion.multi_format import (
             detect_format as _detect_format,
         )
+        from app.ingestion.web import capture_web as _capture_web
         from app.knowledge.closed_loop import (
             approve_learning_artifact as _approve_learning_artifact,
         )
@@ -76,6 +80,7 @@ def _import_heavy() -> None:
         _HEAVY_IMPORTED = {
             "research_github_repository": _research_github_repository,
             "convert_file": _convert_file,
+            "convert_file_with_trace": _convert_file_with_trace,
             "convert_url": _convert_url,
             "capture_web": _capture_web,
             "detect_format": _detect_format,
@@ -235,7 +240,7 @@ def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[s
     except Exception as exc:  # noqa: BLE001 - batch callers receive a safe reason
         raise RuntimeError(_sanitize_conversion_error(f"{safe_name}: {exc}")) from None
     try:
-        markdown, engine = convert_file(source)
+        markdown, engine, trace = convert_file_with_trace(source)
         source_format = detect_format(source)
         from app.evidence.anchor import (
             build_evidence_anchor,
@@ -255,6 +260,8 @@ def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[s
             source_format=source_format,
             converted_content=markdown,
             extractor_identity=engine,
+            attempted_engines=list(trace.attempted_engines),
+            fallback_reason=trace.fallback_reason,
         )
         anchor = build_evidence_anchor(
             raw_sha256=raw.sha256,
@@ -309,7 +316,7 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         temporary.write(content)
         temporary_path = Path(temporary.name)
     try:
-        markdown, engine = convert_file(temporary_path)
+        markdown, engine, trace = convert_file_with_trace(temporary_path)
         source_format = detect_format(temporary_path)
         from app.evidence.anchor import (
             build_evidence_anchor,
@@ -329,6 +336,8 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
             source_format=source_format,
             converted_content=markdown,
             extractor_identity=engine,
+            attempted_engines=list(trace.attempted_engines),
+            fallback_reason=trace.fallback_reason,
         )
         conversion_anchor = build_evidence_anchor(
             raw_sha256=original.sha256,
@@ -739,7 +748,7 @@ def workspace_conversion_run_detail(
     # for a loss-aware structural receipt.  Keep semantic fidelity and
     # fallback state explicitly unmeasured instead of promoting this projection
     # to a false end-to-end quality claim.
-    from app.contracts.format_execution_v1 import FallbackInfoV1, FormatExecutionReceiptV1, QualityFactV1
+    from app.contracts.format_execution_v1 import FormatExecutionReceiptV1, QualityFactV1
     from app.ingestion.conversion_run import resolve_conversion_run
 
     run = resolve_conversion_run(Path(db_path), run_id)
@@ -778,14 +787,24 @@ def workspace_conversion_run_detail(
             ),
             QualityFactV1(
                 name="fallback_state",
-                status="unmeasured",
-                note="Fallback attempts are not persisted by the legacy conversion run.",
+                status=(
+                    "measured"
+                    if getattr(run.loss_report, "attempted_engines", [])
+                    else "unmeasured"
+                ),
+                value=(
+                    bool(getattr(run.loss_report, "fallback_reason", None))
+                    if getattr(run.loss_report, "attempted_engines", [])
+                    else None
+                ),
+                unit="boolean" if getattr(run.loss_report, "attempted_engines", []) else None,
+                note=(
+                    "fallback attempts are persisted in the conversion loss receipt"
+                    if getattr(run.loss_report, "attempted_engines", [])
+                    else "legacy conversion run has no fallback attempt trace"
+                ),
             ),
         ],
-        fallback=FallbackInfoV1(
-            used=False,
-            reason="No fallback decision is recorded by the legacy conversion run.",
-        ),
     )
     detail["format_execution_receipt"] = receipt.model_dump(by_alias=True)
     detail["format_execution_receipt_status"] = "partial"
