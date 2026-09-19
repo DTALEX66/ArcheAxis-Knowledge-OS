@@ -166,6 +166,14 @@ def test_desktop_reads_latest_learning_event_on_open_for_restart_readback() -> N
     assert "学习记录：未读回" in learning
 
 
+def test_desktop_restores_persisted_answer_text_on_open() -> None:
+    shell = _shell_source()
+    learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")
+
+    assert "savedAnswerText" in learning
+    assert "LearningAnswerBox.Text = savedAnswerText" in learning
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(

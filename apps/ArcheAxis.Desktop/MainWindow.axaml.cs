@@ -371,9 +371,13 @@ public partial class MainWindow : Window
                                     && !string.IsNullOrWhiteSpace(outcome.GetString()))
                                 {
                                     using var outcomeDocument = JsonDocument.Parse(outcome.GetString()!);
-                                    var savedAnswer = outcomeDocument.RootElement.TryGetProperty("answer", out var answerValue)
+                                    var savedAnswerText = outcomeDocument.RootElement.TryGetProperty("answer", out var answerValue)
                                         && answerValue.ValueKind == JsonValueKind.String
-                                        && !string.IsNullOrWhiteSpace(answerValue.GetString());
+                                        ? answerValue.GetString()
+                                        : null;
+                                    var savedAnswer = !string.IsNullOrWhiteSpace(savedAnswerText);
+                                    if (!string.IsNullOrWhiteSpace(savedAnswerText))
+                                        LearningAnswerBox.Text = savedAnswerText;
                                     var projectionOpen = outcomeDocument.RootElement.TryGetProperty("mastery_projection", out var projection)
                                         && projection.ValueKind == JsonValueKind.Object
                                         && projection.TryGetProperty("closed", out var closed)
