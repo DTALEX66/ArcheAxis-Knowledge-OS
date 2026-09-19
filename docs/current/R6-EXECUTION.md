@@ -652,3 +652,11 @@
 - `mechanical_gates`: authority SHA exit `0`; historical R3.1 evidence index exit `0` with 17 slices, 81 tracked pointers and 3 receipts; current contract/unseen gate `31 passed, 1 warning`; security/permission/path/MCP gate `41 passed, 1 skipped, 3 warnings`; R11 unseen and MCP probes exit `0`.
 - `result`: `A15_PASS / PRODUCT_NOT_READY`. G01 is locally PASS; G02-G11, G13 and G14 remain BLOCKED or insufficient for PASS; G12 is FAIL because 22 preserved untracked history/private paths remain. P0-P6 remain BLOCKED and A16 remains BLOCKED.
 - `boundary`: this audit does not prove real representative format quality, human Avalonia first-use, real model/user correction-retest, complete Rust backup/recovery, Legacy semantic migration, clean-machine Windows qualification, Green replacement/rollback or release readiness.
+
+## Continuation receipt — 2026-09-20 release architecture and performance boundary
+
+- `subject_sha`: `f73d370e2043a9135e7a836099a8c1faec7f87b4`
+- `architecture`: `scripts/release/verify_release_architecture.py --root .` returned exit `0`; the formal Avalonia → Rust Core → Python workers release chain is identified. This is structural evidence only.
+- `performance_probe`: `scripts/run_performance_benchmark.py --corpus tests/fixtures/corpus --report .project-local/runs/r6-perf-20260920/artifacts/performance.json` wrote a project-local report and returned `overall: passed`, but all required `small`, `medium` and `large` layers were skipped because the fixture does not contain those directories; only cold-start data and a 7-file/2428-byte corpus summary were measured.
+- `result`: performance evidence is `NOT_EXECUTED/INCOMPLETE` for the AXW-096A layered gate; no A11 model benchmark or full A05 conversion-quality claim is made. A12 architecture remains `TESTED_LOCAL_PARTIAL`.
+- `boundary`: no public download, external model, shared library, Green runtime, real data, E/F or private agent state was accessed.
