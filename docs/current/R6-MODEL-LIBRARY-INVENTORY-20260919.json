@@ -1,0 +1,27 @@
+{
+  "schema": "archeaxis.r6.model-library-inventory/v1",
+  "observed_at": "2026-09-19T15:40:00Z",
+  "resource_id": "shared_models",
+  "root": "D:\\All projects\\Model library",
+  "read_only": true,
+  "scope": "root and one-level directory metadata",
+  "root_exists": true,
+  "root_reparse_point": false,
+  "contents_read": false,
+  "weights_read": false,
+  "directories": [
+    {"name": "ComfyUI", "child_count": 3, "child_directories": ["diffusion_models", "text_encoders", "vae"], "reparse_point": false},
+    {"name": "ollama", "child_count": 2, "child_directories": ["blobs", "manifests"], "reparse_point": false},
+    {"name": "runtimes-tmp", "child_count": 1, "child_directories": [], "reparse_point": false},
+    {"name": "sherpa-onnx", "child_count": 5, "child_directories": ["sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17", "sherpa-onnx-streaming-zipformer-zh-14M-2023-02-23"], "reparse_point": false},
+    {"name": "whisper", "child_count": 1, "child_directories": ["faster-whisper-large-v3-turbo"], "reparse_point": false}
+  ],
+  "files": [
+    {"name": "README.md", "length": 3666, "reparse_point": false}
+  ],
+  "limitations": [
+    "This receipt proves only a shallow metadata inventory.",
+    "It does not prove executable availability, model integrity, runtime health, VRAM/RAM use, latency, licensing, or benchmark quality.",
+    "No shared model files were copied, modified, downloaded, or uploaded."
+  ]
+}

@@ -188,17 +188,17 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `8ee33bc6`
-- changed_paths: `app/contracts/model_pool_v1.py`, `config/model-profiles/r6-capability-pool.json`, `packages/contracts/v1/model-capability-pool.schema.json`, `tests/test_model_pool_v1.py`
+- subject_sha: `PENDING_DOC_COMMIT`
+- changed_paths: `docs/current/R6-MODEL-LIBRARY-INVENTORY-20260919.json`
 - contract: role → model → quantization → runtime → memory → fallback is explicit, with measured/unmeasured status and evidence references
-- source: repository `config/model-profiles/local-2026-09-05.yaml` historical profile only; no shared Model library files were copied or modified
+- source: repository `config/model-profiles/local-2026-09-05.yaml` historical profile plus a fresh shallow read-only inventory of the registered shared model root
 - tests: `tests/test_model_pool_v1.py tests/test_asr_model_resolution.py tests/test_axw096a_benchmark.py` — 12 passed, exit 0
-- actual_runtime_result: manifest validation and existing model-resolution/benchmark utility tests; no fresh model benchmark was run
-- data_touched: repository contract, manifest, generated schema and tests only
-- external_paths_touched: none
-- limitations: current shared model inventory, VRAM/RAM/latency measurements, and current runtime health remain unverified; entries are not a release selection
-- rollback: revert commit `8ee33bc6`; existing model profile and resolver remain intact
-- remaining_gap: perform owner-approved read-only inventory of the fixed Model library path, then run bounded role benchmarks with exact receipts
+- actual_runtime_result: `D:\\All projects\\Model library` exists as a non-reparse directory; shallow metadata found `ComfyUI`, `ollama`, `runtimes-tmp`, `sherpa-onnx`, `whisper` and one README; no weights or model file contents were read
+- data_touched: one path-free metadata receipt in the repository; no model weights or shared files were copied
+- external_paths_touched: `D:\\All projects\\Model library` read-only metadata only
+- limitations: executable availability, model integrity, VRAM/RAM/latency measurements, licensing, current runtime health and role benchmarks remain unverified; entries are not a release selection
+- rollback: revert the inventory receipt commit; existing model profile and resolver remain intact
+- remaining_gap: run bounded role benchmarks with exact receipts using only the registered shared models and project-local outputs
 
 ## A12 — Avalonia Product Shell
 
