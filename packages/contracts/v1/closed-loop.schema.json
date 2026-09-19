@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "ClosedLoopStageV1": {
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "enum": [
+            "source",
+            "knowledge",
+            "human_learning",
+            "machine_use",
+            "evaluation",
+            "correction",
+            "lesson",
+            "retest"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pass",
+            "blocked",
+            "not_executed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence_level": {
+          "enum": [
+            "real",
+            "synthetic",
+            "unverified"
+          ],
+          "title": "Evidence Level",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage",
+        "status",
+        "evidence_level"
+      ],
+      "title": "ClosedLoopStageV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "archeaxis.closed-loop/v1",
+      "default": "archeaxis.closed-loop/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "journey_id": {
+      "minLength": 1,
+      "title": "Journey Id",
+      "type": "string"
+    },
+    "canonical_writer": {
+      "const": "archeaxis-core-rust-sqlite",
+      "title": "Canonical Writer",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/ClosedLoopStageV1"
+      },
+      "minItems": 8,
+      "title": "Stages",
+      "type": "array"
+    },
+    "overall_status": {
+      "enum": [
+        "partial",
+        "complete",
+        "blocked"
+      ],
+      "title": "Overall Status",
+      "type": "string"
+    },
+    "synthetic": {
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "journey_id",
+    "canonical_writer",
+    "stages",
+    "overall_status",
+    "synthetic"
+  ],
+  "title": "ArcheAxis Full Closed Loop Receipt",
+  "type": "object",
+  "$id": "https://archeaxis.local/contracts/v1/closed-loop.schema.json"
+}

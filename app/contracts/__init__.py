@@ -10,6 +10,7 @@ from app.contracts.courseware_v1 import CoursewareArtifactV1
 from app.contracts.model_pool_v1 import ModelCapabilityPoolV1, ModelRoleEntryV1
 from app.contracts.desktop_routes_v1 import DesktopRouteManifestV1, DesktopRouteV1
 from app.contracts.local_green_v1 import LocalGreenIdentityV1
+from app.contracts.closed_loop_v1 import ClosedLoopReceiptV1, ClosedLoopStageV1
 from app.contracts.v1 import (
     CONTRACT_VERSION,
     EvaluationV1,
@@ -45,5 +46,7 @@ __all__ = [
     "DesktopRouteManifestV1",
     "DesktopRouteV1",
     "LocalGreenIdentityV1",
+    "ClosedLoopReceiptV1",
+    "ClosedLoopStageV1",
 ]
 
