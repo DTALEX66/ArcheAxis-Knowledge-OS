@@ -498,3 +498,10 @@
 - `behavior`: a deterministic local adapter accepts only a `general` lesson artifact bound to the supplied `CourseManifestV1`; it produces an Obsidian-compatible `Projection` with manifest/artifact/source/knowledge/renderer metadata and fail-closed binding checks.
 - `verification`: static file/contract inspection passed; the focused pytest command was `NOT_EXECUTED` (project `.venv` uv trampoline failed with permission denied), so this is `STRUCTURAL` evidence only. No H5P/OpenMAIC/provider/model or real curriculum was introduced.
 - `remaining_gap`: interactive renderer execution, Core courseware receipt, reviewed curriculum and domain acceptance remain open; P2 stays `TESTED_LOCAL_PARTIAL`.
+
+## Continuation receipt — 2026-09-21 P0 worker evidence boundary
+
+- `subject_sha`: `45f42ab1d6d3a4da1e5ef397b0f8674b502cda1e`
+- `verification`: static worker reachability and lifecycle source review completed. Existing lifecycle tests use a monkeypatched `FileConverter`; the reachability manifest records routes/exemptions but does not bind real Python worker manifest, runner, health, enable/disable or provider replacement behavior.
+- `result`: `STRUCTURAL / NOT_EXECUTED`; no complete P0 worker gate is available without the Python runtime and a real worker binding. The two un-routed capability workers remain explicitly exempt for missing model/route contracts.
+- `scope`: no source change, no external library/Green/real data/E/F/private-state access, no commit-level product claim beyond this evidence boundary.

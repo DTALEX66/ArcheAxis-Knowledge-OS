@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`740f2e2d39dee0a6c8e6bc9766a846d192f3bb30`（本记录提交的 first parent）
+- 当前本地与远端 `main`：`45f42ab1d6d3a4da1e5ef397b0f8674b502cda1e`（本记录提交的 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
