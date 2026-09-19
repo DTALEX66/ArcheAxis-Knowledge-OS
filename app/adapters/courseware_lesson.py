@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 
 from app.contracts.courseware_v1 import CoursewareArtifactV1
@@ -18,7 +19,30 @@ from shared.obsidian_projection import (
 def _path_segment(value: str) -> str:
     """Make an identifier safe and deterministic as a relative path segment."""
     segment = re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip(".-")
-    return segment or "item"
+    digest = hashlib.sha256(value.encode("utf-8")).hexdigest()[:10]
+    reserved = {
+        "con",
+        "prn",
+        "aux",
+        "nul",
+        *(f"com{i}" for i in range(1, 10)),
+        *(f"lpt{i}" for i in range(1, 10)),
+    }
+    base_name = segment.split(".", 1)[0].casefold()
+    # Keep ordinary IDs readable, but retain enough identity after any
+    # lossy normalization so two source IDs cannot silently share a target.
+    needs_disambiguation = (
+        not segment
+        or segment != value
+        or segment.casefold() != segment
+        or base_name in reserved
+        or len(segment) > 120
+    )
+    if needs_disambiguation:
+        suffix = f"--{digest}"
+        prefix = (segment or "item")[: 120 - len(suffix)]
+        segment = f"{prefix}{suffix}"
+    return segment
 
 
 def render_general_lesson(

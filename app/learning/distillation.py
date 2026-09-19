@@ -41,17 +41,24 @@ def _candidate(connection: sqlite3.Connection, candidate_id: str) -> sqlite3.Row
 
 
 def _require_verified_bundle(
-    connection: sqlite3.Connection, evidence_bundle_id: str
+    connection: sqlite3.Connection,
+    evidence_bundle_id: str,
+    *,
+    candidate_id: str,
 ) -> None:
     row = connection.execute(
-        "SELECT r.decision FROM evidence_bundles_v1 b "
+        "SELECT b.claim_id, r.decision FROM evidence_bundles_v1 b "
         "LEFT JOIN evidence_bundle_reviews_v1 r ON r.id=("
         "SELECT r2.id FROM evidence_bundle_reviews_v1 r2 "
         "WHERE r2.bundle_id=b.id ORDER BY r2.reviewed_at DESC,r2.id DESC LIMIT 1) "
         "WHERE b.id=?",
         (evidence_bundle_id,),
     ).fetchone()
-    if row is None or str(row["decision"]) != "verified":
+    if (
+        row is None
+        or str(row["decision"]) != "verified"
+        or str(row["claim_id"]) != candidate_id
+    ):
         raise DistillationApprovalError("verified evidence bundle review is required")
 
 
@@ -87,7 +94,9 @@ def approve_candidate(
         candidate = _candidate(connection, candidate_id)
         if str(candidate["status"]) not in {"unverified", "reviewed"}:
             raise DistillationApprovalError("candidate is not available for approval")
-        _require_verified_bundle(connection, evidence_bundle_id)
+        _require_verified_bundle(
+            connection, evidence_bundle_id, candidate_id=candidate_id
+        )
         connection.execute(
             "INSERT INTO distillation_candidate_reviews_v2 "
             "(review_id,candidate_id,decision,evidence_bundle_id,reviewer_id,rationale,reviewed_at) "

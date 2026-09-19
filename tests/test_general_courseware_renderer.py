@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from app.adapters.courseware_lesson import render_general_lesson
+from app.adapters.courseware_lesson import _path_segment, render_general_lesson
 from app.contracts.general_learning_v1 import CourseManifestV1
 from shared.obsidian_projection import Projection
 
@@ -125,3 +125,14 @@ def test_general_lesson_renderer_rejects_artifact_not_bound_to_manifest() -> Non
 
     with pytest.raises(ValueError, match="not bound to the course manifest"):
         render_general_lesson(manifest, artifact)
+
+
+def test_path_segments_disambiguate_lossy_ids_and_windows_reserved_names() -> None:
+    slash_id = _path_segment("a/b")
+    dash_id = _path_segment("a-b")
+
+    assert slash_id != dash_id
+    assert "/" not in slash_id
+    assert "\\" not in slash_id
+    assert _path_segment("CON").casefold() != "con"
+    assert _path_segment("   ").startswith("item--")

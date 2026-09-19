@@ -78,6 +78,29 @@ def test_search_vault_projection_source_id_is_independent_of_absolute_vault_path
     assert first["derived_projection"]["items"][0]["source_revision"] == second["derived_projection"]["items"][0]["source_revision"]
 
 
+def test_search_vault_projection_is_stable_when_files_are_created_in_different_orders(tmp_path) -> None:
+    first_base = tmp_path / "first"
+    second_base = tmp_path / "second"
+    first_base.mkdir()
+    second_base.mkdir()
+    first_vault, first_store = _make_vault(
+        first_base,
+        {"z.md": "Stable match z.\n", "a.md": "Stable match a.\n"},
+    )
+    second_vault, second_store = _make_vault(
+        second_base,
+        {"a.md": "Stable match a.\n", "z.md": "Stable match z.\n"},
+    )
+
+    first = search_vault(root=first_vault, store=first_store, query="stable")
+    second = search_vault(root=second_vault, store=second_store, query="stable")
+
+    assert [item["relative_path"] for item in first["results"]] == ["a.md", "z.md"]
+    assert [item["relative_path"] for item in second["results"]] == ["a.md", "z.md"]
+    assert first["derived_projection"]["projection_id"] == second["derived_projection"]["projection_id"]
+    assert first["derived_projection"]["canonical_source_ids"] == second["derived_projection"]["canonical_source_ids"]
+
+
 def test_search_vault_case_insensitive(tmp_path) -> None:
     vault, store = _make_vault(tmp_path, {"a.md": "Machine Learning is FUN.\n"})
     result = search_vault(root=vault, store=store, query="machine learning")

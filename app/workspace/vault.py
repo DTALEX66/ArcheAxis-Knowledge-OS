@@ -78,7 +78,15 @@ def search_vault(*, root: str | Path, store: str | Path, query: str) -> dict[str
         raise VaultWorkbenchError("search query must not be empty")
     session = _session(root, store)
     results: list[dict[str, object]] = []
-    for item in session.scan():
+    # ``ImportSession`` delegates enumeration to ``os.walk``.  Its order is
+    # filesystem-dependent, so sort before deriving projection items and the
+    # projection fingerprint; otherwise identical source content can produce
+    # different retrieval receipts across rebuilds.
+    scanned = sorted(
+        session.scan(),
+        key=lambda item: (item.relative_path.casefold(), item.relative_path),
+    )
+    for item in scanned:
         if item.is_binary:
             continue
         haystack = item.raw_text.casefold()

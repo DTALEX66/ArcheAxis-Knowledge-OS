@@ -74,6 +74,35 @@ def _verified_bundle(db: Path) -> None:
         connection.commit()
 
 
+def _verified_bundle_for(db: Path, *, bundle_id: str, claim_id: str) -> None:
+    with sqlite3.connect(db) as connection:
+        connection.execute(
+            "INSERT INTO evidence_bundles_v1 "
+            "(id,claim_id,bundle_fingerprint,created_at) VALUES (?,?,?,?)",
+            (
+                bundle_id,
+                claim_id,
+                "e" * 64,
+                "2026-08-27T01:02:00+00:00",
+            ),
+        )
+        connection.execute(
+            "INSERT INTO evidence_bundle_reviews_v1 "
+            "(id,bundle_id,reviewer_id,decision,rationale,reviewed_at,created_at) "
+            "VALUES (?,?,?,?,?,?,?)",
+            (
+                f"{bundle_id}-review",
+                bundle_id,
+                "human:owner",
+                "verified",
+                "checked source anchors",
+                "2026-08-27T01:03:00+00:00",
+                "2026-08-27T01:03:00+00:00",
+            ),
+        )
+        connection.commit()
+
+
 def test_approval_without_verified_evidence_fails_closed(tmp_path: Path) -> None:
     db = _db(tmp_path)
     with pytest.raises(DistillationApprovalError, match="verified evidence"):
@@ -84,6 +113,21 @@ def test_approval_without_verified_evidence_fails_closed(tmp_path: Path) -> None
             reviewer_id="human:owner",
             evidence_bundle_id="missing",
             rationale="looks useful",
+            reviewed_at="2026-08-27T01:04:00+00:00",
+        )
+
+
+def test_approval_rejects_verified_evidence_for_another_candidate(tmp_path: Path) -> None:
+    db = _db(tmp_path)
+    _verified_bundle_for(db, bundle_id="bundle-other", claim_id="distill-other")
+    with pytest.raises(DistillationApprovalError, match="verified evidence"):
+        approve_candidate(
+            db,
+            candidate_id="distill-a",
+            review_id="review-wrong-bundle",
+            reviewer_id="human:owner",
+            evidence_bundle_id="bundle-other",
+            rationale="wrong candidate binding",
             reviewed_at="2026-08-27T01:04:00+00:00",
         )
 
