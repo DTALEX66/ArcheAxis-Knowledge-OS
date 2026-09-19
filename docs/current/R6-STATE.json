@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T14:50:06.1228984Z",
-  "subject_sha": "4bfbdbcc",
+  "updated_at": "2026-09-19T14:51:46.4725830Z",
+  "subject_sha": "ce54472a",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -100,9 +100,10 @@
     },
     {
       "id": "A13",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "remaining_gap": "not started in R6"
+      "status": "TESTED_LOCAL_PARTIAL",
+      "evidence_level": "TESTED_LOCAL",
+      "remaining_gap": "identity contract and local candidate tooling pass; self-contained desktop build, staging migration, Green replacement/restart/rollback remain unexecuted",
+      "subject_sha": "ce54472a"
     },
     {
       "id": "A14",
