@@ -157,6 +157,7 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
         )
 
     failures: list[str] = []
+    declared_paths: set[str] = set()
     verified = 0
     for raw_entry in manifest.get("files", []):
         try:
@@ -164,6 +165,7 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
         except (KeyError, TypeError, ValueError) as exc:
             failures.append(f"invalid backup entry {raw_entry!r}: {exc}")
             continue
+        declared_paths.add(entry.relative_path.replace("\\", "/"))
         try:
             target = _safe_target(backup_dir, entry.relative_path)
         except BackupError as exc:
@@ -179,6 +181,14 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
             )
             continue
         verified += 1
+
+    actual_paths = {
+        path.relative_to(backup_dir).as_posix()
+        for path in _iter_files(backup_dir)
+        if path != manifest_path
+    }
+    for relative_path in sorted(actual_paths - declared_paths):
+        failures.append(f"unlisted backup file: {relative_path}")
 
     if failures:
         raise BackupError(

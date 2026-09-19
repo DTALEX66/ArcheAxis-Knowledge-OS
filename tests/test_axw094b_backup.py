@@ -63,6 +63,16 @@ def test_verify_detects_missing_file(tmp_path: Path) -> None:
         verify_backup(backup_dir)
 
 
+def test_verify_detects_unlisted_backup_file(tmp_path: Path) -> None:
+    source = _make_source(tmp_path)
+    backup_dir = tmp_path / "backup"
+    create_backup(source=source, backup_dir=backup_dir)
+
+    (backup_dir / "unlisted.bin").write_bytes(b"sidecar")
+    with pytest.raises(BackupError, match="unlisted backup file"):
+        verify_backup(backup_dir)
+
+
 def test_verify_detects_partial_backup(tmp_path: Path) -> None:
     partial = tmp_path / "partial"
     (partial / "docs").mkdir(parents=True)
