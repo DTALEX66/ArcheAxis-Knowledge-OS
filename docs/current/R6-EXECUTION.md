@@ -32,3 +32,21 @@
 ## 证据规则
 
 文档、计划、静态检查和构建结果不能替代运行时、独立审计或 Owner Gate。未测项目标记 NOT_EXECUTED；缺外部资源、Owner 决策、证书、干净机或真实 Green 资格时标记 BLOCKED。
+
+### A03 — Capability Absorption Registry
+
+状态：`TESTED_LOCAL`
+
+- subject_sha: `9c66fbce27c47d63ca8d6cffd75edba114d548bb`
+- changed_paths: `config/schemas/capability-absorption-registry.schema.json`, `docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml`, `tests/test_capability_absorption_registry.py`, `docs/CONFIGURATION_AUTHORITY_INDEX.md`
+- upstream_absorbed: none; donor entries are candidates/reference/algorithm or sidecar roles only
+- upstream_version_or_sha: `UNPINNED_REVIEW_REQUIRED` for unverified upstreams
+- license: every unverified upstream is explicitly marked pending readback; internal core is first-party MIT
+- tests: `tests/test_documentation_authority_index.py tests/test_capability_absorption_registry.py` — 12 passed, exit 0
+- actual_runtime_result: registry/schema validation only; no external provider was started
+- data_touched: repository registry and schema only
+- external_paths_touched: none
+- limitations: exact upstream revisions, licenses, model licenses, benchmarks and runtime probes remain open
+- rollback: revert commit `9c66fbce27c47d63ca8d6cffd75edba114d548bb`; canonical existing supply-chain ledger remains preserved
+- remaining_gap: A02 resource schema decision and A04 Knowledge/Source V3 contract
+
