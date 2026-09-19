@@ -469,6 +469,15 @@
 - `boundary`: synthetic content and project-local SQLite only; this is process-level evidence, not evidence of a real model or user-observed error.
 - `remaining_gap`: owner-approved real model execution, real user error, correction evidence and non-synthetic retest remain open.
 
+## Continuation receipt — 2026-09-20 A15 independent audit
+
+- `subject_sha`: `ffd8ff202cfcbd4e34f40dc3dd7f5d0cde2b9f33`
+- `report`: `.project-local/audits/a15-independent-ffd8ff202cfcbd4e34f40dc3dd7f5d0cde2b9f33/report.md`; receipts are in the same ignored project-local directory.
+- `independence`: a fresh reviewer with no implementation-turn context reran authority, contract/evidence-index/unseen checks and MCP surface probes; it explicitly states that executor receipts were not self-signed as A15 PASS.
+- `result`: `A15_PASS / PRODUCT_NOT_READY`; P0-P6 are all `BLOCKED` under the M0 real-closure bar, A16 is `BLOCKED`.
+- `evidence`: authority `PASS`; Python gate `31 passed, 1 warning`; unseen and MCP probes exit `0`; repository clean gate remains `FAIL` because 22 preserved untracked history/private paths remain.
+- `remaining_gap`: real P3 UI/full-state restart, real model/user P4 correction/retest, P5 workspace identity and real Legacy semantic diff, and Owner-gated Green backup/replace/readback/rollback remain open.
+
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed

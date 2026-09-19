@@ -148,7 +148,7 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 
 ## 下一项可执行工作
 
-当前先不新增外部 Provider 或大功能。下一项是用 Owner 允许的真实模型/用户任务替换 P4 合成输入；P3 真实 Avalonia 控件首用仍缺无 UI 入口，P5 workspace identity 仍需 Owner 决策。模型库/Domain Pack 只读审计已确认结构 `PARTIAL`，不得把浅层目录收据或 `contract_only` manifest 当作 executable/runtime 证据。A02 的共享资源根语义、A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate，A15 仍必须独立审计。
+当前先不新增外部 Provider 或大功能。下一项是用 Owner 允许的真实模型/用户任务替换 P4 合成输入；P3 真实 Avalonia 控件首用仍缺无 UI 入口，P5 workspace identity 仍需 Owner 决策。模型库/Domain Pack 只读审计已确认结构 `PARTIAL`，不得把浅层目录收据或 `contract_only` manifest 当作 executable/runtime 证据。A02 的共享资源根语义、A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate；A15 独立审计已 PASS，A16 仍 BLOCKED。
 
 ## 本记录限制
 

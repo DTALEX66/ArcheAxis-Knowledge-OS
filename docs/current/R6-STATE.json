@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-20T21:35:00Z",
-  "subject_sha": "428de718a808acebb025ca01f3c1e62c60c30916",
+  "updated_at": "2026-09-20T23:10:00Z",
+  "subject_sha": "ffd8ff202cfcbd4e34f40dc3dd7f5d0cde2b9f33",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -114,15 +114,17 @@
     },
     {
       "id": "A15",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "remaining_gap": "not started in R6"
+      "status": "TESTED_LOCAL",
+      "evidence_level": "TESTED_LOCAL",
+      "remaining_gap": "independent A15 report passes at exact subject; product remains NOT_READY and A16 is blocked",
+      "subject_sha": "ffd8ff202cfcbd4e34f40dc3dd7f5d0cde2b9f33"
     },
     {
       "id": "A16",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "remaining_gap": "not started in R6"
+      "status": "BLOCKED_BY_OWNER_DECISION",
+      "evidence_level": "STRUCTURAL",
+      "remaining_gap": "P0-P6 real closure, resource-root semantics, real migration/Green backup-replace-rollback and Owner approval remain open",
+      "subject_sha": "ffd8ff202cfcbd4e34f40dc3dd7f5d0cde2b9f33"
     }
   ]
 }
