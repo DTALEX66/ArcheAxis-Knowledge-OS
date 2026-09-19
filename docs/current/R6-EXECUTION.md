@@ -669,3 +669,12 @@
 - `dev_behavior`: `dev.py` now replaces inherited `PYTHONPATH` with the current checkout root, so absolute project scripts import current `app`, `scripts` and `shared` modules without stale or foreign checkout masking.
 - `verification`: tooling gate returned `35 passed, 1 warning, 9 subtests passed`; the actual missing-layer benchmark now prints `completion: NOT_EXECUTED` and `overall: incomplete` through `dev.py`. The benchmark result is intentionally incomplete until a real layered corpus exists.
 - `boundary`: no model weights, external corpus download, shared library, Green runtime, E/F or private state was accessed; A11 executable model benchmark and A02 resource-root decision remain open.
+
+## Continuation receipt — 2026-09-20 A12/A13 fail-closed recovery and provenance
+
+- `subject_sha`: `5cf49da1aaf3e3dab0536fd25d29d199d37fca2c`
+- `changed_paths`: `app/workspace/migrate.py`, `tests/test_axw_data403_migrate.py`, `scripts/release/verify_green_candidate.py`, `tests/test_green_candidate_verifier.py`.
+- `A13`: rollback readback now exposes `integrity_ok` and `rollback_eligible`; a source-hash or SQLite-integrity mismatch returns `status=error`, clears `restore_candidate`, and explains the block instead of offering an unsafe restore path.
+- `A12/A13`: Green candidate verification has an explicit `--require-provenance` gate requiring non-blank `source_commit` and `source_tree`, while default compatibility and explicit expected-commit/tree checks remain unchanged.
+- `verification`: `tests/test_axw_data403_migrate.py tests/test_axw_long_path.py tests/test_green_candidate_verifier.py tests/test_green_candidate_manifest.py` returned `20 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `boundary`: no Green build, external Green replacement, real Legacy migration, installer/signing, clean-machine or rollback action was performed. The prior independent A15 audit is bound to `bf06c711`; it must be rerun after this code change before being treated as current-SHA evidence.

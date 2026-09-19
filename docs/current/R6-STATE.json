@@ -3,7 +3,7 @@
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
   "updated_at": "2026-09-19T22:30:00Z",
-  "subject_sha": "b8fbb41a40913af660a354a2b422a1d887f5b50b",
+  "subject_sha": "5cf49da1aaf3e3dab0536fd25d29d199d37fca2c",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -97,14 +97,14 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Release self-contained candidate and headless Core smoke pass; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
-      "subject_sha": "b8fbb41a40913af660a354a2b422a1d887f5b50b"
+      "subject_sha": "5cf49da1aaf3e3dab0536fd25d29d199d37fca2c"
     },
     {
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup/migration/schema/FK/source-object gates now pass, while workspace identity, real Legacy semantic diff, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
-      "subject_sha": "fc0df3a182abed4feded8eeb0ab25b88bb4bcadb"
+      "subject_sha": "5cf49da1aaf3e3dab0536fd25d29d199d37fca2c"
     },
     {
       "id": "A14",
@@ -115,9 +115,9 @@
     },
     {
       "id": "A15",
-      "status": "TESTED_LOCAL",
+      "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "independent A15 report passes at exact subject; product remains NOT_READY and A16 is blocked",
+      "remaining_gap": "independent A15 report passes at bf06c711, but A12/A13 changes now require a fresh current-SHA independent re-audit; product remains NOT_READY and A16 is blocked",
       "subject_sha": "bf06c7114ceb500b2d8813df14982eb418fbc463"
     },
     {
