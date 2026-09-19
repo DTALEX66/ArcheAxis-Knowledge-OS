@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v3/knowledge-source.schema.json",
+  "title": "ArcheAxis Knowledge Source V3",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "description": "A source/origin object; evidence is an attribute, not admission gate.",
+      "properties": {
+        "source_type": {
+          "enum": [
+            "personal_experience",
+            "personal_note",
+            "personal_definition",
+            "project_observation",
+            "external_document",
+            "authoritative_reference",
+            "derived_inference",
+            "machine_candidate",
+            "imported_legacy",
+            "research_result"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "owner": {
+          "enum": [
+            "human",
+            "machine",
+            "system"
+          ],
+          "title": "Owner",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "accepted",
+            "verified",
+            "rejected",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "support_level": {
+          "default": "none",
+          "enum": [
+            "none",
+            "weak",
+            "moderate",
+            "strong",
+            "authoritative"
+          ],
+          "title": "Support Level",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "risk_level": {
+          "default": "low",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Risk Level",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        },
+        "supersedes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supersedes",
+          "type": "array"
+        },
+        "superseded_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Superseded By",
+          "type": "array"
+        },
+        "external_evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "External Evidence",
+          "type": "array"
+        },
+        "requires_human_review": {
+          "default": true,
+          "title": "Requires Human Review",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "3.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "source_locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Locator"
+        },
+        "created_at": {
+          "minLength": 1,
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_type",
+        "owner",
+        "status",
+        "confidence",
+        "schema_version",
+        "source_id",
+        "title",
+        "content",
+        "created_at"
+      ],
+      "title": "KnowledgeSourceV3",
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "description": "Canonical knowledge object derived from a source or human experience.",
+      "properties": {
+        "source_type": {
+          "enum": [
+            "personal_experience",
+            "personal_note",
+            "personal_definition",
+            "project_observation",
+            "external_document",
+            "authoritative_reference",
+            "derived_inference",
+            "machine_candidate",
+            "imported_legacy",
+            "research_result"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "owner": {
+          "enum": [
+            "human",
+            "machine",
+            "system"
+          ],
+          "title": "Owner",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "accepted",
+            "verified",
+            "rejected",
+            "superseded"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "support_level": {
+          "default": "none",
+          "enum": [
+            "none",
+            "weak",
+            "moderate",
+            "strong",
+            "authoritative"
+          ],
+          "title": "Support Level",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "risk_level": {
+          "default": "low",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "title": "Risk Level",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        },
+        "supersedes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supersedes",
+          "type": "array"
+        },
+        "superseded_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Superseded By",
+          "type": "array"
+        },
+        "external_evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "External Evidence",
+          "type": "array"
+        },
+        "requires_human_review": {
+          "default": true,
+          "title": "Requires Human Review",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "3.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "knowledge_id": {
+          "minLength": 1,
+          "title": "Knowledge Id",
+          "type": "string"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Id"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "title": "Body",
+          "type": "string"
+        },
+        "created_at": {
+          "minLength": 1,
+          "title": "Created At",
+          "type": "string"
+        },
+        "updated_at": {
+          "minLength": 1,
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_type",
+        "owner",
+        "status",
+        "confidence",
+        "schema_version",
+        "knowledge_id",
+        "title",
+        "body",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "KnowledgeObjectV3",
+      "type": "object"
+    }
+  ]
+}
