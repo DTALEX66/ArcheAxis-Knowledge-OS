@@ -315,36 +315,46 @@ public partial class MainWindow : Window
                     }
                 }
                 var assessmentText = "Assessment：未生成";
+                var assessmentReady = false;
                 if (!string.IsNullOrWhiteSpace(activeKnowledgeId))
                 {
+                    async Task<bool> BindAssessmentAsync(HttpResponseMessage response)
+                    {
+                        if (!response.IsSuccessStatusCode) return false;
+                        using var assessment = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                        if (!assessment.RootElement.TryGetProperty("knowledge_id", out var returnedKnowledge)
+                            || !string.Equals(returnedKnowledge.GetString(), activeKnowledgeId, StringComparison.Ordinal))
+                        {
+                            return false;
+                        }
+                        _activeAssessmentId = assessment.RootElement.GetProperty("assessment_id").GetString();
+                        _activeKnowledgeVersion = assessment.RootElement.GetProperty("knowledge_version").GetString();
+                        var question = assessment.RootElement.GetProperty("question").GetString() ?? "";
+                        var content = assessment.RootElement.GetProperty("content").GetString() ?? "";
+                        assessmentText = $"{question}\n内容：{content}";
+                        return !string.IsNullOrWhiteSpace(_activeAssessmentId)
+                            && !string.IsNullOrWhiteSpace(_activeKnowledgeVersion);
+                    }
+
                     using var assessmentResponse = await _supervisor.SendAsync(
                         HttpMethod.Get,
                         $"/api/v1/learning/items/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}/assessment");
-                    HttpResponseMessage responseToRead = assessmentResponse;
-                    if (assessmentResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    assessmentReady = await BindAssessmentAsync(assessmentResponse);
+                    if (!assessmentReady
+                        && (assessmentResponse.StatusCode == System.Net.HttpStatusCode.NotFound
+                            || assessmentResponse.IsSuccessStatusCode))
                     {
-                        responseToRead = await _supervisor.SendAsync(
+                        using var createdAssessment = await _supervisor.SendAsync(
                             HttpMethod.Post,
                             $"/api/v1/learning/items/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}/assessment",
                             new StringContent(JsonSerializer.Serialize(new { knowledge_id = activeKnowledgeId }), Encoding.UTF8, "application/json"));
-                    }
-                    using (responseToRead)
-                    {
-                        if (responseToRead.IsSuccessStatusCode)
-                        {
-                            using var assessment = JsonDocument.Parse(await responseToRead.Content.ReadAsStringAsync());
-                            _activeAssessmentId = assessment.RootElement.GetProperty("assessment_id").GetString();
-                            _activeKnowledgeVersion = assessment.RootElement.GetProperty("knowledge_version").GetString();
-                            var question = assessment.RootElement.GetProperty("question").GetString() ?? "";
-                            var content = assessment.RootElement.GetProperty("content").GetString() ?? "";
-                            assessmentText = $"{question}\n内容：{content}";
-                        }
+                        assessmentReady = await BindAssessmentAsync(createdAssessment);
                     }
                 }
                 LearningItemText.Text = $"{assessmentText}\n待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{referenceText}";
-                LearningAnswerBox.IsEnabled = true;
-                ReviewOutcomeBox.IsEnabled = true;
-                SubmitReviewButton.IsEnabled = true;
+                LearningAnswerBox.IsEnabled = assessmentReady;
+                ReviewOutcomeBox.IsEnabled = assessmentReady;
+                SubmitReviewButton.IsEnabled = assessmentReady;
             }
             else
             {
@@ -411,11 +421,30 @@ public partial class MainWindow : Window
                 HttpMethod.Post,
                 "/api/v1/learning/reviews",
                 new StringContent(payload, Encoding.UTF8, "application/json"));
-            CoreStatusText.Text = response.IsSuccessStatusCode
-                ? "学习路径：复习已记录"
-                : "学习路径：复习提交被拒绝";
             if (response.IsSuccessStatusCode)
             {
+                var savedAnswer = false;
+                var masteryProjectionOpen = false;
+                try
+                {
+                    using var reviewResponse = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                    savedAnswer = reviewResponse.RootElement.TryGetProperty("answer", out var answerValue)
+                        && answerValue.ValueKind == JsonValueKind.String
+                        && !string.IsNullOrWhiteSpace(answerValue.GetString());
+                    if (reviewResponse.RootElement.TryGetProperty("mastery_projection", out var projection)
+                        && projection.ValueKind == JsonValueKind.Object
+                        && projection.TryGetProperty("closed", out var closed))
+                    {
+                        masteryProjectionOpen = closed.ValueKind == JsonValueKind.False;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // The event is already persisted; keep the UI status conservative.
+                }
+                CoreStatusText.Text = savedAnswer && masteryProjectionOpen
+                    ? "学习路径：复习已记录（回答已保存；Mastery projection 未闭合）"
+                    : "学习路径：复习已记录";
                 // The exposure is closed: the next one must carry fresh ids.
                 _activeReviewEventId = null;
                 _activeExposureId = null;

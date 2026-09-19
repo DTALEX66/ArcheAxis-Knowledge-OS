@@ -127,6 +127,31 @@ def test_desktop_binds_review_to_core_owned_assessment() -> None:
     assert "knowledge_version = _activeKnowledgeVersion" in submit
 
 
+def test_desktop_requires_assessment_bound_to_current_active_knowledge() -> None:
+    shell = _shell_source()
+    learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")
+
+    assert "activeKnowledgeId" in learning
+    assert "knowledge_id" in learning
+    assert "assessmentReady" in learning
+    assert "LearningAnswerBox.IsEnabled = assessmentReady" in learning
+    assert "SubmitReviewButton.IsEnabled = assessmentReady" in learning
+    assert 'assessment.RootElement.TryGetProperty("knowledge_id"' in learning
+    assert "HttpStatusCode.NotFound" in learning
+    assert "assessmentResponse.IsSuccessStatusCode" in learning
+
+
+def test_desktop_keeps_mastery_projection_open_when_review_response_arrives() -> None:
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick")
+
+    assert "JsonDocument.Parse" in submit
+    assert 'TryGetProperty("answer"' in submit
+    assert 'TryGetProperty("mastery_projection"' in submit
+    assert 'TryGetProperty("closed"' in submit
+    assert "Mastery projection 未闭合" in submit
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(
