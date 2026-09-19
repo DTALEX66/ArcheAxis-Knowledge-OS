@@ -60,6 +60,16 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 | P5 | Persistence + Migration | `PARTIAL` | canonical Rust SQLite、合成非空迁移和两次重启身份已有；完整 Backup/Restore 校验、全状态重启回读和真实 Legacy copy 语义 diff 仍缺 |
 | P6 | Local Green | `PARTIAL/BLOCKED` | exact-SHA candidate、worker 与 headless smoke 已有；Candidate 全旅程、现有 Green 备份/原位替换/回滚需 Owner Gate，不能提前执行 |
 
+## 2026-09-20 并行执行回读
+
+本轮按独立写集并行完成 P0、P1、P2 的最小可验证切片；它们不等于 M0 全链路完成：
+
+- P0：`TESTED_LOCAL`。现有 capability kernel 的 health、注册/启用、执行、失败、禁用、恢复、同 `plugin_id` provider 替换和不创建 canonical DB 均有回归证据；真实 Python worker 的 manifest/runner/health 绑定仍待后续卡。
+- P1：`TESTED_LOCAL`。格式执行保留 attempted engines、fallback 状态和无路径泄露的原因，并在 conversion run 重启回读和 format receipt 中保持一致；真实常用格式质量、外部引擎和 Knowledge V3 写入仍未闭合。
+- P2：`TESTED_LOCAL`。新增 general-only CourseManifest、Knowledge Component、Learning Objective 契约，覆盖 Concept/Fact/Procedure/Method/Case、引用闭合、lesson 要求和跨域拒绝；Search 的 embedding/reranker、真实课程内容和 renderer 仍未闭合。
+
+验证记录：提交 `e478aa41`；项目虚拟环境定向回归 `120 passed, 3 warnings`，退出码 `0`；Ruff `--select F,I` 对本轮修改文件通过。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
+
 ## P0–P6 执行队列
 
 ### P0 — 先建立最小插件内核
@@ -120,9 +130,9 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 
 任一门失败，M0 保持 `NOT_READY`。
 
-## 第一项可执行工作
+## 下一项可执行工作
 
-当前先不新增外部 Provider 或大功能。下一项是 P0 最小插件内核的项目内契约和一个现有 worker 的生命周期测试；完成后再进入 P1 默认输入链。A02 的共享资源根语义仍需 Owner 决策，A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate，A15 仍必须独立审计。
+当前先不新增外部 Provider 或大功能。下一项应从 P3 人类学习的真实首用路径开始，接入已有 Core review/FSRS 和 restart readback；随后再补 P4 真实 machine correction/retest 与 P5 backup/restore 校验。A02 的共享资源根语义仍需 Owner 决策，A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate，A15 仍必须独立审计。
 
 ## 本记录限制
 
