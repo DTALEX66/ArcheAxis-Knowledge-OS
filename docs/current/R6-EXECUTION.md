@@ -285,6 +285,14 @@
 - `verification`: `cargo test -p archeaxis-api --test learning_state_api` is `NOT_EXECUTED` because `cargo` is unavailable; source diff check passed. This remains `IMPLEMENTED_LOCAL / UNVERIFIED`.
 - `boundary`: no external library, Green runtime, real data, E/F, credentials, or private agent state was accessed.
 
+## Continuation receipt — 2026-09-20 Python contract gate and P4.1 read-only audit
+
+- `subject_sha`: `2d813c64bd8d8ab40a1dbf8eb01466d23a7b60c1`
+- `python_gate`: `.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider -q --tb=short tests/test_capability_absorption_registry.py tests/test_knowledge_source_v3_contract.py tests/test_format_execution_v1.py tests/test_vault_search_api.py tests/test_machine_growth_v1.py tests/test_learning_kernel_v1.py tests/test_general_learning_contract.py tests/test_domain_pack_v1.py tests/test_courseware_v1.py tests/test_model_pool_v1.py` — `42 passed, 1 warning`, exit `0`; `TESTED_LOCAL` contract/fixture scope only.
+- `P4.1_audit`: `IMPLEMENTED_LOCAL` for machine receipt, active accepted/personal Knowledge binding, failed `retest_of`, machine API and human correction successor constraints; `BLOCKED` for real model execution/error/correction/retest journey; Cargo tests `NOT_EXECUTED`.
+- `A15_readonly_audit`: independent read-only result remains `NOT_RUN / BLOCKED`; contracts are structural, security exact-SHA/full gate is `NOT_RUN`, migration/learning/machine/models/domain/first-use/restart/Green remain blocked or partial. It does not self-sign A15 PASS.
+- `boundary`: no external model content, Green runtime, real data, E/F, credentials or private agent state was accessed.
+
 ## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
 
 - `task_id`: A13 Green candidate composition and portable worker route closure
