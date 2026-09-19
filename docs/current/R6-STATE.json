@@ -2,7 +2,7 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T16:38:47Z",
+  "updated_at": "2026-09-19T16:53:09Z",
   "subject_sha": "0e934f33ee9a5f6082c04abda454c67df1055097",
   "delivery_line": "main",
   "release_status": "FROZEN",
@@ -60,8 +60,8 @@
       "id": "A07",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "execution feedback now emits a machine-growth receipt; remaining distillation writers, candidate persistence and real review/reuse/retest evidence remain open",
-      "subject_sha": "a5c1b79f8e36eb3207a8e9c0c4688bf863b634b9"
+      "remaining_gap": "execution feedback now emits a machine-growth receipt and machine retest bindings validate canonical knowledge/task references; real model execution, correction evidence and review/reuse/retest journey remain open",
+      "subject_sha": "eea865e1"
     },
     {
       "id": "A08",
@@ -102,15 +102,15 @@
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup source-object hash validation is added, while workspace identity, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
-      "subject_sha": "c546c0c6"
+      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup schema/FK/source-object validation is added, while workspace identity, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
+      "subject_sha": "eea865e1"
     },
     {
       "id": "A14",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "stage contract and answer readback have local evidence; real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey and complete restart readback remain open",
-      "subject_sha": "c546c0c6"
+      "remaining_gap": "stage contract, answer readback and canonical machine retest binding have local evidence; real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey and complete restart readback remain open",
+      "subject_sha": "eea865e1"
     },
     {
       "id": "A15",

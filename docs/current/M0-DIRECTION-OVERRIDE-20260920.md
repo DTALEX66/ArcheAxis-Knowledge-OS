@@ -69,8 +69,10 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 - P2：`TESTED_LOCAL`。新增 general-only CourseManifest、Knowledge Component、Learning Objective 契约，覆盖 Concept/Fact/Procedure/Method/Case、引用闭合、lesson 要求和跨域拒绝；Search 的 embedding/reranker、真实课程内容和 renderer 仍未闭合。
 - P3：`PARTIAL`。Core review receipt 现在保存用户提交的 answer，空白回答在 API/UI 被拒绝，并有桌面契约与 Rust restart/readback 回归；Core 尚未从 Accepted Knowledge 产生真实 Assessment/content，客户端仍提交 correct，Mastery/FSRS 全旅程未闭合。
 - P5：`PARTIAL`。备份校验现在同时验证 `sources.sha256` 对应的 `.objects` 内容，篡改对象会被拒绝；Rust 测试因当前环境没有 `cargo` 未执行，SQLite workspace identity 仍需冻结。
+- P4.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。machine task 现在要求 `knowledge_version` 绑定 active accepted/personal Knowledge，`retest_of` 绑定已存在 failed task，并有重启读回测试；真实模型任务运行和 Rust 测试仍未执行。
+- P5.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。backup/verify 现在拒绝 schema 漂移、外键损坏和源对象 hash 篡改；SQLite `workspace_id` 仍需 Owner/Authority 决策。
 
-验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `6 passed`，退出码均为 `0`；Ruff `--select F,I` 对 P0–P2 修改文件通过，P5 Rust 测试为 `NOT_EXECUTED`（缺 `cargo`）。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
+验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `6 passed`，退出码均为 `0`；Rust/Rustfmt 为 `NOT_EXECUTED`（缺 `cargo`/`rustfmt`）。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 
 ## P0–P6 执行队列
 
