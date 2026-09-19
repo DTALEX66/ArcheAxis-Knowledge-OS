@@ -272,6 +272,15 @@
 - `limitations`: this advances A13 to current-SHA candidate and headless runtime evidence; nonempty legacy migration, restart/readback, clean-machine GUI, signing, installer/uninstaller, Green replacement and rollback remain open and owner-gated where applicable.
 - `rollback`: revert commit `0e934f33ee9a5f6082c04abda454c67df1055097`; project-local candidate and smoke artifacts are ignored outputs.
 
+## Continuation receipt — 2026-09-19 A13 non-empty staging migration and restart identity
+
+- `task_id`: A13 staging migration and restart/readback evidence
+- `subject_sha`: `75b32145338f21eaf8aa28ddd0119631cdfc04f4`
+- `migration_test`: `cargo test -p archeaxis-migration --test legacy_nonempty_migration` — exit 0; 1 passed, 0 failed. The test covers a non-empty isolated legacy fixture, read-only export, hash/count verification, Rust staging import, explicit loss rows, schedule preservation, idempotent replay and byte-identical legacy bytes afterward.
+- `restart_test`: the current Green candidate was run twice against `.project-local/runs/r6-a13-restart-readback-0e934f33/workspace.sqlite`; both runs returned exit 0 and `SMOKE OK`, both created/read the same 4096-byte DB, and the DB SHA-256 stayed `1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489`.
+- `scope`: project-local staging and headless identity evidence only; no real Green DB, user material library, external model library or Green installation was touched.
+- `limitations`: the fixture is synthetic, and owner activation, GUI first-use, signed installer lifecycle, in-place replacement, failure recovery and rollback remain open.
+
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed

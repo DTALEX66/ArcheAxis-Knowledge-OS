@@ -1,0 +1,35 @@
+{
+  "schema": "archeaxis.r6.a13.migration-restart-receipt/v1",
+  "observed_at": "2026-09-19T16:03:03Z",
+  "subject_sha": "75b32145338f21eaf8aa28ddd0119631cdfc04f4",
+  "migration": {
+    "command": "cargo test -p archeaxis-migration --test legacy_nonempty_migration",
+    "exit_code": 0,
+    "passed": 1,
+    "failed": 0,
+    "properties": [
+      "non-empty legacy notes/docs/attachments/links/learning_history inventory",
+      "read-only export and hash/count verification",
+      "Rust staging import with explicit attachment/link loss rows",
+      "learning history schedule preservation and unscheduled representation",
+      "idempotent replay without duplicate events",
+      "byte-identical legacy database after migration"
+    ],
+    "source_kind": "synthetic isolated legacy fixture",
+    "real_green_database_touched": false
+  },
+  "restart_readback": {
+    "candidate": ".project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64",
+    "database": ".project-local/runs/r6-a13-restart-readback-0e934f33/workspace.sqlite",
+    "runs": 2,
+    "each_exit_code": 0,
+    "each_db_bytes": 4096,
+    "db_sha256_after_each_run": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489",
+    "same_workspace_hash": true,
+    "scope": "headless Core handshake and SQLite identity only"
+  },
+  "limitations": [
+    "The migration fixture is synthetic because the real Green database is protected and cannot be used as a test database.",
+    "This does not authorize or prove in-place Green replacement, owner activation, GUI first-use, installer/signing, or rollback."
+  ]
+}
