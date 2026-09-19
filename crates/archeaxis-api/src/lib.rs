@@ -19,7 +19,7 @@ use axum::{
     response::IntoResponse,
     routing::{get, post},
 };
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension};
 use serde::Deserialize;
 
 pub type AppState = Store;
@@ -49,6 +49,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/jobs", post(enqueue_job))
         .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
         .route("/api/v1/knowledge-items", post(create_knowledge))
+        .route("/api/v1/knowledge-items/:id/v3", get(knowledge_v3))
         .route("/api/v1/knowledge-items/:id/qualification", get(knowledge_qualification))
         .route(
             "/api/v1/knowledge-items/:id/review-decisions",
@@ -768,6 +769,155 @@ async fn knowledge_qualification(
             .into_response(),
         Ok(None) => (StatusCode::NOT_FOUND, "knowledge not found").into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+    .await
+}
+
+fn v3_source_type(knowledge_type: &str, created_by: &str) -> &'static str {
+    if created_by.contains("machine") || created_by.contains("python") || created_by.contains("worker") {
+        return "machine_candidate";
+    }
+    match knowledge_type {
+        "PERSONAL_DEFINITION" => "personal_definition",
+        "PERSONAL_EXPERIENCE" => "personal_experience",
+        "PROJECT_OBSERVATION" | "OBSERVATION" => "project_observation",
+        "AUTHORITATIVE_REFERENCE" => "authoritative_reference",
+        "EXTERNAL_DOCUMENT" => "external_document",
+        "RESEARCH_RESULT" => "research_result",
+        _ => "derived_inference",
+    }
+}
+
+fn v3_owner(created_by: &str, source_type: &str) -> &'static str {
+    if source_type == "machine_candidate"
+        || created_by.contains("machine")
+        || created_by.contains("python")
+        || created_by.contains("worker")
+    {
+        "machine"
+    } else if created_by == "owner" || created_by == "human" {
+        "human"
+    } else {
+        "system"
+    }
+}
+
+fn v3_status(status: &str, has_successor: bool) -> &'static str {
+    match status {
+        "candidate" => "candidate",
+        "accepted" => "accepted",
+        "rejected" => "rejected",
+        "deprecated" if has_successor => "superseded",
+        "deprecated" => "rejected",
+        _ => "candidate",
+    }
+}
+
+fn v3_relation_ids(
+    conn: &Connection,
+    sql: &str,
+    knowledge_id: &str,
+) -> rusqlite::Result<Vec<String>> {
+    let mut statement = conn.prepare(sql)?;
+    let rows = statement.query_map([knowledge_id], |row| row.get::<_, String>(0))?;
+    rows.collect()
+}
+
+async fn knowledge_v3(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let row = match conn
+            .query_row(
+                "SELECT knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, created_at
+                 FROM knowledge WHERE knowledge_id=?1",
+                [&id],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, String>(3)?,
+                        row.get::<_, Option<String>>(4)?,
+                        row.get::<_, Option<String>>(5)?,
+                        row.get::<_, String>(6)?,
+                        row.get::<_, String>(7)?,
+                    ))
+                },
+            )
+            .optional()
+        {
+            Ok(Some(value)) => value,
+            Ok(None) => return (StatusCode::NOT_FOUND, "knowledge not found").into_response(),
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let (knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, created_at) = row;
+        let source_type = v3_source_type(&knowledge_type, &created_by);
+        let owner = v3_owner(&created_by, source_type);
+        let supersedes = match v3_relation_ids(
+            conn,
+            "SELECT old_knowledge_id FROM knowledge_supersedes WHERE new_knowledge_id=?1 ORDER BY created_at, rowid",
+            &knowledge_id,
+        ) {
+            Ok(values) => values,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let superseded_by = match v3_relation_ids(
+            conn,
+            "SELECT new_knowledge_id FROM knowledge_supersedes WHERE old_knowledge_id=?1 ORDER BY created_at, rowid",
+            &knowledge_id,
+        ) {
+            Ok(values) => values,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let has_successor = !superseded_by.is_empty();
+        let source_id = match anchor_id.as_deref() {
+            Some(anchor) => conn
+                .query_row("SELECT source_id FROM anchors WHERE anchor_id=?1", [anchor], |row| row.get::<_, String>(0))
+                .optional()
+                .unwrap_or(None),
+            None => None,
+        };
+        let updated_at = conn
+            .query_row(
+                "SELECT COALESCE(MAX(created_at), ?1) FROM review_events WHERE knowledge_id=?2",
+                rusqlite::params![created_at, knowledge_id],
+                |row| row.get::<_, String>(0),
+            )
+            .unwrap_or_else(|_| created_at.clone());
+        let requires_human_review = owner == "machine" || status == "candidate";
+        let external_evidence = evidence_status
+            .filter(|value| !value.trim().is_empty())
+            .map(|value| vec![value])
+            .unwrap_or_default();
+        (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "schema_version": "3.0.0",
+                "source_type": source_type,
+                "owner": owner,
+                "status": v3_status(&status, has_successor),
+                "support_level": if external_evidence.is_empty() { "none" } else { "weak" },
+                // Legacy rows have no confidence measurement. Keep UNKNOWN
+                // explicit rather than converting it into a numeric zero.
+                "confidence": serde_json::Value::Null,
+                "risk_level": "low",
+                "valid_from": serde_json::Value::Null,
+                "valid_to": serde_json::Value::Null,
+                "supersedes": supersedes,
+                "superseded_by": superseded_by,
+                "external_evidence": external_evidence,
+                "requires_human_review": requires_human_review,
+                "knowledge_id": knowledge_id,
+                "source_id": source_id,
+                "title": knowledge_type,
+                "body": body,
+                "created_at": created_at,
+                "updated_at": updated_at,
+            })),
+        )
+            .into_response()
     })
     .await
 }

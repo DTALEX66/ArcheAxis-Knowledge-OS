@@ -44,7 +44,9 @@ class _KnowledgeGovernanceV3(BaseModel):
     owner: OWNER
     status: KNOWLEDGE_STATUS
     support_level: SUPPORT_LEVEL = "none"
-    confidence: float = Field(ge=0.0, le=1.0)
+    # Legacy records may not carry a confidence measurement. Keep that state
+    # explicit instead of converting UNKNOWN to a numeric zero.
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     risk_level: RISK_LEVEL = "low"
     valid_from: str | None = None
     valid_to: str | None = None

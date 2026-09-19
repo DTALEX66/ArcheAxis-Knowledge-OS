@@ -56,10 +56,18 @@
           "type": "string"
         },
         "confidence": {
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
         },
         "risk_level": {
           "default": "low",
@@ -163,7 +171,6 @@
         "source_type",
         "owner",
         "status",
-        "confidence",
         "schema_version",
         "source_id",
         "title",
@@ -226,10 +233,18 @@
           "type": "string"
         },
         "confidence": {
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
         },
         "risk_level": {
           "default": "low",
@@ -338,7 +353,6 @@
         "source_type",
         "owner",
         "status",
-        "confidence",
         "schema_version",
         "knowledge_id",
         "title",

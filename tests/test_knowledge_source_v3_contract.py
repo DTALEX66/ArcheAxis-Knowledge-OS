@@ -30,6 +30,11 @@ def test_personal_knowledge_can_be_accepted_without_external_evidence():
     assert source.support_level == "none"
 
 
+def test_unknown_confidence_stays_explicitly_unknown():
+    source = KnowledgeSourceV3.model_validate(_personal(confidence=None))
+    assert source.confidence is None
+
+
 def test_machine_candidate_stays_candidate_even_with_links_and_confidence():
     payload = _personal(
         source_id="src-machine-1",

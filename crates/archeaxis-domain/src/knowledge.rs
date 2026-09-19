@@ -52,14 +52,14 @@ pub fn review(
     new_body: Option<&str>,
 ) -> rusqlite::Result<String> {
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let row: Option<(String, String, String, Option<String>)> = tx
+    let row: Option<(String, String, String, Option<String>, String)> = tx
         .query_row(
-            "SELECT knowledge_type, body, status, anchor_id FROM knowledge WHERE knowledge_id=?1",
+            "SELECT knowledge_type, body, status, anchor_id, created_by FROM knowledge WHERE knowledge_id=?1",
             [knowledge_id],
-            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
         )
         .optional()?;
-    let (kind, old_body, _status, anchor_id) = match row {
+    let (kind, old_body, _status, anchor_id, old_created_by) = match row {
         Some(x) => x,
         None => {
             return Err(rusqlite::Error::InvalidParameterName(
@@ -91,7 +91,7 @@ pub fn review(
                 kind,
                 revised_body,
                 anchor_id,
-                reviewer,
+                old_created_by,
                 receipt_hash(&kind, &revised_body, "candidate", anchor_id.as_deref()),
             ],
         )?;
