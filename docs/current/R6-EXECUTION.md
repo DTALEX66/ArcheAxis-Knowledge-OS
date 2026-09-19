@@ -204,31 +204,31 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `4bfbdbcc`
-- changed_paths: `app/contracts/desktop_routes_v1.py`, `config/desktop/routes-v1.json`, `packages/contracts/v1/desktop-routes.schema.json`, `tests/test_desktop_routes_v1.py`
+- subject_sha: `PENDING_DOC_COMMIT`
+- changed_paths: `docs/current/R6-DESKTOP-BUILD-20260919.json`
 - contract: required shell surfaces map to explicit Core endpoints and canonical writer `archeaxis-core-rust-sqlite`; source reader path is verified as `/api/v1/imports`
-- tests: `tests/test_desktop_routes_v1.py tests/test_desktop_learning_review_contract.py tests/test_desktop_runtime.py` — 12 passed, exit 0
-- actual_runtime_result: source-level route/provenance/retry checks and Python Core readiness tests; `dotnet` command not found on this host
-- data_touched: repository contract, route manifest, generated schema and tests only
+- tests: `tests/test_desktop_routes_v1.py tests/test_desktop_learning_review_contract.py tests/test_desktop_runtime.py` — 12 passed, exit 0; external .NET restore/build also passed with 0 warnings and 0 errors
+- actual_runtime_result: registered .NET 10.0.400 built a Release `win-x64` self-contained candidate and its executable hash was read back; no GUI launch was performed
+- data_touched: one project-local build receipt; build output and package cache remain under ignored `.project-local`
 - external_paths_touched: none
-- limitations: Avalonia compile, self-contained bundle, clean-machine startup and no-terminal behavior remain unverified/blocked by missing .NET SDK/runtime
-- rollback: revert commit `4bfbdbcc`; existing shell source and Core supervisor remain intact
-- remaining_gap: use the registered external toolchain or CI desktop-vnext gate for exact-SHA build and runtime verification; do not install global runtime here
+- limitations: GUI/Core runtime, clean-machine startup, no-terminal behavior, signing and installer/uninstaller remain unverified; build bypassed the required `a0-gates` status on push and is not installed Green
+- rollback: revert the desktop build receipt commit; existing shell source and Core supervisor remain intact
+- remaining_gap: launch the candidate in an isolated project-local run, prove Core/readback and no-terminal behavior, then perform owner-gated staging/installation checks
 
 ## A13 — Legacy Migration + Local Green
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `ce54472a`
-- changed_paths: `app/contracts/local_green_v1.py`, `packages/contracts/v1/local-green-identity.schema.json`, `tests/test_local_green_v1.py`
+- subject_sha: `PENDING_DOC_COMMIT`
+- changed_paths: `docs/current/R6-DESKTOP-BUILD-20260919.json`
 - contract: Local Green identity fixes `distribution=local-green`, historic public base `v0.6.14`, exact source/tree/runtime digests and `published=false`
 - tests: `tests/test_local_green_v1.py tests/test_green_candidate_assembly.py tests/test_green_candidate_verifier.py tests/test_migration_runner.py` — 48 passed, 1 skipped, exit 0
 - actual_runtime_result: project-local candidate assembler/verifier and isolated migration runner tests only; no real Green runtime was touched
 - data_touched: repository contract, generated schema and tests only
 - external_paths_touched: none; `D:\All projects\ArcheAxis.Knowledge.Green-x64` and real material library were not modified
-- limitations: no nonempty legacy copy migration, staging first-use, restart readback, in-place replacement or rollback has been executed
-- rollback: revert commit `ce54472a`; existing candidate and migration utilities remain intact
-- remaining_gap: obtain exact-SHA self-contained desktop/Core candidate, stage it under `.project-local`, then owner-gated Green replacement with hash backup and rollback evidence
+- limitations: no nonempty legacy copy migration, staging first-use, restart readback, in-place replacement or rollback has been executed; the candidate is only built and hashed
+- rollback: revert the desktop build receipt commit; existing candidate and migration utilities remain intact
+- remaining_gap: stage the exact hashed candidate under `.project-local`, run migration diff/restart evidence, then owner-gated Green replacement with hash backup and rollback evidence
 
 ## A14 — Full Human–Machine Closed Loop Receipt
 

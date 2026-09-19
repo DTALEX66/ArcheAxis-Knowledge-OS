@@ -1,0 +1,24 @@
+{
+  "schema": "archeaxis.r6.desktop-build-receipt/v1",
+  "observed_at": "2026-09-19T15:32:25Z",
+  "subject_sha": "PENDING_DOC_COMMIT",
+  "project": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+  "tool": "D:\\All projects\\OS External Configuration\\10-toolchains\\dotnet\\dotnet.exe",
+  "sdk": "10.0.400",
+  "runtime": "Microsoft.WindowsDesktop.App 10.0.11",
+  "configuration": "Release",
+  "runtime_identifier": "win-x64",
+  "restore": {"command": "dotnet restore --runtime win-x64", "exit_code": 0, "scope": "project-only"},
+  "build": {"command": "dotnet build --no-restore --configuration Release --runtime win-x64", "exit_code": 0, "warnings": 0, "errors": 0},
+  "output": {
+    "path": ".project-local/runs/r6-a12-release/Release/net10.0/win-x64/ArcheAxis.Desktop.exe",
+    "sha256": "2A4D860B08DCB530CC1401EC313D40C405E5262630855187C2350D30325FFEA6",
+    "length_bytes": 162816,
+    "self_contained_candidate": true
+  },
+  "limitations": [
+    "This receipt proves restore/build and file hash only.",
+    "The executable was not launched; GUI behavior, Core connectivity, no-terminal behavior, clean-machine startup, signing, installation, Green replacement and rollback remain unverified.",
+    "No external library, Green directory or real material library was modified."
+  ]
+}
