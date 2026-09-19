@@ -60,7 +60,7 @@
       "id": "A07",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "execution feedback now emits a machine-growth receipt and machine retest bindings validate canonical knowledge/task references; correction application/reversion now requires human-review evidence, while real model execution and review/reuse/retest journey remain open",
+      "remaining_gap": "execution feedback now emits a machine-growth receipt and machine retest bindings validate canonical knowledge/task references; a synthetic Core process correction/retest/restart journey passes, while real model execution, user-observed error and review/reuse/retest journey remain open",
       "subject_sha": "b20d87af26b120161bed1dab3ae21da3c64f24f6"
     },
     {

@@ -460,6 +460,15 @@
 - `A15_preparation`: independent-gate preparation ran `31 passed, 1 warning`, the R11 unseen probe and MCP client smoke both exited `0`, and authority SHA readback exited `0`; this is preparation evidence only and does not self-sign A15.
 - `scope`: no external shared library, Green runtime, real data, E/F, credentials or private agent state was accessed; generated evidence stayed under `.project-local`.
 
+## Continuation receipt — 2026-09-20 P4 Core process correction/retest/restart
+
+- `subject_sha`: `fec6f1fdeaaa299f421b8d2fe12661e3b6168dd2`
+- `probe`: `.project-local/runs/p4_real_correction_restart.py`; its synthetic launch token was corrected to hexadecimal because the Core launch contract rejects non-hex identities.
+- `verification`: exit `0`; `human_seed_accepted` `201`, `machine_failed_task` `201`, `machine_candidate` `201`, `human_modified_review` `200`, `human_accept_successor` `200`, `human_deprecate_candidate` `200`, `machine_successful_retest` `201`, and `restart_retest_readback` `200`.
+- `result`: the same Core process family persisted the accepted Knowledge, machine failure, human successor correction and retest binding; a cold restart read back the successful retest with the successor `knowledge_version` and original `retest_of`.
+- `boundary`: synthetic content and project-local SQLite only; this is process-level evidence, not evidence of a real model or user-observed error.
+- `remaining_gap`: owner-approved real model execution, real user error, correction evidence and non-synthetic retest remain open.
+
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed
