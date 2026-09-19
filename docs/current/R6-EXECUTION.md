@@ -660,3 +660,12 @@
 - `performance_probe`: `scripts/run_performance_benchmark.py --corpus tests/fixtures/corpus --report .project-local/runs/r6-perf-20260920/artifacts/performance.json` wrote a project-local report and returned `overall: passed`, but all required `small`, `medium` and `large` layers were skipped because the fixture does not contain those directories; only cold-start data and a 7-file/2428-byte corpus summary were measured.
 - `result`: performance evidence is `NOT_EXECUTED/INCOMPLETE` for the AXW-096A layered gate; no A11 model benchmark or full A05 conversion-quality claim is made. A12 architecture remains `TESTED_LOCAL_PARTIAL`.
 - `boundary`: no public download, external model, shared library, Green runtime, real data, E/F or private agent state was accessed.
+
+## Continuation receipt — 2026-09-20 benchmark and dev-environment fail-closed repair
+
+- `subject_sha`: `b8fbb41a40913af660a354a2b422a1d887f5b50b`
+- `changed_paths`: `shared/performance_benchmark.py`, `scripts/run_performance_benchmark.py`, `scripts/runtime/dev.py`, `tests/test_axw096a_benchmark.py`, `tests/runtime-paths/test_dev_paths.py`.
+- `benchmark_behavior`: required `small/medium/large` layers now produce explicit `NOT_EXECUTED` or `INCOMPLETE` completeness records; a missing or partial required layer forces `overall: incomplete` and a non-zero process result even when cold-start thresholds pass.
+- `dev_behavior`: `dev.py` now replaces inherited `PYTHONPATH` with the current checkout root, so absolute project scripts import current `app`, `scripts` and `shared` modules without stale or foreign checkout masking.
+- `verification`: tooling gate returned `35 passed, 1 warning, 9 subtests passed`; the actual missing-layer benchmark now prints `completion: NOT_EXECUTED` and `overall: incomplete` through `dev.py`. The benchmark result is intentionally incomplete until a real layered corpus exists.
+- `boundary`: no model weights, external corpus download, shared library, Green runtime, E/F or private state was accessed; A11 executable model benchmark and A02 resource-root decision remain open.

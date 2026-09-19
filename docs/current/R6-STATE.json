@@ -3,7 +3,7 @@
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
   "updated_at": "2026-09-19T22:30:00Z",
-  "subject_sha": "bf06c7114ceb500b2d8813df14982eb418fbc463",
+  "subject_sha": "b8fbb41a40913af660a354a2b422a1d887f5b50b",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -90,14 +90,14 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "fresh shallow shared Model library inventory is recorded; executable/runtime readback and bounded role benchmarks remain open",
-      "subject_sha": "47246eea813bb2d2d012ca531057dd80be0813c2"
+      "subject_sha": "b8fbb41a40913af660a354a2b422a1d887f5b50b"
     },
     {
       "id": "A12",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Release self-contained candidate and headless Core smoke pass; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
-      "subject_sha": "a0b93bd8363747f65be40aa5c97bd6479dc08400"
+      "subject_sha": "b8fbb41a40913af660a354a2b422a1d887f5b50b"
     },
     {
       "id": "A13",
