@@ -96,8 +96,53 @@ async fn submitted_answer_is_readable_after_core_restart() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("learning.sqlite");
     let router = app(db.to_str().unwrap()).unwrap();
+    let knowledge_response = router
+        .clone()
+        .oneshot(
+            Request::post("/api/v1/knowledge-items")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    r#"{"knowledge_type":"FACTUAL_CLAIM","body":"FSRS schedules a next review from review history.","status":"accepted","created_by":"owner"}"#,
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(knowledge_response.status(), StatusCode::CREATED);
+    let bytes = knowledge_response.into_body().collect().await.unwrap().to_bytes();
+    let knowledge: Value = serde_json::from_slice(&bytes).unwrap();
+    let knowledge_id = knowledge["knowledge_id"].as_str().unwrap();
+
+    let reference_response = router
+        .clone()
+        .oneshot(
+            Request::post("/api/v1/learning/items/restart-card/references")
+                .header("content-type", "application/json")
+                .body(Body::from(json!({"knowledge_id": knowledge_id}).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(reference_response.status(), StatusCode::CREATED);
+
+    let assessment_response = router
+        .clone()
+        .oneshot(
+            Request::post("/api/v1/learning/items/restart-card/assessment")
+                .header("content-type", "application/json")
+                .body(Body::from(json!({"knowledge_id": knowledge_id}).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(assessment_response.status(), StatusCode::CREATED);
+    let bytes = assessment_response.into_body().collect().await.unwrap().to_bytes();
+    let assessment: Value = serde_json::from_slice(&bytes).unwrap();
+
     let mut body = request("answer-1", "2026-09-02T00:00:00+00:00");
     body["answer"] = json!("用自己的话说明 FSRS 如何安排下一次复习");
+    body["assessment_id"] = assessment["assessment_id"].clone();
+    body["knowledge_version"] = assessment["knowledge_version"].clone();
     let (status, value) = post(&router, body, "human").await;
     assert_eq!(status, StatusCode::CREATED, "{value}");
 
