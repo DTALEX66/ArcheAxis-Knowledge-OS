@@ -78,6 +78,13 @@ state and user assets; destructive cleanup needs an exact reviewed path list.
 At low remaining account-wide Codex allowance, prepare the handoff and publish only
 verified, task-owned changes under the owner's current authorization.
 
+The current priority overlay is `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`
+(`M0-SHORTEST-COMPLETE-LOOP`, ledger `SUP-020`). It does not replace the immutable
+R6 TaskPack; it serializes execution around one real core loop (P0–P6) and defers
+second providers, extra domains/renderers, marketplaces, and advanced capabilities
+until M0 has a real Local Green result. Keep R6 contracts, evidence rules, external
+resource boundaries, and the no-release rule unchanged.
+
 The preceding plan is the AAK 2026-09-10 follow-up pack
 (ARCHEAXIS-NEXT-TASKPACK-2026-09-10, revision R3.1); live execution state is
 `docs/authority/taskpack-0910-r3/EXECUTION.md` with slice progress in
