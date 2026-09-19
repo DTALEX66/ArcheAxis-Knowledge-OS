@@ -257,6 +257,16 @@
 
 状态：`PLANNED`
 
+## M0 internal audit receipt — 2026-09-20
+
+- `subject_sha`: `dc5aa97fc1d95f81a3c480901de7807dffd963f2`
+- `scope`: P0 boundary/security, P2 Model library/Domain Pack, and P3/A13 migration/Green read-only audits; this receipt does not self-sign A15 or A16.
+- `P0`: targeted boundary/security suites reported `54 passed, 1 skipped` and `104 passed, 1 skipped`, exit `0`; Rust/.NET security gates and full project gate remain `NOT_RUN` because `cargo`, `rustfmt`, and `dotnet` are unavailable.
+- `P2`: Model library and Domain Pack are `PARTIAL`; the inventory is shallow metadata only, with no weights/content, executable health, benchmark, or runtime readback. General and the existing domain manifests remain `contract_only`; courseware contracts do not prove an interactive renderer.
+- `P3/A13`: synthetic legacy-copy migration and historical project-local Green candidate/headless smoke receipts are valid within their bounded scopes; current exact-HEAD nonempty migration, GUI first-use, installer/signing, clean-machine, in-place Green replacement, and rollback remain `BLOCKED` or `NOT_RUN`.
+- `boundary`: no E/F, credentials, private agent directories, external shared libraries, real material library, test source corpus, or existing Green runtime was read or modified.
+- `next_card`: verify the P3 human-learning first-use path with an available Rust/.NET toolchain, including Assessment → answer → Mastery/FSRS → full restart readback; keep A15/A16 and Green replacement owner-gated.
+
 ## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
 
 - `task_id`: A13 Green candidate composition and portable worker route closure
