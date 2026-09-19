@@ -493,7 +493,7 @@
 
 ## Continuation receipt — 2026-09-21 P2 General lesson renderer
 
-- `subject_sha`: `7944c5f0f6cb15d85af6d80dd74d4658f7f1d152`
+- `subject_sha`: `7944c5f011be2f963cef97af32518e1e54a0b46d`
 - `changed_paths`: `app/adapters/courseware_lesson.py`, `tests/test_general_courseware_renderer.py`
 - `behavior`: a deterministic local adapter accepts only a `general` lesson artifact bound to the supplied `CourseManifestV1`; it produces an Obsidian-compatible `Projection` with manifest/artifact/source/knowledge/renderer metadata and fail-closed binding checks.
 - `verification`: static file/contract inspection passed; the focused pytest command was `NOT_EXECUTED` (project `.venv` uv trampoline failed with permission denied), so this is `STRUCTURAL` evidence only. No H5P/OpenMAIC/provider/model or real curriculum was introduced.
