@@ -243,3 +243,20 @@
 - limitations: this is an evidence boundary and validation contract, not proof that every runtime stage is wired or complete
 - rollback: revert commit `2e56b94e56ad7aeb552e92da0f22604e486baece`; existing source, Core and learning paths remain intact
 - remaining_gap: emit this receipt from the canonical Rust/SQLite journey and collect real restart/readback evidence before A14 can be promoted beyond partial
+
+## A15 — Independent Audit
+
+状态：`PLANNED`
+
+- prerequisite: A14 has a tested contract, but its real journey and restart/readback evidence are still open
+- execution_status: `NOT_EXECUTED`; no independent reviewer or unseen-example audit was claimed in this run
+- boundary: the implementation author cannot self-sign Q00/Q01 or convert local contract tests into an independent audit result
+- next_evidence: an independently produced report must bind each PASS/FAIL/BLOCKED finding to an exact subject SHA and the corresponding runtime evidence
+
+## A16 — Owner Gate
+
+状态：`PLANNED`
+
+- execution_status: `NOT_EXECUTED`
+- blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
+- release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed
