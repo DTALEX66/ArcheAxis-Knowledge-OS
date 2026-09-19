@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.r6.desktop-smoke-receipt/v1",
   "observed_at": "2026-09-19T15:35:00Z",
-  "subject_sha": "PENDING_DOC_COMMIT",
+  "subject_sha": "e6b02afeb6b8611cf4973dafd3b261a1eeebec26",
   "desktop_executable": ".project-local/runs/r6-a12-release/Release/net10.0/win-x64/ArcheAxis.Desktop.exe",
   "core_executable": ".project-local/build/cargo-r6-a12/release/archeaxis-api.exe",
   "core_sha256": "3997FC27A5225BD67FD868D00BB5657832184EC63C04EF50E2B0B854FF925F88",

@@ -96,14 +96,14 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Release self-contained candidate and headless Core smoke pass; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
-      "subject_sha": "PENDING_DOC_COMMIT"
+      "subject_sha": "e6b02afeb6b8611cf4973dafd3b261a1eeebec26"
     },
     {
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "self-contained candidate is built, hashed and headlessly smoke-tested; staging migration, restart/readback, Green replacement and rollback remain unexecuted",
-      "subject_sha": "PENDING_DOC_COMMIT"
+      "subject_sha": "e6b02afeb6b8611cf4973dafd3b261a1eeebec26"
     },
     {
       "id": "A14",
