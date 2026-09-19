@@ -629,7 +629,9 @@ async fn record_stateful_review(
                  Json(serde_json::json!({"event_id":receipt.event_id,"streak_after":receipt.streak_after,
                     "next_review_days":receipt.next_review_days,"next_review":receipt.next_review,
                     "duplicate":receipt.duplicate,"schedule_authority":outcome["schedule"]["authority"],
-                    "schedule_state":outcome["schedule"]["state"]}))).into_response()
+                    "schedule_state":outcome["schedule"]["state"],
+                    "answer":outcome["answer"],
+                    "mastery_projection":outcome["mastery_projection"]}))).into_response()
             },
             Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("event_key conflict:") =>
                 (StatusCode::CONFLICT, message).into_response(),

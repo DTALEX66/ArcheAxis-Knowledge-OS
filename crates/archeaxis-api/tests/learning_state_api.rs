@@ -180,7 +180,16 @@ async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
     review["assessment_id"] = assessment["assessment_id"].clone();
     review["knowledge_version"] = assessment["knowledge_version"].clone();
     review["answer"] = json!("FSRS uses the prior review history.");
-    assert_eq!(post(&router, review, "human").await.0, StatusCode::CREATED);
+    let replay_body = review.clone();
+    let (review_status, review_response) = post(&router, review, "human").await;
+    assert_eq!(review_status, StatusCode::CREATED, "{review_response}");
+    assert_eq!(review_response["answer"], "FSRS uses the prior review history.");
+    assert_eq!(review_response["mastery_projection"]["status"], "projection");
+    assert_eq!(review_response["mastery_projection"]["closed"], false);
+    let (replay_status, replay_response) = post(&router, replay_body, "human").await;
+    assert_eq!(replay_status, StatusCode::OK, "{replay_response}");
+    assert_eq!(replay_response["answer"], review_response["answer"]);
+    assert_eq!(replay_response["mastery_projection"], review_response["mastery_projection"]);
 
     drop(router);
     let reopened = app(db.to_str().unwrap()).unwrap();
