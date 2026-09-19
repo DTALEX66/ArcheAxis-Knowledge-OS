@@ -3,7 +3,7 @@
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
   "updated_at": "2026-09-21T00:25:00Z",
-  "subject_sha": "b5dd4361d777a209e1d8cf60e7da046be2af1a41",
+  "subject_sha": "b5dd4361bfac07140f9f77173fa42c39441df008",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -68,7 +68,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Core Assessment is generated/bound to active accepted or personal Knowledge; API learning/machine and desktop answer-recovery gates pass; a synthetic --learning-smoke driver now covers source-level Assessment→answer→FSRS projection→cold restart/readback, while current Core artifacts are stale or contract-mismatched and real Avalonia first-use, authoritative mastery projection and adaptive journey remain open",
-      "subject_sha": "b5dd4361d777a209e1d8cf60e7da046be2af1a41"
+      "subject_sha": "b5dd4361bfac07140f9f77173fa42c39441df008"
     },
     {
       "id": "A09",

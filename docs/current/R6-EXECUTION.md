@@ -484,7 +484,7 @@
 
 ## Continuation receipt — 2026-09-21 P3 headless learning journey driver
 
-- `subject_sha`: `b5dd4361d777a209e1d8cf60e7da046be2af1a41`
+- `subject_sha`: `b5dd4361bfac07140f9f77173fa42c39441df008`
 - `changed_paths`: `apps/ArcheAxis.Desktop/Program.cs`, `tests/test_desktop_learning_review_contract.py`
 - `behavior`: explicit `--learning-smoke <dbPath>` runs a project-local synthetic Knowledge → Assessment → learner answer/review → FSRS schedule and open mastery projection → Core stop/start readback. Run suffixes prevent repeated execution on the same SQLite from colliding on deterministic Knowledge/Assessment/event identifiers.
 - `verification`: RED source-contract test failed before the flag existed; GREEN source contract `1 passed, 11 deselected`, desktop/P3 gate `39 passed, 3 warnings`, .NET build `0 warnings, 0 errors`, all exit `0`.
