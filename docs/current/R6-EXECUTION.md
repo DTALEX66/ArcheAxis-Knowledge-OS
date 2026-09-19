@@ -509,6 +509,13 @@
 - `authority`: `scripts/maintenance/check_authority_sha_consistency.py` printed `PASS`, exit `0`.
 - `boundary`: these are project-local contract/compile/reachability gates; they do not prove real Python worker lifecycle, interactive Avalonia use, real model execution or Green installation.
 
+## Continuation receipt — 2026-09-21 P3 existing-Core candidate matrix
+
+- `subject_sha`: `d7ea1e36ca1c5360106e97fee78dea8b410ed8a7`
+- `candidates`: `.project-local/build/cargo-r6-p4/debug/archeaxis-api.exe`, `cargo-r6-api-sdk2/debug`, `cargo-r6-api-fix/debug`, and `rust-msvc/debug`.
+- `verification`: the first three reached review but returned a body that did not satisfy the current answer/FSRS projection contract; `rust-msvc` returned `404` for the Assessment route. Each run used a separate `.project-local` SQLite and bounded output directory; hung smoke processes were stopped only after their executable path was verified.
+- `result`: `BLOCKED/NOT_EXECUTED` for current-source runtime. No candidate was relabeled as a current build, and no external toolchain rebuild or external-library write was attempted.
+
 ## Continuation receipt — 2026-09-21 P0 worker evidence boundary
 
 - `subject_sha`: `45f42ab1d6d3a4da1e5ef397b0f8674b502cda1e`
