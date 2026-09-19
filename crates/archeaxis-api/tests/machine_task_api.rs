@@ -28,13 +28,12 @@ fn receipt(task_id: &str, outcome: &str) -> String {
     serde_json::json!({
         "task_id": task_id,
         "conditions": "offline; fixed sample",
-        "knowledge_version": "k_abc@1",
         "method_version": "method-1",
         "tool_version": "tool-1",
         "model_version": "qwen3:8b",
         "scope": "one observable extraction task",
         "outcome": outcome,
-        "retest_of": "task-0"
+        "retest_of": null
     })
     .to_string()
 }
@@ -53,13 +52,13 @@ async fn a_machine_records_a_receipt_and_anyone_can_read_it_back() {
     // conditions or the knowledge/method/tool versions cannot re-check the claim.
     assert_eq!(readback["task_id"], "task-1");
     assert_eq!(readback["conditions"], "offline; fixed sample");
-    assert_eq!(readback["knowledge_version"], "k_abc@1");
+    assert!(readback["knowledge_version"].is_null());
     assert_eq!(readback["method_version"], "method-1");
     assert_eq!(readback["tool_version"], "tool-1");
     assert_eq!(readback["model_version"], "qwen3:8b");
     assert_eq!(readback["scope"], "one observable extraction task");
     assert_eq!(readback["outcome"], "succeeded");
-    assert_eq!(readback["retest_of"], "task-0");
+    assert!(readback["retest_of"].is_null());
     assert!(readback["failure"].is_null());
     assert!(
         readback["note"].as_str().unwrap_or("").contains("weights were trained"),
@@ -68,6 +67,109 @@ async fn a_machine_records_a_receipt_and_anyone_can_read_it_back() {
 
     let (status, _) = call(&router, "GET", "/api/v1/machine/tasks/unknown", None, "").await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn machine_task_binds_knowledge_and_retest_to_canonical_records() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("api.sqlite");
+    let db_str = db.to_str().unwrap().to_string();
+    let router = app(&db_str).unwrap();
+
+    let (status, accepted) = call(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        None,
+        r#"{"knowledge_type":"FACTUAL_CLAIM","body":"bound fact","status":"accepted","created_by":"owner"}"#,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "{accepted}");
+    let knowledge_id = accepted["knowledge_id"].as_str().unwrap().to_string();
+
+    let failed = serde_json::json!({
+        "task_id": "failed-task",
+        "conditions": "fixed sample",
+        "knowledge_version": &knowledge_id,
+        "method_version": "method-1",
+        "tool_version": "tool-1",
+        "model_version": "model-1",
+        "scope": "one task",
+        "outcome": "failed",
+        "failure": "provider error"
+    });
+    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &failed.to_string()).await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    let (status, corrected) = call(
+        &router,
+        "POST",
+        &format!("/api/v1/knowledge-items/{knowledge_id}/review-decisions"),
+        None,
+        r#"{"action":"modified","reviewer":"owner","new_body":"bound fact corrected by owner"}"#,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{corrected}");
+    let successor_id = corrected["knowledge_id"].as_str().unwrap().to_string();
+    let (status, _) = call(
+        &router,
+        "POST",
+        &format!("/api/v1/knowledge-items/{successor_id}/review-decisions"),
+        None,
+        r#"{"action":"accepted","reviewer":"owner"}"#,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    let retest = serde_json::json!({
+        "task_id": "retest-task",
+        "conditions": "fixed sample after human correction",
+        "knowledge_version": &successor_id,
+        "method_version": "method-1",
+        "tool_version": "tool-1",
+        "model_version": "model-1",
+        "scope": "one task",
+        "outcome": "succeeded",
+        "retest_of": "failed-task"
+    });
+    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &retest.to_string()).await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    let missing_knowledge = serde_json::json!({
+        "task_id": "missing-knowledge",
+        "conditions": "fixed sample",
+        "knowledge_version": "k_missing",
+        "model_version": "model-1",
+        "scope": "one task",
+        "outcome": "succeeded"
+    });
+    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &missing_knowledge.to_string()).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("machine"),
+        &serde_json::json!({
+            "task_id": "unknown-retest",
+            "conditions": "fixed sample",
+            "knowledge_version": &successor_id,
+            "model_version": "model-1",
+            "scope": "one task",
+            "outcome": "succeeded",
+            "retest_of": "missing-task"
+        }).to_string(),
+    ).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    drop(router);
+    let router2 = app(&db_str).unwrap();
+    let (status, readback) = call(&router2, "GET", "/api/v1/machine/tasks/retest-task", None, "").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(readback["knowledge_version"], successor_id);
+    assert_eq!(readback["retest_of"], "failed-task");
+    assert_eq!(readback["outcome"], "succeeded");
 }
 
 #[tokio::test]

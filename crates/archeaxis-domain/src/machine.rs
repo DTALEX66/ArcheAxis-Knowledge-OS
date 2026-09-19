@@ -13,6 +13,8 @@
 
 use rusqlite::{Connection, OptionalExtension};
 
+use crate::knowledge;
+
 /// Outcomes a receipt may carry. `unmeasured` exists so "we did not measure this"
 /// is a first-class result instead of a silent success.
 pub const OUTCOMES: &[&str] = &["succeeded", "failed", "unmeasured"];
@@ -50,6 +52,46 @@ pub struct MachineTask<'a> {
     pub outcome: &'a str,
     pub failure: Option<&'a str>,
     pub retest_of: Option<&'a str>,
+}
+
+fn knowledge_id_from_version(value: &str) -> &str {
+    value.split_once('@').map(|(id, _)| id).unwrap_or(value)
+}
+
+fn validate_knowledge_binding(conn: &Connection, value: Option<&str>) -> rusqlite::Result<()> {
+    let Some(value) = value.map(str::trim) else {
+        return Ok(());
+    };
+    let knowledge_id = knowledge_id_from_version(value).trim();
+    if knowledge_id.is_empty() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "knowledge_version must identify canonical knowledge".into(),
+        ));
+    }
+    let row: Option<(String, String)> = conn
+        .query_row(
+            "SELECT status, knowledge_type FROM knowledge WHERE knowledge_id=?1",
+            [knowledge_id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .optional()?;
+    let Some((status, knowledge_type)) = row else {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "knowledge_version must reference existing canonical knowledge".into(),
+        ));
+    };
+    if !knowledge::is_knowledge_active(conn, knowledge_id)?
+        || (status != "accepted"
+            && !matches!(
+                knowledge_type.as_str(),
+                "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"
+            ))
+    {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "knowledge_version must reference active accepted or personal knowledge".into(),
+        ));
+    }
+    Ok(())
 }
 
 /// Record one machine task receipt.
@@ -92,6 +134,26 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
     }
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     ensure_machine_tasks(&tx)?;
+    validate_knowledge_binding(&tx, task.knowledge_version)?;
+    if let Some(retest_of) = task.retest_of.map(str::trim) {
+        if retest_of.is_empty() {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "retest_of must identify a failed machine task".into(),
+            ));
+        }
+        let outcome: Option<String> = tx
+            .query_row(
+                "SELECT outcome FROM machine_tasks WHERE task_id=?1",
+                [retest_of],
+                |r| r.get(0),
+            )
+            .optional()?;
+        if outcome.as_deref() != Some("failed") {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "retest_of must reference an existing failed machine task".into(),
+            ));
+        }
+    }
     let existing: Option<i64> = tx
         .query_row("SELECT 1 FROM machine_tasks WHERE task_id=?1", [task.task_id], |r| r.get(0))
         .optional()?;

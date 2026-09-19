@@ -56,3 +56,37 @@ fn verify_counts_rejects_a_tampered_persisted_source_object() {
 
     assert!(backup::verify_counts(&source_db, &restored).is_err());
 }
+
+#[test]
+fn verify_counts_rejects_schema_version_drift() {
+    let dir = tempfile::tempdir().unwrap();
+    let source_db = init_workspace(dir.path().join("source.sqlite").to_str().unwrap()).unwrap();
+    let mut other_db = init_workspace(dir.path().join("other.sqlite").to_str().unwrap()).unwrap();
+    other_db
+        .execute(
+            "UPDATE workspace_meta SET value='4' WHERE key='schema_version'",
+            [],
+        )
+        .unwrap();
+
+    assert!(backup::verify_counts(&source_db, &other_db).is_err());
+}
+
+#[test]
+fn verify_counts_rejects_foreign_key_damage_even_when_counts_match() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut source_db = init_workspace(dir.path().join("source.sqlite").to_str().unwrap()).unwrap();
+    let mut other_db = init_workspace(dir.path().join("other.sqlite").to_str().unwrap()).unwrap();
+    source::import_source(&mut source_db, b"same", "same.bin", None).unwrap();
+    source::import_source(&mut other_db, b"same", "same.bin", None).unwrap();
+
+    other_db.execute_batch("PRAGMA foreign_keys=OFF").unwrap();
+    other_db
+        .execute(
+            "INSERT INTO review_events(knowledge_id, action, reviewer) VALUES('missing', 'review', 'tester')",
+            [],
+        )
+        .unwrap();
+
+    assert!(backup::verify_counts(&source_db, &other_db).is_err());
+}

@@ -2,15 +2,20 @@
 //! refusals - a machine-only writer, no rewriting after the fact, and an
 //! `unmeasured` outcome that stays visible instead of being rounded up.
 
-use archeaxis_domain::machine::{self, MachineTask};
+use archeaxis_domain::{knowledge, machine::{self, MachineTask}};
 use archeaxis_store_sqlite::init_workspace;
 
-fn task<'a>(task_id: &'a str, outcome: &'a str, failure: Option<&'a str>) -> MachineTask<'a> {
+fn task_with_knowledge<'a>(
+    task_id: &'a str,
+    outcome: &'a str,
+    failure: Option<&'a str>,
+    knowledge_version: Option<&'a str>,
+) -> MachineTask<'a> {
     MachineTask {
         task_id,
         principal: "machine",
         conditions: "offline; fixed sample",
-        knowledge_version: Some("k_abc@1"),
+        knowledge_version,
         method_version: Some("method-1"),
         tool_version: Some("tool-1"),
         model_version: "qwen3:8b",
@@ -19,6 +24,10 @@ fn task<'a>(task_id: &'a str, outcome: &'a str, failure: Option<&'a str>) -> Mac
         failure,
         retest_of: None,
     }
+}
+
+fn task<'a>(task_id: &'a str, outcome: &'a str, failure: Option<&'a str>) -> MachineTask<'a> {
+    task_with_knowledge(task_id, outcome, failure, None)
 }
 
 fn workspace() -> (tempfile::TempDir, rusqlite::Connection) {
@@ -50,7 +59,7 @@ fn a_receipt_reads_back_every_recorded_field() {
 
     let found = machine::machine_task(&conn, "t-8").unwrap().expect("recorded");
     assert_eq!(found.conditions, "offline; fixed sample");
-    assert_eq!(found.knowledge_version.as_deref(), Some("k_abc@1"));
+    assert!(found.knowledge_version.is_none());
     assert_eq!(found.method_version.as_deref(), Some("method-1"));
     assert_eq!(found.tool_version.as_deref(), Some("tool-1"));
     assert_eq!(found.model_version, "qwen3:8b");
@@ -106,4 +115,87 @@ fn refused_receipts_never_land() {
     );
 
     assert_eq!(machine::machine_task_counts(&conn).unwrap(), (1, 0), "only t-7 may exist");
+}
+
+#[test]
+fn knowledge_version_must_bind_to_accepted_or_personal_knowledge() {
+    let (_dir, mut conn) = workspace();
+    let accepted = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "accepted fact",
+        "candidate",
+        None,
+        None,
+        "owner",
+    )
+    .unwrap();
+    knowledge::review(&mut conn, &accepted, "accepted", "owner", None, None).unwrap();
+    let personal = knowledge::create_knowledge(
+        &mut conn,
+        "PERSONAL_DEFINITION",
+        "my personal definition",
+        "accepted",
+        None,
+        None,
+        "owner",
+    )
+    .unwrap();
+    let candidate = knowledge::create_knowledge(
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "unreviewed candidate",
+        "candidate",
+        None,
+        None,
+        "machine",
+    )
+    .unwrap();
+
+    for (task_id, knowledge_id) in [("accepted-task", &accepted), ("personal-task", &personal)] {
+        let receipt = task_with_knowledge(task_id, "succeeded", None, Some(knowledge_id));
+        machine::record_machine_task(&mut conn, &receipt).unwrap();
+    }
+    let missing = task_with_knowledge("missing-task", "succeeded", None, Some("k_missing"));
+    assert!(machine::record_machine_task(&mut conn, &missing).is_err());
+    let unreviewed = task_with_knowledge("candidate-task", "succeeded", None, Some(&candidate));
+    assert!(machine::record_machine_task(&mut conn, &unreviewed).is_err());
+}
+
+#[test]
+fn retest_must_reference_a_failed_task_and_survive_reopen() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("retest.sqlite");
+    let accepted;
+    {
+        let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+        accepted = knowledge::create_knowledge(
+            &mut conn,
+            "FACTUAL_CLAIM",
+            "retest fact",
+            "accepted",
+            None,
+            None,
+            "owner",
+        )
+        .unwrap();
+        let mut failed = task_with_knowledge("failed-task", "failed", Some("worker error"), Some(&accepted));
+        machine::record_machine_task(&mut conn, &failed).unwrap();
+        let mut retest = task_with_knowledge("retest-task", "succeeded", None, Some(&accepted));
+        retest.retest_of = Some("failed-task");
+        machine::record_machine_task(&mut conn, &retest).unwrap();
+
+        let mut unknown = task("unknown-retest", "succeeded", None);
+        unknown.retest_of = Some("missing-task");
+        assert!(machine::record_machine_task(&mut conn, &unknown).is_err());
+        let mut non_failure = task("non-failure-retest", "succeeded", None);
+        non_failure.retest_of = Some("retest-task");
+        assert!(machine::record_machine_task(&mut conn, &non_failure).is_err());
+    }
+
+    let conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let retest = machine::machine_task(&conn, "retest-task").unwrap().unwrap();
+    assert_eq!(retest.knowledge_version.as_deref(), Some(accepted.as_str()));
+    assert_eq!(retest.retest_of.as_deref(), Some("failed-task"));
+    assert_eq!(retest.outcome, "succeeded");
 }

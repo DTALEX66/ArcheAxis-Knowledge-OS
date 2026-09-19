@@ -9,6 +9,7 @@ fn io_error(error: std::io::Error) -> rusqlite::Error {
 
 /// Consistent snapshot of `src` into `dst_path` using the Online Backup API.
 pub fn backup(conn: &Connection, dst_path: &str) -> rusqlite::Result<()> {
+    validate_workspace(conn)?;
     let target = Path::new(dst_path);
     raw_objects::reject_links(target)?;
     raw_objects::reject_links(Path::new(conn.path().ok_or(rusqlite::Error::InvalidQuery)?))?;
@@ -94,6 +95,8 @@ pub fn restore(snapshot_path: &str, dst: &mut Connection) -> rusqlite::Result<()
 
 /// Verify a snapshot/restored db: validate source hashes and compare object counts.
 pub fn verify_counts(a: &Connection, b: &Connection) -> rusqlite::Result<bool> {
+    validate_workspace(a)?;
+    validate_workspace(b)?;
     verify_source_objects(a)?;
     verify_source_objects(b)?;
     let tables = [
@@ -111,6 +114,20 @@ pub fn verify_counts(a: &Connection, b: &Connection) -> rusqlite::Result<bool> {
         }
     }
     Ok(true)
+}
+
+fn validate_workspace(conn: &Connection) -> rusqlite::Result<()> {
+    let version: String = conn.query_row(
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |row| row.get(0),
+    )?;
+    if version != archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
+        || conn.prepare("PRAGMA foreign_key_check")?.exists([])?
+    {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
+    Ok(())
 }
 
 fn verify_source_objects(conn: &Connection) -> rusqlite::Result<()> {
