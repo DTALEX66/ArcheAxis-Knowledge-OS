@@ -22,7 +22,17 @@ import stat
 import sys
 import time
 
-ROOT = Path(__file__).absolute().parents[3]
+_SCRIPT = Path(__file__).absolute()
+_BUNDLE_ROOT = _SCRIPT.parents[2]
+if (_BUNDLE_ROOT / "workers").is_dir():
+    # A Green candidate relocates this transport to ``workers/transport``.
+    # Keep the source checkout layout working while resolving bundled workers
+    # from the candidate root when the script is portable.
+    ROOT = _BUNDLE_ROOT
+    WORKER_ROOT = ROOT / "workers"
+else:
+    ROOT = _SCRIPT.parents[3]
+    WORKER_ROOT = ROOT / "services" / "python-workers"
 MAX_LINE_BYTES = 1024 * 1024
 MAX_INPUT_BYTES = 16 * 1024 * 1024
 MAX_SAFE_INTEGER = 2**53 - 1
@@ -326,7 +336,10 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
 
 def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
-    spec = importlib.util.spec_from_file_location("route_worker", ROOT / route["worker"])
+    relative_worker = Path(route["worker"])
+    if relative_worker.parts[:2] == ("services", "python-workers"):
+        relative_worker = Path(*relative_worker.parts[2:])
+    spec = importlib.util.spec_from_file_location("route_worker", WORKER_ROOT / relative_worker)
     if spec is None or spec.loader is None:
         raise Rejected("route worker module is missing")
     module = importlib.util.module_from_spec(spec)

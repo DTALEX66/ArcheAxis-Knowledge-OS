@@ -6,6 +6,7 @@ import io
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -87,6 +88,32 @@ class TextNdjsonTests(unittest.TestCase):
         # Identical requests reuse verified content-addressed artifacts.
         _, replay = self.invoke(request)
         self.assertEqual(response["outputs"], replay["outputs"])
+
+    def test_real_process_works_from_portable_green_worker_layout(self):
+        portable = self.staging / "candidate"
+        script = portable / "workers" / "transport" / "text_ndjson.py"
+        script.parent.mkdir(parents=True)
+        shutil.copy2(SCRIPT, script)
+        worker = portable / "workers" / "document" / "worker_text.py"
+        worker.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / "services/python-workers/document/worker_text.py", worker)
+
+        request = self.request(b"portable candidate\n")
+        result = subprocess.run(
+            [sys.executable, "-B", "-S", str(script), "--staging-root", str(self.staging)],
+            input=json.dumps(request) + "\n",
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+            check=False,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        hello, response = map(json.loads, result.stdout.splitlines())
+        self.validator.validate(hello)
+        self.validator.validate(response)
+        self.assertEqual(response["status"], "succeeded")
 
     def test_unknown_capability_versions_attempt_and_parameters_are_rejected(self):
         request = self.request()
