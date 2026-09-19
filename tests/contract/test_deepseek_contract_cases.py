@@ -195,6 +195,28 @@ def test_machine_feedback_rejects_unknown_event_and_missing_budget():
     assert _errors("machine-feedback.schema.json", {k: v for k, v in base.items() if k != "context_budget_chars"})
 
 
+def test_machine_correction_application_requires_human_review():
+    base = {
+        "schema": "archeaxis.machine-feedback/v1",
+        "event_id": "m-correction-1",
+        "client_id": "c1",
+        "event": "correction_applied",
+        "item_ref": {"kind": "candidate", "id": "candidate-1"},
+        "context_budget_chars": 10,
+        "occurred_at": "2026-09-06T00:00:00Z",
+    }
+    assert _errors("machine-feedback.schema.json", base)
+    assert _errors(
+        "machine-feedback.schema.json",
+        {**base, "event": "correction_reverted"},
+    )
+    reviewed = {
+        **base,
+        "feedback": {"reviewed_by_human": True},
+    }
+    assert not _errors("machine-feedback.schema.json", reviewed)
+
+
 def test_quality_report_status_value_coupling_is_schema_enforced():
     row = {
         "metric": "cer",
