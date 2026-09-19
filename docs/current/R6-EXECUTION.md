@@ -229,3 +229,17 @@
 - limitations: no nonempty legacy copy migration, staging first-use, restart readback, in-place replacement or rollback has been executed
 - rollback: revert commit `ce54472a`; existing candidate and migration utilities remain intact
 - remaining_gap: obtain exact-SHA self-contained desktop/Core candidate, stage it under `.project-local`, then owner-gated Green replacement with hash backup and rollback evidence
+
+## A14 — Full Human–Machine Closed Loop Receipt
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `2e56b94e56ad7aeb552e92da0f22604e486baece`
+- changed_paths: `app/contracts/closed_loop_v1.py`, `app/contracts/__init__.py`, `packages/contracts/v1/closed-loop.schema.json`, `tests/test_closed_loop_v1.py`
+- contract: the receipt fixes the ordered stages source → knowledge → human_learning → machine_use → evaluation → correction → lesson → retest; completion requires real evidence for every stage and forbids synthetic completion
+- tests: `tests/test_closed_loop_v1.py tests/test_golden_journey_receipt.py tests/test_core_client.py tests/test_co_learning_loop.py` — 35 passed, exit 0
+- actual_runtime_result: contract plus existing local Golden Journey/Core/co-learning tests; no real owner-approved source-to-retest journey, external model, Green runtime or restart readback was executed
+- data_touched: repository contract, generated schema and tests only; no external library, model library, real data library, test corpus or Green installation was modified
+- limitations: this is an evidence boundary and validation contract, not proof that every runtime stage is wired or complete
+- rollback: revert commit `2e56b94e56ad7aeb552e92da0f22604e486baece`; existing source, Core and learning paths remain intact
+- remaining_gap: emit this receipt from the canonical Rust/SQLite journey and collect real restart/readback evidence before A14 can be promoted beyond partial
