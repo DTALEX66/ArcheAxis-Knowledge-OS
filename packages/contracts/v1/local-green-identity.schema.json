@@ -1,0 +1,69 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "archeaxis.local-green-identity/v1",
+      "default": "archeaxis.local-green-identity/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "distribution": {
+      "const": "local-green",
+      "title": "Distribution",
+      "type": "string"
+    },
+    "public_release_base": {
+      "const": "v0.6.14",
+      "title": "Public Release Base",
+      "type": "string"
+    },
+    "source_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Commit",
+      "type": "string"
+    },
+    "source_tree": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Source Tree",
+      "type": "string"
+    },
+    "build_timestamp": {
+      "minLength": 1,
+      "title": "Build Timestamp",
+      "type": "string"
+    },
+    "runtime_manifest_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Runtime Manifest Digest",
+      "type": "string"
+    },
+    "published": {
+      "const": false,
+      "default": false,
+      "title": "Published",
+      "type": "boolean"
+    },
+    "candidate_status": {
+      "enum": [
+        "staged",
+        "verified",
+        "replaced",
+        "rolled_back"
+      ],
+      "title": "Candidate Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "distribution",
+    "public_release_base",
+    "source_commit",
+    "source_tree",
+    "build_timestamp",
+    "runtime_manifest_digest",
+    "candidate_status"
+  ],
+  "title": "ArcheAxis Local Green Identity",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/local-green-identity.schema.json"
+}
