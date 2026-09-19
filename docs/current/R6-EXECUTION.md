@@ -92,3 +92,19 @@
 - limitations: Rust SQLite schema/migration, API serialization, Avalonia routes, and real first-use evidence still not wired to V3
 - rollback: revert commit `b1df307c353112928df410780ea3f0695f2a82a3`; existing V1 contracts and storage remain intact
 - remaining_gap: implement and test Core persistence/API adapter without weakening single-writer rules
+
+## A05 — Multiformat Pipeline
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `47b476d7`
+- changed_paths: `app/contracts/format_execution_v1.py`, `packages/contracts/v1/format-execution-receipt.schema.json`, `tests/test_format_execution_v1.py`, `app/contracts/__init__.py`
+- contract: every receipt carries original retention, transform engine/version, loss status/notes, structure counts/kinds, block anchors, quality facts and explicit fallback state
+- adapter: existing `ConversionRun` can be adapted through `FormatExecutionReceiptV1.from_conversion_run` without changing the SQLite writer or storage schema
+- tests: `tests/test_format_execution_v1.py tests/test_conversion_run.py tests/test_workspace_pipeline_multiformat.py` — 16 passed, exit 0; after schema alias cleanup A05 standalone — 4 passed, exit 0
+- actual_runtime_result: local contract and existing workspace pipeline tests only; no claim that external Docling/OCR/ASR/Office engines are installed or complete
+- data_touched: repository contract, generated schema and tests only
+- external_paths_touched: none
+- limitations: Rust/Core persistence wiring, per-format quality measurement, external engine version readback and R6 real first-use promotion remain open
+- rollback: revert commit `47b476d7`; existing conversion-run storage and adapters remain intact
+- remaining_gap: wire receipts into the canonical Core/API path and execute representative real fixtures before any format becomes `complete`
