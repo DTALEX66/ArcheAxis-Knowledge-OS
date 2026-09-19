@@ -1,0 +1,13 @@
+{
+  "schema": "archeaxis.domain-pack/v1",
+  "pack_id": "design",
+  "domain": "design",
+  "version": "1.0.0",
+  "title": "Design",
+  "status": "contract_only",
+  "source_policy": "canonical_only",
+  "learning_modes": ["read", "practice", "design", "simulation", "teach_back"],
+  "assessment_types": ["recall", "design_critique", "project", "teach_back"],
+  "canonical_object_types": ["source", "knowledge", "lesson", "exercise", "assessment"],
+  "entrypoint": "design"
+}

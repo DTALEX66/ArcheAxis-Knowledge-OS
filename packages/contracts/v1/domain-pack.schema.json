@@ -1,0 +1,122 @@
+{
+  "additionalProperties": false,
+  "description": "Stable domain configuration; content remains canonical and reviewable.",
+  "properties": {
+    "schema": {
+      "const": "archeaxis.domain-pack/v1",
+      "default": "archeaxis.domain-pack/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "pack_id": {
+      "pattern": "^[a-z][a-z0-9-]+$",
+      "title": "Pack Id",
+      "type": "string"
+    },
+    "domain": {
+      "enum": [
+        "general",
+        "math_physics",
+        "programming",
+        "design"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "version": {
+      "minLength": 1,
+      "title": "Version",
+      "type": "string"
+    },
+    "title": {
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "contract_only",
+        "content_ready",
+        "runtime_verified"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "source_policy": {
+      "enum": [
+        "canonical_only",
+        "canonical_plus_reviewed"
+      ],
+      "title": "Source Policy",
+      "type": "string"
+    },
+    "learning_modes": {
+      "items": {
+        "enum": [
+          "read",
+          "practice",
+          "problem_solving",
+          "code",
+          "design",
+          "simulation",
+          "teach_back"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Learning Modes",
+      "type": "array"
+    },
+    "assessment_types": {
+      "items": {
+        "enum": [
+          "recall",
+          "worked_problem",
+          "code_run",
+          "design_critique",
+          "teach_back",
+          "project"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Assessment Types",
+      "type": "array"
+    },
+    "canonical_object_types": {
+      "items": {
+        "enum": [
+          "source",
+          "knowledge",
+          "lesson",
+          "exercise",
+          "assessment"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Canonical Object Types",
+      "type": "array"
+    },
+    "entrypoint": {
+      "minLength": 1,
+      "title": "Entrypoint",
+      "type": "string"
+    }
+  },
+  "required": [
+    "pack_id",
+    "domain",
+    "version",
+    "title",
+    "status",
+    "source_policy",
+    "learning_modes",
+    "assessment_types",
+    "canonical_object_types",
+    "entrypoint"
+  ],
+  "title": "ArcheAxis Domain Learning Pack",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/domain-pack.schema.json"
+}

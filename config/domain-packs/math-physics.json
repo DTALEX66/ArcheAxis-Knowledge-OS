@@ -1,0 +1,13 @@
+{
+  "schema": "archeaxis.domain-pack/v1",
+  "pack_id": "math-physics",
+  "domain": "math_physics",
+  "version": "1.0.0",
+  "title": "Math and Physics",
+  "status": "contract_only",
+  "source_policy": "canonical_only",
+  "learning_modes": ["read", "practice", "problem_solving", "simulation", "teach_back"],
+  "assessment_types": ["recall", "worked_problem", "teach_back", "project"],
+  "canonical_object_types": ["source", "knowledge", "lesson", "exercise", "assessment"],
+  "entrypoint": "math-physics"
+}

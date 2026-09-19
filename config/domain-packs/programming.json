@@ -1,0 +1,13 @@
+{
+  "schema": "archeaxis.domain-pack/v1",
+  "pack_id": "programming",
+  "domain": "programming",
+  "version": "1.0.0",
+  "title": "Programming",
+  "status": "contract_only",
+  "source_policy": "canonical_only",
+  "learning_modes": ["read", "practice", "code", "problem_solving", "teach_back"],
+  "assessment_types": ["recall", "code_run", "project", "teach_back"],
+  "canonical_object_types": ["source", "knowledge", "lesson", "exercise", "assessment"],
+  "entrypoint": "programming"
+}

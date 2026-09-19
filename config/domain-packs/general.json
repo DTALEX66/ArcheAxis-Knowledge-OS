@@ -1,0 +1,13 @@
+{
+  "schema": "archeaxis.domain-pack/v1",
+  "pack_id": "general",
+  "domain": "general",
+  "version": "1.0.0",
+  "title": "General Learning",
+  "status": "contract_only",
+  "source_policy": "canonical_only",
+  "learning_modes": ["read", "practice", "teach_back"],
+  "assessment_types": ["recall", "teach_back", "project"],
+  "canonical_object_types": ["source", "knowledge", "lesson", "exercise", "assessment"],
+  "entrypoint": "general"
+}
