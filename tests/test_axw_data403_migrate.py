@@ -176,7 +176,9 @@ def test_rollback_readback_verifies_backup_and_offers_restore_candidate(
     readback = rollback_readback(snapshot, expected_source_hash=expected_hash)
     assert readback["status"] == "ok"
     assert readback["integrity"] == "ok"
+    assert readback["integrity_ok"] is True
     assert readback["hash_matches"] is True
+    assert readback["rollback_eligible"] is True
     assert readback["source_hash"] == expected_hash
     # Restore candidate is the backup file itself; current state untouched.
     assert readback["restore_candidate"] == snapshot
@@ -189,7 +191,12 @@ def test_rollback_readback_verifies_backup_and_offers_restore_candidate(
 
     # A hash mismatch must be reported (fail-closed, not silent).
     tampered = rollback_readback(snapshot, expected_source_hash="0" * 64)
+    assert tampered["status"] == "error"
+    assert tampered["integrity_ok"] is True
     assert tampered["hash_matches"] is False
+    assert tampered["rollback_eligible"] is False
+    assert tampered["restore_candidate"] is None
+    assert "restore blocked" in tampered["restore_note"]
 
 
 def test_migrate_is_idempotent_and_keeps_legacy_db(

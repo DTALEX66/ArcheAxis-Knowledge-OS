@@ -509,18 +509,28 @@ def rollback_readback(
             integrity = str(connection.execute("PRAGMA integrity_check").fetchone()[0])
     except sqlite3.Error as exc:
         return {"status": "error", "reason": f"backup is not a readable SQLite file: {exc}"}
+    integrity_ok = integrity.casefold() == "ok"
     hash_matches = expected_source_hash is None or actual_hash == expected_source_hash
+    rollback_eligible = integrity_ok and hash_matches
     return {
-        "status": "ok",
+        # A backup that cannot be tied to the expected source must never be
+        # presented as a usable rollback candidate.  Keep the diagnostic
+        # fields below so callers can explain why the candidate was rejected.
+        "status": "ok" if rollback_eligible else "error",
         "backup_path": str(backup_file),
         "integrity": integrity,
+        "integrity_ok": integrity_ok,
         "source_hash": actual_hash,
         "file_sha256": _sha256_file(backup_file),
         "expected_source_hash": expected_source_hash,
         "hash_matches": hash_matches,
-        "restore_candidate": str(backup_file),
+        "rollback_eligible": rollback_eligible,
+        "restore_candidate": str(backup_file) if rollback_eligible else None,
         "restore_note": (
             "restore by copying the backup file over the legacy path; "
+            "current workspace state is never overwritten"
+            if rollback_eligible
+            else "restore blocked: backup integrity or source hash verification failed; "
             "current workspace state is never overwritten"
         ),
     }

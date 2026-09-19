@@ -72,6 +72,7 @@ def verify(
     *,
     require_runtime: bool = False,
     require_workers: bool = False,
+    require_provenance: bool = False,
     expected_commit: str | None = None,
     expected_tree: str | None = None,
 ) -> dict:
@@ -89,9 +90,18 @@ def verify(
     if manifest.get("schema") != "archeaxis.green-candidate/v1":
         problems.append("unexpected candidate schema")
     provenance = manifest.get("provenance")
+    if require_provenance:
+        if not isinstance(provenance, dict):
+            problems.append("candidate provenance is missing or invalid")
+        else:
+            for field in ("source_commit", "source_tree"):
+                value = provenance.get(field)
+                if not isinstance(value, str) or not value.strip():
+                    problems.append(f"candidate provenance {field} is missing or blank")
     if expected_commit is not None or expected_tree is not None:
         if not isinstance(provenance, dict):
-            problems.append("candidate provenance is missing")
+            if not require_provenance:
+                problems.append("candidate provenance is missing")
         else:
             if expected_commit is not None and provenance.get("source_commit") != expected_commit:
                 problems.append("candidate source commit mismatch")
@@ -135,6 +145,11 @@ def main() -> int:
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--require-runtime", action="store_true")
     parser.add_argument("--require-workers", action="store_true")
+    parser.add_argument(
+        "--require-provenance",
+        action="store_true",
+        help="fail unless source_commit and source_tree are present and non-blank",
+    )
     parser.add_argument("--expected-commit")
     parser.add_argument("--expected-tree")
     args = parser.parse_args()
@@ -142,6 +157,7 @@ def main() -> int:
         args.candidate,
         require_runtime=args.require_runtime,
         require_workers=args.require_workers,
+        require_provenance=args.require_provenance,
         expected_commit=args.expected_commit,
         expected_tree=args.expected_tree,
     )
