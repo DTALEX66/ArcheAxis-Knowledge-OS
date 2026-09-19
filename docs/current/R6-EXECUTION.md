@@ -481,3 +481,12 @@
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed
+
+## Continuation receipt — 2026-09-21 P3 headless learning journey driver
+
+- `subject_sha`: `b5dd4361d777a209e1d8cf60e7da046be2af1a41`
+- `changed_paths`: `apps/ArcheAxis.Desktop/Program.cs`, `tests/test_desktop_learning_review_contract.py`
+- `behavior`: explicit `--learning-smoke <dbPath>` runs a project-local synthetic Knowledge → Assessment → learner answer/review → FSRS schedule and open mastery projection → Core stop/start readback. Run suffixes prevent repeated execution on the same SQLite from colliding on deterministic Knowledge/Assessment/event identifiers.
+- `verification`: RED source-contract test failed before the flag existed; GREEN source contract `1 passed, 11 deselected`, desktop/P3 gate `39 passed, 3 warnings`, .NET build `0 warnings, 0 errors`, all exit `0`.
+- `runtime_readback`: `NOT_EXECUTED/BLOCKED` against available project-local Core artifacts: the older default Core returned `404` for Assessment, while `cargo-r6-p4` reached the route but its review response did not match the current source contract. No stale binary was treated as current-source evidence and no external toolchain was rebuilt.
+- `scope`: only project source/tests and `.project-local` smoke paths; no external library, Green runtime, real data, E/F, credentials or private agent state was accessed.
