@@ -619,3 +619,27 @@
 - `behavior`: a present HTML source that cannot be projected now returns a path-free `archeaxis.format-execution-receipt/v1` with `status=failed`, source digest/name, engine identity, failure type and empty structure counts; missing or unreadable inputs keep the existing structured error path.
 - `verification`: the focused worker/format command returned `18 passed`, exit `0`; the combined third-round gate returned `47 passed, 1 warning`, exit `0`; `git diff --check` passed.
 - `boundary`: local static failure receipt only; dynamic rendering, external engines, semantic quality and complete format promotion remain open.
+
+## Continuation receipt — 2026-09-20 parallel A06 deterministic retrieval projection
+
+- `subject_sha`: `dbb744f5e73986677d5b3e7b5044ed43ed40fd09`
+- `changed_paths`: `app/workspace/vault.py`, `tests/test_vault_search_api.py`.
+- `behavior`: Vault scan results are sorted by normalized relative path before search results, canonical source IDs and projection IDs are derived, making identical content stable across filesystem enumeration orders while keeping absolute roots out of receipts.
+- `verification`: focused A06 command returned `12 passed, 2 warnings`, exit `0`; the combined fourth-round gate returned `49 passed, 3 warnings`, exit `0`; `git diff --check` passed.
+- `boundary`: synthetic/project-local Vault fixtures only; vector/reranker/graph/research wiring, real Vault and provider benchmarks remain open.
+
+## Continuation receipt — 2026-09-20 parallel A07 distillation evidence binding
+
+- `subject_sha`: `dbb744f5e73986677d5b3e7b5044ed43ed40fd09`
+- `changed_paths`: `app/learning/distillation.py`, `tests/test_distillation_review.py`.
+- `behavior`: a verified evidence bundle can promote only the candidate whose `claim_id` it names; cross-candidate evidence is rejected before approval is recorded.
+- `verification`: A07 review/reuse regression returned `18 passed, 1 warning`, exit `0`; the combined fourth-round gate returned `49 passed, 3 warnings`, exit `0`; `git diff --check` passed.
+- `boundary`: local SQLite contract only; real model/user review, reuse and retest journey remain open.
+
+## Continuation receipt — 2026-09-20 parallel A10 renderer path identity
+
+- `subject_sha`: `dbb744f5e73986677d5b3e7b5044ed43ed40fd09`
+- `changed_paths`: `app/adapters/courseware_lesson.py`, `tests/test_general_courseware_renderer.py`.
+- `behavior`: lossy or unsafe lesson IDs now receive a stable hash suffix, Windows reserved names are disambiguated, and every rendered path segment is bounded to 120 characters so distinct course artifacts cannot silently collide.
+- `verification`: renderer tests returned `6 passed, 1 warning`, the A10 contract gate returned `21 passed, 1 warning`, and the combined fourth-round gate returned `49 passed, 3 warnings`, all exit `0`; `git diff --check` passed.
+- `boundary`: deterministic local projection only; interactive renderer execution, real curriculum and domain acceptance remain open.
