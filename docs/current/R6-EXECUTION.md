@@ -678,3 +678,18 @@
 - `A12/A13`: Green candidate verification has an explicit `--require-provenance` gate requiring non-blank `source_commit` and `source_tree`, while default compatibility and explicit expected-commit/tree checks remain unchanged.
 - `verification`: `tests/test_axw_data403_migrate.py tests/test_axw_long_path.py tests/test_green_candidate_verifier.py tests/test_green_candidate_manifest.py` returned `20 passed, 1 warning`, exit `0`; `git diff --check` passed.
 - `boundary`: no Green build, external Green replacement, real Legacy migration, installer/signing, clean-machine or rollback action was performed. The prior independent A15 audit is bound to `bf06c711`; it must be rerun after this code change before being treated as current-SHA evidence.
+
+## Continuation receipt — 2026-09-20 independent A15 current-SHA re-audit after A12/A13
+
+- `subject_sha`: `4b8c720ce8a3b058900ce58befd56da6fad7fce1`; first parent `5cf49da1aaf3e3dab0536fd25d29d199d37fca2c`; local `origin/main` and `HEAD...origin/main` both read back as `4b8c720c` and `0 0`.
+- `independence`: a fresh GPT-5.6 Luna high reviewer ran without implementation-turn context, did not modify source, state or audit files, and returned its result to the primary writer; this is not an executor self-signature.
+- `mechanical_gates`: authority SHA PASS; R3.1 evidence index PASS with 17 slices, 81 tracked pointers and 3 receipts; R3.1 evidence-command parser exit `0`; contract/unseen/authority pytest `31 passed, 1 warning`; security/permission/path/MCP pytest `71 passed, 1 skipped, 3 warnings`; vNext contracts PASS; path conventions PASS with 2146/2146 tracked paths owned.
+- `remote_readback`: `git ls-remote origin refs/heads/main` was NOT_EXECUTED successfully and returned exit `1` because local SSH `known_hosts` permission/host-key verification failed; an HTTPS fallback also failed in the local TLS credential environment. Local ref equality is not remote proof.
+- `result`: `A15_PASS / PRODUCT_NOT_READY`. G01 is BLOCKED; G02-G11, G13 and G14 remain BLOCKED or insufficient for PASS; G12 is FAIL because 22 preserved untracked history/private paths remain. P0-P6 remain BLOCKED/PARTIAL and A16 remains BLOCKED_BY_OWNER_DECISION.
+- `boundary`: this current-SHA audit still does not prove real representative format quality, human Avalonia first-use, real model/user correction-retest, complete Rust backup/recovery, Legacy semantic migration, clean-machine Windows qualification, Green replacement/rollback or release readiness. No E/F, `.codex`, `.zcode`, `.hermes`, external shared library, real data or Green runtime was accessed.
+
+## Continuation receipt — 2026-09-20 parallel Luna readback gates
+
+- `subject_sha`: `4b8c720ce8a3b058900ce58befd56da6fad7fce1` (working tree code unchanged after the current-SHA A15 audit).
+- `verification`: A05 readback returned `50 passed, 3 warnings`; A06 returned `26 passed, 1 warning`; A07 returned `36 passed, 3 warnings`; A08 returned `33 passed, 1 warning`; A09/A10 returned `23 passed, 1 warning`; A12/A13 returned `60 passed, 1 skipped, 1 warning`. Every command exited `0` and used the project `.venv` with project-local basetemp roots.
+- `boundary`: these are local contract/readback gates over synthetic or repository fixtures. They do not promote any slice to real runtime, model, external-engine, Green, clean-machine or release PASS; warnings and the one intentional skip remain recorded.

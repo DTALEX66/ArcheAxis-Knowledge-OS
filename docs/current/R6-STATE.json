@@ -2,7 +2,7 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T22:30:00Z",
+  "updated_at": "2026-09-19T22:32:25Z",
   "subject_sha": "5cf49da1aaf3e3dab0536fd25d29d199d37fca2c",
   "delivery_line": "main",
   "release_status": "FROZEN",
@@ -117,8 +117,8 @@
       "id": "A15",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "independent A15 report passes at bf06c711, but A12/A13 changes now require a fresh current-SHA independent re-audit; product remains NOT_READY and A16 is blocked",
-      "subject_sha": "bf06c7114ceb500b2d8813df14982eb418fbc463"
+      "remaining_gap": "independent current-SHA audit at 4b8c720c passes local structural gates but reports G01/G02-G11/G13/G14 blocked or insufficient, G12 FAIL from preserved untracked history/private paths, and product NOT_READY; A16 remains blocked",
+      "subject_sha": "4b8c720ce8a3b058900ce58befd56da6fad7fce1"
     },
     {
       "id": "A16",
