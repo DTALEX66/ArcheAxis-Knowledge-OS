@@ -168,3 +168,18 @@
 - limitations: no domain curriculum or real domain-specific first-use behavior has been claimed; no external content was imported
 - rollback: revert commit `4e0d6b5a`; existing lesson and queue behavior remains intact
 - remaining_gap: populate reviewed domain content, connect pack selection to Core and run distinct math/programming/design journeys
+
+## A10 — Courseware / Interactive Learning
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `2064dc4d`
+- changed_paths: `app/contracts/courseware_v1.py`, `packages/contracts/v1/courseware-artifact.schema.json`, `tests/test_courseware_v1.py`, `app/contracts/__init__.py`
+- contract: lesson/slide/quiz/visual/simulation/PBL/coding/audio-video artifacts share source IDs, knowledge IDs, domain pack, renderer version and human-review flags
+- tests: `tests/test_courseware_v1.py tests/test_lesson_contract.py tests/test_canvas_projection.py` — 9 passed, exit 0
+- actual_runtime_result: contract, Lesson adapter and Canvas projection tests only; no Avalonia renderer or real interactive activity executed
+- data_touched: repository contract, generated schema and tests only
+- external_paths_touched: none
+- limitations: artifact contract is not yet connected to a courseware renderer or Core job receipt; no video/audio or simulation quality claim
+- rollback: revert commit `2064dc4d`; existing lesson and Canvas behavior remains intact
+- remaining_gap: wire renderer outputs to canonical source/knowledge references and run one real reviewed interactive lesson
