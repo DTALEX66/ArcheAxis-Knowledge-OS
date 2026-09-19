@@ -1,0 +1,137 @@
+{
+  "$defs": {
+    "ModelRoleEntryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "asr",
+            "ocr",
+            "vision_caption",
+            "video_extract",
+            "llm_text",
+            "embedding",
+            "document"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "model": {
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "quantization": {
+          "minLength": 1,
+          "title": "Quantization",
+          "type": "string"
+        },
+        "runtime": {
+          "minLength": 1,
+          "title": "Runtime",
+          "type": "string"
+        },
+        "memory_mib": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Mib"
+        },
+        "fallback": {
+          "minLength": 1,
+          "title": "Fallback",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "measured_historical",
+            "measured_current",
+            "unmeasured",
+            "blocked"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "role",
+        "model",
+        "quantization",
+        "runtime",
+        "fallback",
+        "status"
+      ],
+      "title": "ModelRoleEntryV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "archeaxis.model-capability-pool/v1",
+      "default": "archeaxis.model-capability-pool/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "profile_id": {
+      "minLength": 1,
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "platform": {
+      "minLength": 1,
+      "title": "Platform",
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/ModelRoleEntryV1"
+      },
+      "minItems": 1,
+      "title": "Entries",
+      "type": "array"
+    },
+    "inventory_scope": {
+      "enum": [
+        "repository_profile",
+        "shared_model_library_readonly",
+        "runtime_probe"
+      ],
+      "title": "Inventory Scope",
+      "type": "string"
+    },
+    "benchmark_status": {
+      "enum": [
+        "not_run",
+        "partial",
+        "complete"
+      ],
+      "title": "Benchmark Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "platform",
+    "entries",
+    "inventory_scope",
+    "benchmark_status"
+  ],
+  "title": "ArcheAxis Local Model Capability Pool",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/model-capability-pool.schema.json"
+}

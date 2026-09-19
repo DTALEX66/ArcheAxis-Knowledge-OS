@@ -1,0 +1,15 @@
+{
+  "schema": "archeaxis.model-capability-pool/v1",
+  "profile_id": "local-2026-09-05-historical",
+  "platform": "windows-x64-rtx5060-8g",
+  "inventory_scope": "repository_profile",
+  "benchmark_status": "partial",
+  "entries": [
+    {"role": "asr", "model": "faster-whisper-large-v3-turbo", "quantization": "int8", "runtime": "cpu", "memory_mib": null, "fallback": "sherpa-onnx-sensevoice", "status": "measured_historical", "evidence_refs": ["T06-slice1", "T07-slice2"]},
+    {"role": "vision_caption", "model": "ollama/qwen2.5vl:7b", "quantization": "runtime-default", "runtime": "ollama-local", "memory_mib": null, "fallback": "pillow-metadata", "status": "measured_historical", "evidence_refs": ["T06-slice2c"]},
+    {"role": "ocr", "model": "tesseract-5.5.0", "quantization": "n/a", "runtime": "native-executable", "memory_mib": null, "fallback": "rapidocr-onnx", "status": "measured_historical", "evidence_refs": ["T06-slice2b"]},
+    {"role": "video_extract", "model": "ffmpeg-8.1.2", "quantization": "n/a", "runtime": "native-executable", "memory_mib": null, "fallback": "metadata-only-review", "status": "measured_historical", "evidence_refs": ["T06-slice2a"]},
+    {"role": "llm_text", "model": "ollama/qwen3:8b", "quantization": "runtime-default", "runtime": "ollama-local", "memory_mib": null, "fallback": "human-review", "status": "unmeasured", "evidence_refs": []},
+    {"role": "embedding", "model": "hash-embedding", "quantization": "n/a", "runtime": "python-local", "memory_mib": null, "fallback": "fts5", "status": "measured_historical", "evidence_refs": ["config/models.yaml"]}
+  ]
+}
