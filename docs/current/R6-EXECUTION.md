@@ -113,16 +113,16 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `2fd448a6`
-- changed_paths: `app/contracts/derived_projection_v1.py`, `packages/contracts/v1/derived-projection.schema.json`, `tests/test_derived_projection_v1.py`, `app/contracts/__init__.py`
+- subject_sha: `4acfe197a39be5166788abfee71f49cda7d2b8f6`
+- changed_paths: `app/workspace/vault.py`, `tests/test_vault_search_api.py`
 - contract: FTS/embedding/reranker/graph/research outputs are explicitly derived, rebuildable and read-only; each item references an allowed canonical source and source revision
-- tests: `tests/test_derived_projection_v1.py tests/test_graph_rag.py tests/test_knowledge_graph_contract.py tests/test_temporal_graph.py` — 19 passed, exit 0
-- actual_runtime_result: contract and existing deterministic graph/retrieval tests only; no LightRAG/Graphiti external provider or benchmark was started
-- data_touched: repository contract, generated schema and tests only
+- tests: `tests/test_derived_projection_v1.py tests/test_vault_search_api.py tests/test_graph_rag.py tests/test_knowledge_graph_contract.py tests/test_temporal_graph.py` — 24 passed, exit 0
+- actual_runtime_result: the read-only Vault substring search now emits a deterministic `archeaxis.derived-projection/v1` FTS receipt with path-free canonical source IDs, content-hash revisions, measured match predicates and explicit empty-result handling
+- data_touched: repository Vault projection and tests only; no Vault or canonical knowledge rows are written
 - external_paths_touched: none
-- limitations: runtime adapters still return legacy shapes in some paths; canonical Core projection wiring, provider version readback and retrieval quality benchmark remain open
-- rollback: revert commit `2fd448a6`; existing graph and retrieval implementations remain intact
-- remaining_gap: adapt real retrieval/research endpoints to this receipt and run exact-source restart/readback evidence
+- limitations: this is a deterministic lexical projection, not an embedding/reranker/graph/research quality benchmark; runtime adapters still return legacy shapes in other paths, provider version readback and exact-source restart/readback evidence remain open
+- rollback: revert commit `4acfe197a39be5166788abfee71f49cda7d2b8f6`; existing Vault search behavior and derived-projection contract remain intact
+- remaining_gap: adapt additional real retrieval/research endpoints to this receipt and run exact-source restart/readback evidence before claiming broad A06 closure
 
 ## A07 — Machine Memory / Growth
 

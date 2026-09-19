@@ -53,8 +53,8 @@
       "id": "A06",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "receipt contract is present; wiring into FTS/vector/reranker/graph/research runtime and benchmark evidence remain open",
-      "subject_sha": "2fd448a6"
+      "remaining_gap": "Vault lexical search now emits a derived receipt; vector/reranker/graph/research wiring, provider readback and benchmark evidence remain open",
+      "subject_sha": "4acfe197a39be5166788abfee71f49cda7d2b8f6"
     },
     {
       "id": "A07",
