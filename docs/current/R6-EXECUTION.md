@@ -563,3 +563,19 @@
 - `behavior`: read-only Vault substring search now derives an opaque, stable `source_id` from the relative source identity; `canonical_source_ids` and projection items carry that id with the content hash as `source_revision`, so absolute Vault roots never enter the derived receipt.
 - `verification`: `tests/test_derived_projection_v1.py tests/test_vault_search_api.py` returned `10 passed, 1 warning`, exit `0`; `git diff --check` passed.
 - `scope`: local synthetic Vault fixtures only; no Vault, canonical knowledge, external provider, model or shared library was written. Vector/reranker/graph/research quality and provider benchmarks remain open.
+
+## Continuation receipt — 2026-09-20 parallel A07 experience boundary hardening
+
+- `subject_sha`: `f8a124a2f0ed71bc413c4b5386325ccbb46cb8f8`
+- `changed_paths`: `app/agent/experience_harvest.py`, `tests/test_experience_harvest.py`.
+- `behavior`: `events_to_trajectory()` now rejects lifecycle kinds outside the declared task-start/task-end/tool-call/observation set instead of silently dropping them; Experience→Lesson receipts therefore cannot be built from an implicitly truncated event stream.
+- `verification`: the new regression was RED on the prior implementation (exit `1`), then the focused A07 suite returned `17 passed, 1 warning`, exit `0`; the combined parallel gate returned `32 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `boundary`: synthetic local lifecycle events only; no external model or runtime evidence was claimed. Review, reuse, user-observed error and real retest remain open.
+
+## Continuation receipt — 2026-09-20 parallel A09/A10 provenance binding hardening
+
+- `subject_sha`: `f8a124a2f0ed71bc413c4b5386325ccbb46cb8f8`
+- `changed_paths`: `app/contracts/courseware_v1.py`, `packages/contracts/v1/courseware-artifact.schema.json`, `tests/test_courseware_v1.py`.
+- `behavior`: course artifacts now reject blank or duplicate `source_ids` and `knowledge_ids` in both the Pydantic contract and the JSON Schema, keeping source/knowledge provenance deterministic.
+- `verification`: focused A09/A10 suite returned `20 passed, 1 warning`, exit `0`; the combined parallel gate returned `32 passed, 1 warning`, exit `0`; `git diff --check` passed. A broader schema coverage check still exposes its pre-existing hardcoded inventory drift and was not relabeled as a regression.
+- `boundary`: contract-level evidence only; real domain courseware, interactive execution, provider/model learning and human acceptance remain open.
