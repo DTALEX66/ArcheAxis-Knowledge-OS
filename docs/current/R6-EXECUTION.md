@@ -108,3 +108,18 @@
 - limitations: Rust/Core persistence wiring, per-format quality measurement, external engine version readback and R6 real first-use promotion remain open
 - rollback: revert commit `47b476d7`; existing conversion-run storage and adapters remain intact
 - remaining_gap: wire receipts into the canonical Core/API path and execute representative real fixtures before any format becomes `complete`
+
+## A06 — Retrieval / Graph / Research
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `2fd448a6`
+- changed_paths: `app/contracts/derived_projection_v1.py`, `packages/contracts/v1/derived-projection.schema.json`, `tests/test_derived_projection_v1.py`, `app/contracts/__init__.py`
+- contract: FTS/embedding/reranker/graph/research outputs are explicitly derived, rebuildable and read-only; each item references an allowed canonical source and source revision
+- tests: `tests/test_derived_projection_v1.py tests/test_graph_rag.py tests/test_knowledge_graph_contract.py tests/test_temporal_graph.py` — 19 passed, exit 0
+- actual_runtime_result: contract and existing deterministic graph/retrieval tests only; no LightRAG/Graphiti external provider or benchmark was started
+- data_touched: repository contract, generated schema and tests only
+- external_paths_touched: none
+- limitations: runtime adapters still return legacy shapes in some paths; canonical Core projection wiring, provider version readback and retrieval quality benchmark remain open
+- rollback: revert commit `2fd448a6`; existing graph and retrieval implementations remain intact
+- remaining_gap: adapt real retrieval/research endpoints to this receipt and run exact-source restart/readback evidence
