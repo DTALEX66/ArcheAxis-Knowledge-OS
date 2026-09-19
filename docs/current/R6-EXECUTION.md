@@ -302,6 +302,13 @@
 - `runtime`: Avalonia/.NET build and real first-use remain `NOT_EXECUTED` because `dotnet` is unavailable; this is source-contract evidence only.
 - `boundary`: no Green runtime, external libraries, real data, E/F, credentials or private agent state was accessed.
 
+## Continuation receipt — 2026-09-20 P0.1/P2.1 ready-now gates
+
+- `subject_sha`: `5e00582186791dbdee58feb44020c2792035f5d7`
+- `P0.1`: `.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_axw_cap503_activator.py tests/test_axw_cap503_builtin.py tests/test_worker_reachability.py -q` — `32 passed, 1 warning`, exit `0`; `TESTED_LOCAL` only.
+- `P2.1`: `.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_courseware_v1.py tests/test_machine_knowledge_contract.py -q` — `10 passed, 1 warning`, exit `0`; `TESTED_LOCAL / STRUCTURAL` only.
+- `limitations`: these gates do not prove Rust/.NET runtime, real external workers, real models, interactive renderer, Green, or external data journeys.
+
 ## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
 
 - `task_id`: A13 Green candidate composition and portable worker route closure
