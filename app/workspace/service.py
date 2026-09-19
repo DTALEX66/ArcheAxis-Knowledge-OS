@@ -120,6 +120,22 @@ def _intake_job_id(package_id: str) -> str:
     return "job_" + sha256(command_id.encode("utf-8")).hexdigest()[:24]
 
 
+def _convert_file_for_intake(source: Path):
+    """Convert through the trace API while preserving the legacy service seam."""
+    _import_heavy()
+    default_converter = _HEAVY_IMPORTED["convert_file"]
+    if convert_file is default_converter:
+        return convert_file_with_trace(source)
+
+    markdown, engine = convert_file(source)[:2]
+    from app.ingestion.multi_format import ConversionTrace
+
+    return markdown, engine, ConversionTrace(
+        attempted_engines=(engine,),
+        fallback_used=False,
+    )
+
+
 def _source_archive_root(database: Path) -> Path:
     """Resolve the configured Source Archive without requiring setup to exist.
 
@@ -240,7 +256,7 @@ def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[s
     except Exception as exc:  # noqa: BLE001 - batch callers receive a safe reason
         raise RuntimeError(_sanitize_conversion_error(f"{safe_name}: {exc}")) from None
     try:
-        markdown, engine, trace = convert_file_with_trace(source)
+        markdown, engine, trace = _convert_file_for_intake(source)
         source_format = detect_format(source)
         from app.evidence.anchor import (
             build_evidence_anchor,
@@ -316,7 +332,7 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         temporary.write(content)
         temporary_path = Path(temporary.name)
     try:
-        markdown, engine, trace = convert_file_with_trace(temporary_path)
+        markdown, engine, trace = _convert_file_for_intake(temporary_path)
         source_format = detect_format(temporary_path)
         from app.evidence.anchor import (
             build_evidence_anchor,

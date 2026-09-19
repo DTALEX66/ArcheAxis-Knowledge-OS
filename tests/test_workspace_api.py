@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -919,7 +921,15 @@ def test_workspace_upload_keeps_distinct_raw_assets_when_conversion_text_matches
     assert audio["package_id"] != video["package_id"]
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT COUNT(*) FROM research_packages_v1").fetchone()[0] == 2
-        assert connection.execute("SELECT COUNT(*) FROM conversion_runs").fetchone()[0] == 2
+        runs = connection.execute(
+            "SELECT engine, loss_report_json FROM conversion_runs ORDER BY source_name"
+        ).fetchall()
+        assert len(runs) == 2
+        assert {row[0] for row in runs} == {"faster-whisper/local-model"}
+        assert {
+            tuple(json.loads(row[1])["attempted_engines"])
+            for row in runs
+        } == {("faster-whisper/local-model",)}
 
 
 def test_concurrent_same_upload_keeps_successful_content_when_peer_fails(
