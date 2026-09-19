@@ -2,7 +2,7 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T16:03:03Z",
+  "updated_at": "2026-09-19T16:38:47Z",
   "subject_sha": "0e934f33ee9a5f6082c04abda454c67df1055097",
   "delivery_line": "main",
   "release_status": "FROZEN",
@@ -46,8 +46,8 @@
       "id": "A05",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "workspace conversion-run API now emits a path-free structural receipt; semantic quality, fallback persistence, external engines and real fixtures remain open",
-      "subject_sha": "95bc3fcc1a19de6b2d681920508571512ff16629"
+      "remaining_gap": "workspace conversion-run API now emits a path-free structural receipt and persists fallback attempts; semantic quality, external engines and real fixtures remain open",
+      "subject_sha": "e478aa41"
     },
     {
       "id": "A06",
@@ -67,22 +67,22 @@
       "id": "A08",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "learning receipt contract is present; Core API emission, real adaptive journey and restart readback remain open",
-      "subject_sha": "235a89c7"
+      "remaining_gap": "Core API now rejects blank answers and persists submitted answer evidence across restart; real assessment/content, adaptive journey and mastery readback remain open",
+      "subject_sha": "c546c0c6"
     },
     {
       "id": "A09",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "four manifests validate as contract-only; real domain content, domain-specific behavior and runtime learning evidence remain open",
-      "subject_sha": "4e0d6b5a"
+      "remaining_gap": "general-only course manifest and KC/objective/artifact closure are locally validated; real domain content, domain-specific behavior and runtime learning evidence remain open",
+      "subject_sha": "e478aa41"
     },
     {
       "id": "A10",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "courseware artifact contract is present; renderer implementations, real interactive execution and domain-specific acceptance remain open",
-      "subject_sha": "2064dc4d"
+      "remaining_gap": "courseware artifact contract is now linked by the general-only manifest; renderer implementations, real interactive execution and domain-specific acceptance remain open",
+      "subject_sha": "e478aa41"
     },
     {
       "id": "A11",
@@ -102,15 +102,15 @@
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "current candidate, synthetic non-empty staging migration and two-run restart identity now have local evidence; real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
-      "subject_sha": "0e934f33ee9a5f6082c04abda454c67df1055097"
+      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup source-object hash validation is added, while workspace identity, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
+      "subject_sha": "c546c0c6"
     },
     {
       "id": "A14",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "stage contract is present; real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey and restart readback remain open",
-      "subject_sha": "2e56b94e"
+      "remaining_gap": "stage contract and answer readback have local evidence; real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey and complete restart readback remain open",
+      "subject_sha": "c546c0c6"
     },
     {
       "id": "A15",

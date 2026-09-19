@@ -67,8 +67,10 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 - P0：`TESTED_LOCAL`。现有 capability kernel 的 health、注册/启用、执行、失败、禁用、恢复、同 `plugin_id` provider 替换和不创建 canonical DB 均有回归证据；真实 Python worker 的 manifest/runner/health 绑定仍待后续卡。
 - P1：`TESTED_LOCAL`。格式执行保留 attempted engines、fallback 状态和无路径泄露的原因，并在 conversion run 重启回读和 format receipt 中保持一致；真实常用格式质量、外部引擎和 Knowledge V3 写入仍未闭合。
 - P2：`TESTED_LOCAL`。新增 general-only CourseManifest、Knowledge Component、Learning Objective 契约，覆盖 Concept/Fact/Procedure/Method/Case、引用闭合、lesson 要求和跨域拒绝；Search 的 embedding/reranker、真实课程内容和 renderer 仍未闭合。
+- P3：`PARTIAL`。Core review receipt 现在保存用户提交的 answer，空白回答在 API/UI 被拒绝，并有桌面契约与 Rust restart/readback 回归；Core 尚未从 Accepted Knowledge 产生真实 Assessment/content，客户端仍提交 correct，Mastery/FSRS 全旅程未闭合。
+- P5：`PARTIAL`。备份校验现在同时验证 `sources.sha256` 对应的 `.objects` 内容，篡改对象会被拒绝；Rust 测试因当前环境没有 `cargo` 未执行，SQLite workspace identity 仍需冻结。
 
-验证记录：提交 `e478aa41`；项目虚拟环境定向回归 `120 passed, 3 warnings`，退出码 `0`；Ruff `--select F,I` 对本轮修改文件通过。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
+验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `6 passed`，退出码均为 `0`；Ruff `--select F,I` 对 P0–P2 修改文件通过，P5 Rust 测试为 `NOT_EXECUTED`（缺 `cargo`）。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 
 ## P0–P6 执行队列
 
