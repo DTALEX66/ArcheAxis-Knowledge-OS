@@ -60,8 +60,8 @@
       "id": "A07",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "lifecycle contract is present; runtime receipts, candidate persistence and real reuse/retest evidence remain open",
-      "subject_sha": "d8211b2e"
+      "remaining_gap": "execution feedback now emits a machine-growth receipt; remaining distillation writers, candidate persistence and real review/reuse/retest evidence remain open",
+      "subject_sha": "a5c1b79f8e36eb3207a8e9c0c4688bf863b634b9"
     },
     {
       "id": "A08",

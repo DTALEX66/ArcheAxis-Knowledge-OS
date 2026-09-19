@@ -128,16 +128,16 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `d8211b2e`
-- changed_paths: `app/contracts/machine_growth_v1.py`, `packages/contracts/v1/machine-growth.schema.json`, `tests/test_machine_growth_v1.py`, `app/contracts/__init__.py`
+- subject_sha: `a5c1b79f8e36eb3207a8e9c0c4688bf863b634b9`
+- changed_paths: `app/agent/experience_harvest.py`, `app/agent/feedback.py`, `tests/test_agent_feedback.py`
 - contract: Experience → Lesson → Skill Candidate → Review → Reuse is explicit; reuse requires approved human review and machine_verified is permanently false
-- tests: `tests/test_machine_growth_v1.py tests/test_experience_harvest.py tests/test_distillation_review.py` — 12 passed, exit 0
-- actual_runtime_result: existing harvest/distillation local SQLite tests and contract validation; no model provider or long-running reuse benchmark started
-- data_touched: repository contract, generated schema and tests only
+- tests: `tests/test_agent_feedback.py tests/test_experience_harvest.py tests/test_machine_growth_v1.py tests/test_distillation_review.py tests/test_axw053_transform.py` — 21 passed, exit 0
+- actual_runtime_result: execution feedback now emits a machine-growth receipt from the real local harvest path; it records experience and lesson evidence while leaving candidate, human review and reuse explicitly `skipped`
+- data_touched: repository feedback/receipt code and tests only; receipt is returned in the caller response and does not auto-promote machine knowledge
 - external_paths_touched: none
-- limitations: receipt emission is not yet wired into all experience and distillation writes; candidate/retest restart evidence remains open
-- rollback: revert commit `d8211b2e`; existing experience and distillation behavior remains intact
-- remaining_gap: emit the receipt from the canonical writer and prove review→reuse→retest on a real local journey
+- limitations: receipt emission is wired to execution feedback but not every experience/distillation writer; candidate persistence, human review, reuse and retest restart evidence remain open; machine_verified stays false
+- rollback: revert commit `a5c1b79f8e36eb3207a8e9c0c4688bf863b634b9`; existing experience and distillation behavior remains intact
+- remaining_gap: connect the receipt to the remaining canonical distillation paths and prove review→reuse→retest on a real local journey
 
 ## A08 — Human Learning Kernel
 
