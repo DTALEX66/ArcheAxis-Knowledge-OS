@@ -436,6 +436,15 @@
 - `scope`: no external library, Green runtime, real data, E/F, credentials or private agent state was accessed; build outputs stayed under `.project-local`.
 - `remaining_gap`: Avalonia first-use UI, authoritative mastery semantics, full restart/readback across Course/Artifact/Mastery/FSRS, P4 real machine correction/retest, P5 full backup/restore, A15 independent audit and A16 Owner Gate remain open.
 
+## Continuation receipt — 2026-09-20 P3 desktop answer recovery
+
+- `subject_sha`: `428de718a808acebb025ca01f3c1e62c60c30916`
+- `changed_paths`: `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`, `tests/test_desktop_learning_review_contract.py`
+- `behavior`: when reopening a learning item, the desktop now restores the persisted learner answer into the answer box while retaining the conservative open-projection status; it does not claim mastery.
+- `verification`: focused RED then GREEN; desktop learning contract `11 passed, 1 warning`, exit `0`; external .NET Desktop build `0 warnings, 0 errors`, exit `0`.
+- `scope`: source-contract and build evidence only; no Green runtime, real user data, external library, E/F, credentials or private agent state was accessed.
+- `remaining_gap`: real Avalonia first-use interaction, authoritative mastery/FSRS full-state readback, process-level machine correction/retest, workspace identity decision and Owner-gated Green migration remain open.
+
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed

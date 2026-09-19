@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`8bbdd491066b78d2474db0d03edce3ba0c38e295`（本记录提交的 first parent）
+- 当前本地与远端 `main`：`428de718a808acebb025ca01f3c1e62c60c30916`（本记录提交的 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
@@ -68,7 +68,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 - P0：`TESTED_LOCAL`。现有 capability kernel 的 health、注册/启用、执行、失败、禁用、恢复、同 `plugin_id` provider 替换和不创建 canonical DB 均有回归证据；真实 Python worker 的 manifest/runner/health 绑定仍待后续卡。
 - P1：`TESTED_LOCAL`。格式执行保留 attempted engines、fallback 状态和无路径泄露的原因，并在 conversion run 重启回读和 format receipt 中保持一致；真实常用格式质量、外部引擎和 Knowledge V3 写入仍未闭合。
 - P2：`TESTED_LOCAL`。新增 general-only CourseManifest、Knowledge Component、Learning Objective 契约，覆盖 Concept/Fact/Procedure/Method/Case、引用闭合、lesson 要求和跨域拒绝；Search 的 embedding/reranker、真实课程内容和 renderer 仍未闭合。
-- P3：`PARTIAL`。Core review receipt 现在保存用户提交的 answer，空白回答在 API/UI 被拒绝，Assessment 绑定与 FSRS/restart API 回归已通过；真人 UI 首次学习、authoritative Mastery/FSRS 全量恢复和完整重启读回仍缺。
+- P3：`PARTIAL`。Core review receipt 现在保存用户提交的 answer，空白回答在 API/UI 被拒绝，Assessment 绑定与 FSRS/restart API 回归已通过，桌面重启打开学习项会恢复已保存答案文本；真人 UI 首次学习、authoritative Mastery/FSRS 全量恢复和完整重启读回仍缺。
 - P5：`PARTIAL`。备份校验现在同时验证 `sources.sha256` 对应的 `.objects` 内容，篡改对象会被拒绝；Rust 测试因当前环境没有 `cargo` 未执行，SQLite workspace identity 仍需冻结。
 - P4.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。machine task 现在要求 `knowledge_version` 绑定 active accepted/personal Knowledge，`retest_of` 绑定已存在 failed task，并有重启读回测试；真实模型任务运行和 Rust 测试仍未执行。
 - P5.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。backup/verify 现在拒绝 schema 漂移、外键损坏和源对象 hash 篡改；SQLite `workspace_id` 仍需 Owner/Authority 决策。
@@ -82,7 +82,7 @@ P5 增量（当前 subject：`fc0df3a182abed4feded8eeb0ab25b88bb4bcadb`）：dir
 
 A14 增量（当前 subject：`274de700c4dc4c02ede5d15fb3938fef5498677f`）：closed-loop complete receipt 现在要求 correction 与 retest 阶段各自有非空 evidence refs；这只阻止空证据误报，不证明真实 runtime journey。
 
-工具链增量（当前 subject：`8bbdd491066b78d2474db0d03edce3ba0c38e295`）：项目声明的共享 Rust/MSVC exact path 与 Windows SDK 变量已验证；domain `cargo check` 通过，Assessment/learning persistence/machine tasks 合计 16 passed；API learning-state、machine-task、machine-correction 合计 10 passed，包含真实 FSRS worker、Assessment 绑定、answer 读回与重启；外部 .NET SDK 10.0.400 完成 Avalonia build，CoreSupervisor apphost 与 Vocabulary wire cases 运行通过。API 测试仍是定向 Rust 证据，完整 UI/runtime、authoritative mastery 与 adaptive journey 未闭合。
+工具链增量（当前 subject：`428de718a808acebb025ca01f3c1e62c60c30916`）：项目声明的共享 Rust/MSVC exact path 与 Windows SDK 变量已验证；domain `cargo check` 通过，Assessment/learning persistence/machine tasks 合计 16 passed；API learning-state、machine-task、machine-correction 合计 10 passed，包含真实 FSRS worker、Assessment 绑定、answer 读回与重启；桌面契约 `11 passed, 1 warning`，外部 .NET SDK 10.0.400 构建 `0 warnings, 0 errors`，CoreSupervisor apphost 与 Vocabulary wire cases 运行通过。完整 Avalonia 首次使用、authoritative mastery 与 adaptive journey 未闭合。
 
 验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `7 passed`，本轮 API Rust 定向回归 `10 passed`，退出码均为 `0`；完整 workspace Rust gate、rustfmt、完整 .NET 产品门禁仍未执行。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 
