@@ -178,6 +178,13 @@
 - limitations: this is a false-completion guard only; it does not add successor/task/restart IDs or prove a real runtime journey
 - rollback: revert commit `274de700c4dc4c02ede5d15fb3938fef5498677f`
 
+### 任务包级完成审计回读
+
+- audit_subject_sha: `477bfd3532ae5c1fbd0e7c8af7f1d0c7311ef72b`
+- result: R6 remains `IN_PROGRESS`, release remains `FROZEN`; no additional safe Python/contract card remains without inventing Owner/canonical/runtime semantics.
+- next_ready_when_preconditions_exist: P3 real first-use path — Core Assessment → answer → Mastery/FSRS → full restart/readback — requires `cargo`, `.NET SDK` and permitted project-local fixtures.
+- independent_gates: A15 remains `PLANNED / NO_EVIDENCE`; A16 remains Owner Gate. No local contract test is promoted to runtime, independent audit, Green or release evidence.
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
