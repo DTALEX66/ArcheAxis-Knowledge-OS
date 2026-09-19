@@ -75,3 +75,20 @@
 - current evidence: config/environment/capability-requirements.yaml has three intentionally recorded schema deviations (empty plugins category, shared Model library path outside the external root, and shared-model-library install method).
 - reason: resolving these requires choosing schema semantics for the separately registered shared_models root; silently relaxing containment or inventing a plugin would change governance.
 - safe next step: decide whether to extend the manifest with a resource-root identifier and a corresponding schema/resolver contract; do not modify shared libraries or copy model assets.
+
+### A04 — Knowledge / Source Model V3 contract
+
+状态：TESTED_LOCAL_PARTIAL
+
+- subject_sha: $head
+- changed_paths: pp/contracts/knowledge_v3.py, pp/contracts/__init__.py, packages/contracts/v3/knowledge-source.schema.json, packages/contracts/v3/__init__.py, 	ests/test_knowledge_source_v3_contract.py
+- upstream_absorbed: none; this is a first-party contract layer
+- upstream_version_or_sha: contract 3.0.0
+- license: first-party MIT
+- tests: A04 contract + existing machine/graph governance set 19 passed; standalone V3/schema set 6 passed; exit 0
+- actual_runtime_result: Pydantic and JSON-schema validation only; no database migration or UI journey run
+- data_touched: contract code and tests only
+- external_paths_touched: none
+- limitations: Rust SQLite schema/migration, API serialization, Avalonia routes, and real first-use evidence still not wired to V3
+- rollback: revert commit $head; existing V1 contracts and storage remain intact
+- remaining_gap: implement and test Core persistence/API adapter without weakening single-writer rules
