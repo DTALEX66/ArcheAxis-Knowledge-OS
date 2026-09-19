@@ -516,6 +516,13 @@
 - `verification`: the first three reached review but returned a body that did not satisfy the current answer/FSRS projection contract; `rust-msvc` returned `404` for the Assessment route. Each run used a separate `.project-local` SQLite and bounded output directory; hung smoke processes were stopped only after their executable path was verified.
 - `result`: `BLOCKED/NOT_EXECUTED` for current-source runtime. No candidate was relabeled as a current build, and no external toolchain rebuild or external-library write was attempted.
 
+## Continuation receipt — 2026-09-21 P2 combined contract gate
+
+- `subject_sha`: `f1fd5085ed342409e02cd279a34e9b252b4a54c5`
+- `command`: `.venv\Scripts\python.exe -B -m pytest -p no:cacheprovider --basetemp=.project-local\runs\p2-renderer-gates-20260921 tests/test_general_courseware_renderer.py tests/test_general_learning_contract.py tests/test_courseware_v1.py tests/test_domain_pack_v1.py tests/test_truth_reset_contract.py -q`
+- `verification`: `18 passed, 1 warning`, exit `0`; warning is the existing unknown `cache_dir` pytest option.
+- `boundary`: contract/Projection evidence only; no interactive renderer, Core courseware receipt, external Provider, model runtime or real curriculum was claimed.
+
 ## Continuation receipt — 2026-09-21 P0 worker evidence boundary
 
 - `subject_sha`: `45f42ab1d6d3a4da1e5ef397b0f8674b502cda1e`
