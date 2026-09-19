@@ -1,0 +1,30 @@
+{
+  "schema": "archeaxis.r6.green-candidate-receipt/v1",
+  "observed_at": "2026-09-19T15:59:28Z",
+  "subject_sha": "0e934f33ee9a5f6082c04abda454c67df1055097",
+  "source_tree": "5d34d98c3d80e31a9174b83d78fd1707496ba279",
+  "candidate": ".project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64",
+  "zip": {
+    "path": ".project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64.zip",
+    "sha256": "6AB6C5ECAEAFABFCF4A91131A9F20D2510BDCF5EE0CABD31D4D844344BD2A087",
+    "bytes": 95386113
+  },
+  "scope": "desktop-core-runtime-workers",
+  "manifest_files": 2514,
+  "verification": {
+    "command": "verify_green_candidate.py --require-runtime --require-workers --expected-commit 0e934f33ee9a5f6082c04abda454c67df1055097 --expected-tree 5d34d98c3d80e31a9174b83d78fd1707496ba279",
+    "ok": true,
+    "problems": []
+  },
+  "inputs": {
+    "desktop": ".project-local/runs/r6-a12-release/Release/net10.0/win-x64",
+    "core": ".project-local/build/cargo-r6-a12/release/archeaxis-api.exe",
+    "runtime": ".project-local/build/r6-a13-runtime-stage-6f0b4cc/runtime/python",
+    "workers": "services/python-workers"
+  },
+  "limitations": [
+    "This is a project-local candidate; the installed Green directory was not modified.",
+    "Signing, installer/uninstaller, clean-machine GUI acceptance, real source import, learning and owner-gated replacement/rollback remain open.",
+    "The candidate data directory was used only for smoke and was removed after the run; it is not part of the candidate manifest or zip."
+  ]
+}

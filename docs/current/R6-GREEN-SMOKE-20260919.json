@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.r6.green-smoke-receipt/v1",
+  "observed_at": "2026-09-19T15:59:28Z",
+  "subject_sha": "0e934f33ee9a5f6082c04abda454c67df1055097",
+  "candidate": ".project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64",
+  "worker": {
+    "command": "runtime/python.exe -B -S workers/transport/text_ndjson.py --staging-root .project-local/runs/r6-a13-candidate-smoke-0e934f33",
+    "exit_code": 0,
+    "status": "succeeded",
+    "output_count": 3,
+    "output_kinds": ["text", "document_structure", "loss_report"],
+    "staging_output_files": 3,
+    "authority_effect": "candidate_or_measurement_only"
+  },
+  "desktop": {
+    "command": "ArcheAxis.Desktop.exe --smoke \"<candidate>\\data\\workspace.sqlite\"",
+    "exit_code": 0,
+    "stdout": "SMOKE OK: owned core handshake ok: archeaxis-api 0.1.0-outline",
+    "workspace_db_created": true,
+    "workspace_db_length_bytes": 4096,
+    "ui_created": false,
+    "no_terminal_claim": false
+  },
+  "external_paths_touched": [],
+  "limitations": [
+    "Headless worker and Core handshake only; no Avalonia first-use UI journey.",
+    "No external Green install, signing, installer lifecycle, real material library or model execution was used."
+  ]
+}

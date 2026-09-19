@@ -257,6 +257,21 @@
 
 状态：`PLANNED`
 
+## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
+
+- `task_id`: A13 Green candidate composition and portable worker route closure
+- `source_sha`: `0e934f33ee9a5f6082c04abda454c67df1055097`
+- `source_tree`: `5d34d98c3d80e31a9174b83d78fd1707496ba279`
+- `implementation`: `services/python-workers/transport/text_ndjson.py` now resolves route workers from either the source checkout or the relocated `workers/` candidate root; the regression is covered by `tests/workers/test_text_ndjson.py`.
+- `candidate`: `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64`
+- `candidate_verification`: `verify_green_candidate.py --require-runtime --require-workers` returned `ok=true`, scope `desktop-core-runtime-workers`, 2514 manifest files, no problems.
+- `zip_sha256`: `6AB6C5ECAEAFABFCF4A91131A9F20D2510BDCF5EE0CABD31D4D844344BD2A087`
+- `worker_runtime`: candidate `runtime/python.exe -B -S workers/transport/text_ndjson.py` returned exit 0, a valid hello, a succeeded `text.extract` response and three content-addressed outputs.
+- `desktop_runtime`: candidate `ArcheAxis.Desktop.exe --smoke` returned exit 0 with `SMOKE OK: owned core handshake ok: archeaxis-api 0.1.0-outline`; an isolated candidate data root created a 4096-byte SQLite file and was removed after the run.
+- `tests`: portable worker fix suite `52 passed, 1 skipped, 47 subtests passed`; no external paths were touched.
+- `limitations`: this advances A13 to current-SHA candidate and headless runtime evidence; nonempty legacy migration, restart/readback, clean-machine GUI, signing, installer/uninstaller, Green replacement and rollback remain open and owner-gated where applicable.
+- `rollback`: revert commit `0e934f33ee9a5f6082c04abda454c67df1055097`; project-local candidate and smoke artifacts are ignored outputs.
+
 - execution_status: `NOT_EXECUTED`
 - blocker: Owner Gate requires the independent audit and the unresolved A02 resource-root decision, desktop runtime evidence, real Green migration/restart/rollback evidence and full closed-loop journey
 - release_rule: R6 remains `IN_PROGRESS` with release `FROZEN`; no tag, release or Local Green replacement was performed

@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T15:30:00Z",
-  "subject_sha": "95bc3fcc1a19de6b2d681920508571512ff16629",
+  "updated_at": "2026-09-19T15:59:28Z",
+  "subject_sha": "0e934f33ee9a5f6082c04abda454c67df1055097",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -103,7 +103,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "self-contained candidate is built, hashed and headlessly smoke-tested; staging migration, restart/readback, Green replacement and rollback remain unexecuted",
-      "subject_sha": "e6b02afeb6b8611cf4973dafd3b261a1eeebec26"
+      "subject_sha": "0e934f33ee9a5f6082c04abda454c67df1055097"
     },
     {
       "id": "A14",
