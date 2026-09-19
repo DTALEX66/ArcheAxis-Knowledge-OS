@@ -603,3 +603,19 @@
 - `behavior`: a `complete` closed-loop receipt now requires every one of the eight ordered stages to contain non-empty, non-blank evidence references in addition to real evidence levels and pass statuses.
 - `verification`: focused A14 tests returned `19 passed, 3 warnings`, exit `0`; the combined second-round gate returned `33 passed, 1 warning`, exit `0`; `git diff --check` passed.
 - `boundary`: contract-level evidence only; a real model/user correction journey, restart, Green activation and rollback remain open.
+
+## Continuation receipt — 2026-09-20 parallel A03 provider identity hardening
+
+- `subject_sha`: `25355f1dd31be5a9dc4703506a771455878de595`
+- `changed_paths`: `shared/provider_contract.py`, `tests/test_provider_contract.py`.
+- `behavior`: Provider, capability and dry-run route identities now fail closed on blank values, wrong enum types, empty minimum-model/base URL fields and duplicate capability names, preventing ambiguous local routing declarations.
+- `verification`: focused A03 tests returned `8 passed, 1 warning`, exit `0`; the combined third-round gate returned `47 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `boundary`: local contract evidence only; upstream/license/runtime readback, network/provider availability and real model benchmarks remain open.
+
+## Continuation receipt — 2026-09-20 parallel A05 failed HTML execution receipt
+
+- `subject_sha`: `25355f1dd31be5a9dc4703506a771455878de595`
+- `changed_paths`: `services/python-workers/web/worker_html.py`, `tests/workers/test_bulk_html.py`.
+- `behavior`: a present HTML source that cannot be projected now returns a path-free `archeaxis.format-execution-receipt/v1` with `status=failed`, source digest/name, engine identity, failure type and empty structure counts; missing or unreadable inputs keep the existing structured error path.
+- `verification`: the focused worker/format command returned `18 passed`, exit `0`; the combined third-round gate returned `47 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `boundary`: local static failure receipt only; dynamic rendering, external engines, semantic quality and complete format promotion remain open.

@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T21:35:00Z",
-  "subject_sha": "a0b93bd8363747f65be40aa5c97bd6479dc08400",
+  "updated_at": "2026-09-19T21:50:00Z",
+  "subject_sha": "25355f1dd31be5a9dc4703506a771455878de595",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -33,7 +33,7 @@
       "status": "TESTED_LOCAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "exact upstream/license/runtime readback and benchmark",
-      "subject_sha": "9c66fbce27c47d63ca8d6cffd75edba114d548bb"
+      "subject_sha": "25355f1dd31be5a9dc4703506a771455878de595"
     },
     {
       "id": "A04",
@@ -47,7 +47,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "workspace intake and HTML static snapshots now emit path-free format execution receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open",
-      "subject_sha": "566ef4716ac161b1627cd10ced13331323f48eaf"
+      "subject_sha": "25355f1dd31be5a9dc4703506a771455878de595"
     },
     {
       "id": "A06",
