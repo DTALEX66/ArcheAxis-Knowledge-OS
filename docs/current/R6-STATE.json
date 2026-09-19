@@ -3,7 +3,7 @@
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
   "updated_at": "2026-09-20T17:35:00Z",
-  "subject_sha": "97300cc6c0a4fd843d6ecf255e3c39324a9f22b0",
+  "subject_sha": "97300cc6c8e6389edc33f5dc32adaec8761e6c58",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -47,7 +47,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "workspace intake now preserves the legacy converter injection seam while the default path keeps the trace receipt; semantic quality, external engines and real fixtures remain open",
-      "subject_sha": "97300cc6c0a4fd843d6ecf255e3c39324a9f22b0"
+      "subject_sha": "97300cc6c8e6389edc33f5dc32adaec8761e6c58"
     },
     {
       "id": "A06",

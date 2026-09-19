@@ -124,12 +124,12 @@
 ### A05 回归收口 — fallback readback
 
 - status: `TESTED_LOCAL`
-- subject_sha: `97300cc6c0a4fd843d6ecf255e3c39324a9f22b0`
+- subject_sha: `97300cc6c8e6389edc33f5dc32adaec8761e6c58`
 - changed_paths: `tests/test_workspace_pipeline_multiformat.py`
 - behavior: a synthetic `primary → passthrough` fallback now travels through `intake_upload`, SQLite `loss_report_json`, and the public `conversion-run` receipt with attempted engines, selected engine, and fallback reason intact
 - tests: `tests/test_workspace_pipeline_multiformat.py tests/test_format_execution_v1.py tests/test_conversion_run.py` — `19 passed, 3 warnings`, exit `0`; `git diff --check` exit `0`
 - limitations: synthetic receipt evidence only; real external engines, semantic quality and real fixtures remain unverified
-- rollback: revert commit `97300cc6c0a4fd843d6ecf255e3c39324a9f22b0`
+- rollback: revert commit `97300cc6c8e6389edc33f5dc32adaec8761e6c58`
 
 ### A09/A10 contract increment — General prerequisite graph
 
