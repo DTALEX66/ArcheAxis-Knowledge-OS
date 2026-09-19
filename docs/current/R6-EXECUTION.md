@@ -153,3 +153,18 @@
 - limitations: the new receipt is not yet emitted by the Core review route; adaptive content selection and restart readback remain unverified
 - rollback: revert commit `235a89c7`; existing review v2 and FSRS paths remain intact
 - remaining_gap: wire receipt emission to the single Rust writer and prove one real human review through restart
+
+## A09 — Domain Learning Packs
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `4e0d6b5a`
+- changed_paths: `app/contracts/domain_pack_v1.py`, `config/domain-packs/general.json`, `config/domain-packs/math-physics.json`, `config/domain-packs/programming.json`, `config/domain-packs/design.json`, `packages/contracts/v1/domain-pack.schema.json`, `tests/test_domain_pack_v1.py`
+- contract: four domain manifests share one versioned structure, canonical-only source policy, explicit learning modes, assessment types and canonical object types
+- tests: `tests/test_domain_pack_v1.py tests/test_lesson_contract.py tests/test_axw051b_due_queue.py` — 14 passed, exit 0
+- actual_runtime_result: manifest/schema and existing lesson/learning queue tests only; manifests are explicitly `contract_only`
+- data_touched: repository contract, four manifests, generated schema and tests only
+- external_paths_touched: none
+- limitations: no domain curriculum or real domain-specific first-use behavior has been claimed; no external content was imported
+- rollback: revert commit `4e0d6b5a`; existing lesson and queue behavior remains intact
+- remaining_gap: populate reviewed domain content, connect pack selection to Core and run distinct math/programming/design journeys

@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T14:42:07.2491185Z",
-  "subject_sha": "235a89c7",
+  "updated_at": "2026-09-19T14:43:52.4749789Z",
+  "subject_sha": "4e0d6b5a",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -72,9 +72,10 @@
     },
     {
       "id": "A09",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "remaining_gap": "not started in R6"
+      "status": "TESTED_LOCAL_PARTIAL",
+      "evidence_level": "TESTED_LOCAL",
+      "remaining_gap": "four manifests validate as contract-only; real domain content, domain-specific behavior and runtime learning evidence remain open",
+      "subject_sha": "4e0d6b5a"
     },
     {
       "id": "A10",
