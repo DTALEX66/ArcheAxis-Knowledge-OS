@@ -269,7 +269,7 @@
 
 ## Continuation receipt — 2026-09-20 M0 P0/P3 closure slice
 
-- `subject_sha`: `6b0896ea06d704b4f5ea2a07f3a16bb8bdbb3e1e`
+- `subject_sha`: `6b0896ea1d8be4e9b9a94ec0db9b7376ad2b7aa6`
 - `P0`: added `scripts/maintenance/check_authority_sha_consistency.py`; it requires `HEAD == origin/main`, the authority record's latest commit to be `HEAD`, permits the current-main claim to name the record commit's first parent, and keeps `R6-STATE.subject_sha` as independently resolvable evidence identity. This prevents self-referential SHA false failures while catching stale pointers.
 - `P3`: stateful Assessment reviews now persist an explicit open `mastery_projection` (`closed=false`) beside the learner answer and FSRS schedule; the projection does not claim Knowledge truth or completed mastery. A restart readback test covers Assessment, answer, FSRS state and the open projection.
 - `tests`: `.venv\\Scripts\\python.exe -m pytest -p no:cacheprovider tests/test_authority_sha_consistency.py tests/test_model_pool_v1.py tests/test_domain_pack_v1.py tests/test_courseware_v1.py tests/test_general_learning_contract.py -q` — `17 passed, 1 warning`, exit `0`.
