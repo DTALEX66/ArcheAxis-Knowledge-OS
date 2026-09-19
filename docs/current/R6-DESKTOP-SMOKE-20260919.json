@@ -1,0 +1,18 @@
+{
+  "schema": "archeaxis.r6.desktop-smoke-receipt/v1",
+  "observed_at": "2026-09-19T15:35:00Z",
+  "subject_sha": "PENDING_DOC_COMMIT",
+  "desktop_executable": ".project-local/runs/r6-a12-release/Release/net10.0/win-x64/ArcheAxis.Desktop.exe",
+  "core_executable": ".project-local/build/cargo-r6-a12/release/archeaxis-api.exe",
+  "core_sha256": "3997FC27A5225BD67FD868D00BB5657832184EC63C04EF50E2B0B854FF925F88",
+  "command": "ArcheAxis.Desktop.exe --smoke .project-local/runs/r6-a12-smoke/workspace.sqlite",
+  "exit_code": 0,
+  "workspace_db_created": true,
+  "workspace_db_length_bytes": 4096,
+  "ui_created": false,
+  "green_touched": false,
+  "limitations": [
+    "This is a headless supervisor/Core handshake smoke only.",
+    "It does not prove Avalonia navigation, real source import, learning UI, clean-machine startup, signing, installer/uninstaller, Green replacement or rollback."
+  ]
+}

@@ -95,15 +95,15 @@
       "id": "A12",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "Release self-contained candidate builds and hashes; GUI/Core runtime, clean-machine, signing, installer and Green installation evidence remain open",
-      "subject_sha": "67ddb5eb1a939c896ac1baa9ddef043b0e561bdf"
+      "remaining_gap": "Release self-contained candidate and headless Core smoke pass; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
+      "subject_sha": "PENDING_DOC_COMMIT"
     },
     {
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "self-contained candidate is built and hashed; staging migration, restart/readback, Green replacement and rollback remain unexecuted",
-      "subject_sha": "67ddb5eb1a939c896ac1baa9ddef043b0e561bdf"
+      "remaining_gap": "self-contained candidate is built, hashed and headlessly smoke-tested; staging migration, restart/readback, Green replacement and rollback remain unexecuted",
+      "subject_sha": "PENDING_DOC_COMMIT"
     },
     {
       "id": "A14",

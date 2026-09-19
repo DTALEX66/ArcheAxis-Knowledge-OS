@@ -204,30 +204,30 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `67ddb5eb1a939c896ac1baa9ddef043b0e561bdf`
-- changed_paths: `docs/current/R6-DESKTOP-BUILD-20260919.json`
+- subject_sha: `PENDING_DOC_COMMIT`
+- changed_paths: `docs/current/R6-DESKTOP-BUILD-20260919.json`, `docs/current/R6-DESKTOP-SMOKE-20260919.json`
 - contract: required shell surfaces map to explicit Core endpoints and canonical writer `archeaxis-core-rust-sqlite`; source reader path is verified as `/api/v1/imports`
 - tests: `tests/test_desktop_routes_v1.py tests/test_desktop_learning_review_contract.py tests/test_desktop_runtime.py` — 12 passed, exit 0; external .NET restore/build also passed with 0 warnings and 0 errors
-- actual_runtime_result: registered .NET 10.0.400 built a Release `win-x64` self-contained candidate and its executable hash was read back; no GUI launch was performed
-- data_touched: one project-local build receipt; build output and package cache remain under ignored `.project-local`
+- actual_runtime_result: registered .NET 10.0.400 built a Release `win-x64` self-contained candidate; the same candidate completed its built-in headless supervisor/Core smoke with exit 0 using a current-source Rust Core, and the workspace DB was created under `.project-local`
+- data_touched: two project-local build/smoke receipts; build output, package cache and smoke DB remain under ignored `.project-local`
 - external_paths_touched: none
-- limitations: GUI/Core runtime, clean-machine startup, no-terminal behavior, signing and installer/uninstaller remain unverified; build bypassed the required `a0-gates` status on push and is not installed Green
-- rollback: revert commit `67ddb5eb1a939c896ac1baa9ddef043b0e561bdf`; existing shell source and Core supervisor remain intact
+- limitations: Avalonia navigation and real first-use, clean-machine startup, no-terminal behavior, signing and installer/uninstaller remain unverified; smoke is headless only, build bypassed the required `a0-gates` status on push, and nothing is installed in Green
+- rollback: revert the desktop build/smoke receipt commit; existing shell source and Core supervisor remain intact
 - remaining_gap: launch the candidate in an isolated project-local run, prove Core/readback and no-terminal behavior, then perform owner-gated staging/installation checks
 
 ## A13 — Legacy Migration + Local Green
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `67ddb5eb1a939c896ac1baa9ddef043b0e561bdf`
-- changed_paths: `docs/current/R6-DESKTOP-BUILD-20260919.json`
+- subject_sha: `PENDING_DOC_COMMIT`
+- changed_paths: `docs/current/R6-DESKTOP-BUILD-20260919.json`, `docs/current/R6-DESKTOP-SMOKE-20260919.json`
 - contract: Local Green identity fixes `distribution=local-green`, historic public base `v0.6.14`, exact source/tree/runtime digests and `published=false`
 - tests: `tests/test_local_green_v1.py tests/test_green_candidate_assembly.py tests/test_green_candidate_verifier.py tests/test_migration_runner.py` — 48 passed, 1 skipped, exit 0
 - actual_runtime_result: project-local candidate assembler/verifier and isolated migration runner tests only; no real Green runtime was touched
 - data_touched: repository contract, generated schema and tests only
 - external_paths_touched: none; `D:\All projects\ArcheAxis.Knowledge.Green-x64` and real material library were not modified
-- limitations: no nonempty legacy copy migration, staging first-use, restart readback, in-place replacement or rollback has been executed; the candidate is only built and hashed
-- rollback: revert commit `67ddb5eb1a939c896ac1baa9ddef043b0e561bdf`; existing candidate and migration utilities remain intact
+- limitations: no nonempty legacy copy migration, staging first-use, restart readback, in-place replacement or rollback has been executed; the candidate has only been built, hashed and headlessly smoke-tested
+- rollback: revert the desktop build/smoke receipt commit; existing candidate and migration utilities remain intact
 - remaining_gap: stage the exact hashed candidate under `.project-local`, run migration diff/restart evidence, then owner-gated Green replacement with hash backup and rollback evidence
 
 ## A14 — Full Human–Machine Closed Loop Receipt
