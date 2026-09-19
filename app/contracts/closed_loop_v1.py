@@ -39,6 +39,10 @@ class ClosedLoopReceiptV1(BaseModel):
         if self.overall_status == "complete":
             if self.synthetic or any(stage.status != "pass" or stage.evidence_level != "real" for stage in self.stages):
                 raise ValueError("complete closed loop requires real evidence for every stage")
+            for stage_name in ("correction", "retest"):
+                stage = next(stage for stage in self.stages if stage.stage == stage_name)
+                if not stage.evidence_refs:
+                    raise ValueError(f"complete closed loop requires {stage_name} evidence refs")
         if self.synthetic and self.overall_status == "complete":
             raise ValueError("synthetic journey cannot be complete")
         return self

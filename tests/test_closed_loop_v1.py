@@ -36,6 +36,20 @@ def test_complete_requires_real_evidence_for_every_stage():
     assert complete.stages[-1].stage == "retest"
 
 
+def test_complete_requires_correction_and_retest_evidence_refs():
+    for stage_name in ("correction", "retest"):
+        stages = _stages(evidence_level="real")
+        next(stage for stage in stages if stage["stage"] == stage_name)["evidence_refs"] = []
+        with pytest.raises(ValidationError, match=f"{stage_name} evidence refs"):
+            ClosedLoopReceiptV1(
+                journey_id=f"journey-missing-{stage_name}",
+                canonical_writer="archeaxis-core-rust-sqlite",
+                stages=stages,
+                overall_status="complete",
+                synthetic=False,
+            )
+
+
 def test_stage_order_cannot_drift():
     stages = _stages()
     stages[0], stages[1] = stages[1], stages[0]
