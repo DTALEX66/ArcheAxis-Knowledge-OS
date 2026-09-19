@@ -168,6 +168,16 @@
 - limitations: Python directory-backup evidence only; Rust SQLite schema/FK/source-object hash, workspace identity, real data migration and Green activation remain open
 - rollback: revert commits `67dc2356` and `fc0df3a182abed4feded8eeb0ab25b88bb4bcadb`
 
+### A14 contract guard — correction/retest evidence refs
+
+- status: `TESTED_LOCAL`
+- subject_sha: `274de700c4dc4c02ede5d15fb3938fef5498677f`
+- changed_paths: `app/contracts/closed_loop_v1.py`, `tests/test_closed_loop_v1.py`
+- behavior: a `complete` closed-loop receipt now requires non-empty evidence refs on both `correction` and `retest` stages
+- tests: focused RED against the old implementation exited `1`; Python closed-loop/feedback/machine regression `74 passed, 5 warnings`, exit `0`; `git diff --check` exit `0`
+- limitations: this is a false-completion guard only; it does not add successor/task/restart IDs or prove a real runtime journey
+- rollback: revert commit `274de700c4dc4c02ede5d15fb3938fef5498677f`
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
