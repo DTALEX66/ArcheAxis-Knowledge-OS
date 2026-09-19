@@ -109,6 +109,18 @@
 - rollback: revert commit `95bc3fcc1a19de6b2d681920508571512ff16629`; prior conversion-run summary and storage remain intact
 - remaining_gap: wire receipt emission into canonical Core/API if required by the final architecture, then execute representative real fixtures before any format becomes `complete`
 
+### A05 回归收口 — workspace converter seam
+
+- status: `TESTED_LOCAL`
+- subject_sha: `029fb76f200acd1b58d95d2a310bb61980835c7c`
+- changed_paths: `app/workspace/service.py`, `tests/test_workspace_api.py`
+- problem: a workspace upload regression bypassed the legacy `service.convert_file` injection seam and sent an invalid test WAV into the real ASR/FFmpeg path
+- fix: default intake keeps `convert_file_with_trace`; an explicitly replaced `service.convert_file` remains supported and receives a synthesized single-engine `ConversionTrace`
+- tests: RED original regression exit `1`; focused workspace/format/multiformat suite `44 passed, 3 warnings`, exit `0`; `git diff --check` exit `0`
+- evidence: conversion receipt `attempted_engines` is asserted for both retained raw assets; no external paths or user data touched
+- remaining_gap: semantic conversion quality, external engines, real fixtures and complete-format promotion remain open
+- rollback: revert commit `029fb76f200acd1b58d95d2a310bb61980835c7c`
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
