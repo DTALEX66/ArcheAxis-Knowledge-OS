@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.r6.desktop-build-receipt/v1",
   "observed_at": "2026-09-19T15:32:25Z",
-  "subject_sha": "PENDING_DOC_COMMIT",
+  "subject_sha": "67ddb5eb1a939c896ac1baa9ddef043b0e561bdf",
   "project": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
   "tool": "D:\\All projects\\OS External Configuration\\10-toolchains\\dotnet\\dotnet.exe",
   "sdk": "10.0.400",
