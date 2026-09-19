@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-20T17:55:00Z",
-  "subject_sha": "d46f8932f6dc5ba520535bc6f4c26e0f366bb104",
+  "updated_at": "2026-09-20T18:20:00Z",
+  "subject_sha": "b20d87af26b120161bed1dab3ae21da3c64f24f6",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -60,8 +60,8 @@
       "id": "A07",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "execution feedback now emits a machine-growth receipt and machine retest bindings validate canonical knowledge/task references; real model execution, correction evidence and review/reuse/retest journey remain open",
-      "subject_sha": "eea865e1"
+      "remaining_gap": "execution feedback now emits a machine-growth receipt and machine retest bindings validate canonical knowledge/task references; correction application/reversion now requires human-review evidence, while real model execution and review/reuse/retest journey remain open",
+      "subject_sha": "b20d87af26b120161bed1dab3ae21da3c64f24f6"
     },
     {
       "id": "A08",

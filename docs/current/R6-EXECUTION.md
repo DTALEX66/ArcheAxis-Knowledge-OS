@@ -148,6 +148,16 @@
 - result: `72 passed, 3 warnings`, exit `0`
 - limits: Python contract/workspace evidence only; cargo/.NET, real external engines/models, Green and full M0 loop remain unverified or blocked
 
+### A07/P4.1 contract increment — human review coupling
+
+- status: `TESTED_LOCAL`
+- subject_sha: `b20d87af26b120161bed1dab3ae21da3c64f24f6`
+- changed_paths: `packages/contracts/v1/machine-feedback.schema.json`, `tests/contract/test_deepseek_contract_cases.py`
+- behavior: `correction_applied` and `correction_reverted` now require `feedback.reviewed_by_human=true`; unreviewed correction events are rejected
+- tests: specified machine-loop Python regression — `45 passed, 5 warnings`, exit `0`; RED had exit `1` against the old schema; `git diff --check` exit `0`
+- limitations: JSON Schema/contract evidence only; real model execution, correction/retest runtime and Rust integration remain open
+- rollback: revert commit `b20d87af26b120161bed1dab3ae21da3c64f24f6`
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
