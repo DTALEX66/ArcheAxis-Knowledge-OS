@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`2c6980147ece1d1301e67fe0e18fce3ed241b5ec`
+- 当前本地与远端 `main`：`8dfc78b3b0cd2bdb5b1e17ca43e0f1cce45f2065`
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
 - `.project-local` 是唯一开发运行/证据输出根；外置共享模型、工具、Green、真实资料库和测试资料库不因 M0 方向改变而迁移或改写。
@@ -71,8 +71,9 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 - P5：`PARTIAL`。备份校验现在同时验证 `sources.sha256` 对应的 `.objects` 内容，篡改对象会被拒绝；Rust 测试因当前环境没有 `cargo` 未执行，SQLite workspace identity 仍需冻结。
 - P4.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。machine task 现在要求 `knowledge_version` 绑定 active accepted/personal Knowledge，`retest_of` 绑定已存在 failed task，并有重启读回测试；真实模型任务运行和 Rust 测试仍未执行。
 - P5.1：`IMPLEMENTED_LOCAL / NOT_EXECUTED`。backup/verify 现在拒绝 schema 漂移、外键损坏和源对象 hash 篡改；SQLite `workspace_id` 仍需 Owner/Authority 决策。
+- P3.1：`IMPLEMENTED_LOCAL / PARTIAL`。Core-owned Assessment 已按 active accepted/personal Knowledge 生成并持久化，review 可绑定 assessment_id，Avalonia 显示 question/content；Mastery projection、真实 UI/runtime 和 Rust/Dotnet 验证仍未闭合。
 
-验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `6 passed`，退出码均为 `0`；Rust/Rustfmt 为 `NOT_EXECUTED`（缺 `cargo`/`rustfmt`）。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
+验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `7 passed`，退出码均为 `0`；Rust/Rustfmt/Dotnet 为 `NOT_EXECUTED`（缺 `cargo`/`rustfmt`/`dotnet`）。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 
 ## P0–P6 执行队列
 

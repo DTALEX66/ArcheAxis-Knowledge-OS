@@ -28,4 +28,6 @@
 - `apps/ArcheAxis.Desktop/MainWindow.axaml(.cs)`：显示 Core Assessment content/question，提交 answer/rating/assessment_id。
 - 对应 Rust API、domain、Avalonia source-contract 测试；完整 Rust/runtime 证据需在工具链可用后补跑。
 
-状态：`PROTOCOL_FROZEN / IMPLEMENTATION_PENDING / NOT_READY`。
+实现回读：提交 `8dfc78b3` 已加入 Core-owned Assessment 表、创建/读取 route、review 绑定校验、重启读回测试和 Avalonia 显示/提交绑定；当前 Rust/Dotnet 运行验证仍为 `NOT_EXECUTED`，Mastery projection 和真实 UI 运行仍未闭合。
+
+状态：`PROTOCOL_FROZEN / IMPLEMENTED_LOCAL / PARTIAL / NOT_READY`。
