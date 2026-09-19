@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "DesktopRouteV1": {
+      "additionalProperties": false,
+      "properties": {
+        "page_id": {
+          "enum": [
+            "knowledge",
+            "source_reader",
+            "learning",
+            "jobs",
+            "machine_assets",
+            "settings",
+            "recovery"
+          ],
+          "title": "Page Id",
+          "type": "string"
+        },
+        "core_endpoint": {
+          "pattern": "^/api/v1/\\S+$",
+          "title": "Core Endpoint",
+          "type": "string"
+        },
+        "read_only": {
+          "title": "Read Only",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "page_id",
+        "core_endpoint",
+        "read_only"
+      ],
+      "title": "DesktopRouteV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "archeaxis.desktop-routes/v1",
+      "default": "archeaxis.desktop-routes/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "shell_project": {
+      "const": "apps/ArcheAxis.Desktop",
+      "title": "Shell Project",
+      "type": "string"
+    },
+    "routes": {
+      "items": {
+        "$ref": "#/$defs/DesktopRouteV1"
+      },
+      "minItems": 7,
+      "title": "Routes",
+      "type": "array"
+    },
+    "canonical_writer": {
+      "const": "archeaxis-core-rust-sqlite",
+      "title": "Canonical Writer",
+      "type": "string"
+    }
+  },
+  "required": [
+    "shell_project",
+    "routes",
+    "canonical_writer"
+  ],
+  "title": "ArcheAxis Avalonia Desktop Route Manifest",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/desktop-routes.schema.json"
+}

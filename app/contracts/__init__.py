@@ -8,6 +8,7 @@ from app.contracts.learning_kernel_v1 import LearningKernelReceiptV1
 from app.contracts.domain_pack_v1 import DomainPackV1
 from app.contracts.courseware_v1 import CoursewareArtifactV1
 from app.contracts.model_pool_v1 import ModelCapabilityPoolV1, ModelRoleEntryV1
+from app.contracts.desktop_routes_v1 import DesktopRouteManifestV1, DesktopRouteV1
 from app.contracts.v1 import (
     CONTRACT_VERSION,
     EvaluationV1,
@@ -40,5 +41,7 @@ __all__ = [
     "CoursewareArtifactV1",
     "ModelCapabilityPoolV1",
     "ModelRoleEntryV1",
+    "DesktopRouteManifestV1",
+    "DesktopRouteV1",
 ]
 
