@@ -135,6 +135,22 @@ pub struct ReviewReceipt {
     pub duplicate: bool,
 }
 
+/// Core-owned assessment snapshot bound to one learning item and one accepted
+/// Knowledge revision. The content is a snapshot of what the learner saw;
+/// answer/rating/correct observations never become Truth or Mastery here.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AssessmentRecord {
+    pub assessment_id: String,
+    pub item_key: String,
+    pub knowledge_id: String,
+    pub knowledge_version: String,
+    pub question: String,
+    pub content: String,
+    pub source_id: Option<String>,
+    pub anchor_id: Option<String>,
+    pub created_at: String,
+}
+
 // SQLite also accepts time-only and Julian-day values; constrain the wire form
 // to Python's ISO date-time representation before SQLite calendar validation.
 fn schedule_timestamp_shape(value: &str) -> bool {
@@ -231,6 +247,7 @@ pub fn record_review_with_state(
         client_event_key,
         canonical_request,
         None,
+        None,
         resolve,
     )
 }
@@ -246,6 +263,7 @@ pub fn record_review_with_state_and_answer(
     client_event_key: &str,
     canonical_request: &str,
     answer: Option<&str>,
+    assessment_id: Option<&str>,
     resolve: impl FnOnce(&Connection) -> rusqlite::Result<ReviewSchedule>,
 ) -> rusqlite::Result<ReviewReceipt> {
     let invalid = |message: &str| rusqlite::Error::InvalidParameterName(message.into());
@@ -254,6 +272,9 @@ pub fn record_review_with_state_and_answer(
     }
     if answer.is_some_and(|value| value.trim().is_empty()) {
         return Err(invalid("submitted answer must not be empty"));
+    }
+    if assessment_id.is_some_and(|value| value.trim().is_empty()) {
+        return Err(invalid("assessment_id must not be empty"));
     }
     let mut hash = Sha256::new();
     hash.update(b"archeaxis.learning-state/v1\0");
@@ -287,18 +308,11 @@ pub fn record_review_with_state_and_answer(
     if !review_schedule_is_valid(&tx, &schedule)? {
         return Err(invalid("schedule state or exact due date is inconsistent"));
     }
-    let outcome_json: String = match answer {
-        Some(answer) => tx.query_row(
-            "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3)",
-            rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer],
-            |r| r.get(0),
-        )?,
-        None => tx.query_row(
-            "SELECT json_object('outcome', ?1, 'schedule', json(?2))",
-            rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json],
-            |r| r.get(0),
-        )?,
-    };
+    let outcome_json: String = tx.query_row(
+        "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4)",
+        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id],
+        |r| r.get(0),
+    )?;
     let streak_after = if correct { correct_streak(&tx, item_key)? + 1 } else { 0 };
     tx.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,?2,?3,?4)",
         rusqlite::params![item_key, kind, outcome_json, schedule.next_review])?;
@@ -566,4 +580,125 @@ pub fn references_for_card(
         out.push((id, active));
     }
     Ok(out)
+}
+
+fn assessment_id(item_key: &str, knowledge_id: &str) -> String {
+    let mut hash = Sha256::new();
+    hash.update(b"archeaxis.learning-assessment/v1\0");
+    hash.update((item_key.len() as u64).to_le_bytes());
+    hash.update(item_key.as_bytes());
+    hash.update((knowledge_id.len() as u64).to_le_bytes());
+    hash.update(knowledge_id.as_bytes());
+    format!("assessment_{}", &hex::encode(hash.finalize())[..24])
+}
+
+fn assessment_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AssessmentRecord> {
+    Ok(AssessmentRecord {
+        assessment_id: row.get(0)?,
+        item_key: row.get(1)?,
+        knowledge_id: row.get(2)?,
+        knowledge_version: row.get(3)?,
+        question: row.get(4)?,
+        content: row.get(5)?,
+        source_id: row.get(6)?,
+        anchor_id: row.get(7)?,
+        created_at: row.get(8)?,
+    })
+}
+
+/// Create or return the stable Core assessment for a referenced accepted
+/// Knowledge revision. The snapshot is append-only and never follows a later
+/// superseding revision silently.
+pub fn create_assessment(
+    conn: &mut Connection,
+    item_key: &str,
+    knowledge_id: &str,
+) -> rusqlite::Result<AssessmentRecord> {
+    if item_key.trim().is_empty() || knowledge_id.trim().is_empty() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "assessment needs both an item_key and a knowledge_id".into(),
+        ));
+    }
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    ensure_card_references(&tx)?;
+    let linked: bool = tx.query_row(
+        "SELECT EXISTS(SELECT 1 FROM card_references WHERE item_key=?1 AND knowledge_id=?2)",
+        rusqlite::params![item_key, knowledge_id],
+        |row| row.get(0),
+    )?;
+    if !linked {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "assessment knowledge must be referenced by the learning item".into(),
+        ));
+    }
+    let (status, knowledge_type, body, anchor_id): (String, String, String, Option<String>) = tx.query_row(
+        "SELECT status, knowledge_type, body, anchor_id FROM knowledge WHERE knowledge_id=?1",
+        [knowledge_id],
+        |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+    ).optional()?.ok_or_else(|| rusqlite::Error::InvalidParameterName(
+        "assessment knowledge revision not found".into(),
+    ))?;
+    if !crate::knowledge::is_knowledge_active(&tx, knowledge_id)?
+        || (status != "accepted"
+            && !matches!(knowledge_type.as_str(), "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"))
+    {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "assessment requires active accepted or personal knowledge".into(),
+        ));
+    }
+    let source_id = match anchor_id.as_deref() {
+        Some(anchor) => tx.query_row(
+            "SELECT source_id FROM anchors WHERE anchor_id=?1", [anchor], |row| row.get(0),
+        ).optional()?,
+        None => None,
+    };
+    let id = assessment_id(item_key, knowledge_id);
+    let question = format!("请回答：{body}");
+    tx.execute(
+        "INSERT OR IGNORE INTO learning_assessments(
+            assessment_id, item_key, knowledge_id, knowledge_version,
+            question, content, source_id, anchor_id
+         ) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
+        rusqlite::params![id, item_key, knowledge_id, knowledge_id, question, body, source_id, anchor_id],
+    )?;
+    tx.commit()?;
+    assessment_by_id(conn, &id)?.ok_or_else(|| rusqlite::Error::InvalidQuery)
+}
+
+/// Read one persisted assessment without changing its source binding.
+pub fn assessment_by_id(
+    conn: &Connection,
+    assessment_id: &str,
+) -> rusqlite::Result<Option<AssessmentRecord>> {
+    conn.query_row(
+        "SELECT assessment_id, item_key, knowledge_id, knowledge_version,
+                question, content, source_id, anchor_id, created_at
+         FROM learning_assessments WHERE assessment_id=?1",
+        [assessment_id],
+        assessment_from_row,
+    ).optional()
+}
+
+/// Validate that a review uses an assessment belonging to the same item.
+pub fn assessment_for_item(
+    conn: &Connection,
+    assessment_id: &str,
+    item_key: &str,
+) -> rusqlite::Result<Option<AssessmentRecord>> {
+    let assessment = assessment_by_id(conn, assessment_id)?;
+    Ok(assessment.filter(|value| value.item_key == item_key))
+}
+
+pub fn assessment_for_item_key(
+    conn: &Connection,
+    item_key: &str,
+) -> rusqlite::Result<Option<AssessmentRecord>> {
+    conn.query_row(
+        "SELECT assessment_id, item_key, knowledge_id, knowledge_version,
+                question, content, source_id, anchor_id, created_at
+         FROM learning_assessments WHERE item_key=?1
+         ORDER BY created_at DESC, assessment_id DESC LIMIT 1",
+        [item_key],
+        assessment_from_row,
+    ).optional()
 }

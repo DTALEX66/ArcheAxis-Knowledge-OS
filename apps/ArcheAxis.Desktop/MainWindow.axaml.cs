@@ -16,6 +16,8 @@ public partial class MainWindow : Window
     private CoreSupervisor? _supervisor;
     private readonly DeepTutorSupervisor _deepTutor = DeepTutorSupervisor.CreateFromEnvironment();
     private string? _activeLearningItem;
+    private string? _activeAssessmentId;
+    private string? _activeKnowledgeVersion;
     // One exposure keeps one id pair: a failed submit is retried with the same
     // client_event_id (the Core's idempotency key) and the same exposure_id, so a
     // retry cannot be recorded as a second review. A successful review clears the
@@ -270,9 +272,12 @@ public partial class MainWindow : Window
                 _activeLearningItem = first.GetProperty("item_key").GetString();
                 _activeReviewEventId = null;
                 _activeExposureId = null;
+                _activeAssessmentId = null;
+                _activeKnowledgeVersion = null;
                 var nextReview = first.TryGetProperty("next_review", out var due)
                     && due.ValueKind != JsonValueKind.Null ? due.GetString() : "未排程";
                 var referenceText = "来源版本：未记录";
+                string? activeKnowledgeId = null;
                 using (var stateResponse = await _supervisor.SendAsync(
                     HttpMethod.Get, $"/api/v1/learning/items/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}/state"))
                 {
@@ -299,6 +304,7 @@ public partial class MainWindow : Window
                                 // promoted to current.
                                 var isActive = reference.TryGetProperty("active", out var active)
                                     && active.ValueKind == JsonValueKind.True;
+                                if (isActive && activeKnowledgeId is null) activeKnowledgeId = knowledgeId;
                                 (isActive ? current : superseded).Add(knowledgeId);
                             }
                             var lines = new List<string>();
@@ -308,7 +314,34 @@ public partial class MainWindow : Window
                         }
                     }
                 }
-                LearningItemText.Text = $"待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{referenceText}";
+                var assessmentText = "Assessment：未生成";
+                if (!string.IsNullOrWhiteSpace(activeKnowledgeId))
+                {
+                    using var assessmentResponse = await _supervisor.SendAsync(
+                        HttpMethod.Get,
+                        $"/api/v1/learning/items/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}/assessment");
+                    HttpResponseMessage responseToRead = assessmentResponse;
+                    if (assessmentResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        responseToRead = await _supervisor.SendAsync(
+                            HttpMethod.Post,
+                            $"/api/v1/learning/items/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}/assessment",
+                            new StringContent(JsonSerializer.Serialize(new { knowledge_id = activeKnowledgeId }), Encoding.UTF8, "application/json"));
+                    }
+                    using (responseToRead)
+                    {
+                        if (responseToRead.IsSuccessStatusCode)
+                        {
+                            using var assessment = JsonDocument.Parse(await responseToRead.Content.ReadAsStringAsync());
+                            _activeAssessmentId = assessment.RootElement.GetProperty("assessment_id").GetString();
+                            _activeKnowledgeVersion = assessment.RootElement.GetProperty("knowledge_version").GetString();
+                            var question = assessment.RootElement.GetProperty("question").GetString() ?? "";
+                            var content = assessment.RootElement.GetProperty("content").GetString() ?? "";
+                            assessmentText = $"{question}\n内容：{content}";
+                        }
+                    }
+                }
+                LearningItemText.Text = $"{assessmentText}\n待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{referenceText}";
                 LearningAnswerBox.IsEnabled = true;
                 ReviewOutcomeBox.IsEnabled = true;
                 SubmitReviewButton.IsEnabled = true;
@@ -318,6 +351,8 @@ public partial class MainWindow : Window
                 _activeLearningItem = null;
                 _activeReviewEventId = null;
                 _activeExposureId = null;
+                _activeAssessmentId = null;
+                _activeKnowledgeVersion = null;
                 LearningItemText.Text = "当前没有待复习项目";
                 LearningAnswerBox.IsEnabled = false;
                 ReviewOutcomeBox.IsEnabled = false;
@@ -336,7 +371,8 @@ public partial class MainWindow : Window
 
     private async void OnSubmitReviewClick(object? sender, RoutedEventArgs e)
     {
-        if (_supervisor is null || _supervisor.CoreUrl.Length == 0 || string.IsNullOrWhiteSpace(_activeLearningItem))
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0 || string.IsNullOrWhiteSpace(_activeLearningItem)
+            || string.IsNullOrWhiteSpace(_activeAssessmentId))
         {
             CoreStatusText.Text = "学习路径：请先载入复习项目";
             return;
@@ -364,6 +400,8 @@ public partial class MainWindow : Window
             correct,
             rating = correct ? 3 : 1,
             answer,
+            assessment_id = _activeAssessmentId,
+            knowledge_version = _activeKnowledgeVersion,
             rating_version = "desktop-v1",
             exposure_id = _activeExposureId,
         });
@@ -381,6 +419,8 @@ public partial class MainWindow : Window
                 // The exposure is closed: the next one must carry fresh ids.
                 _activeReviewEventId = null;
                 _activeExposureId = null;
+                _activeAssessmentId = null;
+                _activeKnowledgeVersion = null;
                 LearningAnswerBox.Text = string.Empty;
                 ReviewOutcomeBox.SelectedIndex = 0;
                 SubmitReviewButton.IsEnabled = false;

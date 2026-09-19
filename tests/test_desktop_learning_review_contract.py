@@ -114,6 +114,19 @@ def test_review_submission_requires_a_real_answer() -> None:
     assert "请输入回答" in submit
 
 
+def test_desktop_binds_review_to_core_owned_assessment() -> None:
+    shell = _shell_source()
+    learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")
+    submit = _region(shell, "private async void OnSubmitReviewClick")
+
+    assert "/assessment" in learning
+    assert 'GetProperty("assessment_id")' in learning
+    assert 'GetProperty("question")' in learning
+    assert 'GetProperty("content")' in learning
+    assert "assessment_id = _activeAssessmentId" in submit
+    assert "knowledge_version = _activeKnowledgeVersion" in submit
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(

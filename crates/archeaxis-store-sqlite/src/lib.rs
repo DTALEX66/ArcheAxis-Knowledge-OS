@@ -4,6 +4,8 @@ use rusqlite::Connection;
 pub mod raw_objects;
 pub mod writer;
 
+// Assessment is additive and created by the existing schema bootstrap; keep
+// the workspace version stable until an owner-approved migration contract exists.
 pub const SCHEMA_VERSION: i64 = 5;
 
 const SCHEMA_SQL: &str = r#"
@@ -93,6 +95,18 @@ CREATE TABLE IF NOT EXISTS learning_events (
     outcome TEXT NOT NULL,
     next_review TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS learning_assessments (
+    assessment_id TEXT PRIMARY KEY,
+    item_key TEXT NOT NULL,
+    knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    knowledge_version TEXT NOT NULL,
+    question TEXT NOT NULL,
+    content TEXT NOT NULL,
+    source_id TEXT REFERENCES sources(source_id),
+    anchor_id TEXT REFERENCES anchors(anchor_id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(item_key, knowledge_id)
 );
 CREATE TABLE IF NOT EXISTS job_attempts (
     job_id TEXT NOT NULL REFERENCES jobs(job_id),

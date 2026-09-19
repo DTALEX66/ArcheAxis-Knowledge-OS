@@ -60,6 +60,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/learning/events/:item_key", get(learning_history))
         .route("/api/v1/learning/items", get(learning_items))
         .route("/api/v1/learning/items/:item_key/references", post(record_item_reference))
+        .route("/api/v1/learning/items/:item_key/assessment", get(read_assessment).post(create_assessment))
         .route("/api/v1/learning/items/:item_key/state", get(item_state))
         .route("/api/v1/machine/tasks", post(record_machine_task))
         .route("/api/v1/machine/tasks/:task_id", get(machine_task_readback))
@@ -437,6 +438,8 @@ struct StatefulReviewBody {
     /// Optional v2 learning evidence. Legacy clients remain valid; newer
     /// clients can bind an answer to the exact question/knowledge exposure.
     answer: Option<String>,
+    #[serde(default)]
+    assessment_id: Option<String>,
     question_version: Option<String>,
     knowledge_version: Option<String>,
     exposure_id: Option<String>,
@@ -444,6 +447,10 @@ struct StatefulReviewBody {
     rating_version: Option<String>,
     correction_id: Option<String>,
 }
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AssessmentBody { knowledge_id: String }
 
 fn checked_review_schedule(
     connection: &Connection,
@@ -524,6 +531,32 @@ mod stateful_schedule_failures {
     }
 }
 
+fn assessment_json(value: &learning::AssessmentRecord) -> serde_json::Value {
+    serde_json::json!({"assessment_id": value.assessment_id, "item_key": value.item_key,
+        "knowledge_id": value.knowledge_id, "knowledge_version": value.knowledge_version,
+        "question": value.question, "content": value.content,
+        "source_id": value.source_id, "anchor_id": value.anchor_id, "created_at": value.created_at})
+}
+
+async fn create_assessment(
+    State(state): State<AppState>, Path(item_key): Path<String>, Json(body): Json<AssessmentBody>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| match learning::create_assessment(conn, &item_key, &body.knowledge_id) {
+        Ok(value) => (StatusCode::CREATED, Json(assessment_json(&value))).into_response(),
+        Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
+    }).await
+}
+
+async fn read_assessment(
+    State(state): State<AppState>, Path(item_key): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| match learning::assessment_for_item_key(conn, &item_key) {
+        Ok(Some(value)) => (StatusCode::OK, Json(assessment_json(&value))).into_response(),
+        Ok(None) => (StatusCode::NOT_FOUND, "assessment not found").into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }).await
+}
+
 async fn record_stateful_review(
     State(state): State<AppState>, headers: HeaderMap, Json(body): Json<StatefulReviewBody>,
 ) -> impl IntoResponse {
@@ -540,8 +573,16 @@ async fn record_stateful_review(
     if body.answer.as_deref().is_some_and(|answer| answer.trim().is_empty()) {
         return (StatusCode::BAD_REQUEST, "answer must not be empty").into_response();
     }
+    let assessment_id = body.assessment_id.clone().filter(|value| !value.trim().is_empty());
+    // Preserve schedule-only legacy clients. The M0 first-use path carries an
+    // answer and must bind it to a Core-owned assessment; old clients that
+    // submit only a rating remain valid for the pre-Assessment queue.
+    if body.answer.is_some() && assessment_id.is_none() {
+        return (StatusCode::BAD_REQUEST, "assessment_id is required when answer is submitted").into_response();
+    }
     let canonical = serde_json::json!({"item_key":body.item_key,"correct":body.correct,
         "rating":rating,"now":body.now,"answer":body.answer,
+        "assessment_id":assessment_id,
         "question_version":body.question_version,"knowledge_version":body.knowledge_version,
         "exposure_id":body.exposure_id,"assist_strategy":body.assist_strategy,
         "rating_version":body.rating_version,"correction_id":body.correction_id}).to_string();
@@ -553,8 +594,18 @@ async fn record_stateful_review(
                 Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
             }
         }
+        if let Some(assessment_id) = assessment_id.as_deref() {
+            let assessment = match learning::assessment_for_item(conn, assessment_id, &body.item_key) {
+                Ok(Some(value)) => value,
+                Ok(None) => return (StatusCode::BAD_REQUEST, "assessment does not match item").into_response(),
+                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+            };
+            if body.knowledge_version.as_deref().is_some_and(|v| v != assessment.knowledge_version) {
+                return (StatusCode::BAD_REQUEST, "knowledge_version does not match assessment").into_response();
+            }
+        }
         let result = learning::record_review_with_state_and_answer(conn, &body.item_key, "review", body.correct,
-            &body.client_event_id, &canonical, body.answer.as_deref(), |connection| {
+            &body.client_event_id, &canonical, body.answer.as_deref(), assessment_id.as_deref(), |connection| {
                 let previous = learning::latest_fsrs_state_json(connection, &body.item_key)?;
                 let card: serde_json::Value = match previous {
                     Some(value) => serde_json::from_str(&value).map_err(|_| rusqlite::Error::InvalidQuery)?,

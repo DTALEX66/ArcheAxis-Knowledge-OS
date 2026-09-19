@@ -119,3 +119,82 @@ async fn submitted_answer_is_readable_after_core_restart() {
     let outcome: Value = serde_json::from_str(history["events"][0]["outcome"].as_str().unwrap()).unwrap();
     assert_eq!(outcome["answer"], "用自己的话说明 FSRS 如何安排下一次复习");
 }
+
+#[tokio::test]
+async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("learning.sqlite");
+    let router = app(db.to_str().unwrap()).unwrap();
+
+    let knowledge_response = router
+        .clone()
+        .oneshot(
+            Request::post("/api/v1/knowledge-items")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    r#"{"knowledge_type":"FACTUAL_CLAIM","body":"FSRS schedules a next review from review history.","status":"accepted","created_by":"owner"}"#,
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(knowledge_response.status(), StatusCode::CREATED);
+    let bytes = knowledge_response.into_body().collect().await.unwrap().to_bytes();
+    let knowledge: Value = serde_json::from_slice(&bytes).unwrap();
+    let knowledge_id = knowledge["knowledge_id"].as_str().unwrap();
+
+    let reference_response = router
+        .clone()
+        .oneshot(
+            Request::post("/api/v1/learning/items/card-assessment/references")
+                .header("content-type", "application/json")
+                .body(Body::from(json!({"knowledge_id": knowledge_id}).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(reference_response.status(), StatusCode::CREATED);
+
+    let assessment_response = router
+        .clone()
+        .oneshot(
+            Request::post("/api/v1/learning/items/card-assessment/assessment")
+                .header("content-type", "application/json")
+                .body(Body::from(json!({"knowledge_id": knowledge_id}).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(assessment_response.status(), StatusCode::CREATED);
+    let bytes = assessment_response.into_body().collect().await.unwrap().to_bytes();
+    let assessment: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(assessment["item_key"], "card-assessment");
+    assert_eq!(assessment["knowledge_id"], knowledge_id);
+    assert!(assessment["question"].as_str().unwrap().contains("请回答"));
+    assert_eq!(assessment["content"], "FSRS schedules a next review from review history.");
+    assert!(assessment["source_id"].is_null());
+    assert!(assessment["anchor_id"].is_null());
+
+    let mut review = request("assessment-review", "2026-09-02T00:00:00+00:00");
+    review["item_key"] = json!("card-assessment");
+    review["assessment_id"] = assessment["assessment_id"].clone();
+    review["knowledge_version"] = assessment["knowledge_version"].clone();
+    review["answer"] = json!("FSRS uses the prior review history.");
+    assert_eq!(post(&router, review, "human").await.0, StatusCode::CREATED);
+
+    drop(router);
+    let reopened = app(db.to_str().unwrap()).unwrap();
+    let response = reopened
+        .clone()
+        .oneshot(
+            Request::get("/api/v1/learning/items/card-assessment/assessment")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let readback: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(readback, assessment);
+}
