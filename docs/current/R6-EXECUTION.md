@@ -50,3 +50,28 @@
 - rollback: revert commit `9c66fbce27c47d63ca8d6cffd75edba114d548bb`; canonical existing supply-chain ledger remains preserved
 - remaining_gap: A02 resource schema decision and A04 Knowledge/Source V3 contract
 
+
+### A01 — Version & Release Freeze
+
+状态：TESTED_LOCAL
+
+- subject_sha: $head
+- changed_paths: docs/current/R6-VERSION-RELEASE-FREEZE.md, 	ests/test_r6_version_release_freeze.py
+- upstream_absorbed: none
+- upstream_version_or_sha: not applicable
+- license: not applicable
+- tests: 	ests/test_r6_version_release_freeze.py tests/test_product_version_truth_contract.py tests/test_release_architecture.py — 7 passed, exit 0
+- actual_runtime_result: structural workflow/manifest contract only; no tag, release, installer or Green replacement executed
+- data_touched: release contract documentation and tests only
+- external_paths_touched: none
+- limitations: exact-SHA CI and installed runtime remain separate gates
+- rollback: revert commit $head
+- remaining_gap: owner-controlled release reopening after A16 only
+
+### A02 — Resource / Path / Environment Authority
+
+状态：BLOCKED_BY_OWNER_DECISION
+
+- current evidence: config/environment/capability-requirements.yaml has three intentionally recorded schema deviations (empty plugins category, shared Model library path outside the external root, and shared-model-library install method).
+- reason: resolving these requires choosing schema semantics for the separately registered shared_models root; silently relaxing containment or inventing a plugin would change governance.
+- safe next step: decide whether to extend the manifest with a resource-root identifier and a corresponding schema/resolver contract; do not modify shared libraries or copy model assets.

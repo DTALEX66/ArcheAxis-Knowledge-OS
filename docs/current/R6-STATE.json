@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T14:21:43.9337984Z",
-  "subject_sha": "9c66fbce27c47d63ca8d6cffd75edba114d548bb",
+  "updated_at": "2026-09-19T14:24:11.0972239Z",
+  "subject_sha": "e065b0363896966e4b343c6ecc945e838809861d",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -16,15 +16,16 @@
     },
     {
       "id": "A01",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "remaining_gap": "not started in R6"
+      "status": "TESTED_LOCAL",
+      "evidence_level": "TESTED_LOCAL",
+      "remaining_gap": "Owner-only release reopening after A16",
+      "subject_sha": "e065b0363896966e4b343c6ecc945e838809861d"
     },
     {
       "id": "A02",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "remaining_gap": "not started in R6"
+      "status": "BLOCKED_BY_OWNER_DECISION",
+      "evidence_level": "STRUCTURAL",
+      "remaining_gap": "choose resource-root schema semantics for Model library and plugins"
     },
     {
       "id": "A03",
