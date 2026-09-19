@@ -704,6 +704,10 @@ def workspace_conversion_run_detail(
     archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
     if not archive.has(raw_sha256):
         raise LookupError("source archive content was not found")
+    source_record = next(
+        (item for item in archive.list_records() if item.sha256 == raw_sha256),
+        None,
+    )
     with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         latest = _latest_conversion(connection, raw_sha256)
@@ -722,7 +726,7 @@ def workspace_conversion_run_detail(
     except (ValueError, TypeError):
         loss = {}
     preview = "\n\n".join(str(block["text"]).strip() for block in blocks[:3] if str(block["text"]).strip())
-    return {
+    detail: dict[str, object] = {
         "schema_version": "v1",
         "raw_sha256": raw_sha256,
         "engine": engine,
@@ -731,6 +735,61 @@ def workspace_conversion_run_detail(
         "loss_notes": list(loss.get("loss_notes") or []),
         "preview": preview[:400],
     }
+    # The existing SQLite writer already stores enough immutable information
+    # for a loss-aware structural receipt.  Keep semantic fidelity and
+    # fallback state explicitly unmeasured instead of promoting this projection
+    # to a false end-to-end quality claim.
+    from app.contracts.format_execution_v1 import FallbackInfoV1, FormatExecutionReceiptV1, QualityFactV1
+    from app.ingestion.conversion_run import resolve_conversion_run
+
+    run = resolve_conversion_run(Path(db_path), run_id)
+    if run is None:
+        detail["format_execution_receipt"] = None
+        detail["format_execution_receipt_status"] = "unavailable"
+        return detail
+    source_name = Path(source_record.source_name if source_record else run.source_name).name.strip()
+    source_name = source_name or "未标注原件"
+    source_format = _format_from_mime(
+        source_record.mime_type if source_record else "application/octet-stream",
+        source_name,
+    )
+    receipt = FormatExecutionReceiptV1.from_conversion_run(
+        run,
+        source_name=source_name,
+        source_format=source_format,
+        status="partial",
+        quality_facts=[
+            QualityFactV1(
+                name="block_count",
+                status="measured",
+                value=len(run.blocks),
+                unit="blocks",
+            ),
+            QualityFactV1(
+                name="anchor_count",
+                status="measured",
+                value=len(run.blocks),
+                unit="anchors",
+            ),
+            QualityFactV1(
+                name="semantic_fidelity",
+                status="unmeasured",
+                note="The legacy conversion run does not persist a semantic fidelity measurement.",
+            ),
+            QualityFactV1(
+                name="fallback_state",
+                status="unmeasured",
+                note="Fallback attempts are not persisted by the legacy conversion run.",
+            ),
+        ],
+        fallback=FallbackInfoV1(
+            used=False,
+            reason="No fallback decision is recorded by the legacy conversion run.",
+        ),
+    )
+    detail["format_execution_receipt"] = receipt.model_dump(by_alias=True)
+    detail["format_execution_receipt_status"] = "partial"
+    return detail
 
 
 def _validate_asset_identity(raw_sha256: str) -> None:

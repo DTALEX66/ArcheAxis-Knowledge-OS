@@ -85,6 +85,19 @@ def test_upload_intake_flows_into_library_with_format_engine(tmp_path: Path, mon
     assert run_body["engine"] == "passthrough"
     assert run_body["block_count"] >= 1
     assert run_body["loss_notes"] == []
+    receipt = run_body["format_execution_receipt"]
+    assert run_body["format_execution_receipt_status"] == "partial"
+    assert receipt["status"] == "partial"
+    assert receipt["original"]["name"] == "notes.txt"
+    assert receipt["original"]["format"] == "txt"
+    assert receipt["structure"]["block_count"] >= 1
+    assert {fact["name"] for fact in receipt["quality_facts"]} >= {
+        "block_count",
+        "anchor_count",
+        "semantic_fidelity",
+        "fallback_state",
+    }
+    assert "D:\\" not in run.text
     assert "path" not in run.text.lower() or str(tmp_path) not in run.text
 
 

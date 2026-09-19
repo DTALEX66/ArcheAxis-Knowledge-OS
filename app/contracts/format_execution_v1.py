@@ -112,8 +112,14 @@ class FormatExecutionReceiptV1(BaseModel):
         quality_facts: list[QualityFactV1],
         status: Literal["complete", "partial", "unsupported", "failed"] = "partial",
         fallback: FallbackInfoV1 | None = None,
+        source_name: str | None = None,
     ) -> "FormatExecutionReceiptV1":
-        """Adapt the existing ConversionRun without changing its storage schema."""
+        """Adapt the existing ConversionRun without changing its storage schema.
+
+        ``source_name`` lets a product boundary provide a path-free display
+        name.  The legacy run may retain a caller-local path for compatibility,
+        but that path must never be projected into the UI receipt.
+        """
         blocks = list(getattr(run, "blocks"))
         loss_report = getattr(run, "loss_report")
         engine = str(getattr(run, "engine"))
@@ -124,7 +130,7 @@ class FormatExecutionReceiptV1(BaseModel):
             status=status,
             original=OriginalAssetV1(
                 sha256=str(getattr(run, "raw_sha256")),
-                name=str(getattr(run, "source_name")),
+                name=source_name or str(getattr(run, "source_name")),
                 format=source_format,
             ),
             transform=TransformInfoV1(

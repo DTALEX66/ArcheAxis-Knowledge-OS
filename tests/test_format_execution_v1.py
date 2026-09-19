@@ -81,3 +81,19 @@ def test_versioned_schema_is_present_and_has_required_receipt_sections() -> None
     schema = json.loads((root / "packages/contracts/v1/format-execution-receipt.schema.json").read_text(encoding="utf-8"))
     assert schema["properties"]["schema"]["const"] == "archeaxis.format-execution-receipt/v1"
     assert set(("original", "transform", "loss", "structure", "anchors", "quality_facts", "fallback")).issubset(schema["required"])
+
+
+def test_product_boundary_can_override_source_name_to_avoid_path_leak() -> None:
+    run = create_conversion_run(
+        "d" * 64,
+        r"D:\private\notes.md",
+        [{"kind": "paragraph", "text": "hello", "anchor": {"ordinal": 1}}],
+        engine="passthrough",
+    )
+    receipt = FormatExecutionReceiptV1.from_conversion_run(
+        run,
+        source_name="notes.md",
+        source_format="md",
+        quality_facts=_quality(),
+    )
+    assert receipt.original.name == "notes.md"
