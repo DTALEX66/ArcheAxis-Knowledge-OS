@@ -138,3 +138,18 @@
 - limitations: receipt emission is not yet wired into all experience and distillation writes; candidate/retest restart evidence remains open
 - rollback: revert commit `d8211b2e`; existing experience and distillation behavior remains intact
 - remaining_gap: emit the receipt from the canonical writer and prove review→reuse→retest on a real local journey
+
+## A08 — Human Learning Kernel
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `235a89c7`
+- changed_paths: `app/contracts/learning_kernel_v1.py`, `packages/contracts/learning/v1/learning-kernel.schema.json`, `tests/test_learning_kernel_v1.py`, `app/contracts/__init__.py`
+- contract: each exposure binds question/knowledge versions, source anchors, stable exposure and retry IDs, correctness/rating, FSRS state transition and due schedule
+- tests: `tests/test_learning_kernel_v1.py tests/test_axw051b_due_queue.py tests/test_desktop_learning_review_contract.py` — 15 passed, exit 0
+- actual_runtime_result: local FSRS/due-queue and source-level Avalonia retry contract tests; no .NET runtime or real first-use journey started
+- data_touched: repository contract, generated schema and tests only
+- external_paths_touched: none
+- limitations: the new receipt is not yet emitted by the Core review route; adaptive content selection and restart readback remain unverified
+- rollback: revert commit `235a89c7`; existing review v2 and FSRS paths remain intact
+- remaining_gap: wire receipt emission to the single Rust writer and prove one real human review through restart
