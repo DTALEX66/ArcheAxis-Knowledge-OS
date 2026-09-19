@@ -199,3 +199,18 @@
 - limitations: current shared model inventory, VRAM/RAM/latency measurements, and current runtime health remain unverified; entries are not a release selection
 - rollback: revert commit `8ee33bc6`; existing model profile and resolver remain intact
 - remaining_gap: perform owner-approved read-only inventory of the fixed Model library path, then run bounded role benchmarks with exact receipts
+
+## A12 — Avalonia Product Shell
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `4bfbdbcc`
+- changed_paths: `app/contracts/desktop_routes_v1.py`, `config/desktop/routes-v1.json`, `packages/contracts/v1/desktop-routes.schema.json`, `tests/test_desktop_routes_v1.py`
+- contract: required shell surfaces map to explicit Core endpoints and canonical writer `archeaxis-core-rust-sqlite`; source reader path is verified as `/api/v1/imports`
+- tests: `tests/test_desktop_routes_v1.py tests/test_desktop_learning_review_contract.py tests/test_desktop_runtime.py` — 12 passed, exit 0
+- actual_runtime_result: source-level route/provenance/retry checks and Python Core readiness tests; `dotnet` command not found on this host
+- data_touched: repository contract, route manifest, generated schema and tests only
+- external_paths_touched: none
+- limitations: Avalonia compile, self-contained bundle, clean-machine startup and no-terminal behavior remain unverified/blocked by missing .NET SDK/runtime
+- rollback: revert commit `4bfbdbcc`; existing shell source and Core supervisor remain intact
+- remaining_gap: use the registered external toolchain or CI desktop-vnext gate for exact-SHA build and runtime verification; do not install global runtime here
