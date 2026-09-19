@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`2a1d175b3f7471ddad85afea0d6db066e3f315de`
+- 当前本地与远端 `main`：`4964dfdc731065be9ebd19fd76dc086a105e547b`
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
 - `.project-local` 是唯一开发运行/证据输出根；外置共享模型、工具、Green、真实资料库和测试资料库不因 M0 方向改变而迁移或改写。
