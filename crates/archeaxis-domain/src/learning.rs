@@ -135,6 +135,22 @@ pub struct ReviewReceipt {
     pub duplicate: bool,
 }
 
+/// A rebuildable learner-state projection. It is deliberately marked open:
+/// review observations and FSRS scheduling do not establish Knowledge truth
+/// or a closed mastery claim.
+fn mastery_projection_json(schedule_json: &str, correct_streak: u32) -> String {
+    let schedule: serde_json::Value = serde_json::from_str(schedule_json)
+        .unwrap_or_else(|_| serde_json::json!({}));
+    serde_json::json!({
+        "status": "projection",
+        "closed": false,
+        "basis": "fsrs_review_state_and_learner_observation",
+        "review_state": schedule["state"]["state"],
+        "stability": schedule["state"]["stability"],
+        "correct_streak": correct_streak,
+    }).to_string()
+}
+
 /// Core-owned assessment snapshot bound to one learning item and one accepted
 /// Knowledge revision. The content is a snapshot of what the learner saw;
 /// answer/rating/correct observations never become Truth or Mastery here.
@@ -308,12 +324,13 @@ pub fn record_review_with_state_and_answer(
     if !review_schedule_is_valid(&tx, &schedule)? {
         return Err(invalid("schedule state or exact due date is inconsistent"));
     }
+    let streak_after = if correct { correct_streak(&tx, item_key)? + 1 } else { 0 };
+    let mastery_projection = mastery_projection_json(&schedule.schedule_json, streak_after);
     let outcome_json: String = tx.query_row(
-        "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4)",
-        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id],
+        "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4, 'mastery_projection', json(?5))",
+        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id, mastery_projection],
         |r| r.get(0),
     )?;
-    let streak_after = if correct { correct_streak(&tx, item_key)? + 1 } else { 0 };
     tx.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,?2,?3,?4)",
         rusqlite::params![item_key, kind, outcome_json, schedule.next_review])?;
     let event_id = tx.last_insert_rowid();
