@@ -11,6 +11,8 @@ exposes format / engine / error so the product UI can render the whole pipe.
 
 from __future__ import annotations
 
+import json
+import sqlite3
 import time
 from pathlib import Path
 
@@ -99,6 +101,60 @@ def test_upload_intake_flows_into_library_with_format_engine(tmp_path: Path, mon
     }
     assert "D:\\" not in run.text
     assert "path" not in run.text.lower() or str(tmp_path) not in run.text
+
+
+def test_upload_persists_fallback_trace_through_conversion_run_readback(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """A fallback decision survives intake storage and the public run receipt."""
+    from app.ingestion.multi_format import ConversionTrace
+    from app.workspace import service
+
+    client = _setup_runtime(tmp_path, monkeypatch)
+    database = tmp_path / "workspace.sqlite"
+    service._import_heavy()
+    monkeypatch.setattr(
+        service,
+        "convert_file_with_trace",
+        lambda _source: (
+            "fallback content",
+            "passthrough",
+            ConversionTrace(
+                attempted_engines=("primary", "passthrough"),
+                fallback_used=True,
+                fallback_reason="primary unavailable",
+            ),
+        ),
+    )
+
+    uploaded = service.intake_upload(
+        file_name="fallback.txt",
+        content=b"fallback source",
+        db_path=database,
+    )
+    raw_sha256 = uploaded["raw_sha256"]
+
+    run_response = client.get(
+        f"/workspace/api/library/{raw_sha256}/conversion-run"
+    )
+    assert run_response.status_code == 200
+    receipt = run_response.json()["format_execution_receipt"]
+    assert receipt["fallback"] == {
+        "used": True,
+        "attempted_engines": ["primary", "passthrough"],
+        "selected_engine": "passthrough",
+        "reason": "primary unavailable",
+    }
+
+    with sqlite3.connect(database) as connection:
+        row = connection.execute(
+            "SELECT loss_report_json FROM conversion_runs WHERE raw_sha256=?",
+            (raw_sha256,),
+        ).fetchone()
+    assert row is not None
+    loss_report = json.loads(row[0])
+    assert loss_report["attempted_engines"] == ["primary", "passthrough"]
+    assert loss_report["fallback_reason"] == "primary unavailable"
 
 
 def test_batch_import_persists_originals_and_conversions_into_library(tmp_path: Path, monkeypatch) -> None:
