@@ -82,7 +82,12 @@ def generate_quiz(
     if not concept.strip() or not reference.strip():
         raise QuizError("quiz generation requires concept and reference")
     key_terms = [t.strip() for t in (key_terms or []) if t.strip()]
-    kinds = kinds or ["recall", "mcq"]
+    kinds = ["recall", "mcq"] if kinds is None else list(kinds)
+    unknown_kinds = set(kinds) - {"recall", "mcq"}
+    if unknown_kinds:
+        raise QuizError(f"unknown quiz kind: {sorted(unknown_kinds)!r}")
+    if not kinds:
+        raise QuizError("at least one quiz kind is required")
     answer = _key_phrase_from_reference(reference, key_terms)
     items: list[QuizItem] = []
 

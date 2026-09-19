@@ -26,6 +26,16 @@ def test_quiz_requires_concept_and_reference():
         generate_quiz(concept="x", reference="")
 
 
+def test_quiz_rejects_unknown_kinds_instead_of_returning_empty_assessment():
+    with pytest.raises(QuizError, match="unknown quiz kind"):
+        generate_quiz(concept="x", reference="x 是 y", kinds=["essay"])
+
+
+def test_quiz_rejects_empty_kind_selection():
+    with pytest.raises(QuizError, match="at least one quiz kind"):
+        generate_quiz(concept="x", reference="x 是 y", kinds=[])
+
+
 def test_grade_recall_hit_and_miss():
     items = generate_quiz(concept="BKT", reference="BKT 是隐马尔可夫模型", key_terms=["隐马尔可夫"])
     recall = next(i for i in items if i.kind == "recall")
