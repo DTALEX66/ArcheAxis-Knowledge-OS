@@ -6,6 +6,7 @@ from app.contracts.derived_projection_v1 import DerivedProjectionReceiptV1, Proj
 from app.contracts.machine_growth_v1 import GrowthStepV1, MachineGrowthReceiptV1
 from app.contracts.learning_kernel_v1 import LearningKernelReceiptV1
 from app.contracts.domain_pack_v1 import DomainPackV1
+from app.contracts.courseware_v1 import CoursewareArtifactV1
 from app.contracts.v1 import (
     CONTRACT_VERSION,
     EvaluationV1,
@@ -35,5 +36,6 @@ __all__ = [
     "MachineGrowthReceiptV1",
     "LearningKernelReceiptV1",
     "DomainPackV1",
+    "CoursewareArtifactV1",
 ]
 

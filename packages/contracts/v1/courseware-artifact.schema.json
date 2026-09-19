@@ -1,0 +1,107 @@
+{
+  "additionalProperties": false,
+  "description": "Source-grounded courseware output; renderer state is derived only.",
+  "properties": {
+    "schema": {
+      "const": "archeaxis.courseware-artifact/v1",
+      "default": "archeaxis.courseware-artifact/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "artifact_id": {
+      "minLength": 1,
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "artifact_type": {
+      "enum": [
+        "lesson",
+        "slide",
+        "quiz",
+        "visual",
+        "simulation",
+        "pbl",
+        "coding_activity",
+        "audio_video"
+      ],
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "title": {
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "domain_pack_id": {
+      "pattern": "^[a-z][a-z0-9-]+$",
+      "title": "Domain Pack Id",
+      "type": "string"
+    },
+    "source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Ids",
+      "type": "array"
+    },
+    "knowledge_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Knowledge Ids",
+      "type": "array"
+    },
+    "renderer": {
+      "minLength": 1,
+      "title": "Renderer",
+      "type": "string"
+    },
+    "renderer_version": {
+      "minLength": 1,
+      "title": "Renderer Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "reviewed",
+        "ready",
+        "blocked"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "interactive": {
+      "title": "Interactive",
+      "type": "boolean"
+    },
+    "derived_only": {
+      "const": true,
+      "default": true,
+      "title": "Derived Only",
+      "type": "boolean"
+    },
+    "human_review_required": {
+      "default": true,
+      "title": "Human Review Required",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "artifact_id",
+    "artifact_type",
+    "title",
+    "domain_pack_id",
+    "source_ids",
+    "knowledge_ids",
+    "renderer",
+    "renderer_version",
+    "status",
+    "interactive"
+  ],
+  "title": "ArcheAxis Courseware Artifact",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/courseware-artifact.schema.json"
+}
