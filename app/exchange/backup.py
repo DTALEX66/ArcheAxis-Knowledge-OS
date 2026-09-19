@@ -56,6 +56,27 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _safe_relative_path(value: str) -> Path:
+    """Reject absolute and traversal paths supplied by a backup manifest."""
+    path = Path(value)
+    lexical_parts = value.replace("\\", "/").split("/")
+    if not value or path.is_absolute() or any(part in {"", ".", ".."} for part in lexical_parts):
+        raise BackupError(f"unsafe backup relative path: {value!r}")
+    return path
+
+
+def _safe_target(root: Path, relative: str | Path) -> Path:
+    """Resolve a manifest path while keeping it inside the backup root."""
+    candidate = (root / _safe_relative_path(str(relative))).resolve(strict=False)
+    try:
+        candidate.relative_to(root.resolve())
+    except ValueError as exc:
+        raise BackupError(
+            f"backup path escapes its root: {relative!r}"
+        ) from exc
+    return candidate
+
+
 # Runtime artifacts that must never enter a snapshot: the single-runtime
 # lease file (`.runtime.lock`) is byte-range locked by the running core on
 # Windows (msvcrt.locking), so reading it from another handle raises
@@ -143,7 +164,11 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
         except (KeyError, TypeError, ValueError) as exc:
             failures.append(f"invalid backup entry {raw_entry!r}: {exc}")
             continue
-        target = backup_dir / entry.relative_path
+        try:
+            target = _safe_target(backup_dir, entry.relative_path)
+        except BackupError as exc:
+            failures.append(str(exc))
+            continue
         if not target.is_file():
             failures.append(f"missing backup file: {entry.relative_path}")
             continue
@@ -189,7 +214,7 @@ def restore_backup(
     plan: list[dict[str, Any]] = []
     for raw_entry in manifest["files"]:
         entry = BackupEntry.from_dict(raw_entry)
-        destination = target / entry.relative_path
+        destination = _safe_target(target, entry.relative_path)
         state = "create" if not destination.exists() else "overwrite"
         if state == "overwrite" and not overwrite:
             raise BackupError(
@@ -215,8 +240,8 @@ def restore_backup(
     target.mkdir(parents=True, exist_ok=True)
     restored: list[dict[str, Any]] = []
     for entry in (BackupEntry.from_dict(raw) for raw in manifest["files"]):
-        source_file = backup_dir / entry.relative_path
-        destination = target / entry.relative_path
+        source_file = _safe_target(backup_dir, entry.relative_path)
+        destination = _safe_target(target, entry.relative_path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         temp = destination.with_name(destination.name + ".restore-tmp")
         shutil.copy2(source_file, temp)

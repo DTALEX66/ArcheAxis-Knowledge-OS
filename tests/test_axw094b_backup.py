@@ -11,6 +11,7 @@ Verifies:
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -80,6 +81,38 @@ def test_verify_rejects_incompatible_version(tmp_path: Path) -> None:
     manifest_path.write_text(manifest, encoding="utf-8")
     with pytest.raises(BackupError, match="incompatible backup version"):
         verify_backup(backup_dir)
+
+
+@pytest.mark.parametrize("path_kind", ["parent", "dot", "dot_segment", "absolute"])
+def test_verify_and_restore_reject_manifest_path_escape(
+    tmp_path: Path, path_kind: str
+) -> None:
+    source = _make_source(tmp_path)
+    backup_dir = tmp_path / "backup"
+    create_backup(source=source, backup_dir=backup_dir)
+
+    unsafe_path = {
+        "parent": "../outside.txt",
+        "dot": ".",
+        "dot_segment": "./docs/note.md",
+        "absolute": str((tmp_path / "outside-absolute.txt").resolve()),
+    }[path_kind]
+    if path_kind == "parent":
+        (tmp_path / "outside.txt").write_text("# note", encoding="utf-8")
+    elif path_kind == "absolute":
+        (tmp_path / "outside-absolute.txt").write_text("# note", encoding="utf-8")
+    manifest_path = backup_dir / "backup-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    escaped = next(entry for entry in manifest["files"] if entry["path"] == "docs/note.md")
+    escaped["path"] = unsafe_path
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(BackupError, match="unsafe backup relative path"):
+        verify_backup(backup_dir)
+    with pytest.raises(BackupError, match="unsafe backup relative path"):
+        restore_backup(backup_dir=backup_dir, target=tmp_path / "restored-dry", dry_run=True)
+    with pytest.raises(BackupError, match="unsafe backup relative path"):
+        restore_backup(backup_dir=backup_dir, target=tmp_path / "restored", dry_run=False)
 
 
 def test_dry_run_plans_without_writing(tmp_path: Path) -> None:
