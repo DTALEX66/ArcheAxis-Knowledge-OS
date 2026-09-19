@@ -132,6 +132,81 @@ def test_general_manifest_rejects_cross_domain_or_broken_links() -> None:
         )
 
 
+def test_general_manifest_rejects_unknown_and_cyclic_prerequisites() -> None:
+    component = {
+        "component_id": "kc-1",
+        "kind": "fact",
+        "title": "Fact",
+        "statement": "A fact.",
+    }
+    objective = {
+        "objective_id": "obj-1",
+        "title": "Use the fact",
+        "statement": "The learner can use the fact.",
+        "knowledge_component_ids": ["kc-1"],
+    }
+    artifact = {
+        "artifact_id": "artifact-1",
+        "artifact_type": "lesson",
+        "title": "Lesson",
+        "domain_pack_id": "general",
+        "source_ids": ["source-1"],
+        "knowledge_ids": ["kc-1"],
+        "renderer": "native-lesson",
+        "renderer_version": "1.0.0",
+        "status": "candidate",
+        "interactive": False,
+    }
+    base = {
+        "manifest_id": "manifest-1",
+        "title": "General course",
+        "domain_pack_id": "general",
+        "status": "candidate",
+        "knowledge_components": [component],
+        "learning_objectives": [objective],
+        "artifacts": [artifact],
+    }
+
+    with pytest.raises(ValidationError, match="unknown prerequisite"):
+        CourseManifestV1.model_validate(
+            {
+                **base,
+                "knowledge_components": [
+                    {**component, "prerequisite_ids": ["missing"]}
+                ],
+            }
+        )
+    with pytest.raises(ValidationError, match="cannot prerequisite itself"):
+        CourseManifestV1.model_validate(
+            {
+                **base,
+                "knowledge_components": [
+                    {**component, "prerequisite_ids": ["kc-1"]}
+                ],
+            }
+        )
+    with pytest.raises(ValidationError, match="prerequisite cycle"):
+        CourseManifestV1.model_validate(
+            {
+                **base,
+                "knowledge_components": [
+                    {**component, "prerequisite_ids": ["kc-2"]},
+                    {
+                        **component,
+                        "component_id": "kc-2",
+                        "prerequisite_ids": ["kc-1"],
+                    },
+                ],
+                "learning_objectives": [
+                    {**objective, "knowledge_component_ids": ["kc-1", "kc-2"]}
+                ],
+                "artifacts": [
+                    {**artifact, "knowledge_ids": ["kc-1", "kc-2"]}
+                ],
+            }
+        )
+
+
 def test_general_learning_contract_schema_ids_are_stable() -> None:
     assert KnowledgeComponentV1.model_json_schema()["$id"].endswith(
         "knowledge-component.schema.json"

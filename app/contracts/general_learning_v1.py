@@ -80,6 +80,43 @@ class CourseManifestV1(BaseModel):
         if len(component_ids) != len(set(component_ids)):
             raise ValueError("knowledge component ids must be unique")
         component_id_set = set(component_ids)
+        prerequisites = {
+            component.component_id: tuple(component.prerequisite_ids)
+            for component in self.knowledge_components
+        }
+        for component in self.knowledge_components:
+            unknown = set(component.prerequisite_ids) - component_id_set
+            if unknown:
+                raise ValueError(
+                    "knowledge component references unknown prerequisite components: "
+                    + ", ".join(sorted(unknown))
+                )
+            if component.component_id in component.prerequisite_ids:
+                raise ValueError(
+                    "knowledge component cannot prerequisite itself: "
+                    + component.component_id
+                )
+
+        visiting: set[str] = set()
+        visited: set[str] = set()
+
+        def visit(component_id: str, trail: list[str]) -> None:
+            if component_id in visiting:
+                cycle_start = trail.index(component_id)
+                cycle = [*trail[cycle_start:], component_id]
+                raise ValueError(
+                    "knowledge component prerequisite cycle: " + " -> ".join(cycle)
+                )
+            if component_id in visited:
+                return
+            visiting.add(component_id)
+            for prerequisite_id in prerequisites[component_id]:
+                visit(prerequisite_id, [*trail, component_id])
+            visiting.remove(component_id)
+            visited.add(component_id)
+
+        for component_id in component_ids:
+            visit(component_id, [])
 
         objective_ids = [item.objective_id for item in self.learning_objectives]
         if len(objective_ids) != len(set(objective_ids)):
