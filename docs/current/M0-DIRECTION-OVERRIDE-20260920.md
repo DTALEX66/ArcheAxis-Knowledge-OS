@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`b20d87af26b120161bed1dab3ae21da3c64f24f6`
+- 当前本地与远端 `main`：`fc0df3a182abed4feded8eeb0ab25b88bb4bcadb`
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
@@ -77,6 +77,8 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 本轮增量（当前 subject：`97300cc6c8e6389edc33f5dc32adaec8761e6c58`）：P1 补齐合成 fallback 的 intake → SQLite conversion run → public receipt readback；P2.1 为 General CourseManifest 增加 prerequisite 引用闭合、自环和多节点环校验。两项均为 `TESTED_LOCAL` 契约/回归证据，不升级为真实外部引擎、真实课程渲染或全链路闭环。
 
 P4 增量（当前 subject：`b20d87af26b120161bed1dab3ae21da3c64f24f6`）：machine-feedback schema 现在要求 correction_applied/correction_reverted 携带 `feedback.reviewed_by_human=true`；这只收紧已声明的人审约束，不等于真实模型 correction/retest 运行闭环。
+
+P5 增量（当前 subject：`fc0df3a182abed4feded8eeb0ab25b88bb4bcadb`）：directory backup manifest 现在拒绝绝对路径、点段/父段逃逸、root 外 symlink 和未列出的旁路文件；这仍是 Python backup 层证据，不替代 Rust SQLite schema/FK/source-object hash 或 workspace identity 决策。
 
 验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `7 passed`，退出码均为 `0`；Rust/Rustfmt/Dotnet 为 `NOT_EXECUTED`（缺 `cargo`/`rustfmt`/`dotnet`）。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 

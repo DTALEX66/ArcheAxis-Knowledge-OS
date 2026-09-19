@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-20T18:20:00Z",
-  "subject_sha": "b20d87af26b120161bed1dab3ae21da3c64f24f6",
+  "updated_at": "2026-09-20T18:45:00Z",
+  "subject_sha": "fc0df3a182abed4feded8eeb0ab25b88bb4bcadb",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -102,8 +102,8 @@
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup schema/FK/source-object validation is added, while workspace identity, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
-      "subject_sha": "eea865e1"
+      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; Python backup manifest path and completeness validation is added, while Rust schema/FK/source-object validation, workspace identity, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
+      "subject_sha": "fc0df3a182abed4feded8eeb0ab25b88bb4bcadb"
     },
     {
       "id": "A14",

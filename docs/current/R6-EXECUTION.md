@@ -158,6 +158,16 @@
 - limitations: JSON Schema/contract evidence only; real model execution, correction/retest runtime and Rust integration remain open
 - rollback: revert commit `b20d87af26b120161bed1dab3ae21da3c64f24f6`
 
+### A13/P5 Python backup hardening
+
+- status: `TESTED_LOCAL`
+- subject_sha: `fc0df3a182abed4feded8eeb0ab25b88bb4bcadb`
+- changed_paths: `app/exchange/backup.py`, `tests/test_axw094b_backup.py`
+- behavior: backup verify/restore rejects absolute, dot, parent and symlink-escaping manifest paths; verify also rejects ordinary files not declared by the manifest while excluding the manifest and known transient lease suffixes
+- tests: first hardening regression `15 passed, 1 warning`; export/backup/migration/loss suite `50 passed, 1 warning`; backup/migration suite `45 passed, 1 warning`; second backup/export/API suite `46 passed, 3 warnings`; all exit `0`
+- limitations: Python directory-backup evidence only; Rust SQLite schema/FK/source-object hash, workspace identity, real data migration and Green activation remain open
+- rollback: revert commits `67dc2356` and `fc0df3a182abed4feded8eeb0ab25b88bb4bcadb`
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
