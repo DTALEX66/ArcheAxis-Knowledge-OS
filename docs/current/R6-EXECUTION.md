@@ -529,3 +529,12 @@
 - `verification`: static worker reachability and lifecycle source review completed. Existing lifecycle tests use a monkeypatched `FileConverter`; the reachability manifest records routes/exemptions but does not bind real Python worker manifest, runner, health, enable/disable or provider replacement behavior.
 - `result`: `STRUCTURAL / NOT_EXECUTED`; no complete P0 worker gate is available without the Python runtime and a real worker binding. The two un-routed capability workers remain explicitly exempt for missing model/route contracts.
 - `scope`: no source change, no external library/Green/real data/E/F/private-state access, no commit-level product claim beyond this evidence boundary.
+
+## Continuation receipt — 2026-09-20 repository normalization and contract boundary repair
+
+- `subject_sha`: `5864a4adfe3fe8028ea09ed64b29efb1874a7121`
+- `changed_paths`: the 29 tracked text files reported by the worktree convention gate; `scripts/check_language_boundaries.py`, `tests/test_language_boundaries.py`, and nine `packages/contracts/v1/*.schema.json` metadata repairs.
+- `normalization`: only tracked text bytes were normalized from CRLF to LF; preserved untracked `docs/history/**` and `SESSION-RESTART-2026-09-12.md` were not read, staged or changed.
+- `contract_repair`: worker protocol version is now derived only from `v*` directories containing `worker-protocol.schema.json`; the independent Knowledge V3 schema directory no longer creates a false protocol-version collision. Nine v1 schemas now carry explicit draft-2020-12 `$schema` and filename-matching `$id` metadata; no business fields were changed.
+- `verification`: `check_repository_conventions.py --source worktree --format json` returned `issue_count=0`; `check_language_boundaries.py --json` returned `passed=true`, protocol major `1`; `check_vnext_contracts.py` returned exit `0`; the affected contract regression command returned `50 passed, 1 warning`, exit `0`; authority SHA consistency returned `PASS`.
+- `scope`: project source/contracts/tests/docs only; no external library, Green runtime, real data, E/F, credentials or private agent state was accessed. This receipt does not claim CI, installer, GUI or full M0 closure.

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
     "DesktopRouteV1": {
       "additionalProperties": false,
@@ -69,5 +70,5 @@
   ],
   "title": "ArcheAxis Avalonia Desktop Route Manifest",
   "type": "object",
-  "": "https://archeaxis.local/contracts/v1/desktop-routes.schema.json"
+  "$id": "https://archeaxis.local/contracts/v1/desktop-routes.schema.json"
 }

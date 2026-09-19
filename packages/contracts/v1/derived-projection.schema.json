@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
     "ProjectionItemV1": {
       "additionalProperties": false,
@@ -126,5 +127,5 @@
   ],
   "title": "ArcheAxis Derived Projection Receipt",
   "type": "object",
-  "": "https://archeaxis.local/contracts/v1/derived-projection.schema.json"
+  "$id": "https://archeaxis.local/contracts/v1/derived-projection.schema.json"
 }

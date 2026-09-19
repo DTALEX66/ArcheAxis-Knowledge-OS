@@ -161,15 +161,25 @@ def check_protocol_literals_agree(root: Path) -> tuple[list[str], dict]:
     if version is None:
         failures.append("crates/archeaxis-sidecar-protocol/src/lib.rs: PROTOCOL_VERSION not found")
 
-    # the contract directory names the version the whole boundary ships as, so the
-    # expected number comes from the artefacts rather than a literal in this file
+    # The worker-protocol contract names the version of this language boundary.
+    # Other versioned contract families (for example Knowledge V3) are separate
+    # schemas and must not make a valid worker boundary fail closed.
     contracts_root = root / "packages/contracts"
-    contract_versions = sorted(
-        {int(match.group(1)) for path in contracts_root.glob("v*") if (match := re.fullmatch(r"v(\d+)", path.name))}
+    protocol_dirs = sorted(
+        (
+            path
+            for path in contracts_root.glob("v*")
+            if path.is_dir()
+            and re.fullmatch(r"v\d+", path.name)
+            and (path / "worker-protocol.schema.json").is_file()
+        ),
+        key=lambda path: path.name,
     )
-    if len(contract_versions) != 1:
+    contract_versions = [int(path.name[1:]) for path in protocol_dirs]
+    if len(protocol_dirs) != 1:
         failures.append(
-            f"packages/contracts: expected exactly one version directory, found {sorted(p.name for p in contracts_root.glob('v*'))}"
+            "packages/contracts: expected exactly one worker-protocol version directory, "
+            f"found {[path.name for path in protocol_dirs]}"
         )
     elif version is not None and contract_versions[0] != version:
         failures.append(
@@ -207,9 +217,13 @@ def check_protocol_literals_agree(root: Path) -> tuple[list[str], dict]:
             )
 
     # the schema must constrain the same major it names
-    protocol_schema = root / "packages/contracts/v1/worker-protocol.schema.json"
+    protocol_schema = (
+        protocol_dirs[0] / "worker-protocol.schema.json"
+        if len(protocol_dirs) == 1
+        else None
+    )
     schema_major = None
-    if protocol_schema.is_file():
+    if protocol_schema is not None and protocol_schema.is_file():
         try:
             payload = json.loads(_read_text(protocol_schema))
             schema_major = payload["$defs"]["hello"]["properties"]["protocol"]["properties"]["major"]["const"]

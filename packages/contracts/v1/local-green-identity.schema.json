@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
     "schema": {
@@ -65,5 +66,5 @@
   ],
   "title": "ArcheAxis Local Green Identity",
   "type": "object",
-  "": "https://archeaxis.local/contracts/v1/local-green-identity.schema.json"
+  "$id": "https://archeaxis.local/contracts/v1/local-green-identity.schema.json"
 }

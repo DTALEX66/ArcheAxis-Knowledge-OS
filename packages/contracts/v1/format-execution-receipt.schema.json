@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
     "AnchorFactV1": {
       "additionalProperties": false,
@@ -316,5 +317,5 @@
   ],
   "title": "ArcheAxis Multiformat Execution Receipt",
   "type": "object",
-  "": "https://archeaxis.local/contracts/v1/format-execution-receipt.schema.json"
+  "$id": "https://archeaxis.local/contracts/v1/format-execution-receipt.schema.json"
 }

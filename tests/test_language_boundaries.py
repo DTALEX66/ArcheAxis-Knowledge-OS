@@ -89,7 +89,9 @@ def _tree(tmp_path: Path) -> Path:
 
 
 def test_a_boundary_respecting_tree_passes(tmp_path):
-    failures, detail = check.run(_tree(tmp_path))
+    root = _tree(tmp_path)
+    _write(root / "packages/contracts/v3/knowledge-source.schema.json", '{"$id":"https://archeaxis.local/contracts/v3/knowledge-source.schema.json"}\n')
+    failures, detail = check.run(root)
     assert failures == []
     assert detail["protocol_version"] == 1
     assert detail["contracts_version"] == 1
