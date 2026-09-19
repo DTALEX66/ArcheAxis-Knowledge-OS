@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "ProjectionItemV1": {
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_revision": {
+          "minLength": 1,
+          "title": "Source Revision",
+          "type": "string"
+        },
+        "score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "anchor_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anchor Id"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_revision",
+        "score"
+      ],
+      "title": "ProjectionItemV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A rebuildable, non-canonical result of retrieval or graph projection.",
+  "properties": {
+    "schema": {
+      "const": "archeaxis.derived-projection/v1",
+      "default": "archeaxis.derived-projection/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "projection_id": {
+      "minLength": 1,
+      "title": "Projection Id",
+      "type": "string"
+    },
+    "projection_kind": {
+      "enum": [
+        "fts",
+        "embedding",
+        "reranked",
+        "graph",
+        "hybrid",
+        "research"
+      ],
+      "title": "Projection Kind",
+      "type": "string"
+    },
+    "query": {
+      "minLength": 1,
+      "title": "Query",
+      "type": "string"
+    },
+    "algorithm": {
+      "minLength": 1,
+      "title": "Algorithm",
+      "type": "string"
+    },
+    "algorithm_version": {
+      "minLength": 1,
+      "title": "Algorithm Version",
+      "type": "string"
+    },
+    "canonical_source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Canonical Source Ids",
+      "type": "array"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/ProjectionItemV1"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "generated_at": {
+      "minLength": 1,
+      "title": "Generated At",
+      "type": "string"
+    },
+    "rebuildable": {
+      "const": true,
+      "default": true,
+      "title": "Rebuildable",
+      "type": "boolean"
+    },
+    "writes_canonical": {
+      "const": false,
+      "default": false,
+      "title": "Writes Canonical",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "projection_id",
+    "projection_kind",
+    "query",
+    "algorithm",
+    "algorithm_version",
+    "canonical_source_ids",
+    "generated_at"
+  ],
+  "title": "ArcheAxis Derived Projection Receipt",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/derived-projection.schema.json"
+}
