@@ -22,6 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SHELL = ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml.cs"
+PROGRAM = ROOT / "apps" / "ArcheAxis.Desktop" / "Program.cs"
 CORE = ROOT / "crates" / "archeaxis-api" / "src" / "lib.rs"
 
 
@@ -186,3 +187,26 @@ def test_a_new_presentation_starts_a_new_exposure() -> None:
         "presenting an item and finding an empty queue must both start a fresh exposure"
     )
     assert learning.count("_activeExposureId = null;") == 2
+
+
+def test_headless_learning_smoke_covers_cold_restart_readback_without_claiming_mastery() -> None:
+    program = PROGRAM.read_text(encoding="utf-8")
+
+    assert 'args[0] == "--learning-smoke"' in program
+    assert '"/api/v1/knowledge-items"' in program
+    assert '"/api/v1/learning/items/' in program
+    assert '}/assessment"' in program
+    assert '"/api/v1/learning/reviews"' in program
+    assert '"/api/v1/learning/events/' in program
+    assert '"assessment_id"' in program
+    assert '"schedule_authority"' in program
+    assert '"fsrs"' in program
+    assert '"mastery_projection"' in program
+    assert '"closed"' in program
+    assert '"projection"' in program
+    assert "LEARNING SMOKE OK" in program
+    assert "synthetic" in program.casefold()
+    assert "Guid.NewGuid" in program
+    assert "runSuffix" in program
+    assert "p3-headless-learning-card-" in program
+    assert "p3-headless-learning-review-" in program
