@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`477bfd3532ae5c1fbd0e7c8af7f1d0c7311ef72b`
+- 当前本地与远端 `main`：`d5776f6b3efb0d804396b1d4258aed43e032ffcd`
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
@@ -81,6 +81,8 @@ P4 增量（当前 subject：`b20d87af26b120161bed1dab3ae21da3c64f24f6`）：mac
 P5 增量（当前 subject：`fc0df3a182abed4feded8eeb0ab25b88bb4bcadb`）：directory backup manifest 现在拒绝绝对路径、点段/父段逃逸、root 外 symlink 和未列出的旁路文件；这仍是 Python backup 层证据，不替代 Rust SQLite schema/FK/source-object hash 或 workspace identity 决策。
 
 A14 增量（当前 subject：`274de700c4dc4c02ede5d15fb3938fef5498677f`）：closed-loop complete receipt 现在要求 correction 与 retest 阶段各自有非空 evidence refs；这只阻止空证据误报，不证明真实 runtime journey。
+
+工具链增量（当前 subject：`d5776f6b3efb0d804396b1d4258aed43e032ffcd`）：项目声明的共享 Rust/MSVC exact path 已验证；domain `cargo check` 通过，Assessment/learning persistence/machine tasks 合计 16 passed；外部 .NET SDK 10.0.400 完成 Avalonia build，CoreSupervisor apphost 与 Vocabulary wire cases 运行通过。API Rust 链接仍因共享环境缺 `kernel32.lib` 阻塞，不能把局部 runtime 证据升格为完整 P3。
 
 验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `7 passed`，退出码均为 `0`；Rust/Rustfmt/Dotnet 为 `NOT_EXECUTED`（缺 `cargo`/`rustfmt`/`dotnet`）。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 

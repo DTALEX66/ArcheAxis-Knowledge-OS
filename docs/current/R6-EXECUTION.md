@@ -185,6 +185,14 @@
 - next_ready_when_preconditions_exist: P3 real first-use path — Core Assessment → answer → Mastery/FSRS → full restart/readback — requires `cargo`, `.NET SDK` and permitted project-local fixtures.
 - independent_gates: A15 remains `PLANNED / NO_EVIDENCE`; A16 remains Owner Gate. No local contract test is promoted to runtime, independent audit, Green or release evidence.
 
+### 工具链恢复运行回读
+
+- subject_sha: `d5776f6b3efb0d804396b1d4258aed43e032ffcd`
+- Rust domain: exact shared cargo/rustc path and isolated project target; `cargo check --offline -p archeaxis-domain` exit `0`; `assessment`, `learning_state_persistence`, `machine_tasks` — `16 passed`; `cargo fmt` `NOT_EXECUTED` because rustfmt component is absent.
+- .NET desktop: exact declared external SDK `10.0.400`; `ArcheAxis.Desktop.csproj` build `0 warnings, 0 errors`; CoreSupervisor apphost exit `0` with `stop-race` skipped; Vocabulary apphost exit `0`, `29 shared wire cases parsed`.
+- API Rust: exact cargo/MSVC invocation reaches linker but fails `LNK1181: kernel32.lib`; API learning/machine tests remain `NOT_EXECUTED / BLOCKED` until the shared Windows SDK LIB is available.
+- boundaries: no external toolchain files were modified; generated outputs stayed under project `.project-local` or project test output roots; no E/F, Green or real material library was accessed.
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
