@@ -90,3 +90,32 @@ async fn learning_items_returns_one_latest_deadline_per_item() {
     assert_eq!(value["items"][0]["item_key"], "restart-card");
     assert_eq!(value["items"][0]["next_review"], "2026-09-02T00:10:00+00:00");
 }
+
+#[tokio::test]
+async fn submitted_answer_is_readable_after_core_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("learning.sqlite");
+    let router = app(db.to_str().unwrap()).unwrap();
+    let mut body = request("answer-1", "2026-09-02T00:00:00+00:00");
+    body["answer"] = json!("用自己的话说明 FSRS 如何安排下一次复习");
+    let (status, value) = post(&router, body, "human").await;
+    assert_eq!(status, StatusCode::CREATED, "{value}");
+
+    // Reopen the same workspace and read the persisted learning receipt.
+    drop(router);
+    let reopened = app(db.to_str().unwrap()).unwrap();
+    let response = reopened
+        .clone()
+        .oneshot(
+            Request::get("/api/v1/learning/events/restart-card")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let history: Value = serde_json::from_slice(&bytes).unwrap();
+    let outcome: Value = serde_json::from_str(history["events"][0]["outcome"].as_str().unwrap()).unwrap();
+    assert_eq!(outcome["answer"], "用自己的话说明 FSRS 如何安排下一次复习");
+}

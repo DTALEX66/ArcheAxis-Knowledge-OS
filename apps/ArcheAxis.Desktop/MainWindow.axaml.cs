@@ -342,6 +342,11 @@ public partial class MainWindow : Window
             return;
         }
         var answer = LearningAnswerBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(answer))
+        {
+            CoreStatusText.Text = "学习路径：请输入回答后再提交";
+            return;
+        }
         if (ReviewOutcomeBox.SelectedIndex is not (1 or 2))
         {
             CoreStatusText.Text = "学习路径：请选择回答结果";

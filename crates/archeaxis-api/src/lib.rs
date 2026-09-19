@@ -537,6 +537,9 @@ async fn record_stateful_review(
         || !(1..=4).contains(&rating) || (rating == 1) == body.correct {
         return (StatusCode::BAD_REQUEST, "item, event key and consistent rating/outcome are required").into_response();
     }
+    if body.answer.as_deref().is_some_and(|answer| answer.trim().is_empty()) {
+        return (StatusCode::BAD_REQUEST, "answer must not be empty").into_response();
+    }
     let canonical = serde_json::json!({"item_key":body.item_key,"correct":body.correct,
         "rating":rating,"now":body.now,"answer":body.answer,
         "question_version":body.question_version,"knowledge_version":body.knowledge_version,
@@ -550,8 +553,8 @@ async fn record_stateful_review(
                 Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
             }
         }
-        let result = learning::record_review_with_state(conn, &body.item_key, "review", body.correct,
-            &body.client_event_id, &canonical, |connection| {
+        let result = learning::record_review_with_state_and_answer(conn, &body.item_key, "review", body.correct,
+            &body.client_event_id, &canonical, body.answer.as_deref(), |connection| {
                 let previous = learning::latest_fsrs_state_json(connection, &body.item_key)?;
                 let card: serde_json::Value = match previous {
                     Some(value) => serde_json::from_str(&value).map_err(|_| rusqlite::Error::InvalidQuery)?,

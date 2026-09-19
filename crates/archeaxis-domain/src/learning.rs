@@ -223,9 +223,37 @@ pub fn record_review_with_state(
     canonical_request: &str,
     resolve: impl FnOnce(&Connection) -> rusqlite::Result<ReviewSchedule>,
 ) -> rusqlite::Result<ReviewReceipt> {
+    record_review_with_state_and_answer(
+        conn,
+        item_key,
+        kind,
+        correct,
+        client_event_key,
+        canonical_request,
+        None,
+        resolve,
+    )
+}
+
+/// Record a stateful review and retain the learner's submitted answer in the
+/// append-only receipt. The answer is evidence of what the learner entered;
+/// it does not assert that the answer is true or that mastery was achieved.
+pub fn record_review_with_state_and_answer(
+    conn: &mut Connection,
+    item_key: &str,
+    kind: &str,
+    correct: bool,
+    client_event_key: &str,
+    canonical_request: &str,
+    answer: Option<&str>,
+    resolve: impl FnOnce(&Connection) -> rusqlite::Result<ReviewSchedule>,
+) -> rusqlite::Result<ReviewReceipt> {
     let invalid = |message: &str| rusqlite::Error::InvalidParameterName(message.into());
     if item_key.trim().is_empty() || client_event_key.trim().is_empty() {
         return Err(invalid("review requires item and persistent event key"));
+    }
+    if answer.is_some_and(|value| value.trim().is_empty()) {
+        return Err(invalid("submitted answer must not be empty"));
     }
     let mut hash = Sha256::new();
     hash.update(b"archeaxis.learning-state/v1\0");
@@ -259,10 +287,18 @@ pub fn record_review_with_state(
     if !review_schedule_is_valid(&tx, &schedule)? {
         return Err(invalid("schedule state or exact due date is inconsistent"));
     }
-    let outcome_json: String = tx.query_row(
-        "SELECT json_object('outcome', ?1, 'schedule', json(?2))",
-        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json], |r| r.get(0),
-    )?;
+    let outcome_json: String = match answer {
+        Some(answer) => tx.query_row(
+            "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3)",
+            rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer],
+            |r| r.get(0),
+        )?,
+        None => tx.query_row(
+            "SELECT json_object('outcome', ?1, 'schedule', json(?2))",
+            rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json],
+            |r| r.get(0),
+        )?,
+    };
     let streak_after = if correct { correct_streak(&tx, item_key)? + 1 } else { 0 };
     tx.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,?2,?3,?4)",
         rusqlite::params![item_key, kind, outcome_json, schedule.next_review])?;

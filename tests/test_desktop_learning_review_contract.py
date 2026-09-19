@@ -106,6 +106,14 @@ def test_review_ids_are_allocated_once_per_exposure_and_reused_on_retry() -> Non
     assert "_activeExposureId = null;" in submit, "a success must close the exposure"
 
 
+def test_review_submission_requires_a_real_answer() -> None:
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick")
+
+    assert 'string.IsNullOrWhiteSpace(answer)' in submit
+    assert "请输入回答" in submit
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(

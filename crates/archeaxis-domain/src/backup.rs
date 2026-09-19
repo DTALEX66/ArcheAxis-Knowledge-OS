@@ -92,8 +92,10 @@ pub fn restore(snapshot_path: &str, dst: &mut Connection) -> rusqlite::Result<()
     Ok(())
 }
 
-/// Verify a snapshot/restored db: compare object counts between two databases.
+/// Verify a snapshot/restored db: validate source hashes and compare object counts.
 pub fn verify_counts(a: &Connection, b: &Connection) -> rusqlite::Result<bool> {
+    verify_source_objects(a)?;
+    verify_source_objects(b)?;
     let tables = [
         "sources",
         "transforms",
@@ -109,4 +111,12 @@ pub fn verify_counts(a: &Connection, b: &Connection) -> rusqlite::Result<bool> {
         }
     }
     Ok(true)
+}
+
+fn verify_source_objects(conn: &Connection) -> rusqlite::Result<()> {
+    let mut sources = conn.prepare("SELECT sha256 FROM sources")?;
+    for digest in sources.query_map([], |row| row.get::<_, String>(0))? {
+        raw_objects::read(conn, &digest?)?;
+    }
+    Ok(())
 }

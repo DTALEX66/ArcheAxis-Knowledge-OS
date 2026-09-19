@@ -36,3 +36,23 @@ fn online_backup_restores_original_bytes_and_rejects_tampering_without_changing_
     assert!(backup::restore(snapshot.to_str().unwrap(), &mut dst).is_err());
     assert_eq!(dst.query_row("SELECT count(*) FROM sources", [], |r| r.get::<_, i64>(0)).unwrap(), 2);
 }
+
+#[test]
+fn verify_counts_rejects_a_tampered_persisted_source_object() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut source_db = init_workspace(dir.path().join("source.sqlite").to_str().unwrap()).unwrap();
+    source::import_source(&mut source_db, b"original", "original.bin", None).unwrap();
+    let snapshot = dir.path().join("snapshot.sqlite");
+    backup::backup(&source_db, snapshot.to_str().unwrap()).unwrap();
+
+    let mut restored = init_workspace(dir.path().join("restored.sqlite").to_str().unwrap()).unwrap();
+    backup::restore(snapshot.to_str().unwrap(), &mut restored).unwrap();
+    assert!(backup::verify_counts(&source_db, &restored).unwrap());
+
+    let digest: String = restored
+        .query_row("SELECT sha256 FROM sources", [], |row| row.get(0))
+        .unwrap();
+    std::fs::write(raw_objects::root(&restored).unwrap().join(digest), b"tampered").unwrap();
+
+    assert!(backup::verify_counts(&source_db, &restored).is_err());
+}
