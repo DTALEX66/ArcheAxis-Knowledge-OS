@@ -1,0 +1,114 @@
+{
+  "schema": "archeaxis.r6.state/v1",
+  "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
+  "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
+  "updated_at": "2026-09-19T14:16:06.5008839Z",
+  "subject_sha": "d1375b976c915ae27b6fb7bc60be800632648cb2",
+  "delivery_line": "main",
+  "release_status": "FROZEN",
+  "overall_status": "IN_PROGRESS",
+  "tasks": [
+    {
+      "id": "A00",
+      "status": "IMPLEMENTED_LOCAL_PENDING_TEST",
+      "evidence_level": "IMPLEMENTED_LOCAL",
+      "remaining_gap": "run authority/state validation"
+    },
+    {
+      "id": "A01",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A02",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A03",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A04",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A05",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A06",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A07",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A08",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A09",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A10",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A11",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A12",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A13",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A14",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A15",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    },
+    {
+      "id": "A16",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "remaining_gap": "not started in R6"
+    }
+  ]
+}

@@ -8,7 +8,7 @@
 | Concern | Authority | 说明 |
 |---|---|---|
 | 项目 agent 边界 | `AGENTS.md` | 使命、目录边界、隐私/数据边界、工作规则 |
-| 当前执行与架构决策 | `PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml`、`docs/current/R5-EXECUTION.md` | 唯一活动包 `docs/authority/taskpack-0912-r5/`（AAK-FOLLOWUP-20260908-R3 / R5，SUP-019）；进度侧车 `docs/current/R5-STATE.json`。0910 R3.1及0908/0907/0906保留原任务正文与各自SHA收据，历史基线不是当前完成状态；独立Q00/Q01不由执行者自签 |
+| 当前执行与架构决策 | `PROJECT_CONTRACT.yaml`、`DECISION_SUPERSESSION_LEDGER.yaml`、`docs/current/R6-EXECUTION.md` | 唯一活动包 `docs/authority/taskpack-0919-r6/`（AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6）；进度侧车 `docs/current/R6-STATE.json`。R5及更早任务包保留原任务正文与各自SHA收据，属于历史来源，不得当作当前完成状态；独立审计与 Owner Gate 不由执行者自签 |
 | 本机共享库、绿色软件与资料根路径 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md) | 用户 2026-09-07 指定的五个资源根；每次定位工具/模型/测试资料先查此表，不猜目录；真实资料库与测试库严格分离，不等于修改产品设置 |
 | 开发运行根 | `scripts/runtime/dev.py` | `.project-local` 下 worktree/run 隔离；Bash/PowerShell 共用；不是产品 workspace |
 | 正式桌面worker路径载荷 | `apps/ArcheAxis.Desktop/WorkerProfile.cs` | `archeaxis.worker-profile/v1`：应用旁worker-profile.json，显式ARCHAXIS_WORKER_PROFILE覆盖；只含schema/python/script/staging，严格拒绝未知/重复字段及受保护/链接路径。开发由scripts/launch/desktop_launch.py经dev.py生成隔离配置；不改变legacy defaults数据库或读取私有代理配置 |

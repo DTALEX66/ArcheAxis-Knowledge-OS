@@ -1,0 +1,9 @@
+{
+  "schema": "archeaxis.r6.manifest/v1",
+  "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
+  "taskpack": "TASKPACK.md",
+  "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
+  "generated_at": "2026-09-19T14:14:59.7438277Z",
+  "source": "user-provided pasted taskpack",
+  "status": "installed-local-authority"
+}

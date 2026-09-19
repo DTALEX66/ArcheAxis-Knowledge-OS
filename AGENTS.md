@@ -66,16 +66,17 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 
 ## 6. Implementation Workflow
 
-The user-approved active plan is the R5 follow-up pack installed at
-`docs/authority/taskpack-0912-r5/` (plan_id `AAK-FOLLOWUP-20260908-R3`,
-package_revision `R5`). Read its `EXECUTOR-START.md`, `TASKS.json` and
-`REMAINING-WORK.json`. Live progress is maintained outside the immutable package
-in `docs/current/R5-EXECUTION.md` and `docs/current/R5-STATE.json` (SUP-019).
-The owner prioritized repository normalization and safe cleanup on 2026-09-13:
-X00 -> X01/X02 -> early X14, then the product dependency graph. Preserve unknown
-private state and user assets; destructive cleanup needs an exact reviewed path
-list. At 60% remaining account-wide Codex allowance, prepare the handoff and
-publish only verified, task-owned changes under the owner's current authorization.
+The user-approved active plan is the R6 Local Green absorb-first pack installed at
+`docs/authority/taskpack-0919-r6/` (plan_id `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`,
+package_revision `R6`). Read its `EXECUTOR-START.md`, `TASKS.json` and
+`TASKPACK.md`. Live progress is maintained outside the immutable package
+in `docs/current/R6-EXECUTION.md` and `docs/current/R6-STATE.json`. R5 remains
+historical source material and its receipts retain their own SHAs. R6 preserves
+the Rust canonical writer, fixed shared-resource paths, and the no-release boundary;
+Local Green qualification is separate from publication. Preserve unknown private
+state and user assets; destructive cleanup needs an exact reviewed path list.
+At low remaining account-wide Codex allowance, prepare the handoff and publish only
+verified, task-owned changes under the owner's current authorization.
 
 The preceding plan is the AAK 2026-09-10 follow-up pack
 (ARCHEAXIS-NEXT-TASKPACK-2026-09-10, revision R3.1); live execution state is

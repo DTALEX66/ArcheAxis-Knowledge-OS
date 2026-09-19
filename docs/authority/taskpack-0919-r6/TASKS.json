@@ -1,0 +1,144 @@
+{
+  "schema": "archeaxis.r6.tasks/v1",
+  "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
+  "package_revision": "R6",
+  "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
+  "tasks": [
+    {
+      "id": "A00",
+      "title": "Authority Reset",
+      "depends_on": null,
+      "status": "IN_PROGRESS",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A01",
+      "title": "Version and Release Freeze",
+      "depends_on": "A00",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A02",
+      "title": "Resource Path Environment Authority",
+      "depends_on": "A01",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": true
+    },
+    {
+      "id": "A03",
+      "title": "Capability Absorption Registry",
+      "depends_on": "A02",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A04",
+      "title": "Knowledge Source Model V3",
+      "depends_on": "A03",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A05",
+      "title": "Multiformat Pipeline",
+      "depends_on": "A04",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A06",
+      "title": "Retrieval Graph Research",
+      "depends_on": "A05",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A07",
+      "title": "Machine Memory Growth",
+      "depends_on": "A06",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A08",
+      "title": "Human Learning Kernel",
+      "depends_on": "A07",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A09",
+      "title": "Domain Learning Packs",
+      "depends_on": "A08",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A10",
+      "title": "Courseware Learning Artifacts",
+      "depends_on": "A09",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A11",
+      "title": "Local Model Pool",
+      "depends_on": "A10",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": true
+    },
+    {
+      "id": "A12",
+      "title": "Avalonia Product Shell",
+      "depends_on": "A11",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": false
+    },
+    {
+      "id": "A13",
+      "title": "Legacy Migration Local Green",
+      "depends_on": "A12",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": true
+    },
+    {
+      "id": "A14",
+      "title": "Full Human Machine Closed Loop",
+      "depends_on": "A13",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": true
+    },
+    {
+      "id": "A15",
+      "title": "Independent Audit",
+      "depends_on": "A14",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": true
+    },
+    {
+      "id": "A16",
+      "title": "Owner Gate",
+      "depends_on": "A15",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "owner_decision_required": true
+    }
+  ]
+}
