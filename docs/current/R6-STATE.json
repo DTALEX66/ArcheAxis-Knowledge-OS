@@ -2,7 +2,7 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T14:27:31.2863261Z",
+  "updated_at": "2026-09-19T14:30:45.6122319Z",
   "subject_sha": "b1df307c353112928df410780ea3f0695f2a82a3",
   "delivery_line": "main",
   "release_status": "FROZEN",
@@ -10,9 +10,10 @@
   "tasks": [
     {
       "id": "A00",
-      "status": "IMPLEMENTED_LOCAL_PENDING_TEST",
-      "evidence_level": "IMPLEMENTED_LOCAL",
-      "remaining_gap": "run authority/state validation"
+      "status": "TESTED_LOCAL",
+      "evidence_level": "TESTED_LOCAL",
+      "remaining_gap": "state and authority validation recorded",
+      "subject_sha": "48a83e07a13d3c2bf09f8d9b46ffffd73482c104"
     },
     {
       "id": "A01",
