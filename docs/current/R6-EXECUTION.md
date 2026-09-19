@@ -538,3 +538,20 @@
 - `contract_repair`: worker protocol version is now derived only from `v*` directories containing `worker-protocol.schema.json`; the independent Knowledge V3 schema directory no longer creates a false protocol-version collision. Nine v1 schemas now carry explicit draft-2020-12 `$schema` and filename-matching `$id` metadata; no business fields were changed.
 - `verification`: `check_repository_conventions.py --source worktree --format json` returned `issue_count=0`; `check_language_boundaries.py --json` returned `passed=true`, protocol major `1`; `check_vnext_contracts.py` returned exit `0`; the affected contract regression command returned `50 passed, 1 warning`, exit `0`; authority SHA consistency returned `PASS`.
 - `scope`: project source/contracts/tests/docs only; no external library, Green runtime, real data, E/F, credentials or private agent state was accessed. This receipt does not claim CI, installer, GUI or full M0 closure.
+
+## Continuation receipt — 2026-09-20 A04 V3 governance write path
+
+- `subject_sha`: `566ef4716ac161b1627cd10ced13331323f48eaf`
+- `changed_paths`: `crates/archeaxis-store-sqlite/src/lib.rs`, `crates/archeaxis-domain/src/knowledge.rs`, `crates/archeaxis-api/src/lib.rs`, `crates/archeaxis-api/tests/knowledge_v3_projection.rs`, and archive schema-version assertions.
+- `behavior`: the Rust Core remains the single writer; V3 governance fields are stored in an additive `knowledge_v3_metadata` sidecar, validated at the canonical write path, projected on `/api/v1/knowledge-items/:id/v3`, and inherited across modified review revisions. Legacy rows keep explicit unknown values when no metadata exists.
+- `verification`: focused Python gates were not applicable to Rust behavior; `git diff --check` passed. Rust `cargo fmt/test` were `NOT_EXECUTED` because no usable cargo executable is available in the bounded environment and rebuilding through the external shared toolchain was not authorized by the execution boundary. This is `TESTED_LOCAL_PARTIAL`, not a Rust runtime PASS.
+- `scope`: no external library, Green runtime, real data, E/F, credentials or private agent state was accessed; no dual-write was introduced.
+- `remaining_gap`: exact Rust compile/test, cold restart/readback, Avalonia UI wiring and real first-use V3 journey remain open.
+
+## Continuation receipt — 2026-09-20 A05 HTML static execution receipt
+
+- `subject_sha`: `566ef4716ac161b1627cd10ced13331323f48eaf`
+- `changed_paths`: `services/python-workers/web/worker_html.py`, `tests/workers/test_bulk_html.py`, `tests/test_unified_job_contract.py`.
+- `behavior`: HTML snapshot execution now emits `archeaxis.format-execution-receipt/v1` bound to source SHA-256, engine/version, derived document id, measured blocks/anchors/links and explicit static-snapshot limitations; the existing transport preserves it inside the loss report without changing the three-output protocol.
+- `verification`: focused worker and unified-job command returned `18 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `scope`: static local HTML only; dynamic browser rendering, remote fetching, semantic quality, external engines and complete format promotion remain open. Evidence level is `TESTED_LOCAL`, not `complete`.

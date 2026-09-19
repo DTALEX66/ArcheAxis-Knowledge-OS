@@ -116,3 +116,76 @@ async fn v3_projection_returns_not_found_without_touching_the_writer() {
     assert_eq!(status, 404);
     assert!(payload.is_object());
 }
+
+#[tokio::test]
+async fn v3_write_persists_governance_metadata_and_carries_it_across_revision() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = app(dir.path().join("knowledge.sqlite").to_str().unwrap()).unwrap();
+    let (status, created) = json(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        r#"{"knowledge_type":"PERSONAL_EXPERIENCE","body":"temporal personal fact","status":"accepted","created_by":"owner","v3":{"source_type":"personal_experience","owner":"human","support_level":"moderate","confidence":0.75,"risk_level":"medium","valid_from":"2026-09-01T00:00:00+00:00","valid_to":"2026-09-30T00:00:00+00:00","external_evidence":[],"requires_human_review":true}}"#,
+    )
+    .await;
+    assert_eq!(status, 201);
+    let id = created["knowledge_id"].as_str().unwrap();
+
+    let (status, projected) = json(
+        &router,
+        "GET",
+        &format!("/api/v1/knowledge-items/{id}/v3"),
+        "",
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(projected["support_level"], "moderate");
+    assert_eq!(projected["confidence"], 0.75);
+    assert_eq!(projected["risk_level"], "medium");
+    assert_eq!(projected["valid_from"], "2026-09-01T00:00:00+00:00");
+    assert_eq!(projected["valid_to"], "2026-09-30T00:00:00+00:00");
+
+    let (status, revised) = json(
+        &router,
+        "POST",
+        &format!("/api/v1/knowledge-items/{id}/review-decisions"),
+        r#"{"action":"modified","reviewer":"owner","new_body":"corrected temporal personal fact"}"#,
+    )
+    .await;
+    assert_eq!(status, 200);
+    let revised_id = revised["knowledge_id"].as_str().unwrap();
+    let (status, revised_projection) = json(
+        &router,
+        "GET",
+        &format!("/api/v1/knowledge-items/{revised_id}/v3"),
+        "",
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(revised_projection["confidence"], 0.75);
+    assert_eq!(revised_projection["risk_level"], "medium");
+    assert_eq!(revised_projection["supersedes"], serde_json::json!([id]));
+}
+
+#[tokio::test]
+async fn v3_write_rejects_invalid_temporal_and_machine_governance() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = app(dir.path().join("knowledge.sqlite").to_str().unwrap()).unwrap();
+    let (status, _) = json(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"bad dates","status":"accepted","created_by":"owner","v3":{"source_type":"personal_definition","owner":"human","valid_from":"2026-09-30T00:00:00+00:00","valid_to":"2026-09-01T00:00:00+00:00"}}"#,
+    )
+    .await;
+    assert_eq!(status, 400);
+
+    let (status, _) = json(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        r#"{"knowledge_type":"FACTUAL_CLAIM","body":"machine accepted","status":"accepted","created_by":"python-worker","v3":{"source_type":"machine_candidate","owner":"machine"}}"#,
+    )
+    .await;
+    assert_eq!(status, 400);
+}

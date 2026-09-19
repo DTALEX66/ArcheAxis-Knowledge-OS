@@ -3,7 +3,7 @@
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
   "updated_at": "2026-09-21T01:25:00Z",
-  "subject_sha": "7944c5f011be2f963cef97af32518e1e54a0b46d",
+  "subject_sha": "566ef4716ac161b1627cd10ced13331323f48eaf",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -39,15 +39,15 @@
       "id": "A04",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "V3 read projection and revision provenance now pass; write-side V3 metadata persistence, UI wiring and real first-use journey remain open",
-      "subject_sha": "766a281d"
+      "remaining_gap": "V3 governance metadata now has a canonical Rust write path, sidecar persistence, projection and revision inheritance; Rust compile/runtime readback is NOT_EXECUTED in this environment, while UI wiring and real first-use journey remain open",
+      "subject_sha": "566ef4716ac161b1627cd10ced13331323f48eaf"
     },
     {
       "id": "A05",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "workspace intake now preserves the legacy converter injection seam while the default path keeps the trace receipt; semantic quality, external engines and real fixtures remain open",
-      "subject_sha": "97300cc6c8e6389edc33f5dc32adaec8761e6c58"
+      "remaining_gap": "workspace intake and HTML static snapshots now emit path-free format execution receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open",
+      "subject_sha": "566ef4716ac161b1627cd10ced13331323f48eaf"
     },
     {
       "id": "A06",

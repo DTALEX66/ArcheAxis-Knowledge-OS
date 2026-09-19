@@ -95,6 +95,24 @@ def test_pdf_route_uses_the_same_contract(tmp_path: Path) -> None:
     assert structure and structure[0]["path"][0].startswith("page-")
 
 
+def test_html_route_preserves_the_bound_format_execution_receipt(tmp_path: Path) -> None:
+    from app.contracts.format_execution_v1 import FormatExecutionReceiptV1
+
+    html_bytes = b"<html><body><h1>Receipt</h1><p>6371 km</p></body></html>"
+    staging, digest = _staging(tmp_path, html_bytes)
+    outputs, _measurements, _warnings = transport.execute(
+        _request("html.structure", digest, "text/html"), staging
+    )
+    loss = json.loads(_artifact(staging, outputs, "loss_report"))
+    receipt = loss["params"]["worker_output"]["format_execution_receipt"]
+    validated = FormatExecutionReceiptV1.model_validate(receipt)
+    assert validated.original.sha256 == digest
+    assert validated.original.name == digest
+    assert validated.transform.engine == "python-worker-html"
+    assert validated.structure.block_count == 2
+    assert len(validated.anchors) == 2
+
+
 def test_ocr_route_uses_the_same_contract(tmp_path: Path) -> None:
     Image = pytest.importorskip("PIL.Image", reason="PIL required")
     Draw = pytest.importorskip("PIL.ImageDraw", reason="PIL required")

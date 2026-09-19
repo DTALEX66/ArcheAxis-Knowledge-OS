@@ -16,6 +16,7 @@ Output: {"engine","engine_version","text","title","links","structure","loss_rece
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -93,6 +94,59 @@ class _Extractor(HTMLParser):
         self._text_parts = []
 
 
+def _format_execution_receipt(raw: bytes, path: str, blocks: list[str], anchors: list[dict]) -> dict:
+    """Bind this HTML execution to the retained bytes and its actual projection.
+
+    The unified worker protocol still stores the receipt as a loss-report parameter,
+    so this nested object does not add a fourth Core output.  It is a real execution
+    receipt: the source digest, engine identity, derived document id, block/anchor
+    counts and the limitations observed by this static snapshot worker are all
+    derived from this invocation.  The source path is reduced to its display name.
+    """
+    source_sha256 = hashlib.sha256(raw).hexdigest()
+    block_count = len(blocks)
+    partial_note = (
+        "static snapshot only: scripts, styles, templates and SVG are skipped; "
+        "URL fetching, dynamic rendering and semantic fidelity are not measured"
+    )
+    return {
+        "schema": "archeaxis.format-execution-receipt/v1",
+        "receipt_id": f"html-execution-{source_sha256}",
+        "status": "partial" if block_count else "unsupported",
+        "original": {
+            "sha256": source_sha256,
+            "name": Path(path).name or "snapshot.html",
+            "format": "html",
+            "retained": True,
+        },
+        "transform": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "derived_document_id": f"html-document-{source_sha256}",
+        },
+        "loss": {
+            "status": "partial" if block_count else "unknown",
+            "notes": [partial_note],
+        },
+        "structure": {"block_count": block_count, "block_kinds": ["block"] if block_count else []},
+        "anchors": [
+            {"block_id": f"block-{index}", "kind": anchor["kind"], "locator": anchor}
+            for index, anchor in enumerate(anchors, start=1)
+        ],
+        "quality_facts": [
+            {"name": "block_count", "status": "measured", "value": block_count, "unit": "blocks"},
+            {"name": "anchor_count", "status": "measured", "value": len(anchors), "unit": "anchors"},
+            {"name": "link_count", "status": "measured", "value": 0, "unit": "links"},
+            {
+                "name": "semantic_fidelity",
+                "status": "unsupported",
+                "note": "static HTML extraction does not measure semantic fidelity",
+            },
+        ],
+        "fallback": {"used": False, "attempted_engines": [], "selected_engine": None, "reason": None},
+    }
+
+
 def extract(path: str) -> dict:
     raw = Path(path).read_bytes()
     try:
@@ -125,6 +179,9 @@ def extract(path: str) -> dict:
         )
         offset = start + len(block)
 
+    execution_receipt = _format_execution_receipt(raw, path, blocks, anchors)
+    execution_receipt["quality_facts"][2]["value"] = len(parser.links)
+
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
@@ -132,6 +189,7 @@ def extract(path: str) -> dict:
         "title": parser.title.strip(),
         "links": parser.links,
         "structure": anchors,
+        "format_execution_receipt": execution_receipt,
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,

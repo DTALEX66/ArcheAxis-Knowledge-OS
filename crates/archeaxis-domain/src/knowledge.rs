@@ -4,6 +4,74 @@ use archeaxis_contracts::KNOWLEDGE_TYPES;
 use rusqlite::{Connection, OptionalExtension};
 use sha2::{Digest, Sha256};
 
+/// Governance metadata owned by the canonical Rust writer.  The legacy
+/// knowledge row remains the identity/status record; this sidecar stores the
+/// V3 fields that cannot be inferred safely from that row.
+#[derive(Clone, Debug)]
+pub struct KnowledgeV3Metadata {
+    pub source_type: String,
+    pub owner: String,
+    pub support_level: String,
+    pub confidence: Option<f64>,
+    pub risk_level: String,
+    pub valid_from: Option<String>,
+    pub valid_to: Option<String>,
+    pub external_evidence: Vec<String>,
+    pub requires_human_review: bool,
+}
+
+const V3_SOURCE_TYPES: &[&str] = &[
+    "personal_experience", "personal_note", "personal_definition",
+    "project_observation", "external_document", "authoritative_reference",
+    "derived_inference", "machine_candidate", "imported_legacy", "research_result",
+];
+const V3_OWNERS: &[&str] = &["human", "machine", "system"];
+const V3_SUPPORT_LEVELS: &[&str] = &["none", "weak", "moderate", "strong", "authoritative"];
+const V3_RISK_LEVELS: &[&str] = &["low", "medium", "high", "critical"];
+
+fn v3_error(message: impl Into<String>) -> rusqlite::Error {
+    rusqlite::Error::InvalidParameterName(message.into())
+}
+
+fn validate_v3(status: &str, metadata: &KnowledgeV3Metadata) -> rusqlite::Result<()> {
+    if !V3_SOURCE_TYPES.contains(&metadata.source_type.as_str()) {
+        return Err(v3_error(format!("unknown V3 source_type: {}", metadata.source_type)));
+    }
+    if !V3_OWNERS.contains(&metadata.owner.as_str()) {
+        return Err(v3_error(format!("unknown V3 owner: {}", metadata.owner)));
+    }
+    if !V3_SUPPORT_LEVELS.contains(&metadata.support_level.as_str()) {
+        return Err(v3_error(format!("unknown V3 support_level: {}", metadata.support_level)));
+    }
+    if !V3_RISK_LEVELS.contains(&metadata.risk_level.as_str()) {
+        return Err(v3_error(format!("unknown V3 risk_level: {}", metadata.risk_level)));
+    }
+    if let Some(confidence) = metadata.confidence {
+        if !(0.0..=1.0).contains(&confidence) {
+            return Err(v3_error("V3 confidence must be between 0 and 1"));
+        }
+    }
+    if let (Some(valid_from), Some(valid_to)) = (&metadata.valid_from, &metadata.valid_to) {
+        if valid_to < valid_from {
+            return Err(v3_error("V3 valid_to must not precede valid_from"));
+        }
+    }
+    if metadata.owner == "machine" && metadata.source_type != "machine_candidate" {
+        return Err(v3_error("machine V3 owner must use source_type=machine_candidate"));
+    }
+    if metadata.source_type == "machine_candidate"
+        && !matches!(status, "candidate" | "rejected" | "deprecated")
+    {
+        return Err(v3_error("machine_candidate cannot be accepted or verified automatically"));
+    }
+    if status == "verified"
+        && (metadata.support_level == "none" || metadata.requires_human_review)
+    {
+        return Err(v3_error("verified V3 knowledge requires support and completed human review"));
+    }
+    Ok(())
+}
+
 fn receipt_hash(kind: &str, body: &str, status: &str, anchor_id: Option<&str>) -> String {
     let mut h = Sha256::new();
     let seed = format!("{kind}|{body}|{status}|{}", anchor_id.unwrap_or(""));
@@ -22,20 +90,70 @@ pub fn create_knowledge(
     anchor_id: Option<&str>,
     created_by: &str,
 ) -> rusqlite::Result<String> {
+    create_knowledge_v3(
+        conn,
+        knowledge_type,
+        body,
+        status,
+        evidence_status,
+        anchor_id,
+        created_by,
+        None,
+    )
+}
+
+/// Insert a knowledge row and, when supplied, its V3 governance metadata in a
+/// single transaction.  This keeps the legacy route compatible while giving
+/// new callers one canonical write path for temporal/support/risk fields.
+pub fn create_knowledge_v3(
+    conn: &mut Connection,
+    knowledge_type: &str,
+    body: &str,
+    status: &str,
+    evidence_status: Option<&str>,
+    anchor_id: Option<&str>,
+    created_by: &str,
+    metadata: Option<&KnowledgeV3Metadata>,
+) -> rusqlite::Result<String> {
     if !KNOWLEDGE_TYPES.contains(&knowledge_type) {
-        return Err(rusqlite::Error::InvalidParameterName(format!(
-            "unknown knowledge_type: {knowledge_type}"
-        )));
+        return Err(v3_error(format!("unknown knowledge_type: {knowledge_type}")));
+    }
+    if let Some(metadata) = metadata {
+        validate_v3(status, metadata)?;
     }
     let mut h = Sha256::new();
     h.update(format!("{knowledge_type}|{body}|{created_by}").as_bytes());
     let knowledge_id = format!("k_{}", &hex::encode(h.finalize())[..24]);
     let r = receipt_hash(knowledge_type, body, status, anchor_id);
-    conn.execute(
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    tx.execute(
         "INSERT INTO knowledge(knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, receipt_hash)
          VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
         rusqlite::params![knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, r],
     )?;
+    if let Some(metadata) = metadata {
+        let evidence = serde_json::to_string(&metadata.external_evidence)
+            .map_err(|error| v3_error(format!("invalid V3 external_evidence: {error}")))?;
+        tx.execute(
+            "INSERT INTO knowledge_v3_metadata(
+                knowledge_id, source_type, owner, support_level, confidence, risk_level,
+                valid_from, valid_to, external_evidence, requires_human_review
+             ) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
+            rusqlite::params![
+                knowledge_id,
+                &metadata.source_type,
+                &metadata.owner,
+                &metadata.support_level,
+                metadata.confidence,
+                &metadata.risk_level,
+                metadata.valid_from.as_deref(),
+                metadata.valid_to.as_deref(),
+                &evidence,
+                metadata.requires_human_review,
+            ],
+        )?;
+    }
+    tx.commit()?;
     Ok(knowledge_id)
 }
 
@@ -107,6 +225,19 @@ pub fn review(
         tx.execute(
             "INSERT INTO knowledge_supersedes(old_knowledge_id, new_knowledge_id) VALUES(?1,?2)",
             rusqlite::params![knowledge_id, kid],
+        )?;
+        // Carry V3 governance forward with a corrected candidate. The
+        // supersession relation still records the revision boundary; callers
+        // may replace metadata only through a future explicit review contract.
+        tx.execute(
+            "INSERT INTO knowledge_v3_metadata(
+                knowledge_id, source_type, owner, support_level, confidence, risk_level,
+                valid_from, valid_to, external_evidence, requires_human_review
+             )
+             SELECT ?1, source_type, owner, support_level, confidence, risk_level,
+                    valid_from, valid_to, external_evidence, requires_human_review
+             FROM knowledge_v3_metadata WHERE knowledge_id=?2",
+            rusqlite::params![kid, knowledge_id],
         )?;
         tx.commit()?;
         return Ok(kid);

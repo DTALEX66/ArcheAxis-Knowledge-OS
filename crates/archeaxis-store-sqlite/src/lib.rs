@@ -4,9 +4,8 @@ use rusqlite::Connection;
 pub mod raw_objects;
 pub mod writer;
 
-// Assessment is additive and created by the existing schema bootstrap; keep
-// the workspace version stable until an owner-approved migration contract exists.
-pub const SCHEMA_VERSION: i64 = 5;
+// Assessment and the V3 governance sidecar are additive schema changes.
+pub const SCHEMA_VERSION: i64 = 6;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -54,6 +53,23 @@ CREATE TABLE IF NOT EXISTS knowledge (
     created_by TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     receipt_hash TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS knowledge_v3_metadata (
+    knowledge_id TEXT PRIMARY KEY REFERENCES knowledge(knowledge_id),
+    source_type TEXT NOT NULL CHECK(source_type IN (
+        'personal_experience','personal_note','personal_definition',
+        'project_observation','external_document','authoritative_reference',
+        'derived_inference','machine_candidate','imported_legacy','research_result'
+    )),
+    owner TEXT NOT NULL CHECK(owner IN ('human','machine','system')),
+    support_level TEXT NOT NULL CHECK(support_level IN ('none','weak','moderate','strong','authoritative')),
+    confidence REAL CHECK(confidence IS NULL OR (confidence >= 0.0 AND confidence <= 1.0)),
+    risk_level TEXT NOT NULL CHECK(risk_level IN ('low','medium','high','critical')),
+    valid_from TEXT,
+    valid_to TEXT,
+    external_evidence TEXT NOT NULL DEFAULT '[]',
+    requires_human_review INTEGER NOT NULL CHECK(requires_human_review IN (0,1)),
+    CHECK(valid_from IS NULL OR valid_to IS NULL OR valid_to >= valid_from)
 );
 CREATE TABLE IF NOT EXISTS knowledge_supersedes (
     old_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
@@ -227,6 +243,27 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
                  ALTER TABLE learning_event_keys ADD COLUMN next_review_days INTEGER;",
             )?;
         }
+    }
+    if version < 6 {
+        tx.execute_batch(
+            "CREATE TABLE IF NOT EXISTS knowledge_v3_metadata (
+                knowledge_id TEXT PRIMARY KEY REFERENCES knowledge(knowledge_id),
+                source_type TEXT NOT NULL CHECK(source_type IN (
+                    'personal_experience','personal_note','personal_definition',
+                    'project_observation','external_document','authoritative_reference',
+                    'derived_inference','machine_candidate','imported_legacy','research_result'
+                )),
+                owner TEXT NOT NULL CHECK(owner IN ('human','machine','system')),
+                support_level TEXT NOT NULL CHECK(support_level IN ('none','weak','moderate','strong','authoritative')),
+                confidence REAL CHECK(confidence IS NULL OR (confidence >= 0.0 AND confidence <= 1.0)),
+                risk_level TEXT NOT NULL CHECK(risk_level IN ('low','medium','high','critical')),
+                valid_from TEXT,
+                valid_to TEXT,
+                external_evidence TEXT NOT NULL DEFAULT '[]',
+                requires_human_review INTEGER NOT NULL CHECK(requires_human_review IN (0,1)),
+                CHECK(valid_from IS NULL OR valid_to IS NULL OR valid_to >= valid_from)
+            );"
+        )?;
     }
     tx.execute(
         "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",

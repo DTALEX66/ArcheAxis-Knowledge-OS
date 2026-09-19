@@ -909,8 +909,36 @@ async fn knowledge_v3(
             Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
         };
         let (knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, created_at) = row;
-        let source_type = v3_source_type(&knowledge_type, &created_by);
-        let owner = v3_owner(&created_by, source_type);
+        let metadata = match conn.query_row(
+                "SELECT source_type, owner, support_level, confidence, risk_level,
+                        valid_from, valid_to, external_evidence, requires_human_review
+                 FROM knowledge_v3_metadata WHERE knowledge_id=?1",
+                [&knowledge_id],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, Option<f64>>(3)?,
+                        row.get::<_, String>(4)?,
+                        row.get::<_, Option<String>>(5)?,
+                        row.get::<_, Option<String>>(6)?,
+                        row.get::<_, String>(7)?,
+                        row.get::<_, bool>(8)?,
+                    ))
+                },
+            ).optional() {
+            Ok(value) => value,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let source_type = metadata
+            .as_ref()
+            .map(|value| value.0.as_str())
+            .unwrap_or_else(|| v3_source_type(&knowledge_type, &created_by));
+        let owner = metadata
+            .as_ref()
+            .map(|value| value.1.as_str())
+            .unwrap_or_else(|| v3_owner(&created_by, source_type));
         let supersedes = match v3_relation_ids(
             conn,
             "SELECT old_knowledge_id FROM knowledge_supersedes WHERE new_knowledge_id=?1 ORDER BY created_at, rowid",
@@ -942,11 +970,24 @@ async fn knowledge_v3(
                 |row| row.get::<_, String>(0),
             )
             .unwrap_or_else(|_| created_at.clone());
-        let requires_human_review = owner == "machine" || status == "candidate";
-        let external_evidence = evidence_status
-            .filter(|value| !value.trim().is_empty())
-            .map(|value| vec![value])
-            .unwrap_or_default();
+        let (support_level, confidence, risk_level, valid_from, valid_to, external_evidence, requires_human_review) =
+            if let Some((_, _, support, confidence, risk, from, to, evidence, review)) = metadata.as_ref() {
+                let evidence = serde_json::from_str::<Vec<String>>(&evidence).unwrap_or_default();
+                (support.clone(), *confidence, risk.clone(), from.clone(), to.clone(), evidence, *review)
+            } else {
+                (
+                    if evidence_status.is_some() { "weak".to_string() } else { "none".to_string() },
+                    None,
+                    "low".to_string(),
+                    None,
+                    None,
+                    evidence_status
+                        .filter(|value| !value.trim().is_empty())
+                        .map(|value| vec![value])
+                        .unwrap_or_default(),
+                    owner == "machine" || status == "candidate",
+                )
+            };
         (
             StatusCode::OK,
             Json(serde_json::json!({
@@ -954,13 +995,11 @@ async fn knowledge_v3(
                 "source_type": source_type,
                 "owner": owner,
                 "status": v3_status(&status, has_successor),
-                "support_level": if external_evidence.is_empty() { "none" } else { "weak" },
-                // Legacy rows have no confidence measurement. Keep UNKNOWN
-                // explicit rather than converting it into a numeric zero.
-                "confidence": serde_json::Value::Null,
-                "risk_level": "low",
-                "valid_from": serde_json::Value::Null,
-                "valid_to": serde_json::Value::Null,
+                "support_level": support_level,
+                "confidence": confidence,
+                "risk_level": risk_level,
+                "valid_from": valid_from,
+                "valid_to": valid_to,
                 "supersedes": supersedes,
                 "superseded_by": superseded_by,
                 "external_evidence": external_evidence,
@@ -986,7 +1025,33 @@ struct KnowledgeBody {
     status: String,
     #[serde(default)]
     created_by: String,
+    #[serde(default)]
+    v3: Option<KnowledgeV3Body>,
 }
+
+#[derive(Deserialize)]
+struct KnowledgeV3Body {
+    source_type: String,
+    owner: String,
+    #[serde(default = "default_support_level")]
+    support_level: String,
+    #[serde(default)]
+    confidence: Option<f64>,
+    #[serde(default = "default_risk_level")]
+    risk_level: String,
+    #[serde(default)]
+    valid_from: Option<String>,
+    #[serde(default)]
+    valid_to: Option<String>,
+    #[serde(default)]
+    external_evidence: Vec<String>,
+    #[serde(default = "default_requires_human_review")]
+    requires_human_review: bool,
+}
+
+fn default_support_level() -> String { "none".to_string() }
+fn default_risk_level() -> String { "low".to_string() }
+fn default_requires_human_review() -> bool { true }
 
 fn default_status() -> String {
     "candidate".to_string()
@@ -1014,8 +1079,30 @@ async fn create_knowledge(
         )
             .into_response();
     }
+    if let Some(v3) = &body.v3 {
+        if (actor == "machine" && v3.owner != "machine")
+            || (actor == "human" && v3.owner == "machine")
+        {
+            return (
+                StatusCode::BAD_REQUEST,
+                "V3 owner must match the trusted request actor",
+            )
+                .into_response();
+        }
+    }
     with_store(state, move |conn| {
-    match knowledge::create_knowledge(
+    let metadata = body.v3.map(|v3| knowledge::KnowledgeV3Metadata {
+        source_type: v3.source_type,
+        owner: v3.owner,
+        support_level: v3.support_level,
+        confidence: v3.confidence,
+        risk_level: v3.risk_level,
+        valid_from: v3.valid_from,
+        valid_to: v3.valid_to,
+        external_evidence: v3.external_evidence,
+        requires_human_review: v3.requires_human_review,
+    });
+    match knowledge::create_knowledge_v3(
         conn,
         &body.knowledge_type,
         &body.body,
@@ -1023,6 +1110,7 @@ async fn create_knowledge(
         None,
         None,
         &body.created_by,
+        metadata.as_ref(),
     ) {
         Ok(id) => (
             StatusCode::CREATED,

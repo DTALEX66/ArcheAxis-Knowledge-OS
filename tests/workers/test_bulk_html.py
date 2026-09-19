@@ -7,10 +7,13 @@ fallback, and tolerance of malformed input. No network, no dynamic DOM.
 """
 
 import importlib.util
+import hashlib
 import os
 import tempfile
 import unittest
 from pathlib import Path
+
+from app.contracts.format_execution_v1 import FormatExecutionReceiptV1
 
 ROOT = Path(__file__).resolve().parents[2]
 HTML_WORKER = ROOT / "services/python-workers/web/worker_html.py"
@@ -48,6 +51,17 @@ class HtmlBulkTests(unittest.TestCase):
         self.assertIn("1e20", out["text"])
         self.assertIsInstance(out["links"], list)
         self.assertTrue(out["structure"])
+
+    def test_real_static_snapshot_emits_a_bound_format_execution_receipt(self):
+        out = self.worker.extract(str(SNAPSHOT))
+        receipt = FormatExecutionReceiptV1.model_validate(out["format_execution_receipt"])
+        self.assertEqual(receipt.original.sha256, hashlib.sha256(SNAPSHOT.read_bytes()).hexdigest())
+        self.assertEqual(receipt.original.name, SNAPSHOT.name)
+        self.assertEqual(receipt.transform.engine, self.worker.ENGINE)
+        self.assertEqual(receipt.structure.block_count, len(out["structure"]))
+        self.assertEqual(len(receipt.anchors), len(out["structure"]))
+        self.assertEqual(receipt.status, "partial")
+        self.assertFalse(receipt.fallback.used)
 
     def test_script_style_template_svg_are_never_projected(self):
         content = (
