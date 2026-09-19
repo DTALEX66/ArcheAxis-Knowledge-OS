@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T21:22:00Z",
-  "subject_sha": "f8a124a2f0ed71bc413c4b5386325ccbb46cb8f8",
+  "updated_at": "2026-09-19T21:35:00Z",
+  "subject_sha": "a0b93bd8363747f65be40aa5c97bd6479dc08400",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -68,7 +68,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Core Assessment is generated/bound to active accepted or personal Knowledge; API learning/machine and desktop answer-recovery gates pass; a synthetic --learning-smoke driver now covers source-level Assessment→answer→FSRS projection→cold restart/readback, while current Core artifacts are stale or contract-mismatched and real Avalonia first-use, authoritative mastery projection and adaptive journey remain open",
-      "subject_sha": "b5dd4361bfac07140f9f77173fa42c39441df008"
+      "subject_sha": "4a0058f247d2e7d1dc1df8848019b7d4d367a65f"
     },
     {
       "id": "A09",
@@ -97,7 +97,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Release self-contained candidate and headless Core smoke pass; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
-      "subject_sha": "e6b02afeb6b8611cf4973dafd3b261a1eeebec26"
+      "subject_sha": "a0b93bd8363747f65be40aa5c97bd6479dc08400"
     },
     {
       "id": "A13",
@@ -111,7 +111,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "stage contract, answer readback, canonical machine retest binding and non-empty correction/retest evidence guards have local evidence; real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey and complete restart readback remain open",
-      "subject_sha": "274de700c4dc4c02ede5d15fb3938fef5498677f"
+      "subject_sha": "a0b93bd8363747f65be40aa5c97bd6479dc08400"
     },
     {
       "id": "A15",

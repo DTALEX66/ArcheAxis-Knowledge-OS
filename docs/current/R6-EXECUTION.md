@@ -579,3 +579,27 @@
 - `behavior`: course artifacts now reject blank or duplicate `source_ids` and `knowledge_ids` in both the Pydantic contract and the JSON Schema, keeping source/knowledge provenance deterministic.
 - `verification`: focused A09/A10 suite returned `20 passed, 1 warning`, exit `0`; the combined parallel gate returned `32 passed, 1 warning`, exit `0`; `git diff --check` passed. A broader schema coverage check still exposes its pre-existing hardcoded inventory drift and was not relabeled as a regression.
 - `boundary`: contract-level evidence only; real domain courseware, interactive execution, provider/model learning and human acceptance remain open.
+
+## Continuation receipt — 2026-09-20 parallel A08 quiz fail-closed boundary
+
+- `subject_sha`: `4a0058f247d2e7d1dc1df8848019b7d4d367a65f`
+- `changed_paths`: `app/learning/quiz.py`, `tests/test_quiz_learning_path.py`.
+- `behavior`: quiz generation now rejects unknown kinds and an explicit empty kind selection instead of silently returning an empty Assessment.
+- `verification`: focused A08 tests returned `36 passed, 1 warning`, exit `0`; the combined second-round gate returned `33 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `boundary`: contract-only local evidence; Core/Desktop runtime, real models and human learning remain open.
+
+## Continuation receipt — 2026-09-20 parallel A12 Green manifest integrity
+
+- `subject_sha`: `a0b93bd8363747f65be40aa5c97bd6479dc08400`
+- `changed_paths`: `scripts/release/verify_green_candidate.py`, `tests/test_green_candidate_manifest.py`.
+- `behavior`: candidate verification now fails closed for malformed file maps, unsafe relative paths, missing or symlinked files, byte-count mismatches and invalid or mismatched SHA-256 values; explicit source commit/tree checks remain opt-in to preserve existing candidate compatibility.
+- `verification`: new manifest tests returned `4 passed, 1 warning`, exit `0`; both existing project-local candidates passed their structural `--require-runtime --require-workers` checks, but neither is current-HEAD provenance.
+- `boundary`: this hardens project-local candidate verification only; it does not build a new exact-HEAD candidate or authorize Green replacement/rollback.
+
+## Continuation receipt — 2026-09-20 parallel A14 closed-loop evidence completeness
+
+- `subject_sha`: `a0b93bd8363747f65be40aa5c97bd6479dc08400`
+- `changed_paths`: `app/contracts/closed_loop_v1.py`, `tests/test_closed_loop_v1.py`.
+- `behavior`: a `complete` closed-loop receipt now requires every one of the eight ordered stages to contain non-empty, non-blank evidence references in addition to real evidence levels and pass statuses.
+- `verification`: focused A14 tests returned `19 passed, 3 warnings`, exit `0`; the combined second-round gate returned `33 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `boundary`: contract-level evidence only; a real model/user correction journey, restart, Green activation and rollback remain open.
