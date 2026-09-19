@@ -267,6 +267,15 @@
 - `boundary`: no E/F, credentials, private agent directories, external shared libraries, real material library, test source corpus, or existing Green runtime was read or modified.
 - `next_card`: verify the P3 human-learning first-use path with an available Rust/.NET toolchain, including Assessment → answer → Mastery/FSRS → full restart readback; keep A15/A16 and Green replacement owner-gated.
 
+## Continuation receipt — 2026-09-20 M0 P0/P3 closure slice
+
+- `subject_sha`: `6b0896ea06d704b4f5ea2a07f3a16bb8bdbb3e1e`
+- `P0`: added `scripts/maintenance/check_authority_sha_consistency.py`; it requires `HEAD == origin/main`, the authority record's latest commit to be `HEAD`, permits the current-main claim to name the record commit's first parent, and keeps `R6-STATE.subject_sha` as independently resolvable evidence identity. This prevents self-referential SHA false failures while catching stale pointers.
+- `P3`: stateful Assessment reviews now persist an explicit open `mastery_projection` (`closed=false`) beside the learner answer and FSRS schedule; the projection does not claim Knowledge truth or completed mastery. A restart readback test covers Assessment, answer, FSRS state and the open projection.
+- `tests`: `.venv\\Scripts\\python.exe -m pytest -p no:cacheprovider tests/test_authority_sha_consistency.py tests/test_model_pool_v1.py tests/test_domain_pack_v1.py tests/test_courseware_v1.py tests/test_general_learning_contract.py -q` — `17 passed, 1 warning`, exit `0`.
+- `rust_tests`: `NOT_EXECUTED`; `cargo` and `rustfmt` remain unavailable. The new Rust projection behavior is `IMPLEMENTED_LOCAL / UNVERIFIED` until the named Cargo tests run.
+- `scope`: no E/F, credentials, private agent directories, external shared libraries, real material library, test source corpus, or existing Green runtime was read or modified.
+
 ## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
 
 - `task_id`: A13 Green candidate composition and portable worker route closure

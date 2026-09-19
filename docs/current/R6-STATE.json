@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-20T15:00:00Z",
-  "subject_sha": "dc5aa97fc1d95f81a3c480901de7807dffd963f2",
+  "updated_at": "2026-09-20T15:20:00Z",
+  "subject_sha": "6b0896ea06d704b4f5ea2a07f3a16bb8bdbb3e1e",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -67,8 +67,8 @@
       "id": "A08",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "Core Assessment is now generated/bound to active accepted or personal Knowledge and answer evidence reads back after restart; real UI/runtime, adaptive journey and independent mastery projection remain open",
-      "subject_sha": "8dfc78b3"
+      "remaining_gap": "Core Assessment is generated/bound to active accepted or personal Knowledge; answer, FSRS state and an explicitly open mastery projection read back after restart, while real UI/runtime, authoritative mastery projection and adaptive journey remain open",
+      "subject_sha": "6b0896ea06d704b4f5ea2a07f3a16bb8bdbb3e1e"
     },
     {
       "id": "A09",
