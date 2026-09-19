@@ -54,6 +54,28 @@ def test_search_vault_finds_term(monkeypatch, tmp_path) -> None:
     assert projection["algorithm"] == "vault-substring"
     assert len(projection["items"]) == 2
     assert all(item["score"] == 1.0 for item in projection["items"])
+    result_by_source = {item["source_id"]: item for item in result["results"]}
+    assert set(projection["canonical_source_ids"]) == set(result_by_source)
+    assert all("/" not in source_id and "\\" not in source_id for source_id in result_by_source)
+    assert all(
+        result_by_source[item["source_id"]]["source_hash"] == item["source_revision"]
+        for item in projection["items"]
+    )
+
+
+def test_search_vault_projection_source_id_is_independent_of_absolute_vault_path(tmp_path) -> None:
+    first_base = tmp_path / "first"
+    second_base = tmp_path / "second"
+    first_base.mkdir()
+    second_base.mkdir()
+    first_vault, first_store = _make_vault(first_base, {"a.md": "Stable match.\n"})
+    second_vault, second_store = _make_vault(second_base, {"a.md": "Stable match.\n"})
+
+    first = search_vault(root=first_vault, store=first_store, query="stable")
+    second = search_vault(root=second_vault, store=second_store, query="stable")
+
+    assert first["derived_projection"]["canonical_source_ids"] == second["derived_projection"]["canonical_source_ids"]
+    assert first["derived_projection"]["items"][0]["source_revision"] == second["derived_projection"]["items"][0]["source_revision"]
 
 
 def test_search_vault_case_insensitive(tmp_path) -> None:

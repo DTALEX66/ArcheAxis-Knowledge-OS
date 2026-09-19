@@ -555,3 +555,11 @@
 - `behavior`: HTML snapshot execution now emits `archeaxis.format-execution-receipt/v1` bound to source SHA-256, engine/version, derived document id, measured blocks/anchors/links and explicit static-snapshot limitations; the existing transport preserves it inside the loss report without changing the three-output protocol.
 - `verification`: focused worker and unified-job command returned `18 passed, 1 warning`, exit `0`; `git diff --check` passed.
 - `scope`: static local HTML only; dynamic browser rendering, remote fetching, semantic quality, external engines and complete format promotion remain open. Evidence level is `TESTED_LOCAL`, not `complete`.
+
+## Continuation receipt — 2026-09-20 A06 path-free retrieval projection
+
+- `subject_sha`: `75ae3d5828d2a5b0dcb0e93960359c61523e2c88`
+- `changed_paths`: `app/workspace/vault.py`, `tests/test_vault_search_api.py`.
+- `behavior`: read-only Vault substring search now derives an opaque, stable `source_id` from the relative source identity; `canonical_source_ids` and projection items carry that id with the content hash as `source_revision`, so absolute Vault roots never enter the derived receipt.
+- `verification`: `tests/test_derived_projection_v1.py tests/test_vault_search_api.py` returned `10 passed, 1 warning`, exit `0`; `git diff --check` passed.
+- `scope`: local synthetic Vault fixtures only; no Vault, canonical knowledge, external provider, model or shared library was written. Vector/reranker/graph/research quality and provider benchmarks remain open.

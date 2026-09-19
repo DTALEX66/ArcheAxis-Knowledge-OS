@@ -16,6 +16,12 @@ class VaultWorkbenchError(ValueError):
     """Raised when a read-only Vault request is invalid."""
 
 
+def _path_free_source_id(relative_path: str) -> str:
+    """Return a stable source identity without exposing the Vault path."""
+    digest = hashlib.sha256(relative_path.encode("utf-8")).hexdigest()
+    return f"vault-source-{digest}"
+
+
 def _session(root: str | Path, store: str | Path) -> ImportSession:
     path = Path(root).expanduser().resolve()
     if not path.is_dir():
@@ -83,13 +89,14 @@ def search_vault(*, root: str | Path, store: str | Path, query: str) -> dict[str
             {
                 "relative_path": item.relative_path,
                 "snippet": item.raw_text[max(0, index - 80) : index + len(term) + 120],
+                "source_id": _path_free_source_id(item.relative_path),
                 "source_hash": item.source_hash,
             }
         )
     projection = None
     projection_status = "empty"
     if results:
-        canonical_source_ids = [f"vault:{result['relative_path']}" for result in results]
+        canonical_source_ids = [str(result["source_id"]) for result in results]
         projection_items = [
             ProjectionItemV1(
                 source_id=source_id,
