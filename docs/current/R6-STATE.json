@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T15:02:00Z",
-  "subject_sha": "2e56b94e",
+  "updated_at": "2026-09-19T15:30:00Z",
+  "subject_sha": "95bc3fcc1a19de6b2d681920508571512ff16629",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -46,8 +46,8 @@
       "id": "A05",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "receipt adapter is contract-level; per-format runtime promotion and real external engine evidence remain open",
-      "subject_sha": "47b476d7"
+      "remaining_gap": "workspace conversion-run API now emits a path-free structural receipt; semantic quality, fallback persistence, external engines and real fixtures remain open",
+      "subject_sha": "95bc3fcc1a19de6b2d681920508571512ff16629"
     },
     {
       "id": "A06",

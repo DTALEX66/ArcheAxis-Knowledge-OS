@@ -97,17 +97,17 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `47b476d7`
-- changed_paths: `app/contracts/format_execution_v1.py`, `packages/contracts/v1/format-execution-receipt.schema.json`, `tests/test_format_execution_v1.py`, `app/contracts/__init__.py`
+- subject_sha: `95bc3fcc1a19de6b2d681920508571512ff16629`
+- changed_paths: `app/contracts/format_execution_v1.py`, `app/workspace/service.py`, `tests/test_format_execution_v1.py`, `tests/test_workspace_pipeline_multiformat.py`
 - contract: every receipt carries original retention, transform engine/version, loss status/notes, structure counts/kinds, block anchors, quality facts and explicit fallback state
-- adapter: existing `ConversionRun` can be adapted through `FormatExecutionReceiptV1.from_conversion_run` without changing the SQLite writer or storage schema
-- tests: `tests/test_format_execution_v1.py tests/test_conversion_run.py tests/test_workspace_pipeline_multiformat.py` — 16 passed, exit 0; after schema alias cleanup A05 standalone — 4 passed, exit 0
-- actual_runtime_result: local contract and existing workspace pipeline tests only; no claim that external Docling/OCR/ASR/Office engines are installed or complete
-- data_touched: repository contract, generated schema and tests only
+- adapter: existing `ConversionRun` is now projected by `GET /api/library/{raw_sha256}/conversion-run` through `FormatExecutionReceiptV1.from_conversion_run`; SQLite writer and storage schema remain unchanged
+- tests: `tests/test_format_execution_v1.py tests/test_workspace_pipeline_multiformat.py` — 12 passed, exit 0
+- actual_runtime_result: local workspace API returns a path-free, structural receipt with measured block/anchor counts and explicit unmeasured semantic-fidelity/fallback facts; receipt status remains `partial`
+- data_touched: repository contract, service projection and tests only; no external assets or user data
 - external_paths_touched: none
-- limitations: Rust/Core persistence wiring, per-format quality measurement, external engine version readback and R6 real first-use promotion remain open
-- rollback: revert commit `47b476d7`; existing conversion-run storage and adapters remain intact
-- remaining_gap: wire receipts into the canonical Core/API path and execute representative real fixtures before any format becomes `complete`
+- limitations: receipt is not a proof of semantic quality, fallback attempts are not persisted by the legacy run, external Docling/OCR/ASR/Office engines and real first-use fixtures remain unverified; no format is promoted to `complete`
+- rollback: revert commit `95bc3fcc1a19de6b2d681920508571512ff16629`; prior conversion-run summary and storage remain intact
+- remaining_gap: wire receipt emission into canonical Core/API if required by the final architecture, then execute representative real fixtures before any format becomes `complete`
 
 ## A06 — Retrieval / Graph / Research
 
