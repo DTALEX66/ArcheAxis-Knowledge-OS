@@ -1,0 +1,218 @@
+schema_version: "1.0"
+updated: "2026-09-19"
+source_of_truth: "docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml"
+canonical_truth_owner: "ArcheAxis Rust SQLite writer"
+allowed_absorption_modes:
+  - DIRECT_DEPENDENCY
+  - VENDORED_COMPONENT
+  - CONTRACT_ADAPTER
+  - PYTHON_WORKER
+  - SIDECAR
+  - ALGORITHM_DONOR
+  - UX_DONOR
+  - REFERENCE_ONLY
+  - SELF_BUILD_GAP
+entries:
+  - capability_id: CAP-CORE-KNOWLEDGE
+    capability_name: "Canonical knowledge and source lifecycle"
+    current_internal_implementation: "crates/archeaxis-domain; crates/archeaxis-store-sqlite; crates/archeaxis-api"
+    legacy_donor: "legacy knowledge stores (maintenance/reference only)"
+    upstream_project: null
+    upstream_commit_or_release: null
+    license: "first-party MIT"
+    model_license: null
+    runtime_requirement: "Rust 2024 workspace and SQLite"
+    local_resource_requirement: "project-local staging only"
+    absorption_mode: DIRECT_DEPENDENCY
+    authority_boundary: "Only the Rust writer may mutate canonical truth; projections are rebuildable."
+    data_boundary: "Project-root sources and isolated staging; never live shared Green data."
+    benchmark: "Rust API/domain/store tests and exact-SHA evidence"
+    fallback: "SQLite FTS5 and append-only receipt paths"
+    status: integrated
+    replacement_candidate: null
+    reason_not_absorbed: "Canonical first-party boundary; no external project may replace it."
+    implementation_evidence:
+      - "crates/archeaxis-domain"
+      - "crates/archeaxis-store-sqlite"
+      - "crates/archeaxis-api"
+  - capability_id: CAP-DEEPTUTOR
+    capability_name: "Source-grounded tutor and recoverable learning workspace"
+    current_internal_implementation: "scripts/launch/deeptutor_web.py; docs/current/R5-EXECUTION.md"
+    legacy_donor: "DeepTutor 1.5.17 custody adapter"
+    upstream_project: "DeepTutor"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: "UNVERIFIED_PENDING_MODEL_READBACK"
+    runtime_requirement: "DeepTutor host, Python 3.11, Node.js when enabled"
+    local_resource_requirement: "Registered shared tool path; no copy into repository"
+    absorption_mode: SIDECAR
+    authority_boundary: "Provider only; ArcheAxis retains source, knowledge, learning, and permission truth."
+    data_boundary: "Loopback and project-local synthetic home; no real Green data by default."
+    benchmark: "Notebook custody and restart-and-rebuild receipt"
+    fallback: "ArcheAxis native source and learning contracts"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "Exact 1.6.x revision, license, host integration, and GUI evidence remain open."
+    source_url: "UNVERIFIED_PENDING_SOURCE_READBACK"
+  - capability_id: CAP-OPENTUTOR
+    capability_name: "Adaptive learning blocks and FSRS integration"
+    current_internal_implementation: "shared/learning_scheduler.py; packages/contracts/learning"
+    legacy_donor: null
+    upstream_project: "OpenTutor"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: null
+    runtime_requirement: "Provider-specific; not a core runtime dependency"
+    local_resource_requirement: "No resource binding yet"
+    absorption_mode: ALGORITHM_DONOR
+    authority_boundary: "Learning algorithms may propose state; Core validates and writes canonical learner state."
+    data_boundary: "Contract fixtures only until source and runtime are qualified."
+    benchmark: "Adaptive difficulty, review priority, and restart tests"
+    fallback: "Current FSRS scheduler and deterministic review contract"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "No exact upstream revision or behavior fixture has been qualified in this cycle."
+  - capability_id: CAP-LEARNINGMAP
+    capability_name: "Knowledge components, prerequisites, diagnosis, and pedagogy"
+    current_internal_implementation: "tests/test_knowledge_tracing.py; docs/authority/taskpack-0912-r5/HUMAN-LEARNING.md"
+    legacy_donor: null
+    upstream_project: "LearningMAP"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: null
+    runtime_requirement: "Provider/algorithm donor; no default process"
+    local_resource_requirement: "No resource binding yet"
+    absorption_mode: ALGORITHM_DONOR
+    authority_boundary: "Domain learning pack proposals are reviewed by ArcheAxis Core."
+    data_boundary: "Synthetic fixtures until provenance and license are verified."
+    benchmark: "Prerequisite diagnosis and mastery update fixtures"
+    fallback: "Existing knowledge tracing and learning path modules"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "Requires exact schema and behavior comparison before adoption."
+  - capability_id: CAP-OPENMAIC
+    capability_name: "Course DSL, renderer, and interactive learning artifacts"
+    current_internal_implementation: "tests/test_learning_artifact_card_projection.py; packages/contracts"
+    legacy_donor: null
+    upstream_project: "OpenMAIC"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: "UNVERIFIED_PENDING_MODEL_READBACK"
+    runtime_requirement: "Renderer/provider candidate"
+    local_resource_requirement: "No default runtime binding"
+    absorption_mode: CONTRACT_ADAPTER
+    authority_boundary: "Artifacts are derived, provenance-bound objects; Core owns lifecycle and acceptance."
+    data_boundary: "Renderer staging under .project-local; no direct canonical writes."
+    benchmark: "Course DSL roundtrip and artifact provenance fixtures"
+    fallback: "Native LearningArtifact contract and simple renderer"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "Course DSL and renderer compatibility remain unverified."
+  - capability_id: CAP-RAG-ANYTHING
+    capability_name: "Multimodal document parsing and structure extraction"
+    current_internal_implementation: "app/ingestion/multi_format.py; services/python-workers"
+    legacy_donor: null
+    upstream_project: "RAG-Anything"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: "UNVERIFIED_PENDING_MODEL_READBACK"
+    runtime_requirement: "Isolated parser/worker dependencies"
+    local_resource_requirement: "Registered OCR/media engines only"
+    absorption_mode: PYTHON_WORKER
+    authority_boundary: "Worker emits transform and loss receipts; Core owns original and canonical metadata."
+    data_boundary: "Read project-root inputs and project-local staging only."
+    benchmark: "F01/F04/F05/F06/F07/F08/F09/F12 format matrix"
+    fallback: "Existing adapters with honest unavailable status"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "No exact engine/license/runtime qualification in the current tree."
+  - capability_id: CAP-LIGHTRAG
+    capability_name: "Mixed vector and graph retrieval projection"
+    current_internal_implementation: "shared/graph_rag.py; shared/graph_index.py; SQLite FTS5"
+    legacy_donor: null
+    upstream_project: "LightRAG"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: null
+    runtime_requirement: "Optional derived retrieval projection"
+    local_resource_requirement: "Rebuildable index under project-local"
+    absorption_mode: ALGORITHM_DONOR
+    authority_boundary: "Derived retrieval only; never a second Knowledge store."
+    data_boundary: "Projection can be deleted and rebuilt from Core truth."
+    benchmark: "Retrieval, citation, fallback, and rebuild tests"
+    fallback: "SQLite FTS5 and existing graph projection"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "Requires fixed corpus bake-off and exact source revision."
+  - capability_id: CAP-GRAPHITI
+    capability_name: "Temporal knowledge projection and supersession"
+    current_internal_implementation: "tests/test_temporal_graph.py; tests/test_temporal_episode.py"
+    legacy_donor: null
+    upstream_project: "Graphiti"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: null
+    runtime_requirement: "Optional temporal projection"
+    local_resource_requirement: "Rebuildable local projection"
+    absorption_mode: ALGORITHM_DONOR
+    authority_boundary: "valid_from/valid_to and supersession remain Core contract fields."
+    data_boundary: "Projection only; no external database as canonical truth."
+    benchmark: "Temporal episode and replacement fixtures"
+    fallback: "Native temporal graph implementation"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "Exact source and persistence boundary are not yet qualified."
+  - capability_id: CAP-MEMOS
+    capability_name: "Machine experience memory and skill crystallization"
+    current_internal_implementation: "tests/test_memory_layers.py; tests/test_experience_harvest.py"
+    legacy_donor: null
+    upstream_project: "MemOS"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: "UNVERIFIED_PENDING_MODEL_READBACK"
+    runtime_requirement: "Optional machine-memory provider"
+    local_resource_requirement: "Project-local isolated memory staging"
+    absorption_mode: SIDECAR
+    authority_boundary: "Experience and Skill Candidates require ArcheAxis review before acceptance."
+    data_boundary: "Machine traces are bounded and removable; no direct Core write."
+    benchmark: "Failure, correction, retest, and candidate versioning tests"
+    fallback: "Native machine receipt and experience modules"
+    status: candidate
+    replacement_candidate: null
+    reason_not_absorbed: "Provider lifecycle and license/model terms need exact review."
+  - capability_id: CAP-WEKNORA
+    capability_name: "Knowledge workspace editing, revision, diff, and rollback UX"
+    current_internal_implementation: "apps/ArcheAxis.Desktop; workspace APIs"
+    legacy_donor: null
+    upstream_project: "WeKnora"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: null
+    runtime_requirement: "UX/contract donor"
+    local_resource_requirement: "No external runtime required for reference study"
+    absorption_mode: UX_DONOR
+    authority_boundary: "UI operations route through Core contracts and permissions."
+    data_boundary: "Reference-only until exact UX behavior is reimplemented and tested."
+    benchmark: "Revision, diff, rollback, metadata, and task progress flows"
+    fallback: "Existing Avalonia workspace routes"
+    status: reference
+    replacement_candidate: null
+    reason_not_absorbed: "No upstream implementation is copied; only behavior patterns are under review."
+  - capability_id: CAP-COGNEE
+    capability_name: "Graph, memory, and ontology benchmark reference"
+    current_internal_implementation: "shared/graph_index.py; shared/registry_v2.py"
+    legacy_donor: null
+    upstream_project: "Cognee"
+    upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"
+    license: "UNVERIFIED_PENDING_SOURCE_READBACK"
+    model_license: "UNVERIFIED_PENDING_MODEL_READBACK"
+    runtime_requirement: "Benchmark/reference only"
+    local_resource_requirement: "No default runtime binding"
+    absorption_mode: REFERENCE_ONLY
+    authority_boundary: "No second canonical memory or graph system."
+    data_boundary: "Reference fixtures only."
+    benchmark: "Ontology, graph, and session distillation comparison"
+    fallback: "Native graph and machine experience modules"
+    status: reference
+    replacement_candidate: null
+    reason_not_absorbed: "R6 explicitly keeps Cognee as benchmark/reference rather than a second memory system."

@@ -63,3 +63,5 @@ CLI explicit override
 ```
 
 工作配置与产品运行配置绝对分开。
+
+| 能力吸收登记 | docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml + config/schemas/capability-absorption-registry.schema.json | R6 A03 唯一能力吸收登记；状态、许可、来源、边界和回退必须逐项记录；不得把候选或供体写成已集成 |

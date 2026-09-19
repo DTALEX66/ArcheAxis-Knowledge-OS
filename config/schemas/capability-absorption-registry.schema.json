@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/schemas/capability-absorption-registry.schema.json",
+  "title": "ArcheAxis Capability Absorption Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated", "source_of_truth", "canonical_truth_owner", "allowed_absorption_modes", "entries"],
+  "properties": {
+    "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+$"},
+    "updated": {"type": "string", "format": "date"},
+    "source_of_truth": {"type": "string", "minLength": 1},
+    "canonical_truth_owner": {"type": "string", "const": "ArcheAxis Rust SQLite writer"},
+    "allowed_absorption_modes": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "enum": ["DIRECT_DEPENDENCY", "VENDORED_COMPONENT", "CONTRACT_ADAPTER", "PYTHON_WORKER", "SIDECAR", "ALGORITHM_DONOR", "UX_DONOR", "REFERENCE_ONLY", "SELF_BUILD_GAP"]}
+    },
+    "entries": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/entry"}}
+  },
+  "$defs": {
+    "entry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capability_id", "capability_name", "current_internal_implementation", "legacy_donor", "upstream_project", "upstream_commit_or_release", "license", "model_license", "runtime_requirement", "local_resource_requirement", "absorption_mode", "authority_boundary", "data_boundary", "benchmark", "fallback", "status", "replacement_candidate", "reason_not_absorbed"],
+      "properties": {
+        "capability_id": {"type": "string", "pattern": "^CAP-[A-Z0-9-]+$"},
+        "capability_name": {"type": "string", "minLength": 1},
+        "current_internal_implementation": {"type": "string", "minLength": 1},
+        "legacy_donor": {"type": ["string", "null"]},
+        "upstream_project": {"type": ["string", "null"]},
+        "upstream_commit_or_release": {"type": ["string", "null"]},
+        "license": {"type": "string", "minLength": 1},
+        "model_license": {"type": ["string", "null"]},
+        "runtime_requirement": {"type": "string", "minLength": 1},
+        "local_resource_requirement": {"type": "string", "minLength": 1},
+        "absorption_mode": {"type": "string", "enum": ["DIRECT_DEPENDENCY", "VENDORED_COMPONENT", "CONTRACT_ADAPTER", "PYTHON_WORKER", "SIDECAR", "ALGORITHM_DONOR", "UX_DONOR", "REFERENCE_ONLY", "SELF_BUILD_GAP"]},
+        "authority_boundary": {"type": "string", "minLength": 1},
+        "data_boundary": {"type": "string", "minLength": 1},
+        "benchmark": {"type": "string", "minLength": 1},
+        "fallback": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["candidate", "reference", "adapter", "provider", "integrated", "benchmark", "blocked", "rejected"]},
+        "replacement_candidate": {"type": ["string", "null"]},
+        "reason_not_absorbed": {"type": "string", "minLength": 1},
+        "implementation_evidence": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "source_url": {"type": ["string", "null"]}
+      },
+      "allOf": [{"if": {"properties": {"status": {"const": "integrated"}}}, "then": {"required": ["implementation_evidence"], "properties": {"implementation_evidence": {"minItems": 1}}}}]
+    }
+  }
+}
