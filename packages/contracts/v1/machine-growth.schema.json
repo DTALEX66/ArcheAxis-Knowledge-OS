@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "GrowthStepV1": {
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "enum": [
+            "experience",
+            "lesson",
+            "skill_candidate",
+            "review",
+            "reuse"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "observed",
+            "created",
+            "pending",
+            "approved",
+            "rejected",
+            "used",
+            "skipped"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "actor": {
+          "enum": [
+            "system",
+            "human"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage",
+        "state",
+        "actor"
+      ],
+      "title": "GrowthStepV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Append-only trace for machine learning from experience, never verified truth.",
+  "properties": {
+    "schema": {
+      "const": "archeaxis.machine-growth/v1",
+      "default": "archeaxis.machine-growth/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "receipt_id": {
+      "minLength": 1,
+      "title": "Receipt Id",
+      "type": "string"
+    },
+    "source_event_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Event Ids",
+      "type": "array"
+    },
+    "goal": {
+      "minLength": 1,
+      "title": "Goal",
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "success",
+        "failure",
+        "partial",
+        "unknown"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/GrowthStepV1"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "machine_verified": {
+      "const": false,
+      "default": false,
+      "title": "Machine Verified",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "source_event_ids",
+    "goal",
+    "outcome",
+    "steps"
+  ],
+  "title": "ArcheAxis Machine Growth Receipt",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/machine-growth.schema.json"
+}
