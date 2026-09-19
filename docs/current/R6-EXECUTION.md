@@ -490,3 +490,11 @@
 - `verification`: RED source-contract test failed before the flag existed; GREEN source contract `1 passed, 11 deselected`, desktop/P3 gate `39 passed, 3 warnings`, .NET build `0 warnings, 0 errors`, all exit `0`.
 - `runtime_readback`: `NOT_EXECUTED/BLOCKED` against available project-local Core artifacts: the older default Core returned `404` for Assessment, while `cargo-r6-p4` reached the route but its review response did not match the current source contract. No stale binary was treated as current-source evidence and no external toolchain was rebuilt.
 - `scope`: only project source/tests and `.project-local` smoke paths; no external library, Green runtime, real data, E/F, credentials or private agent state was accessed.
+
+## Continuation receipt — 2026-09-21 P2 General lesson renderer
+
+- `subject_sha`: `7944c5f0f6cb15d85af6d80dd74d4658f7f1d152`
+- `changed_paths`: `app/adapters/courseware_lesson.py`, `tests/test_general_courseware_renderer.py`
+- `behavior`: a deterministic local adapter accepts only a `general` lesson artifact bound to the supplied `CourseManifestV1`; it produces an Obsidian-compatible `Projection` with manifest/artifact/source/knowledge/renderer metadata and fail-closed binding checks.
+- `verification`: static file/contract inspection passed; the focused pytest command was `NOT_EXECUTED` (project `.venv` uv trampoline failed with permission denied), so this is `STRUCTURAL` evidence only. No H5P/OpenMAIC/provider/model or real curriculum was introduced.
+- `remaining_gap`: interactive renderer execution, Core courseware receipt, reviewed curriculum and domain acceptance remain open; P2 stays `TESTED_LOCAL_PARTIAL`.
