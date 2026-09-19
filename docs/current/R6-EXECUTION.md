@@ -183,3 +183,19 @@
 - limitations: artifact contract is not yet connected to a courseware renderer or Core job receipt; no video/audio or simulation quality claim
 - rollback: revert commit `2064dc4d`; existing lesson and Canvas behavior remains intact
 - remaining_gap: wire renderer outputs to canonical source/knowledge references and run one real reviewed interactive lesson
+
+## A11 — Local Model Pool
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `8ee33bc6`
+- changed_paths: `app/contracts/model_pool_v1.py`, `config/model-profiles/r6-capability-pool.json`, `packages/contracts/v1/model-capability-pool.schema.json`, `tests/test_model_pool_v1.py`
+- contract: role → model → quantization → runtime → memory → fallback is explicit, with measured/unmeasured status and evidence references
+- source: repository `config/model-profiles/local-2026-09-05.yaml` historical profile only; no shared Model library files were copied or modified
+- tests: `tests/test_model_pool_v1.py tests/test_asr_model_resolution.py tests/test_axw096a_benchmark.py` — 12 passed, exit 0
+- actual_runtime_result: manifest validation and existing model-resolution/benchmark utility tests; no fresh model benchmark was run
+- data_touched: repository contract, manifest, generated schema and tests only
+- external_paths_touched: none
+- limitations: current shared model inventory, VRAM/RAM/latency measurements, and current runtime health remain unverified; entries are not a release selection
+- rollback: revert commit `8ee33bc6`; existing model profile and resolver remain intact
+- remaining_gap: perform owner-approved read-only inventory of the fixed Model library path, then run bounded role benchmarks with exact receipts
