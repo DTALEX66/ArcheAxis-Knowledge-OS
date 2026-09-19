@@ -276,6 +276,15 @@
 - `rust_tests`: `NOT_EXECUTED`; `cargo` and `rustfmt` remain unavailable. The new Rust projection behavior is `IMPLEMENTED_LOCAL / UNVERIFIED` until the named Cargo tests run.
 - `scope`: no E/F, credentials, private agent directories, external shared libraries, real material library, test source corpus, or existing Green runtime was read or modified.
 
+## Continuation receipt — 2026-09-20 P3 review API readback
+
+- `subject_sha`: `5b5c10982f76eb3be3a20864b0167dbe75110294`
+- `changed_paths`: `crates/archeaxis-api/src/lib.rs`, `crates/archeaxis-api/tests/learning_state_api.rs`
+- `behavior`: stateful review responses now return the persisted learner `answer` and the explicit open `mastery_projection`; schedule-only legacy reviews continue to return JSON nulls for those fields.
+- `tests`: Rust API test adds first-submit and idempotent replay assertions for answer/projection equality.
+- `verification`: `cargo test -p archeaxis-api --test learning_state_api` is `NOT_EXECUTED` because `cargo` is unavailable; source diff check passed. This remains `IMPLEMENTED_LOCAL / UNVERIFIED`.
+- `boundary`: no external library, Green runtime, real data, E/F, credentials, or private agent state was accessed.
+
 ## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
 
 - `task_id`: A13 Green candidate composition and portable worker route closure

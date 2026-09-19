@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`019af7ac19f1524d5dc7be5847a5fe1ee863ac9d`
+- 当前本地与远端 `main`：`5b5c10982f76eb3be3a20864b0167dbe75110294`
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
@@ -56,7 +56,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 | P0 | Authority + Plugin Kernel | `PARTIAL` | R6 authority、No-Release 和 capability registry 已有；M0 priority overlay、完整启停/默认/fallback/health/替换闭环尚未证明 |
 | P1 | Source + Format + Knowledge | `PARTIAL` | worker 路由、format receipt、Knowledge V3 读投影和 human/machine 权限已有；统一主 Parser/fallback、真实常用格式、V3 写入和三类知识同旅程仍缺 |
 | P2 | Search + Learning Plan + Course | `PARTIAL` | FTS5、domain/course/artifact 契约已有；embedding/reranker、General 行为包、KC/Prerequisite/Objective、CourseManifest 与第一 Renderer 的真实运行仍缺 |
-| P3 | Human Learning | `PARTIAL` | Core 已按 active accepted/personal Knowledge 生成并持久化 Assessment，review 可绑定答案；真人 UI 首次学习、Mastery/FSRS 全量恢复和完整重启回读仍缺 |
+| P3 | Human Learning | `PARTIAL` | Core 已按 active accepted/personal Knowledge 生成并持久化 Assessment，review API 回传答案与开放 projection；真人 UI 首次学习、authoritative Mastery/FSRS 全量恢复和完整重启回读仍缺 |
 | P4 | Machine Loop | `PARTIAL` | machine task/correction/retest 数据边界和 receipt API 已有；同一 Accepted/Personal Knowledge 的真实任务、真实错误、人工 Correction、Retest 仍缺 |
 | P5 | Persistence + Migration | `PARTIAL` | canonical Rust SQLite、合成非空迁移和两次重启身份已有；完整 Backup/Restore 校验、全状态重启回读和真实 Legacy copy 语义 diff 仍缺 |
 | P6 | Local Green | `PARTIAL/BLOCKED` | exact-SHA candidate、worker 与 headless smoke 已有；Candidate 全旅程、现有 Green 备份/原位替换/回滚需 Owner Gate，不能提前执行 |
