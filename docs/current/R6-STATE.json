@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T14:38:32.6468772Z",
-  "subject_sha": "2fd448a6",
+  "updated_at": "2026-09-19T14:40:31.9289726Z",
+  "subject_sha": "d8211b2e",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -58,9 +58,10 @@
     },
     {
       "id": "A07",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "remaining_gap": "not started in R6"
+      "status": "TESTED_LOCAL_PARTIAL",
+      "evidence_level": "TESTED_LOCAL",
+      "remaining_gap": "lifecycle contract is present; runtime receipts, candidate persistence and real reuse/retest evidence remain open",
+      "subject_sha": "d8211b2e"
     },
     {
       "id": "A08",

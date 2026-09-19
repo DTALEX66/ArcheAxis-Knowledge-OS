@@ -123,3 +123,18 @@
 - limitations: runtime adapters still return legacy shapes in some paths; canonical Core projection wiring, provider version readback and retrieval quality benchmark remain open
 - rollback: revert commit `2fd448a6`; existing graph and retrieval implementations remain intact
 - remaining_gap: adapt real retrieval/research endpoints to this receipt and run exact-source restart/readback evidence
+
+## A07 — Machine Memory / Growth
+
+状态：`TESTED_LOCAL_PARTIAL`
+
+- subject_sha: `d8211b2e`
+- changed_paths: `app/contracts/machine_growth_v1.py`, `packages/contracts/v1/machine-growth.schema.json`, `tests/test_machine_growth_v1.py`, `app/contracts/__init__.py`
+- contract: Experience → Lesson → Skill Candidate → Review → Reuse is explicit; reuse requires approved human review and machine_verified is permanently false
+- tests: `tests/test_machine_growth_v1.py tests/test_experience_harvest.py tests/test_distillation_review.py` — 12 passed, exit 0
+- actual_runtime_result: existing harvest/distillation local SQLite tests and contract validation; no model provider or long-running reuse benchmark started
+- data_touched: repository contract, generated schema and tests only
+- external_paths_touched: none
+- limitations: receipt emission is not yet wired into all experience and distillation writes; candidate/retest restart evidence remains open
+- rollback: revert commit `d8211b2e`; existing experience and distillation behavior remains intact
+- remaining_gap: emit the receipt from the canonical writer and prove review→reuse→retest on a real local journey
