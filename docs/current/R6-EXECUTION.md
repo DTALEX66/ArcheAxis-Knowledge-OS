@@ -643,3 +643,12 @@
 - `behavior`: lossy or unsafe lesson IDs now receive a stable hash suffix, Windows reserved names are disambiguated, and every rendered path segment is bounded to 120 characters so distinct course artifacts cannot silently collide.
 - `verification`: renderer tests returned `6 passed, 1 warning`, the A10 contract gate returned `21 passed, 1 warning`, and the combined fourth-round gate returned `49 passed, 3 warnings`, all exit `0`; `git diff --check` passed.
 - `boundary`: deterministic local projection only; interactive renderer execution, real curriculum and domain acceptance remain open.
+
+## Continuation receipt — 2026-09-20 independent A15 exact-SHA audit
+
+- `subject_sha`: `bf06c7114ceb500b2d8813df14982eb418fbc463`
+- `independence`: a fresh Luna high reviewer ran without implementation-turn context and did not modify source, state or audit files; its result is recorded here by the primary writer and is not an executor self-signature.
+- `identity`: `main`, local `HEAD`, local `origin/main` and a fresh `git ls-remote origin refs/heads/main` readback all returned `bf06c7114ceb500b2d8813df14982eb418fbc463`; `HEAD...origin/main` is `0 0`.
+- `mechanical_gates`: authority SHA exit `0`; historical R3.1 evidence index exit `0` with 17 slices, 81 tracked pointers and 3 receipts; current contract/unseen gate `31 passed, 1 warning`; security/permission/path/MCP gate `41 passed, 1 skipped, 3 warnings`; R11 unseen and MCP probes exit `0`.
+- `result`: `A15_PASS / PRODUCT_NOT_READY`. G01 is locally PASS; G02-G11, G13 and G14 remain BLOCKED or insufficient for PASS; G12 is FAIL because 22 preserved untracked history/private paths remain. P0-P6 remain BLOCKED and A16 remains BLOCKED.
+- `boundary`: this audit does not prove real representative format quality, human Avalonia first-use, real model/user correction-retest, complete Rust backup/recovery, Legacy semantic migration, clean-machine Windows qualification, Green replacement/rollback or release readiness.
