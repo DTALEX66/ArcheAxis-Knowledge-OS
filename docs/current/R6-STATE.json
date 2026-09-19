@@ -39,8 +39,8 @@
       "id": "A04",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "Rust SQLite migration, API serialization, UI wiring and real journey",
-      "subject_sha": "b1df307c353112928df410780ea3f0695f2a82a3"
+      "remaining_gap": "V3 read projection and revision provenance now pass; write-side V3 metadata persistence, UI wiring and real first-use journey remain open",
+      "subject_sha": "766a281d"
     },
     {
       "id": "A05",

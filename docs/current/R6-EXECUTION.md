@@ -80,18 +80,18 @@
 
 状态：`TESTED_LOCAL_PARTIAL`
 
-- subject_sha: `b1df307c353112928df410780ea3f0695f2a82a3`
-- changed_paths: `app/contracts/knowledge_v3.py`, `app/contracts/__init__.py`, `packages/contracts/v3/knowledge-source.schema.json`, `packages/contracts/v3/__init__.py`, `tests/test_knowledge_source_v3_contract.py`
+- subject_sha: `766a281db2c2f1c71d57360e89b4263bf4c46a70`
+- changed_paths: `app/contracts/knowledge_v3.py`, `app/contracts/__init__.py`, `packages/contracts/v3/knowledge-source.schema.json`, `packages/contracts/v3/__init__.py`, `tests/test_knowledge_source_v3_contract.py`, `crates/archeaxis-api/src/lib.rs`, `crates/archeaxis-api/tests/knowledge_v3_projection.rs`, `crates/archeaxis-domain/src/knowledge.rs`
 - upstream_absorbed: none; this is a first-party contract layer
 - upstream_version_or_sha: contract `3.0.0`
 - license: first-party MIT
-- tests: A04 contract + existing machine/graph governance set — 19 passed; standalone V3/schema set — 6 passed; exit 0
-- actual_runtime_result: Pydantic and JSON-schema validation only; no database migration or UI journey run
+- tests: `tests/test_knowledge_source_v3_contract.py tests/test_documentation_authority_index.py` — 15 passed, exit 0; `cargo test -p archeaxis-api --test knowledge_v3_projection --test v01_journey --test api_closed_loop` — 6 passed, exit 0
+- actual_runtime_result: Rust Core now exposes a read-only `/api/v1/knowledge-items/:id/v3` projection with supersession and anchor-source readback; machine revision keeps its original machine provenance; legacy confidence remains explicit `null` when unmeasured
 - data_touched: contract code and tests only
 - external_paths_touched: none
-- limitations: Rust SQLite schema/migration, API serialization, Avalonia routes, and real first-use evidence still not wired to V3
+- limitations: V3 write-side metadata is still derived from the legacy row, temporal/risk/confidence measurements are not persisted by the legacy create route, Avalonia routes and real first-use evidence remain open; no claim of full V3 runtime completion
 - rollback: revert commit `b1df307c353112928df410780ea3f0695f2a82a3`; existing V1 contracts and storage remain intact
-- remaining_gap: implement and test Core persistence/API adapter without weakening single-writer rules
+- remaining_gap: add an owner-approved canonical write path for V3 governance metadata, then wire UI and run a real restart/readback journey without dual-writing
 
 ## A05 — Multiformat Pipeline
 
