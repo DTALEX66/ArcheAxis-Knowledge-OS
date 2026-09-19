@@ -293,6 +293,15 @@
 - `A15_readonly_audit`: independent read-only result remains `NOT_RUN / BLOCKED`; contracts are structural, security exact-SHA/full gate is `NOT_RUN`, migration/learning/machine/models/domain/first-use/restart/Green remain blocked or partial. It does not self-sign A15 PASS.
 - `boundary`: no external model content, Green runtime, real data, E/F, credentials or private agent state was accessed.
 
+## Continuation receipt — 2026-09-20 P3 desktop assessment gate
+
+- `subject_sha`: `e019721b9c9da77e0bb7990b5d862c91d22d557d`
+- `changed_paths`: `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`, `tests/test_desktop_learning_review_contract.py`
+- `behavior`: Assessment binding now checks `knowledge_id` against the active Knowledge and rebinds on mismatch; answer/rating/submit controls remain disabled until a valid Assessment is bound; successful review responses surface saved-answer and open-projection status without claiming mastery.
+- `tests`: `.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_desktop_learning_review_contract.py -q` — `9 passed, 1 warning`, exit `0`.
+- `runtime`: Avalonia/.NET build and real first-use remain `NOT_EXECUTED` because `dotnet` is unavailable; this is source-contract evidence only.
+- `boundary`: no Green runtime, external libraries, real data, E/F, credentials or private agent state was accessed.
+
 ## Continuation receipt — 2026-09-19 current-SHA Green candidate and portable worker smoke
 
 - `task_id`: A13 Green candidate composition and portable worker route closure
