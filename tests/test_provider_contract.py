@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from shared.provider_contract import (
     CapabilityStatus,
     DryRunRoute,
@@ -53,3 +55,40 @@ def test_default_routes_start_empty():
 
     assert DEFAULT_ROUTES == []
     assert isinstance(DEFAULT_ROUTES, list)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("provider_id", "  "), ("name", "  ")],
+)
+def test_provider_contract_rejects_blank_identity(field, value):
+    values = {
+        "provider_id": "deepseek",
+        "name": "DeepSeek",
+        "kind": ProviderKind.LLM,
+    }
+    values[field] = value
+    with pytest.raises(ValueError, match="required"):
+        ProviderContract(**values)
+
+
+def test_provider_contract_rejects_ambiguous_capabilities():
+    with pytest.raises(ValueError, match="unique"):
+        ProviderContract(
+            provider_id="deepseek",
+            name="DeepSeek",
+            kind=ProviderKind.LLM,
+            capabilities=[
+                ModelCapability(name="chat"),
+                ModelCapability(name="chat"),
+            ],
+        )
+
+
+def test_dry_run_route_rejects_blank_model_identity():
+    with pytest.raises(ValueError, match="model_id"):
+        DryRunRoute(
+            provider_id="deepseek",
+            model_id="  ",
+            kind=ProviderKind.LLM,
+        )

@@ -147,6 +147,50 @@ def _format_execution_receipt(raw: bytes, path: str, blocks: list[str], anchors:
     }
 
 
+def _failed_execution_receipt(raw: bytes, path: str, error: BaseException) -> dict:
+    """Record a path-free receipt when a retained snapshot cannot be projected.
+
+    A malformed or non-HTML snapshot is still an execution attempt.  Returning
+    only ``error`` made that attempt invisible to the format receipt contract,
+    and including the exception text could accidentally echo a local path.  The
+    failure receipt keeps the source digest and display name, records the error
+    type, and deliberately leaves the projection empty.
+    """
+    source_sha256 = hashlib.sha256(raw).hexdigest()
+    error_type = type(error).__name__ or "ExecutionError"
+    return {
+        "schema": "archeaxis.format-execution-receipt/v1",
+        "receipt_id": f"html-execution-{source_sha256}",
+        "status": "failed",
+        "original": {
+            "sha256": source_sha256,
+            "name": Path(path).name or "snapshot.html",
+            "format": "html",
+            "retained": True,
+        },
+        "transform": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "derived_document_id": f"html-document-{source_sha256}",
+        },
+        "loss": {
+            "status": "unknown",
+            "notes": [f"execution failed before projection ({error_type})"],
+        },
+        "structure": {"block_count": 0, "block_kinds": []},
+        "anchors": [],
+        "quality_facts": [
+            {"name": "source_bytes", "status": "measured", "value": len(raw), "unit": "bytes"},
+            {
+                "name": "semantic_fidelity",
+                "status": "unsupported",
+                "note": "execution failed before semantic projection",
+            },
+        ],
+        "fallback": {"used": False, "attempted_engines": [], "selected_engine": None, "reason": None},
+    }
+
+
 def extract(path: str) -> dict:
     raw = Path(path).read_bytes()
     try:
@@ -235,7 +279,18 @@ def main() -> int:
     try:
         out = extract(sys.argv[1])
     except Exception as exc:  # noqa: BLE001
-        print(json.dumps({"error": str(exc)}, ensure_ascii=False))
+        failure = {"error": str(exc)}
+        source = Path(sys.argv[1])
+        try:
+            # A present source, including a zero-byte source, has enough retained
+            # bytes to produce a path-free failed execution receipt.  Missing or
+            # unreadable inputs retain the existing structured error behavior.
+            if source.is_file():
+                raw = source.read_bytes()
+                failure["format_execution_receipt"] = _failed_execution_receipt(raw, str(source), exc)
+        except OSError:
+            pass
+        print(json.dumps(failure, ensure_ascii=False))
         return 1
     print(json.dumps(out, ensure_ascii=False))
     return 0

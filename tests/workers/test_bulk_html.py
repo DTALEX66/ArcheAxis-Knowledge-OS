@@ -8,10 +8,15 @@ fallback, and tolerance of malformed input. No network, no dynamic DOM.
 
 import importlib.util
 import hashlib
+import io
+import json
 import os
+import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from app.contracts.format_execution_v1 import FormatExecutionReceiptV1
 
@@ -122,6 +127,20 @@ class HtmlBulkTests(unittest.TestCase):
         """The refusal is for bytes with a .html name, not for a tag outside an allow-list."""
         with self.assertRaises(ValueError):
             self.worker.extract(self._write("just plain text, no tags here"))
+
+    def test_cli_failure_emits_a_path_free_failed_execution_receipt(self):
+        path = self._write("just plain text, no tags here")
+        stdout = io.StringIO()
+        with patch.object(sys, "argv", ["worker_html.py", path]), redirect_stdout(stdout):
+            self.assertEqual(self.worker.main(), 1)
+        payload = json.loads(stdout.getvalue())
+        receipt = FormatExecutionReceiptV1.model_validate(payload["format_execution_receipt"])
+        self.assertEqual(receipt.status, "failed")
+        self.assertEqual(receipt.original.sha256, hashlib.sha256(Path(path).read_bytes()).hexdigest())
+        self.assertEqual(receipt.original.name, Path(path).name)
+        self.assertEqual(receipt.loss.status, "unknown")
+        self.assertEqual(receipt.structure.block_count, 0)
+        self.assertNotIn(str(Path(path).parent), json.dumps(payload["format_execution_receipt"]))
 
 
 if __name__ == "__main__":
