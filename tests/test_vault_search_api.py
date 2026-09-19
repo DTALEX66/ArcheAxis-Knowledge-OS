@@ -47,6 +47,13 @@ def test_search_vault_finds_term(monkeypatch, tmp_path) -> None:
     for r in result["results"]:
         assert "spaced repetition" in r["snippet"].casefold()
         assert r["source_hash"]
+    projection = result["derived_projection"]
+    assert result["derived_projection_status"] == "available"
+    assert projection["schema"] == "archeaxis.derived-projection/v1"
+    assert projection["projection_kind"] == "fts"
+    assert projection["algorithm"] == "vault-substring"
+    assert len(projection["items"]) == 2
+    assert all(item["score"] == 1.0 for item in projection["items"])
 
 
 def test_search_vault_case_insensitive(tmp_path) -> None:
@@ -60,6 +67,8 @@ def test_search_vault_no_match(tmp_path) -> None:
     vault, store = _make_vault(tmp_path, {"a.md": "Nothing relevant.\n"})
     result = search_vault(root=vault, store=store, query="zzzznomatch")
     assert result["results"] == []
+    assert result["derived_projection"] is None
+    assert result["derived_projection_status"] == "empty"
 
 
 def test_search_vault_empty_query_rejected(tmp_path) -> None:

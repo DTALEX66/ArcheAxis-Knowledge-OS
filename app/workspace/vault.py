@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
+from app.contracts.derived_projection_v1 import DerivedProjectionReceiptV1, ProjectionItemV1
 from shared.compat.import_session import ImportSession
 
 
@@ -82,7 +86,49 @@ def search_vault(*, root: str | Path, store: str | Path, query: str) -> dict[str
                 "source_hash": item.source_hash,
             }
         )
-    return {"schema_version": "v1", "query": query, "results": results}
+    projection = None
+    projection_status = "empty"
+    if results:
+        canonical_source_ids = [f"vault:{result['relative_path']}" for result in results]
+        projection_items = [
+            ProjectionItemV1(
+                source_id=source_id,
+                source_revision=str(result["source_hash"]),
+                # This search is an exact substring match.  The value records
+                # the measured match predicate; it is not a semantic quality
+                # score and must not be read as a relevance benchmark.
+                score=1.0,
+            )
+            for source_id, result in zip(canonical_source_ids, results, strict=True)
+        ]
+        seed = json.dumps(
+            {
+                "algorithm": "vault-substring",
+                "query": query,
+                "items": [item.model_dump() for item in projection_items],
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        projection = DerivedProjectionReceiptV1(
+            projection_id="projection_" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:24],
+            projection_kind="fts",
+            query=query,
+            algorithm="vault-substring",
+            algorithm_version="1",
+            canonical_source_ids=canonical_source_ids,
+            items=projection_items,
+            generated_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        ).model_dump(by_alias=True)
+        projection_status = "available"
+    return {
+        "schema_version": "v1",
+        "query": query,
+        "results": results,
+        "derived_projection": projection,
+        "derived_projection_status": projection_status,
+    }
 
 
 def write_file(
