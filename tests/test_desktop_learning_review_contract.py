@@ -152,6 +152,20 @@ def test_desktop_keeps_mastery_projection_open_when_review_response_arrives() ->
     assert "Mastery projection 未闭合" in submit
 
 
+def test_desktop_reads_latest_learning_event_on_open_for_restart_readback() -> None:
+    shell = _shell_source()
+    learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")
+
+    assert '"/api/v1/learning/events/' in learning
+    assert 'TryGetProperty("events"' in learning
+    assert 'TryGetProperty("outcome"' in learning
+    assert 'TryGetProperty("answer"' in learning
+    assert 'TryGetProperty("mastery_projection"' in learning
+    assert "已保存回答" in learning
+    assert "Mastery projection 未闭合" in learning
+    assert "学习记录：未读回" in learning
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(

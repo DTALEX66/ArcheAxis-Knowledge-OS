@@ -351,7 +351,46 @@ public partial class MainWindow : Window
                         assessmentReady = await BindAssessmentAsync(createdAssessment);
                     }
                 }
-                LearningItemText.Text = $"{assessmentText}\n待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{referenceText}";
+                var readbackText = "学习记录：未读回";
+                using (var historyResponse = await _supervisor.SendAsync(
+                    HttpMethod.Get,
+                    $"/api/v1/learning/events/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}"))
+                {
+                    if (historyResponse.IsSuccessStatusCode)
+                    {
+                        try
+                        {
+                            using var history = JsonDocument.Parse(await historyResponse.Content.ReadAsStringAsync());
+                            if (history.RootElement.TryGetProperty("events", out var events)
+                                && events.ValueKind == JsonValueKind.Array
+                                && events.GetArrayLength() > 0)
+                            {
+                                var latest = events[events.GetArrayLength() - 1];
+                                if (latest.TryGetProperty("outcome", out var outcome)
+                                    && outcome.ValueKind == JsonValueKind.String
+                                    && !string.IsNullOrWhiteSpace(outcome.GetString()))
+                                {
+                                    using var outcomeDocument = JsonDocument.Parse(outcome.GetString()!);
+                                    var savedAnswer = outcomeDocument.RootElement.TryGetProperty("answer", out var answerValue)
+                                        && answerValue.ValueKind == JsonValueKind.String
+                                        && !string.IsNullOrWhiteSpace(answerValue.GetString());
+                                    var projectionOpen = outcomeDocument.RootElement.TryGetProperty("mastery_projection", out var projection)
+                                        && projection.ValueKind == JsonValueKind.Object
+                                        && projection.TryGetProperty("closed", out var closed)
+                                        && closed.ValueKind == JsonValueKind.False;
+                                    readbackText = savedAnswer && projectionOpen
+                                        ? "已保存回答；Mastery projection 未闭合"
+                                        : savedAnswer ? "已保存回答" : "学习记录已读回";
+                                }
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            readbackText = "学习记录：未读回";
+                        }
+                    }
+                }
+                LearningItemText.Text = $"{assessmentText}\n待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{referenceText}\n{readbackText}";
                 LearningAnswerBox.IsEnabled = assessmentReady;
                 ReviewOutcomeBox.IsEnabled = assessmentReady;
                 SubmitReviewButton.IsEnabled = assessmentReady;
