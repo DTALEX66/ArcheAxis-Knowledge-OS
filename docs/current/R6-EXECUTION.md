@@ -141,6 +141,13 @@
 - limitations: this is a contract gate; it does not prove real curriculum content, renderer execution, embedding/reranker quality or runtime learning
 - rollback: revert commit `d581be95`
 
+### 合并受影响 Python 门禁回读
+
+- subject_sha: `d46f8932f6dc5ba520535bc6f4c26e0f366bb104`
+- tests: `tests/test_general_learning_contract.py tests/test_domain_pack_v1.py tests/test_courseware_v1.py tests/test_rag_pipeline.py tests/test_derived_projection_v1.py tests/test_workspace_pipeline_multiformat.py tests/test_format_execution_v1.py tests/test_conversion_run.py tests/test_workspace_api.py`
+- result: `72 passed, 3 warnings`, exit `0`
+- limits: Python contract/workspace evidence only; cargo/.NET, real external engines/models, Green and full M0 loop remain unverified or blocked
+
 ## A06 — Retrieval / Graph / Research
 
 状态：`TESTED_LOCAL_PARTIAL`
