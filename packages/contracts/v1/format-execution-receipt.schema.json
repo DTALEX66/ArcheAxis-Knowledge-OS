@@ -1,0 +1,320 @@
+{
+  "$defs": {
+    "AnchorFactV1": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "minLength": 1,
+          "title": "Block Id",
+          "type": "string"
+        },
+        "kind": {
+          "minLength": 1,
+          "title": "Kind",
+          "type": "string"
+        },
+        "locator": {
+          "additionalProperties": true,
+          "title": "Locator",
+          "type": "object"
+        }
+      },
+      "required": [
+        "block_id",
+        "kind",
+        "locator"
+      ],
+      "title": "AnchorFactV1",
+      "type": "object"
+    },
+    "FallbackInfoV1": {
+      "additionalProperties": false,
+      "properties": {
+        "used": {
+          "title": "Used",
+          "type": "boolean"
+        },
+        "attempted_engines": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Attempted Engines",
+          "type": "array"
+        },
+        "selected_engine": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Engine"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "used"
+      ],
+      "title": "FallbackInfoV1",
+      "type": "object"
+    },
+    "LossInfoV1": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "none",
+            "partial",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "LossInfoV1",
+      "type": "object"
+    },
+    "OriginalAssetV1": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "format": {
+          "minLength": 1,
+          "title": "Format",
+          "type": "string"
+        },
+        "retained": {
+          "const": true,
+          "default": true,
+          "title": "Retained",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "sha256",
+        "name",
+        "format"
+      ],
+      "title": "OriginalAssetV1",
+      "type": "object"
+    },
+    "QualityFactV1": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "measured",
+            "unmeasured",
+            "unsupported"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "name",
+        "status"
+      ],
+      "title": "QualityFactV1",
+      "type": "object"
+    },
+    "StructureInfoV1": {
+      "additionalProperties": false,
+      "properties": {
+        "block_count": {
+          "minimum": 0,
+          "title": "Block Count",
+          "type": "integer"
+        },
+        "block_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Block Kinds",
+          "type": "array"
+        }
+      },
+      "required": [
+        "block_count"
+      ],
+      "title": "StructureInfoV1",
+      "type": "object"
+    },
+    "TransformInfoV1": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "minLength": 1,
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "minLength": 1,
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "derived_document_id": {
+          "minLength": 1,
+          "title": "Derived Document Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine",
+        "engine_version",
+        "derived_document_id"
+      ],
+      "title": "TransformInfoV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One loss-aware, anchor-aware receipt for a format execution.",
+  "properties": {
+    "schema": {
+      "const": "archeaxis.format-execution-receipt/v1",
+      "default": "archeaxis.format-execution-receipt/v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "receipt_id": {
+      "minLength": 1,
+      "title": "Receipt Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "unsupported",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "original": {
+      "$ref": "#/$defs/OriginalAssetV1"
+    },
+    "transform": {
+      "$ref": "#/$defs/TransformInfoV1"
+    },
+    "loss": {
+      "$ref": "#/$defs/LossInfoV1"
+    },
+    "structure": {
+      "$ref": "#/$defs/StructureInfoV1"
+    },
+    "anchors": {
+      "items": {
+        "$ref": "#/$defs/AnchorFactV1"
+      },
+      "title": "Anchors",
+      "type": "array"
+    },
+    "quality_facts": {
+      "items": {
+        "$ref": "#/$defs/QualityFactV1"
+      },
+      "minItems": 1,
+      "title": "Quality Facts",
+      "type": "array"
+    },
+    "fallback": {
+      "$ref": "#/$defs/FallbackInfoV1"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "status",
+    "original",
+    "transform",
+    "loss",
+    "structure",
+    "anchors",
+    "quality_facts",
+    "fallback"
+  ],
+  "title": "ArcheAxis Multiformat Execution Receipt",
+  "type": "object",
+  "": "https://archeaxis.local/contracts/v1/format-execution-receipt.schema.json"
+}

@@ -1,6 +1,7 @@
 """Versioned canonical contracts."""
 
 from app.contracts.knowledge_v3 import KnowledgeObjectV3, KnowledgeSourceV3
+from app.contracts.format_execution_v1 import FormatExecutionReceiptV1
 from app.contracts.v1 import (
     CONTRACT_VERSION,
     EvaluationV1,
@@ -23,5 +24,6 @@ __all__ = [
     "TaskStepV1",
     "KnowledgeObjectV3",
     "KnowledgeSourceV3",
+    "FormatExecutionReceiptV1",
 ]
 
