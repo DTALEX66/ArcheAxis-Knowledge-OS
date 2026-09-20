@@ -896,3 +896,10 @@
 - `subject_sha`: `19c85246f3549088e2a2cbb756cb04ec5ab155bc` (current docs/evidence parent; no product code changed).
 - `verification`: `tests/test_knowledge_source_v3_contract.py` — `7 passed`; `tests/test_closed_loop_v1.py tests/test_co_learning_loop.py` — `14 passed`; `tests/test_machine_knowledge_contract.py tests/test_machine_knowledge_candidates.py` — `11 passed`; all exit `0`.
 - `evidence_boundary`: these are local Pydantic/receipt/candidate contract regressions only. They do not prove Rust/Core writer behavior, Avalonia first-use, authoritative Mastery/FSRS restart, real model execution, human correction, Legacy migration, Green replacement/rollback or CI qualification; A04/A14 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A12/A13 current-SHA local gates
+
+- `subject_sha`: `bdf5b1b83d16f6c3a5756e00cca522574b7eed76` (current docs/evidence parent; no product code changed).
+- `A12_verification`: candidate manifest, Green candidate manifest/verifier/assembly tests — `51 passed, 1 skipped`, exit `0`.
+- `A13_verification`: backup, migration runner, SQLite migration and governance migration tests — `94 passed, 1 warning`, exit `0`.
+- `evidence_boundary`: these are local candidate/backup/migration gates only. The skipped case and warnings are preserved; no installed Green runtime, clean-machine launch, signing/installer, real Legacy copy, workspace identity, Rust test execution or rollback evidence was produced. A12/A13 and M0 remain partial/not ready.
