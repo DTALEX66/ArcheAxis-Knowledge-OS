@@ -825,3 +825,11 @@
 - `behavior`: `DerivedProjectionReceiptV1.query` now rejects empty or whitespace-only strings, matching the Vault search boundary; the original query text is preserved when valid.
 - `verification`: focused projection and Vault search tests `12 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. Vector/reranker/graph/research provider wiring, real source restart/readback, external libraries, Green runtime, real data and E/F/private state were not accessed; A06 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A11 measured model evidence boundary
+
+- `subject_sha`: `f19fea2027259c8d5e8b4475eadea6f1df5b31f5`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/contracts/model_pool_v1.py`, `tests/test_model_pool_v1.py`.
+- `behavior`: model entries marked `measured_current` or `measured_historical` now require at least one evidence reference; unmeasured and blocked entries may remain without references.
+- `verification`: `tests/test_model_pool_v1.py` returned `5 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No model weights, shared model library, runtime probe, external provider, Green runtime, real data, E/F drive or private state was accessed; A11 and M0 remain partial/not ready.
