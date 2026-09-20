@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`092c71a64c313a31701df5b1dfb41228cb896da6`（P0 worker lifecycle 证据代码已推送；后续状态收据提交以其为 first parent）
+- 当前本地与远端 `main`：`2013f49d1c706fd059b6743ae634fdd69bbbf99d`（P0-H01 host lifecycle 边界与工具链阻塞收据已推送；本次状态收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -94,6 +94,8 @@ A00 authority 修复（当前 subject：`5005172114d329057e08829bf780a343b9c1d76
 A07 碰撞修复（当前 subject：`facd30eacc2ce217825132988af9ab546cec6881`）：machine-growth receipt 对重复、后缀相撞和空时间戳 fallback 使用全局占用集生成确定性唯一事件 ID；A07 定向套件 `20 passed, 1 warning`。仍不等于真实模型、真实用户错误或 review/reuse/retest 闭环。
 
 P0 route contract 增量（当前 subject：`80398b1e4fd550301b5f7949a6fa3d0c53602960`）：新增静态检查，遍历 `text_ndjson.ROUTES`，验证 worker 路径 containment、`ENGINE`/`extract()`、版本、媒体类型和调用元数据；定向套件 `27 passed, 1 warning, 47 subtests`，vNext worker check 通过。真实 manifest/health/启停/provider replacement 生命周期仍未闭合。
+
+P0-H01 host lifecycle 边界（当前 subject：`a5ef4f5f4d29203bda4137ecb9cc026658ecb309`）：正式宿主仍未接入统一 provider routing；已形成 `provider-routing.json` sidecar 提案，要求 CapabilityStore 原子写、Rust Core 只读、Core 为唯一 Canonical writer。该卡标记 `BLOCKED_BY_AUTHORITY_DECISION`，不得把 test-only worker 生命周期升格为 M0 完成。当前 Rust/API 运行还受外置 Windows SDK `kernel32.lib`（历史 `LNK1181`）阻塞。
 
 P0 worker lifecycle 增量（当前 subject：`092c71a64c313a31701df5b1dfb41228cb896da6`）：新增 test-only 真实 subprocess 组合测试，使用临时 `PluginManifest` 与 `CapabilityStore` 验证 hello、成功 `text.extract`、输出哈希、失败无输出、disable 阻断、enable 恢复、staging 仅含 input/output 且不创建 `.db/.sqlite`。新卡与相邻 manifest/activator/NDJSON 回归合计 `47 passed, 1 warning, 47 subtests passed`，vNext worker check 与 Ruff 通过；证据级别为 `TESTED_LOCAL_CONTRACT`，正式宿主仍未改写，P0/M0 继续 `PARTIAL/NOT_READY`。
 
