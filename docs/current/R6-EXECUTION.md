@@ -709,3 +709,12 @@
 - `behavior`: Green candidate verification now rejects every candidate-tree file absent from `candidate-manifest.json`, while allowing the manifest itself. This closes the unrecorded-payload gap without treating the candidate as an installed Green release.
 - `verification`: `tests/test_green_candidate_manifest.py tests/test_green_candidate_verifier.py tests/test_green_candidate_assembly.py tests/test_release_architecture.py tests/test_r6_version_release_freeze.py tests/test_product_version_truth_contract.py` — `22 passed, 1 skipped, 1 warning`, exit `0`; Ruff on both changed files exit `0`; `git diff --check` exit `0`.
 - `boundary`: local candidate-verifier evidence only. No clean-machine run, signing, installer, Green replacement, rollback, external library, model library, real data, E/F drive or private agent state was accessed. A12, A13 and M0 remain `TESTED_LOCAL_PARTIAL` / `NOT_READY`.
+
+## Continuation receipt — 2026-09-20 A09/A10 objective coverage and renderer boundary
+
+- `subject_sha`: `4e5394e39d81476591a3bd0fd892976f4213c331`; pushed to `origin/main`.
+- `changed_paths`: `app/contracts/general_learning_v1.py`, `tests/test_general_learning_contract.py`, `app/adapters/courseware_lesson.py`, `tests/test_general_courseware_renderer.py`.
+- `A09/A10`: every knowledge component referenced by a General course artifact must be covered by at least one Learning Objective; otherwise manifest validation fails closed. This prevents artifacts from carrying unteachable or unscoped components.
+- `P2 renderer`: native Markdown lesson rendering now has explicit regression coverage for `interactive=true` and non-`native-lesson` renderers; both are rejected rather than silently projected as static lessons. H5P remains a separate future adapter.
+- `verification`: combined General contract/courseware/renderer/domain/truth suite — `26 passed, 1 warning`, exit `0`; Ruff on all four changed files passed; `git diff --check` exit `0`.
+- `boundary`: local contract and projection evidence only; no real curriculum, interactive renderer, provider, model, Green, external library, E/F drive or private state was accessed. A09/A10 remain partial for real runtime learning, and M0 remains `NOT_READY`.
