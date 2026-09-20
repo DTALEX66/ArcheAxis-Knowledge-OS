@@ -804,7 +804,7 @@
 
 ## Continuation receipt — 2026-09-20 P5 backup manifest duplicate-path hardening
 
-- `subject_sha`: `e793252c4d26571808d159d3b7cdd3aa487b7b9c`; code commit pushed to `origin/main`.
+- `subject_sha`: `e793252cd149c23c868c84921ab13ef3c7f31150`; code commit pushed to `origin/main`.
 - `changed_paths`: `app/exchange/backup.py`, `tests/test_axw094b_backup.py`.
 - `behavior`: `verify_backup()` normalizes manifest separators and rejects a duplicate relative path before counting or hashing it, closing a manifest-count ambiguity without changing backup layout or restore policy.
 - `verification`: `tests/test_axw094b_backup.py` returned `17 passed`, exit `0`; Ruff for `app/exchange/backup.py` passed; `git diff --check` passed. The full test file still reports a pre-existing `SIM105` at its cleanup block, which was not changed.

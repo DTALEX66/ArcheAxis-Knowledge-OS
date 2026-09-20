@@ -6,7 +6,7 @@
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
   "updated_at": "2026-09-20T15:00:16Z",
-  "subject_sha": "e793252c4d26571808d159d3b7cdd3aa487b7b9c",
+  "subject_sha": "e793252cd149c23c868c84921ab13ef3c7f31150",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -107,7 +107,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup/migration/schema/FK/source-object and SQLite integrity gates now pass locally, while workspace identity, real Legacy semantic diff, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated; Rust test execution is NOT_EXECUTED without cargo",
-      "subject_sha": "e793252c4d26571808d159d3b7cdd3aa487b7b9c"
+      "subject_sha": "e793252cd149c23c868c84921ab13ef3c7f31150"
     },
     {
       "id": "A14",
