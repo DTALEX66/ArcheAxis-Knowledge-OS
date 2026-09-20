@@ -760,3 +760,11 @@
 - `toolchain_readback`: current shell lacks `ARCHEAXIS_RUST_TOOLCHAINS`, `ARCHEAXIS_MSVC_VCVARS`, `INCLUDE`, `LIB`, `WindowsSdkDir` and `VCToolsInstallDir`; project doctor reports Rust unavailable. Historical exact blocker is `LNK1181: kernel32.lib`. This is an external Windows SDK environment gap; no project-local substitute exists.
 - `next_action`: freeze the sidecar projection contract, then implement P0-H01 in isolated write sets; separately authorize exact Windows SDK/toolchain readback before Rust runtime gates.
 - `boundary`: read-only audit plus project intake note only; no production host, external toolchain, Green runtime, real data, E/F drive or private agent state was modified.
+
+## Continuation receipt — 2026-09-20 P0-H01 provider-routing contract slice
+
+- `subject_sha`: `e21713b84b5dafe1b028e86481f119aa1efd4a4f`; code commit pushed to `origin/main`.
+- `changed_paths`: `shared/provider_routing.py`, `tests/test_provider_routing.py`.
+- `behavior`: fail-closed pure contract parser for `archeaxis.provider-routing/v1`; validates non-negative generation, provider manifest SHA/version, installed/enabled state, safe relative references, health receipt semantics, closed default/fallback routes and duplicate/unknown providers. `eligible_providers()` never promotes unknown health to healthy.
+- `verification`: RED observed missing-module collection failure; after implementation, focused contract suite `10 passed, 1 warning`, related provider/CapabilityStore/manifest/activator regression `60 passed, 3 warnings`, Ruff and `py_compile` passed.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. The formal Rust/Core and Avalonia host do not consume this snapshot yet; no SQLite schema, external toolchain, Green runtime, real data, E/F drive or private agent state was touched. P0-H01 remains blocked for the cross-layer Authority decision.

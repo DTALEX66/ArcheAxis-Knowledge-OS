@@ -45,3 +45,10 @@
 - Sol：Rust/C# provider lifecycle 协议实现。
 - Terra：bounded test harness 与验证。
 - Luna：静态索引、收据和低风险回归。
+
+## 已完成的契约切片
+
+- code_commit: `e21713b84b5dafe1b028e86481f119aa1efd4a4f`
+- added: `shared/provider_routing.py`, `tests/test_provider_routing.py`
+- verification: provider-routing `10 passed, 1 warning`; related provider/CapabilityStore/manifest/activator `60 passed, 3 warnings`; Ruff and py_compile passed.
+- boundary: pure contract only; no CapabilityStore writer, Rust Core, C# desktop or SQLite integration yet.
