@@ -120,8 +120,8 @@
       "id": "A15",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "independent current-SHA audit at c7315324 marks G01-G14 BLOCKED or NOT_RUN for missing current candidate/runtime/model/Legacy/Green/CI evidence; G12 is BLOCKED pending runtime directory diffs rather than FAIL from preserved untracked history; product NOT_READY and A16 remains blocked",
-      "subject_sha": "c731532413d11393d4bc582af14ce9b503a9d8cd"
+    "remaining_gap": "independent current-SHA audit at a5f52101 confirms candidate provenance 452b5d0c and current remote identity, but G01-G14 remain BLOCKED for missing full qualification, real formats/quality, model, Legacy, GUI/clean-machine, runtime-directory and release evidence; product NOT_READY and A16 remains blocked",
+    "subject_sha": "a5f521010686c0c9bc9323c7de4f21eb31ac36de"
     },
     {
       "id": "A16",

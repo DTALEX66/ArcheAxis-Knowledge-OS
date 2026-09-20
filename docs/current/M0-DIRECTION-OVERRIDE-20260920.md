@@ -219,6 +219,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 
 审计 subject：`c731532413d11393d4bc582af14ce9b503a9d8cd`，本地/远端 `main` 在审计时及 GitHub 实时回读一致，tree 为 `fbb630e7ff8561bb11b87577aa88716303ca888d`。G01–G14 均未达到 PASS：G01–G11、G13、G14 为 `BLOCKED`，G12 为 `BLOCKED`（缺运行前后、失败退出和并发目录差分，保留 untracked 历史路径不能单独判 FAIL）；本轮 Python verifier 在独立审计环境未启动（uv trampoline 权限错误），产品运行、Rust/.NET、真实模型、Green、Legacy 和完整 qualification 未执行。结论为 `INDEPENDENT_READONLY_AUDIT_COMPLETED / GATES_BLOCKED / PRODUCT_NOT_READY`，A16 继续 Owner Gate；旧收据的 G12 FAIL 不被本轮继承。
 
+## A15 当前 SHA 增量（2026-09-21）
+
+当前审计 subject：`a5f521010686c0c9bc9323c7de4f21eb31ac36de`；本地 `HEAD`、`origin/main` 与 GitHub `main` 一致。独立只读复核确认候选 manifest 的 2,537 个文件及 ZIP/worker/SQLite 收据完整，快速 CI `35524185122` 为 `success`。候选真实构建 provenance 仍为 `452b5d0cb4f18746347996f7bc03010f4b067637` / tree `c0ec75b605b0fc1c9d2d14411e7b4d8b208da07b`，不得重标为当前文档提交构建。A15 仍为 `TESTED_LOCAL_PARTIAL / GATES_BLOCKED / PRODUCT_NOT_READY`；G01–G14 的真实格式质量、模型/纠错重测、GUI/干净机、运行目录差分、Legacy 语义迁移、完整 qualification 与发布门禁仍未闭合，A16 继续 Owner Gate。
+
 ## 本记录限制
 
 本次只调整优先级和执行方向，没有删除历史、没有读取或写入 E/F 盘、没有访问私有 `.codex/.zcode/.hermes`、没有修改外置共享库、真实资料库、测试源资料或现有 Green runtime，也没有创建 tag/release。

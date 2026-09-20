@@ -935,3 +935,11 @@
 - `verification`: exact commit/tree plus runtime/workers/provenance verifier returned `ok=true`, exit `0`.
 - `runtime`: candidate Desktop smoke exited `0` and created a 4,096-byte workspace SQLite with SHA-256 `1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489`; candidate worker hello and `text.extract` smoke exited `0` and produced three content-addressed outputs.
 - `boundary`: outputs stayed under `.project-local`; the preserved runtime stage was reused as a project-local input. No existing Green directory, external shared library, real data, E/F drive or private agent state was accessed or modified. GUI first-use, clean-machine, signing, installer/uninstaller, real Legacy migration and Green replacement/rollback remain open.
+
+## Continuation receipt — 2026-09-21 A15 current-SHA read-only increment
+
+- `audit_subject_sha`: `a5f521010686c0c9bc9323c7de4f21eb31ac36de`; local `HEAD`, local `origin/main` and GitHub `main` read back identically. This receipt updates the audit subject only; the candidate build provenance remains `452b5d0cb4f18746347996f7bc03010f4b067637` with tree `c0ec75b605b0fc1c9d2d14411e7b4d8b208da07b`.
+- `independence`: a fresh read-only reviewer checked current remote identity, candidate manifest byte/hash completeness (2,537 files), ZIP size/hash, and the recorded worker/SQLite smoke output hashes. No source, candidate or private state was modified; no large product test or smoke process was rerun.
+- `additional_evidence`: current fast CI run `35524185122` completed `success`; this is not full qualification or release evidence. Candidate and smoke artifacts remain bounded to their original build subject and are not relabeled as an `a5f52101` build.
+- `result`: A15 remains `TESTED_LOCAL_PARTIAL / GATES_BLOCKED / PRODUCT_NOT_READY`. G01-G14 remain blocked or insufficient for PASS: real representative formats/quality, model/client correction loop, complete learning/restart, current security/runtime-directory diffs, Legacy semantic migration, GUI/clean-machine qualification, full qualification and release evidence remain absent. A16 remains `BLOCKED_BY_OWNER_DECISION`.
+- `boundary`: no E/F drive, credentials, `.codex`, `.zcode`, `.hermes`, external shared library, real data, existing Green runtime or installation/replacement action was accessed or modified.
