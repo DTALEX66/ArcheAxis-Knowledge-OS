@@ -750,3 +750,13 @@
 - `behavior`: test-only composition of the existing `PluginManifest`/`CapabilityStore` gate with the real `services/python-workers/transport/text_ndjson.py` subprocess. It covers hello, successful text extraction with output hashes and candidate-only authority effect, invalid-input failure with no outputs, disable blocking without launch, enable recovery, staging-root boundaries, and no SQLite creation.
 - `verification`: actual configured CPython ran the focused card plus adjacent manifest/activator/NDJSON regression: `47 passed, 1 warning, 47 subtests passed`, exit `0`; `scripts/ci/check_vnext_workers.py` reported `workers-vnext check passed`; Ruff passed; `git diff --check` passed before commit.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No production launcher, schema, desktop host, external library, model pool, Green runtime, real user data, E/F drive or private agent state was accessed. P0 remains `PARTIAL`; M0 remains `NOT_READY`.
+
+## Continuation receipt — 2026-09-20 P0-H01 host lifecycle and toolchain boundary
+
+- `subject_sha`: `a5ef4f5f4d29203bda4137ecb9cc026658ecb309` (read-only audit basis).
+- `card`: `P0-H01 Formal Host Provider Lifecycle`; status `BLOCKED_BY_AUTHORITY_DECISION`.
+- `finding`: current formal path is Avalonia → Rust Core; Python `CapabilityStore`/converter dispatch is not the formal runner. The existing lifecycle test is test-only and does not bind the host.
+- `proposed_contract`: versioned `provider-routing.json` sidecar, atomically written by CapabilityStore and read-only in Rust Core; it must carry default/fallback order, manifest digest/version, enabled state, replacement generation and health receipt reference. Rust Core remains the sole Canonical writer.
+- `toolchain_readback`: current shell lacks `ARCHEAXIS_RUST_TOOLCHAINS`, `ARCHEAXIS_MSVC_VCVARS`, `INCLUDE`, `LIB`, `WindowsSdkDir` and `VCToolsInstallDir`; project doctor reports Rust unavailable. Historical exact blocker is `LNK1181: kernel32.lib`. This is an external Windows SDK environment gap; no project-local substitute exists.
+- `next_action`: freeze the sidecar projection contract, then implement P0-H01 in isolated write sets; separately authorize exact Windows SDK/toolchain readback before Rust runtime gates.
+- `boundary`: read-only audit plus project intake note only; no production host, external toolchain, Green runtime, real data, E/F drive or private agent state was modified.
