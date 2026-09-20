@@ -794,3 +794,10 @@
 - `behavior`: the General native lesson projection regression now asserts the derived `Projection.source`, empty wikilinks and required tags, preserving provenance fields alongside existing manifest/artifact/source/knowledge bindings.
 - `verification`: `tests/test_general_courseware_renderer.py` returned `8 passed`, exit `0`; Ruff for the adapter and test passed; `git diff --check` passed.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT/PROJECTION` only. Production renderer behavior was unchanged; no real curriculum, model/provider, external library, Green runtime, real data, E/F drive or private state was accessed. A10/P2 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A14 real-model preflight
+
+- `subject_sha`: `004587fde08661239012ac1c70b180eea363c2c0` (read-only preflight basis; no product code changed).
+- `readback`: `config/models.yaml` still selects `default_llm.provider=stub` and `default_llm.name=local-stub`; `Get-Command ollama` found no executable; `Test-NetConnection 127.0.0.1:11434` returned `TcpTestSucceeded=false`.
+- `status`: `NOT_EXECUTED / BLOCKED`; no synthetic machine receipt was promoted to real-model evidence. A14 still requires an owner-approved runnable model/provider and a human-observed error/correction sequence.
+- `boundary`: only project config and localhost availability were checked. No external model library, external tool, real data, E/F drive, private state or provider credentials were accessed; M0 remains `NOT_READY`.
