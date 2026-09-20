@@ -63,6 +63,33 @@ def test_capture_disambiguates_repeated_event_timestamps_deterministically(tmp_p
     assert first.source_event_ids == second.source_event_ids
 
 
+def test_capture_disambiguates_timestamp_suffix_collisions_and_fallbacks(tmp_path):
+    events = [
+        LifecycleEvent.started("部署服务", "now"),
+        LifecycleEvent.tool_called("build", "now"),
+        LifecycleEvent.ended("success", "now-1"),
+    ]
+
+    _, receipt = capture_with_receipt(tmp_path / "collision.sqlite", events)
+
+    assert receipt.source_event_ids == ["now", "now-1", "now-1-1"]
+    assert len(receipt.source_event_ids) == len(set(receipt.source_event_ids))
+
+    fallback_events = [
+        LifecycleEvent.started("部署服务", ""),
+        LifecycleEvent.tool_called("build", ""),
+        LifecycleEvent.ended("success", "event-1"),
+    ]
+    _, fallback_receipt = capture_with_receipt(
+        tmp_path / "fallback-collision.sqlite", fallback_events
+    )
+
+    assert fallback_receipt.source_event_ids == ["event-0", "event-1", "event-1-1"]
+    assert len(fallback_receipt.source_event_ids) == len(
+        set(fallback_receipt.source_event_ids)
+    )
+
+
 def test_capture_success_harvests_principle(tmp_path):
     db = tmp_path / "eh.sqlite"
     principles = capture(db, [
