@@ -734,3 +734,11 @@
 - `behavior`: receipt generation now tracks a global used-ID set and advances deterministic suffixes until each event reference is unique, covering repeated timestamps, timestamp/suffix collisions and `event-<index>` fallback collisions.
 - `verification`: RED reproduced `['now', 'now-1', 'now-1']` before the fix; GREEN A07 suite returned `20 passed, 1 warning`, exit `0`; `git diff --check` exit `0`. Existing unrelated Ruff `UP037` findings at the pre-existing forward annotations remain unchanged.
 - `boundary`: local receipt evidence only; real model execution, human error, review/reuse/retest, CI and runtime evidence remain open. No E/F drive, external library, model pool, Green or private state was accessed.
+
+## Continuation receipt — 2026-09-20 P0 Python worker route contract
+
+- `subject_sha`: `80398b1e4fd550301b5f7949a6fa3d0c53602960`; pushed to `origin/main`.
+- `changed_paths`: `tests/test_worker_route_contract.py`.
+- `behavior`: every `text_ndjson.ROUTES` entry is checked against an in-repository worker file, top-level `ENGINE` and `extract()` declarations, non-empty version/media metadata and supported call shape. Path escape and missing-worker drift fail closed.
+- `verification`: P0 suite `27 passed, 1 warning, 47 subtests`, exit `0`; `scripts/ci/check_vnext_workers.py` reported `workers-vnext check passed`; Ruff passed.
+- `boundary`: static route evidence only. It does not bind PluginManifest/CapabilityStore to the real subprocess, health, enable/disable, fallback or provider replacement lifecycle; P0 remains `PARTIAL`.
