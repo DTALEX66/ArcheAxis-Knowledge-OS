@@ -903,3 +903,11 @@
 - `A12_verification`: candidate manifest, Green candidate manifest/verifier/assembly tests — `51 passed, 1 skipped`, exit `0`.
 - `A13_verification`: backup, migration runner, SQLite migration and governance migration tests — `94 passed, 1 warning`, exit `0`.
 - `evidence_boundary`: these are local candidate/backup/migration gates only. The skipped case and warnings are preserved; no installed Green runtime, clean-machine launch, signing/installer, real Legacy copy, workspace identity, Rust test execution or rollback evidence was produced. A12/A13 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-21 release-chain and Green-candidate readback
+
+- `subject_sha`: `996cafaeaad6e4c3e157a6ecd3344caf29ec526f` (docs/evidence parent; no product code changed).
+- `release_architecture`: `scripts/release/verify_release_architecture.py --root .` returned exit `0`; the formal Avalonia → Rust Core → Python workers chain is structurally identified. This is an architecture check only and does not prove runtime, installer, signing or clean-machine behavior.
+- `candidate_verification`: `scripts/release/verify_green_candidate.py` against `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64` returned exit `1` (`ok=false`); the candidate contains 2,514 files but `runtime/Lib/**/__pycache__/*.pyc` files are absent from `candidate-manifest.json` (26 unmanifested files reported). The candidate provenance is source commit `0e934f33ee9a5f6082c04abda454c67df1055097`, not the current subject, so it cannot be claimed as a current-SHA candidate.
+- `boundary`: no `--run`, install, Green replacement, rollback, external library/model access, real data, E/F drive or private agent state was used. The result is a candidate-integrity blocker, not a deletion authorization; the candidate was not modified.
+- `status`: A12/A13 remain `TESTED_LOCAL_PARTIAL`; P6/M0 remain `PARTIAL/BLOCKED` and `NOT_READY`.
