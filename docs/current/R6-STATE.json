@@ -5,8 +5,8 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T15:00:16Z",
-  "subject_sha": "e793252cd149c23c868c84921ab13ef3c7f31150",
+  "updated_at": "2026-09-20T15:14:55Z",
+  "subject_sha": "7793a2c47a010024811994bc4e5bea10c4e19b3a",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -71,7 +71,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Core Assessment and latest review answer/schedule/mastery projection now have a read-only SQLite-reopen API readback; real Avalonia first-use, authoritative mastery projection and adaptive journey remain open",
-      "subject_sha": "964fb8e20d5c97e513c716127e42e22406768ce4"
+      "subject_sha": "7793a2c47a010024811994bc4e5bea10c4e19b3a"
     },
     {
       "id": "A09",

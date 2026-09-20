@@ -809,3 +809,11 @@
 - `behavior`: `verify_backup()` normalizes manifest separators and rejects a duplicate relative path before counting or hashing it, closing a manifest-count ambiguity without changing backup layout or restore policy.
 - `verification`: `tests/test_axw094b_backup.py` returned `17 passed`, exit `0`; Ruff for `app/exchange/backup.py` passed; `git diff --check` passed. The full test file still reports a pre-existing `SIM105` at its cleanup block, which was not changed.
 - `evidence_boundary`: `TESTED_LOCAL` Python backup-manifest contract only. Rust SQLite integrity, workspace identity, real Legacy semantic diff, Green replacement/rollback and clean-machine evidence remain open; no external library, model pool, real data, E/F drive or private state was accessed.
+
+## Continuation receipt — 2026-09-20 A08/P3 learning tick idempotency input boundary
+
+- `subject_sha`: `7793a2c47a010024811994bc4e5bea10c4e19b3a`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/api/learning.py`, `tests/test_learning_api_security.py`.
+- `behavior`: `/api/v1/learning/tick` now rejects a missing-type, empty or whitespace-only `idempotency_key` with a 400 response before dispatching the co-learning tick. Existing truth-field fail-closed behavior remains unchanged.
+- `verification`: security tests `10 passed`, learning-loop E2E `1 passed`, exit `0`; Ruff on both changed files and `git diff --check` passed.
+- `evidence_boundary`: local API input-contract evidence only. No authoritative Mastery/FSRS writer, desktop UI, real model/provider, external library, Green runtime, real data, E/F drive or private state was accessed; A08/P3 and M0 remain partial/not ready.
