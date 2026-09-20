@@ -41,9 +41,10 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`4e5394e39d81476591a3bd0fd892976f4213c331`（A09/A10 与 P2 边界收紧已推送）
+- 当前本地与远端 `main`：`5005172114d329057e08829bf780a343b9c1d76f`（A07 事件收据身份修复已提交；本次 authority 收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
+- R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
 - `.project-local` 是唯一开发运行/证据输出根；外置共享模型、工具、Green、真实资料库和测试资料库不因 M0 方向改变而迁移或改写。
 
@@ -87,6 +88,8 @@ A14 增量（当前 subject：`274de700c4dc4c02ede5d15fb3938fef5498677f`）：cl
 A12 增量（当前 subject：`de80584cf5282f78c7a910a4487cbc04c3bd6602`）：Green candidate verifier 现在拒绝候选目录中未列入 `candidate-manifest.json` 的旁路文件；定向候选/发布回归 `22 passed, 1 skipped, 1 warning`，Ruff 通过。该增量只加强本地候选包完整性收据，不证明清洁机器、签名、安装器、Green 原位替换或回滚。
 
 A09/A10/P2 增量（当前 subject：`4e5394e39d81476591a3bd0fd892976f4213c331`）：General artifact 的知识组件必须被 Learning Objective 覆盖；native lesson renderer 对 interactive 或非 `native-lesson` 形状 fail closed。定向回归 `26 passed, 1 warning`，Ruff 通过。该增量只强化课程契约和静态投影边界，不证明真实互动课程或真人学习闭环。
+
+A00 authority 修复（当前 subject：`5005172114d329057e08829bf780a343b9c1d76f`）：保留不可变 TaskPack 正文和用户源 CRLF provenance SHA，补充仓库 LF artifact SHA、换行语义和 `check_r6_taskpack_authority.py` 验收；`EXECUTOR-START.md` 不再包含未解析的 `$sha`。这修复了摘要语义缺失，不等于 R6/M0 运行时闭环完成。
 
 验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `11 passed, 1 warning`，本轮 API Rust 定向回归 `10 passed`，P5 Rust 定向回归 `18 passed`，退出码均为 `0`；完整 workspace Rust gate、rustfmt、完整 .NET 产品门禁仍未执行。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 

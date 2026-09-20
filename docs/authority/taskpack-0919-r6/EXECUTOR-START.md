@@ -2,7 +2,8 @@
 
 - Plan ID: AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6
 - Taskpack: TASKPACK.md
-- Taskpack SHA-256: $sha
+- Taskpack source SHA-256 (user-provided CRLF bytes): `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`
+- Repository Taskpack SHA-256 (canonical LF bytes): `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`
 - Current execution ledger: docs/current/R6-EXECUTION.md
 - Current state: docs/current/R6-STATE.json
 - Implementation plan: docs/superpowers/plans/2026-09-19-r6-local-green-absorb-first.md

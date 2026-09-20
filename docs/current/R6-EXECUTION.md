@@ -718,3 +718,11 @@
 - `P2 renderer`: native Markdown lesson rendering now has explicit regression coverage for `interactive=true` and non-`native-lesson` renderers; both are rejected rather than silently projected as static lessons. H5P remains a separate future adapter.
 - `verification`: combined General contract/courseware/renderer/domain/truth suite — `26 passed, 1 warning`, exit `0`; Ruff on all four changed files passed; `git diff --check` exit `0`.
 - `boundary`: local contract and projection evidence only; no real curriculum, interactive renderer, provider, model, Green, external library, E/F drive or private state was accessed. A09/A10 remain partial for real runtime learning, and M0 remains `NOT_READY`.
+
+## Continuation receipt — 2026-09-20 A07 event identity and R6 authority digest repair
+
+- `A07 subject_sha`: `5005172114d329057e08829bf780a343b9c1d76f`; A07 receipt fix was tested locally and committed before this authority record update.
+- `changed_paths`: `app/agent/experience_harvest.py`, `tests/test_experience_harvest.py`, `scripts/maintenance/check_r6_taskpack_authority.py`, `docs/authority/taskpack-0919-r6/MANIFEST.json`, `docs/authority/taskpack-0919-r6/TASKS.json`, `docs/authority/taskpack-0919-r6/EXECUTOR-START.md`, `docs/current/R6-STATE.json`, `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`.
+- `A07`: repeated event timestamps now receive deterministic occurrence suffixes (`now`, `now-1`, `now-2`) so machine-growth evidence references remain unique and stable; `19 passed, 1 warning`, exit `0`. Existing unrelated Ruff `UP037` findings were not changed.
+- `A00`: immutable `TASKPACK.md` remains unchanged. The source-provided CRLF provenance SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529` and canonical repository LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b` are now explicit in all R6 authority records; `EXECUTOR-START.md` no longer contains `$sha`. `check_r6_taskpack_authority.py` verifies both digests and the CRLF→LF normalization relation.
+- `boundary`: no external library, model pool, Green runtime, real data, E/F drive or private agent state was accessed. A15 found the prior digest ambiguity; this repair addresses that authority defect but does not promote A15/M0 to ready.
