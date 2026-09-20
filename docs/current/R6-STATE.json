@@ -99,15 +99,15 @@
       "id": "A12",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "candidate manifest now rejects unmanifested files and headless Core smoke passes; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
-      "subject_sha": "de80584cf5282f78c7a910a4487cbc04c3bd6602"
+      "remaining_gap": "current exact-SHA candidate, manifest, runtime/workers verification and headless smoke now have local evidence; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
+      "subject_sha": "452b5d0cb4f18746347996f7bc03010f4b067637"
     },
     {
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup/migration/schema/FK/source-object and SQLite integrity gates now pass locally, while workspace identity, real Legacy semantic diff, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated; Rust test execution is NOT_EXECUTED without cargo",
-      "subject_sha": "e793252cd149c23c868c84921ab13ef3c7f31150"
+      "remaining_gap": "current exact-SHA candidate and headless worker/Desktop smoke now have local evidence; backup/migration/schema/FK/source-object and SQLite integrity gates pass locally, while workspace identity, real Legacy semantic diff, GUI first-use, installer/signing, Green activation and rollback remain owner-gated",
+      "subject_sha": "452b5d0cb4f18746347996f7bc03010f4b067637"
     },
     {
       "id": "A14",

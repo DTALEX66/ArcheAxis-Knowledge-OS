@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`57b2e88064400a7169ff0eb9f4cb2c1a2a1cae76`（本次构建阻塞收据提交的 first parent；代码证据 subject 仍为 `e577004b78053fdaad884ddf8a2733524c035c4c`）
+- 当前本地与远端 `main`：`452b5d0cb4f18746347996f7bc03010f4b067637`（本次当前 SHA 候选收据提交的 first parent；代码证据 subject 仍为 `e577004b78053fdaad884ddf8a2733524c035c4c`）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -202,6 +202,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 ## A07 增量（2026-09-21）
 
 当前 subject：`e577004b78053fdaad884ddf8a2733524c035c4c`。执行反馈现在把本地 harvest 生成的 lesson 通过 `app.knowledge.distillation.record_principle()` 写入 canonical `distillation_principles` candidate，并将 `skill_candidate` receipt 置为 `pending`、绑定 candidate ID；review/reuse 仍为 `skipped`，`machine_verified` 永远保持 `false`。A07 聚焦回归 `27 passed, 1 warning`，`git diff --check` 通过；证据仅为本地 synthetic SQLite，不代表真实模型、人工审核、复用或复测闭环完成。
+
+## A12/A13 增量（2026-09-21）
+
+当前候选 subject：`452b5d0cb4f18746347996f7bc03010f4b067637`，tree：`c0ec75b605b0fc1c9d2d14411e7b4d8b208da07b`。登记的 .NET 10.0.400 restore/publish 与 Rust/MSVC release build 均成功；候选包含 2,537 个文件，`verify_green_candidate.py --require-runtime --require-workers --require-provenance` exact commit/tree 返回 `ok=true`。候选 Desktop headless smoke 与 `text.extract` worker smoke 均退出 `0`，证据写入 `R6-GREEN-CANDIDATE-20260921.json` 和 `R6-GREEN-SMOKE-20260921.json`。这仍是项目内候选/无界面证据，不等于 Green 原位安装、签名、干净机器、GUI 首用或回滚完成。
 
 ## A10 增量（2026-09-20）
 

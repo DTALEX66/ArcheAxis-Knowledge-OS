@@ -1,0 +1,30 @@
+{
+  "schema": "archeaxis.r6.green-smoke-receipt/v1",
+  "observed_at": "2026-09-21",
+  "subject_sha": "452b5d0cb4f18746347996f7bc03010f4b067637",
+  "candidate": ".project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-452b5d0c-x64",
+  "worker": {
+    "command": "runtime/python.exe -B -S workers/transport/text_ndjson.py --staging-root .project-local/runs/r6-current-worker-smoke-452b5d0c",
+    "exit_code": 0,
+    "status": "succeeded",
+    "output_count": 3,
+    "output_sha256": [
+      "0906d7174158845f5eaed9b2cb1a682b2c13212a2a8403058a3da719156d7d95",
+      "df165888622f9e4aee939ac47f8c3d2cc2d1e5a0949a6fb0675ba2ae5e60e117",
+      "864ac85a12985720b9ddd691e684f93cae1c71967434c3ecde41f3aa86e77852"
+    ],
+    "authority_effect": "candidate_or_measurement_only"
+  },
+  "desktop": {
+    "command": "desktop/ArcheAxis.Desktop.exe --smoke .project-local/runs/r6-current-candidate-smoke-452b5d0c-2/workspace.sqlite",
+    "exit_code": 0,
+    "status": "succeeded",
+    "workspace_db_created": true,
+    "workspace_db_sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489",
+    "stdout_readback": "not_available_for_WinExe"
+  },
+  "limitations": [
+    "Headless candidate smoke only; Avalonia GUI first-use, clean-machine startup, signing, installer/uninstaller and Green replacement/rollback remain open.",
+    "The installed Green directory, external libraries, real data, E/F drives and private agent state were not accessed or modified."
+  ]
+}

@@ -926,3 +926,12 @@
 - `desktop_attempt`: the registered external .NET 10.0.400 publish was attempted for `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj` into `.project-local/build/dotnet/green-desktop-c4ce4443`; it stopped with `NETSDK1047` because the existing project assets file did not contain the `net10.0/win-x64` target. No restore was run and no valid current desktop candidate was produced.
 - `core_attempt`: the registered Rust/MSVC release build was attempted into `.project-local/build/cargo-current`; the first command encoded a trailing space in `CARGO_TARGET_DIR`, so Cargo rejected the path (`cargo-current \\release`, OS error 3). No valid current Core candidate was produced.
 - `status`: `NOT_EXECUTED/BLOCKED` for a current-SHA Green candidate. The next safe build requires a project-local RID restore and a corrected Cargo environment; no external library, Green runtime, real data, E/F drive or private agent state was modified.
+
+## Continuation receipt — 2026-09-21 current-SHA Green candidate and smoke
+
+- `subject_sha`: `452b5d0cb4f18746347996f7bc03010f4b067637`; `source_tree`: `c0ec75b605b0fc1c9d2d14411e7b4d8b208da07b`.
+- `builds`: project-local RID restore and .NET 10.0.400 self-contained publish exited `0`; Rust/MSVC release build with the registered Windows SDK LIB/INCLUDE paths exited `0` with two pre-existing warnings. Desktop SHA-256 is `E21EC109DD37B80554E1AFE9B47DB961B2C4C1D471551BBAD812403A98C0119A`; Core SHA-256 is `D1A06C80FB65925C33BF43F7A893B42D3D3142B29C89032B7429B22BF3B67A86`.
+- `candidate`: assembled at `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-452b5d0c-x64`; zip is `94,172,144` bytes with SHA-256 `441F67BE549CAB0AC2A9F1A9391FA4E2192E0129D2F26AFBAC9321B42546663C`; manifest contains 2,537 files.
+- `verification`: exact commit/tree plus runtime/workers/provenance verifier returned `ok=true`, exit `0`.
+- `runtime`: candidate Desktop smoke exited `0` and created a 4,096-byte workspace SQLite with SHA-256 `1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489`; candidate worker hello and `text.extract` smoke exited `0` and produced three content-addressed outputs.
+- `boundary`: outputs stayed under `.project-local`; the preserved runtime stage was reused as a project-local input. No existing Green directory, external shared library, real data, E/F drive or private agent state was accessed or modified. GUI first-use, clean-machine, signing, installer/uninstaller, real Legacy migration and Green replacement/rollback remain open.
