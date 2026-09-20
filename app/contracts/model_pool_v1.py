@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ModelRoleEntryV1(BaseModel):
@@ -17,6 +17,12 @@ class ModelRoleEntryV1(BaseModel):
     fallback: str = Field(min_length=1)
     status: Literal["measured_historical", "measured_current", "unmeasured", "blocked"]
     evidence_refs: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_measured_evidence(self) -> ModelRoleEntryV1:
+        if self.status in {"measured_current", "measured_historical"} and not self.evidence_refs:
+            raise ValueError("measured model entries require evidence_refs")
+        return self
 
 
 class ModelCapabilityPoolV1(BaseModel):
