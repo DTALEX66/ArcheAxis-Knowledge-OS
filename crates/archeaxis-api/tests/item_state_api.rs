@@ -92,3 +92,78 @@ async fn learner_and_machine_state_are_reported_separately() {
     // Recording a human outcome must not fabricate machine competence.
     assert_eq!(state["machine"]["status"], "not_recorded", "{state}");
 }
+
+#[tokio::test]
+async fn state_projection_reads_back_assessment_review_and_queue_after_reopen() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("api.sqlite");
+    let db_str = db.to_str().unwrap().to_string();
+    let router = app(&db_str).unwrap();
+
+    let (status, created) = call(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        r#"{"knowledge_type":"FACTUAL_CLAIM","body":"FSRS schedules a next review from review history.","status":"accepted","created_by":"owner"}"#,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "{created}");
+    let knowledge_id = created["knowledge_id"].as_str().unwrap().to_string();
+
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/learning/items/state-card/references",
+        &serde_json::json!({"knowledge_id": knowledge_id}).to_string(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    let (status, assessment) = call(
+        &router,
+        "POST",
+        "/api/v1/learning/items/state-card/assessment",
+        &serde_json::json!({"knowledge_id": knowledge_id}).to_string(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "{assessment}");
+
+    let answer = "FSRS uses prior review history.";
+    let (status, review) = call(
+        &router,
+        "POST",
+        "/api/v1/learning/reviews",
+        &serde_json::json!({
+            "item_key": "state-card",
+            "client_event_id": "state-review-1",
+            "correct": true,
+            "rating": 3,
+            "now": "2026-09-02T00:00:00+00:00",
+            "answer": answer,
+            "assessment_id": assessment["assessment_id"],
+            "knowledge_version": assessment["knowledge_version"]
+        }).to_string(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "{review}");
+
+    drop(router);
+    let reopened = app(&db_str).unwrap();
+    let (status, state) = call(
+        &reopened,
+        "GET",
+        "/api/v1/learning/items/state-card/state",
+        "",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{state}");
+    assert_eq!(state["learner"]["assessment"]["assessment_id"], assessment["assessment_id"]);
+    assert_eq!(state["learner"]["assessment"]["knowledge_version"], assessment["knowledge_version"]);
+    assert_eq!(state["learner"]["latest_review"]["answer"], answer);
+    assert_eq!(state["learner"]["latest_review"]["assessment_id"], assessment["assessment_id"]);
+    assert_eq!(state["learner"]["latest_review"]["schedule_authority"], review["schedule_authority"]);
+    assert_eq!(state["learner"]["latest_review"]["schedule_state"], review["schedule_state"]);
+    assert_eq!(state["learner"]["latest_review"]["mastery_projection"]["status"], "projection");
+    assert_eq!(state["learner"]["latest_review"]["mastery_projection"]["closed"], false);
+    assert_eq!(state["learner"]["next_review"], review["next_review"]);
+}

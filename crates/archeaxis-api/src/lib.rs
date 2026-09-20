@@ -241,6 +241,27 @@ async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
 /// side is *not* inferred from learner activity: machine capability receipts are
 /// written by the machine loop, so until such a receipt exists this view says so
 /// instead of presenting learner progress as machine competence.
+fn latest_review_projection(
+    events: &[(i64, String, String, Option<String>)],
+) -> serde_json::Value {
+    let Some((event_id, kind, outcome, next_review)) = events.last() else {
+        return serde_json::Value::Null;
+    };
+    let outcome = serde_json::from_str::<serde_json::Value>(outcome)
+        .unwrap_or_else(|_| serde_json::Value::Object(serde_json::Map::new()));
+    let schedule = outcome.get("schedule");
+    serde_json::json!({
+        "event_id": event_id,
+        "kind": kind,
+        "next_review": next_review,
+        "assessment_id": outcome.get("assessment_id").cloned().unwrap_or(serde_json::Value::Null),
+        "answer": outcome.get("answer").cloned().unwrap_or(serde_json::Value::Null),
+        "schedule_authority": schedule.and_then(|value| value.get("authority")).cloned().unwrap_or(serde_json::Value::Null),
+        "schedule_state": schedule.and_then(|value| value.get("state")).cloned().unwrap_or(serde_json::Value::Null),
+        "mastery_projection": outcome.get("mastery_projection").cloned().unwrap_or(serde_json::Value::Null),
+    })
+}
+
 async fn item_state(State(state): State<AppState>, Path(item_key): Path<String>) -> impl IntoResponse {
     with_store(state, move |conn| {
         let events = match learning::events_for_item(conn, &item_key) {
@@ -255,6 +276,12 @@ async fn item_state(State(state): State<AppState>, Path(item_key): Path<String>)
             Ok(found) => found,
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         };
+        let assessment = match learning::assessment_for_item_key(conn, &item_key) {
+            Ok(Some(value)) => assessment_json(&value),
+            Ok(None) => serde_json::Value::Null,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        };
+        let latest_review = latest_review_projection(&events);
         let unscheduled = events.iter().filter(|(_, _, _, next)| next.is_none()).count();
         let scheduled = events.len() - unscheduled;
         (
@@ -266,6 +293,9 @@ async fn item_state(State(state): State<AppState>, Path(item_key): Path<String>)
                     "correct_streak": streak,
                     "scheduled_events": scheduled,
                     "unscheduled_events": unscheduled,
+                    "next_review": latest_review.get("next_review").cloned().unwrap_or(serde_json::Value::Null),
+                    "assessment": assessment,
+                    "latest_review": latest_review,
                     "references": references
                         .into_iter()
                         .map(|(knowledge_id, active)| serde_json::json!({"knowledge_id": knowledge_id, "active": active}))

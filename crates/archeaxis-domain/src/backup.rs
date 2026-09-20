@@ -69,13 +69,7 @@ pub fn restore(snapshot_path: &str, dst: &mut Connection) -> rusqlite::Result<()
         Connection::open_with_flags(snapshot_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     // Keep validation and Online Backup on one SQLite read snapshot.
     let read_snapshot = src.unchecked_transaction()?;
-    let version: String = src.query_row(
-        "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
-    )?;
-    if version != archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
-        || src.prepare("PRAGMA foreign_key_check")?.exists([])? {
-        return Err(rusqlite::Error::InvalidQuery);
-    }
+    validate_workspace(&src)?;
     let objects = {
         let mut sources = src.prepare("SELECT sha256 FROM sources")?;
         sources.query_map([], |r| r.get::<_, String>(0))?
@@ -122,7 +116,9 @@ fn validate_workspace(conn: &Connection) -> rusqlite::Result<()> {
         [],
         |row| row.get(0),
     )?;
-    if version != archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
+    let integrity: String = conn.query_row("PRAGMA integrity_check", [], |row| row.get(0))?;
+    if integrity != "ok"
+        || version != archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
         || conn.prepare("PRAGMA foreign_key_check")?.exists([])?
     {
         return Err(rusqlite::Error::InvalidQuery);

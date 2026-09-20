@@ -90,3 +90,27 @@ fn verify_counts_rejects_foreign_key_damage_even_when_counts_match() {
 
     assert!(backup::verify_counts(&source_db, &other_db).is_err());
 }
+
+#[test]
+fn verify_counts_rejects_sqlite_integrity_failure_even_when_counts_match() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut source_db = init_workspace(dir.path().join("source.sqlite").to_str().unwrap()).unwrap();
+    let mut other_db = init_workspace(dir.path().join("other.sqlite").to_str().unwrap()).unwrap();
+    source::import_source(&mut source_db, b"same", "same.bin", None).unwrap();
+    source::import_source(&mut other_db, b"same", "same.bin", None).unwrap();
+
+    let index_name: String = other_db
+        .query_row(
+            "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='sources' LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    other_db.execute_batch("PRAGMA writable_schema=ON").unwrap();
+    other_db
+        .execute("DELETE FROM sqlite_master WHERE type='index' AND name=?1", [index_name])
+        .unwrap();
+    other_db.execute_batch("PRAGMA writable_schema=OFF").unwrap();
+
+    assert!(backup::verify_counts(&source_db, &other_db).is_err());
+}

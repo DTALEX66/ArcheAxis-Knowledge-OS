@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
 import tempfile
@@ -17,6 +18,8 @@ from app.workspace.job_outbox import command_request_fingerprint, record_complet
 # Heavy dependencies loaded lazily inside functions to avoid numpy/vector chain at import time.
 # Each intake function calls _import_heavy() before use.
 _HEAVY_IMPORTED: dict[str, object] | None = None
+_CAPABILITY_DISPATCHER: object | None = None
+_CAPABILITY_DISPATCHER_ROOT: Path | None = None
 research_github_repository = None
 convert_file = None
 convert_file_with_trace = None
@@ -105,6 +108,17 @@ MAX_INTAKE_UPLOAD_BYTES = 25 * 1024 * 1024
 _COMMAND_LOCKS = tuple(threading.RLock() for _ in range(64))
 _BATCH_INGEST_LOCK = threading.RLock()
 
+_CONVERSION_PLUGIN_BY_FORMAT = {
+    "docx": "ax.builtin.converter.docx",
+    "html": "ax.builtin.converter.html",
+    "image": "ax.builtin.converter.ocr",
+    "media_audio": "ax.builtin.converter.media",
+    "media_video": "ax.builtin.converter.media",
+    "pptx": "ax.builtin.converter.pptx",
+    "csv": "ax.builtin.converter.xlsx",
+    "xlsx": "ax.builtin.converter.xlsx",
+}
+
 
 def _command_lock(command_id: str) -> threading.RLock:
     digest = sha256(command_id.encode("utf-8")).digest()
@@ -120,20 +134,92 @@ def _intake_job_id(package_id: str) -> str:
     return "job_" + sha256(command_id.encode("utf-8")).hexdigest()[:24]
 
 
+def _get_conversion_dispatcher() -> object | None:
+    """Return the process-local builtin converter dispatcher when available.
+
+    Activation is kept at the workspace boundary so the existing ingestion
+    engine chain remains the explicit fallback.  Any capability-store or
+    activation problem degrades to that chain instead of blocking intake.
+    """
+    global _CAPABILITY_DISPATCHER, _CAPABILITY_DISPATCHER_ROOT
+    try:
+        override = os.getenv("ARCHEAXIS_CAPABILITY_ROOT", "").strip()
+        root = Path(override) if override else None
+        if root is None:
+            from shared.config import resolve_runtime_path
+
+            root = resolve_runtime_path("data") / "capabilities"
+        root = root.resolve()
+        if _CAPABILITY_DISPATCHER is not None and root == _CAPABILITY_DISPATCHER_ROOT:
+            return _CAPABILITY_DISPATCHER
+
+        from app.capability.builtin import activate_all_builtins
+        from app.capability.conversion import ConversionDispatcher
+        from app.capability.store import CapabilityStore
+
+        store = CapabilityStore(root)
+        activate_all_builtins(store)
+        _CAPABILITY_DISPATCHER = ConversionDispatcher(store)
+        _CAPABILITY_DISPATCHER_ROOT = root
+        return _CAPABILITY_DISPATCHER
+    except Exception:
+        _CAPABILITY_DISPATCHER = None
+        _CAPABILITY_DISPATCHER_ROOT = None
+        return None
+
+
+def _conversion_plugin_for(source: Path) -> str | None:
+    """Map the existing format key to one builtin converter plugin."""
+    return _CONVERSION_PLUGIN_BY_FORMAT.get(str(detect_format(source)))
+
+
 def _convert_file_for_intake(source: Path):
     """Convert through the trace API while preserving the legacy service seam."""
     _import_heavy()
-    default_converter = _HEAVY_IMPORTED["convert_file"]
-    if convert_file is default_converter:
-        return convert_file_with_trace(source)
-
-    markdown, engine = convert_file(source)[:2]
     from app.ingestion.multi_format import ConversionTrace
 
-    return markdown, engine, ConversionTrace(
-        attempted_engines=(engine,),
-        fallback_used=False,
-    )
+    plugin_id = _conversion_plugin_for(source)
+    plugin_failed = False
+    if plugin_id:
+        try:
+            dispatcher = _get_conversion_dispatcher()
+            converter = dispatcher.get_converter(plugin_id) if dispatcher else None
+            if converter is not None:
+                try:
+                    result = converter.convert(source)
+                    if result.content.strip():
+                        return (
+                            result.content,
+                            result.engine,
+                            ConversionTrace(
+                                attempted_engines=(f"plugin:{plugin_id}",),
+                                fallback_used=False,
+                            ),
+                        )
+                    plugin_failed = True
+                except Exception:
+                    plugin_failed = True
+        except Exception:
+            plugin_failed = True
+
+    default_converter = _HEAVY_IMPORTED["convert_file"]
+    if convert_file is default_converter:
+        markdown, engine, trace = convert_file_with_trace(source)
+    else:
+        markdown, engine = convert_file(source)[:2]
+        trace = ConversionTrace(
+            attempted_engines=(engine,),
+            fallback_used=False,
+        )
+
+    if plugin_failed:
+        trace = ConversionTrace(
+            attempted_engines=(f"plugin:{plugin_id}", *trace.attempted_engines),
+            fallback_used=True,
+            fallback_reason=f"plugin {plugin_id} failed; built-in chain used",
+        )
+
+    return markdown, engine, trace
 
 
 def _source_archive_root(database: Path) -> Path:
