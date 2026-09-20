@@ -35,7 +35,9 @@ class MachineGrowthReceiptV1(BaseModel):
     machine_verified: Literal[False] = False
 
     @model_validator(mode="after")
-    def validate_lifecycle(self) -> "MachineGrowthReceiptV1":
+    def validate_lifecycle(self) -> MachineGrowthReceiptV1:
+        if len(set(self.source_event_ids)) != len(self.source_event_ids):
+            raise ValueError("source_event_ids must be unique")
         stages = [step.stage for step in self.steps]
         if stages[0] != "experience":
             raise ValueError("growth lifecycle must start with experience")

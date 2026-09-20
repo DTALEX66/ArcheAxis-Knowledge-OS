@@ -27,6 +27,17 @@ def test_growth_receipt_requires_human_approval_before_reuse():
     assert receipt.steps[-1].state == "used"
 
 
+def test_growth_receipt_rejects_duplicate_source_events():
+    with pytest.raises(ValidationError, match="source_event_ids must be unique"):
+        MachineGrowthReceiptV1(
+            receipt_id="growth-duplicate",
+            source_event_ids=["event-1", "event-1"],
+            goal="improve import",
+            outcome="success",
+            steps=_steps(),
+        )
+
+
 def test_reuse_without_approved_human_review_fails_closed():
     steps = _steps()
     steps[3] = {**steps[3], "state": "pending", "actor": "system"}
