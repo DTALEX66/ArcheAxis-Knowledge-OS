@@ -64,11 +64,13 @@ class FallbackInfoV1(BaseModel):
     reason: str | None = None
 
     @model_validator(mode="after")
-    def validate_fallback(self) -> "FallbackInfoV1":
+    def validate_fallback(self) -> FallbackInfoV1:
         if self.used and not self.attempted_engines:
             raise ValueError("fallback used requires attempted_engines")
         if self.used and not self.reason:
             raise ValueError("fallback used requires reason")
+        if not self.used and self.reason:
+            raise ValueError("unused fallback cannot have reason")
         return self
 
 

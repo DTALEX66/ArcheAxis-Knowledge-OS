@@ -73,6 +73,15 @@ def test_fallback_and_quality_status_are_explicit() -> None:
         )
 
 
+def test_unused_fallback_cannot_carry_a_reason() -> None:
+    with pytest.raises(ValidationError, match="unused fallback cannot have reason"):
+        FallbackInfoV1(
+            used=False,
+            attempted_engines=["passthrough"],
+            reason="unexpected fallback",
+        )
+
+
 def test_versioned_schema_is_present_and_has_required_receipt_sections() -> None:
     import json
     from pathlib import Path
