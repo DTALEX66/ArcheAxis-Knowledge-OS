@@ -79,6 +79,14 @@ def test_general_lesson_renderer_preserves_bound_contract_fields() -> None:
     assert "source-candidate-1" in projection.content
     assert "kc-concept" in projection.content
     assert "native-lesson@1.0.0" in projection.content
+    assert projection.source == "courseware:general-course-1:lesson-anchor"
+    assert projection.wikilinks == []
+    assert set(projection.tags) >= {
+        "archeaxis",
+        "courseware",
+        "general",
+        "lesson",
+    }
 
 
 def test_general_lesson_renderer_is_deterministic_and_readable_as_receipt() -> None:
