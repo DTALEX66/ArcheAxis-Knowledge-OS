@@ -865,3 +865,11 @@
 - `behavior`: courseware artifacts now reject whitespace-only `artifact_id`, `title`, `renderer`, and `renderer_version` values while preserving valid text.
 - `verification`: `tests/test_courseware_v1.py` returned `11 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No real renderer, Avalonia UI, model/provider, Green runtime, real data, E/F drive or private state was accessed; A10/P2 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A09 learning objective uniqueness
+
+- `subject_sha`: `c731532413d11393d4bc582af14ce9b503a9d8cd`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/contracts/general_learning_v1.py`, `tests/test_general_learning_contract.py`.
+- `behavior`: `LearningObjectiveV1.knowledge_component_ids` now rejects duplicate IDs and advertises `uniqueItems` in its generated JSON Schema.
+- `verification`: General learning and courseware regression tests `17 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No real domain content, renderer, model/provider, Green runtime, real data, E/F drive or private state was accessed; A09/P2 and M0 remain partial/not ready.
