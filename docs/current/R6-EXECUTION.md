@@ -881,3 +881,12 @@
 - `not_run_or_missing`: current same-SHA candidate/install/dependency bytes, representative real fixtures, quality benchmark, personal-knowledge journey, Avalonia first-use, authoritative Mastery/FSRS restart, real model/client correction loop, current attack/permission gates, workspace identity, non-empty Legacy semantic diff, Green replacement/rollback, clean-machine qualification and exact-SHA CI evidence.
 - `verification_note`: the independent reviewer’s Python verifiers did not start because its uv trampoline returned permission denied; this is recorded as `NOT_RUN`, not PASS or FAIL. The current executor later runs only the project authority checks under the permitted elevated project environment.
 - `result`: A15 is refreshed to the current subject but remains partial; A16 remains Owner-blocked and Release remains frozen.
+
+## Continuation receipt — 2026-09-20 A03/P0 provider lifecycle authority recheck
+
+- `subject_sha`: `26bccadc51141f31899b421fadf942b0acf88302` (current docs/evidence parent; no product code changed).
+- `status`: `BLOCKED_BY_AUTHORITY_DECISION`; the formal host still does not consume the provider-routing snapshot contract.
+- `missing_authority_inputs`: (1) manifest capability/route ownership source, (2) disabled-provider and fallback-restoration semantics, and (3) directory/index/sidecar recovery or transaction protocol.
+- `readback`: `PluginManifest` has healthcheck description only; `CapabilityRecord` lacks replacement generation/health; CapabilityStore moves pack/index state without a crash-recoverable sidecar transaction. Adding RED tests now would freeze unapproved product semantics.
+- `next_owner_gate`: after those inputs are frozen, run `scripts/ci/run_tests.ps1 -- -q tests/test_provider_routing.py tests/test_axw_cap501_store.py tests/test_axw_cap502_plugin_manifest.py`.
+- `evidence_boundary`: current-SHA static readback only, `NOT_EXECUTED`; no external provider, model pool, Green runtime, real data, E/F drive or private state was accessed.
