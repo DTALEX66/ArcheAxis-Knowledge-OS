@@ -768,3 +768,12 @@
 - `behavior`: fail-closed pure contract parser for `archeaxis.provider-routing/v1`; validates non-negative generation, provider manifest SHA/version, installed/enabled state, safe relative references, health receipt semantics, closed default/fallback routes and duplicate/unknown providers. `eligible_providers()` never promotes unknown health to healthy.
 - `verification`: RED observed missing-module collection failure; after implementation, focused contract suite `10 passed, 1 warning`, related provider/CapabilityStore/manifest/activator regression `60 passed, 3 warnings`, Ruff and `py_compile` passed.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. The formal Rust/Core and Avalonia host do not consume this snapshot yet; no SQLite schema, external toolchain, Green runtime, real data, E/F drive or private agent state was touched. P0-H01 remains blocked for the cross-layer Authority decision.
+
+## Continuation receipt — 2026-09-20 provider-routing identity hardening
+
+- `subject_sha`: `5a53d9a6445935e755df5f3ac263bd7922839aa7`; code commit pushed to `origin/main`.
+- `finding`: independent current-SHA review exposed inconsistent handling of surrounding whitespace in capability/provider/fallback identities; a parsed snapshot could later fail lookup.
+- `changed_paths`: `shared/provider_routing.py`, `tests/test_provider_routing.py`.
+- `fix`: identity fields now reject surrounding whitespace consistently; fallback IDs are normalized through the same validator before duplicate and route-closure checks.
+- `verification`: RED reproduced both cases; focused plus related provider/CapabilityStore/manifest/activator regression `62 passed, 3 warnings`, Ruff, `py_compile`, and `git diff --check` passed.
+- `evidence_boundary`: contract-only fix, `TESTED_LOCAL_CONTRACT`; formal Rust/Core/Avalonia host integration remains open and no external resource or private state was accessed.

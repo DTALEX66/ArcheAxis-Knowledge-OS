@@ -52,3 +52,9 @@
 - added: `shared/provider_routing.py`, `tests/test_provider_routing.py`
 - verification: provider-routing `10 passed, 1 warning`; related provider/CapabilityStore/manifest/activator `60 passed, 3 warnings`; Ruff and py_compile passed.
 - boundary: pure contract only; no CapabilityStore writer, Rust Core, C# desktop or SQLite integration yet.
+
+## Identity hardening after independent review
+
+- fix_commit: `5a53d9a6445935e755df5f3ac263bd7922839aa7`
+- Astra identified and reproduced inconsistent whitespace handling for route/provider/fallback identities. The contract now rejects surrounding whitespace consistently and canonicalizes fallback IDs before duplicate/closure checks.
+- verification: `62 passed, 3 warnings`; Ruff, py_compile and diff check passed.
