@@ -67,6 +67,24 @@ def _validate_manifest_files(candidate: Path, files: object, problems: list[str]
     return files
 
 
+def _reject_unmanifested_files(candidate: Path, files: dict, problems: list[str]) -> None:
+    """Reject files present in the candidate tree but absent from its manifest.
+
+    The manifest is the candidate's completeness receipt.  Accepting an extra file
+    would let an unrecorded payload survive verification and then enter a release
+    archive without a hash or byte-count check.
+    """
+    recorded = set(files)
+    for path in candidate.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(candidate).as_posix()
+        if relative == "candidate-manifest.json":
+            continue
+        if relative not in recorded:
+            problems.append(f"unmanifested file in candidate: {relative}")
+
+
 def verify(
     candidate: Path,
     *,
@@ -108,6 +126,7 @@ def verify(
             if expected_tree is not None and provenance.get("source_tree") != expected_tree:
                 problems.append("candidate source tree mismatch")
     files = _validate_manifest_files(candidate, manifest.get("files"), problems)
+    _reject_unmanifested_files(candidate, files, problems)
     for relative in REQUIRED:
         path = candidate / relative
         entry = files.get(relative)

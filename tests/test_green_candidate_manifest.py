@@ -7,7 +7,6 @@ import importlib.util
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "verify_green_candidate", ROOT / "scripts" / "release" / "verify_green_candidate.py"
@@ -22,7 +21,7 @@ def _write_candidate(tmp_path: Path) -> Path:
     for relative in VERIFY_MODULE.REQUIRED:
         path = candidate / relative
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(f"fixture:{relative}".encode("utf-8"))
+        path.write_bytes(f"fixture:{relative}".encode())
     files = {}
     for relative in VERIFY_MODULE.REQUIRED:
         path = candidate / relative
@@ -96,3 +95,13 @@ def test_verify_rejects_manifest_path_escape(tmp_path: Path) -> None:
 
     assert result["ok"] is False
     assert any("unsafe candidate manifest path" in problem for problem in result["problems"])
+
+
+def test_verify_rejects_unmanifested_candidate_file(tmp_path: Path) -> None:
+    candidate = _write_candidate(tmp_path)
+    (candidate / "stowaway.bin").write_bytes(b"not in the receipt")
+
+    result = VERIFY_MODULE.verify(candidate)
+
+    assert result["ok"] is False
+    assert "unmanifested file in candidate: stowaway.bin" in result["problems"]
