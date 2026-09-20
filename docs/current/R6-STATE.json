@@ -42,8 +42,8 @@
       "id": "A04",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "V3 governance metadata now has a canonical Rust write path, sidecar persistence, projection and revision inheritance; Rust compile/runtime readback is NOT_EXECUTED in this environment, while UI wiring and real first-use journey remain open",
-      "subject_sha": "566ef4716ac161b1627cd10ced13331323f48eaf"
+    "remaining_gap": "V3 governance metadata now has a canonical Rust write path, sidecar persistence, projection and revision inheritance; current registered Rust/MSVC targeted API/readback tests pass, while UI wiring, cold restart and real first-use journey remain open",
+    "subject_sha": "4077f50d06633b6c91578354720f18665c08d965"
     },
     {
       "id": "A05",

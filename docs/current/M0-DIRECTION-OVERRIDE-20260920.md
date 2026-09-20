@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`2ae0643735ca1197ffcbfb5ffb0eb0ef4e165a24`（本次审计指针更正提交的 first parent；候选构建证据 subject 仍为 `452b5d0cb4f18746347996f7bc03010f4b067637`）
+- 当前本地与远端 `main`：`4077f50d06633b6c91578354720f18665c08d965`（本次 A04 测试修正提交的 first parent；候选构建证据 subject 仍为 `452b5d0cb4f18746347996f7bc03010f4b067637`）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -222,6 +222,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 ## A15 当前 SHA 增量（2026-09-21）
 
 当前审计 subject：`a5f521010686c0c9bc9323c7de4f21eb31ac36de`；本地 `HEAD`、`origin/main` 与 GitHub `main` 一致。独立只读复核确认候选 manifest 的 2,537 个文件及 ZIP/worker/SQLite 收据完整，快速 CI `35524185122` 为 `success`。候选真实构建 provenance 仍为 `452b5d0cb4f18746347996f7bc03010f4b067637` / tree `c0ec75b605b0fc1c9d2d14411e7b4d8b208da07b`，不得重标为当前文档提交构建。A15 仍为 `TESTED_LOCAL_PARTIAL / GATES_BLOCKED / PRODUCT_NOT_READY`；G01–G14 的真实格式质量、模型/纠错重测、GUI/干净机、运行目录差分、Legacy 语义迁移、完整 qualification 与发布门禁仍未闭合，A16 继续 Owner Gate。
+
+## A04 Rust V3 增量（2026-09-21）
+
+当前 subject：`4077f50d06633b6c91578354720f18665c08d965`。修正 A04 Rust 测试夹具的基础 `knowledge_type`，保留 V3 `source_type=personal_experience`；注册 Rust/MSVC 工具链下 `knowledge_v3_projection`、`api_closed_loop` 与 `v01_journey` 定向回归合计 `8 passed`，退出码 `0`。A04 的 Rust API 写入/投影/修订链已有本地运行时读回证据；Avalonia 首用、冷重启全链路和真实学习旅程仍未闭合。
 
 ## 本记录限制
 
