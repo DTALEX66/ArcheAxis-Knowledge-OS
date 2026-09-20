@@ -2,8 +2,8 @@
   "schema": "archeaxis.r6.state/v1",
   "plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
   "taskpack_sha256": "dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529",
-  "updated_at": "2026-09-19T22:32:25Z",
-  "subject_sha": "5cf49da1aaf3e3dab0536fd25d29d199d37fca2c",
+  "updated_at": "2026-09-20T12:13:50Z",
+  "subject_sha": "964fb8e20d5c97e513c716127e42e22406768ce4",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -46,8 +46,8 @@
       "id": "A05",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "workspace intake and HTML static snapshots now emit path-free format execution receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open",
-      "subject_sha": "25355f1dd31be5a9dc4703506a771455878de595"
+      "remaining_gap": "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open",
+      "subject_sha": "964fb8e20d5c97e513c716127e42e22406768ce4"
     },
     {
       "id": "A06",
@@ -67,8 +67,8 @@
       "id": "A08",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "Core Assessment is generated/bound to active accepted or personal Knowledge; API learning/machine and desktop answer-recovery gates pass; a synthetic --learning-smoke driver now covers source-level Assessment→answer→FSRS projection→cold restart/readback, while current Core artifacts are stale or contract-mismatched and real Avalonia first-use, authoritative mastery projection and adaptive journey remain open",
-      "subject_sha": "4a0058f247d2e7d1dc1df8848019b7d4d367a65f"
+      "remaining_gap": "Core Assessment and latest review answer/schedule/mastery projection now have a read-only SQLite-reopen API readback; real Avalonia first-use, authoritative mastery projection and adaptive journey remain open",
+      "subject_sha": "964fb8e20d5c97e513c716127e42e22406768ce4"
     },
     {
       "id": "A09",
@@ -103,8 +103,8 @@
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup/migration/schema/FK/source-object gates now pass, while workspace identity, real Legacy semantic diff, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated",
-      "subject_sha": "5cf49da1aaf3e3dab0536fd25d29d199d37fca2c"
+      "remaining_gap": "candidate, synthetic staging migration and two-run restart identity have local evidence; backup/migration/schema/FK/source-object and SQLite integrity gates now pass locally, while workspace identity, real Legacy semantic diff, real Green activation, GUI first-use, installer/signing and rollback remain owner-gated; Rust test execution is NOT_EXECUTED without cargo",
+      "subject_sha": "964fb8e20d5c97e513c716127e42e22406768ce4"
     },
     {
       "id": "A14",
