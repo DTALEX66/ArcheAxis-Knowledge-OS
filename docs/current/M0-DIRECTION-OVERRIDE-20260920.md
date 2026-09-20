@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`e793252cd149c23c868c84921ab13ef3c7f31150`（最新 P5 backup manifest 修复已推送；后续状态收据提交以其为 first parent）
+- 当前本地与远端 `main`：`5dd05f7a00a802b6e2571a47bff92c30f54f5895`（最新 P5 backup manifest 精确 SHA 修正收据已推送；后续状态收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
