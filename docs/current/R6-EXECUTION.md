@@ -911,3 +911,11 @@
 - `candidate_verification`: `scripts/release/verify_green_candidate.py` against `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64` returned exit `1` (`ok=false`); the candidate contains 2,514 files but `runtime/Lib/**/__pycache__/*.pyc` files are absent from `candidate-manifest.json` (26 unmanifested files reported). The candidate provenance is source commit `0e934f33ee9a5f6082c04abda454c67df1055097`, not the current subject, so it cannot be claimed as a current-SHA candidate.
 - `boundary`: no `--run`, install, Green replacement, rollback, external library/model access, real data, E/F drive or private agent state was used. The result is a candidate-integrity blocker, not a deletion authorization; the candidate was not modified.
 - `status`: A12/A13 remain `TESTED_LOCAL_PARTIAL`; P6/M0 remain `PARTIAL/BLOCKED` and `NOT_READY`.
+
+## Continuation receipt — 2026-09-21 A07 canonical distillation candidate
+
+- `subject_sha`: `e577004b78053fdaad884ddf8a2733524c035c4c` (code/test commit pushed to `origin/main`).
+- `changed_paths`: `app/agent/experience_harvest.py`, `tests/test_agent_feedback.py`, `tests/test_experience_harvest.py`.
+- `behavior`: execution feedback now persists the locally harvested lesson through `app.knowledge.distillation.record_principle()` as a canonical `distillation_principles` candidate, uses the reasoning principle ID as the candidate ID, and binds the `skill_candidate` growth step to that candidate with state `pending`. Review and reuse remain `skipped`; `machine_verified` remains permanently `false`.
+- `verification`: the new candidate-persistence test was RED on the prior implementation (exit `1`), then the A07 focused suite returned `27 passed, 1 warning`, exit `0`; `git diff --check` passed. Ruff still reports pre-existing `UP037` findings in `experience_harvest.py` and a pre-existing `I001` ordering finding in `test_agent_feedback.py`; they were not introduced by this card.
+- `evidence_boundary`: project-local synthetic SQLite and contract tests only; no real model, external library, Green runtime, real data, E/F drive or private agent state was accessed. Candidate review, reuse, retest and machine verification remain open.

@@ -63,8 +63,8 @@
       "id": "A07",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "machine-growth receipt event IDs are now deterministic and globally unique within a receipt; real model execution, user-observed error and review/reuse/retest journey remain open",
-      "subject_sha": "8786d069bd88bbf7f31865453806d5f22d458252"
+      "remaining_gap": "execution feedback now persists the lesson as a canonical distillation candidate and binds the pending skill-candidate receipt; real model execution, user-observed error and human review/reuse/retest journey remain open",
+      "subject_sha": "e577004b78053fdaad884ddf8a2733524c035c4c"
     },
     {
       "id": "A08",

@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`996cafaeaad6e4c3e157a6ecd3344caf29ec526f`（本次候选验证收据提交的 first parent；代码证据 subject 仍为 `c731532413d11393d4bc582af14ce9b503a9d8cd`）
+- 当前本地与远端 `main`：`e577004b78053fdaad884ddf8a2733524c035c4c`（本次 A07 实现收据提交的 first parent；代码证据 subject 仍为 `e577004b78053fdaad884ddf8a2733524c035c4c`）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -198,6 +198,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 ## A07 增量（2026-09-20）
 
 当前 subject：`8786d069bd88bbf7f31865453806d5f22d458252`。`MachineGrowthReceiptV1.source_event_ids` 现在要求来源事件唯一且保留原顺序，防止同一增长收据重复绑定来源；machine growth 定向回归 `5 passed`，排除既有 I001/SIM102 基线后的生产文件 Ruff、测试文件 Ruff 与 `git diff --check` 通过。证据仅为本地 Pydantic receipt 契约，不代表真实模型、人工审核、复用或复测闭环完成。
+
+## A07 增量（2026-09-21）
+
+当前 subject：`e577004b78053fdaad884ddf8a2733524c035c4c`。执行反馈现在把本地 harvest 生成的 lesson 通过 `app.knowledge.distillation.record_principle()` 写入 canonical `distillation_principles` candidate，并将 `skill_candidate` receipt 置为 `pending`、绑定 candidate ID；review/reuse 仍为 `skipped`，`machine_verified` 永远保持 `false`。A07 聚焦回归 `27 passed, 1 warning`，`git diff --check` 通过；证据仅为本地 synthetic SQLite，不代表真实模型、人工审核、复用或复测闭环完成。
 
 ## A10 增量（2026-09-20）
 
