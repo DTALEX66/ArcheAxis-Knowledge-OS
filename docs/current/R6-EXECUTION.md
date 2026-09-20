@@ -890,3 +890,9 @@
 - `readback`: `PluginManifest` has healthcheck description only; `CapabilityRecord` lacks replacement generation/health; CapabilityStore moves pack/index state without a crash-recoverable sidecar transaction. Adding RED tests now would freeze unapproved product semantics.
 - `next_owner_gate`: after those inputs are frozen, run `scripts/ci/run_tests.ps1 -- -q tests/test_provider_routing.py tests/test_axw_cap501_store.py tests/test_axw_cap502_plugin_manifest.py`.
 - `evidence_boundary`: current-SHA static readback only, `NOT_EXECUTED`; no external provider, model pool, Green runtime, real data, E/F drive or private state was accessed.
+
+## Continuation receipt — 2026-09-20 A04/A14 current-SHA contract regressions
+
+- `subject_sha`: `19c85246f3549088e2a2cbb756cb04ec5ab155bc` (current docs/evidence parent; no product code changed).
+- `verification`: `tests/test_knowledge_source_v3_contract.py` — `7 passed`; `tests/test_closed_loop_v1.py tests/test_co_learning_loop.py` — `14 passed`; `tests/test_machine_knowledge_contract.py tests/test_machine_knowledge_candidates.py` — `11 passed`; all exit `0`.
+- `evidence_boundary`: these are local Pydantic/receipt/candidate contract regressions only. They do not prove Rust/Core writer behavior, Avalonia first-use, authoritative Mastery/FSRS restart, real model execution, human correction, Legacy migration, Green replacement/rollback or CI qualification; A04/A14 and M0 remain partial/not ready.
