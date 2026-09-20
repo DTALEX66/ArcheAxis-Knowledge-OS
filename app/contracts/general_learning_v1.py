@@ -128,6 +128,11 @@ class CourseManifestV1(BaseModel):
                     "learning objective references unknown knowledge components: "
                     + ", ".join(sorted(unknown))
                 )
+        objective_component_ids = {
+            component_id
+            for objective in self.learning_objectives
+            for component_id in objective.knowledge_component_ids
+        }
 
         if not any(artifact.artifact_type == "lesson" for artifact in self.artifacts):
             raise ValueError("general course manifest requires a lesson artifact")
@@ -142,5 +147,11 @@ class CourseManifestV1(BaseModel):
                 raise ValueError(
                     "courseware artifact references unknown knowledge components: "
                     + ", ".join(sorted(unknown))
+                )
+            uncovered = set(artifact.knowledge_ids) - objective_component_ids
+            if uncovered:
+                raise ValueError(
+                    "courseware artifact references knowledge components without learning objectives: "
+                    + ", ".join(sorted(uncovered))
                 )
         return self

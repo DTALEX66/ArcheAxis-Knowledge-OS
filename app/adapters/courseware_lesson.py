@@ -65,6 +65,10 @@ def render_general_lesson(
     )
     if bound is None or bound.model_dump(mode="json") != artifact.model_dump(mode="json"):
         raise ValueError("artifact is not bound to the course manifest")
+    if artifact.renderer != "native-lesson":
+        raise ValueError("static native lesson renderer only supports renderer=native-lesson")
+    if artifact.interactive:
+        raise ValueError("static native lesson renderer requires interactive=false")
 
     frontmatter = {
         "manifest_id": manifest.manifest_id,

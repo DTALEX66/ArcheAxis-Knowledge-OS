@@ -207,6 +207,52 @@ def test_general_manifest_rejects_unknown_and_cyclic_prerequisites() -> None:
         )
 
 
+def test_general_manifest_rejects_artifact_components_without_learning_objectives() -> None:
+    component = {
+        "component_id": "kc-uncovered",
+        "kind": "fact",
+        "title": "Uncovered fact",
+        "statement": "A fact needs an objective before it can appear in a lesson.",
+    }
+    objective = {
+        "objective_id": "obj-other",
+        "title": "Different objective",
+        "statement": "The learner can use a different component.",
+        "knowledge_component_ids": ["kc-other"],
+    }
+    other_component = {
+        "component_id": "kc-other",
+        "kind": "concept",
+        "title": "Other concept",
+        "statement": "Another component.",
+    }
+    artifact = {
+        "artifact_id": "lesson-uncovered",
+        "artifact_type": "lesson",
+        "title": "Lesson with uncovered component",
+        "domain_pack_id": "general",
+        "source_ids": ["source-1"],
+        "knowledge_ids": ["kc-uncovered"],
+        "renderer": "native-lesson",
+        "renderer_version": "1.0.0",
+        "status": "candidate",
+        "interactive": False,
+    }
+
+    with pytest.raises(ValidationError, match="without learning objectives: kc-uncovered"):
+        CourseManifestV1.model_validate(
+            {
+                "manifest_id": "manifest-uncovered",
+                "title": "General course",
+                "domain_pack_id": "general",
+                "status": "candidate",
+                "knowledge_components": [component, other_component],
+                "learning_objectives": [objective],
+                "artifacts": [artifact],
+            }
+        )
+
+
 def test_general_learning_contract_schema_ids_are_stable() -> None:
     assert KnowledgeComponentV1.model_json_schema()["$id"].endswith(
         "knowledge-component.schema.json"

@@ -103,6 +103,24 @@ def test_general_lesson_renderer_is_deterministic_and_readable_as_receipt() -> N
 @pytest.mark.parametrize(
     "changes, message",
     [
+        ({"interactive": True}, "static native lesson renderer requires interactive=false"),
+        ({"renderer": "h5p"}, "static native lesson renderer only supports renderer=native-lesson"),
+    ],
+)
+def test_native_lesson_renderer_rejects_unsupported_execution_shape(
+    changes: dict[str, object], message: str
+) -> None:
+    original = _manifest()
+    artifact = original.artifacts[0].model_copy(update=changes)
+    manifest = original.model_copy(update={"artifacts": [artifact]})
+
+    with pytest.raises(ValueError, match=message):
+        render_general_lesson(manifest, artifact)
+
+
+@pytest.mark.parametrize(
+    "changes, message",
+    [
         ({"domain_pack_id": "programming"}, "general domain"),
         ({"artifact_type": "quiz"}, "lesson artifact"),
     ],
