@@ -2,9 +2,11 @@
 
 > 适用范围：仅限 `archeaxis-workspace`。本文件是本仓库验证频率、审计触发和证据保留的唯一流程记录。
 
-当前执行入口：[R5 台账](current/R5-EXECUTION.md)，
-[冻结任务正文](authority/taskpack-0912-r5/TASKS.json)（SUP-019）。
-下述旧 RC/Release 流程仅在相应交付获授权时适用，不自动构建或发布新的 Green 版本。
+当前执行入口：[R6 台账](current/R6-EXECUTION.md)、
+[M0 方向覆盖](current/M0-DIRECTION-OVERRIDE-20260920.md)、
+[R6 状态](current/R6-STATE.json)，
+[冻结任务正文](authority/taskpack-0919-r6/TASKPACK.md)（SUP-020）。
+R5 及更早台账保留为历史证据，不作为当前完成状态。下述旧 RC/Release 流程仅在相应交付获授权时适用，不自动构建或发布新的 Green 版本。
 
 ## 目标
 

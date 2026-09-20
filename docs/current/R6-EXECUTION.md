@@ -873,3 +873,11 @@
 - `behavior`: `LearningObjectiveV1.knowledge_component_ids` now rejects duplicate IDs and advertises `uniqueItems` in its generated JSON Schema.
 - `verification`: General learning and courseware regression tests `17 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No real domain content, renderer, model/provider, Green runtime, real data, E/F drive or private state was accessed; A09/P2 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A15 independent audit correction
+
+- `audit_subject_sha`: `c731532413d11393d4bc582af14ce9b503a9d8cd`; the audit bound its code evidence to this exact commit and read back GitHub `main` plus tree `fbb630e7ff8561bb11b87577aa88716303ca888d`.
+- `classification`: `INDEPENDENT_READONLY_AUDIT_COMPLETED / GATES_BLOCKED / PRODUCT_NOT_READY`; G01–G11, G13 and G14 are `BLOCKED`, and G12 is `BLOCKED` because runtime directory before/after, failure-exit and concurrency diffs were not executed. Preserved untracked history paths are not treated as proof of G12 failure.
+- `not_run_or_missing`: current same-SHA candidate/install/dependency bytes, representative real fixtures, quality benchmark, personal-knowledge journey, Avalonia first-use, authoritative Mastery/FSRS restart, real model/client correction loop, current attack/permission gates, workspace identity, non-empty Legacy semantic diff, Green replacement/rollback, clean-machine qualification and exact-SHA CI evidence.
+- `verification_note`: the independent reviewer’s Python verifiers did not start because its uv trampoline returned permission denied; this is recorded as `NOT_RUN`, not PASS or FAIL. The current executor later runs only the project authority checks under the permitted elevated project environment.
+- `result`: A15 is refreshed to the current subject but remains partial; A16 remains Owner-blocked and Release remains frozen.

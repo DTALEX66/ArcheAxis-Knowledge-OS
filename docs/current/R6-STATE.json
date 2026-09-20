@@ -5,7 +5,7 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T15:55:19Z",
+  "updated_at": "2026-09-20T15:59:52Z",
   "subject_sha": "c731532413d11393d4bc582af14ce9b503a9d8cd",
   "delivery_line": "main",
   "release_status": "FROZEN",
@@ -120,8 +120,8 @@
       "id": "A15",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "independent current-SHA audit at 4b8c720c passes local structural gates but reports G01/G02-G11/G13/G14 blocked or insufficient, G12 FAIL from preserved untracked history/private paths, and product NOT_READY; A16 remains blocked",
-      "subject_sha": "4b8c720ce8a3b058900ce58befd56da6fad7fce1"
+      "remaining_gap": "independent current-SHA audit at c7315324 marks G01-G14 BLOCKED or NOT_RUN for missing current candidate/runtime/model/Legacy/Green/CI evidence; G12 is BLOCKED pending runtime directory diffs rather than FAIL from preserved untracked history; product NOT_READY and A16 remains blocked",
+      "subject_sha": "c731532413d11393d4bc582af14ce9b503a9d8cd"
     },
     {
       "id": "A16",
