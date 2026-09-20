@@ -701,3 +701,11 @@
 - `P3`: `/api/v1/learning/items/:item_key/state` now reads back the existing Assessment and latest persisted review answer, assessment binding, schedule fields, mastery projection and next-review value after SQLite reopen. No writer, schema or authoritative Mastery semantics changed. Rust test `cargo test -p archeaxis-api --test item_state_api` is `NOT_EXECUTED` because `cargo` and `rustfmt` are unavailable.
 - `P5`: backup validation and restore preflight now fail closed when SQLite `PRAGMA integrity_check` is not `ok`; a same-count catalog-corruption regression was added. Rust `cargo test -p archeaxis-domain --test backup_safety verify_counts_rejects_sqlite_integrity_failure_even_when_counts_match` is `NOT_EXECUTED` because `cargo`/`rustc` are unavailable; `git diff --check` passed.
 - `allocation`: Luna handled bounded Python and API-contract work in parallel; Terra handled the SQLite backup hardening. No agent accessed E/F, `.codex`, `.zcode`, `.hermes`, Green, external libraries, model weights or real user data. The changes improve local evidence only; P1/P3/P5 remain partial and M0 remains `NOT_READY`.
+
+## Continuation receipt — 2026-09-20 A12 unmanifested-file fail-closed gate
+
+- `subject_sha`: `de80584cf5282f78c7a910a4487cbc04c3bd6602`; pushed to `origin/main`.
+- `changed_paths`: `scripts/release/verify_green_candidate.py`, `tests/test_green_candidate_manifest.py`.
+- `behavior`: Green candidate verification now rejects every candidate-tree file absent from `candidate-manifest.json`, while allowing the manifest itself. This closes the unrecorded-payload gap without treating the candidate as an installed Green release.
+- `verification`: `tests/test_green_candidate_manifest.py tests/test_green_candidate_verifier.py tests/test_green_candidate_assembly.py tests/test_release_architecture.py tests/test_r6_version_release_freeze.py tests/test_product_version_truth_contract.py` — `22 passed, 1 skipped, 1 warning`, exit `0`; Ruff on both changed files exit `0`; `git diff --check` exit `0`.
+- `boundary`: local candidate-verifier evidence only. No clean-machine run, signing, installer, Green replacement, rollback, external library, model library, real data, E/F drive or private agent state was accessed. A12, A13 and M0 remain `TESTED_LOCAL_PARTIAL` / `NOT_READY`.
