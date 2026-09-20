@@ -786,3 +786,11 @@
 - `verification`: `scripts/ci/run_tests.ps1 -- -q tests/test_provider_routing.py tests/test_axw_cap501_store.py tests/test_axw_cap502_plugin_manifest.py` returned `36 passed, 2 warnings`, exit `0`. Terra's read-only audit found no file changes.
 - `next_authority_inputs`: freeze (1) manifest capability/route source, (2) disabled-provider route semantics and fallback restoration, and (3) directory/index/sidecar recovery or transaction protocol. Only then implement the cross-layer host card.
 - `evidence_boundary`: local feasibility and regression evidence only. No Rust/C# host, external toolchain, Green runtime, external library, model pool, real data, E/F drive or private agent state was accessed; P0 and M0 remain `PARTIAL` / `NOT_READY`.
+
+## Continuation receipt — 2026-09-20 P2-R2 renderer provenance regression
+
+- `subject_sha`: `4b035b8983061e5ebcb888c89d862e733e5e15b8`; code commit pushed to `origin/main`.
+- `changed_paths`: `tests/test_general_courseware_renderer.py`.
+- `behavior`: the General native lesson projection regression now asserts the derived `Projection.source`, empty wikilinks and required tags, preserving provenance fields alongside existing manifest/artifact/source/knowledge bindings.
+- `verification`: `tests/test_general_courseware_renderer.py` returned `8 passed`, exit `0`; Ruff for the adapter and test passed; `git diff --check` passed.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT/PROJECTION` only. Production renderer behavior was unchanged; no real curriculum, model/provider, external library, Green runtime, real data, E/F drive or private state was accessed. A10/P2 and M0 remain partial/not ready.

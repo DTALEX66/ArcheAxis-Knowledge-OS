@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`90573dcef2573029da3fc70f706349fb9d272221`（最新 sidecar feasibility blocker 收据已推送；后续状态收据提交以其为 first parent）
+- 当前本地与远端 `main`：`4b035b8983061e5ebcb888c89d862e733e5e15b8`（最新 P2 renderer provenance 回归已推送；后续状态收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -102,6 +102,8 @@ P0-H01 identity hardening（当前 subject：`5a53d9a6445935e755df5f3ac263bd7922
 P0-H01 host lifecycle 边界（当前 subject：`a5ef4f5f4d29203bda4137ecb9cc026658ecb309`）：正式宿主仍未接入统一 provider routing；已形成 `provider-routing.json` sidecar 提案，要求 CapabilityStore 原子写、Rust Core 只读、Core 为唯一 Canonical writer。该卡标记 `BLOCKED_BY_AUTHORITY_DECISION`，不得把 test-only worker 生命周期升格为 M0 完成。当前 Rust/API 运行还受外置 Windows SDK `kernel32.lib`（历史 `LNK1181`）阻塞。
 
 P0-H01 CapabilityStore sidecar feasibility（当前 subject：`90573dcef2573029da3fc70f706349fb9d272221`）：只读审计确认 manifest/record 没有 capability、route、generation、health 的权威输入，且 pack move、index replace、sidecar replace 不是单一事务；disable/enable 的 fallback 语义也未冻结。相关回归 `36 passed, 2 warnings`，实现保持 `BLOCKED_BY_AUTHORITY_DECISION`。
+
+P2-R2 renderer provenance（当前 subject：`4b035b8983061e5ebcb888c89d862e733e5e15b8`）：补充 native lesson Projection 的 `source`、`wikilinks`、`tags` 绑定回归，确保确定性 General lesson 投影的 provenance 不被静默丢失；renderer 定向回归 `8 passed`，Ruff 与 diff check 通过。该切片只加强本地 projection 契约，不等于真实课程渲染或真人学习闭环。
 
 P0 worker lifecycle 增量（当前 subject：`092c71a64c313a31701df5b1dfb41228cb896da6`）：新增 test-only 真实 subprocess 组合测试，使用临时 `PluginManifest` 与 `CapabilityStore` 验证 hello、成功 `text.extract`、输出哈希、失败无输出、disable 阻断、enable 恢复、staging 仅含 input/output 且不创建 `.db/.sqlite`。新卡与相邻 manifest/activator/NDJSON 回归合计 `47 passed, 1 warning, 47 subtests passed`，vNext worker check 与 Ruff 通过；证据级别为 `TESTED_LOCAL_CONTRACT`，正式宿主仍未改写，P0/M0 继续 `PARTIAL/NOT_READY`。
 
