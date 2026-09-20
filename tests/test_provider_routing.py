@@ -94,6 +94,20 @@ def test_snapshot_rejects_backslash_or_nul_references(reference: str) -> None:
         ProviderRoutingSnapshot.from_mapping(data)
 
 
+def test_snapshot_rejects_whitespace_identity_keys() -> None:
+    data = _valid()
+    data["routes"][" text.extract "] = data["routes"].pop("text.extract")
+    with pytest.raises(ProviderRoutingError, match="identity"):
+        ProviderRoutingSnapshot.from_mapping(data)
+
+
+def test_snapshot_rejects_whitespace_fallback_identity() -> None:
+    data = _valid()
+    data["routes"]["text.extract"]["fallback_providers"] = [" text-v0 "]
+    with pytest.raises(ProviderRoutingError, match="identity"):
+        ProviderRoutingSnapshot.from_mapping(data)
+
+
 def test_unknown_health_is_not_promoted_to_healthy() -> None:
     data = _valid()
     data["providers"]["text-v1"]["health"] = {"status": "unknown"}

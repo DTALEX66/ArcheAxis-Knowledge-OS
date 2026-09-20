@@ -98,20 +98,23 @@ class ProviderRoutingSnapshot:
                 raise ProviderRoutingError(f"route {capability} fields are incomplete or unknown")
             default = _identity(raw["default_provider"], f"route {capability} default provider")
             fallback = raw["fallback_providers"]
-            if not isinstance(fallback, list) or any(not isinstance(item, str) or not item.strip() for item in fallback):
+            if not isinstance(fallback, list):
                 raise ProviderRoutingError(f"route {capability} fallback providers must be a list of IDs")
-            if len(fallback) != len(set(fallback)):
+            fallback_ids = tuple(
+                _identity(item, f"route {capability} fallback provider") for item in fallback
+            )
+            if len(fallback_ids) != len(set(fallback_ids)):
                 raise ProviderRoutingError(f"route {capability} fallback providers contain duplicate IDs")
-            if default in fallback:
+            if default in fallback_ids:
                 raise ProviderRoutingError(f"route {capability} fallback providers repeat the default provider")
-            refs = [default, *fallback]
+            refs = [default, *fallback_ids]
             missing = [provider for provider in refs if provider not in providers]
             if missing:
                 raise ProviderRoutingError(f"route {capability} references unknown provider {missing[0]}")
             for provider in refs:
                 if not providers[provider].installed or not providers[provider].enabled:
                     raise ProviderRoutingError(f"route {capability} references provider {provider} that is not installed and enabled")
-            routes[capability] = RouteRecord(capability, default, tuple(fallback))
+            routes[capability] = RouteRecord(capability, default, fallback_ids)
         return cls(SCHEMA_VERSION, generation, providers, routes)
 
     def eligible_providers(self, capability: str) -> tuple[ProviderRecord, ...]:
@@ -130,6 +133,8 @@ def _text(value: Any, label: str) -> str:
 
 
 def _identity(value: Any, label: str) -> str:
+    if isinstance(value, str) and value != value.strip():
+        raise ProviderRoutingError(f"{label} identity must not have surrounding whitespace")
     text = _text(value, label)
     if "/" in text or "\\" in text or ":" in text:
         raise ProviderRoutingError(f"{label} contains an unsafe identity")
