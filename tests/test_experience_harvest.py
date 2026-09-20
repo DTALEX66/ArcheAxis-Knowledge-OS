@@ -1,6 +1,8 @@
 """Tests for experience harvesting (Meta Knowledge Graph absorption)."""
 from __future__ import annotations
 
+import sqlite3
+
 import pytest
 
 from app.agent.experience_harvest import (
@@ -101,6 +103,31 @@ def test_capture_success_harvests_principle(tmp_path):
     assert principles[0].category == "success_pattern"
     found = retrieve_principles(db, "部署", top_k=5)
     assert found and found[0]["principle_id"] == principles[0].principle_id
+
+
+def test_capture_persists_canonical_distillation_candidate(tmp_path):
+    db = tmp_path / "canonical-candidate.sqlite"
+    events = [
+        LifecycleEvent.started("部署服务", "t1"),
+        LifecycleEvent.tool_called("build", "t2"),
+        LifecycleEvent.ended("success", "t3"),
+    ]
+
+    principles, receipt = capture_with_receipt(db, events)
+
+    with sqlite3.connect(db) as connection:
+        row = connection.execute(
+            "SELECT principle_id, status, source_kind, source_locator, evidence "
+            "FROM distillation_principles WHERE principle_id=?",
+            (principles[0].principle_id,),
+        ).fetchone()
+    assert row is not None
+    assert row[1:3] == ("candidate", "observation")
+    assert row[3].startswith("trajectory:traj_")
+    assert "t1" in (row[4] or "")
+    candidate_step = next(step for step in receipt.steps if step.stage == "skill_candidate")
+    assert candidate_step.state == "pending"
+    assert candidate_step.evidence_refs == [principles[0].principle_id]
 
 
 def test_capture_failure_requires_error(tmp_path):

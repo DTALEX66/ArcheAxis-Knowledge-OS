@@ -15,11 +15,13 @@ Deterministic; LLM reflection is optional and never required.
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from app.contracts.machine_growth_v1 import GrowthStepV1, MachineGrowthReceiptV1
+from app.knowledge.distillation import record_principle
 from app.memory.reasoning_memory import (
     ReasoningPrinciple,
     reflect,
@@ -137,6 +139,18 @@ def capture_with_receipt(
             next_suffix_by_base[base_id] = suffix + 1
         used_event_ids.add(event_id)
         source_event_ids.append(event_id)
+    candidate = record_principle(
+        db,
+        statement=principle.statement,
+        source_kind="observation",
+        source_locator=f"trajectory:{trajectory.trajectory_id}",
+        evidence=json.dumps(
+            {"source_event_ids": source_event_ids},
+            ensure_ascii=False,
+            sort_keys=True,
+        ),
+        principle_id=principle.principle_id,
+    )
     receipt_seed = "\0".join([trajectory.trajectory_id, *source_event_ids])
     outcome = draft.outcome if draft.outcome in {"success", "failure", "partial"} else "unknown"
     receipt = MachineGrowthReceiptV1(
@@ -147,7 +161,12 @@ def capture_with_receipt(
         steps=[
             GrowthStepV1(stage="experience", state="observed", actor="system", evidence_refs=source_event_ids),
             GrowthStepV1(stage="lesson", state="created", actor="system", evidence_refs=[principle.principle_id]),
-            GrowthStepV1(stage="skill_candidate", state="skipped", actor="system"),
+            GrowthStepV1(
+                stage="skill_candidate",
+                state="pending",
+                actor="system",
+                evidence_refs=[candidate.principle_id],
+            ),
             GrowthStepV1(stage="review", state="skipped", actor="system"),
             GrowthStepV1(stage="reuse", state="skipped", actor="system"),
         ],

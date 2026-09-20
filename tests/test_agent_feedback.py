@@ -31,6 +31,8 @@ def test_success_trace_harvests_principle(tmp_path):
     assert [step["stage"] for step in receipt["steps"]] == [
         "experience", "lesson", "skill_candidate", "review", "reuse"
     ]
+    assert receipt["steps"][2]["state"] == "pending"
+    assert receipt["steps"][2]["evidence_refs"]
     assert receipt["steps"][3]["state"] == "skipped"
     found = retrieve_principles(db, "preflight", top_k=5)
     assert found and found[0]["principle_id"] == out["principle_id"]
