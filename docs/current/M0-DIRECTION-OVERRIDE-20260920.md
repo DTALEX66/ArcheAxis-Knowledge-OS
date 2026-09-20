@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`80398b1e4fd550301b5f7949a6fa3d0c53602960`（P0 route contract 证据已推送；本次状态收据提交以其为 first parent）
+- 当前本地与远端 `main`：`092c71a64c313a31701df5b1dfb41228cb896da6`（P0 worker lifecycle 证据代码已推送；后续状态收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -66,7 +66,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 
 本轮按独立写集并行完成 P0、P1、P2 的最小可验证切片；它们不等于 M0 全链路完成：
 
-- P0：`TESTED_LOCAL`。现有 capability kernel 的 health、注册/启用、执行、失败、禁用、恢复、同 `plugin_id` provider 替换和不创建 canonical DB 均有回归证据；真实 Python worker 的 manifest/runner/health 绑定仍待后续卡。
+- P0：`PARTIAL`。现有 capability kernel 与真实 Python worker 的 manifest/runner/health、启用/禁用、失败和恢复组合已有本地测试证据；正式宿主默认/fallback/provider replacement 生命周期仍未绑定，因此不升级为 M0 完成。
 - P1：`TESTED_LOCAL`。格式执行保留 attempted engines、fallback 状态和无路径泄露的原因，并在 conversion run 重启回读和 format receipt 中保持一致；真实常用格式质量、外部引擎和 Knowledge V3 写入仍未闭合。
 - P2：`TESTED_LOCAL`。新增 general-only CourseManifest、Knowledge Component、Learning Objective 契约，覆盖 Concept/Fact/Procedure/Method/Case、引用闭合、lesson 要求和跨域拒绝；Search 的 embedding/reranker、真实课程内容和 renderer 仍未闭合。
 - P3：`PARTIAL`。Core review receipt 现在保存用户提交的 answer，空白回答在 API/UI 被拒绝，Assessment 绑定与 FSRS/restart API 回归已通过，桌面重启打开学习项会恢复已保存答案文本；真人 UI 首次学习、authoritative Mastery/FSRS 全量恢复和完整重启读回仍缺。
@@ -94,6 +94,8 @@ A00 authority 修复（当前 subject：`5005172114d329057e08829bf780a343b9c1d76
 A07 碰撞修复（当前 subject：`facd30eacc2ce217825132988af9ab546cec6881`）：machine-growth receipt 对重复、后缀相撞和空时间戳 fallback 使用全局占用集生成确定性唯一事件 ID；A07 定向套件 `20 passed, 1 warning`。仍不等于真实模型、真实用户错误或 review/reuse/retest 闭环。
 
 P0 route contract 增量（当前 subject：`80398b1e4fd550301b5f7949a6fa3d0c53602960`）：新增静态检查，遍历 `text_ndjson.ROUTES`，验证 worker 路径 containment、`ENGINE`/`extract()`、版本、媒体类型和调用元数据；定向套件 `27 passed, 1 warning, 47 subtests`，vNext worker check 通过。真实 manifest/health/启停/provider replacement 生命周期仍未闭合。
+
+P0 worker lifecycle 增量（当前 subject：`092c71a64c313a31701df5b1dfb41228cb896da6`）：新增 test-only 真实 subprocess 组合测试，使用临时 `PluginManifest` 与 `CapabilityStore` 验证 hello、成功 `text.extract`、输出哈希、失败无输出、disable 阻断、enable 恢复、staging 仅含 input/output 且不创建 `.db/.sqlite`。新卡与相邻 manifest/activator/NDJSON 回归合计 `47 passed, 1 warning, 47 subtests passed`，vNext worker check 与 Ruff 通过；证据级别为 `TESTED_LOCAL_CONTRACT`，正式宿主仍未改写，P0/M0 继续 `PARTIAL/NOT_READY`。
 
 验证记录：P0–P2 提交 `e478aa41`，P3/P5 提交 `c546c0c6`，P4.1/P5.1 提交 `eea865e1`，P3.1 提交 `8dfc78b3`；Python 定向回归 `120 passed, 3 warnings`，P3 桌面契约 `11 passed, 1 warning`，本轮 API Rust 定向回归 `10 passed`，P5 Rust 定向回归 `18 passed`，退出码均为 `0`；完整 workspace Rust gate、rustfmt、完整 .NET 产品门禁仍未执行。未运行完整产品门禁，未宣称 M0 完成或 Local Green 就绪。
 

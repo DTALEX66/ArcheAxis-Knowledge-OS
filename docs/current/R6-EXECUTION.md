@@ -742,3 +742,11 @@
 - `behavior`: every `text_ndjson.ROUTES` entry is checked against an in-repository worker file, top-level `ENGINE` and `extract()` declarations, non-empty version/media metadata and supported call shape. Path escape and missing-worker drift fail closed.
 - `verification`: P0 suite `27 passed, 1 warning, 47 subtests`, exit `0`; `scripts/ci/check_vnext_workers.py` reported `workers-vnext check passed`; Ruff passed.
 - `boundary`: static route evidence only. It does not bind PluginManifest/CapabilityStore to the real subprocess, health, enable/disable, fallback or provider replacement lifecycle; P0 remains `PARTIAL`.
+
+## Continuation receipt — 2026-09-20 P0 worker lifecycle contract
+
+- `subject_sha`: `092c71a64c313a31701df5b1dfb41228cb896da6`; code commit pushed to `origin/main`.
+- `changed_paths`: `tests/test_p0_python_worker_lifecycle.py`.
+- `behavior`: test-only composition of the existing `PluginManifest`/`CapabilityStore` gate with the real `services/python-workers/transport/text_ndjson.py` subprocess. It covers hello, successful text extraction with output hashes and candidate-only authority effect, invalid-input failure with no outputs, disable blocking without launch, enable recovery, staging-root boundaries, and no SQLite creation.
+- `verification`: actual configured CPython ran the focused card plus adjacent manifest/activator/NDJSON regression: `47 passed, 1 warning, 47 subtests passed`, exit `0`; `scripts/ci/check_vnext_workers.py` reported `workers-vnext check passed`; Ruff passed; `git diff --check` passed before commit.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No production launcher, schema, desktop host, external library, model pool, Green runtime, real user data, E/F drive or private agent state was accessed. P0 remains `PARTIAL`; M0 remains `NOT_READY`.
