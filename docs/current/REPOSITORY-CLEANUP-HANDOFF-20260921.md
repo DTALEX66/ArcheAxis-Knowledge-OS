@@ -11,13 +11,13 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 分支 | `main` |
-| `HEAD` | `9ca805b63b50a942f59105428b804ba6eee3cf8d` |
-| 本地 `origin/main` | `9ca805b63b50a942f59105428b804ba6eee3cf8d` |
+| `HEAD` | `42d5660c1b5f36b6f13445ea5fe631662cd75047` |
+| 本地 `origin/main` | `42d5660c1b5f36b6f13445ea5fe631662cd75047` |
 | `HEAD...origin/main` | `0 0` |
 | 跟踪文件修改 | 本轮报告提交前为 0 |
 | 未跟踪项 | `docs/history/` 迁移资产及 `SESSION-RESTART-2026-09-12.md`，全部保留、未纳入本轮提交 |
 
-本机 `git ls-remote origin refs/heads/main` 本轮未能完成：当前 Git 使用 SSH，`known_hosts` 读取被权限策略拒绝。因此本地 `origin/main` 一致不等于本轮实时云端回读；提交后必须再次执行远端 SHA 回读，失败时保留为 `REMOTE_READBACK_BLOCKED`，不能宣称云端已同步。
+本轮先遇到 SSH `known_hosts` 读取权限问题，随后在授权的推送环境中完成上传。最终 `git ls-remote origin refs/heads/main` 返回 `42d5660c1b5f36b6f13445ea5fe631662cd75047`，与本地 `HEAD` 和 `origin/main` 完全一致；`HEAD...origin/main` 为 `0 0`。远端仍提示 required status check `a0-gates` expected，这是分支保护提示，不是本次提交内容的测试通过证明。
 
 ## 瘦身范围
 
@@ -70,7 +70,7 @@
 - `git diff --check` 在生成本报告前无输出。
 - 权威 SHA 与 R6 authority 检查在 `9ca805b6` 提交时已通过；本轮尝试重跑时，项目 `.venv\Scripts\python.exe` 是 uv trampoline，进程被权限策略拒绝（`permission denied (os error 5)`），因此本轮重跑状态为 `NOT_EXECUTED`，没有把旧 PASS 冒充成新 PASS。
 - 当前 PowerShell 会话的 `python` 不在 PATH；没有安装新解释器，也没有改全局环境。后续应使用已登记的项目解释器或修复执行权限后再跑门禁。
-- 远端 SSH readback 受 `known_hosts` 权限阻塞，不能据此声明云端当前 SHA。
+- 推送已完成，远端精确 SHA 回读通过；远端返回的 `a0-gates` expected 规则提示仍需按云端流程补齐检查，不能把推送当成 CI PASS。
 
 ## 未完成任务与阻塞
 
