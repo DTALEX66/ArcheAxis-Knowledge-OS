@@ -5,8 +5,8 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T13:04:00Z",
-  "subject_sha": "5005172114d329057e08829bf780a343b9c1d76f",
+  "updated_at": "2026-09-20T13:11:52Z",
+  "subject_sha": "facd30eacc2ce217825132988af9ab546cec6881",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -63,8 +63,8 @@
       "id": "A07",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "execution feedback now emits a machine-growth receipt and machine retest bindings validate canonical knowledge/task references; a synthetic Core process correction/retest/restart journey passes, while real model execution, user-observed error and review/reuse/retest journey remain open",
-      "subject_sha": "dbb744f5e73986677d5b3e7b5044ed43ed40fd09"
+      "remaining_gap": "machine-growth receipt event IDs are now deterministic and globally unique within a receipt; real model execution, user-observed error and review/reuse/retest journey remain open",
+      "subject_sha": "facd30eacc2ce217825132988af9ab546cec6881"
     },
     {
       "id": "A08",

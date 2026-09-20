@@ -726,3 +726,11 @@
 - `A07`: repeated event timestamps now receive deterministic occurrence suffixes (`now`, `now-1`, `now-2`) so machine-growth evidence references remain unique and stable; `19 passed, 1 warning`, exit `0`. Existing unrelated Ruff `UP037` findings were not changed.
 - `A00`: immutable `TASKPACK.md` remains unchanged. The source-provided CRLF provenance SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529` and canonical repository LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b` are now explicit in all R6 authority records; `EXECUTOR-START.md` no longer contains `$sha`. `check_r6_taskpack_authority.py` verifies both digests and the CRLF→LF normalization relation.
 - `boundary`: no external library, model pool, Green runtime, real data, E/F drive or private agent state was accessed. A15 found the prior digest ambiguity; this repair addresses that authority defect but does not promote A15/M0 to ready.
+
+## Continuation receipt — 2026-09-20 A07 global event-ID collision repair
+
+- `subject_sha`: `facd30eacc2ce217825132988af9ab546cec6881`; pushed to `origin/main`.
+- `changed_paths`: `app/agent/experience_harvest.py`, `tests/test_experience_harvest.py`.
+- `behavior`: receipt generation now tracks a global used-ID set and advances deterministic suffixes until each event reference is unique, covering repeated timestamps, timestamp/suffix collisions and `event-<index>` fallback collisions.
+- `verification`: RED reproduced `['now', 'now-1', 'now-1']` before the fix; GREEN A07 suite returned `20 passed, 1 warning`, exit `0`; `git diff --check` exit `0`. Existing unrelated Ruff `UP037` findings at the pre-existing forward annotations remain unchanged.
+- `boundary`: local receipt evidence only; real model execution, human error, review/reuse/retest, CI and runtime evidence remain open. No E/F drive, external library, model pool, Green or private state was accessed.
