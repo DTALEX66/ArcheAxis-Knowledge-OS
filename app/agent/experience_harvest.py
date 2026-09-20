@@ -123,7 +123,13 @@ def capture_with_receipt(
         error_pattern=draft.error_pattern, importance=0.6,
     )
     principle = reflect(db, trajectory.trajectory_id, llm_reflection=llm_reflection)
-    source_event_ids = [event.ts.strip() or f"event-{index}" for index, event in enumerate(events)]
+    source_event_ids: list[str] = []
+    seen_event_ids: dict[str, int] = {}
+    for index, event in enumerate(events):
+        base_id = event.ts.strip() or f"event-{index}"
+        occurrence = seen_event_ids.get(base_id, 0)
+        seen_event_ids[base_id] = occurrence + 1
+        source_event_ids.append(base_id if occurrence == 0 else f"{base_id}-{occurrence}")
     receipt_seed = "\0".join([trajectory.trajectory_id, *source_event_ids])
     outcome = draft.outcome if draft.outcome in {"success", "failure", "partial"} else "unknown"
     receipt = MachineGrowthReceiptV1(

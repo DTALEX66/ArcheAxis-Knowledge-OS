@@ -7,6 +7,7 @@ from app.agent.experience_harvest import (
     HarvestError,
     LifecycleEvent,
     capture,
+    capture_with_receipt,
     events_to_trajectory,
 )
 from app.memory.reasoning_memory import retrieve_principles
@@ -45,6 +46,21 @@ def test_unknown_lifecycle_event_rejected_instead_of_being_dropped():
             LifecycleEvent(kind="provider_result", ts="t2"),
             LifecycleEvent.ended("success", "t3"),
         ])
+
+
+def test_capture_disambiguates_repeated_event_timestamps_deterministically(tmp_path):
+    events = [
+        LifecycleEvent.started("部署服务", "now"),
+        LifecycleEvent.tool_called("build", "now"),
+        LifecycleEvent.ended("success", "now"),
+    ]
+
+    _, first = capture_with_receipt(tmp_path / "first.sqlite", events)
+    _, second = capture_with_receipt(tmp_path / "second.sqlite", events)
+
+    assert first.source_event_ids == ["now", "now-1", "now-2"]
+    assert len(first.source_event_ids) == len(set(first.source_event_ids))
+    assert first.source_event_ids == second.source_event_ids
 
 
 def test_capture_success_harvests_principle(tmp_path):
