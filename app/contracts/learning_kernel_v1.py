@@ -32,7 +32,9 @@ class LearningKernelReceiptV1(BaseModel):
     restart_key: str = Field(min_length=1)
 
     @model_validator(mode="after")
-    def validate_review_semantics(self) -> "LearningKernelReceiptV1":
+    def validate_review_semantics(self) -> LearningKernelReceiptV1:
+        if len(set(self.source_anchor_ids)) != len(self.source_anchor_ids):
+            raise ValueError("source_anchor_ids must be unique")
         if self.correct and self.rating == 1:
             raise ValueError("correct exposure cannot use rating 1")
         if not self.correct and self.rating != 1:

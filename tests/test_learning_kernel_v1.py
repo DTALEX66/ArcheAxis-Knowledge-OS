@@ -36,6 +36,11 @@ def test_learning_receipt_binds_source_and_idempotent_review_ids():
     assert receipt.restart_key == receipt.client_event_id
 
 
+def test_learning_receipt_rejects_duplicate_source_anchors():
+    with pytest.raises(ValidationError, match="source_anchor_ids must be unique"):
+        LearningKernelReceiptV1.model_validate(_payload(source_anchor_ids=["anc-1", "anc-1"]))
+
+
 def test_incorrect_exposure_requires_again_rating():
     with pytest.raises(ValidationError, match="incorrect exposure"):
         LearningKernelReceiptV1.model_validate(_payload(correct=False, rating=2))
