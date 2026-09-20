@@ -801,3 +801,11 @@
 - `readback`: `config/models.yaml` still selects `default_llm.provider=stub` and `default_llm.name=local-stub`; `Get-Command ollama` found no executable; `Test-NetConnection 127.0.0.1:11434` returned `TcpTestSucceeded=false`.
 - `status`: `NOT_EXECUTED / BLOCKED`; no synthetic machine receipt was promoted to real-model evidence. A14 still requires an owner-approved runnable model/provider and a human-observed error/correction sequence.
 - `boundary`: only project config and localhost availability were checked. No external model library, external tool, real data, E/F drive, private state or provider credentials were accessed; M0 remains `NOT_READY`.
+
+## Continuation receipt — 2026-09-20 P5 backup manifest duplicate-path hardening
+
+- `subject_sha`: `e793252c4d26571808d159d3b7cdd3aa487b7b9c`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/exchange/backup.py`, `tests/test_axw094b_backup.py`.
+- `behavior`: `verify_backup()` normalizes manifest separators and rejects a duplicate relative path before counting or hashing it, closing a manifest-count ambiguity without changing backup layout or restore policy.
+- `verification`: `tests/test_axw094b_backup.py` returned `17 passed`, exit `0`; Ruff for `app/exchange/backup.py` passed; `git diff --check` passed. The full test file still reports a pre-existing `SIM105` at its cleanup block, which was not changed.
+- `evidence_boundary`: `TESTED_LOCAL` Python backup-manifest contract only. Rust SQLite integrity, workspace identity, real Legacy semantic diff, Green replacement/rollback and clean-machine evidence remain open; no external library, model pool, real data, E/F drive or private state was accessed.
