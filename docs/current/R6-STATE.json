@@ -5,8 +5,8 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T15:42:27Z",
-  "subject_sha": "8e8d33ea41c152f403e83c35aadd6272ae50c64b",
+  "updated_at": "2026-09-20T15:46:31Z",
+  "subject_sha": "8786d069bd88bbf7f31865453806d5f22d458252",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -64,7 +64,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "machine-growth receipt event IDs are now deterministic and globally unique within a receipt; real model execution, user-observed error and review/reuse/retest journey remain open",
-      "subject_sha": "facd30eacc2ce217825132988af9ab546cec6881"
+      "subject_sha": "8786d069bd88bbf7f31865453806d5f22d458252"
     },
     {
       "id": "A08",

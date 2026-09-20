@@ -849,3 +849,11 @@
 - `behavior`: `LearningKernelReceiptV1.source_anchor_ids` now rejects duplicate anchors while preserving caller order for valid receipts.
 - `verification`: `tests/test_learning_kernel_v1.py` returned `5 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. Avalonia UI, authoritative Mastery/FSRS writer, real model/provider, Green runtime, real data, E/F drive and private state were not accessed; A08/P3 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A07 machine growth provenance uniqueness
+
+- `subject_sha`: `8786d069bd88bbf7f31865453806d5f22d458252`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/contracts/machine_growth_v1.py`, `tests/test_machine_growth_v1.py`.
+- `behavior`: `MachineGrowthReceiptV1.source_event_ids` now rejects duplicate source events while preserving caller order for valid receipts.
+- `verification`: `tests/test_machine_growth_v1.py` returned `5 passed`, exit `0`; test Ruff, production Ruff with existing I001/SIM102 baseline excluded, and `git diff --check` passed. Full production Ruff still reports pre-existing findings outside this change.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No real model execution, human review, external provider, Green runtime, real data, E/F drive or private state was accessed; A07 and M0 remain partial/not ready.
