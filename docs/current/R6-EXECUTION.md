@@ -833,3 +833,11 @@
 - `behavior`: model entries marked `measured_current` or `measured_historical` now require at least one evidence reference; unmeasured and blocked entries may remain without references.
 - `verification`: `tests/test_model_pool_v1.py` returned `5 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No model weights, shared model library, runtime probe, external provider, Green runtime, real data, E/F drive or private state was accessed; A11 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A05 fallback receipt consistency
+
+- `subject_sha`: `dd71d77adba53cd4235a93dc1d61af636ecfc6e5`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/contracts/format_execution_v1.py`, `tests/test_format_execution_v1.py`.
+- `behavior`: `FallbackInfoV1` now rejects a non-empty reason when `used=false`, while allowing the normal no-fallback record of the selected engine in `attempted_engines`.
+- `verification`: format receipt and workspace multiformat tests `15 passed`, exit `0`; test Ruff, production Ruff with existing B009/UP037 baseline excluded, and `git diff --check` passed. Full production Ruff still reports pre-existing B009/UP037 findings outside this change.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No external conversion engine, model pool, real data, Green runtime, E/F drive or private state was accessed; A05 and M0 remain partial/not ready.

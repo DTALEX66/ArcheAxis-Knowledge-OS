@@ -5,8 +5,8 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T15:32:53Z",
-  "subject_sha": "f19fea2027259c8d5e8b4475eadea6f1df5b31f5",
+  "updated_at": "2026-09-20T15:37:47Z",
+  "subject_sha": "dd71d77adba53cd4235a93dc1d61af636ecfc6e5",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -50,7 +50,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open",
-      "subject_sha": "964fb8e20d5c97e513c716127e42e22406768ce4"
+      "subject_sha": "dd71d77adba53cd4235a93dc1d61af636ecfc6e5"
     },
     {
       "id": "A06",
