@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class ProjectionItemV1(BaseModel):
@@ -35,7 +35,7 @@ class DerivedProjectionReceiptV1(BaseModel):
     writes_canonical: Literal[False] = False
 
     @model_validator(mode="after")
-    def validate_projection_sources(self) -> "DerivedProjectionReceiptV1":
+    def validate_projection_sources(self) -> DerivedProjectionReceiptV1:
         allowed = set(self.canonical_source_ids)
         unknown = sorted({item.source_id for item in self.items} - allowed)
         if unknown:
@@ -43,3 +43,10 @@ class DerivedProjectionReceiptV1(BaseModel):
         if len(set(self.canonical_source_ids)) != len(self.canonical_source_ids):
             raise ValueError("canonical_source_ids must be unique")
         return self
+
+    @field_validator("query")
+    @classmethod
+    def validate_query(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("query must not be blank")
+        return value

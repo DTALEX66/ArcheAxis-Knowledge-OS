@@ -43,6 +43,11 @@ def test_projection_requires_unique_canonical_sources_and_strict_fields():
         DerivedProjectionReceiptV1.model_validate(_receipt(invented="must fail"))
 
 
+def test_projection_rejects_whitespace_only_query():
+    with pytest.raises(ValidationError):
+        DerivedProjectionReceiptV1.model_validate(_receipt(query="   "))
+
+
 def test_versioned_schema_is_present_and_declares_projection_boundary():
     import json
     from pathlib import Path
