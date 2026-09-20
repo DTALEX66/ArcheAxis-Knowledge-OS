@@ -817,3 +817,11 @@
 - `behavior`: `/api/v1/learning/tick` now rejects a missing-type, empty or whitespace-only `idempotency_key` with a 400 response before dispatching the co-learning tick. Existing truth-field fail-closed behavior remains unchanged.
 - `verification`: security tests `10 passed`, learning-loop E2E `1 passed`, exit `0`; Ruff on both changed files and `git diff --check` passed.
 - `evidence_boundary`: local API input-contract evidence only. No authoritative Mastery/FSRS writer, desktop UI, real model/provider, external library, Green runtime, real data, E/F drive or private state was accessed; A08/P3 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A06 derived projection query boundary
+
+- `subject_sha`: `14da2ea80dcc0f3a2f928b6f5e29a758f6b325c4`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/contracts/derived_projection_v1.py`, `tests/test_derived_projection_v1.py`.
+- `behavior`: `DerivedProjectionReceiptV1.query` now rejects empty or whitespace-only strings, matching the Vault search boundary; the original query text is preserved when valid.
+- `verification`: focused projection and Vault search tests `12 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. Vector/reranker/graph/research provider wiring, real source restart/readback, external libraries, Green runtime, real data and E/F/private state were not accessed; A06 and M0 remain partial/not ready.

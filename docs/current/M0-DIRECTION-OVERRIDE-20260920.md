@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`7793a2c47a010024811994bc4e5bea10c4e19b3a`（最新 A08 learning tick fail-closed 修复已推送；后续状态收据提交以其为 first parent）
+- 当前本地与远端 `main`：`14da2ea80dcc0f3a2f928b6f5e29a758f6b325c4`（最新 A06 derived projection 查询契约修复已推送；本记录收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -178,6 +178,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 ## 下一项可执行工作
 
 当前先不新增外部 Provider 或大功能。下一项是用 Owner 允许的真实模型/用户任务替换 P4 合成输入；P3 真实 Avalonia 控件首用仍缺无 UI 入口，P5 workspace identity 仍需 Owner 决策。模型库/Domain Pack 只读审计已确认结构 `PARTIAL`，不得把浅层目录收据或 `contract_only` manifest 当作 executable/runtime 证据。A02 的共享资源根语义、A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate；A15 独立审计已 PASS，A16 仍 BLOCKED。
+
+## A06 增量（2026-09-20）
+
+当前 subject：`14da2ea80dcc0f3a2f928b6f5e29a758f6b325c4`。`DerivedProjectionReceiptV1` 现在拒绝只含空白字符的 `query`，与 Vault 搜索入口的非空白约束保持一致；新增对应 Pydantic 回归测试，并修正同文件的 Ruff 类型注解问题。定向回归 `tests/test_derived_projection_v1.py tests/test_vault_search_api.py` 为 `12 passed`，Ruff 与 `git diff --check` 通过。证据仅为本地契约/搜索边界，不代表向量、重排、图检索、真实 Provider 或 M0 全链路完成。
 
 ## 本记录限制
 

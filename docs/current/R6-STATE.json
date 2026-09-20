@@ -5,8 +5,8 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T15:14:55Z",
-  "subject_sha": "7793a2c47a010024811994bc4e5bea10c4e19b3a",
+  "updated_at": "2026-09-20T15:25:58Z",
+  "subject_sha": "14da2ea80dcc0f3a2f928b6f5e29a758f6b325c4",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -57,7 +57,7 @@
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "Vault lexical search now emits a path-free derived receipt with stable source_id and source_revision binding; vector/reranker/graph/research wiring, provider readback and benchmark evidence remain open",
-      "subject_sha": "dbb744f5e73986677d5b3e7b5044ed43ed40fd09"
+      "subject_sha": "14da2ea80dcc0f3a2f928b6f5e29a758f6b325c4"
     },
     {
       "id": "A07",
