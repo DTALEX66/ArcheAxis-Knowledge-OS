@@ -857,3 +857,11 @@
 - `behavior`: `MachineGrowthReceiptV1.source_event_ids` now rejects duplicate source events while preserving caller order for valid receipts.
 - `verification`: `tests/test_machine_growth_v1.py` returned `5 passed`, exit `0`; test Ruff, production Ruff with existing I001/SIM102 baseline excluded, and `git diff --check` passed. Full production Ruff still reports pre-existing findings outside this change.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No real model execution, human review, external provider, Green runtime, real data, E/F drive or private state was accessed; A07 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A10 courseware scalar boundary
+
+- `subject_sha`: `7a32702769c1be2c825aa3636c510650edb2dce5`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/contracts/courseware_v1.py`, `tests/test_courseware_v1.py`.
+- `behavior`: courseware artifacts now reject whitespace-only `artifact_id`, `title`, `renderer`, and `renderer_version` values while preserving valid text.
+- `verification`: `tests/test_courseware_v1.py` returned `11 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No real renderer, Avalonia UI, model/provider, Green runtime, real data, E/F drive or private state was accessed; A10/P2 and M0 remain partial/not ready.

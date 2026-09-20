@@ -5,8 +5,8 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T15:46:31Z",
-  "subject_sha": "8786d069bd88bbf7f31865453806d5f22d458252",
+  "updated_at": "2026-09-20T15:50:21Z",
+  "subject_sha": "7a32702769c1be2c825aa3636c510650edb2dce5",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -86,7 +86,7 @@
       "evidence_level": "TESTED_LOCAL",
       "remaining_gap": "general-only manifest and a deterministic local lesson Projection now preserve source/knowledge/renderer bindings; focused renderer contract/readback pytest passes, while real interactive execution/domain acceptance remain open",
       "evidence_level": "TESTED_LOCAL",
-      "subject_sha": "4b035b8983061e5ebcb888c89d862e733e5e15b8"
+      "subject_sha": "7a32702769c1be2c825aa3636c510650edb2dce5"
     },
     {
       "id": "A11",

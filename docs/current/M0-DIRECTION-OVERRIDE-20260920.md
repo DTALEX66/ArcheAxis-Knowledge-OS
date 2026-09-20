@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`8786d069bd88bbf7f31865453806d5f22d458252`（最新 A07 machine growth provenance 契约修复已推送；本记录收据提交以其为 first parent）
+- 当前本地与远端 `main`：`7a32702769c1be2c825aa3636c510650edb2dce5`（最新 A10 courseware scalar 契约修复已推送；本记录收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -198,6 +198,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 ## A07 增量（2026-09-20）
 
 当前 subject：`8786d069bd88bbf7f31865453806d5f22d458252`。`MachineGrowthReceiptV1.source_event_ids` 现在要求来源事件唯一且保留原顺序，防止同一增长收据重复绑定来源；machine growth 定向回归 `5 passed`，排除既有 I001/SIM102 基线后的生产文件 Ruff、测试文件 Ruff 与 `git diff --check` 通过。证据仅为本地 Pydantic receipt 契约，不代表真实模型、人工审核、复用或复测闭环完成。
+
+## A10 增量（2026-09-20）
+
+当前 subject：`7a32702769c1be2c825aa3636c510650edb2dce5`。`CoursewareArtifactV1` 现在拒绝 `artifact_id`、`title`、`renderer` 和 `renderer_version` 的全空白值，与来源/知识 ID 的非空白边界保持一致；courseware 定向回归 `11 passed`，Ruff 与 `git diff --check` 通过。证据仅为本地 Pydantic artifact 契约，不代表真实 renderer、Avalonia 首用或领域课程验收完成。
 
 ## 本记录限制
 
