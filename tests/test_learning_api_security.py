@@ -46,6 +46,20 @@ def test_tick_accepts_only_intent_and_fails_closed_without_receipts():
     assert result["action"] == "review_evidence"
 
 
+@pytest.mark.parametrize("bad_key", ["", "   ", None])
+def test_tick_rejects_blank_idempotency_key(bad_key: object) -> None:
+    payload = {
+        "node_id": "card-a",
+        "learner_id": "learner-a",
+        "action_intent": "evaluate",
+        "idempotency_key": bad_key,
+    }
+    with pytest.raises(HTTPException) as exc:
+        learning.learning_tick(payload)
+    assert exc.value.status_code == 400
+    assert "idempotency_key" in str(exc.value.detail)
+
+
 def test_get_mastery_reads_sqlite_row_without_mapping_get(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

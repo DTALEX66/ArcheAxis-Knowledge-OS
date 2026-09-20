@@ -246,7 +246,9 @@ def learning_tick(payload: dict[str, object]) -> dict[str, object]:
         node_id = str(payload["node_id"])
         str(payload["learner_id"])
         str(payload["action_intent"])
-        str(payload["idempotency_key"])
+        idempotency_key = payload["idempotency_key"]
+        if not isinstance(idempotency_key, str) or not idempotency_key.strip():
+            raise HTTPException(status_code=400, detail="idempotency_key must be non-empty")
         teach = payload.get("teach")
         result = bidirectional_tick(
             node_id=node_id, human=HumanEvidence(), machine=MachineEvidence(),
