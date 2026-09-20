@@ -51,6 +51,13 @@
 - code_commit: `e21713b84b5dafe1b028e86481f119aa1efd4a4f`
 - added: `shared/provider_routing.py`, `tests/test_provider_routing.py`
 - verification: provider-routing `10 passed, 1 warning`; related provider/CapabilityStore/manifest/activator `60 passed, 3 warnings`; Ruff and py_compile passed.
+
+## CapabilityStore sidecar feasibility audit (2026-09-20)
+
+- status: `BLOCKED_BY_AUTHORITY_DECISION`; no implementation was written.
+- evidence: the current manifest has no authoritative capability/default/fallback projection or health receipt, and the store record has no generation/health fields. Pack moves, registry index replacement and a proposed routing sidecar replacement are separate operations; a crash can leave them inconsistent. The parser's fail-closed rule for disabled providers also leaves disable, fallback promotion and enable restoration semantics unspecified.
+- verification: `scripts/ci/run_tests.ps1 -- -q tests/test_provider_routing.py tests/test_axw_cap501_store.py tests/test_axw_cap502_plugin_manifest.py` -> `36 passed, 2 warnings`, exit `0`; read-only atomicity audit found no changes.
+- required authority decisions before implementation: manifest route source; disabled route/fallback semantics; recovery or transaction protocol across pack/index/sidecar. Do not infer healthy state from the healthcheck declaration.
 - boundary: pure contract only; no CapabilityStore writer, Rust Core, C# desktop or SQLite integration yet.
 
 ## Identity hardening after independent review

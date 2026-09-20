@@ -777,3 +777,12 @@
 - `fix`: identity fields now reject surrounding whitespace consistently; fallback IDs are normalized through the same validator before duplicate and route-closure checks.
 - `verification`: RED reproduced both cases; focused plus related provider/CapabilityStore/manifest/activator regression `62 passed, 3 warnings`, Ruff, `py_compile`, and `git diff --check` passed.
 - `evidence_boundary`: contract-only fix, `TESTED_LOCAL_CONTRACT`; formal Rust/Core/Avalonia host integration remains open and no external resource or private state was accessed.
+
+## Continuation receipt — 2026-09-20 P0-H01 CapabilityStore sidecar feasibility audit
+
+- `subject_sha`: `5a53d9a6445935e755df5f3ac263bd7922839aa7` (current provider-routing contract code; no production code changed by this audit).
+- `status`: `BLOCKED_BY_AUTHORITY_DECISION`; the proposed `provider-routing.json` publisher was not implemented because the current inputs do not define a safe projection.
+- `findings`: `PluginManifest` exposes a healthcheck description but no capability/default/fallback ownership or health receipt; `CapabilityRecord` has no replacement generation or health state. CapabilityStore transitions move pack directories, replace `registry/index.json`, and would need a third sidecar replacement without a single crash-recoverable transaction. Disable/enable route semantics and fallback restoration order are also unspecified.
+- `verification`: `scripts/ci/run_tests.ps1 -- -q tests/test_provider_routing.py tests/test_axw_cap501_store.py tests/test_axw_cap502_plugin_manifest.py` returned `36 passed, 2 warnings`, exit `0`. Terra's read-only audit found no file changes.
+- `next_authority_inputs`: freeze (1) manifest capability/route source, (2) disabled-provider route semantics and fallback restoration, and (3) directory/index/sidecar recovery or transaction protocol. Only then implement the cross-layer host card.
+- `evidence_boundary`: local feasibility and regression evidence only. No Rust/C# host, external toolchain, Green runtime, external library, model pool, real data, E/F drive or private agent state was accessed; P0 and M0 remain `PARTIAL` / `NOT_READY`.
