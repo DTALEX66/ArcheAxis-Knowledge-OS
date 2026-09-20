@@ -125,7 +125,7 @@ async fn v3_write_persists_governance_metadata_and_carries_it_across_revision() 
         &router,
         "POST",
         "/api/v1/knowledge-items",
-        r#"{"knowledge_type":"PERSONAL_EXPERIENCE","body":"temporal personal fact","status":"accepted","created_by":"owner","v3":{"source_type":"personal_experience","owner":"human","support_level":"moderate","confidence":0.75,"risk_level":"medium","valid_from":"2026-09-01T00:00:00+00:00","valid_to":"2026-09-30T00:00:00+00:00","external_evidence":[],"requires_human_review":true}}"#,
+        r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"temporal personal fact","status":"accepted","created_by":"owner","v3":{"source_type":"personal_experience","owner":"human","support_level":"moderate","confidence":0.75,"risk_level":"medium","valid_from":"2026-09-01T00:00:00+00:00","valid_to":"2026-09-30T00:00:00+00:00","external_evidence":[],"requires_human_review":true}}"#,
     )
     .await;
     assert_eq!(status, 201);
