@@ -73,6 +73,21 @@ def test_verify_detects_unlisted_backup_file(tmp_path: Path) -> None:
         verify_backup(backup_dir)
 
 
+def test_verify_rejects_duplicate_manifest_paths(tmp_path: Path) -> None:
+    source = _make_source(tmp_path)
+    backup_dir = tmp_path / "backup"
+    create_backup(source=source, backup_dir=backup_dir)
+
+    manifest_path = backup_dir / "backup-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["files"].append(dict(manifest["files"][0]))
+    manifest["file_count"] += 1
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(BackupError, match="duplicate backup file path"):
+        verify_backup(backup_dir)
+
+
 def test_verify_detects_partial_backup(tmp_path: Path) -> None:
     partial = tmp_path / "partial"
     (partial / "docs").mkdir(parents=True)

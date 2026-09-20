@@ -165,7 +165,11 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
         except (KeyError, TypeError, ValueError) as exc:
             failures.append(f"invalid backup entry {raw_entry!r}: {exc}")
             continue
-        declared_paths.add(entry.relative_path.replace("\\", "/"))
+        normalized_path = entry.relative_path.replace("\\", "/")
+        if normalized_path in declared_paths:
+            failures.append(f"duplicate backup file path: {entry.relative_path}")
+            continue
+        declared_paths.add(normalized_path)
         try:
             target = _safe_target(backup_dir, entry.relative_path)
         except BackupError as exc:
