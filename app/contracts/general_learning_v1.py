@@ -51,7 +51,13 @@ class LearningObjectiveV1(BaseModel):
     objective_id: str = Field(min_length=1)
     title: str = Field(min_length=1)
     statement: str = Field(min_length=1)
-    knowledge_component_ids: list[str] = Field(min_length=1)
+    knowledge_component_ids: list[str] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
+
+    @model_validator(mode="after")
+    def validate_component_ids(self) -> LearningObjectiveV1:
+        if len(self.knowledge_component_ids) != len(set(self.knowledge_component_ids)):
+            raise ValueError("knowledge_component_ids must be unique")
+        return self
 
 
 class CourseManifestV1(BaseModel):

@@ -131,6 +131,11 @@ def test_general_manifest_rejects_cross_domain_or_broken_links() -> None:
             {**base, "artifacts": [{**artifact, "artifact_type": "quiz"}]}
         )
 
+    with pytest.raises(ValidationError, match="knowledge_component_ids must be unique"):
+        CourseManifestV1.model_validate(
+            {**base, "learning_objectives": [{**objective, "knowledge_component_ids": ["kc-1", "kc-1"]}]}
+        )
+
 
 def test_general_manifest_rejects_unknown_and_cyclic_prerequisites() -> None:
     component = {
@@ -263,3 +268,5 @@ def test_general_learning_contract_schema_ids_are_stable() -> None:
     assert CourseManifestV1.model_json_schema()["$id"].endswith(
         "course-manifest.schema.json"
     )
+    objective_schema = LearningObjectiveV1.model_json_schema()
+    assert objective_schema["properties"]["knowledge_component_ids"]["uniqueItems"] is True
