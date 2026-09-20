@@ -841,3 +841,11 @@
 - `behavior`: `FallbackInfoV1` now rejects a non-empty reason when `used=false`, while allowing the normal no-fallback record of the selected engine in `attempted_engines`.
 - `verification`: format receipt and workspace multiformat tests `15 passed`, exit `0`; test Ruff, production Ruff with existing B009/UP037 baseline excluded, and `git diff --check` passed. Full production Ruff still reports pre-existing B009/UP037 findings outside this change.
 - `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. No external conversion engine, model pool, real data, Green runtime, E/F drive or private state was accessed; A05 and M0 remain partial/not ready.
+
+## Continuation receipt — 2026-09-20 A08 learning provenance uniqueness
+
+- `subject_sha`: `8e8d33ea41c152f403e83c35aadd6272ae50c64b`; code commit pushed to `origin/main`.
+- `changed_paths`: `app/contracts/learning_kernel_v1.py`, `tests/test_learning_kernel_v1.py`.
+- `behavior`: `LearningKernelReceiptV1.source_anchor_ids` now rejects duplicate anchors while preserving caller order for valid receipts.
+- `verification`: `tests/test_learning_kernel_v1.py` returned `5 passed`, exit `0`; Ruff for both changed files and `git diff --check` passed.
+- `evidence_boundary`: `TESTED_LOCAL_CONTRACT` only. Avalonia UI, authoritative Mastery/FSRS writer, real model/provider, Green runtime, real data, E/F drive and private state were not accessed; A08/P3 and M0 remain partial/not ready.

@@ -41,7 +41,7 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 ## 当前现场基线
 
 - 当前分支：`main`
-- 当前本地与远端 `main`：`dd71d77adba53cd4235a93dc1d61af636ecfc6e5`（最新 A05 fallback receipt 一致性修复已推送；本记录收据提交以其为 first parent）
+- 当前本地与远端 `main`：`8e8d33ea41c152f403e83c35aadd6272ae50c64b`（最新 A08 learning provenance 契约修复已推送；本记录收据提交以其为 first parent）
 - `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
@@ -190,6 +190,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 ## A05 增量（2026-09-20）
 
 当前 subject：`dd71d77adba53cd4235a93dc1d61af636ecfc6e5`。`FallbackInfoV1` 现在拒绝 `used=false` 但携带 `reason` 的自相矛盾收据，同时保留未使用状态下记录首选引擎的合法 `attempted_engines`。format receipt 与 workspace 多格式定向回归 `15 passed`，测试文件 Ruff、排除既有 B009/UP037 基线后的生产文件 Ruff 及 `git diff --check` 通过。完整生产文件 Ruff 仍有未由本卡引入的既有 B009/UP037 告警；证据仅为本地 receipt/合成管线，不代表真实外部转换引擎或 M0 完成。
+
+## A08 增量（2026-09-20）
+
+当前 subject：`8e8d33ea41c152f403e83c35aadd6272ae50c64b`。`LearningKernelReceiptV1.source_anchor_ids` 现在要求来源锚点唯一且保留原顺序，防止重复 provenance；learning kernel 定向回归 `5 passed`，Ruff 与 `git diff --check` 通过。证据仅为本地 Pydantic receipt 契约，不代表 Avalonia 首用、权威 Mastery/FSRS 或完整重启读回完成。
 
 ## 本记录限制
 
