@@ -62,3 +62,9 @@ def test_courseware_artifact_rejects_ambiguous_provenance_bindings(
 ):
     with pytest.raises(ValueError, match=message):
         CoursewareArtifactV1.model_validate(_artifact(**{field: value}))
+
+
+@pytest.mark.parametrize("field", ["artifact_id", "title", "renderer", "renderer_version"])
+def test_courseware_artifact_rejects_blank_scalar_identity(field: str):
+    with pytest.raises(ValueError, match=f"{field} must not be blank"):
+        CoursewareArtifactV1.model_validate(_artifact(**{field: "   "}))

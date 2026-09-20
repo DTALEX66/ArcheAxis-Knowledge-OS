@@ -30,8 +30,11 @@ class CoursewareArtifactV1(BaseModel):
     human_review_required: bool = True
 
     @model_validator(mode="after")
-    def validate_provenance_ids(self) -> "CoursewareArtifactV1":
+    def validate_provenance_ids(self) -> CoursewareArtifactV1:
         """Keep source and knowledge bindings deterministic and unambiguous."""
+        for field_name in ("artifact_id", "title", "renderer", "renderer_version"):
+            if not getattr(self, field_name).strip():
+                raise ValueError(f"{field_name} must not be blank")
         for field_name in ("source_ids", "knowledge_ids"):
             values = getattr(self, field_name)
             if any(not value.strip() for value in values):
