@@ -18,12 +18,16 @@ away from the shell.
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
+
+from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
 SHELL = ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml.cs"
 PROGRAM = ROOT / "apps" / "ArcheAxis.Desktop" / "Program.cs"
 CORE = ROOT / "crates" / "archeaxis-api" / "src" / "lib.rs"
+REVIEW_SCHEMA = ROOT / "packages" / "contracts" / "learning" / "v1" / "review.schema.json"
 
 
 def _shell_source() -> str:
@@ -153,6 +157,59 @@ def test_desktop_keeps_mastery_projection_open_when_review_response_arrives() ->
     assert "Mastery projection 未闭合" in submit
 
 
+def test_desktop_projects_review_schedule_receipt_without_promoting_mastery() -> None:
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick")
+    xaml = (ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml").read_text(encoding="utf-8")
+
+    assert 'x:Name="LearningReviewReceiptText"' in xaml
+    for field in ("schedule_authority", "schedule_state", "next_review", "next_review_days"):
+        assert f'ReadDisplayValue(reviewRoot, "{field}")' in submit
+    assert "Mastery projection：" in submit
+    assert "Knowledge Truth" in xaml
+
+
+def test_review_schema_accepts_desktop_payload_fields_without_opening_schedule_state() -> None:
+    schema = json.loads(REVIEW_SCHEMA.read_text(encoding="utf-8"))
+    properties = schema["properties"]
+    for field in (
+        "answer",
+        "assessment_id",
+        "question_version",
+        "knowledge_version",
+        "exposure_id",
+        "assist_strategy",
+        "rating_version",
+        "correction_id",
+    ):
+        assert field in properties
+    assert schema["additionalProperties"] is False
+    conditional = schema["allOf"][0]
+    assert conditional["then"]["required"] == ["assessment_id"]
+    assert "schedule_state" not in properties
+
+
+def test_review_schema_validates_desktop_payload_and_rejects_authoritative_fields() -> None:
+    schema = json.loads(REVIEW_SCHEMA.read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
+    valid_payload = {
+        "item_key": "item-1",
+        "client_event_id": "event-1",
+        "correct": True,
+        "rating": 3,
+        "answer": "answer",
+        "assessment_id": "assessment-1",
+        "knowledge_version": "knowledge-v1",
+        "exposure_id": "exposure-1",
+        "rating_version": "desktop-v1",
+    }
+    assert not list(validator.iter_errors(valid_payload))
+    assert list(validator.iter_errors({**valid_payload, "schedule_state": "review"}))
+    assert list(validator.iter_errors({key: value for key, value in valid_payload.items() if key != "assessment_id"}))
+    assert list(validator.iter_errors({**valid_payload, "correct": True, "rating": 1}))
+    assert list(validator.iter_errors({**valid_payload, "correct": False, "rating": 3}))
+
+
 def test_desktop_reads_latest_learning_event_on_open_for_restart_readback() -> None:
     shell = _shell_source()
     learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")
@@ -173,6 +230,13 @@ def test_desktop_restores_persisted_answer_text_on_open() -> None:
 
     assert "savedAnswerText" in learning
     assert "LearningAnswerBox.Text = savedAnswerText" in learning
+
+
+def test_new_learning_presentation_clears_previous_review_outcome_selection() -> None:
+    shell = _shell_source()
+    learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")
+
+    assert "ReviewOutcomeBox.SelectedIndex = 0;" in learning
 
 
 def test_a_new_presentation_starts_a_new_exposure() -> None:

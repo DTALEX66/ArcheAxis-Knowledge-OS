@@ -29,6 +29,27 @@ def test_shell_source_mentions_core_routes_and_machine_authority():
     assert "workspace_db" in supervisor
 
 
+def test_source_reader_manifest_matches_current_core_projection_route():
+    payload = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
+    route = next(route for route in payload["routes"] if route["page_id"] == "source_reader")
+    assert route["core_endpoint"] == "/api/v1/sources/{source_id}/members"
+    assert route["read_only"] is True
+
+
+def test_knowledge_manifest_matches_current_core_v3_route():
+    payload = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
+    route = next(route for route in payload["routes"] if route["page_id"] == "knowledge")
+    assert route["core_endpoint"] == "/api/v1/knowledge-items/{knowledge_id}/v3"
+    assert route["read_only"] is True
+
+
+def test_recovery_manifest_matches_the_current_read_only_boundary_surface():
+    payload = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
+    route = next(route for route in payload["routes"] if route["page_id"] == "recovery")
+    assert route["core_endpoint"] == "/api/v1/system/version"
+    assert route["read_only"] is True
+
+
 def test_versioned_schema_is_present_and_binds_canonical_writer():
     schema = json.loads((ROOT / "packages/contracts/v1/desktop-routes.schema.json").read_text(encoding="utf-8"))
     assert schema["properties"]["schema"]["const"] == "archeaxis.desktop-routes/v1"

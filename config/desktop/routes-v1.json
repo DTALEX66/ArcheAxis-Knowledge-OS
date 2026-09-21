@@ -3,12 +3,12 @@
   "shell_project": "apps/ArcheAxis.Desktop",
   "canonical_writer": "archeaxis-core-rust-sqlite",
   "routes": [
-    {"page_id": "knowledge", "core_endpoint": "/api/v1/knowledge", "read_only": true},
-    {"page_id": "source_reader", "core_endpoint": "/api/v1/imports", "read_only": false},
+    {"page_id": "knowledge", "core_endpoint": "/api/v1/knowledge-items/{knowledge_id}/v3", "read_only": true},
+    {"page_id": "source_reader", "core_endpoint": "/api/v1/sources/{source_id}/members", "read_only": true},
     {"page_id": "learning", "core_endpoint": "/api/v1/learning/items", "read_only": false},
     {"page_id": "jobs", "core_endpoint": "/api/v1/jobs", "read_only": false},
     {"page_id": "machine_assets", "core_endpoint": "/api/v1/machine/assets", "read_only": true},
     {"page_id": "settings", "core_endpoint": "/api/v1/system/version", "read_only": true},
-    {"page_id": "recovery", "core_endpoint": "/api/v1/system/recovery", "read_only": false}
+    {"page_id": "recovery", "core_endpoint": "/api/v1/system/version", "read_only": true}
   ]
 }

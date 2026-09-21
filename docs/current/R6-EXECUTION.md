@@ -951,3 +951,928 @@
 - `verification`: with the registered Rust/MSVC toolchain, Windows SDK 10.0.26100.0, project-local `CARGO_TARGET_DIR`, project `.venv` Python binding and `--locked --offline`, the focused command `cargo test -p archeaxis-api --test knowledge_v3_projection --test v01_journey --test api_closed_loop` returned exit `0`: `api_closed_loop` 2 passed, `knowledge_v3_projection` 5 passed, `v01_journey` 1 passed. Existing dead-code/unused-variable warnings remain; no test failures.
 - `evidence_level`: `TESTED_LOCAL_RUNTIME_READBACK` for the bounded Rust API journeys. This does not prove Avalonia UI first-use, cold restart across the full product, real model execution, Legacy migration, Green replacement/rollback or release readiness.
 - `boundary`: only project source/test and project-local build output were touched; no E/F drive, credentials, private agent state, external library files, real data, test corpus or existing Green runtime was accessed or modified.
+
+## Continuation receipt — 2026-09-21 P3 Avalonia first-use shell increment
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; the implementation remains an uncommitted local change on `main`.
+- `changed_paths`: `apps/ArcheAxis.Desktop/MainWindow.axaml`, `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`, `tests/test_desktop_navigation_contract.py`, `workspace/intake/2026-09-21-aaos-p3-avalonia-shell.md`, plus the design/plan documents under `docs/superpowers/`.
+- `behavior`: the formal Avalonia shell now has Home/Library/Learning/Jobs/Settings navigation, UI-only section state, a directly loadable Core-backed Learning surface, a Library search using the existing `/api/v1/search` projection with separate knowledge/transform labels, a Settings read-only version surface using `/api/v1/system/version`, and a Jobs surface limited to current-session job IDs using existing status/quality endpoints. Existing Core endpoints, learning provenance, assessment binding, review idempotency and restart-readback code were preserved.
+- `verification`: PowerShell `P3_NAVIGATION_CONTRACT_MANUAL_PASS`, `LIBRARY_SEARCH_STATIC_PASS`, `SETTINGS_STATIC_PASS`, and `JOBS_RECEIPT_STATIC_PASS`; XAML XML parse PASS; C# brace balance `149/149`; `git diff --check` PASS. Python pytest is `NOT_EXECUTED` because `pytest` is absent and the project uv trampoline returns permission denied. .NET build is `NOT_EXECUTED` because `dotnet` is unavailable in PATH and the checked standard paths.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` only. This does not prove Avalonia GUI first-use, real Core runtime navigation, cold restart readback, clean-machine behavior or A12/P3/M0 completion. No E/F drive, external resources, Green runtime, credentials, private state or unknown history was accessed.
+
+## Continuation receipt — 2026-09-21 P3 formal IA rail alignment
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; the Avalonia changes remain uncommitted local work on `main`.
+- `changed_paths`: `apps/ArcheAxis.Desktop/MainWindow.axaml`, `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`, and `tests/test_desktop_navigation_contract.py`.
+- `behavior`: the shell now exposes the documented Home/Library plus formal route-aligned labels Knowledge Base, Learning, Machine Knowledge, Jobs, and Settings, with Research/Plugins/Models shown as explicit non-Core placeholders. Recovery remains outside the normal rail. Placeholder surfaces never call Core, synthesize state, or perform recovery/configuration writes.
+- `agent_readback`: read-only route comparison by `GPT-5.6 Luna · Low` (`gpt-5.6-luna`, reasoning `low`) identified the six formal routes and Recovery boundary; read-only boundary review by `GPT-5.6 Terra · Low` (`gpt-5.6-terra`, reasoning `low`) supplied the honest placeholder wording. Neither agent modified files.
+- `verification`: PowerShell static rail/handler contract PASS, XAML XML parse PASS, C# brace balance `152/152`, and `git diff --check` PASS. Python pytest remains `NOT_EXECUTED` because the project `.venv` uv trampoline returns permission denied; .NET build remains `NOT_EXECUTED` because the required dotnet toolchain is unavailable in the current PATH/standard locations.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` only. This does not prove Avalonia GUI first-use, real Core runtime navigation, clean-machine behavior, or A12/P3/M0 completion. No E/F drive, external resources, Green runtime, credentials, private state, or preserved unknown history was accessed or modified.
+
+## Continuation receipt — 2026-09-21 P3 Core route truth recheck
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; no product source commit was created.
+- `route_readback`: current Rust route declarations confirm real desktop calls for `/api/v1/search`, `/api/v1/jobs`, `/api/v1/jobs/:job_id`, `/api/v1/jobs/:job_id/quality`, `/api/v1/jobs/:job_id/executions`, and `/api/v1/system/version`. The declared desktop route entries `/api/v1/knowledge` and `/api/v1/machine/assets` do not have matching current Rust read routes in the inspected route tree.
+- `decision`: Knowledge Base and Machine Knowledge remain UI-only honest placeholders; Library search, current-session Jobs receipts, and Settings version remain the only newly exposed Core-backed P3 surfaces. No speculative endpoint was added.
+- `verification`: route search was read-only; PowerShell navigation contract and XAML parse checks remain PASS. The two fresh reviewers were real `GPT-5.6 Luna · Low` and `GPT-5.6 Terra · Low` calls, but their waits did not return before the bounded timeout and both were closed; no result from those calls is treated as evidence.
+- `evidence_boundary`: this is route/static evidence only, not GUI runtime, build, cold-restart, clean-machine, A12, P3 or M0 completion evidence.
+
+## Continuation receipt — 2026-09-21 P3 real Core projection increment
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; changes remain uncommitted local work.
+- `behavior`: the Avalonia Knowledge Base surface now reads a specified Knowledge V3 projection from `/api/v1/knowledge-items/{id}/v3`; the Machine Knowledge surface now reads a specified machine task receipt from `/api/v1/machine/tasks/{task_id}`. Both show Core response fields and explicit HTTP/read interruption states.
+- `boundary`: Research, Plugins, and Models remain explicit placeholders because no authoritative current Core read projection was found. No speculative `/api/v1/knowledge` or `/api/v1/machine/assets` call was introduced. Recovery remains outside the normal rail.
+- `verification`: PowerShell XAML XML parse PASS, `P3_REAL_PROJECTION_STATIC_PASS`, C# brace balance `182/182`, and `git diff --check` PASS. Python pytest and .NET build remain `NOT_EXECUTED` for the previously recorded environment blockers. Fresh `GPT-5.6 Luna · Low` and `GPT-5.6 Terra · Low` audit calls timed out before returning and were closed; their output is not evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` only. This does not prove Avalonia GUI/runtime first-use, Core process integration, cold restart, clean-machine behavior, A12/P3/M0 completion, or release readiness.
+
+## Continuation receipt — 2026-09-21 P3 source-reader projection increment
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; all changes remain uncommitted local work.
+- `behavior`: the Avalonia shell now has an explicit `导入阅读` surface that reads `/api/v1/sources/{source_id}/members` and displays Core-owned container/member counts plus member readability, original name, and job receipt identifiers.
+- `boundary`: the page preserves Core's distinction between readable transforms and custody-only/unreadable members; it does not claim that a readable transform means semantic understanding. Recovery still has no current authoritative read endpoint and remains outside the normal rail.
+- `verification`: PowerShell XAML XML parse PASS, `P3_SOURCE_READER_STATIC_PASS`, C# brace balance `200/200`, and `git diff --check` PASS. Python pytest and .NET build remain `NOT_EXECUTED`. Fresh `GPT-5.6 Luna · Low` and `GPT-5.6 Terra · Low` audits timed out before returning and were closed; no result was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` only; no GUI runtime, real Core process, cold restart, clean-machine, A12/P3/M0, or release claim is made.
+
+## Continuation receipt — 2026-09-21 A12 Recovery boundary recheck
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; no source implementation was added in this read-only audit.
+- `route_readback`: the current Rust API route tree exposes archive/recovery implementation in library/test code but no authoritative Recovery/Backup GET projection for the Avalonia shell. The current desktop `recovery` route therefore remains a fail-closed boundary message and does not simulate restore points or recovery actions.
+- `verification`: repository-local `rg` route/code search completed read-only. Fresh `GPT-5.6 Luna · Low` and `GPT-5.6 Terra · Low` audits timed out before returning and were closed; no subagent output was treated as evidence.
+- `status`: A12 Recovery remains an explicit gap requiring a frozen Core contract before implementation; no external, Green, credential, E/F, or private-state access occurred.
+
+## Continuation receipt — 2026-09-21 P3 Recovery boundary read surface
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; local uncommitted changes only.
+- `behavior`: the Avalonia Recovery surface now reads the real Core `/api/v1/system/version` and `/api/v1/workspaces/info` projections and displays the returned runtime/contract/schema/workspace state. It explicitly reports that recovery points are not exposed and that no recovery action was executed.
+- `boundary`: this provides a truthful Core-backed status surface, not Backup/Restore implementation. No restore point, path, archive, or Green data is enumerated or modified.
+- `verification`: PowerShell XAML XML parse PASS, `P3_RECOVERY_BOUNDARY_STATIC_PASS`, C# brace balance `210/210`, and `git diff --check` PASS. Python pytest and .NET build remain `NOT_EXECUTED`. The two fresh `GPT-5.6 Luna · Low` / `GPT-5.6 Terra · Low` audits timed out before returning and were closed; no result was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` only. A12 Backup/Restore, GUI runtime, cold restart, clean-machine, P3/M0 and release evidence remain open.
+
+## Continuation receipt — 2026-09-21 P3 Avalonia compile verification
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; build output remained under `.project-local/build` and source changes remain uncommitted.
+- `build`: the registered project-local-compatible SDK at `D:\All projects\OS External Configuration\10-toolchains\dotnet\dotnet.exe` ran `build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --configuration Debug --no-restore --nologo /p:UsedAvaloniaProducts=` and returned exit `0`, `0 warning(s), 0 error(s)`. The empty property disables only the Avalonia telemetry task that attempted to write the denied user-profile `buildtasks.log`; no user-profile file was modified.
+- `cleanup`: four `TextBox.Watermark` usages were changed to Avalonia's current `PlaceholderText` property; the successful rebuild confirms the XAML/C# event wiring compiles.
+- `verification`: XAML XML parse PASS, `P3_FINAL_STATIC_PASS`, C# brace balance `210/210`, and `git diff --check` PASS. Fresh `GPT-5.6 Luna · Low` and `GPT-5.6 Terra · Low` audits timed out before returning and were closed; no subagent result was used as evidence.
+- `evidence_boundary`: `TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC`; this does not prove visible GUI first-use, Core process integration, cold restart, clean-machine, A12 Backup/Restore, P3/M0 or release readiness.
+
+## Continuation receipt — 2026-09-21 P3 desktop/Core runtime readback
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; all source changes remain uncommitted local work.
+- `desktop_smoke`: the compiled Desktop DLL, invoked through the registered .NET SDK with `ARCHAXIS_CORE_BIN=.project-local/build/cargo/debug/archeaxis-api.exe` and an explicit `.project-local/runs/p3-desktop-smoke-20260921/workspace.sqlite`, returned `SMOKE OK: owned core handshake ok: archeaxis-api 0.1.0-outline`, exit `0`, and created the explicit DB. This proves owned Core handshake/shutdown only, not GUI interaction.
+- `learning_smoke`: the same Desktop learning smoke returned exit `1`; the selected existing Core binary returned `404` for `POST /api/v1/learning/items/{item}/assessment`. Other existing R6 Core candidates were also tried in isolated project-local DBs: one returned the same Assessment `404`, another failed the current learner-answer/FSRS projection assertion. These are stale/incompatible candidate readbacks, not PASS evidence.
+- `current_core_build`: a current-source `cargo build -p archeaxis-api --release --locked --offline` attempt reached Rust compilation but stopped with `linker 'link.exe' not found`; no current-source Core binary was produced. The external SDK linker path exists, but the required Windows SDK libraries were not available in the registered toolchain layout, so no workaround or system installation was attempted.
+- `agent_readback`: `GPT-5.6 Luna · Low` identified the two explicit smoke entry points and their write boundaries; `GPT-5.6 Terra · Low` did not return before the bounded wait and was closed. No unreturned output was used as evidence.
+- `evidence_boundary`: `TESTED_LOCAL_BUILD / TESTED_LOCAL_RUNTIME_PARTIAL`; GUI first-use, current-SHA Desktop/Core learning journey, cold restart UI readback, clean-machine, A12/P3/M0 and release readiness remain unproven.
+
+## Continuation receipt — 2026-09-21 current Core learning smoke diagnosis
+
+- `current_core_build`: current-source `archeaxis-api` was rebuilt successfully into `.project-local/build/cargo-current-p3/release/archeaxis-api.exe` after injecting the registered MSVC/Windows SDK environment for the single Cargo process. No system PATH or global environment was changed.
+- `learning_smoke`: Desktop `--learning-smoke` against that current Core created the explicit project-local DB but exited `1` with `review did not preserve the learner answer and FSRS authority`.
+- `root_cause_readback`: the Core scheduler adapter requires `ARCHEAXIS_PYTHON`; the registered `venv312` and `venv313` launchers are uv trampolines that fail to spawn (`entity not found`), the project `.venv` trampoline fails with permission denied, and direct registered CPython starts but reports `ModuleNotFoundError: No module named 'fsrs'`. Core therefore correctly records `authority=unavailable`; changing the Desktop assertion would falsify the evidence.
+- `agent_readback`: `GPT-5.6 Luna · Low` confirmed the project-recommended `vcvars64.bat` injection path and exact toolchain authority; `GPT-5.6 Terra · Low` did not return within the bounded wait and was closed. No unreturned output was used as evidence.
+- `evidence_boundary`: current Core build is `TESTED_LOCAL_BUILD`; learning is `NOT_EXECUTED_PASS / BLOCKED_BY_FSRS_RUNTIME`; no dependency installation, trampoline repair, system configuration change, E/F access, Green access, or external data access occurred.
+
+## Continuation receipt — 2026-09-21 P3 current Core + FSRS headless closure
+
+- `subject_sha`: `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; source remains uncommitted local work.
+- `runtime_inputs`: current-source Core `.project-local/build/cargo-current-p3/release/archeaxis-api.exe`; current compiled Desktop `.project-local/build/dotnet/ArcheAxis.Desktop/bin/Debug/net10.0/ArcheAxis.Desktop.dll`; project-local candidate Python `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vheadd1bb2b99-x64/runtime/python.exe`, which read back `import fsrs` successfully.
+- `learning_smoke`: Desktop `--learning-smoke` with explicit `.project-local/runs/p3-learning-current-candidate-python-20260921/workspace.sqlite` returned `LEARNING SMOKE OK`, `assessment` created, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`, exit `0`. The smoke performs Core shutdown/restart and verifies Assessment, learner answer, FSRS schedule and open mastery projection readback.
+- `evidence_boundary`: `TESTED_LOCAL_BUILD / TESTED_LOCAL_RUNTIME_HEADLESS_P3`; this proves a synthetic headless journey only. It does not prove visible Avalonia controls, human GUI first-use, real user content, clean-machine, Backup/Restore, A12/P3/M0 completion, or release readiness. No package installation, global environment change, E/F, existing Green runtime, credentials or external real data was accessed.
+
+## Continuation receipt — 2026-09-21 P3 Green UI reference correction
+
+- `trigger`: user review identified that the first P3 shell was visually unacceptable and did not sufficiently absorb the existing Green UI reference.
+- `reference_readback`: only Green frontend UI assets were read: `frontend/index.html`, `frontend/assets/index-DtWRtEOj.css`, and the static asset metadata. Green runtime data, SQLite, browser state, credentials, and external real libraries were not read or modified. The extracted tokens include canvas/panel layers `#050505/#0c0c0d/#111113/#161619`, indigo accents `#6366f1/#818cf8`, 6–14px radii, compact status bar, workspace rail, quick-action cards, inspector and activity-dock patterns.
+- `behavior`: the Avalonia shell now applies explicit Green-derived control styles (foreground, border, hover/pressed, inputs), uses the layered canvas/panel colors, expands the home quick-action area to four actions, exposes an inspector/activity side panel, and makes Recovery reachable from the rail and home surface. Core routes and data ownership were not changed.
+- `agent_readback`: `Pauli = GPT-5.6 Luna · Low` performed the Green UI reference audit; `Socrates = GPT-5.6 Terra · Low` performed the AAOS IA/UI comparison. Both were real calls and neither modified files.
+- `verification`: local Avalonia build using the registered SDK and `/p:UsedAvaloniaProducts=` returned exit `0`, `0 warning(s), 0 error(s)`; self-contained publish to `.project-local/build/desktop-publish/current-p3-v3` returned exit `0`; current Core was copied beside that project-local publish for bounded runtime use. This is not yet a visual GUI acceptance result because CUA application inventory did not expose the native window.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD`; no commit, push, Green overwrite, external database write, E/F access, credential access, or release claim. The larger shell refactor (five primary spaces, context subnav, object inspector fed by selected Core projections, and real activity receipt dock) remains the next P3 UI increment.
+
+## Continuation receipt — 2026-09-21 P3 Green shell IA and inspector increment
+
+- `behavior`: the Avalonia shell now uses four columns — PrimarySpaceRail, ContextSubnav, center workspace, and Inspector — with five primary spaces: 工作台、资料与知识、学习、机器知识、系统. Existing library/source/knowledge and jobs/recovery/settings routes are reachable through context navigation; Research/Plugins/Models no longer occupy the primary product rail while their honest placeholder handlers remain available only in code.
+- `projection`: the Inspector now receives real Core-backed summaries after source-member, recovery-boundary, Knowledge V3, machine-task, and library-search reads. It remains UI-only and does not create a second knowledge store. The current activity text remains explicitly scoped to this session and is not claimed as a persistent ActivityDock implementation.
+- `agent_readback`: `Hypatia = GPT-5.6 Luna · Low` found the remaining structural gaps; `Galileo = GPT-5.6 Terra · Low` mapped the OSUI component contract to this increment. Both were real read-only calls and neither modified files.
+- `verification`: direct execution of `tests/test_desktop_navigation_contract.py` functions returned `STATIC_CONTRACT_PASS=12`, exit `0`; registered .NET SDK build returned exit `0`, `0 warning(s), 0 error(s)`; `git diff --check` returned no whitespace errors. Self-contained publish was previously verified at `current-p3-v4`; no new publish claim is made for this later inspector increment.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC`. A true bottom ActivityReceiptDock, selected-result list interaction, visual screenshot readback, clean-machine, A12/P3/M0, commit, push, and release evidence remain open. No E/F drive, Green runtime/data, credentials, or preserved unknown history was modified.
+
+## Continuation receipt — 2026-09-21 P3 session ActivityReceiptDock increment
+
+- `behavior`: the shell now has a bottom `ActivityReceiptDock` spanning the context, center, and Inspector columns. It projects only current-session import jobs from `_sessionJobIds`, using the existing Core `/api/v1/jobs/{job_id}` and `/quality` reads. Successful import processing refreshes the dock; empty and Core-unavailable states are explicit.
+- `boundary`: no persistent activity history is invented, no new API route is introduced, and the existing Jobs surface remains the detailed readback view. The Inspector now states that activity receipts live in the bottom dock.
+- `verification`: direct static contract execution returned `STATIC_CONTRACT_PASS=12`, exit `0`; registered .NET SDK build returned exit `0`, `0 warning(s), 0 error(s)`; self-contained publish `current-p3-v5` returned exit `0`. The two real review calls (`GPT-5.6 Luna · Low`, `GPT-5.6 Terra · Low`) timed out and were shut down; no result from them is evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC`. Visual GUI screenshot readback, actual native first-use, selected-result interaction, clean-machine, A12/P3/M0, commit and release evidence remain open. No E/F drive, Green runtime/data, credentials, or preserved unknown history was modified.
+
+## Continuation receipt — 2026-09-21 P3 Inspector projection completion increment
+
+- `behavior`: the right Inspector now receives Core-backed summaries for Settings runtime/version, current-session Jobs plus quality receipts, and the loaded Learning item with next-review, source-version, and Assessment identifiers. These are transient UI projections only; no UI-side truth store was added.
+- `verification`: direct static contract execution returned `STATIC_CONTRACT_PASS=12`, exit `0`; registered .NET SDK build returned exit `0`, `0 warning(s), 0 error(s)`; self-contained publish `current-p3-v6` returned exit `0`. The real `GPT-5.6 Luna · Low` audit timed out and was shut down; no subagent result was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC`. Native GUI screenshot/readback and real user first-use remain unverified because the current CUA native-window inventory did not expose the launched window. No E/F drive, Green runtime/data, credentials, or preserved unknown history was modified.
+
+## Continuation receipt — 2026-09-21 P3 published artifact headless readback
+
+- `runtime_inputs`: self-contained `.project-local/build/desktop-publish/current-p3-v6/ArcheAxis.Desktop.exe`, current-source Core copied beside it, explicit project-local DB arguments, and project-local candidate Python containing `fsrs`.
+- `readback`: published `--smoke` returned `SMOKE OK: owned core handshake ok: archeaxis-api 0.1.0-outline`; published `--learning-smoke` returned `LEARNING SMOKE OK` with `assessment` created, `answer_saved=true`, `fsrs=true`, and `mastery_projection_closed=false`. Both were run without Green runtime/data and without user data.
+- `boundary`: this is `TESTED_LOCAL_RUNTIME_HEADLESS_P3` for the published artifact, not visible GUI acceptance. Computer Use direct launch was attempted but the current CUA binding lacks the documented `computer.launch_app` surface, so no GUI action or screenshot claim is made.
+
+## Continuation receipt — 2026-09-21 P3 PrimarySpaceRail active-state increment
+
+- `behavior`: the five primary rail buttons now have explicit `rail-button` styles and a single active state derived by `SetSection`. Child routes map back to their parent space: library/source-reader/knowledge → 资料与知识; jobs/recovery/settings → 系统. This gives the Green-style current-space signal without duplicating route state.
+- `verification`: registered .NET SDK build returned exit `0`, `0 warning(s), 0 error(s)`; direct static contract execution returned `STATIC_CONTRACT_PASS=12`, exit `0`; self-contained publish `current-p3-v7` returned exit `0`.
+- `agent_readback`: `GPT-5.6 Luna · Low` was called for a read-only implementation check but timed out and was shut down; no result was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC`; native GUI screenshot/readback remains unavailable from the current CUA binding. No E/F drive, Green runtime/data, credentials, or preserved unknown history was modified.
+
+## Continuation receipt — 2026-09-21 P3 authority-bound launch preparation
+
+- `boundary_check`: the project-owned `scripts/maintenance/check_resource_boundaries.py` ran with `--purpose test` and returned exit `0`. It read the indexed metadata only and resolved the authority resources as `shared_models`, `shared_tools`, `green_application`, `green_material_library`, and `project_test_corpus`; it did not scan or process their contents.
+- `launch_receipt`: the existing `scripts/launch/desktop_launch.py` prepared `current-p3-v7` with `--fresh-workspace`, returned exit `0`, and wrote `PREPARED_NOT_LAUNCHED`. The generated DB, Core path, worker profile, and receipt are all under `.project-local`; no system environment or user directory was modified.
+- `agent_readback`: `GPT-5.6 Luna · Low` was called to audit reuse of the existing launcher; it timed out and was shut down, so no subagent output is treated as evidence.
+- `evidence_boundary`: this proves authority-bound preparation only, not visible GUI launch or first-use. External resource contents, Green runtime data, credentials, E/F, and preserved unknown history were not accessed or modified.
+
+## Continuation receipt — 2026-09-21 P3 launcher contract recheck
+
+- `launcher_readback`: the existing `scripts/launch/desktop_launch.py` was exercised with explicit `current-p3-v7` Desktop/Core paths and `--fresh-workspace`; it returned exit `0`, `PREPARED_NOT_LAUNCHED`, and a receipt whose DB, Core, and worker-profile paths all resolve under `.project-local`.
+- `test_gate`: the project-managed `scripts/runtime/dev.py --pytest tests/test_desktop_launch.py -q` was attempted with the registered Python runtime but returned `No module named pytest`, exit `1`; this is `NOT_EXECUTED`, not a pass. No dependency was installed and no global environment was changed.
+- `agent_readback`: `GPT-5.6 Luna · Low` was called for a read-only launcher-contract audit, timed out, and was shut down; no subagent output was used as evidence.
+- `evidence_boundary`: launch preparation is `TESTED_LOCAL_STATIC / PREPARED_NOT_LAUNCHED`; GUI first-use and pytest regression remain unverified. No external resource contents, Green runtime/data, credentials, E/F, or preserved unknown history was accessed or modified.
+
+## Continuation receipt — 2026-09-21 P3 UI contract hardening
+
+- `tests`: `tests/test_desktop_navigation_contract.py` now covers all five PrimarySpaceRail active mappings, child-route parent-space mapping, ActivityReceiptDock refresh binding, empty-session behavior, Core jobs/quality routes, and the explicit current-session-only boundary.
+- `verification`: direct execution of the project test functions returned `STATIC_CONTRACT_PASS=14`, exit `0`; `git diff --check` returned no whitespace errors. The initial assertion mismatch was corrected to match the actual C# pattern-matching expression before recording the pass.
+- `agent_readback`: `Noether = GPT-5.6 Luna · Low` performed a real read-only review and identified the missing mapping/empty-state assertions; the agent did not modify files.
+- `evidence_boundary`: `TESTED_LOCAL_STATIC` only for this increment. Pytest remains `NOT_EXECUTED` because the registered runtime lacks `pytest`; no dependency installation, external resource content access, Green modification, E/F access, or preserved unknown-history mutation occurred.
+
+## Continuation receipt — 2026-09-21 P3 final static-contract expansion
+
+- `tests`: the navigation contract now contains `14` direct-execution checks, including all five active rail mappings, parent-space routing for child sections, ActivityReceiptDock refresh binding, empty-session behavior, current-session labeling, and the `_sessionJobIds` admission boundary.
+- `verification`: direct function harness returned `STATIC_CONTRACT_PASS=14`, exit `0`; `git diff --check` returned no whitespace errors. No pytest result is claimed because the project runtime reported `No module named pytest`.
+- `agent_readback`: `GPT-5.6 Terra · Low` was called for an authority/status audit, timed out, and was shut down; no result was used as evidence.
+- `evidence_boundary`: `TESTED_LOCAL_STATIC` only. The existing preserved untracked `docs/history/**` and `SESSION-RESTART` material remains untouched and unstaged; no external resource contents, Green runtime/data, credentials, E/F, or unknown history was modified.
+
+## Continuation receipt — 2026-09-21 P3 external-resource authority clarification
+
+- `change`: the P3 design now directly references `docs/SHARED_RESOURCE_PATH_INDEX.md`, names all five indexed resource IDs, preserves the distinction between shared dependencies, Green, real `资料库`, and test corpus `ceshi`, and requires purpose-specific boundary checks.
+- `agent_readback`: a real read-only audit confirmed the index and `scripts/maintenance/check_resource_boundaries.py` agree; it reported no external-resource content access or file mutation. The attempted additional parallel spawn was rejected by the platform with `agent thread limit reached`; no nonexistent result is claimed.
+- `verification`: registered .NET SDK build returned exit `0`, `0 warning(s), 0 error(s)`; `git diff --check` returned no whitespace errors. Python boundary/static rerun was `NOT_EXECUTED` because both registered uv trampoline runtimes failed with `entity not found`.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD`. No external resource contents, Green runtime/data, credentials, E/F, or preserved unknown history was accessed or modified; no commit or push was performed.
+
+## Continuation receipt — 2026-09-21 P3 authority gate revalidated
+
+- `runtime`: `Einstein = GPT-5.5 · Low` identified the registered executable toolchain Python at `D:\All projects\OS External Configuration\10-toolchains\scoop\apps\python\current\python.exe`; the project `.venv` remains an unusable uv trampoline and was not repaired.
+- `boundary_check`: with the registered Python, `check_resource_boundaries.py --purpose test` and `--purpose integration` both returned exit `0`. The checks resolved all five indexed resources and reported `reparse=false`; they inspected directory metadata only.
+- `static_contract`: direct function harness returned `STATIC_CONTRACT_PASS=14`, exit `0`, with `PYTHONDONTWRITEBYTECODE=1`.
+- `agent_readback`: `Meitner = GPT-5.6 Luna · Low` performed the real P3 evidence audit and confirmed Build/Headless/Static PASS while GUI/Pytest remain NOT_EXECUTED. Both subagents were read-only and did not access external resource contents.
+- `environment`: `pytest` import remains unavailable (`ModuleNotFoundError`); current CUA state exposes no native application surface, so no GUI screenshot/click/readback claim is made.
+- `evidence_boundary`: `TESTED_LOCAL_BOUNDARY / TESTED_LOCAL_STATIC`; no external resource content, Green runtime/data, credentials, E/F, or preserved unknown history was accessed or modified. No commit or push was performed.
+
+## Continuation receipt — 2026-09-21 P3 launcher boundary enforcement
+
+- `change`: `scripts/launch/desktop_launch.py` now runs the indexed `test` resource preflight for every invocation, including explicit Desktop/Core artifact paths; explicit build paths cannot bypass the external-resource boundary.
+- `test`: added `test_explicit_paths_still_run_indexed_resource_preflight` to `tests/test_desktop_launch.py`; direct harness returned `LAUNCHER_AUTHORITY_CONTRACT_PASS=1`.
+- `runtime`: with the registered toolchain Python, explicit `current-p3-v7` Desktop/Core preparation returned `PREPARED_NOT_LAUNCHED`, `workspace_mode=ISOLATED_TEST`, and a project-local receipt. No `--launch` was used.
+- `verification`: `git diff --check` reported no whitespace errors. Full pytest remains `NOT_EXECUTED` because `pytest` is unavailable in the registered interpreter.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / PREPARED_NOT_LAUNCHED`; no GUI, screenshot, click, Green runtime/data, external library content, E/F, credential, commit, or push claim.
+
+## Continuation receipt — 2026-09-21 P3 launch-preparation receipt identity
+
+- `change`: `desktop_launch.py` receipts now use `archeaxis.desktop-launch-prep/v1` and record `source_head`, launcher/Desktop/Core/worker-profile SHA-256 values, `resource_boundary_purpose`, `resource_boundary_target`, `path_scope`, `launch_state`, `runtime_claim`, and UTC creation time.
+- `tests`: direct harness returned `LAUNCHER_RECEIPT_CONTRACT_PASS=2`; the new checks cover explicit-path preflight and persisted receipt identity fields. The fixture cleanup is scoped to the exact project-local test fixture path.
+- `readback`: a real explicit `current-p3-v7` preparation returned `PREPARED_NOT_LAUNCHED`, `resource_boundary_target=project_test_corpus`, `path_scope=project-local`, and 64-character SHA-256 fields. The receipt remains under `.project-local`.
+- `agent_readback`: `Boole = GPT-5.6 Luna · Low` and `Ramanujan = GPT-5.5 · Low` performed read-only reviews; both agreed that receipt identity is the appropriate next evidence layer and that it cannot substitute for GUI evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / PREPARED_NOT_LAUNCHED`; no program launch, GUI, screenshot, click, external-resource content, Green runtime/data, E/F, credential, commit, or push claim.
+
+## Continuation receipt — 2026-09-21 P3 launcher fail-closed test hardening
+
+- `tests`: corrected legacy launcher fixtures that incorrectly placed fake executables in system `tmp_path`; all launcher fixtures now remain under exact `.project-local\build\test-fixtures\<case>` paths and clean up their own fixture directory.
+- `contract`: added a boundary-preflight failure test proving the exception propagates before `artifact_directory`, worker profile, or receipt creation. Direct registered-Python execution of eight launcher tests returned `DESKTOP_LAUNCH_DIRECT_PASS=8`.
+- `agent_readback`: `Descartes = GPT-5.6 Luna · Low` identified the path-fixture failures; `Herschel = GPT-5.5 · Low` independently selected the fail-closed contract as the next safe task. Both were read-only.
+- `verification`: pytest remains `NOT_EXECUTED` because the registered interpreter has no pytest; direct harness and `git diff --check` are the available evidence. No program was launched.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_DIRECT / PREPARED_NOT_LAUNCHED`; no external resource content, Green runtime/data, E/F, credentials, commit, push, screenshot, click, or GUI claim.
+
+## Continuation receipt — 2026-09-21 current-p3-v7 learning smoke integration diagnosis
+
+- `reproduction`: current-p3-v7 `--smoke` printed `SMOKE OK`; a fresh, separate `--learning-smoke` DB reproduced `LEARNING SMOKE ERROR: review did not preserve the learner answer and FSRS authority`. A direct Core API diagnostic against a new project-local DB returned HTTP `201` for review but persisted `schedule_authority=unavailable`, `next_review=null`, and `schedule_state=null`.
+- `component_comparison`: the candidate Python invoked directly from both repository and published-Core working directories returned valid `authority=fsrs`; the existing compiled `scheduler_adapter` test binary returned `8 passed`, and the existing `learning_state_api` binary returned `3 passed`. This narrows the unresolved failure to the current Core API integration/validation path, not the standalone worker or UI assertion.
+- `build_limit`: a fresh Cargo scheduler-adapter compile attempt was not a test result: first the shell lacked `link.exe`; after registered MSVC injection, linking stopped at missing `kernel32.lib`. No system configuration or toolchain installation was attempted.
+- `boundary`: all diagnostics used project-local binaries, candidate Python, and project-local SQLite files. No Green runtime/data, real library, external model/tool contents, E/F, credentials, commit, or push was touched.
+- `evidence_boundary`: `TESTED_LOCAL_RUNTIME_PARTIAL / ROOT_CAUSE_NARROWED`; P3 learning headless remains NOT PASS, GUI remains NOT_EXECUTED, and no fix is claimed.
+
+## Continuation receipt — 2026-09-21 Core scheduler boundary cross-check
+
+- `worker_cross_check`: the same candidate Python and `worker_schedule.py` request returned `authority=fsrs` both from the repository working directory and from the published Core working directory. The compiled scheduler adapter binary also returned `8 passed`; the learning-state API binary returned `3 passed`.
+- `core_path_cross_check`: byte hashes of published `archeaxis-api.exe` and `.project-local/build/cargo-current-p3/release/archeaxis-api.exe` match (`6e14c172...`); binary strings contain the repository `services/python-workers/learning/worker_schedule.py` path fragment. No evidence points to Green runtime, external model/tool content, or a foreign worker path.
+- `diagnostic_gap`: `checked_review_schedule()` collapses both scheduler errors and schedule-validator rejection into `authority=unavailable`; current Core API output therefore cannot distinguish those cases. A fresh Cargo rebuild could not reach tests because the registered MSVC environment lacks `kernel32.lib` from a Windows SDK.
+- `provenance`: current-p3-v7 has no standalone source-tree manifest; the later launch receipt binds `source_head`, component hashes, and project-local scope, but does not prove an independently packaged release provenance.
+- `evidence_boundary`: `TESTED_LOCAL_RUNTIME_PARTIAL / ROOT_CAUSE_NARROWED`; no source fix, GUI claim, external-resource content access, Green runtime/data access, E/F access, credential access, commit, or push.
+
+## Continuation receipt — 2026-09-21 P3 scheduler environment binding
+
+- `red`: added a regression assertion requiring the prepared launch environment to expose the same resolved Python executable recorded in `worker-profile.json` as `ARCHEAXIS_PYTHON`; the direct harness failed first with `KeyError: 'ARCHEAXIS_PYTHON'`.
+- `green`: `scripts/launch/desktop_launch.py` now injects that already validated project/toolchain Python path into the child environment and persisted receipt. No new path discovery or external-resource access was added.
+- `verification`: targeted direct harness returned `DESKTOP_LAUNCH_TARGET_PASS=1`; Python compilation returned `PY_COMPILE_PASS=1`; indexed boundary preflight returned `RESOURCE_BOUNDARY_TEST_PASS=1` with `purpose=test`, target `project_test_corpus`, and all five directory entries `reparse=false`. Full pytest remains `NOT_EXECUTED`; a legacy default-core fixture remains incompatible with the production project-local path guard and was not counted as a pass.
+- `agent_readback`: `Epicurus = GPT-5.6 Luna · Low` confirmed the authority-index mapping; `Helmholtz = GPT-5.6 Luna · Low` confirmed the launcher/Core environment gap. Both were real read-only calls and were closed after completion.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_TARGETED`; no external resource content, Green runtime/data, E/F, credentials, GUI, commit, or push was accessed or claimed.
+
+## Continuation receipt — 2026-09-21 post-binding learning smoke
+
+- `runtime`: after injecting `ARCHEAXIS_PYTHON` into the launch environment, an isolated project-local `--learning-smoke` run still printed `LEARNING SMOKE ERROR: review did not preserve the learner answer and FSRS authority`.
+- `diagnosis`: this rules out the missing launcher environment variable as the sole cause; the remaining failure is inside the published Core scheduler/API/validation integration and is not yet fixed. No success or exit-code claim is made because the PowerShell wrapper did not expose a reliable `$LASTEXITCODE` for this .NET process.
+- `agent_readback`: `Goodall = GPT-5.6 Luna · Low` confirmed the exact smoke command and published binary hashes; `Peirce = GPT-5.5 · Low` confirmed the launcher boundary and the caveat that Python is sourced from the caller interpreter, not selected from the resource index. Both were real read-only calls and were closed.
+- `evidence_boundary`: `TESTED_LOCAL_RUNTIME_PARTIAL / ROOT_CAUSE_NOT_RESOLVED`; no Green runtime/data, external resource content, E/F, credentials, GUI, commit, or push was accessed or claimed.
+
+## Continuation receipt — 2026-09-21 P3 explicit scheduler interpreter binding
+
+- `root_cause`: the registered shared-tool Python at `10-toolchains\scoop\apps\python\current\python.exe` has no `fsrs` import, while the retained project-local candidate runtime at `.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-vheadd1bb2b99-x64\runtime\python.exe` imports and runs the scheduler successfully. This is an interpreter/dependency selection issue, not a Core FSRS algorithm failure.
+- `red_green`: added `test_prepare_prefers_explicit_archeaxis_python`; it failed first with `AssertionError`, then passed after `desktop_launch.py` began preferring an explicit `ARCHEAXIS_PYTHON` and falling back to `sys.executable` only when absent.
+- `runtime`: the exact candidate worker returned `authority=fsrs`; published `current-p3-v7` Desktop `--learning-smoke` with that candidate returned `LEARNING SMOKE OK`, including answer persistence, FSRS, mastery projection, and Core restart readback. A real launcher preparation with the same explicit environment returned `PREPARED_NOT_LAUNCHED` and `resource_boundary_target=project_test_corpus`.
+- `verification`: targeted launcher test `DESKTOP_LAUNCH_EXPLICIT_PYTHON_PASS=1`; Python compilation `PY_COMPILE_PASS=1`; indexed boundary recheck passed. Full pytest remains `NOT_EXECUTED` and no GUI claim is made.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_RUNTIME_PARTIAL / ROOT_CAUSE_RESOLVED_FOR_EXPLICIT_CANDIDATE`; no external resource content, Green runtime/data, E/F, credentials, commit, or push was accessed or claimed.
+
+## Continuation receipt — 2026-09-21 P3 candidate-runtime verification
+
+- `runtime_selection`: the retained project-local candidate runtime is distinct from the external Green installation; it was selected only through explicit `ARCHEAXIS_PYTHON` and remained under `.project-local`.
+- `headless`: direct worker request returned `authority=fsrs`; published `current-p3-v7` learning smoke returned `LEARNING SMOKE OK` with answer persistence, FSRS, open mastery projection, and Core restart readback.
+- `test_availability`: both registered shared-tool Python and the candidate runtime reported no `pytest`; canonical pytest entry remains documented but `NOT_EXECUTED`, not a failure or pass.
+- `agent_readback`: `Aquinas = GPT-5.6 Luna · Low` confirmed pytest/test-entry availability; `Hilbert = GPT-5.5 · Low` confirmed static/Avalonia evidence boundaries and that no GUI claim is valid. Both were real read-only calls and were closed.
+- `evidence_boundary`: `TESTED_LOCAL_RUNTIME_PARTIAL / HEADLESS_PASS / GUI_NOT_EXECUTED`; no external resource content, external Green runtime/data, E/F, credentials, commit, or push was accessed or claimed.
+
+## Continuation receipt — 2026-09-22 M0/P4 authorization preflight
+
+- `priority`: M0 still names P4 real-model/user-task execution as the next implementation priority, while P3 remains GUI-unverified and P5/P6 remain owner-gated.
+- `readback`: current local `HEAD` and `origin/main` are both `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`, with `HEAD...origin/main=0 0`; release remains frozen and R6 remains `IN_PROGRESS`.
+- `p4_gate`: P4 cannot enter real execution yet: model configuration is still `stub/local-stub`, no local Ollama endpoint is available, and Owner selection is missing for provider/model, real task/knowledge scope, and human correction authority.
+- `boundary`: the five-resource authority index and boundary script remain the only external-resource routing authority; this preflight read metadata only and did not read Model library, Green, material library, test corpus, E/F, credentials, or preserved untracked history.
+- `agent_readback`: `Bohr = GPT-5.6 Luna · Low` extracted P4 evidence and prerequisites; `James = GPT-5.5 · Low` independently confirmed P4 `PARTIAL / NOT_READY`, owner authorization requirements, and current Git/boundary state. Both were real read-only calls and were closed.
+- `evidence_boundary`: `READONLY_PREFLIGHT / P4_BLOCKED_BY_OWNER_AUTHORIZATION / NOT_READY`; no implementation, commit, push, release, installation, or external write was performed.
+
+## Continuation receipt — 2026-09-21 P3 static contract recheck
+
+- `static_contract`: direct registered-Python execution of all 14 functions in `tests/test_desktop_navigation_contract.py` returned `STATIC_CONTRACT_PASS=14`; the file contains 87 assert statements. This is a direct harness result, not pytest.
+- `scope`: the recheck covers navigation labels/handlers, section visibility, active rail state, current-session activity receipts, honest unwired domains, Core projection endpoint strings, and no second UI truth store.
+- `next_gate`: `Feynman = GPT-5.5 · Low` confirmed the next meaningful P3 evidence is real Avalonia first-use/readback; M0's broader queue currently prioritizes P4 real-model/user-task work, while P5/P6 remain owner-gated.
+- `agent_readback`: `Planck` was the requested role label but the actual system nickname was `Locke = GPT-5.6 Luna · Low`; `Feynman` was the requested role label but the actual system nickname was `Banach = GPT-5.5 · Low`. Both were real read-only calls and were closed.
+- `evidence_boundary`: `TESTED_LOCAL_STATIC / GUI_NOT_EXECUTED`; no external resource content, external Green runtime/data, E/F, credentials, commit, or push was accessed or claimed.
+
+## Continuation receipt — 2026-09-21 P3 native-window verification attempt
+
+- `preflight`: exact project-local published Desktop/Core and candidate Python paths were used with a new project-local SQLite path; no external Green path or external library content was used.
+- `process`: the published Avalonia executable started as an owned process (`PID 14848`) and was stopped after the verification attempt; this is process-start evidence only.
+- `gui_readback`: CUA reported `apps=[]` before and after the start, so no native-window surface, screenshot, click, control binding, or visual state was observed. GUI remains `NOT_EXECUTED`, not PASS.
+- `agent_readback`: `Linnaeus = GPT-5.6 Luna · Low` confirmed candidate/static startup prerequisites; `McClintock = GPT-5.5 · Low` confirmed static navigation contracts and the remaining real-window gaps. Both were real read-only calls and were closed.
+- `evidence_boundary`: `PROCESS_START_ONLY / GUI_NOT_VERIFIED`; no external resource content, external Green runtime/data, E/F, credentials, commit, or push was accessed or claimed.
+
+## Continuation receipt — 2026-09-22 AAOS UI token resource alignment
+
+- `source`: the authorized UI-suite audit established B03/B04 AAOS tokens as `#061118`, `#091821`, `#0C1C26`, `#102630`, `#1D5055`, `#1FC8C5`, `#E6BE73`, `#F3EFE6`, and `#96AAB4`; the change stayed within the existing Avalonia P3 shell.
+- `red_green`: the new `test_aaos_theme_tokens_replace_the_legacy_indigo_shell_palette` failed first because the resource keys and DynamicResource usage were absent; after adding the Window resource dictionary and replacing the shell palette, the direct test returned `AAOS_THEME_TOKEN_PASS=1`.
+- `implementation`: `MainWindow.axaml` now defines nine `Aaos*Brush` resources and routes the shell's prior hard-coded palette through those resources. No Core endpoint, database, navigation behavior, external UI suite, Green directory, or shared library was modified.
+- `verification`: XAML XML parse exit `0`; explicit registered .NET Debug build returned `0 warnings / 0 errors`; the full direct navigation-contract harness returned `P3_NAVIGATION_CONTRACT_PASS=15`; `git diff --check` reported no whitespace error.
+- `agent_readback`: `Gibbs = GPT-5.6 Luna · Low` audited the color/resource surface; `Maxwell = GPT-5.5 · Low` audited the smallest regression entry point. Both were real read-only calls and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; GUI screenshot/click/readback, visual regression, clean-machine, commit, push, and release evidence remain open.
+
+## Continuation receipt — 2026-09-22 P3 learning-smoke scheduler root-cause closure
+
+- `reproduction`: current Desktop DLL with the retained `cargo-current-p3/release` Core reproduced `LEARNING SMOKE ERROR: review did not preserve the learner answer and FSRS authority`; direct Core diagnostics showed Knowledge, reference, and Assessment all returned success, while Review returned the learner `answer` correctly but `schedule_authority="unavailable"`.
+- `root_cause`: the Core scheduler did not receive the project-local candidate Python interpreter. The failure was not an Assessment route or answer-persistence mismatch.
+- `single_variable_retest`: setting `ARCHEAXIS_PYTHON` to `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vheadd1bb2b99-x64/runtime/python.exe` while keeping the same current Desktop DLL, current Core candidate, and project-local SQLite path returned `LEARNING SMOKE OK`, including `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`, and Core restart readback.
+- `verification`: explicit SDK build remained `0 warnings / 0 errors`; direct P3 navigation contract returned exit `0`; the successful smoke process exited `0`. This is `TESTED_LOCAL_RUNTIME_HEADLESS_P3`, not Avalonia GUI first-use evidence.
+- `agent_readback`: `Feynman = GPT-5.6 Luna · Low` confirmed the smoke contract and limits; `Carver = GPT-5.5 · Low` confirmed the protected untracked history boundary and `.project-local` ignore routing. Both were real read-only calls and were closed.
+- `evidence_boundary`: no external resource contents, external Green runtime/data, E/F, credentials, commit, push, installation, or GUI claim. The candidate runtime was used only from the already retained project-local build path.
+
+## Continuation receipt — 2026-09-22 AAOS Home focus projection
+
+- `scope`: UI-suite-priority P3 work only; the authorized `UI套件` audit identified the existing Home statistics as real Core projections and the focus card as a static placeholder. P4 and unrelated task-pack work were deferred.
+- `red_green`: `test_home_focus_is_projected_from_the_real_learning_queue` failed before implementation because `HomeFocusText` had no code projection; after the minimal change it passed. The focus text now derives from `/api/v1/learning/items` and distinguishes available, empty, and unavailable queue states.
+- `implementation`: `MainWindow.axaml.cs` updates `HomeFocusText` from the existing learning queue response. The “最近证据” card remains explicitly non-synthetic because no safe real homepage evidence endpoint was established; no fake recent records or metrics were added.
+- `verification`: direct navigation-contract harness returned `P3_NAVIGATION_CONTRACT_PASS=17`; XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_readback`: `Huygens = GPT-5.6 Luna · Low` audited Core-backed Home/Library projections; `Laplace = GPT-5.5 · Low` audited the static state/provenance contract. Both were real read-only calls and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; GUI screenshot/click/readback, visual regression, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 AAOS compact Home and first-level Reader
+
+- `scope`: continued the UI-suite-priority frontend convergence only. The Home entry wall was replaced by compact resume rows, and Source Reader was promoted to a first-level Avalonia rail space. No P4 implementation or external-resource write was performed.
+- `home`: the four-column card wall was replaced with `继续工作`, `导入资料`, and `资料与知识` compact rows while preserving the existing Core-backed handlers.
+- `reader`: added `RailReaderButton` and a distinct `reader` active-rail state. The Reader remains honest about its current capability: it reads the real `/api/v1/sources/{source_id}/members` projection and does not claim to render original正文, anchors, or evidence that Core does not expose here.
+- `red_green`: the compact-row and first-level-reader contracts were added after the corresponding missing structure was observed; the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=20`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_readback`: `Dalton the 2nd = GPT-5.6 Luna · Low` audited the Avalonia gap; `Hegel the 2nd = GPT-5.5 · Low` audited Core endpoints; `Godel the 2nd = GPT-5.6 Luna · Low` audited visual/layout alignment. All were real read-only calls and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI screenshot/click/readback, full Reader member selection, visual regression, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 AAOS Library result projection
+
+- `scope`: continued the UI-suite-priority vertical slice `Capture → Evidence/Library → Detail` without introducing a new API or second truth store.
+- `implementation`: `LibrarySurface` now presents Core search results in a selectable `ListBox`; the result summary remains separate from the list, and selection updates the right-side “来源与证据” context with the original `knowledge` versus `transform` type. Empty, Core-unavailable, HTTP-failure, and interrupted states clear the list rather than leaving stale results.
+- `contract`: the UI consumes only the existing `/api/v1/search` projection (`knowledge_id`, `source_id`, `head`, counts, and transform metadata). It does not render extracted text as canonical knowledge.
+- `red_green`: the selectable-library contract was added before implementation and initially failed because no result list or selection handler existed; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=21`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_readback`: `Averroes the 2nd = GPT-5.5 · Low` audited Core capture/search/detail contracts; `Carson the 2nd = GPT-5.6 Luna · Low` audited the selectable Library design; `Bacon the 2nd = GPT-5.5 · Low` audited Inspector/source-chain semantics. All were real read-only calls and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI interaction, visual regression, original-content rendering, full Evidence Detail, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 AAOS provenance row and Source Chain boundary
+
+- `scope`: continued the frontend vertical slice using only existing Core read projections; no new endpoint, persistence path, or external resource was introduced.
+- `library_visual`: added an AAOS `ListBox.ItemTemplate` so each Core search result is rendered as a bounded provenance row with surface/border tokens, spacing, and wrapped text.
+- `inspector_boundary`: added a structured “来源链摘要” region. It explicitly distinguishes the no-selection state from a selected Core projection and states that fields not exposed by Core are not inferred.
+- `red_green`: the row-template and Inspector-boundary contracts were added before implementation and failed because the template/region did not exist; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=23`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_readback`: `Averroes the 2nd = GPT-5.5 · Low`, `Carson the 2nd = GPT-5.6 Luna · Low`, and `Bacon the 2nd = GPT-5.5 · Low` provided real read-only Core, Library, and provenance audits and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI selection, visual regression, complete Evidence Detail/source-chain data, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 Library-to-Knowledge Detail handoff
+
+- `scope`: continued the UI-suite-priority Evidence Detail slice using the existing Core Knowledge V3 read projection only.
+- `implementation`: a selected `知识 · <knowledge_id>` Library result can now open the existing `知识详情` surface and invoke `GET /api/v1/knowledge-items/{id}/v3`; `transform` results are explicitly rejected for this action and remain source/provenance summaries only.
+- `boundary`: the UI does not create, edit, or promote knowledge; it only routes an existing search-hit identifier into an existing Core read endpoint.
+- `red_green`: the new Library-to-V3 contract failed before implementation because the detail action and route handoff were absent; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=24`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_dispatch`: `Ramanujan the 2nd = GPT-5.6 Luna · Low`, `Mencius the 2nd = GPT-5.5 · Low`, and `Plato the 2nd = GPT-5.6 Luna · Low` were dispatched for read-only endpoint/UI audits but did not return completed readbacks before bounded waits; no agent output was used as completion evidence or reported as PASS.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI selection/readback, visual regression, complete Evidence Detail/source-chain data, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 structured Knowledge V3 detail fields
+
+- `scope`: continued the Evidence Detail UI using the already-authoritative `GET /api/v1/knowledge-items/{id}/v3` projection; no new backend or persistence path was added.
+- `implementation`: Knowledge Detail now presents structured Core-backed fields for `status`, `source_id`, `support_level`, `confidence`, `risk_level`, and `requires_human_review`, alongside the existing projection text. Empty, unavailable, HTTP-failure, and interrupted states reset these fields to explicit non-success states.
+- `boundary`: the UI displays Core fields without translating confidence into truth, mastery, or approval; it does not edit, promote, or infer omitted evidence.
+- `red_green`: the structured-field contract failed before implementation because the controls and assignments were absent; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=25`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_dispatch`: `Sartre the 2nd = GPT-5.5 · Low` and `Boyle the 2nd = GPT-5.6 Luna · Low` were dispatched for read-only V3/UI audits but did not return completed readbacks before bounded waits; no agent output was used as evidence or reported as PASS.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI detail readback, visual regression, full source-chain navigation, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 Source Reader member provenance rows
+
+- `scope`: continued the Reader/Source Chain UI using only the existing `GET /api/v1/sources/{source_id}/members` projection.
+- `implementation`: Source Reader now projects member summaries into a selectable ListBox. Selecting a member updates the shared provenance Inspector; each row explicitly labels itself as `Core projection` and states that original正文 is not displayed there.
+- `boundary`: the UI remains limited to `original_name`, `readable`, and `job_id` in the current string projection. It does not claim `readable` means understood knowledge, does not render source content, and does not invent anchors or citations.
+- `red_green`: the member-list and projection-boundary contracts failed before implementation because the selectable list/template/handler were absent; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=27`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_readback`: `Feynman the 2nd = GPT-5.5 · Low` audited exact member fields and safety semantics; `Raman the 2nd = GPT-5.6 Luna · Low` audited the Source Reader visual boundary. Both were real read-only calls and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI selection/readback, structured member-object mapping, original-content rendering, visual regression, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 structured Source Member provenance mapping
+
+- `scope`: continued Source Reader provenance work using the exact Core `members[]` fields: `source_id`, `member`, `original_name`, `sha256`, `readable`, and `job_id`.
+- `implementation`: replaced the string-only member list with a public `SourceMemberRow` model, retained all six fields, used a safe display fallback from `original_name` to `member`, and projected the full field set into the Inspector without rendering source content.
+- `interaction`: member selection now consumes only a single `SelectionChangedEventArgs.AddedItems` entry, avoiding stale Inspector updates when selection is cleared or replaced.
+- `debugging`: the first structured-binding attempt exposed an Avalonia XAML compiler error for the private nested type/property; the implementation was corrected to a XAML-compatible public row model with `ToString()` binding, then rebuilt successfully.
+- `red_green`: structured-field and AddedItems contracts were observed failing before implementation; after correction the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=29`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_readback`: `Socrates the 2nd = GPT-5.5 · Low` audited exact API member fields; `Popper the 2nd = GPT-5.6 Luna · Low` audited Avalonia binding and selection semantics. Both were real read-only calls and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI selection/readback, original-content rendering, visual regression, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 native-window verification boundary
+
+- `preflight`: the handoff attachment was re-read and matched the established 731-line SHA-256; current branch remained `main` at `e3875db0ee6d`.
+- `process_start`: the already-built project-local Avalonia Debug executable was launched from the exact project-local path. Windows process readback confirmed PID `14800`, a live process, title `ArcheAxis.Desktop.exe`, and a non-zero native window handle.
+- `computer_use_readback`: Computer Use was initialized and enumerated the desktop twice; both observations returned `apps=[]` with no targetable native application. No click, typing, screenshot assertion, or UI control action was attempted.
+- `cleanup`: the exact PID `14800` was stopped and `PROCESS_STOP_CONFIRMED` was read back.
+- `evidence_boundary`: `PROCESS_START_ONLY / GUI_NOT_VERIFIED`; this does not upgrade the product to GUI PASS. No external resource, Green runtime/data, E/F, credential, commit, push, installation, or release action occurred.
+- `agent_dispatch`: `Carver the 2nd = GPT-5.5 · Low` and `Kierkegaard the 2nd = GPT-5.6 Luna · Low` were dispatched for read-only launch/static verification but did not return completed readbacks before bounded waits; no output was used as evidence.
+
+## Continuation receipt — 2026-09-22 current-session receipt entry point
+
+- `scope`: continued the desktop product IA without expanding Core contracts or inventing persistent job history.
+- `implementation`: the bottom Activity Dock now provides an explicit `打开任务回执` action into the existing Jobs surface, alongside the existing refresh action. This makes the current-session receipt projection reachable from the canonical desktop frame rather than leaving it as a truncated status line only.
+- `boundary`: JobsSurface remains limited to `_sessionJobIds`, Core job state, and Core quality receipts; it does not claim a complete historical job registry.
+- `red_green`: the Activity Dock navigation contract failed before the action existed; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=30`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_dispatch`: `Descartes the 2nd = GPT-5.5 · Low` and `Helmholtz the 2nd = GPT-5.6 Luna · Low` were dispatched for read-only activity/job audits but did not return completed readbacks before bounded waits; no output was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI activity-dock interaction, visual regression, complete persistent job history, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 selectable current-session job receipts
+
+- `scope`: continued Jobs/Activity UI using only the existing `_sessionJobIds`, `GET /api/v1/jobs/{job_id}`, and `/quality` projections.
+- `implementation`: JobsSurface now renders current-session receipt lines as selectable rows with explicit `Core job receipt · current session` and `不代表持久历史` labels. Selecting a row updates the shared provenance Inspector; empty/Core-unavailable states clear stale rows.
+- `boundary`: no persistent job registry, no synthetic success state, and no second receipt store was introduced.
+- `red_green`: the selectable-job-row contract failed before implementation because JobsSurface only had a free-text block; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=31`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_dispatch`: `Turing the 2nd = GPT-5.5 · Low` and `Nash the 2nd = GPT-5.6 Luna · Low` were dispatched for read-only job/visual audits but did not return completed readbacks before bounded waits; no output was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI receipt selection, visual regression, complete persistent job history, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 responsive desktop frame thresholds
+
+- `scope`: implemented the handoff attachment's bounded desktop responsiveness for the existing four-zone Avalonia frame, without changing Core behavior or adding a second shell.
+- `implementation`: `MainFrameGrid` now handles `SizeChanged`; at widths `<=1440` the Inspector column collapses, and at widths `<=1024` the Context Sidebar also collapses. The primary Rail remains present and the hidden columns are set to zero width so they do not consume layout space.
+- `reason`: read-only visual audit identified 1280–1440 as the worst fixed-column interval; the updated thresholds avoid making the 1280 main workspace narrower than the 1024 workspace.
+- `red_green`: the responsive contract was updated and failed before the threshold change; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=32`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_readback`: `Kuhn the 2nd = GPT-5.5 · Low` audited compile safety; `Hilbert the 2nd = GPT-5.6 Luna · Low` audited viewport behavior and supplied the threshold correction. Both were real read-only calls and were closed.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; real-window resizing, screenshots, visual regression, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 bounded wide-workspace width
+
+- `scope`: continued the responsive desktop IA for the 1920/2560 viewport requirements from the handoff attachment.
+- `implementation`: increased the central Workspace readable bound from `MaxWidth=860` to `MaxWidth=1200`, preserving a bounded center rather than stretching content indefinitely. This creates room for the existing dual-column Home/Detail surfaces while keeping the right Inspector as a separate context zone.
+- `red_green`: the wide-workspace contract failed before implementation because the old 860px bound remained; after the bounded-width change the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=33`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_dispatch`: `Confucius the 2nd = GPT-5.5 · Low` and `Hume the 2nd = GPT-5.6 Luna · Low` were dispatched for read-only wide-layout audits but did not return completed readbacks before bounded waits; no output was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; real-window resizing at 1024/1280/1440/1920/2560, screenshots, visual regression, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+
+## Continuation receipt — 2026-09-22 explicit keyboard focus state
+
+- `scope`: continued AAOS UI-suite interaction-state absorption without changing navigation or Core behavior.
+- `implementation`: added a shared `Button:focus` style using the AAOS primary token and a 2px border so keyboard-focused Rail and action buttons have a visible state distinct from hover/pressed.
+- `red_green`: the focus-state contract failed before implementation because no explicit `Button:focus` selector existed; after implementation the direct navigation harness returned `P3_NAVIGATION_CONTRACT_PASS=34`.
+- `verification`: XAML XML parse returned `XAML_PARSE_PASS=1`; explicit registered .NET Debug build returned `0 warnings / 0 errors`.
+- `agent_dispatch`: `Hypatia the 2nd = GPT-5.5 · Low` and `Bohr the 2nd = GPT-5.6 Luna · Low` were dispatched for read-only focus-state audits but did not return completed readbacks before bounded waits; no output was used as evidence.
+- `evidence_boundary`: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; real keyboard focus screenshots, visual regression, clean-machine, commit, push, release, installation, and external-resource write evidence remain open.
+## Continuation receipt — 2026-09-22 Capture / Import Inbox vertical slice
+- scope: added a first-level Avalonia Capture surface aligned to the P3 Rail / Context Sidebar / Workspace structure; reused the existing `/api/v1/imports`, `/api/v1/jobs`, execution polling and current-session receipt flow.
+- implementation: added `RailCaptureButton`, `CaptureSurface`, selection summary, honest Core receipt text, capture context navigation, and active-section state. Import cancellation, Core-unready, interruption, and completion states are explicit; no upload/conversion result is promoted to accepted Knowledge.
+- tests: RED confirmed the two new capture contract assertions failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=36` after implementation; explicit Avalonia build completed with 0 warnings / 0 errors.
+- agent_dispatch: `AAOS UI Slice Audit · GPT-5.5 Low` completed a read-only audit recommending a Learning source-chain slice; `AAOS Provenance Audit · GPT-5.6 Luna Low` completed a read-only audit confirming Capture/Import Inbox reuse and the upload != conversion != Knowledge boundary. Both produced no code changes and no GUI/runtime evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native GUI interaction, real Core import, resize, and restart readback remain unverified.
+
+## Continuation receipt — 2026-09-22 Learning source-chain surface
+- scope: exposed the existing Core-backed Learning provenance as a structured Avalonia source-chain surface without adding a second truth store or a new Knowledge write API.
+- implementation: added evidence/source projection, original-content boundary, knowledge_id/knowledge_version/assessment_id display, learning-event readback status, and a guarded `打开当前 Knowledge 详情` action that reuses the existing Knowledge V3 reader.
+- boundary: the UI continues to call the readback a learning-event readback; it does not claim generic Memory persistence, Knowledge acceptance, model training, or independent version semantics.
+- tests: RED confirmed the new source-chain contract assertions failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=38`; explicit Avalonia Debug build returned 0 warnings / 0 errors; XAML parse and `git diff --check` passed.
+- agent_dispatch: `AAOS Learning Trace Audit · GPT-5.5 Low` and `AAOS Learning Boundary Audit · GPT-5.6 Luna Low` completed read-only audits. Both confirmed the existing Core endpoints/fields and supplied no code changes or GUI evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real Core learning response, GUI interaction, cold-start readback, and visual regression remain unverified.
+
+## Continuation receipt — 2026-09-22 Learning projection state semantics
+- scope: corrected UI state semantics exposed by the Learning surface and workspace summary; no Core contract or external resource changes.
+- implementation: added page-local loading feedback and button gating; failed `/learning/items` no longer becomes a numeric zero on Home; nested state, Assessment, and learning-event readback failures now remain explicitly distinguishable from empty/unknown results.
+- red_green: the new state-semantic contract failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=41`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- agent_dispatch: `AAOS Loading State Audit · GPT-5.5 Low` completed and identified nested projection failure masking; `AAOS Status Semantics Audit · GPT-5.6 Luna Low` completed and identified the Home zero-count risk plus partial-state wording risks. Both were read-only and produced no code changes or GUI evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Runtime branch coverage, GUI screenshots, and real Core failure injection remain unverified.
+
+## Continuation receipt — 2026-09-22 Library structured search projection
+- scope: upgraded the Avalonia Library search result model from display-only strings to structured Core projection rows while preserving the existing search and Knowledge V3 actions.
+- implementation: added `LibraryResultRow` fields for kind, knowledge/source/transform identifiers, status, active, engine and head; search parsing preserves those fields; Inspector selection uses structured provenance; the result template exposes status/active/engine without promoting a search hit to accepted Knowledge.
+- tests: RED confirmed the structured-result contract failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=43`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- agent_dispatch: `AAOS Library Interaction Audit · GPT-5.5 Low` completed and identified string-result provenance loss; `AAOS Reader Provenance Audit · GPT-5.6 Luna Low` completed and confirmed Source Reader field boundaries and that readable/sha256/job_id must not be treated as success or acceptance evidence. Both were read-only and produced no code or GUI evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real search responses, GUI selection, Source Reader actions, and runtime visual verification remain unverified.
+
+## Continuation receipt — 2026-09-22 Library search interaction state
+- scope: added explicit Library search loading/empty/failure feedback and disabled duplicate search while the existing Core query is in flight.
+- implementation: `LibrarySearchButton` and `LibrarySearchStatusText` now distinguish input-required, Core-unready, loading, no-match, success, and failure states. The structured result row remains the only displayed result model.
+- verification: an Avalonia compiled-binding limitation was caught during build when binding nested `LibraryResultRow` properties; the row now uses the proven `{Binding}`/`ToString()` path and includes status/active/engine in its display text. Final `P3_NAVIGATION_CONTRACT_PASS=43`; build 0 warnings / 0 errors.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Runtime search response and GUI interaction remain unverified.
+
+## Continuation receipt — 2026-09-22 Source member to job receipt path
+- scope: connected a selected Source Reader member's existing `job_id` to a guarded read-only task receipt view using the existing `/api/v1/jobs/{job_id}` endpoint.
+- implementation: added `查看选中成员的任务回执`, a specified `job_id` lookup on Jobs, and explicit state/attempt/error output. The UI states that a job identifier does not imply task success.
+- quality boundary: existing session job quality output now shows engine/coverage/loss/regions only when Core returns non-null coverage; otherwise it states `质量回执：未生成` and does not interpret default zero counters as verified zeroes.
+- tests: RED confirmed the new job receipt and quality boundary contracts failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=45`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- agent_dispatch: `AAOS Job Receipt UX Audit · GPT-5.5 Low` and `AAOS Job Provenance Boundary Audit · GPT-5.6 Luna Low` completed read-only audits. Both confirmed the existing endpoint and field boundaries and produced no code or GUI evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real Core job response, GUI selection, and runtime quality receipt remain unverified.
+
+## Continuation receipt — 2026-09-22 Source Reader stale-provenance guard
+- scope: hardened Source Reader selection state so invalid, empty, Core-unready, failed, or interrupted reads cannot leave a previous member/job provenance visible as the current result.
+- implementation: added `ResetSourceReaderSelection`, cleared the selected job and Inspector provenance before each read, added a structured selected-member detail card, and made an empty `members[]` response explicit without inferring conversion or knowledge state.
+- tests: RED confirmed the stale-selection contract failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=47`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- agent_dispatch: `AAOS Source Reader UI Audit · GPT-5.5 Low` and `AAOS Source Consistency Audit · GPT-5.6 Luna Low` completed read-only audits. The GPT-5.5 audit identified stale Inspector risk; the GPT-5.6 audit confirmed current field mapping consistency. No code or GUI evidence came from the agents.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real empty/failed Core responses and GUI readback remain unverified.
+
+## Continuation receipt — 2026-09-22 Library to Source Reader projection path
+- scope: added a controlled Library search-result action that uses an exposed `source_id` to open the existing Source Reader and request Core source members; no new endpoint or local truth was introduced.
+- implementation: `查看来源成员` is enabled only for a structured search row with a non-empty source identifier; transform hits remain labeled `提取文本命中`, and their metadata is not promoted to Knowledge, Original, Evidence, or success.
+- tests: RED confirmed the new Library-to-Reader contract failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=48`; explicit Avalonia Debug build returned 0 warnings / 0 errors; XAML parse and `git diff --check` passed.
+- agent_dispatch: `AAOS Transform Reader Audit · GPT-5.5 Low` completed and confirmed the existing source-members endpoint is sufficient; `AAOS Transform Boundary Audit · GPT-5.6 Luna Low` completed and confirmed transform hits must remain extraction projections. Both were read-only and produced no code or GUI evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real search response, source-member response, GUI navigation, and runtime visual verification remain unverified.
+
+## Continuation receipt — 2026-09-22 Source Reader diagnostics and Core note
+- scope: improved Source Reader diagnostics without changing the Core API or treating diagnostics as content truth.
+- implementation: non-success responses retain a short bounded response-body diagnostic and identify 404 `source not found` when no body is available; successful responses display the Core-provided `note`; empty members, interrupted reads, and semantic consistency warnings remain explicit.
+- tests: RED confirmed the diagnostic/note contract failed before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=50`; explicit Avalonia Debug build returned 0 warnings / 0 errors; XAML parse and `git diff --check` passed.
+- agent_dispatch: `AAOS Source State Audit · GPT-5.5 Low` completed and identified the coarse HTTP diagnostic and missing Core note. The first `GPT-5.6 Luna Low` dispatch was rejected by platform parameter validation; replacement `AAOS Source Boundary Retry · GPT-5.6 Luna Low` was actually dispatched but returned no usable final audit conclusion, so no Luna output was used as evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real HTTP bodies, Core notes, GUI rendering, and runtime interaction remain unverified.
+
+## Continuation receipt — 2026-09-22 List selection and keyboard focus states
+- scope: added shared Avalonia visual states for `ListBoxItem:selected` and `ListBoxItem:focus`, covering Library results, Source Reader members, and current-session job receipts.
+- implementation: selected rows use the AAOS surface/primary border treatment; focused rows expose a stronger primary border for keyboard navigation. No event or Core behavior was changed.
+- tests: RED confirmed the list-state contract was absent before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=51`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- agent_dispatch: `AAOS List Selection Audit · GPT-5.5 Low` was dispatched but did not return a completed final audit conclusion before the bounded wait; `AAOS Responsive UI Audit · GPT-5.6 Luna Low` completed a read-only audit and identified remaining narrow-width/Inspector substitution gaps. No incomplete agent output was used as evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Runtime keyboard traversal, screenshots, and real resize behavior remain unverified.
+
+## Continuation receipt — 2026-09-22 Source Reader async loading guard
+- scope: closed the P3 Source Reader loading/empty/failure interaction contract and guarded against stale asynchronous responses overwriting a changed source selection.
+- implementation: the request now receives a monotonic version, disables the source input while Core is queried, discards superseded responses, and reports `输入已变化，请重新读取` when the active input changes before readback. Existing empty, Core-unready, HTTP failure, interruption, and empty-members states remain explicit.
+- tests: RED confirmed the stale-response/loading guard contract was absent before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=53`; explicit Avalonia Debug build returned 0 warnings / 0 errors; XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- agent_dispatch: `AAOS Reader Loading Audit · GPT-5.5 Low` completed a read-only audit and identified the stale-response/re-entry risk. The attempted `AAOS Reader State Semantics · GPT-5.6 Luna Low` dispatch failed at platform creation and produced no evidence; no Luna result was used.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real Core timing races, GUI rendering, resize behavior, and runtime interaction remain unverified.
+
+## Continuation receipt — 2026-09-22 Responsive P3 narrow-width reflow
+- scope: addressed the independently identified narrow-width layout risks in the P3 shell without changing Core contracts or adding new product surfaces.
+- implementation: at the existing `<=1024` compact breakpoint, Activity Dock now spans the full frame and moves its action buttons to a second row; Home focus cards and the three Home statistics cards switch to explicit single-column rows and restore their original multi-column layout above the breakpoint.
+- tests: RED confirmed the responsive reflow contract was absent before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=54`; explicit Avalonia Debug build returned 0 warnings / 0 errors; XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- agent_dispatch: `AAOS Responsive Contract Audit · GPT-5.5 Low` completed a read-only audit and identified the Activity Dock, Home multi-column, and missing narrow-layout contract gaps. `AAOS UI Reference Boundary Audit · GPT-5.6 Luna Low` completed a separate read-only audit and confirmed the implementation remains PARTIAL with GUI verification unexecuted and theme extraction/pages still incomplete. Neither agent modified files or supplied runtime GUI evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual resized-window rendering, keyboard traversal at compact width, and GUI screenshots remain unverified.
+
+## Continuation receipt — 2026-09-22 Desktop process smoke and GUI boundary
+- scope: attempted the project-local desktop TEST launch through `scripts/launch/desktop_launch.py --launch --fresh-workspace` after the P3 responsive reflow.
+- evidence: the launcher emitted an `ISOLATED_TEST` preparation receipt bound to project-local desktop/Core hashes and a fresh project-local workspace; `ArcheAxis.Desktop.exe` and `archeaxis-api.exe` were observed as live processes. CUA returned `apps=[]` before and after launch, so no window discovery, screenshot, navigation, resize, or restart readback was possible.
+- agent_dispatch: `AAOS Runtime Evidence Audit · GPT-5.5 Low` completed a read-only audit and confirmed the current chain stops at process/headless smoke, with no GUI smoke receipt. `AAOS Visual Contract Gap Audit · GPT-5.6 Luna Low` completed a separate read-only audit and identified semantic state tokens, structured Provenance Drawer, and unified first-use feedback as the next UI gaps. Neither agent modified files or accessed Green/external resources.
+- evidence_boundary: PROCESS_START_ONLY / IMPLEMENTED_LOCAL. GUI_NOT_VERIFIED; process liveness is not GUI success. The launch process was not claimed as a completed first-use journey.
+
+## Continuation receipt — 2026-09-22 Semantic UI status tokens
+- scope: added the next small UI-kit-aligned status layer for existing Core-backed surfaces without adding a second truth source or changing any API.
+- implementation: added AAOS `success`, `error`, `info`, `review`, `loading`, and `empty` visual tokens/styles; added a `SetStatus` helper that clears competing semantic classes before applying one state; Library search and Learning status surfaces now use explicit loading/empty/error/info/success semantics; Core connection startup uses success/error classes.
+- tests: RED confirmed the semantic-token/helper contract was absent before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=55`; explicit Avalonia Debug build returned 0 warnings / 0 errors; XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- agent_dispatch: `AAOS Semantic State Audit · GPT-5.5 Low` completed a read-only audit and recommended the exact first-batch state locations and helper semantics. `AAOS Provenance Drawer Contract Audit · GPT-5.6 Luna Low` completed a separate read-only audit and confirmed the safe structured field sets and UNKNOWN boundaries for a future Drawer; no Drawer was fabricated in this slice. Neither agent modified files or ran GUI.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Runtime colors, GUI state transitions, and screenshot evidence remain unverified because the available CUA surface had no desktop apps.
+
+## Continuation receipt — 2026-09-22 Structured Provenance Drawer slice
+- scope: evolved the existing Inspector into a structured provenance presentation layer using only fields already read from Core-backed UI projections.
+- implementation: added structured `来源 / 版本 / 状态 / 边界` fields, a `Core projection · 类型未暴露` layer tag, and a vertical `来源 → 版本 → 当前投影` chain. Library, Source Member, Knowledge V3, and Learning projections now populate only their already-available source/version/status fields; absent fields remain `未暴露`. No producer, timestamp, evidence_id, citation position, or provenance graph was invented.
+- tests: RED confirmed the structured Drawer/chain contract was absent before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=57`; explicit Avalonia Debug build returned 0 warnings / 0 errors; XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- agent_dispatch: `AAOS Provenance Field Mapping · GPT-5.5 Low` completed a read-only field audit and defined the safe field sets/UNKNOWN boundaries. `AAOS Provenance Drawer Visual Audit · GPT-5.6 Luna Low` completed a separate read-only visual audit and recommended layer tags, a source-chain hierarchy, and an independent boundary notice. Neither agent modified files or ran GUI.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Runtime Drawer layout, actual Core responses, GUI screenshots, and navigation remain unverified.
+
+## Continuation receipt — 2026-09-22 Learning stale-request and answer reset guard
+- scope: fixed two P3 first-use risks identified by a read-only regression audit in the Learning surface.
+- implementation: added a monotonic `_learningRequestVersion` guard across the multi-request Learning load path; superseded responses now stop before mutating shared learning/Inspector state. Loading a new item clears the previous answer, review outcome, and submit controls before Core readback, preventing an old answer from being submitted against a new Assessment.
+- tests: RED confirmed the Learning stale-request/answer-reset contract was absent; GREEN `P3_NAVIGATION_CONTRACT_PASS=58`; explicit Avalonia Debug build returned 0 warnings / 0 errors before the final test-only assertion correction; XAML parse and `git diff --check` had passed for the same implementation.
+- agent_dispatch: `AAOS P3 Inspector Regression Audit · GPT-5.5 Low` completed a read-only audit and identified both risks. `AAOS UI Kit Absorption Gap Audit · GPT-5.6 Luna Low` completed a separate read-only audit and prioritized reusable visual resources, the Provenance Drawer, and the real Capture → Evidence/Library → Review flow. Neither agent modified files or ran GUI.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real concurrent requests, Core response timing, GUI interaction, and screenshot evidence remain unverified.
+
+## Continuation receipt — 2026-09-22 Application-scoped AAOS theme extraction
+- scope: moved the existing AAOS visual tokens and control/status styles from the window-local resource scope into a reusable application-level Avalonia ResourceDictionary without changing UI behavior or Core contracts.
+- implementation: added `apps/ArcheAxis.Desktop/Themes/AaosTheme.axaml`, included it from `App.axaml`, and removed the duplicate `Window.Resources`/`Window.Styles` definitions from `MainWindow.axaml`. Existing `DynamicResource Aaos*` consumers remain unchanged; static contracts were redirected to the authoritative theme file.
+- tests: RED caught the missing `x` namespace in the new dictionary and one stale test location; both were corrected. GREEN `P3_NAVIGATION_CONTRACT_PASS=59`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- agent_dispatch: `AAOS Theme Extraction Audit · GPT-5.5 Low` completed a read-only audit and defined the minimal App/Theme/MainWindow split and test migration. `AAOS First-use Flow Audit · GPT-5.6 Luna Low` completed a separate read-only audit and identified missing Capture source/job context continuity as the next high-value UI task. Neither agent modified files or ran GUI.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Runtime resource loading, GUI rendering, and first-use continuity remain unverified.
+
+## Continuation receipt — 2026-09-22 Capture context continuity slice
+- scope: connected the Capture surface to the existing Source Reader and Jobs surfaces using a session-local context projection; no Core endpoint or knowledge semantics were added.
+- implementation: added a `CaptureContextRow` holding `file_name`, Core-returned `source_id`, the locally requested/ Core-accepted `job_id` when available, and explicit `job_state`. Queue failure, execution-submit failure, interruption, and unknown state remain visible and never become success. Added guarded `打开最近来源` and `查看最近任务` actions; the latter is enabled only after a real queued job id exists.
+- boundary: Capture does not synthesize `knowledge_id`, `transform_id`, learning id, readability, or acceptance. Learning remains independently Core-backed; no automatic Capture→Learning claim is made without a Core learner reference.
+- tests: RED confirmed the Capture context/action contract was absent before implementation; GREEN `P3_NAVIGATION_CONTRACT_PASS=60`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- agent_dispatch: `AAOS Capture Context Audit · GPT-5.5 Low` completed a read-only audit and confirmed source/job field origins and non-inference boundaries. `AAOS Learning Entry Audit · GPT-5.6 Luna Low` completed a separate read-only audit and confirmed the safe session-context model and that Learning must only show an association when Core explicitly projects it. Neither agent modified files or ran GUI.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real import responses, job terminal states, cross-surface navigation, and GUI first-use behavior remain unverified.
+
+## Continuation receipt — 2026-09-22 Multi-file Capture context and Learning unassociated context
+- scope: completed the next P3 first-use continuity slice requested for the canonical Avalonia shell; priority remained frontend UI only.
+- implementation: Capture now retains one `CaptureContextRow` per imported file, including `file_name`, Core-returned `source_id`, locally requested/Core-accepted `job_id` when available, and explicit queue/submit/running/terminal/unknown state. A selectable context list drives guarded `打开最近来源` and `查看最近任务` actions, preserving per-file context instead of collapsing multi-file imports to one latest record.
+- learning_boundary: Learning now shows the latest Capture context as explicitly `未关联`; it exposes guarded source/job navigation but does not inject Capture into `learner.references`, does not claim a learning association, and continues to identify Core learner references as the authoritative learning source chain.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=62`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- agent_dispatch: `AAOS Multi-file Capture Context Audit · GPT-5.6 Luna Low` and `AAOS Learning Capture Context Audit · GPT-5.5 Low` completed read-only audits. Their conclusions were used for the per-file selection model and the explicit Learning-unassociated boundary; neither agent modified files or supplied GUI evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real multi-file Core responses, job terminal states, Learning association responses, cross-surface navigation, resized rendering, and GUI first-use behavior remain unverified.
+
+## Continuation receipt — 2026-09-22 Responsive P3 interaction matrix
+- scope: applied the next frontend-only P3 interaction correction identified by two real parallel read-only audits; no Core/API truth or external resource boundary changed.
+- implementation: the canonical Avalonia shell now shows Inspector at `>=1440`, keeps Context Sidebar through `1024–1439`, enters compact layout below `1024`, and vertically stacks Capture/Learning action groups below `1280`. TextBox focus now uses the AAOS primary focus treatment. Rebinding the multi-file Capture list explicitly restores the selected row.
+- agent_dispatch: `AAOS Capture-First-Use Audit · GPT-5.5 Low` (actual `gpt-5.5 / low`) confirmed Core field origins, Learning `learner.references` boundaries, and the remaining GUI evidence gap. `AAOS Avalonia Interaction Audit · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) identified the 1440 breakpoint, narrow action-row, focus-state, and Inspector reachability gaps. Both were read-only, then closed after completion.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=62`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual 1024/1280/1440 window rendering, keyboard traversal, navigation, Core responses, screenshot evidence, and GUI first-use behavior remain unverified.
+
+## Continuation receipt — 2026-09-22 UI suite authority audit and token absorption
+- scope: audited the explicitly authorized `D:\All projects\UI套件` AAOS sources and absorbed the next low-coupling B04/L7 design-token layer into the canonical Avalonia shell.
+- external_audit: the AAOS asset priority is `B10 > B09 > B08 > B07 > B06 > B05 > B04 > B03 > B02 > B01`; B03 remains the AAOS color correction authority. B10/B09/B08 demo runtime, `localStorage`, static numbers, React/Vite shell, brand assets, and any second truth/runtime were explicitly excluded from product absorption.
+- implementation: `AaosTheme.axaml` now exposes B04/L7 spacing (`4/8/12/16/24/32/48/64`), radius (`4/12/18/24`), density (`56/44`), tablet/mobile breakpoints (`1024/767`), and `Ctrl+K` command-palette gesture resources alongside the existing AAOS color/status/focus resources. `UI_IMPLEMENTATION_AUDIT.md` was corrected to reflect the current theme state rather than the superseded hard-coded-color claim.
+- agent_dispatch: `AAOS UI Suite Inventory · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the external AAOS suite index and metadata; `AAOS UI Absorption Map · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) mapped the assets to the existing Avalonia shell. Both were read-only and closed after completion.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=63`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. External demo runtime behavior, native GUI screenshots, actual command-palette interaction, and visual comparison against B10/B09 remain unverified; no external source or Green was modified.
+
+## Continuation receipt — 2026-09-22 B06/B09 shared provenance surface seed
+- scope: absorbed a small, Core-neutral shared component layer from the already audited B04/B06/B09 UI references into the canonical Avalonia shell.
+- implementation: added reusable `aaos-card` and `aaos-card-compact` surface styles plus `provenance-original`, `provenance-evidence`, `provenance-machine`, `provenance-projection`, and `provenance-review` semantic styles. Applied the surface/projection classes to existing Home, Capture, and Inspector elements without inventing provenance fields or changing Core writes.
+- agent_dispatch: `AAOS B06 State Components · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Review-Provenance Mapping · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) were dispatched and resumed, but both timed out in bounded waits without a usable final result and were stopped. No subagent output was used as evidence or implementation authority.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=64`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only after correcting the test-detected class/EOF issue.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Component rendering, real Core provenance semantics, native GUI screenshots, and visual comparison against B06/B09 remain unverified.
+
+## Continuation receipt — 2026-09-22 Learning SourceChain and ReviewCard semantic styling
+- scope: advanced the B06/B09 absorption from generic surface styles into the existing Learning SourceChain and Review surface, without changing Core contracts or adding a second truth source.
+- implementation: applied `provenance-evidence` to Core learner references, `provenance-original` to the original boundary, `provenance-projection` to Knowledge/Assessment version output, `provenance-review` to memory readback, and `review-control` plus shared compact-card styling to the FSRS review input. Added explicit ComboBox focus styling. The UI continues to use real `assessment_id`, `knowledge_id`, `knowledge_version`, and Core readback fields already present in the code.
+- agent_dispatch: `AAOS B06 State Components · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Review-Provenance Mapping · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) were dispatched and resumed, but both timed out in bounded waits without a usable final result and were stopped; no incomplete output was used as evidence.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=65`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual Core review responses, FSRS visual behavior, GUI keyboard focus, screenshots, and runtime SourceChain rendering remain unverified.
+
+## Continuation receipt — 2026-09-22 Structured Inspector SourceChain surface
+- scope: advanced the B06/B09 absorption into the canonical Inspector without expanding the Core contract.
+- implementation: replaced the loose three-line Inspector source-chain block with a reusable compact card named `InspectorSourceChain`, using the shared `aaos-source-chain` layout style and projection-semantic styles for source, version, and current projection. Existing `SetInspectorProjection` and reset paths still write only the same Core-backed fields; no producer, timestamp, evidence_id, citation position, or graph edge was invented.
+- agent_dispatch: `AAOS SourceChain Contract · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Command Palette Feasibility · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) were dispatched, but both timed out in the bounded wait and were stopped. No incomplete output was used as evidence.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=66`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual SourceChain rendering, command-palette behavior, GUI screenshots, and runtime provenance responses remain unverified.
+
+## Continuation receipt — 2026-09-22 Avalonia Command Palette interaction
+- scope: absorbed the B06/L7 command-palette interaction pattern into the canonical Avalonia shell using only existing page routes.
+- implementation: added a window-level `Ctrl+K` toggle, `Esc` close, focused command input, `Enter` execution, unknown-command feedback, and safe routes for 首页/捕获/资料库/学习/任务/设置. The palette only calls existing `SetSection` navigation and does not create or persist new product truth.
+- agent_dispatch: `AAOS Palette Key Event · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Palette Route Map · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) were dispatched, but both timed out in the bounded wait and were stopped. No incomplete output was used as evidence.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=67`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual keyboard input, focus transfer, overlay rendering, and native GUI command execution remain unverified.
+
+## Continuation receipt — 2026-09-22 Command Palette route and overlay token completion
+- scope: completed the remaining safe route coverage for the B06/L7 Command Palette and moved its overlay color into the AAOS theme resource layer.
+- implementation: Command Palette now routes to 首页、捕获、资料库、原件阅读、知识库、学习、任务、恢复、设置; unknown commands report the complete available list. Added `AaosOverlayBrush`; no route creates data or bypasses Core.
+- agent_dispatch: `AAOS Evidence Detail Route · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Activity Drawer Access · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) were dispatched, but both timed out in the bounded wait and were stopped. No incomplete output was used as evidence.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=67`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native keyboard execution, route rendering, overlay visuals, Evidence Detail behavior, and Activity Drawer usability remain unverified.
+
+## Continuation receipt — 2026-09-22 Library Evidence Detail projection
+- scope: advanced the B05/B09 Evidence Library flow by adding a main-workspace Evidence Detail card for the selected search projection.
+- implementation: `LibrarySelectedDetailBorder` renders the selected `LibraryResultRow.InspectorDetails` and keeps the Core projection boundary visible. It is reset on new/empty/failed searches and shown only on an actual list selection. It uses only `Kind`, `KnowledgeId`, `SourceId`, `TransformId`, `Status`, `Active`, `Engine`, and `Head`; it does not infer original-file existence, evidence grade, acceptance, page/anchor, hash, timestamp, provider, confidence, or verification.
+- agent_dispatch: `AAOS Evidence Detail Fields · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Library Detail Interaction · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed read-only audits. Their field and interaction conclusions were used; neither modified files or accessed Green/E/F/external libraries.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=68`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real Core search responses, selection rendering, Source Reader return context, native GUI screenshots, and Evidence Detail runtime behavior remain unverified.
+
+## Continuation receipt — 2026-09-22 Library to Source Reader return context
+- scope: closed the Evidence Library navigation continuity gap identified in the B05/B09 absorption path.
+- implementation: added a guarded `返回资料库` action to Source Reader. Opening Source Reader from a valid selected Library result caches only the existing `LibraryResultRow`; returning calls `SetSection("library", "资料库")`, restores `LibraryResultsList.SelectedItem`, and reprojects the same detail/Inspector state. The button remains disabled without a valid return context. Existing `source_id` and `job_id` missing-field guards remain unchanged.
+- agent_dispatch: `AAOS Library Return Context · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Source Boundary Actions · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed read-only audits. Their conclusions confirmed the return contract and guarded action semantics; neither modified files or accessed Green/E/F/external libraries.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=69`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual Library→Reader→Library navigation, selection restoration, native GUI rendering, and Core runtime responses remain unverified.
+
+## Continuation receipt — 2026-09-22 Activity Dock expandable current-session receipts
+- scope: advanced the B06/B09 Activity Drawer pattern while preserving the current-session-only job truth boundary.
+- implementation: added an expand/collapse control and detail text to Activity Dock. Expanded content is populated only from existing `RefreshJobsAsync` job/quality projections (`job_id`, `state`, `attempt`, non-empty `error`, and non-null quality coverage fields), and explicitly states it is not persistent history. The summary/details now live in the stretchable main column so narrow-width wrapping does not compete with the action row; existing `<1024` second-row action behavior remains.
+- agent_dispatch: `AAOS Activity Receipt Fields · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Activity Dock Responsive · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed read-only audits. Their field and responsive conclusions were used; neither modified files or accessed Green/E/F/external libraries.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=70`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual Core job responses, expanded drawer rendering at narrow widths, native GUI interaction, and persistent-history behavior remain unverified.
+
+## Continuation receipt — 2026-09-22 Learning Review Core submission status
+- scope: made the Learning ReviewCard's submission state explicit while preserving `mastery != truth` and the Core-owned review boundary.
+- implementation: added `LearningReviewStatusText` with `empty/loading/success/error` states. Validation failures, submission start, non-success HTTP, interruption, and successful Core response now have distinct text. Success remains conservative: it says the review/answer was recorded and, when exposed, that `Mastery projection` is not closed; it never claims knowledge acceptance.
+- agent_dispatch: `AAOS Review Response Boundary · GPT-5.5 Low` (actual `gpt-5.5 / low`) timed out without a usable final result and was stopped. `AAOS Review Status Tokens · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed a read-only audit confirming the existing `SetStatus` semantic mapping; neither modified files or accessed Green/E/F/external libraries.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=71`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual review HTTP responses, FSRS persistence, GUI state colors, and runtime learning acceptance remain unverified.
+
+## Continuation receipt — 2026-09-22 AAOS 44px interaction target token consumption
+- scope: completed the B04 accessibility/density token wiring for the canonical Avalonia controls.
+- implementation: `AaosDensityCompact=44` is now consumed by global `Button`, `TextBox`, and `ComboBox` `MinHeight`, with an explicit `rail-button` `MinHeight` as well. Activity Dock actions retain the same 44px target and existing compact-row behavior; no small-button exception was introduced.
+- agent_dispatch: `AAOS Hit Target Audit · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `AAOS Compact Density Audit · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed read-only audits. Their hit-target and narrow-layout conclusions were used; neither modified files or accessed Green/E/F/external libraries.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=72`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Runtime rendered hit targets and 390/360-width GUI layout remain unverified; static evidence identifies medium narrow-height/scroll-pressure risk.
+
+## Continuation receipt — 2026-09-22 responsive toolbar and mobile-width hardening
+- scope: continued the authorized P3 Avalonia UI convergence by closing the narrow-toolbar layout gap and protecting the `<767` mobile-width surface from fixed-rail clipping.
+- implementation: named the Knowledge, Machine Task, and Job Lookup action buttons; added `SetResponsiveToolbar` coverage for five Core-backed search/read toolbars; added `RowSpacing="10"` for the two-row narrow state; introduced `PrimaryRail` and `WorkspaceScrollViewer` names; below 767px the rail collapses to zero width and workspace padding reduces to `16,16`. No Core contract, persistence, or external resource was changed.
+- agent_dispatch: `Meitner the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `Herschel the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed independent read-only responsive-layout audits. Both explicitly reported no E:/F:, Green, credential, or external-library access and did not modify files. Their outputs identified the `<767` fixed-rail risk and missing narrow-row spacing; both are recorded as static audit evidence only.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=74`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual 767/390/360-width rendered layout, DPI behavior, keyboard traversal, native GUI screenshots, and Core runtime responses remain unverified; no commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 native GUI launch attempt and responsive evidence boundary
+- scope: attempted the next P3 evidence step using the project-local `desktop_launch.py --fresh-workspace --launch` path, after static/build verification and independent responsive audits.
+- agent_dispatch: `Schrodinger the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) confirmed the launch/receipt boundary and headless-vs-GUI distinction; `Pauli the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited all requested width contracts. Both were read-only and reported no E:/F:, Green, credential, or external-library access.
+- runtime_observation: the project-local Avalonia process started with `MainWindowTitle=ArcheAxis.Desktop.exe`, `Responding=True`, and an `ISOLATED_TEST` launch receipt bound to source head `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; the owned test process was then stopped. No Green or external data was used.
+- evidence_boundary: PROCESS_START only. The Computer Use `sky` RPC returned `Trusted RPC service is not configured: sky`, so no reliable native screenshot, accessibility tree, click/readback, or per-width visual evidence was obtained. GUI_SCREENSHOT, TESTED_LOCAL_GUI_READBACK, and width-by-width runtime verification remain `UNVERIFIED`.
+- follow_up: restore/configure the approved native-window capture channel, then verify 1024/1280/1440/1920/2560 plus 767/390/360 with screenshots and at least one navigation/focus readback. Theme breakpoint token consumption remains a small static consistency gap; no implementation change was made for it in this receipt.
+
+## Continuation receipt — 2026-09-22 responsive breakpoint token consumption
+- scope: removed the remaining responsive-theme drift in the canonical Avalonia shell without expanding into Core/configuration or external resources.
+- implementation: added `AaosInspectorBreakpoint=1440` and `AaosNarrowActionsBreakpoint=1280`; `OnMainFrameSizeChanged` now reads all four breakpoint resources (`1440/1280/1024/767`) through `GetAaosBreakpoint` with safe numeric fallbacks. Existing rail, sidebar, inspector, toolbar, Activity Dock, and home-card reflow behavior is unchanged except for consuming the authoritative AAOS theme tokens.
+- agent_dispatch: `Ohm the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Avalonia resource lookup and approved the minimal `TryFindResource + fallback` shape; `Rawls the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Core/worker/DeepTutor lifecycle boundaries and identified only static sidecar early-exit residual risk. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=75`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Theme resource lookup is compile-verified, but real resize/DPI/screenshots, GUI focus/navigation, Core UI readback, and sidecar cleanup remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 honest First-Run readiness surface
+- scope: advanced the authorized P3 Avalonia product shell toward the handoff First Run requirement with a small Home-surface readiness card; no new persistence, configuration writer, provider probe, plugin scan, model health claim, or sidecar truth was introduced.
+- implementation: added `FirstRunReadinessCard` with Core status, workspace status, optional-capability boundary, and the existing import-first-source action. Core status is updated from the existing supervisor result; workspace status is updated only after the existing `/api/v1/workspaces/info` response; worker profile presence is described as launch configuration only. Plugin/model/Sidecar remain explicitly `未接入权威 readiness 投影`, and import copy states that import success does not mean conversion, knowledge acceptance, or learning completion.
+- agent_dispatch: `Gauss the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the real Core/worker/workspace contracts; `Gibbs the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited current First-Run UX coverage and the minimal truthful slice. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=76`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. First-Run native rendering, actual Core response display, import journey, cold restart, plugin/model/sidecar readiness, and GUI screenshots remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Settings Core health readback surface
+- scope: continued the P3 desktop product shell by making the existing Settings page an explicit read-only Core status surface.
+- implementation: added `SettingsRefreshButton`, workspace readback (`sources`/`anchors` from `/api/v1/workspaces/info`), and an explicit capability boundary text. `RefreshSettingsAsync` now reads only the existing `system/version` and `workspaces/info` projections; it does not write configuration, expose DB paths, probe providers, or claim plugin/model/Sidecar readiness. Recovery remains a separate boundary page.
+- agent_dispatch: `Kepler the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited endpoint fields and privacy boundaries; `Tesla the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Settings/Recovery UX density and recommended a compact read-only health surface. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=77`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native Settings rendering, click/readback, real Core response presentation, and GUI screenshots remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 guarded current-session Continue Reading
+- scope: continued the authorized P3 Avalonia Home surface by adding a guarded current-session source entry point; no persistence or new Core contract was introduced.
+- implementation: added `HomeContinueReadingCard`, `HomeContinueReadingText`, and `HomeContinueReadingButton`. The projection uses only the selected/latest in-memory Capture context (`source_id`, `file_name`, `job_state`); it enables the action only when a non-empty `source_id` exists and reuses the existing Source Reader route. The UI explicitly states `仅当前会话，未宣称持久化阅读位置`.
+- agent_dispatch: `Huygens the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `Sagan the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed independent read-only audits. Both confirmed that the safe capability is current-session source opening, not persisted reading-position recovery; neither modified files or accessed E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=78`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed after using the actual `Styles` root; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual Home rendering, click/readback, persisted position recovery, native GUI screenshots, and post-restart behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 structured Evidence Library projection rows
+- scope: advanced the UI-kit-aligned `Capture → Evidence Library → Evidence Detail` path without adding a Core endpoint, persistence layer, or external dependency.
+- implementation: `LibraryResultRow` is now a top-level bindable projection model with `KindLabel`, `Head`, `StatusLabel`, and `SourceLabel`. The Library result template renders compact kind, head, status/active, and source fields from the existing Core search response; the existing Evidence Detail boundary remains explicit and transform results are not presented as accepted knowledge.
+- agent_dispatch: `Aristotle the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the real Capture/Library/Core fields and recommended this bounded projection; `Mendel the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited state-token gaps and recommended a separate Settings state slice. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=79`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` passed with the existing CRLF normalization warning only.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual Core search data, rendered Library rows, selection interaction, native GUI screenshots, and live Evidence Detail behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Settings Core state semantics
+- scope: completed the next UI-kit state-system slice for the read-only Settings/Core status card; no Core endpoint or configuration writer was added.
+- implementation: added `SettingsStateText` and `status-permission` / `status-version` theme selectors. Settings now exposes explicit loading, success, empty, error, and permission states; 401 is reported as invalid/expired Core session credentials, 403 as rejected access origin/scope, other HTTP responses retain endpoint-specific failure text, and `system/version` versus `workspaces/info` JSON parse failures are distinguished. `SetStatus` now clears all semantic status classes before applying one state.
+- agent_dispatch: `Galileo the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the repository auth contract and endpoint-specific failure semantics; `Euler the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited theme/state-token usage and confirmed the minimal state-card structure. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=80`; explicit Avalonia Debug build returned 0 warnings / 0 errors. XAML static parse and `git diff --check` remain part of the local verification set; the latter has only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live Core 401/403/JSON responses, rendered status transitions, native GUI screenshots, and restart/runtime readback remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Evidence Detail field boundary and Knowledge return context
+- scope: advanced the Core-backed `Evidence Library → Knowledge V3 → Evidence Detail` flow without adding a backend route, persistence, or dependency.
+- implementation: the selected Library result now renders fixed fields for kind, head, status, source, Knowledge, Transform, engine, and boundary. Knowledge and Transform branches are explicit; Transform no longer presents search placeholder `status/active` values as Knowledge state and is labeled `Transform 投影不是 Knowledge 接受状态。` Knowledge detail now has a guarded `返回资料库 Evidence Detail` action that restores the in-memory selected result, original query text, Library detail fields, and Inspector projection.
+- agent_dispatch: `Russell the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Knowledge V3/search field boundaries; `Leibniz the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Library→Knowledge→Library continuity. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=82`; explicit Avalonia Debug build returned 0 warnings / 0 errors. XAML static parse and `git diff --check` remain required local checks; no release or runtime GUI claim is made.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live Knowledge V3 responses, rendered field values, click navigation, native GUI screenshots, restart persistence, and real Core selection behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Source Reader member provenance fields
+- scope: continued the `Source Reader` side of the `Evidence → Original` shell using only the existing Core source-member projection.
+- implementation: selected source members now expose fixed `member`, `original_name`, `readable`, `job_id`, and `sha256` fields in the detail card; reset paths clear stale values, and the boundary remains explicit that original正文 is not exposed. No new source content, anchor, offset, or readability inference was introduced.
+- agent_dispatch: `Russell the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) and `Leibniz the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) completed read-only audits of Knowledge/Transform field boundaries and Library→Knowledge→Library continuity before this slice; neither modified files or accessed E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=83`; explicit Avalonia Debug build returned 0 warnings / 0 errors. XAML static parse and `git diff --check` remain required local checks; no release or runtime GUI claim is made.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live source-member responses, rendered detail selection, native GUI screenshots, and actual original-file reading remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Source Reader ↔ Library/Knowledge context navigation
+- scope: closed the next P3 source/evidence navigation gap using existing Core projections only; no new endpoint, database field, or frontend truth store was introduced.
+- implementation: a selected Source Reader member can search the existing Library endpoint by its real `source_id`; a Knowledge V3 result enables `查看 Knowledge 来源成员` only when Core returned a non-empty `source_id`, then opens the existing Source Reader route. Library copy explicitly says search hits require human confirmation and do not automatically establish an association.
+- agent_dispatch: `McClintock the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Source Reader status semantics; `Poincare the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited the Source Reader↔Knowledge navigation gap. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=85`; explicit Avalonia Debug build returned 0 warnings / 0 errors. XAML static parse and `git diff --check` remain required local checks; no release or runtime GUI claim is made.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live source/knowledge responses, multi-result human selection, rendered navigation, native GUI screenshots, and actual Core round-trip behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Learning Review FSRS grade controls
+- scope: advanced the Learning ReviewCard toward the UI-kit `FSRSGradeButtons` pattern using the existing Core review contract; no new API, persistence, or alternate 0–5 quality path was introduced.
+- implementation: replaced the temporary binary visual controls with four responsive 2×2 grade buttons: `Again=1`, `Hard=2`, `Good=3`, `Easy=4`. Each sets an in-memory review rating while preserving the existing `correct`, `answer`, `assessment_id`, `knowledge_version`, `rating_version`, `client_event_id`, and `exposure_id` payload contract. Controls are enabled only after Assessment readiness and are cleared after successful submission; existing `mastery != truth` wording remains.
+- agent_dispatch: `Darwin the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the learning review/FSRS contract and rating constraints; `Peirce the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited ReviewCard UI convergence and responsive grade control needs. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=86`; explicit Avalonia Debug build returned 0 warnings / 0 errors. XAML static parse and `git diff --check` remain required local checks; no release or runtime GUI claim is made.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live review POST responses, FSRS schedule readback, native GUI grade selection, screenshots, and restart behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Knowledge V3 state semantics
+- scope: continued the P3 Knowledge surface with explicit read-state semantics, using the existing Core `/api/v1/knowledge-items/{id}/v3` projection only; no new endpoint, persistence, or frontend truth store was introduced.
+- implementation: added `KnowledgeStateText` and explicit `loading`, `empty`, `error`, and `success` mappings for blank IDs, Core-unavailable, non-2xx, invalid JSON, interrupted reads, and 2xx responses with or without an exposed `knowledge_id`. Existing `ReadDisplayValue` behavior remains field-missing-safe and does not infer acceptance, truth, or confidence.
+- agent_dispatch: `Dirac the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the Knowledge V3 status mapping and field boundary; `Maxwell the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited the Knowledge Explorer/Evidence Inspector convergence gap. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=87`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live Knowledge V3 responses, rendered state transitions, native GUI screenshots, Explorer/Inspector click readback, and restart behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Evidence Inspector actions and Knowledge→Source Reader return context
+- scope: advanced the Avalonia Explorer path `Library → Knowledge → Source Reader` using existing Core projections and existing navigation methods; no new endpoint, persistence, or frontend truth store was introduced.
+- implementation: added contextual Inspector actions for opening the existing source/Knowledge routes and returning to the Library; added a UI-only `Knowledge → Source Reader → Knowledge` return context and button; preserved the original Library→Source Reader return behavior. Corrected the Learning Inspector projection so `knowledge_id` is not presented as `source_id` when learner references do not expose a real source identifier.
+- agent_dispatch: `Fermat the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Library→Knowledge continuity and Core search field limits; `Cicero the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Inspector action coverage and return routing. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=90`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Real Core responses, native GUI button enablement/click readback, rendered narrow-layout behavior, and restart persistence remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 stale navigation cleanup and responsive fallback discoverability
+- scope: hardened the current P3 UI navigation state without introducing a new navigation store or backend contract.
+- implementation: direct rail entry into Library, Source Reader, or Knowledge now clears stale prior selection/return context; explicit cross-surface return paths remain preserved. The command palette placeholder now advertises the existing Reader and Knowledge routes, strengthening the 1024/1280 fallback discoverability. Transform result display text now exposes only transform-owned fields (`transform_id`, `source_id`, `engine`, `head`) and no longer presents `status/active` as if they were Knowledge state.
+- agent_dispatch: `Avicenna the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited responsive breakpoints and hidden-Inspector fallback reachability; `Nietzsche the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited stale navigation flags and action enablement. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=93`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual 1024/1280 rendering, focus order, native GUI clicks, live Core projections, and restart behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 narrow Inspector main-workspace provenance fallback
+- scope: completed the responsive fallback slice for the P3 Evidence/Reader shell; no new Core request or alternate truth source was introduced.
+- implementation: Knowledge already had a main-workspace evidence context card; Source Reader now also has a main-workspace provenance chain showing only Core-exposed `source_id`, selected member/original name, `job_id`, `sha256`, and an explicit boundary that the projection is not正文/理解/anchor. Empty, loading, and selected-member paths keep the fallback text conservative.
+- agent_dispatch: `Halley the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited hidden-Inspector fallback parity; `Einstein the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited safe Source Reader field reuse and prohibited inference. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=95`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual narrow-window rendering, GUI selection/readback, live Core source-member values, and restart behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 truthful Library filtering controls
+- scope: advanced the Core-backed Library search surface without extending the search contract or inventing unsupported filters.
+- implementation: added an `active_only` CheckBox wired to the existing Core `/api/v1/search` query parameter; added client-side `全部类型 / 仅 Knowledge / 仅 Transform` filtering over returned `Kind` values; search summaries now report Core counts and visible-row count. The UI explicitly marks `active_only` as not applicable to Transform. No owner/risk/confidence/status/engine filter was added because those fields are not in the current search response/contract.
+- agent_dispatch: `Lagrange the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the real search contract and safe filter boundary; `Singer the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Home/Learning projection boundaries and confirmed no safe new evidence feed should be invented. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=96`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live filtered Core responses, rendered filter interaction, native GUI behavior, and restart persistence remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Knowledge route and Home receipt semantics
+- scope: closed two bounded P3 UI contract gaps found by real parallel read-only audits; no external resource contents or runtime directories were accessed.
+- implementation: aligned `config/desktop/routes-v1.json` Knowledge with the current read-only `/api/v1/knowledge-items/{knowledge_id}/v3` Core route. Reframed the Home card from `最近证据` to `当前会话回执`; it now projects only the in-memory Core capture receipt and uses `打开当前来源`, with explicit wording that the receipt is not Knowledge acceptance or an evidence anchor.
+- agent_dispatch: `Sagan the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Home receipt semantics; `Galileo the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited route-manifest/Core/Avalonia consistency. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=107`; `ROUTES_CONTRACT_PASS=5`; `DESKTOP_ROUTE_SCHEMA_PASS=1`; explicit Avalonia Debug build returned 0 warnings / 0 errors. `tests/test_desktop_launch.py` remains `NOT_EXECUTED` because no usable pytest-capable project Python exists.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_SCHEMA / TESTED_LOCAL_BUILD. Native GUI rendering, live Core response readback, clipboard behavior, and restart persistence remain unverified because the `sky` trusted RPC service is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 AAOS UI suite visual baseline absorption
+- scope: read-only audited the user-authorized `D:\All projects\UI套件` AAOS chain (B10→B03), then absorbed only the compatible visual baseline into the Avalonia canonical shell.
+- implementation: fixed the application to the Dark theme; added an Aurora Teal primary-action gradient; added Ivory foreground fallbacks for Button/ListBoxItem/ComboBoxItem/CheckBox so Fluent defaults cannot render black text on AAOS dark surfaces; marked real primary actions across Home/Capture/Library/Reader/Knowledge/Learning with `primary-action`. Added `docs/current/AAOS-UI-SUITE-ABSORPTION-AUDIT-20260922.md` with archive evidence, absorption boundaries, and rejected demo/localStorage behavior.
+- agent_dispatch: `Gauss the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited B10→B03 archive entries and token/interaction rules; `Dirac the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the current Avalonia gap against the AAOS prompt and acceptance checklist. Both were read-only and did not access E:/F:, Green, credentials, or unrelated external libraries.
+- tests: `NAVIGATION_CONTRACT_PASS=107`; explicit Avalonia Debug build returned 0 warnings / 0 errors; `git diff --check` returned only the pre-existing R6-EXECUTION CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native GUI screenshot, actual control foreground rendering, and live Core first-use remain unverified because the `sky` trusted RPC service is not configured. No HTML/React demo runtime, localStorage state, screenshot asset, commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Source Reader three-zone shell
+- scope: converted the existing Avalonia Source Reader surface into a three-zone product workspace using the UI-suite Reader pattern, without changing Core endpoints or inventing original content.
+- implementation: left `Source Tree / Outline` keeps the real Core member list; center `Main Reader · Core transform` keeps selected-member fields and the guarded `/outputs/text` transform preview; right `Inspector · Source Chain` keeps source/member/job/sha256 provenance and context actions. Existing navigation, task-receipt, provenance-copy, and return handlers were preserved.
+- agent_dispatch: `Dirac the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Reader/Library/Learning gaps against the AAOS UI prompt; `Gauss the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited the authoritative B10→B03 UI archives and their Reader/overlay rules. Both were read-only and did not access E:/F:, Green, credentials, or unrelated external libraries.
+- tests: `NAVIGATION_CONTRACT_PASS=107`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native GUI layout, live transform response, source selection, and restart persistence remain unverified because the `sky` trusted RPC service is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Library dual-pane and Learning Review Card
+- scope: continued UI-suite convergence for the two highest-value Core-backed work surfaces; no Core API or persistence change.
+- implementation: Library now has a responsive two-column workspace for Core result list and selected Evidence Detail, with contextual Knowledge/source actions inside the detail panel and explicit Header/Provenance/Boundary labeling. Learning now has a named `Review Card` with Assessment, Learner Answer, Core correct flag, FSRS rating, and `Core FSRS Receipt`; the UI explicitly states that FSRS scheduling is not Knowledge Truth or mastery KPI.
+- agent_dispatch: `Noether the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Library against B05/B08/B04; `Averroes the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Learning Review against B05/B06/B07. Both were read-only and did not access E:/F:, Green, credentials, or unrelated external libraries.
+- tests: `NAVIGATION_CONTRACT_PASS=108`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native GUI responsive layout, live Core search/review responses, and restart persistence remain unverified because the `sky` trusted RPC service is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Library responsive collapse
+- scope: closed the responsive behavior gap left by the Library dual-pane UI; no Core/API/data change.
+- implementation: `LibraryWorkspaceGrid` now uses the two-column Evidence List/Detail layout at desktop widths and collapses to one column below the existing compact breakpoint, placing the selected detail below the result list so panels cannot overlap on narrow windows.
+- agent_dispatch: `Noether the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) identified the Library responsive gap during read-only audit; `Averroes the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) confirmed the adjacent Learning UI boundary. Both were read-only and did not access E:/F:, Green, credentials, or unrelated external libraries.
+- tests: `NAVIGATION_CONTRACT_PASS=108`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual 1024/1280/1440 native layout rendering, live Core interaction, and restart persistence remain unverified because the `sky` trusted RPC service is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Home lifecycle and truthful failure projection
+- scope: added a read-only Home lifecycle strip and hardened existing workspace/learning summary failure semantics; no new Core endpoint, persistence, or business truth was introduced.
+- implementation: Home now shows Capture, Source, Knowledge, Learning, and Review stages with explicit `received/available/processing/empty/unavailable` wording. Knowledge remains unavailable without a real Home-level `knowledge_id` projection; Review remains unavailable because no due-review summary is read. Workspace and learning counts now preserve unknown/missing fields as `—` instead of silently converting them to zero; workspace and learning refresh independently, with a request-version guard. First-run, Continue Reading, DeepTutor, and Import action rows reflow vertically under the narrow-action breakpoint.
+- agent_dispatch: `Kuhn the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited safe Home lifecycle fields; `Turing the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited workspace failure semantics and narrow Home rows. Both were read-only and did not access E:/F:, Green, credentials, or unrelated external libraries.
+- tests: `NAVIGATION_CONTRACT_PASS=109`; explicit Avalonia Debug build returned 0 warnings / 0 errors.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native GUI rendering at 1024/1280/1440, live Core payloads, and restart persistence remain unverified because the `sky` trusted RPC service is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Inspector projection type labels
+- scope: made the P3 Inspector’s projection boundary explicit without adding a new backend field or truth source.
+- implementation: `SetInspectorProjection` now accepts a projection-layer label; Source member, Knowledge search/V3, Transform search, and Learning/Assessment paths identify their actual Core projection type. Generic fallback remains `类型未暴露`; `assessment_id` remains an assessment identifier rather than an object status.
+- agent_dispatch: `Planck the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Core fallback semantics; `Parfit the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Knowledge/Inspector type and status boundaries. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=100`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native GUI rendering, live Core projection values, focus/click readback, and restart behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 responsive primary navigation and review receipt projection
+- scope: closed two bounded P3 frontend gaps identified by real parallel read-only audits: narrow-window primary navigation discoverability and post-review Core receipt visibility.
+- implementation: added Research/Jobs/Plugins/Models to the canonical primary Rail; added a mobile-only horizontal primary-navigation strip that appears when the left Rail is hidden, reusing existing section handlers and active-state semantics. Added a read-only Learning Core receipt block projecting only `schedule_authority`, `schedule_state`, `next_review`, `next_review_days`, `answer`, and `mastery_projection`; it explicitly preserves `Mastery projection` as separate from Knowledge Truth and does not calculate mastery or add local persistence.
+- agent_dispatch: `Anscombe the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited responsive IA and identified the missing narrow primary navigation; `Hooke the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the existing review response contract and identified the missing post-submit schedule receipt. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=102`; `LEARNING_REVIEW_CONTRACT_PASS=13`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual 390/360/767px rendering, touch/keyboard scrolling, live review responses, native GUI clicks, queue refresh, and restart persistence remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 learning review schema alignment
+- scope: aligned the authoritative v1 review JSON Schema with the already-implemented Core and Avalonia first-use review payload; no scheduler authority or canonical persistence behavior was changed.
+- implementation: added the Core-owned optional provenance/answer fields (`answer`, `assessment_id`, `question_version`, `knowledge_version`, `exposure_id`, `assist_strategy`, `rating_version`, `correction_id`) while retaining `additionalProperties: false`; added the existing implementation rule that a non-null answer requires an assessment id; intentionally did not add client-supplied `schedule_state`.
+- agent_dispatch: `Wegener the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) performed the read-only contract drift audit; `Kant the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) performed the read-only responsive audit. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=102`; `LEARNING_REVIEW_CONTRACT_PASS=14`; `REVIEW_SCHEMA_RUNTIME_PASS=3` (valid desktop-shaped payload, forbidden `schedule_state`, missing assessment id with answer); explicit Avalonia Debug build returned 0 warnings / 0 errors; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_SCHEMA / TESTED_LOCAL_BUILD. Native GUI 390/360/767/1024/1280/1440/1920/2560 screenshots, clicks, and live Core response readback remain unverified because the `sky` trusted RPC service is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 wide-layout contract and schema semantic validation
+- scope: strengthened evidence for the P3 responsive shell and the Core-owned review contract without changing the wide layout or scheduler behavior.
+- implementation: added explicit static assertions for the 1920/2560 bounded workspace, persistent Inspector at the 1440+ breakpoint, and Reader/Knowledge/Learning surface presence. Added real Draft 2020-12 schema validation cases for the desktop-shaped review payload, forbidden client `schedule_state`, missing `assessment_id` when an answer is present, and inconsistent rating/outcome pairs.
+- agent_dispatch: `Franklin the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited wide-layout structure; `Linnaeus the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the remaining review-schema semantics. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=103`; `LEARNING_REVIEW_CONTRACT_PASS=15`; explicit Avalonia Debug build returned 0 warnings / 0 errors; `git diff --check` returned only the existing CRLF normalization warning. The new schema cases executed with `Draft202012Validator`.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_SCHEMA / TESTED_LOCAL_BUILD. Actual 1920/2560 window rendering, DPI behavior, GUI clicks, and live Core runtime readback remain unverified because `sky` trusted RPC is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 narrow workspace placement and Core transform preview
+- scope: continued Source Reader and responsive first-use convergence using only existing Core contracts.
+- implementation: when the mobile Rail replaces the left Rail, `WorkspaceScrollViewer` now moves to column 0 and spans the available frame, preventing the page body from remaining stranded in hidden column 2. Source Reader now exposes a guarded `读取转换内容` action for selected readable members with a real `job_id`; it reads `/api/v1/jobs/{job_id}/outputs/text` and labels returned content as Core transform output, never as original正文, understanding, or accepted Knowledge.
+- agent_dispatch: `Harvey the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited narrow workspace placement and identified the hidden-column defect; `Bernoulli the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Source Reader contracts and identified the existing job-output preview path. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=104`; explicit Avalonia Debug build returned 0 warnings / 0 errors; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual narrow-window layout, live `/outputs/text` response, GUI selection/click readback, and original-content availability remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Source Reader provenance copy action
+- scope: implemented the交接要求的 `Copy with provenance` action using the current selected Core source-member projection; no source content or canonical state is modified.
+- implementation: added a guarded `复制来源链` action that copies only `source_id`, `member`, `original_name`, `job_id`, `sha256`, and an explicit boundary statement to the local clipboard. It is enabled only after a member is selected; it never copies original正文 or treats the projection as an evidence anchor.
+- agent_dispatch: `Banach the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Source Reader provenance and transform-output boundaries; `Chandrasekhar the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the related UI contract and narrow-workspace safety. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=105`; explicit Avalonia Debug build returned 0 warnings / 0 errors; Avalonia 12.1.2 clipboard extension was verified from the local package reference; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual clipboard write/readback, native GUI selection, and live Core values remain unverified because the `sky` trusted RPC service is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Source Reader stale-response guard and review selection reset
+- scope: hardened two existing P3 UI state transitions without changing Core APIs or persistence.
+- implementation: Source Reader transform preview now uses a request version plus selected-member identity check before applying delayed success/error responses, preventing member A output from overwriting member B. `ResetSourceReaderSelection` invalidates prior preview requests and clears the new controls. Learning reload now resets `ReviewOutcomeBox.SelectedIndex` to the neutral option, preventing a prior question's result from being submitted for a new item.
+- agent_dispatch: `Copernicus the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited transform/provenance semantic boundaries and identified the stale-response race; `Zeno the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited UI regression state and identified the stale review-selection defect. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=105`; `LEARNING_REVIEW_CONTRACT_PASS=16`; explicit Avalonia Debug build returned 0 warnings / 0 errors; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual delayed-response GUI race, native selection behavior, clipboard readback, live Core responses, and restart persistence remain unverified because `sky` trusted RPC is not configured. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 provenance completeness guard
+- scope: prevented the Source Reader provenance-copy action from claiming a complete trace when Core omitted required identity fields.
+- implementation: `复制来源链` now requires real `source_id`, `member`, and `sha256` values; missing/placeholder fields keep the action semantically unavailable and report that no placeholder values were copied. The transform preview, mobile placement, and review reset behavior remain unchanged.
+- agent_dispatch: `Boyle the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Source Reader field completeness; `Volta the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the startup/build evidence boundary. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=105`; explicit Avalonia Debug build returned 0 warnings / 0 errors; `git diff --check` returned only the existing CRLF normalization warning. `tests/test_desktop_launch.py` was not executed because the selected project-local Python runtime lacks pytest (`ModuleNotFoundError: pytest`); this is recorded as NOT_EXECUTED, not PASS.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Actual clipboard readback, GUI field selection, live Core payloads, and desktop first-use remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Source Reader route manifest alignment
+- scope: corrected the desktop route manifest’s Source Reader endpoint to match the current Core projection implementation.
+- implementation: `config/desktop/routes-v1.json` now declares `/api/v1/sources/{source_id}/members` as the read-only Source Reader route; the existing transform preview remains a secondary `/api/v1/jobs/{job_id}/outputs/text` read. Added a manifest regression assertion. The legacy `/api/v1/imports` route remains covered for Capture and was not removed.
+- agent_dispatch: `Wegener the 3rd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Source Reader/Core route reality; `Feynman the 3rd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the project test-entry environment. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `DESKTOP_ROUTE_SOURCE_READER_PASS=1`; `NAVIGATION_CONTRACT_PASS=105`; explicit Avalonia Debug build returned 0 warnings / 0 errors; `tests/test_desktop_launch.py` remains `NOT_EXECUTED` because no usable pytest-capable project Python exists (`.project-local/build/venv` absent, `.venv` uv trampoline permission failure, PATH Python absent).
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. GUI first-use and live Core route readback remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Home Core Learning versus optional DeepTutor boundary
+- scope: reduced Home learning-entry ambiguity using XAML copy/layout only; no Core learning behavior, mastery semantics, or sidecar startup path was changed.
+- implementation: retained one canonical Home CTA, `打开 Core 学习路径`, for the Core queue/Assessment/Review flow. Reframed the secondary card as `可选 DeepTutor 工作台`, with explicit sidecar wording and a separate `打开 DeepTutor 工作台` action; it no longer duplicates the Core Learning path button.
+- agent_dispatch: `Aquinas the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Home duplicate CTA structure; `Erdos the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited canonical Core Learning versus optional DeepTutor sidecar boundaries. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=97`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Native Home rendering, sidecar launch behavior, Core Learning responses, and restart readback remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Knowledge object/detail layering and Learning Inspector status boundary
+- scope: continued the Knowledge V3 UI convergence using the existing Core projection; no API schema or persistence change was made.
+- implementation: split the Knowledge surface into an object header (`title`, `knowledge_id`, `owner`), evidence context (`source_id`, `knowledge_version`, projection/status boundary), and body projection (`body`) with explicit wording that body is not automatically accepted Evidence. Corrected the Learning Inspector call so `assessment_id` is not placed in the generic `status` field; it remains in details and the boundary text identifies its actual meaning.
+- agent_dispatch: `Planck the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited Core V3 fallback/field semantics; `Parfit the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Knowledge/Inspector duplication and the assessment/status boundary. Both were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=99`; explicit Avalonia Debug build returned 0 warnings / 0 errors; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Core legacy fallback issues (`evidence_status`/`external_evidence` conflation and optimistic `risk_level=low`) remain outside this UI-only slice and require a separately authorized Core contract change; native GUI rendering, live V3 responses, and restart behavior remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Source Reader provenance fallback and Library truthful filters
+- scope: continued the canonical Avalonia Library/Reader shell with two bounded UI slices derived from current Core contracts.
+- implementation: Source Reader now exposes a main-workspace provenance chain for narrow layouts (`source_id`, selected member/original name, `job_id`, `sha256`, explicit no正文/no-anchor boundary). Library now exposes the only real backend filter, `active_only`, plus client-side kind filtering over returned `knowledge`/`transform` rows; unsupported metadata filters were intentionally not added.
+- agent_dispatch: `Einstein the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited safe Source Reader field reuse; `Halley the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited narrow fallback parity. `Lagrange the 2nd · GPT-5.5 Low` (actual `gpt-5.5 / low`) audited the actual Library search contract; `Singer the 2nd · GPT-5.6 Luna Low` (actual `gpt-5.6-luna / low`) audited Home/Learning boundaries. All were read-only, did not modify files, and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `P3_NAVIGATION_CONTRACT_PASS=96`; explicit Avalonia Debug build returned 0 warnings / 0 errors; App/MainWindow/Theme XAML static parse passed; `git diff --check` returned only the existing CRLF normalization warning.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. Live filtered Core responses, rendered filter interaction, native GUI behavior, and restart persistence remain unverified. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Learning unavailable-state reset and permission semantics
+- scope: closed a P3 UI truthfulness gap in the canonical Avalonia Learning surface; no Core API, scheduler authority, or persistence behavior was changed.
+- implementation: added `ResetLearningProjectionForUnavailable` so Core-not-ready, queue HTTP failure, and interrupted reads clear prior learning item, learner references, assessment, answer, review controls, and receipt text before showing the current reason and recovery action. Queue `401/403` and review-submit `401/403` now use the explicit `permission` semantic instead of generic error text.
+- agent_dispatch: Poincare the 3rd (actual `gpt-5.6-luna / low`) performed the read-only page-state audit; Boole the 3rd (actual `gpt-5.5 / low`) identified stale Learning projection as the highest-value bounded fix. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=111`; explicit Avalonia Debug build returned 0 warnings / 0 errors. `tests/test_desktop_launch.py` remains `NOT_EXECUTED` because no usable pytest-capable project Python exists. Native GUI rendering, live Core permission responses, retry clicks, and restart readback remain unverified because the `sky` trusted RPC service is not configured.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Core job receipt projection and status closure
+- scope: upgraded the canonical Avalonia Activity Dock and Jobs surface from concatenated session text to selectable `JobReceiptRow` projections; no new endpoint, Core write, persistence change, or full-history behavior was introduced.
+- implementation: Activity Dock now exposes a selectable current-session receipt list with explicit empty/loading/success/error/permission/unknown semantics. Single-job lookup now has loading, empty, error, permission, and conservative unknown-state handling. Job state semantics are kept separate from receipt detail; unknown/queued/running states are never promoted to success.
+- agent_dispatch: Halley the 3rd (actual `gpt-5.6-luna / low`) audited the job/quality fields and bounded receipt model; Dewey the 3rd (actual `gpt-5.5 / low`) audited single-job and Activity Dock state semantics. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=118`; explicit Avalonia Debug build returned 0 warnings / 0 errors. Native GUI selection, live job/quality responses, and restart readback remain unverified because `sky` trusted RPC is not configured.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. The Activity Dock remains scoped to `_sessionJobIds` and explicitly does not represent persistent task history. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 Settings nullable counts and Recovery read-only boundary
+- scope: aligned First Run/System UI with the actual read-only Core behavior; no recovery action, Core write, persistence change, or external resource access was introduced.
+- implementation: Settings now uses nullable workspace counts and displays missing `sources`/`anchors` as `—` instead of zero. Recovery now exposes only explicit runtime/contract/schema/source/anchor fields, distinguishes permission/error/invalid-JSON states, and records that no recovery point or action is exposed. The desktop route manifest now marks Recovery as the current read-only `/api/v1/system/version` boundary rather than an uncalled writable recovery endpoint.
+- agent_dispatch: Fermat the 3rd (actual `gpt-5.6-luna / low`) audited Library/Knowledge/Source product gaps; Harvey the 3rd (actual `gpt-5.5 / low`) audited First Run/Settings/Recovery boundaries. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=118`; `ROUTES_CONTRACT_PASS=6`; explicit Avalonia Debug build returned 0 warnings / 0 errors. Native GUI Recovery/Settings rendering and live Core responses remain unverified because `sky` trusted RPC is not configured.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 permission truth, lifecycle state, and narrow Inspector drawer
+- scope: continued P3 Avalonia product convergence without changing Core APIs, canonical persistence, scheduler authority, or external resources.
+- implementation: Library search, Source Reader member/transform reads, and Knowledge V3 now distinguish Core `401/403` permission responses from ordinary errors; Knowledge V3 also distinguishes not-found. Home Source lifecycle now reports only explicit succeeded/completed states as available and shows failed/cancelled/unknown states as error or unknown. At widths below the 1440 Inspector breakpoint, the existing evidence Inspector is exposed as a real overlay drawer through `打开证据检查器`, instead of disappearing without an equivalent path.
+- agent_dispatch: Huygens the 3rd (actual `gpt-5.6-luna / low`) audited responsive UI gaps; Curie the 3rd (actual `gpt-5.5 / low`) audited page/Core state and route gaps. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=115`; `ROUTES_CONTRACT_PASS=5`; `LEARNING_REVIEW_CONTRACT_PASS=16`; explicit Avalonia Debug build returned 0 warnings / 0 errors. Native window rendering, overlay positioning, real Core permission responses, and GUI clicks remain unverified because `sky` trusted RPC is not configured.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_SCHEMA / TESTED_LOCAL_BUILD. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 command palette results and exact responsive boundaries
+- scope: continued P3 Avalonia UX convergence without changing Core APIs, canonical persistence, or external resources.
+- implementation: Command Palette now renders a filtered executable result list, supports Up/Down selection plus Enter execution, and exposes the previously missing Research, Machine Growth, Plugins, and Models routes. Responsive collapse now triggers at the exact configured 1024 and 1280 boundaries (`<=`), matching the stated acceptance widths.
+- agent_dispatch: Goodall the 3rd (actual `gpt-5.6-luna / low`) audited Command Palette and Activity Dock; Schrodinger the 3rd (actual `gpt-5.5 / low`) audited exact responsive breakpoints and token consumption. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
+- tests: `NAVIGATION_CONTRACT_PASS=116`; explicit Avalonia Debug build returned 0 warnings / 0 errors. Native keyboard focus, real window rendering, DPI behavior, and GUI readback remain unverified because `sky` trusted RPC is not configured.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
