@@ -39,16 +39,19 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `74f658d7` on
+- Frontend implementation HEAD: `2d9fbb75` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - Avalonia Debug build: `PASS`, 0 warnings, 0 errors.
 - Self-contained `win-x64` Release publish: `PASS`, current output at
-  `.project-local/build/desktop-publish/ui-final-pass-74f658d7/`.
+  `.project-local/build/desktop-publish/ui-final-pass-2d9fbb75/`.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
+- Source Reader citation metadata action is implemented and covered by the
+  extended gate; it copies only Core-exposed identity fields and never source
+  body text.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.

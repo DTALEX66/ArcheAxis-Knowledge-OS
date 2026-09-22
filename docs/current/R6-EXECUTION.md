@@ -1937,3 +1937,10 @@
 - verification: project-local candidate Python with ephemeral pytest environment ran `tests/test_desktop_navigation_contract.py`, `tests/test_desktop_learning_review_contract.py`, `tests/test_desktop_routes_v1.py`, and `tests/test_desktop_launch.py`; result `161 passed`.
 - launch_boundary: the launch tests prove explicit project-local worker/profile binding, isolated fresh-workspace database allocation, resource-boundary preflight, artifact identity, and fail-closed missing-binary behavior. They do not prove native GUI rendering or live first-use clicks.
 - evidence_boundary: TESTED_LOCAL_STATIC / TESTED_LOCAL_LAUNCH_CONTRACT. Native screenshot, accessibility tree, click-through, live import-to-learning UI journey, and cold GUI restart remain UNVERIFIED because the current CUA bridge exposes no native application surface.
+
+## Continuation receipt — 2026-09-23 P3 bounded citation metadata action
+- scope: continued the canonical Avalonia Source Reader using only fields already returned by the Core source-member projection; no new endpoint, persistence, Evidence object, or external resource was introduced.
+- implementation: added `复制引用元数据` beside `复制来源链`. The action is enabled only when `source_id`, member, and `sha256` are present; it copies title/member identity, job ID, and content fingerprint, and explicitly states that it contains no original body, Evidence anchor, or Knowledge Truth.
+- source_commit: `2d9fbb75` (`feat(desktop): add bounded citation metadata action`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
+- verification: frontend navigation/learning/route/launch suite `162 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-2d9fbb75`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native GUI click/readback remains UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
