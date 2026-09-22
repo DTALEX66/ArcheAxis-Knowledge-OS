@@ -41,7 +41,7 @@ receipts. This matrix does not promote reference demos, static numbers or
 
 ## Current verification anchor
 
-- Frontend implementation commit: `d4d9bb13`.
+- Frontend implementation commit: `fc9a1693`.
 - Latest documentation/branch commit: recorded by the current
   `UI_IMPLEMENTATION_REPORT.md` and `R6-EXECUTION.md` continuation receipt.
 - Direct no-argument desktop contract harness: `185 passed`.

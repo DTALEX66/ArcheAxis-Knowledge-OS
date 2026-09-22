@@ -2193,3 +2193,10 @@
 - source_commit: documentation change follows the current frontend implementation baseline `d4d9bb13`; the matrix itself is tracked with this receipt.
 - verification: direct no-argument static desktop harness remains `185 passed`; `git diff --check` passed. This matrix is documentation evidence, not native GUI or Core capability evidence.
 - evidence_boundary: DOCUMENTED_CURRENT_MAPPING / TESTED_LOCAL_STATIC_REFERENCE. No installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 typography token convergence
+- scope: continued the canonical Avalonia visual system only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added shared AAOS caption/body/control/section/heading font resources and applied them to common Button, compact Button, TextBox, ComboBox, provenance label and success-status styles. The change does not mechanically rewrite all page-local sizes.
+- source_commit: `fc9a1693` (`feat(desktop): centralize common typography tokens`).
+- verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `186 passed`; theme XML parsing passed; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native typography, contrast, DPI scaling, screenshot and accessibility-tree readback remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
