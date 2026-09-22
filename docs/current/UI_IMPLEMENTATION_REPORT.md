@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `2f6ba6a8` on
+- Frontend implementation HEAD: `71f10bec` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -90,6 +90,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
   accessible names before their first interaction.
 - Command Palette results now support mouse double-tap execution in addition
   to keyboard Enter, while preserving the existing focus restoration path.
+- Command Palette selection, filtering, empty-result and unknown-command
+  feedback now updates both visible text and its accessible status name.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
