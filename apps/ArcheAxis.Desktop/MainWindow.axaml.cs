@@ -41,6 +41,7 @@ public partial class MainWindow : Window
     private long _learningRequestVersion;
     private long _reviewRequestVersion;
     private long _knowledgeRequestVersion;
+    private long _librarySearchRequestVersion;
     private readonly List<CaptureContextRow> _captureContexts = new();
     private CaptureContextRow? _latestCaptureContext;
     private CaptureContextRow? _selectedCaptureContext;
@@ -612,6 +613,8 @@ public partial class MainWindow : Window
         var label = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
         InspectorDrawerButton.Content = label;
         Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, label);
+        if (_inspectorDrawerOpen)
+            InspectorPanel.Focus();
     }
 
     private void ResetLearningProjectionForUnavailable(string reason, string action)
@@ -1958,6 +1961,7 @@ public partial class MainWindow : Window
         var narrowActionsBreakpoint = GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280);
         var tabletBreakpoint = GetAaosBreakpoint("AaosTabletBreakpoint", 1024);
         var mobileBreakpoint = GetAaosBreakpoint("AaosMobileBreakpoint", 840);
+        var sourceReaderStackBreakpoint = GetAaosBreakpoint("AaosSourceReaderStackBreakpoint", 1200);
         var hideInspector = e.NewSize.Width < inspectorBreakpoint;
         var hideContext = e.NewSize.Width < tabletBreakpoint;
         var compact = e.NewSize.Width <= tabletBreakpoint;
@@ -1974,6 +1978,7 @@ public partial class MainWindow : Window
             InspectorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             InspectorPanel.ZIndex = 0;
             Grid.SetColumn(InspectorPanel, 3);
+            Grid.SetColumnSpan(InspectorPanel, 1);
         }
         else
         {
@@ -1982,6 +1987,7 @@ public partial class MainWindow : Window
             InspectorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
             InspectorPanel.ZIndex = 5;
             Grid.SetColumn(InspectorPanel, mobile ? 0 : 2);
+            Grid.SetColumnSpan(InspectorPanel, mobile ? 4 : 1);
         }
         ContextSidebar.IsVisible = !hideContext;
         PrimaryRail.IsVisible = !mobile;
@@ -2008,6 +2014,9 @@ public partial class MainWindow : Window
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
         SourceReaderContextActions.Orientation = narrowActions
+            ? Avalonia.Layout.Orientation.Vertical
+            : Avalonia.Layout.Orientation.Horizontal;
+        InspectorActionPanel.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
         SetResponsiveToolbar(LibrarySearchGrid, LibrarySearchButton, narrowActions);
@@ -2055,18 +2064,19 @@ public partial class MainWindow : Window
         Grid.SetRow(HomeLifecycleLearningCard, compact ? 3 : 0);
         Grid.SetColumn(HomeLifecycleReviewCard, compact ? 0 : 4);
         Grid.SetRow(HomeLifecycleReviewCard, compact ? 4 : 0);
-        SourceReaderShellGrid.ColumnDefinitions = compact
+        var sourceReaderCompact = compact || e.NewSize.Width < sourceReaderStackBreakpoint;
+        SourceReaderShellGrid.ColumnDefinitions = sourceReaderCompact
             ? new ColumnDefinitions("1*")
             : new ColumnDefinitions("220,*,300");
-        SourceReaderShellGrid.RowDefinitions = compact
+        SourceReaderShellGrid.RowDefinitions = sourceReaderCompact
             ? new RowDefinitions("Auto,Auto,Auto")
             : new RowDefinitions("Auto");
         Grid.SetColumn(SourceReaderOutlineBorder, 0);
         Grid.SetRow(SourceReaderOutlineBorder, 0);
-        Grid.SetColumn(SourceReaderMainBorder, compact ? 0 : 1);
-        Grid.SetRow(SourceReaderMainBorder, compact ? 1 : 0);
-        Grid.SetColumn(SourceReaderChainBorder, compact ? 0 : 2);
-        Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);
+        Grid.SetColumn(SourceReaderMainBorder, sourceReaderCompact ? 0 : 1);
+        Grid.SetRow(SourceReaderMainBorder, sourceReaderCompact ? 1 : 0);
+        Grid.SetColumn(SourceReaderChainBorder, sourceReaderCompact ? 0 : 2);
+        Grid.SetRow(SourceReaderChainBorder, sourceReaderCompact ? 2 : 0);
         SetResponsiveToolbar(FirstRunReadinessGrid, FirstRunImportButton, narrowActions);
         SetResponsiveToolbar(HomeContinueReadingGrid, HomeContinueReadingButton, narrowActions);
         SetResponsiveToolbar(HomeDeepTutorGrid, HomeDeepTutorButton, narrowActions);
@@ -2135,6 +2145,7 @@ public partial class MainWindow : Window
 
     private async void OnSearchLibraryClick(object? sender, RoutedEventArgs e)
     {
+        var requestVersion = ++_librarySearchRequestVersion;
         var query = LibrarySearchBox.Text?.Trim() ?? string.Empty;
         if (query.Length == 0)
         {
@@ -2164,6 +2175,8 @@ public partial class MainWindow : Window
             using var response = await _supervisor.SendAsync(
                 HttpMethod.Get,
                 $"/api/v1/search?q={Uri.EscapeDataString(query)}&active_only={(LibraryActiveOnlyBox.IsChecked == true).ToString().ToLowerInvariant()}");
+            if (requestVersion != _librarySearchRequestVersion)
+                return;
             if (!response.IsSuccessStatusCode)
             {
                 var permissionDenied = IsPermissionStatus(response.StatusCode);
@@ -2181,7 +2194,10 @@ public partial class MainWindow : Window
                 LibrarySearchButton.IsEnabled = true;
                 return;
             }
-            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var responseBody = await response.Content.ReadAsStringAsync();
+            if (requestVersion != _librarySearchRequestVersion)
+                return;
+            using var document = JsonDocument.Parse(responseBody);
             var rows = new List<LibraryResultRow>();
             var count = ReadInt(document.RootElement, "count");
             if (document.RootElement.TryGetProperty("items", out var items)
@@ -2256,6 +2272,8 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
+            if (requestVersion != _librarySearchRequestVersion)
+                return;
             LibraryResultsText.Text = "资料库搜索中断。";
             SetStatus(LibrarySearchStatusText, "资料库搜索：读取失败。", "error");
             LibraryResultsList.ItemsSource = Array.Empty<string>();

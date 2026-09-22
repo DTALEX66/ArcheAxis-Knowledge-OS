@@ -1316,10 +1316,38 @@ def test_inspector_drawer_escape_closes_and_restores_button_focus() -> None:
     assert 'InspectorPanel.ZIndex = 5;' in code
 
 
+def test_inspector_drawer_enters_focus_and_reflows_scrollable_actions() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'x:Name="InspectorPanel"' in xaml
+    assert 'Focusable="True"' in xaml
+    assert 'AutomationProperties.Name="来源与证据检查器"' in xaml
+    assert 'VerticalScrollBarVisibility="Auto"' in xaml
+    assert 'InspectorPanel.Focus();' in code
+    assert 'InspectorActionPanel.Orientation = narrowActions' in code
+
+
 def test_exact_tablet_and_narrow_action_breakpoints_collapse_at_boundary() -> None:
     code = CODE.read_text(encoding="utf-8")
     assert 'var compact = e.NewSize.Width <= tabletBreakpoint;' in code
     assert 'var narrowActions = e.NewSize.Width <= narrowActionsBreakpoint;' in code
+
+
+def test_library_search_ignores_stale_responses_from_older_queries() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    assert 'private long _librarySearchRequestVersion;' in code
+    assert 'var requestVersion = ++_librarySearchRequestVersion;' in code
+    assert code.count('requestVersion != _librarySearchRequestVersion') >= 3
+    assert 'var responseBody = await response.Content.ReadAsStringAsync();' in code
+
+
+def test_inspector_overlay_and_source_reader_use_safe_narrow_layout_breakpoints() -> None:
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'x:Key="AaosSourceReaderStackBreakpoint"' in theme
+    assert 'GetAaosBreakpoint("AaosSourceReaderStackBreakpoint", 1200)' in code
+    assert 'var sourceReaderCompact = compact || e.NewSize.Width < sourceReaderStackBreakpoint;' in code
+    assert 'Grid.SetColumnSpan(InspectorPanel, mobile ? 4 : 1);' in code
 
 
 def test_capture_preserves_real_source_job_context_and_exposes_guarded_actions() -> None:
@@ -1612,10 +1640,10 @@ def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> N
     assert 'x:Name="SourceReaderShellGrid"' in xaml
     assert 'x:Name="SourceReaderOutlineBorder"' in xaml
     assert 'x:Name="SourceReaderMainBorder"' in xaml
-    assert 'SourceReaderShellGrid.ColumnDefinitions = compact' in code
+    assert 'var sourceReaderCompact = compact || e.NewSize.Width < sourceReaderStackBreakpoint;' in code
     assert 'new ColumnDefinitions("1*")' in code
     assert 'new RowDefinitions("Auto,Auto,Auto")' in code
-    assert 'Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);' in code
+    assert 'Grid.SetRow(SourceReaderChainBorder, sourceReaderCompact ? 2 : 0);' in code
     assert 'x:Name="HomeHeroGrid"' in xaml
     assert 'x:Name="HomeHeroImage"' in xaml
     assert 'Grid.SetColumn(HomeHeroImage, compact ? 0 : 1);' in code

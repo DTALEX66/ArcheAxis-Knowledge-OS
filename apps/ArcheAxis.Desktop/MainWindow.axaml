@@ -660,7 +660,8 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Border x:Name="InspectorPanel" Grid.Row="1" Grid.Column="3" Padding="18,24" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1,0,0,0">
+        <Border x:Name="InspectorPanel" Grid.Row="1" Grid.Column="3" Padding="18,24" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1,0,0,0" Focusable="True" AutomationProperties.Name="来源与证据检查器">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="18">
                 <TextBlock Text="来源与证据" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
                 <Border Padding="10,8" CornerRadius="8" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -710,6 +711,7 @@
                     </StackPanel>
                 </Border>
             </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <Border x:Name="ActivityDock" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Padding="18,10" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,1,0,0">
