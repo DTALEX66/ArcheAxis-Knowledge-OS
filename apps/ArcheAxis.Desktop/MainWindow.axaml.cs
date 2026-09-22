@@ -1853,7 +1853,7 @@ public partial class MainWindow : Window
         var inspectorBreakpoint = GetAaosBreakpoint("AaosInspectorBreakpoint", 1440);
         var narrowActionsBreakpoint = GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280);
         var tabletBreakpoint = GetAaosBreakpoint("AaosTabletBreakpoint", 1024);
-        var mobileBreakpoint = GetAaosBreakpoint("AaosMobileBreakpoint", 767);
+        var mobileBreakpoint = GetAaosBreakpoint("AaosMobileBreakpoint", 840);
         var hideInspector = e.NewSize.Width < inspectorBreakpoint;
         var hideContext = e.NewSize.Width < tabletBreakpoint;
         var compact = e.NewSize.Width <= tabletBreakpoint;

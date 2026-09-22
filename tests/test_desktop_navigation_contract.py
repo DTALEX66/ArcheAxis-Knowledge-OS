@@ -229,7 +229,7 @@ def test_responsive_breakpoints_are_consumed_from_aaos_theme_resources() -> None
     assert 'GetAaosBreakpoint("AaosInspectorBreakpoint", 1440)' in code
     assert 'GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280)' in code
     assert 'GetAaosBreakpoint("AaosTabletBreakpoint", 1024)' in code
-    assert 'GetAaosBreakpoint("AaosMobileBreakpoint", 767)' in code
+    assert 'GetAaosBreakpoint("AaosMobileBreakpoint", 840)' in code
 
 
 def test_shell_exposes_core_product_navigation() -> None:
