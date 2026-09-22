@@ -2172,3 +2172,10 @@
 - source_commit: `5033ae84` (`feat(desktop): activate detail lists with keyboard and pointer`).
 - verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `181 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native event delivery, screenshot, accessibility tree, focus order, Core read models, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 search and narrow-layout hardening
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: Library search now invalidates stale asynchronous responses when a newer query starts; the mobile Inspector spans the workspace overlay instead of the zero-width rail column, enters focus, scrolls long content, and reflows actions; Source Reader stacks its three regions below the themed 1200px content breakpoint.
+- source_commit: `2df53ecd` (`fix(desktop): harden search and narrow inspector layout`).
+- verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `184 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native resized-window bounds, pointer/focus event delivery, screenshot, accessibility tree, Core read models, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
