@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `fc79380d` on
+- Frontend implementation HEAD: `02c71342` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -97,6 +97,10 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Primary product actions now have stable accessible names across first-run
   import, Home resume, search, Source Reader, Knowledge, Learning review,
   Machine Tasks and Evidence refresh flows.
+- All remaining named secondary actions—source/Knowledge return paths,
+  transform and job actions, Learning capture links, and Inspector actions—
+  now also have stable accessible names; the named-button audit reports zero
+  unnamed controls.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
