@@ -2207,3 +2207,10 @@
 - source_commit: `b1d88ed5` (`feat(desktop): animate activity dock expansion`).
 - verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `187 passed`; XAML XML parsing passed; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native animation timing, reduced-motion OS behavior, screenshot, accessibility-tree readback, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 primary typography convergence
+- scope: continued the canonical Avalonia visual system only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added shared page-title, page-hero and page-subheading typography classes and applied page-title to the primary product surfaces plus page-hero to Home; dense field-level sizes remain explicit to preserve hierarchy.
+- source_commit: `5e9cbaf9` (`feat(desktop): tokenise primary page typography`).
+- verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `188 passed`; both desktop XAML documents parsed successfully; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native typography rendering, contrast, DPI scaling, screenshot and accessibility-tree readback remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.

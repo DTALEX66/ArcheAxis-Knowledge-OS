@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `b1d88ed5` on
+- Frontend implementation HEAD: `5e9cbaf9` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -51,8 +51,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after Activity Dock motion convergence:
-  `187 passed`.
+- Current combined frontend verification after primary typography convergence:
+  `188 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -162,6 +162,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Activity Dock detail text and receipt rows now use the same reduced-motion-safe
   reveal path as the other transient surfaces; collapse restores opacity before
   hiding and Esc still returns focus to the toggle.
+- Primary product page titles and the Home hero now consume dedicated shared
+  typography classes; dense field-level sizes remain intentionally explicit.
 
 ## Explicit limits
 
