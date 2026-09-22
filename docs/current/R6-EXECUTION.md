@@ -2179,3 +2179,10 @@
 - source_commit: `2df53ecd` (`fix(desktop): harden search and narrow inspector layout`).
 - verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `184 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native resized-window bounds, pointer/focus event delivery, screenshot, accessibility tree, Core read models, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 reduced-motion surface reveal closure
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: Command Palette, Inspector Drawer and Toast surfaces now use a restrained opacity reveal with a shared `aaos-animated-surface` style; `AAOS_REDUCED_MOTION=1` bypasses the reveal. Closing paths restore full opacity before hiding so rapid reopen does not inherit a transparent state.
+- source_commit: `d4d9bb13` (`feat(desktop): add reduced-motion surface reveals`).
+- verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `185 passed`; XAML XML parsing passed for both desktop surfaces; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native animation timing, reduced-motion OS behavior, screenshot, accessibility-tree readback, Core read models, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.

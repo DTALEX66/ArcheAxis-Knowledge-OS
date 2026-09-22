@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `2df53ecd` on
+- Frontend implementation HEAD: `d4d9bb13` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -50,8 +50,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after search/layout hardening:
-  `184 passed`.
+- Current combined frontend verification after reduced-motion surface reveals:
+  `185 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -151,6 +151,10 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Source Reader switches to a stacked three-region layout below the dedicated
   1200px content-width breakpoint, preserving a usable reading column at medium
   desktop widths.
+- Command Palette, Inspector Drawer and Toast now use a restrained 180ms
+  opacity reveal; `AAOS_REDUCED_MOTION=1` bypasses the reveal and restores full
+  opacity immediately. This remains a local implementation claim until native
+  timing is observed.
 
 ## Explicit limits
 
