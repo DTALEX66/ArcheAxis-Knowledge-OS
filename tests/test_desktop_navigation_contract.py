@@ -512,7 +512,7 @@ def test_navigation_state_controls_visible_surfaces() -> None:
     assert 'SettingsSurface.IsVisible = section == "settings"' in code
     assert 'JobsSurface.IsVisible = section == "jobs"' in code
     assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor" or "memory-map"' in code
-    assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge"' in code
+    assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge" or "original-editor" or "memory-map"' in code
     assert 'ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings"' in code
 
 

@@ -412,7 +412,7 @@ public partial class MainWindow : Window
         HomeStatsSurface.IsVisible = section == "home";
         ContextWorkspaceSubnav.IsVisible = section == "home";
         ContextCaptureSubnav.IsVisible = section == "capture";
-        ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge";
+        ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge" or "original-editor" or "memory-map";
         ContextLearningSubnav.IsVisible = section == "learning";
         ContextMachineSubnav.IsVisible = section == "machine-growth";
         ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings";
