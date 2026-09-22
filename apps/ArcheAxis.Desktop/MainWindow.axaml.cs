@@ -782,7 +782,7 @@ public partial class MainWindow : Window
                     ? Math.Min(current + 1, count - 1)
                     : Math.Max(current - 1, 0);
                 CommandPaletteResultsList.SelectedIndex = next;
-                CommandPaletteStatusText.Text = $"已选择“{CommandPaletteResultsList.SelectedItem}”；按 Enter 执行。";
+                SetCommandPaletteStatus($"已选择“{CommandPaletteResultsList.SelectedItem}”；按 Enter 执行。");
             }
             e.Handled = true;
             return;
@@ -802,7 +802,13 @@ public partial class MainWindow : Window
     private void OnCommandPaletteSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (CommandPaletteResultsList.SelectedItem is string selected)
-            CommandPaletteStatusText.Text = $"已选择“{selected}”；按 Enter 执行。";
+            SetCommandPaletteStatus($"已选择“{selected}”；按 Enter 执行。");
+    }
+
+    private void SetCommandPaletteStatus(string text)
+    {
+        CommandPaletteStatusText.Text = text;
+        Avalonia.Automation.AutomationProperties.SetName(CommandPaletteStatusText, text);
     }
 
     private void OnCommandPaletteResultDoubleTapped(object? sender, TappedEventArgs e)
@@ -822,9 +828,9 @@ public partial class MainWindow : Window
             .ToArray();
         CommandPaletteResultsList.ItemsSource = matches;
         CommandPaletteResultsList.SelectedIndex = matches.Length > 0 ? 0 : -1;
-        CommandPaletteStatusText.Text = matches.Length == 0
+        SetCommandPaletteStatus(matches.Length == 0
             ? "未找到可执行页面；可用命令仅切换现有页面，不创建新状态。"
-            : "选择命令后按 Enter 执行；命令只切换现有页面，不创建新状态。";
+            : "选择命令后按 Enter 执行；命令只切换现有页面，不创建新状态。");
     }
 
     private void ExecuteCommandPaletteCommand(string? rawCommand)
@@ -833,7 +839,7 @@ public partial class MainWindow : Window
         var route = CommandPaletteRoutes.FirstOrDefault(candidate => candidate.Matches(command));
         if (route is null)
         {
-            CommandPaletteStatusText.Text = $"未识别命令；可用：{string.Join("、", CommandPaletteRoutes.Select(candidate => candidate.Label))}。";
+            SetCommandPaletteStatus($"未识别命令；可用：{string.Join("、", CommandPaletteRoutes.Select(candidate => candidate.Label))}。");
             return;
         }
 

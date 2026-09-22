@@ -1794,6 +1794,14 @@ def test_primary_status_surfaces_have_initial_accessible_names() -> None:
         assert name in segment
 
 
+def test_command_palette_status_updates_accessible_name_with_selection() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert "private void SetCommandPaletteStatus(string text)" in code
+    assert "AutomationProperties.SetName(CommandPaletteStatusText, text);" in code
+    assert "SetCommandPaletteStatus($\"已选择“{selected}”；按 Enter 执行。\");" in code
+
+
 def test_command_palette_results_keep_enter_handling_when_list_has_focus() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     list_start = xaml.index('x:Name="CommandPaletteResultsList"')
