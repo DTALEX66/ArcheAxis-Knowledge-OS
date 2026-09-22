@@ -1721,6 +1721,12 @@ def test_command_palette_routes_have_one_authoritative_definition() -> None:
     assert "CommandPaletteRoutes.Select" in code
 
 
+def test_command_palette_placeholder_lists_all_primary_routes() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+
+    assert 'PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置"' in xaml
+
+
 def test_command_palette_unknown_command_help_lists_every_route() -> None:
     code = CODE.read_text(encoding="utf-8")
 
