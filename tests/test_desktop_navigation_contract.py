@@ -1795,6 +1795,29 @@ def test_primary_status_surfaces_have_initial_accessible_names() -> None:
         assert name in segment
 
 
+def test_named_product_actions_have_stable_accessible_names() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+
+    expected = {
+        'x:Name="FirstRunImportButton"': 'AutomationProperties.Name="选择资料并导入"',
+        'x:Name="HomeOpenCurrentSourceButton"': 'AutomationProperties.Name="打开当前来源"',
+        'x:Name="HomeContinueReadingButton"': 'AutomationProperties.Name="打开当前来源"',
+        'x:Name="HomeDeepTutorButton"': 'AutomationProperties.Name="打开 DeepTutor 工作台"',
+        'x:Name="HomeImportButton"': 'AutomationProperties.Name="选择资料并导入"',
+        'x:Name="OpenLatestSourceButton"': 'AutomationProperties.Name="打开最近来源"',
+        'x:Name="OpenLatestJobButton"': 'AutomationProperties.Name="查看最近任务"',
+        'x:Name="LibrarySearchButton"': 'AutomationProperties.Name="搜索"',
+        'x:Name="SourceReaderLoadButton"': 'AutomationProperties.Name="读取来源成员"',
+        'x:Name="KnowledgeLoadButton"': 'AutomationProperties.Name="读取知识"',
+        'x:Name="SubmitReviewButton"': 'AutomationProperties.Name="提交复习结果"',
+        'x:Name="MachineTaskLoadButton"': 'AutomationProperties.Name="读取任务收据"',
+        'x:Name="EvidenceRefreshButton"': 'AutomationProperties.Name="读取证据"',
+    }
+    for control, name in expected.items():
+        segment = xaml.split(control, 1)[1].split(" />", 1)[0]
+        assert name in segment
+
+
 def test_command_palette_status_updates_accessible_name_with_selection() -> None:
     code = CODE.read_text(encoding="utf-8")
 

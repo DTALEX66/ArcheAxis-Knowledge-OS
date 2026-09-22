@@ -107,7 +107,7 @@
                           <TextBlock Text="首次使用准备度" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                           <TextBlock Text="先确认 Core 与工作区，再导入第一份真实资料。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                         </StackPanel>
-                        <Button x:Name="FirstRunImportButton" Classes="primary-action" Grid.Column="1" Content="选择资料并导入" Padding="14,8" Click="OnImportClick" />
+                        <Button x:Name="FirstRunImportButton" Classes="primary-action" Grid.Column="1" Content="选择资料并导入" Padding="14,8" Click="OnImportClick" AutomationProperties.Name="选择资料并导入" />
                       </Grid>
                       <TextBlock x:Name="FirstRunCoreStatusText" Classes="status-info" Text="Core：等待启动检查" TextWrapping="Wrap" />
                       <TextBlock x:Name="FirstRunWorkspaceStatusText" Classes="status-empty" Text="工作区：等待 Core 返回真实状态" TextWrapping="Wrap" />
@@ -163,7 +163,7 @@
                       <StackPanel Spacing="8">
                         <TextBlock Text="当前会话回执" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                         <TextBlock x:Name="HomeEvidenceText" Text="本次会话尚无 Core 接收回执；不代表没有真实 Evidence。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <Button x:Name="HomeOpenCurrentSourceButton" Content="打开当前来源" HorizontalAlignment="Left" Padding="16,9" Click="OnOpenLatestSourceClick" />
+                        <Button x:Name="HomeOpenCurrentSourceButton" Content="打开当前来源" HorizontalAlignment="Left" Padding="16,9" Click="OnOpenLatestSourceClick" AutomationProperties.Name="打开当前来源" />
                       </StackPanel>
                     </Border>
                   </Grid>
@@ -176,7 +176,7 @@
                                 <TextBlock Text="继续阅读" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                                 <TextBlock x:Name="HomeContinueReadingText" Text="当前会话尚无可恢复来源；持久化阅读位置未接入。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
-                            <Button x:Name="HomeContinueReadingButton" Grid.Column="1" Content="打开当前来源" IsEnabled="False" Padding="14,8" VerticalAlignment="Center" Click="OnOpenHomeReadingClick" />
+                            <Button x:Name="HomeContinueReadingButton" Grid.Column="1" Content="打开当前来源" IsEnabled="False" Padding="14,8" VerticalAlignment="Center" Click="OnOpenHomeReadingClick" AutomationProperties.Name="打开当前来源" />
                         </Grid>
                     </Border>
                     <Border Padding="14,12" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -185,7 +185,7 @@
                                 <TextBlock Text="可选 DeepTutor 工作台" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                                 <TextBlock Text="Core 待复习队列请从“今日关注 / Core 学习路径”进入；DeepTutor 仅为可选 sidecar，不写 Core Learning Truth。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
-                            <Button x:Name="HomeDeepTutorButton" Grid.Column="1" Content="打开 DeepTutor 工作台" Padding="14,8" Click="OnOpenLearningWorkbenchClick" VerticalAlignment="Center" />
+                            <Button x:Name="HomeDeepTutorButton" Grid.Column="1" Content="打开 DeepTutor 工作台" Padding="14,8" Click="OnOpenLearningWorkbenchClick" VerticalAlignment="Center" AutomationProperties.Name="打开 DeepTutor 工作台" />
                         </Grid>
                     </Border>
                     <Border Padding="14,12" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -194,7 +194,7 @@
                                 <TextBlock Text="导入资料" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                                 <TextBlock Text="从 Markdown、PDF、Office、网页或 Canvas 开始。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
-                            <Button x:Name="HomeImportButton" Grid.Column="1" Content="选择资料并导入" Padding="14,8" VerticalAlignment="Center" Click="OnImportClick" />
+                            <Button x:Name="HomeImportButton" Grid.Column="1" Content="选择资料并导入" Padding="14,8" VerticalAlignment="Center" Click="OnImportClick" AutomationProperties.Name="选择资料并导入" />
                         </Grid>
                     </Border>
                     <Border Padding="14,12" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -238,8 +238,8 @@
                       <TextBlock Text="仅传递 Core 已返回的 source_id/job_id；不会把导入成功推断为知识或学习成功。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                       <ListBox x:Name="CaptureContextsList" SelectionChanged="OnCaptureContextSelected" MaxHeight="170" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" />
                       <StackPanel x:Name="CaptureContextActions" Orientation="Horizontal" Spacing="8">
-                        <Button x:Name="OpenLatestSourceButton" Content="打开最近来源" IsEnabled="False" Padding="14,8" Click="OnOpenLatestSourceClick" />
-                        <Button x:Name="OpenLatestJobButton" Content="查看最近任务" IsEnabled="False" Padding="14,8" Click="OnOpenLatestJobClick" />
+                        <Button x:Name="OpenLatestSourceButton" Content="打开最近来源" IsEnabled="False" Padding="14,8" Click="OnOpenLatestSourceClick" AutomationProperties.Name="打开最近来源" />
+                        <Button x:Name="OpenLatestJobButton" Content="查看最近任务" IsEnabled="False" Padding="14,8" Click="OnOpenLatestJobClick" AutomationProperties.Name="查看最近任务" />
                       </StackPanel>
                     </StackPanel>
                   </Border>
@@ -251,7 +251,7 @@
                   <TextBlock Text="知识搜索结果仍需人工选择确认关联；搜索命中不自动构成来源关联。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                   <Grid x:Name="LibrarySearchGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="LibrarySearchBox" PlaceholderText="搜索知识或提取内容" />
-                    <Button x:Name="LibrarySearchButton" Classes="primary-action" Grid.Column="1" Content="搜索" Padding="16,9" Click="OnSearchLibraryClick" />
+                    <Button x:Name="LibrarySearchButton" Classes="primary-action" Grid.Column="1" Content="搜索" Padding="16,9" Click="OnSearchLibraryClick" AutomationProperties.Name="搜索" />
                   </Grid>
                   <StackPanel x:Name="LibraryFilterPanel" Orientation="Horizontal" Spacing="10">
                     <CheckBox x:Name="LibraryActiveOnlyBox" Content="仅当前有效 Knowledge（Transform 不适用）" VerticalAlignment="Center" />
@@ -320,7 +320,7 @@
                   <TextBlock Text="读取 Core 已登记的容器来源成员与可读性；不把容器清单或未解析内容伪装成已理解知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="SourceReaderLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="SourceReaderIdBox" PlaceholderText="输入 container source_id" />
-                    <Button x:Name="SourceReaderLoadButton" Classes="primary-action" Grid.Column="1" Content="读取来源成员" Padding="16,9" Click="OnReadSourceMembersClick" />
+                    <Button x:Name="SourceReaderLoadButton" Classes="primary-action" Grid.Column="1" Content="读取来源成员" Padding="16,9" Click="OnReadSourceMembersClick" AutomationProperties.Name="读取来源成员" />
                   </Grid>
                   <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="来源阅读状态" />
                   <StackPanel Orientation="Horizontal" Spacing="8">
@@ -400,7 +400,7 @@
                   <TextBlock x:Name="KnowledgeStateText" Classes="status-empty" Text="尚未读取 Knowledge V3。" TextWrapping="Wrap" AutomationProperties.Name="知识库状态" />
                   <Grid x:Name="KnowledgeLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="KnowledgeIdBox" PlaceholderText="输入 knowledge_id" />
-                    <Button x:Name="KnowledgeLoadButton" Classes="primary-action" Grid.Column="1" Content="读取知识" Padding="16,9" Click="OnReadKnowledgeClick" />
+                    <Button x:Name="KnowledgeLoadButton" Classes="primary-action" Grid.Column="1" Content="读取知识" Padding="16,9" Click="OnReadKnowledgeClick" AutomationProperties.Name="读取知识" />
                   </Grid>
                   <Button x:Name="BackToLibraryFromKnowledgeButton" Content="返回资料库 Evidence Detail" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnBackToLibraryFromKnowledgeClick" />
                   <Button x:Name="OpenKnowledgeSourceButton" Content="查看 Knowledge 来源成员" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnOpenKnowledgeSourceClick" />
@@ -510,7 +510,7 @@
                             <Button x:Name="ReviewGoodButton" Classes="review-grade" Grid.Row="1" Content="Good · 正常" IsEnabled="False" Padding="14,8" Click="OnReviewGoodClick" AutomationProperties.Name="FSRS Good 正常" />
                             <Button x:Name="ReviewEasyButton" Classes="review-grade" Grid.Row="1" Grid.Column="1" Content="Easy · 轻松" IsEnabled="False" Padding="14,8" Click="OnReviewEasyClick" AutomationProperties.Name="FSRS Easy 轻松" />
                         </Grid>
-                        <Button x:Name="SubmitReviewButton" Classes="primary-action" Content="提交复习结果" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnSubmitReviewClick" />
+                        <Button x:Name="SubmitReviewButton" Classes="primary-action" Content="提交复习结果" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnSubmitReviewClick" AutomationProperties.Name="提交复习结果" />
                         <TextBlock x:Name="LearningReviewStatusText" Text="尚未提交复习；提交结果由 Core 回执决定。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="复习提交状态" />
                         <Border x:Name="LearningReviewReceiptPanel" Classes="aaos-card-compact" Padding="12">
                           <StackPanel Spacing="4">
@@ -528,7 +528,7 @@
                   <TextBlock Text="读取指定机器任务收据；任务收据是测量事实，不代表模型已训练或知识已自动升级。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="MachineTaskGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="MachineTaskIdBox" PlaceholderText="输入 task_id" />
-                    <Button x:Name="MachineTaskLoadButton" Grid.Column="1" Content="读取任务收据" Padding="16,9" Click="OnReadMachineTaskClick" />
+                    <Button x:Name="MachineTaskLoadButton" Grid.Column="1" Content="读取任务收据" Padding="16,9" Click="OnReadMachineTaskClick" AutomationProperties.Name="读取任务收据" />
                   </Grid>
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <TextBlock x:Name="MachineTaskResultsText" Text="输入 task_id 后读取 Core。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -548,7 +548,7 @@
                   <TextBlock Text="证据中心" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="读取 Core 已持久化的 Evidence anchor 与 bundle 摘要；不展示原文正文，不把来源元数据升级为结论。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="EvidenceToolbar" Classes="aaos-toolbar" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-                    <Button x:Name="EvidenceRefreshButton" Classes="primary-action" Content="读取证据" Padding="16,9" Click="OnEvidenceRefreshClick" />
+                    <Button x:Name="EvidenceRefreshButton" Classes="primary-action" Content="读取证据" Padding="16,9" Click="OnEvidenceRefreshClick" AutomationProperties.Name="读取证据" />
                     <TextBlock x:Name="EvidenceStatusText" Grid.Column="1" Classes="status-empty" VerticalAlignment="Center" Text="empty · 尚未读取 Core Evidence。" TextWrapping="Wrap" AutomationProperties.Name="证据中心状态" />
                   </Grid>
                   <Border Classes="aaos-empty-state" Padding="16">
