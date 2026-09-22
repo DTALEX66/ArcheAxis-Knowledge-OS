@@ -726,6 +726,10 @@
             </Grid>
         </Border>
 
+        <Border x:Name="ToastSurface" Grid.RowSpan="3" Grid.ColumnSpan="4" IsVisible="False" ZIndex="20" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,22,28,0" MaxWidth="420" IsHitTestVisible="False" Classes="aaos-card-compact" Padding="14,10">
+            <TextBlock x:Name="ToastText" TextWrapping="Wrap" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="临时操作提示" />
+        </Border>
+
         <Border x:Name="CommandPaletteOverlay" Grid.RowSpan="3" Grid.ColumnSpan="4" IsVisible="False" ZIndex="10" Background="{DynamicResource AaosOverlayBrush}" Padding="24">
             <Border Classes="aaos-card" MaxWidth="620" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,72,0,0" Padding="20">
                 <StackPanel Spacing="10">

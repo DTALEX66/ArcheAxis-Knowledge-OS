@@ -11,6 +11,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 
 namespace ArcheAxis.Desktop;
 
@@ -52,6 +53,7 @@ public partial class MainWindow : Window
     private bool _homeLearningAvailable;
     private int? _homeLearningCount;
     private bool _inspectorDrawerOpen;
+    private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(2600) };
     private static readonly string[] CommandPaletteCommands =
     {
         "首页", "捕获", "资料库", "原件阅读", "知识库", "学习", "证据中心", "研究", "机器知识", "任务", "插件", "模型", "恢复", "设置",
@@ -145,6 +147,7 @@ public partial class MainWindow : Window
         }
         Loaded += OnLoaded;
         Closed += OnClosed;
+        _toastTimer.Tick += OnToastTimerTick;
     }
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
@@ -508,6 +511,20 @@ public partial class MainWindow : Window
         target.Classes.Set("status-unknown", semanticState == "unknown");
         target.Classes.Set("status-disabled", semanticState == "unavailable" || semanticState == "disabled");
         target.Text = text;
+    }
+
+    private void ShowToast(string message, string semanticState = "success")
+    {
+        SetStatus(ToastText, message, semanticState);
+        ToastSurface.IsVisible = true;
+        _toastTimer.Stop();
+        _toastTimer.Start();
+    }
+
+    private void OnToastTimerTick(object? sender, EventArgs e)
+    {
+        _toastTimer.Stop();
+        ToastSurface.IsVisible = false;
     }
 
     private static bool IsPermissionStatus(System.Net.HttpStatusCode statusCode)
@@ -1103,6 +1120,7 @@ public partial class MainWindow : Window
         });
         await clipboard.SetTextAsync(provenance);
         SetStatus(SourceReaderStatusText, "来源阅读：已复制来源链摘要；未复制原文正文。", "success");
+        ShowToast("已复制来源链摘要");
     }
 
     private void OnFindLibraryFromSourceClick(object? sender, RoutedEventArgs e)
@@ -2195,6 +2213,7 @@ public partial class MainWindow : Window
     private void OnClosed(object? sender, EventArgs e)
     {
         // Supervisor shutdown: never leave an orphaned core process behind.
+        _toastTimer.Stop();
         _deepTutor.Dispose();
         _supervisor?.Dispose();
     }
@@ -2916,6 +2935,7 @@ public partial class MainWindow : Window
                         ? "复习已记录；回答已保存，但 Mastery projection 未闭合。"
                         : "复习已记录；知识接受状态仍由 Core projection 决定。",
                     "success");
+                ShowToast("复习结果已由 Core 记录");
                 // The exposure is closed: the next one must carry fresh ids.
                 _activeReviewEventId = null;
                 _activeExposureId = null;

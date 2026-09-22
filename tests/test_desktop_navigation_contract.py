@@ -1637,6 +1637,19 @@ def test_source_reader_can_copy_only_the_selected_core_provenance_chain() -> Non
     assert 'HasProvenanceValue(selected.SourceId)' in code
     assert 'HasProvenanceValue(selected.Member)' in code
     assert 'HasProvenanceValue(selected.Sha256)' in code
+
+
+def test_frontend_exposes_truthful_transient_toast_feedback() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'x:Name="ToastSurface"' in xaml
+    assert 'x:Name="ToastText"' in xaml
+    assert 'AutomationProperties.Name="临时操作提示"' in xaml
+    assert 'private void ShowToast' in code
+    assert 'DispatcherTimer' in code
+    assert 'ShowToast("已复制来源链摘要")' in code
+    assert 'ShowToast("复习结果已由 Core 记录")' in code
     assert '来源链字段不完整，未复制占位值' in code
     assert 'private bool IsCurrentSourceTransformRequest' in code
     assert 'ReferenceEquals(SourceReaderMembersList.SelectedItem, selected)' in code
