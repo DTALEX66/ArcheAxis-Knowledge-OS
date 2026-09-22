@@ -22,18 +22,18 @@
         <Border x:Name="PrimaryRail" Grid.Row="1" Grid.Column="0" Padding="18,20" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0">
             <StackPanel Spacing="8">
                 <TextBlock Text="一级空间" Margin="8,8,8,12" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
-                <Button x:Name="RailWorkspaceButton" Classes="rail-button" Content="工作台" Padding="14,10" Click="OnHomeClick" />
-                <Button x:Name="RailCaptureButton" Classes="rail-button" Content="捕获" Padding="14,10" Click="OnCaptureClick" />
-                <Button x:Name="RailKnowledgeButton" Classes="rail-button" Content="资料与知识" Padding="14,10" Click="OnLibraryClick" />
-                <Button x:Name="RailReaderButton" Classes="rail-button" Content="原件阅读" Padding="14,10" Click="OnSourceReaderClick" />
-                <Button x:Name="RailLearningButton" Classes="rail-button" Content="学习" Padding="14,10" Click="OnLearningNavigationClick" />
+                <Button x:Name="RailWorkspaceButton" Classes="rail-button" Content="工作台" Padding="14,10" Click="OnHomeClick" AutomationProperties.Name="打开工作台" />
+                <Button x:Name="RailCaptureButton" Classes="rail-button" Content="捕获" Padding="14,10" Click="OnCaptureClick" AutomationProperties.Name="打开捕获" />
+                <Button x:Name="RailKnowledgeButton" Classes="rail-button" Content="资料与知识" Padding="14,10" Click="OnLibraryClick" AutomationProperties.Name="打开资料与知识" />
+                <Button x:Name="RailReaderButton" Classes="rail-button" Content="原件阅读" Padding="14,10" Click="OnSourceReaderClick" AutomationProperties.Name="打开原件阅读" />
+                <Button x:Name="RailLearningButton" Classes="rail-button" Content="学习" Padding="14,10" Click="OnLearningNavigationClick" AutomationProperties.Name="打开学习" />
                 <Button x:Name="RailMachineButton" Classes="rail-button" Content="机器知识" Padding="14,10" Click="OnMachineGrowthClick" />
-                <Button x:Name="RailEvidenceButton" Classes="rail-button" Content="证据中心" Padding="14,10" Click="OnEvidenceClick" />
+                <Button x:Name="RailEvidenceButton" Classes="rail-button" Content="证据中心" Padding="14,10" Click="OnEvidenceClick" AutomationProperties.Name="打开证据中心" />
                 <Button x:Name="RailResearchButton" Classes="rail-button" Content="研究" Padding="14,10" Click="OnResearchClick" />
-                <Button x:Name="RailJobsButton" Classes="rail-button" Content="任务" Padding="14,10" Click="OnJobsClick" />
+                <Button x:Name="RailJobsButton" Classes="rail-button" Content="任务" Padding="14,10" Click="OnJobsClick" AutomationProperties.Name="打开任务" />
                 <Button x:Name="RailPluginsButton" Classes="rail-button" Content="插件" Padding="14,10" Click="OnPluginsClick" />
                 <Button x:Name="RailModelsButton" Classes="rail-button" Content="模型" Padding="14,10" Click="OnModelsClick" />
-                <Button x:Name="RailSystemButton" Classes="rail-button" Content="系统" Padding="14,10" Click="OnSettingsClick" />
+                <Button x:Name="RailSystemButton" Classes="rail-button" Content="系统" Padding="14,10" Click="OnSettingsClick" AutomationProperties.Name="打开系统" />
                 <Separator Margin="8,12" />
                 <TextBlock Text="vNext · Core 真相" Margin="8,4" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
             </StackPanel>
@@ -80,18 +80,18 @@
                 <Border x:Name="MobileRail" IsVisible="False" Padding="8,6" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1" CornerRadius="8">
                     <ScrollViewer HorizontalScrollBarVisibility="Hidden" HorizontalContentAlignment="Left">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button x:Name="MobileWorkspaceButton" Classes="rail-button" Content="工作台" Click="OnHomeClick" />
-                            <Button x:Name="MobileCaptureButton" Classes="rail-button" Content="捕获" Click="OnCaptureClick" />
-                            <Button x:Name="MobileKnowledgeButton" Classes="rail-button" Content="资料与知识" Click="OnLibraryClick" />
-                            <Button x:Name="MobileReaderButton" Classes="rail-button" Content="原件阅读" Click="OnSourceReaderClick" />
-                            <Button x:Name="MobileLearningButton" Classes="rail-button" Content="学习" Click="OnLearningNavigationClick" />
+                            <Button x:Name="MobileWorkspaceButton" Classes="rail-button" Content="工作台" Click="OnHomeClick" AutomationProperties.Name="打开工作台" />
+                            <Button x:Name="MobileCaptureButton" Classes="rail-button" Content="捕获" Click="OnCaptureClick" AutomationProperties.Name="打开捕获" />
+                            <Button x:Name="MobileKnowledgeButton" Classes="rail-button" Content="资料与知识" Click="OnLibraryClick" AutomationProperties.Name="打开资料与知识" />
+                            <Button x:Name="MobileReaderButton" Classes="rail-button" Content="原件阅读" Click="OnSourceReaderClick" AutomationProperties.Name="打开原件阅读" />
+                            <Button x:Name="MobileLearningButton" Classes="rail-button" Content="学习" Click="OnLearningNavigationClick" AutomationProperties.Name="打开学习" />
                             <Button x:Name="MobileMachineButton" Classes="rail-button" Content="机器知识" Click="OnMachineGrowthClick" />
-                            <Button x:Name="MobileEvidenceButton" Classes="rail-button" Content="证据中心" Click="OnEvidenceClick" />
+                            <Button x:Name="MobileEvidenceButton" Classes="rail-button" Content="证据中心" Click="OnEvidenceClick" AutomationProperties.Name="打开证据中心" />
                             <Button x:Name="MobileResearchButton" Classes="rail-button" Content="研究" Click="OnResearchClick" />
-                            <Button x:Name="MobileJobsButton" Classes="rail-button" Content="任务" Click="OnJobsClick" />
+                            <Button x:Name="MobileJobsButton" Classes="rail-button" Content="任务" Click="OnJobsClick" AutomationProperties.Name="打开任务" />
                             <Button x:Name="MobilePluginsButton" Classes="rail-button" Content="插件" Click="OnPluginsClick" />
                             <Button x:Name="MobileModelsButton" Classes="rail-button" Content="模型" Click="OnModelsClick" />
-                            <Button x:Name="MobileSystemButton" Classes="rail-button" Content="系统" Click="OnSettingsClick" />
+                            <Button x:Name="MobileSystemButton" Classes="rail-button" Content="系统" Click="OnSettingsClick" AutomationProperties.Name="打开系统" />
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
@@ -535,7 +535,7 @@
                 <StackPanel x:Name="RecoverySurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="恢复" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="读取当前 Core 与工作区身份状态。当前 Core 未暴露恢复点列表或恢复动作；本页不执行、不预演恢复。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                  <Button Content="读取恢复边界状态" HorizontalAlignment="Left" Padding="16,9" Click="OnReadRecoveryStatusClick" />
+                  <Button Content="读取恢复边界状态" HorizontalAlignment="Left" Padding="16,9" Click="OnReadRecoveryStatusClick" AutomationProperties.Name="读取恢复边界状态" />
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <TextBlock x:Name="RecoveryResultsText" Classes="status-empty" Text="empty · 点击读取 Core 状态。" TextWrapping="Wrap" />
                   </Border>
@@ -591,7 +591,7 @@
                 <StackPanel x:Name="SettingsSurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="设置" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="以下信息来自当前 Core 握手端点；桌面不复制或修改 Core 配置。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                  <Button x:Name="SettingsRefreshButton" Content="读取当前 Core 状态" HorizontalAlignment="Left" Padding="14,8" Click="OnSettingsRefreshClick" />
+                  <Button x:Name="SettingsRefreshButton" Content="读取当前 Core 状态" HorizontalAlignment="Left" Padding="14,8" Click="OnSettingsRefreshClick" AutomationProperties.Name="读取当前 Core 状态" />
                   <TextBlock x:Name="SettingsStateText" Classes="status-empty" Text="尚未读取 Core 状态。" TextWrapping="Wrap" />
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="8">
@@ -608,10 +608,10 @@
                   <TextBlock Text="这里只显示本次桌面会话创建的导入任务；Core 当前没有全量任务列表投影。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="JobLookupGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="JobLookupIdBox" PlaceholderText="输入 job_id 读取回执" />
-                    <Button x:Name="JobLookupButton" Grid.Column="1" Content="读取任务回执" Padding="16,9" Click="OnReadJobReceiptClick" />
+                    <Button x:Name="JobLookupButton" Grid.Column="1" Content="读取任务回执" Padding="16,9" Click="OnReadJobReceiptClick" AutomationProperties.Name="读取指定任务回执" />
                   </Grid>
                   <TextBlock x:Name="JobLookupResultsText" Classes="status-empty" Text="empty · 未读取指定任务回执。" TextWrapping="Wrap" />
-                  <Button Content="刷新本次导入状态" HorizontalAlignment="Left" Padding="16,9" Click="OnRefreshJobsClick" />
+                  <Button Content="刷新本次导入状态" HorizontalAlignment="Left" Padding="16,9" Click="OnRefreshJobsClick" AutomationProperties.Name="刷新本次导入任务回执" />
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="10">
                       <TextBlock x:Name="JobsResultsText" Text="本次会话尚无可显示任务。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />

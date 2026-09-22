@@ -254,6 +254,36 @@ def test_shell_exposes_core_product_navigation() -> None:
         assert f"void {handler}" in code
 
 
+def test_primary_navigation_and_system_actions_expose_stable_automation_names() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    for name in (
+        'x:Name="RailWorkspaceButton"',
+        'x:Name="RailCaptureButton"',
+        'x:Name="RailKnowledgeButton"',
+        'x:Name="RailReaderButton"',
+        'x:Name="RailLearningButton"',
+        'x:Name="RailEvidenceButton"',
+        'x:Name="RailJobsButton"',
+        'x:Name="RailSystemButton"',
+    ):
+        assert name in xaml
+    for automation_name in (
+        'AutomationProperties.Name="打开工作台"',
+        'AutomationProperties.Name="打开捕获"',
+        'AutomationProperties.Name="打开资料与知识"',
+        'AutomationProperties.Name="打开原件阅读"',
+        'AutomationProperties.Name="打开学习"',
+        'AutomationProperties.Name="打开证据中心"',
+        'AutomationProperties.Name="打开任务"',
+        'AutomationProperties.Name="打开系统"',
+        'AutomationProperties.Name="读取恢复边界状态"',
+        'AutomationProperties.Name="读取当前 Core 状态"',
+        'AutomationProperties.Name="刷新本次导入任务回执"',
+        'AutomationProperties.Name="读取指定任务回执"',
+    ):
+        assert automation_name in xaml
+
+
 def test_home_exposes_honest_first_run_readiness_surface() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
