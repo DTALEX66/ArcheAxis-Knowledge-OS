@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `28e96913` on
+- Frontend implementation HEAD: `3b1cb0d4` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -62,6 +62,9 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
   actionable buttons.
 - Text inputs, filters, result lists, and receipt lists expose stable
   `AutomationProperties.Name` values with a matching regression contract.
+- Disabled Button, TextBox, and ComboBox states use an explicit AAOS visual
+  treatment so unavailable actions remain legible and distinguishable from
+  ordinary idle controls.
 - Desktop and mobile primary navigation actions now expose stable accessible
   names for all formal product routes.
 - Source Reader citation/provenance actions reflow vertically at the narrow
