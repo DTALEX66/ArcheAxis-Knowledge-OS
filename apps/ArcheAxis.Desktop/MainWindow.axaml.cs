@@ -799,6 +799,13 @@ public partial class MainWindow : Window
             OnToggleInspectorDrawerClick(this, new RoutedEventArgs());
             InspectorDrawerButton.Focus();
             e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Escape && _activityDockExpanded)
+        {
+            SetActivityDockExpanded(false, restoreFocus: true);
+            e.Handled = true;
         }
     }
 
@@ -1729,7 +1736,12 @@ public partial class MainWindow : Window
 
     private void OnToggleActivityDockClick(object? sender, RoutedEventArgs e)
     {
-        _activityDockExpanded = !_activityDockExpanded;
+        SetActivityDockExpanded(!_activityDockExpanded);
+    }
+
+    private void SetActivityDockExpanded(bool expanded, bool restoreFocus = false)
+    {
+        _activityDockExpanded = expanded;
         ActivityDockDetailsText.IsVisible = _activityDockExpanded;
         ActivityDockReceiptList.IsVisible = _activityDockExpanded;
         ActivityDockText.TextTrimming = _activityDockExpanded
@@ -1738,6 +1750,8 @@ public partial class MainWindow : Window
         var label = _activityDockExpanded ? "收起活动回执详情" : "展开活动回执详情";
         ActivityDockToggleButton.Content = _activityDockExpanded ? "收起详情" : "展开详情";
         Avalonia.Automation.AutomationProperties.SetName(ActivityDockToggleButton, label);
+        if (restoreFocus)
+            ActivityDockToggleButton.Focus();
     }
 
     private void OnActivityDockReceiptSelected(object? sender, SelectionChangedEventArgs e)

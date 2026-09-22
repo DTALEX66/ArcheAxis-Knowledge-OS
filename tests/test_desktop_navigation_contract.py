@@ -155,6 +155,16 @@ def test_activity_dock_can_expand_current_session_receipts_without_history_claim
     assert '不代表持久历史' in xaml or '不代表持久历史' in code
 
 
+def test_activity_dock_escape_collapses_and_restores_focus() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    assert 'e.Key == Key.Escape && _activityDockExpanded' in code
+    assert 'SetActivityDockExpanded(false, restoreFocus: true);' in code
+    assert 'private void SetActivityDockExpanded(bool expanded, bool restoreFocus = false)' in code
+    assert 'ActivityDockDetailsText.IsVisible = _activityDockExpanded;' in code
+    assert 'ActivityDockReceiptList.IsVisible = _activityDockExpanded;' in code
+    assert 'ActivityDockToggleButton.Focus();' in code
+
+
 def test_learning_review_exposes_explicit_core_submission_status() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
