@@ -106,6 +106,18 @@
             <Transitions />
         </Setter>
     </Style>
+    <Style Selector="Border.aaos-animated-surface">
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Grid.reduced-motion Border.aaos-animated-surface">
+        <Setter Property="Transitions">
+            <Transitions />
+        </Setter>
+    </Style>
     <Style Selector="Button:focus">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />

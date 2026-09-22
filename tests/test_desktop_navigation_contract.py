@@ -1327,6 +1327,20 @@ def test_inspector_drawer_enters_focus_and_reflows_scrollable_actions() -> None:
     assert 'InspectorActionPanel.Orientation = narrowActions' in code
 
 
+def test_overlay_surfaces_have_reduced_motion_safe_reveal_feedback() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    for name in ("InspectorPanel", "ActivityDock", "ToastSurface", "CommandPaletteOverlay"):
+        surface = xaml.split(f'x:Name="{name}"', 1)[1].split('>', 1)[0]
+        assert 'Classes="aaos-animated-surface' in surface
+    assert '<Style Selector="Border.aaos-animated-surface">' in theme
+    assert '<Style Selector="Grid.reduced-motion Border.aaos-animated-surface">' in theme
+    assert 'private void RevealSurface(Control target)' in code
+    assert 'Dispatcher.UIThread.Post' in code
+    assert 'if (_reducedMotion)' in code
+
+
 def test_exact_tablet_and_narrow_action_breakpoints_collapse_at_boundary() -> None:
     code = CODE.read_text(encoding="utf-8")
     assert 'var compact = e.NewSize.Width <= tabletBreakpoint;' in code

@@ -660,7 +660,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Border x:Name="InspectorPanel" Grid.Row="1" Grid.Column="3" Padding="18,24" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1,0,0,0" Focusable="True" AutomationProperties.Name="来源与证据检查器">
+        <Border x:Name="InspectorPanel" Classes="aaos-animated-surface" Grid.Row="1" Grid.Column="3" Padding="18,24" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1,0,0,0" Focusable="True" AutomationProperties.Name="来源与证据检查器">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="18">
                 <TextBlock Text="来源与证据" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -714,7 +714,7 @@
             </ScrollViewer>
         </Border>
 
-        <Border x:Name="ActivityDock" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Padding="18,10" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,1,0,0">
+        <Border x:Name="ActivityDock" Classes="aaos-animated-surface" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Padding="18,10" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,1,0,0">
             <Grid x:Name="ActivityDockGrid" ColumnDefinitions="*,Auto" ColumnSpacing="16">
                 <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="10">
@@ -742,11 +742,11 @@
             </Grid>
         </Border>
 
-        <Border x:Name="ToastSurface" Grid.RowSpan="3" Grid.ColumnSpan="4" IsVisible="False" ZIndex="20" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,22,28,0" MaxWidth="420" IsHitTestVisible="False" Classes="aaos-card-compact" Padding="14,10">
+        <Border x:Name="ToastSurface" Classes="aaos-animated-surface aaos-card-compact" Grid.RowSpan="3" Grid.ColumnSpan="4" IsVisible="False" ZIndex="20" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,22,28,0" MaxWidth="420" IsHitTestVisible="False" Padding="14,10">
             <TextBlock x:Name="ToastText" TextWrapping="Wrap" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="临时操作提示" />
         </Border>
 
-        <Border x:Name="CommandPaletteOverlay" Grid.RowSpan="3" Grid.ColumnSpan="4" IsVisible="False" ZIndex="10" Background="{DynamicResource AaosOverlayBrush}" Padding="24">
+        <Border x:Name="CommandPaletteOverlay" Classes="aaos-animated-surface" Grid.RowSpan="3" Grid.ColumnSpan="4" IsVisible="False" ZIndex="10" Background="{DynamicResource AaosOverlayBrush}" Padding="24">
             <Border Classes="aaos-card" MaxWidth="620" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,72,0,0" Padding="20">
                 <StackPanel Spacing="10">
                     <TextBlock Text="命令面板" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />

@@ -57,6 +57,7 @@ public partial class MainWindow : Window
     private bool _homeLearningAvailable;
     private int? _homeLearningCount;
     private bool _inspectorDrawerOpen;
+    private bool _reducedMotion;
     private IInputElement? _commandPaletteReturnFocus;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(2600) };
     private sealed record CommandPaletteRoute(
@@ -176,8 +177,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Title = "ArcheAxis Learning Workspace (vNext) — core offline";
-        if (string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "1", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "true", StringComparison.OrdinalIgnoreCase))
+        _reducedMotion = string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "1", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "true", StringComparison.OrdinalIgnoreCase);
+        if (_reducedMotion)
         {
             MainFrameGrid.Classes.Set("reduced-motion", true);
         }
@@ -582,7 +584,7 @@ public partial class MainWindow : Window
             _ => "toast-success",
         };
         ToastSurface.Classes.Set(toastState, true);
-        ToastSurface.IsVisible = true;
+        RevealSurface(ToastSurface);
         _toastTimer.Stop();
         _toastTimer.Start();
     }
@@ -590,7 +592,25 @@ public partial class MainWindow : Window
     private void OnToastTimerTick(object? sender, EventArgs e)
     {
         _toastTimer.Stop();
+        ToastSurface.Opacity = 1;
         ToastSurface.IsVisible = false;
+    }
+
+    private void RevealSurface(Control target)
+    {
+        target.IsVisible = true;
+        if (_reducedMotion)
+        {
+            target.Opacity = 1;
+            return;
+        }
+
+        target.Opacity = 0;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (target.IsVisible)
+                target.Opacity = 1;
+        });
     }
 
     private static bool IsPermissionStatus(System.Net.HttpStatusCode statusCode)
@@ -609,7 +629,13 @@ public partial class MainWindow : Window
     private void OnToggleInspectorDrawerClick(object? sender, RoutedEventArgs e)
     {
         _inspectorDrawerOpen = !_inspectorDrawerOpen;
-        InspectorPanel.IsVisible = _inspectorDrawerOpen;
+        if (_inspectorDrawerOpen)
+            RevealSurface(InspectorPanel);
+        else
+        {
+            InspectorPanel.Opacity = 1;
+            InspectorPanel.IsVisible = false;
+        }
         var label = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
         InspectorDrawerButton.Content = label;
         Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, label);
@@ -770,13 +796,14 @@ public partial class MainWindow : Window
         if (visible)
         {
             _commandPaletteReturnFocus = FocusManager.GetFocusedElement();
-            CommandPaletteOverlay.IsVisible = true;
+            RevealSurface(CommandPaletteOverlay);
             CommandPaletteBox.Text = string.Empty;
             RefreshCommandPaletteResults(string.Empty);
             CommandPaletteBox.Focus();
             return;
         }
 
+        CommandPaletteOverlay.Opacity = 1;
         CommandPaletteOverlay.IsVisible = false;
         var returnFocus = _commandPaletteReturnFocus;
         _commandPaletteReturnFocus = null;
