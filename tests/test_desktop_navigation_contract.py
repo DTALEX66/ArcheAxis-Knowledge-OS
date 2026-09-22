@@ -935,6 +935,14 @@ def test_inspector_projection_refreshes_accessible_names_with_visible_state() ->
     assert 'AutomationProperties.SetName(InspectorProvenanceText' in code
 
 
+def test_aaos_cards_expose_hover_surface_feedback() -> None:
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    assert '<Style Selector="Border.aaos-card:pointerover">' in theme
+    assert '<Style Selector="Border.lifecycle-card:pointerover">' in theme
+    assert 'AaosSurface2Brush' in theme
+    assert 'AaosPrimaryBrush' in theme
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]

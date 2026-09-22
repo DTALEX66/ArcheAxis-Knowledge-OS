@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `cc4fc566` on
+- Frontend implementation HEAD: pending until this scoped continuation is committed on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -51,8 +51,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after dynamic Inspector accessibility
-  readback: `197 passed`.
+- Current combined frontend verification after card hover feedback: `198 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -194,6 +193,9 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   projections now refresh their `AutomationProperties.Name` values together
   with visible Core projection text; this is accessible state readback, not a
   claim of native Live Region announcement.
+- Product cards and Home lifecycle cards now expose AAOS surface and border
+  feedback on pointer-over, making the visual hierarchy respond to direct
+  exploration without inventing click behavior or Core state.
 
 ## Explicit limits
 

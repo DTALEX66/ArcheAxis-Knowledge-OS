@@ -2264,3 +2264,10 @@
 - source_commit: `cc4fc566` (`fix(desktop): refresh inspector accessible projection`).
 - verification: TDD RED was observed for the Inspector accessibility contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `197 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native accessibility-tree readback, screen-reader announcement, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 card hover surface feedback
+- scope: continued the canonical Avalonia visual system only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added pointer-over surface and border feedback to reusable `aaos-card` and Home lifecycle card styles using existing AAOS Surface2 and Primary tokens; hover does not create click behavior or product state.
+- source_commit: pending until this scoped change is committed.
+- verification: TDD RED was observed for the card-hover contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `198 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native pointer rendering, hover timing, screenshot, accessibility tree, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
