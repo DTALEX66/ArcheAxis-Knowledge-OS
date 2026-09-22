@@ -1664,6 +1664,27 @@ def test_source_reader_can_copy_a_bounded_citation_metadata_summary() -> None:
     assert 'private async void OnCopySourceCitationClick' in code
     assert '引用元数据' in code
     assert '不包含原文正文' in code
+
+
+def test_primary_and_mobile_navigation_have_stable_accessibility_names() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    expected = {
+        'x:Name="RailMachineButton"': 'AutomationProperties.Name="打开机器知识"',
+        'x:Name="RailResearchButton"': 'AutomationProperties.Name="打开研究"',
+        'x:Name="RailPluginsButton"': 'AutomationProperties.Name="打开插件"',
+        'x:Name="RailModelsButton"': 'AutomationProperties.Name="打开模型"',
+        'x:Name="MobileMachineButton"': 'AutomationProperties.Name="打开机器知识"',
+        'x:Name="MobileResearchButton"': 'AutomationProperties.Name="打开研究"',
+        'x:Name="MobilePluginsButton"': 'AutomationProperties.Name="打开插件"',
+        'x:Name="MobileModelsButton"': 'AutomationProperties.Name="打开模型"',
+    }
+    for control, automation_name in expected.items():
+        assert control in xaml
+        control_start = xaml.index(control)
+        control_end = xaml.index(" />", control_start)
+        assert automation_name in xaml[control_start:control_end]
     assert '来源链字段不完整，未复制占位值' in code
     assert 'private bool IsCurrentSourceTransformRequest' in code
     assert 'ReferenceEquals(SourceReaderMembersList.SelectedItem, selected)' in code

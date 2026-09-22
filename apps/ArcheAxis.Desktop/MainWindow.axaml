@@ -27,12 +27,12 @@
                 <Button x:Name="RailKnowledgeButton" Classes="rail-button" Content="资料与知识" Padding="14,10" Click="OnLibraryClick" AutomationProperties.Name="打开资料与知识" />
                 <Button x:Name="RailReaderButton" Classes="rail-button" Content="原件阅读" Padding="14,10" Click="OnSourceReaderClick" AutomationProperties.Name="打开原件阅读" />
                 <Button x:Name="RailLearningButton" Classes="rail-button" Content="学习" Padding="14,10" Click="OnLearningNavigationClick" AutomationProperties.Name="打开学习" />
-                <Button x:Name="RailMachineButton" Classes="rail-button" Content="机器知识" Padding="14,10" Click="OnMachineGrowthClick" />
+                <Button x:Name="RailMachineButton" Classes="rail-button" Content="机器知识" Padding="14,10" Click="OnMachineGrowthClick" AutomationProperties.Name="打开机器知识" />
                 <Button x:Name="RailEvidenceButton" Classes="rail-button" Content="证据中心" Padding="14,10" Click="OnEvidenceClick" AutomationProperties.Name="打开证据中心" />
-                <Button x:Name="RailResearchButton" Classes="rail-button" Content="研究" Padding="14,10" Click="OnResearchClick" />
+                <Button x:Name="RailResearchButton" Classes="rail-button" Content="研究" Padding="14,10" Click="OnResearchClick" AutomationProperties.Name="打开研究" />
                 <Button x:Name="RailJobsButton" Classes="rail-button" Content="任务" Padding="14,10" Click="OnJobsClick" AutomationProperties.Name="打开任务" />
-                <Button x:Name="RailPluginsButton" Classes="rail-button" Content="插件" Padding="14,10" Click="OnPluginsClick" />
-                <Button x:Name="RailModelsButton" Classes="rail-button" Content="模型" Padding="14,10" Click="OnModelsClick" />
+                <Button x:Name="RailPluginsButton" Classes="rail-button" Content="插件" Padding="14,10" Click="OnPluginsClick" AutomationProperties.Name="打开插件" />
+                <Button x:Name="RailModelsButton" Classes="rail-button" Content="模型" Padding="14,10" Click="OnModelsClick" AutomationProperties.Name="打开模型" />
                 <Button x:Name="RailSystemButton" Classes="rail-button" Content="系统" Padding="14,10" Click="OnSettingsClick" AutomationProperties.Name="打开系统" />
                 <Separator Margin="8,12" />
                 <TextBlock Text="vNext · Core 真相" Margin="8,4" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -85,12 +85,12 @@
                             <Button x:Name="MobileKnowledgeButton" Classes="rail-button" Content="资料与知识" Click="OnLibraryClick" AutomationProperties.Name="打开资料与知识" />
                             <Button x:Name="MobileReaderButton" Classes="rail-button" Content="原件阅读" Click="OnSourceReaderClick" AutomationProperties.Name="打开原件阅读" />
                             <Button x:Name="MobileLearningButton" Classes="rail-button" Content="学习" Click="OnLearningNavigationClick" AutomationProperties.Name="打开学习" />
-                            <Button x:Name="MobileMachineButton" Classes="rail-button" Content="机器知识" Click="OnMachineGrowthClick" />
+                            <Button x:Name="MobileMachineButton" Classes="rail-button" Content="机器知识" Click="OnMachineGrowthClick" AutomationProperties.Name="打开机器知识" />
                             <Button x:Name="MobileEvidenceButton" Classes="rail-button" Content="证据中心" Click="OnEvidenceClick" AutomationProperties.Name="打开证据中心" />
-                            <Button x:Name="MobileResearchButton" Classes="rail-button" Content="研究" Click="OnResearchClick" />
+                            <Button x:Name="MobileResearchButton" Classes="rail-button" Content="研究" Click="OnResearchClick" AutomationProperties.Name="打开研究" />
                             <Button x:Name="MobileJobsButton" Classes="rail-button" Content="任务" Click="OnJobsClick" AutomationProperties.Name="打开任务" />
-                            <Button x:Name="MobilePluginsButton" Classes="rail-button" Content="插件" Click="OnPluginsClick" />
-                            <Button x:Name="MobileModelsButton" Classes="rail-button" Content="模型" Click="OnModelsClick" />
+                            <Button x:Name="MobilePluginsButton" Classes="rail-button" Content="插件" Click="OnPluginsClick" AutomationProperties.Name="打开插件" />
+                            <Button x:Name="MobileModelsButton" Classes="rail-button" Content="模型" Click="OnModelsClick" AutomationProperties.Name="打开模型" />
                             <Button x:Name="MobileSystemButton" Classes="rail-button" Content="系统" Click="OnSettingsClick" AutomationProperties.Name="打开系统" />
                         </StackPanel>
                     </ScrollViewer>
