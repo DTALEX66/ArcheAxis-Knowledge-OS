@@ -76,6 +76,8 @@ public partial class MainWindow : Window
         new("资料库", "library", "资料库", "资料与知识"),
         new("原件阅读", "source-reader", "导入阅读", "导入阅读"),
         new("知识库", "knowledge", "知识库", "知识详情"),
+        new("原件编辑", "original-editor", "原件编辑", "编辑原件"),
+        new("记忆地图", "memory-map", "记忆地图", "Memory Map", "记忆图谱"),
         new("学习", "learning", "学习", "学习路径"),
         new("证据中心", "evidence", "证据中心"),
         new("研究", "research", "研究"),
@@ -361,6 +363,7 @@ public partial class MainWindow : Window
             "capture" => "capture",
             "source-reader" => "reader",
             "library" or "knowledge" => "knowledge",
+            "original-editor" or "memory-map" => "knowledge",
             "learning" => "learning",
             "evidence" => "evidence",
             "machine-growth" => "machine",
@@ -413,7 +416,7 @@ public partial class MainWindow : Window
         ContextLearningSubnav.IsVisible = section == "learning";
         ContextMachineSubnav.IsVisible = section == "machine-growth";
         ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings";
-        UnavailableSurface.IsVisible = section is "research" or "plugins" or "models";
+        UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor" or "memory-map";
         if (UnavailableSurface.IsVisible)
         {
             UnavailableSurfaceTitle.Text = $"{heading} · 尚未接入 Core";
@@ -422,6 +425,8 @@ public partial class MainWindow : Window
                 "research" => "此页面尚未接入 Core 的研究任务、来源或结论投影；不创建或展示合成研究状态。",
                 "plugins" => "此页面尚未接入权威插件注册表；不展示已安装、启用、默认/回退或健康状态，也不提供管理操作。",
                 "models" => "此页面尚未接入 Core 模型注册表或配置投影；不展示可用模型、活动提供方或健康状态，也不修改模型配置。",
+                "original-editor" => "当前 Core 只暴露来源成员与转换读取边界；原件编辑持久化和版本提交接口尚未接入，不在桌面侧创建第二写入路径。",
+                "memory-map" => "当前 Core 未暴露可验证的 Memory Graph 读模型；不展示合成节点、随机关系或未绑定来源的图谱结论。",
                 "recovery" => "此页面尚未接入 Core 的备份与恢复投影；不展示恢复点，不执行、预演或模拟恢复，也不表示数据可恢复。",
                 _ => "该工作区尚未接入 Core 读模型。",
             };
@@ -696,6 +701,10 @@ public partial class MainWindow : Window
     }
 
     private void OnResearchClick(object? sender, RoutedEventArgs e) => SetSection("research", "研究");
+
+    private void OnOriginalEditorClick(object? sender, RoutedEventArgs e) => SetSection("original-editor", "原件编辑");
+
+    private void OnMemoryMapClick(object? sender, RoutedEventArgs e) => SetSection("memory-map", "记忆地图");
 
     private void OnMachineGrowthClick(object? sender, RoutedEventArgs e) => SetSection("machine-growth", "机器知识");
 

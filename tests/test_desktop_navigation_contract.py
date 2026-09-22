@@ -109,7 +109,7 @@ def test_command_palette_has_real_keyboard_open_close_and_route_contract() -> No
     assert 'KeyModifiers.Control' in code
     assert 'Key.Escape' in code
     assert 'Key.Enter' in code
-    for command in ("首页", "捕获", "资料库", "原件阅读", "知识库", "学习", "任务", "恢复", "设置"):
+    for command in ("首页", "捕获", "资料库", "原件阅读", "知识库", "原件编辑", "记忆地图", "学习", "任务", "恢复", "设置"):
         assert command in code
     assert 'x:Name="CommandPaletteResultsList"' in xaml
     assert 'TextChanged="OnCommandPaletteTextChanged"' in xaml
@@ -511,9 +511,20 @@ def test_navigation_state_controls_visible_surfaces() -> None:
     assert 'RecoverySurface.IsVisible = section == "recovery"' in code
     assert 'SettingsSurface.IsVisible = section == "settings"' in code
     assert 'JobsSurface.IsVisible = section == "jobs"' in code
-    assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models"' in code
+    assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor" or "memory-map"' in code
     assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge"' in code
     assert 'ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings"' in code
+
+
+def test_memory_map_and_original_editor_routes_are_truthful_unavailable_surfaces() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'Click="OnOriginalEditorClick"' in xaml
+    assert 'Click="OnMemoryMapClick"' in xaml
+    assert 'private void OnOriginalEditorClick' in code
+    assert 'private void OnMemoryMapClick' in code
+    assert '"original-editor" => "当前 Core 只暴露来源成员与转换读取边界' in code
+    assert '"memory-map" => "当前 Core 未暴露可验证的 Memory Graph 读模型' in code
 
 
 def test_primary_space_rail_has_explicit_active_state_mapping() -> None:
@@ -1733,7 +1744,7 @@ def test_command_palette_routes_have_one_authoritative_definition() -> None:
 def test_command_palette_placeholder_lists_all_primary_routes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
 
-    assert 'PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置"' in xaml
+    assert 'PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 原件编辑 / 记忆地图 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置"' in xaml
 
 
 def test_command_palette_unknown_command_help_lists_every_route() -> None:

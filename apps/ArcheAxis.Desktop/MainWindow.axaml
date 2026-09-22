@@ -57,6 +57,8 @@
                     <Button Content="资料库" HorizontalContentAlignment="Left" Click="OnLibraryClick" AutomationProperties.Name="打开资料库" />
                     <Button Content="导入阅读" HorizontalContentAlignment="Left" Click="OnSourceReaderClick" AutomationProperties.Name="打开导入阅读" />
                     <Button Content="知识库" HorizontalContentAlignment="Left" Click="OnKnowledgeClick" AutomationProperties.Name="打开知识库" />
+                    <Button Content="原件编辑" HorizontalContentAlignment="Left" Click="OnOriginalEditorClick" AutomationProperties.Name="打开原件编辑" />
+                    <Button Content="记忆地图" HorizontalContentAlignment="Left" Click="OnMemoryMapClick" AutomationProperties.Name="打开记忆地图" />
                 </StackPanel>
                 <StackPanel x:Name="ContextLearningSubnav" IsVisible="False" Spacing="7">
                     <TextBlock Text="学习" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
@@ -738,7 +740,7 @@
                 <StackPanel Spacing="10">
                     <TextBlock Text="命令面板" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                     <TextBlock Text="Ctrl+K 打开 · Esc 关闭 · Enter 执行" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <TextBox x:Name="CommandPaletteBox" PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置" KeyDown="OnCommandPaletteKeyDown" TextChanged="OnCommandPaletteTextChanged" AutomationProperties.Name="命令面板输入" />
+                    <TextBox x:Name="CommandPaletteBox" PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 原件编辑 / 记忆地图 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置" KeyDown="OnCommandPaletteKeyDown" TextChanged="OnCommandPaletteTextChanged" AutomationProperties.Name="命令面板输入" />
                     <ListBox x:Name="CommandPaletteResultsList" MaxHeight="240" Background="Transparent" BorderThickness="0" SelectionChanged="OnCommandPaletteSelectionChanged" KeyDown="OnCommandPaletteKeyDown" DoubleTapped="OnCommandPaletteResultDoubleTapped" AutomationProperties.Name="命令面板结果">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
