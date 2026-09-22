@@ -1989,3 +1989,11 @@
 - verification: TDD red/green was observed for the new contracts; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `165 passed`; `git diff --check` passed. A fresh .NET build is `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - gui_boundary: native screenshot, click, keyboard focus, accessibility-tree, DPI, clipboard, and cold-restart GUI readback remain `UNVERIFIED`; no GUI pass is claimed.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. No installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
+- source_commits: `e1025a79` (`fix(desktop): report clipboard write failures`), `47f8cb3a` (`refactor(desktop): unify command palette routes`), `ee595578` (`fix(desktop): align mobile breakpoint fallback`).
+- verification: TDD red/green was observed; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `167 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- gui_boundary: native screenshot, click, keyboard focus, accessibility-tree, DPI, clipboard readback, and cold-restart GUI journey remain `UNVERIFIED`; static contracts do not promote these to GUI PASS.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. No installation, signing, Green overwrite, external-library write, or history deletion was performed.
