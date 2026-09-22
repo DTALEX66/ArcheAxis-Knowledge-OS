@@ -2109,6 +2109,13 @@
 - verification: Toast semantic-state contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `176 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native Toast timing/rendering, accessibility tree, focus order, pointer, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
 
+## Continuation receipt — 2026-09-23 P3 Command Palette focus-loop closure
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added Tab and Shift+Tab focus cycling between the Command Palette input and result list, keeping keyboard focus inside the visible overlay while preserving Escape close and return-focus behavior.
+- source_commit: `1fce522e` (fix(desktop): trap command palette tab focus), ready for publication on the matching feature branch.
+- verification: Command Palette focus-loop contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `177 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native focus traversal, accessibility tree, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
 ## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
