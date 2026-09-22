@@ -943,6 +943,17 @@ def test_aaos_cards_expose_hover_surface_feedback() -> None:
     assert 'AaosPrimaryBrush' in theme
 
 
+def test_core_and_first_run_status_texts_keep_accessible_names_in_sync() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    assert 'AttachAccessibleTextSync(CoreStatusText);' in code
+    assert 'AttachAccessibleTextSync(FirstRunCoreStatusText);' in code
+    assert 'AttachAccessibleTextSync(FirstRunWorkspaceStatusText);' in code
+    assert 'AttachAccessibleTextSync(FirstRunOptionalStatusText);' in code
+    assert 'target.PropertyChanged +=' in code
+    assert 'TextBlock.TextProperty' in code
+    assert 'AutomationProperties.SetName(target, target.Text' in code
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]

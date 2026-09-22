@@ -180,6 +180,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        AttachAccessibleTextSync(CoreStatusText);
+        AttachAccessibleTextSync(FirstRunCoreStatusText);
+        AttachAccessibleTextSync(FirstRunWorkspaceStatusText);
+        AttachAccessibleTextSync(FirstRunOptionalStatusText);
         Title = "ArcheAxis Learning Workspace (vNext) — core offline";
         _reducedMotion = string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "1", StringComparison.OrdinalIgnoreCase)
             || string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "true", StringComparison.OrdinalIgnoreCase);
@@ -190,6 +194,16 @@ public partial class MainWindow : Window
         Loaded += OnLoaded;
         Closed += OnClosed;
         _toastTimer.Tick += OnToastTimerTick;
+    }
+
+    private static void AttachAccessibleTextSync(TextBlock target)
+    {
+        Avalonia.Automation.AutomationProperties.SetName(target, target.Text ?? string.Empty);
+        target.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == TextBlock.TextProperty)
+                Avalonia.Automation.AutomationProperties.SetName(target, target.Text ?? string.Empty);
+        };
     }
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)

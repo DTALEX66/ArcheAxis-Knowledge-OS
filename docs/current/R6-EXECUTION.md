@@ -2271,3 +2271,10 @@
 - source_commit: `15e40487` (`feat(desktop): add card hover surface feedback`).
 - verification: TDD RED was observed for the card-hover contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `198 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native pointer rendering, hover timing, screenshot, accessibility tree, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 Core and first-use status accessible synchronization
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: attached one property-change synchronization path to Core status and first-use readiness TextBlocks so direct visible-text updates from startup, workspace summary, import and learning flows also refresh `AutomationProperties.Name`.
+- source_commit: pending until this scoped change is committed.
+- verification: TDD RED was observed for the status synchronization contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `199 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native accessibility-tree readback, screen-reader announcement, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
