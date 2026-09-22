@@ -2081,6 +2081,13 @@
 - verification: the theme contract confirms the input interaction selectors; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `175 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native accessibility tree, focus order, pointer, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
 
+## Continuation receipt — 2026-09-23 P3 bounded Memory/Original route closure
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: exposed discoverable 记忆地图 and 原件编辑 entries in the knowledge context and Command Palette; both route to the existing truthful unavailable surface with explicit Core-contract boundary copy, without synthetic graph data or a second editor writer.
+- source_commit: `faa5c4be` (feat(desktop): expose bounded memory and editor routes), ready for publication on the matching feature branch.
+- verification: route boundary contract and Command Palette discovery checks pass; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `176 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Memory Graph data, Original Editor persistence, native accessibility tree, focus order, pointer, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
 ## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
