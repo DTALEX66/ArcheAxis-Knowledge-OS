@@ -527,7 +527,9 @@ public partial class MainWindow : Window
     {
         _inspectorDrawerOpen = !_inspectorDrawerOpen;
         InspectorPanel.IsVisible = _inspectorDrawerOpen;
-        InspectorDrawerButton.Content = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
+        var label = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
+        InspectorDrawerButton.Content = label;
+        Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, label);
     }
 
     private void ResetLearningProjectionForUnavailable(string reason, string action)
@@ -1556,7 +1558,9 @@ public partial class MainWindow : Window
         ActivityDockText.TextTrimming = _activityDockExpanded
             ? Avalonia.Media.TextTrimming.None
             : Avalonia.Media.TextTrimming.CharacterEllipsis;
+        var label = _activityDockExpanded ? "收起活动回执详情" : "展开活动回执详情";
         ActivityDockToggleButton.Content = _activityDockExpanded ? "收起详情" : "展开详情";
+        Avalonia.Automation.AutomationProperties.SetName(ActivityDockToggleButton, label);
     }
 
     private void OnActivityDockReceiptSelected(object? sender, SelectionChangedEventArgs e)
@@ -1750,6 +1754,7 @@ public partial class MainWindow : Window
         {
             _inspectorDrawerOpen = false;
             InspectorDrawerButton.Content = "打开证据检查器";
+            Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, "打开证据检查器");
             InspectorPanel.IsVisible = true;
             InspectorPanel.Width = double.NaN;
             InspectorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;

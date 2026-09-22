@@ -289,6 +289,11 @@ def test_primary_navigation_and_system_actions_expose_stable_automation_names() 
         'AutomationProperties.Name="命令面板结果"',
     ):
         assert automation_name in xaml
+    code = CODE.read_text(encoding="utf-8")
+    assert 'AutomationProperties.SetName(InspectorDrawerButton' in code
+    assert 'AutomationProperties.SetName(ActivityDockToggleButton' in code
+    assert '"关闭证据检查器"' in code
+    assert '"收起活动回执详情"' in code
 
 
 def test_home_exposes_honest_first_run_readiness_surface() -> None:
