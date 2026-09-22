@@ -199,6 +199,10 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="1" />
     </Style>
+    <Style Selector="ListBoxItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+    </Style>
     <Style Selector="ListBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>
@@ -245,6 +249,10 @@
     <Style Selector="ComboBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+    </Style>
+    <Style Selector="ComboBoxItem:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
     </Style>
     <Style Selector="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
