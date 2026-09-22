@@ -21,12 +21,12 @@ receipts. This matrix does not promote reference demos, static numbers or
 | Package | Absorbed contract | Canonical implementation evidence | Current verdict | Explicit gap |
 | --- | --- | --- | --- | --- |
 | B03 | AAOS information architecture, dark surfaces and Aurora Teal hierarchy | `MainWindow.axaml`, `AaosTheme.axaml`, `SetSection` | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Native visual contrast and screenshot readback: `UNVERIFIED_GUI` |
-| B04 | spacing/radius/density/breakpoint/motion resources and component states | `AaosTheme.axaml` resources; shared page/card heading classes; Button/ListBox/TextBox/ComboBox/CheckBox state selectors | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Remaining page-local field sizes and native timing remain open |
+| B04 | spacing/radius/density/breakpoint/motion resources and component states | `AaosTheme.axaml` resources; shared page/card/rail heading classes; reduced-motion-safe Hero ambient glow; Button/ListBox/TextBox/ComboBox/CheckBox state selectors | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Native timing remains open |
 | B05 | Home, Capture, Library, Reader, Knowledge, Learning, Jobs, Settings and Recovery compositions | named surfaces in `MainWindow.axaml`; Core-backed handlers in `MainWindow.axaml.cs` | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Evidence list, Editor, Graph and citation picker remain Core-bound |
 | B06 | loading/empty/error/permission/unavailable/disabled/keyboard/focus/responsive states | `SetStatus`, request-version guards, unavailable structure, focus handlers, responsive layout code | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Native state rendering and assistive-technology readback: `UNVERIFIED_GUI` |
 | B07 | product-route discoverability, keyboard access and automation names | `CommandPaletteRoutes`, primary/mobile rails, `AutomationProperties.Name` contracts | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Full 13-route native traversal and DPI/zoom evidence remain open |
 | B08 | reusable card, KPI, status, toolbar, provenance and selectable-result patterns | `aaos-card*`, `aaos-kpi`, `aaos-status`, `aaos-toolbar`, provenance classes and row templates | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | No second React runtime or demo persistence is imported |
-| B09 | interaction references: command palette, drawer, toast, review selection and source chain | Command Palette, Inspector Drawer action reflow, Toast, Review Card, Source Reader chain | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Graph-node, citation insertion and native animation timing remain open |
+| B09 | interaction references: command palette, drawer, toast, review selection and source chain | Command Palette, Inspector Drawer action reflow, Toast, Review Card, Source Reader chain, Home Hero ambient feedback | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Graph-node, citation insertion and native animation timing remain open |
 | B10 | high-fidelity product hierarchy and visual direction | project-owned decorative empty-state asset plus tokenized AAOS shell | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Full visual parity is not claimed; GUI screenshot gate remains open |
 
 ## Non-equivalence rules
@@ -44,7 +44,7 @@ receipts. This matrix does not promote reference demos, static numbers or
 - Frontend implementation commit: `5f5cfaf5`.
 - Latest documentation/branch commit: `5f5cfaf5`, recorded by the current
   `UI_IMPLEMENTATION_REPORT.md` and `R6-EXECUTION.md` continuation receipt.
-- Direct no-argument desktop contract harness: `194 passed`.
+- Direct no-argument desktop contract harness: `195 passed`.
 - XAML XML parsing: `PASS`.
 - Native GUI and fresh .NET build: `UNVERIFIED / NOT_EXECUTED`.
 

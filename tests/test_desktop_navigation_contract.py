@@ -900,6 +900,18 @@ def test_aaos_primary_rail_labels_use_a_shared_typography_class() -> None:
     assert 'FontSize="18"' not in xaml
 
 
+def test_home_hero_ambient_motion_is_reduced_motion_safe() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'x:Name="HomeHeroAmbientGlow"' in xaml
+    assert 'Classes="aaos-ambient-glow"' in xaml
+    assert 'private DispatcherTimer? _homeHeroAmbientTimer;' in code
+    assert 'StartHomeHeroAmbientMotion' in code
+    assert 'StopHomeHeroAmbientMotion' in code
+    assert 'if (_reducedMotion)' in code
+    assert 'AaosMotionAmbientMs' in code
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]

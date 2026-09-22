@@ -119,7 +119,8 @@
                   </Border>
                   <Border Classes="aaos-card" Padding="20">
                     <Grid x:Name="HomeHeroGrid" ColumnDefinitions="*,220" ColumnSpacing="18">
-                      <StackPanel Spacing="8" VerticalAlignment="Center">
+                      <Border x:Name="HomeHeroAmbientGlow" Classes="aaos-ambient-glow" Grid.ColumnSpan="2" IsHitTestVisible="False" Panel.ZIndex="0" />
+                      <StackPanel Spacing="8" VerticalAlignment="Center" Panel.ZIndex="1">
                         <TextBlock Text="从原件到可复习的知识" Classes="page-subheading" />
                         <TextBlock Text="每一步都保留来源、版本与状态边界；你决定什么值得进入自己的知识系统。" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource AaosMutedBrush}" />
                         <StackPanel x:Name="HomeHeroActions" Orientation="Horizontal" Spacing="8">
@@ -127,7 +128,7 @@
                           <Button Content="浏览资料库" Padding="14,8" Click="OnLibraryClick" AutomationProperties.Name="浏览资料库" />
                         </StackPanel>
                       </StackPanel>
-                      <Image x:Name="HomeHeroImage" Grid.Column="1" Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="210" Height="150" Stretch="Uniform" Opacity="0.92" AutomationProperties.Name="星环知识流程插图" />
+                      <Image x:Name="HomeHeroImage" Grid.Column="1" Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="210" Height="150" Stretch="Uniform" Opacity="0.92" Panel.ZIndex="1" AutomationProperties.Name="星环知识流程插图" />
                     </Grid>
                   </Border>
                   <StackPanel Spacing="6">

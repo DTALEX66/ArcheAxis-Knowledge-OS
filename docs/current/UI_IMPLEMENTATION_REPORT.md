@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `5f5cfaf5` on
+- Frontend implementation HEAD: pending until this scoped continuation is committed on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -51,8 +51,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after primary-rail typography
-  convergence: `194 passed`.
+- Current combined frontend verification after reduced-motion-safe Hero ambient
+  motion: `195 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -183,6 +183,10 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   labels or intentionally local content hierarchy.
 - Primary rail labels now consume a dedicated shared typography class; no
   page-level hierarchy `FontSize="18"` literals remain in the canonical XAML.
+- Home Hero now has a restrained decorative Aurora Glow driven by the shared
+  ambient motion token; it stops outside Home, stops on window close, and stays
+  static when `AAOS_REDUCED_MOTION=1`. It never represents Core state or
+  evidence.
 
 ## Explicit limits
 

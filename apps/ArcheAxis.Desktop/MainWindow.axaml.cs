@@ -60,6 +60,8 @@ public partial class MainWindow : Window
     private int? _homeLearningCount;
     private bool _inspectorDrawerOpen;
     private bool _reducedMotion;
+    private DispatcherTimer? _homeHeroAmbientTimer;
+    private bool _homeHeroAmbientBright;
     private IInputElement? _commandPaletteReturnFocus;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(2600) };
     private sealed record CommandPaletteRoute(
@@ -192,6 +194,7 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
+        StartHomeHeroAmbientMotion();
         // Only start and authenticate our own Core; never adopt a shared service.
         FirstRunCoreStatusText.Text = "Core：正在启动检查";
         var dbPath = Environment.GetEnvironmentVariable("ARCHEAXIS_VNEXT_DB")
@@ -474,8 +477,48 @@ public partial class MainWindow : Window
         {
             _ = ReadRecoveryStatusAsync();
         }
+        if (section == "home")
+            StartHomeHeroAmbientMotion();
+        else
+            StopHomeHeroAmbientMotion();
         BackToKnowledgeFromSourceButton.IsEnabled = section == "source-reader" && _sourceReaderReturnToKnowledgeAvailable;
         UpdateInspectorActions();
+    }
+
+    private void StartHomeHeroAmbientMotion()
+    {
+        if (_reducedMotion)
+        {
+            HomeHeroAmbientGlow.Opacity = 0.14;
+            return;
+        }
+        _homeHeroAmbientTimer ??= new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(GetAaosBreakpoint("AaosMotionAmbientMs", 4200)),
+        };
+        _homeHeroAmbientTimer.Tick -= OnHomeHeroAmbientTick;
+        _homeHeroAmbientTimer.Tick += OnHomeHeroAmbientTick;
+        HomeHeroAmbientGlow.Opacity = 0.14;
+        _homeHeroAmbientBright = false;
+        _homeHeroAmbientTimer.Start();
+    }
+
+    private void StopHomeHeroAmbientMotion()
+    {
+        _homeHeroAmbientTimer?.Stop();
+        HomeHeroAmbientGlow.Opacity = 0.14;
+        _homeHeroAmbientBright = false;
+    }
+
+    private void OnHomeHeroAmbientTick(object? sender, EventArgs e)
+    {
+        if (_reducedMotion || !HomeSurface.IsVisible)
+        {
+            StopHomeHeroAmbientMotion();
+            return;
+        }
+        _homeHeroAmbientBright = !_homeHeroAmbientBright;
+        HomeHeroAmbientGlow.Opacity = _homeHeroAmbientBright ? 0.22 : 0.14;
     }
 
     private static string DisplayInspectorValue(string? value) =>
@@ -2539,6 +2582,7 @@ public partial class MainWindow : Window
     {
         // Supervisor shutdown: never leave an orphaned core process behind.
         _toastTimer.Stop();
+        StopHomeHeroAmbientMotion();
         _deepTutor.Dispose();
         _supervisor?.Dispose();
     }

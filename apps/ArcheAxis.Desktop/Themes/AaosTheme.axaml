@@ -23,6 +23,11 @@
             <GradientStop Color="#1FC8C5" Offset="0" />
             <GradientStop Color="#2CA9BE" Offset="1" />
         </LinearGradientBrush>
+        <LinearGradientBrush x:Key="AaosAmbientGlowBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#1FC8C5" Offset="0" />
+            <GradientStop Color="#123C4A" Offset="0.58" />
+            <GradientStop Color="#E6BE73" Offset="1" />
+        </LinearGradientBrush>
         <x:Double x:Key="AaosSpace4">4</x:Double>
         <x:Double x:Key="AaosSpace8">8</x:Double>
         <x:Double x:Key="AaosSpace12">12</x:Double>
@@ -59,6 +64,7 @@
         <x:Double x:Key="AaosMotionStandardMs">180</x:Double>
         <x:Double x:Key="AaosMotionEmphasisMs">280</x:Double>
         <x:Double x:Key="AaosMotionRevealMs">420</x:Double>
+        <x:Double x:Key="AaosMotionAmbientMs">4200</x:Double>
         <x:String x:Key="AaosCommandPaletteGesture">Ctrl+K</x:String>
     </Styles.Resources>
 
@@ -124,6 +130,21 @@
             <Transitions>
                 <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
             </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.aaos-ambient-glow">
+        <Setter Property="Background" Value="{DynamicResource AaosAmbientGlowBrush}" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Opacity" Value="0.14" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.42" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Grid.reduced-motion Border.aaos-ambient-glow">
+        <Setter Property="Transitions">
+            <Transitions />
         </Setter>
     </Style>
     <Style Selector="Grid.reduced-motion Control.aaos-animated-surface">
