@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `e69f4346` on
+- Frontend implementation HEAD: pending until this scoped continuation is committed on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -51,8 +51,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after stale-response and inspector
-  layout hardening: `192 passed`.
+- Current combined frontend verification after full page typography token
+  convergence: `193 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -178,6 +178,9 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Inspector actions now reflow vertically whenever the Inspector is visible,
   including the permanent 300px desktop rail and the drawer overlay, instead
   of relying only on the outer-window breakpoint.
+- Brand, workspace, lead-copy, empty-state title and KPI typography now consume
+  named AAOS resources as well; remaining explicit sizes are dense field-level
+  labels or intentionally local content hierarchy.
 
 ## Explicit limits
 

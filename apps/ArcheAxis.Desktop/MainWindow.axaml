@@ -10,7 +10,7 @@
         <Border Grid.Row="0" Grid.ColumnSpan="4" Padding="28,20" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="星环知识平台" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                    <TextBlock Text="星环知识平台" Classes="brand-title" />
                     <TextBlock Text="ArcheAxis Knowledge · 本地优先工作台" FontSize="13" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
                 <Border Grid.Column="1" Padding="14,9" CornerRadius="8" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -98,7 +98,7 @@
                     </ScrollViewer>
                 </Border>
                 <Grid x:Name="WorkspaceHeadingBar" ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                    <TextBlock x:Name="WorkspaceHeadingText" Text="首页" FontSize="16" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock x:Name="WorkspaceHeadingText" Text="首页" Classes="workspace-title" />
                     <Button x:Name="InspectorDrawerButton" Grid.Column="1" IsVisible="False" Content="打开证据检查器" Padding="12,7" Click="OnToggleInspectorDrawerClick" AutomationProperties.Name="打开证据检查器" />
                 </Grid>
                 <StackPanel x:Name="HomeSurface" Spacing="22">
@@ -132,7 +132,7 @@
                   </Border>
                   <StackPanel Spacing="6">
                     <TextBlock Text="今天从哪里开始？" Classes="page-hero" />
-                    <TextBlock Text="导入可信资料，建立可追溯的知识与学习闭环。" FontSize="15" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock Text="导入可信资料，建立可追溯的知识与学习闭环。" Classes="lead-copy" />
                   </StackPanel>
 
                   <Grid x:Name="HomeLifecycleGrid" ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
@@ -355,7 +355,7 @@
                     <Border x:Name="SourceReaderMainBorder" Grid.Column="1" Classes="aaos-card" Padding="18">
                       <StackPanel Spacing="8">
                         <TextBlock Text="Main Reader · Core transform" FontSize="14" FontWeight="SemiBold" Classes="provenance-machine" />
-                        <TextBlock x:Name="SourceReaderSelectedText" Text="尚未选择来源成员。" TextWrapping="Wrap" FontSize="18" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock x:Name="SourceReaderSelectedText" Text="尚未选择来源成员。" TextWrapping="Wrap" Classes="section-heading" />
                         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="5">
                           <TextBlock Text="member" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                           <TextBlock x:Name="SourceReaderMemberFieldText" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="provenance-original" />
@@ -418,7 +418,7 @@
                   <Border x:Name="KnowledgeObjectHeaderBorder" Classes="aaos-card" Padding="16">
                     <StackPanel Spacing="5">
                       <TextBlock Text="Knowledge 对象" FontSize="14" FontWeight="SemiBold" Classes="provenance-projection" />
-                      <TextBlock x:Name="KnowledgeObjectTitleText" Text="标题：未读取" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" TextWrapping="Wrap" />
+                      <TextBlock x:Name="KnowledgeObjectTitleText" Text="标题：未读取" Classes="section-heading" TextWrapping="Wrap" />
                       <TextBlock x:Name="KnowledgeObjectMetaText" Text="knowledge_id：未暴露 · owner：未暴露" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" TextWrapping="Wrap" />
                     </StackPanel>
                   </Border>
@@ -584,7 +584,7 @@
                 <Border x:Name="UnavailableSurface" Classes="aaos-empty-state" IsVisible="False" Padding="24">
                     <StackPanel Spacing="12">
                         <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" HorizontalAlignment="Left" Opacity="0.78" AutomationProperties.Name="功能未接入插图" />
-                        <TextBlock x:Name="UnavailableSurfaceTitle" Text="暂不可用" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock x:Name="UnavailableSurfaceTitle" Text="暂不可用" Classes="empty-title" />
                         <TextBlock x:Name="UnavailableSurfaceStateText" Text="状态 · Core contract unavailable" Classes="status-disabled" FontSize="12" AutomationProperties.Name="功能状态" />
                         <TextBlock x:Name="UnavailableSurfaceText" Text="该工作区尚未接入 Core 读模型。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <Border Classes="aaos-card-compact" Padding="12">
@@ -648,13 +648,13 @@
 
                 <Grid x:Name="HomeStatsSurface" ColumnDefinitions="*,*,*" ColumnSpacing="12">
                     <Border x:Name="HomeStatsSourceCard" Classes="aaos-kpi">
-                        <StackPanel Spacing="5"><TextBlock Text="资料对象" Foreground="{DynamicResource AaosMutedBrush}" /><TextBlock x:Name="SourcesCountText" Text="—" FontSize="26" Foreground="{DynamicResource AaosIvoryBrush}" /><TextBlock Text="Core 实际来源数" Foreground="{DynamicResource AaosMutedBrush}" /></StackPanel>
+                        <StackPanel Spacing="5"><TextBlock Text="资料对象" Foreground="{DynamicResource AaosMutedBrush}" /><TextBlock x:Name="SourcesCountText" Text="—" Classes="kpi-value" /><TextBlock Text="Core 实际来源数" Foreground="{DynamicResource AaosMutedBrush}" /></StackPanel>
                     </Border>
                     <Border x:Name="HomeStatsKnowledgeCard" Grid.Column="1" Classes="aaos-kpi">
-                        <StackPanel Spacing="5"><TextBlock Text="待复习" Foreground="{DynamicResource AaosMutedBrush}" /><TextBlock x:Name="LearningCountText" Text="—" FontSize="26" Foreground="{DynamicResource AaosIvoryBrush}" /><TextBlock Text="Core 学习队列项目" Foreground="{DynamicResource AaosMutedBrush}" /></StackPanel>
+                        <StackPanel Spacing="5"><TextBlock Text="待复习" Foreground="{DynamicResource AaosMutedBrush}" /><TextBlock x:Name="LearningCountText" Text="—" Classes="kpi-value" /><TextBlock Text="Core 学习队列项目" Foreground="{DynamicResource AaosMutedBrush}" /></StackPanel>
                     </Border>
                     <Border x:Name="HomeStatsLearningCard" Grid.Column="2" Classes="aaos-kpi">
-                        <StackPanel Spacing="5"><TextBlock Text="来源锚点" Foreground="{DynamicResource AaosMutedBrush}" /><TextBlock x:Name="AnchorsCountText" Text="—" FontSize="26" Foreground="{DynamicResource AaosIvoryBrush}" /><TextBlock Text="Core 已登记锚点" Foreground="{DynamicResource AaosMutedBrush}" /></StackPanel>
+                        <StackPanel Spacing="5"><TextBlock Text="来源锚点" Foreground="{DynamicResource AaosMutedBrush}" /><TextBlock x:Name="AnchorsCountText" Text="—" Classes="kpi-value" /><TextBlock Text="Core 已登记锚点" Foreground="{DynamicResource AaosMutedBrush}" /></StackPanel>
                     </Border>
                 </Grid>
             </StackPanel>
@@ -673,7 +673,7 @@
                 <Border Padding="14" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="7">
                         <TextBlock Text="当前上下文" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <TextBlock x:Name="InspectorSectionText" Text="首页" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock x:Name="InspectorSectionText" Text="首页" Classes="section-heading" />
                         <TextBlock x:Name="InspectorObjectText" Text="未选择对象" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                         <TextBlock x:Name="InspectorDetailsText" Text="对象来源、版本和证据将在选择具体对象后显示。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                         <TextBlock Text="结构化来源字段" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" Margin="0,8,0,0" />
@@ -749,7 +749,7 @@
         <Border x:Name="CommandPaletteOverlay" Classes="aaos-animated-surface" Grid.RowSpan="3" Grid.ColumnSpan="4" IsVisible="False" ZIndex="10" Background="{DynamicResource AaosOverlayBrush}" Padding="24">
             <Border Classes="aaos-card" MaxWidth="620" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,72,0,0" Padding="20">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="命令面板" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                    <TextBlock Text="命令面板" Classes="section-heading" />
                     <TextBlock Text="Ctrl+K 打开 · Esc 关闭 · Enter 执行" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                     <TextBox x:Name="CommandPaletteBox" PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 原件编辑 / 记忆地图 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置" KeyDown="OnCommandPaletteKeyDown" TextChanged="OnCommandPaletteTextChanged" AutomationProperties.Name="命令面板输入" />
                     <ListBox x:Name="CommandPaletteResultsList" MaxHeight="240" Background="Transparent" BorderThickness="0" SelectionChanged="OnCommandPaletteSelectionChanged" KeyDown="OnCommandPaletteKeyDown" DoubleTapped="OnCommandPaletteResultDoubleTapped" AutomationProperties.Name="命令面板结果">
