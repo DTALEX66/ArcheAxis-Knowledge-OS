@@ -483,6 +483,7 @@ public partial class MainWindow : Window
         else
             StopHomeHeroAmbientMotion();
         BackToKnowledgeFromSourceButton.IsEnabled = section == "source-reader" && _sourceReaderReturnToKnowledgeAvailable;
+        RefreshInspectorAccessibleNames();
         UpdateInspectorActions();
     }
 
@@ -559,6 +560,23 @@ public partial class MainWindow : Window
         InspectorChainVersionText.Text = $"版本 → {DisplayInspectorValue(version)}";
         InspectorChainProjectionText.Text = $"当前投影 → {DisplayInspectorValue(objectName)}";
         InspectorProvenanceText.Text = "来自受控 Core projection；字段缺失不推断。";
+        RefreshInspectorAccessibleNames();
+    }
+
+    private void RefreshInspectorAccessibleNames()
+    {
+        Avalonia.Automation.AutomationProperties.SetName(InspectorSectionText, InspectorSectionText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorObjectText, InspectorObjectText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorDetailsText, InspectorDetailsText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorSourceText, InspectorSourceText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorVersionText, InspectorVersionText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorStatusText, InspectorStatusText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorBoundaryText, InspectorBoundaryText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorLayerText, InspectorLayerText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorChainSourceText, InspectorChainSourceText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorChainVersionText, InspectorChainVersionText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorChainProjectionText, InspectorChainProjectionText.Text ?? string.Empty);
+        Avalonia.Automation.AutomationProperties.SetName(InspectorProvenanceText, InspectorProvenanceText.Text ?? string.Empty);
     }
 
     private void ResetInspectorActions()

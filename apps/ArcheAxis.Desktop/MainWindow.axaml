@@ -674,13 +674,13 @@
                 <Border Padding="14" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="7">
                         <TextBlock Text="当前上下文" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <TextBlock x:Name="InspectorSectionText" Text="首页" Classes="section-heading" />
-                        <TextBlock x:Name="InspectorObjectText" Text="未选择对象" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
-                        <TextBlock x:Name="InspectorDetailsText" Text="对象来源、版本和证据将在选择具体对象后显示。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
+                        <TextBlock x:Name="InspectorSectionText" Text="首页" Classes="section-heading" AutomationProperties.Name="当前上下文" />
+                        <TextBlock x:Name="InspectorObjectText" Text="未选择对象" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="当前对象" />
+                        <TextBlock x:Name="InspectorDetailsText" Text="对象来源、版本和证据将在选择具体对象后显示。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="对象详情" />
                         <TextBlock Text="结构化来源字段" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" Margin="0,8,0,0" />
                         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="5">
                             <TextBlock Text="来源" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                            <TextBlock x:Name="InspectorSourceText" Grid.Column="1" Text="未暴露" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosIvoryBrush}" />
+                            <TextBlock x:Name="InspectorSourceText" Grid.Column="1" Text="未暴露" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="对象来源" />
                             <TextBlock Grid.Row="1" Text="版本" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                             <TextBlock x:Name="InspectorVersionText" Grid.Row="1" Grid.Column="1" Text="未暴露" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosIvoryBrush}" />
                             <TextBlock Grid.Row="2" Text="状态" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -696,7 +696,7 @@
                                 <TextBlock x:Name="InspectorChainProjectionText" Classes="provenance-projection" Text="当前投影 → 未暴露" TextWrapping="Wrap" FontSize="11" />
                             </StackPanel>
                         </Border>
-                        <TextBlock x:Name="InspectorProvenanceText" Text="未选择对象；来源链未加载。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
+                        <TextBlock x:Name="InspectorProvenanceText" Text="未选择对象；来源链未加载。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="对象来源链" />
                         <StackPanel x:Name="InspectorActionPanel" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
                             <Button x:Name="InspectorOpenSourceButton" Content="打开来源" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenSourceClick" AutomationProperties.Name="打开来源" />
                             <Button x:Name="InspectorOpenKnowledgeButton" Content="打开 Knowledge" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenKnowledgeClick" AutomationProperties.Name="打开 Knowledge" />

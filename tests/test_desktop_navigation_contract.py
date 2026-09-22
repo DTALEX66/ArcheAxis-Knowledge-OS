@@ -923,6 +923,18 @@ def test_route_changes_use_a_reduced_motion_safe_workspace_transition() -> None:
     assert 'Dispatcher.UIThread.Post' in code
 
 
+def test_inspector_projection_refreshes_accessible_names_with_visible_state() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'AutomationProperties.Name="当前上下文"' in xaml
+    assert 'AutomationProperties.Name="当前对象"' in xaml
+    assert 'AutomationProperties.Name="对象详情"' in xaml
+    assert 'AutomationProperties.SetName(InspectorObjectText' in code
+    assert 'AutomationProperties.SetName(InspectorDetailsText' in code
+    assert 'AutomationProperties.SetName(InspectorSourceText' in code
+    assert 'AutomationProperties.SetName(InspectorProvenanceText' in code
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]
