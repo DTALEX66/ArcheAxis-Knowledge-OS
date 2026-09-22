@@ -36,6 +36,9 @@ the desktop product.
 - Review grade controls reflow to one column at narrow widths and expose stable
   automation names. FSRS grade selection no longer changes the independent
   Core correctness selection.
+- Learning now renders the real Core queue as a selectable list instead of
+  always pinning the first item; selection reuses the existing item/state/
+  assessment/readback routes.
 
 ## Verified locally
 

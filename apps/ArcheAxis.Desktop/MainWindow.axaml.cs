@@ -31,6 +31,8 @@ public partial class MainWindow : Window
     private int? _activeReviewRating;
     private string _activeSection = "home";
     private readonly List<string> _sessionJobIds = new();
+    private string? _selectedLearningItemKey;
+    private bool _hydratingLearningQueue;
     private long _sourceReaderRequestVersion;
     private long _sourceTransformRequestVersion;
     private long _evidenceRequestVersion;
@@ -115,6 +117,21 @@ public partial class MainWindow : Window
         }
 
         public override string ToString() => Detail;
+    }
+
+    public sealed class LearningQueueRow
+    {
+        public string ItemKey { get; }
+        public string NextReview { get; }
+        public string DisplayText => $"{ItemKey} · 下次复习：{NextReview}";
+
+        public LearningQueueRow(string itemKey, string nextReview)
+        {
+            ItemKey = itemKey;
+            NextReview = nextReview;
+        }
+
+        public override string ToString() => DisplayText;
     }
 
     public MainWindow()
@@ -587,6 +604,16 @@ public partial class MainWindow : Window
     private void OnLearningOpenLibraryClick(object? sender, RoutedEventArgs e) => OnLibraryClick(sender, e);
 
     private void OnLearningOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
+
+    private void OnLearningQueueSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_hydratingLearningQueue || e.AddedItems.Count != 1 || e.AddedItems[0] is not LearningQueueRow selected)
+            return;
+        if (string.Equals(_selectedLearningItemKey, selected.ItemKey, StringComparison.Ordinal))
+            return;
+        _selectedLearningItemKey = selected.ItemKey;
+        OnLearningClick(this, new RoutedEventArgs());
+    }
 
     private void OnEvidenceClick(object? sender, RoutedEventArgs e) => SetSection("evidence", "证据中心");
 
@@ -2458,7 +2485,40 @@ public partial class MainWindow : Window
             var learningStateAvailable = false;
             if (count > 0)
             {
-                var first = document.RootElement.GetProperty("items")[0];
+                var items = document.RootElement.GetProperty("items");
+                var queueRows = new List<LearningQueueRow>();
+                JsonElement first = default;
+                foreach (var item in items.EnumerateArray())
+                {
+                    var itemKey = item.TryGetProperty("item_key", out var itemKeyValue)
+                        ? itemKeyValue.GetString()
+                        : null;
+                    if (string.IsNullOrWhiteSpace(itemKey))
+                        continue;
+                    var queueNextReview = item.TryGetProperty("next_review", out var dueValue)
+                        && dueValue.ValueKind != JsonValueKind.Null
+                        ? dueValue.GetString() ?? "未排程"
+                        : "未排程";
+                    queueRows.Add(new LearningQueueRow(itemKey, queueNextReview));
+                    if (first.ValueKind == JsonValueKind.Undefined
+                        && (string.IsNullOrWhiteSpace(_selectedLearningItemKey)
+                            || string.Equals(_selectedLearningItemKey, itemKey, StringComparison.Ordinal)))
+                    {
+                        first = item;
+                        _selectedLearningItemKey = itemKey;
+                    }
+                }
+                if (first.ValueKind == JsonValueKind.Undefined && queueRows.Count > 0)
+                {
+                    _selectedLearningItemKey = queueRows[0].ItemKey;
+                    first = items.EnumerateArray().First(item =>
+                        string.Equals(item.GetProperty("item_key").GetString(), _selectedLearningItemKey, StringComparison.Ordinal));
+                }
+                _hydratingLearningQueue = true;
+                LearningQueueList.ItemsSource = queueRows;
+                LearningQueueList.SelectedItem = queueRows.FirstOrDefault(row =>
+                    string.Equals(row.ItemKey, _selectedLearningItemKey, StringComparison.Ordinal));
+                _hydratingLearningQueue = false;
                 _activeLearningItem = first.GetProperty("item_key").GetString();
                 _activeReviewEventId = null;
                 _activeExposureId = null;

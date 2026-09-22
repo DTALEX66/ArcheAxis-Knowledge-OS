@@ -261,6 +261,18 @@ def test_fsrs_rating_does_not_silently_change_core_correctness() -> None:
     assert "FSRS" in rating
 
 
+def test_learning_queue_is_selectable_instead_of_fixing_the_first_core_item() -> None:
+    shell = _shell_source()
+    xaml = (ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml").read_text(encoding="utf-8")
+
+    assert 'x:Name="LearningQueueList"' in xaml
+    assert 'SelectionChanged="OnLearningQueueSelectionChanged"' in xaml
+    assert "LearningQueueRow" in shell
+    assert "_selectedLearningItemKey" in shell
+    assert "LearningQueueList.ItemsSource = queueRows;" in shell
+    assert "string.Equals(_selectedLearningItemKey, itemKey" in shell
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(
