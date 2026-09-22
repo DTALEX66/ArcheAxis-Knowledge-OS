@@ -1777,6 +1777,16 @@ def test_command_palette_navigation_does_not_mutate_learning_empty_state() -> No
     assert "LearningEmptyActions.IsVisible" not in method
 
 
+def test_command_palette_cycles_focus_between_input_and_results_on_tab() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    method = code[code.index("private void OnCommandPaletteKeyDown"):code.index("private void OnCommandPaletteTextChanged")]
+
+    assert "if (e.Key == Key.Tab)" in method
+    assert "ReferenceEquals(sender, CommandPaletteResultsList)" in method
+    assert "CommandPaletteBox.Focus();" in method
+    assert "CommandPaletteResultsList.Focus();" in method
+
+
 def test_knowledge_reads_ignore_stale_responses() -> None:
     code = CODE.read_text(encoding="utf-8")
     start = code.index("private async void OnReadKnowledgeClick")

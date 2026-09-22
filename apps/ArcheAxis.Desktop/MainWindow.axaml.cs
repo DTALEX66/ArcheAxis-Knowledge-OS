@@ -802,6 +802,16 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (e.Key == Key.Tab)
+        {
+            if (ReferenceEquals(sender, CommandPaletteResultsList))
+                CommandPaletteBox.Focus();
+            else
+                CommandPaletteResultsList.Focus();
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key is Key.Up or Key.Down)
         {
             var count = CommandPaletteResultsList.ItemCount;
