@@ -1803,6 +1803,18 @@ def test_command_palette_results_keep_enter_handling_when_list_has_focus() -> No
     assert 'KeyDown="OnCommandPaletteKeyDown"' in result_list
 
 
+def test_command_palette_results_support_pointer_activation() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    list_start = xaml.index('x:Name="CommandPaletteResultsList"')
+    list_end = xaml.index("</ListBox>", list_start)
+    result_list = xaml[list_start:list_end]
+
+    assert 'DoubleTapped="OnCommandPaletteResultDoubleTapped"' in result_list
+    assert "private void OnCommandPaletteResultDoubleTapped" in code
+    assert "ExecuteCommandPaletteCommand(selected);" in code
+
+
 def test_source_reader_action_group_is_attached_to_source_chain() -> None:
     xaml = XAML.read_text(encoding="utf-8")
 

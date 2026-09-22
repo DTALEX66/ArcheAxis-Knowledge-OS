@@ -805,6 +805,15 @@ public partial class MainWindow : Window
             CommandPaletteStatusText.Text = $"已选择“{selected}”；按 Enter 执行。";
     }
 
+    private void OnCommandPaletteResultDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (CommandPaletteResultsList.SelectedItem is not string selected)
+            return;
+
+        ExecuteCommandPaletteCommand(selected);
+        e.Handled = true;
+    }
+
     private void RefreshCommandPaletteResults(string? rawQuery)
     {
         var query = rawQuery?.Trim() ?? string.Empty;

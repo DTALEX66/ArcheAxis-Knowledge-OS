@@ -739,7 +739,7 @@
                     <TextBlock Text="命令面板" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                     <TextBlock Text="Ctrl+K 打开 · Esc 关闭 · Enter 执行" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                     <TextBox x:Name="CommandPaletteBox" PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置" KeyDown="OnCommandPaletteKeyDown" TextChanged="OnCommandPaletteTextChanged" AutomationProperties.Name="命令面板输入" />
-                    <ListBox x:Name="CommandPaletteResultsList" MaxHeight="240" Background="Transparent" BorderThickness="0" SelectionChanged="OnCommandPaletteSelectionChanged" KeyDown="OnCommandPaletteKeyDown" AutomationProperties.Name="命令面板结果">
+                    <ListBox x:Name="CommandPaletteResultsList" MaxHeight="240" Background="Transparent" BorderThickness="0" SelectionChanged="OnCommandPaletteSelectionChanged" KeyDown="OnCommandPaletteKeyDown" DoubleTapped="OnCommandPaletteResultDoubleTapped" AutomationProperties.Name="命令面板结果">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="10,8" Margin="0,0,0,4" CornerRadius="6" Background="{DynamicResource AaosSurface2Brush}">
