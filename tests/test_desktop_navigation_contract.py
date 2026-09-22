@@ -1713,6 +1713,12 @@ def test_command_palette_can_execute_evidence_route() -> None:
     assert '"证据中心" => ("evidence", "证据中心")' in code
 
 
+def test_command_palette_unknown_command_help_lists_every_route() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert "可用：首页、捕获、资料库、原件阅读、知识库、学习、证据中心、研究、机器知识、任务、插件、模型、恢复、设置。" in code
+
+
 def test_command_palette_restores_focus_after_close_or_execute() -> None:
     code = CODE.read_text(encoding="utf-8")
 
@@ -1721,6 +1727,33 @@ def test_command_palette_restores_focus_after_close_or_execute() -> None:
     assert '_commandPaletteReturnFocus = FocusManager.GetFocusedElement();' in code
     assert 'returnFocus?.Focus();' in code
     assert 'SetCommandPaletteVisibility(false);' in code
+
+
+def test_command_palette_navigation_does_not_mutate_learning_empty_state() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    method = code[code.index("private void OnCommandPaletteKeyDown"):code.index("private void OnCommandPaletteTextChanged")]
+
+    assert "LearningEmptyActions.IsVisible" not in method
+
+
+def test_knowledge_reads_ignore_stale_responses() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    start = code.index("private async void OnReadKnowledgeClick")
+    end = code.index("private async void OnReadMachineTaskClick")
+    method = code[start:end]
+
+    assert "private long _knowledgeRequestVersion;" in code
+    assert "var requestVersion = ++_knowledgeRequestVersion;" in method
+    assert method.count("if (requestVersion != _knowledgeRequestVersion)") >= 3
+
+
+def test_command_palette_results_keep_enter_handling_when_list_has_focus() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    list_start = xaml.index('x:Name="CommandPaletteResultsList"')
+    list_end = xaml.index("</ListBox>", list_start)
+    result_list = xaml[list_start:list_end]
+
+    assert 'KeyDown="OnCommandPaletteKeyDown"' in result_list
 
 
 def test_source_reader_action_group_is_attached_to_source_chain() -> None:

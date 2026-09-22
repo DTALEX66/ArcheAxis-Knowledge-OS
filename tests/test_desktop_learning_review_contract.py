@@ -103,8 +103,8 @@ def test_review_ids_are_allocated_once_per_exposure_and_reused_on_retry() -> Non
     assert "Guid.NewGuid" not in payload, (
         "re-allocating an id inside the payload makes every retry a new review"
     )
-    assert "client_event_id = _activeReviewEventId" in payload
-    assert "exposure_id = _activeExposureId" in payload
+    assert "client_event_id = submittedEventId" in payload
+    assert "exposure_id = submittedExposureId" in payload
     assert "_activeReviewEventId ??=" in submit, "the id pair is allocated once per exposure"
     assert "_activeExposureId ??=" in submit, "the id pair is allocated once per exposure"
     assert "_activeReviewEventId = null;" in submit, "a success must close the exposure"
@@ -128,8 +128,8 @@ def test_desktop_binds_review_to_core_owned_assessment() -> None:
     assert 'GetProperty("assessment_id")' in learning
     assert 'GetProperty("question")' in learning
     assert 'GetProperty("content")' in learning
-    assert "assessment_id = _activeAssessmentId" in submit
-    assert "knowledge_version = _activeKnowledgeVersion" in submit
+    assert "assessment_id = submittedAssessmentId" in submit
+    assert "knowledge_version = submittedKnowledgeVersion" in submit
 
 
 def test_desktop_requires_assessment_bound_to_current_active_knowledge() -> None:
@@ -230,6 +230,17 @@ def test_desktop_rejects_inconsistent_correctness_and_fsrs_rating_before_post() 
     assert "var rating = _activeReviewRating ?? (correct ? 3 : 1);" in submit
     assert "if ((correct && rating == 1) || (!correct && rating >= 3))" in submit
     assert "SubmitReviewButton.IsEnabled = false;" in submit
+
+
+def test_desktop_ignores_late_review_receipts_for_a_replaced_exposure() -> None:
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick", "public sealed class LibraryResultRow")
+
+    assert "private long _reviewRequestVersion;" in shell
+    assert "var reviewRequestVersion = ++_reviewRequestVersion;" in submit
+    assert "IsCurrentReviewSubmission(" in submit
+    assert submit.count("if (!IsCurrentReviewSubmission(") >= 2
+    assert "catch (Exception)" in submit
 
 
 def test_desktop_reads_latest_learning_event_on_open_for_restart_readback() -> None:

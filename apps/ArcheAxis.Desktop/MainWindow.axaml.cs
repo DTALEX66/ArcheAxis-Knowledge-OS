@@ -39,6 +39,8 @@ public partial class MainWindow : Window
     private long _sourceTransformRequestVersion;
     private long _evidenceRequestVersion;
     private long _learningRequestVersion;
+    private long _reviewRequestVersion;
+    private long _knowledgeRequestVersion;
     private readonly List<CaptureContextRow> _captureContexts = new();
     private CaptureContextRow? _latestCaptureContext;
     private CaptureContextRow? _selectedCaptureContext;
@@ -743,7 +745,6 @@ public partial class MainWindow : Window
             var count = CommandPaletteResultsList.ItemCount;
             if (count > 0)
             {
-                LearningEmptyActions.IsVisible = false;
                 var current = CommandPaletteResultsList.SelectedIndex < 0
                     ? 0
                     : CommandPaletteResultsList.SelectedIndex;
@@ -810,7 +811,7 @@ public partial class MainWindow : Window
         };
         if (route.Item1.Length == 0)
         {
-            CommandPaletteStatusText.Text = "未识别命令；可用：首页、捕获、资料库、原件阅读、知识库、学习、研究、机器知识、任务、插件、模型、恢复、设置。";
+            CommandPaletteStatusText.Text = "未识别命令；可用：首页、捕获、资料库、原件阅读、知识库、学习、证据中心、研究、机器知识、任务、插件、模型、恢复、设置。";
             return;
         }
 
@@ -1249,6 +1250,7 @@ public partial class MainWindow : Window
 
     private async void OnReadKnowledgeClick(object? sender, RoutedEventArgs e)
     {
+        var requestVersion = ++_knowledgeRequestVersion;
         SetStatus(KnowledgeStateText, "正在读取 Knowledge V3。", "loading");
         var knowledgeId = KnowledgeIdBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(knowledgeId))
@@ -1294,6 +1296,8 @@ public partial class MainWindow : Window
             using var response = await _supervisor.SendAsync(
                 HttpMethod.Get,
                 $"/api/v1/knowledge-items/{Uri.EscapeDataString(knowledgeId)}/v3");
+            if (requestVersion != _knowledgeRequestVersion)
+                return;
             if (!response.IsSuccessStatusCode)
             {
                 var permissionDenied = IsPermissionStatus(response.StatusCode);
@@ -1332,6 +1336,8 @@ public partial class MainWindow : Window
                 return;
             }
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            if (requestVersion != _knowledgeRequestVersion)
+                return;
             var root = document.RootElement;
             KnowledgeStatusText.Text = ReadDisplayValue(root, "status");
             KnowledgeSourceText.Text = ReadDisplayValue(root, "source_id");
@@ -1375,6 +1381,8 @@ public partial class MainWindow : Window
         }
         catch (JsonException)
         {
+            if (requestVersion != _knowledgeRequestVersion)
+                return;
             SetStatus(KnowledgeStateText, "Knowledge V3 响应不是有效 JSON。", "error");
             KnowledgeResultsText.Text = "知识投影解析失败。";
             KnowledgeStatusText.Text = "解析失败";
@@ -1394,6 +1402,8 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
+            if (requestVersion != _knowledgeRequestVersion)
+                return;
             SetStatus(KnowledgeStateText, "Knowledge V3 读取中断。", "error");
             KnowledgeResultsText.Text = "知识投影读取中断。";
             KnowledgeStatusText.Text = "读取中断";
@@ -2533,6 +2543,7 @@ public partial class MainWindow : Window
     private async void OnLearningClick(object? sender, RoutedEventArgs e)
     {
         var requestVersion = ++_learningRequestVersion;
+        ++_reviewRequestVersion;
         if (!string.Equals(_activeSection, "learning", StringComparison.Ordinal))
         {
             _learningNavigationLoadInProgress = true;
@@ -2912,6 +2923,22 @@ public partial class MainWindow : Window
 
     private void OnReviewEasyClick(object? sender, RoutedEventArgs e) => SetReviewRating(4);
 
+    private bool IsCurrentReviewSubmission(
+        long requestVersion,
+        string itemKey,
+        string assessmentId,
+        string? knowledgeId,
+        string? knowledgeVersion,
+        string eventId,
+        string exposureId)
+        => requestVersion == _reviewRequestVersion
+            && string.Equals(_activeLearningItem, itemKey, StringComparison.Ordinal)
+            && string.Equals(_activeAssessmentId, assessmentId, StringComparison.Ordinal)
+            && string.Equals(_activeKnowledgeId, knowledgeId, StringComparison.Ordinal)
+            && string.Equals(_activeKnowledgeVersion, knowledgeVersion, StringComparison.Ordinal)
+            && string.Equals(_activeReviewEventId, eventId, StringComparison.Ordinal)
+            && string.Equals(_activeExposureId, exposureId, StringComparison.Ordinal);
+
     private async void OnSubmitReviewClick(object? sender, RoutedEventArgs e)
     {
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0 || string.IsNullOrWhiteSpace(_activeLearningItem)
@@ -2948,17 +2975,30 @@ public partial class MainWindow : Window
         // the review is accepted, so a failed submit is not recorded twice.
         _activeReviewEventId ??= $"desktop-{Guid.NewGuid():N}";
         _activeExposureId ??= $"desktop-exposure-{Guid.NewGuid():N}";
+        var reviewRequestVersion = ++_reviewRequestVersion;
+        var submittedItemKey = _activeLearningItem;
+        var submittedAssessmentId = _activeAssessmentId;
+        var submittedKnowledgeId = _activeKnowledgeId;
+        var submittedKnowledgeVersion = _activeKnowledgeVersion;
+        var submittedEventId = _activeReviewEventId;
+        var submittedExposureId = _activeExposureId;
+        if (submittedItemKey is null || submittedAssessmentId is null || submittedEventId is null || submittedExposureId is null)
+        {
+            SubmitReviewButton.IsEnabled = true;
+            SetStatus(LearningReviewStatusText, "复习提交失败：当前项目身份未完整暴露。", "error");
+            return;
+        }
         var payload = JsonSerializer.Serialize(new
         {
-            item_key = _activeLearningItem,
-            client_event_id = _activeReviewEventId,
+            item_key = submittedItemKey,
+            client_event_id = submittedEventId,
             correct,
             rating,
             answer,
-            assessment_id = _activeAssessmentId,
-            knowledge_version = _activeKnowledgeVersion,
+            assessment_id = submittedAssessmentId,
+            knowledge_version = submittedKnowledgeVersion,
             rating_version = "desktop-v1",
-            exposure_id = _activeExposureId,
+            exposure_id = submittedExposureId,
         });
         try
         {
@@ -2966,6 +3006,15 @@ public partial class MainWindow : Window
                 HttpMethod.Post,
                 "/api/v1/learning/reviews",
                 new StringContent(payload, Encoding.UTF8, "application/json"));
+            if (!IsCurrentReviewSubmission(
+                    reviewRequestVersion,
+                    submittedItemKey,
+                    submittedAssessmentId,
+                    submittedKnowledgeId,
+                    submittedKnowledgeVersion,
+                    submittedEventId,
+                    submittedExposureId))
+                return;
             if (response.IsSuccessStatusCode)
             {
                 var savedAnswer = false;
@@ -3041,6 +3090,15 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
+            if (!IsCurrentReviewSubmission(
+                    reviewRequestVersion,
+                    submittedItemKey,
+                    submittedAssessmentId,
+                    submittedKnowledgeId,
+                    submittedKnowledgeVersion,
+                    submittedEventId,
+                    submittedExposureId))
+                return;
             SubmitReviewButton.IsEnabled = true;
             CoreStatusText.Text = "学习路径：复习提交中断";
             SetStatus(LearningReviewStatusText, "复习提交中断；请以 Core 回执为准。", "error");
