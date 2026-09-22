@@ -1818,6 +1818,7 @@ def test_status_updates_refresh_the_accessible_status_name() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     assert "Avalonia.Automation.AutomationProperties.SetName(target, text);" in code
+    assert 'target.Classes.Set("status-warning", semanticState == "warning");' in code
 
 
 def test_primary_status_surfaces_have_initial_accessible_names() -> None:

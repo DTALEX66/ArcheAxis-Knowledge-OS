@@ -548,7 +548,7 @@ public partial class MainWindow : Window
 
     private void SetStatus(TextBlock target, string text, string semanticState)
     {
-        foreach (var state in new[] { "status-success", "status-error", "status-info", "status-review", "status-loading", "status-empty", "status-permission", "status-version", "status-unknown", "status-disabled" })
+        foreach (var state in new[] { "status-success", "status-error", "status-info", "status-review", "status-loading", "status-empty", "status-permission", "status-version", "status-unknown", "status-disabled", "status-warning" })
             target.Classes.Set(state, false);
         target.Classes.Set("status-success", semanticState == "success");
         target.Classes.Set("status-error", semanticState == "error");
@@ -560,6 +560,7 @@ public partial class MainWindow : Window
         target.Classes.Set("status-version", semanticState == "version");
         target.Classes.Set("status-unknown", semanticState == "unknown");
         target.Classes.Set("status-disabled", semanticState == "unavailable" || semanticState == "disabled");
+        target.Classes.Set("status-warning", semanticState == "warning");
         target.Text = text;
         Avalonia.Automation.AutomationProperties.SetName(target, text);
     }
