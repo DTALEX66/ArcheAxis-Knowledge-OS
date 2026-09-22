@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `f25c2088` on
+- Frontend implementation HEAD: `afdd5099` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -90,6 +90,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
   responds successfully; a valid empty queue remains navigable.
 - Library, Source Reader, Knowledge, Machine Task, and Job Receipt lookup
   inputs submit on Enter through their existing action routes.
+- Review selected-state foreground now consumes the shared AAOS
+  AaosPrimaryTextBrush token instead of a page-local color literal.
 - Desktop and mobile primary navigation actions now expose stable accessible
   names for all formal product routes.
 - Source Reader citation/provenance actions reflow vertically at the narrow

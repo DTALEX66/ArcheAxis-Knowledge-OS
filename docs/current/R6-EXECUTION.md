@@ -2151,6 +2151,13 @@
 - verification: lookup-input keyboard contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `180 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native input focus/submit behavior, accessibility tree, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
 
+## Continuation receipt — 2026-09-23 P3 review token-drift closure
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: replaced the review-grade selected foreground literal with the shared AAOS PrimaryText dynamic resource and added a theme contract preventing the old literal from returning.
+- source_commit: `afdd5099` (fix(desktop): remove review color token drift), ready for publication on the matching feature branch.
+- verification: theme token-drift contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `180 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native theme rendering, accessibility tree, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
 ## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
