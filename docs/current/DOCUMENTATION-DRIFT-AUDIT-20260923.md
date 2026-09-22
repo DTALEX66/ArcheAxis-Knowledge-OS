@@ -1,5 +1,11 @@
 # Documentation, Path, Output and Branch Drift Audit — 2026-09-23
 
+> **HISTORICAL SNAPSHOT / NOT CURRENT GIT TRUTH.** Frozen on 2026-09-23 after
+> the audit-time readback. For current branch, HEAD, remote-tracking refs and
+> disposition, use
+> `REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md`. Preserve this file as dated
+> evidence; do not update its old factual tables in place.
+
 ## Scope
 
 This is a current readback and disposition receipt for the AAOS repository. It

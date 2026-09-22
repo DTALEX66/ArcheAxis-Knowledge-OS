@@ -1,5 +1,12 @@
 # ArcheAxis 仓库整理、瘦身与交接报告（2026-09-21）
 
+> **HISTORICAL HANDOFF / NOT CURRENT GIT OR RUNTIME TRUTH.** This document is
+> preserved for the 2026-09-21 cleanup evidence. Its branch, HEAD, remote and
+> working-tree values are dated snapshots. Use
+> `REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md` for current readback. The
+> exact cleanup receipt and deleted-path evidence remain valid within their
+> recorded scope.
+
 ## 当前结论
 
 本轮完成了一次只读边界审计、项目内输出溢出追踪，以及一组有明确归属且可再生的构建/候选产物清理。未读取、修改或删除 `E:\`、`F:\`、`.codex`、`.zcode`、`.hermes`、凭据、外置共享库、真实资料库、测试资料库或现有 Green 运行目录。

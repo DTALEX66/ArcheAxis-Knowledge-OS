@@ -15,8 +15,14 @@
    The current priority overlay is
    [M0 direction override](current/M0-DIRECTION-OVERRIDE-20260920.md).
    The latest drift and branch/path audit is
-   [DOCUMENTATION-DRIFT-AUDIT-20260923](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md);
-   it is an audit receipt, not a replacement authority.
+   [REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md)
+   is the current Git/path/branch readback. The older
+   [DOCUMENTATION-DRIFT-AUDIT-20260923](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md)
+   is a frozen audit-time snapshot, not current Git truth.
+   The current branch table is
+   [BRANCH-DISPOSITION-CURRENT-20260923](current/BRANCH-DISPOSITION-CURRENT-20260923.md);
+   the project-local volume inventory is
+   [PROJECT-LOCAL-VOLUME-AUDIT-20260923](current/PROJECT-LOCAL-VOLUME-AUDIT-20260923.md).
    R5/R3/R2 handoffs and branch records are historical receipts only. Before
    using local resources, read the [shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
 3. [Language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md),
@@ -76,7 +82,9 @@ CI, release, or user-data migration unless it names that evidence layer.
 | Product capability and debt | [Project Status](PROJECT_STATUS.md) | Current summary |
 | Frozen task baseline | [Frozen execution baseline](truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md) | Frozen; do not rewrite |
 | Active forward work | [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md) + [R6 execution](current/R6-EXECUTION.md) + [M0 overlay](current/M0-DIRECTION-OVERRIDE-20260920.md) | Current task pack and priority overlay |
-| Drift / branch / output audit | [2026-09-23 audit](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md) | Readback and disposition receipt; does not promote historical evidence |
+| Drift / branch / output audit | [current receipt](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md) + [frozen audit](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md) | Current readback is separate from dated evidence; neither authorizes deletion or merge |
+| Branch disposition | [current branch table](current/BRANCH-DISPOSITION-CURRENT-20260923.md) | Read-only classification; merge/delete requires separate owner gate |
+| Project-local volume | [volume audit](current/PROJECT-LOCAL-VOLUME-AUDIT-20260923.md) | Size classification only; no bulk cleanup authorization |
 | Language migration | [Language-audit adoption](current/AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md) | Planned; G0-gated |
 | Language ownership and compatibility naming | [Language boundary authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md) | Binding migration boundary |
 | Directory migration and cleanup | [Directory-migration adoption](current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md) | Planned; delete gate blocked |
