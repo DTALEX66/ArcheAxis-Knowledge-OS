@@ -2200,3 +2200,10 @@
 - source_commit: `fc9a1693` (`feat(desktop): centralize common typography tokens`).
 - verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `186 passed`; theme XML parsing passed; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native typography, contrast, DPI scaling, screenshot and accessibility-tree readback remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 Activity Dock motion convergence
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: Activity Dock detail text and receipt rows now reveal through the shared reduced-motion-safe surface path; collapse restores opacity before hiding, preserving the existing Esc/focus behavior.
+- source_commit: `b1d88ed5` (`feat(desktop): animate activity dock expansion`).
+- verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `187 passed`; XAML XML parsing passed; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native animation timing, reduced-motion OS behavior, screenshot, accessibility-tree readback, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
