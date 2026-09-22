@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `69266572` on
+- Frontend implementation HEAD: pending until this scoped continuation is committed on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -51,8 +51,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after accessible Activity Dock readback:
-  `189 passed`.
+- Current combined frontend verification after stale-response and inspector
+  layout hardening: `192 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -170,6 +170,14 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   hiding and Esc still returns focus to the toggle.
 - Primary product page titles and the Home hero now consume dedicated shared
   typography classes; dense field-level sizes remain intentionally explicit.
+- Home, Capture, Learning, Evidence and Settings section/card headings now use
+  shared AAOS heading classes instead of scattered page-local hierarchy sizes.
+- Machine-task and job-receipt lookup responses now carry request-version and
+  active-route guards; a slower prior response cannot overwrite a newer query
+  or a different route's Inspector projection.
+- Inspector actions now reflow vertically whenever the Inspector is visible,
+  including the permanent 300px desktop rail and the drawer overlay, instead
+  of relying only on the outer-window breakpoint.
 
 ## Explicit limits
 

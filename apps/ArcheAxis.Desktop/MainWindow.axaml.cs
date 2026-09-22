@@ -42,6 +42,8 @@ public partial class MainWindow : Window
     private long _reviewRequestVersion;
     private long _knowledgeRequestVersion;
     private long _librarySearchRequestVersion;
+    private long _machineTaskRequestVersion;
+    private long _jobLookupRequestVersion;
     private readonly List<CaptureContextRow> _captureContexts = new();
     private CaptureContextRow? _latestCaptureContext;
     private CaptureContextRow? _selectedCaptureContext;
@@ -348,6 +350,10 @@ public partial class MainWindow : Window
 
     private void SetSection(string section, string heading)
     {
+        if (!string.Equals(section, "machine-growth", StringComparison.Ordinal))
+            ++_machineTaskRequestVersion;
+        if (!string.Equals(section, "jobs", StringComparison.Ordinal))
+            ++_jobLookupRequestVersion;
         _activeSection = section;
         WorkspaceHeadingText.Text = heading;
         InspectorSectionText.Text = heading;
@@ -1597,6 +1603,7 @@ public partial class MainWindow : Window
 
     private async void OnReadMachineTaskClick(object? sender, RoutedEventArgs e)
     {
+        var requestVersion = ++_machineTaskRequestVersion;
         var taskId = MachineTaskIdBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(taskId))
         {
@@ -1613,12 +1620,16 @@ public partial class MainWindow : Window
             using var response = await _supervisor.SendAsync(
                 HttpMethod.Get,
                 $"/api/v1/machine/tasks/{Uri.EscapeDataString(taskId)}");
+            if (requestVersion != _machineTaskRequestVersion || !string.Equals(_activeSection, "machine-growth", StringComparison.Ordinal))
+                return;
             if (!response.IsSuccessStatusCode)
             {
                 MachineTaskResultsText.Text = $"Core 未返回机器任务收据（HTTP {(int)response.StatusCode}）。";
                 return;
             }
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            if (requestVersion != _machineTaskRequestVersion || !string.Equals(_activeSection, "machine-growth", StringComparison.Ordinal))
+                return;
             var root = document.RootElement;
             MachineTaskResultsText.Text = string.Join("\n", new[]
             {
@@ -1633,6 +1644,8 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
+            if (requestVersion != _machineTaskRequestVersion || !string.Equals(_activeSection, "machine-growth", StringComparison.Ordinal))
+                return;
             MachineTaskResultsText.Text = "机器任务收据读取中断。";
         }
     }
@@ -1842,6 +1855,7 @@ public partial class MainWindow : Window
 
     private async void OnReadJobReceiptClick(object? sender, RoutedEventArgs e)
     {
+        var requestVersion = ++_jobLookupRequestVersion;
         var jobId = JobLookupIdBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(jobId))
         {
@@ -1859,6 +1873,8 @@ public partial class MainWindow : Window
             using var response = await _supervisor.SendAsync(
                 HttpMethod.Get,
                 $"/api/v1/jobs/{Uri.EscapeDataString(jobId)}");
+            if (requestVersion != _jobLookupRequestVersion || !string.Equals(_activeSection, "jobs", StringComparison.Ordinal))
+                return;
             if (!response.IsSuccessStatusCode)
             {
                 var permissionDenied = IsPermissionStatus(response.StatusCode);
@@ -1873,6 +1889,8 @@ public partial class MainWindow : Window
                 return;
             }
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            if (requestVersion != _jobLookupRequestVersion || !string.Equals(_activeSection, "jobs", StringComparison.Ordinal))
+                return;
             var lines = new List<string>
             {
                 $"job_id：{ReadDisplayValue(document.RootElement, "job_id")}",
@@ -1888,6 +1906,8 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
+            if (requestVersion != _jobLookupRequestVersion || !string.Equals(_activeSection, "jobs", StringComparison.Ordinal))
+                return;
             SetStatus(JobLookupResultsText, "error · 任务回执读取中断；不代表任务成功。", "error");
         }
     }
@@ -2065,7 +2085,8 @@ public partial class MainWindow : Window
         SourceReaderContextActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
-        InspectorActionPanel.Orientation = narrowActions
+        var inspectorActionsNarrow = narrowActions || InspectorPanel.IsVisible;
+        InspectorActionPanel.Orientation = inspectorActionsNarrow
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
         SetResponsiveToolbar(LibrarySearchGrid, LibrarySearchButton, narrowActions);

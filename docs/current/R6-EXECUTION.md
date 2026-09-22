@@ -2221,3 +2221,11 @@
 - source_commit: `69266572` (`fix(desktop): preserve accessible activity readback`).
 - verification: both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `189 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native screen-reader live announcement, accessibility-tree readback, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 stale lookup and inspector reflow hardening
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added request-version plus active-route guards to machine-task and job-receipt lookup flows; invalidated those requests when leaving their routes; made visible Inspector action groups vertical so both the permanent 300px rail and drawer overlay keep all actions reachable; and moved primary page/card headings onto shared AAOS typography classes.
+- source_commit: pending until this scoped change is committed.
+- agent_readback: `Planck = GPT-6 / reasoning level not publicly disclosed` performed a read-only audit and identified the stale lookup and permanent Inspector reflow gaps. No agent write or external-resource access occurred.
+- verification: both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `192 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native Inspector bounds, pointer/focus delivery, screenshot, accessibility tree, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.

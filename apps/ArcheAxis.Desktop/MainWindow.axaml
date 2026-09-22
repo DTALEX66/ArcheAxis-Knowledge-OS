@@ -106,7 +106,7 @@
                     <StackPanel Spacing="8">
                       <Grid x:Name="FirstRunReadinessGrid" ColumnDefinitions="*,Auto" ColumnSpacing="12">
                         <StackPanel Spacing="3">
-                          <TextBlock Text="首次使用准备度" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                          <TextBlock Text="首次使用准备度" Classes="section-heading" />
                           <TextBlock Text="先确认 Core 与工作区，再导入第一份真实资料。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                         </StackPanel>
                         <Button x:Name="FirstRunImportButton" Classes="primary-action" Grid.Column="1" Content="选择资料并导入" Padding="14,8" Click="OnImportClick" AutomationProperties.Name="选择资料并导入" />
@@ -120,7 +120,7 @@
                   <Border Classes="aaos-card" Padding="20">
                     <Grid x:Name="HomeHeroGrid" ColumnDefinitions="*,220" ColumnSpacing="18">
                       <StackPanel Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="从原件到可复习的知识" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="从原件到可复习的知识" Classes="page-subheading" />
                         <TextBlock Text="每一步都保留来源、版本与状态边界；你决定什么值得进入自己的知识系统。" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource AaosMutedBrush}" />
                         <StackPanel x:Name="HomeHeroActions" Orientation="Horizontal" Spacing="8">
                           <Button Classes="primary-action" Content="开始捕获" Padding="14,8" Click="OnCaptureClick" AutomationProperties.Name="开始捕获资料" />
@@ -156,14 +156,14 @@
                   <Grid x:Name="HomeFocusGrid" ColumnDefinitions="*,*" ColumnSpacing="12">
                     <Border x:Name="HomeFocusTodayCard" Classes="aaos-card" Padding="18">
                       <StackPanel Spacing="8">
-                        <TextBlock Text="今日关注" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="今日关注" Classes="section-heading" />
                         <TextBlock x:Name="HomeFocusText" Text="当前关注由 Core 状态生成；尚无固定演示内容。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <Button x:Name="HomeFocusLearningButton" Classes="primary-action" Content="打开 Core 学习路径" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" AutomationProperties.Name="打开 Core 学习路径" />
                       </StackPanel>
                     </Border>
                     <Border x:Name="HomeFocusActionCard" Grid.Column="1" Padding="18" CornerRadius="12" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                       <StackPanel Spacing="8">
-                        <TextBlock Text="当前会话回执" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="当前会话回执" Classes="section-heading" />
                         <TextBlock x:Name="HomeEvidenceText" Text="本次会话尚无 Core 接收回执；不代表没有真实 Evidence。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <Button x:Name="HomeOpenCurrentSourceButton" Content="打开当前来源" HorizontalAlignment="Left" Padding="16,9" Click="OnOpenLatestSourceClick" AutomationProperties.Name="打开当前来源" />
                       </StackPanel>
@@ -175,7 +175,7 @@
                     <Border x:Name="HomeContinueReadingCard" Padding="14,12" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                         <Grid x:Name="HomeContinueReadingGrid" ColumnDefinitions="*,Auto" ColumnSpacing="18">
                             <StackPanel Spacing="3">
-                                <TextBlock Text="继续阅读" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                                <TextBlock Text="继续阅读" Classes="card-heading" />
                                 <TextBlock x:Name="HomeContinueReadingText" Text="当前会话尚无可恢复来源；持久化阅读位置未接入。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
                             <Button x:Name="HomeContinueReadingButton" Grid.Column="1" Content="打开当前来源" IsEnabled="False" Padding="14,8" VerticalAlignment="Center" Click="OnOpenHomeReadingClick" AutomationProperties.Name="打开当前来源" />
@@ -184,7 +184,7 @@
                     <Border Padding="14,12" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                         <Grid x:Name="HomeDeepTutorGrid" ColumnDefinitions="*,Auto" ColumnSpacing="18">
                             <StackPanel Spacing="3">
-                                <TextBlock Text="可选 DeepTutor 工作台" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                                <TextBlock Text="可选 DeepTutor 工作台" Classes="card-heading" />
                                 <TextBlock Text="Core 待复习队列请从“今日关注 / Core 学习路径”进入；DeepTutor 仅为可选 sidecar，不写 Core Learning Truth。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
                             <Button x:Name="HomeDeepTutorButton" Grid.Column="1" Content="打开 DeepTutor 工作台" Padding="14,8" Click="OnOpenLearningWorkbenchClick" VerticalAlignment="Center" AutomationProperties.Name="打开 DeepTutor 工作台" />
@@ -193,7 +193,7 @@
                     <Border Padding="14,12" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                         <Grid x:Name="HomeImportGrid" ColumnDefinitions="*,Auto" ColumnSpacing="18">
                             <StackPanel Spacing="3">
-                                <TextBlock Text="导入资料" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                                <TextBlock Text="导入资料" Classes="card-heading" />
                                 <TextBlock Text="从 Markdown、PDF、Office、网页或 Canvas 开始。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
                             <Button x:Name="HomeImportButton" Grid.Column="1" Content="选择资料并导入" Padding="14,8" VerticalAlignment="Center" Click="OnImportClick" AutomationProperties.Name="选择资料并导入" />
@@ -202,7 +202,7 @@
                     <Border Padding="14,12" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
                             <StackPanel Spacing="3">
-                                <TextBlock Text="资料与知识" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                                <TextBlock Text="资料与知识" Classes="card-heading" />
                                 <TextBlock Text="检索来源、知识与提取结果；恢复状态仍由 Core 直接读取。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
                             <StackPanel x:Name="HomeKnowledgeActions" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -229,13 +229,13 @@
                   </Border>
                   <Border Classes="aaos-card-compact" Padding="20">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="Core 回执" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                      <TextBlock Text="Core 回执" Classes="section-heading" />
                       <TextBlock x:Name="CaptureReceiptText" Text="未创建虚构的 Core 状态；选择资料后仅显示真实接收与任务回执。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                     </StackPanel>
                   </Border>
                   <Border Classes="aaos-card-compact" Padding="20">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="最近导入上下文" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                      <TextBlock Text="最近导入上下文" Classes="section-heading" />
                       <TextBlock x:Name="CaptureContextText" Classes="provenance-projection" Text="本次导入上下文：尚未形成 Core 来源。" TextWrapping="Wrap" />
                       <TextBlock Text="仅传递 Core 已返回的 source_id/job_id；不会把导入成功推断为知识或学习成功。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                       <ListBox x:Name="CaptureContextsList" SelectionChanged="OnCaptureContextSelected" MaxHeight="170" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="本次捕获上下文" />
@@ -478,7 +478,7 @@
                   </Border>
                   <Border Padding="16" CornerRadius="10" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="来源链" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="来源链" Classes="section-heading" />
                       <TextBlock Text="证据" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="LearningEvidenceText" Classes="provenance-evidence" Text="尚未载入 Core 学习来源。" TextWrapping="Wrap" />
                       <TextBlock Text="原件" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -493,7 +493,7 @@
                   </Border>
                   <Border x:Name="LearningReviewCard" Classes="aaos-card-compact review-card" Padding="20">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Review Card · 当前复习" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="Review Card · 当前复习" Classes="section-heading" />
                         <TextBlock Text="Assessment" FontSize="12" Classes="provenance-projection" />
                         <TextBlock x:Name="LearningItemText" Text="点击‘打开学习路径’载入待复习项目" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <TextBlock Text="Learner Answer" FontSize="12" Classes="provenance-original" />
@@ -557,7 +557,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="16">
                       <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.82" AutomationProperties.Name="证据中心未接入插图" />
                       <StackPanel Spacing="7" VerticalAlignment="Center">
-                        <TextBlock Text="当前 Core 尚未暴露 Evidence 读模型" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="当前 Core 尚未暴露 Evidence 读模型" Classes="card-heading" />
                         <TextBlock Text="这里不显示合成 anchor 或 bundle。你可以先捕获来源，或查看已持久化的任务回执。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                           <Button Content="去捕获来源" Padding="12,7" Click="OnEvidenceOpenCaptureClick" AutomationProperties.Name="去捕获来源" />
@@ -568,14 +568,14 @@
                   </Border>
                   <Border Classes="aaos-card-compact" Padding="14">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="Evidence anchors" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="Evidence anchors" Classes="card-heading" />
                       <ListBox x:Name="EvidenceAnchorsList" SelectionChanged="OnEvidenceAnchorSelected" MaxHeight="260" Background="Transparent" BorderThickness="0" AutomationProperties.Name="证据锚点列表" />
                       <TextBlock x:Name="EvidenceAnchorDetailText" Classes="status-empty" Text="尚未选择 Evidence anchor。" TextWrapping="Wrap" />
                     </StackPanel>
                   </Border>
                   <Border Classes="aaos-card-compact" Padding="14">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="Evidence bundles" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="Evidence bundles" Classes="card-heading" />
                       <TextBlock x:Name="EvidenceBundlesText" Classes="status-empty" Text="尚未读取 bundle 摘要。" TextWrapping="Wrap" />
                     </StackPanel>
                   </Border>
@@ -609,7 +609,7 @@
                   <TextBlock x:Name="SettingsStateText" Classes="status-empty" Text="尚未读取 Core 状态。" TextWrapping="Wrap" AutomationProperties.Name="系统状态" />
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="Core 运行状态" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                      <TextBlock Text="Core 运行状态" Classes="section-heading" />
                       <TextBlock x:Name="SettingsCoreStatusText" Text="尚未读取" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="SettingsWorkspaceStatusText" Text="工作区：尚未读取" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="SettingsCapabilityBoundaryText" Text="插件、模型、Sidecar 未接入权威 readiness 投影。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />

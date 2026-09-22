@@ -196,6 +196,24 @@ def test_activity_dock_can_expand_current_session_receipts_without_history_claim
     assert '不代表持久历史' in xaml or '不代表持久历史' in code
 
 
+def test_machine_and_job_lookups_ignore_stale_or_off_route_responses() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    assert 'private long _machineTaskRequestVersion;' in code
+    assert 'private long _jobLookupRequestVersion;' in code
+    assert 'var requestVersion = ++_machineTaskRequestVersion;' in code
+    assert 'var requestVersion = ++_jobLookupRequestVersion;' in code
+    assert 'requestVersion != _machineTaskRequestVersion' in code
+    assert 'requestVersion != _jobLookupRequestVersion' in code
+    assert 'string.Equals(_activeSection, "machine-growth"' in code
+    assert 'string.Equals(_activeSection, "jobs"' in code
+
+
+def test_inspector_actions_reflow_when_the_inspector_is_visible() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    assert 'var inspectorActionsNarrow = narrowActions || InspectorPanel.IsVisible;' in code
+    assert 'InspectorActionPanel.Orientation = inspectorActionsNarrow' in code
+
+
 def test_activity_dock_summary_and_details_keep_accessible_readback_names() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
@@ -854,6 +872,16 @@ def test_aaos_theme_tokens_replace_the_legacy_indigo_shell_palette() -> None:
         assert legacy not in xaml
 
 
+def test_aaos_page_hierarchy_uses_shared_heading_classes() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    assert 'Selector="TextBlock.section-heading"' in theme
+    assert 'Selector="TextBlock.card-heading"' in theme
+    assert 'Text="今日关注" Classes="section-heading"' in xaml
+    assert 'Text="当前会话回执" Classes="section-heading"' in xaml
+    assert 'Text="继续阅读" Classes="card-heading"' in xaml
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]
@@ -1361,7 +1389,7 @@ def test_inspector_drawer_enters_focus_and_reflows_scrollable_actions() -> None:
     assert 'AutomationProperties.Name="来源与证据检查器"' in xaml
     assert 'VerticalScrollBarVisibility="Auto"' in xaml
     assert 'InspectorPanel.Focus();' in code
-    assert 'InspectorActionPanel.Orientation = narrowActions' in code
+    assert 'InspectorActionPanel.Orientation = inspectorActionsNarrow' in code
 
 
 def test_overlay_surfaces_have_reduced_motion_safe_reveal_feedback() -> None:
