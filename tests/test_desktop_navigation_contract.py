@@ -1688,3 +1688,11 @@ def test_primary_and_mobile_navigation_have_stable_accessibility_names() -> None
     assert '来源链字段不完整，未复制占位值' in code
     assert 'private bool IsCurrentSourceTransformRequest' in code
     assert 'ReferenceEquals(SourceReaderMembersList.SelectedItem, selected)' in code
+
+
+def test_source_reader_context_actions_reflow_at_narrow_widths() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'x:Name="SourceReaderContextActions"' in xaml
+    assert 'SourceReaderContextActions.Orientation = narrowActions' in code

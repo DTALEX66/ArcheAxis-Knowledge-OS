@@ -1845,6 +1845,9 @@ public partial class MainWindow : Window
         LearningCaptureActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
+        SourceReaderContextActions.Orientation = narrowActions
+            ? Avalonia.Layout.Orientation.Vertical
+            : Avalonia.Layout.Orientation.Horizontal;
         SetResponsiveToolbar(LibrarySearchGrid, LibrarySearchButton, narrowActions);
         LibraryWorkspaceGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("1*")
