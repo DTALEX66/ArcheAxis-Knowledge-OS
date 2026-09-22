@@ -49,28 +49,28 @@
                 <StackPanel x:Name="ContextCaptureSubnav" IsVisible="False" Spacing="7">
                     <TextBlock Text="捕获" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                     <TextBlock Text="选择资料并查看本次会话的真实回执。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <Button Content="选择资料" HorizontalContentAlignment="Left" Click="OnImportClick" />
-                    <Button Content="打开任务回执" HorizontalContentAlignment="Left" Click="OnJobsClick" />
+                    <Button Content="选择资料" HorizontalContentAlignment="Left" Click="OnImportClick" AutomationProperties.Name="选择资料" />
+                    <Button Content="打开任务回执" HorizontalContentAlignment="Left" Click="OnJobsClick" AutomationProperties.Name="打开任务回执" />
                 </StackPanel>
                 <StackPanel x:Name="ContextKnowledgeSubnav" IsVisible="False" Spacing="7">
                     <TextBlock Text="资料与知识" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
-                    <Button Content="资料库" HorizontalContentAlignment="Left" Click="OnLibraryClick" />
-                    <Button Content="导入阅读" HorizontalContentAlignment="Left" Click="OnSourceReaderClick" />
-                    <Button Content="知识库" HorizontalContentAlignment="Left" Click="OnKnowledgeClick" />
+                    <Button Content="资料库" HorizontalContentAlignment="Left" Click="OnLibraryClick" AutomationProperties.Name="打开资料库" />
+                    <Button Content="导入阅读" HorizontalContentAlignment="Left" Click="OnSourceReaderClick" AutomationProperties.Name="打开导入阅读" />
+                    <Button Content="知识库" HorizontalContentAlignment="Left" Click="OnKnowledgeClick" AutomationProperties.Name="打开知识库" />
                 </StackPanel>
                 <StackPanel x:Name="ContextLearningSubnav" IsVisible="False" Spacing="7">
                     <TextBlock Text="学习" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
-                    <Button Content="学习路径" HorizontalContentAlignment="Left" Click="OnLearningNavigationClick" />
+                    <Button Content="学习路径" HorizontalContentAlignment="Left" Click="OnLearningNavigationClick" AutomationProperties.Name="打开学习路径" />
                 </StackPanel>
                 <StackPanel x:Name="ContextMachineSubnav" IsVisible="False" Spacing="7">
                     <TextBlock Text="机器知识" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
-                    <Button Content="任务收据" HorizontalContentAlignment="Left" Click="OnMachineGrowthClick" />
+                    <Button Content="任务收据" HorizontalContentAlignment="Left" Click="OnMachineGrowthClick" AutomationProperties.Name="打开任务收据" />
                 </StackPanel>
                 <StackPanel x:Name="ContextSystemSubnav" IsVisible="False" Spacing="7">
                     <TextBlock Text="系统" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
-                    <Button Content="任务" HorizontalContentAlignment="Left" Click="OnJobsClick" />
-                    <Button Content="恢复" HorizontalContentAlignment="Left" Click="OnRecoveryClick" />
-                    <Button Content="设置" HorizontalContentAlignment="Left" Click="OnSettingsClick" />
+                    <Button Content="任务" HorizontalContentAlignment="Left" Click="OnJobsClick" AutomationProperties.Name="打开任务" />
+                    <Button Content="恢复" HorizontalContentAlignment="Left" Click="OnRecoveryClick" AutomationProperties.Name="打开恢复" />
+                    <Button Content="设置" HorizontalContentAlignment="Left" Click="OnSettingsClick" AutomationProperties.Name="打开设置" />
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -156,7 +156,7 @@
                       <StackPanel Spacing="8">
                         <TextBlock Text="今日关注" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                         <TextBlock x:Name="HomeFocusText" Text="当前关注由 Core 状态生成；尚无固定演示内容。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <Button Classes="primary-action" Content="打开 Core 学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" />
+                        <Button Classes="primary-action" Content="打开 Core 学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" AutomationProperties.Name="打开 Core 学习路径" />
                       </StackPanel>
                     </Border>
                     <Border x:Name="HomeFocusActionCard" Grid.Column="1" Padding="18" CornerRadius="12" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -204,8 +204,8 @@
                                 <TextBlock Text="检索来源、知识与提取结果；恢复状态仍由 Core 直接读取。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
                             <StackPanel x:Name="HomeKnowledgeActions" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Button Content="打开资料库" Padding="14,8" Click="OnLibraryClick" />
-                                <Button Content="恢复状态" Padding="14,8" Click="OnRecoveryClick" />
+                                <Button Content="打开资料库" Padding="14,8" Click="OnLibraryClick" AutomationProperties.Name="打开资料库" />
+                                <Button Content="恢复状态" Padding="14,8" Click="OnRecoveryClick" AutomationProperties.Name="打开恢复状态" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -220,8 +220,8 @@
                       <TextBlock Text="当前选择" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="CaptureSelectionText" Text="尚未选择资料。" TextWrapping="Wrap" Foreground="{DynamicResource AaosIvoryBrush}" />
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Classes="primary-action" Content="选择资料" Padding="16,9" Click="OnImportClick" />
-                        <Button Content="打开任务回执" Padding="16,9" Click="OnJobsClick" />
+                        <Button Classes="primary-action" Content="选择资料" Padding="16,9" Click="OnImportClick" AutomationProperties.Name="选择资料" />
+                        <Button Content="打开任务回执" Padding="16,9" Click="OnJobsClick" AutomationProperties.Name="打开任务回执" />
                       </StackPanel>
                     </StackPanel>
                   </Border>
@@ -307,7 +307,7 @@
                       <TextBlock x:Name="LibraryDetailBoundaryText" Text="字段来自 Core 搜索响应；缺失字段不推断。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                       <TextBlock Text="字段来自 Core 搜索响应；缺失字段不推断为证据、原件或已验证知识。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Content="读取 Knowledge 详情" Padding="14,8" Click="OnOpenSelectedKnowledgeClick" />
+                        <Button Content="读取 Knowledge 详情" Padding="14,8" Click="OnOpenSelectedKnowledgeClick" AutomationProperties.Name="读取 Knowledge 详情" />
                         <Button x:Name="OpenLibrarySourceButton" Content="查看来源成员" IsEnabled="False" Padding="14,8" Click="OnOpenLibrarySourceClick" AutomationProperties.Name="查看来源成员" />
                       </StackPanel>
                     </StackPanel>

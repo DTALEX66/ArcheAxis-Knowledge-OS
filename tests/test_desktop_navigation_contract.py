@@ -1832,6 +1832,14 @@ def test_named_product_actions_have_stable_accessible_names() -> None:
         assert name in segment
 
 
+def test_every_desktop_button_declares_an_accessible_name() -> None:
+    unnamed = []
+    for line_number, line in enumerate(XAML.read_text(encoding="utf-8").splitlines(), start=1):
+        if "<Button" in line and "AutomationProperties.Name=" not in line:
+            unnamed.append(f"{line_number}: {line.strip()}")
+    assert unnamed == []
+
+
 def test_command_palette_status_updates_accessible_name_with_selection() -> None:
     code = CODE.read_text(encoding="utf-8")
 
