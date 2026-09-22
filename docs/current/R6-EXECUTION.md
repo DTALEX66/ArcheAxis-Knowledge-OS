@@ -2218,6 +2218,6 @@
 ## Continuation receipt — 2026-09-23 P3 accessible Activity Dock readback
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: added a single helper path for Activity Dock summary and expanded-detail text so visible session receipt state also refreshes its `AutomationProperties.Name`; initial XAML names cover the empty state. This preserves a durable readback surface after transient Toast dismissal. No unsupported Avalonia Live Region configuration was invented.
-- source_commit: pending until this scoped change is committed.
+- source_commit: `69266572` (`fix(desktop): preserve accessible activity readback`).
 - verification: both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `189 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native screen-reader live announcement, accessibility-tree readback, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
