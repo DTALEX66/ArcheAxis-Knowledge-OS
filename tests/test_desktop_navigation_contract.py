@@ -132,6 +132,21 @@ def test_library_selected_evidence_detail_uses_only_search_projection_fields() -
     assert '来自 Core 搜索投影' in code
 
 
+def test_library_and_source_lists_support_direct_keyboard_and_pointer_activation() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    for name in ("LibraryResultsList", "SourceReaderMembersList"):
+        list_block = xaml.split(f'x:Name="{name}"', 1)[1].split('>', 1)[0]
+        assert 'KeyDown="OnDetailListKeyDown"' in list_block
+        assert 'DoubleTapped="OnDetailListDoubleTapped"' in list_block
+    assert 'private void OnDetailListKeyDown' in code
+    assert 'private void OnDetailListDoubleTapped' in code
+    assert 'private void ExecuteSelectedLibraryResult' in code
+    assert 'OnOpenSelectedKnowledgeClick(this, new RoutedEventArgs())' in code
+    assert 'OnOpenLibrarySourceClick(this, new RoutedEventArgs())' in code
+    assert 'OnReadSourceTransformClick(sender, new RoutedEventArgs())' in code
+
+
 def test_library_to_source_reader_preserves_a_guarded_return_context() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")

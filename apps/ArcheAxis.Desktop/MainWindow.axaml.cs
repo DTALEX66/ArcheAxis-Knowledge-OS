@@ -2274,6 +2274,44 @@ public partial class MainWindow : Window
         ProjectSelectedLibraryResult(selected);
     }
 
+    private void OnDetailListKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+
+        if (ReferenceEquals(sender, LibraryResultsList))
+        {
+            ExecuteSelectedLibraryResult();
+            e.Handled = true;
+        }
+        else if (ReferenceEquals(sender, SourceReaderMembersList))
+        {
+            OnReadSourceTransformClick(sender, new RoutedEventArgs());
+            e.Handled = true;
+        }
+    }
+
+    private void OnDetailListDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (ReferenceEquals(sender, LibraryResultsList))
+            ExecuteSelectedLibraryResult();
+        else if (ReferenceEquals(sender, SourceReaderMembersList))
+            OnReadSourceTransformClick(sender, new RoutedEventArgs());
+
+        e.Handled = true;
+    }
+
+    private void ExecuteSelectedLibraryResult()
+    {
+        if (LibraryResultsList.SelectedItem is not LibraryResultRow selected)
+            return;
+
+        if (selected.Kind == "knowledge")
+            OnOpenSelectedKnowledgeClick(this, new RoutedEventArgs());
+        else
+            OnOpenLibrarySourceClick(this, new RoutedEventArgs());
+    }
+
     private void ProjectSelectedLibraryResult(LibraryResultRow selected)
     {
         _selectedLibraryResult = selected;

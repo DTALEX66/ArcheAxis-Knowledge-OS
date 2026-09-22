@@ -268,7 +268,7 @@
                   <Border Grid.Column="0" Classes="aaos-card-compact" Padding="20">
                     <StackPanel Spacing="10">
                       <TextBlock x:Name="LibraryResultsText" Text="输入关键词后搜索 Core。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                      <ListBox x:Name="LibraryResultsList" SelectionChanged="OnLibraryResultSelected" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="资料库搜索结果">
+                      <ListBox x:Name="LibraryResultsList" SelectionChanged="OnLibraryResultSelected" KeyDown="OnDetailListKeyDown" DoubleTapped="OnDetailListDoubleTapped" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="资料库搜索结果">
                           <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="{x:Type local:LibraryResultRow}">
                               <Border Padding="12,10" Margin="0,0,0,8" CornerRadius="8" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -337,7 +337,7 @@
                         <TextBlock Text="Source Tree / Outline" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
                         <TextBlock x:Name="SourceReaderResultsText" Text="输入 source_id 后读取 Core。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <TextBlock x:Name="SourceReaderCoreNoteText" Text="Core 语义边界：尚未读取。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <ListBox x:Name="SourceReaderMembersList" SelectionChanged="OnSourceMemberSelected" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" MaxHeight="360" AutomationProperties.Name="来源成员列表">
+                        <ListBox x:Name="SourceReaderMembersList" SelectionChanged="OnSourceMemberSelected" KeyDown="OnDetailListKeyDown" DoubleTapped="OnDetailListDoubleTapped" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" MaxHeight="360" AutomationProperties.Name="来源成员列表">
                           <ListBox.ItemTemplate>
                             <DataTemplate>
                               <Border Padding="12,10" Margin="0,0,0,8" CornerRadius="8" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
