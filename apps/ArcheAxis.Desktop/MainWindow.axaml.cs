@@ -1105,6 +1105,19 @@ public partial class MainWindow : Window
         requestVersion == _sourceTransformRequestVersion
         && ReferenceEquals(SourceReaderMembersList.SelectedItem, selected);
 
+    private static async Task<bool> TrySetClipboardTextAsync(IClipboard clipboard, string text)
+    {
+        try
+        {
+            await clipboard.SetTextAsync(text);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     private async void OnCopySourceProvenanceClick(object? sender, RoutedEventArgs e)
     {
         if (SourceReaderMembersList.SelectedItem is not SourceMemberRow selected)
@@ -1136,7 +1149,11 @@ public partial class MainWindow : Window
             $"sha256: {selected.Sha256}",
             "boundary: Core 来源成员投影；不包含原文正文，不代表已理解或 evidence anchor。",
         });
-        await clipboard.SetTextAsync(provenance);
+        if (!await TrySetClipboardTextAsync(clipboard, provenance))
+        {
+            SetStatus(SourceReaderStatusText, "来源阅读：剪贴板写入失败，请重试；未确认复制成功。", "error");
+            return;
+        }
         SetStatus(SourceReaderStatusText, "来源阅读：已复制来源链摘要；未复制原文正文。", "success");
         ShowToast("已复制来源链摘要");
     }
@@ -1168,7 +1185,11 @@ public partial class MainWindow : Window
             $"sha256: {selected.Sha256}",
             "boundary: 引用元数据来自 Core 来源成员投影；不包含原文正文，不代表 Evidence anchor 或 Knowledge Truth。",
         });
-        await clipboard.SetTextAsync(citation);
+        if (!await TrySetClipboardTextAsync(clipboard, citation))
+        {
+            SetStatus(SourceReaderStatusText, "来源阅读：剪贴板写入失败，请重试；未确认复制成功。", "error");
+            return;
+        }
         SetStatus(SourceReaderStatusText, "来源阅读：已复制引用元数据；未复制原文正文。", "success");
         ShowToast("已复制引用元数据");
     }

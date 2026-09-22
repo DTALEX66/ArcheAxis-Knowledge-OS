@@ -1632,7 +1632,7 @@ def test_source_reader_can_copy_only_the_selected_core_provenance_chain() -> Non
     assert 'x:Name="CopySourceProvenanceButton"' in xaml
     assert 'Click="OnCopySourceProvenanceClick"' in xaml
     assert 'private async void OnCopySourceProvenanceClick' in code
-    assert 'await clipboard.SetTextAsync(provenance);' in code
+    assert 'await clipboard.SetTextAsync(text);' in code
     assert '不包含原文正文' in code
     assert 'HasProvenanceValue(selected.SourceId)' in code
     assert 'HasProvenanceValue(selected.Member)' in code
@@ -1745,6 +1745,15 @@ def test_knowledge_reads_ignore_stale_responses() -> None:
     assert "private long _knowledgeRequestVersion;" in code
     assert "var requestVersion = ++_knowledgeRequestVersion;" in method
     assert method.count("if (requestVersion != _knowledgeRequestVersion)") >= 3
+
+
+def test_source_copy_actions_report_clipboard_write_failures() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert "private static async Task<bool> TrySetClipboardTextAsync" in code
+    assert "if (!await TrySetClipboardTextAsync(clipboard, provenance))" in code
+    assert "if (!await TrySetClipboardTextAsync(clipboard, citation))" in code
+    assert "剪贴板写入失败" in code
 
 
 def test_command_palette_results_keep_enter_handling_when_list_has_focus() -> None:
