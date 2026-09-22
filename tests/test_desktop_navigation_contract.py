@@ -1770,6 +1770,12 @@ def test_source_copy_actions_report_clipboard_write_failures() -> None:
     assert "剪贴板写入失败" in code
 
 
+def test_status_updates_refresh_the_accessible_status_name() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert "Avalonia.Automation.AutomationProperties.SetName(target, text);" in code
+
+
 def test_command_palette_results_keep_enter_handling_when_list_has_focus() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     list_start = xaml.index('x:Name="CommandPaletteResultsList"')

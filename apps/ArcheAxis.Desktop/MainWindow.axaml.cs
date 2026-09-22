@@ -544,6 +544,7 @@ public partial class MainWindow : Window
         target.Classes.Set("status-unknown", semanticState == "unknown");
         target.Classes.Set("status-disabled", semanticState == "unavailable" || semanticState == "disabled");
         target.Text = text;
+        Avalonia.Automation.AutomationProperties.SetName(target, text);
     }
 
     private void ShowToast(string message, string semanticState = "success")
