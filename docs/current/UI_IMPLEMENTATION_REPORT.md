@@ -39,12 +39,12 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `9185186a` on
+- Frontend implementation HEAD: `8156be8c` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - Avalonia Debug build: `PASS`, 0 warnings, 0 errors.
 - Self-contained `win-x64` Release publish: `PASS`, current output at
-  `.project-local/build/desktop-publish/ui-final-pass-9185186a/`.
+  `.project-local/build/desktop-publish/ui-final-pass-8156be8c/`.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
@@ -62,6 +62,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Learning navigation no longer re-enters section setup while loading; the
   command palette now executes Evidence Center; review submission rejects
   inconsistent correctness/FSRS combinations and disables duplicate submits.
+- Command Palette now restores the previously focused control after Escape or
+  command execution, preserving keyboard navigation context.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.

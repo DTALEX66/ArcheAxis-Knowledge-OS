@@ -1973,3 +1973,10 @@
 - source_commit: `9185186a` (`fix(desktop): close learning and route interaction gaps`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
 - verification: frontend navigation/learning/route/launch suite `168 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-9185186a`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native GUI first-use, focus/accessibility tree, DPI, clipboard and cold-restart click readback remain UNVERIFIED; Core-dependent surfaces were not fabricated.
+
+## Continuation receipt — 2026-09-23 P3 command palette focus restoration
+- scope: completed the keyboard interaction repair identified by the UI audit; no Core route, persistence, Green, external resource, or unrelated dirty file changed.
+- implementation: Command Palette saves the focused input control when opened through `Ctrl+K`, restores it after Escape or command execution, and keeps the existing reduced-motion and route behavior.
+- source_commit: `8156be8c` (`feat(desktop): restore command palette focus`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
+- verification: frontend navigation/learning/route/launch suite `169 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-8156be8c`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native focus traversal, accessibility tree, screenshot and click readback remain UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
