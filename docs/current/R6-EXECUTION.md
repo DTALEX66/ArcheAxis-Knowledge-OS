@@ -1980,3 +1980,12 @@
 - source_commit: `8156be8c` (`feat(desktop): restore command palette focus`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
 - verification: frontend navigation/learning/route/launch suite `169 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-8156be8c`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native focus traversal, accessibility tree, screenshot and click readback remain UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 stale-response and command-palette interaction repair
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- audit_findings: the parallel UI audit identified a command-palette direction-key mutation of Learning empty state, missing list-focus Enter routing, Knowledge V3 stale-response overwrite risk, and late review receipts that could clear a replaced learning exposure.
+- implementation: removed the cross-surface Learning mutation; bound the command-palette result list to the existing keyboard handler; added Knowledge request-version guards across success/failure/parse/exception paths; added review submission identity/version guards so late responses cannot update a newer exposure; synchronized the unknown-command help text with all executable routes.
+- source_commit: `e9586fcb` (`fix(desktop): isolate stale UI responses`), committed locally; push is pending after current verification/readback.
+- verification: TDD red/green was observed for the new contracts; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `165 passed`; `git diff --check` passed. A fresh .NET build is `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- gui_boundary: native screenshot, click, keyboard focus, accessibility-tree, DPI, clipboard, and cold-restart GUI readback remain `UNVERIFIED`; no GUI pass is claimed.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. No installation, signing, Green overwrite, external-library write, or history deletion was performed.
