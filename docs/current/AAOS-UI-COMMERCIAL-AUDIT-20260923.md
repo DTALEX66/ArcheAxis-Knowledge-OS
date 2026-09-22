@@ -46,6 +46,9 @@ the desktop product.
 - Home now has a responsive product hero using the same project-owned visual;
   the asset remains decorative and the actions route to real Capture/Library
   surfaces.
+- Research, Plugins and Models now use a shared product-level unavailable state
+  with truthful boundary copy and return/system next actions instead of a blank
+  prototype panel.
 
 ## Verified locally
 

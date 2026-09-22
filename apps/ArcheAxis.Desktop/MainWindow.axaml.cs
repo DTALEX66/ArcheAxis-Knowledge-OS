@@ -626,6 +626,10 @@ public partial class MainWindow : Window
 
     private void OnEvidenceOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
 
+    private void OnUnavailableHomeClick(object? sender, RoutedEventArgs e) => OnHomeClick(sender, e);
+
+    private void OnUnavailableSettingsClick(object? sender, RoutedEventArgs e) => OnSettingsClick(sender, e);
+
     private void OnOpenLearningKnowledgeClick(object? sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_activeKnowledgeId))

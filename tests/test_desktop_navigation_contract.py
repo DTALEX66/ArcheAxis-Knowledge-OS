@@ -1473,6 +1473,18 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert '不显示合成 anchor 或 bundle' in xaml
 
 
+def test_unavailable_product_surfaces_have_truthful_next_actions() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'x:Name="UnavailableSurface"' in xaml
+    assert 'Click="OnUnavailableHomeClick"' in xaml
+    assert 'Click="OnUnavailableSettingsClick"' in xaml
+    assert 'private void OnUnavailableHomeClick' in code
+    assert 'private void OnUnavailableSettingsClick' in code
+    assert '尚未接入 Core' in code
+
+
 def test_mobile_workspace_keeps_primary_navigation_discoverable() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
