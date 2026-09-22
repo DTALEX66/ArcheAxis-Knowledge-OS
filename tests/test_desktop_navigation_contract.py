@@ -1713,6 +1713,16 @@ def test_command_palette_can_execute_evidence_route() -> None:
     assert '"证据中心" => ("evidence", "证据中心")' in code
 
 
+def test_command_palette_restores_focus_after_close_or_execute() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'private IInputElement? _commandPaletteReturnFocus;' in code
+    assert 'private void SetCommandPaletteVisibility(bool visible)' in code
+    assert '_commandPaletteReturnFocus = FocusManager.GetFocusedElement();' in code
+    assert 'returnFocus?.Focus();' in code
+    assert 'SetCommandPaletteVisibility(false);' in code
+
+
 def test_source_reader_action_group_is_attached_to_source_chain() -> None:
     xaml = XAML.read_text(encoding="utf-8")
 

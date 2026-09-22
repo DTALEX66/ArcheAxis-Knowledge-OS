@@ -54,6 +54,7 @@ public partial class MainWindow : Window
     private bool _homeLearningAvailable;
     private int? _homeLearningCount;
     private bool _inspectorDrawerOpen;
+    private IInputElement? _commandPaletteReturnFocus;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(2600) };
     private static readonly string[] CommandPaletteCommands =
     {
@@ -694,24 +695,36 @@ public partial class MainWindow : Window
         return Task.CompletedTask;
     }
 
+    private void SetCommandPaletteVisibility(bool visible)
+    {
+        if (visible)
+        {
+            _commandPaletteReturnFocus = FocusManager.GetFocusedElement();
+            CommandPaletteOverlay.IsVisible = true;
+            CommandPaletteBox.Text = string.Empty;
+            RefreshCommandPaletteResults(string.Empty);
+            CommandPaletteBox.Focus();
+            return;
+        }
+
+        CommandPaletteOverlay.IsVisible = false;
+        var returnFocus = _commandPaletteReturnFocus;
+        _commandPaletteReturnFocus = null;
+        returnFocus?.Focus();
+    }
+
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.K && (e.KeyModifiers & KeyModifiers.Control) != 0)
         {
-            CommandPaletteOverlay.IsVisible = !CommandPaletteOverlay.IsVisible;
-            if (CommandPaletteOverlay.IsVisible)
-            {
-                CommandPaletteBox.Text = string.Empty;
-                RefreshCommandPaletteResults(string.Empty);
-                CommandPaletteBox.Focus();
-            }
+            SetCommandPaletteVisibility(!CommandPaletteOverlay.IsVisible);
             e.Handled = true;
             return;
         }
 
         if (e.Key == Key.Escape && CommandPaletteOverlay.IsVisible)
         {
-            CommandPaletteOverlay.IsVisible = false;
+            SetCommandPaletteVisibility(false);
             e.Handled = true;
         }
     }
@@ -720,7 +733,7 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            CommandPaletteOverlay.IsVisible = false;
+            SetCommandPaletteVisibility(false);
             e.Handled = true;
             return;
         }
@@ -802,7 +815,7 @@ public partial class MainWindow : Window
         }
 
         SetSection(route.Item1, route.Item2);
-        CommandPaletteOverlay.IsVisible = false;
+        SetCommandPaletteVisibility(false);
     }
 
     private void ResetSourceReaderSelection()
