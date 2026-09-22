@@ -1105,8 +1105,8 @@ def test_command_palette_exposes_reader_and_knowledge_fallback_routes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     assert '原件阅读 / 知识库' in xaml
-    assert '"原件阅读" or "导入阅读"' in code
-    assert '"知识库" or "知识详情"' in code
+    assert 'new("原件阅读", "source-reader", "导入阅读", "导入阅读")' in code
+    assert 'new("知识库", "knowledge", "知识库", "知识详情")' in code
 
 
 def test_knowledge_has_main_workspace_evidence_context_fallback() -> None:
@@ -1710,13 +1710,21 @@ def test_learning_navigation_does_not_reenter_section_setup() -> None:
 def test_command_palette_can_execute_evidence_route() -> None:
     code = CODE.read_text(encoding="utf-8")
 
-    assert '"证据中心" => ("evidence", "证据中心")' in code
+    assert 'new("证据中心", "evidence", "证据中心")' in code
+
+
+def test_command_palette_routes_have_one_authoritative_definition() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert "private sealed record CommandPaletteRoute" in code
+    assert "CommandPaletteRoutes.FirstOrDefault" in code
+    assert "CommandPaletteRoutes.Select" in code
 
 
 def test_command_palette_unknown_command_help_lists_every_route() -> None:
     code = CODE.read_text(encoding="utf-8")
 
-    assert "可用：首页、捕获、资料库、原件阅读、知识库、学习、证据中心、研究、机器知识、任务、插件、模型、恢复、设置。" in code
+    assert 'string.Join("、", CommandPaletteRoutes.Select(candidate => candidate.Label))' in code
 
 
 def test_command_palette_restores_focus_after_close_or_execute() -> None:

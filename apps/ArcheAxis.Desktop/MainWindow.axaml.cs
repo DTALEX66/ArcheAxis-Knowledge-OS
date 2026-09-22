@@ -58,10 +58,39 @@ public partial class MainWindow : Window
     private bool _inspectorDrawerOpen;
     private IInputElement? _commandPaletteReturnFocus;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(2600) };
-    private static readonly string[] CommandPaletteCommands =
+    private sealed record CommandPaletteRoute(
+        string Label,
+        string Section,
+        string Heading,
+        params string[] Aliases)
     {
-        "首页", "捕获", "资料库", "原件阅读", "知识库", "学习", "证据中心", "研究", "机器知识", "任务", "插件", "模型", "恢复", "设置",
+        public bool Matches(string command) =>
+            string.Equals(command, Label, StringComparison.OrdinalIgnoreCase)
+            || Aliases.Any(alias => string.Equals(command, alias, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static readonly CommandPaletteRoute[] CommandPaletteRoutes =
+    {
+        new("首页", "home", "首页", "工作台"),
+        new("捕获", "capture", "捕获", "Capture"),
+        new("资料库", "library", "资料库", "资料与知识"),
+        new("原件阅读", "source-reader", "导入阅读", "导入阅读"),
+        new("知识库", "knowledge", "知识库", "知识详情"),
+        new("学习", "learning", "学习", "学习路径"),
+        new("证据中心", "evidence", "证据中心"),
+        new("研究", "research", "研究"),
+        new("机器知识", "machine-growth", "机器知识"),
+        new("任务", "jobs", "任务", "任务收据"),
+        new("插件", "plugins", "插件"),
+        new("模型", "models", "模型"),
+        new("恢复", "recovery", "恢复"),
+        new("设置", "settings", "设置", "系统"),
     };
+
+    private static readonly string[] CommandPaletteCommands = CommandPaletteRoutes
+        .SelectMany(route => new[] { route.Label }.Concat(route.Aliases))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
 
     public sealed class CaptureContextRow
     {
@@ -791,31 +820,14 @@ public partial class MainWindow : Window
     private void ExecuteCommandPaletteCommand(string? rawCommand)
     {
         var command = rawCommand?.Trim() ?? string.Empty;
-        var route = command switch
+        var route = CommandPaletteRoutes.FirstOrDefault(candidate => candidate.Matches(command));
+        if (route is null)
         {
-            "首页" or "工作台" => ("home", "首页"),
-            "捕获" or "Capture" => ("capture", "捕获"),
-            "资料库" or "资料与知识" => ("library", "资料库"),
-            "原件阅读" or "导入阅读" => ("source-reader", "导入阅读"),
-            "知识库" or "知识详情" => ("knowledge", "知识库"),
-            "学习" or "学习路径" => ("learning", "学习"),
-            "证据中心" => ("evidence", "证据中心"),
-            "研究" => ("research", "研究"),
-            "机器知识" => ("machine-growth", "机器知识"),
-            "任务" or "任务收据" => ("jobs", "任务"),
-            "插件" => ("plugins", "插件"),
-            "模型" => ("models", "模型"),
-            "恢复" => ("recovery", "恢复"),
-            "设置" or "系统" => ("settings", "设置"),
-            _ => (string.Empty, string.Empty),
-        };
-        if (route.Item1.Length == 0)
-        {
-            CommandPaletteStatusText.Text = "未识别命令；可用：首页、捕获、资料库、原件阅读、知识库、学习、证据中心、研究、机器知识、任务、插件、模型、恢复、设置。";
+            CommandPaletteStatusText.Text = $"未识别命令；可用：{string.Join("、", CommandPaletteRoutes.Select(candidate => candidate.Label))}。";
             return;
         }
 
-        SetSection(route.Item1, route.Item2);
+        SetSection(route.Section, route.Heading);
         SetCommandPaletteVisibility(false);
     }
 
