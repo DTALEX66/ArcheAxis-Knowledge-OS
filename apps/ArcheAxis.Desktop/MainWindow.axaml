@@ -97,7 +97,7 @@
                 </Border>
                 <Grid x:Name="WorkspaceHeadingBar" ColumnDefinitions="*,Auto" ColumnSpacing="10">
                     <TextBlock x:Name="WorkspaceHeadingText" Text="首页" FontSize="16" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <Button x:Name="InspectorDrawerButton" Grid.Column="1" IsVisible="False" Content="打开证据检查器" Padding="12,7" Click="OnToggleInspectorDrawerClick" />
+                    <Button x:Name="InspectorDrawerButton" Grid.Column="1" IsVisible="False" Content="打开证据检查器" Padding="12,7" Click="OnToggleInspectorDrawerClick" AutomationProperties.Name="打开证据检查器" />
                 </Grid>
                 <StackPanel x:Name="HomeSurface" Spacing="22">
                   <Border x:Name="FirstRunReadinessCard" Classes="aaos-card-compact aaos-status" Padding="16">
@@ -385,7 +385,7 @@
                         <TextBlock x:Name="SourceReaderChainBoundaryText" Text="仅为 Core 来源成员投影；不代表正文、理解或证据 anchor。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                         <Separator Margin="0,4" />
                         <TextBlock Text="Context Actions" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <Button x:Name="CopySourceProvenanceButton" Content="复制来源链" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnCopySourceProvenanceClick" />
+                        <Button x:Name="CopySourceProvenanceButton" Content="复制来源链" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnCopySourceProvenanceClick" AutomationProperties.Name="复制来源链" />
                       </StackPanel>
                     </Border>
                   </Grid>
@@ -719,9 +719,9 @@
                     </ListBox>
                 </StackPanel>
                 <StackPanel x:Name="ActivityDockActions" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                    <Button x:Name="ActivityDockToggleButton" Content="展开详情" Padding="12,6" Click="OnToggleActivityDockClick" />
-                    <Button Content="打开任务回执" Padding="12,6" Click="OnJobsClick" />
-                    <Button Content="刷新回执" Padding="12,6" Click="OnRefreshJobsClick" />
+                    <Button x:Name="ActivityDockToggleButton" Content="展开详情" Padding="12,6" Click="OnToggleActivityDockClick" AutomationProperties.Name="展开活动回执详情" />
+                    <Button Content="打开任务回执" Padding="12,6" Click="OnJobsClick" AutomationProperties.Name="打开任务回执" />
+                    <Button Content="刷新回执" Padding="12,6" Click="OnRefreshJobsClick" AutomationProperties.Name="刷新活动回执" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -731,8 +731,8 @@
                 <StackPanel Spacing="10">
                     <TextBlock Text="命令面板" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                     <TextBlock Text="Ctrl+K 打开 · Esc 关闭 · Enter 执行" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <TextBox x:Name="CommandPaletteBox" PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 学习 / 任务 / 设置" KeyDown="OnCommandPaletteKeyDown" TextChanged="OnCommandPaletteTextChanged" />
-                    <ListBox x:Name="CommandPaletteResultsList" MaxHeight="240" Background="Transparent" BorderThickness="0" SelectionChanged="OnCommandPaletteSelectionChanged">
+                    <TextBox x:Name="CommandPaletteBox" PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 学习 / 任务 / 设置" KeyDown="OnCommandPaletteKeyDown" TextChanged="OnCommandPaletteTextChanged" AutomationProperties.Name="命令面板输入" />
+                    <ListBox x:Name="CommandPaletteResultsList" MaxHeight="240" Background="Transparent" BorderThickness="0" SelectionChanged="OnCommandPaletteSelectionChanged" AutomationProperties.Name="命令面板结果">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="10,8" Margin="0,0,0,4" CornerRadius="6" Background="{DynamicResource AaosSurface2Brush}">

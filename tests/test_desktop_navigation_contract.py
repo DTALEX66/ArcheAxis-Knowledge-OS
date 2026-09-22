@@ -280,6 +280,13 @@ def test_primary_navigation_and_system_actions_expose_stable_automation_names() 
         'AutomationProperties.Name="读取当前 Core 状态"',
         'AutomationProperties.Name="刷新本次导入任务回执"',
         'AutomationProperties.Name="读取指定任务回执"',
+        'AutomationProperties.Name="打开证据检查器"',
+        'AutomationProperties.Name="复制来源链"',
+        'AutomationProperties.Name="展开活动回执详情"',
+        'AutomationProperties.Name="打开任务回执"',
+        'AutomationProperties.Name="刷新活动回执"',
+        'AutomationProperties.Name="命令面板输入"',
+        'AutomationProperties.Name="命令面板结果"',
     ):
         assert automation_name in xaml
 
