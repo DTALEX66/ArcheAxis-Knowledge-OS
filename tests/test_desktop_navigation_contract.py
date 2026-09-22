@@ -1539,6 +1539,10 @@ def test_unavailable_product_surfaces_have_truthful_next_actions() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     assert 'x:Name="UnavailableSurface"' in xaml
+    assert 'x:Name="UnavailableSurfaceStateText"' in xaml
+    assert 'x:Name="UnavailableSurfaceBoundaryText"' in xaml
+    assert 'x:Name="UnavailableSurfaceNextStepText"' in xaml
+    assert 'UnavailableSurfaceNextStepText.Text = section switch' in code
     assert 'Click="OnUnavailableHomeClick"' in xaml
     assert 'Click="OnUnavailableSettingsClick"' in xaml
     assert 'private void OnUnavailableHomeClick' in code

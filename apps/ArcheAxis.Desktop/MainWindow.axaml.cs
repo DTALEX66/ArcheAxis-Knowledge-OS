@@ -420,6 +420,8 @@ public partial class MainWindow : Window
         if (UnavailableSurface.IsVisible)
         {
             UnavailableSurfaceTitle.Text = $"{heading} · 尚未接入 Core";
+            UnavailableSurfaceStateText.Text = "状态 · Core contract unavailable";
+            UnavailableSurfaceBoundaryText.Text = "当前界面保持只读；不创建合成数据、随机状态或第二套真相。";
             UnavailableSurfaceText.Text = section switch
             {
                 "research" => "此页面尚未接入 Core 的研究任务、来源或结论投影；不创建或展示合成研究状态。",
@@ -429,6 +431,16 @@ public partial class MainWindow : Window
                 "memory-map" => "当前 Core 未暴露可验证的 Memory Graph 读模型；不展示合成节点、随机关系或未绑定来源的图谱结论。",
                 "recovery" => "此页面尚未接入 Core 的备份与恢复投影；不展示恢复点，不执行、预演或模拟恢复，也不表示数据可恢复。",
                 _ => "该工作区尚未接入 Core 读模型。",
+            };
+            UnavailableSurfaceNextStepText.Text = section switch
+            {
+                "research" => "接入带来源与版本绑定的 Research read model。",
+                "plugins" => "接入权威 Plugin Registry 与 readiness projection。",
+                "models" => "接入 Core Model Registry 与 provider health projection。",
+                "original-editor" => "等待 Core 原件编辑、版本提交与冲突处理契约。",
+                "memory-map" => "等待 Core-backed Memory Graph 节点、边与来源绑定读模型。",
+                "recovery" => "等待 Core 备份/恢复投影与 owner-gated 执行契约。",
+                _ => "需要对应的 Core 读模型或写入契约。",
             };
         }
         if (section == "jobs")

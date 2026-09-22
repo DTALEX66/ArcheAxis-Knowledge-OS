@@ -585,7 +585,16 @@
                     <StackPanel Spacing="12">
                         <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" HorizontalAlignment="Left" Opacity="0.78" AutomationProperties.Name="功能未接入插图" />
                         <TextBlock x:Name="UnavailableSurfaceTitle" Text="暂不可用" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock x:Name="UnavailableSurfaceStateText" Text="状态 · Core contract unavailable" Classes="status-disabled" FontSize="12" AutomationProperties.Name="功能状态" />
                         <TextBlock x:Name="UnavailableSurfaceText" Text="该工作区尚未接入 Core 读模型。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                        <Border Classes="aaos-card-compact" Padding="12">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="边界" Classes="provenance-tag" FontSize="11" />
+                                <TextBlock x:Name="UnavailableSurfaceBoundaryText" Text="当前界面保持只读；不创建合成数据或第二套真相。" TextWrapping="Wrap" FontSize="12" Classes="status-empty" AutomationProperties.Name="功能边界" />
+                                <TextBlock Text="下一步" Classes="provenance-tag" FontSize="11" Margin="0,4,0,0" />
+                                <TextBlock x:Name="UnavailableSurfaceNextStepText" Text="需要对应的 Core 读模型或写入契约。" TextWrapping="Wrap" FontSize="12" Classes="status-empty" AutomationProperties.Name="功能下一步" />
+                            </StackPanel>
+                        </Border>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Content="返回工作台" Padding="12,7" Click="OnUnavailableHomeClick" AutomationProperties.Name="返回工作台" />
                             <Button x:Name="UnavailableSettingsButton" Content="查看系统边界" Padding="12,7" Click="OnUnavailableSettingsClick" AutomationProperties.Name="查看系统边界" />
