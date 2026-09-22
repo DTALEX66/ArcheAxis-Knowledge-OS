@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `ee595578` on
+- Frontend implementation HEAD: `b043416b` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -80,6 +80,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Source Reader copy actions now catch clipboard write failures and only show
   success after the write reports success; the mobile breakpoint fallback now
   matches the themed `840` resource.
+- Command Palette input guidance now lists the same complete primary-route set
+  as the authoritative route table.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
