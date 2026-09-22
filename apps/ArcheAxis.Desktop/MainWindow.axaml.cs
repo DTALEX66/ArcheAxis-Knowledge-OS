@@ -567,6 +567,17 @@ public partial class MainWindow : Window
     private void ShowToast(string message, string semanticState = "success")
     {
         SetStatus(ToastText, message, semanticState);
+        foreach (var state in new[] { "toast-success", "toast-error", "toast-info", "toast-review", "toast-warning" })
+            ToastSurface.Classes.Set(state, false);
+        var toastState = semanticState switch
+        {
+            "error" => "toast-error",
+            "info" or "loading" => "toast-info",
+            "needs-review" or "permission" => "toast-review",
+            "warning" => "toast-warning",
+            _ => "toast-success",
+        };
+        ToastSurface.Classes.Set(toastState, true);
         ToastSurface.IsVisible = true;
         _toastTimer.Stop();
         _toastTimer.Start();

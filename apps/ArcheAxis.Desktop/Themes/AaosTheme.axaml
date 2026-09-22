@@ -155,6 +155,21 @@
     <Style Selector="Border.review-card">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
     </Style>
+    <Style Selector="Border.toast-success">
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosSuccessBrush}" />
+    </Style>
+    <Style Selector="Border.toast-error">
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosErrorBrush}" />
+    </Style>
+    <Style Selector="Border.toast-info">
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosInfoBrush}" />
+    </Style>
+    <Style Selector="Border.toast-review">
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosReviewBrush}" />
+    </Style>
+    <Style Selector="Border.toast-warning">
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosWarningBrush}" />
+    </Style>
     <Style Selector="Border.lifecycle-card">
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />

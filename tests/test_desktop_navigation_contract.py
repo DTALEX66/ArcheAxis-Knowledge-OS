@@ -1671,6 +1671,9 @@ def test_frontend_exposes_truthful_transient_toast_feedback() -> None:
     assert 'x:Name="ToastText"' in xaml
     assert 'AutomationProperties.Name="临时操作提示"' in xaml
     assert 'private void ShowToast' in code
+    assert 'ToastSurface.Classes.Set(toastState, true);' in code
+    for state in ("toast-success", "toast-error", "toast-info", "toast-review"):
+        assert f'<Style Selector="Border.{state}">' in (ROOT / "apps/ArcheAxis.Desktop/Themes/AaosTheme.axaml").read_text(encoding="utf-8")
     assert 'DispatcherTimer' in code
     assert 'ShowToast("已复制来源链摘要")' in code
     assert 'ShowToast("复习结果已由 Core 记录")' in code
