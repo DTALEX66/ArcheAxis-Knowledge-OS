@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `faa5c4be` on
+- Frontend implementation HEAD: `b705f702` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -72,6 +72,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Memory Map and Original Editor are now discoverable from the knowledge context
   and Command Palette as explicit Core-boundary surfaces; they do not fabricate
   graph nodes or create a second editor persistence path.
+- Those bounded routes retain the knowledge Context Sidebar while active, so
+  returning to Library, Source Reader, or Knowledge remains discoverable.
 - Desktop and mobile primary navigation actions now expose stable accessible
   names for all formal product routes.
 - Source Reader citation/provenance actions reflow vertically at the narrow
