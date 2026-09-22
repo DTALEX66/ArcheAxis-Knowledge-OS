@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `1fce522e` on
+- Frontend implementation HEAD: `82542f1b` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -50,8 +50,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after the Command Palette focus closure:
-  `177 passed`.
+- Current combined frontend verification after the keyboard drawer closure:
+  `178 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -80,6 +80,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
   semantics through their border treatment instead of changing text color only.
 - Command Palette Tab and Shift+Tab now cycle between its input and result list
   without leaking keyboard focus outside the modal overlay.
+- Inspector Drawer Esc now closes the drawer and restores focus to its trigger
+  button, matching the Command Palette keyboard dismissal behavior.
 - Desktop and mobile primary navigation actions now expose stable accessible
   names for all formal product routes.
 - Source Reader citation/provenance actions reflow vertically at the narrow
