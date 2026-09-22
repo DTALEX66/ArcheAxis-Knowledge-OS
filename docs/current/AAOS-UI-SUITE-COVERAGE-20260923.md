@@ -44,7 +44,7 @@ receipts. This matrix does not promote reference demos, static numbers or
 - Frontend implementation commit: `a9528cb3`.
 - Latest documentation/branch commit: `a9528cb3`, recorded by the current
   `UI_IMPLEMENTATION_REPORT.md` and `R6-EXECUTION.md` continuation receipt.
-- Direct no-argument desktop contract harness: `193 passed`.
+- Direct no-argument desktop contract harness: `194 passed`.
 - XAML XML parsing: `PASS`.
 - Native GUI and fresh .NET build: `UNVERIFIED / NOT_EXECUTED`.
 

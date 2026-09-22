@@ -262,6 +262,11 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>
+    <Style Selector="TextBlock.rail-label">
+        <Setter Property="FontSize" Value="{DynamicResource AaosFontHeading}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
+    </Style>
     <Style Selector="StackPanel.aaos-source-chain">
         <Setter Property="Spacing" Value="4" />
     </Style>

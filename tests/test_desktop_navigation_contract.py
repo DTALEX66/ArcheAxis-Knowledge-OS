@@ -892,6 +892,14 @@ def test_aaos_brand_workspace_empty_and_kpi_typography_use_shared_tokens() -> No
         assert f'x:Key="{key}"' in theme
 
 
+def test_aaos_primary_rail_labels_use_a_shared_typography_class() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    assert 'Selector="TextBlock.rail-label"' in theme
+    assert xaml.count('Classes="rail-label"') == 6
+    assert 'FontSize="18"' not in xaml
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]
