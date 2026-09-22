@@ -39,12 +39,12 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `1534a881` on
+- Frontend implementation HEAD: `9185186a` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - Avalonia Debug build: `PASS`, 0 warnings, 0 errors.
 - Self-contained `win-x64` Release publish: `PASS`, current output at
-  `.project-local/build/desktop-publish/ui-final-pass-1534a881/`.
+  `.project-local/build/desktop-publish/ui-final-pass-9185186a/`.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
@@ -59,6 +59,9 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Source Reader citation/provenance actions reflow vertically at the narrow
   action breakpoint so the 360/390-width layout does not force horizontal
   overflow.
+- Learning navigation no longer re-enters section setup while loading; the
+  command palette now executes Evidence Center; review submission rejects
+  inconsistent correctness/FSRS combinations and disables duplicate submits.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
@@ -68,6 +71,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Native GUI screenshot/click/accessibility readback is not claimed: the current
   CUA bridge exposes no native application window.
 - Evidence list/detail and Memory Graph remain Core read-model prerequisites.
+- Original Editor persistence and authoritative citation picker remain Core
+  contract prerequisites; metadata copy is intentionally not called a picker.
 - No demo localStorage, random graph values, synthetic Evidence or simplified
   FSRS implementation was introduced.
 - Green, external libraries, credentials, E/F drives, protected history assets
