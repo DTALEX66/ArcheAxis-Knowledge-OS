@@ -2186,3 +2186,10 @@
 - source_commit: `d4d9bb13` (`feat(desktop): add reduced-motion surface reveals`).
 - verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `185 passed`; XAML XML parsing passed for both desktop surfaces; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native animation timing, reduced-motion OS behavior, screenshot, accessibility-tree readback, Core read models, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 B03-B10 coverage matrix
+- scope: documented the audited AAOS UI suite mapping against the canonical Avalonia surface; no product behavior, Core contract, Green runtime, external resource, or unrelated dirty file was changed.
+- artifact: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md` separates each B03-B10 absorbed contract, implementation evidence, local evidence level, and remaining Core/GUI gap. It explicitly prevents Reader/Provenance from being mislabeled as Editor/Memory Graph.
+- source_commit: documentation change follows the current frontend implementation baseline `d4d9bb13`; the matrix itself is tracked with this receipt.
+- verification: direct no-argument static desktop harness remains `185 passed`; `git diff --check` passed. This matrix is documentation evidence, not native GUI or Core capability evidence.
+- evidence_boundary: DOCUMENTED_CURRENT_MAPPING / TESTED_LOCAL_STATIC_REFERENCE. No installation, signing, Green overwrite, external-library write, or history deletion was performed.

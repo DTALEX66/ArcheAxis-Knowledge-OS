@@ -3,6 +3,7 @@
 Date: 2026-09-23
 Implementation surface: `apps/ArcheAxis.Desktop/`
 Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
+Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Product surface map
 
