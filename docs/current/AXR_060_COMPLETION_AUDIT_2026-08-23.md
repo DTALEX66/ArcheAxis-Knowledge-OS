@@ -1,4 +1,9 @@
-# AXR v0.6.0 最小闭环完成度审计（2026-08-23）
+# HISTORICAL / SUPERSEDED — AXR v0.6.0 最小闭环完成度审计（2026-08-23）
+
+> 本文是 v0.6.x 时代的日期绑定审计证据，不是当前执行计划、发布状态或桌面入口。
+> 当前权威以 `docs/authority/taskpack-0919-r6/`、`docs/current/R6-EXECUTION.md`、
+> `docs/current/R6-STATE.json` 和 `docs/current/M0-DIRECTION-OVERRIDE-20260920.md` 为准。
+> 保留本文仅用于历史追溯；不得据此恢复 React/Tauri、旧 Green 或 v0.6.x 发布路线。
 
 整体结论：PARTIAL
 

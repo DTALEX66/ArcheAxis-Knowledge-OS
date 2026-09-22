@@ -8,6 +8,17 @@
 - `supersession_record`: `DECISION_SUPERSESSION_LEDGER.yaml` `SUP-020`
 - `scope`: 这是 R6 的优先级覆盖和执行收敛记录，不是并行 TaskPack，不删除、不重写 R5/R6/审计/收据。
 
+### 当前现场读回（2026-09-23）
+
+本文件中的“当前现场基线”是 2026-09-20 的冻结快照，不应覆盖实时 Git
+事实。当前实时读回为：分支 `codex/aaos-p3-ui-convergence-20260922`，HEAD
+`4525564bc11be0eb6a88ecb780d882810201a57b`，对应远端分支
+`origin/codex/aaos-p3-ui-convergence-20260922`；`origin/main` 仍为
+`e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`。当前分支相对
+`origin/main` 为 `1 0`，且工作树存在未提交的前端、文档和既有用户修改。
+这只是现场读回，不是提交、合并、CI 或 Green 安装证据；本节后续应随实际
+分支/HEAD 变化更新，旧基线段落保留为历史快照。
+
 R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什么”和“哪些增强暂缓”。历史状态不能直接升格为当前完成，所有最终结论仍需当前代码、运行时和 Owner Gate 证据。
 
 ## 唯一最高目标

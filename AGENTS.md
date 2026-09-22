@@ -13,9 +13,10 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 
 ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
 Learning & Trusted-Knowledge Workspace. The current minimum closed loop is broad
-compatibility: absorbing mature capabilities from comparable software. The current R5 first-use slice is source import and conversion, human acceptance,
-real learning and same-source machine use with restart readback. Obsidian Vault /
-JSON Canvas refinement follows the R5 task graph; it is not the first-use blocker.
+compatibility: absorbing mature capabilities from comparable software. The active
+execution baseline is R6 with the M0 shortest-complete-loop priority overlay.
+R5 source import/conversion and Obsidian Vault/JSON Canvas records are historical
+evidence and compatibility context; they are not the current execution queue.
 Implementation prefers legal dependencies, SDKs/APIs/CLIs, fork/vendor, and
 Adapter/sidecar before building from scratch. Heavy blueprints (general Agent
 Runtime, multi-agent, Marketplace, 3D/VR, enterprise collaboration) are deferred;

@@ -1,4 +1,10 @@
-# AXR-060-401 Unified Client Handoff
+# HISTORICAL / SUPERSEDED — AXR-060-401 Unified Client Handoff
+
+> 本文是 2026-08-24 的 React/Tauri 客户端迁移交接证据，不是当前桌面实现或执行入口。
+> 当前正式桌面为 `apps/ArcheAxis.Desktop/`（C#/Avalonia）；当前执行以
+> `docs/authority/taskpack-0919-r6/`、`docs/current/R6-EXECUTION.md`、
+> `docs/current/R6-STATE.json` 和 `docs/current/M0-DIRECTION-OVERRIDE-20260920.md` 为准。
+> 保留本文仅用于历史追溯；不得据此恢复旧 React/Tauri 写入边界。
 
 ## Scope
 

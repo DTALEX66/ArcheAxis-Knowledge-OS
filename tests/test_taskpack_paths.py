@@ -5,10 +5,10 @@ import sys
 from scripts import taskpack_paths
 
 
-def test_default_taskpack_is_current_r5():
-    assert taskpack_paths.DEFAULT_PACK_RELATIVE == Path("docs/authority/taskpack-0912-r5")
+def test_default_taskpack_is_current_r6():
+    assert taskpack_paths.DEFAULT_PACK_RELATIVE == Path("docs/authority/taskpack-0919-r6")
     assert taskpack_paths.default_pack_root(Path("D:/repo")) == Path(
-        "D:/repo/docs/authority/taskpack-0912-r5"
+        "D:/repo/docs/authority/taskpack-0919-r6"
     )
 
 

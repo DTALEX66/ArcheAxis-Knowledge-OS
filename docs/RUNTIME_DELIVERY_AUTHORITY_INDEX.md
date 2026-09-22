@@ -22,7 +22,8 @@ main-checkout Cargo cache. Linked worktrees launched through `dev.py` use
 `.project-local/build/<worktree-id>/cargo` under the owning repository.
 Other build outputs retain their worktree-specific paths. Historical outputs
 are preserved; this routing change does not migrate or delete them.
-See [current R5 execution](current/R5-EXECUTION.md) and
+See [current R6 execution](current/R6-EXECUTION.md),
+[M0 direction](current/M0-DIRECTION-OVERRIDE-20260920.md), and
 [language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md).
 
 ## Preserved Green v0.6.14 maintenance chain

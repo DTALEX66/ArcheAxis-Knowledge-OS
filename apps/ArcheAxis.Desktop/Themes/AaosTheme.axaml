@@ -11,6 +11,9 @@
         <SolidColorBrush x:Key="AaosSuccessBrush" Color="#37C99A" />
         <SolidColorBrush x:Key="AaosErrorBrush" Color="#E56464" />
         <SolidColorBrush x:Key="AaosInfoBrush" Color="#3B82F6" />
+        <SolidColorBrush x:Key="AaosWarningBrush" Color="#E6BE73" />
+        <SolidColorBrush x:Key="AaosApprovalBrush" Color="#B8E986" />
+        <SolidColorBrush x:Key="AaosDisabledBrush" Color="#5B6B73" />
         <SolidColorBrush x:Key="AaosReviewBrush" Color="#E6BE73" />
         <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F3EFE6" />
         <SolidColorBrush x:Key="AaosMutedBrush" Color="#96AAB4" />
@@ -60,6 +63,11 @@
         <Setter Property="Background" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>
+    <Style Selector="Button.aaos-compact">
+        <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
+        <Setter Property="Padding" Value="12,7" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
     <Style Selector="Button:pointerover">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
@@ -83,6 +91,37 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Border.aaos-kpi">
+        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+    <Style Selector="Border.aaos-status">
+        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Grid.aaos-toolbar">
+        <Setter Property="ColumnSpacing" Value="10" />
+        <Setter Property="RowSpacing" Value="10" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.aaos-empty-state">
+        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="24" />
+    </Style>
+    <Style Selector="TextBlock.aaos-provenance-tag">
+        <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryBrush}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="Border.review-card">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
@@ -176,6 +215,15 @@
     </Style>
     <Style Selector="TextBlock.status-error">
         <Setter Property="Foreground" Value="{DynamicResource AaosErrorBrush}" />
+    </Style>
+    <Style Selector="TextBlock.status-warning">
+        <Setter Property="Foreground" Value="{DynamicResource AaosWarningBrush}" />
+    </Style>
+    <Style Selector="TextBlock.status-approval">
+        <Setter Property="Foreground" Value="{DynamicResource AaosApprovalBrush}" />
+    </Style>
+    <Style Selector="TextBlock.status-disabled">
+        <Setter Property="Foreground" Value="{DynamicResource AaosDisabledBrush}" />
     </Style>
     <Style Selector="TextBlock.status-info">
         <Setter Property="Foreground" Value="{DynamicResource AaosInfoBrush}" />

@@ -178,6 +178,21 @@ def test_aaos_controls_consume_compact_hit_target_token() -> None:
     assert theme.count('MinHeight" Value="{DynamicResource AaosDensityCompact}"') >= 3
 
 
+def test_aaos_theme_exposes_semantic_state_and_projection_component_styles() -> None:
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    for token in ("AaosWarningBrush", "AaosApprovalBrush", "AaosDisabledBrush"):
+        assert f'x:Key="{token}"' in theme
+    for selector in (
+        '<Style Selector="Border.aaos-kpi"',
+        '<Style Selector="Border.aaos-status"',
+        '<Style Selector="Grid.aaos-toolbar"',
+        '<Style Selector="Border.aaos-empty-state"',
+        '<Style Selector="TextBlock.aaos-provenance-tag"',
+        '<Style Selector="Button.aaos-compact"',
+    ):
+        assert selector in theme
+
+
 def test_narrow_layout_reflows_core_search_and_lookup_toolbars() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
@@ -1435,6 +1450,25 @@ def test_primary_rail_exposes_declared_product_domains() -> None:
         assert f'railSpace == "{domain}"' in code
 
 
+def test_evidence_center_projects_only_existing_core_read_models() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    for name in ("RailEvidenceButton", "MobileEvidenceButton", "EvidenceSurface", "EvidenceAnchorsList", "EvidenceBundlesText"):
+        assert f'x:Name="{name}"' in xaml
+    assert 'Click="OnEvidenceClick"' in xaml
+    assert 'Click="OnEvidenceRefreshClick"' in xaml
+    assert 'SelectionChanged="OnEvidenceAnchorSelected"' in xaml
+    assert '当前 Core 未暴露 Evidence 列表接口' in code
+    assert '未调用旧 workspace API' in code
+    assert 'semanticState == "unavailable"' in code
+    assert 'SendWorkspaceAsync(' not in code
+    assert '"/api/evidence/anchors?limit=50"' not in code
+    assert '"/api/evidence/bundles?limit=50"' not in code
+    assert 'public sealed class EvidenceAnchorRow' in code
+    assert '不包含原文正文' in code
+    assert '不把 Evidence 元数据升级为 Knowledge Truth' in code
+
+
 def test_mobile_workspace_keeps_primary_navigation_discoverable() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
@@ -1451,6 +1485,32 @@ def test_mobile_workspace_keeps_primary_navigation_discoverable() -> None:
     assert 'Grid.SetColumnSpan(WorkspaceScrollViewer, mobile ? 4 : 1);' in code
     theme = THEME_XAML.read_text(encoding="utf-8")
     assert '<x:Double x:Key="AaosMobileBreakpoint">840</x:Double>' in theme
+
+
+def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'x:Name="SourceReaderShellGrid"' in xaml
+    assert 'x:Name="SourceReaderOutlineBorder"' in xaml
+    assert 'x:Name="SourceReaderMainBorder"' in xaml
+    assert 'SourceReaderShellGrid.ColumnDefinitions = compact' in code
+    assert 'new ColumnDefinitions("1*")' in code
+    assert 'new RowDefinitions("Auto,Auto,Auto")' in code
+    assert 'Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);' in code
+
+
+def test_compact_knowledge_facts_reflow_without_overlapping_two_column_cards() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'x:Name="KnowledgeFactsGrid"' in xaml
+    for name in ("KnowledgeStatusCard", "KnowledgeSourceCard", "KnowledgeTrustCard", "KnowledgeReviewCard"):
+        assert f'x:Name="{name}"' in xaml
+    assert 'KnowledgeFactsGrid.ColumnDefinitions = compact' in code
+    assert 'new RowDefinitions("Auto,Auto,Auto,Auto")' in code
+    assert 'Grid.SetRow(KnowledgeReviewCard, compact ? 3 : 1);' in code
+    assert 'HomeLifecycleGrid.ColumnDefinitions = compact' in code
+    assert 'new RowDefinitions("Auto,Auto,Auto,Auto,Auto")' in code
 
 
 def test_source_reader_can_read_existing_core_transform_output_without_calling_it_original_text() -> None:

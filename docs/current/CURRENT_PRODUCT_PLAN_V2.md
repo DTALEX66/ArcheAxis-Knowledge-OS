@@ -1,12 +1,15 @@
-# Current Product Plan — 当前产品计划 V2（AXW-1206/1210）
+# HISTORICAL / SUPERSEDED — Current Product Plan V2（AXW-1206/1210）
 
-> 本文保留为 v0.6.8 历史发布基线（2026-08-23），不是当前 Release 或当前
+> 本文保留为 v0.6.8 历史发布基线（2026-08-23），不是当前计划、当前 Release 或当前
 > 桌面入口。当前架构权威以 [`PROJECT_CONTRACT.yaml`](../../PROJECT_CONTRACT.yaml)、
 > [`LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md`](../LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)
-> 与 R5 执行台账为准：正式桌面为 `apps/ArcheAxis.Desktop/`（C#/Avalonia），
+> 与 R6/M0 当前执行台账为准：正式桌面为 `apps/ArcheAxis.Desktop/`（C#/Avalonia），
 > Rust Core 是唯一主库写者，Python 为隔离能力 worker；`frontend/` 与根
 > `src-tauri/` 仅作 legacy 恢复/行为参考。本文下方的 Tauri-origin 证据保留其
 > 原始历史语境，不得当作当前默认产品入口。
+
+> 当前执行权威：`docs/authority/taskpack-0919-r6/`、`docs/current/R6-EXECUTION.md`、
+> `docs/current/R6-STATE.json` 和 `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`。
 
 > 权威：v0.6.0 最小可信闭环任务包（2026-08-20）+ 当前 exact-SHA 报告
 > 状态：阶段描述可随真实实现与 Receipt 更新；能力边界与命名不可漂移

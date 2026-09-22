@@ -117,3 +117,8 @@ canonical GitHub URL -> Safe HTTP collect -> quarantine -> parse -> claims
 ```
 
 The implementation persists source records, source provenance, claims, evidence, research packages, governance findings, and the package-to-intake relation in SQLite tables owned exclusively by `MigrationOperator` owner `research.sqlite` / migration `004_phase4_research_package_v1`. Apply and rollback require owner-bound backup hashes and manifests; status revalidates the live schema. The storage and strict-read boundaries reconstruct and validate the complete candidate provenance graph. Legacy external trending/auto routes fail closed. External GitHub content is never promoted to verified truth, same-repository metadata/README extraction counts as one independent source group, and every package requires human review. This section documents only Phase 4 Research closure; it does not claim general Alpha or full five-loop system closure.
+# HISTORICAL / SUPERSEDED SUMMARY
+
+本文保留为旧版本发布和历史状态证据，不是当前执行入口。当前权威请从
+[DOCUMENTATION_AUTHORITY_INDEX](DOCUMENTATION_AUTHORITY_INDEX.md) 进入，并以
+R6/M0、`R6-EXECUTION.md`、`R6-STATE.json` 和当前 Git/运行时 readback 为准。

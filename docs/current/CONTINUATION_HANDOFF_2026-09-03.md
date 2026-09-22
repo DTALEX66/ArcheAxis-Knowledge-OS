@@ -1,4 +1,10 @@
-# ArcheAxis Knowledge — Continuation Handoff (2026-09-03)
+# HISTORICAL / SUPERSEDED — ArcheAxis Knowledge Continuation Handoff (2026-09-03)
+
+> 本文是 2026-09-03 的旧 Green 维护交接，不是当前执行授权或架构入口。
+> 当前 R6/M0 明确采用 Avalonia 桌面与 Local Green absorb-first 流程；当前权威以
+> `docs/authority/taskpack-0919-r6/`、`docs/current/R6-EXECUTION.md`、
+> `docs/current/R6-STATE.json` 和 `docs/current/M0-DIRECTION-OVERRIDE-20260920.md` 为准。
+> 本文仅保留为历史证据；其旧版本、旧入口和旧资源边界不得覆盖当前权威。
 
 ## Purpose and non-negotiable boundaries
 

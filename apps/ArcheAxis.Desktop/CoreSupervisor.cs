@@ -196,7 +196,8 @@ public sealed class CoreSupervisor : IDisposable
             if (_disposed || credential is null || CoreUrl.Length == 0) throw new InvalidOperationException("Core is not ready");
             launchToken = credential; coreUrl = CoreUrl;
         }
-        if (!path.StartsWith("/api/v1/", StringComparison.Ordinal) || path.Contains('\\') || path.Contains('#'))
+        var validPath = path.StartsWith("/api/v1/", StringComparison.Ordinal);
+        if (!validPath || path.Contains('\\') || path.Contains('#'))
             throw new ArgumentException("Core API path required", nameof(path));
         var uri = new Uri(new Uri(coreUrl), path);
         if (uri.GetLeftPart(UriPartial.Authority) != coreUrl) throw new ArgumentException("Core origin mismatch", nameof(path));

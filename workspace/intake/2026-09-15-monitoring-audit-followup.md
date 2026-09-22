@@ -1,4 +1,8 @@
-# 2026-09-15 监控审计材料接入任务
+# HISTORICAL / SUPERSEDED — 2026-09-15 监控审计材料接入任务
+
+> 本文件是 R5 时期的输入侧车和历史证据，不是当前任务入口。当前权威为
+> R6/M0：`docs/authority/taskpack-0919-r6/`、`docs/current/R6-EXECUTION.md`、
+> `docs/current/R6-STATE.json` 和 `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`。
 
 状态：`PLANNED`。本文件把用户提供的三份桌面审计材料纳入 ArcheAxis R5 后续任务侧车；不替换冻结 TaskPack、TASKS、R5-STATE 或验收正文。
 
@@ -26,7 +30,8 @@
 
 ## 与当前权威的关系
 
-- 当前权威仍是 `docs/authority/taskpack-0912-r5/`、`docs/current/R5-STATE.json` 和 `docs/current/R5-EXECUTION.md`。
+- 历史记录中的 R5 当前指针已失效；当前权威改由 R6/M0 链接决定。此处的 R5
+  引用仅作为当时接入决策的历史快照，不得用于新任务排队。
 - 本材料确认了方向和缺口，但没有证明 Green、真实四库、NeoMME、完整格式、安装发行版或 Q00/Q01 已完成。
 - 工作簿中发现的 `#DIV/0!`、负时长和非整数次数是待修复/待回归项，不是当前产品失败结论。
 - 仓库当前跨平台修复提交为本地 `449fcfde`；其远端同步与 CI 仍需单独记录，不在本任务入口中伪造通过。

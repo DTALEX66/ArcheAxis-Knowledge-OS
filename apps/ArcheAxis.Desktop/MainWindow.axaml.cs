@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     private readonly List<string> _sessionJobIds = new();
     private long _sourceReaderRequestVersion;
     private long _sourceTransformRequestVersion;
+    private long _evidenceRequestVersion;
     private long _learningRequestVersion;
     private readonly List<CaptureContextRow> _captureContexts = new();
     private CaptureContextRow? _latestCaptureContext;
@@ -51,7 +52,7 @@ public partial class MainWindow : Window
     private bool _inspectorDrawerOpen;
     private static readonly string[] CommandPaletteCommands =
     {
-        "首页", "捕获", "资料库", "原件阅读", "知识库", "学习", "研究", "机器知识", "任务", "插件", "模型", "恢复", "设置",
+        "首页", "捕获", "资料库", "原件阅读", "知识库", "学习", "证据中心", "研究", "机器知识", "任务", "插件", "模型", "恢复", "设置",
     };
 
     public sealed class CaptureContextRow
@@ -303,6 +304,7 @@ public partial class MainWindow : Window
             "source-reader" => "reader",
             "library" or "knowledge" => "knowledge",
             "learning" => "learning",
+            "evidence" => "evidence",
             "machine-growth" => "machine",
             "research" => "research",
             "jobs" => "jobs",
@@ -316,6 +318,7 @@ public partial class MainWindow : Window
         RailKnowledgeButton.Classes.Set("active", railSpace == "knowledge");
         RailReaderButton.Classes.Set("active", railSpace == "reader");
         RailLearningButton.Classes.Set("active", railSpace == "learning");
+        RailEvidenceButton.Classes.Set("active", railSpace == "evidence");
         RailMachineButton.Classes.Set("active", railSpace == "machine");
         RailResearchButton.Classes.Set("active", railSpace == "research");
         RailJobsButton.Classes.Set("active", railSpace == "jobs");
@@ -327,6 +330,7 @@ public partial class MainWindow : Window
         MobileKnowledgeButton.Classes.Set("active", railSpace == "knowledge");
         MobileReaderButton.Classes.Set("active", railSpace == "reader");
         MobileLearningButton.Classes.Set("active", railSpace == "learning");
+        MobileEvidenceButton.Classes.Set("active", railSpace == "evidence");
         MobileMachineButton.Classes.Set("active", railSpace == "machine");
         MobileResearchButton.Classes.Set("active", railSpace == "research");
         MobileJobsButton.Classes.Set("active", railSpace == "jobs");
@@ -339,6 +343,7 @@ public partial class MainWindow : Window
         SourceReaderSurface.IsVisible = section == "source-reader";
         KnowledgeSurface.IsVisible = section == "knowledge";
         LearningSurface.IsVisible = section == "learning";
+        EvidenceSurface.IsVisible = section == "evidence";
         MachineKnowledgeSurface.IsVisible = section == "machine-growth";
         RecoverySurface.IsVisible = section == "recovery";
         SettingsSurface.IsVisible = section == "settings";
@@ -366,6 +371,10 @@ public partial class MainWindow : Window
         if (section == "jobs")
         {
             _ = RefreshJobsAsync();
+        }
+        else if (section == "evidence")
+        {
+            _ = RefreshEvidenceAsync();
         }
         else if (section == "settings")
         {
@@ -456,7 +465,7 @@ public partial class MainWindow : Window
 
     private void SetStatus(TextBlock target, string text, string semanticState)
     {
-        foreach (var state in new[] { "status-success", "status-error", "status-info", "status-review", "status-loading", "status-empty", "status-permission", "status-version", "status-unknown" })
+        foreach (var state in new[] { "status-success", "status-error", "status-info", "status-review", "status-loading", "status-empty", "status-permission", "status-version", "status-unknown", "status-disabled" })
             target.Classes.Set(state, false);
         target.Classes.Set("status-success", semanticState == "success");
         target.Classes.Set("status-error", semanticState == "error");
@@ -467,6 +476,7 @@ public partial class MainWindow : Window
         target.Classes.Set("status-permission", semanticState == "permission");
         target.Classes.Set("status-version", semanticState == "version");
         target.Classes.Set("status-unknown", semanticState == "unknown");
+        target.Classes.Set("status-disabled", semanticState == "unavailable" || semanticState == "disabled");
         target.Text = text;
     }
 
@@ -560,6 +570,8 @@ public partial class MainWindow : Window
     }
 
     private void OnLearningNavigationClick(object? sender, RoutedEventArgs e) => SetSection("learning", "学习");
+
+    private void OnEvidenceClick(object? sender, RoutedEventArgs e) => SetSection("evidence", "证据中心");
 
     private void OnOpenLearningKnowledgeClick(object? sender, RoutedEventArgs e)
     {
@@ -1300,6 +1312,56 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnEvidenceRefreshClick(object? sender, RoutedEventArgs e) => _ = RefreshEvidenceAsync();
+
+    private void OnEvidenceAnchorSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count != 1 || e.AddedItems[0] is not EvidenceAnchorRow selected)
+            return;
+        EvidenceAnchorDetailText.Text = selected.DetailText;
+        SetInspectorProjection(
+            selected.AnchorId,
+            selected.DetailText,
+            selected.RawSha256,
+            selected.SourceRevision,
+            status: "persisted",
+            boundary: "Evidence anchor 仅定位来源证据；不等于 Knowledge 接受或学习掌握。",
+            layer: "Core projection · Evidence anchor");
+    }
+
+    private async Task RefreshEvidenceAsync()
+    {
+        var requestVersion = ++_evidenceRequestVersion;
+        EvidenceRefreshButton.IsEnabled = false;
+        SetStatus(EvidenceStatusText, "当前 Core 未暴露 Evidence 列表接口。", "unavailable");
+        EvidenceAnchorDetailText.Text = "尚未选择 Evidence anchor。";
+        EvidenceBundlesText.Text = "未调用旧 workspace API；不构造合成 anchor 或 bundle。";
+        EvidenceAnchorsList.ItemsSource = null;
+        SetInspectorProjection(
+            "Evidence Center",
+            "当前 Core 未暴露 Evidence anchor/bundle 列表接口。",
+            status: "unavailable",
+            boundary: "不调用旧 workspace API，不读取原文正文，不构造 Evidence 元数据。",
+            layer: "Core contract boundary · Evidence Center");
+        await Task.CompletedTask;
+        if (requestVersion == _evidenceRequestVersion)
+            EvidenceRefreshButton.IsEnabled = true;
+    }
+
+    private static string FormatEvidenceBundles(JsonElement root)
+    {
+        if (!root.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
+            return "Core 未暴露 bundle items。";
+        var lines = new List<string>();
+        foreach (var item in items.EnumerateArray())
+        {
+            lines.Add($"bundle_id={ReadDisplayValue(item, "bundle_id")} · " +
+                $"status={ReadDisplayValue(item, "status")} · " +
+                $"version={ReadDisplayValue(item, "version")}");
+        }
+        return lines.Count == 0 ? "Core 已响应，但当前没有 Evidence bundle。" : string.Join("\n", lines);
+    }
+
     private async Task RefreshSettingsAsync()
     {
         SettingsRefreshButton.IsEnabled = false;
@@ -1674,21 +1736,33 @@ public partial class MainWindow : Window
         Grid.SetColumn(HomeFocusActionCard, compact ? 0 : 1);
         Grid.SetRow(HomeFocusActionCard, compact ? 1 : 0);
         HomeLifecycleGrid.ColumnDefinitions = compact
-            ? new ColumnDefinitions("*,*,*")
+            ? new ColumnDefinitions("1*")
             : new ColumnDefinitions("*,*,*,*,*");
         HomeLifecycleGrid.RowDefinitions = compact
-            ? new RowDefinitions("Auto,Auto")
+            ? new RowDefinitions("Auto,Auto,Auto,Auto,Auto")
             : new RowDefinitions("Auto");
         Grid.SetColumn(HomeLifecycleCaptureCard, 0);
         Grid.SetRow(HomeLifecycleCaptureCard, 0);
-        Grid.SetColumn(HomeLifecycleSourceCard, 1);
-        Grid.SetRow(HomeLifecycleSourceCard, 0);
-        Grid.SetColumn(HomeLifecycleKnowledgeCard, 2);
-        Grid.SetRow(HomeLifecycleKnowledgeCard, 0);
+        Grid.SetColumn(HomeLifecycleSourceCard, compact ? 0 : 1);
+        Grid.SetRow(HomeLifecycleSourceCard, compact ? 1 : 0);
+        Grid.SetColumn(HomeLifecycleKnowledgeCard, compact ? 0 : 2);
+        Grid.SetRow(HomeLifecycleKnowledgeCard, compact ? 2 : 0);
         Grid.SetColumn(HomeLifecycleLearningCard, compact ? 0 : 3);
-        Grid.SetRow(HomeLifecycleLearningCard, compact ? 1 : 0);
-        Grid.SetColumn(HomeLifecycleReviewCard, compact ? 1 : 4);
-        Grid.SetRow(HomeLifecycleReviewCard, compact ? 1 : 0);
+        Grid.SetRow(HomeLifecycleLearningCard, compact ? 3 : 0);
+        Grid.SetColumn(HomeLifecycleReviewCard, compact ? 0 : 4);
+        Grid.SetRow(HomeLifecycleReviewCard, compact ? 4 : 0);
+        SourceReaderShellGrid.ColumnDefinitions = compact
+            ? new ColumnDefinitions("1*")
+            : new ColumnDefinitions("220,*,300");
+        SourceReaderShellGrid.RowDefinitions = compact
+            ? new RowDefinitions("Auto,Auto,Auto")
+            : new RowDefinitions("Auto");
+        Grid.SetColumn(SourceReaderOutlineBorder, 0);
+        Grid.SetRow(SourceReaderOutlineBorder, 0);
+        Grid.SetColumn(SourceReaderMainBorder, compact ? 0 : 1);
+        Grid.SetRow(SourceReaderMainBorder, compact ? 1 : 0);
+        Grid.SetColumn(SourceReaderChainBorder, compact ? 0 : 2);
+        Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);
         SetResponsiveToolbar(FirstRunReadinessGrid, FirstRunImportButton, narrowActions);
         SetResponsiveToolbar(HomeContinueReadingGrid, HomeContinueReadingButton, narrowActions);
         SetResponsiveToolbar(HomeDeepTutorGrid, HomeDeepTutorButton, narrowActions);
@@ -1706,6 +1780,20 @@ public partial class MainWindow : Window
         Grid.SetRow(HomeStatsKnowledgeCard, compact ? 1 : 0);
         Grid.SetColumn(HomeStatsLearningCard, compact ? 0 : 2);
         Grid.SetRow(HomeStatsLearningCard, compact ? 2 : 0);
+        KnowledgeFactsGrid.ColumnDefinitions = compact
+            ? new ColumnDefinitions("1*")
+            : new ColumnDefinitions("*,*");
+        KnowledgeFactsGrid.RowDefinitions = compact
+            ? new RowDefinitions("Auto,Auto,Auto,Auto")
+            : new RowDefinitions("Auto,Auto");
+        Grid.SetColumn(KnowledgeStatusCard, 0);
+        Grid.SetRow(KnowledgeStatusCard, 0);
+        Grid.SetColumn(KnowledgeSourceCard, compact ? 0 : 1);
+        Grid.SetRow(KnowledgeSourceCard, compact ? 1 : 0);
+        Grid.SetColumn(KnowledgeTrustCard, 0);
+        Grid.SetRow(KnowledgeTrustCard, compact ? 2 : 1);
+        Grid.SetColumn(KnowledgeReviewCard, compact ? 0 : 1);
+        Grid.SetRow(KnowledgeReviewCard, compact ? 3 : 1);
     }
 
     private double GetAaosBreakpoint(string key, double fallback)
@@ -2332,6 +2420,7 @@ public partial class MainWindow : Window
                 var nextReview = first.TryGetProperty("next_review", out var due)
                     && due.ValueKind != JsonValueKind.Null ? due.GetString() : "未排程";
                 var referenceText = "来源版本：未记录";
+                var learningProjectionText = "FSRS/Mastery：未暴露";
                 string? activeKnowledgeId = null;
                 using (var stateResponse = await _supervisor.SendAsync(
                     HttpMethod.Get, $"/api/v1/learning/items/{Uri.EscapeDataString(_activeLearningItem ?? string.Empty)}/state"))
@@ -2371,6 +2460,24 @@ public partial class MainWindow : Window
                             if (current.Count > 0) lines.Add($"当前来源版本：{string.Join(", ", current)}");
                             if (superseded.Count > 0) lines.Add($"已被替代版本：{string.Join(", ", superseded)}");
                             if (lines.Count > 0) referenceText = string.Join("\n", lines);
+
+                            var scheduledEvents = ReadDisplayValue(learner, "scheduled_events");
+                            var unscheduledEvents = ReadDisplayValue(learner, "unscheduled_events");
+                            var latestReviewText = "未暴露";
+                            if (learner.TryGetProperty("latest_review", out var latestReview)
+                                && latestReview.ValueKind == JsonValueKind.Object)
+                            {
+                                latestReviewText =
+                                    $"authority={ReadDisplayValue(latestReview, "schedule_authority")} · " +
+                                    $"state={ReadDisplayValue(latestReview, "schedule_state")}";
+                                var mastery = latestReview.TryGetProperty("mastery_projection", out var projection)
+                                    && projection.ValueKind == JsonValueKind.Object
+                                    ? $"closed={ReadDisplayValue(projection, "closed")} · status={ReadDisplayValue(projection, "status")}"
+                                    : "未暴露";
+                                learningProjectionText =
+                                    $"FSRS：{latestReviewText}\nMastery projection：{mastery}\n" +
+                                    $"排程事件：已排程 {scheduledEvents} · 未排程 {unscheduledEvents}";
+                            }
                         }
                     }
                     else
@@ -2486,10 +2593,10 @@ public partial class MainWindow : Window
                 if (requestVersion != _learningRequestVersion)
                     return;
                 LearningMemoryText.Text = readbackText;
-                LearningItemText.Text = $"{assessmentText}\n待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{referenceText}\n{readbackText}";
+                LearningItemText.Text = $"{assessmentText}\n待复习项目：{_activeLearningItem}\n下次复习：{nextReview}\n{learningProjectionText}\n{referenceText}\n{readbackText}";
                 SetInspectorProjection(
                     _activeLearningItem ?? "学习项目",
-                    $"下次复习：{nextReview}\n{referenceText}\nAssessment：{_activeAssessmentId ?? "未生成"}\n来自 Core 学习与 Assessment 投影。",
+                    $"下次复习：{nextReview}\n{learningProjectionText}\n{referenceText}\nAssessment：{_activeAssessmentId ?? "未生成"}\n来自 Core 学习与 Assessment 投影。",
                     source: null,
                     version: _activeKnowledgeVersion,
                     status: null,
@@ -2736,6 +2843,28 @@ public sealed class LibraryResultRow
         Active = active;
         Engine = engine;
         Head = head;
+    }
+
+    public override string ToString() => DisplayText;
+}
+
+public sealed class EvidenceAnchorRow
+{
+    public string AnchorId { get; }
+    public string RawSha256 { get; }
+    public string SourceRevision { get; }
+    public string Locator { get; }
+    public string DisplayText => $"{AnchorId} · revision={SourceRevision}";
+    public string DetailText =>
+        $"anchor_id={AnchorId}\nraw_sha256={RawSha256}\nsource_revision={SourceRevision}\nlocator={Locator}\n" +
+        "Evidence anchor 仅提供来源定位，不包含原文正文。";
+
+    public EvidenceAnchorRow(string anchorId, string rawSha256, string sourceRevision, string locator)
+    {
+        AnchorId = anchorId;
+        RawSha256 = rawSha256;
+        SourceRevision = sourceRevision;
+        Locator = locator;
     }
 
     public override string ToString() => DisplayText;

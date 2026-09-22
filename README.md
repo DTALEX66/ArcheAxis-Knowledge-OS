@@ -1,10 +1,20 @@
 # 星环知识平台（ArcheAxis Knowledge）
 
+> **当前权威入口（2026-09-23）**：本 README 保留产品介绍与历史兼容说明，
+> 不承担任务规划权威。当前执行必须从
+> [`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md)
+> 进入，再读取 R6 TaskPack、M0 覆盖、`R6-EXECUTION.md` 与 `R6-STATE.json`。
+> 旧版本、React/Tauri、R5/R3/R2 规划和发布摘要均为历史/兼容材料，不得当作
+> 当前实现或 Green 已替换证据。
+
 <!-- Legacy/Migration names below are compatibility context only. -->
 
 > **v0.6.11 已发布（2026-08-27）**：exact-SHA CI、NSIS/Green/Portable 生命周期和 9 项公开资产读回已通过，正式 Release：[`v0.6.11`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11)。该不可变版本随后被确认遗漏 OSUI v3 设计采用与中文一致性验收；发布工程通过不等于 UI 产品验收通过。修复只追加到后续版本，不改写 v0.6.11。
 
-> **当前 UI 纠偏**：OSUI v3 已吸收进入 canonical React/Tauri 壳；当前单壳收敛分支继续清退 `/kb` 与根 legacy UI，补齐全局命令、二级导航、可折叠 Inspector/Activity Dock、React 原件/PDF/Anchor 工作台、DTO fail-closed、Recovery 前端先行启动与 390/360 响应式。DeepTutor 已纠正为可选学习 sidecar，不再宣称产品前端底座。实施证据见 [`FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](docs/current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md) 和 [`UI_V3_PRODUCT_ROADMAP.md`](docs/current/UI_V3_PRODUCT_ROADMAP.md)。当前分支完成原生 WebView/installer/exact-SHA/人工视觉复审前不宣称发布闭环。
+> **前端现状**：正式 vNext 桌面壳是 `apps/ArcheAxis.Desktop/`（C#/Avalonia），
+> Rust Core 与隔离 Python worker 由 R6/M0 约束。React/Tauri 与旧 UI 仅作为
+> Green 兼容/行为参考，不是当前默认实现。P3 UI 仍需原生 GUI 首用验收；本地
+> build 或 headless smoke 不等于 Green 原位更新。
 
 > **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
 >
@@ -27,9 +37,10 @@
 - 能力图谱：[`docs/truth/CAPABILITY_ATLAS_V2.yaml`](docs/truth/CAPABILITY_ATLAS_V2.yaml)
 - 总蓝图：[`docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md`](docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md)
 
-**当前阶段（可随实现更新）**：OSUI v3 生产接入与本地资料工作台纵切。
-Markdown、JSON Canvas 和资料库互操作继续保持真实数据边界；权威 OSUI 的证据档案室构图、中文优先语言和生产 Adapter 正在进入主 Workspace。在视觉、交互、Windows WebView 与新版本 exact-SHA 证据完成前，不宣称全面 UI 闭环。
-详见 [`docs/current/UI_V3_PRODUCT_ROADMAP.md`](docs/current/UI_V3_PRODUCT_ROADMAP.md)、[`docs/current/CURRENT_PRODUCT_PLAN_V2.md`](docs/current/CURRENT_PRODUCT_PLAN_V2.md) 与 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
+**当前阶段**：R6/M0 本地 Green absorb-first，先完成真实 P0–P6 最短闭环；
+P3 Avalonia UI 是当前前端优先切片。未完成 Owner Gate、独立审计、Green
+备份/替换/回滚和安装验收前，不宣称全面 UI 闭环、发布或 Green 就绪。
+详见 [`docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md`](docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md)。
 
 ---
 

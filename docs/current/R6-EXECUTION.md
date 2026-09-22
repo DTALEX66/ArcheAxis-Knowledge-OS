@@ -1849,6 +1849,24 @@
 - tests: `NAVIGATION_CONTRACT_PASS=111`; explicit Avalonia Debug build returned 0 warnings / 0 errors. `tests/test_desktop_launch.py` remains `NOT_EXECUTED` because no usable pytest-capable project Python exists. Native GUI rendering, live Core permission responses, retry clicks, and restart readback remain unverified because the `sky` trusted RPC service is not configured.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
 
+## Continuation receipt — 2026-09-22 P3 Evidence contract correction and Release build
+- scope: corrected the Avalonia Evidence Center to match the actual Rust Core route surface; no Core route, persistence, external resource, or Green runtime was changed.
+- correction: removed the temporary `/api/evidence/*` workspace request path and `SendWorkspaceAsync` escape hatch because those routes belong to the legacy Python workspace router and are not exposed by the current Rust Core. Evidence Center now reports an explicit unavailable boundary and does not synthesize anchors or bundles.
+- verification: registered .NET SDK `10.0.400` Release self-contained `win-x64` publish completed exit 0 after process-scoped `AVALONIA_TELEMETRY_OPTOUT=1`; `git diff --check` and static contract assertions passed. A smoke attempt with the existing `manual-green-explicit/core.exe` did not return a valid readback and was stopped; it is not current-SHA runtime evidence.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC. Real Core + Avalonia first-use and restart readback remain UNVERIFIED; no commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 P3 unavailable-state semantic token
+- scope: completed the UI semantic-state mapping for the Evidence Center unavailable boundary; no route or persistence behavior changed.
+- implementation: `SetStatus` now maps `unavailable`/`disabled` to the AAOS disabled semantic token, so the honest missing-Core-contract state is visually distinct from error, empty, and success.
+- verification: the same registered .NET Release self-contained publish completed exit 0 after process-scoped telemetry opt-out; XML parsing and static P3 contract checks passed.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC. Real Avalonia rendering and Core first-use remain UNVERIFIED.
+
+## Continuation receipt — 2026-09-22 P3 persisted learning projection fields
+- scope: extended the existing Avalonia Learning surface using fields already returned by `GET /api/v1/learning/items/:item_key/state`; no backend route, schema, persistence, or external resource changed.
+- implementation: Learning now projects persisted `scheduled_events`, `unscheduled_events`, `latest_review.schedule_authority`, `latest_review.schedule_state`, and `latest_review.mastery_projection.closed/status` into the item summary and Inspector. Missing fields remain `未暴露`; the projection is explicitly not Knowledge Truth.
+- verification: registered .NET SDK `10.0.400` Release self-contained publish completed exit 0; XAML XML parse, static learning contract assertions, and `git diff --check` passed.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD / TESTED_LOCAL_STATIC. Real Avalonia first-use and cold restart readback remain UNVERIFIED.
+
 ## Continuation receipt — 2026-09-22 Core job receipt projection and status closure
 - scope: upgraded the canonical Avalonia Activity Dock and Jobs surface from concatenated session text to selectable `JobReceiptRow` projections; no new endpoint, Core write, persistence change, or full-history behavior was introduced.
 - implementation: Activity Dock now exposes a selectable current-session receipt list with explicit empty/loading/success/error/permission/unknown semantics. Single-job lookup now has loading, empty, error, permission, and conservative unknown-state handling. Job state semantics are kept separate from receipt detail; unknown/queued/running states are never promoted to success.
@@ -1876,3 +1894,24 @@
 - agent_dispatch: Goodall the 3rd (actual `gpt-5.6-luna / low`) audited Command Palette and Activity Dock; Schrodinger the 3rd (actual `gpt-5.5 / low`) audited exact responsive breakpoints and token consumption. Both were read-only and did not access E:/F:, Green, credentials, or external-library contents.
 - tests: `NAVIGATION_CONTRACT_PASS=116`; explicit Avalonia Debug build returned 0 warnings / 0 errors. Native keyboard focus, real window rendering, DPI behavior, and GUI readback remain unverified because `sky` trusted RPC is not configured.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 documentation authority drift audit
+- scope: re-audited current-path documentation against the R6 TaskPack and M0 overlay; no source/runtime implementation, Green write, external-library access, or historical evidence deletion was performed.
+- findings: `docs/DOCUMENTATION_AUTHORITY_INDEX.md` incorrectly described the superseded R5/R2 chain as current. Four dated v0.6.x/R2-era documents in `docs/current/` could be mistaken for active authority: `AXR_060_COMPLETION_AUDIT_2026-08-23.md`, `AXR_060_401_UNIFIED_CLIENT_HANDOFF_2026-08-24.md`, `CURRENT_PRODUCT_PLAN_V2.md`, and `CONTINUATION_HANDOFF_2026-09-03.md`.
+- repair: current read order now points only to R6/M0; the four documents carry explicit `HISTORICAL / SUPERSEDED` banners and are listed as non-authoritative. Historical `docs/history/**` and protected untracked evidence remain untouched.
+- verification: `git diff --check` passed; reverse-reference search found only historical plans/summaries and the dated R5 execution receipts, not the active R6 authority entrypoint.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-22 P3 responsive convergence and current Core learning smoke
+- scope: continued the canonical Avalonia front-end only; no Core route, schema, persistence, Green runtime, or external-library data was changed.
+- implementation: Home lifecycle and Source Reader now perform explicit single-column reflow at the tablet breakpoint; Knowledge status/source/trust/review cards now also reflow into four readable rows instead of retaining a cramped two-column grid. The existing semantic unavailable boundary remains explicit.
+- runtime evidence: rebuilt current-source `archeaxis-api.exe` with the registered Cargo/MSVC/Windows SDK toolchain and rebuilt the self-contained Release Desktop. The first learning smoke without a worker profile correctly returned unavailable FSRS and was not counted. Retesting with the existing project-local candidate Python that imports `fsrs` returned `LEARNING SMOKE OK`, including answer persistence, FSRS authority, open mastery projection, and Core cold-restart readback.
+- verification: XAML/static responsive assertions and the registered .NET Release publish remain required; candidate runtime has no `pytest` module, so Python contract tests remain `NOT_EXECUTED`, not PASS. Native GUI rendering and click readback remain unverified.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE. No commit, push, release, installation, signing, Green overwrite, or external-library write was performed.
+
+## Continuation receipt — 2026-09-23 authority, navigation and branch-drift audit
+- scope: re-audited current authority pointers, historical/current navigation, fixed external-resource index links, task-pack defaults, low-quota handoff paths, local/remote branch topology, and project-local output boundaries after the P3 UI slice.
+- repair: R6/M0 is now the only implicit execution chain in `AGENTS.md`, `README.md`, the language/directory/runtime authority indexes, the shared-resource index, the task-pack resolver, and the low-quota handoff path list. R5 intake/current wording is explicitly frozen as historical. A dated audit receipt records the live branch/HEAD, protected history, branch disposition, and no-bulk-delete boundary.
+- branch_readback: `codex/aaos-p3-ui-convergence-20260922` is synchronized with its own remote-tracking branch and is one commit ahead of `origin/main`; no merge, rebase, force-push, or branch deletion was performed on the dirty worktree.
+- verification: current Release self-contained Avalonia publish completed exit 0; authority-pointer assertions and `git diff --check` passed. Python contract suite remains `NOT_EXECUTED` because the approved candidate runtime has no `pytest` module; SSH live remote readback remains blocked by local `known_hosts` permission.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / AUDITED_LOCAL. Historical TaskPacks, protected untracked history, `.project-local/runs`, Green data, external resources, and unrelated dirty files were not deleted or merged.

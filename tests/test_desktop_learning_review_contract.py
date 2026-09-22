@@ -169,6 +169,19 @@ def test_desktop_projects_review_schedule_receipt_without_promoting_mastery() ->
     assert "Knowledge Truth" in xaml
 
 
+def test_desktop_projects_persisted_schedule_and_mastery_state_on_learning_open() -> None:
+    shell = _shell_source()
+    learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")
+
+    assert 'ReadDisplayValue(learner, "scheduled_events")' in learning
+    assert 'ReadDisplayValue(learner, "unscheduled_events")' in learning
+    assert 'TryGetProperty("latest_review"' in learning
+    assert 'ReadDisplayValue(latestReview, "schedule_authority")' in learning
+    assert 'ReadDisplayValue(latestReview, "schedule_state")' in learning
+    assert 'ReadDisplayValue(projection, "closed")' in learning
+    assert 'LearningItemText.Text = $"{assessmentText}' in learning
+
+
 def test_review_schema_accepts_desktop_payload_fields_without_opening_schedule_state() -> None:
     schema = json.loads(REVIEW_SCHEMA.read_text(encoding="utf-8"))
     properties = schema["properties"]

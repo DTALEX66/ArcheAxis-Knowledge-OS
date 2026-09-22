@@ -41,7 +41,8 @@
 - [配置权威索引](CONFIGURATION_AUTHORITY_INDEX.md)
 - [目录权威索引](DIRECTORY_AUTHORITY_INDEX.md)
 - [文档权威索引](DOCUMENTATION_AUTHORITY_INDEX.md)
-- [当前交接](authority/taskpack-0906/HANDOFF.md)
-- [DeepSeek 全量低风险工程执行包](authority/taskpack-0906/DEEPSEEK-BULK-EXECUTION-2026-09-07.md)
+- [当前执行入口](authority/taskpack-0919-r6/EXECUTOR-START.md)
+- [当前进度台账](current/R6-EXECUTION.md)
+- [M0 优先级覆盖](current/M0-DIRECTION-OVERRIDE-20260920.md)
 
 登记根路径不是授权读取全部内容；不得由此扩大到真实用户数据迁移、共享库清理或私有代理状态访问。

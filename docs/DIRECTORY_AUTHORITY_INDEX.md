@@ -7,7 +7,8 @@
 
 ## Authoritative topology
 
-R5 live ownership reconciliation is [R5-PATH-DISPOSITION.json](current/R5-PATH-DISPOSITION.json).
+The current ownership reconciliation is governed by R6/M0 and this index;
+[R5-PATH-DISPOSITION.json](current/R5-PATH-DISPOSITION.json) is historical evidence.
 The 0910 measurement keeps its original SHA and 69 historical gaps. R5 assigns
 metadata owners and maintenance-only legacy lanes; this is not semantic absorption
 or a deletion grant. `.zcode/**` is private state and denied for commit.
