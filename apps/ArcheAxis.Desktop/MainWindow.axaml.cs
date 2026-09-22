@@ -817,6 +817,7 @@ public partial class MainWindow : Window
         SourceReaderTransformText.Text = "尚未读取转换输出；原文正文仍未暴露。";
         ReadSourceTransformButton.IsEnabled = false;
         CopySourceProvenanceButton.IsEnabled = false;
+        CopySourceCitationButton.IsEnabled = false;
         SourceReaderChainSourceText.Text = "容器来源：未读取";
         SourceReaderChainMemberText.Text = "成员：未选择";
         SourceReaderChainJobText.Text = "处理任务：未选择";
@@ -1012,6 +1013,7 @@ public partial class MainWindow : Window
         CopySourceProvenanceButton.IsEnabled = HasProvenanceValue(selected.SourceId)
             && HasProvenanceValue(selected.Member)
             && HasProvenanceValue(selected.Sha256);
+        CopySourceCitationButton.IsEnabled = CopySourceProvenanceButton.IsEnabled;
         SourceReaderChainSourceText.Text = $"容器来源：{selected.SourceId}";
         SourceReaderChainMemberText.Text = $"成员：{selected.Member} · {selected.OriginalName}";
         SourceReaderChainJobText.Text = $"处理任务：{selected.JobId}";
@@ -1121,6 +1123,38 @@ public partial class MainWindow : Window
         await clipboard.SetTextAsync(provenance);
         SetStatus(SourceReaderStatusText, "来源阅读：已复制来源链摘要；未复制原文正文。", "success");
         ShowToast("已复制来源链摘要");
+    }
+
+    private async void OnCopySourceCitationClick(object? sender, RoutedEventArgs e)
+    {
+        if (SourceReaderMembersList.SelectedItem is not SourceMemberRow selected
+            || !HasProvenanceValue(selected.SourceId)
+            || !HasProvenanceValue(selected.Member)
+            || !HasProvenanceValue(selected.Sha256))
+        {
+            SetStatus(SourceReaderStatusText, "来源阅读：引用字段不完整，未复制占位值。", "empty");
+            return;
+        }
+
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is null)
+        {
+            SetStatus(SourceReaderStatusText, "来源阅读：剪贴板不可用，未复制任何内容。", "error");
+            return;
+        }
+
+        var citation = string.Join("\n", new[]
+        {
+            $"标题: {(HasProvenanceValue(selected.OriginalName) ? selected.OriginalName : selected.Member)}",
+            $"source_id: {selected.SourceId}",
+            $"member: {selected.Member}",
+            $"job_id: {selected.JobId}",
+            $"sha256: {selected.Sha256}",
+            "boundary: 引用元数据来自 Core 来源成员投影；不包含原文正文，不代表 Evidence anchor 或 Knowledge Truth。",
+        });
+        await clipboard.SetTextAsync(citation);
+        SetStatus(SourceReaderStatusText, "来源阅读：已复制引用元数据；未复制原文正文。", "success");
+        ShowToast("已复制引用元数据");
     }
 
     private void OnFindLibraryFromSourceClick(object? sender, RoutedEventArgs e)

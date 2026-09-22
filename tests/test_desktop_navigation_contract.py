@@ -1650,6 +1650,18 @@ def test_frontend_exposes_truthful_transient_toast_feedback() -> None:
     assert 'DispatcherTimer' in code
     assert 'ShowToast("已复制来源链摘要")' in code
     assert 'ShowToast("复习结果已由 Core 记录")' in code
+
+
+def test_source_reader_can_copy_a_bounded_citation_metadata_summary() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'x:Name="CopySourceCitationButton"' in xaml
+    assert 'Click="OnCopySourceCitationClick"' in xaml
+    assert 'AutomationProperties.Name="复制引用元数据"' in xaml
+    assert 'private async void OnCopySourceCitationClick' in code
+    assert '引用元数据' in code
+    assert '不包含原文正文' in code
     assert '来源链字段不完整，未复制占位值' in code
     assert 'private bool IsCurrentSourceTransformRequest' in code
     assert 'ReferenceEquals(SourceReaderMembersList.SelectedItem, selected)' in code
