@@ -855,6 +855,9 @@ def test_home_lifecycle_strip_preserves_core_truth_boundaries() -> None:
     assert 'SetResponsiveToolbar(HomeContinueReadingGrid' in code
     assert '"Core 当前没有待学习项目。"' in code
     assert 'HomeFocusText.Text = "Core 学习队列暂不可用。"' in code
+    assert 'x:Name="HomeFocusLearningButton"' in xaml
+    assert 'HomeFocusLearningButton.IsEnabled = learningAvailable;' in code
+    assert 'HomeFocusLearningButton.IsEnabled = false;' in code
 
 
 def test_home_stats_are_scoped_to_the_home_domain() -> None:

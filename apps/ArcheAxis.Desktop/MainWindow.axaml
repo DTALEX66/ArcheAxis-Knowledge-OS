@@ -158,7 +158,7 @@
                       <StackPanel Spacing="8">
                         <TextBlock Text="今日关注" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                         <TextBlock x:Name="HomeFocusText" Text="当前关注由 Core 状态生成；尚无固定演示内容。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <Button Classes="primary-action" Content="打开 Core 学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" AutomationProperties.Name="打开 Core 学习路径" />
+                        <Button x:Name="HomeFocusLearningButton" Classes="primary-action" Content="打开 Core 学习路径" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" AutomationProperties.Name="打开 Core 学习路径" />
                       </StackPanel>
                     </Border>
                     <Border x:Name="HomeFocusActionCard" Grid.Column="1" Padding="18" CornerRadius="12" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">

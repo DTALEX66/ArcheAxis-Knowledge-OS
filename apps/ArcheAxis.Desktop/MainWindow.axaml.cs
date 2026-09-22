@@ -288,6 +288,7 @@ public partial class MainWindow : Window
                 return;
             _homeLearningAvailable = learningAvailable;
             _homeLearningCount = learning;
+            HomeFocusLearningButton.IsEnabled = learningAvailable;
             LearningCountText.Text = learningAvailable ? FormatOptionalCount(learning) : "—";
             RefreshHomeLifecycleProjection();
         }
@@ -299,6 +300,7 @@ public partial class MainWindow : Window
             AnchorsCountText.Text = "—";
             _homeLearningAvailable = false;
             _homeLearningCount = null;
+            HomeFocusLearningButton.IsEnabled = false;
             LearningCountText.Text = "—";
             RefreshHomeLifecycleProjection();
         }
