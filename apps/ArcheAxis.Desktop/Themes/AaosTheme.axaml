@@ -219,6 +219,9 @@
         <Setter Property="Padding" Value="12,9" />
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
     </Style>
+    <Style Selector="TextBox:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+    </Style>
     <Style Selector="TextBox:focus">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
@@ -231,6 +234,9 @@
     <Style Selector="ComboBox:focus">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ComboBox:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
     </Style>
     <Style Selector="ComboBox">
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
@@ -256,6 +262,12 @@
     </Style>
     <Style Selector="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
+    </Style>
+    <Style Selector="CheckBox:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryBrush}" />
+    </Style>
+    <Style Selector="CheckBox:focus">
+        <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryBrush}" />
     </Style>
     <Style Selector="TextBlock.status-success">
         <Setter Property="Foreground" Value="{DynamicResource AaosSuccessBrush}" />

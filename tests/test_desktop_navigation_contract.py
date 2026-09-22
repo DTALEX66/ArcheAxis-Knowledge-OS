@@ -26,6 +26,9 @@ def test_aaos_theme_is_shared_at_application_scope() -> None:
     assert '<Style Selector="ComboBox:disabled">' in theme
     assert '<Style Selector="ListBoxItem:pointerover">' in theme
     assert '<Style Selector="ComboBoxItem:pointerover">' in theme
+    assert '<Style Selector="TextBox:pointerover">' in theme
+    assert '<Style Selector="ComboBox:pointerover">' in theme
+    assert '<Style Selector="CheckBox:focus">' in theme
     assert '<Style Selector="TextBlock.status-loading">' in theme
 
 
