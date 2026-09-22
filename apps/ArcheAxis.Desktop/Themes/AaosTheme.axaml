@@ -88,6 +88,12 @@
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
         <Setter Property="Opacity" Value="0.86" />
     </Style>
+    <Style Selector="Button:disabled">
+        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="Opacity" Value="0.72" />
+    </Style>
     <Style Selector="Button.review-grade.selected">
         <Setter Property="Background" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosIvoryBrush}" />
@@ -213,6 +219,11 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
     </Style>
+    <Style Selector="TextBox:disabled">
+        <Setter Property="Foreground" Value="{DynamicResource AaosDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="Opacity" Value="0.72" />
+    </Style>
     <Style Selector="ComboBox:focus">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
@@ -225,6 +236,11 @@
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,9" />
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
+    </Style>
+    <Style Selector="ComboBox:disabled">
+        <Setter Property="Foreground" Value="{DynamicResource AaosDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="Opacity" Value="0.72" />
     </Style>
     <Style Selector="ComboBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
