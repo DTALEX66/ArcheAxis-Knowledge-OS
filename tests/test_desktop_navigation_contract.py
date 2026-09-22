@@ -1696,3 +1696,27 @@ def test_source_reader_context_actions_reflow_at_narrow_widths() -> None:
 
     assert 'x:Name="SourceReaderContextActions"' in xaml
     assert 'SourceReaderContextActions.Orientation = narrowActions' in code
+
+
+def test_learning_navigation_does_not_reenter_section_setup() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'private bool _learningNavigationLoadInProgress;' in code
+    assert 'section == "learning" && !_learningNavigationLoadInProgress' in code
+    assert '_learningNavigationLoadInProgress = true;' in code
+    assert '_learningNavigationLoadInProgress = false;' in code
+
+
+def test_command_palette_can_execute_evidence_route() -> None:
+    code = CODE.read_text(encoding="utf-8")
+
+    assert '"证据中心" => ("evidence", "证据中心")' in code
+
+
+def test_source_reader_action_group_is_attached_to_source_chain() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+
+    chain_start = xaml.index('x:Name="SourceReaderChainBorder"')
+    chain_end = xaml.index('x:Name="KnowledgeSurface"')
+    chain = xaml[chain_start:chain_end]
+    assert 'x:Name="SourceReaderContextActions"' in chain

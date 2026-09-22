@@ -223,6 +223,15 @@ def test_review_schema_validates_desktop_payload_and_rejects_authoritative_field
     assert list(validator.iter_errors({**valid_payload, "correct": False, "rating": 3}))
 
 
+def test_desktop_rejects_inconsistent_correctness_and_fsrs_rating_before_post() -> None:
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick", "public sealed class LibraryResultRow")
+
+    assert "var rating = _activeReviewRating ?? (correct ? 3 : 1);" in submit
+    assert "if ((correct && rating == 1) || (!correct && rating >= 3))" in submit
+    assert "SubmitReviewButton.IsEnabled = false;" in submit
+
+
 def test_desktop_reads_latest_learning_event_on_open_for_restart_readback() -> None:
     shell = _shell_source()
     learning = _region(shell, "private async void OnLearningClick", "private async void OnSubmitReviewClick")

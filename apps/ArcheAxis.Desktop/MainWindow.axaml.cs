@@ -34,6 +34,7 @@ public partial class MainWindow : Window
     private readonly List<string> _sessionJobIds = new();
     private string? _selectedLearningItemKey;
     private bool _hydratingLearningQueue;
+    private bool _learningNavigationLoadInProgress;
     private long _sourceReaderRequestVersion;
     private long _sourceTransformRequestVersion;
     private long _evidenceRequestVersion;
@@ -405,7 +406,7 @@ public partial class MainWindow : Window
         {
             _ = RefreshSettingsAsync();
         }
-        else if (section == "learning")
+        else if (section == "learning" && !_learningNavigationLoadInProgress)
         {
             _ = LoadLearningIfNeededAsync();
         }
@@ -784,6 +785,7 @@ public partial class MainWindow : Window
             "原件阅读" or "导入阅读" => ("source-reader", "导入阅读"),
             "知识库" or "知识详情" => ("knowledge", "知识库"),
             "学习" or "学习路径" => ("learning", "学习"),
+            "证据中心" => ("evidence", "证据中心"),
             "研究" => ("research", "研究"),
             "机器知识" => ("machine-growth", "机器知识"),
             "任务" or "任务收据" => ("jobs", "任务"),
@@ -2518,7 +2520,18 @@ public partial class MainWindow : Window
     private async void OnLearningClick(object? sender, RoutedEventArgs e)
     {
         var requestVersion = ++_learningRequestVersion;
-        SetSection("learning", "学习");
+        if (!string.Equals(_activeSection, "learning", StringComparison.Ordinal))
+        {
+            _learningNavigationLoadInProgress = true;
+            try
+            {
+                SetSection("learning", "学习");
+            }
+            finally
+            {
+                _learningNavigationLoadInProgress = false;
+            }
+        }
         LoadLearningButton.IsEnabled = false;
         ReviewOutcomeBox.Text = string.Empty;
         ReviewOutcomeBox.SelectedIndex = 0;
@@ -2908,8 +2921,16 @@ public partial class MainWindow : Window
             SetStatus(LearningReviewStatusText, "复习提交失败：请选择回答结果。", "error");
             return;
         }
-        SetStatus(LearningReviewStatusText, "复习提交中：正在读取 Core 回执。", "loading");
         var correct = ReviewOutcomeBox.SelectedIndex == 1;
+        var rating = _activeReviewRating ?? (correct ? 3 : 1);
+        if ((correct && rating == 1) || (!correct && rating >= 3))
+        {
+            CoreStatusText.Text = "学习路径：回答结果与 FSRS 评分组合不一致";
+            SetStatus(LearningReviewStatusText, "复习提交失败：请调整回答结果或 FSRS 评分。", "error");
+            return;
+        }
+        SubmitReviewButton.IsEnabled = false;
+        SetStatus(LearningReviewStatusText, "复习提交中：正在读取 Core 回执。", "loading");
         // Retry stability: the ids are allocated once per exposure and reused until
         // the review is accepted, so a failed submit is not recorded twice.
         _activeReviewEventId ??= $"desktop-{Guid.NewGuid():N}";
@@ -2919,7 +2940,7 @@ public partial class MainWindow : Window
             item_key = _activeLearningItem,
             client_event_id = _activeReviewEventId,
             correct,
-            rating = _activeReviewRating ?? (correct ? 3 : 1),
+            rating,
             answer,
             assessment_id = _activeAssessmentId,
             knowledge_version = _activeKnowledgeVersion,
@@ -2994,6 +3015,7 @@ public partial class MainWindow : Window
             }
             else
             {
+                SubmitReviewButton.IsEnabled = true;
                 var permissionDenied = response.StatusCode is System.Net.HttpStatusCode.Unauthorized
                     or System.Net.HttpStatusCode.Forbidden;
                 SetStatus(
@@ -3006,6 +3028,7 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
+            SubmitReviewButton.IsEnabled = true;
             CoreStatusText.Text = "学习路径：复习提交中断";
             SetStatus(LearningReviewStatusText, "复习提交中断；请以 Core 回执为准。", "error");
         }
