@@ -11,13 +11,18 @@
 ### 当前现场读回（2026-09-23）
 
 本文件中的“当前现场基线”是 2026-09-20 的冻结快照，不应覆盖实时 Git
-事实。当前实时读回为：分支 `codex/aaos-p3-ui-convergence-20260922`，HEAD
+事实。审计前实时读回为：分支 `codex/aaos-p3-ui-convergence-20260922`，HEAD
 `4525564bc11be0eb6a88ecb780d882810201a57b`，对应远端分支
 `origin/codex/aaos-p3-ui-convergence-20260922`；`origin/main` 仍为
 `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`。当前分支相对
 `origin/main` 为 `1 0`，且工作树存在未提交的前端、文档和既有用户修改。
-这只是现场读回，不是提交、合并、CI 或 Green 安装证据；本节后续应随实际
-分支/HEAD 变化更新，旧基线段落保留为历史快照。
+这只是审计前现场读回，不是提交、合并、CI 或 Green 安装证据；旧基线段落
+保留为历史快照。
+
+审计后的交付读回：本轮明确归属文件提交为
+`20966cb0e68c4abbc40feab275a0d2fbf7ddcb05`，已推送至同名远端分支，
+远端 SHA 一致且 `HEAD...origin/codex/aaos-p3-ui-convergence-20260922`
+为 `0 0`。此后该分支相对 `origin/main` 为 `2 0`；`main` 未合并、未修改。
 
 R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什么”和“哪些增强暂缓”。历史状态不能直接升格为当前完成，所有最终结论仍需当前代码、运行时和 Owner Gate 证据。
 

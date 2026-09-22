@@ -30,6 +30,15 @@ The current feature branch is synchronized with its own remote-tracking branch
 Other local branches are historical or substantially behind `origin/main`; no
 automatic merge or deletion is safe while this worktree is dirty.
 
+### Post-audit delivery readback
+
+The scoped P3 and authority repair files were committed as
+`20966cb0e68c4abbc40feab275a0d2fbf7ddcb05` and pushed to
+`origin/codex/aaos-p3-ui-convergence-20260922`. Live remote readback returned
+the same SHA and `HEAD...origin/codex/aaos-p3-ui-convergence-20260922 = 0 0`.
+After that delivery, the feature branch is two commits ahead of `origin/main`;
+`main` remains untouched.
+
 ## Authority disposition
 
 ### Current active chain
