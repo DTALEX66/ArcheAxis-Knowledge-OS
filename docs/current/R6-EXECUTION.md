@@ -2137,6 +2137,13 @@
 - verification: Activity Dock keyboard contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `179 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native Activity Dock focus traversal, accessibility tree, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
 
+## Continuation receipt — 2026-09-23 P3 Home action truthfulness closure
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: gated the Home learning-path primary action on successful Core learning endpoint availability; a successful response with count zero remains an enabled, truthful empty-queue route, while errors keep the action disabled.
+- source_commit: `186685c7` (fix(desktop): gate home learning action by core state), ready for publication on the matching feature branch.
+- verification: Home action boundary contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `179 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native Home action rendering, accessibility tree, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
 ## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
