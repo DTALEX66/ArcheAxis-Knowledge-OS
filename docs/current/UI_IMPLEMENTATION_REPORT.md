@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `5702ad74` on
+- Frontend implementation HEAD: `fc79380d` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -94,6 +94,9 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
   feedback now updates both visible text and its accessible status name.
 - B04 fast motion is now consistent: the Button opacity transition uses the
   declared `AaosMotionFastMs` 120ms band instead of a divergent 140ms value.
+- Primary product actions now have stable accessible names across first-run
+  import, Home resume, search, Source Reader, Knowledge, Learning review,
+  Machine Tasks and Evidence refresh flows.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
