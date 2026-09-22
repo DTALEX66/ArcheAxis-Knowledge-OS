@@ -139,6 +139,10 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
+- Library result and Source Reader member lists now support Enter and double-click
+  activation through their existing truthful routes: Knowledge results open the
+  Knowledge projection, source-backed results open Source Reader, and readable
+  source members request the existing Core transform output.
 
 ## Explicit limits
 
@@ -149,6 +153,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
   contract prerequisites; metadata copy is intentionally not called a picker.
 - No demo localStorage, random graph values, synthetic Evidence or simplified
   FSRS implementation was introduced.
+- The list activation change is statically covered; native pointer/keyboard
+  event delivery remains subject to the existing native GUI verification limit.
 - Green, external libraries, credentials, E/F drives, protected history assets
   and unrelated dirty worktree files were not modified.
 

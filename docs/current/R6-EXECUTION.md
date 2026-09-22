@@ -2165,3 +2165,10 @@
 - verification: TDD red/green was observed; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `167 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - gui_boundary: native screenshot, click, keyboard focus, accessibility-tree, DPI, clipboard readback, and cold-restart GUI journey remain `UNVERIFIED`; static contracts do not promote these to GUI PASS.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. No installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 detail-list activation closure
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: Library Results and Source Reader Members lists now activate their existing routes with Enter or double-click; Knowledge results open the guarded Knowledge projection, source-backed results open the guarded Source Reader, and readable members invoke the existing Core transform-output action.
+- source_commit: `5033ae84` (`feat(desktop): activate detail lists with keyboard and pointer`).
+- verification: direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `181 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native event delivery, screenshot, accessibility tree, focus order, Core read models, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
