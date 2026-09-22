@@ -1776,6 +1776,24 @@ def test_status_updates_refresh_the_accessible_status_name() -> None:
     assert "Avalonia.Automation.AutomationProperties.SetName(target, text);" in code
 
 
+def test_primary_status_surfaces_have_initial_accessible_names() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+
+    expected = {
+        'x:Name="CoreStatusText"': 'AutomationProperties.Name="核心状态"',
+        'x:Name="LibrarySearchStatusText"': 'AutomationProperties.Name="资料库搜索状态"',
+        'x:Name="SourceReaderStatusText"': 'AutomationProperties.Name="来源阅读状态"',
+        'x:Name="KnowledgeStateText"': 'AutomationProperties.Name="知识库状态"',
+        'x:Name="EvidenceStatusText"': 'AutomationProperties.Name="证据中心状态"',
+        'x:Name="SettingsStateText"': 'AutomationProperties.Name="系统状态"',
+        'x:Name="ActivityDockStatusText"': 'AutomationProperties.Name="活动回执状态"',
+        'x:Name="CommandPaletteStatusText"': 'AutomationProperties.Name="命令面板状态"',
+    }
+    for control, name in expected.items():
+        segment = xaml.split(control, 1)[1].split(" />", 1)[0]
+        assert name in segment
+
+
 def test_command_palette_results_keep_enter_handling_when_list_has_focus() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     list_start = xaml.index('x:Name="CommandPaletteResultsList"')

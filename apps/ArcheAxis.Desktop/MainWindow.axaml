@@ -14,7 +14,7 @@
                     <TextBlock Text="ArcheAxis Knowledge · 本地优先工作台" FontSize="13" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
                 <Border Grid.Column="1" Padding="14,9" CornerRadius="8" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
-                    <TextBlock x:Name="CoreStatusText" Text="核心状态：正在连接…" Foreground="{DynamicResource AaosIvoryBrush}" />
+                    <TextBlock x:Name="CoreStatusText" Text="核心状态：正在连接…" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="核心状态" />
                 </Border>
             </Grid>
         </Border>
@@ -261,7 +261,7 @@
                       <ComboBoxItem Content="仅 Transform" />
                     </ComboBox>
                   </StackPanel>
-                  <TextBlock x:Name="LibrarySearchStatusText" Text="尚未读取 Core 搜索结果。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock x:Name="LibrarySearchStatusText" Text="尚未读取 Core 搜索结果。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="资料库搜索状态" />
                   <Grid x:Name="LibraryWorkspaceGrid" ColumnDefinitions="1.1*,0.9*" ColumnSpacing="12">
                   <Border Grid.Column="0" Classes="aaos-card-compact" Padding="20">
                     <StackPanel Spacing="10">
@@ -322,7 +322,7 @@
                     <TextBox x:Name="SourceReaderIdBox" PlaceholderText="输入 container source_id" />
                     <Button x:Name="SourceReaderLoadButton" Classes="primary-action" Grid.Column="1" Content="读取来源成员" Padding="16,9" Click="OnReadSourceMembersClick" />
                   </Grid>
-                  <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="来源阅读状态" />
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button x:Name="BackToLibraryButton" Content="返回资料库" IsEnabled="False" Padding="14,8" Click="OnBackToLibraryClick" />
                     <Button x:Name="BackToKnowledgeFromSourceButton" Content="返回 Knowledge 详情" IsEnabled="False" Padding="14,8" Click="OnBackToKnowledgeFromSourceClick" />
@@ -397,7 +397,7 @@
                 <StackPanel x:Name="KnowledgeSurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="知识库" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="读取指定 Knowledge V3 投影；页面不复制或推断 Core 知识状态。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                  <TextBlock x:Name="KnowledgeStateText" Classes="status-empty" Text="尚未读取 Knowledge V3。" TextWrapping="Wrap" />
+                  <TextBlock x:Name="KnowledgeStateText" Classes="status-empty" Text="尚未读取 Knowledge V3。" TextWrapping="Wrap" AutomationProperties.Name="知识库状态" />
                   <Grid x:Name="KnowledgeLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="KnowledgeIdBox" PlaceholderText="输入 knowledge_id" />
                     <Button x:Name="KnowledgeLoadButton" Classes="primary-action" Grid.Column="1" Content="读取知识" Padding="16,9" Click="OnReadKnowledgeClick" />
@@ -549,7 +549,7 @@
                   <TextBlock Text="读取 Core 已持久化的 Evidence anchor 与 bundle 摘要；不展示原文正文，不把来源元数据升级为结论。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="EvidenceToolbar" Classes="aaos-toolbar" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <Button x:Name="EvidenceRefreshButton" Classes="primary-action" Content="读取证据" Padding="16,9" Click="OnEvidenceRefreshClick" />
-                    <TextBlock x:Name="EvidenceStatusText" Grid.Column="1" Classes="status-empty" VerticalAlignment="Center" Text="empty · 尚未读取 Core Evidence。" TextWrapping="Wrap" />
+                    <TextBlock x:Name="EvidenceStatusText" Grid.Column="1" Classes="status-empty" VerticalAlignment="Center" Text="empty · 尚未读取 Core Evidence。" TextWrapping="Wrap" AutomationProperties.Name="证据中心状态" />
                   </Grid>
                   <Border Classes="aaos-empty-state" Padding="16">
                     <StackPanel Orientation="Horizontal" Spacing="16">
@@ -595,7 +595,7 @@
                   <TextBlock Text="设置" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="以下信息来自当前 Core 握手端点；桌面不复制或修改 Core 配置。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Button x:Name="SettingsRefreshButton" Content="读取当前 Core 状态" HorizontalAlignment="Left" Padding="14,8" Click="OnSettingsRefreshClick" AutomationProperties.Name="读取当前 Core 状态" />
-                  <TextBlock x:Name="SettingsStateText" Classes="status-empty" Text="尚未读取 Core 状态。" TextWrapping="Wrap" />
+                  <TextBlock x:Name="SettingsStateText" Classes="status-empty" Text="尚未读取 Core 状态。" TextWrapping="Wrap" AutomationProperties.Name="系统状态" />
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="8">
                       <TextBlock Text="Core 运行状态" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
@@ -709,7 +709,7 @@
                         <TextBlock Text="活动回执" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" VerticalAlignment="Center" />
                         <TextBlock x:Name="ActivityDockText" Text="本次会话暂无导入任务。" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                     </StackPanel>
-                    <TextBlock x:Name="ActivityDockStatusText" Classes="status-empty" Text="empty · 本次会话暂无 Core 回执" TextWrapping="Wrap" FontSize="11" />
+                    <TextBlock x:Name="ActivityDockStatusText" Classes="status-empty" Text="empty · 本次会话暂无 Core 回执" TextWrapping="Wrap" FontSize="11" AutomationProperties.Name="活动回执状态" />
                     <TextBlock x:Name="ActivityDockDetailsText" IsVisible="False" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" MaxHeight="160" />
                     <ListBox x:Name="ActivityDockReceiptList" IsVisible="False" MaxHeight="150" Background="Transparent" BorderThickness="0" SelectionChanged="OnActivityDockReceiptSelected">
                         <ListBox.ItemTemplate>
@@ -748,7 +748,7 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <TextBlock x:Name="CommandPaletteStatusText" Text="输入命令后按 Enter；命令只切换现有页面，不创建新状态。" TextWrapping="Wrap" Classes="provenance-projection" />
+                    <TextBlock x:Name="CommandPaletteStatusText" Text="输入命令后按 Enter；命令只切换现有页面，不创建新状态。" TextWrapping="Wrap" Classes="provenance-projection" AutomationProperties.Name="命令面板状态" />
                 </StackPanel>
             </Border>
         </Border>
