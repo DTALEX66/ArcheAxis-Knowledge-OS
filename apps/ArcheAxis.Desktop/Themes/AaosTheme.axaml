@@ -94,6 +94,11 @@
         <Setter Property="Foreground" Value="#061118" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
+    <Style Selector="Grid.reduced-motion Button">
+        <Setter Property="Transitions">
+            <Transitions />
+        </Setter>
+    </Style>
     <Style Selector="Button:focus">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />

@@ -1545,6 +1545,8 @@ def test_core_learning_controls_expose_stable_automation_names_and_motion_tokens
     assert '<Setter Property="Opacity" Value="0.86" />' in theme
     assert 'x:Key="AaosPrimaryTextBrush" Color="#061118"' in theme
     assert '<Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />' in theme
+    assert 'AAOS_REDUCED_MOTION' in code
+    assert 'Grid.reduced-motion Button' in theme
 
 
 def test_source_reader_can_read_existing_core_transform_output_without_calling_it_original_text() -> None:

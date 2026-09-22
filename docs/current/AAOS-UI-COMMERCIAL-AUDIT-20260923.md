@@ -28,7 +28,8 @@ the desktop product.
   It is decorative only and is not evidence, a metric, or a fabricated Core
   projection.
 - Added semantic motion resources, a restrained opacity transition, selected
-  FSRS grade feedback, and a high-contrast primary-action text brush.
+  FSRS grade feedback, a reduced-motion environment switch
+  (`AAOS_REDUCED_MOTION=1`), and a high-contrast primary-action text brush.
 - Learning navigation now calls the existing Core learning read path on entry.
 - Recovery navigation now calls the existing read-only recovery boundary read
   on entry.

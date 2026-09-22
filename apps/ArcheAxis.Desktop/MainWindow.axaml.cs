@@ -138,6 +138,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Title = "ArcheAxis Learning Workspace (vNext) — core offline";
+        if (string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "1", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            MainFrameGrid.Classes.Set("reduced-motion", true);
+        }
         Loaded += OnLoaded;
         Closed += OnClosed;
     }
