@@ -31,7 +31,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - B04 motion bands are represented as project resources. Button feedback uses a
   short opacity transition; `AAOS_REDUCED_MOTION=1` removes transitions.
 - Review grade selected state, responsive toolbar reflow, compact hit targets,
-  keyboard focus styling and stable AutomationProperties names are present.
+  keyboard focus styling and stable AutomationProperties names are present for
+  the desktop rail, mobile rail, learning controls, and system/job actions.
 - Project-owned generated visual:
   `apps/ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png`.
   It is decorative and never represents Evidence, metrics or Core truth.
@@ -40,7 +41,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 - Avalonia Debug build: `PASS`, 0 warnings, 0 errors.
 - Self-contained `win-x64` Release publish: `PASS`.
-- Targeted desktop UI contracts: `144 passed`.
+- Targeted desktop UI contracts: `145 passed`.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
