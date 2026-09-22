@@ -2463,10 +2463,14 @@ public partial class MainWindow : Window
             foreach (var captureContext in _captureContexts.Where(context => context.JobState is "queued" or "running"))
                 captureContext.JobState = "unknown";
             RefreshCaptureContextProjection();
+            if (imported > 0)
+                ShowToast("导入已中断，已保留部分 Core 回执", "info");
             return;
         }
         CoreStatusText.Text = $"核心状态：已导入 {imported}/{files.Count}，处理完成 {completed}/{executions}，失败 {failed}";
         CaptureReceiptText.Text = $"Core 已接收 {imported}/{files.Count} 个资料；任务完成 {completed}/{executions}，失败 {failed}。未据此推断知识已接受。";
+        if (imported > 0)
+            ShowToast($"已接收 {imported}/{files.Count} 项；任务状态见回执", failed == 0 ? "success" : "info");
         await RefreshJobsAsync();
         await RefreshWorkspaceSummaryAsync();
     }

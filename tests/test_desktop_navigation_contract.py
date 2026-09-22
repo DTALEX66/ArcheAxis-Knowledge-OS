@@ -1650,6 +1650,8 @@ def test_frontend_exposes_truthful_transient_toast_feedback() -> None:
     assert 'DispatcherTimer' in code
     assert 'ShowToast("已复制来源链摘要")' in code
     assert 'ShowToast("复习结果已由 Core 记录")' in code
+    assert '已接收 {imported}/{files.Count} 项；任务状态见回执' in code
+    assert '导入已中断，已保留部分 Core 回执' in code
 
 
 def test_source_reader_can_copy_a_bounded_citation_metadata_summary() -> None:
