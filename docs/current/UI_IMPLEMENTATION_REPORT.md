@@ -1,7 +1,7 @@
 # AAOS UI Implementation Report
 
-Date: 2026-09-23  
-Implementation surface: `apps/ArcheAxis.Desktop/`  
+Date: 2026-09-23
+Implementation surface: `apps/ArcheAxis.Desktop/`
 Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Product surface map
