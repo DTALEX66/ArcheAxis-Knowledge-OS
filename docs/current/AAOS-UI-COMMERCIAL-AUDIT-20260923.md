@@ -40,6 +40,9 @@ the desktop product.
 - Learning now renders the real Core queue as a selectable list instead of
   always pinning the first item; selection reuses the existing item/state/
   assessment/readback routes.
+- Evidence Center now has a product-level unavailable empty state with the
+  generated visual and truthful Capture/Jobs next actions; it still does not
+  fabricate evidence rows while the Core read model is absent.
 
 ## Verified locally
 

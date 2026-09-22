@@ -622,6 +622,10 @@ public partial class MainWindow : Window
 
     private void OnEvidenceClick(object? sender, RoutedEventArgs e) => SetSection("evidence", "证据中心");
 
+    private void OnEvidenceOpenCaptureClick(object? sender, RoutedEventArgs e) => OnCaptureClick(sender, e);
+
+    private void OnEvidenceOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
+
     private void OnOpenLearningKnowledgeClick(object? sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_activeKnowledgeId))

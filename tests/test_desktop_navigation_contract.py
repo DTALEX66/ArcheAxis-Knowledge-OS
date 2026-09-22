@@ -1467,6 +1467,10 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'public sealed class EvidenceAnchorRow' in code
     assert '不包含原文正文' in code
     assert '不把 Evidence 元数据升级为 Knowledge Truth' in code
+    assert 'x:Name="EvidenceSurface"' in xaml
+    assert 'Click="OnEvidenceOpenCaptureClick"' in xaml
+    assert 'Click="OnEvidenceOpenJobsClick"' in xaml
+    assert '不显示合成 anchor 或 bundle' in xaml
 
 
 def test_mobile_workspace_keeps_primary_navigation_discoverable() -> None:
@@ -1531,6 +1535,7 @@ def test_learning_review_actions_reflow_and_navigation_surfaces_auto_refresh() -
 
 def test_core_learning_controls_expose_stable_automation_names_and_motion_tokens() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
 
     for name in (
