@@ -2278,3 +2278,10 @@
 - source_commit: `4ff55d9a` (`fix(desktop): sync status accessible names`).
 - verification: TDD RED was observed for the status synchronization contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `199 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native accessibility-tree readback, screen-reader announcement, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 Home and Settings projection accessibility synchronization
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: extended the existing TextBlock property-change synchronization to Home focus/evidence/lifecycle projections and Settings Core/workspace status projections; direct visible-text updates now refresh accessible names without changing product semantics.
+- source_commit: pending until this scoped change is committed.
+- verification: TDD RED was observed for the projection synchronization contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `200 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native accessibility-tree readback, screen-reader announcement, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.

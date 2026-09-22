@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `4ff55d9a` on
+- Frontend implementation HEAD: pending until this scoped continuation is committed on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -51,8 +51,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after Core/first-use status accessibility
-  synchronization: `199 passed`.
+- Current combined frontend verification after Home/Settings projection
+  accessibility synchronization: `200 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -200,6 +200,9 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Core status and first-use readiness text blocks now synchronize their current
   visible text into `AutomationProperties.Name` automatically, covering direct
   updates from startup, workspace summary, import and learning paths.
+- Home focus/evidence/lifecycle projections and Settings Core/workspace status
+  texts now use the same synchronization path, so their direct Core-derived
+  updates do not leave stale accessible names.
 
 ## Explicit limits
 

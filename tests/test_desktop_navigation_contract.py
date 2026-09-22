@@ -954,6 +954,22 @@ def test_core_and_first_run_status_texts_keep_accessible_names_in_sync() -> None
     assert 'AutomationProperties.SetName(target, target.Text' in code
 
 
+def test_home_and_settings_projection_texts_share_accessible_name_sync() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    for target in (
+        "HomeFocusText",
+        "HomeEvidenceText",
+        "HomeLifecycleCaptureText",
+        "HomeLifecycleSourceText",
+        "HomeLifecycleKnowledgeText",
+        "HomeLifecycleLearningText",
+        "HomeLifecycleReviewText",
+        "SettingsCoreStatusText",
+        "SettingsWorkspaceStatusText",
+    ):
+        assert f'AttachAccessibleTextSync({target});' in code
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]

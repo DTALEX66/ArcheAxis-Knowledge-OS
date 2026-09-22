@@ -184,6 +184,15 @@ public partial class MainWindow : Window
         AttachAccessibleTextSync(FirstRunCoreStatusText);
         AttachAccessibleTextSync(FirstRunWorkspaceStatusText);
         AttachAccessibleTextSync(FirstRunOptionalStatusText);
+        AttachAccessibleTextSync(HomeFocusText);
+        AttachAccessibleTextSync(HomeEvidenceText);
+        AttachAccessibleTextSync(HomeLifecycleCaptureText);
+        AttachAccessibleTextSync(HomeLifecycleSourceText);
+        AttachAccessibleTextSync(HomeLifecycleKnowledgeText);
+        AttachAccessibleTextSync(HomeLifecycleLearningText);
+        AttachAccessibleTextSync(HomeLifecycleReviewText);
+        AttachAccessibleTextSync(SettingsCoreStatusText);
+        AttachAccessibleTextSync(SettingsWorkspaceStatusText);
         Title = "ArcheAxis Learning Workspace (vNext) — core offline";
         _reducedMotion = string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "1", StringComparison.OrdinalIgnoreCase)
             || string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "true", StringComparison.OrdinalIgnoreCase);
