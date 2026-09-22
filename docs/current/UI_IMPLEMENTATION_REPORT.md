@@ -49,6 +49,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
+- Current combined frontend verification after the command-palette focus
+  restoration: `169 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
