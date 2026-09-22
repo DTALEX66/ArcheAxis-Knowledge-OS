@@ -131,7 +131,7 @@
                     </Grid>
                   </Border>
                   <StackPanel Spacing="6">
-                    <TextBlock Text="今天从哪里开始？" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                    <TextBlock Text="今天从哪里开始？" Classes="page-hero" />
                     <TextBlock Text="导入可信资料，建立可追溯的知识与学习闭环。" FontSize="15" Foreground="{DynamicResource AaosMutedBrush}" />
                   </StackPanel>
 
@@ -215,7 +215,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="CaptureSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="捕获" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="捕获" Classes="page-title" />
                   <TextBlock Text="把资料交给 Core 形成可追溯的来源与任务回执；接收、转换、知识状态分开显示。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Border Classes="aaos-card-compact" Padding="20">
                     <StackPanel Spacing="10">
@@ -248,7 +248,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="LibrarySurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="资料库" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="资料库" Classes="page-title" />
                   <TextBlock Text="搜索 Core 已登记的知识与提取结果；结果保留来源类型，不把提取文本伪装成知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="知识搜索结果仍需人工选择确认关联；搜索命中不自动构成来源关联。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                   <Grid x:Name="LibrarySearchGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
@@ -318,7 +318,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="SourceReaderSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="导入阅读" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="导入阅读" Classes="page-title" />
                   <TextBlock Text="读取 Core 已登记的容器来源成员与可读性；不把容器清单或未解析内容伪装成已理解知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="SourceReaderLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="SourceReaderIdBox" PlaceholderText="输入 container source_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="来源容器 source_id 输入" />
@@ -397,7 +397,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="KnowledgeSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="知识库" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="知识库" Classes="page-title" />
                   <TextBlock Text="读取指定 Knowledge V3 投影；页面不复制或推断 Core 知识状态。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock x:Name="KnowledgeStateText" Classes="status-empty" Text="尚未读取 Knowledge V3。" TextWrapping="Wrap" AutomationProperties.Name="知识库状态" />
                   <Grid x:Name="KnowledgeLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
@@ -451,7 +451,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="LearningSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="学习工作台" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="学习工作台" Classes="page-title" />
                   <TextBlock Text="回答由 Core 生成的问题；学习状态由 Core 持久化并在重启后读回。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Button x:Name="LoadLearningButton" Classes="primary-action" Content="载入学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" AutomationProperties.Name="载入 Core 学习路径" />
                   <TextBlock x:Name="LearningStatusText" Text="尚未读取 Core 学习队列。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="学习队列状态" />
@@ -526,7 +526,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="MachineKnowledgeSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="机器知识" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="机器知识" Classes="page-title" />
                   <TextBlock Text="读取指定机器任务收据；任务收据是测量事实，不代表模型已训练或知识已自动升级。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="MachineTaskGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="MachineTaskIdBox" PlaceholderText="输入 task_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="task_id 输入" />
@@ -538,7 +538,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="RecoverySurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="恢复" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="恢复" Classes="page-title" />
                   <TextBlock Text="读取当前 Core 与工作区身份状态。当前 Core 未暴露恢复点列表或恢复动作；本页不执行、不预演恢复。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Button Content="读取恢复边界状态" HorizontalAlignment="Left" Padding="16,9" Click="OnReadRecoveryStatusClick" AutomationProperties.Name="读取恢复边界状态" />
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -547,7 +547,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="EvidenceSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="证据中心" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="证据中心" Classes="page-title" />
                   <TextBlock Text="读取 Core 已持久化的 Evidence anchor 与 bundle 摘要；不展示原文正文，不把来源元数据升级为结论。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="EvidenceToolbar" Classes="aaos-toolbar" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <Button x:Name="EvidenceRefreshButton" Classes="primary-action" Content="读取证据" Padding="16,9" Click="OnEvidenceRefreshClick" AutomationProperties.Name="读取证据" />
@@ -603,7 +603,7 @@
                 </Border>
 
                 <StackPanel x:Name="SettingsSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="设置" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="设置" Classes="page-title" />
                   <TextBlock Text="以下信息来自当前 Core 握手端点；桌面不复制或修改 Core 配置。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Button x:Name="SettingsRefreshButton" Content="读取当前 Core 状态" HorizontalAlignment="Left" Padding="14,8" Click="OnSettingsRefreshClick" AutomationProperties.Name="读取当前 Core 状态" />
                   <TextBlock x:Name="SettingsStateText" Classes="status-empty" Text="尚未读取 Core 状态。" TextWrapping="Wrap" AutomationProperties.Name="系统状态" />
@@ -618,7 +618,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="JobsSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="任务" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                  <TextBlock Text="任务" Classes="page-title" />
                   <TextBlock Text="这里只显示本次桌面会话创建的导入任务；Core 当前没有全量任务列表投影。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="JobLookupGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="JobLookupIdBox" PlaceholderText="输入 job_id 读取回执" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="job_id 输入" />

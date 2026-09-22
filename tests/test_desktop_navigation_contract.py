@@ -73,6 +73,16 @@ def test_aaos_common_controls_consume_typography_tokens() -> None:
     assert 'FontSize" Value="{DynamicResource AaosFontBody}"' in theme
 
 
+def test_primary_page_titles_consume_shared_typography_classes() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    for title in ("捕获", "资料库", "导入阅读", "知识库", "学习工作台", "机器知识", "恢复", "证据中心", "设置", "任务"):
+        assert f'Text="{title}" Classes="page-title"' in xaml
+    assert 'Text="今天从哪里开始？" Classes="page-hero"' in xaml
+    assert '<Style Selector="TextBlock.page-title">' in theme
+    assert '<Style Selector="TextBlock.page-hero">' in theme
+
+
 def test_aaos_theme_exposes_reusable_provenance_and_surface_component_styles() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
