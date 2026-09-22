@@ -58,6 +58,32 @@
 This section supersedes only the matching `PARTIAL` observations above; the
 native GUI screenshot/click gate remains open.
 
+### 5.1 Old baseline to current evidence map
+
+The table in section 1 is retained as the dated 2026-09-22 baseline. It is not
+the current implementation verdict. The following map is the current
+interpretation and prevents the baseline labels from drifting into a new
+failure claim:
+
+| Baseline row | Current interpretation | Evidence boundary |
+|---|---|---|
+| 背景 | Semantic dark AAOS surfaces and layered panel resources are implemented; remaining pure-black surfaces require native visual review | `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD`; GUI `UNVERIFIED` |
+| 主交互 | Aurora Teal semantic action/status resources and readable dark action text are implemented; remaining hard-coded Indigo is outside the audited primary path | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` |
+| 文字 | Ivory/Muted semantic resources are available and primary surfaces consume them; this is not a claim that every legacy text literal is gone | `IMPLEMENTED_LOCAL`; full visual sweep `UNVERIFIED` |
+| 金色 | No new gold visual expansion was introduced; semantic evidence-gold alignment remains a follow-up | `PARTIAL / UNVERIFIED` |
+| 面板 | Current Home, Learning, Evidence and responsive Inspector surfaces use the tokenized panel treatment; full suite-wide density alignment remains open | `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD` |
+| 页面 IA | Core route shell and Learning/Home/Evidence states are implemented; Evidence remains truthful unavailable when the Core read model is absent | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC`; live Core/UI `UNVERIFIED` |
+| 原始证据与机器内容 | Provenance and unavailable boundaries are explicit; fabricated Evidence anchors/bundles are not used | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` |
+| 状态 | Loading, empty, error, permission, unavailable and unknown semantics are represented on the audited surfaces | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC`; native rendering `UNVERIFIED` |
+| 动效 | Motion tokens, restrained opacity transition, selected-state feedback and reduced-motion class are implemented | `IMPLEMENTED_LOCAL / TESTED_LOCAL_BUILD`; native timing `UNVERIFIED` |
+| 响应式 | Exact 1024/1280 breakpoints, narrow action reflow and Inspector overlay path are implemented | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC`; DPI/native layout `UNVERIFIED` |
+| 可访问性 | Automation names, keyboard command-palette semantics and reduced-motion handling are implemented on audited controls | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC`; contrast/focus readback `UNVERIFIED` |
+| GUI 回读 | Still open; no native screenshot/click/accessibility readback is claimed | `NOT_EXECUTED` |
+
+The reference suite path `D:\\All projects\\UI套件` is a design-reference
+source only. It is not a runtime resource root, was not copied wholesale into
+the product, and does not replace the fixed external-resource authority index.
+
 - `AaosTheme.axaml` now exposes Aurora Teal semantic status resources, the
   120/180/280/420ms motion token references, a restrained opacity transition for
   buttons, selected FSRS grade feedback, and a dark primary-action text brush
