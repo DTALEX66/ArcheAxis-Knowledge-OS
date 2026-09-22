@@ -1274,6 +1274,13 @@ def test_narrow_layout_keeps_inspector_available_as_an_evidence_drawer() -> None
     assert 'Click="OnToggleInspectorDrawerClick"' in xaml
     assert 'private void OnToggleInspectorDrawerClick' in code
     assert 'InspectorDrawerButton.IsVisible = hideInspector;' in code
+
+
+def test_inspector_drawer_escape_closes_and_restores_button_focus() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    assert 'e.Key == Key.Escape && _inspectorDrawerOpen && InspectorPanel.IsVisible' in code
+    assert 'OnToggleInspectorDrawerClick(this, new RoutedEventArgs());' in code
+    assert 'InspectorDrawerButton.Focus();' in code
     assert 'InspectorPanel.IsVisible = _inspectorDrawerOpen;' in code
     assert 'Grid.SetColumn(InspectorPanel, mobile ? 0 : 2);' in code
     assert 'InspectorPanel.ZIndex = 5;' in code

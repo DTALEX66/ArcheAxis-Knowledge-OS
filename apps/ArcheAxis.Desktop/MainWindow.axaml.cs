@@ -790,6 +790,14 @@ public partial class MainWindow : Window
         {
             SetCommandPaletteVisibility(false);
             e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Escape && _inspectorDrawerOpen && InspectorPanel.IsVisible)
+        {
+            OnToggleInspectorDrawerClick(this, new RoutedEventArgs());
+            InspectorDrawerButton.Focus();
+            e.Handled = true;
         }
     }
 
