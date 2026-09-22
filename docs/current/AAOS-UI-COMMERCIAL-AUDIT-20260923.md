@@ -40,8 +40,14 @@ the desktop product.
 ## Verified locally
 
 - Avalonia Debug build: `PASS`, 0 warnings, 0 errors.
+- Avalonia self-contained `win-x64` Release publish: `PASS`; output was
+  `.project-local/build/desktop-publish/ui-commercial-pass-2/`.
 - Targeted desktop contracts: `142 passed` with the project-local candidate
   Python and ephemeral pytest environment.
+- Headless Core learning smoke with the explicit project-local database and
+  worker profile: `PASS`; `answer_saved=true`, `fsrs=true`, and
+  `mastery_projection_closed=false` (the last value is correctly not promoted
+  to mastery completion).
 - `git diff --check`: `PASS` for the current diff.
 
 ## Still open and intentionally not overstated
