@@ -2095,6 +2095,13 @@
 - verification: navigation-state contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `176 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Memory Graph data, Original Editor persistence, native accessibility tree, focus order, pointer, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
 
+## Continuation receipt — 2026-09-23 P3 unavailable-state structure closure
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added shared State / Boundary / Next Step content to the unavailable surface and route-specific next-step copy for Research, Plugins, Models, Original Editor, Memory Map, and Recovery; the surface remains read-only and synthetic-data-free.
+- source_commit: `5c1f603b` (feat(desktop): clarify unavailable surface states), ready for publication on the matching feature branch.
+- verification: unavailable-state contract passes; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `176 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Core read models, native accessibility tree, focus order, pointer, screenshot and GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
 ## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
