@@ -39,9 +39,9 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Current delivery HEAD: `38f44985` on
-  `codex/aaos-p3-ui-convergence-20260922`; the branch is published to its
-  matching remote branch.
+- Frontend implementation HEAD: `38f44985` on
+  `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
+  `28094e4d`, and the branch is published to its matching remote branch.
 - Avalonia Debug build: `PASS`, 0 warnings, 0 errors.
 - Self-contained `win-x64` Release publish: `PASS`, current output at
   `.project-local/build/desktop-publish/ui-final-pass-38f44985/`.
