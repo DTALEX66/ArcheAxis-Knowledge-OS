@@ -1944,3 +1944,10 @@
 - source_commit: `2d9fbb75` (`feat(desktop): add bounded citation metadata action`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
 - verification: frontend navigation/learning/route/launch suite `162 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-2d9fbb75`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native GUI click/readback remains UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 Capture completion feedback
+- scope: continued the canonical Avalonia Capture surface only; no Core contract, persistence, worker, Green, or external-resource behavior changed.
+- implementation: successful imports now show a transient receipt summary (`已接收 n/m 项；任务状态见回执`); interrupted imports show that partial Core receipts were retained. The existing durable Capture/Job text remains authoritative, and no import result is promoted to Knowledge acceptance.
+- source_commit: `16f0935e` (`feat(desktop): surface import completion feedback`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
+- verification: frontend navigation/learning/route/launch suite `162 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-16f0935e`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native GUI import click/readback remains UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
