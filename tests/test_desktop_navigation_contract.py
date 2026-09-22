@@ -1840,6 +1840,16 @@ def test_every_desktop_button_declares_an_accessible_name() -> None:
     assert unnamed == []
 
 
+def test_every_desktop_input_and_result_control_declares_an_accessible_name() -> None:
+    unnamed = []
+    control_prefixes = ("<TextBox ", "<TextBox>", "<ListBox ", "<ListBox>", "<ComboBox ", "<ComboBox>", "<CheckBox ", "<CheckBox>", "<ToggleSwitch ", "<ToggleSwitch>")
+    for line_number, line in enumerate(XAML.read_text(encoding="utf-8").splitlines(), start=1):
+        stripped = line.lstrip()
+        if stripped.startswith(control_prefixes) and "AutomationProperties.Name=" not in line:
+            unnamed.append(f"{line_number}: {line.strip()}")
+    assert unnamed == []
+
+
 def test_command_palette_status_updates_accessible_name_with_selection() -> None:
     code = CODE.read_text(encoding="utf-8")
 
