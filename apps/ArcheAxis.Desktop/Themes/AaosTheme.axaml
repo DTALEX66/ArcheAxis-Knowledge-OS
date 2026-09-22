@@ -111,14 +111,14 @@
             <Transitions />
         </Setter>
     </Style>
-    <Style Selector="Border.aaos-animated-surface">
+    <Style Selector="Control.aaos-animated-surface">
         <Setter Property="Transitions">
             <Transitions>
                 <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
             </Transitions>
         </Setter>
     </Style>
-    <Style Selector="Grid.reduced-motion Border.aaos-animated-surface">
+    <Style Selector="Grid.reduced-motion Control.aaos-animated-surface">
         <Setter Property="Transitions">
             <Transitions />
         </Setter>

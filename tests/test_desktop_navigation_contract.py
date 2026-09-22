@@ -191,8 +191,10 @@ def test_activity_dock_escape_collapses_and_restores_focus() -> None:
     assert 'e.Key == Key.Escape && _activityDockExpanded' in code
     assert 'SetActivityDockExpanded(false, restoreFocus: true);' in code
     assert 'private void SetActivityDockExpanded(bool expanded, bool restoreFocus = false)' in code
-    assert 'ActivityDockDetailsText.IsVisible = _activityDockExpanded;' in code
-    assert 'ActivityDockReceiptList.IsVisible = _activityDockExpanded;' in code
+    assert 'RevealSurface(ActivityDockDetailsText);' in code
+    assert 'RevealSurface(ActivityDockReceiptList);' in code
+    assert 'ActivityDockDetailsText.IsVisible = false;' in code
+    assert 'ActivityDockReceiptList.IsVisible = false;' in code
     assert 'ActivityDockToggleButton.Focus();' in code
 
 
@@ -1348,11 +1350,23 @@ def test_overlay_surfaces_have_reduced_motion_safe_reveal_feedback() -> None:
     for name in ("InspectorPanel", "ActivityDock", "ToastSurface", "CommandPaletteOverlay"):
         surface = xaml.split(f'x:Name="{name}"', 1)[1].split('>', 1)[0]
         assert 'Classes="aaos-animated-surface' in surface
-    assert '<Style Selector="Border.aaos-animated-surface">' in theme
-    assert '<Style Selector="Grid.reduced-motion Border.aaos-animated-surface">' in theme
+    assert '<Style Selector="Control.aaos-animated-surface">' in theme
+    assert '<Style Selector="Grid.reduced-motion Control.aaos-animated-surface">' in theme
     assert 'private void RevealSurface(Control target)' in code
     assert 'Dispatcher.UIThread.Post' in code
     assert 'if (_reducedMotion)' in code
+
+
+def test_activity_dock_details_use_the_same_reduced_motion_reveal() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    for name in ("ActivityDockDetailsText", "ActivityDockReceiptList"):
+        surface = xaml.split(f'x:Name="{name}"', 1)[1].split('>', 1)[0]
+        assert 'Classes="aaos-animated-surface"' in surface
+    assert '<Style Selector="Control.aaos-animated-surface">' in theme
+    assert 'RevealSurface(ActivityDockDetailsText);' in code
+    assert 'RevealSurface(ActivityDockReceiptList);' in code
 
 
 def test_exact_tablet_and_narrow_action_breakpoints_collapse_at_boundary() -> None:

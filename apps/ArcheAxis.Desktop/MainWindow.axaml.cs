@@ -1795,8 +1795,18 @@ public partial class MainWindow : Window
     private void SetActivityDockExpanded(bool expanded, bool restoreFocus = false)
     {
         _activityDockExpanded = expanded;
-        ActivityDockDetailsText.IsVisible = _activityDockExpanded;
-        ActivityDockReceiptList.IsVisible = _activityDockExpanded;
+        if (_activityDockExpanded)
+        {
+            RevealSurface(ActivityDockDetailsText);
+            RevealSurface(ActivityDockReceiptList);
+        }
+        else
+        {
+            ActivityDockDetailsText.Opacity = 1;
+            ActivityDockReceiptList.Opacity = 1;
+            ActivityDockDetailsText.IsVisible = false;
+            ActivityDockReceiptList.IsVisible = false;
+        }
         ActivityDockText.TextTrimming = _activityDockExpanded
             ? Avalonia.Media.TextTrimming.None
             : Avalonia.Media.TextTrimming.CharacterEllipsis;
