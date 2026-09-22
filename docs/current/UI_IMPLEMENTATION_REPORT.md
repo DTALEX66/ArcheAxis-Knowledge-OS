@@ -39,12 +39,12 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `16f0935e` on
+- Frontend implementation HEAD: `80a12126` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - Avalonia Debug build: `PASS`, 0 warnings, 0 errors.
 - Self-contained `win-x64` Release publish: `PASS`, current output at
-  `.project-local/build/desktop-publish/ui-final-pass-16f0935e/`.
+  `.project-local/build/desktop-publish/ui-final-pass-80a12126/`.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
@@ -54,6 +54,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
   body text.
 - Capture completion and interruption now have transient feedback while the
   durable Core receipt remains the authoritative state.
+- Desktop and mobile primary navigation actions now expose stable accessible
+  names for all formal product routes.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.

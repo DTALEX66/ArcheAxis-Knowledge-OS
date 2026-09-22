@@ -1951,3 +1951,10 @@
 - source_commit: `16f0935e` (`feat(desktop): surface import completion feedback`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
 - verification: frontend navigation/learning/route/launch suite `162 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-16f0935e`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native GUI import click/readback remains UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 complete primary navigation accessibility labels
+- scope: continued the canonical Avalonia shell accessibility surface; no Core route, persistence, Green, external resource, or unrelated dirty file changed.
+- implementation: added stable `AutomationProperties.Name` values to the previously unlabeled desktop and mobile actions for Machine Knowledge, Research, Plugins, and Models. The labels describe the visible route and do not claim unavailable backend readiness.
+- source_commit: `80a12126` (`feat(desktop): label all primary navigation actions`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
+- verification: frontend navigation/learning/route/launch suite `163 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-80a12126`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native GUI accessibility tree and click/readback remain UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
