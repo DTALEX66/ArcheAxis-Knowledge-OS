@@ -308,7 +308,7 @@
                       <TextBlock Text="字段来自 Core 搜索响应；缺失字段不推断为证据、原件或已验证知识。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                       <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button Content="读取 Knowledge 详情" Padding="14,8" Click="OnOpenSelectedKnowledgeClick" />
-                        <Button x:Name="OpenLibrarySourceButton" Content="查看来源成员" IsEnabled="False" Padding="14,8" Click="OnOpenLibrarySourceClick" />
+                        <Button x:Name="OpenLibrarySourceButton" Content="查看来源成员" IsEnabled="False" Padding="14,8" Click="OnOpenLibrarySourceClick" AutomationProperties.Name="查看来源成员" />
                       </StackPanel>
                     </StackPanel>
                   </Border>
@@ -324,10 +324,10 @@
                   </Grid>
                   <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="来源阅读状态" />
                   <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button x:Name="BackToLibraryButton" Content="返回资料库" IsEnabled="False" Padding="14,8" Click="OnBackToLibraryClick" />
-                    <Button x:Name="BackToKnowledgeFromSourceButton" Content="返回 Knowledge 详情" IsEnabled="False" Padding="14,8" Click="OnBackToKnowledgeFromSourceClick" />
-                    <Button x:Name="ViewSourceJobButton" Content="查看选中成员的任务回执" IsEnabled="False" Padding="14,8" Click="OnViewSourceJobClick" />
-                    <Button x:Name="FindLibraryFromSourceButton" Content="在资料库查找关联投影" IsEnabled="False" Padding="14,8" Click="OnFindLibraryFromSourceClick" />
+                    <Button x:Name="BackToLibraryButton" Content="返回资料库" IsEnabled="False" Padding="14,8" Click="OnBackToLibraryClick" AutomationProperties.Name="返回资料库" />
+                    <Button x:Name="BackToKnowledgeFromSourceButton" Content="返回 Knowledge 详情" IsEnabled="False" Padding="14,8" Click="OnBackToKnowledgeFromSourceClick" AutomationProperties.Name="返回 Knowledge 详情" />
+                    <Button x:Name="ViewSourceJobButton" Content="查看选中成员的任务回执" IsEnabled="False" Padding="14,8" Click="OnViewSourceJobClick" AutomationProperties.Name="查看选中成员的任务回执" />
+                    <Button x:Name="FindLibraryFromSourceButton" Content="在资料库查找关联投影" IsEnabled="False" Padding="14,8" Click="OnFindLibraryFromSourceClick" AutomationProperties.Name="在资料库查找关联投影" />
                   </StackPanel>
                   <Grid x:Name="SourceReaderShellGrid" ColumnDefinitions="220,*,300" ColumnSpacing="12" MinHeight="430">
                     <Border x:Name="SourceReaderOutlineBorder" Grid.Column="0" Classes="aaos-card-compact" Padding="14">
@@ -368,7 +368,7 @@
                         </Grid>
                         <TextBlock x:Name="SourceReaderMemberBoundaryText" Text="原文正文未暴露；字段来自 Core 来源成员投影。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                         <TextBlock Text="原文正文未在此详情卡片展示；字段仅来自 Core 来源成员投影。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <Button x:Name="ReadSourceTransformButton" Content="读取转换内容" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnReadSourceTransformClick" />
+                        <Button x:Name="ReadSourceTransformButton" Content="读取转换内容" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnReadSourceTransformClick" AutomationProperties.Name="读取转换内容" />
                         <TextBlock Text="转换输出（Core）" FontSize="12" Classes="provenance-machine" />
                         <ScrollViewer MaxHeight="240">
                           <TextBlock x:Name="SourceReaderTransformText" Text="尚未读取转换输出；原文正文仍未暴露。" TextWrapping="Wrap" FontSize="12" Classes="provenance-machine" />
@@ -402,8 +402,8 @@
                     <TextBox x:Name="KnowledgeIdBox" PlaceholderText="输入 knowledge_id" />
                     <Button x:Name="KnowledgeLoadButton" Classes="primary-action" Grid.Column="1" Content="读取知识" Padding="16,9" Click="OnReadKnowledgeClick" AutomationProperties.Name="读取知识" />
                   </Grid>
-                  <Button x:Name="BackToLibraryFromKnowledgeButton" Content="返回资料库 Evidence Detail" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnBackToLibraryFromKnowledgeClick" />
-                  <Button x:Name="OpenKnowledgeSourceButton" Content="查看 Knowledge 来源成员" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnOpenKnowledgeSourceClick" />
+                  <Button x:Name="BackToLibraryFromKnowledgeButton" Content="返回资料库 Evidence Detail" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnBackToLibraryFromKnowledgeClick" AutomationProperties.Name="返回资料库 Evidence Detail" />
+                  <Button x:Name="OpenKnowledgeSourceButton" Content="查看 Knowledge 来源成员" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnOpenKnowledgeSourceClick" AutomationProperties.Name="查看 Knowledge 来源成员" />
                   <Border x:Name="KnowledgeEvidenceContextBorder" Classes="aaos-card-compact" Padding="14">
                     <StackPanel Spacing="6">
                       <TextBlock Text="证据上下文" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
@@ -469,8 +469,8 @@
                       <TextBlock Text="最近 Capture（未关联）" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="LearningCaptureContextText" Text="最近 Capture：尚未形成；未证明与当前学习项目关联。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                       <StackPanel x:Name="LearningCaptureActions" Orientation="Horizontal" Spacing="8">
-                        <Button x:Name="OpenLearningCaptureSourceButton" Content="打开最近来源" IsEnabled="False" Padding="12,7" Click="OnOpenLatestSourceClick" />
-                        <Button x:Name="OpenLearningCaptureJobButton" Content="查看最近任务" IsEnabled="False" Padding="12,7" Click="OnOpenLatestJobClick" />
+                        <Button x:Name="OpenLearningCaptureSourceButton" Content="打开最近来源" IsEnabled="False" Padding="12,7" Click="OnOpenLatestSourceClick" AutomationProperties.Name="打开最近来源" />
+                        <Button x:Name="OpenLearningCaptureJobButton" Content="查看最近任务" IsEnabled="False" Padding="12,7" Click="OnOpenLatestJobClick" AutomationProperties.Name="查看最近任务" />
                       </StackPanel>
                     </StackPanel>
                   </Border>
@@ -483,7 +483,7 @@
                       <TextBlock x:Name="LearningOriginalText" Classes="provenance-original" Text="原件正文未从学习投影直接暴露。" TextWrapping="Wrap" />
                       <TextBlock Text="Knowledge / Assessment 版本" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="LearningVersionText" Classes="provenance-projection" Text="尚未生成" TextWrapping="Wrap" />
-                      <Button x:Name="OpenLearningKnowledgeButton" Content="打开当前 Knowledge 详情" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnOpenLearningKnowledgeClick" />
+                      <Button x:Name="OpenLearningKnowledgeButton" Content="打开当前 Knowledge 详情" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnOpenLearningKnowledgeClick" AutomationProperties.Name="打开当前 Knowledge 详情" />
                       <TextBlock Text="记忆读回" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="LearningMemoryText" Classes="provenance-review" Text="学习记录：未读回" TextWrapping="Wrap" />
                       <TextBlock Text="复习提交不会自动表示知识已接受。" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -685,9 +685,9 @@
                         </Border>
                         <TextBlock x:Name="InspectorProvenanceText" Text="未选择对象；来源链未加载。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                         <StackPanel x:Name="InspectorActionPanel" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                            <Button x:Name="InspectorOpenSourceButton" Content="打开来源" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenSourceClick" />
-                            <Button x:Name="InspectorOpenKnowledgeButton" Content="打开 Knowledge" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenKnowledgeClick" />
-                            <Button x:Name="InspectorBackLibraryButton" Content="返回资料库" IsEnabled="False" Padding="12,7" Click="OnInspectorBackLibraryClick" />
+                            <Button x:Name="InspectorOpenSourceButton" Content="打开来源" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenSourceClick" AutomationProperties.Name="打开来源" />
+                            <Button x:Name="InspectorOpenKnowledgeButton" Content="打开 Knowledge" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenKnowledgeClick" AutomationProperties.Name="打开 Knowledge" />
+                            <Button x:Name="InspectorBackLibraryButton" Content="返回资料库" IsEnabled="False" Padding="12,7" Click="OnInspectorBackLibraryClick" AutomationProperties.Name="返回资料库" />
                         </StackPanel>
                     </StackPanel>
                 </Border>

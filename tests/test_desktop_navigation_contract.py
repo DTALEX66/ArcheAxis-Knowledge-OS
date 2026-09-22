@@ -1812,6 +1812,20 @@ def test_named_product_actions_have_stable_accessible_names() -> None:
         'x:Name="SubmitReviewButton"': 'AutomationProperties.Name="提交复习结果"',
         'x:Name="MachineTaskLoadButton"': 'AutomationProperties.Name="读取任务收据"',
         'x:Name="EvidenceRefreshButton"': 'AutomationProperties.Name="读取证据"',
+        'x:Name="OpenLibrarySourceButton"': 'AutomationProperties.Name="查看来源成员"',
+        'x:Name="BackToLibraryButton"': 'AutomationProperties.Name="返回资料库"',
+        'x:Name="BackToKnowledgeFromSourceButton"': 'AutomationProperties.Name="返回 Knowledge 详情"',
+        'x:Name="ViewSourceJobButton"': 'AutomationProperties.Name="查看选中成员的任务回执"',
+        'x:Name="FindLibraryFromSourceButton"': 'AutomationProperties.Name="在资料库查找关联投影"',
+        'x:Name="ReadSourceTransformButton"': 'AutomationProperties.Name="读取转换内容"',
+        'x:Name="BackToLibraryFromKnowledgeButton"': 'AutomationProperties.Name="返回资料库 Evidence Detail"',
+        'x:Name="OpenKnowledgeSourceButton"': 'AutomationProperties.Name="查看 Knowledge 来源成员"',
+        'x:Name="OpenLearningCaptureSourceButton"': 'AutomationProperties.Name="打开最近来源"',
+        'x:Name="OpenLearningCaptureJobButton"': 'AutomationProperties.Name="查看最近任务"',
+        'x:Name="OpenLearningKnowledgeButton"': 'AutomationProperties.Name="打开当前 Knowledge 详情"',
+        'x:Name="InspectorOpenSourceButton"': 'AutomationProperties.Name="打开来源"',
+        'x:Name="InspectorOpenKnowledgeButton"': 'AutomationProperties.Name="打开 Knowledge"',
+        'x:Name="InspectorBackLibraryButton"': 'AutomationProperties.Name="返回资料库"',
     }
     for control, name in expected.items():
         segment = xaml.split(control, 1)[1].split(" />", 1)[0]
