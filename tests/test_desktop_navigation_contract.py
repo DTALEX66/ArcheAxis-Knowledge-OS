@@ -192,8 +192,19 @@ def test_activity_dock_can_expand_current_session_receipts_without_history_claim
     assert 'Click="OnToggleActivityDockClick"' in xaml
     assert 'private bool _activityDockExpanded;' in code
     assert 'private void OnToggleActivityDockClick' in code
-    assert 'ActivityDockDetailsText.Text = string.Join("\\n\\n", lines)' in code
+    assert 'SetActivityDockDetails(string.Join("\\n\\n", lines)' in code
     assert '不代表持久历史' in xaml or '不代表持久历史' in code
+
+
+def test_activity_dock_summary_and_details_keep_accessible_readback_names() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'AutomationProperties.Name="本次会话暂无导入任务。"' in xaml
+    assert 'AutomationProperties.Name="当前会话没有可展开的 Core 回执。"' in xaml
+    assert 'private void SetActivityDockSummary' in code
+    assert 'private void SetActivityDockDetails' in code
+    assert 'AutomationProperties.SetName(ActivityDockText, text);' in code
+    assert 'AutomationProperties.SetName(ActivityDockDetailsText, text);' in code
 
 
 def test_activity_dock_escape_collapses_and_restores_focus() -> None:
@@ -618,7 +629,7 @@ def test_activity_receipt_dock_is_current_session_only() -> None:
     assert 'List<string> _sessionJobIds' in code
     assert 'if (_sessionJobIds.Count == 0)' in code
     assert 'ActivityDockText.Text' in code
-    assert 'ActivityDockText.Text = $"本次会话 {lines.Count} 个任务' in code
+    assert 'SetActivityDockSummary($"本次会话 {lines.Count} 个任务' in code
     assert '_sessionJobIds.Add(jobId)' in code
     assert '"/api/v1/jobs/' in code
     assert '/quality' in code

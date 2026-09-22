@@ -570,6 +570,18 @@ public partial class MainWindow : Window
         Avalonia.Automation.AutomationProperties.SetName(target, text);
     }
 
+    private void SetActivityDockSummary(string text)
+    {
+        ActivityDockText.Text = text;
+        Avalonia.Automation.AutomationProperties.SetName(ActivityDockText, text);
+    }
+
+    private void SetActivityDockDetails(string text)
+    {
+        ActivityDockDetailsText.Text = text;
+        Avalonia.Automation.AutomationProperties.SetName(ActivityDockDetailsText, text);
+    }
+
     private void ShowToast(string message, string semanticState = "success")
     {
         SetStatus(ToastText, message, semanticState);
@@ -1885,8 +1897,8 @@ public partial class MainWindow : Window
         if (_sessionJobIds.Count == 0)
         {
             JobsResultsText.Text = "本次会话尚无可显示任务。";
-            ActivityDockText.Text = "本次会话暂无导入任务。";
-            ActivityDockDetailsText.Text = "当前会话没有可展开的 Core 回执。";
+            SetActivityDockSummary("本次会话暂无导入任务。");
+            SetActivityDockDetails("当前会话没有可展开的 Core 回执。");
             JobsResultsList.ItemsSource = Array.Empty<JobReceiptRow>();
             ActivityDockReceiptList.ItemsSource = Array.Empty<JobReceiptRow>();
             SetStatus(ActivityDockStatusText, "empty · 本次会话暂无 Core 回执。", "empty");
@@ -1895,8 +1907,8 @@ public partial class MainWindow : Window
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
         {
             JobsResultsText.Text = "核心未就绪，无法读取本次导入状态。";
-            ActivityDockText.Text = "Core 未就绪，无法读取本次会话回执。";
-            ActivityDockDetailsText.Text = "Core 未就绪；没有可展开的回执详情。";
+            SetActivityDockSummary("Core 未就绪，无法读取本次会话回执。");
+            SetActivityDockDetails("Core 未就绪；没有可展开的回执详情。");
             JobsResultsList.ItemsSource = Array.Empty<JobReceiptRow>();
             ActivityDockReceiptList.ItemsSource = Array.Empty<JobReceiptRow>();
             SetStatus(ActivityDockStatusText, "error · Core 未就绪，无法读取本次会话回执。", "error");
@@ -1964,8 +1976,8 @@ public partial class MainWindow : Window
         JobsResultsText.Text = string.Join("\n\n", lines);
         JobsResultsList.ItemsSource = receipts;
         ActivityDockReceiptList.ItemsSource = receipts;
-        ActivityDockText.Text = $"本次会话 {lines.Count} 个任务 · 已读取 Core 状态与质量回执";
-        ActivityDockDetailsText.Text = string.Join("\n\n", lines) + "\n\n以上为当前会话 Core 回执，不代表持久历史。";
+        SetActivityDockSummary($"本次会话 {lines.Count} 个任务 · 已读取 Core 状态与质量回执");
+        SetActivityDockDetails(string.Join("\n\n", lines) + "\n\n以上为当前会话 Core 回执，不代表持久历史。");
         SetStatus(
             ActivityDockStatusText,
             hasPermissionFailure
@@ -2690,7 +2702,7 @@ public partial class MainWindow : Window
                 captureContext.JobState = "queued";
                 RefreshCaptureContextProjection();
                 _sessionJobIds.Add(jobId);
-                ActivityDockText.Text = $"本次会话已登记 {_sessionJobIds.Count} 个任务 · 正在读取回执…";
+            SetActivityDockSummary($"本次会话已登记 {_sessionJobIds.Count} 个任务 · 正在读取回执…");
                 SetStatus(ActivityDockStatusText, "loading · Core 正在处理并读取任务回执。", "loading");
                 var execution = new StringContent("{\"deadline_ms\":300000}", Encoding.UTF8, "application/json");
                 using var started = await _supervisor.SendAsync(

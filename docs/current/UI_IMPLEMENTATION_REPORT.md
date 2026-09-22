@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `5e9cbaf9` on
+- Frontend implementation HEAD: `477531f4` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -51,8 +51,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after primary typography convergence:
-  `188 passed`.
+- Current combined frontend verification after accessible Activity Dock readback:
+  `189 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
@@ -124,6 +124,12 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Core, search, source-reader, Knowledge, Evidence, Settings, Activity Dock
   and Command Palette status surfaces now also have descriptive initial
   accessible names before their first interaction.
+- Activity Dock summary and expanded details now update their accessible names
+  through one helper path, keeping the current session receipt state
+  repeatedly readable even when the transient Toast is hidden. Avalonia 12.1.2
+  Live Region support was not found in the project contract; this is therefore
+  documented as accessible state readback, not as native screen-reader live
+  announcement.
 - Command Palette results now support mouse double-tap execution in addition
   to keyboard Enter, while preserving the existing focus restoration path.
 - Command Palette selection, filtering, empty-result and unknown-command

@@ -720,10 +720,10 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <Ellipse Width="8" Height="8" Fill="{DynamicResource AaosPrimaryBrush}" VerticalAlignment="Center" />
                         <TextBlock Text="活动回执" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" VerticalAlignment="Center" />
-                        <TextBlock x:Name="ActivityDockText" Text="本次会话暂无导入任务。" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock x:Name="ActivityDockText" Text="本次会话暂无导入任务。" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" AutomationProperties.Name="本次会话暂无导入任务。" />
                     </StackPanel>
                     <TextBlock x:Name="ActivityDockStatusText" Classes="status-empty" Text="empty · 本次会话暂无 Core 回执" TextWrapping="Wrap" FontSize="11" AutomationProperties.Name="活动回执状态" />
-                    <TextBlock x:Name="ActivityDockDetailsText" Classes="aaos-animated-surface" IsVisible="False" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" MaxHeight="160" />
+                        <TextBlock x:Name="ActivityDockDetailsText" Classes="aaos-animated-surface" IsVisible="False" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" MaxHeight="160" AutomationProperties.Name="当前会话没有可展开的 Core 回执。" />
                     <ListBox x:Name="ActivityDockReceiptList" Classes="aaos-animated-surface" IsVisible="False" MaxHeight="150" Background="Transparent" BorderThickness="0" SelectionChanged="OnActivityDockReceiptSelected" AutomationProperties.Name="活动回执列表">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
