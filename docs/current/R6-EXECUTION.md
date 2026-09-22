@@ -2011,6 +2011,13 @@
 - verification: TDD red/green was observed; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `170 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native screen-reader tree and GUI focus traversal remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
 
+## Continuation receipt — 2026-09-23 P3 command palette pointer activation
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: Command Palette results now execute the selected route on double-tap, in addition to the existing keyboard Enter path; the overlay still uses the existing route table and focus restoration behavior.
+- source_commit: `2f6ba6a8` (`feat(desktop): activate command palette by double tap`), committed locally; push is pending after evidence update.
+- verification: TDD red/green was observed; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `171 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native pointer, keyboard, focus, screenshot, and GUI route readback remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
 ## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
