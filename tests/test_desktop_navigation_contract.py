@@ -1513,6 +1513,40 @@ def test_compact_knowledge_facts_reflow_without_overlapping_two_column_cards() -
     assert 'new RowDefinitions("Auto,Auto,Auto,Auto,Auto")' in code
 
 
+def test_learning_review_actions_reflow_and_navigation_surfaces_auto_refresh() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    assert 'x:Name="ReviewActionsGrid"' in xaml
+    assert 'x:Name="LearningEmptyActions"' in xaml
+    assert 'Click="OnLearningOpenLibraryClick"' in xaml
+    assert 'Click="OnLearningOpenJobsClick"' in xaml
+    assert 'ReviewActionsGrid.ColumnDefinitions = narrowActions' in code
+    assert 'new RowDefinitions("Auto,Auto,Auto,Auto")' in code
+    assert 'section == "learning"' in code
+    assert '_ = LoadLearningIfNeededAsync();' in code
+    assert 'section == "recovery"' in code
+    assert '_ = ReadRecoveryStatusAsync();' in code
+
+
+def test_core_learning_controls_expose_stable_automation_names_and_motion_tokens() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    theme = THEME_XAML.read_text(encoding="utf-8")
+
+    for name in (
+        'AutomationProperties.Name="学习回答输入框"',
+        'AutomationProperties.Name="Core 正确性结果"',
+        'AutomationProperties.Name="FSRS Again 重来"',
+        'AutomationProperties.Name="FSRS Easy 轻松"',
+        'AutomationProperties.Name="复习提交状态"',
+    ):
+        assert name in xaml
+    assert '<DoubleTransition Property="Opacity" Duration="0:0:0.14" />' in theme
+    assert '<Setter Property="Opacity" Value="0.86" />' in theme
+    assert 'x:Key="AaosPrimaryTextBrush" Color="#061118"' in theme
+    assert '<Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />' in theme
+
+
 def test_source_reader_can_read_existing_core_transform_output_without_calling_it_original_text() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")

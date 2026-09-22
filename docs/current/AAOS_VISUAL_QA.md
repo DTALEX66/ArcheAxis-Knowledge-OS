@@ -52,3 +52,26 @@
 - 不得把星云、行星、金色光效扩大成海报化背景。
 - 不得用静态 demo 数字证明真实 Core 状态。
 - 不得把 AI 生成、机器推断和原始 Evidence 画成同一种卡片。
+
+## 5. 2026-09-23 implementation delta
+
+This section supersedes only the matching `PARTIAL` observations above; the
+native GUI screenshot/click gate remains open.
+
+- `AaosTheme.axaml` now exposes Aurora Teal semantic status resources, the
+  120/180/280/420ms motion token references, a restrained opacity transition for
+  buttons, selected FSRS grade feedback, and a dark primary-action text brush
+  to avoid low-contrast ivory text on teal.
+- The Learning surface now has an explicit empty-state illustration and next
+  actions to Library and Jobs. The image is a project-owned generated asset at
+  `apps/ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png`;
+  it is decorative and never represents Evidence or Core data.
+- Learning navigation and Recovery navigation trigger their existing read-only
+  Core refresh paths on entry. Review grade buttons reflow to one column under
+  the narrow-actions breakpoint and no longer overwrite the independent Core
+  correctness choice.
+- Stable AutomationProperties names were added for the learning answer,
+  correctness result, FSRS grades, and review status.
+- Evidence Center remains a truthful `UNAVAILABLE` Core-contract state, not a
+  fabricated visual list. Native GUI screenshot/click/readback remains
+  `NOT_EXECUTED` because the current CUA bridge exposes no native window.

@@ -252,6 +252,15 @@ def test_new_learning_presentation_clears_previous_review_outcome_selection() ->
     assert "ReviewOutcomeBox.SelectedIndex = 0;" in learning
 
 
+def test_fsrs_rating_does_not_silently_change_core_correctness() -> None:
+    shell = _shell_source()
+    rating = _region(shell, "private void SetReviewRating", "private void OnReviewAgainClick")
+
+    assert "_activeReviewRating = rating;" in rating
+    assert "ReviewOutcomeBox.SelectedIndex" not in rating
+    assert "FSRS" in rating
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(

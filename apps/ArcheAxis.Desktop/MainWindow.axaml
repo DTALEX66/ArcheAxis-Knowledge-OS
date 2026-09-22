@@ -435,8 +435,13 @@
                 <StackPanel x:Name="LearningSurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="学习工作台" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="回答由 Core 生成的 Assessment；学习状态由 Core 持久化并在重启后读回。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                  <Button x:Name="LoadLearningButton" Classes="primary-action" Content="载入学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" />
-                  <TextBlock x:Name="LearningStatusText" Text="尚未读取 Core 学习队列。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <Button x:Name="LoadLearningButton" Classes="primary-action" Content="载入学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" AutomationProperties.Name="载入 Core 学习路径" />
+                  <TextBlock x:Name="LearningStatusText" Text="尚未读取 Core 学习队列。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="学习队列状态" />
+                  <StackPanel x:Name="LearningEmptyActions" Orientation="Horizontal" Spacing="8" IsVisible="False">
+                    <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" Opacity="0.9" AutomationProperties.Name="星环知识空态插图" />
+                    <Button Content="去资料库导入" Padding="12,7" Click="OnLearningOpenLibraryClick" AutomationProperties.Name="去资料库导入学习材料" />
+                    <Button Content="查看任务状态" Padding="12,7" Click="OnLearningOpenJobsClick" AutomationProperties.Name="查看学习相关任务状态" />
+                  </StackPanel>
                   <Border Padding="14" CornerRadius="8" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="7">
                       <TextBlock Text="最近 Capture（未关联）" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -468,23 +473,23 @@
                         <TextBlock Text="Assessment" FontSize="12" Classes="provenance-projection" />
                         <TextBlock x:Name="LearningItemText" Text="点击‘打开学习路径’载入待复习项目" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <TextBlock Text="Learner Answer" FontSize="12" Classes="provenance-original" />
-                        <TextBox x:Name="LearningAnswerBox" PlaceholderText="输入你的回答" IsEnabled="False" />
+                        <TextBox x:Name="LearningAnswerBox" PlaceholderText="输入你的回答" IsEnabled="False" AutomationProperties.Name="学习回答输入框" />
                         <TextBlock Text="Core correct flag" FontSize="12" Classes="status-info" />
-                        <ComboBox x:Name="ReviewOutcomeBox" Classes="review-control" IsEnabled="False" SelectedIndex="0">
+                        <ComboBox x:Name="ReviewOutcomeBox" Classes="review-control" IsEnabled="False" SelectedIndex="0" AutomationProperties.Name="Core 正确性结果">
                             <ComboBoxItem Content="选择结果" />
                             <ComboBoxItem Content="回答正确" />
                             <ComboBoxItem Content="回答错误" />
                         </ComboBox>
                         <TextBlock Text="FSRS rating" FontSize="12" Classes="provenance-review" />
                         <TextBlock Text="FSRS rating 只用于 Core 排程；不代表 Knowledge Truth 或 mastery KPI。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
-                            <Button x:Name="ReviewAgainButton" Content="Again · 重来" IsEnabled="False" Padding="14,8" Click="OnReviewAgainClick" />
-                            <Button x:Name="ReviewHardButton" Grid.Column="1" Content="Hard · 吃力" IsEnabled="False" Padding="14,8" Click="OnReviewHardClick" />
-                            <Button x:Name="ReviewGoodButton" Grid.Row="1" Content="Good · 正常" IsEnabled="False" Padding="14,8" Click="OnReviewGoodClick" />
-                            <Button x:Name="ReviewEasyButton" Grid.Row="1" Grid.Column="1" Content="Easy · 轻松" IsEnabled="False" Padding="14,8" Click="OnReviewEasyClick" />
+                        <Grid x:Name="ReviewActionsGrid" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                            <Button x:Name="ReviewAgainButton" Classes="review-grade" Content="Again · 重来" IsEnabled="False" Padding="14,8" Click="OnReviewAgainClick" AutomationProperties.Name="FSRS Again 重来" />
+                            <Button x:Name="ReviewHardButton" Classes="review-grade" Grid.Column="1" Content="Hard · 吃力" IsEnabled="False" Padding="14,8" Click="OnReviewHardClick" AutomationProperties.Name="FSRS Hard 吃力" />
+                            <Button x:Name="ReviewGoodButton" Classes="review-grade" Grid.Row="1" Content="Good · 正常" IsEnabled="False" Padding="14,8" Click="OnReviewGoodClick" AutomationProperties.Name="FSRS Good 正常" />
+                            <Button x:Name="ReviewEasyButton" Classes="review-grade" Grid.Row="1" Grid.Column="1" Content="Easy · 轻松" IsEnabled="False" Padding="14,8" Click="OnReviewEasyClick" AutomationProperties.Name="FSRS Easy 轻松" />
                         </Grid>
                         <Button x:Name="SubmitReviewButton" Classes="primary-action" Content="提交复习结果" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnSubmitReviewClick" />
-                        <TextBlock x:Name="LearningReviewStatusText" Text="尚未提交复习；提交结果由 Core 回执决定。" TextWrapping="Wrap" Classes="status-empty" />
+                        <TextBlock x:Name="LearningReviewStatusText" Text="尚未提交复习；提交结果由 Core 回执决定。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="复习提交状态" />
                         <Border x:Name="LearningReviewReceiptPanel" Classes="aaos-card-compact" Padding="12">
                           <StackPanel Spacing="4">
                             <TextBlock Text="Core FSRS Receipt" FontSize="12" FontWeight="SemiBold" Classes="provenance-review" />

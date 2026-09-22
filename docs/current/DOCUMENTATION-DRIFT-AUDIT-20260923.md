@@ -123,3 +123,27 @@ contain superseded release/UI paths or unrelated dirty work.
    a new cleanup receipt.
 
 Status: `PARTIAL / AUDITED_LOCAL / NO_BULK_DELETE / NO_MERGE`.
+
+## 2026-09-23 frontend follow-up readback
+
+The current feature branch has since advanced to `7a9b85e` on the remote
+feature ref, and the following local frontend changes are newer than the
+original audit snapshot:
+
+- Debug Avalonia build: `PASS`, 0 warnings and 0 errors.
+- Targeted desktop UI contracts: `142 passed` using the project-local
+  candidate Python with an ephemeral pytest environment.
+- Added a project-owned empty-state illustration, motion/contrast tokens,
+  review-grade selected feedback, narrow-window review reflow, learning/recovery
+  entry refresh, empty-queue CTAs, and stable automation names.
+- FSRS rating no longer silently changes Core correctness; the two values remain
+  separately selected and serialized.
+- Native GUI visual/click/readback remains `NOT_EXECUTED/UNVERIFIED` because the
+  current CUA bridge returned no native app/window surface. Evidence Center
+  remains a truthful unavailable state until a real Core evidence read model is
+  exposed.
+
+The prior branch sentence above is an audit-time snapshot and must not be used
+as current Git truth; use live `git status`, `git rev-parse`, and remote SHA
+readback for delivery decisions. No protected history asset was moved or
+deleted, and no Green directory was modified.

@@ -380,6 +380,14 @@ public partial class MainWindow : Window
         {
             _ = RefreshSettingsAsync();
         }
+        else if (section == "learning")
+        {
+            _ = LoadLearningIfNeededAsync();
+        }
+        else if (section == "recovery")
+        {
+            _ = ReadRecoveryStatusAsync();
+        }
         BackToKnowledgeFromSourceButton.IsEnabled = section == "source-reader" && _sourceReaderReturnToKnowledgeAvailable;
         UpdateInspectorActions();
     }
@@ -526,6 +534,11 @@ public partial class MainWindow : Window
         ReviewEasyButton.IsEnabled = false;
         SubmitReviewButton.IsEnabled = false;
         OpenLearningKnowledgeButton.IsEnabled = false;
+        LearningEmptyActions.IsVisible = false;
+        ReviewAgainButton.Classes.Set("selected", false);
+        ReviewHardButton.Classes.Set("selected", false);
+        ReviewGoodButton.Classes.Set("selected", false);
+        ReviewEasyButton.Classes.Set("selected", false);
     }
 
     private void FinishLearningRequest(long requestVersion)
@@ -571,6 +584,10 @@ public partial class MainWindow : Window
 
     private void OnLearningNavigationClick(object? sender, RoutedEventArgs e) => SetSection("learning", "学习");
 
+    private void OnLearningOpenLibraryClick(object? sender, RoutedEventArgs e) => OnLibraryClick(sender, e);
+
+    private void OnLearningOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
+
     private void OnEvidenceClick(object? sender, RoutedEventArgs e) => SetSection("evidence", "证据中心");
 
     private void OnOpenLearningKnowledgeClick(object? sender, RoutedEventArgs e)
@@ -600,6 +617,22 @@ public partial class MainWindow : Window
     private void OnSettingsRefreshClick(object? sender, RoutedEventArgs e) => _ = RefreshSettingsAsync();
 
     private void OnRecoveryClick(object? sender, RoutedEventArgs e) => SetSection("recovery", "恢复");
+
+    private Task LoadLearningIfNeededAsync()
+    {
+        if (!LearningSurface.IsVisible)
+            return Task.CompletedTask;
+        OnLearningClick(this, new RoutedEventArgs());
+        return Task.CompletedTask;
+    }
+
+    private Task ReadRecoveryStatusAsync()
+    {
+        if (!RecoverySurface.IsVisible)
+            return Task.CompletedTask;
+        OnReadRecoveryStatusClick(this, new RoutedEventArgs());
+        return Task.CompletedTask;
+    }
 
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
@@ -637,6 +670,7 @@ public partial class MainWindow : Window
             var count = CommandPaletteResultsList.ItemCount;
             if (count > 0)
             {
+                LearningEmptyActions.IsVisible = false;
                 var current = CommandPaletteResultsList.SelectedIndex < 0
                     ? 0
                     : CommandPaletteResultsList.SelectedIndex;
@@ -1341,7 +1375,7 @@ public partial class MainWindow : Window
             "Evidence Center",
             "当前 Core 未暴露 Evidence anchor/bundle 列表接口。",
             status: "unavailable",
-            boundary: "不调用旧 workspace API，不读取原文正文，不构造 Evidence 元数据。",
+            boundary: "不调用旧 workspace API，不读取原文正文，不构造 Evidence 元数据；不把 Evidence 元数据升级为 Knowledge Truth。",
             layer: "Core contract boundary · Evidence Center");
         await Task.CompletedTask;
         if (requestVersion == _evidenceRequestVersion)
@@ -1794,6 +1828,20 @@ public partial class MainWindow : Window
         Grid.SetRow(KnowledgeTrustCard, compact ? 2 : 1);
         Grid.SetColumn(KnowledgeReviewCard, compact ? 0 : 1);
         Grid.SetRow(KnowledgeReviewCard, compact ? 3 : 1);
+        ReviewActionsGrid.ColumnDefinitions = narrowActions
+            ? new ColumnDefinitions("1*")
+            : new ColumnDefinitions("*,*");
+        ReviewActionsGrid.RowDefinitions = narrowActions
+            ? new RowDefinitions("Auto,Auto,Auto,Auto")
+            : new RowDefinitions("Auto,Auto");
+        Grid.SetColumn(ReviewAgainButton, 0);
+        Grid.SetRow(ReviewAgainButton, 0);
+        Grid.SetColumn(ReviewHardButton, narrowActions ? 0 : 1);
+        Grid.SetRow(ReviewHardButton, narrowActions ? 1 : 0);
+        Grid.SetColumn(ReviewGoodButton, 0);
+        Grid.SetRow(ReviewGoodButton, narrowActions ? 2 : 1);
+        Grid.SetColumn(ReviewEasyButton, narrowActions ? 0 : 1);
+        Grid.SetRow(ReviewEasyButton, narrowActions ? 3 : 1);
     }
 
     private double GetAaosBreakpoint(string key, double fallback)
@@ -2612,6 +2660,7 @@ public partial class MainWindow : Window
             }
             else
             {
+                LearningEmptyActions.IsVisible = true;
                 _activeLearningItem = null;
                 _activeReviewEventId = null;
                 _activeExposureId = null;
@@ -2673,7 +2722,14 @@ public partial class MainWindow : Window
         if (!ReviewOutcomeBox.IsEnabled)
             return;
         _activeReviewRating = rating;
-        ReviewOutcomeBox.SelectedIndex = rating == 1 ? 2 : 1;
+        // FSRS self-rating is independent from the Core assessment result.
+        // Do not silently rewrite the user's correctness choice when a grade
+        // button is pressed; both fields must remain explicit in the receipt.
+        ReviewAgainButton.Classes.Set("selected", rating == 1);
+        ReviewHardButton.Classes.Set("selected", rating == 2);
+        ReviewGoodButton.Classes.Set("selected", rating == 3);
+        ReviewEasyButton.Classes.Set("selected", rating == 4);
+        SetStatus(LearningReviewStatusText, $"已选择 FSRS {rating}；请单独选择回答结果后提交。", "info");
     }
 
     private void OnReviewAgainClick(object? sender, RoutedEventArgs e) => SetReviewRating(1);
