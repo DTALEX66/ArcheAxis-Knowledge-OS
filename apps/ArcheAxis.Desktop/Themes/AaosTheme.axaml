@@ -59,7 +59,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
         <Setter Property="Transitions">
             <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.14" />
+                <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
             </Transitions>
         </Setter>
     </Style>

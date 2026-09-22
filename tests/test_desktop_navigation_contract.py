@@ -1603,7 +1603,8 @@ def test_core_learning_controls_expose_stable_automation_names_and_motion_tokens
         'AutomationProperties.Name="复习提交状态"',
     ):
         assert name in xaml
-    assert '<DoubleTransition Property="Opacity" Duration="0:0:0.14" />' in theme
+    assert '<DoubleTransition Property="Opacity" Duration="0:0:0.12" />' in theme
+    assert '<x:Double x:Key="AaosMotionFastMs">120</x:Double>' in theme
     assert '<Setter Property="Opacity" Value="0.86" />' in theme
     assert 'x:Key="AaosPrimaryTextBrush" Color="#061118"' in theme
     assert '<Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />' in theme
