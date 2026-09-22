@@ -2004,6 +2004,13 @@
 - verification: TDD red/green was observed; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `169 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native screen-reader tree, GUI focus, screenshot, click journey, and resize evidence remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
 
+## Continuation receipt — 2026-09-23 P3 initial status accessibility labels
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added descriptive initial `AutomationProperties.Name` values to Core, Library search, Source Reader, Knowledge, Evidence, Settings, Activity Dock, and Command Palette status surfaces; the shared live status updater continues to replace those names with current feedback text.
+- source_commit: `a9009868` (`fix(desktop): label initial status surfaces`), committed locally; push is pending after evidence update.
+- verification: TDD red/green was observed; current direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `170 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because the current shell has no PATH SDK and the indexed external toolchain was not invoked.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native screen-reader tree and GUI focus traversal remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
 ## Continuation receipt — 2026-09-23 P3 clipboard, command-table and breakpoint convergence
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: clipboard provenance/citation actions now catch write failures and only report success after confirmed completion; Command Palette labels, aliases, filtering, route execution, and fallback help derive from one route table; the mobile breakpoint fallback now matches the themed `840` resource.
