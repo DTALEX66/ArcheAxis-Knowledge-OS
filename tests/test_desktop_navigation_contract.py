@@ -55,8 +55,22 @@ def test_aaos_theme_absorbs_suite_spacing_density_breakpoint_and_command_tokens(
         "AaosMobileBreakpoint",
         "AaosCommandPaletteGesture",
         "AaosOverlayBrush",
+        "AaosFontCaption",
+        "AaosFontBody",
+        "AaosFontControl",
+        "AaosFontSection",
+        "AaosFontHeading",
     ):
         assert f'x:Key="{token}"' in theme
+
+
+def test_aaos_common_controls_consume_typography_tokens() -> None:
+    theme = THEME_XAML.read_text(encoding="utf-8")
+    for selector in ('<Style Selector="Button">', '<Style Selector="TextBox">', '<Style Selector="ComboBox">'):
+        assert selector in theme
+    assert 'FontSize" Value="{DynamicResource AaosFontControl}"' in theme
+    assert 'TextBlock.status-success' in theme
+    assert 'FontSize" Value="{DynamicResource AaosFontBody}"' in theme
 
 
 def test_aaos_theme_exposes_reusable_provenance_and_surface_component_styles() -> None:
