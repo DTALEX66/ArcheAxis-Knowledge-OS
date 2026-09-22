@@ -164,8 +164,8 @@ def test_learning_review_card_exposes_fsrs_and_core_receipt_boundaries() -> None
     assert 'x:Name="LearningReviewCard"' in xaml
     assert 'Classes="aaos-card-compact review-card"' in xaml
     assert 'x:Name="LearningReviewReceiptPanel"' in xaml
-    assert 'Text="FSRS rating"' in xaml
-    assert '不代表 Knowledge Truth 或 mastery KPI' in xaml
+    assert 'Text="复习难度"' in xaml
+    assert '不代表知识已被确认，也不代表掌握度指标' in xaml
     assert 'Text="Core FSRS Receipt"' in xaml
     assert '掌握率' not in xaml
 

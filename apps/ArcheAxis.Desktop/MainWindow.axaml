@@ -447,7 +447,7 @@
 
                 <StackPanel x:Name="LearningSurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="学习工作台" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
-                  <TextBlock Text="回答由 Core 生成的 Assessment；学习状态由 Core 持久化并在重启后读回。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="回答由 Core 生成的问题；学习状态由 Core 持久化并在重启后读回。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Button x:Name="LoadLearningButton" Classes="primary-action" Content="载入学习路径" HorizontalAlignment="Left" Padding="16,9" Click="OnLearningClick" AutomationProperties.Name="载入 Core 学习路径" />
                   <TextBlock x:Name="LearningStatusText" Text="尚未读取 Core 学习队列。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="学习队列状态" />
                   <Border Classes="aaos-card-compact" Padding="12">
@@ -493,14 +493,14 @@
                         <TextBlock x:Name="LearningItemText" Text="点击‘打开学习路径’载入待复习项目" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <TextBlock Text="Learner Answer" FontSize="12" Classes="provenance-original" />
                         <TextBox x:Name="LearningAnswerBox" PlaceholderText="输入你的回答" IsEnabled="False" AutomationProperties.Name="学习回答输入框" />
-                        <TextBlock Text="Core correct flag" FontSize="12" Classes="status-info" />
+                        <TextBlock Text="回答结果" FontSize="12" Classes="status-info" />
                         <ComboBox x:Name="ReviewOutcomeBox" Classes="review-control" IsEnabled="False" SelectedIndex="0" AutomationProperties.Name="Core 正确性结果">
                             <ComboBoxItem Content="选择结果" />
                             <ComboBoxItem Content="回答正确" />
                             <ComboBoxItem Content="回答错误" />
                         </ComboBox>
-                        <TextBlock Text="FSRS rating" FontSize="12" Classes="provenance-review" />
-                        <TextBlock Text="FSRS rating 只用于 Core 排程；不代表 Knowledge Truth 或 mastery KPI。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+                        <TextBlock Text="复习难度" FontSize="12" Classes="provenance-review" />
+                        <TextBlock Text="复习难度只用于 Core 排程；不代表知识已被确认，也不代表掌握度指标。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                         <Grid x:Name="ReviewActionsGrid" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
                             <Button x:Name="ReviewAgainButton" Classes="review-grade" Content="Again · 重来" IsEnabled="False" Padding="14,8" Click="OnReviewAgainClick" AutomationProperties.Name="FSRS Again 重来" />
                             <Button x:Name="ReviewHardButton" Classes="review-grade" Grid.Column="1" Content="Hard · 吃力" IsEnabled="False" Padding="14,8" Click="OnReviewHardClick" AutomationProperties.Name="FSRS Hard 吃力" />

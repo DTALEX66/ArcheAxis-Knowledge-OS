@@ -49,6 +49,9 @@ the desktop product.
 - Research, Plugins and Models now use a shared product-level unavailable state
   with truthful boundary copy and return/system next actions instead of a blank
   prototype panel.
+- The Review surface now presents user-facing labels for answer result and
+  review difficulty; Core/FSRS technical semantics remain in the supporting
+  receipt text rather than dominating the primary interaction.
 
 ## Verified locally
 
