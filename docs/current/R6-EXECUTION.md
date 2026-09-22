@@ -1958,3 +1958,10 @@
 - source_commit: `80a12126` (`feat(desktop): label all primary navigation actions`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
 - verification: frontend navigation/learning/route/launch suite `163 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-80a12126`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Native GUI accessibility tree and click/readback remain UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 Source Reader narrow-action reflow
+- scope: corrected a responsive layout risk introduced by the two Source Reader context actions; no Core contract, persistence, Green, external resource, or unrelated dirty file changed.
+- implementation: named the Source Reader context action group and switches it to vertical orientation at the existing `AaosNarrowActionsBreakpoint` (1280 by default), retaining horizontal layout above the breakpoint.
+- source_commit: `1534a881` (`fix(desktop): reflow source actions on narrow screens`), pushed to `codex/aaos-p3-ui-convergence-20260922`.
+- verification: frontend navigation/learning/route/launch suite `164 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish at `.project-local/build/desktop-publish/ui-final-pass-1534a881`; learning smoke `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. Actual native narrow-window rendering remains UNVERIFIED; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
