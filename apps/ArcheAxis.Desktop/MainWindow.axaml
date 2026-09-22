@@ -115,6 +115,19 @@
                       <TextBlock Text="导入成功不等于转换、知识接受或学习完成。" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" TextWrapping="Wrap" />
                     </StackPanel>
                   </Border>
+                  <Border Classes="aaos-card" Padding="20">
+                    <Grid x:Name="HomeHeroGrid" ColumnDefinitions="*,220" ColumnSpacing="18">
+                      <StackPanel Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="从原件到可复习的知识" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+                        <TextBlock Text="每一步都保留来源、版本与状态边界；你决定什么值得进入自己的知识系统。" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource AaosMutedBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <Button Classes="primary-action" Content="开始捕获" Padding="14,8" Click="OnCaptureClick" AutomationProperties.Name="开始捕获资料" />
+                          <Button Content="浏览资料库" Padding="14,8" Click="OnLibraryClick" AutomationProperties.Name="浏览资料库" />
+                        </StackPanel>
+                      </StackPanel>
+                      <Image x:Name="HomeHeroImage" Grid.Column="1" Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="210" Height="150" Stretch="Uniform" Opacity="0.92" AutomationProperties.Name="星环知识流程插图" />
+                    </Grid>
+                  </Border>
                   <StackPanel Spacing="6">
                     <TextBlock Text="今天从哪里开始？" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                     <TextBlock Text="导入可信资料，建立可追溯的知识与学习闭环。" FontSize="15" Foreground="{DynamicResource AaosMutedBrush}" />

@@ -1805,6 +1805,14 @@ public partial class MainWindow : Window
             : new RowDefinitions("Auto");
         Grid.SetColumn(HomeFocusActionCard, compact ? 0 : 1);
         Grid.SetRow(HomeFocusActionCard, compact ? 1 : 0);
+        HomeHeroGrid.ColumnDefinitions = compact
+            ? new ColumnDefinitions("1*")
+            : new ColumnDefinitions("*,220");
+        HomeHeroGrid.RowDefinitions = compact
+            ? new RowDefinitions("Auto,Auto")
+            : new RowDefinitions("Auto");
+        Grid.SetColumn(HomeHeroImage, compact ? 0 : 1);
+        Grid.SetRow(HomeHeroImage, compact ? 1 : 0);
         HomeLifecycleGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("1*")
             : new ColumnDefinitions("*,*,*,*,*");

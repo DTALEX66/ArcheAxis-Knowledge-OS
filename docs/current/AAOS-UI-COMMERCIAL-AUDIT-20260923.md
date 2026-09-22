@@ -43,6 +43,9 @@ the desktop product.
 - Evidence Center now has a product-level unavailable empty state with the
   generated visual and truthful Capture/Jobs next actions; it still does not
   fabricate evidence rows while the Core read model is absent.
+- Home now has a responsive product hero using the same project-owned visual;
+  the asset remains decorative and the actions route to real Capture/Library
+  surfaces.
 
 ## Verified locally
 

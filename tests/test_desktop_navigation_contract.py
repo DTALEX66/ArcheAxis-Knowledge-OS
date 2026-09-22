@@ -1502,6 +1502,9 @@ def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> N
     assert 'new ColumnDefinitions("1*")' in code
     assert 'new RowDefinitions("Auto,Auto,Auto")' in code
     assert 'Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);' in code
+    assert 'x:Name="HomeHeroGrid"' in xaml
+    assert 'x:Name="HomeHeroImage"' in xaml
+    assert 'Grid.SetColumn(HomeHeroImage, compact ? 0 : 1);' in code
 
 
 def test_compact_knowledge_facts_reflow_without_overlapping_two_column_cards() -> None:
