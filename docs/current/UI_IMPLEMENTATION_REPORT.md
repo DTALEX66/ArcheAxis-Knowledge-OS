@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `3b1cb0d4` on
+- Frontend implementation HEAD: `a26188bc` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -65,6 +65,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Disabled Button, TextBox, and ComboBox states use an explicit AAOS visual
   treatment so unavailable actions remain legible and distinguishable from
   ordinary idle controls.
+- List and ComboBox items expose explicit pointer-over feedback in addition to
+  selected and keyboard-focus states.
 - Desktop and mobile primary navigation actions now expose stable accessible
   names for all formal product routes.
 - Source Reader citation/provenance actions reflow vertically at the narrow
