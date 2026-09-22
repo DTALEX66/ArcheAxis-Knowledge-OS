@@ -4,6 +4,12 @@
 范围：`D:\\All projects\\UI套件` 中明确归属 ArcheAxis / AAOS 的 B01–B10 单项目包，以及当前 AAOS Avalonia P3 壳层。
 状态：`TESTED_LOCAL / READ_ONLY_AUDIT`。本报告不是 UI 实施完成声明。
 
+> **当前真值入口（2026-09-23 更新）**：本文的差距表是 2026-09-22
+> 的审计快照，不应覆盖后续实现。当前前端提交、测试计数、已落地交互和
+> 未验证边界以 `docs/current/UI_IMPLEMENTATION_REPORT.md` 与
+> `docs/current/R6-EXECUTION.md` 最新 continuation receipt 为准；当前分支
+> 仍未取得原生 GUI 截图/点击/辅助功能树证据。
+
 ## 1. 权威来源与冲突规则
 
 UI 套件总索引为：

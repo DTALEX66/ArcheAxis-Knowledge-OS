@@ -110,8 +110,8 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Knowledge V3 readback ignores stale success, failure, parse, and exception
   responses when a newer request has started; review receipts are likewise
   ignored after the active learning exposure changes.
-- Current direct no-argument static desktop contract harness after the latest
-  route and breakpoint checks: `167 passed`.
+- Historical direct no-argument static desktop receipt at the earlier route and
+  breakpoint checkpoint: `167 passed`; this is not the current total.
 - Source Reader copy actions now catch clipboard write failures and only show
   success after the write reports success; the mobile breakpoint fallback now
   matches the themed `840` resource.

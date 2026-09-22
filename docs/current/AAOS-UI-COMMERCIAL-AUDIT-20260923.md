@@ -83,3 +83,14 @@ the desktop product.
 No Green directory, external data/model/tool library, E/F drive, credential,
 history asset or private session state was modified. This audit does not approve
 bulk deletion, branch merge, release publication, signing or Green overwrite.
+
+## Current frontend follow-up — 2026-09-23
+
+The implementation advanced after this audit snapshot. The current feature
+baseline is `ec41ca27`, with `184` direct no-argument static desktop contract
+tests passing. Search responses are stale-request isolated; the mobile
+Inspector overlays the workspace safely, enters focus, scrolls long content and
+reflows actions; Source Reader stacks below the themed `1200px` breakpoint.
+These are local/static claims only: native GUI rendering, pointer/focus
+readback, accessibility-tree readback and a real Core first-use journey remain
+`UNVERIFIED`.
