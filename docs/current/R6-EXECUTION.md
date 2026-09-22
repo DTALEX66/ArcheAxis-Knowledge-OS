@@ -1931,3 +1931,9 @@
 - verification: targeted desktop contracts `146 passed`; registered .NET Debug build `0 warnings / 0 errors`; self-contained Release publish completed at `.project-local/build/desktop-publish/ui-final-pass-74f658d7`; learning smoke returned `LEARNING SMOKE OK` with explicit `ARCHEAXIS_PYTHON`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - gui_boundary: native screenshot/click/keyboard/accessibility readback remains `NOT_EXECUTED` because the current CUA bridge exposes no native application surface; no GUI PASS is claimed.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / TESTED_LOCAL_HEADLESS_SMOKE / BRANCH_PUBLISHED. No installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 frontend launch and route gate readback
+- scope: verified the current Avalonia frontend launch-preparation, route manifest, navigation, and learning-review contract suite without modifying Core, Green, external resources, or unrelated worktree changes.
+- verification: project-local candidate Python with ephemeral pytest environment ran `tests/test_desktop_navigation_contract.py`, `tests/test_desktop_learning_review_contract.py`, `tests/test_desktop_routes_v1.py`, and `tests/test_desktop_launch.py`; result `161 passed`.
+- launch_boundary: the launch tests prove explicit project-local worker/profile binding, isolated fresh-workspace database allocation, resource-boundary preflight, artifact identity, and fail-closed missing-binary behavior. They do not prove native GUI rendering or live first-use clicks.
+- evidence_boundary: TESTED_LOCAL_STATIC / TESTED_LOCAL_LAUNCH_CONTRACT. Native screenshot, accessibility tree, click-through, live import-to-learning UI journey, and cold GUI restart remain UNVERIFIED because the current CUA bridge exposes no native application surface.

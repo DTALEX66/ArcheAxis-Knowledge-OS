@@ -46,6 +46,9 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Self-contained `win-x64` Release publish: `PASS`, current output at
   `.project-local/build/desktop-publish/ui-final-pass-74f658d7/`.
 - Targeted desktop UI contracts: `146 passed`.
+- Extended desktop route/launch/learning gate: `161 passed`, including the
+  project-local launch preparation contract and explicit isolated-workspace
+  binding checks.
 - Headless Core learning smoke with explicit project-local DB and worker
   profile: `PASS`, including answer persistence, FSRS receipt and cold restart
   event readback; mastery projection remains correctly open/unclaimed.
