@@ -912,6 +912,17 @@ def test_home_hero_ambient_motion_is_reduced_motion_safe() -> None:
     assert 'AaosMotionAmbientMs' in code
 
 
+def test_route_changes_use_a_reduced_motion_safe_workspace_transition() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'x:Name="WorkspaceScrollViewer"' in xaml
+    assert 'Classes="aaos-route-transition"' in xaml
+    assert 'private void PlayWorkspaceRouteTransition()' in code
+    assert 'PlayWorkspaceRouteTransition();' in code
+    assert 'if (_reducedMotion)' in code
+    assert 'Dispatcher.UIThread.Post' in code
+
+
 def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]

@@ -2250,3 +2250,10 @@
 - source_commit: `3c808348` (`feat(desktop): add reduced motion hero ambient glow`).
 - verification: TDD RED was observed for the new ambient-motion contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `195 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native animation timing, reduced-motion OS behavior, screenshot, accessibility tree, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Continuation receipt — 2026-09-23 P3 reduced-motion-safe workspace route transition
+- scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- implementation: added a restrained 180ms opacity transition to the existing workspace content host when `SetSection` changes route; `AAOS_REDUCED_MOTION=1` bypasses the transition, and route state/handlers remain synchronous and unchanged.
+- source_commit: pending until this scoped change is committed.
+- verification: TDD RED was observed for the new route-transition contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `196 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
+- evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native transition timing, reduced-motion OS behavior, screenshot, accessibility tree, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.

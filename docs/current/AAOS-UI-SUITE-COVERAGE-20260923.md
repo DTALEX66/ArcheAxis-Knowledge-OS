@@ -26,7 +26,7 @@ receipts. This matrix does not promote reference demos, static numbers or
 | B06 | loading/empty/error/permission/unavailable/disabled/keyboard/focus/responsive states | `SetStatus`, request-version guards, unavailable structure, focus handlers, responsive layout code | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Native state rendering and assistive-technology readback: `UNVERIFIED_GUI` |
 | B07 | product-route discoverability, keyboard access and automation names | `CommandPaletteRoutes`, primary/mobile rails, `AutomationProperties.Name` contracts | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Full 13-route native traversal and DPI/zoom evidence remain open |
 | B08 | reusable card, KPI, status, toolbar, provenance and selectable-result patterns | `aaos-card*`, `aaos-kpi`, `aaos-status`, `aaos-toolbar`, provenance classes and row templates | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | No second React runtime or demo persistence is imported |
-| B09 | interaction references: command palette, drawer, toast, review selection and source chain | Command Palette, Inspector Drawer action reflow, Toast, Review Card, Source Reader chain, Home Hero ambient feedback | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Graph-node, citation insertion and native animation timing remain open |
+| B09 | interaction references: command palette, drawer, toast, review selection and source chain | Command Palette, Inspector Drawer action reflow, Toast, Review Card, Source Reader chain, Home Hero ambient feedback, workspace route transition | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Graph-node, citation insertion and native animation timing remain open |
 | B10 | high-fidelity product hierarchy and visual direction | project-owned decorative empty-state asset plus tokenized AAOS shell | `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC` | Full visual parity is not claimed; GUI screenshot gate remains open |
 
 ## Non-equivalence rules
@@ -44,7 +44,7 @@ receipts. This matrix does not promote reference demos, static numbers or
 - Frontend implementation commit: `3c808348`.
 - Latest documentation/branch commit: `3c808348`, recorded by the current
   `UI_IMPLEMENTATION_REPORT.md` and `R6-EXECUTION.md` continuation receipt.
-- Direct no-argument desktop contract harness: `195 passed`.
+- Direct no-argument desktop contract harness: `196 passed`.
 - XAML XML parsing: `PASS`.
 - Native GUI and fresh .NET build: `UNVERIFIED / NOT_EXECUTED`.
 

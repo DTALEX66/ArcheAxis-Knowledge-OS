@@ -477,12 +477,24 @@ public partial class MainWindow : Window
         {
             _ = ReadRecoveryStatusAsync();
         }
+        PlayWorkspaceRouteTransition();
         if (section == "home")
             StartHomeHeroAmbientMotion();
         else
             StopHomeHeroAmbientMotion();
         BackToKnowledgeFromSourceButton.IsEnabled = section == "source-reader" && _sourceReaderReturnToKnowledgeAvailable;
         UpdateInspectorActions();
+    }
+
+    private void PlayWorkspaceRouteTransition()
+    {
+        if (_reducedMotion)
+        {
+            WorkspaceScrollViewer.Opacity = 1;
+            return;
+        }
+        WorkspaceScrollViewer.Opacity = 0.78;
+        Dispatcher.UIThread.Post(() => WorkspaceScrollViewer.Opacity = 1, DispatcherPriority.Render);
     }
 
     private void StartHomeHeroAmbientMotion()

@@ -152,6 +152,18 @@
             <Transitions />
         </Setter>
     </Style>
+    <Style Selector="ScrollViewer.aaos-route-transition">
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Grid.reduced-motion ScrollViewer.aaos-route-transition">
+        <Setter Property="Transitions">
+            <Transitions />
+        </Setter>
+    </Style>
     <Style Selector="Button:focus">
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
