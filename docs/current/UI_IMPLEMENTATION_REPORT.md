@@ -39,7 +39,7 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 
 ## Local evidence
 
-- Frontend implementation HEAD: `6a073515` on
+- Frontend implementation HEAD: `995a51fc` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - The last Avalonia Debug build and self-contained `win-x64` Release publish
@@ -50,13 +50,16 @@ Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after the command-palette focus
-  restoration: `169 passed`.
+- Current combined frontend verification after the actionable-button accessibility
+  closure: `174 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
 - Capture completion and interruption now have transient feedback while the
   durable Core receipt remains the authoritative state.
+- Every declared desktop `Button` now carries an explicit
+  `AutomationProperties.Name`; a regression contract reports zero unnamed
+  actionable buttons.
 - Desktop and mobile primary navigation actions now expose stable accessible
   names for all formal product routes.
 - Source Reader citation/provenance actions reflow vertically at the narrow
