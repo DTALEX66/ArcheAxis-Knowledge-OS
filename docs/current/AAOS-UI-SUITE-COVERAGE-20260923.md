@@ -41,8 +41,8 @@ receipts. This matrix does not promote reference demos, static numbers or
 
 ## Current verification anchor
 
-- Frontend implementation commit: `2df2c00e`.
-- Latest documentation/branch commit: `2df2c00e`, recorded by the current
+- Frontend implementation commit: `cc4fc566`.
+- Latest documentation/branch commit: `cc4fc566`, recorded by the current
   `UI_IMPLEMENTATION_REPORT.md` and `R6-EXECUTION.md` continuation receipt.
 - Direct no-argument desktop contract harness: `197 passed`.
 - XAML XML parsing: `PASS`.

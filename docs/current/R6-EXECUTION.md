@@ -2261,6 +2261,6 @@
 ## Continuation receipt — 2026-09-23 P3 dynamic Inspector accessibility readback
 - scope: continued the canonical Avalonia frontend only; no Core route, schema, persistence, Green runtime, external resource, or unrelated dirty file was changed.
 - implementation: added one Inspector accessibility refresh path that mirrors the visible section, object, detail, source, version, status, boundary, layer, source-chain and provenance text into their `AutomationProperties.Name` values after reset and Core projection updates. This is stable state readback, not an invented Live Region API.
-- source_commit: pending until this scoped change is committed.
+- source_commit: `cc4fc566` (`fix(desktop): refresh inspector accessible projection`).
 - verification: TDD RED was observed for the Inspector accessibility contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `197 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native accessibility-tree readback, screen-reader announcement, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
