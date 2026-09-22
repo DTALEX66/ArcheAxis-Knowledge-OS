@@ -1907,6 +1907,21 @@ def test_every_desktop_input_and_result_control_declares_an_accessible_name() ->
     assert unnamed == []
 
 
+def test_primary_lookup_inputs_submit_on_enter_through_existing_routes() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert xaml.count('KeyDown="OnToolbarInputKeyDown"') == 5
+    assert "private void OnToolbarInputKeyDown" in code
+    for route in (
+        "OnSearchLibraryClick",
+        "OnReadSourceMembersClick",
+        "OnReadKnowledgeClick",
+        "OnReadMachineTaskClick",
+        "OnReadJobReceiptClick",
+    ):
+        assert route in code
+
+
 def test_command_palette_status_updates_accessible_name_with_selection() -> None:
     code = CODE.read_text(encoding="utf-8")
 

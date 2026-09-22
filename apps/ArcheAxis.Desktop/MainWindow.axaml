@@ -252,7 +252,7 @@
                   <TextBlock Text="搜索 Core 已登记的知识与提取结果；结果保留来源类型，不把提取文本伪装成知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="知识搜索结果仍需人工选择确认关联；搜索命中不自动构成来源关联。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                   <Grid x:Name="LibrarySearchGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-                    <TextBox x:Name="LibrarySearchBox" PlaceholderText="搜索知识或提取内容" AutomationProperties.Name="资料库搜索输入" />
+                    <TextBox x:Name="LibrarySearchBox" PlaceholderText="搜索知识或提取内容" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="资料库搜索输入" />
                     <Button x:Name="LibrarySearchButton" Classes="primary-action" Grid.Column="1" Content="搜索" Padding="16,9" Click="OnSearchLibraryClick" AutomationProperties.Name="搜索" />
                   </Grid>
                   <StackPanel x:Name="LibraryFilterPanel" Orientation="Horizontal" Spacing="10">
@@ -321,7 +321,7 @@
                   <TextBlock Text="导入阅读" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="读取 Core 已登记的容器来源成员与可读性；不把容器清单或未解析内容伪装成已理解知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="SourceReaderLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-                    <TextBox x:Name="SourceReaderIdBox" PlaceholderText="输入 container source_id" AutomationProperties.Name="来源容器 source_id 输入" />
+                    <TextBox x:Name="SourceReaderIdBox" PlaceholderText="输入 container source_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="来源容器 source_id 输入" />
                     <Button x:Name="SourceReaderLoadButton" Classes="primary-action" Grid.Column="1" Content="读取来源成员" Padding="16,9" Click="OnReadSourceMembersClick" AutomationProperties.Name="读取来源成员" />
                   </Grid>
                   <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="来源阅读状态" />
@@ -401,7 +401,7 @@
                   <TextBlock Text="读取指定 Knowledge V3 投影；页面不复制或推断 Core 知识状态。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock x:Name="KnowledgeStateText" Classes="status-empty" Text="尚未读取 Knowledge V3。" TextWrapping="Wrap" AutomationProperties.Name="知识库状态" />
                   <Grid x:Name="KnowledgeLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-                    <TextBox x:Name="KnowledgeIdBox" PlaceholderText="输入 knowledge_id" AutomationProperties.Name="knowledge_id 输入" />
+                    <TextBox x:Name="KnowledgeIdBox" PlaceholderText="输入 knowledge_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="knowledge_id 输入" />
                     <Button x:Name="KnowledgeLoadButton" Classes="primary-action" Grid.Column="1" Content="读取知识" Padding="16,9" Click="OnReadKnowledgeClick" AutomationProperties.Name="读取知识" />
                   </Grid>
                   <Button x:Name="BackToLibraryFromKnowledgeButton" Content="返回资料库 Evidence Detail" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnBackToLibraryFromKnowledgeClick" AutomationProperties.Name="返回资料库 Evidence Detail" />
@@ -529,7 +529,7 @@
                   <TextBlock Text="机器知识" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="读取指定机器任务收据；任务收据是测量事实，不代表模型已训练或知识已自动升级。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="MachineTaskGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-                    <TextBox x:Name="MachineTaskIdBox" PlaceholderText="输入 task_id" AutomationProperties.Name="task_id 输入" />
+                    <TextBox x:Name="MachineTaskIdBox" PlaceholderText="输入 task_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="task_id 输入" />
                     <Button x:Name="MachineTaskLoadButton" Grid.Column="1" Content="读取任务收据" Padding="16,9" Click="OnReadMachineTaskClick" AutomationProperties.Name="读取任务收据" />
                   </Grid>
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -621,7 +621,7 @@
                   <TextBlock Text="任务" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
                   <TextBlock Text="这里只显示本次桌面会话创建的导入任务；Core 当前没有全量任务列表投影。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                   <Grid x:Name="JobLookupGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-                    <TextBox x:Name="JobLookupIdBox" PlaceholderText="输入 job_id 读取回执" AutomationProperties.Name="job_id 输入" />
+                    <TextBox x:Name="JobLookupIdBox" PlaceholderText="输入 job_id 读取回执" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="job_id 输入" />
                     <Button x:Name="JobLookupButton" Grid.Column="1" Content="读取任务回执" Padding="16,9" Click="OnReadJobReceiptClick" AutomationProperties.Name="读取指定任务回执" />
                   </Grid>
                   <TextBlock x:Name="JobLookupResultsText" Classes="status-empty" Text="empty · 未读取指定任务回执。" TextWrapping="Wrap" />

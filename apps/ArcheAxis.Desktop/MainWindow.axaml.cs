@@ -880,6 +880,27 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void OnToolbarInputKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+
+        if (ReferenceEquals(sender, LibrarySearchBox))
+            OnSearchLibraryClick(sender, new RoutedEventArgs());
+        else if (ReferenceEquals(sender, SourceReaderIdBox))
+            OnReadSourceMembersClick(sender, new RoutedEventArgs());
+        else if (ReferenceEquals(sender, KnowledgeIdBox))
+            OnReadKnowledgeClick(sender, new RoutedEventArgs());
+        else if (ReferenceEquals(sender, MachineTaskIdBox))
+            OnReadMachineTaskClick(sender, new RoutedEventArgs());
+        else if (ReferenceEquals(sender, JobLookupIdBox))
+            OnReadJobReceiptClick(sender, new RoutedEventArgs());
+        else
+            return;
+
+        e.Handled = true;
+    }
+
     private void RefreshCommandPaletteResults(string? rawQuery)
     {
         var query = rawQuery?.Trim() ?? string.Empty;
