@@ -20,6 +20,8 @@ def test_aaos_theme_is_shared_at_application_scope() -> None:
     assert 'RequestedThemeVariant="Dark"' in app
     assert 'x:Key="AaosPrimaryGradientBrush"' in theme
     assert '<Style Selector="Button.primary-action">' in theme
+    assert '<Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />' in theme
+    assert '<Setter Property="Foreground" Value="#061118" />' not in theme
     assert '<Style Selector="Button:focus">' in theme
     assert '<Style Selector="Button:disabled">' in theme
     assert '<Style Selector="TextBox:disabled">' in theme

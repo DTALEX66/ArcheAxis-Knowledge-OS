@@ -97,7 +97,7 @@
     <Style Selector="Button.review-grade.selected">
         <Setter Property="Background" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosIvoryBrush}" />
-        <Setter Property="Foreground" Value="#061118" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="Grid.reduced-motion Button">
