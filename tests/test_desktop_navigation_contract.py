@@ -589,16 +589,17 @@ def test_navigation_state_controls_visible_surfaces() -> None:
     assert 'LibrarySurface.IsVisible = section == "library"' in code
     assert 'SourceReaderSurface.IsVisible = section == "source-reader"' in code
     assert 'KnowledgeSurface.IsVisible = section == "knowledge"' in code
+    assert 'MemoryMapSurface.IsVisible = section == "memory-map"' in code
     assert 'MachineKnowledgeSurface.IsVisible = section == "machine-growth"' in code
     assert 'RecoverySurface.IsVisible = section == "recovery"' in code
     assert 'SettingsSurface.IsVisible = section == "settings"' in code
     assert 'JobsSurface.IsVisible = section == "jobs"' in code
-    assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor" or "memory-map"' in code
+    assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor"' in code
     assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge" or "original-editor" or "memory-map"' in code
     assert 'ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings"' in code
 
 
-def test_memory_map_and_original_editor_routes_are_truthful_unavailable_surfaces() -> None:
+def test_memory_map_and_original_editor_routes_are_truthful_core_boundaries() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     assert 'Click="OnOriginalEditorClick"' in xaml
@@ -606,7 +607,9 @@ def test_memory_map_and_original_editor_routes_are_truthful_unavailable_surfaces
     assert 'private void OnOriginalEditorClick' in code
     assert 'private void OnMemoryMapClick' in code
     assert '"original-editor" => "当前 Core 只暴露来源成员与转换读取边界' in code
-    assert '"memory-map" => "当前 Core 未暴露可验证的 Memory Graph 读模型' in code
+    assert 'x:Name="MemoryMapSurface"' in xaml
+    assert 'MemoryMapSurface.IsVisible = section == "memory-map"' in code
+    assert '这是 Core Knowledge lineage 投影，不冒充 Memory Graph' in code
 
 
 def test_primary_space_rail_has_explicit_active_state_mapping() -> None:
@@ -1794,6 +1797,15 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'Click="OnEvidenceOpenCaptureClick"' in xaml
     assert 'Click="OnEvidenceOpenJobsClick"' in xaml
     assert '页面不使用演示数据填充' in xaml
+    assert 'KeyDown="OnEvidenceAnchorListKeyDown"' in xaml
+    assert 'DoubleTapped="OnEvidenceAnchorDoubleTapped"' in xaml
+    assert 'private void OnEvidenceAnchorListKeyDown' in code
+    assert 'private void OnEvidenceAnchorDoubleTapped' in code
+    assert 'x:Name="EvidenceEmptyStateContent"' in xaml
+    assert 'x:Name="EvidenceEmptyStateImage"' in xaml
+    assert 'EvidenceEmptyStateContent.Orientation' in code
+    assert 'SetResponsiveToolbar(EvidenceToolbar' in code
+    assert 'SetResponsiveToolbar(MemoryMapToolbar' in code
 
 
 def test_memory_map_projects_core_knowledge_lineage_without_fabricating_graph() -> None:
@@ -2171,7 +2183,7 @@ def test_every_desktop_input_and_result_control_declares_an_accessible_name() ->
 def test_primary_lookup_inputs_submit_on_enter_through_existing_routes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert xaml.count('KeyDown="OnToolbarInputKeyDown"') == 5
+    assert xaml.count('KeyDown="OnToolbarInputKeyDown"') == 6
     assert "private void OnToolbarInputKeyDown" in code
     for route in (
         "OnSearchLibraryClick",
@@ -2179,6 +2191,7 @@ def test_primary_lookup_inputs_submit_on_enter_through_existing_routes() -> None
         "OnReadKnowledgeClick",
         "OnReadMachineTaskClick",
         "OnReadJobReceiptClick",
+        "RefreshMemoryMapAsync",
     ):
         assert route in code
 

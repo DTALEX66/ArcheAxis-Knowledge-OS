@@ -2391,3 +2391,16 @@
 - scope: connected a persisted Knowledge lineage `source_id` to the existing Inspector “打开来源” action and Source Reader Core members projection; missing `source_id` stays unavailable and no source body or citation insertion is inferred.
 - verification: TDD static contract was observed RED before implementation, then `MEMORY_MAP_SOURCE_CHAIN_STATIC_PASS=1`; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI pointer/focus readback remains unverified.
+
+## Continuation receipt — 2026-09-23 P3 desktop contract alignment
+
+- scope: updated only stale desktop contract assertions that still described Memory Map as fully unavailable and counted five toolbar Enter inputs after the Core lineage surface was added. No product behavior or Core contract was weakened.
+- verification: direct project-runtime collection executed `175` zero-argument desktop contract tests with `0` failures; no Green or external library was touched.
+- evidence_boundary: `TESTED_LOCAL_STATIC`; this is test-contract alignment, not native GUI acceptance.
+
+## Continuation receipt — 2026-09-23 P3 Evidence responsive and keyboard closure
+
+- scope: closed three frontend-only gaps from the parallel UI audit: Evidence anchor Enter/double-click activation now reuses the real source-chain action; Evidence and Memory Map toolbars use the existing responsive toolbar policy; Evidence empty-state content stacks and resizes at compact widths.
+- agent_dispatch: `Lovelace · GPT-5.6-terra · Low` completed a read-only UI audit and identified these gaps; `Lorentz · GPT-5.6-sol · Low` completed the parallel Core-boundary audit. Neither agent modified files or supplied completion evidence.
+- verification: desktop contract collection executed `175` zero-argument tests with `0` failures; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` returned only the existing R6 CRLF normalization warning.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI pointer/focus/layout readback remains unverified.

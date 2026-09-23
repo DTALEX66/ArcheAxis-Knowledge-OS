@@ -2419,6 +2419,13 @@ public partial class MainWindow : Window
         SourceReaderContextActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
+        EvidenceEmptyStateContent.Orientation = compact
+            ? Avalonia.Layout.Orientation.Vertical
+            : Avalonia.Layout.Orientation.Horizontal;
+        EvidenceEmptyStateImage.Width = compact ? 112 : 150;
+        EvidenceEmptyStateImage.HorizontalAlignment = compact
+            ? Avalonia.Layout.HorizontalAlignment.Center
+            : Avalonia.Layout.HorizontalAlignment.Left;
         var inspectorActionsNarrow = narrowActions || InspectorPanel.IsVisible;
         InspectorActionPanel.Orientation = inspectorActionsNarrow
             ? Avalonia.Layout.Orientation.Vertical
@@ -2436,6 +2443,8 @@ public partial class MainWindow : Window
         SetResponsiveToolbar(KnowledgeLoadGrid, KnowledgeLoadButton, narrowActions);
         SetResponsiveToolbar(MachineTaskGrid, MachineTaskLoadButton, narrowActions);
         SetResponsiveToolbar(JobLookupGrid, JobLookupButton, narrowActions);
+        SetResponsiveToolbar(EvidenceToolbar, EvidenceRefreshButton, narrowActions);
+        SetResponsiveToolbar(MemoryMapToolbar, MemoryMapLoadButton, narrowActions);
         HomeFocusGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("1*")
             : new ColumnDefinitions("*,*");
@@ -2720,6 +2729,20 @@ public partial class MainWindow : Window
         else if (ReferenceEquals(sender, SourceReaderMembersList))
             OnReadSourceTransformClick(sender, new RoutedEventArgs());
 
+        e.Handled = true;
+    }
+
+    private void OnEvidenceAnchorListKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+        OnOpenEvidenceSourceClick(sender, new RoutedEventArgs());
+        e.Handled = true;
+    }
+
+    private void OnEvidenceAnchorDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        OnOpenEvidenceSourceClick(sender, new RoutedEventArgs());
         e.Handled = true;
     }
 

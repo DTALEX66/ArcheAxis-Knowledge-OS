@@ -555,8 +555,8 @@
                     <TextBlock x:Name="EvidenceStatusText" Grid.Column="1" Classes="status-empty" VerticalAlignment="Center" Text="empty · 尚未读取 Core Evidence。" TextWrapping="Wrap" AutomationProperties.Name="证据中心状态" />
                   </Grid>
                   <Border x:Name="EvidenceEmptyState" Classes="aaos-empty-state" Padding="16">
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                      <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.82" AutomationProperties.Name="证据中心未接入插图" />
+                    <StackPanel x:Name="EvidenceEmptyStateContent" Orientation="Horizontal" Spacing="16">
+                      <Image x:Name="EvidenceEmptyStateImage" Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.82" AutomationProperties.Name="证据中心未接入插图" />
                       <StackPanel Spacing="7" VerticalAlignment="Center">
                         <TextBlock Text="尚未读取 Evidence anchor" Classes="card-heading" />
                         <TextBlock Text="点击“读取证据”读取 Core 已持久化的来源定位；页面不使用演示数据填充。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -570,7 +570,7 @@
                   <Border Classes="aaos-card-compact" Padding="14">
                     <StackPanel Spacing="8">
                         <TextBlock Text="Evidence anchors" Classes="card-heading" />
-                      <ListBox x:Name="EvidenceAnchorsList" SelectionChanged="OnEvidenceAnchorSelected" MaxHeight="260" Background="Transparent" BorderThickness="0" AutomationProperties.Name="证据锚点列表" />
+                      <ListBox x:Name="EvidenceAnchorsList" SelectionChanged="OnEvidenceAnchorSelected" KeyDown="OnEvidenceAnchorListKeyDown" DoubleTapped="OnEvidenceAnchorDoubleTapped" MaxHeight="260" Background="Transparent" BorderThickness="0" AutomationProperties.Name="证据锚点列表" />
                       <TextBlock x:Name="EvidenceAnchorDetailText" Classes="status-empty" Text="尚未选择 Evidence anchor。" TextWrapping="Wrap" />
                     </StackPanel>
                   </Border>
@@ -585,7 +585,7 @@
                 <StackPanel x:Name="MemoryMapSurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="记忆地图" Classes="page-title" />
                   <TextBlock Text="读取 Core 已持久化的 Knowledge 版本谱系；当前只展示 lineage，不冒充 Memory Graph 节点、边或认知结论。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                  <Grid Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
+                  <Grid x:Name="MemoryMapToolbar" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                     <TextBox x:Name="MemoryMapKnowledgeIdBox" PlaceholderText="输入 knowledge_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="记忆地图 knowledge_id 输入" />
                     <Button x:Name="MemoryMapLoadButton" Classes="primary-action" Grid.Column="1" Content="读取谱系" Padding="16,9" Click="OnMemoryMapLoadClick" AutomationProperties.Name="读取 Knowledge 谱系" />
                   </Grid>

@@ -70,6 +70,12 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - When lineage exposes `source_id`, the Inspector now offers the same real
   “打开来源” navigation into Source Reader; missing source fields remain
   unavailable rather than being inferred.
+- The desktop navigation contract was refreshed for the new lineage surface and
+  six toolbar Enter inputs; the direct zero-argument contract collection now
+  executes 175 tests with zero failures.
+- Evidence anchors now support Enter/double-click source activation, while the
+  Evidence toolbar, Memory Map toolbar, and Evidence empty state adapt to the
+  existing compact/mobile layout rules.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
