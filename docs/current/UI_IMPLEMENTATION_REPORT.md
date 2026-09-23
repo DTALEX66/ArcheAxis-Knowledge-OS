@@ -263,6 +263,11 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   Candidate under `.project-local/staging` while retaining the project-local
   boundary; this proves preparation only, not native GUI or installed Green
   runtime acceptance.
+- The Library filter group now reflows at the existing narrow-actions
+  breakpoint. Machine task receipt lookup now exposes loading/empty/error/success
+  through an accessible status surface and prevents duplicate requests while
+  loading; this has static contract and Debug build evidence, not native GUI
+  readback.
 
 ## Next phase boundary
 

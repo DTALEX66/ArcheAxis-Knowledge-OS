@@ -534,7 +534,10 @@
                     <Button x:Name="MachineTaskLoadButton" Grid.Column="1" Content="读取任务收据" Padding="16,9" Click="OnReadMachineTaskClick" AutomationProperties.Name="读取任务收据" />
                   </Grid>
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
-                    <TextBlock x:Name="MachineTaskResultsText" Text="输入 task_id 后读取 Core。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <StackPanel Spacing="8">
+                      <TextBlock x:Name="MachineTaskStatusText" Classes="status-empty" Text="empty · 输入 task_id 后读取 Core。" TextWrapping="Wrap" AutomationProperties.Name="机器任务收据读取状态" AutomationProperties.LiveSetting="Polite" />
+                      <TextBlock x:Name="MachineTaskResultsText" Text="尚未读取机器任务收据。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="机器任务收据内容" />
+                    </StackPanel>
                   </Border>
                 </StackPanel>
 

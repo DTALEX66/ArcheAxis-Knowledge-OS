@@ -682,8 +682,14 @@ def test_knowledge_and_machine_surfaces_read_real_core_projections() -> None:
     assert 'x:Name="MachineKnowledgeSurface"' in xaml
     assert 'Click="OnReadMachineTaskClick"' in xaml
     assert 'x:Name="MachineTaskResultsText"' in xaml
+    assert 'x:Name="MachineTaskStatusText"' in xaml
     assert '"/api/v1/machine/tasks/' in code
     assert 'ReadDisplayValue(root, "model_version")' in code
+    assert 'MachineTaskLoadButton.IsEnabled = false;' in code
+    assert 'MachineTaskIdBox.IsEnabled = false;' in code
+    assert 'SetStatus(MachineTaskStatusText, "正在读取 Core 机器任务收据。", "loading")' in code
+    assert 'MachineTaskLoadButton.IsEnabled = true;' in code
+    assert 'MachineTaskIdBox.IsEnabled = true;' in code
 
 
 def test_recovery_surface_reads_core_status_without_simulating_restore() -> None:
@@ -1708,6 +1714,8 @@ def test_responsive_layout_reflows_home_cards_and_activity_dock() -> None:
     assert 'CaptureContextActions.Orientation' in code
     assert 'LearningCaptureActions.Orientation' in code
     assert 'LearningEmptyActions.Orientation' in code
+    assert 'HomeHeroActions.Orientation' in code
+    assert 'LibraryFilterPanel.Orientation' in code
 
 
 def test_wide_workspace_has_a_readable_bounded_center_width() -> None:

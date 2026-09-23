@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     private long _knowledgeRequestVersion;
     private long _librarySearchRequestVersion;
     private long _machineTaskRequestVersion;
+    private bool _machineTaskLoadInProgress;
     private long _jobLookupRequestVersion;
     private readonly List<CaptureContextRow> _captureContexts = new();
     private CaptureContextRow? _latestCaptureContext;
@@ -1781,18 +1782,26 @@ public partial class MainWindow : Window
 
     private async void OnReadMachineTaskClick(object? sender, RoutedEventArgs e)
     {
+        if (_machineTaskLoadInProgress)
+            return;
         var requestVersion = ++_machineTaskRequestVersion;
         var taskId = MachineTaskIdBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(taskId))
         {
             MachineTaskResultsText.Text = "请输入 task_id 后再读取。";
+            SetStatus(MachineTaskStatusText, "请输入 task_id 后再读取。", "empty");
             return;
         }
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
         {
             MachineTaskResultsText.Text = "核心未就绪，无法读取机器任务收据。";
+            SetStatus(MachineTaskStatusText, "核心未就绪，无法读取机器任务收据。", "error");
             return;
         }
+        _machineTaskLoadInProgress = true;
+        MachineTaskLoadButton.IsEnabled = false;
+        MachineTaskIdBox.IsEnabled = false;
+        SetStatus(MachineTaskStatusText, "正在读取 Core 机器任务收据。", "loading");
         try
         {
             using var response = await _supervisor.SendAsync(
@@ -1803,6 +1812,7 @@ public partial class MainWindow : Window
             if (!response.IsSuccessStatusCode)
             {
                 MachineTaskResultsText.Text = $"Core 未返回机器任务收据（HTTP {(int)response.StatusCode}）。";
+                SetStatus(MachineTaskStatusText, $"机器任务收据读取失败（HTTP {(int)response.StatusCode}）。", "error");
                 return;
             }
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
@@ -1818,6 +1828,7 @@ public partial class MainWindow : Window
                 $"失败：{ReadDisplayValue(root, "failure")}",
                 $"Retest of：{ReadDisplayValue(root, "retest_of")}",
             });
+            SetStatus(MachineTaskStatusText, "机器任务收据已从 Core 读取。", "success");
             SetInspectorProjection(ReadDisplayValue(root, "task_id"), $"模型：{ReadDisplayValue(root, "model_version")} · 结果：{ReadDisplayValue(root, "outcome")}\n来自 Core 机器任务收据。");
         }
         catch (Exception)
@@ -1825,6 +1836,13 @@ public partial class MainWindow : Window
             if (requestVersion != _machineTaskRequestVersion || !string.Equals(_activeSection, "machine-growth", StringComparison.Ordinal))
                 return;
             MachineTaskResultsText.Text = "机器任务收据读取中断。";
+            SetStatus(MachineTaskStatusText, "机器任务收据读取中断。", "error");
+        }
+        finally
+        {
+            _machineTaskLoadInProgress = false;
+            MachineTaskLoadButton.IsEnabled = true;
+            MachineTaskIdBox.IsEnabled = true;
         }
     }
 
@@ -2452,6 +2470,9 @@ public partial class MainWindow : Window
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
         SetResponsiveToolbar(LibrarySearchGrid, LibrarySearchButton, narrowActions);
+        LibraryFilterPanel.Orientation = narrowActions
+            ? Avalonia.Layout.Orientation.Vertical
+            : Avalonia.Layout.Orientation.Horizontal;
         LibraryWorkspaceGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("1*")
             : new ColumnDefinitions("1.1*,0.9*");
@@ -2480,6 +2501,9 @@ public partial class MainWindow : Window
         HomeHeroGrid.RowDefinitions = compact
             ? new RowDefinitions("Auto,Auto")
             : new RowDefinitions("Auto");
+        HomeHeroActions.Orientation = narrowActions
+            ? Avalonia.Layout.Orientation.Vertical
+            : Avalonia.Layout.Orientation.Horizontal;
         Grid.SetColumn(HomeHeroImage, compact ? 0 : 1);
         Grid.SetRow(HomeHeroImage, compact ? 1 : 0);
         HomeLifecycleGrid.ColumnDefinitions = compact
