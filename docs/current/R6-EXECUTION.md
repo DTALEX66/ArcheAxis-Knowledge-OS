@@ -2350,3 +2350,11 @@
 - candidate: `.project-local/staging/p3-6fc42f91/ArcheAxis.Knowledge.Green-vp3-6fc42f91-x64`.
 - verification: `assemble_green_candidate.py` returned `ASSEMBLE_FULL_EXIT=0`; `verify_green_candidate.py --require-runtime --require-workers --require-provenance` returned `VERIFY_FULL_GREEN_EXIT=0`. Scope is `desktop-core-runtime-workers`; manifest records `21471` files; staged tree contains `21472` files and `882125009` bytes.
 - evidence_boundary: `STAGED_LOCAL / VERIFIED_LOCAL_STATIC`; package completeness, file hashes and provenance are verified, but portable installed-runtime scheduler-worker readback, native GUI first-use, Green backup/replacement/rollback, installer/signing and release remain unverified or owner-gated. No Green overwrite or publication was performed.
+
+## Continuation receipt — 2026-09-23 P3 portable scheduler worker closure
+
+- scope: added explicit `ARCHEAXIS_SCHEDULER_WORKER`/legacy `ARCHAXIS_SCHEDULER_WORKER` binding, preserved the repository worker fallback for development, taught the learning worker to resolve both repository and flattened Candidate layouts, and packaged `shared/learning_scheduler.py` with the Candidate. No real Green directory, Green user data, external library contents, or unrelated dirty file was changed.
+- source_commit: `9654023a32c65a2d4b2ad9e75ac8b07085d43779`; remote branch readback matched the same SHA.
+- verification: `archeaxis-application` scheduler contract tests `3 passed`; external-runtime Python compile and repository donor readback passed. Candidate `p3-9654023a` verification returned `ok=true`, scope `desktop-core-runtime-workers`, `21473` manifest files, and `problems=[]`.
+- portable_journey: directly launched the staged Candidate Desktop with staged Core, staged Python runtime, staged workers and staged scheduler donor; `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
+- evidence_boundary: `TESTED_LOCAL_PORTABLE_HEADLESS_JOURNEY`; this closes the packaged scheduler-worker path for the headless learning journey, but does not prove native GUI screenshot/pointer/accessibility readback, real Green replacement/rollback, installer/signing or release. No Green overwrite or publication was performed. `cargo fmt` was not executed because the indexed toolchain lacks `cargo-fmt.exe`; no toolchain installation was attempted.
