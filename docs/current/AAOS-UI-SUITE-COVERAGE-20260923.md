@@ -41,7 +41,7 @@ receipts. This matrix does not promote reference demos, static numbers or
 
 ## Current verification anchor
 
-- Frontend implementation/evidence baseline: `67499def` on
+- Frontend implementation/evidence baseline: `a1ba4fbc` on
   `codex/aaos-p3-ui-convergence-20260922`.
 - Direct no-argument desktop contract harness: `201 passed`.
 - XAML XML parsing: `PASS`.
