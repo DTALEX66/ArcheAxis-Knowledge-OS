@@ -2379,3 +2379,9 @@
 - source_commit: `d7a4b02e`; remote branch readback matched this SHA after push.
 - verification: TDD static contract was observed RED before implementation, then `MEMORY_MAP_LINEAGE_STATIC_PASS=1`; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; this advances the available Core lineage contract but full Memory Graph, Evidence bundles, Original Editor persistence, citation insertion and native GUI readback remain open or owner-gated. No Green overwrite or external library change was performed.
+
+## Continuation receipt — 2026-09-23 P3 Knowledge lineage keyboard continuity
+
+- scope: wired the Memory Map `knowledge_id` field into the existing toolbar Enter interaction so keyboard users invoke the same Core lineage read path as the button; no new endpoint or frontend state store was introduced.
+- verification: TDD static contract was observed RED before the handler was added, then `MEMORY_MAP_ENTER_STATIC_PASS=1`; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; full Memory Graph and native GUI keyboard/focus readback remain unverified.

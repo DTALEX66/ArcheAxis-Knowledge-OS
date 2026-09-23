@@ -65,6 +65,8 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   the existing `/api/v1/knowledge-items/{id}/v3` contract. It explicitly does
   not claim a Memory Graph or render synthetic nodes, edges, metrics or memory
   conclusions.
+- Memory Map `knowledge_id` accepts the existing toolbar Enter interaction and
+  invokes the same Core lineage read path as the visible button.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace

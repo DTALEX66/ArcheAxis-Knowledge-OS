@@ -1808,6 +1808,8 @@ def test_memory_map_projects_core_knowledge_lineage_without_fabricating_graph() 
     assert 'supersedes' in code
     assert 'superseded_by' in code
     assert '不冒充 Memory Graph' in xaml
+    assert 'ReferenceEquals(sender, MemoryMapKnowledgeIdBox)' in code
+    assert 'RefreshMemoryMapAsync()' in code
 
 
 def test_unavailable_product_surfaces_have_truthful_next_actions() -> None:

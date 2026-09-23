@@ -1075,6 +1075,8 @@ public partial class MainWindow : Window
             OnReadMachineTaskClick(sender, new RoutedEventArgs());
         else if (ReferenceEquals(sender, JobLookupIdBox))
             OnReadJobReceiptClick(sender, new RoutedEventArgs());
+        else if (ReferenceEquals(sender, MemoryMapKnowledgeIdBox))
+            _ = RefreshMemoryMapAsync();
         else
             return;
 
