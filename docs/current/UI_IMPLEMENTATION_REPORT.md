@@ -76,6 +76,9 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Evidence anchors now support Enter/double-click source activation, while the
   Evidence toolbar, Memory Map toolbar, and Evidence empty state adapt to the
   existing compact/mobile layout rules.
+- Route changes now move focus to the current workspace heading, and the
+  command-palette two-control focus loop distinguishes forward Tab from
+  reverse Shift+Tab using the actual Avalonia modifier flags.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace

@@ -98,7 +98,7 @@
                     </ScrollViewer>
                 </Border>
                 <Grid x:Name="WorkspaceHeadingBar" ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                    <TextBlock x:Name="WorkspaceHeadingText" Text="首页" Classes="workspace-title" />
+                    <TextBlock x:Name="WorkspaceHeadingText" Text="首页" Classes="workspace-title" Focusable="True" IsTabStop="False" AutomationProperties.Name="当前工作区页面" />
                     <Button x:Name="InspectorDrawerButton" Grid.Column="1" IsVisible="False" Content="打开证据检查器" Padding="12,7" Click="OnToggleInspectorDrawerClick" AutomationProperties.Name="打开证据检查器" />
                 </Grid>
                 <StackPanel x:Name="HomeSurface" Spacing="22">

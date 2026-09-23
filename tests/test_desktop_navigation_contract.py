@@ -597,6 +597,9 @@ def test_navigation_state_controls_visible_surfaces() -> None:
     assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor"' in code
     assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge" or "original-editor" or "memory-map"' in code
     assert 'ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings"' in code
+    assert 'x:Name="WorkspaceHeadingText"' in XAML.read_text(encoding="utf-8")
+    assert 'Focusable="True"' in XAML.read_text(encoding="utf-8")
+    assert 'WorkspaceHeadingText.Focus()' in code
 
 
 def test_memory_map_and_original_editor_routes_are_truthful_core_boundaries() -> None:
@@ -2078,6 +2081,7 @@ def test_command_palette_cycles_focus_between_input_and_results_on_tab() -> None
     assert "ReferenceEquals(sender, CommandPaletteResultsList)" in method
     assert "CommandPaletteBox.Focus();" in method
     assert "CommandPaletteResultsList.Focus();" in method
+    assert "(e.KeyModifiers & KeyModifiers.Shift) == KeyModifiers.Shift" in method
 
 
 def test_knowledge_reads_ignore_stale_responses() -> None:

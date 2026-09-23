@@ -385,6 +385,8 @@ public partial class MainWindow : Window
             ++_jobLookupRequestVersion;
         _activeSection = section;
         WorkspaceHeadingText.Text = heading;
+        Avalonia.Automation.AutomationProperties.SetName(WorkspaceHeadingText, heading);
+        Dispatcher.UIThread.Post(() => WorkspaceHeadingText.Focus(), DispatcherPriority.Input);
         InspectorSectionText.Text = heading;
         InspectorObjectText.Text = "未选择对象";
         InspectorDetailsText.Text = "对象来源、版本和证据将在选择具体对象后显示。";
@@ -1028,10 +1030,21 @@ public partial class MainWindow : Window
 
         if (e.Key == Key.Tab)
         {
-            if (ReferenceEquals(sender, CommandPaletteResultsList))
-                CommandPaletteBox.Focus();
+            var reverse = (e.KeyModifiers & KeyModifiers.Shift) == KeyModifiers.Shift;
+            if (reverse)
+            {
+                if (ReferenceEquals(sender, CommandPaletteResultsList))
+                    CommandPaletteBox.Focus();
+                else
+                    CommandPaletteResultsList.Focus();
+            }
             else
-                CommandPaletteResultsList.Focus();
+            {
+                if (ReferenceEquals(sender, CommandPaletteBox))
+                    CommandPaletteResultsList.Focus();
+                else
+                    CommandPaletteBox.Focus();
+            }
             e.Handled = true;
             return;
         }

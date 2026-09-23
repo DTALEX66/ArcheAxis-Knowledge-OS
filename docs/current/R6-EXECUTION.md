@@ -2404,3 +2404,9 @@
 - agent_dispatch: `Lovelace · GPT-5.6-terra · Low` completed a read-only UI audit and identified these gaps; `Lorentz · GPT-5.6-sol · Low` completed the parallel Core-boundary audit. Neither agent modified files or supplied completion evidence.
 - verification: desktop contract collection executed `175` zero-argument tests with `0` failures; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` returned only the existing R6 CRLF normalization warning.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI pointer/focus/layout readback remains unverified.
+
+## Continuation receipt — 2026-09-23 P3 focus and keyboard navigation closure
+
+- scope: added a focusable workspace heading as the route-change focus target and made Command Palette Tab handling explicitly distinguish Shift+Tab through Avalonia's bitmask API. No Core or persistence behavior changed.
+- verification: first build correctly caught the nonexistent `KeyModifiers.HasAll` API; after root-cause correction, desktop contract collection executed `175` tests with `0` failures and Avalonia Debug build returned `0 warnings / 0 errors`.
+- boundary: native focus-tree and screen-reader readback remain `UNVERIFIED`; the current Avalonia surface does not expose a verified `LiveSetting` API in this project, so no fake live-region claim was added.
