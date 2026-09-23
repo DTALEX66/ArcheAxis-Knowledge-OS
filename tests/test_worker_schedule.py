@@ -42,6 +42,14 @@ MATURE = {
 
 
 class TestFsrsAuthority:
+    def test_packaged_layout_resolves_the_bundled_donor(self, tmp_path) -> None:
+        packaged = tmp_path / "candidate"
+        worker_path = packaged / "workers" / "learning" / "worker_schedule.py"
+        donor = packaged / "shared" / "learning_scheduler.py"
+        donor.parent.mkdir(parents=True)
+        donor.write_text("# donor\n", encoding="utf-8")
+        assert worker._donor_path(worker_path) == donor
+
     def test_serialized_reviews_match_uninterrupted_fsrs_across_worker_restarts(self, tmp_path) -> None:
         import json
         import subprocess

@@ -150,6 +150,12 @@ def assemble(
             "staging": "data/worker-staging",
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
         copied_files.append(profile)
+    donor = project_root / "shared" / "learning_scheduler.py"
+    if workers is not None and donor.is_file():
+        target = root / "shared" / "learning_scheduler.py"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(_native_path(donor), _native_path(target))
+        copied_files.append(target)
 
     # Keep the portable candidate launchable without requiring users to know
     # the Core environment variable or accidentally opening a framework-only

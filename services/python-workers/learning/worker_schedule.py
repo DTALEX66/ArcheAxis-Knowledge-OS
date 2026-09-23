@@ -54,11 +54,23 @@ __all__ = ["schedule", "parse_state", "rating_for"]
 _RATING_NAMES = {"again": 1, "hard": 2, "good": 3, "easy": 4}
 
 
+def _donor_path(worker_path: Path) -> Path:
+    """Resolve the donor in either the repository or flattened Green package."""
+    candidates = (
+        worker_path.resolve().parents[3] / "shared" / "learning_scheduler.py",
+        worker_path.resolve().parents[2] / "shared" / "learning_scheduler.py",
+    )
+    for path in candidates:
+        if path.is_file():
+            return path
+    return candidates[0]
+
+
 @lru_cache(maxsize=1)
 def _scheduler_donor():
     # Core launches this file from its own working directory. Load the exact
     # bundled donor without relying on editable installs or caller PYTHONPATH.
-    path = Path(__file__).resolve().parents[3] / 'shared/learning_scheduler.py'
+    path = _donor_path(Path(__file__))
     spec = importlib.util.spec_from_file_location('archeaxis_fsrs_donor', path)
     if spec is None or spec.loader is None:
         raise ImportError('FSRS donor is unavailable')
