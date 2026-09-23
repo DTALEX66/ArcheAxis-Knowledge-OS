@@ -2422,3 +2422,9 @@
 - scope: published the current Avalonia Desktop source at `8315bdce` as a project-local self-contained `win-x64` Candidate under `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vui8315bdce-x64`. No Green directory was overwritten and no release/install/signing action was performed.
 - verification: indexed external `.NET SDK 10.0.400` returned `DOTNET_UI_PUBLISH_EXIT=0`; Desktop EXE SHA-256 is `BFCC31655FC089F7E3DF6824A3F8BF7A23A796811F6182D80315E59E00A0093E`.
 - evidence_boundary: `TESTED_LOCAL_BUILD`; CUA reported `apps=[]`, so native window, screenshot, pointer, focus-tree and screen-reader readback remain `UNVERIFIED / TOOLING_UNAVAILABLE`.
+
+## Continuation receipt — 2026-09-23 current-SHA full Candidate assembly
+
+- scope: assembled the current self-contained Desktop Candidate with the existing canonical Rust Core release binary, indexed Python runtime and repository workers into `.project-local/staging/p3-9c8870cf/ArcheAxis.Knowledge.Green-vp3-9c8870cf-x64`. No Green directory was overwritten.
+- verification: `assemble_green_candidate.py` returned `ASSEMBLE_EXIT=0`; `verify_green_candidate.py --require-runtime --require-workers --require-provenance` returned `ok=true`, scope `desktop-core-runtime-workers`, `21474` files and `problems=[]` with provenance bound to current source SHA `9c8870cf`.
+- evidence_boundary: `TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / VERIFIED_LOCAL_CANDIDATE`; native GUI and installed Green runtime acceptance remain unverified.
