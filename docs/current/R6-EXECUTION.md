@@ -2328,3 +2328,10 @@
 - scope: launched the freshly published `ArcheAxis.Desktop.exe` once from its project-local Candidate directory to test process/window creation; the process was stopped by exact PID after observation. No Green runtime, user data, external resource, or unrelated dirty file was changed.
 - observation: Windows reported a responsive process and native window title `ArcheAxis Learning Workspace (vNext) — core offline (core binary not found (set ARCHAXIS_CORE_BIN))`. This proves process/window creation only; it does not prove Core-connected first use.
 - gui_boundary: the active CUA runtime exposed neither the documented `listWindows` nor `getApp` binding methods, so screenshot, accessibility-tree, focus and pointer readback were `GUI_UNVERIFIED / TOOLING_UNAVAILABLE`. The process was not left running.
+
+## Continuation receipt — 2026-09-23 P3 Core-connected Candidate launch
+
+- scope: launched the current frontend Candidate through `scripts/launch/desktop_launch.py` with an explicit project-local Core executable, isolated test workspace and worker profile; no Green runtime, Green user data, external resource, or unrelated dirty file was changed.
+- launch_receipt: `workspace_mode=ISOLATED_TEST`, `path_scope=project-local`, `source_head=5d5f5d12e3a41b0bc9f75b14bca6b562843e664e`, desktop SHA-256 `8856E05BD482C4FA468AC4BB7B0F3918A0276E831AE88BCAD560CA78D7F08A48`, Core SHA-256 `6E14C1729550FDC2D4BE7BA560967C7B570FAD2AE5C45477B3D2FF8695FE0D2F`.
+- runtime_observation: Windows reported responsive `ArcheAxis.Desktop` and `archeaxis-api` processes; the native window title was `星环知识平台 — 已连接`. Exact launcher, desktop and Core PIDs were stopped after observation.
+- evidence_boundary: `CANDIDATE_CORE_CONNECTED_LOCAL / ISOLATED_TEST_RUNTIME`; this proves desktop-to-Core connection and not first-use business journey, screenshot, pointer/focus tree, accessibility tree or cold-restart readback. CUA runtime still lacks the documented native window binding methods, so those remain `GUI_UNVERIFIED / TOOLING_UNAVAILABLE`. No Green replacement, installer/signing or release was performed.
