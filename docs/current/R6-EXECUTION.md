@@ -2372,3 +2372,9 @@
 - verification: API red/green test `evidence_anchor_list_projects_persisted_core_rows` passed; Avalonia Debug build returned `0 warnings / 0 errors`; direct Evidence UI static contract returned `DESKTOP_EVIDENCE_STATIC_PASS=1`. Candidate `p3-638bce4e` verification returned `ok=true`, `21473` files, `problems=[]`.
 - package_readback: the staged package's real Core flow import→create anchor→`GET /api/v1/evidence/anchors` returned `PACKAGE_EVIDENCE_READBACK=PASS` with anchor `anc_b14fb1c86a9def2c07e8b4ad`; the same package's Desktop learning smoke returned `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - evidence_boundary: `TESTED_LOCAL_PORTABLE_EVIDENCE_PROJECTION`; this closes the persisted Evidence anchor list for the available Core contract, but Evidence bundles, Memory Graph, Original Editor persistence, citation insertion, native GUI readback, real Green replacement/rollback and release remain open or owner-gated.
+
+## Continuation receipt — 2026-09-23 P3 Knowledge lineage surface
+
+- scope: replaced the Memory Map all-unavailable shell with a bounded read-only Knowledge lineage surface using the existing Core `/api/v1/knowledge-items/{id}/v3` projection. It displays only persisted `supersedes`, `superseded_by`, `source_id`, status and identity fields; it does not create a graph store, synthetic edges, metrics or a second truth source.
+- verification: TDD static contract was observed RED before implementation, then `MEMORY_MAP_LINEAGE_STATIC_PASS=1`; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; this advances the available Core lineage contract but full Memory Graph, Evidence bundles, Original Editor persistence, citation insertion and native GUI readback remain open or owner-gated. No Green overwrite or external library change was performed.

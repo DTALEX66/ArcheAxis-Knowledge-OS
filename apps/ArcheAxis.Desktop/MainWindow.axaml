@@ -582,6 +582,23 @@
                   </Border>
                 </StackPanel>
 
+                <StackPanel x:Name="MemoryMapSurface" IsVisible="False" Spacing="14">
+                  <TextBlock Text="记忆地图" Classes="page-title" />
+                  <TextBlock Text="读取 Core 已持久化的 Knowledge 版本谱系；当前只展示 lineage，不冒充 Memory Graph 节点、边或认知结论。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <Grid Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
+                    <TextBox x:Name="MemoryMapKnowledgeIdBox" PlaceholderText="输入 knowledge_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="记忆地图 knowledge_id 输入" />
+                    <Button x:Name="MemoryMapLoadButton" Classes="primary-action" Grid.Column="1" Content="读取谱系" Padding="16,9" Click="OnMemoryMapLoadClick" AutomationProperties.Name="读取 Knowledge 谱系" />
+                  </Grid>
+                  <TextBlock x:Name="MemoryMapStatusText" Classes="status-empty" Text="尚未读取 Core Knowledge lineage。" TextWrapping="Wrap" AutomationProperties.Name="记忆地图状态" />
+                  <Border Classes="aaos-card" Padding="18">
+                    <StackPanel Spacing="8">
+                      <TextBlock Text="Knowledge lineage · Core projection" Classes="section-heading" />
+                      <TextBlock x:Name="MemoryMapResultsText" Text="输入 knowledge_id 后读取 Core。" TextWrapping="Wrap" Classes="provenance-projection" AutomationProperties.Name="Knowledge 谱系结果" />
+                      <TextBlock Text="当前不展示合成图节点、随机关系、原文正文或未绑定来源的结论。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+
                 <Border x:Name="UnavailableSurface" Classes="aaos-empty-state" IsVisible="False" Padding="24">
                     <StackPanel Spacing="12">
                         <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" HorizontalAlignment="Left" Opacity="0.78" AutomationProperties.Name="功能未接入插图" />

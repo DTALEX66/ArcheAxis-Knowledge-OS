@@ -16,7 +16,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 | Originals / Original Editor | `SourceReaderSurface` | Implemented source member selection, transform readback and provenance copy; editor persistence remains Core-bound |
 | Human Learning | `LearningSurface` | Implemented real queue read, selectable items, answer, independent correctness, FSRS grade, receipt and restart readback |
 | Machine Learning | `MachineKnowledgeSurface` | Implemented real task receipt query; machine-derived values remain labeled |
-| Memory Map | Knowledge/source provenance surfaces | Mapped as provenance and Knowledge context; graph read model not exposed by current Core |
+| Memory Map | `MemoryMapSurface` | Implemented Core Knowledge lineage readback (`supersedes`, `superseded_by`, `source_id`); full graph remains Core-bound |
 | Search | `LibrarySurface` | Implemented current library search/readback boundary |
 | Review / FSRS | `LearningSurface` Review Card | Implemented with narrow reflow, selected feedback and reduced-motion support |
 | Settings | `SettingsSurface` | Implemented Core version/workspace readback and explicit capability boundary |
@@ -61,6 +61,10 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Evidence anchor selection now enables the Inspector “打开来源” action and
   routes the persisted `source_id` into Source Reader for the existing Core
   members projection; no source body or citation insertion is fabricated.
+- Memory Map now offers a real read-only Knowledge lineage projection through
+  the existing `/api/v1/knowledge-items/{id}/v3` contract. It explicitly does
+  not claim a Memory Graph or render synthetic nodes, edges, metrics or memory
+  conclusions.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace

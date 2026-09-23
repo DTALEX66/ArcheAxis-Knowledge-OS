@@ -1796,6 +1796,20 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert '页面不使用演示数据填充' in xaml
 
 
+def test_memory_map_projects_core_knowledge_lineage_without_fabricating_graph() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    for name in ("MemoryMapSurface", "MemoryMapKnowledgeIdBox", "MemoryMapLoadButton", "MemoryMapResultsText"):
+        assert f'x:Name="{name}"' in xaml
+    assert 'Click="OnMemoryMapLoadClick"' in xaml
+    assert 'HttpMethod.Get' in code
+    assert '/api/v1/knowledge-items/' in code
+    assert '/v3' in code
+    assert 'supersedes' in code
+    assert 'superseded_by' in code
+    assert '不冒充 Memory Graph' in xaml
+
+
 def test_unavailable_product_surfaces_have_truthful_next_actions() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")

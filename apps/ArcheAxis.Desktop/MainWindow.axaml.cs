@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private long _sourceReaderRequestVersion;
     private long _sourceTransformRequestVersion;
     private long _evidenceRequestVersion;
+    private long _memoryMapRequestVersion;
     private long _learningRequestVersion;
     private long _reviewRequestVersion;
     private long _knowledgeRequestVersion;
@@ -443,6 +444,7 @@ public partial class MainWindow : Window
         KnowledgeSurface.IsVisible = section == "knowledge";
         LearningSurface.IsVisible = section == "learning";
         EvidenceSurface.IsVisible = section == "evidence";
+        MemoryMapSurface.IsVisible = section == "memory-map";
         MachineKnowledgeSurface.IsVisible = section == "machine-growth";
         RecoverySurface.IsVisible = section == "recovery";
         SettingsSurface.IsVisible = section == "settings";
@@ -454,7 +456,7 @@ public partial class MainWindow : Window
         ContextLearningSubnav.IsVisible = section == "learning";
         ContextMachineSubnav.IsVisible = section == "machine-growth";
         ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings";
-        UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor" or "memory-map";
+        UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor";
         if (UnavailableSurface.IsVisible)
         {
             UnavailableSurfaceTitle.Text = $"{heading} · 尚未接入 Core";
@@ -466,7 +468,6 @@ public partial class MainWindow : Window
                 "plugins" => "此页面尚未接入权威插件注册表；不展示已安装、启用、默认/回退或健康状态，也不提供管理操作。",
                 "models" => "此页面尚未接入 Core 模型注册表或配置投影；不展示可用模型、活动提供方或健康状态，也不修改模型配置。",
                 "original-editor" => "当前 Core 只暴露来源成员与转换读取边界；原件编辑持久化和版本提交接口尚未接入，不在桌面侧创建第二写入路径。",
-                "memory-map" => "当前 Core 未暴露可验证的 Memory Graph 读模型；不展示合成节点、随机关系或未绑定来源的图谱结论。",
                 "recovery" => "此页面尚未接入 Core 的备份与恢复投影；不展示恢复点，不执行、预演或模拟恢复，也不表示数据可恢复。",
                 _ => "该工作区尚未接入 Core 读模型。",
             };
@@ -476,7 +477,6 @@ public partial class MainWindow : Window
                 "plugins" => "接入权威 Plugin Registry 与 readiness projection。",
                 "models" => "接入 Core Model Registry 与 provider health projection。",
                 "original-editor" => "等待 Core 原件编辑、版本提交与冲突处理契约。",
-                "memory-map" => "等待 Core-backed Memory Graph 节点、边与来源绑定读模型。",
                 "recovery" => "等待 Core 备份/恢复投影与 owner-gated 执行契约。",
                 _ => "需要对应的 Core 读模型或写入契约。",
             };
@@ -488,6 +488,10 @@ public partial class MainWindow : Window
         else if (section == "evidence")
         {
             _ = RefreshEvidenceAsync();
+        }
+        else if (section == "memory-map")
+        {
+            _ = RefreshMemoryMapAsync();
         }
         else if (section == "settings")
         {
@@ -882,6 +886,8 @@ public partial class MainWindow : Window
     private void OnEvidenceOpenCaptureClick(object? sender, RoutedEventArgs e) => OnCaptureClick(sender, e);
 
     private void OnEvidenceOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
+
+    private void OnMemoryMapLoadClick(object? sender, RoutedEventArgs e) => _ = RefreshMemoryMapAsync();
 
     private void OnUnavailableHomeClick(object? sender, RoutedEventArgs e) => OnHomeClick(sender, e);
 
@@ -1894,6 +1900,109 @@ public partial class MainWindow : Window
                 $"version={ReadDisplayValue(item, "version")}");
         }
         return lines.Count == 0 ? "Core 已响应，但当前没有 Evidence bundle。" : string.Join("\n", lines);
+    }
+
+    private async Task RefreshMemoryMapAsync()
+    {
+        var requestVersion = ++_memoryMapRequestVersion;
+        MemoryMapLoadButton.IsEnabled = false;
+        var knowledgeId = MemoryMapKnowledgeIdBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(knowledgeId))
+        {
+            MemoryMapResultsText.Text = "请输入 knowledge_id 后读取 Core Knowledge lineage。";
+            SetStatus(MemoryMapStatusText, "记忆地图：请输入 knowledge_id。", "empty");
+            MemoryMapLoadButton.IsEnabled = true;
+            return;
+        }
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+        {
+            MemoryMapResultsText.Text = "Core 未就绪，无法读取 Knowledge lineage。";
+            SetStatus(MemoryMapStatusText, "记忆地图：Core 未就绪。", "error");
+            MemoryMapLoadButton.IsEnabled = true;
+            return;
+        }
+
+        SetStatus(MemoryMapStatusText, "记忆地图：正在读取 Core Knowledge lineage。", "loading");
+        try
+        {
+            using var response = await _supervisor.SendAsync(
+                HttpMethod.Get,
+                $"/api/v1/knowledge-items/{Uri.EscapeDataString(knowledgeId)}/v3");
+            if (requestVersion != _memoryMapRequestVersion || !string.Equals(_activeSection, "memory-map", StringComparison.Ordinal))
+                return;
+            if (!response.IsSuccessStatusCode)
+            {
+                var detail = string.Empty;
+                try { detail = (await response.Content.ReadAsStringAsync()).Trim(); } catch (Exception) { }
+                if (detail.Length > 120) detail = detail[..120] + "…";
+                MemoryMapResultsText.Text = string.IsNullOrWhiteSpace(detail)
+                    ? $"Core 未返回 Knowledge lineage（HTTP {(int)response.StatusCode}）。"
+                    : $"Core 未返回 Knowledge lineage（HTTP {(int)response.StatusCode}：{detail}）。";
+                SetStatus(MemoryMapStatusText,
+                    IsPermissionStatus(response.StatusCode) ? "记忆地图：Core 拒绝当前访问权限。" : "记忆地图：Knowledge lineage 读取失败。",
+                    IsPermissionStatus(response.StatusCode) ? "permission" : "error");
+                return;
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            if (requestVersion != _memoryMapRequestVersion || !string.Equals(_activeSection, "memory-map", StringComparison.Ordinal))
+                return;
+            var root = document.RootElement;
+            var supersedes = FormatRelationIds(root, "supersedes");
+            var supersededBy = FormatRelationIds(root, "superseded_by");
+            var sourceId = ReadDisplayValue(root, "source_id");
+            var status = ReadDisplayValue(root, "status");
+            MemoryMapResultsText.Text = string.Join("\n", new[]
+            {
+                $"knowledge_id={ReadDisplayValue(root, "knowledge_id")}",
+                $"title={ReadDisplayValue(root, "title")}",
+                $"status={status}",
+                $"source_id={sourceId}",
+                $"supersedes={supersedes}",
+                $"superseded_by={supersededBy}",
+                "这是 Core Knowledge lineage 投影，不冒充 Memory Graph 节点、边或认知结论。",
+            });
+            SetStatus(MemoryMapStatusText, "记忆地图：已读取 Core Knowledge lineage。", "success");
+            SetInspectorProjection(
+                ReadDisplayValue(root, "knowledge_id"),
+                $"Knowledge lineage · {status}\n来源：{sourceId}",
+                sourceId,
+                $"supersedes={supersedes}",
+                status,
+                "仅展示 Core 已持久化的版本关系；不冒充 Memory Graph 或学习掌握。",
+                layer: "Core projection · Knowledge lineage");
+        }
+        catch (JsonException)
+        {
+            if (requestVersion != _memoryMapRequestVersion || !string.Equals(_activeSection, "memory-map", StringComparison.Ordinal))
+                return;
+            MemoryMapResultsText.Text = "Core Knowledge lineage 响应不是有效 JSON。";
+            SetStatus(MemoryMapStatusText, "记忆地图：响应解析失败。", "error");
+        }
+        catch (Exception ex)
+        {
+            if (requestVersion != _memoryMapRequestVersion || !string.Equals(_activeSection, "memory-map", StringComparison.Ordinal))
+                return;
+            MemoryMapResultsText.Text = $"Core Knowledge lineage 读取中断：{ex.Message}";
+            SetStatus(MemoryMapStatusText, "记忆地图：读取中断。", "error");
+        }
+        finally
+        {
+            if (requestVersion == _memoryMapRequestVersion)
+                MemoryMapLoadButton.IsEnabled = true;
+        }
+    }
+
+    private static string FormatRelationIds(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var values) || values.ValueKind != JsonValueKind.Array)
+            return "未暴露";
+        var ids = values.EnumerateArray()
+            .Where(value => value.ValueKind == JsonValueKind.String)
+            .Select(value => value.GetString())
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToArray();
+        return ids.Length == 0 ? "无" : string.Join(", ", ids);
     }
 
     private async Task RefreshSettingsAsync()
