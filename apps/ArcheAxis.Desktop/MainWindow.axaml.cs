@@ -54,6 +54,7 @@ public partial class MainWindow : Window
     private string? _librarySearchQuery;
     private string? _activeKnowledgeSourceId;
     private string? _activeEvidenceSourceId;
+    private string? _activeMemoryMapSourceId;
     private string? _sourceReaderReturnKnowledgeId;
     private bool _sourceReaderReturnToKnowledgeAvailable;
     private bool _activityDockExpanded;
@@ -622,9 +623,13 @@ public partial class MainWindow : Window
         var hasEvidenceSource = EvidenceSurface.IsVisible
             && !string.IsNullOrWhiteSpace(_activeEvidenceSourceId)
             && _activeEvidenceSourceId != "—";
+        var hasMemoryMapSource = MemoryMapSurface.IsVisible
+            && !string.IsNullOrWhiteSpace(_activeMemoryMapSourceId)
+            && _activeMemoryMapSourceId != "—";
         var hasLibraryResult = LibrarySurface.IsVisible && _selectedLibraryResult is not null;
         InspectorOpenSourceButton.IsEnabled = hasKnowledgeSource
             || hasEvidenceSource
+            || hasMemoryMapSource
             || (hasLibraryResult && !string.IsNullOrWhiteSpace(_selectedLibraryResult!.SourceId) && _selectedLibraryResult.SourceId != "—");
         InspectorOpenKnowledgeButton.IsEnabled = (hasLibraryResult
             && _selectedLibraryResult!.Kind == "knowledge"
@@ -639,6 +644,8 @@ public partial class MainWindow : Window
             OnOpenKnowledgeSourceClick(sender, e);
         else if (EvidenceSurface.IsVisible)
             OnOpenEvidenceSourceClick(sender, e);
+        else if (MemoryMapSurface.IsVisible)
+            OnOpenMemoryMapSourceClick(sender, e);
         else if (LibrarySurface.IsVisible)
             OnOpenLibrarySourceClick(sender, e);
     }
@@ -888,6 +895,25 @@ public partial class MainWindow : Window
     private void OnEvidenceOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
 
     private void OnMemoryMapLoadClick(object? sender, RoutedEventArgs e) => _ = RefreshMemoryMapAsync();
+
+    private void OnOpenMemoryMapSourceClick(object? sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_activeMemoryMapSourceId) || _activeMemoryMapSourceId == "—")
+        {
+            MemoryMapResultsText.Text = "当前 Knowledge lineage 未暴露 source_id，无法打开来源成员。";
+            return;
+        }
+
+        _returnToLibraryAvailable = false;
+        _knowledgeReturnToLibraryAvailable = false;
+        _sourceReaderReturnToKnowledgeAvailable = false;
+        _sourceReaderReturnKnowledgeId = null;
+        BackToLibraryButton.IsEnabled = false;
+        BackToLibraryFromKnowledgeButton.IsEnabled = false;
+        SourceReaderIdBox.Text = _activeMemoryMapSourceId;
+        SetSection("source-reader", "导入阅读");
+        OnReadSourceMembersClick(sender, e);
+    }
 
     private void OnUnavailableHomeClick(object? sender, RoutedEventArgs e) => OnHomeClick(sender, e);
 
@@ -1953,6 +1979,7 @@ public partial class MainWindow : Window
             var supersedes = FormatRelationIds(root, "supersedes");
             var supersededBy = FormatRelationIds(root, "superseded_by");
             var sourceId = ReadDisplayValue(root, "source_id");
+            _activeMemoryMapSourceId = sourceId;
             var status = ReadDisplayValue(root, "status");
             MemoryMapResultsText.Text = string.Join("\n", new[]
             {

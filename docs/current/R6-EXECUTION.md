@@ -2385,3 +2385,9 @@
 - scope: wired the Memory Map `knowledge_id` field into the existing toolbar Enter interaction so keyboard users invoke the same Core lineage read path as the button; no new endpoint or frontend state store was introduced.
 - verification: TDD static contract was observed RED before the handler was added, then `MEMORY_MAP_ENTER_STATIC_PASS=1`; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; full Memory Graph and native GUI keyboard/focus readback remain unverified.
+
+## Continuation receipt — 2026-09-23 P3 lineage source-chain navigation
+
+- scope: connected a persisted Knowledge lineage `source_id` to the existing Inspector “打开来源” action and Source Reader Core members projection; missing `source_id` stays unavailable and no source body or citation insertion is inferred.
+- verification: TDD static contract was observed RED before implementation, then `MEMORY_MAP_SOURCE_CHAIN_STATIC_PASS=1`; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native GUI pointer/focus readback remains unverified.

@@ -1810,6 +1810,9 @@ def test_memory_map_projects_core_knowledge_lineage_without_fabricating_graph() 
     assert '不冒充 Memory Graph' in xaml
     assert 'ReferenceEquals(sender, MemoryMapKnowledgeIdBox)' in code
     assert 'RefreshMemoryMapAsync()' in code
+    assert 'var hasMemoryMapSource = MemoryMapSurface.IsVisible' in code
+    assert 'else if (MemoryMapSurface.IsVisible)' in code
+    assert '_activeMemoryMapSourceId' in code
 
 
 def test_unavailable_product_surfaces_have_truthful_next_actions() -> None:

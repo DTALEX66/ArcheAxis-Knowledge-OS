@@ -67,6 +67,9 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   conclusions.
 - Memory Map `knowledge_id` accepts the existing toolbar Enter interaction and
   invokes the same Core lineage read path as the visible button.
+- When lineage exposes `source_id`, the Inspector now offers the same real
+  “打开来源” navigation into Source Reader; missing source fields remain
+  unavailable rather than being inferred.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
