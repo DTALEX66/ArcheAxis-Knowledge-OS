@@ -2285,3 +2285,17 @@
 - source_commit: `596d8fdc` (`fix(desktop): sync home and settings accessibility`).
 - verification: TDD RED was observed for the projection synchronization contract, then both desktop XAML documents parsed successfully; direct no-argument static desktop harness across navigation, learning-review, and route contracts reports `200 passed`; `git diff --check` passed. A fresh .NET build remains `NOT_EXECUTED` because no .NET SDK is available in PATH or the standard local installation paths.
 - evidence_boundary: IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / NOT_EXECUTED_BUILD. Native accessibility-tree readback, screen-reader announcement, screenshot, and cold-restart GUI journey remain `UNVERIFIED`; no installation, signing, Green overwrite, external-library write, or history deletion was performed.
+
+## Goal extension — 2026-09-23 cloud audit authority hardening
+
+- source: user-provided `ArcheAxis 云端全量审计与前次架构结论复核报告`
+- source_sha256: `A11CAF0B48596FFD1CB227CB308AB430230043D98816F80BD5BF1D3BAF180FF9`
+- reviewed_against: `c1e426ad5842eaa6ba90b26c798c3d315f74183c`
+- status: `PLANNED / IMPLEMENTATION_NOT_STARTED`
+- plan: `docs/superpowers/plans/2026-09-23-aaos-cloud-authority-hardening.md`
+- reconciliation: `docs/current/AAOS-CLOUD-AUDIT-RECONCILIATION-20260923.md`
+- priority: after current P3 frontend Candidate/staging and Local Green Owner Gate; it does not replace M0 or open release.
+- accepted direction: retain AAOS as the Canonical Knowledge–Evidence–Learning–Experience Authority; harden existing Candidate/Evidence/Promotion surfaces instead of creating a second Candidate system.
+- first gates: current-checkout object inventory; Candidate boundary audit; Evidence provenance replay; Promotion/Experience lifecycle; CI/supply-chain static audit.
+- unresolved: cloud-reported `src/aaos/*` paths are absent from this checkout and require path/SHA reconciliation; WORK-LAB/DESIGN-LAB full source, workflow permissions/logs, rulesets and security metadata remain unverified.
+- boundary: no external repository read/write, no shared-library scan, no Green/data change, no runtime install, no self-promotion.
