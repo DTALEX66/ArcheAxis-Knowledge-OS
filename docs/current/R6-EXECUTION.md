@@ -2434,3 +2434,10 @@
 - scope: allowed the bounded desktop test launcher to accept a project-local `.project-local/staging` Candidate in addition to build/run/dist artifacts. The launcher still rejects paths outside `.project-local`, writes only project-local launch receipts, and remains preparation-only unless `--launch` is explicitly passed.
 - verification: the previous exact Candidate preparation failed with `LAUNCH_PREP_EXIT=2` because staging was rejected; after the focused change, direct Candidate-runtime invocation returned `STAGING_LAUNCH_PREP_PASS=1`, `DIRECT_TEST_EXIT=0`, `workspace_mode=ISOLATED_TEST`, and a project-local `desktop-launch.json` receipt for the assembled Candidate.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / VERIFIED_LOCAL_LAUNCH_PREP`; this is not native GUI, Core journey, installed Green, signing, installer or release evidence.
+
+## Continuation receipt — 2026-09-23 P3 Learning empty-state responsive closure
+
+- scope: made the Learning empty-queue action group switch from horizontal to vertical at the existing narrow-actions breakpoint, matching the already responsive Capture, Learning Capture, Source Reader and Evidence empty-state surfaces. No Core endpoint, persistence, Green runtime or external resource changed.
+- agent_dispatch: `Socrates · actual self-reported GPT-5 · reasoning level not exposed` identified the gap read-only; the requested `GPT-5.6-terra · Low` override was not treated as confirmed actual model identity.
+- verification: targeted desktop contract invocation returned `LEARNING_EMPTY_ACTIONS_RESPONSIVE_PASS=1`; indexed external .NET SDK Debug build returned `DOTNET_UI_BUILD_EXIT=0` with `0` warnings and `0` errors; `git diff --check` returned `0`.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; native resized-window rendering and GUI pointer/focus readback remain unverified.

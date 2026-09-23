@@ -2434,6 +2434,9 @@ public partial class MainWindow : Window
         LearningCaptureActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
+        LearningEmptyActions.Orientation = narrowActions
+            ? Avalonia.Layout.Orientation.Vertical
+            : Avalonia.Layout.Orientation.Horizontal;
         SourceReaderContextActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;

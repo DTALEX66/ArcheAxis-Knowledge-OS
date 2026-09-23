@@ -1707,6 +1707,7 @@ def test_responsive_layout_reflows_home_cards_and_activity_dock() -> None:
     assert 'GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280)' in code
     assert 'CaptureContextActions.Orientation' in code
     assert 'LearningCaptureActions.Orientation' in code
+    assert 'LearningEmptyActions.Orientation' in code
 
 
 def test_wide_workspace_has_a_readable_bounded_center_width() -> None:
