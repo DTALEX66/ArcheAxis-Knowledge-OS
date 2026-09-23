@@ -554,12 +554,12 @@
                     <Button x:Name="EvidenceRefreshButton" Classes="primary-action" Content="读取证据" Padding="16,9" Click="OnEvidenceRefreshClick" AutomationProperties.Name="读取证据" />
                     <TextBlock x:Name="EvidenceStatusText" Grid.Column="1" Classes="status-empty" VerticalAlignment="Center" Text="empty · 尚未读取 Core Evidence。" TextWrapping="Wrap" AutomationProperties.Name="证据中心状态" />
                   </Grid>
-                  <Border Classes="aaos-empty-state" Padding="16">
+                  <Border x:Name="EvidenceEmptyState" Classes="aaos-empty-state" Padding="16">
                     <StackPanel Orientation="Horizontal" Spacing="16">
                       <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.82" AutomationProperties.Name="证据中心未接入插图" />
                       <StackPanel Spacing="7" VerticalAlignment="Center">
-                        <TextBlock Text="当前 Core 尚未暴露 Evidence 读模型" Classes="card-heading" />
-                        <TextBlock Text="这里不显示合成 anchor 或 bundle。你可以先捕获来源，或查看已持久化的任务回执。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                        <TextBlock Text="尚未读取 Evidence anchor" Classes="card-heading" />
+                        <TextBlock Text="点击“读取证据”读取 Core 已持久化的来源定位；页面不使用演示数据填充。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                           <Button Content="去捕获来源" Padding="12,7" Click="OnEvidenceOpenCaptureClick" AutomationProperties.Name="去捕获来源" />
                           <Button Content="查看任务回执" Padding="12,7" Click="OnEvidenceOpenJobsClick" AutomationProperties.Name="查看任务回执" />

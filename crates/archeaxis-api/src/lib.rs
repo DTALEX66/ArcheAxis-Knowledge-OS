@@ -66,6 +66,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/machine/tasks/:task_id", get(machine_task_readback))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
+        .route("/api/v1/evidence/anchors", get(evidence_anchors))
         .route("/api/v1/sources/:source_id/members", get(source_members))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
@@ -780,6 +781,43 @@ async fn create_anchor(
             .into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+    }).await
+}
+
+/// Read the persisted Evidence anchor projection without exposing source bodies.
+/// The Core remains the sole writer; this route only joins the canonical anchor
+/// and source hashes for the desktop Evidence Center.
+async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
+    with_store(state, |conn| {
+        let mut statement = match conn.prepare(
+            "SELECT a.anchor_id, a.source_id, s.sha256, a.source_revision, a.position, a.created_at
+             FROM anchors a JOIN sources s ON s.source_id = a.source_id
+             ORDER BY a.created_at ASC, a.anchor_id ASC",
+        ) {
+            Ok(statement) => statement,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let rows = match statement.query_map([], |row| {
+            Ok(serde_json::json!({
+                "anchor_id": row.get::<_, String>(0)?,
+                "source_id": row.get::<_, String>(1)?,
+                "raw_sha256": row.get::<_, String>(2)?,
+                "source_revision": row.get::<_, String>(3)?,
+                "position": row.get::<_, String>(4)?,
+                "created_at": row.get::<_, String>(5)?,
+            }))
+        }) {
+            Ok(rows) => rows,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let mut items = Vec::new();
+        for row in rows {
+            match row {
+                Ok(item) => items.push(item),
+                Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            }
+        }
+        (StatusCode::OK, Json(serde_json::json!({"items": items}))).into_response()
     }).await
 }
 

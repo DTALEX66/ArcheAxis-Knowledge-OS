@@ -1767,19 +1767,88 @@ public partial class MainWindow : Window
     {
         var requestVersion = ++_evidenceRequestVersion;
         EvidenceRefreshButton.IsEnabled = false;
-        SetStatus(EvidenceStatusText, "当前 Core 未暴露 Evidence 列表接口。", "unavailable");
         EvidenceAnchorDetailText.Text = "尚未选择 Evidence anchor。";
-        EvidenceBundlesText.Text = "未调用旧 workspace API；不构造合成 anchor 或 bundle。";
         EvidenceAnchorsList.ItemsSource = null;
-        SetInspectorProjection(
-            "Evidence Center",
-            "当前 Core 未暴露 Evidence anchor/bundle 列表接口。",
-            status: "unavailable",
-            boundary: "不调用旧 workspace API，不读取原文正文，不构造 Evidence 元数据；不把 Evidence 元数据升级为 Knowledge Truth。",
-            layer: "Core contract boundary · Evidence Center");
-        await Task.CompletedTask;
-        if (requestVersion == _evidenceRequestVersion)
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+        {
+            EvidenceEmptyState.IsVisible = true;
+            SetStatus(EvidenceStatusText, "Core 未就绪，未读取 Evidence。", "error");
+            EvidenceBundlesText.Text = "Core 未就绪；bundle 仍未读取。";
+            SetInspectorProjection("Evidence Center", "Core 未就绪，未读取 Evidence anchor。",
+                status: "error",
+                boundary: "不读取原文正文，不构造合成 anchor 或 bundle。",
+                layer: "Core projection boundary · Evidence Center");
             EvidenceRefreshButton.IsEnabled = true;
+            return;
+        }
+        SetStatus(EvidenceStatusText, "正在读取 Core Evidence anchor。", "loading");
+        try
+        {
+            using var response = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/evidence/anchors");
+            if (requestVersion != _evidenceRequestVersion || !string.Equals(_activeSection, "evidence", StringComparison.Ordinal))
+                return;
+            if (!response.IsSuccessStatusCode)
+            {
+                EvidenceEmptyState.IsVisible = true;
+                var detail = string.Empty;
+                try { detail = (await response.Content.ReadAsStringAsync()).Trim(); } catch (Exception) { }
+                if (detail.Length > 120) detail = detail[..120] + "…";
+                SetStatus(EvidenceStatusText,
+                    IsPermissionStatus(response.StatusCode) ? "Evidence：Core 拒绝当前访问权限。" : "Evidence：读取失败。",
+                    IsPermissionStatus(response.StatusCode) ? "permission" : "error");
+                EvidenceBundlesText.Text = string.IsNullOrWhiteSpace(detail)
+                    ? $"Core 未返回 Evidence anchor（HTTP {(int)response.StatusCode}）。"
+                    : $"Core 未返回 Evidence anchor（HTTP {(int)response.StatusCode}：{detail}）。";
+                SetInspectorProjection("Evidence Center", EvidenceBundlesText.Text,
+                    status: IsPermissionStatus(response.StatusCode) ? "permission" : "error",
+                    boundary: "Core 错误响应未形成 Evidence 投影；不构造合成数据。",
+                    layer: "Core projection boundary · Evidence Center");
+                return;
+            }
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            if (requestVersion != _evidenceRequestVersion || !string.Equals(_activeSection, "evidence", StringComparison.Ordinal))
+                return;
+            var rows = new List<EvidenceAnchorRow>();
+            if (document.RootElement.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in items.EnumerateArray())
+                {
+                    var anchorId = ReadDisplayValue(item, "anchor_id");
+                    if (string.IsNullOrWhiteSpace(anchorId) || anchorId == "未暴露") continue;
+                    rows.Add(new EvidenceAnchorRow(
+                        anchorId,
+                        ReadDisplayValue(item, "source_id"),
+                        ReadDisplayValue(item, "raw_sha256"),
+                        ReadDisplayValue(item, "source_revision"),
+                        ReadDisplayValue(item, "position")));
+                }
+            }
+            EvidenceAnchorsList.ItemsSource = rows;
+            EvidenceEmptyState.IsVisible = rows.Count == 0;
+            EvidenceBundlesText.Text = "Core 当前未暴露 Evidence bundle 读模型；仅显示已持久化 anchor。";
+            var status = rows.Count == 0 ? "Core 已响应，但当前没有 Evidence anchor。" : $"Core 已返回 {rows.Count} 个 Evidence anchor。";
+            SetStatus(EvidenceStatusText, status, rows.Count == 0 ? "empty" : "success");
+            SetInspectorProjection("Evidence Center", status,
+                status: rows.Count == 0 ? "empty" : "persisted",
+                boundary: "anchor 仅提供来源定位，不包含原文正文，也不等于 Knowledge 接受或学习掌握。",
+                layer: "Core projection · Evidence anchor");
+        }
+        catch (Exception ex)
+        {
+            if (requestVersion != _evidenceRequestVersion || !string.Equals(_activeSection, "evidence", StringComparison.Ordinal))
+                return;
+            SetStatus(EvidenceStatusText, "Evidence：读取响应无法解析。", "error");
+            EvidenceBundlesText.Text = $"Core Evidence 响应未形成列表：{ex.Message}";
+            SetInspectorProjection("Evidence Center", "Evidence 响应无法解析。",
+                status: "error",
+                boundary: "解析失败不产生 Evidence 投影；不构造合成数据。",
+                layer: "Core projection boundary · Evidence Center");
+        }
+        finally
+        {
+            if (requestVersion == _evidenceRequestVersion)
+                EvidenceRefreshButton.IsEnabled = true;
+        }
     }
 
     private static string FormatEvidenceBundles(JsonElement root)
@@ -3508,17 +3577,19 @@ public sealed class LibraryResultRow
 public sealed class EvidenceAnchorRow
 {
     public string AnchorId { get; }
+    public string SourceId { get; }
     public string RawSha256 { get; }
     public string SourceRevision { get; }
     public string Locator { get; }
-    public string DisplayText => $"{AnchorId} · revision={SourceRevision}";
+    public string DisplayText => $"{AnchorId} · source={SourceId} · revision={SourceRevision}";
     public string DetailText =>
-        $"anchor_id={AnchorId}\nraw_sha256={RawSha256}\nsource_revision={SourceRevision}\nlocator={Locator}\n" +
+        $"anchor_id={AnchorId}\nsource_id={SourceId}\nraw_sha256={RawSha256}\nsource_revision={SourceRevision}\nlocator={Locator}\n" +
         "Evidence anchor 仅提供来源定位，不包含原文正文。";
 
-    public EvidenceAnchorRow(string anchorId, string rawSha256, string sourceRevision, string locator)
+    public EvidenceAnchorRow(string anchorId, string sourceId, string rawSha256, string sourceRevision, string locator)
     {
         AnchorId = anchorId;
+        SourceId = sourceId;
         RawSha256 = rawSha256;
         SourceRevision = sourceRevision;
         Locator = locator;

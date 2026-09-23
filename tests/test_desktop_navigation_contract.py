@@ -1775,19 +1775,21 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'Click="OnEvidenceClick"' in xaml
     assert 'Click="OnEvidenceRefreshClick"' in xaml
     assert 'SelectionChanged="OnEvidenceAnchorSelected"' in xaml
-    assert '当前 Core 未暴露 Evidence 列表接口' in code
-    assert '未调用旧 workspace API' in code
+    assert 'HttpMethod.Get, "/api/v1/evidence/anchors"' in code
+    assert 'Core 当前未暴露 Evidence bundle 读模型' in code
     assert 'semanticState == "unavailable"' in code
     assert 'SendWorkspaceAsync(' not in code
     assert '"/api/evidence/anchors?limit=50"' not in code
     assert '"/api/evidence/bundles?limit=50"' not in code
     assert 'public sealed class EvidenceAnchorRow' in code
     assert '不包含原文正文' in code
-    assert '不把 Evidence 元数据升级为 Knowledge Truth' in code
+    assert '不等于 Knowledge 接受或学习掌握' in code
     assert 'x:Name="EvidenceSurface"' in xaml
+    assert 'x:Name="EvidenceEmptyState"' in xaml
+    assert 'EvidenceEmptyState.IsVisible = rows.Count == 0' in code
     assert 'Click="OnEvidenceOpenCaptureClick"' in xaml
     assert 'Click="OnEvidenceOpenJobsClick"' in xaml
-    assert '不显示合成 anchor 或 bundle' in xaml
+    assert '页面不使用演示数据填充' in xaml
 
 
 def test_unavailable_product_surfaces_have_truthful_next_actions() -> None:
