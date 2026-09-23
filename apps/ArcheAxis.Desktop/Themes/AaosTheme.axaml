@@ -47,6 +47,7 @@
         <x:Double x:Key="AaosFontControl">13</x:Double>
         <x:Double x:Key="AaosFontSection">14</x:Double>
         <x:Double x:Key="AaosFontHeading">18</x:Double>
+        <x:Double x:Key="AaosFontCard">16</x:Double>
         <x:Double x:Key="AaosFontPageTitle">26</x:Double>
         <x:Double x:Key="AaosFontHero">30</x:Double>
         <x:Double x:Key="AaosFontSubheading">24</x:Double>
@@ -277,7 +278,7 @@
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>
     <Style Selector="TextBlock.card-heading">
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="{DynamicResource AaosFontCard}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>

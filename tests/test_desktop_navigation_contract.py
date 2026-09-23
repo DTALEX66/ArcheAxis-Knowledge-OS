@@ -877,6 +877,8 @@ def test_aaos_page_hierarchy_uses_shared_heading_classes() -> None:
     theme = THEME_XAML.read_text(encoding="utf-8")
     assert 'Selector="TextBlock.section-heading"' in theme
     assert 'Selector="TextBlock.card-heading"' in theme
+    assert 'x:Key="AaosFontCard"' in theme
+    assert 'FontSize" Value="{DynamicResource AaosFontCard}"' in theme
     assert 'Text="今日关注" Classes="section-heading"' in xaml
     assert 'Text="当前会话回执" Classes="section-heading"' in xaml
     assert 'Text="继续阅读" Classes="card-heading"' in xaml
