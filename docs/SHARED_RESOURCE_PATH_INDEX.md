@@ -24,6 +24,7 @@
 | 资源 ID | 精确路径 | 现场读回 | 用途/边界 |
 | --- | --- | --- | --- |
 | `shared_dotnet_sdk` | `D:\All projects\OS External Configuration\10-toolchains\dotnet\dotnet.exe` | .NET SDK `10.0.400`，Host/Runtime `10.0.11` | AAOS `net10.0` Avalonia 构建；会话级显式调用，不修改系统 PATH |
+| `shared_aaos_ui_python` | `D:\All projects\OS External Configuration\10-toolchains\python\venv-aaos-ui-312\Scripts\python.exe` | CPython `3.12.13`，pytest `9.1.1`；独立 AAOS UI 测试环境 | AAOS 桌面/Candidate pytest；隔离于既有失效 uv trampoline 环境，不写入项目、用户 Home 或 Green |
 | `shared_nuget_cache` | `D:\All projects\OS External Configuration\60-cache\nuget` | 已恢复 AAOS Avalonia `12.1.2` 与 DiagnosticsSupport `2.2.3` 依赖 | 共享依赖缓存；不提交缓存内容，不清理其他项目包 |
 | `aaos_frontend_candidate` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-va64788c4-x64` | 225 files / 216,503,711 bytes；self-contained win-x64 publish exit `0` | Avalonia Desktop built from source HEAD `a64788c4a7087c452db31df15ef733d6ad2ae353`；isolated Candidate, not Green installation |
 | `aaos_frontend_executable_sha256` | Candidate 内 `ArcheAxis.Desktop.exe` | `9AC4ECA515CF0DEAD3F530FF75199FD1FAAE06484E6B25E31A74F91DD5ED9393` | Candidate readback；需继续经过 staging、Owner Gate、备份、替换和回滚验收 |

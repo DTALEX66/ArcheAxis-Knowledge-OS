@@ -49,7 +49,7 @@
                 <StackPanel x:Name="ContextCaptureSubnav" IsVisible="False" Spacing="7">
                     <TextBlock Text="捕获" Classes="rail-label" />
                     <TextBlock Text="选择资料并查看本次会话的真实回执。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <Button Content="选择资料" HorizontalContentAlignment="Left" Click="OnImportClick" AutomationProperties.Name="选择资料" />
+                    <Button x:Name="HomeSidebarImportButton" Content="选择资料" HorizontalContentAlignment="Left" Click="OnImportClick" AutomationProperties.Name="选择资料" />
                     <Button Content="打开任务回执" HorizontalContentAlignment="Left" Click="OnJobsClick" AutomationProperties.Name="打开任务回执" />
                 </StackPanel>
                 <StackPanel x:Name="ContextKnowledgeSubnav" IsVisible="False" Spacing="7">
@@ -222,8 +222,9 @@
                     <StackPanel Spacing="10">
                       <TextBlock Text="当前选择" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                       <TextBlock x:Name="CaptureSelectionText" Text="尚未选择资料。" TextWrapping="Wrap" Foreground="{DynamicResource AaosIvoryBrush}" />
+                      <TextBlock x:Name="CaptureImportStatusText" Text="尚未开始导入。" Classes="status-empty" AutomationProperties.Name="捕获导入状态" />
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Classes="primary-action" Content="选择资料" Padding="16,9" Click="OnImportClick" AutomationProperties.Name="选择资料" />
+                        <Button x:Name="CaptureImportButton" Classes="primary-action" Content="选择资料" Padding="16,9" Click="OnImportClick" AutomationProperties.Name="选择资料" />
                         <Button Content="打开任务回执" Padding="16,9" Click="OnJobsClick" AutomationProperties.Name="打开任务回执" />
                       </StackPanel>
                     </StackPanel>
@@ -464,7 +465,7 @@
                   </Border>
                   <StackPanel x:Name="LearningEmptyActions" Orientation="Horizontal" Spacing="8" IsVisible="False">
                     <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" Opacity="0.9" AutomationProperties.Name="星环知识空态插图" />
-                    <Button Content="去资料库导入" Padding="12,7" Click="OnLearningOpenLibraryClick" AutomationProperties.Name="去资料库导入学习材料" />
+                    <Button Content="去捕获导入" Padding="12,7" Click="OnCaptureClick" AutomationProperties.Name="去捕获导入学习材料" />
                     <Button Content="查看任务状态" Padding="12,7" Click="OnLearningOpenJobsClick" AutomationProperties.Name="查看学习相关任务状态" />
                   </StackPanel>
                   <Border Padding="14" CornerRadius="8" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
@@ -544,7 +545,7 @@
                 <StackPanel x:Name="RecoverySurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="恢复" Classes="page-title" />
                   <TextBlock Text="读取当前 Core 与工作区身份状态。当前 Core 未暴露恢复点列表或恢复动作；本页不执行、不预演恢复。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                  <Button Content="读取恢复边界状态" HorizontalAlignment="Left" Padding="16,9" Click="OnReadRecoveryStatusClick" AutomationProperties.Name="读取恢复边界状态" />
+                  <Button x:Name="ReadRecoveryStatusButton" Content="读取恢复边界状态" HorizontalAlignment="Left" Padding="16,9" Click="OnReadRecoveryStatusClick" AutomationProperties.Name="读取恢复边界状态" />
                   <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <TextBlock x:Name="RecoveryResultsText" Classes="status-empty" Text="empty · 点击读取 Core 状态。" TextWrapping="Wrap" />
                   </Border>

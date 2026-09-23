@@ -227,7 +227,9 @@ def test_desktop_rejects_inconsistent_correctness_and_fsrs_rating_before_post() 
     shell = _shell_source()
     submit = _region(shell, "private async void OnSubmitReviewClick", "public sealed class LibraryResultRow")
 
-    assert "var rating = _activeReviewRating ?? (correct ? 3 : 1);" in submit
+    assert "if (_activeReviewRating is null)" in submit
+    assert "var rating = _activeReviewRating.Value;" in submit
+    assert "_activeReviewRating ?? (correct ? 3 : 1)" not in submit
     assert "if ((correct && rating == 1) || (!correct && rating >= 3))" in submit
     assert "SubmitReviewButton.IsEnabled = false;" in submit
 
@@ -279,6 +281,15 @@ def test_fsrs_rating_does_not_silently_change_core_correctness() -> None:
     assert "_activeReviewRating = rating;" in rating
     assert "ReviewOutcomeBox.SelectedIndex" not in rating
     assert "FSRS" in rating
+
+
+def test_review_submission_requires_an_explicit_fsrs_rating() -> None:
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick")
+
+    assert "if (_activeReviewRating is null)" in submit
+    assert "var rating = _activeReviewRating.Value;" in submit
+    assert "_activeReviewRating ?? (correct ? 3 : 1)" not in submit
 
 
 def test_learning_queue_is_selectable_instead_of_fixing_the_first_core_item() -> None:

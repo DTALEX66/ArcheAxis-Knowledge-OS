@@ -35,6 +35,8 @@ public partial class MainWindow : Window
     private string? _selectedLearningItemKey;
     private bool _hydratingLearningQueue;
     private bool _learningNavigationLoadInProgress;
+    private bool _captureImportInProgress;
+    private bool _recoveryLoadInProgress;
     private long _sourceReaderRequestVersion;
     private long _sourceTransformRequestVersion;
     private long _evidenceRequestVersion;
@@ -60,6 +62,8 @@ public partial class MainWindow : Window
     private bool _sourceReaderReturnToKnowledgeAvailable;
     private bool _activityDockExpanded;
     private long _workspaceSummaryRequestVersion;
+    private long _settingsRequestVersion;
+    private long _recoveryRequestVersion;
     private bool _homeLearningAvailable;
     private int? _homeLearningCount;
     private bool _inspectorDrawerOpen;
@@ -380,6 +384,28 @@ public partial class MainWindow : Window
 
     private void SetSection(string section, string heading)
     {
+        if (!string.Equals(section, "source-reader", StringComparison.Ordinal))
+        {
+            ++_sourceReaderRequestVersion;
+            ++_sourceTransformRequestVersion;
+        }
+        if (!string.Equals(section, "evidence", StringComparison.Ordinal))
+            ++_evidenceRequestVersion;
+        if (!string.Equals(section, "memory-map", StringComparison.Ordinal))
+            ++_memoryMapRequestVersion;
+        if (!string.Equals(section, "learning", StringComparison.Ordinal))
+        {
+            ++_learningRequestVersion;
+            ++_reviewRequestVersion;
+        }
+        if (!string.Equals(section, "knowledge", StringComparison.Ordinal))
+            ++_knowledgeRequestVersion;
+        if (!string.Equals(section, "library", StringComparison.Ordinal))
+            ++_librarySearchRequestVersion;
+        if (!string.Equals(section, "settings", StringComparison.Ordinal))
+            ++_settingsRequestVersion;
+        if (!string.Equals(section, "recovery", StringComparison.Ordinal))
+            ++_recoveryRequestVersion;
         if (!string.Equals(section, "machine-growth", StringComparison.Ordinal))
             ++_machineTaskRequestVersion;
         if (!string.Equals(section, "jobs", StringComparison.Ordinal))
@@ -969,10 +995,10 @@ public partial class MainWindow : Window
 
     private Task ReadRecoveryStatusAsync()
     {
-        if (!RecoverySurface.IsVisible)
+        if (!RecoverySurface.IsVisible || _recoveryLoadInProgress)
             return Task.CompletedTask;
-        OnReadRecoveryStatusClick(this, new RoutedEventArgs());
-        return Task.CompletedTask;
+        var requestVersion = ++_recoveryRequestVersion;
+        return ReadRecoveryStatusCoreAsync(requestVersion);
     }
 
     private void SetCommandPaletteVisibility(bool visible)
@@ -1557,17 +1583,26 @@ public partial class MainWindow : Window
         OnReadJobReceiptClick(sender, e);
     }
 
-    private async void OnReadRecoveryStatusClick(object? sender, RoutedEventArgs e)
+    private async void OnReadRecoveryStatusClick(object? sender, RoutedEventArgs e) => await ReadRecoveryStatusAsync();
+
+    private async Task ReadRecoveryStatusCoreAsync(long requestVersion)
     {
-        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
-        {
-            SetStatus(RecoveryResultsText, "error · 核心未就绪，无法读取恢复边界状态。", "error");
-            return;
-        }
+        _recoveryLoadInProgress = true;
+        ReadRecoveryStatusButton.IsEnabled = false;
+        SetStatus(RecoveryResultsText, "loading · 正在读取恢复边界状态。", "loading");
         try
         {
+            if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+            {
+                SetStatus(RecoveryResultsText, "error · 核心未就绪，无法读取恢复边界状态。", "error");
+                return;
+            }
             using var versionResponse = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/system/version");
+            if (requestVersion != _recoveryRequestVersion || !string.Equals(_activeSection, "recovery", StringComparison.Ordinal))
+                return;
             using var workspaceResponse = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/workspaces/info");
+            if (requestVersion != _recoveryRequestVersion || !string.Equals(_activeSection, "recovery", StringComparison.Ordinal))
+                return;
             if (!versionResponse.IsSuccessStatusCode || !workspaceResponse.IsSuccessStatusCode)
             {
                 var failedResponse = !versionResponse.IsSuccessStatusCode ? versionResponse : workspaceResponse;
@@ -1597,11 +1632,20 @@ public partial class MainWindow : Window
         }
         catch (JsonException)
         {
-            SetStatus(RecoveryResultsText, "error · Recovery 响应不是有效 JSON；未执行任何恢复动作。", "error");
+            if (requestVersion == _recoveryRequestVersion && string.Equals(_activeSection, "recovery", StringComparison.Ordinal))
+                SetStatus(RecoveryResultsText, "error · Recovery 响应不是有效 JSON；未执行任何恢复动作。", "error");
         }
         catch (Exception)
         {
-            SetStatus(RecoveryResultsText, "error · 恢复边界状态读取中断；未执行任何恢复动作。", "error");
+            if (requestVersion == _recoveryRequestVersion && string.Equals(_activeSection, "recovery", StringComparison.Ordinal))
+                SetStatus(RecoveryResultsText, "error · 恢复边界状态读取中断；未执行任何恢复动作。", "error");
+        }
+        finally
+        {
+            _recoveryLoadInProgress = false;
+            ReadRecoveryStatusButton.IsEnabled = true;
+            if (requestVersion != _recoveryRequestVersion && string.Equals(_activeSection, "recovery", StringComparison.Ordinal))
+                _ = ReadRecoveryStatusAsync();
         }
     }
 
@@ -1862,6 +1906,7 @@ public partial class MainWindow : Window
             status: "persisted",
             boundary: "Evidence anchor 仅定位来源证据；不等于 Knowledge 接受或学习掌握。",
             layer: "Core projection · Evidence anchor");
+        UpdateInspectorActions();
     }
 
     private async Task RefreshEvidenceAsync()
@@ -1870,6 +1915,8 @@ public partial class MainWindow : Window
         EvidenceRefreshButton.IsEnabled = false;
         EvidenceAnchorDetailText.Text = "尚未选择 Evidence anchor。";
         EvidenceAnchorsList.ItemsSource = null;
+        _activeEvidenceSourceId = null;
+        UpdateInspectorActions();
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
         {
             EvidenceEmptyState.IsVisible = true;
@@ -1970,6 +2017,8 @@ public partial class MainWindow : Window
     {
         var requestVersion = ++_memoryMapRequestVersion;
         MemoryMapLoadButton.IsEnabled = false;
+        _activeMemoryMapSourceId = null;
+        UpdateInspectorActions();
         var knowledgeId = MemoryMapKnowledgeIdBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(knowledgeId))
         {
@@ -2036,6 +2085,7 @@ public partial class MainWindow : Window
                 status,
                 "仅展示 Core 已持久化的版本关系；不冒充 Memory Graph 或学习掌握。",
                 layer: "Core projection · Knowledge lineage");
+            UpdateInspectorActions();
         }
         catch (JsonException)
         {
@@ -2072,6 +2122,7 @@ public partial class MainWindow : Window
 
     private async Task RefreshSettingsAsync()
     {
+        var requestVersion = ++_settingsRequestVersion;
         SettingsRefreshButton.IsEnabled = false;
         SetStatus(SettingsStateText, "正在读取 Core 版本与工作区状态。", "loading");
         SettingsCoreStatusText.Classes.Set("status-version", false);
@@ -2086,6 +2137,8 @@ public partial class MainWindow : Window
         try
         {
             using var response = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/system/version");
+            if (requestVersion != _settingsRequestVersion || !string.Equals(_activeSection, "settings", StringComparison.Ordinal))
+                return;
             if (!response.IsSuccessStatusCode)
             {
                 if ((int)response.StatusCode == 401)
@@ -2119,6 +2172,8 @@ public partial class MainWindow : Window
                 return;
             }
             using var workspaceResponse = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/workspaces/info");
+            if (requestVersion != _settingsRequestVersion || !string.Equals(_activeSection, "settings", StringComparison.Ordinal))
+                return;
             SettingsCoreStatusText.Text = $"Runtime：{runtime ?? "未知"}\nContract：{contract ?? "未知"}\nSchema：{schema ?? "未知"}";
             var hasVersionFields = !string.IsNullOrWhiteSpace(runtime)
                 || !string.IsNullOrWhiteSpace(contract)
@@ -2157,19 +2212,24 @@ public partial class MainWindow : Window
         }
         catch (JsonException)
         {
+            if (requestVersion != _settingsRequestVersion || !string.Equals(_activeSection, "settings", StringComparison.Ordinal))
+                return;
             SetStatus(SettingsStateText, "Core 状态响应不是有效 JSON。", "error");
             SettingsCoreStatusText.Text = "Core 状态解析失败。";
             SettingsWorkspaceStatusText.Text = "工作区：未读取；响应解析失败。";
         }
         catch (Exception)
         {
+            if (requestVersion != _settingsRequestVersion || !string.Equals(_activeSection, "settings", StringComparison.Ordinal))
+                return;
             SetStatus(SettingsStateText, "Core 状态读取中断。", "error");
             SettingsCoreStatusText.Text = "Core 版本读取中断。";
             SettingsWorkspaceStatusText.Text = "工作区：读取中断；未推断为可用。";
         }
         finally
         {
-            SettingsRefreshButton.IsEnabled = true;
+            if (requestVersion == _settingsRequestVersion)
+                SettingsRefreshButton.IsEnabled = true;
         }
     }
 
@@ -3049,12 +3109,46 @@ public partial class MainWindow : Window
 
     private async void OnImportClick(object? sender, RoutedEventArgs e)
     {
+        if (_captureImportInProgress)
+            return;
+        _captureImportInProgress = true;
+        SetCaptureImportActionsEnabled(false);
+        SetStatus(CaptureImportStatusText, "正在打开资料选择器。", "loading");
+        try
+        {
+            await ImportSelectedFilesAsync();
+        }
+        catch (Exception)
+        {
+            CoreStatusText.Text = "核心状态：导入未完成";
+            CaptureReceiptText.Text = "导入未完成；请检查捕获状态与 Core 回执。已提交部分以现有回执为准。";
+            SetStatus(CaptureImportStatusText, "导入未完成；请检查 Core 状态后重试。", "error");
+            ShowToast("导入未完成；请检查捕获回执", "error");
+        }
+        finally
+        {
+            _captureImportInProgress = false;
+            SetCaptureImportActionsEnabled(true);
+        }
+    }
+
+    private void SetCaptureImportActionsEnabled(bool enabled)
+    {
+        HomeSidebarImportButton.IsEnabled = enabled;
+        FirstRunImportButton.IsEnabled = enabled;
+        HomeImportButton.IsEnabled = enabled;
+        CaptureImportButton.IsEnabled = enabled;
+    }
+
+    private async Task ImportSelectedFilesAsync()
+    {
         SetSection("capture", "捕获");
         var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
         if (storage is null)
         {
             CoreStatusText.Text = "核心状态：文件选择器不可用";
             CaptureReceiptText.Text = "文件选择器不可用；未提交任何资料。";
+            SetStatus(CaptureImportStatusText, "文件选择器不可用；未提交任何资料。", "error");
             return;
         }
 
@@ -3068,13 +3162,16 @@ public partial class MainWindow : Window
             CoreStatusText.Text = "核心状态：已取消资料选择";
             CaptureSelectionText.Text = "尚未选择资料。";
             CaptureReceiptText.Text = "已取消选择；未提交任何资料。";
+            SetStatus(CaptureImportStatusText, "已取消选择；未提交任何资料。", "empty");
             return;
         }
         CaptureSelectionText.Text = $"已选择 {files.Count} 个资料：{string.Join("、", files.Take(3).Select(file => file.Name))}{(files.Count > 3 ? " …" : string.Empty)}";
+        SetStatus(CaptureImportStatusText, $"已选择 {files.Count} 个资料；正在逐项提交并读取 Core 回执。", "loading");
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
         {
             CoreStatusText.Text = $"核心状态：已选择 {files.Count} 个资料，但核心未就绪";
             CaptureReceiptText.Text = $"已选择 {files.Count} 个资料；Core 未就绪，未提交任何资料。";
+            SetStatus(CaptureImportStatusText, "Core 未就绪；未提交任何资料。", "error");
             return;
         }
 
@@ -3098,11 +3195,19 @@ public partial class MainWindow : Window
                     HttpMethod.Post,
                     "/api/v1/imports",
                     new StringContent(payload, Encoding.UTF8, "application/json"));
-                if (!response.IsSuccessStatusCode) continue;
+                if (!response.IsSuccessStatusCode)
+                {
+                    failed++;
+                    continue;
+                }
                 imported++;
                 using var source = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 var sourceId = source.RootElement.GetProperty("source_id").GetString();
-                if (string.IsNullOrWhiteSpace(sourceId)) continue;
+                if (string.IsNullOrWhiteSpace(sourceId))
+                {
+                    failed++;
+                    continue;
+                }
                 var captureContext = new CaptureContextRow(file.Name, sourceId);
                 _captureContexts.Add(captureContext);
                 _latestCaptureContext = captureContext;
@@ -3118,6 +3223,7 @@ public partial class MainWindow : Window
                     new StringContent(enqueue, Encoding.UTF8, "application/json"));
                 if (!queued.IsSuccessStatusCode)
                 {
+                    failed++;
                     captureContext.JobState = "queue_failed";
                     RefreshCaptureContextProjection();
                     continue;
@@ -3136,6 +3242,7 @@ public partial class MainWindow : Window
                     new Dictionary<string, string> { ["idempotency-key"] = jobId });
                 if (!started.IsSuccessStatusCode)
                 {
+                    failed++;
                     captureContext.JobState = "execution_submit_failed";
                     RefreshCaptureContextProjection();
                     continue;
@@ -3147,13 +3254,14 @@ public partial class MainWindow : Window
                 captureContext.JobState = string.IsNullOrWhiteSpace(state) ? "unknown" : state;
                 RefreshCaptureContextProjection();
                 if (state == "succeeded") completed++;
-                else if (state is "failed" or "cancelled") failed++;
+                else failed++;
             }
         }
         catch (Exception)
         {
             CoreStatusText.Text = $"核心状态：导入中断，已提交 {imported}/{files.Count} 个资料";
             CaptureReceiptText.Text = $"导入中断；Core 已接收 {imported}/{files.Count} 个资料。转换与知识状态仍以任务回执为准。";
+            SetStatus(CaptureImportStatusText, "导入中断；请查看本次会话中已保留的来源和任务回执。", "error");
             foreach (var captureContext in _captureContexts.Where(context => context.JobState is "queued" or "running"))
                 captureContext.JobState = "unknown";
             RefreshCaptureContextProjection();
@@ -3163,6 +3271,9 @@ public partial class MainWindow : Window
         }
         CoreStatusText.Text = $"核心状态：已导入 {imported}/{files.Count}，处理完成 {completed}/{executions}，失败 {failed}";
         CaptureReceiptText.Text = $"Core 已接收 {imported}/{files.Count} 个资料；任务完成 {completed}/{executions}，失败 {failed}。未据此推断知识已接受。";
+        SetStatus(CaptureImportStatusText,
+            $"处理完成：Core 接收 {imported}/{files.Count}，任务完成 {completed}/{executions}，失败 {failed}。",
+            failed == 0 ? "success" : "error");
         if (imported > 0)
             ShowToast($"已接收 {imported}/{files.Count} 项；任务状态见回执", failed == 0 ? "success" : "info");
         await RefreshJobsAsync();
@@ -3627,8 +3738,14 @@ public partial class MainWindow : Window
             SetStatus(LearningReviewStatusText, "复习提交失败：请选择回答结果。", "error");
             return;
         }
+        if (_activeReviewRating is null)
+        {
+            CoreStatusText.Text = "学习路径：请选择复习难度";
+            SetStatus(LearningReviewStatusText, "复习提交失败：请选择 FSRS 复习难度。", "error");
+            return;
+        }
         var correct = ReviewOutcomeBox.SelectedIndex == 1;
-        var rating = _activeReviewRating ?? (correct ? 3 : 1);
+        var rating = _activeReviewRating.Value;
         if ((correct && rating == 1) || (!correct && rating >= 3))
         {
             CoreStatusText.Text = "学习路径：回答结果与 FSRS 评分组合不一致";

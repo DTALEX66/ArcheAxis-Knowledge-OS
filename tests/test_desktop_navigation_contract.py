@@ -545,7 +545,9 @@ def test_learning_review_exposes_explicit_grade_controls() -> None:
     assert 'SetReviewRating(4);' in code
     assert 'ReviewAgainButton.IsEnabled = assessmentReady;' in code
     assert 'ReviewEasyButton.IsEnabled = assessmentReady;' in code
-    assert 'rating = _activeReviewRating ?? (correct ? 3 : 1)' in code
+    assert 'if (_activeReviewRating is null)' in code
+    assert 'rating = _activeReviewRating.Value' in code
+    assert '_activeReviewRating ?? (correct ? 3 : 1)' not in code
 
 
 def test_knowledge_v3_uses_explicit_state_semantics() -> None:
@@ -1820,6 +1822,87 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'SetResponsiveToolbar(MemoryMapToolbar' in code
 
 
+def test_evidence_selection_updates_inspector_action_state() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    start = code.index("private void OnEvidenceAnchorSelected")
+    end = code.index("private async Task RefreshEvidenceAsync", start)
+    selection = code[start:end]
+
+    assert "_activeEvidenceSourceId = selected.SourceId;" in selection
+    assert "UpdateInspectorActions();" in selection
+
+
+def test_memory_map_result_updates_inspector_and_clears_stale_source() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    start = code.index("private async Task RefreshMemoryMapAsync")
+    end = code.index("private static string FormatRelationIds", start)
+    refresh = code[start:end]
+
+    assert "_activeMemoryMapSourceId = null;" in refresh
+    assert "UpdateInspectorActions();" in refresh
+
+
+def test_recovery_reads_show_loading_and_prevent_duplicate_requests() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    start = code.index("private async void OnReadRecoveryStatusClick")
+    end = code.index("private async void OnReadKnowledgeClick", start)
+    recovery = code[start:end]
+
+    assert 'x:Name="ReadRecoveryStatusButton"' in xaml
+    assert "_recoveryLoadInProgress" in recovery
+    assert 'SetStatus(RecoveryResultsText, "loading · 正在读取恢复边界状态。", "loading")' in recovery
+    assert "finally" in recovery and "ReadRecoveryStatusButton.IsEnabled = true;" in recovery
+
+
+def test_route_changes_invalidate_inflight_page_reads() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    start = code.index("private void SetSection")
+    end = code.index("private void PlayWorkspaceRouteTransition", start)
+    routing = code[start:end]
+
+    for counter in (
+        "_sourceReaderRequestVersion",
+        "_sourceTransformRequestVersion",
+        "_evidenceRequestVersion",
+        "_memoryMapRequestVersion",
+        "_learningRequestVersion",
+        "_reviewRequestVersion",
+        "_knowledgeRequestVersion",
+        "_librarySearchRequestVersion",
+        "_machineTaskRequestVersion",
+        "_jobLookupRequestVersion",
+        "_settingsRequestVersion",
+        "_recoveryRequestVersion",
+    ):
+        assert f"++{counter}" in routing
+
+
+def test_capture_rejects_reentry_and_counts_queue_and_execution_failures() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    start = code.index("private async void OnImportClick")
+    end = code.index("private async Task<string?> WaitForJobAsync", start)
+    capture = code[start:end]
+
+    assert "if (_captureImportInProgress)\n            return;" in capture
+    assert "SetCaptureImportActionsEnabled(false);" in capture
+    assert "SetCaptureImportActionsEnabled(true);" in capture
+    assert "if (!queued.IsSuccessStatusCode)\n                {\n                    failed++;" in capture
+    assert "if (!started.IsSuccessStatusCode)\n                {\n                    failed++;" in capture
+    assert 'if (state == "succeeded") completed++;\n                else failed++;' in capture
+
+
+def test_learning_empty_state_sends_user_to_real_capture_entrypoint() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    start = xaml.index('x:Name="LearningEmptyActions"')
+    end = xaml.index("</StackPanel>", start)
+    empty_actions = xaml[start:end]
+
+    assert 'Click="OnCaptureClick"' in empty_actions
+    assert 'AutomationProperties.Name="去捕获导入学习材料"' in empty_actions
+    assert 'Click="OnLearningOpenLibraryClick"' not in empty_actions
+
+
 def test_memory_map_projects_core_knowledge_lineage_without_fabricating_graph() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
@@ -1908,7 +1991,7 @@ def test_learning_review_actions_reflow_and_navigation_surfaces_auto_refresh() -
 
     assert 'x:Name="ReviewActionsGrid"' in xaml
     assert 'x:Name="LearningEmptyActions"' in xaml
-    assert 'Click="OnLearningOpenLibraryClick"' in xaml
+    assert 'Click="OnCaptureClick"' in xaml
     assert 'Click="OnLearningOpenJobsClick"' in xaml
     assert 'ReviewActionsGrid.ColumnDefinitions = narrowActions' in code
     assert 'new RowDefinitions("Auto,Auto,Auto,Auto")' in code

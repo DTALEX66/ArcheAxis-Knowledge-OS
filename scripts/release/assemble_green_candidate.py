@@ -175,6 +175,7 @@ If Not files.FileExists(executable) Then
 End If
 If Not files.FolderExists(dataRoot) Then files.CreateFolder dataRoot
 shell.Environment("PROCESS")("ARCHEAXIS_CORE_BIN") = root & "\\core\\archeaxis-api.exe"
+shell.Environment("PROCESS")("ARCHEAXIS_PYTHON") = root & "\\runtime\\python.exe"
 shell.Environment("PROCESS")("ARCHEAXIS_DATA_DIR") = dataRoot
 shell.Environment("PROCESS")("ARCHEAXIS_LAUNCHER_DATA_DIR") = dataRoot
 shell.Environment("PROCESS")("ARCHEAXIS_VNEXT_DB") = dataRoot & "\\workspace.sqlite"
