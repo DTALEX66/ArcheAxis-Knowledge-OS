@@ -173,12 +173,14 @@ shell.Environment("PROCESS")("ARCHEAXIS_DATA_DIR") = dataRoot
 shell.Environment("PROCESS")("ARCHEAXIS_LAUNCHER_DATA_DIR") = dataRoot
 shell.Environment("PROCESS")("ARCHEAXIS_VNEXT_DB") = dataRoot & "\\workspace.sqlite"
 shell.Environment("PROCESS")("ARCHEAXIS_WORKER_PROFILE") = root & "\\worker-profile.json"
+shell.Environment("PROCESS")("ARCHEAXIS_SCHEDULER_WORKER") = root & "\\workers\\learning\\worker_schedule.py"
 ' Keep historical spellings for older launch helpers.
 shell.Environment("PROCESS")("ARCHAXIS_CORE_BIN") = root & "\\core\\archeaxis-api.exe"
 shell.Environment("PROCESS")("ARCHAXIS_DATA_DIR") = dataRoot
 shell.Environment("PROCESS")("ARCHAXIS_LAUNCHER_DATA_DIR") = dataRoot
 shell.Environment("PROCESS")("ARCHAXIS_VNEXT_DB") = dataRoot & "\\workspace.sqlite"
 shell.Environment("PROCESS")("ARCHAXIS_WORKER_PROFILE") = root & "\\worker-profile.json"
+shell.Environment("PROCESS")("ARCHAXIS_SCHEDULER_WORKER") = root & "\\workers\\learning\\worker_schedule.py"
 shell.Run Chr(34) & executable & Chr(34), 1, False
 '''
     launcher.write_text(launcher_text, encoding="utf-8", newline="\r\n")

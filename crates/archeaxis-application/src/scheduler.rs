@@ -47,6 +47,52 @@ pub const AUTHORITY_FSRS: &str = "fsrs";
 pub const WORKER_RELATIVE_PATH: &str =
     "services/python-workers/learning/worker_schedule.py";
 
+#[cfg(test)]
+mod tests {
+    use super::{resolve_scheduler_worker, WORKER_RELATIVE_PATH};
+    use std::path::Path;
+
+    #[test]
+    fn explicit_scheduler_worker_wins_for_portable_runtime() {
+        let packaged = Path::new(r"C:\candidate\workers\learning\worker_schedule.py");
+        let repo = Path::new(r"C:\repo");
+        assert_eq!(
+            resolve_scheduler_worker(Some(packaged), None, repo),
+            packaged
+        );
+    }
+
+    #[test]
+    fn legacy_scheduler_worker_name_is_supported() {
+        let packaged = Path::new(r"C:\candidate\workers\learning\worker_schedule.py");
+        let repo = Path::new(r"C:\repo");
+        assert_eq!(
+            resolve_scheduler_worker(None, Some(packaged), repo),
+            packaged
+        );
+    }
+
+    #[test]
+    fn repository_worker_remains_development_fallback() {
+        let repo = Path::new(r"C:\repo");
+        assert_eq!(
+            resolve_scheduler_worker(None, None, repo),
+            repo.join(WORKER_RELATIVE_PATH)
+        );
+    }
+}
+
+fn resolve_scheduler_worker(
+    explicit: Option<&std::path::Path>,
+    legacy: Option<&std::path::Path>,
+    repository: &std::path::Path,
+) -> PathBuf {
+    explicit
+        .or(legacy)
+        .map(PathBuf::from)
+        .unwrap_or_else(|| repository.join(WORKER_RELATIVE_PATH))
+}
+
 #[derive(Debug)]
 pub enum SchedulerError {
     /// The worker could not be run at all (missing interpreter/script, spawn or
@@ -88,16 +134,20 @@ impl SchedulerClient {
         Self { python: python.into(), worker: worker.into() }
     }
 
-    /// Build a client from `ARCHEAXIS_PYTHON` plus the repository worker path
-    /// derived from this crate's manifest directory.
+    /// Build a client from `ARCHEAXIS_PYTHON` plus an explicit packaged worker
+    /// when supplied. The repository path remains the development fallback.
     pub fn from_env() -> Result<Self, SchedulerError> {
         let python = std::env::var_os("ARCHEAXIS_PYTHON")
             .map(PathBuf::from)
             .ok_or_else(|| SchedulerError::Unavailable("ARCHEAXIS_PYTHON is not set".into()))?;
-        let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        let repository = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("..")
-            .join("..")
-            .join(WORKER_RELATIVE_PATH);
+            .join("..");
+        let worker = resolve_scheduler_worker(
+            std::env::var_os("ARCHEAXIS_SCHEDULER_WORKER").as_deref().map(std::path::Path::new),
+            std::env::var_os("ARCHAXIS_SCHEDULER_WORKER").as_deref().map(std::path::Path::new),
+            &repository,
+        );
         Ok(Self::new(python, worker))
     }
 

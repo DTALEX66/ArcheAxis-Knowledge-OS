@@ -45,6 +45,10 @@ def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(t
         assert profile['script'] == str(ROOT / 'services/python-workers/transport/text_ndjson.py')
         assert Path(profile['python']).is_file()
         assert first['environment']['ARCHEAXIS_PYTHON'] == profile['python']
+        assert first['environment']['ARCHEAXIS_SCHEDULER_WORKER'] == str(
+            ROOT / 'services/python-workers/learning/worker_schedule.py'
+        )
+        assert first['environment']['ARCHAXIS_SCHEDULER_WORKER'] == first['environment']['ARCHEAXIS_SCHEDULER_WORKER']
         database = Path(first['environment']['ARCHAXIS_VNEXT_DB'])
         assert database == Path(second['environment']['ARCHAXIS_VNEXT_DB'])
         assert database.is_relative_to(ROOT / '.project-local/state')
