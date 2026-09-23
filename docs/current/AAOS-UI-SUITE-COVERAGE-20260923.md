@@ -41,12 +41,14 @@ receipts. This matrix does not promote reference demos, static numbers or
 
 ## Current verification anchor
 
-- Frontend implementation commit: `596d8fdc`.
-- Latest documentation/branch commit: `596d8fdc`, recorded by the current
-  `UI_IMPLEMENTATION_REPORT.md` and `R6-EXECUTION.md` continuation receipt.
-- Direct no-argument desktop contract harness: `200 passed`.
+- Frontend implementation/evidence baseline: `8ea12ffe` on
+  `codex/aaos-p3-ui-convergence-20260922`.
+- Direct no-argument desktop contract harness: `201 passed`.
 - XAML XML parsing: `PASS`.
-- Native GUI and fresh .NET build: `UNVERIFIED / NOT_EXECUTED`.
+- Fresh external-toolchain self-contained `win-x64` publish: `PASS`.
+- Isolated Green Candidate staging and provenance/hash verification: `PASS`,
+  scope `desktop-core-only`.
+- Native GUI screenshot, pointer/focus tree and cold restart: `UNVERIFIED`.
 
 No Green directory, external resource root, protected history asset, credential
 or unrelated dirty file was modified for this matrix.

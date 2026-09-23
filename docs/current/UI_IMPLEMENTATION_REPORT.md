@@ -40,19 +40,21 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation HEAD: `596d8fdc` on
+- Frontend implementation/evidence HEAD: `8ea12ffe` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
-- The last Avalonia Debug build and self-contained `win-x64` Release publish
-  remain proven for `8156be8c`; a fresh build for `e9586fcb` is
-  `NOT_EXECUTED` because the current shell has no PATH .NET SDK and the
-  indexed external toolchain was not invoked under the external-resource boundary.
+- Fresh self-contained `win-x64` Release publish through the indexed external
+  `.NET SDK 10.0.400` completed with `PUBLISH_EXIT=0`; the Candidate EXE
+  SHA-256 is `8C733F9AC0AF8DB151354AD0244AFD8D6D5ADDA9B38C6572CF27A89DEDAD4EA0`.
+- The Candidate was independently assembled and verified in project-local
+  staging with `VERIFY_GREEN_EXIT=0`; the verified scope is explicitly
+  `desktop-core-only`, without a Python runtime or workers claim.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
 - Current combined frontend verification after Home/Settings projection
-  accessibility synchronization: `200 passed`.
+  accessibility synchronization: `201 passed`.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.
