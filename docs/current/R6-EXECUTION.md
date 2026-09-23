@@ -2315,3 +2315,10 @@
 - verification: `scripts/release/assemble_green_candidate.py` returned `ASSEMBLE_EXIT=0`; `scripts/release/verify_green_candidate.py` returned `VERIFY_GREEN_EXIT=0` with required provenance bound to the current `HEAD` and tree. Manifest records `226` files; staged tree contains `227` files and `222298427` bytes.
 - scope_readback: verifier reports `desktop-core-only`; Python runtime and workers are not included and are not claimed. This is a valid isolated Candidate staging result, not a Green replacement or full worker-enabled runtime claim.
 - evidence_boundary: `STAGED_LOCAL / VERIFIED_LOCAL_STATIC`; native GUI screenshot, focus/accessibility-tree, cold restart, Green backup/replacement/rollback, installer/signing and release remain `UNVERIFIED` or owner-gated. No Green overwrite or publication was performed.
+
+## Continuation receipt — 2026-09-23 P3 card typography token convergence
+
+- scope: replaced the remaining `card-heading` page-level font-size literal with the existing AAOS semantic resource `AaosFontCard`; no Core route, persistence, Green runtime, external resource, or unrelated dirty file was changed.
+- source_commit: `67499def` (`feat(desktop): tokenize card heading typography`).
+- verification: TDD RED was observed for the new typography contract, then the full direct no-argument desktop harness reported `201` tests; `App.axaml`, `MainWindow.axaml`, and `Themes/AaosTheme.axaml` parsed successfully; `git diff --check` passed. External indexed `.NET SDK 10.0.400` self-contained `win-x64` publish returned `PUBLISH_EXIT=0`; Candidate contains `224` files and `216418259` bytes, with `ArcheAxis.Desktop.exe` SHA-256 `8856E05BD482C4FA468AC4BB7B0F3918A0276E831AE88BCAD560CA78D7F08A48`.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / CANDIDATE_PUBLISHED_LOCAL`; the prior combined desktop/Core staging receipt remains bound to its own source commit. A new combined staging receipt is `NOT_EXECUTED` because `cargo`/`rustc` are unavailable for an exact Core rebuild; native GUI, Green replacement, installer/signing and release remain unverified or owner-gated.

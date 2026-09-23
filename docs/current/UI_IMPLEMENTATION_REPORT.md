@@ -40,15 +40,17 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation/evidence HEAD: `8ea12ffe` on
+- Frontend implementation/evidence HEAD: `67499def` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - Fresh self-contained `win-x64` Release publish through the indexed external
   `.NET SDK 10.0.400` completed with `PUBLISH_EXIT=0`; the Candidate EXE
-  SHA-256 is `8C733F9AC0AF8DB151354AD0244AFD8D6D5ADDA9B38C6572CF27A89DEDAD4EA0`.
-- The Candidate was independently assembled and verified in project-local
-  staging with `VERIFY_GREEN_EXIT=0`; the verified scope is explicitly
-  `desktop-core-only`, without a Python runtime or workers claim.
+  SHA-256 is `8856E05BD482C4FA468AC4BB7B0F3918A0276E831AE88BCAD560CA78D7F08A48`.
+- The preceding frontend/Core pair was independently assembled and verified
+  in project-local staging with `VERIFY_GREEN_EXIT=0`; that receipt remains
+  bound to its recorded source commit. A new combined staging receipt is not
+  claimed here because the current environment has no `cargo`/`rustc` to
+  rebuild the Core against this frontend commit.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace

@@ -41,13 +41,15 @@ receipts. This matrix does not promote reference demos, static numbers or
 
 ## Current verification anchor
 
-- Frontend implementation/evidence baseline: `8ea12ffe` on
+- Frontend implementation/evidence baseline: `67499def` on
   `codex/aaos-p3-ui-convergence-20260922`.
 - Direct no-argument desktop contract harness: `201 passed`.
 - XAML XML parsing: `PASS`.
 - Fresh external-toolchain self-contained `win-x64` publish: `PASS`.
-- Isolated Green Candidate staging and provenance/hash verification: `PASS`,
-  scope `desktop-core-only`.
+- Isolated Green Candidate staging and provenance/hash verification: `PASS`
+  for the preceding recorded frontend/Core pair; a new combined staging
+  receipt is `NOT_EXECUTED` because `cargo`/`rustc` are unavailable for an
+  exact Core rebuild against this frontend commit.
 - Native GUI screenshot, pointer/focus tree and cold restart: `UNVERIFIED`.
 
 No Green directory, external resource root, protected history asset, credential
