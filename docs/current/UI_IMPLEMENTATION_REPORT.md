@@ -54,6 +54,10 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   with `answer_saved=true`, `fsrs=true` and `mastery_projection_closed=false`.
   This is portable headless journey evidence, not Green replacement or native
   GUI acceptance.
+- Evidence Center now reads persisted Core anchors through
+  `/api/v1/evidence/anchors`, projects source hash/revision/position fields and
+  keeps bundles explicitly unavailable. A real staged-package import→anchor→
+  list readback passed; no source body or synthetic Evidence was added.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
