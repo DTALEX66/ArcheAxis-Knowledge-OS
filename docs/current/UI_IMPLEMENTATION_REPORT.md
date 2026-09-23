@@ -11,7 +11,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 | --- | --- | --- |
 | Home / Workspace | `HomeSurface` | Implemented: responsive hero, first-run readiness, lifecycle, focus, session receipt and next actions |
 | Capture Inbox | `CaptureSurface` | Implemented: real file picker and Core submission/readback boundary |
-| Evidence Library | `EvidenceSurface` | Implemented truthful unavailable state plus Capture/Jobs next actions; Core list read model still absent |
+| Evidence Library | `EvidenceSurface` | Implemented persisted Core anchor list, truthful bundle boundary, and Capture/Jobs next actions |
 | Evidence Detail | Evidence inspector / source chain | Implemented for fields exposed by Core; no synthetic anchor/bundle rows |
 | Originals / Original Editor | `SourceReaderSurface` | Implemented source member selection, transform readback and provenance copy; editor persistence remains Core-bound |
 | Human Learning | `LearningSurface` | Implemented real queue read, selectable items, answer, independent correctness, FSRS grade, receipt and restart readback |
@@ -58,6 +58,9 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   `/api/v1/evidence/anchors`, projects source hash/revision/position fields and
   keeps bundles explicitly unavailable. A real staged-package import→anchor→
   list readback passed; no source body or synthetic Evidence was added.
+- Evidence anchor selection now enables the Inspector “打开来源” action and
+  routes the persisted `source_id` into Source Reader for the existing Core
+  members projection; no source body or citation insertion is fabricated.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace

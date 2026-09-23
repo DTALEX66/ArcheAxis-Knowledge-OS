@@ -52,6 +52,7 @@ public partial class MainWindow : Window
     private bool _knowledgeReturnToLibraryAvailable;
     private string? _librarySearchQuery;
     private string? _activeKnowledgeSourceId;
+    private string? _activeEvidenceSourceId;
     private string? _sourceReaderReturnKnowledgeId;
     private bool _sourceReaderReturnToKnowledgeAvailable;
     private bool _activityDockExpanded;
@@ -614,8 +615,12 @@ public partial class MainWindow : Window
         var hasKnowledgeSource = KnowledgeSurface.IsVisible
             && !string.IsNullOrWhiteSpace(_activeKnowledgeSourceId)
             && _activeKnowledgeSourceId != "—";
+        var hasEvidenceSource = EvidenceSurface.IsVisible
+            && !string.IsNullOrWhiteSpace(_activeEvidenceSourceId)
+            && _activeEvidenceSourceId != "—";
         var hasLibraryResult = LibrarySurface.IsVisible && _selectedLibraryResult is not null;
         InspectorOpenSourceButton.IsEnabled = hasKnowledgeSource
+            || hasEvidenceSource
             || (hasLibraryResult && !string.IsNullOrWhiteSpace(_selectedLibraryResult!.SourceId) && _selectedLibraryResult.SourceId != "—");
         InspectorOpenKnowledgeButton.IsEnabled = (hasLibraryResult
             && _selectedLibraryResult!.Kind == "knowledge"
@@ -628,6 +633,8 @@ public partial class MainWindow : Window
     {
         if (KnowledgeSurface.IsVisible)
             OnOpenKnowledgeSourceClick(sender, e);
+        else if (EvidenceSurface.IsVisible)
+            OnOpenEvidenceSourceClick(sender, e);
         else if (LibrarySurface.IsVisible)
             OnOpenLibrarySourceClick(sender, e);
     }
@@ -847,7 +854,30 @@ public partial class MainWindow : Window
         OnLearningClick(this, new RoutedEventArgs());
     }
 
-    private void OnEvidenceClick(object? sender, RoutedEventArgs e) => SetSection("evidence", "证据中心");
+    private void OnEvidenceClick(object? sender, RoutedEventArgs e)
+    {
+        _activeEvidenceSourceId = null;
+        SetSection("evidence", "证据中心");
+    }
+
+    private void OnOpenEvidenceSourceClick(object? sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_activeEvidenceSourceId) || _activeEvidenceSourceId == "—")
+        {
+            EvidenceAnchorDetailText.Text = "当前 Evidence anchor 未暴露 source_id，无法打开来源成员。";
+            return;
+        }
+
+        _returnToLibraryAvailable = false;
+        _knowledgeReturnToLibraryAvailable = false;
+        _sourceReaderReturnToKnowledgeAvailable = false;
+        _sourceReaderReturnKnowledgeId = null;
+        BackToLibraryButton.IsEnabled = false;
+        BackToLibraryFromKnowledgeButton.IsEnabled = false;
+        SourceReaderIdBox.Text = _activeEvidenceSourceId;
+        SetSection("source-reader", "导入阅读");
+        OnReadSourceMembersClick(sender, e);
+    }
 
     private void OnEvidenceOpenCaptureClick(object? sender, RoutedEventArgs e) => OnCaptureClick(sender, e);
 
@@ -1753,6 +1783,7 @@ public partial class MainWindow : Window
         if (e.AddedItems.Count != 1 || e.AddedItems[0] is not EvidenceAnchorRow selected)
             return;
         EvidenceAnchorDetailText.Text = selected.DetailText;
+        _activeEvidenceSourceId = selected.SourceId;
         SetInspectorProjection(
             selected.AnchorId,
             selected.DetailText,

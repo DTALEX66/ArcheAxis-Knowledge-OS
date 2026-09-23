@@ -1775,6 +1775,10 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'Click="OnEvidenceClick"' in xaml
     assert 'Click="OnEvidenceRefreshClick"' in xaml
     assert 'SelectionChanged="OnEvidenceAnchorSelected"' in xaml
+    assert 'else if (EvidenceSurface.IsVisible)' in code
+    assert 'private void OnOpenEvidenceSourceClick' in code
+    assert 'SourceReaderIdBox.Text = _activeEvidenceSourceId;' in code
+    assert 'var hasEvidenceSource = EvidenceSurface.IsVisible' in code
     assert 'HttpMethod.Get, "/api/v1/evidence/anchors"' in code
     assert 'Core 当前未暴露 Evidence bundle 读模型' in code
     assert 'semanticState == "unavailable"' in code
