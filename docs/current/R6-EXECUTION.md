@@ -2376,5 +2376,6 @@
 ## Continuation receipt — 2026-09-23 P3 Knowledge lineage surface
 
 - scope: replaced the Memory Map all-unavailable shell with a bounded read-only Knowledge lineage surface using the existing Core `/api/v1/knowledge-items/{id}/v3` projection. It displays only persisted `supersedes`, `superseded_by`, `source_id`, status and identity fields; it does not create a graph store, synthetic edges, metrics or a second truth source.
+- source_commit: `d7a4b02e`; remote branch readback matched this SHA after push.
 - verification: TDD static contract was observed RED before implementation, then `MEMORY_MAP_LINEAGE_STATIC_PASS=1`; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; this advances the available Core lineage contract but full Memory Graph, Evidence bundles, Original Editor persistence, citation insertion and native GUI readback remain open or owner-gated. No Green overwrite or external library change was performed.

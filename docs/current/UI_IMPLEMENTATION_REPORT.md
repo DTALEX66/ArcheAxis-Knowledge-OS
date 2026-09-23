@@ -40,7 +40,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation/evidence HEAD: `a1ba4fbc` on
+- Frontend implementation/evidence HEAD: `d7a4b02e` on
   `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
   the current R6 receipt, and the branch is published to its matching remote branch.
 - Fresh self-contained `win-x64` Release publish through the indexed external
