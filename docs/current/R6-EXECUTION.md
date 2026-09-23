@@ -2428,3 +2428,9 @@
 - scope: assembled the current self-contained Desktop Candidate with the existing canonical Rust Core release binary, indexed Python runtime and repository workers into `.project-local/staging/p3-9c8870cf/ArcheAxis.Knowledge.Green-vp3-9c8870cf-x64`. No Green directory was overwritten.
 - verification: `assemble_green_candidate.py` returned `ASSEMBLE_EXIT=0`; `verify_green_candidate.py --require-runtime --require-workers --require-provenance` returned `ok=true`, scope `desktop-core-runtime-workers`, `21474` files and `problems=[]` with provenance bound to current source SHA `9c8870cf`.
 - evidence_boundary: `TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD / VERIFIED_LOCAL_CANDIDATE`; native GUI and installed Green runtime acceptance remain unverified.
+
+## Continuation receipt — 2026-09-23 P3 staging Candidate launch preparation
+
+- scope: allowed the bounded desktop test launcher to accept a project-local `.project-local/staging` Candidate in addition to build/run/dist artifacts. The launcher still rejects paths outside `.project-local`, writes only project-local launch receipts, and remains preparation-only unless `--launch` is explicitly passed.
+- verification: the previous exact Candidate preparation failed with `LAUNCH_PREP_EXIT=2` because staging was rejected; after the focused change, direct Candidate-runtime invocation returned `STAGING_LAUNCH_PREP_PASS=1`, `DIRECT_TEST_EXIT=0`, `workspace_mode=ISOLATED_TEST`, and a project-local `desktop-launch.json` receipt for the assembled Candidate.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / VERIFIED_LOCAL_LAUNCH_PREP`; this is not native GUI, Core journey, installed Green, signing, installer or release evidence.

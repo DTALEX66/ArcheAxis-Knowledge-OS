@@ -232,3 +232,20 @@ def test_fresh_workspace_is_explicit_and_isolated(tmp_path):
         for receipt in receipts:
             remove_receipt_artifact(receipt)
         shutil.rmtree(fixture_root, ignore_errors=True)
+
+
+def test_prepare_accepts_project_local_staging_candidate(tmp_path):
+    launcher = load_launcher()
+    fixture_root = ROOT / '.project-local' / 'staging' / f'launch-{tmp_path.name}'
+    fixture_root.mkdir(parents=True, exist_ok=True)
+    desktop, core = fixture_root / 'desktop.exe', fixture_root / 'core.exe'
+    desktop.write_bytes(b'desktop-fixture')
+    core.write_bytes(b'core-fixture')
+    receipt = None
+    try:
+        receipt = launcher.prepare_launch(desktop=desktop, core=core, fresh_workspace=True)
+        assert receipt['workspace_mode'] == 'ISOLATED_TEST'
+        assert receipt['command'] == [str(desktop)]
+    finally:
+        remove_receipt_artifact(receipt)
+        shutil.rmtree(fixture_root, ignore_errors=True)

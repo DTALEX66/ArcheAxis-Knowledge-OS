@@ -259,6 +259,10 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
   event delivery remains subject to the existing native GUI verification limit.
 - Green, external libraries, credentials, E/F drives, protected history assets
   and unrelated dirty worktree files were not modified.
+- The project-local launch preparation path now accepts the assembled staging
+  Candidate under `.project-local/staging` while retaining the project-local
+  boundary; this proves preparation only, not native GUI or installed Green
+  runtime acceptance.
 
 ## Next phase boundary
 

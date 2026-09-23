@@ -47,8 +47,8 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
     for path in (desktop, core):
         if not path.is_relative_to(paths['dev']):
             raise ValueError('development executable must be inside project .project-local')
-        if path.relative_to(paths['dev']).parts[0] not in {'build', 'runs', 'dist'}:
-            raise ValueError('development executable must be a build, run or dist artifact')
+        if path.relative_to(paths['dev']).parts[0] not in {'build', 'runs', 'dist', 'staging'}:
+            raise ValueError('development executable must be a build, run, dist or staging artifact')
         if not path.is_file():
             raise ValueError('required development executable is missing')
     # Prefer an explicitly selected project interpreter (for example the
