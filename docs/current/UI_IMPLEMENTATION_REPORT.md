@@ -40,12 +40,14 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 
 ## Local evidence
 
-- Frontend implementation/evidence HEAD: `d7a4b02e` on
-  `codex/aaos-p3-ui-convergence-20260922`; the evidence receipt is recorded by
-  the current R6 receipt, and the branch is published to its matching remote branch.
+- Frontend implementation/evidence baseline is now source commit
+  `a64788c4a7087c452db31df15ef733d6ad2ae353` on
+  `codex/aaos-p3-ui-convergence-20260922`; the matching remote branch was pushed
+  and read back at that SHA before the latest documentation refresh.
 - Fresh self-contained `win-x64` Release publish through the indexed external
-  `.NET SDK 10.0.400` completed with `PUBLISH_EXIT=0`; the Candidate EXE
-  SHA-256 is `8856E05BD482C4FA468AC4BB7B0F3918A0276E831AE88BCAD560CA78D7F08A48`.
+  `.NET SDK 10.0.400` completed with `PUBLISH_EXIT=0` from source commit
+  `a64788c4`; Candidate path, size and executable hash are recorded in
+  `docs/SHARED_RESOURCE_PATH_INDEX.md`.
 - The project-local Candidate `p3-9654023a` was assembled from the frontend
   Candidate, rebuilt Core, indexed runtime, workers and the bundled FSRS donor;
   `verify_green_candidate.py --require-runtime --require-workers
@@ -93,8 +95,10 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
   binding checks.
-- Current combined frontend verification after Home/Settings projection
-  accessibility synchronization: `201 passed`.
+- Earlier combined frontend verification after Home/Settings projection
+  accessibility synchronization: `201 passed` at its recorded source baseline.
+- Current no-argument navigation and route static contract harness: `182 passed`
+  with zero failures. Current Avalonia Debug build: zero warnings and errors.
 - Source Reader citation metadata action is implemented and covered by the
   extended gate; it copies only Core-exposed identity fields and never source
   body text.

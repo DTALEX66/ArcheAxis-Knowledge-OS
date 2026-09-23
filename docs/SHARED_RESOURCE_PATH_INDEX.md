@@ -25,10 +25,10 @@
 | --- | --- | --- | --- |
 | `shared_dotnet_sdk` | `D:\All projects\OS External Configuration\10-toolchains\dotnet\dotnet.exe` | .NET SDK `10.0.400`，Host/Runtime `10.0.11` | AAOS `net10.0` Avalonia 构建；会话级显式调用，不修改系统 PATH |
 | `shared_nuget_cache` | `D:\All projects\OS External Configuration\60-cache\nuget` | 已恢复 AAOS Avalonia `12.1.2` 与 DiagnosticsSupport `2.2.3` 依赖 | 共享依赖缓存；不提交缓存内容，不清理其他项目包 |
-| `aaos_frontend_candidate` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-v1ae2955974fb-x64` | 225 files / 216,489,411 bytes；self-contained win-x64 publish exit `0` | 当前 HEAD `1ae2955974fb30e4d38fd933e07ccc8cef7d609d` 的隔离 Candidate；不等于 Green 安装 |
-| `aaos_frontend_executable_sha256` | Candidate 内 `ArcheAxis.Desktop.exe` | `D4A5C280E3E8113A9CE5633D8B5EC421666E8100F97FA5CE33245EE2082864C1` | Candidate readback；需继续经过 staging、Owner Gate、备份、替换和回滚验收 |
+| `aaos_frontend_candidate` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-va64788c4-x64` | 225 files / 216,503,711 bytes；self-contained win-x64 publish exit `0` | Avalonia Desktop built from source HEAD `a64788c4a7087c452db31df15ef733d6ad2ae353`；isolated Candidate, not Green installation |
+| `aaos_frontend_executable_sha256` | Candidate 内 `ArcheAxis.Desktop.exe` | `9AC4ECA515CF0DEAD3F530FF75199FD1FAAE06484E6B25E31A74F91DD5ED9393` | Candidate readback；需继续经过 staging、Owner Gate、备份、替换和回滚验收 |
 
-本次构建证据：外置 SDK `dotnet --info` 通过；Release self-contained `win-x64` publish 通过；桌面静态合约 `201 passed`；两份 Avalonia XAML XML 解析通过；`git diff --check` 通过。原生 GUI/CUA 当前无可接管窗口，截图、点击、焦点、冷启动和 Green 原位替换仍为 `UNVERIFIED`/`NOT_READY`。
+本次构建证据：外置 SDK `.NET 10.0.400` Release self-contained `win-x64` publish 通过；桌面导航与路由无参数静态合约 `182 passed`；Debug build 为 `0 warnings / 0 errors`；`git diff --check` 通过。机器运行时/Launch pytest suites 在当前 Candidate Python 缺少 pytest 的情况下未执行。原生 GUI/CUA 当前无可接管窗口，截图、点击、焦点、冷启动和 Green 原位替换仍为 `UNVERIFIED`/`NOT_READY`。
 
 **三个不同边界不能合并：** 绿色软件安装目录、绿色版真实资料库、项目测试资料库。严禁把测试的输出、删除或迁移动作路由到真实资料库。
 

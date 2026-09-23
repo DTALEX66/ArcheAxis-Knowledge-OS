@@ -2448,3 +2448,9 @@
 - agent_dispatch: two parallel read-only audits returned via the agent tool. Both agents self-reported actual `GPT-5`; reasoning levels were not exposed, so requested model overrides (`GPT-5.6-terra / Low` and `GPT-5.6-sol / Medium`) are not claimed as actual execution identity. Volta identified the Library filter gap; Dalton identified the Machine task interaction gap. Neither edited files.
 - verification: both affected static contracts passed; the direct no-argument Avalonia navigation and route harness executed `182` tests with `0` failures. Indexed external .NET SDK Debug build returned `0` warnings and `0` errors; `git diff --check` passed. A wider attempted harness that imported pytest-dependent runtime/staging/launch suites could not collect because the candidate Python runtime lacks `pytest`; those suites remain `NOT_EXECUTED` in this invocation.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / TESTED_LOCAL_BUILD`; actual narrow-window pixels, live Core error-path interaction, native accessibility announcements and full P3 page acceptance remain unverified.
+
+## Continuation receipt — 2026-09-23 P3 current responsive and machine-state Candidate
+
+- scope: published the Avalonia Desktop from source commit `a64788c4a7087c452db31df15ef733d6ad2ae353` as an isolated self-contained `win-x64` Candidate at `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-va64788c4-x64`.
+- verification: indexed external SDK `10.0.400` returned `DOTNET_UI_PUBLISH_EXIT=0`; Candidate contains `225` files / `216503711` bytes; `ArcheAxis.Desktop.exe` SHA-256 is `9AC4ECA515CF0DEAD3F530FF75199FD1FAAE06484E6B25E31A74F91DD5ED9393`. The canonical resource index now points to this Candidate.
+- evidence_boundary: `TESTED_LOCAL_BUILD / CANDIDATE_PUBLISHED_LOCAL`; no combined Core/runtime staging or native GUI acceptance was performed for this source SHA, and the Candidate is not an installed Green update.
