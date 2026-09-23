@@ -2343,3 +2343,10 @@
 - learning_readback: Candidate `--learning-smoke` returned `LEARNING SMOKE OK`; `answer_saved=true`, `fsrs=true`, and `mastery_projection_closed=false`. The earlier failure was reproduced and explained by omitting `ARCHEAXIS_PYTHON`; with the indexed Candidate Python runtime supplied, the FSRS worker authority completed successfully.
 - desktop_readback: the same rebuilt Core launched through `scripts/launch/desktop_launch.py` with an isolated test workspace; Windows reported responsive Core and Desktop processes and native title `星环知识平台 — 已连接`. Exact launcher, Desktop and Core PIDs were stopped after observation.
 - evidence_boundary: `TESTED_LOCAL_HEADLESS_LEARNING / CORE_CONNECTED_LOCAL`; this is stronger than static evidence but does not prove native screenshot, pointer/focus tree, accessibility tree or full GUI first-use. CUA native binding remains unavailable; Green replacement, installer/signing and release were not performed.
+
+## Continuation receipt — 2026-09-23 P3 complete Candidate package staging
+
+- scope: assembled Desktop, rebuilt Core, indexed Python runtime and project worker sources into a new project-local Green Candidate package; no real Green directory, Green user data, external library contents, or unrelated dirty file was changed.
+- candidate: `.project-local/staging/p3-6fc42f91/ArcheAxis.Knowledge.Green-vp3-6fc42f91-x64`.
+- verification: `assemble_green_candidate.py` returned `ASSEMBLE_FULL_EXIT=0`; `verify_green_candidate.py --require-runtime --require-workers --require-provenance` returned `VERIFY_FULL_GREEN_EXIT=0`. Scope is `desktop-core-runtime-workers`; manifest records `21471` files; staged tree contains `21472` files and `882125009` bytes.
+- evidence_boundary: `STAGED_LOCAL / VERIFIED_LOCAL_STATIC`; package completeness, file hashes and provenance are verified, but portable installed-runtime scheduler-worker readback, native GUI first-use, Green backup/replacement/rollback, installer/signing and release remain unverified or owner-gated. No Green overwrite or publication was performed.
