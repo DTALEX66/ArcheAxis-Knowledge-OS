@@ -2299,3 +2299,11 @@
 - first gates: current-checkout object inventory; Candidate boundary audit; Evidence provenance replay; Promotion/Experience lifecycle; CI/supply-chain static audit.
 - unresolved: cloud-reported `src/aaos/*` paths are absent from this checkout and require path/SHA reconciliation; WORK-LAB/DESIGN-LAB full source, workflow permissions/logs, rulesets and security metadata remain unverified.
 - boundary: no external repository read/write, no shared-library scan, no Green/data change, no runtime install, no self-promotion.
+
+## Continuation receipt — 2026-09-23 P3 fresh Candidate publish readback
+
+- scope: rebuilt the canonical Avalonia frontend from the current checkout into the project-local Candidate directory; no Green runtime, Green user data, external library, or unrelated dirty file was changed.
+- source_commit: `d763715087d584c30079e12f184171833fc1f8d6`.
+- verification: external indexed SDK `D:\All projects\OS External Configuration\10-toolchains\dotnet\dotnet.exe` (`10.0.400`) published `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj` as self-contained `win-x64`; `PUBLISH_EXIT=0`. Candidate contains `224` files and `216418259` bytes; `ArcheAxis.Desktop.exe` SHA-256 is `8C733F9AC0AF8DB151354AD0244AFD8D6D5ADDA9B38C6572CF27A89DEDAD4EA0`.
+- static_verification: direct no-argument desktop harness reports `201` tests; `App.axaml`, `MainWindow.axaml`, and `Themes/AaosTheme.axaml` parse as XML; `git diff --check` passed.
+- evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / CANDIDATE_PUBLISHED_LOCAL`; native GUI screenshot, focus/accessibility-tree, cold restart, independent staging, Green replacement, rollback, installer/signing and release remain `UNVERIFIED` or owner-gated. No Green overwrite or publication was performed.
