@@ -17,6 +17,19 @@
 开发产物：由 `scripts/runtime/dev.py` 管理 `<repo>/.project-local/` 中的 worktree/run 路径。
 已核实的工具链子目录：`D:\All projects\OS External Configuration\10-toolchains`。它是 `shared_tools` 的子目录，不是第六个相互竞争的工具库。
 
+## 2026-09-23 AAOS 前端构建工具链与 Candidate 记录
+
+本节只记录本次实际调用的路径与可复核元数据；外置工具链和缓存不复制进本项目，Green 目录不因本记录被覆盖。
+
+| 资源 ID | 精确路径 | 现场读回 | 用途/边界 |
+| --- | --- | --- | --- |
+| `shared_dotnet_sdk` | `D:\All projects\OS External Configuration\10-toolchains\dotnet\dotnet.exe` | .NET SDK `10.0.400`，Host/Runtime `10.0.11` | AAOS `net10.0` Avalonia 构建；会话级显式调用，不修改系统 PATH |
+| `shared_nuget_cache` | `D:\All projects\OS External Configuration\60-cache\nuget` | 已恢复 AAOS Avalonia `12.1.2` 与 DiagnosticsSupport `2.2.3` 依赖 | 共享依赖缓存；不提交缓存内容，不清理其他项目包 |
+| `aaos_frontend_candidate` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-v1ae2955974fb-x64` | 225 files / 216,489,411 bytes；self-contained win-x64 publish exit `0` | 当前 HEAD `1ae2955974fb30e4d38fd933e07ccc8cef7d609d` 的隔离 Candidate；不等于 Green 安装 |
+| `aaos_frontend_executable_sha256` | Candidate 内 `ArcheAxis.Desktop.exe` | `D4A5C280E3E8113A9CE5633D8B5EC421666E8100F97FA5CE33245EE2082864C1` | Candidate readback；需继续经过 staging、Owner Gate、备份、替换和回滚验收 |
+
+本次构建证据：外置 SDK `dotnet --info` 通过；Release self-contained `win-x64` publish 通过；桌面静态合约 `201 passed`；两份 Avalonia XAML XML 解析通过；`git diff --check` 通过。原生 GUI/CUA 当前无可接管窗口，截图、点击、焦点、冷启动和 Green 原位替换仍为 `UNVERIFIED`/`NOT_READY`。
+
 **三个不同边界不能合并：** 绿色软件安装目录、绿色版真实资料库、项目测试资料库。严禁把测试的输出、删除或迁移动作路由到真实资料库。
 
 ## 2026-09-07 核验范围

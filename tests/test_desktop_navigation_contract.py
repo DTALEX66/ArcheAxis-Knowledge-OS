@@ -912,6 +912,16 @@ def test_home_hero_ambient_motion_is_reduced_motion_safe() -> None:
     assert 'AaosMotionAmbientMs' in code
 
 
+def test_home_hero_uses_avalonia12_compatible_zindex_attributes() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    hero_start = xaml.index('x:Name="HomeHeroGrid"')
+    hero_end = xaml.index('</Grid>', hero_start)
+    hero = xaml[hero_start:hero_end]
+    assert 'Panel.ZIndex=' not in hero
+    assert 'ZIndex="0"' in hero
+    assert hero.count('ZIndex="1"') == 2
+
+
 def test_route_changes_use_a_reduced_motion_safe_workspace_transition() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
