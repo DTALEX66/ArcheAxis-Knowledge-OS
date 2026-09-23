@@ -2322,3 +2322,9 @@
 - source_commit: `67499def` (`feat(desktop): tokenize card heading typography`).
 - verification: TDD RED was observed for the new typography contract, then the full direct no-argument desktop harness reported `201` tests; `App.axaml`, `MainWindow.axaml`, and `Themes/AaosTheme.axaml` parsed successfully; `git diff --check` passed. External indexed `.NET SDK 10.0.400` self-contained `win-x64` publish returned `PUBLISH_EXIT=0`; Candidate contains `224` files and `216418259` bytes, with `ArcheAxis.Desktop.exe` SHA-256 `8856E05BD482C4FA468AC4BB7B0F3918A0276E831AE88BCAD560CA78D7F08A48`.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / CANDIDATE_PUBLISHED_LOCAL`; the prior combined desktop/Core staging receipt remains bound to its own source commit. A new combined staging receipt is `NOT_EXECUTED` because `cargo`/`rustc` are unavailable for an exact Core rebuild; native GUI, Green replacement, installer/signing and release remain unverified or owner-gated.
+
+## Continuation receipt — 2026-09-23 P3 Candidate process launch probe
+
+- scope: launched the freshly published `ArcheAxis.Desktop.exe` once from its project-local Candidate directory to test process/window creation; the process was stopped by exact PID after observation. No Green runtime, user data, external resource, or unrelated dirty file was changed.
+- observation: Windows reported a responsive process and native window title `ArcheAxis Learning Workspace (vNext) — core offline (core binary not found (set ARCHAXIS_CORE_BIN))`. This proves process/window creation only; it does not prove Core-connected first use.
+- gui_boundary: the active CUA runtime exposed neither the documented `listWindows` nor `getApp` binding methods, so screenshot, accessibility-tree, focus and pointer readback were `GUI_UNVERIFIED / TOOLING_UNAVAILABLE`. The process was not left running.
