@@ -2307,3 +2307,11 @@
 - verification: external indexed SDK `D:\All projects\OS External Configuration\10-toolchains\dotnet\dotnet.exe` (`10.0.400`) published `apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj` as self-contained `win-x64`; `PUBLISH_EXIT=0`. Candidate contains `224` files and `216418259` bytes; `ArcheAxis.Desktop.exe` SHA-256 is `8C733F9AC0AF8DB151354AD0244AFD8D6D5ADDA9B38C6572CF27A89DEDAD4EA0`.
 - static_verification: direct no-argument desktop harness reports `201` tests; `App.axaml`, `MainWindow.axaml`, and `Themes/AaosTheme.axaml` parse as XML; `git diff --check` passed.
 - evidence_boundary: `IMPLEMENTED_LOCAL / TESTED_LOCAL_STATIC / CANDIDATE_PUBLISHED_LOCAL`; native GUI screenshot, focus/accessibility-tree, cold restart, independent staging, Green replacement, rollback, installer/signing and release remain `UNVERIFIED` or owner-gated. No Green overwrite or publication was performed.
+
+## Continuation receipt — 2026-09-23 P3 independent Green staging verification
+
+- scope: assembled the freshly published desktop Candidate with the current project-local Core executable into an isolated `.project-local/staging` directory; no Green runtime, Green user data, external library, or unrelated dirty file was changed.
+- candidate: `.project-local/staging/p3-87cdf2cf/ArcheAxis.Knowledge.Green-vp3-87cdf2cf-x64`.
+- verification: `scripts/release/assemble_green_candidate.py` returned `ASSEMBLE_EXIT=0`; `scripts/release/verify_green_candidate.py` returned `VERIFY_GREEN_EXIT=0` with required provenance bound to the current `HEAD` and tree. Manifest records `226` files; staged tree contains `227` files and `222298427` bytes.
+- scope_readback: verifier reports `desktop-core-only`; Python runtime and workers are not included and are not claimed. This is a valid isolated Candidate staging result, not a Green replacement or full worker-enabled runtime claim.
+- evidence_boundary: `STAGED_LOCAL / VERIFIED_LOCAL_STATIC`; native GUI screenshot, focus/accessibility-tree, cold restart, Green backup/replacement/rollback, installer/signing and release remain `UNVERIFIED` or owner-gated. No Green overwrite or publication was performed.
