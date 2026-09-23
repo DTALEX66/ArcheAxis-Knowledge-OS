@@ -2416,3 +2416,9 @@
 - scope: verified the indexed Avalonia 12.1.2 assembly exposes `AutomationProperties.SetLiveSetting` and `AutomationLiveSetting`; wired `SetStatus` to use `Polite` for normal updates and `Assertive` for error/permission states, and marked the Toast `Polite`.
 - verification: TDD static contract was observed RED before implementation, then desktop contract collection executed `176` zero-argument tests with `0` failures; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
 - boundary: native screen-reader announcement timing and accessibility-tree readback remain `UNVERIFIED`; no claim of native GUI acceptance is made.
+
+## Continuation receipt — 2026-09-23 current-SHA UI Candidate publish
+
+- scope: published the current Avalonia Desktop source at `8315bdce` as a project-local self-contained `win-x64` Candidate under `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vui8315bdce-x64`. No Green directory was overwritten and no release/install/signing action was performed.
+- verification: indexed external `.NET SDK 10.0.400` returned `DOTNET_UI_PUBLISH_EXIT=0`; Desktop EXE SHA-256 is `BFCC31655FC089F7E3DF6824A3F8BF7A23A796811F6182D80315E59E00A0093E`.
+- evidence_boundary: `TESTED_LOCAL_BUILD`; CUA reported `apps=[]`, so native window, screenshot, pointer, focus-tree and screen-reader readback remain `UNVERIFIED / TOOLING_UNAVAILABLE`.

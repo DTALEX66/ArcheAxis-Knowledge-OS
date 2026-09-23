@@ -82,6 +82,10 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Status surfaces now expose Avalonia live-region semantics: ordinary updates
   are `Polite`, while error/permission states are `Assertive`; the Toast uses
   `Polite`.
+- Current-SHA self-contained Desktop Candidate was published at
+  `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vui8315bdce-x64`;
+  `DOTNET_UI_PUBLISH_EXIT=0`, Desktop EXE SHA-256 is
+  `BFCC31655FC089F7E3DF6824A3F8BF7A23A796811F6182D80315E59E00A0093E`.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
