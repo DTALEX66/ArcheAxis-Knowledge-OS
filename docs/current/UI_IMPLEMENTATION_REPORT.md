@@ -79,6 +79,9 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Route changes now move focus to the current workspace heading, and the
   command-palette two-control focus loop distinguishes forward Tab from
   reverse Shift+Tab using the actual Avalonia modifier flags.
+- Status surfaces now expose Avalonia live-region semantics: ordinary updates
+  are `Polite`, while error/permission states are `Assertive`; the Toast uses
+  `Polite`.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace

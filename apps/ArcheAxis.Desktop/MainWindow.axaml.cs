@@ -690,6 +690,11 @@ public partial class MainWindow : Window
         target.Classes.Set("status-warning", semanticState == "warning");
         target.Text = text;
         Avalonia.Automation.AutomationProperties.SetName(target, text);
+        Avalonia.Automation.AutomationProperties.SetLiveSetting(
+            target,
+            semanticState is "error" or "permission"
+                ? Avalonia.Automation.AutomationLiveSetting.Assertive
+                : Avalonia.Automation.AutomationLiveSetting.Polite);
     }
 
     private void SetActivityDockSummary(string text)

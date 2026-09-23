@@ -2084,6 +2084,16 @@ def test_command_palette_cycles_focus_between_input_and_results_on_tab() -> None
     assert "(e.KeyModifiers & KeyModifiers.Shift) == KeyModifiers.Shift" in method
 
 
+def test_status_and_toast_surfaces_expose_live_region_semantics() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert 'x:Name="ToastText"' in xaml
+    assert 'AutomationProperties.LiveSetting="Polite"' in xaml
+    assert 'AutomationProperties.SetLiveSetting' in code
+    assert 'AutomationLiveSetting.Assertive' in code
+    assert 'AutomationLiveSetting.Polite' in code
+
+
 def test_knowledge_reads_ignore_stale_responses() -> None:
     code = CODE.read_text(encoding="utf-8")
     start = code.index("private async void OnReadKnowledgeClick")

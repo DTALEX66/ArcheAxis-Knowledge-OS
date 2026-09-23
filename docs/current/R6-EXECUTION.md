@@ -2410,3 +2410,9 @@
 - scope: added a focusable workspace heading as the route-change focus target and made Command Palette Tab handling explicitly distinguish Shift+Tab through Avalonia's bitmask API. No Core or persistence behavior changed.
 - verification: first build correctly caught the nonexistent `KeyModifiers.HasAll` API; after root-cause correction, desktop contract collection executed `175` tests with `0` failures and Avalonia Debug build returned `0 warnings / 0 errors`.
 - boundary: native focus-tree and screen-reader readback remain `UNVERIFIED`; the current Avalonia surface does not expose a verified `LiveSetting` API in this project, so no fake live-region claim was added.
+
+## Continuation receipt — 2026-09-23 P3 Avalonia live-region semantics
+
+- scope: verified the indexed Avalonia 12.1.2 assembly exposes `AutomationProperties.SetLiveSetting` and `AutomationLiveSetting`; wired `SetStatus` to use `Polite` for normal updates and `Assertive` for error/permission states, and marked the Toast `Polite`.
+- verification: TDD static contract was observed RED before implementation, then desktop contract collection executed `176` zero-argument tests with `0` failures; Avalonia Debug build returned `0 warnings / 0 errors`; `git diff --check` passed.
+- boundary: native screen-reader announcement timing and accessibility-tree readback remain `UNVERIFIED`; no claim of native GUI acceptance is made.
