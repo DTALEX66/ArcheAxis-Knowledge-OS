@@ -2358,3 +2358,9 @@
 - verification: `archeaxis-application` scheduler contract tests `3 passed`; external-runtime Python compile and repository donor readback passed. Candidate `p3-9654023a` verification returned `ok=true`, scope `desktop-core-runtime-workers`, `21473` manifest files, and `problems=[]`.
 - portable_journey: directly launched the staged Candidate Desktop with staged Core, staged Python runtime, staged workers and staged scheduler donor; `LEARNING SMOKE OK`, `answer_saved=true`, `fsrs=true`, `mastery_projection_closed=false`.
 - evidence_boundary: `TESTED_LOCAL_PORTABLE_HEADLESS_JOURNEY`; this closes the packaged scheduler-worker path for the headless learning journey, but does not prove native GUI screenshot/pointer/accessibility readback, real Green replacement/rollback, installer/signing or release. No Green overwrite or publication was performed. `cargo fmt` was not executed because the indexed toolchain lacks `cargo-fmt.exe`; no toolchain installation was attempted.
+
+## Continuation receipt — 2026-09-23 P3 native GUI bridge probe
+
+- scope: started and stopped the project-local staged Candidate GUI twice with an isolated SQLite path, then captured a local desktop screenshot for visual observation. No Green directory, Green user data, external library contents, or unrelated dirty file was touched.
+- observation: the Candidate process and its owned Core child were started and stopped by exact PIDs; a screenshot was written under `.project-local/runs/gui-visual-probe-max-9654023a/candidate-screen-max.png`. The visible desktop was partially occluded by the active browser window, so this is not a clean product screenshot or visual acceptance result.
+- tooling_boundary: both CUA state reads returned `apps=[]`; no targetable native window, accessibility tree, pointer action or focus readback was available. Status remains `GUI_UNVERIFIED / TOOLING_UNAVAILABLE`; no GUI PASS is claimed.
