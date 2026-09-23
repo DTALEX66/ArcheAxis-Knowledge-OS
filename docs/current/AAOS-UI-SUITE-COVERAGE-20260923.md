@@ -47,10 +47,12 @@ receipts. This matrix does not promote reference demos, static numbers or
 - XAML XML parsing: `PASS`.
 - Fresh external-toolchain self-contained `win-x64` publish: `PASS`.
 - Isolated Green Candidate staging and provenance/hash verification: `PASS`
-  for the preceding recorded frontend/Core pair; a new combined staging
-  receipt is `NOT_EXECUTED` because `cargo`/`rustc` are unavailable for an
-  exact Core rebuild against this frontend commit.
-- Native GUI screenshot, pointer/focus tree and cold restart: `UNVERIFIED`.
+  for project-local Candidate `p3-9654023a`: `21473` files, runtime/workers/
+  provenance required, and the staged Desktop learning journey returned
+  `LEARNING SMOKE OK` with answer persistence and FSRS authority.
+- Native GUI screenshot: a project-local screen capture exists, but pointer,
+  focus-tree, accessibility-tree and click-through readback remain
+  `UNVERIFIED` because the current Windows bridge returned no targetable apps.
 
 No Green directory, external resource root, protected history asset, credential
 or unrelated dirty file was modified for this matrix.

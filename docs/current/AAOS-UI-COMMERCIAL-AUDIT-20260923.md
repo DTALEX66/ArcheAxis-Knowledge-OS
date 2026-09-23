@@ -86,11 +86,18 @@ bulk deletion, branch merge, release publication, signing or Green overwrite.
 
 ## Current frontend follow-up — 2026-09-23
 
-The implementation advanced after this audit snapshot. The current feature
-baseline is `ec41ca27`, with `184` direct no-argument static desktop contract
-tests passing. Search responses are stale-request isolated; the mobile
-Inspector overlays the workspace safely, enters focus, scrolls long content and
-reflows actions; Source Reader stacks below the themed `1200px` breakpoint.
-These are local/static claims only: native GUI rendering, pointer/focus
-readback, accessibility-tree readback and a real Core first-use journey remain
-`UNVERIFIED`.
+The implementation advanced after this audit snapshot. The current frontend
+source baseline remains `67499def`; the current delivery head is
+`a9860ce0a9c59855e4daa692d12cb03e7f588243`, with `201` direct no-argument
+static desktop contract tests recorded. Search responses are stale-request
+isolated; the mobile Inspector overlays the workspace safely, enters focus,
+scrolls long content and reflows actions; Source Reader stacks below the themed
+`1200px` breakpoint.
+
+The project-local Candidate `p3-9654023a` now includes Desktop, rebuilt Core,
+runtime, workers and the FSRS donor. Static verification returned
+`ok=true`/`21473` files, and the staged package's Desktop learning smoke
+returned `LEARNING SMOKE OK` with `answer_saved=true`, `fsrs=true` and
+`mastery_projection_closed=false`. Native pointer/focus/accessibility readback
+remains `UNVERIFIED`: the current Windows bridge exposes no targetable native
+apps, and the captured screen is visual observation only.

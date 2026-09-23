@@ -46,11 +46,14 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 - Fresh self-contained `win-x64` Release publish through the indexed external
   `.NET SDK 10.0.400` completed with `PUBLISH_EXIT=0`; the Candidate EXE
   SHA-256 is `8856E05BD482C4FA468AC4BB7B0F3918A0276E831AE88BCAD560CA78D7F08A48`.
-- The preceding frontend/Core pair was independently assembled and verified
-  in project-local staging with `VERIFY_GREEN_EXIT=0`; that receipt remains
-  bound to its recorded source commit. A new combined staging receipt is not
-  claimed here because the current environment has no `cargo`/`rustc` to
-  rebuild the Core against this frontend commit.
+- The project-local Candidate `p3-9654023a` was assembled from the frontend
+  Candidate, rebuilt Core, indexed runtime, workers and the bundled FSRS donor;
+  `verify_green_candidate.py --require-runtime --require-workers
+  --require-provenance` returned `ok=true`, `21473` files, `problems=[]`.
+- The staged package's Desktop learning journey returned `LEARNING SMOKE OK`
+  with `answer_saved=true`, `fsrs=true` and `mastery_projection_closed=false`.
+  This is portable headless journey evidence, not Green replacement or native
+  GUI acceptance.
 - Targeted desktop UI contracts: `146 passed`.
 - Extended desktop route/launch/learning gate: `161 passed`, including the
   project-local launch preparation contract and explicit isolated-workspace
