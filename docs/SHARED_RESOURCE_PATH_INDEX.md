@@ -29,6 +29,19 @@
 | `aaos_frontend_candidate` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-va64788c4-x64` | 225 files / 216,503,711 bytes；self-contained win-x64 publish exit `0` | Avalonia Desktop built from source HEAD `a64788c4a7087c452db31df15ef733d6ad2ae353`；isolated Candidate, not Green installation |
 | `aaos_frontend_executable_sha256` | Candidate 内 `ArcheAxis.Desktop.exe` | `9AC4ECA515CF0DEAD3F530FF75199FD1FAAE06484E6B25E31A74F91DD5ED9393` | Candidate readback；需继续经过 staging、Owner Gate、备份、替换和回滚验收 |
 
+## 2026-09-24 Rust / Windows Native Build Toolchain Readback
+
+| 资源 ID | 精确路径 | 现场读回 | 用途/边界 |
+| --- | --- | --- | --- |
+| `shared_cargo` | `D:\All projects\OS External Configuration\10-toolchains\cargo\bin\cargo.exe` | Cargo `1.97.1` | 通过 `scripts/runtime/dev.py` 执行；Rust MSVC target |
+| `shared_rustc` | `D:\All projects\OS External Configuration\10-toolchains\cargo\bin\rustc.exe` | rustc `1.97.1` | 与 Cargo 同一 stable MSVC toolchain |
+| `shared_rustfmt_home` | `D:\All projects\OS External Configuration\toolchains\rust\rustup` | `rustup show home` 实际返回；组件安装前只有 cargo/rust-std/rustc | 位于共用外置库根下，但不在 `10-toolchains` 子目录；不要误报为 Cargo 丢失 |
+| `shared_rustfmt` | 由上述 rustup home 管理的 `stable-x86_64-pc-windows-msvc` toolchain | 本轮按官方 rustup component 管理安装 `rustfmt 1.9.0-stable (8bab26f4f6)`；`cargo fmt --version` 回读通过 | 不复制代理 EXE 或整个 toolchain；可用于 Rust formatting gate |
+| `shared_msvc_environment` | `D:\All projects\OS External Configuration\10-toolchains\msvc\VC\Auxiliary\Build\vcvars64.bat` | 文件存在；初始化后 `link.exe` 解析到 MSVC `14.44.35207` Hostx64/x64 | MSVC 本体存在；本次通过项目 dev runner 的 Cargo linker 环境仍未成功验证 |
+| `windows_sdk_26100` | `C:\Program Files (x86)\Windows Kits\10` | `10.0.26100.0` 的 `Windows.h`、UCRT header、x64 `kernel32.lib`/`ucrt.lib`、`rc.exe` 精确路径元数据存在 | 当前在系统 SDK 根，不在外置共用库；`vcvars64.bat` 未回读出 `WindowsSDKVersion`，`rc.exe` 也未进入其 PATH。是环境绑定缺口，不应误报为 SDK 未安装或擅自重复下载 |
+
+本轮 Rust `source_jobs_api` 测试仍为 `NOT_VERIFIED`：直接调用时缺少 MSVC linker 环境；通过 `vcvars64.bat` 的受管调用遇到进程环境/launcher 传递问题，尚未形成 Cargo 测试 PASS。Avalonia Debug build 已使用外置 .NET SDK `10.0.400` 成功，239 项受影响 Python 合同通过。Native GUI automation/readback tooling 仍未形成可用的受支持窗口接管与 UIA 验证链；不得用静态合同替代。
+
 本次构建证据：外置 SDK `.NET 10.0.400` Release self-contained `win-x64` publish 通过；桌面导航与路由无参数静态合约 `182 passed`；Debug build 为 `0 warnings / 0 errors`；`git diff --check` 通过。机器运行时/Launch pytest suites 在当前 Candidate Python 缺少 pytest 的情况下未执行。原生 GUI/CUA 当前无可接管窗口，截图、点击、焦点、冷启动和 Green 原位替换仍为 `UNVERIFIED`/`NOT_READY`。
 
 **三个不同边界不能合并：** 绿色软件安装目录、绿色版真实资料库、项目测试资料库。严禁把测试的输出、删除或迁移动作路由到真实资料库。
