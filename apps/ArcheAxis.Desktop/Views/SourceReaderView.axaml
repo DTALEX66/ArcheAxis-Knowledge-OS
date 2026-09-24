@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="using:ArcheAxis.Desktop.Views"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="720"
+             x:Class="ArcheAxis.Desktop.Views.SourceReaderView"
+             SizeChanged="OnViewSizeChanged">
+  <StackPanel Spacing="14">
+    <TextBlock Text="导入阅读" Classes="page-title" />
+    <TextBlock Text="浏览 Core 容器成员，或按 source_id 恢复 Core 持久任务并读取已完成的文本转换；不把转换结果伪装成原始字节或已接受知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+    <Grid x:Name="SourceReaderLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
+      <TextBox x:Name="SourceReaderIdBox" PlaceholderText="输入 source_id（容器或任意已导入来源）" KeyDown="OnSourceIdKeyDown" AutomationProperties.Name="Core 来源 source_id 输入" />
+      <Button x:Name="SourceReaderLoadButton" Classes="primary-action" Grid.Column="1" Content="读取来源" Padding="16,9" Click="OnLoadClick" AutomationProperties.Name="读取 Core 来源与容器成员" />
+    </Grid>
+    <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="来源阅读状态" />
+    <StackPanel x:Name="SourceReaderReturnActions" Orientation="Horizontal" Spacing="8">
+      <Button x:Name="BackToLibraryButton" Content="返回资料库" IsEnabled="False" Padding="14,8" Click="OnReturnToLibraryClick" AutomationProperties.Name="返回资料库" />
+      <Button x:Name="BackToKnowledgeFromSourceButton" Content="返回 Knowledge 详情" IsEnabled="False" Padding="14,8" Click="OnReturnToKnowledgeClick" AutomationProperties.Name="返回 Knowledge 详情" />
+      <Button x:Name="ViewSourceJobButton" Content="查看选中项任务回执" IsEnabled="False" Padding="14,8" Click="OnOpenJobClick" AutomationProperties.Name="查看选中项任务回执" />
+      <Button x:Name="FindLibraryFromSourceButton" Content="在资料库查找关联投影" IsEnabled="False" Padding="14,8" Click="OnLibraryLookupClick" AutomationProperties.Name="在资料库查找关联投影" />
+    </StackPanel>
+    <Grid x:Name="SourceReaderShellGrid" ColumnDefinitions="220,*,300" ColumnSpacing="12" MinHeight="430">
+      <Border x:Name="SourceReaderOutlineBorder" Grid.Column="0" Classes="aaos-card-compact" Padding="14">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Source Tree / Outline · 容器成员 / Core 持久任务" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
+          <TextBlock x:Name="SourceReaderResultsText" Text="输入 source_id 后读取 Core。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+          <TextBlock x:Name="SourceReaderCoreNoteText" Text="Core 语义边界：尚未读取。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+          <ListBox x:Name="SourceReaderMembersList" SelectionChanged="OnRowSelected" KeyDown="OnRowsKeyDown" DoubleTapped="OnRowsDoubleTapped" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" MaxHeight="360" AutomationProperties.Name="来源成员或持久任务列表">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="views:SourceReaderRow">
+                <Border Padding="12,10" Margin="0,0,0,8" CornerRadius="8" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding DisplayKind}" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock Text="{Binding DisplayText}" TextWrapping="Wrap" Foreground="{DynamicResource AaosIvoryBrush}" />
+                    <TextBlock Text="{Binding DisplayBoundary}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+      </Border>
+      <Border x:Name="SourceReaderMainBorder" Grid.Column="1" Classes="aaos-card" Padding="18">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Main Reader · Core transform" FontSize="14" FontWeight="SemiBold" Classes="provenance-machine" />
+          <TextBlock x:Name="SourceReaderSelectedText" Text="尚未选择来源成员。" TextWrapping="Wrap" Classes="section-heading" />
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="5">
+            <TextBlock x:Name="SourceReaderMemberFieldLabel" Text="成员类型" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock x:Name="SourceReaderMemberFieldText" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="provenance-original" />
+            <TextBlock x:Name="SourceReaderOriginalNameFieldLabel" Grid.Row="1" Text="原件名称" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock x:Name="SourceReaderOriginalNameFieldText" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosIvoryBrush}" />
+            <TextBlock x:Name="SourceReaderReadableFieldLabel" Grid.Row="2" Text="成员可读性" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock x:Name="SourceReaderReadableFieldText" Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="status-info" />
+            <TextBlock x:Name="SourceReaderJobFieldLabel" Grid.Row="3" Text="成员任务" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock x:Name="SourceReaderJobFieldText" Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="provenance-review" />
+            <TextBlock x:Name="SourceReaderShaFieldLabel" Grid.Row="4" Text="成员 SHA-256" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock x:Name="SourceReaderShaFieldText" Grid.Row="4" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="provenance-projection" />
+          </Grid>
+          <TextBlock x:Name="SourceReaderMemberBoundaryText" Text="原文正文未暴露；字段来自 Core 来源成员投影。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+          <TextBlock Text="原文正文未在此详情卡片展示；字段仅来自 Core 来源成员投影。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+          <Button x:Name="ReadSourceTransformButton" Content="读取转换内容" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnReadTransformClick" AutomationProperties.Name="读取转换内容" />
+          <TextBlock Text="转换输出（Core）" FontSize="12" Classes="provenance-machine" />
+          <ScrollViewer MaxHeight="240">
+            <TextBlock x:Name="SourceReaderTransformText" Text="尚未读取转换输出；原文正文仍未暴露。" TextWrapping="Wrap" FontSize="12" Classes="provenance-machine" />
+          </ScrollViewer>
+        </StackPanel>
+      </Border>
+      <Border x:Name="SourceReaderChainBorder" Grid.Column="2" Classes="aaos-card-compact" Padding="14">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Inspector · Source Chain" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
+          <TextBlock x:Name="SourceReaderChainSourceText" Text="容器来源：未读取" TextWrapping="Wrap" FontSize="11" Classes="provenance-original" />
+          <TextBlock x:Name="SourceReaderChainMemberText" Text="成员：未选择" TextWrapping="Wrap" FontSize="11" Classes="provenance-projection" />
+          <TextBlock x:Name="SourceReaderChainJobText" Text="处理任务：未选择" TextWrapping="Wrap" FontSize="11" Classes="provenance-review" />
+          <TextBlock x:Name="SourceReaderChainShaText" Text="内容指纹：未选择" TextWrapping="Wrap" FontSize="11" Classes="provenance-projection" />
+          <TextBlock x:Name="SourceReaderChainBoundaryText" Text="仅为 Core 来源成员投影；不代表正文、理解或证据 anchor。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+          <Separator Margin="0,4" />
+          <TextBlock Text="Context Actions" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
+          <StackPanel x:Name="SourceReaderContextActions" Orientation="Horizontal" Spacing="8">
+            <Button x:Name="CopySourceProvenanceButton" Content="复制来源链" IsEnabled="False" Padding="14,8" Click="OnCopyProvenanceClick" AutomationProperties.Name="复制来源链" />
+            <Button x:Name="CopySourceCitationButton" Content="复制引用元数据" IsEnabled="False" Padding="14,8" Click="OnCopyCitationClick" AutomationProperties.Name="复制引用元数据" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+  </StackPanel>
+</UserControl>

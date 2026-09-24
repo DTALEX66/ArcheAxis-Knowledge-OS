@@ -173,7 +173,14 @@ def _conversion_plugin_for(source: Path) -> str | None:
     return _CONVERSION_PLUGIN_BY_FORMAT.get(str(detect_format(source)))
 
 
-def _convert_file_for_intake(source: Path):
+def _installed_plugin_provenance(dispatcher, plugin_id: str) -> dict[str, str]:
+    """Return immutable identity from the installed capability record."""
+    return dispatcher.installed_provenance(plugin_id)
+
+
+def _convert_file_for_intake(
+    source: Path, *, include_plugin_provenance: bool = False
+):
     """Convert through the trace API while preserving the legacy service seam."""
     _import_heavy()
     from app.ingestion.multi_format import ConversionTrace
@@ -188,7 +195,7 @@ def _convert_file_for_intake(source: Path):
                 try:
                     result = converter.convert(source)
                     if result.content.strip():
-                        return (
+                        converted = (
                             result.content,
                             result.engine,
                             ConversionTrace(
@@ -196,6 +203,12 @@ def _convert_file_for_intake(source: Path):
                                 fallback_used=False,
                             ),
                         )
+                        if include_plugin_provenance:
+                            return (
+                                *converted,
+                                _installed_plugin_provenance(dispatcher, plugin_id),
+                            )
+                        return converted
                     plugin_failed = True
                 except Exception:
                     plugin_failed = True
@@ -219,7 +232,10 @@ def _convert_file_for_intake(source: Path):
             fallback_reason=f"plugin {plugin_id} failed; built-in chain used",
         )
 
-    return markdown, engine, trace
+    converted = (markdown, engine, trace)
+    if include_plugin_provenance:
+        return (*converted, None)
+    return converted
 
 
 def _source_archive_root(database: Path) -> Path:
@@ -342,7 +358,9 @@ def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[s
     except Exception as exc:  # noqa: BLE001 - batch callers receive a safe reason
         raise RuntimeError(_sanitize_conversion_error(f"{safe_name}: {exc}")) from None
     try:
-        markdown, engine, trace = _convert_file_for_intake(source)
+        markdown, engine, trace, plugin_provenance = _convert_file_for_intake(
+            source, include_plugin_provenance=True
+        )
         source_format = detect_format(source)
         from app.evidence.anchor import (
             build_evidence_anchor,
@@ -364,6 +382,7 @@ def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[s
             extractor_identity=engine,
             attempted_engines=list(trace.attempted_engines),
             fallback_reason=trace.fallback_reason,
+            plugin_provenance=plugin_provenance,
         )
         anchor = build_evidence_anchor(
             raw_sha256=raw.sha256,
@@ -418,7 +437,9 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         temporary.write(content)
         temporary_path = Path(temporary.name)
     try:
-        markdown, engine, trace = _convert_file_for_intake(temporary_path)
+        markdown, engine, trace, plugin_provenance = _convert_file_for_intake(
+            temporary_path, include_plugin_provenance=True
+        )
         source_format = detect_format(temporary_path)
         from app.evidence.anchor import (
             build_evidence_anchor,
@@ -440,6 +461,7 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
             extractor_identity=engine,
             attempted_engines=list(trace.attempted_engines),
             fallback_reason=trace.fallback_reason,
+            plugin_provenance=plugin_provenance,
         )
         conversion_anchor = build_evidence_anchor(
             raw_sha256=original.sha256,

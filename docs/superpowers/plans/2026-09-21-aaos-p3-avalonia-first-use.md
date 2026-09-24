@@ -1,5 +1,10 @@
 # AAOS P3 Avalonia First-Use Implementation Plan
 
+> Status: this original five-rail-surface plan is historical and superseded for
+> remaining frontend completion by `2026-09-24-aaos-commercial-frontend-completion.md`.
+> Its constraints and evidence remain useful; do not use its unchecked task list
+> as the current full-frontend queue.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the existing formal Avalonia window into a navigable, honest P3 first-use shell while preserving Core-owned learning behavior.

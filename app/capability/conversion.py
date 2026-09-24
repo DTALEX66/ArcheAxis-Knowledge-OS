@@ -230,6 +230,20 @@ class ConversionDispatcher:
         installed = {record.plugin_id for record in self._store.list_installed()}
         return sorted(plugin_id for plugin_id in list_active() if plugin_id in installed)
 
+    def installed_provenance(self, plugin_id: str) -> dict[str, str]:
+        """Return the public immutable identity for an installed capability."""
+        record = next(
+            (record for record in self._store.list_installed() if record.plugin_id == plugin_id),
+            None,
+        )
+        if record is None:
+            raise RuntimeError(f"plugin {plugin_id} has no installed capability record")
+        return {
+            "id": record.plugin_id,
+            "version": record.version,
+            "content_hash": record.content_hash,
+        }
+
 
 def get_converter(store: Any, plugin_id: str) -> FileConverter | None:
     """Module-level shorthand for ``ConversionDispatcher(store).get_converter(...)``."""

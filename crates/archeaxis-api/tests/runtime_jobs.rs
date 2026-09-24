@@ -35,6 +35,11 @@ async fn http_runs_real_worker_and_replays_without_a_second_transform() {
     let dir=tempfile::tempdir().unwrap();let executor=setup(dir.path(),false).await;
     let router=archeaxis_api::runtime::router(executor.clone());
     assert_eq!(call(&router,"POST","/api/v1/jobs/job/receipts","",r#"{"state":"failed","error":"forged receipt"}"#).await.0,404,"runtime exposed legacy receipt injection");
+    let (_,job_status)=call(&router,"GET","/api/v1/jobs/job","","").await;
+    let source_id=executor.store().submit(|conn|conn.query_row("SELECT input_ref FROM jobs WHERE job_id='job'",[],|r|r.get::<_,String>(0))).await.unwrap().unwrap();
+    assert_eq!(job_status["input_ref"],source_id,"job status must project the persisted source binding for Reader identity checks");
+    let (_,other_status)=call(&router,"GET","/api/v1/jobs/other","","").await;
+    assert_eq!(other_status["input_ref"],source_id,"each job status must expose its own persisted source binding");
     let path="/api/v1/jobs/job/executions";
     let (status,_)=call(&router,"POST",path,"run-1",r#"{"deadline_ms":5000}"#).await;
     assert_eq!(status,202,"HTTP execution entry missing");

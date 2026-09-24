@@ -123,3 +123,33 @@ def test_current_head_must_equal_origin_main(tmp_path: Path) -> None:
     )
 
     assert any("HEAD differs from origin/main" in error for error in report.errors)
+
+
+def test_duplicate_r6_state_member_is_rejected(tmp_path: Path) -> None:
+    head = "a" * 40
+    overlay = tmp_path / "M0-DIRECTION-OVERRIDE.md"
+    overlay.write_text(
+        f"- 当前本地与远端 `main`：`{head}`\n",
+        encoding="utf-8",
+    )
+    state = tmp_path / "R6-STATE.json"
+    state.write_text(
+        '{"subject_sha":"' + "c" * 40 + '","subject_sha":"' + "d" * 40 + '"}',
+        encoding="utf-8",
+    )
+
+    report = check_authority_sha_consistency(
+        overlay,
+        state,
+        git=_git_stub(
+            {
+                ("rev-parse", "HEAD"): head,
+                ("rev-parse", "origin/main"): head,
+                ("log", "-1", "--format=%H", "--", str(overlay)): head,
+                ("rev-list", "--parents", "-n", "1", head): head,
+            }
+        ),
+    )
+
+    assert any("duplicate JSON object member" in error for error in report.errors)
+    assert report.evidence_subject_sha is None

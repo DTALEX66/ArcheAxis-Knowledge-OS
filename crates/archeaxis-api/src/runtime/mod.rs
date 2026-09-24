@@ -236,8 +236,8 @@ async fn status(State(runtime): State<Runtime>, Path(job): Path<String>) -> Resp
         return unavailable();
     }
     let value=runtime.executor.store().submit(move|conn|conn.query_row(
-        "SELECT j.state,a.attempt,a.request_id,a.error FROM jobs j LEFT JOIN job_attempts a ON a.job_id=j.job_id AND a.attempt=(SELECT MAX(attempt) FROM job_attempts WHERE job_id=j.job_id) WHERE j.job_id=?1",
-        [&job],|r|Ok(json!({"job_id":job,"state":r.get::<_,String>(0)?,"attempt":r.get::<_,Option<i64>>(1)?,"request_id":r.get::<_,Option<String>>(2)?,"error":r.get::<_,Option<String>>(3)?}))).optional()).await;
+        "SELECT j.state,a.attempt,a.request_id,a.error,j.input_ref FROM jobs j LEFT JOIN job_attempts a ON a.job_id=j.job_id AND a.attempt=(SELECT MAX(attempt) FROM job_attempts WHERE job_id=j.job_id) WHERE j.job_id=?1",
+        [&job],|r|Ok(json!({"job_id":job,"state":r.get::<_,String>(0)? ,"attempt":r.get::<_,Option<i64>>(1)? ,"request_id":r.get::<_,Option<String>>(2)? ,"error":r.get::<_,Option<String>>(3)? ,"input_ref":r.get::<_,String>(4)?}))).optional()).await;
     match value {
         Ok(Ok(Some(value))) => Json(value).into_response(),
         Ok(Ok(None)) => error(404, "AAK-VAL-004", "job not found"),

@@ -3,12 +3,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="using:ArcheAxis.Desktop"
+        xmlns:views="using:ArcheAxis.Desktop.Views"
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="ArcheAxis.Desktop.MainWindow"
         Title="ArcheAxis Knowledge" KeyDown="OnWindowKeyDown">
     <Grid x:Name="MainFrameGrid" RowDefinitions="Auto,*,Auto" ColumnDefinitions="256,220,*,300" Background="{DynamicResource AaosBackgroundBrush}" SizeChanged="OnMainFrameSizeChanged">
-        <Border Grid.Row="0" Grid.ColumnSpan="4" Padding="28,20" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto">
+        <Border Grid.Row="0" Grid.ColumnSpan="4" Padding="28,16" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1">
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+                <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Spacing="4">
                     <TextBlock Text="星环知识平台" Classes="brand-title" />
                     <TextBlock Text="ArcheAxis Knowledge · 本地优先工作台" FontSize="13" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -16,6 +18,37 @@
                 <Border Grid.Column="1" Padding="14,9" CornerRadius="8" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                     <TextBlock x:Name="CoreStatusText" Text="核心状态：正在连接…" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="核心状态" />
                 </Border>
+                </Grid>
+                <Menu x:Name="ApplicationMenu" Grid.Row="1" Background="Transparent" AutomationProperties.Name="应用程序菜单">
+                    <MenuItem Header="文件(_F)" AutomationProperties.Name="文件菜单">
+                        <MenuItem Header="导入资料…" Click="OnImportClick" AutomationProperties.Name="导入资料" />
+                        <Separator />
+                        <MenuItem Header="退出" Click="OnExitMenuClick" AutomationProperties.Name="退出应用" />
+                    </MenuItem>
+                    <MenuItem Header="导航(_N)" AutomationProperties.Name="导航菜单">
+                        <MenuItem x:Name="NavigateHomeMenuItem" Header="工作台" Click="OnHomeClick" AutomationProperties.Name="导航到工作台" />
+                        <MenuItem x:Name="NavigateCaptureMenuItem" Header="捕获" Click="OnCaptureClick" AutomationProperties.Name="导航到捕获" />
+                        <MenuItem x:Name="NavigateLibraryMenuItem" Header="资料库" Click="OnLibraryClick" AutomationProperties.Name="导航到资料库" />
+                        <MenuItem x:Name="NavigateReaderMenuItem" Header="原件阅读" Click="OnSourceReaderClick" AutomationProperties.Name="导航到原件阅读" />
+                        <MenuItem x:Name="NavigateKnowledgeMenuItem" Header="知识库" Click="OnKnowledgeClick" AutomationProperties.Name="导航到知识库" />
+                        <MenuItem x:Name="NavigateEditorMenuItem" Header="原件编辑" Click="OnOriginalEditorClick" AutomationProperties.Name="导航到原件编辑" />
+                        <MenuItem x:Name="NavigateMemoryMapMenuItem" Header="记忆地图" Click="OnMemoryMapClick" AutomationProperties.Name="导航到记忆地图" />
+                        <MenuItem x:Name="NavigateLearningMenuItem" Header="学习" Click="OnLearningNavigationClick" AutomationProperties.Name="导航到学习" />
+                        <MenuItem x:Name="NavigateEvidenceMenuItem" Header="证据中心" Click="OnEvidenceClick" AutomationProperties.Name="导航到证据中心" />
+                        <MenuItem x:Name="NavigateResearchMenuItem" Header="研究" Click="OnResearchClick" AutomationProperties.Name="导航到研究" />
+                        <MenuItem x:Name="NavigateMachineMenuItem" Header="机器知识" Click="OnMachineGrowthClick" AutomationProperties.Name="导航到机器知识" />
+                        <MenuItem x:Name="NavigateJobsMenuItem" Header="任务" Click="OnJobsClick" AutomationProperties.Name="导航到任务" />
+                        <MenuItem x:Name="NavigatePluginsMenuItem" Header="插件" Click="OnPluginsClick" AutomationProperties.Name="导航到插件" />
+                        <MenuItem x:Name="NavigateModelsMenuItem" Header="模型" Click="OnModelsClick" AutomationProperties.Name="导航到模型" />
+                        <MenuItem x:Name="NavigateRecoveryMenuItem" Header="恢复" Click="OnRecoveryClick" AutomationProperties.Name="导航到恢复" />
+                        <MenuItem x:Name="NavigateSettingsMenuItem" Header="系统设置" Click="OnSettingsClick" AutomationProperties.Name="导航到系统设置" />
+                    </MenuItem>
+                    <MenuItem Header="视图(_V)" AutomationProperties.Name="视图菜单">
+                        <MenuItem Header="命令面板　Ctrl+K" Click="OnOpenCommandPaletteClick" AutomationProperties.Name="打开命令面板" />
+                        <MenuItem Header="切换证据检查器　Ctrl+Alt+I" Click="OnMenuToggleInspectorClick" AutomationProperties.Name="切换证据检查器" />
+                        <MenuItem Header="展开/收起活动回执　Ctrl+Alt+J" Click="OnMenuToggleActivityDockClick" AutomationProperties.Name="切换活动回执" />
+                    </MenuItem>
+                </Menu>
             </Grid>
         </Border>
 
@@ -128,7 +161,7 @@
                           <Button Content="浏览资料库" Padding="14,8" Click="OnLibraryClick" AutomationProperties.Name="浏览资料库" />
                         </StackPanel>
                       </StackPanel>
-                      <Image x:Name="HomeHeroImage" Grid.Column="1" Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="210" Height="150" Stretch="Uniform" Opacity="0.92" ZIndex="1" AutomationProperties.Name="星环知识流程插图" />
+                      <Image x:Name="HomeHeroImage" Grid.Column="1" Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="210" Height="150" Stretch="Uniform" Opacity="0.92" ZIndex="1" AutomationProperties.Name="星环知识图：资料、检索与灵感" />
                     </Grid>
                   </Border>
                   <StackPanel Spacing="6">
@@ -319,84 +352,7 @@
                   </Grid>
                 </StackPanel>
 
-                <StackPanel x:Name="SourceReaderSurface" IsVisible="False" Spacing="14">
-                  <TextBlock Text="导入阅读" Classes="page-title" />
-                  <TextBlock Text="读取 Core 已登记的容器来源成员与可读性；不把容器清单或未解析内容伪装成已理解知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                  <Grid x:Name="SourceReaderLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-                    <TextBox x:Name="SourceReaderIdBox" PlaceholderText="输入 container source_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="来源容器 source_id 输入" />
-                    <Button x:Name="SourceReaderLoadButton" Classes="primary-action" Grid.Column="1" Content="读取来源成员" Padding="16,9" Click="OnReadSourceMembersClick" AutomationProperties.Name="读取来源成员" />
-                  </Grid>
-                  <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="来源阅读状态" />
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button x:Name="BackToLibraryButton" Content="返回资料库" IsEnabled="False" Padding="14,8" Click="OnBackToLibraryClick" AutomationProperties.Name="返回资料库" />
-                    <Button x:Name="BackToKnowledgeFromSourceButton" Content="返回 Knowledge 详情" IsEnabled="False" Padding="14,8" Click="OnBackToKnowledgeFromSourceClick" AutomationProperties.Name="返回 Knowledge 详情" />
-                    <Button x:Name="ViewSourceJobButton" Content="查看选中成员的任务回执" IsEnabled="False" Padding="14,8" Click="OnViewSourceJobClick" AutomationProperties.Name="查看选中成员的任务回执" />
-                    <Button x:Name="FindLibraryFromSourceButton" Content="在资料库查找关联投影" IsEnabled="False" Padding="14,8" Click="OnFindLibraryFromSourceClick" AutomationProperties.Name="在资料库查找关联投影" />
-                  </StackPanel>
-                  <Grid x:Name="SourceReaderShellGrid" ColumnDefinitions="220,*,300" ColumnSpacing="12" MinHeight="430">
-                    <Border x:Name="SourceReaderOutlineBorder" Grid.Column="0" Classes="aaos-card-compact" Padding="14">
-                      <StackPanel Spacing="8">
-                        <TextBlock Text="Source Tree / Outline" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
-                        <TextBlock x:Name="SourceReaderResultsText" Text="输入 source_id 后读取 Core。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <TextBlock x:Name="SourceReaderCoreNoteText" Text="Core 语义边界：尚未读取。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <ListBox x:Name="SourceReaderMembersList" SelectionChanged="OnSourceMemberSelected" KeyDown="OnDetailListKeyDown" DoubleTapped="OnDetailListDoubleTapped" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AaosIvoryBrush}" MaxHeight="360" AutomationProperties.Name="来源成员列表">
-                          <ListBox.ItemTemplate>
-                            <DataTemplate>
-                              <Border Padding="12,10" Margin="0,0,0,8" CornerRadius="8" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
-                                <StackPanel Spacing="4">
-                                  <TextBlock Text="来源成员 · Core projection" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                                  <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{DynamicResource AaosIvoryBrush}" />
-                                  <TextBlock Text="原文正文未在此列表中展示" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                                </StackPanel>
-                              </Border>
-                            </DataTemplate>
-                          </ListBox.ItemTemplate>
-                        </ListBox>
-                      </StackPanel>
-                    </Border>
-                    <Border x:Name="SourceReaderMainBorder" Grid.Column="1" Classes="aaos-card" Padding="18">
-                      <StackPanel Spacing="8">
-                        <TextBlock Text="Main Reader · Core transform" FontSize="14" FontWeight="SemiBold" Classes="provenance-machine" />
-                        <TextBlock x:Name="SourceReaderSelectedText" Text="尚未选择来源成员。" TextWrapping="Wrap" Classes="section-heading" />
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="5">
-                          <TextBlock Text="member" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                          <TextBlock x:Name="SourceReaderMemberFieldText" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="provenance-original" />
-                          <TextBlock Grid.Row="1" Text="original_name" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                          <TextBlock x:Name="SourceReaderOriginalNameFieldText" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosIvoryBrush}" />
-                          <TextBlock Grid.Row="2" Text="readable" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                          <TextBlock x:Name="SourceReaderReadableFieldText" Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="status-info" />
-                          <TextBlock Grid.Row="3" Text="job_id" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                          <TextBlock x:Name="SourceReaderJobFieldText" Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="provenance-review" />
-                          <TextBlock Grid.Row="4" Text="sha256" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
-                          <TextBlock x:Name="SourceReaderShaFieldText" Grid.Row="4" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Classes="provenance-projection" />
-                        </Grid>
-                        <TextBlock x:Name="SourceReaderMemberBoundaryText" Text="原文正文未暴露；字段来自 Core 来源成员投影。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
-                        <TextBlock Text="原文正文未在此详情卡片展示；字段仅来自 Core 来源成员投影。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <Button x:Name="ReadSourceTransformButton" Content="读取转换内容" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnReadSourceTransformClick" AutomationProperties.Name="读取转换内容" />
-                        <TextBlock Text="转换输出（Core）" FontSize="12" Classes="provenance-machine" />
-                        <ScrollViewer MaxHeight="240">
-                          <TextBlock x:Name="SourceReaderTransformText" Text="尚未读取转换输出；原文正文仍未暴露。" TextWrapping="Wrap" FontSize="12" Classes="provenance-machine" />
-                        </ScrollViewer>
-                      </StackPanel>
-                    </Border>
-                    <Border x:Name="SourceReaderChainBorder" Grid.Column="2" Classes="aaos-card-compact" Padding="14">
-                      <StackPanel Spacing="8">
-                        <TextBlock Text="Inspector · Source Chain" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
-                        <TextBlock x:Name="SourceReaderChainSourceText" Text="容器来源：未读取" TextWrapping="Wrap" FontSize="11" Classes="provenance-original" />
-                        <TextBlock x:Name="SourceReaderChainMemberText" Text="成员：未选择" TextWrapping="Wrap" FontSize="11" Classes="provenance-projection" />
-                        <TextBlock x:Name="SourceReaderChainJobText" Text="处理任务：未选择" TextWrapping="Wrap" FontSize="11" Classes="provenance-review" />
-                        <TextBlock x:Name="SourceReaderChainShaText" Text="内容指纹：未选择" TextWrapping="Wrap" FontSize="11" Classes="provenance-projection" />
-                        <TextBlock x:Name="SourceReaderChainBoundaryText" Text="仅为 Core 来源成员投影；不代表正文、理解或证据 anchor。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
-                        <Separator Margin="0,4" />
-                        <TextBlock Text="Context Actions" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
-                        <StackPanel x:Name="SourceReaderContextActions" Orientation="Horizontal" Spacing="8">
-                          <Button x:Name="CopySourceProvenanceButton" Content="复制来源链" IsEnabled="False" Padding="14,8" Click="OnCopySourceProvenanceClick" AutomationProperties.Name="复制来源链" />
-                          <Button x:Name="CopySourceCitationButton" Content="复制引用元数据" IsEnabled="False" Padding="14,8" Click="OnCopySourceCitationClick" AutomationProperties.Name="复制引用元数据" />
-                        </StackPanel>
-                      </StackPanel>
-                    </Border>
-                  </Grid>
-                </StackPanel>
+                <views:SourceReaderView x:Name="SourceReaderView" IsVisible="False" />
 
                 <StackPanel x:Name="KnowledgeSurface" IsVisible="False" Spacing="14">
                   <TextBlock Text="知识库" Classes="page-title" />
@@ -464,7 +420,7 @@
                     </StackPanel>
                   </Border>
                   <StackPanel x:Name="LearningEmptyActions" Orientation="Horizontal" Spacing="8" IsVisible="False">
-                    <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" Opacity="0.9" AutomationProperties.Name="星环知识空态插图" />
+                    <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" Opacity="0.9" AutomationProperties.AccessibilityView="Raw" AutomationProperties.IsControlElementOverride="False" />
                     <Button Content="去捕获导入" Padding="12,7" Click="OnCaptureClick" AutomationProperties.Name="去捕获导入学习材料" />
                     <Button Content="查看任务状态" Padding="12,7" Click="OnLearningOpenJobsClick" AutomationProperties.Name="查看学习相关任务状态" />
                   </StackPanel>
@@ -560,7 +516,7 @@
                   </Grid>
                   <Border x:Name="EvidenceEmptyState" Classes="aaos-empty-state" Padding="16">
                     <StackPanel x:Name="EvidenceEmptyStateContent" Orientation="Horizontal" Spacing="16">
-                      <Image x:Name="EvidenceEmptyStateImage" Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.82" AutomationProperties.Name="证据中心未接入插图" />
+                      <Image x:Name="EvidenceEmptyStateImage" Source="avares://ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.92" AutomationProperties.AccessibilityView="Raw" AutomationProperties.IsControlElementOverride="False" />
                       <StackPanel Spacing="7" VerticalAlignment="Center">
                         <TextBlock Text="尚未读取 Evidence anchor" Classes="card-heading" />
                         <TextBlock Text="点击“读取证据”读取 Core 已持久化的来源定位；页面不使用演示数据填充。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -605,7 +561,7 @@
 
                 <Border x:Name="UnavailableSurface" Classes="aaos-empty-state" IsVisible="False" Padding="24">
                     <StackPanel Spacing="12">
-                        <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" HorizontalAlignment="Left" Opacity="0.78" AutomationProperties.Name="功能未接入插图" />
+                        <Image Source="avares://ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png" Width="180" Height="132" Stretch="Uniform" HorizontalAlignment="Left" Opacity="0.78" AutomationProperties.AccessibilityView="Raw" AutomationProperties.IsControlElementOverride="False" />
                         <TextBlock x:Name="UnavailableSurfaceTitle" Text="暂不可用" Classes="empty-title" />
                         <TextBlock x:Name="UnavailableSurfaceStateText" Text="状态 · Core contract unavailable" Classes="status-disabled" FontSize="12" AutomationProperties.Name="功能状态" />
                         <TextBlock x:Name="UnavailableSurfaceText" Text="该工作区尚未接入 Core 读模型。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />

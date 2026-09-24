@@ -82,6 +82,7 @@ def build_workspace_conversion_run(
     extractor_identity: str,
     attempted_engines: list[str] | None = None,
     fallback_reason: str | None = None,
+    plugin_provenance: dict[str, str] | None = None,
 ) -> ConversionRun:
     """Create an immutable run from one already-preserved workspace upload.
 
@@ -107,4 +108,5 @@ def build_workspace_conversion_run(
         loss_notes=loss_notes,
         attempted_engines=attempted_engines,
         fallback_reason=fallback_reason,
+        plugin_provenance=plugin_provenance,
     )

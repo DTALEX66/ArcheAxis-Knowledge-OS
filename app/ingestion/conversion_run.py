@@ -56,6 +56,7 @@ class ConversionRun:
     version: int
     document: DerivedDocument
     loss_report: LossReport
+    plugin_provenance: dict[str, str] | None = None
 
     @property
     def blocks(self) -> list[DerivedBlock]:
@@ -71,6 +72,7 @@ def create_conversion_run(
     loss_notes: list[str] | None = None,
     attempted_engines: list[str] | None = None,
     fallback_reason: str | None = None,
+    plugin_provenance: dict[str, str] | None = None,
 ) -> ConversionRun:
     """Build a ConversionRun with stable IDs derived from content identity.
 
@@ -80,11 +82,25 @@ def create_conversion_run(
     if not blocks:
         raise ValueError("conversion produced no blocks")
     attempted = list(attempted_engines or [])
+    provenance = (
+        {
+            "id": plugin_provenance["id"],
+            "version": plugin_provenance["version"],
+            "content_hash": plugin_provenance["content_hash"],
+        }
+        if plugin_provenance is not None
+        else None
+    )
     identity = (raw_sha256, source_name, engine, version)
     if attempted or fallback_reason is not None:
         identity += (attempted, fallback_reason)
+    if provenance is not None:
+        identity += (provenance,)
     run_id = _stable_id("run", *identity)
-    document_id = _stable_id("derived", raw_sha256, engine, version)
+    document_identity: tuple[object, ...] = (raw_sha256, engine, version)
+    if provenance is not None:
+        document_identity += (provenance,)
+    document_id = _stable_id("derived", *document_identity)
     derived_blocks: list[DerivedBlock] = []
     for i, b in enumerate(blocks):
         kind = b.get("kind") or "text"
@@ -114,6 +130,7 @@ def create_conversion_run(
             attempted_engines=attempted,
             fallback_reason=fallback_reason,
         ),
+        plugin_provenance=provenance,
     )
 
 
@@ -148,15 +165,15 @@ def ensure_conversion_run_schema(db: str | Path) -> None:
 
 
 def _document_payload(run: ConversionRun) -> str:
-    return json.dumps(
-        {
-            "document_id": run.document.document_id,
-            "raw_sha256": run.document.raw_sha256,
-            "engine": run.document.engine,
-            "version": run.document.version,
-        },
-        sort_keys=True,
-    )
+    payload: dict[str, object] = {
+        "document_id": run.document.document_id,
+        "raw_sha256": run.document.raw_sha256,
+        "engine": run.document.engine,
+        "version": run.document.version,
+    }
+    if run.plugin_provenance is not None:
+        payload["plugin_provenance"] = run.plugin_provenance
+    return json.dumps(payload, sort_keys=True)
 
 
 def _loss_payload(run: ConversionRun) -> str:
@@ -293,6 +310,7 @@ def resolve_conversion_run(db: str | Path, run_id: str) -> ConversionRun | None:
             version=doc["version"],
             blocks=blocks,
         )
+        plugin_provenance = doc.get("plugin_provenance")
         return ConversionRun(
             run_id=row["run_id"],
             raw_sha256=row["raw_sha256"],
@@ -305,5 +323,14 @@ def resolve_conversion_run(db: str | Path, run_id: str) -> ConversionRun | None:
                 loss_notes=list(loss.get("loss_notes") or []),
                 attempted_engines=list(loss.get("attempted_engines") or []),
                 fallback_reason=loss.get("fallback_reason"),
+            ),
+            plugin_provenance=(
+                {
+                    "id": plugin_provenance["id"],
+                    "version": plugin_provenance["version"],
+                    "content_hash": plugin_provenance["content_hash"],
+                }
+                if plugin_provenance is not None
+                else None
             ),
         )

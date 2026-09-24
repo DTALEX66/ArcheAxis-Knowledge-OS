@@ -8,6 +8,8 @@ XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml"
 APP_XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "App.axaml"
 THEME_XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "Themes" / "AaosTheme.axaml"
 CODE = ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml.cs"
+SOURCE_READER_XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "SourceReaderView.axaml"
+SOURCE_READER_CODE = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "SourceReaderView.axaml.cs"
 
 
 def test_aaos_theme_is_shared_at_application_scope() -> None:
@@ -75,9 +77,11 @@ def test_aaos_common_controls_consume_typography_tokens() -> None:
 
 def test_primary_page_titles_consume_shared_typography_classes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
-    for title in ("捕获", "资料库", "导入阅读", "知识库", "学习工作台", "机器知识", "恢复", "证据中心", "设置", "任务"):
+    for title in ("捕获", "资料库", "知识库", "学习工作台", "机器知识", "恢复", "证据中心", "设置", "任务"):
         assert f'Text="{title}" Classes="page-title"' in xaml
+    assert 'Text="导入阅读" Classes="page-title"' in reader_xaml
     assert 'Text="今天从哪里开始？" Classes="page-hero"' in xaml
     assert '<Style Selector="TextBlock.page-title">' in theme
     assert '<Style Selector="TextBlock.page-hero">' in theme
@@ -159,24 +163,29 @@ def test_library_selected_evidence_detail_uses_only_search_projection_fields() -
 def test_library_and_source_lists_support_direct_keyboard_and_pointer_activation() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    for name in ("LibraryResultsList", "SourceReaderMembersList"):
-        list_block = xaml.split(f'x:Name="{name}"', 1)[1].split('>', 1)[0]
-        assert 'KeyDown="OnDetailListKeyDown"' in list_block
-        assert 'DoubleTapped="OnDetailListDoubleTapped"' in list_block
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
+    library_list = xaml.split('x:Name="LibraryResultsList"', 1)[1].split('>', 1)[0]
+    reader_list = reader_xaml.split('x:Name="SourceReaderMembersList"', 1)[1].split('>', 1)[0]
+    assert 'KeyDown="OnDetailListKeyDown"' in library_list
+    assert 'DoubleTapped="OnDetailListDoubleTapped"' in library_list
+    assert 'KeyDown="OnRowsKeyDown"' in reader_list
+    assert 'DoubleTapped="OnRowsDoubleTapped"' in reader_list
     assert 'private void OnDetailListKeyDown' in code
     assert 'private void OnDetailListDoubleTapped' in code
     assert 'private void ExecuteSelectedLibraryResult' in code
     assert 'OnOpenSelectedKnowledgeClick(this, new RoutedEventArgs())' in code
     assert 'OnOpenLibrarySourceClick(this, new RoutedEventArgs())' in code
-    assert 'OnReadSourceTransformClick(sender, new RoutedEventArgs())' in code
+    assert 'ReadTransformRequested?.Invoke(this, new SourceReaderRowActionEventArgs(SelectedRow));' in reader_code
 
 
 def test_library_to_source_reader_preserves_a_guarded_return_context() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="BackToLibraryButton"' in xaml
-    assert 'Content="返回资料库"' in xaml
-    assert 'Click="OnBackToLibraryClick"' in xaml
+    assert 'x:Name="BackToLibraryButton"' in reader_xaml
+    assert 'Content="返回资料库"' in reader_xaml
+    assert 'Click="OnReturnToLibraryClick"' in reader_xaml
+    assert 'ReturnToLibraryRequested?.Invoke' in SOURCE_READER_CODE.read_text(encoding="utf-8")
     assert 'private LibraryResultRow? _selectedLibraryResult;' in code
     assert 'private bool _returnToLibraryAvailable;' in code
     assert 'private void OnBackToLibraryClick' in code
@@ -286,24 +295,29 @@ def test_aaos_theme_exposes_semantic_state_and_projection_component_styles() -> 
 def test_narrow_layout_reflows_core_search_and_lookup_toolbars() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    for name in ("LibrarySearchGrid", "SourceReaderLoadGrid", "KnowledgeLoadGrid", "MachineTaskGrid", "JobLookupGrid"):
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    for name in ("LibrarySearchGrid", "KnowledgeLoadGrid", "MachineTaskGrid", "JobLookupGrid"):
         assert f'x:Name="{name}"' in xaml
+    assert 'x:Name="SourceReaderLoadGrid"' in reader_xaml
     assert 'private static void SetResponsiveToolbar' in code
     assert 'SetResponsiveToolbar(LibrarySearchGrid' in code
-    assert 'SetResponsiveToolbar(SourceReaderLoadGrid' in code
     assert 'SetResponsiveToolbar(KnowledgeLoadGrid' in code
     assert 'SetResponsiveToolbar(MachineTaskGrid' in code
     assert 'SetResponsiveToolbar(JobLookupGrid' in code
+    assert 'SourceReaderLoadGrid.ColumnDefinitions = narrowActions' in SOURCE_READER_CODE.read_text(encoding="utf-8")
 
 
 def test_mobile_layout_avoids_fixed_rail_and_tight_toolbar_rows() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     assert 'x:Name="PrimaryRail"' in xaml
     assert 'x:Name="WorkspaceScrollViewer"' in xaml
-    for name in ("LibrarySearchGrid", "SourceReaderLoadGrid", "KnowledgeLoadGrid", "MachineTaskGrid", "JobLookupGrid"):
+    for name in ("LibrarySearchGrid", "KnowledgeLoadGrid", "MachineTaskGrid", "JobLookupGrid"):
         grid = xaml.split(f'x:Name="{name}"', 1)[1].split('</Grid>', 1)[0]
         assert 'RowSpacing="10"' in grid
+    reader_grid = reader_xaml.split('x:Name="SourceReaderLoadGrid"', 1)[1].split('</Grid>', 1)[0]
+    assert 'RowSpacing="10"' in reader_grid
     assert 'var mobile = e.NewSize.Width < mobileBreakpoint;' in code
     assert 'MainFrameGrid.ColumnDefinitions[0].Width' in code
     assert 'WorkspaceScrollViewer.Padding' in code
@@ -346,6 +360,7 @@ def test_shell_exposes_core_product_navigation() -> None:
 
 def test_primary_navigation_and_system_actions_expose_stable_automation_names() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     for name in (
         'x:Name="RailWorkspaceButton"',
         'x:Name="RailCaptureButton"',
@@ -371,7 +386,6 @@ def test_primary_navigation_and_system_actions_expose_stable_automation_names() 
         'AutomationProperties.Name="刷新本次导入任务回执"',
         'AutomationProperties.Name="读取指定任务回执"',
         'AutomationProperties.Name="打开证据检查器"',
-        'AutomationProperties.Name="复制来源链"',
         'AutomationProperties.Name="展开活动回执详情"',
         'AutomationProperties.Name="打开任务回执"',
         'AutomationProperties.Name="刷新活动回执"',
@@ -379,6 +393,7 @@ def test_primary_navigation_and_system_actions_expose_stable_automation_names() 
         'AutomationProperties.Name="命令面板结果"',
     ):
         assert automation_name in xaml
+    assert 'AutomationProperties.Name="复制来源链"' in reader_xaml
     code = CODE.read_text(encoding="utf-8")
     assert 'AutomationProperties.SetName(InspectorDrawerButton' in code
     assert 'AutomationProperties.SetName(ActivityDockToggleButton' in code
@@ -483,8 +498,8 @@ def test_knowledge_detail_has_guarded_return_to_library_context() -> None:
 
 
 def test_source_reader_exposes_structured_member_provenance_fields() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
-    code = CODE.read_text(encoding="utf-8")
+    xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     for name in (
         "SourceReaderMemberFieldText",
         "SourceReaderOriginalNameFieldText",
@@ -494,35 +509,40 @@ def test_source_reader_exposes_structured_member_provenance_fields() -> None:
         "SourceReaderMemberBoundaryText",
     ):
         assert f'x:Name="{name}"' in xaml
-    assert 'SourceReaderMemberFieldText.Text = selected.Member;' in code
-    assert 'SourceReaderReadableFieldText.Text = selected.Readable;' in code
-    assert 'SourceReaderJobFieldText.Text = selected.JobId;' in code
-    assert 'SourceReaderShaFieldText.Text = selected.Sha256;' in code
+    assert 'SourceReaderMemberFieldText.Text = member.Member;' in code
+    assert 'SourceReaderReadableFieldText.Text = member.Readable;' in code
+    assert 'SourceReaderJobFieldText.Text = member.JobId;' in code
+    assert 'SourceReaderShaFieldText.Text = member.Sha256;' in code
     assert '原文正文未暴露；字段来自 Core 来源成员投影。' in code
 
 
 def test_source_reader_uses_explicit_state_semantics() -> None:
-    code = CODE.read_text(encoding="utf-8")
-    assert 'SetStatus(SourceReaderStatusText, "来源阅读：正在读取 Core。", "loading")' in code
-    assert '"来源阅读：读取失败。"' in code
-    assert 'IsPermissionStatus(response.StatusCode) ? "permission" : "error"' in code
-    assert 'SetStatus(SourceReaderStatusText, "来源阅读：读取中断。", "error")' in code
-    assert 'memberRows.Count == 0 ? "empty" : "success"' in code
-    assert 'SetStatus(SourceReaderStatusText, "来源阅读：请输入 source_id。", "empty")' in code
-    assert 'SetStatus(SourceReaderStatusText, "来源阅读：Core 未就绪。", "error")' in code
+    view_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
+    main_code = CODE.read_text(encoding="utf-8")
+    assert 'SetStatus(_state.StatusText, _state.StatusClass);' in view_code
+    assert '"loading", "empty", "error", "permission", "success", "info"' in view_code
+    assert 'SourceReaderPresentation.Failed' in main_code
+    assert 'SourceReaderPresentation.Mismatched' in main_code
+    assert 'IsPermissionStatus(response.StatusCode) ? "permission" : "error"' in main_code
+    assert 'memberRows.Count == 0 ? "empty" : "success"' in main_code
+    assert '来源阅读：请输入 source_id。' in main_code
+    assert '来源阅读：Core 未就绪。' in main_code
 
 
 def test_source_reader_and_knowledge_expose_source_context_navigation() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="FindLibraryFromSourceButton"' in xaml
-    assert 'Click="OnFindLibraryFromSourceClick"' in xaml
+    assert 'x:Name="FindLibraryFromSourceButton"' in reader_xaml
+    assert 'Click="OnLibraryLookupClick"' in reader_xaml
+    assert 'LibraryLookupRequested?.Invoke' in reader_code
     assert 'x:Name="OpenKnowledgeSourceButton"' in xaml
     assert 'Click="OnOpenKnowledgeSourceClick"' in xaml
-    assert 'private void OnFindLibraryFromSourceClick' in code
+    assert 'private void OnSourceReaderLibraryLookupRequested' in code
     assert 'private void OnOpenKnowledgeSourceClick' in code
     assert 'LibrarySearchBox.Text = selected.SourceId.Trim();' in code
-    assert 'SourceReaderIdBox.Text = _activeKnowledgeSourceId;' in code
+    assert 'SourceReaderView.SourceId = _activeKnowledgeSourceId;' in code
     assert 'selected.SourceId' in code
     assert '知识搜索结果仍需人工选择确认关联' in xaml
 
@@ -589,7 +609,7 @@ def test_navigation_state_controls_visible_surfaces() -> None:
     assert 'LearningSurface.IsVisible = section == "learning"' in code
     assert 'HomeStatsSurface.IsVisible = section == "home"' in code
     assert 'LibrarySurface.IsVisible = section == "library"' in code
-    assert 'SourceReaderSurface.IsVisible = section == "source-reader"' in code
+    assert 'SourceReaderView.IsVisible = section == "source-reader"' in code
     assert 'KnowledgeSurface.IsVisible = section == "knowledge"' in code
     assert 'MemoryMapSurface.IsVisible = section == "memory-map"' in code
     assert 'MachineKnowledgeSurface.IsVisible = section == "machine-growth"' in code
@@ -712,14 +732,15 @@ def test_recovery_surface_reads_core_status_without_simulating_restore() -> None
 
 
 def test_source_reader_surface_reads_real_core_members_projection() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'x:Name="SourceReaderSurface"' in xaml
-    assert 'Click="OnReadSourceMembersClick"' in xaml
+    assert 'x:Name="SourceReaderView"' in XAML.read_text(encoding="utf-8")
+    assert 'Click="OnLoadClick"' in xaml
+    assert 'LoadRequested?.Invoke' in SOURCE_READER_CODE.read_text(encoding="utf-8")
     assert 'x:Name="SourceReaderResultsText"' in xaml
     assert 'x:Name="SourceReaderShellGrid"' in xaml
-    assert 'Text="Source Tree / Outline"' in xaml
+    assert 'Text="Source Tree / Outline · 容器成员 / Core 持久任务"' in xaml
     assert 'Text="Main Reader · Core transform"' in xaml
     assert 'Text="Inspector · Source Chain"' in xaml
     assert '"/api/v1/sources/' in code
@@ -1137,7 +1158,7 @@ def test_library_result_can_open_source_reader_for_exposed_source_id() -> None:
     assert 'x:Name="OpenLibrarySourceButton"' in xaml
     assert 'Click="OnOpenLibrarySourceClick"' in xaml
     assert 'private void OnOpenLibrarySourceClick' in code
-    assert 'SourceReaderIdBox.Text = selected.SourceId.Trim();' in code
+    assert 'SourceReaderView.SourceId = selected.SourceId.Trim();' in code
     assert 'SetSection("source-reader", "导入阅读")' in code
     assert 'OnReadSourceMembersClick(sender, e);' in code
     assert "未暴露 source_id" in code
@@ -1187,80 +1208,105 @@ def test_knowledge_v3_detail_projects_structured_truth_fields() -> None:
 
 
 def test_source_reader_projects_members_as_selectable_provenance_rows() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'x:Name="SourceReaderMembersList"' in xaml
-    assert 'SelectionChanged="OnSourceMemberSelected"' in xaml
-    assert 'SourceReaderMembersList.ItemsSource = memberRows;' in code
-    assert 'private void OnSourceMemberSelected' in code
-    assert 'job=' in code
+    assert 'x:Name="SourceReaderMembersList"' in reader_xaml
+    assert 'SelectionChanged="OnRowSelected"' in reader_xaml
+    assert 'SourceReaderMembersList.ItemsSource = _state.Rows;' in reader_code
+    assert 'private void OnSourceReaderRowSelected' in code
+    assert 'RowSelected?.Invoke(this, new SourceReaderRowSelectedEventArgs(row));' in reader_code
+    assert 'job=' in reader_code
 
 
 def test_source_reader_rows_declare_projection_and_original_content_boundary() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
-    reader = xaml.split('x:Name="SourceReaderMembersList"', 1)[1].split('</ListBox>', 1)[0]
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader = reader_xaml.split('x:Name="SourceReaderMembersList"', 1)[1].split('</ListBox>', 1)[0]
 
-    assert 'Text="来源成员 · Core projection"' in reader
-    assert 'Text="原文正文未在此列表中展示"' in reader
+    assert 'Text="{Binding DisplayKind}"' in reader
+    assert 'Text="{Binding DisplayBoundary}"' in reader
+
+
+def test_source_reader_distinguishes_container_members_from_durable_jobs() -> None:
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
+
+    assert 'public override string DisplayKind => "容器成员 · Core projection";' in reader_code
+    assert 'public override string DisplayBoundary => "原文正文未在此列表中展示";' in reader_code
+    assert 'public override string DisplayKind => $"Core 持久任务 · {Kind}";' in reader_code
+    assert 'public override string DisplayBoundary => $"state={State} · attempt={Attempt} · error={Error}";' in reader_code
+    assert 'public override string DisplayText => $"{Kind} · {State} · attempt={Attempt} · {JobId}"' in reader_code
+    assert 'AutomationProperties.Name="来源成员或持久任务列表"' in reader_xaml
+    assert 'SourceReaderMemberFieldLabel.Text = "来源类型";' in reader_code
+    assert 'SourceReaderJobFieldLabel.Text = "Core 持久任务";' in reader_code
+    assert 'ViewSourceJobButton.Content = "查看选中任务回执";' in reader_code
+    assert 'AutomationProperties.SetName(ViewSourceJobButton, "查看选中任务回执");' in reader_code
+    assert 'SourceReaderMemberFieldLabel.Text = "容器成员";' in reader_code
+    assert 'ViewSourceJobButton.Content = "查看成员任务回执";' in reader_code
 
 
 def test_source_reader_preserves_structured_member_provenance_fields() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
-    code = CODE.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
 
-    assert 'Text="{Binding}"' in xaml
-    assert 'public sealed class SourceMemberRow' in code
+    assert 'Text="{Binding DisplayText}"' in reader_xaml
+    assert 'public sealed class SourceMemberRow' in reader_code
     for field in ("SourceId", "Member", "OriginalName", "Sha256", "Readable", "JobId"):
-        assert f"public string {field}" in code
-    assert 'SourceReaderMembersList.ItemsSource = memberRows;' in code
+        assert f"public string {field}" in reader_code
+    assert 'SourceReaderMembersList.ItemsSource = _state.Rows;' in reader_code
 
 
 def test_source_reader_has_explicit_loading_empty_and_failure_feedback() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="SourceReaderLoadButton"' in xaml
-    assert 'x:Name="SourceReaderStatusText"' in xaml
-    assert 'SourceReaderLoadButton.IsEnabled = false;' in code
-    assert 'SourceReaderLoadButton.IsEnabled = true;' in code
+    assert 'x:Name="SourceReaderLoadButton"' in reader_xaml
+    assert 'x:Name="SourceReaderStatusText"' in reader_xaml
+    assert 'SourceReaderLoadButton.IsEnabled = !_state.IsLoading;' in reader_code
+    assert 'SourceReaderIdBox.IsEnabled = !_state.IsLoading;' in reader_code
     assert "来源阅读：正在读取 Core" in code
     assert "来源阅读：Core 返回空成员" in code
 
 
 def test_source_reader_guards_against_stale_async_responses() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     assert 'private long _sourceReaderRequestVersion;' in code
     assert 'var requestVersion = ++_sourceReaderRequestVersion;' in code
     assert 'requestVersion != _sourceReaderRequestVersion' in code
     assert '来源阅读：输入已变化，请重新读取。' in code
-    assert 'SourceReaderIdBox.IsEnabled = false;' in code
-    assert 'SourceReaderIdBox.IsEnabled = true;' in code
-    assert 'IsEnabled="True"' not in xaml
+    assert 'SourceReaderIdBox.IsEnabled = !_state.IsLoading;' in reader_code
+    assert 'SourceReaderLoadButton.IsEnabled = !_state.IsLoading;' in reader_code
+    assert 'IsEnabled="True"' not in reader_xaml
 
 
 def test_source_member_can_open_a_real_job_receipt_without_claiming_success() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="ViewSourceJobButton"' in xaml
-    assert 'Click="OnViewSourceJobClick"' in xaml
+    assert 'x:Name="ViewSourceJobButton"' in reader_xaml
+    assert 'Click="OnOpenJobClick"' in reader_xaml
     assert 'x:Name="JobLookupIdBox"' in xaml
     assert 'x:Name="JobLookupResultsText"' in xaml
     assert 'Click="OnReadJobReceiptClick"' in xaml
-    assert 'private void OnViewSourceJobClick' in code
+    assert 'OpenJobRequested?.Invoke(this, new SourceReaderRowActionEventArgs(SelectedRow));' in reader_code
+    assert 'private void OnSourceReaderOpenJobRequested' in code
     assert 'private async void OnReadJobReceiptClick' in code
     assert '"/api/v1/jobs/{Uri.EscapeDataString(jobId)}"' in code
     assert "不代表任务成功" in code
 
 
 def test_source_reader_has_a_structured_selected_member_detail_card() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
-    code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="SourceReaderSelectedText"' in xaml
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
+    assert 'x:Name="SourceReaderSelectedText"' in reader_xaml
     for field in ("source_id", "member", "original_name", "readable", "job_id", "sha256"):
-        assert field in code
-    assert 'SourceReaderSelectedText.Text =' in code
-    assert "原文正文未在此详情卡片展示" in xaml
+        assert field in reader_code
+    assert 'SourceReaderSelectedText.Text =' in reader_code
+    assert "原文正文未在此详情卡片展示" in reader_xaml
 
 
 def test_inspector_has_structured_provenance_fields_without_inference() -> None:
@@ -1304,14 +1350,14 @@ def test_inspector_actions_reuse_existing_navigation_contract() -> None:
     assert 'OnBackToLibraryFromKnowledgeClick(sender, e);' in code
     assert 'OnBackToLibraryClick(sender, e);' in code
     assert 'if (_knowledgeReturnToLibraryAvailable)' in code
-    assert 'SourceReaderSurface.IsVisible' in code
+    assert 'string.Equals(_activeSection, "source-reader", StringComparison.Ordinal)' in code
 
 
 def test_knowledge_source_reader_preserves_return_context() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="BackToKnowledgeFromSourceButton"' in xaml
-    assert 'Click="OnBackToKnowledgeFromSourceClick"' in xaml
+    assert 'x:Name="BackToKnowledgeFromSourceButton"' in reader_xaml
+    assert 'Click="OnReturnToKnowledgeClick"' in reader_xaml
     assert 'private string? _sourceReaderReturnKnowledgeId;' in code
     assert 'private bool _sourceReaderReturnToKnowledgeAvailable;' in code
     assert '_sourceReaderReturnKnowledgeId = KnowledgeIdBox.Text?.Trim();' in code
@@ -1352,8 +1398,8 @@ def test_knowledge_has_main_workspace_evidence_context_fallback() -> None:
 
 
 def test_source_reader_has_main_workspace_provenance_chain_fallback() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
-    code = CODE.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     for field in (
         "SourceReaderChainSourceText",
         "SourceReaderChainMemberText",
@@ -1361,9 +1407,9 @@ def test_source_reader_has_main_workspace_provenance_chain_fallback() -> None:
         "SourceReaderChainShaText",
         "SourceReaderChainBoundaryText",
     ):
-        assert f'x:Name="{field}"' in xaml
-        assert f'{field}.Text =' in code
-    assert "sha256 不是正文或 anchor" in code
+        assert f'x:Name="{field}"' in reader_xaml
+        assert f'{field}.Text =' in reader_code
+    assert "sha256 不是正文或 anchor" in reader_code
 
 
 def test_home_deduplicates_core_learning_entry_and_labels_optional_workbench() -> None:
@@ -1549,9 +1595,10 @@ def test_library_search_ignores_stale_responses_from_older_queries() -> None:
 def test_inspector_overlay_and_source_reader_use_safe_narrow_layout_breakpoints() -> None:
     theme = THEME_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     assert 'x:Key="AaosSourceReaderStackBreakpoint"' in theme
-    assert 'GetAaosBreakpoint("AaosSourceReaderStackBreakpoint", 1200)' in code
-    assert 'var sourceReaderCompact = compact || e.NewSize.Width < sourceReaderStackBreakpoint;' in code
+    assert 'var compact = width < 1200;' in reader_code
+    assert 'SourceReaderShellGrid.ColumnDefinitions = compact' in reader_code
     assert 'Grid.SetColumnSpan(InspectorPanel, mobile ? 4 : 1);' in code
 
 
@@ -1595,11 +1642,11 @@ def test_learning_shows_capture_context_as_unassociated_session_context() -> Non
 
 
 def test_source_reader_clears_stale_selection_on_invalid_or_empty_read() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     assert "ResetSourceReaderSelection" in code
     assert "JobLookupIdBox.Text = string.Empty;" in code
-    assert "ViewSourceJobButton.IsEnabled = false;" in code
+    assert "ViewSourceJobButton.IsEnabled = false;" in reader_code
     assert "来源链未加载；字段缺失不推断。" in code
     assert "Core 返回 0 个来源成员" in code
 
@@ -1613,9 +1660,9 @@ def test_source_reader_surfaces_core_response_consistency_warnings() -> None:
 
 
 def test_source_reader_preserves_core_note_and_http_diagnostic_context() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="SourceReaderCoreNoteText"' in xaml
+    assert 'x:Name="SourceReaderCoreNoteText"' in reader_xaml
     assert 'ReadDisplayValue(root, "note")' in code
     assert "Core 说明：" in code
     assert "source not found" in code
@@ -1629,16 +1676,16 @@ def test_job_quality_zeroes_are_not_presented_as_verified_without_coverage() -> 
     assert "覆盖：" in code
     assert "loss_count" in code
     assert "region_count" in code
-    assert 'source_id={selected.SourceId}' in code
-    assert 'sha256={selected.Sha256}' in code
-    assert 'public override string ToString() => DisplayText;' in code
+    assert 'source_id={member.SourceId}' in code
+    assert 'sha256={member.Sha256}' in code
+    assert 'public override string ToString() => DisplayText;' in SOURCE_READER_CODE.read_text(encoding="utf-8")
 
 
 def test_source_member_selection_uses_added_items_only() -> None:
-    code = CODE.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
 
-    assert 'e.AddedItems.Count != 1' in code
-    assert 'e.AddedItems[0] is not SourceMemberRow selected' in code
+    assert 'SourceReaderMembersList.SelectedItem is not SourceReaderRow row' in reader_code
+    assert 'RowSelected?.Invoke(this, new SourceReaderRowSelectedEventArgs(row));' in reader_code
 
 
 def test_activity_dock_can_open_the_current_session_receipt_surface() -> None:
@@ -1794,7 +1841,7 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'SelectionChanged="OnEvidenceAnchorSelected"' in xaml
     assert 'else if (EvidenceSurface.IsVisible)' in code
     assert 'private void OnOpenEvidenceSourceClick' in code
-    assert 'SourceReaderIdBox.Text = _activeEvidenceSourceId;' in code
+    assert 'SourceReaderView.SourceId = _activeEvidenceSourceId;' in code
     assert 'var hasEvidenceSource = EvidenceSurface.IsVisible' in code
     assert 'HttpMethod.Get, "/api/v1/evidence/anchors"' in code
     assert 'Core 当前未暴露 Evidence bundle 读模型' in code
@@ -1959,14 +2006,16 @@ def test_mobile_workspace_keeps_primary_navigation_discoverable() -> None:
 def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
 
-    assert 'x:Name="SourceReaderShellGrid"' in xaml
-    assert 'x:Name="SourceReaderOutlineBorder"' in xaml
-    assert 'x:Name="SourceReaderMainBorder"' in xaml
-    assert 'var sourceReaderCompact = compact || e.NewSize.Width < sourceReaderStackBreakpoint;' in code
-    assert 'new ColumnDefinitions("1*")' in code
-    assert 'new RowDefinitions("Auto,Auto,Auto")' in code
-    assert 'Grid.SetRow(SourceReaderChainBorder, sourceReaderCompact ? 2 : 0);' in code
+    assert 'x:Name="SourceReaderShellGrid"' in reader_xaml
+    assert 'x:Name="SourceReaderOutlineBorder"' in reader_xaml
+    assert 'x:Name="SourceReaderMainBorder"' in reader_xaml
+    assert 'var compact = width < 1200;' in reader_code
+    assert 'new ColumnDefinitions("*")' in reader_code
+    assert 'new RowDefinitions("Auto,Auto,Auto")' in reader_code
+    assert 'Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);' in reader_code
     assert 'x:Name="HomeHeroGrid"' in xaml
     assert 'x:Name="HomeHeroImage"' in xaml
     assert 'Grid.SetColumn(HomeHeroImage, compact ? 0 : 1);' in code
@@ -2024,12 +2073,12 @@ def test_core_learning_controls_expose_stable_automation_names_and_motion_tokens
 
 
 def test_source_reader_can_read_existing_core_transform_output_without_calling_it_original_text() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'x:Name="ReadSourceTransformButton"' in xaml
-    assert 'Click="OnReadSourceTransformClick"' in xaml
-    assert 'x:Name="SourceReaderTransformText"' in xaml
+    assert 'x:Name="ReadSourceTransformButton"' in reader_xaml
+    assert 'Click="OnReadTransformClick"' in reader_xaml
+    assert 'x:Name="SourceReaderTransformText"' in reader_xaml
     assert 'private async void OnReadSourceTransformClick' in code
     assert '/outputs/text' in code
     assert 'string.Equals(selected.Readable, "true", StringComparison.OrdinalIgnoreCase)' in code
@@ -2038,11 +2087,13 @@ def test_source_reader_can_read_existing_core_transform_output_without_calling_i
 
 
 def test_source_reader_can_copy_only_the_selected_core_provenance_chain() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'x:Name="CopySourceProvenanceButton"' in xaml
-    assert 'Click="OnCopySourceProvenanceClick"' in xaml
+    assert 'x:Name="CopySourceProvenanceButton"' in reader_xaml
+    assert 'Click="OnCopyProvenanceClick"' in reader_xaml
+    assert 'CopyProvenanceRequested?.Invoke(this, new SourceReaderRowActionEventArgs(SelectedRow));' in reader_code
     assert 'private async void OnCopySourceProvenanceClick' in code
     assert 'await clipboard.SetTextAsync(text);' in code
     assert '不包含原文正文' in code
@@ -2070,12 +2121,14 @@ def test_frontend_exposes_truthful_transient_toast_feedback() -> None:
 
 
 def test_source_reader_can_copy_a_bounded_citation_metadata_summary() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'x:Name="CopySourceCitationButton"' in xaml
-    assert 'Click="OnCopySourceCitationClick"' in xaml
-    assert 'AutomationProperties.Name="复制引用元数据"' in xaml
+    assert 'x:Name="CopySourceCitationButton"' in reader_xaml
+    assert 'Click="OnCopyCitationClick"' in reader_xaml
+    assert 'AutomationProperties.Name="复制引用元数据"' in reader_xaml
+    assert 'CopyCitationRequested?.Invoke(this, new SourceReaderRowActionEventArgs(SelectedRow));' in reader_code
     assert 'private async void OnCopySourceCitationClick' in code
     assert '引用元数据' in code
     assert '不包含原文正文' in code
@@ -2102,15 +2155,15 @@ def test_primary_and_mobile_navigation_have_stable_accessibility_names() -> None
         assert automation_name in xaml[control_start:control_end]
     assert '来源链字段不完整，未复制占位值' in code
     assert 'private bool IsCurrentSourceTransformRequest' in code
-    assert 'ReferenceEquals(SourceReaderMembersList.SelectedItem, selected)' in code
+    assert 'ReferenceEquals(SourceReaderView.SelectedRow, selected)' in code
 
 
 def test_source_reader_context_actions_reflow_at_narrow_widths() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
-    code = CODE.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
 
-    assert 'x:Name="SourceReaderContextActions"' in xaml
-    assert 'SourceReaderContextActions.Orientation = narrowActions' in code
+    assert 'x:Name="SourceReaderContextActions"' in reader_xaml
+    assert 'SourceReaderContextActions.Orientation = narrowActions' in reader_code
 
 
 def test_learning_navigation_does_not_reenter_section_setup() -> None:
@@ -2215,11 +2268,11 @@ def test_status_updates_refresh_the_accessible_status_name() -> None:
 
 def test_primary_status_surfaces_have_initial_accessible_names() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
 
     expected = {
         'x:Name="CoreStatusText"': 'AutomationProperties.Name="核心状态"',
         'x:Name="LibrarySearchStatusText"': 'AutomationProperties.Name="资料库搜索状态"',
-        'x:Name="SourceReaderStatusText"': 'AutomationProperties.Name="来源阅读状态"',
         'x:Name="KnowledgeStateText"': 'AutomationProperties.Name="知识库状态"',
         'x:Name="EvidenceStatusText"': 'AutomationProperties.Name="证据中心状态"',
         'x:Name="SettingsStateText"': 'AutomationProperties.Name="系统状态"',
@@ -2229,10 +2282,13 @@ def test_primary_status_surfaces_have_initial_accessible_names() -> None:
     for control, name in expected.items():
         segment = xaml.split(control, 1)[1].split(" />", 1)[0]
         assert name in segment
+    source_reader_segment = reader_xaml.split('x:Name="SourceReaderStatusText"', 1)[1].split(" />", 1)[0]
+    assert 'AutomationProperties.Name="来源阅读状态"' in source_reader_segment
 
 
 def test_named_product_actions_have_stable_accessible_names() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
 
     expected = {
         'x:Name="FirstRunImportButton"': 'AutomationProperties.Name="选择资料并导入"',
@@ -2243,17 +2299,11 @@ def test_named_product_actions_have_stable_accessible_names() -> None:
         'x:Name="OpenLatestSourceButton"': 'AutomationProperties.Name="打开最近来源"',
         'x:Name="OpenLatestJobButton"': 'AutomationProperties.Name="查看最近任务"',
         'x:Name="LibrarySearchButton"': 'AutomationProperties.Name="搜索"',
-        'x:Name="SourceReaderLoadButton"': 'AutomationProperties.Name="读取来源成员"',
         'x:Name="KnowledgeLoadButton"': 'AutomationProperties.Name="读取知识"',
         'x:Name="SubmitReviewButton"': 'AutomationProperties.Name="提交复习结果"',
         'x:Name="MachineTaskLoadButton"': 'AutomationProperties.Name="读取任务收据"',
         'x:Name="EvidenceRefreshButton"': 'AutomationProperties.Name="读取证据"',
         'x:Name="OpenLibrarySourceButton"': 'AutomationProperties.Name="查看来源成员"',
-        'x:Name="BackToLibraryButton"': 'AutomationProperties.Name="返回资料库"',
-        'x:Name="BackToKnowledgeFromSourceButton"': 'AutomationProperties.Name="返回 Knowledge 详情"',
-        'x:Name="ViewSourceJobButton"': 'AutomationProperties.Name="查看选中成员的任务回执"',
-        'x:Name="FindLibraryFromSourceButton"': 'AutomationProperties.Name="在资料库查找关联投影"',
-        'x:Name="ReadSourceTransformButton"': 'AutomationProperties.Name="读取转换内容"',
         'x:Name="BackToLibraryFromKnowledgeButton"': 'AutomationProperties.Name="返回资料库 Evidence Detail"',
         'x:Name="OpenKnowledgeSourceButton"': 'AutomationProperties.Name="查看 Knowledge 来源成员"',
         'x:Name="OpenLearningCaptureSourceButton"': 'AutomationProperties.Name="打开最近来源"',
@@ -2265,6 +2315,17 @@ def test_named_product_actions_have_stable_accessible_names() -> None:
     }
     for control, name in expected.items():
         segment = xaml.split(control, 1)[1].split(" />", 1)[0]
+        assert name in segment
+    source_reader_actions = {
+        'x:Name="SourceReaderLoadButton"': 'AutomationProperties.Name="读取 Core 来源与容器成员"',
+        'x:Name="BackToLibraryButton"': 'AutomationProperties.Name="返回资料库"',
+        'x:Name="BackToKnowledgeFromSourceButton"': 'AutomationProperties.Name="返回 Knowledge 详情"',
+        'x:Name="ViewSourceJobButton"': 'AutomationProperties.Name="查看选中项任务回执"',
+        'x:Name="FindLibraryFromSourceButton"': 'AutomationProperties.Name="在资料库查找关联投影"',
+        'x:Name="ReadSourceTransformButton"': 'AutomationProperties.Name="读取转换内容"',
+    }
+    for control, name in source_reader_actions.items():
+        segment = reader_xaml.split(control, 1)[1].split(" />", 1)[0]
         assert name in segment
 
 
@@ -2288,8 +2349,11 @@ def test_every_desktop_input_and_result_control_declares_an_accessible_name() ->
 
 def test_primary_lookup_inputs_submit_on_enter_through_existing_routes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert xaml.count('KeyDown="OnToolbarInputKeyDown"') == 6
+    assert xaml.count('KeyDown="OnToolbarInputKeyDown"') == 5
+    assert 'x:Name="SourceReaderIdBox"' in reader_xaml
+    assert 'KeyDown="OnSourceIdKeyDown"' in reader_xaml
     assert "private void OnToolbarInputKeyDown" in code
     for route in (
         "OnSearchLibraryClick",
@@ -2332,9 +2396,214 @@ def test_command_palette_results_support_pointer_activation() -> None:
 
 
 def test_source_reader_action_group_is_attached_to_source_chain() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
 
-    chain_start = xaml.index('x:Name="SourceReaderChainBorder"')
-    chain_end = xaml.index('x:Name="KnowledgeSurface"')
-    chain = xaml[chain_start:chain_end]
+    chain_start = reader_xaml.index('x:Name="SourceReaderChainBorder"')
+    chain_end = reader_xaml.index('</Border>', chain_start)
+    chain = reader_xaml[chain_start:chain_end]
     assert 'x:Name="SourceReaderContextActions"' in chain
+
+
+def test_source_reader_is_extracted_behind_a_typed_single_view_contract() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    view_xaml_path = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "SourceReaderView.axaml"
+    view_code_path = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "SourceReaderView.axaml.cs"
+
+    assert view_xaml_path.exists()
+    assert view_code_path.exists()
+    view_xaml = view_xaml_path.read_text(encoding="utf-8")
+    view_code = view_code_path.read_text(encoding="utf-8")
+
+    assert 'xmlns:views="using:ArcheAxis.Desktop.Views"' in xaml
+    assert '<views:SourceReaderView x:Name="SourceReaderView"' in xaml
+    assert 'x:Name="SourceReaderMembersList"' not in xaml
+    assert 'x:Name="SourceReaderMembersList"' in view_xaml
+    assert 'AutomationProperties.Name="来源成员或持久任务列表"' in view_xaml
+    assert 'AutomationProperties.Name="读取 Core 来源与容器成员"' in view_xaml
+    assert 'AutomationProperties.Name="读取转换内容"' in view_xaml
+    assert 'AutomationProperties.Name="复制来源链"' in view_xaml
+    assert 'AutomationProperties.Name="复制引用元数据"' in view_xaml
+
+    assert "public enum SourceReaderPresentation" in view_code
+    for state in ("Empty", "Loading", "Members", "SingleSourceReady", "Pending", "Failed", "Mismatched"):
+        assert state in view_code
+    assert "public sealed record SourceReaderViewState" in view_code
+    assert "string SourceId" in view_code
+    assert "IReadOnlyList<SourceReaderRow> Rows" in view_code
+    assert "public event EventHandler<SourceReaderLoadRequestedEventArgs>? LoadRequested;" in view_code
+    assert "public event EventHandler<SourceReaderRowSelectedEventArgs>? RowSelected;" in view_code
+    assert "public event EventHandler<SourceReaderRowActionEventArgs>? ReadTransformRequested;" in view_code
+    assert "public event EventHandler<SourceReaderRowActionEventArgs>? OpenJobRequested;" in view_code
+    assert "public event EventHandler<SourceReaderRowActionEventArgs>? LibraryLookupRequested;" in view_code
+    assert "public event EventHandler<SourceReaderRowActionEventArgs>? CopyProvenanceRequested;" in view_code
+    assert "public event EventHandler<SourceReaderRowActionEventArgs>? CopyCitationRequested;" in view_code
+    assert "public event EventHandler? ReturnToLibraryRequested;" in view_code
+    assert "public event EventHandler? ReturnToKnowledgeRequested;" in view_code
+    assert "ReadTransformRequested?.Invoke" in view_code
+    assert "e.Key != Key.Enter" in view_code
+    assert "OnRowsDoubleTapped" in view_code
+    assert "width < 1200" in view_code
+
+    assert '"/api/v1/sources/{Uri.EscapeDataString(sourceId)}/members"' in code
+    assert '"/api/v1/sources/{Uri.EscapeDataString(sourceId)}/jobs"' in code
+    assert "CoreTextOutputReader.ReadAsync" in code
+    assert "_sourceReaderRequestVersion" in code
+    assert "_sourceTransformRequestVersion" in code
+    assert "public TextBox SourceReaderIdBox" not in view_code
+    assert "public ListBox SourceReaderMembersList" not in view_code
+
+
+def test_single_file_capture_source_uses_its_real_core_output_without_fabricating_a_member() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
+    reader = (ROOT / "apps" / "ArcheAxis.Desktop" / "CoreTextOutputReader.cs").read_text(encoding="utf-8")
+
+    assert 'sha256 = source.RootElement.GetProperty("sha256").GetString()' in code
+    assert "CoreTextOutputReader.ReadAsync" in code
+    assert '"/api/v1/sources/{Uri.EscapeDataString(sourceId)}/members"' in code
+    assert '"/api/v1/sources/{Uri.EscapeDataString(sourceId)}/jobs"' in code
+    assert 'public sealed class SourceJobRow' in reader_code
+    assert "TryProjectCurrentSingleFileCapture" not in code
+    assert "ReadCaptureTextOutputAsync" not in code
+    assert '"/api/v1/jobs/{Uri.EscapeDataString(jobId)}/outputs/text"' in reader
+    assert '"succeeded"' in reader
+    assert "Core transform 输出" in code
+    assert "原始字节" in code
+    assert 'TryGetProperty("input_ref"' in reader
+    assert "string.Equals(inputRef, sourceId, StringComparison.Ordinal)" in reader
+
+
+def test_native_menu_uses_existing_capture_navigation_and_view_actions() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+
+    menu_start = xaml.index('x:Name="ApplicationMenu"')
+    menu_end = xaml.index("</Menu>", menu_start)
+    menu = xaml[menu_start:menu_end]
+
+    assert 'Header="文件(_F)"' in menu
+    assert 'Header="导航(_N)"' in menu
+    assert 'Header="视图(_V)"' in menu
+    assert 'Header="导入资料…"' in menu and 'Click="OnImportClick"' in menu
+    assert 'Click="OnOpenCommandPaletteClick"' in menu
+    assert 'Click="OnMenuToggleActivityDockClick"' in menu
+    assert 'Click="OnMenuToggleInspectorClick"' in menu
+    assert "private void OnOpenCommandPaletteClick" in code
+    assert "private void OnMenuToggleActivityDockClick" in code
+    assert "private void OnMenuToggleInspectorClick" in code
+    assert 'AutomationProperties.Name="应用程序菜单"' in xaml
+    assert "Ctrl+Alt+I" in menu
+    assert "Ctrl+Alt+J" in menu
+
+
+def test_native_top_level_menu_headers_expose_access_keys() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    menu_start = xaml.index('x:Name="ApplicationMenu"')
+    menu_end = xaml.index("</Menu>", menu_start)
+    menu = xaml[menu_start:menu_end]
+
+    assert 'Header="文件(_F)"' in menu
+    assert 'Header="导航(_N)"' in menu
+    assert 'Header="视图(_V)"' in menu
+
+
+def test_reused_ambient_illustrations_are_hidden_as_decorative_content() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    image_elements = [element.split("/>", 1)[0] for element in xaml.split("<Image ")[1:]]
+
+    assert len(image_elements) == 4
+    assert 'x:Name="HomeHeroImage"' in image_elements[0]
+    assert 'AutomationProperties.Name="星环知识图：资料、检索与灵感"' in image_elements[0]
+    assert 'AutomationProperties.AccessibilityView="Raw"' not in image_elements[0]
+    for image in image_elements[1:]:
+        assert 'AutomationProperties.AccessibilityView="Raw"' in image
+        assert 'AutomationProperties.IsControlElementOverride="False"' in image
+        assert "AutomationProperties.Name=" not in image
+
+
+def test_evidence_center_uses_a_distinct_transparent_anchor_illustration() -> None:
+    import struct
+
+    xaml = XAML.read_text(encoding="utf-8")
+    image = (ROOT / "apps" / "ArcheAxis.Desktop" / "Assets" / "aaos-evidence-anchor-empty-state.png").read_bytes()
+    evidence_image = next(element.split("/>", 1)[0] for element in xaml.split("<Image ")[1:]
+                          if 'x:Name="EvidenceEmptyStateImage"' in element)
+
+    assert 'Source="avares://ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png"' in evidence_image
+    assert 'Width="150" Height="112"' in evidence_image
+    assert 'AutomationProperties.AccessibilityView="Raw"' in evidence_image
+    assert len(image) < 2_000_000
+    assert image[:8] == b"\x89PNG\r\n\x1a\n"
+    width, height = struct.unpack(">II", image[16:24])
+    assert width > 0 and height > 0
+    assert image[25] in (4, 6), "asset should retain an alpha channel for a transparent UI background"
+
+
+def test_native_menu_shortcuts_are_bound_to_the_advertised_view_actions() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    assert 'e.Key == Key.I && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Alt)' in code
+    assert 'e.Key == Key.J && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Alt)' in code
+    assert 'OnMenuToggleInspectorClick(this, new RoutedEventArgs())' in code
+    assert 'OnMenuToggleActivityDockClick(this, new RoutedEventArgs())' in code
+
+
+def test_native_navigation_menu_exposes_all_sixteen_command_palette_routes() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    start = xaml.index('AutomationProperties.Name="导航菜单"')
+    end = xaml.index('<MenuItem Header="视图(_V)"', start)
+    menu = xaml[start:end]
+    for route in (
+        "工作台", "捕获", "资料库", "原件阅读", "知识库", "原件编辑", "记忆地图", "学习",
+        "证据中心", "研究", "机器知识", "任务", "插件", "模型", "恢复", "系统设置",
+    ):
+        assert f'AutomationProperties.Name="导航到{route}"' in menu
+    assert menu.count("<MenuItem ") == 16
+
+
+def test_navigation_current_page_state_is_synchronized_for_rail_mobile_and_menu() -> None:
+    xaml = XAML.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    transition = code[code.index("private void SetSection("):code.index("private void SetInspectorProjection(")]
+    assert "SetNavigationCurrentPage(section);" in transition
+    assert "private void SetNavigationCurrentPage(string section)" in code
+    assert 'AutomationProperties.SetName(button, isCurrent ? $"当前页面：{label}" : $"打开{label}")' in code
+    assert 'AutomationProperties.SetName(menuItem, isCurrent ? $"当前页面：{label}" : $"导航到{label}")' in code
+    for name in (
+        "NavigateHomeMenuItem", "NavigateCaptureMenuItem", "NavigateLibraryMenuItem",
+        "NavigateReaderMenuItem", "NavigateKnowledgeMenuItem", "NavigateEditorMenuItem",
+        "NavigateMemoryMapMenuItem", "NavigateLearningMenuItem", "NavigateEvidenceMenuItem",
+        "NavigateResearchMenuItem", "NavigateMachineMenuItem", "NavigateJobsMenuItem",
+        "NavigatePluginsMenuItem", "NavigateModelsMenuItem", "NavigateRecoveryMenuItem",
+        "NavigateSettingsMenuItem",
+    ):
+        assert f'x:Name="{name}"' in xaml
+
+
+def test_single_file_reader_core_response_honors_the_requested_source_identity() -> None:
+    reader = (ROOT / "apps" / "ArcheAxis.Desktop" / "CoreTextOutputReader.cs").read_text(encoding="utf-8")
+    assert 'TryGetProperty("input_ref"' in reader
+    assert 'string.Equals(inputRef, sourceId, StringComparison.Ordinal)' in reader
+
+
+def test_reader_restores_single_file_jobs_from_core_without_capture_session_state() -> None:
+    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
+    code = CODE.read_text(encoding="utf-8")
+    assert '"/api/v1/sources/{Uri.EscapeDataString(sourceId)}/jobs"' in code
+    assert 'public sealed class SourceJobRow' in reader_code
+    assert 'SourceReaderView.SelectedRow is SourceJobRow sourceJob' in code
+    assert 'public bool CanReadText => Kind == "text" && State == "succeeded";' in reader_code
+    assert 'CoreTextOutputReader.ReadAsync(_supervisor, sourceJob.SourceId, sourceJob.JobId)' in code
+    assert "Core 持久任务" in reader_xaml
+    assert "Core 持久任务" in reader_code
+    assert "当前 Desktop 会话 Capture 上下文" not in code
+    reader_load = code[code.index("private async void OnReadSourceMembersClick"):code.index("private void OnSourceReaderLoadRequested")]
+    assert "SourceReaderView.SelectedRow =" not in reader_load
+
+
+def test_job_status_api_projects_the_persisted_source_input_reference() -> None:
+    runtime = (ROOT / "crates" / "archeaxis-api" / "src" / "runtime" / "mod.rs").read_text(encoding="utf-8")
+    status = runtime[runtime.index("async fn status"):runtime.index("async fn cancel")]
+    assert "j.input_ref" in status
+    assert '"input_ref":r.get::<_,String>(4)?' in status

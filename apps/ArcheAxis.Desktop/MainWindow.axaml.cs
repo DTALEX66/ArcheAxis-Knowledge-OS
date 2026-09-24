@@ -12,6 +12,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using ArcheAxis.Desktop.Views;
 
 namespace ArcheAxis.Desktop;
 
@@ -60,6 +61,7 @@ public partial class MainWindow : Window
     private string? _activeMemoryMapSourceId;
     private string? _sourceReaderReturnKnowledgeId;
     private bool _sourceReaderReturnToKnowledgeAvailable;
+    private SourceReaderRow? _selectedSourceReaderRow;
     private bool _activityDockExpanded;
     private long _workspaceSummaryRequestVersion;
     private long _settingsRequestVersion;
@@ -112,40 +114,19 @@ public partial class MainWindow : Window
     {
         public string FileName { get; }
         public string SourceId { get; }
+        public string Sha256 { get; }
         public string JobId { get; set; }
         public string JobState { get; set; }
         public string DisplayText =>
-            $"文件：{FileName}\nsource_id={SourceId}\njob_id={JobId}\n状态={JobState}";
+            $"文件：{FileName}\nsource_id={SourceId}\nsha256={Sha256}\njob_id={JobId}\n状态={JobState}";
 
-        public CaptureContextRow(string fileName, string sourceId)
+        public CaptureContextRow(string fileName, string sourceId, string sha256)
         {
             FileName = fileName;
             SourceId = sourceId;
+            Sha256 = sha256;
             JobId = "未提交";
             JobState = "source_received";
-        }
-
-        public override string ToString() => DisplayText;
-    }
-
-    public sealed class SourceMemberRow
-    {
-        public string SourceId { get; }
-        public string Member { get; }
-        public string OriginalName { get; }
-        public string Sha256 { get; }
-        public string Readable { get; }
-        public string JobId { get; }
-        public string DisplayText => $"{(string.IsNullOrWhiteSpace(OriginalName) ? Member : OriginalName)} · readable={Readable} · job={JobId}";
-
-        public SourceMemberRow(string sourceId, string member, string originalName, string sha256, string readable, string jobId)
-        {
-            SourceId = sourceId;
-            Member = member;
-            OriginalName = originalName;
-            Sha256 = sha256;
-            Readable = readable;
-            JobId = jobId;
         }
 
         public override string ToString() => DisplayText;
@@ -188,6 +169,16 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        SourceReaderView.LoadRequested += OnSourceReaderLoadRequested;
+        SourceReaderView.RowSelected += OnSourceReaderRowSelected;
+        SourceReaderView.ReadTransformRequested += OnSourceReaderReadTransformRequested;
+        SourceReaderView.OpenJobRequested += OnSourceReaderOpenJobRequested;
+        SourceReaderView.LibraryLookupRequested += OnSourceReaderLibraryLookupRequested;
+        SourceReaderView.CopyProvenanceRequested += OnSourceReaderCopyProvenanceRequested;
+        SourceReaderView.CopyCitationRequested += OnSourceReaderCopyCitationRequested;
+        SourceReaderView.ReturnToLibraryRequested += OnSourceReaderReturnToLibraryRequested;
+        SourceReaderView.ReturnToKnowledgeRequested += OnSourceReaderReturnToKnowledgeRequested;
+        SetNavigationCurrentPage(_activeSection);
         AttachAccessibleTextSync(CoreStatusText);
         AttachAccessibleTextSync(FirstRunCoreStatusText);
         AttachAccessibleTextSync(FirstRunWorkspaceStatusText);
@@ -411,6 +402,7 @@ public partial class MainWindow : Window
         if (!string.Equals(section, "jobs", StringComparison.Ordinal))
             ++_jobLookupRequestVersion;
         _activeSection = section;
+        SetNavigationCurrentPage(section);
         WorkspaceHeadingText.Text = heading;
         Avalonia.Automation.AutomationProperties.SetName(WorkspaceHeadingText, heading);
         Dispatcher.UIThread.Post(() => WorkspaceHeadingText.Focus(), DispatcherPriority.Input);
@@ -470,7 +462,7 @@ public partial class MainWindow : Window
         HomeSurface.IsVisible = section == "home";
         CaptureSurface.IsVisible = section == "capture";
         LibrarySurface.IsVisible = section == "library";
-        SourceReaderSurface.IsVisible = section == "source-reader";
+        SourceReaderView.IsVisible = section == "source-reader";
         KnowledgeSurface.IsVisible = section == "knowledge";
         LearningSurface.IsVisible = section == "learning";
         EvidenceSurface.IsVisible = section == "evidence";
@@ -540,10 +532,66 @@ public partial class MainWindow : Window
             StartHomeHeroAmbientMotion();
         else
             StopHomeHeroAmbientMotion();
-        BackToKnowledgeFromSourceButton.IsEnabled = section == "source-reader" && _sourceReaderReturnToKnowledgeAvailable;
+        SourceReaderView.State = SourceReaderView.State with
+        {
+            CanReturnToLibrary = section == "source-reader" && _returnToLibraryAvailable,
+            CanReturnToKnowledge = section == "source-reader" && _sourceReaderReturnToKnowledgeAvailable,
+        };
         RefreshInspectorAccessibleNames();
         UpdateInspectorActions();
     }
+
+    private void SetNavigationCurrentPage(string section)
+    {
+        var inLibraryDomain = section is "library" or "knowledge";
+        SetNavigationButtonState(RailWorkspaceButton, section == "home", "工作台");
+        SetNavigationButtonState(RailCaptureButton, section == "capture", "捕获");
+        SetNavigationButtonState(RailKnowledgeButton, inLibraryDomain, "资料与知识");
+        SetNavigationButtonState(RailReaderButton, section == "source-reader", "原件阅读");
+        SetNavigationButtonState(RailLearningButton, section == "learning", "学习");
+        SetNavigationButtonState(RailMachineButton, section == "machine-growth", "机器知识");
+        SetNavigationButtonState(RailEvidenceButton, section == "evidence", "证据中心");
+        SetNavigationButtonState(RailResearchButton, section == "research", "研究");
+        SetNavigationButtonState(RailJobsButton, section == "jobs", "任务");
+        SetNavigationButtonState(RailPluginsButton, section == "plugins", "插件");
+        SetNavigationButtonState(RailModelsButton, section == "models", "模型");
+        SetNavigationButtonState(RailSystemButton, section == "settings", "系统");
+        SetNavigationButtonState(MobileWorkspaceButton, section == "home", "工作台");
+        SetNavigationButtonState(MobileCaptureButton, section == "capture", "捕获");
+        SetNavigationButtonState(MobileKnowledgeButton, inLibraryDomain, "资料与知识");
+        SetNavigationButtonState(MobileReaderButton, section == "source-reader", "原件阅读");
+        SetNavigationButtonState(MobileLearningButton, section == "learning", "学习");
+        SetNavigationButtonState(MobileMachineButton, section == "machine-growth", "机器知识");
+        SetNavigationButtonState(MobileEvidenceButton, section == "evidence", "证据中心");
+        SetNavigationButtonState(MobileResearchButton, section == "research", "研究");
+        SetNavigationButtonState(MobileJobsButton, section == "jobs", "任务");
+        SetNavigationButtonState(MobilePluginsButton, section == "plugins", "插件");
+        SetNavigationButtonState(MobileModelsButton, section == "models", "模型");
+        SetNavigationButtonState(MobileSystemButton, section == "settings", "系统");
+
+        SetNavigationMenuState(NavigateHomeMenuItem, section == "home", "工作台");
+        SetNavigationMenuState(NavigateCaptureMenuItem, section == "capture", "捕获");
+        SetNavigationMenuState(NavigateLibraryMenuItem, section == "library", "资料库");
+        SetNavigationMenuState(NavigateReaderMenuItem, section == "source-reader", "原件阅读");
+        SetNavigationMenuState(NavigateKnowledgeMenuItem, section == "knowledge", "知识库");
+        SetNavigationMenuState(NavigateEditorMenuItem, section == "original-editor", "原件编辑");
+        SetNavigationMenuState(NavigateMemoryMapMenuItem, section == "memory-map", "记忆地图");
+        SetNavigationMenuState(NavigateLearningMenuItem, section == "learning", "学习");
+        SetNavigationMenuState(NavigateEvidenceMenuItem, section == "evidence", "证据中心");
+        SetNavigationMenuState(NavigateResearchMenuItem, section == "research", "研究");
+        SetNavigationMenuState(NavigateMachineMenuItem, section == "machine-growth", "机器知识");
+        SetNavigationMenuState(NavigateJobsMenuItem, section == "jobs", "任务");
+        SetNavigationMenuState(NavigatePluginsMenuItem, section == "plugins", "插件");
+        SetNavigationMenuState(NavigateModelsMenuItem, section == "models", "模型");
+        SetNavigationMenuState(NavigateRecoveryMenuItem, section == "recovery", "恢复");
+        SetNavigationMenuState(NavigateSettingsMenuItem, section == "settings", "系统设置");
+    }
+
+    private static void SetNavigationButtonState(Button button, bool isCurrent, string label) =>
+        Avalonia.Automation.AutomationProperties.SetName(button, isCurrent ? $"当前页面：{label}" : $"打开{label}");
+
+    private static void SetNavigationMenuState(MenuItem menuItem, bool isCurrent, string label) =>
+        Avalonia.Automation.AutomationProperties.SetName(menuItem, isCurrent ? $"当前页面：{label}" : $"导航到{label}");
 
     private void PlayWorkspaceRouteTransition()
     {
@@ -663,7 +711,7 @@ public partial class MainWindow : Window
         InspectorOpenKnowledgeButton.IsEnabled = (hasLibraryResult
             && _selectedLibraryResult!.Kind == "knowledge"
             && !string.IsNullOrWhiteSpace(_selectedLibraryResult.KnowledgeId))
-            || (SourceReaderSurface.IsVisible && _sourceReaderReturnToKnowledgeAvailable);
+            || (SourceReaderView.IsVisible && _sourceReaderReturnToKnowledgeAvailable);
         InspectorBackLibraryButton.IsEnabled = _knowledgeReturnToLibraryAvailable || _returnToLibraryAvailable;
     }
 
@@ -681,7 +729,7 @@ public partial class MainWindow : Window
 
     private void OnInspectorOpenKnowledgeClick(object? sender, RoutedEventArgs e)
     {
-        if (SourceReaderSurface.IsVisible)
+        if (SourceReaderView.IsVisible)
             OnBackToKnowledgeFromSourceClick(sender, e);
         else
             OnOpenSelectedKnowledgeClick(sender, e);
@@ -691,7 +739,7 @@ public partial class MainWindow : Window
     {
         if (KnowledgeSurface.IsVisible)
             OnBackToLibraryFromKnowledgeClick(sender, e);
-        else if (SourceReaderSurface.IsVisible)
+        else if (SourceReaderView.IsVisible)
         {
             if (_knowledgeReturnToLibraryAvailable)
                 OnBackToLibraryFromKnowledgeClick(sender, e);
@@ -809,6 +857,23 @@ public partial class MainWindow : Window
             InspectorPanel.Focus();
     }
 
+    private void OnMenuToggleInspectorClick(object? sender, RoutedEventArgs e)
+    {
+        if (!InspectorDrawerButton.IsVisible)
+            SetSection("evidence", "证据中心");
+        if (InspectorDrawerButton.IsVisible)
+            OnToggleInspectorDrawerClick(sender, e);
+    }
+
+    private void OnMenuToggleActivityDockClick(object? sender, RoutedEventArgs e)
+        => SetActivityDockExpanded(!_activityDockExpanded);
+
+    private void OnOpenCommandPaletteClick(object? sender, RoutedEventArgs e)
+        => SetCommandPaletteVisibility(true);
+
+    private void OnExitMenuClick(object? sender, RoutedEventArgs e)
+        => Close();
+
     private void ResetLearningProjectionForUnavailable(string reason, string action)
     {
         _activeLearningItem = null;
@@ -869,7 +934,7 @@ public partial class MainWindow : Window
         _sourceReaderReturnKnowledgeId = null;
         _returnToLibraryAvailable = false;
         _knowledgeReturnToLibraryAvailable = false;
-        BackToLibraryButton.IsEnabled = false;
+        SourceReaderView.State = SourceReaderView.State with { CanReturnToLibrary = false };
         SetSection("source-reader", "导入阅读");
     }
 
@@ -917,9 +982,9 @@ public partial class MainWindow : Window
         _knowledgeReturnToLibraryAvailable = false;
         _sourceReaderReturnToKnowledgeAvailable = false;
         _sourceReaderReturnKnowledgeId = null;
-        BackToLibraryButton.IsEnabled = false;
+        SourceReaderView.State = SourceReaderView.State with { CanReturnToLibrary = false };
         BackToLibraryFromKnowledgeButton.IsEnabled = false;
-        SourceReaderIdBox.Text = _activeEvidenceSourceId;
+        SourceReaderView.SourceId = _activeEvidenceSourceId;
         SetSection("source-reader", "导入阅读");
         OnReadSourceMembersClick(sender, e);
     }
@@ -942,9 +1007,9 @@ public partial class MainWindow : Window
         _knowledgeReturnToLibraryAvailable = false;
         _sourceReaderReturnToKnowledgeAvailable = false;
         _sourceReaderReturnKnowledgeId = null;
-        BackToLibraryButton.IsEnabled = false;
+        SourceReaderView.State = SourceReaderView.State with { CanReturnToLibrary = false };
         BackToLibraryFromKnowledgeButton.IsEnabled = false;
-        SourceReaderIdBox.Text = _activeMemoryMapSourceId;
+        SourceReaderView.SourceId = _activeMemoryMapSourceId;
         SetSection("source-reader", "导入阅读");
         OnReadSourceMembersClick(sender, e);
     }
@@ -1022,6 +1087,20 @@ public partial class MainWindow : Window
 
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Key == Key.I && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Alt))
+        {
+            OnMenuToggleInspectorClick(this, new RoutedEventArgs());
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.J && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Alt))
+        {
+            OnMenuToggleActivityDockClick(this, new RoutedEventArgs());
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key == Key.K && (e.KeyModifiers & KeyModifiers.Control) != 0)
         {
             SetCommandPaletteVisibility(!CommandPaletteOverlay.IsVisible);
@@ -1138,8 +1217,6 @@ public partial class MainWindow : Window
 
         if (ReferenceEquals(sender, LibrarySearchBox))
             OnSearchLibraryClick(sender, new RoutedEventArgs());
-        else if (ReferenceEquals(sender, SourceReaderIdBox))
-            OnReadSourceMembersClick(sender, new RoutedEventArgs());
         else if (ReferenceEquals(sender, KnowledgeIdBox))
             OnReadKnowledgeClick(sender, new RoutedEventArgs());
         else if (ReferenceEquals(sender, MachineTaskIdBox))
@@ -1184,29 +1261,21 @@ public partial class MainWindow : Window
     private void ResetSourceReaderSelection()
     {
         ++_sourceTransformRequestVersion;
-        SourceReaderMembersList.ItemsSource = Array.Empty<SourceMemberRow>();
-        SourceReaderSelectedText.Text = "尚未选择来源成员。";
-        SourceReaderMemberFieldText.Text = "未选择";
-        SourceReaderOriginalNameFieldText.Text = "未选择";
-        SourceReaderReadableFieldText.Text = "未选择";
-        SourceReaderJobFieldText.Text = "未选择";
-        SourceReaderShaFieldText.Text = "未选择";
-        SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";
-        SourceReaderTransformText.Text = "尚未读取转换输出；原文正文仍未暴露。";
-        ReadSourceTransformButton.IsEnabled = false;
-        CopySourceProvenanceButton.IsEnabled = false;
-        CopySourceCitationButton.IsEnabled = false;
-        SourceReaderChainSourceText.Text = "容器来源：未读取";
-        SourceReaderChainMemberText.Text = "成员：未选择";
-        SourceReaderChainJobText.Text = "处理任务：未选择";
-        SourceReaderChainShaText.Text = "内容指纹：未选择";
-        SourceReaderChainBoundaryText.Text = "仅为 Core 来源成员投影；不代表正文、理解或证据 anchor。";
-        SourceReaderCoreNoteText.Text = "Core 语义边界：尚未读取。";
+        _selectedSourceReaderRow = null;
+        SourceReaderView.State = SourceReaderView.State with
+        {
+            Presentation = SourceReaderPresentation.Empty,
+            SourceId = SourceReaderView.SourceId,
+            Rows = Array.Empty<SourceReaderRow>(),
+            SelectedRow = null,
+            Summary = "输入 source_id 后读取 Core。",
+            CoreNote = "Core 语义边界：尚未读取。",
+            TransformText = "尚未读取转换输出；原文正文仍未暴露。",
+            ChainBoundaryText = string.Empty,
+        };
         JobLookupIdBox.Text = string.Empty;
-        ViewSourceJobButton.IsEnabled = false;
-        FindLibraryFromSourceButton.IsEnabled = false;
-        InspectorObjectText.Text = "未选择来源成员";
-        InspectorDetailsText.Text = "Source Reader 尚未读取有效成员。";
+        InspectorObjectText.Text = "未选择来源或任务";
+        InspectorDetailsText.Text = "Source Reader 尚未读取有效成员或 Core 持久任务。";
         InspectorSourceText.Text = "未暴露";
         InspectorVersionText.Text = "未暴露";
         InspectorStatusText.Text = "未暴露";
@@ -1222,19 +1291,62 @@ public partial class MainWindow : Window
     {
         if (requestVersion != _sourceReaderRequestVersion)
             return;
-        SourceReaderLoadButton.IsEnabled = true;
-        SourceReaderIdBox.IsEnabled = true;
+        SourceReaderView.State = SourceReaderView.State with { IsLoading = false };
+    }
+
+    private void SetSourceReaderRows(IReadOnlyList<SourceReaderRow> rows, SourceReaderPresentation presentation) =>
+        SourceReaderView.State = SourceReaderView.State with
+        {
+            Rows = rows,
+            Presentation = presentation,
+            SelectedRow = null,
+        };
+
+    private void SetSourceReaderCoreNote(string note) =>
+        SourceReaderView.State = SourceReaderView.State with { CoreNote = note };
+
+    private void SetSourceReaderSelectedRow(SourceReaderRow? row)
+    {
+        _selectedSourceReaderRow = row;
+        SourceReaderView.State = SourceReaderView.State with { SelectedRow = row };
+    }
+
+    private void SetSourceReaderStatus(string text, string semanticClass) =>
+        SourceReaderView.State = SourceReaderView.State with
+        {
+            StatusText = text,
+            StatusClass = semanticClass,
+        };
+
+    private void SetSourceReaderSummary(string summary) =>
+        SourceReaderView.State = SourceReaderView.State with { Summary = summary };
+
+    private void SetSourceReaderTransform(string transformText, string? chainBoundaryText = null) =>
+        SourceReaderView.State = SourceReaderView.State with
+        {
+            TransformText = transformText,
+            ChainBoundaryText = chainBoundaryText ?? SourceReaderView.State.ChainBoundaryText,
+        };
+
+    private void SetSourceReaderStatus(string text, string semanticClass, SourceReaderPresentation presentation)
+    {
+        SetSourceReaderStatus(text, semanticClass);
+        SourceReaderView.State = SourceReaderView.State with { Presentation = presentation };
     }
 
     private bool IsCurrentSourceReaderRequest(long requestVersion, string requestedSourceId)
     {
         if (requestVersion != _sourceReaderRequestVersion)
             return false;
-        if (string.Equals(SourceReaderIdBox.Text?.Trim(), requestedSourceId, StringComparison.Ordinal))
+        if (string.Equals(SourceReaderView.SourceId, requestedSourceId, StringComparison.Ordinal))
             return true;
         ResetSourceReaderSelection();
-        SourceReaderResultsText.Text = "输入已变化，请重新读取；旧响应未写入界面。";
-        SetStatus(SourceReaderStatusText, "来源阅读：输入已变化，请重新读取。", "empty");
+        SourceReaderView.State = SourceReaderView.State with
+        {
+            Presentation = SourceReaderPresentation.Mismatched,
+            Summary = "输入已变化，请重新读取；旧响应未写入界面。",
+        };
+        SetSourceReaderStatus("来源阅读：输入已变化，请重新读取。", "empty");
         FinishSourceReaderRequest(requestVersion);
         return false;
     }
@@ -1242,28 +1354,29 @@ public partial class MainWindow : Window
     private async void OnReadSourceMembersClick(object? sender, RoutedEventArgs e)
     {
         var requestVersion = ++_sourceReaderRequestVersion;
-        SourceReaderLoadButton.IsEnabled = false;
-        SourceReaderIdBox.IsEnabled = false;
-        SetStatus(SourceReaderStatusText, "来源阅读：正在读取 Core。", "loading");
+        var sourceId = SourceReaderView.SourceId.Trim();
         ResetSourceReaderSelection();
-        var sourceId = SourceReaderIdBox.Text?.Trim() ?? string.Empty;
-        SourceReaderChainSourceText.Text = string.IsNullOrWhiteSpace(sourceId)
-            ? "容器来源：未读取"
-            : $"容器来源：{sourceId}";
+        SourceReaderView.State = SourceReaderView.State with
+        {
+            SourceId = sourceId,
+            IsLoading = true,
+            Presentation = SourceReaderPresentation.Loading,
+        };
+        SetSourceReaderStatus("来源阅读：正在读取 Core。", "loading");
         if (string.IsNullOrWhiteSpace(sourceId))
         {
-            SourceReaderResultsText.Text = "请输入 source_id 后再读取。";
-            SetStatus(SourceReaderStatusText, "来源阅读：请输入 source_id。", "empty");
-            SourceReaderMembersList.ItemsSource = Array.Empty<string>();
+            SetSourceReaderSummary("请输入 source_id 后再读取。");
+            SetSourceReaderStatus("来源阅读：请输入 source_id。", "empty", SourceReaderPresentation.Empty);
+            SetSourceReaderRows(Array.Empty<SourceReaderRow>(), SourceReaderPresentation.Empty);
             FinishSourceReaderRequest(requestVersion);
             return;
         }
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
         {
-            SourceReaderResultsText.Text = "核心未就绪，无法读取来源成员。";
-            SourceReaderCoreNoteText.Text = "Core 语义边界：未读取。";
-            SourceReaderMembersList.ItemsSource = Array.Empty<string>();
-            SetStatus(SourceReaderStatusText, "来源阅读：Core 未就绪。", "error");
+            SetSourceReaderSummary("核心未就绪，无法读取来源成员。");
+            SetSourceReaderCoreNote("Core 语义边界：未读取。");
+            SetSourceReaderRows(Array.Empty<SourceReaderRow>(), SourceReaderPresentation.Failed);
+            SetSourceReaderStatus("来源阅读：Core 未就绪。", "error");
             FinishSourceReaderRequest(requestVersion);
             return;
         }
@@ -1291,17 +1404,17 @@ public partial class MainWindow : Window
                     responseBody = "source not found";
                 if (responseBody.Length > 120)
                     responseBody = responseBody[..120] + "…";
-                SourceReaderResultsText.Text = string.IsNullOrWhiteSpace(responseBody)
+                SetSourceReaderSummary(string.IsNullOrWhiteSpace(responseBody)
                     ? $"Core 未返回来源成员（HTTP {(int)response.StatusCode}）。"
-                    : $"Core 未返回来源成员（HTTP {(int)response.StatusCode}：{responseBody}）。";
-                SourceReaderCoreNoteText.Text = "Core 语义边界：错误响应未形成来源成员投影。";
-                SourceReaderMembersList.ItemsSource = Array.Empty<string>();
-                SetStatus(
-                    SourceReaderStatusText,
+                    : $"Core 未返回来源成员（HTTP {(int)response.StatusCode}：{responseBody}）。");
+                SetSourceReaderCoreNote("Core 语义边界：错误响应未形成来源成员投影。");
+                SetSourceReaderRows(Array.Empty<SourceReaderRow>(), SourceReaderPresentation.Failed);
+                SetSourceReaderStatus(
                     IsPermissionStatus(response.StatusCode)
                         ? "来源阅读：Core 拒绝当前访问权限，请检查会话或权限范围。"
                         : "来源阅读：读取失败。",
-                    IsPermissionStatus(response.StatusCode) ? "permission" : "error");
+                    IsPermissionStatus(response.StatusCode) ? "permission" : "error",
+                    SourceReaderPresentation.Failed);
                 FinishSourceReaderRequest(requestVersion);
                 return;
             }
@@ -1321,7 +1434,7 @@ public partial class MainWindow : Window
                 && memberCountValue.TryGetInt32(out var parsedMemberCount)
                 ? parsedMemberCount
                 : -1;
-            var memberRows = new List<SourceMemberRow>();
+            var memberRows = new List<SourceReaderRow>();
             if (root.TryGetProperty("members", out var members) && members.ValueKind == JsonValueKind.Array)
             {
                 foreach (var member in members.EnumerateArray())
@@ -1343,14 +1456,75 @@ public partial class MainWindow : Window
                 lines.Add("警告：成员计数与 Core 返回数组不一致；未据此推断完整性。");
             if (memberRows.Count == 0)
                 lines.Add("Core 返回 0 个来源成员；未显示原文正文；未推断转换状态。");
-            SourceReaderResultsText.Text = string.Join("\n", lines);
+            SetSourceReaderSummary(string.Join("\n", lines));
             var note = ReadDisplayValue(root, "note");
-            SourceReaderCoreNoteText.Text = note == "—"
+            SetSourceReaderCoreNote(note == "—"
                 ? "Core 说明：未暴露额外来源成员语义。"
-                : $"Core 说明：{note}";
-            SourceReaderMembersList.ItemsSource = memberRows;
-            SetStatus(
-                SourceReaderStatusText,
+                : $"Core 说明：{note}");
+            SetSourceReaderRows(memberRows, memberRows.Count == 0
+                ? SourceReaderPresentation.Empty
+                : SourceReaderPresentation.Members);
+            if (memberRows.Count == 0)
+            {
+                using var jobsResponse = await _supervisor.SendAsync(
+                    HttpMethod.Get,
+                    $"/api/v1/sources/{Uri.EscapeDataString(sourceId)}/jobs");
+                if (!IsCurrentSourceReaderRequest(requestVersion, sourceId))
+                    return;
+                if (!jobsResponse.IsSuccessStatusCode)
+                {
+                    SetSourceReaderSummary("Core 返回 0 个容器成员，且未能读取来源任务投影。");
+                    SetSourceReaderCoreNote($"持久任务投影不可用（HTTP {(int)jobsResponse.StatusCode}）；没有使用当前会话内存补造关联。");
+                    SetSourceReaderStatus("来源阅读：Core 持久任务读取失败。", "error", SourceReaderPresentation.Failed);
+                    FinishSourceReaderRequest(requestVersion);
+                    return;
+                }
+                using var jobsDocument = JsonDocument.Parse(await jobsResponse.Content.ReadAsStringAsync());
+                if (!IsCurrentSourceReaderRequest(requestVersion, sourceId))
+                    return;
+                var jobsRoot = jobsDocument.RootElement;
+                var returnedSourceId = ReadDisplayValue(jobsRoot, "source_id");
+                if (!string.Equals(returnedSourceId, sourceId, StringComparison.Ordinal))
+                {
+                    SetSourceReaderSummary("Core 任务投影的 source_id 与请求不一致；已拒绝显示。");
+                    SetSourceReaderStatus("来源阅读：来源身份不匹配。", "error", SourceReaderPresentation.Mismatched);
+                    FinishSourceReaderRequest(requestVersion);
+                    return;
+                }
+                var jobRows = new List<SourceReaderRow>();
+                if (jobsRoot.TryGetProperty("jobs", out var jobsValue) && jobsValue.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var job in jobsValue.EnumerateArray())
+                    {
+                        var row = new SourceJobRow(
+                            sourceId,
+                            ReadDisplayValue(job, "job_id"),
+                            ReadDisplayValue(job, "kind"),
+                            ReadDisplayValue(job, "state"),
+                            ReadDisplayValue(job, "attempt"),
+                            ReadDisplayValue(job, "error"));
+                        jobRows.Add(row);
+                    }
+                }
+                SetSourceReaderRows(jobRows, jobRows.Count == 0
+                    ? SourceReaderPresentation.Empty
+                    : jobRows.Any(row => row is SourceJobRow { State: "queued" or "running" })
+                        ? SourceReaderPresentation.Pending
+                        : jobRows.All(row => row is SourceJobRow { State: "failed" or "cancelled" })
+                            ? SourceReaderPresentation.Failed
+                            : SourceReaderPresentation.SingleSourceReady);
+                SetSourceReaderSummary(jobRows.Count == 0
+                    ? $"普通来源：{sourceId}\nCore 持久任务：0；此来源当前没有可读取任务。"
+                    : $"普通来源：{sourceId}\nCore 持久任务：{jobRows.Count}；选择一项查看状态，只有成功的 text 任务可读取转换内容。");
+                SetSourceReaderCoreNote("任务来自 Core SQLite 持久投影；没有伪造成员，也不依赖当前 Desktop Capture 会话。");
+                SetInspectorProjection(sourceId, $"Core 持久任务 · {jobRows.Count} 项\n跨 Desktop 重启由 source_id 重新读取。", sourceId, layer: "Core projection · source jobs");
+                SetSourceReaderStatus(
+                    jobRows.Count == 0 ? "来源阅读：该来源当前没有任务。" : $"来源阅读：已恢复 {jobRows.Count} 个 Core 持久任务。",
+                    jobRows.Count == 0 ? "empty" : "success");
+                FinishSourceReaderRequest(requestVersion);
+                return;
+            }
+            SetSourceReaderStatus(
                 memberRows.Count == 0
                     ? "来源阅读：Core 返回空成员。"
                     : $"来源阅读：已读取 {memberRows.Count} 个 Core 来源成员。",
@@ -1360,70 +1534,142 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
-            SourceReaderResultsText.Text = "来源成员读取中断。";
-            SourceReaderCoreNoteText.Text = "Core 语义边界：读取中断，未形成来源成员投影。";
-            SourceReaderMembersList.ItemsSource = Array.Empty<string>();
-            SetStatus(SourceReaderStatusText, "来源阅读：读取中断。", "error");
+            SetSourceReaderSummary("来源成员读取中断。");
+            SetSourceReaderCoreNote("Core 语义边界：读取中断，未形成来源成员投影。");
+            SetSourceReaderRows(Array.Empty<SourceReaderRow>(), SourceReaderPresentation.Failed);
+            SetSourceReaderStatus("来源阅读：读取中断。", "error", SourceReaderPresentation.Failed);
             FinishSourceReaderRequest(requestVersion);
         }
     }
 
-    private void OnSourceMemberSelected(object? sender, SelectionChangedEventArgs e)
+    private void OnSourceReaderLoadRequested(object? sender, SourceReaderLoadRequestedEventArgs e)
     {
-        if (e.AddedItems.Count != 1
-            || e.AddedItems[0] is not SourceMemberRow selected)
-            return;
-        ++_sourceTransformRequestVersion;
-        JobLookupIdBox.Text = selected.JobId == "—" ? string.Empty : selected.JobId;
-        ViewSourceJobButton.IsEnabled = !string.IsNullOrWhiteSpace(selected.JobId) && selected.JobId != "—";
-        FindLibraryFromSourceButton.IsEnabled = !string.IsNullOrWhiteSpace(selected.SourceId) && selected.SourceId != "—";
-        SourceReaderSelectedText.Text = $"source_id：{selected.SourceId}\nmember：{selected.Member}\noriginal_name：{selected.OriginalName}\nreadable：{selected.Readable}\njob_id：{selected.JobId}\nsha256：{selected.Sha256}";
-        SourceReaderMemberFieldText.Text = selected.Member;
-        SourceReaderOriginalNameFieldText.Text = selected.OriginalName;
-        SourceReaderReadableFieldText.Text = selected.Readable;
-        SourceReaderJobFieldText.Text = selected.JobId;
-        SourceReaderShaFieldText.Text = selected.Sha256;
-        SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";
-        SourceReaderTransformText.Text = "尚未读取转换输出；原文正文仍未暴露。";
-        ReadSourceTransformButton.IsEnabled = string.Equals(selected.Readable, "true", StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrWhiteSpace(selected.JobId)
-            && selected.JobId != "—";
-        CopySourceProvenanceButton.IsEnabled = HasProvenanceValue(selected.SourceId)
-            && HasProvenanceValue(selected.Member)
-            && HasProvenanceValue(selected.Sha256);
-        CopySourceCitationButton.IsEnabled = CopySourceProvenanceButton.IsEnabled;
-        SourceReaderChainSourceText.Text = $"容器来源：{selected.SourceId}";
-        SourceReaderChainMemberText.Text = $"成员：{selected.Member} · {selected.OriginalName}";
-        SourceReaderChainJobText.Text = $"处理任务：{selected.JobId}";
-        SourceReaderChainShaText.Text = $"内容指纹：{selected.Sha256}";
-        SourceReaderChainBoundaryText.Text = "仅为 Core 来源成员投影；readable 不代表已理解，sha256 不是正文或 anchor。";
-        SetInspectorProjection(
-            "来源成员",
-            $"source_id={selected.SourceId}\nmember={selected.Member}\noriginal_name={selected.OriginalName}\nreadable={selected.Readable}\njob_id={selected.JobId}\nsha256={selected.Sha256}\n来源成员字段来自 Core；未暴露的原文正文不推断。",
-            selected.SourceId,
-            status: $"readable={selected.Readable}",
-            layer: "Core projection · Source member");
+        SourceReaderView.SourceId = e.SourceId;
+        OnReadSourceMembersClick(sender, new RoutedEventArgs());
     }
+
+    private void OnSourceReaderRowSelected(object? sender, SourceReaderRowSelectedEventArgs e)
+    {
+        ++_sourceTransformRequestVersion;
+        SetSourceReaderSelectedRow(e.Row);
+        JobLookupIdBox.Text = HasProvenanceValue(e.Row.JobId) ? e.Row.JobId : string.Empty;
+        if (e.Row is SourceJobRow job)
+        {
+            SetInspectorProjection("Core 持久任务", $"source_id={job.SourceId}\njob_id={job.JobId}\nkind={job.Kind}\nstate={job.State}\nattempt={job.Attempt}\nerror={job.Error}", job.SourceId, status: job.State, layer: "Core projection · durable source job");
+            SetSourceReaderStatus(job.CanReadText
+                ? "来源阅读：已选中成功文本任务，可读取转换输出。"
+                : $"来源阅读：已选中 {job.State} {job.Kind} 任务。", job.CanReadText ? "success" : "empty");
+            return;
+        }
+        if (e.Row is SourceMemberRow member)
+        {
+            SetInspectorProjection(
+                "来源成员",
+                $"source_id={member.SourceId}\nmember={member.Member}\noriginal_name={member.OriginalName}\nreadable={member.Readable}\njob_id={member.JobId}\nsha256={member.Sha256}\n来源成员字段来自 Core；未暴露的原文正文不推断。",
+                member.SourceId,
+                status: $"readable={member.Readable}",
+                layer: "Core projection · Source member");
+            SetSourceReaderStatus("来源阅读：已选择 Core 来源成员。", "success");
+        }
+    }
+
+    private void OnSourceReaderReadTransformRequested(object? sender, SourceReaderRowActionEventArgs e) =>
+        OnReadSourceTransformClick(sender, new RoutedEventArgs());
+
+    private void OnSourceReaderOpenJobRequested(object? sender, SourceReaderRowActionEventArgs e)
+    {
+        if (e.Row is null || !HasProvenanceValue(e.Row.JobId))
+            return;
+        JobLookupIdBox.Text = e.Row.JobId;
+        SetSection("jobs", "任务回执");
+        OnReadJobReceiptClick(sender, new RoutedEventArgs());
+    }
+
+    private void OnSourceReaderLibraryLookupRequested(object? sender, SourceReaderRowActionEventArgs e)
+    {
+        if (e.Row is not SourceMemberRow member)
+            return;
+        LibrarySearchBox.Text = member.SourceId;
+        SetSection("library", "资料库");
+        OnSearchLibraryClick(sender, new RoutedEventArgs());
+    }
+
+    private void OnSourceReaderCopyProvenanceRequested(object? sender, SourceReaderRowActionEventArgs e) =>
+        OnCopySourceProvenanceClick(sender, new RoutedEventArgs());
+
+    private void OnSourceReaderCopyCitationRequested(object? sender, SourceReaderRowActionEventArgs e) =>
+        OnCopySourceCitationClick(sender, new RoutedEventArgs());
+
+    private void OnSourceReaderReturnToLibraryRequested(object? sender, EventArgs e) =>
+        OnBackToLibraryClick(sender, new RoutedEventArgs());
+
+    private void OnSourceReaderReturnToKnowledgeRequested(object? sender, EventArgs e) =>
+        OnBackToKnowledgeFromSourceClick(sender, new RoutedEventArgs());
 
     private async void OnReadSourceTransformClick(object? sender, RoutedEventArgs e)
     {
-        if (SourceReaderMembersList.SelectedItem is not SourceMemberRow selected
-            || !string.Equals(selected.Readable, "true", StringComparison.OrdinalIgnoreCase)
+        var requestVersion = ++_sourceTransformRequestVersion;
+        if (SourceReaderView.SelectedRow is SourceJobRow sourceJob)
+        {
+            if (!sourceJob.CanReadText)
+            {
+                SetSourceReaderTransform($"Core job 尚未提供成功 text 输出（kind={sourceJob.Kind}, state={sourceJob.State}）。");
+                SetSourceReaderStatus("来源阅读：当前 Core 任务不可读取。", "empty");
+                return;
+            }
+            if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+            {
+                SetSourceReaderTransform("Core 未就绪，未读取转换输出。");
+                SetSourceReaderStatus("来源阅读：Core 未就绪。", "error");
+                return;
+            }
+            SetSourceReaderStatus("来源阅读：正在校验 source_id↔job_id 并读取 Core 输出。", "loading");
+            try
+            {
+                var result = await CoreTextOutputReader.ReadAsync(_supervisor, sourceJob.SourceId, sourceJob.JobId);
+                if (!IsCurrentSourceJobTransformRequest(requestVersion, sourceJob))
+                    return;
+                if (!result.IsReady || result.Content is null)
+                {
+                    SetSourceReaderTransform(result.Error is null
+                        ? $"Core job 当前不可读取（state={result.State}）；未显示正文。"
+                        : $"Core 输出读取失败（state={result.State}）；未显示正文。");
+                    SetSourceReaderStatus($"来源阅读：Core 输出不可用（{result.State}）。", result.State is "failed" or "cancelled" or "source_mismatch" or "identity_mismatch" ? "error" : "empty");
+                    return;
+                }
+                SetSourceReaderTransform($"{result.Content}\n\nCore transform 输出 · source_id={sourceJob.SourceId} · job_id={sourceJob.JobId}\n边界：这是提取结果，不是原始字节、知识结论或 accepted Knowledge。", "source_id↔job_id 来自 Core 持久投影，并经 Core 状态接口二次校验；正文仍仅为 text transform。");
+                SetSourceReaderStatus("来源阅读：已读取 Core 持久化 transform 文本。", "success");
+            }
+            catch (Exception)
+            {
+                if (!IsCurrentSourceJobTransformRequest(requestVersion, sourceJob))
+                    return;
+                SetSourceReaderTransform("读取 Core 持久任务输出中断；未显示未经验证的正文。");
+                SetSourceReaderStatus("来源阅读：Core 任务输出读取中断。", "error");
+            }
+            return;
+        }
+        if (SourceReaderView.SelectedRow is not SourceMemberRow selected)
+        {
+            SetSourceReaderTransform("尚未选择可读取的容器成员或 Core 持久任务。");
+            SetSourceReaderStatus("来源阅读：尚无可读取的 Core transform 输出。", "empty");
+            return;
+        }
+        if (!string.Equals(selected.Readable, "true", StringComparison.OrdinalIgnoreCase)
             || string.IsNullOrWhiteSpace(selected.JobId)
             || selected.JobId == "—")
         {
-            SourceReaderTransformText.Text = "当前成员不可读取转换输出；原文正文仍未暴露。";
-            SetStatus(SourceReaderStatusText, "来源阅读：当前成员没有可读取的 Core 转换输出。", "empty");
+            SetSourceReaderTransform("当前成员不可读取转换输出；原文正文仍未暴露。");
+            SetSourceReaderStatus("来源阅读：当前成员没有可读取的 Core 转换输出。", "empty");
             return;
         }
-        var requestVersion = ++_sourceTransformRequestVersion;
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
         {
-            SourceReaderTransformText.Text = "Core 未就绪，未读取转换输出；原文正文仍未暴露。";
-            SetStatus(SourceReaderStatusText, "来源阅读：Core 未就绪，未读取转换输出。", "error");
+            SetSourceReaderTransform("Core 未就绪，未读取转换输出；原文正文仍未暴露。");
+            SetSourceReaderStatus("来源阅读：Core 未就绪，未读取转换输出。", "error");
             return;
         }
-        SetStatus(SourceReaderStatusText, "来源阅读：正在读取 Core 转换输出。", "loading");
+        SetSourceReaderStatus("来源阅读：正在读取 Core 转换输出。", "loading");
         try
         {
             using var response = await _supervisor.SendAsync(
@@ -1434,11 +1680,10 @@ public partial class MainWindow : Window
             if (!response.IsSuccessStatusCode)
             {
                 var permissionDenied = IsPermissionStatus(response.StatusCode);
-                SourceReaderTransformText.Text = permissionDenied
+                SetSourceReaderTransform(permissionDenied
                     ? "Core 拒绝读取转换输出；原文正文仍未暴露。"
-                    : $"Core 未返回可验证转换输出（HTTP {(int)response.StatusCode}）；原文正文仍未暴露。";
-                SetStatus(
-                    SourceReaderStatusText,
+                    : $"Core 未返回可验证转换输出（HTTP {(int)response.StatusCode}）；原文正文仍未暴露。");
+                SetSourceReaderStatus(
                     permissionDenied
                         ? "来源阅读：Core 拒绝当前访问权限，请检查会话或权限范围。"
                         : "来源阅读：转换输出不可用。",
@@ -1449,23 +1694,29 @@ public partial class MainWindow : Window
             if (!IsCurrentSourceTransformRequest(requestVersion, selected))
                 return;
             var content = ReadDisplayValue(document.RootElement, "content");
-            SourceReaderTransformText.Text = content == "—"
+            SetSourceReaderTransform(content == "—"
                 ? "Core 返回的转换输出为空；原文正文仍未暴露。"
-                : $"{content}\n\n边界：这是 Core transform 输出，不等于原文正文、理解或已接受 Knowledge。";
-            SetStatus(SourceReaderStatusText, "来源阅读：已读取 Core transform 输出。", "success");
+                : $"{content}\n\n边界：这是 Core transform 输出，不等于原文正文、理解或已接受 Knowledge。");
+            SetSourceReaderStatus("来源阅读：已读取 Core transform 输出。", "success");
         }
         catch (Exception)
         {
             if (!IsCurrentSourceTransformRequest(requestVersion, selected))
                 return;
-            SourceReaderTransformText.Text = "转换输出读取中断；原文正文仍未暴露。";
-            SetStatus(SourceReaderStatusText, "来源阅读：转换输出读取中断。", "error");
+            SetSourceReaderTransform("转换输出读取中断；原文正文仍未暴露。");
+            SetSourceReaderStatus("来源阅读：转换输出读取中断。", "error");
         }
     }
 
     private bool IsCurrentSourceTransformRequest(long requestVersion, SourceMemberRow selected) =>
         requestVersion == _sourceTransformRequestVersion
-        && ReferenceEquals(SourceReaderMembersList.SelectedItem, selected);
+        && ReferenceEquals(SourceReaderView.SelectedRow, selected);
+
+    private bool IsCurrentSourceJobTransformRequest(long requestVersion, SourceJobRow selected) =>
+        requestVersion == _sourceTransformRequestVersion
+        && string.Equals(_activeSection, "source-reader", StringComparison.Ordinal)
+        && string.Equals(SourceReaderView.SourceId.Trim(), selected.SourceId, StringComparison.Ordinal)
+        && ReferenceEquals(SourceReaderView.SelectedRow, selected);
 
     private static async Task<bool> TrySetClipboardTextAsync(IClipboard clipboard, string text)
     {
@@ -1482,23 +1733,23 @@ public partial class MainWindow : Window
 
     private async void OnCopySourceProvenanceClick(object? sender, RoutedEventArgs e)
     {
-        if (SourceReaderMembersList.SelectedItem is not SourceMemberRow selected)
+        if (SourceReaderView.SelectedRow is not SourceMemberRow selected)
         {
-            SetStatus(SourceReaderStatusText, "来源阅读：尚未选择可复制的成员。", "empty");
+            SetSourceReaderStatus("来源阅读：尚未选择可复制的成员。", "empty");
             return;
         }
         if (!HasProvenanceValue(selected.SourceId)
             || !HasProvenanceValue(selected.Member)
             || !HasProvenanceValue(selected.Sha256))
         {
-            SetStatus(SourceReaderStatusText, "来源阅读：来源链字段不完整，未复制占位值。", "empty");
+            SetSourceReaderStatus("来源阅读：来源链字段不完整，未复制占位值。", "empty");
             return;
         }
 
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard is null)
         {
-            SetStatus(SourceReaderStatusText, "来源阅读：剪贴板不可用，未复制任何内容。", "error");
+            SetSourceReaderStatus("来源阅读：剪贴板不可用，未复制任何内容。", "error");
             return;
         }
 
@@ -1513,28 +1764,28 @@ public partial class MainWindow : Window
         });
         if (!await TrySetClipboardTextAsync(clipboard, provenance))
         {
-            SetStatus(SourceReaderStatusText, "来源阅读：剪贴板写入失败，请重试；未确认复制成功。", "error");
+            SetSourceReaderStatus("来源阅读：剪贴板写入失败，请重试；未确认复制成功。", "error");
             return;
         }
-        SetStatus(SourceReaderStatusText, "来源阅读：已复制来源链摘要；未复制原文正文。", "success");
+        SetSourceReaderStatus("来源阅读：已复制来源链摘要；未复制原文正文。", "success");
         ShowToast("已复制来源链摘要");
     }
 
     private async void OnCopySourceCitationClick(object? sender, RoutedEventArgs e)
     {
-        if (SourceReaderMembersList.SelectedItem is not SourceMemberRow selected
+        if (SourceReaderView.SelectedRow is not SourceMemberRow selected
             || !HasProvenanceValue(selected.SourceId)
             || !HasProvenanceValue(selected.Member)
             || !HasProvenanceValue(selected.Sha256))
         {
-            SetStatus(SourceReaderStatusText, "来源阅读：引用字段不完整，未复制占位值。", "empty");
+            SetSourceReaderStatus("来源阅读：引用字段不完整，未复制占位值。", "empty");
             return;
         }
 
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard is null)
         {
-            SetStatus(SourceReaderStatusText, "来源阅读：剪贴板不可用，未复制任何内容。", "error");
+            SetSourceReaderStatus("来源阅读：剪贴板不可用，未复制任何内容。", "error");
             return;
         }
 
@@ -1549,20 +1800,20 @@ public partial class MainWindow : Window
         });
         if (!await TrySetClipboardTextAsync(clipboard, citation))
         {
-            SetStatus(SourceReaderStatusText, "来源阅读：剪贴板写入失败，请重试；未确认复制成功。", "error");
+            SetSourceReaderStatus("来源阅读：剪贴板写入失败，请重试；未确认复制成功。", "error");
             return;
         }
-        SetStatus(SourceReaderStatusText, "来源阅读：已复制引用元数据；未复制原文正文。", "success");
+        SetSourceReaderStatus("来源阅读：已复制引用元数据；未复制原文正文。", "success");
         ShowToast("已复制引用元数据");
     }
 
     private void OnFindLibraryFromSourceClick(object? sender, RoutedEventArgs e)
     {
-        if (SourceReaderMembersList.SelectedItem is not SourceMemberRow selected
+        if (SourceReaderView.SelectedRow is not SourceMemberRow selected
             || string.IsNullOrWhiteSpace(selected.SourceId)
             || selected.SourceId == "—")
         {
-            SourceReaderResultsText.Text = "当前成员未暴露 source_id，无法在资料库查找。";
+            SetSourceReaderSummary("当前成员未暴露 source_id，无法在资料库查找。");
             return;
         }
 
@@ -1576,7 +1827,7 @@ public partial class MainWindow : Window
         var jobId = JobLookupIdBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(jobId))
         {
-            SourceReaderResultsText.Text = "当前成员未暴露 job_id，无法读取任务回执。";
+            SetSourceReaderSummary("当前成员未暴露 job_id，无法读取任务回执。");
             return;
         }
         SetSection("jobs", "任务");
@@ -2460,7 +2711,6 @@ public partial class MainWindow : Window
         var narrowActionsBreakpoint = GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280);
         var tabletBreakpoint = GetAaosBreakpoint("AaosTabletBreakpoint", 1024);
         var mobileBreakpoint = GetAaosBreakpoint("AaosMobileBreakpoint", 840);
-        var sourceReaderStackBreakpoint = GetAaosBreakpoint("AaosSourceReaderStackBreakpoint", 1200);
         var hideInspector = e.NewSize.Width < inspectorBreakpoint;
         var hideContext = e.NewSize.Width < tabletBreakpoint;
         var compact = e.NewSize.Width <= tabletBreakpoint;
@@ -2515,9 +2765,6 @@ public partial class MainWindow : Window
         LearningEmptyActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
-        SourceReaderContextActions.Orientation = narrowActions
-            ? Avalonia.Layout.Orientation.Vertical
-            : Avalonia.Layout.Orientation.Horizontal;
         EvidenceEmptyStateContent.Orientation = compact
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
@@ -2541,7 +2788,6 @@ public partial class MainWindow : Window
             : new RowDefinitions("Auto");
         Grid.SetRow(LibrarySelectedDetailBorder, compact ? 1 : 0);
         Grid.SetColumn(LibrarySelectedDetailBorder, compact ? 0 : 1);
-        SetResponsiveToolbar(SourceReaderLoadGrid, SourceReaderLoadButton, narrowActions);
         SetResponsiveToolbar(KnowledgeLoadGrid, KnowledgeLoadButton, narrowActions);
         SetResponsiveToolbar(MachineTaskGrid, MachineTaskLoadButton, narrowActions);
         SetResponsiveToolbar(JobLookupGrid, JobLookupButton, narrowActions);
@@ -2582,19 +2828,6 @@ public partial class MainWindow : Window
         Grid.SetRow(HomeLifecycleLearningCard, compact ? 3 : 0);
         Grid.SetColumn(HomeLifecycleReviewCard, compact ? 0 : 4);
         Grid.SetRow(HomeLifecycleReviewCard, compact ? 4 : 0);
-        var sourceReaderCompact = compact || e.NewSize.Width < sourceReaderStackBreakpoint;
-        SourceReaderShellGrid.ColumnDefinitions = sourceReaderCompact
-            ? new ColumnDefinitions("1*")
-            : new ColumnDefinitions("220,*,300");
-        SourceReaderShellGrid.RowDefinitions = sourceReaderCompact
-            ? new RowDefinitions("Auto,Auto,Auto")
-            : new RowDefinitions("Auto");
-        Grid.SetColumn(SourceReaderOutlineBorder, 0);
-        Grid.SetRow(SourceReaderOutlineBorder, 0);
-        Grid.SetColumn(SourceReaderMainBorder, sourceReaderCompact ? 0 : 1);
-        Grid.SetRow(SourceReaderMainBorder, sourceReaderCompact ? 1 : 0);
-        Grid.SetColumn(SourceReaderChainBorder, sourceReaderCompact ? 0 : 2);
-        Grid.SetRow(SourceReaderChainBorder, sourceReaderCompact ? 2 : 0);
         SetResponsiveToolbar(FirstRunReadinessGrid, FirstRunImportButton, narrowActions);
         SetResponsiveToolbar(HomeContinueReadingGrid, HomeContinueReadingButton, narrowActions);
         SetResponsiveToolbar(HomeDeepTutorGrid, HomeDeepTutorButton, narrowActions);
@@ -2820,20 +3053,12 @@ public partial class MainWindow : Window
             ExecuteSelectedLibraryResult();
             e.Handled = true;
         }
-        else if (ReferenceEquals(sender, SourceReaderMembersList))
-        {
-            OnReadSourceTransformClick(sender, new RoutedEventArgs());
-            e.Handled = true;
-        }
     }
 
     private void OnDetailListDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ReferenceEquals(sender, LibraryResultsList))
             ExecuteSelectedLibraryResult();
-        else if (ReferenceEquals(sender, SourceReaderMembersList))
-            OnReadSourceTransformClick(sender, new RoutedEventArgs());
-
         e.Handled = true;
     }
 
@@ -2900,7 +3125,7 @@ public partial class MainWindow : Window
     {
         if (!_returnToLibraryAvailable || _selectedLibraryResult is null)
         {
-            SourceReaderStatusText.Text = "没有可恢复的资料库选中结果。";
+            SetSourceReaderStatus("没有可恢复的资料库选中结果。", "empty");
             return;
         }
 
@@ -2922,8 +3147,8 @@ public partial class MainWindow : Window
         _sourceReaderReturnToKnowledgeAvailable = false;
         _sourceReaderReturnKnowledgeId = null;
         _returnToLibraryAvailable = true;
-        BackToLibraryButton.IsEnabled = true;
-        SourceReaderIdBox.Text = selected.SourceId.Trim();
+        SourceReaderView.State = SourceReaderView.State with { CanReturnToLibrary = true };
+        SourceReaderView.SourceId = selected.SourceId.Trim();
         SetSection("source-reader", "导入阅读");
         OnReadSourceMembersClick(sender, e);
     }
@@ -2960,10 +3185,10 @@ public partial class MainWindow : Window
         }
 
         _returnToLibraryAvailable = false;
-        BackToLibraryButton.IsEnabled = false;
+        SourceReaderView.State = SourceReaderView.State with { CanReturnToLibrary = false };
         _sourceReaderReturnKnowledgeId = KnowledgeIdBox.Text?.Trim();
         _sourceReaderReturnToKnowledgeAvailable = !string.IsNullOrWhiteSpace(_sourceReaderReturnKnowledgeId);
-        SourceReaderIdBox.Text = _activeKnowledgeSourceId;
+        SourceReaderView.SourceId = _activeKnowledgeSourceId;
         SetSection("source-reader", "导入阅读");
         OnReadSourceMembersClick(sender, e);
     }
@@ -2972,7 +3197,7 @@ public partial class MainWindow : Window
     {
         if (!_sourceReaderReturnToKnowledgeAvailable || string.IsNullOrWhiteSpace(_sourceReaderReturnKnowledgeId))
         {
-            SourceReaderResultsText.Text = "没有可恢复的 Knowledge 详情。";
+            SetSourceReaderSummary("没有可恢复的 Knowledge 详情。");
             return;
         }
 
@@ -3068,7 +3293,7 @@ public partial class MainWindow : Window
             CaptureContextText.Text = "本次导入尚未形成可读取的 source_id。";
             return;
         }
-        SourceReaderIdBox.Text = activeContext.SourceId;
+        SourceReaderView.SourceId = activeContext.SourceId;
         SetSection("source-reader", "导入阅读");
         OnReadSourceMembersClick(sender, e);
     }
@@ -3203,12 +3428,13 @@ public partial class MainWindow : Window
                 imported++;
                 using var source = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 var sourceId = source.RootElement.GetProperty("source_id").GetString();
-                if (string.IsNullOrWhiteSpace(sourceId))
+                var sha256 = source.RootElement.GetProperty("sha256").GetString();
+                if (string.IsNullOrWhiteSpace(sourceId) || string.IsNullOrWhiteSpace(sha256))
                 {
                     failed++;
                     continue;
                 }
-                var captureContext = new CaptureContextRow(file.Name, sourceId);
+                var captureContext = new CaptureContextRow(file.Name, sourceId, sha256);
                 _captureContexts.Add(captureContext);
                 _latestCaptureContext = captureContext;
                 _selectedCaptureContext = captureContext;

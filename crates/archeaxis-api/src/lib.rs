@@ -68,6 +68,7 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
         .route("/api/v1/evidence/anchors", get(evidence_anchors))
         .route("/api/v1/sources/:source_id/members", get(source_members))
+        .route("/api/v1/sources/:source_id/jobs", get(source_jobs))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
     routes.with_state(state)
@@ -875,6 +876,62 @@ async fn source_members(
         }
     })
     .await
+}
+
+/// Read the durable jobs associated with one source. This is a projection of Core
+/// job truth; it deliberately does not infer a default job or expose output content.
+async fn source_jobs(
+    State(state): State<AppState>,
+    Path(source_id): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let exists: bool = match conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM sources WHERE source_id=?1)",
+            [&source_id],
+            |row| row.get(0),
+        ) {
+            Ok(exists) => exists,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        if !exists {
+            return (StatusCode::NOT_FOUND, "source not found").into_response();
+        }
+
+        let mut statement = match conn.prepare(
+            "SELECT j.job_id,j.kind,j.state,j.input_ref,j.created_at,j.completed_at,a.attempt,a.error
+             FROM jobs j
+             LEFT JOIN job_attempts a ON a.job_id=j.job_id
+                 AND a.attempt=(SELECT MAX(latest.attempt) FROM job_attempts latest WHERE latest.job_id=j.job_id)
+             WHERE j.input_ref=?1
+             ORDER BY j.completed_at DESC,j.created_at DESC,j.job_id ASC",
+        ) {
+            Ok(statement) => statement,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let rows = match statement.query_map([&source_id], |row| {
+            Ok(serde_json::json!({
+                "job_id": row.get::<_, String>(0)?,
+                "kind": row.get::<_, String>(1)?,
+                "state": row.get::<_, String>(2)?,
+                "input_ref": row.get::<_, Option<String>>(3)?,
+                "created_at": row.get::<_, String>(4)?,
+                "completed_at": row.get::<_, Option<String>>(5)?,
+                "attempt": row.get::<_, Option<i64>>(6)?,
+                "error": row.get::<_, Option<String>>(7)?,
+            }))
+        }) {
+            Ok(rows) => rows,
+            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        };
+        let mut jobs = Vec::new();
+        for row in rows {
+            match row {
+                Ok(job) => jobs.push(job),
+                Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            }
+        }
+        (StatusCode::OK, Json(serde_json::json!({"source_id": source_id, "jobs": jobs}))).into_response()
+    }).await
 }
 
 async fn knowledge_qualification(

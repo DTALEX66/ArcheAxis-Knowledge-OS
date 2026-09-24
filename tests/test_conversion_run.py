@@ -7,6 +7,9 @@ run→document→block relation is queryable.
 """
 from __future__ import annotations
 
+import json
+import sqlite3
+
 import pytest
 
 from app.ingestion.conversion_run import (
@@ -67,6 +70,121 @@ def test_conversion_run_store_and_resolve(tmp_path) -> None:
 
     # Unknown id resolves to None.
     assert resolve_conversion_run(db, "run_missing") is None
+
+
+def test_structured_plugin_manifest_provenance_round_trips(tmp_path) -> None:
+    db = tmp_path / "plugin-provenance.sqlite"
+    provenance = {
+        "id": "ax.builtin.converter.html",
+        "version": "1.0.0",
+        "content_hash": "f" * 64,
+    }
+    run = create_conversion_run(
+        "d" * 64,
+        "article.html",
+        [{"kind": "paragraph", "text": "Plugin output", "anchor": {"ordinal": 1}}],
+        engine="html-adapter",
+        plugin_provenance=provenance,
+    )
+
+    store_conversion_run(db, run)
+
+    resolved = resolve_conversion_run(db, run.run_id)
+    assert resolved is not None
+    assert resolved.plugin_provenance == provenance
+
+    same = create_conversion_run(
+        "d" * 64,
+        "article.html",
+        [{"kind": "paragraph", "text": "Plugin output", "anchor": {"ordinal": 1}}],
+        engine="html-adapter",
+        plugin_provenance=provenance,
+    )
+    changed = create_conversion_run(
+        "d" * 64,
+        "article.html",
+        [{"kind": "paragraph", "text": "Plugin output", "anchor": {"ordinal": 1}}],
+        engine="html-adapter",
+        plugin_provenance={**provenance, "version": "1.0.1"},
+    )
+    changed_hash = create_conversion_run(
+        "d" * 64,
+        "article.html",
+        [{"kind": "paragraph", "text": "Plugin output", "anchor": {"ordinal": 1}}],
+        engine="html-adapter",
+        plugin_provenance={**provenance, "content_hash": "0" * 64},
+    )
+    assert same.run_id == run.run_id
+    assert same.document.document_id == run.document.document_id
+    assert changed.run_id != run.run_id
+    assert changed.document.document_id != run.document.document_id
+    assert changed_hash.run_id != run.run_id
+    assert changed_hash.document.document_id != run.document.document_id
+
+
+def test_absent_plugin_provenance_preserves_legacy_receipt_shape(tmp_path) -> None:
+    db = tmp_path / "legacy-receipt.sqlite"
+    run = create_conversion_run(
+        "e" * 64,
+        "legacy.txt",
+        [{"kind": "paragraph", "text": "Legacy output", "anchor": {"ordinal": 1}}],
+        engine="plain-text",
+    )
+
+    from app.ingestion.conversion_run import ensure_conversion_run_schema
+
+    ensure_conversion_run_schema(db)
+    with sqlite3.connect(db) as connection:
+        connection.execute(
+            "INSERT INTO conversion_runs "
+            "(run_id, raw_sha256, source_name, engine, version, document_json, "
+            "loss_report_json, created_at) VALUES (?,?,?,?,?,?,?,?)",
+            (
+                run.run_id,
+                run.raw_sha256,
+                run.source_name,
+                run.engine,
+                run.version,
+                json.dumps(
+                    {
+                        "document_id": run.document.document_id,
+                        "raw_sha256": run.document.raw_sha256,
+                        "engine": run.document.engine,
+                        "version": run.document.version,
+                    },
+                    sort_keys=True,
+                ),
+                json.dumps(
+                    {
+                        "block_count": run.loss_report.block_count,
+                        "loss_notes": run.loss_report.loss_notes,
+                        "attempted_engines": run.loss_report.attempted_engines,
+                        "fallback_reason": run.loss_report.fallback_reason,
+                    },
+                    sort_keys=True,
+                ),
+                "legacy",
+            ),
+        )
+        connection.executemany(
+            "INSERT INTO derived_blocks "
+            "(block_id, run_id, document_id, kind, text, anchor_json) VALUES (?,?,?,?,?,?)",
+            [
+                (
+                    block.block_id,
+                    run.run_id,
+                    run.document.document_id,
+                    block.kind,
+                    block.text,
+                    json.dumps(block.anchor, sort_keys=True),
+                )
+                for block in run.blocks
+            ],
+        )
+        connection.commit()
+    resolved = resolve_conversion_run(db, run.run_id)
+    assert resolved is not None
+    assert resolved.plugin_provenance is None
 
 
 def test_conversion_run_requires_nonempty_blocks() -> None:

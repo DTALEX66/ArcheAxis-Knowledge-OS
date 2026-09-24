@@ -165,32 +165,61 @@ try {
         if (forged.StatusCode != HttpStatusCode.BadRequest) throw new Exception("desktop machine escalated to accepted");
     }
     Console.WriteLine("PASS: one C# supervisor uses distinct human/machine authority on one Core");
+    string capturedSourceId;
+    const string captureJobId = "desktop-job";
     using (var imported = await real.SendAsync(HttpMethod.Post, "/api/v1/imports", new StringContent("{\"name\":\"desktop.txt\",\"content_base64\":\"aGVsbG8=\"}", Encoding.UTF8, "application/json"))) {
         if (imported.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop import failed");
         using var source = JsonDocument.Parse(await imported.Content.ReadAsStringAsync());
-        var enqueue = JsonSerializer.Serialize(new { job_id = "desktop-job", kind = "text", input_ref = source.RootElement.GetProperty("source_id").GetString() });
+        capturedSourceId = source.RootElement.GetProperty("source_id").GetString()!;
+        var enqueue = JsonSerializer.Serialize(new { job_id = captureJobId, kind = "text", input_ref = capturedSourceId });
         using var queued = await real.SendAsync(HttpMethod.Post, "/api/v1/jobs", new StringContent(enqueue, Encoding.UTF8, "application/json"));
         if (queued.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop enqueue failed");
     }
     var executionBody = new StringContent("{\"deadline_ms\":5000}", Encoding.UTF8, "application/json");
     executionBody.Headers.Add("idempotency-key", "desktop-attempt");
-    using (var execution = await real.SendAsync(HttpMethod.Post, "/api/v1/jobs/desktop-job/executions", executionBody)) {
+    using (var execution = await real.SendAsync(HttpMethod.Post, $"/api/v1/jobs/{captureJobId}/executions", executionBody)) {
         if (execution.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop could not execute the actual worker");
     }
     using (var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(6))) {
         while (true) {
-            using var read = await real.SendAsync(HttpMethod.Get, "/api/v1/jobs/desktop-job", ct: bounded.Token);
-            using var status = JsonDocument.Parse(await read.Content.ReadAsStringAsync(bounded.Token));
-            var state = status.RootElement.GetProperty("state").GetString();
-            if (state == "succeeded") break;
-            if (state != "running") throw new Exception("desktop execution did not succeed");
+            var read = await CoreTextOutputReader.ReadAsync(real, capturedSourceId, captureJobId, bounded.Token);
+            if (read.IsReady) {
+                if (read.Content != "hello") throw new Exception("desktop Reader output differs");
+                break;
+            }
+            if (read.State is not ("queued" or "running")) throw new Exception($"desktop Reader output failed: {read.Error}");
             await Task.Delay(10, bounded.Token);
         }
-        using var output = await real.SendAsync(HttpMethod.Get, "/api/v1/jobs/desktop-job/outputs/text", ct: bounded.Token);
-        using var converted = JsonDocument.Parse(await output.Content.ReadAsStringAsync(bounded.Token));
-        if (converted.RootElement.GetProperty("content").GetString() != "hello") throw new Exception("desktop worker output differs");
     }
-    Console.WriteLine("PASS: silent C# -> authenticated Core -> actual Python -> persisted output");
+    using (var status = await real.SendAsync(HttpMethod.Get, $"/api/v1/jobs/{captureJobId}")) {
+        if (!status.IsSuccessStatusCode) throw new Exception("Core job status read failed");
+        using var statusDoc = JsonDocument.Parse(await status.Content.ReadAsStringAsync());
+        if (statusDoc.RootElement.GetProperty("input_ref").GetString() != capturedSourceId)
+            throw new Exception("Core job status did not expose its persisted source binding");
+    }
+    var mismatch = await CoreTextOutputReader.ReadAsync(real, "not-the-source", captureJobId);
+    if (mismatch.IsReady || mismatch.State != "source_mismatch")
+        throw new Exception("Reader accepted a job bound to another source");
+    real.Stop();
+    var reopened = await real.StartAsync();
+    if (!reopened.ok) throw new Exception($"Core failed to reopen the same isolated workspace: {reopened.detail}");
+    ownedUrl = real.CoreUrl;
+    using (var persistedJobs = await real.SendAsync(HttpMethod.Get, $"/api/v1/sources/{Uri.EscapeDataString(capturedSourceId)}/jobs")) {
+        if (!persistedJobs.IsSuccessStatusCode) throw new Exception("source-to-jobs projection failed after Core restart");
+        using var persisted = JsonDocument.Parse(await persistedJobs.Content.ReadAsStringAsync());
+        var rows = persisted.RootElement.GetProperty("jobs").EnumerateArray().ToArray();
+        var restoredJob = rows.SingleOrDefault(row => row.GetProperty("job_id").GetString() == captureJobId);
+        if (restoredJob.ValueKind != JsonValueKind.Object
+            || restoredJob.GetProperty("input_ref").GetString() != capturedSourceId
+            || restoredJob.GetProperty("kind").GetString() != "text"
+            || restoredJob.GetProperty("state").GetString() != "succeeded"
+            || restoredJob.GetProperty("attempt").GetInt32() < 1)
+            throw new Exception("source-to-jobs projection did not restore the committed job identity/state");
+    }
+    var restoredText = await CoreTextOutputReader.ReadAsync(real, capturedSourceId, captureJobId);
+    if (!restoredText.IsReady || restoredText.Content != "hello")
+        throw new Exception("Reader could not restore the same Core output after restart");
+    Console.WriteLine("PASS: source_id -> persisted Core job projection -> source-validated text output after Core restart");
     using (var readback = await real.SendAsync(HttpMethod.Get, "/api/v1/workspaces/info")) {
         if (!readback.IsSuccessStatusCode) throw new Exception("owned authenticated readback failed");
     }

@@ -433,6 +433,18 @@
     </Style>
     <Style Selector="TextBlock.status-loading">
         <Setter Property="Foreground" Value="{DynamicResource AaosInfoBrush}" />
+        <Setter Property="Opacity" Value="0.82" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.28" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Grid.reduced-motion TextBlock.status-loading">
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="Transitions">
+            <Transitions />
+        </Setter>
     </Style>
     <Style Selector="TextBlock.status-empty">
         <Setter Property="Foreground" Value="{DynamicResource AaosMutedBrush}" />

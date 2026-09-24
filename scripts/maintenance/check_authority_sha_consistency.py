@@ -24,6 +24,19 @@ CURRENT_MAIN_RE = re.compile(
 )
 
 
+class DuplicateJsonMemberError(ValueError):
+    """Raised when a JSON object contains the same member name more than once."""
+
+
+def _reject_duplicate_json_members(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise DuplicateJsonMemberError(f"duplicate JSON object member: {key!r}")
+        payload[key] = value
+    return payload
+
+
 @dataclass
 class AuthorityShaReport:
     errors: list[str] = field(default_factory=list)
@@ -57,8 +70,11 @@ def _read_current_claim(path: Path, report: AuthorityShaReport) -> None:
 
 def _read_state(path: Path, report: AuthorityShaReport) -> dict:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        payload = json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=_reject_duplicate_json_members,
+        )
+    except (OSError, json.JSONDecodeError, DuplicateJsonMemberError) as exc:
         report.errors.append(f"cannot read R6 state {path}: {exc}")
         return {}
     if not isinstance(payload, dict):
