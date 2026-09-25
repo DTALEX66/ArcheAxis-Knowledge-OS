@@ -1,0 +1,1122 @@
+{
+  "schema": "aaos.dsh.branch-commit-audit/v1",
+  "task_id": "DP-GIT-01",
+  "batch": 1,
+  "generated_at_utc": "2026-09-25T10:03:54Z",
+  "audit_branch": "codex/dp-git-01-20260925",
+  "baseline_sha": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+  "baseline_tree": "a4156ed65d50675822321b9d63eec932b1e76af3",
+  "origin_main": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+  "exhaustive": false,
+  "batch_cap_shas": 20,
+  "shas_audited": 17,
+  "root_worktree_in_branch_diff": false,
+  "root_worktree_note": "The dirty root working tree (112 uncommitted paths on codex/aaos-p3-ui-convergence-20260922) is NOT part of any branch diff audited here. All facts were read from committed objects inside the isolated worktree .project-local/worktrees/dp-git-01-20260925.",
+  "tests_executed_for_these_shas": false,
+  "decision_vocabulary": [
+    "KEEP",
+    "CHERRY_PICK_CANDIDATE",
+    "SUPERSEDED",
+    "CONFLICT",
+    "UNKNOWN"
+  ],
+  "decision_meaning": "Audit judgement only. CHERRY_PICK_CANDIDATE means worth owner-reviewed port consideration; it is NOT authorization to cherry-pick.",
+  "priority_branch_tips": {
+    "feat/ms00-c-release-identity": "01e794d1070114c6a55142fae2032bc010b9946e",
+    "feat/portable-data-root": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+    "feat/axw022a-pdf-http-endpoint": "17ca96280010822fe1ee95a6f264f47e7435d2c8",
+    "feat/axw022b-evidence-annotation": "3edacbcb1c67475e3da2f2247f8622e219ca2675",
+    "feat/h2-bakeoff": "376fb8001a0a7f2e2c25a0174e1dee6601d0b95b",
+    "feat/naming-step3": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+    "feat/archeaxis-desktop-a1-violet-core": "376281c6a68bd8b6385d43878d370b81e28cf9ee"
+  },
+  "coverage": {
+    "branches_in_batch": 7,
+    "shas_audited": 17,
+    "changed_file_records": 88,
+    "files_absent_from_baseline": 28,
+    "files_identical_to_baseline": 5,
+    "files_differing_from_baseline": 55,
+    "decisions": {
+      "KEEP": 0,
+      "CHERRY_PICK_CANDIDATE": 0,
+      "SUPERSEDED": 16,
+      "CONFLICT": 1,
+      "UNKNOWN": 0
+    },
+    "per_branch": {
+      "feat/ms00-c-release-identity": {
+        "shas_in_branch_not_in_main": 1,
+        "audited": 1
+      },
+      "feat/portable-data-root": {
+        "shas_in_branch_not_in_main": 1,
+        "audited": 1
+      },
+      "feat/axw022a-pdf-http-endpoint": {
+        "shas_in_branch_not_in_main": 4,
+        "audited": 4
+      },
+      "feat/axw022b-evidence-annotation": {
+        "shas_in_branch_not_in_main": 2,
+        "audited": 2
+      },
+      "feat/h2-bakeoff": {
+        "shas_in_branch_not_in_main": 3,
+        "audited": 3
+      },
+      "feat/naming-step3": {
+        "shas_in_branch_not_in_main": 1,
+        "audited": 1
+      },
+      "feat/archeaxis-desktop-a1-violet-core": {
+        "shas_in_branch_not_in_main": 5,
+        "audited": 5
+      }
+    },
+    "refs_not_resolved": 0,
+    "not_covered": "Other branches and SHA records in docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json are outside this batch; e.g. codex/aaos-p3-ui-convergence-20260922 alone has 166 commit records."
+  },
+  "authority_refs": [
+    "AGENTS.md §3, §4, §6",
+    "docs/authority/taskpack-0919-r6/TASKPACK.md (AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6; A01, A02, A05, A13)",
+    "docs/current/M0-DIRECTION-OVERRIDE-20260920.md (M0-SHORTEST-COMPLETE-LOOP, SUP-020)",
+    "docs/current/R6-VERSION-RELEASE-FREEZE.md",
+    "docs/truth/NAMING_CONTRACT_V2.md §2, §5",
+    "docs/SHARED_RESOURCE_PATH_INDEX.md"
+  ],
+  "commits": [
+    {
+      "sha": "01e794d1070114c6a55142fae2032bc010b9946e",
+      "branch_refs": [
+        "feat/ms00-c-release-identity"
+      ],
+      "is_branch_tip": true,
+      "merge_base_origin_main": "9fefcfcae8380c84447e48fcf71cabeeab00f726",
+      "author_date": "2026-08-07T20:12:00+08:00",
+      "subject": "feat(release): separate verification and release run identity",
+      "files": [
+        {
+          "path": ".github/workflows/release.yml",
+          "additions": 8,
+          "deletions": 5,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/release-manifest.json",
+          "additions": 2,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/release.py",
+          "additions": 30,
+          "deletions": 12,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/release_inject_identity.py",
+          "additions": 21,
+          "deletions": 7,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_release_identity_contract.py",
+          "additions": 47,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_release_manifest.py",
+          "additions": 14,
+          "deletions": 8,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Split the single source.ci_run/ci_url release identity into verification_ci_run(+_url) and release_run(+_url), pin the newest successful exact-SHA CI run as the verification run, and require the two run identities.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run. Baseline holds evolved versions of both test files; baseline tests/test_release_manifest.py already exercises verification_ci_run_id and release_run_id, and baseline scripts/release_inject_identity.py already accepts --verification-ci-run-id."
+      },
+      "authority_alignment": "Consistent with but strictly weaker than R6-VERSION-RELEASE-FREEZE.md; adds no tag, release, public asset or product version.",
+      "decision": "SUPERSEDED",
+      "rationale": "Baseline implements the same separation with strictly more checks (verification_ci_run_id != release_run_id, _require_repo_url validation, canonical verification_run_url derivation). Porting would regress the model."
+    },
+    {
+      "sha": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+      "branch_refs": [
+        "feat/portable-data-root"
+      ],
+      "is_branch_tip": true,
+      "merge_base_origin_main": "141ff953265d709a7cb22181f265b9e01f0686e0",
+      "author_date": "2026-08-05T21:39:43+08:00",
+      "subject": "feat(desktop): add explicit portable data root",
+      "files": [
+        {
+          "path": "app/workspace/ui/assets/app.js",
+          "additions": 4,
+          "deletions": 4,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/styles.css",
+          "additions": 0,
+          "deletions": 2,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/index.html",
+          "additions": 8,
+          "deletions": 5,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "desktop/README.md",
+          "additions": 21,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": true
+        },
+        {
+          "path": "desktop/portable/launch_portable.bat",
+          "additions": 3,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": true
+        },
+        {
+          "path": "desktop/portable/launch_portable.ps1",
+          "additions": 17,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": true
+        },
+        {
+          "path": "desktop/src-tauri/src/lib.rs",
+          "additions": 5,
+          "deletions": 3,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "desktop/src-tauri/src/runtime.rs",
+          "additions": 77,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "run_all.bat",
+          "additions": 2,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "run_all.sh",
+          "additions": 2,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "run_windows.bat",
+          "additions": 2,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "run_windows.ps1",
+          "additions": 1,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/a0_browser_smoke.py",
+          "additions": 20,
+          "deletions": 48,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/project_env.bat",
+          "additions": 34,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/project_env.ps1",
+          "additions": 33,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/project_env.sh",
+          "additions": 27,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/runtime_http_smoke.py",
+          "additions": 17,
+          "deletions": 2,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_desktop_staging.py",
+          "additions": 11,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Introduce COGNITIVE_PORTABLE_ROOT with resolve_runtime_with_portable_root (absolute-path validation; portable root becomes cwd and data_dir, isolated=true) and a project-local env boundary redirecting TMP/TEMP/TMPDIR, uv/pip/npm/playwright/cargo caches under <repo>\\.hermes\\task-runtime.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run. tests/test_desktop_staging.py is evolved in the baseline; desktop/portable/launch_portable.ps1 and desktop/README.md are byte-identical to the baseline."
+      },
+      "authority_alignment": "CONFLICT: (a) targets .hermes\\task-runtime and COGNITIVE_* identifiers while AGENTS.md §3 makes .project-local (via scripts/runtime/dev.py) the project runtime root and .hermes preserved legacy material with no new development writes; (b) NAMING_CONTRACT_V2 §2 makes ARCHEAXIS_* canonical with COGNITIVE_* a two-version fallback, and this commit hardens the legacy prefix; (c) explicit portable data-root semantics are the owner-blocked R6 A02 decision (BLOCKED_BY_OWNER_DECISION).",
+      "decision": "CONFLICT",
+      "rationale": "The only portable artifact (the launcher) already ships in the baseline. The rest encodes a runtime-root and env-prefix model replaced by September authority, and the open semantic question belongs to A02. Use as a conceptual input to A02 only; re-express the fail-closed absolute-path rule and temp/cache redirection natively under .project-local if A02 is decided."
+    },
+    {
+      "sha": "6e9dbfd3db8e986a8b15927ce1537063a6f46a63",
+      "branch_refs": [
+        "feat/axw022a-pdf-http-endpoint"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "fba208f2551f26acc64d82613500656159fc6801",
+      "author_date": "2026-08-11T00:00:00+08:00",
+      "subject": "feat(workspace): serve content-addressed PDF bytes over HTTP (AXW-022A)",
+      "files": [
+        {
+          "path": "app/workspace/router.py",
+          "additions": 23,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_workspace_pdf_endpoint.py",
+          "additions": 91,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Add GET /api/pdf/{content_key} serving content-addressed PDF bytes from the RawAsset store via build_pdf_serving_root/resolve_pdf_bytes, media type application/pdf, fail-closed on invalid keys.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run. tests/test_workspace_pdf_endpoint.py exists in the baseline and is evolved; baseline app/workspace/router.py already contains the /api/pdf/{content_key} route importing MAX_PDF_BYTES, with an explicit sha256: prefix check."
+      },
+      "authority_alignment": "No conflict; the baseline route is stricter (explicit sha256: prefix rejection before resolution and MAX_PDF_BYTES enforcement). AGENTS.md §6 keeps the Rust canonical Core as the product authority, so the legacy FastAPI router is a compatibility surface.",
+      "decision": "SUPERSEDED",
+      "rationale": "Feature present in the baseline in stronger form; re-porting would duplicate responsibility on a compatibility surface rather than add capability."
+    },
+    {
+      "sha": "f8efcbd75c9b97939ade7094ee7a5cb5a94066e9",
+      "branch_refs": [
+        "feat/axw022a-pdf-http-endpoint"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "fba208f2551f26acc64d82613500656159fc6801",
+      "author_date": "2026-08-11T00:00:00+08:00",
+      "subject": "feat(workspace): vendor PDF.js assets and wire serving (AXW-022A frontend step)",
+      "files": [
+        {
+          "path": "THIRD_PARTY_NOTICES.md",
+          "additions": 14,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/router.py",
+          "additions": 3,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/licenses/pdfjs-3.11.174-LICENSE.txt",
+          "additions": 177,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/pdf.min.js",
+          "additions": 22,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/pdf.worker.min.js",
+          "additions": 22,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "pyproject.toml",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Vendor genuine minified PDF.js 3.11.174 bundles plus the licence text and register the third-party notice, wiring the assets to the serving route.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit."
+      },
+      "authority_alignment": "No conflict, but obsolete: git ls-tree -r --name-only <baseline> -- app/workspace/ui returns 0 entries, i.e. the whole FastAPI-served web UI tree including these assets is gone from the baseline.",
+      "decision": "SUPERSEDED",
+      "rationale": "The consumer of these assets no longer exists. Vendoring a browser PDF engine into an Avalonia product is not a transferable decision; any future PDF rendering must be re-decided against the current shell and licence register."
+    },
+    {
+      "sha": "226b5c680d8a536725869e598e3dd27a12609d26",
+      "branch_refs": [
+        "feat/axw022a-pdf-http-endpoint"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "fba208f2551f26acc64d82613500656159fc6801",
+      "author_date": "2026-08-11T00:00:00+08:00",
+      "subject": "feat(workspace): PDF.js evidence viewer with paging/zoom/search (AXW-022A frontend)",
+      "files": [
+        {
+          "path": "app/workspace/ui/assets/app.js",
+          "additions": 86,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/index.html",
+          "additions": 22,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Add a paging/zoom/search PDF viewer surface to the legacy web UI.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit."
+      },
+      "authority_alignment": "No conflict, but obsolete and off-authority: AGENTS.md §6 states the formal desktop is the C#/Avalonia apps/ArcheAxis.Desktop, with the older frontend retained only as recovery/behavior reference.",
+      "decision": "SUPERSEDED",
+      "rationale": "UI for a removed shell; such interactions belong to the Avalonia product surface and its own Core contract."
+    },
+    {
+      "sha": "17ca96280010822fe1ee95a6f264f47e7435d2c8",
+      "branch_refs": [
+        "feat/axw022a-pdf-http-endpoint"
+      ],
+      "is_branch_tip": true,
+      "merge_base_origin_main": "fba208f2551f26acc64d82613500656159fc6801",
+      "author_date": "2026-08-11T00:00:00+08:00",
+      "subject": "fix(workspace): resolve PR #74 CI failures for PDF.js viewer",
+      "files": [
+        {
+          "path": "app/workspace/ui/assets/app.js",
+          "additions": 4,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/pdf.min.js",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/pdf.worker.min.js",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/index.html",
+          "additions": 0,
+          "deletions": 4,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_workspace_api.py",
+          "additions": 3,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Small CI-adaptation edits to the vendored viewer assets plus one test adjustment.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run; tests/test_workspace_api.py is evolved in the baseline."
+      },
+      "authority_alignment": "No conflict, but obsolete (deleted UI surface).",
+      "decision": "SUPERSEDED",
+      "rationale": "CI workaround for a deleted UI plus a test edit already superseded in the baseline."
+    },
+    {
+      "sha": "fee6fab0443c1240ed630c1b6f0a56fe4b44756f",
+      "branch_refs": [
+        "feat/axw022b-evidence-annotation"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "ebf712474b466f3cd90dc1b32d66eb08492a75f6",
+      "author_date": "2026-08-11T00:00:00+08:00",
+      "subject": "feat(workspace): content-addressed evidence anchor API (AXW-022B backend)",
+      "files": [
+        {
+          "path": "app/workspace/router.py",
+          "additions": 62,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_workspace_evidence_anchor_api.py",
+          "additions": 64,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": true
+        }
+      ],
+      "purpose": "Add POST /api/evidence/anchor (build_evidence_anchor/store_evidence_anchor) and GET /api/evidence/anchor/{anchor_id} (resolve_evidence_anchor, 404 when absent).",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run. tests/test_workspace_evidence_anchor_api.py is byte-identical to the baseline (commit blob e456fbb0 == baseline blob e456fbb0) and the baseline router contains both handlers verbatim."
+      },
+      "authority_alignment": "No conflict. The Rust analogue exists in the baseline Core (/api/v1/sources/:source_id/anchors, /api/v1/evidence/anchors); R6 A12 still records Evidence bundle/citation contracts as open work.",
+      "decision": "SUPERSEDED",
+      "rationale": "Strongest absorption evidence in the batch: the branch's own test file is identical to the baseline file, i.e. the work was taken as-is. Nothing to port."
+    },
+    {
+      "sha": "3edacbcb1c67475e3da2f2247f8622e219ca2675",
+      "branch_refs": [
+        "feat/axw022b-evidence-annotation"
+      ],
+      "is_branch_tip": true,
+      "merge_base_origin_main": "ebf712474b466f3cd90dc1b32d66eb08492a75f6",
+      "author_date": "2026-08-11T00:00:00+08:00",
+      "subject": "feat(workspace): PDF evidence annotation + jump-back UI (AXW-022B frontend)",
+      "files": [
+        {
+          "path": "app/workspace/ui/assets/app.js",
+          "additions": 60,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/index.html",
+          "additions": 5,
+          "deletions": 1,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Call the new anchor API from the legacy web viewer and jump back to the pinned selection.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit."
+      },
+      "authority_alignment": "No conflict, but obsolete (removed UI surface).",
+      "decision": "SUPERSEDED",
+      "rationale": "Backend half already in the baseline; frontend half targets a deleted shell. Current open Evidence bundle/citation work must be designed against Avalonia and the Rust Core."
+    },
+    {
+      "sha": "3884be732a5dff53ddd843c16cc3bed8c2be5a2a",
+      "branch_refs": [
+        "feat/h2-bakeoff"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "f6b49b3e8300119f6c47e7ff8045655a4361e7e2",
+      "author_date": "2026-08-12T00:00:00+08:00",
+      "subject": "feat(h2): OCR bake-off framework + engine registry",
+      "files": [
+        {
+          "path": "shared/bakeoff.py",
+          "additions": 145,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "shared/bakeoff_engines.py",
+          "additions": 129,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_h2_bakeoff.py",
+          "additions": 82,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Add a CER/WER bake-off harness comparing OCR/ASR engines against a fixed fixture corpus, with an engine registry.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run. Baseline registry holds strictly more engines (tesseract, tesseract-chi-sim, paddleocr, easyocr, rapidocr, faster-whisper, whisper.cpp) versus this commit's four OCR engines; baseline tests/test_h2_bakeoff.py is 102 lines versus this commit's 66."
+      },
+      "authority_alignment": "No conflict; consistent with the M0 rule that accuracy requires human truth pairs and that engine confidence is not accuracy.",
+      "decision": "SUPERSEDED",
+      "rationale": "Baseline is a strict superset; porting would be a regression."
+    },
+    {
+      "sha": "fffff39a20ddaaa15eaeea3d0f9425378d9b9c9a",
+      "branch_refs": [
+        "feat/h2-bakeoff"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "f6b49b3e8300119f6c47e7ff8045655a4361e7e2",
+      "author_date": "2026-08-12T00:00:00+08:00",
+      "subject": "feat(h2): ASR engine stubs in bake-off registry",
+      "files": [
+        {
+          "path": "shared/bakeoff_engines.py",
+          "additions": 35,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Register faster-whisper / whisper.cpp unavailable-honest stubs in the bake-off registry.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit; the baseline registry already registers both engines."
+      },
+      "authority_alignment": "No conflict; the unavailable-honest pattern matches the M0 requirement that unsupported capability be explicit.",
+      "decision": "SUPERSEDED",
+      "rationale": "Content already present in the baseline registry."
+    },
+    {
+      "sha": "376fb8001a0a7f2e2c25a0174e1dee6601d0b95b",
+      "branch_refs": [
+        "feat/h2-bakeoff"
+      ],
+      "is_branch_tip": true,
+      "merge_base_origin_main": "f6b49b3e8300119f6c47e7ff8045655a4361e7e2",
+      "author_date": "2026-08-12T00:00:00+08:00",
+      "subject": "feat(h2): Silero VAD audio voice activity detection stub",
+      "files": [
+        {
+          "path": "shared/audio_vad.py",
+          "additions": 71,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Add is_silero_available()/silero_vad_segments() as an unavailable-honest Silero VAD integration stub.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit. Baseline shared/audio_vad.py declares the same __all__ and adds _read_audio(path, target_sr) plus an explicit unavailable branch."
+      },
+      "authority_alignment": "No conflict. The disclosed model identity/licence (MIT, ~26 MB) matches the requirement to state engine, version and licence facts.",
+      "decision": "SUPERSEDED",
+      "rationale": "Baseline supersedes the stub with a richer implementation."
+    },
+    {
+      "sha": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+      "branch_refs": [
+        "feat/naming-step3"
+      ],
+      "is_branch_tip": true,
+      "merge_base_origin_main": "66c6aac2fdf10eb9d20d79eebe3baa66cdbbbcac",
+      "author_date": "2026-08-12T00:00:00+08:00",
+      "subject": "feat(naming): contract §4 step 3 — env vars, API root, Tauri identity, gate",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "additions": 16,
+          "deletions": 16,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/cli.py",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/main.py",
+          "additions": 4,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/runtime_entrypoint.py",
+          "additions": 8,
+          "deletions": 8,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/router.py",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "desktop/src-tauri/src/protocol.rs",
+          "additions": 3,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "desktop/src-tauri/tauri.conf.json",
+          "additions": 2,
+          "deletions": 2,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/a0_browser_smoke.py",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/check_repository_conventions.py",
+          "additions": 6,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/generate_phase0_baseline.py",
+          "additions": 5,
+          "deletions": 5,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "shared/config.py",
+          "additions": 48,
+          "deletions": 21,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_gateway_rate_limit.py",
+          "additions": 2,
+          "deletions": 2,
+          "in_baseline": true,
+          "identical_to_baseline": true
+        },
+        {
+          "path": "tests/test_phase0_baseline.py",
+          "additions": 3,
+          "deletions": 3,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Flip COGNITIVE_* to ARCHEAXIS_* with legacy fallbacks, add the canonical /api/v1 API root alongside legacy /api/* routes, and rebrand the legacy Tauri identity to com.archeaxis.workspace / ArcheAxis Learning Workspace.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run. tests/test_gateway_rate_limit.py is byte-identical to the baseline (eccd5dc1 == eccd5dc1); tests/test_phase0_baseline.py is evolved. The baseline shared/config.py already carries the whole ARCHEAXIS_*-primary/COGNITIVE_*-fallback map from this commit, baseline app/main.py already mounts workspace_router with prefix /api/v1 (commented 'Naming contract §4'), and baseline app/workspace/router.py already reads ARCHEAXIS_DESKTOP_LAUNCH_TOKEN with a COGNITIVE_* fallback."
+      },
+      "authority_alignment": "Aligned and already satisfied per NAMING_CONTRACT_V2 §2 (ARCHEAXIS_* migrated with COGNITIVE_* fallback; API root /api/v1 dual-path). The Tauri identity part did not persist: baseline desktop/src-tauri/tauri.conf.json now reads productName 'ArcheAxis Knowledge Recovery' and identifier 'com.archeaxis.workspace.recovery'.",
+      "decision": "SUPERSEDED",
+      "rationale": "Substantive naming migration is already in the baseline verbatim; the only differing element (Tauri identity) was later deliberately demoted to an explicitly recovery-labelled surface. Re-applying would regress that decision."
+    },
+    {
+      "sha": "0a12fc110bcdb1d9445d425ed8d33dca1effa6b2",
+      "branch_refs": [
+        "feat/archeaxis-desktop-a1-violet-core"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "a92e6730a267f4268ff64d92be5d2fc17bce59e5",
+      "author_date": "2026-07-28T00:00:00+08:00",
+      "subject": "fix(ci): install playwright for test collection",
+      "files": [
+        {
+          "path": "requirements-ci.txt",
+          "additions": 1,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Add playwright to the CI dependency list so browser-smoke test collection succeeds.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit."
+      },
+      "authority_alignment": "No conflict, but obsolete: baseline .github/workflows/ci.yml no longer consumes requirements-ci*.txt; it uses hash-locked files (locked-ci.txt, locked-ci-adapters.txt, locked-browser.txt) and uv run --frozen --group ci.",
+      "decision": "SUPERSEDED",
+      "rationale": "Dependency-installation mechanism replaced wholesale by the locked/uv-group model, which already covers browser dependencies via locked-browser.txt."
+    },
+    {
+      "sha": "d5418d698a084fb22126fe6d04be6b157b51a95d",
+      "branch_refs": [
+        "feat/archeaxis-desktop-a1-violet-core"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "a92e6730a267f4268ff64d92be5d2fc17bce59e5",
+      "author_date": "2026-07-28T00:00:00+08:00",
+      "subject": "feat(workspace): add Violet Core desktop shell",
+      "files": [
+        {
+          "path": "README.md",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/app.js",
+          "additions": 13,
+          "deletions": 4,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/styles.css",
+          "additions": 8,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/index.html",
+          "additions": 25,
+          "deletions": 5,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "docs/PROJECT_STATUS.md",
+          "additions": 3,
+          "deletions": 3,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/a0_browser_smoke.py",
+          "additions": 18,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Add the Violet Core dark-theme shell to the legacy web UI and adjust browser-smoke coverage.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit; the three app/workspace/ui/** files are absent from the baseline."
+      },
+      "authority_alignment": "No conflict, but obsolete: the target UI tree is gone, and the baseline scripts/a0_browser_smoke.py documents itself as a legacy React/Tauri compatibility probe that must not be presented as the production desktop gate, with ARCHEAXIS_RUN_ROOT-scoped outputs.",
+      "decision": "SUPERSEDED",
+      "rationale": "Shell design for a removed surface; the surviving browser probe was explicitly demoted to a compatibility reference."
+    },
+    {
+      "sha": "53573e91b2005334d4a8330a1e85a24938dd9b8a",
+      "branch_refs": [
+        "feat/archeaxis-desktop-a1-violet-core"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "a92e6730a267f4268ff64d92be5d2fc17bce59e5",
+      "author_date": "2026-07-28T00:00:00+08:00",
+      "subject": "fix(ci): cover adapter dependencies and ffmpeg",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "requirements-ci.txt",
+          "additions": 8,
+          "deletions": 1,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "tests/test_release_manifest.py",
+          "additions": 5,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Add adapter/ffmpeg dependencies to the CI test job.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run; tests/test_release_manifest.py is evolved in the baseline."
+      },
+      "authority_alignment": "No conflict, but obsolete (see 0a12fc11): baseline uses locked-ci-adapters.txt with --require-hashes plus the ci-adapters uv group.",
+      "decision": "SUPERSEDED",
+      "rationale": "Stricter successor already in the baseline."
+    },
+    {
+      "sha": "f1702990f808da1074a4aac461b24e6268ec9ec7",
+      "branch_refs": [
+        "feat/archeaxis-desktop-a1-violet-core"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "a92e6730a267f4268ff64d92be5d2fc17bce59e5",
+      "author_date": "2026-07-28T00:00:00+08:00",
+      "subject": "fix(ci): isolate adapter test dependencies and align rules",
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "additions": 6,
+          "deletions": 3,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "AGENTS.md",
+          "additions": 10,
+          "deletions": 13,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "docs/VERIFICATION_POLICY.md",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "requirements-ci-adapters.txt",
+          "additions": 7,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "requirements-ci.txt",
+          "additions": 0,
+          "deletions": 8,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Split adapter test dependencies into their own requirements file and rewrite AGENTS.md sections 3/4 to defer general execution rules to global workflow rules ('follow the stricter rule').",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit."
+      },
+      "authority_alignment": "CONFLICT-CLASS FINDING (commit-level decision remains SUPERSEDED): the AGENTS.md half removes 'Avoid git add .', 'Do not commit or push unrelated local changes', 'Do not force push' and the destructive-action rule, and references the retired names Cognitive-OS/Cognitive-Loop-OS. Current AGENTS.md §4 explicitly restates the stricter posture that this DP assignment depends on. requirements-ci-adapters.txt is absent from the baseline, replaced by locked-ci-adapters.txt plus the ci-adapters uv group.",
+      "decision": "SUPERSEDED",
+      "rationale": "Both halves were reversed or replaced by later authority; re-applying would weaken current Git safety wording."
+    },
+    {
+      "sha": "376281c6a68bd8b6385d43878d370b81e28cf9ee",
+      "branch_refs": [
+        "feat/archeaxis-desktop-a1-violet-core"
+      ],
+      "is_branch_tip": true,
+      "merge_base_origin_main": "a92e6730a267f4268ff64d92be5d2fc17bce59e5",
+      "author_date": "2026-07-28T00:00:00+08:00",
+      "subject": "feat(workspace): align ArcheAxis positioning and desktop shell",
+      "files": [
+        {
+          "path": "README.md",
+          "additions": 13,
+          "deletions": 8,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/release-manifest.json",
+          "additions": 1,
+          "deletions": 1,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/app.js",
+          "additions": 7,
+          "deletions": 5,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/assets/styles.css",
+          "additions": 8,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "app/workspace/ui/index.html",
+          "additions": 2,
+          "deletions": 2,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "docs/PRODUCT_POSITIONING.md",
+          "additions": 61,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "docs/PROJECT_STATUS.md",
+          "additions": 2,
+          "deletions": 2,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "docs/README.md",
+          "additions": 1,
+          "deletions": 0,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "pyproject.toml",
+          "additions": 2,
+          "deletions": 2,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "scripts/a0_browser_smoke.py",
+          "additions": 18,
+          "deletions": 2,
+          "in_baseline": true,
+          "identical_to_baseline": false
+        },
+        {
+          "path": "workspace/intake/2026-07-28-archeaxis-pack-analysis.md",
+          "additions": 117,
+          "deletions": 0,
+          "in_baseline": false,
+          "identical_to_baseline": false
+        }
+      ],
+      "purpose": "Rebrand to 'ArcheAxis OS（元枢系统）', retitle README, change the Python distribution/keywords to cognitive-loop-os/tauri, and add docs/PRODUCT_POSITIONING.md plus an intake record.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit. docs/PRODUCT_POSITIONING.md exists in the baseline but is evolved; workspace/intake/2026-07-28-archeaxis-pack-analysis.md is absent from the baseline."
+      },
+      "authority_alignment": "CONFLICTS with current naming authority: NAMING_CONTRACT_V2 §5 lists 'ArcheAxis OS' / '元枢' as historical retired names allowed only in historical records and rejection test cases. Baseline already carries the V2 names (pyproject name archeaxis-workspace, version 0.6.14; README 'ArcheAxis Knowledge').",
+      "decision": "SUPERSEDED",
+      "rationale": "Brand direction and release-manifest edits are superseded by the binding V2 naming contract and the R6 A01 release freeze. The only element with residual record value (the 2026-07-28 intake analysis) is historical documentation whose absence is explained by repository normalization; it is not a product change and must not be resurrected by cherry-pick."
+    }
+  ],
+  "authority_findings": [
+    "All 17 SHAs are dated 2026-07-28 .. 2026-08-12 and carry no R6/M0 evidence labels, subject SHAs, owner gates or LOCAL_GREEN claims; every decision is content-based, not status-based.",
+    "Staleness has two causes: removal of the legacy FastAPI-served web UI (app/workspace/ui/**) in favour of the C#/Avalonia shell, and the COGNITIVE_*/.hermes -> ARCHEAXIS_*/.project-local migration recorded in NAMING_CONTRACT_V2 §2 and AGENTS.md §3.",
+    "No SHA in this batch yields CHERRY_PICK_CANDIDATE: the named priority branches are historical absorption donors whose content is already resident in the baseline in equal or stronger form.",
+    "5 of 88 changed-file records are byte-identical to the baseline and 28 are absent from it, so a path-existence-only donor scan would misreport the absent ones as missing work."
+  ],
+  "integration_risks": [
+    {
+      "id": "R-01",
+      "source_sha": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+      "risk": "Portable/explicit data-root semantics remain an owner-blocked R6 A02 decision. A future port must be re-derived under .project-local/ARCHEAXIS_*, must keep fail-closed absolute-path validation, and must not write new state under .hermes/."
+    },
+    {
+      "id": "R-02",
+      "source_sha": "f1702990f808da1074a4aac461b24e6268ec9ec7",
+      "risk": "Branch history contains an AGENTS.md hunk removing 'avoid git add .', 'no unrelated commits/push' and 'no force push'. A cherry-pick sweep touching AGENTS.md must not resurrect it; current AGENTS.md §4 is binding."
+    },
+    {
+      "id": "R-03",
+      "source_sha": "f8efcbd75c9b97939ade7094ee7a5cb5a94066e9",
+      "risk": "Seven SHAs (4e1a3ed8, f8efcbd7, 226b5c68, 17ca9628, 3edacbcb, d5418d69, 376281c6) touch 16 distinct app/workspace/ui/** file records, a tree absent from the baseline. Automated donor scans keyed on path existence will manufacture false regression candidates; filter on baseline path existence first."
+    },
+    {
+      "id": "R-04",
+      "source_sha": "376281c6a68bd8b6385d43878d370b81e28cf9ee",
+      "risk": "Historical branding ('ArcheAxis OS', '元枢') in branch content would fail the naming gate; prefer preserve-and-do-not-port over any textual reuse."
+    },
+    {
+      "id": "R-05",
+      "source_sha": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+      "risk": "R6-STATE.json still records the baseline as subject_sha; nothing in this report is an R6/M0 status promotion and no state file was modified."
+    }
+  ],
+  "limits": {
+    "exhaustive": false,
+    "tests_executed": false,
+    "absence_evidence": "Path-level via git cat-file -e <baseline>:<path>; identity evidence via exact blob OID comparison.",
+    "evolved_files_semantics": "55 differing (evolved) records were blob-classified; the product-bearing ones were read in full, not every one hunk-by-hunk.",
+    "remote_state": "Not verified in this batch: no git fetch and no live GitHub PR/branch readback; branch tips resolve from the local object store.",
+    "authorization": "No authorization implied: SUPERSEDED does not authorize branch deletion and CONFLICT does not authorize file modification.",
+    "self_correction": "The first collected facts file classified baseline membership with `git rev-parse <tree>:<path>`, which echoes its argument on stdout even when it fails; an output-non-empty test therefore misclassified absent paths as present and produced 20 absent / 6 identical / 63 evolved. Membership was recomputed from `git cat-file -e` exit status (audit_membership.ps1) and reapplied to this report (audit_apply2.ps1 + .project-local/dsh-audit/apply_membership.py) as 28 / 5 / 55. The independent verifier caught the defect."
+  },
+  "artifacts": [
+    "docs/current/dsh-review/branch-batch-01.md",
+    "docs/current/dsh-review/branch-batch-01.json"
+  ],
+  "audit_verification": {
+    "report_json_strict_validation": "PASS (json.load)",
+    "sha_resolution": "17/17 SHAs resolve and match the recorded commit id",
+    "changed_path_claims": "88/88 paths are actually changed by their recorded commit (diff-tree --numstat, rename-aware)",
+    "additions_deletions_claims": "88/88 records match numstat exactly",
+    "in_baseline_and_identity_claims": "88/88 records match git cat-file -e / blob-OID comparison",
+    "merge_base_claims": "17/17 match git merge-base origin/main <branch>",
+    "branch_tip_claims": "7/7 priority branch tips match git rev-parse",
+    "git_diff_check": "exit 0 in the DP worktree",
+    "verifier": ".project-local/dsh-audit/scripts/audit_verify.ps1 -> checked_shas=17 checked_paths=88 errors=0",
+    "self_correction": "The first collected facts file classified baseline membership with `git rev-parse <tree>:<path>`, which echoes its argument on stdout even when it fails; an output-non-empty test therefore misclassified absent paths as present and produced 20 absent / 6 identical / 63 evolved. Membership was recomputed from `git cat-file -e` exit status (audit_membership.ps1) and reapplied to this report (audit_apply2.ps1 + .project-local/dsh-audit/apply_membership.py) as 28 / 5 / 55. The independent verifier caught the defect.",
+    "reproduce": ".project-local/dsh-audit/scripts/audit_collect.ps1 + audit_membership.ps1 + audit_verify.ps1 (read-only, ignored evidence root)"
+  }
+}
