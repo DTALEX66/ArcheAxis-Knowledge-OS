@@ -1,0 +1,506 @@
+{
+  "schema": "aaos.dsh.branch-commit-audit/v1",
+  "task_id": "DP-GIT-01",
+  "batch": 2,
+  "generated_at_utc": "2026-09-25T10:45:00Z",
+  "audit_branch": "codex/dp-git-02-20260925",
+  "baseline_sha": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+  "baseline_tree": "a4156ed65d50675822321b9d63eec932b1e76af3",
+  "origin_main": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+  "exhaustive": false,
+  "batch_cap_shas": 20,
+  "shas_audited": 19,
+  "cumulative_shas_audited_batches_01_02": 36,
+  "parallel_execution": {
+    "ran_concurrently_with": "root/Codex Candidate generation and Task 8",
+    "codex_write_range_avoided": [
+      "scripts/release/",
+      "tests/test_candidate*",
+      "tests/test_green_candidate_*",
+      "docs/current/R6-EXECUTION.md",
+      "docs/current/R6-STATE.json",
+      "docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md",
+      "docs/SHARED_RESOURCE_PATH_INDEX.md"
+    ],
+    "files_written_by_this_batch": [
+      "docs/current/dsh-review/branch-batch-02.md",
+      "docs/current/dsh-review/branch-batch-02.json"
+    ],
+    "root_checkout_touched": false
+  },
+  "root_worktree_in_branch_diff": false,
+  "tests_executed_for_these_shas": false,
+  "decision_vocabulary": [
+    "KEEP",
+    "CHERRY_PICK_CANDIDATE",
+    "SUPERSEDED",
+    "CONFLICT",
+    "UNKNOWN"
+  ],
+  "decision_meaning": "Audit judgement only; CHERRY_PICK_CANDIDATE would mean worth owner-reviewed port consideration, and no SHA here earned it.",
+  "coverage": {
+    "branches_in_batch": 2,
+    "shas_audited": 19,
+    "changed_file_records": 153,
+    "files_absent_from_baseline": 10,
+    "files_identical_to_baseline": 37,
+    "files_differing_from_baseline": 106,
+    "commits_with_zero_file_changes": 1,
+    "decisions": {
+      "KEEP": 1,
+      "CHERRY_PICK_CANDIDATE": 0,
+      "SUPERSEDED": 18,
+      "CONFLICT": 0,
+      "UNKNOWN": 0
+    },
+    "per_branch": {
+      "feat/p1-compat-kernel-hardening": {
+        "shas_in_branch_not_in_main": 10,
+        "audited": 10,
+        "tip": "a4f2de19794df490206b5b0b935f5176a3d5775e",
+        "merge_base_origin_main": "2f85d8be"
+      },
+      "feat/h2-pipeline-integration": {
+        "shas_in_branch_not_in_main": 9,
+        "audited": 9,
+        "tip": "e1df9279fde0dd0665d4765c18b8a3d1c7ae443b",
+        "merge_base_origin_main": "b44fabbb"
+      }
+    },
+    "refs_not_resolved": 0,
+    "not_covered": "axw/execution-h0 (8), axw/execution-h1 (16), agent/phase5-research-knowledge-governance (1), feat/absorption-adopt-now (7), feat/absorption-roadmap-r0 (7), audit/unreleased-real-version (2), chore/naming-repo-refs (3), fix/desktop-close-request-destroy (1), work/tp12-facades (1), codex/frozen-roadmap-deepseek-v1 (149), codex/aaos-p3-ui-convergence-20260922 (166 records)."
+  },
+  "authority_refs": [
+    "AGENTS.md §3, §6",
+    "docs/authority/taskpack-0919-r6/TASKPACK.md (R6; A03, A05, A06, A12, A13)",
+    "docs/current/M0-DIRECTION-OVERRIDE-20260920.md (M0-SHORTEST-COMPLETE-LOOP, SUP-020)",
+    "docs/current/R6-VERSION-RELEASE-FREEZE.md",
+    "docs/truth/NAMING_CONTRACT_V2.md §2, §5",
+    "docs/SHARED_RESOURCE_PATH_INDEX.md"
+  ],
+  "commits": [
+    {
+      "sha": "5a519836",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "merge_base_origin_main": "2f85d8be",
+      "author_date": "2026-08-09",
+      "subject": "feat(product): close naming and workspace truth contract",
+      "file_count": 18,
+      "absent": 2,
+      "identical": 0,
+      "purpose": "Publish the product-naming registry and stage-compatibility contract and align active surfaces to V2 naming.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "config/product-naming-registry.yaml and docs/NAMING_CONTRACT_V2.md are evolved in the baseline; the two app/workspace/ui/** paths are absent."
+      },
+      "authority_alignment": "Consistent with NAMING_CONTRACT_V2 §1-§2; no release or version change.",
+      "decision": "SUPERSEDED",
+      "rationale": "The naming registry contract is resident in the baseline in a later form; the UI half targets a removed tree."
+    },
+    {
+      "sha": "70c38a1c",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-09",
+      "subject": "feat(compat): harden attachments and revision fencing",
+      "file_count": 4,
+      "absent": 0,
+      "identical": 4,
+      "purpose": "Attachment hardening and revision fencing in the compatibility kernel.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "All four files are byte-identical to the baseline, including the branch's own tests/test_compat_kernel.py."
+      },
+      "authority_alignment": "No conflict; aligned with the no-false-success posture.",
+      "decision": "SUPERSEDED",
+      "rationale": "Every file, test included, is identical in the baseline - the strongest absorption class in this batch."
+    },
+    {
+      "sha": "ba31d95a",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-09",
+      "subject": "feat(workspace): add read-only vault workbench API",
+      "file_count": 3,
+      "absent": 0,
+      "identical": 1,
+      "purpose": "Read-only Vault workbench endpoints.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "tests/test_workspace_vault_api.py is byte-identical; the baseline router already exposes /api/vault/inspect, /file, /search, /canvas/read, /canvas/write, /write, /backups, /restore."
+      },
+      "authority_alignment": "Aligned; R6 A06 records Vault/derived projection as TESTED_LOCAL_PARTIAL.",
+      "decision": "SUPERSEDED",
+      "rationale": "Endpoints and their test are present in the baseline."
+    },
+    {
+      "sha": "10f04df6",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-09",
+      "subject": "feat(workspace): expose read-only vault workbench",
+      "file_count": 2,
+      "absent": 2,
+      "identical": 0,
+      "purpose": "Wire the Vault workbench into the legacy web UI.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test file in this commit; both paths are app/workspace/ui/** and absent from the baseline."
+      },
+      "authority_alignment": "Obsolete: the legacy web UI tree does not exist in the baseline.",
+      "decision": "SUPERSEDED",
+      "rationale": "UI half of ba31d95a for a removed shell."
+    },
+    {
+      "sha": "2f9540ba",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-09",
+      "subject": "feat(workspace): stream durable audit projection over sse",
+      "file_count": 2,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Durable audit projection over SSE with resumable event fingerprints.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "The baseline router contains _audit_snapshot, _audit_event and GET /api/audit/stream with text/event-stream; tests/test_workspace_audit_sse.py exists evolved there."
+      },
+      "authority_alignment": "No conflict.",
+      "decision": "SUPERSEDED",
+      "rationale": "Implemented and evolved in the baseline."
+    },
+    {
+      "sha": "d13c9cb6",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-08",
+      "subject": "feat(workspace): add lease-fenced background worker",
+      "file_count": 8,
+      "absent": 0,
+      "identical": 3,
+      "purpose": "Lease-fenced background worker for the workspace dispatcher.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "app/workspace/worker.py, tests/test_workspace_delivery_projection.py and tests/test_workspace_worker.py are byte-identical to the baseline."
+      },
+      "authority_alignment": "Aligned with the existing lease/retry-no-state-change contract; no dual-write.",
+      "decision": "SUPERSEDED",
+      "rationale": "Implementation and its tests are resident unchanged."
+    },
+    {
+      "sha": "237403e9",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-09",
+      "subject": "feat(workspace): add audit stream and bounded planner preview",
+      "file_count": 4,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Bounded planner preview plus audit-stream wiring.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "The baseline router contains PlannerRequest and POST /api/planner/preview documented as preview-only for the bounded grammar; tests/test_workspace_planner.py exists evolved."
+      },
+      "authority_alignment": "Aligned - bounded grammar, preview only, no execution authority.",
+      "decision": "SUPERSEDED",
+      "rationale": "Present and evolved in the baseline."
+    },
+    {
+      "sha": "84a0dfdb",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-09",
+      "subject": "test(ui): align navigation contract with naming v2",
+      "file_count": 1,
+      "absent": 1,
+      "identical": 0,
+      "purpose": "One-line assertion alignment in a legacy web navigation test.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "tests/test_ui01_navigation_contract.py is absent from the baseline and has no donor-archive copy."
+      },
+      "authority_alignment": "The navigation contract now lives with the Avalonia shell (202+ navigation contracts recorded in the current UI coverage doc).",
+      "decision": "SUPERSEDED",
+      "rationale": "A one-line edit to a test for a removed web UI; recorded as genuinely unrestored in the preservation note."
+    },
+    {
+      "sha": "60011096",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-10",
+      "subject": "feat(ingestion): expose honest multi-format capabilities",
+      "file_count": 12,
+      "absent": 3,
+      "identical": 0,
+      "purpose": "format_capabilities() reporting honest runtime states per format; rich documents degraded until anchors/qualification verified; images/media deliberately metadata-only.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "The baseline app/ingestion/multi_format.py is evolved and carries the honest-state semantics in different form (degraded/never a metadata-only fake success) but has NO format_capabilities() function; tests/test_format_capabilities.py and the two intake docs are absent but archived under docs/history/donor-branch-assets/feat/p1-compat-kernel-hardening/."
+      },
+      "authority_alignment": "Intent matches the M0 explicit-unsupported rule; the shape was replaced by the R6 A05 format receipt contract (app/contracts/format_execution_v1.py, tests/test_format_execution_v1.py, tests/test_format_matrix.py).",
+      "decision": "SUPERSEDED",
+      "rationale": "The semantic requirement survives in evolved form and the branch's own test/doc artifacts are preserved by the repository donor-asset archive; porting the function would create a second capability-reporting shape beside the A05 receipt contract."
+    },
+    {
+      "sha": "bebc5a74",
+      "branch_refs": [
+        "feat/p1-compat-kernel-hardening"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-08-10",
+      "subject": "fix(runtime): align cloud identity and test stability",
+      "file_count": 6,
+      "absent": 0,
+      "identical": 1,
+      "purpose": "Cloud-identity naming alignment plus test-stability fixes.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "tests/test_registry_v2.py is byte-identical; the rest evolved (baseline CI uses hash-locked requirements and uv groups)."
+      },
+      "authority_alignment": "No conflict; superseded by later CI/naming work.",
+      "decision": "SUPERSEDED",
+      "rationale": "Baseline holds the successor state."
+    },
+    {
+      "sha": "89d8fd78",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "feat(naming): contract §4 step 3 — env vars, API root, Tauri identity, gate",
+      "file_count": 14,
+      "absent": 0,
+      "identical": 1,
+      "duplicate_of": {
+        "sha": "bc4a234f",
+        "branch": "feat/naming-step3",
+        "evidence": "git diff-tree --numstat output is identical: 14 records, identical per-file line counts; trees differ only because the bases differ."
+      },
+      "purpose": "The same COGNITIVE_* -> ARCHEAXIS_* migration with legacy fallbacks, canonical /api/v1 root and legacy Tauri identity rebrand.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "All 14 paths evolved in the baseline; tests/test_gateway_rate_limit.py is byte-identical in both copies."
+      },
+      "authority_alignment": "Identical to bc4a234f (batch 01): aligned and already satisfied; the Tauri identity was later deliberately changed to an explicitly recovery-labelled identity.",
+      "decision": "SUPERSEDED",
+      "rationale": "Duplicate of an already-audited change on another branch; porting either copy is redundant and this one would regress the recovery-identity decision."
+    },
+    {
+      "sha": "65252844",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "feat(naming): full V2 sweep — docs/UI/code to ArcheAxis Knowledge & ArcheAxis-Knowledge-OS",
+      "file_count": 54,
+      "absent": 2,
+      "identical": 21,
+      "purpose": "Mechanical rename sweep of every active surface from V1/Cognitive names to ArcheAxis Knowledge / ArcheAxis-Knowledge-OS.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "21 of 54 files byte-identical to the baseline (docs/NAMING_CONTRACT_V2.md, docs/PRODUCT_POSITIONING.md, config/product-naming-registry.yaml, docs/truth/NAMING_CONTRACT_V1.md, docs/current/SCOPE_LEDGER_V2.yaml, two ADRs, ecosystem.config.cjs, three migrations/reports files, three workspace/intake files). Absent: app/workspace/ui/index.html, workspace/ui/archeaxis/README.md."
+      },
+      "authority_alignment": "Aligned; NAMING_CONTRACT_V2 §2/§5 is the binding naming authority and the baseline reflects post-sweep names.",
+      "decision": "SUPERSEDED",
+      "rationale": "A rename sweep whose result is already in the baseline, with 21 files provably identical."
+    },
+    {
+      "sha": "86846369",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "fix(naming): align test assertions and release installer to V2 names",
+      "file_count": 9,
+      "absent": 0,
+      "identical": 3,
+      "purpose": "Follow-up assertion/installer naming alignment.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "tests/test_desktop_runtime.py, tests/test_phase7_runtime_vertical_slice.py and tests/test_product_truth_contract.py are byte-identical."
+      },
+      "authority_alignment": "Aligned; superseded by later naming/CI work and the R6 release freeze.",
+      "decision": "SUPERSEDED",
+      "rationale": "Successor state in the baseline."
+    },
+    {
+      "sha": "c2019e0c",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "fix(naming): sweep remaining active surfaces to V2 (NSIS/backend/smokes/SVG)",
+      "file_count": 7,
+      "absent": 0,
+      "identical": 2,
+      "purpose": "Finish the naming sweep on installer/backend/smoke/icon surfaces.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "desktop/src-tauri/icons/icon.svg and docs/PRODUCT_STAGE_COMPATIBILITY.md are byte-identical."
+      },
+      "authority_alignment": "Aligned but historical; the legacy Tauri installer path is now a recovery reference.",
+      "decision": "SUPERSEDED",
+      "rationale": "Superseded by the Avalonia product shell."
+    },
+    {
+      "sha": "69e1b2a2",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "fix(naming): ARCHEAXIS_DATA_DIR fallback in resolve_runtime_path + evaluation_fallback",
+      "file_count": 3,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Make resolve_runtime_path prefer ARCHEAXIS_DATA_DIR with COGNITIVE_DATA_DIR as fallback.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "The baseline shared/config.py contains exactly this semantics, including the documented canonical/legacy precedence and a legacy-env warning."
+      },
+      "authority_alignment": "Aligned with NAMING_CONTRACT_V2 §2.",
+      "decision": "SUPERSEDED",
+      "rationale": "The exact behaviour is resident in the baseline."
+    },
+    {
+      "sha": "3227f1ef",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "ci: trigger rerun with data-dir fix",
+      "file_count": 0,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Empty CI-trigger commit.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "git diff-tree --numstat returns no records."
+      },
+      "authority_alignment": "Not applicable - the commit carries no content.",
+      "decision": "KEEP",
+      "rationale": "Retain as history only: there is no diff to absorb, supersede or conflict with. It authorizes nothing and must not be cherry-picked."
+    },
+    {
+      "sha": "fbdcf526",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "fix(naming): readiness protocol validates ArcheAxis Knowledge + chunk length",
+      "file_count": 2,
+      "absent": 0,
+      "identical": 1,
+      "purpose": "Readiness-protocol naming/validation alignment in the legacy Tauri backend.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "desktop/src-tauri/src/protocol.rs is byte-identical."
+      },
+      "authority_alignment": "Superseded - the legacy Tauri shell is a recovery/behavior reference; the formal desktop is Avalonia.",
+      "decision": "SUPERSEDED",
+      "rationale": "Targets a demoted shell."
+    },
+    {
+      "sha": "4ebc90a4",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "fix(boundary): project-local test routing — run_tests.sh + pycache resolve guard",
+      "file_count": 3,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Project-root-guarded test entry that pins pytest basetemp and TMP/TEMP/TMPDIR/PYTHONPYCACHEPREFIX inside .hermes/task-runtime, plus an MSYS-path resolve() guard in tests/conftest.py.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "The conftest.py resolve() guard is present verbatim in the baseline together with the TMP/TEMP/TMPDIR and PYTHONPYCACHEPREFIX injection; the baseline scripts/ci/run_tests.sh exists but routes to .project-local/build/venv (registered toolchain) instead of .hermes/task-runtime."
+      },
+      "authority_alignment": "Intent aligned but the destination changed: AGENTS.md §3 names .project-local (via scripts/runtime/dev.py) as the project runtime root and keeps .hermes as preserved legacy material with no new development writes.",
+      "decision": "SUPERSEDED",
+      "rationale": "The resolve() guard is resident and the .hermes routing is superseded. Note: this commit is the origin of the test-run-root pattern that required a sandbox shim in DP-F01; that is recorded in the DP-F01 card."
+    },
+    {
+      "sha": "e1df9279",
+      "branch_refs": [
+        "feat/h2-pipeline-integration"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-08-12",
+      "subject": "docs(naming): run_tests.sh header to ArcheAxis-Knowledge-OS",
+      "file_count": 1,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "One-line header/name correction.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run; the script was later rewritten on the baseline."
+      },
+      "authority_alignment": "Aligned; superseded by the later rewrite of the same script.",
+      "decision": "SUPERSEDED",
+      "rationale": "Successor state in the baseline."
+    }
+  ],
+  "findings": [
+    "R-06 cross-branch duplication (verified): 89d8fd78 on feat/h2-pipeline-integration and bc4a234f on feat/naming-step3 carry the same 14-file change with identical per-file line counts, so SHA-level counting double-counts this migration. Donor scans must de-duplicate by diff.",
+    "Absorption is unusually strong: 37 of 153 records (24%) are byte-identical to the baseline, including four test files from 70c38a1c and the whole worker.py plus worker/delivery tests from d13c9cb6.",
+    "The baseline carries its own donor archive at docs/history/donor-branch-assets/ preserving selected files from five branches: agent/phase5-research-knowledge-governance (4), feat/archeaxis-desktop-a1-violet-core (2), feat/p1-compat-kernel-hardening (3), feat/portable-data-root (3), fix/desktop-close-request-destroy (1).",
+    "Three of this batch's ten absent paths (tests/test_format_capabilities.py plus two 2026-08-09 intake docs) are preserved in that archive; four paths flagged absent in batch 01 (app/workspace/ui/assets/app.js, requirements-ci.txt, tests/test_ui01_navigation_contract.py, workspace/ui/archeaxis/README.md) have no archived copy and are recorded as genuinely unrestored legacy web-UI/CI artifacts."
+  ],
+  "limits": {
+    "exhaustive": false,
+    "cumulative_shas_audited": 36,
+    "tests_executed": false,
+    "absence_evidence": "Path-level via git cat-file -e exit status (never rev-parse output); identity via exact blob OID comparison.",
+    "remote_state": "Not verified: no git fetch, no live GitHub PR/branch readback.",
+    "authorization": "SUPERSEDED does not authorize branch deletion; KEEP on 3227f1ef means retain-as-history only."
+  },
+  "artifacts": [
+    "docs/current/dsh-review/branch-batch-02.md",
+    "docs/current/dsh-review/branch-batch-02.json"
+  ]
+}
