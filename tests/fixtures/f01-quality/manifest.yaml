@@ -1,0 +1,55 @@
+fixture_id: f01-quality-controlled
+purpose: DP-F01 real text quality roundtrip through Executor -> text NDJSON worker -> Core API
+synthetic: true
+real_corpus: false
+note: >-
+  every byte is authored by hand; this is a controlled synthetic fixture and is
+  NOT real-corpus qualification, and it does not close any P1 format
+files:
+  - name: controlled.md
+    media_type: text/markdown
+    encoding: utf-8-bom
+    line_endings: lf
+    lines_total: 17
+    lines_anchored_expected: 17
+    source_bytes: 561
+    source_sha256: 70aff728005d7580260391e6754f30209ec5fbecd9803f30a31e48d72eb7b176
+    transform_bytes: 558
+    transform_sha256: e5be0cbcaa4580bda39a481f49767ef8c3697f299adb2fa0806dc16592719ab6
+    expected_encoding_loss: "UTF-8 BOM stripped"
+    expected_headings: 2
+    expected_wiki_links: 1
+    expected_markdown_links: 1
+    expected_embeds: 1
+    expected_code_fences: 2
+    expected_list_items: 2
+  - name: capped-lines.md
+    media_type: text/markdown
+    encoding: utf-8-bom
+    line_endings: lf
+    lines_total: 5001
+    lines_anchored_expected: 5000
+    source_bytes: 48906
+    source_sha256: 71c0029230e042d72e9ec8db74f9a28196b37fdfb29f7df7d68e3b425af38928
+    expected_cap_loss: "line anchors capped at 5000"
+  - name: fallback-gbk.txt
+    media_type: text/plain
+    encoding: gbk
+    source_bytes: 32
+    source_sha256: 8ba7ed5cd0f33c11b7bb447337b0ce852b0a4f52c5ee854b6107943408b2b215
+    expected_encoding: gbk
+    note: >-
+      invalid UTF-8 by construction, so the worker's documented fallback decode is
+      exercised for real instead of being asserted as never used
+  - name: ragged.csv
+    media_type: text/csv
+    encoding: utf-8
+    source_bytes: 42
+    source_sha256: 938968124db09f78bfaeb7bcfc64e5a1c10ed4460388295e3e76b16603ed0bc5
+    expected_ragged_rows: 1
+  - name: unsupported.unknown-ext
+    media_type: null
+    source_bytes: 35
+    note: >-
+      the extension names no media type, so Core must refuse the job explicitly
+      instead of guessing one
