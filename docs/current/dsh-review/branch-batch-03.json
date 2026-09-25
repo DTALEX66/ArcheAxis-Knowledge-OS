@@ -1,0 +1,441 @@
+{
+  "schema": "aaos.dsh.branch-commit-audit/v1",
+  "task_id": "DP-NF-01",
+  "batch": 3,
+  "generated_at_utc": "2026-09-25T12:10:00Z",
+  "audit_branch": "codex/dp-nf-01-20260925",
+  "baseline_sha": "a9ead3e1597808ca751c6ccec1dba27bcfff5b4b",
+  "baseline_tree": "ce69abf1493481591534979be1223b1a447fc9bb",
+  "origin_main": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+  "exhaustive": false,
+  "batch_cap_shas": 20,
+  "shas_audited": 16,
+  "cumulative_shas_audited_batches_01_03": 52,
+  "root_worktree_in_branch_diff": false,
+  "root_dirty_paths_excluded": 112,
+  "tests_executed_for_these_shas": false,
+  "decision_vocabulary": [
+    "KEEP",
+    "CHERRY_PICK_CANDIDATE",
+    "SUPERSEDED",
+    "CONFLICT",
+    "UNKNOWN"
+  ],
+  "coverage": {
+    "branches_in_batch": 7,
+    "shas_audited": 16,
+    "changed_file_records": 107,
+    "files_absent_from_baseline": 12,
+    "files_identical_to_baseline": 24,
+    "files_differing_from_baseline": 71,
+    "decisions": {
+      "KEEP": 0,
+      "CHERRY_PICK_CANDIDATE": 0,
+      "SUPERSEDED": 16,
+      "CONFLICT": 0,
+      "UNKNOWN": 0
+    },
+    "per_branch": {
+      "agent/phase5-research-knowledge-governance": {
+        "shas": 1,
+        "tip": "0a5e1bfa94209ccded6aa993c89c581bbfd00227"
+      },
+      "fix/desktop-close-request-destroy": {
+        "shas": 1,
+        "tip": "801edea89bdf5d845f083670df4afad923ef985b"
+      },
+      "work/tp12-facades": {
+        "shas": 1,
+        "tip": "8d5ba104a91918c30f7d96513b6553f406f74e3f"
+      },
+      "chore/naming-repo-refs": {
+        "shas": 3,
+        "tip": "a9aa0665cc0b99fb222b04169a004cd23b04c7cc"
+      },
+      "docs/verification-summary-2026-08-09": {
+        "shas": 1,
+        "tip": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848"
+      },
+      "audit/unreleased-real-version": {
+        "shas": 2,
+        "tip": "40922904e0268788f6851057439521732bd2f451"
+      },
+      "feat/absorption-adopt-now": {
+        "shas": 7,
+        "tip": "081cf20a28152c271155b6c3d524550ffc545ced"
+      }
+    },
+    "deferred_branch": {
+      "branch": "feat/absorption-roadmap-r0",
+      "shas_not_in_main": 6,
+      "reason": "Including it pushed the batch to 22 SHAs, exceeding the 15-20 cap. Dropped from batch 03 and nominated first for batch 04. No SHA from it was audited here."
+    },
+    "remaining_unaudited_hint": "axw/execution-h0 (8), axw/execution-h1 (16), codex/ci-release-optimization (7), codex/execution-reliability-standards (2), codex/post-release-v0.6.9 (2), codex/release-v0.6.9 (2), codex/v0.6.8-release-closure (2), release/v0.4.0-contract (3), codex/frozen-roadmap-deepseek-v1 (149), codex/aaos-p3-ui-convergence-20260922 (166 records)"
+  },
+  "authority_refs": [
+    "AGENTS.md §1, §2, §3, §6, §8",
+    "docs/authority/taskpack-0919-r6/TASKPACK.md (R6; A03, A08, A11)",
+    "docs/current/M0-DIRECTION-OVERRIDE-20260920.md (M0-SHORTEST-COMPLETE-LOOP, SUP-020)",
+    "docs/current/R6-VERSION-RELEASE-FREEZE.md",
+    "docs/truth/NAMING_CONTRACT_V2.md §0a, §1, §2, §5",
+    "docs/SHARED_RESOURCE_PATH_INDEX.md"
+  ],
+  "commits": [
+    {
+      "sha": "0a5e1bfa",
+      "branch_refs": [
+        "agent/phase5-research-knowledge-governance"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-07-20",
+      "subject": "feat(phase5): add governed knowledge candidate checkpoint",
+      "file_count": 13,
+      "absent": 5,
+      "identical": 0,
+      "purpose": "Governed research-to-Knowledge-candidate checkpoint with a durable migration path.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "app/facades/knowledge.py, shared/migration_runner.py and three test files are evolved in the baseline; 4 of 5 absent paths are preserved in docs/history/donor-branch-assets/agent/phase5-research-knowledge-governance/."
+      },
+      "authority_alignment": "Intent matches the R6/M0 rule that external sources remain Candidates until human review; the implementation is a pre-Avalonia Python facade/migration layer, while the current canonical writer is the Rust Core.",
+      "decision": "SUPERSEDED",
+      "rationale": "Governance intent resident in evolved form and the branch artifacts are archived; porting the Python adapter would create a second candidate-creation path beside the Rust Core writer."
+    },
+    {
+      "sha": "801edea8",
+      "branch_refs": [
+        "fix/desktop-close-request-destroy"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-08-06",
+      "subject": "docs: record desktop close lifecycle handoff",
+      "file_count": 1,
+      "absent": 1,
+      "identical": 0,
+      "purpose": "One-off handoff document about desktop close-lifecycle handling.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "Documentation only; the path is absent from the baseline and preserved in docs/history/donor-branch-assets/fix/desktop-close-request-destroy/."
+      },
+      "authority_alignment": "The desktop is now the Avalonia apps/ArcheAxis.Desktop with a different close/shutdown model; the Tauri-era handoff is historical.",
+      "decision": "SUPERSEDED",
+      "rationale": "Documentation for a superseded shell, already preserved by the archive."
+    },
+    {
+      "sha": "8d5ba104",
+      "branch_refs": [
+        "work/tp12-facades"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-07-14",
+      "subject": "feat(facades): package knowledge and research boundaries",
+      "file_count": 37,
+      "absent": 5,
+      "identical": 16,
+      "purpose": "Package the legacy Inspiration-Research system behind app/facades/* boundaries and move its tests into the main suite.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "16 files byte-identical to the baseline, mostly inspiration_research/** package shells; app/facades/knowledge.py identical; docs/history/donor-branch-assets has no entry for this branch."
+      },
+      "authority_alignment": "AGENTS.md §1 classifies Inspiration-Research as a compatibility surface only; R5 import/conversion is historical evidence, not the current queue.",
+      "decision": "SUPERSEDED",
+      "rationale": "The refactor is resident; the four absent files are legacy container/packaging scaffolding plus one renamed legacy test that the current product does not use."
+    },
+    {
+      "sha": "fe4ada39",
+      "branch_refs": [
+        "chore/naming-repo-refs"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "chore(naming): update repo references after GitHub rename (step 2)",
+      "file_count": 7,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Repoint repository references after the GitHub rename.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "All seven files exist at the baseline in later form."
+      },
+      "authority_alignment": "NAMING_CONTRACT_V2 §0a/§5 fixes DTALEX66/ArcheAxis-Knowledge-OS as the repository identity; the baseline carries post-rename references.",
+      "decision": "SUPERSEDED",
+      "rationale": "Reference sweep whose result is resident."
+    },
+    {
+      "sha": "037bd8c6",
+      "branch_refs": [
+        "chore/naming-repo-refs"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "ci(naming): bump Rust cache keys to invalidate pre-rename cache paths",
+      "file_count": 1,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Cache-key bump to invalidate stale pre-rename paths.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run; .github/workflows/ci.yml is evolved."
+      },
+      "authority_alignment": "The baseline CI no longer uses that cache-key scheme (hash-locked dependency files and uv groups), so the change is moot.",
+      "decision": "SUPERSEDED",
+      "rationale": "Superseded CI mechanism."
+    },
+    {
+      "sha": "a9aa0665",
+      "branch_refs": [
+        "chore/naming-repo-refs"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-08-12",
+      "subject": "ci(naming): scope restore-keys under -naming-v2 to block stale pre-rename cache",
+      "file_count": 1,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Restrict restore-keys so a stale pre-rename cache cannot be restored.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run."
+      },
+      "authority_alignment": "Same as 037bd8c6; the security intent (never restore a cache from a renamed path) is satisfied by the current CI scheme.",
+      "decision": "SUPERSEDED",
+      "rationale": "Cache mechanism replaced."
+    },
+    {
+      "sha": "8cc9c690",
+      "branch_refs": [
+        "docs/verification-summary-2026-08-09"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-08-09",
+      "subject": "docs: publish verification summary and problem ledger",
+      "file_count": 1,
+      "absent": 1,
+      "identical": 0,
+      "purpose": "Dated verification summary and problem ledger.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "Documentation only; absent from the baseline and NOT archived."
+      },
+      "authority_alignment": "AGENTS.md §6 requires live progress in docs/current/R6-EXECUTION.md and R6-STATE.json; a 2026-08-09 standalone summary is a historical snapshot and must not be read as current truth.",
+      "decision": "SUPERSEDED",
+      "rationale": "Dated historical ledger superseded by the R6 execution record; its absence from the archive is recorded as a preservation note only."
+    },
+    {
+      "sha": "600b25e0",
+      "branch_refs": [
+        "audit/unreleased-real-version"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-09",
+      "subject": "fix(ingestion): include markitdown PDF runtime dependencies",
+      "file_count": 4,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Add the missing markitdown PDF runtime dependencies.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run; tests/test_adapter_contract.py grew and uv.lock is evolved at the baseline."
+      },
+      "authority_alignment": "Dependency correctness aligned; dependency presence is not format-quality evidence under R6.",
+      "decision": "SUPERSEDED",
+      "rationale": "Dependency set resident in later form."
+    },
+    {
+      "sha": "40922904",
+      "branch_refs": [
+        "audit/unreleased-real-version"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-08-09",
+      "subject": "fix(desktop): hide release console subsystem",
+      "file_count": 1,
+      "absent": 0,
+      "identical": 1,
+      "purpose": "windows_subsystem = windows for the release build of the legacy Tauri shell.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "desktop/src-tauri/src/main.rs is byte-identical to the baseline."
+      },
+      "authority_alignment": "The legacy Tauri shell is a recovery/behavior reference (AGENTS.md §6); the formal desktop is Avalonia with its own published-candidate configuration.",
+      "decision": "SUPERSEDED",
+      "rationale": "Byte-identical in the baseline; nothing to port."
+    },
+    {
+      "sha": "bca2f18e",
+      "branch_refs": [
+        "feat/absorption-adopt-now"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-11",
+      "subject": "feat(absorption): absorb JiWER, RapidFuzz, JSON Canvas (ADS-001/002/003)",
+      "file_count": 7,
+      "absent": 0,
+      "identical": 1,
+      "purpose": "Absorb text-quality metrics (JiWER/RapidFuzz) and JSON Canvas support rather than re-implementing them.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "docs/truth/JSON_CANVAS_ADOPTION.md is byte-identical; shared/json_canvas.py, shared/text_quality.py and both test files verified present at the baseline."
+      },
+      "authority_alignment": "Exactly the R6 Absorb-First principle; R6 A03 registry records donors.",
+      "decision": "SUPERSEDED",
+      "rationale": "Absorption is resident in the baseline."
+    },
+    {
+      "sha": "2e7f8da9",
+      "branch_refs": [
+        "feat/absorption-adopt-now"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-11",
+      "subject": "feat(absorption): absorb evidence connectors + FSRS learning scheduler (ADS-004/005/006/007/008)",
+      "file_count": 10,
+      "absent": 0,
+      "identical": 3,
+      "purpose": "Absorb evidence connectors and an FSRS-based learning scheduler.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "tests/test_evidence_connectors.py, tests/test_learning_scheduler.py and tests/test_text_quality.py are byte-identical; shared/evidence_connectors.py and shared/learning_scheduler.py present and evolved."
+      },
+      "authority_alignment": "Absorption aligned. The Python-side scheduler here does not change the fact that the authoritative schedule writer is the Rust Core (R6-STATE A08).",
+      "decision": "SUPERSEDED",
+      "rationale": "Resident with its own tests in the baseline."
+    },
+    {
+      "sha": "6a84bf33",
+      "branch_refs": [
+        "feat/absorption-adopt-now"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-11",
+      "subject": "feat(absorption): vendor Magika ONNX model + file detection (ADS-009)",
+      "file_count": 8,
+      "absent": 0,
+      "identical": 3,
+      "purpose": "Vendor the Magika ONNX file-detection model and wire a detector.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "shared/models/magika/model.onnx is byte-identical to the baseline (blob c9f1e0ab383e..., 3163428 bytes both sides), as are LICENSE and config.min.json; shared/file_detection.py present and evolved."
+      },
+      "authority_alignment": "Absorb-First aligned. A vendored third-party model is a licence/supply-chain artefact, not a runtime capability claim; R6 A11 remains TESTED_LOCAL_PARTIAL and weight presence is not execution or benchmark evidence.",
+      "decision": "SUPERSEDED",
+      "rationale": "Vendored model and metadata resident byte-for-byte."
+    },
+    {
+      "sha": "e02510c9",
+      "branch_refs": [
+        "feat/absorption-adopt-now"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "chore: naming system migration — Cognitive-Loop-OS → ArcheAxis Workspace",
+      "file_count": 9,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Rename surfaces to ArcheAxis Workspace.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "All nine files exist at the baseline in later form."
+      },
+      "authority_alignment": "Partially off-authority: NAMING_CONTRACT_V2 §1/§5 makes ArcheAxis Knowledge the external product name and demotes ArcheAxis Learning Workspace to an internal view; 'ArcheAxis Workspace' is neither the product name nor the fixed machine id archeaxis-workspace.",
+      "decision": "SUPERSEDED",
+      "rationale": "Rename to an interim name, superseded by the binding V2 contract."
+    },
+    {
+      "sha": "65becc6d",
+      "branch_refs": [
+        "feat/absorption-adopt-now"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "fix: revert breaking naming changes (pyproject, CLI, contracts)",
+      "file_count": 3,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Revert the parts of the naming migration that broke packaging, the CLI and contracts.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "No test run; all three files evolved. Baseline pyproject.toml is name archeaxis-workspace, version 0.6.14."
+      },
+      "authority_alignment": "This is the self-correction of e02510c9; the baseline carries V2 names and a working pyproject.toml.",
+      "decision": "SUPERSEDED",
+      "rationale": "Corrected state resident."
+    },
+    {
+      "sha": "1f06c9b2",
+      "branch_refs": [
+        "feat/absorption-adopt-now"
+      ],
+      "is_branch_tip": false,
+      "author_date": "2026-08-12",
+      "subject": "docs(environment): comprehensive external dependency registry",
+      "file_count": 1,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Consolidated external-dependency registry.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "docs/environment/EXTERNAL_DEPENDENCIES.md is evolved and larger at the baseline."
+      },
+      "authority_alignment": "AGENTS.md §2/§8 govern configuration and private state; docs/SHARED_RESOURCE_PATH_INDEX.md remains the external path authority. A dependency registry is complementary and does not override it.",
+      "decision": "SUPERSEDED",
+      "rationale": "Evolved successor in the baseline."
+    },
+    {
+      "sha": "081cf20a",
+      "branch_refs": [
+        "feat/absorption-adopt-now"
+      ],
+      "is_branch_tip": true,
+      "author_date": "2026-08-12",
+      "subject": "fix: test assertions + requirements dedup + lint",
+      "file_count": 3,
+      "absent": 0,
+      "identical": 0,
+      "purpose": "Housekeeping: test assertion fix, requirements de-duplication, lint.",
+      "tests_evidence_observed": {
+        "executed": false,
+        "evidence_class": "NOT_EXECUTED",
+        "notes": "requirements.txt exists at BOTH baselines (git cat-file -e exit 0 at a5de4b13 and a9ead3e1) and is evolved; the requirements list survives under the current locked/uv CI scheme. docs/environment/EXTERNAL_DEPENDENCIES.md and tests/test_phase7_runtime_vertical_slice.py are evolved too."
+      },
+      "authority_alignment": "No conflict; the CI install path was replaced by the locked/uv model, but requirements.txt itself remains present and evolved.",
+      "decision": "SUPERSEDED",
+      "rationale": "Successor state present in the baseline. CORRECTION: the first revision of this report claimed requirements.txt was absent and returned UNKNOWN; that was wrong and came from reading the facts row instead of testing the path."
+    }
+  ],
+  "findings": [
+    "Strongest absorption evidence of any batch: the 3163428-byte Magika model.onnx (6a84bf33) is byte-identical to the baseline (blob c9f1e0ab383e...), as are its LICENSE and config; bca2f18e adoption doc and 2e7f8da9 two new test files are likewise byte-identical. All eight ADOPT-NOW modules verified present at the baseline.",
+    "Archive coverage measured: the donor archive holds 13 files across five branches. Of this batch 12 absent paths, 5 are archived (0a5e1bfa x4, 801edea8 x1) and 7 are not: docs/NEXT_TASKS.md, Dockerfile, Inspiration-Research/tests/__init__.py, docker-compose.yml, docker/Dockerfile, the renamed Inspiration-Research/tests/test_scorer.py -> tests/test_inspiration_research.py, and docs/VERIFICATION_SUMMARY_2026-08-09.md. All seven are legacy web-era/container scaffolding or a dated ledger, not product-code paths. Inventory note only; nothing was restored, moved or deleted.",
+    "Authority drift caught in branch content: e02510c9 renames surfaces to ArcheAxis Workspace, which is neither the V2 external product name (ArcheAxis Knowledge) nor the fixed machine id (archeaxis-workspace); 65becc6d then reverts the parts that broke packaging. Concrete input for the repo-wide language-boundary audit.",
+    "R-08 two verified reporting defects: (a) this batch first claimed requirements.txt was absent and returned UNKNOWN - wrong, it exists and is evolved at both baselines, now SUPERSEDED, so this batch has no UNKNOWN; (b) the cross-report check falsely claimed docs/current/dsh-review/branch-batch-01.md section 6 was wrong because requirements-ci-adapters.txt is absent at both baseline root paths. The tracked docs/history/donor-branch-assets/README.md explicitly records its donor-archive copy (blob SHA prefix e215c62a6e99560e, 243 bytes), so batch-01 is correct and no correction is warranted. Four other paths remain accurately classified as having no archived copy."
+  ],
+  "limits": {
+    "exhaustive": false,
+    "cumulative_shas_audited": 52,
+    "tests_executed": false,
+    "absence_evidence": "git cat-file -e exit status; identity by exact blob OID.",
+    "remote_state": "Not verified: no git fetch, no live GitHub PR readback.",
+    "dirty_root": "112 uncommitted root paths (Avalonia, api/lib.rs, domain, migration, R6 docs, Candidate builders) were not read as evidence and not modified.",
+    "authorization": "SUPERSEDED does not authorize branch deletion. No UNKNOWN entry remains in this batch after correction.",
+    "self_correction": "Verification of this report caught two defects: a subject transliteration issue and a wrong absent/UNKNOWN claim for 081cf20a. Both were fixed and are disclosed. The same verification also surfaced a published error in the batch-01 report, which is recorded here but deliberately not edited (outside this write-set)."
+  },
+  "artifacts": [
+    "docs/current/dsh-review/branch-batch-03.md",
+    "docs/current/dsh-review/branch-batch-03.json"
+  ]
+}

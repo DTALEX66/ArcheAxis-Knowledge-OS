@@ -1,0 +1,7 @@
+# Byte-exact fixtures for the DP-NF-03 P1 quality matrix.
+#
+# The repository root declares `* text=auto eol=lf`, which rewrites CRLF content on
+# commit. Two fixtures here exist *because* of CRLF ("a\r\n" x 5001 and a GBK-encoded
+# markdown document with CRLF lines), and the tests assert the SHA-256 of their exact
+# bytes, so normalization would silently change what is being measured.
+* -text

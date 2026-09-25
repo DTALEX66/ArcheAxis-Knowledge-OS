@@ -1,0 +1,161 @@
+fixture_id: p1-quality-matrix
+purpose: DP-NF-03 P1 document format quality matrix through the real text worker and NDJSON transport
+synthetic: true
+real_corpus: false
+byte_exact: >-
+  this directory carries its own .gitattributes (`* -text`) because the repository root
+  declares `* text=auto eol=lf`; without it the two CRLF fixtures would be normalized on
+  commit and the SHA-256 values below would no longer describe the stored bytes.
+note: >-
+  Every byte here is authored by hand for this matrix. DP-F01 covers a different,
+  already-pinned set (BOM markdown 17 lines, 5001-line BOM cap, LF GBK fallback,
+  one short ragged row, unknown extension). This manifest is evidence for a
+  controlled synthetic matrix only: it is NOT real-corpus qualification, it closes
+  no P1 format, and it makes no claim about common-format real quality.
+  Two further inputs are generated inside the pytest run root instead of being
+  committed, because they are large: a single line of 1 MiB + 1 bytes (accepted;
+  exactly one anchor) and a 16 MiB + 1 byte staging asset (refused by the transport
+  with AAK-VAL-003 before anything is projected).
+files:
+  - name: clean-markdown.md
+    media_type: text/markdown
+    encoding: utf-8
+    line_endings: lf
+    source_bytes: 131
+    source_sha256: d1cffdcd99038a5bede95502efaf069df1f1724a1f774ac1e7b5f646fef39a19
+    text_chars: 127
+    transform_is_source_identity: true
+    lines_total: 12
+    lines_anchored_expected: 12
+    expected_decode: utf-8
+    expected_losses: []
+    expected_headings: 1
+    expected_code_fences: 2
+    expected_wiki_links: 1
+    expected_markdown_links: 1
+    expected_list_items: 2
+    note: >-
+      no BOM and no fallback, so the projected text is the source byte for byte; a
+      "~~~" fence pair is counted, the "#" heading inside it and the "#notaheading"
+      line are not
+  - name: disguised-markdown.md
+    media_type: text/plain
+    encoding: utf-8
+    line_endings: lf
+    source_bytes: 79
+    source_sha256: 513ecf128bed612f17d2518e279ef9c436f7b96471f150195d019f03cf05ccd4
+    lines_total: 3
+    lines_anchored_expected: 3
+    expected_decode: utf-8
+    expected_losses: []
+    expected_format: plain
+    note: >-
+      markdown-looking content declared text/plain: the declaration, not the content
+      or the name, decides the facts
+  - name: ragged-fields.csv
+    media_type: text/csv
+    encoding: utf-8
+    line_endings: lf
+    source_bytes: 73
+    source_sha256: e3d1c64ef3866d7ab75a47efe4a8a8d663a80578be8590dd44c7221d3305839c
+    lines_total: 5
+    lines_anchored_expected: 5
+    expected_decode: utf-8
+    expected_losses: []
+    expected_row_count: 5
+    expected_column_count: 5
+    expected_header: [id, name, note, tag]
+    expected_ragged_rows: 2
+    note: >-
+      one short row and one long row against a 4-wide header: raggedness is a fact
+      (ragged_rows 2) and never a fabricated loss
+  - name: wide-header.csv
+    media_type: text/csv
+    encoding: utf-8
+    line_endings: lf
+    source_bytes: 396
+    source_sha256: 45fe9dd0bbfb4f29418a8c7c9606be1ffcff76b781bd5fe3e5ec22404eccccbd
+    lines_total: 3
+    lines_anchored_expected: 3
+    expected_decode: utf-8
+    expected_losses: []
+    expected_row_count: 3
+    expected_column_count: 33
+    expected_header_fields_reported: 32
+    expected_header_capped: true
+    note: >-
+      a 33-column header is reported as its first 32 fields; header_capped and the
+      note name that cut instead of presenting a partial header as the whole one
+  - name: fallback-gbk-markdown.md
+    media_type: text/markdown
+    encoding: gbk
+    line_endings: crlf
+    source_bytes: 24
+    source_sha256: 8b593c1ffc2e113962d12485f54b381af29c4ae029b8c2e98c762d686138e6b7
+    text_chars: 16
+    text_sha256: 4434cc617042d894d6bda4b2aaabfcc7cc84fb7488e70bf3528bfbfa17c26cfd
+    lines_total: 3
+    lines_anchored_expected: 3
+    expected_decode: gbk
+    expected_losses:
+      - "non-UTF-8 bytes decoded as gbk (undecodable bytes reported, not silently replaced)"
+    expected_headings: 1
+    note: >-
+      invalid UTF-8 by construction; the markdown facts are derived from the decoded
+      text and the CRLF survives in the anchors (line 1 is 8 characters)
+  - name: bom-then-non-utf8.txt
+    media_type: text/plain
+    encoding: utf-8-bom
+    source_bytes: 8
+    source_sha256: 7b8e66f5da41888eb5cdd9ba9e142df708b548040f70aa7c6e417287ca4af188
+    note: >-
+      a UTF-8 BOM followed by GBK bytes: the BOM path decodes strictly, so the
+      documented gbk fallback is not reached. Observed at baseline: exit 1 with an
+      error envelope and no artifact. The test pins the fail-closed invariant (never
+      a success envelope without a recorded loss and never a published artifact);
+      the asymmetry with the same bytes without the BOM is reported, not fixed.
+  - name: capped-crlf.txt
+    media_type: text/plain
+    encoding: utf-8
+    line_endings: crlf
+    source_bytes: 15003
+    source_sha256: 9a9af8502c625be793d85c664d7b2c728dc5052b4f60b73e059416118c6a310a
+    text_chars: 15003
+    transform_is_source_identity: true
+    lines_total: 5001
+    lines_anchored_expected: 5000
+    last_anchor: [14997, 15000]
+    expected_decode: utf-8
+    expected_losses:
+      - "line anchors capped at 5000"
+    note: >-
+      CRLF is preserved; each line is one character plus a two-character terminator,
+      so "a\r\n" x 5001 is 15003 bytes and the 5000th anchor ends at 15000
+  - name: one-long-line.txt
+    media_type: text/plain
+    encoding: utf-8
+    line_endings: none
+    source_bytes: 9000
+    source_sha256: d9785ad494215a183ceaf55c11aeed1433227e88469f61159f2daf27e6929100
+    text_chars: 9000
+    transform_is_source_identity: true
+    lines_total: 1
+    lines_anchored_expected: 1
+    anchors: [[0, 9000]]
+    expected_decode: utf-8
+    expected_losses: []
+    note: >-
+      "AZ09" x 2250 with no terminator: the anchor cap counts lines, not characters,
+      so one 9000-character line is one anchor with full coverage
+  - name: empty.txt
+    media_type: text/plain
+    encoding: utf-8
+    source_bytes: 0
+    source_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    lines_total: 0
+    lines_anchored_expected: 0
+    expected_coverage: 1.0
+    expected_losses: []
+    note: >-
+      zero lines is defined as full coverage and the receipt says so in words
+      ("no lines to anchor; zero-line coverage defined as 1.0")

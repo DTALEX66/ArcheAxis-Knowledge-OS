@@ -38,6 +38,10 @@ ENGINE_VERSION = "0.1.0"
 
 HEADING_CAP = 200
 ROW_CAP = 50_000
+# The reported header is bounded like every other derived list here, and like them it
+# must say so: a partial header presented as the whole one silently misaligns a reader
+# field by field, so the cut is named by `header_capped` (and by the note) instead.
+HEADER_CAP = 32
 FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 # a wiki-link is not an embed: `![[x]]` is counted separately, so the link pattern
 # must not match inside it (counting both would double-report one occurrence)
@@ -304,7 +308,18 @@ def _delimited_facts(text: str, delimiter: str) -> dict:
     rows = rows[:ROW_CAP]
     widths = [len(row) for row in rows]
     header = rows[0] if rows else []
+    header_capped = len(header) > HEADER_CAP
     ragged = sum(1 for width in widths[1:] if width != (widths[0] if widths else 0))
+    note = (
+        "row widths are reported as counted; a ragged file is not silently squared off"
+        if ragged
+        else "every row has the width of the first row"
+    )
+    if header_capped:
+        note += (
+            f"; the header is reported as its first {HEADER_CAP} of {len(header)} fields, "
+            "and header_capped says so instead of presenting a partial header as the whole one"
+        )
     return {
         "format": "tsv" if delimiter == "\t" else "csv",
         "parsed": True,
@@ -312,11 +327,10 @@ def _delimited_facts(text: str, delimiter: str) -> dict:
         "row_count": len(rows),
         "rows_capped": len(rows) >= ROW_CAP,
         "column_count": max(widths) if widths else 0,
-        "header": header[:32],
+        "header": header[:HEADER_CAP],
+        "header_capped": header_capped,
         "ragged_rows": ragged,
-        "note": "row widths are reported as counted; a ragged file is not silently squared off"
-        if ragged
-        else "every row has the width of the first row",
+        "note": note,
     }
 
 
