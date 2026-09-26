@@ -27,6 +27,16 @@ def load_launcher():
 
 def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(tmp_path, monkeypatch):
     launcher = load_launcher()
+    # This unit test supplies synthetic build paths; the real shared-resource
+    # boundary is covered by its dedicated tests and is unavailable on CI
+    # (the indexed roots live beside the Windows checkout, not on a Linux runner).
+    monkeypatch.setattr(
+        launcher.resource_boundaries,
+        "check_resource_boundaries",
+        lambda *args, **kwargs: {
+            'purpose': 'test', 'target': {'id': 'project_test_corpus'},
+        },
+    )
     fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     state_root = ROOT / '.project-local' / 'state' / 'test-fixtures' / tmp_path.name
@@ -66,6 +76,15 @@ def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(t
 
 def test_prepare_prefers_explicit_archeaxis_python(tmp_path, monkeypatch):
     launcher = load_launcher()
+    # See test_prepare_binds_current_interpreter...: the indexed shared-resource
+    # preflight needs the Windows sibling-checkout layout and is unavailable on CI.
+    monkeypatch.setattr(
+        launcher.resource_boundaries,
+        "check_resource_boundaries",
+        lambda *args, **kwargs: {
+            'purpose': 'test', 'target': {'id': 'project_test_corpus'},
+        },
+    )
     fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop = fixture_root / 'desktop.exe'
@@ -217,8 +236,17 @@ def test_default_core_uses_authoritative_cargo_directory(tmp_path, monkeypatch, 
     assert prepared['environment']['ARCHAXIS_CORE_BIN'] == str(core)
 
 
-def test_fresh_workspace_is_explicit_and_isolated(tmp_path):
+def test_fresh_workspace_is_explicit_and_isolated(tmp_path, monkeypatch):
     launcher = load_launcher()
+    # See test_prepare_binds_current_interpreter...: the indexed shared-resource
+    # preflight needs the Windows sibling-checkout layout and is unavailable on CI.
+    monkeypatch.setattr(
+        launcher.resource_boundaries,
+        "check_resource_boundaries",
+        lambda *args, **kwargs: {
+            'purpose': 'test', 'target': {'id': 'project_test_corpus'},
+        },
+    )
     fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop, core = fixture_root / 'desktop.exe', fixture_root / 'core.exe'
@@ -238,8 +266,17 @@ def test_fresh_workspace_is_explicit_and_isolated(tmp_path):
         shutil.rmtree(fixture_root, ignore_errors=True)
 
 
-def test_prepare_accepts_project_local_staging_candidate(tmp_path):
+def test_prepare_accepts_project_local_staging_candidate(tmp_path, monkeypatch):
     launcher = load_launcher()
+    # See test_prepare_binds_current_interpreter...: the indexed shared-resource
+    # preflight needs the Windows sibling-checkout layout and is unavailable on CI.
+    monkeypatch.setattr(
+        launcher.resource_boundaries,
+        "check_resource_boundaries",
+        lambda *args, **kwargs: {
+            'purpose': 'test', 'target': {'id': 'project_test_corpus'},
+        },
+    )
     fixture_root = ROOT / '.project-local' / 'staging' / f'launch-{tmp_path.name}'
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop, core = fixture_root / 'desktop.exe', fixture_root / 'core.exe'
