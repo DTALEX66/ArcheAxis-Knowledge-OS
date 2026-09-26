@@ -54,11 +54,13 @@ R6 继续作为任务定义、契约和证据基线；M0 只改变“先做什�
 
 最终只允许 `LOCAL_GREEN_READY_FOR_OWNER_REVIEW` 或 `NOT_READY`；不允许把 M0 结果写成 `RELEASE_READY`。产品 Release、tag、新版本号和公开资产继续冻结。
 
-## 当前现场基线
+## 历史现场基线（原 A04 记录，非当前 Git 状态）
 
-- 当前分支：`main`
-- 当前本地与远端 `main`：`4077f50d06633b6c91578354720f18665c08d965`（本次 A04 测试修正提交的 first parent；候选构建证据 subject 仍为 `452b5d0cb4f18746347996f7bc03010f4b067637`）
-- `origin/codex/full-loop-0906`：当前本地 ref 不存在；本记录不把它当作已同步证据。
+本节保留原执行时点的分支、SHA 和 ref 观察，不作为当前现场事实。当前执行状态以 `R6-STATE.json`、`R6-EXECUTION.md` 最新带源码身份的回执及现场 Git 读回为准；本节不宣称远端已重新核验。
+
+- 当时分支：`main`
+- 当时记录的本地与远端 `main`：`4077f50d06633b6c91578354720f18665c08d965`（该次 A04 测试修正提交的 first parent；候选构建证据 subject 为 `452b5d0cb4f18746347996f7bc03010f4b067637`）
+- `origin/codex/full-loop-0906`：当时本地 ref 不存在；本记录不把它当作已同步证据。
 - R6 状态：`release_status=FROZEN`、`overall_status=IN_PROGRESS`
 - R6 TaskPack provenance：源包 CRLF SHA `dcc51e922a35d30ca361e9014e040674b62cee644a3ea57aae12ffa6c2949529`；仓库规范化 LF SHA `788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`。两者均保留，不能混称为同一原始字节摘要。
 - R6 既有候选、worker 修复、合成迁移和两次重启证据保留；它们是分段证据，不是完整 M0 闭环。
@@ -193,7 +195,7 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 
 ## 下一项可执行工作
 
-当前先不新增外部 Provider 或大功能。下一项是用 Owner 允许的真实模型/用户任务替换 P4 合成输入；P3 真实 Avalonia 控件首用仍缺无 UI 入口，P5 workspace identity 仍需 Owner 决策。模型库/Domain Pack 只读审计已确认结构 `PARTIAL`，不得把浅层目录收据或 `contract_only` manifest 当作 executable/runtime 证据。A02 的共享资源根语义、A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate；A15 当前只读复核仍为 `TESTED_LOCAL_PARTIAL / GATES_BLOCKED`，A16 仍 BLOCKED。
+当前先不新增外部 Provider 或大功能。下一项是用 Owner 允许的真实模型/用户任务替换 P4 合成输入；P3 已有真实 Avalonia 控件与 synthetic source-bound first-use/restart UIA 收据，但仍为 `PARTIAL`：Mastery `closed=false`，真实学习闭环及完整键鼠/辅助技术验收未闭合。P5 workspace identity 仍需 Owner 决策。模型库/Domain Pack 只读审计已确认结构 `PARTIAL`，不得把浅层目录收据或 `contract_only` manifest 当作 executable/runtime 证据。A02 的共享资源根语义、A13/P6 的真实 Green 替换和回滚仍保持 Owner Gate；A15 当前只读复核仍为 `TESTED_LOCAL_PARTIAL / GATES_BLOCKED`，A16 仍 BLOCKED。
 
 ## A06 增量（2026-09-20）
 
@@ -246,3 +248,10 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 ## 本记录限制
 
 本次只调整优先级和执行方向，没有删除历史、没有读取或写入 E/F 盘、没有访问私有 `.codex/.zcode/.hermes`、没有修改外置共享库、真实资料库、测试源资料或现有 Green runtime，也没有创建 tag/release。
+
+
+## Current live readback — 2026-09-26
+
+Read-only refresh at 2026-09-26 03:48 UTC confirmed the GitHub `main` ref remains `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; local `main` and `origin/main` resolve to the same SHA. The active work branch is `codex/aaos-p3-ui-convergence-20260922` at `2994efa08d3e4f6ea561831fd4088d6d1b290cdd`, seven commits ahead of its remote branch tip `a5de4b13474c217e7a9dd34b8cbfa402e8297780`. The active branch is not `main`; its workspace contains uncommitted changes. This is a live branch/ref readback, not a merge, publish, CI, or Green-install claim.
+
+`R6-STATE.json` remains `overall_status=IN_PROGRESS`, `release_status=FROZEN`. P0–P5 retain partial evidence; P6 remains Owner-gated. The 2026-09-26 frontend Candidate verifies against its current-source snapshot, but keyboard-driven command-palette acceptance, visual/accessibility matrices, and the real M0/P3 journey remain open. Do not reinterpret local UI evidence as M0 completion or Local Green readiness.

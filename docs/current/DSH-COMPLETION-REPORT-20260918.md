@@ -1,5 +1,7 @@
 # DSH 安全执行任务包 — 完成报告（R5 / 2026-09-18）
 
+> **HISTORICAL / SUPERSEDED HANDOFF.** This report records an R5 session and its CI/UI labels as of 2026-09-18. It is not current execution authority; R6/M0 supersedes its task order, and C#/Avalonia is the formal shell. React/Tauri browser findings refer only to the legacy recovery shell.
+
 > 文档性质：本次 DSH 执行会话的**汇总交接记录**。它记录执行了什么、证据在哪里、
 > 犯了哪些错、还阻塞在什么地方。它**不**是独立审计结论，**不**提升任何切片状态，
 > 也**不**替代 `docs/authority/taskpack-0912-r5/` 的权威任务正文。

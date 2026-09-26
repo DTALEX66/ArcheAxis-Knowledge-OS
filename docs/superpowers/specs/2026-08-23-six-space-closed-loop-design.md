@@ -1,4 +1,6 @@
-# Six-Space Real Closed Loop Design
+# HISTORICAL / SUPERSEDED — Six-Space Real Closed Loop Design
+
+> **FROZEN DESIGN SNAPSHOT.** This v0.6.0/React-era proposal is retained for historical requirements and interaction evidence, not current implementation authority. September project authority selects C#/Avalonia (`apps/ArcheAxis.Desktop/`) with Rust Core; React/Tauri remains legacy recovery/behavior reference. Current work follows R6/M0 and `config/product/UI_CONTRACT_V2.json`.
 
 Date: 2026-08-23
 

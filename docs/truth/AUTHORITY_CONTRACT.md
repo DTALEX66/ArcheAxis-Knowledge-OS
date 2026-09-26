@@ -1,5 +1,7 @@
 # Authority Contract — ArcheAxis OS Execution
 
+> **HISTORICAL / SUPERSEDED for current execution (2026-09-26):** This 2026-08-09 authority-order snapshot is retained as historical evidence. Its frozen-baseline-only task-source rule is superseded; follow the current project `AGENTS.md`, R6 TaskPack, and M0 priority overlay.
+
 > 合同 ID：`AXW-AUTHORITY-v1-2026-08-09`
 >
 > 范围：`DTALEX66/ArcheAxis-Knowledge-OS` 的执行规则权威顺序。本文件固定“当来源冲突时谁优先”，防止历史蓝图或旧 handoff 覆盖当前用户指令与仓库规范。

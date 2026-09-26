@@ -1,6 +1,7 @@
-# 全量候选吸收执行矩阵（v2 — 2026-08-11 更新）
+# 全量候选吸收执行矩阵（v2 — 2026-08-11 历史快照）
 
 > 更新：2026-08-11。基于 `ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md` 全面更新。
+> **HISTORICAL / FROZEN：** 本矩阵早于 2026-09 的 R6/M0 与 Avalonia 正式桌面裁决。仅保留当时的吸收状态与证据；不得把其中的 React/Tauri 页面、技术栈或“当前”状态当作现行产品真值。当前执行与能力状态以 `AGENTS.md`、R6/M0、`docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml` 和机器供应链账本为准。
 > 旧 v1（2026-07-27）仍保留在 Git 历史，但不得再作为活跃状态引用。
 > 权威账本：`docs/truth/SUPPLY_CHAIN_LEDGER.json`（v2，46 个组件，含吸收决策）。
 >
@@ -29,7 +30,7 @@
 
 | 项目 | 当前落点 | 资格层 | 最新决策 |
 |---|---|---|---|
-| PDF.js | — | reference only | 旧 loopback UI 已退役；当前 React/Tauri 通过后端 `%PDF-`/大小校验端点和 sandboxed Blob frame 阅读，不再随 wheel 分发 PDF.js |
+| PDF.js | — | reference only | React/Tauri 阶段曾通过后端 `%PDF-`/大小校验端点和 sandboxed Blob frame 阅读；该表面是 legacy 行为参考，不描述当前 Avalonia PDF 路径，也不随 wheel 分发 PDF.js |
 | MarkItDown[pdf] | `app/ingestion/multi_format.py` | source + installed | 轻量 baseline；默认禁用 LLM OCR |
 | Trafilatura >=1.8 | `app/ingestion/multi_format.py` / `shared/web_search.py` | source + installed | 锁定 Apache-2.0 版本；补来源快照 |
 | pytesseract + Tesseract | `app/ingestion/multi_format.py` (MFX-010) | source + installed | Baseline OCR；诚实不可用时降级 |

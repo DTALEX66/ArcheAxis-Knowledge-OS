@@ -1,9 +1,11 @@
 # Repository Normalization State — 2026-09-03
 
-> Current operational queue for directory hygiene, authority references and
-> language-boundary work. This record is evidence-bound: it does not turn a
-> local test, a source scan, a cleanup action or a built executable into cloud
-> CI, a language cutover, a release or an installed-runtime claim.
+> **Frozen historical snapshot (2026-09-25).** This is not the current
+> operational queue. R6/M0 and the current language, directory, documentation,
+> and runtime authority indexes supersede its React/Tauri product target, G0
+> sequencing, `.hermes/` output-root claim, and Python-as-vNext-writer claim.
+> Its dated cleanup and test evidence is retained as history only. It does not
+> authorize a migration, move, deletion, Green operation, or language cutover.
 
 ## One authority chain
 
@@ -15,7 +17,7 @@
 | Desktop source-to-Green delivery | [Runtime/delivery authority](../RUNTIME_DELIVERY_AUTHORITY_INDEX.md) | Candidate, Green hash readback and visible product-path verification are separate evidence layers. |
 | CI and gate selection | [Configuration authority](../CONFIGURATION_AUTHORITY_INDEX.md) | Fast CI, full qualification and release are distinct gates. |
 
-## Current normalization queue
+## Historical normalization queue (2026-09-03; not current instructions)
 
 | Priority | Work item | Status on 2026-09-03 | Completion evidence required |
 | --- | --- | --- | --- |
@@ -30,13 +32,13 @@
 | P2 | Accelerate language migration safely | G0-only | Static owner/consumer/rejection evidence, then read-only Rust differential reports; Python remains the current writer. |
 | P3 | Directory convergence | Not started | AX-DIR-010 inventory rows and explicit move/delete authorization for every path. |
 
-## Language acceleration without semantic risk
+## Historical language proposal (superseded by R6/M0)
 
 The fastest valid route is to remove ambiguity before moving code:
 
-1. Keep React/TypeScript as the product surface, root Rust/Tauri as the
-   Windows host, and Python as the current product-domain writer and
-   parse/OCR/ASR sidecar.
+1. The proposal at the time was to keep React/TypeScript as product surface,
+   Rust/Tauri as Windows host, and Python as product-domain writer. This target
+   has since been superseded: see the binding language-boundary authority.
 2. Close the named G0 facts first: exact-SHA full qualification (`G0-001`),
    corpus journey evidence, writer/consumer evidence and rejected-write
    evidence. A full local suite is useful but cannot close the cloud fact.

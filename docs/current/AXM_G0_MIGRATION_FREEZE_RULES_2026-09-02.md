@@ -1,8 +1,12 @@
 # AXM G0 Migration Freeze Rules
 
-> Status: ACTIVE for the language-and-boundary migration route. This rule does
-> not block contained Green maintenance, security fixes, or evidence-only
-> verification. It does not create a release, version, tag, or second product.
+> **Frozen historical rule set (2026-09-25).** This G0 shadow-cutover route is
+> superseded by R6/M0 and the current [language-boundary authority](../LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md).
+> Do not apply the old React/Tauri target or the prohibitions on an independent
+> Rust vNext database/writer to current work. Its historical safety evidence
+> remains useful for legacy-database migration, no-dual-write, Green-data
+> protection, and exact-path cleanup boundaries; it does not replace current
+> authority or authorize migration/deletion.
 
 ## Scope
 

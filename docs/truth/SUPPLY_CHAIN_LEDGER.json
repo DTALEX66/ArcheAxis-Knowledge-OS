@@ -35,7 +35,7 @@
       "qualification": [],
       "product_path": null,
       "evidence": "Historical loopback UI dependency removed when the duplicate product surface was retired; no PDF.js bytes are packaged or shipped.",
-      "decision": "Reference only. Canonical React/Tauri reads PDFs through the backend magic/size-validated application/pdf endpoint and a sandboxed Blob frame.",
+      "decision": "Reference only for the retired React/Tauri shell. Its backend-validated PDF endpoint and sandboxed Blob frame are historical behavior evidence; they do not describe the formal C#/Avalonia desktop PDF path.",
       "upstream_note": "The former 6.2.108 vendored assets and license remain recoverable from Git history but are absent from current release inputs."
     },
     {
@@ -686,7 +686,7 @@
       "upstream_tag_object": "2e522f754c61be7760392151fd22939d570941b8",
       "upstream_commit": "bd80a4d28a2093347ef080f98ae7cf8e3eee488e",
       "tag_signature": "unsigned",
-      "decision": "Keep as an optional replaceable learning sidecar behind the authority bridge. The canonical product shell is ArcheAxis React/Tauri; DeepTutor does not own product navigation. Its KB, memory, users, sessions and indexes are projections only and cannot write Source/Anchor/Claim/Evidence/HumanLearning/MachineCompetence truth.",
+      "decision": "Keep as an optional replaceable learning sidecar behind the authority bridge. The formal product shell is ArcheAxis C#/Avalonia; DeepTutor does not own product navigation. Its KB, memory, users, sessions and indexes are projections only and cannot write Source/Anchor/Claim/Evidence/HumanLearning/MachineCompetence truth.",
       "upstream_note": "Release v1.5.17 published 2026-08-24; Windows fixes included. Golden workflow and restart/rebuild evidence remain required before installed/release qualification."
     },
     {

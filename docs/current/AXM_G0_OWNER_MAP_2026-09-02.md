@@ -1,8 +1,11 @@
 # AXM G0 First-Wave Aggregate Owner Map
 
-> Status: STRUCTURAL AUDIT, not a cutover claim. Call-site results below are
-> static repository evidence with definitions, tests and documents excluded.
-> They must be rechecked against a clean current tree before any writer moves.
+> **Frozen historical structural audit (2026-09-25).** The call-site results
+> below are dated evidence, not the current language/writer map or a cutover
+> prerequisite. R6/M0 and the [language-boundary authority](../LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)
+> supersede the old React/Tauri target and G0 shadow-writer sequence. Re-scan
+> the live tree before any aggregate-specific migration; no dual write, legacy
+> database access, or migration is authorized by this historical map.
 
 ## Findings
 

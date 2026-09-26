@@ -1,10 +1,13 @@
 # AXM 语言架构审计任务包纳入清单
 
+> **冻结说明（2026-09-25）：** 本文件是 2026-09-02 的历史纳入图，不是当前执行权威。其“TypeScript/React 为产品面”、旧 UI/Tauri 收敛目标和 G0–G9 排程已被 R6 TaskPack、M0 覆盖及 [语言边界权威索引](../LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md) supersede。当前正式桌面为 C#/Avalonia，Rust Core 是 vNext 唯一规范写入者，Python 限于隔离 Worker；React/Tauri 和旧 Python 产品面保留为 Green 维护、恢复与迁移供体。下方 G0/G1 结果仅为当时证据，重用前必须按当前树复核；本文件不授权写入者切换、目录迁移或删除。
+
 > Source examined: `ARCHEAXIS-CLEAN-SHEET-LANGUAGE-AUDIT-MIGRATION-TASKPACK-2026-09-01.md`.
 >
-> Status: ACTIVE TASK MAP. The source document is an audit/task proposal, not
-> execution authority by itself. This map records the project decisions and
-> current evidence that govern subsequent work.
+> Status: HISTORICAL TASK MAP — PARTIALLY SUPERSEDED. The source document is an
+> audit/task proposal, not execution authority by itself. Its dated evidence is
+> retained; current decisions and execution are governed by R6/M0 and the
+> language-boundary authority index.
 
 ## Adopted direction and non-negotiable boundary
 

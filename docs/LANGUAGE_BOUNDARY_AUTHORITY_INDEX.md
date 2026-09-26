@@ -5,7 +5,9 @@ Machine-local tool/model/material roots are resolved from the
 never guessed from old taskpacks or PATH.
 
 Current decisions: [project contract](../PROJECT_CONTRACT.yaml) and
-[supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml), including SUP-020.
+[supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml), including SUP-020
+and SUP-021 (R6 formal-shell priority; bounded TypeScript/JavaScript reuse is
+retained).
 Execution: [R6 live ledger](current/R6-EXECUTION.md),
 [R6 task package](authority/taskpack-0919-r6/EXECUTOR-START.md), with the
 [M0 priority overlay](current/M0-DIRECTION-OVERRIDE-20260920.md).
@@ -28,7 +30,10 @@ legacy database. Migration requires a consistent read-only export, validated
 staging import and recoverable activation. No dual write or live synchronization.
 
 A language decision, build, fixture or inventory is not proof of completed
-capability absorption. T13 requires nonempty migration and behavior evidence.
+capability absorption. Current migration acceptance is defined by R6 A13 and
+M0 P5: nonempty legacy-copy export, staged import, semantic difference/loss
+accounting, identity-preserving restart/readback, and the separate P6 owner gate
+for Green replacement/rollback. Historical T13 evidence is not a current gate.
 No directory move substitutes for migration. Legacy schemas and aliases remain
 compatible until their own tested migration; do not rename user databases.
 

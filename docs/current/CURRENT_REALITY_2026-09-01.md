@@ -1,4 +1,6 @@
-# Current Reality — 2026-09-01 Field Reconciliation (refreshed 2026-09-04)
+# HISTORICAL / SUPERSEDED — Current Reality — 2026-09-01 Field Reconciliation (refreshed 2026-09-04)
+
+> **HISTORICAL / SUPERSEDED SNAPSHOT.** The Git, branch, release, Green and UI facts below are frozen at the 2026-09-04 readback. This document is not the live state or desktop-shell authority. Follow `AGENTS.md`, `DECISION_SUPERSESSION_LEDGER.yaml`, R6/M0 and `docs/DOCUMENTATION_AUTHORITY_INDEX.md`; the formal shell is C#/Avalonia, and React/Tauri is legacy recovery/behavior reference.
 
 > Scope: current-state navigation and evidence reconciliation only. This record
 > does not alter frozen task packs, immutable releases, historical receipts, or

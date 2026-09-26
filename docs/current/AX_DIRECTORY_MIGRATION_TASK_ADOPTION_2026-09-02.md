@@ -1,9 +1,12 @@
 # AX-DIR-MIG-R1 目录迁移与清理任务包纳入清单
 
+> **冻结说明（2026-09-25）：** 本文件是 2026-09-02 的历史迁移提案，不是当前执行队列。R6/当前 `AGENTS.md` 已决定新开发运行产物由 `scripts/runtime/dev.py` 写入忽略的 `.project-local/`，`.hermes/` 保留为不再新增写入的混合历史材料；因此旧文关于“新输出必须写入 `.hermes/`”、把项目运行态一律收进仓库、以及 AX-DIR-000 的双根决策阻塞已被 supersede。固定 Green、用户资料库和共享资源仍按路径权威留在仓库外。此决定只解决新输出路由，不授权搬动、删除或重新归属已有 `.hermes/`、`.project-local/`、Green 数据或其他运行态。目录迁移仍须逐路径清单、哈希、引用/消费者、回滚和适用的 Owner Gate。
+
 > Source examined: `ARCHEAXIS-DIRECTORY-MIGRATION-CLEANUP-TASKPACK-2026-09-01.md`.
 >
-> Status: PLANNED, NOT STARTED. The source document is a migration proposal,
-> not authority to move, delete, publish, or change project configuration.
+> Status: HISTORICAL MIGRATION PROPOSAL — PARTIALLY SUPERSEDED. The source
+> document is a migration proposal, not authority to move, delete, publish, or
+> change project configuration. Its dated task statuses remain evidence only.
 
 ## Adopted outcome, preserved boundaries
 
@@ -16,10 +19,12 @@ weaken the G0 single-writer freeze.
 
 The following current constraints take precedence over the source proposal:
 
-- Project rules currently require generated runtime state and evidence under
-  ignored `.hermes/`; the proposed `.project-local/` destination is therefore
-  **not authorised for creation or use** until a configuration-authority
-  decision updates the owning project rules and every relevant launcher.
+- Current project rules route new development outputs through
+  `scripts/runtime/dev.py` into ignored `.project-local/`; `.hermes/` is
+  preserved legacy mixed material with no new development writes. This resolves
+  the new-output-root choice only. Existing artifacts in either root still need
+  ownership, reference, hash and retention classification before migration or
+  cleanup.
 - The current tree has intentional maintenance changes. Directory migration
   requires a frozen, reviewed tree and cannot treat existing dirty paths as
   disposable duplication.
@@ -35,12 +40,12 @@ The following current constraints take precedence over the source proposal:
 
 | Source task | Applicable ArcheAxis task | Status / prerequisite |
 | --- | --- | --- |
-| AX-DIR-000 | Establish an isolated migration writer and no-spill boundary. | BLOCKED_BY_POLICY. First make an explicit `.hermes` versus `.project-local` configuration-authority decision; do not create a second runtime root under ambiguous rules. |
+| AX-DIR-000 | Establish an isolated migration writer and no-spill boundary. | PARTIAL. New-output routing is resolved by current project rules; no-spill provenance and ownership of existing runtime/evidence artifacts remain unverified. |
 | AX-DIR-010 | Produce a read-only path, hash, owner, reference and data-class inventory for every proposed source directory. | PENDING. It may start only from a frozen snapshot and must classify user/runtime data as `PRESERVE_USER_DATA`, never as deletion candidates. |
 | AX-DIR-020 | Introduce a neutral project-governance contract and bounded launcher after the authority decision. | PENDING. No global Codex/Hermes/WORK-LAB configuration is in scope. |
 | AX-DIR-030 | Move project-owned governance examples/task packs only after compatibility readers and reference tests exist. | PENDING. `.worklab` is currently a project gate registry, not evidence that WORK-LAB is a runtime dependency. |
 | AX-DIR-040 | Consolidate `Inspiration-Research` into `inspiration_research` through a case-safe, hash-proven migration. | PENDING. Requires an exact file comparison, consumer/import inventory, wheel-from-temp import test and a reviewed staged tree. |
-| AX-DIR-050 | Converge the Windows UI and Tauri host into one canonical path. | PENDING_AFTER_G1-001. The current edition/`#[path]` shared-source conflict must first be removed through a real shared crate; moving both trees first would preserve or obscure the defect. OSUI/desktop code is retained until a function-by-function production-use and test decision exists. |
+| AX-DIR-050 | Historical proposal to converge the Windows UI and Tauri host. | SUPERSEDED_AS_TO_TARGET. R6/M0 establishes `apps/ArcheAxis.Desktop/` (C#/Avalonia) as the formal desktop; Tauri remains a legacy Green/recovery surface. Preserve both until their production-use, compatibility and migration evidence is classified; do not move/delete based on this old proposal. |
 | AX-DIR-060 | Rewrite current code/config/CI references after each proven move. | PENDING. Historical documents retain legacy-path wording and receive only a legacy-path annotation. |
 | AX-DIR-070 | Migrate project-local ignored runtime/evidence data by copy, hash, readback, quarantine and restart proof. | BLOCKED_BY_POLICY_AND_RUNTIME. It additionally requires the relevant Green/runtime processes to be stopped normally and an explicit data-migration/delete gate; current Green data is never inspected or copied. |
 | AX-DIR-080 | Execute the post-move multi-language, fresh-clone and Windows product matrix. | PENDING. It cannot be run against proposed `apps/windows/*` paths before those paths exist; exact-SHA full CI and installed-product evidence remain separate gates. |

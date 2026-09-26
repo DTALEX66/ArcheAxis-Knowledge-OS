@@ -9,13 +9,14 @@
 
 The current ownership reconciliation is governed by R6/M0 and this index;
 [R5-PATH-DISPOSITION.json](current/R5-PATH-DISPOSITION.json) is historical evidence.
-The 0910 measurement keeps its original SHA and 69 historical gaps. R5 assigns
-metadata owners and maintenance-only legacy lanes; this is not semantic absorption
-or a deletion grant. `.zcode/**` is private state and denied for commit.
+The 0910 measurement keeps its original SHA and 69 historical gaps. R5 assigned
+metadata owners and maintenance-only legacy lanes; that historical assignment is
+not semantic absorption or a deletion grant. `.zcode/**` is private state and
+denied for commit.
 
 | Path / surface | Class | Canonical role | Normalization rule |
 | --- | --- | --- | --- |
-| `app/`, `shared/`, `knowledge_base/`, `inspiration_research/` | `SOURCE` | Current Python product/domain and adapter implementation | Inventory consumers before changing a module boundary. |
+| `app/`, `shared/`, `knowledge_base/`, `inspiration_research/` | `LEGACY_SOURCE` / `MIGRATION_DONOR` | Preserved Python-era product/domain implementation for Green compatibility, recovery and migration. It is not the formal vNext desktop/Core or isolated Python-worker boundary. Existing legacy aggregates keep their current single writer until a validated, aggregate-specific migration. | Inventory consumers and writer ownership before changing a module boundary. |
 | `apps/ArcheAxis.Desktop/` | `SOURCE` | Formal Avalonia desktop | UI and Supervisor; no direct main database access. |
 | `crates/`, `services/python-workers/`, `packages/contracts/` | `SOURCE` | Rust Core, isolated capabilities, shared contracts | One vNext writer; actual protocol output must be validated. |
 | `frontend/` | `LEGACY_SOURCE` | Preserved React UI | Behavior/design reference and bounded Green maintenance. |
@@ -36,8 +37,10 @@ source and target path, owner, data class, hashes, consumer scan, rollback,
 verification and an exact deletion-authorization state.
 
 The [directory-migration adoption map](current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md)
-sets the current preconditions. A dirty tree, unresolved consumer, missing
-rollback receipt or `NOT_REQUESTED` deletion state stops the operation.
+is a historical proposal, partially superseded by R6/M0 and its dated freeze
+banner. Use this index and the current project authority for present path roles.
+A dirty tree, unresolved consumer, missing rollback receipt or `NOT_REQUESTED`
+deletion state still stops any exact-path move or deletion.
 
 ## Relationship to other authority records
 
@@ -48,5 +51,11 @@ rollback receipt or `NOT_REQUESTED` deletion state stops the operation.
 - [Language boundary authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)
   governs implementation ownership; a directory name cannot change it.
 - [Repository normalization state](current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md)
-  records the active cleanup and convergence queue; it does not authorize a
-  move or deletion by itself.
+  is a frozen 2026-09-03 snapshot; its React/Tauri and G0 sequencing are
+  superseded by R6/M0. Its dated hygiene evidence remains historical and does
+  not authorize a move or deletion.
+
+
+### Frozen donor archive — 2026-09-26
+
+`docs/history/branch-donors/execution-reliability-20260926/` is HISTORICAL_RECORD, not execution authority. ARCHIVE.json identifies three exact-tip, byte-preserved repository documents and source hashes. This bounded archive is repository documentation; it does not classify other mixed history paths. The source branch is retained pending remaining evidence review.

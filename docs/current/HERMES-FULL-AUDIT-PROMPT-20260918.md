@@ -1,5 +1,7 @@
 # HERMES 全量审计提示词（ArcheAxis 知识平台 · 2026-09-18 基线）
 
+> **HISTORICAL / SUPERSEDED PROMPT.** Do not reuse this R5-era prompt as current task instructions. Current authority is `AGENTS.md`, the September decision ledger, R6/M0 and the live execution state. Its React/Tauri references are legacy only.
+
 > 用途：**新开一个 HERMES 会话时，把本文件全文作为首个提示词粘贴**。它是自包含的：
 > 不依赖上一会话的上下文。凡本文件未交代的事实，一律视为"未核实"，必须现场取证。
 >

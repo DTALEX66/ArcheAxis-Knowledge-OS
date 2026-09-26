@@ -182,3 +182,17 @@ readback only, and A16 remains an owner gate.
   alone; none was re-implemented, copied, overwritten or rewritten on a DP branch.
 - `docs/current/R6-*`, the UI plan/coverage doc and `docs/SHARED_RESOURCE_PATH_INDEX.md` were not
   modified.
+
+## Correction — 2026-09-26 source/test readback
+
+- NF-F1 in §6 is stale against the current source: `crates/archeaxis-domain/tests/backup_safety.rs`
+  now retains the schema-catalog corruption regression, closes/reopens the SQLite connection, and
+  asserts the verifier rejects it. `docs/current/R6-EXECUTION.md` records the 42-test package run.
+  Do not dispatch NF-F1 as an unimplemented test; re-run it only if fresh source evidence warrants it.
+- NF-FK is a narrow statement about the NF diff, not a repository-wide coverage gap. The current
+  source contains `verify_counts_rejects_foreign_key_damage_even_when_counts_match`; no new test is
+  justified without a distinct restore-path failure case.
+- The P6 current-source command described in §7 was executed and returned `ok=false` / exit `1`.
+  Its historical `NOT_EXECUTED` label is superseded by the correction in
+  `p6-current13-candidate-readback-20260925.md` below: it is an executed snapshot mismatch, while
+  the reason for the mismatch remains unproven.

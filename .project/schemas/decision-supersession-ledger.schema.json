@@ -30,6 +30,7 @@
       "properties": {
         "id": { "type": "string", "pattern": "^SUP-[0-9]{3}$" },
         "status": { "enum": ["effective", "superseded"] },
+        "supersedes": { "type": "string", "minLength": 1 },
         "old_claim": { "type": "string", "minLength": 1 },
         "replacement": { "type": "string", "minLength": 1 },
         "reason": { "type": "string", "minLength": 1 }

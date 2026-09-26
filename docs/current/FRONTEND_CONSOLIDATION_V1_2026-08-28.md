@@ -1,4 +1,6 @@
-# 前端单壳收敛与成熟产品模式吸收记录（2026-08-28）
+# HISTORICAL / SUPERSEDED — 前端单壳收敛与成熟产品模式吸收记录（2026-08-28）
+
+> **FROZEN HISTORICAL RECORD.** This document records the former React/Tauri shell decision as it stood on 2026-08-28. It is not current implementation guidance. The September project authority superseded that shell: formal desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia) with Rust Core; React/Tauri remains legacy recovery and behavior reference only. Follow `AGENTS.md`, `DECISION_SUPERSESSION_LEDGER.yaml` (SUP-001/SUP-002/SUP-007), R6/M0 and `config/product/UI_CONTRACT_V2.json`.
 
 - 分支：`feat/frontend-consolidation-v1`
 - 基线：`main@5ce0d3c`（分支建立时）

@@ -1,4 +1,6 @@
-# Runtime Authority and Language G0 Implementation Plan
+# HISTORICAL / SUPERSEDED — Runtime Authority and Language G0 Implementation Plan (2026-09-03)
+
+> This dated G0 plan retains the former React/Tauri primary-shell and Rust-writer sequencing. It is not executable guidance; R6/M0 and the current authority indexes supersede its architecture, queue and gates. Preserve its original steps as historical evidence.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

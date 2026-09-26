@@ -31,6 +31,8 @@
 
 ## 2026-09-24 Rust / Windows Native Build Toolchain Readback
 
+The statements below describe the earlier toolchain investigation snapshot. Current exact-source-SHA verification and Candidate evidence are recorded in the 2026-09-24 continuation section that follows.
+
 | 资源 ID | 精确路径 | 现场读回 | 用途/边界 |
 | --- | --- | --- | --- |
 | `shared_cargo` | `D:\All projects\OS External Configuration\10-toolchains\cargo\bin\cargo.exe` | Cargo `1.97.1` | 通过 `scripts/runtime/dev.py` 执行；Rust MSVC target |
@@ -43,6 +45,18 @@
 本轮 Rust `source_jobs_api` 测试仍为 `NOT_VERIFIED`：直接调用时缺少 MSVC linker 环境；通过 `vcvars64.bat` 的受管调用遇到进程环境/launcher 传递问题，尚未形成 Cargo 测试 PASS。Avalonia Debug build 已使用外置 .NET SDK `10.0.400` 成功，239 项受影响 Python 合同通过。Native GUI automation/readback tooling 仍未形成可用的受支持窗口接管与 UIA 验证链；不得用静态合同替代。
 
 本次构建证据：外置 SDK `.NET 10.0.400` Release self-contained `win-x64` publish 通过；桌面导航与路由无参数静态合约 `182 passed`；Debug build 为 `0 warnings / 0 errors`；`git diff --check` 通过。机器运行时/Launch pytest suites 在当前 Candidate Python 缺少 pytest 的情况下未执行。原生 GUI/CUA 当前无可接管窗口，截图、点击、焦点、冷启动和 Green 原位替换仍为 `UNVERIFIED`/`NOT_READY`。
+
+## 2026-09-24 当前源码 SHA Candidate readback
+
+| 资源 ID | 精确路径 | 现场读回 | 用途/边界 |
+| --- | --- | --- | --- |
+| `aaos_current_candidate` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-va5de4b13-x64` | source commit `a5de4b13474c217e7a9dd34b8cbfa402e8297780`; tree `a4156ed65d50675822321b9d63eec932b1e76af3`; verifier `ok=true`, 21474 files, no problems | Exact-source isolated Candidate; not installed into Green |
+| `aaos_current_candidate_zip` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-va5de4b13-x64.zip` | 314318323 bytes; SHA-256 `B103452DFABDF86F54D833EEDF7E55BB7A72A44544EC76BA7FC324DB869FAA4E` | Transfer artifact; no upload/publish performed |
+| `aaos_current_candidate_manifest` | Candidate `manifest.json` | 3919845 bytes; SHA-256 `4B11B6853143E48B2F24A98839639535902A5BF914FA09DEF79BBD5C6F54392B` | Manifest/provenance readback; runtime/workers required checks passed |
+| `aaos_current_candidate_desktop_exe` | Candidate `ArcheAxis.Desktop.exe` | SHA-256 `8191FBF2781EC57544917831FBBC62A67A12E3B6F077FDFFD60C65B670D9B1DE` | Exact-source Desktop executable |
+| `aaos_current_candidate_core_exe` | Candidate `archeaxis-api.exe` | SHA-256 `19E136F806FEEC67CC9EC7A41ED9761A23014D53B039E480F9F373D5C66449FA` | Exact-source canonical Core executable |
+
+验证边界：本地 226 项聚焦 UI/权限合同、1 项 source-job API 测试、Desktop self-contained Release publish、Core Release build 与 Candidate manifest/runtime/workers/provenance 核验通过。全量受影响测试和 Candidate GUI Golden Journey 尚未完成；当前 CUA 没有 AAOS 窗口，首次启动、UIA、屏幕阅读器、DPI、冷重启和 Green 激活均为 `NOT_EXECUTED / UNVERIFIED`。Green 未改动。
 
 **三个不同边界不能合并：** 绿色软件安装目录、绿色版真实资料库、项目测试资料库。严禁把测试的输出、删除或迁移动作路由到真实资料库。
 
@@ -73,3 +87,15 @@
 - [M0 优先级覆盖](current/M0-DIRECTION-OVERRIDE-20260920.md)
 
 登记根路径不是授权读取全部内容；不得由此扩大到真实用户数据迁移、共享库清理或私有代理状态访问。
+
+## 2026-09-25 dirty-working-tree Candidate with source snapshot
+
+| Resource ID | Exact path | Readback | Purpose/boundary |
+| --- | --- | --- | --- |
+| `aaos_dirty_tree_candidate` | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\green-candidates\ArcheAxis.Knowledge.Green-vcurrent6-20260925\ArcheAxis.Knowledge.Green-vcurrent6-20260925-x64` | base commit `a5de4b13474c217e7a9dd34b8cbfa402e8297780`; base tree `a4156ed65d50675822321b9d63eec932b1e76af3`; source snapshot `4f72520d91d295171fd4306e7ecb5d75c0598bcb36017a5e6c794cec672750b0`; verifier `ok=true`, 21,474 files | Isolated local Candidate bound to current dirty worktree inventory; not installed into Green |
+| `aaos_dirty_tree_candidate_zip` | Candidate `.zip` | 298,686,214 bytes; SHA-256 `0FB51470850AAA4DFB5E0221AFE25FC7E5453871D6B85183C7E107DC027504F6` | Local transfer artifact; no upload/publish |
+| `aaos_dirty_tree_candidate_manifest` | Candidate `candidate-manifest.json` | 3,920,215 bytes; SHA-256 `C7AF463B8DFA188904C3EBEC886C8BDFE1F877E14986804D61F50F9082B8A240` | Manifest file hashes and source snapshot provenance |
+| `aaos_dirty_tree_candidate_desktop` | Candidate `desktop/ArcheAxis.Desktop.exe` | SHA-256 `50B524A4483BE74A924244C019CD942E24B0AB23C7A79F344C49351FAAE2C42B` | Current-source self-contained Desktop |
+| `aaos_dirty_tree_candidate_core` | Candidate `core/archeaxis-api.exe` | SHA-256 `E7C91DC8DE1AA0A6885E4F77A735892F6F8B67685F67299EFE5126AF48520085` | Current-source canonical Core |
+
+Candidate learning smoke passed with synthetic content, persisted answer and FSRS readback after Core restart; `Mastery closed=false`. Native GUI acceptance and all Green installation gates remain open.

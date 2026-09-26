@@ -1,5 +1,7 @@
 # OSUI v3 生产接入与纠偏记录
 
+> **HISTORICAL / SUPERSEDED SNAPSHOT.** This 2026-08-27 production-adoption record predates the September formal-shell authority. React/Tauri and Chromium evidence below describe the legacy shell only; current desktop authority is C#/Avalonia at `apps/ArcheAxis.Desktop/` with Rust Core. Follow R6/M0 and `config/product/UI_CONTRACT_V2.json` for current work.
+
 - 状态：`SUPERSEDED BY FRONTEND_CONSOLIDATION_V1_2026-08-28`
 - 日期：2026-08-27
 - 产品：ArcheAxis Knowledge｜星环知识平台
@@ -114,7 +116,7 @@ frontend/src/presentation/labels.ts
 - 原生主工作台截图：`.hermes/task-artifacts/ui-redesign/tauri-native-osui-v3.png`，SHA-256 `f044523cb762373df45eb61f883df544e5fd8ae3f245bb38bcf103435320e9bd`。
 - 原生资料库点击截图：`.hermes/task-artifacts/ui-redesign/tauri-native-osui-v3-library.png`，SHA-256 `69f070ff4019250260f1576b484cfefef84eba80e92ac444f27f473060b652d8`。
 
-本文记录 2026-08-27 的第一次生产接入。其“双壳层均为生产入口”和 DeepTutor 产品底座表述已被 2026-08-28 单壳收敛纠正；当前事实见 [`FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](FRONTEND_CONSOLIDATION_V1_2026-08-28.md)。公开 `v0.6.11` 仍未包含这些后续前端修复。
+本文记录 2026-08-27 的第一次生产接入。其“双壳层均为生产入口”和 DeepTutor 产品底座表述在当时即被纠正；后续 React/Tauri 收敛也已被 2026-09 的 C#/Avalonia 正式壳裁决取代。旧 `FRONTEND_CONSOLIDATION_V1_2026-08-28.md` 只保留历史证据。公开 `v0.6.11` 仍未包含这些后续前端修复。
 
 ## 8. 不可重犯
 

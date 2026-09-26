@@ -1,9 +1,14 @@
-# AXM G0 Evidence Gap Register
+# AXM G0 Evidence Gap Register — Historical Snapshot
 
-> Status: **ACTIVE BLOCKER REGISTER**. This record enumerates the evidence
-> still required before G1 may create a Rust contract/read-shadow skeleton.
-> It does not permit a Rust production writer, an extra database, a directory
-> migration or a Green data operation.
+> **Freeze notice (2026-09-25):** This is a dated G0 audit snapshot, not an
+> active blocker register or current execution queue. R6/M0 and the
+> [language-boundary authority](../LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)
+> supersede its React/Tauri target and its prohibition on an independent Rust
+> vNext database/writer. Rust is the canonical writer for the separate vNext
+> database; Python workers remain isolated. The historical G0 findings below
+> are retained as evidence and must not be used to block current R6 work.
+> Legacy database migration, Green-data access, and exact-path move/delete
+> operations remain separately gated by current authority and Owner approval.
 
 | Gate | Required receipt | Present evidence | Owner | Verification | Status / no-go consequence |
 | --- | --- | --- | --- | --- | --- |
@@ -13,7 +18,7 @@
 | G0-004 sole-writer coverage | Source, Anchor, Evidence, Claim, Human Learning Event and Machine Competence owner/consumer/rejection evidence | First-wave structural owner map exists; 58 direct SQLite connection sites remain. A repeatable consumer audit finds one non-definition `append_event()` caller (`app/integrations/deeptutor_bridge.py`) and no consumers for the V2 source/evidence/machine-receipt APIs. Clean-tree runtime call-site, command and rejection receipts remain absent. | Language-boundary maintainer | Static owner/consumer scans, clean-tree call-site readback and command/rejection receipts | **OPEN**. Rust may not write any listed aggregate. |
 | Windows product-path qualification | Green executable hash deployment, silent launch, product-path result and rollback receipt | Main-shell candidate and Green target SHA-256 equality were read back on 2026-09-03; visible post-deploy product-path evidence is still pending. | Windows product maintainer | Process/executable-path readback, status endpoint and visible UI result; no Green data inspection | **PARTIAL**. Do not call the deployed UI fixed merely because a file copy succeeded. |
 
-## Allowed next actions
+## Historical allowed-next-actions list (not current instructions)
 
 - Refresh source-only owner and consumer maps.
 - Run isolated, project-owned fixtures and record results under ignored
@@ -23,7 +28,7 @@
 - Perform a narrow Green shell repair only when it preserves the current
   writer and includes an exact backup/hash/readback receipt.
 
-## Prohibited until every G0 row is closed
+## Historical prohibitions (superseded where they conflict with R6/M0)
 
 - Add a Rust production database writer, route or table for a first-wave
   aggregate.

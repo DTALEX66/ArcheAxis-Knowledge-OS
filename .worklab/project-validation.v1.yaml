@@ -163,14 +163,14 @@ risk_classes:
     gates: [static, lint, migration-targeted, py-primary]
 
   - id: rust-tauri-shell
-    description: Canonical Tauri shell Rust logic without packaging inputs
+    description: Legacy Tauri recovery-shell Rust logic; fast compatibility gate without packaging inputs
     paths:
       - "src-tauri/src/*.rs"
       - "src-tauri/src/**/*.rs"
     gates: [desktop-fast]
 
   - id: installer
-    description: Bundle, stage, NSIS, exit/uninstall
+    description: Legacy React/Tauri bundle and NSIS compatibility lifecycle; not the formal Avalonia product installer
     paths:
       - "desktop/scripts/**"
       - frontend/vite.config.ts
@@ -181,7 +181,7 @@ risk_classes:
     gates: [desktop-fast, desktop-build, installer-lifecycle]
 
   - id: desktop-build
-    description: Tauri build/config/resources
+    description: Legacy Tauri build/config/resources compatibility
     paths:
       - desktop/src-tauri/tauri.conf.json
       - desktop/src-tauri/build.rs
@@ -189,7 +189,7 @@ risk_classes:
     gates: [desktop-fast, desktop-build]
 
   - id: rust-tauri
-    description: Rust/Tauri non-packaging logic
+    description: Legacy Tauri Rust runtime compatibility logic
     paths:
       - "desktop/src-tauri/**/*.rs"
     gates: [desktop-fast]
@@ -210,7 +210,7 @@ risk_classes:
     gates: [static, lint, wheel-smoke]
 
   - id: python-compat
-    description: Public Python contracts, dependency matrix and requirements
+    description: Legacy Python public contracts, dependency matrix and requirements compatibility
     paths:
       - pyproject.toml
       - requirements.txt

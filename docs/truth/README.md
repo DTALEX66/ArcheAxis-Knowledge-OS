@@ -2,6 +2,14 @@
 
 本目录保存 ArcheAxis Knowledge 的稳定决策基线与可审计执行记录。它不以规划、版本号、测试夹具或模型判断代替真实运行证据。
 
+## 当前执行权威（2026-09-26）
+
+- 当前活动基础包为 [`R6 Executor Start`](../authority/taskpack-0919-r6/EXECUTOR-START.md)，实时进度见 [`R6-EXECUTION`](../current/R6-EXECUTION.md) 与 [`R6-STATE`](../current/R6-STATE.json)，优先级覆盖见 [`M0`](../current/M0-DIRECTION-OVERRIDE-20260920.md)。
+- [`CURRENT_STATE_TRUTH.md`](CURRENT_STATE_TRUTH.md) 保留 2026-08-09 的真值方法与当时状态；其旧任务顺序和阶段状态是 **HISTORICAL / SUPERSEDED**，不能作为当前执行队列。
+- [`AUTHORITY_CONTRACT.md`](AUTHORITY_CONTRACT.md) 保留 2026-08-09 的权威顺序快照；其把旧冻结包列为当前唯一任务源的规则已被 **HISTORICAL / SUPERSEDED**。原文保留，不据此覆盖当前 `AGENTS.md`、R6 与 M0 权威入口。
+- [`ARCHITECTURE_FINAL.md`](ARCHITECTURE_FINAL.md) 保留 2026-08-14 的架构收敛提案；其中 Tauri/React 壳层图是历史方案，当前正式桌面壳以 C#/Avalonia 为准。
+- [`check_r6_taskpack_authority.py`](../../scripts/maintenance/check_r6_taskpack_authority.py) 只校验 R6 权威包的冻结身份；它**不校验全部 2026-08 冻结文档和增补包的 SHA-256**。旧包的 `.sha256` 文件和 Git 历史是历史完整性依据，不应误称为当前仓库 convention gate 的覆盖范围。
+
 ## 权威顺序
 
 发生冲突时，按以下顺序处理：
@@ -32,4 +40,4 @@
 3. 如确需新任务，先追加 `CHANGE_PROPOSAL`；
 4. 只有用户明确批准新基线时，才新增版本文件；不得替换 v1。
 
-仓库 convention gate 会验证冻结文件和批准增补包的固定 SHA-256，防止误改。Git 历史和云端提交 SHA 提供第二层对照依据。
+当前 gate 的覆盖范围以 `scripts/maintenance/check_r6_taskpack_authority.py` 为准：它校验 R6 权威包身份，**不校验全部 2026-08 冻结文档和增补包的 SHA-256**。旧版全量哈希门禁说明是 2026-08 状态记录，已由 R6/M0 执行权威取代；冻结原文与 `.sha256` 收据仍保留作历史来源证据。Git 历史和云端提交 SHA 提供额外对照依据。

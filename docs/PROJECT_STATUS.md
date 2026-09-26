@@ -1,6 +1,8 @@
 # 项目当前状态
 
-> **现场真值（2026-09-02）**：当前唯一的实时状态入口为
+> **HISTORICAL / FROZEN（2026-08 至 2026-09-02 快照）**：本页旧状态、路线和入口链接均不得作为当前真值。当前权威链见 `AGENTS.md`、`DECISION_SUPERSESSION_LEDGER.yaml`、`docs/DOCUMENTATION_AUTHORITY_INDEX.md` 与 R6/M0。正式 UI 是 C#/Avalonia；React/Tauri 旧路线仅为恢复和行为参考。
+
+> **当时的现场真值（2026-09-02）**：旧入口曾指向
 > [`current/CURRENT_REALITY_2026-09-01.md`](current/CURRENT_REALITY_2026-09-01.md)。
 > 它记录 `main`/`origin/main`、Green 运行目录、最新公开 Release 与精确 SHA CI
 > 的现场证据边界；历史 Release 收据和本页以下段落均不得替代 Git/GitHub 读回。
@@ -17,7 +19,7 @@
 
 > **UI 发布缺口纠偏（2026-08-27）**：上述发布裁决不包含 OSUI v3 设计采用、中文一致性与真实视觉对比门，因此 v0.6.11 只能判定发布工程 PASS，不能判定 UI 产品验收 PASS。该 tag/Release 保持不可变；当前 main 的 OSUI Archive Desk 生产接入必须经过新的 Chromium/Tauri/exact-SHA 候选后才能进入后续版本。见 [`current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`](current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md)。
 
-> 更新：2026-08-28。本页是能力状态入口；前端单壳收敛当前事实见 [`current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md`](current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md)。旧审计文件是历史快照；实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
+> 更新：2026-08-28。此处链接的前端单壳收敛记录现已冻结为 React/Tauri 历史快照；实时分支、SHA、dirty 状态与 CI 必须从 Git/GitHub 读取。
 
 ## 发布真相
 

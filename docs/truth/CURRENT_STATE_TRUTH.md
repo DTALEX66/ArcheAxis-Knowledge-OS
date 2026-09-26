@@ -1,5 +1,11 @@
 # Current State Truth — ArcheAxis Knowledge
 
+> **HISTORICAL SNAPSHOT (2026-08-09; its execution/status claims are superseded by R6/M0).**
+> Keep this page as a record of the August truth model and evidence rules, not as the
+> current execution queue. The active baseline is [R6](../authority/taskpack-0919-r6/EXECUTOR-START.md),
+> live progress is [R6-EXECUTION](../current/R6-EXECUTION.md) plus [R6-STATE](../current/R6-STATE.json),
+> and current priority is [M0](../current/M0-DIRECTION-OVERRIDE-20260920.md).
+>
 > 文档 ID：`AXW-CURRENT-STATE-v1-2026-08-09`
 >
 > 唯一现场入口：**`docs/current/CURRENT_REALITY_2026-09-01.md`**；
@@ -18,7 +24,7 @@
 
 规则：**没有 exact-SHA 执行证据的“已完成”声明一律不是当前事实**，只能作为候选或历史。candidate 永远不能自动提升为 verified truth。
 
-## 2. 冻结执行状态入口
+## 2. Historical August baseline and addenda — immutable source material, not the current execution queue
 
 - 任务定义：`docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`（FROZEN）
 - 增补：`docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`

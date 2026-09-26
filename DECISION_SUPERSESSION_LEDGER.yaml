@@ -76,7 +76,7 @@ decisions:
     replacement: 用户 2026-09-07 批准 AAK-REUSE-FIRST-20260907-R2（ARCHEAXIS-REUSE-FIRST-FULL-TASKPACK-2026-09-07，plan_only，未签发授权本身）：单一获授权执行者按同一依赖图连续推进就绪 X 任务至 X11/M0 候选，模型品牌不是权限；最终资格门为独立 GPT 审计 Q00/Q01；F01-F06 保留冻结
     reason: taskpack X00 work item 1/2；EXECUTOR-START.md 第 4、10 条；完整 D01-D16 映射见 docs/authority/taskpack-0907/EXECUTION.md
   - id: SUP-013
-    status: effective
+    status: superseded
     supersedes: SUP-002 (React/Tauri UI retires) 与 SUP-007 (首交付仅 Avalonia) 中禁止 Web 表现层的部分
     old_claim: Web/TS 不作为交付表现层，首个正式交付直接全 Avalonia/C# 桌面
     replacement: 接纳 TypeScript/JavaScript 作为复用上游学习/可视化/3D 交互的薄适配表现层；第一版优先本地 Web 学习入口或可承载它的薄桌面壳，全原生 Avalonia 页面重写不阻塞首版；旧 React/Tauri 仅作维护、恢复与资产供体，不另建第二默认产品
@@ -114,3 +114,9 @@ decisions:
     old_claim: R5 at docs/authority/taskpack-0912-r5 is the single active execution plan
     replacement: R6 at docs/authority/taskpack-0919-r6 remains the single immutable activity base (plan_id AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6); the owner-provided M0-SHORTEST-COMPLETE-LOOP overlay at docs/current/M0-DIRECTION-OVERRIDE-20260920.md changes execution priority to one shortest real closed loop, without creating a parallel TaskPack or erasing R6/R5 evidence.
     reason: Owner-provided M0 priority redirection on 2026-09-20. It pauses breadth-first capability expansion until P0-P6 core responsibilities have one real implementation and a Local Green Owner Gate result. R6 contracts, boundaries, release freeze and historical receipts remain in force.
+  - id: SUP-021
+    status: effective
+    supersedes: SUP-013 first-release shell priority only; its bounded TypeScript/JavaScript reuse permission is retained
+    old_claim: The first release may prioritize a local Web learning entry or thin host, and a full native Avalonia surface does not block that release.
+    replacement: The R6 formal vNext product shell is C#/Avalonia in apps/ArcheAxis.Desktop, using the loopback HTTP contract to the Rust Core and WriterActor; Python remains isolated capability workers. Legacy React/Tauri and Web surfaces are recovery, migration, behavior and capability donors, not the default product shell. Reuse existing TypeScript/JavaScript assets only as bounded R6-registered capability integrations behind the formal shell; do not create a second default shell. This decision does not delete historical assets, relax the M0 release freeze, or waive the A16 Owner Gate.
+    reason: The immutable 2026-09-19 R6 TaskPack sections 5 and 19, PROJECT_CONTRACT.yaml language_authority, config/product/UI_CONTRACT_V2.json productShell, and AGENTS.md section 6 define the later formal shell. This supersedes only SUP-013's first-release Web priority and non-blocking Avalonia clause; the existing TypeScript/JavaScript reuse intent is preserved within R6 boundaries.

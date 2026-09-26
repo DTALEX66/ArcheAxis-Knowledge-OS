@@ -58,11 +58,14 @@ P3 Avalonia UI 是当前前端优先切片。未完成 Owner Gate、独立审计
 | Tesseract 语言包 | OCR 中文/英文识别（chi_sim + eng） | https://github.com/tesseract-ocr/tessdata |
 | FFmpeg | 音视频处理 | https://ffmpeg.org/download.html |
 | Git | 版本控制 | https://git-scm.com/download/win |
-| Node.js LTS | 桌面构建（可选） | https://nodejs.org/ |
-| Rust toolchain | Tauri 桌面构建 | https://rustup.rs |
-| VS Build Tools (MSVC) | Rust/桌面编译链 | https://visualstudio.microsoft.com/visual-cpp-build-tools/ |
+| .NET 10 SDK | 正式 C#/Avalonia 桌面构建 | https://dotnet.microsoft.com/download/dotnet/10.0 |
+| Rust toolchain | 正式 Rust Core 构建；不再作为 Tauri 产品壳工具链 | https://rustup.rs |
+| VS Build Tools (MSVC) | Rust Core 与 Windows 桌面本机构建链 | https://visualstudio.microsoft.com/visual-cpp-build-tools/ |
+| Node.js LTS | Legacy React/Tauri 恢复与行为回归（非正式产品壳） | https://nodejs.org/ |
 | Playwright 浏览器 | 浏览器自动化 | https://playwright.dev/python/docs/browsers |
 | scoop | Windows 包管理（可选） | https://scoop.sh |
+
+表中列出的是能力需求，不构成安装授权；本机执行先按 [`docs/SHARED_RESOURCE_PATH_INDEX.md`](docs/SHARED_RESOURCE_PATH_INDEX.md) 使用已登记工具链，避免重复安装。
 
 完整清单与安装步骤见 [`docs/environment/EXTERNAL_DEPENDENCIES.md`](docs/environment/EXTERNAL_DEPENDENCIES.md)（同步于 `D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`）。
 
@@ -98,11 +101,17 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 - **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
 - **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
 - **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **桌面 Workspace UI v3**：默认采用离线黑白深色基线；Archive Desk / Liquid Glass 仅作为历史设计参考。一级空间栏、动态二级导航、研究台账、上下文与证据检查器与活动坞均在 canonical shell 中。Chromium/Tauri/UI 视觉证据与公开发布资产属于不同证据层；当前本地维护不创建新版本或改写公开资产。
+- **桌面 Workspace UI v3**：正式壳为 C#/Avalonia（`apps/ArcheAxis.Desktop/`）+ Rust Core；默认采用离线黑白深色基线。Archive Desk / Liquid Glass 仅作为历史设计参考。React/Tauri/Chromium 回归仅覆盖 legacy 兼容壳，不证明正式桌面 UI 已验收。当前 Avalonia 原生交互证据、Candidate 与 Green 安装证据分开记录；本地维护不创建新版本或改写公开资产。
 - **当前版本**：`0.6.14`；`v0.6.14` 是当前公开稳定 Release。当前 `main` 是不发新版本的维护主线；其路径选择 CI、全量资格化和 Green 安装态分别记录，不能互相替代；历史标签均不可改写。
 - **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.11` 的 tag/commit/tree、exact-SHA CI `33076417510`、Release run `33077810146`、三分发生命周期与 9 资产身份/摘要读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
 
-Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 与 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
+Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前执行与任务状态见 [`docs/current/R6-EXECUTION.md`](docs/current/R6-EXECUTION.md) 与 [`docs/current/R6-STATE.json`](docs/current/R6-STATE.json)，验证规则见 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。[`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 是历史/冻结快照。
+
+> **Historical snapshot: pre-R6 Research implementation.** The following
+> FastAPI/SQLite facade, routes and completion claims describe an earlier
+> architecture. They remain migration/compatibility evidence and do not define
+> the formal vNext shell, Core, current capability status or active queue.
+> Current execution is defined by R6/M0 and read back in `docs/current/R6-EXECUTION.md`.
 
 ## Phase 4 Research Status
 
@@ -132,6 +141,11 @@ Research → Evidence → Knowledge → Learning
 ```
 
 本项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/Receipt 同事务边界、按需 dispatcher 与用户级状态/投影页面；dispatcher 已有服务级成功/失败/重试/lease 保护，本地真实 Chromium upload → dispatch → receipt → reload gate 已通过验证。审计事件流、SSE、lease-fenced 异步 Worker 和 Job Center 投影已接入；通用 Planner、完整 Tauri WebView 点击级证据和更完整的用户级 Job Center 交互仍未闭环。当前已有 Release Manifest、媒体基础链、图像 OCR、Windows 构建、NSIS 生命周期门禁和公开 `v0.5.0` 发布资产；ASR 仍未闭环。
+
+> **Historical snapshot: pre-R6 program roadmap.** The Phase 0–9 / Product
+> Stage A0 table and following milestone narrative preserve their original
+> dated status; they are not the current execution plan. Current execution is
+> defined by R6/M0 in the documentation authority chain.
 
 ## 规划与进度
 
@@ -196,7 +210,7 @@ Phase 0 真实基线 ✅
 
 本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、通用 Planner、完整用户级 Job Center、公开 Alpha/Beta 能力已完成；公开稳定 `v0.5.0` 发布资产本身已完成并有独立回读证据。
 
-未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。
+未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/current/R6-EXECUTION.md`](docs/current/R6-EXECUTION.md)、[`docs/current/R6-STATE.json`](docs/current/R6-STATE.json) 与 [`docs/current/M0-DIRECTION-OVERRIDE-20260920.md`](docs/current/M0-DIRECTION-OVERRIDE-20260920.md)。`docs/PROJECT_STATUS.md` 仅作历史快照。
 
 开源项目、知识库软件与 Obsidian/PKM 的吸收状态、前后端阶段、Adapter 边界和验收门禁见 [`docs/ABSORPTION_EXECUTION_MATRIX.md`](docs/ABSORPTION_EXECUTION_MATRIX.md)；候选登记不等于运行时集成。
 

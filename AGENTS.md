@@ -63,7 +63,7 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 ## 5. Network Rules
 
 - Default work is local. Network access is allowed when the user asks to pull, push, clone, verify remote status, or fetch current external information.
-- GitHub remote for this repository uses HTTPS: `https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git`.
+- Repository identity: `DTALEX66/ArcheAxis-Knowledge-OS`. Determine the effective fetch/push transport from current remote URLs, Git URL rewrites and SSH overrides; a documented HTTPS URL does not establish the actual protocol. For authorized operations requiring existing authentication, use the normal approved execution path when the sandbox identity cannot access it. Read success does not authorize push, ref deletion or publication.
 
 ## 6. Implementation Workflow
 

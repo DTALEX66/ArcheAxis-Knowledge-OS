@@ -1,5 +1,7 @@
 # ArcheAxis Knowledge — Final Architecture（任务包 2026-08-14 收敛声明）
 
+> **HISTORICAL / SUPERSEDED for current execution (2026-09-26):** This dated proposal is preserved as design history. Its Tauri/React presentation-shell diagram does not define the current product shell; use the current project authority and R6/M0 records, which establish C#/Avalonia as the formal desktop shell.
+
 > 对应《星环知识平台（ArcheAxis Knowledge）最终架构、外置能力仓与多形态发布任务包》§0/§2/§3。
 > 状态：2026-08-15 R0-R8 批次执行中（LOG-175 起逐批入账）。
 

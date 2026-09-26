@@ -5,8 +5,8 @@
   "taskpack_sha256_scope": "user-provided source bytes with CRLF line endings",
   "repository_taskpack_sha256": "788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b",
   "repository_taskpack_line_endings": "LF",
-  "updated_at": "2026-09-20T15:59:52Z",
-  "subject_sha": "c731532413d11393d4bc582af14ce9b503a9d8cd",
+  "updated_at": "2026-09-26T07:31:00+00:00",
+  "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
   "delivery_line": "main",
   "release_status": "FROZEN",
   "overall_status": "IN_PROGRESS",
@@ -42,8 +42,8 @@
       "id": "A04",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-    "remaining_gap": "V3 governance metadata now has a canonical Rust write path, sidecar persistence, projection and revision inheritance; current registered Rust/MSVC targeted API/readback tests pass, while UI wiring, cold restart and real first-use journey remain open",
-    "subject_sha": "4077f50d06633b6c91578354720f18665c08d965"
+      "remaining_gap": "V3 governance metadata has the canonical Rust write path, sidecar persistence, projection and revision inheritance; Avalonia entry controls passed the focused/full navigation contract and Release build, and the Rust API regression now closes/reopens the app over the same SQLite file and reads the fields back (5 passed). Desktop/Core process restart through the UI and the real first-use journey remain open",
+      "subject_sha": "4077f50d06633b6c91578354720f18665c08d965"
     },
     {
       "id": "A05",
@@ -70,8 +70,8 @@
       "id": "A08",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "Core Assessment and latest review answer/schedule/mastery projection now have a read-only SQLite-reopen API readback; real Avalonia first-use, authoritative mastery projection and adaptive journey remain open",
-      "subject_sha": "8e8d33ea41c152f403e83c35aadd6272ae50c64b"
+      "remaining_gap": "current synthetic native UIA now covers real picker import, persisted source/job/transform, exact-quote source-bound human Candidate+anchor+V3, Library search and Knowledge V3 readback, source+anchor-bound Assessment, one FSRS Good review, answer/event/due/schedule readback and same-database cold restart; SQLite confirms one event/key and FSRS scheduled. A separate actual --learning-smoke replay reused the event key, returned duplicate=true, retained exactly one event, and read back same Assessment/event/answer after restart. Mastery remains closed=false; A08 full Human Learning Kernel integration with DeepTutor/OpenTutor/LearningMAP and real adaptive learning remains open 2026-09-26 synthetic native two-item regression additionally proves new item B selection, answer submission and same-Assessment/answer/FSRS readback after Desktop/Core restart; the deferred ID event race was fixed. This does not close Mastery or real adaptive learning.",
+      "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd"
     },
     {
       "id": "A09",
@@ -98,29 +98,29 @@
       "id": "A12",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "current exact-SHA candidate, manifest, runtime/workers verification and headless smoke now have local evidence; Avalonia first-use, clean-machine, signing, installer and Green installation evidence remain open",
-      "subject_sha": "452b5d0cb4f18746347996f7bc03010f4b067637"
+      "remaining_gap": "B10 Avalonia shell remains TESTED_LOCAL_PARTIAL. Fresh Release Candidate `fresh-2994efa-20260926` uses commit 2994efa08d3e4f6ea561831fd4088d6d1b290cdd / tree 4fc581e7dcde90a30d8e9019f26fdf362bfa5cc9 and current-source snapshot 53acfe1918c0489434a13977f9c1776f305d06b66f566427978dc3015ba4ac62 (1543 files, 10 untracked build inputs). Candidate verifier passed with runtime/workers/provenance/current-source required (18246 files); ZIP SHA256 22d58f18ccf8e0daf0b32ace2baa0d0cadc1efe8ab70458c9d7a433bd88bb1b4. Desktop DLL SHA256 2db9ef70aca66e58accaeefc3b6b4eb62dd1e820aeebdc2729abfad2f5ad1c7eb; EXE SHA256 5d63fbf3617d25123ccd700b12cf93f32ca37f93bbf2e8d29e858f9629d0c055. Package launched directly and remained alive 20 seconds with isolated data root; NU1900 vulnerability-feed warning remains. Prior 16/16 UIA route evidence and palette/Ctrl+K evidence belong to the earlier Desktop DLL and are not transferred to this rebuilt DLL; rerun route/UIA matrix. Command text entry/result activation, full menu, viewport/DPI screenshots, IME, screen reader, high contrast, real first-use/P3 and Research/Recovery/Plugin/Model/Editor/Graph contracts remain open; Mastery closed=false and Owner gates remain open. Source/UI/Candidate contract run via scripts/runtime/dev.py: 296 passed, 1 skipped (12.09s); native UIA remains unverified for the rebuilt Desktop DLL.",
+      "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd"
     },
     {
       "id": "A13",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "current exact-SHA candidate and headless worker/Desktop smoke now have local evidence; backup/migration/schema/FK/source-object and SQLite integrity gates pass locally, while workspace identity, real Legacy semantic diff, GUI first-use, installer/signing, Green activation and rollback remain owner-gated",
-      "subject_sha": "452b5d0cb4f18746347996f7bc03010f4b067637"
+      "remaining_gap": "Fresh exact-source Candidate `fresh-2994efa-20260926`: commit 2994efa08d3e4f6ea561831fd4088d6d1b290cdd, tree 4fc581e7dcde90a30d8e9019f26fdf362bfa5cc9, snapshot 53acfe1918c0489434a13977f9c1776f305d06b66f566427978dc3015ba4ac62; required provenance/runtime/workers/current-source verifier PASS, 18246 files; archive SHA256 22d58f18ccf8e0daf0b32ace2baa0d0cadc1efe8ab70458c9d7a433bd88bb1b4. Fresh Desktop DLL was rebuilt from current source and the package stayed alive 20 seconds in an isolated launch. Previous UIA route/keyboard evidence references an older DLL, so current rebuilt UI still needs the full route/interaction replay. Workspace identity, real Legacy semantic migration, complete P3 Golden Journey and Green replace/restart/rollback Owner gates remain open; release FROZEN, no Green action. Source/UI/Candidate contract run via scripts/runtime/dev.py: 296 passed, 1 skipped (12.09s); native UIA remains unverified for the rebuilt Desktop DLL.",
+      "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd"
     },
     {
       "id": "A14",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "stage contract, answer readback, canonical machine retest binding and non-empty correction/retest evidence guards have local evidence; real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey and complete restart readback remain open",
+      "remaining_gap": "stage contract, answer readback, canonical machine retest binding and non-empty correction/retest evidence guards have local evidence; a synthetic failed-task/retest pair bound to the same accepted Knowledge also survives online backup/restore. The real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey, real model execution and complete product restart readback remain open",
       "subject_sha": "a0b93bd8363747f65be40aa5c97bd6479dc08400"
     },
     {
       "id": "A15",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-    "remaining_gap": "independent current-SHA audit at a5f52101 confirms candidate provenance 452b5d0c and current remote identity, but G01-G14 remain BLOCKED for missing full qualification, real formats/quality, model, Legacy, GUI/clean-machine, runtime-directory and release evidence; product NOT_READY and A16 remains blocked",
-    "subject_sha": "a5f521010686c0c9bc9323c7de4f21eb31ac36de"
+      "remaining_gap": "historical independent audit at a5f52101 recorded candidate provenance 452b5d0c and remote identity at that audit time (not current HEAD or live remote verification), but G01-G14 remain BLOCKED for missing full qualification, real formats/quality, model, Legacy, GUI/clean-machine, runtime-directory and release evidence; product NOT_READY and A16 remains blocked",
+      "subject_sha": "a5f521010686c0c9bc9323c7de4f21eb31ac36de"
     },
     {
       "id": "A16",

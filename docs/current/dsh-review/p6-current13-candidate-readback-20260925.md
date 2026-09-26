@@ -145,3 +145,13 @@ against any released artefact.
 
 Nothing was written outside this branch. No Candidate, manifest, zip, worker profile or launcher was
 modified.
+
+## Correction — 2026-09-26 current-source verifier semantics
+
+The command in §3 and §7 **was executed** and returned `ok=false` / exit `1`; therefore its evidence
+class is an executed current-source mismatch, not `NOT_EXECUTED`. The live root tree differed from
+the Candidate snapshot at readback. Concurrent editing is a plausible explanation recorded by the
+original author, but the output alone does not prove concurrency was the sole cause and does not
+establish which side was stale. Keep the Candidate's ordinary manifest checks (`ok=true`) separate
+from the failed current-source recross-check. A later, separately bound current Candidate is recorded
+in `docs/current/R6-EXECUTION.md`; it does not retroactively change this 2026-09-25 result.

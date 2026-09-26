@@ -1,8 +1,10 @@
-# Hermes handoff — archeaxis-workspace
+# HISTORICAL / SUPERSEDED — Hermes handoff — archeaxis-workspace
+
+> **FROZEN HANDOFF SNAPSHOT.** The “Current authoritative continuation” section below is historical as of 2026-09-02 and is not current authorization or architecture guidance. The formal desktop is C#/Avalonia with Rust Core; React/Tauri is legacy recovery/behavior reference. Use the current `AGENTS.md`, `DECISION_SUPERSESSION_LEDGER.yaml`, R6/M0 and documentation authority index. Preserve this file as historical evidence.
 
 Updated: 2026-09-01 (Green in-place repair and current-state correction; older notes retained below as history)
 
-## Current authoritative continuation
+## Frozen 2026-09-02 continuation snapshot (not current authority)
 
 Do not create a new version, tag, installer, or GitHub Release for this work. The fixed target is the existing Green distribution at `D:\All projects\ArcheAxis.Knowledge.Green-x64`; product data remains under its `data\` directory and is not inspected or copied.
 
@@ -247,7 +249,7 @@ Implemented and CI-verified (continuous green: CI runs 524-592; 585/588 were pre
 - Commits: `git add <specific files>` only; commit messages via `git commit -F <file>`.
 - E: drive is protected (exact per-request authorization required). `ceshi`/`Obsidian知识库` are read-only black boxes.
 - `.hermes/` holds runtime data only; never commit it. `docs/truth/` logs are tracked.
-- Browser-smoke gate由 `frontend/src/**`、`app/workspace/router.py` 与 `scripts/a0_browser_smoke.py` 触发；验收对象是 canonical React 壳，不再借用旧 UI 文件强制运行。
+- （历史 R5 断言，已废止）当时的 browser-smoke gate 覆盖 `frontend/src/**`、`app/workspace/router.py` 与 `scripts/a0_browser_smoke.py`；这不代表 React 壳是当前 canonical shell。
 - Local chromium cache lives inside the project (ARCHEAXIS_DATA_DIR isolation for browser tests).
 - GitHub API unauthenticated rate limit 60/hr — use browser Actions page for CI verification when limited; CI diagnostics via `::error::` workflow annotations.
 
