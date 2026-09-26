@@ -3397,3 +3397,28 @@ byte-level sha256, and it demanded accounting for empty tables. Both were fixed 
 original in place, and signs no migration qualification. The new probe and the A08/backup probes still live
 under `.project-local/task-runtime/wsr/` and are not yet tracked regressions. A15/A16 remain unsigned;
 release FROZEN; `local_green_updated=false`.
+
+### Migration fix integrated to `main`, and a GatePlan coverage note — 2026-09-26
+
+| step | evidence |
+| --- | --- |
+| branch push run on `67a95352` | [36252768113](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36252768113) **success**: `a0-gates`, `gateplan`, `lint`, `test (3.12)`; every other gate skipped by GatePlan |
+| `main` before | `ea2c3831d9a46ae83fcf8199bc9ccf65da54e598` |
+| `main` after | `67a95352b6ec9ce007f81b401d17f4101a71d5cf` |
+| command | `git push origin 67a95352:main` - fast-forward, no force, `git merge-base --is-ancestor origin/main HEAD` exited 0 |
+| remote ack | `ea2c3831..67a95352  67a95352 -> main` |
+| `main` run on the new SHA | [36253059633](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36253059633) **success**: `a0-gates`, `gateplan`, `lint`, `test (3.12)`; the rest correctly skipped |
+
+Locally that tree measured **3376 passed, 46 skipped, 0 failed, 137 subtests** (238.60 s), which is the 3369
+of the previous slice plus the 7 new `test_migrate_rowidless_tables.py` tests.
+
+**GatePlan coverage note, recorded because it is easy to misread.** `migration-targeted` is **skipped** for a
+change to `app/workspace/migrate.py` - the classifier maps those paths to `py-primary`, not to the
+migration-targeted gate. Coverage is not lost: `migration-targeted` runs `tests/test_migration_runner.py`
+alone, and that file is inside `tests/`, which the `test (3.12)` job runs in full. So the suite that gates
+this change is a superset of the targeted gate. Recorded so "migration-targeted was skipped" is not later
+read as "migration was not tested".
+
+**Non-claims.** Green here is a gate result for this path set, not product qualification. `main` has been
+fully force-qualified only at `ea2c3831` (20/20); `67a95352` is qualified by the required-gate set above.
+A15/A16 remain unsigned, release FROZEN, Local Green untouched, `local_green_updated=false`.
