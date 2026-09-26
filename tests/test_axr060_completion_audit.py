@@ -5,8 +5,94 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT = ROOT / "docs" / "current" / "AXR_060_COMPLETION_AUDIT_2026-08-23.md"
+
+# Bounded remote probe. A slow or unreachable remote must fail loudly instead of
+# hanging the suite or being mistaken for "the branch was deleted".
+_REMOTE_TIMEOUT_SECONDS = 60
+
+# Surfaces that make present-day release claims. They are checked unconditionally:
+# a receipt marker inside them can never exempt them from the SHA scan.
+_LOCKED_SURFACES = (
+    "SYSTEM_BOUNDARY.md",
+    "reports/current",
+)
+
+# The only directory whose generated audit receipts may be exempt, and only for
+# the exact schema identifiers below.
+_RECEIPT_ELIGIBLE_PREFIX = "docs/current/"
+
+# Exact `schema_version` identifiers of generated branch/lineage audit receipts.
+# Deliberately an exact-value allowlist: a bare `aaos-` prefix is NOT a waiver.
+_RECEIPT_SCHEMAS = frozenset(
+    {
+        "aaos-branch-commit-path-audit/v1",
+        "aaos-branch-disposition-review/v1",
+        "aaos-frozen-donor-hash-audit/v1",
+        "aaos-history-path-disposition/v1",
+        "aaos-local-repository-lineage-readback/v1",
+        "aaos-untracked-lineage-metadata/v1",
+    }
+)
+
+# Markdown receipts that name themselves non-authority snapshots. Matching this
+# marker alone is never sufficient: the file must also sit in an approved path.
+_RECEIPT_MD_MARKERS = (
+    "FROZEN AUDIT SNAPSHOT / NON-AUTHORITY",
+)
+
+
+def _receipt_schema_of(path: Path, root: Path = ROOT) -> str | None:
+    """Return the approved receipt schema a file declares, else None.
+
+    Path authority is evaluated against ``root`` and checked first, so a locked
+    release surface can never be exempt whatever its body says, and a file
+    outside the receipt-eligible directory is refused before any marker or
+    schema value is considered.
+    """
+    try:
+        relative = path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return None
+    if relative == _LOCKED_SURFACES[0] or relative.startswith(_LOCKED_SURFACES[1] + "/"):
+        return None
+    if not relative.startswith(_RECEIPT_ELIGIBLE_PREFIX):
+        return None
+    try:
+        head = path.read_text(encoding="utf-8", errors="replace")[:600]
+    except OSError:
+        return None
+    if path.suffix == ".json":
+        try:
+            declared = json.loads(path.read_text(encoding="utf-8")).get("schema_version")
+        except (OSError, json.JSONDecodeError, AttributeError):
+            return None
+        # Exact identifier match: a bare `aaos-` prefix is not a waiver.
+        return declared if declared in _RECEIPT_SCHEMAS else None
+    if path.suffix == ".md":
+        return next((marker for marker in _RECEIPT_MD_MARKERS if marker in head), None)
+    return None
+
+
+def _surface_shas(root: Path) -> set[str]:
+    """40-hex identifiers the SHA-existence scan must check under ``root``."""
+    surfaces = [root / "SYSTEM_BOUNDARY.md"]
+    surfaces.extend((root / "docs" / "current").glob("*"))
+    surfaces.extend((root / "reports" / "current").glob("*"))
+    found: set[str] = set()
+    for path in surfaces:
+        if not path.is_file():
+            continue
+        if _receipt_schema_of(path, root) is not None:
+            continue
+        found.update(
+            re.findall(r"\b[0-9a-f]{40}\b", path.read_text(encoding="utf-8", errors="replace"))
+        )
+    return found
+
 TASK_IDS = tuple(
     f"AXR-060-{number:03d}"
     for number in (
@@ -180,16 +266,31 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     if convergence.is_file():
         payload = json.loads(convergence.read_text(encoding="utf-8"))
         # One round trip: a per-branch `ls-remote` costs seconds each and this
-        # receipt lists every local branch.
-        remote = subprocess.run(
-            ["git", "-C", str(ROOT), "ls-remote", "--heads", "origin"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            check=False,
-            text=True,
-            encoding="utf-8",
-        )
-        assert remote.returncode == 0, "git ls-remote failed; cannot judge branch deletion"
+        # receipt lists every local branch. Bounded so an unreachable remote
+        # cannot hang the suite; a failure is reported, never read as "deleted".
+        try:
+            remote = subprocess.run(
+                ["git", "-C", str(ROOT), "ls-remote", "--heads", "origin"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                text=True,
+                encoding="utf-8",
+                timeout=_REMOTE_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            pytest.fail(
+                "REMOTE_TIMEOUT: git ls-remote exceeded "
+                f"{_REMOTE_TIMEOUT_SECONDS}s; cannot classify branch deletion"
+            )
+        if remote.returncode != 0:
+            pytest.fail(
+                "REMOTE_UNAVAILABLE: git ls-remote failed with exit "
+                f"{remote.returncode}; cannot classify branch deletion"
+            )
+        # `ls-remote` describes the remote *now*. It can support "the branch is
+        # not currently published", which is all this test needs, but it can
+        # never establish that the branch once existed or that a tip is genuine.
         live_heads = {
             line.split("\t", 1)[1].strip()
             for line in remote.stdout.splitlines()
@@ -229,37 +330,11 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
         ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True, encoding="utf-8"
     ).strip()
     allowed_shas.add(current_head)
-    surfaces = [ROOT / "SYSTEM_BOUNDARY.md"]
-    surfaces.extend((ROOT / "docs" / "current").glob("*"))
-    surfaces.extend((ROOT / "reports" / "current").glob("*"))
-    # Generated audit receipts are excluded from the SHA-existence scan.
-    #
-    # They record the state of branches that were audited locally and are not
-    # published, so the commits they cite do not exist in a fresh clone and can
-    # never satisfy an existence check there. They are branch-governance
-    # evidence, not present-day release claims: the release-claim surfaces
-    # (SYSTEM_BOUNDARY.md, reports/current/, and the explicitly declared release
-    # and R5 source objects above) remain fully checked, which is what this test
-    # exists to protect.
-    def _is_audit_receipt(path: Path) -> bool:
-        if path.suffix not in {".json", ".md"}:
-            return False
-        head = path.read_text(encoding="utf-8", errors="replace")[:600]
-        # Generated receipts declare an `aaos-*` audit schema; the cloud-audit
-        # reconciliation names itself a frozen non-authority snapshot.
-        return (
-            '"schema_version": "aaos-' in head
-            or '"schema_version":"aaos-' in head
-            or "FROZEN AUDIT SNAPSHOT / NON-AUTHORITY" in head
-        )
-
-    found: set[str] = set()
-    for path in surfaces:
-        if not path.is_file():
-            continue
-        if _is_audit_receipt(path):
-            continue
-        found.update(re.findall(r"\b[0-9a-f]{40}\b", path.read_text(encoding="utf-8")))
+    # Release surfaces are checked unconditionally; only generated receipts in
+    # the approved directory may be exempt, and only for an exact schema
+    # identifier (see _receipt_schema_of). A body marker alone is not a waiver,
+    # so a receipt marker placed inside SYSTEM_BOUNDARY.md changes nothing.
+    found = _surface_shas(ROOT)
 
     # Current evidence surfaces intentionally retain historical receipt SHAs.
     # A retained SHA is admissible when it is a real commit reachable from the
@@ -309,3 +384,164 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     assert sorted(path.name for path in (ROOT / "reports" / "current").iterdir()) == [
         "README.md"
     ]
+
+
+# ── Surface-classification regressions ────────────────────────────────────
+#
+# These exercise the release-surface / receipt boundary directly against
+# isolated fixtures. They must never rely on editing the real current surfaces,
+# and they must not be satisfiable by a body marker alone.
+
+_FAKE_FULL_ID = "0123456789abcdef0123456789abcdef01234567"
+
+
+def _fixture_root(tmp_path: Path, *, boundary: str = "", reports: bool = True) -> Path:
+    """Minimal repo-shaped tree with the two locked surfaces."""
+    (tmp_path / "docs" / "current").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "SYSTEM_BOUNDARY.md").write_text(boundary, encoding="utf-8")
+    if reports:
+        (tmp_path / "reports" / "current").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "reports" / "current" / "README.md").write_text(
+            "surface index\n", encoding="utf-8"
+        )
+    return tmp_path
+
+
+def test_A_release_surface_is_scanned_even_when_it_carries_a_receipt_marker(
+    tmp_path: Path,
+) -> None:
+    """A receipt marker inside a locked surface must not exempt it."""
+    root = _fixture_root(
+        tmp_path,
+        boundary=(
+            "# System boundary\n\n"
+            "FROZEN AUDIT SNAPSHOT / NON-AUTHORITY\n\n"
+            f"declared: {_FAKE_FULL_ID}\n"
+        ),
+    )
+    assert _FAKE_FULL_ID in _surface_shas(root)
+    # The locked path is refused before any marker is even considered.
+    assert _receipt_schema_of(root / "SYSTEM_BOUNDARY.md", root) is None
+
+
+def test_A2_reports_current_is_scanned_even_with_a_receipt_schema(tmp_path: Path) -> None:
+    """reports/current/ is locked too: a valid schema there is still not a waiver."""
+    root = _fixture_root(tmp_path, boundary="# boundary\n")
+    forged = root / "reports" / "current" / "forged.json"
+    forged.write_text(
+        json.dumps(
+            {"schema_version": "aaos-branch-commit-path-audit/v1", "declared": _FAKE_FULL_ID}
+        ),
+        encoding="utf-8",
+    )
+    assert _receipt_schema_of(forged, root) is None
+    assert _FAKE_FULL_ID in _surface_shas(root)
+
+
+def test_B_fabricated_full_id_on_a_release_surface_is_visible_to_the_scan(
+    tmp_path: Path,
+) -> None:
+    """A fabricated 40-hex id must reach the scan, which rejects it as no object."""
+    root = _fixture_root(tmp_path, boundary=f"# boundary\n\nclaim: {_FAKE_FULL_ID}\n")
+    assert _FAKE_FULL_ID in _surface_shas(root)
+    probe = subprocess.run(
+        ["git", "-C", str(ROOT), "cat-file", "-t", _FAKE_FULL_ID],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+        text=True,
+        encoding="utf-8",
+    )
+    assert probe.returncode != 0, "fixture id unexpectedly exists in this repository"
+
+
+def test_C_field_declaring_a_full_id_rejects_a_truncated_one(tmp_path: Path) -> None:
+    """Truncation is a data defect: a short id never satisfies a full-id field."""
+    real = "4fc581e7dcde90a30d8e9019f26fdf362bfa5cc9"
+    root = _fixture_root(tmp_path, boundary="# boundary\n")
+    truncated = real[:39]
+    (root / "docs" / "current" / "R6-TRUNCATED.json").write_text(
+        json.dumps({"tree_sha": truncated}), encoding="utf-8"
+    )
+    (root / "docs" / "current" / "R6-FULL.json").write_text(
+        json.dumps({"tree_sha": real}), encoding="utf-8"
+    )
+    scanned = _surface_shas(root)
+    # A 39-char value is not a 40-hex identifier and must not be silently
+    # promoted into the candidate set; only the full identifier qualifies.
+    assert truncated not in scanned
+    assert real in scanned
+    assert _FAKE_FULL_ID not in scanned
+
+
+def test_D_legitimate_receipts_are_exempt_by_schema_not_by_prefix(tmp_path: Path) -> None:
+    """Approved receipts in the eligible path are exempt; unknown schemas are not."""
+    root = _fixture_root(tmp_path, boundary="# boundary\n")
+    approved = root / "docs" / "current" / "AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json"
+    approved.write_text(
+        json.dumps(
+            {
+                "schema_version": "aaos-branch-commit-path-audit/v1",
+                "records": [{"tip": _FAKE_FULL_ID}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert _receipt_schema_of(approved, root) == "aaos-branch-commit-path-audit/v1"
+    assert _FAKE_FULL_ID not in _surface_shas(root)
+
+
+def test_E_unknown_aaos_prefixed_schema_is_not_a_waiver(tmp_path: Path) -> None:
+    """An arbitrary `aaos-*` prefix must not open a general exemption."""
+    root = _fixture_root(tmp_path, boundary="# boundary\n")
+    impostor = root / "docs" / "current" / "AAOS-UNREVIEWED-THING.json"
+    impostor.write_text(
+        json.dumps({"schema_version": "aaos-anything-at-all/v1", "declared": _FAKE_FULL_ID}),
+        encoding="utf-8",
+    )
+    assert _receipt_schema_of(impostor, root) is None
+    assert _FAKE_FULL_ID in _surface_shas(root)
+
+
+def test_E2_marker_only_markdown_outside_the_eligible_path_is_not_a_waiver(
+    tmp_path: Path,
+) -> None:
+    """The markdown marker is an additional condition, never sufficient alone."""
+    root = _fixture_root(tmp_path, boundary="# boundary\n")
+    (root / "docs").mkdir(exist_ok=True)
+    outside = root / "docs" / "FROZEN-NOTE.md"
+    outside.write_text(
+        f"FROZEN AUDIT SNAPSHOT / NON-AUTHORITY\n\nclaim: {_FAKE_FULL_ID}\n",
+        encoding="utf-8",
+    )
+    assert _receipt_schema_of(outside, root) is None
+
+
+def test_F_remote_absence_is_a_three_way_classification() -> None:
+    """Live heads decide published vs not-published; failure is never 'deleted'.
+
+    `ls-remote` reports the remote as it is now, so the only conclusion it can
+    support is "currently not published". The distinction that must stay
+    explicit is: published / not currently published / probe failed.
+    """
+    live_heads = {"refs/heads/main", "refs/heads/feat/kept"}
+
+    def classification(name: str) -> str:
+        return "PUBLISHED" if f"refs/heads/{name}" in live_heads else "NOT_PUBLISHED_NOW"
+
+    assert classification("main") == "PUBLISHED"
+    assert classification("chore/naming-repo-refs") == "NOT_PUBLISHED_NOW"
+    # A probe failure is its own outcome and must never collapse into the above.
+    probe_failure = "REMOTE_UNAVAILABLE"
+    assert probe_failure not in {classification("main"), classification("gone")}
+    assert probe_failure != "NOT_PUBLISHED_NOW"
+
+
+def test_G_r5_source_and_release_constraints_still_assert_ancestry() -> None:
+    """The R5 tested-source ancestry requirement must not have been relaxed."""
+    source = (ROOT / "tests" / "test_axr060_completion_audit.py").read_text(encoding="utf-8")
+    assert "merge-base" in source and "--is-ancestor" in source
+    assert "tested-source-sha:" in source
+    declared = _declared_r5_source_objects()
+    assert declared, "R5 source objects must still resolve"
+

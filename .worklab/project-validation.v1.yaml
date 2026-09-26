@@ -143,6 +143,22 @@ risk_classes:
       - "reports/**"
     gates: [static]
 
+  - id: contract-bearing-docs
+    description: >-
+      Authority/status documents that contract tests read and assert on. A docs
+      path alone would only match docs-mechanical (static), so a contract edit
+      could land without the tests that own it ever running. Exact paths only:
+      a broad docs glob would force the primary suite onto every prose change.
+    paths:
+      - docs/DOCUMENTATION_AUTHORITY_INDEX.md
+      - docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md
+      - docs/DIRECTORY_AUTHORITY_INDEX.md
+      - docs/CONFIGURATION_AUTHORITY_INDEX.md
+      - docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md
+      - docs/PROJECT_STATUS.md
+      - docs/truth/CURRENT_STATE_TRUTH.md
+    gates: [static, lint, py-primary]
+
   - id: security-permissions
     description: Permissions, secrets, SSRF, path/symlink boundaries
     paths:

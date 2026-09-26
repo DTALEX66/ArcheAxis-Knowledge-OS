@@ -53,10 +53,28 @@ def _classify(paths: list[str], force_full: bool = False) -> dict:
 
 
 def test_docs_only_classifies_static() -> None:
-    plan = _classify(["docs/PROJECT_STATUS.md", "README.md"])
+    plan = _classify(["docs/history/notes.md", "README.md"])
     assert plan["required_gates"] == ["ci-verdict", "static"]
     assert "full-qualification" not in plan["required_gates"]
     assert plan["unknown_paths"] == []
+
+
+def test_contract_bearing_docs_require_the_primary_suite() -> None:
+    """Authority/status docs are asserted on by contract tests.
+
+    A docs path alone matches docs-mechanical (static only), so without an
+    explicit classification a contract edit could land without the tests that
+    own it ever running.
+    """
+    plan = _classify(["docs/PROJECT_STATUS.md"])
+    assert {"py-primary", "lint", "static"} <= set(plan["required_gates"])
+    assert plan["unknown_paths"] == []
+    assert any(
+        code.startswith("contract-bearing-docs:") for code in plan["reason_codes"]
+    ), plan["reason_codes"]
+    # Exact paths only: a broad docs glob must not force the primary suite.
+    prose = _classify(["docs/current/R6-EXECUTION.md"])
+    assert "py-primary" not in prose["required_gates"]
 
 
 def test_ordinary_python_requires_py_primary() -> None:
