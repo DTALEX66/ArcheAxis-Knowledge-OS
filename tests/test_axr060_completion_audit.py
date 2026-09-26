@@ -245,7 +245,13 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
         if path.suffix not in {".json", ".md"}:
             return False
         head = path.read_text(encoding="utf-8", errors="replace")[:600]
-        return '"schema_version": "aaos-' in head or '"schema_version":"aaos-' in head
+        # Generated receipts declare an `aaos-*` audit schema; the cloud-audit
+        # reconciliation names itself a frozen non-authority snapshot.
+        return (
+            '"schema_version": "aaos-' in head
+            or '"schema_version":"aaos-' in head
+            or "FROZEN AUDIT SNAPSHOT / NON-AUTHORITY" in head
+        )
 
     found: set[str] = set()
     for path in surfaces:
