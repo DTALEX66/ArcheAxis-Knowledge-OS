@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class DesktopRouteV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    page_id: Literal["knowledge", "source_reader", "learning", "jobs", "machine_assets", "settings", "recovery"]
+    page_id: Literal["knowledge", "source_reader", "learning", "jobs", "machine_growth", "settings", "recovery"]
     core_endpoint: str = Field(pattern=r"^/api/v1/\S+$")
     read_only: bool
 

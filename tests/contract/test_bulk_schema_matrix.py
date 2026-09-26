@@ -114,7 +114,7 @@ LIVE_SCHEMA_CASES = {
                 "source_reader",
                 "learning",
                 "jobs",
-                "machine_assets",
+                "machine_growth",
                 "settings",
                 "recovery",
             )

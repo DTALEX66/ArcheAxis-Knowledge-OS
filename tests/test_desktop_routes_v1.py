@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from app.contracts.desktop_routes_v1 import DesktopRouteManifestV1
@@ -14,7 +15,7 @@ def test_route_manifest_covers_required_shell_surfaces():
     payload = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
     manifest = DesktopRouteManifestV1.model_validate(payload)
     assert {route.page_id for route in manifest.routes} == {
-        "knowledge", "source_reader", "learning", "jobs", "machine_assets", "settings", "recovery"
+        "knowledge", "source_reader", "learning", "jobs", "machine_growth", "settings", "recovery"
     }
     assert manifest.canonical_writer == "archeaxis-core-rust-sqlite"
 
@@ -54,6 +55,47 @@ def test_versioned_schema_is_present_and_binds_canonical_writer():
     schema = json.loads((ROOT / "packages/contracts/v1/desktop-routes.schema.json").read_text(encoding="utf-8"))
     assert schema["properties"]["schema"]["const"] == "archeaxis.desktop-routes/v1"
     assert schema["properties"]["canonical_writer"]["const"] == "archeaxis-core-rust-sqlite"
+
+
+def _core_route_shapes() -> set[str]:
+    """Normalised route shapes Core actually declares (params collapsed)."""
+    api = (ROOT / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
+    shapes = set()
+    for raw in re.findall(r'\.route\(\s*"(/api/v1/[^"]+)"', api):
+        shapes.add(re.sub(r":[A-Za-z_][A-Za-z0-9_]*", "{}", raw))
+    return shapes
+
+
+def test_every_declared_core_endpoint_exists_in_the_router():
+    """A manifest route must name a Core route that really exists.
+
+    The manifest is the shell's declared read surface. This test exists because
+    `/api/v1/machine/assets` was declared while no such Core route existed
+    (R6-EXECUTION.md already recorded that mismatch), so the manifest promised a
+    projection the canonical writer never served.
+    """
+    manifest = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
+    shapes = _core_route_shapes()
+    assert shapes, "no Core routes parsed; the parser or the router shape changed"
+
+    missing = []
+    for route in manifest["routes"]:
+        declared = re.sub(r"\{[^}]+\}", "{}", route["core_endpoint"])
+        if declared not in shapes:
+            missing.append((route["page_id"], route["core_endpoint"]))
+    assert missing == [], f"manifest declares endpoints Core does not serve: {missing}"
+
+
+def test_machine_growth_uses_the_real_machine_read_route():
+    """The machine page reads a persisted machine task, not a phantom asset list."""
+    manifest = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
+    route = next(r for r in manifest["routes"] if r["page_id"] == "machine_growth")
+    assert route["core_endpoint"] == "/api/v1/machine/tasks/{task_id}"
+    assert route["read_only"] is True
+    # And the desktop really calls it.
+    shell = (ROOT / "apps/ArcheAxis.Desktop/MainWindow.axaml.cs").read_text(encoding="utf-8")
+    assert "/api/v1/machine/tasks/" in shell
+    assert "machine-growth" in shell
 
 
 def test_unavailable_domains_are_not_declared_as_core_readiness_routes():
