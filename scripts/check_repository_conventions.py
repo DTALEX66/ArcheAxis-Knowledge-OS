@@ -110,6 +110,27 @@ _PRESERVED_HISTORICAL_REPORT_HASHES = {
     "docs/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
 }
 
+# Generated branch/lineage audit receipts quote historical commit subjects and
+# paths verbatim, so retired product names appear inside them by design. They
+# are evidence, not present-day naming surfaces: rewriting them would falsify
+# the audit. Recognised by their own schema identifier rather than by pinned
+# per-file hashes, so a future receipt of the same class is covered too.
+_AUDIT_RECEIPT_SCHEMA_PREFIXES = (
+    "aaos-branch-commit-path-audit/",
+    "aaos-branch-disposition-review/",
+    "aaos-untracked-lineage-metadata/",
+    "aaos-frozen-donor-hash-audit/",
+    "aaos-history-path-disposition/",
+    "aaos-local-repository-lineage-readback/",
+)
+
+
+def _is_audit_receipt(text: str) -> bool:
+    head = text[:600]
+    if '"schema_version"' not in head:
+        return False
+    return any(f'"{prefix}' in head for prefix in _AUDIT_RECEIPT_SCHEMA_PREFIXES)
+
 
 @dataclass(frozen=True, order=True)
 class ConventionIssue:
@@ -390,6 +411,10 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
         )
     )
     if legacy_context:
+        return []
+    # Generated audit receipts quote historical commits verbatim (see
+    # _AUDIT_RECEIPT_SCHEMA_PREFIXES). They are evidence, not naming surfaces.
+    if _is_audit_receipt(text):
         return []
     # 全文搜索的 retired/legacy 说明（如 SCOPE_LEDGER retired 条目、
     # EXTERNAL_DEPENDENCIES 的固定字段说明）同样视为合法历史语境。

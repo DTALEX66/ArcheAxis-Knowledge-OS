@@ -363,6 +363,40 @@ def test_forbidden_terms_allow_legacy_context_docs() -> None:
     assert not [i for i in issues if i.code == "legacy-product-name"]
 
 
+def test_forbidden_terms_allow_generated_audit_receipts() -> None:
+    """Generated branch/lineage audit receipts quote historical commits verbatim.
+
+    They are evidence, so retired product names inside them are expected and must
+    not be flagged; rewriting the receipt would falsify the audit.
+    """
+    receipt = json.dumps(
+        {
+            "schema_version": "aaos-branch-commit-path-audit/v1",
+            "generated_at": "2026-09-25T09:04:15Z",
+            "records": [{"subject": "feat: ArcheAxis OS rename and ArcheAxis Workspace sweep"}],
+        }
+    ).encode()
+    assert not [
+        i
+        for i in scan_naming_forbidden_terms(
+            "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json", receipt
+        )
+        if i.code == "legacy-product-name"
+    ]
+
+
+def test_forbidden_terms_still_reject_that_text_without_the_receipt_schema() -> None:
+    """The audit-receipt exemption is keyed on the declared schema, not the path."""
+    same_text_without_schema = json.dumps(
+        {"records": [{"subject": "feat: ArcheAxis OS rename"}]}
+    ).encode()
+    issues = scan_naming_forbidden_terms(
+        "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        same_text_without_schema,
+    )
+    assert any(i.code == "legacy-product-name" for i in issues)
+
+
 def test_forbidden_terms_skip_historical_surfaces() -> None:
     issues = scan_naming_forbidden_terms(
         "workspace/intake/2026-07-01-note.md",
