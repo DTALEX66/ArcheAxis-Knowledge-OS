@@ -25,6 +25,7 @@ Pipeline (fail-safe order, per docs/design/AXW-DATA-403-migration.md):
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import sqlite3
@@ -70,6 +71,74 @@ def _sha256_file(path: Path) -> str:
     return hasher.hexdigest()
 
 
+def _load_available_extensions(connection: sqlite3.Connection) -> None:
+    """Best-effort load of the optional vector extension.
+
+    A saved workspace can contain ``vec0`` virtual tables. Without the extension the
+    module is unknown and every read of such a table fails, which used to abort the
+    whole content hash. Loading is best-effort on purpose: a workspace without vector
+    tables is unaffected, and an unavailable extension degrades to the table being
+    reported as unreadable instead of crashing the migration.
+    """
+    try:
+        import sqlite_vec
+    except Exception:
+        return
+    with contextlib.suppress(Exception):
+        connection.enable_load_extension(True)
+    try:
+        sqlite_vec.load(connection)
+    except Exception:
+        return
+    finally:
+        with contextlib.suppress(Exception):
+            connection.enable_load_extension(False)
+
+
+def _row_order(connection: sqlite3.Connection, quoted: str) -> str | None:
+    """A deterministic row order for hashing, or ``None`` if the table is unreadable.
+
+    ``ORDER BY rowid`` is not universal: a ``WITHOUT ROWID`` table has no rowid, and a
+    virtual table whose module is not loaded cannot be read at all. Both occur in real
+    saved workspaces - FTS5 keeps ``*_fts_config`` / ``*_fts_idx`` shadow tables
+    ``WITHOUT ROWID``, and ``vec0`` tables need the vector extension - so the caller
+    must be able to tell "no such ordering" from "no such table".
+    """
+    try:
+        connection.execute(f"SELECT rowid FROM {quoted} LIMIT 1").fetchone()
+    except sqlite3.OperationalError:
+        pass
+    else:
+        return "ORDER BY rowid"
+    try:
+        columns = connection.execute(f"PRAGMA table_info({quoted})").fetchall()
+    except sqlite3.OperationalError:
+        return None
+    if not columns:
+        return None
+    primary = [_quote_ident(row[1]) for row in columns if row[5]]
+    keys = primary or [_quote_ident(row[1]) for row in columns]
+    return "ORDER BY " + ", ".join(keys)
+
+
+def unreadable_tables(path: str | Path) -> list[str]:
+    """Tables the hashing connection cannot read, in sorted order.
+
+    They are omitted from :func:`content_hash`, so a caller that needs to know whether
+    the logical hash covered the whole database asks here instead of assuming it did.
+    """
+    database = Path(path)
+    if not database.is_file():
+        return []
+    with _connect(database, readonly=True) as connection:
+        _load_available_extensions(connection)
+        return [
+            name
+            for name in _list_tables(connection)
+            if _row_order(connection, _quote_ident(name)) is None
+        ]
+
+
 def content_hash(path: str | Path) -> str:
     """Logical content hash of a SQLite database.
 
@@ -78,15 +147,24 @@ def content_hash(path: str | Path) -> str:
     the logical content instead: every table (sorted) and every row in
     rowid order, with bytes and text tagged distinctly — it is stable
     across VACUUM and detects any data change.
+
+    ``ROWID`` is preferred where it exists; a ``WITHOUT ROWID`` table is ordered by
+    its primary key, and a table that cannot be read at all (a virtual table whose
+    module is absent) is reported by :func:`unreadable_tables` and left out rather
+    than aborting the migration. Tables with a rowid hash exactly as before.
     """
     hasher = hashlib.sha256()
     database = Path(path)
     with _connect(database, readonly=True) as connection:
+        _load_available_extensions(connection)
         for name in _list_tables(connection):
+            quoted = _quote_ident(name)
+            order = _row_order(connection, quoted)
+            if order is None:
+                continue
             hasher.update(b"table\0")
             hasher.update(name.encode("utf-8"))
-            quoted = _quote_ident(name)
-            for row in connection.execute(f"SELECT * FROM {quoted} ORDER BY rowid"):
+            for row in connection.execute(f"SELECT * FROM {quoted} {order}"):
                 for value in row:
                     if isinstance(value, bytes):
                         hasher.update(b"b")
@@ -125,15 +203,28 @@ def _list_tables(connection: sqlite3.Connection) -> list[str]:
 
 
 def _row_counts(connection: sqlite3.Connection, tables: list[str]) -> dict[str, int]:
+    """Row counts per table.
+
+    A table that cannot be read in this connection (a virtual table whose module is
+    absent) counts as 0 here and is named by :func:`unreadable_tables`, so the plan
+    still describes the workspace instead of aborting on one unreadable table.
+    """
     counts: dict[str, int] = {}
     for name in tables:
-        row = connection.execute(f"SELECT COUNT(*) FROM {_quote_ident(name)}").fetchone()
+        try:
+            row = connection.execute(f"SELECT COUNT(*) FROM {_quote_ident(name)}").fetchone()
+        except sqlite3.OperationalError:
+            counts[name] = 0
+            continue
         counts[name] = int(row[0]) if row else 0
     return counts
 
 
 def _table_columns(connection: sqlite3.Connection, name: str) -> list[tuple[str, str]]:
-    rows = connection.execute(f"PRAGMA table_info({_quote_ident(name)})").fetchall()
+    try:
+        rows = connection.execute(f"PRAGMA table_info({_quote_ident(name)})").fetchall()
+    except sqlite3.OperationalError:
+        return []
     return [(str(row[1]), str(row[2])) for row in rows]
 
 
@@ -231,6 +322,7 @@ def _target_dir(manifest, domain_key: str) -> Path:
 
 def _plan(db_path: Path, manifest) -> dict[str, object]:
     with _connect(db_path, readonly=True) as connection:
+        _load_available_extensions(connection)
         tables = _list_tables(connection)
         counts = _row_counts(connection, tables)
         table_plan: list[dict[str, object]] = []
@@ -256,6 +348,9 @@ def _plan(db_path: Path, manifest) -> dict[str, object]:
         "source": str(db_path),
         "source_hash": content_hash(db_path),
         "tables": table_plan,
+        # Tables the hash could not read (for example a virtual table whose module is
+        # absent). Reported so "the whole database was covered" is never assumed.
+        "unreadable_tables": unreadable_tables(db_path),
         "targets": {
             domain_key: str(_target_dir(manifest, domain_key))
             for domain_key in ("source_archive", "evidence_ledger", "human_learning_vault", "ai_asset_vault")
@@ -478,6 +573,7 @@ def migrate(
         "copied": copied,
         "files": files,
         "targets": plan["targets"],
+        "unreadable_tables": plan.get("unreadable_tables", []),
         "legacy_db_kept": source.is_file(),
     }
     marker_path.write_text(

@@ -3336,3 +3336,64 @@ as machine competence").
 (`migration-targeted`, `legacy_nonempty_migration.rs`, `migration_dry_run.rs` pass in CI but were not run
 independently here), and the answer-text path above. A15/A16 remain unsigned; release FROZEN;
 `local_green_updated=false`.
+
+### Legacy migration driven on the real asset: two product defects found and fixed — 2026-09-26
+
+The last undriven M0 link. `data/cognitive_os.sqlite` (3,223,552 bytes, sha256
+`b318c99e5a58107f3fe57249b50e2560563b0dc6cca606505ef61ad19f64b411`) is the machine's real legacy workspace,
+git-ignored and untracked. It was exercised **only through a copy** - `original_untouched: true` below means
+the file's size, mtime and sha256 are identical before and after.
+
+**Two real defects, both invisible to the fixtures.** The migration fixture carries three ordinary tables
+(`attachments`, `kb_documents`, `evidence_claims`), so CI passes. The real asset has 89 tables including FTS5
+shadow tables and a vector table, and it broke twice:
+
+1. `content_hash` hashed every table with `SELECT * FROM <t> ORDER BY rowid`. FTS5 creates `*_fts_config` and
+   `*_fts_idx` as `CREATE TABLE ... WITHOUT ROWID`, so the run aborted with
+   `sqlite3.OperationalError: no such column: rowid`. Eight such shadow tables exist here
+   (`episodic_memory_fts_*`, `kb_cards_fts_*`, `kb_documents_fts_*`, `machine_knowledge_units_fts_*`).
+2. `dry_run`'s own connection never loaded the vector extension, so the `vec0` virtual table
+   `vec_episodes` failed with `no such module: vec0`, aborting `_row_counts` and therefore the plan.
+
+**Fixes** in `app/workspace/migrate.py`, both deliberately additive:
+
+- `_row_order()` prefers `rowid`, falls back to the declared primary key for a `WITHOUT ROWID` table, then to
+  all columns, and returns `None` - rather than raising - for a table whose module is absent.
+  `_load_available_extensions()` best-effort loads `sqlite_vec` so `vec0` tables are readable when the
+  extension is installed. `unreadable_tables()` reports what the hash could not cover, so "the whole database
+  was hashed" is never assumed; `_plan` and `migrate` now carry `unreadable_tables`.
+- `_row_counts` and `_table_columns` tolerate an unreadable table instead of aborting on it.
+
+**Backwards compatibility is pinned, not assumed.** For a table that *has* a rowid the ORDER BY and the
+hash-update sequence are unchanged, so an ordinary workspace keeps exactly its previous digest - a changed
+digest would have invalidated every recorded migration manifest. `tests/test_migrate_rowidless_tables.py`
+re-implements the pre-fix algorithm and asserts `content_hash(plain) == reference(plain)`, and a RED pin
+asserts that same reference genuinely raises on a `WITHOUT ROWID` table, so the fix cannot be silently
+reverted.
+
+**Result on the real asset** (`legacy_migration_smoke.py`, `ok: true`):
+
+| measurement | value |
+| --- | --- |
+| plan | 89 tables, `source_hash` is the logical hash, `unreadable_tables: []` |
+| migration | `status: ok`; 68 ledger entries (virtual tables recorded as `skipped` with a reason); 16 files written, one per non-ledger row; 67 tables empty and disclosed as such |
+| semantic diff | `ledger_rows_accounted_for: true`, `one_file_per_non_ledger_row: true`, `every_planned_table_accounted_for: true`, `unaccounted_tables: []` |
+| produced ledger | `evidence_ledger/ledger.sqlite`, 65 tables, 50 rows, opens and counts |
+| idempotency | second `migrate` → `already_migrated: true`, backup count stays 1 |
+| rollback | `rollback_readback` → `integrity_ok: true`, `hash_matches: true`, `rollback_eligible: true`, restore candidate returned; current state never overwritten |
+| original | size, mtime and sha256 **unchanged**; `legacy_db_kept: true` |
+| tests | `tests/test_migrate_rowidless_tables.py` 7 tests; migration set 83 passed; full gate recorded below |
+
+**Recorded as NOT a defect.** A first run failed with `FileNotFoundError` on an output path of ~264
+characters. That is the repository's **documented** behaviour, not a bug: `tests/test_axw_long_path.py`
+states that a plain path over 260 characters fails closed on Windows and that long paths require the `\\?\`
+extended form. The probe's scratch root was too deep, so the probe was moved to a deliberately shallow root
+inside `.project-local/`; the product was not changed for it. Two further `ok: false` readings in that first
+corrected run were the probe's own errors, not the product's: it compared the *logical* `content_hash` with a
+byte-level sha256, and it demanded accounting for empty tables. Both were fixed in the probe.
+
+**Non-claims.** This verifies one legacy asset on one machine, on a copy. It does not run the full
+`legacy_nonempty_migration.rs` / `knowledge_governance_migration` surfaces independently, does not migrate an
+original in place, and signs no migration qualification. The new probe and the A08/backup probes still live
+under `.project-local/task-runtime/wsr/` and are not yet tracked regressions. A15/A16 remain unsigned;
+release FROZEN; `local_green_updated=false`.
