@@ -58,5 +58,12 @@ learning:
 
 rag:
   embedding:
-    provider: "local"      # local | llm
-    model: ""              # e.g. "text-embedding-3-small" (LiteLLM)
+    provider: "local"      # local | ollama | llm
+                           #   local  = built-in n-gram embedder (no model, no network)
+                           #   ollama = registered local Ollama runtime (shared model library)
+                           #   llm    = LiteLLM remote embeddings for `model`
+                           # Any provider failure falls back to `local`, which changes the
+                           # vector width, so index and query must use the same setting.
+    model: ""              # ollama: e.g. "qwen3-embedding:0.6b"; llm: e.g. "text-embedding-3-small"
+    ollama_base_url: "http://127.0.0.1:11434"
+    ollama_timeout_seconds: 60

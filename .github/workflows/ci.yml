@@ -383,11 +383,22 @@ jobs:
         working-directory: ${{ runner.temp }}
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-runtime
+          # `python -B scripts/runtime/dev.py --github-env` publishes
+          # PYTHONPATH=<checkout root> through GITHUB_ENV, and GITHUB_ENV
+          # variables persist into every later step of the same job. That
+          # silently points this step - which exists precisely to exercise the
+          # *installed* wheel from outside the repository - back at the
+          # checkout: `import app` and `load_release_manifest()` resolve to
+          # repository sources, and `importlib.metadata` sees the checkout's
+          # `archeaxis_workspace.egg-info` alongside the wheel's dist-info.
+          # Clear the inherited path so the wheel is what is actually tested.
+          PYTHONPATH: ""
         run: |
           python -m app.runtime_entrypoint migrate
           python - <<'PY'
           import os
           import sys
+          from importlib.metadata import distributions
           from importlib.metadata import version as installed_version
           from pathlib import Path
 
@@ -400,8 +411,31 @@ jobs:
           from knowledge_base.api import app as kb_app
           from shared.sleep_loop_engine import LOG_DIR
 
+          def wheel_distributions():
+              return sorted(
+                  (record.metadata["Name"], record.version, str(record._path))
+                  for record in distributions()
+                  if record.metadata["Name"]
+                  and record.metadata["Name"].lower().replace("_", "-") == "archeaxis-workspace"
+              )
+
+          # This step must exercise the installed wheel, never repository sources.
+          # Comparing sys.path entries against the checkout root is what actually
+          # detects source shadowing; matching a bare basename against the string
+          # "knowledge_base" cannot, because a checkout root is named after the
+          # repository.
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          leaked = [entry for entry in sys.path if entry and Path(entry).resolve() == checkout]
+          assert not leaked, f"imports resolved from the checkout, not the installed wheel: {leaked}"
+          records = wheel_distributions()
+          assert len(records) == 1, f"expected exactly one archeaxis-workspace distribution: {records}"
           assert not any(Path(path).name.lower() == "knowledge_base" for path in sys.path if path)
-          assert installed_version("archeaxis-workspace") == load_release_manifest()["product"]["version"]
+          installed = installed_version("archeaxis-workspace")
+          manifest_version = load_release_manifest()["product"]["version"]
+          assert installed == manifest_version, (
+              f"installed distribution version {installed!r} != bundled release manifest "
+              f"product.version {manifest_version!r}; distributions={records}"
+          )
           with TestClient(kb_app) as kb:
               assert kb.get("/health").status_code == 200
               assert kb.get("/reviews/due").status_code == 200

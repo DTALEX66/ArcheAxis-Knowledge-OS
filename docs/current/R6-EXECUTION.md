@@ -2909,3 +2909,182 @@ Corrected-provenance Candidate was also launched directly from its final assembl
 Final archive readback: `ArcheAxis.Knowledge.Green-vfresh-2994efa-20260926-x64.zip`, 284,828,208 bytes, SHA-256 `22d58f18ccf8e0daf0b32ace2baa0d0cadc1efe8ab70458c9d7a433bd88bb1b4`; packaged Desktop EXE SHA-256 `5d63fbf3617d25123ccd700b12cf93f32ca37f93bbf2e8d29e858f9629d0c055`.
 
 After the corrected Candidate rebuild, targeted desktop/UI/Candidate source contracts ran through `scripts/runtime/dev.py`, run `.project-local/runs/be268a2d33/aaos-ui-final-rebuilt-20260926`: 296 passed, 1 skipped, 12.09 seconds. Scope was desktop launch/learning/motion/navigation/routes, workspace UI design, Avalonia visual authority, source snapshot and Green Candidate assembly/verifier. This is source/packaging contract evidence, not native UIA acceptance of the rebuilt DLL; the inaccessible-directory warning remained present during repository traversal.
+
+### wheel-smoke: artifact hypothesis refuted, source-shadowing defect found and fixed — 2026-09-26
+
+Backend-takeover slice. Everything below is this session's own measurement. Where the 2026-09-26 handoff
+concluded otherwise, the correction is stated explicitly.
+
+**Evidence identity, re-derived rather than inherited.** `GET /repos/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242930810/jobs`
+(attempt 1, head `0db29842099f2e614c70e252b442b661e08c5543`) gives step-level conclusions for job
+`wheel-smoke` = `108406779828`: step 6 "Build wheel from locked backend" success, step 7 "Install wheel with
+locked runtime dependencies" success, step 8 "Smoke-test installed runtime outside repository" failure. No
+other step diverged. The failing statement is `.github/workflows/ci.yml:404` — script line 16 of that step's
+first heredoc — confirmed by counting the heredoc body off the file, not by reading the printed workflow body.
+
+**Both values, from a same-condition build.** `uv` is absent (not on PATH; no `uv.exe` under `%APPDATA%\uv`,
+`%LOCALAPPDATA%`, `~\.local` or the WinGet links) and outbound package installation times out, so the build
+half of the job was reproduced with the backend the job itself invokes — `setuptools.build_meta` /
+`bdist_wheel` under setuptools 83.0.0, the exact pin in `[build-system].requires` — over a `git archive`
+export of the exact commit, which is what `actions/checkout` produces. Harness
+`.project-local/task-runtime/wsr/build_and_inspect.py`; result `build-inspect-result.json`.
+
+| SHA | wheel | METADATA Version | `app/release-manifest.json` `product.version` | equal |
+| --- | --- | --- | --- | --- |
+| `0db29842` (the failing SHA) | `archeaxis_workspace-0.6.14-py3-none-any.whl`, 724,758 B | `0.6.14` | `0.6.14` | **yes** |
+| `663d7d5f` (current HEAD) | same name, 724,758 B | `0.6.14` | `0.6.14` | **yes** |
+
+Source readback agrees: `git show 0db29842:pyproject.toml` → `version = "0.6.14"`;
+`git show 0db29842:app/release-manifest.json` → `"version": "0.6.14"`. Nothing writes
+`app/release-manifest.json` at build time: a repository-wide search for the name finds reads and tests only,
+and `scripts/release_manifest.py` emits a differently shaped asset manifest under `.project-local/build/`.
+
+**Install and resolution, from outside the repository.** The wheel was unpacked into a clean uv-managed
+CPython 3.12.13 environment and the job's own expression evaluated with the working directory outside the
+checkout (`install_smoke.py`, `install-smoke-result.json`): exactly one
+`archeaxis_workspace-0.6.14.dist-info` resolved, `installed_version("archeaxis-workspace") == "0.6.14"`,
+`load_release_manifest()["product"]["version"] == "0.6.14"`, assertion **PASS**.
+
+**The handoff's §2.2 conclusion is therefore refuted.** "A version mismatch between the installed
+distribution and the manifest inside the wheel" does not exist in an artifact built from `0db29842`.
+`wheel-smoke` root cause remains **OPEN / NOT REPRODUCED**: this session can neither read the job log
+(`GET .../actions/jobs/108406779828/logs` → HTTP 403 "Must have admin rights to Repository") nor recreate
+the job's environment.
+
+**Defect found, reproduced and fixed.** `scripts/runtime/dev.py:106` publishes `PYTHONPATH=<checkout root>`,
+and `--github-env` writes it to `GITHUB_ENV`, which persists into every later step of the same job. The
+`wheel-smoke` job's first step calls it, so the step named "Smoke-test installed runtime **outside
+repository**" was importing the checkout. Reproduced with the `0db29842` wheel (`leak_probe.py`,
+`leak-probe-result.json`):
+
+| case | `PYTHONPATH` | `app.release.__file__` | `archeaxis-workspace` records | ci.yml guard predicate |
+| --- | --- | --- | --- | --- |
+| A | `""` | `<venv>/Lib/site-packages/app/release.py` | 1 | `True` |
+| B | checkout root | `<checkout>/app/release.py` | **2** | `True` |
+
+Case B is CI's actual state. The step's guard
+`assert not any(Path(path).name.lower() == "knowledge_base" for path in sys.path if path)` cannot detect it:
+it compares a `sys.path` entry's **basename** against a *package* name, and a checkout root is named
+`ArcheAxis-Knowledge-OS`. The gate therefore stayed green while testing repository sources.
+
+Fix, in `.github/workflows/ci.yml` `wheel-smoke` step 8: `env.PYTHONPATH: ""` clears the inherited checkout
+path; the guard resolves `GITHUB_WORKSPACE` and asserts no `sys.path` entry equals it; exactly one
+`archeaxis-workspace` distribution is required, covering the environment's own stale dist-info; and the
+version assertion keeps `assert installed == manifest_version` while its message now carries both observed
+values. No assertion was removed, relaxed or given a weaker condition. Every module that step imports is
+present in the wheel (`check_wheel_members.py`: 18/18 members, no namespace-package gaps), so clearing the
+path cannot break it for module-resolution reasons.
+
+**Verification.** New:
+`tests/test_ci_a0_gates.py::test_wheel_smoke_step_cannot_import_the_checkout_instead_of_the_wheel`.
+RED→GREEN: `negative_control.py` scores the committed workflow 0/4 and the fixed workflow 4/4. Affected
+suites: `.\.venv\Scripts\python.exe -m pytest tests/test_ci_a0_gates.py tests/test_ci_classifier.py
+tests/test_project_output_routing_contract.py tests/test_release_manifest.py -q` → **105 passed, 0 failed,
+0 skipped** (10.79 s). The workflow still parses (19 jobs) and every edited heredoc still parses as Python.
+
+**Environment blocker, affecting every local test run in this sandbox.** `tempfile.mkdtemp()` directories are
+not writable here: `probe_tempdir.py` writes successfully into a plain `mkdir` directory and fails with
+`PermissionError [Errno 13]` inside `mkdtemp`/`TemporaryDirectory` ones, because `os.mkdir(mode=0o700)` pins
+the new directory to the owner SID and the sandboxed token is not it. `conftest.py:28` roots the pytest
+runtime in exactly such a directory, so pytest aborts with `INTERNALERROR ... sqlite3.OperationalError:
+unable to open database file` before collecting anything. The same mechanism truncated the first wheel build
+attempt here and left one undeleable scratch directory, which was removed from its exact path only after a
+one-shot wider sandbox mode. Consequence: `mkdtemp`-based tooling — including
+`setuptools.build_meta.build_wheel`, which stages through `TemporaryDirectory` — needs that wider mode or a
+non-`mkdtemp` staging path in this environment.
+
+**Handoff correction.** `docs/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md` §4 recorded `main` integration as
+"0 ahead / 187 behind, i.e. a clean fast-forward". Read live: `git rev-list --count origin/main..HEAD` = 204,
+`HEAD..origin/main` = 0, and `origin/main` = `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb` is an ancestor of
+HEAD. The conclusion — a clean fast-forward is available — holds; the two figures were transposed. Both
+documents are corrected in this slice.
+
+**Non-claims.** `wheel-smoke` is **not** green and its root cause is **not** found. The fixed step was not
+executed end to end here; that needs the job's ~200 locked runtime dependencies, which cannot be installed
+offline. `local_green_updated=false` — nothing under `D:\All projects\ArcheAxis.Knowledge.Green-x64` was
+touched. Release stays FROZEN; no tag, no version promotion; `main` untouched. A15 and A16 are not signed
+here.
+
+### A06/A11: the embedding provider setting was dead code; now wired and verified against a real model — 2026-09-26
+
+**Gap, found by reading the call graph rather than the ledger.** `rag.embedding.provider` had no effect on
+real retrieval. `app/rag/index.py` called `embed_many` - the built-in character n-gram embedder - directly at
+both index time (`index_document`) and query time (`search`), while `configured_embed_many`, the only function
+that read the setting, was called from nowhere in `app/`, `shared/` or `knowledge_base/`. `app/rag/embedder.py`
+carried the docstring "Real embedding provider for the RAG pipeline (replaces the hash stub)" whose own default
+path was that hash stub. This is the "settings exist, production path ignores them" shape the mandate calls an
+empty shell, not a missing module.
+
+**The registered resource was present all along.** The M0 overlay's P4/A14 preflight recorded "本机未发现
+`ollama` 命令" with a closed 11434. Re-read, bounded and read-only:
+
+- `C:\Users\ALEX\AppData\Local\Programs\Ollama\ollama.exe` exists - it is simply not on `PATH`.
+- `D:\All projects\Model library\ollama` holds every documented role, and each manifest's blobs exist with
+  the declared size (`verify_model_library.py`, which walks only the paths the library README names):
+  `qwen3-embedding:0.6b` **COMPLETE** (2 layers, 609.5 MiB), `qwen3-reranker:latest` **COMPLETE**
+  (2 layers, 472.0 MiB), `qwen3:8b` COMPLETE (4983.3 MiB), `qwen2.5vl:7b` COMPLETE (5692.7 MiB);
+  `whisper/faster-whisper-large-v3-turbo` 5 files / 1546.5 MiB including `model.bin`.
+- `qwen3-coder:30b-a3b-q4_K_M` is **INCOMPLETE**: blob `sha256-24a94682...` is 542 bytes against a declared
+  539. Recorded as measured, not repaired and not repaired-for.
+
+So "no `ollama` command" was a `PATH`-only observation - precisely the failure mode the mandate warns about
+("一次端口不通不等于本机无模型").
+
+**Change.** `app/rag/embedder.py` gains `ollama_embed()` (stdlib-only `POST /api/embed`, the same request
+shape `scripts/pipeline/eval_retrieval.py` already used), `embedding_provider()`, `embedding_model()` and
+`configured_embed()`; `configured_embed_many` routes `local | ollama | llm` and every provider failure falls
+back to the always-available local embedder. Transport and HTTP failures retry a bounded number of times with
+backoff; a well-formed response of the wrong shape is not retried, because a retry cannot repair a schema
+mismatch. `app/rag/index.py` now embeds through the configured provider at **both** index and query time and
+derives the vector width from the vectors it actually obtains: `dim` is optional and defaults to the resolved
+width, while an explicit `dim` is still honoured, which removes the old hard coupling to 384.
+`config/defaults.yaml` documents `provider: local | ollama | llm` with `ollama_base_url` and
+`ollama_timeout_seconds`. The default configuration is byte-for-byte the old behaviour: `local`, width 384,
+no outbound call.
+
+**Real-model verification** (`verify_real_embedding.py`), against the registered local runtime started with
+`OLLAMA_MODELS` set to the shared library. Nothing was downloaded, nothing installed, no original material
+uploaded, and the probe's own text was written for it:
+
+| measurement | value |
+| --- | --- |
+| `/api/tags` | 5 registered models served |
+| `ollama_embed` width, `qwen3-embedding:0.6b` | **1024** (not 384) |
+| latency | 0.02 s warm, 23.98 s on the cold first call |
+| repeat-call divergence | max abs delta 1.389e-03, min cosine 0.99990 - **not bit-for-bit reproducible** |
+| semantic ordering | cosine(query, related) 0.7501 vs unrelated 0.2935 |
+| `index_document` receipt | `{'indexed': True, 'id': 'd1', 'chunks': 1, 'dim': 1024}` |
+| `search` | hit `d1::0`; sqlite-vec wrote `vec_documents*` objects |
+| declared capabilities | `qwen3-embedding` embedding; `qwen2.5vl:7b` **vision**; `qwen3:8b` completion/tools; `qwen3-coder` completion/tools |
+
+Two honest negatives, recorded rather than smoothed over:
+
+- **`qwen3-reranker:latest` is NOT usable here.** It declares `embedding`, but both returned vectors measure
+  norm `0.000000`, so it is degenerate as a dense reranker or embedder through `/api/embed`. The rerank role
+  is therefore **not** claimed available and M0's embedding/reranker requirement stays **open** - the
+  embedding half is now real, the reranker half is measured-unusable.
+- **Embedding output is not reproducible bit-for-bit** (row above). Anything keying a cache, a uniqueness
+  constraint or an idempotency check on exact vector bytes is unsound; similarity tolerances must be used.
+
+**Regression.** New `tests/test_rag_embedding_provider.py` (13 tests): default stays `local` with no outbound
+call; the model width drives both index and query instead of being coerced to 384; the wire request is
+asserted against a real loopback HTTP server; fallback on unreachable, short, ragged and `not_embeddings`
+responses and on a non-numeric timeout; the `llm` route; explicit `dim` override; empty-input short circuit;
+bounded retry on transient failure; no retry on a shape mismatch. The fixture's default base URL is
+deliberately unroutable, because during development a live runtime changed a test's outcome - the suite must
+not depend on a model server, and it now does not.
+
+**Verification.** Full canonical gate with the runtime stopped, so the fallback is what the suite exercises:
+`.\.venv\Scripts\python.exe -B scripts/runtime/dev.py --pytest -- tests/ integration-tests/ knowledge_base/tests/ -q`
+→ **3369 passed, 46 skipped, 0 failed, 137 subtests passed**, 251.85 s, exit 0. That is the 3356 baseline of
+the preceding slice plus these 13 tests, unchanged otherwise.
+
+**Environment note.** `ollama app.exe` PID 11596 had `StartTime` 2026-09-24 22:53:44, i.e. two days before
+this session; it was left untouched, and no process was terminated by name. Only the `ollama serve` process
+started for this verification was stopped, and port 11434 was confirmed closed afterwards.
+
+**Non-claims.** This makes one real embedding provider usable; it does not complete A06. Vector/reranker
+wiring beyond the embedding path, graph and research wiring, the permission boundary, and a benchmark remain
+open. The reranker is measured-unusable, not fixed. No model was downloaded and no licence was accepted.
+A11 remains `TESTED_LOCAL_PARTIAL`: `qwen2.5vl:7b` declares `vision`, but no vision call was made or verified
+here. Release FROZEN, `main` untouched, Green untouched, `local_green_updated=false`.

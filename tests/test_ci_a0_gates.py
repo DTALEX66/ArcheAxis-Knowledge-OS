@@ -467,3 +467,55 @@ def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:
         ("desktop-build", "installer-lifecycle"),
     ):
         assert 'python-version: "3.12"' in _job_section(workflow, job_name, next_name)
+
+
+def test_wheel_smoke_step_cannot_import_the_checkout_instead_of_the_wheel() -> None:
+    """The installed-runtime smoke step must not silently test repository sources.
+
+    `scripts/runtime/dev.py --github-env` publishes `PYTHONPATH=<checkout root>`
+    through `GITHUB_ENV`, and `GITHUB_ENV` variables persist into every later
+    step of the same job. The `wheel-smoke` job's first step calls it, so the
+    step named "Smoke-test installed runtime outside repository" inherited a
+    `sys.path` entry pointing at the checkout: `import app` and
+    `load_release_manifest()` resolved to repository sources and
+    `importlib.metadata` exposed the checkout's `archeaxis_workspace.egg-info`
+    alongside the wheel's `.dist-info`.
+
+    The step's original guard could not detect this, because it compared a
+    `sys.path` entry's *basename* against the string `knowledge_base`; a checkout
+    root is named after the repository, so the predicate stayed True while the
+    leak was active.
+
+    Reproduced with a wheel built from `0db29842` (the SHA whose forced
+    qualification failed): with `PYTHONPATH=<checkout>` the probe reported
+    `app.release.__file__` inside the checkout and *two* `archeaxis-workspace`
+    distributions, while `PYTHONPATH=""` resolved both from the wheel.
+    """
+    import yaml
+
+    doc = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    step = next(
+        item
+        for item in doc["jobs"]["wheel-smoke"]["steps"]
+        if str(item.get("name", "")).startswith("Smoke-test")
+    )
+
+    # 1. The inherited checkout path is cleared, so the wheel is what is imported.
+    assert step["env"]["PYTHONPATH"] == ""
+    assert step["working-directory"] == "${{ runner.temp }}"
+
+    script = step["run"]
+    # 2. Exactly one installed distribution is asserted, so a second (stale or
+    #    checkout-derived) archeaxis-workspace record cannot pass unnoticed.
+    assert "len(records) == 1" in script
+    # 3. The guard compares sys.path entries against the checkout root, which is
+    #    what actually detects source shadowing.
+    assert 'Path(os.environ["GITHUB_WORKSPACE"]).resolve()' in script
+    assert "Path(entry).resolve() == checkout" in script
+    # 4. The version assertion still demands equality - it may not be weakened -
+    #    and its message now carries both observed values.
+    assert "assert installed == manifest_version" in script
+    assert "assert installed != manifest_version" not in script
+    assert "product.version {manifest_version!r}" in script
+    assert 'installed_version("archeaxis-workspace")' in script
+    assert script.index("GITHUB_WORKSPACE") < script.index("manifest_version")

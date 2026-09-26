@@ -115,25 +115,40 @@ matching the log's `File "<stdin>", line 16`:
 assert installed_version("archeaxis-workspace") == load_release_manifest()["product"]["version"]
 ```
 
-So the failure is a **version mismatch between the installed distribution and the
-manifest inside the wheel**, not a missing or forbidden member.
+**Corrected 2026-09-26.** An earlier revision of this section concluded that "the
+failure is a version mismatch between the installed distribution and the manifest
+inside the wheel". That inference came from matching the traceback's
+`File "<stdin>", line 16` to the assertion line; the assertion line is correct, but
+the inferred cause was not measured. It has since been measured and **does not
+hold**: a wheel built from the exact tracked source at `0db29842` carries
+`METADATA` `Version: 0.6.14` *and* `app/release-manifest.json`
+`product.version` `0.6.14`, so the two values the assertion compares agree inside
+the artifact, and installing that wheel into a clean CPython 3.12 environment
+resolves exactly one `archeaxis_workspace-0.6.14.dist-info` and satisfies the
+assertion. The same holds for the current tip. See `R6-EXECUTION.md`,
+"wheel-smoke: artifact hypothesis refuted, source-shadowing defect found and
+fixed — 2026-09-26", for the harnesses and result files.
 
-What was then checked, and why causation stays UNKNOWN:
+What was checked, and what remains:
 
-- Locally `pyproject.toml` = `0.6.14`, `app/release-manifest.json` product.version
-  = `0.6.14`, and `tests/test_release_manifest.py:62` asserts the two agree — so
-  the repository's own invariant holds on this checkout.
+- `pyproject.toml` = `0.6.14`, `app/release-manifest.json` product.version
+  = `0.6.14`, and `tests/test_release_manifest.py:62` asserts the two agree.
 - The version is **static**: no `[build-system]` dynamic version, no
-  `setuptools_scm`/git-describe derivation, and `load_release_manifest()` reads
-  only the manifest (the `release-identity.json` override does not exist here).
-  `scripts/release_inject_identity.py` states the tracked manifest stays frozen.
-- The failure therefore cannot be reproduced on this machine: `uv` is absent (not
-  on PATH and not vendored), and this host runs Python 3.13 while the job uses
-  3.12, so the same wheel build cannot be recreated.
+  `setuptools_scm`/git-describe derivation, and no build-time writer of
+  `app/release-manifest.json` exists anywhere in the tree.
+- A real, independent defect in this gate **was** found and reproduced: the job's
+  first step publishes `PYTHONPATH=<checkout root>` through `GITHUB_ENV`, which
+  persists into the later steps, so "Smoke-test installed runtime outside
+  repository" imported the checkout rather than the installed wheel, and its guard
+  tested a `sys.path` entry's basename against the string `knowledge_base`, which
+  cannot detect a checkout root. That is fixed, together with a regression test.
 
-Status remains **OPEN / ROOT_CAUSE_UNVERIFIED**, now narrowed to one statement.
-Reproducing it needs either `uv` plus Python 3.12, or the wheel and its
-`METADATA` from the failing attempt; neither is available here.
+Status remains **OPEN / ROOT_CAUSE_UNVERIFIED** for the original failure. It is not
+reproducible from this source tree: the job log requires repository admin rights
+(`GET .../actions/jobs/108406779828/logs` → 403) and the job's environment cannot
+be recreated here (`uv` is absent and outbound package installation is
+unavailable). The assertion's message now prints both observed values, so the next
+run of this gate will record them directly.
 
 
 ### 2.3 The `test (3.12)` failure at `4270f25f` and its fix
@@ -261,7 +276,7 @@ twelve of the thirteen archived tips — see the table in
 | `docs/history/branch-donors/execution-reliability-20260926/` | pre-existing untracked content from an earlier session; preserved, not committed |
 | Design reference assets | **Corrected.** An earlier revision said no design asset exists in the repository. That was too broad: `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/` contains `ArcheAxis OS V3.0 Blueprint.docx`, `ArcheAxis OS V3.1 Documentation.docx`, `ArcheAxis OS Overview.docx`, `ArcheAxis_OS_MCS_Phase5_v0.1.0.zip` and `Cognitive_Loop_OS_GoogleResearch_500AI_Delivery_v1.0.zip`. What does **not** exist is anything literally named `DESIGN-SPEC` / `B10` / `B09`. These documents are the **legacy "ArcheAxis OS V3"** design line, superseded by the current authority (C#/Avalonia, Chinese-first, black/white dark baseline), so they are reference material, not the active visual specification. Nothing was extracted from the `.docx`/`.zip` binaries in this session, and no substitute asset was generated |
 | Route contract vs shell navigation | contract declares 7 page ids; the shell exposes 16 sections. Left `PROPOSED` because extending `page_id` (a closed `Literal`, with `routes` at `min_length=7`) means making `core_endpoint` optional — a contract semantics change needing an owner decision |
-| `main` integration | **not done.** `origin/main` is an ancestor of this head (0 ahead / 187 behind), i.e. a clean fast-forward, but this session had no merge authorisation. Marked `BLOCKED_BY_OWNER` |
+| `main` integration | **not done.** `origin/main` (`e3875db0`) is an ancestor of this head, i.e. a clean fast-forward is available, but this session had no merge authorisation. Marked `BLOCKED_BY_OWNER`. (Corrected 2026-09-26: an earlier revision transposed these figures as "0 ahead / 187 behind"; the live counts are **204 ahead / 0 behind**) |
 | Native GUI / UIA / screenshots | not executed — no interactive desktop session. All GUI acceptance remains unverified |
 
 ## 5. Local-only items (not auditable from the cloud)
