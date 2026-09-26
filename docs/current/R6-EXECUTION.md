@@ -3154,3 +3154,39 @@ recorded separately and is not anticipated here.
 **Non-claims.** No version was raised, no assertion deleted, no gate downgraded and no directory was added to
 the wheel to make the assertion pass. Release FROZEN, `main` untouched, Green untouched,
 `local_green_updated=false`.
+
+### wheel-smoke VERIFIED GREEN, and `lint` unblocked — 2026-09-26
+
+Forced full run [36249988904](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36249988904)
+(`workflow_dispatch`, `force_full=true`) on `06c4dd35e807a77241152ca6dfc0a1093951b4fa`:
+
+| gate | conclusion | note |
+| --- | --- | --- |
+| `lint` | **success** | step 7 "Validate repository naming and encoding conventions" now passes; previously the branch's only red step |
+| `wheel-smoke` | **success** | steps 6 Build, 7 Install and 8 Smoke-test all success - the first time this gate has passed on this branch, and the first time step 8 has exercised an actually-installed wheel |
+
+Log evidence (job `108426129074`), replacing the failing pair seen in runs `36242930810` and `36249633268`:
+
+```
+-m pip install --no-deps --force-reinstall .project-local/task-runtime/wheel-smoke/dist/*.whl
+./.project-local/task-runtime/wheel-smoke/dist/archeaxis_workspace-0.6.14-py3-none-any.whl
+installed archeaxis-workspace-0.6.14
+```
+
+- The `is already installed with the same version ... Use --force-reinstall` line is **gone**; the wheel is
+  installed. `installed archeaxis-workspace-0.6.14` is pip's own confirmation.
+- **Zero** occurrences of `No module named`, `AssertionError` or `Traceback` anywhere in that job log, so
+  step 8 passed against the installed wheel rather than the checkout.
+- The build log lists a real artifact: `archeaxis_workspace-0.6.14.dist-info/` with `METADATA`, `WHEEL`,
+  `RECORD`, `entry_points.txt`, `top_level.txt` and `licenses/LICENSE`.
+
+**Instrumentation added after that run.** The assertion now prints both observed values and the resolved
+distribution paths **unconditionally**, so a future run records the pair even when it passes. Previously the
+step printed nothing on success and only a bare `AssertionError` on failure, which is what made the original
+failure unrecoverable.
+
+**Non-claims.** This is a **development-branch** forced run, not a `main` run, and the aggregate conclusion of
+the remaining forced gates (`desktop-build`, `installer-lifecycle`, `rust-vnext`, `desktop-vnext`,
+`test (3.12)`, `green-candidate-vnext`, `desktop-fast`) was still in flight when this entry was written; it is
+recorded when complete. Passing `wheel-smoke` proves the gate now tests the installed wheel - it does not
+qualify the product. Release FROZEN, `main` untouched, Green untouched, `local_green_updated=false`.

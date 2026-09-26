@@ -452,6 +452,12 @@ jobs:
           assert not any(Path(path).name.lower() == "knowledge_base" for path in sys.path if path)
           installed = installed_version("archeaxis-workspace")
           manifest_version = load_release_manifest()["product"]["version"]
+          # Record the pair unconditionally. The historical failure of this gate
+          # asserted without a message, so its log held a bare AssertionError and
+          # neither value could ever be recovered from it.
+          print(f"installed distribution version : {installed!r}")
+          print(f"bundled manifest product.version: {manifest_version!r}")
+          print(f"resolved archeaxis-workspace distributions: {records}")
           assert installed == manifest_version, (
               f"installed distribution version {installed!r} != bundled release manifest "
               f"product.version {manifest_version!r}; distributions={records}"
