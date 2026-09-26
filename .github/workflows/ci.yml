@@ -371,10 +371,30 @@ jobs:
           assert not forbidden, f"wheel contains forbidden runtime artifacts: {forbidden}"
           PY
       - name: Install wheel with locked runtime dependencies
+        env:
+          # The same GITHUB_ENV leak described on the smoke step below also broke
+          # this step, and this is the root cause of the wheel-smoke failure. The
+          # build step runs setuptools `egg_info` inside the checkout, which writes
+          # `archeaxis_workspace.egg-info/PKG-INFO` into the repository root. With
+          # `PYTHONPATH=<checkout root>` inherited from GITHUB_ENV, that directory
+          # is on sys.path, so pip's environment scan reports archeaxis-workspace
+          # as already installed and prints:
+          #
+          #   ...archeaxis_workspace-0.6.14-py3-none-any.whl
+          #   is already installed with the same version as the provided wheel.
+          #   Use --force-reinstall to force an installation of the wheel.
+          #
+          # and skips the wheel entirely. The wheel was therefore never installed,
+          # the smoke step resolved `app` from the checkout, and the version
+          # assertion compared the checkout's egg-info against the checkout's own
+          # manifest. Clearing the inherited path stops pip from seeing the
+          # checkout's metadata; --force-reinstall makes the install unconditional
+          # so a stale or shadowing distribution can never silently win again.
+          PYTHONPATH: ""
         run: |
           uv export --frozen --no-dev --no-emit-project --format requirements-txt --output-file locked-runtime.txt
           python -m pip install --require-hashes -r locked-runtime.txt
-          python -m pip install --no-deps .project-local/task-runtime/wheel-smoke/dist/*.whl
+          python -m pip install --no-deps --force-reinstall .project-local/task-runtime/wheel-smoke/dist/*.whl
           python -m pip check
           python -m pip uninstall --yes setuptools wheel jaraco.context
           python -m pip uninstall --yes pip

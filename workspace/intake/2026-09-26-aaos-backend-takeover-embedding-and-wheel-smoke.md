@@ -27,14 +27,20 @@ Two bounded backend decisions were taken, both recorded with measured evidence i
    version assertion while printing both observed values on failure. No assertion was
    removed or relaxed.
 
-Consequences that must not be overstated: `wheel-smoke`'s original failure is **not**
-root-caused. A wheel built from the failing SHA `0db29842` carries
-`METADATA Version: 0.6.14` and bundled manifest `product.version: 0.6.14` - the two
-values agree - and the CI assertion passes in a clean CPython 3.12 environment, so the
-2026-09-26 handoff's stated mismatch is refuted rather than confirmed. The reranker
-half of the M0 embedding requirement stays **open**: `qwen3-reranker:latest` declares
-`embedding` but returns zero-norm vectors, so it is degenerate here and is not claimed
-as usable.
+Consequences that must not be overstated. `wheel-smoke`'s original failure is now **root-caused from the CI
+job log**: the wheel was never installed. The build step's setuptools `egg_info` writes
+`archeaxis_workspace.egg-info` into the checkout, and the job's first step leaks
+`PYTHONPATH=<checkout root>` through `GITHUB_ENV`, so pip reported the just-built wheel as "already installed
+with the same version" and skipped it. The smoke step therefore resolved `app`, `shared` and `knowledge_base`
+from the checkout, and its version assertion compared the checkout's egg-info against the checkout's own
+manifest - which is also why the original log records a bare `AssertionError` with no values: that assertion
+carried no message. Both leaks are now closed, the install is `--force-reinstall`, and the assertion prints
+both observed values on failure.
+
+What is still unproven: whether the *installed* wheel actually satisfies the smoke step. That is only now
+being tested for the first time, because before this change the checkout answered every import. Separately,
+the reranker half of the M0 embedding requirement stays **open**: `qwen3-reranker:latest` declares `embedding`
+but returns zero-norm vectors, so it is degenerate here and is not claimed as usable.
 
 ## Authority basis
 

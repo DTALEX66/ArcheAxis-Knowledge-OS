@@ -35,7 +35,7 @@ Status of the latest handoff view, by evidence class:
 | **Verified** | the `4270f25f` `test (3.12)` failure and its fix, reproduced in a cloud-equivalent clone (before: 5 ids named / after: 12 passed) |
 | **Verified (exact SHA)** | run `36242930810` on `0db29842`: 18 jobs pass, `wheel-smoke` fails |
 | **Inherited, not re-measured by this document** | the local full-suite result quoted in §6 |
-| **OPEN / ROOT_CAUSE_UNVERIFIED** | `wheel-smoke` — see §2.2 |
+| **ROOT CAUSE FOUND (2026-09-26)** | `wheel-smoke` — the wheel was never installed; see §2.2 |
 | **BLOCKED** | `main` integration; native GUI/UIA/screenshot acceptance |
 
 ### 2.1 Historical run snapshots (each scoped to its own source SHA)
@@ -143,12 +143,26 @@ What was checked, and what remains:
   tested a `sys.path` entry's basename against the string `knowledge_base`, which
   cannot detect a checkout root. That is fixed, together with a regression test.
 
-Status remains **OPEN / ROOT_CAUSE_UNVERIFIED** for the original failure. It is not
-reproducible from this source tree: the job log requires repository admin rights
-(`GET .../actions/jobs/108406779828/logs` → 403) and the job's environment cannot
-be recreated here (`uv` is absent and outbound package installation is
-unavailable). The assertion's message now prints both observed values, so the next
-run of this gate will record them directly.
+Status: **ROOT CAUSE FOUND, 2026-09-26.** The job log is readable with an authenticated
+token, and it shows the wheel was **never installed**. The build step's setuptools
+`egg_info` writes `archeaxis_workspace.egg-info` into the checkout, and the job's first
+step leaks `PYTHONPATH=<checkout root>` through `GITHUB_ENV` into the install step, so
+pip reported the just-built wheel as already installed and skipped it:
+
+```
+./.project-local/task-runtime/wheel-smoke/dist/archeaxis_workspace-0.6.14-py3-none-any.whl
+is already installed with the same version as the provided wheel. Use --force-reinstall to force an installation of the wheel.
+```
+
+The smoke step then resolved `app`, `shared` and `knowledge_base` from the checkout, and
+the version assertion compared the checkout's egg-info against the checkout's own
+manifest. The original log records only `File "<stdin>", line 16, in <module>` followed by
+`AssertionError`, because that assertion carried no message — which is why no pair of
+values was ever recoverable from it. Both leaks are now closed, the install uses
+`--no-deps --force-reinstall`, and the assertion prints both observed values on failure.
+See `R6-EXECUTION.md`, "wheel-smoke root cause FOUND: the wheel was never installed —
+2026-09-26". What remains unproven is whether the *installed* wheel itself satisfies the
+smoke step, which that gate is only now able to test.
 
 
 ### 2.3 The `test (3.12)` failure at `4270f25f` and its fix
@@ -274,7 +288,7 @@ twelve of the thirteen archived tips — see the table in
 | `crates/archeaxis-api/tests/maintenance_cli.rs` | carries CRLF; flagged by `check_repository_conventions.py --source worktree`. Pre-existing, not touched by this session |
 | `shared/provider_routing.py` | line-ending drift only (`git diff --numstat` empty); deliberately uncommitted |
 | `docs/history/branch-donors/execution-reliability-20260926/` | pre-existing untracked content from an earlier session; preserved, not committed |
-| Design reference assets | **Corrected.** An earlier revision said no design asset exists in the repository. That was too broad: `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/` contains `ArcheAxis OS V3.0 Blueprint.docx`, `ArcheAxis OS V3.1 Documentation.docx`, `ArcheAxis OS Overview.docx`, `ArcheAxis_OS_MCS_Phase5_v0.1.0.zip` and `Cognitive_Loop_OS_GoogleResearch_500AI_Delivery_v1.0.zip`. What does **not** exist is anything literally named `DESIGN-SPEC` / `B10` / `B09`. These documents are the **legacy "ArcheAxis OS V3"** design line, superseded by the current authority (C#/Avalonia, Chinese-first, black/white dark baseline), so they are reference material, not the active visual specification. Nothing was extracted from the `.docx`/`.zip` binaries in this session, and no substitute asset was generated |
+| Design reference assets | **Corrected.** An earlier revision said no design asset exists in the repository. That was too broad: `docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/` contains six legacy V3 design documents and delivery archives plus that directory's own `README.md`. The exact file names are **not** restated here: they carry a superseded product name, and this handoff is an active surface that `scripts/check_repository_conventions.py` scans for it. The complete, byte-sized inventory lives on the declared historical surface `docs/history/legacy-design-assets/README.md`. What does **not** exist is anything literally named `DESIGN-SPEC` / `B10` / `B09`. Those documents are the legacy V3 design line, superseded by the current authority (C#/Avalonia, Chinese-first, black/white dark baseline), so they are reference material, not the active visual specification. Nothing was extracted from the `.docx`/`.zip` binaries in this session, and no substitute asset was generated |
 | Route contract vs shell navigation | contract declares 7 page ids; the shell exposes 16 sections. Left `PROPOSED` because extending `page_id` (a closed `Literal`, with `routes` at `min_length=7`) means making `core_endpoint` optional — a contract semantics change needing an owner decision |
 | `main` integration | **not done.** `origin/main` (`e3875db0`) is an ancestor of this head, i.e. a clean fast-forward is available, but this session had no merge authorisation. Marked `BLOCKED_BY_OWNER`. (Corrected 2026-09-26: an earlier revision transposed these figures as "0 ahead / 187 behind"; the live counts are **204 ahead / 0 behind**) |
 | Native GUI / UIA / screenshots | not executed — no interactive desktop session. All GUI acceptance remains unverified |

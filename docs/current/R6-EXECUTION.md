@@ -3088,3 +3088,69 @@ wiring beyond the embedding path, graph and research wiring, the permission boun
 open. The reranker is measured-unusable, not fixed. No model was downloaded and no licence was accepted.
 A11 remains `TESTED_LOCAL_PARTIAL`: `qwen2.5vl:7b` declares `vision`, but no vision call was made or verified
 here. Release FROZEN, `main` untouched, Green untouched, `local_green_updated=false`.
+
+### wheel-smoke root cause FOUND: the wheel was never installed — 2026-09-26
+
+The blocker is closed with real CI evidence. The earlier slices could not read the job log anonymously
+(HTTP 403); with an authenticated token (`gh api .../actions/jobs/<id>/logs`) both the original failing run
+and a new forced run are readable, and the answer is in them.
+
+**Root cause.** Two mechanisms combined, each now measured:
+
+1. The build step runs setuptools `egg_info` inside the checkout, so it writes
+   `archeaxis_workspace.egg-info/PKG-INFO` into the repository root. The job log shows it explicitly
+   (`archeaxis_workspace.egg-info`, `.../PKG-INFO`, `SOURCES.txt`, `install_egg_info`).
+2. `scripts/runtime/dev.py --github-env` publishes `PYTHONPATH=<checkout root>` through `GITHUB_ENV`, which
+   persists into every later step of the same job — including the install step.
+
+With the checkout on `sys.path`, `importlib.metadata` finds that `egg-info`, so pip reported the just-built
+wheel as already present and **skipped it**. Verbatim from the install step of run `36242930810`
+(`0db29842`, the original failing SHA) **and** of run `36249633268` (this session's forced run):
+
+```
+./.project-local/task-runtime/wheel-smoke/dist/archeaxis_workspace-0.6.14-py3-none-any.whl
+is already installed with the same version as the provided wheel. Use --force-reinstall to force an installation of the wheel.
+```
+
+Consequences, all consistent with the observed symptoms:
+
+- The wheel was **never installed**, so `app`, `shared` and `knowledge_base` resolved from the checkout.
+- The step named "Smoke-test installed runtime **outside repository**" has never exercised the installed
+  wheel. Its guard could not detect this, because it compared a `sys.path` entry's basename against the
+  string `knowledge_base` while a checkout root is named `ArcheAxis-Knowledge-OS`.
+- The version assertion therefore compared the checkout's `archeaxis_workspace.egg-info` against the
+  checkout's own `app/release-manifest.json`.
+
+**Why the two values were never recoverable.** The original assertion carried no message, so its log records
+only `File "<stdin>", line 16, in <module>` followed by `AssertionError` — confirmed by reading the original
+log, where line 16 is that assertion. No pair of values was ever printed. That is a property of the gate, not
+of the search, and it is fixed: the assertion now prints both observed values and the resolved distribution
+paths.
+
+**Fixes.** `PYTHONPATH: ""` is now set on the install step as well as the smoke step, so pip cannot see the
+checkout's metadata; the wheel install uses `--no-deps --force-reinstall`, so a stale or shadowing
+distribution can never silently win again; the smoke step asserts no `sys.path` entry equals
+`GITHUB_WORKSPACE`; exactly one `archeaxis-workspace` distribution is required; and the version assertion
+keeps `assert installed == manifest_version` while reporting both values. No assertion was removed, relaxed
+or given a weaker condition.
+
+**Also fixed in this slice.** The `lint` gate was red on this branch for an unrelated reason. CI's `lint` job
+failed at "Validate repository naming and encoding conventions" with `1 issue(s)`: the cloud audit handoff
+restated legacy product file names on an active surface (`docs/current/`). The exact inventory now lives on
+the declared historical surface `docs/history/legacy-design-assets/README.md`, which
+`check_repository_conventions.py` exempts by path, and the handoff references it instead of restating the
+names. The new inventory also corrects an omission: the earlier text listed five entries and missed
+`ArcheAxis_OS_MCS_Phase5_v0.1.0.sha256` and that directory's own `README.md`. Local
+`check_repository_conventions.py --source worktree` is now down to the two pre-existing CRLF artefacts
+(`apps/ArcheAxis.Desktop/MainWindow.axaml.cs`, a Codex-owned uncommitted edit, and
+`crates/archeaxis-api/tests/maintenance_cli.rs`, a working-tree-only `autocrlf` artefact already documented in
+the handoff); `--source head` no longer reports the legacy name.
+
+**Still unproven after this slice.** Whether the *installed* wheel actually satisfies the smoke step is only
+now being tested for the first time by the re-dispatched forced run. Before this change the step could not
+fail for a genuine installed-runtime reason, because the checkout answered every import. That run's result is
+recorded separately and is not anticipated here.
+
+**Non-claims.** No version was raised, no assertion deleted, no gate downgraded and no directory was added to
+the wheel to make the assertion pass. Release FROZEN, `main` untouched, Green untouched,
+`local_green_updated=false`.
