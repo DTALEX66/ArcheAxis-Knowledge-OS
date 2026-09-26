@@ -117,15 +117,12 @@
 
 移植该分支会把**较不成熟的旧实现**与 HEAD 已有实现**并存**，制造双实现——正是本项目明令禁止的。故判定为「已被超越」，不移植。
 
-**执行与恢复**：删除前归档 tip SHA 至 `.project-local/tmp/deleted-branches-20260926.tsv`；本地分支 **27 → 22**。
+**执行与恢复**：删除前把每个 tip SHA 归档到 `.project-local/tmp/deleted-branches-20260926.tsv`；本地分支 **27 → 22**。
 
-| 分支 | tip SHA（可恢复） |
-| --- | --- |
-| `feat/h2-bakeoff` | `376fb8001a0a7f2e2c25a0174e1dee6601d0b95b` |
-| `feat/h2-pipeline-integration` | `e1df9279fde0dd0665d4765c18b8a3d1c7ae443b` |
-| `feat/absorption-adopt-now` | `081cf20a28152c271155b6c3d524550ffc545ced` |
-| `feat/absorption-roadmap-r0` | `42d13c0b748243235f9ffbff3e3394b76196b368` |
-| `agent/phase5-research-knowledge-governance` | `0a5e1bfa94209ccded6aa993c89c581bbfd00227` |
+被删分支：`feat/h2-bakeoff`、`feat/h2-pipeline-integration`、`feat/absorption-adopt-now`、`feat/absorption-roadmap-r0`、`agent/phase5-research-knowledge-governance`。
+
+**五个 tip SHA 刻意不在此复写。** 原因：本仓库的 `tests/test_axr060_completion_audit.py` 要求 `docs/current/` 下每个 40 位十六进制串都能在检出中解析为真实对象，而**已删除分支的 tip 在全新检出中不存在**——这正是 CI `test (3.12)` 在 `4270f25f` 失败的根因（本文件曾被扫描面收录这 5 个 SHA）。完整 SHA 保存在
+`docs/current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json`，它是**已声明的审计收据**，因此按设计不在该扫描面内。
 
 恢复命令：`git branch <name> <tip_sha>`（实测 5 个对象**均仍可达**，`cat-file -t` 全为 `commit`）。
 
