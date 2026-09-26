@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -164,4 +165,41 @@ def test_store_accepts_builtin_manifest_dict_directly(tmp_path: Path) -> None:
     manifest = next(item for item in discover() if item.plugin_id == "ax.builtin.converter.html")
     record = store.install_builtin(manifest.to_dict())
     assert record.plugin_id == "ax.builtin.converter.html"
+    assert record.status == "installed"
+
+
+def test_store_accepts_manifest_from_a_second_module_identity(tmp_path: Path) -> None:
+    """A PluginManifest is not tied to one class object.
+
+    CI failed at ``install_builtin`` -> ``load_manifest_from_mapping`` with
+    "'PluginManifest(...) is not of type 'object'": an ``isinstance`` identity
+    check rejected a valid manifest whose class object came from another import
+    of the same module (duplicate checkout / installed copy shadowing the source
+    tree).  Re-import the module under a second name to reproduce that split
+    deterministically, then require the store to accept the manifest.
+    """
+    spec = importlib.util.spec_from_file_location(
+        "shared._plugin_manifest_second_identity",
+        Path(__file__).resolve().parents[1] / "shared" / "plugin_manifest.py",
+    )
+    assert spec is not None and spec.loader is not None
+    second = importlib.util.module_from_spec(spec)
+    # dataclasses resolves annotations through sys.modules during class creation.
+    sys.modules[spec.name] = second
+    try:
+        spec.loader.exec_module(second)
+    finally:
+        pass
+
+    data = next(item for item in discover() if item.plugin_id == "ax.builtin.converter.docx").to_dict()
+    manifest = second.load_manifest_from_mapping(json.loads(json.dumps(data)))
+
+    # The split identity is real: this is a different class object...
+    from shared.plugin_manifest import PluginManifest
+
+    assert not isinstance(manifest, PluginManifest)
+    # ...but structurally the same contract, so the store must accept it.
+    store = CapabilityStore(tmp_path / "capstore")
+    record = store.install_builtin(manifest)
+    assert record.plugin_id == "ax.builtin.converter.docx"
     assert record.status == "installed"

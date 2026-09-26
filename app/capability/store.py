@@ -262,9 +262,15 @@ class CapabilityStore:
         any modification is detected via content-hash re-verification and
         refused with CapabilityStoreError.
         """
+        # Identity is deliberately NOT tested with isinstance(): a manifest
+        # produced by another import of this module (duplicate checkout, an
+        # installed copy shadowing the source tree, or a packaged runtime) is a
+        # different class object for the same contract, and isinstance() then
+        # rejects a perfectly valid PluginManifest. The discriminated property
+        # is the `to_dict()` protocol that PluginManifest provides.
         parsed = (
             manifest
-            if isinstance(manifest, PluginManifest)
+            if callable(getattr(manifest, "to_dict", None))
             else load_manifest_from_mapping(manifest)
         )
         plugin_id = parsed.plugin_id
