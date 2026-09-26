@@ -24,6 +24,42 @@
 
 ## DONE（本轮，已推送并 CI 验证）
 
+**D-6 冻结类分支复审 → 本地分支 27 收敛至 7**
+
+对审计记录中**非捐赠者**的保留类分支做实质复审（判据同上：新增路径中 HEAD 不存在的数量），并据复审结果处置：
+
+**已复审并删除（5 条）**：
+
+| 分支 | 处置类别 | 复审结论 |
+| --- | --- | --- |
+| `feat/archeaxis-desktop-a1-violet-core` | `FROZEN_WEB_UI_REFERENCE_REASSESS` | 3 新增 / 2 缺失（2026-07-28 记录 + requirements 清单）→ 归档后删除 |
+| `feat/axw022a-pdf-http-endpoint` | 同上 | PDF 能力已在 HEAD 由 Rust Core 提供；分支是 React/Tauri 网页侧实现（含 pdfjs 第三方资产）→ 归档后删除 |
+| `feat/axw022b-evidence-annotation` | 同上 | **3→0 缺失**，完全已吸收，无需归档 |
+| `codex/recovery-shell-frontend` | `FROZEN_LEGACY_REACT_TAURI_REFERENCE_NO_MERGE` | 4 新增 / **0 缺失** → 已吸收，删除 |
+| `release/v0.4.0-contract` | `HISTORICAL_RELEASE_...RETAIN_EVIDENCE` | **0 新增 / 0 缺失** → 已吸收，删除（远端同名分支保留） |
+
+**复审后确认保留（3 条）** —— 它们**确有 HEAD 中不存在的独有内容**，且审计记录明确要求作为证据保留：
+
+| 分支 | 独有路径 | 记录裁定 |
+| --- | --- | --- |
+| `codex/frozen-roadmap-deepseek-v1` | 130 新增 / **118 缺失** | `HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE` |
+| `codex/execution-reliability-standards` | 3 新增 / 3 缺失 | `HISTORICAL_GOVERNANCE_EVIDENCE_CROSSWALK_ONLY` |
+| `docs/verification-summary-2026-08-09` | 1 新增 / 1 缺失 | `HISTORICAL_GOVERNANCE_EVIDENCE_CROSSWALK_ONLY` |
+
+**最终 7 条本地分支及其保留理由**：
+
+| 分支 | 理由 |
+| --- | --- |
+| `codex/aaos-p3-ui-convergence-20260922` | 活跃分支 |
+| `codex/dp-f01-20260925` | worktree 占用 |
+| `codex/worker-quality-0906` | worktree 占用 |
+| `main` | `merge-base == tip`（HEAD 祖先），本地规范引用 |
+| `codex/frozen-roadmap-deepseek-v1` | 118 条独有路径；记录为保留证据 |
+| `codex/execution-reliability-standards` | 3 条独有路径；记录为保留证据 |
+| `docs/verification-summary-2026-08-09` | 1 条独有路径；记录为保留证据 |
+
+**关键性质：删除分支不丢内容。** 实测 5 个新删分支的 tip 对象**全部仍可达**（`cat-file -t` 均为 `commit`），`git branch <name> <sha>` 即可恢复。归档台账存于 `.project-local/tmp/`，SHA 亦记入 `docs/history/branch-donors/README.md`。
+
 **D-5 legacy 类 10 条捐赠者分支复审 → 7 条已吸收删除、3 条归档后删除**
 
 同一判据（新增路径中 HEAD 不存在的数量）：
