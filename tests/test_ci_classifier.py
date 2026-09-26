@@ -72,6 +72,24 @@ def test_contract_bearing_docs_require_the_primary_suite() -> None:
     assert any(
         code.startswith("contract-bearing-docs:") for code in plan["reason_codes"]
     ), plan["reason_codes"]
+
+
+def test_scanned_surface_docs_require_the_primary_suite() -> None:
+    """Docs inside test_axr060's scan surface must run the suite that checks them.
+
+    A docs-only change to one of these previously matched docs-mechanical and
+    skipped `test`, so a checkpoint document could restate a deleted-branch SHA -
+    which no fresh checkout can resolve - and break `test_axr060` without CI ever
+    running it. That is exactly what happened at 4270f25f.
+    """
+    for path in (
+        "docs/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md",
+        "docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md",
+        "docs/history/branch-donors/README.md",
+    ):
+        plan = _classify([path])
+        assert {"py-primary", "lint", "static"} <= set(plan["required_gates"]), path
+        assert plan["unknown_paths"] == [], path
     # Exact paths only: a broad docs glob must not force the primary suite.
     prose = _classify(["docs/current/R6-EXECUTION.md"])
     assert "py-primary" not in prose["required_gates"]

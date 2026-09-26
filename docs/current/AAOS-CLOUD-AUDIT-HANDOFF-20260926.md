@@ -18,70 +18,114 @@ item explicitly marked **local-only** at the end.
 
 ## 2. Exact state to audit
 
-| Item | Value |
+A document cannot record the SHA of the commit that contains it. To avoid a
+self-referencing commit loop, the four identities below are kept separate.
+
+| Role | Value | How to obtain |
+| --- | --- | --- |
+| Remote ref to read | `origin/codex/aaos-p3-ui-convergence-20260922` | `git rev-parse origin/codex/aaos-p3-ui-convergence-20260922` |
+| Current tip | read live; deliberately not pinned here | `git rev-parse HEAD` |
+| Code state this handoff's code claims were tested on | `0db29842` (full qualification) and `60740800` / `a473267a` (earlier targeted runs) | see the run table |
+| `main` | `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb` | **not** updated; integration `BLOCKED_BY_OWNER` |
+
+Status of the latest handoff view, by evidence class:
+
+| Class | Items |
 | --- | --- |
-| Branch | `codex/aaos-p3-ui-convergence-20260922` |
-| Head commit | `4270f25f906b9498775a61982c3db02de8fd465b` |
-| `main` | `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb` (**not** updated) |
-| Local = remote | yes, verified by `git rev-parse` on both plus a GitHub commit readback |
+| **Verified** | the `4270f25f` `test (3.12)` failure and its fix, reproduced in a cloud-equivalent clone (before: 5 ids named / after: 12 passed) |
+| **Verified (exact SHA)** | run `36242930810` on `0db29842`: 18 jobs pass, `wheel-smoke` fails |
+| **Inherited, not re-measured by this document** | the local full-suite result quoted in §6 |
+| **OPEN / ROOT_CAUSE_UNVERIFIED** | `wheel-smoke` — see §2.2 |
+| **BLOCKED** | `main` integration; native GUI/UIA/screenshot acceptance |
 
-> `4270f25f` is documentation-only. The code state to audit is `60740800`
-> (route reconciliation) and `a473267a` (the `install_builtin` and boundary
-> fixes); earlier commits in the same session are listed in the checkpoint log.
+### 2.1 Historical run snapshots (each scoped to its own source SHA)
 
-### CI runs (exact SHA)
+These are observations of *the source SHA in the row*, not of the current tip.
+Push-triggered runs classify by changed path, so a docs-only change correctly
+skips `test`.
 
-| Run | SHA | Conclusion | Jobs that actually ran |
+| Run | Source SHA | Conclusion | Jobs that ran |
 | --- | --- | --- | --- |
-| [36239548637](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36239548637) | `14a2788c` | success | `gateplan`, `lint`, **`test (3.12)`**, `a0-gates` |
-| [36240789632](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36240789632) | `a473267a` | success | `gateplan`, `lint`, **`test (3.12)`**, **`contracts-vnext`**, `a0-gates` |
+| [36239548637](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36239548637) | `14a2788c` | success | `gateplan`, `lint`, `test (3.12)`, `a0-gates` |
+| [36240789632](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36240789632) | `a473267a` | success | `gateplan`, `lint`, `test (3.12)`, `contracts-vnext`, `a0-gates` |
 | [36240789707](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36240789707) | `a473267a` | success | `vnext-ci/cargo-test` |
 | [36241709088](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36241709088) | `fde023c5` | success | `gateplan`, `lint`, `a0-gates` (docs-only: `test` correctly SKIPPED) |
 | [36242037128](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242037128) | `60740800` | success | `gateplan`, `lint`, `a0-gates` (docs-only) |
-| [36242496590](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242496590) | `4270f25f` | **failure** | `test (3.12)` ran and **failed** — see below |
-| [36242930810](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242930810) | `0db29842` | **failure (18/20 jobs pass)** | **forced full qualification** — see below |
+| [36242496590](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242496590) | `4270f25f` | **failure** | `test (3.12)` ran and failed; see §2.3 |
+| [36242930810](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242930810) | `0db29842` | **failure (18/20)** | forced full qualification; see §2.2 |
 
-### Forced full qualification at `0db29842` (workflow_dispatch, `force_full=true`)
+**Scope limit that must not be lost:** the five push-triggered runs above ran only
+`gateplan`, `lint`, `test (3.12)`, `contracts-vnext` and `a0-gates`. On those
+SHEs the remaining gates — `rust-vnext`, `desktop-vnext`, `desktop-build`,
+`installer-lifecycle`, `wheel-smoke`, `security-targeted`, `format-targeted`,
+`workers-vnext`, `migration-targeted`, `browser-smoke`, `windows-runtime-smoke`,
+`green-candidate-vnext`, `py-compat` — **were skipped and are not verified by
+them**, on those source SHAs. They were first executed for this branch by the
+`0db29842` forced run below, which is why the two statements are not in conflict:
+skipped on the push runs, executed on the forced run.
 
-Run [36242930810](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242930810) executed every gate that the push-triggered runs skip:
+### 2.2 Forced full qualification at `0db29842` (workflow_dispatch, `force_full=true`)
+
+Run [36242930810](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242930810) executed the gates the push-triggered runs skip.
 
 | Result | Jobs |
 | --- | --- |
-| **success (18)** | `gateplan`, `lint`, **`test (3.12)`**, `contracts-vnext`, `rust-vnext`, `desktop-vnext`, `desktop-build`, `desktop-fast`, `workers-vnext`, `migration-targeted`, `security-targeted`, `format-targeted`, `browser-smoke`, `windows-runtime-smoke`, `green-candidate-vnext`, `installer-lifecycle`, `py-compat (3.11)`, `py-compat (3.13)` |
+| **success (18)** | `gateplan`, `lint`, `test (3.12)`, `contracts-vnext`, `rust-vnext`, `desktop-vnext`, `desktop-build`, `desktop-fast`, `workers-vnext`, `migration-targeted`, `security-targeted`, `format-targeted`, `browser-smoke`, `windows-runtime-smoke`, `green-candidate-vnext`, `installer-lifecycle`, `py-compat (3.11)`, `py-compat (3.13)` |
 | **failure (1)** | `wheel-smoke` |
 | **failure (aggregate)** | `a0-gates` — fails only because `wheel-smoke` failed |
 
-This is the strongest evidence in the session, and it is new: `rust-vnext`,
-`desktop-vnext`, `desktop-build`, `contracts-vnext`, `workers-vnext`,
-`installer-lifecycle`, `windows-runtime-smoke`, `green-candidate-vnext`,
-`browser-smoke`, `security-targeted`, `format-targeted`, `migration-targeted`
-and `py-compat` **had never run on this branch** and all pass here.
+This evidence belongs to source `0db29842` and to that run's job set only. It does
+not transfer to a later tip automatically; §9 of the continuation pack requires
+diffing before inheriting it.
 
-### `wheel-smoke` is a pre-existing failure, not caused by this session
-
-The job asserts a set of required members in the built wheel
-(`app/release-manifest.json`, `app/research/github.py`, `shared/research_store.py`,
-`shared/core_schema.py`, `shared/migration_runner.py`, …) and that no cache or
-test artifact is packaged
+**`wheel-smoke`: OPEN / ROOT_CAUSE_UNVERIFIED.** The job asserts required wheel
+members (`app/release-manifest.json`, `app/research/github.py`,
+`shared/research_store.py`, `shared/core_schema.py`, `shared/migration_runner.py`,
+…) and that no cache or test artifact is packaged
 (`.github/workflows/ci.yml`, step "Smoke-test installed runtime outside
 repository", `assert not missing` / `assert not forbidden`).
 
-None of those files was touched by any commit in this session — the changes here
-are `app/capability/store.py`, test files, `config/desktop/routes-v1.json`, the
-Pydantic/Schema route contract, `.worklab/project-validation.v1.yaml` and
-documentation. This branch had never run `wheel-smoke` before this forced run,
-so no earlier baseline exists on it.
+Two things are established and one is not:
 
-**Status: OPEN, unverified cause.** Recorded rather than hidden; it is the single
-gate standing between this head and a fully green full qualification.
+- Established: this branch had **no earlier `wheel-smoke` baseline** — the gate
+  never ran on it before this forced run.
+- Established: no commit in this session touched any asserted member; the changes
+  are `app/capability/store.py`, test files, `config/desktop/routes-v1.json`, the
+  route contract, `.worklab/project-validation.v1.yaml` and documentation.
+- **Not established: causation.** "This session did not edit those files" bounds
+  the change set; it does not prove the gate was already red. The introducing
+  commit is unknown pending a same-conditions reproduction. An earlier draft of
+  this section asserted "pre-existing, not caused by this session"; that claim is
+  withdrawn here.
 
+### 2.3 The `test (3.12)` failure at `4270f25f` and its fix
 
-**Read this honestly:** the jobs `rust-vnext`, `desktop-vnext`,
-`desktop-build`, `installer-lifecycle`, `wheel-smoke`, `security-targeted`,
-`format-targeted`, `workers-vnext`, `migration-targeted`, `browser-smoke`,
-`windows-runtime-smoke`, `py-compat` were **SKIPPED** on this branch and are
-therefore **not verified**. Python `test (3.12)` and `contracts-vnext` are the
-lanes that actually ran.
+`docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md` restated the tip SHAs of
+deleted branches. This repository's `test_axr060_completion_audit` requires every
+40-hex identifier under `docs/current/` to resolve to a real object, and a deleted
+branch's tip does not exist in a fresh checkout, so `test (3.12)` failed there.
+Reproduced and fixed against a cloud-equivalent clone (`git clone --no-local`
+plus a full ref fetch), not reasoned about:
+
+```
+before: FAILED tests/test_axr060_completion_audit.py — 5 ids named
+after : 12 passed
+```
+
+The checkpoint now names the five branches without restating their SHAs; the full
+identifiers remain in `docs/current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json`,
+which the test's own receipt classifier exempts by declared schema.
+
+### 2.4 Where each claim belongs
+
+| Claim type | Lives in |
+| --- | --- |
+| Current code identity | this section, resolved live |
+| Historical test evidence | §2.1, bound to its source SHA |
+| Full-qualification evidence | §2.2, bound to `0db29842` |
+| Unreleased / unreachable object ids | structured historical receipts under `docs/current/*.json` (declared audit schemas), referenced rather than restated |
+| Running session log | `docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md` |
+
 
 ## 3. What changed, and how to audit each change
 

@@ -145,10 +145,12 @@ risk_classes:
 
   - id: contract-bearing-docs
     description: >-
-      Authority/status documents that contract tests read and assert on. A docs
-      path alone would only match docs-mechanical (static), so a contract edit
-      could land without the tests that own it ever running. Exact paths only:
-      a broad docs glob would force the primary suite onto every prose change.
+      Documents that contract tests read and assert on. A docs path alone would
+      only match docs-mechanical (static), so a contract edit could land without
+      the tests that own it ever running - the failure mode that actually
+      happened when a checkpoint document restated deleted-branch SHAs and broke
+      test_axr060 under a docs-only change. Exact paths only: a broad docs glob
+      would force the primary suite onto every prose change.
     paths:
       - docs/DOCUMENTATION_AUTHORITY_INDEX.md
       - docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md
@@ -157,6 +159,12 @@ risk_classes:
       - docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md
       - docs/PROJECT_STATUS.md
       - docs/truth/CURRENT_STATE_TRUTH.md
+      # Files inside test_axr060's scanned surface: every 40-hex identifier in
+      # them must resolve to a real object, and the authority index asserts
+      # their local links resolve.
+      - docs/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md
+      - docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md
+      - docs/history/branch-donors/README.md
     gates: [static, lint, py-primary]
 
   - id: security-permissions

@@ -30,9 +30,27 @@ Local branches went from 27 to 7. Each surviving branch has a recorded reason:
 The three frozen branches whose disposition was
 `FROZEN_WEB_UI_REFERENCE_REASSESS_AAVALONIA_CONTRACTS` were reassessed and
 deleted, and the two `FROZEN_LEGACY_REACT_TAURI_REFERENCE_NO_MERGE` branches
-were confirmed to add no path absent from HEAD. Deleting a branch never removes
-content: every deleted tip is still reachable, so `git branch <name> <sha>`
-restores it.
+were confirmed to add no path absent from HEAD.
+
+**Recoverability, stated with its limits.** Deleting a branch removes only the
+ref: the commits stay in the object database while something else reaches them,
+so `git branch <name> <sha>` restores a branch whose tip is still readable. That
+is not the same as "deletion never loses content":
+
+- Reachability is a current property, not a guarantee. A commit reachable only
+  from local refs can be pruned by a future `git gc` once nothing references it.
+  Nothing in this session protects the deleted tips except the local object
+  database itself.
+- Cloud readability varies per tip. The readback table under "Recovery" below
+  shows twelve tips readable through the GitHub commits API and one — the
+  `codex/recovery-shell-frontend` tip — returning 422 because that branch was
+  never pushed.
+- No bundle or archive of the deleted tips was created in this session. The only
+  preservation actions taken were: the archived *files* listed above, and the
+  recorded tip SHAs.
+- The tips are therefore **currently reachable, not permanently recoverable**.
+  One of them now has a durable local archive (see the section below); the other
+  twelve still rest on this clone's object database alone.
 
 ## Why these branches were deleted
 
@@ -121,6 +139,49 @@ minified files are vendored PDF.js builds, not project source.
 
 Added one path (`tests/test_workspace_evidence_anchor_api.py`) that already
 exists in HEAD: zero paths absent, fully absorbed. No files needed archiving.
+
+## Local-only recovery archive — 2026-09-26
+
+Measured, not assumed: the `codex/recovery-shell-frontend` tip is an object with
+**no ref pointing at it**, so a single `git gc` would prune it permanently.
+Checked first whether an existing bundle already held it
+(`.project-local/archive-local-branch-candidates-20260918.bundle` and
+`.project-local/runs/audit-fix-20260915/ArcheAxis-first-use-fixes.bundle`): neither
+contains it.
+
+A dedicated archive was therefore created:
+
+| Item | Value |
+| --- | --- |
+| Bundle | `.project-local/archive-local-only-recovery-20260926.bundle` |
+| Size | 35.65 MB |
+| Ref recorded inside | `refs/heads/archive/local-only/codex-recovery-shell-frontend-20260926` |
+| `git bundle verify` | "The bundle records a complete history" |
+| Tracked by Git? | No — `.project-local/` is ignored (`.gitignore:48`), by design |
+
+Isolated recovery check, in a throwaway repository created under the system temp
+directory (never in this working clone, and no destructive operation was run
+here):
+
+```
+git init <tmp> && git fetch <bundle> 'refs/heads/archive/...:refs/heads/recovered'
+  -> fetch exit 0
+  -> ref resolves to e4239ebd4fe825becc4192d6e89bfaa35a9a3946
+  -> git cat-file -t <sha> = commit
+  -> git log -1 = 2026-08-23 "feat(recovery): add thin desktop recovery shell"
+  -> git fsck = no missing prerequisite objects
+```
+
+What this establishes: the tip and its prerequisite objects are now recoverable
+independently of this clone's object database, and the bundle is self-contained
+and verified. What it does **not** establish: that the *.project-local* directory
+is itself backed up anywhere. The bundle is a local safety copy; if that
+directory is not preserved, this recovery path goes with it.
+
+The bundle is deliberately not committed — a 35 MB object store does not belong
+in Git history, and the repository already carries a large pack. If an off-repo
+backup of `.project-local/archive-local-only-recovery-20260926.bundle` is
+required, that is an owner action, not something this session can assert.
 
 ## Recovery
 
