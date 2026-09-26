@@ -286,4 +286,59 @@ twelve of the thirteen archived tips — see the table in
 .\.venv\Scripts\python.exe -B scripts/ci/classify.py --paths docs/PROJECT_STATUS.md
 ```
 
-Last local run: **3353 passed, 46 skipped, 0 failed**.
+Last local run: **3355 passed, 46 skipped, 0 failed**.
+
+## 7. Navigation and format baselines established this round
+
+Recorded so a later round starts from facts rather than re-deriving them.
+
+### 7.1 Shell sections versus contract page ids
+
+Two overlapping sets, not a subset relation — the "7 versus 16" difference is
+**not** nine missing pages:
+
+| Set | Count | Where |
+| --- | --- | --- |
+| Contract page ids | 7 | `config/desktop/routes-v1.json` |
+| Native navigation sections | 16 | `CommandPaletteRoutes` in `MainWindow.axaml.cs` |
+
+Both sides use the same identifier convention with one exception: a page id is
+`snake_case` where its section is `kebab-case`, so `source_reader` ↔ `source-reader`
+and `machine_growth` ↔ `machine-growth`. Normalising on `-` makes every manifest
+page id resolve to a real section.
+
+The nine sections without a page id are `home`, `capture`, `library`,
+`original-editor`, `memory-map`, `evidence`, `research`, `plugins`, `models` —
+navigation surfaces, local projections, or the recorded honest-unavailable
+domains (`research`/`plugins`/`models`, already asserted not to call Core).
+
+`tests/test_desktop_routes_v1.py::test_navigation_sections_and_contract_page_ids_are_distinct_sets`
+pins this. Negative control verified: renaming `machine-growth` in the shell makes
+it fail.
+
+### 7.2 Format matrix: verified against the real route tables
+
+`docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` is the authority
+(`archeaxis.format-status/v1`, carried from the 0907 coverage file). Its own
+validator passes:
+
+```
+python scripts/check_format_matrix.py --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json
+-> 16 groups carried, 0 complete, 14 partial, 2 custody only;
+   every claimed route exists in the Core and transport tables (11 core routes, 10 worker routes parsed)
+```
+
+So the matrix does not drift from the implementation: every route it claims is
+really declared. `complete` is **0** — the honest current state.
+
+Engine routing (`_ENGINES` in `app/ingestion/multi_format.py`) covers 14 format
+keys: `pdf`, `docx`, `pptx`, `xlsx`, `csv`, `html`, `image`, `media_video`,
+`media_audio`, `article`, `md`, `txt`, `canvas`, `rtf`, `odt`. Detection is
+`detect_format` plus `detect_format_from_content`. `marker-pdf` is deliberately
+**excluded** with its reason in the source (supply-chain ledger B003 is
+REVIEW-BLOCK: Apache-2.0 code but modified OpenRAIL-M weights), so it must not
+become a default engine — that exclusion is correct, not a gap.
+
+Format contract tests pass (39 across `test_format_matrix`,
+`test_format_execution_v1`, `test_text_format_facts`).
+
