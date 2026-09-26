@@ -3469,3 +3469,53 @@ explicit `blocked` receipt when the Core binary is absent, so a missing build ca
 promotion). Local Green untouched: `local_green_updated=false` - still no combination candidate, because the
 Codex frontend has not been delivered and `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` remains an uncommitted
 dirty file this session has never touched.
+
+### A gate I broke, and how CI caught it before `main` moved — 2026-09-26
+
+Recorded because a green end state is not the same as a clean path, and because this is the second time this
+session that a real gate failure was found by running the gate rather than by reasoning about it.
+
+Promoting the probes added `sys.path.insert(0, str(REPO))` to `legacy_migration_smoke.py` so it could import
+`app.workspace.migrate`. `scripts/check_architecture.py` forbids **new** `sys.path` mutations and matches
+guarded calls by exact path, line and normalised expression, so the lint job failed at "Validate architecture
+boundaries":
+
+```
+forbidden-sys-path-mutation: new sys.path mutation: sys.path.insert(0, str(REPO))
+guard failed: 1 issue(s)
+```
+
+Run [36253503175](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36253503175) on `28da9cf7`
+therefore failed, and `a0-gates` failed with it while `test` was skipped. **`main` was not moved**: it was
+still at the passing `67a95352`, which is exactly why the branch is verified before integration.
+
+Fixed forward, never by force-pushing: `50c0c2f1` registers the loaded module and its parent packages in
+`sys.modules` with their real `__path__`, which the import machinery uses to resolve submodules, so
+`from shared.workspace_manifest import ...` inside `migrate.py` works with no path change. `_path_target` in
+the checker matches only `sys.path` itself, so this form is compliant by construction rather than by
+grandfathering.
+
+**Every step the lint job runs was then executed locally before pushing again:**
+
+| check | result |
+| --- | --- |
+| `check_architecture.py` | `architecture guard passed` |
+| `check_repository_conventions.py --source head` | `repository convention check passed (head)` |
+| `check_repository_conventions.py --source worktree` | only the two pre-existing CRLF artefacts, neither mine; the three new files are LF-only (227 / 306 / 279 LF, 0 CRLF) |
+| `check_language_boundaries.py` | passed - protocol major 1 agreed, database owner `crates/` only |
+| `check_format_matrix.py` | passed - 16 groups carried, every claimed route exists |
+| `check_path_conventions.py` | `2271/2271 tracked paths owned` (was 2268) |
+| `ruff ... scripts --select E9,F63,F7,F82` | `All checks passed!` |
+
+Run [36253670870](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36253670870) on `50c0c2f1`:
+**success** - `gateplan`, `lint`, `a0-gates`; the rest skipped by GatePlan, since the diff against the
+previous commit is `scripts/probes/` only.
+
+**`main` integration:** `67a95352` to `50c0c2f1` by fast-forward (no force). Run
+[36253774955](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36253774955) on that SHA:
+**success**. No product code changed in this slice - `28da9cf7` and `50c0c2f1` touch only `scripts/probes/`
+and `docs/` - so the 3376-passed / 0-failed suite result for the product tree still stands.
+
+**Non-claims.** `main` is fully force-qualified only at `ea2c3831` (20/20); later SHAs are qualified by the
+required-gate set GatePlan selects for their paths. A15/A16 remain unsigned, release FROZEN, Local Green
+untouched, `local_green_updated=false`.
