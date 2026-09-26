@@ -132,6 +132,29 @@ are still present in this repository (`git cat-file -t <tip>` returns `commit`):
 git branch <name> <tip-sha>
 ```
 
+**Auditability note.** A tip whose branch was only ever local is *not* readable
+from GitHub. Verified readback of `GET /repos/DTALEX66/ArcheAxis-Knowledge-OS/commits/<sha>`:
+
+| Tip | GitHub readback |
+| --- | --- |
+| `376fb800…` h2-bakeoff | 200 |
+| `e1df9279…` h2-pipeline-integration | 200 |
+| `081cf20a…` absorption-adopt-now | 200 |
+| `42d13c0b…` absorption-roadmap-r0 | 200 |
+| `a4f2de19…` p1-compat-kernel-hardening | 200 |
+| `4e1a3ed8…` portable-data-root | 200 |
+| `801edea8…` desktop-close-request-destroy | 200 |
+| `0a5e1bfa…` agent/phase5 | 200 |
+| `17ca9628…` axw022a-pdf-http-endpoint | 200 |
+| `3edacbcb…` axw022b-evidence-annotation | 200 |
+| `376281c6…` archeaxis-desktop-a1-violet-core | 200 |
+| `75cb72ef…` release/v0.4.0-contract | 200 |
+| `e4239ebd…` codex/recovery-shell-frontend | **422 — local only** |
+
+`codex/recovery-shell-frontend` was never pushed, which the earlier committed
+audit already recorded ("local historical frontend; no remote tracking"). Its tip
+cannot be inspected from the cloud; only the local clone can restore it.
+
 The full disposition record, including the classification of every branch, is
 `docs/current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json` and the session
 checkpoint `docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md`.

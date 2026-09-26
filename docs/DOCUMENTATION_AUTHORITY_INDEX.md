@@ -29,6 +29,15 @@
   findings and visible spill lower bound. Earlier embedded snapshots retain
   their historical values. The readback does not authorize remote deletion,
   merge, or data movement.
+  The [2026-09-26 cloud audit handoff](current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md)
+  is the entry point for an external auditor with GitHub access only: it lists
+  the exact head SHA, the exact-SHA CI runs and which jobs were skipped, each
+  change and how to verify it, and the known defects left unfixed. Its session
+  log is [AAOS-DSH-TAKEOVER-CHECKPOINT-20260926](current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md)
+  and the branch-consolidation record with recovery tips is
+  `docs/history/branch-donors/README.md` (outside this index's link scope).
+  These are working records for this session, not current authority: they do not
+  authorize a release, a Green replacement, or a `main` merge.
    R5/R3/R2 handoffs and branch records are historical receipts only. Before
    using local resources, read the [shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
 3. [Language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md),
