@@ -3301,3 +3301,38 @@ regression**; promoting it into `scripts/probes/` with a test is deliberately le
 unverified script is not committed as product surface. No status was upgraded: A06/A11 stay
 `TESTED_LOCAL_PARTIAL`, A15/A16 remain unsigned. Release FROZEN, Local Green untouched,
 `local_green_updated=false`.
+
+### A08 human-learning half verified at the API level against the real Core — 2026-09-26
+
+New probe `learning_api_smoke.py` (currently under `.project-local/task-runtime/wsr/`, reproducible but not
+yet a tracked regression) drives the real `archeaxis-api` process over its HTTP API and checks the human
+learning properties the mandate names. Verdict **`ok: true`**:
+
+| property | measured |
+| --- | --- |
+| Knowledge revision binding | `POST /learning/items/{key}/references` recorded; state readback shows `references: [{active: true, knowledge_id: "k_c9b2ecf9c4206409bf01fe14"}]` |
+| real answer recorded | `POST /learning/events` 200/201; state shows `event_count: 1`, `correct_streak: 1` |
+| idempotent retry | replaying the **same `client_event_id`** returned `duplicate: true`; `learning_events` rows stayed at **1** both after the first session and after restart |
+| Assessment | `POST /learning/items/{key}/assessment {"knowledge_id": ...}` → **201**; `GET` → **200**; `GET` after restart → **200** |
+| FSRS due schedule | `next_review: "2026-09-28 15:30:25"`, `next_review_days: 2`, **identical before and after a real process restart** |
+| restart readback | the whole `state_before_restart` and `state_after_restart` payloads are equal |
+
+**Behavioural fact recorded, not assumed.** A learning *event* does not create an Assessment: the first
+`GET /learning/items/{key}/assessment` returned **404 "assessment not found"** and only the explicit `POST`
+produced one. The two are separate artefacts, which is why the probe creates both.
+
+**A launch-identity detail worth keeping.** The Core rejects a launch token that is not hex - a non-hex token
+fails with `invalid launch identity` and never prints a readiness line. `r10`, `r11` and the backup probe all
+happen to use `a`-`f`; the first draft of this probe used `l`/`m` and could not start the Core.
+
+**What this probe does not claim.** It exercises the event/assessment/schedule routes. It does **not** post an
+answer through `/learning/reviews`, so the `latest_review.answer` and `latest_review.assessment_id` fields
+stay `null` and the answer-text-to-Assessment binding is **not** verified here. No learning-effectiveness
+claim is made: nothing in this loop trains a weight, and the Core's own state payload carries the same refusal
+("an unavailable schedule is stored as unscheduled rather than invented"; "learner progress is never presented
+as machine competence").
+
+**Remaining M0 links not yet driven by this session at the API level.** Legacy/migration semantics
+(`migration-targeted`, `legacy_nonempty_migration.rs`, `migration_dry_run.rs` pass in CI but were not run
+independently here), and the answer-text path above. A15/A16 remain unsigned; release FROZEN;
+`local_green_updated=false`.
