@@ -98,6 +98,44 @@ Two things are established and one is not:
   this section asserted "pre-existing, not caused by this session"; that claim is
   withdrawn here.
 
+**Evidence identity, resolved.** A review reported a conflict between job
+metadata ("Verify wheel contents succeeded, Verify shared import failed") and the
+log ("member AssertionError"). Checked at attempt level
+(`/runs/36242930810/attempts/1/jobs`): step 6 "Build wheel from locked backend" =
+success, step 7 "Install wheel with locked runtime dependencies" = success, and
+**only step 8 "Smoke-test installed runtime outside repository" = failure**. There
+was no step-name divergence; the "member AssertionError" text came from reading
+the *printed body of the workflow script* rather than the failure output, which is
+how a printed `assert not missing` line can be mistaken for a raised one.
+
+The failing statement is `ci.yml` line 404, the 16th line of that step's heredoc,
+matching the log's `File "<stdin>", line 16`:
+
+```python
+assert installed_version("archeaxis-workspace") == load_release_manifest()["product"]["version"]
+```
+
+So the failure is a **version mismatch between the installed distribution and the
+manifest inside the wheel**, not a missing or forbidden member.
+
+What was then checked, and why causation stays UNKNOWN:
+
+- Locally `pyproject.toml` = `0.6.14`, `app/release-manifest.json` product.version
+  = `0.6.14`, and `tests/test_release_manifest.py:62` asserts the two agree — so
+  the repository's own invariant holds on this checkout.
+- The version is **static**: no `[build-system]` dynamic version, no
+  `setuptools_scm`/git-describe derivation, and `load_release_manifest()` reads
+  only the manifest (the `release-identity.json` override does not exist here).
+  `scripts/release_inject_identity.py` states the tracked manifest stays frozen.
+- The failure therefore cannot be reproduced on this machine: `uv` is absent (not
+  on PATH and not vendored), and this host runs Python 3.13 while the job uses
+  3.12, so the same wheel build cannot be recreated.
+
+Status remains **OPEN / ROOT_CAUSE_UNVERIFIED**, now narrowed to one statement.
+Reproducing it needs either `uv` plus Python 3.12, or the wheel and its
+`METADATA` from the failing attempt; neither is available here.
+
+
 ### 2.3 The `test (3.12)` failure at `4270f25f` and its fix
 
 `docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md` restated the tip SHAs of

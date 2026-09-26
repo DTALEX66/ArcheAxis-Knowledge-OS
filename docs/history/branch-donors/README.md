@@ -52,6 +52,70 @@ is not the same as "deletion never loses content":
   One of them now has a durable local archive (see the section below); the other
   twelve still rest on this clone's object database alone.
 
+## Content-classification matrix — 2026-09-26 (supersedes the add-only criterion)
+
+The criterion in the next section ("count the paths a branch **added** and check
+they exist in HEAD") is **necessary but not sufficient**: it ignores Modified,
+Deleted, Renamed and Copied entries, so a branch can add nothing HEAD lacks yet
+still carry a modified path HEAD does not have. Re-run over the full change set
+with `git diff --name-status <merge-base>..<tip>`:
+
+| Branch | A | M | D | R | paths HEAD lacks | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
+| `feat/h2-bakeoff` | 4 | 0 | 0 | 0 | 0 | ABSORBED |
+| `feat/h2-pipeline-integration` | 1 | 77 | 0 | 0 | **2** | ABSORBED (legacy web) |
+| `feat/absorption-adopt-now` | 14 | 12 | 0 | 0 | 0 | ABSORBED |
+| `feat/absorption-roadmap-r0` | 35 | 21 | 0 | 0 | **1** | ABSORBED (dated doc) |
+| `agent/phase5-research-knowledge-governance` | 5 | 8 | 0 | 0 | **5** | SUPERSEDED |
+| `audit/unreleased-real-version` | 0 | 5 | 0 | 0 | 0 | ABSORBED |
+| `axw/execution-h0` | 5 | 10 | 0 | 0 | 0 | ABSORBED |
+| `axw/execution-h1` | 18 | 8 | 0 | 0 | 0 | ABSORBED |
+| `chore/naming-repo-refs` | 0 | 8 | 0 | 0 | 0 | ABSORBED |
+| `feat/ms00-c-release-identity` | 1 | 5 | 0 | 0 | 0 | ABSORBED |
+| `feat/naming-step3` | 0 | 14 | 0 | 0 | 0 | ABSORBED |
+| `feat/p1-compat-kernel-hardening` | 3 | 11 | 0 | 0 | 3 | ARCHIVED |
+| `feat/portable-data-root` | 6 | 12 | 0 | 0 | 6 | ARCHIVED |
+| `fix/desktop-close-request-destroy` | 1 | 0 | 0 | 0 | 1 | ARCHIVED |
+| `work/tp12-facades` | 5 | 14 | 1 | 17 | 3 | ABSORBED (docker) |
+| `feat/archeaxis-desktop-a1-violet-core` | 3 | 14 | 0 | 0 | 6 | ARCHIVED |
+| `feat/axw022a-pdf-http-endpoint` | 4 | 6 | 0 | 0 | 5 | ARCHIVED |
+| `feat/axw022b-evidence-annotation` | 1 | 3 | 0 | 0 | 2 | ABSORBED (legacy web) |
+| `codex/recovery-shell-frontend` | 4 | 15 | 0 | 0 | 1 | ABSORBED (legacy web) |
+| `release/v0.4.0-contract` | 0 | 2 | 0 | 0 | 0 | ABSORBED |
+
+35 paths are absent from HEAD in total. **Composition of all 35, by kind:**
+
+- `app/workspace/ui/**` and `frontend/src/**` — the legacy React/Tauri web
+  surface. The recorded disposition forbids merging these into the formal
+  Avalonia shell (`FROZEN_LEGACY_REACT_TAURI_REFERENCE_NO_MERGE`,
+  `FROZEN_WEB_UI_REFERENCE_REASSESS_AAVALONIA_CONTRACTS`), and the C#/Avalonia
+  desktop supersedes them.
+- `Dockerfile`, `docker-compose.yml`, `docker/Dockerfile` — container tooling not
+  present in HEAD.
+- Dated records: `workspace/intake/2026-08-09-*.md`,
+  `docs/workflow/HANDOFF_DESKTOP_CLOSE_LIFECYCLE_2026-08-06.md`,
+  `docs/NEXT_TASKS.md`, `docs/bc-lines/13_*.md`.
+
+**No product Python or Rust capability is missing.** Every absent path is legacy
+web UI, container configuration, or a dated record. That is the substantive
+answer to "was anything of value lost" for these 20 branches: no product
+capability was. The 7 archived files preserve the dated intakes and the retired
+`project_env.*` script; the rest is superseded or explicitly no-merge.
+
+**Corrected claim.** An earlier revision of this file recorded
+`feat/h2-pipeline-integration` and `feat/absorption-roadmap-r0` as adding "0 paths
+absent from HEAD". Under the full change set they have 2 and 1. Neither is
+product code, so the deletion outcome is unchanged, but the earlier number was
+wrong and is corrected here rather than left standing.
+
+**Semantics of the five phase5 paths.** `app/adapters/research_knowledge.py` and
+`shared/knowledge_migration.py` are superseded: HEAD carries
+`app/adapters/claim.py` + `research_package.py` and
+`shared/knowledge_governance_migration.py` (30,374 B, with version tracking and
+schema-ownership validation) against the branch's 10,684 B module, plus five
+governance test files. Porting the branch would place a less mature
+implementation beside the existing one, so it is SUPERSEDED, not merely absent.
+
 ## Why these branches were deleted
 
 Audit criterion: for each branch, count the paths it **added** relative to its
