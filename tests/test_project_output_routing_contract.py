@@ -125,6 +125,10 @@ def test_worker_checker_has_no_unmanaged_system_temp_directory() -> None:
 def test_formal_desktop_window_is_the_archeaxis_workspace_shell() -> None:
     xaml = _read("apps/ArcheAxis.Desktop/MainWindow.axaml")
     code = _read("apps/ArcheAxis.Desktop/MainWindow.axaml.cs")
+    # The import body streams the same JSON contract instead of buffering the
+    # whole source plus its base64 text in memory, so the content_base64 key is
+    # emitted by the dedicated HttpContent rather than inline in the window.
+    streaming = _read("apps/ArcheAxis.Desktop/StreamingImportContent.cs")
 
     assert "Welcome to Avalonia!" not in xaml
     assert "星环知识平台" in xaml
@@ -137,7 +141,8 @@ def test_formal_desktop_window_is_the_archeaxis_workspace_shell() -> None:
     assert 'HttpMethod.Post' in code
     assert '"/api/v1/imports"' in code
     assert '"/api/v1/learning/items"' in code
-    assert "content_base64" in code
+    assert "StreamingImportContent" in code
+    assert "content_base64" in streaming
 
 
 def test_desktop_smoke_requires_an_explicit_managed_database_path() -> None:

@@ -261,7 +261,8 @@ git for-each-ref --format='%(refname)' | ForEach-Object { ($_ -split '/')[0..1] 
 
 # 体积与大对象
 git count-objects -vH
-git verify-pack -v .git/objects/pack/pack-bb7677fa1568ad7b55f9ba1b126ef4be2a8eaa6a.idx
+# pack 文件名随每次 repack 变化；用当前 idx 而不是历史名
+Get-ChildItem .git/objects/pack -Filter *.idx | ForEach-Object { git verify-pack -v $_.FullName }
 
 # 敏感命名扫描
 git rev-list --objects --all | Select-String '\.env$|id_rsa|\.pem$|credentials|auth\.json'

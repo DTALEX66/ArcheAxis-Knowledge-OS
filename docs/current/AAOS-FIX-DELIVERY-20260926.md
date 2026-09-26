@@ -90,7 +90,6 @@ nightly 在 `main` 的失败：2026-09-21 至 09-26 连续 6 次，失败作业 
 - 提交 `caf4ab3c` 对象完好
 
 清理**不会**缩小 447 MiB 主体：体积来自 `refs/codex/turn-diffs/checkpoints/**` 引用的检查点快照（**Codex CLI 自有状态**，`AGENTS.md` §3 禁止越权处置）。
-
 ## 6. 明确驳回的外部审计处方
 
 | 处方 | 驳回理由 |

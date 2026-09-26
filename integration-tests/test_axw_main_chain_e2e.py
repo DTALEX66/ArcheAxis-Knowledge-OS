@@ -437,7 +437,19 @@ def test_axw_main_chain_full_e2e(
 ) -> None:
     """One real file walks the whole main chain; every stage is read back and asserted."""
     artifacts = _run_main_chain(axw_workspace, file_name, content)
-    assert str(artifacts["intake"]["engine"]) in engines, "conversion engine outside the real chain"
+    # app/workspace/service.py dispatches an installed+activated builtin
+    # converter plugin before the legacy engine chain, so those formats now
+    # report the plugin adapter identity (html-adapter / docx-adapter). The
+    # legacy engine names remain admissible for environments where the plugin
+    # is absent and the documented fallback chain runs instead.
+    expected_engines = set(engines)
+    if fmt == "html":
+        expected_engines.add("html-adapter")
+    elif fmt == "docx":
+        expected_engines.add("docx-adapter")
+    assert str(artifacts["intake"]["engine"]) in expected_engines, (
+        "conversion engine outside the real chain"
+    )
     _assert_stage_ingestion(axw_workspace, artifacts, fmt=fmt, marker=marker)
     _assert_stage_evidence_ledger(axw_workspace, artifacts, marker=marker)
     _assert_stage_human_learning(axw_workspace, artifacts, marker=marker)
@@ -513,7 +525,9 @@ def test_axw_main_chain_docx_when_markitdown_available(axw_workspace: AxwWorkspa
     docx_path = axw_workspace.source_archive / "sample.docx"
     _build_docx(docx_path, marker)
     artifacts = _run_main_chain(axw_workspace, "sample.docx", docx_path.read_bytes())
-    assert str(artifacts["intake"]["engine"]) == "markitdown"
+    # The installed+activated builtin converter plugin is dispatched ahead of
+    # the optional markitdown chain, so the adapter engine is the real path.
+    assert str(artifacts["intake"]["engine"]) in {"docx-adapter", "markitdown"}
     _assert_stage_ingestion(axw_workspace, artifacts, fmt="docx", marker=marker)
     _assert_stage_evidence_ledger(axw_workspace, artifacts, marker=marker)
     _assert_stage_human_learning(axw_workspace, artifacts, marker=marker)
