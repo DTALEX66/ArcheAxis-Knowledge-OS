@@ -48,20 +48,31 @@
 
 ## OPEN
 
-**O-1 `machine_assets` 页面未接通**（阶段 D 的第一个真实缺口）
+**O-1 路由契约与实际导航漂移**（阶段 D 的第一个真实缺口）
 
-- `config/desktop/routes-v1.json` 定义 7 个规范页面。
-- `MainWindow.axaml.cs` 命中数：`knowledge` 460、`learning` 221、`jobs` 73、`settings` 57、`recovery` 38。
-- **`machine_assets` 0 处**，`/api/v1/machine/assets` 端点**从未被调用**。
-- 同类：`source_reader` 作为 **page_id** 为 0 处（功能存在于 `Views/SourceReaderView.axaml`，但路由 id 未登记）。
+实测对比：
+
+| 来源 | 内容 |
+| --- | --- |
+| `config/desktop/routes-v1.json`（`archeaxis.desktop-routes/v1`） | **7 个 page_id**：`knowledge`、`source_reader`、`learning`、`jobs`、`machine_assets`、`settings`、`recovery` |
+| `MainWindow.axaml.cs` 实际 `SetSection(...)` | **16 个 section**：`home`、`capture`、`library`、`source-reader`、`knowledge`、`learning`、`evidence`、`research`、`original-editor`、`memory-map`、`machine-growth`、`jobs`、`plugins`、`models`、`settings`、`recovery` |
+
+具体不一致：
+
+- `machine_assets` 在契约中存在，但**不是真实 section**；真实 section 名为 `machine-growth`。
+- `home`、`capture`、`library`、`evidence`、`research`、`original-editor`、`memory-map`、`plugins`、`models` **未在契约中登记**。
+- `source_reader` 与真实 section 名 `source-reader` 命名不一致。
+- `/api/v1/machine/assets` 端点**从未被调用**（0 处）。
+
+裁定：`PROPOSED` —— 需要 Owner 确认哪一侧是权威（更新契约以匹配真实导航，或补齐真实导航以达到契约）。**未擅自改动任一侧**：契约与导航都是权威面，单方面改写会掩盖真实漂移。
 
 **O-2 正式 UI 纵向切片**
 
 - 正式实现：`apps/ArcheAxis.Desktop/`（C#/Avalonia，中文优先，黑底白灰深色基线）。
 - 现有：`MainWindow.axaml` 810 行 + `MainWindow.axaml.cs` 4727 行、`Themes/AaosTheme.axaml`、已拆出 `Views/SourceReaderView` 与 `Views/EvidenceCenterView`、`Contracts/Generated/Vocabulary.g.cs`。
-- 待做：按当前路由/导航/设置/恢复入口建立**完整页面清单**（不得套用旧 12 页面列表），再实现「启动 → Capture → 导入反馈 → Reader/Evidence → 知识绑定 → 学习/Review → 重启读回」的高质量切片。
+- 待做：以 O-1 裁定后的权威路线表为准建立**完整页面清单**（不得套用旧 12 页面列表），再实现「启动 → Capture → 导入反馈 → Reader/Evidence → 知识绑定 → 学习/Review → 重启读回」的高质量切片。该切片必须达到最终界面质量，不是先交裸原型。
 
-**O-3 设计资产缺失** — **UNVERIFIED_REFERENCE**
+**O-3 设计资产缺失** — `UNVERIFIED_REFERENCE`
 
 仓库内**未找到** `DESIGN-SPEC`、`B10`、`B09` 资产文件。提示词要求的「实际查找 B10/B09 资产和当前 DESIGN-SPEC」结果为：**不存在**。按规则记为 `UNVERIFIED_REFERENCE`，**不自行生成替代图**后宣称一比一还原。现有设计权威为 `config/product/UI_CONTRACT_V2.json`、`docs/current/UI_V3_PRODUCT_ROADMAP.md`、`docs/current/AAOS_VISUAL_QA.md`、`docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`。
 
